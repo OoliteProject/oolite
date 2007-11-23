@@ -116,7 +116,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	NSDictionary		*shipDict = dict;
 	unsigned			i;
-	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
@@ -216,6 +215,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_cargo = [shipDict unsignedIntForKey:@"max_cargo"];
 	likely_cargo = [shipDict unsignedIntForKey:@"likely_cargo"];
 	extra_cargo = [shipDict unsignedIntForKey:@"extra_cargo" defaultValue:15];
+	if ([shipDict fuzzyBooleanForKey:@"no_boulders"])  noRocks = YES;
 	
 	NSString *cargoString = [shipDict stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
@@ -418,34 +418,26 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 										  properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
 	if (script == nil)
 	{
-		NSArray					*launchActions = nil,
-								*scriptActions = nil,
-								*deathActions = nil,
-								*setUpActions = nil;
-		NSMutableDictionary		*scriptHandlers = nil;
+		NSArray					*actions = nil;
+		NSMutableDictionary		*properties = nil;
 		
-		launchActions = [shipDict arrayForKey:@"launch_actions"];
-		scriptActions = [shipDict arrayForKey:@"script_actions"];
-		deathActions = [shipDict arrayForKey:@"death_actions"];
-		if (launchActions != nil || scriptActions != nil || deathActions != nil)
-		{
-			scriptHandlers = [NSMutableDictionary dictionary];
-			if (launchActions != nil)  [scriptHandlers setObject:launchActions forKey:@"didSpawn"];
-			if (deathActions != nil)  [scriptHandlers setObject:deathActions forKey:@"didDie"];
-			if (scriptActions != nil)
-			{
-				[scriptHandlers setObject:scriptActions forKey:@"wasScooped"];
-				[scriptHandlers setObject:scriptActions forKey:@"playerDidDock"];
-			}
-			script = [OOScript scriptWithLegacyEventHandlers:scriptHandlers forOwner:self];
-		}
+		properties = [NSMutableDictionary dictionaryWithCapacity:5];
+		[properties setObject:self forKey:@"ship"];
 		
-		setUpActions = [shipDict arrayForKey:@"setup_actions"];
-		if (setUpActions != nil)
-		{
-			[player setScriptTarget:self];
-			[player scriptActions:setUpActions forTarget:self];
-		}
+		actions = [shipDict arrayForKey:@"launch_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
+		
+		actions = [shipDict arrayForKey:@"script_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
+		
+		actions = [shipDict arrayForKey:@"death_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
+		
+		actions = [shipDict arrayForKey:@"setup_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
+		
+		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
+											 properties:properties];
 	}
 	[script retain];
 	
@@ -2872,22 +2864,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return [roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0];
 }
 
-/*
-- (void) setRoles:(OORoleSet *)inRoles
-{
-	if (inRoles != nil && ![inRoles isEqual:roles])
-	{
-		[roles release];
-		roles = [inRoles copy];
-	}
-}
-
-
-- (void) setRoleString:(NSString *)string
-{
-	[self setRoles:[OORoleSet roleSetWithString:string]];
-}*/
-
 
 - (NSString *)primaryRole
 {
@@ -3733,10 +3709,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			//
 			if ([self hasPrimaryRole:@"asteroid"])
 			{
-				if ((being_mined)||(randf() < 0.20))
+				if (!noRocks && (being_mined || randf() < 0.20))
 				{
-					int n_rocks = likely_cargo;
-					//
+					int n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
+					
 					for (i = 0; i < n_rocks; i++)
 					{
 						ShipEntity* rock = [UNIVERSE newShipWithRole:@"boulder"];   // retain count = 1
@@ -7133,14 +7109,6 @@ int w_space_seed = 1234567;
 - (BOOL) isMining
 {
 	return ((behaviour == BEHAVIOUR_ATTACK_MINING_TARGET)&&(forward_weapon_type == WEAPON_MINING_LASER));
-}
-
-
-- (void) setNumberOfMinedRocks:(int) value
-{
-	if (![self hasPrimaryRole:@"asteroid"])
-		return;
-	likely_cargo = value;
 }
 
 

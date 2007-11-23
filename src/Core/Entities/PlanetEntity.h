@@ -114,6 +114,8 @@ typedef struct
 	double					cor4k, lim4k;
 	double					cor8k, lim8k;
 	double					cor16k, lim16k;
+	
+	Vector					rotationAxis;
 }
 
 // straight c

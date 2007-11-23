@@ -52,9 +52,9 @@ MA 02110-1301, USA.
 - (void) savePlayer;
 - (void) quicksavePlayer;
 
-- (NSString *) commanderSelector:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
-- (void) saveCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
-- (void) overwriteCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView;
+- (NSString *) commanderSelector;
+- (void) saveCommanderInputHandler;
+- (void) overwriteCommanderInputHandler;
 
 - (void) loadPlayerFromFile:(NSString *)fileToOpen;
 

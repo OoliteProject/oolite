@@ -165,7 +165,8 @@ MA 02110-1301, USA.
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 	
 	// scripting
-							haveExecutedSpawnAction: 1;
+							haveExecutedSpawnAction: 1,
+							noRocks: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -633,7 +634,6 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) markForFines;
 
 - (BOOL) isMining;
-- (void) setNumberOfMinedRocks:(int) value;
 
 - (void) spawn:(NSString *)roles_number;
 

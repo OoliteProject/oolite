@@ -48,7 +48,19 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
 
-enum
+#define SUPPORT_TRACE_MESSAGES	(!defined NDEBUG)
+
+// Trace messages are very verbose debug messages in the script mechanism,
+// disabled in logcontrol.plist by default and disabled here in release builds
+// for performance reasons.
+#if SUPPORT_TRACE_MESSAGES
+#define TraceLog OOLog
+#else
+#define TraceLog(...) do {} while (0)
+#endif
+
+
+typedef enum
 {
 	COMPARISON_NO,
 	COMPARISON_EQUAL,
@@ -57,7 +69,7 @@ enum
 	COMPARISON_GREATERTHAN,
 	COMPARISON_ONEOF,
 	COMPARISON_UNDEFINED
-};
+} OOComparisonType;
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -68,9 +80,6 @@ static NSString * const kOOLogDebug							= @"script.debug";
 static NSString * const kOOLogDebugOnMetaClass				= @"$scriptDebugOn";
 	   NSString * const kOOLogDebugMessage					= @"script.debug.message";
 static NSString * const kOOLogDebugOnOff					= @"script.debug.onOff";
-static NSString * const kOOLogDebugTestConditionCheckingVariable = @"script.debug.testCondition.checkingVariable";
-static NSString * const kOOLogDebugTestConditionValues		= @"script.debug.testCondition.testValues";
-static NSString * const kOOLogDebugTestConditionOnOf		= @"script.debug.testCondition.oneOf";
 static NSString * const kOOLogDebugAddPlanet				= @"script.debug.addPlanet";
 static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.replaceVariablesInString";
 static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
@@ -80,8 +89,12 @@ static NSString * const kOOLogDebugProcessSceneStringAddTargetPlanet = @"script.
 static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
 static NSString * const kOOLogDebugSetSunNovaIn				= @"script.debug.setSunNovaIn";
 
-static NSString * const kOOLogNoteScriptAction				= @"script.debug.note.scriptAction";
-static NSString * const kOOLogNoteTestCondition				= @"script.debug.note.testCondition";
+static NSString * const kOOLogTraceScriptAction				= @"script.debug.trace.scriptAction";
+static NSString * const kOOLogTraceTestCondition			= @"script.debug.trace.testCondition";
+static NSString * const kOOLogTraceTestConditionCheckingVariable = @"script.debug.trace.testCondition.checkingVariable";
+static NSString * const kOOLogTraceTestConditionValues		= @"script.debug.trace.testCondition.testValues";
+static NSString * const kOOLogTraceTestConditionOneOf		= @"script.debug.trace.testCondition.oneOf";
+
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
 static NSString * const kOOLogNoteUseSpecialCargo			= @"script.debug.note.useSpecialCargo";
 	   NSString * const kOOLogNoteAddShips					= @"script.debug.note.addShips";
@@ -95,6 +108,7 @@ static NSString * const kOOLogSyntaxBadConditional			= @"script.debug.syntax.bad
 static NSString * const kOOLogSyntaxNoAction				= @"script.debug.syntax.action.noneSpecified";
 static NSString * const kOOLogSyntaxBadAction				= @"script.debug.syntax.action.badSelector";
 static NSString * const kOOLogSyntaxNoScriptCondition		= @"script.debug.syntax.scriptCondition.noneSpecified";
+static NSString * const kOOLogSyntaxBadScriptCondition		= @"script.debug.syntax.scriptCondition.badSelector";
 static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
 static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
 static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.messageShipAIs";
@@ -105,14 +119,50 @@ static NSString * const kOOLogSyntaxIncrement				= @"script.debug.syntax.increme
 static NSString * const kOOLogSyntaxDecrement				= @"script.debug.syntax.decrement";
 static NSString * const kOOLogSyntaxAdd						= @"script.debug.syntax.add";
 static NSString * const kOOLogSyntaxSubtract				= @"script.debug.syntax.subtract";
+static NSString * const kOOLogInvalidComparison				= @"script.debug.syntax.badComparison";
 
 static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAllCargo.notDocked";
 
 
 @implementation PlayerEntity (Scripting)
 
-static NSString * mission_string_value;
-static NSString * mission_key;
+static NSString *mission_string_value;
+static NSString *mission_key;
+static ShipEntity *scriptTarget;
+
+
+OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
+{
+	unsigned		i, count;
+	id				action = nil;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	
+	count = [actions count];
+	for (i = 0; i < count; i++)
+	{
+		action = [actions objectAtIndex:i];
+		if ([action isKindOfClass:[NSDictionary class]])
+		{
+			[player checkCouplet:action onEntity:target];
+		}
+		else if ([action isKindOfClass:[NSString class]])
+		{
+			[player scriptAction:action onEntity:target];
+		}
+	}
+}
+
+
+- (void) setScriptTarget:(ShipEntity *)ship
+{
+	scriptTarget = ship;
+}
+
+
+- (ShipEntity*) scriptTarget
+{
+	return scriptTarget;
+}
 
 
 - (void) checkScript
@@ -139,91 +189,73 @@ static NSString * mission_key;
 	[self setScriptTarget:target];
 	mission_key = scriptName;
 	[self scriptActions:scriptActions forTarget:target];
+	mission_key = nil;
 }
 
 
-- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target
+- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity *)a_target
 {
-	unsigned i;
+	NSAutoreleasePool	*pool = nil;
 	
-	for (i = 0; i < [some_actions count]; i++)
-	{
-		id action = [some_actions objectAtIndex:i];
-		if ([action isKindOfClass:[NSDictionary class]])
-			[self checkCouplet:(NSDictionary *)action onEntity: a_target];
-		if ([action isKindOfClass:[NSString class]])
-			[self scriptAction:(NSString *)action onEntity: a_target];
-	}
+	PerformScriptActions(some_actions, a_target);
+	
+	[pool release];
 }
 
 
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
 {
-	NSAutoreleasePool	*pool = nil;
-	NSArray				*conditions = [couplet objectForKey:@"conditions"];	// No CollectionsExtractors here, because we provide more detailed info below.
-	NSArray				*actions = [couplet objectForKey:@"do"];
-	NSArray				*else_actions = [couplet objectForKey:@"else"];
-	BOOL				success = YES;
-	unsigned			i;
+	NSArray				*conditions = nil;
+	NSArray				*actions = nil;
+	BOOL				conditionsPassed;
+	unsigned			i, count;
+	NSString			*actionsName = nil;
 	
+	conditions = [couplet objectForKey:@"conditions"];
 	if (conditions == nil)
 	{
-		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR no 'conditions' in %@ - returning YES.", [couplet description]);
-		return success;
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR no 'conditions' in %@ - returning YES.", couplet);
+		return YES;
 	}
 	if (![conditions isKindOfClass:[NSArray class]])
 	{
-		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", [conditions description]);
-		return success;
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"conditions = %@\" is not an array - returning YES.", conditions);
+		return YES;
 	}
 	
-	pool = [[NSAutoreleasePool alloc] init];
-	
 	NS_DURING
-		for (i = 0; (i < [conditions count])&&(success); i++)
-			success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
-		if ((success) && (actions))
+		conditionsPassed = YES;
+		count = [conditions count];
+		for (i = 0; i < count; i++)
+		{
+			if (![self scriptTestCondition:[conditions objectAtIndex:i]])
+			{
+				conditionsPassed = NO;
+				break;
+			}
+		}
+		
+		if (conditionsPassed)  actionsName = @"do";
+		else  actionsName = @"else";
+		
+		actions = [couplet objectForKey:actionsName];
+		if (actions != nil)
 		{
 			if (![actions isKindOfClass:[NSArray class]])
 			{
-				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"actions = %@\" is not an array.", [actions description]);
+				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"%@\" actions = %@ is not an array.", actionsName, actions);
 			}
 			else
 			{
-				for (i = 0; i < [actions count]; i++)
-				{
-					if ([[actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-						[self checkCouplet:(NSDictionary *)[actions objectAtIndex:i] onEntity:entity];
-					if ([[actions objectAtIndex:i] isKindOfClass:[NSString class]])
-						[self scriptAction:(NSString *)[actions objectAtIndex:i] onEntity:entity];
-				}
-			}
-		}
-		// now check if there's an 'else' to do if the couplet is false
-		if ((!success) && (else_actions))
-		{
-			if (![else_actions isKindOfClass:[NSArray class]])
-			{
-				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"else_actions = %@\" is not an array.", [else_actions description]);
-			}
-			else
-			{
-				for (i = 0; i < [else_actions count]; i++)
-				{
-					if ([[else_actions objectAtIndex:i] isKindOfClass:[NSDictionary class]])
-						[self checkCouplet:(NSDictionary *)[else_actions objectAtIndex:i] onEntity:entity];
-					if ([[else_actions objectAtIndex:i] isKindOfClass:[NSString class]])
-						[self scriptAction:(NSString *)[else_actions objectAtIndex:i] onEntity:entity];
-				}
+				PerformScriptActions(actions, entity);
 			}
 		}
 	NS_HANDLER
 		OOLog(kOOLogException, @"***** Exception %@ (%@) during plist script evaluation.", [localException name], [localException reason]);
 		// Suppress
 	NS_ENDHANDLER
-	[pool release];
 	
-	return success;
+	return conditionsPassed;
 }
 
 
@@ -242,51 +274,57 @@ static NSString * mission_key;
 	is used to set a mission variable to the given string_expression
 
 	*/
-	NSMutableArray*	tokens = ScanTokensFromString(scriptAction);
-	NSMutableDictionary* locals = [self localVariablesForMission:mission_key];
-	NSString*   selectorString = nil;
-	NSString*	valueString = nil;
-	SEL			_selector;
-
-	OOLog(kOOLogNoteScriptAction, @"scriptAction: \"%@\"", scriptAction);
-
-	if ([tokens count] < 1)
+	NSMutableArray		*tokens = ScanTokensFromString(scriptAction);
+	NSMutableDictionary	*locals = [self localVariablesForMission:mission_key];
+	NSString			*selectorString = nil;
+	NSString			*valueString = nil;
+	SEL					_selector = NULL;
+	unsigned			tokenCount;
+	BOOL				takesParam;
+	
+	TraceLog(kOOLogTraceScriptAction, @"scriptAction: \"%@\"", scriptAction);
+	
+	tokenCount = [tokens count];
+	if (tokenCount < 1)
 	{
 		OOLog(kOOLogSyntaxNoAction, @"***** No scriptAction '%@'",scriptAction);
 		return;
 	}
-
+	
 	selectorString = [tokens objectAtIndex:0];
-
-	if ([tokens count] > 1)
+	takesParam = [selectorString hasSuffix:@":"];
+	
+	if (takesParam && tokenCount > 1)
 	{
-		[tokens removeObjectAtIndex:0];
-		valueString = [[tokens componentsJoinedByString:@" "] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-		valueString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
-		OOLog(kOOLogNoteScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
-	}
-
-	_selector = NSSelectorFromString(selectorString);
-
-	if ((entity)&&([entity respondsToSelector:_selector]))
-	{
-		if ([selectorString hasSuffix:@":"])
-			[entity performSelector:_selector withObject:valueString];
+		if (tokenCount == 2) valueString = [tokens objectAtIndex:1];
 		else
-			[entity performSelector:_selector];
-		return;
+		{
+			[tokens removeObjectAtIndex:0];
+			valueString = [tokens componentsJoinedByString:@" "];
+		}
+#ifdef POINTLESS
+		// I believe this will never do anything useful, given the way ScanTokensFromString() works. -- Ahruman
+		valueString = [valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+#endif
+		valueString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
+		
+		TraceLog(kOOLogTraceScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
 	}
-
-	if (![self respondsToSelector:_selector])
+	
+	_selector = NSSelectorFromString(selectorString);
+	
+	if (entity == nil || ![entity respondsToSelector:_selector])
 	{
-		OOLog(kOOLogSyntaxBadAction, @"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
-		return;
+		if (![self respondsToSelector:_selector])
+		{
+			OOLog(kOOLogSyntaxBadAction, @"***** PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", scriptAction);
+			return;
+		}
+		entity = self;
 	}
-
-	if ([selectorString hasSuffix:@":"])
-		[self performSelector:_selector withObject:valueString];
-	else
-		[self performSelector:_selector];
+	
+	if (takesParam)  [entity performSelector:_selector withObject:valueString];
+	else  [entity performSelector:_selector];
 }
 
 
@@ -319,38 +357,44 @@ static NSString * mission_key;
 	comma separated numeric constants (eg "planet_number oneof 1,5,9,12,14,234").
 
 	*/
-	NSArray*	tokens = ScanTokensFromString(scriptCondition);
-	NSMutableDictionary* locals = [self localVariablesForMission:mission_key];
-	NSString*   selectorString = nil;
-	NSString*	comparisonString = nil;
-	NSString*	valueString = nil;
-	SEL			_selector;
-	int			comparator = COMPARISON_NO;
-
-	OOLog(kOOLogNoteTestCondition, @"scriptTestCondition: \"%@\"", scriptCondition);
-
-	if ([tokens count] < 1)
+	NSArray				*tokens = ScanTokensFromString(scriptCondition);
+	NSMutableDictionary	*locals = [self localVariablesForMission:mission_key];
+	NSString			*selectorString = nil;
+	NSString			*comparisonString = nil;
+	NSString			*valueString = nil;
+	SEL					_selector;
+	OOComparisonType	comparator = COMPARISON_NO;
+	unsigned			tokenCount;
+	unsigned			i, count;
+	NSArray				*valueStrings = nil;
+	NSNumber			*value = nil;
+	
+	TraceLog(kOOLogTraceTestCondition, @"scriptTestCondition: \"%@\"", scriptCondition);
+	
+	tokenCount = [tokens count];
+	if (tokenCount < 1)
 	{
 		OOLog(kOOLogSyntaxNoScriptCondition, @"***** No scriptCondition '%@'",scriptCondition);
 		return NO;
 	}
-	selectorString = (NSString *)[tokens objectAtIndex:0];
+	selectorString = [tokens objectAtIndex:0];
 	if ([selectorString hasPrefix:@"mission_"])
 	{
-		OOLog(kOOLogDebugTestConditionCheckingVariable, @"DEBUG ..... checking mission_variable '%@'",selectorString);
-		mission_string_value = (NSString *)[mission_variables objectForKey:selectorString];
+		TraceLog(kOOLogTraceTestConditionCheckingVariable, @"DEBUG ..... checking mission_variable '%@'",selectorString);
+		mission_string_value = [mission_variables objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
 	else if ([selectorString hasPrefix:@"local_"])
 	{
-		OOLog(kOOLogDebugTestConditionCheckingVariable, @"DEBUG ..... checking local variable '%@'",selectorString);
-		mission_string_value = (NSString *)[locals objectForKey:selectorString];
+		TraceLog(kOOLogTraceTestConditionCheckingVariable, @"DEBUG ..... checking local variable '%@'",selectorString);
+		mission_string_value = [locals objectForKey:selectorString];
 		selectorString = @"mission_string";
 	}
 
-	if ([tokens count] > 1)
+	if (tokenCount > 1)
 	{
-		comparisonString = (NSString *)[tokens objectAtIndex:1];
+		comparisonString = [tokens objectAtIndex:1];
+		
 		if ([comparisonString isEqual:@"equal"])
 			comparator = COMPARISON_EQUAL;
 		else if ([comparisonString isEqual:@"notequal"])
@@ -365,16 +409,20 @@ static NSString * mission_key;
 // -dajt: black ops
 		else if ([comparisonString isEqual:@"undefined"])
 			comparator = COMPARISON_UNDEFINED;
+		else
+		{
+			OOLog(kOOLogInvalidComparison, @"SCRIPT ERROR unknown comparison operator \"%@\", returning NO.", comparisonString);
+		}
 	}
 
-	if ([tokens count] > 2)
+	if (tokenCount > 2)
 	{
-		NSMutableString* allValues = [NSMutableString stringWithCapacity:256];
+		NSMutableString *allValues = [NSMutableString stringWithCapacity:256];
 		unsigned value_index = 2;
-		while (value_index < [tokens count])
+		while (value_index < tokenCount)
 		{
-			valueString = (NSString *)[tokens objectAtIndex:value_index++];
-			if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+			valueString = [tokens objectAtIndex:value_index++];
+			if ([valueString hasSuffix:@"_number"] || [valueString hasSuffix:@"_bool"] || [valueString hasSuffix:@"_string"])
 			{
 				SEL value_selector = NSSelectorFromString(valueString);
 				if ([self respondsToSelector:value_selector])
@@ -384,7 +432,7 @@ static NSString * mission_key;
 				}
 			}
 			[allValues appendString:valueString];
-			if (value_index < [tokens count])
+			if (value_index < tokenCount)
 				[allValues appendString:@" "];
 		}
 		valueString = allValues;
@@ -392,38 +440,45 @@ static NSString * mission_key;
 
 	_selector = NSSelectorFromString(selectorString);
 	if (![self respondsToSelector:_selector])
+	{
+		OOLog(kOOLogSyntaxBadScriptCondition, @"SCRIPT ERROR unknown script condition method %@, returning NO.", selectorString);
 		return NO;
+	}
 
 	// test string values (method returns NSString*)
 	if ([selectorString hasSuffix:@"_string"])
 	{
 		NSString *result = [self performSelector:_selector];
-		OOLog(kOOLogDebugTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
+		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
+	
 		switch (comparator)
 		{
-			case COMPARISON_UNDEFINED :
-				return (result == nil);
-			case COMPARISON_NO :
+			case COMPARISON_UNDEFINED:
+				return result == nil;
+			case COMPARISON_NO:
 				return NO;
-			case COMPARISON_EQUAL :
-				return ([result isEqual:valueString]);
-			case COMPARISON_NOTEQUAL :
-				return (![result isEqual:valueString]);
-			case COMPARISON_LESSTHAN :
-				return ([result floatValue] < [valueString floatValue]);
-			case COMPARISON_GREATERTHAN :
-				return ([result floatValue] > [valueString floatValue]);
+			case COMPARISON_EQUAL:
+				return [result isEqual:valueString];
+			case COMPARISON_NOTEQUAL:
+				return ![result isEqual:valueString];
+			case COMPARISON_LESSTHAN:
+				return [result floatValue] < [valueString floatValue];
+			case COMPARISON_GREATERTHAN:
+				return [result floatValue] > [valueString floatValue];
 			case COMPARISON_ONEOF:
 				{
-					unsigned i;
-					NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-					OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
+					valueStrings = [valueString componentsSeparatedByString:@","];
+					
+					TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison: is %@ ONEOF %@ ?", result, valueStrings);
+					
 					NSString* r1 = [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-					for (i = 0; i < [valueStrings count]; i++)
+					count = [valueStrings count];
+					for (i = 0; i < count; i++)
 					{
-						if ([r1 isEqual:[(NSString*)[valueStrings objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]])
+						if ([r1 isEqualToString:[[valueStrings objectAtIndex:i] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]]])
 						{
-							OOLog(kOOLogDebugTestConditionOnOf, @"found a match in ONEOF!");
+							
+							TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", [valueStrings objectAtIndex:i]);
 							return YES;
 						}
 					}
@@ -438,40 +493,44 @@ static NSString * mission_key;
 // +dajt: black ops
 		if (comparator == COMPARISON_ONEOF)
 		{
-			NSArray *valueStrings = [valueString componentsSeparatedByString:@","];
-			OOLog(kOOLogDebugTestConditionOnOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
-			unsigned i;
-			for (i = 0; i < [valueStrings count]; i++)
+			valueStrings = [valueString componentsSeparatedByString:@","];
+			OOLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
+			count = [valueStrings count];
+			for (i = 0; i < count; i++)
 			{
-				NSNumber *value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
+				value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
 				if ([result isEqual:value])
 				{
-					OOLog(kOOLogDebugTestConditionOnOf, @"found a match in ONEOF!");
+					TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", value);
 					return YES;
 				}
 			}
-			OOLog(kOOLogDebugTestConditionOnOf, @"No match in ONEOF");
+			TraceLog(kOOLogTraceTestConditionOneOf, @"No match in ONEOF");
 			return NO;
 		}
 		else
 		{
-			NSNumber *value = [NSNumber numberWithDouble:[valueString doubleValue]];
-
-			OOLog(kOOLogDebugTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
-
+			value = [NSNumber numberWithDouble:[valueString doubleValue]];
+			
+			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
+			
 			switch (comparator)
 			{
-				case COMPARISON_UNDEFINED :
-				case COMPARISON_NO :
+				case COMPARISON_UNDEFINED:
+				case COMPARISON_NO:
 					return NO;
-				case COMPARISON_EQUAL :
-					return ([result isEqual:value]);
-				case COMPARISON_NOTEQUAL :
-					return (![result isEqual:value]);
-				case COMPARISON_LESSTHAN :
-					return ([result isLessThan:value]);
-				case COMPARISON_GREATERTHAN :
-					return ([result isGreaterThan:value]);
+				case COMPARISON_EQUAL:
+					return [result isEqual:value];
+				case COMPARISON_NOTEQUAL:
+					return ![result isEqual:value];
+				case COMPARISON_LESSTHAN:
+					return [result isLessThan:value];
+				case COMPARISON_GREATERTHAN:
+					return [result isGreaterThan:value];
+				
+				case COMPARISON_ONEOF:
+					// can't happen
+					return NO;
 			}
 		}
 // -dajt: black ops
@@ -479,7 +538,7 @@ static NSString * mission_key;
 	// test boolean values (method returns @"YES" or @"NO")
 	if ([selectorString hasSuffix:@"_bool"])
 	{
-		BOOL result = ([[self performSelector:_selector] isEqual:@"YES"]);
+		BOOL result = [[self performSelector:_selector] isEqual:@"YES"];
 		BOOL value = [valueString isEqual:@"YES"];
 		switch (comparator)
 		{
@@ -487,11 +546,14 @@ static NSString * mission_key;
 			case COMPARISON_LESSTHAN:
 			case COMPARISON_UNDEFINED:
 			case COMPARISON_NO:
+			case COMPARISON_ONEOF:
+				OOLog(kOOLogInvalidComparison, @"SCRIPT ERROR comparison %@ is not valid for boolean expressions, returning NO.", comparisonString);
 				return NO;
+			
 			case COMPARISON_EQUAL:
-				return (result == value);
+				return result == value;
 			case COMPARISON_NOTEQUAL:
-				return (result != value);
+				return result != value;
 		}
 	}
 	// default!
@@ -905,7 +967,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) commsMessage:(NSString *)valueString
 {
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 	
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
@@ -964,7 +1026,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardCredits:(NSString *)valueString
 {
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 	
 	int award = 10 * [valueString intValue];
 	if (award < 0 && credits < (unsigned)-award)  credits = 0;
@@ -974,7 +1036,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardShipKills:(NSString *)valueString
 {
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 	
 	int value = [valueString intValue];
 	if (0 < value)  ship_kills += value;
@@ -983,25 +1045,23 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
 {
-	NSString*   eq_type		= equipString;
-
-	if (script_target != self)  return;
-
-	if ([eq_type isEqual:@"EQ_FUEL"])
+	if (scriptTarget != self)  return;
+	
+	if ([equipString isEqual:@"EQ_FUEL"])
 	{
 		fuel = PLAYER_MAX_FUEL;
 		return;
 	}
-
-	if ([eq_type hasSuffix:@"MISSILE"]||[eq_type hasSuffix:@"MINE"])
+	
+	if ([equipString hasSuffix:@"MISSILE"]||[equipString hasSuffix:@"MINE"])
 	{
-		[self mountMissile:[[UNIVERSE newShipWithRole:eq_type] autorelease]];
+		[self mountMissile:[[UNIVERSE newShipWithRole:equipString] autorelease]];
 		return;
 	}
-
-	if (![self hasExtraEquipment:eq_type])
+	
+	if (![self hasExtraEquipment:equipString])
 	{
-		[self addExtraEquipment:eq_type];
+		[self addExtraEquipment:equipString];
 	}
 
 }
@@ -1011,7 +1071,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	NSString*   eq_type		= equipString;
 
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 
 	if ([eq_type isEqual:@"EQ_FUEL"])
 	{
@@ -1039,8 +1099,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	keyString = [(NSString*)[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-	valueString = [(NSString*)[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	keyString = [[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	valueString = [[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
 	[UNIVERSE setSystemDataKey:keyString value:valueString];
 
@@ -1060,10 +1120,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	gnum = [(NSString*)[tokens objectAtIndex:0] intValue];
-	pnum = [(NSString*)[tokens objectAtIndex:1] intValue];
-	keyString = [(NSString*)[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-	valueString = [(NSString*)[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	gnum = [tokens intAtIndex:0];
+	pnum = [tokens intAtIndex:1];
+	keyString = [[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	valueString = [[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
 	[UNIVERSE setSystemDataForGalaxy:gnum planet:pnum key:keyString value:valueString];
 }
@@ -1071,7 +1131,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardCargo:(NSString *)amount_typeString
 {
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 
 	NSArray					*tokens = ScanTokensFromString(amount_typeString);
 	NSString				*typeString = nil;
@@ -1113,7 +1173,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	OOCargoType				type;
 	OOMassUnit				unit;
 	
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 	if (status != STATUS_DOCKED)
 	{
 		OOLog(kOOLogRemoveAllCargoNotDocked, @"***** Error: removeAllCargo only works when docked.");
@@ -1144,7 +1204,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) useSpecialCargo:(NSString *)descriptionString;
 {
-	if (script_target != self)  return;
+	if (scriptTarget != self)  return;
 	
 	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
 	
@@ -1162,13 +1222,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) awardFuel:(NSString *)valueString	// add to fuel up to 7.0 LY
 {
 	int delta  = 10 * [valueString floatValue];
-	OOFuelQuantity scriptTargetFuelBeforeAward = [script_target fuel];
+	OOFuelQuantity scriptTargetFuelBeforeAward = [scriptTarget fuel];
 
-	if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta)  [script_target setFuel:0];
+	if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta)  [scriptTarget setFuel:0];
 	else
 	{
-		[script_target setFuel:(scriptTargetFuelBeforeAward + delta)];
-		if ([script_target fuel] > PLAYER_MAX_FUEL)  [script_target setFuel:PLAYER_MAX_FUEL];
+		[scriptTarget setFuel:(scriptTargetFuelBeforeAward + delta)];
+		if ([scriptTarget fuel] > PLAYER_MAX_FUEL)  [scriptTarget setFuel:PLAYER_MAX_FUEL];
 	}
 }
 
@@ -1196,10 +1256,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) ejectItem:(NSString *)item_key
 {
 	ShipEntity* item = [UNIVERSE newShipWithName:item_key];
-	if (script_target == nil)
-		script_target = self;
+	if (scriptTarget == nil)
+		scriptTarget = self;
 	if (item)
-		[script_target dumpItem:item];
+		[scriptTarget dumpItem:item];
 }
 
 
@@ -1830,9 +1890,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setFuelLeak: (NSString *)value
 {	
-	if (script_target != self)
+	if (scriptTarget != self)
 	{
-		[script_target setFuel:0];
+		[scriptTarget setFuel:0];
 		return;
 	}
 	
@@ -1922,7 +1982,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = (NSDictionary*)[[UNIVERSE planetinfo] objectForKey:planetKey];
+	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:planetKey];
 	if (!dict)
 	{
 		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -1969,7 +2029,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = (NSDictionary*)[[UNIVERSE planetinfo] objectForKey:moonKey];
+	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:moonKey];
 	if (!dict)
 	{
 		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
@@ -2148,13 +2208,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	for (i = 0; i < [items count]; i++)
 	{
-		NSObject* item = [items objectAtIndex:i];
+		id item = [items objectAtIndex:i];
 		if ([item isKindOfClass:[NSString class]])
-			[self processSceneString: (NSString*)item atOffset: off];
-		if ([item isKindOfClass:[NSArray class]])
-			[self addScene: (NSArray*)item atOffset: off];
-		if ([item isKindOfClass:[NSDictionary class]])
-			[self processSceneDictionary: (NSDictionary*) item atOffset: off];
+		{
+			[self processSceneString:item atOffset: off];
+		}
+		else if ([item isKindOfClass:[NSArray class]])
+		{
+			[self addScene:item atOffset: off];
+		}
+		else if ([item isKindOfClass:[NSDictionary class]])
+		{
+			[self processSceneDictionary:item atOffset: off];
+		}
 	}
 }
 
@@ -2185,7 +2251,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	// check conditions..
 	for (i = 0; (i < [conditions count])&&(success); i++)
-		success &= [self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+		success &= [self scriptTestCondition:[conditions stringAtIndex:i]];
 
 	// perform successful actions...
 	if ((success) && (actions) && [actions count])

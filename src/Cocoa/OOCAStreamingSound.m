@@ -50,6 +50,7 @@ SOFTWARE.
 #import "OOCASoundInternal.h"
 #import "OOCASoundDecoder.h"
 #import "VirtualRingBuffer.h"
+#import "NSThreadOOExtensions.h"
 
 
 static NSString * const kOOLogSoundStreamingRefill		= @"sound.streaming.refill";
@@ -249,6 +250,7 @@ enum
 	
 	assert(sFeederQueue != kInvalidID);
 	
+	[NSThread ooSetCurrentThreadName:@"OOCAStreamingSound feeder thread"];
 	sFeederThreadActive = YES;
 	
 	for (;;)

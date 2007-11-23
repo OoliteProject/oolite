@@ -117,7 +117,7 @@ OOALObjectRef OOALPropertyListFromData(OOALMutableDataRef data, OOALStringRef *e
 												 errorDescription:errStr];
 	[result retain];
 	
-#ifndef OOLITE_MAC_OS_X
+#if !OOLITE_RELEASE_PLIST_ERROR_STRINGS
 	[errStr retain];
 #endif
 	

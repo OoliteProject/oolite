@@ -5850,18 +5850,6 @@ OOSound* burnersound;
 }
 
 
-- (void) setScriptTarget:(ShipEntity *)ship
-{
-	script_target = ship;
-}
-
-
-- (ShipEntity*) script_target
-{
-	return script_target;
-}
-
-
 - (BOOL) hasHostileTarget
 {
 	return NO;

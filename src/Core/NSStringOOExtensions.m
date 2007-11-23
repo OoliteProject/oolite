@@ -33,9 +33,9 @@ MA 02110-1301, USA.
 	BOOL			OK = YES;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
-	size_t			length;
+	size_t			length = 0;
 	const uint8_t	*effectiveBytes = NULL;
-	size_t			effectiveLength;
+	size_t			effectiveLength = 0;
 	
 	data = [[NSData alloc] initWithContentsOfFile:path];
 	if (data == nil) OK = NO;

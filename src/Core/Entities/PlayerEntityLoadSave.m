@@ -145,13 +145,15 @@
 }
 
 
-- (NSString *)commanderSelector:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+- (NSString *)commanderSelector
 {
-	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	int idx;
-	if([self handleGUIUpDownArrowKeys: gui :gameView])
+	if([self handleGUIUpDownArrowKeys])
 	{
 		int guiSelectedRow=[gui selectedRow];
 		idx=(guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -224,12 +226,14 @@
 }
 
 
-- (void) saveCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+- (void) saveCommanderInputHandler
 {
-	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
-	if ([self handleGUIUpDownArrowKeys: gui :gameView])
+	if ([self handleGUIUpDownArrowKeys])
 	{
 		int guiSelectedRow=[gui selectedRow];
 		int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
@@ -310,9 +314,12 @@
 }
 
 
-- (void) overwriteCommanderInputHandler:(GuiDisplayGen *)gui :(MyOpenGLView *)gameView
+- (void) overwriteCommanderInputHandler
 {
-	[self handleGUIUpDownArrowKeys: gui :gameView];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	
+	[self handleGUIUpDownArrowKeys];
 	
 	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown: 121]||[gameView isDown: 89])
 	{

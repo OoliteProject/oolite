@@ -1190,15 +1190,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
 	
-	if (script != nil)
-	{
-		PlayerEntity *player = [PlayerEntity sharedPlayer];
-		[player setScriptTarget:self];
-		
-		// Two actions here. playerDidDock is equivalent to legacy script_actions. shipDidDock is more general.
-		if (ship == player)  [script doEvent:@"playerDidDock"];
-		[script doEvent:@"shipDidDock" withArgument:ship];
-	}
+	[script doEvent:@"shipDidDock" withArgument:ship];
 }
 
 

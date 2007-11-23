@@ -260,6 +260,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	
 	context = [self acquireContext];
 	result = JS_CallFunction(context, jsThis, function, argc, argv, outResult);
+	JS_ReportPendingException(context);
 	[self releaseContext:context];
 	
 	return result;
@@ -1055,10 +1056,17 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	jsval							rval = JSVAL_VOID;
 	JSBool							result = NO;
 	
+	if (param->errorFlag)  return NO;
+	
 	args[0] = [entity javaScriptValueInContext:param->context];
 	if (JS_CallFunction(param->context, param->jsThis, param->function, 1, args, &rval))
 	{
 		if (!JS_ValueToBoolean(param->context, rval, &result))  result = NO;
+		if (JS_IsExceptionPending(param->context))
+		{
+			JS_ReportPendingException(param->context);
+			param->errorFlag = YES;
+		}
 	}
 	
 	return result;

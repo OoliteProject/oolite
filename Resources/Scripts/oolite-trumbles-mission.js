@@ -66,7 +66,7 @@ this.didDock = function()
 		missionVariables.trumbles = "BUY_ME"
 	}
 	
-	if (missionVariables.trumbles == "BUY_ME")
+	if (missionVariables.trumbles == "BUY_ME" && player.trumbleCount == 0)
 	{
 		// 20% chance of trumble being offered, if no other script got this dock session first.
 		if (guiScreen == "GUI_SCREEN_STATUS"

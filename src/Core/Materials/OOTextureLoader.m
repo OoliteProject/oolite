@@ -55,6 +55,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 #import <stdlib.h>
 #import "OOAsyncQueue.h"
+#import "NSThreadOOExtensions.h"
 
 
 static OOAsyncQueue			*sLoadQueue,
@@ -81,7 +82,7 @@ enum
 
 @interface OOTextureLoader (OOTextureLoadingThread)
 
-+ (void)queueTask;
++ (void)queueTask:(NSNumber *)threadNumber;
 - (void)performLoad;
 - (void)applySettings;
 - (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
@@ -231,7 +232,7 @@ enum
 
 + (void)setUp
 {
-	int						threadCount;
+	int						threadCount, threadNumber = 1;
 	GLint					maxSize;
 	
 	sLoadQueue = [[OOAsyncQueue alloc] init];
@@ -246,7 +247,7 @@ enum
 	threadCount = MIN(OOCPUCount() - 1, (unsigned)kMaxWorkThreads);
 	do
 	{
-		[NSThread detachNewThreadSelector:@selector(queueTask) toTarget:self withObject:nil];
+		[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
 	} while (--threadCount > 0);
 	
 	// Load two maximum sizes - graphics hardware limit and user-specified limit.
@@ -268,7 +269,7 @@ enum
 
 @implementation OOTextureLoader (OOTextureLoadingThread)
 
-+ (void)queueTask
++ (void)queueTask:(NSNumber *)threadNumber
 {
 	NSAutoreleasePool			*pool = nil;
 	OOTextureLoader				*loader = nil;
@@ -285,6 +286,9 @@ enum
 		-- Ahruman
 	*/
 	[NSThread setThreadPriority:0.5];
+	pool = [[NSAutoreleasePool alloc] init];
+	[NSThread ooSetCurrentThreadName:[NSString stringWithFormat:@"OOTextureLoader loader thread %@", threadNumber]];
+	[pool release];
 	
 	for (;;)
 	{

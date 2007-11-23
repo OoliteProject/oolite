@@ -188,6 +188,9 @@ typedef struct
 	JSContext				*context;
 	JSFunction				*function;
 	JSObject				*jsThis;
+	BOOL					errorFlag;	// Set if a JS exception occurs. The
+										// exception will have been reported.
+										// This also supresses further filtering.
 } JSFunctionPredicateParameter;
 BOOL JSFunctionPredicate(Entity *entity, void *parameter);
 

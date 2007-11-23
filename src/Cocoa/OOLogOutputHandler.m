@@ -56,6 +56,7 @@ SOFTWARE.
 #import <stdio.h>
 #import <sys/sysctl.h>
 #import <mach/machine.h>
+#import "NSThreadOOExtensions.h"
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
@@ -414,6 +415,7 @@ enum
 	NSAutoreleasePool	*rootPool = nil, *pool = nil;
 	
 	rootPool = [[NSAutoreleasePool alloc] init];
+	[NSThread ooSetCurrentThreadName:@"OOLogOutputHandler logging thread"];
 	
 	// Signal readiness
 	[messageQueue retain];

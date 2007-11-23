@@ -81,7 +81,6 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 	id			result = nil;
 	NSString	*error = nil;
 	
-	
 	if (data != nil)
 	{
 #ifndef NO_DYNAMIC_PLIST_DTD_CHANGE

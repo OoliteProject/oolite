@@ -217,7 +217,6 @@ typedef enum
 	NSMutableDictionary		*mission_variables;
 	NSMutableDictionary		*localVariables;
 	int						missionTextRow;
-	ShipEntity				*script_target;
 	NSString				*missionChoice;
 	
 	NSString				*specialCargo;
@@ -641,9 +640,6 @@ typedef enum
 
 - (void) loopAfterburnerSound;
 - (void) stopAfterburnerSound;
-
-- (void) setScriptTarget:(ShipEntity *)ship;
-- (ShipEntity*) script_target;
  
 - (void) getFined;
 

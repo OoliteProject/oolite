@@ -262,7 +262,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 - (BOOL)readMonoCreatingBuffer:(float **)outBuffer withFrameCount:(size_t *)outSize
 {
 	float					*buffer = NULL, *dst, **src;
-	size_t					sizeInFrames, remaining;
+	size_t					sizeInFrames = 0, remaining;
 	unsigned				chanCount;
 	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;
@@ -327,7 +327,7 @@ static void MixDown(float *inChan1, float *inChan2, float *outMix, size_t inCoun
 - (BOOL)readStereoCreatingLeftBuffer:(float **)outLeftBuffer rightBuffer:(float **)outRightBuffer withFrameCount:(size_t *)outSize;
 {
 	float					*bufferL = NULL, *bufferR = NULL, *dstL, *dstR, **src;
-	size_t					sizeInFrames, remaining;
+	size_t					sizeInFrames = 0, remaining;
 	unsigned				chanCount;
 	long					framesRead;
 	ogg_int64_t				totalSizeInFrames;

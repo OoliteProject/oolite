@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "OORoleSet.h"
+#import "OOJSPlayer.h"
 
 
 static JSObject *sShipPrototype;
@@ -46,6 +47,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sShipClass =
@@ -170,6 +172,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
 	{ "hasRole",				ShipHasRole,				1 },
+	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
 	{ 0 }
 };
 
@@ -635,11 +638,42 @@ static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, js
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	NSString				*role;
+	NSString				*role = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
 	
 	*outResult = BOOLToJSVal([thisEnt hasRole:role]);
+	return YES;
+}
+
+
+static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	PlayerEntity			*player = nil;
+	ShipEntity				*target = nil;
+	NSArray					*actions = nil;
+	
+	player = OOPlayerForScripting();
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	target = JSValueToObject(context, argv[0]);
+	if (![target isKindOfClass:[ShipEntity class]])
+	{
+		OOReportJavaScriptWarning(context, @"First argument of RunLegacyScriptActions must be a Ship.");
+		return YES;
+	}
+	
+	actions = JSValueToObject(context, argv[1]);
+	if (![actions isKindOfClass:[NSArray class]])
+	{
+		OOReportJavaScriptWarning(context, @"Second argument of RunLegacyScriptActions must be an Array.");
+		return YES;
+	}
+	
+	[player setScriptTarget:thisEnt];
+	[player scriptActions:actions forTarget:target];
+	
 	return YES;
 }

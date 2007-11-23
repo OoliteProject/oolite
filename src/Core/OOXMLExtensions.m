@@ -39,6 +39,9 @@ MA 02110-1301, USA.
 		{
 			*outErrorDesc = [NSString stringWithFormat:@"could not convert property list to XML: %@", errorDesc];
 		}
+#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
+		[errorDesc release];
+#endif
 		return NO;
 	}
 	

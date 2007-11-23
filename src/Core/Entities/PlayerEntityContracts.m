@@ -774,7 +774,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (void) highlightSystemFromGuiContractsScreen
 {
-	MyOpenGLView*	gameView = (MyOpenGLView *)[UNIVERSE gameView];
+	MyOpenGLView*	gameView = [UNIVERSE gameView];
 	GuiDisplayGen*	gui = [UNIVERSE gui];
 	
 	NSMutableArray*	passenger_market = [[UNIVERSE station] localPassengers];
@@ -1411,6 +1411,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	legalStatus = 0;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
+	// FIXME: allow buying of aft/port/starboard weapons? Bug #012363
 	aft_weapon = WEAPON_NONE;
 	port_weapon = WEAPON_NONE;
 	starboard_weapon = WEAPON_NONE;

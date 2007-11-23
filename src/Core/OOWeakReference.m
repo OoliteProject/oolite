@@ -123,6 +123,14 @@ This code is hereby placed in the public domain.
 	}
 }
 
+
+// New fast forwarding mechanism introduced in Mac OS X 10.5.
+// Note that -forwardInvocation: is still called if _object is nil.
+- (id)forwardingTargetForSelector:(SEL)sel
+{
+	return _object;
+}
+
 @end
 
 

@@ -31,19 +31,7 @@ MA 02110-1301, USA.
 
 - (void) initControls;
 
-- (void) pollControls:(double) delta_t;
-- (void) pollApplicationControls;
-- (void) pollFlightControls:(double) delta_t;
-- (void) pollFlightArrowKeyControls:(double) delta_t;
-- (void) pollGuiArrowKeyControls:(double) delta_t;
-- (BOOL) handleGUIUpDownArrowKeys:(GuiDisplayGen *)gui 
-                                 :(MyOpenGLView *)gameView;
-- (void) switchToMainView;
-- (void) pollViewControls;
-- (void) pollGuiScreenControls;
-- (void) pollGameOverControls:(double) delta_t;
-- (void) pollAutopilotControls:(double) delta_t;
-- (void) pollDockedControls:(double) delta_t;
-- (void) pollDemoControls:(double) delta_t;
+- (void) pollControls:(double)delta_t;
+- (BOOL) handleGUIUpDownArrowKeys;
 
 @end

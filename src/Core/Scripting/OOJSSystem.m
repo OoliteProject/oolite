@@ -584,8 +584,9 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	// Search for entities
 	if (function != NULL)
 	{
-		JSFunctionPredicateParameter param = { context, function, jsThis };
+		JSFunctionPredicateParameter param = { context, function, jsThis, NO };
 		result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
+		if (param.errorFlag)  result = nil;	// Exception in predicate
 	}
 	
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];

@@ -50,6 +50,7 @@ SOFTWARE.
 #import <mach/mach.h>
 #import <pthread.h>
 #import </usr/include/libkern/OSAtomic.h>
+#import "NSThreadOOExtensions.h"
 
 
 static NSString * const kOOLogSoundNULLError			= @"sound.render.undexpectedNull";
@@ -227,6 +228,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	OOCASoundChannel			*chan;
 	NSAutoreleasePool			*pool = nil;
 	
+	[NSThread ooSetCurrentThreadName:@"OOCASoundChannel reaper thread"];
 	sReaperRunning = YES;
 	PortSend(sStatusPort, message);
 	

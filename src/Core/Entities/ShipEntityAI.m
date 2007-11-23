@@ -891,7 +891,6 @@ WormholeEntity*	whole;
 
 - (void) ejectCargo
 {
-	SEL _dumpCargoSelector = @selector(dumpCargo);
 	unsigned i;
 	if ((cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)||(cargo_flag == CARGO_FLAG_FULL_SCARCE))
 	{
@@ -910,7 +909,7 @@ WormholeEntity*	whole;
 	[self dumpCargo];
 	for (i = 1; i < [cargo count]; i++)
 	{
-		[self performSelector:_dumpCargoSelector withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
+		[self performSelector:@selector(dumpCargo) withObject:nil afterDelay:0.75 * i];	// drop 3 canisters per 2 seconds
 	}
 }
 

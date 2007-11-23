@@ -481,7 +481,9 @@ static OOCacheManager *sSingleton = nil;
 	if (errorString != nil)
 	{
 		OOLog(@"dataCache.badData", @"Could not read data cache: %@", errorString);
-		[errorString release];	// Not autoreleased by NSPropertyListSerialization!
+#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
+		[errorString release];
+#endif
 		return nil;
 	}
 	if (![contents isKindOfClass:[NSDictionary class]])  return nil;
@@ -502,6 +504,9 @@ static OOCacheManager *sSingleton = nil;
 	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
 	if (plist == nil)
 	{
+#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
+		[errorDesc autorelease];
+#endif
 		OOLog(kOOLogDataCacheSerializationError, @"Could not convert data cache to property list data: %@", errorDesc);
 		return NO;
 	}

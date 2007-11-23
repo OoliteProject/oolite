@@ -34,7 +34,10 @@ MA 02110-1301, USA.
 
 - (void) checkScript;
 
-- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity*) a_target;
+- (void) setScriptTarget:(ShipEntity *)ship;
+- (ShipEntity*) scriptTarget;
+
+- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity *)a_target;
 - (void)runScript:(NSArray*)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;

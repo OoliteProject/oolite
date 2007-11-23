@@ -181,10 +181,6 @@
 	script.debug							= $scriptDebugOn;
 	script.debug.message					= inherit;				// debugMessage: script action
 	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
-	script.debug.testCondition				= inherit;
-	script.debug.testCondition.checkingVariable = inherit;
-	script.debug.testCondition.testValues	= inherit;
-	script.debug.testCondition.oneOf		= inherit;
 	script.debug.processSceneString.addScene = inherit;
 	script.debug.processSceneString.addModel = inherit;
 	script.debug.processSceneString.addLocalPlanet = inherit;
@@ -193,7 +189,6 @@
 	script.debug.setSunNovaIn				= inherit;
 	
 	script.debug.note						= inherit;
-	script.debug.note.scriptAction			= inherit;				// Messages saying a scripting method was called, with no further info
 	script.debug.note.awardCargo			= inherit;
 	script.debug.note.removeAllCargo		= inherit;
 	script.debug.note.useSpecialCargo		= inherit;
@@ -208,11 +203,20 @@
 	script.debug.note.processSceneString	= inherit;
 	script.debug.note.testCondition			= no;
 	
+	script.debug.trace						= off;					// Trace messages are very verbose, printing at least one message per script action. They are not available at all in release versions.
+	script.debug.trace.scriptAction			= inherit;				// Messages for each legacy script action executed.
+	script.debug.trace.testCondition		= inherit;				// Messages for each legacy script condition evaluated.
+	script.debug.trace.testCondition.checkingVariable = inherit;	// Messages for tests of mission/local variables in script conditions.
+	script.debug.trace.testCondition.testValues	= inherit;			// Messages for string and number comparisons.
+	script.debug.trace.testCondition.oneOf	= inherit;				// Messages for "oneof" tests.
+	
 	script.debug.syntax						= $scriptError;			// Messages relating to script formatting
 	script.debug.syntax.badConditional		= inherit;
+	script.debug.syntax.badComparison		= inherit;
 	script.debug.syntax.action				= inherit;
 	script.debug.syntax.action.noneSpecified = inherit;
 	script.debug.syntax.action.badSelector	= inherit;
+	script.debug.syntax.action.badElement	= inherit;
 	script.debug.syntax.scriptCondition.noneSpecified = inherit;
 	script.debug.syntax.setPlanetInfo		= inherit;
 	script.debug.syntax.awardCargo			= inherit;

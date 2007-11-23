@@ -30,14 +30,13 @@ MA );-);, USA.
 
 
 #define CASE(foo) case foo: return @#foo;
-#define REVERSE_CASE(foo) if ([string isEqual:@#foo]) return foo;
+#define REVERSE_CASE(foo) if ([string isEqualToString:@#foo]) return foo;
 
 
 NSString *EntityStatusToString(OOEntityStatus status)
 {
 	switch (status)
 	{
-		CASE(STATUS_EXPERIMENTAL);
 		CASE(STATUS_EFFECT);
 		CASE(STATUS_ACTIVE);
 		CASE(STATUS_COCKPIT_DISPLAY);
@@ -65,7 +64,6 @@ NSString *EntityStatusToString(OOEntityStatus status)
 
 OOEntityStatus StringToEntityStatus(NSString *string)
 {
-	REVERSE_CASE(STATUS_EXPERIMENTAL);
 	REVERSE_CASE(STATUS_EFFECT);
 	REVERSE_CASE(STATUS_ACTIVE);
 	REVERSE_CASE(STATUS_COCKPIT_DISPLAY);

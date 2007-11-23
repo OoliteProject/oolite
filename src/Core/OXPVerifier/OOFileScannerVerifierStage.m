@@ -281,11 +281,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 													   format:&format
 											 errorDescription:&errorString];
 	
-#if OOLITE_MAC_OS_X
-	/*	Documented wart: this is caller responsibility in Cocoa (but not GNUstep?)
-		TODO: verify that it is correct to not do this in GNUstep.
-		In the mean time, not doing it in GNUstep seems to be avoiding a crash.
-	*/
+#if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 	[errorString autorelease];
 #endif
 	

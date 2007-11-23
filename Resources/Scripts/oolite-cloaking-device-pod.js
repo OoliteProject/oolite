@@ -1,8 +1,9 @@
 /*
 
-oolite-cloaking-device.js
+oolite-cloaking-device-pod.js
 
-Script for cloaking device mission.
+Ship script for cloaking device cargo pod.
+
 
 Oolite
 Copyright © 2007 Giles C Williams and contributors
@@ -25,34 +26,26 @@ MA 02110-1301, USA.
 */
 
 
-this.name			= "oolite-cloaking-device";
+this.name			= "oolite-cloaking-device-pod";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007 the Oolite team.";
-this.description	= "Cloaking device mission in galaxy 5.";
 this.version		= "1.69.2";
 
 
-this.willExitWitchSpace = function()
+this.wasScooped = function(scooper)
 {
-	// If we're in galaxy 5...
-	if (galaxyNumber == 4)
+	if (scooper == player)
 	{
-		// ...and the asp-cloaked's death_actions haven't triggered...
-		if (missionVariables.cloak == null)
+		if (!player.hasEquipment("EQ_CLOAKING_DEVICE"))
 		{
-			// ...then we count of jumps...
-			var cloakCounter = missionVariables.cloakcounter;
-			if (cloakCounter == null)  cloakCounter = 1;
-			else  cloakCounter++;
-			missionVariables.cloakcounter = cloakCounter;
-			
-			// ...until we reach six or more.
-			if (cloakCounter > 6 && system.countShipsWithRole("asp-cloaked") == 0)
-			{
-				// Then trigger the ambush!
-				system.legacy_addShips("asp-cloaked", 1);
-				system.legacy_addShips("asp-pirate", 2);
-			}
+			player.awardEquipment("EQ_CLOAKING_DEVICE")
+			// Should we make it possible to buy a replacement?
+			// missionVariables.TL_FOR_EQ_CLOAKING_DEVICE = 14
+		}
+		else
+		{
+			player.awardCargo("Gold", 100)
 		}
 	}
+	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.
 }

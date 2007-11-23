@@ -4,7 +4,6 @@
 		aft_eject_position = "0.0 -4.5 -23.0";
 		ai_type = "scavengerAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("-5.75 0.0 -22.5 6.0 4.0 4.0", "5.75 0.0 -22.5 6.0 4.0 4.0");
@@ -127,8 +126,6 @@
 		cargo_type = "CARGO_ALLOY";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -145,7 +142,6 @@
 		aft_weapon_type = "WEAPON_PULSE_LASER";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		escort-ship = "cobramk1";
@@ -276,7 +272,6 @@
 		aft_eject_position = "0.0 -8.0 -21.5";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
@@ -287,7 +282,6 @@
 		has_scoop = 0.99;
 		has_shield_booster = 0.5;
 		likely_cargo = 1;
-		max_cargo = 0;
 		max_energy = 350;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
@@ -316,8 +310,6 @@
 		fuel = 70;
 		has_cloaking_device = yes;
 		has_scoop = yes;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 320;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
@@ -431,8 +423,6 @@
 		has_ecm = no;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 100;
 		max_flight_pitch = 0.1;
 		max_flight_roll = 0.1;
@@ -454,6 +444,7 @@
 				specular = (0.1, 0.1, 0.1, 1.0);
 			};
 		};
+		likely_cargo = 4;
 	};
 	"asteroid-alternative" =
 	{
@@ -468,8 +459,6 @@
 		cargo_type = "CARGO_RANDOM";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -489,7 +478,6 @@
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		escorts = 4;
@@ -522,7 +510,6 @@
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.2;
 		escorts = 4;
@@ -743,8 +730,6 @@
 		has_ecm = no;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 25;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -777,12 +762,9 @@
 	{
 		ai_type = "buoyAI.plist";
 		beacon = "N0100 Navigation Buoy";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 250;
 		max_flight_pitch = 2;
 		max_flight_roll = 2;
@@ -807,12 +789,9 @@
 	{
 		ai_type = "buoyAI.plist";
 		beacon = "W0100 Navigation Buoy (Witchpoint)";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 250;
 		max_flight_pitch = 2;
 		max_flight_roll = 2;
@@ -838,8 +817,6 @@
 		cargo_type = "CARGO_SCRIPTED_ITEM";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 5;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -848,6 +825,7 @@
 		name = "Unusual cargo container";
 		roles = "cloaking-device oolite-cloaking-device";
 		scanClass = "CLASS_CARGO";
+	//	script = "oolite-cloaking-device-pod.js";
 		script_actions =
 		(
 			"testForEquipment: EQ_CLOAKING_DEVICE",
@@ -860,10 +838,10 @@
 						"set: mission_TL_FOR_EQ_CLOAKING_DEVICE 14"
 					*/
 				);
-			},
-			{
-				conditions = ("foundEquipment_bool equal YES");
-				do = ("awardCargo: 100 Gold");
+				else =
+				(
+					"awardCargo: 100 Gold"
+				);
 			}
 		);
 		thrust = 0;
@@ -874,7 +852,6 @@
 		aft_eject_position = "0.0 15.5 -33.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
@@ -1030,7 +1007,6 @@
 		aft_eject_position = "0.0 15.5 -33.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
@@ -1061,7 +1037,6 @@
 		aft_eject_position = "0.0 7.5 -21.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
@@ -1090,7 +1065,6 @@
 		aft_eject_position = "0.0 7.5 -21.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.75;
 		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
@@ -1122,14 +1096,12 @@
 		aft_eject_position = "0.0 7.5 -21.0";
 		ai_type = "minerAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		fuel = 70;
 		has_scoop = yes;
-		likely_cargo = 0;
 		max_cargo = 10;
 		max_energy = 150;
 		max_flight_pitch = 1.2;
@@ -1272,7 +1244,6 @@
 	"coriolis-station" =
 	{
 		ai_type = "stationAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1280,8 +1251,6 @@
 		has_ecm = yes;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
@@ -1334,7 +1303,6 @@
 	"dodecahedron-station" =
 	{
 		ai_type = "stationAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1342,8 +1310,6 @@
 		has_ecm = yes;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
@@ -1379,13 +1345,10 @@
 	"ecm-proof-missile" =
 	{
 		ai_type = "hardMissileAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.0 -3.5 2.0 2.0 4.0");
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 5;
 		max_flight_pitch = 8;
 		max_flight_roll = 10;
@@ -1403,7 +1366,6 @@
 	{
 		aft_eject_position = "0.0 0.0 -2.0";
 		ai_type = "homeAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_SLAVES";
 		energy_recharge_rate = 2;
 		exhaust =
@@ -1413,8 +1375,6 @@
 			"-2.56 -1.48 -1.67 0.5 0.5 0.5"
 		);
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 25;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -1441,7 +1401,6 @@
 		aft_eject_position = "0.0 3.0 -38.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4.5;
 		exhaust = ("0.0 -5.0 -42.5 6.0 6.0 8.0");
@@ -1567,7 +1526,6 @@
 		aft_eject_position = "0.0 4.5 -11.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -20.0 5.0 4.0 4.0");
@@ -1607,7 +1565,6 @@
 	"icosahedron-station" =
 	{
 		ai_type = "stationAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 100;
 		forward_weapon_type = "WEAPON_NONE";
@@ -1615,8 +1572,6 @@
 		has_ecm = yes;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 25000;
 		max_flight_pitch = 8;
 		max_flight_roll = 8;
@@ -1653,7 +1608,6 @@
 		aft_eject_position = "0.0 7.5 -16.5";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("-7.5 0.0 -35.58 4.0 4.0 5.0", "7.5 0.0 -35.58 4.0 4.0 5.0");
@@ -1685,7 +1639,6 @@
 		aft_eject_position = "0.0 5.5 -17.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
@@ -1714,7 +1667,6 @@
 		aft_eject_position = "0.0 5.5 -17.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 0.0 -27.5 10.0 8.0 12.0");
@@ -1739,13 +1691,10 @@
 	"missile" =
 	{
 		ai_type = "missileAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		exhaust = ("0.0 0.0 -3.5 2.0 2.0 4.0");
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 5;
 		max_flight_pitch = 8;
 		max_flight_roll = 10;
@@ -1764,7 +1713,6 @@
 		aft_eject_position = "0.0 5.75 -8.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
@@ -1885,7 +1833,6 @@
 		aft_eject_position = "0.0 5.75 -8.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("0.0 -2.0 -30.0 10.0 8.0 16.0");
@@ -2024,7 +1971,6 @@
 		aft_eject_position = "0.0 15.5 -50.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
@@ -2055,7 +2001,6 @@
 		aft_eject_position = "0.0 15.5 -50.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.5;
 		escorts = 2;
@@ -2179,7 +2124,6 @@
 		aft_eject_position = "0.0 15.5 -50.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		escorts = 2;
@@ -2221,7 +2165,6 @@
 	"rock-hermit" =
 	{
 		ai_type = "rockHermitAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 5;
 		"equipment_price_factor" = 4.5;
@@ -2231,8 +2174,6 @@
 		has_ecm = yes;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		"max_defense_ships" = 2;
 		max_energy = 1000;
 		max_flight_pitch = 8;
@@ -2273,8 +2214,6 @@
 		cargo_type = "CARGO_ALLOY";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -2289,7 +2228,6 @@
 	{
 		aft_eject_position = "0.0 0 -18.0";
 		ai_type = "nullAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1;
 		exhaust = (
@@ -2299,7 +2237,6 @@
 			"-6.7 -6.7 -17.5 4.0 4.0 5.0"
 		);
 		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 0;
 		max_cargo = 30;
 		max_energy = 120;
 		max_flight_pitch = 0.9;
@@ -2321,13 +2258,10 @@
 		aft_eject_position = "0.0 7.5 -18.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 240;
 		max_flight_pitch = 1.6;
 		max_flight_roll = 2.8;
@@ -2348,13 +2282,10 @@
 		aft_eject_position = "0.0 7.5 -18.0";
 		ai_type = "pirateAI.plist";
 		auto_ai = yes;
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2.5;
 		exhaust = ("0.0 0.0 -17.0 8.0 6.0 12.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 240;
 		max_flight_pitch = 1.8;
 		max_flight_roll = 2.8;
@@ -2380,8 +2311,6 @@
 		has_ecm = no;
 		has_escape_pod = 0;
 		has_scoop = no;
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 5;
 		max_flight_pitch = 1;
 		max_flight_roll = 1;
@@ -2425,8 +2354,6 @@
 		energy_recharge_rate = 3;
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		laser_color = "greenColor";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 150;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
@@ -2457,8 +2384,6 @@
 		fuel = 150;
 		has_ecm = yes;
 		laser_color = "greenColor";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 600;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
@@ -2477,12 +2402,10 @@
 	{
 		aft_eject_position = "0.0 5.5 -18.0";
 		ai_type = "nullAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 4.0", "-6.125 -0.75 -17.5 3.0 3.0 4.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
-		likely_cargo = 0;
 		max_cargo = 12;
 		max_energy = 150;
 		max_flight_pitch = 1;
@@ -2504,13 +2427,11 @@
 		accuracy = 8;
 		aft_eject_position = "0.0 5.5 -18.0";
 		ai_type = "minerAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
 		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 4.0", "-6.125 -0.75 -17.5 3.0 3.0 4.0");
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
-		likely_cargo = 0;
 		max_cargo = 12;
 		max_energy = 150;
 		max_flight_pitch = 1;
@@ -2531,15 +2452,12 @@
 	{
 		aft_eject_position = "0.0 6.5 -28.0";
 		ai_type = "route1patrolAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 6.0", "-12.5 0.0 -27.5 6.0 6.0 6.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
 		laser_color = "magentaColor";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 180;
 		max_flight_pitch = 1.8;
 		max_flight_roll = 2.8;
@@ -2574,7 +2492,6 @@
 	{
 		aft_eject_position = "0.0 10.5 -22.0";
 		ai_type = "route1patrolAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 6;
 		exhaust = (
@@ -2587,8 +2504,6 @@
 		has_ecm = yes;
 		has_fuel_injection = yes;
 		laser_color = "magentaColor";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 280;
 		max_flight_pitch = 2;
 		max_flight_roll = 4.2;
@@ -2623,15 +2538,12 @@
 	{
 		aft_eject_position = "0.0 6.5 -28.0";
 		ai_type = "route1patrolAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("12.5 0.0 -27.5 6.0 6.0 6.0", "-12.5 0.0 -27.5 6.0 6.0 6.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		has_ecm = yes;
 		laser_color = "magentaColor";
-		likely_cargo = 0;
-		max_cargo = 0;
 		max_energy = 180;
 		max_flight_pitch = 1.8;
 		max_flight_roll = 2.8;
@@ -2651,7 +2563,6 @@
 	{
 		aft_eject_position = "0.0 5.0 -9.5";
 		ai_type = "nullAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 2;
 		exhaust = ("0.0 0.0 -17.5 7.0 6.0 6.0");
@@ -2677,7 +2588,6 @@
 	{
 		aft_eject_position = "0.0 5.0 -9.5";
 		ai_type = "minerAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1.85;
 		exhaust = ("0.0 0.0 -17.5 6.0 5.0 5.0");
@@ -2704,7 +2614,6 @@
 	"wreckage-component" =
 	{
 		ai_type = "nullAI.plist";
-		bounty = 0;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";

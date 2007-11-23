@@ -133,7 +133,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	root_planet = self;
 	
-	textureData = (unsigned char *)nil;
+	textureData = NULL;
+	
+	rotationAxis = kBasisYVector;
 	
     return self;
 }
@@ -235,7 +237,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	root_planet = self;
 	
-	textureData = (unsigned char *)nil;
+	textureData = NULL;
 	
     return self;
 }
@@ -409,6 +411,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	isPlanet = YES;
 	
 	root_planet = planet;
+	
+	rotationAxis = kBasisYVector;
 	
     return self;
 }
@@ -587,6 +591,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	root_planet = self;
 	
+	rotationAxis = kBasisYVector;
+	
     return self;
 }
 
@@ -655,6 +661,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	isPlanet = YES;
 	
 	root_planet = self;
+	
+	rotationAxis = kBasisYVector;
 	
     return self;
 }
@@ -823,6 +831,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	root_planet = self;
 	
+	rotationAxis = kBasisYVector;
+	
     return self;
 }
 
@@ -978,6 +988,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	root_planet = self;
 	
+	rotationAxis = kBasisYVector;
+	
     return self;
 }
 
@@ -1080,7 +1092,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 		
 		case PLANET_TYPE_MINIATURE:
 		// normal planetary rotation
-		quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+		//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+		quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
 		quaternion_normalize(&orientation);
 		quaternion_into_gl_matrix(orientation, rotMatrix);
 
@@ -1210,7 +1223,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
-- (void) setPosition:(Vector) posn
+- (void) setPosition:(Vector)posn
 {
 	position = posn;
 	if (atmosphere)
@@ -1228,7 +1241,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
-- (void) setModelName:(NSString *) modelName
+- (void) setOrientation:(Quaternion)inOrientation
+{
+	rotationAxis = quaternion_rotate_vector(inOrientation, kBasisYVector);
+	[super setOrientation:inOrientation];
+}
+
+
+- (void) setModelName:(NSString *)modelName
 {
     double  old_collision_radius = collision_radius;
     [super setModelName:modelName];

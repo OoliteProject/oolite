@@ -216,4 +216,8 @@ MA 02110-1301, USA.
 - (void) setRacepointsFromTarget;
 - (void) performFlyRacepoints;
 
+/*	Other methods documented for AI use (may not be exhaustive):
+	setPrimaryRole:
+*/
+
 @end

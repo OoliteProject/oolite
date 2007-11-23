@@ -1728,7 +1728,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	for (i = 0; i < clusterSize; i++)
 	{
 		ShipEntity*	asteroid;
-		int n_rocks = 2 + (Ranrot() % 5);
 		launchPos.x = spawnPos.x + SCANNER_MAX_RANGE * (randf() - randf());
 		launchPos.y = spawnPos.y + SCANNER_MAX_RANGE * (randf() - randf());
 		launchPos.z = spawnPos.z + SCANNER_MAX_RANGE * (randf() - randf());
@@ -1740,7 +1739,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 			[asteroid setPosition:launchPos];
 			[asteroid setVelocity:spawnVel];
 			[asteroid setStatus:STATUS_IN_FLIGHT];
-			[asteroid setNumberOfMinedRocks: n_rocks];
 			[self addEntity:asteroid];
 			[[asteroid getAI] setState:@"GLOBAL"];
 			[asteroid release];

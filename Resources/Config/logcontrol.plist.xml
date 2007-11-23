@@ -224,8 +224,6 @@
 	<string>inherit</string>
 	<key>script.debug.note.replaceVariablesInString</key>
 	<string>inherit</string>
-	<key>script.debug.note.scriptAction</key>
-	<string>inherit</string>
 	<key>script.debug.note.set</key>
 	<string>inherit</string>
 	<key>script.debug.note.setFuelLeak</key>
@@ -258,6 +256,8 @@
 	<string>$scriptError</string>
 	<key>script.debug.syntax.action</key>
 	<string>inherit</string>
+	<key>script.debug.syntax.action.badElement</key>
+	<string>inherit</string>
 	<key>script.debug.syntax.action.badSelector</key>
 	<string>inherit</string>
 	<key>script.debug.syntax.action.noneSpecified</key>
@@ -265,6 +265,8 @@
 	<key>script.debug.syntax.addShips</key>
 	<string>inherit</string>
 	<key>script.debug.syntax.awardCargo</key>
+	<string>inherit</string>
+	<key>script.debug.syntax.badComparison</key>
 	<string>inherit</string>
 	<key>script.debug.syntax.badConditional</key>
 	<string>inherit</string>
@@ -278,13 +280,17 @@
 	<string>inherit</string>
 	<key>script.debug.syntax.setPlanetInfo</key>
 	<string>inherit</string>
-	<key>script.debug.testCondition</key>
+	<key>script.debug.trace</key>
+	<string>off</string>
+	<key>script.debug.trace.scriptAction</key>
 	<string>inherit</string>
-	<key>script.debug.testCondition.checkingVariable</key>
+	<key>script.debug.trace.testCondition</key>
 	<string>inherit</string>
-	<key>script.debug.testCondition.oneOf</key>
+	<key>script.debug.trace.testCondition.checkingVariable</key>
 	<string>inherit</string>
-	<key>script.debug.testCondition.testValues</key>
+	<key>script.debug.trace.testCondition.oneOf</key>
+	<string>inherit</string>
+	<key>script.debug.trace.testCondition.testValues</key>
 	<string>inherit</string>
 	<key>script.error</key>
 	<string>$scriptError</string>

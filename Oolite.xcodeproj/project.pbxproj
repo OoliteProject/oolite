@@ -354,7 +354,6 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
-		1A4B374B0CAE657F0080887F /* oolite-trumbles.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A4B374A0CAE657F0080887F /* oolite-trumbles.js */; };
 		1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */; };
 		1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */; };
 		1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */; };
@@ -379,7 +378,13 @@
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
-		1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */; };
+		1A6518850CCE06960054D01B /* oolite-trumbles-mission.js in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A6518820CCE06960054D01B /* oolite-trumbles-mission.js */; };
+		1A6518870CCE06960054D01B /* oolite-cloaking-device-mission.js in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A6518840CCE06960054D01B /* oolite-cloaking-device-mission.js */; };
+		1A6518890CCE06AE0054D01B /* oolite-cloaking-device-pod.js in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A6518880CCE06AE0054D01B /* oolite-cloaking-device-pod.js */; };
+		1A65188D0CCE06E30054D01B /* oolite-trumbles-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A6518820CCE06960054D01B /* oolite-trumbles-mission.js */; };
+		1A65188E0CCE06E30054D01B /* oolite-cloaking-device-pod.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A6518880CCE06AE0054D01B /* oolite-cloaking-device-pod.js */; };
+		1A65188F0CCE06E30054D01B /* oolite-cloaking-device-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A6518840CCE06960054D01B /* oolite-cloaking-device-mission.js */; };
+		1A6518900CCE06E30054D01B /* oolite-default-ship-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A6517860CCDDD140054D01B /* oolite-default-ship-script.js */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
 		1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */; };
@@ -496,6 +501,10 @@
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */; };
 		1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */; };
+		1AD1F4C90CD9E42A00EAE520 /* NSThreadOOExtensions.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
+		1AD1F4CA0CD9E42A00EAE520 /* NSThreadOOExtensions.m in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
+		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
+		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
@@ -913,9 +922,11 @@
 			dstPath = Scripts;
 			dstSubfolderSpec = 7;
 			files = (
-				1A4B374B0CAE657F0080887F /* oolite-trumbles.js in Copy Scripts */,
+				1A65188D0CCE06E30054D01B /* oolite-trumbles-mission.js in Copy Scripts */,
+				1A65188E0CCE06E30054D01B /* oolite-cloaking-device-pod.js in Copy Scripts */,
+				1A65188F0CCE06E30054D01B /* oolite-cloaking-device-mission.js in Copy Scripts */,
+				1A6518900CCE06E30054D01B /* oolite-default-ship-script.js in Copy Scripts */,
 				1A34912E0BC25EBC00802DA7 /* oolite-legacy-script.plist in Copy Scripts */,
-				1A67050F0C4904ED002551AA /* oolite-cloaking-device.js in Copy Scripts */,
 			);
 			name = "Copy Scripts";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -950,6 +961,11 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
+				1A6518850CCE06960054D01B /* oolite-trumbles-mission.js in Copy Debug OXP */,
+				1A6518870CCE06960054D01B /* oolite-cloaking-device-mission.js in Copy Debug OXP */,
+				1A6518890CCE06AE0054D01B /* oolite-cloaking-device-pod.js in Copy Debug OXP */,
+				1AD1F4C90CD9E42A00EAE520 /* NSThreadOOExtensions.h in Copy Debug OXP */,
+				1AD1F4CA0CD9E42A00EAE520 /* NSThreadOOExtensions.m in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -990,7 +1006,7 @@
 		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
-		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
+		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
 		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
 		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };
@@ -1299,7 +1315,6 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
-		1A4B374A0CAE657F0080887F /* oolite-trumbles.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-trumbles.js"; sourceTree = "<group>"; };
 		1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsautocfg.h; path = xcode/jsautocfg.h; sourceTree = "<group>"; };
 		1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsapi.h; path = src/jsapi.h; sourceTree = "<group>"; };
 		1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jspubtd.h; path = src/jspubtd.h; sourceTree = "<group>"; };
@@ -1322,9 +1337,12 @@
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
-		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.frag; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
-		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.vert; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
-		1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device.js"; sourceTree = "<group>"; };
+		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
+		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
+		1A6517860CCDDD140054D01B /* oolite-default-ship-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-ship-script.js"; sourceTree = "<group>"; };
+		1A6518820CCE06960054D01B /* oolite-trumbles-mission.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-trumbles-mission.js"; sourceTree = "<group>"; };
+		1A6518840CCE06960054D01B /* oolite-cloaking-device-mission.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device-mission.js"; sourceTree = "<group>"; };
+		1A6518880CCE06AE0054D01B /* oolite-cloaking-device-pod.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-cloaking-device-pod.js"; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
 		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };
@@ -1448,6 +1466,8 @@
 		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
 		1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = SmartCrashReportsInstall.o; sourceTree = "<group>"; };
 		1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmartCrashReportsInstall.h; sourceTree = "<group>"; };
+		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
+		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
@@ -1518,7 +1538,7 @@
 		25F3E8A40994FE65002F25FD /* oolite-document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-document.icns"; sourceTree = "<group>"; };
 		25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-expansion-document.icns"; sourceTree = "<group>"; };
 		25F3E8A60994FE65002F25FD /* oolite-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-icon.icns"; sourceTree = "<group>"; };
-		25F3E8B30994FE9B002F25FD /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = InfoPlist.strings; sourceTree = "<group>"; };
+		25F3E8B30994FE9B002F25FD /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; path = InfoPlist.strings; sourceTree = "<group>"; };
 		25F3E8BC09950088002F25FD /* Info-Oolite.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-Oolite.plist"; path = "../src/Cocoa/Info-Oolite.plist"; sourceTree = "<group>"; };
 		25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-OoliteDev.plist"; path = "../src/Cocoa/Info-OoliteDev.plist"; sourceTree = "<group>"; };
 		25F3E8C3099500F1002F25FD /* SoundInspector.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = SoundInspector.nib; path = ../src/Cocoa/SoundInspector.nib; sourceTree = "<group>"; };
@@ -1970,9 +1990,11 @@
 		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
 			isa = PBXGroup;
 			children = (
-				1A4B374A0CAE657F0080887F /* oolite-trumbles.js */,
 				1A34912D0BC25EBC00802DA7 /* oolite-legacy-script.plist */,
-				1A67050E0C4904ED002551AA /* oolite-cloaking-device.js */,
+				1A6518820CCE06960054D01B /* oolite-trumbles-mission.js */,
+				1A6518880CCE06AE0054D01B /* oolite-cloaking-device-pod.js */,
+				1A6518840CCE06960054D01B /* oolite-cloaking-device-mission.js */,
+				1A6517860CCDDD140054D01B /* oolite-default-ship-script.js */,
 			);
 			path = Scripts;
 			sourceTree = "<group>";
@@ -2249,6 +2271,8 @@
 				1A6B1F350C9AAA60000717CF /* OOPriorityQueue.h */,
 				1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */,
 				1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */,
+				1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */,
+				1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2683,6 +2707,7 @@
 				1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */,
 				1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */,
 				1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */,
+				1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2758,6 +2783,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
+			compatibilityVersion = "Xcode 2.4";
 			hasScannedForEncodings = 1;
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Oolite_GUSTO */;
 			projectDirPath = "";
@@ -2775,6 +2801,7 @@
 					ProjectRef = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
 				},
 			);
+			projectRoot = "";
 			targets = (
 				1AD267500C83050800B4BFD1 /* Build All */,
 				0865423506B8447D000CA0AB /* Oolite */,
@@ -3032,6 +3059,7 @@
 				1A43A1870CB9243B00D0E239 /* OOEntityFilterPredicate.m in Sources */,
 				1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */,
 				1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */,
+				1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3250,8 +3278,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};
 			name = TestRelease;
@@ -3343,8 +3373,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};
 			name = Development;
@@ -3360,8 +3392,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};
 			name = Deployment;
