@@ -82,7 +82,7 @@ MA 02110-1301, USA.
       return;
    }
    
-   [self handleGUIUpDownArrowKeys: gui: gameView];
+   [self handleGUIUpDownArrowKeys];
    
    if([gameView isDown: 13])
    {
