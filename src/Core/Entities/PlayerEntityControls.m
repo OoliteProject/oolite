@@ -1055,10 +1055,8 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:'n'])// look for the 'n' key
 		{
 #ifndef NDEBUG
-#if 0
 			gDebugFlags = 0;
 			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
-#endif
 #else
 			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 #endif

@@ -337,12 +337,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 	atmosphere = nil;
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: 1.0];
-	float cloud_bias = -0.01 * (float)percent_land;
-	float cloud_impress = 1.0 - cloud_bias;
-	
 	if (procGen)
 	{
+		cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: 1.0];
+		float cloud_bias = -0.01 * (float)percent_land;
+		float cloud_impress = 1.0 - cloud_bias;
+	
 		textureName = [TextureStore getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias intoData: &textureData];
 		isTextured = (textureName != 0);
 	}
