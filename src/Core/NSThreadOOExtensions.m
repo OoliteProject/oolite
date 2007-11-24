@@ -51,6 +51,13 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 
 
+@interface NSThread (LeopardAdditions)
+
+- (void) setName:(NSString *)name;
+
+@end
+
+
 @implementation NSThread (OOExtensions)
 
 + (void)ooSetCurrentThreadName:(NSString *)name
@@ -60,7 +67,7 @@ SOFTWARE.
 	thread = [NSThread currentThread];
 	if ([thread respondsToSelector:@selector(setName:)])
 	{
-		[(id)thread setName:name];
+		[thread setName:name];
 	}
 }
 

@@ -122,10 +122,12 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value
 {
 	return OOFuzzyBooleanFromObject([self objectAtIndex:index], value);
 }
+#endif
 
 
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value
@@ -206,16 +208,18 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
-- (struct Vector)vectorAtIndex:(unsigned)index defaultValue:(struct Vector)value
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorAtIndex:(unsigned)index defaultValue:(Vector)value
 {
 	return OOVectorFromObject([self objectAtIndex:index], value);
 }
 
 
-- (struct Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(struct Quaternion)value;
+- (Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(Quaternion)value;
 {
 	return OOQuaternionFromObject([self objectAtIndex:index], value);
 }
+#endif
 
 
 - (char)charAtIndex:(unsigned)index
@@ -284,10 +288,12 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanAtIndex:(unsigned)index
 {
 	return [self fuzzyBooleanAtIndex:index defaultValue:0.0f];
 }
+#endif
 
 
 - (float)floatAtIndex:(unsigned)index
@@ -350,16 +356,18 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
-- (struct Vector)vectorAtIndex:(unsigned)index
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorAtIndex:(unsigned)index
 {
 	return [self vectorAtIndex:index defaultValue:kZeroVector];
 }
 
 
-- (struct Quaternion)quaternionAtIndex:(unsigned)index
+- (Quaternion)quaternionAtIndex:(unsigned)index
 {
 	return [self quaternionAtIndex:index defaultValue:kIdentityQuaternion];
 }
+#endif
 
 @end
 
@@ -432,10 +440,12 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
 {
 	return OOFuzzyBooleanFromObject([self objectForKey:key], value);
 }
+#endif
 
 
 - (float)floatForKey:(id)key defaultValue:(float)value
@@ -516,16 +526,18 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
-- (struct Vector)vectorForKey:(id)key defaultValue:(struct Vector)value
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorForKey:(id)key defaultValue:(Vector)value
 {
 	return OOVectorFromObject([self objectForKey:key], value);
 }
 
 
-- (struct Quaternion)quaternionForKey:(id)key defaultValue:(struct Quaternion)value
+- (Quaternion)quaternionForKey:(id)key defaultValue:(Quaternion)value
 {
 	return OOQuaternionFromObject([self objectForKey:key], value);
 }
+#endif
 
 
 - (char)charForKey:(id)key
@@ -594,10 +606,12 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key
 {
 	return [self fuzzyBooleanForKey:key defaultValue:0.0f];
 }
+#endif
 
 
 - (float)floatForKey:(id)key
@@ -660,16 +674,18 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
-- (struct Vector)vectorForKey:(id)key
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorForKey:(id)key
 {
 	return [self vectorForKey:key defaultValue:kZeroVector];
 }
 
 
-- (struct Quaternion)quaternionForKey:(id)key
+- (Quaternion)quaternionForKey:(id)key
 {
 	return [self quaternionForKey:key defaultValue:kIdentityQuaternion];
 }
+#endif
 
 @end
 
@@ -742,10 +758,12 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value
 {
 	return OOFuzzyBooleanFromObject([self objectForKey:key], value);
 }
+#endif
 
 
 - (float)floatForKey:(id)key defaultValue:(float)value
@@ -886,13 +904,15 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key
 {
 	return [self fuzzyBooleanForKey:key defaultValue:0.0f];
 }
+#endif
 
 
-- (double)doubleForKey:(id)key
+- (double)doubleForKey:(NSString *)key
 {
 	return OODoubleFromObject([self objectForKey:key], 0.0);
 }
@@ -1077,6 +1097,7 @@ BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue)
 {
 	BOOL result;
@@ -1092,6 +1113,7 @@ BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue)
 	
 	return result;
 }
+#endif
 
 
 float OOFloatFromObject(id object, float defaultValue)
@@ -1146,7 +1168,8 @@ double OONonNegativeDoubleFromObject(id object, double defaultValue)
 }
 
 
-struct Vector OOVectorFromObject(id object, struct Vector defaultValue)
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+Vector OOVectorFromObject(id object, Vector defaultValue)
 {
 	Vector result = defaultValue;
 	
@@ -1179,7 +1202,7 @@ struct Vector OOVectorFromObject(id object, struct Vector defaultValue)
 }
 
 
-struct Quaternion OOQuaternionFromObject(id object, struct Quaternion defaultValue)
+Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 {
 	Quaternion result = defaultValue;
 	
@@ -1213,6 +1236,7 @@ struct Quaternion OOQuaternionFromObject(id object, struct Quaternion defaultVal
 	
 	return result;
 }
+#endif
 
 
 static BOOL IsBooleanString(id object, BOOL *outValue)

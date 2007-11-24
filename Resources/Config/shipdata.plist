@@ -825,8 +825,8 @@
 		name = "Unusual cargo container";
 		roles = "cloaking-device oolite-cloaking-device";
 		scanClass = "CLASS_CARGO";
-	//	script = "oolite-cloaking-device-pod.js";
-		script_actions =
+		script = "oolite-cloaking-device-pod.js";
+	/*	script_actions =
 		(
 			"testForEquipment: EQ_CLOAKING_DEVICE",
 			{
@@ -843,7 +843,7 @@
 					"awardCargo: 100 Gold"
 				);
 			}
-		);
+		); */
 		thrust = 0;
 		unpiloted = yes;
 	};

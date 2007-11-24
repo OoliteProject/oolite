@@ -60,10 +60,14 @@ SOFTWARE.
 
 */
 
+
 #import <Foundation/Foundation.h>
 #import "OOFunctionAttributes.h"
-#import "OOMaths.h"	// Eliminates GCC warning 'parameter has incomplete type' for Vector and Quaternion structs.
 #include <limits.h>
+
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+#import "OOMaths.h"
+#endif
 
 
 
@@ -82,7 +86,9 @@ SOFTWARE.
 - (unsigned long long)unsignedLongLongAtIndex:(unsigned)index defaultValue:(unsigned long long)value;
 
 - (BOOL)boolAtIndex:(unsigned)index defaultValue:(BOOL)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 - (float)floatAtIndex:(unsigned)index defaultValue:(float)value;
 - (double)doubleAtIndex:(unsigned)index defaultValue:(double)value;
@@ -97,8 +103,10 @@ SOFTWARE.
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
 - (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value;
 
-- (struct Vector)vectorAtIndex:(unsigned)index defaultValue:(struct Vector)value;
-- (struct Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(struct Quaternion)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorAtIndex:(unsigned)index defaultValue:(Vector)value;
+- (Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(Quaternion)value;
+#endif
 
 
 // Default: 0
@@ -116,7 +124,9 @@ SOFTWARE.
 
 // Default: NO
 - (BOOL)boolAtIndex:(unsigned)index;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanAtIndex:(unsigned)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 // Default: 0.0
 - (float)floatAtIndex:(unsigned)index;
@@ -133,10 +143,12 @@ SOFTWARE.
 - (NSDictionary *)dictionaryAtIndex:(unsigned)index;
 - (NSData *)dataAtIndex:(unsigned)index;
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
-- (struct Vector)vectorAtIndex:(unsigned)index;
+- (Vector)vectorAtIndex:(unsigned)index;
 // Default: kIdentityQuaternion
-- (struct Quaternion)quaternionAtIndex:(unsigned)index;
+- (Quaternion)quaternionAtIndex:(unsigned)index;
+#endif
 
 @end
 
@@ -156,7 +168,9 @@ SOFTWARE.
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 - (float)floatForKey:(id)key defaultValue:(float)value;
 - (double)doubleForKey:(id)key defaultValue:(double)value;
@@ -171,8 +185,10 @@ SOFTWARE.
 - (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
 - (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
 
-- (struct Vector)vectorForKey:(id)key defaultValue:(struct Vector)value;
-- (struct Quaternion)quaternionForKey:(id)key defaultValue:(struct Quaternion)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (Vector)vectorForKey:(id)key defaultValue:(Vector)value;
+- (Quaternion)quaternionForKey:(id)key defaultValue:(Quaternion)value;
+#endif
 
 
 // Default: 0
@@ -190,7 +206,9 @@ SOFTWARE.
 
 // Default: NO
 - (BOOL)boolForKey:(id)key;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 // Default: 0.0
 - (float)floatForKey:(id)key;
@@ -207,10 +225,12 @@ SOFTWARE.
 - (NSDictionary *)dictionaryForKey:(id)key;
 - (NSData *)dataForKey:(id)key;
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
-- (struct Vector)vectorForKey:(id)key;
+- (Vector)vectorForKey:(id)key;
 // Default: kIdentityQuaternion
-- (struct Quaternion)quaternionForKey:(id)key;
+- (Quaternion)quaternionForKey:(id)key;
+#endif
 
 @end
 
@@ -230,7 +250,9 @@ SOFTWARE.
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 - (float)floatForKey:(id)key defaultValue:(float)value;
 - (double)doubleForKey:(id)key defaultValue:(double)value;
@@ -261,11 +283,13 @@ SOFTWARE.
 
 // Default: NO
 // - (BOOL)boolForKey:(id)key;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+#endif
 
 // Default: 0.0
 // - (float)floatForKey:(id)key;
-- (double)doubleForKey:(id)key;
+- (double)doubleForKey:(NSString *)key;
 - (float)nonNegativeFloatForKey:(id)key;
 - (double)nonNegativeDoubleForKey:(id)key;
 
@@ -331,11 +355,13 @@ SOFTWARE.
 BOOL OOBooleanFromObject(id object, BOOL defaultValue);
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 /*	Utility function to interpret a fuzzy boolean. May be any of the strings
 	accepted by OOBooleanFromObject(), or a number indicating probability of
 	a yes (between 0 and 1).
 */
 BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue);
+#endif
 
 
 float OOFloatFromObject(id object, float defaultValue);
@@ -343,10 +369,12 @@ double OODoubleFromObject(id object, double defaultValue);
 float OONonNegativeFloatFromObject(id object, float defaultValue);
 double OONonNegativeDoubleFromObject(id object, double defaultValue);
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 /*	These take strings, dictionaries or arrays.
 */
-struct Vector OOVectorFromObject(id object, struct Vector defaultValue);
-struct Quaternion OOQuaternionFromObject(id object, struct Quaternion defaultValue);
+Vector OOVectorFromObject(id object, Vector defaultValue);
+Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue);
+#endif
 
 
 OOINLINE long long OOClampInteger(long long value, long long minValue, long long maxValue) ALWAYS_INLINE_FUNC;
