@@ -1868,10 +1868,7 @@ static NSTimeInterval	time_last_frame;
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		
 		[gui click];
-		{
-			int GUI_ROW_GAMEOPTIONS_DISPLAY =   GUI_ROW_GAMEOPTIONS_DISPLAY;
-			[gui setText:displayModeString	forRow:GUI_ROW_GAMEOPTIONS_DISPLAY  align:GUI_ALIGN_CENTER];
-		}
+		[gui setText:displayModeString	forRow:GUI_ROW_GAMEOPTIONS_DISPLAY  align:GUI_ALIGN_CENTER];
 		switching_resolution = YES;
 	}
 	if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(!selectKeyPress))
