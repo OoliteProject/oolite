@@ -834,9 +834,9 @@
 				do =
 				(
 					"awardEquipment: EQ_CLOAKING_DEVICE"
-					/*	To consider:
-						"set: mission_TL_FOR_EQ_CLOAKING_DEVICE 14"
-					*/
+					//	To consider:
+					//	"set: mission_TL_FOR_EQ_CLOAKING_DEVICE 14"
+					
 				);
 				else =
 				(
