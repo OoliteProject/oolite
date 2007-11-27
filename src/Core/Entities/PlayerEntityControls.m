@@ -97,6 +97,7 @@ static double			timeLastKeyPress;
 static OOGUIRow			oldSelection;
 static int				saved_view_direction;
 static double			saved_script_time;
+static int			saved_gui_screen;
 static NSTimeInterval	time_last_frame;
 
 
@@ -1243,8 +1244,36 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (paused)
 			{
+				int previousGuiScreen = gui_screen;
 				script_time = saved_script_time;
-				gui_screen = GUI_SCREEN_MAIN;
+				// Reset to correct GUI screen, if we are unpausing from one.
+				gui_screen = saved_gui_screen;
+				switch (gui_screen)
+				{
+					case GUI_SCREEN_STATUS:
+						[self setGuiToStatusScreen];
+						break;
+					case GUI_SCREEN_SHORT_RANGE_CHART:
+						[self setGuiToShortRangeChartScreen];
+						break;
+					case GUI_SCREEN_LONG_RANGE_CHART:
+						[self setGuiToLongRangeChartScreen];
+						break;
+					case GUI_SCREEN_MANIFEST:
+						[self setGuiToManifestScreen];
+						break;
+					case GUI_SCREEN_MARKET:
+						[self setGuiToMarketScreen];
+						break;
+					case GUI_SCREEN_SYSTEM_DATA:
+						// Do not reset planet rotation if we are already in
+						// the system info screen - looks kind of ugly.
+						if (previousGuiScreen != GUI_SCREEN_SYSTEM_DATA)
+							[self setGuiToSystemDataScreen];
+						break;
+					default:
+						break;
+				}
 				[gameView allowStringInput:NO];
 				[UNIVERSE setDisplayCursor:NO];
 				[UNIVERSE clearPreviousMessage];
@@ -1255,6 +1284,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				saved_view_direction = [UNIVERSE viewDirection];
 				saved_script_time = script_time;
+				saved_gui_screen = gui_screen;
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused]") forCount:1.0];
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused-options]") forCount:1.0];
 				[[gameView gameController] pause_game];

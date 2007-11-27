@@ -4303,7 +4303,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:targetSystemName	forRow:17];
 		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:18];
-		[gui setText:(distance <= (PLAYER_MAX_FUEL/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:19];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:19];
 		
 		if (planetSearchString)
 			[gui setText:[NSString stringWithFormat:@"Find planet: %@", [planetSearchString capitalizedString]]  forRow:16];
@@ -4351,7 +4351,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:targetSystemName														forRow:19];
 		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:20];
-		[gui setText:(distance <= (PLAYER_MAX_FUEL/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:21];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:21];
 		
 
 		[gui setShowTextCursor:NO];
