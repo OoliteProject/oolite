@@ -84,8 +84,8 @@ SOFTWARE.
 @end
 
 
-extern BOOL		gOOSoundSetUp, gOOSoundBroken;
-extern NSLock	*gOOCASoundSyncLock;
+extern BOOL				gOOSoundSetUp, gOOSoundBroken;
+extern NSRecursiveLock	*gOOCASoundSyncLock;
 
 extern NSString * const kOOLogDeprecatedMethodOOCASound;
 extern NSString * const kOOLogSoundInitError;

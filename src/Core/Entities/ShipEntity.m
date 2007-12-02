@@ -1283,7 +1283,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (!haveExecutedSpawnAction && script != nil && status == STATUS_IN_FLIGHT)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"didSpawn"];
+		[self doScriptEvent:@"shipSpawned"];
 		haveExecutedSpawnAction = YES;
 	}
 
@@ -1294,8 +1294,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if ([UNIVERSE getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
 		{
 			status = STATUS_IN_FLIGHT;
+			[self doScriptEvent:@"shipLaunchedFromStation"];
 			[shipAI reactToMessage: @"LAUNCHED OKAY"];
-			//accepts_escorts = YES;
 		}
 		else
 		{
@@ -3579,7 +3579,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (script != nil)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"didDie"];
+		[self doScriptEvent:@"shipDied"];
 	}
 	
 	if ([self isThargoid])  [self broadcastThargoidDestroyed];
@@ -5733,7 +5733,7 @@ BOOL class_masslocks(int some_class)
 - (int)launchEscapeCapsule
 {
 	OOUniversalID		result = NO_TARGET;
-	ShipEntity			*pod = nil;
+	ShipEntity			*mainPod = nil, *pod = nil;
 	unsigned			n_pods;
 	
 	/*	BUG: player can't launch escape pod in interstellar space (because
@@ -5747,6 +5747,7 @@ BOOL class_masslocks(int some_class)
 	n_pods = [shipinfoDictionary unsignedIntForKey:@"has_escape_pod"];
 	
 	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+	mainPod = pod;
 	
 	if (pod)
 	{
@@ -5789,6 +5790,8 @@ BOOL class_masslocks(int some_class)
 			[pod release]; //release
 		}
 	}
+	
+	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:mainPod];
 	
 	return result;
 }
@@ -6194,8 +6197,8 @@ BOOL class_masslocks(int some_class)
 				//scripting
 				PlayerEntity *player = [PlayerEntity sharedPlayer];
 				[player setScriptTarget:self];
-				[other doScriptEvent:@"wasScooped" withArgument:self];
-				[self doScriptEvent:@"didScoop" withArgument:other];
+				[other doScriptEvent:@"shipWasScooped" withArgument:self];
+				[self doScriptEvent:@"shipScoopedOther" withArgument:other];
 				
 				if (isPlayer)
 				{
@@ -6490,7 +6493,9 @@ BOOL class_masslocks(int some_class)
 	if (dockingInstructions)
 		[dockingInstructions autorelease];
 	dockingInstructions = nil;
-
+	
+	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
+	[self doScriptEvent:@"shipDidDockWithStation" withArgument:station];
 	[shipAI message:@"DOCKED"];
 	[station noteDockedShip:self];
 	[UNIVERSE removeEntity:self];
@@ -6512,6 +6517,7 @@ BOOL class_masslocks(int some_class)
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.5;
 	status = STATUS_LAUNCHING;
+	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[shipAI message:@"LAUNCHED"];
 	[UNIVERSE addEntity:self];
 }
@@ -7426,7 +7432,9 @@ int w_space_seed = 1234567;
 
 - (void) doScriptEvent:(NSString *)message withArgument:(id)argument
 {
-	[self doScriptEvent:message withArguments:[NSArray arrayWithObject:argument]];
+	NSArray				*arguments = nil;
+	if (argument != nil)  arguments = [NSArray arrayWithObject:argument];
+	[self doScriptEvent:message withArguments:arguments];
 }
 
 

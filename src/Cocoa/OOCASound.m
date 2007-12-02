@@ -56,6 +56,7 @@ SOFTWARE.
 #import "OOCASoundDecoder.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
+#import "NSThreadOOExtensions.h"
 
 #define KEY_VOLUME_CONTROL			@"volume_control"
 #define KEY_MAX_BUFFERED_SOUND		@"max_buffered_sound"
@@ -70,7 +71,7 @@ static NSString * const kOOLogSoundLoadingError		= @"sound.load.error";
 static float				sNominalVolume = 1.0f;
 BOOL						gOOSoundSetUp = NO;
 BOOL						gOOSoundBroken = NO;
-NSLock						*gOOCASoundSyncLock = NULL;	// Used to ensure thread-safety of play and stop, specifically because stop may be called from the CoreAudio thread.
+NSRecursiveLock				*gOOCASoundSyncLock = nil;	// Used to ensure thread-safety of play and stop, specifically because stop may be called from the CoreAudio thread.
 
 static OOSound				*sSingletonOOSound = NULL;
 static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
@@ -137,6 +138,7 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 	if (!gOOSoundSetUp)
 	{
 		gOOCASoundSyncLock = [[NSRecursiveLock alloc] init];
+		[gOOCASoundSyncLock ooSetName:@"OOCASound synchronization lock"];
 		if (nil == gOOCASoundSyncLock)
 		{
 			OOLog(kOOLogSoundInitError, @"Failed to set up sound (lock allocation failed). No sound will be played.");

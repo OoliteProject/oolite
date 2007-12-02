@@ -507,7 +507,7 @@ FIXME: this works with CRLF and LF, but not CR.
 	}
 	
 	// Append file name and line
-	filePath = [NSString stringWithUTF8String:errorReport->filename];
+	if (errorReport->filename != NULL)  filePath = [NSString stringWithUTF8String:errorReport->filename];
 	if ([filePath length] != 0)
 	{
 		[formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport->lineno];

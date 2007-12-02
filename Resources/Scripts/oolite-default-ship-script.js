@@ -36,7 +36,7 @@ this.version		= "1.69.2";
 // launch_actions handled on didSpawn().
 if (this.legacy_launchActions != undefined)
 {
-	this.didSpawn = function()
+	this.shipSpawned = function()
 	{
 		this.ship.runLegacyScriptActions(this.ship, this.legacy_launchActions);
 		
@@ -50,7 +50,7 @@ if (this.legacy_launchActions != undefined)
 // death_actions handled on didDie().
 if (this.legacy_deathActions != undefined)
 {
-	this.didDie = function()
+	this.shipDied = function()
 	{
 		this.ship.runLegacyScriptActions(this.ship, this.legacy_deathActions);
 	}
@@ -64,14 +64,14 @@ if (this.legacy_scriptActions != undefined)
 		docks, and for cargo pods when they are is scooped. No sane vessel can
 		be scooped _and_ docked with. Non-sane vessels are certified insane.
 	*/
-	this.shipDidDock = function(docker)
+	this.otherShipDocked = function(docker)
 	{
 		if (docker == player)
 		{
 			this.ship.runLegacyScriptActions(docker, this.legacy_scriptActions);
 		}
 	}
-	this.wasScooped = function(scooper)
+	this.shipWasScooped = function(scooper)
 	{
 		// Note "backwards" call, allowing awardEquipment: and similar to affect the scooper rather than the scoopee.
 		scooper.runLegacyScriptActions(this.ship, this.legacy_scriptActions);

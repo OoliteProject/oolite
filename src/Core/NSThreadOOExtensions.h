@@ -2,7 +2,7 @@
 
 NSThreadOOExtensions.h
 
-Utility methods for NSThread.
+Utility methods for NSThread and NS*Lock.
 
  
 Oolite
@@ -56,6 +56,36 @@ SOFTWARE.
 /*	Set name of current thread for identification during debugging. Only works
 	on Mac OS X 10.5 or later, does nothing on other platforms.
 */
-+ (void)ooSetCurrentThreadName:(NSString *)name;
++ (void) ooSetCurrentThreadName:(NSString *)name;
+
+@end
+
+
+@interface NSLock (OOExtensions)
+
+/*	Set name of lock for identification during debugging. Only works
+	on Mac OS X 10.5 or later, does nothing on other platforms.
+*/
+- (void) ooSetName:(NSString *)name;
+
+@end
+
+
+@interface NSRecursiveLock (OOExtensions)
+
+/*	Set name of lock for identification during debugging. Only works
+	on Mac OS X 10.5 or later, does nothing on other platforms.
+*/
+- (void) ooSetName:(NSString *)name;
+
+@end
+
+
+@interface NSConditionLock (OOExtensions)
+
+/*	Set name of lock for identification during debugging. Only works
+	on Mac OS X 10.5 or later, does nothing on other platforms.
+*/
+- (void) ooSetName:(NSString *)name;
 
 @end

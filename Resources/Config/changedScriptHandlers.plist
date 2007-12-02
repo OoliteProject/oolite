@@ -1,0 +1,33 @@
+/*	changedScriptHandlers.plist
+	
+	This file specifies old names for script event handlers. If a handler is
+	not found, the scripting mechanism looks for an alias in this file. All
+	such support is temporary and transitional.
+		
+	Possibly confusing is that the new name is the key (left hand side) and
+	the old name is the value (right hand side).
+*/
+
+{
+	"shipSpawned"					= "didSpawn";
+	"shipDied"						= ("didBecomeDead", "didDie");
+	"shipWasScooped"				= "wasScooped";
+	"shipScoopedOther"				= "didScoop";
+	"playerStartedAutoPilot"		= "didStartAutoPilot";
+	"playerCancelledJumpCountdown"	= "didCancelJumpCountDown";
+	"playerStartedJumpCountdown"	= "didBeginJumpCountDown";
+	"playerCancelledAutoPilot"		= "didAbortAutoPilot";
+	"shipWillLaunchFromStation"		= "willLaunch";
+	"shipLaunchedFromStation"		= "didLaunch";
+	"playerJumpFailed"				= "didFailToJump";
+	"playerDockingRefused"			= "didRecieveDockingRefusal";
+	"shipLaunchedEscapePod"			= "didLaunchEscapePod";
+	"shipWillDockWithStation"		= "willDock";
+	"shipDockedWithStation"			= "didDock";
+	"otherShipDocked"				= "shipDidDock";
+	
+	// Note to self: explore relationship with shipExitedWormhole, and make consistent for NPCs and players to extent possible.
+	"shipWillExitWitchspace"		= "willExitWitchSpace";
+	"shipExitedWitchspace"			= "didExitWitchSpace";
+	"shipWillEnterWitchspace"		= "willEnterWitchSpace";
+}

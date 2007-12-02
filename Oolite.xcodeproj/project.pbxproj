@@ -33,6 +33,7 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
+		1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
@@ -487,7 +488,7 @@
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
-		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
+		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
 		1ACEA3490C91507000C7CE97 /* OORoleSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA3470C91507000C7CE97 /* OORoleSet.h */; };
 		1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA3480C91507000C7CE97 /* OORoleSet.m */; };
 		1ACEA6BF0C91DA3E00C7CE97 /* OOJSGlobal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA6BD0C91DA3E00C7CE97 /* OOJSGlobal.h */; };
@@ -655,6 +656,8 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */,
+				1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */,
 				1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */,
 				1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */,
 				1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */,
@@ -980,9 +983,10 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-DebugOXP/DebugOXP.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
@@ -1609,7 +1613,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -1664,6 +1668,7 @@
 			isa = PBXGroup;
 			children = (
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
+				1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */,
 				1A2316DE0B9CFAD700EF0852 /* characters.plist */,
 				1A2316DF0B9CFAD700EF0852 /* commodities.plist */,
 				1A2316E00B9CFAD700EF0852 /* customsounds.plist */,
@@ -2757,7 +2762,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -2847,7 +2852,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
-				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

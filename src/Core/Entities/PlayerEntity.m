@@ -1504,7 +1504,7 @@ double scoopSoundPlayTime = 0.0;
 			// next check in 10s
 
 			status = STATUS_IN_FLIGHT;
-			[self doScriptEvent:@"didLaunch"];
+			[self doScriptEvent:@"shipLaunchedFromStation"];
 		}
 	}
 
@@ -1530,7 +1530,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
-				[self doScriptEvent:@"didFailToJump" withArgument:@"blocked"];
+				[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
 				go = NO;
 			}
 			
@@ -1546,7 +1546,7 @@ double scoopSoundPlayTime = 0.0;
 					if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
 						[witchAbortSound play];
 					status = STATUS_IN_FLIGHT;
-					[self doScriptEvent:@"didFailToJump" withArgument:@"too far"];
+					[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
 					go = NO;
 				}
 			}
@@ -1562,7 +1562,7 @@ double scoopSoundPlayTime = 0.0;
 				if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
-				[self doScriptEvent:@"didFailToJump" withArgument:@"insufficient fuel"];
+				[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
 				go = NO;
 			}
 
@@ -1595,7 +1595,7 @@ double scoopSoundPlayTime = 0.0;
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
 
 			status = STATUS_IN_FLIGHT;
-			[self doScriptEvent:@"didExitWitchSpace"];
+			[self doScriptEvent:@"shipExitedWitchspace"];
 		}
 	}
 
@@ -2703,7 +2703,7 @@ double scoopSoundPlayTime = 0.0;
 			[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
 			docking_music_on = NO;
 		}
-		[self doScriptEvent:@"didRecieveDockingRefusal"];
+		[self doScriptEvent:@"playerDockingRefused"];
 	}
 
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
@@ -3314,7 +3314,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[escape-sequence]") forCount:4.5];
 	shot_time = 0.0;
 	
-	[self doScriptEvent:@"didLaunchEscapePod"];
+	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];
 
 	return result;
 }
@@ -3537,7 +3537,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setViewDirection:VIEW_AFT];
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
-
+	
 	[UNIVERSE playCustomSound:@"[game-over]"];
 	[destructionSound play];
 	
@@ -3551,7 +3551,7 @@ double scoopSoundPlayTime = 0.0;
 	shot_time = 0.0;
 	
 	if (whom == nil)  whom = (id)[NSNull null];
-	[self doScriptEvent:@"didBecomeDead" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
 	[self loseTargetStatus];
 }
 
@@ -3589,7 +3589,7 @@ double scoopSoundPlayTime = 0.0;
 		return;
 	
 	status = STATUS_DOCKING;
-	[self doScriptEvent:@"willDock"];
+	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
 
 	afterburner_engaged = NO;
 
@@ -3695,7 +3695,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	[[OOCacheManager sharedCache] flush];
 	
-	[self doScriptEvent:@"didDock"];
+	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
 }
 
 
@@ -3745,30 +3745,30 @@ double scoopSoundPlayTime = 0.0;
 - (void) enterGalacticWitchspace
 {
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"galactic jump"];
-
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
+	
 	if (primaryTarget != NO_TARGET)
 		primaryTarget = NO_TARGET;
-
+	
 	hyperspeed_engaged = NO;
-
+	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0;
-
+	
 	[UNIVERSE setDisplayText:NO];
-
+	
 	[UNIVERSE allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
-
+	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-
+	
 	// remove any contracts for the old galaxy
 	if (contracts)
 		[contracts removeAllObjects];
-
+	
 	// remove any mission destinations for the old galaxy
 	if (missionDestinations)
 		[missionDestinations removeAllObjects];
-
+	
 	// expire passenger contracts for the old galaxy
 	if (passengers)
 	{
@@ -3781,9 +3781,9 @@ double scoopSoundPlayTime = 0.0;
 			[passengers replaceObjectAtIndex:i withObject:passenger_info];
 		}
 	}
-
+	
 	[self removeExtraEquipment:@"EQ_GAL_DRIVE"];
-
+	
 	galaxy_number++;
 	galaxy_number &= 7;
 
@@ -3816,7 +3816,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"wormhole"];
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
 
 	hyperspeed_engaged = NO;
 
@@ -3861,7 +3861,7 @@ double scoopSoundPlayTime = 0.0;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 
 	status = STATUS_ENTERING_WITCHSPACE;
-	[self doScriptEvent:@"willEnterWitchSpace" withArgument:@"standard jump"];
+	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
 
 	hyperspeed_engaged = NO;
 
@@ -3970,7 +3970,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 	[self playBreakPattern];
-	[self doScriptEvent:@"willExitWitchSpace"];
+	[self doScriptEvent:@"shipWillExitWitchspace"];
 }
 
 
@@ -4005,7 +4005,7 @@ double scoopSoundPlayTime = 0.0;
 	if (status == STATUS_DOCKED)
 	{
 		if ((dockedStation != [UNIVERSE station])&&(dockedStation != nil))
-			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [(ShipEntity*)dockedStation name]];
+			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [dockedStation name]];
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];

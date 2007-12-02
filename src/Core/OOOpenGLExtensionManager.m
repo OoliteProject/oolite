@@ -121,6 +121,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 	{
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 		lock = [[NSLock alloc] init];
+		[lock ooSetName:@"OOOpenGLExtensionManager extension set lock"];
 #endif
 		
 		extensionString = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];

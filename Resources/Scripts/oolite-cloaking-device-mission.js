@@ -32,7 +32,7 @@ this.description    = "Cloaking device mission in galaxy 5.";
 this.version        = "1.69.2";
 
 
-this.willExitWitchSpace = function()
+this.shipWillExitWitchspace = function()
 {
 	// If we're in galaxy 5...
 	if (galaxyNumber == 4)

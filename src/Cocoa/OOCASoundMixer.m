@@ -51,6 +51,7 @@ SOFTWARE.
 
 #import "OOCASoundInternal.h"
 #import "OOCASoundChannel.h"
+#import "NSThreadOOExtensions.h"
 
 
 static NSString * const kOOLogSoundInspetorNotLoaded			= @"sound.mixer.inspector.loadFailed";
@@ -105,6 +106,7 @@ static OOCASoundMixer *sSingleton = nil;
 		if (nil != self)
 		{
 			_listLock = [[NSLock alloc] init];
+			[_listLock ooSetName:@"OOCASoundMixer list lock"];
 			OK = nil != _listLock;
 			
 			if (OK)

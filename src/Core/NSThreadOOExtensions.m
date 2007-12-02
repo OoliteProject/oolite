@@ -52,15 +52,25 @@ SOFTWARE.
 
 
 @interface NSThread (LeopardAdditions)
-
 - (void) setName:(NSString *)name;
+@end
 
+@interface NSLock (LeopardAdditions)
+- (void) setName:(NSString *)name;
+@end
+
+@interface NSRecursiveLock (LeopardAdditions)
+- (void) setName:(NSString *)name;
+@end
+
+@interface NSConditionLock (LeopardAdditions)
+- (void) setName:(NSString *)name;
 @end
 
 
 @implementation NSThread (OOExtensions)
 
-+ (void)ooSetCurrentThreadName:(NSString *)name
++ (void) ooSetCurrentThreadName:(NSString *)name
 {
 	NSThread			*thread = nil;
 	
@@ -68,6 +78,45 @@ SOFTWARE.
 	if ([thread respondsToSelector:@selector(setName:)])
 	{
 		[thread setName:name];
+	}
+}
+
+@end
+
+
+@implementation NSLock (OOExtensions)
+
+- (void) ooSetName:(NSString *)name
+{
+	if ([self respondsToSelector:@selector(setName:)])
+	{
+		[self setName:name];
+	}
+}
+
+@end
+
+
+@implementation NSRecursiveLock (OOExtensions)
+
+- (void) ooSetName:(NSString *)name
+{
+	if ([self respondsToSelector:@selector(setName:)])
+	{
+		[self setName:name];
+	}
+}
+
+@end
+
+
+@implementation NSConditionLock (OOExtensions)
+
+- (void) ooSetName:(NSString *)name
+{
+	if ([self respondsToSelector:@selector(setName:)])
+	{
+		[self setName:name];
 	}
 }
 

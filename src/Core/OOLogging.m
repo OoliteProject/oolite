@@ -55,6 +55,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
+#import "NSThreadOOExtensions.h"
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
@@ -606,6 +607,7 @@ void OOLoggingInit(void)
 	OOLogOutputHandlerInit();
 	
 	sLock = [[NSLock alloc] init];
+	[sLock ooSetName:@"OOLogging lock"];
 	if (sLock == nil) exit(EXIT_FAILURE);
 	
 	LoadExplicitSettings();

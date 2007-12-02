@@ -32,7 +32,7 @@ this.copyright		= "© 2007 the Oolite team.";
 this.version		= "1.69.2";
 
 
-this.wasScooped = function(scooper)
+this.shipWasScooped = function(scooper)
 {
 	if (scooper == player)
 	{

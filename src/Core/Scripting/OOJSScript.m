@@ -26,6 +26,9 @@ MA 02110-1301, USA.
 #define OO_CACHE_JS_SCRIPTS		1
 #endif
 
+// Enable support for old event handler names through changedScriptHandlers.plist.
+#define SUPPORT_CHANGED_HANDLERS 1
+
 
 #import "OOJSScript.h"
 #import "OOLogging.h"
@@ -34,6 +37,10 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "NSStringOOExtensions.h"
 #import "EntityOOJavaScriptExtensions.h"
+
+#if SUPPORT_CHANGED_HANDLERS
+#import "ResourceManager.h"
+#endif
 
 #if OO_CACHE_JS_SCRIPTS
 #import <jsxdrapi.h>
@@ -272,9 +279,66 @@ static JSFunctionSpec sScriptMethods[] =
 }
 
 
+- (JSFunction *) functionNamed:(NSString *)eventName context:(JSContext *)context
+{
+	BOOL						OK;
+	jsval						value;
+	JSFunction					*function = NULL;
+	
+	OK = JS_GetProperty(context, object, [eventName cString], &value);
+	
+#if SUPPORT_CHANGED_HANDLERS
+	if (!OK || value == JSVAL_VOID)
+	{
+		// Look up event name in renaming table.
+		static NSDictionary		*changedHandlers = nil;
+		static NSMutableSet		*notedChanges = nil;
+		id						oldNames = nil;
+		NSEnumerator			*oldNameEnum = nil;
+		NSString				*oldName = nil;
+		NSString				*key = nil;
+		
+		if (notedChanges == nil)
+		{
+			notedChanges = [[NSMutableSet alloc] init];
+			changedHandlers = [ResourceManager dictionaryFromFilesNamed:@"changedScriptHandlers.plist"
+															   inFolder:@"Config"
+															   andMerge:NO];
+			[changedHandlers retain];
+		}
+		oldNames = [changedHandlers objectForKey:eventName];
+		if ([oldNames isKindOfClass:[NSString class]])  oldNames = [NSArray arrayWithObject:oldNames];
+		if ([oldNames isKindOfClass:[NSArray class]])
+		{
+			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && value == JSVAL_VOID && OK; )
+			{
+				OK = JS_GetProperty(context, object, [oldName cString], &value);
+				
+				if (OK && value != JSVAL_VOID)
+				{
+					key = [NSString stringWithFormat:@"%@\n%@", self->name, oldName];
+					if (![notedChanges containsObject:key])
+					{
+						[notedChanges addObject:key];
+						OOReportJavaScriptWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite!", oldName, eventName, self->name);
+					}
+				}
+			}
+		}
+	}
+#endif
+	
+	if (OK && value != JSVAL_VOID)
+	{
+		function = JS_ValueToFunction(context, value);
+	}
+	return function;
+}
+
+
 - (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
 {
-	BOOL					OK;
+	BOOL					OK = YES;
 	jsval					value;
 	JSFunction				*function;
 	uintN					i, argc;
@@ -286,56 +350,57 @@ static JSFunctionSpec sScriptMethods[] =
 	engine = [OOJavaScriptEngine sharedEngine];
 	context = [engine acquireContext];
 	
-	OK = JS_GetProperty(context, object, [eventName cString], &value);
-	if (OK && !JSVAL_IS_VOID(value))
+	function = [self functionNamed:eventName context:context];
+	if (function != NULL)
 	{
-		function = JS_ValueToFunction(context, value);
-		if (function != NULL)
+		// Push self on stack of running scripts
+		stackElement.back = sRunningStack;
+		stackElement.current = self;
+		sRunningStack = &stackElement;
+		
+		// Convert arguments to JS values and make them temporarily un-garbage-collectable
+		argc = [arguments count];
+		if (argc != 0)
 		{
-			// Push self on stack of running scripts
-			stackElement.back = sRunningStack;
-			stackElement.current = self;
-			sRunningStack = &stackElement;
-			
-			// Convert arguments to JS values and make them temporarily un-garbage-collectable
-			argc = [arguments count];
-			if (argc != 0)
-			{
-				argv = malloc(sizeof *argv * argc);
-				if (argv != NULL)
-				{
-					for (i = 0; i != argc; ++i)
-					{
-						argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-						if (JSVAL_IS_GCTHING(argv[i]))  JS_AddNamedRoot(context, &argv[i], "JSScript event parameter");
-					}
-				}
-				else  argc = 0;
-			}
-			
-			// Actually call the function
-			OK = JS_CallFunction(context, object, function, argc, argv, &value);
-			
-			// Re-garbage-collectibalize the arguments and free the array
+			argv = malloc(sizeof *argv * argc);
 			if (argv != NULL)
 			{
 				for (i = 0; i != argc; ++i)
 				{
-					if (JSVAL_IS_GCTHING(argv[i]))  JS_RemoveRoot(context, &argv[i]);
+					argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
+					if (JSVAL_IS_GCTHING(argv[i]))  JS_AddNamedRoot(context, &argv[i], "JSScript event parameter");
 				}
-				free(argv);
 			}
-			
-			// Pop running scripts stack
-			sRunningStack = stackElement.back;
-			
-			JS_ClearNewbornRoots(context);
-			
-#ifndef NDEBUG
-			// Do extra garbage collection for stress testing.
-			JS_GC(context);
-#endif
+			else  argc = 0;
 		}
+		
+		// Actually call the function
+		OK = JS_CallFunction(context, object, function, argc, argv, &value);
+		
+		// Re-garbage-collectibalize the arguments and free the array
+		if (argv != NULL)
+		{
+			for (i = 0; i != argc; ++i)
+			{
+				if (JSVAL_IS_GCTHING(argv[i]))  JS_RemoveRoot(context, &argv[i]);
+			}
+			free(argv);
+		}
+		
+		// Pop running scripts stack
+		sRunningStack = stackElement.back;
+		
+		JS_ClearNewbornRoots(context);
+		
+#ifndef NDEBUG
+		// Do extra garbage collection for stress testing.
+		JS_GC(context);
+#endif
+	}
+	else
+	{
+		// No function
+		OK = YES;
 	}
 	
 	[engine releaseContext:context];

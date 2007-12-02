@@ -50,6 +50,7 @@ SOFTWARE.
 #import "OOAsyncQueue.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
+#import "NSThreadOOExtensions.h"
 #import <stdlib.h>
 
 
@@ -104,6 +105,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement *element)
 	if (self != nil)
 	{
 		_lock = [[NSConditionLock alloc] initWithCondition:kConditionNoData];
+		[_lock ooSetName:@"OOAsyncQueue lock"];
 		if (_lock == nil)
 		{
 			[self release];

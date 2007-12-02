@@ -1190,7 +1190,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
 			id_lock[i] = NO_TARGET;
 	
-	[script doEvent:@"shipDidDock" withArgument:ship];
+	[script doEvent:@"otherShipDocked" withArgument:ship];
 }
 
 
