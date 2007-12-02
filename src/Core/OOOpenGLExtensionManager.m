@@ -49,6 +49,7 @@ SOFTWARE.
 #import "OOLogging.h"
 #import "OOFunctionAttributes.h"
 #import <stdlib.h>
+#import "NSThreadOOExtensions.h"
 
 
 /*	If nonzero, disable shaders for OpenGL versions less than 1.5. It is my
