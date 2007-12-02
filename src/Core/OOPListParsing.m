@@ -172,7 +172,6 @@ static NSData *ChangeDTDIfApplicable(NSData *data)
 		if (srcDTDLine == NULL)  return data;  // No matches
 		
 		srcDTDLineSize = strlen(appleDTDLines[i]);
-		OOLog(@"temp.plistParsing", @"srcDTDLineSize[%i] = %zu", i, srcDTDLineSize);
 		
 		if (srcDTDLineSize <= length - offset &&
 			memcmp(bytes + offset, srcDTDLine, srcDTDLineSize) == 0)

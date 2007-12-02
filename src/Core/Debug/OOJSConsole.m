@@ -307,7 +307,6 @@ static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc,
 	
 	result = [OOJSScript scriptStack];
 	*outResult = [result javaScriptValueInContext:context];
-	OOLog(@"temp", @"Result = %@ -> %p", result, *outResult);
 	return YES;
 }
 
