@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (LoadSave)
 
-- (void) loadPlayer;
+- (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
 - (void) savePlayer;
 - (void) quicksavePlayer;
 
@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 - (void) saveCommanderInputHandler;
 - (void) overwriteCommanderInputHandler;
 
-- (void) loadPlayerFromFile:(NSString *)fileToOpen;
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen;
 
 
 @end

@@ -2351,7 +2351,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			for (i = 0; i < n; i++)
 			{
 				Entity* se = [sub_entities objectAtIndex:i];
-				Vector	sepos = se->position;
+				Vector	sepos = se->position;	// CRASH: Crash here when subentity leaked. Apparently related to player ships with subentities. -- Ahruman
 				if ([se isExhaust])
 				{
 					thisFrame.position = make_vector(

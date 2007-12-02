@@ -68,7 +68,7 @@
 
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 
-- (void) loadPlayerWithPanel;
+- (BOOL) loadPlayerWithPanel;
 - (void) savePlayerWithPanel;
 
 #endif
@@ -88,8 +88,10 @@
 
 @implementation PlayerEntity (LoadSave)
 
-- (void)loadPlayer
+- (BOOL)loadPlayer
 {
+	BOOL				OK = YES;
+	
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 	// OS X: use system open/save dialogs in windowed mode, custom interface in full-screen.
 	if ([[UNIVERSE gameController] inFullScreenMode])
@@ -98,12 +100,13 @@
 	}
 	else
 	{
-		[self loadPlayerWithPanel];
+		OK = [self loadPlayerWithPanel];
 	}
 #else
 	// Other platforms: use custom interface all the time.
 	[self setGuiToLoadCommanderScreen];
 #endif
+	return OK;
 }
 
 
@@ -341,7 +344,7 @@
 }
 
 
-- (void) loadPlayerFromFile:(NSString *)fileToOpen
+- (BOOL) loadPlayerFromFile:(NSString *)fileToOpen
 {
 	/*	TODO: it would probably be better to load by creating a new
 	PlayerEntity, verifying that's OK, then replacing the global player.
@@ -415,7 +418,7 @@
 		[UNIVERSE clearPreviousMessage];
 		[UNIVERSE addMessage:@"Saved game failed to load." forCount: 9.0];
 		if (fail_reason != nil)  [UNIVERSE addMessage: fail_reason forCount: 9.0];
-		return;
+		return NO;
 	}
 	
 	[UNIVERSE setSystemTo:system_seed];
@@ -447,6 +450,7 @@
 		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	[self setGuiToStatusScreen];
+	return loadedOK;
 }
 
 @end
@@ -456,7 +460,7 @@
 
 #if OOLITE_USE_APPKIT_LOAD_SAVE
 
-- (void)loadPlayerWithPanel
+- (BOOL)loadPlayerWithPanel
 {
 	int				result;
 	NSArray			*fileTypes = nil;
@@ -467,7 +471,14 @@
 	
 	[oPanel setAllowsMultipleSelection:NO];
 	result = [oPanel runModalForDirectory:nil file:nil types:fileTypes];
-	if (result == NSOKButton)  [self loadPlayerFromFile:[oPanel filename]];
+	if (result == NSOKButton)
+	{
+		return [self loadPlayerFromFile:[oPanel filename]];
+	}
+	else
+	{
+		return NO;
+	}
 }
 
 

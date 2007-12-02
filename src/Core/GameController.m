@@ -363,10 +363,13 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 {
 	unsigned			modeIndex, modeCount;
 	NSArray				*modes = nil;
-	NSDictionary		*mode = nil;
+	NSDictionary		*mode = nil, *mode2 = nil;
 	unsigned			modeWidth, modeHeight, color;
+	unsigned			modeWidth2, modeHeight2, color2;
+	BOOL				stretched, stretched2, interlaced, interlaced2;
+	float				modeRefresh, modeRefresh2;
 	NSUserDefaults		*userDefaults = nil;
-	NSMutableSet		*modesSet = nil;
+	BOOL				deleteFirst;
 	
 	// Load preferences.
 	userDefaults = [NSUserDefaults standardUserDefaults];
@@ -377,24 +380,101 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 	// Get the list of all available modes
 	modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
 	
-	// Filter out modes that we don't want
-	modesSet = [NSMutableSet set];
-	modeCount = [modes count];
-	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
+    // Filter out modes that we don't want
+    displayModes = [[NSMutableArray alloc] init];
+    modeCount = [modes count];
+    for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
 	{
-		mode = [modes objectAtIndex: modeIndex];
-		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
-		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
-		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
-
-		if ((color < DISPLAY_MIN_COLOURS)||(modeWidth < DISPLAY_MIN_WIDTH)||(modeWidth > DISPLAY_MAX_WIDTH)||(modeHeight < DISPLAY_MIN_HEIGHT)||(modeHeight > DISPLAY_MAX_HEIGHT))
-			continue;
-		[modesSet addObject:mode];	// Use a set here to remove duplicate modes generated for some displays.
-	}
+        mode = [modes objectAtIndex: modeIndex];
+        modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
+        modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
+        color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+        modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
+        
+        if (color < DISPLAY_MIN_COLOURS ||
+			modeWidth < DISPLAY_MIN_WIDTH ||
+			modeWidth > DISPLAY_MAX_WIDTH ||
+			modeHeight < DISPLAY_MIN_HEIGHT ||
+			modeHeight > DISPLAY_MAX_HEIGHT)
+            continue;
+        [displayModes addObject: mode];
+    }
 	
 	// Sort the filtered modes
-	displayModes = [[modesSet allObjects] mutableCopy];
-	[displayModes sortUsingFunction: CompareDisplayModes context: NULL];
+	[displayModes sortUsingFunction:CompareDisplayModes context:NULL];
+	
+	// ***JESTER_START*** 11/08/04
+	// Powerbooks return several "identical modes" CGDisplayAvailableModes doesn't appear
+	// to pick up refresh rates. Logged as Radar 3759831.
+	// In order to deal with this, we'll just edit out the duplicates.
+	/*
+		Bug	011893: restoring old display filtering code because my previous
+		assumption that using a set would filter out "duplicates" was broken.
+		The modes in question are not actually duplicates. For instance,
+		stretched modes look like "duplicates" from Oolite's perspective. The
+		Right Thing is to handle stretched modes properly. Also, the bug that
+		having "duplicates" causes (bad behaviour in config screen, see bug
+		011893) is really down to not tracking the selected display mode index
+		explictly.
+		Basically, this needs redoing, but shouldn't hold up 1.70.
+		-- Ahruman
+	*/
+	unsigned int mode2Index = 0;
+	for (modeIndex = 0; modeIndex + 1 < [displayModes count]; modeIndex++)
+	{
+		mode = [displayModes objectAtIndex:modeIndex];
+		modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
+		modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
+		modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
+        color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+		stretched = [mode boolForKey:(NSString *)kCGDisplayModeIsStretched];
+		interlaced = [mode boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
+		
+		for (mode2Index = modeIndex + 1; mode2Index < [displayModes count]; ++mode2Index)
+		{
+			mode2 = [displayModes objectAtIndex:mode2Index];
+			modeWidth2 = [mode2 unsignedIntForKey:(NSString *)kCGDisplayWidth];
+			modeHeight2 = [mode2 unsignedIntForKey:(NSString *)kCGDisplayHeight];
+			modeRefresh2 = [mode2 floatForKey:(NSString *)kCGDisplayRefreshRate];
+			color2 = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+			stretched2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsStretched];
+			interlaced2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
+			
+			if (modeWidth == modeWidth2 &&
+				modeHeight == modeHeight2 &&
+				modeRefresh == modeRefresh2)
+			{
+				/*	Modes are "duplicates" from Oolite's perspective, so one
+					needs to be removed. If one has higher colour depth, use
+					that one. Otherwise, If one is stretched and the other
+					isn't, remove the stretched one. Otherwise, if one is
+					interlaced and the other isn't, remove the interlaced one.
+					Otherwise, remove the one that comes later in the list.
+				*/
+				deleteFirst = NO;
+				if (color < color2)  deleteFirst = YES;
+				else if (color == color2)
+				{
+					if (stretched && !stretched2)  deleteFirst = YES;
+					else if (stretched == stretched2)
+					{
+						if (interlaced && !interlaced2)  deleteFirst = YES;
+					}
+				}
+				if (deleteFirst)
+				{
+					[displayModes removeObjectAtIndex:modeIndex];
+					modeIndex--;
+					break;
+				}
+				else
+				{
+					[displayModes removeObjectAtIndex:mode2Index];
+					mode2Index--;
+				}
+			}
+		}
+	}
 	
 	if ([displayModes count] == 0)
 	{

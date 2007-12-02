@@ -1525,7 +1525,11 @@ static NSTimeInterval	time_last_frame;
 				if (([gui selectedRow] == GUI_ROW_OPTIONS_LOAD)&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
-					[self loadPlayer];
+					if (![self loadPlayer])
+					{
+						disc_operation_in_progress = NO;
+						[self setGuiToStatusScreen];
+					}
 				}
 				
 				
@@ -1866,7 +1870,9 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 	
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_DISPLAY)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))&&(!switching_resolution))
+	if (!switching_resolution &&
+		[gui selectedRow] == GUI_ROW_GAMEOPTIONS_DISPLAY &&
+		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
 		int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
 		int displayModeIndex = [controller indexOfCurrentDisplayMode];
@@ -1901,8 +1907,10 @@ static NSTimeInterval	time_last_frame;
 		[gui setText:displayModeString	forRow:GUI_ROW_GAMEOPTIONS_DISPLAY  align:GUI_ALIGN_CENTER];
 		switching_resolution = YES;
 	}
-	if ((![gameView isDown:gvArrowKeyRight])&&(![gameView isDown:gvArrowKeyLeft])&&(!selectKeyPress))
+	if (switching_resolution && ![gameView isDown:gvArrowKeyRight] && ![gameView isDown:gvArrowKeyLeft] && !selectKeyPress)
+	{
 		switching_resolution = NO;
+	}
 	
 #if OOLITE_MAC_OS_X
 	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -2622,7 +2630,10 @@ static BOOL toggling_music;
 					[self setStatus:STATUS_DOCKED];
 					[UNIVERSE removeDemoShips];
 					[gui clearBackground];
-					[self loadPlayer];
+					if (![self loadPlayer])
+					{
+						[self setGuiToIntro2Screen];
+					}
 				}
 			}
 			if (([gameView isDown:110])||([gameView isDown:78]))	//  'nN'
