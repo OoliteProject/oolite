@@ -23,7 +23,7 @@
 					"width" = positiveFloat;
 					"height" = positiveFloat;
 					"rgb_color" = $simpleRGBColor;
-					"color" = $colourSpecifier;	// Alternative to rgb_color as of 1.69.2
+					"color" = $colourSpecifier;	// Alternative to rgb_color as of 1.70
 					"draw_surround" = boolean;
 					"labelled" = boolean;
 					"spacing" = positiveInteger;

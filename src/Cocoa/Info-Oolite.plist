@@ -17,6 +17,10 @@
 			<string>Oolite Saved Game</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.aegidian.oolite.save</string>
+			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeExtensions</key>
@@ -31,6 +35,10 @@
 			<string>None</string>
 			<key>LSTypeIsPackage</key>
 			<true/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.aegidian.oolite.oxp</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -48,7 +56,7 @@
 	<key>CFBundleSignature</key>
 	<string>Ool8</string>
 	<key>CFBundleVersion</key>
-	<string>1.69.2</string>
+	<string>1.70</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
