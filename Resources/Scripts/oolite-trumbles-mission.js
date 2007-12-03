@@ -29,7 +29,7 @@ this.name			= "oolite-trumbles";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007 the Oolite team.";
 this.description	= "Random offers of trumbles.";
-this.version		= "1.70";
+this.version		= "1.71";
 
 
 this.startUp = this.reset = function()
