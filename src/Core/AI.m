@@ -144,7 +144,7 @@ typedef struct
 	
 	if ([aiStack count] > 32)
 	{
-		NSLog(@"***** ERROR: AI stack overflow for %@ stack:\n%@", _owner, aiStack);
+		OOLog(@"ai.pushStateMachine.overflow", @"***** ERROR: AI stack overflow for %@ stack:\n%@", _owner, aiStack);
 		[NSException raise:@"OoliteException"
 					format:@"AI stack overflow for %@", _owner];
 	}

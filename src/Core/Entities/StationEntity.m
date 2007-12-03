@@ -402,7 +402,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (![shipsOnApproach objectForKey:shipID])
 	{
 		// some error has occurred - log it, and send the try-again message
-		NSLog(@"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
+		OOLog(@"station.issueDockingInstructions.failed", @"ERROR - couldn't addShipToShipsOnApproach:%@ in %@ for some reason -- shipsOnApproach:\n%@", ship, self, shipsOnApproach);
 		//
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
@@ -410,11 +410,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	//	shipsOnApproach now has an entry for the ship.
 	//
-	NSMutableArray* coordinatesStack = (NSMutableArray *)[shipsOnApproach objectForKey:shipID];
+	NSMutableArray* coordinatesStack = [shipsOnApproach objectForKey:shipID];
 
 	if ([coordinatesStack count] == 0)
 	{
-		NSLog(@"DEBUG ERROR! -- coordinatesStack = %@", [coordinatesStack description]);
+		OOLog(@"station.issueDockingInstructions.failed", @"DEBUG ERROR! -- coordinatesStack = %@", coordinatesStack);
 		
 		return instructions(universalID, ship->position, 0, 100, @"HOLD_POSITION", nil, NO);
 	}

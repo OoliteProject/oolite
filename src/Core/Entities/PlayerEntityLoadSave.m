@@ -137,7 +137,7 @@
 	if (!path)  path = [[[UNIVERSE gameView] gameController] playerFileToLoad];
 	if (!path)
 	{
-		NSLog(@"ERROR no file name returned by [[[UNIVERSE gameView] gameController] playerFileToLoad]");
+		OOLog(@"quickSave.failed.noName", @"ERROR no file name returned by [[[UNIVERSE gameView] gameController] playerFileToLoad]");
 		[NSException raise:@"OoliteGameNotSavedException"
 					format:@"ERROR no file name returned by [[UNIVERSE gameView] gameController] playerFileToLoad]"];
 	}
@@ -412,7 +412,7 @@
 	}
 	else
 	{
-		NSLog(@"***** FILE LOADING ERROR!! *****");
+		OOLog(@"load.failed", @"***** FILE LOADING ERROR!! *****");
 		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
 		[UNIVERSE game_over];
 		[UNIVERSE clearPreviousMessage];
@@ -721,7 +721,7 @@
 		highlightIdx=[self findIndexOfCommander: highlightName];
 		if(highlightIdx < 0)
 		{
-			NSLog(@"Commander %@ doesn't exist, very bad", highlightName);
+			OOLog(@"save.list.commanders.commanderNotFound", @"Commander %@ doesn't exist, very bad", highlightName);
 			highlightIdx=0;
 		}
 		

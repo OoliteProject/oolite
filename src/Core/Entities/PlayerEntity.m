@@ -186,7 +186,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				// put each ton in a separate container
 				for (j = 0; j < quantity; j++)
 				{
-					ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+					ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 					if (container)
 					{
 						[container setScanClass: CLASS_CARGO];
@@ -197,7 +197,7 @@ static PlayerEntity *sSharedPlayer = nil;
 					}
 					else
 					{
-						NSLog(@"***** ERROR couldn't find a container while trying to [PlayerEntity loadCargoPods] *****");
+						OOLog(@"player.loadCargoPods.noContainer", @"***** ERROR couldn't find a container while trying to [PlayerEntity loadCargoPods] *****");
 						// throw an exception here...
 						[NSException raise:OOLITE_EXCEPTION_FATAL
 							format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
@@ -714,23 +714,22 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	if ([dict objectForKey:@"missile_roles"])
 	{
-		NSArray* missile_roles = (NSArray*)[dict objectForKey:@"missile_roles"];
+		NSArray *missile_roles = (NSArray*)[dict objectForKey:@"missile_roles"];
 		if (max_missiles < [missile_roles count])
 			missile_roles = [missile_roles subarrayWithRange:NSMakeRange(0, max_missiles)];
-//		if (missiles != [missile_roles count])
 		if ((missiles) && (missiles != [missile_roles count]))
 			missiles = [missile_roles count];	// sanity check the number of missiles
 		for (i = 0; (i < max_missiles)&&(i < [missile_roles count]); i++)
 		{
-			NSString* missile_desc = [missile_roles objectAtIndex:i];
+			NSString *missile_desc = [missile_roles objectAtIndex:i];
 			if (![missile_desc isEqual:@"NONE"])
 			{
-				ShipEntity* amiss = [UNIVERSE newShipWithRole:missile_desc];
+				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
 					missile_entity[i] = amiss;   // retain count = 1
 				else
 				{
-					NSLog(@"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
+					OOLog(@"load.failed.missileNotFound", @"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
 					[NSException raise:OOLITE_EXCEPTION_FATAL
 								format:@"[PlayerEntity setCommanderDataFromDictionary:] failed to create a missile with role '%@'", missile_desc];
 				}
@@ -4382,7 +4381,7 @@ double scoopSoundPlayTime = 0.0;
 	int displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
-		NSLog(@"***** couldn't find current display mode switching to basic 640x480");
+		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
 		displayModeIndex = 0;
 	}
 
@@ -4569,7 +4568,7 @@ double scoopSoundPlayTime = 0.0;
 	int displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
-		NSLog(@"***** couldn't find current display mode switching to basic 640x480");
+		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
 		displayModeIndex = 0;
 	}
 
@@ -5284,7 +5283,7 @@ static int last_outfitting_index;
 
 	if (([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"]) && missiles >= max_missiles)
 	{
-		NSLog(@"rejecting missile because already full");
+		OOLog(@"equip.buy.mounted.failed.full", @"rejecting missile because already full");
 		return NO;
 	}
 
@@ -5973,7 +5972,6 @@ OOSound* burnersound;
 {
 	if (trumbleCount >= PLAYER_MAX_TRUMBLES)
 	{
-		NSLog(@"DEBUG trumble maximum population reached!");
 		return;
 	}
 	OOTrumble* trumblePup = trumble[trumbleCount];
@@ -5986,7 +5984,6 @@ OOSound* burnersound;
 {
 	if (trumbleCount <= 0)
 	{
-		NSLog(@"DEBUG trumble minimum population reached!");
 		return;
 	}
 	int trumble_index = NSNotFound;
@@ -5998,7 +5995,7 @@ OOSound* burnersound;
 	}
 	if (trumble_index == NSNotFound)
 	{
-		NSLog(@"DEBUG can't get rid of inactive trumble %@", deadTrumble);
+		OOLog(@"trumble.zombie", @"DEBUG can't get rid of inactive trumble %@", deadTrumble);
 		return;
 	}
 	trumbleCount--;	// reduce number of trumbles
@@ -6080,7 +6077,7 @@ OOSound* burnersound;
 		
 		if (info_failed)
 		{
-			NSLog(@"POSSIBLE CHEAT DETECTED");
+			OOLog(@"cheat.tentative", @"POSSIBLE CHEAT DETECTED");
 			possible_cheat = YES;
 		}
 		
@@ -6100,7 +6097,7 @@ OOSound* burnersound;
 		}
 		
 		if (possible_cheat && !info_failed)
-			NSLog(@"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
 	
 	if (info_failed && [[NSUserDefaults standardUserDefaults] objectForKey:namekey])
@@ -6122,7 +6119,7 @@ OOSound* burnersound;
 		}
 		
 		if (!info_failed)
-			NSLog(@"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
+			OOLog(@"cheat.verified", @"CHEAT DEFEATED - that's not the way to get rid of trumbles!");
 	}
 	// at this stage we've done the best we can to stop cheaters
 	trumbleCount = putativeNTrumbles;

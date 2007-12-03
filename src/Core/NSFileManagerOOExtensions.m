@@ -38,29 +38,29 @@ MA 02110-1301, USA.
 
 - (NSArray *)commanderContents
 {
-	if([self chdirToDefaultCommanderPath])
+	if ([self chdirToDefaultCommanderPath])
 	{
-		NSMutableArray *contents=[NSMutableArray arrayWithArray:[self directoryContentsAtPath: @"."]];
-
+		NSMutableArray *contents = [NSMutableArray arrayWithArray:[self directoryContentsAtPath: @"."]];
+		
 		// at this point we should strip out any files not loadable as Oolite saved games
 		unsigned i;
 		for (i = 0; i < [contents count]; i++)
 		{
-			NSString* path = (NSString*)[contents objectAtIndex:i];
+			NSString *path = (NSString*)[contents objectAtIndex:i];
 			
 			// check file extension
 			if (![[path pathExtension] isEqual:@"oolite-save"])
 			{
-				NSLog(@">>>> %@ is not a saved game", path);
+				OOLog(@"savedGame.read.fail.notOoliteSave", @">>>> %@ is not a saved game.", path);
 				[contents removeObjectAtIndex: i--];
 				continue;
 			}
 			
 			// check can parse the file okay
-			NSDictionary* cdr = OODictionaryFromFile(path); 
-			if(!cdr)
+			NSDictionary *cdr = OODictionaryFromFile(path); 
+			if (!cdr)
 			{
-				NSLog(@">>>> %@ could not be parsed as a saved game", path);
+				OOLog(@"savedGame.read.fail.notDictionary", @">>>> %@ could not be parsed as a saved game.", path);
 				[contents removeObjectAtIndex: i--];
 				continue;
 			}
@@ -71,13 +71,14 @@ MA 02110-1301, USA.
 	return nil;
 }
 
+
 - (NSArray *) commanderContentsOfPath:(NSString*) savePath
 {
 	BOOL pathIsDirectory = NO;
 	if ([[NSFileManager defaultManager] fileExistsAtPath:savePath isDirectory:&pathIsDirectory] && pathIsDirectory)
 	{
-		NSMutableArray *contents=[NSMutableArray arrayWithArray:[self directoryContentsAtPath: savePath]];
-				
+		NSMutableArray *contents = [NSMutableArray arrayWithArray:[self directoryContentsAtPath: savePath]];
+		
 		// at this point we should strip out any files not loadable as Oolite saved games
 		unsigned i;
 		for (i = 0; i < [contents count]; i++)
@@ -96,10 +97,10 @@ MA 02110-1301, USA.
 				}
 				
 				// check to see if we can parse the file okay
-				NSDictionary* cdr = OODictionaryFromFile(path); 
-				if(!cdr)
+				NSDictionary *cdr = OODictionaryFromFile(path); 
+				if (!cdr)
 				{
-					NSLog(@">>>> %@ could not be parsed as a saved game", path);
+					OOLog(@"savedGame.read.fail.notDictionary", @">>>> %@ could not be parsed as a saved game.", path);
 					[contents removeObjectAtIndex: i--];
 					continue;
 				}
@@ -109,42 +110,42 @@ MA 02110-1301, USA.
 			[contents replaceObjectAtIndex: i withObject: path];
 			
 		}
-				
+		
 		return contents;
 	}
 	else
 	{
-         NSLog(@"DEBUG ERROR! Path '%@' could not be found", savePath);
-         return nil;
+		OOLog(@"savedGame.read.fail.fileNotFound", @"DEBUG ERROR! File at path '%@' could not be found.", savePath);
+		return nil;
 	}
 }
 
+
 - (BOOL)chdirToDefaultCommanderPath
 {
-   NSString *savedir=
-      [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
-   if(![self changeCurrentDirectoryPath: savedir])
-   {
-      // it probably doesn't exist.
-      if(![self createDirectoryAtPath: savedir attributes: nil])
-      {
-         NSLog(@"Unable to create: %@", savedir);
-         return NO;
-      }
-      if(![self changeCurrentDirectoryPath: savedir])
-      {
-         NSLog(@"Created %@ but couldn't chdir to it", savedir);
-         return NO;
-      }
-   }
-   NSLog(@"CWD is %@", savedir);
-      
-   return YES;
+	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
+	if (![self changeCurrentDirectoryPath: savedir])
+	{
+	   // it probably doesn't exist.
+		if (![self createDirectoryAtPath: savedir attributes: nil])
+		{
+			OOLog(@"savedGame.defaultPath.create.failed", @"Unable to create directory %@", savedir);
+			return NO;
+		}
+		if (![self changeCurrentDirectoryPath: savedir])
+		{
+			OOLog(@"savedGame.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
+			return NO;
+		}
+	}
+	
+	return YES;
 }
 
-- (NSString*) defaultCommanderPath
+
+- (NSString *) defaultCommanderPath
 {
-	NSString* savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
+	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
 	BOOL pathIsDirectory = NO;
 	
 	// does it exist?
@@ -153,12 +154,11 @@ MA 02110-1301, USA.
 		// it doesn't exist.
 		if([self createDirectoryAtPath: savedir attributes: nil])
 		{
-			NSLog(@"DEBUG creating %@", savedir);
 			return savedir;
 		}
 		else
 		{
-			NSLog(@"ERROR ***** Unable to create: %@ saved games will go to the home directory *****", savedir);
+			OOLog(@"savedGame.defaultPath.create.failed", @"ERROR ***** Unable to create: %@ saved games will go to the home directory *****", savedir);
 			return NSHomeDirectory();
 		}
 	}
@@ -166,7 +166,7 @@ MA 02110-1301, USA.
 	// is it a directory?
 	if (!pathIsDirectory)
 	{
-		NSLog(@"ERROR ***** %@ is not a directory, saved games will go to the home directory *****", savedir);
+		OOLog(@"savedGame.defaultPath.notDirectory", @"ERROR ***** %@ is not a directory, saved games will go to the home directory *****", savedir);
 		return NSHomeDirectory();
 	}
 	

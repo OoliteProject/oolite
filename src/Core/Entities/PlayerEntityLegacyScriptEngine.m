@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOTexture.h"
 #import "OOCollectionExtractors.h"
+#import "OOLoggingExtended.h"
 
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
@@ -1621,7 +1622,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		NSLog(@"***** CANNOT SUBTRACT: '%@'",missionVariableString_value);
+		OOLog(@"script.debug.syntax.subtract", @"***** CANNOT SUBTRACT: '%@'",missionVariableString_value);
 		return;
 	}
 
@@ -1985,7 +1986,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:planetKey];
 	if (!dict)
 	{
-		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
+		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
 		return;
 	}
 
@@ -2002,7 +2003,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![dict objectForKey:@"position"])
 	{
-		NSLog(@"ERROR - you must specify a position for scripted planet '%@' before it can be created", planetKey);
+		OOLog(@"script.error.addPlanet.noPosition", @"ERROR - you must specify a position for scripted planet '%@' before it can be created", planetKey);
 		return;
 	}
 	
@@ -2032,7 +2033,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:moonKey];
 	if (!dict)
 	{
-		NSLog(@"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
+		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
 		return;
 	}
 
@@ -2048,7 +2049,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![dict objectForKey:@"position"])
 	{
-		NSLog(@"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
+		OOLog(@"script.error.addPlanet.noPosition", @"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
 		return;
 	}
 	
@@ -2238,13 +2239,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	unsigned i;
 	if (conditions == nil)
 	{
-		NSLog(@"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
+		OOLog(@"script.scene.couplett.badConditions", @"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
 	}
 	else
 	{
 		if (![conditions isKindOfClass:[NSArray class]])
 		{
-			NSLog(@"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
+			OOLog(@"script.scene.couplet.badConditions", @"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
 			return NO;
 		}
 	}

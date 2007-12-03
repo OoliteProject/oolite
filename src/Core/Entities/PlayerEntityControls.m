@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
+#import "OOLoggingExtended.h"
 
 #import "JoystickHandler.h"
 

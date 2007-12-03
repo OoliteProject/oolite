@@ -50,13 +50,14 @@ SOFTWARE.
 */
 
 
-#import "OOLogging.h"
+#define OOLOG_POISON_NSLOG 0
+
+#import "OOLoggingExtended.h"
 #import "OOPListParsing.h"
 #import "OOFunctionAttributes.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "NSThreadOOExtensions.h"
-
 
 #undef NSLog		// We need to be able to call the real NSLog.
 
@@ -593,6 +594,12 @@ void OOLogSetShowMessageClass(BOOL flag)
 		sShowClass = flag;
 		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-class"];
 	}
+}
+
+
+void OOLogSetShowMessageClassTemporary(BOOL flag)
+{
+	sShowClass = !!flag;	// YES or NO, not 42.
 }
 
 

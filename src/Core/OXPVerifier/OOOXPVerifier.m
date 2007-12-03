@@ -55,7 +55,7 @@ SOFTWARE.
 #if OO_OXP_VERIFIER_ENABLED
 
 #import "OOOXPVerifierStageInternal.h"
-#import "OOLogging.h"
+#import "OOLoggingExtended.h"
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "GameController.h"
@@ -327,7 +327,7 @@ static void OpenLogFile(NSString *name);
 	NSEnumerator			*messageClassEnum = nil;
 	NSString				*messageClass = nil;
 	
-	OOLogSetShowMessageClass([_verifierPList boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
+	OOLogSetShowMessageClassTemporary([_verifierPList boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
 	overrides = [_verifierPList dictionaryForKey:@"logControlOverride"];
 	for (messageClassEnum = [overrides keyEnumerator]; (messageClass = [messageClassEnum nextObject]); )

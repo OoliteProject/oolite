@@ -410,7 +410,7 @@ MA 02110-1301, USA.
 
 - (void) performDocking
 {
-	NSLog(@"ShipEntity.performDocking NOT IMPLEMENTED!");
+	OOLog(@"ai.performDocking.unimplemented", @"ShipEntity.performDocking NOT IMPLEMENTED!");
 }
 
 
@@ -542,7 +542,7 @@ MA 02110-1301, USA.
 		desired_range = the_planet->collision_radius + 10000.0;   // 10km from the surface
 	}
 	else
-		NSLog(@"***** Ackk!! planet not found!!!");
+		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Ackk!! planet not found!!!");
 }
 
 
@@ -1054,7 +1054,7 @@ WormholeEntity*	whole;
 	if (mother)
 	{
 		if (reportAIMessages)
-			NSLog(@"DEBUG %@ suggests escorting %@", self, mother);
+			OOLog(@"ai.suggestEscort", @"DEBUG %@ suggests escorting %@", self, mother);
 
 		if ([mother acceptAsEscort:self])
 		{
@@ -1072,7 +1072,7 @@ WormholeEntity*	whole;
 		}
 		
 		if (reportAIMessages)
-			NSLog(@"DEBUG %@ refused by %@", self, mother);
+			OOLog(@"ai.suggestEscort.refused", @"DEBUG %@ refused by %@", self, mother);
 
 	}
 	[self setOwner:NULL];
@@ -1495,7 +1495,7 @@ WormholeEntity*	whole;
 	}
 	else
 	{
-		NSLog(@"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
+		OOLog(@"ai.rollD.invalidValue", @"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
 	}
 }
 
@@ -1581,7 +1581,7 @@ WormholeEntity*	whole;
 
 	if ([tokens count] != 4)
 	{
-		NSLog(@"***** AI_ERROR CANNOT setCoordinates: '%@'",system_x_y_z);
+		OOLog(@"ai.syntax.setCoordinates", @"***** AI_ERROR CANNOT setCoordinates: '%@'",system_x_y_z);
 		return;
 	}
 	

@@ -48,6 +48,8 @@ SOFTWARE.
 */
 
 
+#define OOLOG_POISON_NSLOG 0
+
 #import "OOLogOutputHandler.h"
 #import "OOLogging.h"
 #import <CoreFoundation/CoreFoundation.h>
@@ -57,7 +59,6 @@ SOFTWARE.
 #import <sys/sysctl.h>
 #import <mach/machine.h>
 #import "NSThreadOOExtensions.h"
-
 
 #undef NSLog		// We need to be able to call the real NSLog.
 

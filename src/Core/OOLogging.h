@@ -53,7 +53,9 @@ SOFTWARE.
 #import <stdarg.h>
 
 
-// #pragma GCC poison NSLog	// Use OOLog instead
+#ifndef OOLOG_POISON_NSLOG
+	#define OOLOG_POISON_NSLOG	0
+#endif
 
 
 #ifndef OOLOG_FUNCTION_NAME
@@ -111,8 +113,6 @@ SOFTWARE.
 #endif
 
 BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass);
-void OOLogSetDisplayMessagesInClass(NSString *inClass, BOOL inFlag);
-NSString *OOLogGetParentMessageClass(NSString *inClass);
 
 void OOLogIndent(void);
 void OOLogOutdent(void);
@@ -141,28 +141,13 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction);
 void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 
 
-void OOLoggingInit(void);
-void OOLoggingTerminate(void);
-
-
-// Write a marker/separator to the log. This is two blank lines followed by a numbered horizontal rule.
-void OOLogInsertMarker(void);
-
-
-// Get/set display settings. These are stored in user defaults.
-BOOL OOLogShowApplicationName(void);
-void OOLogSetShowApplicationName(BOOL flag);
-BOOL OOLogShowFunction(void);
-void OOLogSetShowFunction(BOOL flag);
-BOOL OOLogShowFileAndLine(void);
-void OOLogSetShowFileAndLine(BOOL flag);
-BOOL OOLogShowMessageClass(void);
-void OOLogSetShowMessageClass(BOOL flag);
-
-
-// Hijack NSLog. Buahahahaha.
-#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
-#define NSLogv(NSLogv, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
+#if OOLOG_POISON_NSLOG
+	#pragma GCC poison NSLog	// Use OOLog instead
+#else
+	// Hijack NSLog. Buahahahaha.
+	#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
+	#define NSLogv(NSLogv, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
+#endif
 
 
 // *** Predefined message classes.

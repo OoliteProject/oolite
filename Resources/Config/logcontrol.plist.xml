@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>$aiError</key>
+	<string>$scriptError</string>
 	<key>$dataCacheDebug</key>
 	<string>no</string>
 	<key>$dataCacheError</key>
@@ -41,11 +43,21 @@
 	<key>ai</key>
 	<string>$entityState</string>
 	<key>ai.error.recursion</key>
-	<string>$scriptError</string>
+	<string>$aiError</string>
 	<key>ai.message.receive</key>
 	<string>inherit</string>
 	<key>ai.pop</key>
 	<string>inherit</string>
+	<key>ai.rollD.invalidValue</key>
+	<string>$aiError</string>
+	<key>ai.setTakeOffFromPlanet.noPlanet</key>
+	<string>$aiError</string>
+	<key>ai.suggestEscort</key>
+	<string>inherit</string>
+	<key>ai.suggestEscort.refused</key>
+	<string>inherit</string>
+	<key>ai.syntax.setCoordinates</key>
+	<string>$aiError</string>
 	<key>ai.takeAction.badSelector</key>
 	<string>inherit</string>
 	<key>ai.takeAction.debugMessage</key>
@@ -158,6 +170,8 @@
 	<string>inherit</string>
 	<key>input.keyMapping.keyPress.keyUp</key>
 	<string>inherit</string>
+	<key>load.failed</key>
+	<string>yes</string>
 	<key>mesh.load.error</key>
 	<string>$error</string>
 	<key>mesh.load.error.fileNotFound</key>
@@ -186,6 +200,8 @@
 	<string>$plistError</string>
 	<key>plist.wrongType</key>
 	<string>$plistError</string>
+	<key>quickSave.failed</key>
+	<string>yes</string>
 	<key>rendering.opengl.error</key>
 	<string>no</string>
 	<key>rendering.opengl.extensions</key>
@@ -280,6 +296,8 @@
 	<string>inherit</string>
 	<key>script.debug.syntax.setPlanetInfo</key>
 	<string>inherit</string>
+	<key>script.debug.syntax.subtract</key>
+	<string>inherit</string>
 	<key>script.debug.trace</key>
 	<string>off</string>
 	<key>script.debug.trace.scriptAction</key>
@@ -294,6 +312,10 @@
 	<string>inherit</string>
 	<key>script.error</key>
 	<string>$scriptError</string>
+	<key>script.error.addPlanet.keyNotFound</key>
+	<string>inherit</string>
+	<key>script.error.addPlanet.noPosition</key>
+	<string>inherit</string>
 	<key>script.error.removeAllCargo.notDocked</key>
 	<string>inherit</string>
 	<key>script.javaScript.badParameter</key>

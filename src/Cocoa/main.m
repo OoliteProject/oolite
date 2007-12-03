@@ -1,6 +1,5 @@
-//#import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
-#import "OOLogging.h"
+#import <Cocoa/Cocoa.h>
+#import "OOLoggingExtended.h"
 
 
 #ifndef NDEBUG

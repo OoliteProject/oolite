@@ -91,7 +91,7 @@ MA 02110-1301, USA.
 	GLfloat cr = ship->collision_radius;
 	//
 		
-	NSLog(@"\nTESTING instinct_avoid hazards %@", self);
+	OOLog(@"instinct.test.avoidHazards", @"\nTESTING instinct_avoid hazards %@", self);
 		
 	while (entities[entity_index])
 	{
@@ -107,7 +107,7 @@ MA 02110-1301, USA.
 		
 		GLfloat assessment = sz * approach_v / d;		// == size x approach velocity / distance
 		
-		NSLog(@"TESTING instinct_avoid hazards %@ assessment of %@ : %.2f", ship, ent, assessment);
+		OOLog(@"instinct.test.avoidHazards", @"TESTING instinct_avoid hazards %@ assessment of %@ : %.2f", ship, ent, assessment);
 		
 		if (assessment > max_so_far)
 		{

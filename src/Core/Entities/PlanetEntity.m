@@ -360,7 +360,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 #endif
     if (!planet)
     {
-    	NSLog(@"ERROR Planetentity initAsAtmosphereForPlanet:NULL");
+    	OOLog(@"planet.atmosphere.init.noPlanet", @"ERROR Planetentity initAsAtmosphereForPlanet: nil planet");
     	return self;
     }
 	
@@ -1045,7 +1045,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 {
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_COLLISIONS)
-		NSLog(@"PLANET Collision!");
+		OOLog(@"planet.collide", @"PLANET Collision!");
 #endif
 	
 	if (!other)
@@ -1057,13 +1057,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 		{
 			[ship landOnPlanet];
 			if ([ship reportAIMessages])
-				NSLog(@"DEBUG %@ landed on planet %@", other, self);
+				OOLog(@"planet.collide.shuttleLanded", @"DEBUG %@ landed on planet %@", other, self);
 			return NO;
 		}
 		if ([ship reportAIMessages])
 		{
 			Vector p1 = ship->position;
-			NSLog(@"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
+			OOLog(@"planet.collide.shipHit", @"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
 		}
 	}
 
@@ -1186,14 +1186,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 											   alpha:1.0f];
 						}
 						if (sky_bri == 1.0)
-							NSLog(@"DEBUG NOVA original radius %.1f", collision_radius);
+							OOLog(@"sun.nova.start", @"DEBUG NOVA original radius %.1f", collision_radius);
 						amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;
 						velocity.y += delta_t;
 						[self setRadius: collision_radius + delta_t * velocity.z];
 					}
 					else
 					{
-						NSLog(@"DEBUG NOVA final radius %.1f", collision_radius);
+						OOLog(@"sun.nova.end", @"DEBUG NOVA final radius %.1f", collision_radius);
 						// reset at the new size
 						velocity = kZeroVector;
 						throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
@@ -1391,7 +1391,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 						locator = glGetUniformLocationARB(shader_program, "tex1");
 						if (locator == -1)
-							NSLog(@"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
+							OOLog(@"planet.shaders.noUniform", @"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
 						else
 							glUniform1iARB(locator, 1);	// associate texture unit number i with texture 0
 						
@@ -1401,7 +1401,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 						locator = glGetUniformLocationARB(shader_program, "tex0");
 						if (locator == -1)
-							NSLog(@"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
+							OOLog(@"planet.shaders.noUniform", @"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
 						else
 							glUniform1iARB(locator, 0);	// associate texture unit number i with texture 0
 #endif

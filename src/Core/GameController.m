@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import <stdlib.h>
 #import "OOCollectionExtractors.h"
 #import "OOOXPVerifier.h"
+#import "OOLoggingExtended.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 

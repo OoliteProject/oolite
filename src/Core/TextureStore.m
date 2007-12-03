@@ -192,7 +192,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
 	
-	NSLog(@"genning normal map for land_fraction %.5f", land_fraction);
+	OOLog(@"textureStore.genNormalMap", @"genning normal map for land_fraction %.5f", land_fraction);
 	
 //	fillRanNoiseBuffer();
 	fillSquareImageWithPlanetNMap( imageBuffer, texture_w, 4, 1.0, sea_bias, 24.0);
@@ -503,7 +503,7 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 {
 	if (nplanes != 4)
 	{
-		NSLog(@"ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
+		OOLog(@"textureStore.planetMap.failed", @"ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
 		return;
 	}
 	

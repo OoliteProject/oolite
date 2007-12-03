@@ -692,7 +692,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		}
 
 		if (failFlag)
-			NSLog([NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)"]);
+			OOLog(@"selfDrawingEntity.load.failed", @"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" : @"(from file)");
 
 		// check for smooth shading and recalculate normals
 		if (isSmoothShaded)  [self calculateVertexNormals];

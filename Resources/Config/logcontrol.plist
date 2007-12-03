@@ -36,6 +36,7 @@
 	/*** Metaclasses ***/
 	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
 	$scriptError							= $error;
+	$aiError								= $scriptError;
 	$shaderError							= $error;
 	$troubleShootingDump					= yes;
 	$entityState							= no;
@@ -71,7 +72,12 @@
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
 	ai.pop									= inherit;
-	ai.error.recursion						= $scriptError;
+	ai.error.recursion						= $aiError;
+	ai.setTakeOffFromPlanet.noPlanet		= $aiError;
+	ai.suggestEscort						= inherit;
+	ai.suggestEscort.refused				= inherit;
+	ai.rollD.invalidValue					= $aiError;
+	ai.syntax.setCoordinates				= $aiError;
 	
 	
 	beacon.list								= $scriptDebugOn;
@@ -169,6 +175,8 @@
 	
 	save.failed								= yes;
 	save.success							= no;
+	quickSave.failed						= yes;
+	load.failed								= yes;
 	
 	
 	setup.ship.badEntry.subentities			= inherit;
@@ -224,9 +232,12 @@
 	script.debug.syntax.addShips			= inherit;
 	script.debug.syntax.set					= inherit;
 	script.debug.syntax.reset				= inherit;
+	script.debug.syntax.subtract			= inherit;
 	
 	script.error							= $scriptError;
 	script.error.removeAllCargo.notDocked	= inherit;
+	script.error.addPlanet.keyNotFound		= inherit;
+	script.error.addPlanet.noPosition		= inherit;
 	
 	script.javaScript.load.success			= no;
 	script.javaScript.load.failed			= $scriptError;

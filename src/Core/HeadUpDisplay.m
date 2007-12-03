@@ -329,7 +329,7 @@ float char_widths[128] = {
 		if ([self respondsToSelector:_selector])
 			[self performSelector:_selector withObject:info];
 		else
-			NSLog(@"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
+			OOLog(@"hud.unknownSelector", @"DEBUG HeadUpDisplay does not respond to '%@'",[info objectForKey:SELECTOR_KEY]);
 	}
 	
 	CheckOpenGLErrors(@"HeadUpDisplay after drawHUDItem %@", info);

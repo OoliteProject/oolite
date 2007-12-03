@@ -2317,7 +2317,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double aim = [self ballTrackTarget:delta_t];
 	if (aim > .95)
 	{
-		NSLog(@"DEBUG BANG! BANG! BANG!");
+		OOLog(@"behaviour.experimental.foundTarget", @"DEBUG BANG! BANG! BANG!");
 	}
 }
 //            //
@@ -2387,7 +2387,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 #ifndef NDEBUG
 	if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
 	{
-		NSLog(@"DEBUG resetting tracking for %@", self);
+		OOLog(@"ship.tracking.reset", @"DEBUG resetting tracking for %@", self);
 	}
 #endif
 	
@@ -2404,7 +2404,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 #ifndef NDEBUG
 				if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
-					NSLog(@"DEBUG resetting tracking for subentity %@ of %@", se, self);
+					OOLog(@"ship.tracking.reset.subEntity", @"DEBUG resetting tracking for subentity %@ of %@", se, self);
 #endif
 				
 				resetFrame.position = make_vector(
@@ -4650,7 +4650,7 @@ BOOL class_masslocks(int some_class)
 	// treat missiles specially
 	if ((scanClass == CLASS_MISSILE) && (d_forward > cos(delta_t * max_flight_pitch)))
 	{
-		NSLog(@"missile %@ in tracking mode", self);
+		OOLog(@"missile.track", @"missile %@ in tracking mode", self);
 		[self trackOntoTarget: delta_t withDForward: d_forward];
 		return d_forward;
 	}
@@ -7237,19 +7237,12 @@ int w_space_seed = 1234567;
 {
 	// Create a bouy and beacon where the hulk is.
 	// Get the main GalCop station to launch a pilot boat to deliver a pilot to the hulk.
-	NSLog(@"claimAsSalvage called on %@ %@", [self name], [self roleSet]);
-/*
-	// Won't work in interstellar space because there is no GalCop station
-	if ([[self planet_number] intValue] < 0)
-	{
-		NSLog(@"claimAsSalvage failed because in intersteller space");
-		return;
-	}
-*/
+	OOLog(@"claimAsSalvage.called", @"claimAsSalvage called on %@ %@", [self name], [self roleSet]);
+	
 	// Not an abandoned hulk, so don't allow the salvage
 	if (is_hulk != YES)
 	{
-		NSLog(@"claimAsSalvage failed because not a hulk");
+		OOLog(@"claimAsSalvage.failed.notHulk", @"claimAsSalvage failed because not a hulk");
 		return;
 	}
 
@@ -7257,16 +7250,16 @@ int w_space_seed = 1234567;
 	[self setTargetToSystemStation];
 	if (primaryTarget == NO_TARGET)
 	{
-		NSLog(@"claimAsSalvage failed because did not find a station");
+		OOLog(@"claimAsSalvage.failed.noStation", @"claimAsSalvage failed because did not find a station");
 		return;
 	}
 
 	// Get the station to launch a pilot boat to bring a pilot out to the hulk (use a viper for now)
 	StationEntity *station = (StationEntity *)[UNIVERSE entityForUniversalID:primaryTarget];
-	NSLog(@"claimAsSalvage asking station to launch a pilot boat");
+	OOLog(@"claimAsSalvage.requestingPilot", @"claimAsSalvage asking station to launch a pilot boat");
 	[station launchShipWithRole:@"pilot"];
 	[self setReportAIMessages:YES];
-	NSLog(@"claimAsSalvage setting own state machine to capturedShipAI.plist");
+	OOLog(@"claimAsSalvage.success", @"claimAsSalvage setting own state machine to capturedShipAI.plist");
 	[self setStateMachine:@"capturedShipAI.plist"];
 }
 
