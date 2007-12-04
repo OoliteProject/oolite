@@ -94,7 +94,7 @@ static OODebugMonitor *sSingleton = nil;
 		
 		// Set up JavaScript side of console.
 		jsProps = [NSDictionary dictionaryWithObject:self forKey:@"console"];
-		_script = [[OOScript nonLegacyScriptFromFileNamed:@"oolite-mac-js-console.js" properties:jsProps] retain];
+		_script = [[OOScript nonLegacyScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
 	}
 	
 	return self;
