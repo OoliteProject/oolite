@@ -4159,26 +4159,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
-- (float)laserHeatLevel
+- (GLfloat)laserHeatLevel
 {
 	float result = (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
 	return OOClamp_0_1_f(result);
 }
 
 
-- (float)hullHeatLevel
+- (GLfloat)hullHeatLevel
 {
 	return ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 }
 
 
-- (float)entityPersonality
+- (GLfloat)entityPersonality
 {
 	return entity_personality / (float)0x7FFF;
 }
 
 
-- (int)entityPersonalityInt
+- (GLint)entityPersonalityInt
 {
 	return entity_personality;
 }
