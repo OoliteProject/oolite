@@ -1276,8 +1276,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	roleString = (NSString *)[tokens objectAtIndex:0];
-	numberString = (NSString *)[tokens objectAtIndex:1];
+	roleString = [tokens objectAtIndex:0];
+	numberString = [tokens objectAtIndex:1];
 	
 	int number = [numberString intValue];
 	if (number < 0)

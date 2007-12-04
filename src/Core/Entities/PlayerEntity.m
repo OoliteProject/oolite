@@ -500,6 +500,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict objectForKey:@"extra_equipment"])
 	{
 		[extra_equipment addEntriesFromDictionary:(NSDictionary *)[dict objectForKey:@"extra_equipment"]];
+		/*	Bug workaround: extra_equipment should never contain EQ_TRUMBLE,
+			which is basically a magic flag passed to awardEquipment: to infect
+			the player. However, prior to Oolite 1.70.1, if the player had a
+			trumble infection and awardEquipment:EQ_TRUMBLE was called, an
+			EQ_TRUMBLE would be added to the equipment list. Subsequent calls
+			to awardEquipment:EQ_TRUMBLE would exit early because there was an
+			EQ_TRUMBLE in the equipment list. as a result, it would no longer
+			be possible to infect the player after the current infection ended.
+			
+			The bug is fixed in 1.70.1. The following line is to fix old saved
+			games which had been "corrupted" by the bug.
+			-- Ahruman 2007-12-04
+		*/
+		[extra_equipment removeObjectForKey:@"EQ_TRUMBLE"];
 	}
 	// bools	(mostly deprecated by use of the extra_equipment dictionary, keep for compatibility)
 	
@@ -5712,9 +5726,18 @@ static int last_outfitting_index;
 		[extra_equipment removeObjectForKey:damaged_eq_key];
 	
 	// deal with trumbles..
-	if ([eq_key isEqual:@"EQ_TRUMBLE"] && (trumbleCount < 1))
+	if ([eq_key isEqual:@"EQ_TRUMBLE"])
 	{
-		[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
+		/*	Bug fix: must return here if eq_key == @"EQ_TRUMBLE", even if
+			trumbleCount >= 1. Otherwise, the player becomes immune to
+			trumbles. See comment in -setCommanderDataFromDictionary: for more
+			details.
+			-- Ahruman 2008-12-04
+		*/
+		if (trumbleCount < 1)
+		{
+			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
+		}
 		return;
 	}
 	

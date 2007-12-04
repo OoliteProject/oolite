@@ -347,12 +347,12 @@
 - (BOOL) loadPlayerFromFile:(NSString *)fileToOpen
 {
 	/*	TODO: it would probably be better to load by creating a new
-	PlayerEntity, verifying that's OK, then replacing the global player.
-	
-	Actually, it'd be better to separate PlayerEntity into OOPlayer and
-	OOPlayerShipEntity. And then move most of OOPlayerShipEntity into
-	ShipEntity, and make NPC ships behave more like player ships.
-	-- Ahruman
+		PlayerEntity, verifying that's OK, then replacing the global player.
+		
+		Actually, it'd be better to separate PlayerEntity into OOPlayer and
+		OOPlayerShipEntity. And then move most of OOPlayerShipEntity into
+		ShipEntity, and make NPC ships behave more like player ships.
+		-- Ahruman
 	*/
 	
 	BOOL			loadedOK = YES;
