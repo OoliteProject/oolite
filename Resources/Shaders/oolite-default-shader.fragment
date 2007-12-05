@@ -137,6 +137,51 @@ uniform sampler2D		uIlluminationMap;
 #endif
 
 
+#ifndef OO_REDUCED_COMPLEXITY
+uniform float			uHullHeatLevel;
+uniform float			uTime;
+
+
+// Irregular flickering function.
+float Pulse(float value, float timeScale)
+{
+	float t = uTime * timeScale;   
+	
+	float s0 = t;
+	s0 -= floor(s0);
+	float sum = abs( s0 - 0.5);
+	
+	float s1 = t * 0.7 - 0.05;
+	s1 -= floor(s1);
+	sum += abs(s1 - 0.5) - 0.25;
+	
+	float s2 = t * 1.3 - 0.3;
+	s2 -= floor(s2);
+	sum += abs(s2 - 0.5) - 0.25;
+	
+	float s3 = t * 5.09 - 0.6;
+	s3 -= floor(s3);
+	sum += abs(s3 - 0.5) - 0.25;
+	
+	return (sum * 0.1 + 0.9) * value;
+}
+
+
+// Colour ramp from black through reddish brown/dark orange to yellow-white.
+vec4 TemperatureGlow(float level)
+{
+	vec4 result = vec4(0);
+	
+	result.r = level;
+	result.g = level * level * level;
+	result.b = max(level - 0.7, 0.0) * 2.0;
+	result.a = 1.0;
+	
+	return result;	
+}
+#endif
+
+
 void main(void)
 {
 	vec4 totalColor = vec4(0);
@@ -217,6 +262,13 @@ void main(void)
 	totalColor += ambientColor * ambientLight + diffuseColor * diffuseLight;
 #if OOSTD_SPECULAR
 	totalColor += specularColor * specularLight;
+#endif
+	
+#ifndef OO_REDUCED_COMPLEXITY
+	// Heat glow
+	float hullHeat = max(uHullHeatLevel - 0.5, 0.0) * 2.0;
+	hullHeat = Pulse(hullHeat * hullHeat, 0.1);
+	totalColor += TemperatureGlow(hullHeat);
 #endif
 	
 	gl_FragColor = totalColor;

@@ -133,7 +133,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 		
 		if (vertexShader != nil || fragmentShader != nil)
 		{
-			// If either shader is in an external file, use external-file-based shader (more efficient due to instance sharing)
 			shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader fragmentShaderName:fragmentShader prefix:macroString];
 		}
 		else
@@ -346,6 +345,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 						convertOptions |= kOOUniformConvertNormalize;
 					}
 					if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
+					if (![definition boolForKey:@"bindToSubentity" defaultValue:NO])  convertOptions |= kOOUniformBindToSuperTarget;
 				}
 				else
 				{
@@ -359,7 +359,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		
 		if (!gotValue)
 		{
-			OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" -- could not interpret definition:\n%@", name, definition);
+			OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" for target %@ -- could not interpret definition:\n%@", name, target, definition);
 		}
 	}
 }

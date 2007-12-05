@@ -507,21 +507,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
-- (void)setOwner:(Entity *)ent
+- (id) rootEntity
 {
-	[super setOwner:ent];
-	if (isSubentity)
-	{
-		// Ensure shader bindings have correct target.
-		[self setShaderBindingTarget:ent];
-	}
-}
-
-
-- (void)setShaderBindingTarget:(Entity *)ent
-{
-	[super setShaderBindingTarget:ent];
-	[sub_entities makeObjectsPerformSelector:@selector(setShaderBindingTarget:) withObject:ent];
+	if (isSubentity)  return [[self owner] rootEntity];
+	else  return self;
 }
 
 
@@ -1811,7 +1800,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double distance = [self rangeToDestination];
 	if (range < slow_down_range)
 	{
-		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);
+		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);
 		// avoid head-on collision
 		//
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
@@ -1827,7 +1816,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		frustration = 0.0;
-		desired_speed = OOMax_d(target_speed, 0.25 * maxFlightSpeed);   // within the weapon's range don't use afterburner
+		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);   // within the weapon's range don't use afterburner
 	}
 
 	// target-six

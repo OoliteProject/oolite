@@ -223,6 +223,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		convertClamp = (options & kOOUniformConvertClamp) != 0;
 		convertNormalize = (options & kOOUniformConvertNormalize) != 0;
 		convertToMatrix = (options & kOOUniformConvertToMatrix) != 0;
+		bindToSuper = (options & kOOUniformBindToSuperTarget) != 0;
 		
 		if (target != nil)  [self setBindingTarget:target];
 	}
@@ -323,9 +324,24 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	NSMethodSignature		*signature = nil;
 	unsigned				argCount;
 	NSString				*methodProblem = nil;
+	id<OOWeakReferenceSupport> superCandidate = nil;
 	
 	if (!isBinding)  return;
-	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == target))  return;
+	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == [(id)target weakRefUnderlyingObject]))  return;
+	
+	// Resolve "supertarget" if applicable
+	if (bindToSuper)
+	{
+		for (;;)
+		{
+			if (![target respondsToSelector:@selector(superShaderBindingTarget)])  break;
+			
+			superCandidate = [(id)target superShaderBindingTarget];
+			if (superCandidate == nil || superCandidate == target)  break;
+			target = superCandidate;
+		}
+	}
+	
 	[value.binding.object release];
 	value.binding.object = [target weakRetain];
 	

@@ -79,22 +79,12 @@ MA 02110-1301, USA.
 		return;
 	}
 	
-	//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
-	if ([UNIVERSE wireframeGraphics])
-		GLDebugWireframeModeOn();
+	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 		
 	if (translucent)  [drawable renderTranslucentParts];
 	else  [drawable renderOpaqueParts];
 	
-	//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
-	if ([UNIVERSE wireframeGraphics])
-		GLDebugWireframeModeOff();
-}
-
-
-- (void)setShaderBindingTarget:(Entity *)ent
-{
-	[[self drawable] setBindingTarget:ent];
+	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
 }
 
 @end

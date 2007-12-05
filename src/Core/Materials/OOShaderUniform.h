@@ -64,7 +64,8 @@ SOFTWARE.
 								isActiveBinding: 1,
 								convertClamp: 1,
 								convertNormalize: 1,
-								convertToMatrix: 1;
+								convertToMatrix: 1,
+								bindToSuper: 1;
 	uint8_t						type;
 	union
 	{

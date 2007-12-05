@@ -187,7 +187,7 @@ static OOMaterial *sActiveMaterial = nil;
 	// Create a synthetic configuration dictionary.
 	textures = [NSMutableArray arrayWithCapacity:4];
 	newConfig = [NSMutableDictionary dictionaryWithCapacity:16];
-	uniforms = [NSMutableDictionary dictionaryWithCapacity:4];
+	uniforms = [NSMutableDictionary dictionaryWithCapacity:6];
 	
 	[newConfig setObject:[NSNumber numberWithBool:YES] forKey:@"_oo_is_synthesized_config"];
 	[newConfig setObject:@"oolite-standard-vertex.vertex" forKey:@"vertex_shader"];
@@ -237,6 +237,12 @@ static OOMaterial *sActiveMaterial = nil;
 		[uniforms setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"texture", @"type", [NSNumber numberWithInt:[textures count]], @"value", nil] forKey:@"uIlluminationMap"];
 		[textures addObject:illuminationMap];
 	}
+	if ([UNIVERSE shaderEffectsLevel] == SHADERS_FULL)
+	{
+		// Add uniforms required for hull heat glow
+		[uniforms setObject:@"hullHeatLevel" forKey:@"uHullHeatLevel"];
+		[uniforms setObject:@"timeElapsedSinceSpawn" forKey:@"uTime"];
+	}
 	
 	if ([textures count] != 0)  [newConfig setObject:textures forKey:@"textures"];
 	if ([uniforms count] != 0)  [newConfig setObject:uniforms forKey:@"uniforms"];
@@ -249,6 +255,7 @@ static OOMaterial *sActiveMaterial = nil;
 								forModelNamed:(NSString *)modelName
 								configuration:(NSDictionary *)configuration
 									   macros:(NSDictionary *)macros
+								bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOCacheManager			*cache = nil;
 	NSString				*cacheKey = nil;
@@ -289,8 +296,8 @@ static OOMaterial *sActiveMaterial = nil;
 						   forModelNamed:modelName
 						   configuration:synthesizedConfig
 								  macros:[synthesizedConfig objectForKey:@"_synthesized_material_macros"]
-							bindingTarget:nil
-					  forSmoothedMesh:YES];
+						   bindingTarget:target
+						 forSmoothedMesh:YES];
 	}
 	
 	return result;
@@ -330,7 +337,8 @@ static OOMaterial *sActiveMaterial = nil;
 			result = [self defaultShaderMaterialWithName:name
 										   forModelNamed:modelName
 										   configuration:configuration
-												  macros:macros];
+												  macros:macros
+										   bindingTarget:(id<OOWeakReferenceSupport>)object];
 		}
 	}
 #endif

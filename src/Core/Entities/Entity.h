@@ -44,7 +44,6 @@ MA 02110-1301, USA.
 #define DEBUG_OCTREE				0x00000010
 #define DEBUG_OCTREE_TEXT			0x00000020
 #define DEBUG_BOUNDING_BOXES		0x00000040
-//#define DEBUG_WIREFRAME_GRAPHICS		0x00000080
 #define DEBUG_MISC					0x10000000
 
 extern uint32_t gDebugFlags;
@@ -265,6 +264,7 @@ typedef struct
 - (GLfloat)spawnTime;
 - (GLfloat)timeElapsedSinceSpawn;
 
-- (void)setShaderBindingTarget:(Entity *)ent;
+// Resolve subentity-type relationships
+- (id) rootEntity;
 
 @end

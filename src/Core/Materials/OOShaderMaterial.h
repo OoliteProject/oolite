@@ -62,8 +62,9 @@ enum
 	kOOUniformConvertClamp			= 0x0001U,
 	kOOUniformConvertNormalize		= 0x0002U,
 	kOOUniformConvertToMatrix		= 0x0004U,
+	kOOUniformBindToSuperTarget		= 0x0008U,
 	
-	kOOUniformConvertDefaults		= kOOUniformConvertToMatrix
+	kOOUniformConvertDefaults		= kOOUniformConvertToMatrix | kOOUniformBindToSuperTarget
 };
 typedef uint16_t OOUniformConvertOptions;
 
@@ -149,6 +150,16 @@ typedef uint16_t OOUniformConvertOptions;
 	for bindings.
 */
 -(void)addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
+
+@end
+
+
+@interface NSObject (ShaderBindingHierarchy)
+
+/*	Informal protocol for objects to "forward" their shader bindings up a
+	hierarchy (for instance, subentities to parent entities).
+*/
+- (id<OOWeakReferenceSupport>) superShaderBindingTarget;
 
 @end
 

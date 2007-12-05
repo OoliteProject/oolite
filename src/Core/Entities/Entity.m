@@ -1085,9 +1085,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void)setShaderBindingTarget:(Entity *)ent
+- (id) rootEntity
 {
-	
+	return self;
 }
 
 @end
