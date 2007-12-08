@@ -1654,7 +1654,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) checkForShips: (NSString *)roleString
 {
-	shipsFound = [UNIVERSE countShipsWithRole:roleString];
+	shipsFound = [UNIVERSE countShipsWithPrimaryRole:roleString];
 }
 
 

@@ -1756,13 +1756,17 @@ WormholeEntity*	whole;
 
 - (void) scriptActionOnTarget:(NSString*) action
 {
-	PlayerEntity*	player = [PlayerEntity sharedPlayer];
-	Entity*			targEnt = [UNIVERSE entityForUniversalID:primaryTarget];
-	if ((targEnt)&&(player))
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	Entity			*targEnt = [UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity		*oldTarget = nil;
+	
+	if ([targEnt isShip])
 	{
-		[player setScriptTarget: (ShipEntity*)targEnt];
-		[player scriptAction: action onEntity: targEnt];
+		oldTarget = [player scriptTarget];
+		[player setScriptTarget:(ShipEntity*)targEnt];
+		[player scriptAction:action onEntity:targEnt];
 		[player checkScript];	// react immediately to any changes this makes
+		[player setScriptTarget:oldTarget];
 	}
 }
 
