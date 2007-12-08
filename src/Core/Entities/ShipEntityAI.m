@@ -1760,6 +1760,7 @@ WormholeEntity*	whole;
 	Entity*			targEnt = [UNIVERSE entityForUniversalID:primaryTarget];
 	if ((targEnt)&&(player))
 	{
+		[player setScriptTarget: (ShipEntity*)targEnt];
 		[player scriptAction: action onEntity: targEnt];
 		[player checkScript];	// react immediately to any changes this makes
 	}
