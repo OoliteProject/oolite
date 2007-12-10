@@ -5292,7 +5292,7 @@ static int last_outfitting_index;
 		}
 		
 		[self setGuiToEquipShipScreen:-1:-1];
-		done = YES;
+		return YES;
 	}
 
 	if (([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"]) && missiles >= max_missiles)
