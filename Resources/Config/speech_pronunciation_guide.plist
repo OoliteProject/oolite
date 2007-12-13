@@ -1,70 +1,67 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<array>
-	<array>
-		<string>\n</string>
-		<string> </string>
-	</array>
-	<array>
-		<string>\t</string>
-		<string> </string>
-	</array>
-	<array>
-		<string>Cruiser</string><!-- must come before ' Cr' -->
-		<string>[[inpt PHON]]kr1UWz2AXr[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string> Cr</string>
-		<string> credits</string>
-	</array>
-	<array>
-		<string> s.</string>
-		<string> seconds</string>
-	</array>
-	<array>
-		<string>Purse</string>
-		<string>, Total </string>
-	</array>
-	<array>
-		<string>Mark III</string>
-		<string>Mach Three</string>
-	</array>
-	<array>
-		<string>Mark II</string>
-		<string>Mach Two</string>
-	</array>
-	<array>
-		<string>Mark I</string>
-		<string>Mach One</string>
-	</array>
-	<array>
-		<string>GalCop</string>
-		<string>galactic police</string>
-	</array>
-	<array>
-		<string>Witchspace</string>
-		<string>[[inpt PHON]]w1IHCsp2EYs[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string>Fer-de-Lance</string>
-		<string>[[inpt PHON]]f1&lt;EY&lt;&lt;AE=dEH=l2UXns[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string>Sidewinder</string>
-		<string>[[inpt PHON]]s1AYdw2AYndAX[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string>Rebel</string>
-		<string>[[inpt PHON]]rEHbUXl[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string>Metal fragment</string>
-		<string>metal [[inpt PHON]]fr1AEgmUHnt[[inpt TEXT]]</string>
-	</array>
-	<array>
-		<string>Ident</string>
-		<string>Identification</string>
-	</array>
-</array>
-</plist>
+(
+	(
+		"\\n",
+		" "
+	),
+	(
+		"\\t",
+		" "
+	),
+	(
+		// must come before ' Cr'
+		Cruiser,
+		"[[inpt PHON]]kr1UWz2AXr[[inpt TEXT]]"
+	),
+	(
+		" Cr",
+		" credits"
+	),
+	(
+		" s.",
+		" seconds"
+	),
+	(
+		Purse,
+		", Total "
+	),
+	(
+		"Mark III",
+		"Mach Three"
+	),
+	(
+		"Mark II",
+		"Mach Two"
+	),
+	(
+		"Mark I",
+		"Mach One"
+	),
+	(
+		GalCop,
+		"[[inpt PHON]]g1AElkUXp[[inpt TEXT]]"
+	),
+	(
+		Witchspace,
+		"[[inpt PHON]]w1IHCsp2EYs[[inpt TEXT]]"
+	),
+	(
+		"Fer-de-Lance",
+		"[[inpt PHON]]f1<EY<<AE=dEH=l2UXns[[inpt TEXT]]"
+	),
+	(
+		Sidewinder,
+		"[[inpt PHON]]s1AYdw2AYndAX[[inpt TEXT]]"
+	),
+	(
+		Rebel,
+		"[[inpt PHON]]rEHbUXl[[inpt TEXT]]"
+	),
+	(
+		"Metal fragment",
+		"metal [[inpt PHON]]fr1AEgmUHnt[[inpt TEXT]]"
+	),
+	(
+		Ident,
+		Identification
+	)
+)

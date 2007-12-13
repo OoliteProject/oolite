@@ -288,7 +288,7 @@ typedef int32_t		OOCargoQuantityDelta;
 typedef uint16_t	OOFuelQuantity;
 
 
-typedef uint32_t	OOCreditsQuantity;
+typedef uint64_t	OOCreditsQuantity;
 
 
 typedef uint16_t	OOKeyCode;

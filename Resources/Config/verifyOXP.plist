@@ -71,7 +71,7 @@
 			"script.js",
 			"shipdata.plist",
 			"shipyard.plist",
-			"speech_pronounciation_guide.plist",
+			"speech_pronunciation_guide.plist",
 			"startextures.plist",
 			"world-scripts.plist"
 		);

@@ -25,60 +25,60 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-
+#import "OOTypes.h"
 #import "legacy_random.h"
 
 @class OOBrain, Universe;
 
 @interface OOCharacter : NSObject
 {
-	NSString*	name;
-	NSString*	shortDescription;
-	NSString*	longDescription;
-	Random_Seed	originSystemSeed;
-	Random_Seed	genSeed;
-	int			legalStatus;
-	int			insuranceCredits;
+	NSString			*name;
+	NSString			*shortDescription;
+	NSString			*longDescription;
+	Random_Seed			originSystemSeed;
+	Random_Seed			genSeed;
+	int					legalStatus;
+	OOCreditsQuantity	insuranceCredits;
 	
-	OOBrain*	brain;				// brain of character
+	OOBrain				*brain;				// brain of character
 	
-	NSArray*	script_actions;
+	NSArray				*script_actions;
 }
 
-- (id) initWithGenSeed:(Random_Seed) g_seed andOriginalSystemSeed:(Random_Seed) s_seed;
-- (id) initWithRole:(NSString*) role andOriginalSystemSeed:(Random_Seed) s_seed;
+- (id) initWithGenSeed:(Random_Seed)g_seed andOriginalSystemSeed:(Random_Seed)s_seed;
+- (id) initWithRole:(NSString *)role andOriginalSystemSeed:(Random_Seed)s_seed;
 
-+ (OOCharacter*) characterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed;
-+ (OOCharacter*) randomCharacterWithRole:(NSString*) c_role andOriginalSystem:(Random_Seed) o_seed;
-+ (OOCharacter*) characterWithDictionary:(NSDictionary*) c_dict;
++ (OOCharacter *) characterWithRole:(NSString *)c_role andOriginalSystem:(Random_Seed)o_seed;
++ (OOCharacter *) randomCharacterWithRole:(NSString *)c_role andOriginalSystem:(Random_Seed)o_seed;
++ (OOCharacter *) characterWithDictionary:(NSDictionary *)c_dict;
 
 - (NSString*) planetOfOrigin;
 - (NSString*) species;
 
 - (void) basicSetUp;
-- (BOOL) castInRole:(NSString*) role;
+- (BOOL) castInRole:(NSString *)role;
 
-- (NSString*)	name;
-- (NSString*)	shortDescription;
-- (NSString*)	longDescription;
-- (Random_Seed)	originSystemSeed;
-- (Random_Seed)	genSeed;
-- (int)			legalStatus;
-- (int)			insuranceCredits;
-- (NSArray*)	script;
-- (OOBrain*)	brain;
+- (NSString *) name;
+- (NSString *) shortDescription;
+- (NSString *) longDescription;
+- (Random_Seed) originSystemSeed;
+- (Random_Seed) genSeed;
+- (int) legalStatus;
+- (OOCreditsQuantity) insuranceCredits;
+- (NSArray *) script;
+- (OOBrain *) brain;
 
-- (void) setName: (NSString*) value;
-- (void) setShortDescription: (NSString*) value;
-- (void) setLongDescription: (NSString*) value;
-- (void) setOriginSystemSeed: (Random_Seed) value;
-- (void) setGenSeed: (Random_Seed) value;
-- (void) setLegalStatus: (int) value;
-- (void) setInsuranceCredits: (int) value;
-- (void) setScript: (NSArray*) some_actions;
+- (void) setName:(NSString *)value;
+- (void) setShortDescription:(NSString *)value;
+- (void) setLongDescription:(NSString *)value;
+- (void) setOriginSystemSeed:(Random_Seed)value;
+- (void) setGenSeed:(Random_Seed)value;
+- (void) setLegalStatus:(int)value;
+- (void) setInsuranceCredits:(OOCreditsQuantity)value;
+- (void) setScript:(NSArray *)some_actions;
 
-- (void) setBrain: (OOBrain*) aBrain;
+- (void) setBrain:(OOBrain *)aBrain;
 
-- (void) setCharacterFromDictionary:(NSDictionary*) dict;
+- (void) setCharacterFromDictionary:(NSDictionary *)dict;
 
 @end

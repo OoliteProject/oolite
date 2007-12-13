@@ -1377,7 +1377,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// first check you can afford it!
 	NSDictionary* ship_info = [currentShipyard dictionaryForKey:key];
-	OOCreditsQuantity price = [ship_info unsignedIntForKey:SHIPYARD_KEY_PRICE];
+	OOCreditsQuantity price = [ship_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	OOCreditsQuantity trade_in = [self tradeInValue];
 	
 	if (credits + trade_in * 10 < price * 10)

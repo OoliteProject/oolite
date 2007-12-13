@@ -274,8 +274,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result setObject:player_name			forKey:@"player_name"];
 	
-	[result setObject:[NSNumber numberWithInt:credits]				forKey:@"credits"];
-	[result setObject:[NSNumber numberWithInt:fuel]					forKey:@"fuel"];
+	[result setObject:[NSNumber numberWithUnsignedLongLong:credits]	forKey:@"credits"];
+	[result setObject:[NSNumber numberWithUnsignedInt:fuel]			forKey:@"fuel"];
 	
 	[result setObject:[NSNumber numberWithInt:galaxy_number]		forKey:@"galaxy_number"];
 	
@@ -667,10 +667,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self addExtraEquipment:@"EQ_CARGO_BAY"];
 	max_cargo -= max_passengers * 5;
 	
-	if ([dict objectForKey:@"credits"])
-		credits = [(NSNumber *)[dict objectForKey:@"credits"]		intValue];
-	if ([dict objectForKey:@"fuel"])
-		fuel = [(NSNumber *)[dict objectForKey:@"fuel"]			intValue];
+	credits = [dict unsignedLongLongForKey:@"credits" defaultValue:credits];
+	fuel = [dict unsignedIntForKey:@"fuel" defaultValue:fuel];
 	
 	if ([dict objectForKey:@"galaxy_number"])
 		galaxy_number = [(NSNumber *)[dict objectForKey:@"galaxy_number"]	intValue];
@@ -3422,9 +3420,9 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (!other)
 		return;
-	int score = 10 * [other bounty];
-	int killClass = other->scanClass; // **tgape** change (+line)
-	int kill_award = 1;
+	OOCreditsQuantity	score = 10 * [other bounty];
+	OOScanClass			killClass = other->scanClass; // **tgape** change (+line)
+	BOOL				killAward = YES;
 	
 	if ([other isPolice])   // oops, we shot a copper!
 		legalStatus |= 64;
@@ -3437,7 +3435,7 @@ double scoopSoundPlayTime = 0.0;
 			if (![other hasRole:@"tharglet"])	// okay, we'll count tharglets as proper kills
 			{
 				score /= 10;	// reduce bounty awarded
-				kill_award = 0;	// don't award a kill
+				killAward = NO;	// don't award a kill
 			}
 		}
 	}
@@ -3446,8 +3444,8 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (score)
 	{
-		NSString* bonusMS1 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[bounty-d]"), score / 10];
-		NSString* bonusMS2 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[total-f-credits]"), 0.1 * credits];
+		NSString *bonusMS1 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[bounty-d]"), score / 10];
+		NSString *bonusMS2 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[total-f-credits]"), 0.1 * credits];
 		
 		if (score > 9)
 		{
@@ -3456,14 +3454,13 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 	
-	while (kill_award > 0)
+	if (killAward)
 	{
 		ship_kills++;
-		kill_award--;
 		if ((ship_kills % 256) == 0)
 		{
 			// congratulations method needs to be delayed a fraction of a second
-			NSString* roc = ExpandDescriptionForCurrentSystem(@"[right-on-commander]");
+			NSString *roc = ExpandDescriptionForCurrentSystem(@"[right-on-commander]");
 			[UNIVERSE addDelayedMessage:roc forCount:4 afterDelay:0.2];
 		}
 	}
@@ -3538,7 +3535,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)why
 {
-	NSString* scoreMS = [NSString stringWithFormat:@"Score: %.1f Credits",credits/10.0];
+	NSString *scoreMS = [NSString stringWithFormat:@"Score: %.1f Credits",credits/10.0];
 
 	if (![[UNIVERSE gameController] playerFileToLoad])
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
@@ -5166,7 +5163,7 @@ static int last_outfitting_index;
 			
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			
-			double time_adjust = (old_credits > credits)? (old_credits - credits): 0.0;
+			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
 		}
 	}
@@ -5181,12 +5178,12 @@ static int last_outfitting_index;
 {
 	// note this doesn't check the availability by tech-level
 	NSArray				*equipdata		= [UNIVERSE equipmentdata];
-	OOCreditsQuantity	price_per_unit	= [[[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_PRICE_INDEX] intValue];
-	NSString			*eq_key			= [[equipdata objectAtIndex:index] objectAtIndex:EQUIPMENT_KEY_INDEX];
+	OOCreditsQuantity	price_per_unit	= [[equipdata arrayAtIndex:index] unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	NSString			*eq_key			= [[equipdata arrayAtIndex:index] stringAtIndex:EQUIPMENT_KEY_INDEX];
 	NSString			*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double				price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit) ;
+	double				price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit);
 	double				price_factor	= 1.0;
-	OOCargoQuantity		cargo_space = max_cargo - current_cargo;
+	OOCargoQuantity		cargo_space		= max_cargo - current_cargo;
 	OOCreditsQuantity	tradeIn = 0;
 
 	// repairs cost 50%
@@ -5414,7 +5411,7 @@ static int last_outfitting_index;
 	unsigned i;
 	for (i = 0; i < [equipdata count]; i++)
 	{
-		NSString *w_key = (NSString *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString *w_key = [[equipdata arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
 		if (([eq_key isEqual:w_key])&&(![self hasExtraEquipment:eq_key]))
 		{
 			credits -= price;

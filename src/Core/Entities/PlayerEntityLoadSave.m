@@ -869,10 +869,10 @@
 	if(!dockedStation)  dockedStation = [UNIVERSE station];
 	
 	// Display the commander's ship.
-	NSString		*shipDesc = [cdr stringForKey:@"ship_desc"];
-	NSString		*shipName = nil;
-	NSDictionary	*shipDict = nil;
-	NSString		*rating;
+	NSString			*shipDesc = [cdr stringForKey:@"ship_desc"];
+	NSString			*shipName = nil;
+	NSDictionary		*shipDict = nil;
+	NSString			*rating = nil;
 	
 	shipDict = [UNIVERSE getDictionaryForShip:shipDesc];
 	if(shipDict != nil)
@@ -888,13 +888,13 @@
 	}
 	
 	// Make a short description of the commander
-	NSString		*legalDesc = nil;
-	int				money;
+	NSString			*legalDesc = nil;
+	OOCreditsQuantity	money;
 	
 	legalDesc = LegalStatusToString([cdr intForKey:@"legal_status"]);
 	
 	rating = KillCountToRatingAndKillString([cdr unsignedIntForKey:@"ship_kills"]);
-	money = [cdr intForKey:@"credits"] / 10;
+	money = [cdr unsignedLongLongForKey:@"credits"] / 10;
 	
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------

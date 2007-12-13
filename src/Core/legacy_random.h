@@ -66,8 +66,7 @@ void clear_checksum();
 int munge_checksum(int value);
 
 // cunning price rounding routine:
-//
-float cunningFee(float value) CONST_FUNC;
+double cunningFee(double value);
 
 // an implementation of RANROT
 // pseudo random number generator

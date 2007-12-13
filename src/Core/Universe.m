@@ -390,8 +390,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 #ifndef GNUSTEP
 	//// speech stuff
 	
-	if (speechArray)
-		[speechArray autorelease];
+	[speechArray autorelease];
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	////
@@ -2951,7 +2950,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		
 		if ([itemType isEqual:weapon_key])
 		{
-			return [itemData intAtIndex:EQUIPMENT_PRICE_INDEX];
+			return [itemData unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
 		}
 	}
 	return 0;
@@ -7087,7 +7086,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict
 {
-	OOCreditsQuantity result = 0;
+	OOCreditsQuantity	result = 0;
 	
 	// get basic information about the commander's craft
 	
@@ -7107,7 +7106,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	// get the basic information about the standard customer model for that craft
 	NSDictionary		*shipyard_info = [shipyard dictionaryForKey:cmdr_ship_desc];
 	NSDictionary		*basic_info = [shipyard_info dictionaryForKey:KEY_STANDARD_EQUIPMENT];
-	OOCreditsQuantity	base_price = [shipyard_info unsignedIntForKey:SHIPYARD_KEY_PRICE];
+	OOCreditsQuantity	base_price = [shipyard_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	unsigned			base_missiles = [basic_info unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
 	OOCreditsQuantity	base_missiles_value = base_missiles * [self getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
 	NSString			*base_fwd_weapon_key = [basic_info stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];

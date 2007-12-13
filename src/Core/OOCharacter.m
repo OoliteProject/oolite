@@ -27,14 +27,14 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOBrain.h"
 #import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
-#include "legacy_random.h"
 
 @implementation OOCharacter
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"%@, %@. bounty: %i insurance:%i", [self name], [self shortDescription], [self legalStatus], [self insuranceCredits]];
+	return [NSString stringWithFormat:@"%@, %@. bounty: %i insurance: %llu", [self name], [self shortDescription], [self legalStatus], [self insuranceCredits]];
 }
 
 
@@ -192,20 +192,20 @@ MA 02110-1301, USA.
 	}
 
 	// if clean - determine insurance level (if any)
-	[self setInsuranceCredits: 0];
+	[self setInsuranceCredits:0];
 	if (legal_index == 0)
 	{
 		int insurance_index = gen_rnd_number() & gen_rnd_number() & 0x03;
 		switch (insurance_index)
 		{
 			case 1:
-				[self setInsuranceCredits: 125];
+				[self setInsuranceCredits:125];
 				break;
 			case 2:
-				[self setInsuranceCredits: 250];
+				[self setInsuranceCredits:250];
 				break;
 			case 3:
-				[self setInsuranceCredits: 500];
+				[self setInsuranceCredits:500];
 		}
 	}
 	
@@ -216,10 +216,12 @@ MA 02110-1301, USA.
 
 - (BOOL) castInRole:(NSString *) role
 {
-	BOOL specialSetUpDone = NO;
+	BOOL		specialSetUpDone = NO;
+	NSString	*legalDesc;
 	
-	NSString *legalDesc;
-	if ([[role lowercaseString] isEqual:@"pirate"])
+	role = [role lowercaseString];
+	
+	if ([role isEqual:@"pirate"])
 	{
 		// determine legalStatus for a completely random character
 		int sins = 0x08 | (genSeed.a & genSeed.b);
@@ -240,7 +242,7 @@ MA 02110-1301, USA.
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"trader"])
+	if ([role isEqual:@"trader"])
 	{
 		legalDesc = @"clean";
 		[self setLegalStatus: 0];	// clean
@@ -249,73 +251,73 @@ MA 02110-1301, USA.
 		switch (insurance_index)
 		{
 			case 0:
-				[self setInsuranceCredits: 0];
+				[self setInsuranceCredits:0];
 				break;
 			case 1:
-				[self setInsuranceCredits: 125];
+				[self setInsuranceCredits:125];
 				break;
 			case 2:
-				[self setInsuranceCredits: 250];
+				[self setInsuranceCredits:250];
 				break;
 			case 3:
-				[self setInsuranceCredits: 500];
+				[self setInsuranceCredits:500];
 		}
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"hunter"])
+	if ([role isEqual:@"hunter"])
 	{
 		legalDesc = @"clean";
-		[self setLegalStatus: 0];	// clean
+		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
 		if (insurance_index == 3)
-			[self setInsuranceCredits: 500];
+			[self setInsuranceCredits:500];
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"police"])
+	if ([role isEqual:@"police"])
 	{
 		legalDesc = @"clean";
-		[self setLegalStatus: 0];	// clean
-		[self setInsuranceCredits: 125];
+		[self setLegalStatus:0];	// clean
+		[self setInsuranceCredits:125];
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"miner"])
+	if ([role isEqual:@"miner"])
 	{
 		legalDesc = @"clean";
-		[self setLegalStatus: 0];	// clean
-		[self setInsuranceCredits: 25];
+		[self setLegalStatus:0];	// clean
+		[self setInsuranceCredits:25];
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"passenger"])
+	if ([role isEqual:@"passenger"])
 	{
 		legalDesc = @"clean";
-		[self setLegalStatus: 0];	// clean
+		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
 		switch (insurance_index)
 		{
 			case 0:
-				[self setInsuranceCredits: 25];
+				[self setInsuranceCredits:25];
 				break;
 			case 1:
-				[self setInsuranceCredits: 125];
+				[self setInsuranceCredits:125];
 				break;
 			case 2:
-				[self setInsuranceCredits: 250];
+				[self setInsuranceCredits:250];
 				break;
 			case 3:
-				[self setInsuranceCredits: 500];
+				[self setInsuranceCredits:500];
 		}
 		specialSetUpDone = YES;
 	}
 	
-	if ([[role lowercaseString] isEqual:@"slave"])
+	if ([role isEqual:@"slave"])
 	{
 		legalDesc = @"clean";
-		[self setLegalStatus: 0];	// clean
-		[self setInsuranceCredits: 0];
+		[self setLegalStatus:0];	// clean
+		[self setInsuranceCredits:0];
 		specialSetUpDone = YES;
 	}
 	
@@ -362,7 +364,7 @@ MA 02110-1301, USA.
 }
 
 
-- (int)insuranceCredits
+- (OOCreditsQuantity)insuranceCredits
 {
 	return insuranceCredits;
 }
@@ -422,7 +424,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setInsuranceCredits:(int)value
+- (void)setInsuranceCredits:(OOCreditsQuantity)value
 {
 	insuranceCredits = value;
 }
@@ -468,15 +470,14 @@ MA 02110-1301, USA.
 		[self basicSetUp];
 	}
 	
-	if ([dict objectForKey:@"role"])  [self castInRole:[dict objectForKey:@"role"]];
-	if ([dict objectForKey:@"name"])  [self setName:[dict objectForKey:@"name"]];
-	if ([dict objectForKey:@"short_description"])  [self setShortDescription:[dict objectForKey:@"short_description"]];
-	if ([dict objectForKey:@"long_description"])  [self setLongDescription:[dict objectForKey:@"long_description"]];
-	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[[dict objectForKey:@"legal_status"] intValue]];
-	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[[dict objectForKey:@"bounty"] intValue]];
-	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[[dict objectForKey:@"insurance"] intValue]];
-	if ([dict objectForKey:@"script_actions"])  [self setScript:[dict objectForKey:@"script_actions"]];
-		
+	if ([dict stringForKey:@"role"])  [self castInRole:[dict stringForKey:@"role"]];
+	if ([dict stringForKey:@"name"])  [self setName:[dict stringForKey:@"name"]];
+	if ([dict stringForKey:@"short_description"])  [self setShortDescription:[dict stringForKey:@"short_description"]];
+	if ([dict stringForKey:@"long_description"])  [self setLongDescription:[dict stringForKey:@"long_description"]];
+	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[dict intForKey:@"legal_status"]];
+	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[dict intForKey:@"bounty"]];
+	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[dict unsignedLongLongForKey:@"insurance"]];
+	if ([dict arrayForKey:@"script_actions"])  [self setScript:[dict arrayForKey:@"script_actions"]];
 }
 
 @end

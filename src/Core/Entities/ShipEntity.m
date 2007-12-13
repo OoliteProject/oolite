@@ -6230,7 +6230,7 @@ BOOL class_masslocks(int some_class)
 				unsigned i;
 				for (i = 0; i < [[other crew] count]; i++)
 				{
-					OOCharacter* rescuee = (OOCharacter*)[[other crew] objectAtIndex:i];
+					OOCharacter *rescuee = [[other crew] objectAtIndex:i];
 					if ([rescuee legalStatus])
 					{
 						[UNIVERSE addMessage: [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[scoop-captured-@]"), [rescuee name]] forCount: 4.5];
