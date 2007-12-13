@@ -5188,7 +5188,6 @@ static int last_outfitting_index;
 	double				price_factor	= 1.0;
 	OOCargoQuantity		cargo_space = max_cargo - current_cargo;
 	OOCreditsQuantity	tradeIn = 0;
-	BOOL				done = NO;
 
 	// repairs cost 50%
 	if ([self hasExtraEquipment:eq_key_damaged])
@@ -5289,8 +5288,8 @@ static int last_outfitting_index;
 				break;
 			case WEAPON_NONE :
 				break;
-		}
-		
+		}	
+		[self doTradeIn:tradeIn forPriceFactor:price_factor];
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;
 	}
@@ -5333,6 +5332,7 @@ static int last_outfitting_index;
 			default :
 				break;
 		}
+		[self doTradeIn:tradeIn forPriceFactor:price_factor];
 	}
 	
 	// maintain ship
@@ -5406,6 +5406,7 @@ static int last_outfitting_index;
 			}
 		}
 		missiles = 0;
+		[self doTradeIn:tradeIn forPriceFactor:price_factor];
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;
 	}
@@ -5420,18 +5421,21 @@ static int last_outfitting_index;
 			[self addExtraEquipment:eq_key];
 			[self setGuiToEquipShipScreen:-1:-1];
 
-			done = YES;
-			break;
+			return YES;
 		}
 	}
-	
-	if (tradeIn != 0)
-	{
-		if (price_factor < 1.0f)  tradeIn *= price_factor;
-		credits += tradeIn;
-	}
 
-	return done;
+	return NO;
+}
+
+
+-(void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor
+{
+	if (tradeInValue != 0)
+	{
+		if (priceFactor < 1.0f)  tradeInValue *= priceFactor;
+		credits += tradeInValue;
+	}
 }
 
 

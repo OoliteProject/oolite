@@ -626,6 +626,7 @@ typedef enum
 - (OOGUIScreenID) guiScreen;
 
 - (void) buySelectedItem;
+- (void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor;
 - (BOOL) tryBuyingItem:(int) index;
 - (BOOL) marketFlooded:(int) index;
 - (BOOL) tryBuyingCommodity:(int) index;
