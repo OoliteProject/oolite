@@ -924,7 +924,7 @@
 	
 	NSString		*cdrDesc = nil;
 	
-	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %d Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
+	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %llu Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
 		[cdr stringForKey:@"player_name"],
 		rating,
 		money,
