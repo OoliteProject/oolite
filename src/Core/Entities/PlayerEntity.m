@@ -4959,7 +4959,7 @@ static int last_outfitting_index;
 			
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 
-			if ([gui selectedRow] < start_row)
+			if ([gui selectedRow] != start_row)
 				[gui setSelectedRow:start_row];
 
 			if (itemForSelectFacing >= 0)
