@@ -363,12 +363,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 
-- (void) setStrict:(BOOL) value
+- (void) setStrict:(BOOL)value
 {
 	if (strict == value)  return;
 	
 	strict = !!value;
-	[OOTexture clearCache];	// Force reload of texutres, since search paths effectively change
+	[OOTexture clearCache];	// Force reload of textures, since search paths effectively change
 	
 	[self reinit];
 }

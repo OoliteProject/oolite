@@ -1416,6 +1416,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+/*	Spelling variant, because people get confused about whether Oolite uses
+	UK or US spelling. (General answer: it varies.)
+*/
+- (void) launchDefenceShip
+{
+	[self launchDefenseShip];
+}
+
+
 - (void) launchScavenger
 {
 	ShipEntity  *scavenger_ship;
