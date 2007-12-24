@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import <Foundation/NSString.h>
 
 #import "GameController.h"
-#import "OOLogging.h"
+#import "OOLoggingExtended.h"
 
 GameController* controller;
 #endif

@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "PlanetEntity.h"
-#import "OOOpenGL.h"
+#import "OOOpenGLExtensionManager.h"
 
 #import "Universe.h"
 #import "AI.h"

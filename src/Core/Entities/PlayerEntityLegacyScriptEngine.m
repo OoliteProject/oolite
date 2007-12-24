@@ -605,7 +605,7 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 
 - (NSString *)localVariableForKey:(NSString *)variableName andMission:(NSString *)missionKey
 {
-	return [[localVariables objectForKey:missionKey] objectForKey:variableName];
+	return [(NSDictionary *)[localVariables objectForKey:missionKey] objectForKey:variableName];
 }
 
 

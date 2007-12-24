@@ -1207,6 +1207,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	OOLogIndentIf(kOOLogUniversePopulate);
 	
 	// traders
+	// TODO: consider using floating point for this stuff, giving a greater variety of possible results while maintaining the same range.
 	uint8_t trading_parties = (9 - economy);			// 2 .. 9
 	if (government == 0) trading_parties *= 1.25;	// 25% more trade where there are no laws!
 	if (trading_parties > 0)
@@ -1223,8 +1224,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	// pirates
 	int anarchy = (8 - government);
 	uint8_t raiding_parties = (Ranrot() % anarchy) + (Ranrot() % anarchy) + anarchy * trading_parties / 3;	// boosted
-	if (raiding_parties > 0)
-		raiding_parties =  raiding_parties * (randf()+randf());   // randomize
+	raiding_parties *= randf() + randf();   // randomize
 	while (raiding_parties > 25)
 		raiding_parties = 12 + (Ranrot() % raiding_parties);   // reduce
 	
@@ -1237,8 +1237,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	// bounty-hunters and the law
 	uint8_t hunting_parties = (1 + government) * trading_parties / 8;
 	if (government == 0) hunting_parties *= 1.25;   // 25% more bounty hunters in an anarchy
-	if (hunting_parties > 0)
-		hunting_parties = hunting_parties * (randf()+randf());   // randomize
+	hunting_parties *= (randf()+randf());   // randomize
 	while (hunting_parties > 15)
 		hunting_parties = 5 + (Ranrot() % hunting_parties);   // reduce
 	
@@ -1268,26 +1267,23 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	unsigned total_clicks = trading_parties + raiding_parties + hunting_parties + thargoid_parties + rockClusters + skim_hunting_parties + skim_raiding_parties + skim_trading_parties;
 	
-	OOLog(kOOLogUniversePopulate, @"... for a total of %d ships", total_clicks);
+	OOLog(kOOLogUniversePopulate, @"... for a total of %d parties", total_clicks);
 	OOLogOutdentIf(kOOLogUniversePopulate);
 	
-	Vector  v_route1 = p1_pos;
+	Vector  v_route1 = vector_subtract(p1_pos, h1_pos);
 	v_route1.x -= h1_pos.x;	v_route1.y -= h1_pos.y;	v_route1.z -= h1_pos.z;
-	double d_route1 = sqrt(v_route1.x*v_route1.x + v_route1.y*v_route1.y + v_route1.z*v_route1.z) - 60000.0; // -60km to avoid planet
-
-	if (v_route1.x||v_route1.y||v_route1.z)
-		v_route1 = unit_vector(&v_route1);
-	else
-		v_route1.z = 1.0;
+	double d_route1 = fast_magnitude(v_route1) - 60000.0; // -60km to avoid planet
+	
+	v_route1 = vector_normal_or_fallback(v_route1, kBasisZVector);
 	
 	// add the traders to route1 (witchspace exit to space-station / planet)
+	if (total_clicks < 3)   total_clicks = 3;
 	for (i = 0; (i < trading_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
 		ShipEntity  *trader_ship;
 		launchPos = h1_pos;
-		if (total_clicks < 3)   total_clicks = 3;
 		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
 		double ship_location = d_route1 * r / total_clicks;
 		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -1341,7 +1337,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		else
 		{
 			// random position along route1
-			if (total_clicks < 3)   total_clicks = 3;
 			r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
 			double ship_location = d_route1 * r / total_clicks;
 			launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -1390,7 +1385,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		ShipEntity  *hunter_ship;
 		launchPos = h1_pos;
 		// random position along route1
-		if (total_clicks < 3)   total_clicks = 3;
 		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
 		double ship_location = d_route1 * r / total_clicks;
 		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -1451,7 +1445,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	}
 	
 	// add the thargoids to route1 (witchspace exit to space-station / planet) clustered together
-	if (total_clicks < 3)   total_clicks = 3;
 	r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
 	double thargoid_location = d_route1 * r / total_clicks;
 	for (i = 0; (i < thargoid_parties)&&(!sunGoneNova); i++)
@@ -1482,7 +1475,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	// set the system seed for random number generation
 	seed_RNG_only_for_planet_description(system_seed);
 	
-	if (total_clicks < 3)   total_clicks = 3;
 	for (i = 0; (i + 1) < (rockClusters / 2); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
@@ -1694,7 +1686,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	// add the asteroids to route2 clustered together in a preset location.
 	seed_RNG_only_for_planet_description(system_seed);	// set the system seed for random number generation
 	
-	if (total_clicks < 3)   total_clicks = 3;
 	for (i = 0; i < (rockClusters / 2 + 1U); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
@@ -5676,6 +5667,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
 
 	cachedResult = [systemdata copy];
+	[systemdata release];
 	
 	return cachedResult;
 }

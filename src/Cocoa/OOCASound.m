@@ -227,6 +227,7 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 	{
 		self = [[OOCAStreamingSound alloc] initWithDecoder:decoder];
 	}
+	[decoder release];
 	
 	if (nil != self)
 	{

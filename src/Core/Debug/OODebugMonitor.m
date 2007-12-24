@@ -77,9 +77,9 @@ static OODebugMonitor *sSingleton = nil;
 	self = [super init];
 	if (self != nil)
 	{
-		config = [[ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
-												   inFolder:@"Config"
-												   andMerge:YES] mutableCopy];
+		config = [[[ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
+													inFolder:@"Config"
+													andMerge:YES] mutableCopy] autorelease];
 		_configFromOXPs = [[self normalizeConfigDictionary:config] copy];
 		
 		defaults = [NSUserDefaults standardUserDefaults];

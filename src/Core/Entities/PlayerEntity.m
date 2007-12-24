@@ -89,6 +89,7 @@ static PlayerEntity *sSharedPlayer = nil;
 @interface PlayerEntity (OOPrivate)
 
 - (void) setExtraEquipmentFromFlags;
+-(void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor;
 
 @end
 
@@ -811,7 +812,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	target_memory_index = 0;
 	
-	dockingReport = [[NSMutableString string] retain];
+	dockingReport = [[NSMutableString alloc] init];
 	
 	worldScripts = [[ResourceManager loadScripts] retain];
 
@@ -3398,7 +3399,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) bounty		// overrides returning 'bounty'
+- (OOCreditsQuantity) bounty		// overrides returning 'bounty'
 {
 	return legalStatus;
 }

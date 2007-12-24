@@ -150,7 +150,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 			if (metadata == nil)  metadata = [NSDictionary dictionaryWithObject:name forKey:kMDKeyName];
 			else
 			{
-				NSMutableDictionary *mutableMetadata = [metadata mutableCopy];
+				NSMutableDictionary *mutableMetadata = [[metadata mutableCopy] autorelease];
 				[mutableMetadata setObject:name forKey:kMDKeyName];
 				metadata = mutableMetadata;
 			}

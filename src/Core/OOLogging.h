@@ -146,7 +146,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 #else
 	// Hijack NSLog. Buahahahaha.
 	#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
-	#define NSLogv(NSLogv, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
+	#define NSLogv(format, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)
 #endif
 
 

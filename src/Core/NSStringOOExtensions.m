@@ -75,13 +75,13 @@ MA 02110-1301, USA.
 		}
 		
 		// Attempt to interpret as UTF-8
-		result = [[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSUTF8StringEncoding];
+		result = [[[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSUTF8StringEncoding] autorelease];
 	}
 	
 	if (OK && result == nil)
 	{
 		// Not UTF-16 or UTF-8. Use ISO-Latin-1 (which should work for any byte sequence).
-		result = [[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSISOLatin1StringEncoding];
+		result = [[[NSString alloc] initWithBytes:effectiveBytes length:effectiveLength encoding:NSISOLatin1StringEncoding] autorelease];
 	}
 	
 	[data release];

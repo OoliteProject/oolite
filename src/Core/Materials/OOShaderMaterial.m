@@ -124,6 +124,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		
 		macroString = MacrosToString(modifiedMacros);
+		[modifiedMacros release];
 	}
 	
 	if (OK)
@@ -182,6 +183,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		free(textures);
 	}
+	
+	[bindingTarget release];
 	
 	[super dealloc];
 }

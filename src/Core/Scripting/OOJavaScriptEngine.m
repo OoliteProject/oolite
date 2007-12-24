@@ -288,6 +288,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	}
 	else
 	{
+		OOLog(@"script.javaScript.context.create", @"Creating JS context.");
+		
 		context = JS_NewContext(runtime, 8192);
 		// if context creation failed, end the program here
 		if (context == NULL)
@@ -321,6 +323,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	}
 	else
 	{
+		OOLog(@"script.javaScript.context.destroy", @"Destroying JS context.");
+		
 		JS_DestroyContextMaybeGC(context);
 	}
 }
@@ -854,10 +858,10 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	for (i = 0; i != count; ++i)
 	{
 		element = [NSString stringWithJavaScriptValue:values[i] inContext:context];
-		if (result == nil) result = [element mutableCopy];
+		if (result == nil)  result = [[element mutableCopy] autorelease];
 		else
 		{
-			if (separator != nil) [result appendString:separator];
+			if (separator != nil)  [result appendString:separator];
 			[result appendString:element];
 		}
 	}

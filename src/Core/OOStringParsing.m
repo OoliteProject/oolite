@@ -288,8 +288,8 @@ NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals)
 {
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
-	NSMutableString		*partial = [text mutableCopy];
-	NSMutableDictionary	*all_descriptions = [[UNIVERSE descriptions] mutableCopy];
+	NSMutableString		*partial = [[text mutableCopy] autorelease];
+	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
 	int					sub, rnd, opt;

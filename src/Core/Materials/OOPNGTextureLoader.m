@@ -115,21 +115,21 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	if (png == NULL)
 	{
 		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
-		return;
+		goto FAIL;
 	}
 	
 	pngInfo = png_create_info_struct(png);
 	if (pngInfo == NULL)
 	{
 		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
-		return;
+		goto FAIL;
 	}
 	
 	pngEndInfo = png_create_info_struct(png);
 	if (pngInfo == NULL)
 	{
 		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
-		return;
+		goto FAIL;
 	}
 	
 	if (EXPECT_NOT(setjmp(png_jmpbuf(png))))
@@ -140,7 +140,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 			free(data);
 			data = NULL;
 		}
-		return;
+		goto FAIL;
 	}
 	
 	png_set_read_fn(png, self, PNGRead);
@@ -150,7 +150,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	if (EXPECT_NOT(!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth, &colorType, NULL, NULL, NULL)))
 	{
 		OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", path);
-		return;
+		goto FAIL;
 	}
 	png_set_strip_16(png);			// 16 bits per channel -> 8 bpc
 	png_set_packing(png);			// <8 bpc -> 8 bpc (is this needed with png_set_expand()?)
@@ -198,7 +198,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 			data = NULL;
 		}
 		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%u bytes) for texture %@", rowBytes * height, path);
-		return;
+		goto FAIL;
 	}
 	
 	for (i = 0; i != height; ++i)
@@ -209,8 +209,8 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	png_read_image(png, rows);
 	png_read_end(png, pngEndInfo);
 	
+FAIL:
 	free(rows);
-	
 	png_destroy_read_struct(&png, &pngInfo, &pngEndInfo);
 }
 
