@@ -8,6 +8,7 @@ This code is hereby placed in the public domain.
 */
 
 #import "OOWeakReference.h"
+#import "OOLogging.h"
 
 
 @interface OOWeakReferenceTemplates: NSObject
@@ -71,6 +72,12 @@ This code is hereby placed in the public domain.
 - (void)weakRefDrop
 {
 	_object = nil;
+}
+
+
+- (void) release
+{
+	[super release];
 }
 
 

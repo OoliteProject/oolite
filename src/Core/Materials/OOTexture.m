@@ -445,9 +445,9 @@ static BOOL		sRectangleTextureAvailable;
 
 + (void)clearCache
 {
-	[sInUseTextures release];
+	[sInUseTextures autorelease];
 	sInUseTextures = nil;
-	[sRecentTextures release];
+	[sRecentTextures autorelease];
 	sRecentTextures = nil;
 }
 

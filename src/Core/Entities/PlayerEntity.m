@@ -684,8 +684,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	missiles = [dict unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
-	if (missiles > max_missiles)
-		missiles = max_missiles;
+	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
+	if (missiles > max_missiles)  missiles = max_missiles;
 	
 	// end sanity check
 	if ([dict objectForKey:@"legal_status"])
@@ -739,7 +739,9 @@ static PlayerEntity *sSharedPlayer = nil;
 			{
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
+				{
 					missile_entity[i] = amiss;   // retain count = 1
+				}
 				else
 				{
 					OOLog(@"load.failed.missileNotFound", @"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
@@ -752,13 +754,23 @@ static PlayerEntity *sSharedPlayer = nil;
 	else
 	{
 		for (i = 0; i < missiles; i++)
+		{
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
+		}
 	}
-	while ((missiles > 0)&&(missile_entity[activeMissile] == nil))
-		[self selectNextMissile];
 	
-
+	// Sanity check: ensure the missiles variable holds the correct missile count.
+	missiles = 0;
+	for (i = 0; i != SHIPENTITY_MAX_MISSILES; i++)
+	{
+		if (missile_entity[i] != nil)  missiles++;
+	}
+	
+	while ((missiles > 0)&&(missile_entity[activeMissile] == nil))
+	{
+		[self selectNextMissile];
+	}
 	
 	[self setFlagsFromExtraEquipment];
 	forward_shield = PLAYER_MAX_FORWARD_SHIELD;
@@ -5722,6 +5734,8 @@ static int last_outfitting_index;
 
 - (void) addExtraEquipment:(NSString *) eq_key
 {
+	if (eq_key == nil)  return;
+	
 	// if we've got a damaged one of these - remove it first
 	NSString* damaged_eq_key = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 	if ([extra_equipment objectForKey:damaged_eq_key])
@@ -5751,6 +5765,8 @@ static int last_outfitting_index;
 
 - (void) removeExtraEquipment:(NSString *) eq_key
 {
+	if (eq_key == nil)  return;
+	
 	if ([extra_equipment objectForKey:eq_key])
 		[extra_equipment removeObjectForKey:eq_key];
 	[self setFlagsFromExtraEquipment];

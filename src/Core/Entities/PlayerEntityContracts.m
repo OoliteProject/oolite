@@ -1435,7 +1435,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self tidyMissilePylons];
 
 	// get missiles from ship_info
-	missiles = [shipDict intForKey:@"missiles"];
+	missiles = [shipDict unsignedIntForKey:@"missiles"];
 	
 	// clear legalStatus for free
 	legalStatus = 0;
@@ -1473,7 +1473,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	for (i = 0; i < [portable_equipment count]; i++)
 	{
-		NSString* eq_desc = (NSString*)[portable_equipment objectAtIndex:i];
+		NSString* eq_desc = [portable_equipment stringAtIndex:i];
 		[self addExtraEquipment: eq_desc];
 	}
 	
@@ -1482,10 +1482,10 @@ static NSMutableDictionary* currentShipyard = nil;
 	[self setFlagsFromExtraEquipment];
 	
 	// refill from ship_info
-	NSArray* extras = (NSArray*)[ship_info objectForKey:KEY_EQUIPMENT_EXTRAS];
+	NSArray* extras = [ship_info arrayForKey:KEY_EQUIPMENT_EXTRAS];
 	for (i = 0; i < [extras count]; i++)
 	{
-		NSString* eq_key = (NSString*)[extras objectAtIndex:i];
+		NSString* eq_key = [extras stringAtIndex:i];
 		if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"])
 		{
 			max_passengers++;

@@ -437,7 +437,7 @@ NSString *KillCountToRatingString(unsigned kills)
 {
 	enum { kRatingCount = 9 };
 	
-	static NSArray		*ratingNames = nil;
+	NSArray				*ratingNames = nil;
 	const unsigned		killThresholds[kRatingCount - 1] =
 						{
 							0x0008,
@@ -451,11 +451,7 @@ NSString *KillCountToRatingString(unsigned kills)
 						};
 	unsigned			i;
 	
-	if (ratingNames == nil)
-	{
-		ratingNames = [[UNIVERSE descriptions] arrayForKey:@"rating"];
-	}
-	
+	ratingNames = [[UNIVERSE descriptions] arrayForKey:@"rating"];
 	for (i = 0; i != kRatingCount - 1; ++i)
 	{
 		if (kills < killThresholds[i])  return [ratingNames stringAtIndex:i];
@@ -475,7 +471,7 @@ NSString *LegalStatusToString(int legalStatus)
 {
 	enum { kStatusCount = 3 };
 	
-	static NSArray		*statusNames = nil;
+	NSArray				*statusNames = nil;
 	const int			statusThresholds[kStatusCount - 1] =
 						{
 							1,
@@ -483,11 +479,7 @@ NSString *LegalStatusToString(int legalStatus)
 						};
 	unsigned			i;
 	
-	if (statusNames == nil)
-	{
-		statusNames = [[UNIVERSE descriptions] arrayForKey:@"legal_status"];
-	}
-	
+	statusNames = [[UNIVERSE descriptions] arrayForKey:@"legal_status"];
 	for (i = 0; i != kStatusCount - 1; ++i)
 	{
 		if (legalStatus < statusThresholds[i])  return [statusNames stringAtIndex:i];
@@ -499,13 +491,7 @@ NSString *LegalStatusToString(int legalStatus)
 
 NSString *AlertConditionToString(OOAlertCondition alertCondition)
 {
-	static NSArray		*conditionNames = nil;
-	
-	if (conditionNames == nil)
-	{
-		conditionNames = [[UNIVERSE descriptions] arrayForKey:@"condition"];
-	}
-	
+	NSArray *conditionNames = [[UNIVERSE descriptions] arrayForKey:@"condition"];
 	return [conditionNames stringAtIndex:alertCondition];
 }
 

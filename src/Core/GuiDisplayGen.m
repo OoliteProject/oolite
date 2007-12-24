@@ -1192,7 +1192,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if ((dx < 20)&&(dy < 38))
 		{
-			if ([(NSNumber*)[markedDestinations objectAtIndex:i] boolValue])	// is marked
+			if ([markedDestinations boolAtIndex:i])	// is marked
 			{
 				GLfloat mark_size = 0.5 * blob_size + 2.5;
 				glColor4f(1.0, 0.0, 0.0, alpha);	// red
@@ -1226,10 +1226,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		if ((dx < 20)&&(dy < 38))
 		{
 			NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
-			int tec = [[sys_info objectForKey:KEY_TECHLEVEL] intValue];
-			int eco = [[sys_info objectForKey:KEY_ECONOMY] intValue];
-			int gov = [[sys_info objectForKey:KEY_GOVERNMENT] intValue];
-			NSString*   p_name = (NSString*)[sys_info objectForKey:KEY_NAME];
+			int tec = [sys_info intForKey:KEY_TECHLEVEL];
+			int eco = [sys_info intForKey:KEY_ECONOMY];
+			int gov = [sys_info intForKey:KEY_GOVERNMENT];
+			NSString*   p_name = [sys_info stringForKey:KEY_NAME];
 			if (![player showInfoFlag])
 			{
 				drawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
