@@ -1437,9 +1437,6 @@ static NSMutableDictionary* currentShipyard = nil;
 	// get missiles from ship_info
 	missiles = [shipDict unsignedIntForKey:@"missiles"];
 	
-	// clear legalStatus for free
-	legalStatus = 0;
-	
 	// reset max_passengers
 	max_passengers = 0;
 	
