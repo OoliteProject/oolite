@@ -66,6 +66,8 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 
 @interface OODebugTCPConsoleClient (OOPrivate)
 
+- (void) closeConnection;
+
 - (BOOL) sendBytes:(const void *)bytes count:(size_t)count;
 - (void) sendDictionary:(NSDictionary *)dictionary;
 
@@ -179,11 +181,11 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 		[_monitor disconnectDebugger:self message:@"TCP console bridge unexpectedly released while active."];
 	}
 	
-	OOTCPStreamDecoderDestroy(_decoder);
 	
-	[_inStream release];
-	[_outStream release];
-	[_host release];
+	[self closeConnection];
+	
+	OOTCPStreamDecoderDestroy(_decoder);
+	_decoder = NULL;
 	
 	[super dealloc];
 }
@@ -199,7 +201,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	}
 	if (_status == kOOTCPClientDisconnected)
 	{
-		if (message != NULL)  *message = @"Cannot connect while disconnected.";
+		if (message != NULL)  *message = @"Cannot reconnect after disconnecting.";
 		return NO;
 	}
 	
@@ -286,6 +288,8 @@ noteChangedConfigrationValue:(in id)newValue
 
 - (void)stream:(NSStream *)stream handleEvent:(NSStreamEvent)eventCode
 {
+	if (_status > kOOTCPClientConnected)  return;
+	
 	if (stream == _inStream && eventCode == NSStreamEventHasBytesAvailable)
 	{
 		[self readData];
@@ -305,6 +309,23 @@ noteChangedConfigrationValue:(in id)newValue
 
 
 @implementation OODebugTCPConsoleClient (OOPrivate)
+
+- (void) closeConnection
+{
+	[_inStream close];
+	[_inStream setDelegate:nil];
+	[_inStream release];
+	_inStream = nil;
+	
+	[_outStream close];
+	[_outStream setDelegate:nil];
+	[_outStream release];
+	_outStream = nil;
+	
+	[_host release];
+	_host = nil;
+}
+
 
 - (BOOL) sendBytes:(const void *)bytes count:(size_t)count
 {
@@ -594,12 +615,7 @@ noteChangedConfigrationValue:(in id)newValue
 				withValue:message
 			 forParameter:kOOTCPMessage];
 	}
-	[_inStream close];
-	[_inStream release];
-	_inStream = nil;
-	[_outStream close];
-	[_outStream release];
-	_outStream = nil;
+	[self closeConnection];
 	
 	_status = kOOTCPClientDisconnected;
 }
@@ -607,17 +623,24 @@ noteChangedConfigrationValue:(in id)newValue
 
 - (void) breakConnectionWithMessage:(NSString *)message
 {
-	[_inStream close];
-	[_inStream release];
-	_inStream = nil;
-	[_outStream close];
-	[_outStream release];
-	_outStream = nil;
+	[self closeConnection];
 	
 	if (_status != kOOTCPClientConnectionRefused)  _status = kOOTCPClientDisconnected;
 	
+	if ([message length] > 0)
+	{
+		OOLog(@"debugTCP.disconnect", @"Debug console disconnected with message %@", message);
+	}
+	else
+	{
+		OOLog(@"debugTCP.disconnect", @"Debug console disconnected.");	
+	}
+	
+#if 0
+	// Disconnecting causes crashiness for reasons I don't understand, and isn't very important anyway.
 	[_monitor disconnectDebugger:self message:message];
 	_monitor = nil;
+#endif
 }
 
 
