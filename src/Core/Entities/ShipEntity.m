@@ -58,6 +58,7 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 
+
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
 
 
@@ -117,6 +118,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary		*shipDict = dict;
 	unsigned			i;
 	
+
 	// Does this positional stuff need setting up here?
 	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
     orientation = kIdentityQuaternion;
@@ -360,7 +362,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// scan class. NOTE: non-standard capitalization is documented and entrenched.
 	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
-	
+		
 	//  escorts
 	escortCount = [shipDict unsignedIntForKey:@"escorts"];
 	escortsAreSetUp = (escortCount == 0);
@@ -4737,6 +4739,32 @@ BOOL class_masslocks(int some_class)
 	double stick_pitch = 0.0;
 
 	relPos = vector_subtract(target->position, position);
+	
+	
+	// Adjust missile course by taking into account target's velocity and missile
+	// accuracy. Modification on original code contributed by Cmdr James.
+
+	float missileSpeed = (float)[self speed];
+
+	// Make sure that missile accuracy is within sane limits, else don't bother
+	// adjusting course. Accuracy should be greater than 1.0 and less or equal
+	// than 10.0. In case it is not, missile behavior will be the standard one.
+	// Additionally, avoid getting ourselves in a divide by zero situation by setting
+	// a missileSpeed low threshold. Arbitrarily chosen 0.01, since it seems to work
+	// quite well.
+	if (missileSpeed > 0.01 && accuracy > 1.0f && accuracy <= 10.0f)
+	{
+		Vector leading = [target velocity]; 
+		float lead = magnitude(relPos) / missileSpeed; 
+		
+		// Adjust where we are going to take into account target's velocity.
+		// Use accuracy value to determine how well missile will track target.
+		relPos.x += (lead * leading.x * (accuracy / 10.0f)); 
+		relPos.y += (lead * leading.y * (accuracy / 10.0f)); 
+		relPos.z += (lead * leading.z * (accuracy / 10.0f)); 
+	}
+
+
 	range2 = magnitude2(relPos);
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
@@ -5622,7 +5650,7 @@ BOOL class_masslocks(int some_class)
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	
 	[UNIVERSE addEntity:	missile];
-	
+
 	[missile release]; //release
 
 	if ([missile scanClass] == CLASS_MISSILE)
