@@ -76,8 +76,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 					 fragmentShaderName:(NSString *)fragmentShaderName
 								 prefix:(NSString *)prefixString
 {
-	NSString				*key = nil;
-	OOShaderProgram			*program = nil;
+	NSString				*cacheKey = nil;
+	OOShaderProgram			*result = nil;
 	NSString				*vertexSource = nil;
 	NSString				*fragmentSource = nil;
 	
@@ -85,26 +85,26 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	
 	// Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
 	// FIXME: probably needs to respond to graphics resets.
-	key = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: @""];
-	program = [[sShaderCache objectForKey:key] pointerValue];
+	cacheKey = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: @""];
+	result = [[sShaderCache objectForKey:cacheKey] pointerValue];
 	
-	if (program == nil)
+	if (result == nil)
 	{
 		// No cached program; create one...
 		if (!GetShaderSource(vertexShaderName, @"vertex", prefixString, &vertexSource))  return nil;
 		if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))  return nil;
-		program = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource fragmentShaderSource:fragmentSource key:key];
+		result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource fragmentShaderSource:fragmentSource key:cacheKey];
 		
-		if (program != nil)
+		if (result != nil)
 		{
 			// ...and add it to the cache
-			[program autorelease];
+			[result autorelease];
 			if (sShaderCache == nil)  sShaderCache = [[NSMutableDictionary alloc] init];
-			[sShaderCache setObject:[NSValue valueWithPointer:program] forKey:key];	// Use NSValue so dictionary doesn't retain program
+			[sShaderCache setObject:[NSValue valueWithPointer:result] forKey:cacheKey];	// Use NSValue so dictionary doesn't retain program
 		}
 	}
 	
-	return program;
+	return result;
 }
 
 

@@ -224,9 +224,6 @@ static OODebugMonitor *sSingleton = nil;
 }
 
 
-#pragma mark -
-
-
 - (id)configurationValueForKey:(in NSString *)key
 {
 	return [self configurationValueForKey:key class:Nil defaultValue:nil];
@@ -332,8 +329,6 @@ static OODebugMonitor *sSingleton = nil;
 	return [linesForFile objectAtIndex:line - 1];
 }
 
-
-#pragma mark -
 
 - (void)disconnectDebugger:(in id<OODebuggerInterface>)debugger
 				   message:(in NSString *)message
@@ -454,8 +449,6 @@ FIXME: this works with CRLF and LF, but not CR.
 }
 
 
-#pragma mark -
-
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
 				context:(in JSContext *)context
 				  error:(in JSErrorReport *)errorReport
@@ -545,8 +538,6 @@ FIXME: this works with CRLF and LF, but not CR.
 	}
 }
 
-
-#pragma mark -
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {

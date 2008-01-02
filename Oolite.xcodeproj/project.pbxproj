@@ -37,6 +37,7 @@
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
+		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
@@ -985,6 +986,7 @@
 		1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSkyDrawable.m; sourceTree = "<group>"; };
 		1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilisticTextureManager.h; sourceTree = "<group>"; };
 		1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilisticTextureManager.m; sourceTree = "<group>"; };
+		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
@@ -2271,6 +2273,7 @@
 				1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */,
 				1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */,
 				1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */,
+				1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2707,6 +2710,7 @@
 				1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */,
 				1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */,
 				1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */,
+				1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3164,7 +3168,7 @@
 				PRODUCT_NAME = OoliteDev;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",
@@ -3219,7 +3223,7 @@
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",
@@ -3327,7 +3331,7 @@
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
-				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\"";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
 					"-Wall",
 					"-Wextra",

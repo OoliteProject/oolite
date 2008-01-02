@@ -99,27 +99,27 @@ enum
 
 @implementation OOTextureLoader
 
-+ (id)loaderWithPath:(NSString *)path options:(uint32_t)options
++ (id)loaderWithPath:(NSString *)inPath options:(uint32_t)options
 {
 	NSString				*extension = nil;
 	id						result = nil;
 	
-	if (path == nil) return nil;
+	if (inPath == nil) return nil;
 	if (!sHaveSetUp)  [self setUp];
 	
 	// Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
 	sReducedDetail = [UNIVERSE reducedDetail];
 	
 	// Get a suitable loader. FIXME -- this should sniff the data instead of relying on extensions.
-	extension = [[path pathExtension] lowercaseString];
+	extension = [[inPath pathExtension] lowercaseString];
 	if ([extension isEqualToString:@"png"])
 	{
-		result = [[OOPNGTextureLoader alloc] initWithPath:path options:options];
+		result = [[OOPNGTextureLoader alloc] initWithPath:inPath options:options];
 		[result autorelease];
 	}
 	else
 	{
-		OOLog(@"textureLoader.unknownType", @"Can't use %@ as a texture - extension \"%@\" does not identify a known type.", path, extension);
+		OOLog(@"textureLoader.unknownType", @"Can't use %@ as a texture - extension \"%@\" does not identify a known type.", inPath, extension);
 	}
 	
 	if (result != nil)

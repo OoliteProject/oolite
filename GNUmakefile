@@ -6,7 +6,7 @@ vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripti
 vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug
 GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Isrc/SDL -Isrc/Core -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
+	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lpng13 -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -ljs32
 	ADDITIONAL_CFLAGS = -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly

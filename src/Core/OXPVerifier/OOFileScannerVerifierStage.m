@@ -184,7 +184,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	if (folder != nil)
 	{
 		lcDirName = [folder lowercaseString];
-		realFileName = [[_directoryListings objectForKey:lcDirName] objectForKey:lcName];
+		realFileName = [[_directoryListings dictionaryForKey:lcDirName] objectForKey:lcName];
 		
 		if (realFileName != nil)
 		{
@@ -195,7 +195,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	if (path == nil)
 	{
-		realFileName = [[_directoryListings objectForKey:@""] objectForKey:lcName];
+		realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
 		
 		if (realFileName != nil)
 		{
@@ -480,9 +480,9 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		*/
 		
 		lcName = [name lowercaseString];
-		realFileName = [[_directoryListings objectForKey:@"config"] objectForKey:lcName];
+		realFileName = [[_directoryListings dictionaryForKey:@"config"] objectForKey:lcName];
 		inConfigDir = realFileName != nil;
-		if (!inConfigDir)  realFileName = [[_directoryListings objectForKey:@""] objectForKey:lcName];
+		if (!inConfigDir)  realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
 		if (realFileName == nil)  continue;
 		
 		if (![realFileName isEqualToString:name])
@@ -521,12 +521,12 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			*/
 			
 			lcName = [name lowercaseString];
-			realFileName = [[_directoryListings objectForKey:lcDirectory] objectForKey:lcName];
+			realFileName = [[_directoryListings dictionaryForKey:lcDirectory] objectForKey:lcName];
 			inDirectory = (realFileName != nil);
 			if (!inDirectory)
 			{
 				// Allow for files in root directory of OXP
-				realFileName = [[_directoryListings objectForKey:@""] objectForKey:lcName];
+				realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
 			}
 			if (realFileName == nil)  continue;
 			

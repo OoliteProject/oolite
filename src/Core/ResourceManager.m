@@ -208,7 +208,7 @@ static NSMutableDictionary *string_cache;
 
 + (void) addExternalPath:(NSString *)path
 {
-	if (!sSearchPaths == nil)  sSearchPaths = [[NSMutableArray alloc] init];
+	if (sSearchPaths == nil)  sSearchPaths = [[NSMutableArray alloc] init];
 	if (![sSearchPaths containsObject:path])
 	{
 		[sSearchPaths addObject:path];

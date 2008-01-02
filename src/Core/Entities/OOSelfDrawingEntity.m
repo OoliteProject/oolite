@@ -30,6 +30,12 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOGraphicsResetManager.h"
 
+#if OOLITE_WINDOWS
+#define NEED_STRLCPY
+#endif
+
+#import "bsd_string.h"
+
 
 static NSString * const kOOLogEntityDataNotFound			= @"entity.loadMesh.failed.fileNotFound";
 static NSString * const kOOLogEntityTooManyVertices			= @"entity.loadMesh.failed.tooManyVertices";

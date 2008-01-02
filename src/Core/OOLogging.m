@@ -152,7 +152,7 @@ static NSString *AbbreviatedFileName(const char *inName);
 #import "OOLogOutputHandler.h"
 #else
 OOINLINE void OOLogOutputHandlerInit(void)  {}
-OOINLINE OOLogOutputHandlerClose(void)  {}
+OOINLINE void OOLogOutputHandlerClose(void)  {}
 
 
 OOINLINE void OOLogOutputHandlerPrint(NSString *inString)

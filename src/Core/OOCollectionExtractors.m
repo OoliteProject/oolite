@@ -1171,7 +1171,8 @@ double OONonNegativeDoubleFromObject(id object, double defaultValue)
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 Vector OOVectorFromObject(id object, Vector defaultValue)
 {
-	Vector result = defaultValue;
+	Vector				result = defaultValue;
+	NSDictionary		*dict = nil;
 	
 	if ([object isKindOfClass:[NSString class]])
 	{
@@ -1186,15 +1187,16 @@ Vector OOVectorFromObject(id object, Vector defaultValue)
 	}
 	else if ([object isKindOfClass:[NSDictionary class]])
 	{
+		dict = object;
 		// Require at least one of the keys x, y, or z
-		if ([object objectForKey:@"x"] != nil ||
-			[object objectForKey:@"y"] != nil ||
-			[object objectForKey:@"z"] != nil)
+		if ([dict objectForKey:@"x"] != nil ||
+			[dict objectForKey:@"y"] != nil ||
+			[dict objectForKey:@"z"] != nil)
 		{
 			// Note: uses 0 for unknown components rather than components of defaultValue.
-			result.x = [object floatForKey:@"x" defaultValue:0.0f];
-			result.y = [object floatForKey:@"y" defaultValue:0.0f];
-			result.z = [object floatForKey:@"z" defaultValue:0.0f];
+			result.x = [dict floatForKey:@"x" defaultValue:0.0f];
+			result.y = [dict floatForKey:@"y" defaultValue:0.0f];
+			result.z = [dict floatForKey:@"z" defaultValue:0.0f];
 		}
 	}
 	
@@ -1204,7 +1206,8 @@ Vector OOVectorFromObject(id object, Vector defaultValue)
 
 Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 {
-	Quaternion result = defaultValue;
+	Quaternion			result = defaultValue;
+	NSDictionary		*dict = nil;
 	
 	if ([object isKindOfClass:[NSString class]])
 	{
@@ -1220,17 +1223,18 @@ Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 	}
 	else if ([object isKindOfClass:[NSDictionary class]])
 	{
+		dict = object;
 		// Require at least one of the keys w, x, y, or z
-		if ([object objectForKey:@"w"] != nil ||
-			[object objectForKey:@"x"] != nil ||
-			[object objectForKey:@"y"] != nil ||
-			[object objectForKey:@"z"] != nil)
+		if ([dict objectForKey:@"w"] != nil ||
+			[dict objectForKey:@"x"] != nil ||
+			[dict objectForKey:@"y"] != nil ||
+			[dict objectForKey:@"z"] != nil)
 		{
 			// Note: uses 0 for unknown components rather than components of defaultValue.
-			result.w = [object floatForKey:@"w" defaultValue:0.0f];
-			result.x = [object floatForKey:@"x" defaultValue:0.0f];
-			result.y = [object floatForKey:@"y" defaultValue:0.0f];
-			result.z = [object floatForKey:@"z" defaultValue:0.0f];
+			result.w = [dict floatForKey:@"w" defaultValue:0.0f];
+			result.x = [dict floatForKey:@"x" defaultValue:0.0f];
+			result.y = [dict floatForKey:@"y" defaultValue:0.0f];
+			result.z = [dict floatForKey:@"z" defaultValue:0.0f];
 		}
 	}
 	

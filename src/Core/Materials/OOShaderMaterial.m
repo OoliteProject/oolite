@@ -286,9 +286,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		
 		if ([definition isKindOfClass:[NSDictionary class]])
 		{
-			value = [definition objectForKey:@"value"];
-			binding = [definition objectForKey:@"binding"];
-			type = [definition objectForKey:@"type"];
+			value = [(NSDictionary *)definition objectForKey:@"value"];
+			binding = [(NSDictionary *)definition stringForKey:@"binding"];
+			type = [(NSDictionary *)definition stringForKey:@"type"];
 			if (type == nil)
 			{
 				if (value == nil && binding != nil)  type = @"binding";

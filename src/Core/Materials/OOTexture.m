@@ -284,7 +284,7 @@ static BOOL		sRectangleTextureAvailable;
 	}
 	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
-		name = [configuration stringForKey:@"name"];
+		name = [(NSDictionary *)configuration stringForKey:@"name"];
 		if (name == nil)
 		{
 			OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", configuration);

@@ -116,6 +116,13 @@ MA 02110-1301, USA.
 #endif
 
 
+// Protocol used internally to squash idiotic warnings in gnu-gcc.
+@protocol OOCacheComparable <NSObject, NSCopying>
+- (NSComparisonResult) compare:(id<OOCacheComparable>)other;
+- (id) copy;
+@end
+
+
 static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
 static NSString * const kOOLogCachePrune			= @"dataCache.prune";
 
@@ -393,7 +400,7 @@ struct OOCacheImpl
 struct OOCacheNode
 {
 	// Payload
-	id						key;
+	id<OOCacheComparable>	key;
 	id						value;
 	
 	// Splay tree
@@ -403,7 +410,7 @@ struct OOCacheNode
 	OOCacheNode				*younger, *older;
 };
 
-static OOCacheNode *CacheNodeAllocate(id key, id value);
+static OOCacheNode *CacheNodeAllocate(id<OOCacheComparable> key, id value);
 static void CacheNodeFree(OOCacheImpl *cache, OOCacheNode *node);
 static id CacheNodeGetValue(OOCacheNode *node);
 static void CacheNodeSetValue(OOCacheNode *node, id value);
@@ -412,8 +419,8 @@ static void CacheNodeSetValue(OOCacheNode *node, id value);
 static NSString *CacheNodeGetDescription(OOCacheNode *node);
 #endif
 
-static OOCacheNode *TreeSplay(OOCacheNode **root, id key);
-static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value);
+static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key);
+static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id value);
 static unsigned TreeCountNodes(OOCacheNode *node);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
@@ -578,7 +585,7 @@ static void CacheCheckIntegrity(OOCacheImpl *cache, NSString *context)
 /***** CacheNode functions *****/
 
 // CacheNodeAllocate(): create a cache node for a key, value pair, without inserting it in the structures.
-static OOCacheNode *CacheNodeAllocate(id key, id value)
+static OOCacheNode *CacheNodeAllocate(id<OOCacheComparable> key, id value)
 {
 	OOCacheNode			*result = NULL;
 	
@@ -658,7 +665,7 @@ static NSString *CacheNodeGetDescription(OOCacheNode *node)
 	would have been found before the target, and will thus be a neighbour of
 	the target if the key is subsequently inserted.
 */
-static OOCacheNode *TreeSplay(OOCacheNode **root, id key)
+static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key)
 {
 	NSComparisonResult		order;
 	OOCacheNode				N = { leftChild: NULL, rightChild: NULL };
@@ -727,7 +734,7 @@ static OOCacheNode *TreeSplay(OOCacheNode **root, id key)
 }
 
 
-static OOCacheNode *TreeInsert(OOCacheImpl *cache, id key, id value)
+static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id value)
 {
 	OOCacheNode				*closest = NULL,
 							*node = NULL;

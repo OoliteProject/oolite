@@ -64,8 +64,6 @@ void OOCPUInfoInit(void)
 {
 	// Verify correctness of endian macros
 	uint8_t			endianTag[4] = {0x12, 0x34, 0x56, 0x78};
-	int				flag = 0;
-	size_t			size = sizeof flag;
 	
 #if OOLITE_BIG_ENDIAN
 	if (*(uint32_t*)endianTag != 0x12345678)
@@ -88,8 +86,8 @@ void OOCPUInfoInit(void)
 		_SC_NPROCESSORS_ONLN is not defined on OS X.
 	*/
 #if OOLITE_MAC_OS_X
-	flag = 0;
-	size = sizeof flag;
+	int		flag = 0;
+	size_t	size = sizeof flag;
 	if (sysctlbyname("hw.logicalcpu", &flag, &size, NULL, 0) == 0)
 	{
 		if (1 <= flag)  sNumberOfCPUs = flag;

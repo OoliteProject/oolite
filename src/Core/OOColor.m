@@ -129,6 +129,8 @@ MA 02110-1301, USA.
 
 + (OOColor *)colorWithDescription:(id)description
 {
+	NSDictionary			*dict = nil;
+	
 	if (description == nil) return nil;
 	
 	if ([description isKindOfClass:[OOColor class]])
@@ -155,26 +157,28 @@ MA 02110-1301, USA.
 	}
 	else if ([description isKindOfClass:[NSDictionary class]])
 	{
-		if ([description objectForKey:@"hue"] != nil)
+		dict = description;	// Workaround for gnu-gcc's more agressive "multiple methods named..." warnings.
+		
+		if ([dict objectForKey:@"hue"] != nil)
 		{
 			// Treat as HSB(A) dictionary
-			float h = [description floatForKey:@"hue"];
-			float s = [description floatForKey:@"saturation" defaultValue:1.0f];
-			float b = [description floatForKey:@"brightness" defaultValue:-1.0f];
-			if (b < 0.0f)  b = [description floatForKey:@"value" defaultValue:1.0f];
-			float a = [description floatForKey:@"alpha" defaultValue:-1.0f];
-			if (a < 0.0f)  a = [description floatForKey:@"opacity" defaultValue:1.0f];
+			float h = [dict floatForKey:@"hue"];
+			float s = [dict floatForKey:@"saturation" defaultValue:1.0f];
+			float b = [dict floatForKey:@"brightness" defaultValue:-1.0f];
+			if (b < 0.0f)  b = [dict floatForKey:@"value" defaultValue:1.0f];
+			float a = [dict floatForKey:@"alpha" defaultValue:-1.0f];
+			if (a < 0.0f)  a = [dict floatForKey:@"opacity" defaultValue:1.0f];
 			
 			return [OOColor colorWithCalibratedHue:h / 360.0f saturation:s brightness:b alpha:a];
 		}
 		else
 		{
 			// Treat as RGB(A) dictionary
-			float r = [description floatForKey:@"red"];
-			float g = [description floatForKey:@"green"];
-			float b = [description floatForKey:@"blue"];
-			float a = [description floatForKey:@"alpha" defaultValue:-1.0f];
-			if (a < 0.0f)  a = [description floatForKey:@"opacity" defaultValue:1.0f];
+			float r = [dict floatForKey:@"red"];
+			float g = [dict floatForKey:@"green"];
+			float b = [dict floatForKey:@"blue"];
+			float a = [dict floatForKey:@"alpha" defaultValue:-1.0f];
+			if (a < 0.0f)  a = [dict floatForKey:@"opacity" defaultValue:1.0f];
 			
 			return [OOColor colorWithCalibratedRed:r green:g blue:b alpha:a];
 		}
@@ -195,25 +199,25 @@ MA 02110-1301, USA.
 
 + (OOColor *)colorFromString:(NSString*) colorFloatString
 {
-	float			rgba[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+	float			rgbaValue[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	NSScanner		*scanner = [NSScanner scannerWithString:colorFloatString];
 	float			factor = 1.0f;
 	int				i;
 	
 	for (i = 0; i != 4; ++i)
 	{
-		if (![scanner scanFloat:&rgba[i]])
+		if (![scanner scanFloat:&rgbaValue[i]])
 		{
 			// Less than three floats or non-float, can't parse -> quit
 			if (i < 3) return nil;
 			
 			// If we get here, we only got three components. Make sure alpha is at correct scale:
-			rgba[3] /= factor;
+			rgbaValue[3] /= factor;
 		}
-		if (1.0f < rgba[i]) factor = 1.0f / 255.0f;
+		if (1.0f < rgbaValue[i]) factor = 1.0f / 255.0f;
 	}
 	
-	return [OOColor colorWithCalibratedRed:rgba[0] * factor green:rgba[1] * factor blue:rgba[2] * factor alpha:rgba[3] * factor];
+	return [OOColor colorWithCalibratedRed:rgbaValue[0] * factor green:rgbaValue[1] * factor blue:rgbaValue[2] * factor alpha:rgbaValue[3] * factor];
 }
 
 
