@@ -156,18 +156,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	thrust = [shipDict floatForKey:@"thrust"];
-	
-	accuracy = [shipDict floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
-	if (accuracy >= -5.0f && accuracy <= 10.0f)
-	{
-		pitch_tolerance = 0.01 * (85.0f + accuracy);
-	}
-	else
-	{
-		pitch_tolerance = 0.01 * (80 + (randf() * 15.0f));
-	}
-	if (accuracy < 1.0f)  accuracy = 1.0f;
-	
+
 	maxEnergy = [shipDict floatForKey:@"max_energy"];
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate"];
 	
@@ -362,6 +351,30 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// scan class. NOTE: non-standard capitalization is documented and entrenched.
 	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
+
+	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
+	accuracy = [shipDict floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
+	if (accuracy >= -5.0f && accuracy <= 10.0f)
+	{
+		pitch_tolerance = 0.01 * (85.0f + accuracy);
+	}
+	else
+	{
+		pitch_tolerance = 0.01 * (80 + (randf() * 15.0f));
+	}
+
+	// If this entity is a missile, clamp its accuracy within range from 0.0 to 10.0.
+	// Otherwise, just make sure that the accuracy value does not fall below 1.0.
+	// Using a switch statement, in case accuracy for other scan classes need be considered in the future.
+	switch (scanClass)
+	{
+		case CLASS_MISSILE :
+			accuracy = OOClamp_0_max_f(accuracy, 10.0f);
+			break;
+		default :
+			if (accuracy < 1.0f) accuracy = 1.0f;
+			break;
+	}
 		
 	//  escorts
 	escortCount = [shipDict unsignedIntForKey:@"escorts"];
@@ -442,7 +455,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 											 properties:properties];
 	}
 	[script retain];
-	
+
 	return YES;
 }
 
@@ -4746,13 +4759,11 @@ BOOL class_masslocks(int some_class)
 
 	float missileSpeed = (float)[self speed];
 
-	// Make sure that missile accuracy is within sane limits, else don't bother
-	// adjusting course. Accuracy should be greater than 1.0 and less or equal
-	// than 10.0. In case it is not, missile behavior will be the standard one.
-	// Additionally, avoid getting ourselves in a divide by zero situation by setting
-	// a missileSpeed low threshold. Arbitrarily chosen 0.01, since it seems to work
-	// quite well.
-	if (missileSpeed > 0.01 && accuracy > 1.0f && accuracy <= 10.0f)
+	// Avoid getting ourselves in a divide by zero situation by setting a missileSpeed
+	// low threshold. Arbitrarily chosen 0.01, since it seems to work quite well.
+	// Missile accuracy is already clamped within the 0.0 to 10.0 range at initialization,
+	// but doing these calculations every frame when accuracy equals 0.0 just wastes cycles.
+	if (missileSpeed > 0.01f && accuracy > 0.0f)
 	{
 		Vector leading = [target velocity]; 
 		float lead = magnitude(relPos) / missileSpeed; 

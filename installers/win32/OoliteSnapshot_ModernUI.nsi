@@ -16,7 +16,7 @@ SetDatablockOptimize on
 !include "MUI.nsh"
 
 OutFile "OoliteInstall-r$%SVNREV%.exe"
-BrandingText "(C) 2003-2007 Giles Williams and contributors"
+BrandingText "(C) 2003-2008 Giles Williams and contributors"
 Name "Oolite"
 Caption "Oolite v$%VER% SVN Revision $%SVNREV% Setup"
 SubCaption 0 " "
