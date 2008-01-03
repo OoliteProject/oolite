@@ -273,6 +273,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:gal_coords	forKey:@"galaxy_coordinates"];
 	[result setObject:tgt_coords	forKey:@"target_coordinates"];
 	
+	// Write the name of the current system. Useful for looking up saved game information.
+	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
+	
 	[result setObject:player_name			forKey:@"player_name"];
 	
 	[result setObject:[NSNumber numberWithUnsignedLongLong:credits]	forKey:@"credits"];

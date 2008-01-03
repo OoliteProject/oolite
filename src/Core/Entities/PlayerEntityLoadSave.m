@@ -901,20 +901,25 @@
 	
 	// Store the current galaxy seed because findSystemNumberAtCoords will alter it in a while.
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
-	Random_Seed		player_galaxy_seed = [player galaxy_seed];
+	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
 	
-	Random_Seed		gal_seed;
-	NSPoint			gal_coords;
-	int			locationNumber;
 	int			galNumber;
-	NSString		*locationName = nil;
 	NSString		*timeStamp  = nil;
+	NSString 		*locationName = [cdr stringForKey:@"current_system_name"];
 	
-	gal_coords = PointFromString([cdr stringForKey:@"galaxy_coordinates"]);
-	gal_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
-	
-	locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:gal_seed];
-	locationName = [UNIVERSE systemNameIndex:locationNumber];
+	// If there is no key containing the name of the current system in the savefile, fall back to
+	// extracting the name from the galaxy seed and coordinates information.
+	if (locationName == nil)
+	{	
+		Random_Seed		gal_seed;
+		NSPoint			gal_coords;
+		int			locationNumber;
+		
+		gal_coords = PointFromString([cdr stringForKey:@"galaxy_coordinates"]);
+		gal_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
+		locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:gal_seed];
+		locationName = [UNIVERSE systemNameIndex:locationNumber];
+	}
 	
 	galNumber = [cdr intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
 	
