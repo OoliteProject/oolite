@@ -4615,7 +4615,8 @@ double scoopSoundPlayTime = 0.0;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 
-		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : GUI_ROW_OPTIONS_GAMEOPTIONS;
+		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : ([[UNIVERSE gameController] gameIsPaused]) ?
+							GUI_ROW_OPTIONS_GAMEOPTIONS : GUI_ROW_OPTIONS_BEGIN_NEW;
 		if (canQuickSave)
 			first_sel_row = GUI_ROW_OPTIONS_QUICKSAVE;
 

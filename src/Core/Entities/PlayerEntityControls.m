@@ -1232,8 +1232,8 @@ static NSTimeInterval	time_last_frame;
 #endif	// NDEBUG
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 #ifdef ALLOW_PROCEDURAL_PLANETS
-			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
+			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 #endif	// ALLOW_PROCEDURAL_PLANETS
 		}
 	}
@@ -1863,6 +1863,7 @@ static NSTimeInterval	time_last_frame;
 	BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 	if ([gameView isDown:gvMouseDoubleClick])
 		[gameView clearMouse];
+		
 	
 #if OOLITE_HAVE_JOYSTICK
 	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_STICKMAPPER) && selectKeyPress)
@@ -2054,12 +2055,6 @@ static NSTimeInterval	time_last_frame;
 	}
 	else shaderSelectKeyPressed = NO;
 	
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_BACK) && selectKeyPress)
-	{
-		[gameView clearKeys];
-		[self setGuiToLoadSaveScreen];
-	}
-	
 #if OOLITE_SDL
 	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE) && selectKeyPress)
 	{
@@ -2068,6 +2063,12 @@ static NSTimeInterval	time_last_frame;
 		[self setGuiToGameOptionsScreen];
 	}
 #endif
+
+	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_BACK) && selectKeyPress)
+	{
+		[gameView clearKeys];
+		[self setGuiToLoadSaveScreen];
+	}
 }
 
 
