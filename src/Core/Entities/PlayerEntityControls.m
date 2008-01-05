@@ -1491,13 +1491,14 @@ static NSTimeInterval	time_last_frame;
 			
 		case GUI_SCREEN_OPTIONS:
 			[self handleGUIUpDownArrowKeys];
+			int guiSelectedRow = [gui selectedRow];
 			BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 			if ([gameView isDown:gvMouseDoubleClick])
 				[gameView clearMouse];
 			
 			if (selectKeyPress)   // 'enter'
 			{
-				if (([gui selectedRow] == GUI_ROW_OPTIONS_QUICKSAVE)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW_OPTIONS_QUICKSAVE)&&(!disc_operation_in_progress))
 				{
 					NS_DURING
 					disc_operation_in_progress = YES;
@@ -1518,12 +1519,12 @@ static NSTimeInterval	time_last_frame;
 					}
 					NS_ENDHANDLER
 				}
-				if (([gui selectedRow] == GUI_ROW_OPTIONS_SAVE)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW_OPTIONS_SAVE)&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					[self savePlayer];
 				}
-				if (([gui selectedRow] == GUI_ROW_OPTIONS_LOAD)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW_OPTIONS_LOAD)&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					if (![self loadPlayer])
@@ -1534,7 +1535,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				
-				if (([gui selectedRow] == GUI_ROW_OPTIONS_BEGIN_NEW)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW_OPTIONS_BEGIN_NEW)&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					[UNIVERSE reinit];
@@ -1549,13 +1550,13 @@ static NSTimeInterval	time_last_frame;
 			// quit only appears in GNUstep as users aren't
 			// used to Cmd-Q equivs. Same goes for window
 			// vs fullscreen.
-			if (([gui selectedRow] == GUI_ROW_OPTIONS_QUIT) && selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW_OPTIONS_QUIT) && selectKeyPress)
 			{
 				[[gameView gameController] exitApp];
 			}
 #endif
 			
-			if (([gui selectedRow] == GUI_ROW_OPTIONS_GAMEOPTIONS) && selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW_OPTIONS_GAMEOPTIONS) && selectKeyPress)
 			{
 				[gameView clearKeys];
 				[self setGuiToGameOptionsScreen];
@@ -1567,10 +1568,11 @@ static NSTimeInterval	time_last_frame;
 			 system. The stack trace shows it crashes when it hits
 			 the if statement, trying to send the message to one of
 			 the things contained.) */
-			if (([gui selectedRow] == GUI_ROW_OPTIONS_STRICT)&& selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW_OPTIONS_STRICT)&& selectKeyPress)
 			{
 				[UNIVERSE setStrict:![UNIVERSE strict]];
 			}
+			
 			break;
 			
 		case GUI_SCREEN_EQUIP_SHIP:
@@ -1860,20 +1862,21 @@ static NSTimeInterval	time_last_frame;
 	GuiDisplayGen		*gui = [UNIVERSE gui];
 	
 	[self handleGUIUpDownArrowKeys];
+	int guiSelectedRow = [gui selectedRow];
 	BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
 	if ([gameView isDown:gvMouseDoubleClick])
 		[gameView clearMouse];
 		
 	
 #if OOLITE_HAVE_JOYSTICK
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_STICKMAPPER) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_STICKMAPPER) && selectKeyPress)
 	{
 		[self setGuiToStickMapperScreen];
 	}
 #endif
 	
 	if (!switching_resolution &&
-		[gui selectedRow] == GUI_ROW_GAMEOPTIONS_DISPLAY &&
+		guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAY &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
 		int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
@@ -1915,7 +1918,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 #if OOLITE_MAC_OS_X
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if (([guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
@@ -1928,7 +1931,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_OOTUNES)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_OOTUNES)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
@@ -1940,7 +1943,7 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:@" iTunes Integration: NO "	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
 	}
 #endif
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_VOLUME)
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_VOLUME)
 		&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))
 		&&[OOSound respondsToSelector:@selector(masterVolume)])
 	{
@@ -1973,7 +1976,7 @@ static NSTimeInterval	time_last_frame;
 		volumeControlPressed = NO;
 	
 #if OOLITE_MAC_OS_X
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_GROWL)&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_GROWL)&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
 	{
 		if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
@@ -2009,7 +2012,7 @@ static NSTimeInterval	time_last_frame;
 		leftRightKeyPressed = NO;
 #endif
 	
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE wireframeGraphics])
@@ -2021,7 +2024,7 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:@" Wireframe Graphics: NO "  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
 	}
 	
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE reducedDetail])
@@ -2034,7 +2037,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	
-	if ([gui selectedRow] == GUI_ROW_GAMEOPTIONS_SHADEREFFECTS && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
+	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SHADEREFFECTS && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
@@ -2056,7 +2059,7 @@ static NSTimeInterval	time_last_frame;
 	else shaderSelectKeyPressed = NO;
 	
 #if OOLITE_SDL
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE) && selectKeyPress)
 	{
 		[gameView toggleScreenMode];
 		// redraw GUI
@@ -2064,7 +2067,7 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 
-	if (([gui selectedRow] == GUI_ROW_GAMEOPTIONS_BACK) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_BACK) && selectKeyPress)
 	{
 		[gameView clearKeys];
 		[self setGuiToLoadSaveScreen];
@@ -2422,7 +2425,7 @@ static NSTimeInterval	time_last_frame;
 	
 	
 	if (docked_okay)
-	{
+	{	
 		if ((([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
 		{
 			[gameView clearKeys];
@@ -2692,11 +2695,12 @@ static BOOL toggling_music;
 			}
 			else
 			{
+				int guiSelectedRow = [gui selectedRow];
 				if ([gameView isDown:gvArrowKeyDown])
 				{
 					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
-						if ([gui setSelectedRow:[gui selectedRow] + 1])
+						if ([gui setSelectedRow:guiSelectedRow + 1])
 						{
 							[gui click];
 						}
@@ -2707,7 +2711,7 @@ static BOOL toggling_music;
 				{
 					if ((!upDownKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 					{
-						if ([gui setSelectedRow:[gui selectedRow] - 1])
+						if ([gui setSelectedRow:guiSelectedRow - 1])
 						{
 							[gui click];
 						}

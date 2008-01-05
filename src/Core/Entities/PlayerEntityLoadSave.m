@@ -899,7 +899,7 @@
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
 	
-	// Store the current galaxy seed because findSystemNumberAtCoords will alter it in a while.
+	// Store the current galaxy seed because findSystemNumberAtCoords may alter it in a while.
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
 	
