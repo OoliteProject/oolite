@@ -115,7 +115,7 @@ MA 02110-1301, USA.
 - (NSArray *)listSticks
 {
    int i;
-   NSMutableArray *stickList=[[NSMutableArray alloc] init];
+   NSMutableArray *stickList=[NSMutableArray array];
    for(i=0; i < numSticks; i++)
    {
       [stickList addObject: [NSString stringWithFormat: @"%s", SDL_JoystickName(i)]];
@@ -126,7 +126,7 @@ MA 02110-1301, USA.
 - (NSDictionary *)getAxisFunctions
 {
    int i,j;
-   NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
+   NSMutableDictionary *fnList=[NSMutableDictionary dictionary];
 
    // Add axes
    for(i=0; i < MAX_AXES; i++)
@@ -151,7 +151,7 @@ MA 02110-1301, USA.
 - (NSDictionary *)getButtonFunctions
 {
    int i, j;
-   NSMutableDictionary *fnList=[[NSMutableDictionary alloc] init];
+   NSMutableDictionary *fnList=[NSMutableDictionary dictionary];
 
    // Add buttons
    for(i=0; i < MAX_BUTTONS; i++)

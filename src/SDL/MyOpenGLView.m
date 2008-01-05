@@ -73,7 +73,7 @@ MA 02110-1301, USA.
       [mode setValue: [NSNumber numberWithInt: 768] forKey: kOODisplayHeight];
       [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
    }
-   return mode;
+   return [mode autorelease];
 }
 
 
@@ -172,6 +172,12 @@ MA 02110-1301, USA.
 {
 	if (typedString)
 		[typedString release];
+		
+	if (stickHandler)
+		[stickHandler release];
+		
+	if (screenSizes)
+		[screenSizes release];
 
 	if (surface != 0)
 	{
@@ -1115,7 +1121,6 @@ keys[a] = NO; keys[b] = NO; \
    NSMutableDictionary *mode;
 
    screenSizes=[[NSMutableArray alloc] init];
-   [screenSizes retain];
 
    // The default resolution (slot 0) is the resolution we are
    // already in since this is guaranteed to work.
@@ -1146,7 +1151,7 @@ keys[a] = NO; keys[b] = NO; \
       if(modes[i]->w != lastw && modes[i]->h != lasth)
       {
          // new resolution, save it
-         mode=[[NSMutableDictionary alloc] init];
+         mode=[NSMutableDictionary dictionary];
          [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w]
                  forKey: kOODisplayWidth];
          [mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
