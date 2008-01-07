@@ -1160,7 +1160,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	tractor_position = kZeroVector;
 	ScanVectorFromString([shipDict stringForKey:@"scoop_position"], &tractor_position);
 	
-	[sub_entities release];
+	[sub_entities autorelease];
 	sub_entities = nil;
 
 	// exhaust plumes
