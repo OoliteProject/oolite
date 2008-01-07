@@ -1918,7 +1918,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 #if OOLITE_MAC_OS_X
-	if (([guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
