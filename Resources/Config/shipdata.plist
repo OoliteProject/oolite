@@ -331,6 +331,7 @@
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
+		forward_weapon_type = "WEAPON_PULSE_LASER";
 		max_energy = 350;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;

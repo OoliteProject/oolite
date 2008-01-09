@@ -3434,8 +3434,8 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) collectBountyFor:(ShipEntity *)other
 {
-	if (!other)
-		return;
+	if (other == nil || [other isSubEntity])  return;
+	
 	OOCreditsQuantity	score = 10 * [other bounty];
 	OOScanClass			killClass = other->scanClass; // **tgape** change (+line)
 	BOOL				killAward = YES;
