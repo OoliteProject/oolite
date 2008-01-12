@@ -1787,7 +1787,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2072,7 +2072,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2109,7 +2109,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		ship = [self newShipWithRole:desc];   // retain count = 1
 		if (!ship)
 			return NO;
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2264,7 +2264,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2361,7 +2361,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
 			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 		}
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2389,7 +2389,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	if (ship)
 	{
-		if (![ship crew])
+		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
