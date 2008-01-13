@@ -1918,16 +1918,16 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 #if OOLITE_MAC_OS_X
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if (([guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
 			[gui click];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
 		if (isSpeechOn)
-			[gui setText:@" Spoken Messages: YES "	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-spoken-messages-yes")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Spoken Messages: NO "	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-spoken-messages-no")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
 	}
 	
 	
@@ -1938,9 +1938,9 @@ static NSTimeInterval	time_last_frame;
 			[gui click];
 		ootunes_on = [gameView isDown:gvArrowKeyRight];
 		if (ootunes_on)
-			[gui setText:@" iTunes Integration: YES "	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-itunes-yes")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" iTunes Integration: NO "	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-itunes-no")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
 	}
 #endif
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_VOLUME)
@@ -1960,14 +1960,15 @@ static NSTimeInterval	time_last_frame;
 			[gui click];
 			if (volume > 0)
 			{
+				NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
 				NSString* v1_string = @"|||||||||||||||||||||||||";
 				NSString* v0_string = @".........................";
 				v1_string = [v1_string substringToIndex:volume / 5];
 				v0_string = [v0_string substringToIndex:20 - volume / 5];
-				[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@ ", v1_string, v0_string]	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
 			}
 			else
-				[gui setText:@" Sound Volume: MUTE "	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
+				[gui setText:DESC(@"gameoptions-sound-volume-mute")	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;
 		}
 		volumeControlPressed = YES;
@@ -2000,7 +2001,8 @@ static NSTimeInterval	time_last_frame;
 			{
 				growl_min_priority = new_priority;
 				NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-				[gui setText:[NSString stringWithFormat:@" Show Growl Messages: %@ ", growl_priority_desc] forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
+								forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 				[gui click];
 				[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
 			}
@@ -2019,9 +2021,9 @@ static NSTimeInterval	time_last_frame;
 			[gui click];
 		[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE wireframeGraphics])
-			[gui setText:@" Wireframe Graphics: YES "  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Wireframe Graphics: NO "  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
 	}
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
@@ -2031,9 +2033,9 @@ static NSTimeInterval	time_last_frame;
 			[gui click];
 		[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE reducedDetail])
-			[gui setText:@" Reduced Detail: YES "	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reduced Detail: NO "	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-no")	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
 	}
 	
 	
@@ -2049,7 +2051,7 @@ static NSTimeInterval	time_last_frame;
 			if (shaderEffects > SHADERS_MAX)
 				shaderEffects = SHADERS_MAX;
 			[UNIVERSE setShaderEffectsLevel:shaderEffects];
-			[gui setText:[NSString stringWithFormat:@" Shader Effects: %@ ", ShaderSettingToDisplayString(shaderEffects)]
+			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)]
 				  forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS
 				   align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;

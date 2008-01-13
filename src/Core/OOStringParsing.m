@@ -384,7 +384,7 @@ NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDiction
 NSString *DescriptionForSystem(Random_Seed seed)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return ExpandDescriptionForSeed(@"[14] is [22].", seed);
+	return ExpandDescriptionForSeed(@"[14] [is-word] [22].", seed);
 }
 
 

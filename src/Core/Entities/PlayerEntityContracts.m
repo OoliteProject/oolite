@@ -578,7 +578,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			n_contracts = 5;
 		
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"%@ Carrier Market",[UNIVERSE getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"@-contracts-title"),[UNIVERSE getSystemName:system_seed]]];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -589,11 +589,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		[gui setTabStops:tab_stops];
 		
-		[row_info addObject:@"Passenger Name:"];
-		[row_info addObject:@"To:"];
-		[row_info addObject:@"Within:"];
-		[row_info addObject:@"Advance:"];
-		[row_info addObject:@"Fee:"];
+		[row_info addObject:DESC(@"contracts-passenger-name")];
+		[row_info addObject:DESC(@"contracts-to")];
+		[row_info addObject:DESC(@"contracts-within")];
+		[row_info addObject:DESC(@"contracts-passenger-advance")];
+		[row_info addObject:DESC(@"contracts-passenger-fee")];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_PASSENGERS_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_LABELS];
@@ -622,11 +622,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		
 		[row_info removeAllObjects];
-		[row_info addObject:@"Cargo:"];
-		[row_info addObject:@"To:"];
-		[row_info addObject:@"Within:"];
-		[row_info addObject:@"Premium:"];
-		[row_info addObject:@"Pays:"];
+		[row_info addObject:DESC(@"contracts-cargo-cargotype")];
+		[row_info addObject:DESC(@"contracts-to")];
+		[row_info addObject:DESC(@"contracts-within")];
+		[row_info addObject:DESC(@"contracts-cargo-premium")];
+		[row_info addObject:DESC(@"contracts-cargo-pays")];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_CARGO_LABELS];
 		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_LABELS];
@@ -659,7 +659,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
 		}
 		
-		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.\tPassengers %d of %d berths.", 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"contracts-cash-f-load-d-of-d-passengers-d-of-d-berths"), 0.1*credits, current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
 		for (i = GUI_ROW_CARGO_START + n_contracts; i < GUI_ROW_MARKET_CASH; i++)
 		{
@@ -888,10 +888,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"Ship's Manifest",   player_name]];
+		[gui setTitle:DESC(@"manifest-title")];
 		
-		[gui setText:[NSString stringWithFormat:@"Cargo %dt (%dt):", (status == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
-		[gui setText:@"\tNone."				forRow:cargo_row];
+		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), (status == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
+		[gui setText:DESC(@"manifest-none")	forRow:cargo_row];
 		[gui setColor:[OOColor yellowColor]	forRow:cargo_row - 1];
 		[gui setColor:[OOColor greenColor]	forRow:cargo_row];
 		
@@ -918,8 +918,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		else
 			passenger_row = cargo_row + n_manifest_rows + 2;
 		
-		[gui setText:[NSString stringWithFormat:@"Passengers %d (%d):", [passengerManifest count], max_passengers]	forRow:passenger_row - 1];
-		[gui setText:@"\tNone."				forRow:passenger_row];
+		[gui setText:[NSString stringWithFormat:DESC(@"manifest-passengers-d-d"), [passengerManifest count], max_passengers]	forRow:passenger_row - 1];
+		[gui setText:DESC(@"manifest-none")	forRow:passenger_row];
 		[gui setColor:[OOColor yellowColor]	forRow:passenger_row - 1];
 		[gui setColor:[OOColor greenColor]	forRow:passenger_row];
 		
@@ -934,8 +934,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				
 		contracts_row = passenger_row + [passengerManifest count] + 2;
 		
-		[gui setText:@"Contracts:"			forRow:contracts_row - 1];
-		[gui setText:@"\tNone."				forRow:contracts_row];
+		[gui setText:DESC(@"manifest-contracts")	forRow:contracts_row - 1];
+		[gui setText:DESC(@"manifest-none")		forRow:contracts_row];
 		[gui setColor:[OOColor yellowColor]	forRow:contracts_row - 1];
 		[gui setColor:[OOColor greenColor]	forRow:contracts_row];
 		
@@ -952,7 +952,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			missions_row = contracts_row + [contractManifest count] + 2;
 			
-			[gui setText:@"Missions:"			forRow:missions_row - 1];
+			[gui setText:DESC(@"manifest-missions")	forRow:missions_row - 1];
 			[gui setColor:[OOColor yellowColor]	forRow:missions_row - 1];
 			
 			if ([missionsManifest count] > 0)
@@ -1146,7 +1146,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"%@ Ships For Sale",[UNIVERSE getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_seed]]];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -1183,7 +1183,8 @@ static NSMutableDictionary* currentShipyard = nil;
 		if (n_ships > 0)
 		{
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
-			[gui setArray:[NSArray arrayWithObjects: @"Ship Type:", @"Price:", @"Cargo:", @"Speed:", nil] forRow:GUI_ROW_SHIPYARD_LABELS];
+			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price"),
+					DESC(@"shipyard-cargo"), DESC(@"shipyard-speed"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
 			
 			if (skip > 0)
 			{
@@ -1216,15 +1217,15 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		else
 		{
-			[gui setText:@"No ships available for purchase." forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"shipyard-no-ships-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
 			
 			[gui setNoSelectedRow];
 		}
 		
 		int trade_in = [self tradeInValue];
-		[gui setText:[NSString stringWithFormat:@"Your %@'s trade-in value: %d.0 Cr.", shipName, trade_in]  forRow: GUI_ROW_MARKET_CASH - 1];
-		[gui setText:[NSString stringWithFormat:@"Total available: %.1f Cr.\t(%.1f Cr. Cash + %d.0 Cr. Trade.)", 0.1*credits + (float)trade_in, 0.1*credits, trade_in]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-d"), shipName, trade_in]  forRow: GUI_ROW_MARKET_CASH - 1];
+		[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-f-cr-f-cr-plus-d-trade"), 0.1*credits + (float)trade_in, 0.1*credits, trade_in]  forRow: GUI_ROW_MARKET_CASH];
 		
 		[gui setShowTextCursor:NO];
 	}

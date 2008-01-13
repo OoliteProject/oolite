@@ -254,7 +254,7 @@
 	[gameView setTypedString: commanderNameString];
 	
 	[gui setText:
-		[NSString stringWithFormat:@"Commander name: %@", commanderNameString]
+		[NSString stringWithFormat:DESC(@"savescreen-commander-name-@"), commanderNameString]
 		  forRow: INPUTROW];
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	
@@ -573,7 +573,7 @@
 	gui_screen = GUI_SCREEN_LOAD;
 	
 	[gui clear];
-	[gui setTitle:@"Select Commander"];
+	[gui setTitle:DESC(@"loadscreen-title")];
 	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
@@ -601,12 +601,12 @@
 	gui_screen = GUI_SCREEN_SAVE;
 	
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:@"Save Commander"]];
+	[gui setTitle:[NSString stringWithFormat:DESC(@"savescreen-title")]];
 	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
-	[gui setText:@"Commander name: " forRow: INPUTROW];
+	[gui setText:DESC(@"savescreen-commander-name") forRow: INPUTROW];
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
@@ -634,12 +634,13 @@
 	[gui clear];
 	[gui setTitle:[NSString stringWithFormat:@"Save Commander %@", cdrName]];
 	
-	[gui setText:[NSString stringWithFormat:@"Commander %@ already exists - overwrite this saved game?", cdrName] forRow:SAVE_OVERWRITE_WARN_ROW align: GUI_ALIGN_CENTER];
+	[gui setText:[NSString stringWithFormat:DESC(@"overwritescreen-commander-@-already-exists-overwrite-query"), cdrName]
+								forRow:SAVE_OVERWRITE_WARN_ROW align: GUI_ALIGN_CENTER];
 	
-	[gui setText:@" YES " forRow: SAVE_OVERWRITE_YES_ROW align: GUI_ALIGN_CENTER];
+	[gui setText:DESC(@"overwritescreen-yes") forRow: SAVE_OVERWRITE_YES_ROW align: GUI_ALIGN_CENTER];
 	[gui setKey:GUI_KEY_OK forRow: SAVE_OVERWRITE_YES_ROW];
 	
-	[gui setText:@" NO " forRow: SAVE_OVERWRITE_NO_ROW align: GUI_ALIGN_CENTER];
+	[gui setText:DESC(@"overwritescreen-no") forRow: SAVE_OVERWRITE_NO_ROW align: GUI_ALIGN_CENTER];
 	[gui setKey:GUI_KEY_OK forRow: SAVE_OVERWRITE_NO_ROW];
 	
 	[gui setSelectableRange: NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2)];
@@ -709,7 +710,7 @@
 	if(![cdrDetailArray count])
 	{
 		// Empty directory; tell the user and exit immediately.
-		[gui setText:@"No commanders found" forRow:STARTROW align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"loadsavescreen-no-commanders-found") forRow:STARTROW align:GUI_ALIGN_CENTER];
 		return;
 	}
 	
@@ -741,7 +742,7 @@
 	tabStop[2]=270;
 	[gui setTabStops: tabStop];
 	[gui setColor: [OOColor greenColor] forRow: LABELROW];
-	[gui setArray: [NSArray arrayWithObjects: @"Commander Name", @"Rating", nil]
+	[gui setArray: [NSArray arrayWithObjects: DESC(@"loadsavescreen-commander-name"), DESC(@"loadsavescreen-rating"), nil]
 		   forRow:LABELROW];
 	
 	// clear text lines here
@@ -899,7 +900,7 @@
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
 	
-	// Store the current galaxy seed because findSystemNumberAtCoords may alter it in a while.
+	// Store the current galaxy seed because findSystemNumberAtCoords will alter it in a while.
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
 	
@@ -929,7 +930,7 @@
 	
 	NSString		*cdrDesc = nil;
 	
-	cdrDesc = [NSString stringWithFormat:@"Commander %@ is rated %@ and has %llu Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@",
+	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@"),
 		[cdr stringForKey:@"player_name"],
 		rating,
 		money,

@@ -4325,16 +4325,16 @@ double scoopSoundPlayTime = 0.0;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"Galactic Chart %d",   galaxy_number+1]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"),   galaxy_number+1]];
 		
 		[gui setText:targetSystemName	forRow:17];
-		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:18];
-		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:19];
+		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:19];
 		
 		if (planetSearchString)
-			[gui setText:[NSString stringWithFormat:@"Find planet: %@", [planetSearchString capitalizedString]]  forRow:16];
+			[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), [planetSearchString capitalizedString]]  forRow:16];
 		else
-			[gui setText:@"Find planet: "  forRow:16];
+			[gui setText:DESC(@"long-range-chart-find-planet")  forRow:16];
 		[gui setColor:[OOColor cyanColor] forRow:16];
 
 		[gui setShowTextCursor:YES];
@@ -4373,11 +4373,11 @@ double scoopSoundPlayTime = 0.0;
 			cursor_coordinates = galaxy_coordinates;	// home
 
 		[gui clear];
-		[gui setTitle:@"Short Range Chart"];
+		[gui setTitle:DESC(@"short-range-chart-title")];
 		
-		[gui setText:targetSystemName														forRow:19];
-		[gui setText:[NSString stringWithFormat:@"Distance:\t%.1f Light Years", distance]   forRow:20];
-		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:@"Estimated Travel Time:\t%.1f Hours", estimatedTravelTime] : @"") forRow:21];
+		[gui setText:targetSystemName	forRow:19];
+		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
 		
 
 		[gui setShowTextCursor:NO];
@@ -4436,7 +4436,7 @@ double scoopSoundPlayTime = 0.0;
 		int first_sel_row = GUI_ROW_GAMEOPTIONS_VOLUME;
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"Commander %@",   player_name]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; // Same title as status screen.
 		
 		[gui setText:displayModeString forRow:GUI_ROW_GAMEOPTIONS_DISPLAY align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DISPLAY];
@@ -4445,19 +4445,20 @@ double scoopSoundPlayTime = 0.0;
 		if ([OOSound respondsToSelector:@selector(masterVolume)])
 		{
 			int volume = 20 * [OOSound masterVolume];
+			NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
 			NSString* v1_string = @"|||||||||||||||||||||||||";
 			NSString* v0_string = @".........................";
 			v1_string = [v1_string substringToIndex:volume];
 			v0_string = [v0_string substringToIndex:20 - volume];
 			if (volume > 0)
-				[gui setText:[NSString stringWithFormat:@" Sound Volume: %@%@ ", v1_string, v0_string] forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string] forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
 			else
-				[gui setText:@" Sound Volume: MUTE " forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+				[gui setText:DESC(@"gameoptions-sound-volume-mute") forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
 		}
 		else
 		{
-			[gui setText:@" Sound Volume: External Control Only" forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-volume-external-only") forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
 		}
 
@@ -4475,22 +4476,23 @@ double scoopSoundPlayTime = 0.0;
 				[prefs setInteger:3 forKey:@"groolite-min-priority"];
 			}
 			growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
-			[gui setText:[NSString stringWithFormat:@" Show Growl Messages: %@ ", growl_priority_desc] forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
+								forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_GROWL];
 		}
 
 		// Speech control
 		if (isSpeechOn)
-			[gui setText:@" Spoken Messages: YES " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Spoken Messages: NO " forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
 
 		// iTunes integration control
 		if (ootunes_on)
-			[gui setText:@" iTunes Integration: YES " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-itunes-yes") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" iTunes Integration: NO " forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-itunes-no") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_OOTUNES];
 
 #else
@@ -4498,16 +4500,16 @@ double scoopSoundPlayTime = 0.0;
 		// window/fullscreen
 		if([gameView inFullScreenMode])
 		{
-			[gui setText:@" Play in Window " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-play-in-window") forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
 		}
 		else
 		{
-			[gui setText:@" Play in Full Screen " forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-play-in-fullscreen") forRow:GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE align:GUI_ALIGN_CENTER];
 		}
 		[gui setKey: GUI_KEY_OK forRow: GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE];
 
 
-		[gui setText:@" Joystick Configuration " forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"gameoptions-joystick-configuration") forRow: GUI_ROW_GAMEOPTIONS_STICKMAPPER align: GUI_ALIGN_CENTER];
 		if ([[gameView getStickHandler] getNumSticks])
 		{
 			// TODO: Modify input code to put this in a better place
@@ -4524,15 +4526,15 @@ double scoopSoundPlayTime = 0.0;
 #endif
 
 		if ([UNIVERSE wireframeGraphics])
-			[gui setText:@" Wireframe Graphics: YES " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes") forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Wireframe Graphics: NO " forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS];
 		
 		if ([UNIVERSE reducedDetail])
-			[gui setText:@" Reduced Detail: YES " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-yes") forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reduced Detail: NO " forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-no") forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DETAIL];
 	
 		// Shader effects level.	
@@ -4540,18 +4542,18 @@ double scoopSoundPlayTime = 0.0;
 		NSString* shaderEffectsOptionsString = nil;
 		if (shaderEffects == SHADERS_NOT_SUPPORTED)
 		{
-			[gui setText:@" Shader Effects: Not available " forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-shaderfx-not-available") forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:@" Shader Effects: %@ ", ShaderSettingToDisplayString(shaderEffects)];
+			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shader-fx-@"), ShaderSettingToDisplayString(shaderEffects)];
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
 		
 		// Back menu option
-		[gui setText:@" Back " forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"gameoptions-back") forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_BACK];
 
 			
@@ -4621,16 +4623,16 @@ double scoopSoundPlayTime = 0.0;
 			first_sel_row = GUI_ROW_OPTIONS_QUICKSAVE;
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"Commander %@",   player_name]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; //Same title as status screen.
 		
-		[gui setText:@" Quick-Save " forRow:GUI_ROW_OPTIONS_QUICKSAVE align:GUI_ALIGN_CENTER];		
+		[gui setText:DESC(@"options-quick-save") forRow:GUI_ROW_OPTIONS_QUICKSAVE align:GUI_ALIGN_CENTER];		
 		if (canQuickSave)
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUICKSAVE];
 		else
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_QUICKSAVE];
 		
-		[gui setText:@" Save Commander " forRow:GUI_ROW_OPTIONS_SAVE align:GUI_ALIGN_CENTER];
-		[gui setText:@" Load Commander " forRow:GUI_ROW_OPTIONS_LOAD align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-save-commander") forRow:GUI_ROW_OPTIONS_SAVE align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-load-commander") forRow:GUI_ROW_OPTIONS_LOAD align:GUI_ALIGN_CENTER];
 		if (canLoadOrSave)
 		{
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_SAVE];
@@ -4642,7 +4644,7 @@ double scoopSoundPlayTime = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_LOAD];
 		}
 		
-		[gui setText:@" Begin New Game " forRow:GUI_ROW_OPTIONS_BEGIN_NEW align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-begin-new-game") forRow:GUI_ROW_OPTIONS_BEGIN_NEW align:GUI_ALIGN_CENTER];
 		if (![[UNIVERSE gameController] gameIsPaused])
 		{
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
@@ -4652,7 +4654,7 @@ double scoopSoundPlayTime = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
 		}
 		
-		[gui setText:@" Game Options... " forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-game-options") forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GAMEOPTIONS];
 		
 #if OOLITE_SDL
@@ -4660,14 +4662,14 @@ double scoopSoundPlayTime = 0.0;
 		// doesn't need speech.
 		
 		// quit menu option
-		[gui setText:@" Exit Game " forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"options-exit-game") forRow:GUI_ROW_OPTIONS_QUIT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_QUIT];
 #endif
 		
 		if ([UNIVERSE strict])
-			[gui setText:@" Reset to Unrestricted Play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"options-reset-to-unrestricted-play") forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:@" Reset to Strict Play " forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"options-reset-to-strict-play") forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_STRICT];
 
 		
@@ -4874,9 +4876,9 @@ static int last_outfitting_index;
 		unsigned		facing_count = 0;
 
 		[gui clear];
-		[gui setTitle:@"Ship Outfitting"];
+		[gui setTitle:DESC(@"equip-title")];
 		
-		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.", 0.1*credits]  forRow: GUI_ROW_EQUIPMENT_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-f"), 0.1*credits]  forRow: GUI_ROW_EQUIPMENT_CASH];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -4987,7 +4989,7 @@ static int last_outfitting_index;
 		}
 		else
 		{
-			[gui setText:@"No equipment available for purchase." forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"equip-no-equipment-available-for-purchase") forRow:GUI_ROW_NO_SHIPS align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_NO_SHIPS];
 			
 			[gui setSelectableRange:NSMakeRange(0,0)];
@@ -5029,7 +5031,7 @@ static int last_outfitting_index;
 			NSString*   eq_key			= (NSString *)[(NSArray *)[[UNIVERSE equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
 			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 			if ([self hasExtraEquipment:eq_key_damaged])
-				desc = [NSString stringWithFormat:@"%@ (Price is for repairing the existing system).", desc];
+				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
 	}
@@ -5527,7 +5529,7 @@ static int last_outfitting_index;
 		}
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:@"%@ Commodity Market",[UNIVERSE getSystemName:system_seed]]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"@-commodity-market"),[UNIVERSE getSystemName:system_seed]]];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -5537,7 +5539,8 @@ static int last_outfitting_index;
 		[gui setTabStops:tab_stops];
 		
 		[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_KEY];
-		[gui setArray:[NSArray arrayWithObjects: @"Commodity:", @"Price:", @"For sale:", @"In hold:", nil] forRow:GUI_ROW_MARKET_KEY];
+		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"price-column-title"),
+							 DESC(@"for-sale-column-title"), DESC(@"in-hold-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
 		
 		current_cargo = 0;  // for calculating remaining hold space
 		
@@ -5567,7 +5570,7 @@ static int last_outfitting_index;
 		if ([cargo count] > 0)
 			current_cargo = ([cargo count] <= max_cargo) ? [cargo count] : max_cargo;  // actually count the containers and things (may be > max_cargo)
 		
-		[gui setText:[NSString stringWithFormat:@"Cash:\t%.1f Cr.\t\tLoad %d of %d t.", 0.1*credits, current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-f-load-d-of-d"), 0.1*credits, current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
 		
 		if (status == STATUS_DOCKED)	// can only buy or sell in dock
 		{
@@ -6200,11 +6203,11 @@ OOSound* burnersound;
 {
 	if (0.0f != inRate)
 	{
-		return [NSString stringWithFormat:@" Full Screen Mode: %d x %d at %.3g Hz ", inWidth, inHeight, inRate];
+		return [NSString stringWithFormat:DESC(@"gameoptions-fullscreen-mode-d-by-d-at-g-hz"), inWidth, inHeight, inRate];
 	}
 	else
 	{
-		return [NSString stringWithFormat:@" Full Screen Mode: %d x %d ", inWidth, inHeight];
+		return [NSString stringWithFormat:DESC(@"gameoptions-fullscreen-mode-d-by-d"), inWidth, inHeight];
 	}
 }
 

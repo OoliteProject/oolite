@@ -93,6 +93,10 @@
 		<string>Deadly</string>
 		<string>---- E L I T E ----</string>
 	</array>
+	<key>is-word</key>
+	<array>
+		<string>is</string>
+	</array>
 	<key>system_description</key>
 	<array>
 		<array>
@@ -936,7 +940,39 @@
 	<key>equipment-multiple-pass-berth-@</key>
 	<string>%d Passenger Berths</string>
 
+	<!-- Short Range Chart Screen -->
+	<key>short-range-chart-title</key>
+	<string>Short Range Chart</string>
+	<key>short-range-chart-distance-f</key>
+	<string>Distance: %.1f Light Years</string>
+	<key>short-range-chart-est-travel-time-f</key>
+	<string>Estimated Travel Time: %.1f Hours</string>
+	
+	<!-- Long Range Chart Screen -->
+	<key>long-range-chart-title-d</key>
+	<string>Galactic Chart %d</string>
+	<key>long-range-chart-distance-f</key>
+	<string>Distance: %.1f Light Years</string>
+	<key>long-range-chart-est-travel-time-f</key>
+	<string>Estimated Travel Time: %.1f Hours</string>
+	<key>long-range-chart-find-planet-@</key>
+	<string>Find planet: %@</string>
+	<key>long-range-chart-find-planet</key>
+	<string>Find planet: </string>
+
 	<!-- Market screen -->
+	<key>@-commodity-market</key>
+	<string>%@ Commodity Market</string>
+	<key>commodity-column-title</key>
+	<string>Commodity:</string>
+	<key>price-column-title</key>
+	<string>Price:</string>
+	<key>for-sale-column-title</key>
+	<string>For sale:</string>
+	<key>in-hold-column-title</key>
+	<string>In hold:</string>
+	<key>cash-f-load-d-of-d</key>
+	<string>Cash: %.1f Cr.  Load %d of %d t.</string>
 	<key>cargo-tons-symbol</key>
 	<string>t</string>
 	<key>cargo-grams-symbol</key>
@@ -959,6 +995,159 @@
 	<string>Gross productivity:</string>
 	<key>sysdata-radius</key>
 	<string>Average radius:</string>
+	
+	<!-- Options (sometimes referred to as loadsave) screen -->
+	<key>options-quick-save</key>
+	<string> Quick-Save </string>
+	<key>options-save-commander</key>
+	<string> Save Commander </string>
+	<key>options-load-commander</key>
+	<string> Load Commander </string>
+	<key>options-begin-new-game</key>
+	<string> Begin New Game </string>
+	<key>options-game-options</key>
+	<string> Game Options... </string>
+	<key>options-exit-game</key>
+	<string> Exit Game </string>
+	<key>options-reset-to-unrestricted-play</key>
+	<string> Reset to Unrestricted Play </string>
+	<key>options-reset-to-strict-play</key>
+	<string> Reset to Strict Play </string>
+	
+	<!-- Gameoptions screen -->
+	<key>gameoptions-sound-volume</key>
+	<string> Sound Volume: </string>
+	<key>gameoptions-sound-volume-mute</key>
+	<string> Sound Volume: MUTE </string>
+	<key>gameoptions-volume-external-only</key>
+	<string> Sound Volume: External Control Only </string>
+	<key>gameoptions-show-growl-messages-@</key>
+	<string> Show Growl Messages: %@ </string>
+	<key>gameoptions-spoken-messages-yes</key>
+	<string> Spoken Messages: YES </string>
+	<key>gameoptions-spoken-messages-no</key>
+	<string> Spoken Messages: NO </string>
+	<key>gameoptions-itunes-yes</key>
+	<string> iTunes Integration: YES </string>
+	<key>gameoptions-itunes-no</key>
+	<string> iTunes Integration: NO </string>
+	<key>gameoptions-fullscreen-mode-d-by-d-at-g-hz</key>
+	<string> Full Screen Mode: %d x %d at %.3g Hz </string>
+	<key>gameoptions-fullscreen-mode-d-by-d</key>
+	<string> Full Screen Mode: %d x %d </string>
+	<key>gameoptions-play-in-window</key>
+	<string> Play in Window </string>
+	<key>gameoptions-play-in-fullscreen</key>
+	<string> Play in Full Screen </string>
+	<key>gameoptions-joystick-configuration</key>
+	<string> Joystick Configuration </string>
+	<key>gameoptions-wireframe-graphics-yes</key>
+	<string> Wireframe Graphics: YES </string>
+	<key>gameoptions-wireframe-graphics-no</key>
+	<string> Wireframe Graphics: NO </string>
+	<key>gameoptions-reduced-detail-yes</key>
+	<string> Reduced Detail: YES </string>
+	<key>gameoptions-reduced-detail-no</key>
+	<string> Reduced Detail: NO </string>
+	<key>gameoptions-shaderfx-not-available</key>
+	<string> Shader Effects: Not available </string>
+	<key>gameoptions-shaderfx-@</key>
+	<string> Shader Effects: %@ </string>
+	<key>gameoptions-back</key>
+	<string> Back </string>
+	
+	<!-- Equip ship screen -->
+	<key>equip-title</key>
+	<string>Ship Outfitting</string>
+	<key>equip-cash-f</key>
+	<string>Cash: %.1f Cr.</string>
+	<key>equip-no-equipment-available-for-purchase</key>
+	<string>No equipment available for purchase.</string>
+	<key>upgradeinfo-@-price-is-for-repairing</key>
+	<string>%@ (Price is for repairing the existing system).</string>
+	
+	<!-- Contracts screen -->
+	<key>@-contracts-title</key>
+	<string>%@ Carrier Market</string>
+	<!-- contracts-to and contracts-within are common for both passengers and cargo. -->
+	<key>contracts-to</key>
+	<string>To:</string>
+	<key>contracts-within</key>
+	<string>Within:</string>
+	<key>contracts-passenger-name</key>
+	<string>Passenger Name:</string>
+	<key>contracts-passenger-advance</key>
+	<string>Advance:</string>
+	<key>contracts-passenger-fee</key>
+	<string>Fee:</string>
+	<key>contracts-cargo-cargotype</key>
+	<string>Cargo:</string>
+	<key>contracts-cargo-premium</key>
+	<string>Premium:</string>
+	<key>contracts-cargo-pays</key>
+	<string>Pays:</string>
+	<key>contracts-cash-f-load-d-of-d-passengers-d-of-d-berths</key>
+	<string>Cash: %.1f Cr.  Load %d of %d t. Passengers %d of %d berths.</string>
+	
+	<!-- Ship's manifest screen -->
+	<key>manifest-title</key>
+	<string>Ship's Manifest</string>
+	<key>manifest-none</key>
+	<string> None.</string>
+	<key>manifest-cargo-d-d</key>
+	<string>Cargo %dt (%dt):</string>
+	<key>manifest-passengers-d-d</key>
+	<string>Passengers %d (%d):</string>
+	<key>manifest-contracts</key>
+	<string>Contracts:</string>
+	<key>manifest-missions</key>
+	<string>Missions:</string>
+	
+	<!-- Shipyard screen -->
+	<key>@-shipyard-title</key>
+	<string>%@ Ships For Sale</string>
+	<key>shipyard-shiptype</key>
+	<string>Ship Type:</string>
+	<key>shipyard-price</key>
+	<string>Price:</string>
+	<key>shipyard-cargo</key>
+	<string>Cargo:</string>
+	<key>shipyard-speed</key>
+	<string>Speed:</string>
+	<key>shipyard-no-ships-available-for-purchase</key>
+	<string>No ships available for purchase.</string>
+	<key>shipyard-your-@-trade-in-value-d</key>
+	<string>Your %@'s trade-in value: %d.0 Cr.</string>
+	<key>shipyard-total-available-f-cr-f-cr-plus-d-trade</key>
+	<string>Total available: %.1f Cr. (%.1f Cr. Cash + %d.0 Cr. Trade.)</string>
+	
+	<!-- Load/Save screens shared information -->
+	<key>loadsavescreen-commander-name</key>
+	<string>Commander Name</string>
+	<key>loadsavescreen-rating</key>
+	<string>Rating</string>
+	<key>loadsavescreen-no-commanders-found</key>
+	<string>No commanders found</string>
+	<key>loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@</key>
+	<string>Commander %@ is rated %@ and has %llu Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@</string>
+	
+	<!-- Load commander screen -->
+	<key>loadscreen-title</key>
+	<string>Select Commander</string>
+	
+	<!-- Save/Overwrite commander screens -->
+	<key>savescreen-title</key>
+	<string>Save Commander</string>
+	<key>savescreen-commander-name-@</key>
+	<string>Commander name: %@</string>
+	<key>savescreen-commander-name</key>
+	<string>Commander name: </string>
+	<key>overwritescreen-commander-@-already-exists-overwrite-query</key>
+	<string>Commander %@ already exists - overwrite this saved game?</string>
+	<key>overwritescreen-yes</key>
+	<string> YES </string>
+	<key>overwritescreen-no</key>
+	<string> NO </string>
 	
 	<!-- delivery reports -->
 	<key>arrival-report-title</key>
