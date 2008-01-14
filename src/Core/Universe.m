@@ -6422,7 +6422,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
 			NSString* passenger_species_string = [NSString stringWithString:native_species];
 			if (passenger_species == 2)
-				passenger_species_string = @"Human Colonial";
+				passenger_species_string = DESC(@"human-colonial-description");
 			if (passenger_species == 3)
 			{
 				passenger_species_string = [self generateSystemInhabitants:passenger_seed plural:NO];
@@ -6432,7 +6432,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			// determine the passenger's name
 			seed_RNG_only_for_planet_description(passenger_seed);
 			NSString* passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"%R", passenger_seed)];
-			if ([passenger_species_string hasPrefix:@"human"])
+			// If passenger is a human, make his name more... human like.
+			if ([[passenger_species_string componentsSeparatedByString:@" "] containsObject:DESC(@"human-word")])
 				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"[nom]", passenger_seed)];
 			
 			// determine information about the route...
@@ -6460,19 +6461,19 @@ double estimatedTimeForJourney(double distance, int hops)
 				
 					
 				NSString* long_description = [NSString stringWithFormat:
-					@"%@, a %@, wishes to go to %@.",
+					DESC(@"contracts-@-a-@-wishes-to-go-to-@"),
 					passenger_name, passenger_species_string, destination_name];
 					
 				long_description = [NSString stringWithFormat:
-					@"%@ The route is %.1f light years long, a minimum of %d jumps.", long_description,
+					DESC(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps"), long_description,
 					route_length, route_hops];
 					
 				long_description = [NSString stringWithFormat:
-					@"%@ You will need to depart within %@, in order to arrive within %@ time.", long_description,
+					DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), long_description,
 					[self shortTimeDescription:(passenger_departure_time - current_time)], [self shortTimeDescription:(passenger_arrival_time - current_time)]];
 				
 				long_description = [NSString stringWithFormat:
-					@"%@ Will pay %d Cr: %d Cr in advance, and %d Cr on arrival.", long_description,
+					DESC(@"contracts-@-will-pay-d-credits-d-in-advance-and-d-credits-on-arrival"), long_description,
 					premium + fee, premium, fee];
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -6542,33 +6543,41 @@ double estimatedTimeForJourney(double distance, int hops)
 	int parts = 0;
 	
 	if (interval <= 0.0)
-		return @"no time";
+		return DESC(@"contracts-no-time");
 	
 	if ((parts < 2)&&(r_time > 86400))
 	{
 		int days = floor(r_time / 86400);
 		r_time -= 86400 * days;
-		result = [NSString stringWithFormat:@"%@ %d day%@", result, days, (days > 1) ? @"s" : @""];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, days, (days > 1) ?
+									DESC(@"contracts-day-word-plural") :
+									DESC(@"contracts-day-word")];
 		parts++;
 	}
 	if ((parts < 2)&&(r_time > 3600))
 	{
 		int hours = floor(r_time / 3600);
 		r_time -= 3600 * hours;
-		result = [NSString stringWithFormat:@"%@ %d hr%@", result, hours, (hours > 1) ? @"s" : @""];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, hours, (hours > 1) ?
+									DESC(@"contracts-hour-word-plural") :
+									DESC(@"contracts-hour-word")];
 		parts++;
 	}
 	if ((parts < 2)&&(r_time > 60))
 	{
 		int mins = floor(r_time / 60);
 		r_time -= 60 * mins;
-		result = [NSString stringWithFormat:@"%@ %d min%@", result, mins, (mins > 1) ? @"s" : @""];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, mins, (mins > 1) ?
+									DESC(@"contracts-minute-word-plural") :
+									DESC(@"contracts-minute-word")];
 		parts++;
 	}
 	if ((parts < 2)&&(r_time > 0))
 	{
 		int secs = floor(r_time);
-		result = [NSString stringWithFormat:@"%@ %d sec%@", result, secs, (secs > 1) ? @"s" : @""];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, secs, (secs > 1) ?
+									DESC(@"contracts-second-word-plural") :
+									DESC(@"contracts-second-word")];
 		parts++;
 	}
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
@@ -6730,19 +6739,19 @@ double estimatedTimeForJourney(double distance, int hops)
 						double contract_arrival_time = contract_departure_time + estimatedTimeForJourney(route_length, route_hops); 
 						
 						NSString* long_description = [NSString stringWithFormat:
-							@"Deliver a cargo of %@ to %@.",
+							DESC(@"contracts-deliver-a-cargo-of-@-to-@"),
 							[self describeCommodity:co_type amount:co_amount], destination_name];
 							
 						long_description = [NSString stringWithFormat:
-							@"%@ The route is %.1f light years long, a minimum of %d jumps.", long_description,
+							DESC(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps"), long_description,
 							route_length, route_hops];
 							
 						long_description = [NSString stringWithFormat:
-							@"%@ You will need to depart within %@, in order to arrive within %@ time.", long_description,
+							DESC(@"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time"), long_description,
 							[self shortTimeDescription:(contract_departure_time - current_time)], [self shortTimeDescription:(contract_arrival_time - current_time)]];
 						
 						long_description = [NSString stringWithFormat:
-							@"%@ The contract will cost you %.1f Cr, and pay a total of %.1f Cr.", long_description,
+							DESC(@"contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits"), long_description,
 							premium, premium + fee];
 
 						NSDictionary* contract_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:

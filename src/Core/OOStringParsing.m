@@ -598,7 +598,7 @@ NSString *ClockToString(double clock, BOOL adjusting)
 	secs %= 60;
 	
 	result = [NSString stringWithFormat:@"%07d:%02d:%02d:%02d", days, hrs, mins, secs];
-	if (adjusting)  result = [result stringByAppendingString:@" (adjusting)"];
+	if (adjusting)  result = [result stringByAppendingString:DESC(@"adjusting-word")];
 	
 	return result;
 }

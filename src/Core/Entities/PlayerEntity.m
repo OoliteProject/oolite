@@ -4898,7 +4898,7 @@ static int last_outfitting_index;
 				if (itemForSelectFacing >= 0)
 					previous = -1;	// ie. last index!
 				[gui setColor:[OOColor greenColor] forRow:row];
-				[gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil] forRow:row];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
@@ -4927,7 +4927,7 @@ static int last_outfitting_index;
 				// color repairs and renovation items orange
 				if ([self hasExtraEquipment:eq_key_damaged])
 				{
-					desc = [NSString stringWithFormat:@" Repair:%@", desc];
+					desc = [NSString stringWithFormat:DESC(@"equip-repair-@"), desc];
 					price /= 2.0;
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
@@ -4973,7 +4973,7 @@ static int last_outfitting_index;
 			if (i < [equipment_allowed count])
 			{
 				[gui setColor:[OOColor greenColor] forRow:row];
-				[gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil] forRow:row];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", i] forRow:row];
 				row++;
 			}

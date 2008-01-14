@@ -1082,6 +1082,8 @@
 	<string>Cash: %.1f Cr.</string>
 	<key>equip-no-equipment-available-for-purchase</key>
 	<string>No equipment available for purchase.</string>
+	<key>equip-repair-@</key>
+	<string> Repair:%@</string>
 	<key>upgradeinfo-@-price-is-for-repairing</key>
 	<string>%@ (Price is for repairing the existing system).</string>
 	
@@ -1107,6 +1109,40 @@
 	<string>Pays:</string>
 	<key>contracts-cash-f-load-d-of-d-passengers-d-of-d-berths</key>
 	<string>Cash: %.1f Cr.  Load %d of %d t. Passengers %d of %d berths.</string>
+	<key>contracts-@-a-@-wishes-to-go-to-@</key>
+	<string>%@, a %@, wishes to go to %@.</string>
+	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>
+	<string>%@ The route is %.1f light years long, a minimum of %d jumps.</string>
+	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
+	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
+	<key>contracts-@-will-pay-d-credits-d-in-advance-and-d-credits-on-arrival</key>
+	<string>%@ Will pay %d Cr: %d Cr in advance, and %d Cr on arrival.</string>
+	<key>contracts-deliver-a-cargo-of-@-to-@</key>
+	<string>Deliver a cargo of %@ to %@.</string>
+	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>
+	<string>%@ The route is %.1f light years long, a minimum of %d jumps.</string>
+	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
+	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
+	<key>contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits</key>
+	<string>%@ The contract will cost you %.1f Cr, and pay a total of %.1f Cr.</string>
+	<key>contracts-no-time</key>
+	<string>no time</string>
+	<key>contracts-day-word</key>
+	<string>day</string>
+	<key>contracts-day-word-plural</key>
+	<string>days</string>
+	<key>contracts-hour-word</key>
+	<string>hr</string>
+	<key>contracts-hour-word-plural</key>
+	<string>hrs</string>
+	<key>contracts-minute-word</key>
+	<string>min</string>
+	<key>contracts-minute-word-plural</key>
+	<string>mins</string>
+	<key>contracts-second-word</key>
+	<string>sec</string>
+	<key>contracts-second-word-plural</key>
+	<string>secs</string>
 	
 	<!-- Ship's manifest screen -->
 	<key>manifest-title</key>
@@ -1191,6 +1227,10 @@
 	<string>Missile</string>
 	<key>communications-log-string</key>
 	<string>Communications Log</string>
+	<key>adjusting-word</key>
+	<string> (adjusting)</string>
+	<key>human-word</key>
+	<string>human</string> <!-- Important - only lower case characters here! -->
 	<key>human-colonial-description</key>
 	<string>Human Colonial</string>
 	<key>human-colonial-description-plural</key>
