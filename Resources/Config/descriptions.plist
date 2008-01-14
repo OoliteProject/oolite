@@ -896,6 +896,25 @@
 		<string>y</string>
 	</array>
 
+	<!-- The four main views -->
+	<key>forward-view-string</key>
+	<string>Forward View</string>
+	<key>aft-view-string</key>
+	<string>Aft View</string>
+	<key>port-view-string</key>
+	<string>Port View</string>
+	<key>starboard-view-string</key>
+	<string>Starboard View</string>
+
+	<!-- GUI strings common to more than one screens -->
+	<key>gui-back</key>
+	<string> Back </string>
+	<key>gui-more</key>
+	<string> More </string>
+	<key>press-space-commander</key>
+	<string>Press Space Commander</string>
+
+
 	<!-- Intro1 screen -->
 	<key>game-copyright</key>
 	<string>by Giles Williams and contributors (C) 2003-2008</string>
@@ -903,10 +922,6 @@
 	<string>Oolite Theme Music by NoSleep (C) 2004</string>
 	<key>load-previous-commander</key>
 	<string>Load Previous Commander (Y/N)?</string>
-
-	<!-- Intro2 screen -->
-	<key>press-space-commander</key>
-	<string>Press Space Commander</string>
 
 	<!-- Status screen -->
 	<key>status-commander-@</key>
@@ -919,6 +934,8 @@
 	<string>Condition:</string>
 	<key>status-fuel</key>
 	<string>Fuel:</string>
+	<key>status-light-years-desc</key>
+	<string>Light Years</string>
 	<key>status-cash</key>
 	<string>Cash:</string>
 	<key>status-legal-status</key>
@@ -991,6 +1008,8 @@
 	<string>Tech Level:</string>
 	<key>sysdata-pop</key>
 	<string>Population:</string>
+	<key>sysdata-billion-word</key>
+	<string>Billion</string>
 	<key>sysdata-prod</key>
 	<string>Gross productivity:</string>
 	<key>sysdata-radius</key>
@@ -1112,8 +1131,12 @@
 	<string>Price:</string>
 	<key>shipyard-cargo</key>
 	<string>Cargo:</string>
+	<key>shipyard-cargo-d-tc</key>
+	<string>Cargo: %d TC</string>
 	<key>shipyard-speed</key>
 	<string>Speed:</string>
+	<key>shipyard-speed-f-ls</key>
+	<string>Speed: %.3f LS</string>
 	<key>shipyard-no-ships-available-for-purchase</key>
 	<string>No ships available for purchase.</string>
 	<key>shipyard-your-@-trade-in-value-d</key>
@@ -1148,6 +1171,31 @@
 	<string> YES </string>
 	<key>overwritescreen-no</key>
 	<string> NO </string>
+	
+	<!-- Mission screen -->
+	<key>mission-information</key>
+	<string>Mission Information</string>
+	
+	<!-- Game Over screen -->
+	<key>gameoverscreen-game-over</key>
+	<string>Game Over</string>
+	<key>gameoverscreen-press-space</key>
+	<string>Press Space</string>
+	
+	<!-- Various HUD dials and/or messages and miscellaneous strings -->
+	<key>no-target-string</key>
+	<string>No target</string>
+	<key>ident-system-string</key>
+	<string>Ident system</string>
+	<key>missile-string</key>
+	<string>Missile</string>
+	<key>communications-log-string</key>
+	<string>Communications Log</string>
+	<key>human-colonial-description</key>
+	<string>Human Colonial</string>
+	<key>human-colonial-description-plural</key>
+	<string>Human Colonials</string>
+	
 	
 	<!-- delivery reports -->
 	<key>arrival-report-title</key>

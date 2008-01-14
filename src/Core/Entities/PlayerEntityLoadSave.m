@@ -755,7 +755,7 @@
 	
 	if (page)
 	{
-		[gui setArray:[NSArray arrayWithObjects:@" Back ", @" <-- ", nil]
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil]
 			   forRow:STARTROW-1];
 		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
 		rangeStart=STARTROW-1;
@@ -771,7 +771,7 @@
 	else
 	{
 		lastIndex=(page * NUMROWS) + NUMROWS;
-		[gui setArray:[NSArray arrayWithObjects:@" More ", @" --> ", nil]
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil]
 			   forRow:ENDROW];
 		[gui setKey:GUI_KEY_OK forRow:ENDROW];
 		[gui setSelectableRange: NSMakeRange(rangeStart, NUMROWS+1)];
@@ -900,7 +900,7 @@
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
 	
-	// Store the current galaxy seed because findSystemNumberAtCoords will alter it in a while.
+	// Store the current galaxy seed because findSystemNumberAtCoords may alter it in a while.
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	Random_Seed		player_galaxy_seed = [player galaxy_seed];	
 	

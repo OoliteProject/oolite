@@ -113,6 +113,11 @@ MA 02110-1301, USA.
 
 - (void) commsMessage:(NSString *)valueString;
 
+#if 0		// Disabled until approved for inclusion.
+- (void) commsMessageByUnpiloted:(NSString *)valueString;  // Same as commsMessage, but can be used by scripts to have 
+							   // unpiloted ships sending commsMessages, if we want to.
+#endif
+
 - (void) consoleMessage3s:(NSString *)valueString;
 - (void) consoleMessage6s:(NSString *)valueString;
 

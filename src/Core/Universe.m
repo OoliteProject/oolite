@@ -188,7 +188,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
 	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:@"Communications Log" align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
+	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
 	displayFPS = NO;
@@ -437,7 +437,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
 	[comm_log_gui setTextColor:[OOColor whiteColor]];
 	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:@"Communications Log" align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
+	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
 	time_delta = 0.0;
@@ -4798,22 +4798,22 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	switch (vd)
 	{
 		case VIEW_FORWARD:
-			ms = @"Forward View";
+			ms = DESC(@"forward-view-string");
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_AFT:
-			ms = @"Aft View";
+			ms = DESC(@"aft-view-string");
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_PORT:
-			ms = @"Port View";
+			ms = DESC(@"port-view-string");
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
 		case VIEW_STARBOARD:
-			ms = @"Starboard View";
+			ms = DESC(@"starboard-view-string");
 			displayGUI = NO;   // switch off any text displays
 			break;
 		/* GILES custom views */
@@ -5811,11 +5811,11 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		if (plural)
 		{
 			// TODO: use plist
-			[inhabitants appendString:@"Human Colonials"];
+			[inhabitants appendString:DESC(@"human-colonial-description-plural")];
 		}
 		else
 		{
-			[inhabitants appendString:@"Human Colonial"];
+			[inhabitants appendString:DESC(@"human-colonial-description")];
 		}
 	}
 	else
@@ -7452,7 +7452,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[gui clear];
 	[message_gui clear];
 	[comm_log_gui clear];
-	[comm_log_gui printLongText:@"Communications Log"
+	[comm_log_gui printLongText:DESC(@"communications-log-string")
 						  align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 }
 

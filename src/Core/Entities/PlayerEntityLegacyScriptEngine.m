@@ -967,9 +967,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 /*-----------------------------------------------------*/
 
 - (void) commsMessage:(NSString *)valueString
-{
-	if (scriptTarget != self)  return;
-	
+{	
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -984,6 +982,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[UNIVERSE addCommsMessage:expandedMessage forCount:4.5];
 }
 
+
+#if 0		// Disabled until approved for inclusion.
+// This method does the same as -commsMessage, (which in fact calls), the difference being that scripts can use this
+// method to have unpiloted ship entities sending comms messages.
+- (void) commsMessageByUnpiloted:(NSString *)valueString
+{
+	[self commsMessage:valueString];
+}
+#endif
 
 - (void) consoleMessage3s:(NSString *)valueString
 {
@@ -2149,9 +2156,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle:@"Mission Information"];
+		[gui setTitle:DESC(@"mission-information")];
 		//
-		[gui setText:@"Press Space Commander" forRow:21 align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setKey:@"spacebar" forRow:21];
 		//

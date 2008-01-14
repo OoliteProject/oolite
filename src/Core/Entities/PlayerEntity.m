@@ -1708,7 +1708,7 @@ double scoopSoundPlayTime = 0.0;
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				if ((missile_entity[activeMissile])&&(!ident_engaged))
 					[missile_entity[activeMissile] addTarget:first_target];
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)first_target name]] forCount:4.5];
+				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? DESC(@"ident-system-string"): DESC(@"missile-string"), [(ShipEntity *)first_target name]] forCount:4.5];
 				if (ident_engaged)
 				{
 					if (![UNIVERSE playCustomSound:@"[ident-locked-on]"])
@@ -2539,7 +2539,7 @@ double scoopSoundPlayTime = 0.0;
 	if ((target_entity)&&(target_entity->isShip))
 		return [(ShipEntity*)target_entity identFromShip:self];
 	else
-		return @"No target";
+		return DESC(@"no-target-string");
 }
 
 
@@ -3569,11 +3569,11 @@ double scoopSoundPlayTime = 0.0;
 	
 	flightSpeed = 160.0;
 	status = STATUS_DEAD;
-	[UNIVERSE displayMessage:@"Game Over" forCount:30.0];
+	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:scoreMS forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
-	[UNIVERSE displayMessage:@"Press Space" forCount:30.0];
+	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
 	shot_time = 0.0;
 	
 	if (whom == nil)  whom = (id)[NSNull null];
@@ -4054,10 +4054,12 @@ double scoopSoundPlayTime = 0.0;
 		ship_dict = [UNIVERSE getDictionaryForShip:ship_desc];
 		shipName = [ship_dict stringForKey:KEY_NAME];
 
+		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
+
 		legal_desc = LegalStatusToString(legalStatus);
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
 		alert_desc = AlertConditionToString([self alertCondition]);
-		fuel_desc = [NSString stringWithFormat:@"%.1f Light Years", fuel/10.0];
+		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
 		credits_desc = [NSString stringWithFormat:@"%.1f Cr", credits/10.0];
 		
 		[gui clear];
@@ -4242,7 +4244,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-tl"], [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-pop"], [NSString stringWithFormat:@"%.1f Billion", 0.1*population], nil]	forRow:7];
+		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-pop"], [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
 		
 		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-prod"], @"", [NSString stringWithFormat:@"%5d M Cr.", productivity], nil]	forRow:10];
@@ -4553,7 +4555,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 		
 		// Back menu option
-		[gui setText:DESC(@"gameoptions-back") forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
+		[gui setText:DESC(@"gui-back") forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_BACK];
 
 			
