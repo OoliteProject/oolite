@@ -1179,6 +1179,24 @@
 	<string>Your %@'s trade-in value: %d.0 Cr.</string>
 	<key>shipyard-total-available-f-cr-f-cr-plus-d-trade</key>
 	<string>Total available: %.1f Cr. (%.1f Cr. Cash + %d.0 Cr. Trade.)</string>
+	<key>passenger-berth-plural</key>
+	<string>Passenger Berths</string>
+	<key>passenger-berth-single</key>
+	<string>Passenger Berth</string>
+	<key>extra-@-@</key>
+	<string> Extra %@ (%@)</string>
+	<key>plus-@</key>
+	<string> Plus %@.</string>
+	<key>shipyard-standatd-customer-model</key>
+	<string> Standard customer model.</string>
+	<key>shipyard-forward-weapon-has-been-upgraded-to-a-@</key>
+	<string> Forward weapon has been upgraded to a %@.</string>
+	<key>shipyard-forward-weapon-upgraded-to-@</key>
+	<string> Forward weapon upgraded to %@.</string>
+	<key>shipyard-selling-price-d-credits</key>
+	<string> Selling price %d Cr.</string>
+	<key>shipyard-price-d-credits</key>
+	<string> Price %d Cr.</string>
 	
 	<!-- Load/Save screens shared information -->
 	<key>loadsavescreen-commander-name</key>
@@ -1229,6 +1247,10 @@
 	<string>Communications Log</string>
 	<key>adjusting-word</key>
 	<string> (adjusting)</string>
+	<key>strict-play-enabled</key>
+	<string>Strict Play Enabled</string>
+	<key>unrestricted-play-enabled</key>
+	<string>Unrestricted Play Enabled</string>
 	<key>human-word</key>
 	<string>human</string> <!-- Important - only lower case characters here! -->
 	<key>human-colonial-description</key>

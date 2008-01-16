@@ -526,7 +526,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[player setPosition:kZeroVector];
 	[player setOrientation:q0];
 	[player setGuiToIntro2Screen];
-	[gui setText:(strict)? @"Strict Play Enabled":@"Unrestricted Play Enabled" forRow:1 align:GUI_ALIGN_CENTER];
+	[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
 	
 	
 	[player release];
@@ -6887,7 +6887,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			BOOL weapon_customised = NO;
 			NSString* fwd_weapon_desc = nil;
 			
-			NSString* short_extras_string = @" Plus %@.";
+			NSString* short_extras_string = DESC(@"plus-@");
+			NSString* passengerBerthLongDesc = nil;
 			
 			// customise the ship
 			while ((randf() < chance) && ([options count]))
@@ -6939,8 +6940,8 @@ double estimatedTimeForJourney(double distance, int hops)
 									[extras addObject:equipment];
 									if (passenger_berths == 0)
 									{
-										[description appendFormat:@" Extra XX=NPB=XXPassenger BerthXX=PPB=XX (%@)", [eq_long_desc lowercaseString]];
-										[short_description appendFormat:@" Extra XX=NPB=XXPassenger BerthXX=PPB=XX."];
+										// This will be needed to construct the description for passenger berths.
+										passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eq_long_desc lowercaseString]];
 									}
 									passenger_berths++;
 									customised = YES;
@@ -6954,7 +6955,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							{
 								price += eq_price * 90 / 100;
 								[extras addObject:equipment];
-								[description appendFormat:@" Extra %@ (%@)", eq_short_desc, [eq_long_desc lowercaseString]];
+								[description appendFormat:DESC(@"extra-@-@"), eq_short_desc, [eq_long_desc lowercaseString]];
 								[short_description appendFormat:short_extras_string, eq_short_desc];
 								short_extras_string = @" %@.";
 								customised = YES;
@@ -6995,29 +6996,27 @@ double estimatedTimeForJourney(double distance, int hops)
 			if (passenger_berths)
 			{
 				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : @"";
-				NSString* ppb = (passenger_berths > 1)? @"s" : @"";
-				[description replaceOccurrencesOfString:@"XX=NPB=XX" withString:npb options:NSCaseInsensitiveSearch range:NSMakeRange(0, [description length])];
-				[description replaceOccurrencesOfString:@"XX=PPB=XX" withString:ppb options:NSCaseInsensitiveSearch range:NSMakeRange(0, [description length])];
-				[short_description replaceOccurrencesOfString:@"XX=NPB=XX" withString:npb options:NSCaseInsensitiveSearch range:NSMakeRange(0, [short_description length])];
-				[short_description replaceOccurrencesOfString:@"XX=PPB=XX" withString:ppb options:NSCaseInsensitiveSearch range:NSMakeRange(0, [short_description length])];
+				NSString* ppb = (passenger_berths > 1)? DESC(@"passenger-berth-plural") : DESC(@"passenger-berth-single");
+				[description appendFormat:@"Extra %@%@ (%@)", npb, ppb, passengerBerthLongDesc];
+				[short_description appendFormat:@"Extra %@%@."];
 			}
 			
 			if (!customised)
 			{
-				[description appendString:@" Standard customer model."];
-				[short_description appendString:@" Standard customer model."];
+				[description appendString:DESC(@"shipyard-standatd-customer-model")];
+				[short_description appendString:DESC(@"shipyard-standatd-customer-model")];
 			}
 			
 			if (weapon_customised)
 			{
-				[description appendFormat:@" Forward weapon has been upgraded to a %@.", [fwd_weapon_desc lowercaseString]];
-				[short_description appendFormat:@" Forward weapon upgraded to %@.", [fwd_weapon_desc lowercaseString]];
+				[description appendFormat:DESC(@"shipyard-forward-weapon-has-been-upgraded-to-a-@"), [fwd_weapon_desc lowercaseString]];
+				[short_description appendFormat:DESC(@"shipyard-forward-weapon-upgraded-to-@"), [fwd_weapon_desc lowercaseString]];
 			}
 			
 			price = base_price + cunningFee(price - base_price);
 				
-			[description appendFormat:@" Selling price %d Cr.", price];
-			[short_description appendFormat:@" Price %d Cr.", price];
+			[description appendFormat:DESC(@"shipyard-selling-price-d-credits"), price];
+			[short_description appendFormat:DESC(@"shipyard-price-d-credits"), price];
 
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 

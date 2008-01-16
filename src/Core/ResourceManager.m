@@ -518,7 +518,8 @@ static NSMutableDictionary *string_cache;
 	NSEnumerator	*enumerator = nil;
 	NSString		*path = nil;
 	NSString		*arrayPath = nil;
-	NSArray			*array = nil;
+	NSMutableArray		*array = nil;
+	NSArray			*arrayNonEditable = nil;
 	
 	if (fileName == nil)  return nil;
 	
@@ -534,14 +535,14 @@ static NSMutableDictionary *string_cache;
 			if (folderName != nil)
 			{
 				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
-				array = OOArrayFromFile(arrayPath);
-				if (array != nil)  break;
+				arrayNonEditable = OOArrayFromFile(arrayPath);
+				if (arrayNonEditable != nil)  break;
 			}
 			arrayPath = [path stringByAppendingPathComponent:fileName];
-			array = OOArrayFromFile(arrayPath);
-			if (array != nil)  break;
+			arrayNonEditable = OOArrayFromFile(arrayPath);
+			if (arrayNonEditable != nil)  break;
 		}
-		result = array;
+		result = arrayNonEditable;
 	}
 	else
 	{
@@ -550,13 +551,28 @@ static NSMutableDictionary *string_cache;
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
 			arrayPath = [path stringByAppendingPathComponent:fileName];
-			array = OOArrayFromFile(arrayPath);
-			if (array != nil)  [results addObject:array];
+			[array release];
+			array = [OOArrayFromFile(arrayPath) mutableCopy];
+			if (array != nil) [results addObject:array];
+	
+			// Special handling for arrays merging. Currently, equipment.plist only gets its objects merged.
+			// A lookup key is required. For the equipment.plist items, this is the EQ_* string, which
+			// describes the role of an equipment item and is unique.
+			if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
+			{
+				[self handleArrayMerging:results forLookupKey:3]; // Index 3 is the role string (EQ_*).
+			}
 			if (folderName != nil)
 			{
 				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
-				array = OOArrayFromFile(arrayPath);
-				if (array != nil)  [results addObject:array];
+				[array release];
+				array = [OOArrayFromFile(arrayPath) mutableCopy];
+				if (array != nil) [results addObject:array];
+				
+				if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
+				{
+					[self handleArrayMerging:results forLookupKey:3]; // Index 3 is the role string (EQ_*).
+				}
 			}
 		}
 		
@@ -575,6 +591,34 @@ static NSMutableDictionary *string_cache;
 	if (result != nil)  [cache setObject:result forKey:cacheKey inCache:@"arrays"];
 	
 	return [NSArray arrayWithArray:result];
+}
+
+
+// A method for handling merging of arrays. Currently used with the equipment.plist entries.
+// The arrayToProcess array is scanned for repetitions of the lookup key item and, if found, the latest entry replaces the earliest.
++ (void) handleArrayMerging: (NSMutableArray *)arrayToProcess forLookupKey:(unsigned)lookupKey
+{
+	unsigned i,j,k;
+	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
+	
+	// Any change to arrayRef will directly modify arrayToProcess.
+				
+	for (i = 0; i < [refArray count]; i++)
+	{
+		for (j = 0; j < [arrayToProcess count] - 1; j++)
+		{
+			for (k=0; k < [[arrayToProcess objectAtIndex:j] count] - 1; k++)
+			{				
+				if ([[[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupKey] isEqual:
+					[[refArray objectAtIndex:i] objectAtIndex:lookupKey]])
+				{
+					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];					
+					[refArray removeObjectAtIndex:i];									
+				}
+			}
+		}	
+	}	
+	// arrayToProcess has been processed at this point. Any necessary merging has been done.
 }
 
 
