@@ -1086,6 +1086,14 @@
 	<string> Repair:%@</string>
 	<key>upgradeinfo-@-price-is-for-repairing</key>
 	<string>%@ (Price is for repairing the existing system).</string>
+	<key>forward-facing-string</key>
+	<string> Forward </string>
+	<key>aft-facing-string</key>
+	<string> Aft </string>
+	<key>port-facing-string</key>
+	<string> Port </string>
+	<key>starboard-facing-string</key>
+	<string> Starboard </string>
 	
 	<!-- Contracts screen -->
 	<key>@-contracts-title</key>

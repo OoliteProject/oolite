@@ -163,10 +163,10 @@ typedef enum
 
 #define WEAPON_OFFSET_DOWN				20
 
-#define FORWARD_FACING_STRING			@"\tForward "
-#define AFT_FACING_STRING				@"\tAft "
-#define PORT_FACING_STRING				@"\tPort "
-#define STARBOARD_FACING_STRING			@"\tStarboard "
+#define FORWARD_FACING_STRING			DESC(@"forward-facing-string")
+#define AFT_FACING_STRING				DESC(@"aft-facing-string")
+#define PORT_FACING_STRING				DESC(@"port-facing-string")
+#define STARBOARD_FACING_STRING			DESC(@"starboard-facing-string")
 
 #define KEY_REPEAT_INTERVAL				0.20
 
