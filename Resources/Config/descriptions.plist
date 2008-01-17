@@ -1115,8 +1115,8 @@
 	<string>%@ The route is %.1f light years long, a minimum of %d jumps.</string>
 	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
 	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
-	<key>contracts-@-will-pay-d-credits-d-in-advance-and-d-credits-on-arrival</key>
-	<string>%@ Will pay %d Cr: %d Cr in advance, and %d Cr on arrival.</string>
+	<key>contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival</key>
+	<string>%@ Will pay %llu Cr: %d Cr in advance, and %llu Cr on arrival.</string>
 	<key>contracts-deliver-a-cargo-of-@-to-@</key>
 	<string>Deliver a cargo of %@ to %@.</string>
 	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>

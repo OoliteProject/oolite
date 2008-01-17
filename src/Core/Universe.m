@@ -6473,7 +6473,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					[self shortTimeDescription:(passenger_departure_time - current_time)], [self shortTimeDescription:(passenger_arrival_time - current_time)]];
 				
 				long_description = [NSString stringWithFormat:
-					DESC(@"contracts-@-will-pay-d-credits-d-in-advance-and-d-credits-on-arrival"), long_description,
+					DESC(@"contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival"), long_description,
 					premium + fee, premium, fee];
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
