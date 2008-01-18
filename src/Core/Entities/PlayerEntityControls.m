@@ -2625,9 +2625,21 @@ static BOOL toggling_music;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
+			if(0);	// Dummy statement so compiler does not complain.
+			
+			// In order to support multiple languages, the Y/N response cannot be hardcoded. We get the keys
+			// corresponding to Yes/No from descriptions.plist and if they are not found there, we set them
+			// by default to [yY] and [nN] respectively.
+			id valueYes = [[UNIVERSE descriptions] stringForKey:@"load-previous-commander-yes" defaultValue:@"y"];
+			id valueNo = [[UNIVERSE descriptions] stringForKey:@"load-previous-commander-no" defaultValue:@"n"];
+			unsigned char loadPreviousCommanderYes, loadPreviousCommanderNo;
+
+			loadPreviousCommanderYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+			loadPreviousCommanderNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+			
 			if (!disc_operation_in_progress)
 			{
-				if (([gameView isDown:121])||([gameView isDown:89]))	//  'yY'
+				if (([gameView isDown:loadPreviousCommanderYes]) || ([gameView isDown:loadPreviousCommanderYes - 32]))
 				{
 					if (themeMusic)
 					{
@@ -2643,7 +2655,7 @@ static BOOL toggling_music;
 					}
 				}
 			}
-			if (([gameView isDown:110])||([gameView isDown:78]))	//  'nN'
+			if (([gameView isDown:loadPreviousCommanderNo]) || ([gameView isDown:loadPreviousCommanderNo - 32]))
 			{
 				[self setGuiToIntro2Screen];
 			}

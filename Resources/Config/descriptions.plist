@@ -93,10 +93,6 @@
 		<string>Deadly</string>
 		<string>---- E L I T E ----</string>
 	</array>
-	<key>is-word</key>
-	<array>
-		<string>is</string>
-	</array>
 	<key>system_description</key>
 	<array>
 		<array>
@@ -1265,6 +1261,8 @@
 	<string>Human Colonial</string>
 	<key>human-colonial-description-plural</key>
 	<string>Human Colonials</string>
+	<key>is-word</key>
+	<string>is</string>
 	
 	
 	<!-- delivery reports -->
