@@ -1068,6 +1068,14 @@
 	<string> Shader Effects: Not available </string>
 	<key>gameoptions-shaderfx-@</key>
 	<string> Shader Effects: %@ </string>
+	<key>shaderfx-not-available</key>
+	<string>Not available</string>
+	<key>shaderfx-off</key>
+	<string>Off</string>
+	<key>shaderfx-simple</key>
+	<string>Simple</string>
+	<key>shaderfx-full</key>
+	<string>Full</string>
 	<key>gameoptions-back</key>
 	<string> Back </string>
 	
@@ -1123,10 +1131,6 @@
 	<string>%@ Will pay %llu Cr: %d Cr in advance, and %llu Cr on arrival.</string>
 	<key>contracts-deliver-a-cargo-of-@-to-@</key>
 	<string>Deliver a cargo of %@ to %@.</string>
-	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>
-	<string>%@ The route is %.1f light years long, a minimum of %d jumps.</string>
-	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
-	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
 	<key>contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits</key>
 	<string>%@ The contract will cost you %.1f Cr, and pay a total of %.1f Cr.</string>
 	<key>contracts-no-time</key>

@@ -500,10 +500,10 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
 {
 	switch (setting)
 	{
-		case SHADERS_NOT_SUPPORTED:	return @"Not available";
-		case SHADERS_OFF:			return @"Off";
-		case SHADERS_SIMPLE:		return @"Simple";
-		case SHADERS_FULL:			return @"Full";
+		case SHADERS_NOT_SUPPORTED:	return DESC(@"shaderfx-not-available");
+		case SHADERS_OFF:			return DESC(@"shaderfx-off");
+		case SHADERS_SIMPLE:		return DESC(@"shaderfx-simple");
+		case SHADERS_FULL:			return DESC(@"shaderfx-full");
 	}
 	
 	return @"??";

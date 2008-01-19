@@ -4549,7 +4549,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 		else
 		{
-			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shader-fx-@"), ShaderSettingToDisplayString(shaderEffects)];
+			shaderEffectsOptionsString = [NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)];
 			[gui setText:shaderEffectsOptionsString forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS];
 		}
