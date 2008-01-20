@@ -6998,7 +6998,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : @"";
 				NSString* ppb = (passenger_berths > 1)? DESC(@"passenger-berth-plural") : DESC(@"passenger-berth-single");
 				[description appendFormat:@"Extra %@%@ (%@)", npb, ppb, passengerBerthLongDesc];
-				[short_description appendFormat:@"Extra %@%@."];
+				[short_description appendFormat:@"Extra %@%@.", npb, ppb];
 			}
 			
 			if (!customised)
