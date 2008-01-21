@@ -428,32 +428,31 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
-	// Load (or synthesize) script
-	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
-										  properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
+	// Load (or synthesize) script									
+	NSArray				*actions = nil;
+	NSMutableDictionary		*properties = nil;
+	
+	properties = [NSMutableDictionary dictionaryWithCapacity:5];
+	[properties setObject:self forKey:@"ship"];
+	
+	actions = [shipDict arrayForKey:@"launch_actions"];
+	if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
+		
+	actions = [shipDict arrayForKey:@"script_actions"];
+	if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
+	
+	actions = [shipDict arrayForKey:@"death_actions"];
+	if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
+		
+	actions = [shipDict arrayForKey:@"setup_actions"];
+	if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
+	
+	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] properties:properties];
 	if (script == nil)
 	{
-		NSArray					*actions = nil;
-		NSMutableDictionary		*properties = nil;
-		
-		properties = [NSMutableDictionary dictionaryWithCapacity:5];
-		[properties setObject:self forKey:@"ship"];
-		
-		actions = [shipDict arrayForKey:@"launch_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
-		
-		actions = [shipDict arrayForKey:@"script_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
-		
-		actions = [shipDict arrayForKey:@"death_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
-		
-		actions = [shipDict arrayForKey:@"setup_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
-		
-		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
-											 properties:properties];
+		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"  properties:properties];
 	}
+
 	[script retain];
 
 	return YES;
@@ -3154,7 +3153,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) setCrew: (NSArray*) crewArray
 {
-[crew autorelease];
+	[crew autorelease];
 	crew = [crewArray copy];
 }
 
@@ -3506,7 +3505,16 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
 {
 	suppressExplosion = NO;		// Can only be set in death handler
-	// TODO: send didBecomeDead(whom, context) script event here
+	if (whom == nil)  whom = (id)[NSNull null];
+
+	// Is this safe to do here? The script actions will be executed before the status has been set to
+	// STATUS_DEAD, which is the opposite of what was happening inside becomeExplosion - Nikos.
+	if (script != nil)
+	{
+		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+		[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, context, nil]];
+	}
+	
 	[self becomeExplosion];
 }
 
@@ -3580,12 +3588,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	status = STATUS_DEAD;
 	
 	//scripting
-	if (script != nil)
-	{
-		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"shipDied"];
-	}
-	
+//	if (script != nil)
+//	{
+//		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+//		[self doScriptEvent:@"shipDied"];
+//	}
+		
 	if ([self isThargoid])  [self broadcastThargoidDestroyed];
 	
 	if (!suppressExplosion)
@@ -3919,9 +3927,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
-	NSMutableArray	*newSubs = nil;
+	NSMutableArray		*newSubs = nil;
 	unsigned		i, count;
-	id				element;
+	id			element;
 	
 	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
 	if ([sub_entities containsObject:sub])
@@ -6429,8 +6437,7 @@ BOOL class_masslocks(int some_class)
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
 			}
 		}
-
-		[self becomeExplosion];
+		[self getDestroyedBy:other context:@"energy damage"];
 	}
 	else
 	{
@@ -6480,7 +6487,7 @@ BOOL class_masslocks(int some_class)
 				[[hunter getAI] message:@"TARGET_DESTROYED"];
 			}
 		}
-		[self becomeExplosion];
+		[self getDestroyedBy:ent context:@"scrape damage"];
 	}
 	else
 	{
@@ -6505,7 +6512,7 @@ BOOL class_masslocks(int some_class)
 
 	// oops we're burning up!
 	if (energy <= 0.0)
-		[self becomeExplosion];
+		[self getDestroyedBy:nil context:@"heat damage"];
 	else
 	{
 		// warn if I'm low on energy

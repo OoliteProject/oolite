@@ -1195,7 +1195,7 @@
 	<string> Extra %@ (%@)</string>
 	<key>plus-@</key>
 	<string> Plus %@.</string>
-	<key>shipyard-standatd-customer-model</key>
+	<key>shipyard-standard-customer-model</key>
 	<string> Standard customer model.</string>
 	<key>shipyard-forward-weapon-has-been-upgraded-to-a-@</key>
 	<string> Forward weapon has been upgraded to a %@.</string>

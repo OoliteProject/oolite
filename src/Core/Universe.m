@@ -7003,8 +7003,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			if (!customised)
 			{
-				[description appendString:DESC(@"shipyard-standatd-customer-model")];
-				[short_description appendString:DESC(@"shipyard-standatd-customer-model")];
+				[description appendString:DESC(@"shipyard-standard-customer-model")];
+				[short_description appendString:DESC(@"shipyard-standard-customer-model")];
 			}
 			
 			if (weapon_customised)

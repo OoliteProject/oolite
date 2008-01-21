@@ -72,16 +72,16 @@ this.shipDockedWithStation = function()
 		if (guiScreen == "GUI_SCREEN_STATUS"
 			&& Math.random() < 0.2)
 		{
-			let message =
-				"Commander " + player.name + ",\n\n" +
-				"You look like someone who could use a Trumble on your " + player.shipDescription + "!\n\n" +
-				"This is yours for only 30 credits."
+			let message = "trumble_offer"	// This will expand an externalized string. No hardcoding required.
+				//"Commander " + player.name + ",\n\n" +
+				//"You look like someone who could use a Trumble on your " + player.shipDescription + "!\n\n" +
+				//"This is yours for only 30 credits."
 			
 			// Show the mission screen.
 			mission.clearMissionScreen()
 			mission.setBackgroundImage("trumblebox.png")
 			mission.showMissionScreen()
-			mission.addMessageText(message)
+			mission.addMessageTextKey(message)
 			mission.setChoicesKey("oolite_trumble_offer_yesno")
 		}
 	}
