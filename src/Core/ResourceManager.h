@@ -53,7 +53,7 @@ typedef enum
 + (NSEnumerator *)pathEnumerator;
 + (NSEnumerator *)reversePathEnumerator;
 
-+ (void)handleArrayMerging: (NSMutableArray *)arrayToProcess forLookupKey:(unsigned)lookupKey;
++ (void)handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex;
 
 + (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
 

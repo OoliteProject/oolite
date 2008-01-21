@@ -556,11 +556,12 @@ static NSMutableDictionary *string_cache;
 			if (array != nil) [results addObject:array];
 	
 			// Special handling for arrays merging. Currently, equipment.plist only gets its objects merged.
-			// A lookup key is required. For the equipment.plist items, this is the EQ_* string, which
-			// describes the role of an equipment item and is unique.
+			// A lookup index is required. For the equipment.plist items, this is the index corresponging to the
+			// EQ_* string, which describes the role of an equipment item and is unique.
 			if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 			{
-				[self handleArrayMerging:results forLookupKey:3]; // Index 3 is the role string (EQ_*).
+				if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
+					[self handleEquipmentListMerging:results forLookupIndex:3]; // Index 3 is the role string (EQ_*).
 			}
 			if (folderName != nil)
 			{
@@ -571,7 +572,8 @@ static NSMutableDictionary *string_cache;
 				
 				if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 				{
-					[self handleArrayMerging:results forLookupKey:3]; // Index 3 is the role string (EQ_*).
+					if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
+						[self handleEquipmentListMerging:results forLookupIndex:3]; // Index 3 is the role string (EQ_*).
 				}
 			}
 		}
@@ -595,8 +597,9 @@ static NSMutableDictionary *string_cache;
 
 
 // A method for handling merging of arrays. Currently used with the equipment.plist entries.
-// The arrayToProcess array is scanned for repetitions of the lookup key item and, if found, the latest entry replaces the earliest.
-+ (void) handleArrayMerging: (NSMutableArray *)arrayToProcess forLookupKey:(unsigned)lookupKey
+// The arrayToProcess array is scanned for repetitions of the item at lookup index location and, if found,
+// the latest entry replaces the earliest.
++ (void) handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex
 {
 	unsigned i,j,k;
 	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
@@ -609,8 +612,8 @@ static NSMutableDictionary *string_cache;
 		{
 			for (k=0; k < [[arrayToProcess objectAtIndex:j] count] - 1; k++)
 			{				
-				if ([[[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupKey] isEqual:
-					[[refArray objectAtIndex:i] objectAtIndex:lookupKey]])
+				if ([[[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupIndex] isEqual:
+					[[refArray objectAtIndex:i] objectAtIndex:lookupIndex]])
 				{
 					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];					
 					[refArray removeObjectAtIndex:i];									
