@@ -600,8 +600,16 @@ static BOOL		sRectangleTextureAvailable;
 			break;
 		
 		case kOOTextureDataGrayscale:
-			glFormat = GL_LUMINANCE8;
-			internalFormat = GL_LUMINANCE;
+			if (_options & kOOTextureAlphaMask)
+			{
+				glFormat = GL_ALPHA8;
+				internalFormat = GL_ALPHA;
+			}
+			else
+			{
+				glFormat = GL_LUMINANCE8;
+				internalFormat = GL_LUMINANCE;
+			}
 			type = GL_UNSIGNED_BYTE;
 			break;
 		

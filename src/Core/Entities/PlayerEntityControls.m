@@ -2625,7 +2625,7 @@ static BOOL toggling_music;
 	switch (gui_screen)
 	{
 		case GUI_SCREEN_INTRO1:
-			if(0);	// Dummy statement so compiler does not complain.
+			if(0) {}	// Dummy statement so compiler does not complain.
 			
 			// In order to support multiple languages, the Y/N response cannot be hardcoded. We get the keys
 			// corresponding to Yes/No from descriptions.plist and if they are not found there, we set them

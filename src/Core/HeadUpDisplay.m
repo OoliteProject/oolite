@@ -47,7 +47,7 @@ static OOTexture		*sFontTexture = nil;
 
 enum
 {
-	kFontTextureOptions = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink
+	kFontTextureOptions = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink | kOOTextureAlphaMask
 };
 
 
