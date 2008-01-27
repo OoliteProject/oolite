@@ -90,8 +90,8 @@
 		<string>Above Average</string>
 		<string>Competent</string>
 		<string>Dangerous</string>
-		<string>Deadly</string>
-		<string>---- E L I T E ----</string>
+		<string>☆ Deadly ☆</string>
+		<string>★★★ E L I T E ★★★</string>
 	</array>
 	<key>system_description</key>
 	<array>
@@ -161,7 +161,7 @@
 		<array>
 			<string>its [2] [3]</string>
 			<string>the %I [23] [24]</string>
-			<string>its inhabitants' [25] [4]</string>
+			<string>its inhabitants’ [25] [4]</string>
 			<string>[32]</string>
 			<string>its [12] [13]</string>
 		</array>
@@ -358,7 +358,7 @@
 		<string>Military Laser</string>
 	</array>
 	<key>digrams</key><!-- this string must always be the same length -->
-	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION</string>
+	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA’ERATENBERALAVETIEDORQUANTEISRION</string>
 	<key>phonograms</key><!-- this string represents the 4 character phonemes associated with each digram -->
 	<string>AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=</string>
 	<!-- Messages used when awarding bounties -->
@@ -368,7 +368,7 @@
 	</array>
 	<key>total-f-credits</key>
 	<array>
-		<string>Total: %.1f Cr</string>
+		<string>Total: %.1f ₢</string>
 	</array>
 	<key>right-on-commander</key>
 	<array>
@@ -591,10 +591,10 @@
 		<string>Help! Anyone!</string>
 		<string>Our systems are failing, please let us flee!</string>
 		<string>Leave us alone!</string>
-		<string>Don't shoot, please!</string>
+		<string>Don’t shoot, please!</string>
 		<string>Please stop! Have mercy!</string>
-		<string>Please don't kill us! I beg you!</string>
-		<string>S.O.S. ... S.O.S. ... S.O.S. ...</string>
+		<string>Please don’t kill us! I beg you!</string>
+		<string>S.O.S. … S.O.S. … S.O.S. …</string>
 	</array>
 	<key>describe-pirate</key>
 	<array>
@@ -619,9 +619,9 @@
 		<string>[describe-Pirate]s are attacking us. Please assist!</string>
 		<string>Help! Anyone!</string>
 		<string>Mayday! Mayday! Mayday! We are under attack.</string>
-		<string>Help! They're firing on us!</string>
+		<string>Help! They’re firing on us!</string>
 		<string>Mayday! Please assist. Mayday! Please assist.</string>
-		<string>S.O.S. ... S.O.S. ... S.O.S. ...</string>
+		<string>S.O.S. … S.O.S. … S.O.S. …</string>
 	</array>
 	<key>buoy-distress-call</key>
 	<array>
@@ -646,7 +646,7 @@
 	<array>
 		<string>Guard your [4], human [18]-[31]!</string>
 		<string>Eat [6], [5]!</string>
-		<string>We'll use your [20] [27] for our [33]!</string>
+		<string>We’ll use your [20] [27] for our [33]!</string>
 		<string>%R! %R! %R!</string>
 	</array>
 	<key>police-warning</key>
@@ -724,7 +724,7 @@
 		<string>You have been fined %d credits.</string>
 		<string>You have been fined %d credits, and made to pick up litter in the main hangar deck.</string>
 		<string>You have been fined %d credits, and are forced to clean up after the [6]oids.</string>
-		<string>You have been fined %d credits, and sent for 'attitude adjustment'.</string>
+		<string>You have been fined %d credits, and sent for “attitude adjustment”.</string>
 	</array>
 	<!-- system description after a nova -->
 	<key>nova-system-description</key>
@@ -765,7 +765,7 @@
 	<array>
 		<string>ben [nom11]</string>
 		<string>Mc[nom11]</string>
-		<string>O'[nom11]</string>
+		<string>O’[nom11]</string>
 		<string>Ath[enom2]</string>
 		<string>Br[nomvoweliy]an</string>
 		<string>Bran[nom2]</string>
@@ -913,9 +913,9 @@
 
 	<!-- Intro1 screen -->
 	<key>game-copyright</key>
-	<string>by Giles Williams and contributors (C) 2003-2008</string>
+	<string>by Giles Williams and contributors © 2003-2008</string>
 	<key>theme-music-credit</key>
-	<string>Oolite Theme Music by NoSleep (C) 2004</string>
+	<string>Oolite Theme Music by NoSleep © 2004</string>
 	<key>load-previous-commander</key>
 	<string>Load Previous Commander (Y/N)?</string>
 
@@ -952,6 +952,8 @@
 	<string>1 Passenger Berth</string>
 	<key>equipment-multiple-pass-berth-@</key>
 	<string>%d Passenger Berths</string>
+	<key>cash-quantity</key>
+	<string>%.1f ₢</string>
 
 	<!-- Short Range Chart Screen -->
 	<key>short-range-chart-title</key>
@@ -985,7 +987,7 @@
 	<key>in-hold-column-title</key>
 	<string>In hold:</string>
 	<key>cash-f-load-d-of-d</key>
-	<string>Cash: %.1f Cr.  Load %d of %d t.</string>
+	<string>Cash: %.1f ₢.  Load %d of %d t.</string>
 	<key>cargo-tons-symbol</key>
 	<string>t</string>
 	<key>cargo-grams-symbol</key>
@@ -1021,7 +1023,7 @@
 	<key>options-begin-new-game</key>
 	<string> Begin New Game </string>
 	<key>options-game-options</key>
-	<string> Game Options... </string>
+	<string> Game Options… </string>
 	<key>options-exit-game</key>
 	<string> Exit Game </string>
 	<key>options-reset-to-unrestricted-play</key>
@@ -1083,7 +1085,7 @@
 	<key>equip-title</key>
 	<string>Ship Outfitting</string>
 	<key>equip-cash-f</key>
-	<string>Cash: %.1f Cr.</string>
+	<string>Cash: %.1f ₢.</string>
 	<key>equip-no-equipment-available-for-purchase</key>
 	<string>No equipment available for purchase.</string>
 	<key>equip-repair-@</key>
@@ -1120,7 +1122,7 @@
 	<key>contracts-cargo-pays</key>
 	<string>Pays:</string>
 	<key>contracts-cash-f-load-d-of-d-passengers-d-of-d-berths</key>
-	<string>Cash: %.1f Cr.  Load %d of %d t. Passengers %d of %d berths.</string>
+	<string>Cash: %.1f ₢.  Load %d of %d t. Passengers %d of %d berths.</string>
 	<key>contracts-@-a-@-wishes-to-go-to-@</key>
 	<string>%@, a %@, wishes to go to %@.</string>
 	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>
@@ -1128,11 +1130,11 @@
 	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
 	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
 	<key>contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival</key>
-	<string>%@ Will pay %llu Cr: %d Cr in advance, and %llu Cr on arrival.</string>
+	<string>%@ Will pay %llu ₢: %d ₢ in advance, and %llu ₢ on arrival.</string>
 	<key>contracts-deliver-a-cargo-of-@-to-@</key>
 	<string>Deliver a cargo of %@ to %@.</string>
 	<key>contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits</key>
-	<string>%@ The contract will cost you %.1f Cr, and pay a total of %.1f Cr.</string>
+	<string>%@ The contract will cost you %.1f ₢, and pay a total of %.1f ₢.</string>
 	<key>contracts-no-time</key>
 	<string>no time</string>
 	<key>contracts-day-word</key>
@@ -1152,9 +1154,9 @@
 	<key>contracts-second-word-plural</key>
 	<string>secs</string>
 	
-	<!-- Ship's manifest screen -->
+	<!-- Ship’s manifest screen -->
 	<key>manifest-title</key>
-	<string>Ship's Manifest</string>
+	<string>Ship’s Manifest</string>
 	<key>manifest-none</key>
 	<string> None.</string>
 	<key>manifest-cargo-d-d</key>
@@ -1184,9 +1186,9 @@
 	<key>shipyard-no-ships-available-for-purchase</key>
 	<string>No ships available for purchase.</string>
 	<key>shipyard-your-@-trade-in-value-d</key>
-	<string>Your %@'s trade-in value: %d.0 Cr.</string>
+	<string>Your %@’s trade-in value: %d.0 ₢.</string>
 	<key>shipyard-total-available-f-cr-f-cr-plus-d-trade</key>
-	<string>Total available: %.1f Cr. (%.1f Cr. Cash + %d.0 Cr. Trade.)</string>
+	<string>Total available: %.1f ₢. (%.1f ₢ Cash + %d.0 ₢ Trade.)</string>
 	<key>passenger-berth-plural</key>
 	<string>Passenger Berths</string>
 	<key>passenger-berth-single</key>
@@ -1202,9 +1204,9 @@
 	<key>shipyard-forward-weapon-upgraded-to-@</key>
 	<string> Forward weapon upgraded to %@.</string>
 	<key>shipyard-selling-price-d-credits</key>
-	<string> Selling price %d Cr.</string>
+	<string> Selling price %d ₢.</string>
 	<key>shipyard-price-d-credits</key>
-	<string> Price %d Cr.</string>
+	<string> Price %d ₢.</string>
 	
 	<!-- Load/Save screens shared information -->
 	<key>loadsavescreen-commander-name</key>
@@ -1214,7 +1216,7 @@
 	<key>loadsavescreen-no-commanders-found</key>
 	<string>No commanders found</string>
 	<key>loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@</key>
-	<string>Commander %@ is rated %@ and has %llu Cr in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@</string>
+	<string>Commander %@ is rated %@ and has %llu ₢ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@</string>
 	
 	<!-- Load commander screen -->
 	<key>loadscreen-title</key>
@@ -1274,18 +1276,18 @@
 	<string>%H Arrival Report</string>
 	
 	<key>passenger-delivered-okay-@-d-@</key>
-	<string>%@ thanks you, and pays you %d Cr for delivering them to %@.</string>
+	<string>%@ thanks you, and pays you %d ₢ for delivering them to %@.</string>
 	<key>passenger-delivered-late-@-d-@</key>
-	<string>%@ pays you %d Cr for eventually delivering them to %@.</string>
+	<string>%@ pays you %d ₢ for eventually delivering them to %@.</string>
 	<key>passenger-failed-@</key>
 	<string>%@ leaves your ship, annoyed that you have wasted so much of their time.</string>
 
 	<key>cargo-delivered-okay-@-f</key>
-	<string>Droids unload the %@ and you are paid %.1f Cr.</string>
+	<string>Droids unload the %@ and you are paid %.1f ₢.</string>
 	<key>cargo-delivered-short-@-f-d</key>
-	<string>Droids unload the %@, but you are only paid %.1f Cr. as there is a %d percent shortfall.</string>
+	<string>Droids unload the %@, but you are only paid %.1f ₢ as there is a %d percent shortfall.</string>
 	<key>cargo-refused-short-%@</key>
-	<string>You don't have enough inventory to deliver the %@.</string>
+	<string>You don’t have enough inventory to deliver the %@.</string>
 	<key>cargo-delivered-late-@</key>
 	<string>You fail to deliver the %@ on time, and no-one wants to pay for it.</string>
 	<key>cargo-failed-@</key>
@@ -1298,7 +1300,7 @@
 	</array>
 
 	<!-- character descriptions -->
-	<!-- basic short desc - 'A $species from $homeworld' -->
+	<!-- basic short desc - “A $species from $homeworld” -->
 	<key>character-a-@-from-@</key>
 	<string>a %@ from %@</string>
 	
@@ -1306,7 +1308,7 @@
 	<key>rescue-reward-for-@@-f-credits</key>
 	<string>For rescuing %@, %@, their insurance pays %.1f credits.</string>
 	<key>capture-reward-for-@@-f-credits</key>
-	<string>For capturing %@, %@, you're paid a bounty of %.1f credits.</string>
+	<string>For capturing %@, %@, you’re paid a bounty of %.1f credits.</string>
 		
 </dict>
 </plist>

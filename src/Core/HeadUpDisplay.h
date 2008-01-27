@@ -175,8 +175,6 @@ MA 02110-1301, USA.
 #define Z1						[(MyOpenGLView *)[[player universe] gameView] display_z]
 
 #define ONE_EIGHTH				0.125
-#define ONE_SIXTEENTH			0.0625
-#define ONE_SIXTYFOURTH			0.015625
 
 
 
@@ -263,7 +261,6 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 
 void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1);
 
-double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz);
 void drawString(NSString *text, double x, double y, double z, NSSize siz);
 void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect rectForString(NSString *text, double x, double y, NSSize siz);

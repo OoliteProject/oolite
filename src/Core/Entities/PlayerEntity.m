@@ -4060,7 +4060,7 @@ double scoopSoundPlayTime = 0.0;
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
 		alert_desc = AlertConditionToString([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
-		credits_desc = [NSString stringWithFormat:@"%.1f Cr", credits/10.0];
+		credits_desc = [NSString stringWithFormat:DESC(@"cash-quantity"), credits/10.0];
 		
 		[gui clear];
 

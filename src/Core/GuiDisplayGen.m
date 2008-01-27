@@ -1109,26 +1109,23 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			NSArray*	array = (NSArray *)[rowText objectAtIndex:i];
 			for (j = 0; ((j < [array count])&&(j < n_columns)) ; j++)
 			{
-				if ([array objectAtIndex:j])
+				NSString*   text = [array stringAtIndex:j];
+				if ([text length] != 0)
 				{
-					NSString*   text = (NSString *)[array objectAtIndex:j];
-					if (![text isEqual:@""])
+					rowPosition[i].x = tabStops[j];
+					if (i == (unsigned)selectedRow)
 					{
-						rowPosition[i].x = tabStops[j];
-						if (i == (unsigned)selectedRow)
-						{
-							NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-							glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
-							glBegin(GL_QUADS);
-								glVertex3f(block.origin.x,						block.origin.y,						z);
-								glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
-								glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
-								glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
-							glEnd();
-							glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
-						}
-						drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+						NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+						glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
+						glBegin(GL_QUADS);
+							glVertex3f(block.origin.x,						block.origin.y,						z);
+							glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
+							glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
+							glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
+						glEnd();
+						glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
 					}
+					drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				}
 			}
 		}

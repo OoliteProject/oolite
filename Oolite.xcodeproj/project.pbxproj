@@ -94,7 +94,6 @@
 		1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181E0B9D026D00EF0852 /* adder_redux.png */; };
 		1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23181F0B9D026D00EF0852 /* anaconda_redux.png */; };
 		1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318200B9D026D00EF0852 /* arcdetail.png */; };
-		1A2318620B9D026D00EF0852 /* asciitext.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318210B9D026D00EF0852 /* asciitext.png */; };
 		1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318220B9D026D00EF0852 /* asp_redux.png */; };
 		1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318230B9D026D00EF0852 /* asteroid.png */; };
 		1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318240B9D026D00EF0852 /* back_metal.png */; };
@@ -485,6 +484,10 @@
 		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
+		1AC544FA0D4D217900C90E5B /* oolite-font.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC544F90D4D217900C90E5B /* oolite-font.png */; };
+		1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC545040D4D228400C90E5B /* OOEncodingConverter.h */; };
+		1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC545050D4D228400C90E5B /* OOEncodingConverter.m */; };
+		1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AC5452C0D4D298E00C90E5B /* oolite-font.plist */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
 		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
@@ -738,7 +741,6 @@
 				1A23185F0B9D026D00EF0852 /* adder_redux.png in Copy Textures */,
 				1A2318600B9D026D00EF0852 /* anaconda_redux.png in Copy Textures */,
 				1A2318610B9D026D00EF0852 /* arcdetail.png in Copy Textures */,
-				1A2318620B9D026D00EF0852 /* asciitext.png in Copy Textures */,
 				1A2318630B9D026D00EF0852 /* asp_redux.png in Copy Textures */,
 				1A2318640B9D026D00EF0852 /* asteroid.png in Copy Textures */,
 				1A2318650B9D026D00EF0852 /* back_metal.png in Copy Textures */,
@@ -1005,7 +1007,7 @@
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
 		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
-		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.plist; };
+		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
 		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };
 		1A2317920B9D022500EF0852 /* collectLootAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = collectLootAI.plist; sourceTree = "<group>"; };
 		1A2317930B9D022500EF0852 /* dockingAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = dockingAI.plist; sourceTree = "<group>"; };
@@ -1043,7 +1045,6 @@
 		1A23181E0B9D026D00EF0852 /* adder_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = adder_redux.png; sourceTree = "<group>"; };
 		1A23181F0B9D026D00EF0852 /* anaconda_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = anaconda_redux.png; sourceTree = "<group>"; };
 		1A2318200B9D026D00EF0852 /* arcdetail.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = arcdetail.png; sourceTree = "<group>"; };
-		1A2318210B9D026D00EF0852 /* asciitext.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asciitext.png; sourceTree = "<group>"; };
 		1A2318220B9D026D00EF0852 /* asp_redux.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asp_redux.png; sourceTree = "<group>"; };
 		1A2318230B9D026D00EF0852 /* asteroid.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = asteroid.png; sourceTree = "<group>"; };
 		1A2318240B9D026D00EF0852 /* back_metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back_metal.png; sourceTree = "<group>"; };
@@ -1449,6 +1450,10 @@
 		1AC0E9490B974DC200C46994 /* LICENSE.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
 		1AC0E94A0B974DC200C46994 /* PORTING.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = PORTING.TXT; sourceTree = "<group>"; };
 		1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README_LINUX.TXT; sourceTree = "<group>"; };
+		1AC544F90D4D217900C90E5B /* oolite-font.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-font.png"; sourceTree = "<group>"; };
+		1AC545040D4D228400C90E5B /* OOEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEncodingConverter.h; sourceTree = "<group>"; };
+		1AC545050D4D228400C90E5B /* OOEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEncodingConverter.m; sourceTree = "<group>"; };
+		1AC5452C0D4D298E00C90E5B /* oolite-font.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-font.plist"; sourceTree = "<group>"; };
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
 		1AC973F90C9847850010C42B /* pirate-victim-roles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "pirate-victim-roles.plist"; sourceTree = "<group>"; };
@@ -1678,6 +1683,7 @@
 				1A9533890C02089E004EBB58 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
 				1A3591810C1C382700E52220 /* nebulatextures.plist */,
+				1AC5452C0D4D298E00C90E5B /* oolite-font.plist */,
 				1AC973F90C9847850010C42B /* pirate-victim-roles.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
@@ -1736,7 +1742,6 @@
 				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
 				1A23181F0B9D026D00EF0852 /* anaconda_redux.png */,
 				1A2318200B9D026D00EF0852 /* arcdetail.png */,
-				1A2318210B9D026D00EF0852 /* asciitext.png */,
 				1A2318220B9D026D00EF0852 /* asp_redux.png */,
 				1A2318230B9D026D00EF0852 /* asteroid.png */,
 				1A2318240B9D026D00EF0852 /* back_metal.png */,
@@ -1772,6 +1777,7 @@
 				1A2318420B9D026D00EF0852 /* moray_redux1.png */,
 				1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */,
 				1A2318440B9D026D00EF0852 /* MorayMED_top.png */,
+				1AC544F90D4D217900C90E5B /* oolite-font.png */,
 				1A3591690C1C375400E52220 /* oolite-nebula-1.png */,
 				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
@@ -2349,6 +2355,8 @@
 				2516112B099544390037C2E1 /* HeadUpDisplay.m */,
 				25161127099544390037C2E1 /* GuiDisplayGen.h */,
 				25161126099544390037C2E1 /* GuiDisplayGen.m */,
+				1AC545040D4D228400C90E5B /* OOEncodingConverter.h */,
+				1AC545050D4D228400C90E5B /* OOEncodingConverter.m */,
 			);
 			name = "User Interface";
 			sourceTree = "<group>";
@@ -2711,6 +2719,7 @@
 				1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */,
 				1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */,
 				1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */,
+				1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2850,6 +2859,8 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
+				1AC544FA0D4D217900C90E5B /* oolite-font.png in Resources */,
+				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3062,6 +3073,7 @@
 				1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */,
 				1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */,
 				1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */,
+				1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

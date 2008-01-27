@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>texture</key>
+	<string>oolite-font.png</string>
+	<key>substitutions</key>
+	<dict>
+		<key>₢</key>
+		<string>€</string>
+		<key>⌃</key>
+		<string>Control</string>
+		<key>⌘</key>
+		<string>(Command)</string>
+		<key>⌥</key>
+		<string>(Option)</string>
+		<key>★</key>
+		<string>&#x8;</string>
+		<key>☆</key>
+		<string>&#x18;</string>
+		<key>♭</key>
+		<string>b</string>
+		<key>♮</key>
+		<string>=</string>
+		<key>♯</key>
+		<string>#</string>
+		<key>✯</key>
+		<string>&#x8;</string>
+	</dict>
+	<key>widths</key>
+	<array>
+		<real>8.000</real>
+		<real>7.000</real>
+		<real>8.000</real>
+		<real>8.000</real>
+		<real>7.000</real>
+		<real>6.000</real>
+		<real>7.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>5.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>7.500</real>
+		<real>8.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+		<real>6.000</real>
+	</array>
+</dict>
+</plist>

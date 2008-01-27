@@ -34,8 +34,13 @@ MA 02110-1301, USA.
 #import "OOTexture.h"
 #import "OpenGLSprite.h"
 #import "OOCollectionExtractors.h"
+#import "OOEncodingConverter.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
+
+
+#define ONE_SIXTEENTH			0.0625
+#define ONE_SIXTYFOURTH			0.015625
 
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
@@ -43,15 +48,15 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
 
 
-static OOTexture		*sFontTexture = nil;
+static OOTexture			*sFontTexture = nil;
+static OOEncodingConverter	*sEncodingCoverter = nil;
+
 
 enum
 {
 	kFontTextureOptions = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink | kOOTextureAlphaMask
 };
 
-
-static const char *UnicodeToASCII(unsigned inCodePoint);
 
 @implementation HeadUpDisplay
 
@@ -62,7 +67,8 @@ GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 GLfloat darkgreen_color[4] ={0.0, 0.75, 0.0, 1.0};
 GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 
-float char_widths[128] = {
+static float char_widths[256]/* =
+{
 	8.000,	7.000,	8.000,	8.000,	7.000,	6.000,	7.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
 	5.000,	6.000,	6.000,	6.000,	6.000,	6.000,	7.500,	8.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
 	1.750,	2.098,	2.987,	3.504,	3.504,	5.602,	4.550,	1.498,	2.098,	2.098,	2.452,	3.679,	1.750,	2.098,	1.750,	1.750,
@@ -70,8 +76,17 @@ float char_widths[128] = {
 	6.143,	4.550,	4.550,	4.550,	4.550,	4.202,	3.848,	4.900,	4.550,	1.750,	3.504,	4.550,	3.848,	5.248,	4.550,	4.900,
 	4.202,	4.900,	4.550,	4.202,	3.848,	4.550,	4.202,	5.946,	4.202,	4.202,	3.848,	2.098,	1.750,	2.098,	3.679,	3.504,
 	2.098,	3.504,	3.848,	3.504,	3.848,	3.504,	2.098,	3.848,	3.848,	1.750,	1.750,	3.504,	1.750,	5.602,	3.848,	3.848,
-	3.848,	3.848,	2.452,	3.504,	2.098,	3.848,	3.504,	4.900,	3.504,	3.504,	3.150,	2.452,	1.763,	2.452,	3.679,	6.000
-};
+	3.848,	3.848,	2.452,	3.504,	2.098,	3.848,	3.504,	4.900,	3.504,	3.504,	3.150,	2.452,	1.763,	2.452,	3.679,	6.000,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
+	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
+}*/;
+
+static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz);
+
+static void InitTextEngine(void);
+
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo
 {
@@ -82,15 +97,7 @@ float char_widths[128] = {
 		
 	line_width = 1.0;
 	
-	if (sFontTexture == nil)
-	{
-		sFontTexture = [OOTexture textureWithName:@"asciitext.png"
-										 inFolder:@"Textures"
-										  options:kFontTextureOptions
-									   anisotropy:0.0f
-										  lodBias:-0.75f];
-		[sFontTexture retain];
-	}
+	if (sFontTexture == nil)  InitTextEngine();
 			
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
@@ -2018,23 +2025,52 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 }
 
 
-double drawCharacterQuad(int chr, double x, double y, double z, NSSize siz)
+static void InitTextEngine(void)
 {
-	if ((chr < 0) || (chr > 127))
-		return 0;
-	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
-	GLfloat texture_y = ONE_EIGHTH * (chr >> 4);		// divide by 16 fast
+	NSDictionary			*fontSpec = nil;
+	NSArray					*widths = nil;
+	NSString				*texName = nil;
+	unsigned				i, count;
 	
-	glTexCoord2f(texture_x, texture_y + ONE_EIGHTH);
+	fontSpec = [ResourceManager dictionaryFromFilesNamed:@"oolite-font.plist"
+												inFolder:@"Config"
+												andMerge:NO];
+	
+	texName = [fontSpec stringForKey:@"texture" defaultValue:@"oolite-font.png"];
+	sFontTexture = [OOTexture textureWithName:texName
+									 inFolder:@"Textures"
+									  options:kFontTextureOptions
+								   anisotropy:0.0f
+									  lodBias:-0.75f];
+	[sFontTexture retain];
+	
+	sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:fontSpec];
+	widths = [fontSpec arrayForKey:@"widths"];
+	count = [widths count];
+	if (count > 256)  count = 256;
+	for (i = 0; i != count; ++i)
+	{
+		char_widths[i] = [widths floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
+	}
+}
+
+
+static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz)
+{
+	GLfloat texture_x = ONE_SIXTEENTH * (chr & 0x0f);
+	GLfloat texture_y = ONE_SIXTEENTH * (chr >> 4);
+	if (chr > 32)  y += ONE_EIGHTH * siz.height;	// Adjust for baseline offset change in 1.71 (needed to keep accented characters in box)
+	
+	glTexCoord2f(texture_x, texture_y + ONE_SIXTEENTH);
 	glVertex3f(x, y, z);
-	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_EIGHTH);
+	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y + ONE_SIXTEENTH);
 	glVertex3f(x + siz.width, y, z);
 	glTexCoord2f(texture_x + ONE_SIXTEENTH, texture_y);
 	glVertex3f(x + siz.width, y + siz.height, z);
 	glTexCoord2f(texture_x, texture_y);
 	glVertex3f(x, y + siz.height, z);
-
-	return siz.width * 0.13 * char_widths[chr];
+	
+	return siz.width * char_widths[chr];
 }
 
 
@@ -2042,125 +2078,33 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 {
 	unsigned		i;
 	double			cx = x;
-	const char		*string = NULL;
-	char			simple[2] = {0, 0};
-	unsigned		ch, next, length;
+	unsigned		ch, length;
+	NSData			*data = nil;
+	const uint8_t	*bytes = NULL;
 	
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
-
+	
+	data = [sEncodingCoverter convertString:text];
+	length = [data length];
+	bytes = [data bytes];
+	
 	glBegin(GL_QUADS);
-	length = [text length];
 	for (i = 0; i < length; i++)
 	{
-		ch = [text characterAtIndex:i];
-		if ((ch & 0xFC00) == 0xD800)
+		ch = bytes[i];
+		if (ch == '\t')  ch = ' ';
+		if (ch > 190)
 		{
-			// This is a high surrogate. NSStrings don’t automagically handle surrogate pairs
-			// for us for historical reasons.
-			if (i != length - 1)
-			{
-				// Check if next is a low surrogate
-				next = [text characterAtIndex:i + 1];
-				if ((next & 0xFC00) == 0xDC00)
-				{
-					// It is; merge the surrogate pair into a code point in ch and skip
-					++i;
-					ch = ((ch & 0x03FF) << 10) | (next & 0x03FF);
-				}
-			}
+			OOLog(@"temp", @"Fancy!");
 		}
-		
-		if (0x7f < ch) string = UnicodeToASCII(ch);
-		else
-		{
-			// An alternative for tabs would be to round cx up to the next multiple of foo
-			if (ch == '\t') ch = ' ';
-			simple[0] = ch;
-			string = simple;
-		}
-		
-		while (*string)
-		{
-			assert(!(*string & 0x80));
-			cx += drawCharacterQuad(*string++, cx, y, z, siz);
-		}
+		cx += drawCharacterQuad(ch, cx, y, z, siz);
 	}
 	glEnd();
 	
 	[OOTexture applyNone];
 	glDisable(GL_TEXTURE_2D);
-	
-}
-
-
-static const char *UnicodeToASCII(unsigned inCodePoint)
-{
-	// Convert some Unicode code points likely(ish) to occur in Roman text to ASCII near equivalents.
-	// Doesn't do characters with diacritics, 'cos there's loads.
-	switch (inCodePoint)
-	{
-		case 0x2018:	// Left single quotation mark
-		case 0x2019:	// Right single quotation mark
-		case 0x201B:	// Single high-reversed-9 quotation mark
-			return "'";
-		
-		case 0x201A:	// Single low-9 quotation mark
-			return ",";
-		
-		case 0x201C:	// Left double quotation mark
-		case 0x201D:	// Right double quotation mark
-		case 0x201F:	// Double high-reversed-9 quotation mark
-			return "\"";
-		
-		case 0x201E:	// Double low-9 quotation mark
-			return ",,";
-		
-		case 0x2026:	// Horizontal ellipsis
-			return "...";
-		
-		case 0x2010:	// Hyphen
-		case 0x2011:	// Hyphen
-		case 0x00AD:	// Soft hyphen
-		case 0x2012:	// Figure dash
-		case 0x2013:	// En dash
-		case 0x00B7:	// Middle dot
-			return "-";
-		
-		case 0x2014:	// Em dash
-		case 0x2015:	// Horizontal bar
-			return "--";
-		
-		case 0x2318:	// Place of interest sign (Command key)
-			return "(Cmd)";
-		
-		case 0x2325:	// Option Key
-			return "(Option)";
-		
-		case 0x2303:	// Up arrowhead (Control Key)
-			return "(Control)";
-		
-		// For GrowlTunes:
-		case 0x2605:	// Black star
-		case 0x272F:	// Pinwheel star
-			return "*";
-		
-		case 0x2606:	// White star
-			return "-";
-		
-		case 0x266D:	// Musical flat sign
-			return "b";
-		
-		case 0x266E:	// Musical natural sign
-			return "=";
-		
-		case 0x266F:	// Musical sharp sign
-			return "#";
-		
-		default:
-			return "?";
-	}
 }
 
 
@@ -2205,14 +2149,19 @@ NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 {
 	unsigned			i;
 	double				w = 0;
+	NSData				*data = nil;
+	const uint8_t		*bytes = nil;
+	unsigned			length;
 	
-	for (i = 0; i < [text length]; i++)
+	data = [sEncodingCoverter convertString:text];
+	bytes = [data bytes];
+	length = [data length];
+	
+	for (i = 0; i < length; i++)
 	{
-		int ch = (int)[text characterAtIndex:i];
-		ch = ch & 0x7f;
-		w += siz.width * 0.13 * char_widths[ch];
+		w += siz.width * char_widths[bytes[i]];
 	}
-
+	
 	return NSMakeRect(x, y, w, siz.height);
 }
 

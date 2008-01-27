@@ -63,5 +63,25 @@
 	(
 		Ident,
 		Identification
+	),
+	(
+		"©",
+		"copyright"
+	),
+	(
+		"™",
+		"trademark"
+	),
+	(
+		"®",
+		"registered trademark"
+	),
+	(
+		"₢",
+		"credits"
+	),
+	(
+		"€",
+		"credits"
 	)
 )
