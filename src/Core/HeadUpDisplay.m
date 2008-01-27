@@ -3,7 +3,7 @@
 HeadUpDisplay.m
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -67,21 +67,8 @@ GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 GLfloat darkgreen_color[4] ={0.0, 0.75, 0.0, 1.0};
 GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 
-static float char_widths[256]/* =
-{
-	8.000,	7.000,	8.000,	8.000,	7.000,	6.000,	7.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
-	5.000,	6.000,	6.000,	6.000,	6.000,	6.000,	7.500,	8.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,	6.000,
-	1.750,	2.098,	2.987,	3.504,	3.504,	5.602,	4.550,	1.498,	2.098,	2.098,	2.452,	3.679,	1.750,	2.098,	1.750,	1.750,
-	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	4.000,	2.098,	2.098,	3.679,	3.679,	3.679,	3.848,
-	6.143,	4.550,	4.550,	4.550,	4.550,	4.202,	3.848,	4.900,	4.550,	1.750,	3.504,	4.550,	3.848,	5.248,	4.550,	4.900,
-	4.202,	4.900,	4.550,	4.202,	3.848,	4.550,	4.202,	5.946,	4.202,	4.202,	3.848,	2.098,	1.750,	2.098,	3.679,	3.504,
-	2.098,	3.504,	3.848,	3.504,	3.848,	3.504,	2.098,	3.848,	3.848,	1.750,	1.750,	3.504,	1.750,	5.602,	3.848,	3.848,
-	3.848,	3.848,	2.452,	3.504,	2.098,	3.848,	3.504,	4.900,	3.504,	3.504,	3.150,	2.452,	1.763,	2.452,	3.679,	6.000,
-	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-	4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4
-}*/;
+static float sGlyphWidths[256];
+
 
 static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz);
 
@@ -2050,7 +2037,7 @@ static void InitTextEngine(void)
 	if (count > 256)  count = 256;
 	for (i = 0; i != count; ++i)
 	{
-		char_widths[i] = [widths floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
+		sGlyphWidths[i] = [widths floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
 	}
 }
 
@@ -2070,7 +2057,7 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 	glTexCoord2f(texture_x, texture_y);
 	glVertex3f(x, y + siz.height, z);
 	
-	return siz.width * char_widths[chr];
+	return siz.width * sGlyphWidths[chr];
 }
 
 
@@ -2159,7 +2146,7 @@ NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 	
 	for (i = 0; i < length; i++)
 	{
-		w += siz.width * char_widths[bytes[i]];
+		w += siz.width * sGlyphWidths[bytes[i]];
 	}
 	
 	return NSMakeRect(x, y, w, siz.height);
