@@ -460,11 +460,14 @@ MA 02110-1301, USA.
 		return;
 	
 	[self addTarget:missile];
+
+	// Notify own ship script that we are being attacked.	
+	ShipEntity *hunter = [missile owner];
+	[self doScriptEvent:@"beingAttacked" withArgument:hunter];
 	
 	if (has_ecm)
 	{
 		// use the ECM and battle on
-		ShipEntity *hunter = [missile owner];
 		
 		[self setPrimaryAggressor:hunter];	// lets get them now for that!
 		found_target = primaryAggressor;

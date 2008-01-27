@@ -257,7 +257,7 @@ static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc,
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*params = nil;
 	
-	player = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
+	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
 	[player removeMissionDestination:params];
 	
 	return YES;
