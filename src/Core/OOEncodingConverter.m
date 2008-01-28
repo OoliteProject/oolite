@@ -1,8 +1,6 @@
 /*
 
-OOEncodingConverter.h
-
-Convert a 
+OOEncodingConverter.m
 
 
 Oolite
@@ -51,6 +49,7 @@ SOFTWARE.
 #import "OOEncodingConverter.h"
 #import "OOCache.h"
 #import "OOCollectionExtractors.h"
+#import "OOLogging.h"
 
 
 /*	Using compatibility mapping - converting strings to Unicode form KC - would
@@ -63,6 +62,18 @@ SOFTWARE.
 #define USE_COMPATIBILITY_MAPPING 0
 #else
 #define USE_COMPATIBILITY_MAPPING 0
+#endif
+
+
+#define PROFILE_ENCODING_CONVERTER 0
+
+
+#if PROFILE_ENCODING_CONVERTER
+static OOEncodingConverter	*sProfiledConverter = nil;
+static NSTimer				*sProfileTimer = nil;
+
+static unsigned				sCacheHits = 0;
+static unsigned				sCacheMisses = 0;
 #endif
 
 
@@ -82,8 +93,17 @@ SOFTWARE.
 	{
 		_cache = [[OOCache alloc] init];
 		[_cache setPruneThreshold:100];
+		[_cache setName:@"Text encoding"];
 		_substitutions = [substitutions copy];
 		_encoding = encoding;
+		
+#if PROFILE_ENCODING_CONVERTER
+		if (sProfiledConverter == nil)
+		{
+			sProfiledConverter = self;
+			sProfileTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(profileFire:) userInfo:nil repeats:YES];
+		}
+#endif
 	}
 	
 	return self;
@@ -100,6 +120,14 @@ SOFTWARE.
 {
 	[_cache release];
 	[_substitutions release];
+	
+#if PROFILE_ENCODING_CONVERTER
+	sProfiledConverter = nil;
+	[sProfileTimer invalidate];
+	sProfileTimer = nil;
+	sCacheHits = 0;
+	sCacheMisses = 0;
+#endif
 	
 	[super dealloc];
 }
@@ -127,6 +155,14 @@ SOFTWARE.
 	{
 		data = [self performConversionForString:string];
 		if (data != nil)  [_cache setObject:data forKey:string];
+		
+#if PROFILE_ENCODING_CONVERTER
+		++sCacheMisses;
+	}
+	else
+	{
+		++sCacheHits;
+#endif
 	}
 	
 	return data;
@@ -156,5 +192,22 @@ SOFTWARE.
 	
 	return [mutable dataUsingEncoding:_encoding allowLossyConversion:YES];
 }
+
+
+#if PROFILE_ENCODING_CONVERTER
+/*
+	Profiling observations:
+	* The clock generates one new string per second.
+	* The trade screens each use over 60 strings, so cache sizes below 70 are
+	  undesireable.
+	* Cache hit ratio is extremely near 100% at most times.
+*/
+- (void) profileFire:(id)junk
+{
+	float ratio = (float)sCacheHits / (float)(sCacheHits + sCacheMisses);
+	OOLog(@"strings.encoding.profile", @"Cache hits: %u, misses: %u, ratio: %.2g", sCacheHits, sCacheMisses, ratio);
+	sCacheHits = sCacheMisses = 0;
+}
+#endif
 
 @end

@@ -2,9 +2,8 @@
 
 OOEncodingConverter.h
 
-Convert a string to an 8-bit encoding, with some Oolite-specific features:
-* Code point 7F is used as a placeholder for unknown values.
-* Substring remappings defined in oolite-text-substitutes.plist are applied.
+Convert a string to an 8-bit encoding, with some Oolite-specific remappings
+specified at init time (currently always from oolite-font.plist).
 
 
 Oolite
