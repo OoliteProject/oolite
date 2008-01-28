@@ -2137,7 +2137,7 @@ NSRect rectForString(NSString *text, double x, double y, NSSize siz)
 	unsigned			i;
 	double				w = 0;
 	NSData				*data = nil;
-	const uint8_t		*bytes = nil;
+	const uint8_t		*bytes = NULL;
 	unsigned			length;
 	
 	data = [sEncodingCoverter convertString:text];
