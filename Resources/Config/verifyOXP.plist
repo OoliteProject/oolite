@@ -243,6 +243,7 @@
 			"weapon_position_aft",
 			"weapon_position_port",
 			"weapon_position_starboard",
+			"weapon_offset_x",
 			"scoop_position",
 			"heat_insulation",
 			"pilot",
@@ -255,7 +256,8 @@
 			"escape_pod_model",
 			"aft_eject_position",
 			"auto_ai",
-			"script"
+			"script",
+			"conditions"
 		);
 		knownStationKeys =
 		(

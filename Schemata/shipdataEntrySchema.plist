@@ -73,6 +73,7 @@
 		weapon_position_aft = "vector";
 		weapon_position_port = "vector";
 		weapon_position_starboard = "vector";
+		weapon_offset_x = "float";	// NOTE: ignored after 1.65
 		scoop_position = "vector";
 		heat_insulation = "positiveFloat";
 		pilot = "$characterKey";
@@ -96,7 +97,7 @@
 				"boolean"
 			);
 		};
-		conditions = "$scriptCouplet";
+		conditions = "$scriptConditionList";
 		port_radius = "positiveFloat";
 		port_dimensions = "$portDimensions";
 		equivalent_tech_level = "integer";
@@ -405,11 +406,11 @@
 			baseType = "string";
 			key = "scriptCondition";
 		};
-		$scriptCouplet =
+		$scriptConditionList =
 		{
 			type = "delegatedType";
-			baseType = "dictionary";
-			key = "scriptCouplet";
+			baseType = "array";
+			key = "scriptConditions";
 		};
 		$portDimensions =
 		{
