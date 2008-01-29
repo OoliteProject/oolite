@@ -90,11 +90,18 @@ typedef enum
 #endif
 
 #if ADDITIVE_BLENDING
-static inline void BeginAdditiveBlending(void)
+static inline void BeginAdditiveBlending(BOOL withGL_ONE)
 {
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if (withGL_ONE)
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	}
+	else
+	{
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
 }
 
 
@@ -102,8 +109,11 @@ static inline void EndAdditiveBlending(void)
 {
 	glPopAttrib();
 }
+
+#define GL_ONE_YES	YES
+#define GL_ONE_NO	NO
 #else
-#define BeginAdditiveBlending()	do {} while (0)
+#define BeginAdditiveBlending(x)	do {} while (0)
 #define EndAdditiveBlending()	do {} while (0)
 #endif
 
@@ -1493,7 +1503,7 @@ FAIL:
 
 	[texture apply];
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 
 	glBegin(GL_QUADS);
 
@@ -1604,7 +1614,7 @@ FAIL:
 
 	glColor4fv(color_fv);
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_NO);
 
 	glBegin(GL_QUADS);
 
@@ -1648,7 +1658,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisable(GL_CULL_FACE);		// face culling
 	glShadeModel(GL_SMOOTH);
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, verts);
@@ -1685,7 +1695,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisable(GL_TEXTURE_2D);
 	glShadeModel(GL_SMOOTH);
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 	
 	// movies:
 	// draw data required ring_inner_radius, ring_outer_radius
@@ -1716,7 +1726,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisable(GL_CULL_FACE);			// face culling
 	glDisable(GL_TEXTURE_2D);
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 
 	int step = 4;
 
@@ -1742,7 +1752,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	[texture apply];
 	glPushMatrix();
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 
 	glBegin(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
@@ -1768,7 +1778,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	[texture apply];
 	glPushMatrix();
 	
-	BeginAdditiveBlending();
+	BeginAdditiveBlending(GL_ONE_YES);
 
 	glBegin(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
