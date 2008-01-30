@@ -5805,6 +5805,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	NSMutableString	*inhabitants = [NSMutableString string];
 	NSArray			*inhabitantStrings = nil;
+	//i18n: Some languages have different plural and singular forms for adjectives.
+	BOOL			singularAdjectivesExist = NO;
 	
 	if (s_seed.e < 127)
 	{
@@ -5822,22 +5824,30 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	{
 		inhabitantStrings = [descriptions arrayForKey:KEY_INHABITANTS];
 		
+		// The first 5 arrays in 'inhabitants' are the standard ones, anything else below is language specific
+		// and will refer to the different singular forms for the particular language we are translating to.
+		// If this is the case, three more arrays are expected, raising the total count of subarrays to 8.
+		singularAdjectivesExist = [inhabitantStrings count] == 8;
+		
 		int inhab = (s_seed.f / 4) & 7;
 		if (inhab < 3)
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:0] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
+								0 : singularAdjectivesExist ? 5 : 0] stringAtIndex:inhab]];
 		
 		inhab = s_seed.f / 32;
 		if (inhab < 6)
 		{
 			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:1] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
+								1 : singularAdjectivesExist ? 6 : 1] stringAtIndex:inhab]];
 		}
 
 		inhab = (s_seed.d ^ s_seed.b) & 7;
 		if (inhab < 6)
 		{
 			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:2] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
+								2 : singularAdjectivesExist ? 7 : 2] stringAtIndex:inhab]];
 		}
 
 		inhab = (inhab + (s_seed.f & 3)) & 7;
