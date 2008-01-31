@@ -6428,6 +6428,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				
 		if ((days_until_departure > 0.0)&&(pick_up_factor <= player_repute)&&(passenger_seed.d != start))
 		{
+			BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
 			// determine the passenger's species
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
 			NSString* passenger_species_string = [NSString stringWithString:native_species];
@@ -6437,7 +6438,14 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				passenger_species_string = [self generateSystemInhabitants:passenger_seed plural:NO];
 			}
-			passenger_species_string = [[passenger_species_string lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			if(!lowercaseIgnore)
+			{
+				passenger_species_string = [[passenger_species_string lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			}
+			else
+			{
+				passenger_species_string = [passenger_species_string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+			}
 			
 			// determine the passenger's name
 			seed_RNG_only_for_planet_description(passenger_seed);
@@ -7019,8 +7027,13 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			if (weapon_customised)
 			{
-				[description appendFormat:DESC(@"shipyard-forward-weapon-has-been-upgraded-to-a-@"), [fwd_weapon_desc lowercaseString]];
-				[short_description appendFormat:DESC(@"shipyard-forward-weapon-upgraded-to-@"), [fwd_weapon_desc lowercaseString]];
+				// i18n: Some languages require that no conversion to lower case string takes place.
+				BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"];
+				
+				[description appendFormat:DESC(@"shipyard-forward-weapon-has-been-upgraded-to-a-@"), 
+								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
+				[short_description appendFormat:DESC(@"shipyard-forward-weapon-upgraded-to-@"),
+								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
 			}
 			
 			price = base_price + cunningFee(price - base_price);
