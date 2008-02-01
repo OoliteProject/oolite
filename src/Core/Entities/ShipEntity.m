@@ -428,6 +428,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
+	// Using runLegacyScriptActions for user scripts is explicitly not supported at this moment.
+	// The code below makes such a situation possible, and is therefore disabled. - Nikos
+#if 0
 	// Load (or synthesize) script									
 	NSArray				*actions = nil;
 	NSMutableDictionary		*properties = nil;
@@ -452,6 +455,34 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"  properties:properties];
 	}
+#else
+	// Load (or synthesize) script
+	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
+										  properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
+	if (script == nil)
+	{
+		NSArray					*actions = nil;
+		NSMutableDictionary		*properties = nil;
+		
+		properties = [NSMutableDictionary dictionaryWithCapacity:5];
+		[properties setObject:self forKey:@"ship"];
+		
+		actions = [shipDict arrayForKey:@"launch_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
+		
+		actions = [shipDict arrayForKey:@"script_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
+		
+		actions = [shipDict arrayForKey:@"death_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
+		
+		actions = [shipDict arrayForKey:@"setup_actions"];
+		if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
+		
+		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
+											 properties:properties];
+	}
+#endif
 
 	[script retain];
 
