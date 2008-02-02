@@ -17,7 +17,7 @@
 		// The following are for compatibility with GrowlTunes (and have been included since Growl support was added).
 		"★"		= "\b";			// Black Star
 		"✯"		= "\b";			// Pinwheel Star
-		"☆"		= "\30";			// White Star
+		"☆"		= "\030";			// White Star
 		"♭"		= "b";			// Musical Flat Sign
 		"♮"		= "=";			// Musical Natural Sign
 		"♯"		= "#";			// Musical Sharp Sign
