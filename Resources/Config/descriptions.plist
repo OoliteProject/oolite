@@ -358,7 +358,7 @@
 		<string>Military Laser</string>
 	</array>
 	<key>digrams</key><!-- this string must always be the same length -->
-	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA’ERATENBERALAVETIEDORQUANTEISRION</string>
+	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION</string>
 	<key>phonograms</key><!-- this string represents the 4 character phonemes associated with each digram -->
 	<string>AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=</string>
 	<!-- Messages used when awarding bounties -->
