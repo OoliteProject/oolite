@@ -163,7 +163,7 @@ enum
 }
 
 
-- (void) stopMusic:(NSString *)name
+- (void) stopMusicNamed:(NSString *)name
 {
 	if ([name isEqual:[self playingMusic]])  [self stop];
 }

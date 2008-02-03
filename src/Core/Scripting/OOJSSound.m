@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOJSSound.h"
 #import "OOJavaScriptEngine.h"
 #import "OOSound.h"
+#import "OOMusicController.h"
 #import "ResourceManager.h"
 
 
@@ -35,6 +36,8 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, j
 
 // Static methods
 static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sSoundClass =
@@ -87,6 +90,8 @@ static JSFunctionSpec sSoundStaticMethods[] =
 {
 	// JS name					Function					min args
 	{ "load",					SoundStaticLoad,			1, },
+	{ "playMusic",				SoundStaticPlayMusic,		1, },
+	{ "stopMusic",				SoundStaticStopMusic,		0, },
 	{ 0 }
 };
 
@@ -158,6 +163,35 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 	
 	*outResult = [sound javaScriptValueInContext:context];
 	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;
+	return YES;
+}
+
+
+static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString					*name = nil;
+	
+	name = JSValToNSString(context, argv[0]);
+	[[OOMusicController sharedController] playMusicNamed:name loop:NO];
+	
+	return YES;
+}
+
+
+static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString					*name = nil;
+	
+	if (argc > 0)
+	{
+		name = JSValToNSString(context, argv[0]);
+		[[OOMusicController sharedController] stopMusicNamed:name];
+	}
+	else
+	{
+		[[OOMusicController sharedController] stop];
+	}
+	
 	return YES;
 }
 
