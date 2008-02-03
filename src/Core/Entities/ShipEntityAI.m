@@ -3,7 +3,7 @@
 ShipEntityAI.m
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 
 #import "OOStringParsing.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOConstToString.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntityAI"
 
@@ -1538,7 +1539,8 @@ WormholeEntity*	whole;
 
 - (void) scanForNearestShipWithScanClass:(NSString *)scanScanClass
 {
-	[self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:scanScanClass];
+	NSNumber *parameter = [NSNumber numberWithInt:StringToScanClass(scanScanClass)];
+	[self scanForNearestShipWithPredicate:HasScanClassPredicate parameter:parameter];
 }
 
 
@@ -1570,7 +1572,8 @@ WormholeEntity*	whole;
 
 - (void) scanForNearestShipWithoutScanClass:(NSString *)scanScanClass
 {
-	[self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:scanScanClass];
+	NSNumber *parameter = [NSNumber numberWithInt:StringToScanClass(scanScanClass)];
+	[self scanForNearestShipWithNegatedPredicate:HasScanClassPredicate parameter:parameter];
 }
 
 
