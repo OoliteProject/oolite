@@ -41,6 +41,8 @@ MA 02110-1301, USA.
 #import "OOJSClock.h"
 #import "OOJSSun.h"
 #import "OOJSWorldScripts.h"
+#import "OOJSSound.h"
+#import "OOJSSoundSource.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -218,6 +220,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSTimer(mainContext, globalObject);
 	InitOOJSClock(mainContext, globalObject);
 	InitOOJSWorldScripts(mainContext, globalObject);
+	InitOOJSSound(mainContext, globalObject);
+	InitOOJSSoundSource(mainContext, globalObject);
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
@@ -1053,6 +1057,18 @@ void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 }
 
 
+JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
+{
+	id						thisObj, thatObj;
+	
+	thisObj = JSObjectToObject(context, this);
+	thatObj = JSValueToObject(context, value);
+	
+	*outEqual = [thisObj isEqual:thatObj];
+	return YES;
+}
+
+
 BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 {
 	JSFunctionPredicateParameter	*param = parameter;
@@ -1158,6 +1174,22 @@ id JSObjectToObject(JSContext *context, JSObject *object)
 		return converter(context, object);
 	}
 	return nil;
+}
+
+
+id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass)
+{
+	id result = JSValueToObject(context, value);
+	if (![result isKindOfClass:requiredClass])  result = nil;
+	return result;
+}
+
+
+id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass)
+{
+	id result = JSObjectToObject(context, object);
+	if (![result isKindOfClass:requiredClass])  result = nil;
+	return result;
 }
 
 

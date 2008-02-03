@@ -69,7 +69,7 @@ static JSExtendedClass sPlayerClass =
 		JSObjectWrapperFinalize,// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	JSEntityEquality,			// equality
+	JSObjectWrapperEquality,	// equality
 	NULL,						// outerObject
 	NULL,						// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS

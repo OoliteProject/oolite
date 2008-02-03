@@ -66,7 +66,7 @@ static JSExtendedClass sEntityClass =
 		JSObjectWrapperFinalize,// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	JSEntityEquality,			// equality
+	JSObjectWrapperEquality,	// equality
 	NULL,						// outerObject
 	NULL,						// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS
@@ -178,14 +178,8 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity)
 {
 	if (outEntity == NULL)  return NO;
-	*outEntity = nil;
-	if (entityObj == NULL)  return NO;
-	
-	*outEntity = JSObjectToObject(context, entityObj);
-	if ([*outEntity isKindOfClass:[Entity class]])  return YES;
-	
-	*outEntity = nil;
-	return NO;
+	*outEntity = JSObjectToObjectOfClass(context, entityObj, [Entity class]);
+	return *outEntity != nil;
 }
 
 
@@ -224,19 +218,6 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	
 	// Success.
 	if (outConsumed != NULL)  *outConsumed = 1;
-	return YES;
-}
-
-
-JSBool JSEntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual)
-{
-	Entity					*thisEnt, *thatEnt;
-	
-	// No failures or diagnostic messages.
-	JSEntityGetEntity(context, this, &thisEnt);
-	JSValueToEntity(context, value, &thatEnt);
-	
-	*outEqual = [thisEnt isEqual:thatEnt];	// Note ![nil isEqual:nil], so two stale entity refs will not be equal.
 	return YES;
 }
 

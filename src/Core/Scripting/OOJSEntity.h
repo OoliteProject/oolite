@@ -39,8 +39,6 @@ BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEnti
 JSClass *JSEntityClass(void);
 JSObject *JSEntityPrototype(void);
 
-JSBool JSEntityEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
-
 
 /*	EntityFromArgumentList()
 	

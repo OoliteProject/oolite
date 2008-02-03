@@ -151,9 +151,17 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 /*	JSObjectWrapperFinalize
 	
 	Finalizer for JS classes whose private storage is a retained object
-	reference (generally an OOWeakReference).
+	reference (generally an OOWeakReference, but doesn't have to be).
 */
 void JSObjectWrapperFinalize(JSContext *context, JSObject *this);
+
+
+/*	JSObjectWrapperEquality
+	
+	Comparator for JS classes whose private storage is a retained object;
+	wraps isEqual.
+*/
+JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, JSBool *outEqual);
 
 
 @interface NSString (OOJavaScriptExtensions)
@@ -203,6 +211,8 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter);
 
 id JSValueToObject(JSContext *context, jsval value);
 id JSObjectToObject(JSContext *context, JSObject *object);
+id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
+id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
 
 
 /*	Support for JSValueToObject()
