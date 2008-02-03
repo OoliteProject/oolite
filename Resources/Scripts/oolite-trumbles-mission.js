@@ -1,6 +1,6 @@
 /*
 
-oolite-trumbles.js
+oolite-trumbles-mission.js
 
 Script for random offers of trumbles.
 
