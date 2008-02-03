@@ -2575,7 +2575,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 
 - (StationEntity *) station
 {
-	if (cachedStation)
+if (cachedStation)
 	{
 		if (cachedStation->isExplicitlyNotMainStation)  return nil;
 		return cachedStation;
@@ -2686,6 +2686,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 {
 	StationEntity *theStation = [self station];
 	if (theStation != nil)  theStation->isExplicitlyNotMainStation = YES;
+	cachedStation = nil;
 }
 
 

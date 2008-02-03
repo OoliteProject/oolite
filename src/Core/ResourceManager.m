@@ -704,7 +704,7 @@ static NSMutableDictionary *string_cache;
 {
 	return [self retrieveFileNamed:fileName
 						  inFolder:folderName
-							 cache:&sound_cache
+							 cache:NULL	// Don't cache music objects; minimizing latency isn't really important.
 							   key:[NSString stringWithFormat:@"OOMusic:%@:%@", folderName, fileName]
 							 class:[OOMusic class]];
 }
