@@ -51,21 +51,17 @@ MA 02110-1301, USA.
 	scrapeDamageSound = [[ResourceManager ooSoundNamed:@"hullbang.ogg" inFolder:@"Sounds"] retain];
 	destructionSound =  [[ResourceManager ooSoundNamed:@"bigbang.ogg" inFolder:@"Sounds"] retain];
 	breakPatternSound = [[ResourceManager ooSoundNamed:@"breakpattern.ogg" inFolder:@"Sounds"] retain];
-	//
+	
 	ecmSound =			[[ResourceManager ooSoundNamed:@"ecm.ogg" inFolder:@"Sounds"] retain];
 	buySound =			[[ResourceManager ooSoundNamed:@"buy.ogg" inFolder:@"Sounds"] retain];
 	sellSound =			[[ResourceManager ooSoundNamed:@"sell.ogg" inFolder:@"Sounds"] retain];
 	warningSound =		[[ResourceManager ooSoundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =	[[ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =	[[ResourceManager ooSoundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
-	//
-	witchAbortSound =	[[ResourceManager ooSoundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
-	//
-	fuelScoopSound =	[[ResourceManager ooSoundNamed:@"scoop.ogg" inFolder:@"Sounds"] retain];
 	
-	themeMusic =		[[ResourceManager ooMusicNamed:@"OoliteTheme.ogg" inFolder:@"Music"] retain];
-	missionMusic =		[[ResourceManager ooMusicNamed:@"OoliteTheme.ogg" inFolder:@"Music"] retain];
-	dockingMusic =		[[ResourceManager ooMusicNamed:@"BlueDanube.ogg" inFolder:@"Music"] retain];
+	witchAbortSound =	[[ResourceManager ooSoundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
+	
+	fuelScoopSound =	[[ResourceManager ooSoundNamed:@"scoop.ogg" inFolder:@"Sounds"] retain];
 	
 	refPoint = [[OOSoundReferencePoint alloc] init];
 	interfaceBeepSource = [[OOSoundSource alloc] init];
@@ -111,14 +107,6 @@ MA 02110-1301, USA.
 	
 	[fuelScoopSound release];
 	fuelScoopSound = nil;
-	
-	
-	[themeMusic release];
-	themeMusic = nil;
-	[missionMusic release];
-	missionMusic = nil;
-	[dockingMusic release];
-	dockingMusic = nil;
 	
 	[refPoint release];
 	refPoint = nil;

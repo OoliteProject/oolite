@@ -804,44 +804,6 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 #endif
 
 
-#if OOLITE_MAC_OS_X
-
-
-- (void) playiTunesPlaylist:(NSString *)playlist_name
-{
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\nif playlist \"%@\" exists then\nset song repeat of playlist \"%@\" to all\nset shuffle of playlist \"%@\" to true\nplay some track of playlist \"%@\"\nend if\nend tell", playlist_name, playlist_name, playlist_name, playlist_name];
-	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-	NSDictionary *errDict = nil;
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
-	[ootunesScript release]; 
-}
-
-
-- (void) pauseiTunes
-{
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\"\npause\nend tell"];
-	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
-	NSDictionary *errDict = nil;
-	[ootunesScript executeAndReturnError:&errDict];
-	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
-	[ootunesScript release]; 
-}
-
-#else
-
-- (void) playiTunesPlaylist:(NSString *)playlist_name
-{}
-
-
-- (void) pauseiTunes
-{}
-
-#endif
-
-
 #if OOLITE_HAVE_APPKIT
 
 - (void) logProgress:(NSString *)message

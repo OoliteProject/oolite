@@ -3,9 +3,10 @@
 oolite-cloaking-device.js
 
 Script for cloaking device mission.
+ 
 
 Oolite
-Copyright © 2007 Giles C Williams and contributors
+Copyright © 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +28,7 @@ MA 02110-1301, USA.
 
 this.name           = "oolite-cloaking-device";
 this.author         = "Jens Ayton";
-this.copyright      = "© 2007 the Oolite team.";
+this.copyright      = "© 2007-2008 the Oolite team.";
 this.description    = "Cloaking device mission in galaxy 5.";
 this.version        = "1.71";
 
@@ -41,13 +42,11 @@ this.shipWillExitWitchspace = function()
 		if (missionVariables.cloak == null)
 		{
 			// ...then we count of jumps...
-			let cloakCounter = missionVariables.cloakcounter;
-			if (cloakCounter == null)  cloakCounter = 1;
-			else  cloakCounter++;
-			missionVariables.cloakcounter = cloakCounter;
+			if (!missionVariables.cloakcounter)  cloakCounter = 1;
+			else  missionVariables.cloakcounter++;
 			
 			// ...until we reach six or more.
-			if (cloakCounter > 6 && system.countShipsWithRole("asp-cloaked") == 0)
+			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") == 0)
 			{
 				// Then trigger the ambush!
 				system.legacy_addShips("asp-cloaked", 1);

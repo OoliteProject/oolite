@@ -163,8 +163,5 @@ MA 02110-1301, USA.
 
 - (void)windowDidResize:(NSNotification *)aNotification;
 
-- (void) playiTunesPlaylist:(NSString *)playlist_name;
-- (void) pauseiTunes;
-
 @end
 

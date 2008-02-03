@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "ShipEntityAI.h"
 #import "OOScript.h"
-#import "OOSound.h"
+#import "OOMusicController.h"
 #import "OOColor.h"
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
@@ -1870,16 +1870,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionMusic: (NSString *)value
 {
-	[missionMusic release];
-	
 	if ([value length] == 0 || [[value lowercaseString] isEqual:@"none"])
 	{
-		missionMusic = nil;
+		value = nil;
 	}
-	else
-	{
-		missionMusic =  [[ResourceManager ooMusicNamed:value inFolder:@"Music"] retain];
-	}
+	[[OOMusicController	sharedController] setMissionMusic:value];
 }
 
 
@@ -2179,16 +2174,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[lastTextKey release];
 		lastTextKey = nil;
 	}
-
-#ifdef GNUSTEP
-//TODO: 3.???? 4. Profit!
-#else
-	if (!ootunes_on)
-	{
-		[missionMusic play];
-	}
-#endif
-
+	
+	[[OOMusicController sharedController] playMissionMusic];
+	
 	// the following are necessary...
 	[UNIVERSE setDisplayText:YES];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];

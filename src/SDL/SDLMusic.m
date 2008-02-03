@@ -51,8 +51,16 @@ OOMusic* current;
  */
 void musicFinished()
 {
-	current = 0;
+	current = nil;
 }
+
+
+@interface OOMusic (Private)
+
+- (BOOL) playWithCount:(int)count;
+
+@end
+
 
 @implementation OOMusic
 
@@ -119,15 +127,7 @@ void musicFinished()
 	return NO;
 }
 
-/*
- * Play the music represented by this OOMusic instance. This will replace any
- * music currently playing.
- *
- * If this instance is already playing, there is no effect.
- *
- * Returns YES for success, or NO if there was a problem playing the music.
- */
-- (BOOL) play
+- (BOOL) playWithCount:(int)count
 {
 	int rc;
    paused=NO;
@@ -171,6 +171,19 @@ void musicFinished()
 }
 
 /*
+ * Play the music represented by this OOMusic instance. This will replace any
+ * music currently playing.
+ *
+ * If this instance is already playing, there is no effect.
+ *
+ * Returns YES for success, or NO if there was a problem playing the music.
+ */
+- (BOOL) play
+{
+	return [self playWithCount:1];
+}
+
+/*
  * Play the music represented by this OOMusic instance, looping until stopped.
  * This will replace any music currently playing.
  *
@@ -180,7 +193,7 @@ void musicFinished()
  */
 - (BOOL) playLooped
 {
-	return [self play];
+	return [self playWithCount:-1];
 }
 
 /*

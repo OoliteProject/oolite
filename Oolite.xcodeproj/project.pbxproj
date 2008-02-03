@@ -379,6 +379,8 @@
 		1A5DBD590BC17F0900D57389 /* NSStringOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */; };
 		1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */; };
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
+		1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A60AFB50D56093B0070510D /* OOMusicController.h */; };
+		1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A60AFB60D56093B0070510D /* OOMusicController.m */; };
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A65188D0CCE06E30054D01B /* oolite-trumbles-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A6518820CCE06960054D01B /* oolite-trumbles-mission.js */; };
@@ -1341,6 +1343,8 @@
 		1A5DBD570BC17F0900D57389 /* NSStringOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringOOExtensions.m; sourceTree = "<group>"; };
 		1A5E462D0C32DACE008104B4 /* OOShaderUniformMethodType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderUniformMethodType.m; sourceTree = "<group>"; };
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
+		1A60AFB50D56093B0070510D /* OOMusicController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMusicController.h; sourceTree = "<group>"; };
+		1A60AFB60D56093B0070510D /* OOMusicController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMusicController.m; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
 		1A6517860CCDDD140054D01B /* oolite-default-ship-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-ship-script.js"; sourceTree = "<group>"; };
@@ -2238,6 +2242,8 @@
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				2516110B099544390037C2E1 /* GameController.h */,
 				2516110C099544390037C2E1 /* GameController.m */,
+				1A60AFB50D56093B0070510D /* OOMusicController.h */,
+				1A60AFB60D56093B0070510D /* OOMusicController.m */,
 				1A2A1B020BD2768300152975 /* Graphics */,
 				1A5DBA980BC000DC00D57389 /* Scripting */,
 				1A2DA2A00CB4CB3500DE6823 /* Debug */,
@@ -2750,6 +2756,7 @@
 				1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */,
 				1A28AA160D55438200BC0CE4 /* OOJSSound.h in Headers */,
 				1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */,
+				1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3106,6 +3113,7 @@
 				1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */,
 				1A28AA170D55438200BC0CE4 /* OOJSSound.m in Sources */,
 				1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */,
+				1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

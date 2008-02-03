@@ -49,10 +49,11 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
-#import "OOTexture.h"	// Required to properly release missionBackgroundTexture.
-#import "OORoleSet.h"	// Required to properly release roleSet.
+#import "OOTexture.h"
+#import "OORoleSet.h"
 #import "HeadUpDisplay.h"
 #import "OOOpenGLExtensionManager.h"
+#import "OOMusicController.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
@@ -366,9 +367,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	//speech
 	[result setObject:[NSNumber numberWithBool:isSpeechOn] forKey:@"speech_on"];
 
-	//ootunes
-	[result setObject:[NSNumber numberWithBool:ootunes_on] forKey:@"ootunes_on"];
-
 	//base ship description
 	[result setObject:ship_desc forKey:@"ship_desc"];
 	[result setObject:[[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
@@ -651,10 +649,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		shipyard_record = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
 	}
 
-	// ootunes
-	if ([dict objectForKey:@"ootunes_on"])
-		ootunes_on = [(NSNumber *)[dict objectForKey:@"ootunes_on"] boolValue];
-
 	// reducedDetail
 	if ([dict objectForKey:@"reducedDetail"])
 		[UNIVERSE setReducedDetail:[(NSNumber *)[dict objectForKey:@"reducedDetail"] boolValue]];
@@ -921,14 +915,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	ship_clock_adjust = 0.0;
 	
 	isSpeechOn = NO;
-	ootunes_on = NO;
 	
 	[custom_views release];
 	custom_views = nil;
 	
 	mouse_control_on = NO;
-	
-	docking_music_on = [[NSUserDefaults standardUserDefaults] boolForKey:KEY_DOCKING_MUSIC defaultValue:YES];
 
 	// player commander data
 	// Most of this is probably also set more than once
@@ -2724,12 +2715,7 @@ double scoopSoundPlayTime = 0.0;
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
 		status = STATUS_IN_FLIGHT;
-		if (ootunes_on)
-		{
-			// ootunes - play inflight music
-			[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-			docking_music_on = NO;
-		}
+		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:@"playerDockingRefused"];
 	}
 
@@ -3695,15 +3681,8 @@ double scoopSoundPlayTime = 0.0;
 		[dockingReport appendFormat:@"\n\n%@", passengerReport];
 		
 	[UNIVERSE setDisplayText:YES];
-
-	if (ootunes_on)
-	{
-		// ootunes - pause current music
-		[[UNIVERSE gameController] pauseiTunes];
-		// ootunes - play inflight music
-		[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Docked"];
-		docking_music_on = NO;
-	}
+	
+	[[OOMusicController sharedController] playDockedMusic];
 
 	// time to check the script!
 	if (!being_fined)
@@ -3753,14 +3732,8 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
-
-	if (ootunes_on)
-	{
-		// ootunes - pause current music
-		[[UNIVERSE gameController] pauseiTunes];
-		// ootunes - play inflight music
-		[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-	}
+	
+	[[OOMusicController sharedController] stop];
 
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
 
@@ -4491,7 +4464,8 @@ double scoopSoundPlayTime = 0.0;
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
 
 		// iTunes integration control
-		if (ootunes_on)
+		// FIXME: music mode UI
+		if (0)//ootunes_on)
 			[gui setText:DESC(@"gameoptions-itunes-yes") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:DESC(@"gameoptions-itunes-no") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
@@ -5104,10 +5078,7 @@ static int last_outfitting_index;
 	if (gui)
 		gui_screen = GUI_SCREEN_INTRO1;
 
-	if (themeMusic)
-	{
-		[themeMusic playLooped];
-	}
+	[[OOMusicController sharedController] playThemeMusic];
 
 
 	[self setShowDemoShips: YES];
@@ -6493,8 +6464,6 @@ OOSound* burnersound;
 	ADD_FLAG_IF_SET(using_mining_laser);
 	ADD_FLAG_IF_SET(mouse_control_on);
 	ADD_FLAG_IF_SET(isSpeechOn);
-	ADD_FLAG_IF_SET(ootunes_on);
-	ADD_FLAG_IF_SET(docking_music_on);
 	ADD_FLAG_IF_SET(keyboardRollPitchOverride);
 	ADD_FLAG_IF_SET(waitingForStickCallback);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";

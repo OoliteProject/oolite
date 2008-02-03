@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
-@class OOSound, OOMusic, OOSoundSource, OOSoundReferencePoint;
+@class OOSound, OOSoundSource, OOSoundReferencePoint;
 @class JoystickHandler, OOTexture;
 
 #define SCRIPT_TIMER_INTERVAL			10.0
@@ -147,8 +147,6 @@ typedef enum
 #define PLAYER_SHIP_DESC				@"cobra3-player"
 #define PLAYER_MODEL					@"cobra3_redux.dat"
 
-#define KEY_DOCKING_MUSIC				@"docking_music"
-
 #define ESCAPE_SEQUENCE_TIME			10.0
 
 #define MS_WITCHSPACE_SF				@"[witch-to-@-in-f-seconds]"
@@ -169,8 +167,6 @@ typedef enum
 #define STARBOARD_FACING_STRING			DESC(@"starboard-facing-string")
 
 #define KEY_REPEAT_INTERVAL				0.20
-
-#define OOTUNES_ON						ootunes_on
 
 #define PLAYER_SHIP_CLOCK_START			(2084004 * 86400.0)
 
@@ -279,10 +275,6 @@ typedef enum
 	int						chosen_weapon_facing;   // for purchasing weapons
 	
 	double					ecm_start_time;
-	
-	OOMusic					*themeMusic;
-	OOMusic					*missionMusic;
-	OOMusic					*dockingMusic;
 	
 	OOSound					*beepSound;
 	OOSound					*boopSound;
@@ -479,9 +471,6 @@ typedef enum
 							mouse_control_on: 1,
 	
 							isSpeechOn: 1,
-							ootunes_on: 1,
-	
-							docking_music_on: 1,
 	
 							keyboardRollPitchOverride: 1,
 							waitingForStickCallback: 1;

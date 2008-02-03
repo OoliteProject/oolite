@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "OOConstToString.h"
 #import "OOLoggingExtended.h"
+#import "OOMusicController.h"
 
 #import "JoystickHandler.h"
 
@@ -266,6 +267,7 @@ static NSTimeInterval	time_last_frame;
 				break;
 		}
 		
+#if FIXME // Need to handle docking music
 		// handle docking music generically
 		if (status == STATUS_AUTOPILOT_ENGAGED)
 		{
@@ -282,7 +284,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			[dockingMusic stop];
 		}
-		
+#endif
 	}
 }
 
@@ -850,12 +852,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
-						if (ootunes_on)
-						{
-							// ootunes - play docking music
-							[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Docking"];
-							docking_music_on = NO;
-						}
+						[[OOMusicController sharedController] playDockingMusic];
 						
 						if (afterburner_engaged)
 						{
@@ -891,12 +888,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
-						if (ootunes_on)
-						{
-							// ootunes - play docking music
-							[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Docking"];
-							docking_music_on = NO;
-						}
+						[[OOMusicController sharedController] playDockingMusic];
 						
 						if (afterburner_engaged)
 						{
@@ -1933,14 +1925,15 @@ static NSTimeInterval	time_last_frame;
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_OOTUNES)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
+		// FIXME: Music mode UI
+		/*GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
 			[gui click];
 		ootunes_on = [gameView isDown:gvArrowKeyRight];
 		if (ootunes_on)
 			[gui setText:DESC(@"gameoptions-itunes-yes")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:DESC(@"gameoptions-itunes-no")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-itunes-no")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];*/
 	}
 #endif
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_VOLUME)
@@ -2553,25 +2546,18 @@ static BOOL toggling_music;
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
 			[self doScriptEvent:@"playerCancelledAutoPilot"];
 			
-			if (ootunes_on)
-			{
-				// ootunes - play inflight music
-				[[UNIVERSE gameController] playiTunesPlaylist:@"Oolite-Inflight"];
-				docking_music_on = NO;
-			}
+			[[OOMusicController sharedController] stopDockingMusic];
 		}
 		autopilot_key_pressed = YES;
 	}
 	else
 		autopilot_key_pressed = NO;
 	
-	if (([gameView isDown:key_docking_music])&&(!ootunes_on))   // look for the 's' key
+	if (([gameView isDown:key_docking_music]))   // look for the 's' key
 	{
 		if (!toggling_music)
 		{
-			docking_music_on = !docking_music_on;
-			// set defaults..
-			[[NSUserDefaults standardUserDefaults]  setBool:docking_music_on forKey:KEY_DOCKING_MUSIC];
+			[[OOMusicController sharedController] toggleDockingMusic];
 		}
 		toggling_music = YES;
 	}
@@ -2643,10 +2629,7 @@ static BOOL toggling_music;
 			{
 				if (([gameView isDown:loadPreviousCommanderYes]) || ([gameView isDown:loadPreviousCommanderYes - 32]))
 				{
-					if (themeMusic)
-					{
-						[themeMusic stop];
-					}
+					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
 					[self setStatus:STATUS_DOCKED];
 					[UNIVERSE removeDemoShips];
@@ -2665,16 +2648,13 @@ static BOOL toggling_music;
 			break;
 			
 		case GUI_SCREEN_INTRO2:
-			if ([gameView isDown:32])	//  '<space>'
+			if ([gameView isDown:' '])	//  '<space>'
 			{
 				[self setStatus: STATUS_DOCKED];
 				[UNIVERSE removeDemoShips];
 				[gui clearBackground];
 				[self setGuiToStatusScreen];
-				if (themeMusic)
-				{
-					[themeMusic stop];
-				}
+				[[OOMusicController sharedController] stopThemeMusic];
 			}
 			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
 			{
@@ -2700,7 +2680,7 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
-						[missionMusic stop];
+						[[OOMusicController sharedController] stopMissionMusic];
 						
 						[self doScriptEvent:@"missionScreenEnded"];
 					}
@@ -2747,9 +2727,7 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
-						[missionMusic stop];
-						[missionMusic release];
-						missionMusic = nil;
+						[[OOMusicController sharedController] stopMissionMusic];
 						
 						[self doScriptEvent:@"missionScreenEnded"];
 						[self checkScript];
