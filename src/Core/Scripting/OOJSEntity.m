@@ -336,9 +336,10 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kEntity_energy:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
-				fValue == OOClamp_0_max_d(fValue, [entity maxEnergy]);
+				fValue = OOClamp_0_max_d(fValue, [entity maxEnergy]);
 				[entity setEnergy:fValue];
 			}
+			break;
 		
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
