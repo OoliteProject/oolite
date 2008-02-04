@@ -162,6 +162,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	[self setWeaponDataFromType:forward_weapon_type];
 	
 	weapon_energy = [shipDict floatForKey:@"weapon_energy"];
 	scannerRange = [shipDict floatForKey:@"scanner_range" defaultValue:25600.0];

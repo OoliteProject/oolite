@@ -678,6 +678,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		port_weapon = [(NSNumber *)[dict objectForKey:@"port_weapon"]		intValue];
 	if ([dict objectForKey:@"starboard_weapon"])
 		starboard_weapon = [(NSNumber *)[dict objectForKey:@"starboard_weapon"] intValue];
+       
+   [self setWeaponDataFromType:forward_weapon]; 
+   scannerRange = SCANNER_MAX_RANGE; 
 	
 	missiles = [dict unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
@@ -936,6 +939,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	aft_weapon				= WEAPON_NONE;
 	port_weapon				= WEAPON_NONE;
 	starboard_weapon		= WEAPON_NONE;
+   [self setWeaponDataFromType:forward_weapon]; 
+   scannerRange = SCANNER_MAX_RANGE; 
 
 	max_cargo				= 20; // will be reset later
 
@@ -1052,6 +1057,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+   [self setWeaponDataFromType:forward_weapon_type]; 
+   scannerRange = SCANNER_MAX_RANGE; 
 	
 	missiles = [shipDict doubleForKey:@"missiles"];
 	has_ecm = [shipDict fuzzyBooleanForKey:@"has_ecm"];
