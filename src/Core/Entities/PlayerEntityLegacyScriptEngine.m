@@ -1765,7 +1765,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) clearMissionScreen
 {
-	[self resetMissionChoice];
 	[self setMissionImage:nil];
 	[self setMissionMusic:nil];
 	[self showShipModel:nil];
