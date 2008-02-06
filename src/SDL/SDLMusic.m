@@ -153,7 +153,7 @@ void musicFinished()
     while (current != 0)
         ;
 
-	rc = Mix_PlayMusic(music, 1);
+	rc = Mix_PlayMusic(music, count);
 	if (rc < 0)
 	{
 		NSLog(@"Mix_PlayMusic error: %s", Mix_GetError());
