@@ -79,7 +79,7 @@ static NSMutableSet			*sUpdateSet = nil;
 
 - (NSString *) description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{sound=%@, loop=%s, repeatCount=%u, %@playing}", [self className], self, sound, [self loop] ? "YES" : "NO", [self repeatCount], [self isPlaying] ? @"" : @"not "];
+	return [NSString stringWithFormat:@"<%@ %p>{sound=%@, loop=%s, repeatCount=%u, %@playing}", [self className], self, [self sound], [self loop] ? "YES" : "NO", [self repeatCount], [self isPlaying] ? @"" : @"not "];
 }
 
 
