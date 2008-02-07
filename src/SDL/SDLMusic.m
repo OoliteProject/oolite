@@ -81,6 +81,8 @@ void musicFinished()
 		[super dealloc];
 		return nil;
 	}
+	
+	name = [[filepath lastPathComponent] copy];
 
 	return self;
 }
@@ -95,6 +97,8 @@ void musicFinished()
 
 	if (music)
 		Mix_FreeMusic(music);
+	
+	[name autorelease];
 
 	[super dealloc];
 }
@@ -231,6 +235,12 @@ void musicFinished()
     // Only rewind the music if this instance is the one being played.
 	if (current == self)
 	    Mix_RewindMusic();
+}
+
+
+- (NSString *) name
+{
+	return name;
 }
 
 @end

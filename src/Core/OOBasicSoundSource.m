@@ -153,7 +153,7 @@ static NSMutableSet			*sUpdateSet = nil;
 	[_sound play];
 	
 	// Put sound source in update set, so its -update gets called from +update.
-	_remainingCount = [self repeatCount];
+	_remainingCount = [self repeatCount] - 1;
 	if (nil == sUpdateSet) sUpdateSet = [[NSMutableSet alloc] init];
 	[sUpdateSet addObject:self];
 }
@@ -194,7 +194,7 @@ static NSMutableSet			*sUpdateSet = nil;
 
 - (void) playOrRepeatSound:(OOSound *)sound
 {
-	if (sound != sound) [self playSound:sound];
+	if (sound != _sound) [self playSound:sound];
 	else [self playOrRepeat];
 }
 
@@ -210,7 +210,7 @@ static NSMutableSet			*sUpdateSet = nil;
 	if (![_sound isPlaying])
 	{
 		if (_loop) ++_remainingCount;
-		if (--_remainingCount)
+		if (_remainingCount--)
 		{
 			[_sound play];
 		}

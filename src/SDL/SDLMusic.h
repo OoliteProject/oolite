@@ -30,8 +30,9 @@ MA 02110-1301, USA.
 @interface OOMusic : NSObject
 {
     // The SDL_mixer music structure encapsulated by an instance of OOMusic.
-	Mix_Music *music;
-   BOOL paused;
+	Mix_Music		*music;
+	BOOL			paused;
+	NSString		*name;
 }
 
 // Initialise the OOMusic instance from the contents of "filepath"
@@ -58,5 +59,7 @@ MA 02110-1301, USA.
 
 // Rewind the music if this instance is the current instance.
 - (void) goToBeginning;
+
+- (NSString *) name;
 
 @end

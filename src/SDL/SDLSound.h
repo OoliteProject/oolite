@@ -33,9 +33,10 @@ MA 02110-1301, USA.
 
 @interface OOSound : NSObject
 {
-	BOOL isPlaying;
-	Mix_Chunk *sample;
-	int currentChannel;
+	BOOL			isPlaying;
+	Mix_Chunk		*sample;
+	int				currentChannel;
+	NSString		*name;
 }
 
 + (void) channelDone:(int) channel;
@@ -51,6 +52,8 @@ MA 02110-1301, USA.
 - (BOOL) play;
 - (BOOL) stop;
 - (BOOL) resume;
+
+- (NSString *) name;
 
 + (void)update;
 

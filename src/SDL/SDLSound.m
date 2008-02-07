@@ -156,6 +156,8 @@ static BOOL isSetUp=NO;
 		sample = 0;
 	}
 	
+	name = [[filepath lastPathComponent] copy];
+	
 	return self;
 }
 
@@ -163,6 +165,7 @@ static BOOL isSetUp=NO;
 {
 	if (sample)
 		Mix_FreeChunk(sample);
+	[name autorelease];
 
 	[super dealloc];
 }
@@ -176,6 +179,12 @@ static BOOL isSetUp=NO;
 + (void)update
 {
 	[OOSoundSource update];
+}
+
+
+- (NSString *) name
+{
+	return name;
 }
 
 @end
