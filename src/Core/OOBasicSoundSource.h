@@ -5,8 +5,9 @@ OOBasicSoundSource.h
 Transitional implementation of OOSoundSource which relies on
 conceptually-legacy OOSound methods.
 
+
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,6 +24,29 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 MA 02110-1301, USA.
 
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2005-2008 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
 #import <Foundation/Foundation.h>
@@ -36,29 +60,42 @@ MA 02110-1301, USA.
 {
 	OOSound						*_sound;
 	BOOL						_loop;
-	uint8_t						_playCount;
+	uint8_t						_repeatCount,
+								_remainingCount;
 }
 
++ (id) sourceWithSound:(OOSound *)inSound;
+- (id) initWithSound:(OOSound *)inSound;
+- (id) init;
+
+// These options should be set before playing. Effect of setting them while playing is undefined.
+- (OOSound *) sound;
+- (void) setSound:(OOSound *)inSound;
+- (BOOL) loop;
+- (void) setLoop:(BOOL)inLoop;
+- (uint8_t) repeatCount;
+- (void) setRepeatCount:(uint8_t)inCount;
+
+- (BOOL) isPlaying;
+- (void) play;
+- (void) playOrRepeat;
+- (void) stop;
+
+// Conveniences:
+- (void) playSound:(OOSound *)inSound;
+- (void) playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
+- (void) playOrRepeatSound:(OOSound *)inSound;
+
 // Positional audio attributes are ignored in this implementation
-- (void)setPositional:(BOOL)inPositional;
-- (void)setPosition:(Vector)inPosition;
-- (void)setVelocity:(Vector)inVelocity;
-- (void)setOrientation:(Vector)inOrientation;
-- (void)setConeAngle:(float)inAngle;
-- (void)setGainInsideCone:(float)inInside outsideCone:(float)inOutside;
-- (void)positionRelativeTo:(OOSoundReferencePoint *)inPoint;
-
-- (void)setLoop:(BOOL)inLoop;
-
-- (void)playSound:(OOSound *)inSound;
-// repeatCount lets a sound be played a fixed number of times. If looping is on, it will play the specified number of times after looping is switched off.
-- (void)playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
-// -playOrRepeatSound will increment the repeat count if the sound is already playing.
-- (void)playOrRepeatSound:(OOSound *)inSound;
-- (void)stop;
-- (BOOL)isPlaying;
+- (void) setPositional:(BOOL)inPositional;
+- (void) setPosition:(Vector)inPosition;
+- (void) setVelocity:(Vector)inVelocity;
+- (void) setOrientation:(Vector)inOrientation;
+- (void) setConeAngle:(float)inAngle;
+- (void) setGainInsideCone:(float)inInside outsideCone:(float)inOutside;
+- (void) positionRelativeTo:(OOSoundReferencePoint *)inPoint;
 
 // Called by OOSound +update.
-+ (void)update;
++ (void) update;
 
 @end

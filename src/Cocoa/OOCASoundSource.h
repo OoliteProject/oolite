@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
