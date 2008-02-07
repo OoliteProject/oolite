@@ -1837,7 +1837,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 			s:		solar radii
 			u:		distance between first two features indicated (eg. spu means that u = distance from sun to the planet)
 		
-		in witchspace (== no sun) coordinates are absolute irrespective of the system used
+		in interstellar space (== no sun) coordinates are absolute irrespective of the system used.
+		
+		[1.71] The position code "abs" can also be used for absolute coordinates.
 		
 	*/
 	
@@ -1846,10 +1848,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		return kZeroVector;
 	PlanetEntity* the_planet = [self planet];
 	PlanetEntity* the_sun = [self sun];
-	if ((!the_planet)||(!the_sun))
+	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
 	{
-		if (my_scalar)
-			*my_scalar = 1.0;
+		if (my_scalar)  *my_scalar = 1.0;
 		return pos;
 	}
 	Vector  w_pos = [self getWitchspaceExitPosition];

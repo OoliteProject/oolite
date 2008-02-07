@@ -758,24 +758,36 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) setUpEscorts
 {
-	NSString *escortRole = @"escort";
-	NSString *escortShipKey = nil;
+	NSString		*defaultRole = @"escort";
+	NSString		*escortRole = nil;
+	NSString		*escortShipKey = nil;
+	NSString		*autoAI = nil;
+	NSDictionary	*autoAIMap = nil;
+	NSDictionary	*escortShipDict = nil;
+	AI				*escortAI = nil;
 	
-//	if ([self isTrader])  escortRole = @"escort";
-	if ([self isPolice])  escortRole = @"wingman";
+	if ([self isPolice])  defaultRole = @"wingman";
 	
 	if ([shipinfoDictionary objectForKey:@"escort-role"])
 	{
-		escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:escortRole];
+		escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:defaultRole];
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
-			escortRole = @"escort";
+		{
+			escortRole = defaultRole;
+		}
+	}
+	else
+	{
+		escortRole = defaultRole;
 	}
 	
 	if ([shipinfoDictionary objectForKey:@"escort-ship"])
 	{
 		escortShipKey = [shipinfoDictionary stringForKey:@"escort-ship"];
 		if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
+		{
 			escortShipKey = nil;
+		}
 	}
 
 	while (escortCount > 0)
@@ -814,14 +826,38 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[escorter setScanClass:scanClass];		// you are the same as I
 		
 		[UNIVERSE addEntity:escorter];
-		[[escorter getAI] setStateMachine:@"escortAI.plist"];	// must happen after adding to the UNIVERSE!
+		
+		escortShipDict = [escorter shipInfoDictionary];
+		autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+		autoAI = [autoAIMap stringForKey:defaultRole];
+		if (autoAI==nil) // no 'wingman' defined in autoAImap?
+		{
+			autoAI = [autoAIMap stringForKey:@"escort" defaultValue:@"nullAI.plist"];
+		}
+		if (escortShipKey && [escortShipDict fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
+		{
+			[escorter setAITo:autoAI];
+		}
+		if(!escortShipKey) // primary role user defined, must change to standard!
+		{
+			[escorter setPrimaryRole:defaultRole];
+		}
+		
+		escortAI = [escorter getAI];
+		if ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"])
+		{
+			[escortAI setStateMachine:autoAI];   // must happen after adding to the UNIVERSE!
+		}
 		
 		[escorter setGroupID:universalID];
 		[self setGroupID:universalID];		// make self part of same group
 		
 		[escorter setOwner: self];	// make self group leader
 		
-		[[escorter getAI] setState:@"FLYING_ESCORT"];	// begin immediately
+		if ([[escortAI name] isEqualToString:autoAI])	// If we're the default AI...
+		{
+			[escortAI setState:@"FLYING_ESCORT"];	// ...begin immediately
+		}
 		
 		if (bounty)
 		{

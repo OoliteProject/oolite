@@ -25,4 +25,5 @@
 	"scavenger"			= "scavengerAI.plist";
 	"shuttle"			= "fallingShuttleAI.plist";
 	"sunskim-trader"	= "route2sunskimAI.plist";
+	"wingman"			= "escortAI.plist";
 }
