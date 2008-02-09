@@ -855,6 +855,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[escorter setOwner: self];	// make self group leader
 		
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
+		[escorter doScriptEvent:@"spawnedAsEscort" withArgument:self];
 		
 		if (bounty)
 		{
@@ -6772,7 +6773,10 @@ int w_space_seed = 1234567;
 	// consistently in escorts not being accepted. Most of the time, ai_stack_depth is 2 at
 	// this point. - Nikos
 	if ([shipAI ai_stack_depth] > 2)
+	{
+		OOLog(@"ship.escort.reject", @"Rejecting escort %@ because AI stack depth is %u.", other_ship, [shipAI ai_stack_depth]);
 		return NO;
+	}
 	
 	if ([self canAcceptEscort:other_ship])
 	{
@@ -6796,7 +6800,10 @@ int w_space_seed = 1234567;
 			[other_ship setGroupID:universalID];
 			[self setGroupID:universalID];		// make self part of same group
 			escortCount++;
-
+			
+			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
+			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
+			[other_ship doScriptEvent:@"escortAccepted" withArgument:self];
 			return YES;
 		}
 	}
@@ -6858,7 +6865,8 @@ int w_space_seed = 1234567;
 			[escorter addTarget:[self primaryTarget]];
 			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
 			[[escorter getAI] setState:@"GLOBAL"];
-
+			[escorter doScriptEvent:@"escortAttack" withArgument:[self primaryTarget]];
+			
 			escort_ids[i_deploy] = NO_TARGET;
 			i_deploy--;
 			n_deploy--;
@@ -6896,7 +6904,7 @@ int w_space_seed = 1234567;
 			[escorter setGroupID:NO_TARGET];	// act individually now!
 			[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
 			[ai setState:@"ABORT" afterDelay:delay + 0.25];
-			
+			[escorter doScriptEvent:@"escortDock" withArgument:[NSNumber numberWithFloat:delay]];
 		}
 		escort_ids[i] = NO_TARGET;
 	}

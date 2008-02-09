@@ -278,10 +278,10 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	if (!mainContextInUse)
 	{
 		/*	Favour the main context.
-		There's overhead to using objects from a different context. By
-		having one preferred context, most objects will belong to that
-		context and that context will be the one used in the common case
-		of only one script running.
+			There's overhead to using objects from a different context. By
+			having one preferred context, most objects will belong to that
+			context and that context will be the one used in the common case
+			of only one script running.
 		*/
 		mainContextInUse = YES;
 		context = mainContext;
@@ -305,8 +305,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
 		JS_SetVersion(context, JSVERSION_1_7);
 		JS_SetErrorReporter(context, ReportJSError);
-		CreateOOJSGlobal(context, &globalObject);
-		JS_InitStandardClasses(context, globalObject);
+		JS_SetGlobalObject(context, globalObject);
 	}
 	
 	return context;
