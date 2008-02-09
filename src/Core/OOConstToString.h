@@ -71,3 +71,6 @@ NSString *LegalStatusToString(int legalStatus) CONST_FUNC;
 NSString *AlertConditionToString(OOAlertCondition alertCondition) CONST_FUNC;
 
 NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;
+
+NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
+NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);

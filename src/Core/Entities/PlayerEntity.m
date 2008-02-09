@@ -3351,7 +3351,7 @@ double scoopSoundPlayTime = 0.0;
 	int result = [super dumpCargo];
 	if (result != CARGO_NOT_CARGO)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ejected]") ,[UNIVERSE nameForCommodity:result]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ejected]") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
 	}
 	return result;
 }
@@ -3377,7 +3377,7 @@ double scoopSoundPlayTime = 0.0;
 	[pod release];
 	if (contents != CARGO_NOT_CARGO)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ready-to-eject]"), [UNIVERSE nameForCommodity:contents]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ready-to-eject]"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
 	}
 	else
 	{
@@ -3486,7 +3486,7 @@ double scoopSoundPlayTime = 0.0;
 	if (damage_to < [cargo count])
 	{
 		ShipEntity* pod = (ShipEntity*)[cargo objectAtIndex:damage_to];
-		NSString* cargo_desc = [UNIVERSE nameForCommodity:[pod commodityType]];
+		NSString* cargo_desc = [UNIVERSE displayNameForCommodity:[pod commodityType]];
 		if (!cargo_desc)
 			return;
 		[UNIVERSE clearPreviousMessage];
@@ -4164,8 +4164,8 @@ double scoopSoundPlayTime = 0.0;
 			NSString* units = [NSString stringWithString:tons];
 			if (unit == UNITS_KILOGRAMS)  units = [NSString stringWithString:kilograms];
 			if (unit == UNITS_GRAMS)  units = [NSString stringWithString:grams];
-			NSString* desc = (NSString *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_NAME];
-			[manifest addObject:[NSString stringWithFormat:@"%d%@ x %@", in_hold[i], units, desc]];
+			NSString *desc = CommodityDisplayNameForCommodityArray([shipCommodityData arrayAtIndex:i]);
+			[manifest addObject:[NSString stringWithFormat:@"%d %@ x %@", in_hold[i], units, desc]];
 		}
 	}
 	
@@ -5491,13 +5491,14 @@ static int last_outfitting_index;
 
 	// GUI stuff
 	{
-		GuiDisplayGen	*gui = [UNIVERSE gui];
-		OOGUIRow		start_row = GUI_ROW_MARKET_START;
-		OOGUIRow		row = start_row;
-		unsigned		i;
-		unsigned		n_commodities = [shipCommodityData count];
-		OOCargoQuantity	in_hold[n_commodities];
-
+		GuiDisplayGen		*gui = [UNIVERSE gui];
+		OOGUIRow			start_row = GUI_ROW_MARKET_START;
+		OOGUIRow			row = start_row;
+		unsigned			i;
+		unsigned			n_commodities = [shipCommodityData count];
+		OOCargoQuantity		in_hold[n_commodities];
+		NSArray				*marketDef = nil;
+		
 		// following changed to work whether docked or not
 		
 		for (i = 0; i < n_commodities; i++)
@@ -5526,23 +5527,26 @@ static int last_outfitting_index;
 		
 		for (i = 0; i < n_commodities; i++)
 		{
-			NSString* desc = [NSString stringWithFormat:@" %@ ",(NSString *)[(NSArray *)[localMarket objectAtIndex:i] objectAtIndex:MARKET_NAME]];
-			int available_units = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-			int units_in_hold = in_hold[i];
-			int price_per_unit = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_PRICE] intValue];
-			OOMassUnit unit = [[[localMarket objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue];
-			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : @"-";
-			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1*price_per_unit];
-			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : @"-";
-			NSString* units = @"t";
-			if (unit == UNITS_KILOGRAMS)  units = @"kg";
-			if (unit == UNITS_GRAMS)  units = @"g";
-			NSString* units_available = [NSString stringWithFormat:@" %@ %@ ",available,units];
-			NSString* units_owned = [NSString stringWithFormat:@" %@ %@ ",owned,units];
-
+			marketDef = [localMarket arrayAtIndex:i];
+			
+			NSString* desc = [NSString stringWithFormat:@" %@ ", CommodityDisplayNameForCommodityArray(marketDef)];
+			OOCargoQuantity available_units = [marketDef unsignedIntAtIndex:MARKET_QUANTITY];
+			OOCargoQuantity units_in_hold = in_hold[i];
+			OOCreditsQuantity price_per_unit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
+			OOMassUnit unit = [marketDef unsignedIntAtIndex:MARKET_UNITS];
+			
+			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
+			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
+			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
+			NSString* units = DESC(@"cargo-tons-symbol");
+			if (unit == UNITS_KILOGRAMS)  units = DESC(@"cargo-kilograms-symbol");
+			if (unit == UNITS_GRAMS)  units = DESC(@"cargo-grams-symbol");
+			NSString* units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
+			NSString* units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+			
 			if (unit == UNITS_TONS)
 				current_cargo += units_in_hold;
-
+			
 			[gui setKey:[NSString stringWithFormat:@"%d",i] forRow:row];
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
 		}

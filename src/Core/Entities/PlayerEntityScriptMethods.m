@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "Universe.h"
 #import "OOCollectionExtractors.h"
+#import "OOConstToString.h"
 
 
 @implementation PlayerEntity (ScriptMethods)
@@ -98,7 +99,7 @@ MA 02110-1301, USA.
 	commodityArray = [UNIVERSE commidityDataForType:type];
 	if (commodityArray == nil)  return;
 	
-	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, [commodityArray stringAtIndex:MARKET_NAME]);
+	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, CommodityDisplayNameForCommodityArray(commodityArray));
 	
 	unit = [commodityArray intAtIndex:MARKET_UNITS];
 	

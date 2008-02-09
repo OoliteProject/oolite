@@ -200,7 +200,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		int contract_amount = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
 		
 		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:contract_cargo_type]];
+		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:contract_cargo_type]];
 		int quantity_on_hand =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
 		
 		if (equal_seeds( system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))

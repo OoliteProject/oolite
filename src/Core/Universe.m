@@ -3036,7 +3036,7 @@ if (cachedStation)
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
 			
-			ShipEntity* special_container = [self newShipWithRole: [self nameForCommodity:co_type]];
+			ShipEntity* special_container = [self newShipWithRole: [self symbolicNameForCommodity:co_type]];
 			if (special_container)
 			{
 				[container release];
@@ -3160,13 +3160,19 @@ if (cachedStation)
 }
 
 
-- (NSString *) nameForCommodity:(OOCargoType) co_type
+- (NSString *) symbolicNameForCommodity:(OOCargoType) co_type
 {
 	NSArray			*commodity = [self commidityDataForType:co_type];
 	
 	if (commodity == nil)  return @"";
 	
 	return [commodity stringAtIndex:MARKET_NAME];
+}
+
+
+- (NSString *) displayNameForCommodity:(OOCargoType) co_type
+{
+	return CommodityDisplayNameForSymbolicName([self symbolicNameForCommodity:co_type]);
 }
 
 
@@ -3205,7 +3211,7 @@ if (cachedStation)
 	}
 	if (co_amount != 1)  unitDesc = [unitDesc stringByAppendingString:@"s"];
 	
-	typeDesc = [commodity stringAtIndex:MARKET_NAME];
+	typeDesc = CommodityDisplayNameForCommodityArray(commodity);
 	
 	return [NSString stringWithFormat:@"%d %@ %@",co_amount, unitDesc, typeDesc];
 }

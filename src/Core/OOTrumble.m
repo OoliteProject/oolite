@@ -618,7 +618,7 @@ MA 02110-1301, USA.
 			{
 				// eaten all of this cargo!
 				NSString* ms = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[trumbles-eat-@]"),
-								[UNIVERSE nameForCommodity:[selectedCargopod commodityType]]];
+								[UNIVERSE displayNameForCommodity:[selectedCargopod commodityType]]];
 				
 				[UNIVERSE addMessage: ms forCount: 4.5];
 				[cargopods removeObject:selectedCargopod];

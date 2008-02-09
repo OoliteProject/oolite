@@ -337,7 +337,8 @@ enum
 
 - (NSArray *) commidityDataForType:(OOCargoType)type;
 - (OOCargoType) commodityForName:(NSString *) co_name;
-- (NSString *) nameForCommodity:(OOCargoType) co_type;
+- (NSString *) symbolicNameForCommodity:(OOCargoType) co_type;
+- (NSString *) displayNameForCommodity:(OOCargoType) co_type;
 - (OOMassUnit) unitsForCommodity:(OOCargoType) co_type;
 - (NSString *) describeCommodity:(OOCargoType) co_type amount:(OOCargoQuantity) co_amount;
 

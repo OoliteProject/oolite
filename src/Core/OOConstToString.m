@@ -508,3 +508,35 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
 	
 	return @"??";
 }
+
+
+NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName)
+{
+	static NSMutableDictionary	*cache = nil;
+	NSString					*result = nil;
+	NSString					*key = nil;
+	
+	if (symbolicName == nil)  return nil;
+	if (cache == nil)  cache = [[NSMutableDictionary alloc] init];
+	
+	// Look for cached result
+	result = [cache objectForKey:symbolicName];
+	
+	// If no cached result, look up in descriptions.plist and add to cache.
+	// If no entry is found in descriptions.plist, the symbolic name is used.
+	if (result == nil)
+	{
+		key = [@"commodity-name " stringByAppendingString:symbolicName];
+		result = [UNIVERSE descriptionForKey:key];
+		if (result == nil)  result = symbolicName;
+		[cache setObject:result forKey:symbolicName];
+	}
+	
+	return result;
+}
+
+
+NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition)
+{
+	return CommodityDisplayNameForSymbolicName([commodityDefinition stringAtIndex:MARKET_NAME]);
+}
