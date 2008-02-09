@@ -854,10 +854,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 		[escorter setOwner: self];	// make self group leader
 		
-		if ([[escortAI name] isEqualToString:autoAI])	// If we're the default AI...
-		{
-			[escortAI setState:@"FLYING_ESCORT"];	// ...begin immediately
-		}
+		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
 		
 		if (bounty)
 		{
@@ -7431,7 +7428,7 @@ int w_space_seed = 1234567;
 	[super dumpSelfState];
 	
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
-	OOLog(@"dumpState.shipEntity", @"Roles: %@", roleSet);
+	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
 	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);

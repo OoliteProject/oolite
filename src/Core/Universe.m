@@ -7038,7 +7038,10 @@ double estimatedTimeForJourney(double distance, int hops)
 								(lowercaseIgnore ? fwd_weapon_desc : [fwd_weapon_desc lowercaseString])];
 			}
 			
-			price = base_price + cunningFee(price - base_price);
+			if (price > base_price)
+			{
+				price = base_price + cunningFee(price - base_price);
+			}
 				
 			[description appendFormat:DESC(@"shipyard-selling-price-d-credits"), price];
 			[short_description appendFormat:DESC(@"shipyard-price-d-credits"), price];
