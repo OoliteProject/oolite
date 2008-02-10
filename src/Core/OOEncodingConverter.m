@@ -46,6 +46,8 @@ SOFTWARE.
 
 */
 
+#ifndef OOENCODINGCONVERTER_EXCLUDE
+
 #import "OOEncodingConverter.h"
 #import "OOCache.h"
 #import "OOCollectionExtractors.h"
@@ -112,7 +114,7 @@ static unsigned				sCacheMisses = 0;
 
 - (id) initWithFontPList:(NSDictionary *)fontPList
 {
-	return [self initWithEncoding:[fontPList unsignedIntForKey:@"encoding"] substitutions:[fontPList dictionaryForKey:@"substitutions"]];
+	return [self initWithEncoding:EncodingFromString([fontPList stringForKey:@"encoding"]) substitutions:[fontPList dictionaryForKey:@"substitutions"]];
 }
 
 
@@ -211,3 +213,58 @@ static unsigned				sCacheMisses = 0;
 #endif
 
 @end
+
+#endif OOENCODINGCONVERTER_EXCLUDE
+
+
+/*
+	There are a variety of overlapping naming schemes for text encoding.
+	We ignore them and use a fixed list:
+		"windows-latin-1"		NSWindowsCP1252StringEncoding
+		"windows-latin-2"		NSWindowsCP1250StringEncoding
+		"windows-cyrillic"		NSWindowsCP1251StringEncoding
+		"windows-greek"			NSWindowsCP1253StringEncoding
+		"windows-turkish"		NSWindowsCP1254StringEncoding
+*/
+
+#define kWindowsLatin1Str		@"windows-latin-1"
+#define kWindowsLatin2Str		@"windows-latin-2"
+#define kWindowsCyrillicStr		@"windows-cyrillic"
+#define kWindowsGreekStr		@"windows-greek"
+#define kWindowsTurkishStr		@"windows-turkish"
+
+
+NSString *StringFromEncoding(NSStringEncoding encoding)
+{
+	switch (encoding)
+	{
+		case NSWindowsCP1252StringEncoding:
+			return kWindowsLatin1Str;
+			
+		case NSWindowsCP1250StringEncoding:
+			return kWindowsLatin2Str;
+			
+		case NSWindowsCP1251StringEncoding:
+			return kWindowsCyrillicStr;
+			
+		case NSWindowsCP1253StringEncoding:
+			return kWindowsGreekStr;
+			
+		case NSWindowsCP1254StringEncoding:
+			return kWindowsTurkishStr;
+			
+		default:
+			return nil;
+	}
+}
+
+
+NSStringEncoding EncodingFromString(NSString *name)
+{
+	if ([name isEqualToString:kWindowsLatin1Str])  return NSWindowsCP1252StringEncoding;
+	if ([name isEqualToString:kWindowsLatin2Str])  return NSWindowsCP1250StringEncoding;
+	if ([name isEqualToString:kWindowsCyrillicStr])  return NSWindowsCP1251StringEncoding;
+	if ([name isEqualToString:kWindowsGreekStr])  return NSWindowsCP1253StringEncoding;
+	if ([name isEqualToString:kWindowsTurkishStr])  return NSWindowsCP1254StringEncoding;
+	return (NSStringEncoding)NSNotFound;
+}

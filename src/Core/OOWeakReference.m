@@ -96,8 +96,8 @@ This code is hereby placed in the public domain.
 	
 	if (__builtin_expect(
 		selector != @selector(weakRefDrop) &&
-		selector != @selector(weakRefObjectStillExists)
-		&& selector != @selector(weakRefUnderlyingObject), 1))
+		selector != @selector(weakRefObjectStillExists) &&
+		selector != @selector(weakRefUnderlyingObject), 1))
 	{
 		// Not a proxy method; get signature from _object if it exists, otherwise generic signature for nil calls.
 		if (__builtin_expect(_object != nil, 1))  result = [(id)_object methodSignatureForSelector:selector];

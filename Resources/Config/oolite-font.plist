@@ -1,5 +1,16 @@
 {
-	encoding = 12;	// NSWindowsCP1252StringEncoding, Windows Latin 1
+	/*
+		Currently, Oolite supports the following encodings for fonts:
+		windows-latin-1		(Windows code page 1252)
+		windows-latin-2		(Windows code page 1250)
+		windows-cyrillic	(Windows code page 1251)
+		windows-greek		(Windows code page 1253)
+		windows-turkish		(Windows code page 1254)
+		
+		OXPs with fonts in each encoding (using Helvetica) are available at:
+		http://svn.berlios.de/svnroot/repos/oolite-linux/trunk/tests/encodings/
+	*/
+	encoding = "windows-latin-1";
 	texture = "oolite-font.png";
 	
 	substitutions =

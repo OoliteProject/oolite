@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A88FF7C0D5E393A002E5344 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A88FF7B0D5E393A002E5344 /* QuartzCore.framework */; };
 		1AC544440D4D01DE00C90E5B /* FontTextureView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC544430D4D01DE00C90E5B /* FontTextureView.m */; };
 		1AC544AB0D4D175B00C90E5B /* toprows.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AC544A90D4D175B00C90E5B /* toprows.png */; };
 		1AC545680D4D362C00C90E5B /* template.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AC545670D4D362C00C90E5B /* template.plist */; };
+		1AD3DA280D5F62E700AB473C /* OOEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3DA270D5F62E700AB473C /* OOEncodingConverter.m */; };
 		8D11072A0486CEB800E47090 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
@@ -20,10 +22,13 @@
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
+		1A88FF7B0D5E393A002E5344 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = SDKs/MacOSX10.5.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
 		1AC544420D4D01DE00C90E5B /* FontTextureView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FontTextureView.h; sourceTree = "<group>"; };
 		1AC544430D4D01DE00C90E5B /* FontTextureView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FontTextureView.m; sourceTree = "<group>"; };
 		1AC544A90D4D175B00C90E5B /* toprows.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = toprows.png; sourceTree = "<group>"; };
 		1AC545670D4D362C00C90E5B /* template.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = template.plist; sourceTree = "<group>"; };
+		1AD3DA260D5F62E700AB473C /* OOEncodingConverter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOEncodingConverter.h; path = ../../src/Core/OOEncodingConverter.h; sourceTree = SOURCE_ROOT; };
+		1AD3DA270D5F62E700AB473C /* OOEncodingConverter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOEncodingConverter.m; path = ../../src/Core/OOEncodingConverter.m; sourceTree = SOURCE_ROOT; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -39,6 +44,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
+				1A88FF7C0D5E393A002E5344 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +56,8 @@
 			children = (
 				1AC544420D4D01DE00C90E5B /* FontTextureView.h */,
 				1AC544430D4D01DE00C90E5B /* FontTextureView.m */,
+				1AD3DA260D5F62E700AB473C /* OOEncodingConverter.h */,
+				1AD3DA270D5F62E700AB473C /* OOEncodingConverter.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -58,6 +66,7 @@
 			isa = PBXGroup;
 			children = (
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
+				1A88FF7B0D5E393A002E5344 /* QuartzCore.framework */,
 			);
 			name = "Linked Frameworks";
 			sourceTree = "<group>";
@@ -181,6 +190,7 @@
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
 				1AC544440D4D01DE00C90E5B /* FontTextureView.m in Sources */,
+				1AD3DA280D5F62E700AB473C /* OOEncodingConverter.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,12 +220,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_DIR)/SDKs/MacOSX10.5.sdk/System/Library/Frameworks\"",
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = fonttexgen_Prefix.pch;
+				GCC_PREPROCESSOR_DEFINITIONS = "NS_BUILD_32_LIKE_64=1";
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = OOENCODINGCONVERTER_EXCLUDE;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				PRODUCT_NAME = fonttexgen;
@@ -228,6 +244,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(DEVELOPER_DIR)/SDKs/MacOSX10.5.sdk/System/Library/Frameworks\"",
+				);
 				GCC_ENABLE_OBJC_GC = required;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

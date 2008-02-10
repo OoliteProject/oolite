@@ -11,17 +11,20 @@
 
 @interface FontTextureView: NSView
 {
-	int					_offsetX, _offsetY;
-	BOOL				_alternatingColors;
-	NSImage				*_topRows;
-	NSImage				*_credits;
-	NSArray				*_widths;
-	NSDictionary		*_template;
+	int						_offsetX, _offsetY;
+	BOOL					_alternatingColors;
+	NSImage					*_topRows;
+	NSArray					*_widths;
+	NSDictionary			*_template;
+	NSStringEncoding		_encoding;
+	
+	IBOutlet NSPopUpButton	*encodingPopUp;
 }
 
 @property (nonatomic) int offsetX, offsetY;
 @property (nonatomic) BOOL alternatingColors;
 
 - (IBAction) saveImage:(id)sender;
+- (IBAction) takeEncodingFromTag:(id)sender;
 
 @end

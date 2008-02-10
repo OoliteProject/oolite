@@ -49,6 +49,9 @@ SOFTWARE.
 
 */
 
+
+#ifndef OOENCODINGCONVERTER_EXCLUDE	// For the convenience of fonttexgen
+
 #import "OOCocoa.h"
 
 @class OOCache;
@@ -67,3 +70,18 @@ SOFTWARE.
 - (NSData *) convertString:(NSString *)string;
 
 @end
+
+#endif OOENCODINGCONVERTER_EXCLUDE
+
+
+/*
+	There are a variety of overlapping naming schemes for text encoding.
+	We ignore them and use a fixed list:
+		"windows-latin-1"		NSWindowsCP1252StringEncoding
+		"windows-latin-2"		NSWindowsCP1250StringEncoding
+		"windows-cyrillic"		NSWindowsCP1251StringEncoding
+		"windows-greek"			NSWindowsCP1253StringEncoding
+		"windows-turkish"		NSWindowsCP1254StringEncoding
+*/
+NSString *StringFromEncoding(NSStringEncoding encoding);	// Returns nil for unknown
+NSStringEncoding EncodingFromString(NSString *name);		// Returns (NSStringEncoding)NSNotFound for unknown

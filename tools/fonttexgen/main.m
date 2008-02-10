@@ -10,5 +10,13 @@
 
 int main(int argc, char *argv[])
 {
-    return NSApplicationMain(argc,  (const char **) argv);
+	@try
+	{
+		return NSApplicationMain(argc,  (const char **) argv);
+	}
+	@catch (id e)
+	{
+		NSLog(@"*** Root exception handler: %@: %@", [e name], [e reason]);
+	}
+	return -1;
 }
