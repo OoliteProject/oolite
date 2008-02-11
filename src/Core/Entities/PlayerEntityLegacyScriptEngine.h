@@ -99,6 +99,7 @@ MA 02110-1301, USA.
 - (NSString *) commanderName_string;
 - (NSString *) commanderRank_string;
 - (NSString *) commanderShip_string;
+- (NSString *) commanderDisplayNameShip_string;
 - (NSString *) commanderLegalStatus_string;
 - (NSNumber *) commanderLegalStatus_number;
 

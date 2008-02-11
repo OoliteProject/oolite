@@ -953,6 +953,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (NSString *) commanderDisplayNameShip_string
+{
+	return [self displayName];
+}
+
+
+
 - (NSString *) commanderLegalStatus_string
 {
 	return LegalStatusToString(legalStatus);

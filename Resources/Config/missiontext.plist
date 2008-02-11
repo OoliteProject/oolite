@@ -71,7 +71,7 @@
 	
 	<!-- Legacy bits that are no longer used. Left in in case OXPs use them, although it seems unlikely. -->
 	<key>trumble_offer</key>
-	<string>Commander [commander_name],\n\nYou look like someone who could use a Trumble on your [commander_shipname]!\n\nThis is yours for only 30 credits.</string>
+	<string>Commander [commander_name],\n\nYou look like someone who could use a Trumble on your [commander_shipdisplayname]!\n\nThis is yours for only 30 credits.</string>
 	<key>trumble_offer_yesno</key>
 	<dict>
 		<key>NO</key>
