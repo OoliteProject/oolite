@@ -526,7 +526,7 @@ NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName)
 	// If no entry is found in descriptions.plist, the symbolic name is used.
 	if (result == nil)
 	{
-		key = [@"commodity-name " stringByAppendingString:symbolicName];
+		key = [@"commodity-name " stringByAppendingString:[symbolicName lowercaseString]];
 		result = [UNIVERSE descriptionForKey:key];
 		if (result == nil)  result = symbolicName;
 		[cache setObject:result forKey:symbolicName];

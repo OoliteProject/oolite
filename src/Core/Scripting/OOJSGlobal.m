@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
+#import "OOConstToString.h"
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -52,6 +53,7 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalLogWithClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -96,6 +98,7 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "Log",					GlobalLog,					1 },
 	{ "LogWithClass",			GlobalLogWithClass,			2 },
 	{ "ExpandDescription",		GlobalExpandDescription,	1 },
+	{ "DisplayNameForCommodity", GlobalDisplayNameForCommodity, 1 },
 	{ "RandomName",				GlobalRandomName,			0 },
 	{ 0 }
 };
@@ -189,6 +192,19 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 	
 	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
 	string = ExpandDescriptionForCurrentSystem(string);
+	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+// DisplayNameForCommodity(commodityName : String) : String
+static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*string = nil;
+	
+	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	string = CommodityDisplayNameForSymbolicName(string);
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;

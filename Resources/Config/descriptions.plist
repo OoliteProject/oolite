@@ -1313,39 +1313,39 @@
 	<string>For capturing %@, %@, you’re paid a bounty of %.1f credits.</string>
 	
 	<!-- Commodity names -->
-	<key>commodity-name Food</key>
+	<key>commodity-name food</key>
 	<string>Food</string>
-	<key>commodity-name Textiles</key>
+	<key>commodity-name textiles</key>
 	<string>Textiles</string>
-	<key>commodity-name Radioactives</key>
+	<key>commodity-name radioactives</key>
 	<string>Radioactives</string>
-	<key>commodity-name Slaves</key>
+	<key>commodity-name slaves</key>
 	<string>Slaves</string>
-	<key>commodity-name Liquor/Wines</key>
+	<key>commodity-name liquor/wines</key>
 	<string>Liquor/Wines</string>
-	<key>commodity-name Luxuries</key>
+	<key>commodity-name luxuries</key>
 	<string>Luxuries</string>
-	<key>commodity-name Narcotics</key>
+	<key>commodity-name narcotics</key>
 	<string>Narcotics</string>
-	<key>commodity-name Computers</key>
+	<key>commodity-name computers</key>
 	<string>Computers</string>
-	<key>commodity-name Machinery</key>
+	<key>commodity-name machinery</key>
 	<string>Machinery</string>
-	<key>commodity-name Alloys</key>
+	<key>commodity-name alloys</key>
 	<string>Alloys</string>
-	<key>commodity-name Firearms</key>
+	<key>commodity-name firearms</key>
 	<string>Firearms</string>
-	<key>commodity-name Furs</key>
+	<key>commodity-name furs</key>
 	<string>Furs</string>
-	<key>commodity-name Minerals</key>
+	<key>commodity-name minerals</key>
 	<string>Minerals</string>
-	<key>commodity-name Gold</key>
+	<key>commodity-name gold</key>
 	<string>Gold</string>
-	<key>commodity-name Platinum</key>
+	<key>commodity-name platinum</key>
 	<string>Platinum</string>
-	<key>commodity-name Gem-Stones</key>
+	<key>commodity-name gem-stones</key>
 	<string>Gem-Stones</string>
-	<key>commodity-name Alien Items</key>
+	<key>commodity-name alien items</key>
 	<string>Alien Items</string>
 </dict>
 </plist>

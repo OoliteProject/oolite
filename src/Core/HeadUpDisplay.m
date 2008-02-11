@@ -2065,7 +2065,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 {
 	unsigned		i;
 	double			cx = x;
-	unsigned		ch, length;
+	unsigned		length;
 	NSData			*data = nil;
 	const uint8_t	*bytes = NULL;
 	
@@ -2080,13 +2080,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	glBegin(GL_QUADS);
 	for (i = 0; i < length; i++)
 	{
-		ch = bytes[i];
-		if (ch == '\t')  ch = ' ';
-		//if (ch > 190)
-		//{
-		//	OOLog(@"temp", @"Fancy!");
-		//}
-		cx += drawCharacterQuad(ch, cx, y, z, siz);
+		cx += drawCharacterQuad(bytes[i], cx, y, z, siz);
 	}
 	glEnd();
 	
