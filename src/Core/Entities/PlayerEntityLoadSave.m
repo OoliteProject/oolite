@@ -879,7 +879,8 @@
 	if(shipDict != nil)
 	{
 		[self showShipyardModel:shipDict];
-		shipName = [shipDict stringForKey:KEY_NAME];
+		shipName = [shipDict stringForKey:@"display_name"];
+		if (shipName == nil) shipName = [shipDict stringForKey:KEY_NAME];
 	}
 	else
 	{

@@ -260,6 +260,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[name autorelease];
 	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
+	[displayName autorelease];
+	displayName = [[shipDict stringForKey:@"display_name" defaultValue:name] copy];
+	
 	[roleSet release];
 	roleSet = [[OORoleSet alloc] initWithRoleString:[shipDict stringForKey:@"roles"]];
 	[primaryRole release];
@@ -504,6 +507,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[shipAI release];
 	[cargo release];
 	[name release];
+	[displayName release];
 	[roleSet release];
 	[primaryRole release];
 	[sub_entities release];
@@ -2907,6 +2911,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (NSString *) displayName
+{
+	return displayName;
+}
+
+
 - (void) setName:(NSString *)inName
 {
 	[name release];
@@ -2914,11 +2924,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (void) setDisplayName:(NSString *)inName
+{
+	[displayName release];
+	displayName = [inName copy];
+}
+
+
 - (NSString *) identFromShip:(ShipEntity*) otherShip
 {
 	if (has_military_jammer && military_jammer_active && (![otherShip hasMilitaryScannerFilter]))
 		return @"Unknown Target";
-	return name;
+	return displayName;
 }
 
 
@@ -6305,7 +6322,7 @@ BOOL class_masslocks(int some_class)
 				
 				if (isPlayer)
 				{
-					NSString* scoopedMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-scooped]"), [other name]];
+					NSString* scoopedMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-scooped]"), [other displayName]];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE addMessage:scoopedMS forCount:4];
 				}
@@ -7140,12 +7157,11 @@ int w_space_seed = 1234567;
 		return;
 	NSMutableString* localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
-							withString:name
+							withString:displayName
 							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[target:name]"
 							withString:[other_ship identFromShip: self]
 							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
-
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -7156,7 +7172,7 @@ int w_space_seed = 1234567;
 	seed_RNG_only_for_planet_description(very_random_seed);
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(localExpandedMessage);
 	[self setCommsMessageColor];
-	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", name, expandedMessage]];
+	[other_ship receiveCommsMessage:[NSString stringWithFormat:@"%@:\n %@", displayName, expandedMessage]];
 	if (other_ship->isPlayer)
 		messageTime = 6.0;
 	[UNIVERSE resetCommsLogColor];
@@ -7179,7 +7195,7 @@ int w_space_seed = 1234567;
 
 - (void) broadcastMessage:(NSString *) message_text
 {
-	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", name, ExpandDescriptionForCurrentSystem(message_text)];
+	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", displayName, ExpandDescriptionForCurrentSystem(message_text)];
 
 	if (!crew)
 		return;	// nobody to send the signal
@@ -7436,6 +7452,7 @@ int w_space_seed = 1234567;
 	[super dumpSelfState];
 	
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
+	OOLog(@"dumpState.shipEntity", @"Display Name: %@", displayName);
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);

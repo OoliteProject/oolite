@@ -1087,6 +1087,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	[name autorelease];
 	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
+	[displayName autorelease];
+	displayName = [[shipDict stringForKey:@"display_name" defaultValue:name] copy];
+	
 	[roleSet release];
 	roleSet = nil;
 	[self setPrimaryRole:@"player"];
@@ -1706,7 +1709,7 @@ double scoopSoundPlayTime = 0.0;
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				if ((missile_entity[activeMissile])&&(!ident_engaged))
 					[missile_entity[activeMissile] addTarget:first_target];
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? DESC(@"ident-system-string"): DESC(@"missile-string"), [(ShipEntity *)first_target name]] forCount:4.5];
+				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? DESC(@"ident-system-string"): DESC(@"missile-string"), [(ShipEntity *)first_target displayName]] forCount:4.5];
 				if (ident_engaged)
 				{
 					if (![UNIVERSE playCustomSound:@"[ident-locked-on]"])
@@ -4011,7 +4014,7 @@ double scoopSoundPlayTime = 0.0;
 	if (status == STATUS_DOCKED)
 	{
 		if ((dockedStation != [UNIVERSE station])&&(dockedStation != nil))
-			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [dockedStation name]];
+			systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [dockedStation displayName]];
 	}
 
 	targetSystemName =	[UNIVERSE getSystemName:target_system_seed];
@@ -4032,7 +4035,7 @@ double scoopSoundPlayTime = 0.0;
 		[gui setTabStops:tab_stops];
 
 		ship_dict = [UNIVERSE getDictionaryForShip:ship_desc];
-		shipName = [ship_dict stringForKey:KEY_NAME];
+		shipName = [ship_dict stringForKey:@"display_name" defaultValue:[ship_dict stringForKey:KEY_NAME]];
 
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
 
@@ -6266,7 +6269,7 @@ OOSound* burnersound;
 			{
 				[super addTarget:potential_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target name]] forCount:4.5];
+				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target displayName]] forCount:4.5];
 				return YES;
 			}
 		}
@@ -6293,7 +6296,7 @@ OOSound* burnersound;
 			{
 				[super addTarget:potential_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target name]] forCount:4.5];
+				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target displayName]] forCount:4.5];
 				return YES;
 			}
 		}

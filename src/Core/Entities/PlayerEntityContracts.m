@@ -1133,7 +1133,8 @@ static NSMutableDictionary* currentShipyard = nil;
 							forKey:(NSString *)[(NSDictionary *)[shipyard objectAtIndex:i] objectForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	NSString* shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:KEY_NAME];
+	NSString* shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:@"display_name"];
+	if (shipName == nil) shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:KEY_NAME];
 		
 	unsigned n_ships = [shipyard count];
 
@@ -1198,7 +1199,7 @@ static NSMutableDictionary* currentShipyard = nil;
 				int ship_price = [(NSNumber*)[ship_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
 				[gui setColor:[OOColor yellowColor] forRow:start_row + i];
 				[gui setArray:[NSArray arrayWithObjects:
-						[NSString stringWithFormat:@" %@ ",[(NSDictionary*)[ship_info objectForKey:SHIPYARD_KEY_SHIP] objectForKey:KEY_NAME]],
+						[NSString stringWithFormat:@" %@ ",[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:@"display_name" defaultValue:[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:KEY_NAME]]],
 						[NSString stringWithFormat:@" %d Cr. ",ship_price],
 						nil]
 					forRow:start_row + i];

@@ -2082,10 +2082,10 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	{
 		ch = bytes[i];
 		if (ch == '\t')  ch = ' ';
-		if (ch > 190)
-		{
-			OOLog(@"temp", @"Fancy!");
-		}
+		//if (ch > 190)
+		//{
+		//	OOLog(@"temp", @"Fancy!");
+		//}
 		cx += drawCharacterQuad(ch, cx, y, z, siz);
 	}
 	glEnd();

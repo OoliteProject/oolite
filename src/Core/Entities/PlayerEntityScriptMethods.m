@@ -85,6 +85,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSString *) dockedStationDisplayName
+{
+	return [(ShipEntity *)dockedStation displayName];
+}
+
+
 - (BOOL) dockedAtMainStation
 {
 	return status == STATUS_DOCKED && dockedStation == [UNIVERSE station];

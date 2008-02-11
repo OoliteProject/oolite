@@ -2544,7 +2544,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		
 		demo_ship = ship;
 		
-		[gui setText:[ship name] forRow:19 align:GUI_ALIGN_CENTER];
+		[gui setText:[ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor whiteColor] forRow:19];
 		
 		[ship release];
@@ -5124,7 +5124,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 								[demo_ship setRoll:M_PI/5.0];
 								[demo_ship setPitch:M_PI/10.0];
 								[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
-								[gui setText:[demo_ship name] forRow:19 align:GUI_ALIGN_CENTER];
+								[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 								
 								demo_stage = DEMO_FLY_IN;
 								demo_stage_time = universal_time + 1.5;
@@ -6892,6 +6892,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
 			NSMutableString* description = [NSMutableString stringWithCapacity:256];
 			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
+			NSString *shipName = [ship_dict stringForKey:@"display_name" defaultValue:[ship_dict stringForKey:KEY_NAME]];
 			OOCreditsQuantity price = [ship_info unsignedIntForKey:KEY_PRICE];
 			OOCreditsQuantity base_price = price;
 			NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info dictionaryForKey:KEY_STANDARD_EQUIPMENT] arrayForKey:KEY_EQUIPMENT_EXTRAS]];
@@ -6903,8 +6904,8 @@ double estimatedTimeForJourney(double distance, int hops)
 //			NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
 //			NSLog(@"%@ Brochure description : \"%@\"", [ship_dict objectForKey:KEY_NAME], brochure_desc);
 			
-			[description appendFormat:@"%@:", [ship_dict stringForKey:KEY_NAME]];
-			[short_description appendFormat:@"%@:", [ship_dict stringForKey:KEY_NAME]];
+			[description appendFormat:@"%@:", shipName];
+			[short_description appendFormat:@"%@:", shipName];
 			
 			OOWeaponType fwd_weapon = EquipmentStringToWeaponType(fwd_weapon_string);
 			

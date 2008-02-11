@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 
 - (BOOL) isDocked;
 - (NSString *) dockedStationName;
+- (NSString *) dockedStationDisplayName;
 - (BOOL) dockedAtMainStation;
 
 - (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
