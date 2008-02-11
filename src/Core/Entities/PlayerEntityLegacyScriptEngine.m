@@ -953,7 +953,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSString *) commanderDisplayNameShip_string
+- (NSString *) commanderShipDisplayName_string
 {
 	return [self displayName];
 }

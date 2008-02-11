@@ -214,7 +214,7 @@ static unsigned				sCacheMisses = 0;
 
 @end
 
-#endif OOENCODINGCONVERTER_EXCLUDE
+#endif //OOENCODINGCONVERTER_EXCLUDE
 
 
 /*

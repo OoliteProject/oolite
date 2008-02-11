@@ -302,7 +302,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	{
 		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
 		[all_descriptions setObject:[player commanderShip_string] forKey:@"commander_shipname"];
-		[all_descriptions setObject:[player commanderDisplayNameShip_string] forKey:@"commander_shipdisplayname"];
+		[all_descriptions setObject:[player commanderShipDisplayName_string] forKey:@"commander_shipdisplayname"];
 		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
 		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
 	}
