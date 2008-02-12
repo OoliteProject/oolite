@@ -632,7 +632,7 @@
 	gui_screen = GUI_SCREEN_SAVE_OVERWRITE;
 	
 	[gui clear];
-	[gui setTitle:[NSString stringWithFormat:@"Save Commander %@", cdrName]];
+	[gui setTitle:[NSString stringWithFormat:DESC(@"overwrite-save-commander-@"), cdrName]];
 	
 	[gui setText:[NSString stringWithFormat:DESC(@"overwritescreen-commander-@-already-exists-overwrite-query"), cdrName]
 								forRow:SAVE_OVERWRITE_WARN_ROW align: GUI_ALIGN_CENTER];

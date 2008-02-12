@@ -1231,6 +1231,8 @@
 	<string>Commander name: %@</string>
 	<key>savescreen-commander-name</key>
 	<string>Commander name: </string>
+	<key>overwrite-save-commander-@</key>
+	<string>Save Commander %@</string>
 	<key>overwritescreen-commander-@-already-exists-overwrite-query</key>
 	<string>Commander %@ already exists - overwrite this saved game?</string>
 	<key>overwritescreen-yes</key>
