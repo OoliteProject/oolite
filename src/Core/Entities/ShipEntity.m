@@ -772,22 +772,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
-	if ([shipinfoDictionary objectForKey:@"escort-role"])
+	escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:defaultRole];
+	if (![escortRole isEqualToString: defaultRole])
 	{
-		escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:defaultRole];
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
 		{
 			escortRole = defaultRole;
 		}
 	}
-	else
-	{
-		escortRole = defaultRole;
-	}
 	
-	if ([shipinfoDictionary objectForKey:@"escort-ship"])
+	escortShipKey = [shipinfoDictionary stringForKey:@"escort-ship"];
+	if (escortShipKey != nil)
 	{
-		escortShipKey = [shipinfoDictionary stringForKey:@"escort-ship"];
 		if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
 		{
 			escortShipKey = nil;
@@ -820,12 +816,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		ex_pos.y += dd * 6.0 * (randf() - 0.5);
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
 		
-		[escorter setScanClass: CLASS_NEUTRAL];
 		[escorter setPosition:ex_pos];
 		
 		[escorter setStatus:STATUS_IN_FLIGHT];
 		
-		[escorter setPrimaryRole:escortRole];
+		[escorter setPrimaryRole:defaultRole];	//for mothership
 		
 		[escorter setScanClass:scanClass];		// you are the same as I
 		
@@ -842,10 +837,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		{
 			[escorter setAITo:autoAI];
 		}
-		if(!escortShipKey) // primary role user defined, must change to standard!
-		{
-			[escorter setPrimaryRole:defaultRole];
-		}
 		
 		escortAI = [escorter getAI];
 		if ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"])
@@ -855,7 +846,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 		[escorter setGroupID:universalID];
 		[self setGroupID:universalID];		// make self part of same group
-		
 		[escorter setOwner: self];	// make self group leader
 		
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
@@ -6818,10 +6808,14 @@ int w_space_seed = 1234567;
 			[self setGroupID:universalID];		// make self part of same group
 			escortCount++;
 			
-			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
+			//OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
 			[other_ship doScriptEvent:@"escortAccepted" withArgument:self];
 			return YES;
+		}
+		else
+		{
+			OOLog(@"ship.escort.accept", @"Escorts numbers maxed out. Rejected escort %@.", other_ship);
 		}
 	}
 	return NO;

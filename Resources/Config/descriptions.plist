@@ -1012,6 +1012,8 @@
 	<string>Billion</string>
 	<key>sysdata-prod</key>
 	<string>Gross productivity:</string>
+	<key>sysdata-prod-worth</key>
+	<string> %5d M ₢</string>
 	<key>sysdata-radius</key>
 	<string>Average radius:</string>
 	
@@ -1103,6 +1105,10 @@
 	<key>starboard-facing-string</key>
 	<string> Starboard </string>
 	
+	<!-- Purchase ship screen -->
+	<key>ship-purchase-price</key>
+	<string>%d ₢</string>
+
 	<!-- Contracts screen -->
 	<key>@-contracts-title</key>
 	<string>%@ Carrier Market</string>

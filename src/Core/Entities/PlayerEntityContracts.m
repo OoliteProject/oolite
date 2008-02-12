@@ -1200,7 +1200,7 @@ static NSMutableDictionary* currentShipyard = nil;
 				[gui setColor:[OOColor yellowColor] forRow:start_row + i];
 				[gui setArray:[NSArray arrayWithObjects:
 						[NSString stringWithFormat:@" %@ ",[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:@"display_name" defaultValue:[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:KEY_NAME]]],
-						[NSString stringWithFormat:@" %d Cr. ",ship_price],
+						[NSString stringWithFormat:DESC(@"ship-purchase-price"),ship_price],
 						nil]
 					forRow:start_row + i];
 				[gui setKey:(NSString*)[ship_info objectForKey:SHIPYARD_KEY_ID] forRow:start_row + i];

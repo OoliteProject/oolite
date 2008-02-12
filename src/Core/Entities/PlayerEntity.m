@@ -4093,7 +4093,6 @@ double scoopSoundPlayTime = 0.0;
 
 - (NSArray *) equipmentList
 {
-	NSDictionary*   descriptions = [UNIVERSE descriptions];
 	//int				original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	NSMutableArray* quip = [NSMutableArray arrayWithCapacity:32];
 	
@@ -4113,22 +4112,22 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	if (forward_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:[descriptions objectForKey:@"equipment-fwd-weapon-@"],(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:forward_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:forward_weapon]]];
 	if (aft_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:[descriptions objectForKey:@"equipment-aft-weapon-@"],(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:aft_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:aft_weapon]]];
 	if (starboard_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:[descriptions objectForKey:@"equipment-stb-weapon-@"],(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:starboard_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:starboard_weapon]]];
 	if (port_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:[descriptions objectForKey:@"equipment-port-weapon-@"],(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:port_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:port_weapon]]];
 
 	if (max_passengers > 0)
 	{
 		// Using distinct strings for single and multiple passenger berths because different languages
 		// may have quite different ways of phrasing the two.
 		if (max_passengers > 1)
-			[quip addObject:[NSString stringWithFormat:[descriptions objectForKey:@"equipment-multiple-pass-berth-@"], max_passengers]];
+			[quip addObject:[NSString stringWithFormat:DESC(@"equipment-multiple-pass-berth-@"), max_passengers]];
 		else
-			[quip addObject:[descriptions objectForKey:@"equipment-single-pass-berth-@"]];
+			[quip addObject:DESC(@"equipment-single-pass-berth-@")];
 	}
 
 	return [NSArray arrayWithArray:quip];
@@ -4138,10 +4137,9 @@ double scoopSoundPlayTime = 0.0;
 - (NSArray *) cargoList
 {
 	NSMutableArray* manifest = [NSMutableArray arrayWithCapacity:32];
-	NSDictionary*   descriptions = [UNIVERSE descriptions];
-	NSString *tons = (NSString *)[descriptions objectForKey:@"cargo-tons-symbol"];
-	NSString *grams = (NSString *)[descriptions objectForKey:@"cargo-grams-symbol"];
-	NSString *kilograms = (NSString *)[descriptions objectForKey:@"cargo-kilograms-symbol"];
+	NSString *tons = (NSString *)DESC(@"cargo-tons-symbol");
+	NSString *grams = (NSString *)DESC(@"cargo-grams-symbol");
+	NSString *kilograms = (NSString *)DESC(@"cargo-kilograms-symbol");
 
 	if (specialCargo)
 		[manifest addObject:specialCargo];
@@ -4180,7 +4178,6 @@ double scoopSoundPlayTime = 0.0;
 {
 	NSDictionary*   targetSystemData;
 	NSString*		targetSystemName;
-	NSDictionary*   descriptions = [UNIVERSE descriptions];
 
 	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
@@ -4219,20 +4216,20 @@ double scoopSoundPlayTime = 0.0;
 		}
 
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:[descriptions objectForKey:@"sysdata-planet-name-@"],   targetSystemName]];
+		[gui setTitle:[NSString stringWithFormat:DESC(@"sysdata-planet-name-@"),   targetSystemName]];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-eco"], economy_desc, nil]						forRow:1];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]						forRow:1];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-govt"], government_desc, nil]				forRow:3];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-tl"], [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-pop"], [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-prod"], @"", [NSString stringWithFormat:@"%5d M Cr.", productivity], nil]	forRow:10];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
 		
-		[gui setArray:[NSArray arrayWithObjects:[descriptions objectForKey:@"sysdata-radius"], @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
 		
 		int i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
 		missionTextRow = i;
