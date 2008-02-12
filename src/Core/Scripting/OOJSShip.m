@@ -77,7 +77,7 @@ enum
 {
 	// Property IDs
 	kShip_shipDescription,		// name, string, read-only
-	kShip_shipInternalDescription,	// internal name, string, read-only
+	kShip_shipDisplayName,		// name displayed on screen, string, read-only
 	kShip_roles,				// roles, array, read-only
 	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
 	kShip_primaryRole,			// Primary role, string, read-only
@@ -153,7 +153,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptInfo",				kShip_scriptInfo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "shipInternalDescription",	kShip_shipInternalDescription,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "shipDisplayName",		kShip_shipDisplayName,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "target",					kShip_target,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -227,11 +227,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	switch (JSVAL_TO_INT(name))
 	{
 		case kShip_shipDescription:
-			result = [entity displayName];
+			result = [entity name];
 			break;
 			
-		case kShip_shipInternalDescription:
-			result = [entity name];
+		case kShip_shipDisplayName:
+			result = [entity displayName];
 			break;
 		
 		case kShip_roles:
@@ -413,24 +413,24 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_shipDescription:
 			if (entity->isPlayer)
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
-			}
-			else
-			{
-				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
-				if (sValue != nil)  [entity setDisplayName:sValue];
-			}
-			break;
-			
-		case kShip_shipInternalDescription:
-			if (entity->isPlayer)
-			{
 				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
 			}
 			else
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [entity setName:sValue];
+			}
+			break;
+			
+		case kShip_shipDisplayName:
+			if (entity->isPlayer)
+			{
+				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
+			}
+			else
+			{
+				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				if (sValue != nil)  [entity setDisplayName:sValue];
 			}
 			break;
 		
