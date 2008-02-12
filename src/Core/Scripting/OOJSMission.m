@@ -293,7 +293,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
-	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (argc >= 1)  key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
 	[player setMissionImage:key];
 	
 	return YES;

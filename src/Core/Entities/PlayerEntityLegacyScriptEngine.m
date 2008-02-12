@@ -1894,6 +1894,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionBackgroundTexture retain];
  	}
+	[[UNIVERSE gui] setBackgroundTexture:missionBackgroundTexture];
 }
 
 
