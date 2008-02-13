@@ -4093,6 +4093,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (NSArray *) equipmentList
 {
+	NSDictionary*   descriptions = [UNIVERSE descriptions];
 	//int				original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	NSMutableArray* quip = [NSMutableArray arrayWithCapacity:32];
 	
@@ -4112,13 +4113,13 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	if (forward_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:forward_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:forward_weapon]]];
 	if (aft_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:aft_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:aft_weapon]]];
 	if (starboard_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:starboard_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:starboard_weapon]]];
 	if (port_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),(NSString *)[(NSArray *)DESC(@"weapon_name") objectAtIndex:port_weapon]]];
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:port_weapon]]];
 
 	if (max_passengers > 0)
 	{
