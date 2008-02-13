@@ -158,7 +158,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 #else
 #define kMoz18State "undefined"
 #endif
-		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, MOZILLA_1_8_BRANCH must either be defined for both the library and for Oolite, or undefined for both; it is currently " kMoz18State " for Oolite.");
+		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, JS_THREADSAFE must be undefined, and MOZILLA_1_8_BRANCH must either be defined for both the library and for Oolite, or undefined for both; it is currently " kMoz18State " for Oolite.");
 		exit(EXIT_FAILURE);
 	}
 #endif

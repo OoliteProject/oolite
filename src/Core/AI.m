@@ -512,7 +512,7 @@ typedef struct
 		OOLogPopIndent();
 	}
 	OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
-	OOLog(@"dumpState.ai", @"Next think interval: %g", nextThinkTime);
+	OOLog(@"dumpState.ai", @"Next think interval: %g", thinkTimeInterval);
 }
 
 @end
