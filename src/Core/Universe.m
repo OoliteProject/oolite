@@ -7813,6 +7813,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		{
 			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
 			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
+			// If the like_ship (source) has a display_name assigned, this must be removed on our ship. We will use own ship's display name.
+			if ([this_shipdict objectForKey:@"display_name"] && [shipdict objectForKey:@"name"] != nil)
+			{
+				[this_shipdict removeObjectForKey:@"display_name"];
+			}
 			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
 			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
 		}
