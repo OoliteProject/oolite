@@ -1,1359 +1,997 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>condition</key>
-	<array>
-		<string>Docked</string>
-		<string>Green</string>
-		<string>Yellow</string>
-		<string>Red</string>
-	</array>
-	<key>economy</key>
-	<array>
-		<string>Rich Industrial</string>
-		<string>Average Industrial</string>
-		<string>Poor Industrial</string>
-		<string>Mainly Industrial</string>
-		<string>Mainly Agricultural</string>
-		<string>Rich Agricultural</string>
-		<string>Average Agricultural</string>
-		<string>Poor Agricultural</string>
-	</array>
-	<key>government</key>
-	<array>
-		<string>Anarchy</string>
-		<string>Feudal</string>
-		<string>Multi-Government</string>
-		<string>Dictatorship</string>
-		<string>Communist</string>
-		<string>Confederacy</string>
-		<string>Democracy</string>
-		<string>Corporate State</string>
-	</array>
-	<key>inhabitants</key>
-	<array>
-		<array>
-			<string>Large</string>
-			<string>Fierce</string>
-			<string>Small</string>
-		</array>
-		<array>
-			<string>Green</string>
-			<string>Red</string>
-			<string>Yellow</string>
-			<string>Blue</string>
-			<string>Black</string>
-			<string>Harmless</string>
-		</array>
-		<array>
-			<string>Slimy</string>
-			<string>Bug-Eyed</string>
-			<string>Horned</string>
-			<string>Bony</string>
-			<string>Fat</string>
-			<string>Furry</string>
-		</array>
-		<array>
-			<string>Rodent</string>
-			<string>Frog</string>
-			<string>Lizard</string>
-			<string>Lobster</string>
-			<string>Bird</string>
-			<string>Humanoid</string>
-			<string>Feline</string>
-			<string>Insect</string>
-		</array>
-		<array>
-			<string>Rodents</string>
-			<string>Frogs</string>
-			<string>Lizards</string>
-			<string>Lobsters</string>
-			<string>Birds</string>
-			<string>Humanoids</string>
-			<string>Felines</string>
-			<string>Insects</string>
-		</array>
-	</array>
-	<key>legal_status</key>
-	<array>
-		<string>Clean</string>
-		<string>Offender</string>
-		<string>Fugitive</string>
-	</array>
-	<key>rating</key>
-	<array>
-		<string>Harmless</string>
-		<string>Mostly Harmless</string>
-		<string>Poor</string>
-		<string>Average</string>
-		<string>Above Average</string>
-		<string>Competent</string>
-		<string>Dangerous</string>
-		<string>☆ Deadly ☆</string>
-		<string>★★★ E L I T E ★★★</string>
-	</array>
-	<key>system_description</key>
-	<array>
-		<array>
-			<string>fabled</string>
-			<string>notable</string>
-			<string>well known</string>
-			<string>famous</string>
-			<string>noted</string>
-		</array>
-		<array>
-			<string>very</string>
-			<string>mildly</string>
-			<string>most</string>
-			<string>reasonably</string>
-			<string></string>
-		</array>
-		<array>
-			<string>ancient</string>
-			<string>[20]</string>
-			<string>great</string>
-			<string>vast</string>
-			<string>pink</string>
-		</array>
-		<array>
-			<string>[29] [28] plantations</string>
-			<string>mountains</string>
-			<string>[27]</string>
-			<string>[19] forests</string>
-			<string>oceans</string>
-		</array>
-		<array>
-			<string>shyness</string>
-			<string>silliness</string>
-			<string>mating traditions</string>
-			<string>loathing of [5]</string>
-			<string>love for [5]</string>
-		</array>
-		<array>
-			<string>food blenders</string>
-			<string>tourists</string>
-			<string>poetry</string>
-			<string>discos</string>
-			<string>[13]</string>
-		</array>
-		<array>
-			<string>talking tree</string>
-			<string>crab</string>
-			<string>bat</string>
-			<string>lobst</string>
-			<string>%R</string>
-		</array>
-		<array>
-			<string>beset</string>
-			<string>plagued</string>
-			<string>ravaged</string>
-			<string>cursed</string>
-			<string>scourged</string>
-		</array>
-		<array>
-			<string>[21] civil war</string>
-			<string>[26] [23] [24]s</string>
-			<string>[26] disease</string>
-			<string>[21] earthquakes</string>
-			<string>[21] solar activity</string>
-		</array>
-		<array>
-			<string>its [2] [3]</string>
-			<string>the %I [23] [24]</string>
-			<string>its inhabitants’ [25] [4]</string>
-			<string>[32]</string>
-			<string>its [12] [13]</string>
-		</array>
-		<array>
-			<string>juice</string>
-			<string>brandy</string>
-			<string>water</string>
-			<string>brew</string>
-			<string>gargle blasters</string>
-		</array>
-		<array>
-			<string>%R</string>
-			<string>%I [24]</string>
-			<string>%I %R</string>
-			<string>%I [26]</string>
-			<string>[26] %R</string>
-		</array>
-		<array>
-			<string>fabulous</string>
-			<string>exotic</string>
-			<string>hoopy</string>
-			<string>unusual</string>
-			<string>exciting</string>
-		</array>
-		<array>
-			<string>cuisine</string>
-			<string>night life</string>
-			<string>casinos</string>
-			<string>sit coms</string>
-			<string>[32]</string>
-		</array>
-		<array>
-			<string>%H</string>
-			<string>The planet %H</string>
-			<string>The world %H</string>
-			<string>This planet</string>
-			<string>This world</string>
-		</array>
-		<array>
-			<string>n unremarkable</string>
-			<string> boring</string>
-			<string> dull</string>
-			<string> tedious</string>
-			<string> revolting</string>
-		</array>
-		<array>
-			<string>planet</string>
-			<string>world</string>
-			<string>place</string>
-			<string>little planet</string>
-			<string>dump</string>
-		</array>
-		<array>
-			<string>wasp</string>
-			<string>moth</string>
-			<string>grub</string>
-			<string>ant</string>
-			<string>%R</string>
-		</array>
-		<array>
-			<string>poet</string>
-			<string>arts graduate</string>
-			<string>yak</string>
-			<string>snail</string>
-			<string>slug</string>
-		</array>
-		<array>
-			<string>tropical</string>
-			<string>dense</string>
-			<string>rain</string>
-			<string>impenetrable</string>
-			<string>exuberant</string>
-		</array>
-		<array>
-			<string>funny</string>
-			<string>weird</string>
-			<string>unusual</string>
-			<string>strange</string>
-			<string>peculiar</string>
-		</array>
-		<array>
-			<string>frequent</string>
-			<string>occasional</string>
-			<string>unpredictable</string>
-			<string>dreadful</string>
-			<string>deadly</string>
-		</array>
-		<array>
-			<string>[1] [0] for [9]</string>
-			<string>[1] [0] for [9] and [9]</string>
-			<string>[7] by [8]</string>
-			<string>[1] [0] for [9] but [7] by [8]</string>
-			<string>a[15] [16]</string>
-		</array>
-		<array>
-			<string>[26]</string>
-			<string>mountain</string>
-			<string>edible</string>
-			<string>tree</string>
-			<string>spotted</string>
-		</array>
-		<array>
-			<string>[30]</string>
-			<string>[31]</string>
-			<string>[6]oid</string>
-			<string>[18]</string>
-			<string>[17]</string>
-		</array>
-		<array>
-			<string>ancient</string>
-			<string>exceptional</string>
-			<string>eccentric</string>
-			<string>ingrained</string>
-			<string>[20]</string>
-		</array>
-		<array>
-			<string>killer</string>
-			<string>deadly</string>
-			<string>evil</string>
-			<string>lethal</string>
-			<string>vicious</string>
-		</array>
-		<array>
-			<string>parking meters</string>
-			<string>dust clouds</string>
-			<string>ice bergs</string>
-			<string>rock formations</string>
-			<string>volcanoes</string>
-		</array>
-		<array>
-			<string>plant</string>
-			<string>tulip</string>
-			<string>banana</string>
-			<string>corn</string>
-			<string>%Rweed</string>
-		</array>
-		<array>
-			<string>%R</string>
-			<string>%I %R</string>
-			<string>%I [26]</string>
-			<string>inhabitant</string>
-			<string>%I %R</string>
-		</array>
-		<array>
-			<string>shrew</string>
-			<string>beast</string>
-			<string>bison</string>
-			<string>snake</string>
-			<string>wolf</string>
-		</array>
-		<array>
-			<string>leopard</string>
-			<string>cat</string>
-			<string>monkey</string>
-			<string>goat</string>
-			<string>fish</string>
-		</array>
-		<array>
-			<string>[11] [10]</string>
-			<string>%I [30] [33]</string>
-			<string>its [12] [31] [33]</string>
-			<string>[34] [35]</string>
-			<string>[11] [10]</string>
-		</array>
-		<array>
-			<string>meat</string>
-			<string>cutlet</string>
-			<string>steak</string>
-			<string>burgers</string>
-			<string>soup</string>
-		</array>
-		<array>
-			<string>ice</string>
-			<string>mud</string>
-			<string>Zero-G</string>
-			<string>vacuum</string>
-			<string>%I ultra</string>
-		</array>
-		<array>
-			<string>hockey</string>
-			<string>cricket</string>
-			<string>karate</string>
-			<string>polo</string>
-			<string>tennis</string>
-		</array>
-	</array>
-	<key>weapon_name</key>
-	<array>
-		<string>none</string>
-		<string>Twin Plasma Cannon</string>
-		<string>Pulse Laser</string>
-		<string>Beam Laser</string>
-		<string>Mining Laser</string>
-		<string>Military Laser</string>
-	</array>
-	<key>digrams</key><!-- this string must always be the same length -->
-	<string>ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA'ERATENBERALAVETIEDORQUANTEISRION</string>
-	<key>phonograms</key><!-- this string represents the 4 character phonemes associated with each digram -->
-	<string>AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=</string>
-	<!-- Messages used when awarding bounties -->
-	<key>bounty-d</key>
-	<array>
-		<string>Bounty: %d</string>
-	</array>
-	<key>total-f-credits</key>
-	<array>
-		<string>Total: %.1f ₢</string>
-	</array>
-	<key>right-on-commander</key>
-	<array>
-		<string>Right On, Commander!</string>
-	</array>
-	<!-- Assorted messages used by the onboard computer -->
-	<key>autopilot-on</key>
-	<array>
-		<string>Autopilot engaged.</string>
-	</array>
-	<key>autopilot-off</key>
-	<array>
-		<string>Autopilot disengaged.</string>
-	</array>
-	<key>autopilot-out-of-range</key>
-	<array>
-		<string>Could not contact station for docking instructions.</string>
-	</array>
-	<key>autopilot-cannot-dock-with-target</key>
-	<array>
-		<string>Target is not capable of autopilot-docking.</string>
-	</array>
-	<key>autopilot-denied</key>
-	<array>
-		<string>Station refuses to issue docking instructions.</string>
-	</array>
-	<key>witch-to-@-in-f-seconds</key>
-	<array>
-		<string>Witchspace to %@ in %.0f s.</string>
-	</array>
-	<key>witch-blocked-by-@</key>
-	<array>
-		<string>Witchspace jump aborted (too close to %@.)</string>
-	</array>
-	<key>witch-user-abort</key>
-	<array>
-		<string>Witchspace jump aborted.</string>
-	</array>
-	<key>witch-no-target</key>
-	<array>
-		<string>No target system set.</string>
-	</array>
-	<key>witch-no-fuel</key>
-	<array>
-		<string>Insufficient fuel for witchspace jump.</string>
-	</array>
-	<key>witch-too-far</key>
-	<array>
-		<string>Engines incapable of witchspace jump to that target.</string>
-	</array>
-	<key>witch-engine-malfunction</key>
-	<array>
-		<string>Witchspace engine malfunction!</string>
-	</array>
-	<key>witch-galactic-in-f-seconds</key>
-	<array>
-		<string>Intergalactic jump in %.0f s.</string>
-	</array>
-	<key>game-paused</key>
-	<array>
-		<string>Game paused.</string>
-	</array>
-	<key>game-paused-options</key>
-	<array>
-		<string>Press F2 for options, P to resume.</string>
-	</array>
-	<key>game-saved</key>
-	<array>
-		<string>Game saved.</string>
-	</array>
-	<key>mouse-on</key>
-	<array>
-		<string>Mouse control on.</string>
-	</array>
-	<key>mouse-off</key>
-	<array>
-		<string>Mouse control off.</string>
-	</array>
-	<key>target-lost</key>
-	<array>
-		<string>Target lost.</string>
-	</array>
-	<key>@-locked-onto-@</key>
-	<array>
-		<string>%@ locked onto %@.</string>
-	</array>
-	<key>ecm-on</key>
-	<array>
-		<string>ECM system activated.</string>
-	</array>
-	<key>ecm-out-of-juice</key>
-	<array>
-		<string>ECM system deactivated (no energy left).</string>
-	</array>
-	<key>jump-mass-locked</key>
-	<array>
-		<string>Hyperspeed mass-locked.</string>
-	</array>
-	<key>fuel-inject-on</key>
-	<array>
-		<string>Fuel injection engaged.</string>
-	</array>
-	<key>fuel-out</key>
-	<array>
-		<string>Witchdrive fuel exhausted.</string>
-	</array>
-	<key>ident-on</key>
-	<array>
-		<string>Ident system active.</string>
-	</array>
-	<key>ident-off</key>
-	<array>
-		<string>Ident system deactivated.</string>
-	</array>
-	<key>missile-locked-onto-@</key>
-	<array>
-		<string>Missile locked onto %@.</string>
-	</array>
-	<key>missile-armed</key>
-	<array>
-		<string>Missile armed.</string>
-	</array>
-	<key>mine-armed</key>
-	<array>
-		<string>Mine armed.</string>
-	</array>
-	<key>missile-safe</key>
-	<array>
-		<string>Missiles on safety.</string>
-	</array>
-	<key>incoming-missile</key>
-	<array>
-		<string>Incoming missile.</string>
-	</array>
-	<key>energy-low</key>
-	<array>
-		<string>Energy low.</string>
-	</array>
-	<key>energy-bomb-activated</key>
-	<array>
-		<string>Energy bomb triggered.</string>
-	</array>
-	<key>weapon-overheat</key>
-	<array>
-		<string>Weapon system overheated.</string>
-	</array>
-	<key>weapon-out-of-juice</key>
-	<array>
-		<string>Weapon system inactive (no energy left).</string>
-	</array>
-	<key>escape-sequence</key>
-	<array>
-		<string>Escape sequence active.</string>
-	</array>
-	<key>@-ejected</key>
-	<array>
-		<string>%@ ejected.</string>
-	</array>
-	<key>@-ready-to-eject</key>
-	<array>
-		<string>Ready to eject %@.</string>
-	</array>
-	<key>ready-to-eject-@</key>
-	<array>
-		<string>Ready to eject %@.</string>
-	</array>
-	<key>@-scooped</key>
-	<array>
-		<string>%@ scooped.</string>
-	</array>
-	<key>scoop-captured-@</key>
-	<array>
-		<string>You captured %@.</string>
-	</array>
-	<key>scoop-rescued-@</key>
-	<array>
-		<string>You rescued %@.</string>
-	</array>
-	<key>scoop-got-slave</key>
-	<array>
-		<string>You captured a slave.</string>
-	</array>
-	<key>fuel-scoop-active</key>
-	<array>
-		<string>Fuel scoop active.</string>
-	</array>
-	<key>hold-locked</key>
-	<array>
-		<string>Cargo ejection system offline (speed too high).</string>
-	</array>
-	<!-- holds full -->
-	<key>hold-full</key>
-	<array>
-		<string>Cargo holds full.</string>
-	</array>
-	<!-- cloaking device .. -->
-	<key>cloak-on</key>
-	<array>
-		<string>Cloaking device activated.</string>
-	</array>
-	<key>cloak-off</key>
-	<array>
-		<string>Cloaking device deactivated.</string>
-	</array>
-	<key>cloak-low-juice</key>
-	<array>
-		<string>Not enough energy to activate cloaking device.</string>
-	</array>
-	<!-- Assorted messages sent out by ships etc.. -->
-	<!--	%H - homeworld
+{
+	// *** Basic lists ***
+	condition =
+	(
+		"Docked",
+		"Green",
+		"Yellow",
+		"Red"
+	);
+	economy =
+	(
+		"Rich Industrial",
+		"Average Industrial",
+		"Poor Industrial",
+		"Mainly Industrial",
+		"Mainly Agricultural",
+		"Rich Agricultural",
+		"Average Agricultural",
+		"Poor Agricultural"
+	);
+	government =
+	(
+		"Anarchy",
+		"Feudal",
+		"Multi-Government",
+		"Dictatorship",
+		"Communist",
+		"Confederacy",
+		"Democracy",
+		"Corporate State"
+	);
+	legal_status =
+	(
+		"Clean",
+		"Offender",
+		"Fugitive"
+	);
+	rating =
+	(
+		"Harmless",
+		"Mostly Harmless",
+		"Poor",
+		"Average",
+		"Above Average",
+		"Competent",
+		"Dangerous",
+		"☆ Deadly ☆",
+		"★★★ E L I T E ★★★"
+	);
+	weapon_name =
+	(
+		"none",
+		"Twin Plasma Cannon",
+		"Pulse Laser",
+		"Beam Laser",
+		"Mining Laser",
+		"Military Laser"
+	);
+	
+	// *** Inhabitant description generator ***
+	inhabitants =
+	(
+		(
+			"Large",
+			"Fierce",
+			"Small"
+		),
+		(
+			"Green",
+			"Red",
+			"Yellow",
+			"Blue",
+			"Black",
+			"Harmless"
+		),
+		(
+			"Slimy",
+			"Bug-Eyed",
+			"Horned",
+			"Bony",
+			"Fat",
+			"Furry"
+		),
+		(
+			"Rodent",
+			"Frog",
+			"Lizard",
+			"Lobster",
+			"Bird",
+			"Humanoid",
+			"Feline",
+			"Insect"
+		),
+		(
+			"Rodents",
+			"Frogs",
+			"Lizards",
+			"Lobsters",
+			"Birds",
+			"Humanoids",
+			"Felines",
+			"Insects"
+		)
+	);
+	
+	// *** Planet description generator ***
+	system_description =
+	(
+		(
+			"fabled",
+			"notable",
+			"well known",
+			"famous",
+			"noted"
+		),
+		(
+			"very",
+			"mildly",
+			"most",
+			"reasonably",
+			""
+		),
+		(
+			"ancient",
+			"[20]",
+			"great",
+			"vast",
+			"pink"
+		),
+		(
+			"[29] [28] plantations",
+			"mountains",
+			"[27]",
+			"[19] forests",
+			"oceans"
+		),
+		(
+			"shyness",
+			"silliness",
+			"mating traditions",
+			"loathing of [5]",
+			"love for [5]"
+		),
+		(
+			"food blenders",
+			"tourists",
+			"poetry",
+			"discos",
+			"[13]"
+		),
+		(
+			"talking tree",
+			"crab",
+			"bat",
+			"lobst",
+			"%R"
+		),
+		(
+			"beset",
+			"plagued",
+			"ravaged",
+			"cursed",
+			"scourged"
+		),
+		(
+			"[21] civil war",
+			"[26] [23] [24]s",
+			"[26] disease",
+			"[21] earthquakes",
+			"[21] solar activity"
+		),
+		(
+			"its [2] [3]",
+			"the %I [23] [24]",
+			"its inhabitants’ [25] [4]",
+			"[32]",
+			"its [12] [13]"
+		),
+		(
+			"juice",
+			"brandy",
+			"water",
+			"brew",
+			"gargle blasters"
+		),
+		(
+			"%R",
+			"%I [24]",
+			"%I %R",
+			"%I [26]",
+			"[26] %R"
+		),
+		(
+			"fabulous",
+			"exotic",
+			"hoopy",
+			"unusual",
+			"exciting"
+		),
+		(
+			"cuisine",
+			"night life",
+			"casinos",
+			"sit coms",
+			"[32]"
+		),
+		(
+			"%H",
+			"The planet %H",
+			"The world %H",
+			"This planet",
+			"This world"
+		),
+		(
+			"n unremarkable",
+			" boring",
+			" dull",
+			" tedious",
+			" revolting"
+		),
+		(
+			"planet",
+			"world",
+			"place",
+			"little planet",
+			"dump"
+		),
+		(
+			"wasp",
+			"moth",
+			"grub",
+			"ant",
+			"%R"
+		),
+		(
+			"poet",
+			"arts graduate",
+			"yak",
+			"snail",
+			"slug"
+		),
+		(
+			"tropical",
+			"dense",
+			"rain",
+			"impenetrable",
+			"exuberant"
+		),
+		(
+			"funny",
+			"weird",
+			"unusual",
+			"strange",
+			"peculiar"
+		),
+		(
+			"frequent",
+			"occasional",
+			"unpredictable",
+			"dreadful",
+			"deadly"
+		),
+		(
+			"[1] [0] for [9]",
+			"[1] [0] for [9] and [9]",
+			"[7] by [8]",
+			"[1] [0] for [9] but [7] by [8]",
+			"a[15] [16]"
+		),
+		(
+			"[26]",
+			"mountain",
+			"edible",
+			"tree",
+			"spotted"
+		),
+		(
+			"[30]",
+			"[31]",
+			"[6]oid",
+			"[18]",
+			"[17]"
+		),
+		(
+			"ancient",
+			"exceptional",
+			"eccentric",
+			"ingrained",
+			"[20]"
+		),
+		(
+			"killer",
+			"deadly",
+			"evil",
+			"lethal",
+			"vicious"
+		),
+		(
+			"parking meters",
+			"dust clouds",
+			"ice bergs",
+			"rock formations",
+			"volcanoes"
+		),
+		(
+			"plant",
+			"tulip",
+			"banana",
+			"corn",
+			"%Rweed"
+		),
+		(
+			"%R",
+			"%I %R",
+			"%I [26]",
+			"inhabitant",
+			"%I %R"
+		),
+		(
+			"shrew",
+			"beast",
+			"bison",
+			"snake",
+			"wolf"
+		),
+		(
+			"leopard",
+			"cat",
+			"monkey",
+			"goat",
+			"fish"
+		),
+		(
+			"[11] [10]",
+			"%I [30] [33]",
+			"its [12] [31] [33]",
+			"[34] [35]",
+			"[11] [10]"
+		),
+		(
+			"meat",
+			"cutlet",
+			"steak",
+			"burgers",
+			"soup"
+		),
+		(
+			"ice",
+			"mud",
+			"Zero-G",
+			"vacuum",
+			"%I ultra"
+		),
+		(
+			"hockey",
+			"cricket",
+			"karate",
+			"polo",
+			"tennis"
+		),
+	);
+	
+	// *** Planet names and other random names ***
+	// this string must always be the same length (98 characters). Digrams (pairs of letters) are selected from it to build names.
+	digrams = "ABOUSEITILETSTONLONUTHNOALLEXEGEZACEBISOUSESARMAINDIREA’ERATENBERALAVETIEDORQUANTEISRION";
+	// If the second character of a digram is equal to this single-character string, it is dropped when generating planet names (but kept for other random names).
+	digrams-apostrophe = "’";
+	// this string represents the 4 character phonemes associated with each digram.
+	phonograms = "AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
+	
+	// *** Misc. messages ***
+	// Messages used when awarding bounties
+	"bounty-d"						= ( "Bounty: %d" );
+	"total-f-credits"				= ( "Total: %.1f ₢" );
+	"right-on-commander"			= ( "Right On, Commander!" );
+	
+	// Assorted messages used by the onboard computer
+	"autopilot-on"					= ( "Autopilot engaged." );
+	"autopilot-off"					= ( "Autopilot disengaged." );
+	"autopilot-out-of-range"		= ( "Could not contact station for docking instructions." );
+	"autopilot-cannot-dock-with-target" = ( "Target is not capable of autopilot-docking." );
+	"autopilot-denied"				= ( "Station refuses to issue docking instructions." );
+	"witch-to-@-in-f-seconds"		= ( "Witchspace to %@ in %.0f s." );
+	"witch-blocked-by-@"			= ( "Witchspace jump aborted (too close to %@.)" );
+	"witch-user-abort"				= ( "Witchspace jump aborted." );
+	"witch-no-target"				= ( "No target system set." );
+	"witch-no-fuel"					= ( "Insufficient fuel for witchspace jump." );
+	"witch-too-far"					= ( "Engines incapable of witchspace jump to that target." );
+	"witch-engine-malfunction"		= ( "Witchspace engine malfunction!" );
+	"witch-galactic-in-f-seconds"	= ( "Intergalactic jump in %.0f s." );
+	"game-paused"					= ( "Game paused." );
+	"game-paused-options"			= ( "Press F2 for options, P to resume." );
+	"game-saved"					= ( "Game saved." );
+	"mouse-on"						= ( "Mouse control on." );
+	"mouse-off"						= ( "Mouse control off." );
+	"target-lost"					= ( "Target lost." );
+	"@-locked-onto-@"				= ( "%@ locked onto %@." );
+	"ecm-on"						= ( "ECM system activated." );
+	"ecm-out-of-juice"				= ( "ECM system deactivated (no energy left)." );
+	"jump-mass-locked"				= ( "Hyperspeed mass-locked." );
+	"fuel-inject-on"				= ( "Fuel injection engaged." );
+	"fuel-out"						= ( "Witchdrive fuel exhausted." );
+	"ident-on"						= ( "Ident system active." );
+	"ident-off"						= ( "Ident system deactivated." );
+	"missile-locked-onto-@"			= ( "Missile locked onto %@." );
+	"missile-armed"					= ( "Missile armed." );
+	"mine-armed"					= ( "Mine armed." );
+	"missile-safe"					= ( "Missiles on safety." );
+	"incoming-missile"				= ( "Incoming missile." );
+	"energy-low"					= ( "Energy low." );
+	"energy-bomb-activated"			= ( "Energy bomb triggered." );
+	"weapon-overheat"				= ( "Weapon system overheated." );
+	"weapon-out-of-juice"			= ( "Weapon system inactive (no energy left)." );
+	"escape-sequence"				= ( "Escape sequence active." );
+	"@-ejected"						= ( "%@ ejected." );
+	"@-ready-to-eject"				= ( "Ready to eject %@." );
+	"ready-to-eject-@"				= ( "Ready to eject %@." );
+	"@-scooped"						= ( "%@ scooped." );
+	"scoop-captured-@"				= ( "You captured %@." );
+	"scoop-rescued-@"				= ( "You rescued %@." );
+	"scoop-got-slave"				= ( "You captured a slave." );
+	"fuel-scoop-active"				= ( "Fuel scoop active." );
+	"hold-locked"					= ( "Cargo ejection system offline (speed too high)." );
+	"hold-full"						= ( "Cargo holds full." );
+	// cloaking device ..
+	"cloak-on"						= ( "Cloaking device activated." );
+	"cloak-off"						= ( "Cloaking device deactivated." );
+	"cloak-low-juice"				= ( "Not enough energy to activate cloaking device." );
+	
+	// Assorted messages sent out by ships etc..
+	/*	%H - homeworld
 			%I - homeworld+ian
 			%R - random digrams
 			%@ - text to be inserted at this point
 			%d, %f, %x etc. - printf type variables to be inserted
 			[$text] = $text is an entry here that will be expanded
-	-->
-	<key>beg-for-mercy</key>
-	<array>
-		<string>No!</string>
-		<string>Help! Anyone!</string>
-		<string>Our systems are failing, please let us flee!</string>
-		<string>Leave us alone!</string>
-		<string>Don’t shoot, please!</string>
-		<string>Please stop! Have mercy!</string>
-		<string>Please don’t kill us! I beg you!</string>
-		<string>S.O.S. … S.O.S. … S.O.S. …</string>
-	</array>
-	<key>describe-pirate</key>
-	<array>
-		<string>brigand</string>
-		<string>pirate</string>
-		<string>hostile vessel</string>
-		<string>marauder</string>
-		<string>criminal</string>
-	</array>
-	<key>describe-Pirate</key>
-	<array>
-		<string>Brigand</string>
-		<string>Pirate</string>
-		<string>Hostile vessel</string>
-		<string>Marauder</string>
-		<string>Criminal</string>
-	</array>
-	<key>distress-call</key>
-	<array>
-		<string>We are [7] by [describe-pirate]s! Please help!</string>
-		<string>Our vessel is under attack, please help us.</string>
-		<string>[describe-Pirate]s are attacking us. Please assist!</string>
-		<string>Help! Anyone!</string>
-		<string>Mayday! Mayday! Mayday! We are under attack.</string>
-		<string>Help! They’re firing on us!</string>
-		<string>Mayday! Please assist. Mayday! Please assist.</string>
-		<string>S.O.S. … S.O.S. … S.O.S. …</string>
-	</array>
-	<key>buoy-distress-call</key>
-	<array>
-		<string>You have attacked a Navigational Beacon. This is an illegal act.</string>
-		<string>%H Navigational Beacon reports an illegal act of vandalism.</string>
-		<string>%H Navigational Beacon to attacking craft. Please desist.</string>
-		<string>Attacking a Navigational Beacon is illegal. Police are on their way.</string>
-	</array>
-	<key>thanks-for-assist</key>
-	<array>
-		<string>Thank you for the assistance.</string>
-		<string>Thanks!.</string>
-		<string>%R bless you!</string>
-		<string>Oh thank you! Help at last!</string>
-	</array>
-	<key>police-thanks-for-assist</key>
-	<array>
-		<string>Thank you for the assistance.</string>
-		<string>%H Police thank you for your assistance.</string>
-	</array>
-	<key>thargoid_curses</key>
-	<array>
-		<string>Guard your [4], human [18]-[31]!</string>
-		<string>Eat [6], [5]!</string>
-		<string>We’ll use your [20] [27] for our [33]!</string>
-		<string>%R! %R! %R!</string>
-	</array>
-	<key>police-warning</key>
-	<array>
-		<string>Offender vessel, this is %H Police. You have been scanned and will face penalties if you choose to dock here.</string>
-		<string>[describe-Pirate], this is %H Police. Fines will be imposed if you dock here.</string>
-		<string>This is the police. Docking at %H will require legal compensation for your offences.</string>
-		<string>This is the police. %H Station will fine you for your offences when you dock.</string>
-	</array>
-	<key>police-attack-warning</key>
-	<array>
-		<string>Offender, your craft will be destroyed under GalCop codes.</string>
-		<string>Please slow your engines and do not attempt to dodge our lasers, [describe-pirate]!</string>
-		<string>%R! Leave now, or face Police retribution.</string>
-		<string>[describe-Pirate], you are not welcome in this system.</string>
-		<string>Offender vessel, this is %H Police. Leave now or be fired upon.</string>
-		<string>[describe-Pirate], you have been scheduled for termination.</string>
-		<string>Leave %H now or be destroyed.</string>
-		<string>%H Police. Offending ship targeted. Moving to intercept.</string>
-	</array>
-	<!-- /general docking -->
-	<key>docking-welcome</key>
-	<array>
-		<string>Docking systems active.</string>
-		<string>Docking permission granted. We have uploaded docking instructions to your flight console.</string>
-	</array>
-	<key>docking-begin-final-aproach</key>
-	<array>
-		<string>You are on final approach.</string>
-		<string>Beginning final approach sequence.</string>
-	</array>
-	<!-- /general docking -->
-	<!-- station -->
-	<key>station-welcome</key>
-	<array>
-		<string>Welcome to %H space dock.</string>
-		<string>Docking systems active. Welcome to %H.</string>
-		<string>Welcome to %H. Please have your ship manifest ready for inspection upon docking</string>
-		<string>%H Station here. We have uploaded docking instructions to your flight console.</string>
-		<string>Salutations spacefarer! Welcome to %H.</string>
-		<string>%H welcomes you. Docking procedures should take no more than a few minutes, please stand by.</string>
-		<string>Welcome to %H. Please be patient while we guide your ship into space dock.</string>
-		<string>Greetings! %H Station traffic control welcomes you.</string>
-	</array>
-	<key>station-begin-final-aproach</key>
-	<array>
-		<string>You are on final approach to %H Station.</string>
-		<string>Now entering %H space dock.</string>
-		<string>Beginning final approach sequence.</string>
-		<string>Entering final approach to %H Station.</string>
-	</array>
-	<key>station-hold-position</key>
-	<array>
-		<string>Please be patient - you are being held in a docking queue.</string>
-		<string>Docking sequence will recommence shortly. Thank you for your patience.</string>
-		<string>Traffic is heavy, please continue to hold until we can clear an approach for you.</string>
-		<string>You are being queued for docking. Thank you for your patience.</string>
-	</array>
-	<key>station-acknowledges-hold-position</key>
-	<array>
-		<string>Please be patient - we are preparing to accommodate your vessel.</string>
-		<string>Docking sequence will recommence shortly. Thank you for waiting.</string>
-		<string>We are preparing an approach for you. Please wait.</string>
-		<string>Preparing approach for docking. Thank you for your patience.</string>
-		<string>Your docking request is acknowledged. Please hold for clearance.</string>
-		<string>We are manoeuvring in preparation for your approach. Please hold.</string>
-	</array>
-	<key>station-docking-refused-to-fugitive</key>
-	<array>
-		<string>%H Station does NOT welcome fugitives!</string>
-	</array>
-	<!-- /station -->
-	<key>fined</key>
-	<array>
-		<string>You have been fined %d credits.</string>
-		<string>You have been fined %d credits, and made to pick up litter in the main hangar deck.</string>
-		<string>You have been fined %d credits, and are forced to clean up after the [6]oids.</string>
-		<string>You have been fined %d credits, and sent for “attitude adjustment”.</string>
-	</array>
-	<!-- system description after a nova -->
-	<key>nova-system-description</key>
-	<array>
-		<string>The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system.</string>
-	</array>
-	<!-- trumbles -->
-	<key>trumbles-eat-@</key>
-	<array>
-		<string>Trumbles have eaten a cargopod of %@.</string>
-	</array>
-	<!-- internal damage -->
-	<key>@-damaged</key>
-	<array>
-		<string>%@ damaged.</string>
-	</array>
-	<key>@-destroyed</key>
-	<array>
-		<string>%@ destroyed.</string>
-	</array>
-	<!-- icons for the hud -->
-	<key>EQ_HARDENED_MISSILE</key>
-	<array>
-		<integer>0</integer>	<integer>3</integer>
-		<integer>2</integer>	<integer>1</integer>
-		<integer>2</integer>	<integer>-3</integer>
-		<integer>0</integer>	<integer>-1</integer>
-		<integer>-2</integer>	<integer>-3</integer>
-		<integer>-2</integer>	<integer>1</integer>
-	</array>
-	<!-- human surname namegen -->
-	<key>nom</key>
-	<array>
-		<string>%R</string>
-		<string>[nom1]</string>
-	</array>
-	<key>nom1</key>
-	<array>
-		<string>ben [nom11]</string>
-		<string>Mc[nom11]</string>
-		<string>O’[nom11]</string>
-		<string>Ath[enom2]</string>
-		<string>Br[nomvoweliy]an</string>
-		<string>Bran[nom2]</string>
-		<string>C[nomvowelar][nom2]</string>
-		<string>D[nomvowelar][nom2]</string>
-		<string>Dav[nomvoweliy][nom2]</string>
-		<string>Denn[nomvoweliy][nom2]</string>
-		<string>Eccl[enom2]</string>
-		<string>Fa[nomvoweliy]r[nom2]</string>
-		<string>Folk[nom2]</string>
-		<string>Garr[enom2]</string>
-		<string>Good[nom2]</string>
-		<string>Hector</string>
-		<string>Inn[enom2]</string>
-		<string>Jam[enom2]</string>
-		<string>Jon[nom2]</string>
-		<string>Kir[nom2]</string>
-		<string>L[nomvoweliy]ttle[nom2]</string>
-		<string>L[nomvowelar][nom2]</string>
-		<string>Na[nomvoweliy]l[nom2]</string>
-		<string>Neil[nom2]</string>
-		<string>Peter[nom2]</string>
-		<string>Orbit[nom2]</string>
-		<string>Roger[nom2]</string>
-		<string>Sam[nom2]</string>
-		<string>Star[nom2]</string>
-		<string>Th[nomvowelur]r[nom2]</string>
-		<string>Wilkin[nom2]</string>
-		<string>William[nom2]</string>
-		<string>%H[nom2]</string>
-		<string>%R[nom2]</string>
-		<string>%R-[nom1]</string>
-		<string>[nom1]-[nom11]</string>
-	</array>
-	<key>nom11</key>
-	<array>
-		<string>Ath[enom2]</string>
-		<string>Br[nomvoweliy]an</string>
-		<string>Bran[nom2]</string>
-		<string>C[nomvowelar][nom2]</string>
-		<string>D[nomvowelar][nom2]</string>
-		<string>Dav[nomvoweliy][nom2]</string>
-		<string>Denn[nomvoweliy][nom2]</string>
-		<string>Folk[nom2]</string>
-		<string>Garri[nom2]</string>
-		<string>Good[nom2]</string>
-		<string>Hector</string>
-		<string>Inn[enom2]</string>
-		<string>Jam[enom2]</string>
-		<string>Jon[nom2]</string>
-		<string>Kir[nom2]</string>
-		<string>L[nomvoweliy]ttle[nom2]</string>
-		<string>L[nomvowelar][nom2]</string>
-		<string>Na[nomvoweliy]l[nom2]</string>
-		<string>Neil[nom2]</string>
-		<string>Peter[nom2]</string>
-		<string>Roger[nom2]</string>
-		<string>Sam[nom2]</string>
-		<string>Star[nom2]</string>
-		<string>Th[nomvowelur]r[nom2]</string>
-		<string>Wilkin[nom2]</string>
-		<string>William[nom2]</string>
-		<string>%H[nom2]</string>
-		<string>%R[nom2]</string>
-	</array>
-	<key>nom2</key>
-	<array>
-		<string></string>
-		<string>b[nomvowelur]rn</string>
-		<string>f[nomvowelur]r</string>
-		<string>st[nomvowelur]n</string>
-		<string>sen</string>
-		<string>son</string>
-		<string>son</string>
-		<string>sdott[nomvoweliy]r</string>
-		<string>s</string>
-		<string>s</string>
-		<string>sby</string>
-		<string>er</string>
-		<string>f[nomvoweliy]re</string>
-		<string>l[nomvoweliy]ng</string>
-	</array>
-	<key>enom2</key>
-	<array>
-		<string>e</string>
-		<string>[nomvowelie]b[nomvowelur]rn</string>
-		<string>[nomvowelie]f[nomvowelur]r</string>
-		<string>[nomvowelie]st[nomvowelur]n</string>
-		<string>[nomvowelie]sen</string>
-		<string>[nomvowelie]son</string>
-		<string>eson</string>
-		<string>[nomvowelie]sdott[nomvoweliy]r</string>
-		<string>[nomvowelie]s</string>
-		<string>es</string>
-		<string>esby</string>
-		<string>[nomvowelie]f[nomvoweliy]re</string>
-		<string>l[nomvoweliy]ng</string>
-	</array>
-	<key>nomvowelie</key>
-	<array>
-		<string>i</string>
-		<string>e</string>
-		<string>e</string>
-		<string>ie</string>
-	</array>
-	<key>nomvowelar</key>
-	<array>
-		<string>ar</string>
-		<string>aw</string>
-		<string>arre</string>
-		<string>our</string>
-	</array>
-	<key>nomvowelur</key>
-	<array>
-		<string>e</string>
-		<string>o</string>
-		<string>u</string>
-		<string>ou</string>
-		<string>ai</string>
-	</array>
-	<key>nomvoweliy</key>
-	<array>
-		<string>i</string>
-		<string>y</string>
-	</array>
-
-	<!-- The four main views -->
-	<key>forward-view-string</key>
-	<string>Forward View</string>
-	<key>aft-view-string</key>
-	<string>Aft View</string>
-	<key>port-view-string</key>
-	<string>Port View</string>
-	<key>starboard-view-string</key>
-	<string>Starboard View</string>
-
-	<!-- GUI strings common to more than one screens -->
-	<key>gui-back</key>
-	<string> Back </string>
-	<key>gui-more</key>
-	<string> More </string>
-	<key>press-space-commander</key>
-	<string>Press Space Commander</string>
-
-
-	<!-- Intro1 screen -->
-	<key>game-copyright</key>
-	<string>by Giles Williams and contributors © 2003-2008</string>
-	<key>theme-music-credit</key>
-	<string>Oolite Theme Music by NoSleep © 2004</string>
-	<key>load-previous-commander</key>
-	<string>Load Previous Commander (Y/N)?</string>
-
-	<!-- Status screen -->
-	<key>status-commander-@</key>
-	<string>Commander %@</string>
-	<key>status-present-system</key>
-	<string>Present System:</string>
-	<key>status-hyperspace-system</key>
-	<string>Hyperspace System:</string>
-	<key>status-condition</key>
-	<string>Condition:</string>
-	<key>status-fuel</key>
-	<string>Fuel:</string>
-	<key>status-light-years-desc</key>
-	<string>Light Years</string>
-	<key>status-cash</key>
-	<string>Cash:</string>
-	<key>status-legal-status</key>
-	<string>Legal Status:</string>
-	<key>status-rating</key>
-	<string>Rating:</string>
-	<key>status-equipment</key>
-	<string>Equipment:</string>
-	<key>equipment-fwd-weapon-@</key>
-	<string>Forward %@</string>
-	<key>equipment-aft-weapon-@</key>
-	<string>Aft %@</string>
-	<key>equipment-stb-weapon-@</key>
-	<string>Starboard %@</string>
-	<key>equipment-port-weapon-@</key>
-	<string>Port %@</string>
-	<key>equipment-single-pass-berth-@</key>
-	<string>1 Passenger Berth</string>
-	<key>equipment-multiple-pass-berth-@</key>
-	<string>%d Passenger Berths</string>
-	<key>cash-quantity</key>
-	<string>%.1f ₢</string>
-
-	<!-- Short Range Chart Screen -->
-	<key>short-range-chart-title</key>
-	<string>Short Range Chart</string>
-	<key>short-range-chart-distance-f</key>
-	<string>Distance: %.1f Light Years</string>
-	<key>short-range-chart-est-travel-time-f</key>
-	<string>Estimated Travel Time: %.1f Hours</string>
+	*/
+	"beg-for-mercy" =
+	(
+		"No!",
+		"Help! Anyone!",
+		"Our systems are failing, please let us flee!",
+		"Leave us alone!",
+		"Don’t shoot, please!",
+		"Please stop! Have mercy!",
+		"Please don’t kill us! I beg you!",
+		"S.O.S. … S.O.S. … S.O.S. …"
+	);
+	"describe-pirate" =
+	(
+		"brigand",
+		"pirate",
+		"hostile vessel",
+		"marauder",
+		"criminal"
+	);
+	"describe-Pirate" =	// Capitalized version of describe-pirate
+	(
+		"Brigand",
+		"Pirate",
+		"Hostile vessel",
+		"Marauder",
+		"Criminal"
+	);
+	"distress-call" =
+	(
+		"We are [7] by [describe-pirate]s! Please help!",
+		"Our vessel is under attack, please help us.",
+		"[describe-Pirate]s are attacking us. Please assist!",
+		"Help! Anyone!",
+		"Mayday! Mayday! Mayday! We are under attack.",
+		"Help! They’re firing on us!",
+		"Mayday! Please assist. Mayday! Please assist.",
+		"S.O.S. … S.O.S. … S.O.S. …"
+	);
+	"buoy-distress-call" =
+	(
+		"You have attacked a Navigational Beacon. This is an illegal act.",
+		"%H Navigational Beacon reports an illegal act of vandalism.",
+		"%H Navigational Beacon to attacking craft. Please desist.",
+		"Attacking a Navigational Beacon is illegal. Police are on their way."
+	);
+	"thanks-for-assist" =
+	(
+		"Thank you for the assistance.",
+		"Thanks!.",
+		"%R bless you!",
+		"Oh thank you! Help at last!"
+	);
+	"police-thanks-for-assist" =
+	(
+		"Thank you for the assistance.",
+		"%H Police thank you for your assistance."
+	);
+	"thargoid_curses" =
+	(
+		"Guard your [4], human [18]-[31]!",
+		"Eat [6], [5]!",
+		"We’ll use your [20] [27] for our [33]!",
+		"%R! %R! %R!"
+	);
+	"police-warning" =
+	(
+		"Offender vessel, this is %H Police. You have been scanned and will face penalties if you choose to dock here.",
+		"[describe-Pirate], this is %H Police. Fines will be imposed if you dock here.",
+		"This is the police. Docking at %H will require legal compensation for your offences.",
+		"This is the police. %H Station will fine you for your offences when you dock."
+	);
+	"police-attack-warning" =
+	(
+		"Offender, your craft will be destroyed under GalCop codes.",
+		"Please slow your engines and do not attempt to dodge our lasers, [describe-pirate]!",
+		"%R! Leave now, or face Police retribution.",
+		"[describe-Pirate], you are not welcome in this system.",
+		"Offender vessel, this is %H Police. Leave now or be fired upon.",
+		"[describe-Pirate], you have been scheduled for termination.",
+		"Leave %H now or be destroyed.",
+		"%H Police. Offending ship targeted. Moving to intercept."
+	);
+	// /general docking
+	"docking-welcome" =
+	(
+		"Docking systems active.",
+		"Docking permission granted. We have uploaded docking instructions to your flight console."
+	);
+	"docking-begin-final-aproach" =
+	(
+		"You are on final approach.",
+		"Beginning final approach sequence."
+	);
+	// /general docking
+	// station
+	"station-welcome" =
+	(
+		"Welcome to %H space dock.",
+		"Docking systems active. Welcome to %H.",
+		"Welcome to %H. Please have your ship manifest ready for inspection upon docking",
+		"%H Station here. We have uploaded docking instructions to your flight console.",
+		"Salutations spacefarer! Welcome to %H.",
+		"%H welcomes you. Docking procedures should take no more than a few minutes, please stand by.",
+		"Welcome to %H. Please be patient while we guide your ship into space dock.",
+		"Greetings! %H Station traffic control welcomes you."
+	);
+	"station-begin-final-aproach" =
+	(
+		"You are on final approach to %H Station.",
+		"Now entering %H space dock.",
+		"Beginning final approach sequence.",
+		"Entering final approach to %H Station."
+	);
+	"station-hold-position" =
+	(
+		"Please be patient - you are being held in a docking queue.",
+		"Docking sequence will recommence shortly. Thank you for your patience.",
+		"Traffic is heavy, please continue to hold until we can clear an approach for you.",
+		"You are being queued for docking. Thank you for your patience."
+	);
+	"station-acknowledges-hold-position" =
+	(
+		"Please be patient - we are preparing to accommodate your vessel.",
+		"Docking sequence will recommence shortly. Thank you for waiting.",
+		"We are preparing an approach for you. Please wait.",
+		"Preparing approach for docking. Thank you for your patience.",
+		"Your docking request is acknowledged. Please hold for clearance.",
+		"We are manoeuvring in preparation for your approach. Please hold."
+	);
+	"station-docking-refused-to-fugitive" =
+	(
+		"%H Station does NOT welcome fugitives!"
+	);
+	// /station
+	"fined" =
+	(
+		"You have been fined %d credits.",
+		"You have been fined %d credits, and made to pick up litter in the main hangar deck.",
+		"You have been fined %d credits, and are forced to clean up after the [6]oids.",
+		"You have been fined %d credits, and sent for “attitude adjustment”."
+	);
+	// system description after a nova
+	"nova-system-description" =
+	(
+		"The %I sun has gone nova, destroying the planet and all life here. Beware of navigational and radiological hazards in this system."
+	);
+	// trumbles
+	"trumbles-eat-@"				= ( "Trumbles have eaten a cargopod of %@." );
+	// internal damage
+	"@-damaged"						= ( "%@ damaged." );
+	"@-destroyed"					= ( "%@ destroyed." );
 	
-	<!-- Long Range Chart Screen -->
-	<key>long-range-chart-title-d</key>
-	<string>Galactic Chart %d</string>
-	<key>long-range-chart-distance-f</key>
-	<string>Distance: %.1f Light Years</string>
-	<key>long-range-chart-est-travel-time-f</key>
-	<string>Estimated Travel Time: %.1f Hours</string>
-	<key>long-range-chart-find-planet-@</key>
-	<string>Find planet: %@</string>
-	<key>long-range-chart-find-planet</key>
-	<string>Find planet: </string>
-
-	<!-- Market screen -->
-	<key>@-commodity-market</key>
-	<string>%@ Commodity Market</string>
-	<key>commodity-column-title</key>
-	<string>Commodity:</string>
-	<key>price-column-title</key>
-	<string>Price:</string>
-	<key>for-sale-column-title</key>
-	<string>For sale:</string>
-	<key>in-hold-column-title</key>
-	<string>In hold:</string>
-	<key>cash-f-load-d-of-d</key>
-	<string>Cash: %.1f ₢.  Load %d of %d t.</string>
-	<key>cargo-tons-symbol</key>
-	<string>t</string>
-	<key>cargo-grams-symbol</key>
-	<string>g</string>
-	<key>cargo-kilograms-symbol</key>
-	<string>kg</string>
-	<key>commodity-quantity-none</key>
-	<string>—</string>
-
-	<!-- System data screen -->
-	<key>sysdata-planet-name-@</key>
-	<string>Data on %@</string>
-	<key>sysdata-eco</key>
-	<string>Economy:</string>
-	<key>sysdata-govt</key>
-	<string>Government:</string>
-	<key>sysdata-tl</key>
-	<string>Tech Level:</string>
-	<key>sysdata-pop</key>
-	<string>Population:</string>
-	<key>sysdata-billion-word</key>
-	<string>Billion</string>
-	<key>sysdata-prod</key>
-	<string>Gross productivity:</string>
-	<key>sysdata-prod-worth</key>
-	<string> %5d M ₢</string>
-	<key>sysdata-radius</key>
-	<string>Average radius:</string>
+	// icons for the hud
+	"EQ_HARDENED_MISSILE" =
+	(
+		 0,  3,
+		 2,  1,
+		 2, -3,
+		 0, -1,
+		-2, -3,
+		-2,  1
+	);
+	// human surname namegen
+	"nom" =
+	(
+		"%R",
+		"[nom1]"
+	);
+	"nom1" =
+	(
+		"ben [nom11]",
+		"Mc[nom11]",
+		"O’[nom11]",
+		"Ath[enom2]",
+		"Br[nomvoweliy]an",
+		"Bran[nom2]",
+		"C[nomvowelar][nom2]",
+		"D[nomvowelar][nom2]",
+		"Dav[nomvoweliy][nom2]",
+		"Denn[nomvoweliy][nom2]",
+		"Eccl[enom2]",
+		"Fa[nomvoweliy]r[nom2]",
+		"Folk[nom2]",
+		"Garr[enom2]",
+		"Good[nom2]",
+		"Hector",
+		"Inn[enom2]",
+		"Jam[enom2]",
+		"Jon[nom2]",
+		"Kir[nom2]",
+		"L[nomvoweliy]ttle[nom2]",
+		"L[nomvowelar][nom2]",
+		"Na[nomvoweliy]l[nom2]",
+		"Neil[nom2]",
+		"Peter[nom2]",
+		"Orbit[nom2]",
+		"Roger[nom2]",
+		"Sam[nom2]",
+		"Star[nom2]",
+		"Th[nomvowelur]r[nom2]",
+		"Wilkin[nom2]",
+		"William[nom2]",
+		"%H[nom2]",
+		"%R[nom2]",
+		"%R-[nom1]",
+		"[nom1]-[nom11]"
+	);
+	"nom11" =
+	(
+		"Ath[enom2]",
+		"Br[nomvoweliy]an",
+		"Bran[nom2]",
+		"C[nomvowelar][nom2]",
+		"D[nomvowelar][nom2]",
+		"Dav[nomvoweliy][nom2]",
+		"Denn[nomvoweliy][nom2]",
+		"Folk[nom2]",
+		"Garri[nom2]",
+		"Good[nom2]",
+		"Hector",
+		"Inn[enom2]",
+		"Jam[enom2]",
+		"Jon[nom2]",
+		"Kir[nom2]",
+		"L[nomvoweliy]ttle[nom2]",
+		"L[nomvowelar][nom2]",
+		"Na[nomvoweliy]l[nom2]",
+		"Neil[nom2]",
+		"Peter[nom2]",
+		"Roger[nom2]",
+		"Sam[nom2]",
+		"Star[nom2]",
+		"Th[nomvowelur]r[nom2]",
+		"Wilkin[nom2]",
+		"William[nom2]",
+		"%H[nom2]",
+		"%R[nom2]"
+	);
+	"nom2" =
+	(
+		"",
+		"b[nomvowelur]rn",
+		"f[nomvowelur]r",
+		"st[nomvowelur]n",
+		"sen",
+		"son",
+		"son",
+		"sdott[nomvoweliy]r",
+		"s",
+		"s",
+		"sby",
+		"er",
+		"f[nomvoweliy]re",
+		"l[nomvoweliy]ng"
+	);
+	"enom2" =
+	(
+		"e",
+		"[nomvowelie]b[nomvowelur]rn",
+		"[nomvowelie]f[nomvowelur]r",
+		"[nomvowelie]st[nomvowelur]n",
+		"[nomvowelie]sen",
+		"[nomvowelie]son",
+		"eson",
+		"[nomvowelie]sdott[nomvoweliy]r",
+		"[nomvowelie]s",
+		"es",
+		"esby",
+		"[nomvowelie]f[nomvoweliy]re",
+		"l[nomvoweliy]ng"
+	);
+	"nomvowelie" =
+	(
+		"i",
+		"e",
+		"e",
+		"ie"
+	);
+	"nomvowelar" =
+	(
+		"ar",
+		"aw",
+		"arre",
+		"our"
+	);
+	"nomvowelur" =
+	(
+		"e",
+		"o",
+		"u",
+		"ou",
+		"ai"
+	);
+	"nomvoweliy" =
+	(
+		"i",
+		"y"
+	);
 	
-	<!-- Options (sometimes referred to as loadsave) screen -->
-	<key>options-quick-save</key>
-	<string> Quick-Save </string>
-	<key>options-save-commander</key>
-	<string> Save Commander </string>
-	<key>options-load-commander</key>
-	<string> Load Commander </string>
-	<key>options-begin-new-game</key>
-	<string> Begin New Game </string>
-	<key>options-game-options</key>
-	<string> Game Options… </string>
-	<key>options-exit-game</key>
-	<string> Exit Game </string>
-	<key>options-reset-to-unrestricted-play</key>
-	<string> Reset to Unrestricted Play </string>
-	<key>options-reset-to-strict-play</key>
-	<string> Reset to Strict Play </string>
+	// The four main views
+	"forward-view-string"			= "Forward View";
+	"aft-view-string"				= "Aft View";
+	"port-view-string"				= "Port View";
+	"starboard-view-string"			= "Starboard View";
 	
-	<!-- Gameoptions screen -->
-	<key>gameoptions-sound-volume</key>
-	<string> Sound Volume: </string>
-	<key>gameoptions-sound-volume-mute</key>
-	<string> Sound Volume: MUTE </string>
-	<key>gameoptions-volume-external-only</key>
-	<string> Sound Volume: External Control Only </string>
-	<key>gameoptions-show-growl-messages-@</key>
-	<string> Show Growl Messages: %@ </string>
-	<key>gameoptions-spoken-messages-yes</key>
-	<string> Spoken Messages: YES </string>
-	<key>gameoptions-spoken-messages-no</key>
-	<string> Spoken Messages: NO </string>
-	<key>gameoptions-itunes-yes</key>
-	<string> iTunes Integration: YES </string>
-	<key>gameoptions-itunes-no</key>
-	<string> iTunes Integration: NO </string>
-	<key>gameoptions-fullscreen-mode-d-by-d-at-g-hz</key>
-	<string> Full Screen Mode: %d x %d at %.3g Hz </string>
-	<key>gameoptions-fullscreen-mode-d-by-d</key>
-	<string> Full Screen Mode: %d x %d </string>
-	<key>gameoptions-play-in-window</key>
-	<string> Play in Window </string>
-	<key>gameoptions-play-in-fullscreen</key>
-	<string> Play in Full Screen </string>
-	<key>gameoptions-joystick-configuration</key>
-	<string> Joystick Configuration </string>
-	<key>gameoptions-wireframe-graphics-yes</key>
-	<string> Wireframe Graphics: YES </string>
-	<key>gameoptions-wireframe-graphics-no</key>
-	<string> Wireframe Graphics: NO </string>
-	<key>gameoptions-reduced-detail-yes</key>
-	<string> Reduced Detail: YES </string>
-	<key>gameoptions-reduced-detail-no</key>
-	<string> Reduced Detail: NO </string>
-	<key>gameoptions-shaderfx-not-available</key>
-	<string> Shader Effects: Not available </string>
-	<key>gameoptions-shaderfx-@</key>
-	<string> Shader Effects: %@ </string>
-	<key>shaderfx-not-available</key>
-	<string>Not available</string>
-	<key>shaderfx-off</key>
-	<string>Off</string>
-	<key>shaderfx-simple</key>
-	<string>Simple</string>
-	<key>shaderfx-full</key>
-	<string>Full</string>
-	<key>gameoptions-back</key>
-	<string> Back </string>
+	// GUI strings common to more than one screens
+	"gui-back"						= " Back ";
+	"gui-more"						= " More ";
+	"press-space-commander"			= "Press Space Commander";
 	
-	<!-- Equip ship screen -->
-	<key>equip-title</key>
-	<string>Ship Outfitting</string>
-	<key>equip-cash-f</key>
-	<string>Cash: %.1f ₢.</string>
-	<key>equip-no-equipment-available-for-purchase</key>
-	<string>No equipment available for purchase.</string>
-	<key>equip-repair-@</key>
-	<string> Repair:%@</string>
-	<key>upgradeinfo-@-price-is-for-repairing</key>
-	<string>%@ (Price is for repairing the existing system).</string>
-	<key>forward-facing-string</key>
-	<string> Forward </string>
-	<key>aft-facing-string</key>
-	<string> Aft </string>
-	<key>port-facing-string</key>
-	<string> Port </string>
-	<key>starboard-facing-string</key>
-	<string> Starboard </string>
+	// Intro1 screen
+	"game-copyright"				= "by Giles Williams and contributors © 2003-2008";
+	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
+	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	
-	<!-- Purchase ship screen -->
-	<key>ship-purchase-price</key>
-	<string>%d ₢</string>
-
-	<!-- Contracts screen -->
-	<key>@-contracts-title</key>
-	<string>%@ Carrier Market</string>
-	<!-- contracts-to and contracts-within are common for both passengers and cargo. -->
-	<key>contracts-to</key>
-	<string>To:</string>
-	<key>contracts-within</key>
-	<string>Within:</string>
-	<key>contracts-passenger-name</key>
-	<string>Passenger Name:</string>
-	<key>contracts-passenger-advance</key>
-	<string>Advance:</string>
-	<key>contracts-passenger-fee</key>
-	<string>Fee:</string>
-	<key>contracts-cargo-cargotype</key>
-	<string>Cargo:</string>
-	<key>contracts-cargo-premium</key>
-	<string>Premium:</string>
-	<key>contracts-cargo-pays</key>
-	<string>Pays:</string>
-	<key>contracts-cash-f-load-d-of-d-passengers-d-of-d-berths</key>
-	<string>Cash: %.1f ₢.  Load %d of %d t. Passengers %d of %d berths.</string>
-	<key>contracts-@-a-@-wishes-to-go-to-@</key>
-	<string>%@, a %@, wishes to go to %@.</string>
-	<key>contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps</key>
-	<string>%@ The route is %.1f light years long, a minimum of %d jumps.</string>
-	<key>contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time</key>
-	<string>%@ You will need to depart within %@, in order to arrive within %@ time.</string>
-	<key>contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival</key>
-	<string>%@ Will pay %llu ₢: %d ₢ in advance, and %llu ₢ on arrival.</string>
-	<key>contracts-deliver-a-cargo-of-@-to-@</key>
-	<string>Deliver a cargo of %@ to %@.</string>
-	<key>contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits</key>
-	<string>%@ The contract will cost you %.1f ₢, and pay a total of %.1f ₢.</string>
-	<key>contracts-no-time</key>
-	<string>no time</string>
-	<key>contracts-day-word</key>
-	<string>day</string>
-	<key>contracts-day-word-plural</key>
-	<string>days</string>
-	<key>contracts-hour-word</key>
-	<string>hr</string>
-	<key>contracts-hour-word-plural</key>
-	<string>hrs</string>
-	<key>contracts-minute-word</key>
-	<string>min</string>
-	<key>contracts-minute-word-plural</key>
-	<string>mins</string>
-	<key>contracts-second-word</key>
-	<string>sec</string>
-	<key>contracts-second-word-plural</key>
-	<string>secs</string>
+	// Status screen
+	"status-commander-@"			= "Commander %@";
+	"status-present-system"			= "Present System:";
+	"status-hyperspace-system"		= "Hyperspace System:";
+	"status-condition"				= "Condition:";
+	"status-fuel"					= "Fuel:";
+	"status-light-years-desc"		= "Light Years";
+	"status-cash"					= "Cash:";
+	"status-legal-status"			= "Legal Status:";
+	"status-rating"					= "Rating:";
+	"status-equipment"				= "Equipment:";
+	"equipment-fwd-weapon-@"		= "Forward %@";
+	"equipment-aft-weapon-@"		= "Aft %@";
+	"equipment-stb-weapon-@"		= "Starboard %@";
+	"equipment-port-weapon-@"		= "Port %@";
+	"equipment-single-pass-berth-@"	= "1 Passenger Berth";
+	"equipment-multiple-pass-berth-@" = "%d Passenger Berths";
+	"cash-quantity"					= "%.1f ₢";
+	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	
-	<!-- Ship’s manifest screen -->
-	<key>manifest-title</key>
-	<string>Ship’s Manifest</string>
-	<key>manifest-none</key>
-	<string> None.</string>
-	<key>manifest-cargo-d-d</key>
-	<string>Cargo %d t (%d t):</string>
-	<key>manifest-passengers-d-d</key>
-	<string>Passengers %d (%d):</string>
-	<key>manifest-contracts</key>
-	<string>Contracts:</string>
-	<key>manifest-missions</key>
-	<string>Missions:</string>
+	// Short Range Chart Screen
+	"short-range-chart-title"		= "Short Range Chart";
+	"short-range-chart-distance-f"	= "Distance: %.1f Light Years";
+	"short-range-chart-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
 	
-	<!-- Shipyard screen -->
-	<key>@-shipyard-title</key>
-	<string>%@ Ships For Sale</string>
-	<key>shipyard-shiptype</key>
-	<string>Ship Type:</string>
-	<key>shipyard-price</key>
-	<string>Price:</string>
-	<key>shipyard-cargo</key>
-	<string>Cargo:</string>
-	<key>shipyard-cargo-d-tc</key>
-	<string>Cargo: %d TC</string>
-	<key>shipyard-speed</key>
-	<string>Speed:</string>
-	<key>shipyard-speed-f-ls</key>
-	<string>Speed: %.3f LS</string>
-	<key>shipyard-no-ships-available-for-purchase</key>
-	<string>No ships available for purchase.</string>
-	<key>shipyard-your-@-trade-in-value-d</key>
-	<string>Your %@’s trade-in value: %d.0 ₢.</string>
-	<key>shipyard-total-available-f-cr-f-cr-plus-d-trade</key>
-	<string>Total available: %.1f ₢. (%.1f ₢ Cash + %d.0 ₢ Trade.)</string>
-	<key>passenger-berth-plural</key>
-	<string>Passenger Berths</string>
-	<key>passenger-berth-single</key>
-	<string>Passenger Berth</string>
-	<key>extra-@-@</key>
-	<string> Extra %@ (%@)</string>
-	<key>plus-@</key>
-	<string> Plus %@.</string>
-	<key>shipyard-standard-customer-model</key>
-	<string> Standard customer model.</string>
-	<key>shipyard-forward-weapon-has-been-upgraded-to-a-@</key>
-	<string> Forward weapon has been upgraded to a %@.</string>
-	<key>shipyard-forward-weapon-upgraded-to-@</key>
-	<string> Forward weapon upgraded to %@.</string>
-	<key>shipyard-selling-price-d-credits</key>
-	<string> Selling price %d ₢.</string>
-	<key>shipyard-price-d-credits</key>
-	<string> Price %d ₢.</string>
+	// Long Range Chart Screen
+	"long-range-chart-title-d"		= "Galactic Chart %d";
+	"long-range-chart-distance-f"	= "Distance: %.1f Light Years";
+	"long-range-chart-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
+	"long-range-chart-find-planet-@" = "Find planet: %@";
 	
-	<!-- Load/Save screens shared information -->
-	<key>loadsavescreen-commander-name</key>
-	<string>Commander Name</string>
-	<key>loadsavescreen-rating</key>
-	<string>Rating</string>
-	<key>loadsavescreen-no-commanders-found</key>
-	<string>No commanders found</string>
-	<key>loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@</key>
-	<string>Commander %@ is rated %@ and has %llu ₢ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@</string>
+	// Market screen
+	"@-commodity-market"			= "%@ Commodity Market";
+	"commodity-column-title"		= "Commodity:";
+	"price-column-title"			= "Price:";
+	"for-sale-column-title"			= "For sale:";
+	"in-hold-column-title"			= "In hold:";
+	"cash-f-load-d-of-d"			= "Cash: %.1f ₢.  Load %d of %d t.";
+	"cargo-tons-symbol"				= "t";
+	"cargo-grams-symbol"			= "g";
+	"cargo-kilograms-symbol"		= "kg";
+	"commodity-quantity-none"		= "—";
 	
-	<!-- Load commander screen -->
-	<key>loadscreen-title</key>
-	<string>Select Commander</string>
+	// System data screen
+	"sysdata-planet-name-@"			= "Data on %@";
+	"sysdata-eco"					= "Economy:";
+	"sysdata-govt"					= "Government:";
+	"sysdata-tl"					= "Tech Level:";
+	"sysdata-pop"					= "Population:";
+	"sysdata-billion-word"			= "Billion";
+	"sysdata-prod"					= "Gross productivity:";
+	"sysdata-prod-worth"			= " %5d M ₢";
+	"sysdata-radius"				= "Average radius:";
+	"system-description-string"		= "[14] is [22].";
 	
-	<!-- Save/Overwrite commander screens -->
-	<key>savescreen-title</key>
-	<string>Save Commander</string>
-	<key>savescreen-commander-name-@</key>
-	<string>Commander name: %@</string>
-	<key>savescreen-commander-name</key>
-	<string>Commander name: </string>
-	<key>overwrite-save-commander-@</key>
-	<string>Save Commander %@</string>
-	<key>overwritescreen-commander-@-already-exists-overwrite-query</key>
-	<string>Commander %@ already exists - overwrite this saved game?</string>
-	<key>overwritescreen-yes</key>
-	<string> YES </string>
-	<key>overwritescreen-no</key>
-	<string> NO </string>
+	// Options (sometimes referred to as loadsave) screen
+	"options-quick-save"			= " Quick-Save ";
+	"options-save-commander"		= " Save Commander ";
+	"options-load-commander"		= " Load Commander ";
+	"options-begin-new-game"		= " Begin New Game ";
+	"options-game-options"			= " Game Options… ";
+	"options-exit-game"				= " Exit Game ";
+	"options-reset-to-unrestricted-play" = " Reset to Unrestricted Play ";
+	"options-reset-to-strict-play"	= " Reset to Strict Play ";
 	
-	<!-- Mission screen -->
-	<key>mission-information</key>
-	<string>Mission Information</string>
+	// Gameoptions screen
+	"gameoptions-sound-volume"				= " Sound Volume: ";
+	"gameoptions-sound-volume-mute"			= " Sound Volume: MUTE ";
+	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
+	"gameoptions-show-growl-messages-@"		= " Show Growl Messages: %@ ";
+	"gameoptions-spoken-messages-yes"		= " Spoken Messages: YES ";
+	"gameoptions-spoken-messages-no"		= " Spoken Messages: NO ";
+	"gameoptions-itunes-yes"				= " iTunes Integration: YES ";
+	"gameoptions-itunes-no"					= " iTunes Integration: NO ";
+	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d x %d at %.3g Hz ";
+	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d x %d ";
+	"gameoptions-play-in-window"			= " Play in Window ";
+	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
+	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
+	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: YES ";
+	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: NO ";
+	"gameoptions-reduced-detail-yes"		= " Reduced Detail: YES ";
+	"gameoptions-reduced-detail-no"			= " Reduced Detail: NO ";
+	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
+	"gameoptions-shaderfx-@"				= " Shader Effects: %@ ";
+	"shaderfx-not-available"				= "Not available";
+	"shaderfx-off"							= "Off";
+	"shaderfx-simple"						= "Simple";
+	"shaderfx-full"							= "Full";
 	
-	<!-- Game Over screen -->
-	<key>gameoverscreen-game-over</key>
-	<string>Game Over</string>
-	<key>gameoverscreen-press-space</key>
-	<string>Press Space</string>
+	// Equip ship screen
+	"equip-title"					= "Ship Outfitting";
+	"equip-cash-f"					= "Cash: %.1f ₢.";
+	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
+	"equip-repair-@"				= " Repair:%@";
+	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";
+	"forward-facing-string"			= " Forward ";
+	"aft-facing-string"				= " Aft ";
+	"port-facing-string"			= " Port ";
+	"starboard-facing-string"		= " Starboard ";
 	
-	<!-- Various HUD dials and/or messages and miscellaneous strings -->
-	<key>no-target-string</key>
-	<string>No target</string>
-	<key>ident-system-string</key>
-	<string>Ident system</string>
-	<key>missile-string</key>
-	<string>Missile</string>
-	<key>communications-log-string</key>
-	<string>Communications Log</string>
-	<key>adjusting-word</key>
-	<string> (adjusting)</string>
-	<key>strict-play-enabled</key>
-	<string>Strict Play Enabled</string>
-	<key>unrestricted-play-enabled</key>
-	<string>Unrestricted Play Enabled</string>
-	<key>human-word</key>
-	<string>human</string> <!-- Important - only lower case characters here! -->
-	<key>human-colonial-description</key>
-	<string>Human Colonial</string>
-	<key>human-colonial-description-plural</key>
-	<string>Human Colonials</string>
-	<key>is-word</key>
-	<string>is</string>
+	// Purchase ship screen
+	"ship-purchase-price"			= "%d ₢";
+	
+	// Contracts screen
+	"@-contracts-title"				= "%@ Carrier Market";
+	
+	// contracts-to and contracts-within are common for both passengers and cargo.
+	"contracts-to"					= "To:";
+	"contracts-within"				= "Within:";
+	"contracts-passenger-name"		= "Passenger Name:";
+	"contracts-passenger-advance"	= "Advance:";
+	"contracts-passenger-fee"		= "Fee:";
+	"contracts-cargo-cargotype"		= "Cargo:";
+	"contracts-cargo-premium"		= "Premium:";
+	"contracts-cargo-pays"			= "Pays:";
+	"contracts-cash-f-load-d-of-d-passengers-d-of-d-berths" = "Cash: %.1f ₢.  Load %d of %d t. Passengers %d of %d berths.";
+	"contracts-@-a-@-wishes-to-go-to-@" = "%@, a %@, wishes to go to %@.";
+	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
+	"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time" = "%@ You will need to depart within %@, in order to arrive within %@ time.";
+	"contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival" = "%@ Will pay %llu ₢: %d ₢ in advance, and %llu ₢ on arrival.";
+	"contracts-deliver-a-cargo-of-@-to-@" = "Deliver a cargo of %@ to %@.";
+	"contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits" = "%@ The contract will cost you %.1f ₢, and pay a total of %.1f ₢.";
+	"contracts-no-time"				= "no time";
+	"contracts-day-word"			= "day";
+	"contracts-day-word-plural"		= "days";
+	"contracts-hour-word"			= "hr";
+	"contracts-hour-word-plural"	= "hrs";
+	"contracts-minute-word"			= "min";
+	"contracts-minute-word-plural"	= "mins";
+	"contracts-second-word"			= "sec";
+	"contracts-second-word-plural"	= "secs";
+	
+	// Ship’s manifest screen
+	"manifest-title"				= "Ship’s Manifest";
+	"manifest-none"					= " None.";
+	"manifest-cargo-d-d"			= "Cargo %d t (%d t):";
+	"manifest-passengers-d-d"		= "Passengers %d (%d):";
+	"manifest-contracts"			= "Contracts:";
+	"manifest-missions"				= "Missions:";
+	
+	// Shipyard screen
+	"@-shipyard-title"				= "%@ Ships For Sale";
+	"shipyard-shiptype"				= "Ship Type:";
+	"shipyard-price"				= "Price:";
+	"shipyard-cargo"				= "Cargo:";
+	"shipyard-cargo-d-tc"			= "Cargo: %d TC";
+	"shipyard-speed"				= "Speed:";
+	"shipyard-speed-f-ls"			= "Speed: %.3f LS";
+	"shipyard-no-ships-available-for-purchase" = "No ships available for purchase.";
+	"shipyard-your-@-trade-in-value-d" = "Your %@’s trade-in value: %d.0 ₢.";
+	"shipyard-total-available-f-cr-f-cr-plus-d-trade" = "Total available: %.1f ₢. (%.1f ₢ Cash + %d.0 ₢ Trade.)";
+	"passenger-berth-plural"		= "Passenger Berths";
+	"passenger-berth-single"		= "Passenger Berth";
+	"extra-@-@"						= " Extra %@ (%@)";
+	"plus-@"						= " Plus %@.";
+	"shipyard-standard-customer-model" = " Standard customer model.";
+	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
+	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
+	"shipyard-selling-price-d-credits" = " Selling price %d ₢.";
+	"shipyard-price-d-credits"		= " Price %d ₢.";
+	
+	// Load/Save screens shared information
+	"loadsavescreen-commander-name" = "Commander Name";
+	"loadsavescreen-rating"		= "Rating";
+	"loadsavescreen-no-commanders-found" = "No commanders found";
+	"loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %llu ₢ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
+	
+	// Load commander screen
+	"loadscreen-title"				= "Select Commander";
+	
+	// Save/Overwrite commander screens
+	"savescreen-title"				= "Save Commander";
+	"savescreen-commander-name-@"	= "Commander name: %@";
+	"savescreen-commander-name"		= "Commander name: ";
+	"overwrite-save-commander-@"	= "Save Commander %@";
+	"overwritescreen-commander-@-already-exists-overwrite-query" = "Commander %@ already exists - overwrite this saved game?";
+	"overwritescreen-yes"			= " YES ";
+	"overwritescreen-no"			= " NO ";
+	
+	// Mission screen
+	"mission-information"			= "Mission Information";
+	
+	// Game Over screen
+	"gameoverscreen-game-over"		= "Game Over";
+	"gameoverscreen-press-space"	= "Press Space";
+	
+	// Various HUD dials and/or messages and miscellaneous strings
+	"no-target-string"				= "No target";
+	"ident-system-string"			= "Ident system";
+	"missile-string"				= "Missile";
+	"communications-log-string"		= "Communications Log";
+	"adjusting-word"				= " (adjusting)";
+	"strict-play-enabled"			= "Strict Play Enabled";
+	"unrestricted-play-enabled"		= "Unrestricted Play Enabled";
+	"human-word"					= "human"; // Important - only lower case characters here!
+	"human-colonial-description"	= "Human Colonial";
+	"human-colonial-description-plural" = "Human Colonials";
+	"clock-format"					= "%07d:%02d:%02d:%02d";
+	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
 	
 	
-	<!-- delivery reports -->
-	<key>arrival-report-title</key>
-	<string>%H Arrival Report</string>
+	// delivery reports
+	"arrival-report-title"			= "%H Arrival Report";
 	
-	<key>passenger-delivered-okay-@-d-@</key>
-	<string>%@ thanks you, and pays you %d ₢ for delivering them to %@.</string>
-	<key>passenger-delivered-late-@-d-@</key>
-	<string>%@ pays you %d ₢ for eventually delivering them to %@.</string>
-	<key>passenger-failed-@</key>
-	<string>%@ leaves your ship, annoyed that you have wasted so much of their time.</string>
-
-	<key>cargo-delivered-okay-@-f</key>
-	<string>Droids unload the %@ and you are paid %.1f ₢.</string>
-	<key>cargo-delivered-short-@-f-d</key>
-	<string>Droids unload the %@, but you are only paid %.1f ₢ as there is a %d percent shortfall.</string>
-	<key>cargo-refused-short-%@</key>
-	<string>You don’t have enough inventory to deliver the %@.</string>
-	<key>cargo-delivered-late-@</key>
-	<string>You fail to deliver the %@ on time, and no-one wants to pay for it.</string>
-	<key>cargo-failed-@</key>
-	<string>You fail to deliver the %@ on time, and no-one will want to pay for it.</string>
-
-	<!-- background scenes for GUI screens -->
-	<key>gui-scene-show-planet</key> 
-	<array> 
-	   <string>target-planet   120 80 640</string> 
-	</array>
-
-	<!-- character descriptions -->
-	<!-- basic short desc - “A $species from $homeworld” -->
-	<key>character-a-@-from-@</key>
-	<string>a %@ from %@</string>
+	"passenger-delivered-okay-@-d-@" = "%@ thanks you, and pays you %d ₢ for delivering them to %@.";
+	"passenger-delivered-late-@-d-@" = "%@ pays you %d ₢ for eventually delivering them to %@.";
+	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.";
 	
-	<!-- rewards and bounties from escapepods -->
-	<key>rescue-reward-for-@@-f-credits</key>
-	<string>For rescuing %@, %@, their insurance pays %.1f credits.</string>
-	<key>capture-reward-for-@@-f-credits</key>
-	<string>For capturing %@, %@, you’re paid a bounty of %.1f credits.</string>
+	"cargo-delivered-okay-@-f"		= "Droids unload the %@ and you are paid %.1f ₢.";
+	"cargo-delivered-short-@-f-d"	= "Droids unload the %@, but you are only paid %.1f ₢ as there is a %d percent shortfall.";
+	"cargo-refused-short-%@"		= "You don’t have enough inventory to deliver the %@.";
+	"cargo-delivered-late-@"		= "You fail to deliver the %@ on time, and no-one wants to pay for it.";
+	"cargo-failed-@"				= "You fail to deliver the %@ on time, and no-one will want to pay for it.";
 	
-	<!-- Commodity names -->
-	<key>commodity-name food</key>
-	<string>Food</string>
-	<key>commodity-name textiles</key>
-	<string>Textiles</string>
-	<key>commodity-name radioactives</key>
-	<string>Radioactives</string>
-	<key>commodity-name slaves</key>
-	<string>Slaves</string>
-	<key>commodity-name liquor/wines</key>
-	<string>Liquor/Wines</string>
-	<key>commodity-name luxuries</key>
-	<string>Luxuries</string>
-	<key>commodity-name narcotics</key>
-	<string>Narcotics</string>
-	<key>commodity-name computers</key>
-	<string>Computers</string>
-	<key>commodity-name machinery</key>
-	<string>Machinery</string>
-	<key>commodity-name alloys</key>
-	<string>Alloys</string>
-	<key>commodity-name firearms</key>
-	<string>Firearms</string>
-	<key>commodity-name furs</key>
-	<string>Furs</string>
-	<key>commodity-name minerals</key>
-	<string>Minerals</string>
-	<key>commodity-name gold</key>
-	<string>Gold</string>
-	<key>commodity-name platinum</key>
-	<string>Platinum</string>
-	<key>commodity-name gem-stones</key>
-	<string>Gem-Stones</string>
-	<key>commodity-name alien items</key>
-	<string>Alien Items</string>
-</dict>
-</plist>
+	// background scenes for GUI screens
+	"gui-scene-show-planet"			= ( "target-planet   120 80 640" );
+	
+	// character descriptions
+	// basic short desc - “A $species from $homeworld”
+	"character-a-@-from-@"			= "a %@ from %@";
+	
+	// rewards and bounties from escapepods
+	"rescue-reward-for-@@-f-credits" = "For rescuing %@, %@, their insurance pays %.1f credits.";
+	"capture-reward-for-@@-f-credits" = "For capturing %@, %@, you’re paid a bounty of %.1f credits.";
+	
+	// Commodity names
+	"commodity-name food"			= "Food";
+	"commodity-name textiles"		= "Textiles";
+	"commodity-name radioactives"	= "Radioactives";
+	"commodity-name slaves"			= "Slaves";
+	"commodity-name liquor/wines"	= "Liquor/Wines";
+	"commodity-name luxuries"		= "Luxuries";
+	"commodity-name narcotics"		= "Narcotics";
+	"commodity-name computers"		= "Computers";
+	"commodity-name machinery"		= "Machinery";
+	"commodity-name alloys"			= "Alloys";
+	"commodity-name firearms"		= "Firearms";
+	"commodity-name furs"			= "Furs";
+	"commodity-name minerals"		= "Minerals";
+	"commodity-name gold"			= "Gold";
+	"commodity-name platinum"		= "Platinum";
+	"commodity-name gem-stones"		= "Gem-Stones";
+	"commodity-name alien items"	= "Alien Items";
+}

@@ -435,7 +435,8 @@ enum
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;
 
-- (NSString *)descriptionForKey:(NSString *)key;
+- (NSString *)descriptionForKey:(NSString *)key;	// String, or random item from array
+- (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array
 
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
 - (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
@@ -556,4 +557,4 @@ OOINLINE Universe *GetUniverse(void)
 #endif
 
 
-#define DESC(key)	([UNIVERSE descriptionForKey:(key)])
+#define DESC(key)	([UNIVERSE descriptionForKey:(key "")]) // Only for use with string literals, and only for looking up strings.

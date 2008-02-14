@@ -512,31 +512,31 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
 
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName)
 {
-	static NSMutableDictionary	*cache = nil;
-	NSString					*result = nil;
-	NSString					*key = nil;
-	
-	if (symbolicName == nil)  return nil;
-	if (cache == nil)  cache = [[NSMutableDictionary alloc] init];
-	
-	// Look for cached result
-	result = [cache objectForKey:symbolicName];
-	
-	// If no cached result, look up in descriptions.plist and add to cache.
-	// If no entry is found in descriptions.plist, the symbolic name is used.
-	if (result == nil)
-	{
-		key = [@"commodity-name " stringByAppendingString:[symbolicName lowercaseString]];
-		result = [UNIVERSE descriptionForKey:key];
-		if (result == nil)  result = symbolicName;
-		[cache setObject:result forKey:symbolicName];
-	}
-	
-	return result;
+	NSString *key = [@"commodity-name " stringByAppendingString:[symbolicName lowercaseString]];
+	return [UNIVERSE descriptionForKey:key];
 }
 
 
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition)
 {
 	return CommodityDisplayNameForSymbolicName([commodityDefinition stringAtIndex:MARKET_NAME]);
+}
+
+
+NSString *DisplayStringForMassUnit(OOMassUnit unit)
+{
+	switch (unit)
+	{
+		case UNITS_TONS:  return DESC(@"cargo-tons-symbol");
+		case UNITS_KILOGRAMS:  return DESC(@"cargo-kilograms-symbol");
+		case UNITS_GRAMS:  return DESC(@"cargo-grams-symbol");
+	}
+	
+	return @"??";
+}
+
+
+NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
+{
+	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
 }

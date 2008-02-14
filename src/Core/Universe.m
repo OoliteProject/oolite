@@ -113,6 +113,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
+	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	
 	n_entities = 0;
 	
 	x_list_start = y_list_start = z_list_start = nil;
@@ -204,8 +206,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	commoditydata = [[NSArray arrayWithArray:[commoditylists arrayForKey:@"default"]] retain];
 	
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
@@ -5572,7 +5572,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (NSString *)descriptionForKey:(NSString *)key
 {
-	return [descriptions stringForKey:key];
+	id object = [descriptions objectForKey:key];
+	if ([object isKindOfClass:[NSString class]])  return object;
+	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object stringAtIndex:Ranrot() % [object count]];
+	return nil;
+}
+
+
+- (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index
+{
+	NSArray *array = [descriptions arrayForKey:key];
+	if ([array count] <= index)  return nil;	// Catches nil array
+	return [array objectAtIndex:index];
 }
 
 
@@ -5756,6 +5767,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	int i;
 		
 	NSString			*digrams = [descriptions stringForKey:@"digrams"];
+	NSString			*apostrophe = [descriptions stringForKey:@"digrams-apostrophe"];
 	NSMutableString		*name = [NSMutableString string];
 	int size = 4;
 	
@@ -5772,7 +5784,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			c1 = [digrams substringWithRange:NSMakeRange(x,1)];
 			c2 = [digrams substringWithRange:NSMakeRange(x+1,1)];
 			[name appendString:c1];
-			if (![c2 isEqual:@"'"])		[name appendString:c2];
+			if (![c2 isEqual:apostrophe])		[name appendString:c2];
 		}
 		rotate_seed(&s_seed);
 	}

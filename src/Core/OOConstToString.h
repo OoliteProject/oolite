@@ -74,3 +74,6 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;
 
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);
+
+NSString *DisplayStringForMassUnit(OOMassUnit unit);
+NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity);

@@ -385,7 +385,7 @@ NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDiction
 NSString *DescriptionForSystem(Random_Seed seed)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return ExpandDescriptionForSeed(@"[14] [is-word] [22].", seed);
+	return ExpandDescriptionForSeed(@"[system-description-string]", seed);
 }
 
 
@@ -589,7 +589,7 @@ NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2)
 NSString *ClockToString(double clock, BOOL adjusting)
 {
 	int				days, hrs, mins, secs;
-	NSString		*result = nil;
+	NSString		*format = nil;
 	
 	days = floor(clock / 86400.0);
 	secs = floor(clock - days * 86400.0);
@@ -598,8 +598,8 @@ NSString *ClockToString(double clock, BOOL adjusting)
 	mins = floor(secs / 60.0);
 	secs %= 60;
 	
-	result = [NSString stringWithFormat:@"%07d:%02d:%02d:%02d", days, hrs, mins, secs];
-	if (adjusting)  result = [result stringByAppendingString:DESC(@"adjusting-word")];
+	if (adjusting)  format = DESC(@"clock-format-adjusting");
+	else  format = DESC(@"clock-format");
 	
-	return result;
+	return [NSString stringWithFormat:format, days, hrs, mins, secs];
 }

@@ -3818,6 +3818,8 @@ double scoopSoundPlayTime = 0.0;
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	legalStatus = 0;
 	[UNIVERSE set_up_universe_from_witchspace];
+	
+	[self doScriptEvent:@"playerEnteredNewGalaxy" withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 }
 
 
@@ -4093,57 +4095,60 @@ double scoopSoundPlayTime = 0.0;
 
 - (NSArray *) equipmentList
 {
-	NSDictionary*   descriptions = [UNIVERSE descriptions];
-	//int				original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
-	NSMutableArray* quip = [NSMutableArray arrayWithCapacity:32];
+	NSMutableArray		*quip = [NSMutableArray array];
+	unsigned			i;
+	NSArray				*equipmentinfo = [UNIVERSE equipmentdata];
 	
-	unsigned i;
-	NSArray* equipmentinfo = [UNIVERSE equipmentdata];
 	for (i =0; i < [equipmentinfo count]; i++)
 	{
-		NSString *w_key = (NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString *w_key = [[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString *w_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", w_key];
 		if ([self hasExtraEquipment:w_key])
-			[quip addObject:(NSString *)[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
+		{
+			[quip addObject:[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
+		}
+		
 		if (![UNIVERSE strict])
 		{
 			if ([self hasExtraEquipment:w_key_damaged])
-				[quip addObject:(NSString *)[[(NSArray *)[equipmentinfo objectAtIndex:i] objectAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:@" (N/A)"]];
+			{
+				[quip addObject:[[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:@" (N/A)"]];
+			}
 		}
 	}
-
-	if (forward_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:forward_weapon]]];
-	if (aft_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:aft_weapon]]];
-	if (starboard_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:starboard_weapon]]];
-	if (port_weapon > 0)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),(NSString *)[(NSArray *)[descriptions objectForKey:@"weapon_name"] objectAtIndex:port_weapon]]];
-
+	
+	if (forward_weapon > WEAPON_NONE)
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]]];
+	if (aft_weapon > WEAPON_NONE)
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]]];
+	if (starboard_weapon > WEAPON_NONE)
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]]];
+	if (port_weapon > WEAPON_NONE)
+		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]]];
+	
 	if (max_passengers > 0)
 	{
 		// Using distinct strings for single and multiple passenger berths because different languages
 		// may have quite different ways of phrasing the two.
-		if (max_passengers > 1)
+		if  (max_passengers > 1)
+		{
 			[quip addObject:[NSString stringWithFormat:DESC(@"equipment-multiple-pass-berth-@"), max_passengers]];
+		}
 		else
+		{
 			[quip addObject:DESC(@"equipment-single-pass-berth-@")];
+		}
 	}
 
-	return [NSArray arrayWithArray:quip];
+	return quip;
 }
 
 
 - (NSArray *) cargoList
 {
-	NSMutableArray* manifest = [NSMutableArray arrayWithCapacity:32];
-	NSString *tons = (NSString *)DESC(@"cargo-tons-symbol");
-	NSString *grams = (NSString *)DESC(@"cargo-grams-symbol");
-	NSString *kilograms = (NSString *)DESC(@"cargo-kilograms-symbol");
+	NSMutableArray	*manifest = [NSMutableArray array];
 
-	if (specialCargo)
-		[manifest addObject:specialCargo];
+	if (specialCargo) [manifest addObject:specialCargo];
 
 	unsigned		n_commodities = [shipCommodityData count];
 	OOCargoQuantity	in_hold[n_commodities];
@@ -4151,7 +4156,9 @@ double scoopSoundPlayTime = 0.0;
 	
 	// following changed to work whether docked or not
 	for (i = 0; i < n_commodities; i++)
+	{
 		in_hold[i] = [[shipCommodityData arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
+	}
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = [cargo objectAtIndex:i];
@@ -4162,16 +4169,13 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (in_hold[i] > 0)
 		{
-			int unit = [UNIVERSE unitsForCommodity:i];
-			NSString* units = [NSString stringWithString:tons];
-			if (unit == UNITS_KILOGRAMS)  units = [NSString stringWithString:kilograms];
-			if (unit == UNITS_GRAMS)  units = [NSString stringWithString:grams];
 			NSString *desc = CommodityDisplayNameForCommodityArray([shipCommodityData arrayAtIndex:i]);
-			[manifest addObject:[NSString stringWithFormat:@"%d %@ x %@", in_hold[i], units, desc]];
+			NSString *units = DisplayStringForMassUnitForCommodity(i);
+			[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"), in_hold[i], units, desc]];
 		}
 	}
 	
-	return [NSArray arrayWithArray:manifest];
+	return manifest;
 }
 
 
@@ -4314,16 +4318,12 @@ double scoopSoundPlayTime = 0.0;
 		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
 		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:19];
 		
-		if (planetSearchString)
-			[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), [planetSearchString capitalizedString]]  forRow:16];
-		else
-			[gui setText:DESC(@"long-range-chart-find-planet")  forRow:16];
+		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : @"";
+		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:16];
 		[gui setColor:[OOColor cyanColor] forRow:16];
-
+		
 		[gui setShowTextCursor:YES];
 		[gui setCurrentRow:16];
-
-		
 	}
 	/* ends */
 
@@ -5539,9 +5539,7 @@ static int last_outfitting_index;
 			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
 			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
 			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
-			NSString* units = DESC(@"cargo-tons-symbol");
-			if (unit == UNITS_KILOGRAMS)  units = DESC(@"cargo-kilograms-symbol");
-			if (unit == UNITS_GRAMS)  units = DESC(@"cargo-grams-symbol");
+			NSString* units = units = DisplayStringForMassUnit(unit);
 			NSString* units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString* units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
