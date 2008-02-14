@@ -6815,7 +6815,7 @@ int w_space_seed = 1234567;
 		}
 		else
 		{
-			OOLog(@"ship.escort.accept", @"Escorts numbers maxed out. Rejected escort %@.", other_ship);
+			OOLog(@"ship.escort.reject", @" Escorts numbers maxed out: %@ rejected the following escort %@.", self, other_ship);
 		}
 	}
 	return NO;

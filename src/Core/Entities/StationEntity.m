@@ -1383,7 +1383,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	else
 	{
-		defense_ship_role_key = [shipinfoDictionary stringForKey:@"defense_ship_role"];
+		defense_ship_role_key = [shipinfoDictionary stringForKey:@"defense_ship_role" defaultValue:defense_ship_role_key];
 		defense_ship = [UNIVERSE newShipWithRole:defense_ship_role_key];
 	}
 	

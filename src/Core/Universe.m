@@ -2050,7 +2050,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		return make_vector(0,0,0);
 	}
 	GLfloat dummy;
-	return [self coordinatesForPosition:make_vector([tokens floatAtIndex:1], [tokens floatAtIndex:1], [tokens floatAtIndex:1]) withCoordinateSystem:[tokens stringAtIndex:0] returningScalar:&dummy];
+	return [self coordinatesForPosition:make_vector([tokens floatAtIndex:1], [tokens floatAtIndex:2], [tokens floatAtIndex:3]) withCoordinateSystem:[tokens stringAtIndex:0] returningScalar:&dummy];
 }
 
 
