@@ -324,19 +324,31 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 }
 
 
+// setInstructionsKey(instructionsKey : String [, missionKey : String])
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
+	NSString			*missionKey = nil;
 	
 	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	if (key != nil)
+	
+	if (argc > 1)
 	{
-		[player setMissionDescription:key forMission:[[OOJSScript currentlyRunningScript] name]];
+		missionKey = [NSString stringWithJavaScriptValue:argv[1] inContext:context];
 	}
 	else
 	{
-		[player clearMissionDescriptionForMission:[[OOJSScript currentlyRunningScript] name]];
+		missionKey = [[OOJSScript currentlyRunningScript] name];
+	}
+	
+	if (key != nil)
+	{
+		[player setMissionDescription:key forMission:missionKey];
+	}
+	else
+	{
+		[player clearMissionDescriptionForMission:missionKey];
 	}
 	
 	return YES;
