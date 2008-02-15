@@ -102,7 +102,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)update:(double)delta_t
+- (void)update:(OOTimeDelta)delta_t
 {
 	time_until_observation -= delta_t;
 	if (time_until_observation < 0.0)

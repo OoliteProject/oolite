@@ -762,7 +762,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)

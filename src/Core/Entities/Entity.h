@@ -238,7 +238,7 @@ typedef struct
 - (void) setCollisionRadius:(GLfloat)amount;
 - (NSMutableArray *)collisionArray;
 
-- (void) update:(double) delta_t;
+- (void) update:(OOTimeDelta) delta_t;
 - (void) saveToLastFrame;
 - (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index;
 - (void) saveFrame:(Frame)frame atIndex:(int)t_index;

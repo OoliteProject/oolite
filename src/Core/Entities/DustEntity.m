@@ -94,7 +94,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	if (!player)  return;	//	DON'T UPDATE

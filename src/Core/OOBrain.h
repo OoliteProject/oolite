@@ -24,7 +24,8 @@ MA 02110-1301, USA.
 
 */
 
-#include "OOCocoa.h"
+#import "OOCocoa.h"
+#import "OOTypes.h"
 
 #define MAX_CONSIDERED_ENTITIES		32
 #define MAX_INSTINCTS				16
@@ -63,7 +64,7 @@ MA 02110-1301, USA.
 // each instinct has a NSNumber priority
 - (id)	initBrainWithInstincts:(NSDictionary*) instinctDictionary forOwner:(id) anOwner andShip:(ShipEntity*) aShip;
 
-- (void)	update:(double) delta_t;
+- (void)	update:(OOTimeDelta) delta_t;
 
 - (void)	observe;	// look around, note ships, wormholes, planets
 

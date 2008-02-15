@@ -2574,6 +2574,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 }
 
 
+#if OBSOLETE
 - (StationEntity *) station
 {
 if (cachedStation)
@@ -2672,6 +2673,40 @@ if (cachedStation)
 	}
 	return cachedSun;
 }
+#else
+
+- (StationEntity *) station
+{
+	if (cachedStation == nil)
+	{
+		cachedStation = [self findOneEntityMatchingPredicate:HasScanClassPredicate
+												   parameter:[NSNumber numberWithInt:CLASS_STATION]];
+	}
+	return cachedStation;
+}
+
+
+- (PlanetEntity *) planet
+{
+	if (cachedPlanet == nil)
+	{
+		cachedPlanet = [self findOneEntityMatchingPredicate:IsPlanetPredicate
+												  parameter:nil];
+	}
+	return cachedPlanet;
+}
+
+
+- (PlanetEntity *) sun
+{
+	if (cachedSun == nil)
+	{
+		cachedSun = [self findOneEntityMatchingPredicate:HasClassPredicate
+											   parameter:[PlanetEntity class]];
+	}
+	return cachedSun;
+}
+#endif
 
 
 - (NSArray *) planets
@@ -4720,6 +4755,24 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	}
 	
 	return result;
+}
+
+
+- (id) findOneEntityMatchingPredicate:(EntityFilterPredicate)predicate
+							parameter:(void *)parameter
+{
+	unsigned		i;
+	Entity			*candidate = nil;
+	
+	if (predicate == NULL)  predicate = YESPredicate;
+	
+	for (i = 0; i < n_entities; i++)
+	{
+		candidate = sortedEntities[i];
+		if (predicate(candidate, parameter))  return candidate;
+	}
+	
+	return nil;
 }
 
 

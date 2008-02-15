@@ -1071,7 +1071,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
 	sqrt_zero_distance = sqrt(zero_distance);

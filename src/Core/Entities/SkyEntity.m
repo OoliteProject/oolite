@@ -131,7 +131,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;
@@ -353,7 +353,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	zero_distance = MAX_CLEAR_DEPTH * MAX_CLEAR_DEPTH;

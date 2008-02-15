@@ -1033,7 +1033,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	BOOL isRockHermit = (scanClass == CLASS_ROCK);
 	BOOL isMainStation = (self == [UNIVERSE station]);

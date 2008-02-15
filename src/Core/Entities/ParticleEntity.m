@@ -759,7 +759,7 @@ FAIL:
 }
 
 
-- (void) update:(double) delta_t
+- (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
 

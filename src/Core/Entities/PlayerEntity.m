@@ -1349,7 +1349,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 
 double scoopSoundPlayTime = 0.0;
-- (void) update:(double)delta_t
+- (void) update:(OOTimeDelta)delta_t
 {
 	unsigned i;
 	// update flags

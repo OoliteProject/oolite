@@ -1156,7 +1156,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) update:(double)delta_t
+- (void) update:(OOTimeDelta)delta_t
 {
 	if (shipinfoDictionary == nil)
 	{

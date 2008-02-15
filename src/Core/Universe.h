@@ -386,6 +386,8 @@ enum
 										 parameter:(void *)parameter
 										   inRange:(double)range
 										  ofEntity:(Entity *)entity;
+- (id) findOneEntityMatchingPredicate:(EntityFilterPredicate)predicate
+							parameter:(void *)parameter;
 - (NSMutableArray *) findShipsMatchingPredicate:(EntityFilterPredicate)predicate
 									  parameter:(void *)parameter
 										inRange:(double)range
