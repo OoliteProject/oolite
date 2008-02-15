@@ -310,7 +310,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_legalStatus:
 			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
-			if (JS_ValueToInt32(context, *value, &iValue) && 0 < iValue)
+			if (JS_ValueToInt32(context, *value, &iValue) && 0 <= iValue)
 			{
 				[player setBounty:iValue];
 			}
