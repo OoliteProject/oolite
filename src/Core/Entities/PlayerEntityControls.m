@@ -2589,7 +2589,14 @@ static BOOL toggling_music;
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
-			[self setCompassMode:COMPASS_MODE_STATION];
+			if ([self checkForAegis] != AEGIS_NONE)
+			{
+				[self setCompassMode:COMPASS_MODE_STATION];
+			}
+			else
+			{
+				[self setCompassMode:COMPASS_MODE_PLANET];	
+			}
 			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 			[self playBreakPattern];
 		}
