@@ -1765,8 +1765,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) resetMissionChoice							// resets MissionChoice to nil
 {
-	[missionChoice release];
+	NSString *choice = missionChoice;
 	missionChoice = nil;
+	[self doScriptEvent:@"missionChoiceWasReset" withArgument:choice];
+	[choice release];
 }
 
 
