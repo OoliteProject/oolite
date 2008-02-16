@@ -2589,6 +2589,7 @@ static BOOL toggling_music;
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
+			[self setCompassMode:COMPASS_MODE_STATION];
 			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 			[self playBreakPattern];
 		}
