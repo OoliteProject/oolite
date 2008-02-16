@@ -113,8 +113,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-	
 	n_entities = 0;
 	
 	x_list_start = y_list_start = z_list_start = nil;
@@ -142,6 +140,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
+	
+	// Set up the internal game strings
+	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 #if OOLITE_MAC_OS_X
 	//// speech stuff
