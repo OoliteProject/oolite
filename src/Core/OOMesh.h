@@ -131,7 +131,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 											basis:(Vector)ri :(Vector)rj :(Vector)rk
 									 selfPosition:(Vector)position
 										selfBasis:(Vector)si :(Vector)sj :(Vector)sk;
-- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix;
+- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix;
 
 - (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor;
 - (OOMesh *)meshRescaledByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;

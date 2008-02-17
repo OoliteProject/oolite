@@ -1408,17 +1408,16 @@ FAIL:
 
 		Vector		abspos = position;  // in control of it's own orientation
 		int			view_dir = [UNIVERSE viewDirection];
-		Entity*		last = nil;
-		Entity*		father = my_owner;
-		GLfloat*	r_mat = [father drawRotationMatrix];
+		Entity		*last = nil;
+		Entity		*father = my_owner;
+		OOMatrix	r_mat;
+		
 		while ((father)&&(father != last))
 		{
-			mult_vector_gl_matrix(&abspos, r_mat);
-			Vector pos = father->position;
-			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
 			father = [father owner];
-			r_mat = [father drawRotationMatrix];
 		}
 
 		if (view_dir == VIEW_GUI_DISPLAY)
@@ -1430,9 +1429,8 @@ FAIL:
 				glTranslatef(abspos.x, abspos.y, abspos.z); // move to absolute position
 				GLfloat	xx = 0.5 * size.width;
 				GLfloat	yy = 0.5 * size.height;
-
-				if (alpha < 0.0)	alpha = 0.0;	// clamp the alpha value
-				if (alpha > 1.0)	alpha = 1.0;	// clamp the alpha value
+				
+				alpha = OOClamp_0_1_f(alpha);
 				
 				color_fv[3] = alpha;
 				glEnable(GL_TEXTURE_2D);
@@ -1466,7 +1464,7 @@ FAIL:
 			glPopMatrix();  // restore zero!
 			glPushMatrix();
 					// position and orientation is absolute
-			glTranslatef(abspos.x, abspos.y, abspos.z);
+			GLTranslateOOVector(abspos);
 			glMultMatrixf([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 
 			[self drawEntity:immediate:translucent];
@@ -1484,11 +1482,7 @@ FAIL:
 	GLfloat	xx = 0.5 * size.width;
 	GLfloat	yy = 0.5 * size.height;
 
-	if (alpha < 0.0)
-        alpha = 0.0;	// clamp the alpha value
-    if (alpha > 1.0)
-        alpha = 1.0;	// clamp the alpha value
-
+	alpha = OOClamp_0_1_f(alpha);
     color_fv[3] = alpha;
 
 	// movies:

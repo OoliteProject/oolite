@@ -118,14 +118,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary		*shipDict = dict;
 	unsigned			i;
 	
-
-	// Does this positional stuff need setting up here?
-	// Either way, having four representations of orientation is dumb. Needs fixing. --Ahruman
     orientation = kIdentityQuaternion;
     quaternion_into_gl_matrix(orientation, rotMatrix);
-	v_forward	= vector_forward_from_quaternion(orientation);
-	v_up		= vector_up_from_quaternion(orientation);
-	v_right		= vector_right_from_quaternion(orientation);
+	v_forward	= kBasisZVector;
+	v_up		= kBasisYVector;
+	v_right		= kBasisXVector;
 	reference	= v_forward;  // reference vector for (* turrets *)
 	
 	isShip = YES;
@@ -1012,42 +1009,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BoundingBox)findSubentityBoundingBox
 {
-	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:rotMatrix];
+	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:OOMatrixFromGLMatrix(rotMatrix)];
 }
 
 
 - (Vector) absolutePositionForSubentity
 {
-	Vector		abspos = position;
-	Entity*		last = nil;
-	Entity*		father = [self owner];
-	while ((father)&&(father != last))
-	{
-		GLfloat* r_mat = [father drawRotationMatrix];
-		mult_vector_gl_matrix(&abspos, r_mat);
-		Vector pos = father->position;
-		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
-		last = father;
-		father = [father owner];
-	}
-	return abspos;
+	return [self absolutePositionForSubentityOffset:kZeroVector];
 }
 
 
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset
 {
-
-	Vector		off = offset;
-	mult_vector_gl_matrix(&off, rotMatrix);
-	Vector		abspos = make_vector(position.x + off.x, position.y + off.y, position.z + off.z);
-	Entity*		last = nil;
-	Entity*		father = [self owner];
+	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, OOMatrixFromGLMatrix(rotMatrix)));
+	Entity		*last = nil;
+	Entity		*father = [self owner];
+	OOMatrix	r_mat;
+	
 	while ((father)&&(father != last))
 	{
-		GLfloat* r_mat = [father drawRotationMatrix];
-		mult_vector_gl_matrix(&abspos, r_mat);
-		Vector pos = father->position;
-		abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 		last = father;
 		father = [father owner];
 	}
@@ -1055,20 +1037,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (Triangle) absoluteIJKForSubentity;
+- (Triangle) absoluteIJKForSubentity
 {
 	Triangle	result;
-	result.v[0] = make_vector(1.0, 0.0, 0.0);
-	result.v[1] = make_vector(0.0, 1.0, 0.0);
-	result.v[2] = make_vector(0.0, 0.0, 1.0);
-	Entity*		last = nil;
-	Entity*		father = self;
+	result.v[0] = kBasisXVector;
+	result.v[1] = kBasisYVector;
+	result.v[2] = kBasisZVector;
+	Entity		*last = nil;
+	Entity		*father = self;
+	OOMatrix	r_mat;
+	
 	while ((father)&&(father != last))
 	{
-		GLfloat* r_mat = [father drawRotationMatrix];
-		mult_vector_gl_matrix(&result.v[0], r_mat);
-		mult_vector_gl_matrix(&result.v[1], r_mat);
-		mult_vector_gl_matrix(&result.v[2], r_mat);
+		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		result.v[0] = OOVectorMultiplyMatrix(result.v[0], r_mat);
+		result.v[1] = OOVectorMultiplyMatrix(result.v[1], r_mat);
+		result.v[2] = OOVectorMultiplyMatrix(result.v[2], r_mat);
+		
 		last = father;
 		father = [father owner];
 	}
@@ -2484,23 +2469,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (status == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
-		Entity*		last = nil;
-		Entity*		father = my_owner;
-		GLfloat*	r_mat = [father drawRotationMatrix];
+		Entity		*last = nil;
+		Entity		*father = my_owner;
+		OOMatrix	r_mat;
 		while ((father)&&(father != last))
 		{
-			mult_vector_gl_matrix(&abspos, r_mat);
-			Vector pos = father->position;
-			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
 			father = [father owner];
-			r_mat = [father drawRotationMatrix];
 		}
 		glPopMatrix();  // one down
 		glPushMatrix();
 				// position and orientation is absolute
-		glTranslated(abspos.x, abspos.y, abspos.z);
-
+		GLTranslateOOVector(abspos);
+		
 		glMultMatrixf(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
@@ -4451,39 +4434,33 @@ BOOL class_masslocks(int some_class)
 
 - (double) ballTrackTarget:(double) delta_t
 {
-	Vector vector_to_target;
-	Vector axis_to_track_by;
-	Vector my_position = position;  // position relative to parent
-	Vector my_aim = vector_forward_from_quaternion(orientation);
-	Vector my_ref = reference;
-	double aim_cos, ref_cos;
+	Vector		vector_to_target;
+	Vector		axis_to_track_by;
+	Vector		my_position = position;  // position relative to parent
+	Vector		my_aim = vector_forward_from_quaternion(orientation);
+	Vector		my_ref = reference;
+	double		aim_cos, ref_cos;
 	
-	Entity* target = [self primaryTarget];
+	Entity		*target = [self primaryTarget];
 	
-	Entity*		last = nil;
-	Entity*		father = [self owner];
-	GLfloat*	r_mat = [father drawRotationMatrix];
+	Entity		*last = nil;
+	Entity		*father = [self owner];
+	OOMatrix	r_mat;
+	
 	while ((father)&&(father != last))
 	{
-		mult_vector_gl_matrix(&my_position, r_mat);
-		mult_vector_gl_matrix(&my_ref, r_mat);
-		Vector pos = father->position;
-		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
+		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
+		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
 		father = [father owner];
-		r_mat = [father drawRotationMatrix];
 	}
 
 	if (target)
 	{
-		vector_to_target = target->position;
-		//
-		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
-		if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
-			vector_to_target = unit_vector(&vector_to_target);
-		else
-			vector_to_target.z = 1.0;
-		//
+		vector_to_target = vector_subtract([target position], my_position);
+		vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
+		
 		// do the tracking!
 		aim_cos = dot_product(vector_to_target, my_aim);
 		ref_cos = dot_product(vector_to_target, my_ref);
@@ -4503,12 +4480,12 @@ BOOL class_masslocks(int some_class)
 		aim_cos = 0.0;
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
-
+	
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 	[self orientationChanged];
-
+	
 	status = STATUS_ACTIVE;
-
+	
 	return aim_cos;
 }
 
@@ -4550,45 +4527,35 @@ BOOL class_masslocks(int some_class)
 
 - (double) ballTrackLeadingTarget:(double) delta_t
 {
-	Vector vector_to_target;
-	Vector axis_to_track_by;
-	Vector my_position = position;  // position relative to parent
-	Vector my_aim = vector_forward_from_quaternion(orientation);
-	Vector my_ref = reference;
-	double aim_cos, ref_cos;
-	//
-	Entity* target = [self primaryTarget];
-	//
-	Vector leading = [target velocity];
+	Vector		vector_to_target;
+	Vector		axis_to_track_by;
+	Vector		my_position = position;  // position relative to parent
+	Vector		my_aim = vector_forward_from_quaternion(orientation);
+	Vector		my_ref = reference;
+	double		aim_cos, ref_cos;
+	Entity		*target = [self primaryTarget];
+	Vector		leading = [target velocity];
+	Entity		*last = nil;
+	Entity		*father = [self owner];
+	OOMatrix	r_mat;
 	
-	Entity*		last = nil;
-	Entity*		father = [self owner];
-	GLfloat*	r_mat = [father drawRotationMatrix];
 	while ((father)&&(father != last))
 	{
-		mult_vector_gl_matrix(&my_position, r_mat);
-		mult_vector_gl_matrix(&my_ref, r_mat);
-		Vector pos = father->position;
-		my_position.x += pos.x;	my_position.y += pos.y;	my_position.z += pos.z;
+		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
+		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
 		father = [father owner];
-		r_mat = [father drawRotationMatrix];
 	}
 
 	if (target)
 	{
-		vector_to_target = target->position;
-		//
-		vector_to_target.x -= my_position.x;	vector_to_target.y -= my_position.y;	vector_to_target.z -= my_position.z;
-		//
-		float lead = sqrt(magnitude2(vector_to_target)) / TURRET_SHOT_SPEED;
-		//
-		vector_to_target.x += lead * leading.x;	vector_to_target.y += lead * leading.y;	vector_to_target.z += lead * leading.z;
-		if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
-			vector_to_target = unit_vector(&vector_to_target);
-		else
-			vector_to_target.z = 1.0;
-		//
+		vector_to_target = vector_subtract([target position], my_position);
+		float lead = magnitude(vector_to_target) / TURRET_SHOT_SPEED;
+		
+		vector_to_target = vector_add(vector_to_target, vector_multiply_scalar(leading, lead));
+		vector_to_target = vector_normal_or_fallback(vector_to_target, kBasisZVector);
+		
 		// do the tracking!
 		aim_cos = dot_product(vector_to_target, my_aim);
 		ref_cos = dot_product(vector_to_target, my_ref);
@@ -4598,7 +4565,7 @@ BOOL class_masslocks(int some_class)
 		aim_cos = 0.0;
 		ref_cos = -1.0;
 	}
-
+	
 	if (ref_cos > TURRET_MINIMUM_COS)  // target is forward of self
 	{
 		axis_to_track_by = cross_product(vector_to_target, my_aim);
@@ -4608,12 +4575,12 @@ BOOL class_masslocks(int some_class)
 		aim_cos = 0.0;
 		axis_to_track_by = cross_product(my_ref, my_aim);	//	return to center
 	}
-
+	
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 	[self orientationChanged];
-
+	
 	status = STATUS_ACTIVE;
-
+	
 	return aim_cos;
 }
 
@@ -5237,39 +5204,33 @@ BOOL class_masslocks(int some_class)
 	if (range > 5000)
 		return NO;
 
-	ParticleEntity *shot;
-	Vector  origin = position;
-	Entity*		last = nil;
-	Entity*		father = [self owner];
-	GLfloat*	r_mat = [father drawRotationMatrix];
-	Vector		vel = vector_forward_from_quaternion(orientation);
+	ParticleEntity *shot = nil;
+	Vector		origin = position;
+	Entity		*last = nil;
+	Entity		*father = [self owner];
+	OOMatrix	r_mat;
+	Vector		vel;
+	
 	while ((father)&&(father != last))
 	{
-		mult_vector_gl_matrix(&origin, r_mat);
-		Vector pos = father->position;
-		origin.x += pos.x;	origin.y += pos.y;	origin.z += pos.z;
+		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		origin = vector_add(OOVectorMultiplyMatrix(origin, r_mat), [father position]);
 		last = father;
 		father = [father owner];
-		r_mat = [father drawRotationMatrix];
 	}
-	double  start = collision_radius + 0.5;
-
-	origin.x += vel.x * start;
-	origin.y += vel.y * start;
-	origin.z += vel.z * start;
-
-	vel.x *= TURRET_SHOT_SPEED;
-	vel.y *= TURRET_SHOT_SPEED;
-	vel.z *= TURRET_SHOT_SPEED;
-
+	
+	vel = vector_forward_from_quaternion(orientation);		// Facing
+	origin = vector_add(origin, vector_multiply_scalar(vel, collision_radius + 0.5));	// Start just outside collision sphere
+	vel = vector_multiply_scalar(vel, TURRET_SHOT_SPEED);	// Shot velocity
+	
 	shot = [[ParticleEntity alloc] initPlasmaShotAt:origin
 										   velocity:vel
 											 energy:weapon_energy
 										   duration:3.0
 											  color:laser_color];
+	[shot autorelease];
 	[UNIVERSE addEntity:shot];
 	[shot setOwner:[self owner]];	// has to be done AFTER adding shot to the UNIVERSE
-	[shot release];
 	
 	shot_time = 0.0;
 	return YES;

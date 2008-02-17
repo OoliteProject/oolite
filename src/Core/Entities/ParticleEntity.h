@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 	OOColor			*color;
 	GLfloat			color_fv[4];
 	
-	double			alpha;
+	GLfloat			alpha;
 	double			time_counter;
 	
 	double			duration;

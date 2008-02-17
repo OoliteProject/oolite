@@ -216,6 +216,7 @@ typedef struct
 - (GLfloat) distanceTravelled;
 - (void) setDistanceTravelled:(GLfloat)value;
 
+
 - (void) setStatus:(OOEntityStatus)stat;
 - (OOEntityStatus) status;
 

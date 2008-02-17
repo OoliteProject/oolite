@@ -108,6 +108,9 @@ OOINLINE Vector fast_normal_to_surface(Vector v1, Vector v2, Vector v3) CONST_FU
 NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
 #endif
 
+/*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
+#define GLTranslateOOVector(v) do { Vector v_ = v; glTranslatef(v_.x, v_.y, v_.z); } while (0)
+
 
 
 /* Internal */

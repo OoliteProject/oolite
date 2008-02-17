@@ -344,23 +344,22 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
-- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(gl_matrix)rotMatrix
+- (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix
 {
-	// HACK! Should work out what the various bounding box things do and make it neat and consistant.
-	BoundingBox result;
-	Vector  v = vertices[0];
-	mult_vector_gl_matrix(&v, rotMatrix);
-	v.x += position.x;	v.y += position.y;	v.z += position.z;
+	// HACK! Should work out what the various bounding box things do and make it neat and consistent.
+	BoundingBox		result;
+	Vector			v;
+	int				i;
+	
+	v = vector_add(position, OOVectorMultiplyMatrix(vertices[0], rotMatrix));
 	bounding_box_reset_to_vector(&result,v);
-	int i;
+	
     for (i = 1; i < vertexCount; i++)
     {
-		v = vertices[i];
-		mult_vector_gl_matrix(&v, rotMatrix);
-		v.x += position.x;	v.y += position.y;	v.z += position.z;
+		v = vector_add(position, OOVectorMultiplyMatrix(vertices[i], rotMatrix));
 		bounding_box_add_vector(&result,v);
     }
-
+	
 	return result;
 }
 
