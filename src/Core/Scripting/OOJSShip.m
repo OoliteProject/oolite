@@ -40,6 +40,7 @@ static JSObject *sShipPrototype;
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
+static JSBool ShipSetNonLegacyScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -167,6 +168,7 @@ static JSPropertySpec sShipProperties[] =
 static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
+	{ "setScript",				ShipSetNonLegacyScript,		1 },
 	{ "setAI",					ShipSetAI,					1 },
 	{ "switchAI",				ShipSwitchAI,				1 },
 	{ "exitAI",					ShipExitAI,					0 },
@@ -364,6 +366,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			*outValue = BOOLToJSVal([entity isPirate]);
 			break;
 			
+		case kShip_isPlayer:
+			*outValue = BOOLToJSVal([entity isPlayer]);
+			break;
+			
 		case kShip_isPolice:
 			*outValue = BOOLToJSVal([entity isPolice]);
 			break;
@@ -467,8 +473,9 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_bounty:
-			if (JS_ValueToInt32(context, *value, &iValue) && 0 <= iValue)
+			if (JS_ValueToInt32(context, *value, &iValue))
 			{
+				iValue = (int)OOMax_f(iValue, 0);
 				[entity setBounty:iValue];
 			}
 			break;
@@ -518,6 +525,31 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	return YES;
 }
 
+static JSBool ShipSetNonLegacyScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*name = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	
+	if (name != nil)
+	{
+		if (!thisEnt->isPlayer)
+		{
+			[thisEnt setShipScript:name];
+		}
+		else
+		{
+			OOReportJavaScriptError(context, @"Ship.%@(\"%@\"): cannot set script for player.", @"setScript", name);
+		}
+	}
+	else
+	{
+		OOReportJavaScriptError(context, @"Ship.%@(): no script name specified.", @"setScript");
+	}
+	return YES;
+}
 
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {

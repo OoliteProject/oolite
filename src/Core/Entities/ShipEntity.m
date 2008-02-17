@@ -432,63 +432,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
+	
 	// Using runLegacyScriptActions for user scripts is explicitly not supported at this moment.
-	// The code below makes such a situation possible, and is therefore disabled. - Nikos
-#if 0
-	// Load (or synthesize) script									
-	NSArray				*actions = nil;
-	NSMutableDictionary		*properties = nil;
-	
-	properties = [NSMutableDictionary dictionaryWithCapacity:5];
-	[properties setObject:self forKey:@"ship"];
-	
-	actions = [shipDict arrayForKey:@"launch_actions"];
-	if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
-		
-	actions = [shipDict arrayForKey:@"script_actions"];
-	if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
-	
-	actions = [shipDict arrayForKey:@"death_actions"];
-	if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
-		
-	actions = [shipDict arrayForKey:@"setup_actions"];
-	if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
-	
-	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] properties:properties];
-	if (script == nil)
-	{
-		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"  properties:properties];
-	}
-#else
-	// Load (or synthesize) script
-	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
-										  properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
-	if (script == nil)
-	{
-		NSArray					*actions = nil;
-		NSMutableDictionary		*properties = nil;
-		
-		properties = [NSMutableDictionary dictionaryWithCapacity:5];
-		[properties setObject:self forKey:@"ship"];
-		
-		actions = [shipDict arrayForKey:@"launch_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_launchActions"];
-		
-		actions = [shipDict arrayForKey:@"script_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_scriptActions"];
-		
-		actions = [shipDict arrayForKey:@"death_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_deathActions"];
-		
-		actions = [shipDict arrayForKey:@"setup_actions"];
-		if (actions != nil)  [properties setObject:actions forKey:@"legacy_setupActions"];
-		
-		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
-											 properties:properties];
-	}
-#endif
-
-	[script retain];
+	// The code in setShipScript can make such a situation possible, and is therefore disabled.
+	[self setShipScript:[shipDict stringForKey:@"script"]];
 
 	return YES;
 }
@@ -3253,6 +3200,38 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (AI *) getAI
 {
 	return shipAI;
+}
+
+
+- (void) setShipScript:(NSString *)script_name
+{
+	NSMutableDictionary		*properties = nil;
+	properties = [NSMutableDictionary dictionaryWithCapacity:5];
+	[properties setObject:self forKey:@"ship"];
+
+	// Using runLegacyScriptActions for user scripts is explicitly not supported at this moment.
+	// The code below makes such a situation possible, and is therefore disabled. - p.p. Nikos
+#if 0
+	NSArray					*actions = nil;
+	
+	actions = [shipinfoDictionary arrayForKey:@"launch_actions"];
+	if (actions)	[properties setObject:actions forKey:@"legacy_launchActions"];	
+	actions = [shipinfoDictionary arrayForKey:@"script_actions"];
+	if (actions)	[properties setObject:actions forKey:@"legacy_scriptActions"];
+	actions = [shipinfoDictionary arrayForKey:@"death_actions"];
+	if (actions)	[properties setObject:actions forKey:@"legacy_deathActions"];
+	actions = [shipinfoDictionary arrayForKey:@"setup_actions"];
+	if (actions)	[properties setObject:actions forKey:@"legacy_setupActions"];
+#endif
+
+	if (script)		[script autorelease];
+	script = [OOScript nonLegacyScriptFromFileNamed:script_name properties: properties];
+	if (script == nil)
+	{
+		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
+												 properties: properties];
+	}
+	[script retain];
 }
 
 

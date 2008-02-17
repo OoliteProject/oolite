@@ -295,13 +295,16 @@ MA 02110-1301, USA.
 // ship brains
 - (OOBrain *)brain;
 - (void)setBrain:(OOBrain*) aBrain;
+- (void) setStateMachine:(NSString *) ai_desc;
+- (void) setAI:(AI *) ai;
+- (AI *) getAI;
+- (void) setShipScript:(NSString *) script_name;
+- (OOScript *)shipScript;
 
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
 - (NSArray *)subEntities;
-
-- (OOScript *)shipScript;
 
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
@@ -432,9 +435,6 @@ MA 02110-1301, USA.
 - (NSArray*) crew;
 - (void) setCrew: (NSArray*) crewArray;
 
-- (void) setStateMachine:(NSString *) ai_desc;
-- (void) setAI:(AI *) ai;
-- (AI *) getAI;
 
 - (OOFuelQuantity) fuel;
 - (void) setFuel:(OOFuelQuantity) amount;

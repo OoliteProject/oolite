@@ -304,14 +304,16 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kPlayer_score:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
+				iValue = (int)OOMax_f(iValue, 0);
 				[player setScore:iValue];
 			}
 			break;
 			
 		case kPlayer_legalStatus:
 			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
-			if (JS_ValueToInt32(context, *value, &iValue) && 0 <= iValue)
+			if (JS_ValueToInt32(context, *value, &iValue))
 			{
+				iValue = (int)OOMax_f(iValue, 0);
 				[player setBounty:iValue];
 			}
 			break;
