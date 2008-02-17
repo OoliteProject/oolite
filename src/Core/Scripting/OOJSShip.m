@@ -40,7 +40,7 @@ static JSObject *sShipPrototype;
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool ShipSetNonLegacyScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -168,7 +168,7 @@ static JSPropertySpec sShipProperties[] =
 static JSFunctionSpec sShipMethods[] =
 {
 	// JS name					Function					min args
-	{ "setScript",				ShipSetNonLegacyScript,		1 },
+	{ "setScript",				ShipSetScript,				1 },
 	{ "setAI",					ShipSetAI,					1 },
 	{ "switchAI",				ShipSwitchAI,				1 },
 	{ "exitAI",					ShipExitAI,					0 },
@@ -525,7 +525,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	return YES;
 }
 
-static JSBool ShipSetNonLegacyScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
@@ -535,7 +535,7 @@ static JSBool ShipSetNonLegacyScript(JSContext *context, JSObject *this, uintN a
 	
 	if (name != nil)
 	{
-		if (!thisEnt->isPlayer)
+		if (![thisEnt isPlayer])
 		{
 			[thisEnt setShipScript:name];
 		}

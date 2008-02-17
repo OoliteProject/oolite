@@ -432,9 +432,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
-	
-	// Using runLegacyScriptActions for user scripts is explicitly not supported at this moment.
-	// The code in setShipScript can make such a situation possible, and is therefore disabled.
 	[self setShipScript:[shipDict stringForKey:@"script"]];
 
 	return YES;
@@ -3206,30 +3203,27 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) setShipScript:(NSString *)script_name
 {
 	NSMutableDictionary		*properties = nil;
-	properties = [NSMutableDictionary dictionaryWithCapacity:5];
-	[properties setObject:self forKey:@"ship"];
-
-	// Using runLegacyScriptActions for user scripts is explicitly not supported at this moment.
-	// The code below makes such a situation possible, and is therefore disabled. - p.p. Nikos
-#if 0
 	NSArray					*actions = nil;
 	
-	actions = [shipinfoDictionary arrayForKey:@"launch_actions"];
-	if (actions)	[properties setObject:actions forKey:@"legacy_launchActions"];	
-	actions = [shipinfoDictionary arrayForKey:@"script_actions"];
-	if (actions)	[properties setObject:actions forKey:@"legacy_scriptActions"];
-	actions = [shipinfoDictionary arrayForKey:@"death_actions"];
-	if (actions)	[properties setObject:actions forKey:@"legacy_deathActions"];
-	actions = [shipinfoDictionary arrayForKey:@"setup_actions"];
-	if (actions)	[properties setObject:actions forKey:@"legacy_setupActions"];
-#endif
-
-	if (script)		[script autorelease];
-	script = [OOScript nonLegacyScriptFromFileNamed:script_name properties: properties];
+	properties = [NSMutableDictionary dictionary];
+	[properties setObject:self forKey:@"ship"];
+	
+	[script autorelease];
+	script = [OOScript nonLegacyScriptFromFileNamed:script_name properties:properties];
+	
 	if (script == nil)
 	{
+		actions = [shipinfoDictionary arrayForKey:@"launch_actions"];
+		if (actions)  [properties setObject:actions forKey:@"legacy_launchActions"];	
+		actions = [shipinfoDictionary arrayForKey:@"script_actions"];
+		if (actions)  [properties setObject:actions forKey:@"legacy_scriptActions"];
+		actions = [shipinfoDictionary arrayForKey:@"death_actions"];
+		if (actions)  [properties setObject:actions forKey:@"legacy_deathActions"];
+		actions = [shipinfoDictionary arrayForKey:@"setup_actions"];
+		if (actions)  [properties setObject:actions forKey:@"legacy_setupActions"];
+		
 		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
-												 properties: properties];
+											 properties:properties];
 	}
 	[script retain];
 }
