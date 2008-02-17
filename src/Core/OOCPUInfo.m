@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 #endif
 
 
+static BOOL				sInited = NO;
 #if OOLITE_ALTIVEC_DYNAMIC
 static BOOL				sAltiVecAvailable = NO;
 #endif
@@ -62,6 +63,8 @@ static unsigned			sNumberOfCPUs = 0;	// Yes, really 0.
 
 void OOCPUInfoInit(void)
 {
+	if (sInited)  return;
+	
 	// Verify correctness of endian macros
 	uint8_t			endianTag[4] = {0x12, 0x34, 0x56, 0x78};
 	
@@ -103,8 +106,6 @@ void OOCPUInfoInit(void)
 	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
 #endif
 	
-	OOLog(@"cpuInfo.cpuCount", @"%u processors detected.", sNumberOfCPUs);
-	
 	// Check for AltiVec if relelevant
 #if OOLITE_ALTIVEC_DYNAMIC
 #if OOLITE_MAC_OS_X
@@ -117,14 +118,15 @@ void OOCPUInfoInit(void)
 #else
 	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite doesn't know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
 #endif
-	
-	OOLog(@"cpuInfo.altivec", @"Altivec %s available.", sAltiVecAvailable ? "is" : "is not");
 #endif
+	
+	sInited = YES;
 }
 
 
 unsigned OOCPUCount(void)
 {
+	if (!sInited)  OOCPUInfoInit();
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
 

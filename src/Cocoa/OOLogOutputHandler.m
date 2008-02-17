@@ -96,10 +96,6 @@ static void LoadLogCStringFunctions(void);
 
 static void OONSLogCStringFunction(const char *string, unsigned length, BOOL withSyslogBanner);
 
-static NSString *GetSysCtlString(const char *name);
-static unsigned long long GetSysCtlInt(const char *name);
-static NSString *GetCPUDescription(void);
-
 static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
 static NSString *GetLogBasePath(void);
 static NSString *GetAppName(void);
@@ -276,10 +272,6 @@ enum
 	BOOL				OK = YES;
 	NSString			*logPath = nil;
 	NSFileManager		*fmgr = nil;
-	NSString			*preamble = nil;
-	NSString			*versionString = nil;
-	NSString			*sysModel = nil;
-	unsigned long		sysPhysMem;
 	
 	// We'll need these for a couple of things.
 	fmgr = [NSFileManager defaultManager];
@@ -340,24 +332,6 @@ enum
 			NSLog(@"Log setup: could not open log at %@, will log to stdout instead.", logPath);
 			OK = NO;
 		}
-	}
-	
-	if (OK)
-	{
-		// Queue log preamble
-		versionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
-		if (versionString == nil)  versionString = @"<unknown version>";
-		
-		// Get some basic system info
-		sysModel = GetSysCtlString("hw.model");
-		Gestalt(gestaltPhysicalRAMSizeInMegabytes, (long *)&sysPhysMem);
-		
-		preamble = [NSString stringWithFormat:@"Opening log for %@ version %@ [" CPU_TYPE_STRING "] under Mac OS X %@ at %@.\n"
-											   "Machine type: %@, %u MiB memory, CPU: %@.\n"
-											   "Note that the contents of the log file can be adjusted by editing logcontrol.plist.\n",
-											   GetAppName(), versionString, [[NSProcessInfo processInfo] operatingSystemVersionString], [NSDate date],
-											   sysModel, sysPhysMem, GetCPUDescription()];
-		[self asyncLogMessage:preamble];
 	}
 	
 	return OK;
@@ -513,93 +487,6 @@ static void OONSLogCStringFunction(const char *string, unsigned length, BOOL wit
 	{
 		OOLogWithFunctionFileAndLine(@"system", NULL, NULL, 0, @"%s", string);
 	}
-}
-
-
-static NSString *GetSysCtlString(const char *name)
-{
-	char					*buffer = nil;
-	size_t					size = 0;
-	
-	// Get size
-	sysctlbyname(name, NULL, &size, NULL, 0);
-	if (size == 0)  return nil;
-	
-	buffer = alloca(size);
-	if (sysctlbyname(name, buffer, &size, NULL, 0) != 0)  return nil;
-	return [NSString stringWithUTF8String:buffer];
-}
-
-
-static unsigned long long GetSysCtlInt(const char *name)
-{
-	unsigned long long		llresult = 0;
-	unsigned int			intresult = 0;
-	size_t					size;
-	
-	size = sizeof llresult;
-	if (sysctlbyname(name, &llresult, &size, NULL, 0) != 0)  return 0;
-	if (size == sizeof llresult)  return llresult;
-	
-	size = sizeof intresult;
-	if (sysctlbyname(name, &intresult, &size, NULL, 0) != 0)  return 0;
-	if (size == sizeof intresult)  return intresult;
-	
-	return 0;
-}
-
-
-static NSString *GetCPUDescription(void)
-{
-	unsigned long long	sysCPUType, sysCPUSubType,
-						sysCPUFrequency, sysCPUCount;
-	NSString			*typeStr = nil, *subTypeStr = nil;
-	
-	sysCPUType = GetSysCtlInt("hw.cputype");
-	sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
-	sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
-	sysCPUCount = GetSysCtlInt("hw.logicalcpu");
-	
-	/*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
-		physical CPU type. They may differ, for instance, when running under
-		Rosetta. The code is written for flexibility, although ruling out
-		x86 code running on PPC would be entirely reasonable.
-	*/
-	switch (sysCPUType)
-	{
-		case CPU_TYPE_POWERPC:
-			typeStr = @"PowerPC";
-			switch (sysCPUSubType)
-			{
-				case CPU_SUBTYPE_POWERPC_750:
-					subTypeStr = @" G3 (750)";
-					break;
-				
-				case CPU_SUBTYPE_POWERPC_7400:
-					subTypeStr = @" G4 (7400)";
-					break;
-				
-				case CPU_SUBTYPE_POWERPC_7450:
-					subTypeStr = @" G4 (7450)";
-					break;
-				
-				case CPU_SUBTYPE_POWERPC_970:
-					subTypeStr = @" G5 (970)";
-					break;
-			}
-			break;
-		
-		case CPU_TYPE_I386:
-			typeStr = @"x86";
-			// Currently all x86 CPUs seem to report subtype CPU_SUBTYPE_486, which isn't very useful.
-			if (sysCPUSubType == CPU_SUBTYPE_486)  subTypeStr = @"";
-			break;
-	}
-	
-	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%u", sysCPUType];
-	if (subTypeStr == nil)  subTypeStr = [NSString stringWithFormat:@":%u", sysCPUSubType];
-	
-	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }
 
 

@@ -491,6 +491,8 @@
 		1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */; };
 		1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */; };
 		1AB2AB130C4CE4070008CF4E /* verifyOXP.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */; };
+		1AB4AEB80D688AD9003076D6 /* OOLogHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */; };
+		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; };
 		1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB784F70D554F7B00517983 /* OOJSSoundSource.h */; };
 		1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB784F80D554F7B00517983 /* OOJSSoundSource.m */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
@@ -1461,6 +1463,8 @@
 		1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOXPVerifier.h; sourceTree = "<group>"; };
 		1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOXPVerifier.m; sourceTree = "<group>"; };
 		1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; name = verifyOXP.plist; path = ../../../Resources/Config/verifyOXP.plist; sourceTree = "<group>"; };
+		1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogHeader.h; sourceTree = "<group>"; };
+		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB784F70D554F7B00517983 /* OOJSSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSoundSource.h; sourceTree = "<group>"; };
 		1AB784F80D554F7B00517983 /* OOJSSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSoundSource.m; sourceTree = "<group>"; };
 		1ABB688B0D044306008BE96D /* OOLoggingExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLoggingExtended.h; sourceTree = "<group>"; };
@@ -2288,6 +2292,8 @@
 		1A8A3BFB0B963F91007D20B8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				1AB4AEB60D688AD9003076D6 /* OOLogHeader.h */,
+				1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */,
 				25161107099544390037C2E1 /* OOXMLExtensions.h */,
 				25161102099544380037C2E1 /* OOXMLExtensions.m */,
 				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
@@ -2771,6 +2777,7 @@
 				1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */,
 				1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */,
 				1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */,
+				1AB4AEB80D688AD9003076D6 /* OOLogHeader.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3130,6 +3137,7 @@
 				1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */,
 				1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */,
 				1A94D5B60D65A6B40072C805 /* OOCamera.m in Sources */,
+				1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

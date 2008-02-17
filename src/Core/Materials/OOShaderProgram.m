@@ -65,7 +65,11 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 @interface OOShaderProgram (OOPrivate)
 
-- (id)initWithVertexShaderSource:(NSString *)vertexSource fragmentShaderSource:(NSString *)fragmentSource key:(NSString *)key;
+- (id)initWithVertexShaderSource:(NSString *)vertexSource
+			fragmentShaderSource:(NSString *)fragmentSource
+					  vertexName:(NSString *)vertexName
+					fragmentName:(NSString *)fragmentName
+							 key:(NSString *)key;
 
 @end
 
@@ -93,7 +97,11 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		// No cached program; create one...
 		if (!GetShaderSource(vertexShaderName, @"vertex", prefixString, &vertexSource))  return nil;
 		if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))  return nil;
-		result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource fragmentShaderSource:fragmentSource key:cacheKey];
+		result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
+												fragmentShaderSource:fragmentSource
+														  vertexName:vertexShaderName
+														fragmentName:fragmentShaderName
+																 key:cacheKey];
 		
 		if (result != nil)
 		{
@@ -168,7 +176,11 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 @implementation OOShaderProgram (OOPrivate)
 
-- (id)initWithVertexShaderSource:(NSString *)vertexSource fragmentShaderSource:(NSString *)fragmentSource key:(NSString *)inKey
+- (id)initWithVertexShaderSource:(NSString *)vertexSource
+			fragmentShaderSource:(NSString *)fragmentSource
+					  vertexName:(NSString *)vertexName
+					fragmentName:(NSString *)fragmentName
+							 key:(NSString *)inKey
 {
 	BOOL					OK = YES;
 	const GLcharARB			*sourceString = NULL;
@@ -194,7 +206,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
 			if (compileStatus != GL_TRUE)
 			{
-				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "vertex", GetGLSLInfoLog(vertexShader), vertexSource);
+				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "vertex", vertexName, GetGLSLInfoLog(vertexShader), vertexSource);
 				OK = NO;
 			}
 		}
@@ -214,7 +226,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
 			if (compileStatus != GL_TRUE)
 			{
-				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "fragment", GetGLSLInfoLog(fragmentShader), fragmentSource);
+				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "fragment", fragmentName, GetGLSLInfoLog(fragmentShader), fragmentSource);
 				OK = NO;
 			}
 		}

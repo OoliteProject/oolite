@@ -1,9 +1,6 @@
 /*
 
-OOLogging.h
-By Jens Ayton
-
-More flexible alternative to NSLog().
+OOLogging.m
 
 
 Oolite
@@ -58,6 +55,7 @@ SOFTWARE.
 #import "ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "NSThreadOOExtensions.h"
+#import "OOLogHeader.h"
 
 #undef NSLog		// We need to be able to call the real NSLog.
 
@@ -619,6 +617,8 @@ void OOLoggingInit(void)
 	
 	LoadExplicitSettings();
 	sInited = YES;
+	
+	OOPrintLogHeader();
 	
 	[pool release];
 }

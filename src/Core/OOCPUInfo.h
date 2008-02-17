@@ -28,15 +28,11 @@ MA 02110-1301, USA.
 #import <stdint.h>
 
 
-/*	Must be called once -- currently in [Universe init].
-*/
 void OOCPUInfoInit(void);
 
 
 /*	Number of processors (whether they be individual or cores), used to select
 	number of threads to use for things like texture loading.
-	
-	Currently always 1 on non-Mac systems!
 */
 unsigned OOCPUCount(void);
 
