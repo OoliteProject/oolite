@@ -64,7 +64,7 @@ typedef float (*FloatReturnMsgSend)(id, SEL);
 typedef double (*DoubleReturnMsgSend)(id, SEL);
 typedef Vector (*VectorReturnMsgSend)(id, SEL);
 typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
-typedef Matrix (*MatrixReturnMsgSend)(id, SEL);
+typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
 typedef NSPoint (*PointReturnMsgSend)(id, SEL);
 
 
@@ -158,7 +158,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		if (asMatrix)
 		{
 			type = kOOShaderUniformTypeMatrix;
-			quaternion_into_gl_matrix(constValue, value.constMatrix);
+			value.constMatrix = OOMatrixForQuaternionRotation(constValue);
 		}
 		else
 		{
@@ -174,13 +174,13 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 }
 
 
-- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram matrixValue:(Matrix)constValue
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram matrixValue:(OOMatrix)constValue
 {
 	self = [self initWithName:uniformName shaderProgram:shaderProgram];
 	if (self != nil)
 	{
 		type = kOOShaderUniformTypeMatrix;
-		matrix_into_gl_matrix(constValue, value.constMatrix);
+		value.constMatrix = constValue;
 	}
 	
 	return self;
@@ -458,7 +458,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			break;
 		
 		case kOOShaderUniformTypeMatrix:
-			glUniformMatrix4fvARB(location, 1, NO, value.constMatrix);
+			glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(value.constMatrix));
 	}
 }
 
@@ -471,7 +471,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	GLfloat						fVal;
 	Vector						vVal;
 	GLfloat						expVVal[4];
-	gl_matrix					mVal;
+	OOMatrix					mVal;
 	Quaternion					qVal;
 	NSPoint						pVal = {0};
 	BOOL						isInt = NO, isFloat = NO, isVector = NO, isMatrix = NO, isPoint = NO;
@@ -538,7 +538,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			qVal = ((QuaternionReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			if (convertToMatrix)
 			{
-				quaternion_into_gl_matrix(qVal, mVal);
+				mVal = OOMatrixForQuaternionRotation(qVal);
 				isMatrix = YES;
 			}
 			else
@@ -552,7 +552,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			break;
 		
 		case kOOShaderUniformTypeMatrix:
-			matrix_into_gl_matrix(((MatrixReturnMsgSend)value.binding.method)(object, value.binding.selector), mVal);
+			mVal = ((MatrixReturnMsgSend)value.binding.method)(object, value.binding.selector);
 			isMatrix = YES;
 			break;
 		
@@ -600,7 +600,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	}
 	else if (isMatrix)
 	{
-		glUniformMatrix4fvARB(location, 1, NO, mVal);
+		glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(mVal));
 	}
 }
 

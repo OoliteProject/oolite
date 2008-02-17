@@ -98,8 +98,8 @@ extern "C" {
 
 #include "OOFastArithmetic.h"
 #include "OOVector.h"
-#include "OOMatrix.h"
 #include "OOQuaternion.h"
+#include "OOMatrix.h"
 #include "OOVoxel.h"
 #include "OOTriangle.h"
 #include "OOBoundingBox.h"

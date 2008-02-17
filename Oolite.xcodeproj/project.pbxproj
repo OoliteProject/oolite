@@ -477,6 +477,10 @@
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
 		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
+		1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94D5AC0D65A6960072C805 /* OOLight.m */; };
+		1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5AD0D65A6960072C805 /* OOLight.h */; };
+		1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5B30D65A6B40072C805 /* OOCamera.h */; };
+		1A94D5B60D65A6B40072C805 /* OOCamera.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94D5B40D65A6B40072C805 /* OOCamera.m */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
@@ -1442,6 +1446,10 @@
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
 		1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTriangle.m; sourceTree = "<group>"; };
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
+		1A94D5AC0D65A6960072C805 /* OOLight.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLight.m; sourceTree = "<group>"; };
+		1A94D5AD0D65A6960072C805 /* OOLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLight.h; sourceTree = "<group>"; };
+		1A94D5B30D65A6B40072C805 /* OOCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCamera.h; sourceTree = "<group>"; };
+		1A94D5B40D65A6B40072C805 /* OOCamera.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCamera.m; sourceTree = "<group>"; };
 		1A9533890C02089E004EBB58 /* material-defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "material-defaults.plist"; sourceTree = "<group>"; };
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = planetinfo.plist; sourceTree = "<group>"; };
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
@@ -1990,6 +1998,10 @@
 				1A2A1DEA0BD2A28E00152975 /* OOMacroOpenGL.h */,
 				1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */,
 				1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */,
+				1A94D5AD0D65A6960072C805 /* OOLight.h */,
+				1A94D5AC0D65A6960072C805 /* OOLight.m */,
+				1A94D5B30D65A6B40072C805 /* OOCamera.h */,
+				1A94D5B40D65A6B40072C805 /* OOCamera.m */,
 				25161100099544380037C2E1 /* OpenGLSprite.h */,
 				251610FF099544380037C2E1 /* OpenGLSprite.m */,
 				1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */,
@@ -2757,6 +2769,8 @@
 				1A28AA160D55438200BC0CE4 /* OOJSSound.h in Headers */,
 				1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */,
 				1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */,
+				1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */,
+				1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3114,6 +3128,8 @@
 				1A28AA170D55438200BC0CE4 /* OOJSSound.m in Sources */,
 				1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */,
 				1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */,
+				1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */,
+				1A94D5B60D65A6B40072C805 /* OOCamera.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

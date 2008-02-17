@@ -110,7 +110,7 @@ OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *si
 - (unsigned long)unsignedLongMethod;
 - (Vector)vectorMethod;
 - (Quaternion)quaternionMethod;
-- (Matrix)matrixMethod;
+- (OOMatrix)matrixMethod;
 - (NSPoint)pointMethod;
 - (id)idMethod;
 
@@ -234,7 +234,7 @@ static const char *CopyTemplateForSelector(SEL selector)
 }
 
 
-- (Matrix)matrixMethod
+- (OOMatrix)matrixMethod
 {
 	return kZeroMatrix;
 }

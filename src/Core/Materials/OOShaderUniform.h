@@ -72,7 +72,7 @@ SOFTWARE.
 		GLint						constInt;
 		GLfloat						constFloat;
 		GLfloat						constVector[4];
-		gl_matrix					constMatrix;
+		OOMatrix					constMatrix;
 		struct
 		{
 			OOWeakReference				*object;
@@ -87,7 +87,7 @@ SOFTWARE.
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram vectorValue:(Vector)constValue;
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram colorValue:(OOColor *)constValue;	// Converted to vector
 - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram quaternionValue:(Quaternion)constValue asMatrix:(BOOL)asMatrix;	// Converted to vector (in xyzw order, not wxyz!) or rotation matrix.
-// - (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram matrixValue:(Matrix)constValue;
+- (id)initWithName:(NSString *)uniformName shaderProgram:(OOShaderProgram *)shaderProgram matrixValue:(OOMatrix)constValue;
 
 /*	"Convert" has different meanings for different types.
 	For float and int types, it clamps to the range [0, 1].

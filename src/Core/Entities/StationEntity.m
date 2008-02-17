@@ -1859,10 +1859,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		OODebugDrawBasisAtOrigin(50.0f);
 		
-		gl_matrix matrix;
-		quaternion_into_gl_matrix(port_orientation, matrix);
+		OOMatrix matrix;
+		matrix = OOMatrixForQuaternionRotation(port_orientation);
 		glPushMatrix();
-		glMultMatrixf(matrix);
+		GLMultOOMatrix(matrix);
 		
 		halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
 		adjustedPosition = port_position;

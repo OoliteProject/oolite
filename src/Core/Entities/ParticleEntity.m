@@ -1404,7 +1404,7 @@ FAIL:
 
 	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
 	{
-		gl_matrix	temp_matrix;
+		OOMatrix	temp_matrix;
 
 		Vector		abspos = position;  // in control of it's own orientation
 		int			view_dir = [UNIVERSE viewDirection];
@@ -1425,7 +1425,7 @@ FAIL:
 		{
 			if (translucent)
 			{
-				glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
+				temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
 				glPopMatrix();	glPushMatrix();  // restore zero!
 				glTranslatef(abspos.x, abspos.y, abspos.z); // move to absolute position
 				GLfloat	xx = 0.5 * size.width;
@@ -1457,12 +1457,12 @@ FAIL:
 					
 				glEnd();
 
-				glLoadMatrixf(temp_matrix);
+				GLLoadOOMatrix(temp_matrix);
 			}
 		}
 		else
 		{
-			glGetFloatv(GL_MODELVIEW_MATRIX, temp_matrix);
+			temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
 			glPopMatrix();  // restore zero!
 			glPushMatrix();
 					// position and orientation is absolute
@@ -1470,8 +1470,8 @@ FAIL:
 			glMultMatrixf([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 
 			[self drawEntity:immediate:translucent];
-
-			glLoadMatrixf(temp_matrix);
+			
+			GLLoadOOMatrix(temp_matrix);
 		}
 	}
 }

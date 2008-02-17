@@ -3306,11 +3306,64 @@ void	setDemoLight(BOOL yesno, Vector position)
 
 
 // global rotation matrix definitions
-GLfloat	fwd_matrix[] = {		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f};
-GLfloat	aft_matrix[] = {		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
-GLfloat	port_matrix[] = {		0.0f, 0.0f, -1.0f, 0.0f,	0.0f, 1.0f, 0.0f, 0.0f,		1.0f, 0.0f, 0.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f};
-GLfloat	starboard_matrix[] = {	0.0f, 0.0f, 1.0f, 0.0f,		0.0f, 1.0f, 0.0f, 0.0f,		-1.0f, 0.0f, 0.0f, 0.0f,	0.0f, 0.0f, 0.0f, 1.0f};
-GLfloat* custom_matrix;
+static const OOMatrix	fwd_matrix =
+						{{
+							{ 1.0f,  0.0f,  0.0f,  0.0f },
+							{ 0.0f,  1.0f,  0.0f,  0.0f },
+							{ 0.0f,  0.0f,  1.0f,  0.0f },
+							{ 0.0f,  0.0f,  0.0f,  1.0f }
+						}};
+static const OOMatrix	aft_matrix =
+						{{
+							{-1.0f,  0.0f,  0.0f,  0.0f },
+							{ 0.0f,  1.0f,  0.0f,  0.0f },
+							{ 0.0f,  0.0f, -1.0f,  0.0f },
+							{ 0.0f,  0.0f,  0.0f,  1.0f }
+						}};
+static const OOMatrix	port_matrix =
+						{{
+							{ 0.0f,  0.0f, -1.0f,  0.0f },
+							{ 0.0f,  1.0f,  0.0f,  0.0f },
+							{ 1.0f,  0.0f,  0.0f,  0.0f },
+							{ 0.0f,  0.0f,  0.0f,  1.0f }
+						}};
+static const OOMatrix	starboard_matrix =
+						{{
+							{ 0.0f,  0.0f,  1.0f,  0.0f },
+							{ 0.0f,  1.0f,  0.0f,  0.0f },
+							{-1.0f,  0.0f,  0.0f,  0.0f },
+							{ 0.0f,  0.0f,  0.0f,  1.0f }
+						}};
+
+
+- (OOMatrix) activeViewMatrix
+{
+	switch (viewDirection)
+	{
+		case VIEW_FORWARD:
+			return fwd_matrix;
+			
+		case VIEW_AFT:
+			return aft_matrix;
+			
+		case VIEW_PORT:
+			return port_matrix;
+			
+		case VIEW_STARBOARD:
+			return starboard_matrix;
+			
+		case VIEW_CUSTOM:
+			return OOMatrixFromGLMatrix([[PlayerEntity sharedPlayer] customViewMatrix]);
+			
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+			break;
+	}
+	
+	return fwd_matrix;
+}
+
 
 - (void) drawFromEntity:(OOUniversalID) n
 {
@@ -3356,43 +3409,18 @@ GLfloat* custom_matrix;
 				viewthing = [entities objectAtIndex:n];
 			}
 			
-			if ((viewthing)&&(viewthing->isPlayer))
+			if (![viewthing isPlayer])
 			{
-				inGUIMode = [(PlayerEntity*)viewthing showDemoShips];
-				custom_matrix = [(PlayerEntity*)viewthing customViewMatrix];
-				/* -- */
-			}
-			else
-			{
-				OOLog(kOOLogInconsistentState, @"***** Universe trying to draw from the view of an entity NOT the player");
-				// throw an exception here...
+				OOLog(kOOLogInconsistentState, @"***** Universe trying to draw from the view of an entity NOT the player: %@", viewthing);
 				[NSException raise:@"OoliteException"
 							format:@"Universe cannot draw from a non-player entity."];
 			}
-						
+			
+			inGUIMode = [(PlayerEntity*)viewthing showDemoShips];
 			position = [viewthing viewpointPosition];
 			v_status = viewthing->status;
 			
-			GLfloat* view_matrix = fwd_matrix;
-			switch (viewDirection)
-			{
-				case VIEW_FORWARD:
-					view_matrix = fwd_matrix; break;
-				case VIEW_AFT:
-					view_matrix = aft_matrix; break;
-				case VIEW_PORT:
-					view_matrix = port_matrix; break;
-				case VIEW_STARBOARD:
-					view_matrix = starboard_matrix; break;
-				/* GILES custom view points */
-				case VIEW_CUSTOM:
-					view_matrix = custom_matrix; break;
-				/* -- */
-				case VIEW_NONE:
-				case VIEW_GUI_DISPLAY:
-				case VIEW_BREAK_PATTERN:
-					break;
-			}
+			OOMatrix view_matrix = [self activeViewMatrix];
 			
 			CheckOpenGLErrors(@"Universe before doing anything");
 			
@@ -3413,11 +3441,14 @@ GLfloat* custom_matrix;
 
 			// HACK BUSTED
 			glScalef(  -1.0,  1.0,	1.0);   // flip left and right
-
-			gl_matrix saved_flat_matrix;
-			glGetFloatv(GL_MODELVIEW_MATRIX, saved_flat_matrix);
 			glPushMatrix(); // save this flat viewpoint
-
+			
+			// Set up view transformation matrix
+			OOMatrix flipMatrix = kIdentityMatrix;
+			flipMatrix.m[2][2] = -1;
+			view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
+			Vector viewOffset = [viewthing viewpointOffset];
+			
 			view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
 			switch (viewDirection)
 			{
@@ -3520,14 +3551,10 @@ GLfloat* custom_matrix;
 						}
 						else
 						{
-							Vector viewOffset = [viewthing viewpointOffset];
-							// get saved viewpoint
-							glLoadMatrixf(saved_flat_matrix);
-							// rotate according to view direction
-							glMultMatrixf(view_matrix);
+							// Load transformation matrix
+							GLLoadOOMatrix(view_matrix);
 							//translate the object  from the viewpoint
 							glTranslatef(-viewOffset.x, -viewOffset.y, -viewOffset.z);
-							
 						}
 
 						// atmospheric fog
@@ -3598,12 +3625,10 @@ GLfloat* custom_matrix;
 						}
 						else
 						{
-							Vector viewOffset = [viewthing viewpointOffset];
-							// get saved viewpoint
-							glLoadMatrixf(saved_flat_matrix);
-							// rotate according to view direction
-							glMultMatrixf(view_matrix);
+							// Load transformation matrix
+							GLLoadOOMatrix(view_matrix);
 							//translate the object  from the viewpoint
+						
 							glTranslatef(-viewOffset.x, -viewOffset.y, -viewOffset.z);
 						}
 						

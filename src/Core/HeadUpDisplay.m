@@ -350,24 +350,24 @@ static BOOL hostiles;
 	double z_factor = siz.height / siz.width;	// approx 1/4
 	double y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
 	
-	int i;
-    int scanner_cx = x;
-	int scanner_cy = y;
-	double mass_lock_range2 = 25600.0*25600.0;
+	int				i;
+    int				scanner_cx = x;
+	int				scanner_cy = y;
+	double			mass_lock_range2 = 25600.0*25600.0;
 
-	int scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
+	int				scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
 
-	double max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
+	double			max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
 	
-	GLfloat	max_zoomed_range = sqrtf(max_zoomed_range2);
+	GLfloat			max_zoomed_range = sqrtf(max_zoomed_range2);
 	
-	BOOL	isHostile = NO;
-	BOOL	foundHostiles = NO;
-	BOOL	mass_locked = NO;
+	BOOL			isHostile = NO;
+	BOOL			foundHostiles = NO;
+	BOOL			mass_locked = NO;
 	
-	Vector	position, relativePosition;
-	Matrix rotMatrix;
-	int flash = ((int)([UNIVERSE getTime] * 4))&1;
+	Vector			position, relativePosition;
+	OOMatrix		rotMatrix;
+	int				flash = ((int)([UNIVERSE getTime] * 4))&1;
 
 	Universe		*uni			= UNIVERSE;
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
@@ -387,16 +387,15 @@ static BOOL hostiles;
 	
 	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0 };	// can be manipulated
 	
-	position = player->position;
-	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
-		
+	position = [player position];
+	rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+	
 	glColor4fv(scanner_color);
 	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], line_width, scanner_zoom);
 	
 	GLfloat off_scope2 = (siz.width > siz.height) ? siz.width * siz.width : siz.height * siz.height;
 	
-	//
-	int p_status = player->status;
+	OOEntityStatus p_status = [player status];
 
 	if ((p_status == STATUS_IN_FLIGHT)||(p_status == STATUS_AUTOPILOT_ENGAGED)||(p_status == STATUS_LAUNCHING)||(p_status == STATUS_WITCHSPACE_COUNTDOWN))
 	{
@@ -485,7 +484,7 @@ static BOOL hostiles;
 					scale_vector(&relativePosition, max_zoomed_range / act_dist);
 
 				// rotate the view
-				mult_vector(&relativePosition, rotMatrix);
+				relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
 				// scale the view
 				scale_vector(&relativePosition, upscale);
 				
@@ -494,7 +493,7 @@ static BOOL hostiles;
 				y2 = y1 + y_factor * relativePosition.y;
 				
 				isHostile = NO;
-				if (drawthing->isShip)
+				if ([drawthing isShip])
 				{
 					ShipEntity* ship = (ShipEntity *)drawthing;
 					double wr = [ship weaponRange];
@@ -503,7 +502,7 @@ static BOOL hostiles;
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				
-				if (drawthing->isWormhole)
+				if ([drawthing isWormhole])
 				{
 					col[0] = blue_color[0];	col[1] = (flash)? 1.0 : blue_color[1];	col[2] = blue_color[2];	col[3] = alpha * blue_color[3];
 				}
@@ -531,13 +530,12 @@ static BOOL hostiles;
 						break;
 				}
 
-				if (drawthing->isShip)
+				if ([drawthing isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)drawthing;
 					if (ship->collision_radius * upscale > 4.5)
 					{
 						Vector bounds[6];
-//						BoundingBox bb = [ship boundingBox];
 						BoundingBox bb = ship->totalBoundingBox;
 						bounds[0] = ship->v_forward;	scale_vector(&bounds[0], bb.max.z);
 						bounds[1] = ship->v_forward;	scale_vector(&bounds[1], bb.min.z);
@@ -549,8 +547,7 @@ static BOOL hostiles;
 						int i;
 						for (i = 0; i < 6; i++)
 						{
-							bounds[i].x += rp.x;	bounds[i].y += rp.y;	bounds[i].z += rp.z;
-							mult_vector(&bounds[i], rotMatrix);
+							bounds[i] = OOVectorMultiplyMatrix(vector_add(bounds[i], rp), rotMatrix);
 							scale_vector(&bounds[i], upscale);
 							bounds[i] = make_vector(bounds[i].x + scanner_cx, bounds[i].z * z_factor + bounds[i].y * y_factor + scanner_cy, z1 );
 						}
@@ -598,9 +595,9 @@ static BOOL hostiles;
 				}
 			}
 		}
-		//
+		
 		[player setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
-		//	
+			
 		if ((foundHostiles)&&(!hostiles))
 		{
 			hostiles = YES;
@@ -611,7 +608,6 @@ static BOOL hostiles;
 		}
 	}
 	
-	//
 	for (i = 0; i < ent_count; i++)
 		[my_entities[i] release];	//	released
 
@@ -677,12 +673,12 @@ static BOOL hostiles;
 	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0];
 	
 	// draw the compass
-	Matrix rotMatrix;
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	Vector position = player->position;
-	gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
-	//	
-	// new
+	OOMatrix		rotMatrix;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	Vector			position = [player position];
+	
+	rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+	
 	GLfloat h1 = siz.height * 0.125;
 	GLfloat h3 = siz.height * 0.375;
 	GLfloat w1 = siz.width * 0.125;
@@ -699,7 +695,6 @@ static BOOL hostiles;
 	glEnd();
 	glLineWidth(line_width);	// thinner
 	
-	//
 	PlanetEntity*	the_sun = [UNIVERSE sun];
 	PlanetEntity*	the_planet = [UNIVERSE planet];
 	StationEntity*	the_station = [UNIVERSE station];
@@ -752,15 +747,10 @@ static BOOL hostiles;
 				break;
 		}
 		
-		// translate the view
-		relativePosition.x -= position.x;   relativePosition.y -= position.y;   relativePosition.z -= position.z;
-		// rotate the view
-		mult_vector(&relativePosition, rotMatrix);
-		if (relativePosition.x||relativePosition.y||relativePosition.z)
-			relativePosition = unit_vector(&relativePosition);
-		else
-			relativePosition.z = 1.0;
-		relativePosition = unit_vector(&relativePosition);
+		// translate and rotate the view
+		relativePosition = OOVectorMultiplyMatrix(vector_subtract(relativePosition, position), rotMatrix);
+		relativePosition = vector_normal_or_fallback(relativePosition, kBasisZVector);
+		
 		relativePosition.x *= siz.width * 0.4;
 		relativePosition.y *= siz.height * 0.4;
 		relativePosition.x += x;
@@ -1469,26 +1459,27 @@ static BOOL hostiles;
 	
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
-		GLfloat clear_color[4] = {0.0, 1.0, 0.0, 0.0};
-		Entity *target = [player primaryTarget];
+		GLfloat		clear_color[4] = {0.0, 1.0, 0.0, 0.0};
+		Entity		*target = [player primaryTarget];
 		if (!target)
 			return;
 		
 		// draw the direction cue
-		Matrix rotMatrix;
-		Vector position = player->position;
-		gl_matrix_into_matrix([player rotationMatrix], &rotMatrix);
-		//
+		OOMatrix	rotMatrix;
+		Vector		position = [player position];
+		
+		rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+		
 		if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 		{
 			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
 			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
 			GLfloat siz2 = CROSSHAIR_SIZE * (1.0 + ONE_EIGHTH);
-			Vector rpn = target->position;
-			// translate the view
-			rpn.x -= position.x;   rpn.y -= position.y;   rpn.z -= position.z;
-			// rotate the view
-			mult_vector(&rpn, rotMatrix);
+			
+			// Transform the view
+			Vector rpn = vector_subtract([target position], position);
+			rpn = OOVectorMultiplyMatrix(rpn, rotMatrix);
+			
 			switch ([UNIVERSE viewDirection])
 			{
 				case VIEW_AFT :
@@ -1876,46 +1867,39 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 {
-	ShipEntity* target_ship = (ShipEntity *)target;
-	NSString* legal_desc = nil;
+	ShipEntity		*target_ship = (ShipEntity *)target;
+	NSString		*legal_desc = nil;
 	if ((!target)||(!player1))
 		return;
 
 	if ([target_ship isCloaked])  return;
 	
-	switch (target_ship->scanClass)
+	switch ([target_ship scanClass])
 	{
-		case CLASS_NEUTRAL :
-		{
-			int target_legal = [target_ship legalStatus];
-			int legal_i = 0;
-			if (target_legal > 0)
-				legal_i =  (target_legal <= 50) ? 1 : 2;
-			legal_desc = [[[UNIVERSE descriptions] arrayForKey:@"legal_status"] stringAtIndex:legal_i];
-		}
-		break;
+		case CLASS_NEUTRAL:
+			{
+				int target_legal = [target_ship legalStatus];
+				int legal_i = 0;
+				if (target_legal > 0)
+					legal_i =  (target_legal <= 50) ? 1 : 2;
+				legal_desc = [[[UNIVERSE descriptions] arrayForKey:@"legal_status"] stringAtIndex:legal_i];
+			}
+			break;
 	
-		case CLASS_THARGOID :
-		legal_desc = @"Alien";
-		break;
+		case CLASS_THARGOID:
+			legal_desc = @"Alien";
+			break;
 		
-		case CLASS_POLICE :
-		legal_desc = @"System Vessel";
-		break;
+		case CLASS_POLICE:
+			legal_desc = @"System Vessel";
+			break;
 		
-		case CLASS_MILITARY :
-		legal_desc = @"Military Vessel";
-		break;
+		case CLASS_MILITARY:
+			legal_desc = @"Military Vessel";
+			break;
 		
-		default :
-		case CLASS_BUOY :
-		case CLASS_CARGO :
-		case CLASS_ROCK :
-		case CLASS_MISSILE :
-		case CLASS_NO_DRAW :
-		case CLASS_STATION :
-		case CLASS_TARGET :
-		break;
+		default:
+			break;
 	}
 	
 	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
@@ -1924,29 +1908,27 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	if (!target)
 		return;
 	
-	gl_matrix	back_mat;
-    Quaternion  back_q = player1->orientation;
+	OOMatrix		back_mat;
+    Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
-	Vector v1 = vector_up_from_quaternion(back_q);
-	Vector p0 = [player1 viewpointPosition];
-	Vector p1 = target->position;
-	p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
-	double rdist = sqrt(magnitude2(p1));
-	double rsize = target->collision_radius;
+	Vector			v1 = vector_up_from_quaternion(back_q);
+	Vector			p1;
+	
+	p1 = vector_subtract([target position], [player1 viewpointPosition]);
+	
+	double			rdist = fast_magnitude(p1);
+	double			rsize = [target collisionRadius];
 	
 	if (rsize < rdist * ONE_SIXTYFOURTH)
 		rsize = rdist * ONE_SIXTYFOURTH;
 	
-	GLfloat rs0 = rsize;
-	//double rs3 = rsize * 0.75;
-	GLfloat rs2 = rsize * 0.50;
-	//double rs1 = rsize * 0.25;
+	GLfloat			rs0 = rsize;
+	GLfloat			rs2 = rsize * 0.50;
 	
 	glPushMatrix();
-	//
+	
 	// deal with view directions
-	Vector view_dir, view_up;
-	view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
+	Vector view_dir, view_up = kBasisYVector;
 	switch ([UNIVERSE viewDirection])
 	{
 		default:
@@ -1973,14 +1955,14 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	}
 	gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
 	//
-	quaternion_into_gl_matrix(back_q, back_mat);
+	back_mat = OOMatrixForQuaternionRotation(back_q);
 	//
 	// rotate the view
 	glMultMatrixf([player1 rotationMatrix]);
 	// translate the view
 	glTranslatef(p1.x, p1.y, p1.z);
 	//rotate to face player1
-	glMultMatrixf(back_mat);
+	GLMultOOMatrix(back_mat);
 	// draw the reticle	
 	glColor4fv(green_color);
 	glBegin(GL_LINES);

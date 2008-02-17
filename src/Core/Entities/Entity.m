@@ -136,6 +136,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (BOOL)isWormhole
+{
+	return isWormhole;
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	return YES;

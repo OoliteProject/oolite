@@ -32,7 +32,7 @@ this.description	= "Random offers of trumbles.";
 this.version		= "1.71";
 
 
-this.startUp = this.reset = function()
+this.startUp = this.reset = function ()
 {
 	/*	For simplicity, ensure that missionVariables.trumbles is never
 		undefined when running the rest of the script. If it could be
@@ -47,7 +47,7 @@ this.startUp = this.reset = function()
 }
 
 
-this.shipDockedWithStation = function()
+this.shipDockedWithStation = function ()
 {
 	/*	In the pre-JavaScript implementation, the mission variable was set to
 		OFFER_MADE while the mission screen was shown. If the player lanched
@@ -88,7 +88,7 @@ this.shipDockedWithStation = function()
 }
 
 
-this.missionScreenEnded = function()
+this.missionScreenEnded = function ()
 {
 	if (missionVariables.trumbles == "BUY_ME")
 	{
@@ -112,7 +112,7 @@ this.missionScreenEnded = function()
 }
 
 
-this.shipWillExitWitchspace = function()
+this.shipWillExitWitchspace = function ()
 {
 	// If player has rejected a trumble offer, reset trumble mission with 2% probability per jump.
 	if (missionVariables.trumbles == "NOT_NOW" && Math.random < 0.02)

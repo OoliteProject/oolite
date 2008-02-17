@@ -127,7 +127,7 @@ typedef uint16_t OOUniformConvertOptions;
 		* NSNumber.
 		* Vector.
 		* Quaternion.
-		* Matrix.
+		* OOMatrix.
 		* OOColor.
 	
 	The "convert" flag has different meanings for different types:

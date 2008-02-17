@@ -165,6 +165,7 @@ typedef struct
 - (BOOL)isPlayer;
 - (BOOL)isPlanet;
 - (BOOL)isSun;
+- (BOOL)isWormhole;
 
 - (BOOL) validForAddToUniverse;
 - (void) addToLinkedLists;
