@@ -2675,6 +2675,16 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (void) orientationChanged
+{
+	[super orientationChanged];
+	
+	v_forward   = vector_forward_from_quaternion(orientation);
+	v_up		= vector_up_from_quaternion(orientation);
+	v_right		= vector_right_from_quaternion(orientation);
+}
+
+
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
 	Quaternion q1 = kIdentityQuaternion;
@@ -2685,12 +2695,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (climb1)  quaternion_rotate_about_x(&q1, -climb1);
 
 	orientation = quaternion_multiply(q1, orientation);
-	quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
-    quaternion_into_gl_matrix(orientation, rotMatrix);
-
-	v_forward   = vector_forward_from_quaternion(orientation);
-	v_up		= vector_up_from_quaternion(orientation);
-	v_right		= vector_right_from_quaternion(orientation);
+	[self orientationChanged];
 }
 
 
@@ -4500,9 +4505,7 @@ BOOL class_masslocks(int some_class)
 	}
 
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
-
-	quaternion_normalize(&orientation);
-	quaternion_into_gl_matrix(orientation, rotMatrix);
+	[self orientationChanged];
 
 	status = STATUS_ACTIVE;
 
@@ -4526,21 +4529,20 @@ BOOL class_masslocks(int some_class)
 	GLfloat range2 =		magnitude2(vector_to_target);
 	GLfloat	targetRadius =	0.75 * target->collision_radius;
 	GLfloat	max_cos =		sqrt(1 - targetRadius*targetRadius/range2);
-	//
+	
 	if (dp > max_cos)
 		return;	// ON TARGET!
-	//
+	
 	if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
 		vector_to_target = unit_vector(&vector_to_target);
 	else
 		vector_to_target.z = 1.0;
-	//
+	
 	q_minarc = quaternion_rotation_between(v_forward, vector_to_target);
-	//
+	
 	orientation = quaternion_multiply(q_minarc, orientation);
-    quaternion_normalize(&orientation);
-    quaternion_into_gl_matrix(orientation, rotMatrix);
-	//
+    [self orientationChanged];
+	
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 }
@@ -4608,9 +4610,7 @@ BOOL class_masslocks(int some_class)
 	}
 
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
-
-	quaternion_normalize(&orientation);
-	quaternion_into_gl_matrix(orientation, rotMatrix);
+	[self orientationChanged];
 
 	status = STATUS_ACTIVE;
 

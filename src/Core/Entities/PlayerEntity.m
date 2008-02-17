@@ -2033,6 +2033,29 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
+- (void) orientationChanged
+{
+    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
+    quaternion_into_gl_matrix(orientation, rotMatrix);
+	
+	v_right.x = rotMatrix[0];
+	v_right.y = rotMatrix[4];
+	v_right.z = rotMatrix[8];
+	
+	v_up.x = rotMatrix[1];
+	v_up.y = rotMatrix[5];
+	v_up.z = rotMatrix[9];
+	
+	v_forward.x = rotMatrix[2];
+	v_forward.y = rotMatrix[6];
+	v_forward.z = rotMatrix[10];
+	
+	orientation.w = -orientation.w;
+	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
+	orientation.w = -orientation.w;
+}
+
+
 - (void) applyRoll:(GLfloat) roll1 andClimb:(GLfloat) climb1
 {
 	if (roll1 == 0.0 && climb1 == 0.0 && hasRotated == NO)
@@ -2058,24 +2081,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 	
-    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
-    quaternion_into_gl_matrix(orientation, rotMatrix);
-
-	v_right.x = rotMatrix[0];
-	v_right.y = rotMatrix[4];
-	v_right.z = rotMatrix[8];
-
-	v_up.x = rotMatrix[1];
-	v_up.y = rotMatrix[5];
-	v_up.z = rotMatrix[9];
-
-	v_forward.x = rotMatrix[2];
-	v_forward.y = rotMatrix[6];
-	v_forward.z = rotMatrix[10];
-
-	orientation.w = -orientation.w;
-	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
-	orientation.w = -orientation.w;
+	[self orientationChanged];
 }
 
 /*
@@ -2086,25 +2092,8 @@ double scoopSoundPlayTime = 0.0;
 - (void) applyYaw:(GLfloat) yaw
 {
 	quaternion_rotate_about_y(&orientation, -yaw);
-
-    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
-    quaternion_into_gl_matrix(orientation, rotMatrix);
-
-	v_right.x = rotMatrix[0];
-	v_right.y = rotMatrix[4];
-	v_right.z = rotMatrix[8];
-
-	v_up.x = rotMatrix[1];
-	v_up.y = rotMatrix[5];
-	v_up.z = rotMatrix[9];
-
-	v_forward.x = rotMatrix[2];
-	v_forward.y = rotMatrix[6];
-	v_forward.z = rotMatrix[10];
-
-	orientation.w = -orientation.w;
-	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
-	orientation.w = -orientation.w;
+	
+	[self orientationChanged];
 }
 
 

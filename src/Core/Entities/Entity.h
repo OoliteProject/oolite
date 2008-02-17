@@ -207,6 +207,7 @@ typedef struct
 
 - (void) setOrientation:(Quaternion) quat;
 - (Quaternion) orientation;
+- (void) orientationChanged;
 
 - (void) setVelocity:(Vector)vel;
 - (Vector) velocity;

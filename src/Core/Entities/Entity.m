@@ -575,13 +575,20 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (void) setOrientation:(Quaternion) quat
 {
 	orientation = quat;
-    quaternion_into_gl_matrix(orientation, rotMatrix);
+	[self orientationChanged];
 }
 
 
 - (Quaternion) orientation
 {
 	return orientation;
+}
+
+
+- (void) orientationChanged
+{
+	quaternion_normalize(&orientation);
+	quaternion_into_gl_matrix(orientation, rotMatrix);
 }
 
 
@@ -672,9 +679,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 		quaternion_rotate_about_z(&orientation, -roll);
 	if (climb)
 		quaternion_rotate_about_x(&orientation, -climb);
-
-    quaternion_normalize(&orientation);
-    quaternion_into_gl_matrix(orientation, rotMatrix);
+	
+	[self orientationChanged];
 }
 
 
@@ -690,8 +696,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	if (yaw)
 		quaternion_rotate_about_y(&orientation, -yaw);
 
-    quaternion_normalize(&orientation);
-    quaternion_into_gl_matrix(orientation, rotMatrix);
+	[self orientationChanged];
 }
 
 
@@ -729,10 +734,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	Vector		offset = [self viewpointOffset];
 	
 	// FIXME: this ought to be done with matrix or quaternion functions.
+	OOMatrix r = OOMatrixFromGLMatrix(rotMatrix);
 	
-	viewpoint.x += offset.x * rotMatrix[0];	viewpoint.y += offset.x * rotMatrix[4];	viewpoint.z += offset.x * rotMatrix[8];
-	viewpoint.x += offset.y * rotMatrix[1];	viewpoint.y += offset.y * rotMatrix[5];	viewpoint.z += offset.y * rotMatrix[9];
-	viewpoint.x += offset.z * rotMatrix[2];	viewpoint.y += offset.z * rotMatrix[6];	viewpoint.z += offset.z * rotMatrix[10];
+	viewpoint.x += offset.x * r.m[0][0];	viewpoint.y += offset.x * r.m[1][0];	viewpoint.z += offset.x * r.m[2][0];
+	viewpoint.x += offset.y * r.m[0][1];	viewpoint.y += offset.y * r.m[1][1];	viewpoint.z += offset.y * r.m[2][1];
+	viewpoint.x += offset.z * r.m[0][2];	viewpoint.y += offset.z * r.m[1][2];	viewpoint.z += offset.z * r.m[2][2];
 	
 	return viewpoint;
 }
