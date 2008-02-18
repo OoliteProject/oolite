@@ -101,7 +101,7 @@ void OOPrintLogHeader(void)
 	#if OOLITE_MAC_OS_X
 		NSString *systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@", [[NSProcessInfo processInfo] operatingSystemVersionString]];
 	#else
-		#define systemString @@OS_TYPE_STRING
+		#define systemString @OS_TYPE_STRING
 	#endif
 	
 	NSString *versionString = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
