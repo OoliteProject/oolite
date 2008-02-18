@@ -433,6 +433,16 @@ OOEnergyUnitType StringToGUIScreenID(NSString *string)
 }
 
 
+OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *string)
+{
+	REVERSE_CASE(GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD);
+	REVERSE_CASE(GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE);
+	REVERSE_CASE(GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES);
+	
+	return GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD;
+}
+
+
 NSString *KillCountToRatingString(unsigned kills)
 {
 	enum { kRatingCount = 9 };

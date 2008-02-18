@@ -483,6 +483,9 @@ typedef enum
 	// For PlayerEntity (StickMapper)
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
+	
+	OOGalacticHyperspaceBehaviour		galacticHyperspaceBehaviour;
+	NSPoint					galacticHyperspaceFixedCoords;
 }
 
 + (id)sharedPlayer;
@@ -680,5 +683,10 @@ typedef enum
 - (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
 
 - (BOOL)showInfoFlag;
+
+- (void) setGalacticHyperspaceBehaviour:(NSString *) galacticHyperspaceBehaviourString;
+- (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
+- (void) setGalacticHyperspaceFixedCoords:(NSString *) galacticHyperspaceFixedCoordsString;
+- (NSPoint) galacticHyperspaceFixedCoords;
 
 @end

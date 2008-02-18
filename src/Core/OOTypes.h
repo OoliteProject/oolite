@@ -74,6 +74,14 @@ typedef enum
 
 typedef enum
 {
+	GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD,
+	GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE,
+	GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES
+} OOGalacticHyperspaceBehaviour;
+
+
+typedef enum
+{
 // NOTE: numerical values are available to scripts and shaders.
 	ALERT_CONDITION_DOCKED,
 	ALERT_CONDITION_GREEN,

@@ -6,4 +6,14 @@
 		sky_n_stars = 480;
 		sky_n_blobs = 128;
 	};
+	
+	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival
+	// of an intergalactic jump on map coordinates specified by the key galactic_hyperspace_fixed_coords.
+	"galactic_hyperspace_behaviour" = 	"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD";
+						//"GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE";
+						//"GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES";
+						
+	// When using the GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES, the key below is used to specify the
+	// actual fixed coordinates for the intergalactic jump.
+	"galactic_hyperspace_fixed_coords" = 	"0x60 0x60";
 }

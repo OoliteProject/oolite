@@ -1027,6 +1027,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
+	[self setGalacticHyperspaceBehaviour:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoords:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"0x60 0x60"]];
+	
 	[OOScriptTimer noteGameReset];
 	[self doScriptEvent:@"reset"];
 }
@@ -3793,11 +3796,27 @@ double scoopSoundPlayTime = 0.0;
 	galaxy_seed.f = rotate_byte_left(galaxy_seed.f);
 
 	[UNIVERSE setGalaxy_seed:galaxy_seed];
-	//system_seed = [UNIVERSE findSystemAtCoords:NSMakePoint(0x60, 0x60) withGalaxySeed:galaxy_seed];
-	
-	// instead find a system connected to system 0 near the current coordinates...
-	system_seed = [UNIVERSE findConnectedSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	
+
+	// Choose the galactic hyperspace behaviour. Refers to where we may actually end up after an intergalactic jump.
+	// The default behaviour is that the player cannot arrive on unreachable or isolated systems. The options
+	// in planetinfo.plist, galactic_hyperspace_behaviour key can be used to allow arrival even at unreachable systems,
+	// or at fixed coordinates on the galactic chart. The key galactic_hyperspace_fixed_coords in planetinfo.plist is
+	// used in the fixed coordinates case and specifies the exact coordinates for the intergalactic jump.
+	switch (galacticHyperspaceBehaviour)
+	{
+		case GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES:			
+			system_seed = [UNIVERSE findSystemAtCoords:galacticHyperspaceFixedCoords withGalaxySeed:galaxy_seed];
+			break;
+		case GALACTIC_HYPERSPACE_BEHAVIOUR_ALL_SYSTEMS_REACHABLE:
+			system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+			break;
+		case GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD:
+		default:
+			// instead find a system connected to system 0 near the current coordinates...
+			system_seed = [UNIVERSE findConnectedSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+			break;
+	}
+
 	target_system_seed = system_seed;
 
 	[UNIVERSE setSystemTo:system_seed];
@@ -6407,6 +6426,43 @@ OOSound* burnersound;
 	{
 		[theScript doEvent:message withArguments:arguments];
 	}
+}
+
+
+- (void) setGalacticHyperspaceBehaviour:(NSString *) galacticHyperspaceBehaviourString
+{
+	if (galacticHyperspaceBehaviourString == nil)
+	{
+		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
+		      @"setGalacticHyperspaceBehaviour called with nil string specifier. Defaulting to Oolite standard.");
+		galacticHyperspaceBehaviour = GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD;
+	}
+	galacticHyperspaceBehaviour = StringToGalacticHyperspaceBehaviour(galacticHyperspaceBehaviourString);
+}
+
+
+- (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour
+{
+	return galacticHyperspaceBehaviour;
+}
+
+
+- (void) setGalacticHyperspaceFixedCoords:(NSString *)galacticHyperspaceFixedCoordsString
+{	
+	if (galacticHyperspaceFixedCoordsString == nil)
+	{
+		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
+	}
+	
+	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
+	galacticHyperspaceFixedCoords.x = (unsigned char)[(NSString *)[coord_vals objectAtIndex:0] intValue];
+	galacticHyperspaceFixedCoords.y = (unsigned char)[(NSString *)[coord_vals objectAtIndex:1] intValue];
+}
+
+
+- (NSPoint) galacticHyperspaceFixedCoords
+{
+	return galacticHyperspaceFixedCoords;
 }
 
 

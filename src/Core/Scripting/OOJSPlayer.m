@@ -51,6 +51,9 @@ static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
 
 
 static JSExtendedClass sPlayerClass =
@@ -94,7 +97,10 @@ enum
 	kPlayer_alertAltitude,		// low altitude alert flag, boolean, read-only
 	kPlayer_alertEnergy,		// low energy alert flag, boolean, read-only
 	kPlayer_alertHostiles,		// hostiles present alert flag, boolean, read-only
-	kPlayer_trumbleCount		// number of trumbles, integer, read-only
+	kPlayer_trumbleCount,		// number of trumbles, integer, read-only
+	kPlayer_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
+	kPlayer_galacticHyperspaceFixedCoords_x,	// used when fixed coords behaviour is selected, integer, read-only
+	kPlayer_galacticHyperspaceFixedCoords_y		// used when fixed coords behaviour is selected, integer, read-only
 };
 
 
@@ -117,6 +123,9 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertEnergy",			kPlayer_alertEnergy,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galacticHyperspaceBehaviour",	kPlayer_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galacticHyperspaceFixedCoords_x",	kPlayer_galacticHyperspaceFixedCoords_x,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galacticHyperspaceFixedCoords_y",	kPlayer_galacticHyperspaceFixedCoords_y,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -133,6 +142,8 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
 	{ "commsMessage",			PlayerCommsMessage,			1 },
 	{ "consoleMessage",			PlayerConsoleMessage,		1 },
+	{ "setGalacticHyperspaceBehaviour",	PlayerSetGalacticHyperspaceBehaviour,	1 },
+	{ "setGalacticHyperspaceFixedCoords",	PlayerSetGalacticHyperspaceFixedCoords,	1 },
 	{ 0 }
 };
 
@@ -279,6 +290,18 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_trumbleCount:
 			JS_NewNumberValue(context, [player trumbleCount], outValue);
+			break;
+			
+		case kPlayer_galacticHyperspaceBehaviour:
+			JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
+			break;
+			
+		case kPlayer_galacticHyperspaceFixedCoords_x:
+			JS_NewNumberValue(context, [player galacticHyperspaceFixedCoords].x, outValue);
+			break;
+			
+		case kPlayer_galacticHyperspaceFixedCoords_y:
+			JS_NewNumberValue(context, [player galacticHyperspaceFixedCoords].y, outValue);
 			break;
 		
 		default:
@@ -466,5 +489,19 @@ static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN arg
 		
 		[UNIVERSE addMessage:message forCount:time];
 	}
+	return YES;
+}
+
+
+static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() setGalacticHyperspaceBehaviour:JSValToNSString(context, argv[0])];
+	return YES;
+}
+
+
+static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() setGalacticHyperspaceFixedCoords:JSValToNSString(context, argv[0])];
 	return YES;
 }

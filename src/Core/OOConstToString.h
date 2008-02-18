@@ -77,3 +77,5 @@ NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);
 
 NSString *DisplayStringForMassUnit(OOMassUnit unit);
 NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity);
+
+OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *string) PURE_FUNC;
