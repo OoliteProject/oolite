@@ -631,6 +631,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	[self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;
+	
+	//reset atmospherics in case we ejected while we were in the atmophere
+	[UNIVERSE setSkyColorRed:0.0f		// back to black
+		green:0.0f
+		blue:0.0f
+		alpha:0.0f];
 }
 
 

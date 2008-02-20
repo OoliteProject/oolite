@@ -1814,7 +1814,8 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 
-	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE))
+	//Bug #11692 CmdrJames added Status entering witchspace
+	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
 		// work on the cabin temperature
 		
@@ -3016,8 +3017,8 @@ double scoopSoundPlayTime = 0.0;
 		}
 		ship_temperature += amount;
 	}
-
-	if ((energy <= 0.0)||(ship_temperature > SHIP_MAX_CABIN_TEMP))
+	
+	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
 		if ((other)&&(other->isShip))
 		{
