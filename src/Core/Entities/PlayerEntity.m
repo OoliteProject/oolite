@@ -1167,95 +1167,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	[sub_entities autorelease];
 	sub_entities = nil;
 
-	// exhaust plumes
-	NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
-	for (i = 0; i < [plumes count]; i++)
-	{
-		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
-		[self addExhaust:exhaust];
-		[exhaust release];
-	}
 	
-	// other subentities
-	NSArray *subs = [shipDict arrayForKey:@"subentities"];
-	for (i = 0; i < [subs count]; i++)
+	if (![self setUpSubEntities: shipDict]) 
 	{
-		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
-
-		if ([details count] == 8)
-		{
-			Vector sub_pos, ref;
-			Quaternion sub_q;
-			Entity* subent;
-			NSString* subdesc = (NSString *)[details objectAtIndex:0];
-			sub_pos.x = [(NSString *)[details objectAtIndex:1] floatValue];
-			sub_pos.y = [(NSString *)[details objectAtIndex:2] floatValue];
-			sub_pos.z = [(NSString *)[details objectAtIndex:3] floatValue];
-			sub_q.w = [(NSString *)[details objectAtIndex:4] floatValue];
-			sub_q.x = [(NSString *)[details objectAtIndex:5] floatValue];
-			sub_q.y = [(NSString *)[details objectAtIndex:6] floatValue];
-			sub_q.z = [(NSString *)[details objectAtIndex:7] floatValue];
-
-			if ([subdesc isEqual:@"*FLASHER*"])
-			{
-				ParticleEntity *flasher;
-				flasher = [[ParticleEntity alloc]
-							initFlasherWithSize:sub_q.z
-									  frequency:sub_q.x
-										  phase:2.0 * sub_q.y];
-				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
-														saturation:1.0
-														brightness:1.0
-															 alpha:1.0]];
-				[flasher setPosition:sub_pos];
-				subent = flasher;
-			}
-			else
-			{
-				quaternion_normalize(&sub_q);
-
-				subent = [UNIVERSE newShipWithName:subdesc];	// retained
-				if (subent == nil)
-				{
-					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
-					return NO;
-				}
-
-				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
-
-				if (subent)
-				{
-					[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-					
-					ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-					
-					[(ShipEntity*)subent setReference: ref];
-					[(ShipEntity*)subent setPosition: sub_pos];
-					[(ShipEntity*)subent setOrientation: sub_q];
-					
-					[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-					
-					subent->isSubentity = YES;
-				}
-				
-			}
-			if (sub_entities == nil)
-				sub_entities = [[NSArray arrayWithObject:subent] retain];
-			else
-			{
-				NSMutableArray *temp = [NSMutableArray arrayWithArray:sub_entities];
-				[temp addObject:subent];
-				[sub_entities release];
-				sub_entities = [[NSArray arrayWithArray:temp] retain];
-			}
-
-			[subent setOwner: self];
-
-			[subent release];
-		}
+		return NO;
 	}
-	
+
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
@@ -6351,7 +6268,6 @@ OOSound* burnersound;
 {
 	return customViewDescription;
 }
-
 
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict
 {

@@ -327,6 +327,7 @@ MA 02110-1301, USA.
 
 - (id)initWithDictionary:(NSDictionary *) dict;
 - (BOOL)setUpShipFromDictionary:(NSDictionary *) dict;
+- (BOOL)setUpSubEntities:(NSDictionary *) shipDict;
 - (NSDictionary *)shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;
@@ -372,6 +373,8 @@ MA 02110-1301, USA.
 - (BOOL) hasMilitaryScannerFilter;
 
 - (void) addExhaust:(ParticleEntity *) exhaust;
+- (void) addFlasher:(ParticleEntity *) flasher;
+- (void) addSubEntity:(ShipEntity *) subent;
 
 - (void) applyThrust:(double) delta_t;
 
@@ -520,7 +523,6 @@ ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
 - (void)setSuppressExplosion:(BOOL)suppress;
 
-
 /*-----------------------------------------
 
 	AI piloting methods
@@ -645,6 +647,12 @@ BOOL	class_masslocks(int some_class);
 - (void) setTrackCloseContacts:(BOOL) value;
 
 - (BOOL) isHulk;
+
+/*
+ * Changes a ship to a hulk, for example when the pilot ejects.
+ * Aso unsets hulkiness for example when a new pilot gets in.
+ */
+- (void) setHulk:(BOOL) isNowHulk;
 - (void) claimAsSalvage;
 - (void) sendCoordinatesToPilot;
 - (void) pilotArrived;

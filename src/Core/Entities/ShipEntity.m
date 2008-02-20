@@ -113,11 +113,85 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (BOOL) setUpSubEntities: (NSDictionary *) shipDict {
+  unsigned int i;
+  NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
+	for (i = 0; i < [plumes count]; i++)
+	{
+		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
+		[self addExhaust:exhaust];
+		[exhaust release];
+	}
+	NSArray *subs = [shipDict arrayForKey:@"subentities"];
+	for (i = 0; i < [subs count]; i++)
+	{
+		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
+
+		if ([details count] == 8)
+		{
+			Vector sub_pos, ref;
+			Quaternion sub_q;
+			NSString* subdesc = [details stringAtIndex:0];
+			sub_pos.x = [details floatAtIndex:1];
+			sub_pos.y = [details floatAtIndex:2];
+			sub_pos.z = [details floatAtIndex:3];
+			sub_q.w = [details floatAtIndex:4];
+			sub_q.x = [details floatAtIndex:5];
+			sub_q.y = [details floatAtIndex:6];
+			sub_q.z = [details floatAtIndex:7];
+			
+			if ([subdesc isEqual:@"*FLASHER*"])
+			{
+				ParticleEntity *flasher;
+				flasher = [[ParticleEntity alloc]
+							initFlasherWithSize:sub_q.z
+									  frequency:sub_q.x
+										  phase:2.0 * sub_q.y];
+				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
+													   saturation:1.0
+													   brightness:1.0
+															alpha:1.0]];
+				[flasher setPosition:sub_pos];
+				[self addFlasher:flasher];
+				[flasher release];
+			}
+			else
+			{
+				ShipEntity* subent;
+				quaternion_normalize(&sub_q);
+
+				subent = [UNIVERSE newShipWithName:subdesc];	// retained
+				if (subent == nil)
+				{
+					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
+					return NO;
+				}
+				
+				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
+				
+				[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+				
+				ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+				
+				[(ShipEntity*)subent setReference: ref];
+				[(ShipEntity*)subent setPosition: sub_pos];
+				[(ShipEntity*)subent setOrientation: sub_q];
+				
+				[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+				
+				subent->isSubentity = YES;
+				[self addSubEntity:subent];
+				[subent release];
+			}
+		}
+	}
+    return YES;
+}
+
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	NSDictionary		*shipDict = dict;
-	unsigned			i;
-	
     orientation = kIdentityQuaternion;
     quaternion_into_gl_matrix(orientation, rotMatrix);
 	v_forward	= kBasisZVector;
@@ -267,81 +341,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[self setOwner:self];
 	
-	NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
-	for (i = 0; i < [plumes count]; i++)
-	{
-		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
-		[self addExhaust:exhaust];
-		[exhaust release];
-	}
-	
 	is_hulk = [shipDict boolForKey:@"is_hulk"];
 	
-	NSArray *subs = [shipDict arrayForKey:@"subentities"];
-	for (i = 0; i < [subs count]; i++)
+	if (![self setUpSubEntities: shipDict]) 
 	{
-		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
-
-		if ([details count] == 8)
-		{
-			Vector sub_pos, ref;
-			Quaternion sub_q;
-			Entity* subent;
-			NSString* subdesc = [details stringAtIndex:0];
-			sub_pos.x = [details floatAtIndex:1];
-			sub_pos.y = [details floatAtIndex:2];
-			sub_pos.z = [details floatAtIndex:3];
-			sub_q.w = [details floatAtIndex:4];
-			sub_q.x = [details floatAtIndex:5];
-			sub_q.y = [details floatAtIndex:6];
-			sub_q.z = [details floatAtIndex:7];
-			
-			if ([subdesc isEqual:@"*FLASHER*"])
-			{
-				ParticleEntity *flasher;
-				flasher = [[ParticleEntity alloc]
-							initFlasherWithSize:sub_q.z
-									  frequency:sub_q.x
-										  phase:2.0 * sub_q.y];
-				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
-													   saturation:1.0
-													   brightness:1.0
-															alpha:1.0]];
-				[flasher setPosition:sub_pos];
-				subent = flasher;
-			}
-			else
-			{
-				quaternion_normalize(&sub_q);
-
-				subent = [UNIVERSE newShipWithName:subdesc];	// retained
-				if (subent == nil)
-				{
-					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
-					return NO;
-				}
-				
-				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
-				
-				[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
-				
-				ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-				
-				[(ShipEntity*)subent setReference: ref];
-				[(ShipEntity*)subent setPosition: sub_pos];
-				[(ShipEntity*)subent setOrientation: sub_q];
-				
-				[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
-				
-				subent->isSubentity = YES;
-			}
-			if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
-			[sub_entities addObject:subent];
-			[subent setOwner: self];
-			
-			[subent release];
-		}
+		return NO;
 	}
 	
 	isFrangible = [shipDict boolForKey:@"frangible" defaultValue:YES];
@@ -2606,6 +2610,21 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[sub_entities addObject:exhaust];
 }
 
+- (void) addFlasher:(ParticleEntity *)flasher
+{
+	if (flasher == nil)  return;
+	
+	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
+	[sub_entities addObject:flasher];
+}
+
+- (void) addSubEntity:(ShipEntity *)sub
+{
+	if (sub == nil)  return;
+	
+	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
+	[sub_entities addObject:sub];
+}
 
 - (void) applyThrust:(double) delta_t
 {
@@ -3536,6 +3555,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	return is_hulk;
 }
 
+- (void) setHulk:(BOOL) isNowHulk {
+    is_hulk = isNowHulk;
+}
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
 {
@@ -4673,14 +4695,6 @@ BOOL class_masslocks(int some_class)
 		pitching_over = (reverse * d_forward < 0.707);
 	}
 
-	// treat missiles specially
-	if ((scanClass == CLASS_MISSILE) && (d_forward > cos(delta_t * max_flight_pitch)))
-	{
-		OOLog(@"missile.track", @"missile %@ in tracking mode", self);
-		[self trackOntoTarget: delta_t withDForward: d_forward];
-		return d_forward;
-	}
-
 	// check if we are flying toward the destination..
 	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
 	{
@@ -5809,6 +5823,7 @@ BOOL class_masslocks(int some_class)
 			}
 			[pod setCrew: crew];
 			[self setCrew: nil];
+			[self setHulk: true]; //CmdrJames experiment with fixing ejection behaviour
 		}
 		[[pod getAI] setStateMachine:@"homeAI.plist"];
 		[self dumpItem:pod];
@@ -5985,7 +6000,7 @@ BOOL class_masslocks(int some_class)
 	
 	ShipEntity* otherParent = (ShipEntity*)[other owner];
 	BOOL otherIsSubentity = ((otherParent)&&(otherParent != other)&&([otherParent->sub_entities containsObject:other]));
-
+	BOOL otherIsStation = other == [UNIVERSE station];
 	// calculate line of centers using centres
 	if (otherIsSubentity)
 		opos = [other absolutePositionForSubentity];
@@ -6079,19 +6094,19 @@ BOOL class_masslocks(int some_class)
 
 	// apply change in velocity
 	if ((otherIsSubentity)&&(otherParent))
-		[otherParent adjustVelocity:vel1a];	// move the otherParent not the subentity
+		[otherParent adjustVelocity:vel2a];	// move the otherParent not the subentity
 	else
-		[self adjustVelocity:vel1a];
-	[other adjustVelocity:vel2a];
+		[other adjustVelocity:vel2a];
+
+	[self adjustVelocity:vel1a];
 
 	//
-	//
 	BOOL selfDestroyed = (dam1 > energy);
-	BOOL otherDestroyed = (dam2 > [other energy]);
+	BOOL otherDestroyed = (dam2 > [other energy]) && !otherIsStation;
 	//
 	if (dam1 > 0.05)
 	{
-		[self	takeScrapeDamage: dam1 from:other];
+		[self takeScrapeDamage: dam1 from:other];
 		if (selfDestroyed)	// inelastic! - take xplosion velocity damage instead
 		{
 			vel2a.x = -vel2a.x;	vel2a.y = -vel2a.y;	vel2a.z = -vel2a.z;
@@ -6108,7 +6123,7 @@ BOOL class_masslocks(int some_class)
 		if (otherDestroyed)	// inelastic! - take explosion velocity damage instead
 		{
 			vel1a.x = -vel1a.x;	vel1a.y = -vel1a.y;	vel1a.z = -vel1a.z;
-			[other adjustVelocity:vel1a];
+			[self adjustVelocity:vel1a];
 		}
 	}
 	
@@ -6123,15 +6138,13 @@ BOOL class_masslocks(int some_class)
 		Vector pos2a = make_vector(opos.x - t * v2b * loc.x, opos.y - t * v2b * loc.y, opos.z - t * v2b * loc.z);
 		//
 		[self setPosition:pos1a];
-		[other setPosition:pos2a];
+		if (!otherIsStation) {
+			[other setPosition:pos2a];
+		}
 	}
 
-	//
 	// remove self from other's collision list
-	//
 	[[other collisionArray] removeObject:self];
-	//
-	////
 
 	[shipAI reactToMessage:@"COLLISION"];
 
@@ -7367,6 +7380,7 @@ int w_space_seed = 1234567;
 
 - (void) pilotArrived
 {
+	[self setHulk:false];
 	[[self getAI] reactToMessage:@"PILOT_ARRIVED"];
 }
 

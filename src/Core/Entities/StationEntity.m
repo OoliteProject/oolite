@@ -1253,6 +1253,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[super takeEnergyDamage:amount from:ent becauseOf:other];
 }
 
+- (void) adjustVelocity:(Vector) xVel
+{
+	if (self != [UNIVERSE station])  [super adjustVelocity:xVel]; //dont get moved
+}
 
 - (void)takeScrapeDamage:(double)amount from:(Entity *)ent
 {
