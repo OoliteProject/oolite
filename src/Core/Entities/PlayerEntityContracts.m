@@ -1413,10 +1413,9 @@ static NSMutableDictionary* currentShipyard = nil;
 	legalStatus = 0;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
-	// FIXME: allow buying of aft/port/starboard weapons? Bug #012363
-	aft_weapon = WEAPON_NONE;
-	port_weapon = WEAPON_NONE;
-	starboard_weapon = WEAPON_NONE;
+	aft_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"aft_weapon_type"]);
+	port_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"port_weapon_type"]);
+	starboard_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"starboard_weapon_type"]);
 	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type"]);
 	
 	// get basic max_cargo

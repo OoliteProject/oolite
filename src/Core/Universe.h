@@ -94,6 +94,9 @@ enum
 #define KEY_STANDARD_EQUIPMENT				@"standard_equipment"
 #define KEY_EQUIPMENT_MISSILES				@"missiles"
 #define KEY_EQUIPMENT_FORWARD_WEAPON		@"forward_weapon_type"
+#define KEY_EQUIPMENT_AFT_WEAPON			@"aft_weapon_type"
+#define KEY_EQUIPMENT_PORT_WEAPON			@"port_weapon_type"
+#define KEY_EQUIPMENT_STARBOARD_WEAPON		@"starboard_weapon_type"
 #define KEY_EQUIPMENT_EXTRAS				@"extras"
 #define KEY_WEAPON_FACINGS					@"weapon_facings"
 
@@ -483,7 +486,10 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
 
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
+
+/* Calculate base cost, before depreciation */
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) cmdr_dict;
+
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (Vector) getWitchspaceExitPosition;
