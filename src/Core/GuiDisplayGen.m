@@ -771,7 +771,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	for (i=0; i < equipment_list_items_count; i++)
 	{
 		// Damaged items in the equipment list appear in orange color.
-		BOOL is_eqpt_damaged = [[eqptList objectAtIndex:i] hasSuffix:@"(N/A)"];
+		BOOL is_eqpt_damaged = [[eqptList objectAtIndex:i] hasSuffix:DESC(@"equipment-not-available")];
 		if (is_eqpt_damaged == YES) glColor4f (1.0, 0.5, 0.0, 1.0);
 		
 		if (i < eqpt_items_per_column)

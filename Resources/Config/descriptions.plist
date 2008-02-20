@@ -749,6 +749,8 @@
 	"game-copyright"				= "by Giles Williams and contributors © 2003-2008";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
+	"load-previous-commander-yes"		= "y"; // Defines the key that corresponds to the yes answer to load-previous-commnader.
+	"load-previous-commander-no"		= "n"; // Defines the key that corresponds to the no answer to load-previous-commnader.
 	
 	// Status screen
 	"status-commander-@"			= "Commander %@";
@@ -767,6 +769,7 @@
 	"equipment-port-weapon-@"		= "Port %@";
 	"equipment-single-pass-berth-@"	= "1 Passenger Berth";
 	"equipment-multiple-pass-berth-@" = "%d Passenger Berths";
+	"equipment-not-available"		= " (N/A)";
 	"cash-quantity"					= "%.1f ₢";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	

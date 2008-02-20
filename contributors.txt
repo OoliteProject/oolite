@@ -8,6 +8,8 @@ Jens Ayton (Ahruman)
 Nikos Barkas (another_commander)
 Commander McLane
 Chris Crowther (hikari)
+James Hobson (Cmdr James)
+Influence D
 Kaks
 Dave MacLachlan (Jester)
 Nic
@@ -15,7 +17,6 @@ No Sleep Nigel
 Dylan Smith (winston)
 David Taylor (dajt)
 Eric Walch
-Influence D
 
 
 Library credits:

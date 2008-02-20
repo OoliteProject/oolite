@@ -4120,7 +4120,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			if ([self hasExtraEquipment:w_key_damaged])
 			{
-				[quip addObject:[[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:@" (N/A)"]];
+				[quip addObject:[[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:DESC(@"equipment-not-available")]];
 			}
 		}
 	}
