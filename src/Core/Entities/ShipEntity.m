@@ -3115,7 +3115,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	// check if nearing surface
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
-	isNearPlanetSurface = (d2 - cr2 < 3600000.0);
+	isNearPlanetSurface = (d2 - cr2 < 250000+1000*cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
 	if ((!wasNearPlanetSurface)&&(isNearPlanetSurface))
 		[shipAI reactToMessage:@"APPROACHING_SURFACE"];
 	if ((wasNearPlanetSurface)&&(!isNearPlanetSurface))
