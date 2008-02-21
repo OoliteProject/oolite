@@ -1042,7 +1042,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		if (rowFadeTime[i] > 0.0)
 		{
 			rowFadeTime[i] -= delta_t;
-			if (rowFadeTime[i] < 0.0)
+			if (rowFadeTime[i] <= 0.0)
 			{
 				[rowText replaceObjectAtIndex:i withObject:@""];
 				rowFadeTime[i] = 0.0;

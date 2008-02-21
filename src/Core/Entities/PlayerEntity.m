@@ -487,7 +487,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict objectForKey:@"player_name"])
 	{
 		if (player_name)	[player_name release];
-		player_name = [(NSString *)[dict objectForKey:@"player_name"] retain];
+		player_name = [[dict stringForKey:@"player_name"] retain];
 	}
 
 	if ([dict objectForKey:@"shipCommodityData"])
@@ -6295,7 +6295,7 @@ OOSound* burnersound;
 	
 	if ([viewDict objectForKey:@"weapon_facing"])
 	{
-		NSString* facing = [(NSString *)[viewDict objectForKey:@"view_description"] lowercaseString];
+		NSString* facing = [[viewDict stringForKey:@"view_description"] lowercaseString];
 		if ([facing isEqual:@"forward"])
 			currentWeaponFacing = VIEW_FORWARD;
 		if ([facing isEqual:@"aft"])

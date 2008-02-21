@@ -1119,7 +1119,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	for (i = 0; i < [shipyard count]; i++)
 	{
 		NSDictionary* info = (NSDictionary *)[shipyard objectAtIndex:i];
-		NSString* ship_id = (NSString *)[info objectForKey:SHIPYARD_KEY_ID];
+		NSString* ship_id = [info stringForKey:SHIPYARD_KEY_ID];
 		if ([shipyard_record objectForKey:ship_id])
 			[shipyard removeObjectAtIndex:i--];
 	}
@@ -1130,11 +1130,11 @@ static NSMutableDictionary* currentShipyard = nil;
 	for (i = 0; i < [shipyard count]; i++)
 	{
 		[currentShipyard	setObject:[shipyard objectAtIndex:i]
-							forKey:(NSString *)[(NSDictionary *)[shipyard objectAtIndex:i] objectForKey:SHIPYARD_KEY_ID]];
+							forKey:[(NSDictionary *)[shipyard objectAtIndex:i] stringForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	NSString* shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:@"display_name"];
-	if (shipName == nil) shipName = (NSString*)[[UNIVERSE getDictionaryForShip:ship_desc] objectForKey:KEY_NAME];
+	NSString* shipName = [[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:@"display_name"];
+	if (shipName == nil) shipName = [[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:KEY_NAME];
 		
 	unsigned n_ships = [shipyard count];
 

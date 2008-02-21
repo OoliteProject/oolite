@@ -160,7 +160,7 @@ static void InitTextEngine(void);
 		else
 			[message_gui setAlpha: 1.0];
 		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[message_gui setBackgroundColor:[OOColor colorFromString:(NSString *)[gui_info objectForKey:BACKGROUND_RGBA_KEY]]];
+			[message_gui setBackgroundColor:[OOColor colorFromString:[gui_info stringForKey:BACKGROUND_RGBA_KEY]]];
 	}
 	
 	GuiDisplayGen* comm_log_gui = [UNIVERSE comm_log_gui];
@@ -190,7 +190,7 @@ static void InitTextEngine(void);
 		else
 			[comm_log_gui setAlpha: 1.0];
 		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[comm_log_gui setBackgroundColor:[OOColor colorFromString:(NSString *)[gui_info objectForKey:BACKGROUND_RGBA_KEY]]];
+			[comm_log_gui setBackgroundColor:[OOColor colorFromString:[gui_info stringForKey:BACKGROUND_RGBA_KEY]]];
 	}
 	
 	

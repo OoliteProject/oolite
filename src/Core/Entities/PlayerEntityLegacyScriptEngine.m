@@ -653,7 +653,7 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 
 - (void) setMissionDescription:(NSString *)textKey
 {
-	NSString		*text = (NSString *)[[UNIVERSE missiontext] objectForKey:textKey];
+	NSString		*text = [[UNIVERSE missiontext] stringForKey:textKey];
 	if (!text)
 	{
 		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR ***** no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", textKey, [UNIVERSE missiontext]);

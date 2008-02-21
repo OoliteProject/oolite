@@ -444,7 +444,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	if ([planetinfo objectForKey:@"texture"])
 	{
-		textureName = [TextureStore getTextureNameFor:(NSString*)[planetinfo objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:[planetinfo stringForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 
@@ -685,7 +685,7 @@ static GLfloat	texture_uv_array[10400 * 2];
     //
 	if ([dict objectForKey:@"texture"])
 	{
-		textureName = [TextureStore getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:[dict stringForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 	else
@@ -852,7 +852,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	if ([dict objectForKey:@"texture"])
 	{
-		textureName = [TextureStore getTextureNameFor:(NSString*)[dict objectForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:[dict stringForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 	else

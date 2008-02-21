@@ -425,7 +425,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	float speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
 	float rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
 	BOOL match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-	NSString* comms_message = (NSString*)[nextCoords objectForKey:@"comms_message"];
+	NSString* comms_message = [nextCoords stringForKey:@"comms_message"];
 	
 	// calculate world coordinates from relative coordinates
 	Vector rel_coords;
@@ -459,7 +459,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
 		rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
 		match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-		comms_message = (NSString*)[nextCoords objectForKey:@"comms_message"];
+		comms_message = [nextCoords stringForKey:@"comms_message"];
 		
 		if (comms_message)
 			[self sendExpandedMessage: comms_message toShip: ship];

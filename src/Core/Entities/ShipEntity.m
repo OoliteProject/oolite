@@ -297,7 +297,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		else
 		{
 			c_amount = 1;
-			c_commodity = [UNIVERSE commodityForName: (NSString*)[shipDict objectForKey:@"cargo_carried"]];
+			c_commodity = [UNIVERSE commodityForName: [shipDict stringForKey:@"cargo_carried"]];
 		}
 
 		if (c_commodity != NSNotFound)  [self setCommodity:c_commodity andAmount:c_amount];
@@ -6704,15 +6704,15 @@ int w_space_seed = 1234567;
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort
 {
+	//this condition has to be checked first! 
+	if (![self isEscort] && ([self hasRole:@"police"] || [self hasRole:@"interceptor"]))
+	{
+		return [potentialEscort hasRole:@"wingman"];
+	}
 	if (![self isEscort])
 	{
 		return [potentialEscort hasRole:@"escort"];
 	}
-	if (([self hasRole:@"police"] || [self hasRole:@"interceptor"]))
-	{
-		return [potentialEscort hasRole:@"wingman"];
-	}
-	
 	return NO;
 }
 	
@@ -6722,13 +6722,11 @@ int w_space_seed = 1234567;
 	// can't pair with self
 	if (self == other_ship)  return NO;
 
-	// if not in standard ai mode reject approach
-	// Note: This used to be if ([shipAI ai_stack_depth] > 1). But this would result almost
-	// consistently in escorts not being accepted. Most of the time, ai_stack_depth is 2 at
-	// this point. - Nikos
-	if ([shipAI ai_stack_depth] > 2)
+	//increased stack depth at which it can accept escorts to avoid rejections at this stage.
+	//doesn't seem to have any adverse effect for now. - Kaks.
+	if ([shipAI ai_stack_depth] > 3)
 	{
-		OOLog(@"ship.escort.reject", @"Rejecting escort %@ because AI stack depth is %u.", other_ship, [shipAI ai_stack_depth]);
+		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %u.",self, other_ship, [shipAI ai_stack_depth]);
 		return NO;
 	}
 	
@@ -6740,21 +6738,23 @@ int w_space_seed = 1234567;
 		{
 			if (escort_ids[i] == [other_ship universalID])
 			{
-				[other_ship setGroupID:universalID];
-				[self setGroupID:universalID];		// make self part of same group
+				//[other_ship setGroupID:universalID];
+				//[self setGroupID:universalID];		// make self part of same group
 				return YES;
 			}
 		}
 		
 		// check total number acceptable
-		unsigned max_escorts = [shipinfoDictionary unsignedIntForKey:@"escorts"];
+		unsigned max_escorts = [shipinfoDictionary unsignedIntForKey:@"escorts" defaultValue:0];
+		//however the system's patrols don't have escorts inside their dictionary 
+		if (max_escorts == 0 && ([self hasRole:@"police"]||[self hasRole:@"interceptor"]||[self hasRole:@"hunter"]))
+			max_escorts = MAX_ESCORTS;
 		if ((escortCount < MAX_ESCORTS)&&(escortCount < max_escorts))
 		{
 			escort_ids[escortCount] = [other_ship universalID];
 			[other_ship setGroupID:universalID];
 			[self setGroupID:universalID];		// make self part of same group
 			escortCount++;
-			
 			//OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
 			[other_ship doScriptEvent:@"escortAccepted" withArgument:self];
@@ -6762,7 +6762,8 @@ int w_space_seed = 1234567;
 		}
 		else
 		{
-			OOLog(@"ship.escort.reject", @" Escorts numbers maxed out: %@ rejected the following escort %@.", self, other_ship);
+			if (max_escorts > 0)
+				OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.",self, escortCount, other_ship);
 		}
 	}
 	return NO;
