@@ -127,7 +127,7 @@ static NSString *GetAppName(void);
 static BOOL						sInited = NO;
 static BOOL						sWriteToStderr = YES;
 static OOAsyncLogger			*sLogger = nil;
-static LogCStringFunctionProc	sDefaultLogCStringFunction = nil;
+static LogCStringFunctionProc	sDefaultLogCStringFunction = NULL;
 static NSString					*sLogFileName = @"Latest.log";
 
 
@@ -462,7 +462,7 @@ enum
 */
 static void LoadLogCStringFunctions(void)
 {
-	CFBundleRef						foundationBundle = nil;
+	CFBundleRef						foundationBundle = NULL;
 	LogCStringFunctionGetterProc	getter = NULL;
 	LogCStringFunctionSetterProc	setter = NULL;
 	

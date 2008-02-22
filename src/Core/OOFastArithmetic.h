@@ -176,6 +176,8 @@ OOINLINE float OOFastInvSqrtf(float x)
 	x = *(float*)&i;
 	x = x * (1.5f - xhalf * x * x);
 	return x;
+#elif OO_PPC
+	return OOInvSqrtf(x);
 #else
 	return OOReciprocalEstimate(sqrt(x));
 #endif

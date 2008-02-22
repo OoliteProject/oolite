@@ -1006,21 +1006,21 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (NSString*) descriptionComponents
 {
-	NSString* type_string;
+	NSString *typeString;
 	switch (planet_type)
 	{
 		case PLANET_TYPE_MINIATURE:
-			type_string = @"PLANET_TYPE_MINIATURE";	break;
+			typeString = @"PLANET_TYPE_MINIATURE";	break;
 		case PLANET_TYPE_SUN:
-			type_string = @"PLANET_TYPE_SUN";	break;
+			typeString = @"PLANET_TYPE_SUN";	break;
 		case PLANET_TYPE_GREEN:
-			type_string = @"PLANET_TYPE_GREEN";	break;
+			typeString = @"PLANET_TYPE_GREEN";	break;
 		case PLANET_TYPE_ATMOSPHERE:
-			type_string = @"PLANET_TYPE_ATMOSPHERE";	break;
+			typeString = @"PLANET_TYPE_ATMOSPHERE";	break;
 		default :
-			type_string = @"UNKNOWN";
+			typeString = @"UNKNOWN";
 	}
-	return [NSString stringWithFormat:@"%@ type: %@ radius: %.3fkm", [super descriptionComponents], type_string, 0.001 * [self radius]];
+	return [NSString stringWithFormat:@"ID: %u position: %@ %@ type: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), typeString, 0.001 * [self radius]];
 }
 
 

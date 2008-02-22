@@ -204,7 +204,7 @@ static NSString *GetCPUDescription(void)
 
 static NSString *GetSysCtlString(const char *name)
 {
-	char					*buffer = nil;
+	char					*buffer = NULL;
 	size_t					size = 0;
 	
 	// Get size

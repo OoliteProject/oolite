@@ -1043,10 +1043,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (Triangle) absoluteIJKForSubentity
 {
-	Triangle	result;
-	result.v[0] = kBasisXVector;
-	result.v[1] = kBasisYVector;
-	result.v[2] = kBasisZVector;
+	Triangle	result = {{ kBasisXVector, kBasisYVector, kBasisZVector, kZeroVector }};
 	Entity		*last = nil;
 	Entity		*father = self;
 	OOMatrix	r_mat;
@@ -3094,6 +3091,22 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
+- (void) transitionToAegisNone
+{
+	if (!suppressAegisMessages && aegis_status != AEGIS_NONE)
+	{
+		if (aegis_status == AEGIS_IN_DOCKING_RANGE)
+		{
+			[self doScriptEvent:@"shipExitedStationAegis"];
+			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
+		}
+		[self doScriptEvent:@"shipExitedPlanetaryVicinity"];
+		[shipAI message:@"AEGIS_NONE"];
+	}
+	aegis_status = AEGIS_NONE;
+}
+
+
 - (OOAegisStatus) checkForAegis
 {
 	PlanetEntity* the_planet = [UNIVERSE planet];
@@ -3101,57 +3114,89 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	if (!the_planet)
 	{
 		if (aegis_status != AEGIS_NONE)
-			[shipAI message:@"AEGIS_NONE"];
+		{
+			// Planet disappeared!
+			[self transitionToAegisNone];
+		}
 		return AEGIS_NONE;
 	}
 
 	// check planet
-	Vector p1 = the_planet->position;
-	double cr = the_planet->collision_radius;
-	double cr2 = cr * cr;
-	OOAegisStatus result = AEGIS_NONE;
-	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
-	double d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z;
+	float			cr = [the_planet collisionRadius];
+	float			cr2 = cr * cr;
+	OOAegisStatus	result = AEGIS_NONE;
+	float			d2;
+	
+	d2 = magnitude2(vector_subtract([the_planet position], [self position]));
 	
 	// check if nearing surface
+	// FIXME: need script and probably AI notification for all planets, not just main.
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
 	isNearPlanetSurface = (d2 - cr2 < 250000+1000*cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
-	if ((!wasNearPlanetSurface)&&(isNearPlanetSurface))
-		[shipAI reactToMessage:@"APPROACHING_SURFACE"];
-	if ((wasNearPlanetSurface)&&(!isNearPlanetSurface))
-		[shipAI reactToMessage:@"LEAVING_SURFACE"];
-	//
-	d2 -= cr2 * 9.0; // to 3x radius of planet
-	if (d2 < 0.0)
+	if (!suppressAegisMessages)
+	{
+		if (!wasNearPlanetSurface && isNearPlanetSurface)
+		{
+			[self doScriptEvent:@"shipApproachingPlanetSurface" withArgument:the_planet];
+			[shipAI reactToMessage:@"APPROACHING_SURFACE"];
+		}
+		if (wasNearPlanetSurface && !isNearPlanetSurface)
+		{
+			[self doScriptEvent:@"shipLeavingPlanetSurface" withArgument:the_planet];
+			[shipAI reactToMessage:@"LEAVING_SURFACE"];
+		}
+	}
+	
+	if (d2 < cr2 * 9.0) // to 3x radius of planet
+	{
 		result = AEGIS_CLOSE_TO_PLANET;
+	}
+	
 	// check station
-	StationEntity* the_station = [UNIVERSE station];
+	StationEntity	*the_station = [UNIVERSE station];
 	if (!the_station)
 	{
 		if (aegis_status != AEGIS_NONE)
-			[shipAI message:@"AEGIS_NONE"];
+		{
+			// Station disappeared!
+			[self transitionToAegisNone];
+		}
 		return AEGIS_NONE;
 	}
-	p1 = the_station->position;
-	p1.x -= position.x;	p1.y -= position.y;	p1.z -= position.z;
-	d2 = p1.x*p1.x + p1.y*p1.y + p1.z*p1.z - SCANNER_MAX_RANGE2*4.0; // double scanner range
-	if (d2 < 0.0)
+	
+	d2 = magnitude2(vector_subtract([the_station position], [self position]));
+	if (d2 < SCANNER_MAX_RANGE2 * 4.0) // double scanner range
+	{
 		result = AEGIS_IN_DOCKING_RANGE;
-
-	// ai messages on change in status
-	// approaching..
-	if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_PLANET))
-		[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
-	if (((aegis_status == AEGIS_CLOSE_TO_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
-		[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
-	// leaving..
-	if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_PLANET))
-		[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
-	if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
-		[shipAI message:@"AEGIS_NONE"];
+	}
+	
+	if (!suppressAegisMessages)
+	{
+		// script/AI messages on change in status
+		// approaching..
+		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_PLANET))
+		{
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
+			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
+		}
+		if (((aegis_status == AEGIS_CLOSE_TO_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
+		{
+			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
+			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
+		}
+		// leaving..
+		if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_PLANET))
+		{
+			[self doScriptEvent:@"shipExitedStationAegis"];
+			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
+		}
+		if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
+		{
+			[self transitionToAegisNone];
+		}
+	}
 
 	aegis_status = result;	// put this here
-
 	return result;
 }
 

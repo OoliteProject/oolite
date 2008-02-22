@@ -157,12 +157,12 @@ MA 02110-1301, USA.
 							is_hulk: 1,					// This is used to distinguish abandoned ships from cargo
 							trackCloseContacts: 1,
 	
-	// check for landing on planet
-							isNearPlanetSurface: 1,
+							isNearPlanetSurface: 1,		// check for landing on planet
 							isFrangible: 1,				// frangible => subentities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
+							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis
 	
 	// scripting
 							haveExecutedSpawnAction: 1,

@@ -2589,6 +2589,7 @@ static BOOL toggling_music;
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
+			suppressAegisMessages = YES;
 			if ([self checkForAegis] != AEGIS_NONE)
 			{
 				[self setCompassMode:COMPASS_MODE_STATION];
@@ -2597,6 +2598,7 @@ static BOOL toggling_music;
 			{
 				[self setCompassMode:COMPASS_MODE_PLANET];	
 			}
+			suppressAegisMessages = NO;
 			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 			[self playBreakPattern];
 		}

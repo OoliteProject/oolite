@@ -204,7 +204,7 @@ OOINLINE GLfloat magnitude(Vector vec)
 
 OOINLINE GLfloat fast_magnitude(Vector vec)
 {
-	#if FASTINVSQRT_ENABLED
+	#if FASTINVSQRT_ENABLED || OO_PPC
 		GLfloat mag2 = magnitude2(vec);
 		return mag2 * OOFastInvSqrtf(mag2);	/* x = sqrt(x) * sqrt(x); x * 1/sqrt(x) = (sqrt(x) * sqrt(x))/sqrt(x) = sqrt(x). */
 	#else

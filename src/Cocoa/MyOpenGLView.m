@@ -326,16 +326,16 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
     NSBitmapImageRep* bitmapRep = 
         [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:	nil		// --> let the class allocate it
+            initWithBitmapDataPlanes:NULL	// --> let the class allocate it
             pixelsWide:			w
             pixelsHigh:			h
-            bitsPerSample:		8		// each component is 8 bits (1 byte)
-            samplesPerPixel:	3		// number of components (R, G, B)
-            hasAlpha:			NO		// no transparency
-            isPlanar:			NO		// data integrated into single plane
+            bitsPerSample:		8			// each component is 8 bits (1 byte)
+            samplesPerPixel:	3			// number of components (R, G, B)
+            hasAlpha:			NO			// no transparency
+            isPlanar:			NO			// data integrated into single plane
             colorSpaceName:		NSDeviceRGBColorSpace
-            bytesPerRow:		3*w		// can no longer let the class figure it out
-            bitsPerPixel:		24		// can no longer let the class figure it out
+            bytesPerRow:		3*w			// can no longer let the class figure it out
+            bitsPerPixel:		24			// can no longer let the class figure it out
         ];
 
     unsigned char *pixels = [bitmapRep bitmapData];

@@ -38,6 +38,16 @@ MA 02110-1301, USA.
 #ifdef OOLITE_SDL_MAC
 #define OOLITE_SDL				1
 #endif
+
+/*	Enforce type-clean use of nil and Nil under OS X. (They are untyped in
+	Cocoa, apparently for compatibility with legacy Mac OS code, but typed in
+	GNUstep.)
+*/
+#undef nil
+#define nil ((id)0)
+#undef Nil
+#define Nil ((Class)nil)
+
 #endif
 
 

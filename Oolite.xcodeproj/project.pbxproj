@@ -237,6 +237,7 @@
 		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
 		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
+		1A2324FC0D6ED7C2003578B6 /* OOJSClock.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A6B25EC0C9C2745000717CF /* OOJSClock.h */; };
 		1A26D0AC0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0880BCF9CF70073F257 /* PlayerEntityLegacyScriptEngine.m */; };
 		1A26D0AD0BCF9CF80073F257 /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0890BCF9CF70073F257 /* ShipEntityAI.m */; };
 		1A26D0AE0BCF9CF80073F257 /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D08A0BCF9CF70073F257 /* ShipEntityAI.h */; };
@@ -975,6 +976,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
+				1A2324FC0D6ED7C2003578B6 /* OOJSClock.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;

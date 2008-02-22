@@ -186,7 +186,7 @@ enum
 	if (OK)
 	{
 		context = calloc(1, sizeof *context);
-		if (nil != context)
+		if (context != NULL)
 		{
 			*outContext = (OOCASoundRenderContext)context;
 			context->loop = inLoop;
