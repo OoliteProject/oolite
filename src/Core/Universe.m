@@ -3539,20 +3539,20 @@ static const OOMatrix	starboard_matrix =
 						BOOL fogging = ((airResistanceFactor > 0.01)&&(!drawthing->isPlanet));
 						
 						glPushMatrix();
-						obj_position = drawthing->position;
+						obj_position = [drawthing position];
 						if (drawthing != player)
 						{
 							//translate the object
-							glTranslatef(obj_position.x,obj_position.y,obj_position.z);
+							GLTranslateOOVector(obj_position);
 							//rotate the object
-							glMultMatrixf([drawthing drawRotationMatrix]);
+							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
 						else
 						{
 							// Load transformation matrix
 							GLLoadOOMatrix(view_matrix);
 							//translate the object  from the viewpoint
-							glTranslatef(-viewOffset.x, -viewOffset.y, -viewOffset.z);
+							GLTranslateOOVector(vector_flip(viewOffset));
 						}
 
 						// atmospheric fog
@@ -3613,21 +3613,20 @@ static const OOMatrix	starboard_matrix =
 						BOOL fogging = (airResistanceFactor > 0.01);
 						
 						glPushMatrix();
-						obj_position = drawthing->position;
+						obj_position = [drawthing position];
 						if (drawthing != player)
 						{
 							//translate the object
-							glTranslatef(obj_position.x,obj_position.y,obj_position.z);
+							GLTranslateOOVector(obj_position);
 							//rotate the object
-							glMultMatrixf([drawthing drawRotationMatrix]);
+							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
 						else
 						{
 							// Load transformation matrix
 							GLLoadOOMatrix(view_matrix);
 							//translate the object  from the viewpoint
-						
-							glTranslatef(-viewOffset.x, -viewOffset.y, -viewOffset.z);
+							GLTranslateOOVector(vector_flip(viewOffset));
 						}
 						
 						// atmospheric fog

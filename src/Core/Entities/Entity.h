@@ -232,7 +232,7 @@ typedef struct
 - (void) moveForward:(double)amount;
 
 - (GLfloat *) rotationMatrix;
-- (GLfloat *) drawRotationMatrix;
+- (OOMatrix) drawRotationMatrix;
 
 - (BOOL) canCollide;
 - (GLfloat) collisionRadius;

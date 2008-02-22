@@ -1032,7 +1032,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	while ((father)&&(father != last))
 	{
-		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		r_mat = [father drawRotationMatrix];
 		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 		last = father;
 		father = [father owner];
@@ -1050,7 +1050,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	while ((father)&&(father != last))
 	{
-		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		r_mat = [father drawRotationMatrix];
 		result.v[0] = OOVectorMultiplyMatrix(result.v[0], r_mat);
 		result.v[1] = OOVectorMultiplyMatrix(result.v[1], r_mat);
 		result.v[2] = OOVectorMultiplyMatrix(result.v[2], r_mat);
@@ -2468,7 +2468,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OOMatrix	r_mat;
 		while ((father)&&(father != last))
 		{
-			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			r_mat = [father drawRotationMatrix];
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
 			father = [father owner];
@@ -4509,7 +4509,7 @@ BOOL class_masslocks(int some_class)
 	
 	while ((father)&&(father != last))
 	{
-		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		r_mat = [father drawRotationMatrix];
 		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
 		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
@@ -4601,7 +4601,7 @@ BOOL class_masslocks(int some_class)
 	
 	while ((father)&&(father != last))
 	{
-		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		r_mat = [father drawRotationMatrix];
 		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
 		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
@@ -5265,7 +5265,7 @@ BOOL class_masslocks(int some_class)
 	
 	while ((father)&&(father != last))
 	{
-		r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+		r_mat = [father drawRotationMatrix];
 		origin = vector_add(OOVectorMultiplyMatrix(origin, r_mat), [father position]);
 		last = father;
 		father = [father owner];

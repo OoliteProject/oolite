@@ -781,7 +781,8 @@ FAIL:
 					PlayerEntity *player = [PlayerEntity sharedPlayer];
 					assert(player != nil);
 					
-					GLfloat* rmix = [player drawRotationMatrix];
+					OOMatrix rMat = [player drawRotationMatrix];
+					GLfloat *rmix = OOMatrixValuesForOpenGL(rMat);
 					int i = 0;
 					for (i = 0; i < 16; i++)				// copy the player's rotation
 						rotMatrix[i] = rmix[i];				// Really simple billboard routine
@@ -1412,7 +1413,7 @@ FAIL:
 		
 		while ((father)&&(father != last))
 		{
-			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			r_mat = [father drawRotationMatrix];
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
 			father = [father owner];
@@ -1462,7 +1463,7 @@ FAIL:
 			glPushMatrix();
 					// position and orientation is absolute
 			GLTranslateOOVector(abspos);
-			glMultMatrixf([[PlayerEntity sharedPlayer] drawRotationMatrix]);
+			GLMultOOMatrix([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 
 			[self drawEntity:immediate:translucent];
 			

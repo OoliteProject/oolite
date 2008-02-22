@@ -716,9 +716,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (GLfloat *) drawRotationMatrix
+- (OOMatrix) drawRotationMatrix
 {
-    return rotMatrix;
+    return OOMatrixFromGLMatrix(rotMatrix);
 }
 
 

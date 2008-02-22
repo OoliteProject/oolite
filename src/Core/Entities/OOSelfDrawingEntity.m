@@ -267,7 +267,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		
 		while ((father)&&(father != last))
 		{
-			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			r_mat = [father drawRotationMatrix];
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			
 			last = father;
