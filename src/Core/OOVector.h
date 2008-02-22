@@ -57,6 +57,7 @@ OOINLINE Vector vector_multiply_scalar(Vector v, GLfloat s) INLINE_CONST_FUNC;
 OOINLINE Vector vector_add(Vector a, Vector b) INLINE_CONST_FUNC;
 OOINLINE Vector vector_subtract(Vector a, Vector b) INLINE_CONST_FUNC;
 #define vector_between(a, b) vector_subtract(b, a)
+OOINLINE Vector vector_flip(Vector v) INLINE_CONST_FUNC;
 
 /* Vector linear interpolation */
 OOINLINE Vector OOVectorInterpolate(Vector a, Vector b, GLfloat where) INLINE_CONST_FUNC;
@@ -181,6 +182,12 @@ OOINLINE Vector vector_subtract(Vector a, Vector b)
 	r.y = a.y - b.y;
 	r.z = a.z - b.z;
 	return r;
+}
+
+
+OOINLINE Vector vector_flip(Vector v)
+{
+	return vector_subtract(kZeroVector, v);
 }
 
 

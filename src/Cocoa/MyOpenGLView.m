@@ -201,7 +201,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
     
 	// do all the drawing!
 	//
-	if (UNIVERSE != nil)  [UNIVERSE drawFromEntity:0];
+	if (UNIVERSE != nil)  [UNIVERSE drawUniverse];
 	else
 	{
 		// not set up yet, draw a black screen

@@ -307,7 +307,7 @@ static GameController *sSharedController = nil;
 #if OOLITE_HAVE_APPKIT
 	if (fullscreen)
 	{
-		[UNIVERSE drawFromEntity:0];
+		[UNIVERSE drawUniverse];
 		return;
 	}
 #endif

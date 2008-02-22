@@ -3342,36 +3342,63 @@ static const OOMatrix	starboard_matrix =
 						}};
 
 
-- (OOMatrix) activeViewMatrix
+- (void) getActiveViewMatrix:(OOMatrix *)outMatrix forwardVector:(Vector *)outForward upVector:(Vector *)outUp
 {
+	assert(outMatrix != NULL && outForward != NULL && outUp != NULL);
+	
+	PlayerEntity			*player = nil;
+	
 	switch (viewDirection)
 	{
-		case VIEW_FORWARD:
-			return fwd_matrix;
-			
 		case VIEW_AFT:
-			return aft_matrix;
+			*outMatrix = aft_matrix;
+			*outForward = vector_flip(kBasisZVector);
+			*outUp = kBasisYVector;
+			return;
 			
 		case VIEW_PORT:
-			return port_matrix;
+			*outMatrix = port_matrix;
+			*outForward = vector_flip(kBasisXVector);
+			*outUp = kBasisYVector;
+			return;
 			
 		case VIEW_STARBOARD:
-			return starboard_matrix;
+			*outMatrix = starboard_matrix;
+			*outForward = kBasisXVector;
+			*outUp = kBasisYVector;
+			return;
 			
 		case VIEW_CUSTOM:
-			return [[PlayerEntity sharedPlayer] customViewMatrix];
+			player = [PlayerEntity sharedPlayer];
+			*outMatrix = [player customViewMatrix];
+			*outForward = [player customViewForwardVector];
+			*outUp = [player customViewUpVector];
+			return;
 			
+		case VIEW_FORWARD:
 		case VIEW_NONE:
 		case VIEW_GUI_DISPLAY:
 		case VIEW_BREAK_PATTERN:
-			break;
+			;
 	}
 	
-	return fwd_matrix;
+	*outMatrix = fwd_matrix;
+	*outForward = kBasisZVector;
+	*outUp = kBasisYVector;
 }
 
 
-- (void) drawFromEntity:(OOUniversalID) n
+- (OOMatrix) activeViewMatrix
+{
+	OOMatrix			m;
+	Vector				f, u;
+	
+	[self getActiveViewMatrix:&m forwardVector:&f upVector:&u];
+	return m;
+}
+
+
+- (void) drawUniverse
 {
 	if (!no_update)
 	{
@@ -3379,20 +3406,19 @@ static const OOMatrix	starboard_matrix =
 			
 			no_update = YES;	// block other attempts to draw
 			
-			int i, v_status;
-			Vector	position, obj_position, view_dir, view_up;
-			BOOL inGUIMode = NO;
-			
+			int				i, v_status;
+			Vector			position, obj_position, view_dir, view_up;
+			OOMatrix		view_matrix;
+			BOOL			inGUIMode = NO;
+			int				ent_count =	n_entities;
+			Entity			*my_entities[ent_count];
+			int				draw_count = 0;
 			
 			// use a non-mutable copy so this can't be changed under us.
-			
-			int			ent_count =	n_entities;
-			Entity*		my_entities[ent_count];
-			int			draw_count = 0;
 			for (i = 0; i < ent_count; i++)
 			{
 				// we check to see that we draw only the things that need to be drawn!
-				Entity* e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
+				Entity *e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				double	zd2 = e->zero_distance;
 				if ((e->isSky)||(e->isPlanet))
 				{
@@ -3405,28 +3431,16 @@ static const OOMatrix	starboard_matrix =
 				my_entities[draw_count++] = [e retain];		//	retained
 			}
 			
-			Entity	*viewthing = nil;
-			Entity	*drawthing = nil;
+			PlayerEntity	*player = [PlayerEntity sharedPlayer];
+			Entity			*drawthing = nil;
 			
-			position.x = 0.0;	position.y = 0.0;	position.z = 0.0;
-
-			if (n < n_entities)
-			{
-				viewthing = [entities objectAtIndex:n];
-			}
+			position = kZeroVector;
 			
-			if (![viewthing isPlayer])
-			{
-				OOLog(kOOLogInconsistentState, @"***** Universe trying to draw from the view of an entity NOT the player: %@", viewthing);
-				[NSException raise:@"OoliteException"
-							format:@"Universe cannot draw from a non-player entity."];
-			}
+			inGUIMode = [player showDemoShips];
+			position = [player viewpointPosition];
+			v_status = [player status];
 			
-			inGUIMode = [(PlayerEntity*)viewthing showDemoShips];
-			position = [viewthing viewpointPosition];
-			v_status = viewthing->status;
-			
-			OOMatrix view_matrix = [self activeViewMatrix];
+			[self getActiveViewMatrix:&view_matrix forwardVector:&view_dir upVector:&view_up];
 			
 			CheckOpenGLErrors(@"Universe before doing anything");
 			
@@ -3446,36 +3460,14 @@ static const OOMatrix	starboard_matrix =
 			gluLookAt(0.0, 0.0, 0.0,	0.0, 0.0, 1.0,	0.0, 1.0, 0.0);
 
 			// HACK BUSTED
-			glScalef(  -1.0,  1.0,	1.0);   // flip left and right
+			glScalef(-1.0,  1.0,	1.0);   // flip left and right
 			glPushMatrix(); // save this flat viewpoint
 			
 			// Set up view transformation matrix
 			OOMatrix flipMatrix = kIdentityMatrix;
 			flipMatrix.m[2][2] = -1;
 			view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
-			Vector viewOffset = [viewthing viewpointOffset];
-			
-			view_up.x = 0.0;	view_up.y = 1.0;	view_up.z = 0.0;
-			switch (viewDirection)
-			{
-				default:
-				case VIEW_FORWARD :
-					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = 1.0;
-					break;
-				case VIEW_AFT :
-					view_dir.x = 0.0;   view_dir.y = 0.0;   view_dir.z = -1.0;
-					break;
-				case VIEW_PORT :
-					view_dir.x = -1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-					break;
-				case VIEW_STARBOARD :
-					view_dir.x = 1.0;   view_dir.y = 0.0;   view_dir.z = 0.0;
-					break;
-				case VIEW_CUSTOM :
-					view_dir = [(PlayerEntity*)viewthing customViewForwardVector];
-					view_up = [(PlayerEntity*)viewthing customViewUpVector];
-					break;
-			}
+			Vector viewOffset = [player viewpointOffset];
 
 			gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
 
@@ -3487,9 +3479,9 @@ static const OOMatrix	starboard_matrix =
 				if (!inGUIMode)
 				{
 					// rotate the view
-					glMultMatrixf([viewthing rotationMatrix]);
+					glMultMatrixf([player rotationMatrix]);
 					// translate the view
-					glTranslatef(-position.x, -position.y, -position.z);
+					GLTranslateOOVector(vector_flip(position));
 				}
 				
 				// position the sun and docked lights correctly
@@ -3548,7 +3540,7 @@ static const OOMatrix	starboard_matrix =
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
-						if (drawthing != viewthing)
+						if (drawthing != player)
 						{
 							//translate the object
 							glTranslatef(obj_position.x,obj_position.y,obj_position.z);
@@ -3622,7 +3614,7 @@ static const OOMatrix	starboard_matrix =
 						
 						glPushMatrix();
 						obj_position = drawthing->position;
-						if (drawthing != viewthing)
+						if (drawthing != player)
 						{
 							//translate the object
 							glTranslatef(obj_position.x,obj_position.y,obj_position.z);
@@ -3682,13 +3674,11 @@ static const OOMatrix	starboard_matrix =
 			{
 				if (!displayGUI)
 					[self drawCrosshairs];
-				if ((viewthing->isPlayer)&&([(PlayerEntity *)viewthing hud]))
-				{
-					HeadUpDisplay *the_hud = [(PlayerEntity *)viewthing hud];
-					[the_hud setLine_width:line_width];
-					[the_hud drawLegends];
-					[the_hud drawDials];
-				}
+				
+				HeadUpDisplay *the_hud = [player hud];
+				[the_hud setLine_width:line_width];
+				[the_hud drawLegends];
+				[the_hud drawDials];
 			}
 			
 			glFlush();	// don't wait around for drawing to complete

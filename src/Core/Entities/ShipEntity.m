@@ -2412,13 +2412,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (Vector) viewpointOffset
-{
-	Vector defaultPos = { 0.0f, 0.0f, -36.0f }; // Default view position of a Cobra 3
-	return defaultPos;
-}
-
-
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	NSEnumerator				*subEntityEnum = nil;

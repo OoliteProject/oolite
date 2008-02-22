@@ -194,8 +194,6 @@ typedef struct
 - (void) setPosition:(Vector)posn;
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
 - (Vector) position;
-- (Vector) viewpointPosition;
-- (Vector) viewpointOffset;
 
 - (double) zeroDistance;
 - (Vector) relativePosition;

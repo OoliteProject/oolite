@@ -352,7 +352,7 @@ MA 02110-1301, USA.
 
 	// do all the drawing!
 	//
-	if (UNIVERSE)  [UNIVERSE drawFromEntity:0];
+	if (UNIVERSE)  [UNIVERSE drawUniverse];
 	else
 	{
 		// not set up yet, draw a black screen

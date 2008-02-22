@@ -349,7 +349,7 @@ enum
 - (MyOpenGLView *) gameView;
 - (GameController *) gameController;
 
-- (void) drawFromEntity:(OOUniversalID) n;
+- (void) drawUniverse;
 - (void) drawCrosshairs;
 - (void) drawMessage;
 

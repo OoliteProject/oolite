@@ -728,28 +728,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
-- (Vector) viewpointPosition
-{
-	Vector		viewpoint = position;
-	Vector		offset = [self viewpointOffset];
-	
-	// FIXME: this ought to be done with matrix or quaternion functions.
-	OOMatrix r = OOMatrixFromGLMatrix(rotMatrix);
-	
-	viewpoint.x += offset.x * r.m[0][0];	viewpoint.y += offset.x * r.m[1][0];	viewpoint.z += offset.x * r.m[2][0];
-	viewpoint.x += offset.y * r.m[0][1];	viewpoint.y += offset.y * r.m[1][1];	viewpoint.z += offset.y * r.m[2][1];
-	viewpoint.x += offset.z * r.m[0][2];	viewpoint.y += offset.z * r.m[1][2];	viewpoint.z += offset.z * r.m[2][2];
-	
-	return viewpoint;
-}
-
-
-- (Vector) viewpointOffset
-{
-	return kZeroVector;
-}
-
-
 - (BOOL) canCollide
 {
 	return YES;
