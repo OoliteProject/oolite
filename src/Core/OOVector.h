@@ -47,6 +47,10 @@ extern const Vector		kZeroVector,		/* 0, 0, 0 */
 /* Construct vector */
 OOINLINE Vector make_vector(GLfloat vx, GLfloat vy, GLfloat vz) INLINE_CONST_FUNC;
 
+/* Generate random vectors. */
+Vector OORandomUnitVector(void);
+Vector OORandomVector(GLfloat maxLength);
+
 /* Multiply vector by scalar (in place) */
 OOINLINE void scale_vector(Vector *outVector, GLfloat factor) ALWAYS_INLINE_FUNC NONNULL_FUNC;
 
@@ -111,11 +115,6 @@ NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
 
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
 #define GLTranslateOOVector(v) do { Vector v_ = v; glTranslatef(v_.x, v_.y, v_.z); } while (0)
-
-
-
-/* Internal */
-void ReportNormalizeZeroVector(void);
 
 
 /*** Only inline definitions beyond this point ***/

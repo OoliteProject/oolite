@@ -91,7 +91,7 @@ void ranrot_srand(unsigned int seed)
 {
 	sRANROT.low = seed;
 	sRANROT.high = ~seed;
-	ranrot_rand();	ranrot_rand();	ranrot_rand();  // mix it up a bit
+	Ranrot();	Ranrot();	Ranrot();  // mix it up a bit
 }
 
 
@@ -106,7 +106,7 @@ unsigned Ranrot(void)
 
 float randf (void)
 {
-	return (ranrot_rand() & 0xffff) * (1.0f / 65536.0f);
+	return (Ranrot() & 0xffff) * (1.0f / 65536.0f);
 }
 
 
@@ -115,14 +115,14 @@ float bellf (int n)
 	int i = n;
 	float total = 0;
 	
-	if (i <= 0)
+	if (EXPECT_NOT(i <= 0))
 	{
 		printf("***** ERROR - attempt to generate bellf(%d)\n", n);
 		return 0.0;	// catch possible div-by-zero problem
 	}
 	
 	while (i-- > 0)
-		total += (ranrot_rand() & 1023);
+		total += (Ranrot() & 1023);
 	return total / (1024.0f * n);
 }
 

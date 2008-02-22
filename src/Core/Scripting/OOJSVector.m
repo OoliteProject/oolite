@@ -65,6 +65,8 @@ static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsva
 
 // Static methods
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorStaticRandomDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sVectorClass =
@@ -136,6 +138,8 @@ static JSFunctionSpec sVectorStaticMethods[] =
 {
 	// JS name					Function					min args
 	{ "interpolate",			VectorStaticInterpolate,	3, },
+	{ "random",					VectorStaticRandom,			0, },
+	{ "randomDirection",		VectorStaticRandomDirection,0, },
 	{ 0 }
 };
 
@@ -708,4 +712,20 @@ static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN 
 	result = OOVectorInterpolate(av, bv, interp);
 	
 	return VectorToJSValue(context, result, outResult);
+}
+
+
+static JSBool VectorStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	double					maxLength;
+	
+	if (argc == 0 || !NumberFromArgumentList(context, @"Vector", @"random", argc, argv, &maxLength, NULL))  maxLength = 1.0;
+	
+	return VectorToJSValue(context, OORandomVector(maxLength), outResult);
+}
+
+
+static JSBool VectorStaticRandomDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	return VectorToJSValue(context, OORandomUnitVector(), outResult);
 }

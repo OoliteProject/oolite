@@ -33,16 +33,48 @@ const Vector			kBasisZVector = { 0.0f, 0.0f, 1.0f };
 const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
 
 
-static NSString * const kOOLogMathsNormalizeZero = @"maths.vector.normalizeZero";
-
-
-void ReportNormalizeZeroVector(void)
-{
-	OOLog(kOOLogMathsNormalizeZero, @"***** Attempt to normalize zero vector.");
-}
-
-
 NSString *VectorDescription(Vector vector)
 {
 	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
+}
+
+
+/*	This generates random vectors distrubuted evenly over the surface of the
+	unit sphere. It does this the simple way, by generating vectors in the
+	unit cube and rejecting those outside the unit sphere (and the zero vector),
+	then normalizing the result.
+	
+	In principle, using three normally-distributed co-ordinates (and again
+	normalizing the result) would provide the right result without looping, but
+	I don't trust bellf() so I'll go with the simple approach for now.
+*/
+Vector OORandomUnitVector(void)
+{
+	Vector				v;
+	float				m;
+	
+	do
+	{
+		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+		m = magnitude2(v);
+	}
+	while (m == 0.0f || m > 1.0f);
+	
+	return vector_normal(v);
+}
+
+
+Vector OORandomVector(GLfloat maxLength)
+{
+	Vector				v;
+	float				m;
+	
+	do
+	{
+		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
+		m = magnitude2(v);
+	}
+	while (m > 1.0f);
+	
+	return vector_multiply_scalar(v, maxLength);
 }

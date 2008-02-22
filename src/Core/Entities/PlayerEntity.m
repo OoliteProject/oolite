@@ -2018,9 +2018,9 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (GLfloat *) drawRotationMatrix	// override to provide the 'correct' drawing matrix
+- (OOMatrix) drawRotationMatrix	// override to provide the 'correct' drawing matrix
 {
-    return playerRotMatrix;
+    return OOMatrixFromGLMatrix(playerRotMatrix);
 }
 
 
