@@ -63,7 +63,7 @@ this.shipDockedWithStation = function ()
 		!missionVariables.novacount &&		// So the offers eventually stop for long-time players who keep refusing.
 		player.credits > 6553.5)
 	{
-		missionVariables.trumbles = "BUY_ME"
+		missionVariables.trumbles = "BUY_ME";
 	}
 	
 	if (missionVariables.trumbles == "BUY_ME" && player.trumbleCount == 0)
@@ -72,17 +72,12 @@ this.shipDockedWithStation = function ()
 		if (guiScreen == "GUI_SCREEN_STATUS"
 			&& Math.random() < 0.2)
 		{
-			let message = "trumble_offer"	// This will expand an externalized string. No hardcoding required.
-				//"Commander " + player.name + ",\n\n" +
-				//"You look like someone who could use a Trumble on your " + player.shipDescription + "!\n\n" +
-				//"This is yours for only 30 credits."
-			
 			// Show the mission screen.
-			mission.clearMissionScreen()
-			mission.setBackgroundImage("trumblebox.png")
-			mission.showMissionScreen()
-			mission.addMessageTextKey(message)
-			mission.setChoicesKey("oolite_trumble_offer_yesno")
+			mission.clearMissionScreen();
+			mission.setBackgroundImage("trumblebox.png");
+			mission.showMissionScreen();
+			mission.addMessageTextKey("oolite_trumble_offer");
+			mission.setChoicesKey("oolite_trumble_offer_yesno");
 		}
 	}
 }
@@ -96,16 +91,16 @@ this.missionScreenEnded = function ()
 		if (mission.choice == "OOLITE_TRUMBLE_YES")
 		{
 			// Trumble bought.
-			mission.clearMissionScreen()
-			missionVariables.trumbles = "TRUMBLE_BOUGHT"
-			player.credits -= 30
-			player.awardEquipment("EQ_TRUMBLE")
+			mission.clearMissionScreen();
+			missionVariables.trumbles = "TRUMBLE_BOUGHT";
+			player.credits -= 30;
+			player.awardEquipment("EQ_TRUMBLE");
 		}
 		else if (mission.choice == "OOLITE_TRUMBLE_NO")
 		{
 			// Trumble bought.
-			mission.clearMissionScreen()
-			missionVariables.trumbles = "NOT_NOW"
+			mission.clearMissionScreen();
+			missionVariables.trumbles = "NOT_NOW";
 		}
 		// else it was someone else's mission screen, so we do nothing.
 	}
@@ -117,6 +112,6 @@ this.shipWillExitWitchspace = function ()
 	// If player has rejected a trumble offer, reset trumble mission with 2% probability per jump.
 	if (missionVariables.trumbles == "NOT_NOW" && Math.random < 0.02)
 	{
-		missionVariables.trumbles = "BUY_ME"
+		missionVariables.trumbles = "BUY_ME";
 	}
 }

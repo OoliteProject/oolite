@@ -3132,7 +3132,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	// check if nearing surface
 	// FIXME: need script and probably AI notification for all planets, not just main.
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
-	isNearPlanetSurface = (d2 - cr2 < 250000+1000*cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
+	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
 	if (!suppressAegisMessages)
 	{
 		if (!wasNearPlanetSurface && isNearPlanetSurface)
@@ -3147,7 +3147,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 	
-	if (d2 < cr2 * 9.0) // to 3x radius of planet
+	if (d2 < cr2 * 9.0f) // to 3x radius of planet
 	{
 		result = AEGIS_CLOSE_TO_PLANET;
 	}
@@ -3165,7 +3165,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 	
 	d2 = magnitude2(vector_subtract([the_station position], [self position]));
-	if (d2 < SCANNER_MAX_RANGE2 * 4.0) // double scanner range
+	if (d2 < SCANNER_MAX_RANGE2 * 4.0f) // double scanner range
 	{
 		result = AEGIS_IN_DOCKING_RANGE;
 	}

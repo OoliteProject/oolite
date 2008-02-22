@@ -1732,14 +1732,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	NSDictionary *choices_dict = [[UNIVERSE missiontext] dictionaryForKey:choicesKey];
 	if ([choices_dict count] == 0)
+	{
 		return;
-	//
-	NSArray *choice_keys = [choices_dict allKeys];
-	//
+	}
+	
+	NSArray *choice_keys = [[choices_dict allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+	
 	[gui setText:@"" forRow:21];			// clears out the 'Press spacebar' message
 	[gui setKey:@"" forRow:21];				// clears the key to enable pollDemoControls to check for a selection
 	[gui setSelectableRange:NSMakeRange(0,0)];	// clears the selectable range
-	//
+	
 	int					choices_row = 22 - [choice_keys count];
 	NSEnumerator		*choiceEnum = nil;
 	NSString			*choiceKey = nil;
@@ -1755,10 +1757,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[gui setColor:[OOColor yellowColor] forRow:choices_row];
 		choices_row++;
 	}
-	//
+	
 	[gui setSelectableRange:NSMakeRange( 22 - [choice_keys count], [choice_keys count])];
 	[gui setSelectedRow: 22 - [choice_keys count]];
-	//
+	
 	[self resetMissionChoice];						// resets MissionChoice to nil
 }
 

@@ -131,7 +131,7 @@
 	<key>entity.linkedList.update.error</key>
 	<string>$linkedListError</string>
 	<key>entity.linkedList.verify.error</key>
-	<string>$linkedListError</string>
+	<string>no</string>
 	<key>entity.linkedList.verify.rebuild</key>
 	<string>inherit</string>
 	<key>equip.buy.mounted</key>
