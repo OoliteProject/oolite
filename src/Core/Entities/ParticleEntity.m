@@ -779,13 +779,12 @@ FAIL:
 			case PARTICLE_FLASH:
 				{
 					PlayerEntity *player = [PlayerEntity sharedPlayer];
-					if (player != nil)
-					{
-						GLfloat* rmix = [player drawRotationMatrix];
-						int i = 0;
-						for (i = 0; i < 16; i++)				// copy the player's rotation
-							rotMatrix[i] = rmix[i];				// Really simple billboard routine
-					}
+					assert(player != nil);
+					
+					GLfloat* rmix = [player drawRotationMatrix];
+					int i = 0;
+					for (i = 0; i < 16; i++)				// copy the player's rotation
+						rotMatrix[i] = rmix[i];				// Really simple billboard routine
 				}
 				break;
 			
@@ -1391,26 +1390,25 @@ FAIL:
 		return;
 	}
 
-	Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
+	Entity *my_owner = [self owner];
 
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
 	    
-		zero_distance = my_owner->zero_distance;
+		zero_distance = [my_owner zeroDistance];
 		if (zero_distance > no_draw_distance)
 			return; // TOO FAR AWAY TO DRAW
 	}
 
 	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
 	{
-		OOMatrix	temp_matrix;
-
 		Vector		abspos = position;  // in control of it's own orientation
 		int			view_dir = [UNIVERSE viewDirection];
 		Entity		*last = nil;
 		Entity		*father = my_owner;
 		OOMatrix	r_mat;
+		OOMatrix	temp_matrix;
 		
 		while ((father)&&(father != last))
 		{
@@ -1442,16 +1440,15 @@ FAIL:
 				glBegin(GL_QUADS);
 					glTexCoord2f(0.0, 1.0);
 					glVertex3f(-xx, -yy, -xx);
-
+					
 					glTexCoord2f(1.0, 1.0);
 					glVertex3f(xx, -yy, -xx);
-
+					
 					glTexCoord2f(1.0, 0.0);
 					glVertex3f(xx, yy, -xx);
-
+					
 					glTexCoord2f(0.0, 0.0);
 					glVertex3f(-xx, yy, -xx);
-					
 					
 				glEnd();
 

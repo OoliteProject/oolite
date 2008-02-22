@@ -3359,7 +3359,7 @@ static const OOMatrix	starboard_matrix =
 			return starboard_matrix;
 			
 		case VIEW_CUSTOM:
-			return OOMatrixFromGLMatrix([[PlayerEntity sharedPlayer] customViewMatrix]);
+			return [[PlayerEntity sharedPlayer] customViewMatrix];
 			
 		case VIEW_NONE:
 		case VIEW_GUI_DISPLAY:

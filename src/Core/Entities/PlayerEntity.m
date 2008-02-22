@@ -6235,7 +6235,7 @@ OOSound* burnersound;
 }
 
 
-- (GLfloat*)customViewMatrix
+- (OOMatrix)customViewMatrix
 {
 	return customViewMatrix;
 }
@@ -6270,42 +6270,43 @@ OOSound* burnersound;
 	return customViewDescription;
 }
 
-- (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict
+- (void)setCustomViewDataFromDictionary:(NSDictionary *)viewDict
 {
-	Quaternion view_q = kIdentityQuaternion;
-	
-	quaternion_into_gl_matrix(view_q, customViewMatrix);
+	customViewMatrix = kIdentityMatrix;
 	customViewOffset = kZeroVector;
-	if (!viewDict)  return;
+	if (viewDict == nil)  return;
 	
-	ScanQuaternionFromString([viewDict objectForKey:@"view_orientation"], &view_q);
-		
-	customViewQuaternion = view_q;
+	customViewQuaternion = [viewDict quaternionForKey:@"view_orientation"];
 	
-	customViewRightVector = vector_right_from_quaternion(view_q);
-	customViewUpVector = vector_up_from_quaternion(view_q);
-	customViewForwardVector = vector_forward_from_quaternion(view_q);
+	customViewRightVector = vector_right_from_quaternion(customViewQuaternion);
+	customViewUpVector = vector_up_from_quaternion(customViewQuaternion);
+	customViewForwardVector = vector_forward_from_quaternion(customViewQuaternion);
 	
-	Quaternion q1 = view_q;	q1.w = -q1.w;
-		
-	quaternion_into_gl_matrix(q1, customViewMatrix);
+	Quaternion q1 = customViewQuaternion;
+	q1.w = -q1.w;
+	customViewMatrix = OOMatrixForQuaternionRotation(q1);
 	
-	ScanVectorFromString([viewDict objectForKey:@"view_position"], &customViewOffset);
-	customViewDescription = [viewDict objectForKey:@"view_description"];
+	customViewOffset = [viewDict vectorForKey:@"view_position"];
+	customViewDescription = [viewDict stringForKey:@"view_description"];
 	
-	if ([viewDict objectForKey:@"weapon_facing"])
+	NSString *facing = [[viewDict stringForKey:@"weapon_facing"] lowercaseString];
+	if ([facing isEqual:@"aft"])
 	{
-		NSString* facing = [[viewDict stringForKey:@"view_description"] lowercaseString];
-		if ([facing isEqual:@"forward"])
-			currentWeaponFacing = VIEW_FORWARD;
-		if ([facing isEqual:@"aft"])
-			currentWeaponFacing = VIEW_AFT;
-		if ([facing isEqual:@"port"])
-			currentWeaponFacing = VIEW_PORT;
-		if ([facing isEqual:@"forward"])
-			currentWeaponFacing = VIEW_STARBOARD;
+		currentWeaponFacing = VIEW_AFT;
 	}
-	
+	else if ([facing isEqual:@"port"])
+	{
+		currentWeaponFacing = VIEW_PORT;
+	}
+	else if ([facing isEqual:@"starboard"])
+	{
+		currentWeaponFacing = VIEW_STARBOARD;
+	}
+	else
+	{
+		// Forward or unknown
+		currentWeaponFacing = VIEW_FORWARD;
+	}
 }
 
 

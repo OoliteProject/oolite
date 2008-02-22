@@ -425,7 +425,7 @@ typedef enum
 	// custom view points
 	NSMutableArray			*custom_views;
 	Quaternion				customViewQuaternion;
-	GLfloat					customViewMatrix[16];
+	OOMatrix				customViewMatrix;
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
 	NSString				*customViewDescription;
 	
@@ -666,7 +666,7 @@ typedef enum
 
 // custom view points
 - (Quaternion)customViewQuaternion;
-- (GLfloat *)customViewMatrix;
+- (OOMatrix)customViewMatrix;
 - (Vector)customViewOffset;
 - (Vector)customViewForwardVector;
 - (Vector)customViewUpVector;

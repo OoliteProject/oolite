@@ -1482,17 +1482,17 @@ static BOOL hostiles;
 			
 			switch ([UNIVERSE viewDirection])
 			{
-				case VIEW_AFT :
+				case VIEW_AFT:
 					rpn.x = - rpn.x;
 					break;
-				case VIEW_PORT :
+				case VIEW_PORT:
 					rpn.x = rpn.z;
 					break;
-				case VIEW_STARBOARD :
+				case VIEW_STARBOARD:
 					rpn.x = -rpn.z;
 					break;
-				case VIEW_CUSTOM :
-					mult_vector_gl_matrix(&rpn, [player customViewMatrix]);
+				case VIEW_CUSTOM:
+					rpn = OOVectorMultiplyMatrix(rpn, [player customViewMatrix]);
 					break;
 				
 				default:

@@ -252,7 +252,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	{
 		// this test provides an opportunity to do simple LoD culling
 		//
-		zero_distance = my_owner->zero_distance;
+		zero_distance = [my_owner zeroDistance];
 		if (zero_distance > no_draw_distance)
 		{
 			return; // TOO FAR AWAY
@@ -260,33 +260,32 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	}
 	if (status == STATUS_ACTIVE)
 	{
-		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
-		Entity*		last = nil;
-		Entity*		father = my_owner;
-		GLfloat*	r_mat = [father drawRotationMatrix];
+		Vector		abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
+		Entity		*last = nil;
+		Entity		*father = my_owner;
+		OOMatrix	r_mat;
+		
 		while ((father)&&(father != last))
 		{
-			mult_vector_gl_matrix(&abspos, r_mat);
-			Vector pos = father->position;
-			abspos.x += pos.x;	abspos.y += pos.y;	abspos.z += pos.z;
+			r_mat = OOMatrixFromGLMatrix([father drawRotationMatrix]);
+			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
+			
 			last = father;
 			father = [father owner];
-			r_mat = [father drawRotationMatrix];
 		}
 		glPopMatrix();  // one down
 		glPushMatrix();
 				// position and orientation is absolute
-		glTranslated( abspos.x, abspos.y, abspos.z);
-
+		GLTranslateOOVector(abspos);
 		glMultMatrixf(rotMatrix);
-
+		
 		[self drawEntity:immediate :translucent];
 	}
 	else
 	{
 		glPushMatrix();
 
-		glTranslated( position.x, position.y, position.z);
+		GLTranslateOOVector(position);
 		glMultMatrixf(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
