@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
+#import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "EntityOOJavaScriptExtensions.h"
 
@@ -99,8 +100,7 @@ enum
 	kPlayer_alertHostiles,		// hostiles present alert flag, boolean, read-only
 	kPlayer_trumbleCount,		// number of trumbles, integer, read-only
 	kPlayer_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
-	kPlayer_galacticHyperspaceFixedCoords_x,	// used when fixed coords behaviour is selected, integer, read-only
-	kPlayer_galacticHyperspaceFixedCoords_y		// used when fixed coords behaviour is selected, integer, read-only
+	kPlayer_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
 };
 
 
@@ -124,8 +124,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceBehaviour",	kPlayer_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galacticHyperspaceFixedCoords_x",	kPlayer_galacticHyperspaceFixedCoords_x,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galacticHyperspaceFixedCoords_y",	kPlayer_galacticHyperspaceFixedCoords_y,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galacticHyperspaceFixedCoords",	kPlayer_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -296,12 +295,8 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
 			break;
 			
-		case kPlayer_galacticHyperspaceFixedCoords_x:
-			JS_NewNumberValue(context, [player galacticHyperspaceFixedCoords].x, outValue);
-			break;
-			
-		case kPlayer_galacticHyperspaceFixedCoords_y:
-			JS_NewNumberValue(context, [player galacticHyperspaceFixedCoords].y, outValue);
+		case kPlayer_galacticHyperspaceFixedCoords:
+			NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
 			break;
 		
 		default:
@@ -500,8 +495,29 @@ static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject 
 }
 
 
+// setGalacticHyperspaceFixedCoords(v : vectorExpression) or setGalacticHyperspaceFixedCoords(x : Number, y : Number)
 static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() setGalacticHyperspaceFixedCoords:JSValToNSString(context, argv[0])];
+	double				x, y;
+	Vector				v;
+	
+	if (argc == 2)
+	{
+		// Expect two integers
+		if (!JS_ValueToNumber(context, argv[0], &x))  x = 0x60;
+		if (!JS_ValueToNumber(context, argv[1], &y))  y = 0x60;
+	}
+	else
+	{
+		// Expect vectorExpression
+		if (!VectorFromArgumentList(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, &v, NULL))  v = make_vector(0x60, 0x60, 0);
+		x = v.x;
+		y = v.y;
+	}
+	
+	x = OOClamp_0_max_d(x, 255);
+	y = OOClamp_0_max_d(y, 255);
+	
+	[OOPlayerForScripting() setGalacticHyperspaceFixedCoordsX:x y:y];
 	return YES;
 }

@@ -6352,7 +6352,7 @@ OOSound* burnersound;
 	if (galacticHyperspaceBehaviourString == nil)
 	{
 		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
-		      @"setGalacticHyperspaceBehaviour called with nil string specifier. Defaulting to Oolite standard.");
+		      @"setGalacticHyperspaceBehaviour: called with nil string specifier. Defaulting to Oolite standard.");
 		galacticHyperspaceBehaviour = GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD;
 	}
 	galacticHyperspaceBehaviour = StringToGalacticHyperspaceBehaviour(galacticHyperspaceBehaviourString);
@@ -6367,14 +6367,23 @@ OOSound* burnersound;
 
 - (void) setGalacticHyperspaceFixedCoords:(NSString *)galacticHyperspaceFixedCoordsString
 {	
-	if (galacticHyperspaceFixedCoordsString == nil)
+	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
+	if ([coord_vals count] < 2)	// Will be 0 if string is nil
 	{
+		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
+		      @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
 		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
 	}
 	
-	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
-	galacticHyperspaceFixedCoords.x = (unsigned char)[(NSString *)[coord_vals objectAtIndex:0] intValue];
-	galacticHyperspaceFixedCoords.y = (unsigned char)[(NSString *)[coord_vals objectAtIndex:1] intValue];
+	[self setGalacticHyperspaceFixedCoordsX:[coord_vals unsignedCharAtIndex:0]
+										  y:[coord_vals unsignedCharAtIndex:1]];
+}
+
+
+- (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y
+{
+	galacticHyperspaceFixedCoords.x = x;
+	galacticHyperspaceFixedCoords.y = y;
 }
 
 

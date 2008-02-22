@@ -184,6 +184,12 @@ BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue)
 }
 
 
+BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue)
+{
+	return VectorToJSValue(context, make_vector(point.x, point.y, 0), outValue);
+}
+
+
 BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector)
 {
 	if (!JSVAL_IS_OBJECT(value))  return NO;

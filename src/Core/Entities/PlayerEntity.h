@@ -687,6 +687,7 @@ typedef enum
 - (void) setGalacticHyperspaceBehaviour:(NSString *) galacticHyperspaceBehaviourString;
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
 - (void) setGalacticHyperspaceFixedCoords:(NSString *) galacticHyperspaceFixedCoordsString;
+- (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
 
 @end

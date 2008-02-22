@@ -35,6 +35,7 @@ void InitOOJSVector(JSContext *context, JSObject *global);
 JSObject *JSVectorWithVector(JSContext *context, Vector vector);
 
 BOOL VectorToJSValue(JSContext *context, Vector vector, jsval *outValue);
+BOOL NSPointToVectorJSValue(JSContext *context, NSPoint point, jsval *outValue);
 BOOL JSValueToVector(JSContext *context, jsval value, Vector *outVector);
 
 /*	Given a JS Vector object, get the corresponding Vector struct. Given a JS
