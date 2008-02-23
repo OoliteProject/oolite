@@ -231,7 +231,7 @@ typedef struct
 - (void) applyRoll:(GLfloat)roll climb:(GLfloat) climb andYaw:(GLfloat)yaw;
 - (void) moveForward:(double)amount;
 
-- (GLfloat *) rotationMatrix;
+- (OOMatrix) rotationMatrix;
 - (OOMatrix) drawRotationMatrix;
 
 - (BOOL) canCollide;

@@ -3479,7 +3479,7 @@ static const OOMatrix	starboard_matrix =
 				if (!inGUIMode)
 				{
 					// rotate the view
-					glMultMatrixf([player rotationMatrix]);
+					GLMultOOMatrix([player rotationMatrix]);
 					// translate the view
 					GLTranslateOOVector(vector_flip(position));
 				}

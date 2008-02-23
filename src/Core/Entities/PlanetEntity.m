@@ -1481,7 +1481,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 					glPushMatrix();	// and store it again
 					glTranslatef(position.x,position.y,position.z); // centre on the planet
 					// rotate
-					glMultMatrixf([atmosphere rotationMatrix]);
+					GLMultOOMatrix([atmosphere rotationMatrix]);
 					// draw atmosphere entity
 					[atmosphere drawEntity:immediate :translucent];
 

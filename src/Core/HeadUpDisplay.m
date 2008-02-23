@@ -388,7 +388,7 @@ static BOOL hostiles;
 	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0 };	// can be manipulated
 	
 	position = [player position];
-	rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+	rotMatrix = [player rotationMatrix];
 	
 	glColor4fv(scanner_color);
 	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], line_width, scanner_zoom);
@@ -677,7 +677,7 @@ static BOOL hostiles;
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	Vector			position = [player position];
 	
-	rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+	rotMatrix = [player rotationMatrix];
 	
 	GLfloat h1 = siz.height * 0.125;
 	GLfloat h3 = siz.height * 0.375;
@@ -1468,7 +1468,7 @@ static BOOL hostiles;
 		OOMatrix	rotMatrix;
 		Vector		position = [player position];
 		
-		rotMatrix = OOMatrixFromGLMatrix([player rotationMatrix]);
+		rotMatrix = [player rotationMatrix];
 		
 		if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 		{
@@ -1954,11 +1954,11 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			break;
 	}
 	gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
-	//
+	
 	back_mat = OOMatrixForQuaternionRotation(back_q);
-	//
+	
 	// rotate the view
-	glMultMatrixf([player1 rotationMatrix]);
+	GLMultOOMatrix([player1 rotationMatrix]);
 	// translate the view
 	glTranslatef(p1.x, p1.y, p1.z);
 	//rotate to face player1
