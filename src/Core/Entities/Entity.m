@@ -62,9 +62,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
     self = [super init];
     
-	orientation	= kIdentityQuaternion;
-	rotMatrix	= OOMatrixForQuaternionRotation(orientation);
-    
+	orientation = kIdentityQuaternion;
+	rotMatrix = kIdentityMatrix;
 	position = kZeroVector;
 	
 	no_draw_distance = 100000.0;  //  10 km

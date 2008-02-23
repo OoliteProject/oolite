@@ -146,7 +146,7 @@ MA 02110-1301, USA.
 	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
 
 	BOOL	warp_stars = [player atHyperspeed];
-	Vector  warp_vector = [player velocityVector];
+	Vector  warp_vector = vector_multiply_scalar([player velocityVector], 1.0f / HYPERSPEED_FACTOR);
 		
 	if (translucent)
 	{
@@ -186,12 +186,8 @@ MA 02110-1301, USA.
 		
 		for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 		{
-			glVertex3f( vertices[vi].x, vertices[vi].y, vertices[vi].z);
-			if (warp_stars)
-			{
-				Vector vh = make_vector(vertices[vi].x-warp_vector.x/HYPERSPEED_FACTOR, vertices[vi].y-warp_vector.y/HYPERSPEED_FACTOR, vertices[vi].z-warp_vector.z/HYPERSPEED_FACTOR);
-				glVertex3f( vh.x, vh.y, vh.z);
-			}
+			GLVertexOOVector(vertices[vi]);
+			if (warp_stars)  GLVertexOOVector(vector_subtract(vertices[vi], warp_vector));
 		}
 		glEnd();
 		// reapply normal conditions

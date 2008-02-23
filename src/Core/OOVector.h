@@ -114,6 +114,7 @@ NSString *VectorDescription(Vector vector);	// @"(x, y, z)"
 #endif
 
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
+#define GLVertexOOVector(v) do { Vector v_ = v; glVertex3f(v_.x, v_.y, v_.z); } while (0)
 #define GLTranslateOOVector(v) do { Vector v_ = v; glTranslatef(v_.x, v_.y, v_.z); } while (0)
 
 

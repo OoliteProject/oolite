@@ -124,7 +124,6 @@ MA 02110-1301, USA.
 
 
 static NSString * const kOOLogCacheIntegrityCheck	= @"dataCache.integrityCheck";
-static NSString * const kOOLogCachePrune			= @"dataCache.prune";
 
 
 typedef struct OOCacheImpl OOCacheImpl;
@@ -143,7 +142,7 @@ static void CacheFree(OOCacheImpl *cache);
 
 static BOOL CacheInsert(OOCacheImpl *cache, id key, id value);
 static BOOL CacheRemove(OOCacheImpl *cache, id key);
-static BOOL CacheRemoveOldest(OOCacheImpl *cache);
+static BOOL CacheRemoveOldest(OOCacheImpl *cache, NSString *logKey);
 static id CacheRetrieve(OOCacheImpl *cache, id key);
 static unsigned CacheGetCount(OOCacheImpl *cache);
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
@@ -319,12 +318,13 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 	
 	pruneCount = count - desiredCount;
 	
-	OOLog(kOOLogCachePrune, @"Pruning cache \"%@\" - removing %u entries", CacheGetName(cache), pruneCount);
-	OOLogIndentIf(kOOLogCachePrune);
+	NSString *logKey = [NSString stringWithFormat:@"dataCache.prune.%@", CacheGetName(cache)];
+	OOLog(logKey, @"Pruning cache \"%@\" - removing %u entries", CacheGetName(cache), pruneCount);
+	OOLogIndentIf(logKey);
 	
-	while (pruneCount--)  CacheRemoveOldest(cache);
+	while (pruneCount--)  CacheRemoveOldest(cache, logKey);
 	
-	OOLogOutdentIf(kOOLogCachePrune);
+	OOLogOutdentIf(logKey);
 }
 
 
@@ -498,12 +498,12 @@ static BOOL CacheRemove(OOCacheImpl *cache, id key)
 }
 
 
-static BOOL CacheRemoveOldest(OOCacheImpl *cache)
+static BOOL CacheRemoveOldest(OOCacheImpl *cache, NSString *logKey)
 {
 	// This could be more efficient, but does it need to be?
 	if (cache == NULL || cache->oldest == NULL) return NO;
 	
-	OOLog(kOOLogCachePrune, @"Pruning cache \"%@\": removing %@", cache->name, cache->oldest->key);
+	OOLog(logKey, @"Pruning cache \"%@\": removing %@", cache->name, cache->oldest->key);
 	return CacheRemove(cache, cache->oldest->key);
 }
 

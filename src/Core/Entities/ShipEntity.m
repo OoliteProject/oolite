@@ -194,7 +194,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary		*shipDict = dict;
 	
     orientation = kIdentityQuaternion;
-	rotMatrix	= OOMatrixForQuaternionRotation(orientation);
+	rotMatrix	= kIdentityMatrix;
 	v_forward	= kBasisZVector;
 	v_up		= kBasisYVector;
 	v_right		= kBasisXVector;

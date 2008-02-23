@@ -1020,7 +1020,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		default :
 			typeString = @"UNKNOWN";
 	}
-	return [NSString stringWithFormat:@"ID: %u position: %@ %@ type: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), typeString, 0.001 * [self radius]];
+	return [NSString stringWithFormat:@"ID: %u position: %@ type: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), typeString, 0.001 * [self radius]];
 }
 
 
