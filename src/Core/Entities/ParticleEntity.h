@@ -46,17 +46,17 @@ MA 02110-1301, USA.
 	GLfloat			color_fv[4];
 	
 	GLfloat			alpha;
-	double			time_counter;
+	OOTimeDelta		time_counter;
 	
-	double			duration;
-	double			activation_time;
+	OOTimeDelta		duration;
+	OOTimeDelta		activation_time;
 	double			growth_rate;
 	
-	double			ring_inner_radius, ring_outer_radius;
+	GLfloat			ring_inner_radius, ring_outer_radius;
 	
 	int				particle_type;
 	
-	double			alpha_for_vertex[MAX_VERTICES_PER_ENTITY];
+	GLfloat			alpha_for_vertex[MAX_VERTICES_PER_ENTITY];
 		
     NSSize			size;
 

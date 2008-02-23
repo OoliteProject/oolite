@@ -219,7 +219,7 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
 			break;
 	}
-	quaternion_into_gl_matrix(orientation, rotMatrix);
+	rotMatrix = OOMatrixForQuaternionRotation(orientation);
 	
 	time_counter = 0.0;
 	
@@ -780,12 +780,7 @@ FAIL:
 				{
 					PlayerEntity *player = [PlayerEntity sharedPlayer];
 					assert(player != nil);
-					
-					OOMatrix rMat = [player drawRotationMatrix];
-					GLfloat *rmix = OOMatrixValuesForOpenGL(rMat);
-					int i = 0;
-					for (i = 0; i < 16; i++)				// copy the player's rotation
-						rotMatrix[i] = rmix[i];				// Really simple billboard routine
+					rotMatrix = [player drawRotationMatrix];
 				}
 				break;
 			
@@ -908,35 +903,9 @@ FAIL:
 - (void) updateEnergyMine:(double) delta_t
 {
 	// new billboard routine (working at last!)
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	Vector v0 = position;
-	Vector p0 = (player)? player->position: kZeroVector;
-	v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
-	if (v0.x||v0.y||v0.z)
-		v0 = unit_vector(&v0);
-	else
-		v0.z = 1.0;
-	//equivalent of v_forward
-
-	Vector arb1;
-	if ((v0.x == 0.0)&&(v0.y == 0.0))
-	{
-		arb1.x = 1.0;   arb1.y = 0.0; arb1.z = 0.0; // arbitrary axis - not aligned with v0
-	}
-	else
-	{
-		arb1.x = 0.0;   arb1.y = 0.0; arb1.z = 1.0;
-	}
-
-	Vector v1 = cross_product(v0, arb1 ); // 90 degrees to (v0 x arb1)
-	//equivalent of v_right
-
-	Vector v2 = cross_product(v0, v1 );   // 90 degrees to (v0 x v1)
-	//equivalent of v_up
-
-	vectors_into_gl_matrix(v0, v1, v2, rotMatrix);
-    
-	// end of new billboard routine
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	assert(player != nil);
+	rotMatrix = OOMatrixForBillboard(position, [player position]);
 
 	GLfloat tf = time_counter / duration;
 	GLfloat stf = tf * tf;

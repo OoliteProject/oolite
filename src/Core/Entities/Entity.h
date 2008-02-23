@@ -104,8 +104,8 @@ typedef struct
 	OOScanClass				scanClass;
 	OOEntityStatus			status;
 	
-	double					zero_distance;
-	double					no_draw_distance;		// 10 km initially
+	GLfloat					zero_distance;
+	GLfloat					no_draw_distance;		// 10 km initially
 	GLfloat					collision_radius;
 	Vector					position;
 	Quaternion				orientation;
@@ -133,7 +133,7 @@ typedef struct
 	
 	GLfloat					distanceTravelled;		// set to zero initially
 	
-	gl_matrix				rotMatrix;
+	OOMatrix				rotMatrix;
     
 	Vector					velocity;
 	
@@ -141,7 +141,7 @@ typedef struct
 	// TODO: Can these be moved into a subclass? -- Ahruman
 	Frame					track[256];
 	int						trackIndex;
-	double					trackTime;
+	OOTimeAbsolute			trackTime;
 	NSLock					*trackLock;
 	
 	GLfloat					energy;

@@ -627,13 +627,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 
 static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 {
-#if 0
-	// DEBUG
-	static OOColor *green = nil;
-	if (!green) green = [[OOColor greenColor] retain];
-	return green;
-#endif
-	
 	OOColor				*color = nil;
 	float				hue, saturation, brightness, alpha;
 	

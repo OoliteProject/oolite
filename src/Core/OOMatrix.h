@@ -29,10 +29,6 @@ MA 02110-1301, USA.
 	#error Do not include OOMatrix.h directly; include OOMaths.h.
 #else
 
-/* Deprecated legacy representations */
-typedef GLfloat	gl_matrix[16];
-
-
 typedef struct OOMatrix
 {
 	GLfloat				m[4][4];
@@ -63,6 +59,8 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation);
 OOINLINE OOMatrix OOMatrixForTranslation(Vector v) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLfloat dz) INLINE_CONST_FUNC;
 
+OOINLINE OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) INLINE_CONST_FUNC;
+
 
 /* Matrix transformations */
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset) INLINE_CONST_FUNC;
@@ -80,6 +78,10 @@ OOMatrix OOMatrixMultiply(OOMatrix a, OOMatrix b) CONST_FUNC;
 Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m) CONST_FUNC;
 
 
+/* Extraction */
+OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outUp, Vector *outForward) NONNULL_FUNC ALWAYS_INLINE_FUNC;
+
+
 /* Orthogonalizion - avoidance of distortions due to numerical inaccuracy. */
 OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 
@@ -93,9 +95,6 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID) ALWAYS_INLINE_FUNC;
 
-
-/* Conversion to/from legacy representations */
-OOINLINE OOMatrix OOMatrixFromGLMatrix(gl_matrix m) NONNULL_FUNC;
 
 #ifdef __OBJC__
 NSString *OOMatrixDescription(OOMatrix matrix);		// @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
@@ -207,6 +206,24 @@ OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLflo
 }
 
 
+OOINLINE OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)
+{
+	Vector			v0, v1, v2, arbv;
+	
+	v0 = vector_subtract(bbPos, eyePos);
+	v0 = vector_normal_or_fallback(v0, kBasisZVector);
+	
+	// arbitrary axis - not aligned with v0
+	if (EXPECT_NOT(v0.x == 0.0 && v0.y == 0.0))  arbv = kBasisXVector;
+	else  arbv = kBasisZVector;
+	
+	v1 = true_cross_product(v0, arbv); // 90 degrees to (v0 x arb1)
+	v2 = true_cross_product(v0, v1);   // 90 degrees to (v0 x v1)
+	
+	return OOMatrixFromBasisVectors(v1, v2, v0);
+}
+
+
 OOINLINE OOMatrix OOMatrixForTranslation(Vector v)
 {
 	return OOMatrixForTranslationComponents(v.x, v.y, v.z);
@@ -257,14 +274,16 @@ OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat)
 	return OOMatrixMultiply(m, OOMatrixForQuaternionRotation(quat));
 }
 
-OOINLINE OOMatrix OOMatrixFromGLMatrix(gl_matrix m)
+
+OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outUp, Vector *outForward)
 {
-	assert(m != NULL);
+	assert(outRight != NULL && outUp != NULL && outForward != NULL);
 	
-	OOMatrix r;
-	memcpy(&r.m[0][0], m, sizeof (GLfloat) * 16);
-	return r;
+	*outRight	= make_vector(m.m[0][0], m.m[1][0], m.m[2][0]);
+	*outUp		= make_vector(m.m[0][1], m.m[1][1], m.m[2][1]);
+	*outForward	= make_vector(m.m[0][2], m.m[1][2], m.m[2][2]);
 }
+
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID)
 {
@@ -272,33 +291,5 @@ OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID)
 	glGetFloatv(matrixID, OOMatrixValuesForOpenGL(m));
 	return m;
 }
-
-
-
-
-
-
-
-/***** Deprecated legacy stuff beyond this point, do not use *****/
-
-
-/* Set matrix to identity matrix */
-OOINLINE void OOCopyGLMatrix(gl_matrix dst, const gl_matrix src) ALWAYS_INLINE_FUNC NONNULL_FUNC;
-
-
-/* Multiply vector by OpenGL matrix */
-void mult_vector_gl_matrix(Vector *outVector, const gl_matrix glmat) NONNULL_FUNC;
-
-/* Build an OpenGL matrix from vectors */
-void vectors_into_gl_matrix(Vector forward, Vector right, Vector up, gl_matrix outGLMatrix) NONNULL_FUNC;
-
-
-
-/*** Only inline definitions beyond this point ***/
-OOINLINE void OOCopyGLMatrix(gl_matrix dst, const gl_matrix src)
-{
-	memcpy(dst, src, sizeof dst);
-}
-
 
 #endif	/* INCLUDED_OOMATHS_h */

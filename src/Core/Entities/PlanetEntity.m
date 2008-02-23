@@ -1079,146 +1079,118 @@ static GLfloat	texture_uv_array[10400 * 2];
 	switch (planet_type)
 	{
 		case PLANET_TYPE_GREEN:
-		{
-			double ugt = [UNIVERSE getTime];
-
-			if ((shuttles_on_ground > 0)&&(ugt > last_launch_time + shuttle_launch_interval))
 			{
-				[self launchShuttle];
-				shuttles_on_ground--;
-				last_launch_time = ugt;
+				double ugt = [UNIVERSE getTime];
+
+				if ((shuttles_on_ground > 0)&&(ugt > last_launch_time + shuttle_launch_interval))
+				{
+					[self launchShuttle];
+					shuttles_on_ground--;
+					last_launch_time = ugt;
+				}
 			}
-		}
 		
 		case PLANET_TYPE_MINIATURE:
-		// normal planetary rotation
-		//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
-		quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
-		quaternion_normalize(&orientation);
-		quaternion_into_gl_matrix(orientation, rotMatrix);
-
-		if (atmosphere)
-		{
-			[atmosphere update:delta_t];
-			double alt = sqrt_zero_distance - collision_radius;
-			double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
-
-			if ((alt > 0)&&(alt <= atmo))
+			// normal planetary rotation
+			//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+			quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
+			[self orientationChanged];
+			
+			if (atmosphere)
 			{
-				double aleph = (atmo - alt) / atmo;
-				if (aleph < 0.0) aleph = 0.0;
-				if (aleph > 1.0) aleph = 1.0;
-				
-				[UNIVERSE setSkyColorRed:0.8 * aleph * aleph
-								   green:0.8 * aleph * aleph
-									blue:0.9 * aleph
-								   alpha:aleph];
+				[atmosphere update:delta_t];
+				double alt = sqrt_zero_distance - collision_radius;
+				double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
+
+				if ((alt > 0)&&(alt <= atmo))
+				{
+					double aleph = (atmo - alt) / atmo;
+					if (aleph < 0.0) aleph = 0.0;
+					if (aleph > 1.0) aleph = 1.0;
+					
+					[UNIVERSE setSkyColorRed:0.8 * aleph * aleph
+									   green:0.8 * aleph * aleph
+										blue:0.9 * aleph
+									   alpha:aleph];
+				}
 			}
-		}
-		break;
+			break;
 
 		case PLANET_TYPE_ATMOSPHERE:
-		{
-			// atmospheric rotation
-			quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
-			quaternion_normalize(&orientation);
-			quaternion_into_gl_matrix(orientation, rotMatrix);
-		}
-		break;
+			{
+				// atmospheric rotation
+				quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+				[self orientationChanged];
+			}
+			break;
 		
 		case PLANET_TYPE_SUN:
-		{
-			// new billboard routine (working at last!)
-			PlayerEntity* player = [PlayerEntity sharedPlayer];
-			Vector v0 = position;
-			Vector p0 = (player)? player->position: kZeroVector;
-			v0.x -= p0.x;	v0.y -= p0.y;	v0.z -= p0.z; // vector from player to position
-
-			if (v0.x||v0.y||v0.z)
-				v0 = unit_vector(&v0);
-			else
-				v0.z = 1.0;
-			//equivalent of v_forward
-
-			Vector arb1;
-			if ((v0.x == 0.0)&&(v0.y == 0.0))
 			{
-				arb1.x = 1.0;   arb1.y = 0.0; arb1.z = 0.0; // arbitrary axis - not aligned with v0
-			}
-			else
-			{
-				arb1.x = 0.0;   arb1.y = 0.0; arb1.z = 1.0;
-			}
-			
-			Vector v1 = cross_product(v0, arb1 ); // 90 degrees to (v0 x arb1)
-			//equivalent of v_right
-			
-			Vector v2 = cross_product(v0, v1 );   // 90 degrees to (v0 x v1)
-			//equivalent of v_up
-			
-			vectors_into_gl_matrix(v0, v1, v2, rotMatrix);
-			
-			if (throw_sparks&&(planet_type == PLANET_TYPE_SUN)&&(velocity.z > 0))	// going NOVA!
-			{
-				if (velocity.x >= 0.0)	// countdown
+				PlayerEntity	*player = [PlayerEntity sharedPlayer];
+				assert(player != nil);
+				rotMatrix = OOMatrixForBillboard(position, [player position]);
+				
+				if (throw_sparks&&(planet_type == PLANET_TYPE_SUN)&&(velocity.z > 0))	// going NOVA!
 				{
-					velocity.x -= delta_t;
-					if (corona_speed_factor < 5.0)
-						corona_speed_factor += 0.75 * delta_t;
-				}
-				else
-				{
-					if (velocity.y <= 60.0)	// expand for a minute
+					if (velocity.x >= 0.0)	// countdown
 					{
-						double sky_bri = 1.0 - 1.5 * velocity.y;
-						if (sky_bri < 0)
-						{
-							[UNIVERSE setSkyColorRed:0.0f		// back to black
-											   green:0.0f
-												blue:0.0f
-											   alpha:0.0f];
-						}
-						else
-						{
-							[UNIVERSE setSkyColorRed:sky_bri	// whiteout
-											   green:sky_bri
-												blue:sky_bri
-											   alpha:1.0f];
-						}
-						if (sky_bri == 1.0)
-							OOLog(@"sun.nova.start", @"DEBUG NOVA original radius %.1f", collision_radius);
-						amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;
-						velocity.y += delta_t;
-						[self setRadius: collision_radius + delta_t * velocity.z];
+						velocity.x -= delta_t;
+						if (corona_speed_factor < 5.0)
+							corona_speed_factor += 0.75 * delta_t;
 					}
 					else
 					{
-						OOLog(@"sun.nova.end", @"DEBUG NOVA final radius %.1f", collision_radius);
-						// reset at the new size
-						velocity = kZeroVector;
-						throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
+						if (velocity.y <= 60.0)	// expand for a minute
+						{
+							double sky_bri = 1.0 - 1.5 * velocity.y;
+							if (sky_bri < 0)
+							{
+								[UNIVERSE setSkyColorRed:0.0f		// back to black
+												   green:0.0f
+													blue:0.0f
+												   alpha:0.0f];
+							}
+							else
+							{
+								[UNIVERSE setSkyColorRed:sky_bri	// whiteout
+												   green:sky_bri
+													blue:sky_bri
+												   alpha:1.0f];
+							}
+							if (sky_bri == 1.0)
+								OOLog(@"sun.nova.start", @"DEBUG NOVA original radius %.1f", collision_radius);
+							amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;
+							velocity.y += delta_t;
+							[self setRadius: collision_radius + delta_t * velocity.z];
+						}
+						else
+						{
+							OOLog(@"sun.nova.end", @"DEBUG NOVA final radius %.1f", collision_radius);
+							// reset at the new size
+							velocity = kZeroVector;
+							throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
+						}
 					}
 				}
-			}
-			
-			// update corona
-			if (![UNIVERSE reducedDetail])
-			{
-				corona_stage += corona_speed_factor * delta_t;
-				if (corona_stage > 1.0)
+				
+				// update corona
+				if (![UNIVERSE reducedDetail])
 				{
-					 int i;
-					 corona_stage -= 1.0;
-					 for (i = 0; i < 369; i++)
-					 {
-						rvalue[i] = rvalue[360 + i];
-						rvalue[360 + i] = randf();
-					 }
+					corona_stage += corona_speed_factor * delta_t;
+					if (corona_stage > 1.0)
+					{
+						 int i;
+						 corona_stage -= 1.0;
+						 for (i = 0; i < 369; i++)
+						 {
+							rvalue[i] = rvalue[360 + i];
+							rvalue[360 + i] = randf();
+						 }
+					}
 				}
-			}
 
-		}
-		break;
+			}
+			break;
 	}
 }
 
@@ -1300,8 +1272,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 	{
 		case PLANET_TYPE_ATMOSPHERE:
 			if (root_planet)
+			{
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
-			glMultMatrixf(rotMatrix);	// rotate the clouds!
+			}
+			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
 		case PLANET_TYPE_GREEN:
 		case PLANET_TYPE_MINIATURE:
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)

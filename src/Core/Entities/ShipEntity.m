@@ -192,8 +192,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	NSDictionary		*shipDict = dict;
+	
     orientation = kIdentityQuaternion;
-    quaternion_into_gl_matrix(orientation, rotMatrix);
+	rotMatrix	= OOMatrixForQuaternionRotation(orientation);
 	v_forward	= kBasisZVector;
 	v_up		= kBasisYVector;
 	v_right		= kBasisXVector;
@@ -1013,7 +1014,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BoundingBox)findSubentityBoundingBox
 {
-	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:OOMatrixFromGLMatrix(rotMatrix)];
+	return [[self mesh] findSubentityBoundingBoxWithPosition:position rotMatrix:rotMatrix];
 }
 
 
@@ -1025,7 +1026,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (Vector) absolutePositionForSubentityOffset:(Vector) offset
 {
-	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, OOMatrixFromGLMatrix(rotMatrix)));
+	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
 	Entity		*last = nil;
 	Entity		*father = [self owner];
 	OOMatrix	r_mat;
@@ -2475,10 +2476,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		glPopMatrix();  // one down
 		glPushMatrix();
-				// position and orientation is absolute
+		// position and orientation is absolute
 		GLTranslateOOVector(abspos);
 		
-		glMultMatrixf(rotMatrix);
+		GLMultOOMatrix(rotMatrix);
 
 		[self drawEntity:immediate :translucent];
 
@@ -2486,12 +2487,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		glPushMatrix();
-
-		glTranslated(position.x, position.y, position.z);
-		glMultMatrixf(rotMatrix);
-
+		
+		GLTranslateOOVector(position);
+		GLMultOOMatrix(rotMatrix);
+		
 		[self drawEntity:immediate :translucent];
-
+		
 		glPopMatrix();
 	}
 }

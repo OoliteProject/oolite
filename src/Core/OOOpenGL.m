@@ -211,10 +211,6 @@ void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 
 
 // ======== LogOpenGLState() and helpers ========
-#if 0
-#pragma mark -
-#endif
-
 
 static NSString *GLColorToString(GLfloat color[4]);
 static NSString *GLEnumToString(GLenum value);

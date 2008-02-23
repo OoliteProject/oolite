@@ -277,19 +277,19 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		glPushMatrix();
 				// position and orientation is absolute
 		GLTranslateOOVector(abspos);
-		glMultMatrixf(rotMatrix);
+		GLMultOOMatrix(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
 	}
 	else
 	{
 		glPushMatrix();
-
+		
 		GLTranslateOOVector(position);
-		glMultMatrixf(rotMatrix);
-
+		GLMultOOMatrix(rotMatrix);
+		
 		[self drawEntity:immediate :translucent];
-
+		
 		glPopMatrix();
 	}
 }

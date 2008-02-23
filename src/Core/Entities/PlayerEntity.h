@@ -252,7 +252,7 @@ typedef enum
 	
 	NSString				*planetSearchString;
 	
-	gl_matrix				playerRotMatrix;
+	OOMatrix				playerRotMatrix;
 	
 	// For OO-GUI based save screen
 	NSString				*commanderNameString;

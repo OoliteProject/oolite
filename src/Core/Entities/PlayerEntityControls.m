@@ -1190,15 +1190,6 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
 		}
 		
-#if 0		
-		// Disabled - Wireframe graphics has been implemented as game option.
-		if ([gameView isDown:'w'])
-		{
-			gDebugFlags |= DEBUG_WIREFRAME_GRAPHICS;
-			[UNIVERSE addMessage:@"Wireframe graphics ON" forCount:3];
-		}
-#endif
-		
 #endif
 #ifdef ALLOW_PROCEDURAL_PLANETS
 		if ([gameView isDown:'t'])// look for the 't' key
@@ -2590,6 +2581,9 @@ static BOOL toggling_music;
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
 			suppressAegisMessages = YES;
+#if 0
+			// "Fix" for "simple" issue where space compass shows station with planet icon on launch.
+			// Has the slight unwanted side-effect of effectively giving the player an advanced compass.
 			if ([self checkForAegis] != AEGIS_NONE)
 			{
 				[self setCompassMode:COMPASS_MODE_STATION];
@@ -2598,6 +2592,9 @@ static BOOL toggling_music;
 			{
 				[self setCompassMode:COMPASS_MODE_PLANET];	
 			}
+#else
+			[self checkForAegis];
+#endif
 			suppressAegisMessages = NO;
 			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 			[self playBreakPattern];

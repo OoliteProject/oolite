@@ -433,13 +433,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 	}
 	
-	#if 0
-	// DISABLED -- this setting should be stored in preferences. Saving it in games makes no sense. -- Ahruman
-	// texture experiments
-	if ([dict objectForKey:@"procedural_planet_textures"])
-		[UNIVERSE setDoProcedurallyTexturedPlanets: [[dict objectForKey:@"procedural_planet_textures"] boolValue]];
-	#endif
-	
 	//base ship description
 	if ([dict objectForKey:@"ship_desc"])
 	{
@@ -1956,23 +1949,12 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) orientationChanged
 {
-    quaternion_normalize(&orientation);	// probably not strictly necessary but good to do to keep orientation sane
-    quaternion_into_gl_matrix(orientation, rotMatrix);
-	
-	v_right.x = rotMatrix[0];
-	v_right.y = rotMatrix[4];
-	v_right.z = rotMatrix[8];
-	
-	v_up.x = rotMatrix[1];
-	v_up.y = rotMatrix[5];
-	v_up.z = rotMatrix[9];
-	
-	v_forward.x = rotMatrix[2];
-	v_forward.y = rotMatrix[6];
-	v_forward.z = rotMatrix[10];
+    quaternion_normalize(&orientation);
+	rotMatrix = OOMatrixForQuaternionRotation(orientation);
+	OOMatrixGetBasisVectors(rotMatrix, &v_right, &v_up, &v_forward);
 	
 	orientation.w = -orientation.w;
-	quaternion_into_gl_matrix(orientation, playerRotMatrix);	// this is the rotation similar to ordinary ships
+	playerRotMatrix = OOMatrixForQuaternionRotation(orientation);	// this is the rotation similar to ordinary ships
 	orientation.w = -orientation.w;
 }
 
@@ -2020,7 +2002,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (OOMatrix) drawRotationMatrix	// override to provide the 'correct' drawing matrix
 {
-    return OOMatrixFromGLMatrix(playerRotMatrix);
+    return playerRotMatrix;
 }
 
 
@@ -2065,7 +2047,7 @@ double scoopSoundPlayTime = 0.0;
 	Vector		offset = [self viewpointOffset];
 	
 	// FIXME: this ought to be done with matrix or quaternion functions.
-	OOMatrix r = OOMatrixFromGLMatrix(rotMatrix);
+	OOMatrix r = rotMatrix;
 	
 	viewpoint.x += offset.x * r.m[0][0];	viewpoint.y += offset.x * r.m[1][0];	viewpoint.z += offset.x * r.m[2][0];
 	viewpoint.x += offset.y * r.m[0][1];	viewpoint.y += offset.y * r.m[1][1];	viewpoint.z += offset.y * r.m[2][1];

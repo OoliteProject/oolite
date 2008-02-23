@@ -267,12 +267,8 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 	
 	if (!stack_check)
 	{
+		// If we get here, we broke the loop due to recursion; the resulting string will have [expansionKey]s in it.
 		OOLog(kOOLogExpandDescriptionsRecursionLimitExceeded, @"***** ERROR: exceeded recusion limit trying to expand description \"%@\"", text);
-		#if 0
-			// What's the point of breaking? A bad description is better than falling to pieces.
-			[NSException raise:OOLITE_EXCEPTION_LOOPING
-						format:@"script stack overflow for ExpandDescriptionForSeed(\"%@\")", text];
-		#endif
 	}
 	
 	return result;

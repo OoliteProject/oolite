@@ -81,14 +81,6 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 	yy = y * yy; yz = y * zz;
 	zz = z * zz;
 	
-#if 0
-	OOMatrix r;
-	r.vals[ 0] = 1.0f - yy - zz;	r.vals[ 4] = xy + wz;			r.vals[ 8] = xz - wy;			r.vals[12] = 0.0f;
-	r.vals[ 1] = xy - wz;			r.vals[ 5] = 1.0f - xx - zz;	r.vals[ 9] = yz + wx;			r.vals[13] = 0.0f;
-	r.vals[ 2] = xz + wy;			r.vals[ 6] = yz - wx;			r.vals[10] = 1.0f - xx - yy;	r.vals[14] = 0.0f;
-	r.vals[ 3] = 0.0f;				r.vals[ 7] = 0.0f;				r.vals[11] = 0.0f;				r.vals[15] = 1.0f;
-	return r;
-#else
 	return OOMatrixConstruct
 	(
 		1.0f - yy - zz,	xy - wz,		xz + wy,		0.0f,
@@ -96,7 +88,6 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 		xz - wy,		yz + wx,		1.0f - xx - yy,	0.0f,
 		0.0f,			0.0f,			0.0f,			1.0f
 	);
-#endif
 }
 
 
@@ -122,19 +113,12 @@ Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m)
 {
 	GLfloat x, y, z, w;
 	
-#if 0
-	x = m.m[0][0] * v.x + m.m[0][1] * v.y + m.m[0][2] * v.z + m.m[0][3];
-	y = m.m[1][0] * v.x + m.m[1][1] * v.y + m.m[1][2] * v.z + m.m[1][3];
-	z = m.m[2][0] * v.x + m.m[2][1] * v.y + m.m[2][2] * v.z + m.m[2][3];
-	w = m.m[3][0] * v.x + m.m[3][1] * v.y + m.m[3][2] * v.z + m.m[3][3];
-#else
 	x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
 	y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
 	z = m.m[0][2] * v.x + m.m[1][2] * v.y + m.m[2][2] * v.z + m.m[3][2];
 	w = m.m[0][3] * v.x + m.m[1][3] * v.y + m.m[2][3] * v.z + m.m[3][3];
-#endif
-	w = 1.0f/w;
 	
+	w = 1.0f/w;
 	return make_vector(x * w, y * w, z * w);
 }
 
@@ -166,54 +150,4 @@ NSString *OOMatrixDescription(OOMatrix matrix)
 			matrix.m[1][0], matrix.m[1][1], matrix.m[1][2], matrix.m[1][3],
 			matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
 			matrix.m[3][0], matrix.m[3][1], matrix.m[3][2], matrix.m[3][3]];
-}
-
-
-
-
-
-
-
-/***** Deprecated legacy stuff beyond this point, do not use *****/
-
-// Multiply vector by gl_matrix.
-void mult_vector_gl_matrix (Vector *vec, const gl_matrix glmat)
-{
-	GLfloat x;
-	GLfloat y;
-	GLfloat z;
-	GLfloat w = 1.0;
-
-	x = (vec->x * glmat[0]) +
-		(vec->y * glmat[4]) +
-		(vec->z * glmat[8]) +
-		(1.0 * glmat[12]);
-
-	y = (vec->x * glmat[1]) +
-		(vec->y * glmat[5]) +
-		(vec->z * glmat[9]) +
-		(1.0 * glmat[13]);
-
-	z = (vec->x * glmat[2]) +
-		(vec->y * glmat[6]) +
-		(vec->z * glmat[10]) +
-		(1.0 * glmat[13]);
-	
-	w = (vec->x * glmat[3]) +
-		(vec->y * glmat[7]) +
-		(vec->z * glmat[11]) +
-		(1.0 * glmat[15]);
-	
-	vec->x = x/w;
-	vec->y = y/w;
-	vec->z = z/w;
-}
-
-
-void vectors_into_gl_matrix(Vector forward, Vector right, Vector up, gl_matrix glmat)
-{
-    glmat[0] = right.x;	glmat[4] = up.x;	glmat[8] = forward.x;	glmat[3] = 0.0;
-    glmat[1] = right.y;	glmat[5] = up.y;	glmat[9] = forward.y;	glmat[7] = 0.0;
-    glmat[2] = right.z;	glmat[6] = up.z;	glmat[10] = forward.z;	glmat[11] = 0.0;
-    glmat[12] = 0.0;	glmat[13] = 0.0;	glmat[14] = 0.0;		glmat[15] = 1.0;
 }

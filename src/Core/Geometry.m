@@ -86,32 +86,14 @@ MA 02110-1301, USA.
 	if (EXPECT_NOT(n_triangles == max_triangles))
 	{
 		// create more space by doubling the capacity of this geometry...
-		#if 0
-			int i;
-			max_triangles = 1 + max_triangles * 2;
-			Triangle* old_triangles = triangles;
-			Triangle* new_triangles = (Triangle *) malloc(max_triangles * sizeof(Triangle));
-			
-			if (!new_triangles)	// couldn't allocate space
-			{
-				OOLog(kOOLogAllocationFailure, @" --- ran out of memory to allocate more geometry!");
-				exit(-1);
-			}
-			
-			for (i = 0; i < n_triangles; i++)
-				new_triangles[i] = old_triangles[i];	// copy old->new
-			triangles = new_triangles;
-			free((void *) old_triangles);	// free up previous memory
-		#else
-		//	OOLog(@"geometry.grow", @"Expanding geometry %p from %u to %u triangles.", self, max_triangles, 1 + max_triangles * 2);
-			max_triangles = 1 + max_triangles * 2;
-			triangles = realloc(triangles, max_triangles * sizeof(Triangle));
-			if (EXPECT_NOT(triangles == NULL))
-			{
-				OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
-				exit(-1);
-			}
-		#endif
+	//	OOLog(@"geometry.grow", @"Expanding geometry %p from %u to %u triangles.", self, max_triangles, 1 + max_triangles * 2);
+		max_triangles = 1 + max_triangles * 2;
+		triangles = realloc(triangles, max_triangles * sizeof(Triangle));
+		if (EXPECT_NOT(triangles == NULL))
+		{
+			OOLog(kOOLogAllocationFailure, @"!!!!! Ran out of memory to allocate more geometry!");
+			exit(-1);
+		}
 	}
 	triangles[n_triangles++] = tri;
 }

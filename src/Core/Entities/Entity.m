@@ -62,8 +62,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
     self = [super init];
     
-	orientation = kIdentityQuaternion;
-    quaternion_into_gl_matrix(orientation, rotMatrix);
+	orientation	= kIdentityQuaternion;
+	rotMatrix	= OOMatrixForQuaternionRotation(orientation);
     
 	position = kZeroVector;
 	
@@ -588,7 +588,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (void) orientationChanged
 {
 	quaternion_normalize(&orientation);
-	quaternion_into_gl_matrix(orientation, rotMatrix);
+	rotMatrix = OOMatrixForQuaternionRotation(orientation);
 }
 
 
@@ -712,13 +712,13 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (OOMatrix) rotationMatrix
 {
-    return OOMatrixFromGLMatrix(rotMatrix);
+    return rotMatrix;
 }
 
 
 - (OOMatrix) drawRotationMatrix
 {
-    return OOMatrixFromGLMatrix(rotMatrix);
+    return rotMatrix;
 }
 
 

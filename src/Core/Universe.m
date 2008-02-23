@@ -2581,107 +2581,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 }
 
 
-#if OBSOLETE
-- (StationEntity *) station
-{
-if (cachedStation)
-	{
-		if (cachedStation->isExplicitlyNotMainStation)  return nil;
-		return cachedStation;
-	}
-	
-	if (![self entityForUniversalID:station])
-	{
-		int i;
-		station = NO_TARGET;
-		cachedStation = nil;
-		int ent_count = n_entities;
-		int station_count = 0;
-		Entity* my_entities[ent_count];
-		for (i = 0; i < ent_count; i++)
-			if (sortedEntities[i]->isStation)
-				my_entities[station_count++] = [sortedEntities[i] retain];
-		for (i = 0; ((i < station_count)&&(station == NO_TARGET)) ; i++)
-		{
-			Entity* thing = my_entities[i];
-			if (thing->scanClass == CLASS_STATION)
-			{
-				cachedStation = (StationEntity *)thing;
-				station = [thing universalID];
-			}
-		}
-		for (i = 0; i < station_count; i++)
-			[my_entities[i] release];
-	}
-	
-	return cachedStation;
-}
-
-
-- (PlanetEntity *) planet
-{
-	if (cachedPlanet)
-		return cachedPlanet;
-	
-	if (![self entityForUniversalID:planet])
-	{
-		int i;
-		planet = NO_TARGET;
-		cachedPlanet = nil;
-		int ent_count = n_entities;
-		int planet_count = 0;
-		Entity* my_entities[ent_count];
-		for (i = 0; i < ent_count; i++)
-			if (sortedEntities[i]->isPlanet)
-				my_entities[planet_count++] = [sortedEntities[i] retain];
-		for (i = 0; ((i < planet_count)&&(planet == NO_TARGET)) ; i++)
-		{
-			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
-			if ([thing planetType] == PLANET_TYPE_GREEN)
-			{
-				cachedPlanet = thing;
-				planet = [cachedPlanet universalID];
-			}
-		}
-		for (i = 0; i < planet_count; i++)
-			[my_entities[i] release];
-	}
-	return cachedPlanet;
-}
-
-
-- (PlanetEntity *) sun
-{
-	if (cachedSun)
-		return cachedSun;
-	
-	if (![self entityForUniversalID:sun])
-	{
-		int i;
-		sun = NO_TARGET;
-		cachedSun = nil;
-		int ent_count = n_entities;
-		int planet_count = 0;
-		Entity* my_entities[ent_count];
-		for (i = 0; i < ent_count; i++)
-			if (sortedEntities[i]->isPlanet)
-				my_entities[planet_count++] = [sortedEntities[i] retain];
-		for (i = 0; ((i < planet_count)&&(sun == NO_TARGET)) ; i++)
-		{
-			PlanetEntity* thing = (PlanetEntity *)my_entities[i];
-			if ([thing planetType] == PLANET_TYPE_SUN)
-			{
-				cachedSun = (PlanetEntity*)thing;
-				sun = [cachedSun universalID];
-			}
-		}
-		for (i = 0; i < planet_count; i++)
-			[my_entities[i] release];
-	}
-	return cachedSun;
-}
-#else
-
 - (StationEntity *) station
 {
 	if (cachedStation == nil)
@@ -2713,7 +2612,6 @@ if (cachedStation)
 	}
 	return cachedSun;
 }
-#endif
 
 
 - (NSArray *) planets
