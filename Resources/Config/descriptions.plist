@@ -953,6 +953,7 @@
 	"human-colonial-description-plural" = "Human Colonials";
 	"clock-format"					= "%07d:%02d:%02d:%02d";
 	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
+	"danger-fuel-leak"			= "Danger! Fuel leak!";
 	
 	
 	// delivery reports

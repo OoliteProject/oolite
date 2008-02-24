@@ -18,9 +18,9 @@
         ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
         ENTER = (escortCheckMother); 
         EXIT = ();
-		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
+		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
         "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
-        UPDATE = (); 
+        UPDATE = (escortCheckMother, "pauseAI: 7.5"); 
     }; 
     "ENTER_WORMHOLE" = {
 		ENTER = (setDestinationToTarget, "setDesiredRangeTo: 1.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);

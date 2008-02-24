@@ -1915,7 +1915,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		if (![UNIVERSE playCustomSound:@"[fuel-leak]"])
 			[self warnAboutHostiles];
-		[UNIVERSE addMessage:@"Danger! Fuel leak!" forCount:6];
+		[UNIVERSE addMessage:DESC(@"danger-fuel-leak") forCount:6];
 		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
 	}
 }
