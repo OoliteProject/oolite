@@ -4,7 +4,7 @@ OOJSGlobal.m
 
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -51,7 +51,6 @@ extern NSString * const kOOLogDebugMessage;
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool GlobalLogWithClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -77,7 +76,6 @@ enum
 {
 	// Property IDs
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
-	kGlobal_planetNumber,		// planet number, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
 };
 
@@ -86,7 +84,6 @@ static JSPropertySpec sGlobalProperties[] =
 {
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "planetNumber",			kGlobal_planetNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "guiScreen",				kGlobal_guiScreen,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
@@ -95,11 +92,10 @@ static JSPropertySpec sGlobalProperties[] =
 static JSFunctionSpec sGlobalMethods[] =
 {
 	// JS name					Function					min args
-	{ "Log",					GlobalLog,					1 },
-	{ "LogWithClass",			GlobalLogWithClass,			2 },
-	{ "ExpandDescription",		GlobalExpandDescription,	1 },
-	{ "DisplayNameForCommodity", GlobalDisplayNameForCommodity, 1 },
-	{ "RandomName",				GlobalRandomName,			0 },
+	{ "log",					GlobalLog,					1 },
+	{ "expandDescription",		GlobalExpandDescription,	1 },
+	{ "displayNameForCommodity", GlobalDisplayNameForCommodity, 1 },
+	{ "randomName",				GlobalRandomName,			0 },
 	{ 0 }
 };
 
@@ -131,11 +127,6 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kGlobal_galaxyNumber:
 			*outValue = INT_TO_JSVAL([player currentGalaxyID]);
 			break;
-		
-		case kGlobal_planetNumber:
-			OOReportJavaScriptWarning(context, @"planetNumber is deprecated, use system.ID instead.");
-			*outValue = INT_TO_JSVAL([player currentSystemID]);
-			break;
 			
 		case kGlobal_guiScreen:
 			result = [player gui_screen_string];
@@ -154,31 +145,23 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*message = nil;
+	NSString			*messageClass = nil;
 	
-	message = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@", " inContext:context];
-	OOLog(kOOLogDebugMessage, message);
+	if (argc < 2)
+	{
+		messageClass = kOOLogDebugMessage;
+		message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	}
+	else
+	{
+		messageClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+		message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
+	}
+	OOLog(messageClass, @"%@", message);
 	
 #if OOJSENGINE_MONITOR_SUPPORT
 	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
 											withMessageClass:nil
-												   inContext:context];
-#endif
-	
-	return YES;
-}
-
-
-static JSBool GlobalLogWithClass(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	NSString			*msgClass = nil, *message = nil;
-	
-	msgClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	message = [NSString concatenationOfStringsFromJavaScriptValues:argv + 1 count:argc - 1 separator:@", " inContext:context];
-	OOLog(msgClass, message);
-	
-#if OOJSENGINE_MONITOR_SUPPORT
-	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
-											withMessageClass:msgClass
 												   inContext:context];
 #endif
 	

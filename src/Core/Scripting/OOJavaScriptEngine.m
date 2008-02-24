@@ -43,6 +43,7 @@ MA 02110-1301, USA.
 #import "OOJSWorldScripts.h"
 #import "OOJSSound.h"
 #import "OOJSSoundSource.h"
+#import "OOJSSpecialFunctions.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -54,7 +55,8 @@ MA 02110-1301, USA.
 #import <stdlib.h>
 
 
-static OOJavaScriptEngine *sSharedEngine = nil;
+static OOJavaScriptEngine	*sSharedEngine = nil;
+static unsigned				sErrorHandlerStackSkip = 0;
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -113,20 +115,25 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// First line: problem description
 	OOLog(messageClass, @"%@ JavaScript %@: %@", highlight, severity, messageText);
 	
-	// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
-	if ([lineBuf length] != 0)
+	if (sErrorHandlerStackSkip == 0)
 	{
-		OOLog(messageClass, @"      %s, line %d: %@", report->filename, report->lineno, lineBuf);
-	}
-	else
-	{
-		OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
+		// Second line: where error occured, and line if provided. (The line is only provided for compile-time errors, not run-time errors.)
+		if ([lineBuf length] != 0)
+		{
+			OOLog(messageClass, @"      %s, line %d: %@", report->filename, report->lineno, lineBuf);
+		}
+		else
+		{
+			OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
+		}
 	}
 	
 #if OOJSENGINE_MONITOR_SUPPORT
+	JSExceptionState *exState = JS_SaveExceptionState(context);
 	[[OOJavaScriptEngine sharedEngine] sendMonitorError:report
 											withMessage:messageText
 											  inContext:context];
+	 JS_RestoreExceptionState(context, exState);
 #endif
 }
 
@@ -222,10 +229,18 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSWorldScripts(mainContext, globalObject);
 	InitOOJSSound(mainContext, globalObject);
 	InitOOJSSoundSource(mainContext, globalObject);
+	InitOOJSSpecialFunctions(mainContext, globalObject);
+	
+	sSharedEngine = self;
+	
+	// Run prefix script.
+	OOJSScript *prefixScript = [OOJSScript nonLegacyScriptFromFileNamed:@"oolite-global-prefix.js"
+															 properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
+																									forKey:@"special"]];
+	prefixScript = nil;
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	
-	sSharedEngine = self;
 	return self;
 }
 
@@ -377,9 +392,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			 withMessage:(NSString *)message
 			   inContext:(JSContext *)theContext
 {
-	if ([monitor respondsToSelector:@selector(jsEngine:context:error:withMessage:)])
+	if ([monitor respondsToSelector:@selector(jsEngine:context:error:stackSkip:withMessage:)])
 	{
-		[monitor jsEngine:self context:theContext error:errorReport withMessage:message];
+		[monitor jsEngine:self context:theContext error:errorReport stackSkip:sErrorHandlerStackSkip withMessage:message];
 	}
 }
 
@@ -442,6 +457,12 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector)
 {
 	OOReportJavaScriptError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
+}
+
+
+void OOSetJSWarningOrErrorStackSkip(unsigned skip)
+{
+	sErrorHandlerStackSkip = skip;
 }
 
 
@@ -753,6 +774,65 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	{
 		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
 	}
+}
+
+@end
+
+
+@implementation OOJSValue
+
++ (id) valueWithJSValue:(jsval)value inContext:(JSContext *)context
+{
+	return [[[self alloc] initWithJSValue:value inContext:context] autorelease];
+}
+
+
++ (id) valueWithJSObject:(JSObject *)object inContext:(JSContext *)context
+{
+	return [[[self alloc] initWithJSObject:object inContext:context] autorelease];
+}
+
+
+- (id) initWithJSValue:(jsval)value inContext:(JSContext *)context
+{
+	self = [super init];
+	if (self != nil)
+	{
+		BOOL tempCtxt = NO;
+		if (context == NULL)
+		{
+			context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+			tempCtxt = YES;
+		}
+		
+		_val = value;
+		JS_AddNamedRoot(context, &_val, "OOJSValue");
+		
+		if (tempCtxt)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	}
+	return self;
+}
+
+
+- (id) initWithJSObject:(JSObject *)object inContext:(JSContext *)context
+{
+	return [self initWithJSValue:OBJECT_TO_JSVAL(object) inContext:context];
+}
+
+
+- (void) dealloc
+{
+	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JS_RemoveRoot(context, &_val);
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	
+	[super dealloc];
+}
+
+
+- (jsval)javaScriptValueInContext:(JSContext *)context
+{
+	return _val;
 }
 
 @end

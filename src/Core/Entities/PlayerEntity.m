@@ -3,7 +3,7 @@
 PlayerEntity.m
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -3392,7 +3392,7 @@ double scoopSoundPlayTime = 0.0;
 	unsigned n_cargo = max_cargo;
 	unsigned n_mass = [self mass] / 10000;
 	unsigned n_considered = n_cargo + n_mass;
-	unsigned damage_to = ranrot_rand() % n_considered;
+	unsigned damage_to = n_considered ? (ranrot_rand() % n_considered) : 0;	// n_considered can be 0 for small ships.
 	// cargo damage
 	if (damage_to < [cargo count])
 	{

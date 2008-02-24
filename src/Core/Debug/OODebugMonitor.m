@@ -40,6 +40,7 @@ SOFTWARE.
 #import "OOScript.h"
 #import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
+#import "OOJSSpecialFunctions.h"
 
 
 static OODebugMonitor *sSingleton = nil;
@@ -93,7 +94,10 @@ static OODebugMonitor *sSingleton = nil;
 		[[OOJavaScriptEngine sharedEngine] setMonitor:self];
 		
 		// Set up JavaScript side of console.
-		jsProps = [NSDictionary dictionaryWithObject:self forKey:@"console"];
+		jsProps = [NSDictionary dictionaryWithObjectsAndKeys:
+								self, @"console",
+								JSSpecialFunctionsObjectWrapper(NULL), @"special",
+								nil];
 		_script = [[OOScript nonLegacyScriptFromFileNamed:@"oolite-debug-console.js" properties:jsProps] retain];
 	}
 	
@@ -452,6 +456,7 @@ FIXME: this works with CRLF and LF, but not CR.
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
 				context:(in JSContext *)context
 				  error:(in JSErrorReport *)errorReport
+			  stackSkip:(unsigned)stackSkip
 			withMessage:(in NSString *)message
 {
 	NSString					*colorKey = nil;
@@ -499,17 +504,20 @@ FIXME: this works with CRLF and LF, but not CR.
 		[formattedMessage appendFormat:@"\n    Active script: %@", scriptLine];
 	}
 	
-	// Append file name and line
-	if (errorReport->filename != NULL)  filePath = [NSString stringWithUTF8String:errorReport->filename];
-	if ([filePath length] != 0)
+	if (stackSkip == 0)
 	{
-		[formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport->lineno];
-		
-		// Append source code
-		sourceLine = [self sourceCodeForFile:filePath line:errorReport->lineno];
-		if (sourceLine != nil)
+		// Append file name and line
+		if (errorReport->filename != NULL)  filePath = [NSString stringWithUTF8String:errorReport->filename];
+		if ([filePath length] != 0)
 		{
-			[formattedMessage appendFormat:@":\n    %@", sourceLine];
+			[formattedMessage appendFormat:@"\n    %@, line %u", [filePath lastPathComponent], errorReport->lineno];
+			
+			// Append source code
+			sourceLine = [self sourceCodeForFile:filePath line:errorReport->lineno];
+			if (sourceLine != nil)
+			{
+				[formattedMessage appendFormat:@":\n    %@", sourceLine];
+			}
 		}
 	}
 	

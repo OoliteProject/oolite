@@ -3,7 +3,7 @@
 OOJSPlayer.h
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -86,7 +86,6 @@ enum
 	kPlayer_name,				// Player name, string, read-only
 	kPlayer_score,				// kill count, integer, read/write
 	kPlayer_credits,			// credit balance, float, read/write
-	kPlayer_legalStatus,		// Deprecated synonym for bounty
 	kPlayer_fuelLeakRate,		// fuel leak rate, float, read/write
 	kPlayer_alertCondition,		// alert level, integer, read-only
 	kPlayer_docked,				// docked, boolean, read-only
@@ -110,13 +109,10 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "name",					kPlayer_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "score",					kPlayer_score,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "credits",				kPlayer_credits,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "legalStatus",			kPlayer_legalStatus,		JSPROP_PERMANENT },
 	{ "fuelLeakRate",			kPlayer_fuelLeakRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alertCondition",			kPlayer_alertCondition,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "docked",					kPlayer_docked,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedStation",			kPlayer_dockedStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedStationName",		kPlayer_dockedStationName,	JSPROP_PERMANENT | JSPROP_READONLY },
-	{ "dockedAtMainStation",	kPlayer_dockedAtMainStation,JSPROP_PERMANENT | JSPROP_READONLY },
 	{ "alertTemperature",		kPlayer_alertTemperature,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertMassLocked",		kPlayer_alertMassLocked,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertAltitude",			kPlayer_alertAltitude,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -235,11 +231,6 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			JS_NewDoubleValue(context, [player creditBalance], outValue);
 			break;
 			
-		case kPlayer_legalStatus:
-			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
-			*outValue = INT_TO_JSVAL([player legalStatus]);
-			break;
-			
 		case kPlayer_fuelLeakRate:
 			JS_NewDoubleValue(context, [player fuelLeakRate], outValue);
 			break;
@@ -255,16 +246,6 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kPlayer_dockedStation:
 			result = [player dockedStation];
 			if (result == nil)  result = [NSNull null];
-			break;
-		
-		case kPlayer_dockedStationName:
-			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"dockedStationName", @"dockedStation.shipDescription");
-			result = [player dockedStationName];
-			break;
-			
-		case kPlayer_dockedAtMainStation:
-			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"dockedAtMainStation", @"dockedStation.isMainStation");
-			*outValue = BOOLToJSVal([player dockedAtMainStation]);
 			break;
 			
 		case kPlayer_alertTemperature:
@@ -324,15 +305,6 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			{
 				iValue = (int)OOMax_f(iValue, 0);
 				[player setScore:iValue];
-			}
-			break;
-			
-		case kPlayer_legalStatus:
-			OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"legalStatus", @"bounty");
-			if (JS_ValueToInt32(context, *value, &iValue))
-			{
-				iValue = (int)OOMax_f(iValue, 0);
-				[player setBounty:iValue];
 			}
 			break;
 			

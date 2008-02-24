@@ -9,7 +9,7 @@ be called from the main thread at an early point. The OpenGL context must be
 set up by then.
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

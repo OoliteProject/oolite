@@ -3,7 +3,7 @@
 OOJSEntity.m
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -43,7 +43,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 // Methods
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 // Static methods
@@ -130,7 +129,6 @@ static JSFunctionSpec sEntityMethods[] =
 	{ "toString",				JSObjectWrapperToString,	0 },
 	{ "setPosition",			EntitySetPosition,			1 },
 	{ "setOrientation",			EntitySetOrientation,		1 },
-	{ "valid",					EntityValid,				0 },
 	{ "call",					EntityCall,					1 },
 	{ 0 }
 };
@@ -374,16 +372,6 @@ static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN arg
 	if (!QuaternionFromArgumentList(context, @"Entity", @"setOrientation", argc, argv, &quaternion, NULL))  return YES;
 	
 	[thisEnt setOrientation:quaternion];
-	return YES;
-}
-
-
-static JSBool EntityValid(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Entity					*thisEnt;
-	
-	OOReportJavaScriptWarning(context, @"Player.%@ is deprecated, use Player.%@ instead.", @"valid()", @"isValid property");
-	*outResult = BOOLToJSVal(JSEntityGetEntity(context, this, &thisEnt) && thisEnt != nil);
 	return YES;
 }
 

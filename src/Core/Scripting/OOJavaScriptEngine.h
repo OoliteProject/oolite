@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOJavaScriptEngineContextPoolCount = 3
+	kOOJavaScriptEngineContextPoolCount = 5
 };
 
 
@@ -84,6 +84,8 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
 void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+
+void OOSetJSWarningOrErrorStackSkip(unsigned skip);	// Indicate that the direct call site is not relevant for error handler. Currently, if non-zero, no call site information is provided. Ideally, we'd stack crawl instead.
 
 /*	NumberFromArgumentList()
 	
@@ -134,6 +136,25 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 - (NSString *)javaScriptDescription;
 - (NSString *)javaScriptDescriptionWithClassName:(NSString *)className;
 - (NSString *)jsClassName;
+
+@end
+
+
+/*	OOJSValue: an object whose purpose in life is to hold a JavaScript value.
+	This is somewhat useful for putting JavaScript objects in ObjC collections,
+	for instance to pass as properties to script loaders. The value is
+	GC rooted for the lifetime of the OOJSValue.
+*/
+@interface OOJSValue: NSObject
+{
+	jsval					_val;
+}
+
++ (id) valueWithJSValue:(jsval)value inContext:(JSContext *)context;
++ (id) valueWithJSObject:(JSObject *)object inContext:(JSContext *)context;
+
+- (id) initWithJSValue:(jsval)value inContext:(JSContext *)context;
+- (id) initWithJSObject:(JSObject *)object inContext:(JSContext *)context;
 
 @end
 
@@ -247,6 +268,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 - (oneway void)jsEngine:(in byref OOJavaScriptEngine *)engine
 				context:(in JSContext *)context
 				  error:(in JSErrorReport *)errorReport
+			  stackSkip:(in unsigned)stackSkip
 			withMessage:(in NSString *)message;
 
 // Sent for JS log messages. Note: messageClass will be nil of Log() is used rather than LogWithClass().
