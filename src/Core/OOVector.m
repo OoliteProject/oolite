@@ -41,8 +41,9 @@ NSString *VectorDescription(Vector vector)
 
 /*	This generates random vectors distrubuted evenly over the surface of the
 	unit sphere. It does this the simple way, by generating vectors in the
-	unit cube and rejecting those outside the unit sphere (and the zero vector),
-	then normalizing the result.
+	half-unit cube and rejecting those outside the half-unit sphere (and the
+	zero vector), then normalizing the result. (Half-unit measures are used
+	to avoid unnecessary multiplications of randf() values.)
 	
 	In principle, using three normally-distributed co-ordinates (and again
 	normalizing the result) would provide the right result without looping, but
@@ -58,13 +59,13 @@ Vector OORandomUnitVector(void)
 		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
 		m = magnitude2(v);
 	}
-	while (m == 0.0f || m > 1.0f);
+	while (m == 0.0f || m > 0.25f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 	
 	return vector_normal(v);
 }
 
 
-Vector OORandomVector(GLfloat maxLength)
+Vector OOVectorRandomSpatial(GLfloat maxLength)
 {
 	Vector				v;
 	float				m;
@@ -74,7 +75,13 @@ Vector OORandomVector(GLfloat maxLength)
 		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
 		m = magnitude2(v);
 	}
-	while (m > 1.0f);
+	while (m > 0.25f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 	
-	return vector_multiply_scalar(v, maxLength);
+	return vector_multiply_scalar(v, maxLength * 2.0f);	// 2.0 is to compensate for the 0.5-radius sphere.
+}
+
+
+Vector OOVectorRandomRadial(GLfloat maxLength)
+{
+	return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
 }

@@ -144,7 +144,7 @@ static NSArray *VersionComponents(void)
 	returns -1 if the current version of Oolite is less than versionSpec, 0 if
 	they are equal, and 1 if the current version is newer. versionSpec may be
 	a string or an array. Example:
-	if (oolite.compareVersion("1.70") < 0)  Log("Old version of Oolite!")
+	if (0 < oolite.compareVersion("1.70"))  Log("Old version of Oolite!")
 	else  this.doStuffThatRequires170()
 */
 static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

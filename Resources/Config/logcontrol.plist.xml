@@ -75,7 +75,7 @@
 	<key>dataCache.clear.success</key>
 	<string>$dataCacheDebug</string>
 	<key>dataCache.found</key>
-	<string>$dataCacheStatus</string>
+	<string>no</string>
 	<key>dataCache.notFound</key>
 	<string>$dataCacheError</string>
 	<key>dataCache.prune</key>

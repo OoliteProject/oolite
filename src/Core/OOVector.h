@@ -49,7 +49,8 @@ OOINLINE Vector make_vector(GLfloat vx, GLfloat vy, GLfloat vz) INLINE_CONST_FUN
 
 /* Generate random vectors. */
 Vector OORandomUnitVector(void);
-Vector OORandomVector(GLfloat maxLength);
+Vector OOVectorRandomSpatial(GLfloat maxLength);	// Random vector uniformly distributed in radius-maxLength sphere. (Longer vectors are more common.)
+Vector OOVectorRandomRadial(GLfloat maxLength);		// Random vector with uniform distribution of direction and radius in radius-maxLength sphere. (Causes clustering at centre.)
 
 /* Multiply vector by scalar (in place) */
 OOINLINE void scale_vector(Vector *outVector, GLfloat factor) ALWAYS_INLINE_FUNC NONNULL_FUNC;

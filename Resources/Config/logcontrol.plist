@@ -87,7 +87,7 @@
 	$dataCacheStatus = yes;
 	$dataCacheError = $error;
 	$dataCacheDebug = no;
-	dataCache.found							= $dataCacheStatus;
+	dataCache.found							= no;	// $dataCacheStatus;	// Generally redundant since it will be folllowed by .upToDate or .rebuild.*
 	dataCache.upToDate						= $dataCacheStatus;
 	dataCache.notFound						= $dataCacheError;
 	dataCache.rebuild						= $dataCacheStatus;

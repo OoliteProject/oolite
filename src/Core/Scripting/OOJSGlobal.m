@@ -169,6 +169,7 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 }
 
 
+// expandDescription(description : String) : String
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*string = nil;
@@ -181,7 +182,7 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 }
 
 
-// DisplayNameForCommodity(commodityName : String) : String
+// displayNameForCommodity(commodityName : String) : String
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*string = nil;
@@ -194,6 +195,7 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 }
 
 
+// randomName() : String
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*string = nil;

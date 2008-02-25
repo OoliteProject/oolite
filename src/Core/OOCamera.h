@@ -50,18 +50,26 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 #import "OOMaths.h"
+#import "OOSpatialReference.h"
 
 
 @interface OOCamera: NSObject
 {
-	Vector				_position;
-	Quaternion			_orientation;
+	Vector					_position;
+	Quaternion				_orientation;
+	id <OOSpatialReference>	_reference;
 }
 
 - (Vector) position;
 - (void) setPosition:(Vector)position;
+
 - (Quaternion) orientation;
 - (void) setOrientation:(Quaternion)orientation;
+
+// If reference is not nil, position and orientation are relative to reference.
+- (id <OOSpatialReference>)reference;
+- (void) setReference:(id <OOSpatialReference>)reference;
+
 
 - (void) rotateToHeading:(Vector)heading upVector:(Vector)upVector;
 

@@ -63,9 +63,20 @@ SOFTWARE.
 }
 
 
+- (void) dealloc
+{
+	[_reference autorelease];
+	
+	[super dealloc];
+}
+
+
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ orientation: %@", VectorDescription([self position]), QuaternionDescription([self orientation])];
+	NSString *refDesc = @"none";
+	if (_reference != nil)  refDesc = [NSString stringWithFormat:@"<%@ %p>", [_reference class], _reference];
+	
+	return [NSString stringWithFormat:@"position: %@ orientation: %@ reference: %@", VectorDescription([self position]), QuaternionDescription([self orientation]), refDesc];
 }
 
 
@@ -90,6 +101,19 @@ SOFTWARE.
 - (void) setOrientation:(Quaternion)orientation
 {
 	_orientation = orientation;
+}
+
+
+- (id <OOSpatialReference>)reference
+{
+	return _reference;
+}
+
+
+- (void) setReference:(id <OOSpatialReference>)reference
+{
+	[_reference autorelease];
+	_reference = [reference retain];
 }
 
 

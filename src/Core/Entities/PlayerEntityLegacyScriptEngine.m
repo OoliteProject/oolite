@@ -198,7 +198,11 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 {
 	NSAutoreleasePool	*pool = nil;
 	
+	mission_key = @"__oolite_actions_temp";				// Allow _actions to have extra-temporary local variables.
 	PerformScriptActions(some_actions, a_target);
+	
+	[localVariables removeObjectForKey:mission_key];	// Kill the aforementioned temporary locals.
+	mission_key = nil;
 	
 	[pool release];
 }
