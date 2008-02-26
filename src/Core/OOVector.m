@@ -59,7 +59,7 @@ Vector OORandomUnitVector(void)
 		v = make_vector(randf() - 0.5f, randf() - 0.5f, randf() - 0.5f);
 		m = magnitude2(v);
 	}
-	while (m == 0.0f || m > 0.25f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
+	while (m > 0.25f || m == 0.0f);	// We're confining to a sphere of radius 0.5 using the sqared magnitude; 0.5 squared is 0.25.
 	
 	return vector_normal(v);
 }

@@ -65,7 +65,8 @@ enum
 {
 	// Property IDs
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
-	kStation_hasNPCTraffic
+	kStation_hasNPCTraffic,
+	kStation_alertCondition,
 };
 
 
@@ -74,6 +75,7 @@ static JSPropertySpec sStationProperties[] =
 	// JS name					ID							flags
 	{ "isMainStation",			kStation_isMainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "alertCondition",			kStation_alertCondition,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -143,6 +145,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = BOOLToJSVal([entity hasNPCTraffic]);
 			break;
 		
+		case kStation_alertCondition:
+			*outValue = INT_TO_JSVAL([entity alertLevel]);
+			break;
+			
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
@@ -155,6 +161,8 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 {
 	StationEntity				*entity = nil;
 	JSBool						bValue;
+	int32						iValue;
+	
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSStationGetStationEntity(context, this, &entity)) return NO;
@@ -165,6 +173,13 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setHasNPCTraffic:bValue];
+			}
+			break;
+		
+		case kStation_alertCondition:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				[entity setAlertLevel:iValue signallingScript:NO];	// Performs range checking
 			}
 			break;
 		

@@ -473,7 +473,7 @@ typedef enum
 							isSpeechOn: 1,
 	
 							keyboardRollPitchOverride: 1,
-							waitingForStickCallback: 1;
+waitingForStickCallback: 1;
 	
 	// Note: joystick stuff does nothing under OS X.
 	// Keeping track of joysticks
@@ -614,6 +614,8 @@ typedef enum
 
 - (void) setGuiToIntro1Screen;
 - (void) setGuiToIntro2Screen;
+
+- (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
 
 - (OOGUIScreenID) guiScreen;
 

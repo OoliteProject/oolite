@@ -1279,10 +1279,13 @@ double scoopSoundPlayTime = 0.0;
 		there turned out to be complications. See mailing list archive.
 		-- Ahruman 20070802
 	*/
-	if ([self alertCondition] != lastScriptAlertCondition)
+	OOAlertCondition cond = [self alertCondition];
+	if (cond != lastScriptAlertCondition)
 	{
-		[self doScriptEvent:@"alertConditionChanged"];
-		lastScriptAlertCondition = [self alertCondition];
+		[self doScriptEvent:@"alertConditionChanged"
+			   withArgument:[NSNumber numberWithInt:cond]
+				andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
+		lastScriptAlertCondition = cond;
 	}
 
 	if (scoopsActive)
@@ -2717,7 +2720,7 @@ double scoopSoundPlayTime = 0.0;
 	Quaternion q1 = orientation;
 	q1.w = -q1.w;   // player view is reversed remember!
 
-	Entity  *target = [self primaryTarget];
+	ShipEntity  *target = [self primaryTarget];
 
 	// select a new active missile and decrease the missiles count
 	missile_entity[activeMissile] = nil;
@@ -2757,9 +2760,10 @@ double scoopSoundPlayTime = 0.0;
 	
 	[UNIVERSE addEntity:missile];
 	[missile release];
-
-	[(ShipEntity *)target setPrimaryAggressor:self];
-	[[(ShipEntity *)target getAI] reactToMessage:@"INCOMING_MISSILE"];
+	
+	[target setPrimaryAggressor:self];
+	[target doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+	[target reactToAIMessage:@"INCOMING_MISSILE"];
 
 	[UNIVERSE playCustomSound:@"[missile-launched]"];
 
@@ -2957,9 +2961,10 @@ double scoopSoundPlayTime = 0.0;
 
 	if (status == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
-
-	[ent retain];
-	[other retain];
+	
+	[[ent retain] autorelease];
+	[[other retain] autorelease];
+	
 	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
 	
@@ -3018,25 +3023,17 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
 	{
-		if ((other)&&(other->isShip))
+		if ([other isShip])
 		{
-			ShipEntity* hunter = (ShipEntity *)other;
-			[hunter collectBountyFor:self];
-			if ([hunter primaryTarget] == (Entity *)self)
-			{
-				[hunter removeTarget:(Entity *)self];
-				[[hunter getAI] message:@"TARGET_DESTROYED"];
-			}
+			[(ShipEntity *)other noteTargetDestroyed:self];
 		}
 		
 		[self getDestroyedBy:other context:@"energy damage"];
 	}
-
-	if (internal_damage)  [self takeInternalDamage];
-
-	[ent release];
-	[other release];
-	
+	else
+	{
+		if (internal_damage)  [self takeInternalDamage];
+	}
 }
 
 
@@ -3049,14 +3046,10 @@ double scoopSoundPlayTime = 0.0;
 	if (status == STATUS_DEAD)
 		return;
 
-	[ent retain];
-	rel_pos = (ent)? ent->position : kZeroVector;
-
-	rel_pos.x -= position.x;
-	rel_pos.y -= position.y;
-	rel_pos.z -= position.z;
-
-	d_forward   =   dot_product(rel_pos, v_forward);
+	[[ent retain] autorelease];
+	rel_pos = ent ? [ent position] : kZeroVector;
+	rel_pos = vector_subtract(rel_pos, position);
+	d_forward = dot_product(rel_pos, v_forward);
 
 	if (scrapeDamageSound)
 	{
@@ -3089,31 +3082,27 @@ double scoopSoundPlayTime = 0.0;
 			amount = 0.0;
 		}
 	}
-
+	
 	if (amount)
+	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-
+	}
+	
 	energy -= amount;
 	if (energy <= 0.0)
 	{
-		if ((ent)&&(ent->isShip))
+		if ([ent isShip])
 		{
-			ShipEntity* hunter = (ShipEntity *)ent;
-			[hunter collectBountyFor:self];
-			if ([hunter primaryTarget] == (Entity *)self)
-			{
-				[hunter removeTarget:(Entity *)self];
-				[[hunter getAI] message:@"TARGET_DESTROYED"];
-			}
+			[(ShipEntity *)ent noteTargetDestroyed:self];
 		}
 		
 		[self getDestroyedBy:ent context:@"scrape damage"];
 	}
 
-	if (internal_damage)  [self takeInternalDamage];
-
-	
-	[ent release];
+	if (internal_damage)
+	{
+		[self takeInternalDamage];
+	}
 }
 
 
@@ -3504,12 +3493,14 @@ double scoopSoundPlayTime = 0.0;
 			ShipEntity* ship = (ShipEntity *)thing;
 			if (self == [ship primaryTarget])
 			{
-				[[ship getAI] message:@"TARGET_LOST"];
+				[ship noteLostTarget];
 			}
 		}
 	}
 	for (i = 0; i < ent_count; i++)
+	{
 		[my_entities[i] release];		//	released
+	}
 }
 
 
@@ -3997,9 +3988,10 @@ double scoopSoundPlayTime = 0.0;
 		[lastTextKey release];
 		lastTextKey = nil;
 	}
-
+	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_STATUS;
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
@@ -4014,6 +4006,8 @@ double scoopSoundPlayTime = 0.0;
 	[self setShowDemoShips: YES];
 // END TEST
 #endif
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -4107,14 +4101,14 @@ double scoopSoundPlayTime = 0.0;
 {
 	NSDictionary*   targetSystemData;
 	NSString*		targetSystemName;
-
+	
 	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
-
+	
 	BOOL	sunGoneNova = NO;
 	if ([targetSystemData objectForKey:@"sun_gone_nova"])
 		sunGoneNova = YES;
-
+	
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
@@ -4170,26 +4164,26 @@ double scoopSoundPlayTime = 0.0;
 
 	}
 	/* ends */
-
-	if (lastTextKey)
-	{
-		[lastTextKey release];
-		lastTextKey = nil;
-	}
-
+	
+	[lastTextKey release];
+	lastTextKey = nil;
+	
 	[targetSystemData release];
 	[targetSystemName release];
-
+	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-
+	
 	[UNIVERSE removeDemoShips];
 	[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
-
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	if (oldScreen != gui_screen) [self checkScript];
 }
 
 
@@ -4250,15 +4244,18 @@ double scoopSoundPlayTime = 0.0;
 		[gui setCurrentRow:16];
 	}
 	/* ends */
-
+	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
-
+	
 	[targetSystemName release];
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -4290,19 +4287,19 @@ double scoopSoundPlayTime = 0.0;
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
-
+	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
-
+	
 	[targetSystemName release]; // released
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
-
-
-
 
 
 - (void) setGuiToGameOptionsScreen
@@ -5022,9 +5019,9 @@ static int last_outfitting_index;
 
 - (void) setGuiToIntro2Screen
 {
-	NSString *text;
+	NSString *text = nil;
 	GuiDisplayGen* gui = [UNIVERSE gui];
-
+	
 	[gui clear];
 	[gui setTitle:@"Oolite"];
 	
@@ -5033,16 +5030,26 @@ static int last_outfitting_index;
 	[gui setColor:[OOColor yellowColor] forRow:21];
 	
 	[gui setShowTextCursor:NO];
-
+	
 	[UNIVERSE set_up_intro2];
-
-	if (gui)
-		gui_screen = GUI_SCREEN_INTRO2;
-
+	
+	if (gui)  gui_screen = GUI_SCREEN_INTRO2;
+	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+}
+
+
+- (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen
+{
+	if (fromScreen != toScreen)
+	{
+		[self doScriptEvent:@"guiScreenChanged"
+			   withArgument:GUIScreenIDToString(toScreen)
+				andArgument:GUIScreenIDToString(fromScreen)];
+	}
 }
 
 
@@ -5053,7 +5060,7 @@ static int last_outfitting_index;
 
 	if ([key hasPrefix:@"More:"])
 	{
-		int from_item = [(NSString*)[[key componentsSeparatedByString:@":"] objectAtIndex:1] intValue];
+		int from_item = [[key componentsSeparatedByString:@":"] intAtIndex:1];
 
 		[self setGuiToEquipShipScreen:from_item:-1];
 		if ([gui selectedRow] < 0)
@@ -5369,7 +5376,7 @@ static int last_outfitting_index;
 	// following works whether docked or not
 	
 	for (i = 0; i < n_commodities; i++)
-		in_hold[i] = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
+		in_hold[i] = [[shipCommodityData arrayAtIndex:i] intAtIndex:MARKET_QUANTITY];
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
@@ -5380,8 +5387,10 @@ static int last_outfitting_index;
 	
 	for (i = 0; i < n_commodities; i++)
 	{
-		if ([(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_UNITS] intValue] == UNITS_TONS)
+		if ([[shipCommodityData arrayAtIndex:i] intAtIndex:MARKET_UNITS] == UNITS_TONS)
+		{
 			current_cargo += in_hold[i];
+		}
 	}
 }
 
@@ -5493,13 +5502,16 @@ static int last_outfitting_index;
 
 		[gui setShowTextCursor:NO];
 	}
-
+	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MARKET;
-
+	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: (status == STATUS_DOCKED)];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 

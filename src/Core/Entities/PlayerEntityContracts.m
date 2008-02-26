@@ -685,12 +685,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setShowTextCursor:NO];
 	}
 	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_CONTRACTS;
 
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 
@@ -974,12 +977,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		lastTextKey = nil;
 	}
 	
+	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MANIFEST;
 
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
 
 

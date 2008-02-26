@@ -303,7 +303,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kPlayer_score:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
-				iValue = (int)OOMax_f(iValue, 0);
+				iValue = MAX(iValue, 0);
 				[player setScore:iValue];
 			}
 			break;

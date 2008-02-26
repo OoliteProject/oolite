@@ -989,7 +989,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			// send AI a message about the touch
 			int	temp_id = primaryTarget;
 			primaryTarget = other->universalID;
-			[shipAI reactToMessage:@"CLOSE CONTACT"];
+			[self doScriptEvent:@"shipCloseContact" withArgument:other andReactToAIMessage:@"CLOSE CONTACT"];
 			primaryTarget = temp_id;
 		}
 	}
@@ -1112,12 +1112,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
 		if ((target)&&(target->scanClass == CLASS_POLICE))
 		{
-			primaryTarget = NO_TARGET;
-			[shipAI reactToMessage:@"TARGET_LOST"];
+			[self noteLostTarget];
 		}
 	}
-	//
-
+	
 	if (trackCloseContacts)
 	{
 		// in checkCloseCollisionWith: we check if some thing has come within touch range (origin within our collision_radius)
@@ -1141,40 +1139,54 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					int	temp_id = primaryTarget;
 					primaryTarget = other->universalID;
 					if ((pos0.x < 0.0)&&(pos1.x > 0.0))
-						[shipAI reactToMessage:@"POSITIVE X TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraversePositiveX" withArgument:other andReactToAIMessage:@"POSITIVE X TRAVERSE"];
+					}
 					if ((pos0.x > 0.0)&&(pos1.x < 0.0))
-						[shipAI reactToMessage:@"NEGATIVE X TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraverseNegativeX" withArgument:other andReactToAIMessage:@"NEGATIVE X TRAVERSE"];
+					}
 					if ((pos0.y < 0.0)&&(pos1.y > 0.0))
-						[shipAI reactToMessage:@"POSITIVE Y TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraversePositiveY" withArgument:other andReactToAIMessage:@"POSITIVE Y TRAVERSE"];
+					}
 					if ((pos0.y > 0.0)&&(pos1.y < 0.0))
-						[shipAI reactToMessage:@"NEGATIVE Y TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraverseNegativeY" withArgument:other andReactToAIMessage:@"NEGATIVE Y TRAVERSE"];
+					}
 					if ((pos0.z < 0.0)&&(pos1.z > 0.0))
-						[shipAI reactToMessage:@"POSITIVE Z TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraversePositiveZ" withArgument:other andReactToAIMessage:@"POSITIVE Z TRAVERSE"];
+					}
 					if ((pos0.z > 0.0)&&(pos1.z < 0.0))
-						[shipAI reactToMessage:@"NEGATIVE Z TRAVERSE"];
+					{
+						[self doScriptEvent:@"shipTraverseNegativeZ" withArgument:other andReactToAIMessage:@"NEGATIVE Z TRAVERSE"];
+					}
 					primaryTarget = temp_id;
 					[closeContactsInfo removeObjectForKey: other_key];
 				}
 			}
 			else
+			{
 				[closeContactsInfo removeObjectForKey: other_key];
+			}
 		}
 	}
 	
 	// think!
-	if (brain)
-		[brain update:delta_t];
-
+	[brain update:delta_t];
+	
 	// super update
-	//
 	[super update:delta_t];
-
+	
+#ifndef NDEBUG
 	// DEBUGGING
 	if (reportAIMessages && (debug_condition != behaviour))
 	{
 		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, BehaviourToString(behaviour));
 		debug_condition = behaviour;
 	}
+#endif
 
 	// update time between shots
 	//
@@ -1303,6 +1315,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				if (energy > maxEnergy)
 				{
 					energy = maxEnergy;
+					[self doScriptEvent:@"shipEnergyBecameFull"];
 					[shipAI message:@"ENERGY_FULL"];
 				}
 			}
@@ -1328,30 +1341,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			frustration = 0.0;
 		}
 	}
-	//
+	
 	if (status == STATUS_COCKPIT_DISPLAY)
     {
 		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
 		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
-		position.x += range2 * delta_t * velocity.x;
-		position.y += range2 * delta_t * velocity.y;
-		position.z += range2 * delta_t * velocity.z;
-//		return;	// here's our problem!
+		position = vector_add(position, vector_multiply_scalar(velocity, range2 * delta_t));
     }
 	else
 	{
 		double  target_speed = maxFlightSpeed;
-
+		
 		ShipEntity *target = [UNIVERSE entityForUniversalID:primaryTarget];
-
+		
 		if ((target == nil)||(target->scanClass == CLASS_NO_DRAW)||(!target->isShip)||([target isCloaked]))
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
 			{
-				[shipAI reactToMessage:@"TARGET_LOST"];
-				primaryTarget = NO_TARGET;
+				[self noteLostTarget];
 			}
 			else
 			{
@@ -1549,12 +1558,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	Entity					*source = nil;
 	
-	[shipAI reactToMessage:@"ATTACKED"];
-	
 	if ([other isKindOfClass:[ShipEntity class]])  source = other;
 	else  source = from;
 	
 	[self doScriptEvent:@"beingAttacked" withArgument:source];
+	[shipAI reactToMessage:@"ATTACKED"];
 }
 
 
@@ -1578,7 +1586,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_idle:(double) delta_t
 {
 	double		damping = 0.5 * delta_t;
@@ -1601,13 +1610,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_tumble:(double) delta_t
 {
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_tractored:(double) delta_t
 {
 	double  distance = [self rangeToDestination];
@@ -1681,7 +1692,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyThrust:delta_t];
 	thrust = 0.0;	// must reset thrust now
 }
-//            //
+
+
 - (void) behaviour_track_target:(double) delta_t
 {
 	[self trackPrimaryTarget:delta_t:NO];
@@ -1690,7 +1702,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_intercept_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
@@ -1698,12 +1711,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		desired_speed = maxFlightSpeed;
 		if (range < desired_range)
+		{
 			[shipAI reactToMessage:@"DESIRED_RANGE_ACHIEVED"];
+		}
 		desired_speed = maxFlightSpeed * [self trackPrimaryTarget:delta_t:NO];
 	}
 	else
 	{
-		ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity*	target = [self primaryTarget];
 		double target_speed = [target speed];
 		double eta = range / (flightSpeed - target_speed);
 		double last_success_factor = success_factor;
@@ -1723,12 +1738,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			desired_speed += target_speed;
 			if (target_speed > maxFlightSpeed)
-				[shipAI reactToMessage:@"TARGET_LOST"];
+			{
+				[self noteLostTarget];
+			}
 		}
 		//
 		if (target)	// check introduced to stop crash at next line
 		{
-			destination = target->position;		/* HEISENBUG crash here */
+			destination = target->position;
 			desired_range = 0.5 * target->collision_radius;
 			[self trackDestination: delta_t : NO];
 		}
@@ -1754,7 +1771,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_attack_target:(double) delta_t
 {
 	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
@@ -1780,25 +1798,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
-	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
-	double  range = [self rangeToPrimaryTarget];
+	BOOL		canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	double		max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
+	double		range = [self rangeToPrimaryTarget];
+	
 	// deal with collisions and lost targets
-	//
 	if (proximity_alert != NO_TARGET)
+	{
 		[self avoidCollision];
+	}
 	if (range > SCANNER_MAX_RANGE)
 	{
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
-		[shipAI reactToMessage:@"TARGET_LOST"];
+		[self noteLostTarget];
 	}
 
 	// control speed
-	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
@@ -1807,8 +1827,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (range < slow_down_range)
 	{
 		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);
+		
 		// avoid head-on collision
-		//
 		if ((range < 0.5 * distance)&&(behaviour == BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX))
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
 	}
@@ -1817,7 +1837,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 
 	// if within 0.75km of the target's six or twelve then vector in attack
-	//
 	if (distance < 750.0)
 	{
 		behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
@@ -1843,7 +1862,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self trackDestination:delta_t :NO];
 
 	// use weaponry
-	//
 	int missile_chance = 0;
 	int rhs = 3.2 / delta_t;
 	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
@@ -1851,7 +1869,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (missiles > missile_chance * hurt_factor)
 	{
-		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
 		[self fireMissile];
 	}
 	[self activateCloakingDevice];
@@ -1859,7 +1876,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_attack_mining_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
@@ -1876,11 +1894,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > SCANNER_MAX_RANGE)
-		{
-			behaviour = BEHAVIOUR_IDLE;
-			[shipAI reactToMessage:@"TARGET_LOST"];
-		}
+		if (range > SCANNER_MAX_RANGE)  [self noteLostTarget];
 		desired_speed = maxFlightSpeed * 0.375;
 	}
 	[self trackPrimaryTarget:delta_t:NO];
@@ -1888,7 +1902,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_attack_fly_to_target:(double) delta_t
 {
 	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
@@ -1927,7 +1942,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
-			[shipAI reactToMessage:@"TARGET_LOST"];
+			[self noteLostTarget];
 		}
 	}
 
@@ -1974,7 +1989,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (missiles > missile_chance * hurt_factor)
 	{
-		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
 		[self fireMissile];
 	}
 	[self activateCloakingDevice];
@@ -1982,7 +1996,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
@@ -2003,14 +2018,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (missiles > missile_chance * hurt_factor)
 	{
-		//NSLog(@"]==> firing missile : missiles %d, missile_chance %d, hurt_factor %.3f", missiles, missile_chance, hurt_factor);
 		[self fireMissile];
 	}
 	[self activateCloakingDevice];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
@@ -2028,10 +2043,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_flee_target:(double) delta_t
 {
-	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
+	BOOL canBurn = has_fuel_injection && (fuel > 1);
 	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (range > desired_range)
@@ -2060,19 +2076,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_fly_range_from_destination:(double) delta_t
 {
 	double distance = [self rangeToDestination];
 	if (distance < desired_range)
+	{
 		behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
+	}
 	else
+	{
 		behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
+	}
 	frustration = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_face_destination:(double) delta_t
 {
 	double max_cos = 0.995;
@@ -2095,7 +2117,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_formation_form_up:(double) delta_t
 {
 	// get updated destination from owner
@@ -2108,7 +2131,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		desired_speed = maxFlightSpeed;
 	[self behaviour_fly_to_destination: delta_t];
 }
-//            //
+
+
 - (void) behaviour_fly_to_destination:(double) delta_t
 {
 	double distance = [self rangeToDestination];
@@ -2157,7 +2181,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_fly_from_destination:(double) delta_t
 {
 	double distance = [self rangeToDestination];
@@ -2179,7 +2204,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_avoid_collision:(double) delta_t
 {
 	double distance = [self rangeToDestination];
@@ -2205,7 +2231,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
-//            //
+
+
 - (void) behaviour_track_as_turret:(double) delta_t
 {
 	double aim = [self ballTrackLeadingTarget:delta_t];
@@ -2222,7 +2249,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[self fireTurretCannon: sqrt(magnitude2(p1)) - cr];
 	}
 }
-//            //
+
+
 - (void) behaviour_fly_thru_navpoints:(double) delta_t
 {
 	int navpoint_plus_index = (next_navpoint_index + 1) % number_of_navpoints;
@@ -2255,10 +2283,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (dist2 < desired_range * desired_range)
 	{
 		// desired range achieved
-		[shipAI reactToMessage:@"NAVPOINT_REACHED"];
+		[self doScriptEvent:@"shipReachedNavPoint" andReactToAIMessage:@"NAVPOINT_REACHED"];
 		if (navpoint_plus_index == 0)
 		{
-			[shipAI reactToMessage:@"ENDPOINT_REACHED"];
+			[self doScriptEvent:@"shipReachedEndPoint" andReactToAIMessage:@"ENDPOINT_REACHED"];
 			behaviour = BEHAVIOUR_IDLE;
 		}
 		next_navpoint_index = navpoint_plus_index;	// loop as required
@@ -2306,7 +2334,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self applyThrust:delta_t];
 	desired_speed = temp;
 }
-//            //
+
+
 - (void) behaviour_experimental:(double) delta_t
 {
 	double aim = [self ballTrackTarget:delta_t];
@@ -2315,8 +2344,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OOLog(@"behaviour.experimental.foundTarget", @"DEBUG BANG! BANG! BANG!");
 	}
 }
-//            //
-////////////////
+
 
 // override Entity saveToLastFrame
 //
@@ -4427,9 +4455,8 @@ BOOL class_masslocks(int some_class)
 
 - (void) removeTarget:(Entity *) targetEntity
 {
-	if (primaryTarget != NO_TARGET)
-		[shipAI reactToMessage:@"TARGET_LOST"];
-	primaryTarget = NO_TARGET;
+	[self noteLostTarget];
+	
 	if (sub_entities)
 	{
 		unsigned i;
@@ -4437,7 +4464,9 @@ BOOL class_masslocks(int some_class)
 		{
 			Entity* se = [sub_entities objectAtIndex:i];
 			if (se->isShip)
+			{
 				[(ShipEntity *)se removeTarget:targetEntity];
+			}
 		}
 	}
 }
@@ -4452,6 +4481,29 @@ BOOL class_masslocks(int some_class)
 - (int) primaryTargetID
 {
 	return primaryTarget;
+}
+
+
+- (void) noteLostTarget
+{
+	if (primaryTarget != NO_TARGET)
+	{
+		primaryTarget = NO_TARGET;
+		[self doScriptEvent:@"shipLostTarget"];
+		[shipAI reactToMessage:@"TARGET_LOST"];
+	}
+}
+
+
+- (void) noteTargetDestroyed:(ShipEntity *)target
+{
+	[self collectBountyFor:(ShipEntity *)target];
+	if ([self primaryTarget] == target)
+	{
+		[self removeTarget:target];
+		[self doScriptEvent:@"shipDestroyedTarget" withArgument:target];
+		[shipAI message:@"TARGET_DESTROYED"];
+	}
 }
 
 
@@ -4652,7 +4704,7 @@ BOOL class_masslocks(int some_class)
 
 	if (!target)   // leave now!
 	{
-		[shipAI message:@"TARGET_LOST"];
+		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}
 
@@ -4666,7 +4718,7 @@ BOOL class_masslocks(int some_class)
 
 	if (range2 > SCANNER_MAX_RANGE2)
 	{
-		[shipAI message:@"TARGET_LOST"];
+		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}
 
@@ -5736,7 +5788,8 @@ BOOL class_masslocks(int some_class)
 	if ([missile scanClass] == CLASS_MISSILE)
 	{
 		[target_ship setPrimaryAggressor:self];
-		[[target_ship getAI] reactToMessage:@"INCOMING_MISSILE"];
+		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+		[target_ship reactToAIMessage:@"INCOMING_MISSILE"];
 	}
 
 	return YES;
@@ -6181,12 +6234,12 @@ BOOL class_masslocks(int some_class)
 			[other setPosition:pos2a];
 		}
 	}
-
+	
 	// remove self from other's collision list
 	[[other collisionArray] removeObject:self];
-
-	[shipAI reactToMessage:@"COLLISION"];
-
+	
+	[self doScriptEvent:@"shipCollided" withArgument:other andReactToAIMessage:@"COLLISION"];
+	
 	return YES;
 }
 
@@ -6488,24 +6541,19 @@ BOOL class_masslocks(int some_class)
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
-		if (hunter != nil)
-		{
-			[hunter collectBountyFor:self];
-			if ([hunter primaryTarget] == self)
-			{
-				[hunter removeTarget:self];
-				[[hunter getAI] message:@"TARGET_DESTROYED"];
-			}
-		}
+		[hunter noteTargetDestroyed:self];
 		[self getDestroyedBy:other context:@"energy damage"];
 	}
 	else
 	{
 		// warn if I'm low on energy
-		if (energy < maxEnergy *0.25)
-			[shipAI reactToMessage:@"ENERGY_LOW"];
-		if ((energy < maxEnergy *0.125)&&(has_escape_pod)&&((ranrot_rand() & 3) == 0))  // 25% chance he gets to an escape pod
+		if (energy < maxEnergy * 0.25)
 		{
+			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+		}
+		if (energy < maxEnergy *0.125 && has_escape_pod && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
+		{
+			// TODO: abandoning ship should be split out into a separate method.
 			has_escape_pod = NO;
 			
 			[shipAI setStateMachine:@"nullAI.plist"];
@@ -6537,23 +6585,19 @@ BOOL class_masslocks(int some_class)
 	if (energy <= 0.0)
 	{
 		being_mined = YES;  // same as using a mining laser
-		if ((ent)&&(ent->isShip))
+		if ([ent isShip])
 		{
-			ShipEntity* hunter = (ShipEntity *)ent;
-			[hunter collectBountyFor:self];
-			if ([hunter primaryTarget] == (Entity *)self)
-			{
-				[hunter removeTarget:(Entity *)self];
-				[[hunter getAI] message:@"TARGET_DESTROYED"];
-			}
+			[(ShipEntity *)ent noteTargetDestroyed:self];
 		}
 		[self getDestroyedBy:ent context:@"scrape damage"];
 	}
 	else
 	{
 		// warn if I'm low on energy
-		if (energy < maxEnergy *0.25)
-			[shipAI message:@"ENERGY_LOW"];
+		if (energy < maxEnergy * 0.25)
+		{
+			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+		}
 	}
 }
 
@@ -6576,8 +6620,10 @@ BOOL class_masslocks(int some_class)
 	else
 	{
 		// warn if I'm low on energy
-		if (energy < maxEnergy *0.25)
-			[shipAI message:@"ENERGY_LOW"];
+		if (energy < maxEnergy * 0.25)
+		{
+			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
+		}
 	}
 }
 
@@ -7057,15 +7103,35 @@ int w_space_seed = 1234567;
 }
 
 
-- (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship
+static BOOL AuthorityPredicate(Entity *entity, void *parameter)
+{
+	ShipEntity			*victim = parameter;
+	
+	// Select main station, if victim is in aegis
+	if (entity == [UNIVERSE station] && [victim withinStationAegis])
+	{
+		return YES;
+	}
+	
+	// Select police units in scanner range
+	if ([entity scanClass] == CLASS_POLICE &&
+		distance2([victim position], [entity position]) < SCANNER_MAX_RANGE2)
+	{
+		return YES;
+	}
+	
+	// Reject others
+	return NO;
+}
+
+
+- (void) broadcastHitByLaserFrom:(ShipEntity *) aggressor_ship
 {
 	/*-- If you're clean, locates all police and stations in range and tells them OFFENCE_COMMITTED --*/
-	if (!UNIVERSE)
-		return;
-	if (bounty)
-		return;
-	if (!aggressor_ship)
-		return;
+	if (!UNIVERSE)  return;
+	if (bounty)  return;
+	if (!aggressor_ship)  return;
+	
 	if (	(scanClass == CLASS_NEUTRAL)||
 			(scanClass == CLASS_STATION)||
 			(scanClass == CLASS_BUOY)||
@@ -7073,25 +7139,20 @@ int w_space_seed = 1234567;
 			(scanClass == CLASS_MILITARY)||
 			(scanClass == CLASS_PLAYER))	// only for active ships...
 	{
-		int			ent_count =		UNIVERSE->n_entities;
-		Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-		Entity*		my_entities[ent_count];
-		int i;
-		int ship_count = 0;
-		StationEntity* mainStation = [UNIVERSE station];
-		for (i = 0; i < ent_count; i++)
-			if ((uni_entities[i]->isShip)&&((uni_entities[i]->scanClass == CLASS_POLICE)||(uni_entities[i] == mainStation)))
-				my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-		//
-		for (i = 0; i < ship_count ; i++)
+		NSArray			*authorities = nil;
+		NSEnumerator	*authEnum = nil;
+		ShipEntity		*auth = nil;
+		
+		authorities = [UNIVERSE findShipsMatchingPredicate:AuthorityPredicate
+												 parameter:self
+												   inRange:-1
+												  ofEntity:nil];
+		authEnum = [authorities objectEnumerator];
+		while ((auth = [authEnum nextObject]))
 		{
-			ShipEntity* ship = (ShipEntity *)my_entities[i];
-			if (((ship == mainStation) && ([self withinStationAegis])) || (distance2(position, ship->position) < SCANNER_MAX_RANGE2))
-			{
-				[ship setFound_target: aggressor_ship];
-				[[ship getAI] reactToMessage: @"OFFENCE_COMMITTED"];
-			}
-			[my_entities[i] release];		//	released
+			[auth setFound_target:aggressor_ship];
+			[auth doScriptEvent:@"offenceCommittedNearby" withArgument:aggressor_ship andArgument:self];
+			[auth reactToAIMessage:@"OFFENCE_COMMITTED"];
 		}
 	}
 }
@@ -7322,21 +7383,25 @@ int w_space_seed = 1234567;
 }
 
 
+- (BOOL) trackCloseContacts
+{
+	return trackCloseContacts;
+}
+
+
 - (void) setTrackCloseContacts:(BOOL) value
 {
-	if (value == trackCloseContacts)
-		return;
+	if (value == trackCloseContacts)  return;
+	
 	trackCloseContacts = value;
+	[closeContactsInfo release];
+	
 	if (trackCloseContacts)
 	{
-		if (closeContactsInfo)
-			[closeContactsInfo removeAllObjects];
-		else
-			closeContactsInfo = [[NSMutableDictionary alloc] init];
+		closeContactsInfo = [[NSMutableDictionary alloc] init];
 	}
 	else
 	{
-		[closeContactsInfo release];
 		closeContactsInfo = nil;
 	}
 }
@@ -7537,7 +7602,24 @@ int w_space_seed = 1234567;
 - (void) doScriptEvent:(NSString *)message withArgument:(id)argument
 {
 	NSArray				*arguments = nil;
-	if (argument != nil)  arguments = [NSArray arrayWithObject:argument];
+	
+	if (argument == nil)  argument = [NSNull null];
+	arguments = [NSArray arrayWithObject:argument];
+	
+	[self doScriptEvent:message withArguments:arguments];
+}
+
+
+- (void) doScriptEvent:(NSString *)message
+		  withArgument:(id)argument1
+		   andArgument:(id)argument2
+{
+	NSArray				*arguments = nil;
+	
+	if (argument1 == nil)  argument1 = [NSNull null];
+	if (argument2 == nil)  argument2 = [NSNull null];
+	arguments = [NSArray arrayWithObjects:argument1, argument2, nil];
+	
 	[self doScriptEvent:message withArguments:arguments];
 }
 
@@ -7545,6 +7627,26 @@ int w_space_seed = 1234567;
 - (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
 {
 	[script doEvent:message withArguments:arguments];
+}
+
+
+- (void) reactToAIMessage:(NSString *)message
+{
+	[shipAI reactToMessage:message];
+}
+
+
+- (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage
+{
+	[self doScriptEvent:scriptEvent];
+	[self reactToAIMessage:aiMessage];
+}
+
+
+- (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage
+{
+	[self doScriptEvent:scriptEvent withArgument:argument];
+	[self reactToAIMessage:aiMessage];
 }
 
 @end

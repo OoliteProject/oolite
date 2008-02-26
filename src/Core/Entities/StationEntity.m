@@ -698,6 +698,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	isShip = YES;
 	isStation = YES;
+	alertLevel = STATION_ALERT_LEVEL_GREEN;
 	
 	// ** Set up a the docking port
 	// Look for subentity specifying position
@@ -1222,7 +1223,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
 		return IsBehaviourHostile(old_behaviour);
 	}
-	return IsBehaviourHostile(behaviour)||(alert_level == STATION_ALERT_LEVEL_YELLOW)||(alert_level == STATION_ALERT_LEVEL_RED);
+	return IsBehaviourHostile(behaviour)||(alertLevel == STATION_ALERT_LEVEL_YELLOW)||(alertLevel == STATION_ALERT_LEVEL_RED);
 }
 
 
@@ -1271,76 +1272,94 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (self != [UNIVERSE station])  [super takeHeatDamage:amount];
 }
 
+
+- (OOStationAlertLevel) alertLevel
+{
+	return alertLevel;
+}
+
+
+- (void) setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript
+{
+	if (level < STATION_ALERT_LEVEL_GREEN)  level = STATION_ALERT_LEVEL_GREEN;
+	if (level > STATION_ALERT_LEVEL_RED)  level = STATION_ALERT_LEVEL_RED;
+	
+	if (alertLevel != level)
+	{
+		OOStationAlertLevel oldLevel = alertLevel;
+		alertLevel = level;
+		if (signallingScript)
+		{
+			[self doScriptEvent:@"alertConditionChanged"
+				   withArgument:[NSNumber numberWithUnsignedInt:level]
+					andArgument:[NSNumber numberWithUnsignedInt:oldLevel]];
+		}
+		switch (level)
+		{
+			case STATION_ALERT_LEVEL_GREEN:
+				[shipAI reactToMessage:@"GREEN_ALERT"];
+				break;
+				
+			case STATION_ALERT_LEVEL_YELLOW:
+				[shipAI reactToMessage:@"YELLOW_ALERT"];
+				break;
+				
+			case STATION_ALERT_LEVEL_RED:
+				[shipAI reactToMessage:@"RED_ALERT"];
+				break;
+		}
+	}
+}
+
 //////////////////////////////////////////////// extra AI routines
 
 
 - (void) increaseAlertLevel
 {
-	switch (alert_level)
-	{
-		case STATION_ALERT_LEVEL_GREEN :
-			alert_level = STATION_ALERT_LEVEL_YELLOW;
-			[shipAI reactToMessage:@"YELLOW_ALERT"];
-			break;
-		
-		case STATION_ALERT_LEVEL_YELLOW :
-			alert_level = STATION_ALERT_LEVEL_RED;
-			[shipAI reactToMessage:@"RED_ALERT"];
-			break;
-		
-		case STATION_ALERT_LEVEL_RED:
-			break;
-	}
+	[self setAlertLevel:[self alertLevel] + 1 signallingScript:YES];
 }
 
 
 - (void) decreaseAlertLevel
 {
-	switch (alert_level)
-	{
-		case STATION_ALERT_LEVEL_RED :
-			alert_level = STATION_ALERT_LEVEL_YELLOW;
-			[shipAI reactToMessage:@"CONDITION_YELLOW"];
-			break;
-		
-		case STATION_ALERT_LEVEL_YELLOW :
-			alert_level = STATION_ALERT_LEVEL_GREEN;
-			[shipAI reactToMessage:@"CONDITION_GREEN"];
-			break;
-		
-		case STATION_ALERT_LEVEL_GREEN:
-			break;
-	}
+	[self setAlertLevel:[self alertLevel] - 1 signallingScript:YES];
 }
 
 
 - (void) launchPolice
 {
-	OOTechLevelID techlevel = [self equivalentTechLevel];
-	if (techlevel == NSNotFound)
-		techlevel = 6;
-	int police_target = primaryTarget;
-	unsigned i;
+	OOUniversalID	police_target = primaryTarget;
+	unsigned		i;
+	OOTechLevelID	techlevel = [self equivalentTechLevel];
+	if (techlevel == NSNotFound)  techlevel = 6;
+	
 	for (i = 0; (i < 4)&&(police_launched < max_police) ; i++)
 	{
-		ShipEntity  *police_ship;
+		ShipEntity  *police_ship = nil;
 		if (![UNIVERSE entityForUniversalID:police_target])
 		{
-			[shipAI reactToMessage:@"TARGET_LOST"];
+			[self noteLostTarget];
 			return;
 		}
 		
 		if ((Ranrot() & 7) + 6 <= techlevel)
+		{
 			police_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
+		}
 		else
+		{
 			police_ship = [UNIVERSE newShipWithRole:@"police"];   // retain count = 1
+		}
+		
 		if (police_ship)
 		{
 			if (![police_ship crew])
+			{
 				[police_ship setCrew:[NSArray arrayWithObject:
 					[OOCharacter randomCharacterWithRole: @"police"
-					andOriginalSystem: [UNIVERSE systemSeed]]]];
-				
+									   andOriginalSystem: [UNIVERSE systemSeed]]]];
+			}
+			
 			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			[police_ship setScanClass: CLASS_POLICE];
@@ -1376,7 +1395,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (![UNIVERSE entityForUniversalID:defense_target])
 	{
-		[shipAI reactToMessage:@"TARGET_LOST"];
+		[self noteLostTarget];
 		return;
 	}
 	
@@ -1491,13 +1510,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) launchPirateShip
 {
 	//Pirate ships are launched from the same pool as defence ships.
-	int defense_target = primaryTarget;
-	ShipEntity  *pirate_ship;
-	if (police_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
-		return;
+	OOUniversalID	defense_target = primaryTarget;
+	ShipEntity		*pirate_ship = nil;
+	
+	if (police_launched >= max_defense_ships)  return;   // shuttles are to rockhermits what police ships are to stations
+	
 	if (![UNIVERSE entityForUniversalID:defense_target])
 	{
-		[shipAI reactToMessage:@"TARGET_LOST"];
+		[self noteLostTarget];
 		return;
 	}
 	
@@ -1510,9 +1530,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (pirate_ship)
 	{
 		if (![pirate_ship crew])
+		{
 			[pirate_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"pirate"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
+								   andOriginalSystem: [UNIVERSE systemSeed]]]];
+		}
 				
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
@@ -1807,7 +1829,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super dumpSelfState];
 	
-	switch (alert_level)
+	switch (alertLevel)
 	{
 		case STATION_ALERT_LEVEL_GREEN:
 			alertString = @"green";

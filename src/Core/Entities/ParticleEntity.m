@@ -890,7 +890,9 @@ FAIL:
 			{
 				Entity *e2 = [targets objectAtIndex:i];
 				if (e2->isShip)
-					[[(ShipEntity *)e2 getAI] reactToMessage:@"ECM"];
+				{
+					[(ShipEntity *)e2 doScriptEvent:@"shipHitByECM" andReactToAIMessage:@"ECM"];
+				}
 			}
 		}
 		activation_time += 0.5; // go off every half second

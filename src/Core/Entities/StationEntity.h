@@ -29,9 +29,9 @@ MA 02110-1301, USA.
 
 typedef enum
 {
-	STATION_ALERT_LEVEL_GREEN,
-	STATION_ALERT_LEVEL_YELLOW,
-	STATION_ALERT_LEVEL_RED
+	STATION_ALERT_LEVEL_GREEN = ALERT_CONDITION_GREEN,
+	STATION_ALERT_LEVEL_YELLOW = ALERT_CONDITION_YELLOW,
+	STATION_ALERT_LEVEL_RED = ALERT_CONDITION_RED
 } OOStationAlertLevel;
 
 #define STATION_MAX_POLICE				8
@@ -48,7 +48,7 @@ typedef enum
 	NSMutableArray			*launchQueue;
 	double					last_launch_time;
 	double					approach_spacing;
-	OOStationAlertLevel		alert_level;
+	OOStationAlertLevel		alertLevel;
 	
 	OOUniversalID			id_lock[MAX_DOCKING_STAGES];	// ship id's or NO_TARGET's
 	
@@ -154,29 +154,23 @@ typedef enum
 - (BOOL)hasNPCTraffic;
 - (void)setHasNPCTraffic:(BOOL)flag;
 
+- (OOStationAlertLevel) alertLevel;
+- (void) setAlertLevel:(OOStationAlertLevel)level signallingScript:(BOOL)signallingScript;
+
 ////////////////////////////////////////////////////////////// AI methods...
 
 - (void) increaseAlertLevel;
-
 - (void) decreaseAlertLevel;
 
 - (void) launchPolice;
-
 - (void) launchDefenseShip;
-
 - (void) launchScavenger;
-
 - (void) launchMiner;
-
 /**Lazygun** added the following line*/
 - (void) launchPirateShip;
-
 - (void) launchShuttle;
-
 - (void) launchTrader;
-
 - (void) launchEscort;
-
 - (BOOL) launchPatrol;
 
 - (void) launchShipWithRole:(NSString*) role;
@@ -186,7 +180,6 @@ typedef enum
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 
 - (BOOL) isRotatingStation;
-
 - (BOOL) hasShipyard;
 
 @end

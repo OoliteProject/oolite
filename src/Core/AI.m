@@ -332,9 +332,10 @@ typedef struct
 	{
 		if (currentState != nil)
 		{
-			SEL _interpretAIMessageSel = @selector(interpretAIMessage:);
-			if ([owner respondsToSelector:_interpretAIMessageSel])
-				[owner performSelector:_interpretAIMessageSel withObject:message];
+			if ([owner respondsToSelector:@selector(interpretAIMessage:)])
+			{
+				[owner performSelector:@selector(interpretAIMessage:) withObject:message];
+			}
 		}
 	}
 	

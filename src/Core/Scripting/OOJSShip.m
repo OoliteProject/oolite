@@ -115,7 +115,8 @@ enum
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
-	kShip_scriptInfo			// arbitrary data for scripts, dictionary, read-only
+	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
+	kShip_trackCloseContacts	// generate close contact events, boolean, read/write
 };
 
 
@@ -161,6 +162,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "temperature",			kShip_temperature,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -390,6 +392,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			result = [entity scriptInfo];
 			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than NULL
 			break;
+			
+		case kShip_trackCloseContacts:
+			*outValue = BOOLToJSVal([entity trackCloseContacts]);
+			break;
 		
 		default:
 			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
@@ -514,6 +520,13 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setReportAIMessages:bValue];
+			}
+			break;
+			
+		case kShip_trackCloseContacts:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setTrackCloseContacts:bValue];
 			}
 			break;
 		
@@ -644,7 +657,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 	{
 		if (!thisEnt->isPlayer)
 		{
-			[[thisEnt getAI] reactToMessage:message];
+			[thisEnt reactToAIMessage:message];
 		}
 		else
 		{

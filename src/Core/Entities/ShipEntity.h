@@ -285,8 +285,10 @@ MA 02110-1301, USA.
 	// Collision detection
 	Octree					*octree;
 	
+#ifndef NDEBUG
 	// DEBUGGING
 	OOBehaviour				debug_condition;
+#endif
 	
 	uint16_t				entity_personality;	// Per-entity random number. Exposed to shaders and scripts.
 	NSDictionary			*scriptInfo;		// script_info dictionary from shipdata.plist, exposed to scripts.
@@ -543,6 +545,9 @@ BOOL	class_masslocks(int some_class);
 - (id) primaryTarget;
 - (int) primaryTargetID;
 
+- (void) noteLostTarget;
+- (void) noteTargetDestroyed:(ShipEntity *)target;
+
 - (OOBehaviour) behaviour;
 - (void) setBehaviour:(OOBehaviour) cond;
 
@@ -644,15 +649,15 @@ BOOL	class_masslocks(int some_class);
 
 - (int) checkShipsInVicinityForWitchJumpExit;
 
+- (BOOL) trackCloseContacts;
 - (void) setTrackCloseContacts:(BOOL) value;
-
-- (BOOL) isHulk;
 
 /*
  * Changes a ship to a hulk, for example when the pilot ejects.
  * Aso unsets hulkiness for example when a new pilot gets in.
  */
 - (void) setHulk:(BOOL) isNowHulk;
+- (BOOL) isHulk;
 - (void) claimAsSalvage;
 - (void) sendCoordinatesToPilot;
 - (void) pilotArrived;
@@ -666,7 +671,12 @@ BOOL	class_masslocks(int some_class);
 // For the player, they do that and also call doWorldScriptEvent:.
 - (void) doScriptEvent:(NSString *)message;
 - (void) doScriptEvent:(NSString *)message withArgument:(id)argument;
+- (void) doScriptEvent:(NSString *)message withArgument:(id)argument1 andArgument:(id)argument2;
 - (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
+
+- (void) reactToAIMessage:(NSString *)message;
+- (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage;
+- (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage;
 
 @end
 

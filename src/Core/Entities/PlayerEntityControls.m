@@ -1380,7 +1380,6 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView clearMouse];
 					[self setGuiToSystemDataScreen];
-					[self checkScript];
 				}
 				if ([gameView isDown:key_map_home])
 				{
@@ -2405,7 +2404,6 @@ static NSTimeInterval	time_last_frame;
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
 			[self setGuiToSystemDataScreen];
-			[self checkScript];
 		}
 	}
 	
@@ -2422,8 +2420,9 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_equipship_screens)
 			{
-				if (!dockedStation)
-					dockedStation = [UNIVERSE station];
+				if (!dockedStation)  dockedStation = [UNIVERSE station];
+				OOGUIScreenID oldScreen = gui_screen;
+				
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
@@ -2437,6 +2436,8 @@ static NSTimeInterval	time_last_frame;
 					[self setGuiToEquipShipScreen:0:-1];
 					[[UNIVERSE gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
+				
+				[self noteGuiChangeFrom:oldScreen to:gui_screen];
 			}
 			switching_equipship_screens = YES;
 		}

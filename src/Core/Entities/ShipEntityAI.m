@@ -956,11 +956,7 @@ WormholeEntity*	whole;
 	for (i = 0; i < ent_count; i++) if (uni_entities[i]->isShip)
 	{
 		ShipEntity *other = (ShipEntity*)uni_entities[i];
-		if ([other primaryTarget] == self)
-		{
-			[[other getAI] message:@"TARGET_LOST"];	// lose targetting
-			other->primaryTarget = NO_TARGET;
-		}
+		[other removeTarget:self];
 	}
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
@@ -1342,8 +1338,7 @@ WormholeEntity*	whole;
 	ShipEntity *ship = [self primaryTarget];
 	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 	{
-		primaryTarget = NO_TARGET;
-		[shipAI reactToMessage:@"TARGET_LOST"];
+		[self noteLostTarget];
 		return;
 	}
 	[self sendExpandedMessage:message toShip:[self primaryTarget]];
@@ -1355,8 +1350,7 @@ WormholeEntity*	whole;
 	ShipEntity *ship = [self primaryTarget];
 	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 	{
-		primaryTarget = NO_TARGET;
-		[shipAI reactToMessage:@"TARGET_LOST"];
+		[self noteLostTarget];
 		return;
 	}
 	if ([ship markForFines])  [shipAI message:@"TARGET_MARKED"];
@@ -1370,8 +1364,7 @@ WormholeEntity*	whole;
 		ShipEntity *ship = [self primaryTarget];
 		if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
 		{
-			primaryTarget = NO_TARGET;
-			[shipAI reactToMessage:@"TARGET_LOST"];
+			[self noteLostTarget];
 			return;
 		}
 		NSString* finalValue = ExpandDescriptionForCurrentSystem(valueString);	// expand values

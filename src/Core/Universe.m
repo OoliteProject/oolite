@@ -4635,6 +4635,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
+OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
+{
+	if (range < 0)  return YES;
+	Vector p2 = vector_subtract(e2->position, p1);
+	float cr = range + e2->collision_radius;
+	return magnitude2(p2) < cr * cr;
+}
+
+
 // NOTE: OOJSSystem relies on this returning entities in distance-from-player order.
 // This can be easily changed by removing the [reference isPlayer] conditions in FindJSVisibleEntities().
 - (NSMutableArray *) findEntitiesMatchingPredicate:(EntityFilterPredicate)predicate
@@ -4643,8 +4652,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 								   ofEntity:(Entity *)e1
 {
 	unsigned		i;
-	Vector			p1, p2;
-	double			distance, cr;
+	Vector			p1;
 	NSMutableArray	*result = nil;
 	
 	if (predicate == NULL)  predicate = YESPredicate;
@@ -4657,19 +4665,12 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	for (i = 0; i < n_entities; i++)
 	{
 		Entity *e2 = sortedEntities[i];
-		if (e2 != e1 && predicate(e2, parameter))
+		
+		if (e1 != e2 &&
+			EntityInRange(p1, e2, range) &&
+			predicate(e2, parameter))
 		{
-			if (range < 0)  distance = -1;	// Negative range means infinity
-			else
-			{
-				p2 = vector_subtract(e2->position, p1);
-				cr = range + e2->collision_radius;
-				distance = magnitude2(p2) - cr * cr;
-			}
-			if (distance < 0)
-			{
-				[result addObject:e2];
-			}
+			[result addObject:e2];
 		}
 	}
 	

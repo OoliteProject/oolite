@@ -145,8 +145,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		[UNIVERSE addEntity:ship];
 		
 		// Should probably pass the wormhole, but they have no JS representation
-		[ship doScriptEvent:@"shipExitedWormhole"];
-		[[ship getAI] reactToMessage:@"EXITED WITCHSPACE"];
+		[ship doScriptEvent:@"shipExitedWormhole" andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
 		// update the ships's position
 		[ship update: time_passed];
