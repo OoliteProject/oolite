@@ -35,6 +35,12 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 
 
+// NOTE: these values are documented for scripting, be careful about changing them.
+#define ECM_EFFECT_DURATION		2.0
+#define ECM_PULSE_COUNT			4
+#define ECM_PULSE_INTERVAL		(ECM_EFFECT_DURATION / (double)ECM_PULSE_COUNT)
+
+
 typedef enum
 {
 	PARTICLE_TEST				= 1,
@@ -281,8 +287,8 @@ FAIL:
 		return self;
     
     time_counter = 0.0;
-	activation_time = 0.5;
-	duration = 2.0;
+	activation_time = ECM_PULSE_INTERVAL;
+	duration = ECM_EFFECT_DURATION;
 	position = ship->position;
     
 	status = STATUS_EFFECT;
@@ -879,23 +885,29 @@ FAIL:
 	if (time_counter > activation_time)
 	{
 		// do ecm stuff
-		GLfloat radius = 0.5 * activation_time * SCANNER_MAX_RANGE;
+		GLfloat radius = ECM_PULSE_INTERVAL * activation_time * SCANNER_MAX_RANGE;
 		if (radius > SCANNER_MAX_RANGE)
+		{
 			radius = SCANNER_MAX_RANGE;
+		}
 		NSArray* targets = [UNIVERSE getEntitiesWithinRange:radius ofEntity:self];
 		if ([targets count] > 0)
 		{
+			NSNumber *ecmPulsesRemaining = [NSNumber numberWithInt:(duration - activation_time) / ECM_PULSE_INTERVAL];
 			unsigned i;
+			
 			for (i = 0; i < [targets count]; i++)
 			{
 				Entity *e2 = [targets objectAtIndex:i];
 				if (e2->isShip)
 				{
-					[(ShipEntity *)e2 doScriptEvent:@"shipHitByECM" andReactToAIMessage:@"ECM"];
+					[(ShipEntity *)e2 doScriptEvent:@"shipHitByECM"
+									   withArgument:ecmPulsesRemaining
+								andReactToAIMessage:@"ECM"];
 				}
 			}
 		}
-		activation_time += 0.5; // go off every half second
+		activation_time += ECM_PULSE_INTERVAL; // go off every half second
 	}
 	if (time_counter > duration)	// until the timer runs out!
 		[UNIVERSE removeEntity:self];
