@@ -81,6 +81,9 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 static JSBool SystemLegacySpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
+static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
 
 static JSClass sSystemClass =
 {
@@ -178,9 +181,17 @@ static JSFunctionSpec sSystemMethods[] =
 };
 
 
+static JSFunctionSpec sSystemStaticMethods[] =
+{
+	{ "systemNameForID",		SystemStaticSystemNameForID, 1 },
+	{ "systemIDForName",		SystemStaticSystemIDForName, 1 },
+	{ 0 }
+};
+
+
 void InitOOJSSystem(JSContext *context, JSObject *global)
 {
-    sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, NULL, 0, sSystemProperties, sSystemMethods, NULL, NULL);
+    sSystemPrototype = JS_InitClass(context, global, NULL, &sSystemClass, NULL, 0, sSystemProperties, sSystemMethods, NULL, sSystemStaticMethods);
 	
 	// Create system object as a property of the global object.
 	JS_DefineObject(context, global, "system", &sSystemClass, sSystemPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
@@ -853,4 +864,32 @@ static int CompareEntitiesByDistance(id a, id b, void *relativeTo)
 	if (d1 < d2)  return NSOrderedAscending;
 	else if (d1 > d2)  return NSOrderedDescending;
 	else return NSOrderedSame;
+}
+
+
+// systemNameForID(ID : Number) : String
+static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	int32				systemID;
+	
+	if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
+	{
+		OOReportJavaScriptError(context, @"%@(): expected system ID from 0 to 255, got %@.", @"systemNameForID", JSValToNSString(context, argv[0]));
+		return YES;
+	}
+	
+	*outResult = [[UNIVERSE generateSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]] javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+// systemIDForName(name : String) : Number
+static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*name = nil;
+	
+	name = JSValToNSString(context, argv[0]);
+	*outResult = INT_TO_JSVAL([UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]]);
+	return YES;
 }

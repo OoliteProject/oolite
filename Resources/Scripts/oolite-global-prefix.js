@@ -125,7 +125,7 @@ this.defineCompatibilityGetterAndSetter("Player", "legalStatus", "bounty");
 Player.__proto__.__defineGetter__("dockedStationName", function ()
 {
 	special.jsWarning("Player.dockedStationName is deprecated, use Player.dockedStation.shipDescription instead.");
-	return this.dockedStation ? this.dockedStation.shipDescription: '';
+	return this.dockedStation ? this.dockedStation.shipDescription: null;
 });
 
 Player.__proto__.__defineGetter__("dockedAtMainStation", function ()

@@ -72,6 +72,10 @@
 	<string>$scriptDebugOn</string>
 	<key>beacon.list.flightTraining</key>
 	<string>inherit</string>
+	<key>character</key>
+	<string>inherit</string>
+	<key>character.load.unknownSystem</key>
+	<string>inherit</string>
 	<key>dataCache.clear.success</key>
 	<string>$dataCacheDebug</string>
 	<key>dataCache.found</key>
@@ -247,8 +251,6 @@
 	<key>script.debug.note.showShipModel</key>
 	<string>inherit</string>
 	<key>script.debug.note.showShipyardModel</key>
-	<string>inherit</string>
-	<key>script.debug.note.systemSeedForSystemName</key>
 	<string>inherit</string>
 	<key>script.debug.note.testCondition</key>
 	<string>no</string>

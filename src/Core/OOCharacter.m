@@ -456,16 +456,31 @@ MA 02110-1301, USA.
 
 - (void) setCharacterFromDictionary:(NSDictionary *) dict
 {
-	if ([dict objectForKey:@"origin"])
+	id					origin = nil;
+	
+	origin = [dict objectForKey:@"origin"];
+	if ([origin isKindOfClass:[NSNumber class]] ||
+		([origin respondsToSelector:@selector(intValue)] && ([origin intValue] != 0 || [origin isEqual:@"0"])))
 	{
-		if (([[dict objectForKey:@"origin"] intValue] > 0) || [[dict objectForKey:@"origin"] isEqual:@"0"])
-			[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:[[dict objectForKey:@"origin"] intValue]]];
+		// Number or numerical string
+		[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemNumber:[origin intValue]]];
+	}
+	else if ([origin isKindOfClass:[NSString class]])
+	{
+		Random_Seed seed = [UNIVERSE systemSeedForSystemName:origin];
+		if (is_nil_seed(seed))
+		{
+			OOLog(@"character.load.unknownSystem", @"Character loading error: could not find a system with the name \"%@\" in this galaxy.", origin);
+		}
 		else
-			[self setOriginSystemSeed:[UNIVERSE systemSeedForSystemName:[dict objectForKey:@"origin"]]];
-	}	
+		{
+			[self setOriginSystemSeed:seed];
+		}
+	}
+	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		Random_Seed g_seed = RandomSeedFromString([dict objectForKey:@"random_seed"]);
+		Random_Seed g_seed = RandomSeedFromString([dict stringForKey:@"random_seed"]);
 		[self setGenSeed: g_seed];
 		[self basicSetUp];
 	}

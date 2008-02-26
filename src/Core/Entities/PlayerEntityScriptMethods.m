@@ -189,10 +189,8 @@ MA 02110-1301, USA.
 
 - (OOSystemID) currentSystemID
 {
-	// You'd think we'd have the current system ID stored somewhere...
-	
 	if ([UNIVERSE sun] == nil)  return -1;	// Interstellar space
-	return [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+	return [UNIVERSE currentSystemID];
 }
 
 @end

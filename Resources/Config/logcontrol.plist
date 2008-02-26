@@ -84,6 +84,10 @@
 	beacon.list.flightTraining				= inherit;
 	
 	
+	character								= inherit;
+	character.load.unknownSystem			= inherit;
+	
+	
 	$dataCacheStatus = yes;
 	$dataCacheError = $error;
 	$dataCacheDebug = no;
@@ -202,7 +206,6 @@
 	script.debug.note.useSpecialCargo		= inherit;
 	script.debug.note.addShips				= inherit;
 	script.debug.note.set					= inherit;
-	script.debug.note.systemSeedForSystemName = inherit;
 	script.debug.note.showShipyardModel		= inherit;
 	script.debug.note.showShipModel			= inherit;
 	script.debug.note.setFuelLeak			= inherit;

@@ -432,8 +432,10 @@ enum
 - (void) setSystemTo:(Random_Seed) s_seed;
 
 - (Random_Seed) systemSeed;
-- (Random_Seed) systemSeedForSystemNumber:(int) n;
-- (Random_Seed) systemSeedForSystemName:(NSString*) sysname;
+- (Random_Seed) systemSeedForSystemNumber:(OOSystemID) n;
+- (Random_Seed) systemSeedForSystemName:(NSString *)sysname;
+- (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed;
+- (OOSystemID) currentSystemID;
 
 - (NSDictionary *) shipyard;
 - (NSDictionary *) descriptions;

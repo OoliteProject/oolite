@@ -72,7 +72,6 @@ MA 02110-1301, USA.
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
-static NSString * const kOOLogScriptNoSystemForName			= @"script.debug.note.systemSeedForSystemName";
 extern NSString * const kOOLogEntityVerificationError;
 static NSString * const kOOLogEntityVerificationRebuild		= @"entity.linkedList.verify.rebuild";
 static NSString * const kOOLogFoundBeacon					= @"beacon.list";
@@ -5499,23 +5498,41 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (Random_Seed) systemSeedForSystemNumber:(int) n
+- (Random_Seed) systemSeedForSystemNumber:(OOSystemID)n
 {
-	return systems[n & 0xff];
+	return systems[(unsigned)n & 0xFF];
 }
 
 
-- (Random_Seed) systemSeedForSystemName:(NSString*) sysname
+- (Random_Seed) systemSeedForSystemName:(NSString *)sysname
 {
 	int i;
 	NSString *pname = [[sysname lowercaseString] capitalizedString];
 	for (i = 0; i < 256; i++)
 	{
-		if ([pname isEqual:[self getSystemName: systems[i]]])
+		if ([pname isEqualToString:[self getSystemName: systems[i]]])
 			return systems[i];
 	}
-	OOLog(kOOLogScriptNoSystemForName, @"SCRIPT ERROR could not find a system with the name '%@' in this galaxy", sysname);
+	
 	return kNilRandomSeed;
+}
+
+
+- (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed
+{
+	int i;
+	for (i = 0; i < 256; i++)
+	{
+		if (equal_seeds(systems[i], seed))  return i;
+	}
+	
+	return -1;
+}
+
+
+- (OOSystemID) currentSystemID
+{
+	return [self systemIDForSystemSeed:[self systemSeed]];
 }
 
 
