@@ -28,13 +28,14 @@ MA 02110-1301, USA.
 #import "OOJSScript.h"
 
 #import "OOJSPlayer.h"
+#import "PlayerEntityScriptMethods.h"
 
 
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool MissionShowMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionShowShipModel(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionResetMissionChoice(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionMarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -53,7 +54,7 @@ static JSClass sMissionClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	MissionGetProperty,
-	JS_PropertyStub,
+	MissionSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -71,7 +72,7 @@ enum
 static JSPropertySpec sMissionProperties[] =
 {
 	// JS name					ID							flags
-	{ "choice",					kMission_choice,			JSPROP_PERMANENT | JSPROP_READONLY | JSPROP_ENUMERATE },
+	{ "choice",					kMission_choice,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }	
 };
 
@@ -81,7 +82,6 @@ static JSFunctionSpec sMissionMethods[] =
 	// JS name					Function					min args
 	{ "showMissionScreen",		MissionShowMissionScreen,	0 },
 	{ "showShipModel",			MissionShowShipModel,		1 },
-	{ "resetMissionChoice",		MissionResetMissionChoice,	0 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
 	{ "addMessageTextKey",		MissionAddMessageTextKey,	1 },
@@ -117,9 +117,37 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name,
 			result = [player missionChoice_string];
 			if (result == nil)  result = [NSNull null];
 			break;
+			
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			return NO;
 	}
 	
 	if (result != nil) *outValue = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	PlayerEntity				*player = nil;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	player = OOPlayerForScripting();
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kMission_choice:
+			if (*value == JSVAL_VOID || *value == JSVAL_NULL)  [player resetMissionChoice];
+			else  [player setMissionChoice:[NSString stringWithJavaScriptValue:*value inContext:context]];
+			break;
+			
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			return NO;
+	}
+	
 	return YES;
 }
 
@@ -140,16 +168,6 @@ static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc
 	
 	// If argv[0] can't be converted to a string -- e.g., null or undefined -- this will clear the ship model.
 	[player showShipModel:[NSString stringWithJavaScriptValue:argv[0] inContext:context]];
-	
-	return YES;
-}
-
-
-static JSBool MissionResetMissionChoice(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	
-	[player resetMissionChoice];
 	
 	return YES;
 }

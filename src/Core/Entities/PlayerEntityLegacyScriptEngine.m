@@ -1762,19 +1762,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		choices_row++;
 	}
 	
-	[gui setSelectableRange:NSMakeRange( 22 - [choice_keys count], [choice_keys count])];
+	[gui setSelectableRange:NSMakeRange(22 - [choice_keys count], [choice_keys count])];
 	[gui setSelectedRow: 22 - [choice_keys count]];
 	
-	[self resetMissionChoice];						// resets MissionChoice to nil
+	[self resetMissionChoice];
 }
 
 
-- (void) resetMissionChoice							// resets MissionChoice to nil
+- (void) resetMissionChoice
 {
-	NSString *choice = missionChoice;
-	missionChoice = nil;
-	[self doScriptEvent:@"missionChoiceWasReset" withArgument:choice];
-	[choice release];
+	[self setMissionChoice:nil];
 }
 
 

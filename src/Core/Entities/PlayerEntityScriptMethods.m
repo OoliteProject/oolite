@@ -193,4 +193,26 @@ MA 02110-1301, USA.
 	return [UNIVERSE currentSystemID];
 }
 
+
+- (void) setMissionChoice:(NSString *)newChoice
+{
+	BOOL equal = [newChoice isEqualToString:missionChoice] || (newChoice == missionChoice);	// Catch both being nil as well
+	if (!equal)
+	{
+		if (newChoice == nil)
+		{
+			NSString *oldChoice = missionChoice;
+			[missionChoice autorelease];
+			missionChoice = nil;
+			
+			[self doScriptEvent:@"missionChoiceWasReset" withArgument:oldChoice];
+		}
+		else
+		{
+			[missionChoice release];
+			missionChoice = [newChoice copy];
+		}
+	}
+}
+
 @end

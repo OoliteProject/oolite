@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityControls.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "PlayerEntityScriptMethods.h"
 #import "PlayerEntitySound.h"
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityStickMapper.h"
@@ -2728,9 +2729,7 @@ static BOOL toggling_music;
 				{
 					if (!enterSelectKeyPressed)
 					{
-						if (missionChoice)
-							[missionChoice release];
-						missionChoice = [[NSString stringWithString:[gui selectedRowKey]] retain];
+						[self setMissionChoice:[gui selectedRowKey]];
 						
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
@@ -2743,7 +2742,9 @@ static BOOL toggling_music;
 					enterSelectKeyPressed = YES;
 				}
 				else
+				{
 					enterSelectKeyPressed = NO;
+				}
 			}
 			break;
 			

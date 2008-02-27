@@ -111,6 +111,12 @@ this.defineCompatibilityAlias("ExpandDescription", "expandDescription");
 this.defineCompatibilityAlias("RandomName", "randomName");
 this.defineCompatibilityAlias("DisplayNameForCommodity", "displayNameForCommodity");
 
+mission.resetMissionChoice = function()
+{
+	special.jsWarning("mission.resetMissionChoice() is deprecated, use mission.choice = null instead.");
+	this.choice = null;
+}
+
 
 // To be removed after 1.71
 Entity.__proto__.valid = function ()
