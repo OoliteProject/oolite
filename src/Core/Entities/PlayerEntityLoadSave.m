@@ -848,7 +848,7 @@
 	
 	if ([cdr boolForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open folder: %@", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
@@ -857,7 +857,7 @@
 	
 	if ([cdr boolForKey:@"isParentFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: @"Hold "COMMAND_MODIFIER_KEY" and press return to open parent folder: %@", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
 		
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];             
 		
