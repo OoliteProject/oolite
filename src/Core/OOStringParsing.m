@@ -357,7 +357,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%I"
-				withString:[NSString stringWithFormat:@"%@ian",[UNIVERSE generateSystemName:seed]]
+				withString:[NSString stringWithFormat:@"%@%@",[UNIVERSE generateSystemName:seed], DESC(@"planetname-derivative-suffix")]
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%R"

@@ -956,6 +956,7 @@
 	"clock-format"					= "%07d:%02d:%02d:%02d";
 	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
 	"danger-fuel-leak"			= "Danger! Fuel leak!";
+	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
 	
 	
 	// delivery reports
