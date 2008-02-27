@@ -2867,7 +2867,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	else  return 0;
 }
 
-
+/*
+ * Price for an item expressed in 10ths of credits (divide by 10 to get credits)
+ */
 - (OOCreditsQuantity) getPriceForWeaponSystemWithKey:(NSString *)weapon_key
 {
 	unsigned				i, count;
@@ -6942,6 +6944,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				if (eq_index != NSNotFound)
 				{
 					NSArray* equipment_info = [equipmentdata arrayAtIndex:eq_index];
+					 //all amounts are x/10 due to being represented in tenths of credits
 					OOCreditsQuantity eq_price = [equipment_info unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX] / 10;
 					unsigned eq_techlevel = [equipment_info unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
 					NSString* eq_short_desc = [equipment_info stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
@@ -7003,7 +7006,8 @@ double estimatedTimeForJourney(double distance, int hops)
 							//fit best weapon forward
 							if (new_weapon > fwd_weapon)
 							{
-								price -= [self getPriceForWeaponSystemWithKey:fwd_weapon_string] * 90 / 100;	// 90% credits
+								//again remember to divide price by 10 to get credits from tenths of credit
+								price -= [self getPriceForWeaponSystemWithKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
 								price += eq_price;
 								fwd_weapon_string = equipment;
 								fwd_weapon = new_weapon;
@@ -7016,7 +7020,7 @@ double estimatedTimeForJourney(double distance, int hops)
 								//if less good than current forward, try fitting is to rear
 								if (!aft_weapon || new_weapon > aft_weapon)
 								{
-									price -= [self getPriceForWeaponSystemWithKey:aft_weapon_string] * 90 / 100;	// 90% credits
+									price -= [self getPriceForWeaponSystemWithKey:aft_weapon_string] * 90 / 1000;	// 90% credits
 									price += eq_price;
 									aft_weapon_string = equipment;
 									aft_weapon = new_weapon;
