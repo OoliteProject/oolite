@@ -401,7 +401,6 @@
 		1A6B228E0C9B40D4000717CF /* OOJSTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B228C0C9B40D4000717CF /* OOJSTimer.m */; };
 		1A6B25EE0C9C2746000717CF /* OOJSClock.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B25EC0C9C2745000717CF /* OOJSClock.h */; };
 		1A6B25EF0C9C2746000717CF /* OOJSClock.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B25ED0C9C2746000717CF /* OOJSClock.m */; };
-		1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8E9099502BB002F25FD /* libOgg.a */; };
 		1A6DD1230C57B5BC00A892F4 /* OOPListSchemaVerifier.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */; };
 		1A6DD1240C57B5BC00A892F4 /* OOPListSchemaVerifier.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */; };
 		1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
@@ -590,7 +589,6 @@
 		25F3E8A80994FE65002F25FD /* oolite-expansion-document.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */; };
 		25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8A60994FE65002F25FD /* oolite-icon.icns */; };
 		25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 25F3E8B30994FE9B002F25FD /* InfoPlist.strings */; };
-		25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 25F3E8EA099502BB002F25FD /* libVorbisAll.a */; };
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
@@ -997,7 +995,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1582,8 +1580,6 @@
 		25F3E8BC09950088002F25FD /* Info-Oolite.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-Oolite.plist"; path = "../src/Cocoa/Info-Oolite.plist"; sourceTree = "<group>"; };
 		25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = "Info-OoliteDev.plist"; path = "../src/Cocoa/Info-OoliteDev.plist"; sourceTree = "<group>"; };
 		25F3E8C3099500F1002F25FD /* SoundInspector.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = SoundInspector.nib; path = ../src/Cocoa/SoundInspector.nib; sourceTree = "<group>"; };
-		25F3E8E9099502BB002F25FD /* libOgg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libOgg.a; path = "deps/Cocoa-deps/Ogg Vorbis/libOgg.a"; sourceTree = "<group>"; };
-		25F3E8EA099502BB002F25FD /* libVorbisAll.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libVorbisAll.a; path = "deps/Cocoa-deps/Ogg Vorbis/libVorbisAll.a"; sourceTree = "<group>"; };
 		25F46750099695D5009483BF /* OoliteApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OoliteApp.h; sourceTree = "<group>"; };
 		25F46751099695D5009483BF /* OoliteApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OoliteApp.m; sourceTree = "<group>"; };
 		25F4676309969672009483BF /* MyOpenGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MyOpenGLView.m; sourceTree = "<group>"; };
@@ -1603,10 +1599,8 @@
 				1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */,
 				1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */,
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
-				25F3E8EC099502BB002F25FD /* libVorbisAll.a in Frameworks */,
 				1A71E6F80BCE345000CD5C13 /* libpng.a in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
-				1A6B50430C8B42AC0035DFCC /* libOgg.a in Frameworks */,
 				1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1624,8 +1618,6 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				25F3E8E9099502BB002F25FD /* libOgg.a */,
-				25F3E8EA099502BB002F25FD /* libVorbisAll.a */,
 				0878FD2F086EF845004CB752 /* Carbon.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				06AFA01500A58FB77F000001 /* OpenGL.framework */,
@@ -1649,7 +1641,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -2847,7 +2839,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3257,12 +3249,13 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
-				OTHER_LDFLAGS = "";
+				OTHER_LDFLAGS = (
+					"$(OGGVORBISROOT)/libOgg.a",
+					"$(OGGVORBISROOT)/libVorbisAll.a",
+				);
 				PRODUCT_NAME = OoliteDev;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
 				SECTORDER_FLAGS = "";
@@ -3312,11 +3305,12 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
-				OTHER_LDFLAGS = "-lSystem";
+				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
+				OTHER_LDFLAGS = (
+					"$(OGGVORBISROOT)/libOgg.a",
+					"$(OGGVORBISROOT)/libVorbisAll.a",
+				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
@@ -3420,10 +3414,12 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS_QUOTED_3 = "\"$(SRCROOT)/deps/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
+				OTHER_LDFLAGS = (
+					"$(OGGVORBISROOT)/libOgg.a",
+					"$(OGGVORBISROOT)/libVorbisAll.a",
+				);
 				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -framework Security";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
@@ -3450,8 +3446,6 @@
 				);
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
