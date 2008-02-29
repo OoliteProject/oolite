@@ -722,12 +722,6 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 }
 
 
-- (NSString *)descriptionComponents
-{
-	return nil;
-}
-
-
 - (NSString *)jsClassName
 {
 	return nil;
@@ -758,22 +752,6 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	}
 	
 	return description;
-}
-
-
-- (NSString *)description
-{
-	NSString				*components = nil;
-	
-	components = [self descriptionComponents];
-	if (components != nil)
-	{
-		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
-	}
-	else
-	{
-		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
-	}
 }
 
 @end

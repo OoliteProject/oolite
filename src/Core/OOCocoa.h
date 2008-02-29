@@ -214,6 +214,15 @@ enum {
 */
 - (NSString *)descriptionComponents;
 
+
+/*	A lot of Oolite's -description implementations are rather long, and many
+	embed other descriptions. -shortDescription provides a truncated
+	alternative, while -shortDescriptionComponents provides a
+	-descriptionComponents-like mechanism to simplify implementation.
+*/
+- (NSString *) shortDescription;
+- (NSString *) shortDescriptionComponents;
+
 @end
 
 

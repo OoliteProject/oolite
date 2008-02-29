@@ -1,6 +1,8 @@
 /*
 
-OOCamera.m
+OOCocoa.m
+
+Runtime-like methods.
 
 
 Oolite
@@ -46,118 +48,52 @@ SOFTWARE.
 
 */
 
-#import "OOCamera.h"
-#import "OOMacroOpenGL.h"
+#import "OOCocoa.h"
 
 
-@implementation OOCamera
+@implementation NSObject (OODescriptionComponents)
 
-- (id) init
+- (NSString *)descriptionComponents
 {
-	self = [super init];
-	if (self != nil)
+	return nil;
+}
+
+
+- (NSString *)description
+{
+	NSString				*components = nil;
+	
+	components = [self descriptionComponents];
+	if (components != nil)
 	{
-		_orientation = kIdentityQuaternion;
+		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
 	}
-	return self;
+	else
+	{
+		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
+	}
 }
 
 
-- (void) dealloc
+- (NSString *) shortDescription
 {
-	[_reference autorelease];
+	NSString				*components = nil;
 	
-	[super dealloc];
+	components = [self shortDescriptionComponents];
+	if (components != nil)
+	{
+		return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, components];
+	}
+	else
+	{
+		return [NSString stringWithFormat:@"<%@ %p>", [self class], self];
+	}
 }
 
 
-- (NSString *) descriptionComponents
+- (NSString *) shortDescriptionComponents
 {
-	NSString *refDesc = @"";
-	if (_reference != nil)  refDesc = [NSString stringWithFormat:@"relative to ", [(id)_reference shortDescription]];
-	
-	return [NSString stringWithFormat:@"position: %@ orientation: %@%@", VectorDescription([self position]), QuaternionDescription([self orientation]), refDesc];
-}
-
-
-- (Vector) position
-{
-	return _position;
-}
-
-
-- (void) setPosition:(Vector)position
-{
-	_position = position;
-}
-
-
-- (Quaternion) orientation
-{
-	return _orientation;
-}
-
-
-- (void) setOrientation:(Quaternion)orientation
-{
-	_orientation = orientation;
-}
-
-
-- (id <OOSpatialReference>)reference
-{
-	return _reference;
-}
-
-
-- (void) setReference:(id <OOSpatialReference>)reference
-{
-	[_reference autorelease];
-	_reference = [reference retain];
-}
-
-
-- (void) rotateToHeading:(Vector)heading upVector:(Vector)upVector
-{
-	
-}
-
-
-- (OOMatrix) transformationMatrix
-{
-	return OOMatrixForQuaternionRotation([self orientation]);
-}
-
-
-- (OOMatrix) rotationMatrix
-{
-	return OOMatrixTranslate([self rotationMatrix], [self position]);
-}
-
-
-- (void) glApply
-{
-	GLint			matrixMode;
-	
-	OO_ENTER_OPENGL();
-	
-	glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
-	glMatrixMode(GL_MODELVIEW);
-	GLLoadOOMatrix([self rotationMatrix]);	// Absolute
-	glMatrixMode(matrixMode);
-}
-
-
-- (void) glApplyRelative
-{
-	GLint			matrixMode;
-	
-	OO_ENTER_OPENGL();
-	
-	glGetIntegerv(GL_MATRIX_MODE, &matrixMode);
-	glMatrixMode(GL_MODELVIEW);
-	GLMultOOMatrix([self rotationMatrix]);	// Relative
-	glMatrixMode(matrixMode);
+	return nil;
 }
 
 @end

@@ -185,25 +185,49 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 }
 
 
-- (void)runScript:(NSArray*)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target
+- (void)runScript:(NSArray *)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target
 {
 	[self setScriptTarget:target];
 	mission_key = scriptName;
-	[self scriptActions:scriptActions forTarget:target];
+	[self scriptActions:scriptActions forTarget:target missionKey:scriptName];
 	mission_key = nil;
 }
 
 
-- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity *)a_target
+- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target
 {
-	NSAutoreleasePool	*pool = nil;
+	static unsigned			stackDepth = 0;
+	NSString				*missionKey = nil;
 	
-	mission_key = @"__oolite_actions_temp";				// Allow _actions to have extra-temporary local variables.
-	PerformScriptActions(some_actions, a_target);
+	// Create temporary mission key for local variables
+	missionKey = [NSString stringWithFormat:@"__oolite_actions_temp.%u", stackDepth++];
 	
-	[localVariables removeObjectForKey:mission_key];	// Kill the aforementioned temporary locals.
-	mission_key = nil;
+	[self scriptActions:actions forTarget:target missionKey:missionKey];
 	
+	// Zap local variables
+	[localVariables removeObjectForKey:missionKey];
+	stackDepth--;
+}
+
+
+- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target missionKey:(NSString *)missionKey
+{
+	NSAutoreleasePool		*pool = nil;
+	NSString				*oldMissionKey = nil;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	// Allow _actions to have extra-temporary local variables.
+	oldMissionKey = mission_key;
+	mission_key = missionKey;
+	
+	NS_DURING
+		PerformScriptActions(actions, target);
+	NS_HANDLER
+	OOLog(@"script.error.exception", @"***** EXCEPTION %@: %@ while handling legacy script actions for %@", [localException name], [localException reason], [missionKey hasPrefix:@"__oolite_actions_temp"] ? [target shortDescription] : missionKey);
+	NS_ENDHANDLER
+	
+	mission_key = oldMissionKey;
 	[pool release];
 }
 
@@ -633,7 +657,7 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 
 /*-----------------------------------------------------*/
 
-- (NSArray*) missionsList
+- (NSArray *) missionsList
 {
 	NSEnumerator			*scriptEnum = nil;
 	NSString				*scriptName = nil;
@@ -1108,7 +1132,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setPlanetinfo:(NSString *)key_valueString	// uses key=value format
 {
-	NSArray*	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
+	NSArray *	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
 	NSString*   keyString = nil;
 	NSString*	valueString = nil;
 
@@ -1128,7 +1152,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setSpecificPlanetInfo:(NSString *)key_valueString  // uses galaxy#=planet#=key=value
 {
-	NSArray*	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
+	NSArray *	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
 	NSString*   keyString = nil;
 	NSString*	valueString = nil;
 	int gnum, pnum;
@@ -2198,7 +2222,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key
 {
-	NSArray* items = (NSArray*)[[UNIVERSE descriptions] objectForKey:d_key];
+	NSArray * items = (NSArray *)[[UNIVERSE descriptions] objectForKey:d_key];
 	//
 	if (!items)
 		return;
@@ -2281,7 +2305,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if (!item)
 		return NO;
-	NSArray* i_info = ScanTokensFromString(item);
+	NSArray * i_info = ScanTokensFromString(item);
 	if (!i_info)
 		return NO;
 	NSString* i_key = [(NSString*)[i_info objectAtIndex:0] lowercaseString];
@@ -2299,7 +2323,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		Vector	scene_offset = {0};
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(2, 3)] componentsJoinedByString:@" "], &scene_offset);
 		scene_offset.x += off.x;	scene_offset.y += off.y;	scene_offset.z += off.z;
-		NSArray* scene_items = (NSArray*)[[UNIVERSE descriptions] objectForKey:scene_key];
+		NSArray * scene_items = (NSArray *)[[UNIVERSE descriptions] objectForKey:scene_key];
 		OOLog(kOOLogDebugProcessSceneStringAddScene, @"::::: adding scene: '%@'", scene_key);
 		//
 		if (scene_items)

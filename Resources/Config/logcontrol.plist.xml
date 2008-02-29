@@ -318,6 +318,8 @@
 	<string>inherit</string>
 	<key>script.error.addPlanet.noPosition</key>
 	<string>inherit</string>
+	<key>script.error.exception</key>
+	<string>inherit</string>
 	<key>script.error.removeAllCargo.notDocked</key>
 	<string>inherit</string>
 	<key>script.javaScript.badParameter</key>

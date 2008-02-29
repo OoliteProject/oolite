@@ -37,8 +37,11 @@ MA 02110-1301, USA.
 - (void) setScriptTarget:(ShipEntity *)ship;
 - (ShipEntity*) scriptTarget;
 
-- (void) scriptActions:(NSArray*) some_actions forTarget:(ShipEntity *)a_target;
-- (void)runScript:(NSArray*)scriptActions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
+- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target;
+- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target missionKey:(NSString *)missionKey;
+
+- (void)runScript:(NSArray *)actions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
+
 - (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition;
@@ -105,7 +108,7 @@ MA 02110-1301, USA.
 
 /*-----------------------------------------------------*/
 
-- (NSArray*) missionsList;
+- (NSArray *) missionsList;
 
 - (void) setMissionDescription:(NSString *)textKey;
 - (void) clearMissionDescription;
@@ -214,7 +217,7 @@ MA 02110-1301, USA.
 
 - (void) setGuiToMissionScreen;
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key;
-- (void) addScene:(NSArray*) items atOffset:(Vector) off;
+- (void) addScene:(NSArray *) items atOffset:(Vector) off;
 - (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off;
 - (BOOL) processSceneString:(NSString*) item atOffset:(Vector) off;
 

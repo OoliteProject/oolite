@@ -241,6 +241,7 @@
 	script.error.removeAllCargo.notDocked	= inherit;
 	script.error.addPlanet.keyNotFound		= inherit;
 	script.error.addPlanet.noPosition		= inherit;
+	script.error.exception					= inherit;
 	
 	script.javaScript.load.success			= no;
 	script.javaScript.load.failed			= $scriptError;
