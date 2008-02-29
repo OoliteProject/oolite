@@ -134,6 +134,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return isPlanet && [(PlanetEntity *)self planetType] == PLANET_TYPE_SUN;
 }
 
+- (BOOL)isSky
+{
+	return isSky;
+}
 
 - (BOOL)isWormhole
 {

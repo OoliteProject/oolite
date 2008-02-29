@@ -446,7 +446,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if (isSubentity)
 	{
-		[[self owner] subEntityReallyDied:self];
+		//on player loading ships with subentities, the subentities are attached to the sky object!
+		if (![[self owner] isSky])
+			[[self owner] subEntityReallyDied:self];
 	}
 	
 	[shipinfoDictionary release];
