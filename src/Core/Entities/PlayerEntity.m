@@ -1021,7 +1021,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
 	[self setGalacticHyperspaceBehaviour:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoords:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"0x60 0x60"]];
+	[self setGalacticHyperspaceFixedCoords:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	[OOScriptTimer noteGameReset];
 	[self doScriptEvent:@"reset"];
