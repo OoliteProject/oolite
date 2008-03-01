@@ -240,7 +240,6 @@
 		1A2319B80B9D031D00EF0852 /* warning.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A40B9D031D00EF0852 /* warning.ogg */; };
 		1A2319B90B9D031D00EF0852 /* witchabort.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319A50B9D031D00EF0852 /* witchabort.ogg */; };
 		1A231A180B9D8B1B00EF0852 /* OOCacheManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A231A160B9D8B1B00EF0852 /* OOCacheManager.h */; };
-		1A2324FC0D6ED7C2003578B6 /* OOJSClock.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A6B25EC0C9C2745000717CF /* OOJSClock.h */; };
 		1A26D0AC0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0880BCF9CF70073F257 /* PlayerEntityLegacyScriptEngine.m */; };
 		1A26D0AD0BCF9CF80073F257 /* ShipEntityAI.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0890BCF9CF70073F257 /* ShipEntityAI.m */; };
 		1A26D0AE0BCF9CF80073F257 /* ShipEntityAI.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D08A0BCF9CF70073F257 /* ShipEntityAI.h */; };
@@ -981,7 +980,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
-				1A2324FC0D6ED7C2003578B6 /* OOJSClock.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -996,7 +994,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1434,6 +1432,7 @@
 		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
+		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
 		1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSFileManagerOOExtensions.m; sourceTree = "<group>"; };
@@ -1643,7 +1642,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -2600,6 +2599,7 @@
 			children = (
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
 				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
+				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
 				1AC0E9380B974D8700C46994 /* Documentation */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
@@ -2842,7 +2842,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3217,6 +3217,7 @@
 /* Begin XCBuildConfiguration section */
 		08B31CAD08FE63D70038D42F /* Development */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
@@ -3251,6 +3252,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_4 = "\"$(SRCROOT)/src/Core/Materials/\"";
 				HEADER_SEARCH_PATHS_QUOTED_5 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src\"";
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
+				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
@@ -3277,6 +3279,7 @@
 		};
 		08B31CAE08FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -3386,6 +3389,7 @@
 		};
 		1A0832D70C2F105000E3AE25 /* TestRelease */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
