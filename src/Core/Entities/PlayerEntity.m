@@ -3351,16 +3351,13 @@ double scoopSoundPlayTime = 0.0;
 	
 	credits += score;
 	
-	if (score)
+	if (score > 9)
 	{
-		NSString *bonusMS1 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[bounty-d]"), score / 10];
-		NSString *bonusMS2 = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[total-f-credits]"), 0.1 * credits];
+		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-d"), score / 10];
+		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-f-credits"), 0.1 * credits];
 		
-		if (score > 9)
-		{
-			[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
-			[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
-		}
+		[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
+		[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
 	}
 	
 	if (killAward)
@@ -3369,8 +3366,7 @@ double scoopSoundPlayTime = 0.0;
 		if ((ship_kills % 256) == 0)
 		{
 			// congratulations method needs to be delayed a fraction of a second
-			NSString *roc = ExpandDescriptionForCurrentSystem(@"[right-on-commander]");
-			[UNIVERSE addDelayedMessage:roc forCount:4 afterDelay:0.2];
+			[UNIVERSE addDelayedMessage:DESC(@"right-on-commander") forCount:4 afterDelay:0.2];
 		}
 	}
 }
@@ -3390,7 +3386,7 @@ double scoopSoundPlayTime = 0.0;
 		if (!cargo_desc)
 			return;
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-destroyed]"), cargo_desc] forCount:4.5];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"[@-destroyed]"), cargo_desc] forCount:4.5];
 		[cargo removeObject:pod];
 		return;
 	}
