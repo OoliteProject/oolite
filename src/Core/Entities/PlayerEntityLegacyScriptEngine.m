@@ -214,6 +214,7 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 {
 	NSAutoreleasePool		*pool = nil;
 	NSString				*oldMissionKey = nil;
+	NSString * volatile		theMissionKey = missionKey;	// Work-around for silly exception macros
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -224,7 +225,11 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 	NS_DURING
 		PerformScriptActions(actions, target);
 	NS_HANDLER
-	OOLog(@"script.error.exception", @"***** EXCEPTION %@: %@ while handling legacy script actions for %@", [localException name], [localException reason], [missionKey hasPrefix:@"__oolite_actions_temp"] ? [target shortDescription] : missionKey);
+		OOLog(@"script.error.exception",
+			  @"***** EXCEPTION %@: %@ while handling legacy script actions for %@",
+			  [localException name],
+			  [localException reason],
+			  [theMissionKey hasPrefix:@"__oolite_actions_temp"] ? [target shortDescription] : theMissionKey);
 	NS_ENDHANDLER
 	
 	mission_key = oldMissionKey;

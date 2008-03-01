@@ -1362,11 +1362,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		
 		ShipEntity *target = [UNIVERSE entityForUniversalID:primaryTarget];
 		
-		if ((target == nil)||(target->scanClass == CLASS_NO_DRAW)||(!target->isShip)||([target isCloaked]))
+		if (target == nil || [target scanClass] == CLASS_NO_DRAW || ![target isShip] || [target isCloaked])
 		{
 			 // It's no longer a parrot, it has ceased to be, it has joined the choir invisible...
 			if (primaryTarget != NO_TARGET)
 			{
+				if ([target isShip] && [target isCloaked])
+				{
+					[self doScriptEvent:@"shipTargetCloaked" andReactToAIMessage:@"TARGET_CLOAKED"];
+				}
 				[self noteLostTarget];
 			}
 			else
@@ -7454,7 +7458,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	scan = z_previous;
 	OOLog(@"ship.pilotage", @"searching for pilot boat");
 	while (scan &&(scan->isShip == NO))
+	{
 		scan = scan->z_previous;	// skip non-ships
+	}
 
 	pilot = nil;
 	while (scan)
@@ -7476,7 +7482,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		}
 		scan = scan->z_previous;
 		while (scan && (scan->isShip == NO))
+		{
 			scan = scan->z_previous;
+		}
 	}
 
 	if (pilot != nil)
@@ -7485,7 +7493,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		[pilot setReportAIMessages:YES];
 		[pilot addTarget:self];
 		[pilot setStateMachine:@"pilotAI.plist"];
-		[[self getAI] reactToMessage:@"FOUND_PILOT"];
+		[self reactToAIMessage:@"FOUND_PILOT"];
 	}
 }
 
@@ -7493,7 +7501,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) pilotArrived
 {
 	[self setHulk:false];
-	[[self getAI] reactToMessage:@"PILOT_ARRIVED"];
+	[self reactToAIMessage:@"PILOT_ARRIVED"];
 }
 
 
