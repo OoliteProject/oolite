@@ -1053,9 +1053,13 @@ WormholeEntity*	whole;
 	ShipEntity   *mother = [UNIVERSE entityForUniversalID:primaryTarget];
 	if (mother)
 	{
+#ifndef NDEBUG
 		if (reportAIMessages)
+		{
 			OOLog(@"ai.suggestEscort", @"DEBUG %@ suggests escorting %@", self, mother);
-
+		}
+#endif
+		
 		if ([mother acceptAsEscort:self])
 		{
 			// copy legal status across
@@ -1071,8 +1075,12 @@ WormholeEntity*	whole;
 			return;
 		}
 		
+#ifndef NDEBUG
 		if (reportAIMessages)
+		{
 			OOLog(@"ai.suggestEscort.refused", @"DEBUG %@ refused by %@", self, mother);
+		}
+#endif
 
 	}
 	[self setOwner:NULL];
@@ -1758,6 +1766,17 @@ WormholeEntity*	whole;
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	Entity			*targEnt = [UNIVERSE entityForUniversalID:primaryTarget];
 	ShipEntity		*oldTarget = nil;
+	static BOOL		deprecationWarning = NO;
+	
+	if (!deprecationWarning)
+	{
+		deprecationWarning = YES;
+		OOLog(@"script.deprecated.scriptActionOnTarget", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used. It is slow and has unpredictable side effects. The recommended alternative is to use sendScriptMessage: to call a function in a ship's JavaScript ship script instead. scriptActionOnTarget: should not be used at all from scripts.", [AI currentlyRunningAIDescription]);
+	}
+	else
+	{
+		OOLog(@"script.deprecated.scriptActionOnTarget.repeat", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used.", [AI currentlyRunningAIDescription]);
+	}
 	
 	if ([targEnt isShip])
 	{

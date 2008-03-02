@@ -41,6 +41,9 @@ typedef struct
 } OOAIDeferredCallTrampolineInfo;
 
 
+static AI *sCurrentlyRunningAI = nil;
+
+
 @interface AI (OOPrivate)
 
 // Wrapper for performSelector:withObject:afterDelay: to catch/fix bugs.
@@ -53,6 +56,25 @@ typedef struct
 
 
 @implementation AI
+
++ (AI *) currentlyRunningAI
+{
+	return sCurrentlyRunningAI;
+}
+
+
++ (NSString *) currentlyRunningAIDescription
+{
+	if (sCurrentlyRunningAI != nil)
+	{
+		return [NSString stringWithFormat:@"%@ in state %@", [sCurrentlyRunningAI name], [sCurrentlyRunningAI state]];
+	}
+	else
+	{
+		return @"<no AI running>";
+	}
+}
+
 
 - (id) init
 {    
@@ -90,6 +112,8 @@ typedef struct
 	[stateMachineName release];
     [currentState release];
 	[pendingMessages release];
+	
+	if (sCurrentlyRunningAI == self)  sCurrentlyRunningAI = nil;
 	
 	[super dealloc];
 }
@@ -149,7 +173,9 @@ typedef struct
 					format:@"AI stack overflow for %@", _owner];
 	}
 	
+#ifndef NDEBUG
 	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.push", @"Pushing state machine for %@", self);
+#endif
 	[aiStack insertObject:pickledMachine atIndex:0];	//  PUSH
 }
 
@@ -160,7 +186,9 @@ typedef struct
 	
 	NSMutableDictionary *pickledMachine = [aiStack objectAtIndex:0];
 	
+#ifndef NDEBUG
 	if ([[self owner] reportAIMessages])  OOLog(@"ai.stack.pop", @"Popping previous state machine for %@", self);
+#endif
 	
 	[stateMachine release];
 	stateMachine = [[pickledMachine objectForKey:@"stateMachine"] retain];
@@ -282,6 +310,8 @@ typedef struct
 	NSDictionary	*messagesForState = nil;
 	ShipEntity		*owner = [self owner];
 	static unsigned	recursionLimiter = 0;
+	AI				*previousRunning = sCurrentlyRunningAI;
+	
 	
 	/*	CRASH in _freedHandler when called via -setState: __NSFireDelayedPerform (1.69, OS X/x86).
 		Analysis: owner invalid.
@@ -306,15 +336,18 @@ typedef struct
 	messagesForState = [stateMachine objectForKey:currentState];
 	if (messagesForState == nil)  return;
 	
+#ifndef NDEBUG
 	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAIMessages])
 	{
 		OOLog(@"ai.message.receive", @"AI for %@ in state '%@' receives message '%@'", ownerDesc, currentState, message);
 	}
+#endif
 	
 	actions = [[[messagesForState objectForKey:message] copy] autorelease];
-
+	
 	if (rulingInstinct != nil)  [rulingInstinct freezeShipVars];	// preserve the pre-thinking state
-
+	
+	sCurrentlyRunningAI = self;
 	if ([actions count] > 0)
 	{
 		NS_DURING
@@ -338,6 +371,7 @@ typedef struct
 			}
 		}
 	}
+	sCurrentlyRunningAI = previousRunning;
 	
 	if (rulingInstinct != nil)
 	{
@@ -354,14 +388,15 @@ typedef struct
 	NSString		*selectorStr;
 	SEL				selector;
 	ShipEntity		*owner = [self owner];
-	BOOL			report = [owner reportAIMessages];
 	
-	report = [owner reportAIMessages];
+#ifndef NDEBUG
+	BOOL report = [owner reportAIMessages];
 	if (report)
 	{
 		OOLog(@"ai.takeAction.takeAction", @"%@ to take action %@", ownerDesc, action);
 		OOLogIndent();
 	}
+#endif
 	
 	if ([tokens count] != 0)
 	{
@@ -400,13 +435,17 @@ typedef struct
 	}
 	else
 	{
+#ifndef NDEBUG
 		if (report)  OOLog(@"ai.takeAction.noAction", @"  - no action '%@'", action);
+#endif
 	}
 	
+#ifndef NDEBUG
 	if (report)
 	{
 		OOLogOutdent();
 	}
+#endif
 }
 
 

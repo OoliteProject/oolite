@@ -275,7 +275,12 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
+	OOLog(@"script.trace.js.run", @"Runing script \"%@\"", [self name]);
+	OOLogIndentIf(@"script.trace.js.run");
+	
 	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[[PlayerEntity sharedPlayer] status_string]]];
+	
+	OOLogOutdentIf(@"script.trace.js.run");
 }
 
 

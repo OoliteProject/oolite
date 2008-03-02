@@ -9,6 +9,7 @@
 */
 
 {
+	// To be removed after 1.71
 	"shipSpawned"					= "didSpawn";
 	"shipDied"						= ("didBecomeDead", "didDie");
 	"shipWasScooped"				= "wasScooped";
@@ -30,4 +31,7 @@
 	"shipWillExitWitchspace"		= "willExitWitchSpace";
 	"shipExitedWitchspace"			= "didExitWitchSpace";
 	"shipWillEnterWitchspace"		= "willEnterWitchSpace";
+	
+	// To be removed after 1.72
+	"shipBeingAttacked"				= "beingAttacked";
 }

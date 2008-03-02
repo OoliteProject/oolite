@@ -2817,7 +2817,6 @@
 				0865424C06B8447D000CA0AB /* Resources */,
 				0865430306B8447D000CA0AB /* Sources */,
 				0865431B06B8447D000CA0AB /* Frameworks */,
-				1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */,
 				1A5BF29C0916D49800BF238F /* Copy MDImporter */,
 				1A23153A0B9C773B00EF0852 /* Copy Images */,
 				1A2316C80B9CFAB800EF0852 /* Copy Config */,
@@ -2953,22 +2952,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tfor item in `ls \"$SRC_DIR\"`\n\tdo\n\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n\tdone\n\trm \"$TARGET_DIR/README.txt\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
-		};
-		1A5DB2D10BBEA46F00D57389 /* Sync logcontrol.plist.xml */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/Resources/Config/logcontrol.plist",
-			);
-			name = "Sync logcontrol.plist.xml";
-			outputPaths = (
-				"$(SRCROOT)/Resources/Config/logcontrol.plist.xml",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "plutil -convert xml1 -o $SRCROOT/Resources/Config/logcontrol.plist.xml $SRCROOT/Resources/Config/logcontrol.plist\necho Updated logcontrol.plist.xml.\n";
 		};
 		1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */ = {
 			isa = PBXShellScriptBuildPhase;

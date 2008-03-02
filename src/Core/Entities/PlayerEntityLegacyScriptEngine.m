@@ -194,20 +194,73 @@ OOINLINE void PerformScriptActions(NSArray *actions, Entity *target)
 }
 
 
+OOINLINE OOEntityStatus RecursiveRemapStatus(OOEntityStatus status)
+{
+	// Some player stutuses should only be seen once per "event". This remaps them to something innocuous in case of recursion.
+	if (status == STATUS_DOCKING ||
+		status == STATUS_LAUNCHING ||
+		status == STATUS_ENTERING_WITCHSPACE ||
+		status == STATUS_EXITING_WITCHSPACE)
+	{
+		return STATUS_IN_FLIGHT;
+	}
+	else
+	{
+		return status;
+	}
+}
+
+
+static BOOL sRunningScript = NO;
+
+
 - (void) checkScript
 {
-	NSEnumerator				*scriptEnum = nil;
-	OOScript					*theScript = nil;
+	BOOL						wasRunningScript = sRunningScript;
+	OOEntityStatus				restoreStatus;
 	
 	[self setScriptTarget:self];
 	
 	OOLog(@"script.trace.runWorld", @"----- Running world script with state %@", [self status_string]);
 	OOLogIndentIf(@"script.trace.runWorld");
 	
-	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
+	/*	World scripts can potentially be invoked recursively, through
+		scriptActionOnTarget: and possibly other mechanisms. This is bad, but
+		that's the way it is. Legacy world scripts rely on only seeing certain
+		player statuses once per "event". To ensure this, we must lie about
+		the player's status when invoked recursively.
+		
+		Of course, there are also methods in the game that rely on status not
+		lying. However, I don't believe any that rely on these particular
+		statuses can be legitimately invoked by scripts. The alternative would
+		be to track the "status-as-seen-by-scripts" separately from the "real"
+		status, which'd risk synchronization problems.
+		
+		In summary, scriptActionOnTarget: is bad, and calling it from scripts
+		rather than AIs is very bad.
+		-- Ahruman, 20080302
+	*/
+	restoreStatus = status;
+	if (sRunningScript)
 	{
-		[theScript runWithTarget:self];
+		status = RecursiveRemapStatus(status);
+		if (status != restoreStatus)
+		{
+			OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+		}
+		else
+		{
+			OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+		}
 	}
+	sRunningScript = YES;
+	
+	// After all that, actually running the scripts is trivial.
+	[[worldScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
+	
+	// Restore anti-recursion measures.
+	sRunningScript = wasRunningScript;
+	status = restoreStatus;
 	
 	OOLogOutdentIf(@"script.trace.runWorld");
 }

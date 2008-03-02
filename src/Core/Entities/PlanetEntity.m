@@ -1056,15 +1056,21 @@ static GLfloat	texture_uv_array[10400 * 2];
 		if ([ship isShuttle])
 		{
 			[ship landOnPlanet];
+#ifndef NDEBUG
 			if ([ship reportAIMessages])
+			{
 				OOLog(@"planet.collide.shuttleLanded", @"DEBUG %@ landed on planet %@", other, self);
+			}
+#endif
 			return NO;
 		}
+#ifndef NDEBUG
 		if ([ship reportAIMessages])
 		{
 			Vector p1 = ship->position;
 			OOLog(@"planet.collide.shipHit", @"DEBUG %@ %d collided with planet at (%.1f,%.1f,%.1f)",[ship name], [ship universalID], p1.x,p1.y,p1.z);
 		}
+#endif
 	}
 
 	return YES;

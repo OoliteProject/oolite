@@ -1572,8 +1572,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([other isKindOfClass:[ShipEntity class]])  source = other;
 	else  source = from;
 	
-	[self doScriptEvent:@"beingAttacked" withArgument:source];
-	[shipAI reactToMessage:@"ATTACKED"];
+	[self doScriptEvent:@"shipBeingAttacked" withArgument:source andReactToAIMessage:@"ATTACKED"];
 }
 
 
@@ -6458,11 +6457,13 @@ BOOL class_masslocks(int some_class)
 	being_mined = NO;
 	ShipEntity *hunter = nil;
 	
-	if ((other)&&(other->isShip))
+	if ([other isShip])
 	{
 		hunter = (ShipEntity *)other;
 		if ([hunter isCloaked])
 		{
+			[self doScriptEvent:@"shipBeingAttackedByCloaked" andReactToAIMessage:@"ATTACKED_BY_CLOAKED"];
+			
 			// lose it!
 			other = nil;
 			hunter = nil;

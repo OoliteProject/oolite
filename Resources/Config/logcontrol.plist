@@ -64,7 +64,7 @@
 	
 	
 	/*** Module-specific message classes ***/
-	ai										= $entityState;
+	ai										= yes;					// AI messages are sent if a ship's reportAIMessages property is set, for instance through the JavaScript console.
 	ai.message.receive						= inherit;
 	ai.takeAction.takeAction				= inherit;
 	ai.takeAction.noAction					= inherit;
@@ -267,6 +267,8 @@
 	script.trace.runWorld					= inherit;
 	script.trace.plist.run					= inherit;
 	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
+	
+	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
 	
 	
 	searchPaths.dumpAll						= $troubleShootingDump;

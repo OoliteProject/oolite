@@ -51,6 +51,9 @@ MA 02110-1301, USA.
 	
 }
 
++ (AI *) currentlyRunningAI;
++ (NSString *) currentlyRunningAIDescription;
+
 - (NSString *) name;
 - (NSString *) state;
 
