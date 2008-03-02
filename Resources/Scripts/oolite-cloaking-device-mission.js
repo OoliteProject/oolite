@@ -42,7 +42,7 @@ this.shipWillExitWitchspace = function ()
 		if (missionVariables.cloak == null)
 		{
 			// ...then we count of jumps...
-			if (!missionVariables.cloakcounter)  cloakCounter = 1;
+			if (!missionVariables.cloakcounter)  missionVariables.cloakcounter = 1;
 			else  missionVariables.cloakcounter++;
 			
 			// ...until we reach six or more.

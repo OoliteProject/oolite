@@ -1003,4 +1003,8 @@
 	"commodity-name platinum"		= "Platinum";
 	"commodity-name gem-stones"		= "Gem-Stones";
 	"commodity-name alien items"	= "Alien Items";
+	
+	//autosave filename
+	"autosave-commander-name"		= "autosave";
+
 }

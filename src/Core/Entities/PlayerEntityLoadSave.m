@@ -138,9 +138,8 @@
 	tmp_name = [player_name copy];
 	if (save_path) tmp_path = [save_path copy];
 	
-	NSString *savePath = [dir stringByAppendingPathComponent:@"autosave.oolite-save"];
-	//NSString *saveName = [player_name stringByAppendingString:@"-autosave"]; //virtual memory exausted on load
-	NSString *saveName = @"autosave";
+	NSString *saveName = DESC(@"autosave-commander-name");
+	NSString *savePath = [dir stringByAppendingPathComponent:[saveName stringByAppendingString:@".oolite-save"]];
 	
 	[player_name autorelease];
 	player_name = [saveName copy];
