@@ -61,6 +61,9 @@ MA 02110-1301, USA.
 #endif
 
 
+#define TRACE_AND_RETURN(x)	do { BOOL r = (x); TraceLog(kOOLogTraceTestConditionResult, @"      Result: %@", r ? @"YES" : @"NO"); return r; } while (0)
+
+
 typedef enum
 {
 	COMPARISON_NO,
@@ -71,6 +74,9 @@ typedef enum
 	COMPARISON_ONEOF,
 	COMPARISON_UNDEFINED
 } OOComparisonType;
+
+
+static NSString *ComparisonTypeToString(OOComparisonType type) CONST_FUNC;
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -94,6 +100,7 @@ static NSString * const kOOLogTraceScriptAction				= @"script.debug.trace.script
 static NSString * const kOOLogTraceTestCondition			= @"script.debug.trace.testCondition";
 static NSString * const kOOLogTraceTestConditionCheckingVariable = @"script.debug.trace.testCondition.checkingVariable";
 static NSString * const kOOLogTraceTestConditionValues		= @"script.debug.trace.testCondition.testValues";
+static NSString * const kOOLogTraceTestConditionResult		= @"script.debug.trace.testCondition.testResult";
 static NSString * const kOOLogTraceTestConditionOneOf		= @"script.debug.trace.testCondition.oneOf";
 
 static NSString * const kOOLogNoteRemoveAllCargo			= @"script.debug.note.removeAllCargo";
@@ -392,8 +399,8 @@ static BOOL sRunningScript = NO;
 	NSMutableArray		*tokens = ScanTokensFromString(scriptAction);
 	NSMutableDictionary	*locals = [self localVariablesForMission:sCurrentMissionKey];
 	NSString			*selectorString = nil;
-	NSString			*valueString = nil;
-	SEL					_selector = NULL;
+	NSString			*valueString = nil, *expandedString = nil;
+	SEL					selector = NULL;
 	unsigned			tokenCount;
 	BOOL				takesParam;
 	
@@ -421,16 +428,24 @@ static BOOL sRunningScript = NO;
 		// I believe this will never do anything useful, given the way ScanTokensFromString() works. -- Ahruman
 		valueString = [valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 #endif
-		valueString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
+		expandedString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
 		
-		TraceLog(kOOLogTraceScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
+#if SUPPORT_TRACE_MESSAGES
+		if (![expandedString isEqualToString:valueString])
+		{
+			OOLogIndent();
+			TraceLog(kOOLogTraceScriptAction, @"scriptAction after expansion: \"%@ %@\"", selectorString, valueString);
+			OOLogOutdent();
+		}
+#endif
+		valueString = expandedString;
 	}
 	
-	_selector = NSSelectorFromString(selectorString);
+	selector = NSSelectorFromString(selectorString);
 	
-	if (entity == nil || ![entity respondsToSelector:_selector])
+	if (entity == nil || ![entity respondsToSelector:selector])
 	{
-		if (![self respondsToSelector:_selector])
+		if (![self respondsToSelector:selector])
 		{
 			OOLog(kOOLogSyntaxBadAction, @"SCRIPT ERROR in %@ ***** bad selector - PlayerEntity DOES NOT RESPOND TO scriptAction: \"%@\"", CurrentScriptDesc(), scriptAction);
 			return;
@@ -438,8 +453,8 @@ static BOOL sRunningScript = NO;
 		entity = self;
 	}
 	
-	if (takesParam)  [entity performSelector:_selector withObject:valueString];
-	else  [entity performSelector:_selector];
+	if (takesParam)  [entity performSelector:selector withObject:valueString];
+	else  [entity performSelector:selector];
 }
 
 
@@ -477,7 +492,7 @@ static BOOL sRunningScript = NO;
 	NSString			*selectorString = nil;
 	NSString			*comparisonString = nil;
 	NSString			*valueString = nil;
-	SEL					_selector;
+	SEL					selector;
 	OOComparisonType	comparator = COMPARISON_NO;
 	unsigned			tokenCount;
 	unsigned			i, count;
@@ -539,11 +554,11 @@ static BOOL sRunningScript = NO;
 			valueString = [tokens objectAtIndex:value_index++];
 			if ([valueString hasSuffix:@"_number"] || [valueString hasSuffix:@"_bool"] || [valueString hasSuffix:@"_string"])
 			{
-				SEL value_selector = NSSelectorFromString(valueString);
-				if ([self respondsToSelector:value_selector])
+				SEL valueselector = NSSelectorFromString(valueString);
+				if ([self respondsToSelector:valueselector])
 				{
 					// substitute into valueString the result of the call
-					valueString = [NSString stringWithFormat:@"%@", [self performSelector:value_selector]];
+					valueString = [NSString stringWithFormat:@"%@", [self performSelector:valueselector]];
 				}
 			}
 			[allValues appendString:valueString];
@@ -553,8 +568,8 @@ static BOOL sRunningScript = NO;
 		valueString = allValues;
 	}
 
-	_selector = NSSelectorFromString(selectorString);
-	if (![self respondsToSelector:_selector])
+	selector = NSSelectorFromString(selectorString);
+	if (![self respondsToSelector:selector])
 	{
 		OOLog(kOOLogSyntaxBadScriptCondition, @"SCRIPT ERROR unknown script condition method %@ in %@, returning NO.", selectorString, CurrentScriptDesc());
 		return NO;
@@ -563,23 +578,29 @@ static BOOL sRunningScript = NO;
 	// test string values (method returns NSString*)
 	if ([selectorString hasSuffix:@"_string"])
 	{
-		NSString *result = [self performSelector:_selector];
-		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], valueString, [valueString class]);
+		NSString *result = [self performSelector:selector];
+		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
+				 result ?: @"nil",
+				 [result class] ?: @"Nil",
+				 NSStringFromSelector(selector),
+				 valueString ?: (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
+				 [valueString class] ?: @"Nil",
+				ComparisonTypeToString(comparator));
 	
 		switch (comparator)
 		{
 			case COMPARISON_UNDEFINED:
-				return result == nil;
+				TRACE_AND_RETURN(result == nil);
 			case COMPARISON_NO:
-				return NO;
+				TRACE_AND_RETURN(NO);
 			case COMPARISON_EQUAL:
-				return [result isEqual:valueString];
+				TRACE_AND_RETURN([result isEqual:valueString]);
 			case COMPARISON_NOTEQUAL:
-				return ![result isEqual:valueString];
+				TRACE_AND_RETURN(![result isEqual:valueString]);
 			case COMPARISON_LESSTHAN:
-				return [result floatValue] < [valueString floatValue];
+				TRACE_AND_RETURN([result doubleValue] < [valueString doubleValue]);
 			case COMPARISON_GREATERTHAN:
-				return [result floatValue] > [valueString floatValue];
+				TRACE_AND_RETURN([result doubleValue] > [valueString doubleValue]);
 			case COMPARISON_ONEOF:
 				{
 					valueStrings = [valueString componentsSeparatedByString:@","];
@@ -594,58 +615,76 @@ static BOOL sRunningScript = NO;
 						{
 							
 							TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", [valueStrings objectAtIndex:i]);
-							return YES;
+							TRACE_AND_RETURN(YES);
 						}
 					}
 				}
-				return NO;
+				TRACE_AND_RETURN(NO);
 		}
 	}
 	// test number values (method returns NSNumber*)
 	if ([selectorString hasSuffix:@"_number"])
 	{
-		NSNumber *result = [NSNumber numberWithDouble:[[self performSelector:_selector] doubleValue]];
+		NSNumber *result = [NSNumber numberWithDouble:[[self performSelector:selector] doubleValue]];
+		
 // +dajt: black ops
 		if (comparator == COMPARISON_ONEOF)
 		{
 			valueStrings = [valueString componentsSeparatedByString:@","];
-			OOLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", [valueStrings count], result, valueStrings);
+			
+			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
+					 result ?: @"nil",
+					 [result class] ?: @"Nil",
+					 NSStringFromSelector(selector),
+					 valueString ?: @"nil",
+					 [valueString class] ?: @"NIL",
+					 ComparisonTypeToString(comparator));
+			
 			count = [valueStrings count];
+			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", count, result, valueStrings);
+			
 			for (i = 0; i < count; i++)
 			{
 				value = [NSNumber numberWithDouble:[[valueStrings objectAtIndex: i] doubleValue]];
 				if ([result isEqual:value])
 				{
 					TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", value);
-					return YES;
+					TRACE_AND_RETURN(YES);
 				}
 			}
+			
 			TraceLog(kOOLogTraceTestConditionOneOf, @"No match in ONEOF");
-			return NO;
+			TRACE_AND_RETURN(NO);
 		}
 		else
 		{
 			value = [NSNumber numberWithDouble:[valueString doubleValue]];
 			
-			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@) to \"%@\" (%@)", result, [result class], value, [value class]);
+			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
+					 result ?: @"nil",
+					 [result class] ?: @"Nil",
+					 NSStringFromSelector(selector),
+					 value ?: (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
+					 [value class] ?: @"NIL",
+					 ComparisonTypeToString(comparator));
 			
 			switch (comparator)
 			{
 				case COMPARISON_UNDEFINED:
 				case COMPARISON_NO:
-					return NO;
+					TRACE_AND_RETURN(NO);
 				case COMPARISON_EQUAL:
-					return [result isEqual:value];
+					TRACE_AND_RETURN([result isEqual:value]);
 				case COMPARISON_NOTEQUAL:
-					return ![result isEqual:value];
+					TRACE_AND_RETURN(![result isEqual:value]);
 				case COMPARISON_LESSTHAN:
-					return [result isLessThan:value];
+					TRACE_AND_RETURN([result isLessThan:value]);
 				case COMPARISON_GREATERTHAN:
-					return [result isGreaterThan:value];
+					TRACE_AND_RETURN([result isGreaterThan:value]);
 				
 				case COMPARISON_ONEOF:
 					// can't happen
-					return NO;
+					TRACE_AND_RETURN(NO);
 			}
 		}
 // -dajt: black ops
@@ -653,7 +692,7 @@ static BOOL sRunningScript = NO;
 	// test boolean values (method returns @"YES" or @"NO")
 	if ([selectorString hasSuffix:@"_bool"])
 	{
-		BOOL result = [[self performSelector:_selector] isEqual:@"YES"];
+		BOOL result = [[self performSelector:selector] isEqual:@"YES"];
 		BOOL value = [valueString isEqual:@"YES"];
 		switch (comparator)
 		{
@@ -2237,10 +2276,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
 		{
-			SEL value_selector = NSSelectorFromString(valueString);
-			if ([self respondsToSelector:value_selector])
+			SEL valueselector = NSSelectorFromString(valueString);
+			if ([self respondsToSelector:valueselector])
 			{
-				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:value_selector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:valueselector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
 			}
 		}
 		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
@@ -2613,3 +2652,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 @end
+
+
+static NSString *ComparisonTypeToString(OOComparisonType type)
+{
+	switch (type)
+	{
+		case COMPARISON_NO:				return @"NO";
+		case COMPARISON_EQUAL:			return @"equal";
+		case COMPARISON_NOTEQUAL:		return @"notequal";
+		case COMPARISON_LESSTHAN:		return @"lessthan";
+		case COMPARISON_GREATERTHAN:	return @"greaterthan";
+		case COMPARISON_ONEOF:			return @"oneof";
+		case COMPARISON_UNDEFINED:		return @"undefined";
+	}
+	return @"<error: invalid comparison type>";
+}
