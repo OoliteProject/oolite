@@ -279,16 +279,18 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 		}
 		else
 		{
-			NSString			*colKey = @"command-result";
-			[monitor appendJSConsoleLine:colorKey colorKey:colKey];
+			message = colorKey;
+			colorKey = @"command-result";
 		}
 	}
-	else
+	
+	if (message != nil)
 	{
 		[monitor appendJSConsoleLine:message
 							colorKey:colorKey
 					   emphasisRange:emphasisRange];
 	}
+	
 	return YES;
 }
 
