@@ -128,6 +128,34 @@
 #endif
 }
 
+- (void) autosavePlayer
+{
+	NSString		*tmp_path = nil;
+	NSString		*tmp_name = nil;
+	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
+	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
+	
+	tmp_name = [player_name copy];
+	if (save_path) tmp_path = [save_path copy];
+	
+	NSString *savePath = [dir stringByAppendingPathComponent:@"autosave.oolite-save"];
+	//NSString *saveName = [player_name stringByAppendingString:@"-autosave"]; //virtual memory exausted on load
+	NSString *saveName = @"autosave";
+	
+	[player_name autorelease];
+	player_name = [saveName copy];
+
+	[self writePlayerToPath:savePath];
+	
+	if(tmp_path)
+	{
+		[save_path autorelease];
+		save_path = [[tmp_path copy] retain];
+	}
+	[player_name autorelease];
+	player_name = [[tmp_name copy] retain];
+}
+
 
 - (void) quicksavePlayer
 {
@@ -424,6 +452,7 @@
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	[UNIVERSE setUpSpace];
+	[UNIVERSE setAutoSaveNow:NO];
 	
 	status = STATUS_DOCKED;
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];

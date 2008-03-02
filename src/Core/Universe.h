@@ -168,6 +168,8 @@ enum
 	BOOL					displayGUI;
 	BOOL					displayCursor;
 	
+	BOOL					autoSaveNow;
+	BOOL					autoSave;
 	BOOL					wireframeGraphics;
 	BOOL					reducedDetail;
 	OOShaderSetting			shaderEffectsLevel;
@@ -523,6 +525,9 @@ double estimatedTimeForJourney(double distance, int hops);
 - (void) setDisplayFPS:(BOOL) value;
 - (BOOL) displayFPS;
 
+- (void) setAutoSave:(BOOL) value;
+- (BOOL) autoSave;
+
 - (void) setWireframeGraphics:(BOOL) value;
 - (BOOL) wireframeGraphics;
 
@@ -546,6 +551,10 @@ double estimatedTimeForJourney(double distance, int hops);
 - (BOOL) isSpeaking;
 //
 ////
+
+//autosave 
+- (void) setAutoSaveNow:(BOOL) value;
+- (BOOL) autoSaveNow;
 
 @end
 

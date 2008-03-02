@@ -819,6 +819,8 @@
 	"options-reset-to-strict-play"	= " Reset to Strict Play ";
 	
 	// Gameoptions screen
+	"gameoptions-autosave-yes"				= " Autosave: YES ";
+	"gameoptions-autosave-no"				= " Autosave: NO ";
 	"gameoptions-sound-volume"				= " Sound Volume: ";
 	"gameoptions-sound-volume-mute"			= " Sound Volume: MUTE ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";

@@ -1927,6 +1927,18 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-itunes-no")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];*/
 	}
 #endif
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_AUTOSAVE)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	{
+		GuiDisplayGen* gui = [UNIVERSE gui];
+		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE autoSave])
+			[gui click];
+		[UNIVERSE setAutoSave:[gameView isDown:gvArrowKeyRight]];
+		if ([UNIVERSE autoSave])
+			[gui setText:DESC(@"gameoptions-autosave-yes")	forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE  align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:DESC(@"gameoptions-autosave-no")	forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE  align:GUI_ALIGN_CENTER];
+	}
+
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_VOLUME)
 		&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))
 		&&[OOSound respondsToSelector:@selector(masterVolume)])
@@ -2580,6 +2592,9 @@ static BOOL toggling_music;
 			if (!dockedStation)
 				dockedStation = [UNIVERSE station];
 			station = dockedStation;	// leaveDock will clear dockedStation.
+			//don't autosave immediately after a load
+			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow]) [self autosavePlayer];
+			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 			[self leaveDock:dockedStation];
 			[UNIVERSE setDisplayCursor:NO];
 			suppressAegisMessages = YES;

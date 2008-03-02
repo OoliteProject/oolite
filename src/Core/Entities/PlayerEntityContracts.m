@@ -603,9 +603,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		for (i = 0; i < n_passengers; i++)
 		{
 			NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:i];
+			NSString *Name = [passenger_info objectForKey:PASSENGER_KEY_NAME];
+			if([Name length] >26)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
 			int dest_eta = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 			[row_info removeAllObjects];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info objectForKey:PASSENGER_KEY_NAME]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",Name]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_PREMIUM] stringValue]]];
@@ -717,6 +719,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[passenger_market removeObject:passenger_info];
 		credits += 10 * passenger_premium;
 		
+		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+		
 		return YES;
 	}
 	
@@ -768,6 +772,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[contracts addObject:contractInfo];
 		[contract_record setObject:contractArrivalTime forKey:contractID];
 		[contract_market removeObject:contractInfo];
+		
+		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 		
 		return YES;
 	}
@@ -1518,6 +1524,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// finally we can get full hock if we sell it back
 	ship_trade_in_factor = 100;
+	
+	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	
 	return YES;
 }

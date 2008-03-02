@@ -51,6 +51,7 @@ MA 02110-1301, USA.
 - (BOOL) loadPlayer;	// Returns NO on immediate failure, i.e. when using an OS X modal open panel which is cancelled.
 - (void) savePlayer;
 - (void) quicksavePlayer;
+- (void) autosavePlayer;
 
 - (NSString *) commanderSelector;
 - (void) saveCommanderInputHandler;

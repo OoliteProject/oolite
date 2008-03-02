@@ -136,6 +136,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
+	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
@@ -7586,6 +7587,31 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 - (BOOL) displayFPS
 {
 	return displayFPS;
+}
+
+
+- (void) setAutoSave:(BOOL) value
+{
+	autoSave = !!value;
+	[[NSUserDefaults standardUserDefaults] setBool:autoSave forKey:@"autosave"];
+}
+
+
+- (BOOL) autoSave
+{
+	return autoSave;
+}
+
+
+- (void) setAutoSaveNow:(BOOL) value
+{
+	autoSaveNow = !!value;
+}
+
+
+- (BOOL) autoSaveNow
+{
+	return autoSaveNow;
 }
 
 

@@ -273,7 +273,15 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 	
 	if (message == nil)
 	{
-		OOReportJavaScriptWarning(context, @"Console.consoleMessage() called with insufficient parameters. Did you forget to specify a colour key?");
+		if (colorKey == nil)
+		{
+			OOReportJavaScriptWarning(context, @"Console.consoleMessage() called with no parameters.");
+		}
+		else
+		{
+			NSString			*colKey = @"command-result";
+			[monitor appendJSConsoleLine:colorKey colorKey:colKey];
+		}
 	}
 	else
 	{

@@ -4333,7 +4333,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 
-		int first_sel_row = GUI_ROW_GAMEOPTIONS_VOLUME;
+		int first_sel_row = GUI_ROW_GAMEOPTIONS_AUTOSAVE;
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; // Same title as status screen.
@@ -4341,6 +4341,12 @@ double scoopSoundPlayTime = 0.0;
 		[gui setText:displayModeString forRow:GUI_ROW_GAMEOPTIONS_DISPLAY align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_DISPLAY];
 
+		if ([UNIVERSE autoSave])
+			[gui setText:DESC(@"gameoptions-autosave-yes") forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:DESC(@"gameoptions-autosave-no") forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE];
+	
 		// volume control
 		if ([OOSound respondsToSelector:@selector(masterVolume)])
 		{
@@ -5093,6 +5099,7 @@ static int last_outfitting_index;
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
 		}
+		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	}
 	else
 	{
@@ -5558,25 +5565,26 @@ static int last_outfitting_index;
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 	
 	if ((available_units == 0)||(price_per_unit > credits)||((unit == 0)&&(current_cargo >= max_cargo)))		return NO;
-	{
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:index]];
-		NSMutableArray* market_commodity =		[NSMutableArray arrayWithArray:(NSArray *)[localMarket objectAtIndex:index]];
-		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		int market_quantity =   [(NSNumber *)[market_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		manifest_quantity++;
-		market_quantity--;
-		credits -= price_per_unit;
-		if (unit == UNITS_TONS)
-			current_cargo++;
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-		[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
 
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	}
+	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+	NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:index]];
+	NSMutableArray* market_commodity =		[NSMutableArray arrayWithArray:(NSArray *)[localMarket objectAtIndex:index]];
+	int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+	int market_quantity =   [(NSNumber *)[market_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+	manifest_quantity++;
+	market_quantity--;
+	credits -= price_per_unit;
+	if (unit == UNITS_TONS)
+		current_cargo++;
+	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
+	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
+	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
+	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
+
+	[shipCommodityData release];
+	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+	
 	return YES;
 }
 
@@ -5600,25 +5608,27 @@ static int last_outfitting_index;
 	int available_units = [(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:index] objectAtIndex:MARKET_QUANTITY] intValue];
 	int price_per_unit = [(NSNumber *)[(NSArray *)[localMarket objectAtIndex:index] objectAtIndex:MARKET_PRICE] intValue];
 	if (available_units == 0)		return NO;
-	{
-		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:index]];
-		NSMutableArray* market_commodity =		[NSMutableArray arrayWithArray:(NSArray *)[localMarket objectAtIndex:index]];
-		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		int market_quantity =   [(NSNumber *)[market_commodity objectAtIndex:MARKET_QUANTITY] intValue];
-		// check the market's not flooded
-		if (market_quantity >= 127)
-			return NO;
-		manifest_quantity--;
-		market_quantity++;
-		credits += price_per_unit;
-		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
-		[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
-		[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
-		[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
-		[shipCommodityData release];
-		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
-	}
+
+	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+	NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:index]];
+	NSMutableArray* market_commodity =		[NSMutableArray arrayWithArray:(NSArray *)[localMarket objectAtIndex:index]];
+	int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+	int market_quantity =   [(NSNumber *)[market_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+	// check the market's not flooded
+	if (market_quantity >= 127)
+		return NO;
+	manifest_quantity--;
+	market_quantity++;
+	credits += price_per_unit;
+	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
+	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
+	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
+	[localMarket replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:market_commodity]];
+	[shipCommodityData release];
+	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+
+	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+	
 	return YES;
 }
 
