@@ -710,7 +710,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	commLog = [[dict arrayForKey:@"comm_log"] mutableCopy];
 
 	// set up missiles
-	unsigned i;
+	unsigned i,j;
 	[self setActiveMissile: 0];
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
@@ -725,7 +725,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			missile_roles = [missile_roles subarrayWithRange:NSMakeRange(0, max_missiles)];
 		if ((missiles) && (missiles != [missile_roles count]))
 			missiles = [missile_roles count];	// sanity check the number of missiles
-		for (i = 0; (i < max_missiles)&&(i < [missile_roles count]); i++)
+		for (i = 0,j=0; (i < max_missiles)&&(i < [missile_roles count]); i++,j++)
 		{
 			NSString *missile_desc = [missile_roles objectAtIndex:i];
 			if (![missile_desc isEqual:@"NONE"])
@@ -733,13 +733,12 @@ static PlayerEntity *sSharedPlayer = nil;
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
 				{
-					missile_entity[i] = amiss;   // retain count = 1
+					missile_entity[j] = amiss;   // retain count = 1
 				}
 				else
 				{
-					OOLog(@"load.failed.missileNotFound", @"***** ERROR couldn't find a missile of role '%@' while trying to [PlayerEntity setCommanderDataFromDictionary:] *****", missile_desc);
-					[NSException raise:OOLITE_EXCEPTION_FATAL
-								format:@"[PlayerEntity setCommanderDataFromDictionary:] failed to create a missile with role '%@'", missile_desc];
+					j--;
+					OOLog(@"load.failed.missileNotFound", @"----- WARNING: couldn't find missile with role '%@' while trying [PlayerEntity setCommanderDataFromDictionary:], missile entry discarded. -----", missile_desc);
 				}
 			}
 		}
