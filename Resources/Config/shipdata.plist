@@ -134,6 +134,7 @@
 		model = "alloy.dat";
 		name = "Metal fragment";
 		roles = "alloy oolite-alloy";
+		scanClass = "CLASS_CARGO";
 		thrust = 0;
 	};
 	"anaconda" =
@@ -2223,6 +2224,7 @@
 		model = "scarred_alloy.dat";
 		name = "Metal fragment";
 		roles = "alloy oolite-scarred-alloy";
+		scanClass = "CLASS_CARGO";
 		thrust = 0;
 	};
 	"shuttle" =
@@ -2320,6 +2322,7 @@
 		model = "splinter.dat";
 		name = "Splinter";
 		roles = "splinter oolite-splinter";
+		scanClass = "CLASS_CARGO";
 		smooth = yes;
 		thrust = 0;
 		unpiloted = yes;

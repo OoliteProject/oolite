@@ -958,6 +958,9 @@
 	"clock-format"					= "%07d:%02d:%02d:%02d";
 	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
 	"danger-fuel-leak"			= "Danger! Fuel leak!";
+	"legal-desc-alien"			= "Alien";
+	"legal-desc-system-vessel"		= "System Vessel";
+	"legal-desc-military-vessel"		= "Military Vessel";
 	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
 	
 	

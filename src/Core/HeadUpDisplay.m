@@ -1887,15 +1887,15 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 			break;
 	
 		case CLASS_THARGOID:
-			legal_desc = @"Alien";
+			legal_desc = DESC(@"legal-desc-alien");
 			break;
 		
 		case CLASS_POLICE:
-			legal_desc = @"System Vessel";
+			legal_desc = DESC(@"legal-desc-system-vessel");
 			break;
 		
 		case CLASS_MILITARY:
-			legal_desc = @"Military Vessel";
+			legal_desc = DESC(@"legal-desc-military-vessel");
 			break;
 		
 		default:
