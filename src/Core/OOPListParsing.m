@@ -97,13 +97,17 @@ id OOPropertyListFromData(NSData *data, NSString *whereFrom)
 			if (error == nil) error = @"<no error message>";
 			if (whereFrom == nil) whereFrom = @"<data in memory>";
 			
+#ifndef NDEBUG
 			// Complain
 			OOLog(kOOLogPListFoundationParseError, @"Failed to parse %@ as a property list using Foundation. Retrying using homebrew parser. WARNING: the homebrew parser is deprecated and will be removed in a future version of Oolite.\n%@", whereFrom, error);
 			OOLogIndentIf(kOOLogPListFoundationParseError);
+#endif
 			
 			result = ParseXMLPropertyList(data, whereFrom);
 			
+#ifndef NDEBUG
 			OOLogOutdentIf(kOOLogPListFoundationParseError);
+#endif
 		}
 	}
 	

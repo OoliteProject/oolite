@@ -94,7 +94,6 @@ int gen_rnd_number (void);
 
 void make_pseudo_random_seed (Random_Seed *seed_ptr);
 
-Random_Seed nil_seed() DEPRECATED_FUNC;
 OOINLINE int is_nil_seed(Random_Seed a_seed) INLINE_CONST_FUNC;
 
 void rotate_seed (Random_Seed *seed_ptr);

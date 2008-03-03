@@ -202,12 +202,6 @@ void make_pseudo_random_seed (Random_Seed *seed_ptr)
 }
 
 
-Random_Seed nil_seed()
-{
-	return kNilRandomSeed;
-}
-
-
 void rotate_seed (Random_Seed *seed_ptr)
 {
     unsigned int x;

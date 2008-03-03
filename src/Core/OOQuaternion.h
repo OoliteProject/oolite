@@ -58,9 +58,6 @@ OOINLINE Quaternion quaternion_negate(Quaternion q) INLINE_CONST_FUNC;
 /* Conjugate, or spacial inverse -- negate x, y, z components */
 OOINLINE Quaternion quaternion_conjugate(Quaternion q) INLINE_CONST_FUNC;
 
-/* Obsolete function equivalent to *quat = kIdentityQuaternion */
-OOINLINE void quaternion_set_identity(Quaternion *quat) ALWAYS_INLINE_FUNC NONNULL_FUNC DEPRECATED_FUNC;
-
 /* Set quaternion to random unit quaternion */
 void quaternion_set_random(Quaternion *quat) NONNULL_FUNC;
 OOINLINE Quaternion OORandomQuaternion(void) ALWAYS_INLINE_FUNC;
@@ -96,7 +93,6 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle) 
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 OOINLINE void fast_quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
-OOINLINE void quaternion_normalise(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC DEPRECATED_FUNC;
 
 #ifdef __OBJC__
 NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
@@ -138,12 +134,6 @@ OOINLINE Quaternion quaternion_conjugate(Quaternion q)
 }
 
 
-OOINLINE void quaternion_set_identity(Quaternion *quat)
-{
-	*quat = kIdentityQuaternion;
-}
-
-
 OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 {
     GLfloat a = angle * 0.5f;
@@ -175,12 +165,6 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
     quat->x = lv * x;
     quat->y = lv * y;
     quat->z = lv * z;
-}
-
-
-OOINLINE void quaternion_normalise(Quaternion *quat)
-{
-	quaternion_normalize(quat);
 }
 
 

@@ -837,7 +837,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
 	unsigned			techlevel = [systeminfo unsignedIntForKey:KEY_TECHLEVEL];
-	NSString			*stationDesc;
+	NSString			*stationDesc = nil, *defaultStationDesc = nil;
 	OOColor				*bgcolor;
 	OOColor				*pale_bgcolor;
 	BOOL				sunGoneNova;
@@ -969,19 +969,46 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	stationPos.y -= station_orbit * vf.y;
 	stationPos.z -= station_orbit * vf.z;
 	
-	stationDesc = @"coriolis";
+	defaultStationDesc = @"coriolis";
 	if (techlevel > 10)
 	{
 		if (system_seed.f & 0x03)   // 3 out of 4 get this type
-			stationDesc = @"dodecahedron";
+			defaultStationDesc = @"dodecahedron";
 		else
-			stationDesc = @"icosahedron";
+			defaultStationDesc = @"icosahedron";
 	}
 	
 	//// possibly systeminfo has an override for the station
-	stationDesc = [systeminfo stringForKey:@"station" defaultValue:stationDesc];
+	stationDesc = [systeminfo stringForKey:@"station" defaultValue:defaultStationDesc];
 	
-	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			   // retain count = 1
+	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			// retain count = 1
+	
+	/*	Sanity check: ensure that only stations are generated here. This is an
+		attempt to fix exceptions of the form:
+			NSInvalidArgumentException : *** -[ShipEntity setPlanet:]: selector
+			not recognized [self = 0x19b7e000] *****
+		which I presume to be originating here since all other uses of
+		setPlanet: are guarded by isStation checks. This error could happen if
+		a ship that is not a station has a station role, or equivalently if an
+		OXP sets a system's station role to a role used by non-stations.
+		-- Ahruman 20080303
+	*/
+	if (![a_station isStation])
+	{
+		OOLog(@"universe.setup.badStation", @"***** ERROR: Attempt to use non-station ship of type \"%@\" for role \"%@\" as system station, trying again with \"%@\".", [a_station name], stationDesc, defaultStationDesc);
+		
+		[a_station release];
+		stationDesc = defaultStationDesc;
+		a_station = (StationEntity *)[self newShipWithRole:stationDesc];		 // retain count = 1
+		
+		if (![a_station isStation])
+		{
+			OOLog(@"universe.setup.badStation", @"***** ERROR: On retry, rolled non-station ship of type \"%@\" for role \"%@\". Non-station ships should not have this role! Generating a stationless system.", [a_station name], stationDesc);
+			[a_station release];
+			a_station = nil;
+		}
+	}
+	
 	if (a_station)
 	{
 		[a_station setStatus:STATUS_ACTIVE];
@@ -2986,20 +3013,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		penalty += amount * penaltyPerUnit;
 	}
 	return penalty;
-}
-
-
-- (NSArray *) getContainersOfPlentifulGoods:(OOCargoQuantity) how_many
-{
-	OOLog(@"universe.deprecated", @"Deprecated wrapper method %s called.", __FUNCTION__);
-	return [self getContainersOfGoods:how_many scarce:NO];
-}
-
-
-- (NSArray *) getContainersOfScarceGoods:(OOCargoQuantity)how_many
-{
-	OOLog(@"universe.deprecated", @"Deprecated wrapper method %s called.", __FUNCTION__);
-	return [self getContainersOfGoods:how_many scarce:YES];
 }
 
 

@@ -316,7 +316,7 @@ static OOTexture		*sStarTexture, *sBlobTexture;
 	n_blobs = [systemInfo floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= n_blobs)
 	{
-		n_blobs = MIN(SKY_MAX_BLOBS, n_stars);
+		n_blobs = MIN(SKY_MAX_BLOBS, n_blobs);
 	}
 	else
 	{

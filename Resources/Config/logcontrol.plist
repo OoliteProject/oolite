@@ -318,8 +318,9 @@
 	textureLoader.unknownType				= $error;
 	
 	
-	universe.populate						= no;	// “Populating a system with…” message when generating a star system
+	universe.populate						= no;				// “Populating a system with…” message when generating a star system
 	universe.populate.witchspace			= inherit;
+	universe.setup.badStation				= $scriptError;		// Message generated if the main station turns out not to be a station (for instance, this could happen if a non-station ship had the role coriolis).
 	
 	
 	verifyOXP.verbose						= no;

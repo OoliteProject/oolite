@@ -1764,19 +1764,22 @@ WormholeEntity*	whole;
 - (void) scriptActionOnTarget:(NSString *)action
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-	Entity			*targEnt = [UNIVERSE entityForUniversalID:primaryTarget];
+	ShipEntity		*targEnt = [self primaryTarget];
 	ShipEntity		*oldTarget = nil;
+	
+#ifndef NDEBUG
 	static BOOL		deprecationWarning = NO;
 	
 	if (!deprecationWarning)
 	{
 		deprecationWarning = YES;
-		OOLog(@"script.deprecated.scriptActionOnTarget", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used. It is slow and has unpredictable side effects. The recommended alternative is to use sendScriptMessage: to call a function in a ship's JavaScript ship script instead. scriptActionOnTarget: should not be used at all from scripts.", [AI currentlyRunningAIDescription]);
+		OOLog(@"script.deprecated.scriptActionOnTarget", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used. It is slow and has unpredictable side effects. The recommended alternative is to use sendScriptMessage: to call a function in a ship's JavaScript ship script instead. scriptActionOnTarget: should not be used at all from scripts. An alternative is safeScriptActionOnTarget:, which is similar to scriptActionOnTarget: but has less side effects.", [AI currentlyRunningAIDescription]);
 	}
 	else
 	{
 		OOLog(@"script.deprecated.scriptActionOnTarget.repeat", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used.", [AI currentlyRunningAIDescription]);
 	}
+#endif
 	
 	if ([targEnt isShip])
 	{
@@ -1784,6 +1787,22 @@ WormholeEntity*	whole;
 		[player setScriptTarget:(ShipEntity*)targEnt];
 		[player scriptAction:action onEntity:targEnt];
 		[player checkScript];	// react immediately to any changes this makes
+		[player setScriptTarget:oldTarget];
+	}
+}
+
+
+- (void) safeScriptActionOnTarget:(NSString *)action
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	ShipEntity		*targEnt = [self primaryTarget];
+	ShipEntity		*oldTarget = nil;
+	
+	if ([targEnt isShip])
+	{
+		oldTarget = [player scriptTarget];
+		[player setScriptTarget:(ShipEntity*)targEnt];
+		[player scriptAction:action onEntity:targEnt];
 		[player setScriptTarget:oldTarget];
 	}
 }
