@@ -311,11 +311,19 @@ SOFTWARE.
 - (void)addUnsignedInteger:(unsigned long)value;
 - (void)addFloat:(double)value;
 - (void)addBool:(BOOL)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)addVector:(Vector)value;
+- (void)addQuaternion:(Quaternion)value;
+#endif
 
 - (void)insertInteger:(long)value atIndex:(unsigned)index;
 - (void)insertUnsignedInteger:(unsigned long)value atIndex:(unsigned)index;
 - (void)insertFloat:(double)value atIndex:(unsigned)index;
 - (void)insertBool:(BOOL)value atIndex:(unsigned)index;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)insertVector:(Vector)value atIndex:(unsigned)index;
+- (void)insertQuaternion:(Quaternion)value atIndex:(unsigned)index;
+#endif
 
 @end
 
@@ -326,6 +334,10 @@ SOFTWARE.
 - (void)setUnsignedInteger:(unsigned long)value forKey:(id)key;
 - (void)setFloat:(double)value forKey:(id)key;
 - (void)setBool:(BOOL)value forKey:(id)key;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)setVector:(Vector)value forKey:(id)key;
+- (void)setQuaternion:(Quaternion)value forKey:(id)key;
+#endif
 
 @end
 
@@ -336,6 +348,10 @@ SOFTWARE.
 - (void)addUnsignedInteger:(unsigned long)value;
 - (void)addFloat:(double)value;
 - (void)addBool:(BOOL)value;
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)addVector:(Vector)value;
+- (void)addQuaternion:(Quaternion)value;
+#endif
 
 @end
 
@@ -370,10 +386,12 @@ float OONonNegativeFloatFromObject(id object, float defaultValue);
 double OONonNegativeDoubleFromObject(id object, double defaultValue);
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-/*	These take strings, dictionaries or arrays.
-*/
+//	These take strings, dictionaries or arrays.
 Vector OOVectorFromObject(id object, Vector defaultValue);
 Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue);
+
+NSDictionary *OOPropertyListFromVector(Vector value);
+NSDictionary *OOPropertyListFromQuaternion(Quaternion value);
 #endif
 
 

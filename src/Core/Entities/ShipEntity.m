@@ -397,8 +397,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if ([shipDict objectForKey:@"track_contacts"])
 	{
 		[self setTrackCloseContacts:[shipDict boolForKey:@"track_contacts"]];
-		// DEBUG....
-		[self setReportAIMessages:YES];
 	}
 	else
 	{
@@ -1708,7 +1706,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	[self trackPrimaryTarget:delta_t:NO];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+	{
 		[self avoidCollision];
+	}
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
 }
@@ -2745,22 +2745,19 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			previousCondition = nil;
 		}
 
-		previousCondition = [(NSMutableDictionary *)[NSMutableDictionary alloc] initWithCapacity:16];
-
-		[previousCondition setObject:[NSNumber numberWithInt:behaviour] forKey:@"behaviour"];
-		[previousCondition setObject:[NSNumber numberWithInt:primaryTarget] forKey:@"primaryTarget"];
-		[previousCondition setObject:[NSNumber numberWithFloat:desired_range] forKey:@"desired_range"];
-		[previousCondition setObject:[NSNumber numberWithFloat:desired_speed] forKey:@"desired_speed"];
-		[previousCondition setObject:[NSNumber numberWithFloat:destination.x] forKey:@"destination.x"];
-		[previousCondition setObject:[NSNumber numberWithFloat:destination.y] forKey:@"destination.y"];
-		[previousCondition setObject:[NSNumber numberWithFloat:destination.z] forKey:@"destination.z"];
-
-		destination = prox_ship->position;
-		destination.x += position.x;	destination.y += position.y;	destination.z += position.z;
-		destination.x *= 0.5;	destination.y *= 0.5;	destination.z *= 0.5;	// point between us and them
-
+		previousCondition = [[NSMutableDictionary dictionaryWithCapacity:5] retain];
+		
+		[previousCondition setInteger:behaviour forKey:@"behaviour"];
+		[previousCondition setInteger:primaryTarget forKey:@"primaryTarget"];
+		[previousCondition setFloat:desired_range forKey:@"desired_range"];
+		[previousCondition setFloat:desired_speed forKey:@"desired_speed"];
+		[previousCondition setVector:destination forKey:@"destination"];
+		
+		destination = [prox_ship position];
+		destination = OOVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
+		
 		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
-
+		
 		behaviour = BEHAVIOUR_AVOID_COLLISION;
 	}
 }
@@ -2768,23 +2765,20 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) resumePostProximityAlert
 {
-	if (!previousCondition)
-		return;
+	if (!previousCondition)  return;
 	
-	behaviour =		[(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
-	primaryTarget =	[(NSNumber*)[previousCondition objectForKey:@"primaryTarget"] intValue];
-	desired_range =	[(NSNumber*)[previousCondition objectForKey:@"desired_range"] floatValue];
-	desired_speed =	[(NSNumber*)[previousCondition objectForKey:@"desired_speed"] floatValue];
-	destination.x =	[(NSNumber*)[previousCondition objectForKey:@"destination.x"] floatValue];
-	destination.y =	[(NSNumber*)[previousCondition objectForKey:@"destination.y"] floatValue];
-	destination.z =	[(NSNumber*)[previousCondition objectForKey:@"destination.z"] floatValue];
-
+	behaviour =		[previousCondition intForKey:@"behaviour"];
+	primaryTarget =	[previousCondition intForKey:@"primaryTarget"];
+	desired_range =	[previousCondition floatForKey:@"desired_range"];
+	desired_speed =	[previousCondition floatForKey:@"desired_speed"];
+	destination =	[previousCondition vectorForKey:@"destination"];
+	
 	[previousCondition release];
 	previousCondition = nil;
 	frustration = 0.0;
-
+	
 	proximity_alert = NO_TARGET;
-
+	
 	//[shipAI message:@"RESTART_DOCKING"];	// if docking, start over, other AIs will ignore this message
 }
 

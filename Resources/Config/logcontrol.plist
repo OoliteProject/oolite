@@ -291,6 +291,9 @@
 	ship.noPrimaryRole						= no;
 	
 	
+	sky.setup								= no;
+	
+	
 	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
 	strings.conversion.vector				= inherit;
 	strings.conversion.quaternion			= inherit;

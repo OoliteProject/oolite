@@ -970,6 +970,20 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)addVector:(Vector)value
+{
+	[self addObject:OOPropertyListFromVector(value)];
+}
+
+
+- (void)addQuaternion:(Quaternion)value
+{
+	[self addObject:OOPropertyListFromQuaternion(value)];
+}
+#endif
+
+
 - (void)insertInteger:(long)value atIndex:(unsigned)index
 {
 	[self insertObject:[NSNumber numberWithLong:value] atIndex:index];
@@ -992,6 +1006,20 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 {
 	[self insertObject:[NSNumber numberWithBool:value] atIndex:index];
 }
+
+
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)insertVector:(Vector)value atIndex:(unsigned)index
+{
+	[self insertObject:OOPropertyListFromVector(value) atIndex:index];
+}
+
+
+- (void)insertQuaternion:(Quaternion)value atIndex:(unsigned)index
+{
+	[self insertObject:OOPropertyListFromQuaternion(value) atIndex:index];
+}
+#endif
 
 @end
 
@@ -1021,6 +1049,20 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 	[self setObject:[NSNumber numberWithBool:value] forKey:key];
 }
 
+
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)setVector:(Vector)value forKey:(id)key
+{
+	[self setObject:OOPropertyListFromVector(value) forKey:key];
+}
+
+
+- (void)setQuaternion:(Quaternion)value forKey:(id)key
+{
+	[self setObject:OOPropertyListFromQuaternion(value) forKey:key];
+}
+#endif
+
 @end
 
 
@@ -1048,6 +1090,20 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 {
 	[self addObject:[NSNumber numberWithBool:value]];
 }
+
+
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
+- (void)addVector:(Vector)value
+{
+	[self addObject:OOPropertyListFromVector(value)];
+}
+
+
+- (void)addQuaternion:(Quaternion)value
+{
+	[self addObject:OOPropertyListFromQuaternion(value)];
+}
+#endif
 
 @end
 
@@ -1239,6 +1295,27 @@ Quaternion OOQuaternionFromObject(id object, Quaternion defaultValue)
 	}
 	
 	return result;
+}
+
+
+NSDictionary *OOPropertyListFromVector(Vector value)
+{
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSNumber numberWithFloat:value.x], @"x",
+			[NSNumber numberWithFloat:value.y], @"y",
+			[NSNumber numberWithFloat:value.z], @"z",
+			nil];
+}
+
+
+NSDictionary *OOPropertyListFromQuaternion(Quaternion value)
+{
+	return [NSDictionary dictionaryWithObjectsAndKeys:
+			[NSNumber numberWithFloat:value.w], @"w",
+			[NSNumber numberWithFloat:value.x], @"x",
+			[NSNumber numberWithFloat:value.y], @"y",
+			[NSNumber numberWithFloat:value.z], @"z",
+			nil];
 }
 #endif
 

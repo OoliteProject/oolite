@@ -582,7 +582,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		}
 		
 		_texture = [texture retain];
-		OOLog(@"sky.quadSet.setup", @"Generated quadset with %u quads for texture %@", count, _texture);
+		OOLog(@"sky.setup", @"Generated quadset with %u quads for texture %@", count, _texture);
 	}
 	
 	if (!OK)

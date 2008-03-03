@@ -2754,8 +2754,6 @@ double scoopSoundPlayTime = 0.0;
 	[missile setSpeed:150.0];
 	[missile setOwner:self];
 	[missile setDistanceTravelled:0.0];
-	//debug
-	[missile setReportAIMessages:YES];
 	
 	[UNIVERSE addEntity:missile];
 	[missile release];
