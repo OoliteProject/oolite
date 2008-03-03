@@ -1,4 +1,4 @@
-#define SKY_ENTITY_NEW	0
+#define SKY_ENTITY_NEW	1
 
 
 #if SKY_ENTITY_NEW

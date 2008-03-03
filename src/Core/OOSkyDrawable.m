@@ -478,7 +478,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		texture = quads[i].texture;
 		
 		// If we haven't seen this quad's texture before...
-		if ([seenTextures containsObject:texture])
+		if (![seenTextures containsObject:texture])
 		{
 			[seenTextures addObject:texture];
 			
@@ -505,6 +505,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	GLfloat					*col;
 	GLfloat					r, g, b;
 	size_t					posSize, tcSize, colSize;
+	unsigned				count = 0;
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -575,10 +576,13 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 				
 				*tc++ = 0.0f;
 				*tc++ = 1.0f;
+				
+				count++;
 			}
 		}
 		
 		_texture = [texture retain];
+		OOLog(@"sky.quadSet.setup", @"Generated quadset with %u quads for texture %@", count, _texture);
 	}
 	
 	if (!OK)

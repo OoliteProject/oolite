@@ -7,5 +7,7 @@
 	{
 		texture = "oolite-nebula-3.png";
 		probability = 0.1;
-	}
+	},
+	"oolite-nebula-4.png",
+	"oolite-nebula-5.png"
 )
