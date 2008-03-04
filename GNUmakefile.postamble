@@ -28,5 +28,3 @@ after-all::
 	$(CP) -r Schemata $(PROGDIR)/Resources
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
 	$(CP) $(BINARY) $(PROGDIR)
-	rm $(PROGDIR)/Resources/Config/logcontrol.plist
-	mv $(PROGDIR)/Resources/Config/logcontrol.plist.xml $(PROGDIR)/Resources/Config/logcontrol.plist

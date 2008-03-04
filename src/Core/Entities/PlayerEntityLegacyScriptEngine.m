@@ -580,11 +580,11 @@ static BOOL sRunningScript = NO;
 	{
 		NSString *result = [self performSelector:selector];
 		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
-				 result ?: @"nil",
-				 [result class] ?: @"Nil",
+				 result ? result : @"nil",
+				 [result class] ? (NSString *)[result class] : @"nil",
 				 NSStringFromSelector(selector),
-				 valueString ?: (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
-				 [valueString class] ?: @"Nil",
+				 valueString ? valueString: (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
+				 [valueString class] ? (NSString *)[valueString class] : @"nil",
 				ComparisonTypeToString(comparator));
 	
 		switch (comparator)
@@ -632,12 +632,12 @@ static BOOL sRunningScript = NO;
 		{
 			valueStrings = [valueString componentsSeparatedByString:@","];
 			
-			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
-					 result ?: @"nil",
-					 [result class] ?: @"Nil",
+			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing '%@' (%@ from %@) to '%@' (%@) with operator %@",
+					 result ? (NSString *)result : @"nil",
+					 [result class] ? (NSString *)[result class] : @"nil",
 					 NSStringFromSelector(selector),
-					 valueString ?: @"nil",
-					 [valueString class] ?: @"NIL",
+					 valueString ? valueString : @"nil",
+					 [valueString class] ? (NSString *)[valueString class] : @"nil",
 					 ComparisonTypeToString(comparator));
 			
 			count = [valueStrings count];
@@ -661,11 +661,11 @@ static BOOL sRunningScript = NO;
 			value = [NSNumber numberWithDouble:[valueString doubleValue]];
 			
 			TraceLog(kOOLogTraceTestConditionValues, @"..... comparing \"%@\" (%@ from %@) to \"%@\" (%@) with operator %@",
-					 result ?: @"nil",
-					 [result class] ?: @"Nil",
+					 result ? (NSString *)result : @"nil",
+					 [result class] ? (NSString *)[result class] : @"nil",
 					 NSStringFromSelector(selector),
-					 value ?: (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
-					 [value class] ?: @"NIL",
+					 value ? (NSString *)value : (comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
+					 [value class] ? (NSString *)[value class] : @"nil",
 					 ComparisonTypeToString(comparator));
 			
 			switch (comparator)
