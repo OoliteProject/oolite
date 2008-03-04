@@ -1,4 +1,4 @@
-(
+/*(
 	"oolite-nebula-1.png",	// Default probability: 1.0
 	{
 		texture = "oolite-nebula-2.png";
@@ -10,4 +10,4 @@
 	},
 	"oolite-nebula-4.png",
 	"oolite-nebula-5.png"
-)
+)*/
