@@ -710,7 +710,7 @@ static NSTimeInterval	time_last_frame;
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
-							[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[missile-locked-onto-@]"), [(ShipEntity *)[self primaryTarget] identFromShip: self]] forCount:4.5];
+							[self printIdentLockedOnForMissile:YES];
 							if (![UNIVERSE playCustomSound:@"[missile-locked-on]"])
 								[self beep];
 						}

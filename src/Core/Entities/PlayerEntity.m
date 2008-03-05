@@ -1615,13 +1615,13 @@ double scoopSoundPlayTime = 0.0;
 		if (first_target_id != NO_TARGET)
 		{
 			Entity *first_target = [UNIVERSE entityForUniversalID:first_target_id];
-			if ([first_target isKindOfClass:[ShipEntity class]])
+			if ([first_target isShip])
 			{
 				[self addTarget: first_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				if ((missile_entity[activeMissile])&&(!ident_engaged))
 					[missile_entity[activeMissile] addTarget:first_target];
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? DESC(@"ident-system-string"): DESC(@"missile-string"), [(ShipEntity *)first_target displayName]] forCount:4.5];
+				[self printIdentLockedOnForMissile:!ident_engaged];
 				if (ident_engaged)
 				{
 					if (![UNIVERSE playCustomSound:@"[ident-locked-on]"])
@@ -6191,23 +6191,25 @@ OOSound* burnersound;
 }
 
 
-- (BOOL) selectNextTargetFromMemory
+- (BOOL) moveTargetMemoryBy:(int)delta
 {
-	int i = 0;
+	unsigned i = 0;
 	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
 	{
-		if (++target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)
-			target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
+		target_memory_index += delta;
+		while (target_memory_index < 0)  target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
+		while (target_memory_index >= PLAYER_TARGET_MEMORY_SIZE)  target_memory_index -= PLAYER_TARGET_MEMORY_SIZE;
+		
 		int targ_id = target_memory[target_memory_index];
 		ShipEntity* potential_target = [UNIVERSE entityForUniversalID: targ_id];
-
+		
 		if ((potential_target)&&(potential_target->isShip))
 		{
 			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
 			{
 				[super addTarget:potential_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target displayName]] forCount:4.5];
+				[self printIdentLockedOnForMissile:!ident_engaged];
 				return YES;
 			}
 		}
@@ -6218,30 +6220,27 @@ OOSound* burnersound;
 }
 
 
-- (BOOL) selectPreviousTargetFromMemory;
+- (BOOL) selectNextTargetFromMemory
 {
-	int i = 0;
-	while (i++ < PLAYER_TARGET_MEMORY_SIZE)	// limit loops
-	{
-		if (--target_memory_index < 0)
-			target_memory_index += PLAYER_TARGET_MEMORY_SIZE;
-		int targ_id = target_memory[target_memory_index];
-		ShipEntity* potential_target = [UNIVERSE entityForUniversalID: targ_id];
+	return [self moveTargetMemoryBy:+1];
+}
 
-		if ((potential_target)&&(potential_target->isShip))
-		{
-			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
-			{
-				[super addTarget:potential_target];
-				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-locked-onto-@]"), (ident_engaged)? @"Ident system": @"Missile", [(ShipEntity *)potential_target displayName]] forCount:4.5];
-				return YES;
-			}
-		}
-		else
-			target_memory[target_memory_index] = NO_TARGET;	// tidy_up
-	}
-	return NO;
+
+- (BOOL) selectPreviousTargetFromMemory
+{
+	return [self moveTargetMemoryBy:-1];
+}
+
+
+- (void) printIdentLockedOnForMissile:(BOOL)missile
+{
+	NSString			*fmt = nil;
+	
+	if (missile)  fmt = DESC(@"missile-locked-onto-@");
+	else  fmt = DESC(@"ident-locked-onto-@");
+	
+	[UNIVERSE addMessage:[NSString stringWithFormat:fmt, [[self primaryTarget] identFromShip:self]]
+				forCount:4.5];
 }
 
 

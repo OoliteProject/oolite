@@ -1523,7 +1523,6 @@
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
-		1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = logcontrol.plist.xml; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
@@ -1719,7 +1718,6 @@
 				1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */,
 				1A2316E70B9CFAD700EF0852 /* keyconfig.plist */,
 				1A2316E80B9CFAD700EF0852 /* logcontrol.plist */,
-				1AED74C70BBA3CAA009410CD /* logcontrol.plist.xml */,
 				1A9533890C02089E004EBB58 /* material-defaults.plist */,
 				1A2316E90B9CFAD700EF0852 /* missiontext.plist */,
 				1A3591810C1C382700E52220 /* nebulatextures.plist */,

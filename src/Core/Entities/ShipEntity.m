@@ -453,17 +453,19 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[subEntities release];
 	[laser_color release];
 	[script release];
-
+	
 	[previousCondition release];
-
+	
 	[dockingInstructions release];
-
+	
 	[crew release];
-
+	
 	[lastRadioMessage autorelease];
-
+	
 	[octree autorelease];
-
+	
+	[subEntityTakingDamage release];
+	
 	[super dealloc];
 }
 

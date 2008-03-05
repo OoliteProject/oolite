@@ -664,6 +664,8 @@ waitingForStickCallback: 1;
 - (BOOL) selectNextTargetFromMemory;
 - (BOOL) selectPreviousTargetFromMemory;
 
+- (void) printIdentLockedOnForMissile:(BOOL)missile;
+
 - (void) applyYaw:(GLfloat) yaw;
 
 /* GILES custom viewpoints */

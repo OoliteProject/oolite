@@ -394,7 +394,6 @@
 	"mouse-on"						= ( "Mouse control on." );
 	"mouse-off"						= ( "Mouse control off." );
 	"target-lost"					= ( "Target lost." );
-	"@-locked-onto-@"				= ( "%@ locked onto %@." );
 	"ecm-on"						= ( "ECM system activated." );
 	"ecm-out-of-juice"				= ( "ECM system deactivated (no energy left)." );
 	"jump-mass-locked"				= ( "Hyperspeed mass-locked." );
@@ -403,6 +402,7 @@
 	"ident-on"						= ( "Ident system active." );
 	"ident-off"						= ( "Ident system deactivated." );
 	"missile-locked-onto-@"			= ( "Missile locked onto %@." );
+	"ident-locked-onto-@"			= ( "Ident system locked onto %@." );
 	"missile-armed"					= ( "Missile armed." );
 	"mine-armed"					= ( "Mine armed." );
 	"missile-safe"					= ( "Missiles on safety." );
@@ -946,8 +946,6 @@
 	
 	// Various HUD dials and/or messages and miscellaneous strings
 	"no-target-string"				= "No target";
-	"ident-system-string"			= "Ident system";
-	"missile-string"				= "Missile";
 	"communications-log-string"		= "Communications Log";
 	"adjusting-word"				= " (adjusting)";
 	"strict-play-enabled"			= "Strict Play Enabled";
