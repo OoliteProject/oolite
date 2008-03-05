@@ -339,7 +339,7 @@ static AI *sCurrentlyRunningAI = nil;
 #ifndef NDEBUG
 	if (currentState != nil && ![message isEqual:@"UPDATE"] && [owner reportAIMessages])
 	{
-		OOLog(@"ai.message.receive", @"AI for %@ in state '%@' receives message '%@'", ownerDesc, currentState, message);
+		OOLog(@"ai.message.receive", @"AI %@ for %@ in state '%@' receives message '%@'", stateMachineName, ownerDesc, currentState, message);
 	}
 #endif
 	
@@ -420,17 +420,17 @@ static AI *sCurrentlyRunningAI = nil;
 				if ([selectorStr isEqual:@"setStateTo:"])  [self setState:dataString];
 				else if ([selectorStr isEqual:@"debugMessage:"])
 				{
-					OOLog(@"ai.takeAction.debugNessage", @"AI-DEBUG MESSAGE from %@ : %@", ownerDesc, dataString);
+					OOLog(@"ai.takeAction.debugMessage", @"AI-DEBUG MESSAGE from %@ : %@", ownerDesc, dataString);
 				}
 				else
 				{
-					OOLog(@"ai.takeAction.badSelector", @"***** %@ does not respond to %@", ownerDesc, selectorStr);
+					OOLog(@"ai.takeAction.badSelector", @"***** ERROR in AI %@ in state %@: %@ does not respond to %@", stateMachineName, currentState, ownerDesc, selectorStr);
 				}
 			}
 		}
 		else
 		{
-			OOLog(@"ai.takeAction.orphaned", @"***** AI %@, trying to perform %@, is orphaned (no owner)", self, selectorStr);
+			OOLog(@"ai.takeAction.orphaned", @"***** AI %@, trying to perform %@, is orphaned (no owner)", stateMachineName, selectorStr);
 		}
 	}
 	else

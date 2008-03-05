@@ -124,7 +124,8 @@
 	entity.linkedList.add.error				= $linkedListError;
 	entity.linkedList.remove				= inherit;
 	entity.linkedList.remove.error			= $linkedListError;
-	entity.linkedList.verify.error			= no;	//$linkedListError;	// Non-fatal error that looks scary.
+	entity.linkedList.verify				= no;	//$linkedListError;	// Non-fatal errors that look scary.
+	entity.linkedList.verify.error			= inherit;
 	entity.linkedList.verify.rebuild		= inherit;
 	entity.linkedList.update.error			= $linkedListError;
 	

@@ -1035,7 +1035,7 @@
 		1A2316E70B9CFAD700EF0852 /* keyconfig.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = keyconfig.plist; sourceTree = "<group>"; };
 		1A2316E80B9CFAD700EF0852 /* logcontrol.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = logcontrol.plist; sourceTree = "<group>"; };
 		1A2316E90B9CFAD700EF0852 /* missiontext.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = missiontext.plist; sourceTree = "<group>"; };
-		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipdata.plist; sourceTree = "<group>"; };
+		1A2316EB0B9CFAD700EF0852 /* shipdata.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = shipdata.plist; sourceTree = "<group>"; };
 		1A2316EC0B9CFAD700EF0852 /* shipyard.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = shipyard.plist; sourceTree = "<group>"; };
 		1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = speech_pronunciation_guide.plist; sourceTree = "<group>"; };
 		1A2317910B9D022400EF0852 /* buoyAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = buoyAI.plist; sourceTree = "<group>"; };

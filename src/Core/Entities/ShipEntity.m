@@ -3986,11 +3986,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			[UNIVERSE addEntity:sse];
 			[sse becomeExplosion];
 		}
-		else
-		{
-			// Note: done by becomeExplosion for subs - several times, in fact.
-			[se setOwner:nil];
-		}
+		[se setOwner:nil];
 	}
 	[subEntities release]; // releases each subentity too!
 	subEntities = nil;
@@ -4268,10 +4264,26 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		}
 		[cargo removeObjectAtIndex:0];
 	}
-	//
-
-	if (!isPlayer)
-		[UNIVERSE removeEntity:self];
+	
+	NSEnumerator	*subEnum = nil;
+	Entity			*se = nil;
+	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	{
+		if ([se isShip])
+		{
+			ShipEntity	*sse = (ShipEntity *)se;
+			
+			[sse setSuppressExplosion:suppressExplosion];
+			[sse setPosition:[sse absolutePositionForSubentity]];
+			[UNIVERSE addEntity:sse];
+			[sse becomeExplosion];
+		}
+		[se setOwner:nil];
+	}
+	[subEntities release]; // releases each subentity too!
+	subEntities = nil;
+	
+	if (!isPlayer)  [UNIVERSE removeEntity:self];
 }
 
 

@@ -136,6 +136,14 @@
 		roles = "alloy oolite-alloy";
 		scanClass = "CLASS_CARGO";
 		thrust = 0;
+		materials =
+		{
+			"metal.png" =
+			{
+				shininess = 15;
+				specular = (0.55, 0.58, 0.6, 1.0);
+			};
+		};
 	};
 	"anaconda" =
 	{
@@ -811,6 +819,14 @@
 		thrust = 100;
 		unpiloted = yes;
 		weapon_energy = 0;
+		materials =
+		{
+			"target_metal.png" =
+			{
+				shininess = 15;
+				specular = (0.55, 0.58, 0.6, 1.0);
+			};
+		};
 	};
 	"cloaking-device" =
 	{
@@ -828,24 +844,6 @@
 		roles = "cloaking-device oolite-cloaking-device";
 		scanClass = "CLASS_CARGO";
 		script = "oolite-cloaking-device-pod.js";
-	/*	script_actions =
-		(
-			"testForEquipment: EQ_CLOAKING_DEVICE",
-			{
-				conditions = ("foundEquipment_bool equal NO");
-				do =
-				(
-					"awardEquipment: EQ_CLOAKING_DEVICE"
-					//	To consider:
-					//	"set: mission_TL_FOR_EQ_CLOAKING_DEVICE 14"
-					
-				);
-				else =
-				(
-					"awardCargo: 100 Gold"
-				);
-			}
-		); */
 		thrust = 0;
 		unpiloted = yes;
 	};
@@ -2226,6 +2224,14 @@
 		roles = "alloy oolite-scarred-alloy";
 		scanClass = "CLASS_CARGO";
 		thrust = 0;
+		materials =
+		{
+			"scarred_metal.png" =
+			{
+				shininess = 15;
+				specular = (0.55, 0.58, 0.6, 1.0);
+			};
+		};
 	};
 	"shuttle" =
 	{
