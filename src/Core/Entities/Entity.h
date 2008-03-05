@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOWeakReference.h"
 
-@class Universe, Geometry, CollisionRegion;
+@class Universe, Geometry, CollisionRegion, ShipEntity;
 
 
 #ifndef NDEBUG
@@ -91,7 +91,7 @@ typedef struct
 							isPlayer: 1,
 							isSky: 1,
 							isWormhole: 1,
-							isSubentity: 1,
+							isSubEntity: 1,
 							hasMoved: 1,
 							hasRotated: 1,
 							hasCollided: 1,
@@ -191,6 +191,8 @@ typedef struct
 
 - (void) setOwner:(Entity *)ent;
 - (id)owner;
+- (ShipEntity *)parentEntity;	// owner if self is subentity of owner, otherwise nil.
+- (ShipEntity *)rootShipEntity;	// like parentEntity, but recursive.
 
 - (void) setPosition:(Vector)posn;
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
@@ -206,6 +208,7 @@ typedef struct
 
 - (void) setOrientation:(Quaternion) quat;
 - (Quaternion) orientation;
+- (Quaternion) normalOrientation;	// Historical wart: orientation.w is reversed for player; -normalOrientation corrects this.
 - (void) orientationChanged;
 
 - (void) setVelocity:(Vector)vel;
@@ -265,8 +268,5 @@ typedef struct
 - (GLfloat)universalTime;
 - (GLfloat)spawnTime;
 - (GLfloat)timeElapsedSinceSpawn;
-
-// Resolve subentity-type relationships
-- (id) rootEntity;
 
 @end

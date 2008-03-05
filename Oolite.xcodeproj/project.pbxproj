@@ -44,6 +44,8 @@
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
 		1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */; };
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
+		1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */; };
+		1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */; };
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
@@ -1014,6 +1016,8 @@
 		1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSkyDrawable.m; sourceTree = "<group>"; };
 		1A15049C0C12CA070032F3E8 /* OOProbabilisticTextureManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilisticTextureManager.h; sourceTree = "<group>"; };
 		1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilisticTextureManager.m; sourceTree = "<group>"; };
+		1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFilteringEnumerator.h; sourceTree = "<group>"; };
+		1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFilteringEnumerator.m; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
@@ -2352,6 +2356,8 @@
 				1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */,
 				1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */,
 				1AAB9A960D779F3C00A9F424 /* OOCocoa.m */,
+				1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */,
+				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2802,6 +2808,7 @@
 				1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */,
 				1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */,
 				1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */,
+				1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3151,6 +3158,7 @@
 				1A5218DE0D72ECE5000865E9 /* OOSpatialReference.m in Sources */,
 				1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */,
 				1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */,
+				1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

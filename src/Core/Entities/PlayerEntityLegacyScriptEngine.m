@@ -2130,7 +2130,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[se1 setFuel: PLAYER_MAX_FUEL];
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
-				// FIXME: I don't think the following line does anything meaningful.
+				// FIXME: I don't think the following line does anything meaningful. -- Ahruman
 				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
 				[se1 setPrimaryRole:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}

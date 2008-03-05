@@ -51,7 +51,7 @@ if (this.legacy_launchActions != undefined)
 }
 
 
-// death_actions handled on didDie().
+// death_actions handled on shipDied().
 if (this.legacy_deathActions != undefined)
 {
 	this.shipDied = function ()

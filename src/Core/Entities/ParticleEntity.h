@@ -64,7 +64,7 @@ MA 02110-1301, USA.
 	GLfloat			exhaustBaseColors[34 * 4], verts[34 * 3];
 }
 
-- (id) initLaserFromShip:(ShipEntity *) ship view:(int) view offset:(Vector)offset;
+- (id) initLaserFromShip:(ShipEntity *) ship view:(OOViewID) view offset:(Vector)offset;
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details;
 - (id) initECMMineFromShip:(ShipEntity *) ship;
 - (id) initEnergyMineFromShip:(ShipEntity *) ship;

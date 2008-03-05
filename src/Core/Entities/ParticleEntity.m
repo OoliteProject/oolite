@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOTexture.h"
 #import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
 #import "ShipEntity.h"
 #import "PlayerEntity.h"
@@ -168,63 +169,58 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 }
 
 
-- (id) initLaserFromShip:(ShipEntity *) srcEntity view:(int) view offset:(Vector)offset
+- (id) initLaserFromShip:(ShipEntity *) srcEntity view:(OOViewID) view offset:(Vector)offset
 {
-	ShipEntity			*ship = nil;
+	ShipEntity			*ship = [srcEntity rootShipEntity];
 	
 	self = [super init];
 	if (self == nil)  goto FAIL;
 	
-	if (srcEntity == nil || !srcEntity->isShip)  goto FAIL;
-	if (srcEntity->isSubentity)
-	{
-		ship = [srcEntity owner];
-		if (ship == nil || !ship->isShip)  goto FAIL;
-	}
-	else  ship = srcEntity;
+#ifndef NDEBUG
+	if (![srcEntity isShip])  goto FAIL;
+	if (ship == nil)  goto FAIL;
+#endif
 	
 	status = STATUS_EFFECT;
-	position = ship->position;
-	if (ship == srcEntity)  position = ship->position;
+	if (ship == srcEntity)  position = [ship position];
 	else
 	{
+		// FIXME: shouldn't the subentity case work in any case?
 		BoundingBox bbox = [srcEntity boundingBox];
 		Vector midfrontplane = make_vector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
 		position = [srcEntity absolutePositionForSubentityOffset:midfrontplane];
 	}
-	orientation = ship->orientation;
-	if (ship->isPlayer)
-		orientation.w = -orientation.w;   //reverse view direction for the player
+	
+	orientation = [ship normalOrientation];
 	Vector v_up = vector_up_from_quaternion(orientation);
 	Vector v_forward = vector_forward_from_quaternion(orientation);
 	Vector v_right = vector_right_from_quaternion(orientation);
-	GLfloat fs = [ship flightSpeed];
-	velocity = make_vector(v_forward.x * fs, v_forward.y * fs, v_forward.z * fs);
+	velocity = vector_multiply_scalar(v_forward, [ship flightSpeed]);
 	
-	GLfloat distance;
+	Vector	viewOffset;
 	switch (view)
 	{
 		default:
 		case VIEW_FORWARD:
-			distance = [srcEntity boundingBox].max.z;
-			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
+			viewOffset = vector_multiply_scalar(v_forward, [srcEntity boundingBox].max.z);
 			break;
+			
 		case VIEW_AFT:
 			quaternion_rotate_about_axis(&orientation, v_up, M_PI);
-			distance = [srcEntity boundingBox].min.z;
-			position.x += distance * v_forward.x;	position.y += distance * v_forward.y;	position.z += distance * v_forward.z;
+			viewOffset = vector_multiply_scalar(v_forward, [srcEntity boundingBox].min.z);
 			break;
+			
 		case VIEW_PORT:
 			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
-			distance = [srcEntity boundingBox].min.x;
-			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
+			viewOffset = vector_multiply_scalar(v_right, [srcEntity boundingBox].min.x);
 			break;
+			
 		case VIEW_STARBOARD:
 			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
-			distance = [srcEntity boundingBox].max.x;
-			position.x += distance * v_right.x;	position.y += distance * v_right.y;	position.z += distance * v_right.z;
+			viewOffset = vector_multiply_scalar(v_right, [srcEntity boundingBox].max.x);
 			break;
 	}
+	position = vector_add(position, viewOffset);
 	rotMatrix = OOMatrixForQuaternionRotation(orientation);
 	
 	time_counter = 0.0;
@@ -255,13 +251,13 @@ FAIL:
 	if ([values count] != 6)
 		return nil;
 	Vector offset, scale;
-	offset.x = [(NSString *)[values objectAtIndex:0] floatValue];
-	offset.y = [(NSString *)[values objectAtIndex:1] floatValue];
-	offset.z = [(NSString *)[values objectAtIndex:2] floatValue];
-	scale.x = [(NSString *)[values objectAtIndex:3] floatValue];
-	scale.y = [(NSString *)[values objectAtIndex:4] floatValue];
-	scale.z = [(NSString *)[values objectAtIndex:5] floatValue];
-
+	offset.x = [values floatAtIndex:0];
+	offset.y = [values floatAtIndex:1];
+	offset.z = [values floatAtIndex:2];
+	scale.x = [values floatAtIndex:3];
+	scale.y = [values floatAtIndex:4];
+	scale.z = [values floatAtIndex:5];
+	
 	self = [super init];
     
 	status = STATUS_EFFECT;

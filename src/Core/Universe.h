@@ -367,8 +367,8 @@ enum
 - (Entity*) hazardOnRouteFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 
-- (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset rangeFound:(GLfloat*)range_ptr;
-- (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player;
+- (OOUniversalID) getFirstEntityHitByLaserFromEntity:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr;
+- (OOUniversalID) getFirstEntityTargettedByPlayer:(PlayerEntity *)player;
 
 - (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity;
 - (unsigned) countShipsWithRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;

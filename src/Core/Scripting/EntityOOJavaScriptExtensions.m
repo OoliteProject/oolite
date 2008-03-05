@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 
 @implementation Entity (OOJavaScriptExtensions)
 
-- (BOOL)isVisibleToScripts
+- (BOOL) isVisibleToScripts
 {
 	return	self->isShip ||
 		//	self->isStation ||	// Stations are always ships
@@ -42,13 +42,13 @@ MA 02110-1301, USA.
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) jsClassName
 {
 	return @"Entity";
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval) javaScriptValueInContext:(JSContext *)context
 {
 	JSClass					*class = NULL;
 	JSObject				*prototype = NULL;
@@ -74,14 +74,14 @@ MA 02110-1301, USA.
 }
 
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+- (void) getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
 	*outClass = JSEntityClass();
 	*outPrototype = JSEntityPrototype();
 }
 
 
-- (void)deleteJSSelf
+- (void) deleteJSSelf
 {
 	if (jsSelf != NULL)
 	{
@@ -95,44 +95,26 @@ MA 02110-1301, USA.
 
 @implementation ShipEntity (OOJavaScriptExtensions)
 
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+- (void) getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
 	*outClass = JSShipClass();
 	*outPrototype = JSShipPrototype();
 }
 
 
-- (NSString *)jsClassName
+- (NSString *) jsClassName
 {
 	return @"Ship";
 }
 
 
-- (NSArray *)subEntitiesForScript
+- (NSArray *) subEntitiesForScript
 {
-	unsigned			i, count;
-	NSMutableArray		*result = nil;
-	id					object = nil;
-	
-	count = [sub_entities count];
-	if (count == 0)  return nil;
-	
-	result = [NSMutableArray arrayWithCapacity:count];
-	for (i = 0; i != count; ++i)
-	{
-		object = [sub_entities objectAtIndex:i];
-		if ([object isKindOfClass:[ShipEntity class]])
-		{
-			[result addObject:object];
-		}
-	}
-	
-	if ([result count] == 0)  result = nil;
-	return result;
+	return [[self shipSubEntityEnumerator] allObjects];
 }
 
 
-- (NSArray *)escorts
+- (NSArray *) escorts
 {
 	unsigned			i;
 	NSMutableArray		*result = nil;
@@ -155,7 +137,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)setTargetForScript:(ShipEntity *)target
+- (void) setTargetForScript:(ShipEntity *)target
 {
 	ShipEntity			*me = self;
 	

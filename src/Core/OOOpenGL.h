@@ -38,10 +38,6 @@ MA 02110-1301, USA.
 #include <OpenGL/glu.h>
 #include <OpenGL/glext.h>
 
-typedef CGLContextObj OOOpenGLContext;
-#define OOOpenGLGetCurrentContext CGLGetCurrentContext
-#define OOOpenGLSetCurrentContext(ctx) (CGLSetCurrentContext(ctx) == kCGLNoError)
-
 #elif OOLITE_SDL
 
 // SDL OpenGL includes...
@@ -54,19 +50,6 @@ typedef CGLContextObj OOOpenGLContext;
 
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
-
-
-/*	FIXME: should probably use glXCopyContext() and glXMakeCurrent() on Linux;
-	there should be an equivalent for Windows. This isn't very urgent since
-	Oolite doesnt' use distinct contexts, though. I can't see an obvious SDL
-	version, unfortunately.
-*/
-
-typedef uintptr_t OOOpenGLContext;	// Opaque context identifier
-// OOOpenGLContext OOOpenGLGetCurrentContext(void)
-#define OOOpenGLGetCurrentContext() ((OOOpenGLContextID)1UL)
-// BOOL OOOpenGLSetCurrentContext(OOOpenGLContext context)
-#define OOOpenGLSetCurrentContext(ctx) ((ctx) == 1UL)
 
 
 #else	// Not OS X or SDL

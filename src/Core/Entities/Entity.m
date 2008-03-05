@@ -113,7 +113,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL)isSubEntity
 {
-	return isSubentity;
+	return isSubEntity;
 }
 
 
@@ -528,6 +528,23 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (ShipEntity *)parentEntity
+{
+	id ownerEnt = [self owner];
+	if ([ownerEnt isShipWithSubEntityShip:self])  return ownerEnt;
+	return nil;
+}
+
+
+- (ShipEntity *) rootShipEntity
+{
+	ShipEntity *parent = [self parentEntity];
+	if (parent != nil)  return [parent rootShipEntity];
+	if ([self isShip])  return (ShipEntity *)self;
+	return nil;
+}
+
+
 - (void) setPosition:(Vector) posn
 {
 	position = posn;
@@ -585,6 +602,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (Quaternion) orientation
 {
 	return orientation;
+}
+
+
+- (Quaternion) normalOrientation
+{
+	return [self orientation];
 }
 
 
@@ -1042,7 +1065,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	ADD_FLAG_IF_SET(isPlayer);
 	ADD_FLAG_IF_SET(isSky);
 	ADD_FLAG_IF_SET(isWormhole);
-	ADD_FLAG_IF_SET(isSubentity);
+	ADD_FLAG_IF_SET(isSubEntity);
 	ADD_FLAG_IF_SET(hasMoved);
 	ADD_FLAG_IF_SET(hasRotated);
 	ADD_FLAG_IF_SET(isSunlit);
@@ -1075,12 +1098,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (GLfloat)timeElapsedSinceSpawn
 {
 	return [UNIVERSE getTime] - spawnTime;
-}
-
-
-- (id) rootEntity
-{
-	return self;
 }
 
 @end

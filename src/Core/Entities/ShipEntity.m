@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "NSScannerOOExtensions.h"
+#import "OOFilteringEnumerator.h"
 #import "OORoleSet.h"
 
 #import "OOCharacter.h"
@@ -180,7 +181,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 				
 				[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
 				
-				subent->isSubentity = YES;
 				[self addSubEntity:subent];
 				[subent release];
 			}
@@ -441,13 +441,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) dealloc
 {
 	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
-	
-	if (isSubentity)
-	{
-		//on player loading ships with subentities, the subentities are attached to the sky object!
-		if (![[self owner] isSky])
-			[[self owner] subEntityReallyDied:self];
-	}
+	[[self parentEntity] subEntityReallyDied:self];	// Will do nothing if we're not really a subentity
 	
 	[shipinfoDictionary release];
 	[shipAI release];
@@ -456,7 +450,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[displayName release];
 	[roleSet release];
 	[primaryRole release];
-	[sub_entities release];
+	[subEntities release];
 	[laser_color release];
 	[script release];
 
@@ -504,14 +498,86 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (NSArray *)subEntities
 {
-	return [[sub_entities copy] autorelease];
+	return [[subEntities copy] autorelease];
 }
 
 
-- (id) rootEntity
+- (unsigned) subEntityCount
 {
-	if (isSubentity)  return [[self owner] rootEntity];
-	else  return self;
+	return [subEntities count];
+}
+
+
+- (BOOL) hasSubEntity:(ShipEntity *)sub
+{
+	return [subEntities containsObject:sub];
+}
+
+- (NSEnumerator *)subEntityEnumerator
+{
+	return [[self subEntities] objectEnumerator];
+}
+
+
+- (NSEnumerator *)shipSubEntityEnumerator
+{
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
+}
+
+
+- (NSEnumerator *)particleSubEntityEnumerator
+{
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isParticle)];
+}
+
+
+- (NSEnumerator *)flasherEnumerator
+{
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isFlasher)];
+}
+
+
+- (NSEnumerator *)exhaustEnumerator
+{
+	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isExhaust)];
+}
+
+
+- (ShipEntity *) subEntityTakingDamage
+{
+	ShipEntity *result = [subEntityTakingDamage weakRefUnderlyingObject];
+	
+#ifndef NDEBUG
+	// Sanity check - there have been problems here, see fireLaserShotInDirection:
+	if (result != nil)
+	{
+		if (![result isShip] || ![self hasSubEntity:result])
+		{
+			OOLog(@"ship.subentity.sanityCheck.failed", @"***** VALIDATION ERROR: Subentity taking damage (%@) for ship %@ is not a ship or is not a subentity of the owner. This is an internal error, please report it.", [result shortDescription], [self shortDescription]);
+			result = nil;
+		}
+	}
+#endif
+	
+	// Clear the weakref if the subentity is dead
+	if (result == nil)
+	{
+		[subEntityTakingDamage release];
+		subEntityTakingDamage = nil;
+	}
+	
+	return result;
+}
+
+
+- (void) setSubEntityTakingDamage:(ShipEntity *)sub
+{
+	// Set subentityTakingDamage only if sub is 1. one of ours and 2. a ship (not a flasher or exhaust).
+	if ([sub isShip] && [self hasSubEntity:sub])
+	{
+		[subEntityTakingDamage release];
+		subEntityTakingDamage = [sub weakRetain];
+	}
 }
 
 
@@ -567,31 +633,29 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		if (hitEntity)
 			hitEntity[0] = self;
 	}
-	if (sub_entities)
+	
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		int n_subs = [sub_entities count];
-		int i;
-		for (i = 0; i < n_subs; i++)
-		{
-			ShipEntity* se = [sub_entities objectAtIndex:i];
-			if (se->isShip)
+		Vector p0 = [se absolutePositionForSubentity];
+		Triangle ijk = [se absoluteIJKForSubentity];
+		u0 = vector_between(p0, v0);
+		u1 = vector_between(p0, v1);
+		w0 = resolveVectorInIJK(u0, ijk);
+		w1 = resolveVectorInIJK(u1, ijk);
+		
+		GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
+		if (hitSub && (hit_distance == 0 || hit_distance > hitSub))
+		{	
+			hit_distance = hitSub;
+			if (hitEntity)
 			{
-				Vector p0 = [se absolutePositionForSubentity];
-				Triangle ijk = [se absoluteIJKForSubentity];
-				u0 = vector_between(p0, v0);
-				u1 = vector_between(p0, v1);
-				w0 = resolveVectorInIJK(u0, ijk);
-				w1 = resolveVectorInIJK(u1, ijk);
-				GLfloat hitSub = [se->octree isHitByLine:w0 :w1];
-				if ((hitSub)&&((!hit_distance)||(hit_distance > hitSub)))
-				{	
-					hit_distance = hitSub;
-					if (hitEntity)
-						hitEntity[0] = se;
-				}
+				*hitEntity = se;
 			}
 		}
 	}
+	
 	return hit_distance;
 }
 
@@ -626,13 +690,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 
 	//	Tell subentities, too
-	NSEnumerator	*subEntityEnum = nil;
-	Entity			*subEntity = nil;
-	
-	for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
-	{
-		[subEntity wasAddedToUniverse];
-	}
+	[subEntities makeObjectsPerformSelector:@selector(wasAddedToUniverse)];
 	
 	[self resetTracking];	// resets stuff for tracking/exhausts
 }
@@ -640,13 +698,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void)wasRemovedFromUniverse
 {
-	NSEnumerator	*subEntityEnum = nil;
-	Entity			*subEntity = nil;
-	
-	for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
-	{
-		[subEntity wasRemovedFromUniverse];
-	}
+	[subEntities makeObjectsPerformSelector:@selector(wasRemovedFromUniverse)];
 }
 
 
@@ -871,34 +923,13 @@ BOOL ship_canCollide (ShipEntity* ship)
 ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	// octree check
-	Octree* prime_octree = prime->octree;
-	Octree* other_octree = other->octree;
+	Octree		*prime_octree = prime->octree;
+	Octree		*other_octree = other->octree;
 	
-	Vector prime_position = prime->position;
-
-	Triangle prime_ijk;
-	prime_ijk.v[0] = prime->v_right;
-	prime_ijk.v[1] = prime->v_up;
-	prime_ijk.v[2] = prime->v_forward;
-	
-	if (prime->isSubentity)
-	{
-		prime_position = [prime absolutePositionForSubentity];
-		prime_ijk = [prime absoluteIJKForSubentity];
-	}
-	
-	Vector other_position = other->position;
-	
-	Triangle other_ijk;
-	other_ijk.v[0] = other->v_right;
-	other_ijk.v[1] = other->v_up;
-	other_ijk.v[2] = other->v_forward;
-	
-	if (other->isSubentity)
-	{
-		other_position = [other absolutePositionForSubentity];
-		other_ijk = [other absoluteIJKForSubentity];
-	}
+	Vector		other_position = [prime absolutePositionForSubentity];
+	Triangle	other_ijk = [prime absoluteIJKForSubentity];
+	Vector		prime_position = [other absolutePositionForSubentity];
+	Triangle	prime_ijk = [other absoluteIJKForSubentity];
 
 	Vector		relative_position_of_other = resolveVectorInIJK(vector_between(prime_position, other_position), prime_ijk);
 	Triangle	relative_ijk_of_other;
@@ -907,57 +938,57 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	relative_ijk_of_other.v[2] = resolveVectorInIJK(other_ijk.v[2], prime_ijk);
 	
 	// check hull octree against other hull octree
-	//
-	if ([prime_octree isHitByOctree: other_octree withOrigin: relative_position_of_other andIJK: relative_ijk_of_other])
+	if ([prime_octree isHitByOctree:other_octree
+						 withOrigin:relative_position_of_other
+							 andIJK:relative_ijk_of_other])
+	{
 		return other;
-		
+	}
+	
 	// check prime subentities against the other's hull
-	//
-	NSArray* prime_subs = prime->sub_entities;
+	NSArray* prime_subs = prime->subEntities;
 	if (prime_subs)
 	{
 		int i;
 		int n_subs = [prime_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
-			Entity* se = (Entity*)[prime_subs objectAtIndex:i];
-			if ((se->isShip) && [se canCollide] && doOctreesCollide((ShipEntity*)se, other))
+			Entity* se = [prime_subs objectAtIndex:i];
+			if ([se isShip] && [se canCollide] && doOctreesCollide((ShipEntity*)se, other))
 				return other;
 		}
 	}
 
 	// check prime hull against the other's subentities
-	//
-	NSArray* other_subs = other->sub_entities;
+	NSArray* other_subs = other->subEntities;
 	if (other_subs)
 	{
 		int i;
 		int n_subs = [other_subs count];
 		for (i = 0; i < n_subs; i++)
 		{
-			Entity* se = (Entity*)[other_subs objectAtIndex:i];
-			if ((se->isShip) && [se canCollide] && doOctreesCollide(prime, (ShipEntity*)se))
+			Entity* se = [other_subs objectAtIndex:i];
+			if ([se isShip] && [se canCollide] && doOctreesCollide(prime, (ShipEntity*)se))
 				return (ShipEntity*)se;
 		}
 	}
-
+	
 	// check prime subenties against the other's subentities
-	//
 	if ((prime_subs)&&(other_subs))
 	{
 		int i;
 		int n_osubs = [other_subs count];
 		for (i = 0; i < n_osubs; i++)
 		{
-			Entity* oe = (Entity*)[other_subs objectAtIndex:i];
-			if ((oe->isShip) && [oe canCollide])
+			Entity* oe = [other_subs objectAtIndex:i];
+			if ([oe isShip] && [oe canCollide])
 			{
 				int j;
 				int n_psubs = [prime_subs count];
 				for (j = 0; j <  n_psubs; j++)
 				{
-					Entity* pe = (Entity*)[prime_subs objectAtIndex:j];
-					if ((pe->isShip) && [pe canCollide] && doOctreesCollide((ShipEntity*)pe, (ShipEntity*)oe))
+					Entity* pe = [prime_subs objectAtIndex:j];
+					if ([pe isShip] && [pe canCollide] && doOctreesCollide((ShipEntity*)pe, (ShipEntity*)oe))
 						return (ShipEntity*)oe;
 				}
 			}
@@ -965,53 +996,55 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// fall through => no collision
-	//
-	return (ShipEntity*)nil;
+	return nil;
 }
 
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	if (!other)
-		return NO;
-	if ([collidingEntities containsObject:other])	// we know about this already!
-		return NO;
-
-	if ((other->isShip)&&[self canScoop: (ShipEntity*)other])	// quick test - could this improve scooping for small ships? I think so!
-		return YES;
-
-	if (trackCloseContacts)
+	if (other == nil)  return NO;
+	if ([collidingEntities containsObject:other])  return NO;	// we know about this already!
+	
+	ShipEntity *otherShip = nil;
+	if ([other isShip])  otherShip = (ShipEntity *)other;
+	
+	if ([self canScoop:otherShip])  return YES;	// quick test - could this improve scooping for small ships? I think so!
+	
+	if (otherShip != nil && trackCloseContacts)
 	{
 		// in update we check if close contacts have gone out of touch range (origin within our collision_radius)
 		// here we check if something has come within that range
-		NSString* other_key = [NSString stringWithFormat:@"%d", other->universalID];
-		if ((![closeContactsInfo objectForKey: other_key]) && (distance2(position, other->position) < collision_radius * collision_radius))
+		Vector			otherPos = [otherShip position];
+		OOUniversalID	otherID = [otherShip universalID];
+		NSString		*other_key = [NSString stringWithFormat:@"%d", otherID];
+		
+		if (![closeContactsInfo objectForKey:other_key] &&
+			distance2(position, otherPos) < collision_radius * collision_radius)
 		{
 			// calculate position with respect to our own position and orientation
-			Vector	dpos = vector_between(position, other->position);
+			Vector	dpos = vector_between(position, otherPos);
 			Vector  rpos = make_vector(dot_product(dpos, v_right), dot_product(dpos, v_up), dot_product(dpos, v_forward));
 			[closeContactsInfo setObject:[NSString stringWithFormat:@"%f %f %f", rpos.x, rpos.y, rpos.z] forKey: other_key];
+			
 			// send AI a message about the touch
-			int	temp_id = primaryTarget;
-			primaryTarget = other->universalID;
-			[self doScriptEvent:@"shipCloseContact" withArgument:other andReactToAIMessage:@"CLOSE CONTACT"];
+			OOUniversalID	temp_id = primaryTarget;
+			primaryTarget = otherID;
+			[self doScriptEvent:@"shipCloseContact" withArgument:otherShip andReactToAIMessage:@"CLOSE CONTACT"];
 			primaryTarget = temp_id;
 		}
 	}
-
+	
 	if (zero_distance > CLOSE_COLLISION_CHECK_MAX_RANGE2)	// don't work too hard on entities that are far from the player
 		return YES;
-
-	if (other->isShip)
+	
+	if (otherShip != nil)
 	{
 		// check hull octree versus other hull octree
-		//
-		collider = doOctreesCollide(self, (ShipEntity*)other);
+		collider = doOctreesCollide(self, otherShip);
 		return (collider != nil);
 	}
 	
 	// default at this stage is to say YES they've collided!
-	//
 	collider = other;
 	return YES;
 }
@@ -1033,7 +1066,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
 	Entity		*last = nil;
-	Entity		*father = [self owner];
+	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
 	while ((father)&&(father != last))
@@ -1324,11 +1357,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[shipAI message:@"ENERGY_FULL"];
 				}
 			}
-			if (sub_entities)
+			
+			NSEnumerator	*subEnum = nil;
+			ShipEntity		*se = nil;
+			for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 			{
-				unsigned i;
-				for (i = 0; i < [sub_entities count]; i++)
-					[[sub_entities objectAtIndex:i] update:delta_t];
+				[se update:delta_t];
 			}
 			return;
 		}
@@ -1468,10 +1502,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self behaviour_track_as_turret: delta_t];
 				break;
 
-			case BEHAVIOUR_EXPERIMENTAL :
-				[self behaviour_experimental: delta_t];
-				break;
-
 			case BEHAVIOUR_FLY_THRU_NAVPOINTS :
 				[self behaviour_fly_thru_navpoints: delta_t];
 				break;
@@ -1480,9 +1510,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				// Do nothing
 				break;
 		}
-		//
+		
 		// manage energy
-		//
 		if (energy < maxEnergy)
 		{
 			energy += energy_recharge_rate * delta_t;
@@ -1492,8 +1521,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[shipAI message:@"ENERGY_FULL"];
 			}
 		}
-
-		//
+		
 		// update destination position for escorts
 		if (escortCount > 0)
 		{
@@ -1511,10 +1539,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			}
 		}
     }
-
-	//
+	
 	// subentity rotation
-	//
 	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
 		!quaternion_equal(subentityRotationalVelocity, kZeroQuaternion))
 	{
@@ -1526,28 +1552,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		orientation = quaternion_multiply(qf, orientation);
 	}
 	
-	//
 	//	reset totalBoundingBox
-	//
 	totalBoundingBox = boundingBox;
 	
-
-	//
 	// update subentities
-	//
-	if (sub_entities)
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		unsigned i;
-		for (i = 0; i < [sub_entities count]; i++)
+		[se update:delta_t];
+		if ([se isShip])
 		{
-			ShipEntity *se = [sub_entities objectAtIndex:i];
-			[se update:delta_t];
-			if (se->isShip)
-			{
-				BoundingBox sebb = [se findSubentityBoundingBox];
-				bounding_box_add_vector(&totalBoundingBox, sebb.max);
-				bounding_box_add_vector(&totalBoundingBox, sebb.min);
-			}
+			BoundingBox sebb = [se findSubentityBoundingBox];
+			bounding_box_add_vector(&totalBoundingBox, sebb.max);
+			bounding_box_add_vector(&totalBoundingBox, sebb.min);
 		}
 	}
 	
@@ -2346,107 +2364,64 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) behaviour_experimental:(double) delta_t
-{
-	double aim = [self ballTrackTarget:delta_t];
-	if (aim > .95)
-	{
-		OOLog(@"behaviour.experimental.foundTarget", @"DEBUG BANG! BANG! BANG!");
-	}
-}
-
-
-// override Entity saveToLastFrame
-//
 - (void) saveToLastFrame
 {
 	double t_now = [UNIVERSE getTime];
-	if (t_now >= trackTime + 0.1)		// update every 1/10 of a second
+	
+	if (t_now >= trackTime + 0.1)		// update at most every 1/10 of a second
 	{
 		// save previous data
-		Quaternion qrot = orientation;
-		if (isPlayer)	qrot.w = -qrot.w;	// correct player's orientation
+		Quaternion qrot = [self normalOrientation];
 		trackTime = t_now;
 		track[trackIndex].position =	position;
 		track[trackIndex].orientation =	qrot;
 		track[trackIndex].timeframe =	trackTime;
 		track[trackIndex].k =	v_forward;
-		//
-		if (sub_entities)
+		
+		// Update exhaust
+		NSEnumerator	*subEnum = nil;
+		ShipEntity		*se = nil;
+		Frame			thisFrame = { trackTime, kZeroVector, qrot, v_forward };
+		
+		for (subEnum = [self exhaustEnumerator]; (se = [subEnum nextObject]); )
 		{
-//			NSLog(@"DEBUG %@'s subentities ...", self);
-			int i;
-			int n = [sub_entities count];
-			Frame thisFrame;
-			thisFrame.orientation = qrot;
-			thisFrame.timeframe = trackTime;
-			thisFrame.k = v_forward;
-			for (i = 0; i < n; i++)
-			{
-				Entity* se = [sub_entities objectAtIndex:i];
-				Vector	sepos = se->position;	// CRASH: Crash here when subentity leaked. Apparently related to player ships with subentities. -- Ahruman
-				if ([se isExhaust])
-				{
-					thisFrame.position = make_vector(
-						position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
-						position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
-						position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
-					[se saveFrame:thisFrame atIndex:trackIndex];	// syncs subentity trackIndex to this entity
-//					NSLog(@"DEBUG ... %@ %@ [%.2f %.2f %.2f]", self, se, thisFrame.position.x - position.x, thisFrame.position.y - position.y, thisFrame.position.z - position.z);
-				}
-			}
+			Vector	sepos = [se position];
+			thisFrame.position = make_vector(
+											 position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
+											 position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
+											 position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
+			[se saveFrame:thisFrame atIndex:trackIndex];	// syncs subentity trackIndex to this entity
 		}
-		//
+		
 		trackIndex = (trackIndex + 1 ) & 0xff;
-		//
 	}
 }
 
+
 // reset position tracking
-//
 - (void) resetTracking
 {
-	Quaternion	qrot = orientation;
-	if (isPlayer)	qrot.w = -qrot.w;	// correct player's orientation
+	Quaternion	qrot = [self normalOrientation];
 	Vector		vi = vector_right_from_quaternion(qrot);
 	Vector		vj = vector_up_from_quaternion(qrot);
 	Vector		vk = vector_forward_from_quaternion(qrot);
-	Frame resetFrame;
-	resetFrame.position = position;
-	resetFrame.orientation = qrot;
-	resetFrame.k = vk;
-	Vector vel = make_vector(vk.x * flightSpeed, vk.y * flightSpeed, vk.z * flightSpeed);
+	Frame		resetFrame = { 0, position, qrot, vk };
 	
-#ifndef NDEBUG
-	if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
-	{
-		OOLog(@"ship.tracking.reset", @"DEBUG resetting tracking for %@", self);
-	}
-#endif
+	Vector vel = vector_multiply_scalar(vk, flightSpeed);
 	
 	[self resetFramesFromFrame:resetFrame withVelocity:vel];
-	if (sub_entities)
+	
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	
+	for (subEnum = [self exhaustEnumerator]; (se = [subEnum nextObject]); )
 	{
-		int i;
-		int n = [sub_entities count];
-		for (i = 0; i < n; i++)
-		{
-			Entity* se = (Entity*)[sub_entities objectAtIndex:i];
-			Vector	sepos = se->position;
-			if ([se isExhaust])
-			{
-#ifndef NDEBUG
-				if ((isPlayer)&&(gDebugFlags & DEBUG_MISC))
-					OOLog(@"ship.tracking.reset.subEntity", @"DEBUG resetting tracking for subentity %@ of %@", se, self);
-#endif
-				
-				resetFrame.position = make_vector(
-					position.x + vi.x * sepos.x + vj.x * sepos.y + vk.x * sepos.z,
-					position.y + vi.y * sepos.x + vj.y * sepos.y + vk.y * sepos.z,
-					position.z + vi.z * sepos.x + vj.z * sepos.y + vk.z * sepos.z);
-				[se resetFramesFromFrame:resetFrame withVelocity:vel];
-			}
-		}
+		Vector sepos = [se position];
+		resetFrame.position = make_vector(
+										  position.x + vi.x * sepos.x + vj.x * sepos.y + vk.x * sepos.z,
+										  position.y + vi.y * sepos.x + vj.y * sepos.y + vk.y * sepos.z,
+										  position.z + vi.z * sepos.x + vj.z * sepos.y + vk.z * sepos.z);
+		[se resetFramesFromFrame:resetFrame withVelocity:vel];
 	}
 }
 
@@ -2469,7 +2444,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
 	{
-		for (subEntityEnum = [sub_entities objectEnumerator]; (subEntity = [subEntityEnum nextObject]); )
+		for (subEntityEnum = [self subEntityEnumerator]; (subEntity = [subEntityEnum nextObject]); )
 		{
 			[subEntity setOwner:self]; // refresh ownership
 			[subEntity drawSubEntity:immediate :translucent];
@@ -2480,7 +2455,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
 	{
 		OODebugDrawBoundingBox([self boundingBox]);
-		if (!isSubentity)  OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
+		if ([self isSubEntity])  OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
 	}
 #endif
 }
@@ -2631,29 +2606,27 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) addExhaust:(ParticleEntity *)exhaust
-{
-	if (exhaust == nil)  return;
-	
-	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
-	[sub_entities addObject:exhaust];
-}
-
-- (void) addFlasher:(ParticleEntity *)flasher
-{
-	if (flasher == nil)  return;
-	
-	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
-	[sub_entities addObject:flasher];
-}
-
-- (void) addSubEntity:(ShipEntity *)sub
+- (void) addSubEntity:(Entity *)sub
 {
 	if (sub == nil)  return;
 	
-	if (sub_entities == nil)  sub_entities = [[NSMutableArray alloc] init];
-	[sub_entities addObject:sub];
+	if (subEntities == nil)  subEntities = [[NSMutableArray alloc] init];
+	sub->isSubEntity = YES;
+	[subEntities addObject:sub];
 }
+
+
+- (void) addExhaust:(ParticleEntity *)exhaust
+{
+	[self addSubEntity:exhaust];
+}
+
+
+- (void) addFlasher:(ParticleEntity *)flasher
+{
+	[self addSubEntity:flasher];
+}
+
 
 - (void) applyThrust:(double) delta_t
 {
@@ -3653,17 +3626,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[self setMesh:[[self mesh] meshRescaledBy:factor]];
 	
 	// rescale positions of subentities
-	unsigned i, n_subs = [sub_entities count];
-	for (i = 0; i < n_subs; i++)
+	NSEnumerator	*subEnum = nil;
+	Entity			*se = nil;
+	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		Entity* se = [sub_entities objectAtIndex:i];
-		se->position.x *= factor;
-		se->position.y *= factor;
-		se->position.z *= factor;
+		se->position = vector_multiply_scalar([se position], factor);
 		
 		// rescale ship subentities
-		if (se->isShip)
-			[(ShipEntity*)se rescaleBy: factor];
+		if ([se isShip])  [(ShipEntity*)se rescaleBy:factor];
 		
 		// rescale particle subentities
 		if (se->isParticle)
@@ -3677,7 +3647,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 	
 	// rescale mass
-	//
 	mass *= factor * factor * factor;
 }
 
@@ -3687,8 +3656,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	OOCargoQuantity cargo_to_go;
 	
 	// check if we're destroying a subentity
-	ShipEntity* parent = (ShipEntity*)[self owner];
-	if ((parent)&&(parent != self)&&(parent->isShip)&&[parent->sub_entities containsObject:self])
+	ShipEntity *parent = [self parentEntity];
+	if (parent != nil)
 	{
 		ShipEntity* this_ship = [self retain];
 		Vector this_pos = [self absolutePositionForSubentity];
@@ -3696,10 +3665,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		// remove this ship from its parent's subentity list
 		[parent subEntityDied:self];
 		[UNIVERSE addEntity:this_ship];
-		this_ship->position = this_pos;
+		[this_ship setPosition:this_pos];
 		[this_ship release];
 	}
-
+	
 	Vector	xposition = position;
 	ParticleEntity  *fragment;
 	int i;
@@ -3721,7 +3690,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 //		[[PlayerEntity sharedPlayer] setScriptTarget:self];
 //		[self doScriptEvent:@"shipDied"];
 //	}
-		
+	
 	if ([self isThargoid])  [self broadcastThargoidDestroyed];
 	
 	if (!suppressExplosion)
@@ -3814,7 +3783,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			}
 
 			//  Throw out cargo
-			//
 			if (jetsam)
 			{
 				int n_jetsam = [jetsam count];
@@ -3846,7 +3814,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			}
 
 			//  Throw out rocks and alloys to be scooped up
-			//
 			if ([self hasPrimaryRole:@"asteroid"])
 			{
 				if (!noRocks && (being_mined || randf() < 0.20))
@@ -4003,35 +3970,44 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 	
-	//
-	if (sub_entities)
+	NSEnumerator	*subEnum = nil;
+	Entity			*se = nil;
+	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		unsigned i;
-		for (i = 0; i < [sub_entities count]; i++)
+		if ([se isShip])
 		{
-			Entity*		se = [sub_entities objectAtIndex:i];
-			if (se->isShip)
-			{
-				ShipEntity	*sse = (ShipEntity *)se;
-				Vector		pos = [sse absolutePositionForSubentity];
-				
-				[sse setSuppressExplosion:suppressExplosion];
-				[sse setPosition:pos];	// is this what's messing thing up??
-				[UNIVERSE addEntity:sse];
-				[sse becomeExplosion];
-			}
+			ShipEntity	*sse = (ShipEntity *)se;
+			
+			// This looks redundant given that -becomeExplosion does the same thing, but failing to do it causes bugs elsewhere. -- Ahruman
+			[sse setSuppressExplosion:suppressExplosion];
+			[sse setPosition:[sse absolutePositionForSubentity]];
+			[UNIVERSE addEntity:sse];
+			[sse becomeExplosion];
 		}
-		[sub_entities release]; // releases each subentity too!
-		sub_entities = nil;
+		else
+		{
+			// Note: done by becomeExplosion for subs - several times, in fact.
+			[se setOwner:nil];
+		}
 	}
+	[subEntities release]; // releases each subentity too!
+	subEntities = nil;
 
 	// momentum from explosions
 	desired_range = collision_radius * 2.5;
 	[self dealMomentumWithinDesiredRange: 0.125 * mass];
-
-	//
-	if (self != [PlayerEntity sharedPlayer])	// was if !isPlayer - but I think this may cause ghosts
+	
+	if (self != [PlayerEntity sharedPlayer])	// was if !isPlayer - but I think this may cause ghosts (Who's "I"? -- Ahruman)
+	{
+		if (isPlayer)
+		{
+#ifndef NDEBUG
+			OOLog(@"becomeExplosion.suspectedGhost.confirm", @"Ship spotted with isPlayer set when not actually the player.");
+#endif
+			isPlayer = NO;
+		}
 		[UNIVERSE removeEntity:self];
+	}
 }
 
 
@@ -4047,9 +4023,14 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void)subEntityDied:(ShipEntity *)sub
 {
-	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
+	if ([subEntityTakingDamage weakRefUnderlyingObject] == sub)
+	{
+		[subEntityTakingDamage release];
+		subEntityTakingDamage = nil;
+	}
+	
 	[sub setOwner:nil];
-	[sub_entities removeObject:sub];
+	[subEntities removeObject:sub];
 }
 
 
@@ -4059,18 +4040,23 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	unsigned		i, count;
 	id			element;
 	
-	if (subentity_taking_damage == sub)  subentity_taking_damage = nil;
-	if ([sub_entities containsObject:sub])
+	if ([subEntityTakingDamage weakRefUnderlyingObject] == sub)
 	{
-		OOLog(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash.");
+		[subEntityTakingDamage release];
+		subEntityTakingDamage = nil;
+	}
+	
+	if ([self hasSubEntity:sub])
+	{
+		OOLog(@"shipEntity.bug.subEntityRetainUnderflow", @"***** VALIDATION ERROR: Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.");
 		
-		count = [sub_entities count];
+		count = [subEntities count];
 		if (count != 1)
 		{
 			newSubs = [[NSMutableArray alloc] initWithCapacity:count - 1];
 			for (i = 0; i != count; ++i)
 			{
-				element = [sub_entities objectAtIndex:i];
+				element = [subEntities objectAtIndex:i];
 				if (element != sub)
 				{
 					[newSubs addObject:element];
@@ -4080,7 +4066,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 		
 		// Leak old array, replace with new.
-		sub_entities = newSubs;
+		subEntities = newSubs;
 	}
 }
 
@@ -4207,7 +4193,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (script != nil)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"didDie"];
+		[self doScriptEvent:@"shipDied"];
 	}
 
 	// two parts to the explosion:
@@ -4326,6 +4312,14 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void)setSuppressExplosion:(BOOL)suppress
 {
+	// I don't think this is used anywhere. -- Ahruman
+#ifndef NDEBUG
+	if (suppress || ![self isSubEntity])
+	{
+		OOLog(@"method.undead", @"Believed-dead method %s called.", __FUNCTION__);
+	}
+#endif
+	
 	suppressExplosion = suppress != NO;
 }
 
@@ -4442,18 +4436,9 @@ BOOL class_masslocks(int some_class)
 
 - (void) addTarget:(Entity *) targetEntity
 {
-	if (targetEntity)
-		primaryTarget = [targetEntity universalID];
-	if (sub_entities)
-	{
-		unsigned i;
-		for (i = 0; i < [sub_entities count]; i++)
-		{
-			Entity* se = [sub_entities objectAtIndex:i];
-			if (se->isShip)
-				[(ShipEntity *)se addTarget:targetEntity];
-		}
-	}
+	if (targetEntity != nil)  primaryTarget = [targetEntity universalID];
+	
+	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(addTarget:) withObject:targetEntity];
 }
 
 
@@ -4461,18 +4446,7 @@ BOOL class_masslocks(int some_class)
 {
 	[self noteLostTarget];
 	
-	if (sub_entities)
-	{
-		unsigned i;
-		for (i = 0; i < [sub_entities count]; i++)
-		{
-			Entity* se = [sub_entities objectAtIndex:i];
-			if (se->isShip)
-			{
-				[(ShipEntity *)se removeTarget:targetEntity];
-			}
-		}
-	}
+	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(removeTarget:) withObject:targetEntity];
 }
 
 
@@ -4561,7 +4535,7 @@ BOOL class_masslocks(int some_class)
 	Entity		*target = [self primaryTarget];
 	
 	Entity		*last = nil;
-	Entity		*father = [self owner];
+	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
 	while ((father)&&(father != last))
@@ -4653,7 +4627,7 @@ BOOL class_masslocks(int some_class)
 	Entity		*target = [self primaryTarget];
 	Vector		leading = [target velocity];
 	Entity		*last = nil;
-	Entity		*father = [self owner];
+	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
 	while ((father)&&(father != last))
@@ -5237,18 +5211,13 @@ BOOL class_masslocks(int some_class)
 	}
 
 	//can we fire lasers from our subentities?
-	int n_subs = [sub_entities count];
-	if (n_subs)
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		int i = 0;
-		for (i = 0; i < n_subs; i++)
-		{
-			ShipEntity* subent = [sub_entities objectAtIndex:i];
-			if ((subent)&&(subent->isShip))
-				fired |= [subent fireSubentityLaserShot: range];
-		}
+		if ([se fireSubentityLaserShot:range])  fired = YES;
 	}
-
+	
 	return fired;
 }
 
@@ -5295,9 +5264,8 @@ BOOL class_masslocks(int some_class)
 				break;
 		}
 	}
-	//
+	
 	// restore previous values
-	//
 	weapon_energy = weapon_energy1;
 	weapon_recharge_rate = weapon_recharge_rate1;
 	weaponRange = weapon_range1;
@@ -5316,7 +5284,7 @@ BOOL class_masslocks(int some_class)
 	ParticleEntity *shot = nil;
 	Vector		origin = position;
 	Entity		*last = nil;
-	Entity		*father = [self owner];
+	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	Vector		vel;
 	
@@ -5388,17 +5356,14 @@ BOOL class_masslocks(int some_class)
 	[shot setColor:laser_color];
 	[shot setScanClass: CLASS_NO_DRAW];
 	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ((victim)&&(victim->isShip))
+	if ([victim isShip])
 	{
-		ShipEntity* subent = victim->subentity_taking_damage;
-		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
+		ShipEntity *subent = [victim subEntityTakingDamage];
+		if (subent && [victim isFrangible])
 		{
-			if ([victim isFrangible])
-			{
-				// do 1% bleed-through damage...
-				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf: parent];
-				victim = subent;
-			}
+			// do 1% bleed-through damage...
+			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf: parent];
+			victim = subent;
 		}
 
 		if (hit_at_range < weaponRange)
@@ -5460,17 +5425,14 @@ BOOL class_masslocks(int some_class)
 	[shot setOrientation: q_laser];
 	[shot setVelocity: vel];
 	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ((victim)&&(victim->isShip))
+	if ([victim isShip])
 	{
-		ShipEntity* subent = victim->subentity_taking_damage;
-		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
+		ShipEntity *subent = [victim subEntityTakingDamage];
+		if (subent != nil && [victim isFrangible])
 		{
-			if ([victim isFrangible])
-			{
-				// do 1% bleed-through damage...
-				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
-				victim = subent;
-			}
+			// do 1% bleed-through damage...
+			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+			victim = subent;
 		}
 
 		if (hit_at_range * hit_at_range < range_limit2)
@@ -5500,7 +5462,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (BOOL) fireLaserShotInDirection: (int) direction
+- (BOOL) fireLaserShotInDirection: (OOViewID) direction
 {
 	ParticleEntity  *shot;
 	double			range_limit2 = weaponRange*weaponRange;
@@ -5512,7 +5474,7 @@ BOOL class_masslocks(int some_class)
 	vel.y = v_forward.y * flightSpeed;
 	vel.z = v_forward.z * flightSpeed;
 
-	Vector	laserPortOffset = forwardWeaponOffset;
+	Vector	laserPortOffset;
 
 	switch(direction)
 	{
@@ -5537,25 +5499,22 @@ BOOL class_masslocks(int some_class)
 	[shot setScanClass: CLASS_NO_DRAW];
 	[shot setVelocity: vel];
 	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
-	if ((victim)&&(victim->isShip))
+	if ([victim isShip])
 	{
 		/*	FIXME CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
 			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
 			the latter. Probable solution: dying subentities must cause parent to clean up
 			properly. This was probably obscured by the entity recycling scheme in the past.
-			Fix: NOT FIXED.
-			-- Ahruman 20070706
+			Fix: made subentity_taking_damage a weak reference accessed via a method.
+			-- Ahruman 20070706, 20080304
 		*/
-		ShipEntity* subent = victim->subentity_taking_damage;
-		if ((subent) && (subent->isShip) && [victim->sub_entities containsObject:subent])
+		ShipEntity *subent = [victim subEntityTakingDamage];
+		if (subent != nil && [victim isFrangible])
 		{
-			if ([victim isFrangible])
-			{
-				// do 1% bleed-through damage...
-				[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
-				victim = subent;
-			}
+			// do 1% bleed-through damage...
+			[victim takeEnergyDamage: 0.01 * weapon_energy from:subent becauseOf:self];
+			victim = subent;
 		}
 
 		if (hit_at_range * hit_at_range < range_limit2)
@@ -6088,30 +6047,19 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
-	Vector  loc, opos, pos;
+	Vector  loc;
 	double  inc1, dam1, dam2;
 	
 	if (!other)
 		return NO;
 	
-	ShipEntity* otherParent = (ShipEntity*)[other owner];
-	BOOL otherIsSubentity = ((otherParent)&&(otherParent != other)&&([otherParent->sub_entities containsObject:other]));
+	ShipEntity* otherParent = [other parentEntity];
 	BOOL otherIsStation = other == [UNIVERSE station];
 	// calculate line of centers using centres
-	if (otherIsSubentity)
-		opos = [other absolutePositionForSubentity];
-	else
-		opos = other->position;
-	loc = opos;
-	loc.x -= position.x;	loc.y -= position.y;	loc.z -= position.z;
-
-	if (loc.x||loc.y||loc.z)
-		loc = unit_vector(&loc);
-	else
-		loc.z = 1.0;
-
-	inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
-
+	loc = vector_normal_or_zbasis(vector_subtract([other absolutePositionForSubentity], position));
+	
+	inc1 = dot_product(v_forward, loc);
+	
 	if ([self canScoop:other])
 	{
 		[self scoopIn:other];
@@ -6136,105 +6084,107 @@ BOOL class_masslocks(int some_class)
 	GLfloat m2 = [other mass];	// mass of other
 
 	// starting velocities:
-	Vector	vel1b =	[self velocity];
-	// calculate other's velocity relative to self
-	Vector	v =	[other velocity];
-	if (otherIsSubentity)
+	Vector	v, vel1b =	[self velocity];
+	
+	if (otherParent != nil)
 	{
-		if (otherParent)
-		{
-			v = [otherParent velocity];
-			// if the subentity is rotating (subentityRotationalVelocity is not 1 0 0 0)
-			// we should calculate the tangential velocity from the other's position
-			// relative to our absolute position and add that in. For now this is a TODO
-		}
-		else
-			v = kZeroVector;
+		// Subentity
+		/*	TODO: if the subentity is rotating (subentityRotationalVelocity is
+			not 1 0 0 0) we should calculate the tangential velocity from the
+			other's position relative to our absolute position and add that in.
+		*/
+		v = [otherParent velocity];
+	}
+	else
+	{
+		v = [other velocity];
 	}
 
-	//
-	v = make_vector(vel1b.x - v.x, vel1b.y - v.y, vel1b.z - v.z);	// velocity of self relative to other
-
-	//
+	v = vector_subtract(vel1b, v);
+	
 	GLfloat	v2b = dot_product(v, loc);			// velocity of other along loc before collision
-	//
+	
 	GLfloat v1a = sqrt(v2b * v2b * m2 / m1);	// velocity of self along loc after elastic collision
 	if (v2b < 0.0f)	v1a = -v1a;					// in same direction as v2b
-
-
+	
 	// are they moving apart at over 1m/s already?
 	if (v2b < 0.0f)
 	{
 		if (v2b < -1.0f)  return NO;
 		else
 		{
-			position = make_vector(position.x - loc.x, position.y - loc.y, position.z - loc.z);	// adjust self position
+			position = vector_subtract(position, loc);	// adjust self position
 			v = kZeroVector;	// go for the 1m/s solution
 		}
 	}
 
 	// convert change in velocity into damage energy (KE)
-	//
 	dam1 = m2 * v2b * v2b / 50000000;
 	dam2 = m1 * v2b * v2b / 50000000;
-
+	
 	// calculate adjustments to velocity after collision
-	Vector vel1a = make_vector(-v1a * loc.x, -v1a * loc.y, -v1a * loc.z);
-	Vector vel2a = make_vector(v2b * loc.x, v2b * loc.y, v2b * loc.z);
+	Vector vel1a = vector_multiply_scalar(loc, -v1a);
+	Vector vel2a = vector_multiply_scalar(loc, v2b);
 
 	if (magnitude2(v) <= 0.1)	// virtually no relative velocity - we must provide at least 1m/s to avoid conjoined objects
 	{
-			vel1a = make_vector(-loc.x, -loc.y, -loc.z);
-			vel2a = make_vector(loc.x, loc.y, loc.z);
+		vel1a = vector_multiply_scalar(loc, -1);
+		vel2a = loc;
 	}
 
 	// apply change in velocity
-	if ((otherIsSubentity)&&(otherParent))
+	if (otherParent != nil)
+	{
 		[otherParent adjustVelocity:vel2a];	// move the otherParent not the subentity
+	}
 	else
+	{
 		[other adjustVelocity:vel2a];
-
+	}
+	
 	[self adjustVelocity:vel1a];
-
-	//
+	
 	BOOL selfDestroyed = (dam1 > energy);
 	BOOL otherDestroyed = (dam2 > [other energy]) && !otherIsStation;
-	//
+	
 	if (dam1 > 0.05)
 	{
 		[self takeScrapeDamage: dam1 from:other];
 		if (selfDestroyed)	// inelastic! - take xplosion velocity damage instead
 		{
-			vel2a.x = -vel2a.x;	vel2a.y = -vel2a.y;	vel2a.z = -vel2a.z;
+			vel2a = vector_multiply_scalar(vel2a, -1);
 			[other adjustVelocity:vel2a];
 		}
 	}
-	//
+	
 	if (dam2 > 0.05)
 	{
-		if ((otherIsSubentity) && (otherParent) && !([otherParent isFrangible]))
+		if (otherParent != nil && ![otherParent isFrangible])
+		{
 			[otherParent takeScrapeDamage: dam2 from:self];
+		}
 		else
+		{
 			[other	takeScrapeDamage: dam2 from:self];
+		}
+		
 		if (otherDestroyed)	// inelastic! - take explosion velocity damage instead
 		{
-			vel1a.x = -vel1a.x;	vel1a.y = -vel1a.y;	vel1a.z = -vel1a.z;
+			vel2a = vector_multiply_scalar(vel1a, -1);
 			[self adjustVelocity:vel1a];
 		}
 	}
 	
-	if ((!selfDestroyed)&&(!otherDestroyed))
+	if (!selfDestroyed && !otherDestroyed)
 	{
 		float t = 10.0 * [UNIVERSE getTimeDelta];	// 10 ticks
-		//
-		pos = self->position;
-		opos = other->position;
-		//
-		Vector pos1a = make_vector(pos.x + t * v1a * loc.x, pos.y + t * v1a * loc.y, pos.z + t * v1a * loc.z);
-		Vector pos2a = make_vector(opos.x - t * v2b * loc.x, opos.y - t * v2b * loc.y, opos.z - t * v2b * loc.z);
-		//
+		
+		Vector pos1a = vector_add([self position], vector_multiply_scalar(loc, t * v1a));
 		[self setPosition:pos1a];
-		if (!otherIsStation) {
+		
+		if (!otherIsStation)
+		{
+			Vector pos2a = vector_add([other position], vector_multiply_scalar(loc, t * v2b));
 			[other setPosition:pos2a];
 		}
 	}
@@ -6250,25 +6200,19 @@ BOOL class_masslocks(int some_class)
 
 - (Vector) velocity	// overrides Entity velocity
 {
-	Vector v = velocity;
-	v.x += flightSpeed * v_forward.x;	v.y += flightSpeed * v_forward.y;	v.z += flightSpeed * v_forward.z;
-	return v;
+	return vector_add(velocity, vector_multiply_scalar(v_forward, flightSpeed));
 }
 
 
 - (void) adjustVelocity:(Vector) xVel
 {
-	velocity.x += xVel.x;
-	velocity.y += xVel.y;
-	velocity.z += xVel.z;
+	velocity = vector_add(velocity, xVel);
 }
 
 
 - (void) addImpactMoment:(Vector) moment fraction:(GLfloat) howmuch
 {
-	velocity.x += howmuch * moment.x / mass;
-	velocity.y += howmuch * moment.y / mass;
-	velocity.z += howmuch * moment.z / mass;
+	velocity = vector_add(velocity, vector_multiply_scalar(moment, howmuch / mass));
 }
 
 
@@ -6758,30 +6702,24 @@ int w_space_seed = 1234567;
 
 - (void) switchLightsOn
 {
-	if (!sub_entities) return;
-	unsigned i;
-	for (i = 0; i < [sub_entities count]; i++)
+	NSEnumerator	*subEnum = nil;
+	ParticleEntity	*se = nil;
+	
+	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
-		Entity* subent = [sub_entities objectAtIndex:i];
-		if ([subent isFlasher])
-		{
-			[subent setStatus:STATUS_EFFECT];
-		}
+		[se setStatus:STATUS_EFFECT];
 	}
 }
 
 
 - (void) switchLightsOff
 {
-	if (!sub_entities) return;
-	unsigned i;
-	for (i = 0; i < [sub_entities count]; i++)
+	NSEnumerator	*subEnum = nil;
+	ParticleEntity	*se = nil;
+	
+	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
-		Entity* subent = (Entity*)[sub_entities objectAtIndex:i];
-		if ([subent isFlasher])
-		{
-			[subent setStatus:STATUS_INACTIVE];
-		}
+		[se setStatus:STATUS_INACTIVE];
 	}
 }
 
@@ -7513,7 +7451,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);
 	OOLog(@"dumpState.shipEntity", @"Primary role: %@", primaryRole);
 	OOLog(@"dumpState.shipEntity", @"Script: %@", script);
-	if (sub_entities != nil)  OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [sub_entities count]);
+	OOLog(@"dumpState.shipEntity", @"Subentity count: %u", [self subEntityCount]);
 	OOLog(@"dumpState.shipEntity", @"Behaviour: %@", BehaviourToString(behaviour));
 	if (primaryTarget != NO_TARGET)  OOLog(@"dumpState.shipEntity", @"Target: %@", [self primaryTarget]);
 	OOLog(@"dumpState.shipEntity", @"Destination: %@", VectorDescription(destination));
@@ -7596,8 +7534,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (Entity *)entityForShaderProperties
 {
-	if (!isSubentity)  return self;
-	else  return [self owner];
+	return [self rootShipEntity];
 }
 
 
@@ -7657,6 +7594,41 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	[self doScriptEvent:scriptEvent withArgument:argument];
 	[self reactToAIMessage:aiMessage];
+}
+
+@end
+
+
+@implementation Entity (SubEntityRelationship)
+
+- (BOOL) isShipWithSubEntityShip:(Entity *)other
+{
+	return NO;
+}
+
+@end
+
+
+@implementation ShipEntity (SubEntityRelationship)
+
+- (BOOL) isShipWithSubEntityShip:(Entity *)other
+{
+	assert ([self isShip]);
+	
+	if (![other isShip])  return NO;
+	if (![other isSubEntity])  return NO;
+	if ([other owner] != self)  return NO;
+	
+#ifndef NDEBUG
+	// Sanity check; this should always be true.
+	if (![self hasSubEntity:(ShipEntity *)other])
+	{
+		OOLog(@"ship.subentity.sanityCheck.failed", @"***** VALIDATION ERROR: %@ thinks it's a subentity of %@, but the supposed parent does not agree. This is an internal error, please report it.", [other shortDescription], [self shortDescription]);
+		return NO;
+	}
+#endif
+	
+	return YES;
 }
 
 @end

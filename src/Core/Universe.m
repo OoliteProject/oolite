@@ -4401,58 +4401,58 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (int) getFirstEntityHitByLaserFromEntity:(Entity *) e1 inView:(int) viewdir offset:(Vector) offset rangeFound:(GLfloat*)range_ptr
+- (OOUniversalID) getFirstEntityHitByLaserFromEntity:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr
 {
-	if (!e1)
-		return NO_TARGET;
+	if (srcEntity == nil) return NO_TARGET;
 	
-	BOOL debug_laser = e1->isPlayer;
-
-	BOOL isSubentity = NO;
-	ShipEntity  *hit_entity = nil;
-	ShipEntity  *hit_subentity = nil;
+	BOOL			isSubentity = NO;
+	ShipEntity		*hit_entity = nil;
+	ShipEntity		*hit_subentity = nil;
+	Vector			p0 = [srcEntity position];
+	Quaternion		q1 = [srcEntity orientation];
 	
-	Vector p0 = e1->position;
-	Quaternion q1 = e1->orientation;
-	if (e1->isPlayer)
-		q1.w = -q1.w;   //  reverse for player viewpoint
+	if ([srcEntity isPlayer])  q1.w = -q1.w;   //  reverse for player viewpoint
 	
-	ShipEntity* parent = (ShipEntity*)[e1 owner];
-	if ((e1->isShip)&&(parent)&&(parent != e1)&&(parent->isShip)&&([parent->sub_entities containsObject:e1]))
-	{	// we're a subentity!
-		BoundingBox bbox = [e1 boundingBox];
+	ShipEntity		*parent = [srcEntity owner];
+	
+	if ([parent isShipWithSubEntityShip:srcEntity])
+	{
+		// we're a subentity!
+		BoundingBox bbox = [srcEntity boundingBox];
 		Vector midfrontplane = make_vector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
-		p0 = [(ShipEntity*)e1 absolutePositionForSubentityOffset:midfrontplane];
-		q1 = parent->orientation;
-		if (parent->isPlayer)
-			q1.w = -q1.w;
+		p0 = [srcEntity absolutePositionForSubentityOffset:midfrontplane];
+		q1 = [parent orientation];
+		if ([parent isPlayer])  q1.w = -q1.w;
 		isSubentity = YES;
 	}
 	
-	int		result = NO_TARGET;
-	double  nearest;
-	if (e1->isShip)
-		nearest = [(ShipEntity *)e1 weaponRange];
-	else
-		nearest = PARTICLE_LASER_LENGTH;
+	int				result = NO_TARGET;
+	double			nearest;
 	
-	int i;
-	int ent_count = n_entities;
-	int ship_count = 0;
-	ShipEntity* my_entities[ent_count];
+	nearest = [srcEntity weaponRange];
+	
+	int				i;
+	int				ent_count = n_entities;
+	int				ship_count = 0;
+	ShipEntity		*my_entities[ent_count];
+	
 	for (i = 0; i < ent_count; i++)
 	{
 		Entity* ent = sortedEntities[i];
-		if ((ent->isShip) && (ent != e1) && (ent != parent) && [ent canCollide])
-			my_entities[ship_count++] = [ent retain];	// retained
+		if (ent != srcEntity && ent != parent && [ent isShip] && [ent canCollide])
+		{
+			my_entities[ship_count++] = [ent retain];
+		}
 	}
 	
-	Vector u1 = vector_up_from_quaternion(q1);
-	Vector f1 = vector_forward_from_quaternion(q1);
-	Vector r1 = vector_right_from_quaternion(q1);
+	Vector			u1 = vector_up_from_quaternion(q1);
+	Vector			f1 = vector_forward_from_quaternion(q1);
+	Vector			r1 = vector_right_from_quaternion(q1);
+	
 	p0.x += offset.x * r1.x + offset.y * u1.x + offset.z * f1.x;
 	p0.y += offset.x * r1.y + offset.y * u1.y + offset.z * f1.y;
 	p0.z += offset.x * r1.z + offset.y * u1.z + offset.z * f1.z;
+	
 	switch (viewdir)
 	{
 		case VIEW_AFT :
@@ -4464,16 +4464,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		case VIEW_STARBOARD :
 			quaternion_rotate_about_axis(&q1, u1, -M_PI/2.0);
 			break;
+		default:
+			break;
 	}
+	
 	f1 = vector_forward_from_quaternion(q1);
 	r1 = vector_right_from_quaternion(q1);
+	
 	Vector p1 = make_vector(p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);	//endpoint
 	
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity *e2 = my_entities[i];
-		
-		debug_laser = ((e1->isPlayer) && ([(ShipEntity*)e1 primaryTargetID] == [e2 universalID]));
 		
 		// check outermost bounding sphere
 		GLfloat cr = e2->collision_radius;
@@ -4494,8 +4496,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				
 				if ((hit > 0.0)&&(hit < nearest))
 				{
-					if (entHit->isSubentity)
+					if ([entHit isSubEntity])
+					{
 						hit_subentity = entHit;
+					}
 					hit_entity = e2;
 					nearest = hit;
 					p1 = make_vector(p0.x + nearest *f1.x, p0.y + nearest *f1.y, p0.z + nearest *f1.z);
@@ -4504,25 +4508,25 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 		}
 	}
-
 	
 	if (hit_entity)
 	{
 		result = [hit_entity universalID];
-		if ((hit_subentity)&&[hit_entity->sub_entities containsObject:hit_subentity])
-			hit_entity->subentity_taking_damage = hit_subentity;
-		if (range_ptr != (GLfloat *)nil)
+		if (hit_subentity)  [hit_entity setSubEntityTakingDamage:hit_subentity];
+		
+		if (range_ptr != NULL)
+		{
 			range_ptr[0] = (GLfloat)nearest;
+		}
 	}
 	
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release]; //	released
+	for (i = 0; i < ship_count; i++)  [my_entities[i] release]; //	released
 	
 	return result;
 }
 
 
-- (int) getFirstEntityTargettedByPlayer:(PlayerEntity*) player
+- (OOUniversalID) getFirstEntityTargettedByPlayer:(PlayerEntity*) player
 {
 	if ((!player)||(!player->isPlayer))
 		return NO_TARGET;
@@ -7935,7 +7939,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		return nil;
 	}
 	// check if this is based upon a different ship
-	// TODO: move all like_ship handling into one place. (Actually, it may be that this already _is_ that place and all others are redundant.) Should probably fold resolved like_ships back into dictionary. -- Ahruman
+	/*	TODO: move all like_ship handling into one place. (Actually, it may be
+		that this already _is_ that place and all others are redundant.) Should
+		probably fold resolved like_ships back into dictionary. -- Ahruman
+	*/
 	
 	while ([shipdict stringForKey:@"like_ship"])
 	{

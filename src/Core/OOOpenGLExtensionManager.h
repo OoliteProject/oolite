@@ -79,15 +79,6 @@ SOFTWARE.
 #warning NO_SHADERS not defined and GL_ARB_vertex_shader not defined.
 #endif
 
-// FIXME: are these last two relevant? Aren't they for the older "assembly-style" shaders?
-#ifndef GL_ARB_fragment_program
-#warning NO_SHADERS not defined and GL_ARB_fragment_program not defined.
-#endif
-
-#ifndef GL_ARB_vertex_program
-#warning NO_SHADERS not defined and GL_ARB_vertex_program not defined.
-#endif
-
 #endif //NO_SHADERS
 
 

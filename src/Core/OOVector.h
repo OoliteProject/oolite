@@ -84,6 +84,7 @@ OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector unit_vector(const Vector *vec) NONNULL_FUNC INLINE_CONST_FUNC;
 /* Normalize vector, returning fallback if zero vector. */
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
+OOINLINE Vector vector_normal_or_zbasis(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 
 /* Square of distance between vectors */
@@ -226,6 +227,12 @@ OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 	GLfloat mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0))  return fallback;
 	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
+}
+
+
+OOINLINE Vector vector_normal_or_zbasis(Vector vec)
+{
+	return vector_normal_or_fallback(vec, kBasisZVector);
 }
 
 

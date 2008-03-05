@@ -296,8 +296,6 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 							@"GL_ARB_shading_language_100",
 							@"GL_ARB_fragment_shader",
 							@"GL_ARB_vertex_shader",
-							@"GL_ARB_fragment_program",
-							@"GL_ARB_vertex_program",
 							nil	// sentinel - don't remove!
 						};
 	NSString			**required = NULL;
@@ -314,21 +312,21 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 #if OOLITE_WINDOWS
 	glGetObjectParameterivARB	=	(PFNGLGETOBJECTPARAMETERIVARBPROC)wglGetProcAddress("glGetObjectParameterivARB");
 	glCreateShaderObjectARB		=	(PFNGLCREATESHADEROBJECTARBPROC)wglGetProcAddress("glCreateShaderObjectARB");
-	glGetInfoLogARB			=	(PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
+	glGetInfoLogARB				=	(PFNGLGETINFOLOGARBPROC)wglGetProcAddress("glGetInfoLogARB");
 	glCreateProgramObjectARB	=	(PFNGLCREATEPROGRAMOBJECTARBPROC)wglGetProcAddress("glCreateProgramObjectARB");
-	glAttachObjectARB		=	(PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
-	glDeleteObjectARB		=	(PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
-	glLinkProgramARB		=	(PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
-	glCompileShaderARB		=	(PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
-	glShaderSourceARB		=	(PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
+	glAttachObjectARB			=	(PFNGLATTACHOBJECTARBPROC)wglGetProcAddress("glAttachObjectARB");
+	glDeleteObjectARB			=	(PFNGLDELETEOBJECTARBPROC)wglGetProcAddress("glDeleteObjectARB");
+	glLinkProgramARB			=	(PFNGLLINKPROGRAMARBPROC)wglGetProcAddress("glLinkProgramARB");
+	glCompileShaderARB			=	(PFNGLCOMPILESHADERARBPROC)wglGetProcAddress("glCompileShaderARB");
+	glShaderSourceARB			=	(PFNGLSHADERSOURCEARBPROC)wglGetProcAddress("glShaderSourceARB");
 	glUseProgramObjectARB		=	(PFNGLUSEPROGRAMOBJECTARBPROC)wglGetProcAddress("glUseProgramObjectARB");
-	glActiveTextureARB		=	(PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+	glActiveTextureARB			=	(PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
 	glGetUniformLocationARB		=	(PFNGLGETUNIFORMLOCATIONARBPROC)wglGetProcAddress("glGetUniformLocationARB");
-	glUniform1iARB			=	(PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
-	glUniform1fARB			=	(PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
+	glUniform1iARB				=	(PFNGLUNIFORM1IARBPROC)wglGetProcAddress("glUniform1iARB");
+	glUniform1fARB				=	(PFNGLUNIFORM1FARBPROC)wglGetProcAddress("glUniform1fARB");
 	glUniformMatrix4fvARB		=	(PFNGLUNIFORMMATRIX4FVARBPROC)wglGetProcAddress("glUniformMatrix4fvARB");
-	glUniform4fvARB			=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
-	glUniform2fvARB			=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
+	glUniform4fvARB				=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
+	glUniform2fvARB				=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
 #endif
 	
 	shadersAvailable = YES;

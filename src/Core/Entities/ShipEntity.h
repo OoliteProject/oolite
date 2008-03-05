@@ -82,9 +82,6 @@ MA 02110-1301, USA.
 @interface ShipEntity: OOEntityWithDrawable
 {
 @public
-	NSMutableArray			*sub_entities;
-	ShipEntity				*subentity_taking_damage;	//	frangible => subentities can be damaged individually
-	
 	// derived variables
 	double					shot_time;					// time elapsed since last shot was fired
 	
@@ -158,7 +155,7 @@ MA 02110-1301, USA.
 							trackCloseContacts: 1,
 	
 							isNearPlanetSurface: 1,		// check for landing on planet
-							isFrangible: 1,				// frangible => subentities can be damaged individually
+							isFrangible: 1,				// frangible => subEntities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
@@ -292,6 +289,11 @@ MA 02110-1301, USA.
 	
 	uint16_t				entity_personality;	// Per-entity random number. Exposed to shaders and scripts.
 	NSDictionary			*scriptInfo;		// script_info dictionary from shipdata.plist, exposed to scripts.
+	
+	NSMutableArray			*subEntities;
+	
+@private
+	OOWeakReference			*subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
 }
 
 // ship brains
@@ -307,6 +309,17 @@ MA 02110-1301, USA.
 - (void)setMesh:(OOMesh *)mesh;
 
 - (NSArray *)subEntities;
+- (unsigned) subEntityCount;
+- (BOOL) hasSubEntity:(ShipEntity *)sub;
+
+- (NSEnumerator *)subEntityEnumerator;
+- (NSEnumerator *)shipSubEntityEnumerator;
+- (NSEnumerator *)particleSubEntityEnumerator;
+- (NSEnumerator *)flasherEnumerator;
+- (NSEnumerator *)exhaustEnumerator;
+
+- (ShipEntity *) subEntityTakingDamage;
+- (void) setSubEntityTakingDamage:(ShipEntity *)sub;
 
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
@@ -360,7 +373,6 @@ MA 02110-1301, USA.
 - (void) behaviour_avoid_collision:(double) delta_t;
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
-- (void) behaviour_experimental:(double) delta_t;
 
 
 - (void) resetTracking;
@@ -374,9 +386,9 @@ MA 02110-1301, USA.
 
 - (BOOL) hasMilitaryScannerFilter;
 
+- (void) addSubEntity:(Entity *) subent;
 - (void) addExhaust:(ParticleEntity *) exhaust;
 - (void) addFlasher:(ParticleEntity *) flasher;
-- (void) addSubEntity:(ShipEntity *) subent;
 
 - (void) applyThrust:(double) delta_t;
 
@@ -578,7 +590,7 @@ BOOL	class_masslocks(int some_class);
 - (OOColor *)laserColor;
 - (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
-- (BOOL) fireLaserShotInDirection: (int) direction;
+- (BOOL) fireLaserShotInDirection: (OOViewID) direction;
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color;
 - (BOOL) fireMissile;
 - (BOOL) fireECM;
@@ -677,6 +689,14 @@ BOOL	class_masslocks(int some_class);
 - (void) reactToAIMessage:(NSString *)message;
 - (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage;
 - (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage;
+
+@end
+
+
+// For the common case of testing whether foo is a ship, bar is a ship, bar is a subentity of foo and this relationship is represented sanely.
+@interface Entity (SubEntityRelationship)
+
+- (BOOL) isShipWithSubEntityShip:(Entity *)other;
 
 @end
 

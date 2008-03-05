@@ -1156,14 +1156,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	tractor_position = kZeroVector;
 	ScanVectorFromString([shipDict stringForKey:@"scoop_position"], &tractor_position);
 	
-	[sub_entities autorelease];
-	sub_entities = nil;
+	[subEntities autorelease];
+	subEntities = nil;
 
 	
-	if (![self setUpSubEntities: shipDict]) 
-	{
-		return NO;
-	}
+	if (![self setUpSubEntities: shipDict])  return NO;
 
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
@@ -1940,11 +1937,11 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	// update subentities
-	if (sub_entities)
+	NSEnumerator	*subEnum = nil;
+	ShipEntity		*se = nil;
+	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		unsigned i;
-		for (i = 0; i < [sub_entities count]; i++)
-			[(Entity *)[sub_entities objectAtIndex:i] update:delta_t];
+		[se update:delta_t];
 	}
 }
 
@@ -2005,6 +2002,12 @@ double scoopSoundPlayTime = 0.0;
 - (OOMatrix) drawRotationMatrix	// override to provide the 'correct' drawing matrix
 {
     return playerRotMatrix;
+}
+
+
+- (Quaternion) normalOrientation
+{
+	return make_quaternion(-orientation.w, orientation.x, orientation.y, orientation.z);
 }
 
 

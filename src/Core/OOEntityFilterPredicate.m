@@ -121,7 +121,7 @@ BOOL HasClassPredicate(Entity *entity, void *parameter)
 
 BOOL IsShipPredicate(Entity *entity, void *parameter)
 {
-	return entity->isShip && !entity->isSubentity;
+	return [entity isShip] && ![entity isSubEntity];
 }
 
 
