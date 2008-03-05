@@ -442,6 +442,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	[self setTrackCloseContacts:NO];	// deallocs tracking dictionary
 	[[self parentEntity] subEntityReallyDied:self];	// Will do nothing if we're not really a subentity
+	[self clearSubEntities];
 	
 	[shipinfoDictionary release];
 	[shipAI release];
@@ -450,7 +451,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[displayName release];
 	[roleSet release];
 	[primaryRole release];
-	[subEntities release];
 	[laser_color release];
 	[script release];
 	
@@ -467,6 +467,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[subEntityTakingDamage release];
 	
 	[super dealloc];
+}
+
+
+- (void) clearSubEntities
+{
+	[subEntities makeObjectsPerformSelector:@selector(setOwner:) withObject:nil];	// Ensure backlinks are broken
+	[subEntities release];
+	subEntities = nil;
 }
 
 
@@ -3973,23 +3981,15 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 	
 	NSEnumerator	*subEnum = nil;
-	Entity			*se = nil;
-	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	ShipEntity		*se = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		if ([se isShip])
-		{
-			ShipEntity	*sse = (ShipEntity *)se;
-			
-			// This looks redundant given that -becomeExplosion does the same thing, but failing to do it causes bugs elsewhere. -- Ahruman
-			[sse setSuppressExplosion:suppressExplosion];
-			[sse setPosition:[sse absolutePositionForSubentity]];
-			[UNIVERSE addEntity:sse];
-			[sse becomeExplosion];
-		}
-		[se setOwner:nil];
+		[se setSuppressExplosion:suppressExplosion];
+		[se setPosition:[se absolutePositionForSubentity]];
+		[UNIVERSE addEntity:se];
+		[se becomeExplosion];
 	}
-	[subEntities release]; // releases each subentity too!
-	subEntities = nil;
+	[self clearSubEntities];
 
 	// momentum from explosions
 	desired_range = collision_radius * 2.5;
@@ -4266,22 +4266,15 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	}
 	
 	NSEnumerator	*subEnum = nil;
-	Entity			*se = nil;
-	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
+	ShipEntity		*se = nil;
+	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
-		if ([se isShip])
-		{
-			ShipEntity	*sse = (ShipEntity *)se;
-			
-			[sse setSuppressExplosion:suppressExplosion];
-			[sse setPosition:[sse absolutePositionForSubentity]];
-			[UNIVERSE addEntity:sse];
-			[sse becomeExplosion];
-		}
-		[se setOwner:nil];
+		[se setSuppressExplosion:suppressExplosion];
+		[se setPosition:[se absolutePositionForSubentity]];
+		[UNIVERSE addEntity:se];
+		[se becomeExplosion];
 	}
-	[subEntities release]; // releases each subentity too!
-	subEntities = nil;
+	[self clearSubEntities];
 	
 	if (!isPlayer)  [UNIVERSE removeEntity:self];
 }

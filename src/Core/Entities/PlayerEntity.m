@@ -834,7 +834,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	showDemoShips = NO;
 	
 	show_info_flag = NO;
-
+	
 	[ship_desc release];
 	ship_desc = [[NSString stringWithString:PLAYER_SHIP_DESC] retain];
 	ship_trade_in_factor = 95;
@@ -915,7 +915,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	custom_views = nil;
 	
 	mouse_control_on = NO;
-
+	
 	// player commander data
 	// Most of this is probably also set more than once
 	
@@ -925,17 +925,17 @@ static PlayerEntity *sSharedPlayer = nil;
 	credits					= 1000;
 	fuel					= PLAYER_MAX_FUEL;
 	fuel_accumulator		= 0.0;
-
+	
 	galaxy_number			= 0;
 	forward_weapon			= WEAPON_PULSE_LASER;
 	aft_weapon				= WEAPON_NONE;
 	port_weapon				= WEAPON_NONE;
 	starboard_weapon		= WEAPON_NONE;
-   [self setWeaponDataFromType:forward_weapon]; 
-   scannerRange = SCANNER_MAX_RANGE; 
-
+	[self setWeaponDataFromType:forward_weapon]; 
+	scannerRange = SCANNER_MAX_RANGE; 
+	
 	max_cargo				= 20; // will be reset later
-
+	
 	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
 	
 	has_ecm					= NO;
@@ -946,10 +946,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	has_galactic_hyperdrive	= NO;
 	has_escape_pod			= NO;
 	has_fuel_injection		= NO;
-
+	
 	shield_booster			= 1;
 	shield_enhancer			= 0;
-
+	
 	// set up missiles
 	missiles				= PLAYER_STARTING_MISSILES;
 	max_missiles			= PLAYER_MAX_MISSILES;
@@ -963,13 +963,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	[self safeAllMissiles];
 	
+	[self clearSubEntities];
+	
 	legalStatus			= 0;
-
+	
 	market_rnd				= 0;
 	ship_kills				= 0;
 	saved					= NO;
 	cursor_coordinates		= galaxy_coordinates;
-	
 	
 	shield_booster			= 1;
 	shield_enhancer			= 0;
@@ -996,10 +997,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	customViewOffset		= kZeroVector;
 	
 	currentWeaponFacing		= VIEW_FORWARD;
-
+	
 	[save_path autorelease];
 	save_path = nil;
-
+	
 	[self setUpTrumbles];
 	
 	suppressTargetLost = NO;

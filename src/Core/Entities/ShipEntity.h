@@ -321,6 +321,8 @@ MA 02110-1301, USA.
 - (ShipEntity *) subEntityTakingDamage;
 - (void) setSubEntityTakingDamage:(ShipEntity *)sub;
 
+- (void) clearSubEntities;	// Releases and clears subentity array, after making sure subentities don't think ship is owner.
+
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1 :(ShipEntity**) hitEntity;
