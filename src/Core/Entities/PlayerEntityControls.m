@@ -2613,6 +2613,9 @@ static BOOL toggling_music;
 			[self checkForAegis];
 #endif
 			suppressAegisMessages = NO;
+			
+			ident_engaged = NO;
+			
 			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 			[self playBreakPattern];
 		}
