@@ -522,8 +522,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (ShipEntity *)parentEntity
 {
-	id ownerEnt = [self owner];
-	if ([ownerEnt isShipWithSubEntityShip:self])  return ownerEnt;
+	id owner = [self owner];
+	if ([owner isShipWithSubEntityShip:self])  return owner;
 	return nil;
 }
 

@@ -2622,6 +2622,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if (subEntities == nil)  subEntities = [[NSMutableArray alloc] init];
 	sub->isSubEntity = YES;
+	[sub setOwner:self];
 	[subEntities addObject:sub];
 }
 
@@ -7631,6 +7632,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	if (![self hasSubEntity:(ShipEntity *)other])
 	{
 		OOLog(@"ship.subentity.sanityCheck.failed", @"***** VALIDATION ERROR: %@ thinks it's a subentity of %@, but the supposed parent does not agree. This is an internal error, please report it.", [other shortDescription], [self shortDescription]);
+		[other setOwner:nil];
 		return NO;
 	}
 #endif
