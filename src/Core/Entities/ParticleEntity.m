@@ -163,8 +163,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	size = NSMakeSize(32.0,32.0);
 	collision_radius = 32.0;
 	
-	owner = NO_TARGET;
-	
     return self;
 }
 
@@ -410,7 +408,6 @@ FAIL:
     
 	collision_radius = 0;
 	energy = 0;
-	owner = NO_TARGET;
     
 	isParticle = YES;
     
@@ -466,7 +463,6 @@ FAIL:
     
 	collision_radius = 0;
 	energy = 0;
-	owner = NO_TARGET;
     
 	isParticle = YES;
     
@@ -502,7 +498,6 @@ FAIL:
     
 	collision_radius = 0;
 	energy = 0;
-	owner = NO_TARGET;
     
 	isParticle = YES;
     
@@ -538,7 +533,6 @@ FAIL:
     
 	collision_radius = 0;
 	energy = 0;
-	owner = NO_TARGET;
     
 	isParticle = YES;
     
@@ -575,7 +569,6 @@ FAIL:
     
 	collision_radius = 0;
 	energy = 0;
-	owner = NO_TARGET;
     
 	isParticle = YES;
     
@@ -1119,7 +1112,7 @@ FAIL:
 	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9 * OVERALL_ALPHA};   // pale blue
 	const GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
 	const GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
-	ShipEntity  *ship = [UNIVERSE entityForUniversalID:owner];
+	ShipEntity  *ship = [self owner];
 
 	if ((!ship)||(!ship->isShip))
 		return;
@@ -1614,7 +1607,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawExhaust2
 {
-	ShipEntity  *ship = [UNIVERSE entityForUniversalID:owner];
+	ShipEntity  *ship = [self owner];
 
 	if (!ship)
 		return;

@@ -1090,7 +1090,7 @@ WormholeEntity*	whole;
 
 - (void) escortCheckMother
 {
-	ShipEntity   *mother = [UNIVERSE entityForUniversalID:owner];
+	ShipEntity   *mother = [self owner];
 	if (mother)
 	{
 		if ([mother acceptAsEscort:self])
@@ -1205,7 +1205,7 @@ WormholeEntity*	whole;
 
 - (void) messageMother:(NSString *)msgString
 {
-	ShipEntity   *mother = [UNIVERSE entityForUniversalID:owner];
+	ShipEntity   *mother = [self owner];
 	if (mother)
 	{
 		[[mother getAI] reactToMessage:msgString];

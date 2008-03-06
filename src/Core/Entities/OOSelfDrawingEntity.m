@@ -247,7 +247,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
+	Entity* my_owner = [self owner];
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling

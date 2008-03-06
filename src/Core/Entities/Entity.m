@@ -85,9 +85,9 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	[UNIVERSE ensureEntityReallyRemoved:self];
 	[collidingEntities release];
-	[trackLock release];
 	[collisionRegion release];
 	[self deleteJSSelf];
+	[self setOwner:nil];
 	
 	[super dealloc];
 }
@@ -509,22 +509,14 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) setOwner:(Entity *)ent
 {
-	if (ent != nil)
-	{
-		OOUniversalID	owner_id = [ent universalID];
-		
-		if ([UNIVERSE entityForUniversalID:owner_id] == ent)	// check to make sure it's kosher
-			owner = owner_id;
-		else
-			owner = NO_TARGET;
-	}
-	else  owner = NO_TARGET;
+	[_owner release];
+	_owner = [ent weakRetain];
 }
 
 
 - (id) owner
 {
-	return [UNIVERSE entityForUniversalID:owner];
+	return [_owner weakRefUnderlyingObject];
 }
 
 
@@ -1044,6 +1036,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 {
 	NSMutableArray		*flags = nil;
 	NSString			*flagsString = nil;
+	Entity				*owner = [self owner];
 	
 	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
 	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
@@ -1053,7 +1046,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);
 	OOLog(@"dumpState.entity", @"Energy: %g of %g", energy, maxEnergy);
 	OOLog(@"dumpState.entity", @"Mass: %g", mass);
-	if (owner != NO_TARGET)  OOLog(@"dumpState.entity", @"Owner: %@", [UNIVERSE entityForUniversalID:owner]);
+	if (owner != nil)  OOLog(@"dumpState.entity", @"Owner: %@", owner);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }

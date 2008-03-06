@@ -2160,7 +2160,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_formation_form_up:(double) delta_t
 {
 	// get updated destination from owner
-	ShipEntity* leadShip = [UNIVERSE entityForUniversalID:owner];
+	ShipEntity* leadShip = [self owner];
 	double distance = [self rangeToDestination];
 	double eta = (distance - desired_range) / flightSpeed;
 	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
@@ -2473,7 +2473,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
-	Entity* my_owner = [UNIVERSE entityForUniversalID:owner];
+	Entity* my_owner = [self owner];
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling

@@ -142,7 +142,6 @@ typedef struct
 	Frame					track[256];
 	int						trackIndex;
 	OOTimeAbsolute			trackTime;
-	NSLock					*trackLock;
 	
 	GLfloat					energy;
 	GLfloat					maxEnergy;
@@ -152,11 +151,12 @@ typedef struct
 	
 	NSMutableArray			*collidingEntities;
 	
-	OOUniversalID			owner;
-	
 	OOTimeAbsolute			spawnTime;
 	
 	struct JSObject			*jsSelf;
+	
+@private
+	OOWeakReference			*_owner;
 }
 
 - (BOOL)isShip;
