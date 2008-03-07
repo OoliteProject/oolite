@@ -924,7 +924,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int i;
 	int ship_count = 0;
 	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
+		//on red alert, launch even if the player is trying block the corridor
+		if ([uni_entities[i] isShip] && (alertLevel < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]))
 			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
 
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
@@ -1045,7 +1046,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (([launchQueue count] > 0)&&([shipsOnApproach count] == 0)&&[self dockingCorridorIsEmpty])
 	{
-		[self launchShip:(ShipEntity *)[launchQueue objectAtIndex:0]];
+		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
+		[self launchShip:se];
+		if([se hasRole:@"police"]||[se hasRole:@"interceptor"])	//might have lost its state machine while waiting...
+			[[se getAI] setStateMachine:@"policeInterceptAI.plist"];
 		[launchQueue removeObjectAtIndex:0];
 	}
 	if (([launchQueue count] == 0)&&(no_docking_while_launching))
@@ -1127,7 +1131,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) launchShip:(ShipEntity *) ship
 {
-	if ((!ship)||(!ship->isShip))
+	if ((!ship)||(![ship isShip]))
 		return;
 	
 	Vector launchPos = position;
@@ -1226,32 +1230,39 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return IsBehaviourHostile(behaviour)||(alertLevel == STATION_ALERT_LEVEL_YELLOW)||(alertLevel == STATION_ALERT_LEVEL_RED);
 }
 
-
 - (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	// If it's an energy mine...
-	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
+	unsigned b=0; //base bounty
+	// If it's an energy mine and this is the system's main station...
+	BOOL isEnergyMine = (ent && [ent isParticle] && [ent scanClass] == CLASS_MINE);
+	//ignore friendly fire, otherwise the defenders' AI gets stuck.
+	BOOL isFriend = ([(ShipEntity*)other hasRole:@"police"] || [(ShipEntity*)other hasRole:@"interceptor"]);
+	// If this is the system's main station...
+	if (self == [UNIVERSE station] && [other isShip] && !isFriend)
 	{
-		// ...and this is the system's main station...
-		if (self == [UNIVERSE station])
+		//...get angry
+		b=64;
+		[self setPrimaryAggressor:other];
+		found_target = primaryAggressor;
+		[self launchPolice];
+			
+		if (isEnergyMine)
 		{
-			// ...then get angry...
-			if (other && other->isShip)
-			{
-				[(ShipEntity*)other markAsOffender:96];
-				[self setPrimaryAggressor:other];
-				found_target = primaryAggressor;
-			}
+			//...get angrier
+			b=96;
 			[self increaseAlertLevel];
 			[self respondToAttackFrom:ent becauseOf:other];
-			
-			// ...and don't blow up.
-			return;
 		}
+		if ([(ShipEntity*)other bounty] >= b) //already a hardened criminal?
+			b *= 1.5; //bigger bounty!
+		[(ShipEntity*)other markAsOffender:b];
+		
+		if (isEnergyMine) //don't blow up!
+			return;
 	}
-	
-	// Handle damage like a ship.
-	[super takeEnergyDamage:amount from:ent becauseOf:other];
+	if (!isFriend)
+		// Handle damage like a ship.
+		[super takeEnergyDamage:amount from:ent becauseOf:other];
 }
 
 - (void) adjustVelocity:(Vector) xVel
@@ -1333,7 +1344,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOTechLevelID	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
 	
-	for (i = 0; (i < 4)&&(police_launched < max_police) ; i++)
+	for (i = 0; (i < 4)&&(police_launched <= max_police) ; i++)
 	{
 		ShipEntity  *police_ship = nil;
 		if (![UNIVERSE entityForUniversalID:police_target])
@@ -1379,16 +1390,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity		*defense_ship = nil;
-	NSString		*defense_ship_key = nil;
-	NSString		*defense_ship_role_key = nil;
+	NSString		*defense_ship_key = nil,
+					*defense_ship_role = nil,
+					*default_defense_ship_role = nil;
 	OOTechLevelID	techlevel;
 	
 	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
 	if ((Ranrot() & 7) + 6 <= techlevel)
-		defense_ship_role_key	= @"interceptor";
+		default_defense_ship_role	= @"interceptor";
 	else
-		defense_ship_role_key	= @"police";
+		default_defense_ship_role	= @"police";
 	
 	if (police_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
 		return;
@@ -1404,12 +1416,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		defense_ship = [UNIVERSE newShipWithName:defense_ship_key];
 	}
-	else
+	if (!defense_ship)
 	{
-		defense_ship_role_key = [shipinfoDictionary stringForKey:@"defense_ship_role" defaultValue:defense_ship_role_key];
-		defense_ship = [UNIVERSE newShipWithRole:defense_ship_role_key];
+		defense_ship_role = [shipinfoDictionary stringForKey:@"defense_ship_role" defaultValue:default_defense_ship_role];
+		defense_ship = [UNIVERSE newShipWithRole:defense_ship_role];
 	}
 	
+	if (!defense_ship && default_defense_ship_role != defense_ship_role)
+		defense_ship = [UNIVERSE newShipWithRole:default_defense_ship_role];
 	if (!defense_ship)
 		return;
 	
