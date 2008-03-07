@@ -88,7 +88,7 @@ static OOSoundSource	*sMusicSource = nil;
 }
 
 
-- (BOOL)doPlayWithLoop:(BOOL)inLoop
+- (void)doPlayWithLoop:(BOOL)inLoop
 {
 	if (sPlayingMusic != self)
 	{
@@ -103,33 +103,18 @@ static OOSoundSource	*sMusicSource = nil;
 		
 		sPlayingMusic = self;
 	}
-	return YES;
 }
 
 
-- (BOOL)play
+- (void)play
 {
-	return [self doPlayWithLoop:NO];
+	[self doPlayWithLoop:NO];
 }
 
 
 - (BOOL)isPlaying
 {
 	return sPlayingMusic == self && [sMusicSource isPlaying];
-}
-
-
-- (BOOL)pause
-{
-	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
-	return NO;
-}
-
-
-- (BOOL)resume
-{
-	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
-	return NO;
 }
 
 
@@ -147,20 +132,19 @@ static OOSoundSource	*sMusicSource = nil;
 
 #pragma mark OOMusic
 
-- (BOOL)playLooped
+- (void)playLooped
 {
-	return [self doPlayWithLoop:YES];
+	[self doPlayWithLoop:YES];
 }
 
 
-- (BOOL)stop
+- (void)stop
 {
 	if (sPlayingMusic == self)
 	{
 		sPlayingMusic = nil;
 		[sMusicSource stop];
 	}
-	return YES;
 }
 
 @end

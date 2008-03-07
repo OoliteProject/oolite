@@ -271,3 +271,14 @@ void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloa
 - (GLfloat) line_width;
 
 @end
+
+
+@interface NSString (OODisplayEncoding)
+
+// Return a C string in the 8-bit encoding used for display.
+- (const char *) cStringUsingOoliteEncoding;
+
+// Return a C string in the 8-bit encoding used for display, with substitutions performed.
+- (const char *) cStringUsingOoliteEncodingAndRemapping;
+
+@end

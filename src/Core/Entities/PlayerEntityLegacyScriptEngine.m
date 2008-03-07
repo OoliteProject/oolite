@@ -76,7 +76,9 @@ typedef enum
 } OOComparisonType;
 
 
+#if SUPPORT_TRACE_MESSAGES
 static NSString *ComparisonTypeToString(OOComparisonType type) CONST_FUNC;
+#endif
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -2654,6 +2656,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 @end
 
 
+#if SUPPORT_TRACE_MESSAGES
 static NSString *ComparisonTypeToString(OOComparisonType type)
 {
 	switch (type)
@@ -2668,3 +2671,4 @@ static NSString *ComparisonTypeToString(OOComparisonType type)
 	}
 	return @"<error: invalid comparison type>";
 }
+#endif

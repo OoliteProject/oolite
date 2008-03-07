@@ -27,6 +27,24 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+
+#if 0 && OOLITE_MAC_OS_X
+// Spoof libjs types defined in jsotypes.h due to a conflict with Security.framework
+#define PROTYPES_H
+#define uint JSUint
+#define uintn JSUintn
+typedef int8_t int8;
+typedef uint8_t uint8;
+typedef int16_t int16;
+typedef uint16_t uint16;
+typedef int32_t int32;
+typedef uint32_t uint32;
+typedef int64_t int64;
+typedef uint64_t uint64;
+// float32 is in jscompat.h
+typedef Float64 float64;
+#endif
+
 #import <jsapi.h>
 
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))

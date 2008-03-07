@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 
 #if OO_PPC
 
+#ifndef __llvm__
 /*	OOInvSqrtf()
 	Based on G3-otimized fsqrtf() by Conn Clark. The only difference is that
 	it does not store and multiply by the original value to go from reciprocal
@@ -121,4 +122,15 @@ not_a_number:
 	blr							/* return */
 }
 
+#else
+
+#import <math.h>
+
+// LLVM-GCC doesn't support asm at the moment.
+float OOInvSqrtf(float x)
+{
+	return 1.0 / sqrtf(x);
+}
+
+#endif
 #endif

@@ -75,14 +75,6 @@ static BOOL isSetUp=NO;
          setFloat: masterVol forKey: KEY_VOLUME_CONTROL];
 }
 
-- (BOOL) pause
-{
-	if (sample && currentChannel > -1)
-		Mix_Pause(currentChannel);
-
-	return YES;
-}
-
 - (BOOL) isPlaying
 {
 	int i;
@@ -95,7 +87,7 @@ static BOOL isSetUp=NO;
 	return NO;
 }
 
-- (BOOL) play
+- (void) play
 {
    if(!isSetUp) [OOSound setUp];
    int chansScanned=1;
@@ -126,21 +118,13 @@ static BOOL isSetUp=NO;
 	return YES;
 }
 
-- (BOOL) stop
+- (void) stop
 {
 	if (sample && currentChannel > -1)
 	{
 		Mix_HaltChannel(currentChannel);
 		currentChannel = -1;
 	}
-
-	return YES;
-}
-
-- (BOOL) resume
-{
-	if (sample && currentChannel > -1)
-		Mix_Resume(currentChannel);
 
 	return YES;
 }

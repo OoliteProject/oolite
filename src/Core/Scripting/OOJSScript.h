@@ -24,8 +24,7 @@ MA 02110-1301, USA.
 
 
 #import "OOScript.h"
-#import "OOWeakReference.h"
-#import <jsapi.h>
+#import "OOJavaScriptEngine.h"
 
 
 @interface OOJSScript: OOScript <OOWeakReferenceSupport>

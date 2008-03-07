@@ -54,6 +54,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
+#import "HeadUpDisplay.h"
 
 #import "OODebugGLDrawing.h"
 
@@ -738,7 +739,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		beaconCode = [bcode copy];
 		if (beaconCode != nil)
 		{
-			beaconChar = [bcode lossyCString][0];
+			beaconChar = [bcode cStringUsingOoliteEncodingAndRemapping][0];
 		}
 		else
 		{
@@ -3217,7 +3218,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setStatus:(int) stat
+- (void) setStatus:(OOEntityStatus) stat
 {
 	status = stat;
 	if ((status == STATUS_LAUNCHING)&&(UNIVERSE))

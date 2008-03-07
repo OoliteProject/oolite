@@ -2973,8 +2973,11 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (damageSound)
 	{
+#if 0
+		// FIXME: should use an OOSoundSource.
 		if ([damageSound isPlaying]) [damageSound stop];
 		[damageSound play];
+#endif
 	}
 
 	// firing on an innocent ship is an offence
@@ -3016,7 +3019,10 @@ double scoopSoundPlayTime = 0.0;
 		energy -= amount;
 		if (scrapeDamageSound)
 		{
+#if 0
+			// FIXME: should use an OOSoundSource.
 			if ([scrapeDamageSound isPlaying])  [scrapeDamageSound stop];
+#endif
 			[scrapeDamageSound play];
 		}
 		ship_temperature += amount;
@@ -3054,7 +3060,10 @@ double scoopSoundPlayTime = 0.0;
 
 	if (scrapeDamageSound)
 	{
+#if 0
+		// FIXME: should use an OOSoundSource.
 		if ([scrapeDamageSound isPlaying])  [scrapeDamageSound stop];
+#endif
 		[scrapeDamageSound play];
 	}
 	if (d_forward >= 0)
@@ -5819,7 +5828,10 @@ OOSound* burnersound;
 
 - (void) stopAfterburnerSound
 {
+#if 0
+	// FIXME: should use an OOSoundSource.
 	[burnersound stop];
+#endif
 }
 
 

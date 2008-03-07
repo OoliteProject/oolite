@@ -69,6 +69,8 @@ SOFTWARE.
 
 - (NSData *) convertString:(NSString *)string;
 
+- (NSStringEncoding) encoding;
+
 @end
 
 #endif //OOENCODINGCONVERTER_EXCLUDE

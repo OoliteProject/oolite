@@ -64,8 +64,7 @@ SOFTWARE.
 
 - (id) initWithContentsOfFile:(NSString *)path;
 
-- (BOOL) play;
-- (BOOL) stop;	// Deprecated; does nothing. If needed, use OOCASoundSource.
+- (void) play;
 
 - (BOOL) isPlaying;
 - (uint32_t)playingCount;

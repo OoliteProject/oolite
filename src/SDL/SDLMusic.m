@@ -182,7 +182,7 @@ void musicFinished()
  *
  * Returns YES for success, or NO if there was a problem playing the music.
  */
-- (BOOL) play
+- (void) play
 {
 	return [self playWithCount:1];
 }
@@ -195,7 +195,7 @@ void musicFinished()
  *
  * Returns YES for success, or NO if there was a problem playing the music.
  */
-- (BOOL) playLooped
+- (void) playLooped
 {
 	return [self playWithCount:-1];
 }

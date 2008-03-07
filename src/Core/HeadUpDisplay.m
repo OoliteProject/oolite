@@ -2241,6 +2241,28 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 @end
 
 
+@implementation NSString (OODisplayEncoding)
+
+- (const char *) cStringUsingOoliteEncoding
+{
+	if (sEncodingCoverter == nil)  InitTextEngine();
+	
+	// Note: the data will be autoreleased, so the bytes behave as though they're autoreleased too.
+	return [[self dataUsingEncoding:[sEncodingCoverter encoding] allowLossyConversion:YES] bytes];
+}
+
+
+- (const char *) cStringUsingOoliteEncodingAndRemapping
+{
+	if (sEncodingCoverter == nil)  InitTextEngine();
+	
+	// Note: the data will be autoreleased, so the bytes behave as though they're autoreleased too.
+	return [[sEncodingCoverter convertString:self] bytes];
+}
+
+@end
+
+
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
 {
 	id						colorDesc = nil;

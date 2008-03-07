@@ -597,8 +597,11 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (weaponHitSound)
 						{
+#if 0
+							// FIXME: should use an OOSoundSource.
 							if ([weaponHitSound isPlaying])
 								[weaponHitSound stop];
+#endif
 							[weaponHitSound play];
 						}
 					}
@@ -606,7 +609,10 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (weaponSound)
 						{
+#if 0
+							// FIXME: should use an OOSoundSource.
 							if ([weaponSound isPlaying])  [weaponSound stop];
+#endif
 							[weaponSound play];
 						}
 					}
@@ -987,10 +993,13 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
+#if 0
+						// FIXME: should use an OOSoundSource.
 						if (galactic_witchjump)
 							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
 						else
 							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
+#endif
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
@@ -1032,10 +1041,13 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
+#if 0
+						// FIXME: should use an OOSoundSource.
 						if (galactic_witchjump)
 							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
 						else
 							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
+#endif
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;

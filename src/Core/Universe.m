@@ -1903,7 +1903,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
 	
-	const char* c_sys = [l_sys lossyCString];
+	const char* c_sys = [l_sys UTF8String];
 	Vector p0 = make_vector(1,0,0);
 	Vector p1 = make_vector(0,1,0);
 	Vector p2 = make_vector(0,0,1);
@@ -2004,7 +2004,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
 	
-	const char* c_sys = [l_sys lossyCString];
+	const char* c_sys = [l_sys UTF8String];
 	Vector p0 = make_vector(1,0,0);
 	Vector p1 = make_vector(0,1,0);
 	Vector p2 = make_vector(0,0,1);
@@ -4934,38 +4934,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				[sound play];
 			return YES;
 		}
-	}
-	return NO;
-}
-
-
-- (BOOL) stopCustomSound:(NSString*)key
-{
-	NSString				*fileName = nil;
-	
-	fileName = [customsounds stringForKey:key];
-	if (fileName != nil)
-	{
-		OOSound* sound = [ResourceManager ooSoundNamed:fileName inFolder:@"Sounds"];
-		if (sound)
-		{
-			return [sound stop];
-		}
-	}
-	return NO;
-}
-
-
-- (BOOL) isPlayingCustomSound:(NSString*)key
-{
-	NSString				*fileName = nil;
-	
-	fileName = [customsounds stringForKey:key];
-	if (fileName != nil)
-	{
-		OOSound* sound = [ResourceManager ooSoundNamed:fileName inFolder:@"Sounds"];
-		if (sound)
-			return [sound isPlaying];
 	}
 	return NO;
 }

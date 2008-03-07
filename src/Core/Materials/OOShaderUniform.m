@@ -205,7 +205,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (OK)
 	{
-		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
+		location = glGetUniformLocationARB([shaderProgram program], [uniformName UTF8String]);
 		if (location == -1)
 		{
 			OK = NO;
@@ -424,7 +424,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	
 	if (OK)
 	{
-		location = glGetUniformLocationARB([shaderProgram program], [uniformName lossyCString]);
+		location = glGetUniformLocationARB([shaderProgram program], [uniformName UTF8String]);
 		if (location == -1)  OK = NO;
 	}
 	

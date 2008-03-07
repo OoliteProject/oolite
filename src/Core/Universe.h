@@ -410,8 +410,6 @@ enum
 - (OOViewID) viewDirection;
 
 - (BOOL) playCustomSound:(NSString*)key;
-- (BOOL) stopCustomSound:(NSString*)key;
-- (BOOL) isPlayingCustomSound:(NSString*)key;
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color;

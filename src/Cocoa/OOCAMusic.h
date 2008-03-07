@@ -57,7 +57,7 @@ SOFTWARE.
 	OOSound				*sound;
 }
 
-- (BOOL)playLooped;
-- (BOOL)stop;
+- (void)playLooped;
+- (void)stop;
 
 @end

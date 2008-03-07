@@ -201,7 +201,10 @@ MA 02110-1301, USA.
 
 - (void)playAlertConditionRed
 {
+#if 0
+	// FIXME: should use an OOSoundSource.
 	if ([warningSound isPlaying])  [warningSound stop];
+#endif
 	[warningSound play];
 }
 

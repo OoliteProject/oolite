@@ -199,7 +199,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 		if (vertexShader != NULL_SHADER)
 		{
-			sourceString = [vertexSource lossyCString];
+			sourceString = [vertexSource UTF8String];
 			glShaderSourceARB(vertexShader, 1, &sourceString, NULL);
 			glCompileShaderARB(vertexShader);
 			
@@ -219,7 +219,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 		if (fragmentShader != NULL_SHADER)
 		{
-			sourceString = [fragmentSource lossyCString];
+			sourceString = [fragmentSource UTF8String];
 			glShaderSourceARB(fragmentShader, 1, &sourceString, NULL);
 			glCompileShaderARB(fragmentShader);
 			

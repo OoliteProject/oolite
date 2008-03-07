@@ -330,7 +330,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) click
 {
-	if ([guiclick isPlaying])  [guiclick stop];
 	[guiclick play];
 }
 

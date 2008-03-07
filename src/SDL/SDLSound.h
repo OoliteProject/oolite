@@ -47,11 +47,9 @@ MA 02110-1301, USA.
 + (void) setMasterVolume: (float) fraction;
 
 - (id) initWithContentsOfFile:(NSString*) filepath;
-- (BOOL) pause;
 - (BOOL) isPlaying;
-- (BOOL) play;
-- (BOOL) stop;
-- (BOOL) resume;
+- (void) play;
+- (void) stop;
 
 - (NSString *) name;
 

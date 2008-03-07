@@ -288,28 +288,26 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 }
 
 
-- (BOOL) play
+- (void) play
 {
-	return NO;
 }
 
 
-- (BOOL)stop
+- (void)stop
 {
-	return YES;
 }
 
 
-- (BOOL)pause
+#if OBSOLETE
+- (void)pause
 {
-	return NO;
 }
 
 
-- (BOOL)resume
+- (void)resume
 {
-	return NO;
 }
+#endif
 
 
 - (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop

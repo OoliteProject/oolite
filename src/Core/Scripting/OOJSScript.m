@@ -290,7 +290,7 @@ static JSFunctionSpec sScriptMethods[] =
 	jsval						value;
 	JSFunction					*function = NULL;
 	
-	OK = JS_GetProperty(context, object, [eventName cString], &value);
+	OK = JS_GetProperty(context, object, [eventName UTF8String], &value);
 	
 #if SUPPORT_CHANGED_HANDLERS
 	if (!OK || value == JSVAL_VOID)
@@ -317,7 +317,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && value == JSVAL_VOID && OK; )
 			{
-				OK = JS_GetProperty(context, object, [oldName cString], &value);
+				OK = JS_GetProperty(context, object, [oldName UTF8String], &value);
 				
 				if (OK && value != JSVAL_VOID)
 				{

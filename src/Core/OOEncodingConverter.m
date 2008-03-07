@@ -170,6 +170,12 @@ static unsigned				sCacheMisses = 0;
 	return data;
 }
 
+
+- (NSStringEncoding) encoding
+{
+	return _encoding;
+}
+
 @end
 
 
