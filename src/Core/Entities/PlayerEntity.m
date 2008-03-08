@@ -1773,7 +1773,6 @@ double scoopSoundPlayTime = 0.0;
 		else
 		{
 			ecm_in_operation = NO;
-			[self stopECMSound];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-out-of-juice]") forCount:3.0];
 		}
 		if ([UNIVERSE getTime] > ecm_start_time + ECM_DURATION)
@@ -2620,21 +2619,20 @@ double scoopSoundPlayTime = 0.0;
 
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
-		if (![UNIVERSE playCustomSound:@"[incoming-missile]"])  [warningSound play];
+		[self playIncomingMissile];
 		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[incoming-missile]") forCount:4.5];
 	}
 
 	if ([ms isEqual:@"ENERGY_LOW"])
 	{
-		[UNIVERSE playCustomSound:@"[energy-low]"];
 		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[energy-low]") forCount:6.0];
 	}
 
-	if ([ms isEqual:@"ECM"])  [self playECMSound];
+	if ([ms isEqual:@"ECM"])  [self playHitByECMSound];
 
 	if ([ms isEqual:@"DOCKING_REFUSED"]&&(status == STATUS_AUTOPILOT_ENGAGED))
 	{
-		if (![UNIVERSE playCustomSound:@"[autopilot-denied]"])  [warningSound play];
+		[self playDockingDenied];
 		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-denied]") forCount:4.5];
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
@@ -2819,7 +2817,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[energy-bomb-activated]") forCount:4.5];
-	[destructionSound play];
+	[UNIVERSE playCustomSound:@"[energy-bomb-fired]"];
 	
 	return YES;
 }
@@ -2971,14 +2969,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	d_forward = dot_product(rel_pos, v_forward);
 	
-	if (damageSound)
-	{
-#if 0
-		// FIXME: should use an OOSoundSource.
-		if ([damageSound isPlaying]) [damageSound stop];
-		[damageSound play];
-#endif
-	}
+	[self playShieldHit];
 
 	// firing on an innocent ship is an offence
 	if ((other)&&(other->isShip))
@@ -3017,14 +3008,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= amount;
-		if (scrapeDamageSound)
-		{
-#if 0
-			// FIXME: should use an OOSoundSource.
-			if ([scrapeDamageSound isPlaying])  [scrapeDamageSound stop];
-#endif
-			[scrapeDamageSound play];
-		}
+		[self playDirectHit];
 		ship_temperature += amount;
 	}
 	
@@ -3057,15 +3041,8 @@ double scoopSoundPlayTime = 0.0;
 	rel_pos = ent ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
 	d_forward = dot_product(rel_pos, v_forward);
-
-	if (scrapeDamageSound)
-	{
-#if 0
-		// FIXME: should use an OOSoundSource.
-		if ([scrapeDamageSound isPlaying])  [scrapeDamageSound stop];
-#endif
-		[scrapeDamageSound play];
-	}
+	
+	[self playScrapeDamage];
 	if (d_forward >= 0)
 	{
 		forward_shield -= amount;
@@ -3464,7 +3441,6 @@ double scoopSoundPlayTime = 0.0;
 	[self moveForward:100.0];
 	
 	[UNIVERSE playCustomSound:@"[game-over]"];
-	[destructionSound play];
 	
 	flightSpeed = 160.0;
 	status = STATUS_DEAD;
@@ -3533,7 +3509,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
-	[self playBreakPattern];
+	[self playDockWithStation];
 
 	[station noteDockedShip:self];
 	dockedStation = station;
@@ -3621,10 +3597,17 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) leaveDock:(StationEntity *)station
 {
-	if (station == nil)  return;	
+	if (station == nil)  return;
+	
+	// ensure we've not left keyboard entry on
+	[[UNIVERSE gameView] allowStringInput: NO];
+	
+	if (gui_screen == GUI_SCREEN_MISSION)  [self doScriptEvent:@"missionScreenEnded"];
 	
 	if (station == [UNIVERSE station])
+	{
 		legalStatus |= [UNIVERSE legal_status_of_manifest:shipCommodityData];  // 'leaving with those guns were you sir?'
+	}
 	[self loadCargoPods];
 	
 	// clear the way
@@ -3653,6 +3636,27 @@ double scoopSoundPlayTime = 0.0;
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
 
 	dockedStation = nil;
+	
+	suppressAegisMessages = YES;
+#if 0
+	// "Fix" for "simple" issue where space compass shows station with planet icon on launch.
+	// Has the slight unwanted side-effect of effectively giving the player an advanced compass.
+	if ([self checkForAegis] != AEGIS_NONE)
+	{
+		[self setCompassMode:COMPASS_MODE_STATION];
+	}
+	else
+	{
+		[self setCompassMode:COMPASS_MODE_PLANET];	
+	}
+#else
+	[self checkForAegis];
+#endif
+	suppressAegisMessages = NO;
+	
+	ident_engaged = NO;
+	
+	[self playLaunchFromStation];
 }
 
 
@@ -3850,10 +3854,12 @@ double scoopSoundPlayTime = 0.0;
 		if (malfunc)
 		{
 			if (randf() > 0.5)
+			{
 				[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
+			}
 			else
 			{
-				[warningSound play];
+				[self playWitchjumpFailure];
 				[self takeInternalDamage];
 			}
 		}
@@ -3865,8 +3871,7 @@ double scoopSoundPlayTime = 0.0;
 		galaxy_coordinates.y += target_system_seed.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
-		if (![UNIVERSE playCustomSound:@"[witchdrive-malfunction]"])
-			[self playECMSound];
+		[self playWitchjumpMisjump];
 		[UNIVERSE set_up_universe_from_misjump];
 	}
 }
@@ -3901,7 +3906,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
-	[self playBreakPattern];
+	[self playExitWitchspace];
 	[self doScriptEvent:@"shipWillExitWitchspace"];
 }
 

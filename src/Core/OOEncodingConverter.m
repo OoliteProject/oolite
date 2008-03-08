@@ -187,7 +187,7 @@ static unsigned				sCacheMisses = 0;
 	NSEnumerator		*substEnum = nil;
 	NSMutableString		*mutable = nil;
 	
-	mutable = [string mutableCopy];
+	mutable = [[string mutableCopy] autorelease];
 	if (mutable == nil)  return nil;
 	
 	for (substEnum = [_substitutions keyEnumerator]; (subst = [substEnum nextObject]); )

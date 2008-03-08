@@ -514,6 +514,8 @@
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
 		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
+		1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */; };
+		1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */; };
 		1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Resources */ = {isa = PBXBuildFile; fileRef = 1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */; };
 		1ACEA3490C91507000C7CE97 /* OORoleSet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA3470C91507000C7CE97 /* OORoleSet.h */; };
 		1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA3480C91507000C7CE97 /* OORoleSet.m */; };
@@ -1026,7 +1028,7 @@
 		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
 		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = characters.plist; sourceTree = "<group>"; };
 		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = commodities.plist; sourceTree = "<group>"; };
-		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = customsounds.plist; sourceTree = "<group>"; };
+		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = customsounds.plist; sourceTree = "<group>"; };
 		1A2316E10B9CFAD700EF0852 /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = demoships.plist; sourceTree = "<group>"; };
 		1A2316E20B9CFAD700EF0852 /* descriptions.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = descriptions.plist; sourceTree = "<group>"; };
 		1A2316E30B9CFAD700EF0852 /* equipment.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = equipment.plist; sourceTree = "<group>"; };
@@ -1504,6 +1506,8 @@
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
 		1AC973F90C9847850010C42B /* pirate-victim-roles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "pirate-victim-roles.plist"; sourceTree = "<group>"; };
+		1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSourcePool.h; sourceTree = "<group>"; };
+		1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSourcePool.m; sourceTree = "<group>"; };
 		1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-scarred-metal-specular.png"; sourceTree = "<group>"; };
 		1ACEA3470C91507000C7CE97 /* OORoleSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORoleSet.h; sourceTree = "<group>"; };
 		1ACEA3480C91507000C7CE97 /* OORoleSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORoleSet.m; sourceTree = "<group>"; };
@@ -2359,6 +2363,8 @@
 				1AAB9A960D779F3C00A9F424 /* OOCocoa.m */,
 				1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */,
 				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
+				1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */,
+				1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2810,6 +2816,7 @@
 				1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */,
 				1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */,
 				1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */,
+				1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3161,6 +3168,7 @@
 				1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */,
 				1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */,
 				1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */,
+				1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

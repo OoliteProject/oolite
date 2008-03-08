@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 @interface OOJSScript: OOScript <OOWeakReferenceSupport>
 {
-	JSObject			*object;
+	JSObject			*_jsSelf;
 	
 	NSString			*name;
 	NSString			*description;

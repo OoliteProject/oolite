@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 
 */
 
-#if defined(LINUX) || defined(OOLITE_SDL_MAC)
+#if OOLITE_SDL
 	#import "SDLSound.h"
 	#import "SDLMusic.h"
 	#import "OOBasicSoundSource.h"

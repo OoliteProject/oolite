@@ -1,84 +1,68 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<!-- list all possible custom sounds here -->
-	<!-- implemented: just the test sound -->
-	<key>[test]</key>
-	<string>buy.ogg</string>
-	<!-- unimplmented:
-	<key>[witch-blocked-by-@]</key>
-	<string>buy.ogg</string>
-	<key>[witch-no-fuel]</key>
-	<string>buy.ogg</string>
-	<key>[witch-no-target]</key>
-	<string>buy.ogg</string>
-	<key>[incoming-missile]</key>
-	<string>buy.ogg</string>
-	<key>[energy-low]</key>
-	<string>buy.ogg</string>
-	<key>[autopilot-on]</key>
-	<string>buy.ogg</string>
-	<key>[autopilot-off]</key>
-	<string>buy.ogg</string>
-	<key>[autopilot-cannot-dock-with-target]</key>
-	<string>buy.ogg</string>
-	<key>[autopilot-denied]</key>
-	<string>buy.ogg</string>
-	<key>[autopilot-out-of-range]</key>
-	<string>buy.ogg</string>
-	<key>[aegis-planet]</key>
-	<string>buy.ogg</string>
-	<key>[aegis-station]</key>
-	<string>buy.ogg</string>
-	<key>[mine-armed]</key>
-	<string>buy.ogg</string>
-	<key>[mine-launched]</key>
-	<string>buy.ogg</string>
-	<key>[missile-armed]</key>
-	<string>buy.ogg</string>
-	<key>[missile-locked-on]</key>
-	<string>buy.ogg</string>
-	<key>[missile-launched]</key>
-	<string>buy.ogg</string>
-	<key>[missile-safe]</key>
-	<string>buy.ogg</string>
-	<key>[weapon-overheat]</key>
-	<string>buy.ogg</string>
-	<key>[game-over]</key>
-	<string>buy.ogg</string>
-	<key>[witchdrive-malfunction]</key>
-	<string>buy.ogg</string>
-	<key>[ident-on]</key>
-	<string>buy.ogg</string>
-	<key>[ident-off]</key>
-	<string>buy.ogg</string>
-	<key>[ident-locked-on]</key>
-	<string>buy.ogg</string>
-	<key>[no-target-in-memory]</key>
-	<string>buy.ogg</string>
-	<key>[target-lost]</key>
-	<string>buy.ogg</string>
-	<key>[hold-full]</key>
-	<string>buy.ogg</string>
-	<key>[cargo-jettisoned]</key>
-	<string>buy.ogg</string>
-	<key>[hyperspace-countdown-begun]</key>
-	<string>buy.ogg</string>
-	<key>[galactic-hyperspace-countdown-begun]</key>
-	<string>buy.ogg</string>
-	<key>[hyperspace-countdown-aborted]</key>
-	<string>buy.ogg</string>
-	<key>[cloaking-device-on]</key>
-	<string>buy.ogg</string>
-	<key>[cloaking-device-off]</key>
-	<string>buy.ogg</string>
-	<key>[jump-mass-locked]</key>
-	<string>buy.ogg</string>
-	<key>[wormhole-created]</key>
-	<string>buy.ogg</string>
-	<key>[escape-pod-scooped]</key>
-	<string>buy.ogg</string>
-	-->
-</dict>
-</plist>
+{
+	// Damage
+	"[player-hit-by-weapon]"		= "hit.ogg";			// Hit by weapon
+	"[player-direct-hit]"			= "hullbang.ogg";		// Hit by weapon while shield down ([player-hit-by-weapon] and [player-direct-hit] play at once)
+	"[player-scrape-damage]"		= "hullbang.ogg";		// Touched another ship (or docking bay)
+	
+	// Outgoing weapons fire
+	"[player-laser-hit]"			= "laserhits.ogg";
+	"[player-laser-miss]"			= "laser.ogg";
+	"[energy-bomb-fired]"			= "bigbang.ogg";
+	
+	// Warnings
+	"[hostile-warning]"				= "warning.ogg";
+	"[alert-condition-red]"			= "warning.ogg";
+	"[incoming-missile]"			= "warning.ogg";		// Help, help, they're shooting at us
+//	"[energy-low]"					= "";					// Energy below 25% - may occur repeatedly
+	"[autopilot-denied]"			= "warning.ogg";		// Station refuses docking clearance
+	"[witchdrive-malfunction]"		= "ecm.ogg";			// Misjump (3/4 witchjump malfunctions)
+	"[witchdrive-failure]"			= "warning.ogg";		// Jump failed, internal damage (1/8 witchjump malfunctions; other 1/8 is fuel leak, see [fuel-leak])
+	"[fuel-leak]"					= "warning.ogg";
+	
+	// Tunnel effects
+	"[player-launch-from-station]"	= "breakpattern.ogg";
+	"[player-dock-with-station]"	= "breakpattern.ogg";
+	"[player-exit-witchspace]"		= "breakpattern.ogg";
+	
+	// ECM
+	"[player-fired-ecm]"			= "ecm.ogg";
+	"[player-hit-by-ecm]"			= "ecm.ogg";
+	
+	"[game-over]"					= "bigbang.ogg";
+	
+/*	The following can also be overriden:
+	"[aegis-planet]" = "";
+	"[aegis-station]" = "";
+	"[autopilot-cannot-dock-with-target]" = "";
+	"[autopilot-off]" = "";
+	"[autopilot-on]" = "";
+	"[autopilot-out-of-range]" = "";
+	"[cargo-jettisoned]" = "";
+	"[cloaking-device-off]" = "";
+	"[cloaking-device-on]" = "";
+	"[escape-pod-scooped]" = "";
+	"[galactic-hyperspace-countdown-begun]" = "";
+	"[game-over]" = "";
+	"[hold-full]" = "";
+	"[hyperspace-countdown-aborted]" = "";
+	"[hyperspace-countdown-begun]" = "";
+	"[ident-locked-on]" = "";
+	"[ident-off]" = "";
+	"[ident-on]" = "";
+	"[incoming-missile]" = "";
+	"[jump-mass-locked]" = "";
+	"[mine-armed]" = "";
+	"[mine-launched]" = "";
+	"[missile-armed]" = "";
+	"[missile-launched]" = "";
+	"[missile-locked-on]" = "";
+	"[missile-safe]" = "";
+	"[no-target-in-memory]" = "";
+	"[target-lost]" = "";
+	"[weapon-overheat]" = "";
+	"[witch-blocked-by-@]" = "";
+	"[witch-no-fuel]" = "";
+	"[witch-no-target]" = "";
+	"[wormhole-created]" = "";
+*/
+}

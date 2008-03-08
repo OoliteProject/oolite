@@ -593,29 +593,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ([self fireMainWeapon])
 				{
-					if (target_laser_hit != NO_TARGET)
-					{
-						if (weaponHitSound)
-						{
-#if 0
-							// FIXME: should use an OOSoundSource.
-							if ([weaponHitSound isPlaying])
-								[weaponHitSound stop];
-#endif
-							[weaponHitSound play];
-						}
-					}
-					else
-					{
-						if (weaponSound)
-						{
-#if 0
-							// FIXME: should use an OOSoundSource.
-							if ([weaponSound isPlaying])  [weaponSound stop];
-#endif
-							[weaponSound play];
-						}
-					}
+					[self playLaserHit:target_laser_hit != NO_TARGET];
 				}
 			}
 			
@@ -784,7 +762,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([self fireECM])
 					{
-						[self playECMSound];
+						[self playFiredECMSound];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-on]") forCount:3.0];
 					}
 				}
@@ -2595,41 +2573,16 @@ static BOOL toggling_music;
 		gameView = [UNIVERSE gameView];
 		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
 		{
-			// ensure we've not left keyboard entry on
-			[gameView allowStringInput: NO];
-			
-			if (gui_screen == GUI_SCREEN_MISSION)  [self doScriptEvent:@"missionScreenEnded"];
-			
+			// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
 			[UNIVERSE setUpUniverseFromStation]; // launch!
-			if (!dockedStation)
-				dockedStation = [UNIVERSE station];
+			if (!dockedStation)  dockedStation = [UNIVERSE station];
 			station = dockedStation;	// leaveDock will clear dockedStation.
+			
 			//don't autosave immediately after a load
 			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow]) [self autosavePlayer];
 			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+			
 			[self leaveDock:dockedStation];
-			[UNIVERSE setDisplayCursor:NO];
-			suppressAegisMessages = YES;
-#if 0
-			// "Fix" for "simple" issue where space compass shows station with planet icon on launch.
-			// Has the slight unwanted side-effect of effectively giving the player an advanced compass.
-			if ([self checkForAegis] != AEGIS_NONE)
-			{
-				[self setCompassMode:COMPASS_MODE_STATION];
-			}
-			else
-			{
-				[self setCompassMode:COMPASS_MODE_PLANET];	
-			}
-#else
-			[self checkForAegis];
-#endif
-			suppressAegisMessages = NO;
-			
-			ident_engaged = NO;
-			
-			[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
-			[self playBreakPattern];
 		}
 	}
 	

@@ -130,18 +130,18 @@ static JSFunctionSpec sScriptMethods[] =
 	if (!problem)
 	{
 		// Do we actually want parent to be the global object here?
-		object = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL /*JS_GetGlobalObject(context)*/);
-		if (object == NULL) problem = @"allocation failure";
+		_jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL /*JS_GetGlobalObject(context)*/);
+		if (_jsSelf == NULL) problem = @"allocation failure";
 	}
 	
 	if (!problem)
 	{
-		if (!JS_SetPrivate(context, object, [self weakRetain]))  problem = @"could not set private backreference";
+		if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
 	}
 	
 	if (!problem)
 	{
-		if (![engine addGCRoot:&object named:"Script object"])
+		if (![engine addGCRoot:&_jsSelf named:"Script object"])
 		{
 			problem = @"could not add JavaScript root object";
 		}
@@ -149,7 +149,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		script = LoadScriptWithName(context, path, object, &problem);
+		script = LoadScriptWithName(context, path, _jsSelf, &problem);
 	}
 	
 	// Set properties.
@@ -168,7 +168,7 @@ static JSFunctionSpec sScriptMethods[] =
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
     if (!problem)
 	{
-		if (!JS_ExecuteScript(context, object, script, &returnValue))
+		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
 		{
 			problem = @"could not run script";
 		}
@@ -211,9 +211,13 @@ static JSFunctionSpec sScriptMethods[] =
 	[name release];
 	[description release];
 	[version release];
-	[weakSelf weakRefDrop];
 	
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&object];
+	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	JSObjectWrapperFinalize(context, _jsSelf);	// Release weakref to self
+	JS_RemoveRoot(context, &_jsSelf);			// Unroot jsSelf
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	
+	[weakSelf weakRefDrop];
 	
 	[super dealloc];
 }
@@ -290,7 +294,7 @@ static JSFunctionSpec sScriptMethods[] =
 	jsval						value;
 	JSFunction					*function = NULL;
 	
-	OK = JS_GetProperty(context, object, [eventName UTF8String], &value);
+	OK = JS_GetProperty(context, _jsSelf, [eventName UTF8String], &value);
 	
 #if SUPPORT_CHANGED_HANDLERS
 	if (!OK || value == JSVAL_VOID)
@@ -317,7 +321,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (oldNameEnum = [oldNames objectEnumerator]; (oldName = [oldNameEnum nextObject]) && value == JSVAL_VOID && OK; )
 			{
-				OK = JS_GetProperty(context, object, [oldName UTF8String], &value);
+				OK = JS_GetProperty(context, _jsSelf, [oldName UTF8String], &value);
 				
 				if (OK && value != JSVAL_VOID)
 				{
@@ -380,7 +384,7 @@ static JSFunctionSpec sScriptMethods[] =
 		}
 		
 		// Actually call the function
-		OK = JS_CallFunction(context, object, function, argc, argv, &value);
+		OK = JS_CallFunction(context, _jsSelf, function, argc, argv, &value);
 		
 		// Re-garbage-collectibalize the arguments and free the array
 		if (argv != NULL)
@@ -424,7 +428,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (propName == nil)  return nil;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	OK = JSGetNSProperty(NULL, object, propName, &value);
+	OK = JSGetNSProperty(NULL, _jsSelf, propName, &value);
 	if (OK && !JSVAL_IS_VOID(value))  result = JSValueToObject(context, value);
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	
@@ -444,7 +448,7 @@ static JSFunctionSpec sScriptMethods[] =
 	jsValue = [value javaScriptValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		result = JSDefineNSProperty(context, object, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
+		result = JSDefineNSProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE);
 	}
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
@@ -463,7 +467,7 @@ static JSFunctionSpec sScriptMethods[] =
 	jsValue = [value javaScriptValueInContext:context];
 	if (!JSVAL_IS_VOID(jsValue))
 	{
-		result = JSDefineNSProperty(context, object, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		result = JSDefineNSProperty(context, _jsSelf, propName, jsValue, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	}
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	return result;
@@ -472,7 +476,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (jsval)javaScriptValueInContext:(JSContext *)context
 {
-	return OBJECT_TO_JSVAL(object);
+	return OBJECT_TO_JSVAL(_jsSelf);
 }
 
 

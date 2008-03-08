@@ -120,11 +120,13 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 {
 	OO_ENTER_OPENGL();
 	
+#ifndef NDEBUG
 	if (EXPECT_NOT(sActiveProgram == self))
 	{
 		OOLog(@"shader.dealloc.imbalance", @"***** OOShaderProgram deallocated while active, indicating a retain/release imbalance. Expect imminent crash.");
 		[OOShaderProgram applyNone];
 	}
+#endif
 	
 	if (key != nil)
 	{
@@ -133,8 +135,6 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	}
 	
 	glDeleteObjectARB(program);
-	glDeleteObjectARB(vertexShader);
-	glDeleteObjectARB(fragmentShader);
 	
 	[super dealloc];
 }
@@ -185,6 +185,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	BOOL					OK = YES;
 	const GLcharARB			*sourceString = NULL;
 	GLint					compileStatus;
+	GLhandleARB				vertexShader;
+	GLhandleARB				fragmentShader;
 	
 	OO_ENTER_OPENGL();
 	
@@ -258,11 +260,12 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		key = [inKey copy];
 	}
 	
+	if (vertexShader != NULL)  glDeleteObjectARB(vertexShader);
+	if (fragmentShader != NULL)  glDeleteObjectARB(fragmentShader);
+	
 	if (!OK)
 	{
-		if (vertexShader)  glDeleteObjectARB(vertexShader);
-		if (fragmentShader)  glDeleteObjectARB(fragmentShader);
-		if (program)  glDeleteObjectARB(program);
+		if (program != NULL)  glDeleteObjectARB(program);
 		
 		[self release];
 		self = nil;

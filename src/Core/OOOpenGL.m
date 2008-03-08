@@ -43,10 +43,12 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 	// Short-circut here, because glGetError() is quite expensive.
 	if (OOLogWillDisplayMessagesInClass(kOOLogOpenGLError))
 	{
-		errCode = glGetError();
-		
-		if (errCode != GL_NO_ERROR)
+		for (;;)
 		{
+			errCode = glGetError();
+			
+			if (errCode == GL_NO_ERROR)  break;
+			
 			errorOccurred = YES;
 			errString = gluErrorString(errCode);
 			if (format == nil) format = @"<unknown>";

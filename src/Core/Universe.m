@@ -320,27 +320,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	[[OOCacheManager sharedCache] flush];
 	
-	[weakSelf weakRefDrop];
-	
 #ifndef OOLITE_MAC_OS_X
 	[speechArray release];
 	[speechSynthesizer release];
 #endif
 	
     [super dealloc];
-}
-
-
-- (id)weakRetain
-{
-	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-	return [weakSelf retain];
-}
-
-
-- (void)weakRefDied:(OOWeakReference *)weakRef
-{
-	if (weakRef == weakSelf)  weakSelf = nil;
 }
 
 
@@ -4920,20 +4905,19 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
+- (NSString *) soundNameForCustomSoundKey:(NSString *)key;
+{
+	return [customsounds stringForKey:key];
+}
+
+
 - (BOOL) playCustomSound:(NSString*)key
 {
-	NSString				*fileName = nil;
-	
-	fileName = [customsounds stringForKey:key];
-	if (fileName != nil)
+	OOSound* sound = [OOSound soundWithCustomSoundKey:key];
+	if (sound)
 	{
-		OOSound* sound = [ResourceManager ooSoundNamed:fileName inFolder:@"Sounds"];
-		if (sound)
-		{
-			if (![sound isPlaying])
-				[sound play];
-			return YES;
-		}
+		[sound play];
+		return YES;
 	}
 	return NO;
 }
@@ -7952,6 +7936,58 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	cachedKey = [desc copy];
 	
 	return shipdict;
+}
+
+@end
+
+
+@implementation OOSound (OOCustomSounds)
+
++ (id) soundWithCustomSoundKey:(NSString *)key
+{
+	NSString *fileName = [UNIVERSE soundNameForCustomSoundKey:key];
+	if (fileName == nil)  return nil;
+	return [ResourceManager ooSoundNamed:fileName inFolder:@"Sounds"];
+}
+
+
+- (id) initWithCustomSoundKey:(NSString *)key
+{
+	[self release];
+	return [[[self class] soundWithCustomSoundKey:key] retain];
+}
+
+@end
+
+
+@implementation OOSoundSource (OOCustomSounds)
+
++ (id) sourceWithCustomSoundKey:(NSString *)key
+{
+	return [[[self alloc] initWithCustomSoundKey:key] autorelease];
+}
+
+
+- (id) initWithCustomSoundKey:(NSString *)key
+{
+	OOSound *theSound = [OOSound soundWithCustomSoundKey:key];
+	if (theSound != nil)
+	{
+		self = [self initWithSound:theSound];
+	}
+	else
+	{
+		[self release];
+		self = nil;
+	}
+	return self;
+}
+
+
+- (void) playCustomSoundWithKey:(NSString *)key
+{
+	OOSound *theSound = [OOSound soundWithCustomSoundKey:key];
+	if (theSound != nil)  [self playSound:theSound];
 }
 
 @end

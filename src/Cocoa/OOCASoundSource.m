@@ -52,12 +52,6 @@ SOFTWARE.
 
 #pragma mark NSObject
 
-- (id)init
-{
-	return [super init];
-}
-
-
 - (void)dealloc
 {
 	[self stop];

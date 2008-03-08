@@ -69,7 +69,6 @@ SOFTWARE.
 
 + (id)sourceWithSound:(OOSound *)inSound;
 - (id)initWithSound:(OOSound *)inSound;
-- (id)init;
 
 // These options should be set before playing. Effect of setting them while playing is undefined.
 - (OOSound *)sound;

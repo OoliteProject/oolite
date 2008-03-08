@@ -293,7 +293,7 @@ MA 02110-1301, USA.
 	NSMutableArray			*subEntities;
 	
 @private
-	OOWeakReference			*subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
+	OOWeakReference			*_subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
 }
 
 // ship brains

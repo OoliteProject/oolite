@@ -280,17 +280,9 @@ typedef enum
 	
 	OOSound					*beepSound;
 	OOSound					*boopSound;
-	OOSound					*weaponSound;
-	OOSound					*weaponHitSound;
 	OOSound					*missileSound;
-	OOSound					*damageSound;
-	OOSound					*scrapeDamageSound;
-	OOSound					*destructionSound;
-	OOSound					*breakPatternSound;
-	OOSound					*ecmSound;
 	OOSound					*buySound;
 	OOSound					*sellSound;
-	OOSound					*warningSound;
 	OOSound					*afterburner1Sound;
 	OOSound					*afterburner2Sound;
 	OOSound					*witchAbortSound;

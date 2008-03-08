@@ -518,7 +518,7 @@ static NSMutableDictionary *string_cache;
 	NSEnumerator	*enumerator = nil;
 	NSString		*path = nil;
 	NSString		*arrayPath = nil;
-	NSMutableArray		*array = nil;
+	NSMutableArray	*array = nil;
 	NSArray			*arrayNonEditable = nil;
 	
 	if (fileName == nil)  return nil;
@@ -551,8 +551,7 @@ static NSMutableDictionary *string_cache;
 		for (enumerator = [ResourceManager pathEnumerator]; (path = [enumerator nextObject]); )
 		{
 			arrayPath = [path stringByAppendingPathComponent:fileName];
-			[array release];
-			array = [OOArrayFromFile(arrayPath) mutableCopy];
+			array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 			if (array != nil) [results addObject:array];
 	
 			// Special handling for arrays merging. Currently, equipment.plist only gets its objects merged.
@@ -566,8 +565,7 @@ static NSMutableDictionary *string_cache;
 			if (folderName != nil)
 			{
 				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
-				[array release];
-				array = [OOArrayFromFile(arrayPath) mutableCopy];
+				array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
 				if (array != nil) [results addObject:array];
 				
 				if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])

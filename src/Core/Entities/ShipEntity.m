@@ -465,7 +465,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[octree autorelease];
 	
-	[subEntityTakingDamage release];
+	[self setSubEntityTakingDamage:nil];
 	
 	[super dealloc];
 }
@@ -556,26 +556,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (ShipEntity *) subEntityTakingDamage
 {
-	ShipEntity *result = [subEntityTakingDamage weakRefUnderlyingObject];
+	ShipEntity *result = [_subEntityTakingDamage weakRefUnderlyingObject];
 	
 #ifndef NDEBUG
 	// Sanity check - there have been problems here, see fireLaserShotInDirection:
-	if (result != nil)
-	{
-		if (![result isShip] || ![self hasSubEntity:result])
-		{
-			OOLog(@"ship.subentity.sanityCheck.failed", @"***** VALIDATION ERROR: Subentity taking damage (%@) for ship %@ is not a ship or is not a subentity of the owner. This is an internal error, please report it.", [result shortDescription], [self shortDescription]);
-			result = nil;
-		}
-	}
+	// -parentEntity will take care of reporting insanity.
+	if ([result parentEntity] != self)  result = nil;
 #endif
 	
-	// Clear the weakref if the subentity is dead
-	if (result == nil)
-	{
-		[subEntityTakingDamage release];
-		subEntityTakingDamage = nil;
-	}
+	// Clear the weakref if the subentity is dead.
+	if (result == nil)  [self setSubEntityTakingDamage:nil];
 	
 	return result;
 }
@@ -583,12 +573,25 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) setSubEntityTakingDamage:(ShipEntity *)sub
 {
-	// Set subentityTakingDamage only if sub is 1. one of ours and 2. a ship (not a flasher or exhaust).
-	if ([sub isShip] && [self hasSubEntity:sub])
+#ifndef NDEBUG
+	// Sanity checks: sub must be a ship subentity of self, or nil.
+	if (sub != nil)
 	{
-		[subEntityTakingDamage release];
-		subEntityTakingDamage = [sub weakRetain];
+		if (![self hasSubEntity:sub])
+		{
+			OOLog(@"ship.subentity.sanityCheck.failed.deatails", @"Attempt to set subentity taking damage of %@ to %@, which is not a subentity.", [self shortDescription], sub);
+			sub = nil;
+		}
+		if (![sub isShip])
+		{
+			OOLog(@"ship.subentity.sanityCheck.failed", @"Attempt to set subentity taking damage of %@ to %@, which is not a ship.", [self shortDescription], sub);
+			sub = nil;
+		}
 	}
+#endif
+	
+	[_subEntityTakingDamage release];
+	_subEntityTakingDamage = [sub weakRetain];
 }
 
 
@@ -4023,11 +4026,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void)subEntityDied:(ShipEntity *)sub
 {
-	if ([subEntityTakingDamage weakRefUnderlyingObject] == sub)
-	{
-		[subEntityTakingDamage release];
-		subEntityTakingDamage = nil;
-	}
+	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
 	
 	[sub setOwner:nil];
 	[subEntities removeObject:sub];
@@ -4040,11 +4039,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	unsigned		i, count;
 	id			element;
 	
-	if ([subEntityTakingDamage weakRefUnderlyingObject] == sub)
-	{
-		[subEntityTakingDamage release];
-		subEntityTakingDamage = nil;
-	}
+	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
 	
 	if ([self hasSubEntity:sub])
 	{

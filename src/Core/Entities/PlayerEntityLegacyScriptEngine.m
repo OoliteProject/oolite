@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityScriptMethods.h"
+#import "PlayerEntitySound.h"
 #import "GuiDisplayGen.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -2065,8 +2066,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	fuel_leak_rate = [value doubleValue];
 	if (fuel_leak_rate > 0)
 	{
-		if (![UNIVERSE playCustomSound:@"[fuel-leak]"])
-			[self warnAboutHostiles];
+		[self playFuelLeak];
 		[UNIVERSE addMessage:DESC(@"danger-fuel-leak") forCount:6];
 		OOLog(kOOLogNoteFuelLeak, @"FUEL LEAK activated!");
 	}
@@ -2090,8 +2090,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) launchFromStation
 {
 	[self leaveDock:dockedStation];
-	[UNIVERSE setDisplayCursor:NO];
-	[breakPatternSound play];
 }
 
 

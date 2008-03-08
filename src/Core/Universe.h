@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOWeakReference.h"
 #import "OOTypes.h"
+#import "OOSound.h"
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 		Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity,
@@ -121,7 +122,7 @@ enum
 #define BILLBOARD_DEPTH						50000.0
 
 
-@interface Universe: NSObject <OOWeakReferenceSupport>
+@interface Universe: OOWeakRefObject
 {
 @public
 	// use a sorted list for drawing and other activities
@@ -242,8 +243,6 @@ enum
 #endif
 	
 	NSMutableArray			*entitiesDeadThisUpdate;
-	
-	OOWeakReference			*weakSelf;
 	
 #if OOLITE_MAC_OS_X
 	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
@@ -409,7 +408,8 @@ enum
 - (void) setViewDirection:(OOViewID) vd;
 - (OOViewID) viewDirection;
 
-- (BOOL) playCustomSound:(NSString*)key;
+- (BOOL) playCustomSound:(NSString*)key;	// DEPRECATED -- use +[OOSound soundWithCustomSoundKey:] and OOSoundSource.
+- (NSString *) soundNameForCustomSoundKey:(NSString *)key;
 
 - (void) clearPreviousMessage;
 - (void) setMessageGuiBackgroundColor:(OOColor *) some_color;
@@ -575,3 +575,21 @@ OOINLINE Universe *GetUniverse(void)
 
 
 #define DESC(key)	([UNIVERSE descriptionForKey:(key "")]) // Only for use with string literals, and only for looking up strings.
+
+
+@interface OOSound (OOCustomSounds)
+
++ (id) soundWithCustomSoundKey:(NSString *)key;
+- (id) initWithCustomSoundKey:(NSString *)key;
+
+@end
+
+
+@interface OOSoundSource (OOCustomSounds)
+
++ (id) sourceWithCustomSoundKey:(NSString *)key;
+- (id) initWithCustomSoundKey:(NSString *)key;
+
+- (void) playCustomSoundWithKey:(NSString *)key;
+
+@end

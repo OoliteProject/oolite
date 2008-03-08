@@ -36,20 +36,37 @@ enum
 
 @interface PlayerEntity (Sound)
 
-- (void)setUpSound;
-- (void)destroySound;
+- (void) setUpSound;
+- (void) destroySound;
 
-- (void)beep;
-- (void)boop;
-- (void)playInterfaceBeep:(unsigned)inInterfaceBeep;
-- (BOOL)isBeeping;
+- (void) beep;
+- (void) boop;
+- (void) playInterfaceBeep:(unsigned)inInterfaceBeep;
+- (BOOL) isBeeping;
 
-- (void)playECMSound;
-- (void)stopECMSound;
+- (void) playHitByECMSound;
+- (void) playFiredECMSound;
 
-- (void)playBreakPattern;
+- (void) playLaunchFromStation;
+- (void) playDockWithStation;
+- (void) playExitWitchspace;
 
-- (void)playHostileWarning;
-- (void)playAlertConditionRed;
+// Warning sounds
+- (void) playHostileWarning;
+- (void) playAlertConditionRed;
+- (void) playIncomingMissile;
+- (void) playEnergyLow;
+- (void) playDockingDenied;
+- (void) playWitchjumpFailure;
+- (void) playWitchjumpMisjump;
+- (void) playFuelLeak;
+
+// Damage sounds
+- (void) playShieldHit;
+- (void) playDirectHit;
+- (void) playScrapeDamage;
+
+// Weapon sounds
+- (void) playLaserHit:(BOOL)hit;
 
 @end

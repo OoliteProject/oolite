@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "PlayerEntitySound.h"
 #import "OOSound.h"
 #import "ResourceManager.h"
+#import "Universe.h"
+#import "OOSoundSourcePool.h"
 
 
 /*
@@ -36,26 +38,32 @@ MA 02110-1301, USA.
 #define BEEP_MODE			1
 
 
+// Sizes of sound source pools
+enum
+{
+	kWarningPoolSize		= 2,
+	kWeaponPoolSize			= 2,
+	kDamagePoolSize			= 4
+};
+
+
+static OOSoundSourcePool	*sWarningSoundPool;
+static OOSoundSourcePool	*sWeaponSoundPool;
+static OOSoundSourcePool	*sDamageSoundPool;
+
+
 @implementation PlayerEntity (Sound)
 
-- (void)setUpSound
+- (void) setUpSound
 {
 	[self destroySound];
 	
 	beepSound =			[[ResourceManager ooSoundNamed:@"beep.ogg" inFolder:@"Sounds"] retain];
 	boopSound =			[[ResourceManager ooSoundNamed:@"boop.ogg" inFolder:@"Sounds"] retain];
-	weaponSound =		[[ResourceManager ooSoundNamed:@"laser.ogg" inFolder:@"Sounds"] retain];
-	weaponHitSound =	[[ResourceManager ooSoundNamed:@"laserhits.ogg" inFolder:@"Sounds"] retain];
 	missileSound =		[[ResourceManager ooSoundNamed:@"missile.ogg" inFolder:@"Sounds"] retain];
-	damageSound =		[[ResourceManager ooSoundNamed:@"hit.ogg" inFolder:@"Sounds"] retain];
-	scrapeDamageSound = [[ResourceManager ooSoundNamed:@"hullbang.ogg" inFolder:@"Sounds"] retain];
-	destructionSound =  [[ResourceManager ooSoundNamed:@"bigbang.ogg" inFolder:@"Sounds"] retain];
-	breakPatternSound = [[ResourceManager ooSoundNamed:@"breakpattern.ogg" inFolder:@"Sounds"] retain];
 	
-	ecmSound =			[[ResourceManager ooSoundNamed:@"ecm.ogg" inFolder:@"Sounds"] retain];
 	buySound =			[[ResourceManager ooSoundNamed:@"buy.ogg" inFolder:@"Sounds"] retain];
 	sellSound =			[[ResourceManager ooSoundNamed:@"sell.ogg" inFolder:@"Sounds"] retain];
-	warningSound =		[[ResourceManager ooSoundNamed:@"warning.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =	[[ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =	[[ResourceManager ooSoundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
 	
@@ -67,36 +75,23 @@ MA 02110-1301, USA.
 	interfaceBeepSource = [[OOSoundSource alloc] init];
 	breakPatternSource = [[OOSoundSource alloc] init];
 	ecmSource = [[OOSoundSource alloc] init];
+	
+	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0];
+	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0];
+	sDamageSoundPool = [[OOSoundSourcePool alloc] initWithCount:kDamagePoolSize minRepeatTime:0.1];	// Repeat time limit is to avoid playing a scrape sound every frame on glancing scrapes. This does limit the number of laser hits that can be played in a furrball, though; maybe lasers and scrapes should use different pools.
 }
 
 
-- (void)destroySound
+- (void) destroySound
 {
 	[beepSound release];
 	beepSound = nil;
 	[boopSound release];
 	boopSound = nil;
-	[weaponSound release];
-	weaponSound = nil;
-	[weaponHitSound release];
-	weaponHitSound = nil;
-	[damageSound release];
-	damageSound = nil;
-	[scrapeDamageSound release];
-	scrapeDamageSound = nil;
-	[destructionSound release];
-	destructionSound = nil;
-	[breakPatternSound release];
-	breakPatternSound = nil;
-	
-	[ecmSound release];
-	ecmSound = nil;
 	[buySound release];
 	buySound = nil;
 	[sellSound release];
 	sellSound = nil;
-	[warningSound release];
-	warningSound = nil;
 	[afterburner1Sound release];
 	afterburner1Sound = nil;
 	[afterburner2Sound release];
@@ -116,22 +111,29 @@ MA 02110-1301, USA.
 	ecmSource = nil;
 	[breakPatternSource release];
 	breakPatternSource = nil;
+	
+	[sWarningSoundPool release];
+	sWarningSoundPool = nil;
+	[sWeaponSoundPool release];
+	sWeaponSoundPool = nil;
+	[sDamageSoundPool release];
+	sDamageSoundPool = nil;
 }
 
 
-- (void)beep
+- (void) beep
 {
 	[self playInterfaceBeep:kInterfaceBeep_Beep];
 }
 
 
-- (void)boop
+- (void) boop
 {
 	[self playInterfaceBeep:kInterfaceBeep_Boop];
 }
 
 
-- (void)playInterfaceBeep:(unsigned)inInterfaceBeep
+- (void) playInterfaceBeep:(unsigned)inInterfaceBeep
 {
 	OOSound					*sound = nil;
 	
@@ -169,43 +171,118 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL)isBeeping
+- (BOOL) isBeeping
 {
 	return [interfaceBeepSource isPlaying];
 }
 
 
-- (void)playECMSound
+- (void) playHitByECMSound
 {
-	if (![ecmSource isPlaying]) [ecmSource playSound:ecmSound];
+	if (![ecmSource isPlaying]) [ecmSource playCustomSoundWithKey:@"[player-hit-by-ecm]"];
 }
 
 
-- (void)stopECMSound
+- (void) playFiredECMSound
 {
-	[ecmSource stop];
+	if (![ecmSource isPlaying]) [ecmSource playCustomSoundWithKey:@"[player-fired-ecm]"];
 }
 
 
-- (void)playBreakPattern
+- (void) playLaunchFromStation
 {
-		[breakPatternSource playSound:breakPatternSound];
+	[breakPatternSource playCustomSoundWithKey:@"[player-launch-from-station]"];
 }
 
 
-- (void)playHostileWarning
+- (void) playDockWithStation
 {
-	if (![warningSound isPlaying])  [warningSound play];
+	[breakPatternSource playCustomSoundWithKey:@"[player-dock-with-station]"];
 }
 
 
-- (void)playAlertConditionRed
+- (void) playExitWitchspace
 {
-#if 0
-	// FIXME: should use an OOSoundSource.
-	if ([warningSound isPlaying])  [warningSound stop];
-#endif
-	[warningSound play];
+	[breakPatternSource playCustomSoundWithKey:@"[player-exit-witchspace]"];
+}
+
+
+- (void) playHostileWarning
+{
+	[sWarningSoundPool playSoundWithKey:@"[hostile-warning]" priority:1];
+}
+
+
+- (void) playAlertConditionRed
+{
+	[sWarningSoundPool playSoundWithKey:@"[alert-condition-red]" priority:2];
+}
+
+
+- (void) playIncomingMissile
+{
+	[sWarningSoundPool playSoundWithKey:@"[incoming-missile]" priority:3];
+}
+
+
+- (void) playEnergyLow
+{
+	[sWarningSoundPool playSoundWithKey:@"[energy-low]" priority:0.5];
+}
+
+
+- (void) playDockingDenied
+{
+	[sWarningSoundPool playSoundWithKey:@"[autopilot-denied]" priority:1];
+}
+
+
+- (void) playWitchjumpFailure
+{
+	[sWarningSoundPool playSoundWithKey:@"[witchdrive-failure]" priority:1.5];
+}
+
+
+- (void) playWitchjumpMisjump
+{
+	[sWarningSoundPool playSoundWithKey:@"[witchdrive-malfunction]" priority:1.5];
+}
+
+
+- (void) playFuelLeak
+{
+	[sWarningSoundPool playSoundWithKey:@"[fuel-leak]" priority:0.5];
+}
+
+
+- (void) playShieldHit
+{
+	[sDamageSoundPool playSoundWithKey:@"[player-hit-by-weapon]"];
+}
+
+
+- (void) playDirectHit
+{
+	[sDamageSoundPool playSoundWithKey:@"[player-direct-hit]"];
+}
+
+
+- (void) playScrapeDamage
+{
+	[sDamageSoundPool playSoundWithKey:@"[player-scrape-damage]"];
+}
+
+
+- (void) playLaserHit:(BOOL)hit
+{
+	if (hit)
+	{
+		[sWeaponSoundPool playSoundWithKey:@"[player-laser-hit]" priority:1 expiryTime:0.05];
+	}
+	else
+	{
+		[sWeaponSoundPool playSoundWithKey:@"[player-laser-miss]" priority:1 expiryTime:0.05];
+	}
 }
 
 @end

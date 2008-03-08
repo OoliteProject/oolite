@@ -1,11 +1,15 @@
 /*
 
-OOShaderProgram.h
+OOSoundSourcePool.h
 
-Encapsulates a vertex + fragment shader combo. In general, this should only be
-used though OOShaderMaterial. The point of this separation is that more than
-one OOShaderMaterial can use the same OOShaderProgram (as long as the shaders
-are defined in external files, not strings).
+Manages a fixed number of sound sources and distributes sounds between them.
+Each sound has a priority and an expiry time. When a new sound is played, it
+replaces (if possible) a sound of lower priority that has expired, a sound of
+the same priority that has expired, or a sound of lower priority that has not
+expired.
+
+All sounds are specified by customsounds.plist key.
+ 
 
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
@@ -28,7 +32,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,28 +54,30 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
-
 #import <Foundation/Foundation.h>
-#import "OOOpenGL.h"
+#import "OOTypes.h"
 
 
-@interface OOShaderProgram: NSObject
+@interface OOSoundSourcePool: NSObject
 {
-	GLhandleARB						program;
-	NSString						*key;
+	struct OOSoundSourcePoolElement	*_sources;
+	uint8_t							_count;
+	uint8_t							_latest;
+	OOTimeDelta						_minRepeat;
+	OOTimeAbsolute					_nextRepeat;
+	NSString						*_lastKey;
 }
 
-// Loads a shader from a file, caching and sharing shader program instances.
-+ (id)shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
-					 fragmentShaderName:(NSString *)fragmentShaderName
-								 prefix:(NSString *)prefixString;
++ (id) poolWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
+- (id) initWithCount:(uint8_t)count minRepeatTime:(OOTimeDelta)minRepeat;
 
-- (void)apply;
-+ (void)applyNone;
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority
+			   expiryTime:(OOTimeDelta)expiryTime;
 
-- (GLhandleARB)program;
+- (void) playSoundWithKey:(NSString *)key
+				 priority:(float)priority;	// expiryTime:0.1 +/- 0.5
+
+- (void) playSoundWithKey:(NSString *)key;	// priority: 1.0, expiryTime:0.1 +/- 0.5
 
 @end
-
-#endif // NO_SHADERS
