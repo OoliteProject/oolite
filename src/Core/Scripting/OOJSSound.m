@@ -27,9 +27,13 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOMusicController.h"
 #import "ResourceManager.h"
+#import "Universe.h"
 
 
 static JSObject *sSoundPrototype;
+
+
+static OOSound *GetNamedSound(NSString *name);
 
 
 static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -117,7 +121,7 @@ OOSound *SoundFromJSValue(JSContext *context, jsval value)
 {
 	if (JSVAL_IS_STRING(value))
 	{
-		return [ResourceManager ooSoundNamed:JSValToNSString(context, value) inFolder:@"Sounds"];
+		return GetNamedSound(JSValToNSString(context, value));
 	}
 	else
 	{
@@ -150,6 +154,23 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, j
 }
 
 
+static OOSound *GetNamedSound(NSString *name)
+{
+	OOSound						*sound = nil;
+	
+	if ([name hasPrefix:@"["] && [name hasSuffix:@"["])
+	{
+		sound = [OOSound soundWithCustomSoundKey:name];
+	}
+	else
+	{
+		sound = [ResourceManager ooSoundNamed:name inFolder:@"Sounds"];
+	}
+	
+	return sound;
+}
+
+
 // *** Methods ***
 
 // load(name : String) : Sound
@@ -159,7 +180,7 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 	OOSound						*sound = nil;
 	
 	name = JSValToNSString(context, argv[0]);
-	sound = [ResourceManager ooSoundNamed:name inFolder:@"Sounds"];
+	sound = GetNamedSound(name);
 	
 	*outResult = [sound javaScriptValueInContext:context];
 	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;
