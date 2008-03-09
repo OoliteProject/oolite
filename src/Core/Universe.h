@@ -339,7 +339,7 @@ enum
 - (OOCargoType) getRandomCommodity;
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
 
-- (NSArray *) commidityDataForType:(OOCargoType)type;
+- (NSArray *) commodityDataForType:(OOCargoType)type;
 - (OOCargoType) commodityForName:(NSString *) co_name;
 - (NSString *) symbolicNameForCommodity:(OOCargoType) co_type;
 - (NSString *) displayNameForCommodity:(OOCargoType) co_type;

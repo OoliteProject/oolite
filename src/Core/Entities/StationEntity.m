@@ -1048,8 +1048,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
 		[self launchShip:se];
-		if([se hasRole:@"police"]||[se hasRole:@"interceptor"])	//might have lost its state machine while waiting...
-			[[se getAI] setStateMachine:@"policeInterceptAI.plist"];
+		//OOLog(@"launchqueue.objectDump", @":::::: ai name: %@ ship name: %@ - %@ ::::::", [[se getAI] name], [se displayName], [se groupID] == universalID ? @"defender" : @"civilian" );
+		if([se groupID] == universalID)	//defender - might have lost its state machine while queueing...
+		{
+			if ([se hasPrimaryRole:@"pirate"])
+				[se setAITo:@"pirateAI.plist"];
+			else
+				[se setAITo:@"route1PatrolAI.plist"];
+		}
 		[launchQueue removeObjectAtIndex:0];
 	}
 	if (([launchQueue count] == 0)&&(no_docking_while_launching))
@@ -1232,33 +1238,29 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	unsigned b=0; //base bounty
-	// If it's an energy mine and this is the system's main station...
-	BOOL isEnergyMine = (ent && [ent isParticle] && [ent scanClass] == CLASS_MINE);
-	//ignore friendly fire, otherwise the defenders' AI gets stuck.
-	BOOL isFriend = ([(ShipEntity*)other hasRole:@"police"] || [(ShipEntity*)other hasRole:@"interceptor"]);
+	//stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
+	BOOL isFriend = [other isShip] && ([(ShipEntity*)other groupID]==universalID);
 	// If this is the system's main station...
-	if (self == [UNIVERSE station] && [other isShip] && !isFriend)
+	if (self == [UNIVERSE station] && !isFriend)
 	{
 		//...get angry
-		b=64;
-		[self setPrimaryAggressor:other];
-		found_target = primaryAggressor;
-		[self launchPolice];
-			
-		if (isEnergyMine)
-		{
-			//...get angrier
-			b=96;
-			[self increaseAlertLevel];
-			[self respondToAttackFrom:ent becauseOf:other];
-		}
-		if ([(ShipEntity*)other bounty] >= b) //already a hardened criminal?
+
+		BOOL isEnergyMine = (ent && [ent isParticle] && [ent scanClass] == CLASS_MINE);
+		unsigned b=isEnergyMine ? 96 : 64;
+		if ([(ShipEntity*)other bounty] >= b)	//already a hardened criminal?
 			b *= 1.5; //bigger bounty!
 		[(ShipEntity*)other markAsOffender:b];
 		
+		[self setPrimaryAggressor:other];
+		found_target = primaryAggressor;
+		[self launchPolice];
+
 		if (isEnergyMine) //don't blow up!
+		{
+			[self increaseAlertLevel];
+			[self respondToAttackFrom:ent becauseOf:other];
 			return;
+		}
 	}
 	if (!isFriend)
 		// Handle damage like a ship.
@@ -1370,7 +1372,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[OOCharacter randomCharacterWithRole: @"police"
 									   andOriginalSystem: [UNIVERSE systemSeed]]]];
 			}
-			
+
+			[police_ship setGroupID:universalID];	// who's your Daddy	
 			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			[police_ship setScanClass: CLASS_POLICE];
@@ -1553,7 +1556,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
 		[pirate_ship setGroupID:universalID];	// who's your Daddy
-		
+		[pirate_ship setPrimaryRole:@"pirate"];
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.

@@ -102,7 +102,7 @@ MA 02110-1301, USA.
 	OOMassUnit				unit;
 	NSArray					*commodityArray = nil;
 	
-	commodityArray = [UNIVERSE commidityDataForType:type];
+	commodityArray = [UNIVERSE commodityDataForType:type];
 	if (commodityArray == nil)  return;
 	
 	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, CommodityDisplayNameForCommodityArray(commodityArray));
@@ -116,24 +116,39 @@ MA 02110-1301, USA.
 		{
 			if (unit != UNITS_TONS)
 			{
-				int amount_per_container = (unit == UNITS_KILOGRAMS)? 1000 : 1000000;
-				while (amount > 0)
+				if (specialCargo)
 				{
-					int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
-					if ([cargo count] < max_cargo)
+					NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+					NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
+					int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
+					manifest_quantity += amount;
+					amount = 0;
+					[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
+					[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+					[shipCommodityData release];
+					shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+				}
+				else
+				{
+					int amount_per_container = (unit == UNITS_KILOGRAMS)? 1000 : 1000000;
+					while (amount > 0)
 					{
-						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
-						if (container)
+						int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
+						if ([cargo count] < max_cargo)
 						{
-							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
-							[container wasAddedToUniverse];
-							[container setScanClass: CLASS_CARGO];
-							[container setCommodity:type andAmount:smaller_quantity];
-							[cargo addObject:container];
-							[container release];
+							ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
+							if (container)
+							{
+								// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
+								[container wasAddedToUniverse];
+								[container setScanClass: CLASS_CARGO];
+								[container setCommodity:type andAmount:smaller_quantity];
+								[cargo addObject:container];
+								[container release];
+							}
 						}
+						amount -= smaller_quantity;
 					}
-					amount -= smaller_quantity;
 				}
 			}
 			else

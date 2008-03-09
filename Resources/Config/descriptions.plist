@@ -888,6 +888,13 @@
 	"contracts-second-word"			= "sec";
 	"contracts-second-word-plural"	= "secs";
 	
+	"cargo-ton"						= "ton";
+	"cargo-gram"					= "gram";
+	"cargo-kilogram"				= "kilogram";
+	"cargo-tons"					= "tons";
+	"cargo-grams"					= "grams";
+	"cargo-kilograms"				= "kilograms";
+	
 	// Ship’s manifest screen
 	"manifest-title"				= "Ship’s Manifest";
 	"manifest-none"					= " None.";

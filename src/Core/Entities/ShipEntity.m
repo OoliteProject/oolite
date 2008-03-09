@@ -1664,7 +1664,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  distance = [self rangeToDestination];
 	desired_range = collision_radius * 2.0;
 	ShipEntity* hauler = (ShipEntity*)[self owner];
-	if ((hauler)&&(hauler->isShip))
+	if ((hauler)&&([hauler isShip]))
 	{
 		if (distance < desired_range)
 		{
@@ -1701,7 +1701,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (status == STATUS_BEING_SCOOPED)
 		{
 			BOOL lost_contact = (distance > hauler->collision_radius + collision_radius + 250.0f);	// 250m range for tractor beam
-			if (hauler->isPlayer)
+			if ([hauler isPlayer])
 			{
 				switch ([(PlayerEntity*)hauler dialFuelScoopStatus])
 				{
@@ -1720,7 +1720,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				frustration = 0.0;
 				[shipAI exitStateMachine];	// exit nullAI.plist
 			}
-			else if (hauler->isPlayer)
+			else if ([hauler isPlayer])
 			{
 				[(PlayerEntity*)hauler setScoopsActive];
 			}
@@ -6226,10 +6226,10 @@ BOOL class_masslocks(int some_class)
 	if (!has_scoop)									return NO;
 	if ([cargo count] >= max_cargo)					return NO;
 	if (scanClass == CLASS_CARGO)					return NO;	// we have no power so we can't scoop
-	if (other->scanClass != CLASS_CARGO)			return NO;
-	if ([other cargoType] == CARGO_NOT_CARGO)	return NO;
+	if ([other scanClass] != CLASS_CARGO)			return NO;
+	if ([other cargoType] == CARGO_NOT_CARGO)		return NO;
 
-	if (other->isStation)
+	if ([other isStation])
 		return NO;
 
 	Vector  loc = vector_between(position, other->position);

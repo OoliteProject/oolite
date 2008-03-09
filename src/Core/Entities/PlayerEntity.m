@@ -351,6 +351,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:[NSNumber numberWithInt:max_passengers] forKey:@"max_passengers"];
 	[result setObject:passengers forKey:@"passengers"];
 	[result setObject:passenger_record forKey:@"passenger_record"];
+	
+	//specialCargo
+	if (specialCargo)
+		[result setObject:specialCargo forKey:@"special_cargo"];
 
 	// contracts
 	[result setObject:contracts forKey:@"contracts"];
@@ -586,6 +590,19 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (passenger_record)
 			[passenger_record release];
 		passenger_record = [[NSMutableDictionary dictionaryWithCapacity:8] retain];
+	}
+	//specialCargo
+	if ([dict objectForKey:@"special_cargo"])
+	{
+		if(specialCargo)
+			[specialCargo release];
+		specialCargo = [[dict stringForKey:@"special_cargo"] retain];
+	}
+	else
+	{
+		if(specialCargo)
+			[specialCargo release];
+		specialCargo = nil;
 	}
 
 	// contracts
@@ -2316,6 +2333,11 @@ double scoopSoundPlayTime = 0.0;
 	return missile_status;
 }
 
+- (BOOL) canScoop:(ShipEntity*)other
+{
+	if (specialCargo)	return NO;
+	return [super canScoop:other];
+}
 
 - (int) dialFuelScoopStatus
 {
@@ -2444,6 +2466,12 @@ double scoopSoundPlayTime = 0.0;
 - (BOOL) dialIdentEngaged
 {
 	return ident_engaged;
+}
+
+
+- (NSString *) specialCargo
+{
+	return specialCargo;
 }
 
 
@@ -3317,7 +3345,7 @@ double scoopSoundPlayTime = 0.0;
 	if (other == nil || [other isSubEntity])  return;
 	
 	OOCreditsQuantity	score = 10 * [other bounty];
-	OOScanClass			killClass = other->scanClass; // **tgape** change (+line)
+	OOScanClass			killClass = [other scanClass]; // **tgape** change (+line)
 	BOOL				killAward = YES;
 	
 	if ([other isPolice])   // oops, we shot a copper!
@@ -5490,7 +5518,7 @@ static int last_outfitting_index;
 			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
 			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
 			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
-			NSString* units = units = DisplayStringForMassUnit(unit);
+			NSString* units = DisplayStringForMassUnit(unit);
 			NSString* units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString* units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
@@ -5689,7 +5717,7 @@ static int last_outfitting_index;
 		[extra_equipment removeObjectForKey:damaged_eq_key];
 	
 	// deal with trumbles..
-	if ([eq_key isEqual:@"EQ_TRUMBLE"])
+	if ([eq_key isEqualToString:@"EQ_TRUMBLE"])
 	{
 		/*	Bug fix: must return here if eq_key == @"EQ_TRUMBLE", even if
 			trumbleCount >= 1. Otherwise, the player becomes immune to

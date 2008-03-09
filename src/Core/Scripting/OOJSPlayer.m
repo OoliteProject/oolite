@@ -363,6 +363,7 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 {
 	NSString				*typeString = nil;
 	OOCargoType				type;
+	OOMassUnit				unit;
 	int32					amount;
 	
 	typeString = JSValToNSString(context, argv[0]);
@@ -382,6 +383,13 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 	if (amount < 0)
 	{
 		OOReportJavaScriptError(context, @"Cargo quantity (%i) is negative.", amount);
+		return YES;
+	}
+		
+	unit = [UNIVERSE unitsForCommodity:type];
+	if ([OOPlayerForScripting() specialCargo] != nil && unit == UNITS_TONS)
+	{
+		OOReportJavaScriptError(context, @"Cargo hold full with special cargo, cannot award \"%@\".", typeString);
 		return YES;
 	}
 	

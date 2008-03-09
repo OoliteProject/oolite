@@ -559,6 +559,7 @@ waitingForStickCallback: 1;
 - (void) setActiveMissile:(unsigned)value;
 - (unsigned) dialMaxMissiles;
 - (BOOL) dialIdentEngaged;
+- (NSString *) specialCargo;
 - (NSString *) dialTargetName;
 - (ShipEntity *) missileForStation:(unsigned)value;
 - (void) sortMissiles;

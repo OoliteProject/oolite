@@ -136,6 +136,8 @@ MA 02110-1301, USA.
 
 - (void) awardCargo:(NSString *)amount_typeString;
 - (void) removeAllCargo;
+- (void) removeAllCargo:(BOOL)forceRemoval;
+
 - (void) useSpecialCargo:(NSString *)descriptionString;
 
 - (void) testForEquipment:(NSString *)equipString;  //eg. EQ_NAVAL_ENERGY_UNIT

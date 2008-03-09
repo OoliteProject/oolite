@@ -3143,7 +3143,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 }
 
 
-- (NSArray *)commidityDataForType:(OOCargoType)type
+- (NSArray *)commodityDataForType:(OOCargoType)type
 {
 	if (type < 0 || [commoditydata count] <= (unsigned)type)  return nil;
 	
@@ -3176,7 +3176,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 
 - (NSString *) symbolicNameForCommodity:(OOCargoType) co_type
 {
-	NSArray			*commodity = [self commidityDataForType:co_type];
+	NSArray			*commodity = [self commodityDataForType:co_type];
 	
 	if (commodity == nil)  return @"";
 	
@@ -3192,7 +3192,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 
 - (OOMassUnit) unitsForCommodity:(OOCargoType)co_type
 {
-	NSArray			*commodity = [self commidityDataForType:co_type];
+	NSArray			*commodity = [self commodityDataForType:co_type];
 	
 	if (commodity == nil)  return NSNotFound;
 	
@@ -3205,25 +3205,43 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 {
 	int				units;
 	NSString		*unitDesc = nil, *typeDesc = nil;
-	NSArray			*commodity = [self commidityDataForType:co_type];
+	NSArray			*commodity = [self commodityDataForType:co_type];
 	
 	if (commodity == nil) return @"";
 	
 	units = [commodity intAtIndex:MARKET_UNITS];
-	switch (units)
+	if (co_amount == 1)
 	{
-		case UNITS_KILOGRAMS :	// KILOGRAMS
-			unitDesc = @"kilogram";
-			break;
-		case UNITS_GRAMS :	// GRAMS
-			unitDesc = @"gram";
-			break;
-		case UNITS_TONS :	// TONNES
-		default :
-			unitDesc = @"ton";
-			break;
+		switch (units)
+		{
+			case UNITS_KILOGRAMS :	// KILOGRAM
+				unitDesc = DESC(@"cargo-kilogram");
+				break;
+			case UNITS_GRAMS :	// GRAM
+				unitDesc = DESC(@"cargo-gram");
+				break;
+			case UNITS_TONS :	// TONNE
+			default :
+				unitDesc = DESC(@"cargo-ton");
+				break;
+		}
 	}
-	if (co_amount != 1)  unitDesc = [unitDesc stringByAppendingString:@"s"];
+	else
+	{
+		switch (units)
+		{
+			case UNITS_KILOGRAMS :	// KILOGRAMS
+				unitDesc = DESC(@"cargo-kilograms");
+				break;
+			case UNITS_GRAMS :	// GRAMS
+				unitDesc = DESC(@"cargo-grams");
+				break;
+			case UNITS_TONS :	// TONNES
+			default :
+				unitDesc = DESC(@"cargo-tons");
+				break;
+		}
+	}
 	
 	typeDesc = CommodityDisplayNameForCommodityArray(commodity);
 	

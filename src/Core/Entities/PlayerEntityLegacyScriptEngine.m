@@ -1308,6 +1308,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString				*typeString = nil;
 	OOCargoQuantityDelta	amount;
 	OOCargoType				type;
+	OOMassUnit				unit;
 	NSArray					*commodityArray = nil;
 
 	if ([tokens count] != 2)
@@ -1320,7 +1321,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	type = [UNIVERSE commodityForName:typeString];
 	if (type == NSNotFound)  type = [typeString intValue];
 	
-	commodityArray = [UNIVERSE commidityDataForType:type];
+	commodityArray = [UNIVERSE commodityDataForType:type];
 	
 	if (commodityArray == nil)
 	{
@@ -1335,23 +1336,43 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
+	unit = [UNIVERSE unitsForCommodity:type];
+	if (specialCargo && unit == UNITS_TONS)
+	{
+		OOLog(kOOLogSyntaxAwardCargo, @"SCRIPT ERROR in %@ ***** CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"cargo hold full with special cargo");
+		return;
+	}
+	
 	[self awardCargoType:type amount:amount];
 }
 
 
 - (void) removeAllCargo
 {
+	[self removeAllCargo:NO];
+}
+
+- (void) removeAllCargo:(BOOL)forceRemoval
+{
 	OOCargoType				type;
 	OOMassUnit				unit;
 	
 	if (scriptTarget != self)  return;
-	if (status != STATUS_DOCKED)
+	
+	if (status != STATUS_DOCKED && !forceRemoval)
 	{
 		OOLog(kOOLogRemoveAllCargoNotDocked, @"SCRIPT ERROR in %@ ***** Error: removeAllCargo only works when docked.", CurrentScriptDesc());
 		return;
 	}
 	
-	OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
+	if (forceRemoval)
+	{
+		OOLog(kOOLogNoteRemoveAllCargo, @"Forcing removeAllCargo");
+	}
+	else
+	{
+		OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
+	}
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 	for (type = 0; type < (OOCargoType)[manifest count]; type++)
@@ -1364,7 +1385,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
 		}
 	}
-	
+
+	if(forceRemoval && status != STATUS_DOCKED)
+	{
+		int i;
+		for (i = [cargo count]-1; i >=0; i--)
+		{
+			ShipEntity* canister = [cargo objectAtIndex:i];
+			if (!canister) break;
+			unit = [UNIVERSE unitsForCommodity:[canister commodityType]];
+			if (unit == UNITS_TONS)
+				[cargo removeObjectAtIndex:i];
+		}
+	}
+
 	[shipCommodityData release];
 	shipCommodityData = [manifest mutableCopy];
 	
@@ -1377,9 +1411,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (scriptTarget != self)  return;
 	
-	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", specialCargo);
+	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", descriptionString);
 	
-	[self removeAllCargo];
+	[self removeAllCargo:YES];
 	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];
 }
 
