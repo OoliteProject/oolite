@@ -47,9 +47,9 @@ MA 02110-1301, USA.
 {
 	ShipEntity		*item = nil;
 	
-	if (shipKey != nil)
+	if (role != nil)
 	{
-		item = [UNIVERSE newShipWithRole:shipKey];
+		item = [UNIVERSE newShipWithRole:role];
 		if (item != nil)  [self dumpItem:item];
 	}
 	
