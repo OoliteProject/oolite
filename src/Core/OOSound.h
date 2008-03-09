@@ -41,6 +41,9 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCocoa.h"
+
+
 #if OOLITE_SDL
 	#import "SDLSound.h"
 	#import "SDLMusic.h"
