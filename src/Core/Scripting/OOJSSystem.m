@@ -757,7 +757,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 	argv += consumed;
 	JS_ValueToNumber(context, argv[3], &radius);
 	
-	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %d", role, count, coordScheme, where.x, where.y, where.z, radius];
+	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %f", role, count, coordScheme, where.x, where.y, where.z, radius];
 	[player addShipsWithinRadius:arg];
 	
 	return YES;
