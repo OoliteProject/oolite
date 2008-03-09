@@ -4,6 +4,7 @@ ShipEntityAI.h
 
 Additional methods relating to behaviour/artificial intelligence.
 
+
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
 
@@ -218,6 +219,7 @@ MA 02110-1301, USA.
 
 /*	Other methods documented for AI use (may not be exhaustive):
 	setPrimaryRole:
+	dumpCargo
 */
 
 @end

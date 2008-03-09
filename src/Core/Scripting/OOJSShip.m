@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
+#import "ShipEntityScriptMethods.h"
+#import "PlayerEntityScriptMethods.h"
 #import "AI.h"
 #import "OOStringParsing.h"
 #import "EntityOOJavaScriptExtensions.h"
@@ -48,6 +50,8 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -178,6 +182,9 @@ static JSFunctionSpec sShipMethods[] =
 	{ "deployEscorts",			ShipDeployEscorts,			0 },
 	{ "dockEscorts",			ShipDockEscorts,			0 },
 	{ "hasRole",				ShipHasRole,				1 },
+	{ "ejectItem",				ShipEjectItem,				1 },
+	{ "ejectSpecificItem",		ShipEjectSpecificItem,		1 },
+	{ "dumpCargo",				ShipDumpCargo,				0 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
 	{ 0 }
 };
@@ -707,6 +714,59 @@ static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval 
 }
 
 
+// ejectItem(role : String) : Ship
+static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*role = nil;
+	ShipEntity				*result = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	
+	result = [thisEnt ejectShipOfRole:role];
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// ejectSpecificItem(itemKey : String) : Ship
+static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*itemKey = nil;
+	ShipEntity				*result = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	itemKey = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	
+	result = [thisEnt ejectShipOfType:itemKey];
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// dumpCargo() : Ship
+static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	ShipEntity				*result = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	if ([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked])
+	{
+		OOReportJavaScriptWarning(context, @"Player.dumpCargo(): can't dump cargo while docked, ignoring.");
+		return YES;
+	}
+	
+	result = [thisEnt dumpCargoItem];
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// scriptTarget.runLegacyShipActions(target : Ship, actions : Array)
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
@@ -720,14 +780,14 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	target = JSValueToObject(context, argv[0]);
 	if (![target isKindOfClass:[ShipEntity class]])
 	{
-		OOReportJavaScriptWarning(context, @"First argument of RunLegacyScriptActions must be a Ship.");
+		OOReportJavaScriptWarning(context, @"First argument of runLegacyScriptActions must be a Ship.");
 		return YES;
 	}
 	
 	actions = JSValueToObject(context, argv[1]);
 	if (![actions isKindOfClass:[NSArray class]])
 	{
-		OOReportJavaScriptWarning(context, @"Second argument of RunLegacyScriptActions must be an Array.");
+		OOReportJavaScriptWarning(context, @"Second argument of runLegacyScriptActions must be an Array.");
 		return YES;
 	}
 	

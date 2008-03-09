@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityScriptMethods.h
+ShipEntityScriptMethods.h
 
 Methods for use by scripting mechanisms.
 
@@ -25,32 +25,12 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#import "ShipEntity.h"
 
 
-@interface PlayerEntity (ScriptMethods)
+@interface ShipEntity (ScriptMethods)
 
-- (NSString *) playerName;
-
-- (unsigned) score;
-- (void) setScore:(unsigned)value;
-
-- (double) creditBalance;
-- (void) setCreditBalance:(double)value;
-
-- (float)fuelLeakRate;
-- (void)setFuelLeakRate:(float)value;
-
-- (BOOL) isDocked;
-- (NSString *) dockedStationName;
-- (NSString *) dockedStationDisplayName;
-- (BOOL) dockedAtMainStation;
-
-- (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
-
-- (OOGalaxyID) currentGalaxyID;
-- (OOSystemID) currentSystemID;
-
-- (void) setMissionChoice:(NSString *)newChoice;
+- (ShipEntity *) ejectShipOfType:(NSString *)shipKey;	// Note: ship type, not role.
+- (ShipEntity *) ejectShipOfRole:(NSString *)role;
 
 @end

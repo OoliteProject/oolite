@@ -7899,13 +7899,14 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	if (shipdict == nil)
 	{
 		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
-		exception here. However, it never worked -- the line above was
-		broken so an empty dictionary was created instead, which was
-		rather pointless. Once this was fixed, it turned out there are OXPs
-		causing bad ships to be created, which wasn't noticed because the
-		exception wasn't handled.
-		-- Ahruman
-		*/	 
+			exception here. However, it never worked -- the line above was
+			broken so an empty dictionary was created instead, which was
+			rather pointless. Once this was fixed, it turned out there are OXPs
+			causing bad ships to be created, which wasn't noticed because the
+			exception wasn't handled.
+			-- Ahruman
+		*/
+		OOLog(@"universe.getShip.unknown", @"Attempt to create ship of type \"%@\", but no such type could be found.", desc);
 		return nil;
 	}
 	// check if this is based upon a different ship

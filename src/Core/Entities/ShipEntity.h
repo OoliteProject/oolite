@@ -599,9 +599,10 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) activateCloakingDevice;
 - (void) deactivateCloakingDevice;
 - (BOOL) launchEnergyBomb;
-- (int) launchEscapeCapsule;
-- (int) dumpCargo;
-- (int) dumpItem: (ShipEntity*) jetto;
+- (OOUniversalID) launchEscapeCapsule;
+- (OOCargoType) dumpCargo;
+- (ShipEntity *) dumpCargoItem;
+- (OOCargoType) dumpItem: (ShipEntity*) jetto;
 
 - (void) manageCollisions;
 - (BOOL) collideWithShip:(ShipEntity *)other;

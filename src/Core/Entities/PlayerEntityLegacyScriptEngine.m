@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "AI.h"
 #import "ShipEntityAI.h"
+#import "ShipEntityScriptMethods.h"
 #import "OOScript.h"
 #import "OOMusicController.h"
 #import "OOColor.h"
@@ -1458,13 +1459,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) ejectItem:(NSString *)item_key
+- (void) ejectItem:(NSString *)itemKey
 {
-	ShipEntity* item = [UNIVERSE newShipWithName:item_key];
-	if (scriptTarget == nil)
-		scriptTarget = self;
-	if (item)
-		[scriptTarget dumpItem:item];
+	if (scriptTarget == nil)  scriptTarget = self;
+	[scriptTarget ejectShipOfType:itemKey];
 }
 
 

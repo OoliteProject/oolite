@@ -3255,7 +3255,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int) dumpCargo
+- (OOCargoType) dumpCargo
 {
 	if (flightSpeed > 4.0 * maxFlightSpeed)
 	{

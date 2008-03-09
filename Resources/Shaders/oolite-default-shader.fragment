@@ -232,7 +232,7 @@ void main(void)
 	specularMapColor.a = 1.0;
 	#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0;
 #else
-	#define APPLY_MAPPED_EXPONENT
+	#define APPLY_MAPPED_EXPONENT exponent += 0.001;
 #endif
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);

@@ -442,6 +442,8 @@
 		1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7376BD0C64AE330097AC37 /* OOJSSystem.m */; };
 		1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */; };
 		1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */; };
+		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
+		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
 		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
@@ -1424,6 +1426,8 @@
 		1A7376BD0C64AE330097AC37 /* OOJSSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystem.m; sourceTree = "<group>"; };
 		1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyEventHandlerScript.h; sourceTree = "<group>"; };
 		1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyEventHandlerScript.m; sourceTree = "<group>"; };
+		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
+		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
 		1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckRequiresPListVerifierStage.h; sourceTree = "<group>"; };
@@ -2382,6 +2386,8 @@
 				1A26D08F0BCF9CF70073F257 /* ShipEntity.m */,
 				1A26D08A0BCF9CF70073F257 /* ShipEntityAI.h */,
 				1A26D0890BCF9CF70073F257 /* ShipEntityAI.m */,
+				1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */,
+				1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */,
 				1A26D0A30BCF9CF70073F257 /* StationEntity.h */,
 				1A26D0A20BCF9CF70073F257 /* StationEntity.m */,
 				1A26D1090BCFA8D40073F257 /* PlayerEntity */,
@@ -2817,6 +2823,7 @@
 				1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */,
 				1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */,
 				1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */,
+				1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3169,6 +3176,7 @@
 				1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */,
 				1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */,
 				1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */,
+				1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

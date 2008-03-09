@@ -1,8 +1,6 @@
 /*
 
-PlayerEntityScriptMethods.h
-
-Methods for use by scripting mechanisms.
+ShipEntityScriptMethods.m
 
 
 Oolite
@@ -25,32 +23,37 @@ MA 02110-1301, USA.
 
 */
 
-#import "PlayerEntity.h"
+#import "ShipEntityScriptMethods.h"
+#import "Universe.h"
 
 
-@interface PlayerEntity (ScriptMethods)
+@implementation ShipEntity (ScriptMethods)
 
-- (NSString *) playerName;
+- (ShipEntity *) ejectShipOfType:(NSString *)shipKey
+{
+	ShipEntity		*item = nil;
+	
+	if (shipKey != nil)
+	{
+		item = [UNIVERSE newShipWithName:shipKey];
+		if (item != nil)  [self dumpItem:item];
+	}
+	
+	return item;
+}
 
-- (unsigned) score;
-- (void) setScore:(unsigned)value;
 
-- (double) creditBalance;
-- (void) setCreditBalance:(double)value;
-
-- (float)fuelLeakRate;
-- (void)setFuelLeakRate:(float)value;
-
-- (BOOL) isDocked;
-- (NSString *) dockedStationName;
-- (NSString *) dockedStationDisplayName;
-- (BOOL) dockedAtMainStation;
-
-- (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount;
-
-- (OOGalaxyID) currentGalaxyID;
-- (OOSystemID) currentSystemID;
-
-- (void) setMissionChoice:(NSString *)newChoice;
+- (ShipEntity *) ejectShipOfRole:(NSString *)role
+{
+	ShipEntity		*item = nil;
+	
+	if (shipKey != nil)
+	{
+		item = [UNIVERSE newShipWithRole:shipKey];
+		if (item != nil)  [self dumpItem:item];
+	}
+	
+	return item;
+}
 
 @end

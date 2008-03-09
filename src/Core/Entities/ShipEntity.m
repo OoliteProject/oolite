@@ -5847,7 +5847,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (int)launchEscapeCapsule
+- (OOUniversalID)launchEscapeCapsule
 {
 	OOUniversalID		result = NO_TARGET;
 	ShipEntity			*mainPod = nil, *pod = nil;
@@ -5915,27 +5915,34 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (int) dumpCargo
+// This is a documented AI method; do not change semantics. (Note: AIs don't have access to the return value.)
+- (OOCargoType) dumpCargo
 {
-	if (status == STATUS_DEAD)
-		return 0;
-
-	int result = CARGO_NOT_CARGO;
-	if (([cargo count] > 0)&&([UNIVERSE getTime] - cargo_dump_time > 0.5))  // space them 0.5s or 10m apart
-	{
-		ShipEntity* jetto = [cargo objectAtIndex:0];
-		if (!jetto)
-			return 0;
-		result = [jetto commodityType];
-		[self dumpItem:jetto];
-		[cargo removeObjectAtIndex:0];
-		cargo_dump_time = [UNIVERSE getTime];
-	}
-	return result;
+	ShipEntity *jetto = [self dumpCargoItem];
+	if (jetto != nil)  return [jetto commodityType];
+	else  return CARGO_NOT_CARGO;
 }
 
 
-- (int) dumpItem: (ShipEntity*) jetto
+- (ShipEntity *) dumpCargoItem
+{
+	ShipEntity				*jetto = nil;
+	
+	if (([cargo count] > 0)&&([UNIVERSE getTime] - cargo_dump_time > 0.5))  // space them 0.5s or 10m apart
+	{
+		jetto = [[[cargo objectAtIndex:0] retain] autorelease];
+		if (jetto != nil)
+		{
+			[self dumpItem:jetto];
+			[cargo removeObjectAtIndex:0];
+		}
+	}
+	
+	return jetto;
+}
+
+
+- (OOCargoType) dumpItem: (ShipEntity*) jetto
 {
 	if (!jetto)
 		return 0;
@@ -5968,31 +5975,23 @@ BOOL class_masslocks(int some_class)
 			(start.y > boundingBox.min.y - jcr)&&(start.y < boundingBox.max.y + jcr)&&
 			(start.z > boundingBox.min.z - jcr)&&(start.z < boundingBox.max.z + jcr))
 	{
-		start.x += jcr * v_eject.x;	start.y += jcr * v_eject.y;	start.z += jcr * v_eject.z;
+		start = vector_add(start, vector_multiply_scalar(v_eject, jcr));
 	}
 
 	v_eject = make_vector(	v_right.x * start.x +	v_up.x * start.y +	v_forward.x * start.z,
 							v_right.y * start.x +	v_up.y * start.y +	v_forward.y * start.z,
 							v_right.z * start.x +	v_up.z * start.y +	v_forward.z * start.z);
-
-	rpos.x +=	v_eject.x;
-	rpos.y +=	v_eject.y;
-	rpos.z +=	v_eject.z;
-
-	v_eject = unit_vector(&v_eject);
-
+	
+	rpos = vector_add(rpos, v_eject);
+	v_eject = vector_normal(v_eject);
+	
 	v_eject.x += (randf() - randf())/eject_speed;
 	v_eject.y += (randf() - randf())/eject_speed;
 	v_eject.z += (randf() - randf())/eject_speed;
-
-	vel.x =	v_forward.x * flightSpeed + v_eject.x * eject_speed;
-	vel.y = v_forward.y * flightSpeed + v_eject.y * eject_speed;
-	vel.z = v_forward.z * flightSpeed + v_eject.z * eject_speed;
-
-	velocity.x += v_eject.x * eject_reaction;
-	velocity.y += v_eject.y * eject_reaction;
-	velocity.z += v_eject.z * eject_reaction;
-
+	
+	vel = vector_add(vector_multiply_scalar(v_forward, flightSpeed), vector_multiply_scalar(v_eject, eject_speed));
+	velocity = vector_add(velocity, vector_multiply_scalar(v_eject, eject_reaction));
+	
 	[jetto setPosition:rpos];
 	[jetto setOrientation:random_direction];
 	[jetto setRoll:random_roll];

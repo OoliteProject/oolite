@@ -400,11 +400,6 @@ static JSFunctionSpec sScriptMethods[] =
 		sRunningStack = stackElement.back;
 		
 		JS_ClearNewbornRoots(context);
-		
-#ifndef NDEBUG
-		// Do extra garbage collection for stress testing.
-		JS_GC(context);
-#endif
 	}
 	else
 	{
