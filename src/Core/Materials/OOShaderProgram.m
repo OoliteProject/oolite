@@ -260,12 +260,12 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		key = [inKey copy];
 	}
 	
-	if (vertexShader != NULL)  glDeleteObjectARB(vertexShader);
-	if (fragmentShader != NULL)  glDeleteObjectARB(fragmentShader);
+	if (vertexShader != NULL_SHADER)  glDeleteObjectARB(vertexShader);
+	if (fragmentShader != NULL_SHADER)  glDeleteObjectARB(fragmentShader);
 	
 	if (!OK)
 	{
-		if (program != NULL)  glDeleteObjectARB(program);
+		if (program != NULL_SHADER)  glDeleteObjectARB(program);
 		
 		[self release];
 		self = nil;

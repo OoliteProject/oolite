@@ -51,11 +51,13 @@ static BOOL isSetUp=NO;
    isSetUp=YES;
 }
 
+
 + (float) masterVolume
 {
    if(!isSetUp) [OOSound setUp];
    return masterVol;  
 }
+
 
 + (void) setMasterVolume: (float)vol
 {
@@ -75,6 +77,7 @@ static BOOL isSetUp=NO;
          setFloat: masterVol forKey: KEY_VOLUME_CONTROL];
 }
 
+
 - (BOOL) isPlaying
 {
 	int i;
@@ -86,6 +89,7 @@ static BOOL isSetUp=NO;
 
 	return NO;
 }
+
 
 - (void) play
 {
@@ -112,11 +116,9 @@ static BOOL isSetUp=NO;
 		currentChannel = Mix_PlayChannel(mixChan, sample, 0);
 		if (currentChannel < 0)
 			NSLog(@"Mix_PlayChannel: %s\n", Mix_GetError());
-			return NO;
 	}
-
-	return YES;
 }
+
 
 - (void) stop
 {
@@ -125,9 +127,8 @@ static BOOL isSetUp=NO;
 		Mix_HaltChannel(currentChannel);
 		currentChannel = -1;
 	}
-
-	return YES;
 }
+
 
 - (id) initWithContentsOfFile:(NSString*)filepath
 {
@@ -145,6 +146,7 @@ static BOOL isSetUp=NO;
 	return self;
 }
 
+
 - (void) dealloc
 {
 	if (sample)
@@ -153,6 +155,7 @@ static BOOL isSetUp=NO;
 
 	[super dealloc];
 }
+
 
 + (void) channelDone:(int) channel
 {

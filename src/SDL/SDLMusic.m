@@ -184,7 +184,7 @@ void musicFinished()
  */
 - (void) play
 {
-	return [self playWithCount:1];
+	[self playWithCount:1];
 }
 
 /*
@@ -197,7 +197,7 @@ void musicFinished()
  */
 - (void) playLooped
 {
-	return [self playWithCount:-1];
+	[self playWithCount:-1];
 }
 
 /*
