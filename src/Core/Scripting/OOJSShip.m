@@ -53,6 +53,8 @@ static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval 
 static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -187,6 +189,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "ejectSpecificItem",		ShipEjectSpecificItem,		1 },
 	{ "dumpCargo",				ShipDumpCargo,				0 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
+	{ "spawn",					ShipSpawn,					1 },
+	{ "explode",				ShipExplode,				0 },
 	{ 0 }
 };
 
@@ -763,6 +767,71 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 	
 	result = [thisEnt dumpCargoItem];
 	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// spawn(role : String [, number : count]) : Array
+static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*role = nil;
+	int32					count;
+	NSMutableArray			*result = nil;
+	ShipEntity				*ship = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	if (role == nil)
+	{
+		OOReportJavaScriptError(context, @"Expected role (string), got \"%@\".", JSValToNSString(context, argv[0]));
+		return YES;
+	}
+	
+	if (argc > 1)
+	{
+		if (!JS_ValueToInt32(context, argv[1], &count) || count < 1)
+		{
+			OOReportJavaScriptError(context, @"Expected spawn count (positive integer), got \"%@\".", JSValToNSString(context, argv[1]));
+			return YES;
+		}
+	}
+	else  count = 1;
+	
+	assert(count > 0);
+	
+	result = [NSMutableArray arrayWithCapacity:count];
+	
+	do
+	{
+		ship = [UNIVERSE spawnShipWithRole:role near:thisEnt];
+		if (ship != nil)
+		{
+			[result addObject:ship];
+		}
+	} while (--count);
+	
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// explode()
+static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	if (thisEnt == (ShipEntity *)[UNIVERSE station])
+	{
+		// Allow exploding of main station (e.g. nova mission)
+		[UNIVERSE unMagicMainStation];
+	}
+	
+	[thisEnt setEnergy:1];
+	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+	
 	return YES;
 }
 

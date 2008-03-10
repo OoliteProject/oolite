@@ -1,6 +1,6 @@
 /*
 
-oolite-cloaking-device.js
+oolite-cloaking-device-mission.js
 
 Script for cloaking device mission.
  

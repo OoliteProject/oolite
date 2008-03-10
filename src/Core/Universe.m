@@ -2457,46 +2457,51 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 }
 
 
-- (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity
+// adds a ship within the collision radius of the other entity
+- (ShipEntity *) spawnShipWithRole:(NSString *) desc near:(Entity *) entity
 {
-	// adds a ship within the collision radius of the other entity
-	if (!entity)
-		return;
-	ShipEntity  *ship;
-	Vector		spawn_pos = entity->position;
-	Quaternion	spawn_q;	quaternion_set_random(&spawn_q);
-	Vector		vf = vector_forward_from_quaternion(spawn_q);
+	if (entity == nil)  return nil;
+	
+	ShipEntity  *ship = nil;
+	Vector		spawn_pos;
+	Quaternion	spawn_q;
 	GLfloat		offset = (randf() + randf()) * entity->collision_radius;
-	spawn_pos.x += offset * vf.x;	spawn_pos.y += offset * vf.y;	spawn_pos.z += offset * vf.z;
+	
+	quaternion_set_random(&spawn_q);
+	spawn_pos = vector_add([entity position], vector_multiply_scalar(vector_forward_from_quaternion(spawn_q), offset));
+	
 	ship = [self newShipWithRole:desc];   // retain count = 1
 	
 	// Deal with scripted cargopods and ensure they are filled with something.
-	if (ship && [ship hasPrimaryRole:@"cargopod"])
+	if ([ship hasPrimaryRole:@"cargopod"])
 	{		
 		NSArray *theCargopod = [self getContainersOfGoods:1 scarce:NO];
 		[ship release]; // We are about to pass to cargopod an already generated object.	
-		ship = [theCargopod objectAtIndex:0];
+		ship = [[theCargopod objectAtIndex:0] retain];
 	}
 	
-	if (ship)
+	if (ship != nil)
 	{
 		if (![ship crew] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		{
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
+		}
 				
 		if (ship->scanClass <= CLASS_NO_DRAW)
+		{
 			[ship setScanClass: CLASS_NEUTRAL];
+		}
 		[ship setPosition:spawn_pos];
 		[ship setOrientation:spawn_q];
 		[self addEntity:ship];
 		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
 		[ship setStatus:STATUS_IN_FLIGHT];
-		if (![ship hasPrimaryRole:@"cargopod"])	// cargopod does not require release due to the way it is created.
-		{
-			[ship release];
-		}	
+		[ship autorelease];
 	}
+	
+	return ship;
 }
 
 
@@ -2525,7 +2530,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		[ring setVelocity:v];
 		[ring setLifetime:i*50.0];
 		[ring setScanClass: CLASS_NO_DRAW];
-		[self addEntity:ring]; // [entities addObject:ring];
+		[self addEntity:ring];
 		breakPatternCounter++;
 		[ring release];
     }
@@ -2667,12 +2672,18 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 }
 
 
+static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
+{
+	return [entity isStation] && !entity->isExplicitlyNotMainStation;
+}
+
+
 - (StationEntity *) station
 {
 	if (cachedStation == nil)
 	{
-		cachedStation = [self findOneEntityMatchingPredicate:HasScanClassPredicate
-												   parameter:[NSNumber numberWithInt:CLASS_STATION]];
+		cachedStation = [self findOneEntityMatchingPredicate:IsCandidateMainStationPredicate
+												   parameter:nil];
 	}
 	return cachedStation;
 }

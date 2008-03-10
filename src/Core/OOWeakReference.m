@@ -162,7 +162,7 @@ This code is hereby placed in the public domain.
 - (id)weakRetain
 {
 	if (weakSelf == nil)  weakSelf = [OOWeakReference weakRefWithObject:self];
-	return [weakSelf retain];
+	return [weakSelf retain];	// Each caller releases this, as -weakRetain must be balanced with -release.
 }
 
 

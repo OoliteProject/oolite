@@ -73,11 +73,7 @@ this.shipDockedWithStation = function ()
 			&& Math.random() < 0.2)
 		{
 			// Show the mission screen.
-			mission.clearMissionScreen();
-			mission.setBackgroundImage("trumblebox.png");
-			mission.showMissionScreen();
-			mission.addMessageTextKey("oolite_trumble_offer");
-			mission.setChoicesKey("oolite_trumble_offer_yesno");
+			mission.runMissionScreen("oolite_trumble_offer", "trumblebox.png", "oolite_trumble_offer_yesno");
 		}
 	}
 }
@@ -91,7 +87,7 @@ this.missionScreenEnded = function ()
 		if (mission.choice == "OOLITE_TRUMBLE_YES")
 		{
 			// Trumble bought.
-			mission.clearMissionScreen();
+			mission.choice = null;
 			missionVariables.trumbles = "TRUMBLE_BOUGHT";
 			player.credits -= 30;
 			player.awardEquipment("EQ_TRUMBLE");
@@ -99,7 +95,7 @@ this.missionScreenEnded = function ()
 		else if (mission.choice == "OOLITE_TRUMBLE_NO")
 		{
 			// Trumble bought.
-			mission.clearMissionScreen();
+			mission.choice = null;
 			missionVariables.trumbles = "NOT_NOW";
 		}
 		// else it was someone else's mission screen, so we do nothing.

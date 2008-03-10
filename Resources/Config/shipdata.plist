@@ -312,7 +312,6 @@
 		ai_type = "pirateAI.plist";
 		bounty = 150;
 		cargo_type = "CARGO_NOT_CARGO";
-		death_actions = ("spawn: cloaking-device 1", "set: mission_cloak COMPLETE");
 		energy_recharge_rate = 4;
 		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
@@ -328,6 +327,7 @@
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
 		roles = "asp-cloaked oolite-asp-cloaked";
+		script = "oolite-cloaking-device-target-ship.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -431,7 +431,7 @@
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 100;
 		max_flight_pitch = 0.1;
@@ -527,7 +527,7 @@
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
 		has_ecm = 0.95;
-		has_escape_pod = 1;
+		has_escape_pod = yes;
 		has_scoop = yes;
 		likely_cargo = 15;
 		max_cargo = 175;
@@ -738,7 +738,7 @@
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 25;
 		max_flight_pitch = 0.5;
@@ -1212,16 +1212,15 @@
 	"constrictor" =
 	{
 		aft_eject_position = "0.0 5.5 -19.0";
-		ai_type = "pirateAI.plist";
+		ai_type = "oolite-constrictor-AI.plist";
 		bounty = 250;
 		cargo_type = "CARGO_NOT_CARGO";
-		death_actions = ("set: mission_conhunt CONSTRICTOR_DESTROYED");
 		energy_recharge_rate = 5;
 		exhaust = ("0.0 0.0 -30.0 18.0 12.0 12.0");
 		forward_weapon_type = "WEAPON_MILITARY_LASER";
 		fuel = 70;
 		has_ecm = yes;
-		has_escape_pod = 1;
+		has_escape_pod = yes;
 		has_fuel_injection = yes;
 		likely_cargo = 3;
 		max_cargo = 15;
@@ -1235,6 +1234,7 @@
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
 		roles = "constrictor oolite-constrictor";
+		script = "oolite-constrictor.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -4.5 -30.0";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1249,7 +1249,7 @@
 		forward_weapon_type = "WEAPON_NONE";
 		frangible = 0;
 		has_ecm = yes;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 25000;
 		max_flight_pitch = 8;
@@ -1308,7 +1308,7 @@
 		forward_weapon_type = "WEAPON_NONE";
 		frangible = 0;
 		has_ecm = yes;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 25000;
 		max_flight_pitch = 8;
@@ -1570,7 +1570,7 @@
 		forward_weapon_type = "WEAPON_NONE";
 		frangible = 0;
 		has_ecm = yes;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 25000;
 		max_flight_pitch = 8;
@@ -2130,7 +2130,7 @@
 		exhaust = ("0.0 0.0 -64.5 12.0 12.0 13.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
-		has_escape_pod = 1;
+		has_escape_pod = yes;
 		has_scoop = yes;
 		likely_cargo = 10;
 		max_cargo = 100;
@@ -2172,7 +2172,7 @@
 		forward_weapon_type = "WEAPON_NONE";
 		frangible = 0;
 		has_ecm = yes;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		"max_defense_ships" = 2;
 		max_energy = 1000;
@@ -2314,7 +2314,7 @@
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
-		has_escape_pod = 0;
+		has_escape_pod = no;
 		has_scoop = no;
 		max_energy = 5;
 		max_flight_pitch = 1;
@@ -2384,7 +2384,6 @@
 		ai_type = "thargoidAI.plist";
 		bounty = 100;
 		cargo_type = "CARGO_NOT_CARGO";
-		death_actions = ("commsMessage: [thargoid_curses]");
 		energy_recharge_rate = 4;
 		forward_weapon_type = "WEAPON_THARGOID_LASER";
 		fuel = 150;
@@ -2402,6 +2401,7 @@
 		roles = "thargoid oolite-thargoid thargoid-mothership";
 		scanClass = "CLASS_THARGOID";
 		scanner_range = 60000;
+		script = "oolite-thargoid-warship.js";
 		thrust = 50;
 	};
 	"transporter" =

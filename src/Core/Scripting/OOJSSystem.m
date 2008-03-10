@@ -78,7 +78,6 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SystemLegacySpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -175,7 +174,6 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "legacy_addShipsAt",		SystemLegacyAddShipsAt,		6 },
 	{ "legacy_addShipsAtPrecisely", SystemLegacyAddShipsAtPrecisely, 6 },
 	{ "legacy_addShipsWithinRadius", SystemLegacyAddShipsWithinRadius, 7 },
-	{ "legacy_spawn",			SystemLegacySpawn,			2 },
 	{ "legacy_spawnShip",		SystemLegacySpawnShip,		1 },
 	{ 0 }
 };
@@ -759,27 +757,6 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 	
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %f", role, count, coordScheme, where.x, where.y, where.z, radius];
 	[player addShipsWithinRadius:arg];
-	
-	return YES;
-}
-
-
-static JSBool SystemLegacySpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*role = nil;
-	int32				count;
-	NSString			*arg = nil;
-	
-	role = JSValToNSString(context, argv[0]);
-	if (!JS_ValueToInt32(context, argv[1], &count) || count < 1 || 64 < count)
-	{
-		OOReportJavaScriptError(context, @"System.%@(): expected positive count, got %@.", @"legacy_spawn", JSValToNSString(context, argv[1]));
-		return YES;
-	}
-	
-	arg = [NSString stringWithFormat:@"%@ %d", role, count];
-	[player spawn:arg];
 	
 	return YES;
 }

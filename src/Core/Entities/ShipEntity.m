@@ -7268,25 +7268,27 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) spawn:(NSString *)roles_number
 {
-	NSArray*	tokens = ScanTokensFromString(roles_number);
-	NSString*   roleString = nil;
-	NSString*	numberString = nil;
-
+	NSArray		*tokens = ScanTokensFromString(roles_number);
+	NSString	*roleString = nil;
+	NSString	*numberString = nil;
+	
 	if ([tokens count] != 2)
 	{
 		OOLog(kOOLogSyntaxAddShips, @"***** Could not spawn: '%@' (must be two tokens, role and number)",roles_number);
 		return;
 	}
-
+	
 	roleString = [tokens stringAtIndex:0];
 	numberString = [tokens stringAtIndex:1];
-
+	
 	int number = [numberString intValue];
-
+	
 	OOLog(kOOLogNoteAddShips, @"Spawning %d x '%@' near %@ %d", number, roleString, name, universalID);
-
-	while (number--)
+	
+	do
+	{
 		[UNIVERSE spawnShipWithRole:roleString near:self];
+	} while (--number);
 }
 
 

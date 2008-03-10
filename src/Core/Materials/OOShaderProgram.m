@@ -185,8 +185,8 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	BOOL					OK = YES;
 	const GLcharARB			*sourceString = NULL;
 	GLint					compileStatus;
-	GLhandleARB				vertexShader;
-	GLhandleARB				fragmentShader;
+	GLhandleARB				vertexShader = NULL_SHADER;
+	GLhandleARB				fragmentShader = NULL_SHADER;
 	
 	OO_ENTER_OPENGL();
 	

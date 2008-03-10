@@ -1,8 +1,8 @@
 /*
 
-oolite-cloaking-device-pod.js
+oolite-cloaking-device-target-ship.js
 
-Ship script for cloaking device cargo pod.
+Ship script for cloaking mission target ship.
 
 
 Oolite
@@ -26,26 +26,14 @@ MA 02110-1301, USA.
 */
 
 
-this.name			= "oolite-cloaking-device-pod";
+this.name			= "oolite-cloaking-device-target-ship";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007 the Oolite team.";
+this.copyright		= "© 2008 the Oolite team.";
 this.version		= "1.71";
 
 
-this.shipWasScooped = function (scooper)
+this.shipDied = function ()
 {
-	if (scooper == player)
-	{
-		if (!player.hasEquipment("EQ_CLOAKING_DEVICE"))
-		{
-			player.awardEquipment("EQ_CLOAKING_DEVICE")
-			// Should we make it possible to buy a replacement?
-			// missionVariables.TL_FOR_EQ_CLOAKING_DEVICE = 14
-		}
-		else
-		{
-			player.awardCargo("Gold", 100)
-		}
-	}
-	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.
+	this.spawn("cloaking-device");
+	missionVariables.cloak = "COMPLETE";
 }

@@ -962,10 +962,10 @@
 	"human-colonial-description-plural" = "Human Colonials";
 	"clock-format"					= "%07d:%02d:%02d:%02d";
 	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
-	"danger-fuel-leak"			= "Danger! Fuel leak!";
-	"legal-desc-alien"			= "Alien";
+	"danger-fuel-leak"				= "Danger! Fuel leak!";
+	"legal-desc-alien"				= "Alien";
 	"legal-desc-system-vessel"		= "System Vessel";
-	"legal-desc-military-vessel"		= "Military Vessel";
+	"legal-desc-military-vessel"	= "Military Vessel";
 	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
 	
 	
@@ -1014,5 +1014,8 @@
 	
 	//autosave filename
 	"autosave-commander-name"		= "autosave";
-
+	
+	// Nova mission strings
+	"oolite-nova-coward"			= "Coward! You chose not to help the refugees!";
+	"oolite-nova-refugees"			= "A hold full of %I refugees.";
 }

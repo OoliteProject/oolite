@@ -290,7 +290,7 @@ enum
 - (BOOL) addShips:(int) howMany withRole:(NSString *) desc intoBoundingBox:(BoundingBox) bbox;
 - (BOOL) spawnShip:(NSString *) shipdesc;
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role;
-- (void) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
+- (ShipEntity *) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 

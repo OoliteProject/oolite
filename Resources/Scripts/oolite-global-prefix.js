@@ -45,6 +45,31 @@ this.version		= "1.71";
 this.global = (function () { return this; } ).call();
 
 
+/**** Utilities, not intended to be retired ****/
+
+// Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
+Ship.__proto__.spawnOne = function (role)
+{
+	let result = this.spawn(role, 1);
+	if (result)  return result[0];
+	else  return null;
+}
+
+
+// mission.runMissionScreen(): one-shot mission screen, until we get a proper MissionScreen class.
+mission.runMissionScreen = function (messageKey, backgroundImage, choiceKey, shipKey, musicKey)
+{
+	mission.showShipModel(shipKey);
+	mission.setMusic(musicKey);
+	mission.setBackgroundImage(backgroundImage);
+	mission.showMissionScreen();
+	mission.addMessageTextKey(messageKey);
+	if (choiceKey)  mission.setChoicesKey(choiceKey);
+	mission.setBackgroundImage();
+	mission.setMusic();
+}
+
+
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
 
 // Define a function that is an alias for another function.
@@ -115,6 +140,12 @@ mission.resetMissionChoice = function()
 {
 	special.jsWarning("mission.resetMissionChoice() is deprecated, use mission.choice = null instead.");
 	this.choice = null;
+}
+
+
+system.legacy_spawn = function()
+{
+	special.jsWarning("system.legacy_spawn() is deprecated (and never worked), use Ship.spawn() instead.");
 }
 
 

@@ -24,8 +24,21 @@
 				</array>
 				<key>do</key>
 				<array>
+					<dict>
+						<key>conditions</key>
+						<array>
+							<string>gui_screen_string notequal GUI_SCREEN_MISSION</string>
+						</array>
+						<key>do</key>
+						<array>
+							<string>setMissionMusic: none</string>
+							<string>setMissionImage: none</string>
+							<string>showShipModel: none</string>
+							<string>setGuiToMissionScreen</string>
+						</array>
+					</dict>
 					<string>awardCredits: 1000</string>
-					<string>addMissionText: conhunt-thief-captured</string><!-- missiontext key -->
+					<string>addMissionText: conhunt-thief-captured</string>
 				</array>
 			</dict>
 		</array>

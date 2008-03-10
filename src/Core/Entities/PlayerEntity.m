@@ -3174,7 +3174,7 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-- (int)launchEscapeCapsule
+- (OOUniversalID)launchEscapeCapsule
 {
 	ShipEntity		*doppelganger = nil;
 	ShipEntity		*escapePod = nil;
