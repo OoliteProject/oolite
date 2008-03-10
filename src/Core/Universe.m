@@ -911,9 +911,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		[a_planet setOrientation:q_sun];
 		
 		vf = vector_right_from_quaternion(q_sun);
-		sunPos.x -= sun_distance * vf.x;	// back off from the planet by 16..24 pr
-		sunPos.y -= sun_distance * vf.y;
-		sunPos.z -= sun_distance * vf.z;
+		sunPos = vector_subtract(sunPos, vector_multiply_scalar(vf, sun_distance)); // back off from the planet by 16..24 pr
 	
 	} while (magnitude2(sunPos) < 16 * sun_radius * sun_radius);	// stay at least 4 radii away!
 	
@@ -937,8 +935,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		[a_sun setThrowSparks:YES];
 		[a_sun setVelocity: kZeroVector];
 	}
-	/*--*/
-		
 	
 	/*- space station -*/
 	stationPos = a_planet->position;
@@ -950,9 +946,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		quaternion_set_random(&q_station);
 		vf = vector_forward_from_quaternion(q_station);
 	}
-	stationPos.x -= station_orbit * vf.x;					// back away from the planet
-	stationPos.y -= station_orbit * vf.y;
-	stationPos.z -= station_orbit * vf.z;
+	stationPos = vector_subtract(stationPos, vector_multiply_scalar(vf, station_orbit));
 	
 	defaultStationDesc = @"coriolis";
 	if (techlevel > 10)
@@ -1021,8 +1015,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
 	if (nav_buoy)
 	{
-		[nav_buoy setRoll:	0.10];	// zero for debugging
-		[nav_buoy setPitch:	0.15];	// zero for debugging
+		[nav_buoy setRoll:	0.10];
+		[nav_buoy setPitch:	0.15];
 		[nav_buoy setPosition: [cachedStation getBeaconPosition]];
 		[nav_buoy setScanClass: CLASS_BUOY];
 		[self addEntity:nav_buoy];
@@ -1177,16 +1171,24 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 
 - (void) populateSpaceFromActiveWormholes
 {
+	NSAutoreleasePool	*pool = nil;
+	
 	while ([activeWormholes count])
 	{
-		WormholeEntity* whole = (WormholeEntity*)[activeWormholes objectAtIndex:0];
-		
-		if (equal_seeds([whole destination], system_seed))
-		{			
-			// this is a wormhole to this system
-			[whole disgorgeShips];
-		}
-		[activeWormholes removeObjectAtIndex:0];	// empty it out
+		pool = [[NSAutoreleasePool alloc] init];
+		NS_DURING
+			WormholeEntity* whole = [activeWormholes objectAtIndex:0];
+			
+			if (equal_seeds([whole destination], system_seed))
+			{			
+				// this is a wormhole to this system
+				[whole disgorgeShips];
+			}
+			[activeWormholes removeObjectAtIndex:0];	// empty it out
+		NS_HANDLER
+			OOLog(kOOLogException, @"Squashing exception during wormhole unpickling (%@: %@).", [localException name], [localException reason]);
+		NS_ENDHANDLER
+		[pool release];
 	}
 }
 

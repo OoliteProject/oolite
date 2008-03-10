@@ -125,6 +125,12 @@ BOOL IsShipPredicate(Entity *entity, void *parameter)
 }
 
 
+BOOL IsStationPredicate(Entity *entity, void *parameter)
+{
+	return [entity isStation];
+}
+
+
 BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 {
 	if (entity->isPlanet)

@@ -689,7 +689,8 @@ BOOL	class_masslocks(int some_class);
 - (void) doScriptEvent:(NSString *)message withArgument:(id)argument1 andArgument:(id)argument2;
 - (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
 
-- (void) reactToAIMessage:(NSString *)message;
+- (void) reactToAIMessage:(NSString *)message;	// Immediate message
+- (void) sendAIMessage:(NSString *)message;		// Queued message
 - (void) doScriptEvent:(NSString *)scriptEvent andReactToAIMessage:(NSString *)aiMessage;
 - (void) doScriptEvent:(NSString *)scriptEvent withArgument:(id)argument andReactToAIMessage:(NSString *)aiMessage;
 

@@ -62,6 +62,14 @@ SOFTWARE.
 BOOL		gSkyWireframe = NO;
 
 
+/*	Min and max coords are 0 and 1 normally, but the default
+	sky-render-inset-coords can be used to modify them slightly as an attempted
+	work-around for artefacts on buggy S3/Via renderers.
+*/
+static float sMinTexCoord = 0.0f, sMaxTexCoord = 1.0f;
+static BOOL sInited = NO;
+
+
 /*	Struct used to describe quads initially. This form is optimized for
 	reasoning about.
 */
@@ -143,6 +151,16 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			   scale:(float)nebulaScale
 {
 	NSAutoreleasePool		*pool = nil;
+	
+	if (!sInited)
+	{
+		sInited = YES;
+		if ([[NSUserDefaults standardUserDefaults] boolForKey:@"sky-render-inset-coords"])
+		{
+			sMinTexCoord += 1.0f/128.0f;
+			sMaxTexCoord -= 1.0f/128.0f;
+		}
+	}
 	
     self = [super init];
 	if (self == nil)  return nil;
@@ -565,17 +583,17 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 				}
 				
 				// Texture co-ordinates are the same for each quad.
-				*tc++ = 0.0f;
-				*tc++ = 0.0f;
+				*tc++ = sMinTexCoord;
+				*tc++ = sMinTexCoord;
 				
-				*tc++ = 1.0f;
-				*tc++ = 0.0f;
+				*tc++ = sMaxTexCoord;
+				*tc++ = sMinTexCoord;
 				
-				*tc++ = 1.0f;
-				*tc++ = 1.0f;
+				*tc++ = sMaxTexCoord;
+				*tc++ = sMaxTexCoord;
 				
-				*tc++ = 0.0f;
-				*tc++ = 1.0f;
+				*tc++ = sMinTexCoord;
+				*tc++ = sMaxTexCoord;
 				
 				count++;
 			}

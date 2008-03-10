@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
+#import "OOEntityFilterPredicate.h"
 
 #import "OODebugGLDrawing.h"
 
@@ -7011,42 +7012,21 @@ int w_space_seed = 1234567;
 
 - (void) abortDocking
 {
-	if (!UNIVERSE)
-		return;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	int i;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isStation)
-			[(StationEntity *)uni_entities[i] abortDockingForShip:self];	// action
+	[[UNIVERSE findEntitiesMatchingPredicate:IsStationPredicate
+								   parameter:nil
+									 inRange:-1
+									ofEntity:nil]
+			makeObjectsPerformSelector:@selector(abortDockingForShip:) withObject:self];
 }
 
 
 - (void) broadcastThargoidDestroyed
 {
-	/*-- Locates all tharglets in range and tells them you've gone --*/
-	if (!UNIVERSE)
-		return;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int ship_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isShip)
-			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
-	//
-	double d2;
-	double found_d2 = SCANNER_MAX_RANGE2;
-	for (i = 0; i < ship_count ; i++)
-	{
-		ShipEntity* ship = (ShipEntity *)my_entities[i];
-		d2 = distance2(position, ship->position);
-		if ((d2 < found_d2)&&([ship hasPrimaryRole:@"tharglet"]))
-			[[ship getAI] message:@"THARGOID_DESTROYED"];
-	}
-	for (i = 0; i < ship_count; i++)
-		[my_entities[i] release];		//	released
+	[[UNIVERSE findShipsMatchingPredicate:HasRolePredicate
+							   parameter:@"tharglet"
+								 inRange:SCANNER_MAX_RANGE2
+								ofEntity:self]
+			makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"THARGOID_DESTROYED"];
 }
 
 
@@ -7585,6 +7565,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) reactToAIMessage:(NSString *)message
 {
 	[shipAI reactToMessage:message];
+}
+
+
+- (void) sendAIMessage:(NSString *)message
+{
+	[shipAI message:message];	
 }
 
 
