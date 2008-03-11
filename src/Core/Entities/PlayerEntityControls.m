@@ -305,8 +305,12 @@ static NSTimeInterval	time_last_frame;
 		{
 			if ([gui setNextRow: +1])
 			{
-				[gui click];
+				[self playMenuNavigationDown];
 				result = YES;
+			}
+			else
+			{
+				[self playMenuNavigationNot];
 			}
 			timeLastKeyPress = script_time;
 		}
@@ -318,8 +322,12 @@ static NSTimeInterval	time_last_frame;
 		{
 			if ([gui setNextRow: -1])
 			{
-				[gui click];
+				[self playMenuNavigationUp];
 				result = YES;
+			}
+			else
+			{
+				[self playMenuNavigationNot];
 			}
 			timeLastKeyPress = script_time;
 		}
@@ -570,8 +578,7 @@ static NSTimeInterval	time_last_frame;
 						hyperspeed_engaged = !hyperspeed_locked;
 						if (hyperspeed_locked)
 						{
-							if (![UNIVERSE playCustomSound:@"[jump-mass-locked]"])
-								[self boop];
+							[self playJumpMassLocked];
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:1.5];
 						}
 					}
@@ -619,7 +626,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasExtraEquipment:@"EQ_MULTI_TARGET"]))
 				{
-					[[UNIVERSE gui] click];
+					[self playNextMissileSelected];
 					[self selectNextMissile];
 				}
 				next_missile_pressed = YES;
@@ -632,13 +639,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((!next_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
 				{
-					if ([self selectNextTargetFromMemory])
-						[[UNIVERSE gui] click];
-					else
-					{
-						if (![UNIVERSE playCustomSound:@"[no-target-in-memory]"])
-							[self boop];
-					}
+					[self moveTargetMemoryBy:+1];
 				}
 				next_target_pressed = YES;
 			}
@@ -650,13 +651,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if ((!previous_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
 				{
-					if ([self selectPreviousTargetFromMemory])
-						[[UNIVERSE gui] click];
-					else
-					{
-						if (![UNIVERSE playCustomSound:@"[no-target-in-memory]"])
-							[self boop];
-					}
+					[self moveTargetMemoryBy:-1];
 				}
 				previous_target_pressed = YES;
 			}
@@ -672,8 +667,7 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					primaryTarget = NO_TARGET;
 					ident_engaged = YES;
-					if (![UNIVERSE playCustomSound:@"[ident-on]"])
-						[self beep];
+					[self playIdentOn];
 					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-on]") forCount:2.0];
 				}
 				ident_pressed = YES;
@@ -695,8 +689,7 @@ static NSTimeInterval	time_last_frame;
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
 							[self printIdentLockedOnForMissile:YES];
-							if (![UNIVERSE playCustomSound:@"[missile-locked-on]"])
-								[self beep];
+							[self playMissileLockedOn];
 						}
 					}
 					else
@@ -707,15 +700,13 @@ static NSTimeInterval	time_last_frame;
 							if (missile_entity[activeMissile])
 								[missile_entity[activeMissile] removeTarget:nil];
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-armed]") forCount:2.0];
-							if (![UNIVERSE playCustomSound:@"[missile-armed]"])
-								[self beep];
+							[self playMissileArmed];
 						}
 					}
 					if ([missile_entity[activeMissile] isMine])
 					{
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
-						if (![UNIVERSE playCustomSound:@"[mine-armed]"])
-							[self beep];
+						[self playMineArmed];
 					}
 					ident_engaged = NO;
 				}
@@ -735,8 +726,7 @@ static NSTimeInterval	time_last_frame;
 						missile_status = MISSILE_STATUS_SAFE;
 						primaryTarget = NO_TARGET;
 						[self safeAllMissiles];
-						if (![UNIVERSE playCustomSound:@"[missile-safe]"])
-							[self boop];
+						[self playMissileSafe];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-safe]") forCount:2.0];
 					}
 					else
@@ -744,8 +734,7 @@ static NSTimeInterval	time_last_frame;
 						// targetting 'back on' here
 						primaryTarget = [missile_entity[activeMissile] primaryTargetID];
 						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
-						if (![UNIVERSE playCustomSound:@"[ident-off]"])
-							[self boop];
+						[self playIdentOff];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-off]") forCount:2.0];
 					}
 					ident_engaged = NO;
@@ -786,11 +775,7 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 'd'   // Dump Cargo
 			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON])&&([cargo count] > 0))
 			{
-				if ([self dumpCargo] != CARGO_NOT_CARGO)
-				{
-					if (![UNIVERSE playCustomSound:@"[cargo-jettisoned]"])
-						[self beep];
-				}
+				[self dumpCargo];
 			}
 			
 			//  shoot 'R'   // Rotate Cargo
@@ -816,8 +801,7 @@ static NSTimeInterval	time_last_frame;
 						if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
 						{
 							isOkayToUseAutopilot = NO;
-							if (![UNIVERSE playCustomSound:@"[autopilot-out-of-range]"])
-								[self boop];
+							[self playAutopilotOutOfRange];
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
 						}
 					}
@@ -832,8 +816,7 @@ static NSTimeInterval	time_last_frame;
 						velocity = kZeroVector;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
-						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
-							[self beep];
+						[self playAutopilotOn];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
@@ -868,8 +851,7 @@ static NSTimeInterval	time_last_frame;
 						velocity = kZeroVector;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// restart the AI
-						if (![UNIVERSE playCustomSound:@"[autopilot-on]"])
-							[self beep];
+						[self playAutopilotOn];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
@@ -884,8 +866,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						if (![UNIVERSE playCustomSound:@"[autopilot-cannot-dock-with-target]"])
-							[self boop];
+						[self playAutopilotCannotDockWithTarget];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"Target is not capable of autopilot-docking") forCount:4.5];
 					}
 				}
@@ -915,7 +896,7 @@ static NSTimeInterval	time_last_frame;
 								{
 									// there's a slight chance you'll be fined for your past offences when autodocking
 									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-									int government = 1 + [(NSNumber *)[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];	// 1..8
+									int government = 1 + [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];	// 1..8
 									fine_chance /= government;
 									if (fine_chance < legalStatus)
 										[self markForFines];
@@ -930,8 +911,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						if (![UNIVERSE playCustomSound:@"[autopilot-out-of-range]"])
-							[self boop];
+						[self playAutopilotOutOfRange];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
 					}
 				}
@@ -952,8 +932,7 @@ static NSTimeInterval	time_last_frame;
 					
 					if ((dx == 0) && (dy == 0) && equal_seeds(target_system_seed, system_seed))
 					{
-						if (![UNIVERSE playCustomSound:@"[witch-no-target]"])
-							[self boop];
+						[self playHyperspaceNoTarget];
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-target]") forCount:3.0];
 						jumpOK = NO;
@@ -961,8 +940,7 @@ static NSTimeInterval	time_last_frame;
 					
 					if ((10.0 * distance > fuel)||(fuel == 0))
 					{
-						if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
-							[self boop];
+						[self playHyperspaceNoFuel];
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount:3.0];
 						jumpOK = NO;
@@ -971,18 +949,10 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
-#if 0
-						// FIXME: should use an OOSoundSource.
-						if (galactic_witchjump)
-							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
-						else
-							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
-#endif
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-aborted]"])
-							[self boop];
+						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
@@ -995,8 +965,7 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = NO;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-begun]"])
-							[self beep];
+						[self playStandardHyperspace];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
@@ -1019,18 +988,10 @@ static NSTimeInterval	time_last_frame;
 					if (status == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
-#if 0
-						// FIXME: should use an OOSoundSource.
-						if (galactic_witchjump)
-							[UNIVERSE stopCustomSound:@"[galactic-hyperspace-countdown-begun]"];
-						else
-							[UNIVERSE stopCustomSound:@"[hyperspace-countdown-begun]"];
-#endif
 						jumpOK = NO;
 						galactic_witchjump = NO;
 						status = STATUS_IN_FLIGHT;
-						if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-aborted]"])
-							[self boop];
+						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
@@ -1043,9 +1004,7 @@ static NSTimeInterval	time_last_frame;
 						galactic_witchjump = YES;
 						witchspaceCountdown = 15.0;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
-						if (![UNIVERSE playCustomSound:@"[galactic-hyperspace-countdown-begun]"])
-							if (![UNIVERSE playCustomSound:@"[hyperspace-countdown-begun]"])
-								[self beep];
+						[self playGalacticHyperspace];
 						// say it!
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
 						
@@ -1065,25 +1024,21 @@ static NSTimeInterval	time_last_frame;
 					if (!cloaking_device_active)
 					{
 						if ([self activateCloakingDevice])
+						{
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-on]") forCount:2];
+							[self playCloakingDeviceOn];
+						}
 						else
+						{
 							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-low-juice]") forCount:3];
+							[self playCloakingDeviceInsufficientEnergy];
+						}
 					}
 					else
 					{
 						[self deactivateCloakingDevice];
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-off]") forCount:2];
-					}
-					
-					if (cloaking_device_active)
-					{
-						if (![UNIVERSE playCustomSound:@"[cloaking-device-on]"])
-							[self beep];
-					}
-					else
-					{
-						if (![UNIVERSE playCustomSound:@"[cloaking-device-off]"])
-							[self boop];
+						[self playCloakingDeviceOff];
 					}
 				}
 				cloak_pressed = YES;
@@ -1560,7 +1515,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START] hasPrefix:@"More:"])
 					{
-						[gui click];
+						[self playMenuPagePrevious];
 						[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 						[self buySelectedItem];
 					}
@@ -1573,7 +1528,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1] hasPrefix:@"More:"])
 					{
-						[gui click];
+						[self playMenuPageNext];
 						[gui setSelectedRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1];
 						[self buySelectedItem];
 					}
@@ -1614,9 +1569,13 @@ static NSTimeInterval	time_last_frame;
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
 							if ([self tryBuyingCommodity:item])
+							{
 								[self setGuiToMarketScreen];
+							}
 							else
-								[self boop];
+							{
+								[self playCantBuyBuyCommodity];
+							}
 							wait_for_key_up = YES;
 						}
 					}
@@ -1626,9 +1585,13 @@ static NSTimeInterval	time_last_frame;
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
 							if ([self trySellingCommodity:item])
+							{
 								[self setGuiToMarketScreen];
+							}
 							else
-								[self boop];
+							{
+								[self playCantBuyBuyCommodity];
+							}
 							wait_for_key_up = YES;
 						}
 					}
@@ -1642,13 +1605,13 @@ static NSTimeInterval	time_last_frame;
 						if (!wait_for_key_up)
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
-							int yours =		[(NSNumber *)[(NSArray *)[shipCommodityData objectAtIndex:item] objectAtIndex:1] intValue];
+							int yours =		[[shipCommodityData arrayAtIndex:item] intAtIndex:1];
 							if ((yours > 0)&&(![self marketFlooded:item]))  // sell all you can
 							{
 								int i;
 								for (i = 0; i < yours; i++)
 									[self trySellingCommodity:item];
-								[self playInterfaceBeep:kInterfaceBeep_Sell];
+								[self playSellCommodity];
 								[self setGuiToMarketScreen];
 							}
 							else			// buy as much as possible
@@ -1659,11 +1622,11 @@ static NSTimeInterval	time_last_frame;
 								[self setGuiToMarketScreen];
 								if (amount_bought == 0)
 								{
-									[self boop];
+									[self playCantBuyBuyCommodity];
 								}
 								else
 								{
-									[self playInterfaceBeep:kInterfaceBeep_Buy];
+									[self playBuyCommodity];
 								}
 							}
 							wait_for_key_up = YES;
@@ -1691,12 +1654,12 @@ static NSTimeInterval	time_last_frame;
 					{
 						if ([self pickFromGuiContractsScreen])
 						{
-							[self playInterfaceBeep:kInterfaceBeep_Buy];
+							[self playBuyCommodity];
 							[self setGuiToContractsScreen];
 						}
 						else
 						{
-							[self boop];
+							[self playCantBuyBuyCommodity];
 						}
 					}
 					selectPressed = YES;
@@ -1724,7 +1687,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!spacePressed)
 				{
-					[gui click];
+					[self playDismissedReportScreen];
 					[self setGuiToStatusScreen];
 				}
 				spacePressed = YES;
@@ -1745,7 +1708,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:GUI_ROW_SHIPYARD_START] hasPrefix:@"More:"])
 					{
-						[gui click];
+						[self playMenuPagePrevious];
 						[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 						[self buySelectedShip];
 					}
@@ -1758,7 +1721,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1] hasPrefix:@"More:"])
 					{
-						[gui click];
+						[self playMenuPageNext];
 						[gui setSelectedRow:GUI_ROW_SHIPYARD_START + MAX_ROWS_SHIPS_FOR_SALE - 1];
 						[self buySelectedShip];
 					}
@@ -1777,18 +1740,18 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (money == credits)	// we just skipped to another page
 						{
-							[gui click];
+							[self playCantBuyBuyShip];
 						}
 						else
 						{
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];
-							[self playInterfaceBeep: kInterfaceBeep_Buy];
+							[self playBuyShip];
 						}
 					}
 					else
 					{
-						[self boop];
+						[self playCantBuyBuyCommodity];
 					}
 				}
 				selectPressed = YES;
@@ -1881,7 +1844,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		
-		[gui click];
+		[self playChangedOption];
 		[gui setText:displayModeString	forRow:GUI_ROW_GAMEOPTIONS_DISPLAY  align:GUI_ALIGN_CENTER];
 		switching_resolution = YES;
 	}
@@ -1895,7 +1858,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
-			[gui click];
+			[self playChangedOption];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
 		if (isSpeechOn)
 			[gui setText:DESC(@"gameoptions-spoken-messages-yes")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
@@ -1909,7 +1872,7 @@ static NSTimeInterval	time_last_frame;
 		// FIXME: Music mode UI
 		/*GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
-			[gui click];
+			[self playChangedOption];
 		ootunes_on = [gameView isDown:gvArrowKeyRight];
 		if (ootunes_on)
 			[gui setText:DESC(@"gameoptions-itunes-yes")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
@@ -1921,7 +1884,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE autoSave])
-			[gui click];
+			[self playChangedOption];
 		[UNIVERSE setAutoSave:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE autoSave])
 			[gui setText:DESC(@"gameoptions-autosave-yes")	forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE  align:GUI_ALIGN_CENTER];
@@ -1943,7 +1906,7 @@ static NSTimeInterval	time_last_frame;
 			if (volume > 100) volume = 100;
 			if (volume < 0) volume = 0;
 			[OOSound setMasterVolume: 0.01 * volume];
-			[gui click];
+			[self playChangedOption];
 			if (volume > 0)
 			{
 				NSString* soundVolumeWordDesc = DESC(@"gameoptions-sound-volume");
@@ -1989,7 +1952,7 @@ static NSTimeInterval	time_last_frame;
 				NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
 				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
 								forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
-				[gui click];
+				[self playChangedOption];
 				[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
 			}
 			timeLastKeyPress = script_time;
@@ -2004,7 +1967,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE wireframeGraphics])
-			[gui click];
+			[self playChangedOption];
 		[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE wireframeGraphics])
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
@@ -2016,7 +1979,7 @@ static NSTimeInterval	time_last_frame;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE reducedDetail])
-			[gui click];
+			[self playChangedOption];
 		[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE reducedDetail])
 			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
@@ -2536,8 +2499,7 @@ static BOOL toggling_music;
 			autopilot_engaged = NO;
 			primaryTarget = NO_TARGET;
 			status = STATUS_IN_FLIGHT;
-			if (![UNIVERSE playCustomSound:@"[autopilot-off]"])
-				[self beep];
+			[self playAutopilotOff];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
 			[self doScriptEvent:@"playerCancelledAutoPilot"];
 			
@@ -2690,7 +2652,11 @@ static BOOL toggling_music;
 					{
 						if ([gui setSelectedRow:guiSelectedRow + 1])
 						{
-							[gui click];
+							[self playMenuNavigationDown];
+						}
+						else
+						{
+							[self playMenuNavigationNot];
 						}
 						timeLastKeyPress = script_time;
 					}
@@ -2701,7 +2667,11 @@ static BOOL toggling_music;
 					{
 						if ([gui setSelectedRow:guiSelectedRow - 1])
 						{
-							[gui click];
+							[self playMenuNavigationUp];
+						}
+						else
+						{
+							[self playMenuNavigationNot];
 						}
 						timeLastKeyPress = script_time;
 					}
@@ -2718,6 +2688,7 @@ static BOOL toggling_music;
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
 						[[OOMusicController sharedController] stopMissionMusic];
+						[self playDismissedMissionScreen];
 						
 						[self doScriptEvent:@"missionScreenEnded"];
 						[self checkScript];

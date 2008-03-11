@@ -295,6 +295,9 @@
 	sky.setup								= no;
 	
 	
+	sounds.customSounds.recursion			= $error;				// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
+	
+	
 	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
 	strings.conversion.vector				= inherit;
 	strings.conversion.quaternion			= inherit;

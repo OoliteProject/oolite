@@ -550,14 +550,14 @@
 	);
 	"station-hold-position" =
 	(
-		"Please be patient - you are being held in a docking queue.",
+		"Please be patient – you are being held in a docking queue.",
 		"Docking sequence will recommence shortly. Thank you for your patience.",
 		"Traffic is heavy, please continue to hold until we can clear an approach for you.",
 		"You are being queued for docking. Thank you for your patience."
 	);
 	"station-acknowledges-hold-position" =
 	(
-		"Please be patient - we are preparing to accommodate your vessel.",
+		"Please be patient – we are preparing to accommodate your vessel.",
 		"Docking sequence will recommence shortly. Thank you for waiting.",
 		"We are preparing an approach for you. Please wait.",
 		"Preparing approach for docking. Thank you for your patience.",
@@ -746,7 +746,7 @@
 	"press-space-commander"			= "Press Space Commander";
 	
 	// Intro1 screen
-	"game-copyright"				= "by Giles Williams and contributors © 2003-2008";
+	"game-copyright"				= "by Giles Williams and contributors © 2003–2008";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
 	"load-previous-commander-yes"		= "y"; // Defines the key that corresponds to the yes answer to load-previous-commnader.
@@ -940,9 +940,9 @@
 	"savescreen-commander-name-@"	= "Commander name: %@";
 	"savescreen-commander-name"		= "Commander name: ";
 	"overwrite-save-commander-@"	= "Save Commander %@";
-	"overwritescreen-commander-@-already-exists-overwrite-query" = "Commander %@ already exists - overwrite this saved game?";
-	"overwritescreen-yes"			= " YES ";
-	"overwritescreen-no"			= " NO ";
+	"overwritescreen-commander-@-already-exists-overwrite-query" = "A file named %@ already exists. Do you wish to overwrite it?";
+	"overwritescreen-yes"			= " Overwrite ";
+	"overwritescreen-no"			= " Cancel ";
 	
 	// Mission screen
 	"mission-information"			= "Mission Information";
@@ -957,7 +957,7 @@
 	"adjusting-word"				= " (adjusting)";
 	"strict-play-enabled"			= "Strict Play Enabled";
 	"unrestricted-play-enabled"		= "Unrestricted Play Enabled";
-	"human-word"					= "human"; // Important - only lower case characters here!
+	"human-word"					= "human"; // Important – only lower case characters here!
 	"human-colonial-description"	= "Human Colonial";
 	"human-colonial-description-plural" = "Human Colonials";
 	"clock-format"					= "%07d:%02d:%02d:%02d";

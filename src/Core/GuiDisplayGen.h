@@ -71,8 +71,6 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	BOOL			showAdvancedNavArray;
 	
 	NSSize			pixel_title_size;
-	
-	OOSound			*guiclick;
 
 	OOColor			*backgroundColor;
 	OOColor			*textColor;
@@ -148,8 +146,6 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setTextColor:(OOColor*) color;
 
 - (void) setCharacterSize:(NSSize) character_size;
-
-- (void) click;
 
 - (void)setShowAdvancedNavArray:(BOOL)inFlag;
 

@@ -80,9 +80,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		tabStops[i] = stops[i];
 	}
 	
-	title = @"Test Page";
-	
-	guiclick =  [[ResourceManager ooSoundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
+	title = @"";
 	
 	textColor = [[OOColor yellowColor] retain];
 	
@@ -131,8 +129,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	
 	title = [gui_title retain];
-	
-	guiclick =  [[ResourceManager ooSoundNamed:@"guiclick.ogg" inFolder:@"Sounds"] retain];
 	
 	textColor = [[OOColor yellowColor] retain];
 
@@ -325,12 +321,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) setCharacterSize:(NSSize) character_size
 {
 	pixel_text_size = character_size;
-}
-
-
-- (void) click
-{
-	[guiclick play];
 }
 
 

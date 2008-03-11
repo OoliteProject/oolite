@@ -4547,20 +4547,16 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (OOUniversalID) getFirstEntityTargettedByPlayer:(PlayerEntity*) player
+- (ShipEntity *)getFirstEntityTargettedByPlayer
 {
-	if ((!player)||(!player->isPlayer))
-		return NO_TARGET;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	ShipEntity		*hit_entity = nil;
+	double			nearest = SCANNER_MAX_RANGE - 10;	// 10m shorter than range at which target is lost
+	int				i;
+	int				ent_count = n_entities;
+	int				ship_count = 0;
+	Entity			*my_entities[ent_count];
 	
-	ShipEntity*	hit_entity = nil;
-	
-	int		result = NO_TARGET;
-	double  nearest = SCANNER_MAX_RANGE - 10;	// 10m shorter than range at which target is lost
-	int i;
-	
-	int ent_count = n_entities;
-	int ship_count = 0;
-	Entity* my_entities[ent_count];
 	for (i = 0; i < ent_count; i++)
 		if ((sortedEntities[i]->isShip)&&(sortedEntities[i] != player))
 			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
@@ -4617,16 +4613,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		}
 	}
 	// check for MASC'M
-	if ((hit_entity) && [hit_entity isJammingScanning] && (![player hasMilitaryScannerFilter]))
+	if ((hit_entity) && [hit_entity isJammingScanning] && ![player hasMilitaryScannerFilter])
 		hit_entity = nil;
-	
-	if (hit_entity)
-		result = [hit_entity universalID];
 	
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released
 	
-	return result;
+	return hit_entity;
 }
 
 
@@ -4923,14 +4916,16 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			mouseDelta = NO;
 			break;
 	}
-#ifdef GNUSTEP
+#if OOLITE_SDL
 	[gameView setMouseInDeltaMode: mouseDelta];
 #endif
 	if ((viewDirection != vd)|(viewDirection = VIEW_CUSTOM))
 	{
 		viewDirection = vd;
 		if (ms)
+		{
 			[self addMessage:ms forCount:3];
+		}
 	}
 }
 
@@ -4943,7 +4938,35 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) soundNameForCustomSoundKey:(NSString *)key;
 {
-	return [customsounds stringForKey:key];
+	NSString				*result = nil;
+	NSMutableSet			*seen = nil;
+	
+	result = [[OOCacheManager sharedCache] objectForKey:key inCache:@"resolved custom sounds"];
+	if (result == nil)
+	{
+		// Resolve sound, allowing indirection within customsounds.plist
+		seen = [NSMutableSet set];
+		result = key;
+		for (;;)
+		{
+			[seen addObject:result];
+			result = [customsounds objectForKey:result];
+			if (result == nil || ![result hasPrefix:@"["] || ![result hasSuffix:@"]"])  break;
+			if ([seen containsObject:result])
+			{
+				OOLog(@"sounds.customSounds.recursion", @"***** ERROR: recursion in customsounds.plist for %@ (at %@), no sound will be played.", key, result);
+				result = nil;
+				break;
+			}
+		}
+		
+		if (result == nil)  result = @"__oolite-no-sound";
+		
+		[[OOCacheManager sharedCache] setObject:result forKey:key inCache:@"resolved custom sounds"];
+	}
+	
+	if ([result isEqualToString:@"__oolite-no-sound"])  result = nil;
+	return result;
 }
 
 

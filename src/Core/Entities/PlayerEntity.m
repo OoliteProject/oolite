@@ -1587,8 +1587,7 @@ double scoopSoundPlayTime = 0.0;
 				if (!suppressTargetLost)
 				{
 					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
-					if (![UNIVERSE playCustomSound:@"[target-lost]"])
-						[self boop];
+					[self playTargetLost];
 				}
 				else
 				{
@@ -1615,8 +1614,7 @@ double scoopSoundPlayTime = 0.0;
 			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
 			{
 				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
-				if (![UNIVERSE playCustomSound:@"[target-lost]"])
-					[self boop];
+				[self playTargetLost];
 				[missile_entity[i] removeTarget:nil];
 				if ((i == activeMissile)&&(!ident_engaged))
 				{
@@ -1627,31 +1625,12 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 
-	if ((missile_status == MISSILE_STATUS_ARMED)&&(ident_engaged||[missile_entity[activeMissile] isMissile])&&((status == STATUS_IN_FLIGHT)||(status == STATUS_WITCHSPACE_COUNTDOWN)))
+	if (missile_status == MISSILE_STATUS_ARMED &&
+		(ident_engaged || [missile_entity[activeMissile] isMissile]) &&
+		(status == STATUS_IN_FLIGHT || status == STATUS_WITCHSPACE_COUNTDOWN))
 	{
-		int first_target_id = [UNIVERSE getFirstEntityTargettedByPlayer:self];
-		if (first_target_id != NO_TARGET)
-		{
-			Entity *first_target = [UNIVERSE entityForUniversalID:first_target_id];
-			if ([first_target isShip])
-			{
-				[self addTarget: first_target];
-				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				if ((missile_entity[activeMissile])&&(!ident_engaged))
-					[missile_entity[activeMissile] addTarget:first_target];
-				[self printIdentLockedOnForMissile:!ident_engaged];
-				if (ident_engaged)
-				{
-					if (![UNIVERSE playCustomSound:@"[ident-locked-on]"])
-						[self beep];
-				}
-				else
-				{
-					if (![UNIVERSE playCustomSound:@"[missile-locked-on]"])
-						[self beep];
-				}
-			}
-		}
+		ShipEntity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
+		if (target != nil)  [self addTarget:target];
 	}
 }
 
@@ -1669,38 +1648,19 @@ double scoopSoundPlayTime = 0.0;
 		air_friction = 0.5 * [UNIVERSE airResistanceFactor];
 
 	// cool all weapons
-	if (forward_weapon_temp > 0.0)
-	{
-		forward_weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
-		if (forward_weapon_temp < 0.0)
-			forward_weapon_temp = 0.0;
-	}
-	if (aft_weapon_temp > 0.0)
-	{
-		aft_weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
-		if (aft_weapon_temp < 0.0)
-			aft_weapon_temp = 0.0;
-	}
-	if (port_weapon_temp > 0.0)
-	{
-		port_weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
-		if (port_weapon_temp < 0.0)
-			port_weapon_temp = 0.0;
-	}
-	if (starboard_weapon_temp > 0.0)
-	{
-		starboard_weapon_temp -= WEAPON_COOLING_FACTOR * delta_t;
-		if (starboard_weapon_temp < 0.0)
-			starboard_weapon_temp = 0.0;
-	}
-	// copy new temp to main temp
+	forward_weapon_temp = fmaxf(forward_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
+	aft_weapon_temp = fmaxf(aft_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
+	port_weapon_temp = fmaxf(port_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
+	starboard_weapon_temp = fmaxf(starboard_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
 	
+	// copy new temp to main temp
 	switch (currentWeaponFacing)
 	{
 		case VIEW_GUI_DISPLAY:
 		case VIEW_NONE:
 		case VIEW_BREAK_PATTERN:
 		case VIEW_FORWARD:
+		case VIEW_CUSTOM:
 			weapon_temp = forward_weapon_temp;
 			break;
 		case VIEW_AFT:
@@ -1711,8 +1671,6 @@ double scoopSoundPlayTime = 0.0;
 			break;
 		case VIEW_STARBOARD:
 			weapon_temp = starboard_weapon_temp;
-			break;
-		case VIEW_CUSTOM:
 			break;
 	}
 
@@ -1877,8 +1835,7 @@ double scoopSoundPlayTime = 0.0;
 
 		if (hyperspeed_locked)
 		{
-			if (![UNIVERSE playCustomSound:@"[jump-mass-locked]"])
-				[self boop];
+			[self playJumpMassLocked];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:4.5];
 			hyperspeed_engaged = NO;
 		}
@@ -2640,8 +2597,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	if ([ms isEqual:@"HOLD_FULL"])
 	{
-		if (![UNIVERSE playCustomSound:@"[hold-full]"])
-			[self beep];
+		[self playHoldFull];
 		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[hold-full]") forCount:4.5];
 	}
 
@@ -3267,6 +3223,7 @@ double scoopSoundPlayTime = 0.0;
 	if (result != CARGO_NOT_CARGO)
 	{
 		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ejected]") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
+		[self playCargoJettisioned];
 	}
 	return result;
 }
@@ -5118,6 +5075,8 @@ static int last_outfitting_index;
 	
 	int item = [key intValue];
 	NSString	*item_text = [gui selectedRowText];
+	
+	// FIXME: this is nuts, should be associating lines with keys in sone sensible way. --Ahruman 20080311
 	if ([item_text isEqual:FORWARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_FORWARD;
 	if ([item_text isEqual:AFT_FACING_STRING])
@@ -5132,14 +5091,13 @@ static int last_outfitting_index;
 	{
 		if (credits == old_credits)
 		{
-			[[UNIVERSE gui] click];
+			[self playCantBuyBuyCommodity];
 		}
 		else
 		{
-			[self playInterfaceBeep:kInterfaceBeep_Buy];
+			[self playBuyCommodity];
 			
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
-			
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
 		}
@@ -5147,7 +5105,7 @@ static int last_outfitting_index;
 	}
 	else
 	{
-		[self boop];
+		[self playCantBuyBuyCommodity];
 	}
 }
 
@@ -6198,17 +6156,28 @@ OOSound* burnersound;
 // override shipentity addTarget to implement target_memory
 - (void) addTarget:(Entity *) targetEntity
 {
+	if (status != STATUS_IN_FLIGHT && status != STATUS_WITCHSPACE_COUNTDOWN)  return;
+	
+	if (missile_status == MISSILE_STATUS_SAFE)
+	{
+		missile_status = MISSILE_STATUS_ARMED;
+		ident_engaged = YES;
+	}
 	[super addTarget:targetEntity];
+	missile_status = MISSILE_STATUS_TARGET_LOCKED;
+	
 	if ([self hasExtraEquipment:@"EQ_TARGET_MEMORY"])
 	{
 		int i = 0;
+		BOOL foundSlot = NO;
 		// if targetted previously use that memory space
 		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 		{
 			if (primaryTarget == target_memory[i])
 			{
 				target_memory_index = i;
-				return;
+				foundSlot = YES;
+				break;
 			}
 		}
 		// find and use a blank space in memory
@@ -6217,14 +6186,31 @@ OOSound* burnersound;
 			if (target_memory[target_memory_index] == NO_TARGET)
 			{
 				target_memory[target_memory_index] = primaryTarget;
-				return;
+				foundSlot = YES;
+				break;
 			}
 			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
 		}
-		// use the next memory space
-		target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
-		target_memory[target_memory_index] = primaryTarget;
-		return;
+		if (!foundSlot)
+		{
+			// use the next memory space
+			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
+			target_memory[target_memory_index] = primaryTarget;
+		}
+	}
+	
+	if (missile_entity[activeMissile] == nil && ident_engaged)  ident_engaged = YES;
+	
+	if (ident_engaged)
+	{
+		[self playIdentLockedOn];
+		[self printIdentLockedOnForMissile:NO];
+	}
+	else
+	{
+		[missile_entity[activeMissile] addTarget:targetEntity];
+		[self playMissileLockedOn];
+		[self printIdentLockedOnForMissile:YES];
 	}
 }
 
@@ -6257,25 +6243,16 @@ OOSound* burnersound;
 				[super addTarget:potential_target];
 				missile_status = MISSILE_STATUS_TARGET_LOCKED;
 				[self printIdentLockedOnForMissile:!ident_engaged];
+				[self playTargetSwitched];
 				return YES;
 			}
 		}
 		else
 			target_memory[target_memory_index] = NO_TARGET;	// tidy up
 	}
+	
+	[self playNoTargetInMemory];
 	return NO;
-}
-
-
-- (BOOL) selectNextTargetFromMemory
-{
-	return [self moveTargetMemoryBy:+1];
-}
-
-
-- (BOOL) selectPreviousTargetFromMemory
-{
-	return [self moveTargetMemoryBy:-1];
 }
 
 

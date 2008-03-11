@@ -1,4 +1,60 @@
 {
+	/*	Sound keys starting with @ are (by convention) only used within
+		customsounds.plist, not directly by the game.
+	*/
+	
+	// Interface sounds
+	"[@beep]"				= "beep.ogg";					// positive beep
+	"[@boop]"				= "boop.ogg";					// negative beep
+	"[@click]"				= "guiclick.ogg";
+	
+	"[@switch-on]"					= "[@beep]";
+	"[@switch-off]"					= "[@boop]";
+	"[ident-on]"					= "[@switch-on]";		// Turned on ident
+	"[ident-off]"					= "[@switch-off]";		// Turned off ident
+	"[ident-locked-on]"				= "[@beep]";			// Ident targeted ship
+	"[missile-locked-on]"			= "[@beep]";
+	"[missile-armed]"				= "[@beep]";
+	"[mine-armed]"					= "[@beep]";
+	"[missile-safe]"				= "[@boop]";
+	"[next-missile-selected]"		= "[@click]";
+	"[save-overwrite-yes]"			= "[@beep]";			// Player selects Overwrite on "are you sure you want to overwrite?" alert on save screen
+	"[save-overwrite-no]"			= "[@boop]";			// Player selects Cancel on "are you sure you want to overwrite?" alert on save screen
+	"[buy-commodity]"				= "buy.ogg";
+	"[buy-ship]"					= "[buy-commodity]";
+	"[sell-commodity]"				= "sell.ogg";
+	"[could-not-buy-any]"			= "[@boop]";
+	"[could-not-buy-ship]"			= "[could-not-buy-any]";
+	"[cargo-jettisoned]"			= "[@beep]";
+	"[autopilot-on]"				= "[@switch-on]";
+	"[autopilot-off]"				= "[@switch-off]";
+	"[autopilot-out-of-range]"		= "[@switch-off]";
+	"[autopilot-cannot-dock-with-target]" = "[@boop]";
+	"[hold-full]"					= "[@boop]";
+	"[target-lost]"					= "[@boop]";
+	"[no-target-in-memory]"			= "[@boop]";
+	"[jump-mass-locked]"			= "[@boop]";			// Target memory expansion could not be used
+	"[target-switched]"				= "[@click]";			// Target memory expansion used successfully
+	"[cloaking-device-on]"			= "[@switch-on]";
+	"[cloaking-device-off]"			= "[@switch-off]";
+	"[cloaking-device-insufficent-energy]" = "[@boop]";
+	"[menu-navigation-up]"			= "[@click]";
+	"[menu-navigation-down]"		= "[@click]";
+//	"[menu-navigation-not]"			= "";					// Attempt to go past end of a menu; no sound by default
+	"[menu-next-page]"				= "[@click]";
+	"[menu-previous-page]"			= "[@click]";
+	"[dismissed-report-screen]"		= "[@click]";
+	"[dismissed-mission-screen]"	= "[@click]";			// No way to differentiate between mission options
+	"[changed-option]"				= "[@click]";			// Player made a change on options screen
+	
+	// Hyperspace
+	"[hyperspace-countdown-begun]"	= "[@beep]";
+	"[galactic-hyperspace-countdown-begun]" = "[@beep]";
+	"[hyperspace-countdown-aborted]" = "[@boop]";
+	"[witch-no-target]"				= "[@boop]";
+	"[witch-no-fuel]"				= "[@boop]";
+	"[witch-blocked-by-@]"			= "[@boop]";
+	
 	// Damage
 	"[player-hit-by-weapon]"		= "hit.ogg";			// Hit by weapon
 	"[player-direct-hit]"			= "hullbang.ogg";		// Hit by weapon while shield down ([player-hit-by-weapon] and [player-direct-hit] play at once)
@@ -10,19 +66,21 @@
 	"[energy-bomb-fired]"			= "bigbang.ogg";
 	
 	// Warnings
-	"[hostile-warning]"				= "warning.ogg";
-	"[alert-condition-red]"			= "warning.ogg";
-	"[incoming-missile]"			= "warning.ogg";		// Help, help, they're shooting at us
+	"[@warning]"					= "warning.ogg";		// Not used directly by game, only by references below.
+	"[hostile-warning]"				= "[@warning]";
+	"[alert-condition-red]"			= "[@warning]";
+	"[incoming-missile]"			= "[@warning]";			// Help, help, they're shooting at us
 //	"[energy-low]"					= "";					// Energy below 25% - may occur repeatedly
-	"[autopilot-denied]"			= "warning.ogg";		// Station refuses docking clearance
+	"[autopilot-denied]"			= "[@warning]";			// Station refuses docking clearance
 	"[witchdrive-malfunction]"		= "ecm.ogg";			// Misjump (3/4 witchjump malfunctions)
-	"[witchdrive-failure]"			= "warning.ogg";		// Jump failed, internal damage (1/8 witchjump malfunctions; other 1/8 is fuel leak, see [fuel-leak])
-	"[fuel-leak]"					= "warning.ogg";
+	"[witchdrive-failure]"			= "[@warning]";			// Jump failed, internal damage (1/8 witchjump malfunctions; other 1/8 is fuel leak, see [fuel-leak])
+	"[fuel-leak]"					= "[@warning]";
 	
 	// Tunnel effects
-	"[player-launch-from-station]"	= "breakpattern.ogg";
-	"[player-dock-with-station]"	= "breakpattern.ogg";
-	"[player-exit-witchspace]"		= "breakpattern.ogg";
+	"[@breakpattern]"				= "breakpattern.ogg";	// Not used directly by game, only by references below.
+	"[player-launch-from-station]"	= "[@breakpattern]";
+	"[player-dock-with-station]"	= "[@breakpattern]";
+	"[player-exit-witchspace]"		= "[@breakpattern]";
 	
 	// ECM
 	"[player-fired-ecm]"			= "ecm.ogg";
@@ -37,28 +95,16 @@
 	"[autopilot-off]" = "";
 	"[autopilot-on]" = "";
 	"[autopilot-out-of-range]" = "";
-	"[cargo-jettisoned]" = "";
 	"[cloaking-device-off]" = "";
 	"[cloaking-device-on]" = "";
 	"[escape-pod-scooped]" = "";
-	"[galactic-hyperspace-countdown-begun]" = "";
 	"[game-over]" = "";
-	"[hold-full]" = "";
 	"[hyperspace-countdown-aborted]" = "";
 	"[hyperspace-countdown-begun]" = "";
-	"[ident-locked-on]" = "";
-	"[ident-off]" = "";
-	"[ident-on]" = "";
 	"[incoming-missile]" = "";
-	"[jump-mass-locked]" = "";
-	"[mine-armed]" = "";
 	"[mine-launched]" = "";
-	"[missile-armed]" = "";
 	"[missile-launched]" = "";
-	"[missile-locked-on]" = "";
-	"[missile-safe]" = "";
 	"[no-target-in-memory]" = "";
-	"[target-lost]" = "";
 	"[weapon-overheat]" = "";
 	"[witch-blocked-by-@]" = "";
 	"[witch-no-fuel]" = "";

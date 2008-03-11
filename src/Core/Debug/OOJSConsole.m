@@ -36,6 +36,15 @@ SOFTWARE.
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
 #import "OOJSVector.h"
+#import "OOJSEntity.h"
+
+
+@interface Entity (OODebugInspector)
+
+// Method added by inspector in Debug OXP under OS X only.
+- (void) inspect;
+
+@end
 
 
 static JSObject *sConsolePrototype = NULL;
@@ -48,6 +57,7 @@ static void ConsoleFinalize(JSContext *context, JSObject *this);
 static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -77,6 +87,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "consoleMessage",			ConsoleConsoleMessage,		2 },
 	{ "clearConsole",			ConsoleClearConsole,		0 },
 	{ "scriptStack",			ConsoleScriptStack,			0 },
+	{ "inspectEntity",			ConsoleInspectEntity,		1 },
 	{ 0 }
 };
 
@@ -317,6 +328,22 @@ static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc,
 	
 	result = [OOJSScript scriptStack];
 	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Entity				*entity = nil;
+	
+	if (JSValueToEntity(context, argv[0], &entity))
+	{
+		if ([entity respondsToSelector:@selector(inspect)])
+		{
+			[entity inspect];
+		}
+	}
+	
 	return YES;
 }
 

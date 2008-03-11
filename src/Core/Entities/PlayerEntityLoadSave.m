@@ -25,6 +25,7 @@
 #import "PlayerEntityLoadSave.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityControls.h"
+#import "PlayerEntitySound.h"
 
 #import "NSFileManagerOOExtensions.h"
 #import "GameController.h"
@@ -357,16 +358,17 @@
 		[self nativeSavePlayer: commanderNameString];
 		[self setGuiToStatusScreen];
 		
-		[beepSound play];
+		[self playSaveOverwriteYes];
 	}
 	
 	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown: 27]||[gameView isDown: 110]||[gameView isDown: 78])
 	{
 		// esc or NO was pressed - get out of here
+		// FIXME: should return to save screen instead.
 		pollControls=YES;
 		[self setGuiToStatusScreen];
 		
-		[boopSound play];
+		[self playSaveOverwriteNo];
 	}
 }
 

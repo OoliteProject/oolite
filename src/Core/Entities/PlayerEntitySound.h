@@ -25,25 +25,66 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 
 
-enum
-{
-	kInterfaceBeep_Beep				= 1UL,
-	kInterfaceBeep_Boop,
-	kInterfaceBeep_Buy,
-	kInterfaceBeep_Sell
-};
-
-
 @interface PlayerEntity (Sound)
 
 - (void) setUpSound;
 - (void) destroySound;
 
-- (void) beep;
-- (void) boop;
-- (void) playInterfaceBeep:(unsigned)inInterfaceBeep;
+// Interface sounds; only one at a time
 - (BOOL) isBeeping;
+- (void) playIdentOn;
+- (void) playIdentOff;
+- (void) playIdentLockedOn;
+- (void) playMissileArmed;
+- (void) playMineArmed;
+- (void) playMissileSafe;
+- (void) playMissileLockedOn;
+- (void) playNextMissileSelected;
+- (void) playBuyCommodity;
+- (void) playBuyShip;
+- (void) playSellCommodity;
+- (void) playCantBuyBuyCommodity;
+- (void) playCantBuyBuyShip;
+- (void) playCargoJettisioned;
+- (void) playAutopilotOn;
+- (void) playAutopilotOff;
+- (void) playAutopilotOutOfRange;
+- (void) playAutopilotCannotDockWithTarget;
+- (void) playSaveOverwriteYes;
+- (void) playSaveOverwriteNo;
+- (void) playHoldFull;
+- (void) playJumpMassLocked;
+- (void) playTargetLost;
+- (void) playNoTargetInMemory;
+- (void) playTargetSwitched;
+- (void) playCloakingDeviceOn;
+- (void) playCloakingDeviceOff;
+- (void) playCloakingDeviceInsufficientEnergy;
+- (void) playMenuNavigationUp;
+- (void) playMenuNavigationDown;
+- (void) playMenuNavigationNot;
+- (void) playMenuPagePrevious;
+- (void) playMenuPageNext;
+- (void) playDismissedReportScreen;
+- (void) playDismissedMissionScreen;
+- (void) playChangedOption;
 
+// Hyperspace alert sounds; logically hyperspace sounds, but played on the interface sound source.
+- (void) playHyperspaceNoTarget;
+- (void) playHyperspaceNoFuel;
+- (void) playHyperspaceBlocked;
+
+
+/*	Hyperspace sounds; only one at a time. These get their own pool since
+	people might want something longer than beeps and boops (e.g. the existing
+	hyperspace countdown one). Hyperspace-related alert sounds are with the
+	normal interface sounds.
+*/
+- (void) playStandardHyperspace;
+- (void) playGalacticHyperspace;
+- (void) playHyperspaceAborted;
+
+// ECM; only one at a time
 - (void) playHitByECMSound;
 - (void) playFiredECMSound;
 

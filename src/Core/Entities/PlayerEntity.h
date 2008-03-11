@@ -278,20 +278,13 @@ typedef enum
 	
 	double					ecm_start_time;
 	
-	OOSound					*beepSound;
-	OOSound					*boopSound;
 	OOSound					*missileSound;
-	OOSound					*buySound;
-	OOSound					*sellSound;
 	OOSound					*afterburner1Sound;
 	OOSound					*afterburner2Sound;
 	OOSound					*witchAbortSound;
 	OOSound					*fuelScoopSound;
 	
 	OOSoundReferencePoint	*refPoint;
-	OOSoundSource			*interfaceBeepSource;
-	OOSoundSource			*ecmSource;
-	OOSoundSource			*breakPatternSource;
 	
 	OOGUIScreenID			gui_screen;
 	OOAlertFlags			alertFlags;
@@ -654,8 +647,7 @@ waitingForStickCallback: 1;
 - (void) setScoopsActive;
 
 - (void) clearTargetMemory;
-- (BOOL) selectNextTargetFromMemory;
-- (BOOL) selectPreviousTargetFromMemory;
+- (BOOL) moveTargetMemoryBy:(int)delta;
 
 - (void) printIdentLockedOnForMissile:(BOOL)missile;
 

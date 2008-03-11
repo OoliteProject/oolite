@@ -29,15 +29,6 @@ MA 02110-1301, USA.
 #import "OOSoundSourcePool.h"
 
 
-/*
-	If BEEP_MODE is 0, playing two identical beeps (i.e. beep twice, or boop twice) will result in
-	that beep being played twice in a row. If it is 1, the playing beep will be interrupted. If it
-	is 2, two beeps will play at once with the CA implementation (and interfaceBeepSource will be
-	unused).
-*/
-#define BEEP_MODE			1
-
-
 // Sizes of sound source pools
 enum
 {
@@ -50,6 +41,10 @@ enum
 static OOSoundSourcePool	*sWarningSoundPool;
 static OOSoundSourcePool	*sWeaponSoundPool;
 static OOSoundSourcePool	*sDamageSoundPool;
+static OOSoundSource		*sHyperspaceSoundSource;
+static OOSoundSource		*sInterfaceBeepSource;
+static OOSoundSource		*sEcmSource;
+static OOSoundSource		*sBreakPatternSource;
 
 
 @implementation PlayerEntity (Sound)
@@ -58,12 +53,8 @@ static OOSoundSourcePool	*sDamageSoundPool;
 {
 	[self destroySound];
 	
-	beepSound =			[[ResourceManager ooSoundNamed:@"beep.ogg" inFolder:@"Sounds"] retain];
-	boopSound =			[[ResourceManager ooSoundNamed:@"boop.ogg" inFolder:@"Sounds"] retain];
 	missileSound =		[[ResourceManager ooSoundNamed:@"missile.ogg" inFolder:@"Sounds"] retain];
 	
-	buySound =			[[ResourceManager ooSoundNamed:@"buy.ogg" inFolder:@"Sounds"] retain];
-	sellSound =			[[ResourceManager ooSoundNamed:@"sell.ogg" inFolder:@"Sounds"] retain];
 	afterburner1Sound =	[[ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
 	afterburner2Sound =	[[ResourceManager ooSoundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
 	
@@ -72,9 +63,11 @@ static OOSoundSourcePool	*sDamageSoundPool;
 	fuelScoopSound =	[[ResourceManager ooSoundNamed:@"scoop.ogg" inFolder:@"Sounds"] retain];
 	
 	refPoint = [[OOSoundReferencePoint alloc] init];
-	interfaceBeepSource = [[OOSoundSource alloc] init];
-	breakPatternSource = [[OOSoundSource alloc] init];
-	ecmSource = [[OOSoundSource alloc] init];
+	
+	sInterfaceBeepSource = [[OOSoundSource alloc] init];
+	sBreakPatternSource = [[OOSoundSource alloc] init];
+	sEcmSource = [[OOSoundSource alloc] init];
+	sHyperspaceSoundSource = [[OOSoundSource alloc] init];
 	
 	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0];
 	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0];
@@ -84,14 +77,9 @@ static OOSoundSourcePool	*sDamageSoundPool;
 
 - (void) destroySound
 {
-	[beepSound release];
-	beepSound = nil;
-	[boopSound release];
-	boopSound = nil;
-	[buySound release];
-	buySound = nil;
-	[sellSound release];
-	sellSound = nil;
+	[missileSound release];
+	missileSound = nil;
+	
 	[afterburner1Sound release];
 	afterburner1Sound = nil;
 	[afterburner2Sound release];
@@ -105,12 +93,15 @@ static OOSoundSourcePool	*sDamageSoundPool;
 	
 	[refPoint release];
 	refPoint = nil;
-	[interfaceBeepSource release];
-	interfaceBeepSource = nil;
-	[ecmSource release];
-	ecmSource = nil;
-	[breakPatternSource release];
-	breakPatternSource = nil;
+	
+	[sInterfaceBeepSource release];
+	sInterfaceBeepSource = nil;
+	[sBreakPatternSource release];
+	sBreakPatternSource = nil;
+	[sEcmSource release];
+	sEcmSource = nil;
+	[sHyperspaceSoundSource release];
+	sHyperspaceSoundSource = nil;
 	
 	[sWarningSoundPool release];
 	sWarningSoundPool = nil;
@@ -121,89 +112,303 @@ static OOSoundSourcePool	*sDamageSoundPool;
 }
 
 
-- (void) beep
+- (void) playInterfaceBeep:(NSString *)beepKey
 {
-	[self playInterfaceBeep:kInterfaceBeep_Beep];
-}
-
-
-- (void) boop
-{
-	[self playInterfaceBeep:kInterfaceBeep_Boop];
-}
-
-
-- (void) playInterfaceBeep:(unsigned)inInterfaceBeep
-{
-	OOSound					*sound = nil;
-	
-	switch (inInterfaceBeep)
-	{
-		case kInterfaceBeep_Beep:
-			sound = beepSound;
-			break;
-		
-		case kInterfaceBeep_Boop:
-			sound = boopSound;
-			break;
-		
-		case kInterfaceBeep_Buy:
-			sound = buySound;
-			break;
-		
-		case kInterfaceBeep_Sell:
-			sound = sellSound;
-			break;
-		
-		default:
-			OOLog(@"sound.invalidBeep", @"Invalid beep selector: %u", inInterfaceBeep);
-	}
-	
-	#if BEEP_MODE == 0
-		[interfaceBeepSource playOrRepeatSound:sound];
-	#elif BEEP_MODE == 1
-		[interfaceBeepSource playSound:sound];
-	#elif BEEP_MODE == 2
-		[sound play];
-	#else
-		#error Unknown BEEP_MODE
-	#endif
+	[sInterfaceBeepSource playSound:[OOSound soundWithCustomSoundKey:beepKey]];
 }
 
 
 - (BOOL) isBeeping
 {
-	return [interfaceBeepSource isPlaying];
+	return [sInterfaceBeepSource isPlaying];
+}
+
+
+- (void) boop
+{
+	[self playInterfaceBeep:@"[general-boop]"];
+}
+
+
+- (void) playIdentOn
+{
+	[self playInterfaceBeep:@"[ident-on]"];
+}
+
+
+- (void) playIdentOff
+{
+	[self playInterfaceBeep:@"[ident-off]"];
+}
+
+
+- (void) playIdentLockedOn
+{
+	[self playInterfaceBeep:@"[ident-locked-on]"];
+}
+
+
+- (void) playMissileArmed
+{
+	[self playInterfaceBeep:@"[missile-armed]"];
+}
+
+
+- (void) playMineArmed
+{
+	[self playInterfaceBeep:@"[mine-armed]"];
+}
+
+
+- (void) playMissileSafe
+{
+	[self playInterfaceBeep:@"[missile-safe]"];
+}
+
+
+- (void) playMissileLockedOn
+{
+	[self playInterfaceBeep:@"[missile-locked-on]"];
+}
+
+
+- (void) playNextMissileSelected
+{
+	[self playInterfaceBeep:@"[next-missile-selected]"];
+}
+
+
+- (void) playBuyCommodity
+{
+	[self playInterfaceBeep:@"[buy-commodity]"];
+}
+
+
+- (void) playBuyShip
+{
+	[self playInterfaceBeep:@"[buy-ship]"];
+}
+
+
+- (void) playSellCommodity
+{
+	[self playInterfaceBeep:@"[sell-commodity]"];
+}
+
+
+- (void) playCantBuyBuyCommodity
+{
+	[self playInterfaceBeep:@"[could-not-buy-any]"];
+}
+
+
+- (void) playCantBuyBuyShip
+{
+	[self playInterfaceBeep:@"[could-not-buy-ship]"];
+}
+
+
+- (void) playCargoJettisioned
+{
+	[self playInterfaceBeep:@"[cargo-jettisoned]"];
+}
+
+
+- (void) playAutopilotOn
+{
+	[self playInterfaceBeep:@"[autopilot-on]"];
+}
+
+
+- (void) playAutopilotOff
+{
+	[self playInterfaceBeep:@"[autopilot-off]"];
+}
+
+
+- (void) playAutopilotOutOfRange
+{
+	[self playInterfaceBeep:@"[autopilot-out-of-range]"];
+}
+
+
+- (void) playAutopilotCannotDockWithTarget
+{
+	[self playInterfaceBeep:@"[autopilot-cannot-dock-with-target]"];
+}
+
+
+- (void) playSaveOverwriteYes
+{
+	[self playInterfaceBeep:@"[save-overwrite-yes]"];
+}
+
+
+- (void) playSaveOverwriteNo
+{
+	[self playInterfaceBeep:@"[save-overwrite-no]"];
+}
+
+
+- (void) playHoldFull
+{
+	[self playInterfaceBeep:@"[hold-full]"];
+}
+
+
+- (void) playJumpMassLocked
+{
+	[self playInterfaceBeep:@"[jump-mass-locked]"];
+}
+
+
+- (void) playTargetLost
+{
+	[self playInterfaceBeep:@"[target-lost]"];
+}
+
+
+- (void) playNoTargetInMemory
+{
+	[self playInterfaceBeep:@"[no-target-in-memory]"];
+}
+
+
+- (void) playTargetSwitched
+{
+	[self playInterfaceBeep:@"[target-switched]"];
+}
+
+
+- (void) playHyperspaceNoTarget
+{
+	[self playInterfaceBeep:@"[witch-no-target]"];
+}
+
+
+- (void) playHyperspaceNoFuel
+{
+	[self playInterfaceBeep:@"[witch-no-fuel]"];
+}
+
+
+- (void) playHyperspaceBlocked
+{
+	[self playInterfaceBeep:@"[witch-blocked-by-@]"];
+}
+
+
+- (void) playCloakingDeviceOn
+{
+	[self playInterfaceBeep:@"[cloaking-device-on]"];
+}
+
+
+- (void) playCloakingDeviceOff
+{
+	[self playInterfaceBeep:@"[cloaking-device-off]"];
+}
+
+
+- (void) playMenuNavigationUp
+{
+	[self playInterfaceBeep:@"[menu-navigation-up]"];
+}
+
+
+- (void) playMenuNavigationDown
+{
+	[self playInterfaceBeep:@"[menu-navigation-down]"];
+}
+
+
+- (void) playMenuNavigationNot
+{
+	[self playInterfaceBeep:@"[menu-navigation-not]"];
+}
+
+
+- (void) playMenuPagePrevious
+{
+	[self playInterfaceBeep:@"[menu-next-page]"];
+}
+
+
+- (void) playMenuPageNext
+{
+	[self playInterfaceBeep:@"[menu-previous-page]"];
+}
+
+
+- (void) playDismissedReportScreen
+{
+	[self playInterfaceBeep:@"[dismissed-report-screen]"];
+}
+
+
+- (void) playDismissedMissionScreen
+{
+	[self playInterfaceBeep:@"[dismissed-mission-screen]"];
+}
+
+
+- (void) playChangedOption
+{
+	[self playInterfaceBeep:@"[changed-option]"];
+}
+
+
+- (void) playCloakingDeviceInsufficientEnergy
+{
+	[self playInterfaceBeep:@"[cloaking-device-insufficent-energy]"];
+}
+
+
+- (void) playStandardHyperspace
+{
+	[sHyperspaceSoundSource playCustomSoundWithKey:@"[hyperspace-countdown-begun]"];
+}
+
+
+- (void) playGalacticHyperspace
+{
+	[sHyperspaceSoundSource playCustomSoundWithKey:@"[galactic-hyperspace-countdown-begun]"];
+}
+
+
+- (void) playHyperspaceAborted
+{
+	[sHyperspaceSoundSource playCustomSoundWithKey:@"[hyperspace-countdown-begun]"];
 }
 
 
 - (void) playHitByECMSound
 {
-	if (![ecmSource isPlaying]) [ecmSource playCustomSoundWithKey:@"[player-hit-by-ecm]"];
+	if (![sEcmSource isPlaying]) [sEcmSource playCustomSoundWithKey:@"[player-hit-by-ecm]"];
 }
 
 
 - (void) playFiredECMSound
 {
-	if (![ecmSource isPlaying]) [ecmSource playCustomSoundWithKey:@"[player-fired-ecm]"];
+	if (![sEcmSource isPlaying]) [sEcmSource playCustomSoundWithKey:@"[player-fired-ecm]"];
 }
 
 
 - (void) playLaunchFromStation
 {
-	[breakPatternSource playCustomSoundWithKey:@"[player-launch-from-station]"];
+	[sBreakPatternSource playCustomSoundWithKey:@"[player-launch-from-station]"];
 }
 
 
 - (void) playDockWithStation
 {
-	[breakPatternSource playCustomSoundWithKey:@"[player-dock-with-station]"];
+	[sBreakPatternSource playCustomSoundWithKey:@"[player-dock-with-station]"];
 }
 
 
 - (void) playExitWitchspace
 {
-	[breakPatternSource playCustomSoundWithKey:@"[player-exit-witchspace]"];
+	[sBreakPatternSource playCustomSoundWithKey:@"[player-exit-witchspace]"];
 }
 
 

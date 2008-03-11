@@ -708,47 +708,51 @@ static BOOL hostiles;
 		&&(the_sun)
 		&&(the_planet))									// and be in a system
 	{
-		Vector relativePosition;
+		Entity *reference = nil;
 		
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
-				relativePosition = the_planet->position;
-				if (([player checkForAegis] != AEGIS_NONE)&&(the_station))
-					relativePosition = the_station->position;
+				
+				if ([player checkForAegis] != AEGIS_NONE && the_station)
+				{
+					reference = the_station;
+				}
+				else
+				{
+					reference = the_planet;
+				}
 				break;
 			
 			case COMPASS_MODE_PLANET:
-				relativePosition = the_planet->position;
+				reference = the_planet;
 				break;
+				
 			case COMPASS_MODE_STATION:
-				relativePosition = the_station->position;
+				reference = the_station;
 				break;
+				
 			case COMPASS_MODE_SUN:
-				relativePosition = the_sun->position;
+				reference = the_sun;
 				break;
+				
 			case COMPASS_MODE_TARGET:
-				if (the_target)
-					relativePosition = the_target->position;
-				else
-				{
-					[player setCompassMode:COMPASS_MODE_PLANET];
-					relativePosition = the_planet->position;
-				}	
-				break;
+				reference = the_target;
+				
 			case COMPASS_MODE_BEACONS:
-				if (the_next_beacon)
-					relativePosition = the_next_beacon->position;
-				else
-				{
-					[player setCompassMode:COMPASS_MODE_PLANET];
-					relativePosition = the_planet->position;
-				}	
+				reference = the_next_beacon;
 				break;
 		}
 		
+		if (reference == nil)
+		{
+			[player setCompassMode:COMPASS_MODE_PLANET];
+			reference = the_planet;
+		}
+		
 		// translate and rotate the view
-		relativePosition = OOVectorMultiplyMatrix(vector_subtract(relativePosition, position), rotMatrix);
+		Vector relativePosition = vector_subtract([reference position], position);
+		relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
 		relativePosition = vector_normal_or_fallback(relativePosition, kBasisZVector);
 		
 		relativePosition.x *= siz.width * 0.4;
