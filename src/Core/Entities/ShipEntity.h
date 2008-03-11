@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 #define SHIP_INSULATION_FACTOR			0.00175
 #define SHIP_MAX_CABIN_TEMP				256.0
 #define SHIP_MIN_CABIN_TEMP				60.0
+#define EJECTA_TEMP_FACTOR				0.85		// Ejected items have 85% of parent's temperature
 
 #define SUN_TEMPERATURE					1250.0
 

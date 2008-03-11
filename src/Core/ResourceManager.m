@@ -245,7 +245,7 @@ static NSMutableDictionary *string_cache;
 	{
 		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 		OOLog(@"oxp.versionMismatch", @"OXP %@ is incompatible with version %@ of Oolite.", path, version);
-		[self addError:[NSString stringWithFormat:@"\t'%@' is incompatible with version %@ of Oolite", [path lastPathComponent], version]];
+		[self addError:[NSString stringWithFormat:DESC(@"oxp-is-incompatible"), [path lastPathComponent], version]];
 	}
 }
 

@@ -302,6 +302,9 @@
 	strings.conversion.randomSeed			= inherit;
 	
 	
+	sun.nova								= no;					// Debug messages for nova
+	
+	
 	texture.planet.generate					= inherit;
 	
 	

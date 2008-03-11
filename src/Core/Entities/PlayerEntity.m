@@ -3684,6 +3684,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	ident_engaged = NO;
 	
+	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[self playLaunchFromStation];
 }
 

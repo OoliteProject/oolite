@@ -3979,6 +3979,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 					[plate setCommodity:9 andAmount:1];
 					[UNIVERSE addEntity:plate];
 					[plate setStatus:STATUS_IN_FLIGHT];
+					[plate setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
 					[[plate getAI] setState:@"GLOBAL"];
 					[plate release];
 				}
@@ -6000,6 +6001,7 @@ BOOL class_masslocks(int some_class)
 	[jetto setVelocity:vel];
 	[jetto setScanClass: CLASS_CARGO];
 	[jetto setStatus: STATUS_IN_FLIGHT];
+	[jetto setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
 	[UNIVERSE addEntity:jetto];
 	[[jetto getAI] setState:@"GLOBAL"];
 	cargo_dump_time = [UNIVERSE getTime];
@@ -6601,17 +6603,16 @@ BOOL class_masslocks(int some_class)
 {
 	if (station == nil)  return;
 	
-	Vector launchPos = station->position;
-	Vector stat_f = vector_forward_from_quaternion(station->orientation);
-	launchPos.x += 500.0*stat_f.x;
-	launchPos.y += 500.0*stat_f.y;
-	launchPos.z += 500.0*stat_f.z;
-	position = launchPos;
-	orientation = station->orientation;
+	Vector stat_f = vector_forward_from_quaternion([station orientation]);
+	[self setPosition:vector_add([station position], vector_multiply_scalar(stat_f, 500.0f))];
+	
+	[self setOrientation:[station orientation]];
 	flightRoll = [station flightRoll];
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.5;
+	
 	status = STATUS_LAUNCHING;
+	
 	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[shipAI message:@"LAUNCHED"];
 	[UNIVERSE addEntity:self];
@@ -7251,6 +7252,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	NSArray		*tokens = ScanTokensFromString(roles_number);
 	NSString	*roleString = nil;
 	NSString	*numberString = nil;
+	ShipEntity	*spawned = nil;
 	
 	if ([tokens count] != 2)
 	{
@@ -7267,7 +7269,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	do
 	{
-		[UNIVERSE spawnShipWithRole:roleString near:self];
+		spawned = [UNIVERSE spawnShipWithRole:roleString near:self];
+		[spawned setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
 	} while (--number);
 }
 

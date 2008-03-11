@@ -112,6 +112,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
+	// Load internal descriptions.plist for use in internal init; it will be replaced by merged version later.
+	descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
+																stringByAppendingPathComponent:@"Config"]
+															   stringByAppendingPathComponent:@"descriptions.plist"]];
+	
 	n_entities = 0;
 	
 	x_list_start = y_list_start = z_list_start = nil;
