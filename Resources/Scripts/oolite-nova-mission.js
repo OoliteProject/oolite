@@ -89,7 +89,6 @@ this.choiceEvaluation = function()
 		if (mission.choice == "YES")
 		{
 			log("nova.choicesEvaluation", "mission.choice == YES, player loaded refugees.");
-			mission.choice = null;
 			player.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
 			mission.setInstructionsKey("nova_missiondesc");
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
@@ -102,7 +101,6 @@ this.choiceEvaluation = function()
 		{
 			log("nova.choicesEvaluation", "mission.choice == " + mission.choice + ", player refused to help.");
 			// mission.choice = "NO", or null when player launched without a choice.
-			mission.choice = null;
 			missionVariables.nova = "NOVA_ESCAPE_COWARD";
 			player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
 			system.setSunNova(3);
@@ -110,7 +108,8 @@ this.choiceEvaluation = function()
 		}
 		
 		delete this.novaOffer;
-		log("nova.choicesEvaluation", "deleted this.novaOffer, this.novaOffer is now " + this.novaOffer);
+		mission.choice = null; //reset mission choice now
+		log("nova.choicesEvaluation", "deleted this.novaOffer, this.novaOffer is now " + (this.novaOffer ? this.novaOffer : 'undefined'));
 	}
 }
 
