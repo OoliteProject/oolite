@@ -1234,7 +1234,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	// traders
 	// TODO: consider using floating point for this stuff, giving a greater variety of possible results while maintaining the same range.
-	uint8_t trading_parties = (9 - economy);			// 2 .. 9
+	unsigned trading_parties = (9 - economy);			// 2 .. 9
 	if (government == 0) trading_parties *= 1.25;	// 25% more trade where there are no laws!
 	if (trading_parties > 0)
 		trading_parties = 1 + trading_parties * (randf()+randf());   // randomize 0..2
@@ -1243,25 +1243,25 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d trading vessels", trading_parties);
 	
-	uint8_t skim_trading_parties = (Ranrot() & 3) + trading_parties * (Ranrot() & 31) / 120;	// about 12%
+	unsigned skim_trading_parties = (Ranrot() & 3) + trading_parties * (Ranrot() & 31) / 120;	// about 12%
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d sun skimming vessels", skim_trading_parties);
 	
 	// pirates
 	int anarchy = (8 - government);
-	uint8_t raiding_parties = (Ranrot() % anarchy) + (Ranrot() % anarchy) + anarchy * trading_parties / 3;	// boosted
+	unsigned raiding_parties = (Ranrot() % anarchy) + (Ranrot() % anarchy) + anarchy * trading_parties / 3;	// boosted
 	raiding_parties *= randf() + randf();   // randomize
 	while (raiding_parties > 25)
 		raiding_parties = 12 + (Ranrot() % raiding_parties);   // reduce
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d pirate vessels", raiding_parties);
 
-	uint8_t skim_raiding_parties = ((randf() < 0.14 * economy)? 1:0) + raiding_parties * (Ranrot() & 31) / 120;	// about 12%
+	unsigned skim_raiding_parties = ((randf() < 0.14 * economy)? 1:0) + raiding_parties * (Ranrot() & 31) / 120;	// about 12%
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim pirates", skim_raiding_parties);
 	
 	// bounty-hunters and the law
-	uint8_t hunting_parties = (1 + government) * trading_parties / 8;
+	unsigned hunting_parties = (1 + government) * trading_parties / 8;
 	if (government == 0) hunting_parties *= 1.25;   // 25% more bounty hunters in an anarchy
 	hunting_parties *= (randf()+randf());   // randomize
 	while (hunting_parties > 15)
@@ -1273,17 +1273,17 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d law/bounty-hunter vessels", hunting_parties);
 
-	uint8_t skim_hunting_parties = ((randf() < 0.14 * government)? 1:0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
+	unsigned skim_hunting_parties = ((randf() < 0.14 * government)? 1:0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
 	
 	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim law/bounty hunter vessels", skim_hunting_parties);
 	
-	uint8_t thargoid_parties = 0;
+	unsigned thargoid_parties = 0;
 	while ((Ranrot() % 100) < thargoidChance && thargoid_parties < 16)
 		thargoid_parties++;
 
 	OOLog(kOOLogUniversePopulate, @"... adding %d Thargoid warships", thargoid_parties);
 	
-	uint8_t rockClusters = Ranrot() % 3;
+	unsigned rockClusters = Ranrot() % 3;
 	if (trading_parties + raiding_parties + hunting_parties < 10)
 		rockClusters += 1 + (Ranrot() % 3);
 	
@@ -1455,7 +1455,11 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		}
 		if (hunter_ship)
 		{
-			hunting_parties -= escortsAdded / 2;	// reduce the number needed so we don't get huge swarms!
+			unsigned halfOfEscortsAdded = escortsAdded / 2;
+			if (hunting_parties > halfOfEscortsAdded)	// ensure we are not trying to assign a negative
+			{						// value to unsigned hunting_parties
+				hunting_parties -= halfOfEscortsAdded;	// reduce the number needed so we don't get huge swarms!
+			}
 			
 			[hunter_ship setPosition:launchPos];
 			[hunter_ship setStatus:STATUS_IN_FLIGHT];
