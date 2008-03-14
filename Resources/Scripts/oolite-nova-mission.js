@@ -45,7 +45,6 @@ this.missionOffers = function ()
 			if (missionVariables.nova == "TWO_HRS_TO_ZERO")
 			{
 				mission.runMissionScreen("nova_1", "solar.png", "nova_yesno");
-				log("nova.missionOffers", "Setting this.novaOffer to \"NOVA_CHOICE\"");
 				this.novaOffer = "NOVA_CHOICE";  // use a temporary variable for the offering.
 				this.novaMissionTimer.stop();
 			}
@@ -77,18 +76,10 @@ this.missionOffers = function ()
 
 this.choiceEvaluation = function()
 {
-	if (!this.novaOffer)
+	if (this.novaOffer && this.novaOffer == "NOVA_CHOICE")
 	{
-		log("nova.choicesEvaluation", "Exiting early because !this.novaOffer.");
-		return;
-	}
-	
-	if (this.novaOffer == "NOVA_CHOICE")
-	{
-		log("nova.choicesEvaluation", "Evaluating this.novaOffer == \"NOVA_CHOICE\"");
 		if (mission.choice == "YES")
 		{
-			log("nova.choicesEvaluation", "mission.choice == YES, player loaded refugees.");
 			player.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
 			mission.setInstructionsKey("nova_missiondesc");
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
@@ -99,7 +90,6 @@ this.choiceEvaluation = function()
 		}
 		else
 		{
-			log("nova.choicesEvaluation", "mission.choice == " + mission.choice + ", player refused to help.");
 			// mission.choice = "NO", or null when player launched without a choice.
 			missionVariables.nova = "NOVA_ESCAPE_COWARD";
 			player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
@@ -107,9 +97,15 @@ this.choiceEvaluation = function()
 			missionVariables.novacount = null;
 		}
 		
+		/*	IMPORTANT
+			The line "mission.choice = null" causes a missionChoiceWasReset()
+			event to occur. Our missionChoiceWasReset() handler calls back into
+			choiceEvaluation(). It is therefore imperative that this.novaOffer
+			is cleared _before_ mission.choice, or we end up in the else branch
+			above.
+		*/
 		delete this.novaOffer;
-		mission.choice = null; //reset mission choice now
-		log("nova.choicesEvaluation", "deleted this.novaOffer, this.novaOffer is now " + (this.novaOffer ? this.novaOffer : 'undefined'));
+		mission.choice = null;
 	}
 }
 

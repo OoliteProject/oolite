@@ -87,16 +87,16 @@ this.missionScreenEnded = function ()
 		if (mission.choice == "OOLITE_TRUMBLE_YES")
 		{
 			// Trumble bought.
-			mission.choice = null;
 			missionVariables.trumbles = "TRUMBLE_BOUGHT";
+			mission.choice = null;
 			player.credits -= 30;
 			player.awardEquipment("EQ_TRUMBLE");
 		}
 		else if (mission.choice == "OOLITE_TRUMBLE_NO")
 		{
 			// Trumble bought.
-			mission.choice = null;
 			missionVariables.trumbles = "NOT_NOW";
+			mission.choice = null;
 		}
 		// else it was someone else's mission screen, so we do nothing.
 	}
