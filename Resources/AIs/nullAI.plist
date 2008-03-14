@@ -1,3 +1,6 @@
 {
-    GLOBAL = {ENTER = (); EXIT = (); UPDATE = (); }; 
+    GLOBAL =
+	{
+        UPDATE = ("pauseAI: 3600");
+	};
 }

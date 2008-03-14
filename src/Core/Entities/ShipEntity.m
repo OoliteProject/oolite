@@ -4442,6 +4442,7 @@ BOOL class_masslocks(int some_class)
 
 - (void) addTarget:(Entity *) targetEntity
 {
+	if (targetEntity == self)  return;
 	if (targetEntity != nil)  primaryTarget = [targetEntity universalID];
 	
 	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(addTarget:) withObject:targetEntity];
@@ -6758,9 +6759,9 @@ int w_space_seed = 1234567;
 
 	//increased stack depth at which it can accept escorts to avoid rejections at this stage.
 	//doesn't seem to have any adverse effect for now. - Kaks.
-	if ([shipAI ai_stack_depth] > 3)
+	if ([shipAI stackDepth] > 3)
 	{
-		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %u.",self, other_ship, [shipAI ai_stack_depth]);
+		OOLog(@"ship.escort.reject", @"%@ rejecting escort %@ because AI stack depth is %u.",self, other_ship, [shipAI stackDepth]);
 		return NO;
 	}
 	
@@ -7512,6 +7513,12 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
 }
 #endif
+
+
+- (OOScript *)script
+{
+	return script;
+}
 
 
 - (NSDictionary *)scriptInfo

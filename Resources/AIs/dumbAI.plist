@@ -1,3 +1,7 @@
 {
-    GLOBAL = {ENTER = ("performTumble"); EXIT = (); UPDATE = (); }; 
+    GLOBAL =
+	{
+		ENTER = (performTumble);
+        UPDATE = ("pauseAI: 3600");
+	};
 }

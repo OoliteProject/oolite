@@ -6157,6 +6157,7 @@ OOSound* burnersound;
 - (void) addTarget:(Entity *) targetEntity
 {
 	if (status != STATUS_IN_FLIGHT && status != STATUS_WITCHSPACE_COUNTDOWN)  return;
+	if (targetEntity == self)  return;
 	
 	if (missile_status == MISSILE_STATUS_SAFE)
 	{

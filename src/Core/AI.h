@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
+#import "OOWeakReference.h"
+#import "OOTypes.h"
 
 #define AI_THINK_INTERVAL					0.125
 
@@ -32,7 +34,7 @@ MA 02110-1301, USA.
 @class ShipEntity, OOInstinct;
 
 
-@interface AI : NSObject
+@interface AI : OOWeakRefObject
 {
 	id					_owner;						// OOWeakReference to the ShipEntity this is the AI for
 	NSString			*ownerDesc;					// describes the object this is the AI for
@@ -46,8 +48,8 @@ MA 02110-1301, USA.
 	
 	OOInstinct			*rulingInstinct;
 	
-	double				nextThinkTime;
-	double				thinkTimeInterval;
+	OOTimeAbsolute		nextThinkTime;
+	OOTimeDelta			thinkTimeInterval;
 	
 }
 
@@ -65,6 +67,7 @@ MA 02110-1301, USA.
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
 
+- (OOInstinct *) rulingInstinct;
 - (void) setRulingInstinct:(OOInstinct*) instinct;
 
 - (ShipEntity *)owner;
@@ -77,7 +80,7 @@ MA 02110-1301, USA.
 - (BOOL) hasSuspendedStateMachines;
 - (void) exitStateMachine;
 
-- (int) ai_stack_depth;
+- (unsigned) stackDepth;
 
 - (void) reactToMessage:(NSString *) message;
 
@@ -87,13 +90,11 @@ MA 02110-1301, USA.
 
 - (void) message:(NSString *) ms;
 
-- (void) setNextThinkTime:(double) ntt;
+- (void) setNextThinkTime:(OOTimeAbsolute) ntt;
+- (OOTimeAbsolute) nextThinkTime;
 
-- (double) nextThinkTime;
-
-- (void) setThinkTimeInterval:(double) tti;
-
-- (double) thinkTimeInterval;
+- (void) setThinkTimeInterval:(OOTimeDelta) tti;
+- (OOTimeDelta) thinkTimeInterval;
 
 - (void) clearStack;
 

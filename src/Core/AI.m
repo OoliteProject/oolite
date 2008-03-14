@@ -125,6 +125,12 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
+- (OOInstinct *) rulingInstinct
+{
+	return rulingInstinct;
+}
+
+
 - (void) setRulingInstinct:(OOInstinct*) instinct
 {
 	rulingInstinct = instinct;
@@ -297,7 +303,7 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
-- (int) ai_stack_depth
+- (unsigned) stackDepth
 {
 	return [aiStack count];
 }
@@ -493,13 +499,13 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
-- (void) setNextThinkTime:(double) ntt
+- (void) setNextThinkTime:(OOTimeAbsolute) ntt
 {
 	nextThinkTime = ntt;
 }
 
 
-- (double) nextThinkTime
+- (OOTimeAbsolute) nextThinkTime
 {
 	if (!stateMachine)
 		return [[NSDate distantFuture] timeIntervalSinceNow];
@@ -508,13 +514,13 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
-- (void) setThinkTimeInterval:(double) tti
+- (void) setThinkTimeInterval:(OOTimeDelta) tti
 {
 	thinkTimeInterval = tti;
 }
 
 
-- (double) thinkTimeInterval
+- (OOTimeDelta) thinkTimeInterval
 {
 	return thinkTimeInterval;
 }

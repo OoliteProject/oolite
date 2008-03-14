@@ -678,6 +678,7 @@ BOOL	class_masslocks(int some_class);
 - (void) sendCoordinatesToPilot;
 - (void) pilotArrived;
 
+- (OOScript *)script;
 - (NSDictionary *)scriptInfo;
 
 - (Entity *)entityForShaderProperties;
