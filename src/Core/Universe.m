@@ -4023,13 +4023,20 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		
 		if (!(entity->isParticle))
 		{
+			unsigned limiter = UNIVERSE_MAX_ENTITIES;
 			while (entity_for_uid[next_universal_id] != nil)	// skip allocated numbers
 			{
 				next_universal_id++;						// increment keeps idkeys unique
 				if (next_universal_id >= MAX_ENTITY_UID)
-					next_universal_id = 0;
-				while (next_universal_id == NO_TARGET)		// these are the null values - avoid them!
-					next_universal_id++;
+				{
+					next_universal_id = MIN_ENTITY_UID;
+				}
+				if (limiter-- == 0)
+				{
+					// Every slot has been tried! This should not happen due to previous test, but there was a problem here in 1.70.
+					OOLog(@"universe.addEntity.failed", @"***** Universe cannot addEntity:%@ -- Could not find free slot for entity.", entity);
+					return NO;
+				}
 			}
 			[entity setUniversalID:next_universal_id];
 			entity_for_uid[next_universal_id] = entity;

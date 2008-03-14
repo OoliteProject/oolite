@@ -185,6 +185,8 @@ BOOL OOLogWillDisplayMessagesInClass(NSString *inMessageClass)
 	
 	if (!Inited()) return NO;
 	
+	if (sOverrideInEffect)  return sOverrideValue;
+	
 	[sLock lock];
 	
 	// Look for cached value
@@ -437,7 +439,7 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 	
 	// Apply various prefix options
 #ifndef OOLOG_NO_FILE_NAME
-	if (sShowFileAndLine)
+	if (sShowFileAndLine && inFile != NULL)
 	{
 		if (sShowFunction)
 		{
@@ -842,6 +844,8 @@ static NSString *AbbreviatedFileName(const char *inName)
 {
 	NSValue				*key = nil;
 	NSString			*name = nil;
+	
+	if (inName == NULL)  return @"unspecified file";
 	
 	[sLock lock];
 	key = [NSValue valueWithPointer:inName];

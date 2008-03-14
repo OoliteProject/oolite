@@ -301,7 +301,14 @@ typedef uint16_t	OOKeyCode;
 
 
 typedef uint16_t	OOUniversalID;		// Valid IDs range from 100 to 1000.
-#define NO_TARGET	((OOUniversalID)0)
+
+enum
+{
+	UNIVERSE_MAX_ENTITIES	= 2048,
+	NO_TARGET				= 0,
+	MIN_ENTITY_UID			= 100,
+	MAX_ENTITY_UID			= MIN_ENTITY_UID + UNIVERSE_MAX_ENTITIES + 1
+};
 
 
 typedef uint32_t	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so 32 bits required.
