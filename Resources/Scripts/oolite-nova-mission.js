@@ -84,7 +84,7 @@ this.choiceEvaluation = function()
 			mission.setInstructionsKey("nova_missiondesc");
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
 			player.launch();
-			system.mainStation.explode();
+			this.blowUpAllStations();
 			system.setSunNova(30);
 			missionVariables.novacount = null;
 		}
@@ -136,6 +136,19 @@ this.sendShipsAwayForMission = function()
 	{
 		system.sendAllShipsAway();
 	}
+}
+
+
+// Destroy all stations (and carriers) in the system. If we just blow up the
+// main one, the player can eject, be rescued and buy fuel without triggering
+// the escape pod failure state.
+this.blowUpAllStations = function ()
+{
+	// Find all stations in the system.
+	let stations = system.filteredEntities(this, function (entity) { return entity.isStation; });
+	
+	// Blow them all up.
+	stations.forEach(function (entity) { entity.explode(); });
 }
 
 

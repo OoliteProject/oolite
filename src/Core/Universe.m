@@ -4017,8 +4017,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 #ifndef NDEBUG
 			[self obj_dump];
 #endif
-			[NSException raise:@"OoliteException"
-						format:@"Maximum number of entities (%d) in Universe reached. Cannot add %@", UNIVERSE_MAX_ENTITIES, entity];
+		//	[NSException raise:@"OoliteException"
+		//				format:@"Maximum number of entities (%d) in Universe reached. Cannot add %@", UNIVERSE_MAX_ENTITIES, entity];
+			return NO;
 		}
 		
 		if (!(entity->isParticle))

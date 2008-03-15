@@ -6593,7 +6593,7 @@ BOOL class_masslocks(int some_class)
 	dockingInstructions = nil;
 	
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
-	[self doScriptEvent:@"shipDidDockWithStation" withArgument:station];
+	[self doScriptEvent:@"shipDockedWithStation" withArgument:station];
 	[shipAI message:@"DOCKED"];
 	[station noteDockedShip:self];
 	[UNIVERSE removeEntity:self];

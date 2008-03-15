@@ -3506,23 +3506,28 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) docked
 {
-	status = STATUS_DOCKED;
+	if (dockedStation == nil)
+	{
+		[self setStatus:STATUS_IN_FLIGHT];
+		return;
+	}
+	
+	[self setStatus:STATUS_DOCKED];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 
 	[self loseTargetStatus];
 
-	if (dockedStation)
-	{
-		Vector launchPos = dockedStation->position;
-		position = launchPos;
+	Vector launchPos = [dockedStation position];
+	[self setPosition:launchPos];
 
-		[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
-
-		v_forward = vector_forward_from_quaternion(orientation);
-		v_right = vector_right_from_quaternion(orientation);
-		v_up = vector_up_from_quaternion(orientation);
-	}
-
+	[self setOrientation:kIdentityQuaternion];	// reset orientation to dock
+	
+#if OBSOLETE
+	v_forward = vector_forward_from_quaternion(orientation);
+	v_right = vector_right_from_quaternion(orientation);
+	v_up = vector_up_from_quaternion(orientation);
+#endif
+	
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightSpeed = 0.0;
@@ -3533,44 +3538,49 @@ double scoopSoundPlayTime = 0.0;
 
 	primaryTarget = NO_TARGET;
 	[self clearTargetMemory];
-
+	
 	forward_shield =	PLAYER_MAX_FORWARD_SHIELD;
 	aft_shield =		PLAYER_MAX_AFT_SHIELD;
 	energy =			maxEnergy;
 	weapon_temp =		0.0;
-	ship_temperature =		60.0;
+	ship_temperature =	60.0;
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:YES];
 
-	if (![dockedStation localMarket])
+	if ([dockedStation localMarket] == nil)
+	{
 		[dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+	}
 
-	NSString*	escapepodReport = [self processEscapePods];
-	if ([escapepodReport length])
-		[dockingReport appendString: escapepodReport];
+	NSString *escapepodReport = [self processEscapePods];
+	if ([escapepodReport length] != 0)
+	{
+		[dockingReport appendString:escapepodReport];
+	}
 	
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
 	// check contracts
-	NSString* passengerReport = [self checkPassengerContracts];
-	if (passengerReport)
+	NSString *passengerReport = [self checkPassengerContracts];
+	if (passengerReport != nil)
+	{
 		[dockingReport appendFormat:@"\n\n%@", passengerReport];
+	}
 		
 	[UNIVERSE setDisplayText:YES];
 	
+	[[OOMusicController sharedController] stopDockingMusic];
 	[[OOMusicController sharedController] playDockedMusic];
 
 	// time to check the script!
-	if (!being_fined)
-		[self checkScript];
-
+	if (!being_fined)  [self checkScript];
+	
 	// if we've not switched to the mission screen then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
 	{
 		// check for fines
-		if (being_fined)
-			[self getFined];
-
+		if (being_fined)  [self getFined];
+		
 		[self setGuiToStatusScreen];
 	}
 	
