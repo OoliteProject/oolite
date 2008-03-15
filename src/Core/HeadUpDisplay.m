@@ -738,6 +738,7 @@ static BOOL hostiles;
 				
 			case COMPASS_MODE_TARGET:
 				reference = the_target;
+				break;
 				
 			case COMPASS_MODE_BEACONS:
 				reference = the_next_beacon;
