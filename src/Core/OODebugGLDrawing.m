@@ -101,10 +101,17 @@ void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
 	BeginDebugWireframe();
 	
 	ApplyColor(color);
+	
+	float oldSize;
+	glGetFloatv(GL_LINE_WIDTH, &oldSize);
+	glLineWidth(1);
+	
 	glBegin(GL_LINES);
 		glVertex3f(start.x, start.y, start.z);
 		glVertex3f(end.x, end.y, end.z);
 	glEnd();
+	
+	glLineWidth(oldSize);
 	
 	EndDebugWireframe();
 }
@@ -133,6 +140,27 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
 }
 
 
+void OODebugDrawPoint(Vector position, OOColor *color)
+{
+	OO_ENTER_OPENGL();
+	BeginDebugWireframe();
+	
+	ApplyColor(color);
+	
+	float oldSize;
+	glGetFloatv(GL_POINT_SIZE, &oldSize);
+	glPointSize(10);
+	
+	glBegin(GL_POINTS);
+		glVertex3f(position.x, position.y, position.z);
+	glEnd();
+	
+	glPointSize(oldSize);
+	
+	EndDebugWireframe();
+}
+
+
 static void BeginDebugWireframe(void)
 {
 	OO_ENTER_OPENGL();
@@ -142,6 +170,7 @@ static void BeginDebugWireframe(void)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_FOG);
 	glDepthMask(GL_FALSE);
 	
 	glLineWidth(1.0f);

@@ -78,6 +78,8 @@ void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color);
 void OODebugDrawBasis(Vector position, GLfloat scale);
 OOINLINE void OODebugDrawBasisAtOrigin(GLfloat scale);
 
+void OODebugDrawPoint(Vector position, OOColor *color);
+
 
 /*** Only inline definitions beyond this point ***/
 

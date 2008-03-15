@@ -77,6 +77,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void)subEntityDied:(ShipEntity *)sub;
 - (void)subEntityReallyDied:(ShipEntity *)sub;
 
+#ifndef NDEBUG
+- (void) drawDebugStuff;
+#endif
+
 @end
 
 
@@ -1234,19 +1238,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 #ifndef NDEBUG
 	// DEBUGGING
-	if (reportAIMessages && (debug_condition != behaviour))
+	if (reportAIMessages && (debugLastBehaviour != behaviour))
 	{
 		OOLog(kOOLogEntityBehaviourChanged, @"%@ behaviour is now %@", self, BehaviourToString(behaviour));
-		debug_condition = behaviour;
+		debugLastBehaviour = behaviour;
 	}
 #endif
 
 	// update time between shots
-	//
-	shot_time +=delta_t;
+	shot_time += delta_t;
 
 	// handle radio message effects
-	//
 	if (messageTime > 0.0)
 	{
 		messageTime -= delta_t;
@@ -2467,13 +2469,47 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 #ifndef NDEBUG
-	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
+	// TODO: the translucent flag here makes very little sense. Something's wrong with the matrices.
+	if (translucent)  [self drawDebugStuff];
+	else if (gDebugFlags & DEBUG_BOUNDING_BOXES && ![self isSubEntity])
 	{
 		OODebugDrawBoundingBox([self boundingBox]);
-		if ([self isSubEntity])  OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
+		OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
 	}
 #endif
 }
+
+
+#ifndef NDEBUG
+- (void) drawDebugStuff
+{
+	
+	if (reportAIMessages)
+	{
+		OODebugDrawPoint(destination, [OOColor blueColor]);
+		OODebugDrawColoredLine([self position], destination, [OOColor colorWithCalibratedWhite:0.15 alpha:1.0]);
+		
+		Entity *pTarget = [self primaryTarget];
+		if (pTarget != nil)
+		{
+			OODebugDrawPoint([pTarget position], [OOColor redColor]);
+			OODebugDrawColoredLine([self position], [pTarget position], [OOColor colorWithCalibratedRed:0.2 green:0.0 blue:0.0 alpha:1.0]);
+		}
+		
+		Entity *sTarget = [UNIVERSE entityForUniversalID:targetStation];
+		if (sTarget != pTarget && [sTarget isStation])
+		{
+			OODebugDrawPoint([sTarget position], [OOColor cyanColor]);
+		}
+		
+		Entity *fTarget = [UNIVERSE entityForUniversalID:found_target];
+		if (fTarget != nil && fTarget != pTarget && fTarget != sTarget)
+		{
+			OODebugDrawPoint([fTarget position], [OOColor magentaColor]);
+		}
+	}
+}
+#endif
 
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
@@ -2489,6 +2525,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			return; // TOO FAR AWAY
 		}
 	}
+	
+	glPushMatrix();
 	if (status == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
@@ -2502,27 +2540,29 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			last = father;
 			father = [father owner];
 		}
-		glPopMatrix();  // one down
-		glPushMatrix();
-		// position and orientation is absolute
-		GLTranslateOOVector(abspos);
 		
+		GLLoadOOMatrix([UNIVERSE viewMatrix]);
+		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
-
+		
 		[self drawEntity:immediate :translucent];
-
 	}
 	else
 	{
-		glPushMatrix();
-		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
-		
-		glPopMatrix();
 	}
+	
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_BOUNDING_BOXES)
+	{
+		OODebugDrawBoundingBox([self boundingBox]);
+	}
+#endif
+	
+	glPopMatrix();
 }
 
 

@@ -143,6 +143,8 @@ enum
 
 	OOViewID				viewDirection;	// read only
 	
+	OOMatrix				viewMatrix;
+	
 	GLfloat					airResistanceFactor;
 	
 	MyOpenGLView			*gameView;
@@ -353,6 +355,9 @@ enum
 - (void) drawUniverse;
 - (void) drawCrosshairs;
 - (void) drawMessage;
+
+// Used to draw subentities. Should be getting this from camera.
+- (OOMatrix) viewMatrix;
 
 - (id) entityForUniversalID:(OOUniversalID)u_id;
 

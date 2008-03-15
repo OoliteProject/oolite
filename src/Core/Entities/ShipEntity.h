@@ -120,7 +120,7 @@ MA 02110-1301, USA.
 	
 	// per ship-type variables
 	//
-	GLfloat					maxFlightSpeed;			// top speed			(160.0 for player)  (200.0 for fast raider)
+	GLfloat					maxFlightSpeed;				// top speed			(160.0 for player)  (200.0 for fast raider)
 	GLfloat					max_flight_roll;			// maximum roll rate	(2.0 for player)	(3.0 for fast raider)
 	GLfloat					max_flight_pitch;			// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
 	GLfloat					max_flight_yaw;
@@ -285,7 +285,7 @@ MA 02110-1301, USA.
 	
 #ifndef NDEBUG
 	// DEBUGGING
-	OOBehaviour				debug_condition;
+	OOBehaviour				debugLastBehaviour;
 #endif
 	
 	uint16_t				entity_personality;	// Per-entity random number. Exposed to shaders and scripts.

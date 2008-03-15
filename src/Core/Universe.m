@@ -3482,8 +3482,8 @@ static const OOMatrix	starboard_matrix =
 			Vector viewOffset = [player viewpointOffset];
 
 			gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
-
-			if ((!displayGUI) || (inGUIMode))
+			
+			if (!displayGUI || inGUIMode)
 			{
 				// set up the light for demo ships
 				Vector demo_light_origin = { DEMO_LIGHT_POSITION };
@@ -3520,6 +3520,9 @@ static const OOMatrix	starboard_matrix =
 					setSunLight(YES);
 					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
 				}
+				
+				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
+				viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW);
 				
 				// turn on lighting
 				glEnable(GL_LIGHTING);
@@ -3714,6 +3717,12 @@ static const OOMatrix	starboard_matrix =
 		
 		NS_ENDHANDLER
 	}
+}
+
+
+- (OOMatrix) viewMatrix
+{
+	return viewMatrix;
 }
 
 
