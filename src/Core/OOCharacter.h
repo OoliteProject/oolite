@@ -28,7 +28,9 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "legacy_random.h"
 
-@class OOBrain, Universe;
+#ifdef OO_BRAIN_AI
+@class OOBrain;
+#endif
 
 @interface OOCharacter : NSObject
 {
@@ -40,7 +42,9 @@ MA 02110-1301, USA.
 	int					legalStatus;
 	OOCreditsQuantity	insuranceCredits;
 	
+#ifdef OO_BRAIN_AI
 	OOBrain				*brain;				// brain of character
+#endif
 	
 	NSArray				*script_actions;
 }
@@ -59,26 +63,32 @@ MA 02110-1301, USA.
 - (BOOL) castInRole:(NSString *)role;
 
 - (NSString *) name;
-- (NSString *) shortDescription;
-- (NSString *) longDescription;
-- (Random_Seed) originSystemSeed;
-- (Random_Seed) genSeed;
-- (int) legalStatus;
-- (OOCreditsQuantity) insuranceCredits;
-- (NSArray *) script;
-- (OOBrain *) brain;
-
 - (void) setName:(NSString *)value;
+
+- (NSString *) shortDescription;
 - (void) setShortDescription:(NSString *)value;
+
+- (NSString *) longDescription;
 - (void) setLongDescription:(NSString *)value;
+
+- (Random_Seed) originSystemSeed;
 - (void) setOriginSystemSeed:(Random_Seed)value;
+
+- (Random_Seed) genSeed;
 - (void) setGenSeed:(Random_Seed)value;
+
+- (int) legalStatus;
 - (void) setLegalStatus:(int)value;
+
+- (OOCreditsQuantity) insuranceCredits;
 - (void) setInsuranceCredits:(OOCreditsQuantity)value;
+
+- (NSArray *) script;
 - (void) setScript:(NSArray *)some_actions;
 
+#ifdef OO_BRAIN_AI
+- (OOBrain *) brain;
 - (void) setBrain:(OOBrain *)aBrain;
-
-- (void) setCharacterFromDictionary:(NSDictionary *)dict;
+#endif
 
 @end

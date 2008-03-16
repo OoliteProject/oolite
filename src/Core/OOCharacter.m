@@ -25,9 +25,20 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 #import "Universe.h"
-#import "OOBrain.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
+
+#ifdef OO_BRAIN_AI
+#import "OOBrain.h"
+#endif
+
+
+@interface OOCharacter (Private)
+
+
+- (void) setCharacterFromDictionary:(NSDictionary *)dict;
+
+@end
 
 
 @implementation OOCharacter
@@ -50,7 +61,9 @@ MA 02110-1301, USA.
 	[shortDescription release];
 	[longDescription release];
 	[script_actions release];
+#ifdef OO_BRAIN_AI
 	[brain release];
+#endif
 	
 	[super dealloc];
 }
@@ -376,33 +389,46 @@ MA 02110-1301, USA.
 }
 
 
+#ifdef OO_BRAIN_AI
 - (OOBrain *)brain
 {
 	return brain;
 }
 
 
+- (void) setBrain:(OOBrain *)aBrain
+{
+	if (aBrain != brain)
+	{
+		[brain release];
+		brain = [aBrain retain];
+		if (brain != nil)
+		{
+			[brain setOwner:self];
+		}
+	}
+}
+#endif
+
+
 - (void)setName:(NSString *)value
 {
-	if (name)
-		[name autorelease];
-	name = [value retain];
+	[name autorelease];
+	name = [value copy];
 }
 
 
 - (void)setShortDescription:(NSString *)value
 {
-	if (shortDescription)
-		[shortDescription autorelease];
-	shortDescription = [value retain];
+	[shortDescription autorelease];
+	shortDescription = [value copy];
 }
 
 
 - (void)setLongDescription:(NSString *)value
 {
-	if (longDescription)
-		[longDescription autorelease];
-	longDescription = [value retain];
+	[longDescription autorelease];
+	longDescription = [value copy];
 }
 
 
@@ -432,25 +458,8 @@ MA 02110-1301, USA.
 
 - (void)setScript:(NSArray *)some_actions
 {
-	if (script_actions)
-		[script_actions autorelease];
-	if (some_actions)
-		script_actions = [some_actions retain];
-	else
-		script_actions = nil;
-}
-
-
-- (void) setBrain:(OOBrain *)aBrain
-{
-	if (brain)
-		[brain release];
-	brain = aBrain;
-	if (brain)
-	{
-		[brain retain];
-		[brain setOwner:self];
-	}
+	[script_actions autorelease];
+	script_actions = [some_actions copy];
 }
 
 

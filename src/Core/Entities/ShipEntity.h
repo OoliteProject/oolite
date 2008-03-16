@@ -27,8 +27,11 @@ MA 02110-1301, USA.
 
 #import "OOEntityWithDrawable.h"
 
-@class	OOBrain, OOColor, StationEntity, ParticleEntity, PlanetEntity,
+@class	OOColor, StationEntity, ParticleEntity, PlanetEntity,
 		WormholeEntity, AI, Octree, OOMesh, OOScript, OORoleSet;
+#ifdef OO_BRAIN_AI
+@class OOBrain;
+#endif
 
 
 #define MAX_TARGETS						24
@@ -187,7 +190,9 @@ MA 02110-1301, USA.
 	
 	unsigned				missiles;					// number of on-board missiles
 	
+#ifdef OO_BRAIN_AI
 	OOBrain					*brain;						// brain controlling ship, could be a character brain or the autopilot
+#endif
 	AI						*shipAI;					// ship's AI system
 	
 	NSString				*name;						// descriptive name
@@ -298,13 +303,16 @@ MA 02110-1301, USA.
 }
 
 // ship brains
-- (OOBrain *)brain;
-- (void)setBrain:(OOBrain*) aBrain;
 - (void) setStateMachine:(NSString *) ai_desc;
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
 - (void) setShipScript:(NSString *) script_name;
 - (OOScript *)shipScript;
+
+#ifdef OO_BRAIN_AI
+- (OOBrain *)brain;
+- (void)setBrain:(OOBrain*) aBrain;
+#endif
 
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;

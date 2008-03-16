@@ -24,6 +24,8 @@ MA 02110-1301, USA.
 
 */
 
+#ifdef OO_BRAIN_AI
+
 #import "OOCocoa.h"
 #import "OOMaths.h"
 #import "legacy_random.h"
@@ -111,3 +113,5 @@ MA 02110-1301, USA.
 - (void)dumpState;
 
 @end
+
+#endif	/* OO_BRAIN_AI */

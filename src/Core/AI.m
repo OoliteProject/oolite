@@ -24,11 +24,14 @@ MA 02110-1301, USA.
 
 #import "AI.h"
 #import "ResourceManager.h"
-#import "OOInstinct.h"
 #import "OOStringParsing.h"
 #import "OOWeakReference.h"
 
 #import "ShipEntity.h"
+
+#ifdef OO_BRAIN_AI
+#import "OOInstinct.h"
+#endif
 
 #define kOOLogUnconvertedNSLog @"unclassified.AI"
 
@@ -125,6 +128,7 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
+#ifdef OO_BRAIN_AI
 - (OOInstinct *) rulingInstinct
 {
 	return rulingInstinct;
@@ -135,6 +139,7 @@ static AI *sCurrentlyRunningAI = nil;
 {
 	rulingInstinct = instinct;
 }
+#endif
 
 
 - (ShipEntity *)owner
@@ -351,7 +356,9 @@ static AI *sCurrentlyRunningAI = nil;
 	
 	actions = [[[messagesForState objectForKey:message] copy] autorelease];
 	
+#ifdef OO_BRAIN_AI
 	if (rulingInstinct != nil)  [rulingInstinct freezeShipVars];	// preserve the pre-thinking state
+#endif
 	
 	sCurrentlyRunningAI = self;
 	if ([actions count] > 0)
@@ -379,11 +386,13 @@ static AI *sCurrentlyRunningAI = nil;
 	}
 	sCurrentlyRunningAI = previousRunning;
 	
+#ifdef OO_BRAIN_AI
 	if (rulingInstinct != nil)
 	{
 		[rulingInstinct getShipVars];		// record the post-thinking state
 		[rulingInstinct unfreezeShipVars];	// restore the pre-thinking state (AI is now abstract thought = instincts motivate)
 	}
+#endif
 }
 
 
@@ -546,6 +555,7 @@ static AI *sCurrentlyRunningAI = nil;
 {
 	OOLog(@"dumpState.ai", @"State machine name: %@", stateMachineName);
 	OOLog(@"dumpState.ai", @"Current state: %@", currentState);
+#ifdef OO_BRAIN_AI
 	if (rulingInstinct!= nil && OOLogWillDisplayMessagesInClass(@"dumpState.ai.instinct"))
 	{
 		OOLog(@"dumpState.ai.instinct", @"Ruling instinct:");
@@ -557,6 +567,7 @@ static AI *sCurrentlyRunningAI = nil;
 		NS_ENDHANDLER
 		OOLogPopIndent();
 	}
+#endif
 	OOLog(@"dumpState.ai", @"Next think time: %g", nextThinkTime);
 	OOLog(@"dumpState.ai", @"Next think interval: %g", thinkTimeInterval);
 }

@@ -23,12 +23,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */ = {isa = PBXBuildFile; fileRef = 081329B30A6D534900A5C2CE /* OOInstinct.h */; };
-		081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */ = {isa = PBXBuildFile; fileRef = 081329B40A6D534900A5C2CE /* OOInstinct.m */; };
 		083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */ = {isa = PBXBuildFile; fileRef = 083325DB09DDBCDE00F5B8E4 /* OOColor.h */; };
 		083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */ = {isa = PBXBuildFile; fileRef = 083325DC09DDBCDE00F5B8E4 /* OOColor.m */; };
-		083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */ = {isa = PBXBuildFile; fileRef = 083DB4D30A70E51E00B419B2 /* OOBrain.h */; };
-		083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */ = {isa = PBXBuildFile; fileRef = 083DB4D40A70E51E00B419B2 /* OOBrain.m */; };
 		0865427906B8447D000CA0AB /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97319FDCFA39411CA2CEA /* MainMenu.nib */; };
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
@@ -2718,8 +2714,6 @@
 				2512834209BA27EC00F43D55 /* Geometry.h in Headers */,
 				2512834609BA281500F43D55 /* CollisionRegion.h in Headers */,
 				083325DD09DDBCDE00F5B8E4 /* OOColor.h in Headers */,
-				081329B50A6D534900A5C2CE /* OOInstinct.h in Headers */,
-				083DB4D50A70E51E00B419B2 /* OOBrain.h in Headers */,
 				1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */,
 				1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */,
 				1A8A394F0B96229C007D20B8 /* NSFileManagerOOExtensions.h in Headers */,
@@ -3078,8 +3072,6 @@
 				2512834309BA27EC00F43D55 /* Geometry.m in Sources */,
 				2512834709BA281500F43D55 /* CollisionRegion.m in Sources */,
 				083325DE09DDBCDE00F5B8E4 /* OOColor.m in Sources */,
-				081329B60A6D534900A5C2CE /* OOInstinct.m in Sources */,
-				083DB4D60A70E51E00B419B2 /* OOBrain.m in Sources */,
 				1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */,
 				1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */,
 				1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */,

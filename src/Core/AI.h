@@ -31,7 +31,10 @@ MA 02110-1301, USA.
 #define AI_THINK_INTERVAL					0.125
 
 
-@class ShipEntity, OOInstinct;
+@class ShipEntity;
+#ifdef OO_BRAIN_AI
+@class OOInstinct;
+#endif
 
 
 @interface AI : OOWeakRefObject
@@ -46,7 +49,9 @@ MA 02110-1301, USA.
 	
 	NSMutableArray		*aiStack;
 	
+#ifdef OO_BRAIN_AI
 	OOInstinct			*rulingInstinct;
+#endif
 	
 	OOTimeAbsolute		nextThinkTime;
 	OOTimeDelta			thinkTimeInterval;
@@ -67,8 +72,10 @@ MA 02110-1301, USA.
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName;
 
+#ifdef OO_BRAIN_AI
 - (OOInstinct *) rulingInstinct;
 - (void) setRulingInstinct:(OOInstinct*) instinct;
+#endif
 
 - (ShipEntity *)owner;
 - (void) setOwner:(ShipEntity *)ship;

@@ -39,8 +39,10 @@ MA 02110-1301, USA.
 #import "OORoleSet.h"
 
 #import "OOCharacter.h"
-#import "OOBrain.h"
 #import "AI.h"
+#ifdef OO_BRAIN_AI
+#import "OOBrain.h"
+#endif
 
 #import "OOMesh.h"
 #import "Geometry.h"
@@ -615,6 +617,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+#ifdef OO_BRAIN_AI
 // ship's brains!
 - (OOBrain *)brain
 {
@@ -626,6 +629,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	brain = aBrain;
 }
+#endif
 
 
 - (GLfloat)doesHitLine:(Vector)v0: (Vector)v1;
@@ -1231,7 +1235,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// think!
+#ifdef OO_BRAIN_AI
 	[brain update:delta_t];
+#endif
 	
 	// super update
 	[super update:delta_t];
@@ -7491,6 +7497,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Fuel: %i", fuel);
 	OOLog(@"dumpState.shipEntity", @"Fuel accumulator: %g", fuel_accumulator);
 	OOLog(@"dumpState.shipEntity", @"Missile count: %u", missiles);
+	
+#ifdef OO_BRAIN_AI
 	if (brain != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.brain"))
 	{
 		OOLog(@"dumpState.shipEntity.brain", @"Brain:");
@@ -7502,6 +7510,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		NS_ENDHANDLER
 		OOLogPopIndent();
 	}
+#endif
+	
 	if (shipAI != nil && OOLogWillDisplayMessagesInClass(@"dumpState.shipEntity.ai"))
 	{
 		OOLog(@"dumpState.shipEntity.ai", @"AI:");
