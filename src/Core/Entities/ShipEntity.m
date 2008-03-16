@@ -118,6 +118,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[self release];
 		self = nil;
 	}
+	
+	// Problem observed in testing -- Ahruman
+	if (self != nil && !isfinite(maxFlightSpeed))
+	{
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
+		maxFlightSpeed = 300;
+	}
 	return self;
 }
 
@@ -249,19 +256,25 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	missiles = [shipDict intForKey:@"missiles"];
 
 	// upgrades:
-	has_ecm = [shipDict fuzzyBooleanForKey:@"has_ecm"];
-	has_scoop = [shipDict fuzzyBooleanForKey:@"has_scoop"];
-	has_escape_pod = [shipDict fuzzyBooleanForKey:@"has_escape_pod"];
-	has_energy_bomb = [shipDict fuzzyBooleanForKey:@"has_energy_bomb"];
-	has_fuel_injection = ![UNIVERSE strict] && [shipDict fuzzyBooleanForKey:@"has_fuel_injection"]; // Fuel injectors are not allowed in strict mode.
-	has_cloaking_device = [shipDict fuzzyBooleanForKey:@"has_cloaking_device"];
-	has_military_jammer = [shipDict fuzzyBooleanForKey:@"has_military_jammer"];
-	has_military_scanner_filter = [shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"];
+	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipment:@"EQ_ECM"];
+	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipment:@"EQ_FUEL_SCOOPS"];
+	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipment:@"EQ_ESCAPE_POD"];
+	if ([shipDict fuzzyBooleanForKey:@"has_energy_bomb"])  [self addEquipment:@"EQ_ENERGY_BOMB"];
+	if ([shipDict fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipment:@"EQ_CLOAKING_DEVICE"];
+	if (![UNIVERSE strict])
+	{
+		// These items are not available in strict mode.
+		if ([shipDict fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipment:@"EQ_FUEL_INJECTION"];
+		if ([shipDict fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipment:@"EQ_MILITARY_JAMMER"];
+		if ([shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipment:@"EQ_MILITARY_SCANNER_FILTER"];
+	}
+	
 	canFragment = [shipDict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
 	
+	// FIXME: give NPCs shields instead.
 	if ([shipDict fuzzyBooleanForKey:@"has_shield_booster"])
 	{
 		maxEnergy += 256.0f;
@@ -350,7 +363,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[self setOwner:self];
 	
-	is_hulk = [shipDict boolForKey:@"is_hulk"];
+	[self setHulk:[shipDict boolForKey:@"is_hulk"]];
 	
 	if (![self setUpSubEntities: shipDict]) 
 	{
@@ -424,7 +437,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
 	
 	// ship skin insulation factor (1.0 is normal)
-	heat_insulation = [shipDict floatForKey:@"heat_insulation"	defaultValue:1.0];
+	[self setHeatInsulation:[shipDict floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
 	
 	// crew and passengers
 	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict stringForKey:@"pilot"]];
@@ -473,6 +486,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[octree autorelease];
 	
 	[self setSubEntityTakingDamage:nil];
+	[self removeAllEquipment];
 	
 	[super dealloc];
 }
@@ -1157,6 +1171,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return;
 	}
 	
+	if (!isfinite(maxFlightSpeed))
+	{
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
+		maxFlightSpeed = 300;
+	}
+	
 	//
 	// deal with collisions
 	//
@@ -1278,11 +1298,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// work on the ship temperature
 	//
 	if (external_temp > ship_temperature)
-		ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / heat_insulation;
+		ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation];
 	else
 	{
 		if (ship_temperature > SHIP_MIN_CABIN_TEMP)
-			ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / heat_insulation;
+			ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation];
 	}
 
 	if (ship_temperature > SHIP_MAX_CABIN_TEMP)
@@ -1305,7 +1325,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// cloaking device
-	if (has_cloaking_device)
+	if ([self hasCloakingDevice])
 	{
 		if (cloaking_device_active)
 		{
@@ -1328,7 +1348,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// military_jammer
-	if (has_military_jammer)
+	if ([self hasMilitaryJammer])
 	{
 		if (military_jammer_active)
 		{
@@ -1615,6 +1635,206 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+// Equipment
+
+- (BOOL) hasEquipment:(id)equipmentKeys
+{
+	NSEnumerator				*keyEnum = nil;
+	id							key = nil;
+	
+	if (_equipment == nil)  return NO;
+	
+	// Make sure it's an array or set, using a single-object set if it's a string.
+	if ([equipmentKeys isKindOfClass:[NSString class]])  equipmentKeys = [NSArray arrayWithObject:equipmentKeys];
+	else if (![equipmentKeys isKindOfClass:[NSArray class]] && ![equipmentKeys isKindOfClass:[NSSet class]])  return NO;
+	
+	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		if ([_equipment containsObject:key])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) hasAllEquipment:(id)equipmentKeys
+{
+	NSEnumerator				*keyEnum = nil;
+	id							key = nil;
+	
+	if (_equipment == nil)  return NO;
+	
+	// Make sure it's an array or set, using a single-object set if it's a string.
+	if ([equipmentKeys isKindOfClass:[NSString class]])  equipmentKeys = [NSArray arrayWithObject:equipmentKeys];
+	else if (![equipmentKeys isKindOfClass:[NSArray class]] && ![equipmentKeys isKindOfClass:[NSSet class]])  return NO;
+	
+	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		if (![_equipment containsObject:key])  return NO;
+	}
+	
+	return YES;
+}
+
+
+- (void) addEquipment:(NSString *)equipmentKey
+{
+	if (equipmentKey == nil)  return;
+	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
+	
+	// if we've got a damaged one of these - remove it first
+	NSString* damaged_eq_key = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+	[_equipment removeObject:damaged_eq_key];
+	
+	// add the equipment and set the necessary flags and data accordingly
+	[_equipment addObject:equipmentKey];
+}
+
+
+- (NSEnumerator *) equipmentEnumerator
+{
+	return [_equipment objectEnumerator];
+}
+
+
+- (unsigned) equipmentCount
+{
+	return [_equipment count];
+}
+
+
+- (void) removeEquipment:(NSString *)equipmentKey
+{
+	[_equipment removeObject:equipmentKey];
+	if ([_equipment count] == 0)  [self removeAllEquipment];
+}
+
+
+- (void) removeAllEquipment
+{
+	[_equipment release];
+	_equipment = nil;
+}
+
+
+- (BOOL) hasScoop
+{
+	return [self hasEquipment:@"EQ_FUEL_SCOOPS"];
+}
+
+
+- (BOOL) hasECM
+{
+	return [self hasEquipment:@"EQ_ECM"];
+}
+
+
+- (BOOL) hasCloakingDevice
+{
+	return [self hasEquipment:@"EQ_CLOAKING_DEVICE"];
+}
+
+
+- (BOOL) hasMilitaryScannerFilter
+{
+	return [self hasEquipment:@"EQ_MILITARY_SCANNER_FILTER"];
+}
+
+
+- (BOOL) hasMilitaryJammer
+{
+	return [self hasEquipment:@"EQ_MILITARY_JAMMER"];
+}
+
+
+- (BOOL) hasExpandedCargoBay
+{
+	return [self hasEquipment:@"EQ_CARGO_BAY"];
+}
+
+
+- (BOOL) hasShieldBooster
+{
+	return [self hasEquipment:@"EQ_SHIELD_BOOSTER"];
+}
+
+
+- (BOOL) hasMilitaryShieldEnhancer
+{
+	return [self hasEquipment:@"EQ_NAVAL_SHIELD_BOOSTER"];
+}
+
+
+- (BOOL) hasHeatShield
+{
+	return [self hasEquipment:@"EQ_HEAT_SHIELD"];
+}
+
+
+- (BOOL) hasFuelInjection
+{
+	return [self hasEquipment:@"EQ_FUEL_INJECTION"];
+}
+
+
+- (BOOL) hasEnergyBomb
+{
+	return [self hasEquipment:@"EQ_ENERGY_BOMB"];
+}
+
+
+- (BOOL) hasEscapePod
+{
+	return [self hasEquipment:@"EQ_ESCAPE_POD"];
+}
+
+
+- (BOOL) hasDockingComputer
+{
+	return [self hasEquipment:@"EQ_DOCK_COMP"];
+}
+
+
+- (BOOL) hasGalacticHyperdrive
+{
+	return [self hasEquipment:@"EQ_GAL_DRIVE"];
+}
+
+
+- (float) shieldBoostFactor
+{
+	float boostFactor = 1.0;
+	if ([self hasShieldBooster])  boostFactor += 1.0;
+	if ([self hasMilitaryShieldEnhancer])  boostFactor += 1.0;
+	
+	return boostFactor;
+}
+
+
+- (float) maxForwardShieldLevel
+{
+	return BASELINE_SHIELD_LEVEL * [self shieldBoostFactor];
+}
+
+
+- (float) maxAftShieldLevel
+{
+	return BASELINE_SHIELD_LEVEL * [self shieldBoostFactor];
+}
+
+
+- (float) shieldRechargeRate
+{
+	return [self hasMilitaryShieldEnhancer] ? 3.0f : 2.0f;
+}
+
+
+- (float) afterburnerFactor
+{
+	return 7.0f;
+}
+
+
 ////////////////
 //            //
 // behaviours //
@@ -1826,10 +2046,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_target:(double) delta_t
 {
-	BOOL	canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double	max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	
 	[self activateCloakingDevice];
+	
 	desired_speed = max_available_speed;
 	if (range < 0.035 * weaponRange)
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
@@ -1853,9 +2076,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
-	BOOL		canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double		max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
-	double		range = [self rangeToPrimaryTarget];
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	float	max_available_speed = maxFlightSpeed;
+	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	// deal with collisions and lost targets
 	if (proximity_alert != NO_TARGET)
@@ -1871,7 +2095,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// control speed
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
-	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	double distance = [self rangeToDestination];
@@ -1957,9 +2181,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_fly_to_target:(double) delta_t
 {
-	BOOL canBurn = has_fuel_injection && (fuel > 1);	// was &&(fuel > 0)
-	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
 	{
 		if (proximity_alert == NO_TARGET)
@@ -2000,7 +2226,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// control speed
 	//
 	BOOL isUsingAfterburner = canBurn && (flightSpeed > maxFlightSpeed);
-	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * AFTERBURNER_FACTOR : 1.0);
+	double slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
 	if (range <= slow_down_range)
@@ -2098,9 +2324,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_flee_target:(double) delta_t
 {
-	BOOL canBurn = has_fuel_injection && (fuel > 1);
-	double max_available_speed = (canBurn)? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	
 	if (range > desired_range)
 		[shipAI message:@"REACHED_SAFETY"];
 	else
@@ -2111,7 +2339,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	int rhs = 3.2 / delta_t;
 	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	if ((has_energy_bomb) && (range < 10000.0))
+	if (([self hasEnergyBomb]) && (range < 10000.0))
 	{
 		float	qbomb_chance = 0.01 * delta_t;
 		if (randf() < qbomb_chance)
@@ -2586,7 +2814,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash
 {
 
-	if (has_military_jammer && military_jammer_active)
+	if ([self isJammingScanning])
 	{
 		if (![otherShip hasMilitaryScannerFilter])
 			return jammed_color;
@@ -2657,13 +2885,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (BOOL) isJammingScanning
 {
-	return (has_military_jammer && military_jammer_active);
-}
-
-
-- (BOOL) hasMilitaryScannerFilter
-{
-	return has_military_scanner_filter;
+	return ([self hasMilitaryJammer] && military_jammer_active);
 }
 
 
@@ -2693,7 +2915,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) applyThrust:(double) delta_t
 {
 	GLfloat dt_thrust = thrust * delta_t;
-	GLfloat max_available_speed = (has_fuel_injection && (fuel > 1))? maxFlightSpeed * AFTERBURNER_FACTOR : maxFlightSpeed;
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	float	max_available_speed = maxFlightSpeed;
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 	
@@ -2728,7 +2952,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[self moveForward: delta_t*flightSpeed];
 
 	// burn fuel at the appropriate rate
-	if ((flightSpeed > maxFlightSpeed) && has_fuel_injection && (fuel > 0))
+	if ((flightSpeed > maxFlightSpeed) && canBurn)
 	{
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
@@ -2932,8 +3156,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (NSString *) identFromShip:(ShipEntity*) otherShip
 {
-	if (has_military_jammer && military_jammer_active && (![otherShip hasMilitaryScannerFilter]))
-		return @"Unknown Target";
+	if ([self isJammingScanning] && ![otherShip hasMilitaryScannerFilter])
+	{
+		return DESC(@"unknown-target");
+	}
 	return displayName;
 }
 
@@ -3469,7 +3695,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (void) increase_flight_speed:(double) delta
 {
-	double factor = ((desired_speed > maxFlightSpeed)&&(has_fuel_injection)&&(fuel > 0)) ? AFTERBURNER_FACTOR : 1.0;
+	double factor = 1.0;
+	if (desired_speed > maxFlightSpeed && [self hasFuelInjection] && fuel > 0) factor = [self afterburnerFactor];
 
 	if (flightSpeed < maxFlightSpeed * factor)
 		flightSpeed += delta * factor;
@@ -3592,13 +3819,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (GLfloat) heatInsulation
 {
-	return heat_insulation;
+	return _heatInsulation;
 }
 
 
 - (void) setHeatInsulation:(GLfloat) value
 {
-	heat_insulation = value;
+	_heatInsulation = value;
 }
 
 
@@ -3658,11 +3885,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (BOOL) isHulk
 {
-	return is_hulk;
+	return isHulk;
 }
 
-- (void) setHulk:(BOOL) isNowHulk {
-    is_hulk = isNowHulk;
+- (void) setHulk:(BOOL)isNowHulk
+{
+    isHulk = isNowHulk;
 }
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
@@ -5735,11 +5963,11 @@ BOOL class_masslocks(int some_class)
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
 		return NO;
 
-	if (target->isShip)
+	if ([target isShip])
 	{
 		target_ship = (ShipEntity*)target;
 		if ([target_ship isCloaked])  return NO;
-		if ((!has_military_scanner_filter)&&[target_ship isJammingScanning])  return NO;
+		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning])  return NO;
 	}
 
 	// custom missiles
@@ -5814,24 +6042,20 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) fireECM
 {
-	if (!has_ecm)
-		return NO;
-	else
-	{
-		ParticleEntity  *ecmDevice = [[ParticleEntity alloc] initECMMineFromShip:self]; // retained
-		[UNIVERSE addEntity:ecmDevice];
-		[ecmDevice release];
-	}
+	if (![self hasECM])  return NO;
+	
+	ParticleEntity  *ecmDevice = [[ParticleEntity alloc] initECMMineFromShip:self]; // retained
+	[UNIVERSE addEntity:ecmDevice];
+	[ecmDevice release];
 	return YES;
 }
 
 
 - (BOOL) activateCloakingDevice
 {
-	if (!has_cloaking_device)
-		return NO;
-	if (!cloaking_device_active)
-		cloaking_device_active = (energy > CLOAKING_DEVICE_START_ENERGY * maxEnergy);
+	if (![self hasCloakingDevice])  return NO;
+	
+	if (!cloaking_device_active)  cloaking_device_active = (energy > CLOAKING_DEVICE_START_ENERGY * maxEnergy);
 	return cloaking_device_active;
 }
 
@@ -5844,52 +6068,48 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) launchEnergyBomb
 {
-	if (!has_energy_bomb)
-		return NO;
-	has_energy_bomb = NO;
+	if (![self hasEnergyBomb])  return NO;
 	[self setSpeed: maxFlightSpeed + 300];
 	ShipEntity*	bomb = [UNIVERSE newShipWithRole:@"energy-bomb"];
-	if (!bomb)
-		return NO;
+	if (bomb == nil)  return NO;
+	
+	[self removeEquipment:@"EQ_ENERGY_BOMB"];
+	
 	double  start = collision_radius + bomb->collision_radius;
-	double  eject_speed = -800.0;
 	Quaternion  random_direction;
 	Vector  vel;
-	Vector  rpos = position;
+	Vector  rpos;
 	double random_roll =	randf() - 0.5;  //  -0.5 to +0.5
 	double random_pitch = 	randf() - 0.5;  //  -0.5 to +0.5
 	quaternion_set_random(&random_direction);
-	rpos.x -= v_forward.x * start;
-	rpos.y -= v_forward.y * start;
-	rpos.z -= v_forward.z * start;
-	vel.x = v_forward.x * (flightSpeed + eject_speed);
-	vel.y = v_forward.y * (flightSpeed + eject_speed);
-	vel.z = v_forward.z * (flightSpeed + eject_speed);
+	
+	rpos = vector_subtract([self position], vector_multiply_scalar(v_forward, start));
+	
+	double  eject_speed = -800.0;
+	vel = vector_multiply_scalar(v_forward, [self flightSpeed] + eject_speed);
 	eject_speed *= 0.5 * (randf() - 0.5);   //  -0.25x .. +0.25x
-	vel.x += v_up.x * eject_speed;
-	vel.y += v_up.y * eject_speed;
-	vel.z += v_up.z * eject_speed;
+	vel = vector_add(vel, vector_multiply_scalar(v_up, eject_speed));
 	eject_speed *= 0.5 * (randf() - 0.5);   //  -0.0625x .. +0.0625x
-	vel.x += v_right.x * eject_speed;
-	vel.y += v_right.y * eject_speed;
-	vel.z += v_right.z * eject_speed;
+	vel = vector_add(vel, vector_multiply_scalar(v_right, eject_speed));
+	
 	[bomb setPosition:rpos];
 	[bomb setOrientation:random_direction];
 	[bomb setRoll:random_roll];
 	[bomb setPitch:random_pitch];
 	[bomb setVelocity:vel];
-	[bomb setScanClass: CLASS_MINE];	// TODO should be CLASS_ENERGY_BOMB
-	[bomb setStatus: STATUS_IN_FLIGHT];
-	[bomb setEnergy: 5.0];	// 5 second countdown
-	[bomb setBehaviour: BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
-	[bomb setOwner: self];
+	[bomb setScanClass:CLASS_MINE];	// TODO should be CLASS_ENERGY_BOMB
+	[bomb setStatus:STATUS_IN_FLIGHT];
+	[bomb setEnergy:5.0];	// 5 second countdown
+	[bomb setBehaviour:BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
+	[bomb setOwner:self];
 	[UNIVERSE addEntity:bomb];
 	[[bomb getAI] setState:@"GLOBAL"];
 	[bomb release];
+	
 	if (self != [PlayerEntity sharedPlayer])	// get the heck out of here
 	{
 		[self addTarget:bomb];
-		behaviour = BEHAVIOUR_FLEE_TARGET;
+		[self setBehaviour:BEHAVIOUR_FLEE_TARGET];
 		frustration = 0.0;
 	}
 	return YES;
@@ -6271,22 +6491,20 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) canScoop:(ShipEntity*)other
 {
-	if (!other)										return NO;
-	if (!has_scoop)									return NO;
-	if ([cargo count] >= max_cargo)					return NO;
-	if (scanClass == CLASS_CARGO)					return NO;	// we have no power so we can't scoop
-	if ([other scanClass] != CLASS_CARGO)			return NO;
-	if ([other cargoType] == CARGO_NOT_CARGO)		return NO;
+	if (other == nil)							return NO;
+	if (![self hasScoop])						return NO;
+	if ([cargo count] >= max_cargo)				return NO;
+	if (scanClass == CLASS_CARGO)				return NO;  // we have no power so we can't scoop
+	if ([other scanClass] != CLASS_CARGO)		return NO;
+	if ([other cargoType] == CARGO_NOT_CARGO)	return NO;
+	
+	if ([other isStation])						return NO;
 
-	if ([other isStation])
-		return NO;
-
-	Vector  loc = vector_between(position, other->position);
-
-	GLfloat inc1 = (v_forward.x*loc.x)+(v_forward.y*loc.y)+(v_forward.z*loc.z);
-	if (inc1 < 0.0f)									return NO;
-	GLfloat inc2 = (v_up.x*loc.x)+(v_up.y*loc.y)+(v_up.z*loc.z);
-	if ((inc2 > 0.0f)&&(isPlayer))	return NO;	// player has to scoop ro underside, give more flexibility to NPCs
+	Vector  loc = vector_between(position, [other position]);
+	
+	if (dot_product(v_forward, loc) < 0.0f)  return NO;  // Must be in front of us
+	if ([self isPlayer] && dot_product(v_up, loc) > 0.0f)  return NO;  // player has to scoop on underside, give more flexibility to NPCs
+	
 	return YES;
 }
 
@@ -6297,8 +6515,8 @@ BOOL class_masslocks(int some_class)
 	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or behaviour
 	behaviour = BEHAVIOUR_TRACTORED;
 	status = STATUS_BEING_SCOOPED;
-	[self addTarget: other];
-	[self setOwner: other];
+	[self addTarget:other];
+	[self setOwner:other];
 }
 
 
@@ -6554,10 +6772,10 @@ BOOL class_masslocks(int some_class)
 		{
 			[self doScriptEvent:@"shipEnergyIsLow" andReactToAIMessage:@"ENERGY_LOW"];
 		}
-		if (energy < maxEnergy *0.125 && has_escape_pod && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
+		if (energy < maxEnergy *0.125 && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
 			// TODO: abandoning ship should be split out into a separate method.
-			has_escape_pod = NO;
+			[self removeEquipment:@"EQ_ESCAPE_POD"];
 			
 			[shipAI setStateMachine:@"nullAI.plist"];
 			[shipAI setState:@"GLOBAL"];
@@ -6568,7 +6786,7 @@ BOOL class_masslocks(int some_class)
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
 			maxFlightSpeed = 0.0;
-			is_hulk = YES;
+			[self setHulk:YES];
 		}
 	}
 }
@@ -7393,7 +7611,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"claimAsSalvage.called", @"claimAsSalvage called on %@ %@", [self name], [self roleSet]);
 	
 	// Not an abandoned hulk, so don't allow the salvage
-	if (is_hulk != YES)
+	if (![self isHulk])
 	{
 		OOLog(@"claimAsSalvage.failed.notHulk", @"claimAsSalvage failed because not a hulk");
 		return;
@@ -7533,26 +7751,18 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		OOLog(@"dumpState.shipEntity", @"Beacon character: '%c'", beaconChar);
 	}
 	OOLog(@"dumpState.shipEntity", @"Hull temperature: %g", ship_temperature);
-	OOLog(@"dumpState.shipEntity", @"Heat insulation: %g", heat_insulation);
+	OOLog(@"dumpState.shipEntity", @"Heat insulation: %g", [self heatInsulation]);
 	
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
-	ADD_FLAG_IF_SET(has_ecm);
-	ADD_FLAG_IF_SET(has_scoop);
-	ADD_FLAG_IF_SET(has_escape_pod);
-	ADD_FLAG_IF_SET(has_energy_bomb);
-	ADD_FLAG_IF_SET(has_cloaking_device);
-	ADD_FLAG_IF_SET(has_military_jammer);
 	ADD_FLAG_IF_SET(military_jammer_active);
-	ADD_FLAG_IF_SET(has_military_scanner_filter);
-	ADD_FLAG_IF_SET(has_fuel_injection);
 	ADD_FLAG_IF_SET(docking_match_rotation);
 	ADD_FLAG_IF_SET(escortsAreSetUp);
 	ADD_FLAG_IF_SET(pitching_over);
 	ADD_FLAG_IF_SET(reportAIMessages);
 	ADD_FLAG_IF_SET(being_mined);
 	ADD_FLAG_IF_SET(being_fined);
-	ADD_FLAG_IF_SET(is_hulk);
+	ADD_FLAG_IF_SET(isHulk);
 	ADD_FLAG_IF_SET(trackCloseContacts);
 	ADD_FLAG_IF_SET(isNearPlanetSurface);
 	ADD_FLAG_IF_SET(isFrangible);

@@ -234,7 +234,7 @@ MA 02110-1301, USA.
 	/*-- Locates the nearest debris in range --*/
 	if (!isStation)
 	{
-		if (!has_scoop)
+		if (![self hasScoop])
 		{
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 			return;
@@ -286,7 +286,7 @@ MA 02110-1301, USA.
 - (void) scanForRandomLoot
 {
 	/*-- Locates the all debris in range and chooses a piece at random from the first sixteen found --*/
-	if ((!isStation)&&(!has_scoop))
+	if (![self isStation] && ![self hasScoop])
 	{
 		[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if you have no scoop!
 		return;
@@ -458,8 +458,7 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	if (!missile)
-		return;
+	if (missile == nil)  return;
 	
 	[self addTarget:missile];
 
@@ -467,7 +466,7 @@ MA 02110-1301, USA.
 	ShipEntity *hunter = [missile owner];
 	[self doScriptEvent:@"beingAttacked" withArgument:hunter];
 	
-	if (has_ecm)
+	if ([self hasECM])
 	{
 		// use the ECM and battle on
 		
@@ -494,9 +493,7 @@ MA 02110-1301, USA.
 	}
 	
 	// RUN AWAY !!
-	jink.x = 0.0;
-	jink.y = 0.0;
-	jink.z = 1000.0;
+	jink = make_vector(0.0f, 0.0f, 1000.0f);
 	desired_range = 10000;
 	[self performFlee];
 	[shipAI message:@"FLEEING"];

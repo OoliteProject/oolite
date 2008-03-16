@@ -1414,7 +1414,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// change ship_desc
 	// TODO: detect brokenness here.
-	if (ship_desc) [ship_desc release];
+	if (ship_desc)  [ship_desc release];
 	ship_desc = [[ship_info stringForKey:SHIPYARD_KEY_SHIPDATA_KEY] copy];
 	NSDictionary *shipDict = [ship_info dictionaryForKey:SHIPYARD_KEY_SHIP];
 	
@@ -1433,17 +1433,6 @@ static NSMutableDictionary* currentShipyard = nil;
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];
 	
-	// reset BOOLS (has_ecm, has_scoop, has_energy_unit, has_docking_computer, has_galactic_hyperdrive, has_energy_bomb, has_escape_pod, has_fuel_injection) and int (energy_unit)
-	has_docking_computer = NO;
-	has_ecm = NO;
-	has_energy_bomb = NO;
-	has_energy_unit = NO;
-	has_escape_pod = NO;
-	has_fuel_injection = NO;
-	has_galactic_hyperdrive = NO;
-	has_scoop = NO;
-	energy_unit = ENERGY_UNIT_NONE;
-	
 	// ensure all missiles are tidied up and start at pylon 0
 	[self tidyMissilePylons];
 
@@ -1458,52 +1447,51 @@ static NSMutableDictionary* currentShipyard = nil;
 	// keep track of portable equipment..
 	
 	NSArray			*equipment = [UNIVERSE equipmentdata];
-	NSMutableArray	*portable_equipment = [NSMutableArray arrayWithCapacity:[extra_equipment count]];
+	NSMutableSet	*portable_equipment = [NSMutableSet set];
 	NSEnumerator	*eqEnum = nil;
 	NSString		*eq_desc = nil;
 	
-	for (eqEnum = [extra_equipment keyEnumerator]; (eq_desc = [eqEnum nextObject]);)
+	for (eqEnum = [self equipmentEnumerator]; (eq_desc = [eqEnum nextObject]);)
 	{
 		NSDictionary* eq_dict = nil;
 		for (i = 0; (i < [equipment count])&&(!eq_dict); i++)
 		{
 			NSArray* eq_info = [equipment objectAtIndex:i];
-			if (([eq_desc isEqual:[eq_info objectAtIndex:EQUIPMENT_KEY_INDEX]])&&([eq_info count] > EQUIPMENT_EXTRA_INFO_INDEX))
-				eq_dict = [eq_info objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+			if ([eq_desc isEqual:[eq_info stringAtIndex:EQUIPMENT_KEY_INDEX]] &&
+				[eq_info count] > EQUIPMENT_EXTRA_INFO_INDEX)
+			{
+				eq_dict = [eq_info dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+				break;
+			}
 		}
-		if ((eq_dict)&&([eq_dict objectForKey:@"portable_between_ships"]))
+		if ([eq_dict boolForKey:@"portable_between_ships"])
+		{
 			[portable_equipment addObject:eq_desc];
+		}
 	}
 	
 	// remove ALL
-	
-	[extra_equipment removeAllObjects];
+	[self removeAllEquipment];
 	
 	// restore  portable equipment
-	
-	for (i = 0; i < [portable_equipment count]; i++)
+	for (eqEnum = [portable_equipment objectEnumerator]; (eq_desc = [eqEnum nextObject]); )
 	{
-		NSString* eq_desc = [portable_equipment stringAtIndex:i];
-		[self addExtraEquipment: eq_desc];
+		[self addEquipment:eq_desc];
 	}
-	
-	// final check
-	
-	[self setFlagsFromExtraEquipment];
 	
 	// refill from ship_info
 	NSArray* extras = [ship_info arrayForKey:KEY_EQUIPMENT_EXTRAS];
 	for (i = 0; i < [extras count]; i++)
 	{
 		NSString* eq_key = [extras stringAtIndex:i];
-		if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"])
+		if ([eq_key isEqualToString:@"EQ_PASSENGER_BERTH"])
 		{
 			max_passengers++;
 			max_cargo -= 5;
 		}
 		else
 		{
-			[self addExtraEquipment:eq_key];	// BOOL flags are automatically set by this
+			[self addEquipment:eq_key];
 		}
 	}
 	
@@ -1525,7 +1513,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// finally we can get full hock if we sell it back
 	ship_trade_in_factor = 100;
 	
-	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+	if ([UNIVERSE autoSave])  [UNIVERSE setAutoSaveNow:YES];
 	
 	return YES;
 }

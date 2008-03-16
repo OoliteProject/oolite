@@ -1038,6 +1038,18 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 }
 
 
+- (void)setLongLong:(long long)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithLongLong:value] forKey:key];
+}
+
+
+- (void)setUnsignedLongLong:(unsigned long long)value forKey:(id)key
+{
+	[self setObject:[NSNumber numberWithUnsignedLongLong:value] forKey:key];
+}
+
+
 - (void)setFloat:(double)value forKey:(id)key
 {
 	[self setObject:[NSNumber numberWithDouble:value] forKey:key];

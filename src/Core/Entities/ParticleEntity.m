@@ -283,7 +283,7 @@ FAIL:
     time_counter = 0.0;
 	activation_time = ECM_PULSE_INTERVAL;
 	duration = ECM_EFFECT_DURATION;
-	position = ship->position;
+	position = [ship position];
     
 	status = STATUS_EFFECT;
 	scanClass = CLASS_NO_DRAW;

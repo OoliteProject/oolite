@@ -332,6 +332,8 @@ SOFTWARE.
 
 - (void)setInteger:(long)value forKey:(id)key;
 - (void)setUnsignedInteger:(unsigned long)value forKey:(id)key;
+- (void)setLongLong:(long long)value forKey:(id)key;
+- (void)setUnsignedLongLong:(unsigned long long)value forKey:(id)key;
 - (void)setFloat:(double)value forKey:(id)key;
 - (void)setBool:(BOOL)value forKey:(id)key;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE

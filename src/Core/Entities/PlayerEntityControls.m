@@ -489,7 +489,9 @@ static NSTimeInterval	time_last_frame;
 		
 		if (![UNIVERSE displayCursor])
 		{
-			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel])&&(has_fuel_injection)&&(!hyperspeed_engaged))
+			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
+				[self hasFuelInjection] &&
+				!hyperspeed_engaged)
 			{
 				if ((fuel > 0)&&(!afterburner_engaged))
 				{
@@ -624,7 +626,7 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 'y'   // next missile
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 			{
-				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasExtraEquipment:@"EQ_MULTI_TARGET"]))
+				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasEquipment:@"EQ_MULTI_TARGET"]))
 				{
 					[self playNextMissileSelected];
 					[self selectNextMissile];
@@ -637,7 +639,7 @@ static NSTimeInterval	time_last_frame;
 			//	'+' // next target
 			if ([gameView isDown:key_next_target])
 			{
-				if ((!next_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
+				if ((!next_target_pressed)&&([self hasEquipment:@"EQ_TARGET_MEMORY"]))
 				{
 					[self moveTargetMemoryBy:+1];
 				}
@@ -649,7 +651,7 @@ static NSTimeInterval	time_last_frame;
 			//	'-' // previous target
 			if ([gameView isDown:key_previous_target])
 			{
-				if ((!previous_target_pressed)&&([self hasExtraEquipment:@"EQ_TARGET_MEMORY"]))
+				if ((!previous_target_pressed)&&([self hasEquipment:@"EQ_TARGET_MEMORY"]))
 				{
 					[self moveTargetMemoryBy:-1];
 				}
@@ -745,7 +747,7 @@ static NSTimeInterval	time_last_frame;
 				safety_pressed = NO;
 			
 			//  shoot 'e'   // ECM
-			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM])&&(has_ecm))
+			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM])
 			{
 				if (!ecm_in_operation)
 				{
@@ -758,22 +760,22 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 			//  shoot 'tab'   // Energy bomb
-			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB])&&(has_energy_bomb))
+			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB]) && [self hasEnergyBomb])
 			{
 				// original energy bomb routine
 				[self fireEnergyBomb];
-				[self removeExtraEquipment:@"EQ_ENERGY_BOMB"];
+				[self removeEquipment:@"EQ_ENERGY_BOMB"];
 			}
 			
 			//  shoot 'escape'   // Escape pod launch
-			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE])&&(has_escape_pod)&&([UNIVERSE station]))
+			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod] && [UNIVERSE station] != nil)
 				
 			{
 				found_target = [self launchEscapeCapsule];
 			}
 			
 			//  shoot 'd'   // Dump Cargo
-			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON])&&([cargo count] > 0))
+			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON]) && [cargo count] > 0)
 			{
 				[self dumpCargo];
 			}
@@ -791,7 +793,7 @@ static NSTimeInterval	time_last_frame;
 			// autopilot 'c'
 			if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
 			{
-				if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
+				if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
 				{
 					BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
 					BOOL isOkayToUseAutopilot = YES;
@@ -838,7 +840,7 @@ static NSTimeInterval	time_last_frame;
 			// autopilot 'C' - dock with target
 			if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
 			{
-				if (has_docking_computer && (!target_autopilot_key_pressed))
+				if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
 				{
 					Entity* primeTarget = [self primaryTarget];
 					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
@@ -878,7 +880,7 @@ static NSTimeInterval	time_last_frame;
 			// autopilot 'D'
 			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
 			{
-				if (has_docking_computer && (!fast_autopilot_key_pressed))   // look for the 'D' key
+				if ([self hasDockingComputer] && (!fast_autopilot_key_pressed))   // look for the 'D' key
 				{
 					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
 					{
@@ -979,7 +981,8 @@ static NSTimeInterval	time_last_frame;
 				hyperspace_pressed = NO;
 			
 			// Galactic hyperspace 'g'
-			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE])&&(has_galactic_hyperdrive))// look for the 'g' key
+			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
+				([self hasEquipment:@"EQ_GAL_DRIVE"]))// look for the 'g' key
 			{
 				if (!galhyperspace_pressed)
 				{
@@ -1017,7 +1020,7 @@ static NSTimeInterval	time_last_frame;
 				galhyperspace_pressed = NO;
 			
 			//  shoot '0'   // Cloaking Device
-			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && has_cloaking_device)
+			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && [self hasCloakingDevice])
 			{
 				if (!cloak_pressed)
 				{
@@ -1259,7 +1262,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!pling_pressed)
 				{
-					if ([self hasExtraEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
+					if ([self hasEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
 					pling_pressed = YES;
 				}
 			}
@@ -2491,7 +2494,7 @@ static BOOL toggling_music;
 	
 	if ([gameView isDown:key_autopilot])   // look for the 'c' key
 	{
-		if (has_docking_computer && (!autopilot_key_pressed))   // look for the 'c' key
+		if ([self hasDockingComputer] && (!autopilot_key_pressed))   // look for the 'c' key
 		{
 			[self abortDocking];			// let the station know that you are no longer on approach
 			behaviour = BEHAVIOUR_IDLE;

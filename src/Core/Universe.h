@@ -401,6 +401,12 @@ enum
 									  parameter:(void *)parameter
 										inRange:(double)range
 									   ofEntity:(Entity *)entity;
+- (id) nearestEntityMatchingPredicate:(EntityFilterPredicate)predicate
+							parameter:(void *)parameter
+					 relativeToEntity:(Entity *)entity;
+- (id) nearestShipMatchingPredicate:(EntityFilterPredicate)predicate
+						  parameter:(void *)parameter
+				   relativeToEntity:(Entity *)entity;
 
 
 - (OOTimeAbsolute) getTime;

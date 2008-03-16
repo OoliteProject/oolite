@@ -45,6 +45,7 @@ static OOSoundSource		*sHyperspaceSoundSource;
 static OOSoundSource		*sInterfaceBeepSource;
 static OOSoundSource		*sEcmSource;
 static OOSoundSource		*sBreakPatternSource;
+static OOSoundSource		*sBuySellSource;
 
 
 @implementation PlayerEntity (Sound)
@@ -68,6 +69,7 @@ static OOSoundSource		*sBreakPatternSource;
 	sBreakPatternSource = [[OOSoundSource alloc] init];
 	sEcmSource = [[OOSoundSource alloc] init];
 	sHyperspaceSoundSource = [[OOSoundSource alloc] init];
+	sBuySellSource = [[OOSoundSource alloc] init];
 	
 	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0];
 	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0];
@@ -102,6 +104,8 @@ static OOSoundSource		*sBreakPatternSource;
 	sEcmSource = nil;
 	[sHyperspaceSoundSource release];
 	sHyperspaceSoundSource = nil;
+	[sBuySellSource release];
+	sBuySellSource = nil;
 	
 	[sWarningSoundPool release];
 	sWarningSoundPool = nil;
@@ -175,36 +179,6 @@ static OOSoundSource		*sBreakPatternSource;
 - (void) playNextMissileSelected
 {
 	[self playInterfaceBeep:@"[next-missile-selected]"];
-}
-
-
-- (void) playBuyCommodity
-{
-	[self playInterfaceBeep:@"[buy-commodity]"];
-}
-
-
-- (void) playBuyShip
-{
-	[self playInterfaceBeep:@"[buy-ship]"];
-}
-
-
-- (void) playSellCommodity
-{
-	[self playInterfaceBeep:@"[sell-commodity]"];
-}
-
-
-- (void) playCantBuyBuyCommodity
-{
-	[self playInterfaceBeep:@"[could-not-buy-any]"];
-}
-
-
-- (void) playCantBuyBuyShip
-{
-	[self playInterfaceBeep:@"[could-not-buy-ship]"];
 }
 
 
@@ -361,6 +335,36 @@ static OOSoundSource		*sBreakPatternSource;
 - (void) playCloakingDeviceInsufficientEnergy
 {
 	[self playInterfaceBeep:@"[cloaking-device-insufficent-energy]"];
+}
+
+
+- (void) playBuyCommodity
+{
+	[sBuySellSource playCustomSoundWithKey:@"[buy-commodity]"];
+}
+
+
+- (void) playBuyShip
+{
+	[sBuySellSource playCustomSoundWithKey:@"[buy-ship]"];
+}
+
+
+- (void) playSellCommodity
+{
+	[sBuySellSource playCustomSoundWithKey:@"[sell-commodity]"];
+}
+
+
+- (void) playCantBuyBuyCommodity
+{
+	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-any]"];
+}
+
+
+- (void) playCantBuyBuyShip
+{
+	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-ship]"];
 }
 
 

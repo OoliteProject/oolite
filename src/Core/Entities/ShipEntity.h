@@ -47,7 +47,6 @@ MA 02110-1301, USA.
 #define AFTERBURNER_BURNRATE			0.25
 #define AFTERBURNER_NPC_BURNRATE		1.0
 #define AFTERBURNER_TIME_PER_FUEL		4.0
-#define AFTERBURNER_FACTOR				7.0
 
 #define CLOAKING_DEVICE_ENERGY_RATE		12.8
 #define CLOAKING_DEVICE_MIN_ENERGY		128
@@ -81,6 +80,8 @@ MA 02110-1301, USA.
 
 // number of vessels considered when scanning around
 #define MAX_SCAN_NUMBER					16
+
+#define BASELINE_SHIELD_LEVEL			128.0f			// Max shield level with no boosters.
 
 
 @interface ShipEntity: OOEntityWithDrawable
@@ -131,18 +132,7 @@ MA 02110-1301, USA.
 	GLfloat					thrust;						// acceleration
 	
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
-	unsigned				has_ecm: 1,					// anti-missile system
-							has_scoop: 1,				// fuel/cargo scoops
-							has_escape_pod: 1,			// escape pod
-							has_energy_bomb: 1,			// energy_bomb
-	
-							has_cloaking_device: 1,		// cloaking_device
-	
-							has_military_jammer: 1,		// military_jammer
-							military_jammer_active: 1,	// military_jammer
-							has_military_scanner_filter: 1, // military_scanner
-	
-							has_fuel_injection: 1,		// afterburners
+	unsigned				military_jammer_active: 1,	// military_jammer
 	
 							docking_match_rotation: 1,
 							escortsAreSetUp: 1,			// set to YES once escorts are initialised (a bit of a hack)
@@ -155,7 +145,7 @@ MA 02110-1301, USA.
 	
 							being_fined: 1,
 	
-							is_hulk: 1,					// This is used to distinguish abandoned ships from cargo
+							isHulk: 1,					// This is used to distinguish abandoned ships from cargo
 							trackCloseContacts: 1,
 	
 							isNearPlanetSurface: 1,		// check for landing on planet
@@ -273,7 +263,6 @@ MA 02110-1301, USA.
 	
 	// from player entity moved here now we're doing more complex heat stuff
 	float					ship_temperature;
-	float					heat_insulation;
 	
 	// for advanced scanning etc.
 	ShipEntity*				scanned_ships[MAX_SCAN_NUMBER + 1];
@@ -293,13 +282,16 @@ MA 02110-1301, USA.
 	OOBehaviour				debugLastBehaviour;
 #endif
 	
-	uint16_t				entity_personality;	// Per-entity random number. Exposed to shaders and scripts.
-	NSDictionary			*scriptInfo;		// script_info dictionary from shipdata.plist, exposed to scripts.
+	uint16_t				entity_personality;			// Per-entity random number. Exposed to shaders and scripts.
+	NSDictionary			*scriptInfo;				// script_info dictionary from shipdata.plist, exposed to scripts.
 	
 	NSMutableArray			*subEntities;
 	
 @private
 	OOWeakReference			*_subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
+	
+	NSMutableSet			*_equipment;
+	float					_heatInsulation;
 }
 
 // ship brains
@@ -362,6 +354,39 @@ MA 02110-1301, USA.
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
+// Equipment
+- (BOOL) hasEquipment:(id)equipmentKeys;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
+- (BOOL) hasAllEquipment:(id)equipmentKeys;	// As above, but requires _all_ equipment in collection.
+- (void) addEquipment:(NSString *)equipmentKey;
+- (NSEnumerator *) equipmentEnumerator;
+- (unsigned) equipmentCount;
+- (void) removeEquipment:(NSString *)equipmentKey;
+- (void) removeAllEquipment;
+
+// Tests for the various special-cased equipment items
+- (BOOL) hasScoop;
+- (BOOL) hasECM;
+- (BOOL) hasCloakingDevice;
+- (BOOL) hasMilitaryScannerFilter;
+- (BOOL) hasMilitaryJammer;
+- (BOOL) hasExpandedCargoBay;
+- (BOOL) hasShieldBooster;
+- (BOOL) hasMilitaryShieldEnhancer;
+- (BOOL) hasHeatShield;
+- (BOOL) hasFuelInjection;
+- (BOOL) hasEnergyBomb;
+- (BOOL) hasEscapePod;
+- (BOOL) hasDockingComputer;
+- (BOOL) hasGalacticHyperdrive;
+
+// Shield information derived from equipment. NPCs can't have shields, but that should change at some point.
+- (float) shieldBoostFactor;
+- (float) maxForwardShieldLevel;
+- (float) maxAftShieldLevel;
+- (float) shieldRechargeRate;
+
+- (float) afterburnerFactor;
+
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;
 - (void) behaviour_idle:(double) delta_t;
@@ -394,8 +419,6 @@ MA 02110-1301, USA.
 - (void)setCloaked:(BOOL)cloak;
 
 - (BOOL) isJammingScanning;
-
-- (BOOL) hasMilitaryScannerFilter;
 
 - (void) addSubEntity:(Entity *) subent;
 - (void) addExhaust:(ParticleEntity *) exhaust;

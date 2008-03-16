@@ -347,7 +347,7 @@ static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN ar
 
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	*outResult = BOOLToJSVal([OOPlayerForScripting() hasExtraEquipment:JSValToNSString(context, argv[0])]);
+	*outResult = BOOLToJSVal([OOPlayerForScripting() hasEquipment:JSValToNSString(context, argv[0])]);
 	return YES;
 }
 

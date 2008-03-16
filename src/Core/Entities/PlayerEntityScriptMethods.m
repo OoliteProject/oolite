@@ -73,11 +73,6 @@ MA 02110-1301, USA.
 	fuel_leak_rate = OOMax_f(value, 0.0f);
 }
 
-- (BOOL) isDocked
-{
-	return status == STATUS_DOCKED;
-}
-
 
 - (NSString *) dockedStationName
 {

@@ -314,7 +314,7 @@ static void InitTextEngine(void);
 - (void) drawHUDItem:(NSDictionary *) info
 {
 	NSString *equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![[PlayerEntity sharedPlayer] hasExtraEquipment:equipment])
+	if (equipment != nil && ![[PlayerEntity sharedPlayer] hasEquipment:equipment])
 		return;
 	
 	if ([info stringForKey:SELECTOR_KEY] != nil)
@@ -1245,19 +1245,18 @@ static BOOL hostiles;
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
 	
-	double alt = [player dialAltitude];
+	GLfloat alt = [player dialAltitude];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
+	
 	// draw altitude bar
-	glColor4fv(green_color);
-	if (alt < .75)
-		glColor4fv(yellow_color);
-	if (alt < .25)
-		glColor4fv(red_color);
-	if ((flash)&&(alt < .10))
-		glColor4fv(redplus_color);
-	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
+	if (alt < .75)  glColor4fv(yellow_color);
+	else if (alt < .25)  glColor4fv(red_color);
+	else if ((flash)&&(alt < .10))  glColor4fv(redplus_color);
+	else glColor4fv(green_color);
 	hudDrawBarAt(x, y, z1, siz, alt);
+	
+	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
 }
 
 
@@ -1456,7 +1455,7 @@ static BOOL hostiles;
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![player hasExtraEquipment:equipment])
+	if (equipment != nil && ![player hasEquipment:equipment])
 		return;
 	
 	if ([UNIVERSE displayGUI])

@@ -41,7 +41,6 @@ MA 02110-1301, USA.
 - (float)fuelLeakRate;
 - (void)setFuelLeakRate:(float)value;
 
-- (BOOL) isDocked;
 - (NSString *) dockedStationName;
 - (NSString *) dockedStationDisplayName;
 - (BOOL) dockedAtMainStation;

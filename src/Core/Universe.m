@@ -2554,20 +2554,19 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
 	
-	[player set_up];						//reset the player
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	
 	[[gameView gameController] loadPlayerIfRequired];
 	
 	[self setGalaxy_seed: [player galaxy_seed]];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
 	
 	if (![self station])
 		[self setUpSpace];
 	
 	if (![[self station] localMarket])
 		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
+	
+	[player set_up];						//reset the player
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
 	
 	[player setStatus:STATUS_DOCKED];
 	[player setGuiToStatusScreen];
@@ -4786,7 +4785,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	result = [NSMutableArray arrayWithCapacity:n_entities];
 	
-	if (e1 != nil)  p1 = e1->position;
+	if (e1 != nil)  p1 = [e1 position];
 	else  p1 = kZeroVector;
 	
 	for (i = 0; i < n_entities; i++)
@@ -4847,6 +4846,63 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 										 parameter:NULL
 										   inRange:range
 										  ofEntity:entity];
+	}
+}
+
+
+- (id) nearestEntityMatchingPredicate:(EntityFilterPredicate)predicate
+							parameter:(void *)parameter
+					 relativeToEntity:(Entity *)entity
+{
+	unsigned		i;
+	Vector			p1;
+	float			rangeSq = INFINITY;
+	id				result = nil;
+	
+	if (predicate == NULL)  predicate = YESPredicate;
+	
+	result = [NSMutableArray arrayWithCapacity:n_entities];
+	
+	if (entity != nil)  p1 = [entity position];
+	else  p1 = kZeroVector;
+	
+	for (i = 0; i < n_entities; i++)
+	{
+		Entity *e2 = sortedEntities[i];
+		
+		if (entity != e2 &&
+			distance2(p1, [e2 position]) < rangeSq &&
+			predicate(e2, parameter))
+		{
+			result = e2;
+		}
+	}
+	
+	return [[result retain] autorelease];
+}
+
+
+- (id) nearestShipMatchingPredicate:(EntityFilterPredicate)predicate
+						  parameter:(void *)parameter
+				   relativeToEntity:(Entity *)entity
+{
+	if (predicate != NULL)
+	{
+		BinaryOperationPredicateParameter param =
+		{
+			IsShipPredicate, NULL,
+			predicate, parameter
+		};
+		
+		return [self nearestEntityMatchingPredicate:ANDPredicate
+										  parameter:&param
+								   relativeToEntity:entity];
+	}
+	else
+	{
+		return [self nearestEntityMatchingPredicate:IsShipPredicate
+										  parameter:NULL
+								   relativeToEntity:entity];
 	}
 }
 

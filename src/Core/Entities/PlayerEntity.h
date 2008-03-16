@@ -120,15 +120,12 @@ typedef enum
 
 #define WEAPON_COOLING_FACTOR			6.0
 #define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
-#define SHIELD_RECHARGE_FACTOR			(2.0 + shield_enhancer)
 #define ECM_ENERGY_DRAIN_FACTOR			20.0
 #define ECM_DURATION					2.5
 
 #define ROLL_DAMPING_FACTOR				1.0
 #define PITCH_DAMPING_FACTOR			1.0
 
-#define PLAYER_MAX_FORWARD_SHIELD		(128.0 * (shield_booster + shield_enhancer))
-#define PLAYER_MAX_AFT_SHIELD			(128.0 * (shield_booster + shield_enhancer))
 #define PLAYER_MAX_WEAPON_TEMP			256.0
 #define PLAYER_MAX_FUEL					70
 #define PLAYER_MAX_MISSILES				4
@@ -225,7 +222,6 @@ typedef enum
 	
 	OOTexture				*missionBackgroundTexture;
 	
-	NSMutableDictionary		*extra_equipment;	// TODO: this seems to be a dictionary whose values are all [NSNumber numberWithBool:YES]. Should be a set; remember to convert to dictionary for savinh.
 	BOOL					found_equipment;
 	
 	NSMutableDictionary		*reputation;
@@ -312,9 +308,6 @@ typedef enum
 	OOWeaponType			starboard_weapon;
 	
 	NSMutableArray			*shipCommodityData;
-	
-	OOEnergyUnitType		energy_unit;
-	int						shield_booster, shield_enhancer;
 	
 	unsigned				max_missiles;		// no. of missile pylons
 	ShipEntity				*missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
@@ -422,15 +415,10 @@ typedef enum
 	NSMutableString			*dockingReport;
 	
 	// Woo, flags.
-	unsigned				has_energy_unit: 1,
-							has_docking_computer: 1,
-							has_galactic_hyperdrive: 1,
-							saved: 1,
-							suppressTargetLost: 1,		// smart target lst reports
+	unsigned				suppressTargetLost: 1,		// smart target lst reports
 							scoopsActive: 1,			// smart fuelscoops
 	
 							game_over: 1,
-							docked: 1,
 							finished: 1,
 							bomb_detonated: 1,
 							autopilot_engaged: 1,
@@ -476,6 +464,8 @@ waitingForStickCallback: 1;
 }
 
 + (id)sharedPlayer;
+
+- (BOOL) isDocked;
 
 - (void)completeInitialSetUp;
 
@@ -567,6 +557,8 @@ waitingForStickCallback: 1;
 
 - (BOOL) mountMissile:(ShipEntity *)missile;
 
+- (OOEnergyUnitType) energyUnitType;
+
 - (BOOL) fireEnergyBomb;
 - (BOOL) launchMine:(ShipEntity *)mine;
 
@@ -580,7 +572,6 @@ waitingForStickCallback: 1;
 - (void) interpretAIMessage:(NSString *)ms;
 
 - (void) takeInternalDamage;
-- (NSDictionary *)damageInformation;
 
 - (void) loseTargetStatus;
 
@@ -616,10 +607,7 @@ waitingForStickCallback: 1;
 
 - (BOOL) isSpeechOn;
 
-- (BOOL) hasExtraEquipment:(id)equipmentKeys;	// This can take a string or an set or array of strings.
-- (void) addExtraEquipment:(NSString *)eq_key;
-- (void) removeExtraEquipment:(NSString *)eq_key;
-- (void) setFlagsFromExtraEquipment;
+- (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
 
 - (void) loopAfterburnerSound;
 - (void) stopAfterburnerSound;

@@ -40,11 +40,6 @@ MA 02110-1301, USA.
 - (void) playMissileSafe;
 - (void) playMissileLockedOn;
 - (void) playNextMissileSelected;
-- (void) playBuyCommodity;
-- (void) playBuyShip;
-- (void) playSellCommodity;
-- (void) playCantBuyBuyCommodity;
-- (void) playCantBuyBuyShip;
 - (void) playCargoJettisioned;
 - (void) playAutopilotOn;
 - (void) playAutopilotOff;
@@ -68,6 +63,13 @@ MA 02110-1301, USA.
 - (void) playDismissedReportScreen;
 - (void) playDismissedMissionScreen;
 - (void) playChangedOption;
+
+// Buy/sell get their own source.
+- (void) playBuyCommodity;
+- (void) playBuyShip;
+- (void) playSellCommodity;
+- (void) playCantBuyBuyCommodity;
+- (void) playCantBuyBuyShip;
 
 // Hyperspace alert sounds; logically hyperspace sounds, but played on the interface sound source.
 - (void) playHyperspaceNoTarget;

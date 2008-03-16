@@ -1281,7 +1281,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	int			i;
 	
-	if (showAdvancedNavArray && ![UNIVERSE strict] && [player hasExtraEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	if (showAdvancedNavArray && ![UNIVERSE strict] && [player hasEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
 		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha];
 	}

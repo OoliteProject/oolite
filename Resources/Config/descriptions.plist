@@ -394,6 +394,7 @@
 	"mouse-on"						= ( "Mouse control on." );
 	"mouse-off"						= ( "Mouse control off." );
 	"target-lost"					= ( "Target lost." );
+	"unknown-target"				= ( "Unknown Target" );
 	"ecm-on"						= ( "ECM system activated." );
 	"ecm-out-of-juice"				= ( "ECM system deactivated (no energy left)." );
 	"jump-mass-locked"				= ( "Hyperspeed mass-locked." );
