@@ -543,11 +543,12 @@ MA 02110-1301, USA.
 	PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
-		destination = the_planet->position;
-		desired_range = the_planet->collision_radius + 10000.0;   // 10km from the surface
+		destination = vector_add([the_planet position], vector_multiply_scalar(
+			vector_normal(vector_subtract([the_planet position],position)),-10000.0-the_planet->collision_radius));// 10km straight up
+		desired_range = 50.0;
 	}
 	else
-		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Ackk!! planet not found!!!");
+		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Error. Planet not found during take off!");
 }
 
 
