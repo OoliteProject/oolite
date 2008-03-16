@@ -75,6 +75,10 @@ SOFTWARE.
 */
 + (void)applyNone;
 
+/*	Get current material.
+*/
++ (OOMaterial *)current;
+
 /*	Ensure material is ready to be used in a display list. This is not
 	required before using a material directly.
 */

@@ -2551,7 +2551,6 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 - (void) game_over
 {
 	PlayerEntity*   player = [[PlayerEntity sharedPlayer] retain];
-
 	
 	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
 	

@@ -7,19 +7,19 @@ oolite. It will be useful for anyone creating an OXP that contains AI
 elements, or for tinkering with the default AI.</p>
 
 <h2>AI Script Format</h2>
-<p>The AI system consists of a stack of state machines (only the top one  
-of which is active), which respond to game events sent to them as  
-messages. They respond by calling a series of methods which affect  
-the behaviour of the entity and possibly trigger changes to the AI by  
+<p>The AI system consists of a stack of state machines (only the top one
+of which is active), which respond to game events sent to them as
+messages. They respond by calling a series of methods which affect
+the behaviour of the entity and possibly trigger changes to the AI by
 changing the state or (more drastically) the state machine.</p>
 
-<p>Each state machine (or AI script) is described in a property list in  
-either ASCII or XML format, which can be edited with a text editor or  
-with Property List Editor. The structure is of a dictionary  
-containing each of the machine's possible states referenced by an  
-identifying state name. Each state comprises a dictionary of  
-responses to messages the AI might receive, referenced by the message  
-itself. Each response is an array of methods that will be called when  
+<p>Each state machine (or AI script) is described in a property list in
+either ASCII or XML format, which can be edited with a text editor or
+with Property List Editor. The structure is of a dictionary
+containing each of the machine's possible states referenced by an
+identifying state name. Each state comprises a dictionary of
+responses to messages the AI might receive, referenced by the message
+itself. Each response is an array of methods that will be called when
 the AI receives that message.</p>
 
 <p>The AI function calls within a message handler are separated from each
@@ -30,20 +30,20 @@ and value are enclosed in double quotes.</p>
 <p>In ASCII format a simple (two-state) machine looks like this:</p>
 <pre><code>
 {
-     "STATE_1" = {
-         "ENTER" = ();
-         "MESSAGE_A" = ("method1: value", method2, method3);
-         "MESSAGE_B" = (method4, "setStateTo: STATE_2");
-         EXIT = ();
-         UPDATE = ();
-     };
-     "STATE_2" = {
-         "ENTER" = ();
-         "MESSAGE_A" = ("method1: another_value", method5);
-         "MESSAGE_B" = (method6, method7, "setStateTo: STATE_1");
-         EXIT = ();
-         UPDATE = ();
-     };
+    "STATE_1" = {
+        ENTER = ();
+        "MESSAGE_A" = ("method1: value", method2, method3);
+        "MESSAGE_B" = (method4, "setStateTo: STATE_2");
+        EXIT = ();
+        UPDATE = ();
+    };
+    "STATE_2" = {
+        ENTER = ();
+        "MESSAGE_A" = ("method1: another_value", method5);
+        "MESSAGE_B" = (method6, method7, "setStateTo: STATE_1");
+        EXIT = ();
+        UPDATE = ();
+    };
 }
 </code></pre>
 
@@ -93,6 +93,11 @@ current task.</p>
 </td></tr>
 <tr><td><code>ATTACKED</code></td>
 <td>
+
+</td></tr>
+<tr><td><code>ATTACKED_BY_CLOAKED</code></td>
+<td>
+<p>Sent if the ship is attacked by a cloaked ship.</p>
 
 </td></tr>
 <tr><td><code>CARGO_SCOOPED</code></td>
@@ -158,6 +163,7 @@ current task.</p>
 <tr><td><code>ENTER</code></td>
 <td>
 <p>Always sent to the new (now current) state of the AI state machine after switching to a new state.</p>
+
 </td></tr>
 <tr><td><code>ENTERED_WITCHSPACE</code></td>
 <td>
@@ -170,9 +176,16 @@ current task.</p>
 <tr><td><code>EXIT</code></td>
 <td>
 <p>Always sent to the current state of the AI state machine before switching to a new state.</p>
+
 </td></tr>
 <tr><td><code>EXITED_WITCHSPACE</code></td>
 <td>
+<p>Sent when a ship is added to the system using the <code>addShips:</code> script command, or when it is added to replace a ship that witchespaced out; see also <code>EXITED WITCHSPACE</code> below.</p>
+
+</td></tr>
+<tr><td><code>EXITED WITCHSPACE</code></td>
+<td>
+<p>Sent when a ship is ressurected in a new system after witchspacing out and being followed by the player.</p>
 
 </td></tr>
 <tr><td><code>FACING_DESTINATION</code></td>
@@ -290,6 +303,11 @@ primary target by calling <code class="func">setTargetToFoundTarget</code> in re
 <td>
 
 </td></tr>
+<tr><td><code>TARGET_CLOAKED</code></td>
+<td>
+<p>Sent before <code>TARGET_LOST</code> when the target becomes invisible (starting in Oolite 1.71).</p>
+
+</td></tr>
 <tr><td><code>TARGET_MARKED</code></td>
 <td>
 
@@ -313,6 +331,7 @@ primary target by calling <code class="func">setTargetToFoundTarget</code> in re
 <tr><td><code>UPDATE</code></td>
 <td>
 <p>This message is sent to the current state each time the AI gets a chance to "think".</p>
+
 </td></tr>
 <tr><td><code>WAIT_FOR_SUN</code></td>
 <td>
@@ -324,6 +343,56 @@ primary target by calling <code class="func">setTargetToFoundTarget</code> in re
 </td></tr>
 <tr><td><code>YELLOW_ALERT</code></td>
 <td>
+
+</td></tr>
+<tr><td><code>CLOSE CONTACT</code></td>
+<td>
+<p>This message is sent when the ship comes close to another ship, if it is tracking close contacts.</p>
+
+</td></tr>
+<tr><td><code>POSITIVE X TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the +X direction.</p>
+
+</td></tr>
+<tr><td><code>NEGATIVE X TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the -X direction.</p>
+
+</td></tr>
+<tr><td><code>POSITIVE Y TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the +Y direction.</p>
+
+</td></tr>
+<tr><td><code>NEGATIVE Y TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the -Y direction.</p>
+
+</td></tr>
+<tr><td><code>POSITIVE Z TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the +Z direction.</p>
+
+</td></tr>
+<tr><td><code>NEGATIVE Z TRAVERSE</code></td>
+<td>
+<p>This message is sent when a close contact moves away in the -Z direction.</p>
+
+</td></tr>
+<tr><td><code>RACEPOINTS_SET</code></td>
+<td>
+<p>Sent by <code>setRacepointsFromTarget</code> on success (used for racing AI).</p>
+
+</td></tr>
+<tr><td><code>NAVPOINT_REACHED</code></td>
+<td>
+<p>Sent when the ship reaches a navigation point (used for racing AI).</p>
+
+</td></tr>
+<tr><td><code>ENDPOINT_REACHED</code></td>
+<td>
+<p>Sent when the ship reaches the last navigation point (used for racing AI).</p>
 
 </td></tr>
 </table>

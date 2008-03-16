@@ -162,12 +162,12 @@ static OOCacheManager *sSingleton = nil;
 		}
 		else
 		{
-			OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
+			OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrieve \"%@\" cache object %@ -- no such entry.", inCacheKey, inKey);
 		}
 	}
 	else
 	{
-		OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retrive\"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
+		OOLog(kOOLogDataCacheRetrieveFailed, @"Failed to retreive\"%@\" cache object %@ -- no such cache.", inCacheKey, inKey);
 	}
 	
 	return result;

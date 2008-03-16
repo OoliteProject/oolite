@@ -1633,7 +1633,6 @@ WormholeEntity*	whole;
 	Entity			*targStation = nil;
 	NSMutableArray	*allStations = nil;
 	NSString		*message = nil;
-	NSDictionary	*instructions = nil;
 	
 	targStation = [UNIVERSE entityForUniversalID:targetStation];
 	if ([targStation isStation])
@@ -1657,9 +1656,9 @@ WormholeEntity*	whole;
 		
 		[self recallDockingInstructions];
 		
-		message = [instructions objectForKey:@"ai_message"];
+		message = [dockingInstructions objectForKey:@"ai_message"];
 		if (message != nil)  [shipAI message:message];
-		message = [instructions objectForKey:@"comms_message"];
+		message = [dockingInstructions objectForKey:@"comms_message"];
 		if (message != nil)  [station sendExpandedMessage:message toShip:self];
 	}
 	else
@@ -1673,24 +1672,7 @@ WormholeEntity*	whole;
 {
 	if (dockingInstructions != nil)
 	{
-#if OBSOLETE
-		ScanVectorFromString([dockingInstructions objectForKey:@"destination"], &coordinates);
-		destination = coordinates;
-		desired_speed = [(NSNumber *)[dockingInstructions objectForKey:@"speed"] floatValue];
-		if (desired_speed > maxFlightSpeed)
-			desired_speed = maxFlightSpeed;
-		desired_range = [(NSNumber *)[dockingInstructions objectForKey:@"range"] floatValue];
-		if ([dockingInstructions objectForKey:@"station_id"])
-		{
-			primaryTarget = [(NSNumber *)[dockingInstructions objectForKey:@"station_id"] intValue];
-			targetStation = primaryTarget;
-		}
-		docking_match_rotation = NO;
-		if ([dockingInstructions objectForKey:@"match_rotation"])
-			docking_match_rotation = [(NSNumber*)[dockingInstructions objectForKey:@"match_rotation"] boolValue];
-#else
-		
-		destination = [dockingInstructions vectorForKey:@"destionation"];
+		destination = [dockingInstructions vectorForKey:@"destination"];
 		desired_speed = fminf([dockingInstructions floatForKey:@"speed"], maxFlightSpeed);
 		desired_range = [dockingInstructions floatForKey:@"range"];
 		if ([dockingInstructions objectForKey:@"station_id"])
@@ -1700,7 +1682,6 @@ WormholeEntity*	whole;
 		}
 		docking_match_rotation = [dockingInstructions boolForKey:@"match_rotation"];
 	}
-#endif
 }
 
 

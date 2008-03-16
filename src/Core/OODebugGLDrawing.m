@@ -48,9 +48,18 @@ SOFTWARE.
 
 #import "OODebugGLDrawing.h"
 #import "OOMacroOpenGL.h"
+#import "OOMaterial.h"
 
-static void BeginDebugWireframe(void);
-#define EndDebugWireframe() glPopAttrib()
+
+typedef struct
+{
+	OOMaterial			*material;
+} WFRestoreState;
+
+
+static WFRestoreState BeginDebugWireframe(void);
+static void EndDebugWireframe(WFRestoreState state);
+
 
 OOINLINE void ApplyColor(OOColor *color)
 {
@@ -66,8 +75,8 @@ OOINLINE void ApplyColor(OOColor *color)
 
 void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color)
 {
+	WFRestoreState state = BeginDebugWireframe();
 	OO_ENTER_OPENGL();
-	BeginDebugWireframe();
 	
 	ApplyColor(color);
 	glBegin(GL_LINE_LOOP);
@@ -91,36 +100,30 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color
 		glVertex3f(min.x, max.y, max.z);
 	glEnd();
 	
-	EndDebugWireframe();
+	EndDebugWireframe(state);
 }
 
 
 void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
 {	
+	WFRestoreState state = BeginDebugWireframe();
 	OO_ENTER_OPENGL();
-	BeginDebugWireframe();
 	
 	ApplyColor(color);
-	
-	float oldSize;
-	glGetFloatv(GL_LINE_WIDTH, &oldSize);
-	glLineWidth(1);
 	
 	glBegin(GL_LINES);
 		glVertex3f(start.x, start.y, start.z);
 		glVertex3f(end.x, end.y, end.z);
 	glEnd();
 	
-	glLineWidth(oldSize);
-	
-	EndDebugWireframe();
+	EndDebugWireframe(state);
 }
 
 
 void OODebugDrawBasis(Vector position, GLfloat scale)
 {
+	WFRestoreState state = BeginDebugWireframe();
 	OO_ENTER_OPENGL();
-	BeginDebugWireframe();
 	
 	glBegin(GL_LINES);
 		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
@@ -136,36 +139,34 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
 		glVertex3f(position.x, position.y, position.z + scale);
 	glEnd();
 	
-	EndDebugWireframe();
+	EndDebugWireframe(state);
 }
 
 
 void OODebugDrawPoint(Vector position, OOColor *color)
 {
+	WFRestoreState state = BeginDebugWireframe();
 	OO_ENTER_OPENGL();
-	BeginDebugWireframe();
 	
 	ApplyColor(color);
-	
-	float oldSize;
-	glGetFloatv(GL_POINT_SIZE, &oldSize);
 	glPointSize(10);
 	
 	glBegin(GL_POINTS);
 		glVertex3f(position.x, position.y, position.z);
 	glEnd();
 	
-	glPointSize(oldSize);
-	
-	EndDebugWireframe();
+	EndDebugWireframe(state);
 }
 
 
-static void BeginDebugWireframe(void)
+static WFRestoreState BeginDebugWireframe(void)
 {
 	OO_ENTER_OPENGL();
 	
-	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_CURRENT_BIT);
+	WFRestoreState state = { material: [OOMaterial current] };
+	[OOMaterial applyNone];
+	
+	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
 	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
@@ -174,4 +175,14 @@ static void BeginDebugWireframe(void)
 	glDepthMask(GL_FALSE);
 	
 	glLineWidth(1.0f);
+	
+	return state;
+}
+
+
+static void EndDebugWireframe(WFRestoreState state)
+{
+	OO_ENTER_OPENGL();
+	glPopAttrib();
+	[state.material apply];
 }

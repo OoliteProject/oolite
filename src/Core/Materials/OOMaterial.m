@@ -113,6 +113,12 @@ static OOMaterial *sActiveMaterial = nil;
 }
 
 
++ (OOMaterial *)current
+{
+	return [[sActiveMaterial retain] autorelease];
+}
+
+
 - (void)ensureFinishedLoading
 {
 	
