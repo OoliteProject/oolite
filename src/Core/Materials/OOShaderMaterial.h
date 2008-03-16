@@ -49,6 +49,7 @@ SOFTWARE.
 
 #import "OOBasicMaterial.h"
 #import "OOWeakReference.h"
+#import "OOMaths.h"
 
 
 #ifndef NO_SHADERS
@@ -144,6 +145,8 @@ typedef uint16_t OOUniformConvertOptions;
 */
 - (void)setUniform:(NSString *)uniformName intValue:(int)value;
 - (void)setUniform:(NSString *)uniformName floatValue:(float)value;
+- (void)setUniform:(NSString *)uniformName vectorValue:(Vector)value;
+- (void)setUniform:(NSString *)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix;
 
 /*	Add constant uniforms. Same format as uniforms dictionary of configuration
 	parameter to -initWithConfiguration:macros:. The target parameter is used

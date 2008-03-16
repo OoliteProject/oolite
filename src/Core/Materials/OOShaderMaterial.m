@@ -224,7 +224,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (uniformName == nil) return;
 	
-	uniform = [[OOShaderUniform alloc] initWithName:uniformName shaderProgram:shaderProgram intValue:value];
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName
+									  shaderProgram:shaderProgram
+										   intValue:value];
 	if (uniform != nil)
 	{
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
@@ -245,7 +247,56 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (uniformName == nil) return;
 	
-	uniform = [[OOShaderUniform alloc] initWithName:uniformName shaderProgram:shaderProgram floatValue:value];
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName
+									  shaderProgram:shaderProgram
+										 floatValue:value];
+	if (uniform != nil)
+	{
+		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
+		[uniforms setObject:uniform forKey:uniformName];
+		[uniform release];
+	}
+	else
+	{
+		OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
+		[uniforms removeObjectForKey:uniformName];
+	}
+}
+
+
+- (void)setUniform:(NSString *)uniformName vectorValue:(Vector)value
+{
+	OOShaderUniform			*uniform = nil;
+	
+	if (uniformName == nil) return;
+	
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName
+									  shaderProgram:shaderProgram
+										vectorValue:value];
+	if (uniform != nil)
+	{
+		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
+		[uniforms setObject:uniform forKey:uniformName];
+		[uniform release];
+	}
+	else
+	{
+		OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
+		[uniforms removeObjectForKey:uniformName];
+	}
+}
+
+
+- (void)setUniform:(NSString *)uniformName quaternionValue:(Quaternion)value asMatrix:(BOOL)asMatrix
+{
+	OOShaderUniform			*uniform = nil;
+	
+	if (uniformName == nil) return;
+	
+	uniform = [[OOShaderUniform alloc] initWithName:uniformName
+									  shaderProgram:shaderProgram
+									quaternionValue:value
+										   asMatrix:asMatrix];
 	if (uniform != nil)
 	{
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
@@ -273,6 +324,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	OOShaderUniform			*uniform = nil;
 	SEL						selector = NULL;
 	OOUniformConvertOptions	convertOptions;
+	BOOL					quatAsMatrix = YES;
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
 	{
@@ -333,6 +385,22 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[self setUniform:name intValue:[value intValue]];
 				gotValue = YES;
 			}
+		}
+		else if ([type isEqualToString:@"vector"] || [type isEqualToString:@"vec3"])
+		{
+			[self setUniform:name vectorValue:OOVectorFromObject(value, kZeroVector)];
+			gotValue = YES;
+		}
+		else if ([type isEqualToString:@"quaternion"])
+		{
+			if ([definition isKindOfClass:[NSDictionary class]])
+			{
+				quatAsMatrix = [definition boolForKey:@"asMatrix" defaultValue:quatAsMatrix];
+			}
+			[self setUniform:name
+			 quaternionValue:OOQuaternionFromObject(value, kIdentityQuaternion)
+					asMatrix:quatAsMatrix];
+			gotValue = YES;
 		}
 		else if (target != nil && [type isEqualToString:@"binding"])
 		{
