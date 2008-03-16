@@ -298,18 +298,6 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 }
 
 
-#if OBSOLETE
-- (void)pause
-{
-}
-
-
-- (void)resume
-{
-}
-#endif
-
-
 - (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
 {
 	return YES;

@@ -462,16 +462,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	galaxy_seed = RandomSeedFromString([dict stringForKey:@"galaxy_seed"]);
 	if (is_nil_seed(galaxy_seed))  return NO;
 	
-#if OBSOLETE
-	NSArray *seed_vals = ScanTokensFromString([dict stringForKey:@"galaxy_seed"]);
-	galaxy_seed.a = [seed_vals unsignedCharAtIndex:0];
-	galaxy_seed.b = [seed_vals unsignedCharAtIndex:1];
-	galaxy_seed.c = [seed_vals unsignedCharAtIndex:2];
-	galaxy_seed.d = [seed_vals unsignedCharAtIndex:3];
-	galaxy_seed.e = [seed_vals unsignedCharAtIndex:4];
-	galaxy_seed.f = [seed_vals unsignedCharAtIndex:5];
-#endif
-	
 	NSArray *coord_vals = ScanTokensFromString([dict stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals unsignedCharAtIndex:0];
 	galaxy_coordinates.y = [coord_vals unsignedCharAtIndex:1];
