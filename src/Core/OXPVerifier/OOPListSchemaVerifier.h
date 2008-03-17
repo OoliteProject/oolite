@@ -59,15 +59,15 @@
 
 @interface OOPListSchemaVerifier: NSObject
 {
-	id							_schema;
+	NSDictionary				*_schema;
 	NSDictionary				*_definitions;
 	
 	id							_delegate;
 	uint32_t					_badDelegateWarning: 1;
 }
 
-+ (id)verifierWithSchema:(id)schema;
-- (id)initWithSchema:(id)schema;
++ (id)verifierWithSchema:(NSDictionary *)schema;
+- (id)initWithSchema:(NSDictionary *)schema;
 
 - (void)setDelegate:(id)delegate;
 - (id)delegate;

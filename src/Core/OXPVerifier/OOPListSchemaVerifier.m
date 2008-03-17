@@ -36,7 +36,7 @@
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
  
- THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ THE SOFTWARE IS PROVIDED Ã¬AS ISÃ®, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -226,19 +226,19 @@ VERIFY_PROTO(DelegatedType);
 
 @implementation OOPListSchemaVerifier
 
-+ (id)verifierWithSchema:(id)schema
++ (id)verifierWithSchema:(NSDictionary *)schema
 {
 	return [[[self alloc] initWithSchema:schema] autorelease];
 }
 
 
-- (id)initWithSchema:(id)schema
+- (id)initWithSchema:(NSDictionary *)schema
 {
 	self = [super init];
 	if (self != nil)
 	{
 		_schema = [schema retain];
-		_definitions = [[(NSDictionary *)_schema dictionaryForKey:@"$definitions"] retain];
+		_definitions = [[_schema dictionaryForKey:@"$definitions"] retain];
 		sDebugDump = [[NSUserDefaults standardUserDefaults] boolForKey:@"plist-schema-verifier-dump-structure"];
 		
 		if (_schema == nil)
@@ -322,7 +322,7 @@ VERIFY_PROTO(DelegatedType);
 	if (first)
 	{
 		// Empty path
-		result =[NSString stringWithString:@"root"];
+		return @"root";
 	}
 	
 	return result;
@@ -964,8 +964,8 @@ static NSError *Verify_Array(OOPListSchemaVerifier *verifier, id value, NSDictio
 
 static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSDictionary *params, id rootPList, NSString *name, BackLinkChain keyPath, BOOL tentative, BOOL *outStop)
 {
-	id						schema = nil,
-							valueType = nil,
+	NSDictionary			*schema = nil;
+	id						valueType = nil,
 							typeSpec = nil;
 	NSEnumerator			*keyEnum = nil;
 	NSString				*key = nil;
@@ -995,7 +995,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	}
 	
 	// Get schema.
-	schema = [params objectForKey:@"schema"];
+	schema = [params dictionaryForKey:@"schema"];
 	valueType = [params objectForKey:@"valueType"];
 	allowOthers = [params boolForKey:@"allowOthers" defaultValue:YES];
 	requiredKeyList = [params arrayForKey:@"requiredKeys"];
@@ -1014,7 +1014,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	for (keyEnum = [value keyEnumerator]; (key = [keyEnum nextObject]) && !stop; )
 	{
 		subProperty = [(NSDictionary *)value objectForKey:key];
-		typeSpec = [(NSDictionary *)schema objectForKey:key];
+		typeSpec = [schema objectForKey:key];
 		if (typeSpec == nil)  typeSpec = valueType;
 		
 		DebugDump(@"- \"%@\"", key);
@@ -1034,7 +1034,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 				OK = NO;
 			}
 		}
-		else if (!allowOthers && ![requiredKeys containsObject:key] && [(NSDictionary *)schema objectForKey:key] == nil)
+		else if (!allowOthers && ![requiredKeys containsObject:key] && [schema objectForKey:key] == nil)
 		{
 			// Report error now rather than returning it, since there may be several unknown keys.
 			if (!tentative)
