@@ -955,7 +955,10 @@ WormholeEntity*	whole;
 	for (i = 0; i < ent_count; i++) if (uni_entities[i]->isShip)
 	{
 		ShipEntity *other = (ShipEntity*)uni_entities[i];
-		[other removeTarget:self];
+		if ([other primaryTarget] == self)
+		{
+			[other removeTarget:self];
+		}
 	}
 	// now we're just a bunch of alien artefacts!
 	scanClass = CLASS_CARGO;
