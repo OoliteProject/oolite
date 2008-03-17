@@ -107,7 +107,7 @@ SOFTWARE.
 			entry = [config objectAtIndex:i];
 			if ([entry isKindOfClass:[NSDictionary class]])
 			{
-				name = [entry stringForKey:@"texture"];
+				name = [(NSDictionary *)entry stringForKey:@"texture"];
 				probability = [entry floatForKey:@"probability" defaultValue:1.0f];
 			}
 			else if ([entry isKindOfClass:[NSString class]])

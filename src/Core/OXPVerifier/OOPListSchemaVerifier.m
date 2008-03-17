@@ -238,7 +238,7 @@ VERIFY_PROTO(DelegatedType);
 	if (self != nil)
 	{
 		_schema = [schema retain];
-		_definitions = [[_schema dictionaryForKey:@"$definitions"] retain];
+		_definitions = [[(NSDictionary *)_schema dictionaryForKey:@"$definitions"] retain];
 		sDebugDump = [[NSUserDefaults standardUserDefaults] boolForKey:@"plist-schema-verifier-dump-structure"];
 		
 		if (_schema == nil)
@@ -322,7 +322,7 @@ VERIFY_PROTO(DelegatedType);
 	if (first)
 	{
 		// Empty path
-		result = @"root";
+		result =[NSString stringWithString:@"root"];
 	}
 	
 	return result;
@@ -511,7 +511,7 @@ VERIFY_PROTO(DelegatedType);
 	for (;;)
 	{
 		if ([specifier isKindOfClass:[NSString class]])  specifier = [NSDictionary dictionaryWithObject:specifier forKey:@"type"];
-		typeVal = [specifier objectForKey:@"type"];
+		typeVal = [(NSDictionary *)specifier objectForKey:@"type"];
 		
 		if ([typeVal isKindOfClass:[NSString class]])
 		{
@@ -1013,8 +1013,8 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	// Test member objects.
 	for (keyEnum = [value keyEnumerator]; (key = [keyEnum nextObject]) && !stop; )
 	{
-		subProperty = [value objectForKey:key];
-		typeSpec = [schema objectForKey:key];
+		subProperty = [(NSDictionary *)value objectForKey:key];
+		typeSpec = [(NSDictionary *)schema objectForKey:key];
 		if (typeSpec == nil)  typeSpec = valueType;
 		
 		DebugDump(@"- \"%@\"", key);
@@ -1034,7 +1034,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 				OK = NO;
 			}
 		}
-		else if (!allowOthers && ![requiredKeys containsObject:key] && [schema objectForKey:key] == nil)
+		else if (!allowOthers && ![requiredKeys containsObject:key] && [(NSDictionary *)schema objectForKey:key] == nil)
 		{
 			// Report error now rather than returning it, since there may be several unknown keys.
 			if (!tentative)
