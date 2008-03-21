@@ -4861,8 +4861,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if (predicate == NULL)  predicate = YESPredicate;
 	
-	result = [NSMutableArray arrayWithCapacity:n_entities];
-	
 	if (entity != nil)  p1 = [entity position];
 	else  p1 = kZeroVector;
 	
