@@ -46,7 +46,7 @@ SOFTWARE.
 */
 
 #ifndef NO_SHADERS
-
+#import "ResourceManager.h"
 #import "OOShaderMaterial.h"
 #import "OOShaderUniform.h"
 #import "OOFunctionAttributes.h"
@@ -532,24 +532,40 @@ static NSString *MacrosToString(NSDictionary *macros);
 	id						textureDef = nil;
 	unsigned				i = 0;
 	
+	OOMaterial				*material = nil;
+
+	static OOBasicMaterial	*placeholderMaterial = nil;
+	NSDictionary			*materialDefaults = nil;
+
+	materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+	placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+
+	
+	
 	// Allocate space for texture object name array
 	texCount = MAX(MIN(max, [textureNames count]), 0U);
 	if (texCount == 0)  return;
-	
+
 	textures = malloc(texCount * sizeof *textures);
 	if (textures == NULL)
 	{
 		texCount = 0;
 		return;
 	}
-	
+
 	// Set up texture object names and appropriate uniforms
 	for (i = 0; i != texCount; ++i)
 	{
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		textures[i] = [[OOTexture textureWithConfiguration:textureDef] retain];
+		material =[OOTexture textureWithConfiguration:textureDef];
+		
+		if (material !=nil)
+			textures[i] = [material retain];
+		else{
+			textures[i] = [placeholderMaterial retain];
+		}
 	}
 }
 

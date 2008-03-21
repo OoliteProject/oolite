@@ -183,6 +183,8 @@ enum
 	OOTimeDelta				time_delta;
 	
 	OOTimeAbsolute			demo_stage_time;
+	OOTimeAbsolute			demo_start_time;
+	GLfloat					demo_start_z;
 	int						demo_stage;
 	int						demo_ship_index;
 	NSArray					*demo_ships;

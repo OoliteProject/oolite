@@ -18,8 +18,8 @@
 		"diffuse_map" = "";
 		"diffuse" = (0, 0, 0.4);
 		"ambient" = (0, 0, 0.4);
-		"emission" = (0.5, 0.1, 0.0);
-		"specular" = (1.0, 0.2, 0.2);
-		"shininess" = 5;
+		"emission" = (0.9, 0.9, 9.0);
+		"specular" = (1.0, 0.8, 0.8);
+		"shininess" = 1;
 	};
 }

@@ -222,8 +222,8 @@ typedef enum
 {
 	DEMO_NO_DEMO		= 0,
 	DEMO_FLY_IN			= 101,
-	DEMO_SHOW_THING		= 102,
-	DEMO_FLY_OUT		= 103
+	DEMO_SHOW_THING,
+	DEMO_FLY_OUT
 } OODemoMode;
 
 

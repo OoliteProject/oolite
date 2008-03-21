@@ -456,6 +456,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	OOMaterial				*material = nil;
 	static OOBasicMaterial	*placeholderMaterial = nil;
 	NSDictionary			*materialDefaults = nil;
+
+	materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+	placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+
 	
 	if (materialCount != 0)
 	{
@@ -468,16 +472,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 											 macros:macros
 									  bindingTarget:target
 									forSmoothedMesh:isSmoothShaded];
-			materials[i] = [material retain];
+			if (material!=nil)
+				materials[i] = [material retain];
+			else{
+				materials[i] = [placeholderMaterial retain];
+			}
 		}
 	}
 	else
 	{
-		if (placeholderMaterial == nil)
-		{
-			materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-			placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-		}
 		material = [placeholderMaterial retain];
 	}
 }

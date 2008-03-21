@@ -230,13 +230,14 @@ static BOOL		sRectangleTextureAvailable;
 	
 	// Look for existing texture
 	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : @"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
-	result = [[sInUseTextures objectForKey:key] pointerValue];
+	result = (id)[[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{
+	//	OOLog(@"texture.caching", @":::------::: key NOT found  in cache : '%@'.", key);
 		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
-			if (!noFNF)  OOLog(kOOLogFileNotFound, @"***** ERROR: Could not find texture file \"%@\".", name);
+			if (!noFNF)  OOLog(kOOLogFileNotFound, @"----- WARNING: Could not find texture file \"%@\". Used default no textures material instead.", name);
 			return nil;
 		}
 				
@@ -250,6 +251,9 @@ static BOOL		sRectangleTextureAvailable;
 			[sInUseTextures setObject:[NSValue valueWithPointer:result] forKey:key];
 		}
 	}
+	//	else
+	//			OOLog(@"texture.caching", @":::      ::: key found in cache : '%@'.", key);
+
 	
 	return result;
 }

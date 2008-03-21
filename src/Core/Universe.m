@@ -4194,20 +4194,21 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	int i;
 	int ent_count = n_entities;
-	Entity* my_entities[ent_count];
-	for (i = 0; i < ent_count; i++)
-		my_entities[i] = [sortedEntities[i] retain];
-	if (ent_count > 1)
+	//Entity* my_entities[ent_count];
+	//for (i = 0; i < ent_count; i++)
+	//	my_entities[i] = [sortedEntities[i] retain];
+	if (ent_count > 0)
 	{
-		for (i = 1; i < ent_count; i++)
+		Entity* ent;
+		for (i = 0; i < ent_count; i++)
 		{
-			Entity* ent = my_entities[i];
-			if (ent->status == STATUS_COCKPIT_DISPLAY)
+			ent = sortedEntities[i];
+			if ([ent status] == STATUS_COCKPIT_DISPLAY && ![ent isPlayer])
 				[self removeEntity:ent];
 		}
 	}
-	for (i = 0; i < ent_count; i++)
-		[my_entities[i] release];
+	//for (i = 0; i < ent_count; i++)
+	//	[my_entities[i] release];
 	demo_ship = nil;
 }
 
@@ -5216,79 +5217,84 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			universal_time += delta_t;
 			
 			update_stage = @"demo management";
-			if ((demo_stage)&&(player)&&(inGUIMode)&&(universal_time > demo_stage_time)&&([player guiScreen] == GUI_SCREEN_INTRO2))
-			{
-				if (ent_count > 1)
+			if (inGUIMode && [player guiScreen] == GUI_SCREEN_INTRO2){
+				if (universal_time >= demo_stage_time)
 				{
-					Vector		vel;
-					Quaternion	q2 = kIdentityQuaternion;
-					
-					quaternion_rotate_about_y(&q2,M_PI);
-					
-					#define DEMO2_VANISHING_DISTANCE	400.0
-					
-					switch (demo_stage)
+					if (ent_count > 1)
 					{
-						case DEMO_FLY_IN:
-							[demo_ship setVelocity:kZeroVector];
-							[demo_ship setPosition:[demo_ship destination]];	// ideal position
-							demo_stage = DEMO_SHOW_THING;
-							demo_stage_time = universal_time + 6.0;
-							break;
-						case DEMO_SHOW_THING:
-							vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
-							[demo_ship setVelocity:vel];
-							demo_stage = DEMO_FLY_OUT;
-							demo_stage_time = universal_time + 1.5;
-							break;
-						case DEMO_FLY_OUT:
-							// change the demo_ship here
-							[self removeEntity:demo_ship];
-							demo_ship = nil;
-							
-							NSString		*shipDesc = nil;
-							NSDictionary	*shipDict = nil;
-							
-							demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-							shipDesc = [demo_ships stringAtIndex:demo_ship_index];
-							shipDict = [self getDictionaryForShip:shipDesc];
-							if (shipDict != nil)
-							{
-								// Failure means we don't change demo_stage, so we'll automatically try again.
-								demo_ship = [[ShipEntity alloc] initWithDictionary:shipDict];
-							}
-							else
-							{
-								OOLog(@"demo.loadShip.failed", @"Could not load ship \"%@\" for demo screen.", shipDesc);
-							}
-							
-							if (demo_ship != nil)
-							{
-								[self addEntity:demo_ship];
-								[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
-								[demo_ship setOrientation:q2];
-								[demo_ship setPositionX:0.0f y:0.0f z:DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius];
-								[demo_ship setDestination: make_vector(0.0f, 0.0f, DEMO2_VANISHING_DISTANCE * 0.01f * demo_ship->collision_radius)];	// ideal position
-								vel = make_vector(0, 0, -DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
+						Vector		vel;
+						Quaternion	q2 = kIdentityQuaternion;
+						
+						quaternion_rotate_about_y(&q2,M_PI);
+						
+						#define DEMO2_VANISHING_DISTANCE	400.0
+						#define DEMO2_FLY_IN_STAGE_TIME	1.5
+						
+						switch (demo_stage)
+						{
+							case DEMO_FLY_IN:
+								[demo_ship setPosition:[demo_ship destination]];	// ideal position
+								demo_stage = DEMO_SHOW_THING;
+								demo_stage_time = universal_time + 6.0;
+								break;
+							case DEMO_SHOW_THING:
+								vel = make_vector(0, 0, DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius);
 								[demo_ship setVelocity:vel];
-								[demo_ship setScanClass: CLASS_NO_DRAW];
-								[demo_ship setRoll:M_PI/5.0];
-								[demo_ship setPitch:M_PI/10.0];
-								[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
-								[gui setText:[demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-								
-								demo_stage = DEMO_FLY_IN;
+								demo_stage = DEMO_FLY_OUT;
 								demo_stage_time = universal_time + 1.5;
-							}
-							break;
+								break;
+							case DEMO_FLY_OUT:
+								// change the demo_ship here
+								[self removeEntity:demo_ship];
+								demo_ship = nil;
+								
+								NSString		*shipDesc = nil;
+								NSString		*shipName = nil;
+								NSDictionary	*shipDict = nil;
+								
+								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
+								shipDesc = [demo_ships stringAtIndex:demo_ship_index];
+								shipDict = [self getDictionaryForShip:shipDesc];
+								if (shipDict != nil)
+								{
+									// Failure means we don't change demo_stage, so we'll automatically try again.
+									demo_ship = [[ShipEntity alloc] initWithDictionary:shipDict];
+								}
+								else
+								{
+									OOLog(@"demo.loadShip.failed", @"Could not load ship \"%@\" for demo screen.", shipDesc);
+									demo_ship = [[ShipEntity alloc] initWithDictionary:[self getDictionaryForShip:@"oolite-unknown-ship"]];
+									shipName=[NSString stringWithFormat:DESC(@"unknown-ship-@"),shipDesc];
+								}
+								
+								if (demo_ship != nil)
+								{
+									[self addEntity:demo_ship];
+									[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
+									[demo_ship setOrientation:q2];
+									demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
+									[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
+									[demo_ship setDestination: make_vector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
+									[demo_ship setVelocity:kZeroVector];
+									[demo_ship setScanClass: CLASS_NO_DRAW];
+									[demo_ship setRoll:M_PI/5.0];
+									[demo_ship setPitch:M_PI/10.0];
+									[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
+									[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+
+									demo_stage = DEMO_FLY_IN;
+									demo_start_time=universal_time;
+									demo_stage_time = demo_start_time + DEMO2_FLY_IN_STAGE_TIME;
+
+								}
+								break;
+						}
 					}
 				}
-			}
-						
-			// Don't let incoming ships "overshoot" us. Stop them on the spot if they go past the desired z coordinate.
-			if ((demo_stage)&&(player)&&(inGUIMode)&&([player guiScreen] == GUI_SCREEN_INTRO2)&&([demo_ship position].z <= [demo_ship destination].z))
-			{
-				[demo_ship setPosition:[demo_ship destination]];
+				else if (demo_stage == DEMO_FLY_IN)
+				{
+					[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z + ([demo_ship destination].z - demo_start_z) *(universal_time -demo_start_time) / DEMO2_FLY_IN_STAGE_TIME ];
+				}
 			}
 			
 			update_stage = @"update:entity";
@@ -5367,8 +5373,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			}
 		NS_ENDHANDLER
 	}
-	
-	[entitiesDeadThisUpdate removeAllObjects];
+	Entity* my_ent;
+	while ([entitiesDeadThisUpdate count] >0)
+	{
+		my_ent=[[entitiesDeadThisUpdate objectAtIndex:0] retain];
+		[my_ent autorelease];
+		[entitiesDeadThisUpdate removeObjectAtIndex:0];
+	}
+	//[entitiesDeadThisUpdate removeAllObjects];
 }
 
 

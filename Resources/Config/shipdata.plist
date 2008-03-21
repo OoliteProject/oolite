@@ -1949,7 +1949,7 @@
 	};
 	"oolite-unknown-ship" =
 	{
-		// Pseudo-ship shown on load screen when selecting a saved game using an unknown ship type.
+		// Pseudo-ship shown when selecting a saved game using an unknown ship type, or a broken demo ship model.
 		materials =
 		{
 			"questionmark-material" =
