@@ -256,17 +256,17 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	missiles = [shipDict intForKey:@"missiles"];
 
 	// upgrades:
-	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipment:@"EQ_ECM"];
-	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipment:@"EQ_FUEL_SCOOPS"];
-	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipment:@"EQ_ESCAPE_POD"];
-	if ([shipDict fuzzyBooleanForKey:@"has_energy_bomb"])  [self addEquipment:@"EQ_ENERGY_BOMB"];
-	if ([shipDict fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipment:@"EQ_CLOAKING_DEVICE"];
+	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
+	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
+	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
+	if ([shipDict fuzzyBooleanForKey:@"has_energy_bomb"])  [self addEquipmentItem:@"EQ_ENERGY_BOMB"];
+	if ([shipDict fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipmentItem:@"EQ_CLOAKING_DEVICE"];
 	if (![UNIVERSE strict])
 	{
 		// These items are not available in strict mode.
-		if ([shipDict fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipment:@"EQ_FUEL_INJECTION"];
-		if ([shipDict fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipment:@"EQ_MILITARY_JAMMER"];
-		if ([shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipment:@"EQ_MILITARY_SCANNER_FILTER"];
+		if ([shipDict fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+		if ([shipDict fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER"];
+		if ([shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
 	}
 	
 	canFragment = [shipDict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
@@ -1637,7 +1637,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 // Equipment
 
-- (BOOL) hasEquipment:(id)equipmentKeys
+- (BOOL) hasEquipmentItem:(id)equipmentKeys
 {
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
@@ -1677,7 +1677,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) addEquipment:(NSString *)equipmentKey
+- (void) addEquipmentItem:(NSString *)equipmentKey
 {
 	if (equipmentKey == nil)  return;
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
@@ -1703,7 +1703,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) removeEquipment:(NSString *)equipmentKey
+- (void) removeEquipmentItem:(NSString *)equipmentKey
 {
 	[_equipment removeObject:equipmentKey];
 	if ([_equipment count] == 0)  [self removeAllEquipment];
@@ -1719,85 +1719,85 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasScoop
 {
-	return [self hasEquipment:@"EQ_FUEL_SCOOPS"];
+	return [self hasEquipmentItem:@"EQ_FUEL_SCOOPS"];
 }
 
 
 - (BOOL) hasECM
 {
-	return [self hasEquipment:@"EQ_ECM"];
+	return [self hasEquipmentItem:@"EQ_ECM"];
 }
 
 
 - (BOOL) hasCloakingDevice
 {
-	return [self hasEquipment:@"EQ_CLOAKING_DEVICE"];
+	return [self hasEquipmentItem:@"EQ_CLOAKING_DEVICE"];
 }
 
 
 - (BOOL) hasMilitaryScannerFilter
 {
-	return [self hasEquipment:@"EQ_MILITARY_SCANNER_FILTER"];
+	return [self hasEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
 }
 
 
 - (BOOL) hasMilitaryJammer
 {
-	return [self hasEquipment:@"EQ_MILITARY_JAMMER"];
+	return [self hasEquipmentItem:@"EQ_MILITARY_JAMMER"];
 }
 
 
 - (BOOL) hasExpandedCargoBay
 {
-	return [self hasEquipment:@"EQ_CARGO_BAY"];
+	return [self hasEquipmentItem:@"EQ_CARGO_BAY"];
 }
 
 
 - (BOOL) hasShieldBooster
 {
-	return [self hasEquipment:@"EQ_SHIELD_BOOSTER"];
+	return [self hasEquipmentItem:@"EQ_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasMilitaryShieldEnhancer
 {
-	return [self hasEquipment:@"EQ_NAVAL_SHIELD_BOOSTER"];
+	return [self hasEquipmentItem:@"EQ_NAVAL_SHIELD_BOOSTER"];
 }
 
 
 - (BOOL) hasHeatShield
 {
-	return [self hasEquipment:@"EQ_HEAT_SHIELD"];
+	return [self hasEquipmentItem:@"EQ_HEAT_SHIELD"];
 }
 
 
 - (BOOL) hasFuelInjection
 {
-	return [self hasEquipment:@"EQ_FUEL_INJECTION"];
+	return [self hasEquipmentItem:@"EQ_FUEL_INJECTION"];
 }
 
 
 - (BOOL) hasEnergyBomb
 {
-	return [self hasEquipment:@"EQ_ENERGY_BOMB"];
+	return [self hasEquipmentItem:@"EQ_ENERGY_BOMB"];
 }
 
 
 - (BOOL) hasEscapePod
 {
-	return [self hasEquipment:@"EQ_ESCAPE_POD"];
+	return [self hasEquipmentItem:@"EQ_ESCAPE_POD"];
 }
 
 
 - (BOOL) hasDockingComputer
 {
-	return [self hasEquipment:@"EQ_DOCK_COMP"];
+	return [self hasEquipmentItem:@"EQ_DOCK_COMP"];
 }
 
 
 - (BOOL) hasGalacticHyperdrive
 {
-	return [self hasEquipment:@"EQ_GAL_DRIVE"];
+	return [self hasEquipmentItem:@"EQ_GAL_DRIVE"];
 }
 
 
@@ -6073,7 +6073,7 @@ BOOL class_masslocks(int some_class)
 	ShipEntity*	bomb = [UNIVERSE newShipWithRole:@"energy-bomb"];
 	if (bomb == nil)  return NO;
 	
-	[self removeEquipment:@"EQ_ENERGY_BOMB"];
+	[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
 	
 	double  start = collision_radius + bomb->collision_radius;
 	Quaternion  random_direction;
@@ -6775,7 +6775,7 @@ BOOL class_masslocks(int some_class)
 		if (energy < maxEnergy *0.125 && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
 			// TODO: abandoning ship should be split out into a separate method.
-			[self removeEquipment:@"EQ_ESCAPE_POD"];
+			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 			
 			[shipAI setStateMachine:@"nullAI.plist"];
 			[shipAI setState:@"GLOBAL"];

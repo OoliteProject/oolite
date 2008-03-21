@@ -53,6 +53,8 @@ SOFTWARE.
 
 #import "OOTexture.h"
 
+#define INSTRUMENT_TEXTURE_LOADING	(!defined NDEBUG)
+
 
 @interface OOTextureLoader: NSObject
 {
@@ -62,6 +64,9 @@ SOFTWARE.
 								scaleAsNormalMap: 1,
 								avoidShrinking: 1,
 								noScalingWhatsoever: 1,
+#if INSTRUMENT_TEXTURE_LOADING
+								debugHasLoaded: 1,
+#endif
 								ready: 1;
 	OOTextureDataFormat			format;
 	

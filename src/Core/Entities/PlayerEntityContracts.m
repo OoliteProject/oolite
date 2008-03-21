@@ -1476,7 +1476,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// restore  portable equipment
 	for (eqEnum = [portable_equipment objectEnumerator]; (eq_desc = [eqEnum nextObject]); )
 	{
-		[self addEquipment:eq_desc];
+		[self addEquipmentItem:eq_desc];
 	}
 	
 	// refill from ship_info
@@ -1491,7 +1491,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		else
 		{
-			[self addEquipment:eq_key];
+			[self addEquipmentItem:eq_key];
 		}
 	}
 	

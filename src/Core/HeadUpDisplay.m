@@ -314,7 +314,7 @@ static void InitTextEngine(void);
 - (void) drawHUDItem:(NSDictionary *) info
 {
 	NSString *equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![[PlayerEntity sharedPlayer] hasEquipment:equipment])
+	if (equipment != nil && ![[PlayerEntity sharedPlayer] hasEquipmentItem:equipment])
 		return;
 	
 	if ([info stringForKey:SELECTOR_KEY] != nil)
@@ -1455,7 +1455,7 @@ static BOOL hostiles;
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![player hasEquipment:equipment])
+	if (equipment != nil && ![player hasEquipmentItem:equipment])
 		return;
 	
 	if ([UNIVERSE displayGUI])

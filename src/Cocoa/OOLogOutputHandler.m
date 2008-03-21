@@ -59,29 +59,22 @@ SOFTWARE.
 #import <sys/sysctl.h>
 #import <mach/machine.h>
 #import "NSThreadOOExtensions.h"
+#include <dlfcn.h>
+
 
 #undef NSLog		// We need to be able to call the real NSLog.
 
 
-// Define CPU_TYPE_STRING for log preamble. Must be a C string literal.
-#if defined (__ppc__)
-		#define CPU_TYPE_STRING_BASE "PPC-32"
-#elif defined (__ppc64__)
-		#define CPU_TYPE_STRING_BASE "PPC-64"
-#elif defined (__i386__)
-		#define CPU_TYPE_STRING_BASE "x86-32"
-#elif defined (__x86_64__)
-		#define CPU_TYPE_STRING_BASE "x86-64"
+#ifndef NDEBUG
+// Function to set "Application Specific Information" field in crash reporter log in Leopard.
+// Extremely unsupported, so not used in release builds.
+static void InitCrashReporterInfo(void);
+static void SetCrashReporterInfo(const char *info);
+static BOOL sCrashReporterInfoAvailable = NO;
 #else
-		#define CPU_TYPE_STRING_BASE "Unknown architecture!"
-#endif
-
-#ifdef OO_DEBUG
-	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE " debug"
-#elif !defined (NDEBUG)
-	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE " test release"
-#else
-	#define CPU_TYPE_STRING CPU_TYPE_STRING_BASE
+#define InitCrashReporterInfo() do {} while (0)
+#define SetCrashReporterInfo(i) do {} while (0)
+#define sCrashReporterInfoAvailable 0
 #endif
 
 
@@ -135,6 +128,8 @@ void OOLogOutputHandlerInit(void)
 {
 	if (sInited)  return;
 	
+	InitCrashReporterInfo();
+	
 	sLogger = [[OOAsyncLogger alloc] init];
 	sInited = YES;
 	
@@ -186,9 +181,11 @@ void OOLogOutputHandlerPrint(NSString *string)
 {
 	if (sInited && sLogger != nil)  [sLogger asyncLogMessage:string];
 	
-	if (sWriteToStderr)
+	if (sCrashReporterInfoAvailable || sWriteToStderr)
 	{
-		fputs([[string stringByAppendingString:@"\n"] UTF8String], stderr);
+		const char *cStr = [[string stringByAppendingString:@"\n"] UTF8String];
+		if (sCrashReporterInfoAvailable)  SetCrashReporterInfo(cStr);
+		if (sWriteToStderr)  fputs(cStr, stderr);
 	}
 }
 
@@ -555,3 +552,55 @@ static NSString *GetAppName(void)
 	
 	return appName;
 }
+
+
+#ifndef NDEBUG
+static char **sCrashReporterInfo = NULL;
+static char *sOldCrashReporterInfo = NULL;
+static NSLock *sCrashReporterInfoLock = nil;
+
+// Evil hackery based on http://www.allocinit.net/blog/2008/01/04/application-specific-information-in-leopard-crash-reports/
+static void InitCrashReporterInfo(void)
+{
+	sCrashReporterInfo = dlsym(RTLD_DEFAULT, "__crashreporter_info__");
+	if (sCrashReporterInfo != NULL)
+	{
+		sCrashReporterInfoLock = [[NSLock alloc] init];
+		if (sCrashReporterInfoLock != nil)
+		{
+			sCrashReporterInfoAvailable = YES;
+		}
+		else
+		{
+			sCrashReporterInfo = NULL;
+		}
+	}
+}
+
+static void SetCrashReporterInfo(const char *info)
+{
+	char					*copy = NULL, *old = NULL;
+	
+	/*	Don't do anything if setup failed or the string is NULL or empty.
+		(The NULL and empty checks may not be desirable in other uses.)
+	*/
+	if (!sCrashReporterInfoAvailable || info == NULL || *info == '\0')  return;
+	
+	// Copy the string, which we assume to be dynamic...
+	copy = strdup(info);
+	if (copy == NULL)  return;
+	
+	/*	...and swap it in.
+		Note that we keep a separate pointer to the old value, in case
+		something else overwrites __crashreporter_info__.
+	*/
+	[sCrashReporterInfoLock lock];
+	*sCrashReporterInfo = copy;
+	old = sOldCrashReporterInfo;
+	sOldCrashReporterInfo = copy;
+	[sCrashReporterInfoLock unlock];
+	
+	// Delete our old string.
+	if (old != NULL)  free(old);
+}
+#endif

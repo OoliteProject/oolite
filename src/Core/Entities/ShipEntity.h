@@ -355,12 +355,12 @@ MA 02110-1301, USA.
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
-- (BOOL) hasEquipment:(id)equipmentKeys;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
+- (BOOL) hasEquipmentItem:(id)equipmentKeys;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;	// As above, but requires _all_ equipment in collection.
-- (void) addEquipment:(NSString *)equipmentKey;
+- (void) addEquipmentItem:(NSString *)equipmentKey;
 - (NSEnumerator *) equipmentEnumerator;
 - (unsigned) equipmentCount;
-- (void) removeEquipment:(NSString *)equipmentKey;
+- (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
 
 // Tests for the various special-cased equipment items

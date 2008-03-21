@@ -2920,7 +2920,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
-
+	
 	shipDict = [self getDictionaryForShip:desc];
 
 	if (shipDict == nil)  return nil;

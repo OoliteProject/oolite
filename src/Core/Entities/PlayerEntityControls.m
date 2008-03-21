@@ -626,7 +626,7 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 'y'   // next missile
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 			{
-				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasEquipment:@"EQ_MULTI_TARGET"]))
+				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasEquipmentItem:@"EQ_MULTI_TARGET"]))
 				{
 					[self playNextMissileSelected];
 					[self selectNextMissile];
@@ -639,7 +639,7 @@ static NSTimeInterval	time_last_frame;
 			//	'+' // next target
 			if ([gameView isDown:key_next_target])
 			{
-				if ((!next_target_pressed)&&([self hasEquipment:@"EQ_TARGET_MEMORY"]))
+				if ((!next_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
 				{
 					[self moveTargetMemoryBy:+1];
 				}
@@ -651,7 +651,7 @@ static NSTimeInterval	time_last_frame;
 			//	'-' // previous target
 			if ([gameView isDown:key_previous_target])
 			{
-				if ((!previous_target_pressed)&&([self hasEquipment:@"EQ_TARGET_MEMORY"]))
+				if ((!previous_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
 				{
 					[self moveTargetMemoryBy:-1];
 				}
@@ -764,7 +764,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				// original energy bomb routine
 				[self fireEnergyBomb];
-				[self removeEquipment:@"EQ_ENERGY_BOMB"];
+				[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
 			}
 			
 			//  shoot 'escape'   // Escape pod launch
@@ -982,7 +982,7 @@ static NSTimeInterval	time_last_frame;
 			
 			// Galactic hyperspace 'g'
 			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
-				([self hasEquipment:@"EQ_GAL_DRIVE"]))// look for the 'g' key
+				([self hasEquipmentItem:@"EQ_GAL_DRIVE"]))// look for the 'g' key
 			{
 				if (!galhyperspace_pressed)
 				{
@@ -1262,7 +1262,7 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!pling_pressed)
 				{
-					if ([self hasEquipment:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
+					if ([self hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])  [gui setShowAdvancedNavArray:YES];
 					pling_pressed = YES;
 				}
 			}

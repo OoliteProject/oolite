@@ -340,14 +340,14 @@ static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN arg
 
 static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() removeEquipment:JSValToNSString(context, argv[0])];
+	[OOPlayerForScripting() removeEquipmentItem:JSValToNSString(context, argv[0])];
 	return YES;
 }
 
 
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	*outResult = BOOLToJSVal([OOPlayerForScripting() hasEquipment:JSValToNSString(context, argv[0])]);
+	*outResult = BOOLToJSVal([OOPlayerForScripting() hasEquipmentItem:JSValToNSString(context, argv[0])]);
 	return YES;
 }
 

@@ -160,7 +160,7 @@ enum
 }
 
 
-- (NSString *)description
+- (NSString *)descriptionComponents
 {
 	NSString			*state = nil;
 	
@@ -169,9 +169,21 @@ enum
 		if (data != NULL)  state = @"ready";
 		else  state = @"failed";
 	}
-	else  state = @"loading";
+	else
+	{
+		state = @"loading";
+#if INSTRUMENT_TEXTURE_LOADING
+		if (debugHasLoaded)  state = @"loaded";
+#endif
+	}
 	
-	return [NSString stringWithFormat:@"<%@ %p>{%@ -- %@}", [self class], self, path, state];
+	return [NSString stringWithFormat:@"{%@ -- %@}", path, state];
+}
+
+
+- (NSString *)shortDescriptionComponents
+{
+	return [path lastPathComponent];
 }
 
 
@@ -244,7 +256,7 @@ enum
 	}
 	
 	// Set up loading threads.
-	threadCount = MIN(OOCPUCount() - 1, (unsigned)kMaxWorkThreads);
+	threadCount = MIN(OOCPUCount() /*- 1*/, (unsigned)kMaxWorkThreads);
 	do
 	{
 		[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
@@ -322,6 +334,7 @@ enum
 		}
 	NS_ENDHANDLER
 	
+	debugHasLoaded = YES;
 	[sReadyQueue enqueue:self];
 }
 
@@ -418,15 +431,61 @@ enum
 
 @implementation OOTextureLoader (OOCompletionNotification)
 
+/*	-waitForCompletion
+	In order for a texture loader to be considered loaded, it must be pulled
+	off the "ready queue". Since the order of items in the ready queue is not
+	necessarily (or generally) the order in which they're used, we keep pulling
+	texture loaders off and marking them as loaded until we get the one we're
+	looking for. If the loading isn't actually completed, we'll stall on the
+	dequeue operation until one of the loader threads pushes a loader.
+	
+	If INSTRUMENT_TEXTURE_LOADING, we log whether stalling occurred for each
+	loader. Rather than detecting this directly, we set a flag in the loader
+	thread to indicate whether the texture has been queued; if it has not yet
+	been queued when we start looking for it in the queue, we assume it will
+	stall and time the operation. NOTE: we could not simply use this flag to
+	check for completion and bypass the queue in all cases, because we need
+	to block when a stall occurs (busy-waiting is bad and counter-productive)
+	and we need to clean out the non-stalled loaders from the queue.
+	
+	Because loaders that happen to complete before the one we're waiting for
+	are dequeued and marked done as a side effect, asynchronous loads end up
+	being reported in batches. In each batch, the last loader listed is the
+	one for which -waitForCompletion was called. In many cases it will be
+	listed as an asynchronous load, because we needed to look in the queue but
+	there was no stall - it had already been enqueued by the time we started
+	looking. (This is the if (!debugHasLoaded) check at the top.)
+*/
+
 - (void)waitForCompletion
 {
 	OOTextureLoader				*loader = nil;
 	
+#if INSTRUMENT_TEXTURE_LOADING
+	NSTimeInterval				start = 0;
+	if (!debugHasLoaded)  start = [NSDate timeIntervalSinceReferenceDate];
+#endif
+	
 	do
 	{
+		// Dequeue a loader and mark it as done.
 		loader = [sReadyQueue dequeue];
 		loader->ready = YES;
-	}  while (loader != self);
+		
+#if INSTRUMENT_TEXTURE_LOADING
+		if (loader != self || start == 0)
+		{
+			OOLog(@"textureLoader.asyncLoad.notStall", @"Texture %@ loaded asynchronously.", [[loader path] lastPathComponent]);
+		}
+#endif
+	}  while (loader != self);	// We don't control order, so keep looking until we get the one we care about.
+	
+#if INSTRUMENT_TEXTURE_LOADING
+	if (start != 0)
+	{
+		OOLog(@"textureLoader.asyncLoad.stall", @"Waited %f seconds for texture %@ to load.", [NSDate timeIntervalSinceReferenceDate] - start, [path lastPathComponent]);
+	}
+#endif
 }
 
 @end
