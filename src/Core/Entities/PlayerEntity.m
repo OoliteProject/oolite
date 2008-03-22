@@ -539,7 +539,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// contracts
 	[contracts release];
-	contracts = [[dict arrayForKey:@"contracts"] retain];
+	contracts = [[dict arrayForKey:@"contracts"] mutableCopy];
 	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
 	contract_record = [[dict dictionaryForKey:@"contract_record"] mutableCopy];
 	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];

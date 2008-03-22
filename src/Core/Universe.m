@@ -5162,8 +5162,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count
 {
-	if ([PlayerEntity sharedPlayer] && [[PlayerEntity sharedPlayer] showDemoShips]) return;
-
+	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
+	
 	if (![currentMessage isEqualToString:text])
     {
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
