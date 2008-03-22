@@ -5303,29 +5303,27 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			for (i = 0; i < ent_count; i++)
 			{
 				Entity *thing = my_entities[i];
+#ifndef NDEBUG
+				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
+#endif
 				
 				[thing update:delta_t];
 				
-				// maintain sorted lists
-				
+				// maintain distance-from-player list
 				double z_distance = thing->zero_distance;
 				
-				// zero_index first..
 				int index = thing->zero_index;
-				while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))
+				while (index > 0 && z_distance < sortedEntities[index - 1]->zero_distance)
 				{
 					sortedEntities[index] = sortedEntities[index - 1];	// bubble up the list, usually by just one position
-					sortedEntities[index - 1 ] = thing;
+					sortedEntities[index - 1] = thing;
 					thing->zero_index = index - 1;
 					sortedEntities[index]->zero_index = index;
 					index--;
 				}
 				
-				// done maintaining sorted lists
-				
 				// update deterministic AI
-				
-				if (thing->isShip)
+				if ([thing isShip])
 				{
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
 					if (theShipsAI)
@@ -5333,6 +5331,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 						double thinkTime = [theShipsAI nextThinkTime];
 						if ((universal_time > thinkTime)||(thinkTime == 0.0))
 						{
+#ifndef NDEBUG
+							update_stage = [NSString stringWithFormat:@"update:think[%@]", [thing shortDescription]];
+#endif
 							[theShipsAI setNextThinkTime:universal_time + [theShipsAI thinkTimeInterval]];
 							[theShipsAI think];
 						}
@@ -5340,10 +5341,12 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				}
 			}
 			
+			// Maintain x/y/z order lists
 			update_stage = @"updating linked lists";
 			for (i = 0; i < ent_count; i++)
+			{
 				[my_entities[i] updateLinkedLists];
-			
+			}
 			
 			// detect collisions and light ships that can see the sun
 			

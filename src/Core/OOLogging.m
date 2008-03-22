@@ -90,6 +90,7 @@ SOFTWARE.
 #define OOLOG_BAD_SETTING			1
 #define OOLOG_BAD_DEFAULT_SETTING	1
 #define OOLOG_BAD_POP_INDENT		1
+#define OOLOG_EXCEPTION_IN_LOG		1
 
 
 // Used to track OOLogPushIndent()/OOLogPopIndent() state.
@@ -433,81 +434,84 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 #endif
 	
 	pool = [[NSAutoreleasePool alloc] init];
-	
-	// Do argument substitution
-	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];
-	
-	// Apply various prefix options
-#ifndef OOLOG_NO_FILE_NAME
-	if (sShowFileAndLine && inFile != NULL)
-	{
-		if (sShowFunction)
+	NS_DURING
+		// Do argument substitution
+		formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:inArguments] autorelease];
+		
+		// Apply various prefix options
+	#ifndef OOLOG_NO_FILE_NAME
+		if (sShowFileAndLine && inFile != NULL)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, AbbreviatedFileName(inFile), inLine, formattedMessage];
+			if (sShowFunction)
+			{
+				formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, AbbreviatedFileName(inFile), inLine, formattedMessage];
+			}
+			else
+			{
+				formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
+			}
 		}
 		else
+	#endif
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
+			if (sShowFunction)
+			{
+				formattedMessage = [NSString stringWithFormat:@"%s: %@", inFunction, formattedMessage];
+			}
 		}
-	}
-	else
-#endif
-	{
-		if (sShowFunction)
-		{
-			formattedMessage = [NSString stringWithFormat:@"%s: %@", inFunction, formattedMessage];
-		}
-	}
-	
-	if (sShowClass)
-	{
-		if (sShowFunction || sShowFileAndLine)
-		{
-			formattedMessage = [NSString stringWithFormat:@"[%@] %@", inMessageClass, formattedMessage];
-		}
-		else
-		{
-			formattedMessage = [NSString stringWithFormat:@"[%@]: %@", inMessageClass, formattedMessage];
-		}
-	}
-	
-	if (sShowApplication)
-	{
+		
 		if (sShowClass)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@ %@", APPNAME, formattedMessage];
+			if (sShowFunction || sShowFileAndLine)
+			{
+				formattedMessage = [NSString stringWithFormat:@"[%@] %@", inMessageClass, formattedMessage];
+			}
+			else
+			{
+				formattedMessage = [NSString stringWithFormat:@"[%@]: %@", inMessageClass, formattedMessage];
+			}
 		}
-		else if (sShowFunction || sShowFileAndLine)
+		
+		if (sShowApplication)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@ - %@", APPNAME, formattedMessage];
+			if (sShowClass)
+			{
+				formattedMessage = [NSString stringWithFormat:@"%@ %@", APPNAME, formattedMessage];
+			}
+			else if (sShowFunction || sShowFileAndLine)
+			{
+				formattedMessage = [NSString stringWithFormat:@"%@ - %@", APPNAME, formattedMessage];
+			}
+			else
+			{
+				formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
+			}
 		}
-		else
+		
+		// Apply indentation
+		indentLevel = GetIndentLevel();
+		if (indentLevel != 0)
 		{
-			formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
+			#define INDENT_FACTOR	2		/* Spaces per indent level */
+			#define MAX_INDENT		64		/* Maximum number of indentation _spaces_ */
+			
+			unsigned			indent;
+								// String of 64 spaces (null-terminated)
+			const char			spaces[MAX_INDENT + 1] =
+								"                                                                ";
+			const char			*indentString;
+			
+			indent = INDENT_FACTOR * indentLevel;
+			if (MAX_INDENT < indent) indent = MAX_INDENT;
+			indentString = &spaces[MAX_INDENT - indent];
+			
+			formattedMessage = [NSString stringWithFormat:@"%s%@", indentString, formattedMessage];
 		}
-	}
-	
-	// Apply indentation
-	indentLevel = GetIndentLevel();
-	if (indentLevel != 0)
-	{
-		#define INDENT_FACTOR	2		/* Spaces per indent level */
-		#define MAX_INDENT		64		/* Maximum number of indentation _spaces_ */
 		
-		unsigned			indent;
-							// String of 64 spaces (null-terminated)
-		const char			spaces[MAX_INDENT + 1] =
-							"                                                                ";
-		const char			*indentString;
-		
-		indent = INDENT_FACTOR * indentLevel;
-		if (MAX_INDENT < indent) indent = MAX_INDENT;
-		indentString = &spaces[MAX_INDENT - indent];
-		
-		formattedMessage = [NSString stringWithFormat:@"%s%@", indentString, formattedMessage];
-	}
-	
-	OOLogOutputHandlerPrint(formattedMessage);
+		OOLogOutputHandlerPrint(formattedMessage);
+	NS_HANDLER
+		OOLogInternal(OOLOG_EXCEPTION_IN_LOG, @"***** Exception thrown during logging: %@ : %@", [localException name], [localException reason]);
+	NS_ENDHANDLER
 	
 	[pool release];
 }
@@ -679,14 +683,18 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	va_start(args, inFormat);
-	formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:args] autorelease];
-	va_end(args);
-	
-	formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
-	if (sShowApplication) formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
-	
-	OOLogOutputHandlerPrint(formattedMessage);
+	NS_DURING
+		va_start(args, inFormat);
+		formattedMessage = [[[NSString alloc] initWithFormat:inFormat arguments:args] autorelease];
+		va_end(args);
+		
+		formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
+		if (sShowApplication) formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
+		
+		OOLogOutputHandlerPrint(formattedMessage);
+	NS_HANDLER
+		fprintf(stderr, "***** Exception in OOLogInternal_(): %s : %s", [[localException name] UTF8String], [[localException reason] UTF8String]);
+	NS_ENDHANDLER
 	
 	[pool release];
 }
