@@ -68,8 +68,9 @@ MA 02110-1301, USA.
 - (void) playBuyCommodity;
 - (void) playBuyShip;
 - (void) playSellCommodity;
-- (void) playCantBuyBuyCommodity;
-- (void) playCantBuyBuyShip;
+- (void) playCantBuyCommodity;
+- (void) playCantSellCommodity;
+- (void) playCantBuyShip;
 
 // Hyperspace alert sounds; logically hyperspace sounds, but played on the interface sound source.
 - (void) playHyperspaceNoTarget;

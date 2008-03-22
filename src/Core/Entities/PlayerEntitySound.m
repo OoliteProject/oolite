@@ -356,13 +356,19 @@ static OOSoundSource		*sBuySellSource;
 }
 
 
-- (void) playCantBuyBuyCommodity
+- (void) playCantBuyCommodity
 {
-	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-any]"];
+	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-commodity]"];
 }
 
 
-- (void) playCantBuyBuyShip
+- (void) playCantSellCommodity
+{
+	[sBuySellSource playCustomSoundWithKey:@"[could-not-sell-commodity]"];
+}
+
+
+- (void) playCantBuyShip
 {
 	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-ship]"];
 }

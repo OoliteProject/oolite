@@ -1094,6 +1094,11 @@ GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 GLfloat docked_light_ambient[4]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
 GLfloat docked_light_diffuse[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
 GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
+
+// Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
+// TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
+#define SUN_AMBIENT_INFLUENCE		0.75
+
 - (void) setLighting
 {
 	/*
@@ -1151,6 +1156,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		// ambient lighting!
 		float r,g,b,a;
 		[[the_sky skyColor] getRed:&r green:&g blue:&b alpha:&a];
+		r = r * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[0] * SUN_AMBIENT_INFLUENCE;
+		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
+		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
 		GLfloat ambient_level = [systeminfo floatForKey:@"ambient_level" defaultValue:1.0];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);

@@ -5022,7 +5022,7 @@ static int last_outfitting_index;
 	{
 		if (credits == old_credits)
 		{
-			[self playCantBuyBuyCommodity];
+			[self playCantBuyCommodity];
 		}
 		else
 		{
@@ -5036,7 +5036,7 @@ static int last_outfitting_index;
 	}
 	else
 	{
-		[self playCantBuyBuyCommodity];
+		[self playCantBuyCommodity];
 	}
 }
 

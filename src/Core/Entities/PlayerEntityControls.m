@@ -1558,11 +1558,12 @@ static NSTimeInterval	time_last_frame;
 							int item = [(NSString *)[gui selectedRowKey] intValue];
 							if ([self tryBuyingCommodity:item])
 							{
+								[self playBuyCommodity];
 								[self setGuiToMarketScreen];
 							}
 							else
 							{
-								[self playCantBuyBuyCommodity];
+								[self playCantBuyCommodity];
 							}
 							wait_for_key_up = YES;
 						}
@@ -1574,11 +1575,12 @@ static NSTimeInterval	time_last_frame;
 							int item = [(NSString *)[gui selectedRowKey] intValue];
 							if ([self trySellingCommodity:item])
 							{
+								[self playSellCommodity];
 								[self setGuiToMarketScreen];
 							}
 							else
 							{
-								[self playCantBuyBuyCommodity];
+								[self playCantSellCommodity];
 							}
 							wait_for_key_up = YES;
 						}
@@ -1610,7 +1612,7 @@ static NSTimeInterval	time_last_frame;
 								[self setGuiToMarketScreen];
 								if (amount_bought == 0)
 								{
-									[self playCantBuyBuyCommodity];
+									[self playCantBuyCommodity];
 								}
 								else
 								{
@@ -1647,7 +1649,7 @@ static NSTimeInterval	time_last_frame;
 						}
 						else
 						{
-							[self playCantBuyBuyCommodity];
+							[self playCantBuyCommodity];
 						}
 					}
 					selectPressed = YES;
@@ -1728,7 +1730,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						if (money == credits)	// we just skipped to another page
 						{
-							[self playCantBuyBuyShip];
+							[self playCantBuyShip];
 						}
 						else
 						{
@@ -1739,7 +1741,7 @@ static NSTimeInterval	time_last_frame;
 					}
 					else
 					{
-						[self playCantBuyBuyCommodity];
+						[self playCantBuyShip];
 					}
 				}
 				selectPressed = YES;
