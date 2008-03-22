@@ -91,7 +91,9 @@ static OODebugMonitor *sSingleton = nil;
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(applicationWillTerminate:) name:NSApplicationWillTerminateNotification object:nil];
 		
+#if OOJSENGINE_MONITOR_SUPPORT
 		[[OOJavaScriptEngine sharedEngine] setMonitor:self];
+#endif
 		
 		// Set up JavaScript side of console.
 		jsProps = [NSDictionary dictionaryWithObjectsAndKeys:

@@ -334,7 +334,9 @@ enum
 		}
 	NS_ENDHANDLER
 	
+#if INSTRUMENT_TEXTURE_LOADING
 	debugHasLoaded = YES;
+#endif
 	[sReadyQueue enqueue:self];
 }
 
