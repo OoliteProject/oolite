@@ -237,56 +237,41 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
-	if (gameView)
-	{
-		// poll the gameView keyboard things
-		[self pollApplicationControls]; // quit command-f etc.
-		switch (status)
+	NS_DURING
+		if (gameView)
 		{
-			case STATUS_WITCHSPACE_COUNTDOWN:
-			case STATUS_IN_FLIGHT:
-				[self pollFlightControls:delta_t];
-				break;
-				
-			case STATUS_DEAD:
-				[self pollGameOverControls:delta_t];
-				break;
-				
-			case STATUS_AUTOPILOT_ENGAGED:
-				[self pollAutopilotControls:delta_t];
-				break;
-				
-			case STATUS_DOCKED:
-				[self pollDockedControls:delta_t];
-				break;
-				
-			case STATUS_START_GAME:
-				[self pollDemoControls:delta_t];
-				break;
-				
-			default:
-				break;
-		}
-		
-#if FIXME // Need to handle docking music
-		// handle docking music generically
-		if (status == STATUS_AUTOPILOT_ENGAGED)
-		{
-			if (docking_music_on)
+			// poll the gameView keyboard things
+			[self pollApplicationControls]; // quit command-f etc.
+			switch (status)
 			{
-				[dockingMusic play];
-			}
-			else
-			{
-				[dockingMusic stop];
+				case STATUS_WITCHSPACE_COUNTDOWN:
+				case STATUS_IN_FLIGHT:
+					[self pollFlightControls:delta_t];
+					break;
+					
+				case STATUS_DEAD:
+					[self pollGameOverControls:delta_t];
+					break;
+					
+				case STATUS_AUTOPILOT_ENGAGED:
+					[self pollAutopilotControls:delta_t];
+					break;
+					
+				case STATUS_DOCKED:
+					[self pollDockedControls:delta_t];
+					break;
+					
+				case STATUS_START_GAME:
+					[self pollDemoControls:delta_t];
+					break;
+					
+				default:
+					break;
 			}
 		}
-		else
-		{
-			[dockingMusic stop];
-		}
-#endif
-	}
+	NS_HANDLER
+		OOLog(kOOLogException, @"***** Exception checking controls: %@ : %@", [localException name], [localException reason]);
+	NS_ENDHANDLER
 }
 
 // DJS + aegidian: Moved from the big switch/case block in pollGuiArrowKeyControls

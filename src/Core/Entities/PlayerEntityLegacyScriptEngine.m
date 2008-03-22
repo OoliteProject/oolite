@@ -232,6 +232,7 @@ static BOOL sRunningScript = NO;
 	
 	[self setScriptTarget:self];
 	
+	OOLogPushIndent();
 	OOLog(@"script.trace.runWorld", @"----- Running world script with state %@", [self status_string]);
 	OOLogIndentIf(@"script.trace.runWorld");
 	
@@ -252,28 +253,32 @@ static BOOL sRunningScript = NO;
 		-- Ahruman, 20080302
 	*/
 	restoreStatus = status;
-	if (sRunningScript)
-	{
-		status = RecursiveRemapStatus(status);
-		if (status != restoreStatus)
+	NS_DURING
+		if (sRunningScript)
 		{
-			OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+			status = RecursiveRemapStatus(status);
+			if (status != restoreStatus)
+			{
+				OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+			}
+			else
+			{
+				OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
+			}
 		}
-		else
-		{
-			OOLog(@"script.trace.runWorld.recurse", @"----- Running world script recursively.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
-		}
-	}
-	sRunningScript = YES;
-	
-	// After all that, actually running the scripts is trivial.
-	[[worldScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
+		sRunningScript = YES;
+		
+		// After all that, actually running the scripts is trivial.
+		[[worldScripts allValues] makeObjectsPerformSelector:@selector(runWithTarget:) withObject:self];
+	NS_HANDLER
+		OOLog(kOOLogException, @"***** Exception running world scripts: %@ : %@", [localException name], [localException reason]);
+	NS_ENDHANDLER
 	
 	// Restore anti-recursion measures.
 	sRunningScript = wasRunningScript;
 	status = restoreStatus;
 	
-	OOLogOutdentIf(@"script.trace.runWorld");
+	OOLogPopIndent();
 }
 
 

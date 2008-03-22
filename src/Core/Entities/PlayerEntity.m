@@ -96,6 +96,23 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) setExtraEquipmentFromFlags;
 -(void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor;
 
+// Subs of update:
+- (void) updateMovementFlags;
+- (void) updateAlertCondition;
+- (void) updateFuelScoops:(OOTimeDelta)delta_t;
+- (void) updateClocks:(OOTimeDelta)delta_t;
+- (void) checkScriptsIfAppropriate;
+- (void) updateTrumbles:(OOTimeDelta)delta_t;
+- (void) performAutopilotUpdates:(OOTimeDelta)delta_t;
+- (void) performInFlightUpdates:(OOTimeDelta)delta_t;
+- (void) performWitchspaceCountdownUpdates:(OOTimeDelta)delta_t;
+- (void) performWitchspaceExitUpdates:(OOTimeDelta)delta_t;
+- (void) performLaunchingUpdates:(OOTimeDelta)delta_t;
+- (void) performDockingUpdates:(OOTimeDelta)delta_t;
+- (void) performDeadUpdates:(OOTimeDelta)delta_t;
+- (void) updateIdentSystem;
+- (void) updateMissiles;
+
 @end
 
 
@@ -1125,363 +1142,45 @@ static PlayerEntity *sSharedPlayer = nil;
 double scoopSoundPlayTime = 0.0;
 - (void) update:(OOTimeDelta)delta_t
 {
-	unsigned i;
-	// update flags
+	[self updateMovementFlags];
+	[self updateAlertCondition];
+	[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
 	
-	hasMoved = !vector_equal(position, lastPosition);
-	hasRotated = !quaternion_equal(orientation, lastOrientation);
-	lastPosition = position;
-	lastOrientation = orientation;
-	
-	/*	Moved here from -alertCondition to avoid alert condition checks in
-		scripts triggering running of scripts. This wouldn't cause recursion,
-		but did cause JS warnings.
-		TODO: update alert condition once per frame. Tried this before, but
-		there turned out to be complications. See mailing list archive.
-		-- Ahruman 20070802
-	*/
-	OOAlertCondition cond = [self alertCondition];
-	if (cond != lastScriptAlertCondition)
-	{
-		[self doScriptEvent:@"alertConditionChanged"
-			   withArgument:[NSNumber numberWithInt:cond]
-				andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
-		lastScriptAlertCondition = cond;
-	}
-
-	if (scoopsActive)
-	{
-		scoopSoundPlayTime -= delta_t;
-		if (scoopSoundPlayTime < 0.0)
-		{
-			[fuelScoopSound play];
-			scoopSoundPlayTime = 0.5;
-		}
-		scoopsActive = NO;
-	}
-
-	// update timers
-	
-	shot_time += delta_t;
-	script_time += delta_t;
-	ship_clock += delta_t;
-	if (ship_clock_adjust != 0.0)				// adjust for coming out of warp (add LY * LY hrs)
-	{
-		double fine_adjust = delta_t * 7200.0;
-		if (ship_clock_adjust > 86400)			// more than a day
-			fine_adjust = delta_t * 115200.0;	// 16 times faster
-		if (ship_clock_adjust > 0)
-		{
-			if (fine_adjust > ship_clock_adjust)
-				fine_adjust = ship_clock_adjust;
-			ship_clock += fine_adjust;
-			ship_clock_adjust -= fine_adjust;
-		}
-		else
-		{
-			if (fine_adjust < ship_clock_adjust)
-				fine_adjust = ship_clock_adjust;
-			ship_clock -= fine_adjust;
-			ship_clock_adjust += fine_adjust;
-		}
-	}
-
-	//fps
-	if (ship_clock > fps_check_time)
-	{
-		fps_counter = floor(1.0 / delta_t);
-		fps_check_time = ship_clock + 0.25;
-	}
+	[self updateClocks:delta_t];
 	
 	// scripting
 	[OOScriptTimer updateTimers];
-	
-	if (script_time > script_time_check)
-	{
-		if (status == STATUS_IN_FLIGHT)	// check as we're flying
-		{
-			[self checkScript];
-			script_time_check += script_time_interval;
-		}
-		else	// check at other times
-		{
-			switch (gui_screen)
-			{
-				// screens from which it's safe to jump to the mission screen
-				case GUI_SCREEN_CONTRACTS:
-				case GUI_SCREEN_EQUIP_SHIP:
-				case GUI_SCREEN_LONG_RANGE_CHART:
-				case GUI_SCREEN_MANIFEST:
-				case GUI_SCREEN_SHIPYARD:
-				case GUI_SCREEN_SHORT_RANGE_CHART:
-				case GUI_SCREEN_STATUS:
-				case GUI_SCREEN_SYSTEM_DATA:
-					[self checkScript];
-					script_time_check += script_time_interval;
-					break;
-				
-				case GUI_SCREEN_MAIN:
-				case GUI_SCREEN_INTRO1:
-				case GUI_SCREEN_INTRO2:
-				case GUI_SCREEN_MARKET:
-				case GUI_SCREEN_OPTIONS:
-				case GUI_SCREEN_GAMEOPTIONS:
-				case GUI_SCREEN_LOAD:
-				case GUI_SCREEN_SAVE:
-				case GUI_SCREEN_SAVE_OVERWRITE:
-				case GUI_SCREEN_STICKMAPPER:
-				case GUI_SCREEN_MISSION:
-				case GUI_SCREEN_REPORT:
-					break;
-			}
-		}
-	}
+	[self checkScriptsIfAppropriate];
 
 	// deal with collisions
-	
 	[self manageCollisions];
 	[self saveToLastFrame];
-
+	
 	[self pollControls:delta_t];
-
-	// update trumbles (moved from end of update: to here)
-	OOTrumble** trumbles = [self trumbleArray];
-	for (i = [self trumbleCount] ; i > 0; i--)
-	{
-		OOTrumble* trum = trumbles[i - 1];
-		[trum updateTrumble:delta_t];
-	}
 	
-	if ((status == STATUS_START_GAME)&&(gui_screen != GUI_SCREEN_INTRO1)&&(gui_screen != GUI_SCREEN_INTRO2))
+	[self updateTrumbles:delta_t];
+	
+	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
+	{
 		[self setGuiToIntro1Screen];	//set up demo mode
-
-	if ((status == STATUS_AUTOPILOT_ENGAGED)||(status == STATUS_ESCAPE_SEQUENCE))
-	{
-		[super update:delta_t];
-		[self doBookkeeping:delta_t];
-		return;
 	}
-
-	if (!dockedStation)
-	{
-		// do flight routines
-		//// velocity stuff
-		
-		position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
-		
-		GLfloat velmag = sqrt(magnitude2(velocity));
-		if (velmag)
-		{
-			GLfloat velmag2 = velmag - delta_t * thrust;
-			if (velmag2 < 0.0f)
-				velmag2 = 0.0f;
-			velocity.x *= velmag2 / velmag;
-			velocity.y *= velmag2 / velmag;
-			velocity.z *= velmag2 / velmag;
-			if ([UNIVERSE strict])
-			{
-				if (velmag2 < OG_ELITE_FORWARD_DRIFT)
-				{
-					velocity.x += delta_t * v_forward.x * OG_ELITE_FORWARD_DRIFT * 20.0;	// add acceleration
-					velocity.y += delta_t * v_forward.y * OG_ELITE_FORWARD_DRIFT * 20.0;
-					velocity.z += delta_t * v_forward.z * OG_ELITE_FORWARD_DRIFT * 20.0;
-				}
-			}
-		}
-
-		[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
-		if (flightYaw != 0.0)
-			[self applyYaw:delta_t*flightYaw];
-		[self moveForward:delta_t*flightSpeed];
-	}
-
-	if (status == STATUS_IN_FLIGHT)
-	{
-		[self doBookkeeping:delta_t];
-	}
-
-	if (status == STATUS_LAUNCHING)
-	{
-		if ([UNIVERSE breakPatternOver])
-		{
-			// time to check the script!
-			[self checkScript];
-			// next check in 10s
-
-			status = STATUS_IN_FLIGHT;
-			[self doScriptEvent:@"shipLaunchedFromStation"];
-		}
-	}
-
-	if (status == STATUS_WITCHSPACE_COUNTDOWN)
-	{
-		[self doBookkeeping:delta_t];
-		witchspaceCountdown -= delta_t;
-		if (witchspaceCountdown < 0.0)  witchspaceCountdown = 0.0;
-		if (galactic_witchjump)
-			[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
-		else
-			[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-		if (witchspaceCountdown == 0.0)
-		{
-			BOOL go = YES;
-
-			// check nearby masses
-			ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
-			if (blocker)
-			{
-				[UNIVERSE clearPreviousMessage];
-				[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-blocked-by-@]"), [blocker name]] forCount: 4.5];
-				if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
-					[witchAbortSound play];
-				status = STATUS_IN_FLIGHT;
-				[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
-				go = NO;
-			}
-			
-			// check max distance permitted
-			double jump_distance = 0.0;
-			if (!galactic_witchjump)
-			{
-				jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-				if (jump_distance > 7.0)
-				{
-					[UNIVERSE clearPreviousMessage];
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-too-far]") forCount: 4.5];
-					if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
-						[witchAbortSound play];
-					status = STATUS_IN_FLIGHT;
-					[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
-					go = NO;
-				}
-			}
-			
-			// check fuel level
-			double		fuel_required = 10.0 * jump_distance;
-			if (galactic_witchjump)
-				fuel_required = 0.0;
-			if (fuel < fuel_required)
-			{
-				[UNIVERSE clearPreviousMessage];
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount: 4.5];
-				if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
-					[witchAbortSound play];
-				status = STATUS_IN_FLIGHT;
-				[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
-				go = NO;
-			}
-
-			if (go)
-			{
-				[self safeAllMissiles];
-				[UNIVERSE setViewDirection:VIEW_FORWARD];
-				currentWeaponFacing = VIEW_FORWARD;
-				if (galactic_witchjump)
-					[self enterGalacticWitchspace];
-				else
-					[self enterWitchspace];
-			}
-		}
-	}
-
-	if (status == STATUS_EXITING_WITCHSPACE)
-	{
-		if ([UNIVERSE breakPatternOver])
-		{
-			// time to check the script!
-			[self checkScript];
-			// next check in 10s
-			[self resetScriptTimer];	// reset the in-system timer
-
-			// announce arrival
-			if ([UNIVERSE planet])
-				[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
-			else
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
-
-			status = STATUS_IN_FLIGHT;
-			[self doScriptEvent:@"shipExitedWitchspace"];
-		}
-	}
-
-	if (status == STATUS_DOCKING)
-	{
-		if ([UNIVERSE breakPatternOver])
-		{
-			[self docked];		// bookkeeping for docking
-		}
-	}
-
-	if ((status == STATUS_DEAD)&&(shot_time > 30.0))
-	{
-		BOOL was_mouse_control_on = mouse_control_on;
-		[UNIVERSE game_over];				//  we restart the UNIVERSE
-		mouse_control_on = was_mouse_control_on;
-	}
-
 	
-	// check for lost ident target and ensure the ident system is actually scanning
-	
-	if (ident_engaged)
+	if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
 	{
-		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
-		{
-			ShipEntity *e = [self  primaryTarget];
-			if (![e isShip])  e = nil;
-			
-			if (e == nil ||
-				e->zero_distance > SCANNER_MAX_RANGE2 ||
-				[e isCloaked] ||	// checks for cloaked ships
-				([e isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
-			{
-				if (!suppressTargetLost)
-				{
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
-					[self playTargetLost];
-				}
-				else
-				{
-					suppressTargetLost = NO;
-				}
-				primaryTarget = NO_TARGET;
-				missile_status = MISSILE_STATUS_SAFE;
-			}
-		}
-		else
-		{
-			missile_status = MISSILE_STATUS_ARMED;
-		}
+		[self performAutopilotUpdates:delta_t];
 	}
-
+	else  if (![self isDocked])  [self performInFlightUpdates:delta_t];
 	
-	// check each unlaunched missile's target still exists and is in-range
+	if (status == STATUS_IN_FLIGHT)  [self doBookkeeping:delta_t];
+	if (status == STATUS_WITCHSPACE_COUNTDOWN)  [self performWitchspaceCountdownUpdates:delta_t];
+	if (status == STATUS_EXITING_WITCHSPACE)  [self performWitchspaceExitUpdates:delta_t];
+	if (status == STATUS_LAUNCHING)  [self performLaunchingUpdates:delta_t];
+	if (status == STATUS_DOCKING)  [self performDockingUpdates:delta_t];
+	if (status == STATUS_DEAD)  [self performDeadUpdates:delta_t];
 	
-	for (i = 0; i < max_missiles; i++)
-	{
-		if ((missile_entity[i])&&([missile_entity[i] primaryTargetID] != NO_TARGET))
-		{
-			ShipEntity*	target_ship = (ShipEntity *)[missile_entity[i] primaryTarget];
-			if ((!target_ship)||(target_ship->zero_distance > SCANNER_MAX_RANGE2))
-			{
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
-				[self playTargetLost];
-				[missile_entity[i] removeTarget:nil];
-				if ((i == activeMissile)&&(!ident_engaged))
-				{
-					primaryTarget = NO_TARGET;
-					missile_status = MISSILE_STATUS_SAFE;
-				}
-			}
-		}
-	}
-
-	if (missile_status == MISSILE_STATUS_ARMED &&
-		(ident_engaged || [missile_entity[activeMissile] isMissile]) &&
-		(status == STATUS_IN_FLIGHT || status == STATUS_WITCHSPACE_COUNTDOWN))
-	{
-		ShipEntity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
-		if (target != nil)  [self addTarget:target];
-	}
+	// TODO: these should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
+	[self updateIdentSystem];
+	[self updateMissiles];
 }
 
 
@@ -1765,6 +1464,389 @@ double scoopSoundPlayTime = 0.0;
 	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se update:delta_t];
+	}
+}
+
+
+- (void) updateMovementFlags
+{
+	hasMoved = !vector_equal(position, lastPosition);
+	hasRotated = !quaternion_equal(orientation, lastOrientation);
+	lastPosition = position;
+	lastOrientation = orientation;
+}
+
+
+- (void) updateAlertCondition
+{
+	/*	TODO: update alert condition once per frame. Tried this before, but
+	 there turned out to be complications. See mailing list archive.
+	 -- Ahruman 20070802
+	 */
+	OOAlertCondition cond = [self alertCondition];
+	if (cond != lastScriptAlertCondition)
+	{
+		[self doScriptEvent:@"alertConditionChanged"
+			   withArgument:[NSNumber numberWithInt:cond]
+				andArgument:[NSNumber numberWithInt:lastScriptAlertCondition]];
+		lastScriptAlertCondition = cond;
+	}
+}
+
+
+- (void) updateFuelScoops:(OOTimeDelta)delta_t
+{
+	if (scoopsActive)
+	{
+		scoopSoundPlayTime -= delta_t;
+		if (scoopSoundPlayTime < 0.0)
+		{
+			[fuelScoopSound play];
+			scoopSoundPlayTime = 0.5;
+		}
+		scoopsActive = NO;
+	}
+}
+
+
+- (void) updateClocks:(OOTimeDelta)delta_t
+{
+	shot_time += delta_t;
+	script_time += delta_t;
+	ship_clock += delta_t;
+	if (ship_clock_adjust != 0.0)				// adjust for coming out of warp (add LY * LY hrs)
+	{
+		double fine_adjust = delta_t * 7200.0;
+		if (ship_clock_adjust > 86400)			// more than a day
+			fine_adjust = delta_t * 115200.0;	// 16 times faster
+		if (ship_clock_adjust > 0)
+		{
+			if (fine_adjust > ship_clock_adjust)
+				fine_adjust = ship_clock_adjust;
+			ship_clock += fine_adjust;
+			ship_clock_adjust -= fine_adjust;
+		}
+		else
+		{
+			if (fine_adjust < ship_clock_adjust)
+				fine_adjust = ship_clock_adjust;
+			ship_clock -= fine_adjust;
+			ship_clock_adjust += fine_adjust;
+		}
+	}
+	
+	//fps
+	if (ship_clock > fps_check_time)
+	{
+		fps_counter = floor(1.0 / delta_t);
+		fps_check_time = ship_clock + 0.25;
+	}
+}
+
+
+- (void) checkScriptsIfAppropriate
+{
+	if (script_time <= script_time_check)  return;
+	
+	if (status != STATUS_IN_FLIGHT)
+	{
+		switch (gui_screen)
+		{
+			// Screens where no world script tickles are performed
+			case GUI_SCREEN_MAIN:
+			case GUI_SCREEN_INTRO1:
+			case GUI_SCREEN_INTRO2:
+			case GUI_SCREEN_MARKET:
+			case GUI_SCREEN_OPTIONS:
+			case GUI_SCREEN_GAMEOPTIONS:
+			case GUI_SCREEN_LOAD:
+			case GUI_SCREEN_SAVE:
+			case GUI_SCREEN_SAVE_OVERWRITE:
+			case GUI_SCREEN_STICKMAPPER:
+			case GUI_SCREEN_MISSION:
+			case GUI_SCREEN_REPORT:
+				return;
+				break;
+			
+			// Screens from which it's safe to jump to the mission screen
+			case GUI_SCREEN_CONTRACTS:
+			case GUI_SCREEN_EQUIP_SHIP:
+			case GUI_SCREEN_LONG_RANGE_CHART:
+			case GUI_SCREEN_MANIFEST:
+			case GUI_SCREEN_SHIPYARD:
+			case GUI_SCREEN_SHORT_RANGE_CHART:
+			case GUI_SCREEN_STATUS:
+			case GUI_SCREEN_SYSTEM_DATA:
+				[self checkScript];
+				script_time_check += script_time_interval;
+				break;
+		}
+	}
+	
+	// We passed the test, update the script.
+	[self checkScript];
+	script_time_check += script_time_interval;
+}
+
+
+- (void) updateTrumbles:(OOTimeDelta)delta_t
+{
+	OOTrumble	**trumbles = [self trumbleArray];
+	unsigned	i;
+	
+	for (i = [self trumbleCount] ; i > 0; i--)
+	{
+		OOTrumble* trum = trumbles[i - 1];
+		[trum updateTrumble:delta_t];
+	}
+}
+
+
+- (void) performAutopilotUpdates:(OOTimeDelta)delta_t
+{
+	[super update:delta_t];
+	[self doBookkeeping:delta_t];
+}
+
+
+#define VELOCITY_CLEANUP_MIN	2000.0	// Minimum speed for "power braking".
+#define VELOCITY_CLEANUP_FULL	5000.0	// Speed at which full "power braking" factor is used.
+#define VELOCITY_CLEANUP_RATE	0.001	// Factor for full "power braking".
+
+- (void) performInFlightUpdates:(OOTimeDelta)delta_t
+{
+	// do flight routines
+	//// velocity stuff
+	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
+	
+	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	
+	GLfloat velmag = magnitude(velocity);
+	if (velmag > 0)
+	{
+		GLfloat velmag2 = velmag - delta_t * thrust;
+		if (velmag > VELOCITY_CLEANUP_MIN)
+		{
+			GLfloat rate;
+			// Fix up extremely ridiculous speeds that can happen in collisions or explosions
+			if (velmag > VELOCITY_CLEANUP_FULL)  rate = VELOCITY_CLEANUP_RATE;
+			else  rate = (velmag - VELOCITY_CLEANUP_MIN) / (VELOCITY_CLEANUP_FULL - VELOCITY_CLEANUP_MIN) * VELOCITY_CLEANUP_RATE;
+			velmag2 -= velmag * rate;
+		}
+		if (velmag2 < 0.0f)  velocity = kZeroVector;
+		else  velocity = vector_multiply_scalar(velocity, velmag2 / velmag);
+		
+		if ([UNIVERSE strict])
+		{
+			if (velmag2 < OG_ELITE_FORWARD_DRIFT)
+			{
+				// add acceleration
+				velocity = vector_add(velocity, vector_multiply_scalar(v_forward, delta_t * OG_ELITE_FORWARD_DRIFT * 20.0));
+			}
+		}
+	}
+	
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	if (flightYaw != 0.0)
+	{
+		[self applyYaw:delta_t*flightYaw];
+	}
+	[self moveForward:delta_t*flightSpeed];
+}
+
+
+- (void) performWitchspaceCountdownUpdates:(OOTimeDelta)delta_t
+{
+	[self doBookkeeping:delta_t];
+	witchspaceCountdown -= delta_t;
+	if (witchspaceCountdown < 0.0)  witchspaceCountdown = 0.0;
+	if (galactic_witchjump)
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
+	else
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+	if (witchspaceCountdown == 0.0)
+	{
+		BOOL go = YES;
+		
+		// check nearby masses
+		ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
+		if (blocker)
+		{
+			[UNIVERSE clearPreviousMessage];
+			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-blocked-by-@]"), [blocker name]] forCount: 4.5];
+			if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
+				[witchAbortSound play];
+			status = STATUS_IN_FLIGHT;
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
+			go = NO;
+		}
+		
+		// check max distance permitted
+		double jump_distance = 0.0;
+		if (!galactic_witchjump)
+		{
+			jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+			if (jump_distance > 7.0)
+			{
+				[UNIVERSE clearPreviousMessage];
+				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-too-far]") forCount: 4.5];
+				if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
+					[witchAbortSound play];
+				status = STATUS_IN_FLIGHT;
+				[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
+				go = NO;
+			}
+		}
+		
+		// check fuel level
+		double		fuel_required = 10.0 * jump_distance;
+		if (galactic_witchjump)
+			fuel_required = 0.0;
+		if (fuel < fuel_required)
+		{
+			[UNIVERSE clearPreviousMessage];
+			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount: 4.5];
+			if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
+				[witchAbortSound play];
+			status = STATUS_IN_FLIGHT;
+			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
+			go = NO;
+		}
+		
+		if (go)
+		{
+			[self safeAllMissiles];
+			[UNIVERSE setViewDirection:VIEW_FORWARD];
+			currentWeaponFacing = VIEW_FORWARD;
+			if (galactic_witchjump)
+				[self enterGalacticWitchspace];
+			else
+				[self enterWitchspace];
+		}
+	}
+}
+
+
+- (void) performWitchspaceExitUpdates:(OOTimeDelta)delta_t
+{
+	if ([UNIVERSE breakPatternOver])
+	{
+		// time to check the script!
+		[self checkScript];
+		// next check in 10s
+		[self resetScriptTimer];	// reset the in-system timer
+		
+		// announce arrival
+		if ([UNIVERSE planet])
+			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
+		else
+			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
+		
+		status = STATUS_IN_FLIGHT;
+		[self doScriptEvent:@"shipExitedWitchspace"];
+	}
+}
+
+
+- (void) performLaunchingUpdates:(OOTimeDelta)delta_t
+{
+	if ([UNIVERSE breakPatternOver])
+	{
+		// time to check the script!
+		[self checkScript];
+		// next check in 10s
+		
+		status = STATUS_IN_FLIGHT;
+		[self doScriptEvent:@"shipLaunchedFromStation"];
+	}
+}
+
+
+- (void) performDockingUpdates:(OOTimeDelta)delta_t
+{
+	if ([UNIVERSE breakPatternOver])
+	{
+		[self docked];		// bookkeeping for docking
+	}
+}
+
+
+- (void) performDeadUpdates:(OOTimeDelta)delta_t
+{
+	if (shot_time > 30.0)
+	{
+		BOOL was_mouse_control_on = mouse_control_on;
+		[UNIVERSE game_over];				//  we restart the UNIVERSE
+		mouse_control_on = was_mouse_control_on;
+	}
+}
+
+
+- (void) updateIdentSystem
+{
+	// check for lost ident target and ensure the ident system is actually scanning
+	if (ident_engaged)
+	{
+		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
+		{
+			ShipEntity *e = [self  primaryTarget];
+			if (![e isShip])  e = nil;
+			
+			if (e == nil ||
+				e->zero_distance > SCANNER_MAX_RANGE2 ||
+				[e isCloaked] ||	// checks for cloaked ships
+				([e isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+			{
+				if (!suppressTargetLost)
+				{
+					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
+					[self playTargetLost];
+				}
+				else
+				{
+					suppressTargetLost = NO;
+				}
+				primaryTarget = NO_TARGET;
+				missile_status = MISSILE_STATUS_SAFE;
+			}
+		}
+		else
+		{
+			missile_status = MISSILE_STATUS_ARMED;
+		}
+	}
+}
+
+
+- (void) updateMissiles
+{
+	// check each unlaunched missile's target still exists and is in-range
+	unsigned i;
+	for (i = 0; i < max_missiles; i++)
+	{
+		if ([missile_entity[i] primaryTargetID] != NO_TARGET)
+		{
+			ShipEntity	*target_ship = (ShipEntity *)[missile_entity[i] primaryTarget];
+			if (![target_ship isShip] || target_ship->zero_distance > SCANNER_MAX_RANGE2)
+			{
+				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
+				[self playTargetLost];
+				[missile_entity[i] removeTarget:nil];
+				if (i == activeMissile && !ident_engaged)
+				{
+					primaryTarget = NO_TARGET;
+					missile_status = MISSILE_STATUS_SAFE;
+				}
+			}
+		}
+	}
+	
+	if (missile_status == MISSILE_STATUS_ARMED &&
+		(ident_engaged || [missile_entity[activeMissile] isMissile]) &&
+		(status == STATUS_IN_FLIGHT || status == STATUS_WITCHSPACE_COUNTDOWN))
+	{
+		ShipEntity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
+		if (target != nil)  [self addTarget:target];
 	}
 }
 
