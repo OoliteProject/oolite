@@ -109,6 +109,7 @@ MA 02110-1301, USA.
 
 #import "OOCache.h"
 #import "OOCacheManager.h"
+#import "OOStringParsing.h"
 
 
 #ifndef OOCACHE_PERFORM_INTEGRITY_CHECKS
@@ -956,55 +957,11 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 */
 #define AGE_LIST 0
 
-// Workaround for Xcode auto-indent bug
-static NSString * const kQuotationMark = @"\"";
-static NSString * const kEscapedQuotationMark = @"\\\"";
-
-
-static NSString *EscapedString(NSString *string)
-{
-	const NSString			*srcStrings[] =
-	{
-		//Note: backslash must be first.
-		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
-	};
-	const NSString			*subStrings[] =
-	{
-		//Note: must be same order.
-		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
-	};
-	
-	NSString				**src = srcStrings, **sub = subStrings;
-	NSMutableString			*mutable = nil;
-	NSString				*result = nil;
-
-	mutable = [string mutableCopy];
-	while (*src != nil)
-	{
-		[mutable replaceOccurrencesOfString:*src++
-								 withString:*sub++
-									options:0
-									  range:NSMakeRange(0, [mutable length])];
-	}
-
-	if ([mutable length] == [string length])
-	{
-		result = string;
-	}
-	else
-	{
-		result = [[mutable copy] autorelease];
-	}
-	[mutable release];
-	return result;
-}
-
-
 @implementation OOCache (DebugGraphViz)
 
 - (void) appendNodesFromSubTree:(OOCacheNode *)subTree toString:(NSMutableString *)ioString
 {
-	[ioString appendFormat:@"\tn%p [label=\"<f0> | <f1> %@ | <f2>\"];\n", subTree, EscapedString([subTree->key description])];
+	[ioString appendFormat:@"\tn%p [label=\"<f0> | <f1> %@ | <f2>\"];\n", subTree, EscapedGraphVizString([subTree->key description])];
 	
 	if (subTree->leftChild != NULL)
 	{
@@ -1027,7 +984,7 @@ static NSString *EscapedString(NSString *string)
 	
 	// Root node representing cache
 	[result appendFormat:@"\t%@ [label=\"Cache \\\"%@\\\"\" shape=box];\n"
-		"\tnode [shape=record];\n\t\n", rootName, EscapedString([self name])];
+		"\tnode [shape=record];\n\t\n", rootName, EscapedGraphVizString([self name])];
 	
 	if (cache == NULL)  return result;
 	

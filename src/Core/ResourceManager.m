@@ -56,6 +56,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 + (BOOL)areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
 + (void)addError:(NSString *)error;
 + (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths;
++ (NSString *) diagnosticFileLocation;
 
 @end
 
@@ -793,5 +794,81 @@ static NSMutableDictionary *string_cache;
 	
 	return loadedScripts;
 }
+
+
++ (BOOL) writeDiagnosticData:(NSData *)data toFileNamed:(NSString *)name
+{
+	NSString			*basePath = nil;
+	
+	if (data == nil || name == nil)  return NO;
+	
+	basePath = [self diagnosticFileLocation];
+	if (basePath == nil)  return NO;
+	
+	return [data writeToFile:[basePath stringByAppendingPathComponent:name] atomically:YES];
+}
+
+
++ (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate
+{
+	BOOL				exists, directory;
+	NSFileManager		*fmgr =  [NSFileManager defaultManager];
+	
+	exists = [fmgr fileExistsAtPath:inPath isDirectory:&directory];
+	
+	if (exists && !directory)
+	{
+		OOLog(@"resourceManager.write.buildPath.failed", @"Expected %@ to be a folder, but it is a file.", inPath);
+		return NO;
+	}
+	if (!exists)
+	{
+		if (!inCreate) return NO;
+		if (![fmgr createDirectoryAtPath:inPath attributes:nil])
+		{
+			OOLog(@"resourceManager.write.buildPath.failed", @"Could not create folder %@.", inPath);
+			return NO;
+		}
+	}
+	
+	return YES;
+}
+
+
+#if OOLITE_MAC_OS_X
+
++ (NSString *) diagnosticFileLocation
+{
+	NSString			*cachePath = nil;
+	
+	/*	Construct the path for diagnostic files, which is:
+		 ~/Library/Logs/Oolite/
+	*/
+	cachePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+	cachePath = [cachePath stringByAppendingPathComponent:@"Logs"];
+	if (![self directoryExists:cachePath create:YES]) return nil;
+	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite"];
+	if (![self directoryExists:cachePath create:YES]) return nil;
+	return cachePath;
+}
+
+#else
+
++ (NSString *) diagnosticFileLocation
+{
+	NSString			*cachePath = nil;
+	
+	/*	Construct the path for diagnostic files, which is:
+	 ~/.Oolite/Diagnostics/
+	 */
+	cachePath = NSHomeDirectory();
+	cachePath = [cachePath stringByAppendingPathComponent:@".Oolite"];
+	if (![self directoryExists:cachePath create:YES]) return nil;
+	cachePath = [cachePath stringByAppendingPathComponent:@"Diagnostics"];
+	if (![self directoryExists:cachePath create:YES]) return nil;
+	return cachePath;
+}
+
+#endif
 
 @end

@@ -8141,6 +8141,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 				"\tedge [arrowhead=none sametail=1]\n"
 				"\tnode [shape=box]\n\t\n"];
 	
+	// First, define nodes.
 	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
 		shipDef = [shipdata objectForKey:shipKey];
@@ -8151,22 +8152,30 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		else  label = [NSString stringWithFormat:@"%@\n%@", shipKey, label];
 		
 		[graphViz appendFormat:@"\t\"%@\" [label=\"%@\"]\n", EscapedGraphVizString(shipKey), EscapedGraphVizString(label)];
+	}
+	
+	// Any new nodes beyond this point are dangling references, so colour them red.
+	[graphViz appendString:@"\t\n\t// Implicit nodes beyond this point are undefined ships.\n\tnode [style=filled fillcolor=red]\n\t\n"];
+	
+	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
+	{
+		shipDef = [shipdata objectForKey:shipKey];
 		
+		// Define edge
 		likeKey = [shipDef stringForKey:@"like_ship"];
 		if (likeKey != nil)
 		{
-			// Define edge
 			[graphViz appendFormat:@"\t\"%@\" -> \"%@\"\n", EscapedGraphVizString(likeKey), EscapedGraphVizString(shipKey)];
 		}
 	}
 	
 	// Write file
 	[graphViz appendString:@"}\n"];
-	[[graphViz dataUsingEncoding:NSUTF8StringEncoding] writeToFile:@"LikeShips.dot" atomically:YES];
+	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"LikeShips.dot"];
 }
 
 
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount
 {
 	NSString					*index = nil;
 	int							start, end;
@@ -8192,8 +8201,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		index = [string substringWithRange:NSMakeRange(start, end - start)];
 		i = [index intValue];
 		
-		// Each arc gets a pseudo-random hue (colour is specified in HSV)
-		[graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, randf(), i];
+		// Each node gets a colour for its incoming edges. The multiplication and mod shuffle them to avoid adjacent nodes having similar colours.
+		[graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i];
 	}
 	
 	if ([string rangeOfString:@"%I"].location != NSNotFound)
@@ -8223,9 +8232,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 				@"// System description grammar:\n\n"
 				"digraph system_descriptions\n"
 				"{\n"
-				"\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true]\n"
-				"\tedge [arrowhead=dot]\n"
-				"\tnode [shape=none]\n\t\n"];
+				"\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.02]\n"
+				"\tedge [arrowhead=dot sametail=1]\n"
+				"\tnode [shape=none height=0.2]\n\t\n"];
 	
 	systemDescriptions = [[self descriptions] arrayForKey:@"system_description"];
 	count = [systemDescriptions count];
@@ -8233,7 +8242,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	// Add system-description-string as special node (it's the one thing that ties [14] to everything else).
 	descLine = DESC(@"system-description-string");
 	[graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(descLine)];
-	[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:@"system_description_string"];
+	[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:@"system_description_string" nodeCount:count];
 	[graphViz appendString:@"\t\n"];
 	
 	// Add special nodes for formatting codes
@@ -8245,13 +8254,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	// Define the nodes
 	for (i = 0; i != count; ++i)
 	{
-		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"[%u]\";\n", i, i];
+		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"[%u]\"\n", i, i];
 		
 		thisDesc = [systemDescriptions arrayAtIndex:i];
 		subCount = [thisDesc count];
 		for (j = 0; j != subCount; ++j)
 		{
-			[graphViz appendFormat:@"%\t\tn%u_%u [label=\"%@\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
+			[graphViz appendFormat:@"%\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
@@ -8266,13 +8275,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		for (j = 0; j != subCount; ++j)
 		{
 			descLine = [thisDesc stringAtIndex:j];
-			[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:[NSString stringWithFormat:@"n%u_%u", i, j]];
+			[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:[NSString stringWithFormat:@"n%u_%u", i, j] nodeCount:count];
 		}
 	}
 	
 	// Write file
 	[graphViz appendString:@"\t}\n"];
-	[[graphViz dataUsingEncoding:NSUTF8StringEncoding] writeToFile:@"SystemDescription.dot" atomically:YES];
+	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"SystemDescription.dot"];
 }
 #endif
 
