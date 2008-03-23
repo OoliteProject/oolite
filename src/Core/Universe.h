@@ -587,7 +587,8 @@ OOINLINE Universe *GetUniverse(void)
 #endif
 
 
-#define DESC(key)	([UNIVERSE descriptionForKey:(key "")]) // Only for use with string literals, and only for looking up strings.
+// Only for use with string literals, and only for looking up strings.
+#define DESC(key)	(UNIVERSE ? [UNIVERSE descriptionForKey:(key "")] : key)
 
 
 @interface OOSound (OOCustomSounds)

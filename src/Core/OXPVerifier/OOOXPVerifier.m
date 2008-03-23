@@ -267,10 +267,8 @@ static void OpenLogFile(NSString *name);
 {
 	self = [super init];
 	
-	_verifierPList = [ResourceManager dictionaryFromFilesNamed:@"verifyOXP.plist"
-													  inFolder:@"Config"
-													  andMerge:NO];
-	[_verifierPList retain];
+	NSString *verifierPListPath =[[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"verifyOXP.plist"];   
+	_verifierPList =  [[NSDictionary dictionaryWithContentsOfFile:verifierPListPath] retain];
 	
 	_basePath = [path copy];
 	_displayName = [[NSFileManager defaultManager] displayNameAtPath:_basePath];
@@ -308,7 +306,7 @@ static void OpenLogFile(NSString *name);
 	[ResourceManager setUseAddOns:NO];
 	
 	SwitchLogFile(_displayName);
-	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _displayName);
+	OOLog(@"verifyOXP.start", @"Running OXP verifier for %@", _basePath);//_displayName);
 	
 	[self registerBaseStages];
 	[self buildDependencyGraph];

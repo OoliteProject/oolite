@@ -542,6 +542,7 @@
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
+		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
@@ -1550,6 +1551,7 @@
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
+		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
@@ -1807,6 +1809,7 @@
 		1A23181D0B9D026D00EF0852 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */,
 				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
 				1A23181F0B9D026D00EF0852 /* anaconda_redux.png */,
 				1A2318200B9D026D00EF0852 /* arcdetail.png */,
@@ -2985,6 +2988,7 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
+				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

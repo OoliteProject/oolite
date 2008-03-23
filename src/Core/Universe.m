@@ -112,11 +112,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
-	// Load internal descriptions.plist for use in internal init; it will be replaced by merged version later.
-	descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
-																stringByAppendingPathComponent:@"Config"]
-															   stringByAppendingPathComponent:@"descriptions.plist"]];
-	
 	n_entities = 0;
 	
 	x_list_start = y_list_start = z_list_start = nil;
@@ -5748,6 +5743,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSDictionary *) descriptions
 {
+	if (descriptions == nil)
+	{
+		// Load internal descriptions.plist for use in early init, OXP verifier etc.
+		// It will be replaced by merged version later if running the game normally.
+		descriptions = [NSDictionary dictionaryWithContentsOfFile:[[[ResourceManager builtInPath]
+																	stringByAppendingPathComponent:@"Config"]
+																   stringByAppendingPathComponent:@"descriptions.plist"]];
+	}
 	return descriptions;
 }
 
@@ -5766,7 +5769,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *)descriptionForKey:(NSString *)key
 {
-	id object = [descriptions objectForKey:key];
+	id object = [[self descriptions] objectForKey:key];
 	if ([object isKindOfClass:[NSString class]])  return object;
 	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object stringAtIndex:Ranrot() % [object count]];
 	return nil;
@@ -5775,7 +5778,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index
 {
-	NSArray *array = [descriptions arrayForKey:key];
+	NSArray *array = [[self descriptions] arrayForKey:key];
 	if ([array count] <= index)  return nil;	// Catches nil array
 	return [array objectAtIndex:index];
 }
@@ -5960,8 +5963,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	int i;
 		
-	NSString			*digrams = [descriptions stringForKey:@"digrams"];
-	NSString			*apostrophe = [descriptions stringForKey:@"digrams-apostrophe"];
+	NSString			*digrams = [self descriptionForKey:@"digrams"];
+	NSString			*apostrophe = [self descriptionForKey:@"digrams-apostrophe"];
 	NSMutableString		*name = [NSMutableString string];
 	int size = 4;
 	
@@ -5991,7 +5994,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	int i;
 		
-	NSString			*phonograms = [descriptions stringForKey:@"phonograms"];
+	NSString			*phonograms = [self descriptionForKey:@"phonograms"];
 	NSMutableString		*name = [NSMutableString string];
 	int size = 4;
 	
@@ -6036,7 +6039,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	}
 	else
 	{
-		inhabitantStrings = [descriptions arrayForKey:KEY_INHABITANTS];
+		inhabitantStrings = [[self descriptions] arrayForKey:KEY_INHABITANTS];
 		
 		// The first 5 arrays in 'inhabitants' are the standard ones, anything else below is language specific
 		// and will refer to the different singular forms for the particular language we are translating to.
@@ -6642,7 +6645,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				
 		if ((days_until_departure > 0.0)&&(pick_up_factor <= player_repute)&&(passenger_seed.d != start))
 		{
-			BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
+			BOOL lowercaseIgnore = [[self descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
 			// determine the passenger's species
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
 			NSString* passenger_species_string = [NSString stringWithString:native_species];
@@ -7250,7 +7253,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				}
 			}
 			// i18n: Some languages require that no conversion to lower case string takes place.
-			BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"];
+			BOOL lowercaseIgnore = [[self descriptions] boolForKey:@"lowercase_ignore"];
 					
 			if (passenger_berths)
 			{

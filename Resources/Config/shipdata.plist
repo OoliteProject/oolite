@@ -469,6 +469,28 @@
 		cargo_type = "CARGO_RANDOM";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
+		materials =
+		{
+			"barrel_metal.png" =
+			{
+				shininess = 10;
+				specular = ( 0.3, 0.3, 0.33, 1.0 );
+			};
+			"left_metal.png" =
+			{
+				shininess = 10;
+				specular = ( 0.3, 0.3, 0.33, 1.0 );
+			};
+		};
+		shaders =
+		{
+			"barrel_metal.png" =
+			{
+				specular_map = "oolite-barrel-specular.png";
+				shininess = 60;
+				specular = whiteColor;
+			};
+		};
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;

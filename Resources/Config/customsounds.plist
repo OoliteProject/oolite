@@ -23,7 +23,8 @@
 	"[buy-commodity]"				= "buy.ogg";
 	"[buy-ship]"					= "[buy-commodity]";
 	"[sell-commodity]"				= "sell.ogg";
-	"[could-not-buy-any]"			= "[@boop]";
+	"[could-not-buy-commodity]"		= "[@boop]";
+	"[could-not-sell-commodity]"	= "[@boop]";
 	"[could-not-buy-ship]"			= "[could-not-buy-any]";
 	"[cargo-jettisoned]"			= "[@beep]";
 	"[autopilot-on]"				= "[@switch-on]";
