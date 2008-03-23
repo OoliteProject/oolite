@@ -599,3 +599,47 @@ NSString *ClockToString(double clock, BOOL adjusting)
 	
 	return [NSString stringWithFormat:format, days, hrs, mins, secs];
 }
+
+
+// Workaround for Xcode auto-indent bug
+static NSString * const kQuotationMark = @"\"";
+static NSString * const kEscapedQuotationMark = @"\\\"";
+
+
+NSString *EscapedGraphVizString(NSString *string)
+{
+	const NSString			*srcStrings[] =
+	{
+		//Note: backslash must be first.
+		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
+	};
+	const NSString			*subStrings[] =
+	{
+		//Note: must be same order.
+		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
+	};
+	
+	NSString				**src = srcStrings, **sub = subStrings;
+	NSMutableString			*mutable = nil;
+	NSString				*result = nil;
+	
+	mutable = [string mutableCopy];
+	while (*src != nil)
+	{
+		[mutable replaceOccurrencesOfString:*src++
+								 withString:*sub++
+									options:0
+									  range:NSMakeRange(0, [mutable length])];
+	}
+	
+	if ([mutable length] == [string length])
+	{
+		result = string;
+	}
+	else
+	{
+		result = [[mutable copy] autorelease];
+	}
+	[mutable release];
+	return result;
+}

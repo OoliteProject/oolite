@@ -85,3 +85,6 @@ NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2);
 
 
 NSString *ClockToString(double clock, BOOL adjusting);
+
+
+NSString *EscapedGraphVizString(NSString *string);

@@ -69,6 +69,8 @@ MA 02110-1301, USA.
 
 #define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
 
+#define SUPPORT_GRAPHVIZ_OUT	(!defined NDEBUG)
+
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
@@ -91,6 +93,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
+
+#if SUPPORT_GRAPHVIZ_OUT
+- (void) dumpDebugGraphViz;
+- (void) dumpShipHierarchyGraphViz;
+- (void) dumpSystemDescriptionGraphViz;
+#endif
 
 @end
 
@@ -276,6 +284,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	OOInitDebugSupport();
 	
 	[player completeInitialSetUp];
+	
+#if SUPPORT_GRAPHVIZ_OUT
+	[self dumpDebugGraphViz];
+#endif
 	
     return self;
 }
@@ -8099,6 +8111,170 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	return shipdict;
 }
+
+
+#if SUPPORT_GRAPHVIZ_OUT
+- (void) dumpDebugGraphViz
+{
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"universe-dump-debug-graphviz"])
+	{
+		[self dumpShipHierarchyGraphViz];
+		[self dumpSystemDescriptionGraphViz];
+	}
+}
+
+
+- (void) dumpShipHierarchyGraphViz
+{
+	NSMutableString				*graphViz = nil;
+	NSEnumerator				*shipEnum = nil;
+	NSString					*shipKey = nil;
+	NSString					*likeKey = nil;
+	NSDictionary				*shipDef = nil;
+	NSString					*label = nil;
+	
+	graphViz = [NSMutableString stringWithString:
+				@"// Shipdata like_ship dependencies:\n\n"
+				"digraph like_ships\n"
+				"{\n"
+				"\tgraph [charset=\"UTF-8\", label=\"Shipdata like_ships\", labelloc=t, labeljust=l rankdir=LR]\n"
+				"\tedge [arrowhead=none sametail=1]\n"
+				"\tnode [shape=box]\n\t\n"];
+	
+	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
+	{
+		shipDef = [shipdata objectForKey:shipKey];
+		
+		// Define node
+		label = [shipDef stringForKey:@"name"];
+		if (label == nil)  label = shipKey;
+		else  label = [NSString stringWithFormat:@"%@\n%@", shipKey, label];
+		
+		[graphViz appendFormat:@"\t\"%@\" [label=\"%@\"]\n", EscapedGraphVizString(shipKey), EscapedGraphVizString(label)];
+		
+		likeKey = [shipDef stringForKey:@"like_ship"];
+		if (likeKey != nil)
+		{
+			// Define edge
+			[graphViz appendFormat:@"\t\"%@\" -> \"%@\"\n", EscapedGraphVizString(likeKey), EscapedGraphVizString(shipKey)];
+		}
+	}
+	
+	// Write file
+	[graphViz appendString:@"}\n"];
+	[[graphViz dataUsingEncoding:NSUTF8StringEncoding] writeToFile:@"LikeShips.dot" atomically:YES];
+}
+
+
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode
+{
+	NSString					*index = nil;
+	int							start, end;
+	NSRange						remaining, subRange;
+	unsigned					i;
+	
+	remaining = NSMakeRange(0, [string length]);
+	
+	for (;;)
+	{
+		subRange = [string rangeOfString:@"[" options:NSLiteralSearch range:remaining];
+		if (subRange.location == NSNotFound)  break;
+		start = subRange.location + subRange.length;
+		remaining.length -= start - remaining.location;
+		remaining.location = start;
+		
+		subRange = [string rangeOfString:@"]" options:NSLiteralSearch range:remaining];
+		if (subRange.location == NSNotFound)  break;
+		end = subRange.location;
+		remaining.length -= end - remaining.location;
+		remaining.location = end;
+		
+		index = [string substringWithRange:NSMakeRange(start, end - start)];
+		i = [index intValue];
+		
+		// Each arc gets a pseudo-random hue (colour is specified in HSV)
+		[graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, randf(), i];
+	}
+	
+	if ([string rangeOfString:@"%I"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_I [color=\"0,0,0.25\"]\n", fromNode];
+	}
+	if ([string rangeOfString:@"%H"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_H [color=\"0,0,0.45\"]\n", fromNode];
+	}
+	if ([string rangeOfString:@"%R"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_R [color=\"0,0,0.65\"]\n", fromNode];
+	}
+}
+
+
+- (void) dumpSystemDescriptionGraphViz
+{
+	NSMutableString				*graphViz = nil;
+	NSArray						*systemDescriptions = nil;
+	NSArray						*thisDesc = nil;
+	unsigned					i, count, j, subCount;
+	NSString					*descLine = nil;
+	
+	graphViz = [NSMutableString stringWithString:
+				@"// System description grammar:\n\n"
+				"digraph system_descriptions\n"
+				"{\n"
+				"\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true]\n"
+				"\tedge [arrowhead=dot]\n"
+				"\tnode [shape=none]\n\t\n"];
+	
+	systemDescriptions = [[self descriptions] arrayForKey:@"system_description"];
+	count = [systemDescriptions count];
+	
+	// Add system-description-string as special node (it's the one thing that ties [14] to everything else).
+	descLine = DESC(@"system-description-string");
+	[graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(descLine)];
+	[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:@"system_description_string"];
+	[graphViz appendString:@"\t\n"];
+	
+	// Add special nodes for formatting codes
+	[graphViz appendString:
+	 @"\tpercent_I [label=\"%I\\nInhabitants\" shape=diamond]\n"
+	 "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
+	 "\tpercent_R [label=\"%R\\nRandom name\" shape=diamond]\n\t\n"];
+	
+	// Define the nodes
+	for (i = 0; i != count; ++i)
+	{
+		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"[%u]\";\n", i, i];
+		
+		thisDesc = [systemDescriptions arrayAtIndex:i];
+		subCount = [thisDesc count];
+		for (j = 0; j != subCount; ++j)
+		{
+			[graphViz appendFormat:@"%\t\tn%u_%u [label=\"%@\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
+		}
+		
+		[graphViz appendString:@"\t}\n"];
+	}
+	[graphViz appendString:@"\t\n"];
+	
+	// Define the edges
+	for (i = 0; i != count; ++i)
+	{
+		thisDesc = [systemDescriptions arrayAtIndex:i];
+		subCount = [thisDesc count];
+		for (j = 0; j != subCount; ++j)
+		{
+			descLine = [thisDesc stringAtIndex:j];
+			[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:[NSString stringWithFormat:@"n%u_%u", i, j]];
+		}
+	}
+	
+	// Write file
+	[graphViz appendString:@"\t}\n"];
+	[[graphViz dataUsingEncoding:NSUTF8StringEncoding] writeToFile:@"SystemDescription.dot" atomically:YES];
+}
+#endif
 
 @end
 
