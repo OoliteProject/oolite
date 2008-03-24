@@ -150,6 +150,7 @@
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
 	mesh.load.error.tooManyFaces			= inherit;
+	mesh.load.octree.size					= no;
 	
 	
 	oxp.versionMismatch						= $error;

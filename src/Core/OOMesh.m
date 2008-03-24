@@ -35,6 +35,18 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 
 
+enum
+{
+	kBaseOctreeDepth				= 5,	// 32x32x32
+	kMaxOctreeDepth					= 7,	// 128x128x128
+	kSmallOctreeDepth				= 4,	// 16x16x16
+	kVerySmallOctreeDepth			= 3,	// 8x8x8
+	kOctreeSizeThreshold			= 900,	// Size at which we start increasing octree depth
+	kOctreeSmallSizeThreshold		= 60,
+	kOctreeVerySmallSizeThreshold	= 15
+};
+
+
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
 static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
 static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
@@ -245,6 +257,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	[OOMaterial applyNone];
 	CheckOpenGLErrors(@"OOMesh after drawing %@", self);
 	
+	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
+	
 	glPopAttrib();
 }
 
@@ -282,6 +296,32 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
+- (unsigned) octreeDepth
+{
+	float				threshold = kOctreeSizeThreshold;
+	unsigned			result = kBaseOctreeDepth;
+	GLfloat				xs, ys, zs, t, size;
+	
+	bounding_box_get_dimensions(boundingBox, &xs, &ys, &zs);
+	// Shuffle dimensions around so zs is smallest
+	if (xs < zs)  { t = zs; zs = xs; xs = t; }
+	if (ys < zs)  { t = zs; zs = ys; ys = t; }
+	size = (xs + ys) / 2.0f;	// Use average of two largest
+	
+	if (size < kOctreeVerySmallSizeThreshold)  result = kVerySmallOctreeDepth;
+	else if (size < kOctreeSmallSizeThreshold)  result = kSmallOctreeDepth;
+	else while (result < kMaxOctreeDepth)
+	{
+		if (size < threshold) break;
+		threshold *= 2.0f;
+		result++;
+	}
+	
+	OOLog(@"mesh.load.octree.size", @"Selected octree depth %u for size %g for %@", result, size, baseFile);
+	return result;
+}
+
+
 - (Octree *)octree
 {
 	if (octree == nil)
@@ -289,7 +329,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		octree = [OOCacheManager octreeForModel:baseFile];
 		if (octree == nil)
 		{
-			octree = [[self geometry] findOctreeToDepth:OCTREE_MAX_DEPTH];
+			octree = [[self geometry] findOctreeToDepth:[self octreeDepth]];
 			[OOCacheManager setOctree:octree forModel:baseFile];
 		}
 		[octree retain];

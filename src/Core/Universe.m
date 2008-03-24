@@ -93,6 +93,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
+- (void) preloadSounds;
 
 #if SUPPORT_GRAPHVIZ_OUT
 - (void) dumpDebugGraphViz;
@@ -219,6 +220,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
+	[self preloadSounds];
 	
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
@@ -8110,6 +8112,22 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	cachedKey = [desc copy];
 	
 	return shipdict;
+}
+
+
+- (void) preloadSounds
+{
+	NSEnumerator			*soundEnum = nil;
+	NSString				*soundName = nil;
+	
+	// Preload sounds to avoid loading stutter.
+	for (soundEnum = [customsounds objectEnumerator]; (soundName = [soundEnum nextObject]); )
+	{
+		if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+		{
+			[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
+		}
+	}
 }
 
 

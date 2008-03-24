@@ -51,16 +51,6 @@ SOFTWARE.
 #import "OOMaterial.h"
 
 
-typedef struct
-{
-	OOMaterial			*material;
-} WFRestoreState;
-
-
-static WFRestoreState BeginDebugWireframe(void);
-static void EndDebugWireframe(WFRestoreState state);
-
-
 OOINLINE void ApplyColor(OOColor *color)
 {
 	GLfloat				r, g, b, a;
@@ -75,7 +65,7 @@ OOINLINE void ApplyColor(OOColor *color)
 
 void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color)
 {
-	WFRestoreState state = BeginDebugWireframe();
+	OODebugWFState state = OODebugBeginWireframe(YES);
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
@@ -100,13 +90,13 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color
 		glVertex3f(min.x, max.y, max.z);
 	glEnd();
 	
-	EndDebugWireframe(state);
+	OODebugEndWireframe(state);
 }
 
 
 void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
 {	
-	WFRestoreState state = BeginDebugWireframe();
+	OODebugWFState state = OODebugBeginWireframe(YES);
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
@@ -116,13 +106,13 @@ void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
 		glVertex3f(end.x, end.y, end.z);
 	glEnd();
 	
-	EndDebugWireframe(state);
+	OODebugEndWireframe(state);
 }
 
 
 void OODebugDrawBasis(Vector position, GLfloat scale)
 {
-	WFRestoreState state = BeginDebugWireframe();
+	OODebugWFState state = OODebugBeginWireframe(YES);
 	OO_ENTER_OPENGL();
 	
 	glBegin(GL_LINES);
@@ -139,13 +129,13 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
 		glVertex3f(position.x, position.y, position.z + scale);
 	glEnd();
 	
-	EndDebugWireframe(state);
+	OODebugEndWireframe(state);
 }
 
 
 void OODebugDrawPoint(Vector position, OOColor *color)
 {
-	WFRestoreState state = BeginDebugWireframe();
+	OODebugWFState state = OODebugBeginWireframe(YES);
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
@@ -155,24 +145,32 @@ void OODebugDrawPoint(Vector position, OOColor *color)
 		glVertex3f(position.x, position.y, position.z);
 	glEnd();
 	
-	EndDebugWireframe(state);
+	OODebugEndWireframe(state);
 }
 
 
-static WFRestoreState BeginDebugWireframe(void)
+OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 {
 	OO_ENTER_OPENGL();
 	
-	WFRestoreState state = { material: [OOMaterial current] };
+	OODebugWFState state = { material: [OOMaterial current] };
 	[OOMaterial applyNone];
 	
 	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
 	
 	glDisable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_FOG);
-	glDepthMask(GL_FALSE);
+	if (ignoreZ)
+	{
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+	}
+	else
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+	}
 	
 	glLineWidth(1.0f);
 	
@@ -180,7 +178,7 @@ static WFRestoreState BeginDebugWireframe(void)
 }
 
 
-static void EndDebugWireframe(WFRestoreState state)
+void OODebugEndWireframe(OODebugWFState state)
 {
 	OO_ENTER_OPENGL();
 	glPopAttrib();

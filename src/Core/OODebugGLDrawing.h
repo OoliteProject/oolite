@@ -53,7 +53,23 @@ SOFTWARE.
 #import "OOColor.h"
 
 
+#if !defined(OODEBUGLDRAWING_DISABLE) && defined(NDEBUG)
+#define OODEBUGLDRAWING_DISABLE 1
+#endif
+
+
 #ifndef OODEBUGLDRAWING_DISABLE
+
+@class OOMaterial;
+
+typedef struct
+{
+	OOMaterial			*material;
+} OODebugWFState;
+
+
+OODebugWFState OODebugBeginWireframe(BOOL ignoreZ);
+void OODebugEndWireframe(OODebugWFState state);
 
 OOINLINE void OODebugDrawBoundingBox(BoundingBox box);
 OOINLINE void OODebugDrawBoundingBoxBetween(Vector min, Vector max);

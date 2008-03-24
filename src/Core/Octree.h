@@ -28,18 +28,21 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OOMaths.h"
 
-#define	OCTREE_MAX_DEPTH	5
 #define	OCTREE_MIN_RADIUS	1.0
 
 
-struct octree_struct
+#if !defined(OODEBUGLDRAWING_DISABLE) && defined(NDEBUG)
+#define OODEBUGLDRAWING_DISABLE 1
+#endif
+
+
+typedef struct
 {
 	GLfloat				radius;
 	int*				octree;	
 	unsigned char*		octree_collision;
-};
+} Octree_details;
 
-typedef struct octree_struct Octree_details;
 
 @interface Octree : NSObject
 {
@@ -69,11 +72,10 @@ int copyRepresentationIntoOctree(NSObject* theRep, int* theBuffer, int atLocatio
 
 Vector offsetForOctant(int oct, GLfloat r);
 
+#ifndef OODEBUGLDRAWING_DISABLE
 - (void) drawOctree;
-- (void) drawOctreeFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
-
 - (void) drawOctreeCollisions;
-- (void) drawOctreeCollisionFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
+#endif
 
 BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
 - (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;

@@ -26,7 +26,9 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Entity.h"
 #import "OOOpenGL.h"
-#include "legacy_random.h"
+#import "legacy_random.h"
+#import "OODebugGLDrawing.h"
+#import "OOMacroOpenGL.h"
 
 
 #ifndef NDEBUG
@@ -36,6 +38,18 @@ MA 02110-1301, USA.
 #define OctreeDebugLogVerbose(...) do {} while (0)
 #define OctreeDebugLog(...) do {} while (0)
 #endif
+
+
+@interface Octree (Private)
+
+#ifndef OODEBUGLDRAWING_DISABLE
+
+- (void) drawOctreeFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
+- (void) drawOctreeCollisionFromLocation:(int) loc :(GLfloat) scale :(Vector) offset;
+
+#endif
+
+@end
 
 
 @implementation Octree
@@ -189,44 +203,63 @@ Vector offsetForOctant(int oct, GLfloat r)
 	return make_vector(((GLfloat)0.5 - (GLfloat)((oct >> 2) & 1)) * r, ((GLfloat)0.5 - (GLfloat)((oct >> 1) & 1)) * r, ((GLfloat)0.5 - (GLfloat)(oct & 1)) * r);
 }
 
+
+#ifndef OODEBUGLDRAWING_DISABLE
+
 - (void) drawOctree
 {
+	OODebugWFState state = OODebugBeginWireframe(NO);
+	
+	OO_ENTER_OPENGL();
+	glEnable(GL_ALPHA);
+	glBegin(GL_LINES);
+	glColor4f(0.4, 0.4, 0.4, 0.5);
+	
 	// it's a series of cubes
 	[self drawOctreeFromLocation:0 :radius : kZeroVector];
+	
+	glEnd();
+	
+	OODebugEndWireframe(state);
+	CheckOpenGLErrors(@"Octree after drawing %@", self);
 }
+
+
+#if 0
+#define OCTREE_COLOR(r, g, b, a) glColor4f(r, g, b, a)
+#else
+#define OCTREE_COLOR(r, g, b, a) do {} while (0)
+#endif
+
 
 - (void) drawOctreeFromLocation:(int) loc :(GLfloat) scale :(Vector) offset
 {
 	if (octree[loc] == 0)
 		return;
+	
+	OO_ENTER_OPENGL();
+	
 	if (octree[loc] == -1)	// full
 	{
 		// draw a cube
-		glDisable(GL_CULL_FACE);			// face culling
-		
-		glDisable(GL_TEXTURE_2D);
-
-		glBegin(GL_LINE_STRIP);
-			
 		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
 		glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+		glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
 		glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+		glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+		glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
 		glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
 		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
 		
-		glEnd();
-		
-		glBegin(GL_LINE_STRIP);
 			
 		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
 		glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+		glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+		glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
 		glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
 		glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+		glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
 		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-		
-		glEnd();
-			
-		glBegin(GL_LINES);
 			
 		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
 		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
@@ -239,42 +272,43 @@ Vector offsetForOctant(int oct, GLfloat r)
 		
 		glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
 		glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-		
-		glEnd();
-			
-		glEnable(GL_CULL_FACE);			// face culling
-		return;
 	}
-	if (octree[loc] > 0)
+	else if (octree[loc] > 0)
 	{
 		GLfloat sc = 0.5 * scale;
-		glColor4f( 0.4, 0.4, 0.4, 0.5);	// gray translucent
+		OCTREE_COLOR( 0.4, 0.4, 0.4, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 0 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z - sc)];
-		glColor4f( 0.0, 0.0, 1.0, 0.5);	// green translucent
+		OCTREE_COLOR( 0.0, 0.0, 1.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 1 :sc :make_vector( offset.x - sc, offset.y - sc, offset.z + sc)];
-		glColor4f( 0.0, 1.0, 0.0, 0.5);	// green translucent
+		OCTREE_COLOR( 0.0, 1.0, 0.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 2 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z - sc)];
-		glColor4f( 0.0, 1.0, 1.0, 0.5);	// green translucent
+		OCTREE_COLOR( 0.0, 1.0, 1.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 3 :sc :make_vector( offset.x - sc, offset.y + sc, offset.z + sc)];
-		glColor4f( 1.0, 0.0, 0.0, 0.5);	// green translucent
+		OCTREE_COLOR( 1.0, 0.0, 0.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 4 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z - sc)];
-		glColor4f( 1.0, 0.0, 1.0, 0.5);	// green translucent
+		OCTREE_COLOR( 1.0, 0.0, 1.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 5 :sc :make_vector( offset.x + sc, offset.y - sc, offset.z + sc)];
-		glColor4f( 1.0, 1.0, 0.0, 0.5);	// green translucent
+		OCTREE_COLOR( 1.0, 1.0, 0.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 6 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z - sc)];
-		glColor4f( 1.0, 1.0, 1.0, 0.5);	// green translucent
+		OCTREE_COLOR( 1.0, 1.0, 1.0, 0.5);
 		[self drawOctreeFromLocation:	loc + octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
 
 BOOL drawTestForCollisions;
+
 - (void) drawOctreeCollisions
 {
+	OODebugWFState state = OODebugBeginWireframe(NO);
+	
 	// it's a series of cubes
 	drawTestForCollisions = NO;
 	if (hasCollision)
 		[self drawOctreeCollisionFromLocation:0 :radius : kZeroVector];
 	hasCollision = drawTestForCollisions;
+	
+	OODebugEndWireframe(state);
+	CheckOpenGLErrors(@"Octree after drawing collisions for %@", self);
 }
 
 - (void) drawOctreeCollisionFromLocation:(int) loc :(GLfloat) scale :(Vector) offset
@@ -283,6 +317,8 @@ BOOL drawTestForCollisions;
 		return;
 	if ((octree[loc] != 0)&&(octree_collision[loc] != (unsigned char)0))	// full - draw
 	{
+		OO_ENTER_OPENGL();
+		
 		GLfloat red = (GLfloat)(octree_collision[loc])/255.0;
 		glColor4f( 1.0, 0.0, 0.0, red);	// 50% translucent
 		
@@ -345,6 +381,8 @@ BOOL drawTestForCollisions;
 		[self drawOctreeCollisionFromLocation:	loc + octree[loc] + 7 :sc :make_vector( offset.x + sc, offset.y + sc, offset.z + sc)];
 	}
 }
+#endif // OODEBUGLDRAWING_DISABLE
+
 
 BOOL hasCollided = NO;
 GLfloat hit_dist = 0.0;
