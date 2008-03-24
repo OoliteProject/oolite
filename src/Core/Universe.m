@@ -8278,7 +8278,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		subCount = [thisDesc count];
 		for (j = 0; j != subCount; ++j)
 		{
-			[graphViz appendFormat:@"%\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
+			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
