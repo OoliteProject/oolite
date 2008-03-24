@@ -51,6 +51,8 @@ SOFTWARE.
 #import "OOMaterial.h"
 
 
+#ifndef OODEBUGLDRAWING_DISABLE
+
 OOINLINE void ApplyColor(OOColor *color)
 {
 	GLfloat				r, g, b, a;
@@ -184,3 +186,5 @@ void OODebugEndWireframe(OODebugWFState state)
 	glPopAttrib();
 	[state.material apply];
 }
+
+#endif

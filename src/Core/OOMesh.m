@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOGraphicsResetManager.h"
+#import "OODebugGLDrawing.h"
 
 
 enum
@@ -51,9 +52,6 @@ static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFo
 static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
 static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
 static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
-
-
-#define DEBUG_DRAW_NORMALS		0
 
 
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
@@ -85,7 +83,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void)rescaleByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;
 
-#if DEBUG_DRAW_NORMALS
+#ifndef NDEBUG
 - (void)debugDrawNormals;
 #endif
 
@@ -250,14 +248,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		else  [localException raise];	// pass these on
 	NS_ENDHANDLER
 	
-#if DEBUG_DRAW_NORMALS
-	[self debugDrawNormals];
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif
 	
 	[OOMaterial applyNone];
 	CheckOpenGLErrors(@"OOMesh after drawing %@", self);
 	
+#ifndef NDEBUG
 	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
+#endif
 	
 	glPopAttrib();
 }
@@ -1309,18 +1309,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-#if DEBUG_DRAW_NORMALS
+#ifndef NDEBUG
 - (void)debugDrawNormals
 {
-	unsigned			i, max = 0;
+	GLint				i, max = 0;
 	Vector				v, n;
 	float				length, blend;
 	GLfloat				color[3];
+	OODebugWFState		state;
 	
-	// Set up state
-	glPushAttrib(GL_ENABLE_BIT);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
+	state = OODebugBeginWireframe(NO);
 	
 	// Find largest used triangle index
 	for (i = 0; i != 3 * kOOMeshMaxFaces; ++i)
@@ -1330,7 +1328,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	// Draw
 	glBegin(GL_LINES);
-	for (i = 0; i != max; ++i)
+	for (i = 0; i < max; ++i)
 	{
 		v = entityData.vertex_array[i];
 		n = entityData.normal_array[i];
@@ -1349,7 +1347,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	}
 	glEnd();
 	
-	glPopAttrib();
+	OODebugEndWireframe(state);
 }
 #endif
 
