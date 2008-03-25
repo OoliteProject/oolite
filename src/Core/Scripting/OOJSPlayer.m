@@ -46,6 +46,8 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -131,6 +133,8 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "awardEquipment",			PlayerAwardEquipment,		1 },	// Should be deprecated in favour of equipment object model
 	{ "removeEquipment",		PlayerRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
 	{ "hasEquipment",			PlayerHasEquipment,			1 },
+	{ "equipmentStatus",		PlayerEquipmentStatus,		1 },
+	{ "setEquipmentStatus",		PlayerSetEquipmentStatus,	2 },
 	{ "launch",					PlayerLaunch,				0 },
 	{ "awardCargo",				PlayerAwardCargo,			2 },
 	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
@@ -348,6 +352,61 @@ static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN ar
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = BOOLToJSVal([OOPlayerForScripting() hasEquipmentItem:JSValToNSString(context, argv[0])]);
+	return YES;
+}
+
+
+static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
+	
+	NSString				*name = JSValToNSString(context, argv[0]);
+	NSString				*damagedName = [NSString stringWithFormat:@"%@_DAMAGED",name];
+	NSString				*status = JSValToNSString(context, argv[1]);
+	BOOL					statusSet = NO;
+
+	if ([UNIVERSE strict])
+	{
+		OOReportJavaScriptError(context, @"Cannot set equipment status while in strict mode.");
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	if([status isEqualToString:@"EQUIPMENT_OK"] || [status isEqualToString:@"EQUIPMENT_DAMAGED"])
+	{
+		if([OOPlayerForScripting() hasEquipmentItem:name]&&[status isEqualToString:@"EQUIPMENT_DAMAGED"])
+		{
+			[OOPlayerForScripting() removeEquipmentItem:name];
+			//[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-damaged]"), name] forCount:4.5];
+			[OOPlayerForScripting() addEquipmentItem:damagedName];
+		}
+		if([OOPlayerForScripting() hasEquipmentItem:damagedName] && [status isEqualToString:@"EQUIPMENT_OK"]) 
+		{
+			[OOPlayerForScripting() removeEquipmentItem:damagedName];
+			[OOPlayerForScripting() addEquipmentItem:name];
+		}
+		statusSet = [OOPlayerForScripting() hasEquipmentItem:name] || [OOPlayerForScripting() hasEquipmentItem:damagedName];
+	}
+	else
+		OOReportJavaScriptError(context, @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
+
+	*outResult = BOOLToJSVal(statusSet);
+
+	return YES;
+}
+
+
+static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
+
+	NSString				*name = JSValToNSString(context, argv[0]);
+	NSString				*result =@"EQUIPMENT_UNAVAILABLE";
+	
+	if([OOPlayerForScripting() hasEquipmentItem:name]) result = @"EQUIPMENT_OK";
+	if([OOPlayerForScripting() hasEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED",name]]) result = @"EQUIPMENT_DAMAGED";
+
+	*outResult = [result javaScriptValueInContext:context];
 	return YES;
 }
 

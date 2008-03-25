@@ -422,7 +422,7 @@
 	"scoop-got-slave"				= ( "You captured a slave." );
 	"fuel-scoop-active"				= ( "Fuel scoop active." );
 	"hold-locked"					= ( "Cargo ejection system offline (speed too high)." );
-	"hold-full"						= ( "Cargo holds full." );
+	"hold-full"						= ( "Cargo hold full." );
 	// cloaking device ..
 	"cloak-on"						= ( "Cloaking device activated." );
 	"cloak-off"						= ( "Cloaking device deactivated." );

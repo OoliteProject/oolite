@@ -25,7 +25,7 @@
 	"[sell-commodity]"				= "sell.ogg";
 	"[could-not-buy-commodity]"		= "[@boop]";
 	"[could-not-sell-commodity]"	= "[@boop]";
-	"[could-not-buy-ship]"			= "[could-not-buy-any]";
+	"[could-not-buy-ship]"			= "[could-not-buy-commodity]";
 	"[cargo-jettisoned]"			= "[@beep]";
 	"[autopilot-on]"				= "[@switch-on]";
 	"[autopilot-off]"				= "[@switch-off]";
@@ -89,27 +89,13 @@
 	
 	"[game-over]"					= "bigbang.ogg";
 	
-/*	The following can also be overriden:
+/*	The following can also be used:
 	"[aegis-planet]" = "";
 	"[aegis-station]" = "";
-	"[autopilot-cannot-dock-with-target]" = "";
-	"[autopilot-off]" = "";
-	"[autopilot-on]" = "";
-	"[autopilot-out-of-range]" = "";
-	"[cloaking-device-off]" = "";
-	"[cloaking-device-on]" = "";
 	"[escape-pod-scooped]" = "";
-	"[game-over]" = "";
-	"[hyperspace-countdown-aborted]" = "";
-	"[hyperspace-countdown-begun]" = "";
-	"[incoming-missile]" = "";
 	"[mine-launched]" = "";
 	"[missile-launched]" = "";
-	"[no-target-in-memory]" = "";
 	"[weapon-overheat]" = "";
-	"[witch-blocked-by-@]" = "";
-	"[witch-no-fuel]" = "";
-	"[witch-no-target]" = "";
 	"[wormhole-created]" = "";
 */
 }
