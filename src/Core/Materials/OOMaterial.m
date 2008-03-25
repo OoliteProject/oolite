@@ -204,7 +204,7 @@ static OOMaterial *sActiveMaterial = nil;
 	if (emission != nil)
 	{
 		[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OOSTD_EMISSION"];
-		[newConfig setObject:[specular normalizedArray] forKey:@"emission"];
+		[newConfig setObject:[emission normalizedArray] forKey:@"emission"];
 	}
 	if (shininess != 0)
 	{
