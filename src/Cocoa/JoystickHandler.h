@@ -132,10 +132,11 @@ enum {
 	BOOL butstate[BUTTON_end];
 }
 
-+ (id)sharedStickHandler;
++ (id) sharedStickHandler;
 
 - (int) getNumSticks;
 - (NSPoint) getRollPitchAxis;
-- (const BOOL *)getAllButtonStates;
+- (double) getAxisState:(int)function;
+- (const BOOL *) getAllButtonStates;
 
 @end

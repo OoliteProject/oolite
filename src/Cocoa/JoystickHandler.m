@@ -53,26 +53,32 @@ JoystickHandler *sSharedStickHandler = nil;
 
 @implementation JoystickHandler
 
-+ (id)sharedStickHandler
++ (id) sharedStickHandler
 {
 	if (sSharedStickHandler == nil)  sSharedStickHandler = [[JoystickHandler alloc] init];
 	return sSharedStickHandler;
 }
 
 
-- (int)getNumSticks
+- (int) getNumSticks
 {
 	return 0;
 }
 
 
-- (NSPoint)getRollPitchAxis
+- (NSPoint) getRollPitchAxis
 {
-	return NSMakePoint(0.0f, 0.0f);
+	return NSZeroPoint;
 }
 
 
-- (const BOOL *)getAllButtonStates
+- (double) getAxisState:(int)function
+{
+	return 0.0;
+}
+
+
+- (const BOOL *) getAllButtonStates
 {
 	return butstate;
 }
