@@ -386,6 +386,7 @@ MA 02110-1301, USA.
          break;
       case AXIS_ROLL:
       case AXIS_PITCH:
+      case AXIS_YAW:
          if(precisionMode)
          {
             axstate[function]=axisvalue / STICK_PRECISIONDIV;
@@ -444,11 +445,13 @@ MA 02110-1301, USA.
          {
             axstate[AXIS_PITCH] /= STICK_PRECISIONFAC;
             axstate[AXIS_ROLL] /= STICK_PRECISIONFAC;
+            axstate[AXIS_YAW] /= STICK_PRECISIONFAC;
          }
          else
          {
             axstate[AXIS_PITCH] *= STICK_PRECISIONFAC;
             axstate[AXIS_ROLL] *= STICK_PRECISIONFAC;
+            axstate[AXIS_YAW] *= STICK_PRECISIONFAC;
          }
       }
    }

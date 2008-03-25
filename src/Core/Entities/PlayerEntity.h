@@ -125,6 +125,7 @@ typedef enum
 
 #define ROLL_DAMPING_FACTOR				1.0
 #define PITCH_DAMPING_FACTOR			1.0
+#define YAW_DAMPING_FACTOR			1.0
 
 #define PLAYER_MAX_WEAPON_TEMP			256.0
 #define PLAYER_MAX_FUEL					70
@@ -448,6 +449,7 @@ typedef enum
 							isSpeechOn: 1,
 	
 							keyboardRollPitchOverride: 1,
+							keyboardYawOverride: 1,
 waitingForStickCallback: 1;
 	
 	// Note: joystick stuff does nothing under OS X.

@@ -289,6 +289,11 @@ MA 02110-1301, USA.
                       axisfn: AXIS_PITCH
                        butfn: STICK_NOFUNCTION]];
    [funcList addObject:
+      [self makeStickGuiDict: @"Yaw"
+                   allowable: HW_AXIS
+                      axisfn: AXIS_YAW
+                       butfn: STICK_NOFUNCTION]];
+   [funcList addObject:
       [self makeStickGuiDict: @"Increase thrust"
                    allowable: HW_AXIS|HW_BUTTON
                       axisfn: AXIS_THRUST

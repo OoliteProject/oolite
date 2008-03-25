@@ -431,6 +431,7 @@ static NSTimeInterval	time_last_frame;
 					 out the joystick if the player runs to the keyboard)
 					 is reset */
 					keyboardRollPitchOverride = NO;
+					keyboardYawOverride = NO;
 				}
 				else
 				{
@@ -2141,6 +2142,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	NSPoint			virtualStick = NSZeroPoint;
+	double			reqYaw = 0.0;
 #define			kDeadZone 0.02
 	
 	// TODO: Rework who owns the stick.
@@ -2177,11 +2179,22 @@ static NSTimeInterval	time_last_frame;
 			// cancel keyboard override, stick has been waggled
 			keyboardRollPitchOverride=NO;
 		}
+		// handle yaw separately from pitch/roll
+		reqYaw = [stickHandler getAxisState: AXIS_YAW];
+		if(reqYaw == STICK_AXISUNASSIGNED)
+		{
+			reqYaw=0;
+		}
+		else if(reqYaw != 0)
+		{
+			// cancel keyboard override, stick has been waggled
+			keyboardYawOverride=NO;
+		}
 	}
 	
 	double roll_dampner = ROLL_DAMPING_FACTOR * delta_t;
 	double pitch_dampner = PITCH_DAMPING_FACTOR * delta_t;
-	double yaw_dampner = PITCH_DAMPING_FACTOR * delta_t;
+	double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
 	
 	rolling = NO;
 	if (!mouse_control_on )
@@ -2216,7 +2229,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightRoll < stick_roll)
 				flightRoll = stick_roll;
 		}
-		rolling = (abs(virtualStick.x) > kDeadZone);
+		rolling = (fabs(virtualStick.x) > kDeadZone);
 	}
 	if (!rolling)
 	{
@@ -2265,7 +2278,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightPitch < stick_pitch)
 				flightPitch = stick_pitch;
 		}
-		pitching = (abs(virtualStick.x) > kDeadZone);
+		pitching = (fabs(virtualStick.y) > kDeadZone);
 	}
 	if (!pitching)
 	{
@@ -2286,15 +2299,36 @@ static NSTimeInterval	time_last_frame;
 		yawing = NO;
 		if ([gameView isDown:key_yaw_left])
 		{
+			keyboardYawOverride=YES;
 			if (flightYaw < 0.0)  flightYaw = 0.0;
 			[self increase_flight_yaw:delta_t*yaw_delta];
 			yawing = YES;
 		}
 		else if ([gameView isDown:key_yaw_right])
 		{
+			keyboardYawOverride=YES;
 			if (flightYaw > 0.0)  flightYaw = 0.0;
 			[self decrease_flight_yaw:delta_t*yaw_delta];
 			yawing = YES;
+		}
+		if(numSticks && !keyboardRollPitchOverride && !keyboardYawOverride)
+		{
+			// I think yaw is handled backwards in the code,
+			// which is why the negative sign is here.
+			double stick_yaw = max_flight_yaw * (-reqYaw);
+			if (flightYaw < stick_yaw)
+			{
+				[self increase_flight_yaw:delta_t*yaw_delta];
+				if (flightYaw > stick_yaw)
+					flightYaw = stick_yaw;
+			}
+			if (flightYaw > stick_yaw)
+			{
+				[self decrease_flight_yaw:delta_t*yaw_delta];
+				if (flightYaw < stick_yaw)
+					flightYaw = stick_yaw;
+			}
+			yawing = (fabs(reqYaw) > kDeadZone);
 		}
 		if (!yawing)
 		{

@@ -3452,6 +3452,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	flightRoll = 0.0;
 	flightPitch = 0.0;
+	flightYaw = 0.0;
 	flightSpeed = 0.0;
 
 	hyperspeed_engaged = NO;
@@ -6377,6 +6378,7 @@ OOSound* burnersound;
 	ADD_FLAG_IF_SET(mouse_control_on);
 	ADD_FLAG_IF_SET(isSpeechOn);
 	ADD_FLAG_IF_SET(keyboardRollPitchOverride);
+	ADD_FLAG_IF_SET(keyboardYawOverride);
 	ADD_FLAG_IF_SET(waitingForStickCallback);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
 	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
