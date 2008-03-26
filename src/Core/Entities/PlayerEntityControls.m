@@ -1778,6 +1778,16 @@ static NSTimeInterval	time_last_frame;
 		if (flightPitch < -delta_t)	[self increase_flight_pitch:delta_t];
 		else	flightPitch = 0.0;
 	}
+	if (flightYaw > 0.0) 
+	{ 
+		if (flightYaw > delta_t)        [self decrease_flight_yaw:delta_t]; 
+		else    flightYaw = 0.0; 
+	} 
+	if (flightYaw < 0.0) 
+	{ 
+		if (flightYaw < -delta_t)       [self increase_flight_yaw:delta_t]; 
+		else    flightYaw = 0.0; 
+	} 
 }
 
 
