@@ -435,6 +435,7 @@
 			%@ - text to be inserted at this point
 			%d, %f, %x etc. - printf type variables to be inserted
 			[$text] = $text is an entry here that will be expanded
+			[$number] = a random line from item $number of system_description us is used.
 	*/
 	"beg-for-mercy" =
 	(
@@ -496,7 +497,7 @@
 	"thargoid_curses" =
 	(
 		"Guard your [4], human [18]-[31]!",
-		"Eat [6], [5]!",
+		"Eat [24], [5]!",
 		"We’ll use your [20] [27] for our [33]!",
 		"%R! %R! %R!"
 	);

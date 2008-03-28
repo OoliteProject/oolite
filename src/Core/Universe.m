@@ -8245,6 +8245,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	NSArray						*thisDesc = nil;
 	unsigned					i, count, j, subCount;
 	NSString					*descLine = nil;
+	NSArray						*curses = nil;
 	
 	graphViz = [NSMutableString stringWithString:
 				@"// System description grammar:\n\n"
@@ -8260,7 +8261,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	// Add system-description-string as special node (it's the one thing that ties [14] to everything else).
 	descLine = DESC(@"system-description-string");
 	[graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(descLine)];
-	[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:@"system_description_string" nodeCount:count];
+	[self addNumericRefsInString:descLine
+					  toGraphViz:graphViz
+						fromNode:@"system_description_string"
+					   nodeCount:count];
 	[graphViz appendString:@"\t\n"];
 	
 	// Add special nodes for formatting codes
@@ -8269,14 +8273,33 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	 "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
 	 "\tpercent_R [label=\"%R\\nRandom name\" shape=diamond]\n\t\n"];
 	
+	// Toss in the Thargoid curses, too
+	[graphViz appendString:@"\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n"];
+	curses = [[self descriptions] arrayForKey:@"thargoid_curses"];
+	subCount = [curses count];
+	for (j = 0; j < subCount; ++j)
+	{
+		[graphViz appendFormat:@"\t\tthargoid_curse_%u [label=\"%@\"]\n", j, EscapedGraphVizString([curses stringAtIndex:j])];
+	}
+	[graphViz appendString:@"\t}\n"];
+	for (j = 0; j < subCount; ++j)
+	{
+		[self addNumericRefsInString:[curses stringAtIndex:j]
+						  toGraphViz:graphViz
+							fromNode:[NSString stringWithFormat:@"thargoid_curse_%u", j]
+						   nodeCount:count];
+	}
+	[graphViz appendString:@"\t\n"];
+	
+	// The main show: the bits of systemDescriptions itself.
 	// Define the nodes
-	for (i = 0; i != count; ++i)
+	for (i = 0; i < count; ++i)
 	{
 		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"[%u]\"\n", i, i];
 		
 		thisDesc = [systemDescriptions arrayAtIndex:i];
 		subCount = [thisDesc count];
-		for (j = 0; j != subCount; ++j)
+		for (j = 0; j < subCount; ++j)
 		{
 			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
 		}
@@ -8293,7 +8316,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		for (j = 0; j != subCount; ++j)
 		{
 			descLine = [thisDesc stringAtIndex:j];
-			[self addNumericRefsInString:descLine toGraphViz:graphViz fromNode:[NSString stringWithFormat:@"n%u_%u", i, j] nodeCount:count];
+			[self addNumericRefsInString:descLine
+							  toGraphViz:graphViz
+								fromNode:[NSString stringWithFormat:@"n%u_%u", i, j]
+							   nodeCount:count];
 		}
 	}
 	
