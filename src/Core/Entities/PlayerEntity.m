@@ -5200,11 +5200,6 @@ static int last_outfitting_index;
 		[self doTradeIn:tradeIn forPriceFactor:price_factor];
 	}
 	
-	if ([eq_key isEqual:@"EQ_ADVANCED_COMPASS"])
-	{
-		[self setCompassMode:COMPASS_MODE_PLANET];
-	}
-	
 	// maintain ship
 	if ([eq_key isEqual:@"EQ_RENOVATION"])
 	{
@@ -5580,6 +5575,11 @@ static int last_outfitting_index;
 			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
 		}
 		return;
+	}
+	
+	if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])
+	{
+		[self setCompassMode:COMPASS_MODE_PLANET];
 	}
 	
 	[super addEquipmentItem:equipmentKey];
