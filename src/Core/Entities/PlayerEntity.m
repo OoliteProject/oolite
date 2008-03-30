@@ -2240,7 +2240,7 @@ double scoopSoundPlayTime = 0.0;
 		count = [commLog count];
 		if (count >= kCommLogTrimThreshold)
 		{
-			[commLog removeObjectsInRange:NSMakeRange(kCommLogTrimSize, count - kCommLogTrimSize)];
+			[commLog removeObjectsInRange:NSMakeRange(0, count - kCommLogTrimSize)];
 		}
 	}
 	else
@@ -4714,6 +4714,7 @@ static int last_outfitting_index;
 		OOGUIRow		row = start_row;
 		unsigned		i;
 		unsigned		facing_count = 0;
+		BOOL			weaponMounted = NO;
 
 		[gui clear];
 		[gui setTitle:DESC(@"equip-title")];
@@ -4786,23 +4787,28 @@ static int last_outfitting_index;
 						
 						case 1:
 							desc = FORWARD_FACING_STRING;
+							weaponMounted=forward_weapon > WEAPON_NONE;
 							break;
 						
 						case 2:
 							desc = AFT_FACING_STRING;
+							weaponMounted=aft_weapon > WEAPON_NONE;
 							break;
 						
 						case 3:
 							desc = PORT_FACING_STRING;
+							weaponMounted=port_weapon > WEAPON_NONE;
 							break;
 						
 						case 4:
 							desc = STARBOARD_FACING_STRING;
+							weaponMounted=starboard_weapon > WEAPON_NONE;
 							break;
 					}
 					
 					facing_count++;
-					[gui setColor:[OOColor greenColor] forRow:row];
+					if(weaponMounted) [gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+					else [gui setColor:[OOColor greenColor] forRow:row];
 				}
 				[gui setKey:[NSString stringWithFormat:@"%d",item] forRow:row];			// save the index of the item as the key for the row
 				[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
@@ -5155,6 +5161,8 @@ static int last_outfitting_index;
 				break;
 		}	
 		[self doTradeIn:tradeIn forPriceFactor:price_factor];
+		//if equipped, remove damaged weapon after repairs.
+		[self removeEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED",eq_key]];
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;
 	}

@@ -123,6 +123,7 @@ static NSString * const kOOLogSyntaxNoScriptCondition		= @"script.debug.syntax.s
 static NSString * const kOOLogSyntaxBadScriptCondition		= @"script.debug.syntax.scriptCondition.badSelector";
 static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
 static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
+static NSString * const kOOLogSyntaxAwardEquipment			= @"script.debug.syntax.awardEquipment";
 static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.messageShipAIs";
 	   NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
 static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
@@ -1235,8 +1236,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[self mountMissile:[[UNIVERSE newShipWithRole:equipString] autorelease]];
 		return;
 	}
-	
-	if (![self hasEquipmentItem:equipString])
+	if([equipString hasPrefix:@"EQ_WEAPON"] && ![equipString hasSuffix:@"_DAMAGED"])
+	{
+		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
+		return;
+	}
+	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length]-8]])
+	{
+		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
+	}
+	else if (![self hasEquipmentItem:equipString])
 	{
 		[self addEquipmentItem:equipString];
 	}
