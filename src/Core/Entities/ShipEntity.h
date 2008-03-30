@@ -480,6 +480,7 @@ MA 02110-1301, USA.
 - (BOOL) reportAIMessages;
 - (void) setReportAIMessages:(BOOL) yn;
 
+- (void) transitionToAegisNone;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
 

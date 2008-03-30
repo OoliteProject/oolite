@@ -1744,6 +1744,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		status = STATUS_IN_FLIGHT;
 		[self doScriptEvent:@"shipExitedWitchspace"];
+		suppressAegisMessages=NO;
 	}
 }
 
@@ -3583,6 +3584,8 @@ double scoopSoundPlayTime = 0.0;
 {
 	status = STATUS_ENTERING_WITCHSPACE;
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
+	[self transitionToAegisNone];
+	suppressAegisMessages=YES;
 	
 	if (primaryTarget != NO_TARGET)
 		primaryTarget = NO_TARGET;
@@ -3672,6 +3675,8 @@ double scoopSoundPlayTime = 0.0;
 	target_system_seed = [w_hole destination];
 	status = STATUS_ENTERING_WITCHSPACE;
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
+	[self transitionToAegisNone];
+	suppressAegisMessages=YES;
 
 	hyperspeed_engaged = NO;
 
@@ -3717,6 +3722,8 @@ double scoopSoundPlayTime = 0.0;
 
 	status = STATUS_ENTERING_WITCHSPACE;
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
+	[self transitionToAegisNone];
+	suppressAegisMessages=YES;
 
 	hyperspeed_engaged = NO;
 
