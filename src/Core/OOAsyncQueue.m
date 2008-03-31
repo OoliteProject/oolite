@@ -283,7 +283,7 @@ FAIL:
 	// Unpack payload.
 	result = [element->object autorelease];
 	
-	// Recylce element.
+	// Recycle element.
 	[self recycleElementWithAcquiredLock:element];
 	
 	// Ensure sane status.

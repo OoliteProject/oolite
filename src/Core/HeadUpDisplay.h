@@ -171,6 +171,7 @@ MA 02110-1301, USA.
 #define ROW_START_KEY			@"row_start"
 #define TITLE_KEY				@"title"
 #define BACKGROUND_RGBA_KEY		@"background_rgba"
+#define OVERALL_ALPHA_KEY		@"overall_alpha"
 
 #define Z1						[(MyOpenGLView *)[[player universe] gameView] display_z]
 
@@ -187,12 +188,13 @@ MA 02110-1301, USA.
 	NSMutableArray  *dialArray;
 	
 	// zoom level
-	double			scanner_zoom;
+	GLfloat			scanner_zoom;
 	
 	//where to draw it
 	GLfloat			z1;
-	
 	GLfloat			line_width;
+	
+	GLfloat			overallAlpha;
 	
 	int				last_transmitter;
 	
@@ -204,6 +206,8 @@ MA 02110-1301, USA.
 
 - (double) scanner_zoom;
 - (void) setScannerZoom:(double) value;
+
+- (GLfloat) overallAlpha;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;
@@ -249,17 +253,6 @@ MA 02110-1301, USA.
 - (void) drawYellowSurround:(NSDictionary *) info;
 
 - (void) drawTrumbles:(NSDictionary *) info;
-
-void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
-void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
-void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
-void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1);
 
 void drawString(NSString *text, double x, double y, double z, NSSize siz);
 void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);

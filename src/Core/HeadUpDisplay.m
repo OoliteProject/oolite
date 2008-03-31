@@ -41,11 +41,22 @@ MA 02110-1301, USA.
 
 #define ONE_SIXTEENTH			0.0625
 #define ONE_SIXTYFOURTH			0.015625
+#define DEFAULT_OVERALL_ALPHA	0.75
 
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
 
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
+
+void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
+void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
+void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
+void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
+void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha);
 
 
 static OOTexture			*sFontTexture = nil;
@@ -73,6 +84,12 @@ static float sGlyphWidths[256];
 static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSize siz);
 
 static void InitTextEngine(void);
+
+
+OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
+{
+	glColor4f(color[0], color[1], color[2], color[3] * alpha);
+}
 
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo
@@ -110,6 +127,8 @@ static void InitTextEngine(void);
 	{
 		[self addLegend:[legends dictionaryAtIndex:i]];
 	}
+	
+	overallAlpha = [hudinfo floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -208,6 +227,11 @@ static void InitTextEngine(void);
 	scanner_zoom = value;
 }
 
+- (GLfloat) overallAlpha
+{
+	return overallAlpha;
+}
+
 
 - (void) addLegend:(NSDictionary *) info
 {
@@ -304,7 +328,7 @@ static void InitTextEngine(void);
 		{
 			size.width = [info floatForKey:WIDTH_KEY];
 			size.height = [info floatForKey:HEIGHT_KEY];
-			glColor4f(0.0, 1.0, 0.0, 1.0);
+			GLColorWithOverallAlpha(green_color, overallAlpha);
 			drawString(legendText, x, y, z1, size);
 		}
 	}
@@ -345,6 +369,7 @@ static BOOL hostiles;
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
 	GetRGBAArrayFromInfo(info, scanner_color);
 	
+	scanner_color[3] *= overallAlpha;
 	float alpha = scanner_color[3];
 	
 	double z_factor = siz.height / siz.width;	// approx 1/4
@@ -385,7 +410,7 @@ static BOOL hostiles;
 	
 	Entity	*drawthing = nil;
 	
-	GLfloat col[4] =	{ 1.0, 1.0, 1.0, 1.0 };	// can be manipulated
+	GLfloat col[4] =	{ 1.0, 1.0, 1.0, overallAlpha };	// can be manipulated
 	
 	position = [player position];
 	rotMatrix = [player rotationMatrix];
@@ -645,7 +670,7 @@ static BOOL hostiles;
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
-	glColor4fv(zoom_color);
+	GLColorWithOverallAlpha(zoom_color, overallAlpha);
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
@@ -670,7 +695,7 @@ static BOOL hostiles;
 	y = [info intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y];
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
-	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0];
+	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0] * overallAlpha;
 	
 	// draw the compass
 	OOMatrix		rotMatrix;
@@ -933,7 +958,7 @@ static BOOL hostiles;
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
-	alpha *= [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
+	alpha *= [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 
 	// draw the aegis indicator
 	//
@@ -971,14 +996,14 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw speed surround
-		glColor4fv(green_color);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw speed bar
 	if (ds > .25)
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	if (ds > .80)
-		glColor4fv(red_color);
+		GLColorWithOverallAlpha(red_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, ds);
 	
 }
@@ -1001,11 +1026,11 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw ROLL surround
-		glColor4fv(green_color);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw ROLL bar
-	glColor4fv(yellow_color);
+	GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	hudDrawIndicatorAt(x, y, z1, siz, [player dialRoll]);
 }
 
@@ -1027,11 +1052,11 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw PITCH surround
-		glColor4fv(green_color);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw PITCH bar
-	glColor4fv(yellow_color);
+	GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	hudDrawIndicatorAt(x, y, z1, siz, [player dialPitch]);
 }
 
@@ -1059,7 +1084,7 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw energy surround
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 
@@ -1073,14 +1098,14 @@ static BOOL hostiles;
 		int i;
 		for (i = 0; i < n_bars; i++)
 		{
-			glColor4fv(yellow_color);
+			GLColorWithOverallAlpha(yellow_color, overallAlpha);
 			if (energy > 1.0)
 				hudDrawBarAt(x, cy, z1, dial_size, 1.0);
 			if ((energy > 0.0)&&(energy <= 1.0))
 				hudDrawBarAt(x, cy, z1, dial_size, energy);
 			if (labelled)
 			{
-				glColor4f(0.0, 1.0, 0.0, 1.0);
+				GLColorWithOverallAlpha(green_color, overallAlpha);
 				drawString([NSString stringWithFormat:@"E%x",n_bars - i], x + 0.5 * dial_size.width + 2, cy - 0.5 * qy, z1, NSMakeSize(9, (qy < 18)? qy : 18 ));
 			}
 			energy -= 1.0;
@@ -1109,15 +1134,15 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw forward_shield surround
-		glColor4fv(green_color);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw forward_shield bar
-	glColor4fv(green_color);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	if (shield < .80)
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	if (shield < .25)
-		glColor4fv(red_color);
+		GLColorWithOverallAlpha(red_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, shield);
 }
 
@@ -1140,15 +1165,15 @@ static BOOL hostiles;
 	if (draw_surround)
 	{
 		// draw aft_shield surround
-		glColor4fv(green_color);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw aft_shield bar
-	glColor4fv(green_color);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	if (shield < .80)
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	if (shield < .25)
-		glColor4fv(red_color);
+		GLColorWithOverallAlpha(red_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, shield);
 }
 
@@ -1170,7 +1195,7 @@ static BOOL hostiles;
 	hr = [player dialHyperRange];
 
 	// draw fuel bar
-	glColor4fv(yellow_color);
+	GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, fu);
 	
 	// draw range indicator
@@ -1198,13 +1223,13 @@ static BOOL hostiles;
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	// draw ship_temperature bar
-	glColor4fv(green_color);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	if (temp > .25)
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	if (temp > .80)
-		glColor4fv(red_color);
+		GLColorWithOverallAlpha(red_color, overallAlpha);
 	if ((flash)&&(temp > .90))
-		glColor4fv(redplus_color);
+		GLColorWithOverallAlpha(redplus_color, overallAlpha);
 	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
@@ -1224,11 +1249,11 @@ static BOOL hostiles;
 
 	double temp = [player laserHeatLevel];
 	// draw weapon_temp bar
-	glColor4fv(green_color);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	if (temp > .25)
-		glColor4fv(yellow_color);
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	if (temp > .80)
-		glColor4fv(red_color);
+		GLColorWithOverallAlpha(red_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -1250,10 +1275,10 @@ static BOOL hostiles;
 	flash &= 1;
 	
 	// draw altitude bar
-	if (alt < .75)  glColor4fv(yellow_color);
-	else if (alt < .25)  glColor4fv(red_color);
-	else if ((flash)&&(alt < .10))  glColor4fv(redplus_color);
-	else glColor4fv(green_color);
+	if (alt < .75)  GLColorWithOverallAlpha(yellow_color, overallAlpha);
+	else if (alt < .25)  GLColorWithOverallAlpha(red_color, overallAlpha);
+	else if ((flash)&&(alt < .10))  GLColorWithOverallAlpha(redplus_color, overallAlpha);
+	else GLColorWithOverallAlpha(green_color, overallAlpha);
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
 	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
@@ -1287,7 +1312,7 @@ static BOOL hostiles;
 				NSArray		*miss_icon = [[UNIVERSE descriptions] arrayForKey:miss_roles];
 				if (i == [player activeMissile])
 				{
-					glColor4fv(yellow_color);
+					GLColorWithOverallAlpha(yellow_color, overallAlpha);
 					glBegin(GL_POLYGON);
 					if (miss_icon)
 					{
@@ -1301,22 +1326,39 @@ static BOOL hostiles;
 							hudDrawMineIconAt(x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
 					}
 					glEnd();
+					
+					// Draw black backing, so outline colour isn’t blended into missile colour.
+					glColor4f(0.0, 0.0, 0.0, 1.0);
+					glBegin(GL_POLYGON);
+					if (miss_icon)
+					{
+						hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
+					}
+					else
+					{
+						if ([miss_roles hasSuffix:@"MISSILE"])
+							hudDrawMissileIconAt(x + i * sp, y, z1, siz);
+						if ([miss_roles hasSuffix:@"MINE"])
+							hudDrawMineIconAt(x + i * sp, y, z1, siz);
+					}
+					glEnd();
+					
 					switch ([player dialMissileStatus])
 					{
 						case MISSILE_STATUS_SAFE :
-							glColor4fv(green_color);	break;
+							GLColorWithOverallAlpha(green_color, overallAlpha);		break;
 						case MISSILE_STATUS_ARMED :
-							glColor4fv(yellow_color);	break;
+							GLColorWithOverallAlpha(yellow_color, overallAlpha);	break;
 						case MISSILE_STATUS_TARGET_LOCKED :
-							glColor4fv(red_color);	break;
+							GLColorWithOverallAlpha(red_color, overallAlpha);		break;
 					}
 				}
 				else
 				{
 					if ([[player missileForStation:i] primaryTarget])
-						glColor4fv(red_color);
+						GLColorWithOverallAlpha(red_color, overallAlpha);
 					else
-						glColor4fv(green_color);
+						GLColorWithOverallAlpha(green_color, overallAlpha);
 				}
 				glBegin(GL_POLYGON);
 				if (miss_icon)
@@ -1333,7 +1375,7 @@ static BOOL hostiles;
 				glEnd();
 				if (i != [player activeMissile])
 				{
-					glColor4fv(green_color);
+					GLColorWithOverallAlpha(green_color, overallAlpha);
 					glBegin(GL_LINE_LOOP);
 					if (miss_icon)
 					{
@@ -1367,11 +1409,11 @@ static BOOL hostiles;
 		switch ([player dialMissileStatus])
 		{
 			case MISSILE_STATUS_SAFE :
-				glColor4fv(green_color);	break;
+				GLColorWithOverallAlpha(green_color, overallAlpha);	break;
 			case MISSILE_STATUS_ARMED :
-				glColor4fv(yellow_color);	break;
+				GLColorWithOverallAlpha(yellow_color, overallAlpha);	break;
 			case MISSILE_STATUS_TARGET_LOCKED :
-				glColor4fv(red_color);	break;
+				GLColorWithOverallAlpha(red_color, overallAlpha);	break;
 		}
 		glBegin(GL_QUADS);
 		glVertex3i(x , y, z1);
@@ -1379,7 +1421,7 @@ static BOOL hostiles;
 		glVertex3i(x + siz.width, y + siz.height, z1);
 		glVertex3i(x , y + siz.height, z1);
 		glEnd();
-		glColor4f(0.0, 1.0, 0.0, 1.0);
+		GLColorWithOverallAlpha(green_color, overallAlpha);
 		drawString([player dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
@@ -1392,7 +1434,7 @@ static BOOL hostiles;
 	
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
-		hudDrawReticleOnTarget([player primaryTarget], player, z1);
+		hudDrawReticleOnTarget([player primaryTarget], player, z1, overallAlpha);
 		[self drawDirectionCue:info];
 	}
 }
@@ -1436,11 +1478,11 @@ static BOOL hostiles;
 			break;
 	}
 	status_color[3] = flash_alpha;
-	glColor4fv(status_color);
+	GLColorWithOverallAlpha(status_color, overallAlpha);
 	glBegin(GL_POLYGON);
 	hudDrawStatusIconAt(x, y, z1, siz);
 	glEnd();
-	glColor4f(0.25, 0.25, 0.25, 1.0);
+	glColor4f(0.25, 0.25, 0.25, overallAlpha);
 	glBegin(GL_LINE_LOOP);
 	hudDrawStatusIconAt(x, y, z1, siz);
 	glEnd();
@@ -1509,11 +1551,11 @@ static BOOL hostiles;
 				glBegin(GL_LINES);
 					glColor4fv(clear_color);
 					glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
-					glColor4fv(green_color);
+					GLColorWithOverallAlpha(green_color, overallAlpha);
 					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
 					glColor4fv(clear_color);
 					glVertex3f(rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
-					glColor4fv(green_color);
+					GLColorWithOverallAlpha(green_color, overallAlpha);
 					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
 				glEnd();
 			}
@@ -1534,7 +1576,7 @@ static BOOL hostiles;
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
 	
-	glColor4f(0.0, 1.0, 0.0, 1.0);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	drawString([player dial_clock], x, y, z1, siz);
 }
 
@@ -1670,7 +1712,7 @@ static BOOL hostiles;
 	if (x == NSNotFound || y == NSNotFound || isnan(siz.width) || isnan(siz.height))  return;
 	
 	// draw green surround
-	glColor4fv(color);
+	GLColorWithOverallAlpha(color, overallAlpha);
 	hudDrawSurroundAt(x, y, z1, siz);
 }
 
@@ -1869,7 +1911,7 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
+void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha)
 {
 	ShipEntity		*target_ship = (ShipEntity *)target;
 	NSString		*legal_desc = nil;
@@ -1968,7 +2010,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1)
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
 	// draw the reticle	
-	glColor4fv(green_color);
+	GLColorWithOverallAlpha(green_color, overallAlpha);
 	glBegin(GL_LINES);
 		glVertex2f(rs0,rs2);	glVertex2f(rs0,rs0);
 		glVertex2f(rs0,rs0);	glVertex2f(rs2,rs0);

@@ -3750,14 +3750,15 @@ static const OOMatrix	starboard_matrix =
 	int	weapon	= [playerShip weaponForView:viewDirection];
 	if ((playerShip)&&((playerShip->status == STATUS_IN_FLIGHT)||(playerShip->status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{	
+		GLfloat overalLAlpha = [[playerShip hud] overallAlpha];
 		GLfloat k0 = CROSSHAIR_SIZE;
 		GLfloat k1 = CROSSHAIR_SIZE / 2.0;
 		GLfloat k2 = CROSSHAIR_SIZE / 4.0;
 		GLfloat k3 = 3.0 * CROSSHAIR_SIZE / 4.0;
 		GLfloat z1 = [gameView display_z];
-		GLfloat cx_col0[4] = { 0.0, 1.0, 0.0, 0.25};
-		GLfloat cx_col1[4] = { 0.0, 1.0, 0.0, 0.50};
-		GLfloat cx_col2[4] = { 0.0, 1.0, 0.0, 0.75};
+		GLfloat cx_col0[4] = { 0.0, 1.0, 0.0, 0.25 * overalLAlpha};
+		GLfloat cx_col1[4] = { 0.0, 1.0, 0.0, 0.50 * overalLAlpha};
+		GLfloat cx_col2[4] = { 0.0, 1.0, 0.0, 0.75 * overalLAlpha};
 		glDisable(GL_TEXTURE_2D);						// important to do this to avoid disappearing crosshairs!
 		glEnable(GL_LINE_SMOOTH);						// alpha blending for lines
 		glLineWidth(2.0);
