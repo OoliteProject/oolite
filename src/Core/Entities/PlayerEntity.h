@@ -489,6 +489,7 @@ waitingForStickCallback: 1;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
 
 - (void) set_up;
+- (void) set_up:(BOOL) andReset;
 
 - (void) doBookkeeping:(double) delta_t;
 

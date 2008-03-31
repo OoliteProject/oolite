@@ -733,6 +733,12 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) set_up
 {
+	[self set_up:YES];
+}
+
+
+- (void) set_up:(BOOL) andReset;
+{
 	unsigned i;
 	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
 	
@@ -910,7 +916,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
-	[self doScriptEvent:@"reset"];
+	if (andReset) [self doScriptEvent:@"reset"];
 }
 
 

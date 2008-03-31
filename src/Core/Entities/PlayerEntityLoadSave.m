@@ -423,8 +423,12 @@
 	
 	if (loadedOK)
 	{
-		[self set_up];
-		if (![self setCommanderDataFromDictionary:fileDic])
+		[self set_up:NO]; //don't run reset yet
+		if ([self setCommanderDataFromDictionary:fileDic])
+		{
+			[self doScriptEvent:@"reset"]; //after the mission variables are loaded from the save game
+		}
+		else
 		{
 			fail_reason = @"Could not set up player ship.";
 			loadedOK = NO;
