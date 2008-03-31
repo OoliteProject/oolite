@@ -39,6 +39,8 @@ static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *PlanetObj, Pla
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
+static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
 
 static JSExtendedClass sPlanetClass =
 {
@@ -85,6 +87,7 @@ static JSPropertySpec sPlanetProperties[] =
 static JSFunctionSpec sPlanetMethods[] =
 {
 	// JS name					Function					min args
+	{ "setTexture",				PlanetSetTexture,				1 },
 	{ 0 }
 };
 
@@ -188,5 +191,34 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			return NO;
 	}
 	
+	return YES;
+}
+
+
+static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlanetEntity			*thisEnt = nil;
+	NSString				*name = nil;
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+
+	
+	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	if([player status] != STATUS_LAUNCHING && [player status] != STATUS_EXITING_WITCHSPACE)
+	{
+		OOReportJavaScriptError(context, @"Planet.%@ must be called only during shipWillLaunchFromStation or shipWillExitWitchspace.", @"setTexture");
+		return YES;
+	}
+	if (name != nil)
+	{
+		if (![thisEnt setUpPlanetFromTexture:name])
+		{
+			OOReportJavaScriptError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
+		}
+	}
+	else
+	{
+		OOReportJavaScriptError(context, @"Planet.%@(): no texture name specified.", @"setTexture");
+	}
 	return YES;
 }

@@ -1613,6 +1613,51 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	return textureName;
 }
 
+- (BOOL) setUpPlanetFromTexture:(NSString *)fileName
+{
+	GLuint tName=[TextureStore getTextureNameFor:fileName];
+	if (tName == 0) return NO;
+	int		i;
+	textureName = tName;
+	isTextured = YES;
+	[self setModelName:@"icostextured.dat" ];
+	
+
+	for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
+	
+	Vector land_hsb, land_polar_hsb;
+
+		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
+		//sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
+	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
+	
+	amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+	amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+	amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	amb_sea[3] = amb_land[3] = 1.0;
+
+	amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[3] =amb_polar_land[3] = 1.0;
+	
+	[self initialiseBaseVertexArray];
+
+	[self initialiseBaseTerrainArray:100];
+	
+	for (i =  0; i < next_free_vertex; i++)
+		[self paintVertex:i :planet_seed];
+	
+	[self scaleVertices];
+	rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
+	NSMutableDictionary *atmo = [NSMutableDictionary dictionary];
+	[atmo setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo];
+	
+	rotationAxis = kBasisYVector;
+
+	return isTextured;
+}
 
 - (double) polar_color_factor
 {
@@ -2004,10 +2049,10 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	
 	for (i = 0; i < 4; i++)
 	{
-		paint_color[i] = (r * paint_sea[i])*0.01 + ((100 - r) * paint_land[i])*0.01;
-		if ((planet_type == PLANET_TYPE_ATMOSPHERE) && isTextured)
+		if (planet_type == PLANET_TYPE_ATMOSPHERE && isTextured)
 			paint_color[i] = 1.0;
-
+		else
+			paint_color[i] = (r * paint_sea[i])*0.01 + ((100 - r) * paint_land[i])*0.01;
 		// finally initialise the color array entry
 		vertexdata.color_array[vi*4 + i] = paint_color[i];
 	}

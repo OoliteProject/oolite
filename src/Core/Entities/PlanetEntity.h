@@ -129,6 +129,7 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 
 - (id) initPlanetFromDictionary:(NSDictionary*) dict;
 - (id) initMoonFromDictionary:(NSDictionary*) dict;
+- (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat* col4v1, int rv);
 
@@ -145,6 +146,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 
 - (OOPlanetType) planetType;
 - (void) setPlanetType:(OOPlanetType) pt;
+
 
 - (double) radius;	// metres
 - (void) setRadius:(double) rad;

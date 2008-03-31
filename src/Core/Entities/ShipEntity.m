@@ -3419,7 +3419,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (OOAegisStatus) checkForAegis
 {
-	PlanetEntity* the_planet=[self findNearestSurfacePlanet];
+	PlanetEntity* the_planet=[self findPlanetNearestSurface];
 	
 	if (the_planet == nil)
 	{
