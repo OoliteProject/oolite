@@ -1618,6 +1618,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	GLuint tName=[TextureStore getTextureNameFor:fileName];
 	if (tName == 0) return NO;
 	int		i;
+	BOOL wasTextured=isTextured;
 	textureName = tName;
 	isTextured = YES;
 	[self setModelName:@"icostextured.dat" ];
@@ -1647,13 +1648,17 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
-	
+	if(wasTextured) {
+		if (textureData)  free(textureData);
+		if (normalMapTextureData)  free(normalMapTextureData);
+	}
 	[self scaleVertices];
 	rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
 	NSMutableDictionary *atmo = [NSMutableDictionary dictionary];
 	[atmo setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
+	[atmosphere autorelease];
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo];
-	
+
 	rotationAxis = kBasisYVector;
 
 	return isTextured;
