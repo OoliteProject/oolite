@@ -2141,10 +2141,7 @@ double scoopSoundPlayTime = 0.0;
 	// find nearest planet type entity...
 	assert(UNIVERSE != nil);
 	
-	PlanetEntity	*nearestPlanet = nil;
-	nearestPlanet = [UNIVERSE nearestEntityMatchingPredicate:IsPlanetPredicate
-												   parameter:nil
-											relativeToEntity:self];
+	PlanetEntity	*nearestPlanet = [self findPlanetNearestSurface];
 	if (nearestPlanet == nil)  return 1.0;
 	
 	GLfloat	zd = nearestPlanet->zero_distance;

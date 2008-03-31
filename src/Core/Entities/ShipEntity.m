@@ -3393,12 +3393,35 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	aegis_status = AEGIS_NONE;
 }
 
+- (PlanetEntity *) findPlanetNearestSurface
+{
+	NSArray				*planets = nil;
+	
+	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
+											parameter:NULL
+											  inRange:-1
+											 ofEntity:self];
+	
+	if ([planets count] == 0)  return nil;
+	
+	PlanetEntity* the_planet=[planets objectAtIndex:0];
+	if ([planets count] >1)		//2 or more planets, select the one with the closest surface between the nearest two.
+	{
+		PlanetEntity* alt_planet=[planets objectAtIndex:1];
+		float diff= [alt_planet collisionRadius] - [the_planet collisionRadius];
+		if(diff > 0 &&  diff * diff > magnitude2(vector_subtract([alt_planet position], [self position])) - magnitude2(vector_subtract([the_planet position], [self position])))
+		{		
+			the_planet = alt_planet;
+		}		
+	}
+	return the_planet;
+}
 
 - (OOAegisStatus) checkForAegis
 {
-	PlanetEntity* the_planet = [UNIVERSE planet];
-
-	if (!the_planet)
+	PlanetEntity* the_planet=[self findNearestSurfacePlanet];
+	
+	if (the_planet == nil)
 	{
 		if (aegis_status != AEGIS_NONE)
 		{
@@ -3417,7 +3440,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	d2 = magnitude2(vector_subtract([the_planet position], [self position]));
 	
 	// check if nearing surface
-	// FIXME: need script and probably AI notification for all planets, not just main.
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
 	isNearPlanetSurface = (d2 - cr2) < (250000.0f + 1000.0f * cr); //less than 500m from the surface: (a+b)*(a+b) = a*a+b*b +2*a*b
 	if (!suppressAegisMessages)

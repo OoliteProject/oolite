@@ -481,6 +481,7 @@ MA 02110-1301, USA.
 - (void) setReportAIMessages:(BOOL) yn;
 
 - (void) transitionToAegisNone;
+- (PlanetEntity *) findPlanetNearestSurface;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
 
