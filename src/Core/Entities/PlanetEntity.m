@@ -1623,7 +1623,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	isTextured = YES;
 	[self setModelName:@"icostextured.dat" ];
 	
-
+	[self rescaleTo:1.0];
 	for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
 	
 	Vector land_hsb, land_polar_hsb;
