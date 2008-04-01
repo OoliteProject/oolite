@@ -2573,6 +2573,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	
 	[[gameView gameController] loadPlayerIfRequired];
 	
+	[player set_up:NO];		//reset the player -   don't call js reset, avoid duplicate reset calls.
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
+	
 	[self setGalaxy_seed: [player galaxy_seed]];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	
@@ -2580,11 +2583,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		[self setUpSpace];
 	
 	if (![[self station] localMarket])
-		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
-	
-	[player set_up];						//reset the player
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	
+		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];	
+	//[self doScriptEvent:@"reset"]
 	[player setStatus:STATUS_DOCKED];
 	[player setGuiToStatusScreen];
 	displayGUI = YES;
