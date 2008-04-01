@@ -483,6 +483,7 @@
 		if (market != nil)  [dockedStation setLocalMarket:market];
 		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
+	[self calculateCurrentCargo];
 	[self setGuiToStatusScreen];
 	return loadedOK;
 }

@@ -4565,7 +4565,7 @@ static int last_outfitting_index;
 
 	NSArray		*equipdata = [UNIVERSE equipmentdata];
 
-	OOCargoQuantity cargo_space = max_cargo - current_cargo;
+	OOCargoQuantityDelta cargo_space = max_cargo - current_cargo;
 
 	double price_factor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
@@ -5061,14 +5061,14 @@ static int last_outfitting_index;
 - (BOOL) tryBuyingItem:(int) index
 {
 	// note this doesn't check the availability by tech-level
-	NSArray				*equipdata		= [UNIVERSE equipmentdata];
-	OOCreditsQuantity	price_per_unit	= [[equipdata arrayAtIndex:index] unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-	NSString			*eq_key			= [[equipdata arrayAtIndex:index] stringAtIndex:EQUIPMENT_KEY_INDEX];
-	NSString			*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double				price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit);
-	double				price_factor	= 1.0;
-	OOCargoQuantity		cargo_space		= max_cargo - current_cargo;
-	OOCreditsQuantity	tradeIn = 0;
+	NSArray					*equipdata		= [UNIVERSE equipmentdata];
+	OOCreditsQuantity		price_per_unit	= [[equipdata arrayAtIndex:index] unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+	NSString				*eq_key			= [[equipdata arrayAtIndex:index] stringAtIndex:EQUIPMENT_KEY_INDEX];
+	NSString				*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+	double					price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit);
+	double					price_factor	= 1.0;
+	OOCargoQuantityDelta	cargo_space		= max_cargo - current_cargo;
+	OOCreditsQuantity		tradeIn = 0;
 
 	// repairs cost 50%
 	if ([self hasEquipmentItem:eq_key_damaged])
