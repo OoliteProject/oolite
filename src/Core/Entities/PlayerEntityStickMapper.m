@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 @implementation PlayerEntity (StickMapper)
 
-- (void) setGuiToStickMapperScreen
+- (void) setGuiToStickMapperScreen: (unsigned)skip
 {
    GuiDisplayGen *gui=[UNIVERSE gui];
    NSArray *stickList=[stickHandler listSticks];
@@ -48,16 +48,16 @@ MA 02110-1301, USA.
       [gui setArray: [NSArray arrayWithObjects:
          [NSString stringWithFormat: @"Stick %d", i+1],
          [stickList objectAtIndex: i], nil]
-             forRow: i + STICKNAME_ROW];
+             forRow: i + GUI_ROW_STICKNAME];
    }
    
-   [self displayFunctionList: gui];
+   [self displayFunctionList: gui skip: skip];
 
    [gui setArray: [NSArray arrayWithObjects:
       [NSString stringWithString: @"Select a function and press Enter to modify or 'u' to unset."], nil]
-          forRow: INSTRUCT_ROW];
+          forRow: GUI_ROW_INSTRUCT];
 
-   [gui setSelectedRow: selFunctionIdx + FUNCSTART_ROW];
+   [gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
    [[UNIVERSE gameView] supressKeysUntilKeyUp];
 
 }
@@ -74,7 +74,7 @@ MA 02110-1301, USA.
          [stickHandler clearCallback];
          [gui setArray: [NSArray arrayWithObjects:
             [NSString stringWithString: @"Function setting aborted."], nil]
-            forRow: INSTRUCT_ROW];
+            forRow: GUI_ROW_INSTRUCT];
          waitingForStickCallback=NO;
       }
 
@@ -83,10 +83,28 @@ MA 02110-1301, USA.
    }
    
    [self handleGUIUpDownArrowKeys];
-   
+
+   NSString* key = [gui keyForRow: [gui selectedRow]];
+   if ([key hasPrefix:@"Index:"])
+      selFunctionIdx=[[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
+   else
+      selFunctionIdx=-1;
+
    if([gameView isDown: 13])
    {
-      selFunctionIdx=[gui selectedRow]-FUNCSTART_ROW;
+      if ([key hasPrefix:@"More:"])
+      {
+         int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
+         if (from_function < 0)  from_function = 0;
+
+         [self setGuiToStickMapperScreen:from_function];
+         if ([[UNIVERSE gui] selectedRow] < 0)
+            [[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
+         if (from_function == 0)
+            [[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1];
+         return;
+      }
+
       NSDictionary *entry=[stickFunctions objectAtIndex: selFunctionIdx];
       int hw=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
       [stickHandler setCallback: @selector(updateFunction:)
@@ -109,13 +127,14 @@ MA 02110-1301, USA.
             instructions=[NSString stringWithString:
                @"Press the button or deflect the axis you want to use for this function."];
       }
-      [gui setArray: [NSArray arrayWithObjects: instructions, nil] forRow: INSTRUCT_ROW];
+      [gui setArray: [NSArray arrayWithObjects: instructions, nil] forRow: GUI_ROW_INSTRUCT];
       waitingForStickCallback=YES;
    }
 
    if([gameView isDown: 'u'])
    {
-      [self removeFunction: [gui selectedRow]-FUNCSTART_ROW];
+      if (selFunctionIdx >= 0)
+         [self removeFunction: selFunctionIdx];
    }
 }
 
@@ -147,7 +166,7 @@ MA 02110-1301, USA.
    [stickHandler saveStickSettings];
 
    // Update the GUI (this will refresh the function list).
-   [self setGuiToStickMapperScreen];
+   [self setGuiToStickMapperScreen: 0];
 }
 
 - (void) removeFunction: (int)idx
@@ -168,16 +187,17 @@ MA 02110-1301, USA.
       [stickHandler unsetAxisFunction: [axfunc intValue]];
    }
    [stickHandler saveStickSettings];
-   [self setGuiToStickMapperScreen];
+   [self setGuiToStickMapperScreen: 0];
 }
 
 - (void) displayFunctionList: (GuiDisplayGen *)gui
+                        skip: (unsigned) skip
 {
    unsigned i;
-   [gui setColor: [OOColor greenColor] forRow: HEADINGROW];
+   [gui setColor: [OOColor greenColor] forRow: GUI_ROW_HEADING];
    [gui setArray: [NSArray arrayWithObjects:
       @"Function", @"Assigned to", @"Type", nil]
-          forRow: HEADINGROW];
+          forRow: GUI_ROW_HEADING];
 
    if(!stickFunctions)
    {
@@ -185,50 +205,97 @@ MA 02110-1301, USA.
    }
    NSDictionary *assignedAxes=[stickHandler getAxisFunctions];
    NSDictionary *assignedButs=[stickHandler getButtonFunctions];
-   
-   for(i=0; i < [stickFunctions count]; i++)
-   {
-      NSString *allowedThings;
-      NSString *assignment;
-      NSDictionary *entry=[stickFunctions objectAtIndex: i];
-      NSString *axFuncKey=[(NSNumber *)[entry objectForKey: KEY_AXISFN] stringValue];
-      NSString *butFuncKey=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] stringValue];
-      int allowable=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
-      switch(allowable)
-      {
-         case HW_AXIS:
-            allowedThings=[NSString stringWithString: @"Axis"];
-            assignment=[self describeStickDict:
-               [assignedAxes objectForKey: axFuncKey]];
-            break;
-         case HW_BUTTON:
-            allowedThings=[NSString stringWithString: @"Button"];
-            assignment=[self describeStickDict:
-               [assignedButs objectForKey: butFuncKey]];
-            break;
-         default:
-            allowedThings=[NSString stringWithString: @"Axis/Button"];
 
-            // axis has priority
-            assignment=[self describeStickDict:
-               [assignedAxes objectForKey: axFuncKey]];
-            if(!assignment)
+   unsigned n_functions = [stickFunctions count];
+   int n_rows, start_row, previous = 0;
+
+   if (skip >= n_functions)
+      skip = n_functions - 1;
+
+   if (n_functions < MAX_ROWS_FUNCTIONS)
+   {
+      skip = 0;
+      previous = 0;
+      n_rows = MAX_ROWS_FUNCTIONS;
+      start_row = GUI_ROW_FUNCSTART;
+   }
+   else
+   {
+      n_rows = MAX_ROWS_FUNCTIONS  - 1;
+      start_row = GUI_ROW_FUNCSTART;
+      if (skip > 0)
+      {
+         n_rows -= 1;
+         start_row += 1;
+         if (skip > MAX_ROWS_FUNCTIONS)
+            previous = skip - MAX_ROWS_FUNCTIONS - 2;
+         else
+            previous = 0;
+      }
+   }
+
+   if (n_functions > 0)
+   {
+      if (skip > 0)
+      {
+         [gui setColor:[OOColor greenColor] forRow:GUI_ROW_FUNCSTART];
+         [gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:GUI_ROW_FUNCSTART];
+         [gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:GUI_ROW_FUNCSTART];
+      }
+
+      for(i=0; i < (n_functions - skip) && (int)i < n_rows; i++)
+      {
+         NSString *allowedThings;
+         NSString *assignment;
+         NSDictionary *entry=[stickFunctions objectAtIndex: i + skip];
+         NSString *axFuncKey=[(NSNumber *)[entry objectForKey: KEY_AXISFN] stringValue];
+         NSString *butFuncKey=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] stringValue];
+         int allowable=[(NSNumber *)[entry objectForKey: KEY_ALLOWABLE] intValue];
+         switch(allowable)
+         {
+            case HW_AXIS:
+               allowedThings=[NSString stringWithString: @"Axis"];
+               assignment=[self describeStickDict:
+                  [assignedAxes objectForKey: axFuncKey]];
+               break;
+            case HW_BUTTON:
+               allowedThings=[NSString stringWithString: @"Button"];
                assignment=[self describeStickDict:
                   [assignedButs objectForKey: butFuncKey]];
-      }
-      
-      // Find out what's assigned for this function currently.
-      if(!assignment)
-         assignment=[NSString stringWithString: @"   -   "];
+               break;
+            default:
+               allowedThings=[NSString stringWithString: @"Axis/Button"];
 
-      [gui setArray: [NSArray arrayWithObjects: 
-         [entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
-             forRow: i + FUNCSTART_ROW];
-      [gui setKey: GUI_KEY_OK forRow: i + FUNCSTART_ROW];
+               // axis has priority
+               assignment=[self describeStickDict:
+                  [assignedAxes objectForKey: axFuncKey]];
+               if(!assignment)
+                  assignment=[self describeStickDict:
+                     [assignedButs objectForKey: butFuncKey]];
+         }
+
+         // Find out what's assigned for this function currently.
+         if(!assignment)
+            assignment=[NSString stringWithString: @"   -   "];
+
+         [gui setArray: [NSArray arrayWithObjects: 
+            [entry objectForKey: KEY_GUIDESC], assignment, allowedThings, nil]
+               forRow: i + start_row];
+         //[gui setKey: GUI_KEY_OK forRow: i + start_row];
+         [gui setKey: [NSString stringWithFormat: @"Index:%d", i + skip] forRow: i + start_row];
+      }
+      if (i < n_functions - skip)
+      {
+         [gui setColor: [OOColor greenColor] forRow: start_row + i];
+         [gui setArray: [NSArray arrayWithObjects: DESC(@"gui-more"), @" --> ", nil] forRow: start_row + i];
+         [gui setKey: [NSString stringWithFormat: @"More:%d", n_rows + skip] forRow: start_row + i];
+         i++;
+      }
+
+      [gui setSelectableRange: NSMakeRange(GUI_ROW_FUNCSTART, i + start_row - GUI_ROW_FUNCSTART)];
    }
-   [gui setSelectableRange: NSMakeRange(FUNCSTART_ROW, i + FUNCSTART_ROW - 1)];
-                                      
-} 
+
+}
 
 - (NSString *) describeStickDict: (NSDictionary *)stickDict
 {

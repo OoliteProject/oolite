@@ -29,10 +29,12 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define STICKNAME_ROW   1
-#define HEADINGROW      3
-#define FUNCSTART_ROW   4
-#define INSTRUCT_ROW    20
+#define GUI_ROW_STICKNAME    1
+#define GUI_ROW_HEADING      3
+#define GUI_ROW_FUNCSTART    4
+#define GUI_ROW_INSTRUCT     20
+
+#define MAX_ROWS_FUNCTIONS   15
 
 // Dictionary keys
 #define KEY_GUIDESC  @"guiDesc"
@@ -42,7 +44,7 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (StickMapper)
 
-   - (void) setGuiToStickMapperScreen;
+   - (void) setGuiToStickMapperScreen: (unsigned)skip;
    - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
                                view: (MyOpenGLView *)gameView;
    // Callback method
@@ -51,7 +53,8 @@ MA 02110-1301, USA.
    // internal methods
    - (void) removeFunction: (int)selFunctionIdx;
    - (NSArray *)getStickFunctionList;
-   - (void)displayFunctionList: (GuiDisplayGen *)gui;
+   - (void)displayFunctionList: (GuiDisplayGen *)gui
+                          skip: (unsigned) skip;
    - (NSString *)describeStickDict: (NSDictionary *)stickDict;
    - (NSString *)hwToString: (int)hwFlags;
 

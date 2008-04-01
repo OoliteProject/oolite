@@ -1808,7 +1808,7 @@ static NSTimeInterval	time_last_frame;
 #if OOLITE_HAVE_JOYSTICK
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_STICKMAPPER) && selectKeyPress)
 	{
-		[self setGuiToStickMapperScreen];
+		[self setGuiToStickMapperScreen: 0];
 	}
 #endif
 	
