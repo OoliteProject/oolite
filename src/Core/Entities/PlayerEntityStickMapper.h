@@ -32,9 +32,9 @@ MA 02110-1301, USA.
 #define GUI_ROW_STICKNAME    1
 #define GUI_ROW_HEADING      3
 #define GUI_ROW_FUNCSTART    4
-#define GUI_ROW_INSTRUCT     20
+#define GUI_ROW_INSTRUCT     17
 
-#define MAX_ROWS_FUNCTIONS   15
+#define MAX_ROWS_FUNCTIONS   12
 
 // Dictionary keys
 #define KEY_GUIDESC  @"guiDesc"
