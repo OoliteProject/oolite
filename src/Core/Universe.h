@@ -265,6 +265,8 @@ enum
 - (void) setStrict:(BOOL) value;
 
 - (void) reinit;
+- (void) reinitAndShowDemo:(BOOL)showDemo;
+
 
 - (int) obj_count;
 #ifndef NDEBUG

@@ -376,6 +376,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 - (void) reinit
 {	
+	[self reinitAndShowDemo:YES];
+}
+
+
+- (void) reinitAndShowDemo:(BOOL)showDemo
+{
     PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	Quaternion q0 = kIdentityQuaternion;
 	int i;
@@ -481,10 +487,12 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		[equipmentdata autorelease];
 		equipmentdata = [strict_equipment retain];
 	}
-	
-	[demo_ships autorelease];
-	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
-	demo_ship_index = 0;
+	if(showDemo)
+	{
+		[demo_ships autorelease];
+		demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
+		demo_ship_index = 0;
+	}
 	
 	breakPatternCounter = 0;
 	
@@ -515,8 +523,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setUpSpace];
 
 	demo_ship = nil;
-	
-	
+
 	[player set_up];
 	
 	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
@@ -525,10 +532,15 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:kZeroVector];
 	[player setOrientation:q0];
-	[player setGuiToIntro2Screen];
-	[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
-	
-	
+	if(showDemo)
+	{
+		[player setGuiToIntro2Screen];
+		[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
+	}
+	else
+	{
+		[player setGuiToStatusScreen];
+	}
 	[player release];
 	
 	no_update = NO;
@@ -2567,30 +2579,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 
 - (void) game_over
 {
-	PlayerEntity*   player = [[PlayerEntity sharedPlayer] retain];
-	
-	[self removeAllEntitiesExceptPlayer:NO];	// don't want to restore afterwards
-	
-	[[gameView gameController] loadPlayerIfRequired];
-	
-	[player set_up:NO];		//reset the player -   don't call js reset, avoid duplicate reset calls.
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	
-	[self setGalaxy_seed: [player galaxy_seed]];
-	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
-	if (![self station])
-		[self setUpSpace];
-	
-	if (![[self station] localMarket])
-		[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];	
-	//[self doScriptEvent:@"reset"]
-	[player setStatus:STATUS_DOCKED];
-	[player setGuiToStatusScreen];
-	displayGUI = YES;
-	
-	[player release];    
-	
+	[self reinitAndShowDemo:NO];
 }
 
 
