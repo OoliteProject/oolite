@@ -2047,29 +2047,50 @@ static NSTimeInterval	time_last_frame;
 	
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
+	NSPoint        virtualView = NSZeroPoint;
+	double         view_threshold = 0.5;
+
+	if (!stickHandler)
+	{
+		stickHandler = [gameView getStickHandler];
+	}
+
+	if ([stickHandler getNumSticks])
+	{
+		virtualView = [stickHandler getViewAxis];
+		if (virtualView.y == STICK_AXISUNASSIGNED)
+			virtualView.y = 0.0;
+		if (virtualView.x == STICK_AXISUNASSIGNED)
+			virtualView.x = 0.0;
+		if (fabs(virtualView.y) >= fabs(virtualView.x))
+			virtualView.x = 0.0; // forward/aft takes precedence
+	}
+
+	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
+
 	//  view keys
-	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))
+	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD])
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
 		[UNIVERSE setViewDirection:VIEW_FORWARD];
 		currentWeaponFacing = VIEW_FORWARD;
 	}
-	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))
+	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2])||(virtualView.y > view_threshold)||joyButtonState[BUTTON_VIEWAFT])
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
 		[UNIVERSE setViewDirection:VIEW_AFT];
 		currentWeaponFacing = VIEW_AFT;
 	}
-	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
+	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3])||(virtualView.x < -view_threshold)||joyButtonState[BUTTON_VIEWPORT])
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];
 		[UNIVERSE setViewDirection:VIEW_PORT];
 		currentWeaponFacing = VIEW_PORT;
 	}
-	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4]))
+	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4])||(virtualView.x > view_threshold)||joyButtonState[BUTTON_VIEWSTARBOARD])
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];

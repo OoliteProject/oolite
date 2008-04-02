@@ -72,6 +72,12 @@ JoystickHandler *sSharedStickHandler = nil;
 }
 
 
+- (NSPoint) getViewAxis
+{
+	return NSZeroPoint;
+}
+
+
 - (double) getAxisState:(int)function
 {
 	return 0.0;

@@ -63,7 +63,8 @@ enum {
   AXIS_YAW,
   AXIS_PRECISION,
   AXIS_THRUST,
-  AXIS_VIEW,
+  AXIS_VIEWX,
+  AXIS_VIEWY,
   AXIS_end
 } axfn;
 
@@ -93,13 +94,17 @@ enum {
   BUTTON_ESCAPE,
   BUTTON_CLOAK,
   BUTTON_PRECISION,
+  BUTTON_VIEWFORWARD,
+  BUTTON_VIEWAFT,
+  BUTTON_VIEWPORT,
+  BUTTON_VIEWSTARBOARD,
   BUTTON_end
 } butfn;
 
 // Stick constants
 #define MAX_STICKS 2
-#define MAX_AXES  10
-#define MAX_BUTTONS  20
+#define MAX_AXES  (AXIS_end)
+#define MAX_BUTTONS  (BUTTON_end)
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
 #define STICK_PRECISIONDIV 98304 // 3 times more precise
@@ -136,6 +141,7 @@ enum {
 
 - (int) getNumSticks;
 - (NSPoint) getRollPitchAxis;
+- (NSPoint) getViewAxis;
 - (double) getAxisState:(int)function;
 - (const BOOL *) getAllButtonStates;
 

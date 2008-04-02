@@ -166,7 +166,12 @@ MA 02110-1301, USA.
    [stickHandler saveStickSettings];
 
    // Update the GUI (this will refresh the function list).
-   [self setGuiToStickMapperScreen: 0];
+   unsigned skip;
+   if (selFunctionIdx < MAX_ROWS_FUNCTIONS)
+      skip = 0;
+   else
+      skip = ((selFunctionIdx - 1) / (MAX_ROWS_FUNCTIONS - 2)) * (MAX_ROWS_FUNCTIONS - 2) + 1;
+   [self setGuiToStickMapperScreen: skip];
 }
 
 - (void) removeFunction: (int)idx
@@ -187,7 +192,13 @@ MA 02110-1301, USA.
       [stickHandler unsetAxisFunction: [axfunc intValue]];
    }
    [stickHandler saveStickSettings];
-   [self setGuiToStickMapperScreen: 0];
+
+   unsigned skip;
+   if (selFunctionIdx < MAX_ROWS_FUNCTIONS)
+      skip = 0;
+   else
+      skip = ((selFunctionIdx - 1) / (MAX_ROWS_FUNCTIONS - 2)) * (MAX_ROWS_FUNCTIONS - 2) + 1;
+   [self setGuiToStickMapperScreen: skip];
 }
 
 - (void) displayFunctionList: (GuiDisplayGen *)gui
@@ -420,6 +431,26 @@ MA 02110-1301, USA.
                    allowable: HW_BUTTON
                       axisfn: STICK_NOFUNCTION
                        butfn: BUTTON_PRECISION]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"View Forward"
+                   allowable: HW_AXIS|HW_BUTTON
+                      axisfn: AXIS_VIEWY
+                       butfn: BUTTON_VIEWFORWARD]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"View Aft"
+                   allowable: HW_AXIS|HW_BUTTON
+                      axisfn: AXIS_VIEWY
+                       butfn: BUTTON_VIEWAFT]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"View Port"
+                   allowable: HW_AXIS|HW_BUTTON
+                      axisfn: AXIS_VIEWX
+                       butfn: BUTTON_VIEWPORT]];
+   [funcList addObject:
+      [self makeStickGuiDict: @"View Starboard"
+                   allowable: HW_AXIS|HW_BUTTON
+                      axisfn: AXIS_VIEWX
+                       butfn: BUTTON_VIEWSTARBOARD]];
    return funcList;
 }
 

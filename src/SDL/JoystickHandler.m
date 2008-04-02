@@ -97,6 +97,11 @@ MA 02110-1301, USA.
    return NSMakePoint(axstate[AXIS_ROLL], axstate[AXIS_PITCH]);
 }
 
+- (NSPoint) getViewAxis
+{
+   return NSMakePoint(axstate[AXIS_VIEWX], axstate[AXIS_VIEWY]);
+}
+
 - (BOOL) getButtonState: (int)function
 {
    return butstate[function];
@@ -396,6 +401,9 @@ MA 02110-1301, USA.
             axstate[function]=axisvalue / STICK_NORMALDIV;
          }
          break;
+      case AXIS_VIEWX:
+      case AXIS_VIEWY:
+         axstate[function]=axisvalue / STICK_NORMALDIV;
       default:
          // set the state with no modification.
          axstate[function]=axisvalue / 32768;         
