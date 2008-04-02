@@ -2064,6 +2064,8 @@ static NSTimeInterval	time_last_frame;
 			virtualView.x = 0.0;
 		if (fabs(virtualView.y) >= fabs(virtualView.x))
 			virtualView.x = 0.0; // forward/aft takes precedence
+		else
+			virtualView.y = 0.0;
 	}
 
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
