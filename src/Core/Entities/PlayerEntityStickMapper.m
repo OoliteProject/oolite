@@ -157,10 +157,31 @@ MA 02110-1301, USA.
    if([(NSNumber *)[hwDict objectForKey: STICK_ISAXIS] boolValue] == YES)
    {
       function=[(NSNumber *)[entry objectForKey: KEY_AXISFN] intValue];
+      if (function == AXIS_THRUST)
+      {
+         [stickHandler unsetButtonFunction: BUTTON_INCTHRUST];
+         [stickHandler unsetButtonFunction: BUTTON_DECTHRUST];
+      }
+      if (function == AXIS_VIEWX)
+      {
+         [stickHandler unsetButtonFunction: BUTTON_VIEWPORT];
+         [stickHandler unsetButtonFunction: BUTTON_VIEWSTARBOARD];
+      }
+      if (function == AXIS_VIEWY)
+      {
+         [stickHandler unsetButtonFunction: BUTTON_VIEWFORWARD];
+         [stickHandler unsetButtonFunction: BUTTON_VIEWAFT];
+      }
    }
    else
    {
       function=[(NSNumber *)[entry objectForKey: KEY_BUTTONFN] intValue];
+      if (function == BUTTON_INCTHRUST || function == BUTTON_DECTHRUST)
+         [stickHandler unsetAxisFunction: AXIS_THRUST];
+      if (function == BUTTON_VIEWPORT || function == BUTTON_VIEWSTARBOARD)
+         [stickHandler unsetAxisFunction: AXIS_VIEWX];
+      if (function == BUTTON_VIEWFORWARD || function == BUTTON_VIEWAFT)
+         [stickHandler unsetAxisFunction: AXIS_VIEWY];
    }
    [stickHandler setFunction: function withDict: hwDict];
    [stickHandler saveStickSettings];
