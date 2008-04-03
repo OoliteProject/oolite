@@ -4566,6 +4566,7 @@ static int last_outfitting_index;
 	NSArray		*equipdata = [UNIVERSE equipmentdata];
 
 	OOCargoQuantityDelta cargo_space = max_cargo - current_cargo;
+	if (cargo_space < 0)  cargo_space = 0;
 
 	double price_factor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
@@ -4673,7 +4674,7 @@ static int last_outfitting_index;
 			{
 				if (requiresEmptyPylon && missiles >= max_missiles)  isOK = NO;
 				else if (requiresMountedPylon && missiles == 0)  isOK = NO;
-				else if (cargo_space < requiresCargoSpace)  isOK = NO;
+				else if ((OOCargoQuantity)cargo_space < requiresCargoSpace)  isOK = NO;
 				else if (requiresEquipment != nil && ![self hasEquipmentItem:requiresEquipment])  isOK = NO;
 				else if (incompatibleWithEquipment != nil && [self hasEquipmentItem:incompatibleWithEquipment])  isOK = NO;
 				else if (requiresClean && [self legalStatus] != 0)  isOK = NO;
