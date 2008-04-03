@@ -7100,7 +7100,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		ship_base_dict = [self getDictionaryForShip:ship_key];
 		
-		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel < techlevel) && (randf() < chance) && (ship_base_dict != nil))
+		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (ship_base_dict != nil))
 		{			
 			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
 			NSMutableString* description = [NSMutableString stringWithCapacity:256];
