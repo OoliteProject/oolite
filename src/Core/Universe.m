@@ -385,6 +385,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
     PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	Quaternion q0 = kIdentityQuaternion;
 	int i;
+	BOOL delayedReset=NO;
 	
 	no_update = YES;
 	
@@ -506,9 +507,15 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	if (player == nil)
 		player = [[PlayerEntity alloc] init];
+	else
+	{
+		[player set_up:NO];
+		delayedReset=YES;
+	}
 	[self addEntity:player];
 	
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
+	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
 
 	[self setGalaxy_seed: [player galaxy_seed]];
 
@@ -521,14 +528,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[characterPool removeAllObjects];
 
 	[self setUpSpace];
+	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
+	[player setDockedAtMainStation];
 
 	demo_ship = nil;
 
-	[player set_up];
-	
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
-	
-	[player setStatus:STATUS_DOCKED];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	[player setPosition:kZeroVector];
 	[player setOrientation:q0];
@@ -541,12 +545,10 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	{
 		[player setGuiToStatusScreen];
 	}
+	if (delayedReset) [player doScriptEvent:@"reset"];
 	[player release];
-	
 	no_update = NO;
-	
 	[localPlanetInfoOverrides removeAllObjects];
-
 }
 
 

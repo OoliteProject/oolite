@@ -499,6 +499,7 @@ waitingForStickCallback: 1;
 
 - (NSString *) ship_desc;
 
+- (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
 
 - (HeadUpDisplay *) hud;

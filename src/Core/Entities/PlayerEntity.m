@@ -2012,6 +2012,11 @@ double scoopSoundPlayTime = 0.0;
 	return ship_desc;
 }
 
+- (void) setDockedAtMainStation
+{
+	dockedStation = [UNIVERSE station];
+	status=STATUS_DOCKED;
+}
 
 - (StationEntity *) dockedStation
 {
