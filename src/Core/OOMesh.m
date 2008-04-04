@@ -36,6 +36,10 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 
 
+// If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
+#define ADAPTIVE_OCTREE_DEPTH		0
+
+
 enum
 {
 	kBaseOctreeDepth				= 5,	// 32x32x32
@@ -296,6 +300,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
+#if ADAPTIVE_OCTREE_DEPTH
 - (unsigned) octreeDepth
 {
 	float				threshold = kOctreeSizeThreshold;
@@ -320,6 +325,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	OOLog(@"mesh.load.octree.size", @"Selected octree depth %u for size %g for %@", result, size, baseFile);
 	return result;
 }
+#else
+- (unsigned) octreeDepth
+{
+	return kBaseOctreeDepth;
+}
+#endif
 
 
 - (Octree *)octree
