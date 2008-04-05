@@ -561,6 +561,7 @@ waitingForStickCallback: 1;
 
 - (BOOL) mountMissile:(ShipEntity *)missile;
 
+- (OOEnergyUnitType) installedEnergyUnitType;
 - (OOEnergyUnitType) energyUnitType;
 
 - (BOOL) fireEnergyBomb;

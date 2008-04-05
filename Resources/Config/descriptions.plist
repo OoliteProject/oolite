@@ -856,6 +856,7 @@
 	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
 	"equip-repair-@"				= " Repair:%@";
 	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";
+	"@-will-replace-other-energy"	="%@ (The installed energy recharge unit will be removed from the ship and sold for scrap).";
 	"forward-facing-string"			= " Forward ";
 	"aft-facing-string"				= " Aft ";
 	"port-facing-string"			= " Port ";

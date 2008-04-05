@@ -326,12 +326,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
 	{
 		[result setBool:YES forKey:@"has_energy_unit"];
-		[result setInteger:ENERGY_UNIT_NAVAL forKey:@"energy_unit"];
+		[result setInteger:OLD_ENERGY_UNIT_NAVAL forKey:@"energy_unit"];
 	}
 	else if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])
 	{
 		[result setBool:YES forKey:@"has_energy_unit"];
-		[result setInteger:ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
+		[result setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
 	}
 	
 	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
@@ -512,20 +512,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
 	
 	// Legacy energy unit type -> energy unit equipment item
-	if ([dict boolForKey:@"has_energy_unit"] && [self energyUnitType] == ENERGY_UNIT_NONE)
+	if ([dict boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
 	{
 		OOEnergyUnitType eType = [dict intForKey:@"energy_unit" defaultValue:ENERGY_UNIT_NORMAL];
 		switch (eType)
 		{
-			case ENERGY_UNIT_NORMAL:
+			case OLD_ENERGY_UNIT_NORMAL:
 				[self addEquipmentItem:@"EQ_ENERGY_UNIT"];
 				break;
 				
-			case ENERGY_UNIT_NAVAL:
+			case OLD_ENERGY_UNIT_NAVAL:
 				[self addEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"];
 				break;
-				
-			case ENERGY_UNIT_NONE:
+
+			default:
 				break;
 		}
 	}
@@ -1267,7 +1267,7 @@ double scoopSoundPlayTime = 0.0;
 
 	if (energy < maxEnergy)
 	{
-		double energy_multiplier = 1.0 + 0.1 * [self energyUnitType]; // 1.5x recharge with normal energy unit, 2x with naval!
+		double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
 		energy += energy_recharge_rate * energy_multiplier * delta_t;
 		if (energy > maxEnergy)
 			energy = maxEnergy;
@@ -2716,14 +2716,21 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
+- (OOEnergyUnitType) installedEnergyUnitType
+{
+	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])  return ENERGY_UNIT_NAVAL;
+	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])  return ENERGY_UNIT_NORMAL;
+	return ENERGY_UNIT_NONE;
+}
+
 - (OOEnergyUnitType) energyUnitType
 {
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])  return ENERGY_UNIT_NAVAL;
 	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])  return ENERGY_UNIT_NORMAL;
-	
+	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NAVAL_DAMAGED;
+	if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"])  return ENERGY_UNIT_NORMAL_DAMAGED;
 	return ENERGY_UNIT_NONE;
 }
-
 
 - (float) heatInsulation
 {
@@ -4894,6 +4901,8 @@ static int last_outfitting_index;
 			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 			if ([self hasEquipmentItem:eq_key_damaged])
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
+			else if([eq_key hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
+				desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
 	}
@@ -5211,13 +5220,18 @@ static int last_outfitting_index;
 				[self removeEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"];
 				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
 				break;
-
+			case ENERGY_UNIT_NAVAL_DAMAGED :
+				[self removeEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 4;	// half of the working one
 			case ENERGY_UNIT_NORMAL :
 				[self removeEquipmentItem:@"EQ_ENERGY_UNIT"];
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;	// 75 % refund
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;		// 75 % refund
+				break;
+			case ENERGY_UNIT_NORMAL_DAMAGED :
+				[self removeEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"];
+				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 8;		// half of the working one
 				break;
 
-			case ENERGY_UNIT_NONE :
 			default :
 				break;
 		}
@@ -6381,7 +6395,7 @@ OOSound* burnersound;
 	OOLog(@"dumpState.playerEntity", @"Shield: %g fore, %g aft", forward_weapon, aft_shield);
 	OOLog(@"dumpState.playerEntity", @"Alert level: %u, flags: %#x", alertFlags, alertCondition);
 	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
-	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self energyUnitType]));
+	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self installedEnergyUnitType]));
 	OOLog(@"dumpState.playerEntity", @"Fuel leak rate: %g", fuel_leak_rate);
 	OOLog(@"dumpState.playerEntity", @"Trumble count: %u", trumbleCount);
 	
