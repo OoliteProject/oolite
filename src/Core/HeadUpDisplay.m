@@ -1275,10 +1275,11 @@ static BOOL hostiles;
 	flash &= 1;
 	
 	// draw altitude bar
-	if (alt < .75)  GLColorWithOverallAlpha(yellow_color, overallAlpha);
-	else if (alt < .25)  GLColorWithOverallAlpha(red_color, overallAlpha);
-	else if ((flash)&&(alt < .10))  GLColorWithOverallAlpha(redplus_color, overallAlpha);
+	if ((flash)&&(alt < .10)) GLColorWithOverallAlpha(redplus_color, overallAlpha);
+	else if (alt < .25) GLColorWithOverallAlpha(red_color, overallAlpha);
+	else if (alt < .75) GLColorWithOverallAlpha(yellow_color, overallAlpha);
 	else GLColorWithOverallAlpha(green_color, overallAlpha);
+
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
 	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
