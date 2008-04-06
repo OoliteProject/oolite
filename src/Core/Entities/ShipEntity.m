@@ -6592,7 +6592,7 @@ BOOL class_masslocks(int some_class)
 				
 				if (isPlayer)
 				{
-					NSString* scoopedMS = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-scooped]"), [other displayName]];
+					NSString* scoopedMS = [NSString stringWithFormat:DESC(@"@-scooped"), [other displayName]];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE addMessage:scoopedMS forCount:4];
 				}
@@ -6634,15 +6634,15 @@ BOOL class_masslocks(int some_class)
 					OOCharacter *rescuee = [[other crew] objectAtIndex:i];
 					if ([rescuee legalStatus])
 					{
-						[UNIVERSE addMessage: [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[scoop-captured-@]"), [rescuee name]] forCount: 4.5];
+						[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-captured-@"), [rescuee name]] forCount: 4.5];
 					}
 					else if ([rescuee insuranceCredits])
 					{
-						[UNIVERSE addMessage: [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[scoop-rescued-@]"), [rescuee name]] forCount: 4.5];
+						[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-rescued-@"), [rescuee name]] forCount: 4.5];
 					}
 					else
 					{
-						[UNIVERSE addMessage: ExpandDescriptionForCurrentSystem(@"[scoop-got-slave]") forCount: 4.5];
+						[UNIVERSE addMessage: DESC(@"scoop-got-slave") forCount: 4.5];
 					}
 					[UNIVERSE playCustomSound:@"[escape-pod-scooped]"];
 				}

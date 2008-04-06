@@ -1301,7 +1301,7 @@ double scoopSoundPlayTime = 0.0;
 		else
 		{
 			ecm_in_operation = NO;
-			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-out-of-juice]") forCount:3.0];
+			[UNIVERSE addMessage:DESC(@"ecm-out-of-juice") forCount:3.0];
 		}
 		if ([UNIVERSE getTime] > ecm_start_time + ECM_DURATION)
 		{
@@ -1330,7 +1330,7 @@ double scoopSoundPlayTime = 0.0;
 				fuel_accumulator -= 1.0;
 			}
 			if (fuel > PLAYER_MAX_FUEL)	fuel = PLAYER_MAX_FUEL;
-			[UNIVERSE displayCountdownMessage:ExpandDescriptionForCurrentSystem(@"[fuel-scoop-active]") forCount:1.0];
+			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
 		}
 	}
 
@@ -1389,7 +1389,7 @@ double scoopSoundPlayTime = 0.0;
 		if (hyperspeed_locked)
 		{
 			[self playJumpMassLocked];
-			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:4.5];
+			[UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:4.5];
 			hyperspeed_engaged = NO;
 		}
 	}
@@ -1667,9 +1667,9 @@ double scoopSoundPlayTime = 0.0;
 	witchspaceCountdown -= delta_t;
 	if (witchspaceCountdown < 0.0)  witchspaceCountdown = 0.0;
 	if (galactic_witchjump)
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
 	else
-		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 	if (witchspaceCountdown == 0.0)
 	{
 		BOOL go = YES;
@@ -1679,7 +1679,7 @@ double scoopSoundPlayTime = 0.0;
 		if (blocker)
 		{
 			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-blocked-by-@]"), [blocker name]] forCount: 4.5];
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
 			if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
 				[witchAbortSound play];
 			status = STATUS_IN_FLIGHT;
@@ -1695,7 +1695,7 @@ double scoopSoundPlayTime = 0.0;
 			if (jump_distance > 7.0)
 			{
 				[UNIVERSE clearPreviousMessage];
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-too-far]") forCount: 4.5];
+				[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
 				if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
 					[witchAbortSound play];
 				status = STATUS_IN_FLIGHT;
@@ -1711,7 +1711,7 @@ double scoopSoundPlayTime = 0.0;
 		if (fuel < fuel_required)
 		{
 			[UNIVERSE clearPreviousMessage];
-			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount: 4.5];
+			[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
 			if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
 				[witchAbortSound play];
 			status = STATUS_IN_FLIGHT;
@@ -1746,7 +1746,7 @@ double scoopSoundPlayTime = 0.0;
 		if ([UNIVERSE planet])
 			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
 		else
-			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-engine-malfunction]") forCount:3.0];
+			[UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0];
 		
 		status = STATUS_IN_FLIGHT;
 		[self doScriptEvent:@"shipExitedWitchspace"];
@@ -1806,7 +1806,7 @@ double scoopSoundPlayTime = 0.0;
 			{
 				if (!suppressTargetLost)
 				{
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
+					[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 					[self playTargetLost];
 				}
 				else
@@ -3309,7 +3309,7 @@ double scoopSoundPlayTime = 0.0;
 		if (!cargo_desc)
 			return;
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"[@-destroyed]"), cargo_desc] forCount:4.5];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), cargo_desc] forCount:4.5];
 		[cargo removeObject:pod];
 		return;
 	}
@@ -3341,11 +3341,11 @@ double scoopSoundPlayTime = 0.0;
 		[self removeEquipmentItem:system_key];
 		if (![UNIVERSE strict])
 		{
-			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-damaged]"), system_name] forCount:4.5];
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 			[self addEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
 		}
 		else
-			[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-destroyed]"), system_name] forCount:4.5];
+			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
 		return;
 	}
 	//cosmetic damage

@@ -922,15 +922,22 @@ static NSTimeInterval	time_last_frame;
 					{
 						[self playHyperspaceNoTarget];
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-target]") forCount:3.0];
+						[UNIVERSE addMessage:DESC(@"witch-no-target") forCount:3.0];
 						jumpOK = NO;
 					}
 					
-					if ((10.0 * distance > fuel)||(fuel == 0))
+					if (distance > 7)
 					{
 						[self playHyperspaceNoFuel];
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-no-fuel]") forCount:3.0];
+						[UNIVERSE addMessage:DESC(@"witch-too-far") forCount:3.0];
+						jumpOK = NO;
+					}
+					else if ((10.0 * distance > fuel)||(fuel == 0))
+					{
+						[self playHyperspaceNoFuel];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount:3.0];
 						jumpOK = NO;
 					}
 					
@@ -943,7 +950,7 @@ static NSTimeInterval	time_last_frame;
 						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
 						
 						[self doScriptEvent:@"playerCancelledJumpCountdown"];
 					}
