@@ -207,10 +207,9 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 	if (!equal_seeds(sCurrentSystem, player->system_seed))
 	{
 		sCurrentSystem = player->system_seed;
-		
-		[sPlanetInfo release];
-		sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
 	}
+	[sPlanetInfo release];
+	sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -330,10 +329,9 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 	if (!equal_seeds(sCurrentSystem, player->system_seed))
 	{
 		sCurrentSystem = player->system_seed;
-		
-		[sPlanetInfo release];
-		sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
 	}
+	[sPlanetInfo release];
+	sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
 	
 	galaxy = [player currentGalaxyID];
 	system = [player currentSystemID];
@@ -402,7 +400,8 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 			OOReportJavaScriptBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
 			return NO;
 	}
-	
+	[UNIVERSE generateSystemData:kNilRandomSeed];
+	[UNIVERSE generateSystemData:sCurrentSystem];
 	return YES;
 }
 
