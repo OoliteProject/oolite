@@ -45,12 +45,26 @@ MA 02110-1301, USA.
 // prevent the including of SDL_opengl.h loading a previous version of glext.h
 #define NO_SDL_GLEXT
 
+// GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders.
+// The preprocessor if statement below is required as is, because the LINUX
+// symbol is defined for both Windows and Linux builds.
+#if (OOLITE_LINUX && !OOLITE_WINDOWS)
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
+#define	__DEFINED_GL_GLEXT_PROTOTYPES
+#endif	// GL_GLEXT_PROTOTYPES
+#endif	// OOLITE_LINUX && !OOLITE_WINDOWS
+
 // the standard SDL_opengl.h
 #include <SDL_opengl.h>
 
 // include an up-to-date version of glext.h
 #include <GL/glext.h>
 
+#ifdef __DEFINED_GL_GLEXT_PROTOTYPES
+#undef GL_GLEXT_PROTOTYPES
+#undef __DEFINED_GL_GLEXT_PROTOTYPES
+#endif
 
 #else	// Not OS X or SDL
 
