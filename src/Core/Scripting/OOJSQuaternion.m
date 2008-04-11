@@ -299,7 +299,7 @@ FAIL:
 	// Report bad parameters, if given a class and function.
 	if (scriptClass != nil && function != nil)
 	{
-		OOReportJavaScriptError(context, @"%@.%@(): could not construct vector from parameters %@ -- expected Vector, Entity or three numbers.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
+		OOReportJavaScriptError(context, @"%@.%@(): could not construct quaternion from parameters %@ -- expected Quaternion, Entity or four numbers.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
 	}
 	return NO;
 }
