@@ -1147,14 +1147,62 @@ unsigned long long OOUnsignedLongLongFromObject(id object, unsigned long long de
 }
 
 
-static BOOL IsBooleanString(id object, BOOL *outValue)  NONNULL_FUNC;
+static inline BOOL IsSpaceOrTab(int value)
+{
+	return value == ' ' || value == '\t';
+}
+
+
+static BOOL IsZeroString(NSString *string)
+{
+	/*	I don't particularly like regexps, but there are occasions...
+	 To match NSString's behaviour for intValue etc. with non-zero numbers,
+	 we need to skip any leading spaces or tabs (but not line breaks), get
+	 an optional minus sign, then at least one 0. Any trailing junk is
+	 ignored. It is assumed that this function is called for strings whose
+	 numerical value has already been determined to be 0.
+	 */
+	
+	unsigned long i = 0, count = [string length];
+#define PEEK() ((i >= count) ? -1 : [string characterAtIndex:i])
+	
+	while (IsSpaceOrTab(PEEK()))  ++i;	// Skip spaces and tabs
+	if (PEEK() == ' ')  ++i;			// Skip optional hyphen-minus
+	return PEEK() == '0';				// If this is a 0, it's a numerical string.
+	
+#undef PEEK
+}
+
+
+static BOOL BooleanFromString(NSString *string, BOOL defaultValue)
+{
+	if (NSOrderedSame == [string caseInsensitiveCompare:@"yes"] ||
+		NSOrderedSame == [string caseInsensitiveCompare:@"true"] ||
+		NSOrderedSame == [string caseInsensitiveCompare:@"on"] ||
+		[string doubleValue] != 0.0)	// Floating point is used so values like @"0.1" are treated as nonzero.
+	{
+		return YES;
+	}
+	else if (NSOrderedSame == [string caseInsensitiveCompare:@"no"] ||
+			 NSOrderedSame == [string caseInsensitiveCompare:@"false"] ||
+			 NSOrderedSame == [string caseInsensitiveCompare:@"off"] ||
+			 IsZeroString(string))
+	{
+		return NO;
+	}
+	return defaultValue;
+}
 
 
 BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 {
 	BOOL result;
 	
-	if (!IsBooleanString(object, &result))
+	if ([object isKindOfClass:[NSString class]])
+	{
+		result = BooleanFromString(object, defaultValue);
+	}
+	else
 	{
 		if ([object respondsToSelector:@selector(boolValue)])  result = [object boolValue];
 		else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue] != 0;
@@ -1168,18 +1216,27 @@ BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue)
 {
-	BOOL result;
+	float probability;
 	
-	if (!IsBooleanString(object, &result))
+	if ([object isKindOfClass:[NSString class]])
 	{
-		/*	This will always be NO for negative values and YES for values
-			greater than 1, as expected. randf() is always less than 1, so
-			< is the correct operator here.
-		*/
-		result = randf() < OOFloatFromObject(object, defaultValue ? 1.0f : 0.0f);
+		probability = [object floatValue];
+		if (probability == 0.0)
+		{
+			// Treat as normal boolean string
+			return BooleanFromString(object, defaultValue);
+		}
+	}
+	else
+	{
+		probability = OOFloatFromObject(object, defaultValue ? 1.0f : 0.0f);
 	}
 	
-	return result;
+	/*	This will always be NO for negative values and YES for values
+		greater than 1, as expected. randf() is always less than 1, so
+		< is the correct operator here.
+	*/
+	return randf() < probability;
 }
 #endif
 
@@ -1188,7 +1245,11 @@ float OOFloatFromObject(id object, float defaultValue)
 {
 	float result;
 	
-	if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
+	if ([object respondsToSelector:@selector(floatValue)])
+	{
+		result = [object floatValue];
+		if (result == 0.0f && [object isKindOfClass:[NSString class]] && !IsZeroString(object))  result = defaultValue;
+	}
 	else if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
 	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
 	else result = defaultValue;
@@ -1201,7 +1262,11 @@ double OODoubleFromObject(id object, double defaultValue)
 {
 	double result;
 	
-	if ([object respondsToSelector:@selector(doubleValue)])  result = [object doubleValue];
+	if ([object respondsToSelector:@selector(doubleValue)])
+	{
+		result = [object doubleValue];
+		if (result == 0.0 && [object isKindOfClass:[NSString class]] && !IsZeroString(object))  result = defaultValue;
+	}
 	else if ([object respondsToSelector:@selector(floatValue)])  result = [object floatValue];
 	else if ([object respondsToSelector:@selector(intValue)])  result = [object intValue];
 	else result = defaultValue;
@@ -1330,33 +1395,6 @@ NSDictionary *OOPropertyListFromQuaternion(Quaternion value)
 			nil];
 }
 #endif
-
-
-static BOOL IsBooleanString(id object, BOOL *outValue)
-{
-	if ([object isKindOfClass:[NSString class]])
-	{
-		if (NSOrderedSame == [object caseInsensitiveCompare:@"yes"] ||
-			NSOrderedSame == [object caseInsensitiveCompare:@"true"] ||
-			NSOrderedSame == [object caseInsensitiveCompare:@"on"] ||
-			[object intValue] != 0)
-		{
-			*outValue = YES;
-			return YES;
-		}
-		else if (NSOrderedSame == [object caseInsensitiveCompare:@"no"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"false"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"off"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"0"] ||
-				 NSOrderedSame == [object caseInsensitiveCompare:@"-0"])
-		{
-			*outValue = NO;
-			return YES;
-		}
-	}
-	
-	return NO;
-}
 
 
 static NSSet *SetForObject(id object, NSSet *defaultValue)

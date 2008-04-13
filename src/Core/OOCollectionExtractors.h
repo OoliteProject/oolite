@@ -436,5 +436,38 @@ OOINLINE long long OOClampInteger(long long value, long long minValue, long long
 
 OO_DEFINE_CLAMP_PAIR(char, Char, CHAR)
 OO_DEFINE_CLAMP_PAIR(short, Short, SHRT)
+
+/*	When ints or longs are as large as long longs, we can't do any clamping
+	because the clamping code will overflow (unless we add pointless complexity).
+	Instead, we alias the long long versions which don't clamp. Inlines are
+	used instead of macros so that the functions always have the precise type
+	they should; this is necessary for stuff that uses @encode, notably the
+	SenTestingKit framework.
+*/
+#define OO_ALIAS_CLAMP_LONG_LONG(type, typeName) \
+static inline type OO##typeName##FromObject(id object, type defaultValue) \
+{ \
+	return OOLongLongFromObject(object, defaultValue); \
+}
+#define OO_ALIAS_CLAMP_PAIR_LONG_LONG(type, typeName) \
+OO_ALIAS_CLAMP_LONG_LONG(type, typeName) \
+OO_ALIAS_CLAMP_LONG_LONG(unsigned type, Unsigned##typeName)
+
+#if INT_MAX == LLONG_MAX
+//	Should never get here under Mac OS X, but may under GNUstep.
+OO_ALIAS_CLAMP_PAIR_LONG_LONG(int, Int)
+#else
 OO_DEFINE_CLAMP_PAIR(int, Int, INT)
+#endif
+
+#if LONG_MAX == LLONG_MAX
+OO_ALIAS_CLAMP_PAIR_LONG_LONG(long, Long)
+#else
 OO_DEFINE_CLAMP_PAIR(long, Long, LONG)
+#endif
+
+
+#undef OO_DEFINE_CLAMP
+#undef OO_DEFINE_CLAMP_PAIR
+#undef OO_ALIAS_CLAMP_LONG_LONG
+#undef OO_ALIAS_CLAMP_PAIR_LONG_LONG

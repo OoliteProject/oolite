@@ -6084,36 +6084,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
-	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxy_seed:gal_seed];
-
-	Random_Seed system = gal_seed;
-	int distance, dx, dy;
-	int i;
-    int min_dist = 10000;
-
-	for (i = 0; i < 256; i++)
-	{
-		dx = abs(coords.x - systems[i].d);
-		dy = abs(coords.y - systems[i].b);
-
-		if (dx > dy)
-			distance = (dx + dx + dy) / 2;
-		else
-			distance = (dx + dy + dy) / 2;
-
-		if ((distance == min_dist)&&(coords.y > systems[i].b))	// with coincident systems choose only if ABOVE
-		{
-			system = systems[i];
-		}
-		if (distance < min_dist)
-		{
-			min_dist = distance;
-			system = systems[i];
-		}
-	}
-
-	return system;
+	return systems[[self findSystemNumberAtCoords:coords withGalaxySeed:gal_seed]];
 }
 
 
@@ -6236,10 +6207,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if (!equal_seeds(gal_seed, galaxy_seed))
 		[self setGalaxy_seed:gal_seed];
 
-	int system = NSNotFound;
-	int distance, dx, dy;
-	int i;
-    int min_dist = 10000;
+	unsigned system = NSNotFound;
+	unsigned distance, dx, dy;
+	unsigned i;
+    unsigned min_dist = 10000;
 
 	for (i = 0; i < 256; i++)
 	{
