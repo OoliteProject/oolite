@@ -2691,6 +2691,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// Draw self.
 	[super drawEntity:immediate :translucent];
+
+#ifndef NDEBUG
+	// Draw bounding boxes if we have to before going for the subentities.
+	// TODO: the translucent flag here makes very little sense. Something's wrong with the matrices.
+	if (translucent)  [self drawDebugStuff];
+	else if (gDebugFlags & DEBUG_BOUNDING_BOXES && ![self isSubEntity])
+	{
+		OODebugDrawBoundingBox([self boundingBox]);
+		OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
+	}
+#endif
 	
 	// Draw subentities.
 	if (!immediate)	// TODO: is this relevant any longer?
@@ -2701,16 +2712,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[subEntity drawSubEntity:immediate :translucent];
 		}
 	}
-	
-#ifndef NDEBUG
-	// TODO: the translucent flag here makes very little sense. Something's wrong with the matrices.
-	if (translucent)  [self drawDebugStuff];
-	else if (gDebugFlags & DEBUG_BOUNDING_BOXES && ![self isSubEntity])
-	{
-		OODebugDrawBoundingBox([self boundingBox]);
-		OODebugDrawColoredBoundingBox(totalBoundingBox, [OOColor purpleColor]);
-	}
-#endif
 }
 
 
@@ -2753,20 +2754,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// this test provides an opportunity to do simple LoD culling
 		//
-		zero_distance = my_owner->zero_distance;
+		zero_distance = [my_owner zeroDistance];
 		if (zero_distance > no_draw_distance)
 		{
 			return; // TOO FAR AWAY
 		}
 	}
 	
-	glPushMatrix();
 	if (status == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
 		Entity		*last = nil;
 		Entity		*father = my_owner;
 		OOMatrix	r_mat;
+		
 		while ((father)&&(father != last))
 		{
 			r_mat = [father drawRotationMatrix];
@@ -2776,6 +2777,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
+		glPopMatrix();
+		glPushMatrix();
 		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
 		
@@ -2783,10 +2786,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
+		glPushMatrix();
+		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
+		
+		glPopMatrix();
 	}
 	
 #ifndef NDEBUG
@@ -2795,8 +2802,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		OODebugDrawBoundingBox([self boundingBox]);
 	}
 #endif
-	
-	glPopMatrix();
+		
 }
 
 
