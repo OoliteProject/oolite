@@ -103,8 +103,8 @@ enum {
 
 // Stick constants
 #define MAX_STICKS 2
-#define MAX_AXES  (AXIS_end)
-#define MAX_BUTTONS  (BUTTON_end)
+#define MAX_AXES  10
+#define MAX_BUTTONS  20
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
 #define STICK_PRECISIONDIV 98304 // 3 times more precise
