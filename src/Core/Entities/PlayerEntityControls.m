@@ -1167,7 +1167,7 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
 #endif	// NDEBUG
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
-			[playersHud setOverallAlpha:sPrevHudAlpha];
+			if (sPrevHudAlpha != -1.0f) [playersHud setOverallAlpha:sPrevHudAlpha];
 #ifdef ALLOW_PROCEDURAL_PLANETS
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
 			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
