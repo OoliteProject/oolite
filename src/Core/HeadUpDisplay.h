@@ -208,6 +208,7 @@ MA 02110-1301, USA.
 - (void) setScannerZoom:(double) value;
 
 - (GLfloat) overallAlpha;
+- (void) setOverallAlpha:(GLfloat) newAlphaValue;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;

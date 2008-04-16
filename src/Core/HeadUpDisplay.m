@@ -233,6 +233,12 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 }
 
 
+- (void) setOverallAlpha:(GLfloat) newAlphaValue
+{
+	overallAlpha = OOClamp_0_1_f(newAlphaValue);
+}
+
+
 - (void) addLegend:(NSDictionary *) info
 {
 	NSString			*imageName = nil;
@@ -1201,7 +1207,7 @@ static BOOL hostiles;
 	// draw range indicator
 	if ((hr > 0)&&(hr <= 1.0))
 	{
-		glColor4fv((fu < hr)? red_color : green_color);
+		GLColorWithOverallAlpha((fu < hr) ? red_color : green_color, overallAlpha);
 		hudDrawMarkerAt(x, y, z1, siz, hr);
 	}
 }
@@ -1684,14 +1690,14 @@ static BOOL hostiles;
 	glDisable(GL_TEXTURE_2D);
 	glBegin(GL_QUADS);
 	// section 1
-		glColor4fv(s1c);
+		GLColorWithOverallAlpha(s1c, overallAlpha);
 		glVertex3f(x, y + h1, z1);	glVertex3f(x - w2, y + h2, z1);	glVertex3f(x, y + h3, z1);	glVertex3f(x + w2, y + h2, z1);
 	// section 2
-		glColor4fv(s2c);
+		GLColorWithOverallAlpha(s2c, overallAlpha);
 		glVertex3f(x, y - h1, z1);	glVertex3f(x - w4, y + h1, z1);	glVertex3f(x - w4, y + h2, z1);	glVertex3f(x, y, z1);
 		glVertex3f(x, y - h1, z1);	glVertex3f(x + w4, y + h1, z1);	glVertex3f(x + w4, y + h2, z1);	glVertex3f(x, y, z1);
 	// section 3
-		glColor4fv(s3c);
+		GLColorWithOverallAlpha(s3c, overallAlpha);
 		glVertex3f(x, y - h4, z1);	glVertex3f(x - w2, y - h2, z1);	glVertex3f(x - w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 		glVertex3f(x, y - h4, z1);	glVertex3f(x + w2, y - h2, z1);	glVertex3f(x + w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 	glEnd();
