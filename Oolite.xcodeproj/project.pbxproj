@@ -33,7 +33,6 @@
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
 		1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
 		1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */; };
-		1A03659C0D7CA0EE00B5F46F /* oolite-nebula-5.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A03659A0D7CA0EE00B5F46F /* oolite-nebula-5.png */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
@@ -768,7 +767,6 @@
 			files = (
 				1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */,
 				1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */,
-				1A03659C0D7CA0EE00B5F46F /* oolite-nebula-5.png in Copy Textures */,
 				1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */,
 				1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */,
 				1A35916E0C1C375400E52220 /* oolite-star-1.png in Copy Textures */,
@@ -1024,7 +1022,6 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
-		1A03659A0D7CA0EE00B5F46F /* oolite-nebula-5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-5.png"; sourceTree = "<group>"; };
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-DebugOXP/DebugOXP.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
@@ -1853,7 +1850,6 @@
 				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
-				1A03659A0D7CA0EE00B5F46F /* oolite-nebula-5.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
