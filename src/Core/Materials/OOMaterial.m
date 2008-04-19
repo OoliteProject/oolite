@@ -359,6 +359,10 @@ static OOMaterial *sActiveMaterial = nil;
 		{
 			result = [[OOSingleTextureMaterial alloc] initWithName:name configuration:configuration];
 		}
+		if (result == nil)
+		{
+			result = [[OOBasicMaterial alloc] initWithName:name];
+		}
 		[result autorelease];
 	}
 	return result;

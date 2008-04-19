@@ -559,13 +559,14 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		material =[OOTexture textureWithConfiguration:textureDef];
+		material =[[OOTexture textureWithConfiguration:textureDef] retain];
 		
 		if (material !=nil)
 			textures[i] = [material retain];
 		else{
 			textures[i] = [placeholderMaterial retain];
 		}
+		[material autorelease];
 	}
 }
 
