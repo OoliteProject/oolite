@@ -4323,7 +4323,7 @@ double scoopSoundPlayTime = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
 		}
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 		// Growl priority control
 		{
 			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
@@ -4348,14 +4348,6 @@ double scoopSoundPlayTime = 0.0;
 		else
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
-
-		// iTunes integration control
-		// FIXME: music mode UI
-		if (0)//ootunes_on)
-			[gui setText:DESC(@"gameoptions-itunes-yes") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-itunes-no") forRow:GUI_ROW_GAMEOPTIONS_OOTUNES align:GUI_ALIGN_CENTER];
-		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_OOTUNES];
 
 #else
 
@@ -4386,6 +4378,9 @@ double scoopSoundPlayTime = 0.0;
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_STICKMAPPER];
 		}
 #endif
+		NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:[[OOMusicController sharedController] mode]]];
+		[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_MUSIC  align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_MUSIC];
 
 		if ([UNIVERSE wireframeGraphics])
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes") forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];

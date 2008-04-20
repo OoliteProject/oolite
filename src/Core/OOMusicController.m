@@ -75,6 +75,9 @@ enum
 		else if ([modeString isEqualToString:@"iTunes"])  _mode = kOOMusicITunes;
 		else  _mode = kOOMusicOn;
 		
+		// Handle unlikely case of taking prefs from iTunes-enabled system to other.
+		if (_mode > kOOMusicModeMax)  _mode = kOOMusicModeMax;
+		
 		[self setMissionMusic:@"OoliteTheme.ogg"];
 	}
 	
@@ -216,7 +219,7 @@ enum
 
 - (void) setMode:(OOMusicMode)mode
 {
-	if (mode < kOOMusicModeCount && _mode != mode)
+	if (mode <= kOOMusicModeMax && _mode != mode)
 	{
 		_mode = mode;
 		
@@ -250,7 +253,6 @@ enum
 			case kOOMusicOff:		modeString = @"off"; break;
 			case kOOMusicOn:		modeString = @"on"; break;
 			case kOOMusicITunes:	modeString = @"iTunes"; break;
-			case kOOMusicModeCount:	break;
 		}
 		[[NSUserDefaults standardUserDefaults] setObject:modeString forKey:@"music mode"];
 	}

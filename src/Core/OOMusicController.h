@@ -30,13 +30,20 @@ MA 02110-1301, USA.
 @class OOMusic;
 
 
+#define OOLITE_ITUNES_SUPPORT OOLITE_MAC_OS_X
+
+
 typedef enum
 {
 	kOOMusicOff,
 	kOOMusicOn,
 	kOOMusicITunes,
 	
-	kOOMusicModeCount
+#if OOLITE_ITUNES_SUPPORT
+	kOOMusicModeMax = kOOMusicITunes
+#else
+	kOOMusicModeMax = kOOMusicOn
+#endif
 } OOMusicMode;
 
 

@@ -82,6 +82,7 @@ static BOOL				switching_resolution;
 static BOOL				wait_for_key_up;
 static BOOL				upDownKeyPressed;
 static BOOL				leftRightKeyPressed;
+static BOOL				musicModeKeyPressed;
 static BOOL				enterSelectKeyPressed;
 static BOOL				volumeControlPressed;
 static BOOL				shaderSelectKeyPressed;
@@ -1885,21 +1886,33 @@ static NSTimeInterval	time_last_frame;
 		else
 			[gui setText:DESC(@"gameoptions-spoken-messages-no")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
 	}
-	
-	
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_OOTUNES)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
-	{
-		// FIXME: Music mode UI
-		/*GuiDisplayGen* gui = [UNIVERSE gui];
-		if ([gameView isDown:gvArrowKeyRight] != ootunes_on)
-			[self playChangedOption];
-		ootunes_on = [gameView isDown:gvArrowKeyRight];
-		if (ootunes_on)
-			[gui setText:DESC(@"gameoptions-itunes-yes")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];
-		else
-			[gui setText:DESC(@"gameoptions-itunes-no")	forRow:GUI_ROW_GAMEOPTIONS_OOTUNES  align:GUI_ALIGN_CENTER];*/
-	}
 #endif
+	
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_MUSIC)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	{
+		if (!musicModeKeyPressed)
+		{
+			GuiDisplayGen*		gui = [UNIVERSE gui];
+			OOMusicController	*musicController = [OOMusicController sharedController];
+			int					initialMode = [musicController mode];
+			int					mode = initialMode;
+			
+			if ([gameView isDown:gvArrowKeyRight])  mode++;
+			if ([gameView isDown:gvArrowKeyLeft])  mode--;
+			
+			[musicController setMode:MAX(mode, 0)];
+			
+			if ((int)[musicController mode] != initialMode)
+			{
+				[self playChangedOption];
+				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:mode]];
+				[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_MUSIC  align:GUI_ALIGN_CENTER];
+			}
+		}
+		musicModeKeyPressed = YES;
+	}
+	else  musicModeKeyPressed = NO;
+	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_AUTOSAVE)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
