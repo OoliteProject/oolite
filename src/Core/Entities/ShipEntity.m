@@ -3399,29 +3399,49 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	aegis_status = AEGIS_NONE;
 }
 
+
+NSComparisonResult planetSort(id i1, id i2, void* context)
+{
+	Vector p = [(ShipEntity*) context position];
+	PlanetEntity* e1= i1;
+	PlanetEntity* e2= i2;
+	//fx: empirical value used to help determine proximity when non-nested planets are close to each other
+	float fx=1.35;
+	float r;
+	
+	float p1 = magnitude2(vector_subtract([e1 position], p));
+	float p2 = magnitude2(vector_subtract([e2 position], p));
+	r = [e1 radius];
+	p1 -= fx*r*r;
+	r = [e2 radius];
+	p2 -= fx*r*r;
+	
+	if (p1 < p2) return NSOrderedAscending;
+	if (p1 > p2) return NSOrderedDescending;
+    
+	return NSOrderedSame;
+}
+
+
 - (PlanetEntity *) findPlanetNearestSurface
 {
-	NSArray				*planets = nil;
+	NSMutableArray		*planets = nil;
+	NSArray				*sortedPlanets = nil;
 	
-	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
-											parameter:NULL
-											  inRange:-1
-											 ofEntity:self];
-	
+	planets = (NSMutableArray *)[UNIVERSE planets];
+	[planets addObject:[UNIVERSE sun]];
+
 	if ([planets count] == 0)  return nil;
 	
 	PlanetEntity* the_planet=[planets objectAtIndex:0];
-	if ([planets count] >1)		//2 or more planets, select the one with the closest surface between the nearest two.
+	if ([planets count] >1)
 	{
-		PlanetEntity* alt_planet=[planets objectAtIndex:1];
-		float diff= [alt_planet collisionRadius] - [the_planet collisionRadius];
-		if(diff > 0 &&  diff * diff > magnitude2(vector_subtract([alt_planet position], [self position])) - magnitude2(vector_subtract([the_planet position], [self position])))
-		{		
-			the_planet = alt_planet;
-		}		
+		sortedPlanets = [planets sortedArrayUsingFunction:planetSort context:self];
+		the_planet=[sortedPlanets objectAtIndex:0];		
 	}
 	return the_planet;
 }
+
 
 - (OOAegisStatus) checkForAegis
 {
