@@ -7264,7 +7264,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			}
 				
 			[description appendFormat:DESC(@"shipyard-selling-price-llu-credits"), (unsigned long long)price];
-			[short_description appendFormat:DESC(@"shipyard-selling-price-llu-credits"), (unsigned long long)price];
+			[short_description appendFormat:DESC(@"shipyard-price-llu-credits"), (unsigned long long)price];
 
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 

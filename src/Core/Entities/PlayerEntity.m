@@ -3276,7 +3276,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (score > 9)
 	{
-		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-llu"), (unsigned long long)score];
+		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-llu"), (unsigned long long)(score/10)];
 		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-f-credits"), 0.1 * credits];
 		
 		[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
