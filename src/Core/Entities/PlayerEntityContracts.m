@@ -140,7 +140,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			if (dest_eta > 0)
 			{
 				// and in good time
-				int fee = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] intValue];
+				long long fee = [passenger_info longLongForKey:PASSENGER_KEY_FEE];
 				while ((randf() < 0.75)&&(dest_eta > 3600))	// delivered with more than an hour to spare and a decent customer?
 				{
 					fee *= 110;	// tip + 10%
@@ -149,23 +149,23 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				}
 				credits += 10 * fee;
 				if (!result)
-					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-okay-@-d-@]"), passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-okay-@-llu-@]"), passenger_name, fee, passenger_dest_name];
 				else
-					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-okay-@-d-@]"), result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-okay-@-llu-@]"), result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 				[self increasePassengerReputation];
 			}
 			else
 			{
 				// but we're late!
-				int fee = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] intValue] / 2;	// halve fare
+				long long fee = [passenger_info longLongForKey:PASSENGER_KEY_FEE] / 2;	// halve fare
 				while (randf() < 0.5)	// maybe halve fare a few times!
 					fee /= 2;
 				credits += 10 * fee;
 				if (!result)
-					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-late-@-d-@]"), passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[passenger-delivered-late-@-llu-@]"), passenger_name, fee, passenger_dest_name];
 				else
-					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-late-@-d-@]"), result, passenger_name, fee, passenger_dest_name];
+					result = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"%@\n[passenger-delivered-late-@-llu-@]"), result, passenger_name, fee, passenger_dest_name];
 				[passengers removeObjectAtIndex:i--];
 			}
 		}
@@ -1207,12 +1207,12 @@ static NSMutableDictionary* currentShipyard = nil;
 			}
 			for (i = 0; i < (n_ships - skip) && (int)i < n_rows; i++)
 			{
-				NSDictionary* ship_info = (NSDictionary*)[shipyard objectAtIndex:i + skip];
-				int ship_price = [(NSNumber*)[ship_info objectForKey:SHIPYARD_KEY_PRICE] intValue];
+				NSDictionary* ship_info = [shipyard dictionaryAtIndex:i + skip];
+				OOCreditsQuantity ship_price = [ship_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 				[gui setColor:[OOColor yellowColor] forRow:start_row + i];
 				[gui setArray:[NSArray arrayWithObjects:
 						[NSString stringWithFormat:@" %@ ",[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:@"display_name" defaultValue:[[ship_info dictionaryForKey:SHIPYARD_KEY_SHIP] stringForKey:KEY_NAME]]],
-						[NSString stringWithFormat:DESC(@"ship-purchase-price"),ship_price],
+						[NSString stringWithFormat:DESC(@"ship-purchase-price"), (unsigned long long)ship_price],
 						nil]
 					forRow:start_row + i];
 				[gui setKey:(NSString*)[ship_info objectForKey:SHIPYARD_KEY_ID] forRow:start_row + i];

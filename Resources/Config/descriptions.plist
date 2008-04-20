@@ -370,7 +370,7 @@
 	
 	// *** Misc. messages ***
 	// Messages used when awarding bounties
-	"bounty-d"						= ( "Bounty: %d" );
+	"bounty-llu"					= ( "Bounty: %llu" );
 	"total-f-credits"				= ( "Total: %.1f ₢" );
 	"right-on-commander"			= ( "Right On, Commander!" );
 	
@@ -573,10 +573,10 @@
 	// /station
 	"fined" =
 	(
-		"You have been fined %d credits.",
-		"You have been fined %d credits, and made to pick up litter in the main hangar deck.",
-		"You have been fined %d credits, and are forced to clean up after the [6]oids.",
-		"You have been fined %d credits, and sent for “attitude adjustment”."
+		"You have been fined %llu credits.",
+		"You have been fined %llu credits, and made to pick up litter in the main hangar deck.",
+		"You have been fined %llu credits, and are forced to clean up after the [6]oids.",
+		"You have been fined %llu credits, and sent for “attitude adjustment”."
 	);
 	// system description after a nova
 	"nova-system-description" =
@@ -863,7 +863,7 @@
 	"starboard-facing-string"		= " Starboard ";
 	
 	// Purchase ship screen
-	"ship-purchase-price"			= "%d ₢";
+	"ship-purchase-price"			= "%llu ₢";
 	
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";
@@ -881,7 +881,7 @@
 	"contracts-@-a-@-wishes-to-go-to-@" = "%@, a %@, wishes to go to %@.";
 	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
 	"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time" = "%@ You will need to depart within %@, in order to arrive within %@ time.";
-	"contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival" = "%@ Will pay %llu ₢: %d ₢ in advance, and %llu ₢ on arrival.";
+	"contracts-@-will-pay-llu-credits-llu-in-advance-and-llu-credits-on-arrival" = "%@ Will pay %llu ₢: %llu ₢ in advance, and %llu ₢ on arrival.";
 	"contracts-deliver-a-cargo-of-@-to-@" = "Deliver a cargo of %@ to %@.";
 	"contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits" = "%@ The contract will cost you %.1f ₢, and pay a total of %.1f ₢.";
 	"contracts-no-time"				= "no time";
@@ -927,8 +927,8 @@
 	"shipyard-standard-customer-model" = " Standard customer model.";
 	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
 	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
-	"shipyard-selling-price-d-credits" = " Selling price %d ₢.";
-	"shipyard-price-d-credits"		= " Price %d ₢.";
+	"shipyard-selling-price-llu-credits" = " Selling price %llu ₢.";
+	"shipyard-price-llu-credits"		= " Price %llu ₢.";
 	
 	// Load/Save screens shared information
 	"loadsavescreen-commander-name" = "Commander Name";
@@ -980,8 +980,8 @@
 	// delivery reports
 	"arrival-report-title"			= "%H Arrival Report";
 	
-	"passenger-delivered-okay-@-d-@" = "%@ thanks you, and pays you %d ₢ for delivering them to %@.";
-	"passenger-delivered-late-@-d-@" = "%@ pays you %d ₢ for eventually delivering them to %@.";
+	"passenger-delivered-okay-@-llu-@" = "%@ thanks you, and pays you %lld ₢ for delivering them to %@.";
+	"passenger-delivered-late-@-llu-@" = "%@ pays you %lld ₢ for eventually delivering them to %@.";
 	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.";
 	
 	"cargo-delivered-okay-@-f"		= "Droids unload the %@ and you are paid %.1f ₢.";

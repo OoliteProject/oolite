@@ -6685,8 +6685,8 @@ double estimatedTimeForJourney(double distance, int hops)
 					[self shortTimeDescription:(passenger_departure_time - current_time)], [self shortTimeDescription:(passenger_arrival_time - current_time)]];
 				
 				long_description = [NSString stringWithFormat:
-					DESC(@"contracts-@-will-pay-llu-credits-d-in-advance-and-llu-credits-on-arrival"), long_description,
-					premium + fee, premium, fee];
+					DESC(@"contracts-@-will-pay-llu-credits-llu-in-advance-and-llu-credits-on-arrival"), long_description,
+					(unsigned long long)(premium + fee), (unsigned long long)premium, (unsigned long long)fee];
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 					passenger_name,											PASSENGER_KEY_NAME,
@@ -7263,8 +7263,8 @@ double estimatedTimeForJourney(double distance, int hops)
 				price = base_price + cunningFee(price - base_price);
 			}
 				
-			[description appendFormat:DESC(@"shipyard-selling-price-d-credits"), (int) price];
-			[short_description appendFormat:DESC(@"shipyard-price-d-credits"), (int) price];
+			[description appendFormat:DESC(@"shipyard-selling-price-llu-credits"), (unsigned long long)price];
+			[short_description appendFormat:DESC(@"shipyard-selling-price-llu-credits"), (unsigned long long)price];
 
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 

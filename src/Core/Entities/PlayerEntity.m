@@ -3276,7 +3276,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (score > 9)
 	{
-		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-d"), (int)((score / 10) +.5)];
+		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-llu"), (unsigned long long)score];
 		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-f-credits"), 0.1 * credits];
 		
 		[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
@@ -5742,7 +5742,7 @@ OOSound* burnersound;
 		credits -= fine;
 	}
 	fine /= 10;	// divide by ten for display
-	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[fined]"), fine];
+	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[fined]"), (unsigned long long)fine];
 	[UNIVERSE addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)
