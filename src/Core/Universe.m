@@ -7263,8 +7263,8 @@ double estimatedTimeForJourney(double distance, int hops)
 				price = base_price + cunningFee(price - base_price);
 			}
 				
-			[description appendFormat:DESC(@"shipyard-selling-price-d-credits"), price];
-			[short_description appendFormat:DESC(@"shipyard-price-d-credits"), price];
+			[description appendFormat:DESC(@"shipyard-selling-price-d-credits"), (int) price];
+			[short_description appendFormat:DESC(@"shipyard-price-d-credits"), (int) price];
 
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 
