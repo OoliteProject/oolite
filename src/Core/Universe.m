@@ -8214,9 +8214,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 				@"// System description grammar:\n\n"
 				"digraph system_descriptions\n"
 				"{\n"
-				"\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.02]\n"
-				"\tedge [arrowhead=dot sametail=1]\n"
-				"\tnode [shape=none height=0.2]\n\t\n"];
+				"\tgraph [charset=\"UTF-8\", label=\"System description grammar\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.02 ranksep=1.5 concentrate=true fontname=Helvetica]\n"
+				"\tedge [arrowhead=dot]\n"
+				"\tnode [shape=none height=0.2 width=3 fontname=Helvetica]\n\t\n"];
 	
 	systemDescriptions = [[self descriptions] arrayForKey:@"system_description"];
 	count = [systemDescriptions count];

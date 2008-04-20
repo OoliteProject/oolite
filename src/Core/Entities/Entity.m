@@ -528,6 +528,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (id<OOWeakReferenceSupport>) superShaderBindingTarget
+{
+	return [self parentEntity];
+}
+
+
 - (ShipEntity *) rootShipEntity
 {
 	ShipEntity *parent = [self parentEntity];

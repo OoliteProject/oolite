@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOGraphicsResetManager.h"
 #import "OODebugGLDrawing.h"
+#import "OOShaderMaterial.h"
 
 
 // If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
@@ -505,12 +506,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOMeshMaterialCount		i;
 	OOMaterial				*material = nil;
-	static OOBasicMaterial	*placeholderMaterial = nil;
-	NSDictionary			*materialDefaults = nil;
-
-	materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-	placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-
 	
 	if (materialCount != 0)
 	{
@@ -524,15 +519,18 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 									  bindingTarget:target
 									forSmoothedMesh:isSmoothShaded];
 			if (material!=nil)
+			{
 				materials[i] = [material retain];
-			else{
-				materials[i] = [placeholderMaterial retain];
+			}
+			else
+			{
+				materials[i] = [[OOShaderMaterial placeholderMaterial] retain];
 			}
 		}
 	}
 	else
 	{
-		material = [placeholderMaterial retain];
+		material = [[OOShaderMaterial placeholderMaterial] retain];
 	}
 }
 

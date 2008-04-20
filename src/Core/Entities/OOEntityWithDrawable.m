@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 - (void)dealloc
 {
 	[drawable release];
+	drawable = nil;
 	
 	[super dealloc];
 }

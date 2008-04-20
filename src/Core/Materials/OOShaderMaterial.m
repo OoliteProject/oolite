@@ -90,6 +90,23 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
+// FIXME: should be handled at a higher level.
++ (id)placeholderMaterial
+{
+	static OOBasicMaterial	*placeholderMaterial = nil;
+	
+	if (placeholderMaterial == nil)
+	{
+		NSDictionary			*materialDefaults = nil;
+		
+		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+	}
+	
+	return placeholderMaterial;
+}
+
+
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros
@@ -514,12 +531,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
-	if (target != [bindingTarget weakRefUnderlyingObject])
-	{
-		[[uniforms allValues] makeObjectsPerformSelector:@selector(setBindingTarget:) withObject:target];
-		[bindingTarget release];
-		bindingTarget = [target weakRetain];
-	}
+	[[uniforms allValues] makeObjectsPerformSelector:@selector(setBindingTarget:) withObject:target];
+	[bindingTarget release];
+	bindingTarget = [target weakRetain];
 }
 
 @end
@@ -531,16 +545,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	id						textureDef = nil;
 	unsigned				i = 0;
-	
 	OOMaterial				*material = nil;
-
-	static OOBasicMaterial	*placeholderMaterial = nil;
-	NSDictionary			*materialDefaults = nil;
-
-	materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-	placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-
-	
 	
 	// Allocate space for texture object name array
 	texCount = MAX(MIN(max, [textureNames count]), 0U);
@@ -559,14 +564,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		material =[[OOTexture textureWithConfiguration:textureDef] retain];
+		material =[OOTexture textureWithConfiguration:textureDef];
 		
 		if (material !=nil)
 			textures[i] = [material retain];
 		else{
-			textures[i] = [placeholderMaterial retain];
+			textures[i] = [[OOShaderMaterial placeholderMaterial] retain];
 		}
-		[material autorelease];
 	}
 }
 

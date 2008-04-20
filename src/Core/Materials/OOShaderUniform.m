@@ -327,7 +327,6 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	id<OOWeakReferenceSupport> superCandidate = nil;
 	
 	if (!isBinding)  return;
-	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == [(id)target weakRefUnderlyingObject]))  return;
 	
 	// Resolve "supertarget" if applicable
 	if (bindToSuper)
@@ -341,6 +340,14 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			target = superCandidate;
 		}
 	}
+	
+	/*	Bad optimization - we need to be able to rebind entities when their
+		owner changes.
+		-- Ahruman 2008-04-19
+	*/
+#if 0
+	if (EXPECT_NOT([value.binding.object weakRefUnderlyingObject] == [(id)target weakRefUnderlyingObject]))  return;
+#endif
 	
 	[value.binding.object release];
 	value.binding.object = [target weakRetain];

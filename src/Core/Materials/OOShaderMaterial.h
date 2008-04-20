@@ -111,6 +111,8 @@ typedef uint16_t OOUniformConvertOptions;
 					  macros:(NSDictionary *)macros
 			   bindingTarget:(id<OOWeakReferenceSupport>)target;
 
++ (id)placeholderMaterial;
+
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros

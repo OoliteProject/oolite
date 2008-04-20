@@ -155,7 +155,7 @@ static OOMaterial *sActiveMaterial = nil;
 	NSMutableDictionary		*newConfig = nil;
 	NSMutableDictionary		*uniforms = nil;
 	
-	if (configuration == nil)  configuration = [NSDictionary dictionary];
+	if (configuration == nil)  configuration = [NSDictionary dictionary];	// If it's nil, lookups will always give 0/nil results regardless of defaultValue:.
 	ambient = [OOColor colorWithDescription:[configuration objectForKey:@"ambient"]];
 	diffuse = [OOColor colorWithDescription:[configuration objectForKey:@"diffuse"]];
 	specular = [OOColor colorWithDescription:[configuration objectForKey:@"specular"]];
@@ -178,7 +178,7 @@ static OOMaterial *sActiveMaterial = nil;
 	}
 	
 	// Shininess 0 or nil/black specular colour means no specular.
-	if (shininess == 0 || specular == nil || [specular isBlack])
+	if (shininess == 0 || [specular isBlack])
 	{
 		specular = nil;
 	}
@@ -256,6 +256,7 @@ static OOMaterial *sActiveMaterial = nil;
 	[newConfig setObject:modifiedMacros forKey:@"_synthesized_material_macros"];
 	return newConfig;
 }
+
 
 + (OOMaterial *)defaultShaderMaterialWithName:(NSString *)name
 								forModelNamed:(NSString *)modelName
@@ -359,9 +360,8 @@ static OOMaterial *sActiveMaterial = nil;
 		{
 			result = [[OOSingleTextureMaterial alloc] initWithName:name configuration:configuration];
 		}
-		if (result == nil)
 		{
-			result = [[OOBasicMaterial alloc] initWithName:name];
+			result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
 		}
 		[result autorelease];
 	}

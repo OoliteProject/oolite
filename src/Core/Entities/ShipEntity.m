@@ -174,7 +174,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			else
 			{
 				ShipEntity* subent;
-				quaternion_normalize(&sub_q);
+ 				quaternion_normalize(&sub_q);
 
 				subent = [UNIVERSE newShipWithName:subdesc];	// retained
 				if (subent == nil)
@@ -217,6 +217,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	isShip = YES;
 	
+	// FIXME: like_ships should have been resolved before getting here. Replace with assert for no like_ship after 1.71 release. -- Ahruman 2008-04-19
 	// check if this is based upon a different ship
 	for (;;)
 	{
@@ -600,7 +601,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		if (![self hasSubEntity:sub])
 		{
-			OOLog(@"ship.subentity.sanityCheck.failed.deatails", @"Attempt to set subentity taking damage of %@ to %@, which is not a subentity.", [self shortDescription], sub);
+			OOLog(@"ship.subentity.sanityCheck.failed.details", @"Attempt to set subentity taking damage of %@ to %@, which is not a subentity.", [self shortDescription], sub);
 			sub = nil;
 		}
 		if (![sub isShip])
@@ -2902,8 +2903,26 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if (subEntities == nil)  subEntities = [[NSMutableArray alloc] init];
 	sub->isSubEntity = YES;
-	[sub setOwner:self];
+	// Order matters - need consistent state in setOwner:. -- Ahruman 2008-04-20
 	[subEntities addObject:sub];
+	[sub setOwner:self];
+}
+
+
+- (void) setOwner:(Entity *)owner
+{
+	[super setOwner:owner];
+	
+	/*	Reset shader binding target so that bind-to-super works.
+		This is necessary since we don't know about the owner in
+		setUpShipFromDictionary:, when the mesh is initially set up.
+		-- Ahruman 2008-04-19
+	*/
+	OODrawable *drawable_ = [self drawable];
+	if (isSubEntity)
+	{
+		[drawable_ setBindingTarget:self];
+	}
 }
 
 
