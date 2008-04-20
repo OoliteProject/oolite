@@ -824,31 +824,31 @@
 	"options-reset-to-strict-play"	= " Reset to Strict Play ";
 	
 	// Gameoptions screen
-	"gameoptions-autosave-yes"				= " Autosave: YES ";
-	"gameoptions-autosave-no"				= " Autosave: NO ";
+	"gameoptions-autosave-yes"				= " Autosave: On ";
+	"gameoptions-autosave-no"				= " Autosave: Off ";
 	"gameoptions-sound-volume"				= " Sound Volume: ";
-	"gameoptions-sound-volume-mute"			= " Sound Volume: MUTE ";
+	"gameoptions-sound-volume-mute"			= " Sound Volume: Mute ";
 	"gameoptions-volume-external-only"		= " Sound Volume: External Control Only ";
 	"gameoptions-show-growl-messages-@"		= " Show Growl Messages: %@ ";
-	"gameoptions-spoken-messages-yes"		= " Spoken Messages: YES ";
-	"gameoptions-spoken-messages-no"		= " Spoken Messages: NO ";
-	"gameoptions-itunes-yes"				= " iTunes Integration: YES ";
-	"gameoptions-itunes-no"					= " iTunes Integration: NO ";
+	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
+	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
+	"gameoptions-music-mode-@"				= " Music: %@ ";
 	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d x %d at %.3g Hz ";
 	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d x %d ";
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
-	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: YES ";
-	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: NO ";
-	"gameoptions-reduced-detail-yes"		= " Reduced Detail: YES ";
-	"gameoptions-reduced-detail-no"			= " Reduced Detail: NO ";
+	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
+	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
+	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
+	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";
 	"gameoptions-shaderfx-@"				= " Shader Effects: %@ ";
 	"shaderfx-not-available"				= "Not available";
 	"shaderfx-off"							= "Off";
 	"shaderfx-simple"						= "Simple";
 	"shaderfx-full"							= "Full";
+	"music-mode" =							( "Off", "On", "iTunes" );
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";

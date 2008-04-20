@@ -291,6 +291,7 @@
 	
 	
 	ship.noPrimaryRole						= no;
+	ship.escort.reject						= no;
 	
 	
 	sky.setup								= no;
