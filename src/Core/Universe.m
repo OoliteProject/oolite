@@ -5382,7 +5382,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				[self handleOoliteException:localException];
 			else
 			{
-				OOLog(kOOLogException, @"***** Exception during during %@ in [Universe update:] : %@ : %@ *****", update_stage, [localException name], [localException reason]);
+				OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, [localException name], [localException reason]);
 				[localException raise];
 			}
 		NS_ENDHANDLER
