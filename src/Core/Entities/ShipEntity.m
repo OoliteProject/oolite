@@ -1415,7 +1415,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	if (status == STATUS_BEING_SCOOPED)
 	{
-		if (behaviour != BEHAVIOUR_TRACTORED)
+		//if we are being tractored, but we have no owner, then we have a problem
+		if (behaviour != BEHAVIOUR_TRACTORED  || [self owner] == nil || [self owner] == self)
 		{
 			// escaped tractor beam
 			status = STATUS_IN_FLIGHT;	// should correct 'uncollidable objects' bug
@@ -3558,6 +3559,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setCrew: (NSArray*) crewArray
 {
+	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
 	[crew autorelease];
 	crew = [crewArray copy];
 }
