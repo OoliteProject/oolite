@@ -256,7 +256,7 @@ enum
 	}
 	
 	// Set up loading threads.
-	threadCount = MIN(OOCPUCount() /*- 1*/, (unsigned)kMaxWorkThreads);
+	threadCount = MIN(OOCPUCount() - 1, (unsigned)kMaxWorkThreads);
 	do
 	{
 		[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
