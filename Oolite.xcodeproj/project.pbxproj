@@ -120,7 +120,6 @@
 		1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318360B9D026D00EF0852 /* ferdelance_redux.png */; };
 		1A2318780B9D026D00EF0852 /* flare256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318370B9D026D00EF0852 /* flare256.png */; };
 		1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318380B9D026D00EF0852 /* front_metal.png */; };
-		1A23187A0B9D026D00EF0852 /* galaxy256.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318390B9D026D00EF0852 /* galaxy256.png */; };
 		1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183A0B9D026D00EF0852 /* gecko_redux.png */; };
 		1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183B0B9D026D00EF0852 /* krait_redux.png */; };
 		1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23183C0B9D026D00EF0852 /* left_metal.png */; };
@@ -141,7 +140,6 @@
 		1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A23184F0B9D026D00EF0852 /* scarred_metal.png */; };
 		1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318500B9D026D00EF0852 /* shuttle_redux.png */; };
 		1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318510B9D026D00EF0852 /* sidewinder_redux.png */; };
-		1A2318930B9D026D00EF0852 /* star64.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318520B9D026D00EF0852 /* star64.png */; };
 		1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318530B9D026D00EF0852 /* target_metal.png */; };
 		1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318540B9D026D00EF0852 /* thargoid_redux.png */; };
 		1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A2318550B9D026D00EF0852 /* thargon_redux.png */; };
@@ -541,7 +539,7 @@
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
-		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
+		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
@@ -765,6 +763,7 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */,
 				1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */,
 				1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */,
 				1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */,
@@ -798,7 +797,6 @@
 				1A2318770B9D026D00EF0852 /* ferdelance_redux.png in Copy Textures */,
 				1A2318780B9D026D00EF0852 /* flare256.png in Copy Textures */,
 				1A2318790B9D026D00EF0852 /* front_metal.png in Copy Textures */,
-				1A23187A0B9D026D00EF0852 /* galaxy256.png in Copy Textures */,
 				1A23187B0B9D026D00EF0852 /* gecko_redux.png in Copy Textures */,
 				1A23187C0B9D026D00EF0852 /* krait_redux.png in Copy Textures */,
 				1A23187D0B9D026D00EF0852 /* left_metal.png in Copy Textures */,
@@ -819,7 +817,6 @@
 				1A2318900B9D026D00EF0852 /* scarred_metal.png in Copy Textures */,
 				1A2318910B9D026D00EF0852 /* shuttle_redux.png in Copy Textures */,
 				1A2318920B9D026D00EF0852 /* sidewinder_redux.png in Copy Textures */,
-				1A2318930B9D026D00EF0852 /* star64.png in Copy Textures */,
 				1A2318940B9D026D00EF0852 /* target_metal.png in Copy Textures */,
 				1A2318950B9D026D00EF0852 /* thargoid_redux.png in Copy Textures */,
 				1A2318960B9D026D00EF0852 /* thargon_redux.png in Copy Textures */,
@@ -2984,7 +2981,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
-				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
