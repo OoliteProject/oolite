@@ -1975,16 +1975,16 @@ static NSTimeInterval	time_last_frame;
 				new_priority--;
 			if (leftKeyDown)
 				new_priority++;
-			if (new_priority < -2)	// sanity check values -2 .. 3
-				new_priority = -2;
-			if (new_priority > 3)
-				new_priority = 3;
+			if (new_priority < kGroolitePriorityMinimum)	// sanity check values -2 .. 3
+				new_priority = kGroolitePriorityMinimum;
+			if (new_priority > kGroolitePriorityMaximum)
+				new_priority = kGroolitePriorityMaximum;
 			if (new_priority != growl_min_priority)
 			{
 				growl_min_priority = new_priority;
 				NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
 				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
-								forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+					  forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 				[self playChangedOption];
 				[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
 			}

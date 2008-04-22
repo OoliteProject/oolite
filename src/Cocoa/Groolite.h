@@ -35,6 +35,20 @@ MA 02110-1301, USA.
 @class GameController;
 
 
+enum
+{
+	kGrooliteAllMessages = -2,
+	kGrooliteLowPriority,
+	kGrooliteMediumPriority,
+	kGrooliteHighPriority,
+	kGrooliteHighestPriority,
+	kGrooliteOff,
+	
+	kGroolitePriorityMinimum = kGrooliteAllMessages,
+	kGroolitePriorityMaximum = kGrooliteOff
+};
+
+
 @interface Groolite: NSObject
 {
 	NSConnection			*connection;

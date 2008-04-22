@@ -244,27 +244,11 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 	[self displayGrowlNotificiationWithTitle:title andMessage:message fromApp:appname];
 }
 
+
 + (NSString*) priorityDescription: (int) min_priority
 {
-	NSString* result;
-	switch (min_priority)
-	{
-		case -2:
-			result = @"ON (for all messages)";	break;
-		case -1:
-			result = @"ON (for low priority messages)";	break;
-		case 0:
-			result = @"ON (for medium priority messages)";	break;
-		case 1:
-			result = @"ON (for high priority messages)";	break;
-		case 2:
-			result = @"ON (for highest priority messages)";	break;
-		case 3:
-			result = @"OFF (for all messages)";	break;
-		default:
-			result = @"Bad Value";
-	}
-	return result;
+	if (min_priority < kGroolitePriorityMinimum || min_priority > kGroolitePriorityMaximum)  return @"?";
+	return [UNIVERSE descriptionForArrayKey:@"growl-priority-levels" index:min_priority - kGroolitePriorityMinimum];
 }
 
 @end

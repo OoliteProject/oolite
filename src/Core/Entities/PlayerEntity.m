@@ -4322,7 +4322,7 @@ double scoopSoundPlayTime = 0.0;
 			[gui setText:DESC(@"gameoptions-volume-external-only") forRow:GUI_ROW_GAMEOPTIONS_VOLUME align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_GAMEOPTIONS_VOLUME];
 		}
-
+		
 #if OOLITE_MAC_OS_X
 		// Growl priority control
 		{
@@ -4331,26 +4331,24 @@ double scoopSoundPlayTime = 0.0;
 			int growl_min_priority = 3;
 			if ([prefs objectForKey:@"groolite-min-priority"])
 				growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
-			if ((growl_min_priority < -2)||(growl_min_priority > 3))
+			if ((growl_min_priority < kGroolitePriorityMinimum)||(growl_min_priority > kGroolitePriorityMaximum))
 			{
-				growl_min_priority = 3;
-				[prefs setInteger:3 forKey:@"groolite-min-priority"];
+				growl_min_priority = kGroolitePriorityMaximum;
+				[prefs setInteger:kGroolitePriorityMaximum forKey:@"groolite-min-priority"];
 			}
 			growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
 			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
-								forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+				  forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_GROWL];
 		}
-
+		
 		// Speech control
 		if (isSpeechOn)
 			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
-
 #else
-
 		// window/fullscreen
 		if([gameView inFullScreenMode])
 		{

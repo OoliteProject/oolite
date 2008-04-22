@@ -833,8 +833,8 @@
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
 	"gameoptions-music-mode-@"				= " Music: %@ ";
-	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d x %d at %.3g Hz ";
-	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d x %d ";
+	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d × %d at %.3g Hz ";
+	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d × %d ";
 	"gameoptions-play-in-window"			= " Play in Window ";
 	"gameoptions-play-in-fullscreen"		= " Play in Full Screen ";
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
@@ -848,7 +848,23 @@
 	"shaderfx-off"							= "Off";
 	"shaderfx-simple"						= "Simple";
 	"shaderfx-full"							= "Full";
-	"music-mode" =							( "Off", "On", "iTunes" );
+	
+	"music-mode" =
+	(
+		"Off",
+		"On",
+		"iTunes"
+	);
+	"growl-priority-levels" =
+	(
+		"On (for all messages)",
+		"On (for low priority messages)",
+		"On (for medium priority messages)",
+		"On (for high priority messages)",
+		"On (for highest priority messages)",
+		"Off (for all messages)"
+	);
+	"growl-not-available"					= "Not available";
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";
