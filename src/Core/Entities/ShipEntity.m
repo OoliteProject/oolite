@@ -217,6 +217,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	isShip = YES;
 	
+#if 0
 	// FIXME: like_ships should have been resolved before getting here. Replace with assert for no like_ship after 1.71 release. -- Ahruman 2008-04-19
 	// check if this is based upon a different ship
 	for (;;)
@@ -233,6 +234,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[this_shipDict setObject:other_shipdesc forKey:@"like_ship"];
 		shipDict = this_shipDict;
 	}
+#else
+	// All like_ship references should have been resolved in -[Universe getDictionaryForShip:recursionLimit:]
+	if ([shipDict objectForKey:@"like_ship"] != nil)
+	{
+		OOLog(@"ship.setUp.like_ship", @"***** Error: like_ship found in ship dictionary in -[ShipEntity setUpShipFromDictionary:], when it should have been resolved already. This is an internal error, please report it.");
+		return NO;
+	}
+#endif
 	
 	shipinfoDictionary = [shipDict copy];
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation

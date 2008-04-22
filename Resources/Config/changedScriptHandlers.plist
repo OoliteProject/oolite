@@ -9,29 +9,6 @@
 */
 
 {
-	// To be removed after 1.71
-	"shipSpawned"					= "didSpawn";
-	"shipDied"						= ("didBecomeDead", "didDie");
-	"shipWasScooped"				= "wasScooped";
-	"shipScoopedOther"				= "didScoop";
-	"playerStartedAutoPilot"		= "didStartAutoPilot";
-	"playerCancelledJumpCountdown"	= "didCancelJumpCountDown";
-	"playerStartedJumpCountdown"	= "didBeginJumpCountDown";
-	"playerCancelledAutoPilot"		= "didAbortAutoPilot";
-	"shipWillLaunchFromStation"		= "willLaunch";
-	"shipLaunchedFromStation"		= "didLaunch";
-	"playerJumpFailed"				= "didFailToJump";
-	"playerDockingRefused"			= "didRecieveDockingRefusal";
-	"shipLaunchedEscapePod"			= "didLaunchEscapePod";
-	"shipWillDockWithStation"		= "willDock";
-	"shipDockedWithStation"			= "didDock";
-	"otherShipDocked"				= "shipDidDock";
-	
-	// Note to self: explore relationship with shipExitedWormhole, and make consistent for NPCs and players to extent possible.
-	"shipWillExitWitchspace"		= "willExitWitchSpace";
-	"shipExitedWitchspace"			= "didExitWitchSpace";
-	"shipWillEnterWitchspace"		= "willEnterWitchSpace";
-	
 	// To be removed after 1.72
 	"shipBeingAttacked"				= "beingAttacked";
 }

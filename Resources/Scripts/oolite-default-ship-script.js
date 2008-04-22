@@ -6,7 +6,7 @@ Standard ship script; handles legacy foo_actions.
 
 
 Oolite
-Copyright © 2008 Giles C Williams and contributors
+Copyright © 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,9 +28,9 @@ MA 02110-1301, USA.
 
 this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007 the Oolite team.";
+this.copyright		= "© 2007-2008 the Oolite team.";
 this.description	= "Standard script for ships.";
-this.version		= "1.71";
+this.version		= "1.72";
 
 
 // launch_actions handled on didSpawn().

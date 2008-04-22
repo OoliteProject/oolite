@@ -16,7 +16,7 @@ applicable, the debug console.
 
 
 Oolite
-Copyright © 2008 Giles C Williams and contributors
+Copyright © 2004-2008 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-global-prefix";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2008 the Oolite team.";
-this.version		= "1.71";
+this.version		= "1.72";
 
 
 this.global = (function () { return this; } ).call();
@@ -147,40 +147,3 @@ system.legacy_spawn = function()
 {
 	special.jsWarning("system.legacy_spawn() is deprecated (and never worked), use Ship.spawn() instead.");
 }
-
-
-// To be removed after 1.71
-Entity.__proto__.valid = function ()
-{
-	special.jsWarning("Entity.valid() is deprecated, use Entity.isValid property instead.");
-	return this.isValid;
-}
-
-
-this.defineCompatibilityGetterAndSetter("Player", "legalStatus", "bounty");
-
-Player.__proto__.__defineGetter__("dockedStationName", function ()
-{
-	special.jsWarning("Player.dockedStationName is deprecated, use Player.dockedStation.shipDescription instead.");
-	return this.dockedStation ? this.dockedStation.shipDescription: null;
-});
-
-Player.__proto__.__defineGetter__("dockedAtMainStation", function ()
-{
-	special.jsWarning("Player.dockedAtMainStation is deprecated, use Player.dockedStation.isMainStation instead.");
-	return this.dockedStation && this.dockedStation.isMainStation;
-});
-
-
-global.__defineGetter__("planetNumber", function ()
-{
-	special.jsWarning("planetNumber is deprecated, use system.ID instead.");
-	return system.ID;
-});
-
-
-defineCompatibilityWriteOnly("Mission", "missionScreenTextKey", "addMessageTextKey");
-defineCompatibilityWriteOnly("Mission", "imageFileName", "setBackgroundImage");
-defineCompatibilityWriteOnly("Mission", "musicFileName", "setMusic");
-defineCompatibilityWriteOnly("Mission", "choicesKey", "setChoicesKey");
-defineCompatibilityWriteOnly("Mission", "instructionsKey", "setInstructionsKey");
