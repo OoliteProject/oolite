@@ -7059,7 +7059,7 @@ int w_space_seed = 1234567;
 	{
 		[se setStatus:STATUS_EFFECT];
 	}
-	for (subEnum = [self subEntityEnumerator]; (sub = [subEnum nextObject]); )
+	for (subEnum = [self shipSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
 		[sub switchLightsOn];
 	}
@@ -7076,9 +7076,9 @@ int w_space_seed = 1234567;
 	{
 		[se setStatus:STATUS_INACTIVE];
 	}
-	for (subEnum = [self subEntityEnumerator]; (sub = [subEnum nextObject]); )
+	for (subEnum = [self shipSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
-		[sub switchLightsOn];
+		[sub switchLightsOff];
 	}
 }
 
