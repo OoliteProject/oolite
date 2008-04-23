@@ -1327,18 +1327,21 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 //////////////////////////////////////////////// extra AI routines
 
 
+// Exposed to AI
 - (void) increaseAlertLevel
 {
 	[self setAlertLevel:[self alertLevel] + 1 signallingScript:YES];
 }
 
 
+// Exposed to AI
 - (void) decreaseAlertLevel
 {
 	[self setAlertLevel:[self alertLevel] - 1 signallingScript:YES];
 }
 
 
+// Exposed to AI
 - (void) launchPolice
 {
 	OOUniversalID	police_target = primaryTarget;
@@ -1389,6 +1392,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchDefenseShip
 {
 	OOUniversalID	defense_target = primaryTarget;
@@ -1458,13 +1462,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 /*	Spelling variant, because people get confused about whether Oolite uses
 	UK or US spelling. (General answer: it varies.)
-*/
+ */
+// Exposed to AI
 - (void) launchDefenceShip
 {
 	[self launchDefenseShip];
 }
 
 
+// Exposed to AI
 - (void) launchScavenger
 {
 	ShipEntity  *scavenger_ship;
@@ -1493,6 +1499,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchMiner
 {
 	ShipEntity  *miner_ship;
@@ -1523,7 +1530,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 /**Lazygun** added the following method. A complete rip-off of launchDefenseShip. 
-*/
+ */
+// Exposed to AI
 - (void) launchPirateShip
 {
 	//Pirate ships are launched from the same pool as defence ships.
@@ -1570,6 +1578,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchShuttle
 {
 	ShipEntity  *shuttle_ship;
@@ -1593,6 +1602,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchTrader
 {
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
@@ -1634,6 +1644,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchEscort
 {
 	ShipEntity  *escort_ship;
@@ -1657,6 +1668,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (BOOL) launchPatrol
 {
 	if (police_launched < max_police)
@@ -1697,6 +1709,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) launchShipWithRole:(NSString*) role
 {
 	ShipEntity  *ship = [UNIVERSE newShipWithRole: role];   // retain count = 1
@@ -1781,16 +1794,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		last_launch_time = [UNIVERSE getTime] + 126;
 		[self sendExpandedMessage:@"You are cleared to dock within the next two minutes. Please proceeed." toShip:other];
 	}
-}
-
-
-- (NSString *) roles
-{
-	NSArray* all_roles = ScanTokensFromString([shipinfoDictionary objectForKey:@"roles"]);
-	if ([all_roles count])
-		return (NSString *)[all_roles objectAtIndex:0];
-	else
-		return @"station";
 }
 
 

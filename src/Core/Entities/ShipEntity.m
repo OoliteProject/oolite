@@ -217,7 +217,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	isShip = YES;
 	
-#if 0
+#if OBSOLETE
 	// FIXME: like_ships should have been resolved before getting here. Replace with assert for no like_ship after 1.71 release. -- Ahruman 2008-04-19
 	// check if this is based upon a different ship
 	for (;;)
@@ -367,7 +367,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	displayName = [[shipDict stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[roleSet release];
-	roleSet = [[OORoleSet alloc] initWithRoleString:[shipDict stringForKey:@"roles"]];
+	roleSet = [[[OORoleSet roleSetWithString:[shipDict stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
 	[primaryRole release];
 	primaryRole = nil;
 	
@@ -7048,26 +7048,37 @@ int w_space_seed = 1234567;
 }
 
 
+// Exposed to AI
 - (void) switchLightsOn
 {
 	NSEnumerator	*subEnum = nil;
 	ParticleEntity	*se = nil;
+	ShipEntity		*sub = nil;
 	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se setStatus:STATUS_EFFECT];
 	}
+	for (subEnum = [self subEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		[sub switchLightsOn];
+	}
 }
 
-
+// Exposed to AI
 - (void) switchLightsOff
 {
 	NSEnumerator	*subEnum = nil;
 	ParticleEntity	*se = nil;
+	ShipEntity		*sub = nil;
 	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se setStatus:STATUS_INACTIVE];
+	}
+	for (subEnum = [self subEntityEnumerator]; (sub = [subEnum nextObject]); )
+	{
+		[sub switchLightsOn];
 	}
 }
 
