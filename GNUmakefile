@@ -17,7 +17,7 @@ ifeq ($(BUILD_WITH_DEBUG_FUNCTIONALITY),no)
 endif
 	oolite_LIB_DIRS += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
 else
-	ADDITIONAL_INCLUDE_DIRS = -Ideps/Cross-platform-deps/SpiderMonkey/js/src  -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
+	ADDITIONAL_INCLUDE_DIRS = -Ideps/Cross-platform-deps/SpiderMonkey/js/src  -Ideps/Cross-platform-deps/SpiderMonkey/js/src/Linux_All_DBG.OBJ -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
 	ADDITIONAL_OBJC_LIBS = -lpng -ljs -lGLU -lGL -lSDL -lpthread -lSDL_mixer -lgnustep-base
 	ADDITIONAL_CFLAGS = -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
