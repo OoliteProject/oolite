@@ -1836,7 +1836,7 @@ double scoopSoundPlayTime = 0.0;
 			ShipEntity	*target_ship = (ShipEntity *)[missile_entity[i] primaryTarget];
 			if (![target_ship isShip] || target_ship->zero_distance > SCANNER_MAX_RANGE2)
 			{
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[target-lost]") forCount:3.0];
+				[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 				[self playTargetLost];
 				[missile_entity[i] removeTarget:nil];
 				if (i == activeMissile && !ident_engaged)
@@ -2525,18 +2525,18 @@ double scoopSoundPlayTime = 0.0;
 	if ([ms isEqual:@"HOLD_FULL"])
 	{
 		[self playHoldFull];
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[hold-full]") forCount:4.5];
+		[UNIVERSE addMessage:DESC(@"hold-full") forCount:4.5];
 	}
 
 	if ([ms isEqual:@"INCOMING_MISSILE"])
 	{
 		[self playIncomingMissile];
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[incoming-missile]") forCount:4.5];
+		[UNIVERSE addMessage:DESC(@"incoming-missile") forCount:4.5];
 	}
 
 	if ([ms isEqual:@"ENERGY_LOW"])
 	{
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[energy-low]") forCount:6.0];
+		[UNIVERSE addMessage:DESC(@"energy-low") forCount:6.0];
 	}
 
 	if ([ms isEqual:@"ECM"])  [self playHitByECMSound];
@@ -2544,7 +2544,7 @@ double scoopSoundPlayTime = 0.0;
 	if ([ms isEqual:@"DOCKING_REFUSED"]&&(status == STATUS_AUTOPILOT_ENGAGED))
 	{
 		[self playDockingDenied];
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-denied]") forCount:4.5];
+		[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
 		status = STATUS_IN_FLIGHT;
@@ -2751,7 +2751,7 @@ double scoopSoundPlayTime = 0.0;
 				[(ShipEntity *)e2 takeEnergyDamage:1000 from:self becauseOf:self];
 		}
 	}
-	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[energy-bomb-activated]") forCount:4.5];
+	[UNIVERSE addMessage:DESC(@"energy-bomb-activated") forCount:4.5];
 	[UNIVERSE playCustomSound:@"[energy-bomb-fired]"];
 	
 	return YES;
@@ -2766,7 +2766,7 @@ double scoopSoundPlayTime = 0.0;
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
 	{
 		[UNIVERSE playCustomSound:@"[weapon-overheat]"];
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[weapon-overheat]") forCount:3.0];
+		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
 		return NO;
 	}
 
@@ -2815,7 +2815,7 @@ double scoopSoundPlayTime = 0.0;
 
 	if (energy <= weapon_energy_per_shot)
 	{
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[weapon-out-of-juice]") forCount:3.0];
+		[UNIVERSE addMessage:DESC(@"weapon-out-of-juice") forCount:3.0];
 		return NO;
 	}
 
@@ -3153,7 +3153,7 @@ double scoopSoundPlayTime = 0.0;
 	[cargo removeAllObjects];
 
 	energy = 25;
-	[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[escape-sequence]") forCount:4.5];
+	[UNIVERSE addMessage:DESC(@"escape-sequence") forCount:4.5];
 	shot_time = 0.0;
 	
 	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];
@@ -3166,14 +3166,14 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (flightSpeed > 4.0 * maxFlightSpeed)
 	{
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[hold-locked]") forCount:3.0];
+		[UNIVERSE addMessage:DESC(@"hold-locked") forCount:3.0];
 		return CARGO_NOT_CARGO;
 	}
 
 	int result = [super dumpCargo];
 	if (result != CARGO_NOT_CARGO)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ejected]") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
 		[self playCargoJettisioned];
 	}
 	return result;
@@ -3200,11 +3200,11 @@ double scoopSoundPlayTime = 0.0;
 	[pod release];
 	if (contents != CARGO_NOT_CARGO)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-ready-to-eject]"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
 	}
 	else
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[ready-to-eject-@]") ,[pod name]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"ready-to-eject-@") ,[pod name]] forCount:3.0];
 	}
 	// now scan through the remaining 1..(n_cargo - rotates) places moving similar cargo to the last place
 	// this means the cargo gets to be sorted as it is rotated through
@@ -3276,8 +3276,8 @@ double scoopSoundPlayTime = 0.0;
 	
 	if (score > 9)
 	{
-		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-llu"), (unsigned long long)(score/10)];
-		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-f-credits"), 0.1 * credits];
+		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-@"), OOCredits(score/10)];
+		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-@-credits"), OOCredits(credits)];
 		
 		[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
 		[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
@@ -3911,7 +3911,7 @@ double scoopSoundPlayTime = 0.0;
 		rating_desc = KillCountToRatingAndKillString(ship_kills);
 		alert_desc = AlertConditionToString([self alertCondition]);
 		fuel_desc = [NSString stringWithFormat:@"%.1f %@", fuel/10.0, lightYearsDesc];
-		credits_desc = [NSString stringWithFormat:DESC(@"cash-quantity"), credits/10.0];
+		credits_desc = OOCredits(credits);
 		
 		[gui clear];
 
@@ -4735,7 +4735,7 @@ static int last_outfitting_index;
 		[gui clear];
 		[gui setTitle:DESC(@"equip-title")];
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-f"), 0.1*credits]  forRow: GUI_ROW_EQUIPMENT_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"equip-cash-@"), OOCredits(credits)]  forRow: GUI_ROW_EQUIPMENT_CASH];
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
@@ -4791,7 +4791,7 @@ static int last_outfitting_index;
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
 
-				NSString *priceString = [NSString stringWithFormat:@" %.1f ", 0.1 * price];
+				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 
 				if ((int)item == itemForSelectFacing)
 				{
@@ -4930,10 +4930,11 @@ static int last_outfitting_index;
 	
 	// check for error messages from Resource Manager
 	[ResourceManager paths];
-	if ([ResourceManager errors])
+	NSString *errors = [ResourceManager errors];
+	if (errors != nil)
 	{
 		int ms_start = ms_line;
-		int i = ms_line = [gui addLongText:[ResourceManager errors] startingAtRow:ms_start align:GUI_ALIGN_LEFT];
+		int i = ms_line = [gui addLongText:errors startingAtRow:ms_start align:GUI_ALIGN_LEFT];
 		for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
 		ms_line++;
 	}
@@ -5459,7 +5460,7 @@ static int last_outfitting_index;
 		if ([cargo count] > 0)
 			current_cargo = ([cargo count] <= max_cargo) ? [cargo count] : max_cargo;  // actually count the containers and things (may be > max_cargo)
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"cash-f-load-d-of-d"), 0.1*credits, current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
 		
 		if (status == STATUS_DOCKED)	// can only buy or sell in dock
 		{
@@ -5739,8 +5740,8 @@ OOSound* burnersound;
 		legalStatus = 0;
 		credits -= fine;
 	}
-	fine /= 10;	// divide by ten for display
-	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[fined]"), (unsigned long long)fine];
+	
+	NSString* fined_message = [NSString stringWithFormat:DESC(@"fined-@-credits"), OOStringFromDeciCredits(fine, YES, NO)];
 	[UNIVERSE addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)
@@ -5892,7 +5893,9 @@ OOSound* burnersound;
 	int i;
 	NSMutableArray* trumbleArray = [NSMutableArray arrayWithCapacity:PLAYER_MAX_TRUMBLES];
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)
+	{
 		[trumbleArray addObject:[trumble[i] dictionary]];
+	}
 	
 	return [NSArray arrayWithObjects:[NSNumber numberWithInt:trumbleCount],[NSNumber numberWithInt:trumbleHash], trumbleArray, nil];
 }
@@ -5919,11 +5922,11 @@ OOSound* burnersound;
 		{
 			NSArray* values = (NSArray*) trumbleValue;
 			if ([values count] >= 1)
-				putativeNTrumbles = [[values objectAtIndex:0] intValue];
+				putativeNTrumbles = [values intAtIndex:0];
 			if ([values count] >= 2)
-				putativeHash = [[values objectAtIndex:1] intValue];
+				putativeHash = [values intAtIndex:1];
 			if ([values count] >= 3)
-				putativeTrumbleArray = (NSArray*)[values objectAtIndex:2];
+				putativeTrumbleArray = [values arrayAtIndex:2];
 		}
 		// calculate a hash for the putative values
 		clear_checksum();

@@ -1877,7 +1877,6 @@ static NSTimeInterval	time_last_frame;
 #if OOLITE_MAC_OS_X
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
 			[self playChangedOption];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
@@ -1892,7 +1891,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		if (!musicModeKeyPressed)
 		{
-			GuiDisplayGen*		gui = [UNIVERSE gui];
 			OOMusicController	*musicController = [OOMusicController sharedController];
 			int					initialMode = [musicController mode];
 			int					mode = initialMode;
@@ -1915,7 +1913,6 @@ static NSTimeInterval	time_last_frame;
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_AUTOSAVE)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE autoSave])
 			[self playChangedOption];
 		[UNIVERSE setAutoSave:[gameView isDown:gvArrowKeyRight]];
@@ -1933,7 +1930,6 @@ static NSTimeInterval	time_last_frame;
 		{
 			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
 			BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-			GuiDisplayGen* gui = [UNIVERSE gui];
 			int volume = 100 * [OOSound masterVolume];
 			volume += (((rightKeyDown && (volume < 100)) ? 5 : 0) - ((leftKeyDown && (volume > 0)) ? 5 : 0));
 			if (volume > 100) volume = 100;
@@ -1966,7 +1962,6 @@ static NSTimeInterval	time_last_frame;
 			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];
 			BOOL leftKeyDown = [gameView isDown:gvArrowKeyLeft];
-			GuiDisplayGen* gui = [UNIVERSE gui];
 			int growl_min_priority = 3;
 			if ([prefs objectForKey:@"groolite-min-priority"])
 				growl_min_priority = [prefs integerForKey:@"groolite-min-priority"];
@@ -1998,7 +1993,6 @@ static NSTimeInterval	time_last_frame;
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE wireframeGraphics])
 			[self playChangedOption];
 		[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
@@ -2010,7 +2004,6 @@ static NSTimeInterval	time_last_frame;
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE reducedDetail])
 			[self playChangedOption];
 		[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
@@ -2417,8 +2410,9 @@ static NSTimeInterval	time_last_frame;
 	if(!pollControls)
 		return;
 	
-	MyOpenGLView  *gameView = [UNIVERSE gameView];
-	BOOL docked_okay = (status == STATUS_DOCKED);
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	BOOL			docked_okay = (status == STATUS_DOCKED);
 	
 	//  text displays
 	if (([gameView isDown:gvFunctionKey5])||([gameView isDown:gvNumberKey5]))
@@ -2482,14 +2476,14 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView clearKeys];
 					[self setGuiToShipyardScreen:0];
-					[[UNIVERSE gui] setSelectedRow:GUI_ROW_SHIPYARD_START];
+					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
 				}
 				else
 				{
 					[gameView clearKeys];
 					[self setGuiToEquipShipScreen:0:-1];
-					[[UNIVERSE gui] setSelectedRow:GUI_ROW_EQUIPMENT_START];
+					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 				
 				[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -2509,13 +2503,13 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView clearKeys];
 					[self setGuiToContractsScreen];
-					[[UNIVERSE gui] setSelectedRow:GUI_ROW_PASSENGERS_START];
+					[gui setSelectedRow:GUI_ROW_PASSENGERS_START];
 				}
 				else
 				{
 					[gameView clearKeys];
 					[self setGuiToMarketScreen];
-					[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
+					[gui setSelectedRow:GUI_ROW_MARKET_START];
 				}
 			}
 			switching_market_screens = YES;
@@ -2532,7 +2526,7 @@ static NSTimeInterval	time_last_frame;
 			if (!switching_market_screens)
 			{
 				[self setGuiToMarketScreen];
-				[[UNIVERSE gui] setSelectedRow:GUI_ROW_MARKET_START];
+				[gui setSelectedRow:GUI_ROW_MARKET_START];
 			}
 			switching_market_screens = YES;
 		}
@@ -2650,8 +2644,8 @@ static BOOL toggling_music;
 
 - (void) pollDemoControls:(double)delta_t
 {
-	MyOpenGLView*	gameView = [UNIVERSE gameView];
-	GuiDisplayGen*	gui = [UNIVERSE gui];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
 	
 	switch (gui_screen)
 	{

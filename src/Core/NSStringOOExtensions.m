@@ -136,3 +136,36 @@ MA 02110-1301, USA.
 }
 
 @end
+
+
+@implementation NSMutableString (OOExtensions)
+
+- (void) appendLine:(NSString *)line
+{
+	[self appendString:line ? [line stringByAppendingString:@"\n"] : @"\n"];
+}
+
+
+- (void) appendFormatLine:(NSString *)fmt, ...
+{
+	va_list args;
+	va_start(args, fmt);
+	[self appendFormatLine:fmt arguments:args];
+	va_end(args);
+}
+
+
+- (void) appendFormatLine:(NSString *)fmt arguments:(va_list)args
+{
+	NSString *formatted = [[NSString alloc] initWithFormat:fmt arguments:args];
+	[self appendLine:formatted];
+	[formatted release];
+}
+
+
+- (void) deleteCharacterAtIndex:(unsigned long)index
+{
+	[self deleteCharactersInRange:NSMakeRange(index, 1)];
+}
+
+@end

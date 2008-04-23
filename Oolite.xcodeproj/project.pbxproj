@@ -49,7 +49,6 @@
 		1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316DF0B9CFAD700EF0852 /* commodities.plist */; };
 		1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E00B9CFAD700EF0852 /* customsounds.plist */; };
 		1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E10B9CFAD700EF0852 /* demoships.plist */; };
-		1A2316F20B9CFAD700EF0852 /* descriptions.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E20B9CFAD700EF0852 /* descriptions.plist */; };
 		1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E30B9CFAD700EF0852 /* equipment.plist */; };
 		1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E40B9CFAD700EF0852 /* hud-small.plist */; };
 		1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2316E50B9CFAD700EF0852 /* hud.plist */; };
@@ -353,6 +352,7 @@
 		1A43A0CD0CB91D2C00D0E239 /* OOJSPlanet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */; };
 		1A43A1860CB9243B00D0E239 /* OOEntityFilterPredicate.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */; };
 		1A43A1870CB9243B00D0E239 /* OOEntityFilterPredicate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */; };
+		1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A4501E10DBF699A00815C04 /* descriptions.plist */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
@@ -683,6 +683,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */,
 				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */,
 				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */,
 				1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */,
@@ -697,7 +698,6 @@
 				1A2316EF0B9CFAD700EF0852 /* commodities.plist in Copy Config */,
 				1A2316F00B9CFAD700EF0852 /* customsounds.plist in Copy Config */,
 				1A2316F10B9CFAD700EF0852 /* demoships.plist in Copy Config */,
-				1A2316F20B9CFAD700EF0852 /* descriptions.plist in Copy Config */,
 				1A2316F30B9CFAD700EF0852 /* equipment.plist in Copy Config */,
 				1A2316F40B9CFAD700EF0852 /* hud-small.plist in Copy Config */,
 				1A2316F50B9CFAD700EF0852 /* hud.plist in Copy Config */,
@@ -1039,7 +1039,6 @@
 		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = commodities.plist; sourceTree = "<group>"; };
 		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = customsounds.plist; sourceTree = "<group>"; };
 		1A2316E10B9CFAD700EF0852 /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = demoships.plist; sourceTree = "<group>"; };
-		1A2316E20B9CFAD700EF0852 /* descriptions.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = descriptions.plist; sourceTree = "<group>"; };
 		1A2316E30B9CFAD700EF0852 /* equipment.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = equipment.plist; sourceTree = "<group>"; };
 		1A2316E40B9CFAD700EF0852 /* hud-small.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "hud-small.plist"; sourceTree = "<group>"; };
 		1A2316E50B9CFAD700EF0852 /* hud.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = hud.plist; sourceTree = "<group>"; };
@@ -1353,6 +1352,7 @@
 		1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlanet.m; sourceTree = "<group>"; };
 		1A43A1840CB9243B00D0E239 /* OOEntityFilterPredicate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEntityFilterPredicate.h; sourceTree = "<group>"; };
 		1A43A1850CB9243B00D0E239 /* OOEntityFilterPredicate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEntityFilterPredicate.m; sourceTree = "<group>"; };
+		1A4501E10DBF699A00815C04 /* descriptions.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = descriptions.plist; sourceTree = "<group>"; };
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
@@ -1736,7 +1736,7 @@
 				1A2316DF0B9CFAD700EF0852 /* commodities.plist */,
 				1A2316E00B9CFAD700EF0852 /* customsounds.plist */,
 				1A2316E10B9CFAD700EF0852 /* demoships.plist */,
-				1A2316E20B9CFAD700EF0852 /* descriptions.plist */,
+				1A4501E10DBF699A00815C04 /* descriptions.plist */,
 				1A2316E30B9CFAD700EF0852 /* equipment.plist */,
 				1A2316E40B9CFAD700EF0852 /* hud-small.plist */,
 				1A2316E50B9CFAD700EF0852 /* hud.plist */,

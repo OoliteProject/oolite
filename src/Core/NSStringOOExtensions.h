@@ -53,3 +53,14 @@ MA 02110-1301, USA.
 - (NSData *)utf16DataWithBOM:(BOOL)includeByteOrderMark;
 
 @end
+
+
+@interface NSMutableString (OOExtensions)
+
+- (void) appendLine:(NSString *)line;
+- (void) appendFormatLine:(NSString *)fmt, ...;
+- (void) appendFormatLine:(NSString *)fmt arguments:(va_list)args;
+
+- (void) deleteCharacterAtIndex:(unsigned long)index;
+
+@end

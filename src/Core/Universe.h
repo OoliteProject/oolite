@@ -459,6 +459,7 @@ enum
 
 - (NSString *)descriptionForKey:(NSString *)key;	// String, or random item from array
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index;	// Indexed item from array
+- (BOOL) descriptionBooleanForKey:(NSString *)key;	// Boolean from descriptions.plist, for configuration.
 
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
 - (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
@@ -590,7 +591,8 @@ OOINLINE Universe *GetUniverse(void)
 
 
 // Only for use with string literals, and only for looking up strings.
-#define DESC(key)	(UNIVERSE ? [UNIVERSE descriptionForKey:(key "")] : key)
+NSString *DESC_(NSString *key);
+#define DESC(key)	(DESC_(key ""))
 
 
 @interface OOSound (OOCustomSounds)

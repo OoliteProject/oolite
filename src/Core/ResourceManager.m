@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOPListParsing.h"
 #import "MyOpenGLView.h"
+#import "OOCollectionExtractors.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -54,7 +55,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 + (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
 + (BOOL)areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
-+ (void)addError:(NSString *)error;
++ (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
 + (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (NSString *) diagnosticFileLocation;
 
@@ -64,7 +65,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 static NSMutableArray	*sSearchPaths;
 static BOOL				sUseAddOns = YES;
 static NSMutableArray	*sExternalPaths;
-static NSMutableString	*errors;
+static NSMutableArray	*sErrors;
 
 // caches allow us to load any given file once only
 //
@@ -76,7 +77,31 @@ static NSMutableDictionary *string_cache;
 
 + (NSString *) errors
 {
-	return errors;
+	NSArray					*error = nil;
+	unsigned				i, count;
+	NSMutableArray			*result = nil;
+	NSString				*errStr = nil;
+	
+	count = [sErrors count];
+	if (count == 0)  return nil;
+	
+	// Expand error messages. This is deferred for localizability.
+	result = [NSMutableArray arrayWithCapacity:count];
+	for (i = 0; i != count; ++i)
+	{
+		error = [sErrors objectAtIndex:i];
+		errStr = [UNIVERSE descriptionForKey:[error stringAtIndex:0]];
+		if (errStr != nil)
+		{
+			errStr = [NSString stringWithFormat:errStr, [error objectAtIndex:1], [error objectAtIndex:2]];
+			[result addObject:errStr];
+		}
+	}
+	
+	[sErrors release];
+	sErrors = nil;
+	
+	return [result componentsJoinedByString:@"\n"];
 }
 
 
@@ -133,8 +158,8 @@ static NSMutableDictionary *string_cache;
 {
 	if (sSearchPaths != nil)  return sSearchPaths;
 	
-	[errors release];
-	errors = nil;
+	[sErrors release];
+	sErrors = nil;
 	
 	NSFileManager			*fmgr = [NSFileManager defaultManager];
 	NSArray					*rootPaths = nil;
@@ -246,7 +271,7 @@ static NSMutableDictionary *string_cache;
 	{
 		NSString *version = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 		OOLog(@"oxp.versionMismatch", @"OXP %@ is incompatible with version %@ of Oolite.", path, version);
-		[self addError:[NSString stringWithFormat:DESC(@"oxp-is-incompatible"), [path lastPathComponent], version]];
+		[self addErrorWithKey:@"oxp-is-incompatible" param1:[path lastPathComponent] param2:version];
 	}
 }
 
@@ -321,18 +346,12 @@ static NSMutableDictionary *string_cache;
 }
 
 
-+ (void)addError:(NSString *)error
++ (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2
 {
-	if (error != nil)
+	if (descriptionKey != nil)
 	{
-		if (errors)
-		{
-			[errors appendFormat:@"\n%@", error];
-		}
-		else
-		{
-			errors = [error mutableCopy];
-		}
+		if (sErrors == nil)  sErrors = [[NSMutableArray alloc] init];
+		[sErrors addObject:[NSArray arrayWithObjects:descriptionKey, param1 ?: @"", param2 ?: @"", nil]];
 	}
 }
 

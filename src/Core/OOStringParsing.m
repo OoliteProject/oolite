@@ -499,6 +499,32 @@ NSString *RandomDigrams(void)
 }
 
 
+NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
+{
+	NSString			*result = nil;
+	unsigned long long	integerCredits = tenthsOfCredits / 10;
+	unsigned long long	tenths = tenthsOfCredits % 10;
+	
+	if (includeDecimal)
+	{
+		result = [NSString stringWithFormat:@"%llu.%llu", integerCredits, tenths];
+	}
+	else
+	{
+		if (tenthsOfCredits >= 5)  integerCredits++;
+		result = [NSString stringWithFormat:@"%llu", integerCredits];
+	}
+	
+	// Append credits sybol if desired.
+	if (includeSymbol)
+	{
+		result = [NSString stringWithFormat:DESC(@"@-credits"), result];
+	}
+	
+	return result;
+}
+
+
 @implementation NSString (OOUtilities)
 
 - (BOOL)pathHasExtension:(NSString *)extension

@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import <Foundation/Foundation.h>
 #import "OOMaths.h"
+#import "OOTypes.h"
 #import "legacy_random.h"
 
 @class Entity;
@@ -61,6 +62,22 @@ NSString *DescriptionForCurrentSystem(void);
 NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *localVariables);
 
 NSString *RandomDigrams(void);
+
+
+NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol);
+OOINLINE NSString *OOStringFromIntCredits(OOCreditsQuantity integerCredits, BOOL includeSymbol)
+{
+	return OOStringFromDeciCredits(integerCredits * 10, NO, includeSymbol);
+}
+
+OOINLINE NSString *OOCredits(OOCreditsQuantity tenthsOfCredits)
+{
+	return OOStringFromDeciCredits(tenthsOfCredits, YES, YES);
+}
+OOINLINE NSString *OOIntCredits(OOCreditsQuantity integerCredits)
+{
+	return OOStringFromIntCredits(integerCredits, YES);
+}
 
 
 @interface NSString (OOUtilities)

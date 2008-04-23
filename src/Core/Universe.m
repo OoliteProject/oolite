@@ -466,13 +466,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[descriptions autorelease];
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES ] retain];
+	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[characters autorelease];
-	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES ] retain];
+	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[customsounds autorelease];
-	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES ] retain];
+	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[planetinfo autorelease];
 	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
@@ -5790,6 +5790,12 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
+- (BOOL) descriptionBooleanForKey:(NSString *)key
+{
+	return [[self descriptions] boolForKey:key];
+}
+
+
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed
 {
 	Random_Seed g0 = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
@@ -6685,8 +6691,8 @@ double estimatedTimeForJourney(double distance, int hops)
 					[self shortTimeDescription:(passenger_departure_time - current_time)], [self shortTimeDescription:(passenger_arrival_time - current_time)]];
 				
 				long_description = [NSString stringWithFormat:
-					DESC(@"contracts-@-will-pay-llu-credits-llu-in-advance-and-llu-credits-on-arrival"), long_description,
-					(unsigned long long)(premium + fee), (unsigned long long)premium, (unsigned long long)fee];
+					DESC(@"contracts-@-will-pay-@-@-in-advance-and-@-on-arrival"), long_description,
+					OOIntCredits(premium + fee), OOIntCredits(premium), OOIntCredits(fee)];
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 					passenger_name,											PASSENGER_KEY_NAME,
@@ -6963,8 +6969,8 @@ double estimatedTimeForJourney(double distance, int hops)
 							[self shortTimeDescription:(contract_departure_time - current_time)], [self shortTimeDescription:(contract_arrival_time - current_time)]];
 						
 						long_description = [NSString stringWithFormat:
-							DESC(@"contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits"), long_description,
-							premium, premium + fee];
+							DESC(@"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@"), long_description,
+							OOCredits(premium), OOCredits(premium + fee)];
 
 						NSDictionary* contract_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 							[NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2 ],CONTRACT_KEY_ID,
@@ -7263,8 +7269,8 @@ double estimatedTimeForJourney(double distance, int hops)
 				price = base_price + cunningFee(price - base_price);
 			}
 				
-			[description appendFormat:DESC(@"shipyard-selling-price-llu-credits"), (unsigned long long)price];
-			[short_description appendFormat:DESC(@"shipyard-price-llu-credits"), (unsigned long long)price];
+			[description appendFormat:DESC(@"shipyard-selling-price-@"), OOIntCredits(price)];
+			[short_description appendFormat:DESC(@"shipyard-price-@"), OOIntCredits(price)];
 
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 
@@ -8345,3 +8351,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 @end
+
+
+NSString *DESC_(NSString *key)
+{
+	NSString *result = [UNIVERSE descriptionForKey:key];
+	if (result == nil)  result = key;
+	return result;
+}

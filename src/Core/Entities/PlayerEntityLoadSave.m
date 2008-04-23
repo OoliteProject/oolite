@@ -931,7 +931,7 @@
 	legalDesc = LegalStatusToString([cdr intForKey:@"legal_status"]);
 	
 	rating = KillCountToRatingAndKillString([cdr unsignedIntForKey:@"ship_kills"]);
-	money = [cdr unsignedLongLongForKey:@"credits"] / 10;
+	money = [cdr unsignedLongLongForKey:@"credits"];
 	
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
@@ -966,10 +966,10 @@
 	
 	NSString		*cdrDesc = nil;
 	
-	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@"),
+	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@"),
 		[cdr stringForKey:@"player_name"],
 		rating,
-		money,
+		OOCredits(money),
 		legalDesc,
 		shipName,
 		locationName,

@@ -368,11 +368,14 @@
 	// this string represents the 4 character phonemes associated with each digram.
 	phonograms = "AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
 	
+	// Currency format
+	"@-credits"						= "%@ ₢";
+	
 	// *** Misc. messages ***
 	// Messages used when awarding bounties
-	"bounty-llu"					= ( "Bounty: %llu" );
-	"total-f-credits"				= ( "Total: %.1f ₢" );
-	"right-on-commander"			= ( "Right On, Commander!" );
+	"bounty-@"						= "Bounty: %@";
+	"total-@-credits"				= "Total: %@";
+	"right-on-commander"			= "Right On, Commander!";
 	
 	// Assorted messages used by the onboard computer
 	"autopilot-on"					= ( "Autopilot engaged." );
@@ -571,12 +574,12 @@
 		"%H Station does NOT welcome fugitives!"
 	);
 	// /station
-	"fined" =
+	"fined-@-credits" =
 	(
-		"You have been fined %llu credits.",
-		"You have been fined %llu credits, and made to pick up litter in the main hangar deck.",
-		"You have been fined %llu credits, and are forced to clean up after the [6]oids.",
-		"You have been fined %llu credits, and sent for “attitude adjustment”."
+		"You have been fined %@ credits.",
+		"You have been fined %@ credits, and made to pick up litter in the main hangar deck.",
+		"You have been fined %@ credits, and are forced to clean up after the [6]oids.",
+		"You have been fined %@ credits, and sent for “attitude adjustment”."
 	);
 	// system description after a nova
 	"nova-system-description" =
@@ -775,7 +778,6 @@
 	"equipment-single-pass-berth-@"	= "1 Passenger Berth";
 	"equipment-multiple-pass-berth-@" = "%d Passenger Berths";
 	"equipment-not-available"		= " (N/A)";
-	"cash-quantity"					= "%.1f ₢";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	
 	// Short Range Chart Screen
@@ -795,7 +797,7 @@
 	"price-column-title"			= "Price:";
 	"for-sale-column-title"			= "For sale:";
 	"in-hold-column-title"			= "In hold:";
-	"cash-f-load-d-of-d"			= "Cash: %.1f ₢.  Load %d of %d t.";
+	"cash-@-load-d-of-d"			= "Cash: %@. Load %d of %d t.";
 	"cargo-tons-symbol"				= "t";
 	"cargo-grams-symbol"			= "g";
 	"cargo-kilograms-symbol"		= "kg";
@@ -868,7 +870,7 @@
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";
-	"equip-cash-f"					= "Cash: %.1f ₢.";
+	"equip-cash-@"					= "Cash: %@.";
 	"equip-no-equipment-available-for-purchase" = "No equipment available for purchase.";
 	"equip-repair-@"				= " Repair:%@";
 	"upgradeinfo-@-price-is-for-repairing" = "%@ (Price is for repairing the existing system).";
@@ -877,9 +879,6 @@
 	"aft-facing-string"				= " Aft ";
 	"port-facing-string"			= " Port ";
 	"starboard-facing-string"		= " Starboard ";
-	
-	// Purchase ship screen
-	"ship-purchase-price"			= "%llu ₢";
 	
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";
@@ -893,13 +892,13 @@
 	"contracts-cargo-cargotype"		= "Cargo:";
 	"contracts-cargo-premium"		= "Premium:";
 	"contracts-cargo-pays"			= "Pays:";
-	"contracts-cash-f-load-d-of-d-passengers-d-of-d-berths" = "Cash: %.1f ₢.  Load %d of %d t. Passengers %d of %d berths.";
+	"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths" = "Cash: %@. Load %d of %d t. Passengers %d of %d berths.";
 	"contracts-@-a-@-wishes-to-go-to-@" = "%@, a %@, wishes to go to %@.";
 	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
 	"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time" = "%@ You will need to depart within %@, in order to arrive within %@ time.";
-	"contracts-@-will-pay-llu-credits-llu-in-advance-and-llu-credits-on-arrival" = "%@ Will pay %llu ₢: %llu ₢ in advance, and %llu ₢ on arrival.";
+	"contracts-@-will-pay-@-@-in-advance-and-@-on-arrival" = "%@ Will pay %@: %@ in advance, and %@ on arrival.";
 	"contracts-deliver-a-cargo-of-@-to-@" = "Deliver a cargo of %@ to %@.";
-	"contracts-@-the-contract-will-cost-you-f-credits-and-pay-a-total-of-f-credits" = "%@ The contract will cost you %.1f ₢, and pay a total of %.1f ₢.";
+	"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@" = "%@ The contract will cost you %@, and pay a total of %@.";
 	"contracts-no-time"				= "no time";
 	"contracts-day-word"			= "day";
 	"contracts-day-word-plural"		= "days";
@@ -934,8 +933,8 @@
 	"shipyard-speed"				= "Speed:";
 	"shipyard-speed-f-ls"			= "Speed: %.3f LS";
 	"shipyard-no-ships-available-for-purchase" = "No ships available for purchase.";
-	"shipyard-your-@-trade-in-value-d" = "Your %@’s trade-in value: %d.0 ₢.";
-	"shipyard-total-available-f-cr-f-cr-plus-d-trade" = "Total available: %.1f ₢. (%.1f ₢ Cash + %d.0 ₢ Trade.)";
+	"shipyard-your-@-trade-in-value-@" = "Your %@’s trade-in value: %@.";
+	"shipyard-total-available-%@-%@-plus-%@-trade" = "Total available: %@. (%@ Cash + %@ Trade.)";
 	"passenger-berth-plural"		= "Passenger Berths";
 	"passenger-berth-single"		= "Passenger Berth";
 	"extra-@-@"						= " Extra %@ (%@)";
@@ -943,14 +942,14 @@
 	"shipyard-standard-customer-model" = " Standard customer model.";
 	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
 	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
-	"shipyard-selling-price-llu-credits" = " Selling price %llu ₢.";
-	"shipyard-price-llu-credits"		= " Price %llu ₢.";
+	"shipyard-selling-price-@" = " Selling price %@.";
+	"shipyard-price-@"				= " Price %@.";
 	
 	// Load/Save screens shared information
 	"loadsavescreen-commander-name" = "Commander Name";
 	"loadsavescreen-rating"		= "Rating";
 	"loadsavescreen-no-commanders-found" = "No commanders found";
-	"loadsavescreen-commander-@-rated-@-has-llu-Cr-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %llu ₢ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
+	"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@" = "Commander %@ is rated %@ and has %@ in the bank. Legal status: %@. Ship: %@. Location: %@ (G%d). Timestamp: %@";
 	"loadsavescreen-hold-@-and-press-return-to-open-folder-@"= "Hold %@ and press return to open folder: %@";
 	"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@" = "Hold %@ and press return to open parent folder: %@";
 	
@@ -996,12 +995,12 @@
 	// delivery reports
 	"arrival-report-title"			= "%H Arrival Report";
 	
-	"passenger-delivered-okay-@-llu-@" = "%@ thanks you, and pays you %lld ₢ for delivering them to %@.";
-	"passenger-delivered-late-@-llu-@" = "%@ pays you %lld ₢ for eventually delivering them to %@.";
-	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.";
+	"passenger-delivered-okay-@-@-@" = "%@ thanks you, and pays you %@ for delivering them to %@.\n";
+	"passenger-delivered-late-@-@-@" = "%@ pays you %@ for eventually delivering them to %@.\n";
+	"passenger-failed-@"			= "%@ leaves your ship, annoyed that you have wasted so much of their time.\n";
 	
-	"cargo-delivered-okay-@-f"		= "Droids unload the %@ and you are paid %.1f ₢.";
-	"cargo-delivered-short-@-f-d"	= "Droids unload the %@, but you are only paid %.1f ₢ as there is a %d percent shortfall.";
+	"cargo-delivered-okay-@-@"		= "Droids unload the %@ and you are paid %@.";
+	"cargo-delivered-short-@-@-d"	= "Droids unload the %@, but you are only paid %@ as there is a %d percent shortfall.";
 	"cargo-refused-short-%@"		= "You don’t have enough inventory to deliver the %@.";
 	"cargo-delivered-late-@"		= "You fail to deliver the %@ on time, and no-one wants to pay for it.";
 	"cargo-failed-@"				= "You fail to deliver the %@ on time, and no-one will want to pay for it.";
@@ -1014,8 +1013,8 @@
 	"character-a-@-from-@"			= "a %@ from %@";
 	
 	// rewards and bounties from escapepods
-	"rescue-reward-for-@@-f-credits" = "For rescuing %@, %@, their insurance pays %.1f credits.";
-	"capture-reward-for-@@-f-credits" = "For capturing %@, %@, you’re paid a bounty of %.1f credits.";
+	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ credits.";
+	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ credits.";
 	
 	// Commodity names
 	"commodity-name food"			= "Food";
