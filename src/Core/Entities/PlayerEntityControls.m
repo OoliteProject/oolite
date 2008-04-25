@@ -1430,8 +1430,6 @@ static NSTimeInterval	time_last_frame;
 			[self handleGUIUpDownArrowKeys];
 			int guiSelectedRow = [gui selectedRow];
 			BOOL selectKeyPress = ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]);
-			if ([gameView isDown:gvMouseDoubleClick])
-				[gameView clearMouse];
 			
 			if (selectKeyPress)   // 'enter'
 			{
@@ -1477,6 +1475,9 @@ static NSTimeInterval	time_last_frame;
 					disc_operation_in_progress = YES;
 					[UNIVERSE reinit];
 				}
+				
+				if ([gameView isDown:gvMouseDoubleClick])
+					[gameView clearMouse];
 			}
 			else
 			{

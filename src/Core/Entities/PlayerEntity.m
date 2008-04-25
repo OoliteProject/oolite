@@ -3940,6 +3940,8 @@ double scoopSoundPlayTime = 0.0;
 		lastTextKey = nil;
 	}
 	
+	[[UNIVERSE gameView] clearMouse];
+	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_STATUS;
 	
@@ -4119,6 +4121,8 @@ double scoopSoundPlayTime = 0.0;
 	[lastTextKey release];
 	lastTextKey = nil;
 	
+	[[UNIVERSE gameView] clearMouse];
+	
 	[targetSystemData release];
 	[targetSystemName release];
 	
@@ -4196,6 +4200,8 @@ double scoopSoundPlayTime = 0.0;
 	}
 	/* ends */
 	
+	[[UNIVERSE gameView] clearMouse];
+	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
 	
@@ -4238,6 +4244,8 @@ double scoopSoundPlayTime = 0.0;
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
+	
+	[[UNIVERSE gameView] clearMouse];
 	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
@@ -4535,6 +4543,8 @@ double scoopSoundPlayTime = 0.0;
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
+	
+	[[UNIVERSE gameView] clearMouse];
 
 	[self setShowDemoShips:NO];
 	gui_screen = GUI_SCREEN_OPTIONS;
@@ -5476,6 +5486,8 @@ static int last_outfitting_index;
 
 		[gui setShowTextCursor:NO];
 	}
+	
+	[[UNIVERSE gameView] clearMouse];
 	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MARKET;

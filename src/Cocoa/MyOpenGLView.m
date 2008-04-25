@@ -675,8 +675,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 // event has been received from SDL.
 - (void) supressKeysUntilKeyUp
 {
-	supressKeys = YES;
-	[self clearKeys];
+	if (keys[gvMouseDoubleClick] == NO)
+	{
+		supressKeys = YES;
+		[self clearKeys];
+	}
+	else
+	{
+		[self clearMouse];
+	}
 }
 
 
