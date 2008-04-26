@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 */
 
 
-this.name		= "oolite-constrictor"; 
-this.author		= "eric walch"; 
+this.name		= "oolite-constrictor";
+this.author		= "eric walch";
 this.copyright	= "© 2008 the Oolite team.";
-this.version	= "1.01"; 
+this.version	= "1.72";
 
 
 this.legalPoints = 0;
@@ -41,8 +41,8 @@ this.shipSpawned = function ()
 }
 
 
-this.shipDied = function (killer) 
-{ 
+this.shipDied = function (killer)
+{
     if(killer == player)  missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
 }
 
