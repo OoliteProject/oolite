@@ -145,7 +145,6 @@ typedef enum
 #define HYPERSPEED_FACTOR				32.0
 
 #define PLAYER_SHIP_DESC				@"cobra3-player"
-#define PLAYER_MODEL					@"cobra3_redux.dat"
 
 #define ESCAPE_SEQUENCE_TIME			10.0
 

@@ -747,7 +747,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	show_info_flag = NO;
 	
 	[ship_desc release];
-	ship_desc = [[NSString stringWithString:PLAYER_SHIP_DESC] retain];
+	ship_desc = PLAYER_SHIP_DESC;
 	ship_trade_in_factor = 95;
 	
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
