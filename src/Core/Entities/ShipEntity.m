@@ -3455,12 +3455,12 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 - (PlanetEntity *) findPlanetNearestSurface
 {
 	NSMutableArray		*planets = nil;
-	NSArray				*sortedPlanets = nil;
+	NSArray			*sortedPlanets = nil;
 	
 	planets = (NSMutableArray *)[UNIVERSE planets];
-	[planets addObject:[UNIVERSE sun]];
-
 	if ([planets count] == 0)  return nil;
+
+	[planets addObject:[UNIVERSE sun]];
 	
 	PlanetEntity* the_planet=[planets objectAtIndex:0];
 	if ([planets count] >1)
