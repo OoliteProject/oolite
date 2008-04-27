@@ -151,6 +151,12 @@ BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 }
 
 
+BOOL IsSunPredicate(Entity *entity, void *parameter)
+{
+	return [entity isSun];
+}
+
+
 BOOL HasRolePredicate(Entity *ship, void *parameter)
 {
 	return [(ShipEntity *)ship hasRole:(NSString *)parameter];

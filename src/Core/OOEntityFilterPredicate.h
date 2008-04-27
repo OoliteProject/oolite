@@ -66,6 +66,7 @@ BOOL HasClassPredicate(Entity *entity, void *parameter);				// Parameter: Class
 BOOL IsShipPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isShip and !isSubentity.
 BOOL IsStationPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isStation.
 BOOL IsPlanetPredicate(Entity *entity, void *parameter);				// Parameter: ignored. Tests isPlanet and planetType == PLANET_TYPE_GREEN.
+BOOL IsSunPredicate(Entity *entity, void *parameter);					// Parameter: ignored. Tests isSun.
 
 // These predicates assume their parameter is a ShipEntity.
 BOOL HasRolePredicate(Entity *ship, void *parameter);					// Parameter: NSString

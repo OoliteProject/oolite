@@ -2710,8 +2710,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	if (cachedPlanet == nil)
 	{
-		cachedPlanet = [self findOneEntityMatchingPredicate:IsPlanetPredicate
-												  parameter:nil];
+		cachedPlanet = [self findOneEntityMatchingPredicate:IsPlanetPredicate  parameter:nil];
 	}
 	return cachedPlanet;
 }
@@ -2721,8 +2720,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	if (cachedSun == nil)
 	{
-		cachedSun = [self findOneEntityMatchingPredicate:HasClassPredicate
-											   parameter:[PlanetEntity class]];
+		cachedSun = [self findOneEntityMatchingPredicate:IsSunPredicate	 parameter:nil];
 	}
 	return cachedSun;
 }
