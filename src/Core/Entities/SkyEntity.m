@@ -64,6 +64,8 @@ MA 02110-1301, USA.
 							scale;
 	signed					starCount,	// Need to be able to hold -1...
 							nebulaCount;
+	unsigned			starCountMultiplier, 
+							nebulaCountMultiplier;
 	
     self = [super init];
 	if (self == nil)  return nil;
@@ -79,13 +81,15 @@ MA 02110-1301, USA.
 	
 	// Load star count
 	starCount = [systemInfo floatForKey:@"sky_n_stars" defaultValue:-1];
+	starCountMultiplier = [systemInfo unsignedIntForKey:@"star_count_multiplier" defaultValue:1];
+	nebulaCountMultiplier = [systemInfo unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
 	if (0 <= starCount)
 	{
 		starCount = MIN(SKY_MAX_STARS, starCount);
 	}
 	else
 	{
-		starCount = SKY_MAX_STARS * 0.5 * randf() * randf();
+		starCount = starCountMultiplier * SKY_MAX_STARS * 0.5 * randf() * randf();
 	}
 	
 	// ...and sky count. (Note: simplifying this would change the appearance of stars/blobs.)
@@ -96,7 +100,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		nebulaCount = SKY_MAX_BLOBS * 0.5 * randf() * randf();
+		nebulaCount = nebulaCountMultiplier * SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
 	
 	skyDrawable = [[OOSkyDrawable alloc]
