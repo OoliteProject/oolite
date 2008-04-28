@@ -102,6 +102,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 // Designated initializer
 - (id) initWithDictionary:(NSDictionary *) dict
 {
+	if (dict == nil && ![self isKindOfClass:[PlayerEntity class]])
+	{
+		// Is there any reason we should allow nil dictionary here? I think not. --Ahruman 2008-04-27
+		// Yes, the player ship uses -init. Any others? --Ahruman 2008-04-28
+		OOLog(@"ship.sanityCheck.nilDict", @"Ship created with nil dictionary!");
+	}
+	
 	self = [super init];
 	
 	isShip = YES;
@@ -120,7 +127,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	// Problem observed in testing -- Ahruman
-	if (self != nil && !isfinite(maxFlightSpeed))
+	if (self != nil && !isfinite(maxFlightSpeed) && dict != nil)
 	{
 		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
 		maxFlightSpeed = 300;
@@ -216,6 +223,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	reference	= v_forward;  // reference vector for (* turrets *)
 	
 	isShip = YES;
+	
+	// In order for default values to work and float values to not be junk,
+	// replace nil with empty dictionary. -- Ahruman 2008-04-28
+	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
 	
 #if OBSOLETE
 	// FIXME: like_ships should have been resolved before getting here. Replace with assert for no like_ship after 1.71 release. -- Ahruman 2008-04-19
@@ -1183,7 +1194,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (!isfinite(maxFlightSpeed))
 	{
-		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ has infinite top speed!", self);
 		maxFlightSpeed = 300;
 	}
 	
