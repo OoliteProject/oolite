@@ -77,6 +77,8 @@ GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
 GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 GLfloat darkgreen_color[4] ={0.0, 0.75, 0.0, 1.0};
 GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
+GLfloat black_color[4] =	{0.0, 0.0, 0.0, 1.0};
+GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float sGlyphWidths[256];
 
@@ -1335,7 +1337,7 @@ static BOOL hostiles;
 					glEnd();
 					
 					// Draw black backing, so outline colour isn’t blended into missile colour.
-					glColor4f(0.0, 0.0, 0.0, 1.0);
+					GLColorWithOverallAlpha(black_color, overallAlpha);
 					glBegin(GL_POLYGON);
 					if (miss_icon)
 					{
@@ -1399,8 +1401,8 @@ static BOOL hostiles;
 				}
 			}
 			else
-			{
-				glColor4f(0.25, 0.25, 0.25, 0.5);
+			{	
+				GLColorWithOverallAlpha(lightgray_color, overallAlpha);
 				glBegin(GL_LINE_LOOP);
 				hudDrawMissileIconAt(x + i * sp, y, z1, siz);
 				glEnd();
