@@ -103,6 +103,8 @@ MA 02110-1301, USA.
 		nebulaCount = nebulaCountMultiplier * SKY_MAX_BLOBS * 0.5 * randf() * randf();
 	}
 	
+	if ([UNIVERSE reducedDetail]) starCount /= 2; // Halve the number of stars in the reduced detail setting.
+	
 	skyDrawable = [[OOSkyDrawable alloc]
 						initWithColor1:col1
 								Color2:col2

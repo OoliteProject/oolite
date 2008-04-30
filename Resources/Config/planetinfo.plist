@@ -3,8 +3,8 @@
 	{
 		sky_color_1 = (0, 1, 0.5);
 		sky_color_2 = (0, 1, 0);
-		sky_n_stars = 3000;
-		sky_n_blobs = 512;
+		sky_n_stars = 480;
+		sky_n_blobs = 128;
 	};
 	
 	// The two multiplier values below determine how many more stars will be used to populate space
@@ -12,8 +12,8 @@
 	// "universal" section.
 	universal =
 	{
-		star_count_multiplier = 5;
-		nebula_count_multiplier = 10;
+		star_count_multiplier = 2;
+		nebula_count_multiplier = 1;
 	};
 	
 	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival
