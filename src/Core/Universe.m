@@ -6968,7 +6968,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						
 						long_description = [NSString stringWithFormat:
 							DESC(@"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@"), long_description,
-							OOCredits(premium), OOCredits(premium + fee)];
+							OOIntCredits(premium), OOIntCredits(premium + fee)];
 
 						NSDictionary* contract_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 							[NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2 ],CONTRACT_KEY_ID,

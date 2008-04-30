@@ -254,6 +254,7 @@
 	script.javaScript.exception				= $scriptError;
 	script.javaScript.warning				= $scriptError;
 	script.javaScript.badParameter			= $scriptError;
+	script.javaScript.context.create		= no;
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;

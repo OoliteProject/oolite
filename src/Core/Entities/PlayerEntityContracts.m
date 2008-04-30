@@ -535,8 +535,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// remove passenger contracts that the player has already agreed to or done
 	for (i = 0; i < [passenger_market count]; i++)
 	{
-		NSDictionary* info = (NSDictionary *)[passenger_market objectAtIndex:i];
-		NSString* p_name = (NSString *)[info objectForKey:PASSENGER_KEY_NAME];
+		NSDictionary* info = [passenger_market dictionaryAtIndex:i];
+		NSString* p_name = [info stringForKey:PASSENGER_KEY_NAME];
 		if ([passenger_record objectForKey:p_name])
 			[passenger_market removeObjectAtIndex:i--];
 	}
@@ -544,8 +544,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// remove cargo contracts that the player has already agreed to or done
 	for (i = 0; i < [contract_market count]; i++)
 	{
-		NSDictionary* info = (NSDictionary *)[contract_market objectAtIndex:i];
-		NSString* cid = (NSString *)[info objectForKey:CONTRACT_KEY_ID];
+		NSDictionary* info = [contract_market dictionaryAtIndex:i];
+		NSString* cid = [info stringForKey:CONTRACT_KEY_ID];
 		if ([contract_record objectForKey:cid])
 			[contract_market removeObjectAtIndex:i--];
 	}
@@ -601,16 +601,16 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		for (i = 0; i < n_passengers; i++)
 		{
-			NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:i];
-			NSString *Name = [passenger_info objectForKey:PASSENGER_KEY_NAME];
+			NSDictionary* passenger_info = [passenger_market dictionaryAtIndex:i];
+			NSString *Name = [passenger_info stringForKey:PASSENGER_KEY_NAME];
 			if([Name length] >26)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
-			int dest_eta = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
+			int dest_eta = [passenger_info doubleForKey:PASSENGER_KEY_ARRIVAL_TIME] - ship_clock;
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",Name]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info stringForKey:PASSENGER_KEY_DESTINATION_NAME]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_PREMIUM] stringValue]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_FEE] stringValue]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info stringForKey:PASSENGER_KEY_PREMIUM]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[passenger_info stringForKey:PASSENGER_KEY_FEE]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_PASSENGERS_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_PASSENGERS_START + i];
 			if (can_take_passengers)
@@ -647,8 +647,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_CARGO_DESCRIPTION]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME]]];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",[UNIVERSE shortTimeDescription:dest_eta]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] stringValue]]];
-			[row_info addObject:[NSString stringWithFormat:@" %@ ",[(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_FEE] stringValue]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info stringForKey:CONTRACT_KEY_PREMIUM]]];
+			[row_info addObject:[NSString stringWithFormat:@" %@ ",[contract_info stringForKey:CONTRACT_KEY_FEE]]];
 			[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_CARGO_START + i];
 			[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_CARGO_START + i];
 			if (not_possible)
@@ -679,7 +679,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < (int)(GUI_ROW_CARGO_START + n_contracts)))
 		{
-			NSString* long_info = (NSString*)[(NSDictionary*)[contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START] objectForKey:CONTRACT_KEY_LONG_DESCRIPTION];
+			NSString* long_info = [[contract_market dictionaryAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START] stringForKey:CONTRACT_KEY_LONG_DESCRIPTION];
 			[gui addLongText:long_info startingAtRow:GUI_ROW_CONTRACT_INFO_START align:GUI_ALIGN_LEFT];
 		}
 		

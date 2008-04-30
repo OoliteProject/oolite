@@ -511,7 +511,7 @@ NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includ
 	}
 	else
 	{
-		if (tenthsOfCredits >= 5)  integerCredits++;
+		if (tenths >= 5)  integerCredits++;
 		result = [NSString stringWithFormat:@"%llu", integerCredits];
 	}
 	

@@ -86,7 +86,7 @@ void OOPrintLogHeader(void)
 	#elif OOLITE_HAVE_APPKIT
 		#define OS_TYPE_STRING "unknown AppKit system"
 	#else
-		#define "Unknown system"
+		#define OS_TYPE_STRING "unknown system"
 	#endif
 	
 	#ifdef OO_DEBUG

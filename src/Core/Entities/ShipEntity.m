@@ -127,7 +127,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	// Problem observed in testing -- Ahruman
-	if (self != nil && !isfinite(maxFlightSpeed) && dict != nil)
+	if (self != nil && !isfinite(maxFlightSpeed))
 	{
 		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
 		maxFlightSpeed = 300;

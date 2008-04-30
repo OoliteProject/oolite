@@ -52,6 +52,7 @@ SOFTWARE.
 
 
 static NSSet *SetForObject(id object, NSSet *defaultValue);
+static NSString *StringForObject(id object, NSString *defaultValue);
 
 
 @implementation NSArray (OOExtractor)
@@ -180,7 +181,7 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 
 - (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value
 {
-	return [self objectOfClass:[NSString class] atIndex:index defaultValue:value];
+	return StringForObject([self objectAtIndex:index], value);
 }
 
 
@@ -498,7 +499,7 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
 {
-	return [self objectOfClass:[NSString class] forKey:key defaultValue:value];
+	return StringForObject([self objectForKey:key], value);
 }
 
 
@@ -816,7 +817,7 @@ static NSSet *SetForObject(id object, NSSet *defaultValue);
 
 - (NSString *)stringForKey:(id)key defaultValue:(NSString *)value
 {
-	return [self objectOfClass:[NSString class] forKey:key defaultValue:value];
+	return StringForObject([self objectForKey:key], value);
 }
 
 
@@ -1403,4 +1404,13 @@ static NSSet *SetForObject(id object, NSSet *defaultValue)
 	else if ([object isKindOfClass:[NSSet class]])  return [[object copy] autorelease];
 	
 	else return defaultValue;
+}
+
+
+static NSString *StringForObject(id object, NSString *defaultValue)
+{
+	if ([object isKindOfClass:[NSString class]])  return object;
+	else if ([object respondsToSelector:@selector(stringValue)])  return [object stringValue];
+	
+	return nil;
 }

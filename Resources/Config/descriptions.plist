@@ -369,7 +369,7 @@
 	phonograms = "AEb=UW==sEH=IHt=IHl=EHt=st==AAn=lOW=nUW=T===nOW=AEl=lEY=hEY=JEH=zEY=sEH=bIY=sOW=UHs=EHz=AEr=mAE=IHn=dIY=rEY=EH==UXr=AEt=EHn=bEH=rAX=lAX=vEH=tIY=EHd=AAr=kw==AXn=tEY=IHz=rIY=AAn=";
 	
 	// Currency format
-	"@-credits"						= "%@ ₢";
+	"@-credits"						= "%@ ₢";
 	
 	// *** Misc. messages ***
 	// Messages used when awarding bounties
