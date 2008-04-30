@@ -3182,6 +3182,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (NSString *) displayName
 {
+	if (displayName == nil)  return name;
 	return displayName;
 }
 
@@ -7490,9 +7491,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		return;					// out of comms range
 	if (!other_ship)
 		return;
-	NSMutableString* localExpandedMessage = [NSMutableString stringWithString:message_text];
+	NSMutableString *localExpandedMessage = [NSMutableString stringWithString:message_text];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[self:name]"
-							withString:displayName
+							withString:[self displayName]
 							options:NSLiteralSearch range:NSMakeRange(0, [localExpandedMessage length])];
 	[localExpandedMessage	replaceOccurrencesOfString:@"[target:name]"
 							withString:[other_ship identFromShip: self]

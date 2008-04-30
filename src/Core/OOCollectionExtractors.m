@@ -1403,7 +1403,7 @@ static NSSet *SetForObject(id object, NSSet *defaultValue)
 	if ([object isKindOfClass:[NSArray class]])  return [NSSet setWithArray:object];
 	else if ([object isKindOfClass:[NSSet class]])  return [[object copy] autorelease];
 	
-	else return defaultValue;
+	return defaultValue;
 }
 
 
@@ -1412,5 +1412,5 @@ static NSString *StringForObject(id object, NSString *defaultValue)
 	if ([object isKindOfClass:[NSString class]])  return object;
 	else if ([object respondsToSelector:@selector(stringValue)])  return [object stringValue];
 	
-	return nil;
+	return defaultValue;
 }
