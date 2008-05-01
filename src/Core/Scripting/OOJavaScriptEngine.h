@@ -118,8 +118,9 @@ void OOSetJSWarningOrErrorStackSkip(unsigned skip);	// Indicate that the direct 
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
-OOINLINE jsval BOOLToJSVal(BOOL b) INLINE_CONST_FUNC;
-OOINLINE jsval BOOLToJSVal(BOOL b)
+// Typed as int rather than BOOL to work with more general expressions such as bitfield tests.
+OOINLINE jsval BOOLToJSVal(int b) INLINE_CONST_FUNC;
+OOINLINE jsval BOOLToJSVal(int b)
 {
 	return BOOLEAN_TO_JSVAL(b != NO);
 }

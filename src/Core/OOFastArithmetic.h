@@ -126,7 +126,7 @@ OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 		}
 		#define OOFASTARITHMETIC_USED_PPC
 	#else
-		#warning Unknown compiler - don't know how to use PowerPC intrinsics. Using less efficient methods.
+		#warning Unknown compiler - not sure how to use PowerPC intrinsics. Using less efficient methods.
 		#define OO_PPC_fsel(test, a, b)		(((test)>0)?(a):(b))
 		#define OO_PPC_fsels(test, a, b)	OO_PPC_fsel(test, a, b)
 		#define OO_PPC_fres(val)			(1.0f/(val))

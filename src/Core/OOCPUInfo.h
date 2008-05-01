@@ -148,7 +148,7 @@ unsigned OOCPUCount(void);
 #endif
 
 #if OOLITE_ALTIVEC_DYNAMIC && !OOLITE_MAC_OS_X
-#warning OOLITE_ALTIVEC is set, but Oolite doesn't know how to detect AltiVec on this platform. Either implement OOAltivecAvailable() or predefine OOLITE_ALTIVEC_ALWAYS to 1 if you know it will always be available.
+#warning OOLITE_ALTIVEC is set, but Oolite does not know how to detect AltiVec on this platform. Either implement OOAltivecAvailable() or predefine OOLITE_ALTIVEC_ALWAYS to 1 if you know it will always be available.
 #undef OOLITE_ALTIVEC_DYNAMIC
 #undef OOLITE_ALTIVEC
 #define OOLITE_ALTIVEC			0

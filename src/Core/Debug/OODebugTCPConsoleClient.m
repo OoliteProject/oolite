@@ -229,7 +229,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 	
 	parameters = [NSMutableDictionary dictionaryWithCapacity:3];
 	[parameters setObject:output forKey:kOOTCPMessage];
-	[parameters setObject:colorKey ? colorKey : @"general" forKey:kOOTCPColorKey];
+	[parameters setObject:colorKey ? colorKey : (NSString *)@"general" forKey:kOOTCPColorKey];
 	if (emphasisRange.length != 0)
 	{
 		range = [NSArray arrayWithObjects:
@@ -364,7 +364,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (data == nil)
 	{
-		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc ? errorDesc : @"unknown error.");
+		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc ? errorDesc : (NSString *)@"unknown error.");
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 		[errorDesc autorelease];
 #endif

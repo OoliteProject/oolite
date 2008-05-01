@@ -89,7 +89,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	
 	// Use cache to avoid creating duplicate shader programs -- saves on GPU resources and potentially state changes.
 	// FIXME: probably needs to respond to graphics resets.
-	cacheKey = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: @""];
+	cacheKey = [NSString stringWithFormat:@"vertex:%@\nfragment:%@\n----\n%@", vertexShaderName, fragmentShaderName, prefixString ?: (NSString *)@""];
 	result = [[sShaderCache objectForKey:cacheKey] pointerValue];
 	
 	if (result == nil)

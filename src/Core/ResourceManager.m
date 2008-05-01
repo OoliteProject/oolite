@@ -211,7 +211,7 @@ static NSMutableDictionary *string_cache;
 
 + (NSArray *)paths
 {
-	return sUseAddOns ? [self pathsWithAddOns] : [NSArray arrayWithObject:[self builtInPath]];
+	return sUseAddOns ? [self pathsWithAddOns] : (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
 }
 
 
@@ -351,7 +351,7 @@ static NSMutableDictionary *string_cache;
 	if (descriptionKey != nil)
 	{
 		if (sErrors == nil)  sErrors = [[NSMutableArray alloc] init];
-		[sErrors addObject:[NSArray arrayWithObjects:descriptionKey, param1 ?: @"", param2 ?: @"", nil]];
+		[sErrors addObject:[NSArray arrayWithObjects:descriptionKey, param1 ?: (id)@"", param2 ?: (id)@"", nil]];
 	}
 }
 
@@ -543,7 +543,7 @@ static NSMutableDictionary *string_cache;
 	
 	if (fileName == nil)  return nil;
 	
-	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (folderName != nil) ? [folderName stringByAppendingString:@"/"] : @"", fileName, mergeFiles ? @"yes" : @"no"];
+	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (folderName != nil) ? [folderName stringByAppendingString:@"/"] : (NSString *)@"", fileName, mergeFiles ? @"yes" : @"no"];
 	result = [cache objectForKey:cacheKey inCache:@"arrays"];
 	if (result != nil)  return result;
 	

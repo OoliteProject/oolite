@@ -229,7 +229,7 @@ static BOOL		sRectangleTextureAvailable;
 	options &= ~kOOTextureNoFNFMessage;
 	
 	// Look for existing texture
-	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : @"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
+	key = [NSString stringWithFormat:@"%@%@%@:0x%.4X/%g/%g", directory ? directory : (NSString *)@"", directory ? @"/" : @"", name, options, anisotropy, lodBias];
 	result = (id)[[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{

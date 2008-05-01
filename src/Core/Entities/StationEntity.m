@@ -1886,7 +1886,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(no_docking_while_launching);
 	if ([self isRotatingStation]) { [flags addObject:@"rotatingStation"]; }
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.stationEntity", @"Flags: %@", flagsString);
 }
 

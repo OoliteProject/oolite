@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOGraphicsResetManager.h"
 
-#if OOLITE_WINDOWS
+#if !OOLITE_MAC_OS_X
 #define NEED_STRLCPY
 #endif
 
@@ -1251,7 +1251,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(isSmoothShaded);
 	ADD_FLAG_IF_SET(materialsReady);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.selfDrawingEntity", @"Flags: %@", flagsString);
 }
 #endif

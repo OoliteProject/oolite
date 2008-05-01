@@ -571,7 +571,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	OOLogIndent();
 	for (i = 0; i < show_count; i++)
 	{
-		ShipEntity* se = (sortedEntities[i]->isShip)? (ShipEntity*)sortedEntities[i]: nil;
+		ShipEntity* se = (sortedEntities[i]->isShip)? (id)sortedEntities[i]: nil;
 		OOLog(@"universe.objectDump", @"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
 	}
 	OOLogOutdent();
@@ -7238,7 +7238,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					
 			if (passenger_berths)
 			{
-				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : @"";
+				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : (id)@"";
 				NSString* ppb = (passenger_berths > 1)? DESC(@"passenger-berth-plural") : DESC(@"passenger-berth-single");
 				[description appendFormat:@"Extra %@%@ (%@)", npb, ppb, passengerBerthLongDesc];
 				[short_description appendFormat:@"Extra %@%@.", npb, ppb];
@@ -7293,7 +7293,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	}
 	
 	NSMutableArray *resultArray = [[[resultDictionary allValues] mutableCopy] autorelease];
-	[resultArray sortUsingFunction:compareName context:nil];
+	[resultArray sortUsingFunction:(int(*)(id, id, void *))compareName context:NULL];
 	
 	// remove identically priced ships of the same name
 	i = 1;

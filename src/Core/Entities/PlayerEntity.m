@@ -4189,9 +4189,9 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:targetSystemName	forRow:17];
 		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
-		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:19];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), estimatedTravelTime] : (id)@"") forRow:19];
 		
-		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : @"";
+		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
 		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:16];
 		[gui setColor:[OOColor cyanColor] forRow:16];
 		
@@ -4238,7 +4238,7 @@ double scoopSoundPlayTime = 0.0;
 		
 		[gui setText:targetSystemName	forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
-		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : @"") forRow:21];
+		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (id)@"") forRow:21];
 		
 
 		[gui setShowTextCursor:NO];
@@ -5453,12 +5453,12 @@ static int last_outfitting_index;
 			OOCreditsQuantity price_per_unit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [marketDef unsignedIntAtIndex:MARKET_UNITS];
 			
-			NSString* available = (available_units > 0) ? [NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
-			NSString* price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
-			NSString* owned = (units_in_hold > 0) ? [NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
-			NSString* units = DisplayStringForMassUnit(unit);
-			NSString* units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
-			NSString* units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
+			NSString *available = (available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
+			NSString *price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
+			NSString *owned = (units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
+			NSString *units = DisplayStringForMassUnit(unit);
+			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
+			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
 			if (unit == UNITS_TONS)
 				current_cargo += units_in_hold;
@@ -6436,7 +6436,7 @@ OOSound* burnersound;
 	ADD_FLAG_IF_SET(keyboardRollPitchOverride);
 	ADD_FLAG_IF_SET(keyboardYawOverride);
 	ADD_FLAG_IF_SET(waitingForStickCallback);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
 }
 #endif

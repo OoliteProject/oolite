@@ -7870,7 +7870,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	ADD_FLAG_IF_SET(cloaking_device_active);
 	ADD_FLAG_IF_SET(canFragment);
 	ADD_FLAG_IF_SET(proximity_alert);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.shipEntity", @"Flags: %@", flagsString);
 }
 #endif
@@ -7884,7 +7884,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (NSDictionary *)scriptInfo
 {
-	return (scriptInfo != nil) ? scriptInfo : [NSDictionary dictionary];
+	return (scriptInfo != nil) ? scriptInfo : (NSDictionary *)[NSDictionary dictionary];
 }
 
 

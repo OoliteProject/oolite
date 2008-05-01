@@ -457,7 +457,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(isSmoothShaded);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : @"none";
+	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
 }
 #endif

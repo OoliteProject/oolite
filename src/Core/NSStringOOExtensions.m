@@ -142,7 +142,7 @@ MA 02110-1301, USA.
 
 - (void) appendLine:(NSString *)line
 {
-	[self appendString:line ? [line stringByAppendingString:@"\n"] : @"\n"];
+	[self appendString:line ? [line stringByAppendingString:@"\n"] : (NSString *)@"\n"];
 }
 
 

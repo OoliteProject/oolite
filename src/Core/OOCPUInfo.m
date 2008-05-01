@@ -116,7 +116,7 @@ void OOCPUInfoInit(void)
 		if (flag)  sAltiVecAvailable = YES;
 	}
 #else
-	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite doesn't know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
+	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite does not know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
 #endif
 #endif
 	

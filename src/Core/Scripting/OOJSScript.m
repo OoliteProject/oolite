@@ -190,7 +190,7 @@ static JSFunctionSpec sScriptMethods[] =
 		version = [[[self propertyNamed:@"version"] description] copy];
 		description = [[[self propertyNamed:@"description"] description] copy];
 		
-		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : @"(no description)");
+		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 	}
 	
 	if (problem)
