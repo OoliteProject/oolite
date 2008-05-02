@@ -47,33 +47,35 @@ MA 02110-1301, USA.
 
 + (NSMutableDictionary *) getNativeSize
 {
-   SDL_SysWMinfo  dpyInfo;
-   NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
+	NSMutableDictionary *mode=[[NSMutableDictionary alloc] init];
+	int nativeDisplayWidth = 1024;
+	int nativeDisplayHeight = 768;
 
-   SDL_VERSION(&dpyInfo.version);
-   if(SDL_GetWMInfo(&dpyInfo))
-   {
 #if defined(LINUX) && ! defined (WIN32)
-      [mode setValue: [NSNumber numberWithInt: DisplayWidth(dpyInfo.info.x11.display, 0)]
-              forKey: kOODisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: DisplayHeight(dpyInfo.info.x11.display, 0)]
-              forKey: kOODisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
+	SDL_SysWMinfo  dpyInfo;
+	SDL_VERSION(&dpyInfo.version);
+	if(SDL_GetWMInfo(&dpyInfo))
+   	{
+		nativeDisplayWidth = DisplayWidth(dpyInfo.info.x11.display, 0);
+		nativeDisplayHeight = DisplayHeight(dpyInfo.info.x11.display, 0);
+		NSLog(@"X11 native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
+	}
+	else
+	{
+		NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+	}
+#elif defined (WIN32)
+	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
+	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
+	NSLog(@"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
 #else
-      NSLog(@"Unknown architecture, defaulting to 1024x768");
-      [mode setValue: [NSNumber numberWithInt: 1024] forKey:kOODisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: 768] forKey: kOODisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
+	NSLog(@"Unknown architecture, defaulting to 1024x768");
 #endif
-   }
-   else
-   {
-      NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
-      [mode setValue: [NSNumber numberWithInt: 1024] forKey: kOODisplayWidth];
-      [mode setValue: [NSNumber numberWithInt: 768] forKey: kOODisplayHeight];
-      [mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
-   }
-   return [mode autorelease];
+	[mode setValue: [NSNumber numberWithInt: nativeDisplayWidth] forKey:kOODisplayWidth];
+	[mode setValue: [NSNumber numberWithInt: nativeDisplayHeight] forKey: kOODisplayHeight];
+	[mode setValue: [NSNumber numberWithInt: 0] forKey: kOODisplayRefreshRate];
+
+	return [mode autorelease];
 }
 
 
@@ -81,15 +83,15 @@ MA 02110-1301, USA.
 {
 	self = [super init];
 
-   // TODO: This code up to and including stickHandler really ought
-   // not to be in this class.
+	// TODO: This code up to and including stickHandler really ought
+	// not to be in this class.
 	NSLog(@"initialising SDL");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
 		NSLog(@"Unable to init SDL: %s\n", SDL_GetError());
 		[self dealloc];
 		return nil;
-   }
+	}
 	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
 	{
 		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
@@ -98,8 +100,8 @@ MA 02110-1301, USA.
 	}
 
 	Mix_AllocateChannels(MAX_CHANNELS);
-   stickHandler=[[JoystickHandler alloc] init];
-   // end TODO
+	stickHandler=[[JoystickHandler alloc] init];
+	// end TODO
 
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
@@ -117,28 +119,28 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-   NSLog(@"CREATING MODE LIST");
-   [self populateFullScreenModelist];
+	NSLog(@"CREATING MODE LIST");
+	[self populateFullScreenModelist];
 	currentSize = 0;
 
-   // Find what the full screen and windowed settings are.
-   [self loadFullscreenSettings];
-   [self loadWindowSize];
+	// Find what the full screen and windowed settings are.
+	[self loadFullscreenSettings];
+	[self loadWindowSize];
 
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen)
-   {
+	{
 		videoModeFlags |= SDL_FULLSCREEN;
-      NSSize fs=[self modeAsSize: currentSize];
-	   surface = SDL_SetVideoMode(fs.width, fs.height, 32, videoModeFlags);
-   }
-   else
-   {
-      videoModeFlags |= SDL_RESIZABLE;
-	   surface = SDL_SetVideoMode(currentWindowSize.width,
+		NSSize fs=[self modeAsSize: currentSize];
+		surface = SDL_SetVideoMode(fs.width, fs.height, 32, videoModeFlags);
+   	}
+	else
+	{
+		videoModeFlags |= SDL_RESIZABLE;
+		surface = SDL_SetVideoMode(currentWindowSize.width,
                                  currentWindowSize.height,
                                  32, videoModeFlags);
-   }
+	}
 
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
@@ -164,7 +166,7 @@ MA 02110-1301, USA.
 
 	m_glContextInitialized = NO;
 	
-   return self;
+	return self;
 }
 
 
@@ -270,57 +272,57 @@ MA 02110-1301, USA.
 {
 	fullScreen = fsm;
 
-   // Save the settings for later.
-   [[NSUserDefaults standardUserDefaults]
-      setBool: fullScreen forKey:@"fullscreen"];
-   [[NSUserDefaults standardUserDefaults] synchronize];
+	// Save the settings for later.
+	[[NSUserDefaults standardUserDefaults]
+		setBool: fullScreen forKey:@"fullscreen"];
+	[[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 
 - (void) toggleScreenMode
 {
-   [self setFullScreenMode: !fullScreen];
-   if(fullScreen)
-      [self initialiseGLWithSize:[self modeAsSize: currentSize]];
-   else
-      [self initialiseGLWithSize: currentWindowSize];
+	[self setFullScreenMode: !fullScreen];
+	if(fullScreen)
+		[self initialiseGLWithSize:[self modeAsSize: currentSize]];
+	else
+		[self initialiseGLWithSize: currentWindowSize];
 }
 
 
 - (void) setDisplayMode:(int)mode  fullScreen:(BOOL)fsm
 {
-   [self setFullScreenMode: fsm];
-   currentSize=mode;
-   if(fullScreen)
-      [self initialiseGLWithSize: [self modeAsSize: mode]];
+	[self setFullScreenMode: fsm];
+	currentSize=mode;
+	if(fullScreen)
+		[self initialiseGLWithSize: [self modeAsSize: mode]];
 }
 
 
 - (int) indexOfCurrentSize
 {
-   return currentSize;
+	return currentSize;
 }
 
 
 - (void) setScreenSize: (int)sizeIndex
 {
-   currentSize=sizeIndex;
-   if(fullScreen)
-   	[self initialiseGLWithSize: [self modeAsSize: currentSize]];
+	currentSize=sizeIndex;
+	if(fullScreen)
+		[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 }
 
 
 - (NSMutableArray *)getScreenSizeArray
 {
-   return screenSizes;
+	return screenSizes;
 }
 
 
 - (NSSize) modeAsSize:(int)sizeIndex
 {
-   NSDictionary *mode=[screenSizes objectAtIndex: sizeIndex];
-   return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
-                     [[mode objectForKey: kOODisplayHeight] intValue]);
+	NSDictionary *mode=[screenSizes objectAtIndex: sizeIndex];
+	return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
+        		[[mode objectForKey: kOODisplayHeight] intValue]);
 }
 
 #endif
@@ -392,8 +394,8 @@ MA 02110-1301, USA.
 	videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen == YES)
 		videoModeFlags |= SDL_FULLSCREEN;
-   else
-      videoModeFlags |= SDL_RESIZABLE;
+	else
+		videoModeFlags |= SDL_RESIZABLE;
 
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
 
@@ -410,8 +412,8 @@ MA 02110-1301, USA.
 
 	glShadeModel(GL_FLAT);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    SDL_GL_SwapBuffers();
+	glClear(GL_COLOR_BUFFER_BIT);
+	SDL_GL_SwapBuffers();
 
 	glClearDepth(MAX_CLEAR_DEPTH);
 	glViewport( 0, 0, viewSize.width, viewSize.height);
@@ -456,10 +458,10 @@ MA 02110-1301, USA.
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 
-   	glEnable(GL_LIGHT1);		// lighting
-	   glEnable(GL_LIGHT0);		// lighting
-   }
-   glEnable(GL_LIGHTING);		// lighting
+		glEnable(GL_LIGHT1);		// lighting
+		glEnable(GL_LIGHT0);		// lighting
+	}
+	glEnable(GL_LIGHTING);		// lighting
 
 	// world's simplest OpenGL optimisations...
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
@@ -480,17 +482,17 @@ MA 02110-1301, USA.
 - (void) snapShot
 {
 	SDL_Surface* tmpSurface;
-    int w = viewSize.width;
-    int h = viewSize.height;
+	int w = viewSize.width;
+	int h = viewSize.height;
 
 	if (w & 3)
 		w = w + 4 - (w & 3);
 
 //    long nPixels = w * h + 1;
 
-   // save in the oolite-saves directory.
-   NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
-   [[NSFileManager defaultManager] chdirToDefaultCommanderPath];
+	// save in the oolite-saves directory.
+	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
+	[[NSFileManager defaultManager] chdirToDefaultCommanderPath];
 
 	int imageNo = 1;
 
@@ -664,8 +666,8 @@ MA 02110-1301, USA.
 
 - (BOOL) isDown: (int) key
 {
-   if ( supressKeys )
-      return NO;
+	if ( supressKeys )
+		return NO;
 	if ( key < 0 )
 		return NO;
 	if ( key >= [self numKeys] )
@@ -724,14 +726,14 @@ MA 02110-1301, USA.
 			case SDL_MOUSEBUTTONDOWN:
 				mbtn_event = (SDL_MouseButtonEvent*)&event;
 				switch(mbtn_event->button)
-            {
-				case SDL_BUTTON_LEFT:
-					keys[gvMouseLeftButton] = YES;
-					break;
-				case SDL_BUTTON_RIGHT:
-					// Cocoa version does this in the GameController
-					[self setVirtualJoystick:0.0 :0.0];
-            }
+				{
+					case SDL_BUTTON_LEFT:
+						keys[gvMouseLeftButton] = YES;
+						break;
+					case SDL_BUTTON_RIGHT:
+						// Cocoa version does this in the GameController
+						[self setVirtualJoystick:0.0 :0.0];
+				}
 				break;
 				
 			case SDL_MOUSEBUTTONUP:
@@ -1080,136 +1082,135 @@ keys[a] = NO; keys[b] = NO; \
 // versions.
 - (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event;
 {
-   SDLKey key=kbd_event->keysym.sym;
+	SDLKey key=kbd_event->keysym.sym;
 
-   // Del, Backspace
-   if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
-   {
-      if([typedString length] >= 1)
-      {
-         [typedString deleteCharactersInRange:
-            NSMakeRange([typedString length]-1, 1)];
-      }
-      else
-      {
-         [self resetTypedString];
-      }
-   }
+	// Del, Backspace
+	if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
+	{
+		if([typedString length] >= 1)
+		{
+			[typedString deleteCharactersInRange:
+			NSMakeRange([typedString length]-1, 1)];
+		}
+		else
+		{
+			[self resetTypedString];
+		}
+	}
 
-   // Note: if we start using this handler for anything other
-   // than savegames, a more flexible mechanism is needed
-   // for max. string length.
-   if([typedString length] < 40)
-   {
-      // keys a-z
-      if(key >= SDLK_a && key <= SDLK_z)
-      {
-         isAlphabetKeyDown=YES;
-         if(shift)
-         {
-            key=toupper(key);
-         }
-         [typedString appendFormat:@"%c", key];
-      }
+	// Note: if we start using this handler for anything other
+	// than savegames, a more flexible mechanism is needed
+	// for max. string length.
+	if([typedString length] < 40)
+	{
+		// keys a-z
+		if(key >= SDLK_a && key <= SDLK_z)
+		{
+			isAlphabetKeyDown=YES;
+			if(shift)
+			{
+				key=toupper(key);
+			}
+			[typedString appendFormat:@"%c", key];
+		}
 
-      // keys 0-9, Space
-      // Left-Shift seems to produce the key code for 0 :/
-      if((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE)
-      {
-         [typedString appendFormat:@"%c", key];
-      }
-   }
+		// keys 0-9, Space
+		// Left-Shift seems to produce the key code for 0 :/
+		if((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE)
+		{
+			[typedString appendFormat:@"%c", key];
+		}
+	}
 }
 
 // Full screen mode enumerator.
 - (void) populateFullScreenModelist
 {
-   int i;
-   SDL_Rect **modes;
-   NSMutableDictionary *mode;
+	int i;
+	SDL_Rect **modes;
+	NSMutableDictionary *mode;
 
-   screenSizes=[[NSMutableArray alloc] init];
+	screenSizes=[[NSMutableArray alloc] init];
 
-   // The default resolution (slot 0) is the resolution we are
-   // already in since this is guaranteed to work.
-   mode=[MyOpenGLView getNativeSize];
-   [screenSizes addObject: mode];
+	// The default resolution (slot 0) is the resolution we are
+	// already in since this is guaranteed to work.
+	mode=[MyOpenGLView getNativeSize];
+	[screenSizes addObject: mode];
 
-   modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
-   if(modes == (SDL_Rect **)NULL)
-   {
-      NSLog(@"SDL didn't return any screen modes");
-      return;
-   }
+	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
+	if(modes == (SDL_Rect **)NULL)
+	{
+		NSLog(@"SDL didn't return any screen modes");
+		return;
+	}
 
-   if(modes == (SDL_Rect **)-1)
-   {
-      NSLog(@"SDL claims 'all resolutions available' which is unhelpful in the extreme");
-      return;
-   }
+	if(modes == (SDL_Rect **)-1)
+	{
+		NSLog(@"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+		return;
+	}
 
-   int lastw=[[mode objectForKey: kOODisplayWidth] intValue];
-   int lasth=[[mode objectForKey: kOODisplayHeight] intValue];
-   for(i=0; modes[i]; i++)
-   {
-      // SDL_ListModes often lists a mode several times,
-      // presumably because each mode has several refresh rates.
-      // But the modes pointer is an SDL_Rect which can't represent
-      // refresh rates. WHY!?
-      if(modes[i]->w != lastw && modes[i]->h != lasth)
-      {
-         // new resolution, save it
-         mode=[NSMutableDictionary dictionary];
-         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->w]
-                 forKey: kOODisplayWidth];
-         [mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
-                 forKey: kOODisplayHeight];
-         [mode setValue: [NSNumber numberWithInt: 0]
-                 forKey: kOODisplayRefreshRate];
-         [screenSizes addObject: mode];
-         NSLog(@"Added res %d x %d", modes[i]->w, modes[i]->h);
-         lastw=modes[i]->w;
-         lasth=modes[i]->h;
-      }
-   }
+	int lastw=[[mode objectForKey: kOODisplayWidth] intValue];
+	int lasth=[[mode objectForKey: kOODisplayHeight] intValue];
+	for(i=0; modes[i]; i++)
+	{
+		// SDL_ListModes often lists a mode several times,
+		// presumably because each mode has several refresh rates.
+		// But the modes pointer is an SDL_Rect which can't represent
+		// refresh rates. WHY!?
+		if(modes[i]->w != lastw && modes[i]->h != lasth)
+		{
+			// new resolution, save it
+			mode=[NSMutableDictionary dictionary];
+			[mode setValue: [NSNumber numberWithInt: (int)modes[i]->w]
+					forKey: kOODisplayWidth];
+			[mode setValue: [NSNumber numberWithInt: (int)modes[i]->h]
+					forKey: kOODisplayHeight];
+			[mode setValue: [NSNumber numberWithInt: 0]
+					forKey: kOODisplayRefreshRate];
+			[screenSizes addObject: mode];
+			NSLog(@"Added res %d x %d", modes[i]->w, modes[i]->h);
+			lastw=modes[i]->w;
+			lasth=modes[i]->h;
+		}
+	}
 }
 
 // Save and restore window sizes to/from defaults.
 - (void) saveWindowSize: (NSSize) windowSize
 {
-   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
-   [defaults setInteger: (int)windowSize.width forKey: @"window_width"];
-   [defaults setInteger: (int)windowSize.height forKey: @"window_height"];
-   currentWindowSize=windowSize;
+	NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+	[defaults setInteger: (int)windowSize.width forKey: @"window_width"];
+	[defaults setInteger: (int)windowSize.height forKey: @"window_height"];
+	currentWindowSize=windowSize;
 }
 
 
 - (NSSize) loadWindowSize
 {
-   NSSize windowSize;
-   NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
-   if([defaults objectForKey:@"window_width"] &&
-      [defaults objectForKey:@"window_height"])
-   {
-      windowSize=NSMakeSize([defaults integerForKey: @"window_width"],
-                            [defaults integerForKey: @"window_height"]);
-   }
-   else
-   {
-      windowSize=NSMakeSize(800, 600);
-   }
-   currentWindowSize=windowSize;
-   return windowSize;
+	NSSize windowSize;
+	NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+	if([defaults objectForKey:@"window_width"] && [defaults objectForKey:@"window_height"])
+	{
+		windowSize=NSMakeSize([defaults integerForKey: @"window_width"],
+					[defaults integerForKey: @"window_height"]);
+	}
+	else
+	{
+		windowSize=NSMakeSize(800, 600);
+	}
+	currentWindowSize=windowSize;
+	return windowSize;
 }
 
 
 - (int) loadFullscreenSettings
 {
-   currentSize=0;
-   int width=0, height=0, refresh=0;
-   unsigned i;
+	currentSize=0;
+	int width=0, height=0, refresh=0;
+	unsigned i;
    
-   NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
+	NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
 
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	if ([userDefaults objectForKey:@"display_width"])
@@ -1239,54 +1240,54 @@ keys[a] = NO; keys[b] = NO; \
 
 - (int) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
 {
-   int i, modeCount;
-   NSDictionary *mode;
-   unsigned int modeWidth, modeHeight, modeRefresh;
+	int i, modeCount;
+	NSDictionary *mode;
+	unsigned int modeWidth, modeHeight, modeRefresh;
 
-   modeCount = [screenSizes count];
+	modeCount = [screenSizes count];
 
 	for (i = 0; i < modeCount; i++)
 	{
-      mode = [screenSizes objectAtIndex: i];
-      modeWidth = [[mode objectForKey: kOODisplayWidth] intValue];
-      modeHeight = [[mode objectForKey: kOODisplayHeight] intValue];
-      modeRefresh = [[mode objectForKey: kOODisplayRefreshRate] intValue];
-	   if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
-      {
-         NSLog(@"Found mode %@", mode);
-		   return i;
-      }
+		mode = [screenSizes objectAtIndex: i];
+		modeWidth = [[mode objectForKey: kOODisplayWidth] intValue];
+		modeHeight = [[mode objectForKey: kOODisplayHeight] intValue];
+		modeRefresh = [[mode objectForKey: kOODisplayRefreshRate] intValue];
+		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
+		{
+			NSLog(@"Found mode %@", mode);
+			return i;
+		}
 	}
 
-   NSLog(@"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
-   NSLog(@"Contents of list: %@", screenSizes);
+	NSLog(@"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
+	NSLog(@"Contents of list: %@", screenSizes);
 	return 0;
 }
 
 
 - (NSSize) currentScreenSize
 {
-   NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
+	NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
 
-   if(mode)
-   {
-      return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
-                        [[mode objectForKey: kOODisplayHeight] intValue]);
-   }
-   NSLog(@"Screen size unknown!");
-   return NSMakeSize(800, 600);
+	if(mode)
+	{
+		return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
+				[[mode objectForKey: kOODisplayHeight] intValue]);
+	}
+	NSLog(@"Screen size unknown!");
+	return NSMakeSize(800, 600);
 }
 
 
 - (JoystickHandler *) getStickHandler
 {
-   return stickHandler;
+	return stickHandler;
 }
 
 
 - (void) setMouseInDeltaMode: (BOOL) inDelta
 {
-   mouseInDeltaMode=inDelta;
+	mouseInDeltaMode=inDelta;
 }
 
 
