@@ -800,6 +800,18 @@ WormholeEntity*	whole;
 
 - (void) commsMessage:(NSString *)valueString
 {
+	[self commsMessage:valueString withUnpilotedOverride:NO];
+}
+
+
+- (void) commsMessageByUnpiloted:(NSString *)valueString
+{
+	[self commsMessage:valueString withUnpilotedOverride:YES];
+}
+
+
+- (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride
+{
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -811,7 +823,7 @@ WormholeEntity*	whole;
 
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
 
-	[self broadcastMessage:expandedMessage];
+	[self broadcastMessage:expandedMessage withUnpilotedOverride:unpilotedOverride];
 }
 
 

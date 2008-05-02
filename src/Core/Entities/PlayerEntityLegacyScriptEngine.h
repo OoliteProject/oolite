@@ -116,11 +116,9 @@ MA 02110-1301, USA.
 - (void) clearMissionDescriptionForMission:(NSString *)key;
 
 - (void) commsMessage:(NSString *)valueString;
-
-#if 0		// Disabled until approved for inclusion.
-- (void) commsMessageByUnpiloted:(NSString *)valueString;  // Same as commsMessage, but can be used by scripts to have 
-							   // unpiloted ships sending commsMessages, if we want to.
-#endif
+- (void) commsMessageByUnpiloted:(NSString *)valueString;  // Enabled 02-May-2008 - Nikos. Same as commsMessage, but
+							   // can be used by scripts to have unpiloted ships sending
+							   // commsMessages, if we want to.
 
 - (void) consoleMessage3s:(NSString *)valueString;
 - (void) consoleMessage6s:(NSString *)valueString;

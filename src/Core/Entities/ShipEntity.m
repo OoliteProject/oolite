@@ -7531,10 +7531,16 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) broadcastMessage:(NSString *) message_text
 {
+	[self broadcastMessage:message_text withUnpilotedOverride:NO];
+}
+
+
+- (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride
+{
 	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", displayName, ExpandDescriptionForCurrentSystem(message_text)];
 
-	if (!crew)
-		return;	// nobody to send the signal
+	if (!crew && !unpilotedOverride)
+		return;	// nobody to send the signal and no override for unpiloted craft is set
 
 	[self setCommsMessageColor];
 	[self checkScanner];

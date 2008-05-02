@@ -687,6 +687,8 @@ BOOL	class_masslocks(int some_class);
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
 - (void) broadcastAIMessage:(NSString *) ai_message;
 - (void) broadcastMessage:(NSString *) message_text;
+// Unpiloted ships cannot broadcast messages, unless the unpilotedOverride is set to YES.
+- (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride;
 - (void) setCommsMessageColor;
 - (void) receiveCommsMessage:(NSString *) message_text;
 

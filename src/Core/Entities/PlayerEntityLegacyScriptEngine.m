@@ -1153,14 +1153,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-#if 0		// Disabled until approved for inclusion.
+// Enabled on 02-May-2008 - Nikos
 // This method does the same as -commsMessage, (which in fact calls), the difference being that scripts can use this
 // method to have unpiloted ship entities sending comms messages.
 - (void) commsMessageByUnpiloted:(NSString *)valueString
 {
 	[self commsMessage:valueString];
 }
-#endif
+
 
 - (void) consoleMessage3s:(NSString *)valueString
 {

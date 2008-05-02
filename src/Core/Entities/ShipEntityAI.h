@@ -124,6 +124,8 @@ MA 02110-1301, USA.
 - (void) wormholeEntireGroup;
 
 - (void) commsMessage:(NSString *)valueString;
+- (void) commsMessageByUnpiloted:(NSString *)valueString;
+- (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 - (void) broadcastDistressMessage;
 - (void) acceptDistressMessageFrom:(ShipEntity *)other;
 
