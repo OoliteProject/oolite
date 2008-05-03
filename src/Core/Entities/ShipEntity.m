@@ -7529,12 +7529,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
-- (void) broadcastMessage:(NSString *) message_text
-{
-	[self broadcastMessage:message_text withUnpilotedOverride:NO];
-}
-
-
 - (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride
 {
 	NSString* expandedMessage = [NSString stringWithFormat:@"%@:\n %@", displayName, ExpandDescriptionForCurrentSystem(message_text)];

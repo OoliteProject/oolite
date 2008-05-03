@@ -821,9 +821,7 @@ WormholeEntity*	whole;
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
-
-	[self broadcastMessage:expandedMessage withUnpilotedOverride:unpilotedOverride];
+	[self broadcastMessage:valueString withUnpilotedOverride:unpilotedOverride];
 }
 
 
