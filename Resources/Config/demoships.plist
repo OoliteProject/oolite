@@ -1,33 +1,29 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<array>
-	<string>coriolis-station</string>
-	<string>boa-mk2</string>
-	<string>transporter</string>
-	<string>alloy</string>
-	<string>cobramk1</string>
-	<string>worm</string>
-	<string>viper</string>
-	<string>asteroid</string>
-	<string>barrel</string>
-	<string>python</string>
-	<string>missile</string>
-	<string>tharglet</string>
-	<string>thargoid</string>
-	<string>boa</string>
-	<string>shuttle</string>
-	<string>dodecahedron-station</string>
-	<string>sidewinder</string>
-	<string>moray</string>
-	<string>mamba</string>
-	<string>krait</string>
-	<string>boulder</string>
-	<string>ferdelance</string>
-	<string>gecko</string>
-	<string>anaconda</string>
-	<string>escape-capsule</string>
-	<string>adder</string>
-	<string>asp</string>
-</array>
-</plist>
+(
+	"coriolis-station",
+	"boa-mk2",
+	transporter,
+	alloy,
+	cobramk1,
+	worm,
+	viper,
+	asteroid,
+	barrel,
+	python,
+	missile,
+	tharglet,
+	thargoid,
+	boa,
+	shuttle,
+	"dodecahedron-station",
+	sidewinder,
+	moray,
+	mamba,
+	krait,
+	boulder,
+	ferdelance,
+	gecko,
+	anaconda,
+	"escape-capsule",
+	adder,
+	asp
+)

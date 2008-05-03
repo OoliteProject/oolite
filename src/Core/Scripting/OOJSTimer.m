@@ -385,7 +385,10 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 									function:function
 										this:this];
 	*outResult = [timer javaScriptValueInContext:context];
-	if (delay >= 0)  [timer scheduleTimer];
+	if (delay >= 0)	// Leave in stopped state if delay is negative
+	{
+		[timer scheduleTimer];
+	}
 	[timer release];	// The JS object retains the ObjC object.
 	
 	return YES;

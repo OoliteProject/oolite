@@ -56,7 +56,6 @@ SOFTWARE.
 @interface OORoleSet (OOPrivate)
 
 - (id)initWithRolesAndProbabilities:(NSDictionary *)dict;
-- (NSDictionary *)parseRolesFromString:(NSString *)string;
 
 @end
 
@@ -78,7 +77,7 @@ SOFTWARE.
 {
 	NSDictionary			*dict = nil;
 	
-	dict = [self parseRolesFromString:roleString];
+	dict = OOParseRolesFromString(roleString);
 	return [self initWithRolesAndProbabilities:dict];
 }
 
@@ -314,8 +313,10 @@ SOFTWARE.
 	return self;
 }
 
+@end
 
-- (NSDictionary *)parseRolesFromString:(NSString *)string
+
+NSDictionary *OOParseRolesFromString(NSString *string)
 {
 	NSMutableDictionary		*result = nil;
 	NSArray					*tokens = nil;
@@ -359,5 +360,3 @@ SOFTWARE.
 	if ([result count] == 0)  result = nil;
 	return result;
 }
-
-@end

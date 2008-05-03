@@ -1,10 +1,8 @@
 /*
 
-OORoleSet.h
+NSDictionaryOOExtensions.h
 
-Manage a set of roles for a ship (or ship type), including probabilities.
-
-A role set is an immutable object. 
+Extensions to NSDictionary.
 
 
 Oolite
@@ -28,7 +26,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,40 +51,11 @@ SOFTWARE.
 #import "OOCocoa.h"
 
 
-@interface OORoleSet: NSObject <NSCopying>
-{
-	NSString					*_roleString;
-	NSDictionary				*_rolesAndProbabilities;
-	NSSet						*_roles;
-	float						_totalProb;
-}
+@interface NSDictionary (OOExtensions)
 
-+ (id)roleSetWithString:(NSString *)roleString;
-+ (id)roleSetWithRole:(NSString *)role probability:(float)probability;
-
-- (id)initWithRoleString:(NSString *)roleString;
-- (id)initWithRole:(NSString *)role probability:(float)probability;
-
-- (NSString *)roleString;
-
-- (BOOL)hasRole:(NSString *)role;
-- (float)probabilityForRole:(NSString *)role;
-- (BOOL)intersectsSet:(id)set;	// set may be an OORoleSet or an NSSet.
-
-- (NSSet *)roles;
-- (NSArray *)sortedRoles;
-- (NSDictionary *)rolesAndProbabilities;
-
-// Returns a random role, taking probabilities into account.
-- (NSString *)anyRole;
-
-	// Creating modified copies of role sets:
-- (id)roleSetWithAddedRole:(NSString *)role probability:(float)probability;
-- (id)roleSetWithAddedRoleIfNotSet:(NSString *)role probability:(float)probability;	// Unlike the above, does not change probability if role exists.
-- (id)roleSetWithRemovedRole:(NSString *)role;
+// These all return self if passed nil paramters. They all return a new immutable dictionary if sent to a mutable dictionary.
+- (NSDictionary *) dictionaryByAddingObject:(id)object forKey:(id)key;
+- (NSDictionary *) dictionaryByRemovingObjectForKey:(id)key;
+- (NSDictionary *) dictionaryByAddingEntriesFromDictionary:(NSDictionary *)dictionary;
 
 @end
-
-
-// Returns a dictionary whose keys are roles and whose values are weights.
-NSDictionary *OOParseRolesFromString(NSString *string);

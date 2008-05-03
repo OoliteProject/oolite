@@ -33,6 +33,12 @@
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
 		1A03658A0D7CA05000B5F46F /* OOSkyDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */; };
 		1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */; };
+		1A0479E90DC9F81000EE1CD0 /* OOShipRegistry.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */; };
+		1A0479EA0DC9F81000EE1CD0 /* OOShipRegistry.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */; };
+		1A047A450DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047A430DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h */; };
+		1A047A460DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */; };
+		1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */; };
+		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
@@ -1019,6 +1025,12 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
+		1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShipRegistry.h; sourceTree = "<group>"; };
+		1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShipRegistry.m; sourceTree = "<group>"; };
+		1A047A430DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSDictionaryOOExtensions.h; sourceTree = "<group>"; };
+		1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSDictionaryOOExtensions.m; sourceTree = "<group>"; };
+		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
+		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-DebugOXP/DebugOXP.xcodeproj"; sourceTree = SOURCE_ROOT; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
@@ -1035,7 +1047,7 @@
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
 		1A2315510B9C778400EF0852 /* trumblebox.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = trumblebox.png; sourceTree = "<group>"; };
-		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = characters.plist; sourceTree = "<group>"; };
+		1A2316DE0B9CFAD700EF0852 /* characters.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = characters.plist; sourceTree = "<group>"; };
 		1A2316DF0B9CFAD700EF0852 /* commodities.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = commodities.plist; sourceTree = "<group>"; };
 		1A2316E00B9CFAD700EF0852 /* customsounds.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; path = customsounds.plist; sourceTree = "<group>"; };
 		1A2316E10B9CFAD700EF0852 /* demoships.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = demoships.plist; sourceTree = "<group>"; };
@@ -1535,7 +1547,7 @@
 		1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMissionVariables.m; sourceTree = "<group>"; };
 		1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSMission.h; sourceTree = "<group>"; };
 		1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMission.m; sourceTree = "<group>"; };
-		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; fileEncoding = 4; languageSpecificationIdentifier = plist; lastKnownFileType = text.xml; path = autoAImap.plist; sourceTree = "<group>"; };
+		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; };
 		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
 		1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = SmartCrashReportsInstall.o; sourceTree = "<group>"; };
 		1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmartCrashReportsInstall.h; sourceTree = "<group>"; };
@@ -2349,6 +2361,8 @@
 				1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */,
 				25161107099544390037C2E1 /* OOXMLExtensions.h */,
 				25161102099544380037C2E1 /* OOXMLExtensions.m */,
+				1A047A430DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h */,
+				1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */,
 				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
 				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
 				1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */,
@@ -2390,6 +2404,8 @@
 				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
 				1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */,
 				1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */,
+				1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */,
+				1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -2592,6 +2608,8 @@
 			children = (
 				1ACEA3470C91507000C7CE97 /* OORoleSet.h */,
 				1ACEA3480C91507000C7CE97 /* OORoleSet.m */,
+				1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */,
+				1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */,
 			);
 			name = "Ship management";
 			sourceTree = "<group>";
@@ -2843,6 +2861,9 @@
 				1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */,
 				1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */,
 				1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */,
+				1A0479E90DC9F81000EE1CD0 /* OOShipRegistry.h in Headers */,
+				1A047A450DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h in Headers */,
+				1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3189,6 +3210,9 @@
 				1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */,
 				1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */,
 				1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */,
+				1A0479EA0DC9F81000EE1CD0 /* OOShipRegistry.m in Sources */,
+				1A047A460DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m in Sources */,
+				1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

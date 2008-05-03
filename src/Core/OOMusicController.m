@@ -265,11 +265,11 @@ enum
 @implementation OOMusicController (Singleton)
 
 /*	Canonical singleton boilerplate.
- See Cocoa Fundamentals Guide: Creating a Singleton Instance.
- See also +sharedController above.
- 
- NOTE: assumes single-threaded access.
- */
+	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+	See also +sharedController above.
+	
+	NOTE: assumes single-threaded access.
+*/
 
 + (id) allocWithZone:(NSZone *)inZone
 {

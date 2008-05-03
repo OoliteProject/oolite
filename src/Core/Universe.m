@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 
 #import "OOCharacter.h"
+#import "OOShipRegistry.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
@@ -161,6 +162,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 	//Jester Speech End
 #endif
+	
+	// Load ship data
+	[OOShipRegistry sharedRegistry];
 	
  	dumpCollisionInfo = NO;
 	next_universal_id = 100;	// start arbitrarily above zero

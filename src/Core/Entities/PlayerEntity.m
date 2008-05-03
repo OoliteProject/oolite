@@ -922,6 +922,10 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
+	// In order for default values to work and float values to not be junk,
+	// replace nil with empty dictionary. -- Ahruman 2008-05-01
+	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
+	
 	[shipinfoDictionary release];
 	shipinfoDictionary = [shipDict copy];
 	
