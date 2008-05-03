@@ -27,6 +27,8 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X
 #import <sys/sysctl.h>
+#elif OOLITE_LINUX
+#import <unistd.h>
 #endif
 
 
@@ -104,6 +106,10 @@ void OOCPUInfoInit(void)
 	
 	GetSystemInfo(&sysInfo);
 	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
+#elif OOLITE_LINUX
+	#ifdef _SC_NPROCESSORS_ONLN
+		sNumberOfCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+	#endif
 #endif
 	
 	// Check for AltiVec if relelevant
