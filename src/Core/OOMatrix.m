@@ -151,3 +151,20 @@ NSString *OOMatrixDescription(OOMatrix matrix)
 			matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
 			matrix.m[3][0], matrix.m[3][1], matrix.m[3][2], matrix.m[3][3]];
 }
+
+
+OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)
+{
+	Vector			v0, v1, v2, arbv;
+	
+	v0 = vector_subtract(bbPos, eyePos);
+	
+	// arbitrary axis - not aligned with v0
+	if (EXPECT_NOT(v0.x == 0.0 && v0.y == 0.0))  arbv = kBasisXVector;
+	else  arbv = kBasisZVector;
+	
+	v1 = cross_product(v0, arbv); // 90 degrees to (v0 x arb1)
+	v2 = cross_product(v0, v1);   // 90 degrees to (v0 x v1)
+	
+	return OOMatrixFromBasisVectors(v1, v2, v0);
+}

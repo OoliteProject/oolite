@@ -59,7 +59,7 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation);
 OOINLINE OOMatrix OOMatrixForTranslation(Vector v) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLfloat dz) INLINE_CONST_FUNC;
 
-OOINLINE OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) INLINE_CONST_FUNC;
+OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) CONST_FUNC;
 
 
 /* Matrix transformations */
@@ -203,24 +203,6 @@ OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLflo
 	    0,  0,  1,  0,
 	   dx, dy, dz,  1
 	);
-}
-
-
-OOINLINE OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)
-{
-	Vector			v0, v1, v2, arbv;
-	
-	v0 = vector_subtract(bbPos, eyePos);
-	v0 = vector_normal_or_fallback(v0, kBasisZVector);
-	
-	// arbitrary axis - not aligned with v0
-	if (EXPECT_NOT(v0.x == 0.0 && v0.y == 0.0))  arbv = kBasisXVector;
-	else  arbv = kBasisZVector;
-	
-	v1 = true_cross_product(v0, arbv); // 90 degrees to (v0 x arb1)
-	v2 = true_cross_product(v0, v1);   // 90 degrees to (v0 x v1)
-	
-	return OOMatrixFromBasisVectors(v1, v2, v0);
 }
 
 
