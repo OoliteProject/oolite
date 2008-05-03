@@ -239,7 +239,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
+	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 	demo_ship_index = 0;
 	
 	breakPatternCounter = 0;
@@ -497,8 +497,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	}
 	if(showDemo)
 	{
-		[demo_ships autorelease];
-		demo_ships = [[ResourceManager arrayFromFilesNamed:@"demoships.plist" inFolder:@"Config" andMerge:YES] retain];
+		[demo_ships release];
+		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 		demo_ship_index = 0;
 	}
 	
