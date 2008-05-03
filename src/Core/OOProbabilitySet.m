@@ -603,7 +603,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	*/
 	
 	unsigned long				low = 0, high = _count - 1, idx = 0;
-	float						weight;
+	float						weight = 0.0f;
 	
 	while (low < high)
 	{
@@ -800,7 +800,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	
 	if (OK)
 	{
-		for (i = 0; i <= count; ++i)
+		for (i = 0; i < count; ++i)
 		{
 			[self setWeight:[weights floatAtIndex:i] forObject:[objects objectAtIndex:i]];
 		}

@@ -55,13 +55,15 @@ MA 02110-1301, USA.
 #import "OOOpenGLExtensionManager.h"
 #import "OOMusicController.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOShipRegistry.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
 
-#ifndef GNUSTEP
+#if OOLITE_MAC_OS_X
 #import "Groolite.h"
-#else
+#endif
+#if OOLITE_SDL
 #import "JoystickHandler.h"
 #import "PlayerEntityStickMapper.h"
 #endif
@@ -409,7 +411,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	//base ship description
 	[result setObject:ship_desc forKey:@"ship_desc"];
-	[result setObject:[[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
+	[result setObject:[[[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
 	
 	//local market
 	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
@@ -469,7 +471,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[ship_desc release];
 	ship_desc = [[dict objectForKey:@"ship_desc"] copy];
 	
-	NSDictionary *shipDict = [UNIVERSE getDictionaryForShip:ship_desc];
+	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
 	if (shipDict == nil)  return NO;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
 	
@@ -3906,7 +3908,7 @@ double scoopSoundPlayTime = 0.0;
 		tab_stops[2] = 256;
 		[gui setTabStops:tab_stops];
 
-		ship_dict = [UNIVERSE getDictionaryForShip:ship_desc];
+		ship_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
 		shipName = [ship_dict stringForKey:@"display_name" defaultValue:[ship_dict stringForKey:KEY_NAME]];
 
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");

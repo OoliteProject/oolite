@@ -50,6 +50,7 @@ MA 02110-1301, USA.
 
 #import "OOCharacter.h"
 #import "OOShipRegistry.h"
+#import "OOProbabilitySet.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
@@ -93,7 +94,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 @interface Universe (OOPrivate)
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
-- (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
+// - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit;
 - (void) preloadSounds;
 
 #if SUPPORT_GRAPHVIZ_OUT
@@ -230,6 +231,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
+	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+	
 	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:8];
@@ -257,7 +260,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	player->y_next = nil;	player->y_previous = nil;	y_list_start = player;
 	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
 	
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship desc is the standard cobra at this point
+	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
@@ -519,7 +522,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[self addEntity:player];
 	
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
-	[player setUpShipFromDictionary:[self getDictionaryForShip:[player ship_desc]]];	// ship_desc is the standard Cobra at this point
+	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
 	[self setGalaxy_seed: [player galaxy_seed]];
 
@@ -2404,7 +2407,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	ShipEntity* ship;
 	NSDictionary* shipdict = nil;
 	
-	shipdict = [self getDictionaryForShip:shipdesc];
+	shipdict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipdesc];
 	if (shipdict == nil)  return NO;
 	
 	ship = [self newShipWithName:shipdesc];	// retain count is 1
@@ -2820,6 +2823,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
+#if OBSOLETE
 - (ShipEntity *) newShipWithRole:(NSString *) desc
 {
 	unsigned				i, found = 0;
@@ -2924,14 +2928,110 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	return ship;
 }
+#else
 
 
-- (ShipEntity *) newShipWithName:(NSString *) desc
+#define PROFILE_SHIP_SELECTION 1
+
+
+- (BOOL) canInstantiateShip:(NSString *)shipKey
+{
+	PlayerEntity			*player = nil;
+	NSDictionary			*shipInfo = nil;
+	
+	shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	if ([shipInfo objectForKey:@"conditions"] == nil)  return YES;
+	
+	// Check conditions
+	player = [PlayerEntity sharedPlayer];
+	return [player checkCouplet:shipInfo onEntity:player];
+}
+
+
+- (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role
+{
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+	NSString				*shipKey = nil;
+	OOMutableProbabilitySet	*pset = nil;
+	
+#if PROFILE_SHIP_SELECTION
+	static unsigned long	profTotal = 0, profSlowPath = 0;
+	++profTotal;
+#endif
+	
+	// Select a ship, check conditions and return it if possible.
+	shipKey = [registry randomShipKeyForRole:role];
+	if ([self canInstantiateShip:shipKey])  return shipKey;
+	
+	/*	If we got here, condition check failed.
+		We now need to keep trying until we either find an acceptable ship or
+		run out of candidates.
+		This is special-cased because it has more overhead than the more
+		common conditionless lookup.
+	*/
+	
+#if PROFILE_SHIP_SELECTION
+	++profSlowPath;
+	OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal));
+#endif
+	
+	pset = [[[registry probabilitySetForRole:role] mutableCopy] autorelease];
+	
+	while ([pset count] > 0)
+	{
+		// Select a ship, check conditions and return it if possible.
+		shipKey = [registry randomShipKeyForRole:role];
+		if ([self canInstantiateShip:shipKey])  return shipKey;
+		
+		// Condition failed -> remove ship from consideration.
+		[pset removeObject:shipKey];
+	}
+	
+	// If we got here, some ships existed but all failed conditions test.
+	return nil;
+}
+
+
+- (ShipEntity *) newShipWithRole:(NSString *)role
+{
+	ShipEntity				*ship = nil;
+	NSString				*shipKey = nil;
+	NSDictionary			*shipInfo = nil;
+	NSString				*autoAI = nil;
+	
+	shipKey = [self randomShipKeyForRoleRespectingConditions:role];
+	if (shipKey != nil)
+	{
+		ship = [self newShipWithName:shipKey];
+		if (ship != nil)
+		{
+			[ship setPrimaryRole:role];
+			
+			shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+			if ([shipInfo fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
+			{
+				// Set AI based on role
+				autoAI = [self defaultAIForRole:role];
+				if (autoAI != nil)
+				{
+					[ship setAITo:autoAI];
+				}
+			}
+		}
+	}
+	
+	return ship;
+}
+
+#endif
+
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey
 {
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
 	
-	shipDict = [self getDictionaryForShip:desc];
+	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 
 	if (shipDict == nil)  return nil;
 
@@ -2952,22 +3052,22 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		
 		if ([[localException name] isEqual:OOLITE_EXCEPTION_DATA_NOT_FOUND])
 		{
-			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], desc);
+			OOLog(kOOLogException, @"***** Oolite Exception : '%@' in [Universe newShipWithName: %@ ] *****", [localException reason], shipKey);
 		}
 		else  [localException raise];
 	NS_ENDHANDLER
 	
 	// Set primary role to same as ship name, if ship name is also a role.
 	// Otherwise, if caller doesn't set a role, one will be selected randomly.
-	if ([ship hasRole:desc])  [ship setPrimaryRole:desc];
+	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
 	
 	return ship;   // retain count = 1
 }
 
 
-- (NSDictionary *)getDictionaryForShip:(NSString *)desc
+- (NSString *)defaultAIForRole:(NSString *)role
 {
-	return [self getDictionaryForShip:desc recursionLimit:32];
+	return [autoAIMap stringForKey:role];
 }
 
 
@@ -2975,7 +3075,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	NSDictionary			*dict = nil;
 	
-	dict = [self getDictionaryForShip:desc];
+	dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:desc];
 	
 	if (dict)
 	{
@@ -5267,7 +5367,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								
 								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
 								shipDesc = [demo_ships stringAtIndex:demo_ship_index];
-								shipDict = [self getDictionaryForShip:shipDesc];
+								shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 								if (shipDict != nil)
 								{
 									// Failure means we don't change demo_stage, so we'll automatically try again.
@@ -5276,7 +5376,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								else
 								{
 									OOLog(@"demo.loadShip.failed", @"Could not load ship \"%@\" for demo screen.", shipDesc);
-									demo_ship = [[ShipEntity alloc] initWithDictionary:[self getDictionaryForShip:@"oolite-unknown-ship"]];
+									demo_ship = [[ShipEntity alloc] initWithDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"]];
 									shipName=[NSString stringWithFormat:DESC(@"unknown-ship-@"),shipDesc];
 								}
 								
@@ -7079,7 +7179,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		NSDictionary* ship_base_dict = nil;
 		
-		ship_base_dict = [self getDictionaryForShip:ship_key];
+		ship_base_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_key];
 		
 		if ((days_until_sale > 0.0) && (days_until_sale < 30.0) && (ship_techlevel <= techlevel) && (randf() < chance) && (ship_base_dict != nil))
 		{			
@@ -8015,6 +8115,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 
+#if OBSOLETE
 - (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit
 {
 	static NSDictionary		*cachedResult = nil;
@@ -8084,6 +8185,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	return shipdict;
 }
+#endif
 
 
 - (void) preloadSounds

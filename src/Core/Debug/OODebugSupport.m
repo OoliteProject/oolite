@@ -144,7 +144,7 @@ static id LoadDebugPlugIn(NSString *path)
 	}
 	else
 	{
-		OOLog(@"debugOXP.load.failed", @"Failed to load DebugOXP.bundle from %@.", bundlePath);
+		OOLog(@"debugOXP.load.failed", @"Failed to load debug OXP plug-in from %@.", bundlePath);
 	}
 	
 	return debugController;

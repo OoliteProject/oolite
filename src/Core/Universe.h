@@ -207,6 +207,7 @@ enum
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
 	NSArray					*equipmentdata;			// holds data on available equipment, loaded at initialisation
 	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
+	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	
 	Random_Seed				galaxy_seed;
 	Random_Seed				system_seed;
@@ -328,9 +329,10 @@ enum
 - (BOOL) breakPatternOver;
 - (BOOL) breakPatternHide;
 
-- (ShipEntity *) newShipWithRole:(NSString *) desc;
-- (ShipEntity *) newShipWithName:(NSString *) desc;
-- (NSDictionary *) getDictionaryForShip:(NSString *) desc;
+- (ShipEntity *) newShipWithRole:(NSString *)role;		// Selects ship using role weights, applies auto_ai, respects conditions
+- (ShipEntity *) newShipWithName:(NSString *)shipKey;	// Does not apply auto_ai or respect conditions
+
+- (NSString *)defaultAIForRole:(NSString *)role;		// autoAImap.plist lookup
 
 - (OOCargoQuantity) maxCargoForShip:(NSString *) desc;
 

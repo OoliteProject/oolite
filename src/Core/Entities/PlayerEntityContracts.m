@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "MyOpenGLView.h"
 #import "NSStringOOExtensions.h"
+#import "OOShipRegistry.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
@@ -1144,8 +1145,9 @@ static NSMutableDictionary* currentShipyard = nil;
 							forKey:[(NSDictionary *)[shipyard objectAtIndex:i] stringForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	NSString* shipName = [[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:@"display_name"];
-	if (shipName == nil) shipName = [[UNIVERSE getDictionaryForShip:ship_desc] stringForKey:KEY_NAME];
+	NSDictionary *shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
+	NSString *shipName = [shipInfo stringForKey:@"display_name"];
+	if (shipName == nil) shipName = [shipInfo stringForKey:KEY_NAME];
 		
 	unsigned n_ships = [shipyard count];
 

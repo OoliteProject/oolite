@@ -38,6 +38,7 @@
 #import "StationEntity.h"
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
+#import "OOShipRegistry.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
 
@@ -411,9 +412,9 @@
 		NSDictionary	*shipDict = nil;
 		
 		shipKey = [fileDic stringForKey:@"ship_desc"];
-		shipDict = [UNIVERSE getDictionaryForShip:shipKey];
+		shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 		
-		if (![shipDict isKindOfClass:[NSDictionary class]])
+		if (shipDict == nil)
 		{
 			loadedOK = NO;
 			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:@"Couldn't find ship type \"%@\" - please reinstall the appropriate OXP.", shipKey];
@@ -910,7 +911,7 @@
 	NSDictionary		*shipDict = nil;
 	NSString			*rating = nil;
 	
-	shipDict = [UNIVERSE getDictionaryForShip:shipDesc];
+	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 	if(shipDict != nil)
 	{
 		[self showShipyardModel:shipDict];
@@ -919,7 +920,7 @@
 	}
 	else
 	{
-		[self showShipyardModel:[UNIVERSE getDictionaryForShip:@"oolite-unknown-ship"]];
+		[self showShipyardModel:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"]];
 		shipName = [cdr stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}

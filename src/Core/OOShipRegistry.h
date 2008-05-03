@@ -50,6 +50,8 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 
+@class OOProbabilitySet;
+
 
 @interface OOShipRegistry: NSObject
 {
@@ -62,10 +64,17 @@ SOFTWARE.
 + (OOShipRegistry *) sharedRegistry;
 
 - (NSDictionary *) shipInfoForKey:(NSString *)key;
-- (NSArray *) shipKeysWithRole:(NSString *)role;
-- (NSString *) randomShipKeyForRole:(NSString *)role;
+- (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;
 
 - (NSArray *) demoShipKeys;
 - (NSSet *) playerShipKeys;
+
+@end
+
+
+@interface OOShipRegistry (OOConveniences)
+
+- (NSArray *) shipKeysWithRole:(NSString *)role;
+- (NSString *) randomShipKeyForRole:(NSString *)role;
 
 @end

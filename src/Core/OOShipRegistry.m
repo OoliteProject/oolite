@@ -65,7 +65,7 @@ static NSString * const	kRoleWeightsCacheKey = @"role weights";
 static NSString * const	kDefaultDemoShip = @"coriolis-station";
 
 
-@interface OOShipRegistry (Loader)
+@interface OOShipRegistry (OODataLoader)
 
 - (void) loadShipData;
 - (void) loadDemoShips;
@@ -160,17 +160,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (NSArray *) shipKeysWithRole:(NSString *)role
+- (OOProbabilitySet *) probabilitySetForRole:(NSString *)role
 {
 	if (role == nil)  return nil;
-	return [[_probabilitySets objectForKey:role] allObjects];
-}
-
-
-- (NSString *) randomShipKeyForRole:(NSString *)role
-{
-	if (role == nil)  return nil;
-	return [[_probabilitySets objectForKey:role] randomObject];
+	return [_probabilitySets objectForKey:role];
 }
 
 
@@ -188,7 +181,23 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 @end
 
 
-@implementation OOShipRegistry (Loader)
+@implementation OOShipRegistry (OOConveniences)
+
+- (NSArray *) shipKeysWithRole:(NSString *)role
+{
+	return [[self probabilitySetForRole:role] allObjects];
+}
+
+
+- (NSString *) randomShipKeyForRole:(NSString *)role
+{
+	return [[self probabilitySetForRole:role] randomObject];
+}
+
+@end
+
+
+@implementation OOShipRegistry (OODataLoader)
 
 /*	-loadShipData
 	
@@ -416,6 +425,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	[result addEntriesFromDictionary:child];
 	[result removeObjectForKey:@"like_ship"];
+	
+	// As a special case, display_name cannot be inherited.
+	if ([child stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
 	
 	return [[result copy] autorelease];
 }
