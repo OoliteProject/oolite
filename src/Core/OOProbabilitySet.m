@@ -125,6 +125,9 @@ static NSString * const	kWeightsKey = @"weights";
 	NSMutableArray		*_weights;
 	float				_sumOfWeights;
 }
+
+- (id) initPrivWithObjectArray:(NSMutableArray *)objects weightsArray:(NSMutableArray *)weights sum:(float)sumOfWeights;
+
 @end
 
 
@@ -384,6 +387,13 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	return [NSArray array];
 }
 
+
+- (id) mutableCopyWithZone:(NSZone *)zone
+{
+	// A mutable copy of an empty probability set is equivalent to a new empty mutable probability set.
+	return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initPriv];
+}
+
 @end
 
 
@@ -502,6 +512,12 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 - (NSArray *) allObjects
 {
 	return [NSArray arrayWithObject:_object];
+}
+
+
+- (id) mutableCopyWithZone:(NSZone *)zone
+{
+	return [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:&_object weights:&_weight count:1];
 }
 
 @end
@@ -685,6 +701,31 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	return (index < _count) ? _objects[index] : nil;
 }
 
+
+- (id) mutableCopyWithZone:(NSZone *)zone
+{
+	id						result = nil;
+	float					*weights = NULL;
+	unsigned long			i = 0;
+	float					weight = 0.0f, sum = 0.0f;
+	
+	// Convert cumulative weights to "plain" weights.
+	weights = malloc(sizeof *weights * _count);
+	if (weights == NULL)  return nil;
+	
+	for (i = 0; i < _count; ++i)
+	{
+		weight = _cumulativeWeights[i];
+		weights[i] = weight - sum;
+		sum += weight;
+	}
+	
+	result = [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:_objects weights:weights count:_count];
+	free(weights);
+	
+	return result;
+}
+
 @end
 
 
@@ -748,6 +789,22 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	{
 		_objects = [[NSMutableArray alloc] init];
 		_weights = [[NSMutableArray alloc] init];
+	}
+	
+	return self;
+}
+
+
+// For internal use by mutableCopy
+- (id) initPrivWithObjectArray:(NSMutableArray *)objects weightsArray:(NSMutableArray *)weights sum:(float)sumOfWeights
+{
+	assert(objects != nil && weights != nil && [objects count] == [weights count] && sumOfWeights >= 0.0f);
+	
+	if ((self = [super initPriv]))
+	{
+		_objects = objects;
+		_weights = weights;
+		_sumOfWeights = sumOfWeights;
 	}
 	
 	return self;
@@ -927,6 +984,45 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 		_sumOfWeights -= [_weights floatAtIndex:index];
 		[_weights removeObjectAtIndex:index];
 	}
+}
+
+
+- (id) copyWithZone:(NSZone *)zone
+{
+	id						result = nil;
+	id						*objects = NULL;
+	float					*weights = NULL;
+	unsigned long			i = 0, count = 0;
+	
+	count = [_objects count];
+	if (EXPECT_NOT(count == 0))  return [OOEmptyProbabilitySet singleton];
+	
+	objects = malloc(sizeof *objects * count);
+	weights = malloc(sizeof *weights * count);
+	if (objects != NULL && weights != NULL)
+	{
+		[_objects getObjects:objects];
+		
+		for (i = 0; i < count; ++i)
+		{
+			weights[i] = [_weights floatAtIndex:i];
+		}
+		
+		result = [[OOProbabilitySet probabilitySetWithObjects:objects weights:weights count:count] retain];
+	}
+	
+	if (objects != NULL)  free(objects);
+	if (objects != NULL)  free(weights);
+	
+	return result;
+}
+
+
+- (id) mutableCopyWithZone:(NSZone *)zone
+{
+	return [[OOConcreteMutableProbabilitySet alloc] initPrivWithObjectArray:[_objects mutableCopyWithZone:zone]
+															   weightsArray:[_weights mutableCopyWithZone:zone]
+																		sum:_sumOfWeights];
 }
 
 @end

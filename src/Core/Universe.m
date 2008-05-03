@@ -2972,7 +2972,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 #if PROFILE_SHIP_SELECTION
 	++profSlowPath;
-	OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal));
+	OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal) * 100.0f);
 #endif
 	
 	pset = [[[registry probabilitySetForRole:role] mutableCopy] autorelease];
