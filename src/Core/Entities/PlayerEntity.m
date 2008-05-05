@@ -843,6 +843,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setWeaponDataFromType:forward_weapon]; 
 	scannerRange = SCANNER_MAX_RANGE; 
 	
+	ecm_in_operation = NO;
+	compassMode = COMPASS_MODE_BASIC;
+	
 	max_cargo				= 20; // will be reset later
 	
 	shipCommodityData = [[[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] objectForKey:@"default"] retain];
