@@ -118,6 +118,7 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);	// V-sync on by default.
 
 	NSLog(@"CREATING MODE LIST");
 	[self populateFullScreenModelist];

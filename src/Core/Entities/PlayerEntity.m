@@ -1550,8 +1550,20 @@ double scoopSoundPlayTime = 0.0;
 	//fps
 	if (ship_clock > fps_check_time)
 	{
-		fps_counter = floor(1.0 / delta_t);
-		fps_check_time = ship_clock + 0.25;
+		if (![self clockAdjusting])
+		{
+			fps_counter = floor([UNIVERSE framesDoneThisUpdate] / (fps_check_time - last_fps_check_time));
+			last_fps_check_time = fps_check_time;
+			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
+		}
+		else
+		{
+			// Good approximation for when the clock is adjusting and proper fps calculation
+			// cannot be performed.
+			fps_counter = floor(1.0 / delta_t);
+			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
+		}
+		[UNIVERSE resetFramesDoneThisUpdate];	// Reset frame counter
 	}
 }
 

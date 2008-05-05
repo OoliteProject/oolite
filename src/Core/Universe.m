@@ -286,6 +286,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	entitiesDeadThisUpdate = [[NSMutableArray alloc] init];
 	
+	framesDoneThisUpdate = 0;
+	
 #ifdef ALLOW_PROCEDURAL_PLANETS	
 	doProcedurallyTexturedPlanets = NO;
 #endif
@@ -3813,6 +3815,13 @@ static const OOMatrix	starboard_matrix =
 			
 			no_update = NO;	// allow other attempts to draw
 			
+			// frame complete, when it is time to update the fps_counter, updateClocks:delta_t
+			// in PlayerEntity.m will take care of resetting the processed frames number to 0.
+			if (![[self gameController] gameIsPaused])
+			{
+				framesDoneThisUpdate++;
+			}
+			
 		NS_HANDLER
 		
 			if ([[localException name] hasPrefix:@"Oolite"])
@@ -3825,6 +3834,18 @@ static const OOMatrix	starboard_matrix =
 		
 		NS_ENDHANDLER
 	}
+}
+
+
+- (int) framesDoneThisUpdate
+{
+	return framesDoneThisUpdate;
+}
+
+
+- (void) resetFramesDoneThisUpdate
+{
+	framesDoneThisUpdate = 0;
 }
 
 

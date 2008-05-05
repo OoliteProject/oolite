@@ -248,6 +248,7 @@ enum
 #endif
 	
 	NSMutableArray			*entitiesDeadThisUpdate;
+	int				framesDoneThisUpdate;
 	
 #if OOLITE_MAC_OS_X
 	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
@@ -571,6 +572,9 @@ double estimatedTimeForJourney(double distance, int hops);
 //autosave 
 - (void) setAutoSaveNow:(BOOL) value;
 - (BOOL) autoSaveNow;
+
+- (int) framesDoneThisUpdate;
+- (void) resetFramesDoneThisUpdate;
 
 @end
 

@@ -247,6 +247,7 @@ typedef enum
 	
 	double					fps_check_time;
 	int						fps_counter;
+	double					last_fps_check_time;
 	
 	NSString				*planetSearchString;
 	
