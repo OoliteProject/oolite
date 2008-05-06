@@ -158,6 +158,7 @@ OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)
 	Vector			v0, v1, v2, arbv;
 	
 	v0 = vector_subtract(bbPos, eyePos);
+	v0 = vector_normal_or_fallback(v0, kBasisZVector);
 	
 	// arbitrary axis - not aligned with v0
 	if (EXPECT_NOT(v0.x == 0.0 && v0.y == 0.0))  arbv = kBasisXVector;
