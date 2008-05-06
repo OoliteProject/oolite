@@ -845,6 +845,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
+	ident_engaged = NO;
 	
 	max_cargo				= 20; // will be reset later
 	
