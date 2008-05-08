@@ -1530,7 +1530,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat *col4v1, int rv)
 {
-	if (inner_radius >= z_distance)  return;	// inside the sphere
+	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
 	
 	NSRange activity = { 0.34, 1.0 };
 	

@@ -51,6 +51,8 @@ static JSObject *sConsolePrototype = NULL;
 static JSObject *sConsoleSettingsPrototype = NULL;
 
 
+static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 static void ConsoleFinalize(JSContext *context, JSObject *this);
 
 // Methods
@@ -71,13 +73,28 @@ static JSClass sConsoleClass =
 	
 	JS_PropertyStub,		// addProperty
 	JS_PropertyStub,		// delProperty
-	JS_PropertyStub,		// getProperty
-	JS_PropertyStub,		// setProperty
+	ConsoleGetProperty,		// getProperty
+	ConsoleSetProperty,		// setProperty
 	JS_EnumerateStub,		// enumerate
 	JS_ResolveStub,			// resolve
 	JS_ConvertStub,			// convert
 	ConsoleFinalize,		// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
+};
+
+
+enum
+{
+	// Property IDs
+	kConsole_debugFlags			// debug flags, integer, read/write
+};
+
+
+static JSPropertySpec sConsoleProperties[] =
+{
+	// JS name					ID							flags
+	{ "debugFlags",				kConsole_debugFlags,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ 0 }
 };
 
 
@@ -111,7 +128,7 @@ static JSClass sConsoleSettingsClass =
 
 static void InitOOJSConsole(JSContext *context, JSObject *global)
 {
-    sConsolePrototype = JS_InitClass(context, global, NULL, &sConsoleClass, NULL, 0, NULL, sConsoleMethods, NULL, NULL);
+    sConsolePrototype = JS_InitClass(context, global, NULL, &sConsoleClass, NULL, 0, sConsoleProperties, sConsoleMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sConsoleClass, JSBasicPrivateObjectConverter);
 	
     sConsoleSettingsPrototype = JS_InitClass(context, global, NULL, &sConsoleSettingsClass, NULL, 0, NULL, NULL, NULL, NULL);
@@ -161,6 +178,49 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 	}
 	
 	return object;
+}
+
+
+static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+{
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kConsole_debugFlags:
+			*outValue = INT_TO_JSVAL(gDebugFlags);
+			break;
+			
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			return NO;
+	}
+	
+	return YES;
+}
+
+
+static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	int32						iValue;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kConsole_debugFlags:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				gDebugFlags = iValue;
+			}
+			break;
+			
+		default:
+			OOReportJavaScriptBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			return NO;
+	}
+	
+	return YES;
 }
 
 

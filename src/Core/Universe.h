@@ -193,7 +193,6 @@ enum
 	
 	BOOL					dumpCollisionInfo;
 	
-	NSDictionary			*shipdata;				// holds data on all ships available, loaded at initialisation
 	NSDictionary			*shipyard;				// holds data on all ships for sale, loaded at initialisation
 	
 	NSDictionary			*commoditylists;		// holds data on commodities for various types of station, loaded at initialisation

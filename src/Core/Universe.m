@@ -99,7 +99,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 #if SUPPORT_GRAPHVIZ_OUT
 - (void) dumpDebugGraphViz;
-- (void) dumpShipHierarchyGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
 #endif
 
@@ -213,8 +212,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	time_delta = 0.0;
 	universal_time = 0.0;
 	
-	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
-	
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -315,7 +312,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[comm_log_gui release];
 	
 	[entities release];
-	[shipdata release];
 	[shipyard release];
 	
 	[commoditylists release];
@@ -458,9 +454,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	time_delta = 0.0;
 	universal_time = 0.0;
-	
-	[shipdata autorelease];
-	shipdata = [[ResourceManager dictionaryFromFilesNamed:@"shipdata.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[shipyard autorelease];
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -772,7 +765,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[thing setScanClass: CLASS_NO_DRAW];
 	quaternion_set_random(&randomQ);
 	[thing setOrientation:randomQ];
-	[self addEntity:thing]; // [entities addObject:thing];
+	[self addEntity:thing];
 	[thing release];
 	/*--*/
 	
@@ -888,7 +881,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	thing = [[SkyEntity alloc] initWithColors:col1:col2 andSystemInfo: systeminfo];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
-	[self addEntity:thing]; // [entities addObject:thing];
+	[self addEntity:thing];
 	bgcolor = [(SkyEntity *)thing skyColor];
 	pale_bgcolor = [bgcolor blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
 	[thing release];
@@ -940,8 +933,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
-	do {
-		sunPos = a_planet->position;
+	do
+	{
+		sunPos = [a_planet position];
 		
 		quaternion_set_random(&q_sun);
 		// set up planet's direction in space so it gets a proper day
@@ -974,7 +968,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	}
 	
 	/*- space station -*/
-	stationPos = a_planet->position;
+	stationPos = [a_planet position];
 	double  station_orbit = 2.0 * planet_radius;
 	Quaternion  q_station;
 	vf.z = -1;
@@ -2825,114 +2819,6 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-#if OBSOLETE
-- (ShipEntity *) newShipWithRole:(NSString *) desc
-{
-	unsigned				i, found = 0;
-	ShipEntity				*ship = nil;
-	NSString				*search = nil;
-	NSAutoreleasePool		*pool = nil;
-	NSEnumerator			*shipEnum = nil;
-	NSString				*shipKey = nil;
-	NSMutableArray			*foundShips = nil;
-	NSMutableArray			*foundChance = nil;
-	float					foundf = 0.0, chance, selectedf;
-	NSDictionary			*shipDict = nil;
-	NSString				*autoAI = nil;
-	NSDictionary			*autoAIMap = nil;
-	OORoleSet				*roles = nil;
-	
-	pool = [[NSAutoreleasePool alloc] init];
-	
-	search = [ScanTokensFromString(desc) componentsJoinedByString:@"_"];
-	foundShips = [NSMutableArray array];
-	foundChance = [NSMutableArray array];
-	
-	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
-	{
-		shipDict = [shipdata dictionaryForKey:shipKey];
-		
-		roles = [OORoleSet roleSetWithString:[shipDict stringForKey:@"roles"]];
-		chance = [roles probabilityForRole:search];
-		if (0.0f < chance && [shipDict arrayForKey:@"conditions"])
-		{
-			PlayerEntity* player = [PlayerEntity sharedPlayer];
-			if ((player) && (player->isPlayer) && (![player checkCouplet:shipDict onEntity:player]))
-			{
-				chance = 0.0f;
-			}
-		}
-		if (0.0f < chance)
-		{
-			[foundShips addObject:shipKey];
-			[foundChance addObject:[NSNumber numberWithFloat:chance]];
-			found++;
-			foundf += chance;
-		}
-	}
-	
-	i = 0;
-	
-	if (found > 1)
-	{
-		selectedf = randf() * foundf;
-		while (selectedf > [foundChance floatAtIndex:i])
-		{
-			selectedf -= [foundChance floatAtIndex:i];
-			i++;
-		}
-		
-		if (i >= found)	// sanity check
-			i = 0;
-		
-	}
-	
-	if (found)
-	{
-		shipKey = [foundShips stringAtIndex:i];
-		
-		ship = [self newShipWithName:shipKey];		// may return nil if not found!
-		[ship setPrimaryRole:search];
-		
-		shipDict = [shipdata dictionaryForKey:shipKey];
-		if ([shipDict fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
-		{
-			// Set AI based on role
-			autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-			autoAI = [autoAIMap stringForKey:search];
-			if (autoAI != nil)
-			{
-				[ship setAITo:autoAI];
-			}
-		}
-	}
-	else
-	{
-		/*	Note: this is a common "error", since the game will look for
-			special containers by looking up a ship using the commodity name
-			as a ship role.
-		*/
-#ifndef NDEBUG
-		if (gDebugFlags & DEBUG_MISC)
-		{
-			OOLog(@"universe.newShip.unknownRole", @"DEBUG [Universe newShipWithRole: %@] couldn't find a ship!", search);
-		}
-#endif
-	}
-	
-	[pool release];	// tidy everything up
-	
-	// check a trader has fuel
-	if ([ship fuel] == 0 && [[ship primaryRole] isEqual:@"trader"])
-	{
-		[ship setFuel: PLAYER_MAX_FUEL];
-	}
-	
-	return ship;
-}
-#else
-
-
 #define PROFILE_SHIP_SELECTION 1
 
 
@@ -2974,7 +2860,10 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 #if PROFILE_SHIP_SELECTION
 	++profSlowPath;
-	OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal) * 100.0f);
+	if ((profSlowPath % 10) == 0)	// Only print every tenth slow path, to reduce spamminess.
+	{
+		OOLog(@"shipRegistry.selection.profile", @"Hit slow path in ship selection for role \"%@\", having selected ship \"%@\". Now %lu of %lu on slow path (%f%%).", role, shipKey, profSlowPath, profTotal, ((double)profSlowPath)/((double)profTotal) * 100.0f);
+	}
 #endif
 	
 	pset = [[[registry probabilitySetForRole:role] mutableCopy] autorelease];
@@ -3024,8 +2913,6 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	return ship;
 }
-
-#endif
 
 
 - (ShipEntity *) newShipWithName:(NSString *)shipKey
@@ -3570,17 +3457,17 @@ static const OOMatrix	starboard_matrix =
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);			// face culling
 			glDepthMask(GL_TRUE);	// restore write to depth buffer
-
+			
 			if (!displayGUI)
 				glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]);
 			else
 				glClearColor(0.0, 0.0, 0.0, 0.0);
-
+			
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			glLoadIdentity();	// reset matrix                         
-
+			
 			gluLookAt(0.0, 0.0, 0.0,	0.0, 0.0, 1.0,	0.0, 1.0, 0.0);
-
+			
 			// HACK BUSTED
 			glScalef(-1.0,  1.0,	1.0);   // flip left and right
 			glPushMatrix(); // save this flat viewpoint
@@ -3590,7 +3477,7 @@ static const OOMatrix	starboard_matrix =
 			flipMatrix.m[2][2] = -1;
 			view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
 			Vector viewOffset = [player viewpointOffset];
-
+			
 			gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
 			
 			if (!displayGUI || inGUIMode)
@@ -3642,7 +3529,6 @@ static const OOMatrix	starboard_matrix =
 				BOOL	bpHide = [self breakPatternHide];
 				
 				//		DRAW ALL THE OPAQUE ENTITIES
-				
 				for (i = furthest; i >= nearest; i--)
 				{
 					int d_status;
@@ -8136,79 +8022,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 }
 
 
-#if OBSOLETE
-- (NSDictionary *)getDictionaryForShip:(NSString *)desc recursionLimit:(uint32_t)recursionLimit
-{
-	static NSDictionary		*cachedResult = nil;
-	static NSString			*cachedKey = nil;
-	
-	if (desc == nil)  return nil;
-	if ([desc isEqualToString:cachedKey])  return [[cachedResult retain] autorelease];
-	
-	NSMutableDictionary *shipdict = [[[shipdata dictionaryForKey:desc] mutableCopy] autorelease];
-	if (shipdict == nil)
-	{
-		/*	There used to be an attempt to throw a OOLITE_EXCEPTION_SHIP_NOT_FOUND
-			exception here. However, it never worked -- the line above was
-			broken so an empty dictionary was created instead, which was
-			rather pointless. Once this was fixed, it turned out there are OXPs
-			causing bad ships to be created, which wasn't noticed because the
-			exception wasn't handled.
-			-- Ahruman
-		*/
-		OOLog(@"universe.getShip.unknown", @"Attempt to create ship of type \"%@\", but no such type could be found.", desc);
-		return nil;
-	}
-	// check if this is based upon a different ship
-	/*	TODO: move all like_ship handling into one place. (Actually, it may be
-		that this already _is_ that place and all others are redundant.) Should
-		probably fold resolved like_ships back into dictionary. -- Ahruman
-	*/
-	
-	while ([shipdict stringForKey:@"like_ship"])
-	{
-		NSString*		other_shipdesc = [shipdict stringForKey:@"like_ship"];
-		NSDictionary*	other_shipdict = nil;
-		
-		if (recursionLimit == 0)
-		{
-			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- hit safety limit for like_ship redirections.", desc);
-			return nil;
-		}
-		
-		if (other_shipdesc != nil)
-		{
-			other_shipdict = [self getDictionaryForShip:other_shipdesc recursionLimit:recursionLimit - 1];
-		}
-		if (other_shipdict != nil)
-		{
-			[shipdict removeObjectForKey:@"like_ship"];	// so it may inherit a new one from the like_ship
-			NSMutableDictionary* this_shipdict = [NSMutableDictionary dictionaryWithDictionary:other_shipdict]; // basics from that one
-			// If the like_ship (source) has a display_name assigned, this must be removed on our ship. We will use own ship's display name.
-			if ([this_shipdict objectForKey:@"display_name"] && [shipdict objectForKey:@"name"] != nil)
-			{
-				[this_shipdict removeObjectForKey:@"display_name"];
-			}
-			[this_shipdict addEntriesFromDictionary:shipdict];	// overrides from this one
-			shipdict = [NSMutableDictionary dictionaryWithDictionary:this_shipdict];	// synthesis'
-		}
-		else
-		{
-			OOLog(@"universe.getShip.badReference", @"Failed to construct ship dictionary for \"%@\" -- like_ship reference to unknown ship type \"%@\".", desc, other_shipdesc);
-			return nil;
-		}
-	}
-	
-	[cachedResult release];
-	cachedResult = [shipdict copy];
-	[cachedKey release];
-	cachedKey = [desc copy];
-	
-	return shipdict;
-}
-#endif
-
-
 - (void) preloadSounds
 {
 	NSEnumerator			*soundEnum = nil;
@@ -8230,60 +8043,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 {
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"universe-dump-debug-graphviz"])
 	{
-		[self dumpShipHierarchyGraphViz];
 		[self dumpSystemDescriptionGraphViz];
 	}
-}
-
-
-- (void) dumpShipHierarchyGraphViz
-{
-	NSMutableString				*graphViz = nil;
-	NSEnumerator				*shipEnum = nil;
-	NSString					*shipKey = nil;
-	NSString					*likeKey = nil;
-	NSDictionary				*shipDef = nil;
-	NSString					*label = nil;
-	
-	graphViz = [NSMutableString stringWithString:
-				@"// Shipdata like_ship dependencies:\n\n"
-				"digraph like_ships\n"
-				"{\n"
-				"\tgraph [charset=\"UTF-8\", label=\"Shipdata like_ships\", labelloc=t, labeljust=l rankdir=LR]\n"
-				"\tedge [arrowhead=none sametail=1]\n"
-				"\tnode [shape=box]\n\t\n"];
-	
-	// First, define nodes.
-	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
-	{
-		shipDef = [shipdata objectForKey:shipKey];
-		
-		// Define node
-		label = [shipDef stringForKey:@"name"];
-		if (label == nil)  label = shipKey;
-		else  label = [NSString stringWithFormat:@"%@\n%@", shipKey, label];
-		
-		[graphViz appendFormat:@"\t\"%@\" [label=\"%@\"]\n", EscapedGraphVizString(shipKey), EscapedGraphVizString(label)];
-	}
-	
-	// Any new nodes beyond this point are dangling references, so colour them red.
-	[graphViz appendString:@"\t\n\t// Implicit nodes beyond this point are undefined ships.\n\tnode [style=filled fillcolor=red]\n\t\n"];
-	
-	for (shipEnum = [shipdata keyEnumerator]; (shipKey = [shipEnum nextObject]); )
-	{
-		shipDef = [shipdata objectForKey:shipKey];
-		
-		// Define edge
-		likeKey = [shipDef stringForKey:@"like_ship"];
-		if (likeKey != nil)
-		{
-			[graphViz appendFormat:@"\t\"%@\" -> \"%@\"\n", EscapedGraphVizString(likeKey), EscapedGraphVizString(shipKey)];
-		}
-	}
-	
-	// Write file
-	[graphViz appendString:@"}\n"];
-	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"LikeShips.dot"];
 }
 
 

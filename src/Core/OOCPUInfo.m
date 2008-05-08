@@ -86,10 +86,7 @@ void OOCPUInfoInit(void)
 	}
 #endif
 	
-	/*	Count processors - only implemented for OS X and Windows at the moment.
-		sysconf(_SC_NPROCESSORS_ONLN) may be appropriate for some Unices, but
-		_SC_NPROCESSORS_ONLN is not defined on OS X.
-	*/
+	// Count processors
 #if OOLITE_MAC_OS_X
 	int		flag = 0;
 	size_t	size = sizeof flag;
@@ -106,10 +103,10 @@ void OOCPUInfoInit(void)
 	
 	GetSystemInfo(&sysInfo);
 	sNumberOfCPUs = sysInfo.dwNumberOfProcessors;
-#elif OOLITE_LINUX
-	#ifdef _SC_NPROCESSORS_ONLN
-		sNumberOfCPUs = sysconf(_SC_NPROCESSORS_ONLN);
-	#endif
+#elif defined _SC_NPROCESSORS_ONLN
+	sNumberOfCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+	#warning Do not know how to find number of CPUs on this architecture.
 #endif
 	
 	// Check for AltiVec if relelevant

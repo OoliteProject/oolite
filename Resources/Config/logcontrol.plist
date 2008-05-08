@@ -294,6 +294,8 @@
 	ship.noPrimaryRole						= no;
 	ship.escort.reject						= no;
 	
+	shipData.load.shipyard.unknown			= no;					// Warning for when shipyard.plist entries do not have matching shipdata.plist entry, disabled by default for Realistic Shipyards OXP.
+	
 	
 	sky.setup								= no;
 	

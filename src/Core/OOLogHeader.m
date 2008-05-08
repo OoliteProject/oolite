@@ -111,17 +111,6 @@ void OOPrintLogHeader(void)
 	
 	[miscString appendString:AdditionalLogHeaderInfo()];
 	
-	#if OOLITE_ALTIVEC
-		if (OOAltiVecAvailable())
-		{
-			[miscString appendString:@" Altivec acceleration available."];
-		}
-		else
-		{
-			[miscString appendString:@" Altivec acceleration not available."];
-		}
-	#endif
-	
 	[miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
 	
 	OOLog(@"log.header", @"%@\n", miscString);

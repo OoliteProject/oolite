@@ -522,7 +522,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			[playerShips addObject:key];
 		}
-		// Else we have a shipyard entry with no matching shipdata entry, which we ignore.
+		else
+		{
+			OOLog(@"shipData.load.shipyard.unknown", @"WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", key);
+		}
 	}
 	
 	_playerShips = [playerShips copy];
