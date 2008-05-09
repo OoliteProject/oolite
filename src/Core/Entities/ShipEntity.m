@@ -3237,20 +3237,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (BOOL)isPolice
 {
-#if 0
-	return [self hasPrimaryRole:@"police"] || [self hasPrimaryRole:@"interceptor"] || [self hasPrimaryRole:@"wingman"];
-#else
 	return [self scanClass] == CLASS_POLICE;
-#endif
 }
 
 - (BOOL)isThargoid
 {
-#if 0
-	return [self hasPrimaryRole:@"thargoid"];
-#else
 	return [self scanClass] == CLASS_THARGOID;
-#endif
 }
 
 

@@ -7077,7 +7077,7 @@ double estimatedTimeForJourney(double distance, int hops)
 		NSDictionary* ship_info = [shipyard dictionaryForKey:ship_key];
 		OOTechLevelID ship_techlevel = [ship_info intForKey:KEY_TECHLEVEL];
 		
-		double chance = 1.0 - pow(1.0 - [ship_info doubleForKey:KEY_CHANCE], techlevel - ship_techlevel);
+		double chance = 1.0 - pow(1.0 - [ship_info doubleForKey:KEY_CHANCE], OOMax_f(1, techlevel - ship_techlevel));
 		
 		// seed random number generator
 		int super_rand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
