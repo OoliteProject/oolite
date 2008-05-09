@@ -91,9 +91,17 @@ enum
 	
 	if (_mode == kOOMusicOn)
 	{
-		_current = [[ResourceManager ooMusicNamed:name inFolder:@"Music"] retain];
-		if (loop)  [_current playLooped];
-		else  [_current play];
+		OOMusic *music = [ResourceManager ooMusicNamed:name inFolder:@"Music"];
+		if (music != nil)
+		{
+			[_current stop];
+			
+			if (loop)  [music playLooped];
+			else  [music play];
+			
+			[_current release];
+			_current = [music retain];
+		}
 	}
 }
 
