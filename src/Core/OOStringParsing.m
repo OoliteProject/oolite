@@ -314,7 +314,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 		
 		// check all_descriptions for an array that's keyed to middle
 		value = [all_descriptions objectForKey:middle];
-		if ([value isKindOfClass:[NSArray class]])
+		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
 		{
 			rnd = gen_rnd_number() % [value count];
 			part = [value stringAtIndex:rnd];
