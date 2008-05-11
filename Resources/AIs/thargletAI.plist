@@ -21,7 +21,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
 		ENTER = (scanForNonThargoid, "pauseAI: 1.0");
 		EXIT = ();
-		UPDATE = ("scanForNearestShipHavingRole: thargoid-mothership", "pauseAI: 10.0");
+		UPDATE = (scanForNonThargoid, "pauseAI: 10.0");
 	}; 
     GLOBAL = {ENTER = ("setStateTo: ATTACK_SHIP"); EXIT = (); UPDATE = (); }; 
 }

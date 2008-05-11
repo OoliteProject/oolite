@@ -2,7 +2,8 @@
     GLOBAL = {
         ENTER = (); 
         EXIT = (); 
-        UPDATE = (setCourseToPlanet, "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination); 
+        UPDATE = (setCourseToPlanet, "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination, "pauseAI: 10.0"); 
         "DESIRED_RANGE_ACHIEVED" = (landOnPlanet); 
+        "APPROACHING_SURFACE" = (landOnPlanet);
     }; 
 }
