@@ -56,6 +56,7 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sShipClass =
@@ -191,6 +192,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
 	{ "spawn",					ShipSpawn,					1 },
 	{ "explode",				ShipExplode,				0 },
+	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ 0 }
 };
 
@@ -864,5 +866,24 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	[player setScriptTarget:thisEnt];
 	[player scriptActions:actions forTarget:target];
 	
+	return YES;
+}
+
+static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*msg = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	msg = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	
+	if (msg != nil)
+	{
+		if (!thisEnt->isPlayer)
+		{
+			[thisEnt commsMessage:msg withUnpilotedOverride:YES];
+		}
+		//else: player.commsMessage handles this already. 
+	}
 	return YES;
 }

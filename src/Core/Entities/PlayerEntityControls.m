@@ -659,7 +659,7 @@ static NSTimeInterval	time_last_frame;
 					primaryTarget = NO_TARGET;
 					ident_engaged = YES;
 					[self playIdentOn];
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-on]") forCount:2.0];
+					[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
 				}
 				ident_pressed = YES;
 			}
@@ -690,13 +690,13 @@ static NSTimeInterval	time_last_frame;
 						{
 							if (missile_entity[activeMissile])
 								[missile_entity[activeMissile] removeTarget:nil];
-							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-armed]") forCount:2.0];
+							[UNIVERSE addMessage:DESC(@"missile-armed") forCount:2.0];
 							[self playMissileArmed];
 						}
 					}
 					if ([missile_entity[activeMissile] isMine])
 					{
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mine-armed]") forCount:4.5];
+						[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
 						[self playMineArmed];
 					}
 					ident_engaged = NO;
@@ -711,22 +711,22 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!safety_pressed)
 				{
+					//targetting off in both cases!
 					if (!ident_engaged)
 					{
-						// targetting 'off' here
-						missile_status = MISSILE_STATUS_SAFE;
+						if (missile_status !=MISSILE_STATUS_SAFE)
+								[UNIVERSE addMessage:[NSString stringWithFormat:@"%@ %@", DESC(@"missile-safe"), (primaryTarget != NO_TARGET && [self hasEquipmentItem:@"EQ_SCANNER_SHOW_MISSILE_TARGET"])? DESC(@"ident-off") : @""] forCount:2.5];
 						primaryTarget = NO_TARGET;
 						[self safeAllMissiles];
 						[self playMissileSafe];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[missile-safe]") forCount:2.0];
+
 					}
 					else
 					{
-						// targetting 'back on' here
-						primaryTarget = [missile_entity[activeMissile] primaryTargetID];
-						missile_status = (primaryTarget != NO_TARGET)? MISSILE_STATUS_TARGET_LOCKED : MISSILE_STATUS_SAFE;
+						primaryTarget = NO_TARGET;
+						[self safeAllMissiles];
 						[self playIdentOff];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ident-off]") forCount:2.0];
+						[UNIVERSE addMessage:DESC(@"ident-off") forCount:2.0];
 					}
 					ident_engaged = NO;
 				}
