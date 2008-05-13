@@ -3408,7 +3408,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
 		}
 		[self doScriptEvent:@"shipExitedPlanetaryVicinity"];
-		[shipAI message:@"AEGIS_NONE"];
+		[shipAI message:@"AWAY_FROM_PLANET"];
+		if (aegis_status != AEGIS_CLOSE_TO_ANY_PLANET)
+		{
+			[shipAI message:@"AEGIS_NONE"];
+		}
 	}
 	aegis_status = AEGIS_NONE;
 }
@@ -3494,9 +3498,19 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		}
 	}
 	
-	if (d2 < cr2 * 9.0f) // to 3x radius of planet
+	if (d2 < cr2 * 9.0f && [UNIVERSE sun] != the_planet) //to  3x radius of any planet/moon
 	{
-		result = AEGIS_CLOSE_TO_PLANET;
+		[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
+		[shipAI message:@"CLOSE_TO_PLANET"];
+		result = AEGIS_CLOSE_TO_ANY_PLANET;
+	}
+	
+	d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
+	cr2 = [[UNIVERSE planet] collisionRadius];
+	cr2 *= cr2;
+	if (d2 < cr2 * 9.0f) // to 3x radius of main planet
+	{
+		result = AEGIS_CLOSE_TO_MAIN_PLANET;
 	}
 	
 	// check station
@@ -3521,18 +3535,18 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	{
 		// script/AI messages on change in status
 		// approaching..
-		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_PLANET))
+		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
 		}
-		if (((aegis_status == AEGIS_CLOSE_TO_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
+		if (((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
 		{
 			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
 		}
 		// leaving..
-		if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_PLANET))
+		if ((aegis_status == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
 			[self doScriptEvent:@"shipExitedStationAegis"];
 			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];

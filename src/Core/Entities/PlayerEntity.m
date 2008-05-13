@@ -2577,7 +2577,7 @@ double scoopSoundPlayTime = 0.0;
 	// aegis messages to advanced compass so in planet mode it behaves like the old compass
 	if (compassMode != COMPASS_MODE_BASIC)
 	{
-		if ([ms isEqual:@"AEGIS_CLOSE_TO_PLANET"]&&(compassMode == COMPASS_MODE_PLANET))
+		if ([ms isEqual:@"AEGIS_CLOSE_TO_MAIN_PLANET"]&&(compassMode == COMPASS_MODE_PLANET))
 		{
 			[UNIVERSE playCustomSound:@"[aegis-planet]"];
 			[self setCompassMode:COMPASS_MODE_STATION];
