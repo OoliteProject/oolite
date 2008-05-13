@@ -7396,7 +7396,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	/*-- If you're clean, locates all police and stations in range and tells them OFFENCE_COMMITTED --*/
 	if (!UNIVERSE)  return;
-	if (bounty)  return;
+	if ([self bounty])  return;
 	if (!aggressor_ship)  return;
 	
 	if (	(scanClass == CLASS_NEUTRAL)||
