@@ -953,12 +953,7 @@ WormholeEntity*	whole;
 		}
 	}
 	
-	if (found_target != NO_TARGET)
-	{
-		
-		OOLog(@"ai.scanForNonThargoid.debug", @"scanForNonThargoid found target ship %@", [UNIVERSE entityForUniversalID:found_target]);
-		[shipAI message:@"TARGET_FOUND"];
-	}
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
 	else  [shipAI message:@"NOTHING_FOUND"];
 }
 

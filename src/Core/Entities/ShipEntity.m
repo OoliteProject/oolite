@@ -3442,16 +3442,14 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	NSMutableArray		*planets = nil;
 	NSArray			*sortedPlanets = nil;
 	
-	planets = (NSMutableArray *)[UNIVERSE planets];
+	planets = [UNIVERSE planetsAndSun];
 	if ([planets count] == 0)  return nil;
-
-	[planets addObject:[UNIVERSE sun]];
 	
-	PlanetEntity* the_planet=[planets objectAtIndex:0];
+	PlanetEntity* the_planet = [planets objectAtIndex:0];
 	if ([planets count] >1)
 	{
 		sortedPlanets = [planets sortedArrayUsingFunction:planetSort context:self];
-		the_planet=[sortedPlanets objectAtIndex:0];		
+		the_planet = [sortedPlanets objectAtIndex:0];		
 	}
 	return the_planet;
 }

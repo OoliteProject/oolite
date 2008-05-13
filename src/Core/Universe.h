@@ -153,10 +153,6 @@ enum
 	Entity					*entity_for_uid[MAX_ENTITY_UID];
 
 	NSMutableArray			*entities;
-			
-	OOUniversalID			station;
-	OOUniversalID			sun;
-	OOUniversalID			planet;
 	
 	OOUniversalID			firstBeacon, lastBeacon;
 	
@@ -312,7 +308,8 @@ enum
 - (StationEntity *) station;
 - (PlanetEntity *) planet;
 - (PlanetEntity *) sun;
-- (NSArray *) planets;	// Note: does not include sun.
+- (NSMutableArray *) planets;	// Note: does not include sun.
+- (NSMutableArray *) planetsAndSun;
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;

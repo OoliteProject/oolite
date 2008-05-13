@@ -245,10 +245,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	cachedPlanet = nil;
 	cachedStation = nil;
 	
-	station = NO_TARGET;
-	planet = NO_TARGET;
-	sun = NO_TARGET;
-	
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
 	[player release];
@@ -503,10 +499,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	cachedPlanet = nil;
 	cachedStation = nil;
 	
-	station = NO_TARGET;
-	planet = NO_TARGET;
-	sun = NO_TARGET;
-	
 	if (player == nil)
 		player = [[PlayerEntity alloc] init];
 	else
@@ -640,9 +632,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 
 		[self setUpSpace];	// first launch
 	}
-	station = [[self station] universalID];
-	planet = [[self planet] universalID];
-	sun = [[self sun] universalID];
 	
 	[self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;
@@ -767,18 +756,13 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[thing setOrientation:randomQ];
 	[self addEntity:thing];
 	[thing release];
-	/*--*/
 	
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];
 	[thing setScanClass: CLASS_NO_DRAW];
 	[self addEntity:thing];
 	[thing release];
-	/*--*/
 	
-	sun = NO_TARGET;
-	station = NO_TARGET;
-	planet = NO_TARGET;
 	sun_center_position[0] = 0.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
@@ -914,10 +898,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[a_planet setPositionX:0 y:0 z:planet_zpos];
 	[a_planet setScanClass: CLASS_NO_DRAW];
 	[a_planet setEnergy:  1000000.0];
-	[self addEntity:a_planet]; // [entities addObject:a_planet];
-	
-	planet = [a_planet universalID];
-	/*--*/
+	[self addEntity:a_planet];
 	
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
@@ -957,8 +938,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[a_sun setRadius:sun_radius];			// 2.5 pr
 	[a_sun setScanClass: CLASS_NO_DRAW];
 	[a_sun setEnergy:  1000000.0];
-	[self addEntity:a_sun];					// [entities addObject:a_sun];
-	sun = [a_sun universalID];
+	[self addEntity:a_sun];
 	
 	if (sunGoneNova)
 	{
@@ -1026,10 +1006,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
-		[a_station setPlanet:[self entityForUniversalID:planet]];
+		[a_station setPlanet:[self planet]];
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];
-		station = [a_station universalID];
 	}
 
 	cachedSun = a_sun;
@@ -2729,12 +2708,25 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (NSArray *) planets
+- (NSMutableArray *) planets
 {
 	return [self findEntitiesMatchingPredicate:IsPlanetPredicate
 									 parameter:NULL
 									   inRange:-1
 									  ofEntity:nil];
+}
+
+
+- (NSMutableArray *) planetsAndSun
+{
+	NSMutableArray *result = [self planets];
+	PlanetEntity *sun = [self sun];
+	if (sun != nil)
+	{
+		if (result != nil)  [result addObject:sun];
+		else  result = [NSMutableArray arrayWithObject:sun];
+	}
+	return result;
 }
 
 
@@ -5690,8 +5682,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) setSystemTo:(Random_Seed) s_seed
 {
-	NSDictionary*   systemData;
-	PlayerEntity*   player = [PlayerEntity sharedPlayer];
+	NSDictionary	*systemData;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	OOEconomyID		economy;
 	
 	[self setGalaxy_seed: [player galaxy_seed]];
@@ -5702,7 +5694,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	systemData = [self generateSystemData:target_system_seed];
 	economy = [systemData unsignedCharForKey:KEY_ECONOMY];
 	
-	[self generateEconomicDataWithEconomy:economy andRandomFactor:([player random_factor] ^ station)&0xff];
+	[self generateEconomicDataWithEconomy:economy andRandomFactor:[player random_factor] & 0xff];
 }
 
 
