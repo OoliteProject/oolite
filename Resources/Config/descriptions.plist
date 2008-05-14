@@ -923,6 +923,8 @@
 	"manifest-passengers-d-d"		= "Passengers %d (%d):";
 	"manifest-contracts"			= "Contracts:";
 	"manifest-missions"				= "Missions:";
+	"manifest-@-travelling-to-@-to-arrive-within-@"	= " %@ travelling to %@ to arrive within %@.";
+	"manifest-deliver-@-to-@within-@"	= " Deliver %@ to %@ within %@.";
 	
 	// Shipyard screen
 	"@-shipyard-title"				= "%@ Ships For Sale";

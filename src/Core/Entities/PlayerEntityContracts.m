@@ -819,7 +819,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSString* passenger_dest_name = (NSString *)[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME];
 		int dest_eta = [(NSNumber*)[passenger_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 		
-		NSString* short_desc = [NSString stringWithFormat:@"\t%@ travelling to %@ to arrive within %@.",
+		NSString* short_desc = [NSString stringWithFormat:DESC(@"manifest-@-travelling-to-@-to-arrive-within-@"),
 			passenger_name, passenger_dest_name, [UNIVERSE shortTimeDescription:dest_eta]];
 		
 		[result addObject:short_desc];
@@ -840,7 +840,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSString* contract_dest_name = (NSString *)[contract_info objectForKey:PASSENGER_KEY_DESTINATION_NAME];
 		int dest_eta = [(NSNumber*)[contract_info objectForKey:PASSENGER_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
 		
-		NSString* short_desc = [NSString stringWithFormat:@"\tDeliver %@ to %@ within %@.",
+		NSString* short_desc = [NSString stringWithFormat:DESC(@"manifest-deliver-@-to-@within-@"),
 			contract_cargo_desc, contract_dest_name, [UNIVERSE shortTimeDescription:dest_eta]];
 		
 		[result addObject:short_desc];
