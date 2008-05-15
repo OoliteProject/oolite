@@ -5,10 +5,10 @@
 #
 ifeq ($(debug),yes)
 	EXTENSION=debug
-	SHAREDOBJ=shared_debug_obj
+	SHAREDOBJ=$(firstword $(wildcard shared_debug_obj) obj)
 else
 	EXTENSION=app
-	SHAREDOBJ=shared_obj
+	SHAREDOBJ=$(firstword $(wildcard shared_obj) obj)
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
