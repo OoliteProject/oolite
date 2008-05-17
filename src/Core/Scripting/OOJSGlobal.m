@@ -54,6 +54,7 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sGlobalClass =
@@ -96,6 +97,7 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "expandDescription",		GlobalExpandDescription,	1 },
 	{ "displayNameForCommodity", GlobalDisplayNameForCommodity, 1 },
 	{ "randomName",				GlobalRandomName,			0 },
+	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ 0 }
 };
 
@@ -201,6 +203,26 @@ static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, j
 	NSString			*string = nil;
 	
 	string = RandomDigrams();
+	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+// randomInhabitantsDescription() : String
+static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*string = nil;
+	Random_Seed			aSeed;
+	JSBool				isPlural;
+
+	if (!JS_ValueToBoolean(context, argv[0], &isPlural))
+	{
+		isPlural = NO;
+	}
+	
+	make_pseudo_random_seed( &aSeed);
+	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
