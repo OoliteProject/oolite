@@ -67,10 +67,8 @@ MA 02110-1301, USA.
 
 - (void) setDestinationToCurrentLocation
 {
-	destination = position;
-	destination.x += (ranrot_rand() % 100)*0.01 - 0.5;		// randomly add a .5m variance
-	destination.y += (ranrot_rand() % 100)*0.01 - 0.5;
-	destination.z += (ranrot_rand() % 100)*0.01 - 0.5;
+	// randomly add a .5m variance
+	destination = vector_add(position, OOVectorRandomSpatial(0.5));
 }
 
 

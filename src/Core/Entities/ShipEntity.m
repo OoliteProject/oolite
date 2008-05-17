@@ -3762,6 +3762,12 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+- (double) desiredSpeed
+{
+	return desired_speed;
+}
+
+
 - (void) setDesiredSpeed:(double) amount
 {
 	desired_speed = amount;

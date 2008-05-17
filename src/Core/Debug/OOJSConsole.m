@@ -37,6 +37,7 @@ SOFTWARE.
 #import "OOJSScript.h"
 #import "OOJSVector.h"
 #import "OOJSEntity.h"
+#import "OOJSCall.h"
 
 
 @interface Entity (OODebugInspector)
@@ -60,6 +61,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -105,6 +107,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "clearConsole",			ConsoleClearConsole,		0 },
 	{ "scriptStack",			ConsoleScriptStack,			0 },
 	{ "inspectEntity",			ConsoleInspectEntity,		1 },
+	{ "__callObjCMethod",		ConsoleCallObjCMethod,		1 },
 	{ 0 }
 };
 
@@ -405,6 +408,21 @@ static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN arg
 	}
 	
 	return YES;
+}
+
+
+static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	id						object = nil;
+	
+	object = JSObjectToObject(context, this);
+	if (object == nil)
+	{
+		OOReportJavaScriptError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", JSValToNSString(context, OBJECT_TO_JSVAL(this)));
+		return YES;
+	}
+	
+	return OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, argv, outResult);
 }
 
 #endif /* OO_EXCLUDE_DEBUG_SUPPORT */

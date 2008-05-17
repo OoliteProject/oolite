@@ -515,6 +515,7 @@ MA 02110-1301, USA.
 - (void) setCargoFlag:(OOCargoFlag) flag;
 
 - (void) setSpeed:(double) amount;
+- (double) desiredSpeed;
 - (void) setDesiredSpeed:(double) amount;
 
 - (void) increase_flight_speed:(double) delta;

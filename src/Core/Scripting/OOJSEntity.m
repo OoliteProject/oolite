@@ -43,7 +43,6 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 // Methods
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 // Static methods
 static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -129,7 +128,6 @@ static JSFunctionSpec sEntityMethods[] =
 	{ "toString",				JSObjectWrapperToString,	0 },
 	{ "setPosition",			EntitySetPosition,			1 },
 	{ "setOrientation",			EntitySetOrientation,		1 },
-	{ "call",					EntityCall,					1 },
 	{ 0 }
 };
 
@@ -373,17 +371,6 @@ static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN arg
 	
 	[thisEnt setOrientation:quaternion];
 	return YES;
-}
-
-
-static JSBool EntityCall(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Entity					*entity = nil;
-	
-	if (!JSEntityGetEntity(context, this, &entity))  return YES;
-	if (entity == nil)  return YES;	// Stale entity
-	
-	return OOJSCallObjCObjectMethod(context, entity, [entity jsClassName], argc, argv, outResult);
 }
 
 

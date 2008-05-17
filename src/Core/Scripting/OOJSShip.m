@@ -114,7 +114,8 @@ enum
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 	kShip_maxCargo,				// maximum cargo, integer, read-only
-	kShip_speed,				// current flight speed, double, read-only (should probably be read/write, but may interfere with AI behaviour)
+	kShip_speed,				// current flight speed, double, read-only
+	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
 	kShip_script,				// script, Script, read-only
 	kShip_isPirate,				// is pirate, boolean, read-only
@@ -165,6 +166,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "shipDisplayName",		kShip_shipDisplayName,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "target",					kShip_target,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "temperature",			kShip_temperature,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -369,6 +371,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			JS_NewDoubleValue(context, [entity flightSpeed], outValue);
 			break;
 			
+		case kShip_desiredSpeed:
+			JS_NewDoubleValue(context, [entity desiredSpeed], outValue);
+			break;
+			
 		case kShip_maxSpeed:
 			JS_NewDoubleValue(context, [entity maxFlightSpeed], outValue);
 			break;
@@ -437,7 +443,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	switch (JSVAL_TO_INT(name))
 	{
 		case kShip_shipDescription:
-			if (entity->isPlayer)
+			if ([entity isPlayer])
 			{
 				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
 			}
@@ -449,7 +455,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_shipDisplayName:
-			if (entity->isPlayer)
+			if ([entity isPlayer])
 			{
 				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
 			}
@@ -461,7 +467,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_primaryRole:
-			if (entity->isPlayer)
+			if ([entity isPlayer])
 			{
 				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"primaryRole", @"primary role");
 			}
@@ -473,7 +479,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_AIState:
-			if (entity->isPlayer)
+			if ([entity isPlayer])
 			{
 				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"AIState", @"AI state");
 			}
@@ -541,6 +547,20 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setTrackCloseContacts:bValue];
+			}
+			break;
+		
+		case kShip_desiredSpeed:
+			if ([entity isPlayer])
+			{
+				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"desiredSpeed", @"desired speed");
+			}
+			else
+			{
+				if (JS_ValueToNumber(context, *value, &fValue))
+				{
+					[entity setDesiredSpeed:fmax(fValue, 0.0)];
+				}
 			}
 			break;
 		

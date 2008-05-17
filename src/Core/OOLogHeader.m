@@ -121,6 +121,34 @@ void OOPrintLogHeader(void)
 #if OOLITE_MAC_OS_X
 #import <sys/sysctl.h>
 
+
+#ifndef CPUFAMILY_INTEL_6_13
+// Copied from OS X 10.5 SDK
+#define CPUFAMILY_INTEL_6_13	0xaa33392b
+#define CPUFAMILY_INTEL_6_14	0x73d67300  /* "Intel Core Solo" and "Intel Core Duo" (32-bit Pentium-M with SSE3) */
+#define CPUFAMILY_INTEL_6_15	0x426f69ef  /* "Intel Core 2 Duo" */
+#define CPUFAMILY_INTEL_6_23	0x78ea4fbc  /* Penryn */
+#define CPUFAMILY_INTEL_6_26	0x6b5a4cd2
+
+#define CPUFAMILY_INTEL_YONAH	CPUFAMILY_INTEL_6_14
+#define CPUFAMILY_INTEL_MEROM	CPUFAMILY_INTEL_6_15
+#define CPUFAMILY_INTEL_PENRYN	CPUFAMILY_INTEL_6_23
+#define CPUFAMILY_INTEL_NEHALEM	CPUFAMILY_INTEL_6_26
+
+#define CPUFAMILY_INTEL_CORE	CPUFAMILY_INTEL_6_14
+#define CPUFAMILY_INTEL_CORE2	CPUFAMILY_INTEL_6_15
+#endif
+
+#ifndef CPU_TYPE_ARM
+#define CPU_TYPE_ARM			((cpu_type_t) 12)
+#define CPU_SUBTYPE_ARM_ALL		((cpu_subtype_t) 0)
+#define CPU_SUBTYPE_ARM_V4T		((cpu_subtype_t) 5)
+#define CPU_SUBTYPE_ARM_V6		((cpu_subtype_t) 6)
+#define CPUFAMILY_ARM_9			0xe73283ae
+#define CPUFAMILY_ARM_11		0x8ff620d8
+#endif
+
+
 static NSString *GetSysCtlString(const char *name);
 static unsigned long long GetSysCtlInt(const char *name);
 static NSString *GetCPUDescription(void);
@@ -139,12 +167,13 @@ static NSString *AdditionalLogHeaderInfo(void)
 
 static NSString *GetCPUDescription(void)
 {
-	unsigned long long	sysCPUType, sysCPUSubType,
-	sysCPUFrequency, sysCPUCount;
+	unsigned long long	sysCPUType, sysCPUSubType, sysCPUFamily,
+						sysCPUFrequency, sysCPUCount;
 	NSString			*typeStr = nil, *subTypeStr = nil;
 	
 	sysCPUType = GetSysCtlInt("hw.cputype");
 	sysCPUSubType = GetSysCtlInt("hw.cpusubtype");
+	sysCPUFamily = GetSysCtlInt("hw.cpufamily");
 	sysCPUFrequency = GetSysCtlInt("hw.cpufrequency");
 	sysCPUCount = GetSysCtlInt("hw.logicalcpu");
 	
@@ -158,34 +187,88 @@ static NSString *GetCPUDescription(void)
 		case CPU_TYPE_POWERPC:
 			typeStr = @"PowerPC";
 			switch (sysCPUSubType)
-		{
-			case CPU_SUBTYPE_POWERPC_750:
-				subTypeStr = @" G3 (750)";
-				break;
+			{
+				case CPU_SUBTYPE_POWERPC_750:
+					subTypeStr = @" G3 (750)";
+					break;
+					
+				case CPU_SUBTYPE_POWERPC_7400:
+					subTypeStr = @" G4 (7400)";
+					break;
+					
+				case CPU_SUBTYPE_POWERPC_7450:
+					subTypeStr = @" G4 (7450)";
+					break;
+					
+				case CPU_SUBTYPE_POWERPC_970:
+					subTypeStr = @" G5 (970)";
+					break;
 				
-			case CPU_SUBTYPE_POWERPC_7400:
-				subTypeStr = @" G4 (7400)";
-				break;
-				
-			case CPU_SUBTYPE_POWERPC_7450:
-				subTypeStr = @" G4 (7450)";
-				break;
-				
-			case CPU_SUBTYPE_POWERPC_970:
-				subTypeStr = @" G5 (970)";
-				break;
-		}
+				default:
+					subTypeStr = [NSString stringWithFormat:@":%u", sysCPUSubType];
+			}
 			break;
 			
 		case CPU_TYPE_I386:
 			typeStr = @"x86";
-			// Currently all x86 CPUs seem to report subtype CPU_SUBTYPE_486, which isn't very useful.
-			if (sysCPUSubType == CPU_SUBTYPE_486)  subTypeStr = @"";
+			switch (sysCPUFamily)
+			{
+				case CPUFAMILY_INTEL_6_13:
+					subTypeStr = @" (Intel 6:13)";
+					break;
+					
+				case CPUFAMILY_INTEL_YONAH:
+					subTypeStr = @" (Core/Yonah)";
+					break;
+					
+				case CPUFAMILY_INTEL_MEROM:
+					subTypeStr = @" (Core 2/Merom)";
+					break;
+					
+				case CPUFAMILY_INTEL_PENRYN:
+					subTypeStr = @" (Penryn)";
+					break;
+					
+				case CPUFAMILY_INTEL_NEHALEM:
+					subTypeStr = @" (Nehalem)";
+					break;
+					
+				default:
+					subTypeStr = [NSString stringWithFormat:@" (family %u)", sysCPUFamily];
+			}
 			break;
+		
+		case CPU_TYPE_ARM:
+			typeStr = @"ARM";
+			switch (sysCPUSubType)
+			{
+				case CPU_SUBTYPE_ARM_V4T:
+					subTypeStr = @" v4T";
+					break;
+					
+				case CPU_SUBTYPE_ARM_V6:
+					subTypeStr = @"v6";		// No space
+					break;
+			}
+			if (subTypeStr == nil)
+			{
+				switch (sysCPUFamily)
+				{
+					case CPUFAMILY_ARM_9:
+						subTypeStr = @"9";	// No space
+						break;
+						
+					case CPUFAMILY_ARM_11:
+						subTypeStr = @"11";	// No space
+						break;
+					
+					default:
+						subTypeStr = [NSString stringWithFormat:@" (family %u)", sysCPUFamily];
+				}
+			}
 	}
 	
 	if (typeStr == nil)  typeStr = [NSString stringWithFormat:@"%u", sysCPUType];
-	if (subTypeStr == nil)  subTypeStr = [NSString stringWithFormat:@":%u", sysCPUSubType];
 	
 	return [NSString stringWithFormat:@"%llu x %@%@ @ %llu MHz", sysCPUCount, typeStr, subTypeStr, (sysCPUFrequency + 500000) / 1000000];
 }
