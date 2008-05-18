@@ -1,6 +1,6 @@
 /*
 
-OOJavaScriptEngine.h
+OOJavaScriptEngine.m
 
 JavaScript support for Oolite
 Copyright (C) 2007 David Taylor and Jens Ayton.
@@ -53,6 +53,23 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 
 #import <stdlib.h>
+
+
+#if OOJSENGINE_JS_18
+#define OOJSENGINE_JSVERSION		JSVERSION_1_8
+#define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK | JSOPTION_RELIMIT | JSOPTION_ANONFUNFIX
+#else
+#define OOJSENGINE_JSVERSION		JSVERSION_1_7
+#define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK
+#endif
+
+
+#ifdef MOZILLA_1_8_BRANCH
+#error Oolite and libjs must be built with MOZILLA_1_8_BRANCH undefined.
+#endif
+#ifdef JS_THREADSAFE
+#error Oolite and libjs must be built with JS_THREADSAFE undefined.
+#endif
 
 
 static OOJavaScriptEngine	*sSharedEngine = nil;
@@ -160,12 +177,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// This one is causing trouble for the Linux crowd. :-/
 	if (!JS_CStringsAreUTF8())
 	{
-#ifdef MOZILLA_1_8_BRANCH
-#define kMoz18State "defined"
-#else
-#define kMoz18State "undefined"
-#endif
-		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, JS_THREADSAFE must be undefined, and MOZILLA_1_8_BRANCH must either be defined for both the library and for Oolite, or undefined for both; it is currently " kMoz18State " for Oolite.");
+		OOLog(@"script.javaScript.init.badSpiderMonkey", @"SpiderMonkey (libjs/libmozjs) must be built with the JS_C_STRINGS_ARE_UTF8 macro defined. Additionally, JS_THREADSAFE must be undefined and MOZILLA_1_8_BRANCH must be undefined.");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -196,8 +208,18 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		exit(1);
 	}
 	
-	JS_SetOptions(mainContext, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
-	JS_SetVersion(mainContext, JSVERSION_1_7);
+	JS_SetOptions(mainContext, OOJSENGINE_CONTEXT_OPTIONS);
+	JS_SetVersion(mainContext, OOJSENGINE_JSVERSION);
+	
+#if JS_GC_ZEAL
+	uint8_t gcZeal = [[NSUserDefaults standardUserDefaults] unsignedCharForKey:@"js-gc-zeal"];
+	if (gcZeal > 0)
+	{
+		// Useful js-gc-zeal values are 0 (off), 1 and 2.
+		OOLog(@"script.javaScript.debug.gcZeal", @"Setting JavaScript garbage collector zeal to %u.", gcZeal);
+		JS_SetGCZeal(mainContext, gcZeal);
+	}
+#endif
 	
 	JS_SetErrorReporter(mainContext, ReportJSError);
 	
@@ -317,8 +339,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			exit(1);
 		}
 		
-		JS_SetOptions(context, JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK);
-		JS_SetVersion(context, JSVERSION_1_7);
+		JS_SetOptions(context, OOJSENGINE_CONTEXT_OPTIONS);
+		JS_SetVersion(context, OOJSENGINE_JSVERSION);
 		JS_SetErrorReporter(context, ReportJSError);
 		JS_SetGlobalObject(context, globalObject);
 	}

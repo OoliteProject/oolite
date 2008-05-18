@@ -283,17 +283,6 @@ void *allocateVirtualBuffer(UInt32 bufferLength)
     
     // Success!
     return (void *)realAddress;
-
-#if DEBUG
-    // Here's a little test...
-    *realAddress = '?';
-    if (*virtualAddress != '?')
-        NSLog(@"VirtualRingBuffer: Test 1: vm magic failed");
-
-    *(virtualAddress + 1) = '!';
-    if (*(realAddress + 1) != '!')
-        NSLog(@"VirtualRingBuffer: Test 2: vm magic failed");
-#endif
     
 errorReturn:
     if (realAddress)
