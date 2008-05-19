@@ -3538,7 +3538,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
+			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
 		}
 		if (((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
 		{
