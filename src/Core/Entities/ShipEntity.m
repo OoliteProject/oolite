@@ -3800,6 +3800,12 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+- (double) desiredSpeed
+{
+	return desired_speed;
+}
+
+
 - (void) increase_flight_speed:(double) delta
 {
 	double factor = 1.0;
