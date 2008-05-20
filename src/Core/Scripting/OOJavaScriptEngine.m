@@ -436,6 +436,14 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 #endif
 
 
+static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
+{
+	if (function == nil)  return @"";
+	if (scriptClass == nil)  return [function stringByAppendingString:@": "];
+	return  [NSString stringWithFormat:@"%@.%@: ", scriptClass, function];
+}
+
+
 void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
 {
 	va_list					args;
@@ -443,6 +451,20 @@ void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
 	va_start(args, format);
 	OOReportJavaScriptErrorWithArguments(context, format, args);
 	va_end(args);
+}
+
+
+void OOReportJavaScriptErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+{
+	va_list					args;
+	NSString				*msg = nil;
+	
+	va_start(args, format);
+	msg = [[NSString alloc] initWithFormat:format arguments:args];
+	va_end(args);
+	
+	OOReportJavaScriptError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	[msg release];
 }
 
 
@@ -466,6 +488,20 @@ void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...)
 }
 
 
+void OOReportJavaScriptWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+{
+	va_list					args;
+	NSString				*msg = nil;
+	
+	va_start(args, format);
+	msg = [[NSString alloc] initWithFormat:format arguments:args];
+	va_end(args);
+	
+	OOReportJavaScriptWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	[msg release];
+}
+
+
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
@@ -482,6 +518,15 @@ void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *classNa
 }
 
 
+void OOReportJavaScriptBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
+{
+	message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
+	if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
+	
+	OOReportJavaScriptErrorForCaller(context, scriptClass, function, @"%@.", message);
+}
+
+
 void OOSetJSWarningOrErrorStackSkip(unsigned skip)
 {
 	sErrorHandlerStackSkip = skip;
@@ -489,6 +534,18 @@ void OOSetJSWarningOrErrorStackSkip(unsigned skip)
 
 
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
+{
+	if (NumberFromArgumentListNoError(context, argc, argv, outNumber, outConsumed))  return YES;
+	else
+	{
+		OOReportJavaScriptBadArguments(context, scriptClass, function, argc, argv,
+									   @"Expected number, got", NULL);
+		return NO;
+	}
+}
+
+
+BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed)
 {
 	double					value;
 	
@@ -503,12 +560,7 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	// Get value, if possible.
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &value) || isnan(value)))
 	{
-		// Failed; report bad parameters, if given a class and function.
-		if (scriptClass != nil && function != nil)
-		{
-			OOReportJavaScriptError(context, @"%@.%@(): expected number, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
-			return NO;
-		}
+		return NO;
 	}
 	
 	// Success.
@@ -878,19 +930,22 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	
 	uintN					i;
 	jsval					val;
-	NSMutableString			*result = [NSMutableString string];
+	NSMutableString			*result = [NSMutableString stringWithString:@"("];
 	NSString				*valString = nil;
 	
 	for (i = 0; i != count; ++i)
 	{
 		if (i != 0)  [result appendString:@", "];
-		else  [result appendString:@"("];
 		
 		val = params[i];
 		valString = [self stringWithJavaScriptValue:val inContext:context];
 		if (JSVAL_IS_STRING(val))
 		{
 			[result appendFormat:@"\"%@\"", valString];
+		}
+		else if (JSVAL_IS_OBJECT(val) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(val)))
+		{
+			[result appendFormat:@"[%@]", valString];
 		}
 		else
 		{

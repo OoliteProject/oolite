@@ -56,8 +56,13 @@ BOOL JSVectorSetVector(JSContext *context, JSObject *vectorObj, Vector vector);
 	outConsumed argument can be used to find out how many parameters were used
 	(currently, this will be 0 on failure, otherwise 1 or 3).
 	
-	On failure, it will return NO, annd the vector will be unaltered. If
-	scriptClass and function are non-nil, a warning will be reported to the
-	log.
+	On failure, it will return NO and raise an error. If the caller is a JS
+	callback, it must return NO to signal an error.
 */
 BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed);
+
+/*	VectorFromArgumentListNoError()
+	
+	Like VectorFromArgumentList(), but does not report an error on failure.
+*/
+BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed);

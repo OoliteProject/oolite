@@ -86,11 +86,23 @@ enum
 
 void OOReportJavaScriptError(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args);
+void OOReportJavaScriptErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
+
 void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
 void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
-void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+void OOReportJavaScriptWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOSetJSWarningOrErrorStackSkip(unsigned skip);	// Indicate that the direct call site is not relevant for error handler. Currently, if non-zero, no call site information is provided. Ideally, we'd stack crawl instead.
+void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+void OOReportJavaScriptBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
+
+/*	OOSetJSWarningOrErrorStackSkip()
+	
+	Indicate that the direct call site is not relevant for error handler.
+	Currently, if non-zero, no call site information is provided.
+	Ideally, we'd stack crawl instead.
+*/
+void OOSetJSWarningOrErrorStackSkip(unsigned skip);
+
 
 /*	NumberFromArgumentList()
 	
@@ -98,11 +110,16 @@ void OOSetJSWarningOrErrorStackSkip(unsigned skip);	// Indicate that the direct 
 	argument can be used to find out how many parameters were used (currently,
 	this will be 0 on failure, otherwise 1).
 	
-	On failure, it will return NO, annd the number will be unaltered. If
-	scriptClass and function are non-nil, a warning will be reported to the
-	log.
+	On failure, it will return NO and raise an error. If the caller is a JS
+	callback, it must return NO to signal an error.
 */
 BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
+
+/*	NumberFromArgumentListNoError()
+	
+	Like NumberFromArgumentList(), but does not report an error on failure.
+*/
+BOOL NumberFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, double *outNumber, uintN *outConsumed);
 
 
 // Typed as int rather than BOOL to work with more general expressions such as bitfield tests.

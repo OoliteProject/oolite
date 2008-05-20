@@ -56,8 +56,13 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 	optional outConsumed argument can be used to find out how many parameters
 	were used (currently, this will be 0 on failure, otherwise 1 or 4).
 	
-	On failure, it will return NO, annd the quaternion will be unaltered. If
-	scriptClass and function are non-nil, a warning will be reported to the
-	log.
+	On failure, it will return NO and raise an error. If the caller is a JS
+	callback, it must return NO to signal an error.
 */
 BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed);
+
+/*	QuaternionFromArgumentList()
+	
+	Like VectorFromArgumentList(), but does not report an error on failure.
+*/
+BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Quaternion *outVector, uintN *outConsumed);

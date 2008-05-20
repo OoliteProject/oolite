@@ -3472,7 +3472,9 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (OOAegisStatus) checkForAegis
 {
-	PlanetEntity* the_planet=[self findPlanetNearestSurface];
+	PlanetEntity	*the_planet = [self findPlanetNearestSurface];
+	PlanetEntity	*warnedPlanet = nil;
+	PlanetEntity	*mainPlanet = nil;
 	
 	if (the_planet == nil)
 	{
@@ -3512,6 +3514,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	if (d2 < cr2 * 9.0f && [UNIVERSE sun] != the_planet) //to  3x radius of any planet/moon
 	{
 		result = AEGIS_CLOSE_TO_ANY_PLANET;
+		warnedPlanet = the_planet;	// Avoid duplicate message
 	}
 	
 	d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
@@ -3546,7 +3549,11 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		// approaching..
 		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			mainPlanet = [UNIVERSE planet];
+			if (warnedPlanet != mainPlanet)
+			{
+				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:mainPlanet];
+			}
 			[shipAI message:@"CLOSE_TO_PLANET"];
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	//keep for compatibility with pre-1.72 AI plists
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];

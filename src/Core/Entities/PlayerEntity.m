@@ -4949,15 +4949,15 @@ static int last_outfitting_index;
 	[gui clear];
 	[gui setTitle:@"Oolite"];
 	
-	text = ExpandDescriptionForCurrentSystem(@"[game-copyright]");
+	text = DESC(@"game-copyright");
 	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor whiteColor] forRow:17];
 	
-	text = ExpandDescriptionForCurrentSystem(@"[theme-music-credit]");
+	text = DESC(@"theme-music-credit");
 	[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor grayColor] forRow:19];
 	
-	text = ExpandDescriptionForCurrentSystem(@"[load-previous-commander]");
+	text = DESC(@"load-previous-commander");
 	[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
 	[gui setColor:[OOColor yellowColor] forRow:21];
 	

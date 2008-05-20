@@ -338,7 +338,7 @@ void quaternion_rotate_about_z(Quaternion *quat, GLfloat angle)
 
 void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 {
-    Quaternion q2, result;
+    Quaternion q2 /*, result */;
     GLfloat a = angle * 0.5f;
     GLfloat w = cosf(a);
     GLfloat scale = sinf(a);
@@ -347,7 +347,7 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
     q2.x = axis.x * scale;
     q2.y = axis.y * scale;
     q2.z = axis.z * scale;
-	    
+#if 0
     result.w = quat->w * q2.w - q2.x * quat->x - quat->y * q2.y - quat->z * q2.z;
     result.x = quat->w * q2.x + quat->x * q2.w + quat->y * q2.z - quat->z * q2.y;
     result.y = quat->w * q2.y + quat->y * q2.w + quat->z * q2.x - quat->x * q2.z;
@@ -357,6 +357,9 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
     quat->x = result.x;
     quat->y = result.y;
     quat->z = result.z;
+#else
+	*quat = quaternion_multiply(*quat, q2);
+#endif
 }
 
 
@@ -385,7 +388,7 @@ Vector quaternion_rotate_vector(Quaternion q, Vector vector)
 	/*
 		Quaternion rotation formula:
 		r(q, v) = q * v * q^-1, where q^-1 is the spacial inverse of q.
-	 */
+	*/
 	
 	v = make_quaternion(0, vector.x, vector.y, vector.z);
 	
@@ -396,6 +399,7 @@ Vector quaternion_rotate_vector(Quaternion q, Vector vector)
 	return make_vector(v.x, v.y, v.z);	// w will be zero
 }
 #else
+// Same as above with some terms eliminated. Yay algebra.
 Vector quaternion_rotate_vector(Quaternion q, Vector v)
 {
 	Quaternion				qv;

@@ -1337,7 +1337,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 					andOriginalSystem: systems[Ranrot() & 255]]]];
 			
 			if (trader_ship->scanClass == CLASS_NOT_SET)
-				[trader_ship setScanClass: CLASS_NEUTRAL];
+				[trader_ship setScanClass:CLASS_NEUTRAL];
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];

@@ -148,7 +148,7 @@ JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 	Quaternion				*private = NULL;
 	
 	private = malloc(sizeof *private);
-	if (private == NULL)  return NULL;
+	if (EXPECT_NOT(private == NULL))  return NULL;
 	
 	*private = quaternion;
 	
@@ -158,7 +158,7 @@ JSObject *JSQuaternionWithQuaternion(JSContext *context, Quaternion quaternion)
 		if (!JS_SetPrivate(context, result, private))  result = NULL;
 	}
 	
-	if (result == NULL) free(private);
+	if (EXPECT_NOT(result == NULL)) free(private);
 	
 	return result;
 }
@@ -168,10 +168,10 @@ BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outVa
 {
 	JSObject				*object = NULL;
 	
-	if (outValue == NULL) return NO;
+	if (EXPECT_NOT(outValue == NULL)) return NO;
 	
 	object = JSQuaternionWithQuaternion(context, quaternion);
-	if (object == NULL) return NO;
+	if (EXPECT_NOT(object == NULL)) return NO;
 	
 	*outValue = OBJECT_TO_JSVAL(object);
 	return YES;
@@ -180,7 +180,7 @@ BOOL QuaternionToJSValue(JSContext *context, Quaternion quaternion, jsval *outVa
 
 BOOL JSValueToQuaternion(JSContext *context, jsval value, Quaternion *outQuaternion)
 {
-	if (!JSVAL_IS_OBJECT(value))  return NO;
+	if (EXPECT_NOT(!JSVAL_IS_OBJECT(value)))  return NO;
 	
 	return JSObjectGetQuaternion(context, JSVAL_TO_OBJECT(value), outQuaternion);
 }
@@ -194,7 +194,7 @@ BOOL JSObjectGetQuaternion(JSContext *context, JSObject *quaternionObj, Quaterni
 	jsval					arrayW, arrayX, arrayY, arrayZ;
 	jsdouble				dVal;
 	
-	if (outQuaternion == NULL || quaternionObj == NULL) return NO;
+	if (EXPECT_NOT(outQuaternion == NULL || quaternionObj == NULL)) return NO;
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -243,7 +243,7 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 {
 	Quaternion				*private = NULL;
 	
-	if (quaternionObj == NULL) return NO;
+	if (EXPECT_NOT(quaternionObj == NULL)) return NO;
 	
 	private = JS_GetInstancePrivate(context, quaternionObj, &sQuaternionClass.base, NULL);
 	if (private != NULL)	// If this is a (JS) Quaternion...
@@ -258,16 +258,28 @@ BOOL JSQuaternionSetQuaternion(JSContext *context, JSObject *quaternionObj, Quat
 
 BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
 {
+	if (QuaternionFromArgumentListNoError(context, argc, argv, outQuaternion, outConsumed))  return YES;
+	else
+	{
+		OOReportJavaScriptBadArguments(context, scriptClass, function, argc, argv,
+									   @"Could not construct quaternion from parameters",
+									   @"Quaternion, Entity or four numbers");
+		return NO;
+	}
+}
+
+
+BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
+{
 	double				w, x, y, z;
 	
-	// Sanity checks.
 	if (outConsumed != NULL)  *outConsumed = 0;
+	// Sanity checks.
 	if (EXPECT_NOT(argc == 0 || argv == NULL || outQuaternion == NULL))
 	{
 		OOLogGenericParameterError();
 		return NO;
 	}
-	
 	
 	// Is first object a quaternion or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))
@@ -280,28 +292,18 @@ BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSStr
 	}
 	
 	// Otherwise, look for four numbers.
-	if (argc < 3)  goto FAIL;
-	
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &w)))  goto FAIL;
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[1], &x)))  goto FAIL;
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[2], &y)))  goto FAIL;
-	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[3], &z)))  goto FAIL;
+	if (EXPECT_NOT(argc < 4))  return NO;
 	
 	// Given a string, JS_ValueToNumber() returns YES but provides a NaN number.
-	if (EXPECT_NOT(isnan(w) || isnan(x) || isnan(y) || isnan(z))) goto FAIL;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &w) || isnan(w)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[1], &x) || isnan(x)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[2], &y) || isnan(y)))  return NO;
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[3], &z) || isnan(z)))  return NO;
 	
 	// We got our four numbers.
 	*outQuaternion = make_quaternion(w, x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 4;
 	return YES;
-	
-FAIL:
-	// Report bad parameters, if given a class and function.
-	if (scriptClass != nil && function != nil)
-	{
-		OOReportJavaScriptError(context, @"%@.%@(): could not construct quaternion from parameters %@ -- expected Quaternion, Entity or four numbers.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]);
-	}
-	return NO;
 }
 
 
@@ -310,26 +312,27 @@ FAIL:
 static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	Quaternion			quaternion;
+	GLfloat				value;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSObjectGetQuaternion(context, this, &quaternion)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case kQuaternion_w:
-			JS_NewDoubleValue(context, quaternion.w, outValue);
+			value = quaternion.w;
 			break;
 		
 		case kQuaternion_x:
-			JS_NewDoubleValue(context, quaternion.x, outValue);
+			value = quaternion.x;
 			break;
 		
 		case kQuaternion_y:
-			JS_NewDoubleValue(context, quaternion.y, outValue);
+			value = quaternion.y;
 			break;
 		
 		case kQuaternion_z:
-			JS_NewDoubleValue(context, quaternion.z, outValue);
+			value = quaternion.z;
 			break;
 		
 		default:
@@ -337,7 +340,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval na
 			return NO;
 	}
 	
-	return YES;
+	return JS_NewDoubleValue(context, value, outValue);
 }
 
 
@@ -347,7 +350,7 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 	jsdouble			dval;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSObjectGetQuaternion(context, this, &quaternion)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quaternion))) return NO;
 	JS_ValueToNumber(context, *value, &dval);
 	
 	switch (JSVAL_TO_INT(name))
@@ -395,9 +398,9 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 	Quaternion				*private = NULL;
 	
 	private = malloc(sizeof *private);
-	if (private == NULL)  return NO;
+	if (EXPECT_NOT(private == NULL))  return NO;
 	
-	if (!QuaternionFromArgumentList(context, NULL, NULL, argc, argv, &quaternion, NULL))  quaternion = kIdentityQuaternion;
+	if (argc == 0 || !QuaternionFromArgumentList(context, NULL, NULL, argc, argv, &quaternion, NULL))  quaternion = kIdentityQuaternion;
 	
 	*private = quaternion;
 	
@@ -415,10 +418,11 @@ static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value
 {
 	Quaternion				thisq, thatq;
 	
+	// Note: "return YES" means no error, not equality.
 	*outEqual = NO;
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
-	if (!JSVAL_IS_OBJECT(value)) return YES;
-	if (!JSObjectGetQuaternion(context, JSVAL_TO_OBJECT(value), &thatq)) return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;	// This is not a quaternion?
+	if (EXPECT_NOT(!JSVAL_IS_OBJECT(value))) return YES;						// Non-object value - not equal
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, JSVAL_TO_OBJECT(value), &thatq))) return YES;	// Non-quaternion value - not equal
 	
 	*outEqual = quaternion_equal(thisq, thatq);
 	return YES;
@@ -432,7 +436,7 @@ static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc,
 {
 	Quaternion				thisq;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
 	return YES;
@@ -444,8 +448,8 @@ static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc,
 {
 	Quaternion				thisq, thatq, result;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
-	if (!QuaternionFromArgumentList(context, @"Quaternion", @"multiply", argc, argv, &thatq, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"multiply", argc, argv, &thatq, NULL)))  return NO;
 	
 	result = quaternion_multiply(thisq, thatq);
 	
@@ -459,8 +463,8 @@ static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsva
 	Quaternion				thisq, thatq;
 	double					result;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
-	if (!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, argv, &thatq, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Quaternion", @"dot", argc, argv, &thatq, NULL)))  return NO;
 	
 	result = quaternion_dot_product(thisq, thatq);
 	
@@ -471,17 +475,23 @@ static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsva
 // rotate(axis : vectorExpression, angle : Number) : Quaternion
 static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	Quaternion				quat;
+	Quaternion				thisq;
 	Vector					axis;
 	double					angle;
+	uintN					consumed;
 	
-	if (!JSObjectGetQuaternion(context, this, &quat)) return NO;
-	if (!VectorFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &axis, NULL))  return YES;
-	if (!NumberFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &angle, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &axis, &consumed)))  return NO;
+	argv += consumed;
+	argc -= consumed;
+	if (argc > 0)
+	{
+		if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotate", argc, argv, &angle, NULL)))  return NO;
+		quaternion_rotate_about_axis(&thisq, axis, angle);
+	}
+	// Else no angle specified, so don't rotate and pass value through unchanged.
 	
-	quaternion_rotate_about_axis(&quat, axis, angle);
-	
-	return QuaternionToJSValue(context, quat, outResult);
+	return QuaternionToJSValue(context, thisq, outResult);
 }
 
 
@@ -491,8 +501,8 @@ static JSBool QuaternionRotateX(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (!JSObjectGetQuaternion(context, this, &quat)) return NO;
-	if (!NumberFromArgumentList(context, @"Quaternion", @"rotateX", argc, argv, &angle, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateX", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_x(&quat, angle);
 	
@@ -506,8 +516,8 @@ static JSBool QuaternionRotateY(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (!JSObjectGetQuaternion(context, this, &quat)) return NO;
-	if (!NumberFromArgumentList(context, @"Quaternion", @"rotateY", argc, argv, &angle, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateY", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_y(&quat, angle);
 	
@@ -521,8 +531,8 @@ static JSBool QuaternionRotateZ(JSContext *context, JSObject *this, uintN argc, 
 	Quaternion				quat;
 	double					angle;
 	
-	if (!JSObjectGetQuaternion(context, this, &quat)) return NO;
-	if (!NumberFromArgumentList(context, @"Quaternion", @"rotateZ", argc, argv, &angle, NULL))  return YES;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
+	if (EXPECT_NOT(!NumberFromArgumentList(context, @"Quaternion", @"rotateZ", argc, argv, &angle, NULL)))  return NO;
 	
 	quaternion_rotate_about_z(&quat, angle);
 	
@@ -535,7 +545,7 @@ static JSBool QuaternionNormalize(JSContext *context, JSObject *this, uintN argc
 {
 	Quaternion				quat;
 	
-	if (!JSObjectGetQuaternion(context, this, &quat)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &quat))) return NO;
 	
 	quaternion_normalize(&quat);
 	
@@ -549,7 +559,7 @@ static JSBool QuaternionVectorForward(JSContext *context, JSObject *this, uintN 
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	result = vector_forward_from_quaternion(thisq);
 	
@@ -563,7 +573,7 @@ static JSBool QuaternionVectorUp(JSContext *context, JSObject *this, uintN argc,
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	result = vector_up_from_quaternion(thisq);
 	
@@ -577,7 +587,7 @@ static JSBool QuaternionVectorRight(JSContext *context, JSObject *this, uintN ar
 	Quaternion				thisq;
 	Vector					result;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	result = vector_right_from_quaternion(thisq);
 	
@@ -593,7 +603,7 @@ static JSBool QuaternionToArray(JSContext *context, JSObject *this, uintN argc, 
 	BOOL					OK = YES;
 	jsval					nVal;
 	
-	if (!JSObjectGetQuaternion(context, this, &thisq)) return NO;
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	result = JS_NewArrayObject(context, 0, NULL);
 	if (result != NULL)
