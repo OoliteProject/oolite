@@ -2924,6 +2924,8 @@ double scoopSoundPlayTime = 0.0;
 	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
 	
+	[self doScriptEvent:@"shipBeingAttacked" withArgument:ent];
+
 	d_forward = dot_product(rel_pos, v_forward);
 	
 	[self playShieldHit];

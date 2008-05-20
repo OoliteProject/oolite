@@ -455,7 +455,8 @@ static BOOL hostiles;
 				double dist =   planet->zero_distance;
 				double rad =	planet->collision_radius;
 				double factor = ([planet planetType] == PLANET_TYPE_SUN) ? 2.0 : 4.0;
-				if (dist < rad*rad*factor)
+				//mass lock no closer than 25 km from the surface
+				if (dist< rad*rad +50000*rad+625000000 || dist < rad*rad*factor) 
 				{
 					mass_locked = YES;
 				}

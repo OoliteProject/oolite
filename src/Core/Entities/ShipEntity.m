@@ -3407,7 +3407,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			[self doScriptEvent:@"shipExitedStationAegis"];
 			[shipAI message:@"AEGIS_LEAVING_DOCKING_RANGE"];
 		}
-		[self doScriptEvent:@"shipExitedPlanetaryVicinity"];
+		
+		PlanetEntity* the_planet;
+		if (aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
+		{
+			the_planet = [self findPlanetNearestSurface];
+		}
+		else	//must be the main planet!
+		{
+			the_planet = [UNIVERSE planet];
+		}
+
+		[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:the_planet];
 		[shipAI message:@"AWAY_FROM_PLANET"];
 		if (aegis_status != AEGIS_CLOSE_TO_ANY_PLANET)
 		{
@@ -3500,8 +3511,6 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	
 	if (d2 < cr2 * 9.0f && [UNIVERSE sun] != the_planet) //to  3x radius of any planet/moon
 	{
-		[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
-		[shipAI message:@"CLOSE_TO_PLANET"];
 		result = AEGIS_CLOSE_TO_ANY_PLANET;
 	}
 	
@@ -3538,8 +3547,31 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			[shipAI message:@"CLOSE_TO_PLANET"];
+			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	//keep for compatibility with pre-1.72 AI plists
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
 		}
+		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_ANY_PLANET))
+		{
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
+			[shipAI message:@"CLOSE_TO_PLANET"];
+		}
+		if ((aegis_status == AEGIS_CLOSE_TO_ANY_PLANET || result == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
+		{
+			[self doScriptEvent:@"shipExitedPlanetaryVicinity"]; //needs work!
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			[shipAI message:@"AWAY_FROM_PLANET"];
+			[shipAI message:@"CLOSE_TO_PLANET"];
+			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
+			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
+		}
+		if ((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET || result == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_ANY_PLANET))
+		{
+			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
+			[shipAI message:@"AWAY_FROM_PLANET"];
+			[shipAI message:@"CLOSE_TO_PLANET"];
+		}		
 		if (((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
 		{
 			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
@@ -3759,12 +3791,6 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 - (void) setSpeed:(double) amount
 {
 	flightSpeed = amount;
-}
-
-
-- (double) desiredSpeed
-{
-	return desired_speed;
 }
 
 
@@ -4828,8 +4854,9 @@ BOOL class_masslocks(int some_class)
 {
 	if (primaryTarget != NO_TARGET)
 	{
+		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
 		primaryTarget = NO_TARGET;
-		[self doScriptEvent:@"shipLostTarget"];
+		[self doScriptEvent:@"shipLostTarget" withArgument: (target && target->isShip) ? target : nil];
 		[shipAI reactToMessage:@"TARGET_LOST"];
 	}
 }
