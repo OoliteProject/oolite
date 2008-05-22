@@ -4705,7 +4705,7 @@ static int last_outfitting_index;
 			requiresMountedPylon = [eq_extra_info_dict boolForKey:@"requires_mounted_pylon" defaultValue:requiresMountedPylon];
 			requiresCargoSpace = [eq_extra_info_dict unsignedIntForKey:@"requires_cargo_space" defaultValue:requiresCargoSpace];
 			requiresEquipment = [eq_extra_info_dict objectForKey:@"requires_equipment" defaultValue:requiresEquipment];
-			incompatibleWithEquipment = [eq_extra_info_dict objectForKey:@"incompatible_with_equipment" defaultValue:requiresEquipment];
+			incompatibleWithEquipment = [eq_extra_info_dict objectForKey:@"incompatible_with_equipment" defaultValue:incompatibleWithEquipment];
 			if ([eq_extra_info_dict objectForKey:@"requires_clean"])  requiresClean = YES;
 			if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])  requiresNotClean = YES;
 			
