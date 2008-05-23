@@ -237,12 +237,13 @@ JSObject *JSShipPrototype(void)
 
 static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSShipGetShipEntity(context, this, &entity)) return NO;	// NOTE: entity may be nil.
-	if (!JS_EnterLocalRootScope(context))  return NO;
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;	// NOTE: entity may be nil.
+	if (EXPECT_NOT(!JS_EnterLocalRootScope(context)))  return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -275,7 +276,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 			
 		case kShip_fuel:
-			JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
+			OK = JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
 			break;
 		
 		case kShip_bounty:
@@ -289,6 +290,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_hasSuspendedAI:
 			*outValue = BOOLToJSVal([[entity getAI] hasSuspendedStateMachines]);
+			OK = YES;
 			break;
 			
 		case kShip_target:
@@ -302,19 +304,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_temperature:
-			JS_NewDoubleValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, outValue);
+			OK = JS_NewDoubleValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, outValue);
 			break;
 			
 		case kShip_heatInsulation:
-			JS_NewDoubleValue(context, [entity heatInsulation], outValue);
+			OK = JS_NewDoubleValue(context, [entity heatInsulation], outValue);
 			break;
 			
 		case kShip_entityPersonality:
 			*outValue = INT_TO_JSVAL([entity entityPersonalityInt]);
+			OK = YES;
 			break;
 			
 		case kShip_isBeacon:
 			*outValue = BOOLToJSVal([entity isBeacon]);
+			OK = YES;
 			break;
 			
 		case kShip_beaconCode:
@@ -324,18 +328,22 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_isFrangible:
 			*outValue = BOOLToJSVal([entity isFrangible]);
+			OK = YES;
 			break;
 		
 		case kShip_isCloaked:
 			*outValue = BOOLToJSVal([entity isCloaked]);
+			OK = YES;
 			break;
 			
 		case kShip_isJamming:
 			*outValue = BOOLToJSVal([entity isJammingScanning]);
+			OK = YES;
 			break;
 			
 		case kShip_groupID:
 			*outValue = INT_TO_JSVAL([entity groupID]);
+			OK = YES;
 			break;
 		
 		case kShip_potentialCollider:
@@ -345,67 +353,79 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_hasHostileTarget:
 			*outValue = BOOLToJSVal([entity hasHostileTarget]);
+			OK = YES;
 			break;
 			
 		case kShip_weaponRange:
-			JS_NewDoubleValue(context, [entity weaponRange], outValue);
+			OK = JS_NewDoubleValue(context, [entity weaponRange], outValue);
+			OK = YES;
 			break;
 			
 		case kShip_scannerRange:
-			JS_NewDoubleValue(context, [entity scannerRange], outValue);
+			OK = JS_NewDoubleValue(context, [entity scannerRange], outValue);
+			OK = YES;
 			break;
 		
 		case kShip_reportAIMessages:
 			*outValue = BOOLToJSVal([entity reportAIMessages]);
+			OK = YES;
 			break;
 		
 		case kShip_withinStationAegis:
 			*outValue = BOOLToJSVal([entity withinStationAegis]);
+			OK = YES;
 			break;
 		
 		case kShip_maxCargo:
 			*outValue = INT_TO_JSVAL([entity maxCargo]);
+			OK = YES;
 			break;
 			
 		case kShip_speed:
-			JS_NewDoubleValue(context, [entity flightSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity flightSpeed], outValue);
 			break;
 			
 		case kShip_desiredSpeed:
-			JS_NewDoubleValue(context, [entity desiredSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity desiredSpeed], outValue);
 			break;
 			
 		case kShip_maxSpeed:
-			JS_NewDoubleValue(context, [entity maxFlightSpeed], outValue);
+			OK = JS_NewDoubleValue(context, [entity maxFlightSpeed], outValue);
 			break;
 			
 		case kShip_script:
 			result = [entity shipScript];
 			if (result == nil)  result = [NSNull null];
-				break;
+			break;
 			
 		case kShip_isPirate:
 			*outValue = BOOLToJSVal([entity isPirate]);
+			OK = YES;
 			break;
 			
 		case kShip_isPlayer:
 			*outValue = BOOLToJSVal([entity isPlayer]);
+			OK = YES;
 			break;
 			
 		case kShip_isPolice:
 			*outValue = BOOLToJSVal([entity isPolice]);
+			OK = YES;
 			break;
 			
 		case kShip_isThargoid:
 			*outValue = BOOLToJSVal([entity isThargoid]);
+			OK = YES;
 			break;
 			
 		case kShip_isTrader:
 			*outValue = BOOLToJSVal([entity isTrader]);
+			OK = YES;
 			break;
 			
 		case kShip_isPirateVictim:
 			*outValue = BOOLToJSVal([entity isPirateVictim]);
+			OK = YES;
 			break;
 			
 		case kShip_scriptInfo:
@@ -415,21 +435,26 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_trackCloseContacts:
 			*outValue = BOOLToJSVal([entity trackCloseContacts]);
+			OK = YES;
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
+	if (result != nil)
+	{
+		*outValue = [result javaScriptValueInContext:context];
+		OK = YES;
+	}
 	JS_LeaveLocalRootScope(context);
-	return YES;
+	return OK;
 }
 
 
 static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL						OK = NO;
 	ShipEntity					*entity = nil;
 	ShipEntity					*target = nil;
 	NSString					*sValue = nil;
@@ -438,7 +463,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	JSBool						bValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSShipGetShipEntity(context, this, &entity)) return NO;
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -451,6 +476,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [entity setName:sValue];
+				OK = YES;
 			}
 			break;
 			
@@ -463,6 +489,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [entity setDisplayName:sValue];
+				OK = YES;
 			}
 			break;
 		
@@ -475,6 +502,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [entity setPrimaryRole:sValue];
+				OK = YES;
 			}
 			break;
 		
@@ -487,6 +515,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [[entity getAI] setState:sValue];
+				OK = YES;
 			}
 			break;
 		
@@ -495,6 +524,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				fValue = OOClamp_0_max_d(fValue, 7.0);
 				[entity setFuel:lround(fValue * 10.0)];
+				OK = YES;
 			}
 			break;
 			
@@ -503,6 +533,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				iValue = (int)OOMax_f(iValue, 0);
 				[entity setBounty:iValue];
+				OK = YES;
 			}
 			break;
 		
@@ -510,6 +541,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
 				[entity setTargetForScript:target];
+				OK = YES;
 			}
 			break;
 		
@@ -518,6 +550,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				fValue = OOMax_d(fValue, 0.0);
 				[entity setTemperature:fValue * SHIP_MAX_CABIN_TEMP];
+				OK = YES;
 			}
 			break;
 		
@@ -526,6 +559,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				fValue = OOMax_d(fValue, 0.125);
 				[entity setHeatInsulation:fValue * SHIP_MAX_CABIN_TEMP];
+				OK = YES;
 			}
 			break;
 		
@@ -533,6 +567,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setCloaked:bValue];
+				OK = YES;
 			}
 			break;
 		
@@ -540,6 +575,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setReportAIMessages:bValue];
+				OK = YES;
 			}
 			break;
 			
@@ -547,6 +583,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setTrackCloseContacts:bValue];
+				OK = YES;
 			}
 			break;
 		
@@ -560,152 +597,144 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 				if (JS_ValueToNumber(context, *value, &fValue))
 				{
 					[entity setDesiredSpeed:fmax(fValue, 0.0)];
+					OK = YES;
 				}
 			}
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	return YES;
+	return OK;
 }
 
+
+// *** Methods ***
+
+// setScript(scriptName : String)
 static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	name = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setScript", argc, argv, @"Invalid arguments", @"script name");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"setScript", @"Cannot change script for player.");
+		return NO;
+	}
 	
-	if (name != nil)
-	{
-		if (![thisEnt isPlayer])
-		{
-			[thisEnt setShipScript:name];
-		}
-		else
-		{
-			OOReportJSError(context, @"Ship.%@(\"%@\"): cannot set script for player.", @"setScript", name);
-		}
-	}
-	else
-	{
-		OOReportJSError(context, @"Ship.%@(): no script name specified.", @"setScript");
-	}
+	[thisEnt setShipScript:name];
 	return YES;
 }
 
+
+// setAI(aiName : String)
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	name = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setAI", argc, argv, @"Invalid arguments", @"AI name");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"setAI", @"Cannot modify AI for player.");
+		return NO;
+	}
 	
-	if (name != nil)
-	{
-		if (!thisEnt->isPlayer)
-		{
-			[thisEnt setAITo:name];
-		}
-		else
-		{
-			OOReportJSError(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"setAI", name);
-		}
-	}
-	else
-	{
-		OOReportJSError(context, @"Ship.%@(): no AI state machine specified.", @"setAI");
-	}
+	[thisEnt setAITo:name];
 	return YES;
 }
 
 
+// switchAI(aiName : String)
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*name = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	name = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"switchAI", argc, argv, @"Invalid arguments", @"AI name");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"switchAI", @"Cannot modify AI for player.");
+		return NO;
+	}
 	
-	if (name != nil)
-	{
-		if (!thisEnt->isPlayer)
-		{
-			[thisEnt switchAITo:name];
-		}
-		else
-		{
-			OOReportJSWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"switchAI", name);
-		}
-	}
-	else
-	{
-		OOReportJSWarning(context, @"Ship.%@(): no AI state machine specified.", @"switchAI");
-	}
+	[thisEnt switchAITo:name];
 	return YES;
 }
 
 
+// exitAI()
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	AI						*thisAI = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"exitAI", @"Cannot modify AI for player.");
+		return NO;
+	}
 	thisAI = [thisEnt getAI];
 	
-	if (!thisEnt->isPlayer)
+	if (![thisAI hasSuspendedStateMachines])
 	{
-		if ([thisAI hasSuspendedStateMachines])
-		{
-			[thisAI exitStateMachine];
-		}
-		else
-		{
-			OOReportJSWarning(context, @"Ship.exitAI(): cannot cannot exit current AI state machine because there are no suspended state machines.");
-		}
+		OOReportJSWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot cannot exit current AI state machine because there are no suspended state machines.");
 	}
 	else
 	{
-		OOReportJSWarning(context, @"Ship.exitAI(): cannot modify AI for player.");
+		[thisAI exitStateMachine];
 	}
 	return YES;
 }
 
 
+// reactToAIMessage(message : String)
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*message = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	message = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	message = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(message == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"reactToAIMessage", argc, argv, @"Invalid arguments", @"message");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"reactToAIMessage", @"Cannot modify AI for player.");
+		return NO;
+	}
 	
-	if (message != nil)
-	{
-		if (!thisEnt->isPlayer)
-		{
-			[thisEnt reactToAIMessage:message];
-		}
-		else
-		{
-			OOReportJSWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"reactToAIMessage", message);
-		}
-	}
-	else
-	{
-		OOReportJSWarning(context, @"Ship.%@(): no message specified.", @"reactToAIMessage");
-	}
+	[thisEnt reactToAIMessage:message];
 	return YES;
 }
 
 
+// deployEscorts()
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
@@ -717,6 +746,7 @@ static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
+// dockEscorts()
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
@@ -728,13 +758,19 @@ static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
+// hasRole(role : String) : Boolean
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	role = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(role == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"hasRole", argc, argv, @"Invalid arguments", @"role");
+		return NO;
+	}
 	
 	*outResult = BOOLToJSVal([thisEnt hasRole:role]);
 	return YES;
@@ -749,7 +785,12 @@ static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsva
 	ShipEntity				*result = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	role = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(role == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"ejectItem", argc, argv, @"Invalid arguments", @"role");
+		return NO;
+	}
 	
 	result = [thisEnt ejectShipOfRole:role];
 	*outResult = [result javaScriptValueInContext:context];
@@ -765,7 +806,12 @@ static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN ar
 	ShipEntity				*result = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	itemKey = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	itemKey = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(itemKey == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"ejectSpecificItem", argc, argv, @"Invalid arguments", @"ship key");
+		return NO;
+	}
 	
 	result = [thisEnt ejectShipOfType:itemKey];
 	*outResult = [result javaScriptValueInContext:context];
@@ -783,7 +829,7 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 	
 	if ([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked])
 	{
-		OOReportJSWarning(context, @"Player.dumpCargo(): can't dump cargo while docked, ignoring.");
+		OOReportJSWarningForCaller(context, @"Player", @"dumpCargo", @"Can't dump cargo while docked, ignoring.");
 		return YES;
 	}
 	
@@ -798,29 +844,19 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 {
 	ShipEntity				*thisEnt = nil;
 	NSString				*role = nil;
-	int32					count;
+	int32					count = 1;
+	BOOL					gotCount = YES;
 	NSMutableArray			*result = nil;
 	ShipEntity				*ship = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
-	if (role == nil)
+	role = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotCount = JS_ValueToInt32(context, argv[1], &count);
+	if (EXPECT_NOT(role == nil || !gotCount || count < 1 || count > 64))
 	{
-		OOReportJSError(context, @"Expected role (string), got \"%@\".", JSValToNSString(context, argv[0]));
-		return YES;
+		OOReportJSBadArguments(context, @"Ship", @"spawn", argc, argv, @"Invalid arguments", @"role and optional positive count no greater than 64");
+		return NO;
 	}
-	
-	if (argc > 1)
-	{
-		if (!JS_ValueToInt32(context, argv[1], &count) || count < 1)
-		{
-			OOReportJSError(context, @"Expected spawn count (positive integer), got \"%@\".", JSValToNSString(context, argv[1]));
-			return YES;
-		}
-	}
-	else  count = 1;
-	
-	assert(count > 0);
 	
 	result = [NSMutableArray arrayWithCapacity:count];
 	
@@ -858,7 +894,7 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 }
 
 
-// scriptTarget.runLegacyShipActions(target : Ship, actions : Array)
+// runLegacyShipActions(target : Ship, actions : Array)
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
@@ -869,18 +905,12 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	player = OOPlayerForScripting();
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
-	target = JSValueToObject(context, argv[0]);
-	if (![target isKindOfClass:[ShipEntity class]])
-	{
-		OOReportJSWarning(context, @"First argument of runLegacyScriptActions must be a Ship.");
-		return YES;
-	}
-	
 	actions = JSValueToObject(context, argv[1]);
-	if (![actions isKindOfClass:[NSArray class]])
+	if (EXPECT_NOT(!JSShipGetShipEntity(context, JSVAL_TO_OBJECT(argv[0]), &target) ||
+				   ![actions isKindOfClass:[NSArray class]]))
 	{
-		OOReportJSWarning(context, @"Second argument of runLegacyScriptActions must be an Array.");
-		return YES;
+		OOReportJSBadArguments(context, @"Ship", @"runLegacyScriptActions", argc, argv, @"Invalid arguments", @"target and array of actions");
+		return NO;
 	}
 	
 	[player setScriptTarget:thisEnt];
@@ -889,21 +919,24 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	return YES;
 }
 
+
+// commsMessage(message : String)
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	NSString				*msg = nil;
+	NSString				*message = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	msg = [NSString stringWithJavaScriptValue:*argv inContext:context];
-	
-	if (msg != nil)
+	message = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	if (EXPECT_NOT(message == nil))
 	{
-		if (!thisEnt->isPlayer)
-		{
-			[thisEnt commsMessage:msg withUnpilotedOverride:YES];
-		}
-		//else: player.commsMessage handles this already. 
+		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, @"Invalid arguments", @"message");
+		return NO;
+	}
+	
+	if (![thisEnt isPlayer])
+	{
+		[thisEnt commsMessage:message withUnpilotedOverride:YES];
 	}
 	return YES;
 }

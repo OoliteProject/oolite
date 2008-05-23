@@ -669,9 +669,8 @@ waitingForStickCallback: 1;
 
 - (BOOL)showInfoFlag;
 
-- (void) setGalacticHyperspaceBehaviour:(NSString *) galacticHyperspaceBehaviourString;
+- (void) setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
-- (void) setGalacticHyperspaceFixedCoords:(NSString *) galacticHyperspaceFixedCoordsString;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
 

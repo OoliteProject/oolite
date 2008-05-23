@@ -3762,6 +3762,12 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+- (OOCargoQuantity) availableCargoSpace
+{
+	return [self maxCargo] - [[self cargo] count];
+}
+
+
 - (OOCargoType) cargoType
 {
 	return cargo_type;
@@ -7572,7 +7578,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	{
 		ShipEntity* ship = scanned_ships[i];
 		[ship receiveCommsMessage: expandedMessage];
-		if (ship->isPlayer)
+		if ([ship isPlayer])
 			messageTime = 6.0;
 	}
 	[UNIVERSE resetCommsLogColor];

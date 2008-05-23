@@ -827,6 +827,41 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 }
 
 
+// *** Static methods ***
+
+// systemNameForID(ID : Number) : String
+static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	int32				systemID;
+	
+	if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
+	{
+		OOReportJSBadArguments(context, @"System", @"systemNameForID", argc, argv, @"Invalid arguments", @"system ID");
+		return NO;
+	}
+	
+	*outResult = [[UNIVERSE generateSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]] javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// systemIDForName(name : String) : Number
+static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*name = nil;
+	
+	name = JSValToNSString(context, argv[0]);
+	if (name == nil)
+	{
+		OOReportJSBadArguments(context, @"System", @"systemIDForName", argc, argv, @"Invalid arguments", @"string");
+		return NO;
+	}
+	
+	*outResult = INT_TO_JSVAL([UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]]);
+	return YES;
+}
+
+
 // *** Helper functions ***
 
 static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange)
@@ -889,8 +924,8 @@ static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Enti
 static int CompareEntitiesByDistance(id a, id b, void *relativeTo)
 {
 	Entity				*ea = a,
-						*eb = b,
-						*r = (id)relativeTo;
+	*eb = b,
+	*r = (id)relativeTo;
 	float				d1, d2;
 	
 	d1 = distance2(ea->position, r->position);
@@ -899,32 +934,4 @@ static int CompareEntitiesByDistance(id a, id b, void *relativeTo)
 	if (d1 < d2)  return NSOrderedAscending;
 	else if (d1 > d2)  return NSOrderedDescending;
 	else return NSOrderedSame;
-}
-
-
-// systemNameForID(ID : Number) : String
-static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	int32				systemID;
-	
-	if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
-	{
-		OOReportJSError(context, @"%@(): expected system ID from 0 to 255, got %@.", @"systemNameForID", JSValToNSString(context, argv[0]));
-		return YES;
-	}
-	
-	*outResult = [[UNIVERSE generateSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]] javaScriptValueInContext:context];
-	
-	return YES;
-}
-
-
-// systemIDForName(name : String) : Number
-static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	NSString			*name = nil;
-	
-	name = JSValToNSString(context, argv[0]);
-	*outResult = INT_TO_JSVAL([UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]]);
-	return YES;
 }

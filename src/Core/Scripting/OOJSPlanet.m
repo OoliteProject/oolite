@@ -37,7 +37,6 @@ static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *PlanetObj, Pla
 
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -51,7 +50,7 @@ static JSExtendedClass sPlanetClass =
 		JS_PropertyStub,		// addProperty
 		JS_PropertyStub,		// delProperty
 		PlanetGetProperty,		// getProperty
-		PlanetSetProperty,		// setProperty
+		JS_PropertyStub,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
 		JS_ConvertStub,			// convert
@@ -149,6 +148,7 @@ static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *stationObj, Pl
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	PlanetEntity				*planet = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
@@ -158,40 +158,22 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 	{
 		case kPlanet_isMainPlanet:
 			*outValue = BOOLToJSVal(planet == [UNIVERSE planet]);
+			OK = YES;
 			break;
 			
 		case kPlanet_radius:
-			JS_NewDoubleValue(context, [planet radius], outValue);
+			OK = JS_NewDoubleValue(context, [planet radius], outValue);
 			break;
 			
 		case kPlanet_hasAtmosphere:
 			*outValue = BOOLToJSVal([planet hasAtmosphere]);
+			OK = YES;
 			break;
 			
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
-			return NO;
 	}
-	return YES;
-}
-
-
-static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
-{
-	PlanetEntity				*entity = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSPlanetGetPlanetEntity(context, this, &entity)) return NO;
-	
-	switch (JSVAL_TO_INT(name))
-	{
-			
-		default:
-			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
-			return NO;
-	}
-	
-	return YES;
+	return OK;
 }
 
 
@@ -199,26 +181,22 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 {
 	PlanetEntity			*thisEnt = nil;
 	NSString				*name = nil;
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-
+	PlayerEntity			*player = [PlayerEntity sharedPlayer];
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
 	if([player status] != STATUS_LAUNCHING && [player status] != STATUS_EXITING_WITCHSPACE)
 	{
 		OOReportJSError(context, @"Planet.%@ must be called only during shipWillLaunchFromStation or shipWillExitWitchspace.", @"setTexture");
-		return YES;
 	}
-	if (name != nil)
+	else if (name != nil)
 	{
-		if (![thisEnt setUpPlanetFromTexture:name])
-		{
-			OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
-		}
+		if ([thisEnt setUpPlanetFromTexture:name])  return YES;
+		else  OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
 	}
 	else
 	{
 		OOReportJSError(context, @"Planet.%@(): no texture name specified.", @"setTexture");
 	}
-	return YES;
+	return NO;
 }

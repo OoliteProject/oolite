@@ -2694,6 +2694,33 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 }
 
+
+- (void) setGalacticHyperspaceBehaviourTo:(NSString *)galacticHyperspaceBehaviourString
+{
+	OOGalacticHyperspaceBehaviour ghBehaviour = StringToGalacticHyperspaceBehaviour(galacticHyperspaceBehaviourString);
+	if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
+	{
+		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
+		      @"setGalacticHyperspaceBehaviour: called with unknown behaviour %@.", galacticHyperspaceBehaviourString);
+	}
+	[self setGalacticHyperspaceBehaviour:ghBehaviour];
+}
+
+
+- (void) setGalacticHyperspaceFixedCoordsTo:(NSString *)galacticHyperspaceFixedCoordsString
+{	
+	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
+	if ([coord_vals count] < 2)	// Will be 0 if string is nil
+	{
+		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
+		      @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
+		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
+	}
+	
+	[self setGalacticHyperspaceFixedCoordsX:[coord_vals unsignedCharAtIndex:0]
+										  y:[coord_vals unsignedCharAtIndex:1]];
+}
+
 @end
 
 

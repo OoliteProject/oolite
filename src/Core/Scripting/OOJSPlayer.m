@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 
+#import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
 
 
@@ -50,6 +51,7 @@ static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN ar
 static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -100,6 +102,7 @@ enum
 	kPlayer_alertEnergy,		// low energy alert flag, boolean, read-only
 	kPlayer_alertHostiles,		// hostiles present alert flag, boolean, read-only
 	kPlayer_trumbleCount,		// number of trumbles, integer, read-only
+	kPlayer_specialCargo,		// special cargo, string, read-only
 	kPlayer_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayer_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
 };
@@ -121,6 +124,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertEnergy",			kPlayer_alertEnergy,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "specialCargo",			kPlayer_specialCargo,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceBehaviour",	kPlayer_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceFixedCoords",	kPlayer_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
@@ -136,7 +140,8 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "equipmentStatus",		PlayerEquipmentStatus,		1 },
 	{ "setEquipmentStatus",		PlayerSetEquipmentStatus,	2 },
 	{ "launch",					PlayerLaunch,				0 },
-	{ "awardCargo",				PlayerAwardCargo,			2 },
+	{ "awardCargo",				PlayerAwardCargo,			1 },
+	{ "canAwardCargo",			PlayerCanAwardCargo,		1 },
 	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
 	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
 	{ "commsMessage",			PlayerCommsMessage,			1 },
@@ -216,6 +221,7 @@ PlayerEntity *OOPlayerForScripting(void)
 
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*player = OOPlayerForScripting();
 	
@@ -225,77 +231,92 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 	{
 		case kPlayer_name:
 			result = [player playerName];
+			OK = YES;
 			break;
 			
 		case kPlayer_score:
 			*outValue = INT_TO_JSVAL([player score]);
+			OK = YES;
 			break;
 			
 		case kPlayer_credits:
-			JS_NewDoubleValue(context, [player creditBalance], outValue);
+			OK = JS_NewDoubleValue(context, [player creditBalance], outValue);
 			break;
 			
 		case kPlayer_fuelLeakRate:
-			JS_NewDoubleValue(context, [player fuelLeakRate], outValue);
+			OK = JS_NewDoubleValue(context, [player fuelLeakRate], outValue);
 			break;
 			
 		case kPlayer_alertCondition:
 			*outValue = INT_TO_JSVAL([player alertCondition]);
+			OK = YES;
 			break;
 			
 		case kPlayer_docked:
 			*outValue = BOOLToJSVal([player isDocked]);
+			OK = YES;
 			break;
 			
 		case kPlayer_dockedStation:
 			result = [player dockedStation];
 			if (result == nil)  result = [NSNull null];
+			OK = YES;
 			break;
 			
 		case kPlayer_alertTemperature:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_TEMP);
+			OK = YES;
 			break;
 			
 		case kPlayer_alertMassLocked:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_MASS_LOCK);
+			OK = YES;
 			break;
 			
 		case kPlayer_alertAltitude:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_ALT);
+			OK = YES;
 			break;
 			
 		case kPlayer_alertEnergy:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_ENERGY);
+			OK = YES;
 			break;
 			
 		case kPlayer_alertHostiles:
 			*outValue = BOOLToJSVal([player alertFlags] & ALERT_FLAG_HOSTILES);
+			OK = YES;
 			break;
 			
 		case kPlayer_trumbleCount:
-			JS_NewNumberValue(context, [player trumbleCount], outValue);
+			OK = JS_NewNumberValue(context, [player trumbleCount], outValue);
+			break;
+			
+		case kPlayer_specialCargo:
+			result = [player specialCargo];
+			OK = YES;
 			break;
 			
 		case kPlayer_galacticHyperspaceBehaviour:
-			JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
+			OK = JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
 			break;
 			
 		case kPlayer_galacticHyperspaceFixedCoords:
-			NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
+			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
-	return YES;
+	if (OK && result != nil)  *outValue = [result javaScriptValueInContext:context];
+	return OK;
 }
 
 
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
 	int32						iValue;
@@ -309,6 +330,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			{
 				iValue = MAX(iValue, 0);
 				[player setScore:iValue];
+				OK = YES;
 			}
 			break;
 			
@@ -316,6 +338,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setCreditBalance:fValue];
+				OK = YES;
 			}
 			break;
 		
@@ -323,94 +346,152 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setFuelLeakRate:fValue];
+				OK = YES;
 			}
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	return YES;
+	return OK;
 }
 
 
+// *** Methods ***
+
+// awardEquipment(key : String)
 static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() awardEquipment:JSValToNSString(context, argv[0])];
+	PlayerEntity				*player = OOPlayerForScripting();
+	NSString					*key = nil;
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"awardEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		return NO;
+	}
+	
+	[player awardEquipment:key];
 	return YES;
 }
 
 
+// removeEquipment(key : String)
 static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() removeEquipmentItem:JSValToNSString(context, argv[0])];
+	PlayerEntity				*player = OOPlayerForScripting();
+	NSString					*key = nil;
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"removeEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		return NO;
+	}
+	
+	[player removeEquipmentItem:key];
 	return YES;
 }
 
 
+// hasEquipment(key : String) : Boolean
 static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	*outResult = BOOLToJSVal([OOPlayerForScripting() hasEquipmentItem:JSValToNSString(context, argv[0])]);
+	PlayerEntity				*player = OOPlayerForScripting();
+	NSString					*key = nil;
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"hasEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		return NO;
+	}
+	
+	*outResult = BOOLToJSVal([player hasEquipmentItem:key]);
 	return YES;
 }
 
 
+// setEquipmentStatus(key : String, status : String)
 static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
 	
-	NSString				*name = JSValToNSString(context, argv[0]);
-	NSString				*damagedName = [NSString stringWithFormat:@"%@_DAMAGED",name];
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*key = JSValToNSString(context, argv[0]);
+	NSString				*damagedKey = [key stringByAppendingString:@"_DAMAGED"];
 	NSString				*status = JSValToNSString(context, argv[1]);
-	BOOL					statusSet = NO;
+	BOOL					hasOK = NO, hasDamaged = NO;
 
-	if ([UNIVERSE strict])
+	if (EXPECT_NOT([UNIVERSE strict]))
 	{
+		// It's OK to have a hard error here since only built-in scripts run in strict mode.
 		OOReportJSError(context, @"Cannot set equipment status while in strict mode.");
-		*outResult = BOOLToJSVal(NO);
-		return YES;
+		return NO;
 	}
 	
-	if([status isEqualToString:@"EQUIPMENT_OK"] || [status isEqualToString:@"EQUIPMENT_DAMAGED"])
+	if (EXPECT_NOT(key == nil || status == nil))
 	{
-		if([OOPlayerForScripting() hasEquipmentItem:name]&&[status isEqualToString:@"EQUIPMENT_DAMAGED"])
+		OOReportJSBadArguments(context, @"Player", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key and status");
+		return NO;
+	}
+	
+	hasOK = [player hasEquipmentItem:key];
+	hasDamaged = [player hasEquipmentItem:damagedKey];
+	
+	if ([status isEqualToString:@"EQUIPMENT_OK"])
+	{
+		if (hasDamaged)
 		{
-			[OOPlayerForScripting() removeEquipmentItem:name];
-			//[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[@-damaged]"), name] forCount:4.5];
-			[OOPlayerForScripting() addEquipmentItem:damagedName];
+			[player removeEquipmentItem:damagedKey];
+			[player addEquipmentItem:key];
 		}
-		if([OOPlayerForScripting() hasEquipmentItem:damagedName] && [status isEqualToString:@"EQUIPMENT_OK"]) 
+	}
+	else if ([status isEqualToString:@"EQUIPMENT_DAMAGED"])
+	{
+		if (hasOK)
 		{
-			[OOPlayerForScripting() removeEquipmentItem:damagedName];
-			[OOPlayerForScripting() addEquipmentItem:name];
+			[player removeEquipmentItem:key];
+			[player addEquipmentItem:damagedKey];
 		}
-		statusSet = [OOPlayerForScripting() hasEquipmentItem:name] || [OOPlayerForScripting() hasEquipmentItem:damagedName];
 	}
 	else
-		OOReportJSError(context, @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
-
-	*outResult = BOOLToJSVal(statusSet);
-
+	{
+		OOReportJSErrorForCaller(context, @"Player", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
+		return NO;
+	}
+	
+	*outResult = BOOLToJSVal(hasOK || hasDamaged);
 	return YES;
 }
 
 
+// equipmentStatus(key : String) : String
 static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
-
-	NSString				*name = JSValToNSString(context, argv[0]);
-	NSString				*result =@"EQUIPMENT_UNAVAILABLE";
 	
-	if([OOPlayerForScripting() hasEquipmentItem:name]) result = @"EQUIPMENT_OK";
-	if([OOPlayerForScripting() hasEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED",name]]) result = @"EQUIPMENT_DAMAGED";
-
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*key = JSValToNSString(context, argv[0]);
+	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
+	
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key");
+		return NO;
+	}
+	
+	if([player hasEquipmentItem:key]) result = @"EQUIPMENT_OK";
+	else if([player hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]) result = @"EQUIPMENT_DAMAGED";
+	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
 }
 
 
+// launch()
 static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	[OOPlayerForScripting() launchFromStation];
@@ -418,46 +499,83 @@ static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval
 }
 
 
+// awardCargo(type : String [, quantity : Number])
 static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*typeString = nil;
 	OOCargoType				type;
-	OOMassUnit				unit;
-	int32					amount;
+	int32					amount = 1;
+	BOOL					gotAmount = YES;
 	
 	typeString = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
+	if (EXPECT_NOT(typeString == nil || !gotAmount))
+	{
+		OOReportJSBadArguments(context, @"Player", @"awardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
+		return NO;
+	}
+	
 	type = [UNIVERSE commodityForName:typeString];
-	if (type == NSNotFound)
+	if (EXPECT_NOT(type == NSNotFound))
 	{
-		OOReportJSError(context, @"Unknown cargo type \"%@\".", typeString);
-		return YES;
+		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Unknown cargo type \"%@\".", typeString);
+		return NO;
 	}
 	
-	if (!JS_ValueToInt32(context, argv[1], &amount))
+	if (EXPECT_NOT(amount < 0))
 	{
-		OOReportJSError(context, @"Expected cargo quantity (integer), got \"%@\".", JSValToNSString(context, argv[1]));
-		return YES;
+		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Cargo quantity (%i) is negative.", amount);
+		return NO;
 	}
 	
-	if (amount < 0)
+	if (EXPECT_NOT(![player canAwardCargoType:type amount:amount]))
 	{
-		OOReportJSError(context, @"Cargo quantity (%i) is negative.", amount);
-		return YES;
-	}
-		
-	unit = [UNIVERSE unitsForCommodity:type];
-	if ([OOPlayerForScripting() specialCargo] != nil && unit == UNITS_TONS)
-	{
-		OOReportJSError(context, @"Cargo hold full with special cargo, cannot award \"%@\".", typeString);
-		return YES;
+		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Cannot award %u units of cargo \"%@\" at this time (use canAwardCargo() to avoid this error).", amount, typeString);
+		return NO;
 	}
 	
-	[OOPlayerForScripting() awardCargoType:type amount:amount];
-	
+	[player awardCargoType:type amount:amount];
 	return YES;
 }
 
 
+// canAwardCargo(type : String [, quantity : Number]) : Boolean
+static JSBool PlayerCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*typeString = nil;
+	OOCargoType				type;
+	int32					amount = 1;
+	BOOL					gotAmount = YES;
+	
+	typeString = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
+	if (EXPECT_NOT(typeString == nil || !gotAmount))
+	{
+		OOReportJSBadArguments(context, @"Player", @"canAwardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
+		return NO;
+	}
+	
+	type = [UNIVERSE commodityForName:typeString];
+	if (EXPECT_NOT(type == NSNotFound))
+	{
+		OOReportJSErrorForCaller(context, @"Player", @"canAwardCargo", @"Unknown cargo type \"%@\".", typeString);
+		return NO;
+	}
+	
+	if (EXPECT_NOT(amount < 0))
+	{
+		OOReportJSErrorForCaller(context, @"Player", @"canAwardCargo", @"Cargo quantity (%i) is negative.", amount);
+		return NO;
+	}
+	
+	*outResult = BOOLToJSVal([player canAwardCargoType:type amount:amount]);
+	return YES;
+}
+
+
+// removeAllCargo()
 static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity			*player = OOPlayerForScripting();
@@ -465,71 +583,95 @@ static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN arg
 	if ([player isDocked])
 	{
 		[player removeAllCargo];
+		return YES;
 	}
 	else
 	{
 		OOReportJSError(context, @"Player.removeAllCargo() may only be called when the player is docked.");
+		return NO;
 	}
-	return YES;
 }
 
 
+// useSpecialCargo(name : String)
 static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() useSpecialCargo:JSValToNSString(context, argv[0])];
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*name = nil;
+	
+	name = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"useSpecialCargo", argc, argv, @"Invalid arguments", @"special cargo description");
+		return NO;
+	}
+	
+	[player useSpecialCargo:JSValToNSString(context, argv[0])];
 	return YES;
 }
 
 
-// commsMessage(message : String [, duration : Number]) : void
+// commsMessage(message : String [, duration : Number])
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	const double			kDefaultTime = 4.5;
 	NSString				*message = nil;
-	double					time = kDefaultTime;
+	double					time = 4.5;
+	BOOL					gotTime = YES;
 	
-	message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	if (message != nil)
+	message = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
+	if (EXPECT_NOT(message == nil || !gotTime))
 	{
-		if (1 < argc)
-		{
-			if (!JS_ValueToNumber(context, argv[1], &time))  time = kDefaultTime;
-			if (time < 1.0)  time = 1.0;
-			if (12.0 < time)  time = 10.0;
-		}
-		
-		[UNIVERSE addCommsMessage:message forCount:time];
+		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, @"Invalid arguments", @"message and optional duration");
+		return NO;
 	}
+	
+	[UNIVERSE addCommsMessage:message forCount:time];
 	return YES;
 }
 
 
-// consoleMessage(message : String [, duration : Number]) : void
+// commsMessage(message : String [, duration : Number])
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	const double			kDefaultTime = 3;
 	NSString				*message = nil;
-	double					time = kDefaultTime;
+	double					time = 3.0;
+	BOOL					gotTime = YES;
 	
-	message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	if (message != nil)
+	message = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
+	if (EXPECT_NOT(message == nil || !gotTime))
 	{
-		if (1 < argc)
-		{
-			if (!JS_ValueToNumber(context, argv[1], &time))  time = kDefaultTime;
-			if (time < 1.0)  time = 1.0;
-			if (12.0 < time)  time = 10.0;
-		}
-		
-		[UNIVERSE addMessage:message forCount:time];
+		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, @"Invalid arguments", @"message and optional duration");
+		return NO;
 	}
+	
+	[UNIVERSE addMessage:message forCount:time];
 	return YES;
 }
 
 
+// setGalacticHyperspaceBehaviour(behaviour : String)
 static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	[OOPlayerForScripting() setGalacticHyperspaceBehaviour:JSValToNSString(context, argv[0])];
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*behavString = nil;
+	OOGalacticHyperspaceBehaviour behaviour;
+	
+	behavString = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(behavString == nil))
+	{
+		OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceBehaviour", argc, argv, @"Invalid arguments", @"behaviour name");
+		return NO;
+	}
+	
+	behaviour = StringToGalacticHyperspaceBehaviour(behavString);
+	if (behaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
+	{
+		OOReportJSErrorForCaller(context, @"Player", @"setGalacticHyperspaceBehaviour", @"Unknown galactic hyperspace behaviour name %@.", behavString);
+	}
+	
+	[player setGalacticHyperspaceBehaviour:behaviour];
 	return YES;
 }
 
@@ -537,19 +679,28 @@ static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject 
 // setGalacticHyperspaceFixedCoords(v : vectorExpression) or setGalacticHyperspaceFixedCoords(x : Number, y : Number)
 static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	double				x, y;
-	Vector				v;
+	PlayerEntity			*player = OOPlayerForScripting();
+	double					x, y;
+	Vector					v;
 	
 	if (argc == 2)
 	{
 		// Expect two integers
-		if (!JS_ValueToNumber(context, argv[0], &x))  x = 0x60;
-		if (!JS_ValueToNumber(context, argv[1], &y))  y = 0x60;
+		if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &x) ||
+					   !JS_ValueToNumber(context, argv[1], &y)))
+		{
+			OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
+			return NO;
+		}
 	}
 	else
 	{
 		// Expect vectorExpression
-		if (!VectorFromArgumentList(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, &v, NULL))  v = make_vector(0x60, 0x60, 0);
+		if (EXPECT_NOT(!VectorFromArgumentList(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, &v, NULL)))
+		{
+			OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
+			return NO;
+		}
 		x = v.x;
 		y = v.y;
 	}
@@ -557,6 +708,6 @@ static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObjec
 	x = OOClamp_0_max_d(x, 255);
 	y = OOClamp_0_max_d(y, 255);
 	
-	[OOPlayerForScripting() setGalacticHyperspaceFixedCoordsX:x y:y];
+	[player setGalacticHyperspaceFixedCoordsX:x y:y];
 	return YES;
 }

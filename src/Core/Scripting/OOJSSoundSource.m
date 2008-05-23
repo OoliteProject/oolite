@@ -164,6 +164,7 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval n
 
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL						OK = NO;
 	OOSoundSource				*soundSource = nil;
 	int32						iValue;
 	JSBool						bValue;
@@ -175,12 +176,14 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 	{
 		case kSoundSource_sound:
 			[soundSource setSound:SoundFromJSValue(context, *value)];
+			OK = YES;
 			break;
 			
 		case kSoundSource_loop:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[soundSource setLoop:bValue];
+				OK = YES;
 			}
 			break;
 			
@@ -190,15 +193,15 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 				if (iValue > 100)  iValue = 100;
 				if (100 < 1)  iValue = 1;
 				[soundSource setRepeatCount:iValue];
+				OK = YES;
 			}
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	return YES;
+	return OK;
 }
 
 
@@ -207,13 +210,13 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 // play([count : Number])
 static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	OOSoundSource			*thisv;
+	OOSoundSource			*thisv = nil;
 	int32					count = 0;
 	
-	if (!JSSoundSourceGetSoundSource(context, this, &thisv)) return NO;
-	if (argc > 0)
+	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
+	if (argc > 0 && !JS_ValueToInt32(context, argv[0], &count))
 	{
-		JS_ValueToInt32(context, argv[0], &count);
+		OOReportJSBadArguments(context, @"SoundSource", @"play", argc, argv, @"Invalid arguments", @"integer count or no argument");
 	}
 	
 	if (count > 0)
@@ -222,7 +225,6 @@ static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, js
 		[thisv setRepeatCount:count];
 	}
 	[thisv play];
-	
 	return YES;
 }
 
@@ -230,12 +232,11 @@ static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, js
 // stop()
 static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	OOSoundSource			*thisv;
+	OOSoundSource			*thisv = nil;
 	
-	if (!JSSoundSourceGetSoundSource(context, this, &thisv)) return NO;
+	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	
 	[thisv stop];
-	
 	return YES;
 }
 
@@ -243,12 +244,11 @@ static JSBool SoundSourceStop(JSContext *context, JSObject *this, uintN argc, js
 // playOrRepeat()
 static JSBool SoundSourcePlayOrRepeat(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	OOSoundSource			*thisv;
+	OOSoundSource			*thisv = nil;
 	
-	if (!JSSoundSourceGetSoundSource(context, this, &thisv)) return NO;
+	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	
 	[thisv playOrRepeat];
-	
 	return YES;
 }
 
@@ -260,12 +260,18 @@ static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN arg
 	OOSound					*sound = nil;
 	int32					count = 0;
 	
-	if (!JSSoundSourceGetSoundSource(context, this, &thisv)) return NO;
+	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	sound = SoundFromJSValue(context, argv[0]);
-	if (sound == nil)  return YES;
-	if (argc > 1)
+	if (sound == nil)
 	{
-		JS_ValueToInt32(context, argv[1], &count);
+		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, @"Invalid arguments", @"sound or sound name");
+		return NO;
+	}
+	
+	if (argc > 1 || !JS_ValueToInt32(context, argv[1], &count))
+	{
+		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, @"Invalid arguments", @"sound or sound name and optional integer count");
+		return NO;
 	}
 	
 	[thisv setSound:sound];
@@ -275,7 +281,6 @@ static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN arg
 		[thisv setRepeatCount:count];
 	}
 	[thisv play];
-	
 	return YES;
 }
 

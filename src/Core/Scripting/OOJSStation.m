@@ -159,6 +159,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL						OK = NO;
 	StationEntity				*entity = nil;
 	JSBool						bValue;
 	int32						iValue;
@@ -173,6 +174,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[entity setHasNPCTraffic:bValue];
+				OK = YES;
 			}
 			break;
 		
@@ -180,13 +182,13 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				[entity setAlertLevel:iValue signallingScript:NO];	// Performs range checking
+				OK = YES;
 			}
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	return YES;
+	return OK;
 }

@@ -92,6 +92,19 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) canAwardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount
+{
+	if (type == CARGO_NOT_CARGO)  return NO;
+	if ([UNIVERSE unitsForCommodity:type] == UNITS_TONS)
+	{
+		if ([self specialCargo] != nil)  return NO;
+		if (amount > [self availableCargoSpace])  return NO;
+	}
+	
+	return YES;
+}
+
+
 - (void) awardCargoType:(OOCargoType)type amount:(OOCargoQuantity)amount
 {
 	OOMassUnit				unit;

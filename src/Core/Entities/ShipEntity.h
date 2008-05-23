@@ -507,6 +507,7 @@ MA 02110-1301, USA.
 - (OOCargoQuantity) commodityAmount;
 
 - (OOCargoQuantity) maxCargo;
+- (OOCargoQuantity) availableCargoSpace;
 - (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;

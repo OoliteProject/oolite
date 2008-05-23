@@ -220,31 +220,30 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	Entity						*entity = nil;
 	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSEntityGetEntity(context, this, &entity)) return NO;	// NOTE: entity may be nil.
+	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;	// NOTE: entity may be nil.
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case kEntity_ID:
 			*outValue = INT_TO_JSVAL([entity universalID]);
+			OK = YES;
 			break;
 		
 		case kEntity_position:
-			VectorToJSValue(context, [entity position], outValue);
+			OK = VectorToJSValue(context, [entity position], outValue);
 			break;
 		
 		case kEntity_orientation:
-			QuaternionToJSValue(context, [entity orientation], outValue);
+			OK = QuaternionToJSValue(context, [entity orientation], outValue);
 			break;
 		
 		case kEntity_heading:
-			if (entity != nil)
-			{
-				VectorToJSValue(context, vector_forward_from_quaternion(entity->orientation), outValue);
-			}
+			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity orientation]), outValue);
 			break;
 		
 		case kEntity_status:
@@ -256,7 +255,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_mass:
-			JS_NewDoubleValue(context, [entity mass], outValue);
+			OK = JS_NewDoubleValue(context, [entity mass], outValue);
 			break;
 		
 		case kEntity_owner:
@@ -266,66 +265,77 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_energy:
-			JS_NewDoubleValue(context, [entity energy], outValue);
+			OK = JS_NewDoubleValue(context, [entity energy], outValue);
 			break;
 		
 		case kEntity_maxEnergy:
-			JS_NewDoubleValue(context, [entity maxEnergy], outValue);
+			OK = JS_NewDoubleValue(context, [entity maxEnergy], outValue);
 			break;
 		
 		case kEntity_isValid:
 			*outValue = BOOLToJSVal(entity != nil);
+			OK = YES;
 			break;
 		
 		case kEntity_isShip:
 			*outValue = BOOLToJSVal([entity isShip]);
+			OK = YES;
 			break;
 		
 		case kEntity_isStation:
 			*outValue = BOOLToJSVal([entity isStation]);
+			OK = YES;
 			break;
 			
 		case kEntity_isSubEntity:
 			*outValue = BOOLToJSVal([entity isSubEntity]);
+			OK = YES;
 			break;
 		
 		case kEntity_isPlayer:
 			*outValue = BOOLToJSVal([entity isPlayer]);
+			OK = YES;
 			break;
 			
 		case kEntity_isPlanet:
 			*outValue = BOOLToJSVal([entity isPlanet] && ![entity isSun]);
+			OK = YES;
 			break;
 			
 		case kEntity_isSun:
 			*outValue = BOOLToJSVal([entity isSun]);
+			OK = YES;
 			break;
 		
 		case kEntity_distanceTravelled:
-			JS_NewDoubleValue(context, [entity distanceTravelled], outValue);
+			OK = JS_NewDoubleValue(context, [entity distanceTravelled], outValue);
 			break;
 		
 		case kEntity_spawnTime:
-			JS_NewDoubleValue(context, [entity spawnTime], outValue);
+			OK = JS_NewDoubleValue(context, [entity spawnTime], outValue);
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	if (result != nil) *outValue = [result javaScriptValueInContext:context];
-	return YES;
+	if (result != nil)
+	{
+		*outValue = [result javaScriptValueInContext:context];
+		OK = YES;
+	}
+	return OK;
 }
 
 
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL				OK = NO;
 	Entity				*entity = nil;
 	double				fValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSEntityGetEntity(context, this, &entity)) return NO;
+	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -334,56 +344,64 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 			{
 				fValue = OOClamp_0_max_d(fValue, [entity maxEnergy]);
 				[entity setEnergy:fValue];
+				OK = YES;
 			}
 			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
-			return NO;
 	}
 	
-	return YES;
+	return OK;
 }
 
 
 // *** Methods ***
 
+// setPosition(position : vectorExpression)
 static JSBool EntitySetPosition(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	Entity					*thisEnt;
+	Entity					*thisEnt = nil;
 	Vector					vector;
 	
 	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	if (!VectorFromArgumentList(context, @"Entity", @"setPosition", argc, argv, &vector, NULL))  return YES;
+	if (EXPECT_NOT(!VectorFromArgumentList(context, @"Entity", @"setPosition", argc, argv, &vector, NULL)))  return NO;
 	
 	[thisEnt setPosition:vector];
 	return YES;
 }
 
 
+// setOrientation(orientation : quaternionExpression)
 static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	Entity					*thisEnt;
+	Entity					*thisEnt = nil;
 	Quaternion				quaternion;
 	
 	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	if (!QuaternionFromArgumentList(context, @"Entity", @"setOrientation", argc, argv, &quaternion, NULL))  return YES;
+	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Entity", @"setOrientation", argc, argv, &quaternion, NULL)))  return NO;
 	
 	[thisEnt setOrientation:quaternion];
 	return YES;
 }
 
 
+// *** Static methods ***
+
+// entityWithID(ID : Number) : Entity
 static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Entity					*result = nil;
 	int32					ID;
 	
-	if (JS_ValueToInt32(context, *argv, &ID))
+	if (EXPECT_NOT(!JS_ValueToInt32(context, *argv, &ID)))
 	{
-		result = [UNIVERSE entityForUniversalID:ID];
+		OOReportJSBadArguments(context, @"Entity", @"entityWithID", argc, argv, @"Invalid entity ID", @"integer");
+		return NO;
 	}
 	
+	result = [UNIVERSE entityForUniversalID:ID];
 	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
+	else  *outResult = JSVAL_NULL;
 	return YES;
 }

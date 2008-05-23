@@ -917,8 +917,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
-	[self setGalacticHyperspaceBehaviour:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoords:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
+	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
@@ -6309,36 +6309,16 @@ OOSound* burnersound;
 }
 
 
-- (void) setGalacticHyperspaceBehaviour:(NSString *) galacticHyperspaceBehaviourString
+- (void) setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour)inBehaviour
 {
-	if (galacticHyperspaceBehaviourString == nil)
-	{
-		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
-		      @"setGalacticHyperspaceBehaviour: called with nil string specifier. Defaulting to Oolite standard.");
-		galacticHyperspaceBehaviour = GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD;
-	}
-	galacticHyperspaceBehaviour = StringToGalacticHyperspaceBehaviour(galacticHyperspaceBehaviourString);
+	if (EXPECT_NOT(inBehaviour <= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN || inBehaviour > GALACTIC_HYPERSPACE_MAX))  
+	galacticHyperspaceBehaviour = inBehaviour;
 }
 
 
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour
 {
 	return galacticHyperspaceBehaviour;
-}
-
-
-- (void) setGalacticHyperspaceFixedCoords:(NSString *)galacticHyperspaceFixedCoordsString
-{	
-	NSArray *coord_vals = ScanTokensFromString(galacticHyperspaceFixedCoordsString);
-	if ([coord_vals count] < 2)	// Will be 0 if string is nil
-	{
-		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
-		      @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
-		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
-	}
-	
-	[self setGalacticHyperspaceFixedCoordsX:[coord_vals unsignedCharAtIndex:0]
-										  y:[coord_vals unsignedCharAtIndex:1]];
 }
 
 

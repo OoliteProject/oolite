@@ -137,7 +137,7 @@ static JSBool SoundGetProperty(JSContext *context, JSObject *this, jsval name, j
 	OOSound						*sound = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSSoundGetSound(context, this, &sound)) return NO;
+	if (EXPECT_NOT(!JSSoundGetSound(context, this, &sound))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -171,7 +171,7 @@ static OOSound *GetNamedSound(NSString *name)
 }
 
 
-// *** Methods ***
+// *** Static methods ***
 
 // load(name : String) : Sound
 static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
@@ -180,10 +180,15 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 	OOSound						*sound = nil;
 	
 	name = JSValToNSString(context, argv[0]);
-	sound = GetNamedSound(name);
+	if (name == nil)
+	{
+		OOReportJSBadArguments(context, @"Sound", @"load", argc, argv, @"Invalid arguments", @"string");
+		return NO;
+	}
 	
+	sound = GetNamedSound(name);
 	*outResult = [sound javaScriptValueInContext:context];
-	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;
+	if (*outResult == JSVAL_VOID)  *outResult = JSVAL_NULL;	// No sound by that name
 	return YES;
 }
 
@@ -193,8 +198,13 @@ static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN arg
 	NSString					*name = nil;
 	
 	name = JSValToNSString(context, argv[0]);
-	[[OOMusicController sharedController] playMusicNamed:name loop:NO];
+	if (name == nil)
+	{
+		OOReportJSBadArguments(context, @"Sound", @"playMusic", argc, argv, @"Invalid arguments", @"string");
+		return NO;
+	}
 	
+	[[OOMusicController sharedController] playMusicNamed:name loop:NO];
 	return YES;
 }
 
@@ -206,13 +216,17 @@ static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN arg
 	if (argc > 0)
 	{
 		name = JSValToNSString(context, argv[0]);
+		if (name == nil)
+		{
+			OOReportJSBadArguments(context, @"Sound", @"playMusic", argc, argv, @"Invalid arguments", @"string or no argument");
+			return NO;
+		}
 		[[OOMusicController sharedController] stopMusicNamed:name];
 	}
 	else
 	{
 		[[OOMusicController sharedController] stop];
 	}
-	
 	return YES;
 }
 

@@ -213,6 +213,9 @@ MA 02110-1301, USA.
 - (BOOL) mapKey:(NSString *) keycode toOXP:(OOScript *)oxp;
 - (void) targetNearestHostile;
 
+- (void) setGalacticHyperspaceBehaviourTo:(NSString *) galacticHyperspaceBehaviourString;
+- (void) setGalacticHyperspaceFixedCoordsTo:(NSString *) galacticHyperspaceFixedCoordsString;
+
 /*-----------------------------------------------------*/
 
 - (void) setGuiToMissionScreen;
