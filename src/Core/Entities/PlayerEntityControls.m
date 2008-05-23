@@ -715,7 +715,7 @@ static NSTimeInterval	time_last_frame;
 					if (!ident_engaged)
 					{
 						if (missile_status !=MISSILE_STATUS_SAFE)
-								[UNIVERSE addMessage:[NSString stringWithFormat:@"%@ %@", DESC(@"missile-safe"), (primaryTarget != NO_TARGET && [self hasEquipmentItem:@"EQ_SCANNER_SHOW_MISSILE_TARGET"])? DESC(@"ident-off") : @""] forCount:2.5];
+								[UNIVERSE addMessage:[NSString stringWithFormat:@"%@ %@", DESC(@"missile-safe"), (primaryTarget != NO_TARGET && [self hasEquipmentItem:@"EQ_SCANNER_SHOW_MISSILE_TARGET"])? DESC(@"ident-off") : (NSString *)@""] forCount:2.5];
 						primaryTarget = NO_TARGET;
 						[self safeAllMissiles];
 						[self playMissileSafe];

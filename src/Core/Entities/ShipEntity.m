@@ -4873,7 +4873,7 @@ BOOL class_masslocks(int some_class)
 	{
 		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
 		primaryTarget = NO_TARGET;
-		[self doScriptEvent:@"shipLostTarget" withArgument: (target && target->isShip) ? target : nil];
+		[self doScriptEvent:@"shipLostTarget" withArgument:(target && target->isShip) ? (id)target : nil];
 		[shipAI reactToMessage:@"TARGET_LOST"];
 	}
 }
