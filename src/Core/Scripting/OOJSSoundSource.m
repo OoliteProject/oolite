@@ -154,7 +154,7 @@ static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval n
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -194,7 +194,7 @@ static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval n
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"SoundSource", JSVAL_TO_INT(name));
 			return NO;
 	}
 	

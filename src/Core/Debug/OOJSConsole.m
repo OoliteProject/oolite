@@ -195,7 +195,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -219,7 +219,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -246,7 +246,7 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJavaScriptError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
 		return NO;
 	}
 	
@@ -268,8 +268,8 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsv
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJavaScriptError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
-		return YES;
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		return NO;
 	}
 	
 	value = [monitor configurationValueForKey:key];
@@ -291,8 +291,8 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJavaScriptError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
-		return YES;
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		return NO;
 	}
 	
 	if (JSVAL_IS_NULL(*inValue) || JSVAL_IS_VOID(*inValue))
@@ -308,7 +308,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 		}
 		else
 		{
-			OOReportJavaScriptWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*inValue inContext:context]);
+			OOReportJSWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*inValue inContext:context]);
 		}
 	}
 	
@@ -328,7 +328,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJavaScriptError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
 		return NO;
 	}
 	
@@ -349,7 +349,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 	{
 		if (colorKey == nil)
 		{
-			OOReportJavaScriptWarning(context, @"Console.consoleMessage() called with no parameters.");
+			OOReportJSWarning(context, @"Console.consoleMessage() called with no parameters.");
 		}
 		else
 		{
@@ -376,8 +376,8 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJavaScriptError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
-		return YES;
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		return NO;
 	}
 	
 	[monitor clearJSConsole];
@@ -418,8 +418,8 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 	object = JSObjectToObject(context, this);
 	if (object == nil)
 	{
-		OOReportJavaScriptError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", JSValToNSString(context, OBJECT_TO_JSVAL(this)));
-		return YES;
+		OOReportJSError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", JSValToNSString(context, OBJECT_TO_JSVAL(this)));
+		return NO;
 	}
 	
 	return OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, argv, outResult);

@@ -64,7 +64,7 @@ OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 static JSBool SpecialJsWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOSetJSWarningOrErrorStackSkip(1);
-	OOReportJavaScriptWarning(context, @"%@", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
 	OOSetJSWarningOrErrorStackSkip(0);
 	return YES;
 }

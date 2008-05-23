@@ -135,7 +135,7 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -144,6 +144,9 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
+// *** Methods ***
+
+// log([messageClass : String,] message : string, ...)
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*message = nil;
@@ -214,14 +217,11 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *t
 {
 	NSString			*string = nil;
 	Random_Seed			aSeed;
-	JSBool				isPlural;
-
-	if (!JS_ValueToBoolean(context, argv[0], &isPlural))
-	{
-		isPlural = NO;
-	}
+	JSBool				isPlural = YES;
 	
-	make_pseudo_random_seed( &aSeed);
+	if (!JS_ValueToBoolean(context, argv[0], &isPlural))  isPlural = NO;
+	
+	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
 	*outResult = [string javaScriptValueInContext:context];
 	

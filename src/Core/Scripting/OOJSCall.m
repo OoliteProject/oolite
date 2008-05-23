@@ -78,11 +78,11 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 		
 		if (type == kMethodTypeInvalid)
 		{
-			OOReportJavaScriptError(context, @"%@.call(): method %@ cannot be called from JavaScript.", jsClassName, selectorString);
+			OOReportJSError(context, @"%@.call(): method %@ cannot be called from JavaScript.", jsClassName, selectorString);
 		}
 		else if (MethodExpectsParameter(type) && !haveParameter)
 		{
-			OOReportJavaScriptError(context, @"%@.call(): method %@ requires a parameter.", jsClassName, selectorString);
+			OOReportJSError(context, @"%@.call(): method %@ requires a parameter.", jsClassName, selectorString);
 		}
 		else
 		{
@@ -116,7 +116,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	}
 	else
 	{
-		OOReportJavaScriptError(context, @"%@.call(): %@ does not respond to method %@.", jsClassName, object, selectorString);
+		OOReportJSError(context, @"%@.call(): %@ does not respond to method %@.", jsClassName, object, selectorString);
 	}
 	
 	return success;

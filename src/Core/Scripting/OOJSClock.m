@@ -112,6 +112,7 @@ void InitOOJSClock(JSContext *context, JSObject *global)
 
 static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	PlayerEntity				*player = nil;
 	double						clockTime;
 	
@@ -122,55 +123,63 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 	switch (JSVAL_TO_INT(name))
 	{
 		case kClock_absoluteSeconds:
-			JS_NewDoubleValue(context, [UNIVERSE getTime], outValue);
+			OK = JS_NewDoubleValue(context, [UNIVERSE getTime], outValue);
 			break;
 			
 		case kClock_seconds:
-			JS_NewDoubleValue(context, clockTime, outValue);
+			OK = JS_NewDoubleValue(context, clockTime, outValue);
 			break;
 			
 		case kClock_minutes:
-			JS_NewDoubleValue(context, floor(clockTime / 60.0), outValue);
+			OK = JS_NewDoubleValue(context, floor(clockTime / 60.0), outValue);
 			break;
 			
 		case kClock_hours:
-			JS_NewDoubleValue(context, floor(clockTime / 3600.0), outValue);
+			OK = JS_NewDoubleValue(context, floor(clockTime / 3600.0), outValue);
 			break;
 			
 		case kClock_secondsComponent:
 			*outValue = INT_TO_JSVAL(fmod(clockTime, 60.0));
+			OK = YES;
 			break;
 			
 		case kClock_minutesComponent:
 			*outValue = INT_TO_JSVAL(fmod(floor(clockTime / 60.0), 60.0));
+			OK = YES;
 			break;
 			
 		case kClock_hoursComponent:
 			*outValue = INT_TO_JSVAL(fmod(floor(clockTime / 3600.0), 24.0));
+			OK = YES;
 			break;
 			
 		case kClock_days:
 		case kClock_daysComponent:
 			*outValue = INT_TO_JSVAL(floor(clockTime / 86400.0));
+			OK = YES;
 			break;
 			
 		case kClock_clockString:
 			*outValue = [[player dial_clock] javaScriptValueInContext:context];
+			OK = YES;
 			break;
 			
 		case kClock_isAdjusting:
 			*outValue = BOOLToJSVal([player clockAdjusting]);
+			OK = YES;
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Clock", JSVAL_TO_INT(name));
-			return NO;
+			OOReportJSBadPropertySelector(context, @"Clock", JSVAL_TO_INT(name));
 	}
 	
-	return YES;
+	return OK;
 }
 
 
+// *** Methods ***
+
+// toString() : String
 static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = [[OOPlayerForScripting() dial_clock] javaScriptValueInContext:context];
@@ -178,13 +187,13 @@ static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
+// clockStringForTime(time : Number) : String
 static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	double						time;
 	
-	if (JS_ValueToNumber(context, argv[0], &time))
-	{
-		*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
-	}
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return NO;
+	
+	*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
 	return YES;
 }

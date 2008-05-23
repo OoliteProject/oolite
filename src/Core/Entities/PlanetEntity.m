@@ -2110,15 +2110,19 @@ double longitudeFromVector(Vector v)
 
 - (BOOL) goneNova
 {
-	return throw_sparks&&(velocity.x <= 0);
+	return throw_sparks && velocity.x <= 0;
 }
 
 
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval
 {
 	throw_sparks = yesno;
-	if ((throw_sparks)&&(interval >= 0.0))
-		velocity.x = interval;
+	if (throw_sparks)
+	{
+		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", interval);
+		velocity.x = fmax(interval, 0.0);
+	}
+	
 	velocity.y = 0;
 	velocity.z = 10000;
 }

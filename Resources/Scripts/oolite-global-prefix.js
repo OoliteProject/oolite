@@ -147,3 +147,10 @@ system.legacy_spawn = function()
 {
 	special.jsWarning("system.legacy_spawn() is deprecated (and never worked), use Ship.spawn() instead.");
 }
+
+
+system.setSunNova = function(delay)
+{
+	special.jsWarning("system.setSunNova() is deprecated, use system.sun.goNova() instead.");
+	if (this.sun)  this.sun.goNova(delay);
+}

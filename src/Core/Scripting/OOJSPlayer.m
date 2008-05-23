@@ -285,7 +285,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -327,7 +327,7 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -367,7 +367,7 @@ static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN
 
 	if ([UNIVERSE strict])
 	{
-		OOReportJavaScriptError(context, @"Cannot set equipment status while in strict mode.");
+		OOReportJSError(context, @"Cannot set equipment status while in strict mode.");
 		*outResult = BOOLToJSVal(NO);
 		return YES;
 	}
@@ -388,7 +388,7 @@ static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN
 		statusSet = [OOPlayerForScripting() hasEquipmentItem:name] || [OOPlayerForScripting() hasEquipmentItem:damagedName];
 	}
 	else
-		OOReportJavaScriptError(context, @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
+		OOReportJSError(context, @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
 
 	*outResult = BOOLToJSVal(statusSet);
 
@@ -429,26 +429,26 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 	type = [UNIVERSE commodityForName:typeString];
 	if (type == NSNotFound)
 	{
-		OOReportJavaScriptError(context, @"Unknown cargo type \"%@\".", typeString);
+		OOReportJSError(context, @"Unknown cargo type \"%@\".", typeString);
 		return YES;
 	}
 	
 	if (!JS_ValueToInt32(context, argv[1], &amount))
 	{
-		OOReportJavaScriptError(context, @"Expected cargo quantity (integer), got \"%@\".", JSValToNSString(context, argv[1]));
+		OOReportJSError(context, @"Expected cargo quantity (integer), got \"%@\".", JSValToNSString(context, argv[1]));
 		return YES;
 	}
 	
 	if (amount < 0)
 	{
-		OOReportJavaScriptError(context, @"Cargo quantity (%i) is negative.", amount);
+		OOReportJSError(context, @"Cargo quantity (%i) is negative.", amount);
 		return YES;
 	}
 		
 	unit = [UNIVERSE unitsForCommodity:type];
 	if ([OOPlayerForScripting() specialCargo] != nil && unit == UNITS_TONS)
 	{
-		OOReportJavaScriptError(context, @"Cargo hold full with special cargo, cannot award \"%@\".", typeString);
+		OOReportJSError(context, @"Cargo hold full with special cargo, cannot award \"%@\".", typeString);
 		return YES;
 	}
 	
@@ -468,7 +468,7 @@ static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN arg
 	}
 	else
 	{
-		OOReportJavaScriptError(context, @"Player.removeAllCargo() may only be called when the player is docked.");
+		OOReportJSError(context, @"Player.removeAllCargo() may only be called when the player is docked.");
 	}
 	return YES;
 }

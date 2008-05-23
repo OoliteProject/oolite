@@ -119,7 +119,7 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -144,7 +144,7 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -152,6 +152,9 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 }
 
 
+// *** Methods ***
+
+// showMissionScreen()
 static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -162,6 +165,7 @@ static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN 
 }
 
 
+// showShipModel(modelName : String)
 static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -173,6 +177,7 @@ static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc
 }
 
 
+// markSystem(systemCoords : String)
 static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -185,6 +190,7 @@ static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, j
 }
 
 
+// unmarkSystem(systemCoords : String)
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -197,6 +203,7 @@ static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc,
 }
 
 
+// addMessageTextKey(textKey : String)
 static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -209,6 +216,7 @@ static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN
 }
 
 
+// addMessageText(text : String)
 static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -221,6 +229,7 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 }
 
 
+// setBackgroundImage(imageName : String)
 static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -233,6 +242,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 }
 
 
+// setMusic(musicName : String)
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -245,6 +255,7 @@ static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
+// setChoicesKey(choicesKey : String)
 static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -288,6 +299,7 @@ static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uint
 }
 
 
+// clearMissionScreen()
 static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();

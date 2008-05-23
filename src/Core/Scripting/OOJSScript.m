@@ -329,7 +329,7 @@ static JSFunctionSpec sScriptMethods[] =
 					if (![notedChanges containsObject:key])
 					{
 						[notedChanges addObject:key];
-						OOReportJavaScriptWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite!", oldName, eventName, self->name);
+						OOReportJSWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite!", oldName, eventName, self->name);
 					}
 				}
 			}

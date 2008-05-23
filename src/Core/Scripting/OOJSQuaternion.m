@@ -261,7 +261,7 @@ BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSStr
 	if (QuaternionFromArgumentListNoError(context, argc, argv, outQuaternion, outConsumed))  return YES;
 	else
 	{
-		OOReportJavaScriptBadArguments(context, scriptClass, function, argc, argv,
+		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
 									   @"Could not construct quaternion from parameters",
 									   @"Quaternion, Entity or four numbers");
 		return NO;
@@ -336,7 +336,7 @@ static JSBool QuaternionGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -372,7 +372,7 @@ static JSBool QuaternionSetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Quaternion", JSVAL_TO_INT(name));
 			return NO;
 	}
 	

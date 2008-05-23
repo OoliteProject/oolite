@@ -105,7 +105,7 @@ static JSBool WorldScriptsEnumerate(JSContext *context, JSObject *object)
 	
 	for (nameEnum = [names objectEnumerator]; (name = [nameEnum nextObject]); )
 	{
-		JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		if (!JS_DefineProperty(context, object, [name UTF8String], JSVAL_NULL, WorldScriptsGetProperty, NULL, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT))  return NO;
 	}
 	
 	return YES;

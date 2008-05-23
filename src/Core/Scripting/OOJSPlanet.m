@@ -169,7 +169,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 			return NO;
 	}
 	return YES;
@@ -187,7 +187,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	{
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -206,19 +206,19 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
 	if([player status] != STATUS_LAUNCHING && [player status] != STATUS_EXITING_WITCHSPACE)
 	{
-		OOReportJavaScriptError(context, @"Planet.%@ must be called only during shipWillLaunchFromStation or shipWillExitWitchspace.", @"setTexture");
+		OOReportJSError(context, @"Planet.%@ must be called only during shipWillLaunchFromStation or shipWillExitWitchspace.", @"setTexture");
 		return YES;
 	}
 	if (name != nil)
 	{
 		if (![thisEnt setUpPlanetFromTexture:name])
 		{
-			OOReportJavaScriptError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
+			OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptError(context, @"Planet.%@(): no texture name specified.", @"setTexture");
+		OOReportJSError(context, @"Planet.%@(): no texture name specified.", @"setTexture");
 	}
 	return YES;
 }

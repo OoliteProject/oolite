@@ -150,7 +150,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
 	}
 	return YES;
@@ -184,7 +184,7 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
 	}
 	

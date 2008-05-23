@@ -276,7 +276,7 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	if (VectorFromArgumentListNoError(context, argc, argv, outVector, outConsumed))  return YES;
 	else
 	{
-		OOReportJavaScriptBadArguments(context, scriptClass, function, argc, argv,
+		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
 									   @"Could not construct vector from parameters",
 									   @"Vector, Entity or three numbers");
 		return NO;
@@ -346,7 +346,7 @@ static JSBool VectorGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -378,7 +378,7 @@ static JSBool VectorSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Vector", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -723,7 +723,7 @@ static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN 
 	return VectorToJSValue(context, result, outResult);
 	
 INSUFFICIENT_ARGUMENTS:
-	OOReportJavaScriptBadArguments(context, @"Vector", @"interpolate", inArgc, inArgv, 
+	OOReportJSBadArguments(context, @"Vector", @"interpolate", inArgc, inArgv, 
 								   @"Insufficient parameters",
 								   @"vector expression, vector expression and number");
 	return NO;

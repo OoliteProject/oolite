@@ -85,7 +85,7 @@ this.choiceEvaluation = function()
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
 			player.launch();
 			this.blowUpAllStations();
-			system.setSunNova(30);
+			system.sun.goNova(30);
 			missionVariables.novacount = null;
 		}
 		else
@@ -93,7 +93,7 @@ this.choiceEvaluation = function()
 			// mission.choice = "NO", or null when player launched without a choice.
 			missionVariables.nova = "NOVA_ESCAPE_COWARD";
 			player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
-			system.setSunNova(3);
+			system.sun.goNova(3);
 			missionVariables.novacount = null;
 		}
 		
@@ -185,7 +185,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
 			player.fuelLeakRate = 25;
-			system.setSunNova(7200);
+			system.sun.goNova(7200);
 			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
 			player.call("setPlanetinfo:", "market = none");
 			player.call("setPlanetinfo:", "sun_gone_nova = YES");

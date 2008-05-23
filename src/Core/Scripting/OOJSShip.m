@@ -418,7 +418,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -445,7 +445,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_shipDescription:
 			if ([entity isPlayer])
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
 			}
 			else
 			{
@@ -457,7 +457,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_shipDisplayName:
 			if ([entity isPlayer])
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");
 			}
 			else
 			{
@@ -469,7 +469,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_primaryRole:
 			if ([entity isPlayer])
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"primaryRole", @"primary role");
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"primaryRole", @"primary role");
 			}
 			else
 			{
@@ -481,7 +481,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_AIState:
 			if ([entity isPlayer])
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"AIState", @"AI state");
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"AIState", @"AI state");
 			}
 			else
 			{
@@ -553,7 +553,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_desiredSpeed:
 			if ([entity isPlayer])
 			{
-				OOReportJavaScriptError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"desiredSpeed", @"desired speed");
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"desiredSpeed", @"desired speed");
 			}
 			else
 			{
@@ -565,7 +565,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -588,12 +588,12 @@ static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsva
 		}
 		else
 		{
-			OOReportJavaScriptError(context, @"Ship.%@(\"%@\"): cannot set script for player.", @"setScript", name);
+			OOReportJSError(context, @"Ship.%@(\"%@\"): cannot set script for player.", @"setScript", name);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptError(context, @"Ship.%@(): no script name specified.", @"setScript");
+		OOReportJSError(context, @"Ship.%@(): no script name specified.", @"setScript");
 	}
 	return YES;
 }
@@ -614,12 +614,12 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 		}
 		else
 		{
-			OOReportJavaScriptError(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"setAI", name);
+			OOReportJSError(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"setAI", name);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptError(context, @"Ship.%@(): no AI state machine specified.", @"setAI");
+		OOReportJSError(context, @"Ship.%@(): no AI state machine specified.", @"setAI");
 	}
 	return YES;
 }
@@ -641,12 +641,12 @@ static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval
 		}
 		else
 		{
-			OOReportJavaScriptWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"switchAI", name);
+			OOReportJSWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"switchAI", name);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptWarning(context, @"Ship.%@(): no AI state machine specified.", @"switchAI");
+		OOReportJSWarning(context, @"Ship.%@(): no AI state machine specified.", @"switchAI");
 	}
 	return YES;
 }
@@ -668,12 +668,12 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 		}
 		else
 		{
-			OOReportJavaScriptWarning(context, @"Ship.exitAI(): cannot cannot exit current AI state machine because there are no suspended state machines.");
+			OOReportJSWarning(context, @"Ship.exitAI(): cannot cannot exit current AI state machine because there are no suspended state machines.");
 		}
 	}
 	else
 	{
-		OOReportJavaScriptWarning(context, @"Ship.exitAI(): cannot modify AI for player.");
+		OOReportJSWarning(context, @"Ship.exitAI(): cannot modify AI for player.");
 	}
 	return YES;
 }
@@ -695,12 +695,12 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 		}
 		else
 		{
-			OOReportJavaScriptWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"reactToAIMessage", message);
+			OOReportJSWarning(context, @"Ship.%@(\"%@\"): cannot modify AI for player.", @"reactToAIMessage", message);
 		}
 	}
 	else
 	{
-		OOReportJavaScriptWarning(context, @"Ship.%@(): no message specified.", @"reactToAIMessage");
+		OOReportJSWarning(context, @"Ship.%@(): no message specified.", @"reactToAIMessage");
 	}
 	return YES;
 }
@@ -783,7 +783,7 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 	
 	if ([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked])
 	{
-		OOReportJavaScriptWarning(context, @"Player.dumpCargo(): can't dump cargo while docked, ignoring.");
+		OOReportJSWarning(context, @"Player.dumpCargo(): can't dump cargo while docked, ignoring.");
 		return YES;
 	}
 	
@@ -806,7 +806,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	role = [NSString stringWithJavaScriptValue:*argv inContext:context];
 	if (role == nil)
 	{
-		OOReportJavaScriptError(context, @"Expected role (string), got \"%@\".", JSValToNSString(context, argv[0]));
+		OOReportJSError(context, @"Expected role (string), got \"%@\".", JSValToNSString(context, argv[0]));
 		return YES;
 	}
 	
@@ -814,7 +814,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	{
 		if (!JS_ValueToInt32(context, argv[1], &count) || count < 1)
 		{
-			OOReportJavaScriptError(context, @"Expected spawn count (positive integer), got \"%@\".", JSValToNSString(context, argv[1]));
+			OOReportJSError(context, @"Expected spawn count (positive integer), got \"%@\".", JSValToNSString(context, argv[1]));
 			return YES;
 		}
 	}
@@ -872,14 +872,14 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	target = JSValueToObject(context, argv[0]);
 	if (![target isKindOfClass:[ShipEntity class]])
 	{
-		OOReportJavaScriptWarning(context, @"First argument of runLegacyScriptActions must be a Ship.");
+		OOReportJSWarning(context, @"First argument of runLegacyScriptActions must be a Ship.");
 		return YES;
 	}
 	
 	actions = JSValueToObject(context, argv[1]);
 	if (![actions isKindOfClass:[NSArray class]])
 	{
-		OOReportJavaScriptWarning(context, @"Second argument of runLegacyScriptActions must be an Array.");
+		OOReportJSWarning(context, @"Second argument of runLegacyScriptActions must be an Array.");
 		return YES;
 	}
 	

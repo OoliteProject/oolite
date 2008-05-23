@@ -119,7 +119,7 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Oolite", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Oolite", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -144,7 +144,7 @@ static NSArray *VersionComponents(void)
 	returns -1 if the current version of Oolite is less than versionSpec, 0 if
 	they are equal, and 1 if the current version is newer. versionSpec may be
 	a string or an array. Example:
-	if (0 < oolite.compareVersion("1.70"))  Log("Old version of Oolite!")
+	if (0 < oolite.compareVersion("1.70"))  log("Old version of Oolite!")
 	else  this.doStuffThatRequires170()
 */
 static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

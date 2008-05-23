@@ -444,17 +444,17 @@ static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
 }
 
 
-void OOReportJavaScriptError(JSContext *context, NSString *format, ...)
+void OOReportJSError(JSContext *context, NSString *format, ...)
 {
 	va_list					args;
 	
 	va_start(args, format);
-	OOReportJavaScriptErrorWithArguments(context, format, args);
+	OOReportJSErrorWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void OOReportJavaScriptErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
 {
 	va_list					args;
 	NSString				*msg = nil;
@@ -463,12 +463,12 @@ void OOReportJavaScriptErrorForCaller(JSContext *context, NSString *scriptClass,
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
 	va_end(args);
 	
-	OOReportJavaScriptError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	OOReportJSError(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
 	[msg release];
 }
 
 
-void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args)
+void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
 	
@@ -478,17 +478,17 @@ void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, 
 }
 
 
-void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...)
+void OOReportJSWarning(JSContext *context, NSString *format, ...)
 {
 	va_list					args;
 	
 	va_start(args, format);
-	OOReportJavaScriptWarningWithArguments(context, format, args);
+	OOReportJSWarningWithArguments(context, format, args);
 	va_end(args);
 }
 
 
-void OOReportJavaScriptWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
+void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...)
 {
 	va_list					args;
 	NSString				*msg = nil;
@@ -497,12 +497,12 @@ void OOReportJavaScriptWarningForCaller(JSContext *context, NSString *scriptClas
 	msg = [[NSString alloc] initWithFormat:format arguments:args];
 	va_end(args);
 	
-	OOReportJavaScriptWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
+	OOReportJSWarning(context, @"%@%@", CallerPrefix(scriptClass, function), msg);
 	[msg release];
 }
 
 
-void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args)
+void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_list args)
 {
 	NSString				*msg = nil;
 	
@@ -512,18 +512,18 @@ void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format
 }
 
 
-void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector)
+void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsint selector)
 {
-	OOReportJavaScriptError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
+	OOReportJSError(context, @"Internal error: bad property identifier %i in property accessor for class %@.", selector, className);
 }
 
 
-void OOReportJavaScriptBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
+void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
 {
 	message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
 	if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
 	
-	OOReportJavaScriptErrorForCaller(context, scriptClass, function, @"%@.", message);
+	OOReportJSErrorForCaller(context, scriptClass, function, @"%@.", message);
 }
 
 
@@ -538,7 +538,7 @@ BOOL NumberFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	if (NumberFromArgumentListNoError(context, argc, argv, outNumber, outConsumed))  return YES;
 	else
 	{
-		OOReportJavaScriptBadArguments(context, scriptClass, function, argc, argv,
+		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
 									   @"Expected number, got", NULL);
 		return NO;
 	}

@@ -249,54 +249,56 @@ static BOOL JSTimerGetTimer(JSContext *context, JSObject *entityObj, OOJSTimer *
 static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	OOJSTimer				*timer = nil;
+	BOOL					OK = NO;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSTimerGetTimer(context, this, &timer)) return NO;
+	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case kTimer_nextTime:
-			JS_NewDoubleValue(context, [timer nextTime], outValue);
-			break;
+			OK = JS_NewDoubleValue(context, [timer nextTime], outValue);
 			
 		case kTimer_interval:
-			JS_NewDoubleValue(context, [timer interval], outValue);
-			break;
+			OK = JS_NewDoubleValue(context, [timer interval], outValue);
 			
 		case kTimer_isPersistent:
 			*outValue = BOOLToJSVal([timer isPersistent]);
+			OK = YES;
 			break;
 			
 		case kTimer_isRunning:
 			*outValue = BOOLToJSVal([timer isScheduled]);
+			OK = YES;
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Timer", JSVAL_TO_INT(name));
-			return NO;
+			OOReportJSBadPropertySelector(context, @"Timer", JSVAL_TO_INT(name));
 	}
 	
-	return YES;
+	return OK;
 }
 
 
 static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	BOOL					OK = YES;
 	OOJSTimer				*timer = nil;
 	double					fValue;
 	JSBool					bValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSTimerGetTimer(context, this, &timer)) return NO;
+	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
 		case kTimer_nextTime:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
+				OK = YES;
 				if (![timer setNextTime:fValue])
 				{
-					OOReportJavaScriptWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
+					OOReportJSWarning(context, @"Ignoring attempt to change next fire time for running timer %@.", timer);
 				}
 			}
 			break;
@@ -304,6 +306,7 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 		case kTimer_interval:
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
+				OK = YES;
 				[timer setInterval:fValue];
 			}
 			break;
@@ -311,16 +314,16 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 		case kTimer_isPersistent:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
+				OK = YES;
 				[timer setPersistent:bValue];
 			}
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Timer", JSVAL_TO_INT(name));
-			return NO;
+			OOReportJSBadPropertySelector(context, @"Timer", JSVAL_TO_INT(name));
 	}
 	
-	return YES;
+	return OK;
 }
 
 
@@ -332,7 +335,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 	{
 		if ([timer isScheduled])
 		{
-			OOReportJavaScriptWarning(context, @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
+			OOReportJSWarning(context, @"Timer %@ is being garbage-collected while still running. You must keep a reference to all running timers, or they will stop unpredictably!", timer);
 		}
 		[timer release];
 		JS_SetPrivate(context, this, NULL);
@@ -353,25 +356,22 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	{
 		if (!JS_ValueToObject(context, argv[0], &this))
 		{
-			// Should be TypeException, but SpiderMonkey doesn't seem to have a sane way to throw exceptions at the moment.
-			OOReportJavaScriptError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "first", "this", "an object");
-			return YES;
+			OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "first", "this", "an object");
+			return NO;
 		}
 	}
 	
 	function = JS_ValueToFunction(context, argv[1]);
 	if (function == NULL)
 	{
-		// Should be TypeException, but SpiderMonkey doesn't seem to have a sane way to throw exceptions at the moment.
-		OOReportJavaScriptError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "second", "function", "a function");
-		return YES;
+		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "second", "function", "a function");
+		return NO;
 	}
 	
 	if (!JS_ValueToNumber(context, argv[2], &delay))
 	{
-		// Should be TypeException, but SpiderMonkey doesn't seem to have a sane way to throw exceptions at the moment.
-		OOReportJavaScriptError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "third", "delay", "a number");
-		return YES;
+		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "third", "delay", "a number");
+		return NO;
 	}
 	
 	// Fourth argument is optional.
@@ -395,23 +395,27 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 }
 
 
-// Methods
+// *** Methods ***
+
+// start() : Boolean
 static JSBool TimerStart(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJSTimer					*thisTimer = nil;
 	
-	if (JSTimerGetTimer(context, this, &thisTimer))  *outResult = BOOLToJSVal([thisTimer scheduleTimer]);
-	else  *outResult = JSVAL_TRUE;
+	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
 	
+	*outResult = BOOLToJSVal([thisTimer scheduleTimer]);
 	return YES;
 }
 
 
+// stop()
 static JSBool TimerStop(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOJSTimer					*thisTimer = nil;
 	
-	if (JSTimerGetTimer(context, this, &thisTimer))  [thisTimer unscheduleTimer];
+	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &thisTimer)))  return NO;
 	
+	[thisTimer unscheduleTimer];
 	return YES;
 }

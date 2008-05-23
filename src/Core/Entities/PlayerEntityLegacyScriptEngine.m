@@ -98,7 +98,6 @@ static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.p
 static NSString * const kOOLogDebugProcessSceneStringAddLocalPlanet = @"script.debug.processSceneString.addLocalPlanet";
 static NSString * const kOOLogDebugProcessSceneStringAddTargetPlanet = @"script.debug.processSceneString.addTargetPlanet";
 static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
-static NSString * const kOOLogDebugSetSunNovaIn				= @"script.debug.setSunNovaIn";
 
 static NSString * const kOOLogTraceScriptAction				= @"script.debug.trace.scriptAction";
 static NSString * const kOOLogTraceTestCondition			= @"script.debug.trace.testCondition";
@@ -2128,7 +2127,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	double time_until_nova = [time_value doubleValue];
 	[[UNIVERSE sun] setGoingNova:YES inTime: time_until_nova];
-	OOLog(kOOLogDebugSetSunNovaIn, @"NOVA activated! time until Nova : %.1f s", time_until_nova);
 }
 
 

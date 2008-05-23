@@ -859,12 +859,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
 		
 		[escorter setPosition:ex_pos];
-		
 		[escorter setStatus:STATUS_IN_FLIGHT];
-		
 		[escorter setPrimaryRole:defaultRole];	//for mothership
-		
 		[escorter setScanClass:scanClass];		// you are the same as I
+		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers
 		
 		[UNIVERSE addEntity:escorter];
 		

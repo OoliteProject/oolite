@@ -36,6 +36,8 @@ static BOOL JSSunGetPlanetEntity(JSContext *context, JSObject *SunObj, PlanetEnt
 
 
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sSunClass =
@@ -64,7 +66,9 @@ static JSExtendedClass sSunClass =
 enum
 {
 	// Property IDs
-	kSun_radius,				// Radius of sun in metres.
+	kSun_radius,				// Radius of sun in metres, number, read-only
+	kSun_hasGoneNova,			// Has sun gone nova, boolean, read-only
+	kSun_isGoingNova			// Will sun go nova, boolean, read-only
 };
 
 
@@ -72,6 +76,8 @@ static JSPropertySpec sSunProperties[] =
 {
 	// JS name					ID							flags
 	{ "radius",					kSun_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "hasGoneNova",			kSun_hasGoneNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isGoingNova",			kSun_isGoingNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -79,6 +85,8 @@ static JSPropertySpec sSunProperties[] =
 static JSFunctionSpec sSunMethods[] =
 {
 	// JS name					Function					min args
+	{ "goNova",					SunGoNova,					1 },
+	{ "cancelNova",				SunCancelNova,				0 },
 	{ 0 }
 };
 
@@ -116,21 +124,62 @@ static BOOL JSSunGetPlanetEntity(JSContext *context, JSObject *stationObj, Plane
 
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	BOOL						OK = NO;
 	PlanetEntity				*sun = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (!JSSunGetPlanetEntity(context, this, &sun)) return NO;
+	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
 			
 		case kSun_radius:
-			JS_NewDoubleValue(context, [sun radius], outValue);
+			OK = JS_NewDoubleValue(context, [sun radius], outValue);
+			break;
+			
+		case kSun_hasGoneNova:
+			*outValue = BOOLToJSVal([sun goneNova]);
+			OK = YES;
+			break;
+			
+		case kSun_isGoingNova:
+			*outValue = BOOLToJSVal([sun willGoNova] && ![sun goneNova]);
+			OK = YES;
 			break;
 			
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Sun", JSVAL_TO_INT(name));
-			return NO;
+			OOReportJSBadPropertySelector(context, @"Sun", JSVAL_TO_INT(name));
+	}
+	return OK;
+}
+
+
+// *** Methods ***
+
+// goNova([delay : Number])
+static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlanetEntity				*sun = nil;
+	jsdouble					delay = 0;
+	
+	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
+	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &delay)))  return NO;
+	
+	[sun setGoingNova:YES inTime:delay];
+	return YES;
+}
+
+
+// cancelNova()
+static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlanetEntity				*sun = nil;
+	
+	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
+	
+	if ([sun willGoNova] && ![sun goneNova])
+	{
+		[sun setGoingNova:NO inTime:0];
 	}
 	return YES;
 }

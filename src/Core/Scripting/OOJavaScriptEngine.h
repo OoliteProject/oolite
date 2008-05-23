@@ -84,16 +84,21 @@ enum
 @end
 
 
-void OOReportJavaScriptError(JSContext *context, NSString *format, ...);
-void OOReportJavaScriptErrorWithArguments(JSContext *context, NSString *format, va_list args);
-void OOReportJavaScriptErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
+/*	Error and warning reporters.
+	
+	Note that after reporting an error in a JavaScript callback, the caller
+	must return NO to signal an error.
+*/
+void OOReportJSError(JSContext *context, NSString *format, ...);
+void OOReportJSErrorWithArguments(JSContext *context, NSString *format, va_list args);
+void OOReportJSErrorForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOReportJavaScriptWarning(JSContext *context, NSString *format, ...);
-void OOReportJavaScriptWarningWithArguments(JSContext *context, NSString *format, va_list args);
-void OOReportJavaScriptWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
+void OOReportJSWarning(JSContext *context, NSString *format, ...);
+void OOReportJSWarningWithArguments(JSContext *context, NSString *format, va_list args);
+void OOReportJSWarningForCaller(JSContext *context, NSString *scriptClass, NSString *function, NSString *format, ...);
 
-void OOReportJavaScriptBadPropertySelector(JSContext *context, NSString *className, jsint selector);
-void OOReportJavaScriptBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
+void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsint selector);
+void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription);
 
 /*	OOSetJSWarningOrErrorStackSkip()
 	

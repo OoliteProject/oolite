@@ -100,8 +100,8 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 			}
 			if (isNumber)
 			{
-				JSBool ok = JS_NewDoubleValue(context, [value doubleValue], outValue);
-				if (!ok) *outValue = JSVAL_VOID;
+				BOOL OK = JS_NewDoubleValue(context, [value doubleValue], outValue);
+				if (!OK) *outValue = JSVAL_VOID;
 			}
 		}
 		
@@ -120,7 +120,7 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 			*outValue = JSVAL_NULL;
 		}
 	}
-	return JS_TRUE;
+	return YES;
 }
 
 
@@ -135,5 +135,5 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 		
 		[player setMissionVariable:objValue forKey:key];
 	}
-	return JS_TRUE;
+	return YES;
 }

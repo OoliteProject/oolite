@@ -207,7 +207,7 @@ BOOL EntityFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 		// Failed; report bad parameters, if given a class and function.
 		if (scriptClass != nil && function != nil)
 		{
-			OOReportJavaScriptWarning(context, @"%@.%@(): expected entity or universal ID, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
+			OOReportJSWarning(context, @"%@.%@(): expected entity or universal ID, got %@.", scriptClass, function, [NSString stringWithJavaScriptParameters:argv count:1 inContext:context]);
 			return NO;
 		}
 	}
@@ -310,7 +310,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
@@ -338,7 +338,7 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		default:
-			OOReportJavaScriptBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
+			OOReportJSBadPropertySelector(context, @"Entity", JSVAL_TO_INT(name));
 			return NO;
 	}
 	
