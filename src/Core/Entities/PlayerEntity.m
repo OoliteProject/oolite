@@ -6311,8 +6311,8 @@ OOSound* burnersound;
 
 - (void) setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour)inBehaviour
 {
-	if (EXPECT_NOT(inBehaviour <= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN || inBehaviour > GALACTIC_HYPERSPACE_MAX))  
-	galacticHyperspaceBehaviour = inBehaviour;
+	if (!EXPECT_NOT(inBehaviour <= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN || inBehaviour > GALACTIC_HYPERSPACE_MAX))  
+		galacticHyperspaceBehaviour = inBehaviour;
 }
 
 
