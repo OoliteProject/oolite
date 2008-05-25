@@ -388,7 +388,7 @@ static OOSoundSource		*sBuySellSource;
 
 - (void) playHyperspaceAborted
 {
-	[sHyperspaceSoundSource playCustomSoundWithKey:@"[hyperspace-countdown-begun]"];
+	[sHyperspaceSoundSource playCustomSoundWithKey:@"[hyperspace-countdown-aborted]"];
 }
 
 
