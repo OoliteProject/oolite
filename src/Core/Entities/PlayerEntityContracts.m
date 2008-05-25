@@ -1411,7 +1411,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// contracts stay the same, so if you default - tough!
 	// okay we need to switch the model used, lots of the stats, and add all the extras
 	// pay over the mazoolah
-	credits -= 10 * (price - trade_in);
+	credits -= 10 * price - trade_in;
 	
 	// change ship_desc
 	// TODO: detect brokenness here.
