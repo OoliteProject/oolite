@@ -958,6 +958,15 @@
 	// Load commander screen
 	"loadscreen-title"				= "Select Commander";
 	
+	// Load game failed messages
+	"loadfailed-no-file-specified"		= "No file specified!";
+	"loadfailed-could-not-load-file"	= "Could not load file.";
+	"loadfailed-could-not-find-ship-type-@-please-reinstall-the-appropriate-OXP"
+						= "Could not find ship type \"%@\" - please reinstall the appropriate OXP.";
+	"loadfailed-invalid-saved-game-no-ship-specified"
+						= "Invalid saved game - no ship specified.";
+	"loadfailed-could-not-set-up-player-ship"	= "Could not set up player ship.";
+	
 	// Save/Overwrite commander screens
 	"savescreen-title"				= "Save Commander";
 	"savescreen-commander-name-@"	= "Commander name: %@";

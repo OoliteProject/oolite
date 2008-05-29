@@ -391,7 +391,7 @@
 	
 	if (fileToOpen == nil)
 	{
-		fail_reason = @"No file specified!";
+		fail_reason = DESC(@"loadfailed-no-file-specified");
 		loadedOK = NO;
 	}
 	
@@ -400,7 +400,7 @@
 		fileDic = OODictionaryFromFile(fileToOpen);
 		if (fileDic == nil)
 		{
-			fail_reason = @"Could not load file.";
+			fail_reason = DESC(@"loadfailed-could-not-load-file");
 			loadedOK = NO;
 		}
 	}
@@ -417,8 +417,8 @@
 		if (shipDict == nil)
 		{
 			loadedOK = NO;
-			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:@"Couldn't find ship type \"%@\" - please reinstall the appropriate OXP.", shipKey];
-			else  fail_reason = @"Invalid saved game - no ship specified.";
+			if (shipKey != nil)  fail_reason = [NSString stringWithFormat:DESC(@"loadfailed-could-not-find-ship-type-@-please-reinstall-the-appropriate-OXP"), shipKey];
+			else  fail_reason = DESC(@"loadfailed-invalid-saved-game-no-ship-specified");
 		}
 	}
 	
@@ -431,7 +431,7 @@
 		}
 		else
 		{
-			fail_reason = @"Could not set up player ship.";
+			fail_reason = DESC(@"loadfailed-could-not-set-up-player-ship");
 			loadedOK = NO;
 		}
 	}
