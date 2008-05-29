@@ -2680,4 +2680,19 @@
 		model = "wreck5.dat";
 		roles = "wreckage oolite-more-wreckage5";
 	};
+	"ballturret" =
+	{
+		/*	Standard turret.
+			Not used by Oolite directly, but provided as a resource for OXPs
+			starting with Oolite 1.72.
+		*/
+		ai_type = "nullAI.plist";
+		laser_color = magentaColor;
+		model = "oolite-ball-turret.dat";
+		name = "Ball Turret";
+		roles = ballturret;
+		setup_actions = ( initialiseTurret );
+		thrust = 1;
+		weapon_energy = 25;
+	};
 }

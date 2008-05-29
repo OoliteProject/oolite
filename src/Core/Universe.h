@@ -463,7 +463,9 @@ enum
 - (NSString *) keyForPlanetOverridesForSystemSeed:(Random_Seed) s_seed inGalaxySeed:(Random_Seed) g_seed;
 - (NSString *) keyForInterstellarOverridesForSystemSeeds:(Random_Seed) s_seed1 :(Random_Seed) s_seed2 inGalaxySeed:(Random_Seed) g_seed;
 - (NSDictionary *) generateSystemData:(Random_Seed) system_seed;
-- (NSDictionary *) currentSystemData;
+- (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
+- (BOOL) inInterstellarSpace;
+
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (NSString *) getSystemName:(Random_Seed) s_seed;

@@ -813,13 +813,13 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 	
 	if (OK && node->key == nil)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has nil key; deleting subtree.", context, cache->name, CacheNodeGetDescription(node));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\" has nil key; deleting subtree.", context, cache->name, CacheNodeGetDescription(node));
 		OK = NO;
 	}
 	
 	if (OK && node->value == nil)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has nil value, deleting.", context, cache->name, CacheNodeGetDescription(node));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\" has nil value, deleting.", context, cache->name, CacheNodeGetDescription(node));
 		OK = NO;
 	}	
 	if (OK && node->leftChild != NULL)
@@ -842,7 +842,7 @@ static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OO
 		order = [node->key compare:node->rightChild->key];
 		if (order != NSOrderedAscending)
 		{
-			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@'s right child %@ is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
+			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\"'s right child \"%@\" is not correctly ordered. Deleting subtree.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(node->rightChild));
 			CacheNodeFree(cache, node->rightChild);
 			node->rightChild = nil;
 			cache->count = kCountUnknown;
@@ -920,7 +920,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 		
 		if (next->younger != node)
 		{
-			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node %@ has invalid older link (should be %@, is %@); repairing.", context, cache->name, CacheNodeGetDescription(next), CacheNodeGetDescription(node), CacheNodeGetDescription(next->older));
+			OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): node \"%@\" has invalid older link (should be \"%@\", is \"%@\"); repairing.", context, cache->name, CacheNodeGetDescription(next), CacheNodeGetDescription(node), CacheNodeGetDescription(next->older));
 			next->older = node;
 		}
 		node = next;
@@ -940,7 +940,7 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 	
 	if (node != cache->oldest)
 	{
-		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): oldest pointer in cache is wrong (should be %@, is %@); repairing.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(cache->oldest));
+		OOLog(kOOLogCacheIntegrityCheck, @"Integrity check (%@ for \"%@\"): oldest pointer in cache is wrong (should be \"%@\", is \"%@\"); repairing.", context, cache->name, CacheNodeGetDescription(node), CacheNodeGetDescription(cache->oldest));
 		cache->oldest = node;
 	}
 }

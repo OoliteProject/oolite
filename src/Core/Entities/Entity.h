@@ -208,9 +208,10 @@ typedef struct
 
 - (GLfloat) mass;
 
-- (void) setOrientation:(Quaternion) quat;
 - (Quaternion) orientation;
+- (void) setOrientation:(Quaternion) quat;
 - (Quaternion) normalOrientation;	// Historical wart: orientation.w is reversed for player; -normalOrientation corrects this.
+- (void) setNormalOrientation:(Quaternion) quat;
 - (void) orientationChanged;
 
 - (void) setVelocity:(Vector)vel;

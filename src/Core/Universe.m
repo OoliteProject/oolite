@@ -983,7 +983,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		OXP sets a system's station role to a role used by non-stations.
 		-- Ahruman 20080303
 	*/
-	if (![a_station isStation])
+	if (![a_station isStation] || ![a_station validForAddToUniverse])
 	{
 		OOLog(@"universe.setup.badStation", @"***** ERROR: Attempt to use non-station ship of type \"%@\" for role \"%@\" as system station, trying again with \"%@\".", [a_station name], stationDesc, defaultStationDesc);
 		
@@ -991,7 +991,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		stationDesc = defaultStationDesc;
 		a_station = (StationEntity *)[self newShipWithRole:stationDesc];		 // retain count = 1
 		
-		if (![a_station isStation])
+		if (![a_station isStation] || ![a_station validForAddToUniverse])
 		{
 			OOLog(@"universe.setup.badStation", @"***** ERROR: On retry, rolled non-station ship of type \"%@\" for role \"%@\". Non-station ships should not have this role! Generating a stationless system.", [a_station name], stationDesc);
 			[a_station release];
@@ -5904,7 +5904,40 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSDictionary *) currentSystemData
 {
-	return [self generateSystemData:system_seed];
+	if (![self inInterstellarSpace])
+	{
+		return [self generateSystemData:system_seed];
+	}
+	else
+	{
+		static NSDictionary *interstellarDict = nil;
+		if (interstellarDict == nil)
+		{
+			NSString *interstellarName = DESC(@"interstellar-space");
+			NSString *notApplicable = DESC(@"not-applicable");
+			NSNumber *minusOne = [NSNumber numberWithInt:-1];
+			NSNumber *zero = [NSNumber numberWithInt:0];
+			interstellarDict = [[NSDictionary alloc] initWithObjectsAndKeys:
+								interstellarName, KEY_NAME,
+								minusOne, KEY_GOVERNMENT,
+								minusOne, KEY_ECONOMY,
+								minusOne, KEY_TECHLEVEL,
+								zero, KEY_POPULATION,
+								zero, KEY_PRODUCTIVITY,
+								zero, KEY_RADIUS,
+								notApplicable, KEY_INHABITANTS,
+								notApplicable, KEY_DESCRIPTION,
+								nil];
+		}
+		
+		return interstellarDict;
+	}
+}
+
+
+- (BOOL) inInterstellarSpace
+{
+	return [self sun] == nil;
 }
 
 

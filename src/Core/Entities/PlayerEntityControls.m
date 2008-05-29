@@ -888,9 +888,12 @@ static NSTimeInterval	time_last_frame;
 									// there's a slight chance you'll be fined for your past offences when autodocking
 									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
 									int government = 1 + [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];	// 1..8
+									if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 									fine_chance /= government;
 									if (fine_chance < legalStatus)
+									{
 										[self markForFines];
+									}
 								}
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 								ident_engaged = NO;

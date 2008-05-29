@@ -43,6 +43,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 @interface MyOpenGLView(Internal)
 
 - (int) translateKeyCode: (int) input;
+- (void)performLateSetup;
 
 @end
 

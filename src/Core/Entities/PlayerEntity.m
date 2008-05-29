@@ -1945,6 +1945,12 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
+- (void) setNormalOrientation:(Quaternion) quat
+{
+	[self setOrientation:make_quaternion(-quat.w, quat.x, quat.y, quat.z)];
+}
+
+
 - (void) moveForward:(double) amount
 {
 	distanceTravelled += amount;
@@ -5760,9 +5766,10 @@ OOSound* burnersound;
 
 - (void) getFined
 {
-	if (legalStatus == 0)
-		return;				// nothing to pay for
-	int local_gov = [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];
+	if (legalStatus == 0)  return;				// nothing to pay for
+	
+	OOGovernmentID local_gov = [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];
+	if ([UNIVERSE inInterstellarSpace])  local_gov = 1;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 	OOCreditsQuantity fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
 	fine *= legalStatus;
 	if (fine > credits)
@@ -6311,8 +6318,10 @@ OOSound* burnersound;
 
 - (void) setGalacticHyperspaceBehaviour:(OOGalacticHyperspaceBehaviour)inBehaviour
 {
-	if (!EXPECT_NOT(inBehaviour <= GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN || inBehaviour > GALACTIC_HYPERSPACE_MAX))  
+	if (GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN < inBehaviour && inBehaviour <= GALACTIC_HYPERSPACE_MAX)
+	{
 		galacticHyperspaceBehaviour = inBehaviour;
+	}
 }
 
 

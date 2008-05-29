@@ -47,6 +47,8 @@
 		1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */; };
 		1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */; };
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
+		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
+		1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
@@ -769,6 +771,7 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */,
 				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */,
 				1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */,
 				1A03659B0D7CA0EE00B5F46F /* oolite-nebula-4.png in Copy Textures */,
@@ -845,6 +848,7 @@
 			dstPath = Models;
 			dstSubfolderSpec = 7;
 			files = (
+				1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */,
 				1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */,
 				1A2318E50B9D02AA00EF0852 /* adder_redux.dat in Copy Models */,
 				1A2318E60B9D02AA00EF0852 /* alloy.dat in Copy Models */,
@@ -1043,6 +1047,8 @@
 		1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFilteringEnumerator.h; sourceTree = "<group>"; };
 		1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFilteringEnumerator.m; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
+		1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-ball-turret.dat"; sourceTree = "<group>"; };
+		1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-ball-turret.png"; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
@@ -1854,6 +1860,7 @@
 				1A2318420B9D026D00EF0852 /* moray_redux1.png */,
 				1A2318430B9D026D00EF0852 /* MorayMED_bottom.png */,
 				1A2318440B9D026D00EF0852 /* MorayMED_top.png */,
+				1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */,
 				1AC544F90D4D217900C90E5B /* oolite-font.png */,
 				1A3591690C1C375400E52220 /* oolite-nebula-1.png */,
 				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
@@ -1927,6 +1934,7 @@
 				1A2318C80B9D02A900EF0852 /* new-icos.dat */,
 				1A2318C90B9D02A900EF0852 /* new-rock.dat */,
 				1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */,
+				1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */,
 				1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */,
 				1A2318CB0B9D02A900EF0852 /* python_redux.dat */,
 				1A2318CC0B9D02A900EF0852 /* python_redux1.dat */,

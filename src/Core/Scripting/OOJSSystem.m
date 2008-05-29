@@ -44,9 +44,6 @@
 
 static JSObject *sSystemPrototype;
 
-static Random_Seed sCurrentSystem;
-static NSDictionary *sPlanetInfo;
-
 
 // Support functions for entity search methods.
 static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange) NONNULL_FUNC;
@@ -198,16 +195,12 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 {
 	id							result = nil;
 	PlayerEntity				*player = nil;
+	NSDictionary				*systemData = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
 	player = OOPlayerForScripting();
-	if (!equal_seeds(sCurrentSystem, player->system_seed))
-	{
-		sCurrentSystem = player->system_seed;
-	}
-	[sPlanetInfo release];
-	sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
+	systemData = [UNIVERSE currentSystemData];
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -216,24 +209,26 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kSystem_name:
-			if ([UNIVERSE sun] != nil)
+			/*if ([UNIVERSE sun] != nil)
 			{
-				result = [sPlanetInfo objectForKey:KEY_NAME];
+				result = [systemData objectForKey:KEY_NAME];
 				if (result == nil)  result = [NSNull null];
 			}
 			else
 			{
 				result = @"Interstellar space";
-			}
+			}*/
+			result = [systemData objectForKey:KEY_NAME];
+			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_description:
-			result = [sPlanetInfo objectForKey:KEY_DESCRIPTION];
+			result = [systemData objectForKey:KEY_DESCRIPTION];
 			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_inhabitantsDescription:
-			result = [sPlanetInfo objectForKey:KEY_INHABITANTS];
+			result = [systemData objectForKey:KEY_INHABITANTS];
 			if (result == nil)  result = [NSNull null];
 			break;
 		
@@ -246,37 +241,39 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_government:
-			*outValue = INT_TO_JSVAL([sPlanetInfo intForKey:KEY_GOVERNMENT]);
+			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_GOVERNMENT]);
 			break;
 			
 		case kSystem_governmentDescription:
-			result = GovernmentToString([sPlanetInfo intForKey:KEY_GOVERNMENT]);
+			result = GovernmentToString([systemData intForKey:KEY_GOVERNMENT]);
+			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_economy:
-			*outValue = INT_TO_JSVAL([sPlanetInfo intForKey:KEY_ECONOMY]);
+			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_ECONOMY]);
 			break;
 			
 		case kSystem_economyDescription:
-			result = EconomyToString([sPlanetInfo intForKey:KEY_ECONOMY]);
+			result = EconomyToString([systemData intForKey:KEY_ECONOMY]);
+			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kSystem_techLevel:
-			*outValue = INT_TO_JSVAL([sPlanetInfo intForKey:KEY_TECHLEVEL]);
+			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_TECHLEVEL]);
 			break;
 			
 		case kSystem_population:
-			*outValue = INT_TO_JSVAL([sPlanetInfo intForKey:KEY_POPULATION]);
+			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_POPULATION]);
 			break;
 			
 		case kSystem_productivity:
-			*outValue = INT_TO_JSVAL([sPlanetInfo intForKey:KEY_PRODUCTIVITY]);
+			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_PRODUCTIVITY]);
 			break;
 			
 		case kSystem_isInterstellarSpace:
-			*outValue = BOOLToJSVal([UNIVERSE sun] == nil);
+			*outValue = BOOLToJSVal([UNIVERSE inInterstellarSpace]);
 			break;
 			
 		case kSystem_mainStation:
@@ -325,12 +322,6 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 	if (!JSVAL_IS_INT(name))  return YES;
 	
 	player = OOPlayerForScripting();
-	if (!equal_seeds(sCurrentSystem, player->system_seed))
-	{
-		sCurrentSystem = player->system_seed;
-	}
-	[sPlanetInfo release];
-	sPlanetInfo = [[UNIVERSE generateSystemData:sCurrentSystem] retain];
 	
 	galaxy = [player currentGalaxyID];
 	system = [player currentSystemID];
@@ -416,9 +407,6 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 			OOReportJSBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
 	}
 	
-	// Hmm, what are these for? Who put them here? -- Ahruman 20080523
-	[UNIVERSE generateSystemData:kNilRandomSeed];
-	[UNIVERSE generateSystemData:sCurrentSystem];
 	return OK;
 }
 

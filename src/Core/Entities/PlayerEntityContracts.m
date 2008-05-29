@@ -51,15 +51,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 @implementation PlayerEntity (Contracts)
 
-- (NSString*) processEscapePods // removes pods from cargo bay and treats categories of characters carried
+- (NSString *) processEscapePods // removes pods from cargo bay and treats categories of characters carried
 {
-	if ([UNIVERSE strict])
-		return [NSString string];	// return a blank string
+	if ([UNIVERSE strict])  return [NSString string];	// return a blank string
 	
 	unsigned		i;
 	NSMutableString	*result = [NSMutableString string];
 	NSMutableArray	*rescuees = [NSMutableArray array];
-	int				government = [[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+	OOGovernmentID	government = [[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
+	if ([UNIVERSE inInterstellarSpace])  government = 1;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 	
 	// step through the cargo removing crew from any escape pods
 	// No enumerator because we're mutating the array -- Ahruman

@@ -609,6 +609,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (void) setNormalOrientation:(Quaternion) quat
+{
+	[self setOrientation:quat];
+}
+
+
 - (void) orientationChanged
 {
 	quaternion_normalize(&orientation);

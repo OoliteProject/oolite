@@ -114,6 +114,7 @@ static NSString *GetAppName(void);
 // Internal
 - (BOOL)startLogging;
 - (void)loggerThread;
+- (void)flushLog;
 
 @end
 

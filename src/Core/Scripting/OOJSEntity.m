@@ -239,11 +239,11 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_orientation:
-			OK = QuaternionToJSValue(context, [entity orientation], outValue);
+			OK = QuaternionToJSValue(context, [entity normalOrientation], outValue);
 			break;
 		
 		case kEntity_heading:
-			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity orientation]), outValue);
+			OK = VectorToJSValue(context, vector_forward_from_quaternion([entity normalOrientation]), outValue);
 			break;
 		
 		case kEntity_status:
@@ -381,7 +381,7 @@ static JSBool EntitySetOrientation(JSContext *context, JSObject *this, uintN arg
 	if (!JSEntityGetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	if (EXPECT_NOT(!QuaternionFromArgumentList(context, @"Entity", @"setOrientation", argc, argv, &quaternion, NULL)))  return NO;
 	
-	[thisEnt setOrientation:quaternion];
+	[thisEnt setNormalOrientation:quaternion];
 	return YES;
 }
 

@@ -301,6 +301,8 @@ MA 02110-1301, USA.
 - (void) setShipScript:(NSString *) script_name;
 - (OOScript *)shipScript;
 
+- (void) interpretAIMessage:(NSString *)message;
+
 #ifdef OO_BRAIN_AI
 - (OOBrain *)brain;
 - (void)setBrain:(OOBrain*) aBrain;
