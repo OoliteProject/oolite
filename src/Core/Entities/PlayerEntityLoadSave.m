@@ -450,7 +450,7 @@
 		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
 		[UNIVERSE game_over];
 		[UNIVERSE clearPreviousMessage];
-		[UNIVERSE addMessage:@"Saved game failed to load." forCount: 9.0];
+		[UNIVERSE addMessage:DESC(@"loadfailed-saved-game-failed-to-load") forCount: 9.0];
 		if (fail_reason != nil)  [UNIVERSE addMessage: fail_reason forCount: 9.0];
 		return NO;
 	}
