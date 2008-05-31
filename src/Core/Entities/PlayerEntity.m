@@ -439,7 +439,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
 	munge_checksum(galaxy_seed.d);	munge_checksum(galaxy_seed.e);	munge_checksum(galaxy_seed.f);
 	munge_checksum((int)galaxy_coordinates.x);	munge_checksum((int)galaxy_coordinates.y);
-	munge_checksum(credits);		munge_checksum(fuel);
+	munge_checksum((int)credits);		munge_checksum(fuel);
 	munge_checksum(max_cargo);		munge_checksum(missiles);
 	munge_checksum(legalStatus);	munge_checksum(market_rnd);		munge_checksum(ship_kills);
 	
@@ -590,7 +590,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	starboard_weapon = [dict intForKey:@"starboard_weapon"];
 	
 	[self setWeaponDataFromType:forward_weapon]; 
-	scannerRange = SCANNER_MAX_RANGE; 
+	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	missiles = [dict unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
@@ -757,7 +757,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 	[hud setScannerZoom:1.0];
 	[hud resizeGuis:huddict];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 	
 	[mission_variables release];
 	mission_variables = [[NSMutableDictionary alloc] init];
@@ -778,12 +778,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	[reputation setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
 	
 	energy					= 256;
-	weapon_temp				= 0.0;
-	forward_weapon_temp		= 0.0;
-	aft_weapon_temp			= 0.0;
-	port_weapon_temp		= 0.0;
-	starboard_weapon_temp	= 0.0;
-	ship_temperature		= 60.0;
+	weapon_temp				= 0.0f;
+	forward_weapon_temp		= 0.0f;
+	aft_weapon_temp			= 0.0f;
+	port_weapon_temp		= 0.0f;
+	starboard_weapon_temp	= 0.0f;
+	ship_temperature		= 60.0f;
 	alertFlags				= 0;
 	
 	max_passengers = 0;
@@ -833,7 +833,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	galaxy_seed				= gal_seed;
 	credits					= 1000;
 	fuel					= PLAYER_MAX_FUEL;
-	fuel_accumulator		= 0.0;
+	fuel_accumulator		= 0.0f;
 	
 	galaxy_number			= 0;
 	forward_weapon			= WEAPON_PULSE_LASER;
@@ -841,7 +841,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	port_weapon				= WEAPON_NONE;
 	starboard_weapon		= WEAPON_NONE;
 	[self setWeaponDataFromType:forward_weapon]; 
-	scannerRange = SCANNER_MAX_RANGE; 
+	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
@@ -943,9 +943,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	// set control factors..
-	roll_delta =		2.0 * max_flight_roll;
-	pitch_delta =		2.0 * max_flight_pitch;
-	yaw_delta =			2.0 * max_flight_yaw;
+	roll_delta =		2.0f * max_flight_roll;
+	pitch_delta =		2.0f * max_flight_pitch;
+	yaw_delta =			2.0f * max_flight_yaw;
 	
 	thrust = [shipDict floatForKey:@"thrust" defaultValue:thrust];
 	
@@ -955,10 +955,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
-   [self setWeaponDataFromType:forward_weapon_type]; 
-   scannerRange = SCANNER_MAX_RANGE; 
+	[self setWeaponDataFromType:forward_weapon_type]; 
+	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
-	missiles = [shipDict doubleForKey:@"missiles"];
+	missiles = (unsigned)[shipDict doubleForKey:@"missiles"];
 	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
 	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
 	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
@@ -979,9 +979,11 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self setMesh:mesh];
 	}
 	
-	float density = [shipDict floatForKey:@"density" defaultValue:1.0];
-	if (octree)  mass = density * 20.0 * [octree volume];
-	
+	float density = [shipDict floatForKey:@"density" defaultValue:1.0f];
+	if (octree)  
+	{
+		mass = (GLfloat)(density * 20.0 * [octree volume]);
+	}
 	[name autorelease];
 	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
 	
@@ -1208,15 +1210,15 @@ double scoopSoundPlayTime = 0.0;
 	
 	PlanetEntity*	sun = [UNIVERSE sun];
 	double	external_temp = 0;
-	GLfloat	air_friction = 0.0;
+	GLfloat	air_friction = 0.0f;
 	if (UNIVERSE)
-		air_friction = 0.5 * [UNIVERSE airResistanceFactor];
+		air_friction = 0.5f * [UNIVERSE airResistanceFactor];
 
 	// cool all weapons
-	forward_weapon_temp = fmaxf(forward_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
-	aft_weapon_temp = fmaxf(aft_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
-	port_weapon_temp = fmaxf(port_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
-	starboard_weapon_temp = fmaxf(starboard_weapon_temp - WEAPON_COOLING_FACTOR * delta_t, 0.0);
+	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	port_weapon_temp = fmaxf(port_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
+	starboard_weapon_temp = fmaxf(starboard_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	
 	// copy new temp to main temp
 	switch (currentWeaponFacing)
@@ -1244,7 +1246,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (cloaking_device_active)
 		{
-			energy -= delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+			energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
 			if (energy < CLOAKING_DEVICE_MIN_ENERGY)
 				[self deactivateCloakingDevice];
 		}
@@ -1252,7 +1254,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			if (energy < maxEnergy)
 			{
-				energy += delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+				energy += (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
 				if (energy > maxEnergy)
 					energy = maxEnergy;
 			}
@@ -1264,7 +1266,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (military_jammer_active)
 		{
-			energy -= delta_t * MILITARY_JAMMER_ENERGY_RATE;
+			energy -= (float)delta_t * MILITARY_JAMMER_ENERGY_RATE;
 			if (energy < MILITARY_JAMMER_MIN_ENERGY)
 				military_jammer_active = NO;
 		}
@@ -1278,13 +1280,13 @@ double scoopSoundPlayTime = 0.0;
 	if (energy < maxEnergy)
 	{
 		double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
-		energy += energy_recharge_rate * energy_multiplier * delta_t;
+		energy += (float)(energy_recharge_rate * energy_multiplier * delta_t);
 		if (energy > maxEnergy)
 			energy = maxEnergy;
 	}
 	
 	// Recharge shields from energy banks
-	float rechargeFwd = [self shieldRechargeRate] * delta_t;
+	float rechargeFwd = (float)([self shieldRechargeRate] * delta_t);
 	float rechargeAft = rechargeFwd;
 	float fwdMax = [self maxForwardShieldLevel];
 	float aftMax = [self maxAftShieldLevel];
@@ -1307,7 +1309,7 @@ double scoopSoundPlayTime = 0.0;
 	if (ecm_in_operation)
 	{
 		if (energy > 0.0)
-			energy -= ECM_ENERGY_DRAIN_FACTOR * delta_t;		// drain energy because of the ECM
+			energy -= (float)(ECM_ENERGY_DRAIN_FACTOR * delta_t);		// drain energy because of the ECM
 		else
 		{
 			ecm_in_operation = NO;
@@ -1332,12 +1334,12 @@ double scoopSoundPlayTime = 0.0;
 		// do Revised sun-skimming check here...
 		if ([self hasScoop] && alt1 > 0.75 && fuel < PLAYER_MAX_FUEL)
 		{
-			fuel_accumulator += delta_t * flightSpeed * 0.010;
+			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010);
 			scoopsActive = YES;
 			while (fuel_accumulator > 1.0)
 			{
 				fuel ++;
-				fuel_accumulator -= 1.0;
+				fuel_accumulator -= 1.0f;
 			}
 			if (fuel > PLAYER_MAX_FUEL)	fuel = PLAYER_MAX_FUEL;
 			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
@@ -1349,14 +1351,14 @@ double scoopSoundPlayTime = 0.0;
 	{
 		// work on the cabin temperature
 		
-		ship_temperature += delta_t * flightSpeed * air_friction / [self heatInsulation];	// wind_speed
+		ship_temperature += (float)(delta_t * flightSpeed * air_friction / [self heatInsulation]);	// wind_speed
 		
 		if (external_temp > ship_temperature)
-			ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation];
+			ship_temperature += (float)((external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation]);
 		else
 		{
 			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
-				ship_temperature += (external_temp - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation];
+				ship_temperature += (float)((external_temp - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation]);
 		}
 
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
@@ -1389,9 +1391,9 @@ double scoopSoundPlayTime = 0.0;
 	{
 		// increase speed up to maximum hyperspeed
 		if (flightSpeed < maxFlightSpeed * HYPERSPEED_FACTOR)
-			flightSpeed += speed_delta * delta_t * HYPERSPEED_FACTOR;
+			flightSpeed += (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
 		if (flightSpeed > maxFlightSpeed * HYPERSPEED_FACTOR)
-			flightSpeed = maxFlightSpeed * HYPERSPEED_FACTOR;
+			flightSpeed = (float)(maxFlightSpeed * HYPERSPEED_FACTOR);
 
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
@@ -1409,13 +1411,13 @@ double scoopSoundPlayTime = 0.0;
 		{
 			float abFactor = [self afterburnerFactor];
 			if (flightSpeed < maxFlightSpeed * abFactor)
-				flightSpeed += speed_delta * delta_t * abFactor;
+				flightSpeed += (float)(speed_delta * delta_t * abFactor);
 			if (flightSpeed > maxFlightSpeed * abFactor)
 				flightSpeed = maxFlightSpeed * abFactor;
-			fuel_accumulator -= delta_t * AFTERBURNER_BURNRATE;
+			fuel_accumulator -= (float)(delta_t * AFTERBURNER_BURNRATE);
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
-				fuel_accumulator += 1.0;
+				fuel_accumulator += 1.0f;
 				fuel --;
 				if (fuel <= 0)
 					afterburner_engaged = NO;
@@ -1427,7 +1429,7 @@ double scoopSoundPlayTime = 0.0;
 			if (travelling_at_hyperspeed)
 			{
 				// decrease speed to maximum normal speed
-				flightSpeed -= speed_delta * delta_t * HYPERSPEED_FACTOR;
+				flightSpeed -= (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
 				if (flightSpeed < maxFlightSpeed)
 					flightSpeed = maxFlightSpeed;
 			}
@@ -1440,10 +1442,10 @@ double scoopSoundPlayTime = 0.0;
 	
 	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
 	{
-		fuel_accumulator -= fuel_leak_rate * delta_t;
+		fuel_accumulator -= (float)(fuel_leak_rate * delta_t);
 		while ((fuel_accumulator < 0)&&(fuel > 0))
 		{
-			fuel_accumulator += 1.0;
+			fuel_accumulator += 1.0f;
 			fuel--;
 		}
 		if (fuel == 0)
@@ -1460,7 +1462,7 @@ double scoopSoundPlayTime = 0.0;
 			if (floor(z1) > floor(z))
 			{
 				z1 = floor(z1);
-				scanner_zoom_rate = 0.0;
+				scanner_zoom_rate = 0.0f;
 			}
 		}
 		else
@@ -1468,7 +1470,7 @@ double scoopSoundPlayTime = 0.0;
 			if (z1 < 1.0)
 			{
 				z1 = 1.0;
-				scanner_zoom_rate = 0.0;
+				scanner_zoom_rate = 0.0f;
 			}
 		}
 		[hud setScannerZoom:z1];
@@ -1556,7 +1558,7 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if (![self clockAdjusting])
 		{
-			fps_counter = floor([UNIVERSE framesDoneThisUpdate] / (fps_check_time - last_fps_check_time));
+			fps_counter = (int)floor([UNIVERSE framesDoneThisUpdate] / (fps_check_time - last_fps_check_time));
 			last_fps_check_time = fps_check_time;
 			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
 		}
@@ -1564,7 +1566,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			// Good approximation for when the clock is adjusting and proper fps calculation
 			// cannot be performed.
-			fps_counter = floor(1.0 / delta_t);
+			fps_counter = (int)floor(1.0 / delta_t);
 			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
 		}
 		[UNIVERSE resetFramesDoneThisUpdate];	// Reset frame counter
@@ -1637,9 +1639,9 @@ double scoopSoundPlayTime = 0.0;
 }
 
 
-#define VELOCITY_CLEANUP_MIN	2000.0	// Minimum speed for "power braking".
-#define VELOCITY_CLEANUP_FULL	5000.0	// Speed at which full "power braking" factor is used.
-#define VELOCITY_CLEANUP_RATE	0.001	// Factor for full "power braking".
+#define VELOCITY_CLEANUP_MIN	2000.0f	// Minimum speed for "power braking".
+#define VELOCITY_CLEANUP_FULL	5000.0f	// Speed at which full "power braking" factor is used.
+#define VELOCITY_CLEANUP_RATE	0.001f	// Factor for full "power braking".
 
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
 {
@@ -1647,12 +1649,12 @@ double scoopSoundPlayTime = 0.0;
 	//// velocity stuff
 	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
 	
-	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
+	position = vector_add(position, vector_multiply_scalar(velocity, (float)delta_t));
 	
 	GLfloat velmag = magnitude(velocity);
 	if (velmag > 0)
 	{
-		GLfloat velmag2 = velmag - delta_t * thrust;
+		GLfloat velmag2 = velmag - (float)delta_t * thrust;
 		if (velmag > VELOCITY_CLEANUP_MIN)
 		{
 			GLfloat rate;
@@ -1669,15 +1671,15 @@ double scoopSoundPlayTime = 0.0;
 			if (velmag2 < OG_ELITE_FORWARD_DRIFT)
 			{
 				// add acceleration
-				velocity = vector_add(velocity, vector_multiply_scalar(v_forward, delta_t * OG_ELITE_FORWARD_DRIFT * 20.0));
+				velocity = vector_add(velocity, vector_multiply_scalar(v_forward, (float)delta_t * OG_ELITE_FORWARD_DRIFT * 20.0f));
 			}
 		}
 	}
 	
-	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyRoll:(float)delta_t*flightRoll andClimb:(float)delta_t*flightPitch];
 	if (flightYaw != 0.0)
 	{
-		[self applyYaw:delta_t*flightYaw];
+		[self applyYaw:(float)delta_t*flightYaw];
 	}
 	[self moveForward:delta_t*flightSpeed];
 }
@@ -1953,8 +1955,8 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) moveForward:(double) amount
 {
-	distanceTravelled += amount;
-	position = vector_add(position, vector_multiply_scalar(v_forward, amount));
+	distanceTravelled += (float)amount;
+	position = vector_add(position, vector_multiply_scalar(v_forward, (float)amount));
 }
 
 
@@ -2152,7 +2154,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (GLfloat) dialHyperRange
 {
-	GLfloat distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	GLfloat distance = (float)distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	return 10.0f * distance / (GLfloat)PLAYER_MAX_FUEL;
 }
 
@@ -2162,7 +2164,7 @@ double scoopSoundPlayTime = 0.0;
 	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
 	if (result < 1.0)
 		return result;
-	return 1.0;
+	return 1.0f;
 }
 
 
@@ -2175,13 +2177,13 @@ double scoopSoundPlayTime = 0.0;
 
 - (GLfloat) dialAltitude
 {
-	if ([self isDocked])  return 0.0;
+	if ([self isDocked])  return 0.0f;
 	
 	// find nearest planet type entity...
 	assert(UNIVERSE != nil);
 	
 	PlanetEntity	*nearestPlanet = [self findPlanetNearestSurface];
-	if (nearestPlanet == nil)  return 1.0;
+	if (nearestPlanet == nil)  return 1.0f;
 	
 	GLfloat	zd = nearestPlanet->zero_distance;
 	GLfloat	cr = nearestPlanet->collision_radius;
@@ -2650,13 +2652,13 @@ double scoopSoundPlayTime = 0.0;
 	Vector  start, v_eject;
 
 	// default launching position
-	start.x = 0.0;						// in the middle
-	start.y = boundingBox.min.y - 4.0;	// 4m below bounding box
-	start.z = boundingBox.max.z + 1.0;	// 1m ahead of bounding box
+	start.x = 0.0f;						// in the middle
+	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
+	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
-	double  throw_speed = 250.0;
+	float throw_speed = 250.0f;
 	Quaternion q1 = orientation;
 	q1.w = -q1.w;   // player view is reversed remember!
 
@@ -2675,7 +2677,7 @@ double scoopSoundPlayTime = 0.0;
 			(start.y > boundingBox.min.y - mcr)&&(start.y < boundingBox.max.y + mcr)&&
 			(start.z > boundingBox.min.z - mcr)&&(start.z < boundingBox.max.z + mcr))
 	{
-		start.x += mcr * v_eject.x;	start.y += mcr * v_eject.y;	start.z += mcr * v_eject.z;
+		start.x += (float)mcr * v_eject.x;	start.y += (float)mcr * v_eject.y;	start.z += (float)mcr * v_eject.z;
 	}
 
 	vel.x = (flightSpeed + throw_speed) * v_forward.x;
@@ -2694,7 +2696,7 @@ double scoopSoundPlayTime = 0.0;
 	[missile setVelocity: vel];
 	[missile setSpeed:150.0];
 	[missile setOwner:self];
-	[missile setDistanceTravelled:0.0];
+	[missile setDistanceTravelled:0.0f];
 	
 	[UNIVERSE addEntity:missile];
 	[missile release];
@@ -2713,7 +2715,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (!mine)
 		return NO;
-	double  mine_speed = 500.0;
+	float  mine_speed = 500.0f;
 	[self dumpItem: mine];
 	Vector mvel = [mine velocity];
 	mvel.x -= mine_speed * v_forward.x;
@@ -2762,7 +2764,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (float) heatInsulation
 {
-	return [self hasHeatShield] ? 2.0 : 1.0;
+	return [self hasHeatShield] ? 2.0f : 1.0f;
 }
 
 
@@ -2804,39 +2806,39 @@ double scoopSoundPlayTime = 0.0;
 	switch (weapon_to_be_fired)
 	{
 		case WEAPON_PLASMA_CANNON :
-			weapon_energy =						6.0;
-			weapon_energy_per_shot =			6.0;
-			weapon_heat_increment_per_shot =	8.0;
-			weapon_reload_time =				0.25;
+			weapon_energy =						6.0f;
+			weapon_energy_per_shot =			6.0f;
+			weapon_heat_increment_per_shot =	8.0f;
+			weapon_reload_time =				0.25f;
 			weaponRange = 5000;
 			break;
 		case WEAPON_PULSE_LASER :
-			weapon_energy =						15.0;
-			weapon_energy_per_shot =			1.0;
-			weapon_heat_increment_per_shot =	8.0;
-			weapon_reload_time =				0.5;
+			weapon_energy =						15.0f;
+			weapon_energy_per_shot =			1.0f;
+			weapon_heat_increment_per_shot =	8.0f;
+			weapon_reload_time =				0.5f;
 			weaponRange = 12500;
 			break;
 		case WEAPON_BEAM_LASER :
-			weapon_energy =						15.0;
-			weapon_energy_per_shot =			1.0;
-			weapon_heat_increment_per_shot =	8.0;
-			weapon_reload_time =				0.1;
+			weapon_energy =						15.0f;
+			weapon_energy_per_shot =			1.0f;
+			weapon_heat_increment_per_shot =	8.0f;
+			weapon_reload_time =				0.1f;
 			weaponRange = 15000;
 			break;
 		case WEAPON_MINING_LASER :
-			weapon_energy =						50.0;
-			weapon_energy_per_shot =			1.0;
-			weapon_heat_increment_per_shot =	8.0;
-			weapon_reload_time =				2.5;
+			weapon_energy =						50.0f;
+			weapon_energy_per_shot =			1.0f;
+			weapon_heat_increment_per_shot =	8.0f;
+			weapon_reload_time =				2.5f;
 			weaponRange = 12500;
 			break;
 		case WEAPON_THARGOID_LASER :
 		case WEAPON_MILITARY_LASER :
-			weapon_energy =						23.0;
-			weapon_energy_per_shot =			1.0;
-			weapon_heat_increment_per_shot =	8.0;
-			weapon_reload_time =				0.1;
+			weapon_energy =						23.0f;
+			weapon_energy_per_shot =			1.0f;
+			weapon_heat_increment_per_shot =	8.0f;
+			weapon_reload_time =				0.1f;
 			weaponRange = 30000;
 			break;
 	}
@@ -2944,11 +2946,11 @@ double scoopSoundPlayTime = 0.0;
 
 	if (d_forward >= 0)
 	{
-		forward_shield -= amount;
+		forward_shield -= (float)amount;
 		if (forward_shield < 0.0)
 		{
 			amount = -forward_shield;
-			forward_shield = 0.0;
+			forward_shield = 0.0f;
 		}
 		else
 		{
@@ -2957,11 +2959,11 @@ double scoopSoundPlayTime = 0.0;
 	}
 	else
 	{
-		aft_shield -= amount;
+		aft_shield -= (float)amount;
 		if (aft_shield < 0.0)
 		{
 			amount = -aft_shield;
-			aft_shield = 0.0;
+			aft_shield = 0.0f;
 		}
 		else
 		{
@@ -2972,9 +2974,9 @@ double scoopSoundPlayTime = 0.0;
 	if (amount > 0.0)
 	{
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
-		energy -= amount;
+		energy -= (float)amount;
 		[self playDirectHit];
-		ship_temperature += amount;
+		ship_temperature += (float)amount;
 	}
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
@@ -3010,11 +3012,11 @@ double scoopSoundPlayTime = 0.0;
 	[self playScrapeDamage];
 	if (d_forward >= 0)
 	{
-		forward_shield -= amount;
+		forward_shield -= (float)amount;
 		if (forward_shield < 0.0)
 		{
 			amount = -forward_shield;
-			forward_shield = 0.0;
+			forward_shield = 0.0f;
 		}
 		else
 		{
@@ -3023,11 +3025,11 @@ double scoopSoundPlayTime = 0.0;
 	}
 	else
 	{
-		aft_shield -= amount;
+		aft_shield -= (float)amount;
 		if (aft_shield < 0.0)
 		{
 			amount = -aft_shield;
-			aft_shield = 0.0;
+			aft_shield = 0.0f;
 		}
 		else
 		{
@@ -3040,7 +3042,7 @@ double scoopSoundPlayTime = 0.0;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 	}
 	
-	energy -= amount;
+	energy -= (float)amount;
 	if (energy <= 0.0)
 	{
 		if ([ent isShip])
@@ -3068,32 +3070,32 @@ double scoopSoundPlayTime = 0.0;
 
 	// hit the shields first!
 
-	double fwd_amount = 0.5 * amount;
-	double aft_amount = 0.5 * amount;
+	float fwd_amount = (float)(0.5 * amount);
+	float aft_amount = (float)(0.5 * amount);
 
 	forward_shield -= fwd_amount;
 	if (forward_shield < 0.0)
 	{
 		fwd_amount = -forward_shield;
-		forward_shield = 0.0;
+		forward_shield = 0.0f;
 	}
 	else
-		fwd_amount = 0.0;
+		fwd_amount = 0.0f;
 
 	aft_shield -= aft_amount;
 	if (aft_shield < 0.0)
 	{
 		aft_amount = -aft_shield;
-		aft_shield = 0.0;
+		aft_shield = 0.0f;
 	}
 	else
-		aft_amount = 0.0;
+		aft_amount = 0.0f;
 
 	double residual_amount = fwd_amount + aft_amount;
 	if (residual_amount <= 0.0)
 		return;
 
-	energy -= residual_amount;
+	energy -= (float)residual_amount;
 
 	throw_sparks = YES;
 
@@ -3161,11 +3163,11 @@ double scoopSoundPlayTime = 0.0;
 	}
 	
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
-	flightSpeed = 1.0;
-	flightPitch = 0.2 * (randf() - 0.5);
-	flightRoll = 0.2 * (randf() - 0.5);
+	flightSpeed = 1.0f;
+	flightPitch = 0.2f * (randf() - 0.5f);
+	flightRoll = 0.2f * (randf() - 0.5f);
 
-	double sheight = (boundingBox.max.y - boundingBox.min.y);
+	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
 	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
 	
 	//remove escape pod
@@ -3256,7 +3258,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) setBounty:(OOCreditsQuantity) amount
 {
-	legalStatus = amount;
+	legalStatus = (int)amount;
 }
 
 
@@ -3391,7 +3393,7 @@ double scoopSoundPlayTime = 0.0;
 	if (![[UNIVERSE gameController] playerFileToLoad])
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
 	
-	energy = 0.0;
+	energy = 0.0f;
 	afterburner_engaged = NO;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
@@ -3401,7 +3403,7 @@ double scoopSoundPlayTime = 0.0;
 	
 	[UNIVERSE playCustomSound:@"[game-over]"];
 	
-	flightSpeed = 160.0;
+	flightSpeed = 160.0f;
 	status = STATUS_DEAD;
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
@@ -3461,7 +3463,7 @@ double scoopSoundPlayTime = 0.0;
 	missile_status = MISSILE_STATUS_SAFE;
 
 	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
 
@@ -3496,10 +3498,10 @@ double scoopSoundPlayTime = 0.0;
 
 	[self setOrientation:kIdentityQuaternion];	// reset orientation to dock
 	
-	flightRoll = 0.0;
-	flightPitch = 0.0;
-	flightYaw = 0.0;
-	flightSpeed = 0.0;
+	flightRoll = 0.0f;
+	flightPitch = 0.0f;
+	flightYaw = 0.0f;
+	flightSpeed = 0.0f;
 
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
@@ -3511,8 +3513,8 @@ double scoopSoundPlayTime = 0.0;
 	forward_shield =	[self maxForwardShieldLevel];
 	aft_shield =		[self maxAftShieldLevel];
 	energy =			maxEnergy;
-	weapon_temp =		0.0;
-	ship_temperature =	60.0;
+	weapon_temp =		0.0f;
+	ship_temperature =	60.0f;
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:YES];
 
@@ -3585,7 +3587,7 @@ double scoopSoundPlayTime = 0.0;
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
 
 	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 	gui_screen = GUI_SCREEN_MAIN;
 	[self clearTargetMemory];
 	[self setShowDemoShips:NO];
@@ -3638,7 +3640,7 @@ double scoopSoundPlayTime = 0.0;
 	hyperspeed_engaged = NO;
 	
 	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 	
 	[UNIVERSE setDisplayText:NO];
 	
@@ -3706,7 +3708,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setSystemTo:system_seed];
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
-    ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+    ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	legalStatus = 0;
 	[UNIVERSE set_up_universe_from_witchspace];
@@ -3739,7 +3741,7 @@ double scoopSoundPlayTime = 0.0;
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 
 	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 
 	[UNIVERSE setDisplayText:NO];
 
@@ -3752,7 +3754,7 @@ double scoopSoundPlayTime = 0.0;
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
 	legalStatus /= 2;										// 'another day, another system'
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	
 	[UNIVERSE set_up_universe_from_witchspace];
@@ -3776,7 +3778,7 @@ double scoopSoundPlayTime = 0.0;
 		primaryTarget = NO_TARGET;
 
 	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0;
+	scanner_zoom_rate = 0.0f;
 
 	[UNIVERSE setDisplayText:NO];
 
@@ -3796,7 +3798,7 @@ double scoopSoundPlayTime = 0.0;
 	unsigned malfunc_chance = 253;
     if (ship_trade_in_factor < 80)
 		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
@@ -3855,9 +3857,11 @@ double scoopSoundPlayTime = 0.0;
 	Quaternion	q1;
 
 	quaternion_set_random(&q1);
-	double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-	if (abs(d1) < 500.0)	// no closer than 500m
-		d1 += ((d1 > 0.0)? 500.0: -500.0);
+	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
+	if (abs((int)d1) < 500)	
+	{// no closer than 500m
+		d1 += ((d1 > 0.0)? 500.0f: -500.0f);
+	}
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	pos.x += v1.x * d1; // randomise exit position
 	pos.y += v1.y * d1;
@@ -3865,10 +3869,10 @@ double scoopSoundPlayTime = 0.0;
 
 	position = pos;
 	orientation = q_rtn;
-	flightRoll = 0.0;
-	flightPitch = 0.0;
-	flightYaw = 0.0;
-	flightSpeed = maxFlightSpeed * 0.25;
+	flightRoll = 0.0f;
+	flightPitch = 0.0f;
+	flightYaw = 0.0f;
+	flightSpeed = maxFlightSpeed * 0.25f;
 	status = STATUS_EXITING_WITCHSPACE;
 	gui_screen = GUI_SCREEN_MAIN;
 	being_fined = NO;				// until you're scanned by a copper!
@@ -4318,7 +4322,7 @@ double scoopSoundPlayTime = 0.0;
 	}
 	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-	float modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] doubleValue];
+	float modeRefresh = (float)[[mode objectForKey:kOODisplayRefreshRate] doubleValue];
 
 	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 
@@ -4665,7 +4669,7 @@ static int last_outfitting_index;
 		
 		if ((![UNIVERSE strict])&&(techlevel < min_techlevel)&&(techlevel + 3 > min_techlevel))
 		{
-			int day = i * 13 + floor([UNIVERSE getTime] / 86400.0);
+			int day = i * 13 + (int)floor([UNIVERSE getTime] / 86400.0);
 			unsigned char day_rnd = (day & 0xff) ^ system_seed.a;
 			OOTechLevelID original_min_techlevel = min_techlevel;
 			
@@ -5337,7 +5341,7 @@ static int last_outfitting_index;
 			if (weapon)
 			{
 				NSString* weapon_key = [weapon primaryRole];
-				int weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
+				int weapon_value = (int)[UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
 				tradeIn += weapon_value;
 				[weapon release];
 			}
@@ -5775,7 +5779,7 @@ OOSound* burnersound;
 	fine *= legalStatus;
 	if (fine > credits)
 	{
-		int payback = legalStatus * credits / fine;
+		int payback = (int)(legalStatus * credits / fine);
 		legalStatus -= payback;
 		credits = 0;
 	}
@@ -5795,13 +5799,13 @@ OOSound* burnersound;
 
 - (void) setDefaultViewOffsets
 {
-	float halfLength = 0.5 * (boundingBox.max.z - boundingBox.min.z);
-	float halfWidth = 0.5 * (boundingBox.max.x - boundingBox.min.x);
+	float halfLength = 0.5f * (boundingBox.max.z - boundingBox.min.z);
+	float halfWidth = 0.5f * (boundingBox.max.x - boundingBox.min.x);
 
-	forwardViewOffset = make_vector(0.0, 0.0, boundingBox.max.z - halfLength);
-	aftViewOffset = make_vector(0.0, 0.0, boundingBox.min.z + halfLength);
-	portViewOffset = make_vector(boundingBox.min.x + halfWidth, 0.0, 0.0);
-	starboardViewOffset = make_vector(boundingBox.max.x - halfWidth, 0.0, 0.0);
+	forwardViewOffset = make_vector(0.0f, 0.0f, boundingBox.max.z - halfLength);
+	aftViewOffset = make_vector(0.0f, 0.0f, boundingBox.min.z + halfLength);
+	portViewOffset = make_vector(boundingBox.min.x + halfWidth, 0.0f, 0.0f);
+	starboardViewOffset = make_vector(boundingBox.max.x - halfWidth, 0.0f, 0.0f);
 	customViewOffset = kZeroVector;
 }
 
@@ -5832,13 +5836,13 @@ OOSound* burnersound;
 
 - (void) setDefaultWeaponOffsets
 {
-	float halfLength = 0.5 * (boundingBox.max.z - boundingBox.min.z);
-	float halfWidth = 0.5 * (boundingBox.max.x - boundingBox.min.x);
+	float halfLength = 0.5f * (boundingBox.max.z - boundingBox.min.z);
+	float halfWidth = 0.5f * (boundingBox.max.x - boundingBox.min.x);
 
-	forwardWeaponOffset = make_vector(0.0, -5.0, boundingBox.max.z - halfLength);
-	aftWeaponOffset = make_vector(0.0, -5.0, boundingBox.min.z + halfLength);
-	portWeaponOffset = make_vector(boundingBox.min.x + halfWidth, -5.0, 0.0);
-	starboardWeaponOffset = make_vector(boundingBox.max.x - halfWidth, -5.0, 0.0);
+	forwardWeaponOffset = make_vector(0.0f, -5.0f, boundingBox.max.z - halfLength);
+	aftWeaponOffset = make_vector(0.0f, -5.0f, boundingBox.min.z + halfLength);
+	portWeaponOffset = make_vector(boundingBox.min.x + halfWidth, -5.0f, 0.0f);
+	starboardWeaponOffset = make_vector(boundingBox.max.x - halfWidth, -5.0f, 0.0f);
 }
 
 
@@ -5869,7 +5873,7 @@ OOSound* burnersound;
 	
 	trumbleCount = 0;
 	
-	trumbleAppetiteAccumulator = 0.0;
+	trumbleAppetiteAccumulator = 0.0f;
 }
 
 
@@ -5928,7 +5932,7 @@ OOSound* burnersound;
 	
 	clear_checksum();
 	[self mungChecksumWithNSString:player_name];
-	munge_checksum(credits);
+	munge_checksum((int)credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
 	
@@ -5975,7 +5979,7 @@ OOSound* burnersound;
 		// calculate a hash for the putative values
 		clear_checksum();
 		[self mungChecksumWithNSString:player_name];
-		munge_checksum(credits);
+		munge_checksum((int)credits);
 		munge_checksum(ship_kills);
 		trumbleHash = munge_checksum(putativeNTrumbles);
 		
@@ -5993,7 +5997,7 @@ OOSound* burnersound;
 			// try to determine trumbleCount from the key in the saved game
 			clear_checksum();
 			[self mungChecksumWithNSString:player_name];
-			munge_checksum(credits);
+			munge_checksum((int)credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
 			if (putativeHash == trumbleHash)
@@ -6015,7 +6019,7 @@ OOSound* burnersound;
 		{
 			clear_checksum();
 			[self mungChecksumWithNSString:player_name];
-			munge_checksum(credits);
+			munge_checksum((int)credits);
 			munge_checksum(ship_kills);
 			trumbleHash = munge_checksum(i);
 			if (putativeHash == trumbleHash)
@@ -6039,7 +6043,7 @@ OOSound* burnersound;
 	
 	clear_checksum();
 	[self mungChecksumWithNSString:player_name];
-	munge_checksum(credits);
+	munge_checksum((int)credits);
 	munge_checksum(ship_kills);
 	trumbleHash = munge_checksum(trumbleCount);
 	
