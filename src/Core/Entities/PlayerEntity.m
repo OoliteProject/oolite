@@ -5754,7 +5754,8 @@ OOSound* burnersound;
 
 - (BOOL) hasHostileTarget
 {
-	return NO;
+	ShipEntity *playersTarget = [self primaryTarget];
+	return (playersTarget != nil && [playersTarget hasHostileTarget] && [playersTarget primaryTarget] == self);
 }
 
 
