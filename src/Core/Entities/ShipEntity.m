@@ -3235,6 +3235,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (BOOL)isPolice
 {
+	//bounty hunters have a police role, but are not police, so we must test by scan class, not by role
 	return [self scanClass] == CLASS_POLICE;
 }
 
