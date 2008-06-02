@@ -1898,6 +1898,12 @@ WormholeEntity*	whole;
 	if (!n_dests)
 	{
 		[shipAI reactToMessage:@"WITCHSPACE UNAVAILABLE"];
+		
+		// If no systems exist near us, the AI is switched to a different state, so we do not need
+		// the nearby destinations array anymore.
+		[sDests release];
+		sDests = nil;
+		
 		return;
 	}
 	
