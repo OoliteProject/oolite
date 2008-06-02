@@ -1195,6 +1195,26 @@ static BOOL BooleanFromString(NSString *string, BOOL defaultValue)
 }
 
 
+static float FuzzyBooleanProbabilityFromString(NSString *string, float defaultValue)
+{
+	if (NSOrderedSame == [string caseInsensitiveCompare:@"yes"] ||
+		NSOrderedSame == [string caseInsensitiveCompare:@"true"] ||
+		NSOrderedSame == [string caseInsensitiveCompare:@"on"] ||
+		[string doubleValue] != 0.0)	// Floating point is used so values like @"0.1" are treated as nonzero.
+	{
+		return 1.0f;
+	}
+	else if (NSOrderedSame == [string caseInsensitiveCompare:@"no"] ||
+			 NSOrderedSame == [string caseInsensitiveCompare:@"false"] ||
+			 NSOrderedSame == [string caseInsensitiveCompare:@"off"] ||
+			 IsZeroString(string))
+	{
+		return 0.0f;
+	}
+	return defaultValue;
+}
+
+
 BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 {
 	BOOL result;
@@ -1215,22 +1235,24 @@ BOOL OOBooleanFromObject(id object, BOOL defaultValue)
 
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue)
+BOOL OOFuzzyBooleanFromObject(id object, float defaultValue)
 {
 	float probability;
 	
 	if ([object isKindOfClass:[NSString class]])
 	{
 		probability = [object floatValue];
-		if (probability == 0.0)
+		
+		// If our string represents zero, it might be erroneous input or simply yes/no,
+		// true/false or on/off valid boolean strings. Act on it.
+		if (probability == 0.0f && !IsZeroString(object))
 		{
-			// Treat as normal boolean string
-			return BooleanFromString(object, defaultValue);
+			probability = FuzzyBooleanProbabilityFromString(object, defaultValue);
 		}
 	}
 	else
 	{
-		probability = OOFloatFromObject(object, defaultValue ? 1.0f : 0.0f);
+		probability = OOFloatFromObject(object, defaultValue);
 	}
 	
 	/*	This will always be NO for negative values and YES for values

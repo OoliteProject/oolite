@@ -1879,11 +1879,20 @@ WormholeEntity*	whole;
 
 - (void)performHyperSpaceExitReplace:(BOOL)replace
 {
+	// The [UNIVERSE nearbyDestinationsWithinRange:] method is very expensive, so cache
+	// its results.
+	static NSArray *sDests = nil;
+	
 	whole = nil;
 	
 	// get a list of destinations within range
-	NSArray* dests = [UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel];
-	int n_dests = [dests count];
+	if (sDests == nil)
+	{
+		sDests = [[UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel] copy];
+	}
+	
+	int n_dests = [sDests count];
+	
 	
 	// if none available report to the AI and exit
 	if (!n_dests)
@@ -1906,9 +1915,9 @@ WormholeEntity*	whole;
 	if (n_dests > 1)
 		i = ranrot_rand() % n_dests;
 	
-	NSString* systemSeedKey = [(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"system_seed"];
+	NSString* systemSeedKey = [(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"system_seed"];
 	Random_Seed targetSystem = RandomSeedFromString(systemSeedKey);
-	fuel -= 10 * [[(NSDictionary*)[dests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	fuel -= 10 * [[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
 	
 	// create wormhole
 	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];
@@ -1920,6 +1929,11 @@ WormholeEntity*	whole;
 	[shipAI reactToMessage:@"WITCHSPACE OKAY"];	// must be a reaction, the ship is about to disappear
 	
 	[self enterWormhole:whole replacing:replace];	// TODO
+	
+	// If we have reached this code, it means that the ship has already entered hyperspace,
+	// the destinations array is therefore no longer required and can be released.
+	[sDests release];
+	sDests = nil;
 }
 
 

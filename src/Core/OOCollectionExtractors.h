@@ -378,7 +378,7 @@ BOOL OOBooleanFromObject(id object, BOOL defaultValue);
 	accepted by OOBooleanFromObject(), or a number indicating probability of
 	a yes (between 0 and 1).
 */
-BOOL OOFuzzyBooleanFromObject(id object, BOOL defaultValue);
+BOOL OOFuzzyBooleanFromObject(id object, float defaultValue);
 #endif
 
 
