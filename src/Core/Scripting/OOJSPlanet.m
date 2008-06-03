@@ -117,6 +117,12 @@ static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *stationObj, Pl
 
 @implementation PlanetEntity (OOJavaScriptExtensions)
 
+- (BOOL) isVisibleToScripts
+{
+	return YES;
+}
+
+
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
 	if ([self planetType] == PLANET_TYPE_SUN)

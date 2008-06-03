@@ -466,6 +466,8 @@ enum
 - (NSDictionary *) currentSystemData;	// Same as generateSystemData:systemSeed unless in interstellar space.
 - (BOOL) inInterstellarSpace;
 
+- (void)setObject:(id)object forKey:(NSString *)key forPlanetKey:(NSString *)planetKey;
+
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (NSString *) getSystemName:(Random_Seed) s_seed;

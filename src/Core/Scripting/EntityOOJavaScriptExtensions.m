@@ -35,10 +35,7 @@ MA 02110-1301, USA.
 
 - (BOOL) isVisibleToScripts
 {
-	return	self->isShip ||
-		//	self->isStation ||	// Stations are always ships
-		//	self->isPlayer ||	// The player is also a ship
-			self->isPlanet;
+	return NO;
 }
 
 
@@ -94,6 +91,12 @@ MA 02110-1301, USA.
 
 
 @implementation ShipEntity (OOJavaScriptExtensions)
+
+- (BOOL) isVisibleToScripts
+{
+	return YES;
+}
+
 
 - (void) getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {

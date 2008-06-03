@@ -31,6 +31,12 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
+static NSString *KeyForName(JSContext *context, jsval name)
+{
+	return [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+}
+
+
 static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
@@ -64,7 +70,7 @@ static JSBool MissionVariablesDeleteProperty(JSContext *context, JSObject *this,
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		NSString	*key = KeyForName(context, name);
 		[player setMissionVariable:nil forKey:key];
 	}
 	return YES;
@@ -77,7 +83,7 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		NSString	*key = KeyForName(context, name);
 		id			value = [player missionVariableForKey:key];
 		
 		*outValue = JSVAL_VOID;
@@ -130,7 +136,7 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 	
 	if (JSVAL_IS_STRING(name))
 	{
-		NSString	*key = [@"mission_" stringByAppendingString:[NSString stringWithJavaScriptValue:name inContext:context]];
+		NSString	*key = KeyForName(context, name);
 		NSString	*objValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 		
 		[player setMissionVariable:objValue forKey:key];

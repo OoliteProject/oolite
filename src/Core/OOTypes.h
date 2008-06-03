@@ -327,5 +327,13 @@ typedef uint8_t		OOGalaxyID;			// 0..7
 typedef int16_t		OOSystemID;			// 0..255, -1 for interstellar space (?)
 
 
+enum
+{
+	kOOMaximumGalaxyID		= 7,
+	kOOMaximumSystemID		= 255,
+	kOOMinimumSystemID		= -1
+};
+
+
 typedef double OOTimeAbsolute;
 typedef double OOTimeDelta;

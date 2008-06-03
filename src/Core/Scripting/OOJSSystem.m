@@ -32,6 +32,7 @@
 #import "Universe.h"
 #import "PlanetEntity.h"
 #import "PlayerEntityScriptMethods.h"
+#import "OOJSSystemInfo.h"
 
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
@@ -78,6 +79,7 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 
 static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sSystemClass =
@@ -117,7 +119,8 @@ enum
 	kSystem_mainPlanet,			// system's main planet, Planet, read-only
 	kSystem_sun,				// system's sun, Planet, read-only
 	kSystem_planets,			// planets in system, array of Planet, read-only
-	kSystem_allShips			// ships in system, array of Ship, read-only
+	kSystem_allShips,			// ships in system, array of Ship, read-only
+	kSystem_info				// system info dictionary, SystemInfo, read-only
 };
 
 
@@ -143,6 +146,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "sun",					kSystem_sun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "planets",				kSystem_planets,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "allShips",				kSystem_allShips,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "info",					kSystem_info,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -178,6 +182,7 @@ static JSFunctionSpec sSystemStaticMethods[] =
 {
 	{ "systemNameForID",		SystemStaticSystemNameForID, 1 },
 	{ "systemIDForName",		SystemStaticSystemIDForName, 1 },
+	{ "infoForSystem",			SystemStaticInfoForSystem, 2 },
 	{ 0 }
 };
 
@@ -209,15 +214,6 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kSystem_name:
-			/*if ([UNIVERSE sun] != nil)
-			{
-				result = [systemData objectForKey:KEY_NAME];
-				if (result == nil)  result = [NSNull null];
-			}
-			else
-			{
-				result = @"Interstellar space";
-			}*/
 			result = [systemData objectForKey:KEY_NAME];
 			if (result == nil)  result = [NSNull null];
 			break;
@@ -298,6 +294,10 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kSystem_allShips:
 			result = [UNIVERSE findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+			break;
+			
+		case kSystem_info:
+			if (!GetJSSystemInfoForCurrentSystem(context, outValue))  return NO;
 			break;
 			
 		default:
@@ -847,6 +847,34 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, ui
 	
 	*outResult = INT_TO_JSVAL([UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]]);
 	return YES;
+}
+
+
+// infoForSystem(galaxyID : Number, systemID : Number) : SystemInfo
+static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	int32				galaxyID;
+	int32				systemID;
+	
+	if (argc < 2 || !JS_ValueToInt32(context, argv[0], &galaxyID) || !JS_ValueToInt32(context, argv[1], &systemID))
+	{
+		OOReportJSBadArguments(context, @"System", @"infoForSystem", argc, argv, @"Invalid arguments", @"galaxy ID and system ID");
+		return NO;
+	}
+	
+	if (galaxyID < 0 || galaxyID > kOOMaximumGalaxyID)
+	{
+		OOReportJSBadArguments(context, @"System", @"infoForSystem", 1, argv, @"Invalid galaxy ID", [NSString stringWithFormat:@"number in the range 0 to %u", kOOMaximumGalaxyID]);
+		return NO;
+	}
+	
+	if (systemID < kOOMinimumSystemID || systemID > kOOMaximumSystemID)
+	{
+		OOReportJSBadArguments(context, @"System", @"infoForSystem", 1, argv + 1, @"Invalid system ID", [NSString stringWithFormat:@"number in the range %i to %i", kOOMinimumSystemID, kOOMaximumSystemID]);
+		return NO;
+	}
+	
+	return GetJSSystemInfoForSystem(context, galaxyID, systemID, outResult);
 }
 
 

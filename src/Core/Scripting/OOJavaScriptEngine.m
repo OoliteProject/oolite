@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "OOJSSound.h"
 #import "OOJSSoundSource.h"
 #import "OOJSSpecialFunctions.h"
+#import "OOJSSystemInfo.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -252,6 +253,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSSound(mainContext, globalObject);
 	InitOOJSSoundSource(mainContext, globalObject);
 	InitOOJSSpecialFunctions(mainContext, globalObject);
+	InitOOJSSystemInfo(mainContext, globalObject);
 	
 	sSharedEngine = self;
 	
