@@ -187,8 +187,6 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 			player.fuelLeakRate = 25;
 			system.sun.goNova(7200);
 			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
-//			player.call("setPlanetinfo:", "market = none");
-//			player.call("setPlanetinfo:", "sun_gone_nova = YES");
 			system.info.market = "none";
 			system.info.sun_gone_nova = "YES";
 			
