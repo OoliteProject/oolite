@@ -76,7 +76,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
-- (BOOL) isValidShipEntry:(NSDictionary *)shipEntry name:(NSString *)name;
+- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
 - (void) mergeShipRoles:(NSString *)roles forShipKey:(NSString *)shipKey intoProbabilityMap:(NSMutableDictionary *)probabilitySets;
 
 @end
@@ -228,11 +228,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 												   cache:NO] mutableCopy] autorelease];
 	if (result == nil)  return;
 	
-	// Clean out any non-dictionaries.
-	for (enumerator = [result keyEnumerator]; (key = [enumerator nextObject]); )
+	// Clean out any non-dictionaries. (Iterates over a copy of keys since it mutates the dictionary.)
+	for (enumerator = [[result allKeys] objectEnumerator]; (key = [enumerator nextObject]); )
 	{
-		if (![self isValidShipEntry:[result objectForKey:key] name:key])
+		if (![[result objectForKey:key] isKindOfClass:[NSDictionary class]])
 		{
+			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary, ignoring.", key);
 			[result removeObjectForKey:key];
 		}
 	}
@@ -242,6 +243,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
+	
+	// Clean out templates and invalid entries.
+	if (![self removeUnusableEntries:result])  return;
 	
 	// Add shipyard entries into shipdata entries.
 	if (![self loadAndMergeShipyard:result])  return;
@@ -386,7 +390,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	count = lastCount = [remainingLikeShips count];
 	while (count != 0)
 	{
-		for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
+		for (enumerator = [[[remainingLikeShips copy] autorelease] objectEnumerator]; (key = [enumerator nextObject]); )
 		{
 			// Look up like_ship entry
 			shipEntry = [ioData objectForKey:key];
@@ -407,8 +411,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		count = [remainingLikeShips count];
 		if (count == lastCount)
 		{
-			// Fail: we couldn't resolve all like_ship entries.
+			// Fail: we couldn't resolve all like_ship entries. Remove unresolved ones.
 			OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", remainingLikeShips);
+			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
+			{
+				[ioData removeObjectForKey:key];
+			}
 			break;
 		}
 		lastCount = count;
@@ -535,27 +543,29 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (BOOL) isValidShipEntry:(NSDictionary *)shipEntry name:(NSString *)name
+- (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData
 {
-	// Quick checks for obvious problems. Not complete validation, just basic sanity checking.
-	if (![shipEntry isKindOfClass:[NSDictionary class]])
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSDictionary			*shipEntry = nil;
+	
+	// Clean out invalid entries and templates. (Iterates over a copy of keys since it mutates the dictionary.)
+	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
-		OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary, ignoring.", name);
-		return NO;
-	}
-	if ([shipEntry stringForKey:@"like_ship"] == nil)	// Keys may be inherited, so we only check "root" ships.
-	{
-		if ([[shipEntry stringForKey:@"roles"] length] == 0)
+		shipEntry = [ioData objectForKey:shipKey];
+		if ([shipEntry boolForKey:@"is_template"])  [ioData removeObjectForKey:shipKey];
+		else if ([[shipEntry stringForKey:@"roles"] length] == 0)
 		{
-			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", name, @"roles");
-			return NO;
+			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", shipKey, @"roles");
+			[ioData removeObjectForKey:shipKey];
 		}
-		if ([[shipEntry stringForKey:@"model"] length] == 0)
+		else if ([[shipEntry stringForKey:@"model"] length] == 0)
 		{
-			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", name, @"model");
-			return NO;
+			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", shipKey, @"model");
+			[ioData removeObjectForKey:shipKey];
 		}
 	}
+	
 	return YES;
 }
 

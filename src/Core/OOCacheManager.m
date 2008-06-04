@@ -58,13 +58,13 @@ static NSString * const kOOLogDataCacheRemovedOld			= @"dataCache.removedOld";
 static NSString * const kCacheKeyVersion					= @"CFBundleVersion";	// Legacy name
 static NSString * const kCacheKeyEndianTag					= @"endian tag";
 static NSString * const kCacheKeyFormatVersion				= @"format version";
-static NSString * const kCacheKeyCaches						= @"_caches";
+static NSString * const kCacheKeyCaches						= @"caches";
 
 
 enum
 {
 	kEndianTagValue			= 0x12345678UL,
-	kFormatVersionValue		= 18
+	kFormatVersionValue		= 19
 };
 
 
@@ -600,7 +600,7 @@ static OOCacheManager *sSingleton = nil;
 	
 	/*	Construct the path for the cache file, which is:
 			~/Library/Caches/org.aegidian.oolite/Data Cache.plist
-		In addition to generally being the right place to put _caches,
+		In addition to generally being the right place to put caches,
 		~/Library/Caches has the particular advantage of not being indexed by
 		Spotlight or, in future, backed up by Time Machine.
 	*/
