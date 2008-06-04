@@ -177,21 +177,24 @@ static NSMutableDictionary *string_cache;
 	for (pathEnum = [rootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
 	{
 		// Iterate over each root path's contents
-		for (dirEnum = [fmgr enumeratorAtPath:root]; (subPath = [dirEnum nextObject]); )
+		if ([fmgr fileExistsAtPath:root isDirectory:&isDirectory] && isDirectory)
 		{
-			// Check if it's a directory
-			path = [root stringByAppendingPathComponent:subPath];
-			if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory)
+			for (dirEnum = [fmgr enumeratorAtPath:root]; (subPath = [dirEnum nextObject]); )
 			{
-				// If it is, is it an OXP?
-				if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+				// Check if it's a directory
+				path = [root stringByAppendingPathComponent:subPath];
+				if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory)
 				{
-					[self checkPotentialPath:path :sSearchPaths];
-				}
-				else
-				{
-					// If not, don't search subdirectories
-					[dirEnum skipDescendents];
+					// If it is, is it an OXP?
+					if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
+					{
+						[self checkPotentialPath:path :sSearchPaths];
+					}
+					else
+					{
+						// If not, don't search subdirectories
+						[dirEnum skipDescendents];
+					}
 				}
 			}
 		}
