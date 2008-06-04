@@ -984,17 +984,38 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	*/
 	if (![a_station isStation] || ![a_station validForAddToUniverse])
 	{
-		OOLog(@"universe.setup.badStation", @"***** ERROR: Attempt to use non-station ship of type \"%@\" for role \"%@\" as system station, trying again with \"%@\".", [a_station name], stationDesc, defaultStationDesc);
-		
+		if (a_station == nil)
+		{
+			// Should have had a more specific error already, just specify context
+			OOLog(@"universe.setup.badStation", @"Failed to set up a ship for role \"%@\" as system station, trying again with \"%@\".", stationDesc, defaultStationDesc);
+		}
+		else
+		{
+			OOLog(@"universe.setup.badStation", @"***** ERROR: Attempt to use non-station ship of type \"%@\" for role \"%@\" as system station, trying again with \"%@\".", [a_station name], stationDesc, defaultStationDesc);
+		}
 		[a_station release];
 		stationDesc = defaultStationDesc;
 		a_station = (StationEntity *)[self newShipWithRole:stationDesc];		 // retain count = 1
 		
 		if (![a_station isStation] || ![a_station validForAddToUniverse])
 		{
-			OOLog(@"universe.setup.badStation", @"***** ERROR: On retry, rolled non-station ship of type \"%@\" for role \"%@\". Non-station ships should not have this role! Generating a stationless system.", [a_station name], stationDesc);
+			if (a_station == nil)
+			{
+				OOLog(@"universe.setup.badStation", @"On retry, failed to set up a ship for role \"%@\" as system station. Trying to fall back to built-in Coriolis station.", stationDesc);
+			}
+			else
+			{
+				OOLog(@"universe.setup.badStation", @"***** ERROR: On retry, rolled non-station ship of type \"%@\" for role \"%@\". Non-station ships should not have this role! Trying to fall back to built-in Coriolis station.", [a_station name], stationDesc);
+			}
 			[a_station release];
-			a_station = nil;
+			
+			a_station = (StationEntity *)[self newShipWithName:@"coriolis-station"];
+			if (![a_station isStation] || ![a_station validForAddToUniverse])
+			{
+				OOLog(@"universe.setup.badStation", @"Could not create built-in Coriolis station! Generating a stationless system.");
+				[a_station release];
+				a_station = nil;
+			}
 		}
 	}
 	
