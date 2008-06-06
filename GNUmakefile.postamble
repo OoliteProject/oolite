@@ -5,16 +5,14 @@
 #
 ifeq ($(debug),yes)
 	EXTENSION=debug
-	SHAREDOBJ=$(firstword $(wildcard shared_debug_obj) obj)
 else
 	EXTENSION=app
-	SHAREDOBJ=$(firstword $(wildcard shared_obj) obj)
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	BINARY=$(SHAREDOBJ)/$(OBJC_PROGRAM_NAME).exe
+	BINARY=$(OBJC_PROGRAM_NAME).exe
 else
-	BINARY=$(SHAREDOBJ)/$(OBJC_PROGRAM_NAME)
+	BINARY=$(OBJC_PROGRAM_NAME)
 endif
 
 PROGDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)
@@ -27,4 +25,12 @@ after-all::
 	$(CP) -r Resources $(PROGDIR)
 	$(CP) -r Schemata $(PROGDIR)/Resources
 	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
-	$(CP) $(BINARY) $(PROGDIR)
+	if test -d obj; then \
+	  $(CP) obj/$(BINARY) $(PROGDIR); \
+	else \
+	  if test -d shared_debug_obj; then \
+	    $(CP) shared_debug_obj/$(BINARY) $(PROGDIR); \
+	  else \
+	    $(CP) shared_obj/$(BINARY) $(PROGDIR); \
+	  fi; \
+	fi;
