@@ -166,11 +166,11 @@ MA 02110-1301, USA.
 	{
 		Vector v = triangles[i].v[j];
 		if (fabs(v.x) > result)
-			result = fabs(v.x);
+			result = (float)fabs(v.x);
 		if (fabs(v.y) > result)
-			result = fabs(v.y);
+			result = (float)fabs(v.y);
 		if (fabs(v.z) > result)
-			result = fabs(v.z);
+			result = (float)fabs(v.z);
 	}
 	return result;
 }
@@ -181,9 +181,9 @@ static float volumecount;
 {
 	//
 	leafcount = 0;
-	volumecount = 0.0;
+	volumecount = 0.0f;
 	//
-	GLfloat foundRadius = 0.5 + [self findMaxDimensionFromOrigin];	// pad out from geometry by a half meter
+	GLfloat foundRadius = 0.5f + [self findMaxDimensionFromOrigin];	// pad out from geometry by a half meter
 	//	
 	NSObject* foundOctree = [self octreeWithinRadius:foundRadius toDepth:depth];
 	//
@@ -195,7 +195,7 @@ static float volumecount;
 - (id) octreeWithinRadius:(GLfloat) octreeRadius toDepth: (int) depth;
 {
 	//
-	GLfloat offset = 0.5 * octreeRadius;
+	GLfloat offset = 0.5f * octreeRadius;
 	//
 	if (![self testHasGeometry])
 	{
@@ -207,7 +207,7 @@ static float volumecount;
 	if ((octreeRadius <= OCTREE_MIN_RADIUS)||(depth <= 0))	// maximum resolution
 	{
 		leafcount++;	// partially full or -1
-		volumecount += octreeRadius * octreeRadius * octreeRadius * 0.5;
+		volumecount += octreeRadius * octreeRadius * octreeRadius * 0.5f;
 		return [NSNumber numberWithBool:YES];	// at least partially full octree
 	}
 	//
@@ -368,20 +368,20 @@ static float volumecount;
 		{
 			GLfloat i01, i12, i20;
 			if (v0.x == v1.x)
-				i01 = -1.0;
+				i01 = -1.0f;
 			else
 				i01 = v0.x / (v0.x - v1.x);
 			if (v1.x == v2.x)
-				i12 = -1.0;
+				i12 = -1.0f;
 			else
 				i12 = v1.x / (v1.x - v2.x);
 			if (v2.x == v0.x)
-				i20 = -1.0;
+				i20 = -1.0f;
 			else
 				i20 = v2.x / (v2.x - v0.x);
-			Vector v01 = make_vector(0.0, i01 * (v1.y - v0.y) + v0.y, i01 * (v1.z - v0.z) + v0.z);
-			Vector v12 = make_vector(0.0, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
-			Vector v20 = make_vector(0.0, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
+			Vector v01 = make_vector(0.0f, i01 * (v1.y - v0.y) + v0.y, i01 * (v1.z - v0.z) + v0.z);
+			Vector v12 = make_vector(0.0f, i12 * (v2.y - v1.y) + v1.y, i12 * (v2.z - v1.z) + v1.z);
+			Vector v20 = make_vector(0.0f, i20 * (v0.y - v2.y) + v2.y, i20 * (v0.z - v2.z) + v2.z);
 		
 			// cases where a vertex is on the split..
 			if (v0.x == 0.0)
@@ -468,8 +468,8 @@ static float volumecount;
 
 		}
 	}
-	[g_plus translate: make_vector(-x, 0.0, 0.0)];
-	[g_minus translate: make_vector(x, 0.0, 0.0)];
+	[g_plus translate: make_vector(-x, 0.0f, 0.0f)];
+	[g_minus translate: make_vector(x, 0.0f, 0.0f)];
 }
 
 - (void) y_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) y;
@@ -498,20 +498,20 @@ static float volumecount;
 		{
 			GLfloat i01, i12, i20;
 			if (v0.y == v1.y)
-				i01 = -1.0;
+				i01 = -1.0f;
 			else
 				i01 = v0.y / (v0.y - v1.y);
 			if (v1.y == v2.y)
-				i12 = -1.0;
+				i12 = -1.0f;
 			else
 				i12 = v1.y / (v1.y - v2.y);
 			if (v2.y == v0.y)
-				i20 = -1.0;
+				i20 = -1.0f;
 			else
 				i20 = v2.y / (v2.y - v0.y);
-			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0, i01 * (v1.z - v0.z) + v0.z);
-			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0, i12 * (v2.z - v1.z) + v1.z);
-			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0, i20 * (v0.z - v2.z) + v2.z);
+			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, 0.0f, i01 * (v1.z - v0.z) + v0.z);
+			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, 0.0f, i12 * (v2.z - v1.z) + v1.z);
+			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, 0.0f, i20 * (v0.z - v2.z) + v2.z);
 			
 			// cases where a vertex is on the split..
 			if (v0.y == 0.0)
@@ -597,8 +597,8 @@ static float volumecount;
 			}			
 		}
 	}
-	[g_plus translate: make_vector(0.0, -y, 0.0)];
-	[g_minus translate: make_vector(0.0, y, 0.0)];
+	[g_plus translate: make_vector(0.0f, -y, 0.0f)];
+	[g_minus translate: make_vector(0.0f, y, 0.0f)];
 }
 
 - (void) z_axisSplitBetween:(Geometry*) g_plus :(Geometry*) g_minus :(GLfloat) z
@@ -627,20 +627,20 @@ static float volumecount;
 		{
 			GLfloat i01, i12, i20;
 			if (v0.z == v1.z)
-				i01 = -1.0;
+				i01 = -1.0f;
 			else
 				i01 = v0.z / (v0.z - v1.z);
 			if (v1.z == v2.z)
-				i12 = -1.0;
+				i12 = -1.0f;
 			else
 				i12 = v1.z / (v1.z - v2.z);
 			if (v2.z == v0.z)
-				i20 = -1.0;
+				i20 = -1.0f;
 			else
 				i20 = v2.z / (v2.z - v0.z);
-			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, i01 * (v1.y - v0.y) + v0.y, 0.0);
-			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0);
-			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0);
+			Vector v01 = make_vector(i01 * (v1.x - v0.x) + v0.x, i01 * (v1.y - v0.y) + v0.y, 0.0f);
+			Vector v12 = make_vector(i12 * (v2.x - v1.x) + v1.x, i12 * (v2.y - v1.y) + v1.y, 0.0f);
+			Vector v20 = make_vector(i20 * (v0.x - v2.x) + v2.x, i20 * (v0.y - v2.y) + v2.y, 0.0f);
 		
 			// cases where a vertex is on the split..
 			if (v0.z == 0.0)
@@ -727,8 +727,8 @@ static float volumecount;
 
 		}
 	}
-	[g_plus translate: make_vector(0.0, 0.0, -z)];
-	[g_minus translate: make_vector(0.0, 0.0, z)];
+	[g_plus translate: make_vector(0.0f, 0.0f, -z)];
+	[g_minus translate: make_vector(0.0f, 0.0f, z)];
 }
 
 @end

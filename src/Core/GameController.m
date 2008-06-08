@@ -541,7 +541,7 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 	
 	while (pauseTarget)
 	{
-		CGPoint centerOfScreen = CGPointMake(width/2.0,height/2.0);
+		CGPoint centerOfScreen = CGPointMake(width/2.0F,height/2.0F);
 
 		pauseTarget = nil;
 		
@@ -718,7 +718,7 @@ static int CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		// Clear the front and back framebuffers before switching out of FullScreen mode.
 		// (This is not strictly necessary, but avoids an untidy flash of garbage.)
-		glClearColor(0.0, 0.0, 0.0, 0.0);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		[fullScreenContext flushBuffer];
 		glClear(GL_COLOR_BUFFER_BIT);

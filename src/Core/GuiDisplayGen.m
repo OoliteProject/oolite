@@ -52,9 +52,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
 	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
 
-	pixel_text_size = NSMakeSize(0.9 * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
+	pixel_text_size = NSMakeSize(0.9f * pixel_row_height, pixel_row_height);	// main gui has 18x20 characters
 	
-	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75f, pixel_row_height * 1.5f);
 	
 	int stops[6] = {0, 192, 256, 320, 384, 448};
 	unsigned i;
@@ -70,7 +70,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[rowText addObject:@"."];
 		[rowKey addObject:[NSString stringWithFormat:@"%d",i]];
 		[rowColor addObject:[OOColor yellowColor]];
-		rowPosition[i].x = 0.0;
+		rowPosition[i].x = 0.0f;
 		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
 		rowAlignment[i] = GUI_ALIGN_LEFT;
 	}
@@ -84,7 +84,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	textColor = [[OOColor yellowColor] retain];
 	
-	drawPosition = make_vector(0.0, 0.0, 640.0);
+	drawPosition = make_vector(0.0f, 0.0f, 640.0f);
 
 	return self;
 }
@@ -108,7 +108,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
 	
-	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75f, pixel_row_height * 1.5f);
 	
 	unsigned i;
 	
@@ -123,7 +123,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[rowText addObject:@""];
 		[rowKey addObject:@""];
 		[rowColor addObject:[OOColor greenColor]];
-		rowPosition[i].x = 0.0;
+		rowPosition[i].x = 0.0f;
 		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
 		rowAlignment[i] = GUI_ALIGN_LEFT;
 	}
@@ -167,7 +167,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	pixel_row_start	= gui_row_start;		// first position down the page...
 
 	pixel_text_size = NSMakeSize(pixel_row_height, pixel_row_height);
-	pixel_title_size = NSMakeSize(pixel_row_height * 1.75, pixel_row_height * 1.5);
+	pixel_title_size = NSMakeSize(pixel_row_height * 1.75f, pixel_row_height * 1.5f);
 
 	rowRange = NSMakeRange(0,n_rows);
 	[self clear];
@@ -193,9 +193,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	currentRow = n_rows - 1;		// first position down the page...
 
 	if (title != nil)
-		pixel_row_start = 2.75 * csize + 0.5 * (gui_size.height - n_rows * csize);
+		pixel_row_start = 2.75f * csize + 0.5f * (gui_size.height - n_rows * csize);
 	else
-		pixel_row_start = csize + 0.5 * (gui_size.height - n_rows * csize);
+		pixel_row_start = csize + 0.5f * (gui_size.height - n_rows * csize);
 
 	[rowText removeAllObjects];
 	[rowKey removeAllObjects];
@@ -207,13 +207,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[rowText addObject:@""];
 		[rowKey addObject:@""];
 		[rowColor addObject:[OOColor greenColor]];
-		rowPosition[i].x = 0.0;
+		rowPosition[i].x = 0.0f;
 		rowPosition[i].y = size_in_pixels.height - (pixel_row_start + i * pixel_row_height);
 		rowAlignment[i] = GUI_ALIGN_LEFT;
 	}
 
 	pixel_text_size = NSMakeSize(csize, csize);
-	pixel_title_size = NSMakeSize(csize * 1.75, csize * 1.5);
+	pixel_title_size = NSMakeSize(csize * 1.75f, csize * 1.5f);
 	
 	OOLog(@"gui.reset", @"gui %@ reset to rows:%d columns:%d start:%d", self, n_rows, n_columns, pixel_row_start);
 
@@ -283,9 +283,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) fadeOutFromTime:(OOTimeAbsolute) now_time overDuration:(OOTimeDelta) duration
 {
-	if (fade_alpha <= 0.0)
+	if (fade_alpha <= 0.0f) 
+	{
 		return;
-	fade_sign = -fade_alpha / duration;
+	}
+	fade_sign = (float)(-fade_alpha / duration);
 	fade_from_time = now_time;
 	fade_duration = duration;
 }
@@ -487,7 +489,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		//
 		[self setKey:GUI_KEY_SKIP forRow:i];
 		//
-		rowFadeTime[i] = 0.0;
+		rowFadeTime[i] = 0.0f;
 	}
 	[self setShowTextCursor:NO];
 	[self setSelectableRange:NSMakeRange(0,0)];
@@ -525,7 +527,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			  align:(OOGUIAlignment)alignment
 {
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
+	NSSize strsize = rectForString(str, 0.0f, 0.0f, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -536,15 +538,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		NSMutableArray	*words = ScanTokensFromString(str);
 		NSMutableString	*string1 = [NSMutableString stringWithCapacity:256];
 		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];
-		strsize.width = 0.0;
+		strsize.width = 0.0f;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString(string1, 0.0, 0.0, chSize).size;
+			strsize = rectForString(string1, 0.0f, 0.0f, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0, 0.0, chSize).size.width;
+				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -575,7 +577,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (row == (OOGUIRow)n_rows - 1)
 		[self scrollUp:1];
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString(str, 0.0, 0.0, chSize).size;
+	NSSize strsize = rectForString(str, 0.0f, 0.0f, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -594,15 +596,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		NSMutableArray	*words = ScanTokensFromString(str);
 		NSMutableString	*string1 = [NSMutableString stringWithCapacity:256];
 		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];
-		strsize.width = 0.0;
+		strsize.width = 0.0f;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString(string1, 0.0, 0.0, chSize).size;
+			strsize = rectForString(string1, 0.0f, 0.0f, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString([words stringAtIndex:0], 0.0, 0.0, chSize).size.width;
+				strsize.width += rectForString([words stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -708,7 +710,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[rowColor	replaceObjectAtIndex:i withObject:textColor];
 		[rowKey		replaceObjectAtIndex:i withObject:@""];
 		rowAlignment[i] = GUI_ALIGN_LEFT;
-		rowFadeTime[i]	= 0.0;
+		rowFadeTime[i]	= 0.0f;
 	}
 }
 
@@ -761,7 +763,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		// Damaged items in the equipment list appear in orange color.
 		BOOL is_eqpt_damaged = [[eqptList objectAtIndex:i] hasSuffix:DESC(@"equipment-not-available")];
-		if (is_eqpt_damaged == YES) glColor4f (1.0, 0.5, 0.0, 1.0);
+		if (is_eqpt_damaged == YES) glColor4f (1.0f, 0.5f, 0.0f, 1.0f);
 		
 		if (i < eqpt_items_per_column)
 		{
@@ -771,7 +773,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			drawString ([eqptList objectAtIndex:i], 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15,15));
 		}
-		glColor4f (1.0, 1.0, 0.0, 1.0);		// Reset text color to yellow.
+		glColor4f (1.0f, 1.0f, 0.0f, 1.0f);		// Reset text color to yellow.
 	}
 }
 
@@ -779,21 +781,21 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[UNIVERSE gameView] display_z];
-	if (alpha > 0.05)
+	if (alpha > 0.05f)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[self drawGLDisplay: drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
+		[self drawGLDisplay: drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
 
 		glEnable(GL_LINE_SMOOTH);
 
 		if (self == [UNIVERSE gui])
 		{
 			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
+				[self drawStarChart:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
 			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
-				[self drawGalaxyChart:drawPosition.x - 0.5 * size_in_pixels.width :drawPosition.y - 0.5 * size_in_pixels.height :z1 :alpha];
+				[self drawGalaxyChart:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
@@ -803,16 +805,16 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if (fade_sign)
 		{
-			fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
+			fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
 			if (fade_alpha < 0.0)	// done fading out
 			{
-				fade_alpha = 0.0;
-				fade_sign = 0.0;
+				fade_alpha = 0.0f;
+				fade_sign = 0.0f;
 			}
 			if (fade_alpha > 1.0)	// done fading in
 			{
-				fade_alpha = 1.0;
-				fade_sign = 0.0;
+				fade_alpha = 1.0f;
+				fade_sign = 0.0f;
 			}
 		}
 	}
@@ -823,14 +825,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
 		double cursor_x = size_in_pixels.width * vjpos.x;
-		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
-		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
+		if (cursor_x < -size_in_pixels.width * 0.5f)  cursor_x = -size_in_pixels.width * 0.5f;
+		if (cursor_x > size_in_pixels.width * 0.5f)   cursor_x = size_in_pixels.width * 0.5f;
 		double cursor_y = -size_in_pixels.height * vjpos.y;
-		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5;
-		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5;
+		if (cursor_y < -size_in_pixels.height * 0.5f)  cursor_y = -size_in_pixels.height * 0.5f;
+		if (cursor_y > size_in_pixels.height * 0.5f)   cursor_y = size_in_pixels.height * 0.5f;
 		
 		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
-		cursor_row = 1 + floor((0.5 * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+		cursor_row = 1 + (float)(floor((0.5f * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height));
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
@@ -839,10 +841,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		cursor_x += drawPosition.x;
 		cursor_y += drawPosition.y;
 		glBegin(GL_LINES);
-			glVertex3f(cursor_x - h1, cursor_y, z1);	glVertex3f(cursor_x - h3, cursor_y, z1);
-			glVertex3f(cursor_x + h1, cursor_y, z1);	glVertex3f(cursor_x + h3, cursor_y, z1);
-			glVertex3f(cursor_x, cursor_y - h1, z1);	glVertex3f(cursor_x, cursor_y - h3, z1);
-			glVertex3f(cursor_x, cursor_y + h1, z1);	glVertex3f(cursor_x, cursor_y + h3, z1);
+			glVertex3f((float)cursor_x - h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z1);
+			glVertex3f((float)cursor_x + h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z1);
+			glVertex3f((float)cursor_x, (float)cursor_y - h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z1);
+			glVertex3f((float)cursor_x, (float)cursor_y + h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z1);
 		glEnd();
 		glLineWidth(1.0f);
 	}
@@ -854,22 +856,22 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
 	GLfloat z1 = [[UNIVERSE gameView] display_z];
-	if (alpha > 0.05)
+	if (alpha > 0.05f)
 	{
 
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 
 		glEnable(GL_LINE_SMOOTH);
 
 		if (self == [UNIVERSE gui])
 		{
 			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+				[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 			{
-				[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+				[self drawGalaxyChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
@@ -879,16 +881,16 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if (fade_sign)
 		{
-			fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
+			fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
 			if (fade_alpha < 0.0)	// done fading out
 			{
-				fade_alpha = 0.0;
-				fade_sign = 0.0;
+				fade_alpha = 0.0f;
+				fade_sign = 0.0f;
 			}
 			if (fade_alpha > 1.0)	// done fading in
 			{
-				fade_alpha = 1.0;
-				fade_sign = 0.0;
+				fade_alpha = 1.0f;
+				fade_sign = 0.0f;
 			}
 		}
 	}
@@ -899,23 +901,23 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
 		double cursor_x = size_in_pixels.width * vjpos.x;
-		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5;
-		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5;
+		if (cursor_x < -size_in_pixels.width * 0.5)  cursor_x = -size_in_pixels.width * 0.5f;
+		if (cursor_x > size_in_pixels.width * 0.5)   cursor_x = size_in_pixels.width * 0.5f;
 		double cursor_y = -size_in_pixels.height * vjpos.y;
-		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5;
-		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5;
+		if (cursor_y < -size_in_pixels.height * 0.5)  cursor_y = -size_in_pixels.height * 0.5f;
+		if (cursor_y > size_in_pixels.height * 0.5)   cursor_y = size_in_pixels.height * 0.5f;
 		
-		cursor_row = 1 + floor((0.5 * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
+		cursor_row = 1 + (float)floor((0.5f * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height);
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
 		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
 		glLineWidth(2.0f);
 		glBegin(GL_LINES);
-			glVertex3f(cursor_x - h1, cursor_y, z1);	glVertex3f(cursor_x - h3, cursor_y, z1);
-			glVertex3f(cursor_x + h1, cursor_y, z1);	glVertex3f(cursor_x + h3, cursor_y, z1);
-			glVertex3f(cursor_x, cursor_y - h1, z1);	glVertex3f(cursor_x, cursor_y - h3, z1);
-			glVertex3f(cursor_x, cursor_y + h1, z1);	glVertex3f(cursor_x, cursor_y + h3, z1);
+			glVertex3f((float)cursor_x - h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z1);
+			glVertex3f((float)cursor_x + h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z1);
+			glVertex3f((float)cursor_x, (float)cursor_y - h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z1);
+			glVertex3f((float)cursor_x, (float)cursor_y + h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z1);
 		glEnd();
 		glLineWidth(1.0f);
 		
@@ -928,22 +930,22 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	if (alpha < 0.05)
+	if (alpha < 0.05f)
 		return;			// too dim to see!
 
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-	[self drawGLDisplay:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+	[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 
 	glEnable(GL_LINE_SMOOTH);
 
 	if (self == [UNIVERSE gui])
 	{
 		if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
-			[self drawStarChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+			[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
 		{
-			[self drawGalaxyChart:x - 0.5 * size_in_pixels.width :y - 0.5 * size_in_pixels.height :z :alpha];
+			[self drawGalaxyChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		}
 		if ([player guiScreen] == GUI_SCREEN_STATUS)
 		{
@@ -953,16 +955,16 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (fade_sign)
 	{
-		fade_alpha += fade_sign * [UNIVERSE getTimeDelta];
-		if (fade_alpha < 0.0)	// done fading out
+		fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
+		if (fade_alpha < 0.0f)	// done fading out
 		{
-			fade_alpha = 0.0;
-			fade_sign = 0.0;
+			fade_alpha = 0.0f;
+			fade_sign = 0.0f;
 		}
 		if (fade_alpha > 1.0)	// done fading in
 		{
-			fade_alpha = 1.0;
-			fade_sign = 0.0;
+			fade_alpha = 1.0f;
+			fade_sign = 0.0f;
 		}
 	}
 }
@@ -982,10 +984,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]);
 		glBegin(GL_QUADS);
-			glVertex3f(x + 0.0,					y + 0.0,					z);
-			glVertex3f(x + size_in_pixels.width,	y + 0.0,					z);
+			glVertex3f(x + 0.0f,					y + 0.0f,					z);
+			glVertex3f(x + size_in_pixels.width,	y + 0.0f,					z);
 			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height,	z);
-			glVertex3f(x + 0.0,					y + size_in_pixels.height,	z);
+			glVertex3f(x + 0.0f,					y + size_in_pixels.height,	z);
 		glEnd();
 	}
 	
@@ -993,7 +995,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//
 	if (backgroundSprite)
 	{
-		[backgroundSprite blitCentredToX:x + 0.5 * size_in_pixels.width Y:y + 0.5 * size_in_pixels.height Z:z alpha:alpha];
+		[backgroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
 	}
 	
 	if (!RowInRange(selectedRow, selectableRange))
@@ -1007,13 +1009,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		//
 		// draw the title
 		//
-		strsize = rectForString(title, 0.0, 0.0, titleCharacterSize).size;
-		glColor4f(1.0, 0.0, 0.0, alpha);	// red
+		strsize = rectForString(title, 0.0f, 0.0f, titleCharacterSize).size;
+		glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
 		drawString(title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
 		
 		// draw a horizontal divider
 		//
-		glColor4f(0.75, 0.75, 0.75, alpha);	// 75% gray
+		glColor4f(0.75f, 0.75f, 0.75f, alpha);	// 75% gray
 		glBegin(GL_QUADS);
 			glVertex3f(x + 0,					y + size_in_pixels.height - pixel_title_size.height + 4,	z);
 			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 4,	z);
@@ -1028,15 +1030,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		OOColor* row_color = (OOColor *)[rowColor objectAtIndex:i];
 		GLfloat row_alpha = alpha;
-		if (rowFadeTime[i] > 0.0)
+		if (rowFadeTime[i] > 0.0f)
 		{
-			rowFadeTime[i] -= delta_t;
-			if (rowFadeTime[i] <= 0.0)
+			rowFadeTime[i] -= (float)delta_t;
+			if (rowFadeTime[i] <= 0.0f)
 			{
 				[rowText replaceObjectAtIndex:i withObject:@""];
-				rowFadeTime[i] = 0.0;
+				rowFadeTime[i] = 0.0f;
 			}
-			if ((rowFadeTime[i] > 0.0)&&(rowFadeTime[i] < 1.0))
+			if ((rowFadeTime[i] > 0.0f)&&(rowFadeTime[i] < 1.0))
 				row_alpha *= rowFadeTime[i];
 		}
 		glColor4f([row_color redComponent], [row_color greenComponent], [row_color blueComponent], row_alpha);
@@ -1046,30 +1048,30 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			NSString*   text = (NSString *)[rowText objectAtIndex:i];
 			if (![text isEqual:@""])
 			{
-				strsize = rectForString(text, 0.0, 0.0, characterSize).size;
+				strsize = rectForString(text, 0.0f, 0.0f, characterSize).size;
 				switch (rowAlignment[i])
 				{
 					case GUI_ALIGN_LEFT :
-						rowPosition[i].x = 0.0;
+						rowPosition[i].x = 0.0f;
 						break;
 					case GUI_ALIGN_RIGHT :
 						rowPosition[i].x = size_in_pixels.width - strsize.width;
 						break;
 					case GUI_ALIGN_CENTER :
-						rowPosition[i].x = (size_in_pixels.width - strsize.width)/2.0;
+						rowPosition[i].x = (size_in_pixels.width - strsize.width)/2.0f;
 						break;
 				}
 				if (i == (unsigned)selectedRow)
 				{
 					NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-					glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
+					glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
 					glBegin(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 						glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 					glEnd();
-					glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
+					glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
 				}
 				drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				
@@ -1077,12 +1079,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				//
 				if ((showTextCursor)&&(i == (unsigned)currentRow))
 				{
-					NSRect	tr = rectForString(text, 0.0, 0.0, characterSize);
-					NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2 * characterSize.width, y + rowPosition[i].y);
+					NSRect	tr = rectForString(text, 0.0f, 0.0f, characterSize);
+					NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2f * characterSize.width, y + rowPosition[i].y);
 					tr.origin = cu;
-					tr.size.width = 0.5 * characterSize.width;
-					GLfloat g_alpha = 0.5 * (1.0 + sin(6 * [UNIVERSE getTime]));
-					glColor4f(1.0, 0.0, 0.0, row_alpha * g_alpha);	// red
+					tr.size.width = 0.5f * characterSize.width;
+					GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
+					glColor4f(1.0f, 0.0f, 0.0f, row_alpha * g_alpha);	// red
 					glBegin(GL_QUADS);
 						glVertex3f(tr.origin.x,					tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);
@@ -1105,14 +1107,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					if (i == (unsigned)selectedRow)
 					{
 						NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-						glColor4f(1.0, 0.0, 0.0, row_alpha);	// red
+						glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
 						glBegin(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 							glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
 						glEnd();
-						glColor4f(0.0, 0.0, 0.0, row_alpha);	// black
+						glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
 					}
 					drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				}
@@ -1137,7 +1139,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
-	double		vcenter = 160.0;
+	double		vcenter = 160.0f;
 	double		hscale = 4.0 * size_in_pixels.width / 256.0;
 	double		vscale = -4.0 * size_in_pixels.height / 512.0;
 	double		hoffset = hcenter - galaxy_coordinates.x*hscale;
@@ -1153,25 +1155,25 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 	// draw fuel range circle
 	//
-	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
-	glLineWidth(2.0);
-	cu = NSMakePoint(hscale*galaxy_coordinates.x+hoffset,vscale*galaxy_coordinates.y+voffset);
-	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(fuel*hscale, 2*fuel*vscale), 5);
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
+	glLineWidth(2.0f);
+	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 		
 	// draw marks and stars
 	//
-	glLineWidth(1.5);
-	glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
+	glLineWidth(1.5f);
+	glColor4f(1.0f, 1.0f, 0.75f, alpha);	// pale yellow
 
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		int dx, dy;
-		float blob_size = 4.0 + 0.5 * (g_seed.f & 15);
+		float blob_size = 4.0f + 0.5f * (g_seed.f & 15);
 				
-		star.x = g_seed.d * hscale + hoffset;
-		star.y = g_seed.b * vscale + voffset;
+		star.x = (float)(g_seed.d * hscale + hoffset);
+		star.y = (float)(g_seed.b * vscale + voffset);
 		
 		dx = abs(galaxy_coordinates.x - g_seed.d);
 		dy = abs(galaxy_coordinates.y - g_seed.b);
@@ -1180,15 +1182,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			if ([markedDestinations boolAtIndex:i])	// is marked
 			{
-				GLfloat mark_size = 0.5 * blob_size + 2.5;
-				glColor4f(1.0, 0.0, 0.0, alpha);	// red
+				GLfloat mark_size = 0.5f * blob_size + 2.5f;
+				glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
 				glBegin(GL_LINES);
 					glVertex3f(x + star.x - mark_size,	y + star.y - mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x - mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y - mark_size,	z);
 				glEnd();
-				glColor4f(1.0, 1.0, 0.75, alpha);	// pale yellow
+				glColor4f(1.0f, 1.0f, 0.75f, alpha);	// pale yellow
 			}
 			GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 		}
@@ -1196,15 +1198,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw names
 	//
-	glColor4f(1.0, 1.0, 0.0, alpha);	// yellow
+	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
 		int dx, dy;
 		
-		star.x = g_seed.d * hscale + hoffset;
-		star.y = g_seed.b * vscale + voffset;
+		star.x = (float)(g_seed.d * hscale + hoffset);
+		star.y = (float)(g_seed.b * vscale + voffset);
 		
 		dx = abs(galaxy_coordinates.x - g_seed.d);
 		dy = abs(galaxy_coordinates.y - g_seed.b);
@@ -1229,7 +1231,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw cross-hairs over current location
 	//
-	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
 	glBegin(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
@@ -1243,8 +1245,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f(1.0, 0.0, 0.0, alpha);	//	red
-	cu = NSMakePoint(hscale*cursor_coordinates.x+hoffset,vscale*cursor_coordinates.y+voffset);
+	glColor4f(1.0f, 0.0f, 0.0f, alpha);	//	red
+	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
 	glBegin(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
@@ -1277,7 +1279,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	Random_Seed g_seed;
 	double		hscale = size_in_pixels.width / 256.0;
 	double		vscale = -1.0 * size_in_pixels.height / 512.0;
-	double		hoffset = 0.0;
+	double		hoffset = 0.0f;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	int			i;
 	
@@ -1288,10 +1290,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw fuel range circle
 	//
-	glColor4f(0.0, 1.0, 0.0, alpha);	//	green
-	glLineWidth(2.0);
-	cu = NSMakePoint(hscale*galaxy_coordinates.x+hoffset,vscale*galaxy_coordinates.y+voffset);
-	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize(fuel*hscale, 2*fuel*vscale), 5);
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
+	glLineWidth(2.0f);
+	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
+	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	
 	// draw cross-hairs over current location
 	//
@@ -1308,8 +1310,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f(1.0, 0.0, 0.0, alpha);	//	red
-	cu = NSMakePoint(hscale*cursor_coordinates.x+hoffset,vscale*cursor_coordinates.y+voffset);
+	glColor4f(1.0f, 0.0f, 0.0f, alpha);	//	red
+	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
 	glBegin(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
@@ -1323,75 +1325,75 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw marks
 	//
-	glLineWidth(1.5);
-	glColor4f(1.0, 0.0, 0.0, alpha);
+	glLineWidth(1.5f);
+	glColor4f(1.0f, 0.0f, 0.0f, alpha);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		BOOL mark = [(NSNumber*)[markedDestinations objectAtIndex:i] boolValue];
 		if (mark)
 		{
-			star.x = g_seed.d * hscale + hoffset;
-			star.y = g_seed.b * vscale + voffset;
+			star.x = (float)(g_seed.d * hscale + hoffset);
+			star.y = (float)(g_seed.b * vscale + voffset);
 			glBegin(GL_LINES);
-				glVertex3f(x + star.x - 2.5,	y + star.y - 2.5,	z);
-				glVertex3f(x + star.x + 2.5,	y + star.y + 2.5,	z);
-				glVertex3f(x + star.x - 2.5,	y + star.y + 2.5,	z);
-				glVertex3f(x + star.x + 2.5,	y + star.y - 2.5,	z);
+				glVertex3f(x + star.x - 2.5f,	y + star.y - 2.5f,	z);
+				glVertex3f(x + star.x + 2.5f,	y + star.y + 2.5f,	z);
+				glVertex3f(x + star.x - 2.5f,	y + star.y + 2.5f,	z);
+				glVertex3f(x + star.x + 2.5f,	y + star.y - 2.5f,	z);
 			glEnd();
 		}
 	}
 	
 	// draw stars
 	//
-	glColor4f(1.0, 1.0, 1.0, alpha);
+	glColor4f(1.0f, 1.0f, 1.0f, alpha);
 	glBegin(GL_QUADS);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		
-		star.x = g_seed.d * hscale + hoffset;
-		star.y = g_seed.b * vscale + voffset;
+		star.x = (float)(g_seed.d * hscale + hoffset);
+		star.y = (float)(g_seed.b * vscale + voffset);
 
-		double sz = (4.0 + 0.5 * (0x03 | (g_seed.f & 0x0f))) / 7.0;
+		float sz = (4.0f + 0.5f * (0x03 | (g_seed.f & 0x0f))) / 7.0f;
 		
-		glVertex3f(x + star.x,			y + star.y + sz,	z);
-		glVertex3f(x + star.x + sz,	y + star.y,			z);
-		glVertex3f(x + star.x,			y + star.y - sz,	z);
-		glVertex3f(x + star.x - sz,	y + star.y,			z);
+		glVertex3f(x + star.x, y + star.y + sz, z);
+		glVertex3f(x + star.x + sz,	y + star.y, z);
+		glVertex3f(x + star.x, y + star.y - sz, z);
+		glVertex3f(x + star.x - sz,	y + star.y, z);
 	}
 	glEnd();
 		
 	// draw found stars and captions
 	//
-	glLineWidth(1.5);
-	glColor4f(0.0, 1.0, 0.0, alpha);
+	glLineWidth(1.5f);
+	glColor4f(0.0f, 1.0f, 0.0f, alpha);
 	for (i = 0; i < 256; i++)
 	{
 		BOOL mark = systems_found[i];
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		if (mark)
 		{
-			star.x = g_seed.d * hscale + hoffset;
-			star.y = g_seed.b * vscale + voffset;
+			star.x = (float)(g_seed.d * hscale + hoffset);
+			star.y = (float)(g_seed.b * vscale + voffset);
 			glBegin(GL_LINE_LOOP);
-				glVertex3f(x + star.x - 2.0,	y + star.y - 2.0,	z);
-				glVertex3f(x + star.x + 2.0,	y + star.y - 2.0,	z);
-				glVertex3f(x + star.x + 2.0,	y + star.y + 2.0,	z);
-				glVertex3f(x + star.x - 2.0,	y + star.y + 2.0,	z);
+				glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
+				glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
+				glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
+				glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
 			glEnd();
-			drawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0, z, NSMakeSize(10,10));
+			drawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 		}
 	}
 	
 	// draw bottom horizontal divider
 	//
-	glColor4f(0.75, 0.75, 0.75, alpha);	// 75% gray
+	glColor4f(0.75f, 0.75f, 0.75f, alpha);	// 75% gray
 	glBegin(GL_QUADS);
-		glVertex3f(x + 0,					y + voffset + 260.0*vscale + 0,	z);
-		glVertex3f(x + size_in_pixels.width,	y + voffset + 260.0*vscale + 0,	z);
-		glVertex3f(x + size_in_pixels.width,	y + voffset + 260.0*vscale - 2,		z);
-		glVertex3f(x + 0,					y + voffset + 260.0*vscale - 2,		z);
+		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale + 0),	z);
+		glVertex3f(x + size_in_pixels.width, y + (float)(voffset + 260.0f*vscale + 0), z);
+		glVertex3f(x + size_in_pixels.width, (float)(y + voffset + 260.0f*vscale - 2), z);
+		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale - 2), z);
 	glEnd();
 
 }
@@ -1408,11 +1410,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	int				i, j;
 	double			hscale = size_in_pixels.width / 256.0;
 	double			vscale = -1.0 * size_in_pixels.height / 512.0;
-	double			hoffset = 0.0;
+	double			hoffset = 0.0f;
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	NSPoint			star, star2 = NSZeroPoint;
 	
-	glColor4f(0.25, 0.25, 0.25, alpha);
+	glColor4f(0.25f, 0.25f, 0.25f, alpha);
 	
 	glBegin(GL_LINES );
 	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
@@ -1420,13 +1422,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
 		g_seed2 = [UNIVERSE systemSeedForSystemNumber:j];
 		
-		star.x = g_seed.d * hscale + hoffset;
-		star.y = g_seed.b * vscale + voffset;
-		star2.x = g_seed2.d * hscale + hoffset;
-		star2.y = g_seed2.b * vscale + voffset;
+		star.x = (float)(g_seed.d * hscale + hoffset);
+		star.y = (float)(g_seed.b * vscale + voffset);
+		star2.x = (float)(g_seed2.d * hscale + hoffset);
+		star2.y = (float)(g_seed2.b * vscale + voffset);
 		double d = distanceBetweenPlanetPositions(g_seed.d, g_seed.b, g_seed2.d, g_seed2.b);
 		
-		if (d <= (PLAYER_MAX_FUEL / 10.0))	// another_commander - Default to 7.0 LY.
+		if (d <= (PLAYER_MAX_FUEL / 10.0f))	// another_commander - Default to 7.0 LY.
 		{
 			glVertex3f(x+star.x, y+star.y, z );
 			glVertex3f(x+star2.x, y+star2.y, z );
@@ -1443,7 +1445,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] -1;
 		
-		glColor4f (1.0, 1.0, 0.0, alpha);	// Yellow for plotting routes.
+		glColor4f (1.0f, 1.0f, 0.0f, alpha); // Yellow for plotting routes.
 		for (i = 0; i < route_hops; i++)
 		{
 			int loc = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:i] intValue];
@@ -1451,10 +1453,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			
 			g_seed = [UNIVERSE systemSeedForSystemNumber:loc];
 			g_seed2 = [UNIVERSE systemSeedForSystemNumber:(loc2)];        
-			star.x = g_seed.d * hscale + hoffset;
-			star.y = g_seed.b * vscale + voffset;
-			star2.x = g_seed2.d * hscale + hoffset;
-			star2.y = g_seed2.b * vscale + voffset; 
+			star.x = (float)(g_seed.d * hscale + hoffset);
+			star.y = (float)(g_seed.b * vscale + voffset);
+			star2.x = (float)(g_seed2.d * hscale + hoffset);
+			star2.y = (float)(g_seed2.b * vscale + voffset);
 			
 			glBegin (GL_LINES);
 			glVertex3f (x+star.x, y+star.y, z);
