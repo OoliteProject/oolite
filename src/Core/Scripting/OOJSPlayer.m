@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 
 #import "PlayerEntity.h"
+#import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 
@@ -58,6 +59,10 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -105,6 +110,8 @@ enum
 	kPlayer_specialCargo,		// special cargo, string, read-only
 	kPlayer_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayer_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
+	kPlayer_contractReputation,	// reputation for cargo contracts, integer, read only
+	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read only
 };
 
 
@@ -127,6 +134,8 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "specialCargo",			kPlayer_specialCargo,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceBehaviour",	kPlayer_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceFixedCoords",	kPlayer_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "contractReputation",	kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengerReputation",	kPlayer_passengerReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -148,6 +157,10 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "consoleMessage",			PlayerConsoleMessage,		1 },
 	{ "setGalacticHyperspaceBehaviour",	PlayerSetGalacticHyperspaceBehaviour,	1 },
 	{ "setGalacticHyperspaceFixedCoords",	PlayerSetGalacticHyperspaceFixedCoords,	1 },
+	{ "increaseContractReputation",	PlayerIncreaseContractReputation, 0 },
+	{ "decreaseContractReputation",	PlayerDecreaseContractReputation, 0 },
+	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation, 0 },
+	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation, 0 },
 	{ 0 }
 };
 
@@ -303,6 +316,16 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_galacticHyperspaceFixedCoords:
 			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
+			break;
+			
+		case kPlayer_contractReputation:
+			*outValue = INT_TO_JSVAL([player contractReputation]);
+			OK = YES;
+			break;
+			
+		case kPlayer_passengerReputation:
+			*outValue = INT_TO_JSVAL([player passengerReputation]);
+			OK = YES;
 			break;
 		
 		default:
@@ -709,5 +732,37 @@ static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObjec
 	y = OOClamp_0_max_d(y, 255);
 	
 	[player setGalacticHyperspaceFixedCoordsX:x y:y];
+	return YES;
+}
+
+
+// increaseContractReputation()
+static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() increaseContractReputation];
+	return YES;
+}
+
+
+// decreaseContractReputation()
+static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() decreaseContractReputation];
+	return YES;
+}
+
+
+// increasePassengerReputation()
+static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() increasePassengerReputation];
+	return YES;
+}
+
+
+// decreasePassengerReputation()
+static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[OOPlayerForScripting() decreasePassengerReputation];
 	return YES;
 }
