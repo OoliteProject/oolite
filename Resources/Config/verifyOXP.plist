@@ -264,6 +264,7 @@
 			"rotating",
 			"defense_ship",
 			"defense_ship_role",
+			"has_npc_traffic",
 			"hasShipyard",
 			"port_radius",
 			"port_dimensions",
