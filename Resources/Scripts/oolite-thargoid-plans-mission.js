@@ -66,6 +66,14 @@ this.missionOffers = function ()
 				player.score += 256; // ship kills
 				mission.setInstructionsKey();  // reset the missionbriefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
+				if (player.hasEquipment("EQ_ENERGY_UNIT"))
+				{
+					player.removeEquipment("EQ_ENERGY_UNIT");
+				}
+				else if (player.hasEquipment("EQ_ENERGY_UNIT_DAMAGED"))
+				{
+					player.removeEquipment("EQ_ENERGY_UNIT_DAMAGED");
+				}
 				player.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
 				missionVariables.TL_FOR_EQ_NAVAL_ENERGY_UNIT = 13;
 				mission.unmarkSystem(36);
