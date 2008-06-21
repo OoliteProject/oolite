@@ -118,7 +118,7 @@ float bellf (int n)
 	if (EXPECT_NOT(i <= 0))
 	{
 		printf("***** ERROR - attempt to generate bellf(%d)\n", n);
-		return 0.0;	// catch possible div-by-zero problem
+		return 0.0f; // catch possible div-by-zero problem
 	}
 	
 	while (i-- > 0)
