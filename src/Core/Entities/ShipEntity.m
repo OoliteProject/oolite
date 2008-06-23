@@ -6773,8 +6773,6 @@ BOOL class_masslocks(int some_class)
 	if (status == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
-	unsigned i;
-	
 	// If it's an energy mine...
 	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
 	{
@@ -6838,12 +6836,16 @@ BOOL class_masslocks(int some_class)
 					[group_leader setPrimaryAggressor:hunter];
 					[group_leader respondToAttackFrom:ent becauseOf:hunter];
 				}
-				else
-					groupID = NO_TARGET;
+				else if (self != group_leader) 
+				{
+					[self setGroupID:NO_TARGET];
+				}
+				//unsetting group leader for carriers can break stuff
 			}
 			if ([self isPirate])
 			{
 				NSArray	*fellow_pirates = [self shipsInGroup:groupID];
+				unsigned int i;
 				for (i = 0; i < [fellow_pirates count]; i++)
 				{
 					ShipEntity *other_pirate = (ShipEntity *)[fellow_pirates objectAtIndex:i];
@@ -6858,6 +6860,7 @@ BOOL class_masslocks(int some_class)
 			if (iAmTheLaw)
 			{
 				NSArray	*fellow_police = [self shipsInGroup:groupID];
+				unsigned int i;
 				for (i = 0; i < [fellow_police count]; i++)
 				{
 					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
@@ -7236,6 +7239,10 @@ int w_space_seed = 1234567;
 	if (![self primaryTarget])
 		return;
 
+	if ([self groupID] == NO_TARGET)
+	{
+		[self setGroupID:universalID];
+	}
 	if (primaryTarget == last_escort_target)
 	{
 		// already deployed escorts onto this target!
@@ -7256,7 +7263,7 @@ int w_space_seed = 1234567;
 		// check it's still an escort ship
 		if (escorter != nil && escorter->isShip)
 		{
-			[escorter setGroupID:NO_TARGET];	// act individually now!
+			[escorter setGroupID:groupID]; //you still belong to me, see  [Bug #14011 ] Carriers should have groupID set.
 			[escorter addTarget:[self primaryTarget]];
 			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
 			[[escorter getAI] setState:@"GLOBAL"];

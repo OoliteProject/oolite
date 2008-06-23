@@ -694,7 +694,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
-	unsigned		i;
+	unsigned int i;
 	
 	isShip = YES;
 	isStation = YES;
@@ -776,7 +776,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	last_patrol_report_time -= patrol_launch_interval;
 	
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
-	
+	if ([self groupID] == NO_TARGET) {
+		[self setGroupID:universalID];
+	}
 	return YES;
 }
 
@@ -1243,7 +1245,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	//stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
-	BOOL isFriend = [other isShip] && ([(ShipEntity*)other groupID]==universalID);
+	BOOL isFriend = [other isShip] && groupID != NO_TARGET && (([(ShipEntity*)other groupID]==groupID) || (([(ShipEntity*)other groupID]==universalID))) ;
 	// If this is the system's main station...
 	if (self == [UNIVERSE station] && !isFriend)
 	{
@@ -1450,7 +1452,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 				
 	[defense_ship setOwner: self];
-	[defense_ship setGroupID:universalID];	// who's your Daddy
+	if (groupID != NO_TARGET)
+	{
+		[self setGroupID:universalID];	
+	}
+	[defense_ship setGroupID:groupID];	// who's your Daddy
 	
 	[defense_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 
