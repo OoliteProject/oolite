@@ -7,6 +7,7 @@
 	requiredKeys = ( "model", "name", "roles" );
 	schema =
 	{
+		is_template = "boolean";
 		like_ship = "$shipRole";
 		max_flight_speed = "positiveFloat";
 		max_flight_roll = "positiveFloat";

@@ -1406,6 +1406,7 @@
 		model = "escpod_redux.dat";
 		name = "Escape capsule";
 		roles = "escape-capsule oolite-escape-capsule";
+		scanClass = "CLASS_CARGO";
 		subentities =
 		(
 			"*FLASHER* 0.0 4.42 -1.54\t0.0 2 0.0 2.0",

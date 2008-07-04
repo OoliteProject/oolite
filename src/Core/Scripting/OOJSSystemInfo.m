@@ -225,7 +225,7 @@ BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID 
 	}
 	
 	// If not, create a new one.
-	OOSystemInfo *info = [[OOSystemInfo alloc] initWithGalaxy:galaxy system:system];
+	OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
 	if (info == nil)
 	{
 		OOReportJSError(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);

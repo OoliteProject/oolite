@@ -78,14 +78,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
         NSOpenGLPFAAccelerated,
         0
     };
-    GLint rendererID;
 
     // Create our non-FullScreen pixel format.
-    NSOpenGLPixelFormat* pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
-
-    // Just as a diagnostic, report the renderer ID that this pixel format binds to.  CGLRenderers.h contains a list of known renderers
-	// and their corresponding RendererID codes.
-    [pixelFormat getValues:&rendererID forAttribute:NSOpenGLPFARendererID forVirtualScreen:0];
+    NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
 
     self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
 

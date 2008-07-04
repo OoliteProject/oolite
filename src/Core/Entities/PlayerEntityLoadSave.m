@@ -137,8 +137,8 @@
 	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
 	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
-	tmp_name = [player_name copy];
-	if (save_path) tmp_path = [save_path copy];
+	tmp_name = player_name;
+	tmp_path = save_path;
 	
 	NSString *saveName = DESC(@"autosave-commander-name");
 	NSString *savePath = [dir stringByAppendingPathComponent:[saveName stringByAppendingString:@".oolite-save"]];
@@ -148,13 +148,13 @@
 
 	[self writePlayerToPath:savePath];
 	
-	if(tmp_path)
+	if (tmp_path != nil)
 	{
 		[save_path autorelease];
-		save_path = [[tmp_path copy] retain];
+		save_path = [tmp_path copy];
 	}
 	[player_name autorelease];
-	player_name = [[tmp_name copy] retain];
+	player_name = [tmp_name copy];
 }
 
 

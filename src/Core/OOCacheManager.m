@@ -187,7 +187,7 @@ static OOCacheManager *sSingleton = nil;
 	cache = [_caches objectForKey:inCacheKey];
 	if (cache == nil)
 	{
-		cache = [[OOCache alloc] init];
+		cache = [[[OOCache alloc] init] autorelease];
 		if (cache == nil)
 		{
 			OOLog(kOOLogDataCacheSetFailed, @"Failed to create cache for key \"%@\".", inCacheKey);

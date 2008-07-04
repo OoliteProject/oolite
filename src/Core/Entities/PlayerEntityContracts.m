@@ -339,9 +339,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (int) passengerReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:PASSAGE_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:PASSAGE_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:PASSAGE_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:PASSAGE_GOOD_KEY];
+	int bad = [reputation intForKey:PASSAGE_BAD_KEY];
+	int unknown = [reputation intForKey:PASSAGE_UNKNOWN_KEY];
 	
 	if (unknown > 0)
 		unknown = 7 - (market_rnd % unknown);
@@ -354,9 +354,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (void) increasePassengerReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:PASSAGE_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:PASSAGE_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:PASSAGE_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:PASSAGE_GOOD_KEY];
+	int bad = [reputation intForKey:PASSAGE_BAD_KEY];
+	int unknown = [reputation intForKey:PASSAGE_UNKNOWN_KEY];
 	
 	if (bad > 0)
 	{
@@ -373,17 +373,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (good < 7)
 			good++;
 	}
-	[reputation setObject:[NSNumber numberWithInt:good]		forKey:PASSAGE_GOOD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:bad]		forKey:PASSAGE_BAD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:unknown]	forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation setInteger:good		forKey:PASSAGE_GOOD_KEY];
+	[reputation setInteger:bad		forKey:PASSAGE_BAD_KEY];
+	[reputation setInteger:unknown	forKey:PASSAGE_UNKNOWN_KEY];
 }
 
 
 - (void) decreasePassengerReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:PASSAGE_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:PASSAGE_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:PASSAGE_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:PASSAGE_GOOD_KEY];
+	int bad = [reputation intForKey:PASSAGE_BAD_KEY];
+	int unknown = [reputation intForKey:PASSAGE_UNKNOWN_KEY];
 	
 	if (good > 0)
 	{
@@ -400,17 +400,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (bad < 7)
 			bad++;
 	}
-	[reputation setObject:[NSNumber numberWithInt:good]		forKey:PASSAGE_GOOD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:bad]		forKey:PASSAGE_BAD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:unknown]	forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation setInteger:good		forKey:PASSAGE_GOOD_KEY];
+	[reputation setInteger:bad		forKey:PASSAGE_BAD_KEY];
+	[reputation setInteger:unknown	forKey:PASSAGE_UNKNOWN_KEY];
 }
 
 
 - (int) contractReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:CONTRACTS_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:CONTRACTS_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:CONTRACTS_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:CONTRACTS_GOOD_KEY];
+	int bad = [reputation intForKey:CONTRACTS_BAD_KEY];
+	int unknown = [reputation intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (unknown > 0)
 		unknown = 7 - (market_rnd % unknown);
@@ -423,9 +423,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (void) increaseContractReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:CONTRACTS_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:CONTRACTS_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:CONTRACTS_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:CONTRACTS_GOOD_KEY];
+	int bad = [reputation intForKey:CONTRACTS_BAD_KEY];
+	int unknown = [reputation intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (bad > 0)
 	{
@@ -442,17 +442,17 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (good < 7)
 			good++;
 	}
-	[reputation setObject:[NSNumber numberWithInt:good]		forKey:CONTRACTS_GOOD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:bad]		forKey:CONTRACTS_BAD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:unknown]	forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation setInteger:good		forKey:CONTRACTS_GOOD_KEY];
+	[reputation setInteger:bad		forKey:CONTRACTS_BAD_KEY];
+	[reputation setInteger:unknown	forKey:CONTRACTS_UNKNOWN_KEY];
 }
 
 
 - (void) decreaseContractReputation
 {
-	int good = [(NSNumber*)[reputation objectForKey:CONTRACTS_GOOD_KEY] intValue];
-	int bad = [(NSNumber*)[reputation objectForKey:CONTRACTS_BAD_KEY] intValue];
-	int unknown = [(NSNumber*)[reputation objectForKey:CONTRACTS_UNKNOWN_KEY] intValue];
+	int good = [reputation intForKey:CONTRACTS_GOOD_KEY];
+	int bad = [reputation intForKey:CONTRACTS_BAD_KEY];
+	int unknown = [reputation intForKey:CONTRACTS_UNKNOWN_KEY];
 	
 	if (good > 0)
 	{
@@ -469,20 +469,20 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (bad < 7)
 			bad++;
 	}
-	[reputation setObject:[NSNumber numberWithInt:good]		forKey:CONTRACTS_GOOD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:bad]		forKey:CONTRACTS_BAD_KEY];
-	[reputation setObject:[NSNumber numberWithInt:unknown]	forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation setInteger:good		forKey:CONTRACTS_GOOD_KEY];
+	[reputation setInteger:bad		forKey:CONTRACTS_BAD_KEY];
+	[reputation setInteger:unknown	forKey:CONTRACTS_UNKNOWN_KEY];
 }
 
 
 - (void) erodeReputation
 {
-	int c_good = [(NSNumber*)[reputation objectForKey:CONTRACTS_GOOD_KEY] intValue];
-	int c_bad = [(NSNumber*)[reputation objectForKey:CONTRACTS_BAD_KEY] intValue];
-	int c_unknown = [(NSNumber*)[reputation objectForKey:CONTRACTS_UNKNOWN_KEY] intValue];
-	int p_good = [(NSNumber*)[reputation objectForKey:PASSAGE_GOOD_KEY] intValue];
-	int p_bad = [(NSNumber*)[reputation objectForKey:PASSAGE_BAD_KEY] intValue];
-	int p_unknown = [(NSNumber*)[reputation objectForKey:PASSAGE_UNKNOWN_KEY] intValue];
+	int c_good = [reputation intForKey:CONTRACTS_GOOD_KEY];
+	int c_bad = [reputation intForKey:CONTRACTS_BAD_KEY];
+	int c_unknown = [reputation intForKey:CONTRACTS_UNKNOWN_KEY];
+	int p_good = [reputation intForKey:PASSAGE_GOOD_KEY];
+	int p_bad = [reputation intForKey:PASSAGE_BAD_KEY];
+	int p_unknown = [reputation intForKey:PASSAGE_UNKNOWN_KEY];
 	
 	if (c_unknown < 7)
 	{
