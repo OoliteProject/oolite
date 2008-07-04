@@ -88,8 +88,8 @@ void quaternion_into_gl_matrix(Quaternion quat, GLfloat *glmat)
 
 Vector vector_forward_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wz, wy, wx;
-    GLfloat	x, xz, xy, xx;
+    GLfloat	w, wy, wx;
+    GLfloat	x, xz, xx;
     GLfloat	y, yz, yy;
     GLfloat	z, zz;
     Vector res;
@@ -100,10 +100,9 @@ Vector vector_forward_from_quaternion(Quaternion quat)
     x = quat.x;
     
     xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wy = w * yy; wz = w * zz;
-    xx = x * xx; xy = x * yy; xz = x * zz;
+    wx = w * xx; wy = w * yy;
+    xx = x * xx; xz = x * zz;
     yy = y * yy; yz = y * zz;
-    zz = z * zz;
 
     res.x = xz - wy;
 	res.y = yz + wx;
@@ -116,8 +115,8 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 
 Vector vector_up_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wz, wy, wx;
-    GLfloat	x, xz, xy, xx;
+    GLfloat	w, wz, wx;
+    GLfloat	x, xy, xx;
     GLfloat	y, yz, yy;
     GLfloat	z, zz;
     Vector res;
@@ -128,9 +127,9 @@ Vector vector_up_from_quaternion(Quaternion quat)
     x = quat.x;
     
     xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wy = w * yy; wz = w * zz;
-    xx = x * xx; xy = x * yy; xz = x * zz;
-    yy = y * yy; yz = y * zz;
+    wx = w * xx; wz = w * zz;
+    xx = x * xx; xy = x * yy;
+    yz = y * zz;
     zz = z * zz;
 
     res.x = xy + wz;
@@ -144,9 +143,9 @@ Vector vector_up_from_quaternion(Quaternion quat)
 
 Vector vector_right_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wz, wy, wx;
-    GLfloat	x, xz, xy, xx;
-    GLfloat	y, yz, yy;
+    GLfloat	w, wz, wy;
+    GLfloat	x, xz, xy;
+    GLfloat	y, yy;
     GLfloat	z, zz;
     Vector res;
 	
@@ -155,10 +154,10 @@ Vector vector_right_from_quaternion(Quaternion quat)
     y = quat.y;
     x = quat.x;
     
-    xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wy = w * yy; wz = w * zz;
-    xx = x * xx; xy = x * yy; xz = x * zz;
-    yy = y * yy; yz = y * zz;
+    yy = 2.0f * y; zz = 2.0f * z;
+    wy = w * yy; wz = w * zz;
+    xy = x * yy; xz = x * zz;
+    yy = y * yy;
     zz = z * zz;
 
     res.x = 1.0f - yy - zz;
@@ -204,7 +203,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *ou
 		outUp->y = 1.0f - xx - zz;
 		outUp->z = yz - wx;
 		
-		if (outUp->x || outUp->y || outUp->z)  *outRight = vector_normal(*outRight);
+		if (outUp->x || outUp->y || outUp->z)  *outUp = vector_normal(*outUp);
 		else  *outUp = make_vector(0.0f, 1.0f, 0.0f);
 	}
 	
@@ -214,7 +213,7 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *ou
 		outForward->y = yz + wx;
 		outForward->z = 1.0f - xx - yy;
 		
-		if (outForward->x || outForward->y || outForward->z)  *outRight = vector_normal(*outRight);
+		if (outForward->x || outForward->y || outForward->z)  *outForward = vector_normal(*outForward);
 		else  *outForward = make_vector(0.0f, 0.0f, 1.0f);
 	}
 }

@@ -305,7 +305,7 @@ MA 02110-1301, USA.
 			thing_uids_found[things_found++] = found_target;
 		}
 	}
-	//
+	
 	if (found_target != NO_TARGET)
 	{
 		found_target = thing_uids_found[ranrot_rand() % things_found];

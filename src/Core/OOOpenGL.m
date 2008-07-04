@@ -54,7 +54,7 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 			if (format == nil) format = @"<unknown>";
 			
 			va_start(args, format);
-			format = [[NSString alloc] initWithFormat:format arguments:args];
+			format = [[[NSString alloc] initWithFormat:format arguments:args] autorelease];
 			va_end(args);
 			OOLog(kOOLogOpenGLError, @"OpenGL error: \"%s\" (%#x), context: %@", errString, errCode, format);
 		}

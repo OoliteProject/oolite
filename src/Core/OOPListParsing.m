@@ -328,6 +328,7 @@ static NSArray *TokensFromXML(NSData *data, NSString *whereFrom)
 	else
 	{
 		scanner = [NSScanner scannerWithString:xmlString];
+		[xmlString release];
 		
 		OOLogPushIndent();
 		NS_DURING

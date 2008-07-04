@@ -478,7 +478,6 @@ noteChangedConfigrationValue:(in id)newValue
 	if (_status == kOOTCPClientStartedConnectionStage2)
 	{
 		_status = kOOTCPClientConnected;
-		hostName = [_host name];
 		
 		// Build "Connected..." message with two optional parts, console identity and host name.
 		connectedMessage = [NSMutableString stringWithString:@"Connected to external debug console"];

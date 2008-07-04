@@ -6943,7 +6943,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			ranrot_srand(super_rand2);
 			
 			// select a random point in the histogram
-			qr = super_rand2 % total_quantity;
+			qr = total_quantity ? (super_rand2 % total_quantity) : 0;
 						
 			co_type = 0;
 			while (qr > 0)

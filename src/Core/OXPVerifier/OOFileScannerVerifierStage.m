@@ -786,7 +786,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	if (existing != nil)
 	{
 		if (outExisting != NULL)  *outExisting = existing;
-		if (outExistingType != NULL)  *outExisting = @"directory";
+		if (outExistingType != NULL)  *outExistingType = @"directory";
 		return YES;
 	}
 	
@@ -794,7 +794,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	if (existing != nil)
 	{
 		if (outExisting != NULL)  *outExisting = existing;
-		if (outExistingType != NULL)  *outExisting = @"file";
+		if (outExistingType != NULL)  *outExistingType = @"file";
 		return YES;
 	}
 	

@@ -181,7 +181,9 @@ enum
 - (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
 {
 	BOOL							OK = YES;
-	OOCAStreamingSoundRenderContext	context;
+	OOCAStreamingSoundRenderContext	context = NULL;
+	
+	assert(outContext != NULL);
 	
 	if (OK)
 	{
@@ -191,6 +193,10 @@ enum
 			*outContext = (OOCASoundRenderContext)context;
 			context->loop = inLoop;
 			context->empty = YES;
+		}
+		else
+		{
+			OK = NO;
 		}
 	}
 	
