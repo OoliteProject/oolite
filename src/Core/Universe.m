@@ -6944,7 +6944,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			// select a random point in the histogram
 			qr = total_quantity ? (super_rand2 % total_quantity) : 0;
-						
+			
 			co_type = 0;
 			while (qr > 0)
 			{

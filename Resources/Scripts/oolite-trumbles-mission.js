@@ -50,6 +50,8 @@ this.startUp = this.reset = function ()
 
 this.shipDockedWithStation = function ()
 {
+	if (!player.docked)  return;	// Player might have been forcibly undocked by another script.
+	
 	/*	In the pre-JavaScript implementation, the mission variable was set to
 		OFFER_MADE while the mission screen was shown. If the player lanched
 		in that state, the offer would never be made again -- unless some

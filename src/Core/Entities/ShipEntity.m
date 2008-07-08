@@ -605,7 +605,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			OOLog(@"ship.subentity.sanityCheck.failed.details", @"Attempt to set subentity taking damage of %@ to %@, which is not a subentity.", [self shortDescription], sub);
 			sub = nil;
 		}
-		if (![sub isShip])
+		else if (![sub isShip])
 		{
 			OOLog(@"ship.subentity.sanityCheck.failed", @"Attempt to set subentity taking damage of %@ to %@, which is not a ship.", [self shortDescription], sub);
 			sub = nil;
@@ -3969,10 +3969,9 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		for (i = 0; i < [targets count]; i++)
 		{
 			Entity *e2 = [targets objectAtIndex:i];
-			Vector p2 = e2->position;
-			double ecr = e2->collision_radius;
-			p2.x -= position.x;	p2.y -= position.y;	p2.z -= position.z;
-			double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - ecr*ecr;
+			Vector p2 = vector_subtract([e2 position], position);
+			double ecr = [e2 collisionRadius];
+			double d2 = magnitude2(p2) - ecr * ecr;
 			double damage = weapon_energy*desired_range/d2;
 			[e2 takeEnergyDamage:damage from:self becauseOf:[self owner]];
 		}
@@ -3989,19 +3988,18 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		for (i = 0; i < [targets count]; i++)
 		{
 			ShipEntity *e2 = (ShipEntity*)[targets objectAtIndex:i];
-			if (e2->isShip)
+			if ([e2 isShip])
 			{
-				Vector p2 = e2->position;
-				double ecr = e2->collision_radius;
-				p2.x -= position.x;	p2.y -= position.y;	p2.z -= position.z;
-				double d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z - ecr*ecr;
+				Vector p2 = vector_subtract([e2 position], position);
+				double ecr = [e2 collisionRadius];
+				double d2 = magnitude2(p2) - ecr * ecr;
 				while (d2 <= 0.0)
 				{
-					p2 = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
-					d2 = p2.x*p2.x + p2.y*p2.y + p2.z*p2.z;
+					p2 = OOVectorRandomSpatial(1.0);
+					d2 = magnitude2(p2);
 				}
 				double moment = amount*desired_range/d2;
-				[e2 addImpactMoment:unit_vector(&p2) fraction:moment];
+				[e2 addImpactMoment:vector_normal(p2) fraction:moment];
 			}
 		}
 	}

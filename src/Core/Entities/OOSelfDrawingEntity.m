@@ -922,9 +922,11 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
     for (i = 0; i < vertexCount; i++)
     {
-        d_squared = vertices[i].x*vertices[i].x + vertices[i].y*vertices[i].y + vertices[i].z*vertices[i].z;
+		d_squared = magnitude2(vertices[i]);
         if (d_squared > result)
+		{
 			result = d_squared;
+		}
 		bounding_box_add_vector(&boundingBox,vertices[i]);
     }
 

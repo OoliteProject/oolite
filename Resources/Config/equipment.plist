@@ -80,6 +80,10 @@
 		<string>Naval Energy Unit</string>
 		<string>EQ_NAVAL_ENERGY_UNIT</string>
 		<string>A special improved efficiency energy recharge unit, as supplied to Navy vessels.</string>
+		<dict>
+			<key>incompatible_with_equipment</key>
+			<string>EQ_ENERGY_UNIT</string>
+		</dict>
 	</array>
 	<array>
 		<integer>9</integer>
