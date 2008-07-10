@@ -659,23 +659,23 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 
 static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 {
-	volatile JSObject		*result = NULL;
-	volatile unsigned		i;
+	JSObject				*result = NULL;
+	unsigned				i;
 	unsigned				count;
 	jsval					value;
 	BOOL					OK = YES;
 	
 	if (array == nil)  return NULL;
 	
-	result = JS_NewArrayObject(context, 0, NULL);
-	if (result == NULL)  return NULL;
-	
 	NS_DURING
+		result = JS_NewArrayObject(context, 0, NULL);
+		if (result == NULL)  return NULL;
+		
 		count = [array count];
 		for (i = 0; i != count; ++i)
 		{
 			value = [[array objectAtIndex:i] javaScriptValueInContext:context];
-			OK = JS_SetElement(context, (JSObject *)result, i, &value);
+			OK = JS_SetElement(context, result, i, &value);
 			if (!OK)  return NULL;
 		}
 	NS_HANDLER
@@ -718,7 +718,7 @@ static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 */
 static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dictionary)
 {
-	volatile JSObject		*result = NULL;
+	JSObject				*result = NULL;
 	BOOL					OK = YES;
 	NSEnumerator			*keyEnum = nil;
 	id						key = nil;
@@ -727,10 +727,10 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	
 	if (dictionary == nil)  return NULL;
 	
-	result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
-	if (result == NULL)  return NULL;
-	
 	NS_DURING
+		result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
+		if (result == NULL)  return NULL;
+		
 		for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
 		{
 			if ([key isKindOfClass:[NSString class]] && [key length] != 0)
@@ -738,7 +738,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 				value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
 				if (value != JSVAL_VOID)
 				{
-					OK = JSSetNSProperty(context, (JSObject *)result, key, &value);
+					OK = JSSetNSProperty(context, result, key, &value);
 					if (!OK)  return NULL;
 				}
 			}
