@@ -357,13 +357,25 @@ MA 02110-1301, USA.
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
-- (BOOL) hasEquipmentItem:(id)equipmentKeys;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
-- (BOOL) hasAllEquipment:(id)equipmentKeys;	// As above, but requires _all_ equipment in collection.
+- (BOOL) hasEquipmentItem:(id)equipmentKeys;		// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
+- (BOOL) hasAllEquipment:(id)equipmentKeys;			// As above, but requires _all_ equipment in collection.
+- (BOOL) canAddEquipment:(NSString *)equipmentKey;	// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (void) addEquipmentItem:(NSString *)equipmentKey;
+/*	NOTE: for legacy reasons, canAddEquipment: returns YES if given a missile
+	or mine type, but addEquipmentItem: does nothing in those cases. This
+	should probably be cleaned up by making addEquipmentItem: mount stores.
+*/
 - (NSEnumerator *) equipmentEnumerator;
 - (unsigned) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
+
+// Passengers - not supported for NPCs, but interface is here for genericity.
+- (unsigned) passengerCount;
+- (unsigned) passengerCapacity;
+
+- (unsigned) missileCount;
+- (unsigned) missileCapacity;
 
 // Tests for the various special-cased equipment items
 - (BOOL) hasScoop;
@@ -490,9 +502,10 @@ MA 02110-1301, USA.
 - (NSArray*) crew;
 - (void) setCrew: (NSArray*) crewArray;
 
-
+// Fuel and capacity in tenths of light-years.
 - (OOFuelQuantity) fuel;
 - (void) setFuel:(OOFuelQuantity) amount;
+- (OOFuelQuantity) fuelCapacity;
 
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;

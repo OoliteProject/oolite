@@ -1428,10 +1428,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		star2.y = (float)(g_seed2.b * vscale + voffset);
 		double d = distanceBetweenPlanetPositions(g_seed.d, g_seed.b, g_seed2.d, g_seed2.b);
 		
-		if (d <= (PLAYER_MAX_FUEL / 10.0f))	// another_commander - Default to 7.0 LY.
+		if (d <= ([player fuelCapacity] / 10.0f))	// another_commander - Default to 7.0 LY.
 		{
-			glVertex3f(x+star.x, y+star.y, z );
-			glVertex3f(x+star2.x, y+star2.y, z );
+			glVertex3f(x+star.x, y+star.y, z);
+			glVertex3f(x+star2.x, y+star2.y, z);
 		}
 	}
 	glEnd();

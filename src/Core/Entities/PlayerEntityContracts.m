@@ -1420,7 +1420,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	NSDictionary *shipDict = [ship_info dictionaryForKey:SHIPYARD_KEY_SHIP];
 	
 	// get a full tank for free
-	fuel = PLAYER_MAX_FUEL;
+	[self setFuel:[self fuelCapacity]];
 	
 	// this ship has a clean record
 	legalStatus = 0;
@@ -1447,7 +1447,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// keep track of portable equipment..
 	
-	NSArray			*equipment = [UNIVERSE equipmentdata];
+	NSArray			*equipment = [UNIVERSE equipmentData];
 	NSMutableSet	*portable_equipment = [NSMutableSet set];
 	NSEnumerator	*eqEnum = nil;
 	NSString		*eq_desc = nil;

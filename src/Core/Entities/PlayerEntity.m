@@ -56,6 +56,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOEntityFilterPredicate.h"
 #import "OOShipRegistry.h"
+#import "OOEquipmentType.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
@@ -917,8 +918,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
-	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetinfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
+	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"GALACTIC_HYPERSPACE_BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
@@ -1332,16 +1333,15 @@ double scoopSoundPlayTime = 0.0;
 			external_temp *= 100;
 
 		// do Revised sun-skimming check here...
-		if ([self hasScoop] && alt1 > 0.75 && fuel < PLAYER_MAX_FUEL)
+		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
 			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010);
 			scoopsActive = YES;
 			while (fuel_accumulator > 1.0)
 			{
-				fuel ++;
+				[self setFuel:[self fuel] + 1];
 				fuel_accumulator -= 1.0f;
 			}
-			if (fuel > PLAYER_MAX_FUEL)	fuel = PLAYER_MAX_FUEL;
 			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
 		}
 	}
@@ -2146,9 +2146,9 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (fuel <= 0.0f)
 		return 0.0f;
-	if (fuel > (GLfloat)PLAYER_MAX_FUEL)
+	if (fuel > [self fuelCapacity])
 		return 1.0f;
-	return (GLfloat)fuel / (GLfloat)PLAYER_MAX_FUEL;
+	return (GLfloat)fuel / (GLfloat)[self fuelCapacity];
 }
 
 
@@ -3357,7 +3357,7 @@ double scoopSoundPlayTime = 0.0;
 		NSString* system_name = nil;
 		if (([system_key hasSuffix:@"MISSILE"])||([system_key hasSuffix:@"MINE"])||([system_key isEqual:@"EQ_CARGO_BAY"]))
 			return;
-		NSArray* eq = [UNIVERSE equipmentdata];
+		NSArray* eq = [UNIVERSE equipmentData];
 		unsigned i;
 		for (i = 0; (i < [eq count])&&(!system_name); i++)
 		{
@@ -4002,7 +4002,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	NSMutableArray		*quip = [NSMutableArray array];
 	unsigned			i;
-	NSArray				*equipmentinfo = [UNIVERSE equipmentdata];
+	NSArray				*equipmentinfo = [UNIVERSE equipmentData];
 	
 	for (i =0; i < [equipmentinfo count]; i++)
 	{
@@ -4612,7 +4612,7 @@ static int last_outfitting_index;
 	
 	last_outfitting_index = skip;
 
-	NSArray		*equipdata = [UNIVERSE equipmentdata];
+	NSArray		*equipdata = [UNIVERSE equipmentData];
 
 	OOCargoQuantityDelta cargo_space = max_cargo - current_cargo;
 	if (cargo_space < 0)  cargo_space = 0;
@@ -4694,63 +4694,11 @@ static int last_outfitting_index;
 		
 		if (isOK)
 		{
-			BOOL					requiresEmptyPylon = NO,
-									requiresMountedPylon = NO,
-									requiresClean = NO,
-									requiresNotClean = NO;
-			OOCargoQuantity			requiresCargoSpace = 0;
-			id						requiresEquipment = nil;
-			id						incompatibleWithEquipment = nil;
-			
-			// check built-in requirements
-			if ([self hasEquipmentItem:eq_key])  isOK = NO;
-			if (([eq_key isEqualToString:@"EQ_FUEL"])&&(fuel >= PLAYER_MAX_FUEL))  isOK = NO;	// check if fuel space free
-			if (([eq_key hasSuffix:@"MISSILE"]||[eq_key hasSuffix:@"MINE"]))  requiresEmptyPylon = YES;	// Kept for compatibility with existing missiles/mines that don't specify it.
-			if (([eq_key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])&&(max_passengers - [passengers count] < 1))  isOK = NO;
 			if (techlevel < min_techlevel)  isOK = NO;
-			if ([eq_key isEqual:@"EQ_RENOVATION"] && !((75 <= ship_trade_in_factor)&&(ship_trade_in_factor < 85))) isOK = NO;
-			
-			// check custom requirements
-			requiresEmptyPylon = [eq_extra_info_dict boolForKey:@"requires_empty_pylon" defaultValue:requiresEmptyPylon];
-			requiresMountedPylon = [eq_extra_info_dict boolForKey:@"requires_mounted_pylon" defaultValue:requiresMountedPylon];
-			requiresCargoSpace = [eq_extra_info_dict unsignedIntForKey:@"requires_cargo_space" defaultValue:requiresCargoSpace];
-			requiresEquipment = [eq_extra_info_dict objectForKey:@"requires_equipment" defaultValue:requiresEquipment];
-			incompatibleWithEquipment = [eq_extra_info_dict objectForKey:@"incompatible_with_equipment" defaultValue:incompatibleWithEquipment];
-			if ([eq_extra_info_dict objectForKey:@"requires_clean"])  requiresClean = YES;
-			if ([eq_extra_info_dict objectForKey:@"requires_not_clean"])  requiresNotClean = YES;
-			
-			if (isOK)
-			{
-				if (requiresEmptyPylon && missiles >= max_missiles)  isOK = NO;
-				else if (requiresMountedPylon && missiles == 0)  isOK = NO;
-				else if ((OOCargoQuantity)cargo_space < requiresCargoSpace)  isOK = NO;
-				else if (requiresEquipment != nil && ![self hasEquipmentItem:requiresEquipment])  isOK = NO;
-				else if (incompatibleWithEquipment != nil && [self hasEquipmentItem:incompatibleWithEquipment])  isOK = NO;
-				else if (requiresClean && [self legalStatus] != 0)  isOK = NO;
-				else if (requiresNotClean && [self legalStatus] == 0)  isOK = NO;
-			}
+			if (![self canAddEquipment:eq_key])  isOK = NO;
 		}
 		
-		if (isOK && [eq_extra_info_dict objectForKey:@"conditions"])
-		{
-			[self debugOn];
-			id conds = [eq_extra_info_dict objectForKey:@"conditions"];
-			if ([conds isKindOfClass:[NSString class]])
-			{
-				if (![self scriptTestCondition:(NSString *) conds])  isOK = NO;
-			}
-			else if ([conds isKindOfClass:[NSArray class]])
-			{
-				NSArray* conditions = (NSArray*)conds;
-				unsigned i;
-				for (i = 0; i < [conditions count]; i++)
-					if (![self scriptTestCondition:(NSString *)[conditions objectAtIndex:i]])  isOK = NO;
-			}
-			[self debugOff];
-		}
-		
-		if (isOK)
-			[equipment_allowed addUnsignedInteger:i];
+		if (isOK)  [equipment_allowed addUnsignedInteger:i];
 		
 		if ((int)i == itemForSelectFacing)
 		{
@@ -4933,8 +4881,8 @@ static int last_outfitting_index;
 		if (![key hasPrefix:@"More:"])
 		{
 			int item = [key intValue];
-			NSString*   desc = (NSString *)[(NSArray *)[[UNIVERSE equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
-			NSString*   eq_key			= (NSString *)[(NSArray *)[[UNIVERSE equipmentdata] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
+			NSString*   desc = (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
+			NSString*   eq_key			= (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
 			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 			if ([self hasEquipmentItem:eq_key_damaged])
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
@@ -5114,11 +5062,11 @@ static int last_outfitting_index;
 - (BOOL) tryBuyingItem:(int) index
 {
 	// note this doesn't check the availability by tech-level
-	NSArray					*equipdata		= [UNIVERSE equipmentdata];
+	NSArray					*equipdata		= [UNIVERSE equipmentData];
 	OOCreditsQuantity		price_per_unit	= [[equipdata arrayAtIndex:index] unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
 	NSString				*eq_key			= [[equipdata arrayAtIndex:index] stringAtIndex:EQUIPMENT_KEY_INDEX];
 	NSString				*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double					price			= ([eq_key isEqual:@"EQ_FUEL"]) ? ((PLAYER_MAX_FUEL - fuel) * price_per_unit) : (price_per_unit);
+	double					price			= price_per_unit;
 	double					price_factor	= 1.0;
 	OOCargoQuantityDelta	cargo_space		= max_cargo - current_cargo;
 	OOCreditsQuantity		tradeIn = 0;
@@ -5243,8 +5191,8 @@ static int last_outfitting_index;
 	
 	if ([eq_key isEqual:@"EQ_FUEL"])
 	{
-		fuel = PLAYER_MAX_FUEL;
-		credits -= price;
+		fuel = [self fuelCapacity];
+		credits -= ([self fuelCapacity] - [self fuel]) * price_per_unit;
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;
 	}
@@ -5637,6 +5585,30 @@ static int last_outfitting_index;
 }
 
 
+- (BOOL) canAddEquipment:(NSString *)equipmentKey
+{
+	if ([equipmentKey isEqual:@"EQ_RENOVATION"] && !((75 <= ship_trade_in_factor) && (ship_trade_in_factor < 85)))  return NO;
+	if (![super canAddEquipment:equipmentKey])  return NO;
+	
+	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
+	if (conditions != nil)
+	{
+		NSEnumerator	*condEnum = nil;
+		NSString		*condition = nil;
+		
+		for (condEnum = [conditions objectEnumerator]; (condition = [condEnum nextObject]); )
+		{
+			if ([condition isKindOfClass:[NSString class]])
+			{
+				if (![self scriptTestCondition:condition])  return NO;
+			}
+		}
+	}
+	
+	return YES;
+}
+
+
 - (void) addEquipmentItem:(NSString *)equipmentKey
 {
 	// deal with trumbles..
@@ -5715,6 +5687,24 @@ static int last_outfitting_index;
 		
 		[self addEquipmentItem:eqDesc];
 	}
+}
+
+
+- (unsigned) passengerCount
+{
+	return [passengers count];
+}
+
+
+- (unsigned) passengerCapacity
+{
+	return max_passengers;
+}
+
+
+- (unsigned) missileCapacity
+{
+	return max_missiles;
 }
 
 

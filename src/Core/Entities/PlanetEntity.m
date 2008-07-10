@@ -438,13 +438,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	seed_for_planet_description(p_seed);
 	
-	NSMutableDictionary*   planetinfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-	int radius_km =		[[planetinfo objectForKey:KEY_RADIUS] intValue];
-	int techlevel =		[[planetinfo objectForKey:KEY_TECHLEVEL] intValue];
+	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
+	int radius_km =		[[planetInfo objectForKey:KEY_RADIUS] intValue];
+	int techlevel =		[[planetInfo objectForKey:KEY_TECHLEVEL] intValue];
 	
-	if ([planetinfo objectForKey:@"texture"])
+	if ([planetInfo objectForKey:@"texture"])
 	{
-		textureName = [TextureStore getTextureNameFor:[planetinfo stringForKey:@"texture"]];
+		textureName = [TextureStore getTextureNameFor:[planetInfo stringForKey:@"texture"]];
 		isTextured = (textureName != 0);
 	}
 
@@ -477,7 +477,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	[self rescaleTo:1.0];
 	
-	percent_land = [planetinfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+	percent_land = [planetInfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
@@ -489,7 +489,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		else
 			r_seed[i] = 100;  // sea
 	}
-	[planetinfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
+	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	
 	polar_color_factor = 1.0;
 	
@@ -503,8 +503,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	}
 
 	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
-	ScanVectorFromString([planetinfo objectForKey:@"land_hsb_color"], &land_hsb);
-	ScanVectorFromString([planetinfo objectForKey:@"sea_hsb_color"], &sea_hsb);
+	ScanVectorFromString([planetInfo objectForKey:@"land_hsb_color"], &land_hsb);
+	ScanVectorFromString([planetInfo objectForKey:@"sea_hsb_color"], &sea_hsb);
 
 	// polar areas are brighter but have less color (closer to white)
 	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
@@ -532,16 +532,16 @@ static GLfloat	texture_uv_array[10400 * 2];
 	amb_polar_sea[2] = [amb_polar_sea_color greenComponent];
 	amb_polar_sea[3] = 1.0;
 
-	[planetinfo setObject:amb_land_color forKey:@"land_color"];
-	[planetinfo setObject:amb_sea_color forKey:@"sea_color"];
-	[planetinfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
-	[planetinfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
+	[planetInfo setObject:amb_land_color forKey:@"land_color"];
+	[planetInfo setObject:amb_sea_color forKey:@"sea_color"];
+	[planetInfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
+	[planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
 	{
 		fillRanNoiseBuffer();
-		textureName = [TextureStore getPlanetTextureNameFor: planetinfo intoData: &textureData];
+		textureName = [TextureStore getPlanetTextureNameFor: planetInfo intoData: &textureData];
 		isTextured = (textureName != 0);
 		isShadered = NO;
 #ifndef NO_SHADERS
@@ -554,7 +554,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 				NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
 				shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
 				isShadered = (shader_program != NULL_SHADER);
-				normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetinfo intoData: &normalMapTextureData];
+				normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetInfo intoData: &normalMapTextureData];
 				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
 			}
 		}
@@ -581,11 +581,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 	[self scaleVertices];
 
 	// set speed of rotation
-	rotational_velocity = [planetinfo floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
-	rotational_velocity *= [planetinfo floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
+	rotational_velocity = [planetInfo floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
+	rotational_velocity *= [planetInfo floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	// do atmosphere
 	
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:planetinfo];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:planetInfo];
 	
 	isPlanet = YES;
 	
@@ -720,10 +720,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	seed_for_planet_description(p_seed);
 	
-	NSDictionary	*planetinfo = [UNIVERSE generateSystemData:p_seed];
+	NSDictionary	*planetInfo = [UNIVERSE generateSystemData:p_seed];
 	int				radius_km;
 	
-	radius_km = [dict intForKey:@"radius" defaultValue:[[planetinfo objectForKey:KEY_RADIUS] intValue]];
+	radius_km = [dict intForKey:@"radius" defaultValue:[[planetInfo objectForKey:KEY_RADIUS] intValue]];
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -748,7 +748,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	[self rescaleTo:1.0];
 	
-	percent_land = [planetinfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+	percent_land = [planetInfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	if (isTextured)  percent_land = 0;
 	
 	// save the current random number generator seed
@@ -877,10 +877,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	seed_for_planet_description(p_seed);
 	
-	NSDictionary	*planetinfo = [UNIVERSE generateSystemData:p_seed];
+	NSDictionary	*planetInfo = [UNIVERSE generateSystemData:p_seed];
 	int				radius_km;
 	
-	radius_km = [dict intForKey:@"radius" defaultValue:[[planetinfo objectForKey:KEY_RADIUS] intValue]];
+	radius_km = [dict intForKey:@"radius" defaultValue:[[planetInfo objectForKey:KEY_RADIUS] intValue]];
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -905,7 +905,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	[self rescaleTo:1.0];
 	
-	percent_land = [planetinfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+	percent_land = [planetInfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	if (isTextured)  percent_land = 100;
 	
 	// save the current random number generator seed

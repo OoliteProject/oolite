@@ -123,7 +123,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 }
 
 
-+ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
++ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData
 {
 	GLuint				texName;
 
@@ -140,15 +140,15 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	if (textureData)
 		(*textureData) = imageBuffer;
 
-	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
+	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
 	
 	OOLog(kOOLogPlanetTextureGen, @"genning texture for land_fraction %.5f", land_fraction);
 	
-	OOColor* land_color = (OOColor*)[planetinfo objectForKey:@"land_color"];
-	OOColor* sea_color = (OOColor*)[planetinfo objectForKey:@"sea_color"];
-	OOColor* polar_land_color = (OOColor*)[planetinfo objectForKey:@"polar_land_color"];
-	OOColor* polar_sea_color = (OOColor*)[planetinfo objectForKey:@"polar_sea_color"];
+	OOColor* land_color = (OOColor*)[planetInfo objectForKey:@"land_color"];
+	OOColor* sea_color = (OOColor*)[planetInfo objectForKey:@"sea_color"];
+	OOColor* polar_land_color = (OOColor*)[planetInfo objectForKey:@"polar_land_color"];
+	OOColor* polar_sea_color = (OOColor*)[planetInfo objectForKey:@"polar_sea_color"];
 
 	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
 		sea_color,
@@ -172,7 +172,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	return texName;
 }
 
-+ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData
++ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData
 {
 	GLuint				texName;
 
@@ -189,7 +189,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	if (textureData)
 		(*textureData) = imageBuffer;
 
-	float land_fraction = [[planetinfo objectForKey:@"land_fraction"] floatValue];
+	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
 	
 	OOLog(@"textureStore.genNormalMap", @"genning normal map for land_fraction %.5f", land_fraction);

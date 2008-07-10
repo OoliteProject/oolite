@@ -84,7 +84,7 @@ static AI *sCurrentlyRunningAI = nil;
     self = [super init];
 	
 	aiStack = [[NSMutableArray alloc] init];
-	pendingMessages = [[NSMutableDictionary alloc] init];
+	pendingMessages = [[NSMutableSet alloc] init];
 	
 	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
 	thinkTimeInterval = AI_THINK_INTERVAL;
@@ -211,7 +211,7 @@ static AI *sCurrentlyRunningAI = nil;
 	stateMachineName = [[pickledMachine objectForKey:@"stateMachineName"] retain];
 	
 	[pendingMessages release];
-	pendingMessages = [[pickledMachine objectForKey:@"pendingMessages"] mutableCopy];  // restore a MUTABLE array
+	pendingMessages = [[pickledMachine objectForKey:@"pendingMessages"] mutableCopy];  // restore a MUTABLE set
 	
 	[aiStack removeObjectAtIndex:0];   //  POP
 }
@@ -473,15 +473,8 @@ static AI *sCurrentlyRunningAI = nil;
 	
 	[self reactToMessage:@"UPDATE"];
 
-	if (pendingMessages != nil)
-	{
-		if ([pendingMessages count] > 0)
-		{
-			ms_list = [pendingMessages allKeys];
-		}
-		
-		[pendingMessages removeAllObjects];
-	}
+	if ([pendingMessages count] > 0)  ms_list = [pendingMessages allObjects];
+	[pendingMessages removeAllObjects];
 	
 	if (ms_list != nil)
 	{
@@ -504,7 +497,7 @@ static AI *sCurrentlyRunningAI = nil;
 					format:@"AI pendingMessages overflow for %@", ownerDesc];
 	}
 	
-	[pendingMessages setObject: ms forKey: ms];
+	[pendingMessages addObject:ms];
 }
 
 

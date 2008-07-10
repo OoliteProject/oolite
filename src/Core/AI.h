@@ -45,7 +45,7 @@ MA 02110-1301, USA.
 	NSDictionary		*stateMachine;
 	NSString			*stateMachineName;
 	NSString			*currentState;
-	NSMutableDictionary	*pendingMessages;
+	NSMutableSet		*pendingMessages;
 	
 	NSMutableArray		*aiStack;
 	

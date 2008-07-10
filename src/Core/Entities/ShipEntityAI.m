@@ -1696,10 +1696,7 @@ WormholeEntity*	whole;
 
 - (void) addFuel:(NSString*) fuel_number
 {
-	int	extra_fuel = [fuel_number intValue];
-	fuel += 10 * extra_fuel;
-	if (fuel > PLAYER_MAX_FUEL)
-		fuel = PLAYER_MAX_FUEL;
+	[self setFuel:[self fuel] + [fuel_number intValue] * 10];
 }
 
 

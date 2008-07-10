@@ -191,16 +191,16 @@ enum
 	
 	NSDictionary			*shipyard;				// holds data on all ships for sale, loaded at initialisation
 	
-	NSDictionary			*commoditylists;		// holds data on commodities for various types of station, loaded at initialisation
-	NSArray					*commoditydata;			// holds data on commodities extracted from commoditylists
+	NSDictionary			*commodityLists;		// holds data on commodities for various types of station, loaded at initialisation
+	NSArray					*commodityData;			// holds data on commodities extracted from commodityLists
 	
 	NSDictionary			*illegal_goods;			// holds the legal penalty for illicit commodities, loaded at initialisation
 	NSDictionary			*descriptions;			// holds descriptive text for lots of stuff, loaded at initialisation
 	NSDictionary			*customsounds;			// holds descriptive audio for lots of stuff, loaded at initialisation
 	NSDictionary			*characters;			// holds descriptons of characters
-	NSDictionary			*planetinfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
+	NSDictionary			*planetInfo;			// holds overrides for individual planets, keyed by "g# p#" where g# is the galaxy number 0..7 and p# the planet number 0..255
 	NSDictionary			*missiontext;			// holds descriptive text for missions, loaded at initialisation
-	NSArray					*equipmentdata;			// holds data on available equipment, loaded at initialisation
+	NSArray					*equipmentData;			// holds data on available equipment, loaded at initialisation
 	NSSet					*pirateVictimRoles;		// Roles listed in pirateVictimRoles.plist.
 	NSDictionary			*autoAIMap;				// Default AIs for roles from autoAImap.plist.
 	
@@ -487,14 +487,14 @@ enum
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
 
-- (NSMutableDictionary*) localPlanetInfoOverrides;
+- (NSMutableDictionary *) localPlanetInfoOverrides;
 - (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
 
-- (NSDictionary*) planetinfo;
+- (NSDictionary *) planetInfo;
 
-- (NSArray *) equipmentdata;
-- (NSDictionary *) commoditylists;
-- (NSArray *) commoditydata;
+- (NSArray *) equipmentData;
+- (NSDictionary *) commodityLists;
+- (NSArray *) commodityData;
 
 - (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor;
 - (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;

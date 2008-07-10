@@ -1226,7 +1226,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([equipString isEqual:@"EQ_FUEL"])
 	{
-		fuel = PLAYER_MAX_FUEL;
+		[self setFuel:[self fuelCapacity]];
 		return;
 	}
 	
@@ -1447,7 +1447,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	else
 	{
 		[scriptTarget setFuel:(scriptTargetFuelBeforeAward + delta)];
-		if ([scriptTarget fuel] > PLAYER_MAX_FUEL)  [scriptTarget setFuel:PLAYER_MAX_FUEL];
 	}
 }
 
@@ -2170,7 +2169,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
 				AI*	se1AI = [se1 getAI];
-				[se1 setFuel: PLAYER_MAX_FUEL];
+				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
 				// FIXME: I don't think the following line does anything meaningful. -- Ahruman
@@ -2190,7 +2189,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:planetKey];
+	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:planetKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -2237,7 +2236,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = [[UNIVERSE planetinfo] dictionaryForKey:moonKey];
+	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:moonKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);

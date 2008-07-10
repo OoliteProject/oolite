@@ -58,6 +58,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
 #import "OOEntityFilterPredicate.h"
+#import "OOEquipmentType.h"
 
 #import "OODebugGLDrawing.h"
 
@@ -1678,16 +1679,56 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (BOOL) canAddEquipment:(NSString *)equipmentKey
+{
+	OOEquipmentType			*eqType = nil;
+	
+	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	if (eqType == nil)  return NO;
+	
+	// FIXME: deal with special handling of missiles and mines.
+	if ([self hasEquipmentItem:equipmentKey])  return NO;
+	
+	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity])  return NO;
+	if ([eqType  requiresMountedPylon] && [self missileCount] == 0)  return NO;
+	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
+	if ([eqType requiredEquipment] != nil && ![self hasEquipmentItem:[eqType requiredEquipment]])  return NO;
+	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment]])  return NO;
+	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0)  return NO;
+	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0)  return NO;
+	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
+	if ([eqType requiresFullFuel] && [self fuel] < [self fuelCapacity])  return NO;
+	if ([eqType requiresNonFullFuel] && [self fuel] >= [self fuelCapacity])  return NO;
+	
+	return YES;
+}
+
+
 - (void) addEquipmentItem:(NSString *)equipmentKey
 {
-	if (equipmentKey == nil)  return;
+	OOEquipmentType			*eqType = nil;
+	
+	if (![self canAddEquipment:equipmentKey])  return;
+	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	
+	// FIXME: deal with special handling of missiles and mines.
+	if ([eqType isMissileOrMine])  return;
+	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
-	// if we've got a damaged one of these - remove it first
-	NSString* damaged_eq_key = [equipmentKey stringByAppendingString:@"_DAMAGED"];
-	[_equipment removeObject:damaged_eq_key];
+	// if we heve one of these with a differen damage status - remove it first
+	NSString				*alterKey = nil;
+	if ([equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		alterKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
+	}
+	else
+	{
+		alterKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+	}
+	[_equipment removeObject:alterKey];
 	
-	// add the equipment and set the necessary flags and data accordingly
+	// add the equipment
 	[_equipment addObject:equipmentKey];
 }
 
@@ -1715,6 +1756,29 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	[_equipment release];
 	_equipment = nil;
+}
+- (unsigned) passengerCount
+{
+	return 0;
+}
+
+
+- (unsigned) passengerCapacity
+{
+	return 0;
+}
+
+
+- (unsigned) missileCount
+{
+	return missiles;
+}
+
+
+- (unsigned) missileCapacity
+{
+	// FIXME: need useful maximum from shipdata key max_missiles (or missiles if no max specified).
+	return missiles;
 }
 
 
@@ -3689,9 +3753,16 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setFuel:(OOFuelQuantity) amount
 {
+	if (amount > [self fuelCapacity])  amount = [self fuelCapacity];
+	
 	fuel = amount;
-	if (fuel > PLAYER_MAX_FUEL)
-		fuel = PLAYER_MAX_FUEL;
+}
+
+
+- (OOFuelQuantity) fuelCapacity
+{
+	// FIXME: shipdata.plist can allow greater fuel quantities (without extending hyperspace range). Need some consistency here.
+	return PLAYER_MAX_FUEL;
 }
 
 

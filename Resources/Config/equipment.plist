@@ -11,6 +11,8 @@
 		<dict>
 			<key>available_to_all</key>
 			<true/>
+			<key>requires_non_full_fuel</key>
+			<true/>
 		</dict>
 	</array>
 	<array>

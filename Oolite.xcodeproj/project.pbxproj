@@ -403,6 +403,8 @@
 		1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */; };
 		1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A60AFB50D56093B0070510D /* OOMusicController.h */; };
 		1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A60AFB60D56093B0070510D /* OOMusicController.m */; };
+		1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */; };
+		1A62F0FE0E26A2A000897506 /* OOEquipmentType.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */; };
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
@@ -1414,6 +1416,8 @@
 		1A5E462E0C32DACE008104B4 /* OOShaderUniformMethodType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderUniformMethodType.h; sourceTree = "<group>"; };
 		1A60AFB50D56093B0070510D /* OOMusicController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMusicController.h; sourceTree = "<group>"; };
 		1A60AFB60D56093B0070510D /* OOMusicController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMusicController.m; sourceTree = "<group>"; };
+		1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEquipmentType.m; sourceTree = "<group>"; };
+		1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEquipmentType.h; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
@@ -2327,7 +2331,7 @@
 				1A8A3C1B0B96407A007D20B8 /* User Interface */,
 				1A8A3BFB0B963F91007D20B8 /* Utilities */,
 				1A8A3BF20B963F3C007D20B8 /* Mac-specific */,
-				1ACEA3BC0C915A1600C7CE97 /* Ship management */,
+				1ACEA3BC0C915A1600C7CE97 /* Item management */,
 				1A3A04610BC547DC00B5E2D9 /* OOTypes.h */,
 				25161144099544390037C2E1 /* Universe.h */,
 				25161143099544390037C2E1 /* Universe.m */,
@@ -2617,15 +2621,17 @@
 			path = Doc;
 			sourceTree = "<group>";
 		};
-		1ACEA3BC0C915A1600C7CE97 /* Ship management */ = {
+		1ACEA3BC0C915A1600C7CE97 /* Item management */ = {
 			isa = PBXGroup;
 			children = (
 				1ACEA3470C91507000C7CE97 /* OORoleSet.h */,
 				1ACEA3480C91507000C7CE97 /* OORoleSet.m */,
 				1A0479E70DC9F81000EE1CD0 /* OOShipRegistry.h */,
 				1A0479E80DC9F81000EE1CD0 /* OOShipRegistry.m */,
+				1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */,
+				1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */,
 			);
-			name = "Ship management";
+			name = "Item management";
 			sourceTree = "<group>";
 		};
 		1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */ = {
@@ -2879,6 +2885,7 @@
 				1A047A450DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.h in Headers */,
 				1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */,
 				1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */,
+				1A62F0FE0E26A2A000897506 /* OOEquipmentType.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3229,6 +3236,7 @@
 				1A047A460DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m in Sources */,
 				1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */,
 				1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */,
+				1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

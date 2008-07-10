@@ -105,7 +105,7 @@ this.addToScreen = function ()
 
 this.missionOffers = function ()
 {
-	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != ""))  return;
+	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.docked)  return;
 	
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
 	if (player.dockedStation.isMainStation)

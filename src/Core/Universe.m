@@ -51,6 +51,7 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 #import "OOShipRegistry.h"
 #import "OOProbabilitySet.h"
+#import "OOEquipmentType.h"
 
 #import "PlayerEntity.h"
 #import "PlayerEntityContracts.h"
@@ -213,8 +214,8 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	commoditylists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
-	commoditydata = [[NSArray arrayWithArray:[commoditylists arrayForKey:@"default"]] retain];
+	commodityLists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
+	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
 	
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
@@ -223,13 +224,14 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	[self preloadSounds];
 	
-	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
 	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
 	
-	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	[OOEquipmentType loadEquipment];
 	
 	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:8];
 	
@@ -309,16 +311,16 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[entities release];
 	[shipyard release];
 	
-	[commoditylists release];
-	[commoditydata release];
+	[commodityLists release];
+	[commodityData release];
 	
 	[illegal_goods release];
 	[descriptions release];
 	[characters release];
 	[customsounds release];
-	[planetinfo release];
+	[planetInfo release];
 	[missiontext release];
-	[equipmentdata release];
+	[equipmentData release];
 	[demo_ships release];
 	[gameView release];
 
@@ -453,11 +455,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[shipyard autorelease];
 	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[commoditylists autorelease];
-	commoditylists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
+	[commodityLists autorelease];
+	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[commoditydata autorelease];
-	commoditydata = [[NSArray arrayWithArray:[commoditylists arrayForKey:@"default"]] retain];
+	[commodityData autorelease];
+	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
 	
 	[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -471,20 +473,21 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[customsounds autorelease];
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[planetinfo autorelease];
-	planetinfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+	[planetInfo autorelease];
+	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
 	[pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
-	[equipmentdata autorelease];
-	equipmentdata = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (strict && ([equipmentdata count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
+	[equipmentData autorelease];
+	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
 	{
-		NSArray* strict_equipment = [equipmentdata subarrayWithRange:NSMakeRange(0, NUMBER_OF_STRICT_EQUIPMENT_ITEMS)];	// alloc retains
-		[equipmentdata autorelease];
-		equipmentdata = [strict_equipment retain];
+		NSArray* strict_equipment = [equipmentData subarrayWithRange:NSMakeRange(0, NUMBER_OF_STRICT_EQUIPMENT_ITEMS)];	// alloc retains
+		[equipmentData autorelease];
+		equipmentData = [strict_equipment retain];
 	}
+	[OOEquipmentType loadEquipment];
 	if(showDemo)
 	{
 		[demo_ships release];
@@ -736,9 +739,9 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		
 		// check at this point
 		// for scripted overrides for this insterstellar area
-		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
-		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:@"interstellar space"]];
-		[systeminfo addEntriesFromDictionary:[planetinfo dictionaryForKey:override_key]];
+		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
+		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:@"interstellar space"]];
+		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:override_key]];
 		[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides dictionaryForKey:override_key]];
 	}
 	
@@ -2994,10 +2997,10 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	NSArray					*itemData = nil;
 	NSString				*itemType = nil;
 	
-	count = [equipmentdata count];
+	count = [equipmentData count];
 	for (i = 0; i < count; i++)
 	{
-		itemData = [equipmentdata arrayAtIndex:i];
+		itemData = [equipmentData arrayAtIndex:i];
 		itemType = [itemData stringAtIndex:EQUIPMENT_KEY_INDEX];
 		
 		if ([itemType isEqual:weapon_key])
@@ -3039,12 +3042,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		reverse the probabilities for scarce goods.
 	*/
 	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	OOCargoQuantity quantities[[commoditydata count]];
+	OOCargoQuantity quantities[[commodityData count]];
 	OOCargoQuantity total_quantity = 0;
 	unsigned i;
-	for (i = 0; i < [commoditydata count]; i++)
+	for (i = 0; i < [commodityData count]; i++)
 	{
-		OOCargoQuantity q = [[commoditydata arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
+		OOCargoQuantity q = [[commodityData arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
 		if (scarce)
 		{
 			if (q < 64)  q = 64 - q;
@@ -3146,7 +3149,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (OOCargoType) getRandomCommodity
 {
-	return Ranrot() % [commoditydata count];
+	return Ranrot() % [commodityData count];
 }
 
 
@@ -3155,9 +3158,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	OOMassUnit		units;
 	unsigned		commidityIndex = (unsigned)co_type;
 	
-	if (co_type < 0 || [commoditydata count] <= commidityIndex)  return 0;
+	if (co_type < 0 || [commodityData count] <= commidityIndex)  return 0;
 	
-	units = [[commoditydata arrayAtIndex:commidityIndex] intAtIndex:MARKET_UNITS];
+	units = [[commodityData arrayAtIndex:commidityIndex] intAtIndex:MARKET_UNITS];
 	switch (units)
 	{
 		case 0 :	// TONNES
@@ -3176,9 +3179,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSArray *)commodityDataForType:(OOCargoType)type
 {
-	if (type < 0 || [commoditydata count] <= (unsigned)type)  return nil;
+	if (type < 0 || [commodityData count] <= (unsigned)type)  return nil;
 	
-	return [commoditydata arrayAtIndex:type];
+	return [commodityData arrayAtIndex:type];
 }
 
 
@@ -3187,15 +3190,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	unsigned		i, count;
 	NSString		*name;
 	
-	count = [commoditydata count];
+	count = [commodityData count];
 	for (i = 0; i < count; i++)
 	{
 		/*	Bug: NSNotFound being returned for valid names.
-			Analysis: Looking for name in commoditydata rather than ith element.
-			Fix: look in [commoditydata objectAtIndex:i].
+			Analysis: Looking for name in commodityData rather than ith element.
+			Fix: look in [commodityData objectAtIndex:i].
 			-- Ahruman 20070714
 		*/
-		name = [[commoditydata arrayAtIndex:i] stringAtIndex:MARKET_NAME];
+		name = [[commodityData arrayAtIndex:i] stringAtIndex:MARKET_NAME];
 		if ([co_name caseInsensitiveCompare:name] == NSOrderedSame)
 		{
 			return i;
@@ -5908,9 +5911,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	// for scripted overrides for this planet
 	NSDictionary *overrides = nil;
 	
-	overrides = [planetinfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
+	overrides = [planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	overrides = [planetinfo dictionaryForKey:override_key];
+	overrides = [planetInfo dictionaryForKey:override_key];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
 	overrides = [localPlanetInfoOverrides dictionaryForKey:override_key];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
@@ -6510,7 +6513,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSMutableDictionary *)localPlanetInfoOverrides;
+- (NSMutableDictionary *) localPlanetInfoOverrides;
 {
 	return localPlanetInfoOverrides;
 }
@@ -6549,27 +6552,27 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSDictionary*) planetinfo
+- (NSDictionary *) planetInfo
 {
-	return planetinfo;
+	return planetInfo;
 }
 
 
-- (NSArray *) equipmentdata
+- (NSArray *) equipmentData
 {
-	return equipmentdata;
+	return equipmentData;
 }
 
 
-- (NSDictionary *) commoditylists
+- (NSDictionary *) commodityLists
 {
-	return commoditylists;
+	return commodityLists;
 }
 
 
-- (NSArray *) commoditydata
+- (NSArray *) commodityData
 {
-	return commoditydata;
+	return commodityData;
 }
 
 
@@ -6577,10 +6580,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	StationEntity *some_station = [self station];
 	NSString *stationRole = [some_station primaryRole];
-	if ([commoditylists arrayForKey:stationRole] == nil)  stationRole = @"default";
+	if ([commodityLists arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
-	[commoditydata release];
-	commoditydata = [[self commodityDataForEconomy:economy andStation:some_station andRandomFactor:random_factor] retain];
+	[commodityData release];
+	commodityData = [[self commodityDataForEconomy:economy andStation:some_station andRandomFactor:random_factor] retain];
 	return YES;
 }
 
@@ -6593,9 +6596,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	stationRole = [[self currentSystemData] stringForKey:@"market"];
 	if (stationRole == nil) stationRole = [some_station primaryRole];
-	if ([commoditylists arrayForKey:stationRole] == nil)  stationRole = @"default";
+	if ([commodityLists arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
-	ourEconomy = [NSMutableArray arrayWithArray:[commoditylists arrayForKey:stationRole]];
+	ourEconomy = [NSMutableArray arrayWithArray:[commodityLists arrayForKey:stationRole]];
 	
 	for (i = 0; i < [ourEconomy count]; i++)
 	{
@@ -7178,14 +7181,14 @@ double estimatedTimeForJourney(double distance, int hops)
 				NSString* equipment = [options stringAtIndex:option_index];
 				int eq_index = NSNotFound;
 				unsigned q;
-				for (q = 0; (q < [equipmentdata count])&&(eq_index == NSNotFound) ; q++)
+				for (q = 0; (q < [equipmentData count])&&(eq_index == NSNotFound) ; q++)
 				{
-					if ([equipment isEqual:[[equipmentdata arrayAtIndex:q] stringAtIndex:EQUIPMENT_KEY_INDEX]])
+					if ([equipment isEqual:[[equipmentData arrayAtIndex:q] stringAtIndex:EQUIPMENT_KEY_INDEX]])
 						eq_index = q;
 				}
 				if (eq_index != NSNotFound)
 				{
-					NSArray* equipment_info = [equipmentdata arrayAtIndex:eq_index];
+					NSArray* equipment_info = [equipmentData arrayAtIndex:eq_index];
 					 //all amounts are x/10 due to being represented in tenths of credits
 					OOCreditsQuantity eq_price = [equipment_info unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX] / 10;
 					unsigned eq_techlevel = [equipment_info unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
@@ -7534,11 +7537,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		{
 			NSString* item_key = [mut_extras stringAtIndex:i];
 			NSString* item_desc = nil;
-			for (j = 0; ((j < [equipmentdata count])&&(!item_desc)) ; j++)
+			for (j = 0; ((j < [equipmentData count])&&(!item_desc)) ; j++)
 			{
-				NSString *eq_type = [[equipmentdata arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString *eq_type = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
 				if ([eq_type isEqual:item_key])
-					item_desc = [[equipmentdata arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+					item_desc = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 			}
 			if (item_desc)
 			{
@@ -7568,11 +7571,11 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 		{
 			NSString* item_key = [options stringAtIndex:i];
 			NSString* item_desc = nil;
-			for (j = 0; ((j < [equipmentdata count])&&(!item_desc)) ; j++)
+			for (j = 0; ((j < [equipmentData count])&&(!item_desc)) ; j++)
 			{
-				NSString *eq_type = [[equipmentdata arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString *eq_type = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
 				if ([eq_type isEqual:item_key])
-					item_desc = [[equipmentdata arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+					item_desc = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 			}
 			if (item_desc)
 			{

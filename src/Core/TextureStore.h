@@ -49,8 +49,8 @@ MA 02110-1301, USA.
 
 // routines to create textures...
 
-+ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
-+ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetinfo intoData:(unsigned char **)textureData;
++ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
++ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
 + (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
 
 void fillRanNoiseBuffer();
