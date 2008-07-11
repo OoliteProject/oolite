@@ -2679,11 +2679,9 @@ double scoopSoundPlayTime = 0.0;
 	{
 		start.x += (float)mcr * v_eject.x;	start.y += (float)mcr * v_eject.y;	start.z += (float)mcr * v_eject.z;
 	}
-
-	vel.x = (flightSpeed + throw_speed) * v_forward.x;
-	vel.y = (flightSpeed + throw_speed) * v_forward.y;
-	vel.z = (flightSpeed + throw_speed) * v_forward.z;
-
+	
+	vel = vector_multiply_scalar(v_forward, flightSpeed + throw_speed);
+	
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
@@ -3352,21 +3350,15 @@ double scoopSoundPlayTime = 0.0;
 	// equipment damage
 	if (damage_to < [self equipmentCount])
 	{
-		NSArray* systems = [[self equipmentEnumerator] allObjects];
-		NSString* system_key = [systems objectAtIndex:damage_to];
-		NSString* system_name = nil;
-		if (([system_key hasSuffix:@"MISSILE"])||([system_key hasSuffix:@"MINE"])||([system_key isEqual:@"EQ_CARGO_BAY"]))
-			return;
-		NSArray* eq = [UNIVERSE equipmentData];
-		unsigned i;
-		for (i = 0; (i < [eq count])&&(!system_name); i++)
-		{
-			NSArray* eqd = [eq arrayAtIndex:i];
-			if ([system_key isEqual:[eqd objectAtIndex:EQUIPMENT_KEY_INDEX]])
-				system_name = [eqd stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
-		}
-		if (!system_name)
-			return;
+		NSArray		*systems = [[self equipmentEnumerator] allObjects];
+		NSString	*system_key = [systems objectAtIndex:damage_to];
+		NSString	*system_name = nil;
+		
+		if ([system_key hasSuffix:@"MISSILE"] || [system_key hasSuffix:@"MINE"] || [system_key isEqual:@"EQ_CARGO_BAY"])  return;
+		
+		system_name = [[OOEquipmentType equipmentTypeWithIdentifier:system_key] name];
+		if (system_name == nil)  return;
+		
 		// set the following so removeEquipment works on the right entity
 		[self setScriptTarget:self];
 		[UNIVERSE clearPreviousMessage];
@@ -4000,24 +3992,23 @@ double scoopSoundPlayTime = 0.0;
 
 - (NSArray *) equipmentList
 {
-	NSMutableArray		*quip = [NSMutableArray array];
-	unsigned			i;
-	NSArray				*equipmentinfo = [UNIVERSE equipmentData];
+	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
+	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
+	NSEnumerator		*eqTypeEnum = nil;
+	OOEquipmentType		*eqType = nil;
 	
-	for (i =0; i < [equipmentinfo count]; i++)
+	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
-		NSString *w_key = [[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
-		NSString *w_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", w_key];
-		if ([self hasEquipmentItem:w_key])
+		if ([self hasEquipmentItem:[eqType identifier]])
 		{
-			[quip addObject:[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
+			[quip addObject:[eqType name]];
 		}
-		
-		if (![UNIVERSE strict])
+		else if (![UNIVERSE strict])
 		{
-			if ([self hasEquipmentItem:w_key_damaged])
+			// Check for damaged version
+			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
 			{
-				[quip addObject:[[[equipmentinfo arrayAtIndex:i] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] stringByAppendingString:DESC(@"equipment-not-available")]];
+				[quip addObject:[NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]]];
 			}
 		}
 	}
@@ -4631,16 +4622,18 @@ static int last_outfitting_index;
 	NSMutableArray* equipment_allowed = [NSMutableArray array];
 	
 	// find options that agree with this ship
-	NSMutableArray*	options = [NSMutableArray arrayWithArray:[(NSDictionary *)[[UNIVERSE shipyard] objectForKey:ship_desc] objectForKey:KEY_OPTIONAL_EQUIPMENT]];
+	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:ship_desc];
+	NSMutableArray		*options = [NSMutableArray arrayWithArray:[shipyardInfo arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
 	// add standard items too!
-	[options addObjectsFromArray:[(NSDictionary *)[(NSDictionary *)[[UNIVERSE shipyard] objectForKey:ship_desc] objectForKey:KEY_STANDARD_EQUIPMENT] objectForKey:KEY_EQUIPMENT_EXTRAS]];
+	[options addObjectsFromArray:[[[registry shipyardInfoForKey:ship_desc] dictionaryForKey:KEY_STANDARD_EQUIPMENT] arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	
 	unsigned i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
-		NSString		*eq_key = (NSString*)[(NSArray*)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_KEY_INDEX];
-		NSString		*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-		OOTechLevelID	min_techlevel   = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+		NSString		*eq_key = [[equipdata arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
+		NSString		*eq_key_damaged = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+		OOTechLevelID	min_techlevel = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
 		
 		NSMutableDictionary	*eq_extra_info_dict = [NSMutableDictionary dictionary];
 		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
@@ -4703,7 +4696,7 @@ static int last_outfitting_index;
 		if ((int)i == itemForSelectFacing)
 		{
 			skip = [equipment_allowed count] - 1;	// skip to this upgrade
-			unsigned available_facings = [[[UNIVERSE shipyard] dictionaryForKey:ship_desc] unsignedIntForKey:KEY_WEAPON_FACINGS];
+			unsigned available_facings = [shipyardInfo unsignedIntForKey:KEY_WEAPON_FACINGS];
 			if (available_facings & WEAPON_FACING_FORWARD)
 				[equipment_allowed addUnsignedInteger:i];
 			if (available_facings & WEAPON_FACING_AFT)

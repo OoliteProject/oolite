@@ -212,8 +212,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	time_delta = 0.0;
 	universal_time = 0.0;
 	
-	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
-	
 	commodityLists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
 	
@@ -309,7 +307,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	[comm_log_gui release];
 	
 	[entities release];
-	[shipyard release];
 	
 	[commodityLists release];
 	[commodityData release];
@@ -451,9 +448,6 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	time_delta = 0.0;
 	universal_time = 0.0;
-	
-	[shipyard autorelease];
-	shipyard = [[ResourceManager dictionaryFromFilesNamed:@"shipyard.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -5765,12 +5759,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSDictionary *) shipyard
-{
-	return shipyard;
-}
-
-
 - (NSDictionary *) descriptions
 {
 	if (descriptions == nil)
@@ -7082,8 +7070,10 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 	NSMutableDictionary		*resultDictionary = [NSMutableDictionary dictionary];
 	
-	float tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
-	unsigned i;
+	float			tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
+	unsigned		i;
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
 	
 	for (i = 0; i < 256; i++)
 	{
@@ -7097,33 +7087,29 @@ double estimatedTimeForJourney(double distance, int hops)
 		
 		double days_until_sale = (ship_sold_time - current_time) / 86400.0;
 		
-		NSMutableArray *keysForShips = [NSMutableArray arrayWithArray:[shipyard allKeys]];
-		unsigned si;
+		NSMutableArray	*keysForShips = [NSMutableArray arrayWithArray:[registry playerShipKeys]];
+		unsigned		si;
 		for (si = 0; si < [keysForShips count]; si++)
 		{
 			//eliminate any ships that fail a 'conditions test'
-			NSString		*key = [keysForShips stringAtIndex: si];
-			NSDictionary	*dict = [shipyard dictionaryForKey: key];
+			NSString		*key = [keysForShips stringAtIndex:si];
+			NSDictionary	*dict = [registry shipyardInfoForKey:key];
 			if ([dict objectForKey:@"conditions"])
 			{
-				PlayerEntity* player = [PlayerEntity sharedPlayer];
-				if ((player) && (player->isPlayer) && (![player checkCouplet: dict onEntity: player]))
-					[keysForShips removeObjectAtIndex: si--];
+				if (![player checkCouplet:dict onEntity:player])
+					[keysForShips removeObjectAtIndex:si--];
 			}
 		}
 		
+		NSDictionary	*systemInfo = [self generateSystemData:system_seed];
+		OOTechLevelID	techlevel = [systemInfo unsignedIntForKey:KEY_TECHLEVEL];
 		
-		NSDictionary* systemInfo = [self generateSystemData:system_seed];
-		unsigned techlevel = [systemInfo unsignedIntForKey:KEY_TECHLEVEL];
+		if (specialTL != NSNotFound)  techlevel = specialTL;
 		
-		if (specialTL != NSNotFound)
-			techlevel = specialTL;
-		
-		unsigned ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
-		
-		NSString* ship_key = [keysForShips stringAtIndex:ship_index];
-		NSDictionary* ship_info = [shipyard dictionaryForKey:ship_key];
-		OOTechLevelID ship_techlevel = [ship_info intForKey:KEY_TECHLEVEL];
+		unsigned		ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
+		NSString		*ship_key = [keysForShips stringAtIndex:ship_index];
+		NSDictionary	*ship_info = [registry shipyardInfoForKey:ship_key];
+		OOTechLevelID	ship_techlevel = [ship_info intForKey:KEY_TECHLEVEL];
 		
 		double chance = 1.0 - pow(1.0 - [ship_info doubleForKey:KEY_CHANCE], OOMax_f(1, techlevel - ship_techlevel));
 		
@@ -7177,88 +7163,47 @@ double estimatedTimeForJourney(double distance, int hops)
 			while ((randf() < chance) && ([options count]))
 			{
 				chance *= chance;	//decrease the chance of a further customisation
-				int option_index = Ranrot() % [options count];
-				NSString* equipment = [options stringAtIndex:option_index];
-				int eq_index = NSNotFound;
-				unsigned q;
-				for (q = 0; (q < [equipmentData count])&&(eq_index == NSNotFound) ; q++)
+				int				option_index = Ranrot() % [options count];
+				NSString		*equipmentKey = [options stringAtIndex:option_index];
+				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+				
+				if (item != nil)
 				{
-					if ([equipment isEqual:[[equipmentData arrayAtIndex:q] stringAtIndex:EQUIPMENT_KEY_INDEX]])
-						eq_index = q;
-				}
-				if (eq_index != NSNotFound)
-				{
-					NSArray* equipment_info = [equipmentData arrayAtIndex:eq_index];
-					 //all amounts are x/10 due to being represented in tenths of credits
-					OOCreditsQuantity eq_price = [equipment_info unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX] / 10;
-					unsigned eq_techlevel = [equipment_info unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-					NSString* eq_short_desc = [equipment_info stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
-					NSString* eq_long_desc = [equipment_info stringAtIndex:EQUIPMENT_LONG_DESC_INDEX];
+					OOTechLevelID		eqTechLevel = [item techLevel];
+					OOCreditsQuantity	eqPrice = [item price] / 10;	// all amounts are x/10 due to being represented in tenths of credits.
+					NSString			*eqShortDesc = [item name];
+					NSString			*eqLongDesc = [item descriptiveText];
 					
-					if (eq_techlevel > techlevel)
+					if ([item techLevel] > techlevel)
 					{
-						// cap maximum tech level
-						if (eq_techlevel > 15)
-							eq_techlevel = 15;
-						// higher tech items are rarer!
-						if (randf() * (eq_techlevel - techlevel) < 1.0)
+						// Cap maximum tech level.
+						eqTechLevel = MAX(eqTechLevel, 15U);
+						
+						// Higher tech items are rarer!
+						if (randf() * (eqTechLevel - techlevel) < 1.0)
 						{
-							eq_price *= (tech_price_boost + eq_techlevel - techlevel) * 90 / 100;  //all equip has a 10% disocount
+							// All included equip has a 10% discount.
+							eqPrice *= (tech_price_boost + eqTechLevel - techlevel) * 90 / 100;
 						}
-						else
-						{
-							eq_price = 0;	// bar this upgrade
-						}
+						else  eqPrice = 0;	// Bar this upgrade.
 					}
 					
-					if (eq_price > 0)
+					if (eqPrice > 0)
 					{
-						if (![equipment hasPrefix:@"EQ_WEAPON"])
+						if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
 						{
-							if ([equipment isEqual:@"EQ_PASSENGER_BERTH"])
-							{
-								if ((max_cargo >= 5) && (randf() < chance))
-								{
-									max_cargo -= 5;
-									price += eq_price;
-									[extras addObject:equipment];
-									if (passenger_berths == 0)
-									{
-										// This will be needed to construct the description for passenger berths.
-										passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eq_long_desc lowercaseString]];
-									}
-									passenger_berths++;
-									customised = YES;
-								}
-								else
-								{
-									[options removeObject:equipment];	// remove the option if there's no space left
-								}
-							}
-							else
-							{
-								price += eq_price;
-								[extras addObject:equipment];
-								[description appendFormat:DESC(@"extra-@-@"), eq_short_desc, [eq_long_desc lowercaseString]];
-								[short_description appendFormat:short_extras_string, eq_short_desc];
-								short_extras_string = @" %@.";
-								customised = YES;
-							}
-						}
-						else
-						{
-							OOWeaponType new_weapon = EquipmentStringToWeaponType(equipment);
+							OOWeaponType new_weapon = EquipmentStringToWeaponType(equipmentKey);
 							//fit best weapon forward
 							if (new_weapon > fwd_weapon)
 							{
 								//again remember to divide price by 10 to get credits from tenths of credit
 								price -= [self getPriceForWeaponSystemWithKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
-								price += eq_price;
-								fwd_weapon_string = equipment;
+								price += eqPrice;
+								fwd_weapon_string = equipmentKey;
 								fwd_weapon = new_weapon;
 								[ship_dict setObject:fwd_weapon_string forKey:KEY_EQUIPMENT_FORWARD_WEAPON];
 								weapon_customised = YES;
-								fwd_weapon_desc = eq_short_desc;
+								fwd_weapon_desc = eqShortDesc;
 							}
 							else 
 							{
@@ -7266,30 +7211,50 @@ double estimatedTimeForJourney(double distance, int hops)
 								if (!aft_weapon || new_weapon > aft_weapon)
 								{
 									price -= [self getPriceForWeaponSystemWithKey:aft_weapon_string] * 90 / 1000;	// 90% credits
-									price += eq_price;
-									aft_weapon_string = equipment;
+									price += eqPrice;
+									aft_weapon_string = equipmentKey;
 									aft_weapon = new_weapon;
 									[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
 									other_weapon_added = YES;
-									aft_weapon_desc = eq_short_desc;
+									aft_weapon_desc = eqShortDesc;
 								}						
+							}
+						
+						}
+						else
+						{
+							if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BIRTH"])
+							{
+								if ((max_cargo >= 5) && (randf() < chance))
+								{
+									max_cargo -= 5;
+									price += eqPrice;
+									[extras addObject:equipmentKey];
+									if (passenger_berths == 0)
+									{
+										// This will be needed to construct the description for passenger berths.
+										passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
+									}
+									passenger_berths++;
+									customised = YES;
+								}
+								else
+								{
+									// remove the option if there's no space left
+									[options removeObject:equipmentKey];
+								}
+							}
+							else
+							{
+								price += eqPrice;
+								[extras addObject:equipmentKey];
+								[description appendFormat:DESC(@"extra-@-@"), eqShortDesc, [eqLongDesc lowercaseString]];
+								[short_description appendFormat:short_extras_string, eqShortDesc];
+								short_extras_string = @" %@.";
+								customised = YES;
 							}
 						}
 					}
-				}
-				if ([equipment hasSuffix:@"ENERGY_UNIT"])	// remove ALL the energy unit add-ons
-				{
-					unsigned q;
-					for (q = 0; q < [options count]; q++)
-					{
-						if ([[options stringAtIndex:q] hasSuffix:@"ENERGY_UNIT"])
-							[options removeObjectAtIndex:q--];
-					}
-				}
-				else
-				{
-					if (![equipment isEqual:@"EQ_PASSENGER_BERTH"])	// let this get added multiple times
-						[options removeObject:equipment];
 				}
 			}
 			// i18n: Some languages require that no conversion to lower case string takes place.
@@ -7409,7 +7374,7 @@ static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2,
 	
 	// given the ship model (from ship_desc)
 	// get the basic information about the standard customer model for that craft
-	NSDictionary		*shipyard_info = [[UNIVERSE shipyard] dictionaryForKey:ship_desc];
+	NSDictionary		*shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:ship_desc];
 	NSDictionary		*basic_info = [shipyard_info dictionaryForKey:KEY_STANDARD_EQUIPMENT];
 	OOCreditsQuantity	base_price = [shipyard_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	unsigned			base_missiles = [basic_info unsignedIntForKey:KEY_EQUIPMENT_MISSILES];

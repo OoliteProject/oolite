@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "NSStringOOExtensions.h"
 #import "OOShipRegistry.h"
+#import "OOEquipmentType.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
@@ -1323,14 +1324,12 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (!dockedStation)
 		return;
 	
-	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
+	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
 	
-	ship = [[ShipEntity alloc] init];	//retained
-	
+	ship = [[ShipEntity alloc] initWithDictionary:shipDict];
 	[ship wasAddedToUniverse];
-	[ship setUpShipFromDictionary:shipDict];
 	
-	GLfloat cr = ship->collision_radius;
+	GLfloat cr = [ship collisionRadius];
 	OOLog(kOOLogNoteShowShipyardModel, @"::::: showShipyardModel:'%@'.", [ship name]);
 	[ship setOrientation: q2];
 	
@@ -1447,28 +1446,15 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// keep track of portable equipment..
 	
-	NSArray			*equipment = [UNIVERSE equipmentData];
 	NSMutableSet	*portable_equipment = [NSMutableSet set];
 	NSEnumerator	*eqEnum = nil;
 	NSString		*eq_desc = nil;
+	OOEquipmentType	*item = nil;
 	
 	for (eqEnum = [self equipmentEnumerator]; (eq_desc = [eqEnum nextObject]);)
 	{
-		NSDictionary* eq_dict = nil;
-		for (i = 0; (i < [equipment count])&&(!eq_dict); i++)
-		{
-			NSArray* eq_info = [equipment objectAtIndex:i];
-			if ([eq_desc isEqual:[eq_info stringAtIndex:EQUIPMENT_KEY_INDEX]] &&
-				[eq_info count] > EQUIPMENT_EXTRA_INFO_INDEX)
-			{
-				eq_dict = [eq_info dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
-				break;
-			}
-		}
-		if ([eq_dict boolForKey:@"portable_between_ships"])
-		{
-			[portable_equipment addObject:eq_desc];
-		}
+		item = [OOEquipmentType equipmentTypeWithIdentifier:eq_desc];
+		if ([item isPortableBetweenShips])  [portable_equipment addObject:eq_desc];
 	}
 	
 	// remove ALL

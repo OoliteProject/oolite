@@ -57,17 +57,18 @@ SOFTWARE.
 {
 	NSDictionary			*_shipData;
 	NSArray					*_demoShips;
-	NSSet					*_playerShips;
+	NSArray					*_playerShips;
 	NSDictionary			*_probabilitySets;
 }
 
 + (OOShipRegistry *) sharedRegistry;
 
 - (NSDictionary *) shipInfoForKey:(NSString *)key;
+- (NSDictionary *) shipyardInfoForKey:(NSString *)key;
 - (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;
 
 - (NSArray *) demoShipKeys;
-- (NSSet *) playerShipKeys;
+- (NSArray *) playerShipKeys;
 
 @end
 

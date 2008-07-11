@@ -779,7 +779,7 @@
 	"equipment-port-weapon-@"		= "Port %@";
 	"equipment-single-pass-berth-@"	= "1 Passenger Berth";
 	"equipment-multiple-pass-berth-@" = "%d Passenger Berths";
-	"equipment-not-available"		= " (N/A)";
+	"equipment-@-not-available"		= "%@ (N/A)";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	
 	// Short Range Chart Screen

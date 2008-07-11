@@ -189,8 +189,6 @@ enum
 	
 	BOOL					dumpCollisionInfo;
 	
-	NSDictionary			*shipyard;				// holds data on all ships for sale, loaded at initialisation
-	
 	NSDictionary			*commodityLists;		// holds data on commodities for various types of station, loaded at initialisation
 	NSArray					*commodityData;			// holds data on commodities extracted from commodityLists
 	
@@ -451,7 +449,6 @@ enum
 - (OOSystemID) systemIDForSystemSeed:(Random_Seed)seed;
 - (OOSystemID) currentSystemID;
 
-- (NSDictionary *) shipyard;
 - (NSDictionary *) descriptions;
 - (NSDictionary *) characters;
 - (NSDictionary *) missiontext;

@@ -63,8 +63,8 @@ static NSString * const kCacheKeyCaches						= @"caches";
 
 enum
 {
-	kEndianTagValue			= 0x12345678UL,
-	kFormatVersionValue		= 19
+	kEndianTagValue			= 0x0123456789ABCDEFULL,
+	kFormatVersionValue		= 20
 };
 
 
@@ -304,7 +304,7 @@ static OOCacheManager *sSingleton = nil;
 	NSData					*endianTag = nil;
 	NSNumber				*formatVersion = nil;
 	BOOL					accept = YES;
-	uint32_t				endianTagValue = 0;
+	uint64_t				endianTagValue = 0;
 	
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	
@@ -341,7 +341,7 @@ static OOCacheManager *sSingleton = nil;
 			}
 			else
 			{
-				endianTagValue = *(const uint32_t *)[endianTag bytes];
+				endianTagValue = *(const uint64_t *)[endianTag bytes];
 				if (endianTagValue != kEndianTagValue)
 				{
 					OOLog(kOOLogDataCacheRebuild, @"Data cache endianness is inappropriate for this system, rebuilding cache.");
@@ -376,7 +376,7 @@ static OOCacheManager *sSingleton = nil;
 	NSData					*endianTag = nil;
 	NSNumber				*formatVersion = nil;
 	NSDictionary			*pListRep = nil;
-	uint32_t				endianTagValue = kEndianTagValue;
+	uint64_t				endianTagValue = kEndianTagValue;
 	
 	if (_caches == nil) return;
 	

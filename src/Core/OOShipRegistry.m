@@ -103,7 +103,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		OOCacheManager			*cache = [OOCacheManager sharedCache];
 		
 		_shipData = [[cache objectForKey:kShipDataCacheKey inCache:kShipRegistryCacheName] retain];
-		_playerShips = [[NSSet setWithArray:[cache objectForKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName]] retain];
+		_playerShips = [[cache objectForKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName] retain];
 		if ([_shipData count] == 0)	// Don't accept nil or empty
 		{
 			[self loadShipData];
@@ -160,6 +160,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
+- (NSDictionary *) shipyardInfoForKey:(NSString *)key
+{
+	return [[self shipInfoForKey:key] objectForKey:@"shipyard"];
+}
+
+
 - (OOProbabilitySet *) probabilitySetForRole:(NSString *)role
 {
 	if (role == nil)  return nil;
@@ -173,7 +179,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (NSSet *) playerShipKeys
+- (NSArray *) playerShipKeys
 {
 	return _playerShips;
 }
@@ -216,6 +222,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSString				*key = nil;
 	NSDictionary			*immutableResult = nil;
 	
+	OOLog(@"shipData.load.begin", @"Loading ship data...");
+	OOLogIndentIf(@"shipData.load.begin");
+	
 	[_shipData release];
 	_shipData = nil;
 	[_playerShips release];
@@ -254,6 +263,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	_shipData = [immutableResult retain];
 	[[OOCacheManager sharedCache] setObject:_shipData forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
+	
+	OOLogOutdentIf(@"shipData.load.begin");
+	OOLog(@"shipData.load.done", @"Ship data loaded.");
 }
 
 
@@ -513,7 +525,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 														mergeMode:MERGE_SMART
 															cache:NO];
 	
-	playerShips = [NSMutableSet setWithCapacity:[shipyard count]];
+	playerShips = [NSMutableArray arrayWithCapacity:[shipyard count]];
 	
 	// Insert merged shipyard and shipyardOverrides entries.
 	for (enumerator = [shipyard keyEnumerator]; (key = [enumerator nextObject]); )
@@ -537,7 +549,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	
 	_playerShips = [playerShips copy];
-	[[OOCacheManager sharedCache] setObject:[_playerShips allObjects] forKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName];
+	[[OOCacheManager sharedCache] setObject:_playerShips forKey:kPlayerShipsCacheKey inCache:kShipRegistryCacheName];
 	
 	return YES;
 }
