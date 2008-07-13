@@ -583,7 +583,7 @@ waitingForStickCallback: 1;
 - (void) docked;
 
 - (void) setGuiToStatusScreen;
-- (NSArray *) equipmentList;
+- (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
 - (NSArray *) cargoList;
 - (void) setGuiToSystemDataScreen;
 - (NSArray *) markedDestinations;

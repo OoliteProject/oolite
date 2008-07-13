@@ -3996,31 +3996,45 @@ double scoopSoundPlayTime = 0.0;
 	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
+	NSString			*desc = nil;
 	
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([self hasEquipmentItem:[eqType identifier]])
 		{
-			[quip addObject:[eqType name]];
+			[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
 		}
 		else if (![UNIVERSE strict])
 		{
 			// Check for damaged version
 			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
 			{
-				[quip addObject:[NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]]];
+				desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
+				[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
 			}
 		}
 	}
 	
 	if (forward_weapon > WEAPON_NONE)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]]];
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
 	if (aft_weapon > WEAPON_NONE)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]]];
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
 	if (starboard_weapon > WEAPON_NONE)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]]];
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
 	if (port_weapon > WEAPON_NONE)
-		[quip addObject:[NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]]];
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
 	
 	if (max_passengers > 0)
 	{
@@ -4028,14 +4042,15 @@ double scoopSoundPlayTime = 0.0;
 		// may have quite different ways of phrasing the two.
 		if  (max_passengers > 1)
 		{
-			[quip addObject:[NSString stringWithFormat:DESC(@"equipment-multiple-pass-berth-@"), max_passengers]];
+			desc = [NSString stringWithFormat:DESC(@"equipment-multiple-pass-berth-@"), max_passengers];
 		}
 		else
 		{
-			[quip addObject:DESC(@"equipment-single-pass-berth-@")];
+			desc = DESC(@"equipment-single-pass-berth-@");
 		}
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-
+	
 	return quip;
 }
 

@@ -1683,6 +1683,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	OOEquipmentType			*eqType = nil;
 	
+	if ([equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
+	}
+	
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	if (eqType == nil)  return NO;
 	

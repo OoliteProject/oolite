@@ -7233,6 +7233,8 @@ double estimatedTimeForJourney(double distance, int hops)
 									if (passenger_berths == 0)
 									{
 										// This will be needed to construct the description for passenger berths.
+										// Note: use of lowercaseString is bad from an i18n perspective,
+										// but the string is never actually shown anyway...
 										passengerBerthLongDesc = [NSString stringWithFormat:@"%@", [eqLongDesc lowercaseString]];
 									}
 									passenger_berths++;

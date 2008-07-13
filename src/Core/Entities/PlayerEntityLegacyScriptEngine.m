@@ -1240,7 +1240,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
 		return;
 	}
-	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length]-8]])
+	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length] - [@"_DAMAGED" length]]])
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
 	}

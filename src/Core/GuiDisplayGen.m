@@ -762,18 +762,22 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	for (i=0; i < equipment_list_items_count; i++)
 	{
 		// Damaged items in the equipment list appear in orange color.
-		BOOL is_eqpt_damaged = [[eqptList objectAtIndex:i] hasSuffix:DESC(@"equipment-not-available")];
-		if (is_eqpt_damaged == YES) glColor4f (1.0f, 0.5f, 0.0f, 1.0f);
+		NSArray			*info = [eqptList objectAtIndex:i];
+		NSString		*name = [info stringAtIndex:0];
+		BOOL			damaged = ![info boolAtIndex:1];
+		
+		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f);
 		
 		if (i < eqpt_items_per_column)
 		{
-			drawString ([eqptList objectAtIndex:i], -220, 40 - (15 * i), z, NSMakeSize(15,15));
+			drawString (name, -220, 40 - (15 * i), z, NSMakeSize(15, 15));
 		}
 		else
 		{
-			drawString ([eqptList objectAtIndex:i], 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15,15));
+			drawString (name, 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15, 15));
 		}
-		glColor4f (1.0f, 1.0f, 0.0f, 1.0f);		// Reset text color to yellow.
+		
+		if (damaged)  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Reset text color to yellow.
 	}
 }
 
