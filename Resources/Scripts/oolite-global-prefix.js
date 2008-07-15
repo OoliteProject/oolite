@@ -116,7 +116,7 @@ this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName
 {
 	let getter = function ()
 	{
-		special.jsWarning(constructorName + "." + oldName + " is deprecated and read-only.");
+		special.jsWarning(constructorName + "." + oldName + " is deprecated and write-only.");
 		return undefined;
 	}
 	let setter = function (value)
@@ -154,3 +154,7 @@ system.setSunNova = function(delay)
 	special.jsWarning("system.setSunNova() is deprecated, use system.sun.goNova() instead.");
 	if (this.sun)  this.sun.goNova(delay);
 }
+
+
+// To be removed after 1.73
+this.defineCompatibilityGetter("Ship", "maxCargo", "cargoCapacity");

@@ -68,9 +68,6 @@ OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GL
 /* Inner product of two quaternions */
 OOINLINE GLfloat quaternion_dot_product(Quaternion q1, Quaternion q2) CONST_FUNC;
 
-/* Create a rotation matrix from a quaternion. */
-void quaternion_into_gl_matrix(Quaternion quat, GLfloat *glmat) NONNULL_FUNC;
-
 /* Create basis vectors from a quaternion. */
 Vector vector_forward_from_quaternion(Quaternion quat) CONST_FUNC;
 Vector vector_up_from_quaternion(Quaternion quat) CONST_FUNC;

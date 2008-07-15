@@ -58,34 +58,6 @@ void quaternion_set_random(Quaternion *quat)
 }
 
 
-void quaternion_into_gl_matrix(Quaternion quat, GLfloat *glmat)
-{
-	GLfloat	w, wz, wy, wx;
-	GLfloat	x, xz, xy, xx;
-	GLfloat	y, yz, yy;
-	GLfloat	z, zz;
-    
-	Quaternion q = quat;
-	quaternion_normalize(&q);
-	
-	w = q.w;
-	z = q.z;
-	y = q.y;
-	x = q.x;
-    
-	xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-	wx = w * xx; wy = w * yy; wz = w * zz;
-	xx = x * xx; xy = x * yy; xz = x * zz;
-	yy = y * yy; yz = y * zz;
-	zz = z * zz;
-
-	glmat[ 0] = 1.0f - yy - zz;	glmat[ 4] = xy + wz;		glmat[ 8] = xz - wy;		glmat[12] = 0.0f;
-	glmat[ 1] = xy - wz;		glmat[ 5] = 1.0f - xx - zz;	glmat[ 9] = yz + wx;		glmat[13] = 0.0f;
-	glmat[ 2] = xz + wy;		glmat[ 6] = yz - wx;		glmat[10] = 1.0f - xx - yy;	glmat[14] = 0.0f;
-	glmat[ 3] = 0.0f;			glmat[ 7] = 0.0f;			glmat[11] = 0.0f;			glmat[15] = 1.0f;
-}
-
-
 Vector vector_forward_from_quaternion(Quaternion quat)
 {
     GLfloat	w, wy, wx;

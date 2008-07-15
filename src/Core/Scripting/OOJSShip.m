@@ -113,7 +113,9 @@ enum
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
-	kShip_maxCargo,				// maximum cargo, integer, read-only
+	kShip_cargoCapacity,		// free cargo space, integer, read-only
+	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
+	kShip_availableCargoSpace,	// maximum cargo, integer, read-only
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
@@ -125,7 +127,10 @@ enum
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
-	kShip_trackCloseContacts	// generate close contact events, boolean, read/write
+	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
+	kShip_passengerCount,		// number of passengers on ship, integer, read-only
+	kShip_passengerCapacity		// amount of passenger space on ship, integer, read-only
+	
 };
 
 
@@ -153,7 +158,10 @@ static JSPropertySpec sShipProperties[] =
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "maxCargo",				kShip_maxCargo,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+// "cargo" reserved for array of cargo pods or similar.
+	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cargoCapacity",			kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "availableCargoSpace",	kShip_availableCargoSpace,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "potentialCollider",		kShip_potentialCollider,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -173,6 +181,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+// "passengers" reserved for array of characters or similar.
+	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -375,9 +386,19 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			*outValue = BOOLToJSVal([entity withinStationAegis]);
 			OK = YES;
 			break;
-		
-		case kShip_maxCargo:
+			
+		case kShip_cargoCapacity:
 			*outValue = INT_TO_JSVAL([entity maxCargo]);
+			OK = YES;
+			break;
+			
+		case kShip_cargoSpaceUsed:
+			*outValue = INT_TO_JSVAL([entity maxCargo] - [entity availableCargoSpace]);
+			OK = YES;
+			break;
+			
+		case kShip_availableCargoSpace:
+			*outValue = INT_TO_JSVAL([entity availableCargoSpace]);
 			OK = YES;
 			break;
 			
@@ -435,6 +456,16 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_trackCloseContacts:
 			*outValue = BOOLToJSVal([entity trackCloseContacts]);
+			OK = YES;
+			break;
+			
+		case kShip_passengerCount:
+			*outValue = INT_TO_JSVAL([entity passengerCount]);
+			OK = YES;
+			break;
+			
+		case kShip_passengerCapacity:
+			*outValue = INT_TO_JSVAL([entity passengerCapacity]);
 			OK = YES;
 			break;
 		
