@@ -7159,10 +7159,10 @@ double estimatedTimeForJourney(double distance, int hops)
 			NSString* short_extras_string = DESC(@"plus-@");
 			NSString* passengerBerthLongDesc = nil;
 			
-			// customise the ship
+			// customise the ship (if chance = 1, then ship will get all possible add ons)
 			while ((randf() < chance) && ([options count]))
 			{
-				chance *= chance;	//decrease the chance of a further customisation
+				chance *= chance;	//decrease the chance of a further customisation (unless it is 1, which might be a bug)
 				int				option_index = Ranrot() % [options count];
 				NSString		*equipmentKey = [options stringAtIndex:option_index];
 				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
@@ -7217,7 +7217,11 @@ double estimatedTimeForJourney(double distance, int hops)
 									[ship_dict setObject:aft_weapon_string forKey:KEY_EQUIPMENT_AFT_WEAPON];
 									other_weapon_added = YES;
 									aft_weapon_desc = eqShortDesc;
-								}						
+								}
+								else 
+								{
+									[options removeObject:equipmentKey]; //dont try again
+								}				
 							}
 						
 						}
@@ -7254,6 +7258,7 @@ double estimatedTimeForJourney(double distance, int hops)
 								[short_description appendFormat:short_extras_string, eqShortDesc];
 								short_extras_string = @" %@.";
 								customised = YES;
+								[options removeObject:equipmentKey]; //dont add twice
 							}
 						}
 					}
