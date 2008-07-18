@@ -669,14 +669,14 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	
 	NS_DURING
 		result = JS_NewArrayObject(context, 0, NULL);
-		if (result == NULL)  return NULL;
+		if (result == NULL)  NS_VALUERETURN(NULL, JSObject *);
 		
 		count = [array count];
 		for (i = 0; i != count; ++i)
 		{
 			value = [[array objectAtIndex:i] javaScriptValueInContext:context];
 			OK = JS_SetElement(context, result, i, &value);
-			if (!OK)  return NULL;
+			if (!OK)  NS_VALUERETURN(NULL, JSObject *);
 		}
 	NS_HANDLER
 		result = NULL;
@@ -729,7 +729,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	
 	NS_DURING
 		result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
-		if (result == NULL)  return NULL;
+		if (result == NULL)  NS_VALUERETURN(NULL, JSObject *);
 		
 		for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
 		{
@@ -739,7 +739,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 				if (value != JSVAL_VOID)
 				{
 					OK = JSSetNSProperty(context, result, key, &value);
-					if (!OK)  return NULL;
+					if (!OK)  NS_VALUERETURN(NULL, JSObject *);
 				}
 			}
 			else if ([key isKindOfClass:[NSNumber class]])
@@ -751,7 +751,7 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 					if (value != JSVAL_VOID)
 					{
 						OK = JS_SetElement(context, (JSObject *)result, index, &value);
-						if (!OK)  return NULL;
+						if (!OK)  NS_VALUERETURN(NULL, JSObject *);
 					}
 				}
 			}
