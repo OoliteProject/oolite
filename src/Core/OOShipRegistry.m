@@ -279,16 +279,19 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSEnumerator			*enumerator = nil;
 	NSString				*key = nil;
+	NSArray					*initialDemoShips = nil;
 	NSMutableArray			*demoShips = nil;
 	
 	[_demoShips release];
 	_demoShips = nil;
 	
-	demoShips = [[[ResourceManager arrayFromFilesNamed:@"demoships.plist"
-											  inFolder:@"Config"
-											  andMerge:YES] mutableCopy] autorelease];
+	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"demoships.plist"
+												   inFolder:@"Config"
+												   andMerge:YES];
+	demoShips = [NSMutableArray arrayWithArray:[initialDemoShips mutableCopy]];
 	
-	for (enumerator = [demoShips objectEnumerator]; (key = [enumerator nextObject]); )
+	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
+	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )
 	{
 		if (![key isKindOfClass:[NSString class]] || [self shipInfoForKey:key] == nil)
 		{
@@ -350,8 +353,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	
 	// Convert role sets to immutable form, and build cache entry.
+	// Note: we iterate over a copy of the keys to avoid mutating while iterating.
 	cacheEntry = [NSMutableDictionary dictionaryWithCapacity:[probabilitySets count]];
-	for (roleEnum = [probabilitySets keyEnumerator]; (role = [roleEnum nextObject]); )
+	for (roleEnum = [[probabilitySets allKeys] objectEnumerator]; (role = [roleEnum nextObject]); )
 	{
 		pset = [probabilitySets objectForKey:role];
 		pset = [[pset copy] autorelease];
