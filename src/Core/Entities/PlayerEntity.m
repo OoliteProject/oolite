@@ -950,6 +950,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	thrust = [shipDict floatForKey:@"thrust" defaultValue:thrust];
 	
+	hyperspaceMotorSpinTime = [shipDict doubleForKey:@"hyperspace_motor_spin_time" defaultValue:15.0];
+	
 	maxEnergy = [shipDict floatForKey:@"max_energy" defaultValue:maxEnergy];
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;

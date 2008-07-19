@@ -130,6 +130,7 @@ MA 02110-1301, USA.
 	GLfloat					max_flight_yaw;
 	
 	GLfloat					thrust;						// acceleration
+	double					hyperspaceMotorSpinTime;		// duration of hyperspace countdown
 	
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
 	unsigned				military_jammer_active: 1,	// military_jammer

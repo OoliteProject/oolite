@@ -294,6 +294,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	fuel = [shipDict unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
+	hyperspaceMotorSpinTime = [shipDict doubleForKey:@"hyperspace_motor_spin_time" defaultValue:15.0];
+	
 	bounty = [shipDict unsignedIntForKey:@"bounty"];
 	
 	[shipAI autorelease];

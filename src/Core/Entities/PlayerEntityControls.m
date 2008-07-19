@@ -964,7 +964,7 @@ static NSTimeInterval	time_last_frame;
 					if (jumpOK)
 					{
 						galactic_witchjump = NO;
-						witchspaceCountdown = 15.0;
+						witchspaceCountdown = hyperspaceMotorSpinTime;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
 						[self playStandardHyperspace];
 						// say it!
@@ -1004,7 +1004,7 @@ static NSTimeInterval	time_last_frame;
 					if (jumpOK)
 					{
 						galactic_witchjump = YES;
-						witchspaceCountdown = 15.0;
+						witchspaceCountdown = hyperspaceMotorSpinTime;
 						status = STATUS_WITCHSPACE_COUNTDOWN;
 						[self playGalacticHyperspace];
 						// say it!
