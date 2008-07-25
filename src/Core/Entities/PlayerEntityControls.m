@@ -1439,22 +1439,22 @@ static NSTimeInterval	time_last_frame;
 				if ((guiSelectedRow == GUI_ROW_OPTIONS_QUICKSAVE)&&(!disc_operation_in_progress))
 				{
 					NS_DURING
-					disc_operation_in_progress = YES;
-					[self quicksavePlayer];
+						disc_operation_in_progress = YES;
+						[self quicksavePlayer];
 					NS_HANDLER
-					OOLog(kOOLogException, @"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
-					if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
-					{
-						OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
-						if ([controller inFullScreenMode])
-							[controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+						OOLog(kOOLogException, @"\n\n***** Handling localException: %@ : %@ *****\n\n",[localException name], [localException reason]);
+						if ([[localException name] isEqual:@"GameNotSavedException"])	// try saving game instead
+						{
+							OOLog(kOOLogException, @"\n\n***** Trying a normal save instead *****\n\n");
+							if ([controller inFullScreenMode])
+								[controller pauseFullScreenModeToPerform:@selector(savePlayer) onTarget:self];
+							else
+								[self savePlayer];
+						}
 						else
-							[self savePlayer];
-					}
-					else
-					{
-						[localException raise];
-					}
+						{
+							[localException raise];
+						}
 					NS_ENDHANDLER
 				}
 				if ((guiSelectedRow == GUI_ROW_OPTIONS_SAVE)&&(!disc_operation_in_progress))

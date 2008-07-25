@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 @class GuiDisplayGen, OOTrumble, MyOpenGLView, HeadUpDisplay, ShipEntity;
 @class OOSound, OOSoundSource, OOSoundReferencePoint;
-@class JoystickHandler, OOTexture;
+@class JoystickHandler, OOTexture, OOCamera;
 
 #define SCRIPT_TIMER_INTERVAL			10.0
 
@@ -293,7 +293,7 @@ typedef enum
 	OOCargoQuantity			current_cargo;
 	
 	NSPoint					cursor_coordinates;
-	double					witchspaceCountdown;
+	float					witchspaceCountdown;
 	
 	// player commander data
 	NSString				*player_name;
@@ -658,6 +658,8 @@ waitingForStickCallback: 1;
 - (void)setCustomViewDataFromDictionary:(NSDictionary*) viewDict;
 - (Vector) viewpointPosition;
 - (Vector) viewpointOffset;
+
+- (OOCamera *) currentCamera;
 
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;

@@ -57,6 +57,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
+#import "OOCamera.h"
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
@@ -950,7 +951,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	thrust = [shipDict floatForKey:@"thrust" defaultValue:thrust];
 	
-	hyperspaceMotorSpinTime = [shipDict doubleForKey:@"hyperspace_motor_spin_time" defaultValue:15.0];
+	if (![UNIVERSE strict])
+	{
+		hyperspaceMotorSpinTime = [shipDict floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+	}
+	else
+	{
+		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
+	}
 	
 	maxEnergy = [shipDict floatForKey:@"max_energy" defaultValue:maxEnergy];
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
@@ -1691,12 +1699,12 @@ double scoopSoundPlayTime = 0.0;
 {
 	[self doBookkeeping:delta_t];
 	witchspaceCountdown -= delta_t;
-	if (witchspaceCountdown < 0.0)  witchspaceCountdown = 0.0;
+	if (witchspaceCountdown < 0.0f)  witchspaceCountdown = 0.0f;
 	if (galactic_witchjump)
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
 	else
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-	if (witchspaceCountdown == 0.0)
+	if (witchspaceCountdown == 0.0f)
 	{
 		BOOL go = YES;
 		
@@ -2003,6 +2011,46 @@ double scoopSoundPlayTime = 0.0;
 	viewpoint.x += offset.z * r.m[0][2];	viewpoint.y += offset.z * r.m[1][2];	viewpoint.z += offset.z * r.m[2][2];
 	
 	return viewpoint;
+}
+
+
+/*	Return the current player-centric camera.
+	FIXME: this should store a set of cameras and return the current one.
+	Currently, it synthesizes a camera based on the various legacy things.
+*/
+- (OOCamera *) currentCamera
+{
+	OOCamera		*camera = nil;
+	Quaternion		orient = kIdentityQuaternion;
+	
+	camera = [[OOCamera alloc] init];
+	[camera autorelease];
+	
+	[camera setPosition:[self viewpointPosition]];
+	
+	/*switch ([UNIVERSE viewDirection])
+	{
+		case VIEW_FORWARD:
+		case VIEW_NONE:
+		case VIEW_GUI_DISPLAY:
+		case VIEW_BREAK_PATTERN:
+			orient = kIdentityQuaternion;
+			break;
+		
+		case VIEW_AFT:
+			static const OOMatrix	aft_matrix =
+			{{
+				{-1.0f,  0.0f,  0.0f,  0.0f },
+				{ 0.0f,  1.0f,  0.0f,  0.0f },
+				{ 0.0f,  0.0f, -1.0f,  0.0f },
+				{ 0.0f,  0.0f,  0.0f,  1.0f }
+			}};
+			
+	}*/
+	
+	[camera setOrientation:orient];
+	
+	return camera;
 }
 
 
@@ -3121,15 +3169,15 @@ double scoopSoundPlayTime = 0.0;
 	Vector			origin = position;
 	int				result = NO;
 	Quaternion		q1 = orientation;
-
+	
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
-
+	
 	q1.w = -q1.w;   // player view is reversed remember!
-
+	
 	flightSpeed = OOMax_f(flightSpeed, 50.0f);
 	vel = vector_multiply_scalar(v_forward, flightSpeed);
-
+	
 	doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
 	if (doppelganger)
 	{
@@ -3143,16 +3191,16 @@ double scoopSoundPlayTime = 0.0;
 		[doppelganger setOwner:self];
 		[doppelganger setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
-
+		
 		[UNIVERSE addEntity:doppelganger];
-
+		
 		[[doppelganger getAI] setStateMachine:@"nullAI.plist"];  // fly straight on
-
+		
 		result = [doppelganger universalID];
-
+		
 		[doppelganger release]; //release
 	}
-
+	
 	// set up you
 	escapePod = [UNIVERSE newShipWithName:@"escape-capsule"];	// retained
 	if (escapePod != nil)
@@ -3166,30 +3214,29 @@ double scoopSoundPlayTime = 0.0;
 	flightSpeed = 1.0f;
 	flightPitch = 0.2f * (randf() - 0.5f);
 	flightRoll = 0.2f * (randf() - 0.5f);
-
+	
 	float sheight = (float)(boundingBox.max.y - boundingBox.min.y);
 	position = vector_subtract(position, vector_multiply_scalar(v_up, sheight));
 	
 	//remove escape pod
 	[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
-	//has_escape_pod = NO;
-
+	
+	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];
+	
 	// reset legal status
 	legalStatus = 0;
 	bounty = 0;
-
+	
 	// reset trumbles
 	if (trumbleCount != 0)  trumbleCount = 1;
-
+	
 	// remove cargo
 	[cargo removeAllObjects];
-
+	
 	energy = 25;
 	[UNIVERSE addMessage:DESC(@"escape-sequence") forCount:4.5];
 	shot_time = 0.0;
 	
-	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:escapePod];
-
 	return result;
 }
 

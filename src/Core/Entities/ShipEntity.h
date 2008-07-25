@@ -64,6 +64,7 @@ MA 02110-1301, USA.
 #define SHIP_MAX_CABIN_TEMP				256.0f
 #define SHIP_MIN_CABIN_TEMP				60.0f
 #define EJECTA_TEMP_FACTOR				0.85f		// Ejected items have 85% of parent's temperature
+#define DEFAULT_HYPERSPACE_SPIN_TIME	15.0f
 
 #define SUN_TEMPERATURE					1250.0f
 
@@ -130,7 +131,7 @@ MA 02110-1301, USA.
 	GLfloat					max_flight_yaw;
 	
 	GLfloat					thrust;						// acceleration
-	double					hyperspaceMotorSpinTime;		// duration of hyperspace countdown
+	float					hyperspaceMotorSpinTime;	// duration of hyperspace countdown
 	
 	// TODO: stick all equipment in a list, and move list from playerEntity to shipEntity. -- Ahruman
 	unsigned				military_jammer_active: 1,	// military_jammer

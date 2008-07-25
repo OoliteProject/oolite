@@ -294,7 +294,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	fuel = [shipDict unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
-	hyperspaceMotorSpinTime = [shipDict doubleForKey:@"hyperspace_motor_spin_time" defaultValue:15.0];
+	if (![UNIVERSE strict])
+	{
+		hyperspaceMotorSpinTime = [shipDict floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+	}
+	else
+	{
+		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
+	}
 	
 	bounty = [shipDict unsignedIntForKey:@"bounty"];
 	
@@ -6980,18 +6987,20 @@ BOOL class_masslocks(int some_class)
 		if (energy < maxEnergy *0.125 && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
 			// TODO: abandoning ship should be split out into a separate method.
-			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
-			
-			[shipAI setStateMachine:@"nullAI.plist"];
-			[shipAI setState:@"GLOBAL"];
-			behaviour = BEHAVIOUR_IDLE;
-			frustration = 0.0;
-			[self launchEscapeCapsule];
-			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
-			thrust = thrust * 0.5;
-			desired_speed = 0.0;
-			maxFlightSpeed = 0.0;
-			[self setHulk:YES];
+			if ([self launchEscapeCapsule] != NO_TARGET)
+			{
+				[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+				
+				[shipAI setStateMachine:@"nullAI.plist"];
+				[shipAI setState:@"GLOBAL"];
+				behaviour = BEHAVIOUR_IDLE;
+				frustration = 0.0;
+				[self setScanClass: CLASS_CARGO];			// we're unmanned now!
+				thrust = thrust * 0.5;
+				desired_speed = 0.0;
+				maxFlightSpeed = 0.0;
+				[self setHulk:YES];
+			}
 		}
 	}
 }
@@ -8043,7 +8052,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	arguments = [NSArray arrayWithObjects:argument1, argument2, nil];
 	
 	NS_DURING
-		
 		[self doScriptEvent:message withArguments:arguments];
 	NS_HANDLER
 		OOLog(kOOLogException, @"***** Exception while performing script event %@ for %@: %@ : %@", message, [self shortDescription], [localException name], [localException reason]);

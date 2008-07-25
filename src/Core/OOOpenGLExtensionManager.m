@@ -291,11 +291,11 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	
 	const NSString		*requiredExtension[] = 
 						{
-							@"GL_ARB_multitexture",
-							@"GL_ARB_shader_objects",
 							@"GL_ARB_shading_language_100",
 							@"GL_ARB_fragment_shader",
 							@"GL_ARB_vertex_shader",
+							@"GL_ARB_multitexture",
+							@"GL_ARB_shader_objects",
 							nil	// sentinel - don't remove!
 						};
 	NSString			**required = NULL;
