@@ -1792,7 +1792,7 @@ WormholeEntity*	whole;
 // racing code TODO
 - (void) targetFirstBeaconWithCode:(NSString*) code
 {
-	NSArray* all_beacons = [UNIVERSE listBeaconsWithCode: code];
+	NSArray			*all_beacons = [UNIVERSE listBeaconsWithCode: code];
 	if ([all_beacons count])
 	{
 		primaryTarget = [(ShipEntity*)[all_beacons objectAtIndex:0] universalID];
@@ -1805,8 +1805,8 @@ WormholeEntity*	whole;
 
 - (void) targetNextBeaconWithCode:(NSString*) code
 {
-	NSArray* all_beacons = [UNIVERSE listBeaconsWithCode: code];
-	ShipEntity *current_beacon = [UNIVERSE entityForUniversalID:primaryTarget];
+	NSArray			*all_beacons = [UNIVERSE listBeaconsWithCode: code];
+	ShipEntity		*current_beacon = [UNIVERSE entityForUniversalID:primaryTarget];
 	
 	if ((!current_beacon)||(![current_beacon isBeacon]))
 	{
@@ -1816,7 +1816,7 @@ WormholeEntity*	whole;
 	}
 	
 	// find the current beacon in the list..
-	unsigned i = [all_beacons indexOfObject: current_beacon];
+	OOUInteger i = [all_beacons indexOfObject:current_beacon];
 	
 	if (i == NSNotFound)
 	{

@@ -106,3 +106,33 @@ static inline void OOSoundAtomicAdd(int32_t delta, int32_t *value)
 	OTAtomicAdd32(delta, (SInt32 *)value);
 }
 #endif
+
+
+// Wrappers for AU APIs changed in Leopard SDK
+#if OOLITE_LEOPARD
+
+static inline OSStatus OOAUGraphAddNode(AUGraph inGraph, const ComponentDescription *inDescription, AUNode *outNode)
+{
+	return AUGraphAddNode(inGraph, inDescription, outNode);
+}
+
+
+static inline OSStatus OOAUGraphNodeInfo(AUGraph inGraph, AUNode inNode, ComponentDescription *outDescription, AudioUnit *outAudioUnit)	
+{
+	return AUGraphNodeInfo(inGraph, inNode, outDescription, outAudioUnit);
+}
+
+#else
+
+static inline OSStatus OOAUGraphAddNode(AUGraph inGraph, const ComponentDescription *inDescription, AUNode *outNode)
+{
+	return AUGraphNewNode(inGraph, inDescription, 0, NULL, outNode);
+}
+
+
+static inline OSStatus OOAUGraphNodeInfo(AUGraph inGraph, AUNode inNode, ComponentDescription *outDescription, AudioUnit *outAudioUnit)	
+{
+	return AUGraphGetNodeInfo(inGraph, inNode, outDescription, NULL, NULL, outAudioUnit);
+}
+
+#endif

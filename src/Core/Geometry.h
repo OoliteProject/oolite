@@ -34,13 +34,13 @@ MA 02110-1301, USA.
 @interface Geometry : NSObject
 {
 	// a geometry essentially consists of a whole bunch of Triangles.
-	int			n_triangles;			// how many triangles in the geometry
-	int			max_triangles;			// how many triangles are allowed in the geometry before expansion
-	Triangle*	triangles;				// pointer to an array of triangles which we'll grow as necessary...
+	OOUInteger	n_triangles;			// how many triangles in the geometry
+	OOUInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
+	Triangle	*triangles;				// pointer to an array of triangles which we'll grow as necessary...
 	BOOL		isConvex;				// set at initialisation to NO
 }
 
-- (id) initWithCapacity:(unsigned)amount;
+- (id) initWithCapacity:(OOUInteger)amount;
 
 - (BOOL) isConvex;
 - (void) setConvex:(BOOL) value;

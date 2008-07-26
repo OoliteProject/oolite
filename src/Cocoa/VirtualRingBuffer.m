@@ -27,11 +27,11 @@
 
 @implementation VirtualRingBuffer
 
-static void *allocateVirtualBuffer(UInt32 bufferLength);
-static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
+static void *allocateVirtualBuffer(OOUInteger bufferLength);
+static void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength);
 
 
-- (id)initWithLength:(UInt32)length
+- (id)initWithLength:(OOUInteger)length
 {
     if (![super init])
         return nil;
@@ -91,12 +91,12 @@ static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
 // Read operations
 //
 
-- (UInt32)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer
+- (OOUInteger)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer
 {
     // Assumptions:
     // returnedReadPointer != NULL
 
-    UInt32 length;
+    OOUInteger length;
     // Read this pointer exactly once, so we're safe in case it is changed in another thread
     void *localWritePointer = writePointer;
 
@@ -116,7 +116,7 @@ static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
     return length;
 }
 
-- (void)didReadLength:(UInt32)length
+- (void)didReadLength:(OOUInteger)length
 {
     // Assumptions:
     // [self lengthAvailableToReadReturningPointer:] currently returns a value >= length
@@ -142,12 +142,12 @@ static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
 // Write operations
 //
 
-- (UInt32)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer
+- (OOUInteger)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer
 {
     // Assumptions:
     // returnedWritePointer != NULL
     
-    UInt32 length;
+    OOUInteger length;
     // Read this pointer exactly once, so we're safe in case it is changed in another thread
     void *localReadPointer = readPointer;
     
@@ -169,7 +169,7 @@ static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
     return length;
 }
 
-- (void)didWriteLength:(UInt32)length
+- (void)didWriteLength:(OOUInteger)length
 {
     // Assumptions:
     // [self lengthAvailableToWriteReturningPointer:] currently returns a value >= length
@@ -196,7 +196,7 @@ static void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength);
 @end
 
 
-void *allocateVirtualBuffer(UInt32 bufferLength)
+void *allocateVirtualBuffer(OOUInteger bufferLength)
 {
     kern_return_t error;
     vm_address_t originalAddress = 0;
@@ -293,7 +293,7 @@ errorReturn:
     return NULL;
 }
 
-void deallocateVirtualBuffer(void *buffer, UInt32 bufferLength)
+void deallocateVirtualBuffer(void *buffer, OOUInteger bufferLength)
 {
     kern_return_t error;
 

@@ -31,19 +31,19 @@ MA 02110-1301, USA.
 
 typedef struct
 {
-	GLfloat				r, g, b, a;
+	OOCGFloat		r, g, b, a;
 } OORGBAComponents;
 
 
 typedef struct
 {
-	GLfloat				h, s, b, a;
+	OOCGFloat		h, s, b, a;
 } OOHSBAComponents;
 
 
 @interface OOColor : NSObject <NSCopying>
 {
-	GLfloat	rgba[4];
+	OOCGFloat	rgba[4];
 }
 
 + (OOColor *)colorWithCalibratedHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha;	// Note: hue in 0..1
@@ -81,15 +81,16 @@ typedef struct
 */
 - (OOColor *)blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color;
 
-+ (OOColor *) planetTextureColor:(float) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
-+ (OOColor *) planetTextureColor:(float) q:(float) impress:(float) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
++ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
++ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOCGFloat) impress:(OOCGFloat) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor;
 
 /* Get the red, green, or blue components of NSCalibratedRGB or NSDeviceRGB colors.
 */
-- (float)redComponent;
-- (float)greenComponent;
-- (float)blueComponent;
-- (void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha;
+- (OOCGFloat)redComponent;
+- (OOCGFloat)greenComponent;
+- (OOCGFloat)blueComponent;
+- (void)getRed:(OOCGFloat *)red green:(OOCGFloat *)green blue:(OOCGFloat *)blue alpha:(OOCGFloat *)alpha;
+- (void)getGLRed:(GLfloat *)red green:(GLfloat *)green blue:(GLfloat *)blue alpha:(GLfloat *)alpha;
 
 - (OORGBAComponents)rgbaComponents;
 
@@ -101,16 +102,16 @@ typedef struct
 	in the range [0, 360], but +colorWithCalibratedHue:... expects values in
 	the range [0, 1].
 */
-- (float)hueComponent;
-- (float)saturationComponent;
-- (float)brightnessComponent;
-- (void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha;
+- (OOCGFloat)hueComponent;
+- (OOCGFloat)saturationComponent;
+- (OOCGFloat)brightnessComponent;
+- (void)getHue:(OOCGFloat *)hue saturation:(OOCGFloat *)saturation brightness:(OOCGFloat *)brightness alpha:(OOCGFloat *)alpha;
 
 - (OOHSBAComponents)hsbaComponents;
 
 
 // Get the alpha component.
-- (float)alphaComponent;
+- (OOCGFloat)alphaComponent;
 
 // Returns the colour, premultiplied by its alpha channel, and with an alpha of 1.0. If the reciever's alpha is 1.0, it will return itself.
 - (OOColor *)premultipliedColor;

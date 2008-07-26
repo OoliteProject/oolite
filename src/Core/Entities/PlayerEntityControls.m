@@ -1840,8 +1840,8 @@ static NSTimeInterval	time_last_frame;
 		guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAY &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
-		int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-		int displayModeIndex = [controller indexOfCurrentDisplayMode];
+		int			direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
+		OOInteger	displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
 		{
 			OOLog(@"graphics.mode.notFound", @"***** couldn't find current display mode switching to basic 640x480");

@@ -88,8 +88,8 @@ Universe *gSharedUniverse = nil;
 static BOOL MaintainLinkedLists(Universe* uni);
 
 
-static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
-static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
+static OOInteger compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
+static OOInteger comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
 
 
 @interface Universe (OOPrivate)
@@ -1176,8 +1176,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	if (the_sky)
 	{
 		// ambient lighting!
-		float r,g,b,a;
-		[[the_sky skyColor] getRed:&r green:&g blue:&b alpha:&a];
+		GLfloat r,g,b,a;
+		[[the_sky skyColor] getGLRed:&r green:&g blue:&b alpha:&a];
 		r = r * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[0] * SUN_AMBIENT_INFLUENCE;
 		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
 		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
@@ -3061,7 +3061,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		OOCargoType co_type = [container commodityType];
 		OOCargoQuantity co_amount = [container commodityAmount];
 		
-		if ((co_type == NSNotFound)||(co_amount == 0))
+		if ((co_type == CARGO_UNDEFINED)||(co_amount == 0))
 		{
 			// choose a random filling
 			// select a random point in the histogram
@@ -3107,18 +3107,17 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many
 {
-	NSMutableArray  *accumulator = [NSMutableArray arrayWithCapacity:how_many];
-	int commodity_type = [self commodityForName: commodity_name];
-	if (commodity_type == NSNotFound)
-		return [NSArray array]; // empty array
-	int commodity_units = [self unitsForCommodity:commodity_type];
-	int how_much = how_many;
+	NSMutableArray	*accumulator = [NSMutableArray arrayWithCapacity:how_many];
+	OOCargoType		commodity_type = [self commodityForName: commodity_name];
+	if (commodity_type == CARGO_UNDEFINED)  return [NSArray array]; // empty array
+	OOCargoQuantity	commodity_units = [self unitsForCommodity:commodity_type];
+	OOCargoQuantity	how_much = how_many;
+	
 	while (how_much > 0)
 	{
-		ShipEntity* container = [self newShipWithRole: commodity_name];	// try the commodity name first
-		if (!container)
-			container = [self newShipWithRole:@"cargopod"];
-		int amount = 1;
+		ShipEntity		*container = [self newShipWithRole: commodity_name];	// try the commodity name first
+		if (!container)  container = [self newShipWithRole:@"cargopod"];
+		OOCargoQuantity	amount = 1;
 		if (commodity_units != 0)
 			amount += Ranrot() & (15 * commodity_units);
 		if (amount > how_much)
@@ -3198,7 +3197,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 			return i;
 		}
 	}
-	return NSNotFound;
+	return CARGO_UNDEFINED;
 }
 
 
@@ -6260,21 +6259,19 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if (!equal_seeds(gal_seed, galaxy_seed))
 		[self setGalaxy_seed:gal_seed];
 
-	unsigned system = NSNotFound;
-	unsigned distance, dx, dy;
-	unsigned i;
-    unsigned min_dist = 10000;
-
+	OOUInteger	system = NSNotFound;
+	unsigned	distance, dx, dy;
+	unsigned	i;
+    unsigned	min_dist = 10000;
+	
 	for (i = 0; i < 256; i++)
 	{
 		dx = abs(coords.x - systems[i].d);
 		dy = abs(coords.y - systems[i].b);
-
-		if (dx > dy)
-			distance = (dx + dx + dy) / 2;
-		else
-			distance = (dx + dy + dy) / 2;
-
+		
+		if (dx > dy)	distance = (dx + dx + dy) / 2;
+		else			distance = (dx + dy + dy) / 2;
+		
 		if (distance < min_dist)
 		{
 			min_dist = distance;
@@ -7326,7 +7323,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	}
 	
 	NSMutableArray *resultArray = [[[resultDictionary allValues] mutableCopy] autorelease];
-	[resultArray sortUsingFunction:(int(*)(id, id, void *))compareName context:NULL];
+	[resultArray sortUsingFunction:compareName context:NULL];
 	
 	// remove identically priced ships of the same name
 	i = 1;

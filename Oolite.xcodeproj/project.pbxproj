@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 42;
+	objectVersion = 45;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -3296,7 +3296,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		08B31CAD08FE63D70038D42F /* Development */ = {
+		08B31CAD08FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
 			buildSettings = {
@@ -3360,7 +3360,7 @@
 				WRAPPER_EXTENSION = app;
 				ZERO_LINK = NO;
 			};
-			name = Development;
+			name = Debug;
 		};
 		08B31CAE08FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
@@ -3422,7 +3422,7 @@
 			};
 			name = Deployment;
 		};
-		08B31CB108FE63D70038D42F /* Development */ = {
+		08B31CB108FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
@@ -3433,9 +3433,9 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
+				SDKROOT = macosx10.3.9;
 			};
-			name = Development;
+			name = Debug;
 		};
 		08B31CB208FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
@@ -3452,7 +3452,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
+				SDKROOT = macosx10.3.9;
 			};
 			name = Deployment;
 		};
@@ -3548,13 +3548,14 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.3.9.sdk;
+				SDKROOT = macosx10.3.9;
 			};
 			name = TestRelease;
 		};
 		1A581F5C0E311A59007594C1 /* Debug GCC 4.2/Leopard */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
@@ -3564,7 +3565,7 @@
 				MACOSX_DEPLOYMENT_TARGET_i386 = 10.4;
 				MACOSX_DEPLOYMENT_TARGET_ppc = 10.3;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+				SDKROOT = macosx10.5;
 			};
 			name = "Debug GCC 4.2/Leopard";
 		};
@@ -3583,6 +3584,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
 			buildSettings = {
+				ARCHS = x86_64;
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -3622,6 +3624,8 @@
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				"MACOSX_DEPLOYMENT_TARGET[arch=ppc64]" = 10.5;
+				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
 				OTHER_LDFLAGS = (
@@ -3665,7 +3669,7 @@
 			};
 			name = "Debug GCC 4.2/Leopard";
 		};
-		1A71E6FD0BCE345800CD5C13 /* Development */ = {
+		1A71E6FD0BCE345800CD5C13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -3684,7 +3688,7 @@
 				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};
-			name = Development;
+			name = Debug;
 		};
 		1A71E6FE0BCE345800CD5C13 /* Deployment */ = {
 			isa = XCBuildConfiguration;
@@ -3705,7 +3709,7 @@
 			};
 			name = Deployment;
 		};
-		1AD267690C8305A200B4BFD1 /* Development */ = {
+		1AD267690C8305A200B4BFD1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
@@ -3714,7 +3718,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = "Build All";
 			};
-			name = Development;
+			name = Debug;
 		};
 		1AD2676A0C8305A200B4BFD1 /* Deployment */ = {
 			isa = XCBuildConfiguration;
@@ -3740,7 +3744,7 @@
 		08B31CAC08FE63D70038D42F /* Build configuration list for PBXNativeTarget "Oolite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				08B31CAD08FE63D70038D42F /* Development */,
+				08B31CAD08FE63D70038D42F /* Debug */,
 				1A581F5E0E311A59007594C1 /* Debug GCC 4.2/Leopard */,
 				08B31CAE08FE63D70038D42F /* Deployment */,
 				1A0832D70C2F105000E3AE25 /* TestRelease */,
@@ -3751,7 +3755,7 @@
 		08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				08B31CB108FE63D70038D42F /* Development */,
+				08B31CB108FE63D70038D42F /* Debug */,
 				1A581F5C0E311A59007594C1 /* Debug GCC 4.2/Leopard */,
 				08B31CB208FE63D70038D42F /* Deployment */,
 				1A0832D80C2F105000E3AE25 /* TestRelease */,
@@ -3762,7 +3766,7 @@
 		1A71E6FC0BCE345800CD5C13 /* Build configuration list for PBXNativeTarget "libpng-custom" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1A71E6FD0BCE345800CD5C13 /* Development */,
+				1A71E6FD0BCE345800CD5C13 /* Debug */,
 				1A581F5F0E311A59007594C1 /* Debug GCC 4.2/Leopard */,
 				1A71E6FE0BCE345800CD5C13 /* Deployment */,
 				1A0832D60C2F105000E3AE25 /* TestRelease */,
@@ -3773,7 +3777,7 @@
 		1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				1AD267690C8305A200B4BFD1 /* Development */,
+				1AD267690C8305A200B4BFD1 /* Debug */,
 				1A581F5D0E311A59007594C1 /* Debug GCC 4.2/Leopard */,
 				1AD2676A0C8305A200B4BFD1 /* Deployment */,
 				1AD2676B0C8305A200B4BFD1 /* TestRelease */,

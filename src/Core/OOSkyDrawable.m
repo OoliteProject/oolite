@@ -650,7 +650,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2)
 {
 	OOColor				*color = nil;
-	float				hue, saturation, brightness, alpha;
+	OOCGFloat			hue, saturation, brightness, alpha;
 	
 	color = [color1 blendedColorWithFraction:randf() ofColor:color2];
 	[color getHue:&hue saturation:&saturation brightness:&brightness alpha:&alpha];

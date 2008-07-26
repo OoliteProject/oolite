@@ -149,7 +149,7 @@ static GameController *sSharedController = nil;
 }
 
 
-- (int) indexOfCurrentDisplayMode
+- (OOUInteger) indexOfCurrentDisplayMode
 {
 	NSDictionary	*mode;
 	
@@ -340,7 +340,7 @@ static GameController *sSharedController = nil;
 
 
 #if OOLITE_MAC_OS_X && !OOLITE_SDL
-static int CompareDisplayModes(id arg1, id arg2, void *context)
+static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 {
    // TODO: If fullscreen mode is practical in GNUstep
 	NSDictionary *mode1 = (NSDictionary *)arg1;

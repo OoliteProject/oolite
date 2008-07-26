@@ -393,7 +393,7 @@ typedef enum
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
         
         // trumbles
-	int						trumbleCount;
+	OOUInteger				trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
         
         // smart zoom
@@ -625,7 +625,7 @@ waitingForStickCallback: 1;
 - (void) addTrumble:(OOTrumble*) papaTrumble;
 - (void) removeTrumble:(OOTrumble*) deadTrumble;
 - (OOTrumble**)trumbleArray;
-- (int) trumbleCount;
+- (OOUInteger) trumbleCount;
 // loading and saving trumbleCount
 - (id)trumbleValue;
 - (void) setTrumbleValueFrom:(NSObject*) trumbleValue;

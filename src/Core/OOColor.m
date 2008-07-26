@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 @implementation OOColor
 
 // Set methods are internal, because OOColor is immutable (as seen from outside).
-- (void) setRGBA:(GLfloat)r:(GLfloat)g:(GLfloat)b:(GLfloat)a
+- (void) setRGBA:(OOCGFloat)r:(OOCGFloat)g:(OOCGFloat)b:(OOCGFloat)a
 {
 	rgba[0] = r;
 	rgba[1] = g;
@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) setHSBA:(GLfloat)h:(GLfloat)s:(GLfloat)b:(GLfloat)a
+- (void) setHSBA:(OOCGFloat)h:(OOCGFloat)s:(OOCGFloat)b:(OOCGFloat)a
 {
 	if (s == 0.0f)
 	{
@@ -47,7 +47,7 @@ MA 02110-1301, USA.
 		rgba[3] = a;
 		return;
 	}
-	GLfloat f, p, q, t;
+	OOCGFloat f, p, q, t;
 	int i;
 	h = fmodf(h, 360.0f);
 	if (h < 0.0) h += 360.0f;
@@ -314,7 +314,7 @@ MA 02110-1301, USA.
 - (OOColor *)blendedColorWithFraction:(float)fraction ofColor:(OOColor *)color
 {
 	GLfloat	rgba1[4];
-	[color getRed:&rgba1[0] green:&rgba1[1] blue:&rgba1[2] alpha:&rgba1[3]];
+	[color getGLRed:&rgba1[0] green:&rgba1[1] blue:&rgba1[2] alpha:&rgba1[3]];
 	OOColor* result = [[OOColor alloc] init];
 	float prime = 1.0f - fraction;
 	[result setRGBA: prime * rgba[0] + fraction * rgba1[0] : prime * rgba[1] + fraction * rgba1[1] : prime * rgba[2] + fraction * rgba1[2] : prime * rgba[3] + fraction * rgba1[3]];
@@ -323,7 +323,7 @@ MA 02110-1301, USA.
 
 
 // find a point on the sea->land scale
-+ (OOColor *) planetTextureColor:(float) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
++ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
 {
 	float hi = 0.33;
 	float oh = 1.0 / hi;
@@ -341,7 +341,7 @@ MA 02110-1301, USA.
 
 
 // find a point on the sea->land scale given impress and bias
-+ (OOColor *) planetTextureColor:(float) q:(float) impress:(float) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
++ (OOColor *) planetTextureColor:(OOCGFloat) q:(OOCGFloat) impress:(OOCGFloat) bias :(OOColor *) seaColor:(OOColor *) paleSeaColor:(OOColor *) landColor:(OOColor *) paleLandColor
 {
 	float maxq = impress + bias;
 	
@@ -362,25 +362,34 @@ MA 02110-1301, USA.
 
 
 // Get the red, green, or blue components.
-- (GLfloat)redComponent
+- (OOCGFloat)redComponent
 {
 	return rgba[0];
 }
 
 
-- (GLfloat)greenComponent
+- (OOCGFloat)greenComponent
 {
 	return rgba[1];
 }
 
 
-- (GLfloat)blueComponent
+- (OOCGFloat)blueComponent
 {
 	return rgba[2];
 }
 
 
-- (void)getRed:(GLfloat *)red green:(GLfloat *)green blue:(GLfloat *)blue alpha:(GLfloat *)alpha
+- (void)getRed:(OOCGFloat *)red green:(OOCGFloat *)green blue:(OOCGFloat *)blue alpha:(OOCGFloat *)alpha
+{
+	*red = rgba[0];
+	*green = rgba[1];
+	*blue = rgba[2];
+	*alpha = rgba[3];
+}
+
+
+- (void)getGLRed:(GLfloat *)red green:(GLfloat *)green blue:(GLfloat *)blue alpha:(GLfloat *)alpha
 {
 	*red = rgba[0];
 	*green = rgba[1];
@@ -403,14 +412,14 @@ MA 02110-1301, USA.
 
 
 // Get the components as hue, saturation, or brightness.
-- (float)hueComponent
+- (OOCGFloat)hueComponent
 {
-	GLfloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	GLfloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
 	if (maxrgb == minrgb)
 		return 0.0;
-	GLfloat delta = maxrgb - minrgb;
-	GLfloat hue = 0.0;
+	OOCGFloat delta = maxrgb - minrgb;
+	OOCGFloat hue = 0.0;
 	if (rgba[0] == maxrgb)
 		hue = (rgba[1] - rgba[2]) / delta;
 	else if (rgba[1] == maxrgb)
@@ -422,29 +431,29 @@ MA 02110-1301, USA.
 	return hue;
 }
 
-- (float)saturationComponent
+- (OOCGFloat)saturationComponent
 {
-	GLfloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	GLfloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	GLfloat brightness = 0.5 * (maxrgb + minrgb);
+	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat brightness = 0.5 * (maxrgb + minrgb);
 	if (maxrgb == minrgb)
 		return 0.0;
-	GLfloat delta = maxrgb - minrgb;
+	OOCGFloat delta = maxrgb - minrgb;
 	return (brightness <= 0.5)? (delta / (maxrgb + minrgb)) : (delta / (2.0 - (maxrgb + minrgb)));
 }
 
-- (float)brightnessComponent
+- (OOCGFloat)brightnessComponent
 {
-	GLfloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	GLfloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
 	return 0.5 * (maxrgb + minrgb);
 }
 
-- (void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha
+- (void)getHue:(OOCGFloat *)hue saturation:(OOCGFloat *)saturation brightness:(OOCGFloat *)brightness alpha:(OOCGFloat *)alpha
 {
 	*alpha = rgba[3];
-	GLfloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	GLfloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
+	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
 	*brightness = 0.5 * (maxrgb + minrgb);
 	if (maxrgb == minrgb)
 	{
@@ -452,7 +461,7 @@ MA 02110-1301, USA.
 		*hue = 0.0;
 		return;
 	}
-	GLfloat delta = maxrgb - minrgb;
+	OOCGFloat delta = maxrgb - minrgb;
 	*saturation = (*brightness <= 0.5)? (delta / (maxrgb + minrgb)) : (delta / (2.0 - (maxrgb + minrgb)));
 	if (rgba[0] == maxrgb)
 		*hue = (rgba[1] - rgba[2]) / delta;
@@ -477,7 +486,7 @@ MA 02110-1301, USA.
 
 
 // Get the alpha component.
-- (float)alphaComponent
+- (OOCGFloat)alphaComponent
 {
 	return rgba[3];
 }
@@ -504,13 +513,13 @@ MA 02110-1301, USA.
 
 - (NSArray *)normalizedArray
 {
-	float r, g, b, a;
+	OOCGFloat r, g, b, a;
 	[self getRed:&r green:&g blue:&b alpha:&a];
 	return [NSArray arrayWithObjects:
-		[NSNumber numberWithFloat:r],
-		[NSNumber numberWithFloat:g],
-		[NSNumber numberWithFloat:b],
-		[NSNumber numberWithFloat:a],
+		[NSNumber numberWithDouble:r],
+		[NSNumber numberWithDouble:g],
+		[NSNumber numberWithDouble:b],
+		[NSNumber numberWithDouble:a],
 		nil];
 }
 

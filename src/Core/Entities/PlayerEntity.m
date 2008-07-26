@@ -172,9 +172,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		co_type = [cargoItem commodityType];
 		co_amount = [cargoItem commodityAmount];
 		
-		if (co_type == NSNotFound)
+		if (co_type == CARGO_UNDEFINED)
 		{
-			OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (NSNotFound), rejecting.", cargoItem);
+			OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (CARGO_UNDEFINED), rejecting.", cargoItem);
 			continue;
 		}
 		commodityInfo = [manifest objectAtIndex:co_type];
@@ -4357,7 +4357,8 @@ double scoopSoundPlayTime = 0.0;
 #endif
 	GameController	*controller = [UNIVERSE gameController];
 
-	int displayModeIndex = [controller indexOfCurrentDisplayMode];
+	OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+	
 	if (displayModeIndex == NSNotFound)
 	{
 		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
@@ -4546,7 +4547,7 @@ double scoopSoundPlayTime = 0.0;
 	}
 
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
-	int displayModeIndex = [controller indexOfCurrentDisplayMode];
+	OOUInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
 		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
@@ -5942,8 +5943,9 @@ OOSound* burnersound;
 	{
 		return;
 	}
-	int trumble_index = NSNotFound;
-	int i;
+	OOUInteger	trumble_index = NSNotFound;
+	OOUInteger	i;
+	
 	for (i = 0; (trumble_index == NSNotFound)&&(i < trumbleCount); i++)
 	{
 		if (trumble[i] == deadTrumble)
@@ -5966,7 +5968,7 @@ OOSound* burnersound;
 }
 
 
-- (int) trumbleCount
+- (OOUInteger) trumbleCount
 {
 	return trumbleCount;
 }

@@ -648,7 +648,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (unsigned) retainCount
+- (OOUInteger) retainCount
 {
 	return UINT_MAX;
 }

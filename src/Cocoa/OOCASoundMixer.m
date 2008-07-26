@@ -73,7 +73,6 @@ static NSString * const kOOLogSoundMixerFailedToConnectChannel	= @"sound.mixer.f
 
 static OOCASoundMixer *sSingleton = nil;
 
-
 @implementation OOCASoundMixer
 
 + (OOCASoundMixer *)mixer
@@ -120,7 +119,7 @@ static OOCASoundMixer *sSingleton = nil;
 				desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 				desc.componentFlags = 0;
 				desc.componentFlagsMask = 0;
-				if (!err) err = AUGraphNewNode(_graph, &desc, 0, NULL, &_outputNode);
+				if (!err) err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
 				
 				// Add mixer node
 				desc.componentType = kAudioUnitType_Mixer;
@@ -128,14 +127,14 @@ static OOCASoundMixer *sSingleton = nil;
 				desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 				desc.componentFlags = 0;
 				desc.componentFlagsMask = 0;
-				if (!err) err = AUGraphNewNode(_graph, &desc, 0, NULL, &_mixerNode);
+				if (!err) err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
 				
 				// Connect mixer to output
 				if (!err) err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
 				
 				// Open the graph (turn it into concrete AUs) and extract mixer AU
 				if (!err) err = AUGraphOpen(_graph);
-				if (!err) err = AUGraphGetNodeInfo(_graph, _mixerNode, NULL, NULL, NULL, &_mixerUnit);
+				if (!err) err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
 				
 				if (err) OK = NO;
 			}

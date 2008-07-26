@@ -619,20 +619,21 @@ static NSData *DataFromXMLString(NSString *string, NSString *whereFrom)
 	
 	// String should be base64 data.
 	// we're going to decode the string from base64
-	NSString* base64String = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	NSMutableData* resultingData = [NSMutableData data];
-	char bytes3[3];
-	int n_64Chars;
-	int tripletValue;
-	int n_chars = [string length];
-	int i = 0;
+	NSString		*base64String = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	NSMutableData	*resultingData = [NSMutableData data];
+	char			bytes3[3];
+	OOUInteger		n_64Chars;
+	int				tripletValue;
+	OOUInteger		n_chars = [string length];
+	OOUInteger		i = 0;
+	
 	while (i < n_chars)
 	{
 		n_64Chars = 0;
 		tripletValue = 0;
 		while ((n_64Chars < 4)&(i < n_chars))
 		{
-			int b64 = [base64String rangeOfString:[string substringWithRange:NSMakeRange(i,1)]].location;
+			OOUInteger b64 = [base64String rangeOfString:[string substringWithRange:NSMakeRange(i,1)]].location;
 			if (b64 != NSNotFound)
 			{
 				tripletValue *= 64;

@@ -1710,12 +1710,12 @@ static BOOL hostiles;
 
 - (void) drawSurround:(NSDictionary *)info color:(GLfloat[4])color
 {
-    int				x;
-	int				y;
+    OOInteger		x;
+	OOInteger		y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:NSNotFound];
-	y = [info intForKey:Y_KEY defaultValue:NSNotFound];
+	x = [info integerForKey:X_KEY defaultValue:NSNotFound];
+	y = [info integerForKey:Y_KEY defaultValue:NSNotFound];
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:NAN];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NAN];
 	
@@ -2331,7 +2331,7 @@ static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
 		color = [OOColor colorWithDescription:colorDesc];
 		if (color != nil)
 		{
-			[color getRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
+			[color getGLRed:&ioColor[0] green:&ioColor[1] blue:&ioColor[2] alpha:&ioColor[3]];
 			return;
 		}
 	}

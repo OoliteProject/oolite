@@ -330,6 +330,9 @@ NSString *CargoTypeToString(OOCargoType cargo)
 		CASE(CARGO_RANDOM);
 		CASE(CARGO_SCRIPTED_ITEM);
 		CASE(CARGO_CHARACTER);
+			
+		case CARGO_UNDEFINED:
+			break;
 	}
 	return @"Unknown cargo";
 }
@@ -349,7 +352,7 @@ OOCargoType StringToCargoType(NSString *string)
 	// Backwards compatibility.
 	if ([string isEqual:@"CARGO_CARRIED"]) return CARGO_RANDOM;
 	
-	return CARGO_NOT_CARGO;
+	return CARGO_UNDEFINED;
 }
 
 

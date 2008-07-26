@@ -155,13 +155,13 @@ static NSString *GetCPUDescription(void);
 
 static NSString *AdditionalLogHeaderInfo(void)
 {
-	unsigned long			sysPhysMem;
 	NSString				*sysModel = nil;
+	unsigned long long		sysPhysMem;
 	
 	sysModel = GetSysCtlString("hw.model");
-	Gestalt(gestaltPhysicalRAMSizeInMegabytes, (long *)&sysPhysMem);
+	sysPhysMem = GetSysCtlInt("hw.memsize");
 	
-	return [NSString stringWithFormat:@"Machine type: %@, %u MiB memory, %@.", sysModel, sysPhysMem, GetCPUDescription()];
+	return [NSString stringWithFormat:@"Machine type: %@, %llu MiB memory, %@.", sysModel, sysPhysMem >> 20, GetCPUDescription()];
 }
 
 

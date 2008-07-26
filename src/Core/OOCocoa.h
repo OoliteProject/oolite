@@ -48,6 +48,15 @@ MA 02110-1301, USA.
 #undef Nil
 #define Nil ((Class)nil)
 
+/*	Lots of stuff changed between 10.3.9 SDK used for 32-bit builds and 10.5
+	SDK used for 64-bit builds.
+*/
+#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
+#define OOLITE_LEOPARD			1
+#else
+#define OOLITE_LEOPARD			0
+#endif
+
 #endif
 
 
@@ -231,19 +240,66 @@ enum {
 	NSPropertyListSerialization would contain unreleased strings. To avoid
 	leaking, it is necessary to release them. This does not affect programs
 	linked against the Mac OS X 10.5 SDK.
-	
-	It is not expected that Oolite will require 10.5 any time soon, but this
-	should ensure that such a transition is smooth if it happens.
 */
 #if OOLITE_MAC_OS_X
-#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-// Leopard SDK
+#if defined OOLITE_LEOPARD
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
 #else
-// Tiger or earlier SDK
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 1
 #endif
 #else
-// Not Mac OS X
 #define OOLITE_RELEASE_PLIST_ERROR_STRINGS 0
+#endif
+
+
+
+/*	OOInteger and OOUInteger: int (32-bit) on 32-bit platforms, long (64-bit)
+	on 64-bit platforms. This is equivalent to NSInteger/NSUInteger in OS X
+	10.5 and GNUstep 1.16.
+	
+	Why not long in 32-bit? Because we want to avoid "multiple methods"
+	warnings when using SDKs using int.
+	
+	Similarly, CGFloat is 64-bit in 64-bit and 32-bit in 32-bit.
+*/
+
+#if OOLITE_MAC_OS_X
+#if OOLITE_LEOPARD
+// If OS X 10.5 SDK, use system definitions.
+typedef NSInteger		OOInteger;
+typedef NSUInteger		OOUInteger;
+typedef CGFloat			OOCGFloat;
+#if __LP64__
+#define OOLITE_64_BIT			1
+#endif
+#else
+// Older SDK, 32-bit only.
+typedef int				OOInteger;
+typedef unsigned int	OOUInteger;
+typedef float			OOCGFloat;
+#endif
+#elif OOLITE_GNUSTEP
+#if defined GS_API_VERSION && (GS_API_VERSION(100500, GS_API_LATEST))
+typedef NSInteger OOInteger;
+typedef NSUInteger OOUInteger;
+#else
+#if defined __LP64__ || defined __ILP64__ || (defined OOLITE_64_BIT && OOLITE_64_BIT)
+// Try to notice 64-bit systems...
+typedef long			OOInteger;
+typedef unsigned long	OOUInteger;
+typedef double			OOCGFloat;
+#ifndef OOLITE_64_BIT
+#define OOLITE_64_BIT			1
+#endif
+#else
+// Assume 32-bit system.
+typedef int				OOInteger;
+typedef unsigned int	OOUInteger;
+typedef double			OOCGFloat;
+#endif
+#endif
+#endif
+
+#ifndef OOLITE_64_BIT
+#define OOLITE_64_BIT			0
 #endif

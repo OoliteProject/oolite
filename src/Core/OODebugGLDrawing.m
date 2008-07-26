@@ -60,7 +60,7 @@ OOINLINE void ApplyColor(OOColor *color)
 	OO_ENTER_OPENGL();
 	
 	if (EXPECT_NOT(color == nil))  color = [OOColor lightGrayColor];
-	[color getRed:&r green:&g blue:&b alpha:&a];
+	[color getGLRed:&r green:&g blue:&b alpha:&a];
 	glColor4f(r, g, b, a);
 }
 

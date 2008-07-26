@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 */
 
 #include "OOFunctionAttributes.h"
+#include "OOCocoa.h"
 
 
 typedef enum
@@ -253,6 +254,7 @@ typedef enum
 
 typedef enum
 {
+	CARGO_UNDEFINED					= -2,	// FIXME: it's unclear whether there's a useful distinction between CARGO_UNDEFINED (previously NSNotFound) and CARGO_NOT_CARGO.
 	CARGO_NOT_CARGO					= -1,
 	CARGO_SLAVES					= 3,
 	CARGO_ALLOY						= 9,
@@ -319,7 +321,7 @@ enum
 };
 
 
-typedef uint32_t	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so 32 bits required.
+typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, so OOUInteger required.
 typedef uint8_t		OOGovernmentID;		// 0..7
 typedef uint8_t		OOEconomyID;		// 0..7
 

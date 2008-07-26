@@ -78,7 +78,7 @@ MA 02110-1301, USA.
 {
 	if (dust_color) [dust_color release];
 	dust_color = [color retain];
-	[dust_color getRed:&color_fv[0] green:&color_fv[1] blue:&color_fv[2] alpha:&color_fv[3]];
+	[dust_color getGLRed:&color_fv[0] green:&color_fv[1] blue:&color_fv[2] alpha:&color_fv[3]];
 }
 
 

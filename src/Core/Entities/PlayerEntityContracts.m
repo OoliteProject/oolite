@@ -1111,12 +1111,11 @@ static NSMutableDictionary* currentShipyard = nil;
 
 - (void) setGuiToShipyardScreen:(unsigned) skip
 {
-	unsigned i;
+	unsigned		i;
 	
 	// set up initial market if there is none
-	StationEntity* the_station = [UNIVERSE station];
-
-	int station_tl = NSNotFound;
+	StationEntity	*the_station = [UNIVERSE station];
+	OOTechLevelID	station_tl = NSNotFound;
 	
 	if (dockedStation)
 	{

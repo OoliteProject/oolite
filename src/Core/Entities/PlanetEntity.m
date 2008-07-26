@@ -143,9 +143,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (id) initAsSunWithColor:(OOColor *) sun_color
 {
-	int		i;
-	float	hue, sat, bri, alf;
-	OOColor *color;
+	int			i;
+	OOCGFloat	hue, sat, bri, alf;
+	OOColor		*color;
 	
 	self = [super init];
     //
@@ -166,18 +166,17 @@ static GLfloat	texture_uv_array[10400 * 2];
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 60 * 60;
 	
-	for (i = 0; i < 5; i++)
-		displayListNames[i] = 0;	// empty for now!
+	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
 	
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	
-	float hue_drift = 0.34 * (randf() - randf());
+	float		hue_drift = 0.34f * (randf() - randf());
 
 	// set the lighting color for the sun
-	GLfloat r,g,b,a;
-	[sun_color getRed:&r green:&g blue:&b alpha:&a];
+	GLfloat		r,g,b,a;
+	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
 
-	GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
+	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
 	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
 	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
@@ -303,18 +302,18 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	if (clearSkyColor != nil)
 	{
-		[clearSkyColor getRed:&amb_land[0] green:&amb_land[1] blue:&amb_land[2] alpha:&amb_land[3]];
+		[clearSkyColor getGLRed:&amb_land[0] green:&amb_land[1] blue:&amb_land[2] alpha:&amb_land[3]];
 	}
 	
 	if (cloudColor != nil)
 	{
-		[cloudColor getRed:&amb_sea[0] green:&amb_sea[1] blue:&amb_sea[2] alpha:&amb_sea[3]];
+		[cloudColor getGLRed:&amb_sea[0] green:&amb_sea[1] blue:&amb_sea[2] alpha:&amb_sea[3]];
 		amb_sea[3] *= cloudAlpha;
 	}
 	
 	if (polarClearSkyColor != nil)
 	{
-		[polarClearSkyColor getRed:&amb_polar_land[0] green:&amb_polar_land[1] blue:&amb_polar_land[2] alpha:&amb_polar_land[3]];
+		[polarClearSkyColor getGLRed:&amb_polar_land[0] green:&amb_polar_land[1] blue:&amb_polar_land[2] alpha:&amb_polar_land[3]];
 	}
 	else if (clearSkyColor != nil)
 	{
@@ -324,7 +323,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	if (polarCloudColor != nil)
 	{
-		[polarCloudColor getRed:&amb_polar_sea[0] green:&amb_polar_sea[1] blue:&amb_polar_sea[2] alpha:&amb_polar_sea[3]];
+		[polarCloudColor getGLRed:&amb_polar_sea[0] green:&amb_polar_sea[1] blue:&amb_polar_sea[2] alpha:&amb_polar_sea[3]];
 		amb_sea[3] *= cloudAlpha;
 	}
 	else if (cloudColor != nil)

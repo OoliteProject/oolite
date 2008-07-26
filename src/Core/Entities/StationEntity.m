@@ -746,7 +746,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (![super setUpShipFromDictionary:dict])  return NO;
 	
-	equivalentTechLevel = [dict intForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
+	equivalentTechLevel = [dict unsignedIntegerForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
 	max_scavengers = [dict unsignedIntForKey:@"max_scavengers" defaultValue:3];
 	max_defense_ships = [dict unsignedIntForKey:@"max_defense_ships" defaultValue:3];
 	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];

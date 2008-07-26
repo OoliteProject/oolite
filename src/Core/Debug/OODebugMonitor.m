@@ -602,7 +602,7 @@ NOTE: assumes single-threaded access.
 }
 
 
-- (unsigned)retainCount
+- (OOUInteger)retainCount
 {
 	return UINT_MAX;
 }

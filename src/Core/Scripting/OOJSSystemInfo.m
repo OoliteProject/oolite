@@ -146,9 +146,9 @@ static JSExtendedClass sSystemInfoClass =
 }
 
 
-- (unsigned) hash
+- (OOUInteger) hash
 {
-	unsigned hash = _galaxy;
+	OOUInteger hash = _galaxy;
 	hash <<= 16;
 	hash |= (uint16_t)_system;
 	return hash;

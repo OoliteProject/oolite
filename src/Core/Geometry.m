@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 	return [NSString stringWithFormat:@"%u triangles, %@", n_triangles, [self testIsConvex]?@"convex":@"not convex"];
 }
 
-- (id)initWithCapacity:(unsigned)amount
+- (id)initWithCapacity:(OOUInteger)amount
 {
 	if (amount < 1)
 		return nil;
@@ -110,7 +110,7 @@ MA 02110-1301, USA.
 	// then enumerate over vertices relative to a vertex on the triangle
 	// and check if they are on the forwardside or coplanar with the triangle
 	// if a vertex is on the backside of any triangle then return NO;
-	int i, j;
+	OOUInteger	i, j;
 	for (i = 0; i < n_triangles; i++)
 	{
 		Vector v0 = triangles[i].v[0];
@@ -141,7 +141,7 @@ MA 02110-1301, USA.
 	// then enumerate over corners relative to a vertex on the triangle
 	// and check if they are on the forwardside or coplanar with the triangle
 	// if a corner is on the backside of any triangle then return NO;
-	int i, x, y, z;
+	OOUInteger	i, x, y, z;
 	for (i = 0; i < n_triangles; i++)
 	{
 		Vector v0 = triangles[i].v[0];
@@ -161,7 +161,7 @@ MA 02110-1301, USA.
 {
 	// enumerate over triangles
 	GLfloat result = 0;
-	int i, j;
+	OOUInteger	i, j;
 	for (i = 0; i < n_triangles; i++) for (j = 0; j < 3; j++)
 	{
 		Vector v = triangles[i].v[j];
@@ -308,7 +308,7 @@ static float volumecount;
 
 - (void) translate:(Vector) offset
 {
-	int i;
+	OOUInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
 		triangles[i].v[0].x += offset.x;
@@ -327,7 +327,7 @@ static float volumecount;
 
 - (void) scale:(GLfloat) scalar
 {
-	int i;
+	OOUInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
 		triangles[i].v[0].x *= scalar;
@@ -346,7 +346,7 @@ static float volumecount;
 {
 	// test each triangle splitting against x == 0.0
 	//
-	int i;
+	OOUInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
 		BOOL done_tri = NO;
@@ -476,7 +476,7 @@ static float volumecount;
 {
 	// test each triangle splitting against y == 0.0
 	//
-	int i;
+	OOUInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
 		BOOL done_tri = NO;
@@ -605,7 +605,7 @@ static float volumecount;
 {
 	// test each triangle splitting against z == 0.0
 	//
-	int i;
+	OOUInteger	i;
 	for (i = 0; i < n_triangles; i++)
 	{
 		BOOL done_tri = NO;

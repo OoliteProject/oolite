@@ -43,6 +43,7 @@
 // It will also work in one thread, of course (although I don't know why you'd bother).
 // However, if you have multiple reader or writer threads, all bets are off!
 
+#import "OOCocoa.h"
 #import <Foundation/Foundation.h>
 
 
@@ -50,7 +51,7 @@
 {
     void *buffer;
     void *bufferEnd;
-    UInt32 bufferLength;
+    OOUInteger bufferLength;
         // buffer is the start of the ring buffer's address space.
         // bufferEnd is the end of the "real" buffer (always buffer + bufferLength).
         // Note that the "virtual" portion of the buffer extends from bufferEnd to bufferEnd+bufferLength.
@@ -59,7 +60,7 @@
     void *writePointer;
 }
 
-- (id)initWithLength:(UInt32)length;
+- (id)initWithLength:(OOUInteger)length;
 // Note: The specified length will be rounded up to an integral number of VM pages.
 
 // Empties the buffer. It is NOT safe to do this while anyone is reading from or writing to the buffer.
@@ -70,17 +71,17 @@
 // Read operations:
 
 // The reading thread must call this method first.
-- (UInt32)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer;
+- (OOUInteger)lengthAvailableToReadReturningPointer:(void **)returnedReadPointer;
 // Iff a value > 0 is returned, the reading thread may go on to read that much data from the returned pointer.
 // Afterwards, the reading thread must call didReadLength:.
-- (void)didReadLength:(UInt32)length;
+- (void)didReadLength:(OOUInteger)length;
 
 // Write operations:
 
 // The writing thread must call this method first.
-- (UInt32)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer;
+- (OOUInteger)lengthAvailableToWriteReturningPointer:(void **)returnedWritePointer;
 // Iff a value > 0 is returned, the writing thread may then write that much data into the returned pointer.
 // Afterwards, the writing thread must call didWriteLength:.
-- (void)didWriteLength:(UInt32)length;
+- (void)didWriteLength:(OOUInteger)length;
 
 @end

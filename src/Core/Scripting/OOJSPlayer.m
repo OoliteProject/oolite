@@ -540,7 +540,7 @@ static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, j
 	}
 	
 	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == NSNotFound))
+	if (EXPECT_NOT(type == CARGO_UNDEFINED))
 	{
 		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Unknown cargo type \"%@\".", typeString);
 		return NO;
@@ -581,7 +581,7 @@ static JSBool PlayerCanAwardCargo(JSContext *context, JSObject *this, uintN argc
 	}
 	
 	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == NSNotFound))
+	if (EXPECT_NOT(type == CARGO_UNDEFINED))
 	{
 		OOReportJSErrorForCaller(context, @"Player", @"canAwardCargo", @"Unknown cargo type \"%@\".", typeString);
 		return NO;

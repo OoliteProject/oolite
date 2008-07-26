@@ -368,7 +368,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 }
 
 
-- (unsigned)retainCount
+- (OOUInteger)retainCount
 {
 	return UINT_MAX;
 }

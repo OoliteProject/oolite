@@ -1333,7 +1333,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	typeString = [tokens objectAtIndex:1];
 	type = [UNIVERSE commodityForName:typeString];
-	if (type == NSNotFound)  type = [typeString intValue];
+	if (type == CARGO_UNDEFINED)  type = [typeString intValue];
 	
 	commodityArray = [UNIVERSE commodityDataForType:type];
 	

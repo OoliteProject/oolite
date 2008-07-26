@@ -301,8 +301,8 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 		desc.componentFlags = 0;
 		desc.componentFlagsMask = 0;
-		if (!err) err = AUGraphNewNode(_subGraph, &desc, 0, NULL, &_node);
-		if (!err) err = AUGraphGetNodeInfo(_subGraph, _node, NULL, NULL, NULL, &_au);
+		if (!err) err = OOAUGraphAddNode(_subGraph, &desc, &_node);
+		if (!err) err = OOAUGraphNodeInfo(_subGraph, _node, NULL, &_au);
 		
 		// Set render callback
 		input.inputProc = ChannelRenderProc;

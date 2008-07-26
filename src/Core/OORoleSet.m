@@ -120,7 +120,7 @@ SOFTWARE.
 }
 
 
-- (unsigned)hash
+- (OOUInteger)hash
 {
 	return [_rolesAndProbabilities hash];
 }

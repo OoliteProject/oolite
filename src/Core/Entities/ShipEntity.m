@@ -319,11 +319,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
 
-		[self setCommodity:NSNotFound andAmount:0];
-		int c_commodity = NSNotFound;
-		int c_amount = 1;
-		NSScanner*	scanner = [NSScanner scannerWithString:cargoString];
-		if ([scanner scanInt: &c_amount])
+		OOCargoType		c_commodity = CARGO_UNDEFINED;
+		int				c_amount = 1;
+		NSScanner		*scanner = [NSScanner scannerWithString:cargoString];
+		if ([scanner scanInt:&c_amount])
 		{
 			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
 			c_commodity = [UNIVERSE commodityForName: [[scanner string] substringFromIndex:[scanner scanLocation]]];
@@ -334,7 +333,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			c_commodity = [UNIVERSE commodityForName: [shipDict stringForKey:@"cargo_carried"]];
 		}
 
-		if (c_commodity != NSNotFound)  [self setCommodity:c_commodity andAmount:c_amount];
+		if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
 	
 	cargoString = [shipDict stringForKey:@"cargo_type"];
@@ -3822,7 +3821,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount
 {
-	if (co_type != NSNotFound)
+	if (co_type != CARGO_UNDEFINED)
 	{
 		commodity_type = co_type;
 		commodity_amount = co_amount;
@@ -6799,7 +6798,7 @@ BOOL class_masslocks(int some_class)
 		Fix 2: catch NSNotFound here and substitute random cargo type.
 		-- Ahruman 20070714
 	*/
-	if (co_type == NSNotFound)
+	if (co_type == CARGO_UNDEFINED)
 	{
 		co_type = [UNIVERSE getRandomCommodity];
 		co_amount = [UNIVERSE getRandomAmountOfCommodity:co_type];

@@ -302,7 +302,7 @@ enum
 }
 
 
-- (unsigned) retainCount
+- (OOUInteger) retainCount
 {
 	return UINT_MAX;
 }

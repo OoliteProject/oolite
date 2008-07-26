@@ -38,14 +38,14 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
 
 
 @interface OOPriorityQueue: NSObject <NSCopying>
 {
 	SEL						_comparator;
 	id						*_heap;
-	unsigned				_count,
+	OOUInteger				_count,
 							_capacity;
 }
 
@@ -57,7 +57,7 @@ SOFTWARE.
 - (void) removeObject:(id)object;		// Uses comparator (looking for NSOrderedEqual) to find object. Note: relatively expensive.
 - (void) removeExactObject:(id)object;	// Uses pointer comparison to find object. Note: still relatively expensive.
 
-- (unsigned) count;
+- (OOUInteger) count;
 
 - (id) nextObject;
 - (id) peekAtNextObject;				// Returns next object without removing it.

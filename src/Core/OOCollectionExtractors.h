@@ -73,81 +73,85 @@ SOFTWARE.
 
 @interface NSArray (OOExtractor)
 
-- (char)charAtIndex:(unsigned)index defaultValue:(char)value;
-- (short)shortAtIndex:(unsigned)index defaultValue:(short)value;
-- (int)intAtIndex:(unsigned)index defaultValue:(int)value;
-- (long)longAtIndex:(unsigned)index defaultValue:(long)value;
-- (long long)longLongAtIndex:(unsigned)index defaultValue:(long long)value;
+- (char)charAtIndex:(OOUInteger)index defaultValue:(char)value;
+- (short)shortAtIndex:(OOUInteger)index defaultValue:(short)value;
+- (int)intAtIndex:(OOUInteger)index defaultValue:(int)value;
+- (long)longAtIndex:(OOUInteger)index defaultValue:(long)value;
+- (long long)longLongAtIndex:(OOUInteger)index defaultValue:(long long)value;
+- (OOInteger)integerAtIndex:(OOUInteger)index defaultValue:(OOInteger)value;
 
-- (unsigned char)unsignedCharAtIndex:(unsigned)index defaultValue:(unsigned char)value;
-- (unsigned short)unsignedShortAtIndex:(unsigned)index defaultValue:(unsigned short)value;
-- (unsigned int)unsignedIntAtIndex:(unsigned)index defaultValue:(unsigned int)value;
-- (unsigned long)unsignedLongAtIndex:(unsigned)index defaultValue:(unsigned long)value;
-- (unsigned long long)unsignedLongLongAtIndex:(unsigned)index defaultValue:(unsigned long long)value;
+- (unsigned char)unsignedCharAtIndex:(OOUInteger)index defaultValue:(unsigned char)value;
+- (unsigned short)unsignedShortAtIndex:(OOUInteger)index defaultValue:(unsigned short)value;
+- (unsigned int)unsignedIntAtIndex:(OOUInteger)index defaultValue:(unsigned int)value;
+- (unsigned long)unsignedLongAtIndex:(OOUInteger)index defaultValue:(unsigned long)value;
+- (unsigned long long)unsignedLongLongAtIndex:(OOUInteger)index defaultValue:(unsigned long long)value;
+- (OOUInteger)unsignedIntegerAtIndex:(OOUInteger)index defaultValue:(OOUInteger)value;
 
-- (BOOL)boolAtIndex:(unsigned)index defaultValue:(BOOL)value;
+- (BOOL)boolAtIndex:(OOUInteger)index defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanAtIndex:(unsigned)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL)fuzzyBooleanAtIndex:(OOUInteger)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
-- (float)floatAtIndex:(unsigned)index defaultValue:(float)value;
-- (double)doubleAtIndex:(unsigned)index defaultValue:(double)value;
-- (float)nonNegativeFloatAtIndex:(unsigned)index defaultValue:(float)value;
-- (double)nonNegativeDoubleAtIndex:(unsigned)index defaultValue:(double)value;
+- (float)floatAtIndex:(OOUInteger)index defaultValue:(float)value;
+- (double)doubleAtIndex:(OOUInteger)index defaultValue:(double)value;
+- (float)nonNegativeFloatAtIndex:(OOUInteger)index defaultValue:(float)value;
+- (double)nonNegativeDoubleAtIndex:(OOUInteger)index defaultValue:(double)value;
 
-- (id)objectAtIndex:(unsigned)index defaultValue:(id)value;
-- (id)objectOfClass:(Class)class atIndex:(unsigned)index defaultValue:(id)value;
-- (NSString *)stringAtIndex:(unsigned)index defaultValue:(NSString *)value;
-- (NSArray *)arrayAtIndex:(unsigned)index defaultValue:(NSArray *)value;
-- (NSSet *)setAtIndex:(unsigned)index defaultValue:(NSSet *)value;
-- (NSDictionary *)dictionaryAtIndex:(unsigned)index defaultValue:(NSDictionary *)value;
-- (NSData *)dataAtIndex:(unsigned)index defaultValue:(NSData *)value;
+- (id)objectAtIndex:(OOUInteger)index defaultValue:(id)value;
+- (id)objectOfClass:(Class)class atIndex:(OOUInteger)index defaultValue:(id)value;
+- (NSString *)stringAtIndex:(OOUInteger)index defaultValue:(NSString *)value;
+- (NSArray *)arrayAtIndex:(OOUInteger)index defaultValue:(NSArray *)value;
+- (NSSet *)setAtIndex:(OOUInteger)index defaultValue:(NSSet *)value;
+- (NSDictionary *)dictionaryAtIndex:(OOUInteger)index defaultValue:(NSDictionary *)value;
+- (NSData *)dataAtIndex:(OOUInteger)index defaultValue:(NSData *)value;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (Vector)vectorAtIndex:(unsigned)index defaultValue:(Vector)value;
-- (Quaternion)quaternionAtIndex:(unsigned)index defaultValue:(Quaternion)value;
+- (Vector)vectorAtIndex:(OOUInteger)index defaultValue:(Vector)value;
+- (Quaternion)quaternionAtIndex:(OOUInteger)index defaultValue:(Quaternion)value;
 #endif
 
 
 // Default: 0
-- (char)charAtIndex:(unsigned)index;
-- (short)shortAtIndex:(unsigned)index;
-- (int)intAtIndex:(unsigned)index;
-- (long)longAtIndex:(unsigned)index;
-- (long long)longLongAtIndex:(unsigned)index;
+- (char)charAtIndex:(OOUInteger)index;
+- (short)shortAtIndex:(OOUInteger)index;
+- (int)intAtIndex:(OOUInteger)index;
+- (long)longAtIndex:(OOUInteger)index;
+- (long long)longLongAtIndex:(OOUInteger)index;
+- (OOInteger)integerAtIndex:(OOUInteger)index;
 
-- (unsigned char)unsignedCharAtIndex:(unsigned)index;
-- (unsigned short)unsignedShortAtIndex:(unsigned)index;
-- (unsigned int)unsignedIntAtIndex:(unsigned)index;
-- (unsigned long)unsignedLongAtIndex:(unsigned)index;
-- (unsigned long long)unsignedLongLongAtIndex:(unsigned)index;
+- (unsigned char)unsignedCharAtIndex:(OOUInteger)index;
+- (unsigned short)unsignedShortAtIndex:(OOUInteger)index;
+- (unsigned int)unsignedIntAtIndex:(OOUInteger)index;
+- (unsigned long)unsignedLongAtIndex:(OOUInteger)index;
+- (unsigned long long)unsignedLongLongAtIndex:(OOUInteger)index;
+- (OOUInteger)unsignedIntegerAtIndex:(OOUInteger)index;
 
 // Default: NO
-- (BOOL)boolAtIndex:(unsigned)index;
+- (BOOL)boolAtIndex:(OOUInteger)index;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanAtIndex:(unsigned)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL)fuzzyBooleanAtIndex:(OOUInteger)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
 // Default: 0.0
-- (float)floatAtIndex:(unsigned)index;
-- (double)doubleAtIndex:(unsigned)index;
-- (float)nonNegativeFloatAtIndex:(unsigned)index;
-- (double)nonNegativeDoubleAtIndex:(unsigned)index;
+- (float)floatAtIndex:(OOUInteger)index;
+- (double)doubleAtIndex:(OOUInteger)index;
+- (float)nonNegativeFloatAtIndex:(OOUInteger)index;
+- (double)nonNegativeDoubleAtIndex:(OOUInteger)index;
 
 // Default: nil
-// - (id)objectAtIndex:(unsigned)index;	// Already defined
-- (id)objectOfClass:(Class)class atIndex:(unsigned)index;
-- (NSString *)stringAtIndex:(unsigned)index;
-- (NSArray *)arrayAtIndex:(unsigned)index;
-- (NSSet *)setAtIndex:(unsigned)index;
-- (NSDictionary *)dictionaryAtIndex:(unsigned)index;
-- (NSData *)dataAtIndex:(unsigned)index;
+// - (id)objectAtIndex:(OOUInteger)index;	// Already defined
+- (id)objectOfClass:(Class)class atIndex:(OOUInteger)index;
+- (NSString *)stringAtIndex:(OOUInteger)index;
+- (NSArray *)arrayAtIndex:(OOUInteger)index;
+- (NSSet *)setAtIndex:(OOUInteger)index;
+- (NSDictionary *)dictionaryAtIndex:(OOUInteger)index;
+- (NSData *)dataAtIndex:(OOUInteger)index;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
-- (Vector)vectorAtIndex:(unsigned)index;
+- (Vector)vectorAtIndex:(OOUInteger)index;
 // Default: kIdentityQuaternion
-- (Quaternion)quaternionAtIndex:(unsigned)index;
+- (Quaternion)quaternionAtIndex:(OOUInteger)index;
 #endif
 
 @end
@@ -160,12 +164,14 @@ SOFTWARE.
 - (int)intForKey:(id)key defaultValue:(int)value;
 - (long)longForKey:(id)key defaultValue:(long)value;
 - (long long)longLongForKey:(id)key defaultValue:(long long)value;
+- (OOInteger)integerForKey:(id)key defaultValue:(OOInteger)value;
 
 - (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
 - (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
 - (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
 - (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
 - (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
+- (OOUInteger)unsignedIntegerForKey:(id)key defaultValue:(OOUInteger)value;
 
 - (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
@@ -197,12 +203,14 @@ SOFTWARE.
 - (int)intForKey:(id)key;
 - (long)longForKey:(id)key;
 - (long long)longLongForKey:(id)key;
+- (OOInteger)integerForKey:(id)key;
 
 - (unsigned char)unsignedCharForKey:(id)key;
 - (unsigned short)unsignedShortForKey:(id)key;
 - (unsigned int)unsignedIntForKey:(id)key;
 - (unsigned long)unsignedLongForKey:(id)key;
 - (unsigned long long)unsignedLongLongForKey:(id)key;
+- (OOUInteger)unsignedIntegerForKey:(id)key;
 
 // Default: NO
 - (BOOL)boolForKey:(id)key;
@@ -316,13 +324,13 @@ SOFTWARE.
 - (void)addQuaternion:(Quaternion)value;
 #endif
 
-- (void)insertInteger:(long)value atIndex:(unsigned)index;
-- (void)insertUnsignedInteger:(unsigned long)value atIndex:(unsigned)index;
-- (void)insertFloat:(double)value atIndex:(unsigned)index;
-- (void)insertBool:(BOOL)value atIndex:(unsigned)index;
+- (void)insertInteger:(long)value atIndex:(OOUInteger)index;
+- (void)insertUnsignedInteger:(unsigned long)value atIndex:(OOUInteger)index;
+- (void)insertFloat:(double)value atIndex:(OOUInteger)index;
+- (void)insertBool:(BOOL)value atIndex:(OOUInteger)index;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (void)insertVector:(Vector)value atIndex:(unsigned)index;
-- (void)insertQuaternion:(Quaternion)value atIndex:(unsigned)index;
+- (void)insertVector:(Vector)value atIndex:(OOUInteger)index;
+- (void)insertQuaternion:(Quaternion)value atIndex:(OOUInteger)index;
 #endif
 
 @end
@@ -464,6 +472,29 @@ OO_DEFINE_CLAMP_PAIR(int, Int, INT)
 OO_ALIAS_CLAMP_PAIR_LONG_LONG(long, Long)
 #else
 OO_DEFINE_CLAMP_PAIR(long, Long, LONG)
+#endif
+
+
+#if OOLITE_64_BIT
+OOINLINE OOInteger OOIntegerFromObject(id object, OOInteger defaultValue)
+{
+	return OOLongLongFromObject(object, defaultValue);
+}
+
+OOINLINE OOInteger OOUIntegerFromObject(id object, OOUInteger defaultValue)
+{
+	return OOUnsignedLongLongFromObject(object, defaultValue);
+}
+#else
+OOINLINE OOInteger OOIntegerFromObject(id object, OOInteger defaultValue)
+{
+	return OOLongLongFromObject(object, defaultValue);
+}
+
+OOINLINE OOInteger OOUIntegerFromObject(id object, OOUInteger defaultValue)
+{
+	return OOUnsignedLongLongFromObject(object, defaultValue);
+}
 #endif
 
 
