@@ -3452,7 +3452,6 @@ static const OOMatrix	starboard_matrix =
 			Entity			*drawthing = nil;
 			OOCamera		*camera = [player currentCamera];
 			
-			OOLog(@"temp", @"%@", camera);
 			position = kZeroVector;
 			
 			inGUIMode = [player showDemoShips];
