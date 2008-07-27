@@ -3451,6 +3451,7 @@ static const OOMatrix	starboard_matrix =
 			PlayerEntity	*player = [PlayerEntity sharedPlayer];
 			Entity			*drawthing = nil;
 			OOCamera		*camera = [player currentCamera];
+			camera = camera;
 			
 			position = kZeroVector;
 			

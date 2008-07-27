@@ -4044,6 +4044,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+// Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
 	NSArray* targets = [UNIVERSE getEntitiesWithinRange:desired_range ofEntity:self];

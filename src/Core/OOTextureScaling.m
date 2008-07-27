@@ -46,9 +46,6 @@ SOFTWARE.
 */
 
 
-// Temporarily disabled build flags: -O3 -falign-loops=32 -falign-loops-max-skip=31
-
-
 #import "OOTextureScaling.h"
 #import "OOFunctionAttributes.h"
 #import <stdlib.h>
@@ -150,16 +147,17 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 
 
 #ifdef DUMP_MIP_MAPS
-// NOTE: currently only works on OS X because of OTAtomicAdd32() (used to increment ID counter in thread-safe way). A simple increment would be sufficient if limited to a single thread (in OOTextureLoader).
-SInt32 sPreviousDumpID		= 0;
+// NOTE: currently only works on OS X because of OSAtomicAdd32() (used to increment ID counter in thread-safe way). A simple increment would be sufficient if limited to a single thread (in OOTextureLoader).
+volatile int32_t sPreviousDumpID		= 0;
+int32_t	OSAtomicAdd32(int32_t __theAmount, volatile int32_t *__theValue);
 
-#define	DUMP_CHANNELS		1		// Bitmap of channel counts - 5 for both 4-chan and 1-chan dumps
+#define	DUMP_CHANNELS		4		// Bitmap of channel counts - 5 for both 4-chan and 1-chan dumps
 
 #define DUMP_MIP_MAP_PREPARE(pl)		uint32_t dumpPlanes = pl; \
 										uint32_t dumpLevel = 0; \
 										BOOL dumpThis = (dumpPlanes & DUMP_CHANNELS) != 0; \
-										SInt32 dumpID = dumpThis ? OTAtomicAdd32(1, &sPreviousDumpID) : 0; \
-										if (dumpThis) OOLog(@"texture.mipMap.dump", @"Dumping mip-maps as dump ID%u lv# %uch XxY.raw.", dumpID, dumpPlanes);
+										SInt32 dumpID = dumpThis ? OSAtomicAdd32(1, &sPreviousDumpID) : 0; \
+										if (dumpThis) OOLog(@"texture.mipMap.dump", @"Dumping mip-maps as dump ID%u lv# %uch XxY.tiff.", dumpID, dumpPlanes);
 #define DUMP_MIP_MAP_DUMP(px, w, h)		if (dumpThis) DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
 static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level);
 #else
@@ -650,7 +648,7 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 		x = srcWidth >> 1;
 		do
 		{
-			// Read four pixels in a square...
+			// Read eight pixels (4x2)...
 			px00 = *src0++;
 			px01 = *src0++;
 			px10 = *src1++;
@@ -666,6 +664,7 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 			ag1 += (px11 & 0xFF00FF00FF00FF00ULL) >> 8;
 			br1 += (px11 & 0x00FF00FF00FF00FFULL);
 			
+#if OOLITE_BIG_ENDIAN
 			// Shift and add some more...
 			ag0 = ag0 + (ag0 << 32);
 			br0 = br0 + (br0 << 32);
@@ -675,6 +674,19 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 			// ...merge and shift some more...
 			ag0 = ((ag0 & 0x03FC03FC00000000ULL) | (ag1 & 0x0000000003FC03FCULL)) << 6;
 			br0 = ((br0 & 0x03FC03FC00000000ULL) | (br1 & 0x0000000003FC03FCULL)) >> 2;
+#elif OOLITE_LITTLE_ENDIAN
+			// Shift and add some more...
+			ag0 = ag0 + (ag0 >> 32);
+			br0 = br0 + (br0 >> 32);
+			ag1 = ag1 + (ag1 << 32);
+			br1 = br1 + (br1 << 32);
+			
+			// ...merge and shift some more...
+			ag0 = ((ag0 & 0x0000000003FC03FCULL) | (ag1 & 0x03FC03FC00000000ULL)) << 6;
+			br0 = ((br0 & 0x0000000003FC03FCULL) | (br1 & 0x03FC03FC00000000ULL)) >> 2;
+#else
+	#error Unknown architecture.
+#endif
 			
 			// ...and write output pixel.
 			*dst++ = ag0 | br0;
@@ -691,14 +703,99 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 
 #ifdef DUMP_MIP_MAPS
 
+static NSData *TIFFFromTexture(void *data, OOTexturePlaneCount planes, OOTextureDimension width, OOTextureDimension height);
+static void ByteSwapData(void *data, unsigned count);
+
+
 static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level)
 {
-	NSString *name = [NSString stringWithFormat:@"tex-debug/dump ID %u lv%u %uch %ux%u.raw", ID, level, planes, width, height];
-	FILE *dump = fopen([name UTF8String], "w");
-	if (dump != NULL)
+	NSString				*dumpName = nil;
+	NSString				*dumpPath = nil;
+	NSData					*dumpData = nil;
+	static NSString			*outDirectory = nil;
+	
+	if (outDirectory == nil)
 	{
-		fwrite(data, width * planes, height, dump);
-		fclose(dump);
+		outDirectory = [NSSearchPathForDirectoriesInDomains(NSDesktopDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+		outDirectory = [outDirectory stringByAppendingPathComponent:@"Oolite mip-map dumps"];
+		[[NSFileManager defaultManager] createDirectoryAtPath:outDirectory attributes:NULL];
+		[outDirectory retain];
+	}
+	
+	dumpName = [NSString stringWithFormat:@"dump ID %u lv%u %uch %ux%u.tiff", ID, level, planes, width, height];
+	dumpPath = [outDirectory stringByAppendingPathComponent:dumpName];
+	dumpData = TIFFFromTexture(data, planes, width, height);
+	if (dumpData != nil)
+	{
+		[dumpData writeToFile:dumpPath atomically:NO];
+	}
+}
+
+
+static NSData *TIFFFromTexture(void *data, OOTexturePlaneCount planes, OOTextureDimension width, OOTextureDimension height)
+{
+	NSBitmapImageRep		*rep = nil;
+	BOOL					hasAlpha;
+	NSString				*colorSpaceName = nil;
+	NSBitmapFormat			bmFormat;
+	NSData					*result = nil;
+	
+	switch (planes)
+	{
+		case 4:
+			// assume RGBA
+			hasAlpha = YES;
+			colorSpaceName = NSCalibratedRGBColorSpace;
+			bmFormat = NSAlphaNonpremultipliedBitmapFormat;
+			ByteSwapData(data, width * height);
+			break;
+			
+		case 1:
+			// assume grayscale
+			hasAlpha = NO;
+			colorSpaceName = NSCalibratedWhiteColorSpace;
+			bmFormat = 0;
+			break;
+			
+		default:
+			OOLog(@"texture.mipMap.dump.unknownFormat", @"**** Unknown texture format %u.", planes);
+			return nil;
+	}
+	
+	rep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:(unsigned char **)&data
+												  pixelsWide:width
+												  pixelsHigh:height
+											   bitsPerSample:8
+											 samplesPerPixel:planes
+													hasAlpha:hasAlpha
+													isPlanar:NO
+											  colorSpaceName:colorSpaceName
+												bitmapFormat:bmFormat
+												 bytesPerRow:planes * width
+												bitsPerPixel:planes * 8];
+	
+	if (rep == nil)
+	{
+		OOLog(@"texture.mipMap.dump.conversionFailed", @"**** Failed to convert texture to NSBitmapImageRep.");
+	}
+	
+	result = [rep TIFFRepresentation];
+	[rep release];
+	
+	// Restore data order
+	if (planes == 4)  ByteSwapData(data, width * height);
+	
+	return result;
+}
+
+
+static void ByteSwapData(void *data, unsigned count)
+{
+	uint32_t *words = (uint32_t *)data;
+	while (count--)
+	{
+		*words = OSSwapInt32(*words);
+		++words;
 	}
 }
 
@@ -815,7 +912,7 @@ static void StretchVerticallyN_x8(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OO
 	srcRowBytes = srcPx.rowBytes;
 	dst = dstPx.pixels;	// Assumes dstPx.width == dstPx.rowBytes.
 	
-	prev = (uint64_t *)src;
+	src0 = prev = (uint64_t *)src;
 	
 	xCount = (srcPx.width * planes) >> 3;
 	
