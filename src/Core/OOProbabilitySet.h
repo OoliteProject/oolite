@@ -62,17 +62,17 @@ SOFTWARE.
 @interface OOProbabilitySet: NSObject <NSCopying, NSMutableCopying>
 
 + (id) probabilitySet;
-+ (id) probabilitySetWithObjects:(id *)objects weights:(float *)weights count:(unsigned long)count;
++ (id) probabilitySetWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count;
 + (id) probabilitySetWithPropertyListRepresentation:(NSDictionary *)plist;
 
 - (id) init;
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(unsigned)count;
+- (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count;
 - (id) initWithPropertyListRepresentation:(NSDictionary *)plist;
 
 // propertyListRepresentation is only valid if objects are property list objects.
 - (NSDictionary *) propertyListRepresentation;
 
-- (unsigned long) count;
+- (OOUInteger) count;
 - (id) randomObject;
 
 - (float) weightForObject:(id)object;	// Returns -1 for unknown objects.

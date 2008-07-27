@@ -58,18 +58,18 @@ MA 02110-1301, USA.
    	{
 		nativeDisplayWidth = DisplayWidth(dpyInfo.info.x11.display, 0);
 		nativeDisplayHeight = DisplayHeight(dpyInfo.info.x11.display, 0);
-		NSLog(@"X11 native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
+		OOLog(@"display.mode.list.native", @"X11 native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
 	}
 	else
 	{
-		NSLog(@"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
+		OOLog(@"display.mode.list.native.failed", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
 #elif defined (WIN32)
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
 	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
-	NSLog(@"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
+	OOLog(@"display.mode.list.native", @"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
 #else
-	NSLog(@"Unknown architecture, defaulting to 1024x768");
+	OOLog(@"display.mode.list.native.unknown", @"Unknown architecture, defaulting to 1024x768");
 #endif
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayWidth] forKey:kOODisplayWidth];
 	[mode setValue: [NSNumber numberWithInt: nativeDisplayHeight] forKey: kOODisplayHeight];
@@ -85,16 +85,16 @@ MA 02110-1301, USA.
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
-	NSLog(@"initialising SDL");
+	OOLog(@"sdl.init", @"initialising SDL");
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_JOYSTICK) < 0)
 	{
-		NSLog(@"Unable to init SDL: %s\n", SDL_GetError());
+		OOLog(@"sdl.init.failed", @"Unable to init SDL: %s\n", SDL_GetError());
 		[self dealloc];
 		return nil;
 	}
 	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
 	{
-		NSLog(@"Mix_OpenAudio: %s\n", Mix_GetError());
+		OOLog(@"sdl.init.audio.failed", @"Mix_OpenAudio: %s\n", Mix_GetError());
 		[self dealloc];
 		return nil;
 	}
@@ -120,7 +120,7 @@ MA 02110-1301, USA.
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);	// V-sync on by default.
 
-	NSLog(@"CREATING MODE LIST");
+	OOLog(@"display.mode.list", @"CREATING MODE LIST");
 	[self populateFullScreenModelist];
 	currentSize = 0;
 
@@ -228,7 +228,6 @@ MA 02110-1301, USA.
 
 - (void) setTypedString:(NSString*) value
 {
-//	NSLog(@"DEBUG setTypedString:%@",value);
 	[typedString setString:value];
 }
 
@@ -341,12 +340,10 @@ MA 02110-1301, USA.
 		m_glContextInitialized = NO;
 		viewSize.width = surface->w;
 		viewSize.height = surface->h;
-		//NSLog(@"DEBUG resized to %.0f x %.0f", viewSize.width, viewSize.height);
 	}
 
     if (m_glContextInitialized == NO)
 	{
-		NSLog(@"drawRect calling initialiseGLWithSize");
 		[self initialiseGLWithSize:viewSize];
 	}
 
@@ -359,7 +356,6 @@ MA 02110-1301, USA.
 	else
 	{
 		// not set up yet, draw a black screen
-		NSLog(@"no universe, clearning surface");
 		glClearColor( 0.0, 0.0, 0.0, 0.0);
 		glClear( GL_COLOR_BUFFER_BIT);
 	}
@@ -383,15 +379,13 @@ MA 02110-1301, USA.
 	else
 		display_z = 640.0;
 
-//	NSLog(@">>>>> display_z = %.1f", display_z);
-
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 
 	if (surface != 0)
 		SDL_FreeSurface(surface);
 
-	NSLog(@"Creating a new surface of %d x %d", (int)v_size.width, (int)v_size.height);
+	OOLog(@"display.initGL", @"Creating a new surface of %d x %d", (int)v_size.width, (int)v_size.height);
 	videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen == YES)
 		videoModeFlags |= SDL_FULLSCREEN;
@@ -489,8 +483,6 @@ MA 02110-1301, USA.
 	if (w & 3)
 		w = w + 4 - (w & 3);
 
-//    long nPixels = w * h + 1;
-
 	// save in the oolite-saves directory.
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
 	[[NSFileManager defaultManager] chdirToDefaultCommanderPath];
@@ -504,14 +496,14 @@ MA 02110-1301, USA.
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
 	}
 
-	NSLog(@">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
+	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
 
-	unsigned char *puntos = (unsigned char*)malloc(surface->w * surface->h * 3);
+	unsigned char *puntos = malloc(surface->w * surface->h * 3);
 //	SDL_Surface *screen;
 	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,puntos);
 
 	int pitch = surface->w * 3;
-	unsigned char *aux=  (unsigned char*)malloc( pitch );
+	unsigned char *aux = malloc( pitch );
 	short h2=surface->h/2;
 	unsigned char *p1=puntos;
 	unsigned char *p2=puntos+((surface->h-1)*pitch); //go to last line
@@ -748,7 +740,6 @@ MA 02110-1301, USA.
 						doubleClick = (timeBetweenClicks < MOUSE_DOUBLE_CLICK_INTERVAL);	// One fifth of a second
 						keys[gvMouseDoubleClick] = doubleClick;
 					}
-					//NSLog(@"LMB up");
 					keys[gvMouseLeftButton] = NO;
 				}
 				break;
@@ -821,7 +812,6 @@ MA 02110-1301, USA.
 if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; } \
 } while (0)
 				
-				//NSLog(@"Keydown keysym.sym: %d\n", kbd_event->keysym.sym);
 				switch (kbd_event->keysym.sym) {
 					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
 					case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
@@ -1141,13 +1131,13 @@ keys[a] = NO; keys[b] = NO; \
 	modes=SDL_ListModes(NULL, SDL_FULLSCREEN|SDL_HWSURFACE);
 	if(modes == (SDL_Rect **)NULL)
 	{
-		NSLog(@"SDL didn't return any screen modes");
+		OOLog(@"display.mode.list.none", @"SDL didn't return any screen modes");
 		return;
 	}
 
 	if(modes == (SDL_Rect **)-1)
 	{
-		NSLog(@"SDL claims 'all resolutions available' which is unhelpful in the extreme");
+		OOLog(@"display.mode.list.none", @"SDL claims 'all resolutions available' which is unhelpful in the extreme");
 		return;
 	}
 
@@ -1170,7 +1160,7 @@ keys[a] = NO; keys[b] = NO; \
 			[mode setValue: [NSNumber numberWithInt: 0]
 					forKey: kOODisplayRefreshRate];
 			[screenSizes addObject: mode];
-			NSLog(@"Added res %d x %d", modes[i]->w, modes[i]->h);
+			OOLog(@"display.mode.list", @"Added res %d x %d", modes[i]->w, modes[i]->h);
 			lastw=modes[i]->w;
 			lasth=modes[i]->h;
 		}
@@ -1255,13 +1245,13 @@ keys[a] = NO; keys[b] = NO; \
 		modeRefresh = [[mode objectForKey: kOODisplayRefreshRate] intValue];
 		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
 		{
-			NSLog(@"Found mode %@", mode);
+			OOLog(@"display.mode.found", @"Found mode %@", mode);
 			return i;
 		}
 	}
 
-	NSLog(@"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
-	NSLog(@"Contents of list: %@", screenSizes);
+	OOLog(@"display.mode.found.failed", @"Failed to find mode: width=%d height=%d refresh=%d", d_width, d_height, d_refresh);
+	OOLog(@"display.mode.found.failed.list", @"Contents of list: %@", screenSizes);
 	return 0;
 }
 
@@ -1275,7 +1265,7 @@ keys[a] = NO; keys[b] = NO; \
 		return NSMakeSize([[mode objectForKey: kOODisplayWidth] intValue],
 				[[mode objectForKey: kOODisplayHeight] intValue]);
 	}
-	NSLog(@"Screen size unknown!");
+	OOLog(@"display.mode.unknown", @"Screen size unknown!");
 	return NSMakeSize(800, 600);
 }
 

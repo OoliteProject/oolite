@@ -88,8 +88,8 @@ Universe *gSharedUniverse = nil;
 static BOOL MaintainLinkedLists(Universe* uni);
 
 
-static OOInteger compareName(NSDictionary *dict1, NSDictionary *dict2, void * context);
-static OOInteger comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context);
+static OOComparisonResult compareName(id dict1, id dict2, void * context);
+static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 
 @interface Universe (OOPrivate)
@@ -7342,7 +7342,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	return [NSArray arrayWithArray:resultArray];
 }
 
-static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, void * context)
+static OOComparisonResult compareName(id dict1, id dict2, void * context)
 {
 	NSDictionary	*ship1 = [dict1 dictionaryForKey:SHIPYARD_KEY_SHIP];
 	NSDictionary	*ship2 = [dict2 dictionaryForKey:SHIPYARD_KEY_SHIP];
@@ -7356,7 +7356,7 @@ static NSComparisonResult compareName(NSDictionary *dict1, NSDictionary *dict2, 
 		return comparePrice(dict1, dict2, context);
 }
 
-static NSComparisonResult comparePrice(NSDictionary *dict1, NSDictionary *dict2, void * context)
+static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
 	NSNumber		*price1 = [dict1 objectForKey:SHIPYARD_KEY_PRICE];
 	NSNumber		*price2 = [dict2 objectForKey:SHIPYARD_KEY_PRICE];

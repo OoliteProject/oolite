@@ -78,7 +78,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @protocol OOProbabilitySetEnumerable <NSObject>
 
-- (id) privObjectAtIndex:(unsigned long)index;
+- (id) privObjectAtIndex:(OOUInteger)index;
 
 @end
 
@@ -111,7 +111,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOConcreteProbabilitySet: OOProbabilitySet <OOProbabilitySetEnumerable>
 {
-	unsigned long		_count;
+	OOUInteger			_count;
 	id					*_objects;
 	float				*_cumulativeWeights;	// Each cumulative weight is weight of object at this index + weight of all objects to left.
 	float				_sumOfWeights;
@@ -134,7 +134,7 @@ static NSString * const	kWeightsKey = @"weights";
 @interface OOProbabilitySetEnumerator: NSEnumerator
 {
 	id					_enumerable;
-	unsigned long		_index;
+	OOUInteger			_index;
 }
 
 - (id) initWithEnumerable:(id<OOProbabilitySetEnumerable>)enumerable;
@@ -155,7 +155,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 }
 
 
-+ (id) probabilitySetWithObjects:(id *)objects weights:(float *)weights count:(unsigned long)count
++ (id) probabilitySetWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
 	return [[[self alloc] initWithObjects:objects weights:weights count:count] autorelease];
 }
@@ -174,7 +174,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 }
 
 
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(unsigned)count
+- (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
 	NSZone *zone = [self zone];
 	[self release];
@@ -201,7 +201,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 {
 	NSArray					*objects = nil;
 	NSArray					*weights = nil;
-	unsigned long			i = 0, count = 0;
+	OOUInteger				i = 0, count = 0;
 	id						*rawObjects = NULL;
 	float					*rawWeights = NULL;
 	
@@ -278,7 +278,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 }
 
 
-- (unsigned long) count
+- (OOUInteger) count
 {
 	ThrowAbstractionViolationException(self);
 }
@@ -376,7 +376,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (unsigned long) count
+- (OOUInteger) count
 {
 	return 0;
 }
@@ -503,7 +503,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (unsigned long) count
+- (OOUInteger) count
 {
 	return 1;
 }
@@ -525,9 +525,9 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 @implementation OOConcreteProbabilitySet
 
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(unsigned)count
+- (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
-	unsigned long			i = 0;
+	OOUInteger				i = 0;
 	float					cuWeight = 0.0f;
 	
 	assert(count > 1 && objects != NULL && weights != NULL);
@@ -560,7 +560,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (void) dealloc
 {
-	unsigned long			i = 0;
+	OOUInteger				i = 0;
 	
 	if (_objects != NULL)
 	{
@@ -587,7 +587,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	NSArray					*objects = nil;
 	NSMutableArray			*weights = nil;
 	float					cuWeight = 0.0f, sum = 0.0f;
-	unsigned long			i = 0;
+	OOUInteger				i = 0;
 	
 	objects = [NSArray arrayWithObjects:_objects count:_count];
 	weights = [NSMutableArray arrayWithCapacity:_count];
@@ -604,7 +604,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 			nil];
 }
 
-- (unsigned long) count
+- (OOUInteger) count
 {
 	return _count;
 }
@@ -618,7 +618,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 		leftmost, i.e. the one where the delta is non-zero.
 	*/
 	
-	unsigned long				low = 0, high = _count - 1, idx = 0;
+	OOUInteger					low = 0, high = _count - 1, idx = 0;
 	float						weight = 0.0f;
 	
 	while (low < high)
@@ -658,7 +658,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (float) weightForObject:(id)object
 {
-	unsigned long				i;
+	OOUInteger					i;
 	
 	// Can't have nil in collection.
 	if (object == nil)  return -1.0f;
@@ -696,7 +696,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (id) privObjectAtIndex:(unsigned long)index
+- (id) privObjectAtIndex:(OOUInteger)index
 {
 	return (index < _count) ? _objects[index] : nil;
 }
@@ -706,7 +706,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 {
 	id						result = nil;
 	float					*weights = NULL;
-	unsigned long			i = 0;
+	OOUInteger				i = 0;
 	float					weight = 0.0f, sum = 0.0f;
 	
 	// Convert cumulative weights to "plain" weights.
@@ -745,7 +745,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(unsigned)count
+- (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
 	NSZone *zone = [self zone];
 	[self release];
@@ -811,9 +811,9 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (id) initWithObjects:(id *)objects weights:(float *)weights count:(unsigned)count
+- (id) initWithObjects:(id *)objects weights:(float *)weights count:(OOUInteger)count
 {
-	unsigned long			i = 0;
+	OOUInteger				i = 0;
 	
 	// Validate parameters.
 	if (count != 0 && (objects == NULL || weights == NULL))
@@ -840,7 +840,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	BOOL					OK = YES;
 	NSArray					*objects = nil;
 	NSArray					*weights = nil;
-	unsigned long			i = 0, count = 0;
+	OOUInteger				i = 0, count = 0;
 	
 	if (!(self = [super initPriv]))  OK = NO;
 	
@@ -891,7 +891,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 }
 
 
-- (unsigned long) count
+- (OOUInteger) count
 {
 	return [_objects count];
 }
@@ -900,7 +900,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 - (id) randomObject
 {
 	float					target = 0.0f, sum = 0.0f;
-	unsigned				i = 0, count = 0;
+	OOUInteger				i = 0, count = 0;
 	
 	target = randf() * _sumOfWeights;
 	count = [_objects count];
@@ -923,7 +923,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	
 	if (object != nil)
 	{
-		unsigned long index = [_objects indexOfObject:object];
+		OOUInteger index = [_objects indexOfObject:object];
 		if (index != NSNotFound)
 		{
 			result = [_weights floatAtIndex:index];
@@ -957,7 +957,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	if (object == nil)  return;
 	
 	weight = fmaxf(weight, 0.0f);
-	unsigned long index = [_objects indexOfObject:object];
+	OOUInteger index = [_objects indexOfObject:object];
 	if (index == NSNotFound)
 	{
 		[_objects addObject:object];
@@ -977,7 +977,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 {
 	if (object != nil)  return;
 	
-	unsigned long index = [_objects indexOfObject:object];
+	OOUInteger index = [_objects indexOfObject:object];
 	if (index != NSNotFound)
 	{
 		[_objects removeObjectAtIndex:index];
@@ -992,7 +992,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	id						result = nil;
 	id						*objects = NULL;
 	float					*weights = NULL;
-	unsigned long			i = 0, count = 0;
+	OOUInteger				i = 0, count = 0;
 	
 	count = [_objects count];
 	if (EXPECT_NOT(count == 0))  return [OOEmptyProbabilitySet singleton];

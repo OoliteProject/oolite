@@ -283,18 +283,9 @@ enum {
 		typedef NSInteger OOInteger;
 		typedef NSUInteger OOUInteger;
 	#else
-		#if defined __LP64__ || defined __ILP64__ || (defined OOLITE_64_BIT && OOLITE_64_BIT)
-			// Try to notice 64-bit systems...
-			typedef long			OOInteger;
-			typedef unsigned long	OOUInteger;
-			#ifndef OOLITE_64_BIT
-				#define OOLITE_64_BIT			1
-			#endif
-		#else
-			// Assume 32-bit system.
-			typedef int				OOInteger;
-			typedef unsigned int	OOUInteger;
-		#endif
+		// Older versions of GNUstep used int on all systems.
+		typedef int				OOInteger;
+		typedef unsigned int	OOUInteger;
 	#endif
 	typedef float			OOCGFloat;
 #endif
@@ -302,3 +293,15 @@ enum {
 #ifndef OOLITE_64_BIT
 	#define OOLITE_64_BIT			0
 #endif
+
+
+/*	For some reason, return types for some comparison callbacks are typed
+	NSInteger/int under OS X but (more sensibly) NSComparisonResult under
+	GNUstep.
+*/
+#if OOLITE_MAC_OS_X
+	typedef OOInteger OOComparisonResult;
+#else
+	typedef NSComparisonResult OOComparisonResult;
+#endif
+

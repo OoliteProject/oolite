@@ -114,7 +114,14 @@
 	
 	display.modes.noneFound					= $error;
 	display.context.create.failed			= $error;
+	display.mode.found						= no;
+	display.mode.found.failed				= $error;
+	display.mode.list						= no;
+	display.mode.list.none					= $error;
+	display.mode.list.native.failed			= $error;
 	display.mode.switch.failed				= $error;
+	display.mode.unknown					= $error;
+	display.initGL							= no;
 	
 	
 	$linkedListError						= $error;
@@ -272,6 +279,11 @@
 	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
 	
 	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
+	
+	
+	sdl.init								= no;
+	sdl.init.failed							= $error;
+	sdl.init.audio.failed					= $error;
 	
 	
 	searchPaths.dumpAll						= $troubleShootingDump;
