@@ -1175,7 +1175,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 				src = (uint8_t *)((char *)src + srcRowBytes);
 				if (EXPECT_NOT(y == endY))
 				{
-					if (EXPECT(endY != lastRow))  accum += *src * endWeight;
+					if (EXPECT(endY < lastRow))  accum += *src * endWeight;
 					break;
 				}
 				else
