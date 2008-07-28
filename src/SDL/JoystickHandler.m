@@ -37,7 +37,7 @@ MA 02110-1301, USA.
    
    // Find and open the sticks.
    numSticks=SDL_NumJoysticks();
-   NSLog(@"init: numSticks=%d", numSticks);
+   OOLog(@"joystickHandler.init", @"Number of joysticks detected: %d", numSticks);
    if(numSticks)
    {
       for(i = 0; i < numSticks; i++)

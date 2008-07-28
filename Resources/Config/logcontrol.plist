@@ -153,6 +153,9 @@
 	iTunesIntegration.failed				= $error;
 	
 	
+	joystickHandler.init				= yes;
+	
+	
 	mesh.load.error							= $error;
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
