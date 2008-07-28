@@ -275,6 +275,7 @@
 		model = "arcdetail.dat";
 		name = "Arc Detail";
 		roles = "arc-detail oolite-arc-detail";
+		smooth = yes;
 	};
 	"asp" =
 	{

@@ -374,6 +374,8 @@
 		1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A4FB2380C8D6A7500DC8E1F /* libjs.a */; };
 		1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5218D80D72EC21000865E9 /* OOSpatialReference.h */; };
 		1A5218DE0D72ECE5000865E9 /* OOSpatialReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5218DD0D72ECE5000865E9 /* OOSpatialReference.m */; };
+		1A54AB530E3E17A1001EB817 /* OOJSPlayerShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */; };
+		1A54AB540E3E17A1001EB817 /* OOJSPlayerShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */; };
 		1A572FC30D84B640003D4A26 /* oolite-nova-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */; };
 		1A572FC40D84B640003D4A26 /* oolite-thargoid-plans-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */; };
 		1A572FC50D84B640003D4A26 /* oolite-trumbles-mission.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */; };
@@ -1386,6 +1388,8 @@
 		1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSOolite.m; sourceTree = "<group>"; };
 		1A5218D80D72EC21000865E9 /* OOSpatialReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSpatialReference.h; sourceTree = "<group>"; };
 		1A5218DD0D72ECE5000865E9 /* OOSpatialReference.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSpatialReference.m; sourceTree = "<group>"; };
+		1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayerShip.h; sourceTree = "<group>"; };
+		1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSPlayerShip.m; sourceTree = "<group>"; };
 		1A572FB80D84B640003D4A26 /* oolite-nova-mission.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-nova-mission.js"; sourceTree = "<group>"; };
 		1A572FB90D84B640003D4A26 /* oolite-thargoid-plans-mission.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-thargoid-plans-mission.js"; sourceTree = "<group>"; };
 		1A572FBA0D84B640003D4A26 /* oolite-trumbles-mission.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-trumbles-mission.js"; sourceTree = "<group>"; };
@@ -2157,6 +2161,8 @@
 				1A73712C0C623DAE0097AC37 /* OOJSStation.m */,
 				1A736BD10C61E9370097AC37 /* OOJSPlayer.h */,
 				1A736BD20C61E9370097AC37 /* OOJSPlayer.m */,
+				1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */,
+				1A54AB520E3E17A0001EB817 /* OOJSPlayerShip.m */,
 				1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */,
 				1A43A0CB0CB91D2C00D0E239 /* OOJSPlanet.m */,
 				1A7C75990CC39D11005D0AA2 /* OOJSSun.h */,
@@ -2888,6 +2894,7 @@
 				1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */,
 				1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */,
 				1A62F0FE0E26A2A000897506 /* OOEquipmentType.h in Headers */,
+				1A54AB530E3E17A1001EB817 /* OOJSPlayerShip.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3239,6 +3246,7 @@
 				1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */,
 				1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */,
 				1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */,
+				1A54AB540E3E17A1001EB817 /* OOJSPlayerShip.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

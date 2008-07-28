@@ -1,8 +1,15 @@
 /*
 
-OOJSPlayer.h
+OOJSPlayerShip.h
 
-JavaScript proxy for the player.
+JavaScript proxy for the player's ship.
+While the player and player's ship are not differentiated in Oolite, such a
+separation makes more sense conceptually and design-wise, and we might want to
+make it that way in the future. The scripting interface anticipates this by
+using two separate objects for the player and player's ship.
+
+The -javaScriptValue of the PlayerEntity is the player's ship.
+
 
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
@@ -30,17 +37,7 @@ MA 02110-1301, USA.
 @class PlayerEntity;
 
 
-void InitOOJSPlayer(JSContext *context, JSObject *global);
+void InitOOJSPlayerShip(JSContext *context, JSObject *global);
 
-JSClass *JSPlayerClass(void);
-JSObject *JSPlayerPrototype(void);
-JSObject *JSPlayerObject(void);
-
-
-/*	All JS functions which talk to the player entity should call
-	OOOPlayerForScripting() to ensure that the script target (for the legacy
-	system) is set correctly. Additionally, all such functions should _always_
-	call OOPlayerForScripting(), even if they end up not using it, to ensure
-	consistent state.
-*/
-PlayerEntity *OOPlayerForScripting(void);
+JSClass *JSPlayerShipClass(void);
+JSObject *JSPlayerShipPrototype(void);

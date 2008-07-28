@@ -45,20 +45,8 @@ static JSObject		*sPlayerObject;
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -92,25 +80,17 @@ static JSExtendedClass sPlayerClass =
 enum
 {
 	// Property IDs
-	kPlayer_name,				// Player name, string, read-only
-	kPlayer_score,				// kill count, integer, read/write
-	kPlayer_credits,			// credit balance, float, read/write
-	kPlayer_fuelLeakRate,		// fuel leak rate, float, read/write
-	kPlayer_alertCondition,		// alert level, integer, read-only
-	kPlayer_docked,				// docked, boolean, read-only
-	kPlayer_dockedStation,		// docked station, entity, read-only
-	kPlayer_dockedStationName,	// name of docked station, string, read-only
-	kPlayer_dockedAtMainStation,// whether current docked station is system main station, boolean, read-only
-	kPlayer_alertTemperature,	// cabin temperature alert flag, boolean, read-only
-	kPlayer_alertMassLocked,	// mass lock alert flag, boolean, read-only
-	kPlayer_alertAltitude,		// low altitude alert flag, boolean, read-only
-	kPlayer_alertEnergy,		// low energy alert flag, boolean, read-only
-	kPlayer_alertHostiles,		// hostiles present alert flag, boolean, read-only
-	kPlayer_trumbleCount,		// number of trumbles, integer, read-only
-	kPlayer_specialCargo,		// special cargo, string, read-only
-	kPlayer_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
-	kPlayer_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
-	kPlayer_contractReputation,	// reputation for cargo contracts, integer, read only
+	kPlayer_name,					// Player name, string, read-only
+	kPlayer_score,					// kill count, integer, read/write
+	kPlayer_credits,				// credit balance, float, read/write
+	kPlayer_alertCondition,			// alert level, integer, read-only
+	kPlayer_alertTemperature,		// cabin temperature alert flag, boolean, read-only
+	kPlayer_alertMassLocked,		// mass lock alert flag, boolean, read-only
+	kPlayer_alertAltitude,			// low altitude alert flag, boolean, read-only
+	kPlayer_alertEnergy,			// low energy alert flag, boolean, read-only
+	kPlayer_alertHostiles,			// hostiles present alert flag, boolean, read-only
+	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
+	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read only
 };
 
@@ -121,76 +101,39 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "name",					kPlayer_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "score",					kPlayer_score,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "credits",				kPlayer_credits,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "fuelLeakRate",			kPlayer_fuelLeakRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alertCondition",			kPlayer_alertCondition,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "docked",					kPlayer_docked,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedStation",			kPlayer_dockedStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertTemperature",		kPlayer_alertTemperature,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertMassLocked",		kPlayer_alertMassLocked,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertAltitude",			kPlayer_alertAltitude,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertEnergy",			kPlayer_alertEnergy,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "specialCargo",			kPlayer_specialCargo,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galacticHyperspaceBehaviour",	kPlayer_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galacticHyperspaceFixedCoords",	kPlayer_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "contractReputation",	kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "passengerReputation",	kPlayer_passengerReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "contractReputation",		kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengerReputation",	kPlayer_passengerReputation, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
 
 static JSFunctionSpec sPlayerMethods[] =
 {
-	// JS name					Function					min args
-	{ "awardEquipment",			PlayerAwardEquipment,		1 },	// Should be deprecated in favour of equipment object model
-	{ "removeEquipment",		PlayerRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
-	{ "hasEquipment",			PlayerHasEquipment,			1 },
-	{ "equipmentStatus",		PlayerEquipmentStatus,		1 },
-	{ "setEquipmentStatus",		PlayerSetEquipmentStatus,	2 },
-	{ "launch",					PlayerLaunch,				0 },
-	{ "awardCargo",				PlayerAwardCargo,			1 },
-	{ "canAwardCargo",			PlayerCanAwardCargo,		1 },
-	{ "removeAllCargo",			PlayerRemoveAllCargo,		0 },
-	{ "useSpecialCargo",		PlayerUseSpecialCargo,		1 },
-	{ "commsMessage",			PlayerCommsMessage,			1 },
-	{ "consoleMessage",			PlayerConsoleMessage,		1 },
-	{ "setGalacticHyperspaceBehaviour",	PlayerSetGalacticHyperspaceBehaviour,	1 },
-	{ "setGalacticHyperspaceFixedCoords",	PlayerSetGalacticHyperspaceFixedCoords,	1 },
-	{ "increaseContractReputation",	PlayerIncreaseContractReputation, 0 },
-	{ "decreaseContractReputation",	PlayerDecreaseContractReputation, 0 },
-	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation, 0 },
-	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation, 0 },
+	// JS name							Function							min args
+	{ "commsMessage",					PlayerCommsMessage,					1 },
+	{ "consoleMessage",					PlayerConsoleMessage,				1 },
+	{ "increaseContractReputation",		PlayerIncreaseContractReputation,	0 },
+	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
+	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
+	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
 	{ 0 }
 };
 
 
 void InitOOJSPlayer(JSContext *context, JSObject *global)
 {
-    sPlayerPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerClass.base, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
+    sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass.base, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlayerClass.base, JSBasicPrivateObjectConverter);
 	
 	// Create player object as a property of the global object.
 	sPlayerObject = JS_DefineObject(context, global, "player", &sPlayerClass.base, sPlayerPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
-	JS_SetPrivate(context, sPlayerObject, [[PlayerEntity sharedPlayer] weakRetain]);
-	[[PlayerEntity sharedPlayer] setJSSelf:sPlayerObject context:context];
-}
-
-
-BOOL JSPlayerGetPlayerEntity(JSContext *context, JSObject *playerObj, PlayerEntity **outEntity)
-{
-	BOOL						result;
-	Entity						*entity = nil;
-	
-	if (outEntity != NULL)  *outEntity = nil;
-	
-	result = JSEntityGetEntity(context, playerObj, &entity);
-	if (!result)  return NO;
-	
-	if (![entity isKindOfClass:[PlayerEntity class]])  return NO;
-	
-	*outEntity = (PlayerEntity *)entity;
-	return YES;
 }
 
 
@@ -206,6 +149,12 @@ JSObject *JSPlayerPrototype(void)
 }
 
 
+JSObject *JSPlayerObject(void)
+{
+	return sPlayerObject;
+}
+
+
 PlayerEntity *OOPlayerForScripting(void)
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
@@ -213,23 +162,6 @@ PlayerEntity *OOPlayerForScripting(void)
 	
 	return player;
 }
-
-
-@implementation PlayerEntity (OOJavaScriptExtensions)
-
-- (NSString *)jsClassName
-{
-	return @"Player";
-}
-
-
-- (void)setJSSelf:(JSObject *)val context:(JSContext *)context
-{
-	jsSelf = val;
-	JS_AddNamedRoot(context, &jsSelf, "Player jsSelf");
-}
-
-@end
 
 
 static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
@@ -256,23 +188,8 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OK = JS_NewDoubleValue(context, [player creditBalance], outValue);
 			break;
 			
-		case kPlayer_fuelLeakRate:
-			OK = JS_NewDoubleValue(context, [player fuelLeakRate], outValue);
-			break;
-			
 		case kPlayer_alertCondition:
 			*outValue = INT_TO_JSVAL([player alertCondition]);
-			OK = YES;
-			break;
-			
-		case kPlayer_docked:
-			*outValue = BOOLToJSVal([player isDocked]);
-			OK = YES;
-			break;
-			
-		case kPlayer_dockedStation:
-			result = [player dockedStation];
-			if (result == nil)  result = [NSNull null];
 			OK = YES;
 			break;
 			
@@ -303,19 +220,6 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_trumbleCount:
 			OK = JS_NewNumberValue(context, [player trumbleCount], outValue);
-			break;
-			
-		case kPlayer_specialCargo:
-			result = [player specialCargo];
-			OK = YES;
-			break;
-			
-		case kPlayer_galacticHyperspaceBehaviour:
-			OK = JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
-			break;
-			
-		case kPlayer_galacticHyperspaceFixedCoords:
-			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
 			break;
 			
 		case kPlayer_contractReputation:
@@ -365,14 +269,6 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			}
 			break;
 		
-		case kPlayer_fuelLeakRate:
-			if (JS_ValueToNumber(context, *value, &fValue))
-			{
-				[player setFuelLeakRate:fValue];
-				OK = YES;
-			}
-			break;
-		
 		default:
 			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
 	}
@@ -382,257 +278,6 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 
 
 // *** Methods ***
-
-// awardEquipment(key : String)
-static JSBool PlayerAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"awardEquipment", argc, argv, @"Invalid arguments", @"equipment key");
-		return NO;
-	}
-	
-	[player awardEquipment:key];
-	return YES;
-}
-
-
-// removeEquipment(key : String)
-static JSBool PlayerRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"removeEquipment", argc, argv, @"Invalid arguments", @"equipment key");
-		return NO;
-	}
-	
-	[player removeEquipmentItem:key];
-	return YES;
-}
-
-
-// hasEquipment(key : String) : Boolean
-static JSBool PlayerHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"hasEquipment", argc, argv, @"Invalid arguments", @"equipment key");
-		return NO;
-	}
-	
-	*outResult = BOOLToJSVal([player hasEquipmentItem:key]);
-	return YES;
-}
-
-
-// setEquipmentStatus(key : String, status : String)
-static JSBool PlayerSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
-	
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*key = JSValToNSString(context, argv[0]);
-	NSString				*damagedKey = [key stringByAppendingString:@"_DAMAGED"];
-	NSString				*status = JSValToNSString(context, argv[1]);
-	BOOL					hasOK = NO, hasDamaged = NO;
-
-	if (EXPECT_NOT([UNIVERSE strict]))
-	{
-		// It's OK to have a hard error here since only built-in scripts run in strict mode.
-		OOReportJSError(context, @"Cannot set equipment status while in strict mode.");
-		return NO;
-	}
-	
-	if (EXPECT_NOT(key == nil || status == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key and status");
-		return NO;
-	}
-	
-	hasOK = [player hasEquipmentItem:key];
-	hasDamaged = [player hasEquipmentItem:damagedKey];
-	
-	if ([status isEqualToString:@"EQUIPMENT_OK"])
-	{
-		if (hasDamaged)
-		{
-			[player removeEquipmentItem:damagedKey];
-			[player addEquipmentItem:key];
-		}
-	}
-	else if ([status isEqualToString:@"EQUIPMENT_DAMAGED"])
-	{
-		if (hasOK)
-		{
-			[player removeEquipmentItem:key];
-			[player addEquipmentItem:damagedKey];
-		}
-	}
-	else
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
-		return NO;
-	}
-	
-	*outResult = BOOLToJSVal(hasOK || hasDamaged);
-	return YES;
-}
-
-
-// equipmentStatus(key : String) : String
-static JSBool PlayerEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
-	
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*key = JSValToNSString(context, argv[0]);
-	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
-	
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key");
-		return NO;
-	}
-	
-	if([player hasEquipmentItem:key]) result = @"EQUIPMENT_OK";
-	else if([player hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]) result = @"EQUIPMENT_DAMAGED";
-	
-	*outResult = [result javaScriptValueInContext:context];
-	return YES;
-}
-
-
-// launch()
-static JSBool PlayerLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	[OOPlayerForScripting() launchFromStation];
-	return YES;
-}
-
-
-// awardCargo(type : String [, quantity : Number])
-static JSBool PlayerAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*typeString = nil;
-	OOCargoType				type;
-	int32					amount = 1;
-	BOOL					gotAmount = YES;
-	
-	typeString = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
-	if (EXPECT_NOT(typeString == nil || !gotAmount))
-	{
-		OOReportJSBadArguments(context, @"Player", @"awardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
-		return NO;
-	}
-	
-	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == CARGO_UNDEFINED))
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Unknown cargo type \"%@\".", typeString);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(amount < 0))
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Cargo quantity (%i) is negative.", amount);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(![player canAwardCargoType:type amount:amount]))
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"awardCargo", @"Cannot award %u units of cargo \"%@\" at this time (use canAwardCargo() to avoid this error).", amount, typeString);
-		return NO;
-	}
-	
-	[player awardCargoType:type amount:amount];
-	return YES;
-}
-
-
-// canAwardCargo(type : String [, quantity : Number]) : Boolean
-static JSBool PlayerCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*typeString = nil;
-	OOCargoType				type;
-	int32					amount = 1;
-	BOOL					gotAmount = YES;
-	
-	typeString = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
-	if (EXPECT_NOT(typeString == nil || !gotAmount))
-	{
-		OOReportJSBadArguments(context, @"Player", @"canAwardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
-		return NO;
-	}
-	
-	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == CARGO_UNDEFINED))
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"canAwardCargo", @"Unknown cargo type \"%@\".", typeString);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(amount < 0))
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"canAwardCargo", @"Cargo quantity (%i) is negative.", amount);
-		return NO;
-	}
-	
-	*outResult = BOOLToJSVal([player canAwardCargoType:type amount:amount]);
-	return YES;
-}
-
-
-// removeAllCargo()
-static JSBool PlayerRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	
-	if ([player isDocked])
-	{
-		[player removeAllCargo];
-		return YES;
-	}
-	else
-	{
-		OOReportJSError(context, @"Player.removeAllCargo() may only be called when the player is docked.");
-		return NO;
-	}
-}
-
-
-// useSpecialCargo(name : String)
-static JSBool PlayerUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*name = nil;
-	
-	name = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(name == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"useSpecialCargo", argc, argv, @"Invalid arguments", @"special cargo description");
-		return NO;
-	}
-	
-	[player useSpecialCargo:JSValToNSString(context, argv[0])];
-	return YES;
-}
-
 
 // commsMessage(message : String [, duration : Number])
 static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
@@ -670,68 +315,6 @@ static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN arg
 	}
 	
 	[UNIVERSE addMessage:message forCount:time];
-	return YES;
-}
-
-
-// setGalacticHyperspaceBehaviour(behaviour : String)
-static JSBool PlayerSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*behavString = nil;
-	OOGalacticHyperspaceBehaviour behaviour;
-	
-	behavString = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(behavString == nil))
-	{
-		OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceBehaviour", argc, argv, @"Invalid arguments", @"behaviour name");
-		return NO;
-	}
-	
-	behaviour = StringToGalacticHyperspaceBehaviour(behavString);
-	if (behaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
-	{
-		OOReportJSErrorForCaller(context, @"Player", @"setGalacticHyperspaceBehaviour", @"Unknown galactic hyperspace behaviour name %@.", behavString);
-	}
-	
-	[player setGalacticHyperspaceBehaviour:behaviour];
-	return YES;
-}
-
-
-// setGalacticHyperspaceFixedCoords(v : vectorExpression) or setGalacticHyperspaceFixedCoords(x : Number, y : Number)
-static JSBool PlayerSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	double					x, y;
-	Vector					v;
-	
-	if (argc == 2)
-	{
-		// Expect two integers
-		if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &x) ||
-					   !JS_ValueToNumber(context, argv[1], &y)))
-		{
-			OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
-			return NO;
-		}
-	}
-	else
-	{
-		// Expect vectorExpression
-		if (EXPECT_NOT(!VectorFromArgumentList(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, &v, NULL)))
-		{
-			OOReportJSBadArguments(context, @"Player", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
-			return NO;
-		}
-		x = v.x;
-		y = v.y;
-	}
-	
-	x = OOClamp_0_max_d(x, 255);
-	y = OOClamp_0_max_d(y, 255);
-	
-	[player setGalacticHyperspaceFixedCoordsX:x y:y];
 	return YES;
 }
 
