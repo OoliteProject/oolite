@@ -1705,7 +1705,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity])  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0)  return NO;
 	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
-	if ([eqType requiredEquipment] != nil && ![self hasEquipmentItem:[eqType requiredEquipment]])  return NO;
+	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment]])  return NO;
+	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment]])  return NO;
 	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment]])  return NO;
 	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0)  return NO;
 	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0)  return NO;

@@ -71,7 +71,8 @@ SOFTWARE.
 							_requiresNonFullFuel: 1,
 							_isMissileOrMine: 1;
 	OOCargoQuantity			_requiredCargoSpace;
-	NSSet					*_requiredEquipment;
+	NSSet					*_requiresEquipment;
+	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
 }
@@ -99,8 +100,9 @@ SOFTWARE.
 - (BOOL) isPortableBetweenShips;
 
 - (OOCargoQuantity) requiredCargoSpace;
-- (NSSet *) requiredEquipment;	// Sets of equipment identifiers
-- (NSSet *) incompatibleEquipment;
+- (NSSet *) requiresEquipment;		// Set of equipment identifiers; all items required
+- (NSSet *) requiresAnyEquipment;	// Set of equipment identifiers; any item required
+- (NSSet *) incompatibleEquipment;	// Set of equipment identifiers; all items prohibited
 
 // FIXME: should have general mechanism to handle scripts or legacy conditions.
 - (NSArray *) conditions;

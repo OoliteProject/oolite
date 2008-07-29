@@ -174,11 +174,19 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			_requiredCargoSpace = [extra unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
-			if ([object isKindOfClass:[NSString class]])  _requiredEquipment = [[NSSet setWithObject:object] retain];
-			else if ([object isKindOfClass:[NSArray class]])  _requiredEquipment = [[NSSet setWithArray:object] retain];
+			if ([object isKindOfClass:[NSString class]])  _requiresEquipment = [[NSSet setWithObject:object] retain];
+			else if ([object isKindOfClass:[NSArray class]])  _requiresEquipment = [[NSSet setWithArray:object] retain];
 			else if (object != nil)
 			{
-				OOLog(@"equipment.load", @"***** ERROR: requires_equipment for equipment item %@ is not a string or an array.", _identifier);
+				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"requires_equipment", _identifier);
+			}
+			
+			object = [extra objectForKey:@"requires_any_equipment"];
+			if ([object isKindOfClass:[NSString class]])  _requiresAnyEquipment = [[NSSet setWithObject:object] retain];
+			else if ([object isKindOfClass:[NSArray class]])  _requiresAnyEquipment = [[NSSet setWithArray:object] retain];
+			else if (object != nil)
+			{
+				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"requires_any_equipment", _identifier);
 			}
 			
 			object = [extra objectForKey:@"incompatible_with_equipment"];
@@ -186,7 +194,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			else if ([object isKindOfClass:[NSArray class]])  _incompatibleEquipment = [[NSSet setWithArray:object] retain];
 			else if (object != nil)
 			{
-				OOLog(@"equipment.load", @"***** ERROR: incompatible_with_equipment for equipment item %@ is not a string or an array.", _identifier);
+				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"incompatible_with_equipment", _identifier);
 			}
 			
 			object = [extra objectForKey:@"conditions"];
@@ -194,7 +202,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			else if ([object isKindOfClass:[NSArray class]])  _conditions = [object retain];
 			else if (object != nil)
 			{
-				OOLog(@"equipment.load", @"***** ERROR: conditions for equipment item %@ is not a string or an array.", _identifier);
+				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"conditions", _identifier);
 			}
 		}
 	}
@@ -213,7 +221,8 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	[_name release];
 	[_identifier release];
 	[_description release];
-	[_requiredEquipment release];
+	[_requiresEquipment release];
+	[_requiresAnyEquipment release];
 	[_incompatibleEquipment release];
 	[_conditions release];
 	
@@ -330,9 +339,15 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 }
 
 
-- (NSSet *) requiredEquipment
+- (NSSet *) requiresEquipment
 {
-	return _requiredEquipment;
+	return _requiresEquipment;
+}
+
+
+- (NSSet *) requiresAnyEquipment
+{
+	return _requiresAnyEquipment;
 }
 
 
