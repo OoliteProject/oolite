@@ -83,8 +83,8 @@ enum {
 
 // Stick constants
 #define MAX_STICKS 2
-#define MAX_AXES  10
-#define MAX_BUTTONS  20
+#define MAX_AXES  16
+#define MAX_BUTTONS  64
 #define STICK_NOFUNCTION -1
 #define STICK_AXISUNASSIGNED -10.0
 #define STICK_PRECISIONDIV 98304 // 3 times more precise
@@ -119,8 +119,8 @@ enum {
    @protected
 
       // Axis/button mapping arrays
-      int axismap[MAX_STICKS][MAX_AXES];
-      int buttonmap[MAX_STICKS][MAX_BUTTONS];
+      int8_t axismap[MAX_STICKS][MAX_AXES];
+      int8_t buttonmap[MAX_STICKS][MAX_BUTTONS];
       double axstate[AXIS_end];
       BOOL butstate[BUTTON_end];
       SDL_Joystick *stick[MAX_STICKS];
