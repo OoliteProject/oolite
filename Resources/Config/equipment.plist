@@ -159,6 +159,8 @@
 		<dict>
 			<key>portable_between_ships</key>
 			<true/>
+			<key>available_to_all</key>
+			<true/>
 		</dict>
 	</array>
 <!-- next items are new items, don't place new items before this mark -->

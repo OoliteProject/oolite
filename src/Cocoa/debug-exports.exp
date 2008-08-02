@@ -76,3 +76,8 @@ _do_seqnos_mach_notify_dead_name
 _do_seqnos_mach_notify_no_senders
 _do_seqnos_mach_notify_port_deleted
 _do_seqnos_mach_notify_send_once
+
+# Debug value formatter support
+_JSValueToStrDbg
+_JSObjectToStrDbg
+_JSValueTypeDbg

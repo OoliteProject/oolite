@@ -29,12 +29,14 @@ MA 02110-1301, USA.
 static JSObject		*sSpecialFunctionsObject;
 
 
+static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SpecialJsWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
 {
 	// JS name					Function					min args
+	{ "toString",				SpecialToString,			0 },
 	{ "jsWarning",				SpecialJsWarning,			1 },
 	{ 0 }
 };
@@ -58,6 +60,13 @@ JSObject *JSSpecialFunctionsObject(void)
 OOJSValue *JSSpecialFunctionsObjectWrapper(JSContext *context)
 {
 	return [OOJSValue valueWithJSObject:JSSpecialFunctionsObject() inContext:context];
+}
+
+
+static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = STRING_TO_JSVAL(JS_NewStringCopyZ(context, "[object OoliteSpecialFunctions]"));
+	return YES;
 }
 
 

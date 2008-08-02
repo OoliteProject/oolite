@@ -1076,6 +1076,36 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
+#ifndef NDEBUG
+
+// For use in debugger
+const char *JSValueToStrDbg(jsval val)
+{
+	return [JSValToNSString(NULL, val) UTF8String];
+}
+
+
+const char *JSObjectToStrDbg(JSObject *obj)
+{
+	return [JSValToNSString(NULL, OBJECT_TO_JSVAL(obj)) UTF8String];
+}
+
+
+const char *JSValueTypeDbg(jsval val)
+{
+	if (JSVAL_IS_INT(val))  return "integer";
+	if (JSVAL_IS_DOUBLE(val))  return "double";
+	if (JSVAL_IS_STRING(val))  return "string";
+	if (JSVAL_IS_BOOLEAN(val))  return "boolean";
+	if (JSVAL_IS_NULL(val))  return "null";
+	if (JSVAL_IS_VOID(val))  return "void";
+	if (JSVAL_IS_OBJECT(val))  return JS_GetClass(JSVAL_TO_OBJECT(val))->name;
+	return "unknown";
+}
+
+#endif
+
+
 @implementation NSArray (OOJavaScriptConversion)
 
 - (jsval)javaScriptValueInContext:(JSContext *)context

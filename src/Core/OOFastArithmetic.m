@@ -71,12 +71,12 @@ asm float OOInvSqrtf(float x)
 	frsqrte f1,f1				/* get recip sqrt estimate (does no harm if input is NaN */
 	beq     cr1, not_a_number	/* branch if original value was not a number */
 	fmul    f2,f2,f9			/* begin Goldschmidt */
-	fmuls   f3,f1,f1			/* saves one clock without effecting accuracy */
+	fmuls   f3,f1,f1			/* single-precision saves one clock without affecting accuracy */
 	fmul    f4,f2,f3
-	fnmsubs f3,f2,f3,f7			/* saves one clock without effecting accuracy */
+	fnmsubs f3,f2,f3,f7			/* single-precision saves one clock without affecting accuracy */
 	fmul    f5,f3,f3
 	fmul    f1,f3,f1
-	fnmsubs f3,f4,f5,f7			/* saves one clock without effecting accuracy */
+	fnmsubs f3,f4,f5,f7			/* single-precision saves one clock without affecting accuracy */
 	fmul    f4,f4,f5
 	fmul    f1,f3,f1
 	fmul    f5,f3,f3
@@ -93,6 +93,7 @@ neg_number_or_zero:
 	lis     r6, 0x8000			/* negative */
 	lfs     f2,8(r1)			/* load 1.0F into fpu reg 2 */
 	beq     its_zero			/* branch if zero */
+	
 	/* This bit sets FPU status bits for negative number case, and isn't strictly needed for Oolite. */
 	cmpl    0,r5,r6				/* test for negative zero */
 	beq     its_zero			/* branch if zero */
@@ -107,7 +108,8 @@ neg_number_or_zero:
 	lfs     f6,0(r1)			/* load new fpu status */
 	lfs     f1,4(r1)			/* load aNaN to be returned */
 	mtfsf   0xff,f6				/* update fpu status to new value */
-	its_zero:
+	
+its_zero:
 	fmuls   f1,f1,f2			/* multiply by 1.0 to set appropriate status bits */
 	addi    r1,r1,12			/* clean up stack */
 	blr							/* return */

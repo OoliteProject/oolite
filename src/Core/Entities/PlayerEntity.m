@@ -4715,7 +4715,7 @@ static int last_outfitting_index;
 		if (min_techlevel == 99)
 		{
 			// check mission variables for the existence of a revised tech level (given when item is awarded)
-			NSString* mission_eq_tl_key = [NSString stringWithFormat:@"mission_TL_FOR_%@", eq_key];
+			NSString* mission_eq_tl_key = [@"mission_TL_FOR_" stringByAppendingString:eq_key];
 			min_techlevel = [mission_variables unsignedIntForKey:mission_eq_tl_key defaultValue:min_techlevel];
 		}
 		

@@ -62,3 +62,7 @@ _QuaternionDescription
 _VectorDescription
 _BehaviourToString
 
+# Debug value formatter support
+_JSValueToStrDbg
+_JSObjectToStrDbg
+_JSValueTypeDbg
