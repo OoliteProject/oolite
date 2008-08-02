@@ -471,13 +471,19 @@ static OOCacheManager *sSingleton = nil;
 	path = [self cachePathCreatingIfNecessary:NO];
 	if (path == nil) return nil;
 	
-	data = [NSData dataWithContentsOfFile:path];
-	if (data == nil) return nil;
+	NS_DURING
+		data = [NSData dataWithContentsOfFile:path];
+		if (data == nil) return nil;
+		
+		contents = [NSPropertyListSerialization propertyListFromData:data
+													mutabilityOption:NSPropertyListImmutable
+															  format:NULL
+													errorDescription:&errorString];
+	NS_HANDLER
+		errorString = [localException reason];
+		contents = nil;
+	NS_ENDHANDLER
 	
-	contents = [NSPropertyListSerialization propertyListFromData:data
-												mutabilityOption:NSPropertyListImmutable
-														  format:NULL
-												errorDescription:&errorString];
 	if (errorString != nil)
 	{
 		OOLog(@"dataCache.badData", @"Could not read data cache: %@", errorString);
