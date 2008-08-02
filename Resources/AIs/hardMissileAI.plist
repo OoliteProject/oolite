@@ -27,8 +27,8 @@
         UPDATE = ("setStateTo: ATTACK_SHIP"); 
     }; 
     GLOBAL = {
-        ENTER = ("setSpeedFactorTo: 1.0", "setStateTo: ATTACK_SHIP"); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = ("pauseAI: 0.50", "setSpeedFactorTo: 1.0");
+        EXIT = ();
+        UPDATE = ("setStateTo: ATTACK_SHIP");
+    };
 }
