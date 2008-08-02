@@ -34,10 +34,10 @@ this.version		= "1.72";
 
 this.missionOffers = function ()
 {
-	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.docked)  return;
+	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.ship.docked)  return;
 	
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
-	if (player.dockedStation.isMainStation)
+	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber == 3)
 		{
@@ -172,7 +172,7 @@ this.shipDockedWithStation = function ()
 this.missionScreenEnded = this.missionChoiceWasReset = function ()
 {
 	this.choiceEvaluation();
-	if (player.docked)  this.missionOffers();
+	if (player.ship.docked)  this.missionOffers();
 }
 
 

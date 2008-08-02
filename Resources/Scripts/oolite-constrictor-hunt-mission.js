@@ -105,10 +105,10 @@ this.addToScreen = function ()
 
 this.missionOffers = function ()
 {
-	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.docked)  return;
+	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.ship.docked)  return;
 	
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
-	if (player.dockedStation.isMainStation)
+	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber < 2 && !missionVariables.conhunt && player.score > 255)
 		{
@@ -156,7 +156,7 @@ this.shipDockedWithStation = function ()
 
 this.missionScreenEnded = this.missionChoiceWasReset = function ()
 {
-	if (!player.docked) return;
+	if (!player.ship.docked) return;
 	this.missionOffers();
 }
 

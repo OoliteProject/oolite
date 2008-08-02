@@ -36,7 +36,7 @@ this.missionOffers = function ()
 {
 	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.docked)  return;
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
-	if (player.dockedStation.isMainStation)
+	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber == 2)
 		{
@@ -128,7 +128,7 @@ this.shipDockedWithStation = function ()
 
 this.missionScreenEnded = this.missionChoiceWasReset = function ()
 {
-	if (!player.docked) return;
+	if (!player.ship.docked) return;
 	this.missionOffers();
 }
 

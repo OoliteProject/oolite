@@ -50,7 +50,7 @@ this.startUp = this.reset = function ()
 
 this.shipDockedWithStation = function ()
 {
-	if (!player.docked)  return;	// Player might have been forcibly undocked by another script.
+	if (!player.ship.docked)  return;	// Player might have been forcibly undocked by another script.
 	
 	/*	In the pre-JavaScript implementation, the mission variable was set to
 		OFFER_MADE while the mission screen was shown. If the player lanched
@@ -61,7 +61,7 @@ this.shipDockedWithStation = function ()
 	*/
 	if (missionVariables.trumbles == "OFFER_MADE")  missionVariables.trumbles = "BUY_ME"
 	
-	if (player.dockedStation.isMainStation &&
+	if (player.ship.dockedStation.isMainStation &&
 		missionVariables.trumbles == "" &&
 		!missionVariables.novacount &&		// So the offers eventually stop for long-time players who keep refusing.
 		player.credits > 6553.5)
