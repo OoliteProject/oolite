@@ -33,4 +33,6 @@ MA 02110-1301, USA.
 - (ShipEntity *) ejectShipOfType:(NSString *)shipKey;	// Note: ship type, not role.
 - (ShipEntity *) ejectShipOfRole:(NSString *)role;
 
+- (NSArray *) spawnShipsWithRole:(NSString *)role count:(OOUInteger)count;
+
 @end

@@ -121,6 +121,7 @@
 		script = "$scriptFileName";
 		has_npc_traffic = "fuzzyBoolean";
 		script_info = "dictionary";
+		is_submunition = "boolean";
 	};
 	$definitions =
 	{

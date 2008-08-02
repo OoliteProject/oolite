@@ -155,7 +155,8 @@ MA 02110-1301, USA.
 							cloaking_device_active: 1,	// cloaking_device
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
-							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis
+							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
+							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
 	
 	// scripting
 							haveExecutedSpawnAction: 1,

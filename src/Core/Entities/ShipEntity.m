@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
+#import "ShipEntityScriptMethods.h"
 
 #import "OOMaths.h"
 #import "Universe.h"
@@ -68,7 +69,6 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
 
 
-extern NSString * const kOOLogNoteAddShips;
 extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
@@ -6224,9 +6224,11 @@ BOOL class_masslocks(int some_class)
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
-
+	
+	if (!isMissile)  [missile setOwner:self];
+	else  [missile setOwner:[self owner]];
+	
 	[missile addTarget:target];
-	[missile setOwner:self];
 	[missile setGroupID:groupID];
 	[missile setPosition:origin];
 	[missile setOrientation:q1];
@@ -6234,8 +6236,9 @@ BOOL class_masslocks(int some_class)
 	[missile setSpeed:150.0];
 	[missile setDistanceTravelled:0.0];
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
+	missile->isMissile = YES;
 	
-	[UNIVERSE addEntity:	missile];
+	[UNIVERSE addEntity:missile];
 
 	[missile release]; //release
 
@@ -7747,7 +7750,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	NSArray		*tokens = ScanTokensFromString(roles_number);
 	NSString	*roleString = nil;
 	NSString	*numberString = nil;
-	ShipEntity	*spawned = nil;
+	OOUInteger	number;
 	
 	if ([tokens count] != 2)
 	{
@@ -7758,15 +7761,9 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	roleString = [tokens stringAtIndex:0];
 	numberString = [tokens stringAtIndex:1];
 	
-	int number = [numberString intValue];
+	number = [numberString intValue];
 	
-	OOLog(kOOLogNoteAddShips, @"Spawning %d x '%@' near %@ %d", number, roleString, name, universalID);
-	
-	do
-	{
-		spawned = [UNIVERSE spawnShipWithRole:roleString near:self];
-		[spawned setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
-	} while (--number);
+	[self spawnShipsWithRole:roleString count:number];
 }
 
 

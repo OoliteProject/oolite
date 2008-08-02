@@ -25,6 +25,10 @@ MA 02110-1301, USA.
 
 #import "ShipEntityScriptMethods.h"
 #import "Universe.h"
+#import "OOCollectionExtractors.h"
+
+
+extern NSString * const kOOLogNoteAddShips;
 
 
 @implementation ShipEntity (ScriptMethods)
@@ -54,6 +58,37 @@ MA 02110-1301, USA.
 	}
 	
 	return item;
+}
+
+
+- (NSArray *) spawnShipsWithRole:(NSString *)role count:(OOUInteger)count
+{
+	ShipEntity				*spawned = nil;
+	NSMutableArray			*result = nil;
+	
+	if (count == 0)  return [NSArray array];
+	
+	OOLog(kOOLogNoteAddShips, @"Spawning %d x '%@' near %@ %d", count, role, [self shortDescription], [self universalID]);
+	
+	result = [NSMutableArray arrayWithCapacity:count];
+	
+	do
+	{
+		spawned = [UNIVERSE spawnShipWithRole:role near:self];
+		if (spawned != nil)
+		{
+			[spawned setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
+			if (isMissile && [[spawned shipInfoDictionary] boolForKey:@"is_submunition"])
+			{
+				[spawned setOwner:[self owner]];
+				[spawned addTarget:[self primaryTarget]];
+			}
+			[result addObject:spawned];
+		}
+	}
+	while (--count);
+	
+	return result;
 }
 
 @end

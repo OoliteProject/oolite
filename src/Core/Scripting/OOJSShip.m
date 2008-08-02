@@ -877,8 +877,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	NSString				*role = nil;
 	int32					count = 1;
 	BOOL					gotCount = YES;
-	NSMutableArray			*result = nil;
-	ShipEntity				*ship = nil;
+	NSArray					*result = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	role = JSValToNSString(context, argv[0]);
@@ -889,16 +888,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 		return NO;
 	}
 	
-	result = [NSMutableArray arrayWithCapacity:count];
-	
-	do
-	{
-		ship = [UNIVERSE spawnShipWithRole:role near:thisEnt];
-		if (ship != nil)
-		{
-			[result addObject:ship];
-		}
-	} while (--count);
+	result = [thisEnt spawnShipsWithRole:role count:count];
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;
