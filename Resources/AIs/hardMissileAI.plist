@@ -1,34 +1,37 @@
 {
     "ATTACK_SHIP" = {
-        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: DETONATE"); 
-        ENTER = ("setDesiredRangeTo: 25.0", performIntercept); 
-        EXIT = (); 
-        "TARGET_DESTROYED" = ("setStateTo: EXPLODE"); 
-        "TARGET_LOST" = ("setStateTo: EXPLODE"); 
-        "GONE_BEYOND_RANGE" = ("setStateTo: EXPLODE"); 
-        "ECM" = ("setStateTo: CHECK_EXPLOSION"); 
-        UPDATE = ("setDesiredRangeTo: 30000.0", checkDistanceTravelled, "setDesiredRangeTo: 25.0", "pauseAI: 5.0"); 
-    }; 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: DETONATE");
+        ENTER = ("setDesiredRangeTo: 25.0", performIntercept);
+        EXIT = ();
+        "TARGET_DESTROYED" = ("setStateTo: EXPLODE");
+        "TARGET_LOST" = ("setStateTo: EXPLODE");
+        "GONE_BEYOND_RANGE" = ("setStateTo: EXPLODE");
+		ECM = ("setStateTo: CHECK_EXPLOSION");
+        UPDATE = ("setDesiredRangeTo: 30000.0", checkDistanceTravelled, "setDesiredRangeTo: 25.0", "pauseAI: 5.0");
+    };
     DETONATE = {
-        ENTER = ("setDesiredRangeTo: 250.0", dealEnergyDamageWithinDesiredRange, becomeExplosion); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = ("setDesiredRangeTo: 250.0", dealEnergyDamageWithinDesiredRange, becomeExplosion);
+        EXIT = ();
+        UPDATE = ();
+    };
     EXPLODE = {
-        ENTER = (becomeExplosion); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
+        ENTER = (becomeExplosion);
+        EXIT = ();
+        UPDATE = ();
+    };
     "CHECK_EXPLOSION" = {
-        ENTER = ("rollD: 20"); 
-        "ROLL_1" = ("setStateTo: DETONATE"); 
-        "ROLL_2" = ("setStateTo: EXPLODE"); 
-        EXIT = (); 
-        UPDATE = ("setStateTo: ATTACK_SHIP"); 
-    }; 
-    GLOBAL = {
-        ENTER = ("pauseAI: 0.50", "setSpeedFactorTo: 1.0");
+        ENTER = ("rollD: 20");
+        "ROLL_1" = ("setStateTo: DETONATE");
+        "ROLL_2" = ("setStateTo: EXPLODE");
         EXIT = ();
         UPDATE = ("setStateTo: ATTACK_SHIP");
+    };
+    GLOBAL = {
+        ENTER = ("pauseAI: 0.5", "setSpeedFactorTo: 1.0");
+        EXIT = ();
+        UPDATE = ("setStateTo: ATTACK_SHIP");
+        ECM = ("rollD: 20");
+        "ROLL_1" = ("setStateTo: DETONATE");
+        "ROLL_2" = ("setStateTo: EXPLODE");
     };
 }
