@@ -135,7 +135,7 @@ int checkLine(Vector p1, Vector p2, int mask, GLfloat rd)
 	return result;
 }
 
-// line v0 to v1 is compared with a cube centered on the origin (corners at -rd,-rd,-rd to rd,rd,rd).                    
+// line v0 to v1 is compared with a cube centered on the origin (corners at -rd,-rd,-rd to rd,rd,rd).
 // returns -1 if the line intersects the cube. 
 int lineCubeIntersection(Vector v0, Vector v1, GLfloat rd)
 {

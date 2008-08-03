@@ -41,11 +41,11 @@ MA 02110-1301, USA.
 
 - (id) init
 {
-    int vi;
+	int vi;
 	
-    ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
-    
-    self = [super init];
+	ranrot_srand([[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	
+	self = [super init];
 	
 	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 	{
@@ -55,12 +55,12 @@ MA 02110-1301, USA.
 	}
 	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
-    displayListName = 0;
-    status = STATUS_ACTIVE;
+	displayListName = 0;
+	status = STATUS_ACTIVE;
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
-    
-    return self;
+	
+	return self;
 }
 
 
@@ -97,7 +97,7 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if (!player)  return;	//	DON'T UPDATE
+	assert(player != nil);
 	
 	zero_distance = 0.0;
 			
@@ -128,12 +128,12 @@ MA 02110-1301, USA.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if (!player)  return;	//	DON'T DRAW
-	//
-    int ct;
+	assert(player != nil);
+	
+	int ct;
 	int vi;
 
-    GLfloat *fogcolor = [UNIVERSE skyClearColor];
+	GLfloat *fogcolor = [UNIVERSE skyClearColor];
 	int  dust_size = floor([[UNIVERSE gameView] viewSize].width / 480.0);
 	if (dust_size < 1.0)
 		dust_size = 1.0;

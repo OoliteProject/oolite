@@ -1,45 +1,32 @@
 {
-    GLOBAL = {
-        ENTER = (
-			"setSpeedFactorTo: 0.5",
-			"targetFirstBeaconWithCode: tr"
-		);
-		"TARGET_FOUND" = (
+	GLOBAL =
+	{
+		ENTER = ("setSpeedFactorTo: 0.5", "targetFirstBeaconWithCode: tr");
+		"TARGET_FOUND" =
+		(
 			setDestinationToTarget,
 			"setSpeedFactorTo: 1.0",
 			"setDesiredRangeTo: 5000",
 			performFlyToRangeFromDestination
 		);
-		"DESIRED_RANGE_ACHIEVED" = (
-			"setStateTo: PASS_THRU_RING"
-		);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: PASS_THRU_RING");
 		"NOTHING_FOUND" = (exitAI);
-        UPDATE = (); 
-        EXIT = (); 
-    }; 
-    "PASS_THRU_RING" = {
-        ENTER = (
-//			"setSpeedFactorTo: 0.60",
+	};
+	"PASS_THRU_RING" =
+	{
+		ENTER =
+		(
+		//	"setSpeedFactorTo: 0.60",
 			"setSpeedTo: 225",
 			setRacepointsFromTarget,
 			performFlyRacepoints
 		);
-        "ENDPOINT_REACHED" = (
-			"setStateTo: NEXT_RING"
-		);
-		UPDATE = (); 
-        EXIT = (); 
-    }; 
-    "NEXT_RING" = {
-        ENTER = (
-			"setSpeedFactorTo: 0.0",
-			"targetNextBeaconWithCode: tr"
-		);
-		"TARGET_FOUND" = (
-			"setStateTo: PASS_THRU_RING"
-		);
+		"ENDPOINT_REACHED" = ("setStateTo: NEXT_RING");
+	};
+	"NEXT_RING" =
+	{
+		ENTER = ("setSpeedFactorTo: 0.0", "targetNextBeaconWithCode: tr");
+		"TARGET_FOUND" = ("setStateTo: PASS_THRU_RING");
 		"LAST_BEACON" = (exitAI);
-		UPDATE = (); 
-        EXIT = (); 
-    }; 
+	};
 }

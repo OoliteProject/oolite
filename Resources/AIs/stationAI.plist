@@ -1,38 +1,38 @@
 {
-    "DEFENSE_MODE" = {
-        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel); 
-        ENTER = (checkTargetLegalStatus); 
-        EXIT = (); 
-        "RED_ALERT" = (launchDefenseShip); 
-        "YELLOW_ALERT" = ("setStateTo: IDLE"); 
-        "CONDITION_YELLOW" = ("setStateTo: IDLE"); 
-        "CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS"); 
-        "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 
-        "TARGET_OFFENDER" = (increaseAlertLevel); 
-        "TARGET_FUGITIVE" = (increaseAlertLevel); 
-        "ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
-        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel); 
-        "TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
-        "TARGET_LOST" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
-        "NO_TARGET" = ("pauseAI: 20.0", "setStateTo: IDLE"); 
-        UPDATE = (); 
-    }; 
-    "CHECK_FOR_DEBRIS" = {
-        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
-        ENTER = (); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 
-        "TARGET_FOUND" = (launchScavenger, "setStateTo: IDLE"); 
-        "NOTHING_FOUND" = ("setStateTo: IDLE", "pauseAI: 20.0"); 
-        UPDATE = (scanForLoot, "pauseAI: 10.0"); 
-    }; 
-    GLOBAL = {ENTER = ("setStateTo: IDLE"); EXIT = (); UPDATE = (); }; 
-    IDLE = {
-        ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE"); 
-        "OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel); 
-        ENTER = (); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (fireECM, increaseAlertLevel); 
-        UPDATE = (decreaseAlertLevel, "setStateTo: CHECK_FOR_DEBRIS"); 
-    }; 
+	"DEFENSE_MODE" =
+	{
+		ENTER = (checkTargetLegalStatus);
+		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
+		"RED_ALERT" = (launchDefenseShip);
+		"YELLOW_ALERT" = ("setStateTo: IDLE");
+		"CONDITION_YELLOW" = ("setStateTo: IDLE");
+		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS");
+		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
+		"TARGET_OFFENDER" = (increaseAlertLevel);
+		"TARGET_FUGITIVE" = (increaseAlertLevel);
+		"ENERGY_FULL" = ("pauseAI: 20.0", "setStateTo: IDLE");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
+		"TARGET_DESTROYED" = ("pauseAI: 20.0", "setStateTo: IDLE");
+		"TARGET_LOST" = ("pauseAI: 20.0", "setStateTo: IDLE");
+		"NO_TARGET" = ("pauseAI: 20.0", "setStateTo: IDLE");
+	};
+	"CHECK_FOR_DEBRIS" =
+	{
+		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE");
+		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
+		"TARGET_FOUND" = (launchScavenger, "setStateTo: IDLE");
+		"NOTHING_FOUND" = ("setStateTo: IDLE", "pauseAI: 20.0");
+		UPDATE = (scanForLoot, "pauseAI: 10.0");
+	};
+	GLOBAL =
+	{
+		ENTER = ("setStateTo: IDLE");
+	};
+	IDLE =
+	{
+		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
+		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
+		UPDATE = (decreaseAlertLevel, "setStateTo: CHECK_FOR_DEBRIS");
+	};
 }

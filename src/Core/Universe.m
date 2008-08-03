@@ -109,7 +109,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
-    PlayerEntity	*player;
+	PlayerEntity	*player;
 	int				i;
 	
 	if (gSharedUniverse != nil)
@@ -171,15 +171,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	
-    entities =				[[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
+	entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
 	sun_center_position[0] = 4000000.0;
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
-    //
-    gui = [[GuiDisplayGen alloc] init]; // alloc retains
-    displayGUI = NO;
+	
+	gui = [[GuiDisplayGen alloc] init]; // alloc retains
+	displayGUI = NO;
 	
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
@@ -292,7 +292,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[self dumpDebugGraphViz];
 #endif
 	
-    return self;
+	return self;
 }
 
 
@@ -300,10 +300,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	gSharedUniverse = nil;
 	
-    [currentMessage release];
-    
+	[currentMessage release];
+	
 	[gui release];
-    [message_gui release];
+	[message_gui release];
 	[comm_log_gui release];
 	
 	[entities release];
@@ -338,7 +338,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[speechSynthesizer release];
 #endif
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -381,7 +381,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) reinitAndShowDemo:(BOOL)showDemo
 {
-    PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
+	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	Quaternion q0 = kIdentityQuaternion;
 	int i;
 	BOOL delayedReset=NO;
@@ -642,11 +642,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) set_up_universe_from_witchspace
 {
-    PlayerEntity		*player;
+	PlayerEntity		*player;
 
-    //
+	//
 	// check the player is still around!
-    //
+	//
 	if ([entities count] == 0)
 	{
 		/*- the player ship -*/
@@ -672,20 +672,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self generateSystemName:system_seed], [player dial_clock_adjusted]]
 		align:GUI_ALIGN_CENTER color:[OOColor whiteColor] fadeTime:0 key:nil addToArray:[player commLog]];
 	
-    //
-	/* test stuff */
 	displayGUI = NO;
-	/* ends */
 }
 
 
 - (void) set_up_universe_from_misjump
 {
-    PlayerEntity		*player;
-
-    //
+	PlayerEntity		*player;
+	
+	//
 	// check the player is still around!
-    //
+	//
 	if ([entities count] == 0)
 	{
 		/*- the player ship -*/
@@ -708,10 +705,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
-    //
-	/* test stuff */
 	displayGUI = NO;
-	/* ends */
 }
 
 
@@ -719,7 +713,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	// new system is hyper-centric : witchspace exit point is origin
 
-    Entity				*thing;
+	Entity				*thing;
 	PlayerEntity*		player = [PlayerEntity sharedPlayer];
 	Quaternion			randomQ;
 	
@@ -820,11 +814,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) setUpSpace
 {
-    Entity				*thing;
-    ShipEntity			*nav_buoy;
-    StationEntity		*a_station;
-    PlanetEntity		*a_sun;
-    PlanetEntity		*a_planet;
+	Entity				*thing;
+	ShipEntity			*nav_buoy;
+	StationEntity		*a_station;
+	PlanetEntity		*a_sun;
+	PlanetEntity		*a_planet;
 	
 	Vector				stationPos;
 	
@@ -2574,7 +2568,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		[self addEntity:ring];
 		breakPatternCounter++;
 		[ring release];
-    }
+	}
 }
 
 
@@ -3279,15 +3273,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (void) setGameView:(MyOpenGLView *)view
 {
-    [gameView release];
-    gameView = view;
-    [gameView retain];
+	[gameView release];
+	gameView = view;
+	[gameView retain];
 }
 
 
 - (MyOpenGLView *) gameView
 {
-    return gameView;
+	return gameView;
 }
 
 
@@ -3474,7 +3468,7 @@ static const OOMatrix	starboard_matrix =
 				glClearColor(0.0, 0.0, 0.0, 0.0);
 			
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glLoadIdentity();	// reset matrix                         
+			glLoadIdentity();	// reset matrix
 			
 			gluLookAt(0.0, 0.0, 0.0,	0.0, 0.0, 1.0,	0.0, 1.0, 0.0);
 			
@@ -3753,7 +3747,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawCrosshairs
 {
-    PlayerEntity*   playerShip = [PlayerEntity sharedPlayer];
+	PlayerEntity*   playerShip = [PlayerEntity sharedPlayer];
 
 	if (viewDirection == VIEW_CUSTOM)	return;	// don't try to draw cross hairs in a custom view
 
@@ -5101,24 +5095,24 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) displayMessage:(NSString *) text forCount:(OOTimeDelta)count
 {
 	if (![currentMessage isEqual:text])
-    {
+	{
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
-    }
+	}
 }
 
 
 - (void) displayCountdownMessage:(NSString *) text forCount:(OOTimeDelta)count
 {
 	if (![currentMessage isEqual:text])
-    {
+	{
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
 		
 		[message_gui printLineNoScroll:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
-    }
+	}
 }
 
 
@@ -5184,7 +5178,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		[currentMessage release];
 		currentMessage = [text retain];
-    }
+	}
 }
 
 
@@ -5193,7 +5187,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
 	
 	if (![currentMessage isEqualToString:text])
-    {
+	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
 		if ([player isSpeechOn])
@@ -5211,7 +5205,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		[currentMessage release];
 		currentMessage = [text retain];
-    }
+	}
 }
 
 
@@ -5224,7 +5218,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) update:(OOTimeDelta)delta_t
 {
-    if (!no_update)
+	if (!no_update)
 	{
 		NSString * volatile update_stage = @"initialisation";
 		NS_DURING
@@ -6144,7 +6138,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	Random_Seed here = [self systemSeed];
 	int i;
-    NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
+	NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
 
 	// make list of connected systems
 	for (i = 0; i < 256; i++)
@@ -6172,7 +6166,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	Random_Seed system = gal_seed;
 	double distance;
 	int n,i,j;
-    double min_dist = 10000.0;
+	double min_dist = 10000.0;
 
 	// make list of connected systems
 	BOOL connected[256];
@@ -6217,7 +6211,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	Random_Seed system = gal_seed;
 	double distance;
 	int n,i,j;
-    double min_dist = 10000.0;
+	double min_dist = 10000.0;
 
 	// make list of connected systems
 	BOOL connected[256];
@@ -6262,7 +6256,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	OOUInteger	system = NSNotFound;
 	unsigned	distance, dx, dy;
 	unsigned	i;
-    unsigned	min_dist = 10000;
+	unsigned	min_dist = 10000;
 	
 	for (i = 0; i < 256; i++)
 	{

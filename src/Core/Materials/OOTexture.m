@@ -251,8 +251,6 @@ static BOOL		sRectangleTextureAvailable;
 			[sInUseTextures setObject:[NSValue valueWithPointer:result] forKey:key];
 		}
 	}
-	//	else
-	//			OOLog(@"texture.caching", @":::      ::: key found in cache : '%@'.", key);
 
 	
 	return result;

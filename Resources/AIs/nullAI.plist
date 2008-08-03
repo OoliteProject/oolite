@@ -1,6 +1,6 @@
 {
-    GLOBAL =
+	GLOBAL =
 	{
-        UPDATE = ("pauseAI: 3600");
+		UPDATE = ("pauseAI: 3600");
 	};
 }

@@ -1,51 +1,66 @@
 {
-    "FLYING_ESCORT" = {
-        ENTER = (performEscort); 
-        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
-        RESTARTED = ("setStateTo: BEGIN_BUSINESS");
+	GLOBAL =
+	{
+		ENTER = ("setStateTo: BEGIN_BUSINESS");
+	};
+	"FLYING_ESCORT" =
+	{
+		ENTER = (performEscort);
+		RESTARTED = ("setStateTo: BEGIN_BUSINESS");
+		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
-        "INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE"); 
-        "ATTACKED" = ("messageMother: ATTACKED"); 
-        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-        "TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS"); 
-        "TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS"); 
+		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
+		"ATTACKED" = ("messageMother: ATTACKED");
+		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
+		"TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS");
+		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
-		EXIT = ();
-        UPDATE = (escortCheckMother, "pauseAI: 15"); 
-    }; 
-    "BEGIN_BUSINESS" = {
+		UPDATE = (escortCheckMother, "pauseAI: 15");
+	};
+	"BEGIN_BUSINESS" =
+	{
+		ENTER = (escortCheckMother);
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
-        ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
-        ENTER = (escortCheckMother); 
-        EXIT = ();
+		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
-        "NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
-        UPDATE = (escortCheckMother, "pauseAI: 7.5"); 
-    }; 
-    "ENTER_WORMHOLE" = {
-		ENTER = (setDestinationToTarget, "setDesiredRangeTo: 1.0", "setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
+		UPDATE = (escortCheckMother, "pauseAI: 7.5");
+	};
+	"ENTER_WORMHOLE" =
+	 {
+		ENTER =
+		(
+			setDestinationToTarget,
+			"setDesiredRangeTo: 1.0",
+			"setSpeedFactorTo: 1.0",
+			performFlyToRangeFromDestination
+		);
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
-        UPDATE = (); 
-		EXIT = ();
-    }; 
-    "CLEAR_STATION" = {
-		ENTER = (setTargetToStation, setDestinationWithinTarget, "setDesiredRangeTo: 8000.0", "setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+	};
+	"CLEAR_STATION" =
+	{
+		ENTER =
+		(
+			setTargetToStation,
+			setDestinationWithinTarget,
+			"setDesiredRangeTo: 8000.0",
+			"setSpeedFactorTo: 0.5",
+			performFlyToRangeFromDestination
+		);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
-        UPDATE = (scanForFormationLeader, "pauseAI: 15.0"); 
-        "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
+		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
   		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
-		EXIT = ();
-    }; 
-    "LOOK_FOR_BUSINESS" = {
+		UPDATE = (scanForFormationLeader, "pauseAI: 15.0");
+	};
+	"LOOK_FOR_BUSINESS" =
+	{
+		ENTER = (scanForFormationLeader);
+		RESTARTED = ("setStateTo: BEGIN_BUSINESS");
 		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
-        ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
-        RESTARTED = ("setStateTo: BEGIN_BUSINESS");
-        ENTER = (scanForFormationLeader); 
-        EXIT = ();
+		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
-        "TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort); 
-        "NOTHING_FOUND" = ("switchAITo: route1patrolAI.plist"); 
-        UPDATE = ("pauseAI: 7.5", scanForFormationLeader); 
-    }; 
-    GLOBAL = {ENTER = ("setStateTo: BEGIN_BUSINESS"); EXIT = (); UPDATE = (); }; 
+		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
+		"NOTHING_FOUND" = ("switchAITo: route1patrolAI.plist");
+		UPDATE = ("pauseAI: 7.5", scanForFormationLeader);
+	};
 }

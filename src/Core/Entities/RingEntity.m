@@ -45,7 +45,7 @@ Ringdata	ringentity;
 }
 
 - (id) init
-{    
+{
 	self = [super init];
 
 	[self setModelName:@"ring.dat"];
@@ -84,37 +84,32 @@ Ringdata	ringentity;
 	velocity.x = 0.0;
 	velocity.y = 0.0;
 	velocity.z = 1.0;
-	//
+	
 	isRing = YES;
 	isImmuneToBreakPatternHide = YES;
-	//
-    return self;
+	
+	return self;
 }
 
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
-			
-    {
-		double movement = RING_SPEED * delta_t;
-		position.x -= movement * velocity.x; // swap out for setting a velocity vector
-		position.y -= movement * velocity.y; // swap out for setting a velocity vector
-		position.z -= movement * velocity.z; // swap out for setting a velocity vector
-		lifetime -= movement;
-		if (lifetime < 0.0)
-		{
-			[UNIVERSE removeEntity:self];
-		}
-    }
+	
+	double movement = RING_SPEED * delta_t;
+	position = vector_subtract(position, vector_multiply_scalar(velocity, movement)); // swap out for setting a velocity vector
+	lifetime -= movement;
+	if (lifetime < 0.0)
+	{
+		[UNIVERSE removeEntity:self];
+	}
 }
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
+- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	glShadeModel(GL_SMOOTH);
 	glDisable(GL_LIGHTING);	
-					
-    //
-	if ((translucent)||(immediate))
+	
+	if (translucent || immediate)
 	{
 		if (basefile)
 		{
@@ -153,6 +148,7 @@ Ringdata	ringentity;
 	glEnable(GL_LIGHTING);
 	CheckOpenGLErrors(@"RingEntity after drawing %@", self);
 }
+
 
 - (BOOL) canCollide
 {

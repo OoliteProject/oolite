@@ -162,7 +162,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		}
 	}
 	
-    self = [super init];
+	self = [super init];
 	if (self == nil)  return nil;
 	
 	_starCount = starCount;

@@ -90,20 +90,20 @@ typedef struct
 							listsReady: 1;
 	
 	OOMeshMaterialCount		materialCount;
-    OOMeshVertexCount		vertexCount;
+	OOMeshVertexCount		vertexCount;
 	OOMeshFaceCount			faceCount;
-    
-    NSString				*baseFile;
 	
-    Vector					vertices[kOOMeshMaxVertices];
-    Vector					normals[kOOMeshMaxVertices];
-    OOMeshFace				faces[kOOMeshMaxFaces];
+	NSString				*baseFile;
+	
+	Vector					vertices[kOOMeshMaxVertices];
+	Vector					normals[kOOMeshMaxVertices];
+	OOMeshFace				faces[kOOMeshMaxFaces];
 	
 	EntityData				entityData;
 	NSRange					triangle_range[kOOMeshMaxMaterials];
 	NSString				*materialKeys[kOOMeshMaxMaterials];
 	OOMaterial				*materials[kOOMeshMaxMaterials];
-    GLuint					displayList0;
+	GLuint					displayList0;
 	
 	GLfloat					collisionRadius;
 	GLfloat					maxDrawDistance;

@@ -1,10 +1,10 @@
 {
-    "GLOBAL" = {
+	GLOBAL =
+	{
 		ENTER = (performStop);
 		"DOCKING_COMPLETE" = (exitAI);
-        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, exitAI); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, groupAttackTarget, exitAI); 
-		EXIT = ();
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, exitAI);
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, groupAttackTarget, exitAI);
 		UPDATE = ("pauseAI: 10.0");
-	}; 
- }
+	};
+}

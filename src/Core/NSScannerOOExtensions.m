@@ -30,48 +30,54 @@ MA 02110-1301, USA.
 
 - (BOOL) ooliteScanCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
 {
-    unsigned int	currentLocation = [self scanLocation];
-    NSRange			matchedRange = NSMakeRange( currentLocation, 0);
+	unsigned int	currentLocation = [self scanLocation];
+	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
 	NSString*		scanString = [self string];
 	unsigned int	scanLength = [scanString length];
 	
-    while ((currentLocation < scanLength)&&([set characterIsMember:[scanString characterAtIndex:currentLocation]]))
-        currentLocation++;
-
+	while ((currentLocation < scanLength)&&([set characterIsMember:[scanString characterAtIndex:currentLocation]]))
+	{
+		currentLocation++;
+	}
+	
 	[self setScanLocation:currentLocation];
-
-    matchedRange.length = currentLocation - matchedRange.location;
-
-    if (!matchedRange.length)
-        return NO;
-
-    if (value != NULL)
-        *value = [scanString substringWithRange:matchedRange];
-
-    return YES;
+	
+	matchedRange.length = currentLocation - matchedRange.location;
+	
+	if (!matchedRange.length)  return NO;
+	
+	if (value != NULL)
+	{
+		*value = [scanString substringWithRange:matchedRange];
+	}
+	
+	return YES;
 }
 
 - (BOOL) ooliteScanUpToCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
 {
-    unsigned int	currentLocation = [self scanLocation];
-    NSRange			matchedRange = NSMakeRange( currentLocation, 0);
+	unsigned int	currentLocation = [self scanLocation];
+	NSRange			matchedRange = NSMakeRange( currentLocation, 0);
 	NSString*		scanString = [self string];
 	unsigned int	scanLength = [scanString length];
-
-    while ((currentLocation < scanLength)&&(![set characterIsMember:[scanString characterAtIndex:currentLocation]]))
-        currentLocation++;
-
+	
+	while ((currentLocation < scanLength)&&(![set characterIsMember:[scanString characterAtIndex:currentLocation]]))
+	{
+		currentLocation++;
+	}
+	
 	[self setScanLocation:currentLocation];
-
-    matchedRange.length = currentLocation - matchedRange.location;
-
-    if (!matchedRange.length)
-        return NO;
-
-    if (value != NULL)
-        *value = [scanString substringWithRange:matchedRange];
-
-    return YES;
+	
+	matchedRange.length = currentLocation - matchedRange.location;
+	
+	if (!matchedRange.length)  return NO;
+	
+	if (value != NULL)
+	{
+		*value = [scanString substringWithRange:matchedRange];
+	}
+	
+	return YES;
 }
 
 @end

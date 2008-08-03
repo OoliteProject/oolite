@@ -74,7 +74,7 @@ typedef struct
 
 @interface Entity: OOWeakRefObject
 {
-    // the base object for ships/stations/anything actually
+	// the base object for ships/stations/anything actually
 	//////////////////////////////////////////////////////
 	//
 	// @public variables:
@@ -136,7 +136,7 @@ typedef struct
 	GLfloat					distanceTravelled;		// set to zero initially
 	
 	OOMatrix				rotMatrix;
-    
+	
 	Vector					velocity;
 	
 	// positions+rotations for trails and trackbacks

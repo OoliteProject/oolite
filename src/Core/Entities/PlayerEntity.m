@@ -122,7 +122,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 @implementation PlayerEntity
 
-+ (id)sharedPlayer
++ (PlayerEntity *)sharedPlayer
 {
 	return sSharedPlayer;
 }
@@ -703,7 +703,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one PlayerEntity to exist at a time.", __FUNCTION__];
 	}
 	
-    self = [super init];
+	self = [super init];
 	sSharedPlayer = self;
 	
 	compassMode = COMPASS_MODE_BASIC;
@@ -731,7 +731,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[self initControls];
 	
-    return self;
+	return self;
 }
 
 
@@ -1090,12 +1090,12 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) dealloc
 {
-    [ship_desc release];
+	[ship_desc release];
 	[hud release];
 	[commLog release];
 
-    [worldScripts release];
-    [mission_variables release];
+	[worldScripts release];
+	[mission_variables release];
 
 	[localVariables release];
 
@@ -1111,8 +1111,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[missionBackgroundTexture release];
 
-    [player_name release];
-    [shipCommodityData release];
+	[player_name release];
+	[shipCommodityData release];
 
 	[specialCargo release];
 
@@ -1129,7 +1129,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  [trumble[i] release];
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -1893,7 +1893,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (void) orientationChanged
 {
-    quaternion_normalize(&orientation);
+	quaternion_normalize(&orientation);
 	rotMatrix = OOMatrixForQuaternionRotation(orientation);
 	OOMatrixGetBasisVectors(rotMatrix, &v_right, &v_up, &v_forward);
 	
@@ -1946,7 +1946,7 @@ double scoopSoundPlayTime = 0.0;
 
 - (OOMatrix) drawRotationMatrix	// override to provide the 'correct' drawing matrix
 {
-    return playerRotMatrix;
+	return playerRotMatrix;
 }
 
 
@@ -3748,7 +3748,7 @@ double scoopSoundPlayTime = 0.0;
 	[UNIVERSE setSystemTo:system_seed];
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
-    ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	legalStatus = 0;
 	[UNIVERSE set_up_universe_from_witchspace];
@@ -3836,7 +3836,7 @@ double scoopSoundPlayTime = 0.0;
 	//  perform any check here for forced witchspace encounters
 	
 	unsigned malfunc_chance = 253;
-    if (ship_trade_in_factor < 80)
+	if (ship_trade_in_factor < 80)
 		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
 	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
@@ -3946,9 +3946,9 @@ double scoopSoundPlayTime = 0.0;
 		return;
 	}
 
-	NSString*		systemName = nil;
-	NSString*		targetSystemName = nil;
-	NSString*       text = nil;
+	NSString		*systemName = nil;
+	NSString		*targetSystemName = nil;
+	NSString		*text = nil;
 
 	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];

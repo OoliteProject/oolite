@@ -1,43 +1,49 @@
 {
-    "ATTACK_SHIP" = {
-        "ENERGY_LOW" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM"); 
-        ENTER = (performAttack); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (fightOrFleeMissile, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM"); 
-        "TARGET_DESTROYED" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
-        "TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET"); 
-        UPDATE = (); 
-    }; 
-    "EXIT_SYSTEM" = {
-		ENTER = ();
-		EXIT = ();
-		UPDATE = (performHyperSpaceExit);
+	GLOBAL =
+	{
+		ENTER = ("setStateTo: HEAD_AWAY_FROM_PLANET");
+	};
+	"ATTACK_SHIP" =
+	{
+		ENTER = (performAttack);
+		"ENERGY_LOW" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, "setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
+		"TARGET_DESTROYED" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
+		"TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
+	};
+	"EXIT_SYSTEM" =
+	{
 		"WITCHSPACE OKAY" = (wormholeEscorts);
 		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 10000.0", performFlyToRangeFromDestination);
 		"WITCHSPACE UNAVAILABLE" = ("setAITo: route1traderAI.plist");
-	}; 
-    FLEE = {
-        ATTACKED = (fightOrFleeHostiles); 
+		UPDATE = (performHyperSpaceExit);
+	};
+	FLEE =
+	{
+		ENTER = ("setDesiredRangeTo: 25600", performFlee);
+		ATTACKED = (fightOrFleeHostiles);
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-        "TARGET_LOST" = (performIdle, "setStateTo: GLOBAL"); 
-        "TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL"); 
-        ENTER = ("setDesiredRangeTo: 25600", performFlee); 
-        EXIT = (); 
-        "INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile); 
-        "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
-        UPDATE = (); 
-    }; 
-    "HEAD_AWAY_FROM_PLANET" = {
-		ENTER = (getWitchspaceEntryCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100.0", "setSpeedFactorTo: 0.75", performFlyToRangeFromDestination);
+		"TARGET_LOST" = (performIdle, "setStateTo: GLOBAL");
+		"TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL");
+		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile);
+		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
+	};
+	"HEAD_AWAY_FROM_PLANET" =
+	{
+		ENTER =
+		(
+			getWitchspaceEntryCoordinates,
+			setDestinationFromCoordinates,
+			"setDesiredRangeTo: 100.0",
+			"setSpeedFactorTo: 0.75",
+			performFlyToRangeFromDestination
+		);
 		"DESIRED_RANGE_ACHIEVED" = ("setSpeedFactorTo: 1.0", "pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
-        ATTACKED = (fightOrFleeHostiles); 
+		ATTACKED = (fightOrFleeHostiles);
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringTraderAI.plist");
-		EXIT = ();
-		UPDATE = ();
-	}; 
-    GLOBAL = {ENTER = ("setStateTo: HEAD_AWAY_FROM_PLANET"); EXIT = (); UPDATE = (); }; 
+	};
 }

@@ -133,51 +133,51 @@ OOINLINE Quaternion quaternion_conjugate(Quaternion q)
 
 OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 {
-    GLfloat a = angle * 0.5f;
-    GLfloat scale = sinf(a);
-    
-    quat->w = cosf(a);
-    quat->x = axis.x * scale;
-    quat->y = axis.y * scale;
-    quat->z = axis.z * scale;
+	GLfloat a = angle * 0.5f;
+	GLfloat scale = sinf(a);
+	
+	quat->w = cosf(a);
+	quat->x = axis.x * scale;
+	quat->y = axis.y * scale;
+	quat->z = axis.z * scale;
 }
 
 
 OOINLINE GLfloat quaternion_dot_product(Quaternion q1, Quaternion q2)
 {
-    return q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;
+	return q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;
 }
 
 
 OOINLINE void quaternion_normalize(Quaternion *quat)
 {
-    GLfloat	w = quat->w;
-    GLfloat	x = quat->x;
-    GLfloat	y = quat->y;
-    GLfloat	z = quat->z;
+	GLfloat	w = quat->w;
+	GLfloat	x = quat->x;
+	GLfloat	y = quat->y;
+	GLfloat	z = quat->z;
 	
-    GLfloat	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
+	GLfloat	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
 	
-    quat->w = lv * w;
-    quat->x = lv * x;
-    quat->y = lv * y;
-    quat->z = lv * z;
+	quat->w = lv * w;
+	quat->x = lv * x;
+	quat->y = lv * y;
+	quat->z = lv * z;
 }
 
 
 OOINLINE void fast_quaternion_normalize(Quaternion *quat)
 {
-    GLfloat	w = quat->w;
-    GLfloat	x = quat->x;
-    GLfloat	y = quat->y;
-    GLfloat	z = quat->z;
+	GLfloat	w = quat->w;
+	GLfloat	x = quat->x;
+	GLfloat	y = quat->y;
+	GLfloat	z = quat->z;
 	
-    GLfloat	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
+	GLfloat	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
 	
-    quat->w = lv * w;
-    quat->x = lv * x;
-    quat->y = lv * y;
-    quat->z = lv * z;
+	quat->w = lv * w;
+	quat->x = lv * x;
+	quat->y = lv * y;
+	quat->z = lv * z;
 }
 
 

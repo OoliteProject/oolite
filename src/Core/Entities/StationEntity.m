@@ -688,7 +688,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[localContracts release];
 	[localShipyard release];
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 
@@ -1162,7 +1162,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
 	launchPos.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
-    [ship setPosition:launchPos];
+	[ship setPosition:launchPos];
 	// launch speed
 	launchVel.x += launchSpeed * launchVector.x;	launchVel.y += launchSpeed * launchVector.y;	launchVel.z += launchSpeed * launchVector.z;
 	[ship setSpeed:sqrt(magnitude2(launchVel))];

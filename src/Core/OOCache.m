@@ -48,13 +48,13 @@ MA 02110-1301, USA.
 	A SPLAY TREE is a type of semi-balanced binary search tree with certain
 	useful properties:
 	  * Simplicity. All look-up and restructuring operations are based on a
-	    single operation, splaying, which brings the node with the desired key
+		single operation, splaying, which brings the node with the desired key
 		(or the node whose key is "left" of the desired key, if there is no
 		exact match) to the root, while maintaining the binary search tree
 		invariant. Splaying itself is sufficient for look-up; insertion and
 		deletion work by splaying and then manipulating at the root.
 	  * Self-optimization. Because each look-up brings the sought element to
-	    the root, often-used elements tend to stay near the top. (Oolite often
+		the root, often-used elements tend to stay near the top. (Oolite often
 		performs sequences of identical look-ups, for instance when creating
 		an asteroid field, or the racing ring set-up which uses lots of
 		identical ring segments; during combat, missiles, canisters and hull
@@ -71,7 +71,7 @@ MA 02110-1301, USA.
 		operation.
 	References for splay trees:
 	  * http://www.cs.cmu.edu/~sleator/papers/self-adjusting.pdf
-	    Original research paper.
+		Original research paper.
 	  *	http://www.ibr.cs.tu-bs.de/courses/ss98/audii/applets/BST/SplayTree-Example.html
 		Java applet demonstrating splaying.
 	  * http://www.link.cs.cmu.edu/link/ftp-site/splaying/top-down-splay.c

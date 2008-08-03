@@ -92,7 +92,7 @@ extern int debug;
 	GameController		*gameController;
 
 	BOOL				keys[NUM_KEYS];
-	BOOL				supressKeys;    // DJS
+	BOOL				supressKeys;	// DJS
 
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
@@ -101,7 +101,7 @@ extern int debug;
 	int					keycodetrans[255];
 	
 	BOOL				m_glContextInitialized;
-    NSPoint				mouseDragStartPoint;
+	NSPoint				mouseDragStartPoint;
 	
 	NSTimeInterval		timeIntervalAtLastClick;
 	BOOL				doubleClick;
@@ -114,7 +114,7 @@ extern int debug;
 	GLfloat				display_z;
 	
 #ifdef GNUSTEP
-    double				squareX,squareY;
+	double				squareX,squareY;
 	NSRect				bounds;
 	
    // Full screen sizes
@@ -175,9 +175,9 @@ extern int debug;
 - (NSSize) currentScreenSize;
 
 - (void) pollControls: (id)sender;
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS                
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
 #endif
-- (JoystickHandler *)getStickHandler; // DJS       
+- (JoystickHandler *)getStickHandler; // DJS
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;

@@ -110,7 +110,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 				 columns:(int)gui_cols 
 					rows:(int)gui_rows 
 			   rowHeight:(int)gui_row_height
-			    rowStart:(int)gui_row_start
+				rowStart:(int)gui_row_start
 				   title:(NSString*)gui_title;
 
 - (void) resizeWithPixelSize:(NSSize)gui_size

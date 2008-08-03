@@ -131,10 +131,10 @@ static JSClass sConsoleSettingsClass =
 
 static void InitOOJSConsole(JSContext *context, JSObject *global)
 {
-    sConsolePrototype = JS_InitClass(context, global, NULL, &sConsoleClass, NULL, 0, sConsoleProperties, sConsoleMethods, NULL, NULL);
+	sConsolePrototype = JS_InitClass(context, global, NULL, &sConsoleClass, NULL, 0, sConsoleProperties, sConsoleMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sConsoleClass, JSBasicPrivateObjectConverter);
 	
-    sConsoleSettingsPrototype = JS_InitClass(context, global, NULL, &sConsoleSettingsClass, NULL, 0, NULL, NULL, NULL, NULL);
+	sConsoleSettingsPrototype = JS_InitClass(context, global, NULL, &sConsoleSettingsClass, NULL, 0, NULL, NULL, NULL, NULL);
 	JSRegisterObjectConverter(&sConsoleSettingsClass, JSBasicPrivateObjectConverter);
 }
 

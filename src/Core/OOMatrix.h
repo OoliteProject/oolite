@@ -191,7 +191,7 @@ OOMatrix OOMatrixForRotationZ(GLfloat angle)
 	    c,  s,  0,  0,
 	   -s,  c,  0,  0,
 	    0,  0,  1,  0,
-		0,  0,  0,  1
+	    0,  0,  0,  1
 	);
 }
 OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLfloat dz)

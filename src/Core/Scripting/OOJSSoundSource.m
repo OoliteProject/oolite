@@ -102,7 +102,7 @@ static JSFunctionSpec sSoundSourceMethods[] =
 
 void InitOOJSSoundSource(JSContext *context, JSObject *global)
 {
-    sSoundSourcePrototype = JS_InitClass(context, global, NULL, &sSoundSourceClass.base, SoundSourceConstruct, 0, sSoundSourceProperties, sSoundSourceMethods, NULL, NULL);
+	sSoundSourcePrototype = JS_InitClass(context, global, NULL, &sSoundSourceClass.base, SoundSourceConstruct, 0, sSoundSourceProperties, sSoundSourceMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sSoundSourceClass.base, JSBasicPrivateObjectConverter);
 }
 

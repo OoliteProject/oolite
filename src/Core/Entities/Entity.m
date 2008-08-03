@@ -60,8 +60,8 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (id) init
 {
-    self = [super init];
-    
+	self = [super init];
+	
 	orientation = kIdentityQuaternion;
 	rotMatrix = kIdentityMatrix;
 	position = kZeroVector;
@@ -71,13 +71,13 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	collidingEntities = [[NSMutableArray alloc] init];
 	
 	scanClass = CLASS_NOT_SET;
-    status = STATUS_COCKPIT_DISPLAY;
+	status = STATUS_COCKPIT_DISPLAY;
 	
 	spawnTime = [UNIVERSE getTime];
 	
 	isSunlit = YES;
 	
-    return self;
+	return self;
 }
 
 
@@ -732,7 +732,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) moveForward:(double) amount
 {
-    Vector		forward = vector_forward_from_quaternion(orientation);
+	Vector		forward = vector_forward_from_quaternion(orientation);
 	distanceTravelled += amount;
 	position.x += amount * forward.x;
 	position.y += amount * forward.y;
@@ -742,19 +742,19 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (OOMatrix) rotationMatrix
 {
-    return rotMatrix;
+	return rotMatrix;
 }
 
 
 - (OOMatrix) drawRotationMatrix
 {
-    return rotMatrix;
+	return rotMatrix;
 }
 
 
 - (Vector) position
 {
-    return position;
+	return position;
 }
 
 

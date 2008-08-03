@@ -381,25 +381,25 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 	// Get the list of all available modes
 	modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
 	
-    // Filter out modes that we don't want
-    displayModes = [[NSMutableArray alloc] init];
-    modeCount = [modes count];
-    for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
+	// Filter out modes that we don't want
+	displayModes = [[NSMutableArray alloc] init];
+	modeCount = [modes count];
+	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
 	{
-        mode = [modes objectAtIndex: modeIndex];
-        modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
-        modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
-        color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
-        modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
-        
-        if (color < DISPLAY_MIN_COLOURS ||
+		mode = [modes objectAtIndex: modeIndex];
+		modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
+		modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
+		color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+		modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
+		
+		if (color < DISPLAY_MIN_COLOURS ||
 			modeWidth < DISPLAY_MIN_WIDTH ||
 			modeWidth > DISPLAY_MAX_WIDTH ||
 			modeHeight < DISPLAY_MIN_HEIGHT ||
 			modeHeight > DISPLAY_MAX_HEIGHT)
-            continue;
-        [displayModes addObject: mode];
-    }
+			continue;
+		[displayModes addObject: mode];
+	}
 	
 	// Sort the filtered modes
 	[displayModes sortUsingFunction:CompareDisplayModes context:NULL];
@@ -427,7 +427,7 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 		modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
 		modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
 		modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
-        color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+		color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
 		stretched = [mode boolForKey:(NSString *)kCGDisplayModeIsStretched];
 		interlaced = [mode boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
 		
@@ -707,7 +707,7 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 				}
 			}
 
-			// Update our stuff.        
+			// Update our stuff.
 			[self performGameTick:self];
 
 			[fullScreenContext flushBuffer];

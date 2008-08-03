@@ -93,7 +93,7 @@ static JSFunctionSpec sSunMethods[] =
 
 void InitOOJSSun(JSContext *context, JSObject *global)
 {
-    sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass.base, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
+	sSunPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sSunClass.base, NULL, 0, sSunProperties, sSunMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sSunClass.base, JSBasicPrivateObjectConverter);
 }
 

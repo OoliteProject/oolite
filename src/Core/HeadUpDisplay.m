@@ -143,7 +143,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	[legendArray release];
 	[dialArray release];
 
-    [super dealloc];
+	[super dealloc];
 }
 
 //------------------------------------------------------------------------------------//
@@ -366,10 +366,10 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 static BOOL hostiles;
 - (void) drawScanner:(NSDictionary *) info
 {
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
-    GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
+	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
 	x = [info intForKey:X_KEY defaultValue:SCANNER_CENTRE_X];
 	y = [info intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y];
@@ -384,7 +384,7 @@ static BOOL hostiles;
 	double y_factor = 1.0 - sqrt(z_factor);	// approx 1/2
 	
 	int				i;
-    int				scanner_cx = x;
+	int				scanner_cx = x;
 	int				scanner_cy = y;
 	double			mass_lock_range2 = 25600.0*25600.0;
 
@@ -661,10 +661,10 @@ static BOOL hostiles;
 
 - (void) drawScannerZoomIndicator:(NSDictionary *) info
 {
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
-    GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
+	GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
 	
 	x = [info intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X];
 	y = [info intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y];
@@ -695,7 +695,7 @@ static BOOL hostiles;
 
 - (void) drawCompass:(NSDictionary *) info
 {
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	float			alpha;
@@ -957,7 +957,7 @@ static BOOL hostiles;
 	if (([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)||([UNIVERSE sun] == nil)||([[PlayerEntity sharedPlayer] checkForAegis] != AEGIS_IN_DOCKING_RANGE))
 		return;	// don't draw
 	
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	GLfloat			alpha = 0.5f;
@@ -989,7 +989,7 @@ static BOOL hostiles;
 - (void) drawSpeedBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
@@ -1000,7 +1000,7 @@ static BOOL hostiles;
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
 	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
 	
-    double ds = [player dialSpeed];
+	double ds = [player dialSpeed];
 
 	if (draw_surround)
 	{
@@ -1021,7 +1021,7 @@ static BOOL hostiles;
 - (void) drawRollBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
@@ -1047,7 +1047,7 @@ static BOOL hostiles;
 - (void) drawPitchBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
@@ -1073,7 +1073,7 @@ static BOOL hostiles;
 - (void) drawEnergyGauge:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround, labelled;
@@ -1128,7 +1128,7 @@ static BOOL hostiles;
 - (void) drawForwardShieldBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
@@ -1159,7 +1159,7 @@ static BOOL hostiles;
 - (void) drawAftShieldBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	BOOL			draw_surround;
@@ -1190,7 +1190,7 @@ static BOOL hostiles;
 - (void) drawFuelBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	float			fu, hr;
@@ -1200,7 +1200,7 @@ static BOOL hostiles;
 	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
 	
-    fu = [player dialFuel];
+	fu = [player dialFuel];
 	hr = [player dialHyperRange];
 
 	// draw fuel bar
@@ -1219,7 +1219,7 @@ static BOOL hostiles;
 - (void) drawCabinTempBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1247,7 +1247,7 @@ static BOOL hostiles;
 - (void) drawWeaponTempBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1270,7 +1270,7 @@ static BOOL hostiles;
 - (void) drawAltitudeBar:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1298,7 +1298,7 @@ static BOOL hostiles;
 - (void) drawMissileDisplay:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	int				sp;
@@ -1453,7 +1453,7 @@ static BOOL hostiles;
 - (void) drawStatusLight:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1577,7 +1577,7 @@ static BOOL hostiles;
 - (void) drawClock:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1596,7 +1596,7 @@ static BOOL hostiles;
 	if (![UNIVERSE displayFPS])  return;
 
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	
@@ -1621,7 +1621,7 @@ static BOOL hostiles;
 - (void) drawScoopStatus:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-    int				x;
+	int				x;
 	int				y;
 	NSSize			siz;
 	GLfloat			alpha;
@@ -1710,7 +1710,7 @@ static BOOL hostiles;
 
 - (void) drawSurround:(NSDictionary *)info color:(GLfloat[4])color
 {
-    OOInteger		x;
+	OOInteger		x;
 	OOInteger		y;
 	NSSize			siz;
 	
@@ -1965,7 +1965,7 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, G
 		return;
 	
 	OOMatrix		back_mat;
-    Quaternion		back_q = [player1 orientation];
+	Quaternion		back_q = [player1 orientation];
 	back_q.w = -back_q.w;   // invert
 	Vector			v1 = vector_up_from_quaternion(back_q);
 	Vector			p1;

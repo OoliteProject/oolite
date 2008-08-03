@@ -66,7 +66,7 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 	GLfloat	x, xz, xy, xx;
 	GLfloat	y, yz, yy;
 	GLfloat	z, zz;
-    
+	
 	Quaternion q = orientation;
 	quaternion_normalize(&q);
 	
@@ -74,7 +74,7 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 	z = q.z;
 	y = q.y;
 	x = q.x;
-    
+	
 	xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
 	wx = w * xx; wy = w * yy; wz = w * zz;
 	xx = x * xx; xy = x * yy; xz = x * zz;

@@ -10,6 +10,6 @@ uint32_t gDebugFlags = 0;
 int main(int argc, const char *argv[])
 {
 	OOLoggingInit();
-    return NSApplicationMain(argc, argv);
+	return NSApplicationMain(argc, argv);
 }
 

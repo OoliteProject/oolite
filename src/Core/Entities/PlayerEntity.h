@@ -320,7 +320,7 @@ typedef enum
 	OOCompassMode			compassMode;
 	
 	GLfloat					fuel_leak_rate;
-        
+	
 	// keys!
 	OOKeyCode				key_roll_left;
 	OOKeyCode				key_roll_right;
@@ -385,21 +385,21 @@ typedef enum
 #ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
 #endif
-        
-        // save-file
+	
+	// save-file
 	NSString				*save_path;
-        
-        // position of viewports
+	
+	// position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
-        
-        // trumbles
+	
+	// trumbles
 	OOUInteger				trumbleCount;
 	OOTrumble				*trumble[PLAYER_MAX_TRUMBLES];
-        
-        // smart zoom
+	
+	// smart zoom
 	GLfloat					scanner_zoom_rate;
-        
-        // target memory
+	
+	// target memory
 	int						target_memory[PLAYER_TARGET_MEMORY_SIZE];
 	int						target_memory_index;
 	
@@ -412,7 +412,7 @@ typedef enum
 	
 	OOViewID				currentWeaponFacing;	// decoupled from view direction
 	
-        // docking reports
+	// docking reports
 	NSMutableString			*dockingReport;
 	
 	// Woo, flags.
@@ -465,7 +465,7 @@ waitingForStickCallback: 1;
 	NSPoint					galacticHyperspaceFixedCoords;
 }
 
-+ (id)sharedPlayer;
++ (PlayerEntity *)sharedPlayer;
 
 - (BOOL) isDocked;
 

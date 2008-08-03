@@ -129,7 +129,7 @@ static JSFunctionSpec sPlayerMethods[] =
 
 void InitOOJSPlayer(JSContext *context, JSObject *global)
 {
-    sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass.base, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
+	sPlayerPrototype = JS_InitClass(context, global, NULL, &sPlayerClass.base, NULL, 0, sPlayerProperties, sPlayerMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlayerClass.base, JSBasicPrivateObjectConverter);
 	
 	// Create player object as a property of the global object.

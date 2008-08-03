@@ -209,14 +209,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			}
 		}
 	}
-    return YES;
+	return YES;
 }
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
 	NSDictionary		*shipDict = dict;
 	
-    orientation = kIdentityQuaternion;
+	orientation = kIdentityQuaternion;
 	rotMatrix	= kIdentityMatrix;
 	v_forward	= kBasisZVector;
 	v_up		= kBasisYVector;
@@ -1385,7 +1385,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 
 	// behaviours according to status and behaviour
-    //
+	//
 	if (status == STATUS_LAUNCHING)
 	{
 		if ([UNIVERSE getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
@@ -1435,12 +1435,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	if (status == STATUS_COCKPIT_DISPLAY)
-    {
+	{
 		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
 		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
 		if ((range2 > 1.0)||(velocity.z > 0.0))	range2 = 1.0;
 		position = vector_add(position, vector_multiply_scalar(velocity, range2 * delta_t));
-    }
+	}
 	else
 	{
 		double  target_speed = maxFlightSpeed;
@@ -1591,7 +1591,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					escort_ids[i--] = escort_ids[--escortCount];	// remove the escort
 			}
 		}
-    }
+	}
 	
 	// subentity rotation
 	if (!quaternion_equal(subentityRotationalVelocity, kIdentityQuaternion) &&
@@ -3564,7 +3564,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	
 	if (p1 < p2) return NSOrderedAscending;
 	if (p1 > p2) return NSOrderedDescending;
-    
+	
 	return NSOrderedSame;
 }
 
@@ -4139,7 +4139,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setHulk:(BOOL)isNowHulk
 {
-    isHulk = isNowHulk;
+	isHulk = isNowHulk;
 }
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
@@ -5140,7 +5140,7 @@ BOOL class_masslocks(int some_class)
 	q_minarc = quaternion_rotation_between(v_forward, vector_to_target);
 	
 	orientation = quaternion_multiply(q_minarc, orientation);
-    [self orientationChanged];
+	[self orientationChanged];
 	
 	flightRoll = 0.0;
 	flightPitch = 0.0;

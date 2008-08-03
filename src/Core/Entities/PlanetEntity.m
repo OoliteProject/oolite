@@ -77,7 +77,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	isTextured = NO;
 	
-    collision_radius = 25000.0; //  25km across
+	collision_radius = 25000.0; //  25km across
 	
 	scanClass = CLASS_NO_DRAW;
 	
@@ -137,7 +137,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
@@ -148,11 +148,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 	OOColor		*color;
 	
 	self = [super init];
-    //
+	
 	isTextured = NO;
 	isShadered = NO;
 	
-    collision_radius = 100000.0; //  100km across
+	collision_radius = 100000.0; //  100km across
 	
 	lim4k =		LIM4K;
 	lim8k =		LIM8K;
@@ -238,7 +238,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	textureData = NULL;
 	
-    return self;
+	return self;
 }
 
 
@@ -250,7 +250,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict
 {
-    int		i;
+	int		i;
 	int		percent_land;
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
@@ -357,14 +357,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 #ifndef NO_SHADERS
 	shader_program = NULL_SHADER;
 #endif
-    if (!planet)
-    {
-    	OOLog(@"planet.atmosphere.init.noPlanet", @"ERROR Planetentity initAsAtmosphereForPlanet: nil planet");
-    	return self;
-    }
+	if (!planet)
+	{
+		OOLog(@"planet.atmosphere.init.noPlanet", @"ERROR Planetentity initAsAtmosphereForPlanet: nil planet");
+		return self;
+	}
 	
 	[self setOwner: planet];
-    //
+	
 	position = planet->position;
 	orientation = planet->orientation;
 	
@@ -413,13 +413,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
 - (id) initWithSeed:(Random_Seed) p_seed
 {
-    int		i;
+	int		i;
 	int		percent_land;
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
@@ -427,7 +427,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 #endif
 	
 	self = [super init];
-    //
+	
 	isTextured = NO;
 	textureName = 0;
 	textureData = NULL;
@@ -453,7 +453,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	last_launch_time = -(ranrot_rand() % 60) * shuttle_launch_interval/60.0;
 	last_launch_time = 30.0 - shuttle_launch_interval;   // debug - launch 30s after player enters universe
 
-    //collision_radius = 25000.0; //  25km across
+	//collision_radius = 25000.0; //  25km across
 	collision_radius = radius_km * 10.0; // scale down by a factor of 100 !
 	
 	scanClass = CLASS_NO_DRAW;
@@ -592,16 +592,16 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet
-{    
-    int		i;
+{
+	int		i;
 	
 	self = [super init];
-    //
+	
 	isTextured = [planet isTextured];
 	textureName = [planet textureName];	//debug texture
 	
@@ -663,13 +663,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
 - (id) initPlanetFromDictionary:(NSDictionary*) dict
 {
-    int		i;
+	int		i;
 	int		percent_land;
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
@@ -681,7 +681,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	self = [super init];
 	
 	Random_Seed	p_seed = [UNIVERSE systemSeed];
-    //
+	
 	if ([dict objectForKey:@"texture"])
 	{
 		textureName = [TextureStore getTextureNameFor:[dict stringForKey:@"texture"]];
@@ -832,13 +832,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
 - (id) initMoonFromDictionary:(NSDictionary*) dict
 {
-    int		i;
+	int		i;
 	int		percent_land;
 	
 	if (dict == nil)  dict = [NSDictionary dictionary];
@@ -846,7 +846,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	self = [super init];
 	
 	Random_Seed	p_seed = [UNIVERSE systemSeed];
-    //
+	
 	planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	
 	if ([dict objectForKey:@"texture"])
@@ -989,13 +989,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-    return self;
+	return self;
 }
 
 
 - (void) dealloc
 {
-    [atmosphere release];
+	[atmosphere release];
 	if (textureData)  free(textureData);
 	if (normalMapTextureData)  free(normalMapTextureData);
 	
@@ -1227,8 +1227,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (void) setModelName:(NSString *)modelName
 {
-    double  old_collision_radius = collision_radius;
-    [super setModelName:modelName];
+	double  old_collision_radius = collision_radius;
+	[super setModelName:modelName];
 	collision_radius = old_collision_radius;	// preserve the radius
 }
 
@@ -1728,19 +1728,11 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 
 - (void) rescaleTo:(double) rad
 {
-    int i;
-	Vector  vert;
-
-    for (i = 0; i < vertexCount; i++)
-    {
-		vert = vertices[i];			// not guaranteed non-zero
-        if ((vert.x == 0.0)&&(vert.y == 0.0)&&(vert.z == 0.0))
-			continue;
-		vert = unit_vector(&vert);	// guaranteed non-zero
-		vert.x *= rad;
-		vert.y *= rad;
-		vert.z *= rad;
-		vertices[i] = vert;
+	int i;
+	
+	for (i = 0; i < vertexCount; i++)
+	{
+		vertices[i] = vector_multiply_scalar(vector_normal(vertices[i]), rad);
 	}
 }
 

@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OpenGLSprite.h"
 #import "OOTexture.h"
+#import "OOMaths.h"
 
 
 @implementation OpenGLSprite
@@ -56,7 +57,7 @@ MA 02110-1301, USA.
 {
 	[texture release];
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 - (NSSize)size
@@ -67,40 +68,37 @@ MA 02110-1301, USA.
 
 - (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
-    if (a < 0.0)
-        a = 0.0;	// clamp the alpha value
-    if (a > 1.0)
-        a = 1.0;	// clamp the alpha value
-    glEnable(GL_TEXTURE_2D);
-    glColor4f(1.0, 1.0, 1.0, a);
-    
-    // Note that the textured Quad is drawn ACW from the Top Left
-    
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	a = OOClamp_0_1_f(a);
+	glEnable(GL_TEXTURE_2D);
+	glColor4f(1.0, 1.0, 1.0, a);
+	
+	// Note that the textured Quad is drawn ACW from the Top Left
+	
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[texture apply];
-    glBegin(GL_QUADS);
+	glBegin(GL_QUADS);
 	
-    glTexCoord2f(0.0, 0.0);
-    glVertex3f(x, y+size.height, z);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(x, y+size.height, z);
 	
-    glTexCoord2f(0.0, 1.0);
-    glVertex3f(x, y, z);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(x, y, z);
 	
-    glTexCoord2f(1.0, 1.0);
-    glVertex3f(x+size.width, y, z);
-
-    glTexCoord2f(1.0, 0.0);
-    glVertex3f(x+size.width, y+size.height, z);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(x+size.width, y, z);
 	
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(x+size.width, y+size.height, z);
+	
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
 }
 
 - (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
-    float	xs = x - size.width / 2.0;
-    float	ys = y - size.height / 2.0;
-    [self blitToX:xs Y:ys Z:z alpha:a];
+	float	xs = x - size.width / 2.0;
+	float	ys = y - size.height / 2.0;
+	[self blitToX:xs Y:ys Z:z alpha:a];
 }
 
 @end

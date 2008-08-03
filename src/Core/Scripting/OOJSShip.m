@@ -212,7 +212,7 @@ static JSFunctionSpec sShipMethods[] =
 
 void InitOOJSShip(JSContext *context, JSObject *global)
 {
-    sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass.base, NULL, 0, sShipProperties, sShipMethods, NULL, NULL);
+	sShipPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sShipClass.base, NULL, 0, sShipProperties, sShipMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sShipClass.base, JSBasicPrivateObjectConverter);
 }
 

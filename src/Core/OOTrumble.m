@@ -34,43 +34,43 @@ MA 02110-1301, USA.
 @implementation OOTrumble
 
 - (id) init
-{    
-    self = [super init];
-    //
+{
+	self = [super init];
+	
 	int i;
 	for (i = 0; i < 4; i++)
 	{
 		colorPoint1[i] = 1.0;
 		colorPoint2[i] = 1.0;
 	}
-	//
-    return self;
+	
+	return self;
 }
 
 - (id) initForPlayer:(PlayerEntity*) p1
-{    
+{
 	self = [super init];
-	//
+	
 	[self setupForPlayer: p1 digram: @"a1"];
-	//
-    return self;
+	
+	return self;
 }
 
 - (id) initForPlayer:(PlayerEntity*) p1 digram:(NSString*) digramString
-{    
+{
 	self = [super init];
-	//
+	
 	[self setupForPlayer: p1 digram: digramString];
-	//
-    return self;
+	
+	return self;
 }
 
 - (void) setupForPlayer:(PlayerEntity*) p1 digram:(NSString*) digramString
-{    
+{
 	// set digram
 	//
-    digram[0] = [digramString characterAtIndex:0];
-    digram[1] = [digramString characterAtIndex:1];
+	digram[0] = [digramString characterAtIndex:0];
+	digram[1] = [digramString characterAtIndex:1];
 	
 	// set player
 	//
@@ -78,7 +78,7 @@ MA 02110-1301, USA.
 	
 	// set color points
 	int r0 = (int)digram[0];
-    int r1 = (int)digram[1];
+	int r1 = (int)digram[1];
 	int pointscheme[6] = { 1, 1, 0, 0, 1, 1};
 	int ps = r0 >> 2;	// first digram determines pattern of points
 	pointscheme[0] = (ps >> 3) & 1;
@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 	pointscheme[5] = (ps >> 3) & 1;
 	
 	GLfloat c1[4] = { 1.0, 1.0, 1.0, 1.0};
-    GLfloat c2[4] = { 1.0, 0.0, 0.0, 1.0};
+	GLfloat c2[4] = { 1.0, 0.0, 0.0, 1.0};
 
 	// I am missing something. Please clarify the intent of the following statement.
 	// The next statement shift the result of adding two masked values
@@ -151,7 +151,7 @@ MA 02110-1301, USA.
 	rotation = TRUMBLE_MAX_ROTATION * (randf() - randf());
 	rotational_velocity = TRUMBLE_MAX_ROTATIONAL_VELOCITY * (randf() - randf());
 	
-    //
+	//
 	int i;
 	for (i = 0; i < 4; i++)
 	{
@@ -369,7 +369,7 @@ MA 02110-1301, USA.
 	/*
 	draws a trumble body as a fan of triangles...
 	2-------3-------4
-	| \		|     / |
+	| \	    |     / |
 	|   \   |   /   |
 	|     \ | /     |
 	1-------0-------5

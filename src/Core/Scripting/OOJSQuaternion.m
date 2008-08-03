@@ -138,7 +138,7 @@ static JSFunctionSpec sQuaternionStaticMethods[] =
 
 void InitOOJSQuaternion(JSContext *context, JSObject *global)
 {
-    sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass.base, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, sQuaternionStaticMethods);
+	sQuaternionPrototype = JS_InitClass(context, global, NULL, &sQuaternionClass.base, QuaternionConstruct, 4, sQuaternionProperties, sQuaternionMethods, NULL, sQuaternionStaticMethods);
 }
 
 

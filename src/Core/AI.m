@@ -80,8 +80,8 @@ static AI *sCurrentlyRunningAI = nil;
 
 
 - (id) init
-{    
-    self = [super init];
+{
+	self = [super init];
 	
 	aiStack = [[NSMutableArray alloc] init];
 	pendingMessages = [[NSMutableSet alloc] init];
@@ -96,13 +96,13 @@ static AI *sCurrentlyRunningAI = nil;
 
 
 - (id) initWithStateMachine:(NSString *) smName andState:(NSString *) stateName
-{    
-    self = [self init];
+{
+	self = [self init];
 	
 	if (smName != nil)  [self setStateMachine:smName];
 	if (stateName != nil)  currentState = [stateName retain];
 	
-    return self;
+	return self;
 }
 
 
@@ -111,9 +111,9 @@ static AI *sCurrentlyRunningAI = nil;
 	[_owner release];
 	[ownerDesc release];
 	[aiStack release];
-    [stateMachine release];
+	[stateMachine release];
 	[stateMachineName release];
-    [currentState release];
+	[currentState release];
 	[pendingMessages release];
 	
 	if (sCurrentlyRunningAI == self)  sCurrentlyRunningAI = nil;

@@ -1,24 +1,27 @@
 {
-    "DEFEND_SELF" = {
-        "ENERGY_LOW" = ("setStateTo: FLEE"); 
-        ENTER = (performAttack); 
-        EXIT = (); 
-        "TARGET_DESTROYED" = ("setStateTo: TRAVEL_TO_PLANET"); 
-        UPDATE = (); 
-    }; 
-    "EXIT_SYSTEM" = {ENTER = (performLanding); EXIT = (); UPDATE = (); }; 
-    FLEE = {
-        ENTER = (performFlee); 
-        EXIT = (); 
-        "REACHED_SAFETY" = (performIdle, "setStateTo: TRAVEL_TO_PLANET"); 
-        UPDATE = (); 
-    }; 
-    GLOBAL = {ENTER = ("setStateTo: TRAVEL_TO_PLANET"); EXIT = (); UPDATE = (); }; 
-    "TRAVEL_TO_PLANET" = {
-        ATTACK = (setTargetToPrimaryAggressor, "setStateTo: DEFEND_SELF"); 
-        ENTER = (performFlyToPlanet); 
-        EXIT = (); 
-        "REACHED_SURFACE" = ("setStateTo: EXIT_SYSTEM"); 
-        UPDATE = (); 
-    }; 
+	GLOBAL =
+	{
+		ENTER = ("setStateTo: TRAVEL_TO_PLANET");
+	};
+	"DEFEND_SELF" =
+	{
+		ENTER = (performAttack);
+		"ENERGY_LOW" = ("setStateTo: FLEE");
+		"TARGET_DESTROYED" = ("setStateTo: TRAVEL_TO_PLANET");
+	};
+	"EXIT_SYSTEM" =
+	{
+		ENTER = (performLanding);
+	};
+	FLEE =
+	{
+		ENTER = (performFlee);
+		"REACHED_SAFETY" = (performIdle, "setStateTo: TRAVEL_TO_PLANET");
+	};
+	"TRAVEL_TO_PLANET" =
+	{
+		ENTER = (performFlyToPlanet);
+		ATTACK = (setTargetToPrimaryAggressor, "setStateTo: DEFEND_SELF");
+		"REACHED_SURFACE" = ("setStateTo: EXIT_SYSTEM");
+	};
 }

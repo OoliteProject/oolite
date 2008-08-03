@@ -72,10 +72,10 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (id)init
 {
-    self = [super init];
+	self = [super init];
 	if (self == nil)  return nil;
 	
-    basefile = @"No Model";
+	basefile = @"No Model";
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
 	
 	return self;
@@ -97,7 +97,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];
 	
 	[basefile autorelease];
-    basefile = [modelName retain];
+	basefile = [modelName retain];
 	
 	[self regenerateDisplayList];
 	
@@ -114,7 +114,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		[localException raise];
 	NS_ENDHANDLER
 
-    [self checkNormalsAndAdjustWinding];
+	[self checkNormalsAndAdjustWinding];
 	
 	// set the collision radius
 	collision_radius = [self findCollisionRadius];
@@ -159,11 +159,11 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-    // draw the thing !
-    //
-    int ti;
-    GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-    GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
+	// draw the thing !
+	//
+	int ti;
+	GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
 
 	NS_DURING
 
@@ -297,18 +297,17 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (void) initializeTextures
 {
-    // roll out each face and texture in turn
-    //
-    int fi,ti;
+	// roll out each face and texture in turn
+	int fi,ti;
 
-    for (fi = 0; fi < faceCount; fi++)
-    {
-		NSString* texture = [NSString stringWithUTF8String:faces[fi].textureFileName];
-        if ((faces[fi].textureName == 0)&&(texture))
-        {
+	for (fi = 0; fi < faceCount; fi++)
+	{
+		NSString *texture = [NSString stringWithUTF8String:faces[fi].textureFileName];
+		if ((faces[fi].textureName == 0)&&(texture))
+		{
 			 faces[fi].textureName = [TextureStore getTextureNameFor: texture];
-        }
-    }
+		}
+	}
 
 	for (ti = 1; ti <= textureCount; ti++)
 	{
@@ -399,13 +398,13 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (void)loadData:(NSString *) filename
 {
-    NSScanner			*scanner;
+	NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
-    NSString			*data = nil;
-    NSMutableArray		*lines;
-    BOOL				failFlag = NO;
-    NSString			*failString = @"***** ";
-    unsigned			i, j;
+	NSString			*data = nil;
+	NSMutableArray		*lines;
+	BOOL				failFlag = NO;
+	NSString			*failString = @"***** ";
+	unsigned			i, j;
 
 	BOOL using_preloaded = NO;
 	
@@ -563,7 +562,9 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 						failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].red = r/255.0;    faces[j].green = g/255.0;    faces[j].blue = b/255.0;
+						faces[j].red = r / 255.0;
+						faces[j].green = g / 255.0;
+						faces[j].blue = b / 255.0;
 					}
 					else
 					{
@@ -580,7 +581,9 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 						failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].normal.x = nx;    faces[j].normal.y = ny;    faces[j].normal.z = nz;
+						faces[j].normal.x = nx;
+						faces[j].normal.y = ny;
+						faces[j].normal.z = nz;
 					}
 					else
 					{
@@ -671,7 +674,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 								failFlag = YES;
 							if (!failFlag)
 							{
-								faces[j].s[i] = s / max_x;    faces[j].t[i] = t / max_y;
+								faces[j].s[i] = s / max_x;
+								faces[j].t[i] = t / max_y;
 							}
 							else
 								failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
@@ -717,43 +721,44 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 // FIXME: this isn't working, we're getting smoothed models with inside-out winding. --Ahruman
 - (void) checkNormalsAndAdjustWinding
 {
-    Vector calculatedNormal;
-    unsigned i, j;
-    for (i = 0; i < faceCount; i++)
-    {
-        Vector v0, v1, v2, norm;
-        v0 = vertices[faces[i].vertex[0]];
-        v1 = vertices[faces[i].vertex[1]];
-        v2 = vertices[faces[i].vertex[2]];
-        norm = faces[i].normal;
+	Vector		calculatedNormal;
+	unsigned	i, j;
+	
+	for (i = 0; i < faceCount; i++)
+	{
+		Vector v0, v1, v2, norm;
+		v0 = vertices[faces[i].vertex[0]];
+		v1 = vertices[faces[i].vertex[1]];
+		v2 = vertices[faces[i].vertex[2]];
+		norm = faces[i].normal;
 		calculatedNormal = normal_to_surface (v2, v1, v0);
-        if ((norm.x == 0.0)&&(norm.y == 0.0)&&(norm.z == 0.0))
+		if (vector_equal(norm, kZeroVector))
 		{
 			faces[i].normal = normal_to_surface (v0, v1, v2);
 			norm = normal_to_surface (v0, v1, v2);
 		}
-        if ((norm.x*calculatedNormal.x < 0)||(norm.y*calculatedNormal.y < 0)||(norm.z*calculatedNormal.z < 0))
-        {
-            // normal lies in the WRONG direction!
-            // reverse the winding
-            int v[faces[i].n_verts];
-            GLfloat s[faces[i].n_verts];
-            GLfloat t[faces[i].n_verts];
+		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
+		{
+			// normal lies in the WRONG direction!
+			// reverse the winding
+			int			v[faces[i].n_verts];
+			GLfloat		s[faces[i].n_verts];
+			GLfloat		t[faces[i].n_verts];
 
-            for (j = 0; j < faces[i].n_verts; j++)
-            {
-            	v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
-            	s[j] = faces[i].s[faces[i].n_verts - 1 - j];
-            	t[j] = faces[i].t[faces[i].n_verts - 1 - j];
-            }
-            for (j = 0; j < faces[i].n_verts; j++)
-            {
-            	faces[i].vertex[j] = v[j];
-                faces[i].s[j] = s[j];
-                faces[i].t[j] = t[j];
-            }
-        }
-    }
+			for (j = 0; j < faces[i].n_verts; j++)
+			{
+				v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
+				s[j] = faces[i].s[faces[i].n_verts - 1 - j];
+				t[j] = faces[i].t[faces[i].n_verts - 1 - j];
+			}
+			for (j = 0; j < faces[i].n_verts; j++)
+			{
+				faces[i].vertex[j] = v[j];
+				faces[i].s[j] = s[j];
+				faces[i].t[j] = t[j];
+			}
+		}
+	}
 }
 
 
@@ -911,7 +916,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (double) findCollisionRadius
 {
-    int i;
+	int i;
 	double d_squared, result, length_longest_axis, length_shortest_axis;
 
 	result = 0.0;
@@ -920,15 +925,15 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	else
 		bounding_box_reset(&boundingBox);
 
-    for (i = 0; i < vertexCount; i++)
-    {
+	for (i = 0; i < vertexCount; i++)
+	{
 		d_squared = magnitude2(vertices[i]);
-        if (d_squared > result)
+		if (d_squared > result)
 		{
 			result = d_squared;
 		}
 		bounding_box_add_vector(&boundingBox,vertices[i]);
-    }
+	}
 
 	length_longest_axis = boundingBox.max.x - boundingBox.min.x;
 	if (boundingBox.max.y - boundingBox.min.y > length_longest_axis)
@@ -953,289 +958,284 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (void) fakeTexturesWithImageFile: (NSString *) textureFile andMaxSize:(NSSize) maxSize
 {
-    unsigned	i, j, k;
-    Vector		vec;
-    unsigned	nf = 0;
-    unsigned	fi[MAX_FACES_PER_ENTITY];
-    float		max_s, min_s, max_t, min_t, st_width, st_height;
-    float		tolerance;
-    Face		fa[MAX_FACES_PER_ENTITY];
-    unsigned	faces_to_match;
-    BOOL		face_matched[MAX_FACES_PER_ENTITY];
+	unsigned	i, j, k;
+	Vector		vec;
+	unsigned	nf = 0;
+	unsigned	fi[MAX_FACES_PER_ENTITY];
+	float		max_s, min_s, max_t, min_t, st_width, st_height;
+	float		tolerance;
+	Face		fa[MAX_FACES_PER_ENTITY];
+	unsigned	faces_to_match;
+	BOOL		face_matched[MAX_FACES_PER_ENTITY];
 
-    tolerance = 1.00;
-    faces_to_match = faceCount;
-    for (i = 0; i < faceCount; i++)
-    {
-	    face_matched[i] = NO;
-    }
+	tolerance = 1.00;
+	faces_to_match = faceCount;
+	for (i = 0; i < faceCount; i++)
+	{
+		face_matched[i] = NO;
+	}
 	while (faces_to_match > 0)
-    {
-        tolerance -= 0.05;
+	{
+		tolerance -= 0.05;
 
-        // Top (+y) first
-        vec.x = 0.0;	vec.y = 1.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].x;
-                    t = vertices[faces[i].vertex[j]].z;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        //
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
+		// Top (+y) first
+		vec = kBasisYVector;
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = vertices[faces[i].vertex[j]].x;
+					t = vertices[faces[i].vertex[j]].z;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
 		
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
 			
 			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"top_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].x;
-                t = vertices[faces[i].vertex[k]].z;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = vertices[faces[i].vertex[k]].x;
+				t = vertices[faces[i].vertex[k]].z;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
 				//
 				// TESTING
 				//
 				fa[i].t[k] = maxSize.height - fa[i].t[k];	// REVERSE t locations
-            }
-        }
+			}
+		}
 
-        // Bottom (-y)
-        vec.x = 0.0;	vec.y = -1.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].x;
-                    t = -vertices[faces[i].vertex[j]].z;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
+		// Bottom (-y)
+		vec = vector_flip(kBasisYVector);
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = -vertices[faces[i].vertex[j]].x;
+					t = -vertices[faces[i].vertex[j]].z;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
 			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"bottom_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].x;
-                t = -vertices[faces[i].vertex[k]].z;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Right (+x)
-        vec.x = 1.0;	vec.y = 0.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].z;
-                    t = vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"right_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].z;
-                t = vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Left (-x)
-        vec.x = -1.0;	vec.y = 0.0;	vec.z = 0.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].z;
-                    t = -vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"left_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].z;
-                t = -vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Front (+z)
-        vec.x = 0.0;	vec.y = 0.0;	vec.z = 1.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = vertices[faces[i].vertex[j]].x;
-                    t = vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"front_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = vertices[faces[i].vertex[k]].x;
-                t = vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-
-        // Back (-z)
-        vec.x = 0.0;	vec.y = 0.0;	vec.z = -1.0;
-        // build list of faces that face in that direction...
-        nf = 0;
-        max_s = -999999.0; min_s = 999999.0;
-        max_t = -999999.0; min_t = 999999.0;
-        for (i = 0; i < faceCount; i++)
-        {
-            float s, t;
-            float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
-            if ((g >= tolerance)&&(!face_matched[i]))
-            {
-                fi[nf++] = i;
-                face_matched[i] = YES;
-                faces_to_match--;
-                for (j = 0; j < faces[i].n_verts; j++)
-                {
-                    s = -vertices[faces[i].vertex[j]].x;
-                    t = -vertices[faces[i].vertex[j]].y;
-                    max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
-                    max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
-                }
-            }
-        }
-        st_width = max_s - min_s;
-        st_height = max_t - min_t;
-        for (j = 0; j < nf; j++)
-        {
-            i = fi[j];
-			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"back_%@", textureFile] UTF8String], 256);
-            for (k = 0; k < faces[i].n_verts; k++)
-            {
-                float s, t;
-                s = -vertices[faces[i].vertex[k]].x;
-                t = -vertices[faces[i].vertex[k]].y;
-                fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
-                fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
-            }
-        }
-    }
-
-    for (i = 0; i < faceCount; i++)
-    {
-        NSString *result;
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = -vertices[faces[i].vertex[k]].x;
+				t = -vertices[faces[i].vertex[k]].z;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			}
+		}
 		
+		// Right (+x)
+		vec = kBasisXVector;
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = vertices[faces[i].vertex[j]].z;
+					t = vertices[faces[i].vertex[j]].y;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
+			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"right_%@", textureFile] UTF8String], 256);
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = vertices[faces[i].vertex[k]].z;
+				t = vertices[faces[i].vertex[k]].y;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			}
+		}
+
+		// Left (-x)
+		vec = vector_flip(kBasisXVector);
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = -vertices[faces[i].vertex[j]].z;
+					t = -vertices[faces[i].vertex[j]].y;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
+			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"left_%@", textureFile] UTF8String], 256);
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = -vertices[faces[i].vertex[k]].z;
+				t = -vertices[faces[i].vertex[k]].y;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			}
+		}
+		
+		// Front (+z)
+		vec = kBasisZVector;
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = vertices[faces[i].vertex[j]].x;
+					t = vertices[faces[i].vertex[j]].y;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
+			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"front_%@", textureFile] UTF8String], 256);
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = vertices[faces[i].vertex[k]].x;
+				t = vertices[faces[i].vertex[k]].y;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			}
+		}
+		
+		// Back (-z)
+		vec = vector_flip(kBasisZVector);
+		// build list of faces that face in that direction...
+		nf = 0;
+		max_s = -999999.0; min_s = 999999.0;
+		max_t = -999999.0; min_t = 999999.0;
+		for (i = 0; i < faceCount; i++)
+		{
+			float s, t;
+			float g = dot_product(vec, faces[i].normal) * sqrt(2.0);
+			if ((g >= tolerance)&&(!face_matched[i]))
+			{
+				fi[nf++] = i;
+				face_matched[i] = YES;
+				faces_to_match--;
+				for (j = 0; j < faces[i].n_verts; j++)
+				{
+					s = -vertices[faces[i].vertex[j]].x;
+					t = -vertices[faces[i].vertex[j]].y;
+					max_s = (max_s > s) ? max_s:s ;	min_s = (min_s < s) ? min_s:s ;
+					max_t = (max_t > t) ? max_t:t ;	min_t = (min_t < t) ? min_t:t ;
+				}
+			}
+		}
+		st_width = max_s - min_s;
+		st_height = max_t - min_t;
+		for (j = 0; j < nf; j++)
+		{
+			i = fi[j];
+			strlcpy(fa[i].textureFileName, [[NSString stringWithFormat:@"back_%@", textureFile] UTF8String], 256);
+			for (k = 0; k < faces[i].n_verts; k++)
+			{
+				float s, t;
+				s = -vertices[faces[i].vertex[k]].x;
+				t = -vertices[faces[i].vertex[k]].y;
+				fa[i].s[k] = (s - min_s) * maxSize.width / st_width;
+				fa[i].t[k] = (t - min_t) * maxSize.height / st_height;
+			}
+		}
+	}
+
+	for (i = 0; i < faceCount; i++)
+	{
 		strlcpy(faces[i].textureFileName, fa[i].textureFileName, 256);
 		faces[i].textureName = 0;
-        for (j = 0; j < faces[i].n_verts; j++)
-        {
-            faces[i].s[j] = fa[i].s[j] / maxSize.width;
-            faces[i].t[j] = fa[i].t[j] / maxSize.height;
-        }
-		
-        result = [NSString stringWithFormat:@"%s\t%d %d", faces[i].textureFileName, (int)maxSize.width, (int)maxSize.height];
-    }
-
+		for (j = 0; j < faces[i].n_verts; j++)
+		{
+			faces[i].s[j] = fa[i].s[j] / maxSize.width;
+			faces[i].t[j] = fa[i].t[j] / maxSize.height;
+		}
+	}
 }
 
 

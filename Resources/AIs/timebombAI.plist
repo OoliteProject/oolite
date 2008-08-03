@@ -1,12 +1,11 @@
 {
-    DETONATE = {
-        ENTER = (becomeEnergyBlast); 
-        EXIT = (); 
-        UPDATE = (); 
-    }; 
-    GLOBAL = {
-        ENTER = ("pauseAI: 5.0"); 
-        EXIT = (); 
-        UPDATE = ("setStateTo: DETONATE"); 
-    }; 
+	GLOBAL =
+	{
+		ENTER = ("pauseAI: 5.0");
+		UPDATE = ("setStateTo: DETONATE");
+	};
+	DETONATE =
+	{
+		ENTER = (becomeEnergyBlast);
+	};
 }

@@ -147,23 +147,22 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 
 - (id) init
 {
-    self = [super init];
-	if (self == nil)  return nil;
-	
-	time_counter = 0.0;
-	
-	particle_type = PARTICLE_TEST;
-	isParticle = YES;
-	status = STATUS_EFFECT;
-	
-	basefile = @"Particle";
-	[self setTexture:@"blur256.png"];
-	[self setColor:[OOColor greenColor]];
-	
-	size = NSMakeSize(32.0,32.0);
-	collision_radius = 32.0;
-	
-    return self;
+	if ((self = [super init]))
+	{
+		time_counter = 0.0;
+		
+		particle_type = PARTICLE_TEST;
+		isParticle = YES;
+		status = STATUS_EFFECT;
+		
+		basefile = @"Particle";
+		[self setTexture:@"blur256.png"];
+		[self setColor:[OOColor greenColor]];
+		
+		size = NSMakeSize(32.0,32.0);
+		collision_radius = 32.0;
+	}
+	return self;
 }
 
 
@@ -245,337 +244,327 @@ FAIL:
 
 - (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details
 {
-	NSArray *values = ScanTokensFromString(details);
-	if ([values count] != 6)
-		return nil;
-	Vector offset, scale;
-	offset.x = [values floatAtIndex:0];
-	offset.y = [values floatAtIndex:1];
-	offset.z = [values floatAtIndex:2];
-	scale.x = [values floatAtIndex:3];
-	scale.y = [values floatAtIndex:4];
-	scale.z = [values floatAtIndex:5];
-	
-	self = [super init];
-    
-	status = STATUS_EFFECT;
+	if ((self = [super init]))
+	{
+		NSArray *values = ScanTokensFromString(details);
+		if ([values count] != 6)
+		{
+			[self release];
+			return nil;
+		}
+		Vector offset, scale;
+		offset.x = [values floatAtIndex:0];
+		offset.y = [values floatAtIndex:1];
+		offset.z = [values floatAtIndex:2];
+		scale.x = [values floatAtIndex:3];
+		scale.y = [values floatAtIndex:4];
+		scale.z = [values floatAtIndex:5];
+		
+		status = STATUS_EFFECT;
 
-	exhaustScale = scale;
-	
-	position = offset;
+		exhaustScale = scale;
+		
+		position = offset;
 
-	particle_type = PARTICLE_EXHAUST;
-    
-	[self setOwner:ship];
-    
-	isParticle = YES;
-    
-    return self;
+		particle_type = PARTICLE_EXHAUST;
+		
+		[self setOwner:ship];
+		
+		isParticle = YES;
+	}
+	
+	return self;
 }
 
 
 - (id) initECMMineFromShip:(ShipEntity *) ship
 {
-	self = [super init];
-	if (!ship)
-		return self;
-    
-    time_counter = 0.0;
-	activation_time = ECM_PULSE_INTERVAL;
-	duration = ECM_EFFECT_DURATION;
-	position = [ship position];
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_ECM_MINE;
-    
-	[self setOwner:ship];
-    
-	isParticle = YES;
-    
+	if (ship == nil)
+	{
+		[self release];
+		return nil;
+	}
+	
+	if ((self = [super init]))
+	{
+		time_counter = 0.0;
+		activation_time = ECM_PULSE_INTERVAL;
+		duration = ECM_EFFECT_DURATION;
+		position = [ship position];
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_ECM_MINE;
+		
+		[self setOwner:ship];
+		
+		isParticle = YES;
+	}
+	
 	return self;
 }
 
 
 - (id) initEnergyMineFromShip:(ShipEntity *) ship
 {
-	self = [super init];
-    
-	if (!ship)
-		return self;
-    
-    time_counter = 0.0;
-	duration = 20.0;
-	position = ship->position;
-    
-	[self setVelocity: kZeroVector];
-    
-	[self setColor:[OOColor blueColor]];
-    
-	alpha = 0.5;
-	collision_radius = 0;
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_MINE;
-    
-	particle_type = PARTICLE_ENERGY_MINE;
-    
-	[self setOwner:[ship owner]];
-    
-	isParticle = YES;
-    
+	if (ship == nil)
+	{
+		[self release];
+		return nil;
+	}
+	
+	if ((self = [super init]))
+	{
+		time_counter = 0.0;
+		duration = 20.0;
+		position = ship->position;
+		
+		[self setVelocity: kZeroVector];
+		
+		[self setColor:[OOColor blueColor]];
+		
+		alpha = 0.5;
+		collision_radius = 0;
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_MINE;
+		
+		particle_type = PARTICLE_ENERGY_MINE;
+		
+		[self setOwner:[ship owner]];
+		
+		isParticle = YES;
+	}
+	
 	return self;
 }
 
 
 - (id) initHyperringFromShip:(ShipEntity *) ship
 {
-	self = [super init];
-	if (self == nil || ship == nil)
+	if (ship == nil)
 	{
 		[self release];
 		return nil;
 	}
-    
-    time_counter = 0.0;
-	duration = 2.0;
-	size.width = ship->collision_radius * 0.5;
-	size.height = size.width * 1.25;
-	ring_inner_radius = size.width;
-	ring_outer_radius = size.height;
-	position = ship->position;
-	[self setOrientation:ship->orientation];
-	[self setVelocity:[ship velocity]];
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_HYPERRING;
 	
-	[self setOwner:ship];
-    
-	isParticle = YES;
-    
-    return self;
+	if ((self = [super init]))
+	{
+		time_counter = 0.0;
+		duration = 2.0;
+		size.width = ship->collision_radius * 0.5;
+		size.height = size.width * 1.25;
+		ring_inner_radius = size.width;
+		ring_outer_radius = size.height;
+		position = ship->position;
+		[self setOrientation:ship->orientation];
+		[self setVelocity:[ship velocity]];
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_HYPERRING;
+		
+		[self setOwner:ship];
+		
+		isParticle = YES;
+	}
+	
+	return self;
 }
 
 
 - (id) initFragburstSize:(GLfloat) fragSize fromPosition:(Vector) fragPos
 {
-	int speed_low = 100;
-	int speed_high = 400;
-	int n_fragments = 0.4 * fragSize;
-	if (n_fragments > 63)
-		n_fragments = 63;	// must also be less than MAX_FACES_PER_ENTITY
-	n_fragments |= 12;
-	int i;
-    
-	self = [super init];
-    
-	basefile = @"Particle";
-	[self setTexture:@"blur256.png"];
-    
-	size = NSMakeSize(fragSize, fragSize);
-    
-	vertexCount = n_fragments;
-    time_counter = 0.0;
-	duration = 1.5;
-	position = fragPos;
-	[self setColor:[OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
-    
-	for (i = 0 ; i < n_fragments; i++)
+	if ((self = [super init]))
 	{
-		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
-		vertices[i] = kZeroVector;	// position
-		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
-		vertex_normal[i] = unit_vector(&vertex_normal[i]);
-		vertex_normal[i].x *= speed;	// velocity
-		vertex_normal[i].y *= speed;
-		vertex_normal[i].z *= speed;
-		Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
-		col = unit_vector(&col);
-		faces[i].red	= col.x;
-		faces[i].green	= col.y;
-		faces[i].blue	= col.z;
-		faces[i].normal.x = 16.0 * speed_low / speed;
+		int speed_low = 100;
+		int speed_high = 400;
+		int n_fragments = 0.4 * fragSize;
+		if (n_fragments > 63)  n_fragments = 63;	// must also be less than MAX_FACES_PER_ENTITY
+		n_fragments |= 12;
+		int i;
+		
+		basefile = @"Particle";
+		[self setTexture:@"blur256.png"];
+		
+		size = NSMakeSize(fragSize, fragSize);
+		
+		vertexCount = n_fragments;
+		time_counter = 0.0;
+		duration = 1.5;
+		position = fragPos;
+		[self setColor:[OOColor colorWithCalibratedHue:0.12 + 0.08 * randf() saturation:1.0 brightness:1.0 alpha:1.0]]; // yellow/orange (0.12) through yellow (0.1667) to yellow/slightly green (0.20)
+		
+		for (i = 0 ; i < n_fragments; i++)
+		{
+			GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
+			vertices[i] = kZeroVector;	// position
+			vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
+			vertex_normal[i] = unit_vector(&vertex_normal[i]);
+			vertex_normal[i].x *= speed;	// velocity
+			vertex_normal[i].y *= speed;
+			vertex_normal[i].z *= speed;
+			Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
+			col = unit_vector(&col);
+			faces[i].red	= col.x;
+			faces[i].green	= col.y;
+			faces[i].blue	= col.z;
+			faces[i].normal.x = 16.0 * speed_low / speed;
+		}
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_FRAGBURST;
+		
+		collision_radius = 0;
+		energy = 0;
+		
+		isParticle = YES;
 	}
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_FRAGBURST;
-    
-	collision_radius = 0;
-	energy = 0;
-    
-	isParticle = YES;
-    
-    return self;
+	
+	return self;
 }
 
 
 - (id) initBurst2Size:(GLfloat) burstSize fromPosition:(Vector) fragPos
 {
-	int speed_low = 1 + burstSize * 0.5;
-	int speed_high = speed_low * 4;
-	int n_fragments = 0.2 * burstSize;
-	if (n_fragments > 15)
-		n_fragments = 15;	// must also be less than MAX_FACES_PER_ENTITY
-	n_fragments |= 3;
-	int i;
-    
-	self = [super init];
-    
-	basefile = @"Particle";
-	[self setTexture:@"blur256.png"];
-    
-	size = NSMakeSize(burstSize, burstSize);
-    
-	vertexCount = n_fragments;
-    time_counter = 0.0;
-	duration = 1.0;
-	position = fragPos;
-    
-	[self setColor:[[OOColor yellowColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
-    
-	for (i = 0 ; i < n_fragments; i++)
+	if ((self = [super init]))
 	{
-		GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
-		vertices[i] = kZeroVector;	// position
-		vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
-		vertex_normal[i] = unit_vector(&vertex_normal[i]);
-		vertex_normal[i].x *= speed;	// velocity
-		vertex_normal[i].y *= speed;
-		vertex_normal[i].z *= speed;
-		Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
-		col = unit_vector(&col);
-		faces[i].red = col.x;
-		faces[i].green = col.y;
-		faces[i].blue = col.z;
-		faces[i].normal.z = 1.0;
+		int speed_low = 1 + burstSize * 0.5;
+		int speed_high = speed_low * 4;
+		int n_fragments = 0.2 * burstSize;
+		if (n_fragments > 15)  n_fragments = 15;	// must also be less than MAX_FACES_PER_ENTITY
+		n_fragments |= 3;
+		int i;
+		
+		basefile = @"Particle";
+		[self setTexture:@"blur256.png"];
+		
+		size = NSMakeSize(burstSize, burstSize);
+		
+		vertexCount = n_fragments;
+		time_counter = 0.0;
+		duration = 1.0;
+		position = fragPos;
+		
+		[self setColor:[[OOColor yellowColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]]];
+		
+		for (i = 0 ; i < n_fragments; i++)
+		{
+			GLfloat speed = speed_low + 0.5 * (randf()+randf()) * (speed_high - speed_low);	// speed tends toward mean of speed_high and speed_low
+			vertices[i] = kZeroVector;	// position
+			vertex_normal[i] = make_vector(randf() - 0.5, randf() - 0.5, randf() - 0.5);
+			vertex_normal[i] = unit_vector(&vertex_normal[i]);
+			vertex_normal[i].x *= speed;	// velocity
+			vertex_normal[i].y *= speed;
+			vertex_normal[i].z *= speed;
+			Vector col = make_vector(color_fv[0] * 0.1 * (9.5 + randf()), color_fv[1] * 0.1 * (9.5 + randf()), color_fv[2] * 0.1 * (9.5 + randf()));
+			col = unit_vector(&col);
+			faces[i].red = col.x;
+			faces[i].green = col.y;
+			faces[i].blue = col.z;
+			faces[i].normal.z = 1.0;
+		}
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_BURST2;
+		
+		collision_radius = 0;
+		energy = 0;
+		
+		isParticle = YES;
 	}
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_BURST2;
-    
-	collision_radius = 0;
-	energy = 0;
-    
-	isParticle = YES;
-    
-    return self;
+	
+	return self;
 }
 
 // used exclusively for explosion flashes
 - (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos
 {
-    
-	self = [super init];
-    
-	basefile = @"Particle";
-	[self setTexture:@"flare256.png"];
-    
-	size = NSMakeSize(flashSize, flashSize);
-    
-	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
-	if (growth_rate < 6000.0)
-		growth_rate = 6000.0;	// put a minimum size on it
-    
-    time_counter = 0.0;
-	duration = 0.4;
-	position = fragPos;
-    
-	[self setColor:[OOColor whiteColor]];
-	color_fv[3] = 1.0;
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_FLASH;
-    
-	collision_radius = 0;
-	energy = 0;
-    
-	isParticle = YES;
-    
-	[self setVelocity: kZeroVector];
+	self = [self initFlashSize:flashSize fromPosition:fragPos color:[OOColor whiteColor]];
+	if (self != nil)
+	{
+		if (growth_rate < 6000.0)  growth_rate = 6000.0;
+		duration = 0.4;
+	}
 	
-    return self;
+	return self;
 }
 
 // used for laser flashes
 - (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor
 {
-    
-	self = [super init];
-    
-	basefile = @"Particle";
-	[self setTexture:@"flare256.png"];
-    
-	size = NSMakeSize(flashSize, flashSize);
-    
-	growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
-    
-    time_counter = 0.0;
-	duration = 0.3;
-	position = fragPos;
-    
-	[self setColor:flashColor];
-	color_fv[3] = 1.0;
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_FLASH;
-    
-	collision_radius = 0;
-	energy = 0;
-    
-	isParticle = YES;
-    
-	[self setVelocity: kZeroVector];
-	
-    return self;
+	if ((self = [super init]))
+	{
+		basefile = @"Particle";
+		[self setTexture:@"flare256.png"];
+		
+		size = NSMakeSize(flashSize, flashSize);
+		
+		growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
+		
+		time_counter = 0.0;
+		duration = 0.3;
+		position = fragPos;
+		
+		[self setColor:flashColor];
+		color_fv[3] = 1.0;
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_FLASH;
+		
+		collision_radius = 0;
+		energy = 0;
+		
+		isParticle = YES;
+		
+		[self setVelocity: kZeroVector];
+	}
+	return self;
 }
 
 // used for background billboards
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile
 {
-	self = [super init];
-    
-	basefile = @"Particle";
-	[self setTexture:textureFile];
-	if (texture == nil)
+	if ((self = [super init]))
 	{
-		[self release];
-		return nil;
+		basefile = @"Particle";
+		[self setTexture:textureFile];
+		if (texture == nil)
+		{
+			[self release];
+			return nil;
+		}
+		
+		size = billSize;
+		
+		time_counter = 0.0;
+		duration = 0.0;	//infinite
+		
+		[self setColor:[OOColor whiteColor]];
+		color_fv[3] = 1.0;
+		
+		status = STATUS_EFFECT;
+		scanClass = CLASS_NO_DRAW;
+		
+		particle_type = PARTICLE_BILLBOARD;
+		
+		collision_radius = 0;
+		energy = 0;
+		
+		isParticle = YES;
+		
+		[self setVelocity: kZeroVector];
+		[self setPosition: make_vector(0.0f, 0.0f, 640.0f)];
 	}
-    
-	size = billSize;
-    
-    time_counter = 0.0;
-	duration = 0.0;	//infinite
-    
-	[self setColor:[OOColor whiteColor]];
-	color_fv[3] = 1.0;
-    
-	status = STATUS_EFFECT;
-	scanClass = CLASS_NO_DRAW;
-    
-	particle_type = PARTICLE_BILLBOARD;
-    
-	collision_radius = 0;
-	energy = 0;
-    
-	isParticle = YES;
-    
-	[self setVelocity: kZeroVector];
-	[self setPosition: make_vector(0.0f, 0.0f, 640.0f)];
-
-    return self;
+	return self;
 }
 
 
@@ -644,13 +633,14 @@ FAIL:
 	[texture release];
 	[color release];
 	
-    [super dealloc];
+	[super dealloc];
 }
 
 
-- (NSString*) descriptionComponents
+- (NSString *) descriptionComponents
 {
-	NSString* type_string = nil;
+#ifndef NDEBUG
+	NSString *type_string = nil;
 	switch ([self particleType])
 	{
 #define CASE(x) case x: type_string = @#x; break;
@@ -672,6 +662,9 @@ FAIL:
 	if (type_string == nil)  type_string = [NSString stringWithFormat:@"UNKNOWN (%i)", particle_type];
 	
 	return [NSString stringWithFormat:@"%@ ttl: %.3fs", type_string, duration - time_counter];
+#else
+	return [NSString stringWithFormat:@"ttl: %.3fs", duration - time_counter];
+#endif
 }
 
 
@@ -697,7 +690,7 @@ FAIL:
 
 - (void) setTexture:(NSString *)name
 {
-    if (name != nil)
+	if (name != nil)
 	{
 		[texture autorelease];
 		texture = [[OOTexture textureWithName:name inFolder:@"Textures"] retain];
@@ -1029,7 +1022,7 @@ FAIL:
 - (void) updateFragburst:(double) delta_t
 {
 	int i;
-    
+	
 	for (i = 0 ; i < vertexCount; i++)
 	{
 		GLfloat du = 0.5 + 0.03125 * (32 - i);
@@ -1052,7 +1045,7 @@ FAIL:
 {
 	int i;
 	size.width = (1.0 + time_counter) * size.height;	// current size vs starting size
-    
+	
 	GLfloat di = 1.0 / (vertexCount - 1);
 	for (i = 0 ; i < vertexCount; i++)
 	{
@@ -1157,12 +1150,10 @@ FAIL:
 	vi = master_i;
 	vj = vector_up_from_quaternion(shipQrotation);
 	vk = cross_product(vi, vj);
-	zero.position = make_vector(	currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
-									currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
-									currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
-
-//	GLfloat i01 = -0.03;// * flare_length;
-//	GLfloat i01 = -0.03 * (1.0 - flare_length);// * flare_length;
+	zero.position = make_vector(currentPos.x + vi.x * position.x + vj.x * position.y + vk.x * position.z,
+								currentPos.y + vi.y * position.x + vj.y * position.y + vk.y * position.z,
+								currentPos.z + vi.z * position.x + vj.z * position.y + vk.z * position.z);
+	
 	GLfloat i01 = -0.03 * hyper_fade;// * flare_length;
 	GLfloat i03 = -0.12;// * flare_length;
 	GLfloat i06 = -0.25;// * flare_length;
@@ -1185,12 +1176,12 @@ FAIL:
 	Frame	f08 = [self frameAtTime: i08 fromFrame: zero];
 	Vector	b08 = make_vector(r08 * i08 * vfwd.x, r08 * i08 * vfwd.y, r08 * i08 * vfwd.z);
 	Frame	f10 = [self frameAtTime: i10 fromFrame: zero];
-
+	
 	int ci = 0;
 	int iv = 0;
 	int i;
 	float r1;
-    
+	
 	ex_emissive[3] = flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = red_factor;		// diminish red part towards rear of exhaust
@@ -1201,18 +1192,16 @@ FAIL:
 	exhaustBaseColors[ci++] = ex_emissive[1];
 	exhaustBaseColors[ci++] = ex_emissive[2];
 	exhaustBaseColors[ci++] = ex_emissive[3];
-    
+	
 	ex_emissive[3] = 0.9 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.9 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.9 * red_factor;		// diminish red part towards rear of exhaust
 	Vector k1 = f01.k;
 	Vector j1 = cross_product(master_i, k1);
 	Vector i1 = cross_product(j1, k1);
-
-	f01.position = make_vector(zero.position.x - vk.x, zero.position.y - vk.y, zero.position.z - vk.z);// 1m out from zero
-//	i1 = vi;
-//	j1 = vj;	// initial vars
-
+	
+	f01.position = vector_subtract(zero.position, vk); // 1m out from zero
+	
 	i1.x *= exhaustScale.x;	i1.y *= exhaustScale.x;	i1.z *= exhaustScale.x;
 	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
 	for (i = 0; i < 8; i++)
@@ -1225,7 +1214,7 @@ FAIL:
 		exhaustBaseColors[ci++] = ex_emissive[2];
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
-    
+	
 	ex_emissive[3] = 0.6 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.6 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.6 * red_factor;		// diminish red part towards rear of exhaust
@@ -1245,7 +1234,7 @@ FAIL:
 		exhaustBaseColors[ci++] = ex_emissive[2];
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
-    
+	
 	ex_emissive[3] = 0.4 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.4 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.4 * red_factor;		// diminish red part towards rear of exhaust
@@ -1265,7 +1254,7 @@ FAIL:
 		exhaustBaseColors[ci++] = ex_emissive[2];
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
-    
+	
 	ex_emissive[3] = 0.2 * flare_factor * OVERALL_ALPHA;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.2 * green_factor;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.2 * red_factor;		// diminish red part towards rear of exhaust
@@ -1285,7 +1274,7 @@ FAIL:
 		exhaustBaseColors[ci++] = ex_emissive[2];
 		exhaustBaseColors[ci++] = ex_emissive[3];
 	}
-    
+	
 	ex_emissive[3] = 0.0;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.0;	// diminish green part towards rear of exhaust
 	ex_emissive[0] = 0.0;		// diminish red part towards rear of exhaust
@@ -1368,7 +1357,7 @@ FAIL:
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
-	    
+		
 		zero_distance = [my_owner zeroDistance];
 		if (zero_distance > no_draw_distance)
 			return; // TOO FAR AWAY TO DRAW
@@ -1447,13 +1436,13 @@ FAIL:
 
 - (void) drawParticle
 {
-    int viewdir;
+	int viewdir;
 
 	GLfloat	xx = 0.5 * size.width;
 	GLfloat	yy = 0.5 * size.height;
 
 	alpha = OOClamp_0_1_f(alpha);
-    color_fv[3] = alpha;
+	color_fv[3] = alpha;
 
 	// movies:
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
@@ -1632,7 +1621,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	glDisableClientState(GL_INDEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_EDGE_FLAG_ARRAY);
-    
+	
 	glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1);
 	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1);
 	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2);
@@ -1696,9 +1685,9 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	glColor4fv(color_fv);
 	glBegin(GL_TRIANGLE_FAN);
-    
+	
 	GLDrawBallBillboard(collision_radius, step, szd);
-    
+	
 	glEnd();
 
 	EndAdditiveBlending();
@@ -1709,7 +1698,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawFragburst
 {
-    int i;
+	int i;
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -1735,7 +1724,7 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 - (void) drawBurst2
 {
-    int i;
+	int i;
 
 	glEnable(GL_TEXTURE_2D);
 	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);

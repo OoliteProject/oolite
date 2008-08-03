@@ -93,7 +93,7 @@ static JSFunctionSpec sPlanetMethods[] =
 
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
-    sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, sPlanetMethods, NULL, NULL);
+	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, sPlanetMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlanetClass.base, JSBasicPrivateObjectConverter);
 }
 

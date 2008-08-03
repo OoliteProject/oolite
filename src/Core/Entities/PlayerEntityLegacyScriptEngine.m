@@ -2118,7 +2118,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) fuel_leak_rate_number
 {
-    return [NSNumber numberWithFloat:[self fuelLeakRate]];
+	return [NSNumber numberWithFloat:[self fuelLeakRate]];
 }
 
 
@@ -2700,7 +2700,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 	{
 		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
-		      @"setGalacticHyperspaceBehaviour: called with unknown behaviour %@.", galacticHyperspaceBehaviourString);
+			  @"setGalacticHyperspaceBehaviour: called with unknown behaviour %@.", galacticHyperspaceBehaviourString);
 	}
 	[self setGalacticHyperspaceBehaviour:ghBehaviour];
 }
@@ -2712,7 +2712,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ([coord_vals count] < 2)	// Will be 0 if string is nil
 	{
 		OOLog(@"player.setGalacticHyperspaceFixedCoords.invalidInput",
-		      @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
+			  @"setGalacticHyperspaceFixedCoords: called with bad specifier. Defaulting to Oolite standard.");
 		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
 	}
 	

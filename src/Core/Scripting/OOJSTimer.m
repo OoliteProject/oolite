@@ -227,7 +227,7 @@ static JSFunctionSpec sTimerMethods[] =
 
 void InitOOJSTimer(JSContext *context, JSObject *global)
 {
-    sTimerPrototype = JS_InitClass(context, global, NULL, &sTimerClass, TimerConstruct, 0, sTimerProperties, sTimerMethods, NULL, NULL);
+	sTimerPrototype = JS_InitClass(context, global, NULL, &sTimerClass, TimerConstruct, 0, sTimerProperties, sTimerMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sTimerClass, JSBasicPrivateObjectConverter);
 }
 

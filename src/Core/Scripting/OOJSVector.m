@@ -150,7 +150,7 @@ static JSFunctionSpec sVectorStaticMethods[] =
 
 void InitOOJSVector(JSContext *context, JSObject *global)
 {
-    sVectorPrototype = JS_InitClass(context, global, NULL, &sVectorClass.base, VectorConstruct, 0, sVectorProperties, sVectorMethods, NULL, sVectorStaticMethods);
+	sVectorPrototype = JS_InitClass(context, global, NULL, &sVectorClass.base, VectorConstruct, 0, sVectorProperties, sVectorMethods, NULL, sVectorStaticMethods);
 }
 
 

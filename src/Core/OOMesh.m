@@ -123,10 +123,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 
 - (id)init
 {
-    self = [super init];
+	self = [super init];
 	if (self == nil)  return nil;
 	
-    baseFile = @"No Model";
+	baseFile = @"No Model";
 	
 	return self;
 }
@@ -192,7 +192,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		return;
 	}
 	
-    int			ti;
+	int			ti;
 	
 	glPushAttrib(GL_ENABLE_BIT);
 	
@@ -380,9 +380,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		rv.y = dot_product(rj, pv);
 		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
 		bounding_box_reset_to_vector(&result, rv);
-    }
-    for (i = 1; i < vertexCount; i++)
-    {
+	}
+	for (i = 1; i < vertexCount; i++)
+	{
 		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
 		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
 		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
@@ -390,7 +390,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		rv.y = dot_product(rj, pv);
 		rv.z = dot_product(rk, pv);
 		bounding_box_add_vector(&result, rv);
-    }
+	}
 
 	return result;
 }
@@ -406,11 +406,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	v = vector_add(position, OOVectorMultiplyMatrix(vertices[0], rotMatrix));
 	bounding_box_reset_to_vector(&result,v);
 	
-    for (i = 1; i < vertexCount; i++)
-    {
+	for (i = 1; i < vertexCount; i++)
+	{
 		v = vector_add(position, OOVectorMultiplyMatrix(vertices[i], rotMatrix));
 		bounding_box_add_vector(&result,v);
-    }
+	}
 	
 	return result;
 }
@@ -690,13 +690,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (BOOL)loadData:(NSString *)filename
 {
-    NSScanner			*scanner;
+	NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
-    NSString			*data = nil;
-    NSMutableArray		*lines;
-    BOOL				failFlag = NO;
-    NSString			*failString = @"***** ";
-    unsigned			i, j;
+	NSString			*data = nil;
+	NSMutableArray		*lines;
+	BOOL				failFlag = NO;
+	NSString			*failString = @"***** ";
+	unsigned			i, j;
 	NSMutableDictionary	*texFileName2Idx = nil;
 	
 	BOOL using_preloaded = NO;
@@ -978,7 +978,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 								failFlag = YES;
 							if (!failFlag)
 							{
-								faces[j].s[i] = s / max_x;    faces[j].t[i] = t / max_y;
+								faces[j].s[i] = s / max_x;
+								faces[j].t[i] = t / max_y;
 							}
 							else
 								failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
@@ -1021,44 +1022,45 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 // FIXME: this isn't working, we're getting smoothed models with inside-out winding. --Ahruman
 - (void) checkNormalsAndAdjustWinding
 {
-    Vector calculatedNormal;
-    int i, j;
-    for (i = 0; i < faceCount; i++)
-    {
-        Vector v0, v1, v2, norm;
-        v0 = vertices[faces[i].vertex[0]];
-        v1 = vertices[faces[i].vertex[1]];
-        v2 = vertices[faces[i].vertex[2]];
-        norm = faces[i].normal;
+	Vector		calculatedNormal;
+	int			i, j;
+	for (i = 0; i < faceCount; i++)
+	{
+		Vector v0, v1, v2, norm;
+		v0 = vertices[faces[i].vertex[0]];
+		v1 = vertices[faces[i].vertex[1]];
+		v2 = vertices[faces[i].vertex[2]];
+		norm = faces[i].normal;
 		calculatedNormal = normal_to_surface (v2, v1, v0);
-        if ((norm.x == 0.0)&&(norm.y == 0.0)&&(norm.z == 0.0))
+		if (vector_equal(norm, kZeroVector))
 		{
 			faces[i].normal = normal_to_surface (v0, v1, v2);
 			norm = normal_to_surface (v0, v1, v2);
 		}
-        if ((norm.x*calculatedNormal.x < 0)||(norm.y*calculatedNormal.y < 0)||(norm.z*calculatedNormal.z < 0))
-        {
-            // normal lies in the WRONG direction!
-            // reverse the winding
-            int v[faces[i].n_verts];
-            GLfloat s[faces[i].n_verts];
-            GLfloat t[faces[i].n_verts];
-
-            for (j = 0; j < faces[i].n_verts; j++)
-            {
-            	v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
-            	s[j] = faces[i].s[faces[i].n_verts - 1 - j];
-            	t[j] = faces[i].t[faces[i].n_verts - 1 - j];
-            }
-            for (j = 0; j < faces[i].n_verts; j++)
-            {
-            	faces[i].vertex[j] = v[j];
-                faces[i].s[j] = s[j];
-                faces[i].t[j] = t[j];
-            }
-        }
-    }
+		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
+		{
+			// normal lies in the WRONG direction!
+			// reverse the winding
+			int			v[faces[i].n_verts];
+			GLfloat		s[faces[i].n_verts];
+			GLfloat		t[faces[i].n_verts];
+			
+			for (j = 0; j < faces[i].n_verts; j++)
+			{
+				v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
+				s[j] = faces[i].s[faces[i].n_verts - 1 - j];
+				t[j] = faces[i].t[faces[i].n_verts - 1 - j];
+			}
+			for (j = 0; j < faces[i].n_verts; j++)
+			{
+				faces[i].vertex[j] = v[j];
+				faces[i].s[j] = s[j];
+				faces[i].t[j] = t[j];
+			}
+		}
+	}
 }
+
 
 - (void) calculateVertexNormals
 {
@@ -1198,7 +1200,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void) calculateBoundingVolumes
 {
-    int i;
+	int i;
 	double d_squared, length_longest_axis, length_shortest_axis;
 	GLfloat result;
 	
@@ -1206,13 +1208,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (vertexCount)  bounding_box_reset_to_vector(&boundingBox,vertices[0]);
 	else  bounding_box_reset(&boundingBox);
 
-    for (i = 0; i < vertexCount; i++)
-    {
-        d_squared = vertices[i].x*vertices[i].x + vertices[i].y*vertices[i].y + vertices[i].z*vertices[i].z;
-        if (d_squared > result)
-			result = d_squared;
+	for (i = 0; i < vertexCount; i++)
+	{
+		d_squared = vertices[i].x*vertices[i].x + vertices[i].y*vertices[i].y + vertices[i].z*vertices[i].z;
+		if (d_squared > result)  result = d_squared;
 		bounding_box_add_vector(&boundingBox,vertices[i]);
-    }
+	}
 
 	length_longest_axis = boundingBox.max.x - boundingBox.min.x;
 	if (boundingBox.max.y - boundingBox.min.y > length_longest_axis)
@@ -1302,9 +1303,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		rv.y = dot_product(rj, pv);
 		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
 		bounding_box_reset_to_vector(&result, rv);
-    }
-    for (i = 1; i < vertexCount; i++)
-    {
+	}
+	for (i = 1; i < vertexCount; i++)
+	{
 		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
 		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
 		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
@@ -1312,7 +1313,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		rv.y = dot_product(rj, pv);
 		rv.z = dot_product(rk, pv);
 		bounding_box_add_vector(&result, rv);
-    }
+	}
 
 	return result;
 }

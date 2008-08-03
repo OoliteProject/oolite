@@ -121,15 +121,12 @@ enum {
 #define AXCBTHRESH 20000
 
 // Dictionary keys - used in the defaults file
-#define AXIS_SETTINGS @"JoystickAxes"  // NSUserDefaults
-#define BUTTON_SETTINGS @"JoystickButs" // NSUserDefaults
-#define STICK_ISAXIS @"isAxis"      // YES=axis NO=button
-#define STICK_NUMBER @"stickNum"    // Stick number 0 to 4
-#define STICK_AXBUT  @"stickAxBt"   // Axis or button number
-#define STICK_FUNCTION @"stickFunc" // Function of axis/button
-// shortcut to make code more readable when using enum as key for
-// an NSDictionary
-#define ENUMKEY(x) [NSString stringWithFormat: @"%d", x]
+#define AXIS_SETTINGS @"JoystickAxes"	// NSUserDefaults
+#define BUTTON_SETTINGS @"JoystickButs"	// NSUserDefaults
+#define STICK_ISAXIS @"isAxis"			// YES=axis NO=button
+#define STICK_NUMBER @"stickNum"		// Stick number 0 to 4
+#define STICK_AXBUT  @"stickAxBt"		// Axis or button number
+#define STICK_FUNCTION @"stickFunc"		// Function of axis/button
 
 
 @interface JoystickHandler: NSObject

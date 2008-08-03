@@ -53,37 +53,37 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (id) initWithFrame:(NSRect)frameRect
 {
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
-    NSOpenGLPixelFormatAttribute attrs[] = {
-
+	NSOpenGLPixelFormatAttribute attrs[] =
+	{
 //		// Specify that we want a full-screen OpenGL context.
 //		NSOpenGLPFAFullScreen,
 		// and that we want a windowed OpenGL context.
 		NSOpenGLPFAWindow,
-
+		
 		// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
 		// For this demo, we'll specify the main screen.
 		NSOpenGLPFAScreenMask, CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay),
- 
+		
 		// Specifying "NoRecovery" gives us a context that cannot fall back to the software renderer.
 		//This makes the View-based context a compatible with the fullscreen context, enabling us to use the "shareContext"
 		// feature to share textures, display lists, and other OpenGL objects between the two.
-        NSOpenGLPFANoRecovery,
-
-        // Attributes Common to FullScreen and non-FullScreen
+		NSOpenGLPFANoRecovery,
+		
+		// Attributes Common to FullScreen and non-FullScreen
 		NSOpenGLPFACompliant,
 		
-        NSOpenGLPFAColorSize, 32,
-        NSOpenGLPFADepthSize, 32,
-        NSOpenGLPFADoubleBuffer,
-        NSOpenGLPFAAccelerated,
-        0
-    };
-
-    // Create our non-FullScreen pixel format.
-    NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
-
-    self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
-
+		NSOpenGLPFAColorSize, 32,
+		NSOpenGLPFADepthSize, 32,
+		NSOpenGLPFADoubleBuffer,
+		NSOpenGLPFAAccelerated,
+		0
+	};
+	
+	// Create our non-FullScreen pixel format.
+	NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:attrs] autorelease];
+	
+	self = [super initWithFrame:frameRect pixelFormat:pixelFormat];
+	
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 	
 	typedString = [[NSMutableString alloc] initWithString:@""];
@@ -92,7 +92,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
 	
-    return self;
+	return self;
 }
 
 
@@ -192,11 +192,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		viewSize = [self frame].size;
 	}
 	
-    if (!m_glContextInitialized)
-		[self initialiseGLWithSize:viewSize];
-    
+	if (!m_glContextInitialized)  [self initialiseGLWithSize:viewSize];
+	
 	// do all the drawing!
-	//
 	if (UNIVERSE != nil)  [UNIVERSE drawUniverse];
 	else
 	{
@@ -228,8 +226,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	glShadeModel(GL_FLAT);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    [[self openGLContext] flushBuffer];
+	glClear(GL_COLOR_BUFFER_BIT);
+	[[self openGLContext] flushBuffer];
 	
 	glClearDepth(MAX_CLEAR_DEPTH);
 	glViewport( 0, 0, viewSize.width, viewSize.height);
@@ -293,14 +291,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) snapShot
 {
-    //NSRect boundsRect = [self bounds];
-    int w = viewSize.width;
-    int h = viewSize.height;
+	int w = viewSize.width;
+	int h = viewSize.height;
 	
 	if (w & 3)
 		w = w + 4 - (w & 3);
 	
-    long nPixels = w * h + 1;	
+	long nPixels = w * h + 1;	
 
 	unsigned char   *red = (unsigned char *) malloc( nPixels);
 	unsigned char   *green = (unsigned char *) malloc( nPixels);
@@ -320,21 +317,21 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
-    NSBitmapImageRep* bitmapRep = 
-        [[NSBitmapImageRep alloc]
-            initWithBitmapDataPlanes:NULL	// --> let the class allocate it
-            pixelsWide:			w
-            pixelsHigh:			h
-            bitsPerSample:		8			// each component is 8 bits (1 byte)
-            samplesPerPixel:	3			// number of components (R, G, B)
-            hasAlpha:			NO			// no transparency
-            isPlanar:			NO			// data integrated into single plane
-            colorSpaceName:		NSDeviceRGBColorSpace
-            bytesPerRow:		3*w			// can no longer let the class figure it out
-            bitsPerPixel:		24			// can no longer let the class figure it out
-        ];
+	NSBitmapImageRep* bitmapRep = 
+		[[NSBitmapImageRep alloc]
+			initWithBitmapDataPlanes:NULL	// --> let the class allocate it
+			pixelsWide:			w
+			pixelsHigh:			h
+			bitsPerSample:		8			// each component is 8 bits (1 byte)
+			samplesPerPixel:	3			// number of components (R, G, B)
+			hasAlpha:			NO			// no transparency
+			isPlanar:			NO			// data integrated into single plane
+			colorSpaceName:		NSDeviceRGBColorSpace
+			bytesPerRow:		3*w			// can no longer let the class figure it out
+			bitsPerPixel:		24			// can no longer let the class figure it out
+		];
 
-    unsigned char *pixels = [bitmapRep bitmapData];
+	unsigned char *pixels = [bitmapRep bitmapData];
 		
 	glReadPixels(0,0, w,h, GL_RED,   GL_UNSIGNED_BYTE, red);
 	glReadPixels(0,0, w,h, GL_GREEN, GL_UNSIGNED_BYTE, green);
@@ -356,7 +353,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		writeToFile:pathToPng atomically:YES];			// save PNG representation of Image
 	
 	// free allocated objects and memory
-	[bitmapRep release];         
+	[bitmapRep release];
 	free(red);
 	free(green);
 	free(blue);
@@ -488,7 +485,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 } 
 
-/*     Capture shift, ctrl, opt and command press & release */
+/* Capture shift, ctrl, opt and command press & release */
 - (void)flagsChanged:(NSEvent *)theEvent
 {
 	int flags = [theEvent modifierFlags];
@@ -502,7 +499,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-    if (doubleClick)
+	if (doubleClick)
 	{
 		doubleClick = NO;
 		keys[gvMouseDoubleClick] = NO;
@@ -546,7 +543,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 /////////////////////////////////////////////////////////////
-/*     Turn the Cocoa ArrowKeys into our arrow key constants. */
+/*  Turn the Cocoa ArrowKeys into our arrow key constants. */
 - (int) translateKeyCode: (int) input
 {
 	int key = input;

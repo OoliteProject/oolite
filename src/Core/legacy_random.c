@@ -204,15 +204,14 @@ void make_pseudo_random_seed (Random_Seed *seed_ptr)
 
 void rotate_seed (Random_Seed *seed_ptr)
 {
-    unsigned int x;
+	unsigned int x;
 	unsigned int y;
 
 	x = seed_ptr->a + seed_ptr->c;
-    y = seed_ptr->b + seed_ptr->d;
+	y = seed_ptr->b + seed_ptr->d;
 
 
-	if (x > 0xFF)
-	    y++;
+	if (x > 0xFF)  y++;
 
 	x &= 0xFF;
 	y &= 0xFF;
@@ -222,14 +221,14 @@ void rotate_seed (Random_Seed *seed_ptr)
 	seed_ptr->c = seed_ptr->e;
 	seed_ptr->d = seed_ptr->f;
 
-    x += seed_ptr->c;
+	x += seed_ptr->c;
 	y += seed_ptr->d;
 
 
 	if (x > 0xFF)
 		y++;
 
-    x &= 0xFF;
+	x &= 0xFF;
 	y &= 0xFF;
 
 	seed_ptr->e = x;

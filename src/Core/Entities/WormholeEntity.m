@@ -41,33 +41,26 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship
 {
-	self = [super init];
-	//
-	if (!ship)
-		return self;
-	//
-	destination = s_seed;
-	//
-    time_counter = 0.0;
-	//
-	expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
-	//
-	witch_mass = 0.0;
-	//
-	shipsInTransit = [[NSMutableArray arrayWithCapacity:4] retain];
-	//
-	collision_radius = 0.0;
-	//
-	status = STATUS_EFFECT;
-	scanClass = CLASS_MINE;
-	//
-	position = [ship position];
-    //
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	if (player)
-		zero_distance = distance2(player->position, position);
-	//
-	isWormhole = YES;
+	if ((self = [super init]))
+	{
+		if (ship == nil)
+		{
+			[self release];
+			return nil;
+		}
+		
+		destination = s_seed;
+		time_counter = 0.0;
+		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
+		witch_mass = 0.0;
+		shipsInTransit = [[NSMutableArray arrayWithCapacity:4] retain];
+		collision_radius = 0.0;
+		status = STATUS_EFFECT;
+		scanClass = CLASS_MINE;
+		position = [ship position];
+		zero_distance = distance2([[PlayerEntity sharedPlayer] position], position);
+		isWormhole = YES;
+	}
 	
 	return self;
 }
@@ -161,29 +154,31 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (void) dealloc
 {
-    if (shipsInTransit)	[shipsInTransit release];
-    [super dealloc];
+	[shipsInTransit release];
+	
+	[super dealloc];
 }
 
 
 - (NSString *) descriptionComponents
 {
-	NSString* whereto = (UNIVERSE) ? [UNIVERSE getSystemName:destination] : StringFromRandomSeed(destination);
-	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs", whereto, WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
+	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs", [UNIVERSE getSystemName:destination], WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
 }
 
 
 - (BOOL) canCollide
 {
 	if (equal_seeds(destination, [UNIVERSE systemSeed]))
+	{
 		return NO;	// far end of the wormhole!
+	}
 	return (witch_mass > 0.0);
 }
 
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	return !(other->isParticle);
+	return !other->isParticle;
 }
 
 

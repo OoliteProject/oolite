@@ -29,12 +29,12 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "Universe.h"
 
-#define GUI_ROW_STICKNAME    1
-#define GUI_ROW_HEADING      3
-#define GUI_ROW_FUNCSTART    4
-#define GUI_ROW_INSTRUCT     17
+#define GUI_ROW_STICKNAME		1
+#define GUI_ROW_HEADING			3
+#define GUI_ROW_FUNCSTART		4
+#define GUI_ROW_INSTRUCT		17
 
-#define MAX_ROWS_FUNCTIONS   12
+#define MAX_ROWS_FUNCTIONS		12
 
 // Dictionary keys
 #define KEY_GUIDESC  @"guiDesc"
@@ -46,7 +46,7 @@ MA 02110-1301, USA.
 
    - (void) setGuiToStickMapperScreen: (unsigned)skip;
    - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
-                               view: (MyOpenGLView *)gameView;
+							   view: (MyOpenGLView *)gameView;
    // Callback method
    - (void) updateFunction: (NSDictionary *)hwDict;
 
@@ -54,15 +54,15 @@ MA 02110-1301, USA.
    - (void) removeFunction: (int)selFunctionIdx;
    - (NSArray *)getStickFunctionList;
    - (void)displayFunctionList: (GuiDisplayGen *)gui
-                          skip: (unsigned) skip;
+						  skip: (unsigned) skip;
    - (NSString *)describeStickDict: (NSDictionary *)stickDict;
    - (NSString *)hwToString: (int)hwFlags;
 
    // Future: populate via plist
    - (NSDictionary *)makeStickGuiDict: (NSString *)what 
-                            allowable: (int)allowable
-                               axisfn: (int)axisfn
-                                butfn: (int)butfn;
+							allowable: (int)allowable
+							   axisfn: (int)axisfn
+								butfn: (int)butfn;
                               
 @end
 

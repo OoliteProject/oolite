@@ -201,7 +201,7 @@ static JSExtendedClass sSystemInfoClass =
 
 void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 {
-    sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass.base, NULL, 0, NULL, NULL, NULL, NULL);
+	sSystemInfoPrototype = JS_InitClass(context, global, NULL, &sSystemInfoClass.base, NULL, 0, NULL, NULL, NULL, NULL);
 	JSRegisterObjectConverter(&sSystemInfoClass.base, JSBasicPrivateObjectConverter);
 }
 

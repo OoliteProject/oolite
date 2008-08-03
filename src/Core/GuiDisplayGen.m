@@ -94,7 +94,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				 columns:(int)gui_cols 
 					rows:(int)gui_rows 
 			   rowHeight:(int)gui_row_height
-			    rowStart:(int)gui_row_start
+				rowStart:(int)gui_row_start
 				   title:(NSString*)gui_title
 {
 	self = [super init];
@@ -1005,7 +1005,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (!RowInRange(selectedRow, selectableRange))
 		selectedRow = -1;   // out of Range;
 	
-    ////
+	////
 	// drawing operations here
 	
 	if (title != nil)
@@ -1456,7 +1456,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			int loc2 = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:(i+1)] intValue];
 			
 			g_seed = [UNIVERSE systemSeedForSystemNumber:loc];
-			g_seed2 = [UNIVERSE systemSeedForSystemNumber:(loc2)];        
+			g_seed2 = [UNIVERSE systemSeedForSystemNumber:(loc2)];
 			star.x = (float)(g_seed.d * hscale + hoffset);
 			star.y = (float)(g_seed.b * vscale + voffset);
 			star2.x = (float)(g_seed2.d * hscale + hoffset);

@@ -462,7 +462,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
 	
-    BOOL paused = [[gameView gameController] gameIsPaused];
+	BOOL paused = [[gameView gameController] gameIsPaused];
 	double speed_delta = 5.0 * thrust;
 	
 	if (!paused)
@@ -1784,33 +1784,33 @@ static NSTimeInterval	time_last_frame;
 	// damp any rotations we entered with
 	if (flightRoll > 0.0)
 	{
-		if (flightRoll > delta_t)	[self decrease_flight_roll:delta_t];
+		if (flightRoll > delta_t)		[self decrease_flight_roll:delta_t];
 		else	flightRoll = 0.0;
 	}
 	if (flightRoll < 0.0)
 	{
-		if (flightRoll < -delta_t)   [self increase_flight_roll:delta_t];
+		if (flightRoll < -delta_t)		[self increase_flight_roll:delta_t];
 		else	flightRoll = 0.0;
 	}
 	if (flightPitch > 0.0)
 	{
-		if (flightPitch > delta_t)	[self decrease_flight_pitch:delta_t];
+		if (flightPitch > delta_t)		[self decrease_flight_pitch:delta_t];
 		else	flightPitch = 0.0;
 	}
 	if (flightPitch < 0.0)
 	{
-		if (flightPitch < -delta_t)	[self increase_flight_pitch:delta_t];
+		if (flightPitch < -delta_t)		[self increase_flight_pitch:delta_t];
 		else	flightPitch = 0.0;
 	}
 	if (flightYaw > 0.0) 
 	{ 
-		if (flightYaw > delta_t)        [self decrease_flight_yaw:delta_t]; 
-		else    flightYaw = 0.0; 
+		if (flightYaw > delta_t)		[self decrease_flight_yaw:delta_t]; 
+		else	flightYaw = 0.0; 
 	} 
 	if (flightYaw < 0.0) 
 	{ 
-		if (flightYaw < -delta_t)       [self increase_flight_yaw:delta_t]; 
-		else    flightYaw = 0.0; 
+		if (flightYaw < -delta_t)		[self increase_flight_yaw:delta_t]; 
+		else	flightYaw = 0.0; 
 	} 
 }
 
@@ -2074,10 +2074,10 @@ static NSTimeInterval	time_last_frame;
 	if(!pollControls)
 		return;
 	
-	MyOpenGLView  *gameView = [UNIVERSE gameView];
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	
-	NSPoint        virtualView = NSZeroPoint;
-	double         view_threshold = 0.5;
+	NSPoint			virtualView = NSZeroPoint;
+	double			view_threshold = 0.5;
 
 	if (!stickHandler)
 	{

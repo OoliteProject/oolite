@@ -38,48 +38,48 @@ static NSString * const kOOLogMathsQuatLimitedRotationDebug = @"maths.quaternion
 
 Quaternion quaternion_multiply(Quaternion q1, Quaternion q2)
 {
-    Quaternion	result;
-    result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
-    result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
-    result.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
-    result.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
-    return result;
+	Quaternion	result;
+	result.w = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+	result.x = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+	result.y = q1.w * q2.y + q1.y * q2.w + q1.z * q2.x - q1.x * q2.z;
+	result.z = q1.w * q2.z + q1.z * q2.w + q1.x * q2.y - q1.y * q2.x;
+	return result;
 }
 
 
 // NOTE: this is broken - its distribution is weighted towards corners of the hypercube. Probably doesn't matter, though.
 void quaternion_set_random(Quaternion *quat)
 {
-    quat->w = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-    quat->x = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-    quat->y = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-    quat->z = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->w = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->x = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->y = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->z = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
 	quaternion_normalize(quat);
 }
 
 
 Vector vector_forward_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wy, wx;
-    GLfloat	x, xz, xx;
-    GLfloat	y, yz, yy;
-    GLfloat	z, zz;
-    Vector res;
+	GLfloat	w, wy, wx;
+	GLfloat	x, xz, xx;
+	GLfloat	y, yz, yy;
+	GLfloat	z, zz;
+	Vector res;
 	
-    w = quat.w;
-    z = quat.z;
-    y = quat.y;
-    x = quat.x;
-    
-    xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wy = w * yy;
-    xx = x * xx; xz = x * zz;
-    yy = y * yy; yz = y * zz;
-
-    res.x = xz - wy;
+	w = quat.w;
+	z = quat.z;
+	y = quat.y;
+	x = quat.x;
+	
+	xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
+	wx = w * xx; wy = w * yy;
+	xx = x * xx; xz = x * zz;
+	yy = y * yy; yz = y * zz;
+	
+	res.x = xz - wy;
 	res.y = yz + wx;
 	res.z = 1.0f - xx - yy;
-
+	
 	if (res.x||res.y||res.z)  return unit_vector(&res);
 	else  return make_vector(0.0f, 0.0f, 1.0f);
 }
@@ -87,24 +87,24 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 
 Vector vector_up_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wz, wx;
-    GLfloat	x, xy, xx;
-    GLfloat	y, yz, yy;
-    GLfloat	z, zz;
-    Vector res;
+	GLfloat	w, wz, wx;
+	GLfloat	x, xy, xx;
+	GLfloat	y, yz, yy;
+	GLfloat	z, zz;
+	Vector res;
 	
-    w = quat.w;
-    z = quat.z;
-    y = quat.y;
-    x = quat.x;
-    
-    xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wz = w * zz;
-    xx = x * xx; xy = x * yy;
-    yz = y * zz;
-    zz = z * zz;
-
-    res.x = xy + wz;
+	w = quat.w;
+	z = quat.z;
+	y = quat.y;
+	x = quat.x;
+	
+	xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
+	wx = w * xx; wz = w * zz;
+	xx = x * xx; xy = x * yy;
+	yz = y * zz;
+	zz = z * zz;
+	
+	res.x = xy + wz;
 	res.y = 1.0f - xx - zz;
 	res.z = yz - wx;
 	
@@ -115,27 +115,27 @@ Vector vector_up_from_quaternion(Quaternion quat)
 
 Vector vector_right_from_quaternion(Quaternion quat)
 {
-    GLfloat	w, wz, wy;
-    GLfloat	x, xz, xy;
-    GLfloat	y, yy;
-    GLfloat	z, zz;
-    Vector res;
+	GLfloat	w, wz, wy;
+	GLfloat	x, xz, xy;
+	GLfloat	y, yy;
+	GLfloat	z, zz;
+	Vector res;
 	
-    w = quat.w;
-    z = quat.z;
-    y = quat.y;
-    x = quat.x;
-    
-    yy = 2.0f * y; zz = 2.0f * z;
-    wy = w * yy; wz = w * zz;
-    xy = x * yy; xz = x * zz;
-    yy = y * yy;
-    zz = z * zz;
-
-    res.x = 1.0f - yy - zz;
+	w = quat.w;
+	z = quat.z;
+	y = quat.y;
+	x = quat.x;
+	
+	yy = 2.0f * y; zz = 2.0f * z;
+	wy = w * yy; wz = w * zz;
+	xy = x * yy; xz = x * zz;
+	yy = y * yy;
+	zz = z * zz;
+	
+	res.x = 1.0f - yy - zz;
 	res.y = xy - wz;
 	res.z = xz + wy;
-
+	
 	if (res.x||res.y||res.z)  return unit_vector(&res);
 	else  return make_vector(1.0f, 0.0f, 0.0f);
 }
@@ -143,21 +143,21 @@ Vector vector_right_from_quaternion(Quaternion quat)
 
 void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *outUp, Vector *outForward)
 {
-    GLfloat	w, wz, wy, wx;
-    GLfloat	x, xz, xy, xx;
-    GLfloat	y, yz, yy;
-    GLfloat	z, zz;
+	GLfloat	w, wz, wy, wx;
+	GLfloat	x, xz, xy, xx;
+	GLfloat	y, yz, yy;
+	GLfloat	z, zz;
 	
-    w = quat.w;
-    z = quat.z;
-    y = quat.y;
-    x = quat.x;
-    
-    xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
-    wx = w * xx; wy = w * yy; wz = w * zz;
-    xx = x * xx; xy = x * yy; xz = x * zz;
-    yy = y * yy; yz = y * zz;
-    zz = z * zz;
+	w = quat.w;
+	z = quat.z;
+	y = quat.y;
+	x = quat.x;
+	
+	xx = 2.0f * x; yy = 2.0f * y; zz = 2.0f * z;
+	wx = w * xx; wy = w * yy; wz = w * zz;
+	xx = x * xx; xy = x * yy; xz = x * zz;
+	yy = y * yy; yz = y * zz;
+	zz = z * zz;
 	
 	if (outRight != NULL)
 	{
@@ -218,7 +218,7 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 	Quaternion q;
 	GLfloat min_s = 2.0f * cosf(0.5f * maxArc);
 	GLfloat s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
-	if (EXPECT(s))
+	if (EXPECT(s != 0))
 	{
 		if (s < min_s)	// larger angle => smaller cos
 		{
@@ -252,85 +252,74 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 
 void quaternion_rotate_about_x(Quaternion *quat, GLfloat angle)
 {
-    Quaternion result;
-    GLfloat a = angle * 0.5;
-    GLfloat w = cos(a);
-    GLfloat scale = sin(a);
-
-    result.w = quat->w * w - quat->x * scale;
-    result.x = quat->w * scale + quat->x * w;
-    result.y = quat->y * w + quat->z * scale;
-    result.z = quat->z * w - quat->y * scale;
-    
-    quat->w = result.w;
-    quat->x = result.x;
-    quat->y = result.y;
-    quat->z = result.z;
+	Quaternion result;
+	GLfloat a = angle * 0.5;
+	GLfloat w = cos(a);
+	GLfloat scale = sin(a);
+	
+	result.w = quat->w * w - quat->x * scale;
+	result.x = quat->w * scale + quat->x * w;
+	result.y = quat->y * w + quat->z * scale;
+	result.z = quat->z * w - quat->y * scale;
+	
+	quat->w = result.w;
+	quat->x = result.x;
+	quat->y = result.y;
+	quat->z = result.z;
 }
 
 
 void quaternion_rotate_about_y(Quaternion *quat, GLfloat angle)
 {
-    Quaternion result;
-    GLfloat a = angle * 0.5f;
-    GLfloat w = cosf(a);
-    GLfloat scale = sinf(a);
-
-    result.w = quat->w * w - quat->y * scale;
-    result.x = quat->x * w - quat->z * scale;
-    result.y = quat->w * scale + quat->y * w;
-    result.z = quat->z * w + quat->x * scale;
-    
-    quat->w = result.w;
-    quat->x = result.x;
-    quat->y = result.y;
-    quat->z = result.z;
+	Quaternion result;
+	GLfloat a = angle * 0.5f;
+	GLfloat w = cosf(a);
+	GLfloat scale = sinf(a);
+	
+	result.w = quat->w * w - quat->y * scale;
+	result.x = quat->x * w - quat->z * scale;
+	result.y = quat->w * scale + quat->y * w;
+	result.z = quat->z * w + quat->x * scale;
+	
+	quat->w = result.w;
+	quat->x = result.x;
+	quat->y = result.y;
+	quat->z = result.z;
 }
 
 
 void quaternion_rotate_about_z(Quaternion *quat, GLfloat angle)
 {
-    Quaternion result;
-    GLfloat a = angle * 0.5f;
-    GLfloat w = cosf(a);
-    GLfloat scale = sinf(a);
-    
-    result.w = quat->w * w - quat->z * scale;
-    result.x = quat->x * w + quat->y * scale;
-    result.y = quat->y * w - quat->x * scale;
-    result.z = quat->w * scale + quat->z * w;
-    
-    quat->w = result.w;
-    quat->x = result.x;
-    quat->y = result.y;
-    quat->z = result.z;
+	Quaternion result;
+	GLfloat a = angle * 0.5f;
+	GLfloat w = cosf(a);
+	GLfloat scale = sinf(a);
+	
+	result.w = quat->w * w - quat->z * scale;
+	result.x = quat->x * w + quat->y * scale;
+	result.y = quat->y * w - quat->x * scale;
+	result.z = quat->w * scale + quat->z * w;
+	
+	quat->w = result.w;
+	quat->x = result.x;
+	quat->y = result.y;
+	quat->z = result.z;
 }
 
 
 void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 {
-    Quaternion q2 /*, result */;
-    GLfloat a = angle * 0.5f;
-    GLfloat w = cosf(a);
-    GLfloat scale = sinf(a);
+	Quaternion q2 /*, result */;
+	GLfloat a = angle * 0.5f;
+	GLfloat w = cosf(a);
+	GLfloat scale = sinf(a);
 	
-    q2.w = w;
-    q2.x = axis.x * scale;
-    q2.y = axis.y * scale;
-    q2.z = axis.z * scale;
-#if 0
-    result.w = quat->w * q2.w - q2.x * quat->x - quat->y * q2.y - quat->z * q2.z;
-    result.x = quat->w * q2.x + quat->x * q2.w + quat->y * q2.z - quat->z * q2.y;
-    result.y = quat->w * q2.y + quat->y * q2.w + quat->z * q2.x - quat->x * q2.z;
-    result.z = quat->w * q2.z + quat->z * q2.w + quat->x * q2.y - quat->y * q2.x;
+	q2.w = w;
+	q2.x = axis.x * scale;
+	q2.y = axis.y * scale;
+	q2.z = axis.z * scale;
 	
-    quat->w = result.w;
-    quat->x = result.x;
-    quat->y = result.y;
-    quat->z = result.z;
-#else
 	*quat = quaternion_multiply(*quat, q2);
-#endif
 }
 
 
@@ -376,13 +365,13 @@ Vector quaternion_rotate_vector(Quaternion q, Vector v)
 	Quaternion				qv;
 	
 	qv.w = 0 - q.x * v.x - q.y * v.y - q.z * v.z;
-    qv.x = q.w * v.x + q.y * v.z - q.z * v.y;
-    qv.y = q.w * v.y + q.z * v.x - q.x * v.z;
-    qv.z = q.w * v.z + q.x * v.y - q.y * v.x;
+	qv.x = q.w * v.x + q.y * v.z - q.z * v.y;
+	qv.y = q.w * v.y + q.z * v.x - q.x * v.z;
+	qv.z = q.w * v.z + q.x * v.y - q.y * v.x;
 	// w is ignored.
-    v.x = qv.w * -q.x + qv.x * q.w + qv.y * -q.z - qv.z * -q.y;
-    v.y = qv.w * -q.y + qv.y * q.w + qv.z * -q.x - qv.x * -q.z;
-    v.z = qv.w * -q.z + qv.z * q.w + qv.x * -q.y - qv.y * -q.x;
+	v.x = qv.w * -q.x + qv.x * q.w + qv.y * -q.z - qv.z * -q.y;
+	v.y = qv.w * -q.y + qv.y * q.w + qv.z * -q.x - qv.x * -q.z;
+	v.z = qv.w * -q.z + qv.z * q.w + qv.x * -q.y - qv.y * -q.x;
 	return v;
 }
 #endif

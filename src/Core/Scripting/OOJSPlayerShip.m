@@ -129,7 +129,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 
 void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 {
-    sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass.base, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
+	sPlayerShipPrototype = JS_InitClass(context, global, JSShipPrototype(), &sPlayerShipClass.base, NULL, 0, sPlayerShipProperties, sPlayerShipMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlayerShipClass.base, JSBasicPrivateObjectConverter);
 	
 	// Create ship object as a property of the player object.

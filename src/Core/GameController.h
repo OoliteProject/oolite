@@ -73,9 +73,9 @@ MA 02110-1301, USA.
 @interface GameController : NSObject
 {
 #if OOLITE_HAVE_APPKIT
-    IBOutlet NSTextField	*splashProgressTextField;
-    IBOutlet NSView			*splashView;
-    IBOutlet NSWindow		*gameWindow;
+	IBOutlet NSTextField	*splashProgressTextField;
+	IBOutlet NSView			*splashView;
+	IBOutlet NSWindow		*gameWindow;
 	IBOutlet NSTextView		*helpView;
 #endif
 

@@ -69,15 +69,15 @@ typedef struct
 							materialsReady: 1;
 	
 	OOMeshMaterialCount		textureCount;
-    OOMeshVertexCount		vertexCount;
+	OOMeshVertexCount		vertexCount;
 	OOMeshFaceCount			faceCount;
-    
-    NSString				*basefile;
 	
-    Vector					vertices[MAX_VERTICES_PER_ENTITY];
-    Vector					vertex_normal[MAX_VERTICES_PER_ENTITY];
-    Face					faces[MAX_FACES_PER_ENTITY];
-    GLuint					displayListName;
+	NSString				*basefile;
+	
+	Vector					vertices[MAX_VERTICES_PER_ENTITY];
+	Vector					vertex_normal[MAX_VERTICES_PER_ENTITY];
+	Face					faces[MAX_FACES_PER_ENTITY];
+	GLuint					displayListName;
 	
 	EntityData				entityData;
 	NSRange					triangle_range[MAX_TEXTURES_PER_ENTITY];

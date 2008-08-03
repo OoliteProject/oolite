@@ -58,7 +58,7 @@ MA 02110-1301, USA.
 	
 	GLfloat			alpha_for_vertex[MAX_VERTICES_PER_ENTITY];
 		
-    NSSize			size;
+	NSSize			size;
 
 	Vector			exhaustScale;
 	GLfloat			exhaustBaseColors[34 * 4], verts[34 * 3];

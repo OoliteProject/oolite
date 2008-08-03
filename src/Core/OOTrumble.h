@@ -70,7 +70,7 @@ float	trumbleAppetiteAccumulator;
 
 @interface OOTrumble : NSObject
 {
-    PlayerEntity			*player;	// owning entity (not retained)
+	PlayerEntity			*player;	// owning entity (not retained)
 	//
 	unichar					digram[2];	// seed for pseudo-randomly setting up Trumble (pair of characters)
 	//
