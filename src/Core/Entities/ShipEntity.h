@@ -163,6 +163,7 @@ MA 02110-1301, USA.
 							noRocks: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
+	OOFuelQuantity			min_fuel : 1;				// minimum fuel required for afterburner use
 	GLfloat					fuel_accumulator;
 	
 	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)

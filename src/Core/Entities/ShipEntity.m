@@ -2125,7 +2125,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2155,7 +2155,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2260,7 +2260,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_fly_to_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2403,7 +2403,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_flee_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -3018,7 +3018,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) applyThrust:(double) delta_t
 {
 	GLfloat dt_thrust = thrust * delta_t;
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > 1);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
 	float	max_available_speed = maxFlightSpeed;
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
@@ -3060,7 +3060,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
-			if (fuel-- < 1)
+			if (fuel-- < min_fuel)
 				max_available_speed = maxFlightSpeed;
 			fuel_accumulator += 1.0;
 		}
@@ -3906,7 +3906,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 - (void) increase_flight_speed:(double) delta
 {
 	double factor = 1.0;
-	if (desired_speed > maxFlightSpeed && [self hasFuelInjection] && fuel > 0) factor = [self afterburnerFactor];
+	if (desired_speed > maxFlightSpeed && [self hasFuelInjection] && fuel > min_fuel) factor = [self afterburnerFactor];
 
 	if (flightSpeed < maxFlightSpeed * factor)
 		flightSpeed += delta * factor;
