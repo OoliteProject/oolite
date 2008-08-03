@@ -1428,8 +1428,7 @@ double scoopSoundPlayTime = 0.0;
 			while ((fuel_accumulator < 0)&&(fuel > 0))
 			{
 				fuel_accumulator += 1.0f;
-				fuel --;
-				if (fuel <= 0)
+				if (--fuel <= MIN_FUEL)
 					afterburner_engaged = NO;
 			}
 		}

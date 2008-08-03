@@ -1636,11 +1636,51 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other
 {
-	Entity					*source = nil;
+	Entity *source = nil;
 	
-	if ([other isKindOfClass:[ShipEntity class]])  source = other;
-	else  source = from;
-	
+	if ([other isKindOfClass:[ShipEntity class]])
+	{
+		source = other;
+		
+		ShipEntity *hunter = (ShipEntity *)other;
+		//if we are in the same group, then we have to be careful about how we handle things
+		if ([self isPolice] && [hunter isPolice]) 
+		{
+			//police never get into a fight with each other
+			return;
+		}
+		if (groupID != NO_TARGET && groupID == [hunter groupID]) 
+		{
+			//we are in the same group, do we forgive you?
+			//criminals are less likely to forgive
+			if (randf() < (0.8 - (bounty/100))) 
+			{
+				//it was an honest mistake, lets get on with it
+				return;
+			}
+			ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
+			if (hunter == group_leader)
+			{
+				//oops we were attacked by our leader, desert him
+				[self setGroupID:NO_TARGET];
+			}
+			else 
+			{
+				//evict them from our group
+				[hunter setGroupID:NO_TARGET];
+				if ((group_leader)&&(group_leader->isShip))
+				{
+					[group_leader setFound_target:other];
+					[group_leader setPrimaryAggressor:hunter];
+					[group_leader respondToAttackFrom:from becauseOf:other];
+				}
+			}
+		}
+	}
+	else
+	{
+		source = from;
+	}	
 	[self doScriptEvent:@"shipBeingAttacked" withArgument:source andReactToAIMessage:@"ATTACKED"];
 }
 
@@ -2125,7 +2165,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2155,7 +2195,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_fly_to_target_six:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2260,7 +2300,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_attack_fly_to_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2403,7 +2443,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_flee_target:(double) delta_t
 {
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
@@ -2986,9 +3026,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setOwner:(Entity *)owner
+- (void) setOwner:(Entity *)who_owns_entity
 {
-	[super setOwner:owner];
+	[super setOwner:who_owns_entity];
 	
 	/*	Reset shader binding target so that bind-to-super works.
 		This is necessary since we don't know about the owner in
@@ -3018,7 +3058,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) applyThrust:(double) delta_t
 {
 	GLfloat dt_thrust = thrust * delta_t;
-	BOOL	canBurn = [self hasFuelInjection] && (fuel > min_fuel);
+	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
@@ -3060,7 +3100,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
-			if (fuel-- < min_fuel)
+			if (fuel-- <= MIN_FUEL)
 				max_available_speed = maxFlightSpeed;
 			fuel_accumulator += 1.0;
 		}
@@ -3196,7 +3236,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		return;
 	}
 
-	if (isStation||(other->isStation))	// don't be alarmed close to stations
+	if (isStation || (other->isStation)) // don't be alarmed close to stations
 		return;
 
 	if ((scanClass == CLASS_CARGO)||(scanClass == CLASS_BUOY)||(scanClass == CLASS_MISSILE)||(scanClass == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
@@ -3906,7 +3946,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 - (void) increase_flight_speed:(double) delta
 {
 	double factor = 1.0;
-	if (desired_speed > maxFlightSpeed && [self hasFuelInjection] && fuel > min_fuel) factor = [self afterburnerFactor];
+	if (desired_speed > maxFlightSpeed && [self hasFuelInjection] && fuel > MIN_FUEL) factor = [self afterburnerFactor];
 
 	if (flightSpeed < maxFlightSpeed * factor)
 		flightSpeed += delta * factor;
@@ -5769,7 +5809,7 @@ BOOL class_masslocks(int some_class)
 {
 	if (shot_time < weapon_recharge_rate)
 		return NO;
-	if (range > 5000)
+	if (range > 5050) //50 more than max range - open up just slightly early
 		return NO;
 
 	ParticleEntity *shot = nil;
@@ -6858,7 +6898,7 @@ BOOL class_masslocks(int some_class)
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	if (status == STATUS_DEAD)  return;
-	if (amount == 0.0)  return;
+	if (amount <= 0.0)  return;
 	
 	// If it's an energy mine...
 	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
@@ -6908,13 +6948,10 @@ BOOL class_masslocks(int some_class)
 		if (energy > 0)
 			[self respondToAttackFrom:ent becauseOf:other];
 
-		// firing on an innocent ship is an offence
-		[self broadcastHitByLaserFrom:(ShipEntity*) other];
-
 		// tell our group we've been attacked
-		if (groupID != NO_TARGET)
+		if (groupID != NO_TARGET && (groupID != [hunter groupID]) && (!iAmTheLaw && !uAreTheLaw))
 		{
-			if ([self isTrader]|| [self isEscort])
+			if ([self isTrader] || [self isEscort])
 			{
 				ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
 				if ((group_leader)&&(group_leader->isShip))
