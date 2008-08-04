@@ -116,13 +116,13 @@ MA 02110-1301, USA.
 		switch(hw)
 		{
 			case HW_AXIS:
-				instructions = @"Fully deflect the axis you want to use for this function. Esc aborts."];
+				instructions = @"Fully deflect the axis you want to use for this function. Esc aborts.";
 				break;
 			case HW_BUTTON:
-				instructions = @"Press the button you want to use for this function. Esc aborts."];
+				instructions = @"Press the button you want to use for this function. Esc aborts.";
 				break;
 			default:
-				instructions = @"Press the button or deflect the axis you want to use for this function."];
+				instructions = @"Press the button or deflect the axis you want to use for this function.";
 		}
 		[gui setArray: [NSArray arrayWithObjects: instructions, nil] forRow: GUI_ROW_INSTRUCT];
 		waitingForStickCallback=YES;
