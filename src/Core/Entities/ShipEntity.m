@@ -137,16 +137,20 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
-- (BOOL) setUpSubEntities: (NSDictionary *) shipDict {
-  unsigned int i;
-  NSArray *plumes = [shipDict arrayForKey:@"exhaust"];
+- (BOOL) setUpSubEntities: (NSDictionary *) shipDict
+{
+	unsigned int	i;
+	NSArray			*plumes = [shipDict arrayForKey:@"exhaust"];
+	
 	for (i = 0; i < [plumes count]; i++)
 	{
 		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
 		[self addExhaust:exhaust];
 		[exhaust release];
 	}
-	NSArray *subs = [shipDict arrayForKey:@"subentities"];
+	
+	NSArray			*subs = [shipDict arrayForKey:@"subentities"];
+	
 	for (i = 0; i < [subs count]; i++)
 	{
 		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);

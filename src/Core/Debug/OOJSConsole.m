@@ -62,6 +62,7 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -108,6 +109,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "scriptStack",			ConsoleScriptStack,			0 },
 	{ "inspectEntity",			ConsoleInspectEntity,		1 },
 	{ "__callObjCMethod",		ConsoleCallObjCMethod,		1 },
+	{ "isExecutableJavaScript",	ConsoleIsExecutableJavaScript, 2 },
 	{ 0 }
 };
 
@@ -316,7 +318,9 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 }
 
 
-// Methods
+// *** Methods ***
+
+// function consoleMessage(message : String) : undefined
 static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id					monitor = nil;
@@ -369,6 +373,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 }
 
 
+// function clearConsole() : undefined
 static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id					monitor = nil;
@@ -385,6 +390,7 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 }
 
 
+// function scriptStack() : Array
 static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSArray				*result = nil;
@@ -395,6 +401,7 @@ static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc,
 }
 
 
+// function inspectEntity(entity : Entity) : undefined
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Entity				*entity = nil;
@@ -411,6 +418,7 @@ static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN arg
 }
 
 
+// function __callObjCMethod(selector : String [, ...]) : Object
 static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id						object = nil;
@@ -423,6 +431,22 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 	}
 	
 	return OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, argv, outResult);
+}
+
+
+// function isExecutableJavaScript(this : Object, string : String) : Boolean
+static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	JSObject				*target = NULL;
+	JSString				*string = NULL;
+	
+	*outResult = JSVAL_FALSE;
+	if (argc < 2)  return YES;
+	if (!JS_ValueToObject(context, argv[0], &target) || !JSVAL_IS_STRING(argv[1]))  return YES;	// Fail silently
+	string = JSVAL_TO_STRING(argv[1]);
+	
+	*outResult = BOOLEAN_TO_JSVAL(JS_BufferIsCompilableUnit(context, target, JS_GetStringBytes(string), JS_GetStringLength(string)));
+	return YES;
 }
 
 #endif /* OO_EXCLUDE_DEBUG_SUPPORT */
