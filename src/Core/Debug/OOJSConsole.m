@@ -320,7 +320,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 
 // *** Methods ***
 
-// function consoleMessage(message : String) : undefined
+// function consoleMessage(message : String) : void
 static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id					monitor = nil;
@@ -373,7 +373,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 }
 
 
-// function clearConsole() : undefined
+// function clearConsole() : void
 static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id					monitor = nil;
@@ -401,7 +401,7 @@ static JSBool ConsoleScriptStack(JSContext *context, JSObject *this, uintN argc,
 }
 
 
-// function inspectEntity(entity : Entity) : undefined
+// function inspectEntity(entity : Entity) : void
 static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Entity				*entity = nil;

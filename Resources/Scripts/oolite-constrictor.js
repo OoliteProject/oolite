@@ -43,13 +43,13 @@ this.shipSpawned = function ()
 
 this.shipDied = function (killer)
 {
-    if(killer == player)  missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
+    if(killer.isPlayer)  missionVariables.conhunt = "CONSTRICTOR_DESTROYED";
 }
 
 
 this.checkDistance = function ()
 {
-	if (player.position.distanceTo(this.ship) < 50000)
+	if (player.ship.position.distanceTo(this.ship) < 50000)
 	{
 		if(this.legalPoints > 0)
 		{

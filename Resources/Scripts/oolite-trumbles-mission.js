@@ -93,7 +93,7 @@ this.missionScreenEnded = function ()
 			missionVariables.trumbles = "TRUMBLE_BOUGHT";
 			mission.choice = null;
 			player.credits -= 30;
-			player.awardEquipment("EQ_TRUMBLE");
+			player.ship.awardEquipment("EQ_TRUMBLE");
 		}
 		else if (mission.choice == "OOLITE_TRUMBLE_NO")
 		{

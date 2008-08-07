@@ -198,6 +198,8 @@ system.setSunNova = function(delay)
 
 
 /**** To be removed after 1.73 ****/
+global.Vector = Vector3D;
+
 this.defineCompatibilityGetter("Ship", "maxCargo", "cargoCapacity");
 
 // Lots of Player properties, including inherited ones, moved to playerShip
@@ -223,7 +225,7 @@ this.defineCompatibilitySubMethod("player", "ship", "setGalacticHyperspaceFixedC
 this.defineCompatibilitySubGetter("player", "ship", "AI");
 this.defineCompatibilitySubGetterAndSetter("player", "ship", "AIState");
 this.defineCompatibilitySubGetter("player", "ship", "beaconCode");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "bounty");
+//this.defineCompatibilitySubGetterAndSetter("player", "ship", "bounty"); -- bounty is exposed on both player and player.ship
 this.defineCompatibilitySubGetter("player", "ship", "entityPersonality");
 this.defineCompatibilitySubGetter("player", "ship", "escorts");
 this.defineCompatibilitySubGetterAndSetter("player", "ship", "fuel");

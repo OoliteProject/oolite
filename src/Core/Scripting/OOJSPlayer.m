@@ -92,6 +92,7 @@ enum
 	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
 	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read only
+	kPlayer_bounty					// bounty, unsigned int, read/write
 };
 
 
@@ -110,6 +111,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "contractReputation",		kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerReputation",	kPlayer_passengerReputation, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "bounty",					kPlayer_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -231,6 +233,10 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			*outValue = INT_TO_JSVAL([player passengerReputation]);
 			OK = YES;
 			break;
+			
+		case kPlayer_bounty:
+			*outValue = INT_TO_JSVAL([player legalStatus]);
+			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Player", JSVAL_TO_INT(name));
@@ -265,6 +271,15 @@ static JSBool PlayerSetProperty(JSContext *context, JSObject *this, jsval name, 
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setCreditBalance:fValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayer_bounty:
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0)  iValue = 0;
+				[player setBounty:iValue];
 				OK = YES;
 			}
 			break;

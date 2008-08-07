@@ -36,15 +36,15 @@ this.shipWasScooped = function (scooper)
 {
 	if (scooper == player)
 	{
-		if (!player.hasEquipment("EQ_CLOAKING_DEVICE"))
+		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"))
 		{
-			player.awardEquipment("EQ_CLOAKING_DEVICE")
+			player.ship.awardEquipment("EQ_CLOAKING_DEVICE")
 			// Should we make it possible to buy a replacement?
 			// missionVariables.TL_FOR_EQ_CLOAKING_DEVICE = 14
 		}
 		else
 		{
-			player.awardCargo("Gold", 100)
+			player.ship.awardCargo("Gold", 100)
 		}
 	}
 	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.

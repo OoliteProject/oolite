@@ -74,7 +74,7 @@ if (this.legacy_scriptActions != undefined)
 	*/
 	this.otherShipDocked = function (docker)
 	{
-		if (docker == player)
+		if (docker.isPlayer)
 		{
 			/*	IMPORTANT: runLegacyScriptActions() is a private function. It
 				may be removed, renamed or have its semantics changed at any

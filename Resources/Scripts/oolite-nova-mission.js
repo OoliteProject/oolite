@@ -53,15 +53,15 @@ this.missionOffers = function ()
 		{
 			if (missionVariables.nova == "NOVA_ESCAPED_SYSTEM")
 			{
-				player.removeAllCargo();
-				player.awardCargo("Gem-Stones", 100);
+				player.ship.removeAllCargo();
+				player.ship.awardCargo("Gem-Stones", 100);
 				mission.runMissionScreen("nova_hero", "solar.png");
 				missionVariables.nova = "NOVA_HERO";
 				mission.setInstructionsKey();
 			}
 			if (missionVariables.nova == "NOVA_ESCAPE_POD")
 			{
-				player.removeAllCargo();  // can only be done while docked.
+				player.ship.removeAllCargo();  // can only be done while docked.
 				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string.
 				mission.setInstructionsKey();
 			}
@@ -80,10 +80,10 @@ this.choiceEvaluation = function()
 	{
 		if (mission.choice == "YES")
 		{
-			player.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
+			player.ship.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
 			mission.setInstructionsKey("nova_missiondesc");
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
-			player.launch();
+			player.ship.launch();
 			this.blowUpAllStations();
 			system.sun.goNova(30);
 			missionVariables.novacount = null;
@@ -181,10 +181,10 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 	if (galaxyNumber == 3)
 	{
 		if (missionVariables.novacount)  missionVariables.novacount++;
-		if (player.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova)
+		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova)
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
-			player.fuelLeakRate = 25;
+			player.ship.fuelLeakRate = 25;
 			system.sun.goNova(7200);
 			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
 			system.info.market = "none";
