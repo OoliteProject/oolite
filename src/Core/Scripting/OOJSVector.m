@@ -278,13 +278,13 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 	{
 		OOReportJSBadArguments(context, scriptClass, function, argc, argv,
 									   @"Could not construct vector from parameters",
-									   @"Vector, Entity or three numbers");
+									   @"Vector, Entity or array of three numbers");
 		return NO;
 	}
 }
 
 
-BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
+static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed, BOOL warnAboutNumberList)
 {
 	double				x, y, z;
 	
@@ -296,7 +296,7 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 		return NO;
 	}
 	
-	// Is first object a vector or entity?
+	// Is first object a vector, array or entity?
 	if (JSVAL_IS_OBJECT(argv[0]))
 	{
 		if (JSObjectGetVector(context, JSVAL_TO_OBJECT(argv[0]), outVector))
@@ -317,7 +317,17 @@ BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, 
 	// We got our three numbers.
 	*outVector = make_vector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
+	
+	if (warnAboutNumberList)
+	{
+		OOReportJSWarning(context, @"The ability to pass three numbers instead of a vector is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace v.add(1, 2, z) with v.add([1, 2, z]).");
+	}
+	
 	return YES;
+}
+BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
+{
+	return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, YES);
 }
 
 
@@ -408,9 +418,12 @@ static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, js
 	
 	if (argc != 0)
 	{
-		if (EXPECT_NOT(!VectorFromArgumentList(context, NULL, NULL, argc, argv, &vector, NULL)))
+		if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, NO)))
 		{
 			free(private);
+			OOReportJSBadArguments(context, NULL, NULL, argc, argv,
+								   @"Could not construct vector from parameters",
+								   @"Vector, Entity or array of three numbers");
 			return NO;
 		}
 	}

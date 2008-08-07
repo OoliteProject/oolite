@@ -198,6 +198,8 @@ system.setSunNova = function(delay)
 
 
 /**** To be removed after 1.73 ****/
+// Ability to pass three numbers instead of vector/array/entity in place of Vector3D, and corresponding for Quaternion.
+
 global.Vector = Vector3D;
 
 this.defineCompatibilityGetter("Ship", "maxCargo", "cargoCapacity");

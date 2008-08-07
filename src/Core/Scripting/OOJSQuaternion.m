@@ -269,7 +269,7 @@ BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSStr
 }
 
 
-BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
+static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed, BOOL warnAboutNumberList)
 {
 	double				w, x, y, z;
 	
@@ -303,7 +303,19 @@ BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *ar
 	// We got our four numbers.
 	*outQuaternion = make_quaternion(w, x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 4;
+	
+	if (warnAboutNumberList)
+	{
+		OOReportJSWarning(context, @"The ability to pass four numbers instead of a quaternion is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace q.multiply(w, 1, 2, 3) with q.multiply([w, 1, 2, 3]).");
+	}
+	
 	return YES;
+}
+
+
+BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
+{
+	return QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, YES);
 }
 
 
@@ -394,13 +406,23 @@ static void QuaternionFinalize(JSContext *context, JSObject *this)
 
 static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	Quaternion				quaternion;
+	Quaternion				quaternion = kZeroQuaternion;
 	Quaternion				*private = NULL;
 	
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
-	if (argc == 0 || !QuaternionFromArgumentList(context, NULL, NULL, argc, argv, &quaternion, NULL))  quaternion = kIdentityQuaternion;
+	if (argc != 0)
+	{
+		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, NO)))
+		{
+			free(private);
+			OOReportJSBadArguments(context, NULL, NULL, argc, argv,
+								   @"Could not construct quaternion from parameters",
+								   @"Vector, Entity or array of four numbers");
+			return NO;
+		}
+	}
 	
 	*private = quaternion;
 	
