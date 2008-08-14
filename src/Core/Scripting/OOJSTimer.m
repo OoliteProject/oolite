@@ -258,9 +258,11 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, j
 	{
 		case kTimer_nextTime:
 			OK = JS_NewDoubleValue(context, [timer nextTime], outValue);
+			break;
 			
 		case kTimer_interval:
 			OK = JS_NewDoubleValue(context, [timer interval], outValue);
+			break;
 			
 		case kTimer_isPersistent:
 			*outValue = BOOLToJSVal([timer isPersistent]);

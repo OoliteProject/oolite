@@ -56,7 +56,7 @@ void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
 void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
 void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha);
+void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive);
 
 
 static OOTexture			*sFontTexture = nil;
@@ -131,6 +131,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	}
 	
 	overallAlpha = [hudinfo floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
+	
+	reticleTargetSensitive = [hudinfo boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -232,6 +234,12 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 - (GLfloat) overallAlpha
 {
 	return overallAlpha;
+}
+
+
+- (BOOL) reticleTargetSensitive
+{
+	return reticleTargetSensitive;
 }
 
 
@@ -1444,7 +1452,7 @@ static BOOL hostiles;
 	
 	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
 	{
-		hudDrawReticleOnTarget([player primaryTarget], player, z1, overallAlpha);
+		hudDrawReticleOnTarget([player primaryTarget], player, z1, overallAlpha, reticleTargetSensitive);
 		[self drawDirectionCue:info];
 	}
 }
@@ -1921,7 +1929,7 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha)
+void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive)
 {
 	ShipEntity		*target_ship = (ShipEntity *)target;
 	NSString		*legal_desc = nil;
@@ -2019,8 +2027,16 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, G
 	glTranslatef(p1.x, p1.y, p1.z);
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
-	// draw the reticle	
-	GLColorWithOverallAlpha(green_color, overallAlpha);
+	// draw the reticle
+	// If reticleis target sensitive, draw target box in red when target passes through crosshairs.
+	if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == [player1 primaryTarget])
+	{
+		GLColorWithOverallAlpha(red_color, overallAlpha);
+	}
+	else
+	{
+		GLColorWithOverallAlpha(green_color, overallAlpha);
+	}
 	glBegin(GL_LINES);
 		glVertex2f(rs0,rs2);	glVertex2f(rs0,rs0);
 		glVertex2f(rs0,rs0);	glVertex2f(rs2,rs0);

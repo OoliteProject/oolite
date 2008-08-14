@@ -392,5 +392,7 @@
 			<integer>9</integer>
 		</dict>
 	</array>
+	<key>reticle_target_sensitive</key>
+	<false/>
 </dict>
 </plist>

@@ -196,7 +196,9 @@ MA 02110-1301, USA.
 	
 	GLfloat			overallAlpha;
 	
-	int				last_transmitter;
+	BOOL			reticleTargetSensitive;
+	
+	int			last_transmitter;
 	
 }
 
@@ -209,6 +211,8 @@ MA 02110-1301, USA.
 
 - (GLfloat) overallAlpha;
 - (void) setOverallAlpha:(GLfloat) newAlphaValue;
+
+- (BOOL) reticleTargetSensitive;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;
