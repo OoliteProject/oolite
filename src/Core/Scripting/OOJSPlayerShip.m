@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityScriptMethods.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "HeadUpDisplay.h"
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
@@ -90,6 +91,7 @@ enum
 	kPlayerShip_docked,				// docked, boolean, read-only
 	kPlayerShip_dockedStation,		// docked station, entity, read-only
 	kPlayerShip_specialCargo,		// special cargo, string, read-only
+	kPlayerShip_reticleTargetSensitive,	// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
 };
@@ -102,6 +104,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "docked",					kPlayerShip_docked,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedStation",			kPlayerShip_dockedStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "specialCargo",			kPlayerShip_specialCargo,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "reticleTargetSensitive",		kPlayerShip_reticleTargetSensitive,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
@@ -198,6 +201,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			OK = YES;
 			break;
 			
+		case kPlayerShip_reticleTargetSensitive:
+			*outValue = BOOLToJSVal([[player hud] reticleTargetSensitive]);
+			OK = YES;
+			break;
+			
 		case kPlayerShip_galacticHyperspaceBehaviour:
 			OK = JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
 			break;
@@ -220,6 +228,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
+	JSBool					bValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -229,6 +238,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setFuelLeakRate:fValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_reticleTargetSensitive:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[[player hud] setReticleTargetSensitive:bValue];
 				OK = YES;
 			}
 			break;

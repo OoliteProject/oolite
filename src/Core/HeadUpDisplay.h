@@ -213,6 +213,7 @@ MA 02110-1301, USA.
 - (void) setOverallAlpha:(GLfloat) newAlphaValue;
 
 - (BOOL) reticleTargetSensitive;
+- (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;

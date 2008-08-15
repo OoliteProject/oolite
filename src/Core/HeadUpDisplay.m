@@ -237,15 +237,21 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 }
 
 
+- (void) setOverallAlpha:(GLfloat) newAlphaValue
+{
+	overallAlpha = OOClamp_0_1_f(newAlphaValue);
+}
+
+
 - (BOOL) reticleTargetSensitive
 {
 	return reticleTargetSensitive;
 }
 
 
-- (void) setOverallAlpha:(GLfloat) newAlphaValue
+- (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue
 {
-	overallAlpha = OOClamp_0_1_f(newAlphaValue);
+	reticleTargetSensitive = !!newReticleTargetSensitiveValue; // ensure YES or NO.
 }
 
 
