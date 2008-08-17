@@ -5702,7 +5702,8 @@ static int last_outfitting_index;
 {
 	NSDictionary	*dict = nil;
 	NSEnumerator	*eqEnum = nil;
-	NSString		*eqDesc = nil;
+	NSEnumerator	*eqEnum2 = nil;
+	NSString	*eqDesc = nil;
 	
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
@@ -5722,6 +5723,7 @@ static int last_outfitting_index;
 		return;
 	}
 	
+	eqEnum2 = eqEnum;
 	while ((eqDesc = [eqEnum nextObject]))
 	{
 		/*	Bug workaround: extra_equipment should never contain EQ_TRUMBLE,
@@ -5742,7 +5744,21 @@ static int last_outfitting_index;
 		// Traditional form is a dictionary of booleans; we only accept those where the value is true.
 		if (dict != nil && ![dict boolForKey:eqDesc])  continue;
 		
-		[self addEquipmentItem:eqDesc];
+		// We need to add the entire collection without validation first and then remove the items that are
+		// not compliant (like items that do not satisfy the requiresEquipment criterion). This is to avoid
+		// unintentionally excluding valid equipment, just because the required equipment existed but had
+		// not been yet added to the equipment list at the time of the canAddEquipment validation check.
+		// Nikos, 20080817.
+		[self addEquipmentItem:eqDesc withValidation:NO];
+	}
+	
+	// Now remove items that should not be in the equipment list.
+	while (eqDesc = [eqEnum2 nextObject])
+	{
+		if (![self canAddEquipment:eqDesc])
+		{
+			[self removeEquipmentItem:eqDesc];
+		}
 	}
 }
 

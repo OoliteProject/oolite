@@ -365,6 +365,7 @@ MA 02110-1301, USA.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;			// As above, but requires _all_ equipment in collection.
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;	// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (void) addEquipmentItem:(NSString *)equipmentKey;
+- (void) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
 /*	NOTE: for legacy reasons, canAddEquipment: returns YES if given a missile
 	or mine type, but addEquipmentItem: does nothing in those cases. This
 	should probably be cleaned up by making addEquipmentItem: mount stores.
