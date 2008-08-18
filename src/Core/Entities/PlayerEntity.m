@@ -5702,9 +5702,9 @@ static int last_outfitting_index;
 {
 	NSDictionary	*dict = nil;
 	NSEnumerator	*eqEnum = nil;
-	NSEnumerator	*eqEnum2 = nil;
 	NSString	*eqDesc = nil;
 	
+	// Pass 1: Load the entire collection.
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
 		dict = equipment;
@@ -5723,7 +5723,6 @@ static int last_outfitting_index;
 		return;
 	}
 	
-	eqEnum2 = eqEnum;
 	while ((eqDesc = [eqEnum nextObject]))
 	{
 		/*	Bug workaround: extra_equipment should never contain EQ_TRUMBLE,
@@ -5752,10 +5751,24 @@ static int last_outfitting_index;
 		[self addEquipmentItem:eqDesc withValidation:NO];
 	}
 	
-	// Now remove items that should not be in the equipment list.
-	while (eqDesc = [eqEnum2 nextObject])
+	// Pass 2: Remove items that do not satisfy validation criteria (like requires_equipment etc.).
+	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
-		if (![self canAddEquipment:eqDesc])
+		dict = equipment;
+		eqEnum = [equipment keyEnumerator];
+	}
+	else if ([equipment isKindOfClass:[NSArray class]] || [equipment isKindOfClass:[NSSet class]])
+	{
+		eqEnum = [equipment objectEnumerator];
+	}
+	else if ([equipment isKindOfClass:[NSString class]])
+	{
+		eqEnum = [[NSArray arrayWithObject:equipment] objectEnumerator];
+	}
+	// Now remove items that should not be in the equipment list.
+	while (eqDesc = [eqEnum nextObject])
+	{
+		if (![self equipmentValidToAdd:eqDesc])
 		{
 			[self removeEquipmentItem:eqDesc];
 		}

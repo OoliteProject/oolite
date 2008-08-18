@@ -1732,19 +1732,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 
 - (BOOL) canAddEquipment:(NSString *)equipmentKey
-{
-	OOEquipmentType			*eqType = nil;
-	
+{	
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
 	}
 	
-	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
-	if (eqType == nil)  return NO;
-	
 	// FIXME: deal with special handling of missiles and mines.
 	if ([self hasEquipmentItem:equipmentKey])  return NO;
+	
+	if (![self equipmentValidToAdd:equipmentKey])  return NO;
+	
+	return YES;
+}
+
+
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey
+{
+	OOEquipmentType			*eqType = nil;
+	
+	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	if (eqType == nil)  return NO;
 	
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity])  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0)  return NO;

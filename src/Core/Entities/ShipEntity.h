@@ -364,6 +364,7 @@ MA 02110-1301, USA.
 - (BOOL) hasEquipmentItem:(id)equipmentKeys;		// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;			// As above, but requires _all_ equipment in collection.
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;	// Test ability to add equipment, taking equipment-specific constriants into account. 
+- (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
 - (void) addEquipmentItem:(NSString *)equipmentKey;
 - (void) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
 /*	NOTE: for legacy reasons, canAddEquipment: returns YES if given a missile
