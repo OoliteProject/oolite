@@ -1739,8 +1739,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// FIXME: deal with special handling of missiles and mines.
-	if ([self hasEquipmentItem:equipmentKey])  return NO;
 	
+	if ([self hasEquipmentItem:equipmentKey])  return NO;
 	if (![self equipmentValidToAdd:equipmentKey])  return NO;
 	
 	return YES;
@@ -1750,6 +1750,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey
 {
 	OOEquipmentType			*eqType = nil;
+	
+	if ([equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
+	}
 	
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	if (eqType == nil)  return NO;
