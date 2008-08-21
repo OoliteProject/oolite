@@ -275,12 +275,6 @@ typedef enum
 	
 	double					ecm_start_time;
 	
-	OOSound					*missileSound;
-	OOSound					*afterburner1Sound;
-	OOSound					*afterburner2Sound;
-	OOSound					*witchAbortSound;
-	OOSound					*fuelScoopSound;
-	
 	OOSoundReferencePoint	*refPoint;
 	
 	OOGUIScreenID			gui_screen;
@@ -612,9 +606,6 @@ waitingForStickCallback: 1;
 - (BOOL) isSpeechOn;
 
 - (void) addEquipmentFromCollection:(id)equipment;	// equipment may be an array, a set, a dictionary whose values are all YES, or a string.
-
-- (void) loopAfterburnerSound;
-- (void) stopAfterburnerSound;
  
 - (void) getFined;
 

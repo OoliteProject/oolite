@@ -64,6 +64,11 @@ MA 02110-1301, USA.
 - (void) playDismissedMissionScreen;
 - (void) playChangedOption;
 
+- (void) updateFuelScoopSoundWithInterval:(OOTimeDelta)delta_t;
+
+- (void) startAfterburnerSound;
+- (void) stopAfterburnerSound;
+
 // Buy/sell get their own source.
 - (void) playBuyCommodity;
 - (void) playBuyShip;
@@ -103,6 +108,9 @@ MA 02110-1301, USA.
 - (void) playDockingDenied;
 - (void) playWitchjumpFailure;
 - (void) playWitchjumpMisjump;
+- (void) playWitchjumpBlocked;
+- (void) playWitchjumpDistanceTooGreat;
+- (void) playWitchjumpInsufficientFuel;
 - (void) playFuelLeak;
 
 // Damage sounds
@@ -112,5 +120,15 @@ MA 02110-1301, USA.
 
 // Weapon sounds
 - (void) playLaserHit:(BOOL)hit;
+- (void) playWeaponOverheated;
+- (void) playMissileLaunched;
+- (void) playMineLaunched;
+- (void) playEnergyBombFired;
+
+// Miscellaneous sounds
+- (void) playEscapePodScooped;
+- (void) playAegisCloseToPlanet;
+- (void) playAegisCloseToStation;
+- (void) playGameOver;
 
 @end

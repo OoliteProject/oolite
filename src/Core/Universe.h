@@ -420,7 +420,6 @@ enum
 - (void) setViewDirection:(OOViewID) vd;
 - (OOViewID) viewDirection;
 
-- (BOOL) playCustomSound:(NSString*)key;	// DEPRECATED -- use +[OOSound soundWithCustomSoundKey:] and OOSoundSource.
 - (NSString *) soundNameForCustomSoundKey:(NSString *)key;
 
 - (void) clearPreviousMessage;

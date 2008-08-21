@@ -482,12 +482,11 @@ static NSTimeInterval	time_last_frame;
 				[self hasFuelInjection] &&
 				!hyperspeed_engaged)
 			{
-				if ((fuel > 0)&&(!afterburner_engaged))
+				if (fuel > 0 && !afterburner_engaged)
 				{
 					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-inject-on]") forCount:1.5];
 					afterburner_engaged = YES;
-					if (!afterburnerSoundLooping)
-						[self loopAfterburnerSound];
+					[self startAfterburnerSound];
 				}
 				else
 				{
@@ -601,16 +600,11 @@ static NSTimeInterval	time_last_frame;
 				// launch here
 				if (!fire_missile_pressed)
 				{
-					BOOL missile_noise = [missile_entity[activeMissile] isMissile];
-					if ([self fireMissile])
-					{
-						if (missile_noise)  [missileSound play];
-					}
+					[self fireMissile];
+					fire_missile_pressed = YES;
 				}
-				fire_missile_pressed = YES;
 			}
-			else
-				fire_missile_pressed = NO;
+			else  fire_missile_pressed = NO;
 			
 			//  shoot 'y'   // next missile
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
@@ -622,8 +616,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				next_missile_pressed = YES;
 			}
-			else
-				next_missile_pressed = NO;
+			else  next_missile_pressed = NO;
 			
 			//	'+' // next target
 			if ([gameView isDown:key_next_target])
@@ -634,8 +627,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				next_target_pressed = YES;
 			}
-			else
-				next_target_pressed = NO;
+			else  next_target_pressed = NO;
 			
 			//	'-' // previous target
 			if ([gameView isDown:key_previous_target])
@@ -646,8 +638,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				previous_target_pressed = YES;
 			}
-			else
-				previous_target_pressed = NO;
+			else  previous_target_pressed = NO;
 			
 			//  shoot 'r'   // switch on ident system
 			if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
@@ -663,8 +654,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				ident_pressed = YES;
 			}
-			else
-				ident_pressed = NO;
+			else  ident_pressed = NO;
 			
 			//  shoot 't'   // switch on missile targetting
 			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
@@ -703,8 +693,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				target_missile_pressed = YES;
 			}
-			else
-				target_missile_pressed = NO;
+			else  target_missile_pressed = NO;
 			
 			//  shoot 'u'   // disarm missile targetting
 			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
@@ -732,8 +721,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				safety_pressed = YES;
 			}
-			else
-				safety_pressed = NO;
+			else  safety_pressed = NO;
 			
 			//  shoot 'e'   // ECM
 			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM])

@@ -332,9 +332,9 @@ NSString *QuaternionDescription(Quaternion quaternion)
 	y = fabsf(quaternion.y);
 	z = fabsf(quaternion.z);
 	
-	xs = (x == quaternion.x) ? '+' : '-';
-	ys = (y == quaternion.y) ? '+' : '-';
-	zs = (z == quaternion.z) ? '+' : '-';
+	xs = (quaternion.x > 0) ? '+' : '-';
+	ys = (quaternion.y > 0) ? '+' : '-';
+	zs = (quaternion.z > 0) ? '+' : '-';
 	
 	return [NSString stringWithFormat:@"(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z];
 }

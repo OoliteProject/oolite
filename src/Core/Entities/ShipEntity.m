@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "PlayerEntitySound.h"
 #import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
@@ -6802,6 +6803,12 @@ BOOL class_masslocks(int some_class)
 }
 
 
+- (void) suppressTargetLost
+{
+	
+}
+
+
 - (void) scoopUp:(ShipEntity *)other
 {
 	if (other == nil)  return;
@@ -6898,7 +6905,7 @@ BOOL class_masslocks(int some_class)
 					{
 						[UNIVERSE addMessage: DESC(@"scoop-got-slave") forCount: 4.5];
 					}
-					[UNIVERSE playCustomSound:@"[escape-pod-scooped]"];
+					[(PlayerEntity *)self playEscapePodScooped];
 				}
 			}
 			else
@@ -6913,7 +6920,7 @@ BOOL class_masslocks(int some_class)
 		if ([cargo count] == max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
-	if (isPlayer)  [(PlayerEntity*)self suppressTargetLost];
+	[self suppressTargetLost];
 	[UNIVERSE removeEntity:other];
 }
 

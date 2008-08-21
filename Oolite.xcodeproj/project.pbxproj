@@ -225,7 +225,6 @@
 		1A2319760B9D02F900EF0852 /* BlueDanube.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319740B9D02F900EF0852 /* BlueDanube.ogg */; };
 		1A2319770B9D02F900EF0852 /* OoliteTheme.ogg in Copy Music */ = {isa = PBXBuildFile; fileRef = 1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */; };
 		1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319920B9D031D00EF0852 /* afterburner1.ogg */; };
-		1A2319A70B9D031D00EF0852 /* afterburner2.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319930B9D031D00EF0852 /* afterburner2.ogg */; };
 		1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319940B9D031D00EF0852 /* beep.ogg */; };
 		1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319950B9D031D00EF0852 /* bigbang.ogg */; };
 		1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */ = {isa = PBXBuildFile; fileRef = 1A2319960B9D031D00EF0852 /* boop.ogg */; };
@@ -942,7 +941,6 @@
 			dstSubfolderSpec = 7;
 			files = (
 				1A2319A60B9D031D00EF0852 /* afterburner1.ogg in Copy Sounds */,
-				1A2319A70B9D031D00EF0852 /* afterburner2.ogg in Copy Sounds */,
 				1A2319A80B9D031D00EF0852 /* beep.ogg in Copy Sounds */,
 				1A2319A90B9D031D00EF0852 /* bigbang.ogg in Copy Sounds */,
 				1A2319AA0B9D031D00EF0852 /* boop.ogg in Copy Sounds */,
@@ -1233,7 +1231,6 @@
 		1A2319740B9D02F900EF0852 /* BlueDanube.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = BlueDanube.ogg; sourceTree = "<group>"; };
 		1A2319750B9D02F900EF0852 /* OoliteTheme.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = OoliteTheme.ogg; sourceTree = "<group>"; };
 		1A2319920B9D031D00EF0852 /* afterburner1.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = afterburner1.ogg; sourceTree = "<group>"; };
-		1A2319930B9D031D00EF0852 /* afterburner2.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = afterburner2.ogg; sourceTree = "<group>"; };
 		1A2319940B9D031D00EF0852 /* beep.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = beep.ogg; sourceTree = "<group>"; };
 		1A2319950B9D031D00EF0852 /* bigbang.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = bigbang.ogg; sourceTree = "<group>"; };
 		1A2319960B9D031D00EF0852 /* boop.ogg */ = {isa = PBXFileReference; lastKnownFileType = file; path = boop.ogg; sourceTree = "<group>"; };
@@ -1992,7 +1989,6 @@
 			isa = PBXGroup;
 			children = (
 				1A2319920B9D031D00EF0852 /* afterburner1.ogg */,
-				1A2319930B9D031D00EF0852 /* afterburner2.ogg */,
 				1A2319940B9D031D00EF0852 /* beep.ogg */,
 				1A2319950B9D031D00EF0852 /* bigbang.ogg */,
 				1A2319960B9D031D00EF0852 /* boop.ogg */,

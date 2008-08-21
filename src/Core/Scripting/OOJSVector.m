@@ -468,7 +468,7 @@ static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
-// add(v : vectorExpression) : Vector
+// add(v : vectorExpression) : Vector3D
 static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv, result;
@@ -482,7 +482,7 @@ static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *a
 }
 
 
-// subtract(v : vectorExpression) : Vector
+// subtract(v : vectorExpression) : Vector3D
 static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv, result;
@@ -496,7 +496,7 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
-// distanceTo(v : vectorExpression) : Vector
+// distanceTo(v : vectorExpression) : Vector3D
 static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv;
@@ -511,7 +511,7 @@ static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
-// squaredDistanceTo(v : vectorExpression) : Vector
+// squaredDistanceTo(v : vectorExpression) : Vector3D
 static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv;
@@ -526,7 +526,7 @@ static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN 
 }
 
 
-// multiply(n : Number) : Vector
+// multiply(n : Number) : Vector3D
 static JSBool VectorMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, result;
@@ -571,7 +571,7 @@ static JSBool VectorAngleTo(JSContext *context, JSObject *this, uintN argc, jsva
 }
 
 
-// cross(v : vectorExpression) : Vector
+// cross(v : vectorExpression) : Vector3D
 static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv, result;
@@ -585,7 +585,7 @@ static JSBool VectorCross(JSContext *context, JSObject *this, uintN argc, jsval 
 }
 
 
-// tripleProduct(v : vectorExpression) : Number
+// tripleProduct(v : vectorExpression, u : vectorExpression) : Number
 static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv, theotherv;
@@ -604,7 +604,7 @@ static JSBool VectorTripleProduct(JSContext *context, JSObject *this, uintN argc
 }
 
 
-// direction() : Vector
+// direction() : Vector3D
 static JSBool VectorDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, result;
@@ -673,7 +673,7 @@ static JSBool VectorRotationTo(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
-// rotateBy(q : quaternionExpression) : Vector
+// rotateBy(q : quaternionExpression) : Vector3D
 static JSBool VectorRotateBy(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, result;
@@ -717,7 +717,7 @@ static JSBool VectorToArray(JSContext *context, JSObject *this, uintN argc, jsva
 }
 
 
-// interpolate(v : Vector, u : Vector, alpha : Number) : Vector
+// interpolate(v : Vector3D, u : Vector3D, alpha : Number) : Vector3D
 static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					av, bv;

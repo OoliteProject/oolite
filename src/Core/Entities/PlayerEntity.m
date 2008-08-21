@@ -1168,7 +1168,6 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-double scoopSoundPlayTime = 0.0;
 - (void) update:(OOTimeDelta)delta_t
 {
 	[self updateMovementFlags];
@@ -1525,12 +1524,7 @@ double scoopSoundPlayTime = 0.0;
 {
 	if (scoopsActive)
 	{
-		scoopSoundPlayTime -= delta_t;
-		if (scoopSoundPlayTime < 0.0)
-		{
-			[fuelScoopSound play];
-			scoopSoundPlayTime = 0.5;
-		}
+		[self updateFuelScoopSoundWithInterval:delta_t];
 		scoopsActive = NO;
 	}
 }
@@ -1713,8 +1707,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			[UNIVERSE clearPreviousMessage];
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
-			if (![UNIVERSE playCustomSound:@"[witch-blocked-by-@]"])
-				[witchAbortSound play];
+			[self playWitchjumpBlocked];
 			status = STATUS_IN_FLIGHT;
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
 			go = NO;
@@ -1729,8 +1722,7 @@ double scoopSoundPlayTime = 0.0;
 			{
 				[UNIVERSE clearPreviousMessage];
 				[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
-				if (![UNIVERSE playCustomSound:@"[witch-too-far]"])
-					[witchAbortSound play];
+				[self playWitchjumpDistanceTooGreat];
 				status = STATUS_IN_FLIGHT;
 				[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
 				go = NO;
@@ -1745,8 +1737,7 @@ double scoopSoundPlayTime = 0.0;
 		{
 			[UNIVERSE clearPreviousMessage];
 			[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
-			if (![UNIVERSE playCustomSound:@"[witch-no-fuel]"])
-				[witchAbortSound play];
+			[self playWitchjumpInsufficientFuel];
 			status = STATUS_IN_FLIGHT;
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
 			go = NO;
@@ -2636,12 +2627,12 @@ double scoopSoundPlayTime = 0.0;
 	{
 		if ([ms isEqual:@"AEGIS_CLOSE_TO_MAIN_PLANET"]&&(compassMode == COMPASS_MODE_PLANET))
 		{
-			[UNIVERSE playCustomSound:@"[aegis-planet]"];
+			[self playAegisCloseToPlanet];
 			[self setCompassMode:COMPASS_MODE_STATION];
 		}
 		if ([ms isEqual:@"AEGIS_IN_DOCKING_RANGE"]&&(compassMode == COMPASS_MODE_PLANET))
 		{
-			[UNIVERSE playCustomSound:@"[aegis-station]"];
+			[self playAegisCloseToStation];
 			[self setCompassMode:COMPASS_MODE_STATION];
 		}
 		if ([ms isEqual:@"AEGIS_NONE"]&&(compassMode == COMPASS_MODE_STATION))
@@ -2684,7 +2675,7 @@ double scoopSoundPlayTime = 0.0;
 		BOOL launchedOK = [self launchMine:missile];
 		if (launchedOK)
 		{
-			[UNIVERSE playCustomSound:@"[mine-launched]"];
+			[self playMineLaunched];
 			[missile release];	//  release
 		}
 		missile_entity[activeMissile] = nil;
@@ -2751,8 +2742,8 @@ double scoopSoundPlayTime = 0.0;
 	[target setPrimaryAggressor:self];
 	[target doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
 	[target reactToAIMessage:@"INCOMING_MISSILE"];
-
-	[UNIVERSE playCustomSound:@"[missile-launched]"];
+	
+	[self playMissileLaunched];
 
 	return YES;
 }
@@ -2829,7 +2820,7 @@ double scoopSoundPlayTime = 0.0;
 		}
 	}
 	[UNIVERSE addMessage:DESC(@"energy-bomb-activated") forCount:4.5];
-	[UNIVERSE playCustomSound:@"[energy-bomb-fired]"];
+	[self playEnergyBombFired];
 	
 	return YES;
 }
@@ -2842,7 +2833,7 @@ double scoopSoundPlayTime = 0.0;
 
 	if (weapon_temp / PLAYER_MAX_WEAPON_TEMP >= 0.85)
 	{
-		[UNIVERSE playCustomSound:@"[weapon-overheat]"];
+		[self playWeaponOverheated];
 		[UNIVERSE addMessage:DESC(@"weapon-overheat") forCount:3.0];
 		return NO;
 	}
@@ -3441,7 +3432,7 @@ double scoopSoundPlayTime = 0.0;
 	[self becomeLargeExplosion:4.0];
 	[self moveForward:100.0];
 	
-	[UNIVERSE playCustomSound:@"[game-over]"];
+	[self playGameOver];
 	
 	flightSpeed = 160.0f;
 	status = STATUS_DEAD;
@@ -5766,7 +5757,7 @@ static int last_outfitting_index;
 		eqEnum = [[NSArray arrayWithObject:equipment] objectEnumerator];
 	}
 	// Now remove items that should not be in the equipment list.
-	while (eqDesc = [eqEnum nextObject])
+	while ((eqDesc = [eqEnum nextObject]))
 	{
 		if (![self equipmentValidToAdd:eqDesc])
 		{
@@ -5791,44 +5782,6 @@ static int last_outfitting_index;
 - (unsigned) missileCapacity
 {
 	return max_missiles;
-}
-
-
-//	time delay method for playing afterburner sounds
-// this overlaps two sounds each 2 seconds long, but with a .5s
-// crossfade
-OOSound* burnersound;
-- (void) loopAfterburnerSound
-{
-	SEL _loopAfterburnerSoundSelector = @selector(loopAfterburnerSound);
-
-	if (!afterburner_engaged)				// end the loop cycle
-	{
-		afterburnerSoundLooping = NO;
-		return;
-	}
-
-	afterburnerSoundLooping = YES;
-
-	if (burnersound == afterburner1Sound)
-		burnersound = afterburner2Sound;
-	else
-		burnersound = afterburner1Sound;
-	
-	[burnersound play];
-	
-	[self	performSelector:_loopAfterburnerSoundSelector
-				withObject:NULL
-				afterDelay:1.25];	// and swap sounds in 1.25s time
-}
-
-
-- (void) stopAfterburnerSound
-{
-#if 0
-	// FIXME: should use an OOSoundSource.
-	[burnersound stop];
-#endif
 }
 
 

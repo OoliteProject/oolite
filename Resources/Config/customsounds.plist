@@ -4,9 +4,10 @@
 	*/
 	
 	// Interface sounds
-	"[@beep]"				= "beep.ogg";					// positive beep
-	"[@boop]"				= "boop.ogg";					// negative beep
-	"[@click]"				= "guiclick.ogg";
+	"[@beep]"						= "beep.ogg";			// positive beep
+	"[@boop]"						= "boop.ogg";			// negative beep
+	"[@click]"						= "guiclick.ogg";
+	"[@witchabort]"					= "witchabort.ogg";
 	
 	"[@switch-on]"					= "[@beep]";
 	"[@switch-off]"					= "[@boop]";
@@ -14,6 +15,7 @@
 	"[ident-off]"					= "[@switch-off]";		// Turned off ident
 	"[ident-locked-on]"				= "[@beep]";			// Ident targeted ship
 	"[missile-locked-on]"			= "[@beep]";
+	"[missile-launched]"			= "missile.ogg";
 	"[missile-armed]"				= "[@beep]";
 	"[mine-armed]"					= "[@beep]";
 	"[missile-safe]"				= "[@boop]";
@@ -47,6 +49,7 @@
 	"[dismissed-report-screen]"		= "[@click]";
 	"[dismissed-mission-screen]"	= "[@click]";			// No way to differentiate between mission options
 	"[changed-option]"				= "[@click]";			// Player made a change on options screen
+	"[scoop]"						= "scoop.ogg";
 	
 	// Hyperspace
 	"[hyperspace-countdown-begun]"	= "[@beep]";
@@ -54,7 +57,9 @@
 	"[hyperspace-countdown-aborted]" = "[@boop]";
 	"[witch-no-target]"				= "[@boop]";
 	"[witch-no-fuel]"				= "[@boop]";
-	"[witch-blocked-by-@]"			= "[@boop]";
+	"[witch-blocked-by-@]"			= "[@witchabort]";
+	"[witch-too-far]"				= "[@witchabort]";
+	"[witch-no-fuel]"				= "[@witchabort]";
 	
 	// Damage
 	"[player-hit-by-weapon]"		= "hit.ogg";			// Hit by weapon
@@ -94,7 +99,6 @@
 	"[aegis-station]" = "";
 	"[escape-pod-scooped]" = "";
 	"[mine-launched]" = "";
-	"[missile-launched]" = "";
 	"[weapon-overheat]" = "";
 	"[wormhole-created]" = "";
 */

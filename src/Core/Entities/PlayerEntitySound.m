@@ -32,20 +32,23 @@ MA 02110-1301, USA.
 // Sizes of sound source pools
 enum
 {
-	kWarningPoolSize		= 2,
-	kWeaponPoolSize			= 2,
-	kDamagePoolSize			= 4
+	kWarningPoolSize		= 6,
+	kWeaponPoolSize			= 3,
+	kDamagePoolSize			= 4,
+	kMiscPoolSize			= 2
 };
 
 
 static OOSoundSourcePool	*sWarningSoundPool;
 static OOSoundSourcePool	*sWeaponSoundPool;
 static OOSoundSourcePool	*sDamageSoundPool;
+static OOSoundSourcePool	*sMiscSoundPool;
 static OOSoundSource		*sHyperspaceSoundSource;
 static OOSoundSource		*sInterfaceBeepSource;
 static OOSoundSource		*sEcmSource;
 static OOSoundSource		*sBreakPatternSource;
 static OOSoundSource		*sBuySellSource;
+static OOSoundSource		*sAfterburnerSources[2];
 
 
 @implementation PlayerEntity (Sound)
@@ -53,15 +56,6 @@ static OOSoundSource		*sBuySellSource;
 - (void) setUpSound
 {
 	[self destroySound];
-	
-	missileSound =		[[ResourceManager ooSoundNamed:@"missile.ogg" inFolder:@"Sounds"] retain];
-	
-	afterburner1Sound =	[[ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"] retain];
-	afterburner2Sound =	[[ResourceManager ooSoundNamed:@"afterburner2.ogg" inFolder:@"Sounds"] retain];
-	
-	witchAbortSound =	[[ResourceManager ooSoundNamed:@"witchabort.ogg" inFolder:@"Sounds"] retain];
-	
-	fuelScoopSound =	[[ResourceManager ooSoundNamed:@"scoop.ogg" inFolder:@"Sounds"] retain];
 	
 	refPoint = [[OOSoundReferencePoint alloc] init];
 	
@@ -71,28 +65,22 @@ static OOSoundSource		*sBuySellSource;
 	sHyperspaceSoundSource = [[OOSoundSource alloc] init];
 	sBuySellSource = [[OOSoundSource alloc] init];
 	
-	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0];
-	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0];
+	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0.0];
+	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0.0];
 	sDamageSoundPool = [[OOSoundSourcePool alloc] initWithCount:kDamagePoolSize minRepeatTime:0.1];	// Repeat time limit is to avoid playing a scrape sound every frame on glancing scrapes. This does limit the number of laser hits that can be played in a furrball, though; maybe lasers and scrapes should use different pools.
+	sMiscSoundPool = [[OOSoundSourcePool alloc] initWithCount:kMiscPoolSize minRepeatTime:0.0];
+	
+	// Two sources with the same sound are used to simulate looping.
+	sAfterburnerSources[0] = [[OOSoundSource alloc] init];
+	sAfterburnerSources[1] = [[OOSoundSource alloc] init];
+	OOSound *afterburnerSound = [ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"];
+	[sAfterburnerSources[0] setSound:afterburnerSound];
+	[sAfterburnerSources[1] setSound:afterburnerSound];
 }
 
 
 - (void) destroySound
 {
-	[missileSound release];
-	missileSound = nil;
-	
-	[afterburner1Sound release];
-	afterburner1Sound = nil;
-	[afterburner2Sound release];
-	afterburner2Sound = nil;
-	
-	[witchAbortSound release];
-	witchAbortSound = nil;
-	
-	[fuelScoopSound release];
-	fuelScoopSound = nil;
-	
 	[refPoint release];
 	refPoint = nil;
 	
@@ -332,6 +320,58 @@ static OOSoundSource		*sBuySellSource;
 }
 
 
+- (void) updateFuelScoopSoundWithInterval:(OOTimeDelta)delta_t
+{
+	static double scoopSoundPlayTime = 0.0;
+	scoopSoundPlayTime -= delta_t;
+	if (scoopSoundPlayTime < 0.0)
+	{
+		[self playInterfaceBeep:@"[scoop]"];
+		scoopSoundPlayTime = 0.5;
+	}
+}
+
+
+//	time delay method for playing afterburner sounds
+// this overlaps two sounds each 2 seconds long, but with a .5s
+// crossfade
+- (void) updateAfterburnerSound
+{
+	static uint8_t which = 0;
+	
+	if (!afterburner_engaged)				// end the loop cycle
+	{
+		afterburnerSoundLooping = NO;
+	}
+	
+	if (afterburnerSoundLooping)
+	{
+		[sAfterburnerSources[which] play];
+		which = !which;
+		
+		[self performSelector:@selector(updateAfterburnerSound)
+				   withObject:NULL
+				   afterDelay:1.25];	// and swap sounds in 1.25s time
+	}
+}
+
+
+- (void) startAfterburnerSound
+{
+	if (!afterburnerSoundLooping)
+	{
+		afterburnerSoundLooping = YES;
+		[self updateAfterburnerSound];
+	}
+}
+
+
+- (void) stopAfterburnerSound
+{
+	afterburnerSoundLooping = NO;
+}
+
+
 - (void) playCloakingDeviceInsufficientEnergy
 {
 	[self playInterfaceBeep:@"[cloaking-device-insufficent-energy]"];
@@ -464,6 +504,24 @@ static OOSoundSource		*sBuySellSource;
 }
 
 
+- (void) playWitchjumpBlocked
+{
+	[sWarningSoundPool playSoundWithKey:@"[witch-blocked-by-@]" priority:1.3];
+}
+
+
+- (void) playWitchjumpDistanceTooGreat
+{
+	[sWarningSoundPool playSoundWithKey:@"[witch-too-far]" priority:1.3];
+}
+
+
+- (void) playWitchjumpInsufficientFuel
+{
+	[sWarningSoundPool playSoundWithKey:@"[witch-no-fuel]" priority:1.3];
+}
+
+
 - (void) playFuelLeak
 {
 	[sWarningSoundPool playSoundWithKey:@"[fuel-leak]" priority:0.5];
@@ -498,6 +556,54 @@ static OOSoundSource		*sBuySellSource;
 	{
 		[sWeaponSoundPool playSoundWithKey:@"[player-laser-miss]" priority:1 expiryTime:0.05];
 	}
+}
+
+
+- (void) playWeaponOverheated
+{
+	[sWeaponSoundPool playSoundWithKey:@"[weapon-overheat]"];
+}
+
+
+- (void) playMissileLaunched
+{
+	[sWeaponSoundPool playSoundWithKey:@"[missile-launched]"];
+}
+
+
+- (void) playMineLaunched
+{
+	[sWeaponSoundPool playSoundWithKey:@"[mine-launched]"];
+}
+
+
+- (void) playEnergyBombFired
+{
+	[sWeaponSoundPool playSoundWithKey:@"[energy-bomb-fired]" priority:2.0];
+}
+
+
+- (void) playEscapePodScooped
+{
+	[sMiscSoundPool playSoundWithKey:@"[escape-pod-scooped]"];
+}
+
+
+- (void) playAegisCloseToPlanet
+{
+	[sMiscSoundPool playSoundWithKey:@"[aegis-planet]"];
+}
+
+
+- (void) playAegisCloseToStation
+{
+	[sMiscSoundPool playSoundWithKey:@"[aegis-station]"];
+}
+
+
+- (void) playGameOver
+{
+	[sMiscSoundPool playSoundWithKey:@"[game-over]"];
 }
 
 @end
