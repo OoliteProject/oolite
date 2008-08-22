@@ -131,4 +131,6 @@ MA 02110-1301, USA.
 - (void) playAegisCloseToStation;
 - (void) playGameOver;
 
+- (void) playLegacyScriptSound:(NSString *)key;
+
 @end

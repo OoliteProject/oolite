@@ -31,6 +31,11 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 
 
+static void InitTrumbleSounds(void);
+static void PlayTrumbleIdle(void);
+static void PlayTrumbleSqueal(void);
+
+
 @implementation OOTrumble
 
 - (id) init
@@ -42,6 +47,8 @@ MA 02110-1301, USA.
 	{
 		colorPoint1[i] = 1.0;
 		colorPoint2[i] = 1.0;
+		
+		InitTrumbleSounds();
 	}
 	
 	return self;
@@ -197,16 +204,11 @@ MA 02110-1301, USA.
 								 lodBias:kOOTextureDefaultLODBias];
 	[texture retain];
 	
-	prootSound = [[ResourceManager ooSoundNamed:@"trumble.ogg" inFolder:@"Sounds"] retain];
-	squealSound = [[ResourceManager ooSoundNamed:@"trumblesqueal.ogg" inFolder:@"Sounds"] retain];
-	
 	readyToSpawn = NO;
 }
 
 - (void) dealloc
 {
-	[prootSound release];
-	[squealSound release];
 	[texture release];
 	
 	[super dealloc];
@@ -781,7 +783,7 @@ MA 02110-1301, USA.
 		if (!animationStage)
 		{
 			animationStage = 1;
-			[prootSound play];
+			PlayTrumbleIdle();
 		}
 	}
 	animationTime += delta_t;
@@ -804,8 +806,7 @@ MA 02110-1301, USA.
 	{
 		eyeFrame = TRUMBLE_EYES_WIDE;
 		mouthFrame = TRUMBLE_MOUTH_GROWL;
-		// squeal here!
-		[squealSound play];
+		PlayTrumbleSqueal();
 	}
 	int pc = 100 * animationTime / animationDuration;
 	if (pc < 10)
@@ -852,7 +853,7 @@ MA 02110-1301, USA.
 		else
 			rotational_velocity = -63 - (ranrot_rand() & 127);
 		// squeal here!
-		[squealSound play];
+		PlayTrumbleSqueal();
 	}
 	float pc = animationTime / animationDuration;
 	
@@ -972,3 +973,35 @@ MA 02110-1301, USA.
 }
 
 @end
+
+
+static OOSoundSource	*sTrumbleSoundSource;
+static OOSound			*sTrumbleIdleSound;
+static OOSound			*sTrumbleSqealSound;
+
+static void InitTrumbleSounds(void)
+{
+	if (sTrumbleSoundSource == nil)
+	{
+		sTrumbleSoundSource = [[OOSoundSource alloc] init];
+		sTrumbleIdleSound = [[OOSound alloc] initWithCustomSoundKey:@"[trumble-idle]"];
+		sTrumbleSqealSound = [[OOSound alloc] initWithCustomSoundKey:@"[trumble-squeal]"];
+	}
+}
+
+
+static void PlayTrumbleIdle(void)
+{
+	// Only play idle sound if no trumble is making noise.
+	if (![sTrumbleSoundSource isPlaying])  [sTrumbleSoundSource playSound:sTrumbleIdleSound];
+}
+
+
+static void PlayTrumbleSqueal(void)
+{
+	// Play squeal sound if no trumble is currently squealing, but trumping idle sound.
+	if (![sTrumbleSoundSource isPlaying] || [sTrumbleSoundSource sound] == sTrumbleIdleSound)
+	{
+		[sTrumbleSoundSource playSound:sTrumbleSqealSound];
+	}
+}

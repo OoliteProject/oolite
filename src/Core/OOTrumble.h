@@ -96,9 +96,6 @@ float	trumbleAppetiteAccumulator;
 	NSPoint					eye_position;	// current position of eyes relative to their starting position
 	NSPoint					mouth_position;	// current position of eyes relative to their starting position
 	//
-	OOSound					*prootSound;
-	OOSound					*squealSound;
-	//
 	double					animationTime;	// set to 0.0 at start of current animation
 	double					animationDuration;	// set to 0.0 at start of current animation
 	//

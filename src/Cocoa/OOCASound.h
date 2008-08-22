@@ -64,11 +64,6 @@ SOFTWARE.
 
 - (id) initWithContentsOfFile:(NSString *)path;
 
-- (void) play;
-
-- (BOOL) isPlaying;
-- (uint32_t)playingCount;
-
 - (NSString *)name;
 
 @end

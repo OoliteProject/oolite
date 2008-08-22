@@ -96,8 +96,7 @@ enum
 		{
 			[_current stop];
 			
-			if (loop)  [music playLooped];
-			else  [music play];
+			[music playLooped:loop];
 			
 			[_current release];
 			_current = [music retain];

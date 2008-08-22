@@ -2339,9 +2339,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) playSound:(NSString *) soundName
 {
-	OOSound *sound = [ResourceManager ooSoundNamed:soundName inFolder:@"Sounds"];
-	if (sound != nil)
-		[sound play];
+	[self playLegacyScriptSound:soundName];
 }
 
 /*-----------------------------------------------------*/

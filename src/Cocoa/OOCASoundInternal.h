@@ -73,6 +73,8 @@ SOFTWARE.
 - (void)incrementPlayingCount;
 - (void)decrementPlayingCount;
 
+- (BOOL) isPlaying;
+
 @end
 
 

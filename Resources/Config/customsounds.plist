@@ -94,6 +94,10 @@
 	
 	"[game-over]"					= "bigbang.ogg";
 	
+	// Trumbles
+	"[trumble-idle]"				= "trumble.ogg";
+	"[trumble-squeal]"				= "trumblesqueal.ogg";
+	
 /*	The following can also be used:
 	"[aegis-planet]" = "";
 	"[aegis-station]" = "";

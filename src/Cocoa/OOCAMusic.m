@@ -88,7 +88,15 @@ static OOSoundSource	*sMusicSource = nil;
 }
 
 
-- (void)doPlayWithLoop:(BOOL)inLoop
+- (NSString *)name
+{
+	return [sound name];
+}
+
+
+#pragma mark OOMusic
+
+- (void)playLooped:(BOOL)inLoop
 {
 	if (sPlayingMusic != self)
 	{
@@ -106,35 +114,9 @@ static OOSoundSource	*sMusicSource = nil;
 }
 
 
-- (void)play
-{
-	[self doPlayWithLoop:NO];
-}
-
-
 - (BOOL)isPlaying
 {
 	return sPlayingMusic == self && [sMusicSource isPlaying];
-}
-
-
-- (BOOL)isPaused
-{
-	return NO;
-}
-
-
-- (NSString *)name
-{
-	return [sound name];
-}
-
-
-#pragma mark OOMusic
-
-- (void)playLooped
-{
-	[self doPlayWithLoop:YES];
 }
 
 

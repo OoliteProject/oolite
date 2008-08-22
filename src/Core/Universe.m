@@ -5067,18 +5067,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (BOOL) playCustomSound:(NSString*)key
-{
-	OOSound* sound = [OOSound soundWithCustomSoundKey:key];
-	if (sound)
-	{
-		[sound play];
-		return YES;
-	}
-	return NO;
-}
-
-
 - (void) clearPreviousMessage
 {
 	if (currentMessage)	[currentMessage release];

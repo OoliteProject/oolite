@@ -71,11 +71,9 @@ static OOSoundSource		*sAfterburnerSources[2];
 	sMiscSoundPool = [[OOSoundSourcePool alloc] initWithCount:kMiscPoolSize minRepeatTime:0.0];
 	
 	// Two sources with the same sound are used to simulate looping.
-	sAfterburnerSources[0] = [[OOSoundSource alloc] init];
-	sAfterburnerSources[1] = [[OOSoundSource alloc] init];
 	OOSound *afterburnerSound = [ResourceManager ooSoundNamed:@"afterburner1.ogg" inFolder:@"Sounds"];
-	[sAfterburnerSources[0] setSound:afterburnerSound];
-	[sAfterburnerSources[1] setSound:afterburnerSound];
+	sAfterburnerSources[0] = [[OOSoundSource alloc] initWithSound:afterburnerSound];
+	sAfterburnerSources[1] = [[OOSoundSource alloc] initWithSound:afterburnerSound];
 }
 
 
@@ -604,6 +602,12 @@ static OOSoundSource		*sAfterburnerSources[2];
 - (void) playGameOver
 {
 	[sMiscSoundPool playSoundWithKey:@"[game-over]"];
+}
+
+
+- (void) playLegacyScriptSound:(NSString *)key
+{
+	[sMiscSoundPool playSoundWithKey:key priority:1.1];
 }
 
 @end
