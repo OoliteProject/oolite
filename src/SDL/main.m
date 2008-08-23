@@ -49,6 +49,14 @@ int main(int argc, char *argv[])
 {
 #ifdef GNUSTEP
 	int i;
+	
+#if OOLITE_WINDOWS
+	/*	Windows amibtiously starts apps with the C library locale set to the
+		system locale rather than the "C" locale as per spec. Fixing here so
+		numbers don't behave strangely.
+	*/
+	setlocale("C");
+#endif
 
 	// Need this because we're not using the default run loop's autorelease
 	// pool.
