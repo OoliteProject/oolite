@@ -46,6 +46,7 @@ SOFTWARE.
 
 */
 
+#import "OOCocoa.h"
 #import "OOSDLSoundInternal.h"
 
 

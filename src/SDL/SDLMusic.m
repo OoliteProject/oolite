@@ -182,22 +182,9 @@ void musicFinished()
  *
  * Returns YES for success, or NO if there was a problem playing the music.
  */
-- (void) play
+- (void) playLooped:(BOOL)loop
 {
-	[self playWithCount:1];
-}
-
-/*
- * Play the music represented by this OOMusic instance, looping until stopped.
- * This will replace any music currently playing.
- *
- * If this instance is already playing, there is no effect.
- *
- * Returns YES for success, or NO if there was a problem playing the music.
- */
-- (void) playLooped
-{
-	[self playWithCount:-1];
+	[self playWithCount:loop ? -1 : 1];
 }
 
 /*

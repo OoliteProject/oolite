@@ -47,8 +47,7 @@ MA 02110-1301, USA.
 
 // Start playing this instance of OOMusic, stopping any other instance
 // currently playing.
-- (void) play;
-- (void) playLooped;
+- (void) playLooped:(BOOL)loop;
 
 // Stop the music if this instance is currently playing.
 - (void) stop;
