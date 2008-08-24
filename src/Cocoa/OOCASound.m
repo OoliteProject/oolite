@@ -3,7 +3,7 @@
 OOCASound.m
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -146,17 +146,16 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 		}
 		if (!gOOSoundBroken)
 		{
-			if (![OOCASoundChannel setUp])
-			gOOSoundBroken = YES;
+			if (![OOSoundChannel setUp])  gOOSoundBroken = YES;
 		}
 		
-		gOOSoundSetUp = YES;	// Must be before [OOCASoundMixer mixer] below.
+		gOOSoundSetUp = YES;	// Must be before [OOSoundMixer sharedMixer] below.
 		
 		prefs = [NSUserDefaults standardUserDefaults];
 		
 		if ([prefs objectForKey:KEY_VOLUME_CONTROL])  sNominalVolume = [prefs floatForKey:KEY_VOLUME_CONTROL];
 		else  sNominalVolume = 0.75;	// default setting at 75% system volume
-		[[OOCASoundMixer mixer] setMasterVolume:sNominalVolume];
+		[[OOSoundMixer sharedMixer] setMasterVolume:sNominalVolume];
 		
 		if ([prefs objectForKey:KEY_MAX_BUFFERED_SOUND])
 		{
@@ -167,25 +166,9 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 }
 
 
-+ (void) tearDown
-{
-	if (gOOSoundSetUp)
-	{
-		[gOOCASoundSyncLock release];
-		gOOCASoundSyncLock = nil;
-		[OOCASoundMixer destroy];
-	}
-	[OOCASoundChannel tearDown];
-	gOOSoundSetUp = NO;
-	gOOSoundBroken = NO;
-	
-	[sSingletonOOSound release];
-}
-
-
 + (void) update
 {
-	[[OOCASoundMixer mixer] update];
+	[[OOSoundMixer sharedMixer] update];
 }
 
 
@@ -193,7 +176,7 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 {
 	if (fraction != sNominalVolume)
 	{
-		[[OOCASoundMixer mixer] setMasterVolume:fraction];
+		[[OOSoundMixer sharedMixer] setMasterVolume:fraction];
 		
 		sNominalVolume = fraction;
 		[[NSUserDefaults standardUserDefaults] setFloat:fraction forKey:KEY_VOLUME_CONTROL];
@@ -231,7 +214,9 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 	
 	if (nil != self)
 	{
-		OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", self);
+		#ifndef NDEBUG
+			OOLog(kOOLogSoundLoadingSuccess, @"Loaded sound %@", self);
+		#endif
 	}
 	else
 	{

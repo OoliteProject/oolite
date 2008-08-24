@@ -17,6 +17,12 @@
 			<string>Oolite Saved Game</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.aegidian.oolite.save</string>
+			</array>
 		</dict>
 		<dict>
 			<key>CFBundleTypeExtensions</key>
@@ -28,9 +34,15 @@
 			<key>CFBundleTypeName</key>
 			<string>Oolite Expansion Pack</string>
 			<key>CFBundleTypeRole</key>
-			<string>None</string>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
 			<key>LSTypeIsPackage</key>
 			<true/>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.aegidian.oolite.oxp</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -80,7 +92,6 @@
 			<string>Oolite Expansion Pack</string>
 			<key>UTTypeConformsTo</key>
 			<array>
-				<string>public.item</string>
 				<string>com.apple.package</string>
 			</array>
 			<key>UTTypeTagSpecification</key>

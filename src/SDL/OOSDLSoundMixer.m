@@ -1,13 +1,10 @@
 /*
 
-OOCASoundMixer.h
+OOSDLSoundMixer.m
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+OOSDLSound - SDL_mixer sound implementation for Oolite.
+Copyright (C) 2006-2008 Jens Ayton
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +24,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,54 +46,136 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
-
-@class OOMusic, OOSoundChannel, OOSoundSource;
+#import "OOSDLSoundInternal.h"
 
 
-enum
+static OOSoundMixer *sSingleton = nil;
+
+
+@implementation OOSoundMixer
+
++ (id) sharedMixer
 {
-	kMixerGeneralChannels		= 32
-};
-
-
-#define SUPPORT_SOUND_INSPECTOR		0
-
-
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
-	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
-#if SUPPORT_SOUND_INSPECTOR
-	IBOutlet NSMatrix			*checkBoxes;
-	IBOutlet NSTextField		*currentField;
-	IBOutlet NSTextField		*maxField;
-	IBOutlet NSTextField		*loadField;
-	IBOutlet NSProgressIndicator *loadBar;
-#endif
+	if (nil == sSingleton)
+	{
+		[[self alloc] init];
+	}
+	return sSingleton;
 }
 
-// Singleton accessor
-+ (id) sharedMixer;
 
-- (void) update;
+- (id) init
+{
+	BOOL						OK = YES;
+	uint32_t					idx = 0, count = kMixerGeneralChannels;
+	OOSoundChannel				*channel;
+	
+	if (!(self = [super init]))  return nil;
+	if (![OOSound setUp])  OK = NO;
+	
+	if (OK)
+	{
+		// Allocate channels
+		do
+		{
+			channel = [[OOSoundChannel alloc] initWithID:count];
+			if (nil != channel)
+			{
+				_channels[idx++] = channel;
+				[self pushChannel:channel];
+			}
+		}  while (--count);
+	}
+	
+	if (!OK)
+	{
+		[super release];
+		self = nil;
+	}
+	else
+	{
+		sSingleton = self;
+	}
+	
+	return sSingleton;
+}
 
-- (void) setMasterVolume:(float)inVolume;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+- (void) update
+{
+	for (uint32_t i = 0; i < kMixerGeneralChannels; ++i)
+	{
+		[_channels[i] update];
+	}
+}
+
+
+- (OOSoundChannel *) popChannel
+{
+	OOSoundChannel *channel = _freeList;
+	_freeList = [channel next];
+	[channel setNext:nil];
+	
+	return channel;
+}
+
+
+- (void) pushChannel:(OOSoundChannel *)channel
+{
+	assert(channel != nil);
+	
+	[channel setNext:_freeList];
+	_freeList = channel;
+}
+
+@end
+
+
+@implementation OOSoundMixer (Singleton)
+
+/*	Canonical singleton boilerplate.
+	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+	See also +sharedMixer above.
+	
+	NOTE: assumes single-threaded access.
+*/
+
++ (id)allocWithZone:(NSZone *)inZone
+{
+	if (sSingleton == nil)
+	{
+		sSingleton = [super allocWithZone:inZone];
+		return sSingleton;
+	}
+	return nil;
+}
+
+
+- (id)copyWithZone:(NSZone *)inZone
+{
+	return self;
+}
+
+
+- (id)retain
+{
+	return self;
+}
+
+
+- (OOUInteger)retainCount
+{
+	return UINT_MAX;
+}
+
+
+- (void)release
+{}
+
+
+- (id)autorelease
+{
+	return self;
+}
 
 @end

@@ -1,9 +1,10 @@
 /*
 
-OOCAMusic.m
+OOSDLSound.m
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
+OOSDLSound - SDL_mixer sound implementation for Oolite.
+Copyright (C) 2006-2008 Jens Ayton
+
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +24,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -45,88 +46,100 @@ SOFTWARE.
 
 */
 
-#import "OOCASoundInternal.h"
+#import "OOSDLSoundInternal.h"
+#import "OOLogging.h"
+#import "OOCollectionExtractors.h"
+#import "OOMaths.h"
 
-static OOMusic			*sPlayingMusic = nil;
-static OOSoundSource	*sMusicSource = nil;
+
+#define KEY_VOLUME_CONTROL @"volume_control"
 
 
-@implementation OOMusic
+static BOOL	sIsSetUp = NO;
+static BOOL sIsSoundOK = NO;
+static int	sEffectiveMasterVolume = MIX_MAX_VOLUME;
 
-#pragma mark NSObject
 
-+ (id)allocWithZone:(NSZone *)inZone
+@implementation OOSound
+
++ (BOOL) setUp
 {
-	return NSAllocateObject([OOMusic class], 0, inZone);
-}
-
-
-- (void)dealloc
-{
-	if (sPlayingMusic == self) [self stop];
-	[sound release];
-	
-	[super dealloc];
-}
-
-#pragma mark OOSound
-
-- (id)initWithContentsOfFile:(NSString *)inPath
-{
-	self = [super init];
-	if (nil != self)
+	if (!sIsSetUp)
 	{
-		sound = [[OOSound alloc] initWithContentsOfFile:inPath];
-		if (nil == sound)
+		sIsSetUp = YES;
+		
+		if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
 		{
-			[self release];
-			self = nil;
+			OOLog(@"sdl.init.audio.failed", @"Mix_OpenAudio: %s\n", Mix_GetError());
+			return NO;
 		}
+		
+		Mix_AllocateChannels(kMixerGeneralChannels);
+		sIsSoundOK = YES;
+		
+		float volume = [[NSUserDefaults standardUserDefaults] floatForKey:KEY_VOLUME_CONTROL defaultValue:1.0];
+		[self setMasterVolume:volume];
+		
+		[OOSoundMixer sharedMixer];
 	}
 	
-	return self;
+	return sIsSoundOK;
+}
+
+
++ (void) setMasterVolume:(float) fraction
+{
+	if (!sIsSetUp)  [self setUp];
+	
+	fraction = OOClamp_0_1_f(fraction);
+	int volume = (float)MIX_MAX_VOLUME * fraction;
+	
+	if (volume != sEffectiveMasterVolume)
+	{
+		// -1 = all channels
+		Mix_Volume(-1, volume);
+		Mix_VolumeMusic(volume);
+		
+		sEffectiveMasterVolume = volume;
+		[[NSUserDefaults standardUserDefaults] setFloat:[self masterVolume] forKey:KEY_VOLUME_CONTROL];
+	}
+}
+
+
++ (float) masterVolume
+{
+	if (!sIsSetUp)  [self setUp];
+	
+	return (float)sEffectiveMasterVolume / (float)MIX_MAX_VOLUME;
+}
+
+
+- (id) init
+{
+	if (!sIsSetUp)  [OOSound setUp];
+	return [super init];
+}
+
+
+- (id) initWithContentsOfFile:(NSString *)path
+{
+	[self release];
+	if (!sIsSetUp && ![OOSound setUp])  return nil;
+	
+	return [[OOSDLConcreteSound alloc] initWithContentsOfFile:path];
 }
 
 
 - (NSString *)name
 {
-	return [sound name];
+	OOLogGenericSubclassResponsibility();
+	return @"";
 }
 
 
-#pragma mark OOMusic
-
-- (void)playLooped:(BOOL)inLoop
++ (void) update
 {
-	if (sPlayingMusic != self)
-	{
-		if (nil == sMusicSource)
-		{
-			sMusicSource = [[OOSoundSource alloc] init];
-		}
-		[sMusicSource stop];
-		[sMusicSource setLoop:inLoop];
-		[sMusicSource setSound:sound];
-		[sMusicSource play];
-		
-		sPlayingMusic = self;
-	}
-}
-
-
-- (BOOL)isPlaying
-{
-	return sPlayingMusic == self && [sMusicSource isPlaying];
-}
-
-
-- (void)stop
-{
-	if (sPlayingMusic == self)
-	{
-		sPlayingMusic = nil;
-		[sMusicSource stop];
-	}
+	[[OOSoundMixer sharedMixer] update];
 }
 
 @end

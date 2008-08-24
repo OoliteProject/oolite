@@ -3,7 +3,7 @@
 OOCASoundChannel.m
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@ static NSString * const kOOLogSoundMachPortError		= @"sound.channel.machPortErro
 static mach_port_t					sReapPort = MACH_PORT_NULL;
 static mach_port_t					sStatusPort = MACH_PORT_NULL;
 static BOOL							sReaperRunning = NO;
-static OOCASoundChannel_RenderIMP	SoundChannelRender = NULL;
+static OOSoundChannel_RenderIMP		SoundChannelRender = NULL;
 
 #if COUNT_NULLS
 static int32_t						sDebugUnexpectedNullCount = 0;
@@ -85,8 +85,8 @@ static int32_t						sDebugUnexpectedNullCount = 0;
 	to use a mutex-protected list to communicate with the reap queue without having to wait on the
 	mutex in the real-time thread.
 */
-static OOCASoundChannel				*sPlayThreadDeadList = NULL;
-static OOCASoundChannel				*sReapQueue = NULL;
+static OOSoundChannel				*sPlayThreadDeadList = NULL;
+static OOSoundChannel				*sReapQueue = NULL;
 static pthread_mutex_t				sReapQueueMutex = { 0 };
 
 enum
@@ -103,7 +103,7 @@ enum
 #define kAURenderSelector		@selector(renderWithFlags:frames:context:data:)
 
 
-@interface OOCASoundChannel(Private)
+@interface OOSoundChannel(Private)
 
 + (void)reaperThread:junk;
 
@@ -158,7 +158,7 @@ static void PortSend(mach_port_t inPort, PortMessage inMessage);
 static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 
 
-@implementation OOCASoundChannel
+@implementation OOSoundChannel
 
 + (BOOL)setUp
 {
@@ -167,7 +167,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	
 	if (sReaperRunning) return YES;
 	
-	SoundChannelRender = (OOCASoundChannel_RenderIMP)[OOCASoundChannel instanceMethodForSelector:kAURenderSelector];
+	SoundChannelRender = (OOSoundChannel_RenderIMP)[OOSoundChannel instanceMethodForSelector:kAURenderSelector];
 	if (NULL == SoundChannelRender) OK = NO;
 	
 	if (OK)
@@ -225,10 +225,10 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 + (void)reaperThread:junk
 {
 	PortMessage					message = { kMsgThreadUp, NULL };
-	OOCASoundChannel			*chan;
+	OOSoundChannel				*chan;
 	NSAutoreleasePool			*pool = nil;
 	
-	[NSThread ooSetCurrentThreadName:@"OOCASoundChannel reaper thread"];
+	[NSThread ooSetCurrentThreadName:@"OOSoundChannel reaper thread"];
 	sReaperRunning = YES;
 	PortSend(sStatusPort, message);
 	
@@ -353,13 +353,13 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 }
 
 
-- (OOCASoundChannel *)next
+- (OOSoundChannel *)next
 {
 	return _next;
 }
 
 
-- (void)setNext:(OOCASoundChannel *)inNext
+- (void)setNext:(OOSoundChannel *)inNext
 {
 	_next = inNext;
 }
@@ -403,7 +403,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 		{
 			OOLog(kOOLogSoundBadReuse, @"Channel %@ reused while playing.", self);
 			
-			[[OOCASoundMixer mixer] disconnectChannel:self];
+			[[OOSoundMixer sharedMixer] disconnectChannel:self];
 			if (_sound)
 			{
 				Render = NULL;
@@ -417,7 +417,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			_state = kState_Stopped;
 		}
 		
-		Render = (OOCASoundChannel_RenderIMP)[inSound methodForSelector:kAURenderSelector];
+		Render = (OOSoundChannel_RenderIMP)[inSound methodForSelector:kAURenderSelector];
 		OK = (NULL != Render);
 		
 		if (OK) OK = [inSound getAudioStreamBasicDescription:&format];
@@ -439,7 +439,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 			OK = !err;
 		}
 		
-		if (OK) OK = [[OOCASoundMixer mixer] connectChannel:self];
+		if (OK) OK = [[OOSoundMixer sharedMixer] connectChannel:self];
 		
 		if (OK)
 		{
@@ -474,7 +474,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 {
 	OSStatus						err;
 	
-	err = [[OOCASoundMixer mixer] disconnectChannel:self];
+	err = [[OOSoundMixer sharedMixer] disconnectChannel:self];
 	
 	if (noErr == err)
 	{
@@ -617,7 +617,7 @@ static BOOL PortWait(mach_port_t inPort, PortMessage *outMessage);
 	if (__builtin_expect(nil != sPlayThreadDeadList && !pthread_mutex_trylock(&sReapQueueMutex), 0))
 	{
 		// Put sPlayThreadDeadList at front of sReapQueue
-		OOCASoundChannel	*curr;
+		OOSoundChannel		*curr;
 		
 		curr = sPlayThreadDeadList;
 		while (nil != curr->_next) curr = curr->_next;

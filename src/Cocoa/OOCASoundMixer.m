@@ -7,7 +7,7 @@ implementation detail. Do not use it directly; use an OOSoundSource to play an
 OOSound.
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -60,26 +60,23 @@ static NSString * const kOOLogSoundMixerReplacingBrokenChannel	= @"sound.mixer.r
 static NSString * const kOOLogSoundMixerFailedToConnectChannel	= @"sound.mixer.failedToConnectChannel";
 
 
-@interface OOCASoundMixer(Private)
+@interface OOSoundMixer (Private)
 
-- (void)reallyRelease;
-- (void)channelSoundEnded:(OOCASoundChannel *)inChannel;
-
-- (void)pushChannel:(OOCASoundChannel *)inChannel;
-- (OOCASoundChannel *)popChannel;
+- (void)pushChannel:(OOSoundChannel *)inChannel;
+- (OOSoundChannel *)popChannel;
 
 @end
 
 
-static OOCASoundMixer *sSingleton = nil;
+static OOSoundMixer *sSingleton = nil;
 
-@implementation OOCASoundMixer
+@implementation OOSoundMixer
 
-+ (OOCASoundMixer *)mixer
++ (id) sharedMixer
 {
 	if (nil == sSingleton)
 	{
-		sSingleton = [[self alloc] init];
+		[[self alloc] init];
 	}
 	return sSingleton;
 }
@@ -87,126 +84,85 @@ static OOCASoundMixer *sSingleton = nil;
 
 - (id)init
 {
-	OSStatus						err = noErr;
-	BOOL							OK;
-	uint32_t						idx = 0, count = kMixerGeneralChannels;
-	OOCASoundChannel				*temp;
-	ComponentDescription			desc;
+	OSStatus					err = noErr;
+	BOOL						OK;
+	uint32_t					idx = 0, count = kMixerGeneralChannels;
+	OOSoundChannel				*temp;
+	ComponentDescription		desc;
 	
-	if (!gOOSoundSetUp) [OOSound setUp];
+	if (!gOOSoundSetUp)  [OOSound setUp];
 	
-	if (nil != sSingleton)
+	self = [super init];
+	if (nil != self)
 	{
-		[super release];
-	}
-	else
-	{
-		self = [super init];
-		if (nil != self)
+		_listLock = [[NSLock alloc] init];
+		[_listLock ooSetName:@"OOSoundMixer list lock"];
+		OK = nil != _listLock;
+		
+		if (OK)
 		{
-			_listLock = [[NSLock alloc] init];
-			[_listLock ooSetName:@"OOCASoundMixer list lock"];
-			OK = nil != _listLock;
+			// Create audio graph
+			err = NewAUGraph(&_graph);
 			
-			if (OK)
-			{
-				// Create audio graph
-				err = NewAUGraph(&_graph);
-				
-				// Add output node
-				desc.componentType = kAudioUnitType_Output;
-				desc.componentSubType = kAudioUnitSubType_DefaultOutput;
-				desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-				desc.componentFlags = 0;
-				desc.componentFlagsMask = 0;
-				if (!err) err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
-				
-				// Add mixer node
-				desc.componentType = kAudioUnitType_Mixer;
-				desc.componentSubType = kAudioUnitSubType_StereoMixer;
-				desc.componentManufacturer = kAudioUnitManufacturer_Apple;
-				desc.componentFlags = 0;
-				desc.componentFlagsMask = 0;
-				if (!err) err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
-				
-				// Connect mixer to output
-				if (!err) err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
-				
-				// Open the graph (turn it into concrete AUs) and extract mixer AU
-				if (!err) err = AUGraphOpen(_graph);
-				if (!err) err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
-				
-				if (err) OK = NO;
-			}
+			// Add output node
+			desc.componentType = kAudioUnitType_Output;
+			desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+			desc.componentFlags = 0;
+			desc.componentFlagsMask = 0;
+			if (!err) err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
 			
-			if (OK)
-			{
-				// Allocate channels
-				do
-				{
-					temp = [[OOCASoundChannel alloc] initWithID:count auGraph:_graph];
-					if (nil != temp)
-					{
-						_channels[idx++] = temp;
-						[temp setNext:_freeList];
-						_freeList = temp;
-					}
-				} while (--count);
-				
-				if (noErr != AUGraphInitialize(_graph)) OK = NO;
-			}
+			// Add mixer node
+			desc.componentType = kAudioUnitType_Mixer;
+			desc.componentSubType = kAudioUnitSubType_StereoMixer;
+			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
+			desc.componentFlags = 0;
+			desc.componentFlagsMask = 0;
+			if (!err) err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
 			
-			if (!OK)
-			{
-				[self reallyRelease];
-				self = nil;
-			}
+			// Connect mixer to output
+			if (!err) err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
 			
-			#if SUPPORT_SOUND_INSPECTOR
-			if (![NSBundle loadNibNamed:@"SoundInspector" owner:self])
-			{
-				OOLog(kOOLogSoundInspetorNotLoaded, @"Failed to load sound inspector panel.");
-			}
-			#endif
+			// Open the graph (turn it into concrete AUs) and extract mixer AU
+			if (!err) err = AUGraphOpen(_graph);
+			if (!err) err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
+			
+			if (err) OK = NO;
 		}
-		sSingleton = self;
+		
+		if (OK)
+		{
+			// Allocate channels
+			do
+			{
+				temp = [[OOSoundChannel alloc] initWithID:count auGraph:_graph];
+				if (nil != temp)
+				{
+					_channels[idx++] = temp;
+					[temp setNext:_freeList];
+					_freeList = temp;
+				}
+			} while (--count);
+			
+			if (noErr != AUGraphInitialize(_graph)) OK = NO;
+		}
+		
+		if (!OK)
+		{
+			[super release];
+			self = nil;
+		}
+		
+		#if SUPPORT_SOUND_INSPECTOR
+		if (![NSBundle loadNibNamed:@"SoundInspector" owner:self])
+		{
+			OOLog(kOOLogSoundInspetorNotLoaded, @"Failed to load sound inspector panel.");
+		}
+		#endif
 	}
+	sSingleton = self;
 	
 	return sSingleton;
-}
-
-
-- (id)retain
-{
-	return self;
-}
-
-
-- (void)release
-{
-	
-}
-
-
-- (void)reallyRelease
-{
-	[super release];
-}
-
-
-- (id)autorelease
-{
-	return self;
-}
-
-
-+ (void)destroy
-{
-	if (nil != sSingleton)
-	{
-		[sSingleton reallyRelease];
-		sSingleton = nil;
-	}
 }
 
 
@@ -230,38 +186,7 @@ static OOCASoundMixer *sSingleton = nil;
 }
 
 
-- (void)playSound:(OOSound *)inSound
-{
-	BOOL						OK = YES;
-	OOCASoundChannel			*chan;
-	
-	if (nil == inSound) return;
-	
-	chan = [self popChannel];
-	
-	if (nil != chan)
-	{
-		[chan setDelegate:self];
-		OK = [chan playSound:inSound looped:NO];
-		
-		if (OK)
-		{
-			[inSound incrementPlayingCount];
-			[self retain];
-		}
-		else
-		{
-			[self pushChannel:chan];
-		}
-	}
-	else
-	{
-		OOLog(kOOLogSoundMixerOutOfChannels, @"Out of sound channels! Pretend you're hearing %@", [inSound name]);
-	}
-}
-
-
-- (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
+- (void)channel:(OOSoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound
 {
 	uint32_t				ID;
 		
@@ -272,7 +197,7 @@ static OOCASoundMixer *sSingleton = nil;
 		OOLog(kOOLogSoundMixerReplacingBrokenChannel, @"Sound mixer: replacing broken channel %@.", inChannel);
 		ID = [inChannel ID];
 		[inChannel release];
-		inChannel = [[OOCASoundChannel alloc] initWithID:ID auGraph:_graph];
+		inChannel = [[OOSoundChannel alloc] initWithID:ID auGraph:_graph];
 	}
 	
 	[self pushChannel:inChannel];
@@ -328,30 +253,9 @@ static OOCASoundMixer *sSingleton = nil;
 }
 
 
-- (void)pushChannel:(OOCASoundChannel *)inChannel
+- (OOSoundChannel *)popChannel
 {
-	uint32_t					ID;
-	
-	assert(nil != inChannel);
-	
-	[_listLock lock];
-	
-	[inChannel setNext:_freeList];
-	_freeList = inChannel;
-	
-	if (0 == --_activeChannels)
-	{
-		AUGraphStop(_graph);
-	}
-	ID = [inChannel ID] - 1;
-	if (ID < 32) _playMask &= ~(1 << ID);
-	[_listLock unlock];
-}
-
-
-- (OOCASoundChannel *)popChannel
-{
-	OOCASoundChannel			*result;
+	OOSoundChannel				*result;
 	uint32_t					ID;
 	
 	[_listLock lock];
@@ -374,7 +278,28 @@ static OOCASoundMixer *sSingleton = nil;
 }
 
 
-- (BOOL)connectChannel:(OOCASoundChannel *)inChannel
+- (void)pushChannel:(OOSoundChannel *)inChannel
+{
+	uint32_t					ID;
+	
+	assert(nil != inChannel);
+	
+	[_listLock lock];
+	
+	[inChannel setNext:_freeList];
+	_freeList = inChannel;
+	
+	if (0 == --_activeChannels)
+	{
+		AUGraphStop(_graph);
+	}
+	ID = [inChannel ID] - 1;
+	if (ID < 32) _playMask &= ~(1 << ID);
+	[_listLock unlock];
+}
+
+
+- (BOOL)connectChannel:(OOSoundChannel *)inChannel
 {
 	AUNode						node;
 	OSStatus					err;
@@ -391,7 +316,7 @@ static OOCASoundMixer *sSingleton = nil;
 }
 
 
-- (OSStatus)disconnectChannel:(OOCASoundChannel *)inChannel
+- (OSStatus)disconnectChannel:(OOSoundChannel *)inChannel
 {
 	OSStatus					err;
 	
@@ -401,6 +326,56 @@ static OOCASoundMixer *sSingleton = nil;
 	if (noErr == err) AUGraphUpdate(_graph, NULL);
 	
 	return err;
+}
+
+@end
+
+
+@implementation OOSoundMixer (Singleton)
+
+/*	Canonical singleton boilerplate.
+	See Cocoa Fundamentals Guide: Creating a Singleton Instance.
+	See also +sharedMixer above.
+	
+	NOTE: assumes single-threaded access.
+*/
+
++ (id)allocWithZone:(NSZone *)inZone
+{
+	if (sSingleton == nil)
+	{
+		sSingleton = [super allocWithZone:inZone];
+		return sSingleton;
+	}
+	return nil;
+}
+
+
+- (id)copyWithZone:(NSZone *)inZone
+{
+	return self;
+}
+
+
+- (id)retain
+{
+	return self;
+}
+
+
+- (OOUInteger)retainCount
+{
+	return UINT_MAX;
+}
+
+
+- (void)release
+{}
+
+
+- (id)autorelease
+{
+	return self;
 }
 
 @end

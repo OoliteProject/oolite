@@ -92,17 +92,11 @@ MA 02110-1301, USA.
 		[self dealloc];
 		return nil;
 	}
-	else if (Mix_OpenAudio(44100, AUDIO_S16LSB, 2, 2048) < 0)
-	{
-		OOLog(@"sdl.init.audio.failed", @"Mix_OpenAudio: %s\n", Mix_GetError());
-		[self dealloc];
-		return nil;
-	}
-
-	Mix_AllocateChannels(MAX_CHANNELS);
+	
 	stickHandler=[[JoystickHandler alloc] init];
 	// end TODO
-
+	
+	[OOSound setUp];
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
 	static char windowCaption[128];

@@ -1,13 +1,10 @@
 /*
 
-OOCASoundMixer.h
+OOSDLSoundChannel.m
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+OOSDLSound - SDL_mixer sound implementation for Oolite.
+Copyright (C) 2006-2008 Jens Ayton
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +24,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,54 +46,102 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
-
-@class OOMusic, OOSoundChannel, OOSoundSource;
+#import "OOSDLSoundInternal.h"
 
 
-enum
+@interface OOSoundChannel (Private)
+
+- (void) hasStopped;
+
+@end
+
+
+@implementation OOSoundChannel
+
+- (id) initWithID:(uint16_t)ID
 {
-	kMixerGeneralChannels		= 32
-};
-
-
-#define SUPPORT_SOUND_INSPECTOR		0
-
-
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
-	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
-#if SUPPORT_SOUND_INSPECTOR
-	IBOutlet NSMatrix			*checkBoxes;
-	IBOutlet NSTextField		*currentField;
-	IBOutlet NSTextField		*maxField;
-	IBOutlet NSTextField		*loadField;
-	IBOutlet NSProgressIndicator *loadBar;
-#endif
+	if ((self = [super init]))
+	{
+		_ID = ID;
+	}
+	return self;
 }
 
-// Singleton accessor
-+ (id) sharedMixer;
 
-- (void) update;
+- (void) update
+{
+	// Check if we've reached the end of a sound.
+	if (_sound != nil && !Mix_Playing(_ID))  [self hasStopped];
+}
 
-- (void) setMasterVolume:(float)inVolume;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+- (void) setDelegate:(id)delegate
+{
+	_delegate = delegate;
+}
+
+
+- (uint32_t)ID
+{
+	return _ID;
+}
+
+
+- (OOSoundChannel *) next
+{
+	return _next;
+}
+
+
+- (void) setNext:(OOSoundChannel *)next
+{
+	_next = next;
+}
+
+
+- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop
+{
+	if (sound == nil)  return NO;
+	
+	if (_sound != nil)  [self stop];
+	
+	Mix_Chunk *chunk = [sound chunk];
+	if (chunk != NULL)
+	{
+		Mix_PlayChannel(_ID, chunk, loop ? -1 : 0);
+		_sound = [sound retain];
+		return YES;
+	}
+	return NO;
+}
+
+
+- (void) stop
+{
+	if (_sound != nil)
+	{
+		Mix_HaltChannel(_ID);
+		[self hasStopped];
+	}
+}
+
+
+- (void) hasStopped
+{
+	OOSound *sound = _sound;
+	_sound = nil;
+	
+	if (nil != _delegate && [_delegate respondsToSelector:@selector(channel:didFinishPlayingSound:)])
+	{
+		[_delegate channel:self didFinishPlayingSound:sound];
+	}
+	[sound release];
+}
+
+
+- (OOSound *)sound
+{
+	return _sound;
+}
 
 @end

@@ -1,13 +1,10 @@
 /*
 
-OOCASoundMixer.h
+OOSDLConcreteSound.m
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+OOSDLSound - SDL_mixer sound implementation for Oolite.
+Copyright (C) 2006-2008 Jens Ayton
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +24,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,54 +46,71 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
-
-@class OOMusic, OOSoundChannel, OOSoundSource;
+#import "OOSDLConcreteSound.h"
+#import "OOLogging.h"
 
 
-enum
+@implementation OOSDLConcreteSound
+
+- (id) initWithContentsOfFile:(NSString *)path
 {
-	kMixerGeneralChannels		= 32
-};
-
-
-#define SUPPORT_SOUND_INSPECTOR		0
-
-
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
+	if ((self = [super init]))
+	{
+		_chunk = Mix_LoadWAV([path cString]);
+		
+		if (_chunk != NULL)
+		{
+			#ifndef NDEBUG
+				OOLog(@"sound.load.success", @"Loaded a sound from \"%@\".", path);
+			#endif
+			_name = [[path lastPathComponent] copy];
+		}
+		else
+		{
+			OOLog(@"sound.load.failed", @"Could not load a sound from \"%@\".", path);
+			[self release];
+			self = nil;
+		}
+	}
 	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
-#if SUPPORT_SOUND_INSPECTOR
-	IBOutlet NSMatrix			*checkBoxes;
-	IBOutlet NSTextField		*currentField;
-	IBOutlet NSTextField		*maxField;
-	IBOutlet NSTextField		*loadField;
-	IBOutlet NSProgressIndicator *loadBar;
-#endif
+	return self;
 }
 
-// Singleton accessor
-+ (id) sharedMixer;
 
-- (void) update;
+- (void) dealloc
+{
+	if (_chunk != NULL)  Mix_FreeChunk(_chunk);
+	[_name autorelease];
+	
+	[super dealloc];
+}
 
-- (void) setMasterVolume:(float)inVolume;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+- (NSString *) descriptionComponents
+{
+	return [NSString stringWithFormat:@"\"%@\"", _name];
+}
+
+
+- (NSString *)name
+{
+	return _name;
+}
+
+
+- (Mix_Chunk *) chunk
+{
+	return _chunk;
+}
+
+@end
+
+
+@implementation OOSound (SDL)
+
+- (Mix_Chunk *) chunk
+{
+	return NULL;
+}
 
 @end

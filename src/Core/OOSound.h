@@ -45,13 +45,13 @@ MA 02110-1301, USA.
 
 
 #if OOLITE_SDL
-	#import "SDLSound.h"
+	#import "OOSDLSound.h"
 	#import "SDLMusic.h"
-	#import "OOBasicSoundSource.h"
 	#import "OOBasicSoundReferencePoint.h"
 #else
 	#import "OOCASound.h"
 	#import "OOCAMusic.h"
-	#import "OOCASoundSource.h"
 	#import "OOCASoundReferencePoint.h"
 #endif
+
+#import "OOSoundSource.h"

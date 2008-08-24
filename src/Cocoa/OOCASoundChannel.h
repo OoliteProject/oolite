@@ -8,7 +8,7 @@ This class is an implementation detail. Do not use it directly; use an
 OOSoundSource to play an OOSound.
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -57,12 +57,12 @@ SOFTWARE.
 
 
 typedef uintptr_t OOCASoundRenderContext;
-typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, AudioUnitRenderActionFlags *ioFlags, UInt32 inNumFrames, OOCASoundRenderContext *ioContext, AudioBufferList *ioData);
+typedef  OSStatus (*OOSoundChannel_RenderIMP)(id inSelf, SEL inSelector, AudioUnitRenderActionFlags *ioFlags, UInt32 inNumFrames, OOCASoundRenderContext *ioContext, AudioBufferList *ioData);
 
 
-@interface OOCASoundChannel: NSObject
+@interface OOSoundChannel: NSObject
 {
-	OOCASoundChannel			*_next;
+	OOSoundChannel				*_next;
 	id							_delegate;
 	AUNode						_subGraphNode;
 	AUGraph						_subGraph;
@@ -70,7 +70,7 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 	AudioUnit					_au;
 	OOSound						*_sound;
 	OOCASoundRenderContext		_context;
-	OOCASoundChannel_RenderIMP	Render;
+	OOSoundChannel_RenderIMP	Render;
 	uint8_t						_state,
 								_id,
 								_stopReq;
@@ -89,8 +89,8 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 - (AUNode)auSubGraphNode;
 
 // Unretained pointer used to maintain simple stack
-- (OOCASoundChannel *)next;
-- (void)setNext:(OOCASoundChannel *)inNext;
+- (OOSoundChannel *)next;
+- (void)setNext:(OOSoundChannel *)inNext;
 
 - (BOOL)playSound:(OOSound *)inSound looped:(BOOL)inLoop;
 - (void)stop;
@@ -102,9 +102,9 @@ typedef  OSStatus (*OOCASoundChannel_RenderIMP)(id inSelf, SEL inSelector, Audio
 @end
 
 
-@interface NSObject(OOCASoundChannelDelegate)
+@interface NSObject(OOSoundChannelDelegate)
 
 // Note: this will be called in a separate thread.
-- (void)channel:(OOCASoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound;
+- (void)channel:(OOSoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound;
 
 @end

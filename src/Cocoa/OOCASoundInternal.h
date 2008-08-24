@@ -6,7 +6,7 @@ Declarations used within OOCASound. This file should not be used by client
 code.
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -48,15 +48,13 @@ SOFTWARE.
 
 */
 
-#import "OOCASound.h"
-#import "OOCASoundMixer.h"
+#import "OOSoundInternal.h"
 #import "OOCASoundChannel.h"
 #import "OOCABufferedSound.h"
 #import "OOCAStreamingSound.h"
 #import <CoreAudio/CoreAudio.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import "OOErrorDescription.h"
-#import "OOCASoundSource.h"
 #import "OOLogging.h"
 
 
@@ -78,16 +76,15 @@ SOFTWARE.
 @end
 
 
-@interface OOCASoundMixer (Internal)
+@interface OOSoundMixer (Internal)
 
-- (BOOL)connectChannel:(OOCASoundChannel *)inChannel;
-- (OSStatus)disconnectChannel:(OOCASoundChannel *)inChannel;
+- (BOOL)connectChannel:(OOSoundChannel *)inChannel;
+- (OSStatus)disconnectChannel:(OOSoundChannel *)inChannel;
 
 @end
 
 
 extern BOOL				gOOSoundSetUp, gOOSoundBroken;
-extern NSRecursiveLock	*gOOCASoundSyncLock;
 
 extern NSString * const kOOLogDeprecatedMethodOOCASound;
 extern NSString * const kOOLogSoundInitError;

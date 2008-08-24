@@ -7,7 +7,7 @@ specified relative to an OOSoundReferencePoint. Since positional audio is
 currently unimplemented, this class does nothing.
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2006 Jens Ayton
+Copyright (C) 2005-2008 Jens Ayton
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License

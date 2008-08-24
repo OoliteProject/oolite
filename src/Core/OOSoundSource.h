@@ -1,13 +1,15 @@
 /*
 
-OOCASoundMixer.h
+OOSoundSource.h
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+A sound source.
+Each playing sound is associated with a sound source, either explicitly or by
+creating one on the fly. Each sound source can play one sound at a time, and
+has a number of attributes related to positional audio (which is currently
+unimplemented).
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
+
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +29,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -44,59 +46,53 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+OUT OF OR 
 
 */
 
-#import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
+#import "OOSoundSource.h"
+#import "OOMaths.h"
 
-@class OOMusic, OOSoundChannel, OOSoundSource;
+@class OOSound, OOSoundChannel, OOSoundReferencePoint;
 
 
-enum
+@interface OOSoundSource: NSObject
 {
-	kMixerGeneralChannels		= 32
-};
-
-
-#define SUPPORT_SOUND_INSPECTOR		0
-
-
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
-	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
-#if SUPPORT_SOUND_INSPECTOR
-	IBOutlet NSMatrix			*checkBoxes;
-	IBOutlet NSTextField		*currentField;
-	IBOutlet NSTextField		*maxField;
-	IBOutlet NSTextField		*loadField;
-	IBOutlet NSProgressIndicator *loadBar;
-#endif
+	OOSound						*_sound;
+	OOSoundChannel				*_channel;
+	BOOL						_loop;
+	uint8_t						_repeatCount,
+								_remainingCount;
 }
 
-// Singleton accessor
-+ (id) sharedMixer;
++ (id) sourceWithSound:(OOSound *)inSound;
+- (id) initWithSound:(OOSound *)inSound;
 
-- (void) update;
+// These options should be set before playing. Effect of setting them while playing is undefined.
+- (OOSound *) sound;
+- (void )setSound:(OOSound *)inSound;
+- (BOOL) loop;
+- (void) setLoop:(BOOL)inLoop;
+- (uint8_t) repeatCount;
+- (void) setRepeatCount:(uint8_t)inCount;
 
-- (void) setMasterVolume:(float)inVolume;
+- (BOOL) isPlaying;
+- (void) play;
+- (void) playOrRepeat;
+- (void) stop;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+// Conveniences:
+- (void) playSound:(OOSound *)inSound;
+- (void) playSound:(OOSound *)inSound repeatCount:(uint8_t)inCount;
+- (void) playOrRepeatSound:(OOSound *)inSound;
+
+// Positional audio attributes are ignored in this implementation
+- (void) setPositional:(BOOL)inPositional;
+- (void) setPosition:(Vector)inPosition;
+- (void) setVelocity:(Vector)inVelocity;
+- (void) setOrientation:(Vector)inOrientation;
+- (void) setConeAngle:(float)inAngle;
+- (void) setGainInsideCone:(float)inInside outsideCone:(float)inOutside;
+- (void) positionRelativeTo:(OOSoundReferencePoint *)inPoint;
 
 @end

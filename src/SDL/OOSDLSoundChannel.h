@@ -1,13 +1,15 @@
 /*
 
-OOCASoundMixer.h
+OOSDLSoundChannel.h
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+A channel for audio playback.
 
-OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
+This class is an implementation detail. Do not use it directly; use an
+OOSoundSource to play an OOSound.
+
+OOSDLSound - SDL_mixer sound implementation for Oolite.
+Copyright (C) 2006-2008 Jens Ayton
+
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -27,7 +29,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2006 Jens Ayton
+Copyright (C) 2006-2008 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,53 +52,40 @@ SOFTWARE.
 */
 
 #import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
 
-@class OOMusic, OOSoundChannel, OOSoundSource;
+@class OOSound;
 
 
-enum
+@interface OOSoundChannel: NSObject
 {
-	kMixerGeneralChannels		= 32
-};
-
-
-#define SUPPORT_SOUND_INSPECTOR		0
-
-
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
-	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_maxChannels;
-	uint32_t					_playMask;
-	
-#if SUPPORT_SOUND_INSPECTOR
-	IBOutlet NSMatrix			*checkBoxes;
-	IBOutlet NSTextField		*currentField;
-	IBOutlet NSTextField		*maxField;
-	IBOutlet NSTextField		*loadField;
-	IBOutlet NSProgressIndicator *loadBar;
-#endif
+	OOSoundChannel				*_next;
+	id							_delegate;
+	OOSound						*_sound;
+	uint16_t					_ID;
+	BOOL						_playing;
 }
 
-// Singleton accessor
-+ (id) sharedMixer;
+- (id) initWithID:(uint16_t)ID;
 
 - (void) update;
 
-- (void) setMasterVolume:(float)inVolume;
+- (void) setDelegate:(id)delegate;
+- (uint32_t) ID;
 
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+// Unretained pointer used to maintain simple stack
+- (OOSoundChannel *) next;
+- (void) setNext:(OOSoundChannel *)next;
+
+- (BOOL) playSound:(OOSound *)sound looped:(BOOL)loop;
+- (void)stop;
+
+- (OOSound *)sound;
+
+@end
+
+
+@interface NSObject(OOSoundChannelDelegate)
+
+- (void)channel:(OOSoundChannel *)inChannel didFinishPlayingSound:(OOSound *)inSound;
 
 @end
