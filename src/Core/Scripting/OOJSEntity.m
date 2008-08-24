@@ -225,7 +225,14 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 	id							result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (EXPECT_NOT(!JSEntityGetEntity(context, this, &entity))) return NO;	// NOTE: entity may be nil.
+	JSEntityGetEntity(context, this, &entity);
+	if (entity == nil)
+	{
+		if (JSVAL_TO_INT(name) == kEntity_isValid)  *outValue = JSVAL_FALSE;
+		else  *outValue = JSVAL_VOID;
+		
+		return YES;
+	}
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -273,7 +280,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 		
 		case kEntity_isValid:
-			*outValue = BOOLToJSVal(entity != nil);
+			*outValue = JSVAL_TRUE;
 			OK = YES;
 			break;
 		
