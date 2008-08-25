@@ -45,5 +45,6 @@
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringTraderAI.plist");
+		"LAUNCHED OKAY" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
 	};
 }
