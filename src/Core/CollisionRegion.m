@@ -378,8 +378,11 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 			{
 				if ((e1->isShip) && (e2->isShip))
 				{
-					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) [(ShipEntity*)e1 setProximity_alert:(ShipEntity*)e2];
-					if (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1) [(ShipEntity*)e2 setProximity_alert:(ShipEntity*)e1];
+					if ((dist2 < PROXIMITY_WARN_DISTANCE2 * r2 * r2) || (dist2 < PROXIMITY_WARN_DISTANCE2 * r1 * r1))
+					{
+						[(ShipEntity*)e1 setProximity_alert:(ShipEntity*)e2];
+						[(ShipEntity*)e2 setProximity_alert:(ShipEntity*)e1];
+					}
 				}
 				if (dist2 < min_dist2)
 				{

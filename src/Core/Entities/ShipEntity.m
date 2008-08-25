@@ -150,7 +150,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[exhaust release];
 	}
 	
-	NSArray			*subs = [shipDict arrayForKey:@"subentities"];
+	NSArray *subs = [shipDict arrayForKey:@"subentities"];
 	
 	for (i = 0; i < [subs count]; i++)
 	{
@@ -158,17 +158,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 		if ([details count] == 8)
 		{
-			Vector sub_pos, ref;
-			Quaternion sub_q;
-			NSString* subdesc = [details stringAtIndex:0];
+			Vector sub_pos;
 			sub_pos.x = [details floatAtIndex:1];
 			sub_pos.y = [details floatAtIndex:2];
 			sub_pos.z = [details floatAtIndex:3];
+			
+			Quaternion sub_q;
 			sub_q.w = [details floatAtIndex:4];
 			sub_q.x = [details floatAtIndex:5];
 			sub_q.y = [details floatAtIndex:6];
 			sub_q.z = [details floatAtIndex:7];
 			
+			NSString* subdesc = [details stringAtIndex:0];
 			if ([subdesc isEqual:@"*FLASHER*"])
 			{
 				ParticleEntity *flasher;
@@ -186,28 +187,28 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			}
 			else
 			{
-				ShipEntity* subent;
  				quaternion_normalize(&sub_q);
 
-				subent = [UNIVERSE newShipWithName:subdesc];	// retained
+				ShipEntity* subent = [UNIVERSE newShipWithName:subdesc];	// retained
 				if (subent == nil)
 				{
 					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
+					OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with missing subentity %@!", self, subdesc);
 					return NO;
 				}
 				
 				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
-					[(StationEntity*)self setDockingPortModel:(ShipEntity*)subent :sub_pos :sub_q];
+					[(StationEntity*)self setDockingPortModel:subent :sub_pos :sub_q];
 				
-				[(ShipEntity*)subent setStatus:STATUS_INACTIVE];
+				[subent setStatus:STATUS_INACTIVE];
 				
-				ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
+				Vector ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
 				
-				[(ShipEntity*)subent setReference: ref];
-				[(ShipEntity*)subent setPosition: sub_pos];
-				[(ShipEntity*)subent setOrientation: sub_q];
+				[subent setReference: ref];
+				[subent setPosition: sub_pos];
+				[subent setOrientation: sub_q];
 				
-				[self addSolidSubentityToCollisionRadius:(ShipEntity*)subent];
+				[self addSolidSubentityToCollisionRadius:subent];
 				
 				[self addSubEntity:subent];
 				[subent release];
@@ -898,8 +899,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			[escortAI setStateMachine:autoAI];   // must happen after adding to the UNIVERSE!
 		}
 		
+		if ([self groupID] == NO_TARGET) 
+			[self setGroupID:universalID]; // make self part of group
 		[escorter setGroupID:universalID];
-		[self setGroupID:universalID];		// make self part of same group
 		[escorter setOwner: self];	// make self group leader
 		
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
@@ -915,7 +917,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		{
 			[escorter setBounty:0];
 		}
-		
 		[escorter release];
 		escortCount--;
 	}
@@ -2433,7 +2434,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	int missile_chance = 0;
 	int rhs = 3.2 / delta_t;
-	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
+	if (rhs) missile_chance = 1 + (ranrot_rand() % rhs);
 
 	double hurt_factor = 16 * pow(energy/maxEnergy, 4.0);
 	if (missiles > missile_chance * hurt_factor)
@@ -2510,6 +2511,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
+	}
+	if (proximity_alert != NO_TARGET)
+	{
+		[self avoidCollision];
 	}
 	frustration = 0.0;
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -2896,7 +2901,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
-		//
 		zero_distance = [my_owner zeroDistance];
 		if (zero_distance > no_draw_distance)
 		{
@@ -3260,7 +3264,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		return;
 	}
 
-	if (isStation || (other->isStation)) // don't be alarmed close to stations
+	if (isStation || (other->isStation)) // don't be alarmed close to stations -- is this sensible? we dont mind crashing into carriers?
 		return;
 
 	if ((scanClass == CLASS_CARGO)||(scanClass == CLASS_BUOY)||(scanClass == CLASS_MISSILE)||(scanClass == CLASS_ROCK))	// rocks and stuff don't get alarmed easily
@@ -3291,7 +3295,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		}
 	}
 	proximity_alert = [other universalID];
-	other->proximity_alert = universalID;
 }
 
 
