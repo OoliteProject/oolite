@@ -1121,11 +1121,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
-	while ((father)&&(father != last))
+	while ((father)&&(father != last)  && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
 		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 		last = father;
+		if (![last isSubEntity]) break;
 		father = [father owner];
 	}
 	return abspos;
@@ -1139,7 +1140,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Entity		*father = self;
 	OOMatrix	r_mat;
 	
-	while ((father)&&(father != last))
+	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
 		result.v[0] = OOVectorMultiplyMatrix(result.v[0], r_mat);
@@ -1147,6 +1148,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		result.v[2] = OOVectorMultiplyMatrix(result.v[2], r_mat);
 		
 		last = father;
+		if (![last isSubEntity]) break;
 		father = [father owner];
 	}
 	return result;
@@ -1431,7 +1433,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (status == STATUS_BEING_SCOOPED)
 	{
 		//if we are being tractored, but we have no owner, then we have a problem
-		if (behaviour != BEHAVIOUR_TRACTORED  || [self owner] == nil || [self owner] == self)
+		if (behaviour != BEHAVIOUR_TRACTORED  || [self owner] == nil || [self owner] == self || [self owner] == NO_TARGET)
 		{
 			// escaped tractor beam
 			status = STATUS_IN_FLIGHT;	// should correct 'uncollidable objects' bug
@@ -2915,12 +2917,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		Entity		*father = my_owner;
 		OOMatrix	r_mat;
 		
-		while ((father)&&(father != last))
+		while ((father)&&(father != last)  &&father != NO_TARGET)
 		{
 			r_mat = [father drawRotationMatrix];
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
-			father = [father owner];
+			if (![last isSubEntity]) break;
+				father = [father owner];
 		}
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
@@ -5096,12 +5099,13 @@ BOOL class_masslocks(int some_class)
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
-	while ((father)&&(father != last))
+	while ((father)&&(father != last) && father != NO_TARGET)
 	{
 		r_mat = [father drawRotationMatrix];
 		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
 		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
+		if (![last isSubEntity]) break;
 		father = [father owner];
 	}
 
@@ -5188,12 +5192,13 @@ BOOL class_masslocks(int some_class)
 	Entity		*father = [self parentEntity];
 	OOMatrix	r_mat;
 	
-	while ((father)&&(father != last))
+	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
 		my_position = vector_add(OOVectorMultiplyMatrix(my_position, r_mat), [father position]);
 		my_ref = OOVectorMultiplyMatrix(my_ref, r_mat);
 		last = father;
+		if (![last isSubEntity]) break;
 		father = [father owner];
 	}
 
@@ -5846,11 +5851,12 @@ BOOL class_masslocks(int some_class)
 	OOMatrix	r_mat;
 	Vector		vel;
 	
-	while ((father)&&(father != last))
+	while ((father)&&(father != last) && (father != NO_TARGET))
 	{
 		r_mat = [father drawRotationMatrix];
 		origin = vector_add(OOVectorMultiplyMatrix(origin, r_mat), [father position]);
 		last = father;
+		if (![last isSubEntity]) break;
 		father = [father owner];
 	}
 	

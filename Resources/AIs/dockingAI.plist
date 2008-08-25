@@ -57,6 +57,7 @@
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
 		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
 		"DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
+		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 	};
 	"EXIT_SYSTEM" =
 	{
