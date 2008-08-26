@@ -104,7 +104,8 @@ static OOSoundMixer *sSingleton = nil;
 
 - (void) update
 {
-	for (uint32_t i = 0; i < kMixerGeneralChannels; ++i)
+	uint32_t i;
+	for (i = 0; i < kMixerGeneralChannels; ++i)
 	{
 		[_channels[i] update];
 	}
