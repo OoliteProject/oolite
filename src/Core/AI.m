@@ -408,7 +408,7 @@ static AI *sCurrentlyRunningAI = nil;
 	BOOL report = [owner reportAIMessages];
 	if (report)
 	{
-		OOLog(@"ai.takeAction.takeAction", @"%@ to take action %@", ownerDesc, action);
+		OOLog(@"ai.takeAction", @"%@ to take action %@", ownerDesc, action);
 		OOLogIndent();
 	}
 #endif

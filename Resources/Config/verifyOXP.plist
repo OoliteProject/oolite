@@ -257,7 +257,10 @@
 			"aft_eject_position",
 			"auto_ai",
 			"script",
-			"conditions"
+			"conditions",
+			"script_info",
+			"is_submunition",
+			"isCarrier"
 		);
 		knownStationKeys =
 		(

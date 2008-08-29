@@ -264,7 +264,7 @@ enum {
 */
 
 #if OOLITE_MAC_OS_X
-	#if OOLITE_LEOPARD
+	#if OOLITE_LEOPARD && NSINTEGER_DEFINED
 		// If OS X 10.5 SDK, use system definitions.
 		typedef NSInteger		OOInteger;
 		typedef NSUInteger		OOUInteger;

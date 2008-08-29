@@ -66,7 +66,7 @@
 	/*** Module-specific message classes ***/
 	ai										= yes;					// AI messages are sent if a ship's reportAIMessages property is set, for instance through the JavaScript console.
 	ai.message.receive						= inherit;
-	ai.takeAction.takeAction				= inherit;
+	ai.takeAction							= inherit;
 	ai.takeAction.noAction					= inherit;
 	ai.takeAction.orphaned					= $error;
 	ai.takeAction.debugMessage				= inherit;
