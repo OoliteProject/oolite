@@ -536,6 +536,8 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 	}
 	
 	// Get optional arguments
+	argc--;
+	argv++;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
@@ -576,6 +578,8 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 	}
 	
 	// Get optional arguments
+	argc--;
+	argv++;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
@@ -610,6 +614,8 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	}
 	
 	// Get optional arguments
+	argc -= 2;
+	argv += 2;
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
