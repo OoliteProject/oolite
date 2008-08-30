@@ -504,6 +504,8 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 	}
 	
 	// Get optional arguments
+	argc--;
+	argv++;
 	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
 	
 	// Search for entities
