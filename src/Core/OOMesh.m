@@ -214,8 +214,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
 	
-	@try
-	{
+	NS_DURING
 		if (!listsReady)
 		{
 			displayList0 = glGenLists(materialCount);
@@ -244,9 +243,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		
 		listsReady = YES;
 		brokenInRender = NO;
-	}
-	@catch (NSException *localException)
-	{
+	NS_HANDLER
 		if (!brokenInRender)
 		{
 			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __FUNCTION__, self, [localException name], [localException reason]);
@@ -254,7 +251,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		}
 		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
 		else  [localException raise];	// pass these on
-	}
+	NS_ENDHANDLER
 	
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
