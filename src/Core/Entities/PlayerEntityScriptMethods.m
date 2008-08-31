@@ -238,4 +238,10 @@ MA 02110-1301, USA.
 	}
 }
 
+
+- (OOTimeDelta) scriptTimer
+{
+	return script_time;
+}
+
 @end

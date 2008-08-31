@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOJSPlayer.h"
 #import "PlayerEntity.h"
+#import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
 
 
@@ -72,7 +73,8 @@ enum
 	kClock_hoursComponent,		// hour component of game clock time (rounded down), int, read-only
 	kClock_daysComponent,		// day component of game clock time (rounded down), int, read-only
 	kClock_clockString,			// game clock time as display string, string, read-only
-	kClock_isAdjusting			// clock is adjusting, boolean, read-only
+	kClock_isAdjusting,			// clock is adjusting, boolean, read-only
+	kClock_legacy_scriptTimer	// legacy scriptTimer_number, double, read-only
 };
 
 
@@ -90,6 +92,7 @@ static JSPropertySpec sClockProperties[] =
 	{ "daysComponent",			kClock_daysComponent,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "clockString",			kClock_clockString,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isAdjusting",			kClock_isAdjusting,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "legacy_scriptTimer",		kClock_legacy_scriptTimer,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -167,6 +170,10 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 		case kClock_isAdjusting:
 			*outValue = BOOLToJSVal([player clockAdjusting]);
 			OK = YES;
+			break;
+			
+		case kClock_legacy_scriptTimer:
+			OK = JS_NewDoubleValue(context, [OOPlayerForScripting() scriptTimer], outValue);
 			break;
 			
 		default:

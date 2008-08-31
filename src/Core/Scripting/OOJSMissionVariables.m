@@ -139,6 +139,7 @@ static JSBool MissionVariablesSetProperty(JSContext *context, JSObject *this, js
 		NSString	*key = KeyForName(context, name);
 		NSString	*objValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 		
+		if ([objValue isKindOfClass:[NSNull class]])  objValue = nil;
 		[player setMissionVariable:objValue forKey:key];
 	}
 	return YES;

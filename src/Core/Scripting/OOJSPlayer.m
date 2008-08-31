@@ -314,7 +314,7 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 }
 
 
-// commsMessage(message : String [, duration : Number])
+// consoleMessage(message : String [, duration : Number])
 static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString				*message = nil;

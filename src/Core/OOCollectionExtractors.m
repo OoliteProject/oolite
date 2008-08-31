@@ -45,6 +45,7 @@ SOFTWARE.
 
 */
 
+#import "OOCocoa.h"
 #import "OOCollectionExtractors.h"
 #import <limits.h>
 #import "OOMaths.h"
@@ -1243,6 +1244,7 @@ static BOOL BooleanFromString(NSString *string, BOOL defaultValue)
 }
 
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 static float FuzzyBooleanProbabilityFromString(NSString *string, float defaultValue)
 {
 	if (NSOrderedSame == [string caseInsensitiveCompare:@"yes"] ||
@@ -1261,6 +1263,7 @@ static float FuzzyBooleanProbabilityFromString(NSString *string, float defaultVa
 	}
 	return defaultValue;
 }
+#endif
 
 
 BOOL OOBooleanFromObject(id object, BOOL defaultValue)

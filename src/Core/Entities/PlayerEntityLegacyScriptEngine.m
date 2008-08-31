@@ -433,10 +433,6 @@ static BOOL sRunningScript = NO;
 			[tokens removeObjectAtIndex:0];
 			valueString = [tokens componentsJoinedByString:@" "];
 		}
-#ifdef POINTLESS
-		// I believe this will never do anything useful, given the way ScanTokensFromString() works. -- Ahruman
-		valueString = [valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-#endif
 		expandedString = ExpandDescriptionsWithLocalsForCurrentSystem(valueString, locals);
 		
 #if SUPPORT_TRACE_MESSAGES
@@ -534,19 +530,19 @@ static BOOL sRunningScript = NO;
 	{
 		comparisonString = [tokens objectAtIndex:1];
 		
-		if ([comparisonString isEqual:@"equal"])
+		if ([comparisonString isEqualToString:@"equal"])
 			comparator = COMPARISON_EQUAL;
-		else if ([comparisonString isEqual:@"notequal"])
+		else if ([comparisonString isEqualToString:@"notequal"])
 			comparator = COMPARISON_NOTEQUAL;
-		else if ([comparisonString isEqual:@"lessthan"])
+		else if ([comparisonString isEqualToString:@"lessthan"])
 			comparator = COMPARISON_LESSTHAN;
-		else if (([comparisonString isEqual:@"greaterthan"])||([comparisonString isEqual:@"morethan"]))
+		else if (([comparisonString isEqualToString:@"greaterthan"])||([comparisonString isEqualToString:@"morethan"]))
 			comparator = COMPARISON_GREATERTHAN;
 // +dajt: black ops
-		else if ([comparisonString isEqual:@"oneof"])
+		else if ([comparisonString isEqualToString:@"oneof"])
 			comparator = COMPARISON_ONEOF;
 // -dajt: black ops
-		else if ([comparisonString isEqual:@"undefined"])
+		else if ([comparisonString isEqualToString:@"undefined"])
 			comparator = COMPARISON_UNDEFINED;
 		else
 		{
@@ -603,9 +599,9 @@ static BOOL sRunningScript = NO;
 			case COMPARISON_NO:
 				TRACE_AND_RETURN(NO);
 			case COMPARISON_EQUAL:
-				TRACE_AND_RETURN([result isEqual:valueString]);
+				TRACE_AND_RETURN([result isEqualToString:valueString]);
 			case COMPARISON_NOTEQUAL:
-				TRACE_AND_RETURN(![result isEqual:valueString]);
+				TRACE_AND_RETURN(![result isEqualToString:valueString]);
 			case COMPARISON_LESSTHAN:
 				TRACE_AND_RETURN([result doubleValue] < [valueString doubleValue]);
 			case COMPARISON_GREATERTHAN:
@@ -908,7 +904,7 @@ static BOOL sRunningScript = NO;
 
 - (NSNumber *) scriptTimer_number
 {
-	return [NSNumber numberWithDouble:script_time];
+	return [NSNumber numberWithDouble:[self scriptTimer]];
 }
 
 
@@ -1274,7 +1270,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setPlanetinfo:(NSString *)key_valueString	// uses key=value format
 {
-	NSArray *	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
+	NSArray *	tokens = [key_valueString componentsSeparatedByString:@"="];
 	NSString*   keyString = nil;
 	NSString*	valueString = nil;
 
@@ -1283,10 +1279,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogSyntaxSetPlanetInfo, @"SCRIPT ERROR in %@ ***** CANNOT setPlanetinfo: '%@' (bad parameter count)", CurrentScriptDesc(), key_valueString);
 		return;
 	}
-
+	
 	keyString = [[tokens objectAtIndex:0] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:1] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-
+	
 	[UNIVERSE setSystemDataKey:keyString value:valueString];
 
 }
@@ -1294,7 +1290,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setSpecificPlanetInfo:(NSString *)key_valueString  // uses galaxy#=planet#=key=value
 {
-	NSArray *	tokens = [[key_valueString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] componentsSeparatedByString:@"="];
+	NSArray *	tokens = [key_valueString componentsSeparatedByString:@"="];
 	NSString*   keyString = nil;
 	NSString*	valueString = nil;
 	int gnum, pnum;
@@ -1520,9 +1516,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	roleString = (NSString *)[tokens objectAtIndex:0];
-	numberString = (NSString *)[tokens objectAtIndex:1];
-	positionString = (NSString *)[tokens objectAtIndex:2];
+	roleString = [tokens objectAtIndex:0];
+	numberString = [tokens objectAtIndex:1];
+	positionString = [tokens objectAtIndex:2];
 
 	int number = [numberString intValue];
 	double posn = [positionString doubleValue];
@@ -1679,7 +1675,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(kOOLogSyntaxSet, @"SCRIPT ERROR in %@ ***** CANNOT SET: '%@'", CurrentScriptDesc(), missionvariable_value);
+		OOLog(kOOLogSyntaxSet, @"SCRIPT ERROR in %@ ***** CANNOT SET: '%@' (expected mission_variable or local_variable followed by value expression)", CurrentScriptDesc(), missionvariable_value);
 		return;
 	}
 
@@ -1690,7 +1686,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	hasMissionPrefix = [missionVariableString hasPrefix:@"mission_"];
 	hasLocalPrefix = [missionVariableString hasPrefix:@"local_"];
 
-	if (hasMissionPrefix != YES && hasLocalPrefix != YES)
+	if (!hasMissionPrefix && !hasLocalPrefix)
 	{
 		OOLog(kOOLogSyntaxSet, @"SCRIPT ERROR in %@ ***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
 		return;
