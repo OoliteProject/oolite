@@ -55,4 +55,8 @@ MA 02110-1301, USA.
 
 - (OOTimeDelta) scriptTimer;
 
+- (unsigned) systemPseudoRandom100;
+- (unsigned) systemPseudoRandom256;
+- (double) systemPseudoRandomFloat;
+
 @end

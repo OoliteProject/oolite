@@ -203,6 +203,8 @@ system.setSunNova = function(delay)
 global.Vector = Vector3D;
 
 this.defineCompatibilityGetter("Ship", "maxCargo", "cargoCapacity");
+this.defineCompatibilityGetterAndSetter("Ship", "shipDescription", "name");
+this.defineCompatibilityGetterAndSetter("Ship", "shipDisplayName", "displayName");
 
 // Lots of Player properties, including inherited ones, moved to playerShip
 this.defineCompatibilitySubGetterAndSetter("player", "ship", "fuelLeakRate");

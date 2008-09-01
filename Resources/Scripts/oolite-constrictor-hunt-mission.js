@@ -41,15 +41,9 @@ this.addToScreen = function ()
 			switch (system.ID)
 			{
 				case 28:
-					mission.addMessageTextKey("constrictor_hunt_0_28");
-					break;
-					
 				case 36:
-					mission.addMessageTextKey("constrictor_hunt_0_36");
-					break;
-					
 				case 150:
-					mission.addMessageTextKey("constrictor_hunt_0_150");
+					mission.addMessageTextKey("constrictor_hunt_0_" + system.ID);
 					break;
 					
 				default:
@@ -77,22 +71,11 @@ this.addToScreen = function ()
 					break;
 					
 				case 253:
-					mission.addMessageTextKey("constrictor_hunt_1_253");
-					break;
-					
 				case 79:
-					mission.addMessageTextKey("constrictor_hunt_1_79");
-					break;
-					
 				case 53:
-					mission.addMessageTextKey("constrictor_hunt_1_53");
-					break;
-					
 				case 118:
-					mission.addMessageTextKey("constrictor_hunt_1_118");
-					break;
 				case 193:
-					mission.addMessageTextKey("constrictor_hunt_1_193");
+					mission.addMessageTextKey("constrictor_hunt_1_" + system.ID);
 					break;
 					
 				default:
@@ -124,7 +107,7 @@ this.missionOffers = function ()
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status
 			player.score += 256;  // ship kills
-			mission.setInstructionsKey();  // reset the missionbriefing
+			mission.setInstructionsKey(null);  // reset the missionbriefing
 			missionVariables.conhunt = "MISSION_COMPLETE";
 		}
 	}

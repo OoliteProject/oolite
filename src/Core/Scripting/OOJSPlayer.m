@@ -83,6 +83,8 @@ enum
 	kPlayer_name,					// Player name, string, read-only
 	kPlayer_score,					// kill count, integer, read/write
 	kPlayer_credits,				// credit balance, float, read/write
+	kPlayer_rank,					// rank, string, read-only
+	kPlayer_legalStatus,			// legalStatus, string, read-only
 	kPlayer_alertCondition,			// alert level, integer, read-only
 	kPlayer_alertTemperature,		// cabin temperature alert flag, boolean, read-only
 	kPlayer_alertMassLocked,		// mass lock alert flag, boolean, read-only
@@ -102,6 +104,8 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "name",					kPlayer_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "score",					kPlayer_score,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "credits",				kPlayer_credits,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "rank",					kPlayer_rank,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "legalStatus",			kPlayer_legalStatus,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertCondition",			kPlayer_alertCondition,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertTemperature",		kPlayer_alertTemperature,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "alertMassLocked",		kPlayer_alertMassLocked,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -188,6 +192,16 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_credits:
 			OK = JS_NewDoubleValue(context, [player creditBalance], outValue);
+			break;
+			
+		case kPlayer_rank:
+			*outValue = [KillCountToRatingString([player score]) javaScriptValueInContext:context];
+			OK = YES;
+			break;
+			
+		case kPlayer_legalStatus:
+			*outValue = [LegalStatusToString([player bounty]) javaScriptValueInContext:context];
+			OK = YES;
 			break;
 			
 		case kPlayer_alertCondition:

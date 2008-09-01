@@ -57,13 +57,13 @@ this.missionOffers = function ()
 				player.ship.awardCargo("Gem-Stones", 100);
 				mission.runMissionScreen("nova_hero", "solar.png");
 				missionVariables.nova = "NOVA_HERO";
-				mission.setInstructionsKey();
+				mission.setInstructionsKey(null);
 			}
 			if (missionVariables.nova == "NOVA_ESCAPE_POD")
 			{
 				player.ship.removeAllCargo();  // can only be done while docked.
 				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string.
-				mission.setInstructionsKey();
+				mission.setInstructionsKey(null);
 			}
 			if (missionVariables.nova == "NOVA_ESCAPE_COWARD")
 			{

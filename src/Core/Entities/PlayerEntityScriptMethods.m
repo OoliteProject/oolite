@@ -244,4 +244,33 @@ MA 02110-1301, USA.
 	return script_time;
 }
 
+
+- (unsigned) systemPseudoRandom100
+{
+	seed_RNG_only_for_planet_description(system_seed);
+	return (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
+}
+
+
+- (unsigned) systemPseudoRandom256
+{
+	seed_RNG_only_for_planet_description(system_seed);
+	return gen_rnd_number();
+}
+
+
+- (double) systemPseudoRandomFloat
+{
+	Random_Seed seed = system_seed;
+	seed_RNG_only_for_planet_description(system_seed);
+	unsigned a = gen_rnd_number();
+	unsigned b = gen_rnd_number();
+	unsigned c = gen_rnd_number();
+	system_seed = seed;
+	
+	a = (a << 16) | (b << 8) | c;
+	return (double)a / (double)0x01000000;
+	
+}
+
 @end

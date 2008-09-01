@@ -921,6 +921,24 @@ static int shipsFound;
 }
 
 
+- (NSNumber *) commanderLegalStatus_number
+{
+	return [NSNumber numberWithInt:[self legalStatus]];
+}
+
+
+- (void) setLegalStatus:(NSString *)valueString
+{
+	legalStatus = [valueString intValue];
+}
+
+
+- (NSString *) commanderLegalStatus_string
+{
+	return LegalStatusToString(legalStatus);
+}
+
+
 static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSNumber *) d100_number
 {
@@ -934,10 +952,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) pseudoFixedD100_number
 {
-	// set the system seed for random number generation
-	seed_RNG_only_for_planet_description(system_seed);
-	int d100 = (gen_rnd_number() * 256 + gen_rnd_number()) % 100;
-	return [NSNumber numberWithInt:d100];
+	return [NSNumber numberWithInt:[self systemPseudoRandom100]];
 }
 
 
@@ -953,10 +968,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSNumber *) pseudoFixedD256_number
 {
-	// set the system seed for random number generation
-	seed_RNG_only_for_planet_description(system_seed);
-	int d256 = gen_rnd_number();
-	return [NSNumber numberWithInt:d256];
+	return [NSNumber numberWithInt:[self systemPseudoRandom256]];
 }
 
 
@@ -1027,7 +1039,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
+- (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
 {
 	NSString			*result = nil;
 	if (status != STATUS_DOCKED)  return @"NONE";
@@ -1101,7 +1113,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (NSString *) commanderRank_string
 {
-	return KillCountToRatingString(ship_kills);
+	return KillCountToRatingString([self score]);
 }
 
 
@@ -1114,19 +1126,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) commanderShipDisplayName_string
 {
 	return [self displayName];
-}
-
-
-
-- (NSString *) commanderLegalStatus_string
-{
-	return LegalStatusToString(legalStatus);
-}
-
-
-- (NSNumber *) commanderLegalStatus_number
-{
-	return [NSNumber numberWithInt: legalStatus];
 }
 
 /*-----------------------------------------------------*/
@@ -1188,12 +1187,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	expandedMessage = [self replaceVariablesInString: expandedMessage];
 
 	[UNIVERSE addMessage: expandedMessage forCount: 6];
-}
-
-
-- (void) setLegalStatus:(NSString *)valueString
-{
-	legalStatus = [valueString intValue];
 }
 
 
@@ -1482,7 +1475,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShips: '%@' - MUST BE '<role> <number>'", CurrentScriptDesc(), roles_number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShips: '%@' (expected <role> <count>)", CurrentScriptDesc(), roles_number);
 		return;
 	}
 	
@@ -1512,7 +1505,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 3)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addSystemShips: '%@' (bad parameter count)", CurrentScriptDesc(), roles_number_position);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addSystemShips: '%@' (expected <role> <count> <position>)", CurrentScriptDesc(), roles_number_position);
 		return;
 	}
 
@@ -1548,7 +1541,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAt: '%@' (bad parameter count)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAt: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1590,7 +1583,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (bad parameter count)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1625,7 +1618,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 7)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')", CurrentScriptDesc(), roles_number_system_x_y_z_r);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT 'addShipsWithinRadius: %@' (expected <role> <count> <coordinate-system> <x> <y> <z> <radius>))", CurrentScriptDesc(), roles_number_system_x_y_z_r);
 		return;
 	}
 
@@ -1978,22 +1971,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) addMissionDestination:(NSString *)destinations
 {
 	unsigned i, j;
-	NSNumber *pnump;
 	int pnum, dest;
 	NSMutableArray*	tokens = ScanTokensFromString(destinations);
 	BOOL addDestination;
 
 	for (j = 0; j < [tokens count]; j++)
 	{
-		dest = [(NSString *)[tokens objectAtIndex:j] intValue];
+		dest = [tokens intAtIndex:j];
 		if (dest < 0 || dest > 255)
 			continue;
 
 		addDestination = YES;
 		for (i = 0; i < [missionDestinations count]; i++)
 		{
-			pnump = (NSNumber *)[missionDestinations objectAtIndex:i];
-			pnum = [pnump intValue];
+			pnum = [missionDestinations intAtIndex:i];
 			if (pnum == dest)
 			{
 				addDestination = NO;

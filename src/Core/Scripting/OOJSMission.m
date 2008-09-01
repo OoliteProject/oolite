@@ -276,6 +276,7 @@ static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uint
 	NSString			*missionKey = nil;
 	
 	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if ([key isKindOfClass:[NSNull class]])  key = nil;
 	
 	if (argc > 1)
 	{

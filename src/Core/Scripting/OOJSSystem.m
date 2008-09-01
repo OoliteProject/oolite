@@ -60,6 +60,7 @@ static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsv
 static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -120,7 +121,10 @@ enum
 	kSystem_sun,				// system's sun, Planet, read-only
 	kSystem_planets,			// planets in system, array of Planet, read-only
 	kSystem_allShips,			// ships in system, array of Ship, read-only
-	kSystem_info				// system info dictionary, SystemInfo, read-only
+	kSystem_info,				// system info dictionary, SystemInfo, read-only
+	kSystem_pseudoRandomNumber,	// constant-per-system pseudorandom number in [0..1), double, read-only
+	kSystem_pseudoRandom100,	// constant-per-system pseudorandom number in [0..100), integer, read-only
+	kSystem_pseudoRandom256		// constant-per-system pseudorandom number in [0..256), integer, read-only
 };
 
 
@@ -147,6 +151,9 @@ static JSPropertySpec sSystemProperties[] =
 	{ "planets",				kSystem_planets,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "allShips",				kSystem_allShips,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "info",					kSystem_info,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "pseudoRandomNumber",		kSystem_pseudoRandomNumber,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "pseudoRandom100",		kSystem_pseudoRandom100,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "pseudoRandom256",		kSystem_pseudoRandom256,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -158,6 +165,7 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "addPlanet",				SystemAddPlanet,			1 },
 	{ "addMoon",				SystemAddMoon,				1 },
 	{ "sendAllShipsAway",		SystemSendAllShipsAway,		1 },
+	{ "countShipsWithPrimaryRole", SystemCountShipsWithPrimaryRole, 1 },
 	{ "countShipsWithRole",		SystemCountShipsWithRole,	1 },
 	{ "shipsWithPrimaryRole",	SystemShipsWithPrimaryRole,	1 },
 	{ "shipsWithRole",			SystemShipsWithRole,		1 },
@@ -298,6 +306,18 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kSystem_info:
 			if (!GetJSSystemInfoForCurrentSystem(context, outValue))  return NO;
+			break;
+		
+		case kSystem_pseudoRandomNumber:
+			JS_NewDoubleValue(context, [player systemPseudoRandomFloat], outValue);
+			break;
+			
+		case kSystem_pseudoRandom100:
+			*outValue = INT_TO_JSVAL([player systemPseudoRandom100]);
+			break;
+			
+		case kSystem_pseudoRandom256:
+			*outValue = INT_TO_JSVAL([player systemPseudoRandom256]);
 			break;
 			
 		default:
@@ -471,10 +491,36 @@ static JSBool SystemSendAllShipsAway(JSContext *context, JSObject *this, uintN a
 }
 
 
-// countShipsWithRole(role : String) : Number
+// countShipsWithPrimaryRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
+static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*role = nil;
+	Entity				*relativeTo = nil;
+	double				range = -1;
+	
+	role = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(role == nil))
+	{
+		OOReportJSBadArguments(context, @"System", @"countShipsWithPrimaryRole", argc, argv, @"Invalid arguments", @"role");
+		return NO;
+	}
+	
+	// Get optional arguments
+	argc--;
+	argv++;
+	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
+	
+	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithPrimaryRole:role inRange:range ofEntity:relativeTo]);
+	return YES;
+}
+
+
+// countShipsWithRole(role : String [, relativeTo : Entity [, range : Number]]) : Number
 static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
+	Entity				*relativeTo = nil;
+	double				range = -1;
 	
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil))
@@ -483,7 +529,12 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 		return NO;
 	}
 	
-	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithRole:role]);
+	// Get optional arguments
+	argc--;
+	argv++;
+	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
+	
+	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithRole:role inRange:range ofEntity:relativeTo]);
 	return YES;
 }
 

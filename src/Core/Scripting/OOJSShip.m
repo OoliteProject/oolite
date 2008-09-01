@@ -85,8 +85,8 @@ static JSExtendedClass sShipClass =
 enum
 {
 	// Property IDs
-	kShip_shipDescription,		// name, string, read-only
-	kShip_shipDisplayName,		// name displayed on screen, string, read-only
+	kShip_name,					// name, string, read-only
+	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_roles,				// roles, array, read-only
 	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
 	kShip_primaryRole,			// Primary role, string, read-only
@@ -171,8 +171,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "scannerRange",			kShip_scannerRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "script",					kShip_script,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptInfo",				kShip_scriptInfo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "shipDescription",		kShip_shipDescription,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "shipDisplayName",		kShip_shipDisplayName,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "name",					kShip_name,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "displayName",			kShip_displayName,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "speed",					kShip_speed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "desiredSpeed",			kShip_desiredSpeed,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "subEntities",			kShip_subEntities,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -258,11 +258,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kShip_shipDescription:
+		case kShip_name:
 			result = [entity name];
 			break;
 			
-		case kShip_shipDisplayName:
+		case kShip_displayName:
 			result = [entity displayName];
 			break;
 		
@@ -499,7 +499,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kShip_shipDescription:
+		case kShip_name:
 			if ([entity isPlayer])
 			{
 				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"name", @"name");
@@ -512,7 +512,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			break;
 			
-		case kShip_shipDisplayName:
+		case kShip_displayName:
 			if ([entity isPlayer])
 			{
 				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"displayName", @"displayName");

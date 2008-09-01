@@ -64,7 +64,7 @@ this.missionOffers = function ()
 			{
 				mission.runMissionScreen("thargoid_plans_debrief", null, null, "thargoid");
 				player.score += 256; // ship kills
-				mission.setInstructionsKey();  // reset the missionbriefing
+				mission.setInstructionsKey(null);  // reset the missionbriefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
 				if (player.ship.hasEquipment("EQ_ENERGY_UNIT"))
 				{
