@@ -83,7 +83,7 @@
 		escort-ship = "$shipKey";
 		missile_launch_position = "vector";
 		missile_role = "$shipRole";
-		escape_pod_model = "$modelName";
+		escape_pod_model = "$shipRole";
 		aft_eject_position = "vector";
 		auto_ai = "boolean";
 		rotating = "boolean";
@@ -123,6 +123,8 @@
 		script_info = "dictionary";
 		is_submunition = "boolean";
 		isCarrier = "boolean";
+		no_boulders = "fuzzyBoolean";
+		hyperspace_motor_spin_time = "positiveFloat";
 	};
 	$definitions =
 	{

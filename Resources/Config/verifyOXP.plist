@@ -260,7 +260,9 @@
 			"conditions",
 			"script_info",
 			"is_submunition",
-			"isCarrier"
+			"isCarrier",
+			"no_boulders",
+			"hyperspace_motor_spin_time"
 		);
 		knownStationKeys =
 		(
