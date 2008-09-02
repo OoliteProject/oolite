@@ -90,23 +90,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-// FIXME: should be handled at a higher level.
-+ (id)placeholderMaterial
-{
-	static OOBasicMaterial	*placeholderMaterial = nil;
-	
-	if (placeholderMaterial == nil)
-	{
-		NSDictionary			*materialDefaults = nil;
-		
-		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-	}
-	
-	return placeholderMaterial;
-}
-
-
 - (id)initWithName:(NSString *)name
 	 configuration:(NSDictionary *)configuration
 			macros:(NSDictionary *)macros
@@ -467,7 +450,14 @@ static NSString *MacrosToString(NSDictionary *macros);
 	for (i = 0; i != texCount; ++i)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + i);
-		[textures[i] apply];
+		if (textures[i] != nil)
+		{
+			[textures[i] apply];
+		}
+		else
+		{
+			[OOTexture applyNone];
+		}
 	}
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	
@@ -545,7 +535,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	id						textureDef = nil;
 	unsigned				i = 0;
-	OOMaterial				*material = nil;
 	
 	// Allocate space for texture object name array
 	texCount = MAX(MIN(max, [textureNames count]), 0U);
@@ -564,13 +553,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		material =[OOTexture textureWithConfiguration:textureDef];
-		
-		if (material !=nil)
-			textures[i] = [material retain];
-		else{
-			textures[i] = [[OOShaderMaterial placeholderMaterial] retain];
-		}
+		textures[i] = [OOTexture textureWithConfiguration:textureDef];
 	}
 }
 

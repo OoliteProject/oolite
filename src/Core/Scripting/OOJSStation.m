@@ -99,7 +99,8 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 	BOOL						result;
 	Entity						*entity = nil;
 	
-	if (outEntity != NULL)  *outEntity = nil;
+	if (outEntity == NULL)  return NO;
+	*outEntity = nil;
 	
 	result = JSEntityGetEntity(context, stationObj, &entity);
 	if (!result)  return NO;

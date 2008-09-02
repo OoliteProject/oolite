@@ -150,7 +150,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 	self = [super init];
 	
 	isTextured = NO;
+#ifndef NO_SHADERS
 	isShadered = NO;
+#endif
 	
 	collision_radius = 100000.0; //  100km across
 	
@@ -353,8 +355,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 		textureName = 0;
 		isTextured = NO;
 	}
-	isShadered = NO;
 #ifndef NO_SHADERS
+	isShadered = NO;
 	shader_program = NULL_SHADER;
 #endif
 	if (!planet)
@@ -542,8 +544,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 		fillRanNoiseBuffer();
 		textureName = [TextureStore getPlanetTextureNameFor: planetInfo intoData: &textureData];
 		isTextured = (textureName != 0);
-		isShadered = NO;
 #ifndef NO_SHADERS
+		isShadered = NO;
 #if OLD_SHADERS
 		if (UNIVERSE)
 		{
@@ -1352,10 +1354,10 @@ static GLfloat	texture_uv_array[10400 * 2];
 				{
 					glDisableClientState(GL_INDEX_ARRAY);
 					glDisableClientState(GL_EDGE_FLAG_ARRAY);
-
+					
+#ifndef NO_SHADERS
 					if (isShadered)
 					{
-#ifndef NO_SHADERS
 						GLint locator;
 						glUseProgramObjectARB(shader_program);	// shader ON!
 						glEnableClientState(GL_COLOR_ARRAY);
@@ -1383,9 +1385,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 							OOLog(@"planet.shaders.noUniform", @"GLSL ERROR couldn't find location of tex0 in shader_program %d", shader_program);
 						else
 							glUniform1iARB(locator, 0);	// associate texture unit number i with texture 0
-#endif
 					}
 					else
+#endif
 					{
 						if (isTextured)
 						{
@@ -1412,9 +1414,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
 					
+#ifndef NO_SHADERS
 					if (isShadered)
 					{
-#ifndef NO_SHADERS
 						glColor4fv(mat1);
 						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
 						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
@@ -1424,9 +1426,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 						
 						glDisable(GL_COLOR_MATERIAL);
 						glUseProgramObjectARB(NULL_SHADER);	// shader OFF
-#endif
 					}
 					else
+#endif
 					{
 						displayListNames[subdivideLevel] = glGenLists(1);
 						if (displayListNames[subdivideLevel] != 0)	// sanity check

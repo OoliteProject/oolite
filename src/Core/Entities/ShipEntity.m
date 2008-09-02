@@ -1949,9 +1949,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (float) shieldBoostFactor
 {
-	float boostFactor = 1.0;
-	if ([self hasShieldBooster])  boostFactor += 1.0;
-	if ([self hasMilitaryShieldEnhancer])  boostFactor += 1.0;
+	float boostFactor = 1.0f;
+	if ([self hasShieldBooster])  boostFactor += 1.0f;
+	if ([self hasMilitaryShieldEnhancer])  boostFactor += 1.0f;
 	
 	return boostFactor;
 }

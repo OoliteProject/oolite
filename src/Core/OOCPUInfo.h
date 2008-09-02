@@ -59,6 +59,10 @@ unsigned OOCPUCount(void);
 #define OOLITE_LITTLE_ENDIAN	1
 #endif
 
+#if defined(__sgi__) || defined(__mips__) 
+#define OOLITE_BIG_ENDIAN       1 
+#endif 
+
 // Do not assume PPC == big endian, it can be either.
 
 #endif	// inner none defined

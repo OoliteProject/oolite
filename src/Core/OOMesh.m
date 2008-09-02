@@ -499,6 +499,22 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
++ (OOMaterial *)placeholderMaterial
+{
+	static OOBasicMaterial	*placeholderMaterial = nil;
+	
+	if (placeholderMaterial == nil)
+	{
+		NSDictionary			*materialDefaults = nil;
+		
+		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+	}
+	
+	return placeholderMaterial;
+}
+
+
 - (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
 							shadersDictionary:(NSDictionary *)shadersDict
 								 shaderMacros:(NSDictionary *)macros
@@ -524,13 +540,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			}
 			else
 			{
-				materials[i] = [[OOShaderMaterial placeholderMaterial] retain];
+				materials[i] = [[OOMesh placeholderMaterial] retain];
 			}
 		}
-	}
-	else
-	{
-		material = [[OOShaderMaterial placeholderMaterial] retain];
 	}
 }
 

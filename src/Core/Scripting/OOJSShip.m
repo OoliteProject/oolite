@@ -375,7 +375,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_scannerRange:
 			OK = JS_NewDoubleValue(context, [entity scannerRange], outValue);
-			OK = YES;
 			break;
 		
 		case kShip_reportAIMessages:

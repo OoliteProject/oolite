@@ -69,6 +69,7 @@ SOFTWARE.
 		_dependencies = [[NSMutableSet alloc] init];
 		_incompleteDependencies = [[NSMutableSet alloc] init];
 		_dependents = [[NSMutableSet alloc] init];
+		_canRun = NO;
 	}
 	
 	return self;
