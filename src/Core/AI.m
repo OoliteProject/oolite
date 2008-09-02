@@ -592,6 +592,7 @@ static AI *sCurrentlyRunningAI = nil;
 		[[AI class] performSelector:@selector(deferredCallTrampolineWithInfo:)
 						 withObject:info
 						 afterDelay:delay];
+		[info release];
 	}
 }
 
@@ -609,7 +610,6 @@ static AI *sCurrentlyRunningAI = nil;
 		
 		[infoStruct.ai release];
 		[infoStruct.parameter release];
-		[info release];
 	}
 }
 

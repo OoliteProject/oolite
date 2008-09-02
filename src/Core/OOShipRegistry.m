@@ -288,7 +288,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"demoships.plist"
 												   inFolder:@"Config"
 												   andMerge:YES];
-	demoShips = [NSMutableArray arrayWithArray:[initialDemoShips mutableCopy]];
+	demoShips = [NSMutableArray arrayWithArray:initialDemoShips];
 	
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
 	for (enumerator = [initialDemoShips objectEnumerator]; (key = [enumerator nextObject]); )

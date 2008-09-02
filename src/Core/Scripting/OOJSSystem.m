@@ -731,6 +731,7 @@ static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN arg
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, argv[1], &count) ||
+				   argc < 2 ||
 				   count < 1 || 64 < count))
 	{
 		OOReportJSBadArguments(context, @"System", @"legacy_addShips", argc, argv, @"Invalid arguments", @"role and positive count no greater than 64");
@@ -754,6 +755,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 	if (EXPECT_NOT(role == nil ||
 				   !JS_ValueToInt32(context, argv[1], &count) ||
 				   count < 1 || 64 < count ||
+				   argc < 3 ||
 				   !JS_ValueToNumber(context, argv[2], &position)))
 	{
 		OOReportJSBadArguments(context, @"System", @"legacy_addSystemShips", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, and position along route");
@@ -766,7 +768,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 }
 
 
-// legacy_addShipsAt(role : String, count : Number, coordScheme : Number, coords : vectorExpression)
+// legacy_addShipsAt(role : String, count : Number, coordScheme : String, coords : vectorExpression)
 static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
@@ -782,6 +784,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 				   !JS_ValueToInt32(context, argv[1], &count) ||
 				   count < 1 || 64 < count ||
 				   coordScheme == nil ||
+				   argc < 4 ||
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, NULL)))
 	{
 		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAt", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, coordinate scheme and coordinates");
@@ -811,6 +814,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 				   !JS_ValueToInt32(context, argv[1], &count) ||
 				   count < 1 || 64 < count ||
 				   coordScheme == nil ||
+				   argc < 4 ||
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, NULL)))
 	{
 		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAtPrecisely", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, coordinate scheme and coordinates");
@@ -842,6 +846,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 				   !JS_ValueToInt32(context, argv[1], &count) ||
 				   count < 1 || 64 < count ||
 				   coordScheme == nil ||
+				   argc < 5 ||
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, &consumed) ||
 				   !JS_ValueToNumber(context, argv[3 + consumed], &radius)))
 	{

@@ -155,6 +155,7 @@ static NSTimeInterval	time_last_frame;
 				keychar = [keystring characterAtIndex: 0] & 0x00ff; // uses lower byte of unichar
 			}
 			else if (iValue <= 0xFF)  keychar = iValue;
+			else continue;
 			
 			[kdic setObject:[NSNumber numberWithUnsignedChar:keychar] forKey:key];
 		}
