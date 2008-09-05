@@ -2192,9 +2192,9 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double)delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	NSPoint			virtualStick = NSZeroPoint;
-	double			reqYaw = 0.0;
-#define			kDeadZone 0.02
+	NSPoint		virtualStick = NSZeroPoint;
+	double		reqYaw = 0.0;
+	double		kDeadZone = STICK_DEADZONE;
 	
 	// TODO: Rework who owns the stick.
 	if(!stickHandler)

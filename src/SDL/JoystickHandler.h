@@ -90,6 +90,7 @@ enum {
 #define STICK_PRECISIONDIV 98304 // 3 times more precise
 #define STICK_NORMALDIV 32768
 #define STICK_PRECISIONFAC (STICK_PRECISIONDIV/STICK_NORMALDIV)
+#define STICK_DEADZONE	0.05
 
 // Kind of stick device (these are bits - if any more are added,
 // the next one is 4 and so on).
