@@ -2217,10 +2217,12 @@ static NSTimeInterval	time_last_frame;
 	else if(numSticks)
 	{
 		virtualStick=[stickHandler getRollPitchAxis];
-		if(virtualStick.x == STICK_AXISUNASSIGNED ||
-		   virtualStick.y == STICK_AXISUNASSIGNED)
+		if((virtualStick.x == STICK_AXISUNASSIGNED ||
+		   virtualStick.y == STICK_AXISUNASSIGNED) ||
+		   (virtualStick.x > -kDeadZone && virtualStick.x < kDeadZone) &&
+		   (virtualStick.y > -kDeadZone && virtualStick.y < kDeadZone))
 		{
-			// Not assigned - set to zero.
+			// Not assigned or deadzoned - set to zero.
 			virtualStick.x=0;
 			virtualStick.y=0;
 		}
@@ -2232,8 +2234,9 @@ static NSTimeInterval	time_last_frame;
 		}
 		// handle yaw separately from pitch/roll
 		reqYaw = [stickHandler getAxisState: AXIS_YAW];
-		if(reqYaw == STICK_AXISUNASSIGNED)
+		if((reqYaw == STICK_AXISUNASSIGNED) || (reqYaw > -kDeadZone && reqYaw < kDeadZone))
 		{
+			// Not assigned or deadzoned - set to zero.
 			reqYaw=0;
 		}
 		else if(reqYaw != 0)
