@@ -56,6 +56,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
+#import "OOMesh.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -533,8 +534,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max
 {
-	id						textureDef = nil;
-	unsigned				i = 0;
+	id			textureDef = nil;
+	unsigned		i = 0;
+	OOMaterial		*textureBeingApplied = nil;
 	
 	// Allocate space for texture object name array
 	texCount = MAX(MIN(max, [textureNames count]), 0U);
@@ -553,7 +555,15 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		textures[i] = [OOTexture textureWithConfiguration:textureDef];
+		textureBeingApplied = [OOTexture textureWithConfiguration:textureDef];
+		if (textureBeingApplied != nil)
+		{
+			textures[i] = [textureBeingApplied retain];
+		}
+		else
+		{
+			textures[i] = [[OOMesh placeholderMaterial] retain];
+		}
 	}
 }
 

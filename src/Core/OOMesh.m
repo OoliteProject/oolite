@@ -121,6 +121,22 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
++ (OOMaterial *)placeholderMaterial
+{
+	static OOBasicMaterial	*placeholderMaterial = nil;
+	
+	if (placeholderMaterial == nil)
+	{
+		NSDictionary			*materialDefaults = nil;
+		
+		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+	}
+	
+	return placeholderMaterial;
+}
+
+
 - (id)init
 {
 	self = [super init];
@@ -496,22 +512,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	[pool release];
 	return self;
-}
-
-
-+ (OOMaterial *)placeholderMaterial
-{
-	static OOBasicMaterial	*placeholderMaterial = nil;
-	
-	if (placeholderMaterial == nil)
-	{
-		NSDictionary			*materialDefaults = nil;
-		
-		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
-	}
-	
-	return placeholderMaterial;
 }
 
 

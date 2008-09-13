@@ -119,6 +119,8 @@ materialDictionary:(NSDictionary *)materialDict
 	  shaderMacros:(NSDictionary *)macros
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
++ (OOMaterial *)placeholderMaterial;
+
 - (NSString *) modelName;
 
 - (size_t)vertexCount;
