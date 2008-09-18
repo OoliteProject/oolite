@@ -484,6 +484,8 @@
 		1A8A3A380B962AEF007D20B8 /* NSScannerOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */; };
 		1A8A3A390B962AEF007D20B8 /* NSScannerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */; };
 		1A8A3D1B0B9B03A500AB7625 /* Oolite.mdimporter in Copy MDImporter */ = {isa = PBXBuildFile; fileRef = 1A5BF2770916D47300BF238F /* Oolite.mdimporter */; };
+		1A8BB8EA0E8311F900122974 /* OONullTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8BB8E80E8311F900122974 /* OONullTexture.h */; };
+		1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8BB8E90E8311F900122974 /* OONullTexture.m */; };
 		1A9322970DF53C33003FD306 /* OOJSSystemInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */; };
 		1A9322980DF53C33003FD306 /* OOJSSystemInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */; };
 		1A9400BE0BAF0ECD005F6CF3 /* OOStringParsing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */; };
@@ -1499,6 +1501,8 @@
 		1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSFileManagerOOExtensions.h; sourceTree = "<group>"; };
 		1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSScannerOOExtensions.h; sourceTree = "<group>"; };
 		1A8A3A370B962AEF007D20B8 /* NSScannerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSScannerOOExtensions.m; sourceTree = "<group>"; };
+		1A8BB8E80E8311F900122974 /* OONullTexture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OONullTexture.h; sourceTree = "<group>"; };
+		1A8BB8E90E8311F900122974 /* OONullTexture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OONullTexture.m; sourceTree = "<group>"; };
 		1A9322950DF53C33003FD306 /* OOJSSystemInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystemInfo.h; sourceTree = "<group>"; };
 		1A9322960DF53C33003FD306 /* OOJSSystemInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystemInfo.m; sourceTree = "<group>"; };
 		1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOStringParsing.m; sourceTree = "<group>"; };
@@ -2293,6 +2297,8 @@
 			children = (
 				1A26D0E10BCF9D3B0073F257 /* OOTexture.h */,
 				1A26D0E00BCF9D3B0073F257 /* OOTexture.m */,
+				1A8BB8E80E8311F900122974 /* OONullTexture.h */,
+				1A8BB8E90E8311F900122974 /* OONullTexture.m */,
 				1A26D0E30BCF9D3B0073F257 /* OOTextureLoader.h */,
 				1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */,
 				1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */,
@@ -2319,6 +2325,8 @@
 		1A7B96800E620CA000322821 /* Audio */ = {
 			isa = PBXGroup;
 			children = (
+				1A60AFB50D56093B0070510D /* OOMusicController.h */,
+				1A60AFB60D56093B0070510D /* OOMusicController.m */,
 				1A71D8A90E5F17410088C456 /* OOSoundSource.h */,
 				1A71D8A80E5F17410088C456 /* OOSoundSource.m */,
 				1A7B967E0E620C9E00322821 /* OOSoundInternal.h */,
@@ -2357,8 +2365,6 @@
 				25161108099544390037C2E1 /* OOTrumble.m */,
 				2516110B099544390037C2E1 /* GameController.h */,
 				2516110C099544390037C2E1 /* GameController.m */,
-				1A60AFB50D56093B0070510D /* OOMusicController.h */,
-				1A60AFB60D56093B0070510D /* OOMusicController.m */,
 				1A5218D80D72EC21000865E9 /* OOSpatialReference.h */,
 				1A5218DD0D72ECE5000865E9 /* OOSpatialReference.m */,
 				1A7B96800E620CA000322821 /* Audio */,
@@ -2904,6 +2910,7 @@
 				1A54AB530E3E17A1001EB817 /* OOJSPlayerShip.h in Headers */,
 				1A71D8AB0E5F17410088C456 /* OOSoundSource.h in Headers */,
 				1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */,
+				1A8BB8EA0E8311F900122974 /* OONullTexture.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3256,6 +3263,7 @@
 				1A62F0FD0E26A2A000897506 /* OOEquipmentType.m in Sources */,
 				1A54AB540E3E17A1001EB817 /* OOJSPlayerShip.m in Sources */,
 				1A71D8AA0E5F17410088C456 /* OOSoundSource.m in Sources */,
+				1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

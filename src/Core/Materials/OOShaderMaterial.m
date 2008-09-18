@@ -56,7 +56,6 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
-#import "OOMesh.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -451,14 +450,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	for (i = 0; i != texCount; ++i)
 	{
 		glActiveTextureARB(GL_TEXTURE0_ARB + i);
-		if (textures[i] != nil)
-		{
-			[textures[i] apply];
-		}
-		else
-		{
-			[OOTexture applyNone];
-		}
+		[textures[i] apply];
 	}
 	glActiveTextureARB(GL_TEXTURE0_ARB);
 	
@@ -534,9 +526,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 - (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max
 {
-	id			textureDef = nil;
-	unsigned		i = 0;
-	OOMaterial		*textureBeingApplied = nil;
+	id						textureDef = nil;
+	unsigned				i = 0;
 	
 	// Allocate space for texture object name array
 	texCount = MAX(MIN(max, [textureNames count]), 0U);
@@ -555,15 +546,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
 		textureDef = [textureNames objectAtIndex:i];
-		textureBeingApplied = [OOTexture textureWithConfiguration:textureDef];
-		if (textureBeingApplied != nil)
-		{
-			textures[i] = [textureBeingApplied retain];
-		}
-		else
-		{
-			textures[i] = [[OOMesh placeholderMaterial] retain];
-		}
+		textures[i] = [OOTexture textureWithConfiguration:textureDef];
+		if (textures[i] == nil)  textures[i] = [OOTexture nullTexture];
+		[textures[i] retain];
 	}
 }
 

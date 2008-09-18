@@ -176,6 +176,12 @@ typedef enum
 */
 + (id)textureWithConfiguration:(id)configuration;
 
+/*	Return the "null texture", a texture object representing an empty texture.
+	Applying the null texture is equivalent to calling [OOTexture applyNone].
+*/
++ (id) nullTexture;
+
+
 /*	Bind the texture to the current texture unit.
 	This will block until loading is completed.
 */

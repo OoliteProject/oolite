@@ -85,6 +85,15 @@ enum
 }
 
 
+- (void) dealloc
+{
+	/*	This class can never be dealloced, but this is here to placate the
+		Clang Static Analyzer.
+	*/
+	[super dealloc];
+}
+
+
 - (void) playMusicNamed:(NSString *)name loop:(BOOL)loop
 {
 	if ([self isPlaying] && [name isEqual:[self playingMusic]])  return;

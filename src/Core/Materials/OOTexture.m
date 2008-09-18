@@ -46,6 +46,7 @@ SOFTWARE.
 */
 
 #import "OOTexture.h"
+#import "OONullTexture.h"
 #import "OOTextureLoader.h"
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -320,6 +321,12 @@ static BOOL		sRectangleTextureAvailable;
 }
 
 
++ (id) nullTexture
+{
+	return [OONullTexture sharedNullTexture];
+}
+
+
 - (void)dealloc
 {
 	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
@@ -327,7 +334,7 @@ static BOOL		sRectangleTextureAvailable;
 	if (_key != nil)
 	{
 		[sInUseTextures removeObjectForKey:_key];
-		[sRecentTextures removeObjectForKey:_key];
+		assert([sRecentTextures objectForKey:_key] != self);
 		[_key release];
 	}
 	

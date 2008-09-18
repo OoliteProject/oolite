@@ -2192,9 +2192,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightArrowKeyControls:(double)delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	NSPoint		virtualStick = NSZeroPoint;
-	double		reqYaw = 0.0;
-	double		kDeadZone = STICK_DEADZONE;
+	NSPoint			virtualStick = NSZeroPoint;
+	double			reqYaw = 0.0;
 	
 	// TODO: Rework who owns the stick.
 	if(!stickHandler)
@@ -2219,8 +2218,8 @@ static NSTimeInterval	time_last_frame;
 		virtualStick=[stickHandler getRollPitchAxis];
 		if((virtualStick.x == STICK_AXISUNASSIGNED ||
 		   virtualStick.y == STICK_AXISUNASSIGNED) ||
-		   (virtualStick.x > -kDeadZone && virtualStick.x < kDeadZone) &&
-		   (virtualStick.y > -kDeadZone && virtualStick.y < kDeadZone))
+		   (virtualStick.x > -STICK_DEADZONE && virtualStick.x < STICK_DEADZONE &&
+		    virtualStick.y > -STICK_DEADZONE && virtualStick.y < STICK_DEADZONE))
 		{
 			// Not assigned or deadzoned - set to zero.
 			virtualStick.x=0;
@@ -2234,7 +2233,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		// handle yaw separately from pitch/roll
 		reqYaw = [stickHandler getAxisState: AXIS_YAW];
-		if((reqYaw == STICK_AXISUNASSIGNED) || (reqYaw > -kDeadZone && reqYaw < kDeadZone))
+		if((reqYaw == STICK_AXISUNASSIGNED) || (reqYaw > -STICK_DEADZONE && reqYaw < STICK_DEADZONE))
 		{
 			// Not assigned or deadzoned - set to zero.
 			reqYaw=0;
@@ -2283,7 +2282,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightRoll < stick_roll)
 				flightRoll = stick_roll;
 		}
-		rolling = (fabs(virtualStick.x) > kDeadZone);
+		rolling = (fabs(virtualStick.x) > STICK_DEADZONE);
 	}
 	if (!rolling)
 	{
@@ -2332,7 +2331,7 @@ static NSTimeInterval	time_last_frame;
 			if (flightPitch < stick_pitch)
 				flightPitch = stick_pitch;
 		}
-		pitching = (fabs(virtualStick.y) > kDeadZone);
+		pitching = (fabs(virtualStick.y) > STICK_DEADZONE);
 	}
 	if (!pitching)
 	{
@@ -2382,7 +2381,7 @@ static NSTimeInterval	time_last_frame;
 				if (flightYaw < stick_yaw)
 					flightYaw = stick_yaw;
 			}
-			yawing = (fabs(reqYaw) > kDeadZone);
+			yawing = (fabs(reqYaw) > STICK_DEADZONE);
 		}
 		if (!yawing)
 		{
