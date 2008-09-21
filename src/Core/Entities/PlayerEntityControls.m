@@ -69,6 +69,9 @@ static BOOL				rotateCargo_pressed;
 static BOOL				autopilot_key_pressed;
 static BOOL				fast_autopilot_key_pressed;
 static BOOL				target_autopilot_key_pressed;
+#ifdef DOCKING_CLEARANCE_ENABLED
+static BOOL				docking_clearance_request_key_pressed;
+#endif
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
 #endif
@@ -200,6 +203,9 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_autopilot,				'c'					);
 	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
 	LOAD_KEY_SETTING(key_autodock,				'D'					);
+#ifdef DOCKING_CLEARANCE_ENABLED
+	LOAD_KEY_SETTING(key_docking_clearance_request,		'L'				);
+#endif
 	
 	LOAD_KEY_SETTING(key_snapshot,				'*'					);
 	LOAD_KEY_SETTING(key_docking_music,			's'					);
@@ -902,6 +908,26 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 				fast_autopilot_key_pressed = NO;
+			
+#ifdef DOCKING_CLEARANCE_ENABLED	
+			// docking clearance request 'L', not available in strict mode
+			if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
+			{
+				if (!docking_clearance_request_key_pressed)
+				{
+					Entity *primeTarget = [self primaryTarget];
+					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
+					{
+						[(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
+						
+						[self doScriptEvent:@"playerReceivedDockingClearance"];						
+					}
+				}
+				docking_clearance_request_key_pressed = YES;
+			}
+			else
+				docking_clearance_request_key_pressed = NO;
+#endif
 			
 			// hyperspace 'h'
 			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key

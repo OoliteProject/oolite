@@ -376,6 +376,10 @@ typedef enum
 	
 	OOKeyCode				key_custom_view;
 	
+#ifdef DOCKING_CLEARANCE_ENABLED
+	OOKeyCode				key_docking_clearance_request;
+#endif
+	
 #ifndef NDEBUG
 	OOKeyCode				key_dump_target_state;
 #endif

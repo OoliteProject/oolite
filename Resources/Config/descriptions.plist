@@ -1005,6 +1005,15 @@
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
 	
+	// Space station docking clearance
+	"please-wait-until-all-ships-have-completed-their-approach"
+						= "Please wait until all ships have completed their approach.";
+	"please-wait-until-launching-ships-have-cleared-H-station"
+						= "Please wait until launching ships have cleared %H Station.";
+	"H-station-refuses-to-grant-docking-clearance"
+						= "%H station refuses to grant docking clearance.";
+	"you-are-cleared-to-dock-within-the-next-two-minutes-please-proceed"
+						= "You are cleared to dock within the next two minutes. Please proceeed.";
 	
 	// delivery reports
 	"arrival-report-title"			= "%H Arrival Report";

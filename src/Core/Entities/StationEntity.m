@@ -1784,27 +1784,36 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+#ifdef DOCKING_CLEARANCE_ENABLED
 - (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
 	if (self != [UNIVERSE station])  return;
 	
+	[UNIVERSE clearPreviousMessage];
+	
 	// check
+	if ([other bounty] > 0)	// do not grant docking clearance to offenders/fugitives
+	{
+		[self sendExpandedMessage:DESC(@"H-station-refuses-to-grant-docking-clearance") toShip:other];
+		return;
+	}
 	if ([shipsOnApproach count])
 	{
-		[self sendExpandedMessage:@"Please wait until all ships have completed their approach." toShip:other];
+		[self sendExpandedMessage:DESC(@"please-wait-until-all-ships-have-completed-their-approach") toShip:other];
 		return;
 	}
 	if ([launchQueue count])
 	{
-		[self sendExpandedMessage:@"Please wait until launching ships have cleared %H Station." toShip:other];
+		[self sendExpandedMessage:DESC(@"please-wait-until-launching-ships-have-cleared-H-station") toShip:other];
 		return;
 	}
 	if (last_launch_time < [UNIVERSE getTime])
 	{
 		last_launch_time = [UNIVERSE getTime] + 126;
-		[self sendExpandedMessage:@"You are cleared to dock within the next two minutes. Please proceeed." toShip:other];
+		[self sendExpandedMessage:DESC(@"you-are-cleared-to-dock-within-the-next-two-minutes-please-proceed") toShip:other];
 	}
 }
+#endif
 
 
 - (BOOL) isRotatingStation
