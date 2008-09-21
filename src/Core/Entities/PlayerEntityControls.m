@@ -918,9 +918,11 @@ static NSTimeInterval	time_last_frame;
 					Entity *primeTarget = [self primaryTarget];
 					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
 					{
-						[(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
-						
-						[self doScriptEvent:@"playerReceivedDockingClearance"];						
+						NSString *dockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
+						if (dockingClearanceStatus != nil)
+						{
+							[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:dockingClearanceStatus];
+						}
 					}
 				}
 				docking_clearance_request_key_pressed = YES;

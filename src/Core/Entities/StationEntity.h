@@ -178,7 +178,7 @@ typedef enum
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship;
 
 #ifdef DOCKING_CLEARANCE_ENABLED
-- (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
+- (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 #endif
 
 - (BOOL) isRotatingStation;

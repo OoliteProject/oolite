@@ -227,7 +227,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if ([shipsOnApproach count] == 0)
 	{
-		last_launch_time = [UNIVERSE getTime];
+		if (last_launch_time < [UNIVERSE getTime])
+		{
+			last_launch_time = [UNIVERSE getTime];
+		}
 		approach_spacing = 0.0;
 	}
 	
@@ -1785,9 +1788,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 
 #ifdef DOCKING_CLEARANCE_ENABLED
-- (void) acceptDockingClearanceRequestFrom:(ShipEntity *)other
+- (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
-	if (self != [UNIVERSE station])  return;
+	NSString	*result = nil;
+	double		timeNow = [UNIVERSE getTime];
+	
+	if (self != [UNIVERSE station])  return @"DOCKING_CLEARANCE_DENIED_NOT_MAIN_STATION";
 	
 	[UNIVERSE clearPreviousMessage];
 	
@@ -1795,23 +1801,25 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([other bounty] > 0)	// do not grant docking clearance to offenders/fugitives
 	{
 		[self sendExpandedMessage:DESC(@"H-station-refuses-to-grant-docking-clearance") toShip:other];
-		return;
+		result = @"DOCKING_CLEARANCE_DENIED_SHIP_OFFENDER";
 	}
-	if ([shipsOnApproach count])
+	if (result == nil && [shipsOnApproach count] && last_launch_time < timeNow)
 	{
 		[self sendExpandedMessage:DESC(@"please-wait-until-all-ships-have-completed-their-approach") toShip:other];
-		return;
+		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_INBOUND";
 	}
-	if ([launchQueue count])
+	if (result == nil && [launchQueue count] && last_launch_time < timeNow)
 	{
 		[self sendExpandedMessage:DESC(@"please-wait-until-launching-ships-have-cleared-H-station") toShip:other];
-		return;
+		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_OUTBOUND";
 	}
-	if (last_launch_time < [UNIVERSE getTime])
+	if (result == nil && last_launch_time < timeNow)
 	{
-		last_launch_time = [UNIVERSE getTime] + 126;
+		last_launch_time = timeNow + 126.0;
 		[self sendExpandedMessage:DESC(@"you-are-cleared-to-dock-within-the-next-two-minutes-please-proceed") toShip:other];
+		result = @"DOCKING_CLEARANCE_GRANTED";
 	}
+	return result;
 }
 #endif
 
