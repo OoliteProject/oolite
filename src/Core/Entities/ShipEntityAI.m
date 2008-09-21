@@ -1785,7 +1785,17 @@ WormholeEntity*	whole;
 // Send own ship script a message.
 - (void) sendScriptMessage:(NSString *)message
 {
-	[self doScriptEvent:message];
+	NSArray *components = ScanTokensFromString(message);
+	if ([components count] == 1)
+	{
+		[self doScriptEvent:message];
+	}
+	else
+	{
+		NSString *function = [components objectAtIndex:1];
+		components = [components subarrayWithRange:NSMakeRange(1, [components count] - 1)];
+		[self doScriptEvent:function withArgument:components];
+	}
 }
 
 
