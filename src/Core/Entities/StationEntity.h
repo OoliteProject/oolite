@@ -40,6 +40,8 @@ typedef enum
 
 #define MAX_DOCKING_STAGES				16
 
+#define DOCKING_CLEARANCE_WINDOW	126.0
+
 @interface StationEntity: ShipEntity
 {
 	

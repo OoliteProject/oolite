@@ -880,6 +880,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[UNIVERSE clearGUIs];
 	
+#ifdef DOCKING_CLEARANCE_ENABLED
+	clearedToDock = YES;
+#endif
+	
 	dockedStation = [UNIVERSE station];
 	
 	[commLog release];
@@ -1788,6 +1792,10 @@ static PlayerEntity *sSharedPlayer = nil;
 		// next check in 10s
 		
 		status = STATUS_IN_FLIGHT;
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+		[self setClearedToDock:NO];
+#endif
 		[self doScriptEvent:@"shipLaunchedFromStation"];
 	}
 }
@@ -3573,6 +3581,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[[OOMusicController sharedController] stopDockingMusic];
 	[[OOMusicController sharedController] playDockedMusic];
+	
+#ifdef DOCKING_CLEARANCE_ENABLED
+	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
+	// apply no unauthorized docking penalties if a nova is ongoing.
+	if (![UNIVERSE strict] && [self clearedToDock] == NO && ![[UNIVERSE sun] willGoNova])
+	{
+		[self penaltyForUnauthorizedDocking];
+	}
+#endif
 
 	// time to check the script!
 	if (!being_fined)  [self checkScript];
@@ -6436,6 +6453,36 @@ static int last_outfitting_index;
 	
 	return isDockedStatus;
 }
+
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+- (BOOL)clearedToDock
+{
+	return clearedToDock;
+}
+
+
+- (void)setClearedToDock:(BOOL)newValue
+{
+	clearedToDock = !!newValue;	// Ensure yes or no.
+}
+
+
+- (void)penaltyForUnauthorizedDocking
+{
+	OOCreditsQuantity	amountToPay = 0;
+	OOCreditsQuantity	calculatedFine = credits * 0.05;
+	OOCreditsQuantity	maximumFine = 50000ULL;
+	
+	if ([UNIVERSE strict] || [self clearedToDock] == YES)
+		return;
+		
+	amountToPay = min(maximumFine, calculatedFine);
+	credits -= amountToPay;
+	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:6];
+}
+
+#endif
 
 
 #ifndef NDEBUG

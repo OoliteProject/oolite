@@ -1007,13 +1007,36 @@
 	
 	// Space station docking clearance
 	"please-wait-until-all-ships-have-completed-their-approach"
-						= "Please wait until all ships have completed their approach.";
+						= (
+							"Please wait until all ships have completed their approach.",
+							"We have inbound traffic, commander. Please stand by.",
+							"We cannot clear you for docking due to prioritized incoming traffic. Please retry for clearance in a few minutes",
+							"We have ships on approach to %H station. Please hold for clearance."
+						  );
+						
 	"please-wait-until-launching-ships-have-cleared-H-station"
-						= "Please wait until launching ships have cleared %H Station.";
+						= (
+							"Please wait until launching ships have cleared %H Station.",
+							"We have outbound traffic, commander. Please stand by.",
+							"Clearance cannot be granted at this moment, due to prioritized outgoing traffic. Please retry for clearance in a few minutes.",
+							"There are ships in the launching queue. Please retry in a few minutes for docking clearance."
+						  );
 	"H-station-refuses-to-grant-docking-clearance"
-						= "%H station refuses to grant docking clearance.";
-	"you-are-cleared-to-dock-within-the-next-two-minutes-please-proceed"
-						= "You are cleared to dock within the next two minutes. Please proceeed.";
+						= (
+							"%H station refuses to grant docking clearance to fugitive vessels.",
+							"Fugitive vessel, we cannot clear you for docking. You are not welcome to %H",
+							"Negative. %H security scans indicate your ship has criminal record.",
+							"Docking clearance is denied, as per GalCop Station Security Regulations."
+						  );
+	"you-are-cleared-to-dock-please-proceed-clearance-expires-at-@"
+						= (
+							"You are cleared to dock. Please proceeed. Clearance expires at %@",
+							"You have docking clearance, commander. Your window is up to %@",
+							"Docking authorized. You have an approach slot terminating at %@",
+							"Permission granted. Proceed for docking approach. Slot valid until %@"
+						  );
+	"you-have-been-fined-@-cr-for-unauthorized-docking"
+						= "You have been fined %@ for unauthorized docking.";
 	
 	// delivery reports
 	"arrival-report-title"			= "%H Arrival Report";

@@ -803,6 +803,9 @@ static NSTimeInterval	time_last_frame;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
 						[self playAutopilotOn];
+#ifdef DOCKING_CLEARANCE_ENABLED
+						[self setClearedToDock:YES];
+#endif
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
@@ -838,6 +841,9 @@ static NSTimeInterval	time_last_frame;
 						status = STATUS_AUTOPILOT_ENGAGED;
 						[shipAI setState:@"GLOBAL"];	// restart the AI
 						[self playAutopilotOn];
+#ifdef DOCKING_CLEARANCE_ENABLED
+						[self setClearedToDock:YES];
+#endif
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
@@ -890,6 +896,9 @@ static NSTimeInterval	time_last_frame;
 										[self markForFines];
 									}
 								}
+#ifdef DOCKING_CLEARANCE_ENABLED
+								[self setClearedToDock:YES];
+#endif
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 								ident_engaged = NO;
 								[self safeAllMissiles];
@@ -2607,6 +2616,9 @@ static BOOL toggling_music;
 			status = STATUS_IN_FLIGHT;
 			[self playAutopilotOff];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
+#ifdef DOCKING_CLEARANCE_ENABLED
+			[self setClearedToDock:NO];
+#endif
 			[self doScriptEvent:@"playerCancelledAutoPilot"];
 			
 			[[OOMusicController sharedController] stopDockingMusic];

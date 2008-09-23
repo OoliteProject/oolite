@@ -461,6 +461,10 @@ waitingForStickCallback: 1;
 	
 	OOGalacticHyperspaceBehaviour		galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
+	
+#ifdef DOCKING_CLEARANCE_ENABLED
+	BOOL				clearedToDock;
+#endif
 }
 
 + (PlayerEntity *)sharedPlayer;
@@ -670,5 +674,11 @@ waitingForStickCallback: 1;
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+- (BOOL) clearedToDock;
+- (void) setClearedToDock:(BOOL) newValue;
+- (void) penaltyForUnauthorizedDocking;
+#endif
 
 @end
