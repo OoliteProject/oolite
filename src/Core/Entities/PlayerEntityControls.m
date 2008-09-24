@@ -1,6 +1,6 @@
 /*
 
-PlayerEntityControls.h
+PlayerEntityControls.m
 
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors

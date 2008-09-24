@@ -67,6 +67,9 @@ enum
 	kStation_isMainStation,		// Is [UNIVERSE station], boolean, read-only
 	kStation_hasNPCTraffic,
 	kStation_alertCondition,
+#ifdef DOCKING_CLEARANCE_ENABLED
+	kStation_requiresDockingClearance,
+#endif
 };
 
 
@@ -76,6 +79,9 @@ static JSPropertySpec sStationProperties[] =
 	{ "isMainStation",			kStation_isMainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alertCondition",			kStation_alertCondition,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+#ifdef DOCKING_CLEARANCE_ENABLED
+	{ "requiresDockingClearance",		kStation_requiresDockingClearance,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+#endif
 	{ 0 }
 };
 
@@ -150,6 +156,12 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = INT_TO_JSVAL([entity alertLevel]);
 			break;
 			
+#ifdef DOCKING_CLEARANCE_ENABLED
+		case kStation_requiresDockingClearance:
+			*outValue = BOOLToJSVal([entity requiresDockingClearance]);
+			break;
+#endif
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
@@ -186,6 +198,16 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 				OK = YES;
 			}
 			break;
+			
+#ifdef DOCKING_CLEARANCE_ENABLED
+		case kStation_requiresDockingClearance:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setRequiresDockingClearance:bValue];
+				OK = YES;
+			}
+			break;
+#endif
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));

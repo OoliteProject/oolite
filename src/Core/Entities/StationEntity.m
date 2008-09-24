@@ -756,6 +756,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	equipmentPriceFactor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
+#ifdef DOCKING_CLEARANCE_ENABLED
+	requiresDockingClearance = [dict boolForKey:@"requires_docking_clearance" defaultValue:NO];
+#endif
 	
 	if ([self isRotatingStation] && [self hasNPCTraffic])
 	{
@@ -1802,13 +1805,20 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	double		timeNow = [UNIVERSE getTime];
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	
-	// We do not do [player setClearedToDock:NO] if the station is not the main one. The player could
-	// have already acquired clearance, which could still be valid.
-	if (self != [UNIVERSE station])  return @"DOCKING_CLEARANCE_DENIED_NOT_MAIN_STATION";
-	
 	[UNIVERSE clearPreviousMessage];
 	
-	if ([other bounty] > 50)	// do not grant docking clearance to fugitives
+	// We do not do [player setClearedToDock:NO] if the station is not the main one. The player could
+	// have already acquired clearance, which could still be valid.
+	if (self != [UNIVERSE station])
+	{
+		result = @"DOCKING_CLEARANCE_DENIED_NOT_MAIN_STATION";
+	}
+	if (result == nil && ![self requiresDockingClearance])
+	{
+		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
+	}
+	// Main station and requires docking clearance. Perform necessary checks.
+	if (result == nil && [other bounty] > 50)	// do not grant docking clearance to fugitives
 	{
 		[self sendExpandedMessage:DESC(@"H-station-refuses-to-grant-docking-clearance") toShip:other];
 		[player setClearedToDock:NO];
@@ -1837,6 +1847,18 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		result = @"DOCKING_CLEARANCE_GRANTED";
 	}
 	return result;
+}
+
+
+- (BOOL) requiresDockingClearance
+{
+	return requiresDockingClearance;
+}
+
+
+- (void) setRequiresDockingClearance:(BOOL)newValue
+{
+	requiresDockingClearance = !!newValue;	// Ensure yes or no
 }
 #endif
 
