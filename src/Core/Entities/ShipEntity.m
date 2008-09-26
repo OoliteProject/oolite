@@ -961,7 +961,7 @@ BOOL ship_canCollide (ShipEntity* ship)
 	int		s_scan_class =	ship->scanClass;
 	if ((s_status == STATUS_COCKPIT_DISPLAY)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
 		return NO;
-	if ((s_scan_class == CLASS_MISSILE) && (ship->shot_time < 0.25)) // not yet fused
+	if ((s_scan_class == CLASS_MISSILE) && ([ship shotTime] < 0.25)) // not yet fused
 		return NO;
 	return YES;
 }
@@ -4846,7 +4846,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)laserHeatLevel
 {
-	float result = (weapon_recharge_rate - shot_time) / weapon_recharge_rate;
+	float result = (weapon_recharge_rate - [self shotTime]) / weapon_recharge_rate;
 	return OOClamp_0_1_f(result);
 }
 
@@ -5737,7 +5737,7 @@ BOOL class_masslocks(int some_class)
 	//
 	[self setWeaponDataFromType:forward_weapon_type];
 	
-	if (shot_time < weapon_recharge_rate)
+	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 	
 	if (range > randf() * weaponRange * accuracy)
@@ -5799,7 +5799,7 @@ BOOL class_masslocks(int some_class)
 	//
 	[self setWeaponDataFromType:aft_weapon_type];
 
-	if (shot_time < weapon_recharge_rate)
+	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 	if (![self onTarget:NO])
 		return NO;
@@ -5837,9 +5837,21 @@ BOOL class_masslocks(int some_class)
 }
 
 
+- (OOTimeDelta) shotTime
+{
+	return shot_time;
+}
+
+
+- (void) resetShotTime
+{
+	shot_time = 0.0;
+}
+
+
 - (BOOL) fireTurretCannon:(double) range
 {
-	if (shot_time < weapon_recharge_rate)
+	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 	if (range > 5050) //50 more than max range - open up just slightly early
 		return NO;
@@ -5873,7 +5885,7 @@ BOOL class_masslocks(int some_class)
 	[UNIVERSE addEntity:shot];
 	[shot setOwner:[self owner]];	// has to be done AFTER adding shot to the UNIVERSE
 	
-	shot_time = 0.0;
+	[self resetShotTime];
 	return YES;
 }
 
@@ -5907,7 +5919,7 @@ BOOL class_masslocks(int some_class)
 
 	ShipEntity* parent = (ShipEntity*)[self owner];
 
-	if (shot_time < weapon_recharge_rate)
+	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
 
 	if (range > weaponRange)
@@ -5946,8 +5958,8 @@ BOOL class_masslocks(int some_class)
 	}
 	[UNIVERSE addEntity:shot];
 	[shot release];
-
-	shot_time = 0.0;
+	
+	[self resetShotTime];
 
 	return YES;
 }
@@ -6015,12 +6027,14 @@ BOOL class_masslocks(int some_class)
 	}
 	[UNIVERSE addEntity:shot];
 	[shot release];
-
-	shot_time = 0.0;
+	
+	[self resetShotTime];
 
 	// random laser over-heating for AI ships
 	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	{
 		shot_time -= (randf() * weapon_energy);
+	}
 
 	return YES;
 }
@@ -6097,12 +6111,14 @@ BOOL class_masslocks(int some_class)
 	}
 	[UNIVERSE addEntity:shot];
 	[shot release]; //release
-
-	shot_time = 0.0;
+	
+	[self resetShotTime];
 
 	// random laser over-heating for AI ships
 	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
+	{
 		shot_time -= (randf() * weapon_energy);
+	}
 
 	return YES;
 }
@@ -6215,8 +6231,8 @@ BOOL class_masslocks(int some_class)
 	[shot setOwner:self];
 	[UNIVERSE addEntity:shot];
 	[shot release];
-
-	shot_time = 0.0;
+	
+	[self resetShotTime];
 
 	return YES;
 }
@@ -6310,6 +6326,7 @@ BOOL class_masslocks(int some_class)
 	[missile setDistanceTravelled:0.0];
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	missile->isMissile = YES;
+	[missile resetShotTime];
 	
 	[UNIVERSE addEntity:missile];
 
@@ -8047,7 +8064,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Frustration: %g", frustration);
 	OOLog(@"dumpState.shipEntity", @"Success factor: %g", success_factor);
 	OOLog(@"dumpState.shipEntity", @"Shots fired: %u", shot_counter);
-	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", shot_time);
+	OOLog(@"dumpState.shipEntity", @"Time since shot: %g", [self shotTime]);
 	OOLog(@"dumpState.shipEntity", @"Spawn time: %g (%g seconds ago)", [self spawnTime], [self timeElapsedSinceSpawn]);
 	if (beaconChar != '\0')
 	{

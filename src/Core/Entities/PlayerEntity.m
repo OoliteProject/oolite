@@ -1812,7 +1812,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) performDeadUpdates:(OOTimeDelta)delta_t
 {
-	if (shot_time > 30.0)
+	if ([self shotTime] > 30.0)
 	{
 		BOOL was_mouse_control_on = mouse_control_on;
 		[UNIVERSE game_over];				//  we restart the UNIVERSE
@@ -2743,6 +2743,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[missile setSpeed:150.0];
 	[missile setOwner:self];
 	[missile setDistanceTravelled:0.0f];
+	[missile resetShotTime];
 	
 	[UNIVERSE addEntity:missile];
 	[missile release];
@@ -3233,7 +3234,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	energy = 25;
 	[UNIVERSE addMessage:DESC(@"escape-sequence") forCount:4.5];
-	shot_time = 0.0;
+	[self resetShotTime];
 	
 	return result;
 }
@@ -3449,7 +3450,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE displayMessage:scoreMS forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
-	shot_time = 0.0;
+	[self resetShotTime];
 	
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];

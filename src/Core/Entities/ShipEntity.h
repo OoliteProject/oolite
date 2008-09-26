@@ -90,7 +90,7 @@ MA 02110-1301, USA.
 {
 @public
 	// derived variables
-	double					shot_time;					// time elapsed since last shot was fired
+	OOTimeDelta				shot_time;					// time elapsed since last shot was fired
 	
 	// navigation
 	Vector					v_forward, v_up, v_right;	// unit vectors derived from the direction faced
@@ -641,6 +641,9 @@ BOOL	class_masslocks(int some_class);
 - (double) missileTrackPrimaryTarget:(double) delta_t;
 - (double) rangeToPrimaryTarget;
 - (BOOL) onTarget:(BOOL) fwd_weapon;
+
+- (OOTimeDelta) shotTime;
+- (void) resetShotTime;
 
 - (BOOL) fireMainWeapon:(double) range;
 - (BOOL) fireAftWeapon:(double) range;
