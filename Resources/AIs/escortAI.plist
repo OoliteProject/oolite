@@ -37,14 +37,12 @@
 		);
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
 	};
-	"CLEAR_STATION" =
-	{
-		ENTER =
-		(
-			setTargetToStation,
-			setDestinationWithinTarget,
-			"setDesiredRangeTo: 8000.0",
-			"setSpeedFactorTo: 0.5",
+	"CLEAR_STATION" = {
+		ENTER = (
+			getWitchspaceEntryCoordinates, 
+			setDestinationFromCoordinates, 
+			"setDesiredRangeTo: 5000.0", 
+			"setSpeedFactorTo: 0.50", 
 			performFlyToRangeFromDestination
 		);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");

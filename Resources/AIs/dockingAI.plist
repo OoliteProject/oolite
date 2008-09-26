@@ -20,6 +20,8 @@
 	STATIONKEEPING =
 	{
 		ENTER = (performIdle, "setSpeedTo: 0.0", "pauseAI: 10.0");
+		ATTACKED = (abortDocking, broadcastDistressMessage, setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		RESTARTED = (performIdle, "setStateTo: GLOBAL");
 		UPDATE = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
 	};
 	APPROACH =
@@ -51,13 +53,14 @@
 		DOCKED = ("setStateTo: EXIT_SYSTEM");
 	};
 	ABORT =
-	 {
+	{
 		ENTER = (abortDocking, "setSpeedTo: 0.0", setDestinationToDockingAbort, "setDesiredRangeTo: 500.0", performFaceDestination);
 		"FACING_DESTINATION" = ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination);
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
 		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
 		"DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		RESTARTED = (performIdle, "setStateTo: GLOBAL");
 	};
 	"EXIT_SYSTEM" =
 	{
