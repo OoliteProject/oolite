@@ -325,6 +325,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	SEL						selector = NULL;
 	OOUniformConvertOptions	convertOptions;
 	BOOL					quatAsMatrix = YES;
+	GLfloat					scale = 1.0;
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
 	{
@@ -341,6 +342,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 			value = [(NSDictionary *)definition objectForKey:@"value"];
 			binding = [(NSDictionary *)definition stringForKey:@"binding"];
 			type = [(NSDictionary *)definition stringForKey:@"type"];
+			scale = [(NSDictionary *)definition floatForKey:@"scale" defaultValue:1.0];
 			if (type == nil)
 			{
 				if (value == nil && binding != nil)  type = @"binding";
@@ -356,6 +358,38 @@ static NSString *MacrosToString(NSDictionary *macros);
 		{
 			binding = definition;
 			type = @"binding";
+		}
+		else if ([definition isKindOfClass:[NSArray class]])
+		{
+			binding = definition;
+			type = @"vector";
+		}
+		
+		// Transform random values to concrete values
+		if ([type isEqualToString:@"randomFloat"])
+		{
+			type = @"float";
+			value = [NSNumber numberWithFloat:randf() * scale];
+		}
+		else if ([type isEqualToString:@"randomUnitVector"])
+		{
+			type = @"vector";
+			value = OOPropertyListFromVector(vector_multiply_scalar(OORandomUnitVector(), scale));
+		}
+		else if ([type isEqualToString:@"randomVectorSpatial"])
+		{
+			type = @"vector";
+			value = OOPropertyListFromVector(OOVectorRandomSpatial(scale));
+		}
+		else if ([type isEqualToString:@"randomVectorRadial"])
+		{
+			type = @"vector";
+			value = OOPropertyListFromVector(OOVectorRandomRadial(scale));
+		}
+		else if ([type isEqualToString:@"randomQuaternion"])
+		{
+			type = @"quaternion";
+			value = OOPropertyListFromQuaternion(OORandomQuaternion());
 		}
 		
 		if ([type isEqualToString:@"float"] || [type isEqualToString:@"real"])
