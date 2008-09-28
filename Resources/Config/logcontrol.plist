@@ -118,6 +118,7 @@
 	display.mode.found.failed				= $error;
 	display.mode.list						= no;
 	display.mode.list.none					= $error;
+	display.mode.list.native			= yes;
 	display.mode.list.native.failed			= $error;
 	display.mode.switch.failed				= $error;
 	display.mode.unknown					= $error;

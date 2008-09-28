@@ -757,7 +757,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
 #ifdef DOCKING_CLEARANCE_ENABLED
-	requiresDockingClearance = [dict boolForKey:@"requires_docking_clearance" defaultValue:NO];
+	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
+	// but this variable should be irrelevant for them, as they do not make use of it anyway.
+	NSDictionary *universalInfo = [[UNIVERSE planetInfo] dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
+	requiresDockingClearance = [dict boolForKey:@"requires_docking_clearance" defaultValue:
+		universalInfo != nil ?	[universalInfo boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
 	
 	if ([self isRotatingStation] && [self hasNPCTraffic])
