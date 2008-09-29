@@ -62,7 +62,7 @@ SOFTWARE.
 #import "OOCacheManager.h"
 
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X || OOLITE_LINUX
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
 static void OpenLogFile(NSString *name);
@@ -689,7 +689,7 @@ static void OpenLogFile(NSString *name);
 @end
 
 
-#if OOLITE_HAVE_APPKIT
+#if OOLITE_MAC_OS_X || OOLITE_LINUX
 
 #import "OOLogOutputHandler.h"
 
