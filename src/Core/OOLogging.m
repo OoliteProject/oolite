@@ -56,6 +56,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "NSThreadOOExtensions.h"
 #import "OOLogHeader.h"
+#import "OOLogOutputHandler.h"
 
 #undef NSLog		// We need to be able to call the real NSLog.
 
@@ -144,20 +145,6 @@ OOINLINE void SetIndentLevel(unsigned level);
 #ifndef OOLOG_NO_FILE_NAME
 static NSMutableDictionary		*sFileNamesCache = nil;
 static NSString *AbbreviatedFileName(const char *inName);
-#endif
-
-
-#if OOLITE_MAC_OS_X || OOLITE_LINUX
-#import "OOLogOutputHandler.h"
-#else
-OOINLINE void OOLogOutputHandlerInit(void)  {}
-OOINLINE void OOLogOutputHandlerClose(void)  {}
-
-
-OOINLINE void OOLogOutputHandlerPrint(NSString *inString)
-{
-	NSLog(@"%@", inString);
-}
 #endif
 
 

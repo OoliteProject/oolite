@@ -62,13 +62,12 @@ SOFTWARE.
 #import "OOCacheManager.h"
 
 
-#if OOLITE_MAC_OS_X || OOLITE_LINUX
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
+
+#if OOLITE_MAC_OS_X
 static void OpenLogFile(NSString *name);
 #else
-#define SwitchLogFile(name) do {} while (0)
-#define NoteVerificationStage(displayName, stage) do {} while (0)
 #define OpenLogFile(name) do {} while (0)
 #endif
 
@@ -689,8 +688,6 @@ static void OpenLogFile(NSString *name);
 @end
 
 
-#if OOLITE_MAC_OS_X || OOLITE_LINUX
-
 #import "OOLogOutputHandler.h"
 
 static void SwitchLogFile(NSString *name)
@@ -707,6 +704,8 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage)
 }
 
 
+#if OOLITE_MAC_OS_X
+
 static void OpenLogFile(NSString *name)
 {
 	//	Open log file in appropriate application.
@@ -717,6 +716,5 @@ static void OpenLogFile(NSString *name)
 	}
 }
 
-#endif	// OOLITE_HAVE_APPKIT
-
+#endif
 #endif	// OO_OXP_VERIFIER_ENABLED
