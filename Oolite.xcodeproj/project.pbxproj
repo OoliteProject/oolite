@@ -471,8 +471,6 @@
 		1A7D41870C516B90008EDC33 /* OOModelVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */; };
 		1A7D41E20C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */; };
 		1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */; };
-		1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */; };
-		1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
 		1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
@@ -525,6 +523,10 @@
 		1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */; };
 		1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB784F70D554F7B00517983 /* OOJSSoundSource.h */; };
 		1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB784F80D554F7B00517983 /* OOJSSoundSource.m */; };
+		1AB8128F0E90179C00A84923 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
+		1AB812900E90179D00A84923 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
+		1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */; };
+		1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
 		1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AC544F90D4D217900C90E5B /* oolite-font.png */; };
 		1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC545040D4D228400C90E5B /* OOEncodingConverter.h */; };
@@ -544,8 +546,6 @@
 		1ACEA7290C91DF2800C7CE97 /* OOJSMissionVariables.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7270C91DF2800C7CE97 /* OOJSMissionVariables.m */; };
 		1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */; };
 		1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */; };
-		1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161145099544390037C2E1 /* TextureStore.m */; };
-		1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */; };
 		1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */; };
@@ -1488,8 +1488,6 @@
 		1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOModelVerifierStage.h; sourceTree = "<group>"; };
 		1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckShipDataPListVerifierStage.h; sourceTree = "<group>"; };
 		1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckShipDataPListVerifierStage.m; sourceTree = "<group>"; };
-		1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
-		1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
 		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
@@ -1545,6 +1543,8 @@
 		1AB4AEB70D688AD9003076D6 /* OOLogHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogHeader.m; sourceTree = "<group>"; };
 		1AB784F70D554F7B00517983 /* OOJSSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSoundSource.h; sourceTree = "<group>"; };
 		1AB784F80D554F7B00517983 /* OOJSSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSoundSource.m; sourceTree = "<group>"; };
+		1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
+		1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1ABB688B0D044306008BE96D /* OOLoggingExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLoggingExtended.h; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
 		1AC0E9470B974DC200C46994 /* FAQ.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = FAQ.TXT; sourceTree = "<group>"; };
@@ -2388,8 +2388,6 @@
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
 				1AE546300C19A2E2005B89F3 /* JoystickHandler.m */,
-				1A7D82FF0C40111B00E4A5F5 /* OOLogOutputHandler.h */,
-				1A7D83000C40111B00E4A5F5 /* OOLogOutputHandler.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -2416,6 +2414,8 @@
 				1A38B4AA0B988532001ED4A0 /* OOLogging.h */,
 				1ABB688B0D044306008BE96D /* OOLoggingExtended.h */,
 				1A38B4AB0B988532001ED4A0 /* OOLogging.m */,
+				1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */,
+				1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */,
 				1A9400BF0BAF0EDB005F6CF3 /* OOStringParsing.h */,
 				1A9400BD0BAF0ECD005F6CF3 /* OOStringParsing.m */,
 				1A9403CF0BAF36C3005F6CF3 /* OOFunctionAttributes.h */,
@@ -2841,9 +2841,7 @@
 				1A15049E0C12CA070032F3E8 /* OOProbabilisticTextureManager.h in Headers */,
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
-				1A7D83010C40111B00E4A5F5 /* OOLogOutputHandler.h in Headers */,
 				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
-				1AD0C1C40C44DF240070BD23 /* TextureStore.h in Headers */,
 				1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */,
 				1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */,
 				1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */,
@@ -2911,6 +2909,8 @@
 				1A71D8AB0E5F17410088C456 /* OOSoundSource.h in Headers */,
 				1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */,
 				1A8BB8EA0E8311F900122974 /* OONullTexture.h in Headers */,
+				1AB812900E90179D00A84923 /* TextureStore.h in Headers */,
+				1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3202,9 +3202,7 @@
 				1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */,
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,
 				1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */,
-				1A7D83020C40111B00E4A5F5 /* OOLogOutputHandler.m in Sources */,
 				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
-				1AD0C1C30C44DF230070BD23 /* TextureStore.m in Sources */,
 				1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */,
 				1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */,
 				1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */,
@@ -3264,6 +3262,8 @@
 				1A54AB540E3E17A1001EB817 /* OOJSPlayerShip.m in Sources */,
 				1A71D8AA0E5F17410088C456 /* OOSoundSource.m in Sources */,
 				1A8BB8EB0E8311F900122974 /* OONullTexture.m in Sources */,
+				1AB8128F0E90179C00A84923 /* TextureStore.m in Sources */,
+				1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
