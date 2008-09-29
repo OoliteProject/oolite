@@ -3,11 +3,11 @@
 OOLogOutputHandler.h
 By Jens Ayton
 
-Mac OS X-specific output handler for OOLogging.
+Output handler for OOLogging.
 
 This does two things:
-1. It writes log output to ~/Logs/org.aegidian.oolite/Oolite.log, handling
-   thread serialization.
+1. It writes log output to ~/Logs/Oolite/Latest.log under Mac OS X or
+   ~/.Oolite/Logs/Latest.log under Linux, handling thread serialization.
 2. It installs a filter to capture NSLogs and convert them to OOLogs. This is
    different to the macro in OOLogging.h, which acts at compile time; the
    filter catches logging in included frameworks.

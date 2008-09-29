@@ -53,29 +53,29 @@ SOFTWARE.
 
 #import "OOLogOutputHandler.h"
 #import "OOLogging.h"
-#import <CoreFoundation/CoreFoundation.h>
 #import "OOAsyncQueue.h"
 #import <stdlib.h>
 #import <stdio.h>
-#import <sys/sysctl.h>
-#import <mach/machine.h>
 #import "NSThreadOOExtensions.h"
-#include <dlfcn.h>
 
 
 #undef NSLog		// We need to be able to call the real NSLog.
 
 
+#if OOLITE_MAC_OS_X
+
+#import <dlfcn.h>
+
 #ifndef NDEBUG
+
+#define SET_CRASH_REPORTER_INFO 1
+
 // Function to set "Application Specific Information" field in crash reporter log in Leopard.
 // Extremely unsupported, so not used in release builds.
 static void InitCrashReporterInfo(void);
 static void SetCrashReporterInfo(const char *info);
 static BOOL sCrashReporterInfoAvailable = NO;
-#else
-#define InitCrashReporterInfo() do {} while (0)
-#define SetCrashReporterInfo(i) do {} while (0)
-#define sCrashReporterInfoAvailable 0
+
 #endif
 
 
@@ -87,12 +87,22 @@ static LogCStringFunctionGetterProc _NSLogCStringFunction = NULL;
 static LogCStringFunctionSetterProc _NSSetLogCStringFunction = NULL;
 
 static void LoadLogCStringFunctions(void);
-
 static void OONSLogCStringFunction(const char *string, unsigned length, BOOL withSyslogBanner);
+
+static NSString *GetAppName(void);
+
+static LogCStringFunctionProc	sDefaultLogCStringFunction = NULL;
+
+#elif OOLITE_GNUSTEP
+
+static void OONSLogPrintfHandler(NSString *message);
+
+#else
+#error Unknown platform!
+#endif
 
 static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
 static NSString *GetLogBasePath(void);
-static NSString *GetAppName(void);
 
 
 #define kFlushInterval	2.0		// Lower bound on interval between explicit log file flushes.
@@ -122,7 +132,6 @@ static NSString *GetAppName(void);
 static BOOL						sInited = NO;
 static BOOL						sWriteToStderr = YES;
 static OOAsyncLogger			*sLogger = nil;
-static LogCStringFunctionProc	sDefaultLogCStringFunction = NULL;
 static NSString					*sLogFileName = @"Latest.log";
 
 
@@ -130,7 +139,9 @@ void OOLogOutputHandlerInit(void)
 {
 	if (sInited)  return;
 	
+#if SET_CRASH_REPORTER_INFO
 	InitCrashReporterInfo();
+#endif
 	
 	sLogger = [[OOAsyncLogger alloc] init];
 	sInited = YES;
@@ -144,6 +155,7 @@ void OOLogOutputHandlerInit(void)
 		sWriteToStderr = YES;
 	}
 	
+#if OOLITE_MAC_OS_X
 	LoadLogCStringFunctions();
 	if (_NSSetLogCStringFunction != NULL)
 	{
@@ -154,6 +166,12 @@ void OOLogOutputHandlerInit(void)
 	{
 		OOLog(@"logging.nsLogFilter.install.failed", @"Failed to install NSLog() filter; system messages will not be logged in log file.");
 	}
+#elif GNUSTEP
+	NSRecursiveLock *lock = GSLogLock();
+	[lock lock];
+	_NSLog_printf_handler = OONSLogPrintfHandler;
+	[lock unlock];
+#endif
 	
 	atexit(OOLogOutputHandlerClose);
 }
@@ -170,11 +188,18 @@ void OOLogOutputHandlerClose(void)
 		[sLogger release];
 		sLogger = nil;
 		
+#if OOLITE_MAC_OS_X
 		if (sDefaultLogCStringFunction != NULL && _NSSetLogCStringFunction != NULL)
 		{
 			_NSSetLogCStringFunction(sDefaultLogCStringFunction);
 			sDefaultLogCStringFunction = NULL;
 		}
+#elif GNUSTEP
+		NSRecursiveLock *lock = GSLogLock();
+		[lock lock];
+		_NSLog_printf_handler = NULL;
+		[lock unlock];
+#endif
 	}
 }
 
@@ -183,12 +208,14 @@ void OOLogOutputHandlerPrint(NSString *string)
 {
 	if (sInited && sLogger != nil)  [sLogger asyncLogMessage:string];
 	
+#if SET_CRASH_REPORTER_INFO
 	if (sCrashReporterInfoAvailable || sWriteToStderr)
 	{
 		const char *cStr = [[string stringByAppendingString:@"\n"] UTF8String];
 		if (sCrashReporterInfoAvailable)  SetCrashReporterInfo(cStr);
 		if (sWriteToStderr)  fputs(cStr, stderr);
 	}
+#endif
 }
 
 
@@ -434,6 +461,8 @@ enum
 @end
 
 
+#if OOLITE_MAC_OS_X
+
 /*	LoadLogCStringFunctions()
 	
 	We wish to make NSLogv() call our custom function OONSLogCStringFunction()
@@ -454,10 +483,6 @@ enum
 	us safe in the case of Apple removing the functions. In the unlikely event
 	that they change the functions' paramters without renaming them, we would
 	have a problem.
-	
-	For future reference, the GNUstep equivalent is to set
-	_NSLog_printf_handler after locking GSLogLock(), as documented in GNUstep
-	Foundation's NSLog.m.
 */
 static void LoadLogCStringFunctions(void)
 {
@@ -488,6 +513,18 @@ static void OONSLogCStringFunction(const char *string, unsigned length, BOOL wit
 	}
 }
 
+#elif OOLITE_GNUSTEP
+
+static void OONSLogPrintfHandler(NSString *message)
+{
+	if (OOLogWillDisplayMessagesInClass(@"gnustep"))
+	{
+		OOLogWithFunctionFileAndLine(@"gnustep", NULL, NULL, 0, @"%@", message);
+	}
+}
+
+#endif
+
 
 static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 {
@@ -513,6 +550,8 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 	return YES;
 }
 
+
+#if OOLITE_MAC_OS_X
 
 static NSString *GetLogBasePath(void)
 {
@@ -555,8 +594,36 @@ static NSString *GetAppName(void)
 	return appName;
 }
 
+#elif OOLITE_GNUSTEP
 
-#ifndef NDEBUG
+static NSString *GetLogBasePath(void)
+{
+	static NSString		*basePath = nil;
+	
+	if (basePath == nil)
+	{
+		// ~
+		basePath = NSHomeDirectory();
+		
+		// ~/.Oolite
+		basePath = [basePath stringByAppendingPathComponent:@".Oolite"];
+		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		
+		// ~/.Oolite/Logs
+		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
+		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		
+		[basePath retain];
+	}
+	
+	return basePath;
+}
+
+#endif
+
+
+#if SET_CRASH_REPORTER_INFO
+
 static char **sCrashReporterInfo = NULL;
 static char *sOldCrashReporterInfo = NULL;
 static NSLock *sCrashReporterInfoLock = nil;
@@ -605,4 +672,5 @@ static void SetCrashReporterInfo(const char *info)
 	// Delete our old string.
 	if (old != NULL)  free(old);
 }
+
 #endif

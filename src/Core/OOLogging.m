@@ -147,7 +147,7 @@ static NSString *AbbreviatedFileName(const char *inName);
 #endif
 
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OOLITE_LINUX
 #import "OOLogOutputHandler.h"
 #else
 OOINLINE void OOLogOutputHandlerInit(void)  {}
