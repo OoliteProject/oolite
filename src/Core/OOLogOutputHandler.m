@@ -594,7 +594,7 @@ static NSString *GetAppName(void)
 	return appName;
 }
 
-#elif OOLITE_GNUSTEP
+#elif OOLITE_LINUX
 
 static NSString *GetLogBasePath(void)
 {
@@ -610,6 +610,27 @@ static NSString *GetLogBasePath(void)
 		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
 		
 		// ~/.Oolite/Logs
+		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
+		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		
+		[basePath retain];
+	}
+	
+	return basePath;
+}
+
+#elif OOLITE_WINDOWS
+
+static NSString *GetLogBasePath(void)
+{
+	static NSString		*basePath = nil;
+	
+	if (basePath == nil)
+	{
+		// <Install path>\Oolite
+		basePath = NSHomeDirectory();
+		
+		// <Install path>\Oolite\Logs
 		basePath = [basePath stringByAppendingPathComponent:@"Logs"];
 		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
 		

@@ -1031,7 +1031,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1572,7 +1572,6 @@
 		1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMission.m; sourceTree = "<group>"; };
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; };
 		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
-		1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = SmartCrashReportsInstall.o; sourceTree = "<group>"; };
 		1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmartCrashReportsInstall.h; sourceTree = "<group>"; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
@@ -1710,7 +1709,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -2660,11 +2659,10 @@
 			isa = PBXGroup;
 			children = (
 				1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */,
-				1AD0C6E30C47B82C0070BD23 /* SmartCrashReportsInstall.o */,
 				1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */,
 			);
 			name = "Smart Crash Reports";
-			path = "deps/Cocoa-deps/Smart Crash Reports SDK";
+			path = "deps/Cocoa-deps/Smart Crash Reports SDK/For Compiling on 10.4";
 			sourceTree = "<group>";
 		};
 		1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */ = {
@@ -2959,7 +2957,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3099,7 +3097,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "# A copy of this script is used in the \"Build SCR Shim\" build phase in Xcode.\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Building SCR shim\"\n\t\n\tSHIM_DIR=\"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/\"\n\tBIN_DIR=\"$SHIM_DIR/bin\"\n\tif [ ! -e \"$BIN_DIR\" ]\n\tthen\n\t\tmkdir \"$BIN_DIR\"\n\tfi\n\t\n\t/usr/bin/gcc -o \"$BIN_DIR/SCRDynamicShim.dylib\" -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/darwin/default \"$SHIM_DIR/../Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -exported_symbols_list \"$SHIM_DIR/ExportList.txt\" -framework Carbon -framework Security -lz -arch ppc -Wl,-single_module -compatibility_version 1 -current_version 1 -install_name /usr/local/lib/SCRDynamicShim.dylib -Wl,-Y,1455 -dynamiclib -mmacosx-version-min=10.4 -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk\nfi\n";
+			shellScript = "# A copy of this script is used in the \"Build SCR Shim\" build phase in Xcode.\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Building SCR shim\"\n\t\n\tSHIM_DIR=\"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/\"\n\tBIN_DIR=\"$SHIM_DIR/bin\"\n\tif [ ! -e \"$BIN_DIR\" ]\n\tthen\n\t\tmkdir \"$BIN_DIR\"\n\tfi\n\t\n\tLIB_DIR=\"$SHIM_DIR/../Smart Crash Reports SDK/For Compiling on 10.4\"\n\t\n\t/usr/bin/gcc -o \"$BIN_DIR/SCRDynamicShim.dylib\" -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/darwin/default \"$LIB_DIR/SmartCrashReportsInstall.o\" -exported_symbols_list \"$SHIM_DIR/ExportList.txt\" -framework Carbon -framework Security -lz -arch ppc -Wl,-single_module -compatibility_version 1 -current_version 1 -install_name /usr/local/lib/SCRDynamicShim.dylib -Wl,-Y,1455 -dynamiclib -mmacosx-version-min=10.4 -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -3364,7 +3362,10 @@
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
@@ -3424,7 +3425,10 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_LDFLAGS = (
@@ -3537,6 +3541,10 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_LDFLAGS = (
@@ -3545,7 +3553,7 @@
 				);
 				OTHER_LDFLAGS_QUOTED_FOR_TARGET_1 = "\"$(OGGVORBISROOT)/libOgg.a\"";
 				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
-				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o\" -framework Security";
+				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/For Compiling on 10.4/SmartCrashReportsInstall.o\" -framework Security";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
@@ -3653,7 +3661,10 @@
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = "";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\"",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				"MACOSX_DEPLOYMENT_TARGET[arch=ppc64]" = 10.5;
 				"MACOSX_DEPLOYMENT_TARGET[arch=x86_64]" = 10.5;
