@@ -275,6 +275,17 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			case kOOShaderUniformTypeFloat:
 				valueDesc = [NSString stringWithFormat:@"%g", value.constFloat];
 				break;
+				
+			case kOOShaderUniformTypeVector:
+				{
+					Vector v = { value.constVector[0], value.constVector[1], value.constVector[2] };
+					valueDesc = VectorDescription(v);
+				}
+				break;
+				
+			case kOOShaderUniformTypeMatrix:
+				valueDesc = OOMatrixDescription(value.constMatrix);
+				break;
 		}
 	}
 	
@@ -295,6 +306,27 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		case kOOShaderUniformTypeDouble:
 			valueType = @"float";
 			break;
+			
+		case kOOShaderUniformTypeVector:
+			valueType = @"vec4";
+			break;
+			
+		case kOOShaderUniformTypeQuaternion:
+			valueType = @"vec4 (quaternion)";
+			break;
+			
+		case kOOShaderUniformTypeMatrix:
+			valueType = @"matrix";
+			break;
+			
+		case kOOShaderUniformTypePoint:
+			valueType = @"vec2";
+			break;
+			
+		case kOOShaderUniformTypeObject:
+			valueType = @"object-binding";
+			break;
+			
 	}
 	if (valueType == nil)  valueDesc = @"INVALID";
 	if (valueDesc == nil)  valueDesc = @"INVALID";

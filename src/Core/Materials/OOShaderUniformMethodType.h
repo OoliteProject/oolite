@@ -68,8 +68,8 @@ typedef enum
 	kOOShaderUniformTypeFloat,			// Binding or constant
 	kOOShaderUniformTypeDouble,			// Binding only
 	kOOShaderUniformTypeVector,			// Binding or constant
-	kOOShaderUniformTypeQuaternion,		// Binding only
-	kOOShaderUniformTypeMatrix,			// Binding only
+	kOOShaderUniformTypeQuaternion,		// Binding or constant
+	kOOShaderUniformTypeMatrix,			// Binding or constant
 	kOOShaderUniformTypePoint,			// Binding only
 	kOOShaderUniformTypeObject,			// Binding only
 	
