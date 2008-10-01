@@ -594,7 +594,7 @@ static NSString *GetAppName(void)
 	return appName;
 }
 
-#elif OOLITE_LINUX
+#elif (OOLITE_LINUX && !OOLITE_WINDOWS)
 
 static NSString *GetLogBasePath(void)
 {
