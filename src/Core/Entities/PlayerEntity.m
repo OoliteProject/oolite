@@ -6478,7 +6478,7 @@ static int last_outfitting_index;
 	if ([UNIVERSE strict] || [self clearedToDock] == YES)
 		return;
 		
-	amountToPay = min(maximumFine, calculatedFine);
+	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
 	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:6];
 }

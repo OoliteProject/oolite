@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #if OOLITE_MAC_OS_X
 #import <sys/sysctl.h>
-#elif OOLITE_LINUX
+#elif (OOLITE_LINUX || OOLITE_WINDOWS)
 #import <unistd.h>
 #endif
 

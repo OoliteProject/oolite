@@ -8,9 +8,9 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lpng13 -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -ljs32
-	ADDITIONAL_CFLAGS = -DLINUX -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
+	ADDITIONAL_CFLAGS = -DWIN32 -DDOCKING_CLEARANCE_ENABLED -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
-	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DLINUX -DWIN32 -DXP_WIN -Wno-import `sdl-config --cflags`
+	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DWIN32 -DXP_WIN -DDOCKING_CLEARANCE_ENABLED -Wno-import `sdl-config --cflags`
 ifeq ($(BUILD_WITH_DEBUG_FUNCTIONALITY),no)
 	ADDITIONAL_CFLAGS += -DNDEBUG
 	ADDITIONAL_OBJCFLAGS += -DNDEBUG

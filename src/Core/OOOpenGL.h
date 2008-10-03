@@ -46,9 +46,7 @@ MA 02110-1301, USA.
 #define NO_SDL_GLEXT
 
 // GL_GLEXT_PROTOTYPES must be defined for the Linux build to use shaders.
-// The preprocessor if statement below is required as is, because the LINUX
-// symbol is defined for both Windows and Linux builds.
-#if (OOLITE_LINUX && !OOLITE_WINDOWS)
+#if OOLITE_LINUX
 #ifndef GL_GLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 #define	__DEFINED_GL_GLEXT_PROTOTYPES
