@@ -393,7 +393,15 @@ enum
 {
 	if (message != nil)
 	{
-		[messageQueue enqueue:[[message stringByAppendingString:@"\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+		message = [message stringByAppendingString:@"\n"];
+		
+#if OOLITE_WINDOWS
+		// Convert Unix line endings to Windows ones.
+		NSArray *messageComponents = [message componentsSeparatedByString:@"\n"];
+		message = [messageComponents componentsJoinedByString:@"\r\n"];
+#endif
+		
+		[messageQueue enqueue:[message dataUsingEncoding:NSUTF8StringEncoding]];
 		
 		if (flushTimer == nil)
 		{
