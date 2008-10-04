@@ -3586,7 +3586,8 @@ static PlayerEntity *sSharedPlayer = nil;
 #ifdef DOCKING_CLEARANCE_ENABLED
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
-	if (![UNIVERSE strict] && [dockedStation requiresDockingClearance] && [self clearedToDock] == NO && ![[UNIVERSE sun] willGoNova])
+	if (![UNIVERSE strict] && dockedStation == [UNIVERSE station] && [dockedStation requiresDockingClearance] &&
+						[self clearedToDock] == NO && ![[UNIVERSE sun] willGoNova])
 	{
 		[self penaltyForUnauthorizedDocking];
 	}
