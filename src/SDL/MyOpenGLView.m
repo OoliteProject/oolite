@@ -919,7 +919,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					{
 						// flip to user-selected size
 						fullScreen = NO;
-						[self initialiseGLWithSize: [self modeAsSize: currentSize]];
+						[self initialiseGLWithSize: currentWindowSize];
 					}
 					break;
 					
