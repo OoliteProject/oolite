@@ -1098,7 +1098,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
-	if (script_actions != nil)  [[PlayerEntity sharedPlayer] scriptActions:script_actions forTarget:nil];
+	if (script_actions != nil)
+	{
+		[[PlayerEntity sharedPlayer] scriptActions:script_actions forTarget:nil];
+	}
 }
 
 
@@ -1107,7 +1110,7 @@ BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 //
-GLfloat docked_light_ambient[4]	= { (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 0.05, (GLfloat) 1.0};	// dark gray (low ambient)
+GLfloat docked_light_ambient[4]	= { (GLfloat) 0.25, (GLfloat) 0.25, (GLfloat) 0.25, (GLfloat) 1.0};	// dark gray (low ambient)
 GLfloat docked_light_diffuse[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
 GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
 
@@ -3145,8 +3148,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	OOMassUnit		units;
 	unsigned		commidityIndex = (unsigned)co_type;
 	
-	if (co_type < 0 || [commodityData count] <= commidityIndex)  return 0;
-	
+	if (co_type < 0 || [commodityData count] <= commidityIndex)  {
+		return 0;
+	}
 	units = [[commodityData arrayAtIndex:commidityIndex] intAtIndex:MARKET_UNITS];
 	switch (units)
 	{
@@ -6912,8 +6916,8 @@ double estimatedTimeForJourney(double distance, int hops)
 				quantities[i] *= q;	// multiply plentiful factor x scarce factor
 				total_quantity += quantities[i];
 			}
-			int co_type, co_amount, qr, unit;
-			
+			int co_type, qr, unit;
+			unsigned int co_amount;
 			// seed random number generator
 			int super_rand1 = contract_seed.a * 256 * 256 + contract_seed.c * 256 + contract_seed.e;
 			int super_rand2 = contract_seed.b * 256 * 256 + contract_seed.d * 256 + contract_seed.f;
@@ -6927,8 +6931,9 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				qr -= quantities[co_type++];
 			}
-			co_type--;
-			
+			if (--co_type < 0) {
+				continue;
+			}
 			// units
 			unit = [self unitsForCommodity:co_type];
 			
@@ -6936,9 +6941,9 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				// how much?...
 				co_amount = 0;
-				while (co_amount < 30)
-					co_amount += (1 + (Ranrot() & 31)) * (1 + (Ranrot() & 15)) * [self getRandomAmountOfCommodity:co_type];
-					
+				while (co_amount < 30) {
+					co_amount += ((1 + (Ranrot() & 31)) *  (1 + (Ranrot() & 15)) * [self getRandomAmountOfCommodity:co_type]);
+				}
 				// calculate a quantity discount
 				int discount = 10 + floor (0.1 * co_amount);
 				if (discount > 35)
