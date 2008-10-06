@@ -4593,7 +4593,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	ShipEntity		*hit_entity = nil;
-	double			nearest = SCANNER_MAX_RANGE - 10;	// 10m shorter than range at which target is lost
+	double			nearest = SCANNER_MAX_RANGE - 100;	// 100m shorter than range at which target is lost
 	int				i;
 	int				ent_count = n_entities;
 	int				ship_count = 0;

@@ -429,9 +429,11 @@ noteChangedConfigrationValue:(in id)newValue
 	int								length;
 	NSData							*data;
 	
-	while ([_inStream hasBytesAvailable])
+	length = [_inStream read:buffer maxLength:kBufferSize];
+	while( length > 0 )
 	{
-		length = [_inStream read:buffer maxLength:kBufferSize];
+		/* This test is superfluous after the rewrite to fix Bug#014643
+		 * TODO: Put the BadStream test back into the code
 		if (length < 1)
 		{
 			// Under GNUstep, but not OS X (currently), -hasBytesAvailable will return YES when the buffer is in fact empty.
@@ -440,9 +442,11 @@ noteChangedConfigrationValue:(in id)newValue
 			[self breakConnectionWithBadStream:_inStream];
 			return;
 		}
+		*/
 		
 		data = [NSData dataWithBytesNoCopy:buffer length:length freeWhenDone:NO];
 		OOTCPStreamDecoderReceiveData(_decoder, data);
+		length = [_inStream read:buffer maxLength:kBufferSize];
 	}
 }
 

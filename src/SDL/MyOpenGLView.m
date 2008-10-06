@@ -910,6 +910,8 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					break;
 					
 					case SDLK_F12:
+					/*TODO Should this be: [self toggleScreenMode] ? 
+					 * Works under Windows/Linux, what about OS-X? - mwerle 20081006 */
 					if (fullScreen == NO)
 					{
 						fullScreen = YES;
