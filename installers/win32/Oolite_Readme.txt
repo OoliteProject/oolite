@@ -30,9 +30,6 @@ least once to have it generated.
 Switching between full screen and windowed mode, or changing resolution
 -----------------------------------------------------------------------
 
-This should work significantly better than in previous versions of Oolite
-for Windows.
-
 There are still some problems with models and their textures, but for the
 most part all the textures get reinitialised and keep working.
 
