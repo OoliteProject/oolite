@@ -118,6 +118,18 @@ typedef enum
 	MISSILE_STATUS_TARGET_LOCKED
 } OOMissileStatus;
 
+#ifdef DOCKING_CLEARANCE_ENABLED
+typedef enum
+{
+	// Exposed to shaders.
+	DOCKING_CLEARANCE_STATUS_NONE,
+	DOCKING_CLEARANCE_STATUS_REQUESTED,
+	DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
+	DOCKING_CLEARANCE_STATUS_GRANTED,
+	DOCKING_CLEARANCE_STATUS_TIMING_OUT,
+} OODockingClearanceStatus;
+#endif
+
 #define WEAPON_COOLING_FACTOR			6.0f
 #define ENERGY_RECHARGE_FACTOR			energy_recharge_rate
 #define ECM_ENERGY_DRAIN_FACTOR			20.0f
@@ -261,6 +273,12 @@ typedef enum
 // ...end save screen   
 
 	StationEntity			*dockedStation;
+#ifdef DOCKING_CLEARANCE_ENABLED
+/* Used by the DOCKING_CLEARANCE code to implement docking at non-main
+ * stations. Could possibly overload use of 'dockedStation' instead
+ * but that needs futher investigation to ensure it doesn't break anything. */
+	StationEntity			*targetDockStation; 
+#endif
 	
 	HeadUpDisplay			*hud;
 	
@@ -463,7 +481,7 @@ waitingForStickCallback: 1;
 	NSPoint					galacticHyperspaceFixedCoords;
 	
 #ifdef DOCKING_CLEARANCE_ENABLED
-	BOOL				clearedToDock;
+	OODockingClearanceStatus dockingClearanceStatus;
 #endif
 }
 
@@ -503,6 +521,11 @@ waitingForStickCallback: 1;
 
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+- (void) setTargetDockStationTo:(StationEntity *) value;
+- (StationEntity *) getTargetDockStation;
+#endif
 
 - (HeadUpDisplay *) hud;
 
@@ -677,7 +700,8 @@ waitingForStickCallback: 1;
 
 #ifdef DOCKING_CLEARANCE_ENABLED
 - (BOOL) clearedToDock;
-- (void) setClearedToDock:(BOOL) newValue;
+- (void) setDockingClearanceStatus:(OODockingClearanceStatus) newValue;
+- (OODockingClearanceStatus) getDockingClearanceStatus;
 - (void) penaltyForUnauthorizedDocking;
 #endif
 

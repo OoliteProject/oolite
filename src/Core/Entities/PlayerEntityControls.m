@@ -804,7 +804,7 @@ static NSTimeInterval	time_last_frame;
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
 						[self playAutopilotOn];
 #ifdef DOCKING_CLEARANCE_ENABLED
-						[self setClearedToDock:YES];
+						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
@@ -842,7 +842,7 @@ static NSTimeInterval	time_last_frame;
 						[shipAI setState:@"GLOBAL"];	// restart the AI
 						[self playAutopilotOn];
 #ifdef DOCKING_CLEARANCE_ENABLED
-						[self setClearedToDock:YES];
+						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
@@ -897,7 +897,7 @@ static NSTimeInterval	time_last_frame;
 									}
 								}
 #ifdef DOCKING_CLEARANCE_ENABLED
-								[self setClearedToDock:YES];
+								[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
 								ident_engaged = NO;
@@ -927,10 +927,10 @@ static NSTimeInterval	time_last_frame;
 					Entity *primeTarget = [self primaryTarget];
 					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
 					{
-						NSString *dockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
-						if (dockingClearanceStatus != nil)
+						NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
+						if (stationDockingClearanceStatus != nil)
 						{
-							[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:dockingClearanceStatus];
+							[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:stationDockingClearanceStatus];
 						}
 					}
 				}
@@ -2617,7 +2617,7 @@ static BOOL toggling_music;
 			[self playAutopilotOff];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
 #ifdef DOCKING_CLEARANCE_ENABLED
-			[self setClearedToDock:NO];
+			[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 			[self doScriptEvent:@"playerCancelledAutoPilot"];
 			

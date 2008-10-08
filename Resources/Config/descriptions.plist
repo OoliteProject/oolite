@@ -1006,20 +1006,26 @@
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
 	
 	// Space station docking clearance
-	"please-wait-until-all-ships-have-completed-their-approach"
+	"please-wait-until-d-ships-have-completed-their-approach"
 						= (
-							"Please wait until all ships have completed their approach.",
-							"We have inbound traffic, commander. Please stand by.",
-							"We cannot clear you for docking due to prioritized incoming traffic. Please retry for clearance in a few minutes",
+							"Please wait until all ships have completed their approach. Your queue position is %d",
+							"We have inbound traffic, commander. Please stand by. You queue position is %d.",
+							"We cannot clear you for docking due to prioritized incoming traffic. Your queue position is %d",
 							"We have ships on approach to %H station. Please hold for clearance."
 						  );
 						
-	"please-wait-until-launching-ships-have-cleared-H-station"
+	"please-wait-until-d-launching-ships-have-cleared-H-station"
 						= (
-							"Please wait until launching ships have cleared %H Station.",
-							"We have outbound traffic, commander. Please stand by.",
-							"Clearance cannot be granted at this moment, due to prioritized outgoing traffic. Please retry for clearance in a few minutes.",
-							"There are ships in the launching queue. Please retry in a few minutes for docking clearance."
+							"Please wait until launching ships have cleared %H Station. Your queue position is %d.",
+							"We have outbound traffic, Commander. Please stand by.",
+							"Clearance cannot be granted at this moment, due to prioritized outgoing traffic. Please hold station.",
+							"There are ships in the launching queue. Your queue position is %d - please hold.",
+						  );
+	"H-station-does-not-require-docking-clearance"
+						= (
+							"We do not require docking clearance, Commander. Feel free to dock at any time.",
+							"Docking clearance not required.",
+							"Come on in, Commander!",
 						  );
 	"H-station-refuses-to-grant-docking-clearance"
 						= (
@@ -1031,10 +1037,26 @@
 	"you-are-cleared-to-dock-please-proceed-clearance-expires-at-@"
 						= (
 							"You are cleared to dock. Please proceeed. Clearance expires at %@",
-							"You have docking clearance, commander. Your window is up to %@",
+							"You have docking clearance, Commander. Your window is up to %@",
 							"Docking authorized. You have an approach slot terminating at %@",
 							"Permission granted. Proceed for docking approach. Slot valid until %@"
 						  );
+	"your-docking-clearance-has-been-extended-until-@"
+						= (
+							"Your docking clearance extension has been approved, you now have until %@",
+						  );
+	"docking-clearance-about-to-expire"
+						= (
+							"You have 20 seconds left to dock.",
+							"Your docking window is about to close.  Hurry up!",
+							"Warning! Your docking clearance is about to expire.",
+						  );
+	"docking-clearance-expired"
+						= "Your docking clearance has expired.  Please clear the docking corridor.";
+	"docking-clearance-cancelled"
+						= "Docking clearance cancelled, Commander. Please leave the docking area.";
+	"docking-clearance-abort-cancelled"
+						= "Due to an emergency your docking clearance has been revoked.  Please clear the station approach immediately.";
 	"you-have-been-fined-@-cr-for-unauthorized-docking"
 						= "You have been fined %@ for unauthorized docking.";
 	

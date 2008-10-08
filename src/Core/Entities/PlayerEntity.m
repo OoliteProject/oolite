@@ -881,7 +881,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE clearGUIs];
 	
 #ifdef DOCKING_CLEARANCE_ENABLED
-	clearedToDock = YES;
+	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
+	targetDockStation = nil;
 #endif
 	
 	dockedStation = [UNIVERSE station];
@@ -1794,7 +1795,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		status = STATUS_IN_FLIGHT;
 
 #ifdef DOCKING_CLEARANCE_ENABLED
-		[self setClearedToDock:NO];
+		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 		[self doScriptEvent:@"shipLaunchedFromStation"];
 	}
@@ -2101,6 +2102,17 @@ static PlayerEntity *sSharedPlayer = nil;
 	return dockedStation;
 }
 
+#ifdef DOCKING_CLEARANCE_ENABLED
+- (void) setTargetDockStationTo:(StationEntity *) value
+{
+	targetDockStation = value;
+}
+
+- (StationEntity *) getTargetDockStation
+{
+	return targetDockStation;
+}
+#endif
 
 - (HeadUpDisplay *) hud
 {
@@ -3495,12 +3507,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	status = STATUS_DOCKING;
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
 
+	ident_engaged = NO;
 	afterburner_engaged = NO;
 
 	cloaking_device_active = NO;
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
-	missile_status = MISSILE_STATUS_SAFE;
+	[self safeAllMissiles];
 
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
@@ -3545,7 +3558,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
-	missile_status =	MISSILE_STATUS_SAFE;
+	[self safeAllMissiles];
 
 	primaryTarget = NO_TARGET;
 	[self clearTargetMemory];
@@ -3586,8 +3599,8 @@ static PlayerEntity *sSharedPlayer = nil;
 #ifdef DOCKING_CLEARANCE_ENABLED
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
-	if (![UNIVERSE strict] && dockedStation == [UNIVERSE station] && [dockedStation requiresDockingClearance] &&
-						[self clearedToDock] == NO && ![[UNIVERSE sun] willGoNova])
+	if (![UNIVERSE strict] && [dockedStation requiresDockingClearance] &&
+			![self clearedToDock] && ![[UNIVERSE sun] willGoNova])
 	{
 		[self penaltyForUnauthorizedDocking];
 	}
@@ -3635,7 +3648,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	flightRoll = -flightRoll;
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
-
+#ifdef DOCKING_CLEARANCE_ENABLED
+	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+#endif
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	gui_screen = GUI_SCREEN_MAIN;
@@ -6460,13 +6475,35 @@ static int last_outfitting_index;
 #ifdef DOCKING_CLEARANCE_ENABLED
 - (BOOL)clearedToDock
 {
-	return clearedToDock;
+	return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED;
 }
 
 
-- (void)setClearedToDock:(BOOL)newValue
+- (void)setDockingClearanceStatus:(OODockingClearanceStatus)newValue
 {
-	clearedToDock = !!newValue;	// Ensure yes or no.
+	dockingClearanceStatus = newValue;
+	if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NONE)
+	{
+		targetDockStation = nil;
+	}
+	else if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED)
+	{
+		if ([[self primaryTarget] isStation])
+		{
+			targetDockStation = [self primaryTarget];
+		}
+		else
+		{
+			OOLog(@"player.badDockingTarget", @"Attempt to dock at %@.", [self primaryTarget]);
+			targetDockStation = nil;
+			dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NONE;
+		}
+	}
+}
+
+- (OODockingClearanceStatus)getDockingClearanceStatus
+{
+	return dockingClearanceStatus;
 }
 
 
@@ -6476,7 +6513,7 @@ static int last_outfitting_index;
 	OOCreditsQuantity	calculatedFine = credits * 0.05;
 	OOCreditsQuantity	maximumFine = 50000ULL;
 	
-	if ([UNIVERSE strict] || [self clearedToDock] == YES)
+	if ([UNIVERSE strict] || [self clearedToDock])
 		return;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
