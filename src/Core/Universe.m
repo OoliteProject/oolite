@@ -4074,14 +4074,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			}
 			[entity setUniversalID:next_universal_id];
 			entity_for_uid[next_universal_id] = entity;
-			if (entity->isShip)
+			if ([entity isShip])
 			{
 				ShipEntity* se = (ShipEntity *)entity;
 				[[se getAI] setOwner:se];
-				[[se getAI] setState:@"GLOBAL"];
 				if ([se isBeacon])
+				{
 					[self setNextBeacon:se];
-				if (se->isStation)
+				}
+				if ([se isStation])
 				{					
 					// check if it is a proper rotating station (ie. roles contains the word "station")
 					if ([(StationEntity*)se isRotatingStation])
