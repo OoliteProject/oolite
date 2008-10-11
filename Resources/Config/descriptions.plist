@@ -1008,20 +1008,20 @@
 	// Space station docking clearance
 	"please-wait-until-d-ships-have-completed-their-approach"
 						= (
-							"Please wait until all ships have completed their approach. Your queue position is %d",
-							"We have inbound traffic, commander. Please stand by. You queue position is %d.",
-							"We cannot clear you for docking due to prioritized incoming traffic. Your queue position is %d",
-							"We have ships on approach to %H station. Please hold for clearance."
+							"Please wait until all ships have completed their approach. Your queue position is %d.",
+							"We have inbound traffic, commander. Please stand by. You are number %d in the queue.",
+							"We cannot clear you for docking due to prioritized incoming traffic. Your queue position is %d.",
+							"We have ships on approach to station. Please hold for clearance."
 						  );
 						
-	"please-wait-until-d-launching-ships-have-cleared-H-station"
+	"please-wait-until-d-launching-ships-have-cleared-station"
 						= (
-							"Please wait until launching ships have cleared %H Station. Your queue position is %d.",
+							"Please wait until launching ships have cleared the docking corridor. Your queue position is %d.",
 							"We have outbound traffic, Commander. Please stand by.",
 							"Clearance cannot be granted at this moment, due to prioritized outgoing traffic. Please hold station.",
 							"There are ships in the launching queue. Your queue position is %d - please hold.",
 						  );
-	"H-station-does-not-require-docking-clearance"
+	"station-does-not-require-docking-clearance"
 						= (
 							"We do not require docking clearance, Commander. Feel free to dock at any time.",
 							"Docking clearance not required.",

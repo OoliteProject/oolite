@@ -1866,7 +1866,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// TODO: We're potentially cancelling docking at another station, so
 		//       ensure we clear the timer to allow NPC traffic.  If we
 		//       don't, normal traffic will resume once the timer runs out.
-		[self sendExpandedMessage:DESC(@"H-station-does-not-require-docking-clearance") toShip:other];
+		[self sendExpandedMessage:DESC(@"station-does-not-require-docking-clearance") toShip:other];
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
@@ -1886,7 +1886,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 			result = @"DOCKING_CLEARANCE_EXTENDED";
 		}
-		else if ([player getDockingClearanceStatus] > DOCKING_CLEARANCE_STATUS_NONE)
+		else if ([player getDockingClearanceStatus] > DOCKING_CLEARANCE_STATUS_REQUESTED)
 		{
 			last_launch_time = timeNow;
 			[self sendExpandedMessage:DESC(@"docking-clearance-cancelled") toShip:other];
@@ -1919,18 +1919,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[self sendExpandedMessage:[NSString stringWithFormat:
 			DESC(@"please-wait-until-d-ships-have-completed-their-approach"),
 			[shipsOnApproach count]+1] toShip:other];
-		//[self sendExpandedMessage:[NSString stringWithFormat:@"You are in queue position %d.", [shipsOnApproach count]+1] toShip:other];
 		// No need to set status to REQUESTED as we've already done that earlier.
 		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_INBOUND";
 	}
 	if (result == nil && [launchQueue count] && last_launch_time < timeNow)
 	{
-		//[self sendExpandedMessage:DESC(@"please-wait-until-launching-ships-have-cleared-H-station") toShip:other];
-		//[self sendExpandedMessage:[NSString stringWithFormat:@"You are in queue position %d.", [launchQueue count]+1] toShip:other];
 		[self sendExpandedMessage:[NSString stringWithFormat:
-			DESC(@"please-wait-until-d-launching-ships-have-cleared-H-station"),
+			DESC(@"please-wait-until-d-launching-ships-have-cleared-station"),
 			[launchQueue count]+1] toShip:other];
-		//[self sendExpandedMessage:[NSString stringWithFormat:@"You are in queue position %d.", [launchQueue count]+1] toShip:other];
 		// No need to set status to REQUESTED as we've already done that earlier.
 		result = @"DOCKING_CLEARANCE_DENIED_TRAFFIC_OUTBOUND";
 	}

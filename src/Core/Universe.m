@@ -4078,6 +4078,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			{
 				ShipEntity* se = (ShipEntity *)entity;
 				[[se getAI] setOwner:se];
+				[[se getAI] setState:@"GLOBAL"];
 				if ([se isBeacon])
 				{
 					[self setNextBeacon:se];
