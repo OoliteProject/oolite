@@ -57,21 +57,33 @@ SOFTWARE.
 {
 	id					texSpec = nil;
 	
-	self = [super initWithName:name configuration:configuration];
-	if (name != nil && self != nil)
+	if (configuration != nil)
 	{
-		if (configuration != nil)
-		{
-			texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
-		}
-		else
-		{
-			texSpec = name;
-		}
-		texture = [[OOTexture textureWithConfiguration:texSpec] retain];
+		texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
+	}
+	else
+	{
+		texSpec = name;
 	}
 	
-	if (texture == nil)
+	return [self initWithName:name
+					  texture:[OOTexture textureWithConfiguration:texSpec]
+				configuration:configuration];
+}
+
+
+- (id) initWithName:(NSString *)name texture:(OOTexture *)texture configuration:(NSDictionary *)configuration
+{
+	if (name != nil)
+	{
+		self = [super initWithName:name configuration:configuration];
+		if (self != nil)
+		{
+			_texture = [texture retain];
+		}
+	}
+	
+	if (_texture == nil)
 	{
 		[self release];
 		return nil;
@@ -84,7 +96,7 @@ SOFTWARE.
 - (void)dealloc
 {
 	[self willDealloc];
-	[texture release];
+	[_texture release];
 	
 	[super dealloc];
 }
@@ -92,7 +104,7 @@ SOFTWARE.
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, texture];
+	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, _texture];
 }
 
 
@@ -100,7 +112,7 @@ SOFTWARE.
 {
 	if (EXPECT_NOT(![super doApply]))  return NO;
 	
-	[texture apply];
+	[_texture apply];
 	return YES;
 }
 
@@ -114,7 +126,7 @@ SOFTWARE.
 
 - (void)ensureFinishedLoading
 {
-	[texture ensureFinishedLoading];
+	[_texture ensureFinishedLoading];
 }
 
 @end

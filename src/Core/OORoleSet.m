@@ -220,6 +220,8 @@ SOFTWARE.
 	selected = randf() * _totalProb;
 	prob = 0.0f;
 	
+	if ([_roles count] == 0)  return nil;
+	
 	for (roleEnum = [_rolesAndProbabilities keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
 		prob += [_rolesAndProbabilities floatForKey:role];

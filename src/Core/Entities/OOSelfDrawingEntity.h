@@ -64,9 +64,7 @@ typedef struct
 
 @interface OOSelfDrawingEntity: Entity
 {
-	uint8_t					isSmoothShaded: 1,
-							brokenInRender: 1,
-							materialsReady: 1;
+	uint8_t					isSmoothShaded: 1;
 	
 	OOMeshMaterialCount		textureCount;
 	OOMeshVertexCount		vertexCount;
@@ -91,8 +89,5 @@ typedef struct
 
 
 - (void)generateDisplayList;
-- (void)regenerateDisplayList;
-
-- (void) initializeTextures;
 
 @end

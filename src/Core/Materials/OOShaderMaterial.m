@@ -420,7 +420,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 				gotValue = YES;
 			}
 		}
-		else if ([type isEqualToString:@"vector"] || [type isEqualToString:@"vec3"])
+		else if ([type isEqualToString:@"vector"])
 		{
 			[self setUniform:name vectorValue:OOVectorFromObject(value, kZeroVector)];
 			gotValue = YES;

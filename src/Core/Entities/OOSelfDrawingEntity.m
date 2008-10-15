@@ -99,7 +99,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	[basefile autorelease];
 	basefile = [modelName retain];
 	
-	[self regenerateDisplayList];
+	glDeleteLists(displayListName,1);
+	displayListName = 0;
 	
 	NS_DURING
 		[self loadData:basefile];
@@ -157,94 +158,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 }
 
 
-- (void) drawEntity:(BOOL) immediate :(BOOL) translucent
-{
-	// draw the thing !
-	//
-	int ti;
-	GLfloat mat_ambient[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_no[] =		{ 0.0, 0.0, 0.0, 1.0 };
-
-	NS_DURING
-
-		if (isSmoothShaded)
-			glShadeModel(GL_SMOOTH);
-		else
-			glShadeModel(GL_FLAT);
-
-		if (!translucent)
-		{
-			if (basefile)
-			{
-				glDisableClientState(GL_COLOR_ARRAY);
-				glDisableClientState(GL_INDEX_ARRAY);
-				glDisableClientState(GL_EDGE_FLAG_ARRAY);
-				
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glEnableClientState(GL_NORMAL_ARRAY);
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-				
-				glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
-				glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
-				glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
-				
-				if (immediate)
-				{
-					// gap removal (draws flat polys)
-					glDisable(GL_TEXTURE_2D);
-					GLfloat amb_diff0[] = { 0.5, 0.5, 0.5, 1.0};
-					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, amb_diff0);
-					glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-					glColor4f( 0.25, 0.25, 0.25, 1.0);	// gray
-					glDepthMask(GL_FALSE); // don't write to depth buffer
-					glDrawArrays( GL_TRIANGLES, 0, entityData.n_triangles);	// draw in gray to mask the edges
-					glDepthMask(GL_TRUE);
-					
-					// now the textures ...
-					glEnable(GL_TEXTURE_2D);
-					glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-					glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, mat_ambient);
-					glMaterialfv( GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
-
-					for (ti = 1; ti <= textureCount; ti++)
-					{
-						glBindTexture(GL_TEXTURE_2D, textureNames[ti]);
-						glDrawArrays( GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
-					}
-				}
-				else
-				{
-					if (displayListName != 0)
-					{
-						glCallList(displayListName);
-					}
-					else
-					{
-						if (!materialsReady)  [self initializeTextures];
-						[self generateDisplayList];
-					}
-				}
-			}
-			else
-			{
-				OOLog(kOOLogFileNotLoaded, @"ERROR no basefile for entity %@", self);
-			}
-		}
-		if (!isSmoothShaded) glShadeModel(GL_SMOOTH);
-		CheckOpenGLErrors(@"OOSelfDrawingEntity after drawing %@", self);
-		brokenInRender = NO;
-	NS_HANDLER
-		if (!brokenInRender)
-		{
-			OOLog(kOOLogException, @"***** %s for %@ encountered exception: %@ : %@ *****", __FUNCTION__, self, [localException name], [localException reason]);
-			brokenInRender = YES;
-		}
-		if ([[localException name] hasPrefix:@"Oolite"])  [UNIVERSE handleOoliteException:localException];	// handle these ourself
-		else  [localException raise];	// pass these on
-	NS_ENDHANDLER
-}
-
-
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent
 {
 	Entity* my_owner = [self owner];
@@ -292,38 +205,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		
 		glPopMatrix();
 	}
-}
-
-
-- (void) initializeTextures
-{
-	// roll out each face and texture in turn
-	int fi,ti;
-
-	for (fi = 0; fi < faceCount; fi++)
-	{
-		NSString *texture = [NSString stringWithUTF8String:faces[fi].textureFileName];
-		if ((faces[fi].textureName == 0)&&(texture))
-		{
-			 faces[fi].textureName = [TextureStore getTextureNameFor: texture];
-		}
-	}
-
-	for (ti = 1; ti <= textureCount; ti++)
-	{
-		if (!textureNames[ti])
-		{
-			textureNames[ti] = [TextureStore getTextureNameFor:[NSString stringWithUTF8String:textureFileName[ti]]];
-		}
-	}
-	materialsReady = YES;
-}
-
-
-- (void) regenerateDisplayList
-{
-	glDeleteLists(displayListName,1);
-	displayListName = 0;
 }
 
 
@@ -1252,7 +1133,6 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	flags = [NSMutableArray array];
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(isSmoothShaded);
-	ADD_FLAG_IF_SET(materialsReady);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.selfDrawingEntity", @"Flags: %@", flagsString);
 }

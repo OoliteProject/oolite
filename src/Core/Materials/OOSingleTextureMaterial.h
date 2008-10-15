@@ -54,7 +54,7 @@ SOFTWARE.
 
 @interface OOSingleTextureMaterial: OOBasicMaterial
 {
-	OOTexture				*texture;
+	OOTexture				*_texture;
 }
 
 /*	In addition to OOBasicMateral configuration keys, an OOTexture
@@ -66,5 +66,8 @@ SOFTWARE.
 	used in preference to the name parameter.
 */
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration;
+
+// Designated initializer
+- (id) initWithName:(NSString *)name texture:(OOTexture *)texture configuration:(NSDictionary *)configuration;
 
 @end

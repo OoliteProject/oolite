@@ -116,6 +116,13 @@ SOFTWARE.
 @end
 
 
+OOINLINE BOOL OOShadersSupported(void) INLINE_PURE_FUNC;
+OOINLINE BOOL OOShadersSupported(void)
+{
+	return [[OOOpenGLExtensionManager sharedManager] shadersSupported];
+}
+
+
 #if OOLITE_WINDOWS
 /*	Declare the function pointers for the OpenGL extensions used in the game
 	(required for Windows only).
