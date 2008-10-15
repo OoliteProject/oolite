@@ -234,6 +234,9 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_dump_target_state,		'H'					);
 #endif
 	
+	if (key_yaw_left == key_roll_left && key_yaw_left == ',')  key_yaw_left = 0;
+	if (key_yaw_right == key_roll_right && key_yaw_right == '.')  key_yaw_right = 0;
+	
 	// other keys are SET and cannot be varied
 	
 	// Enable polling
