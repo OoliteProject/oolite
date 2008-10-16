@@ -55,8 +55,11 @@ static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN ar
 static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+
+static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 
 
 static JSExtendedClass sShipClass =
@@ -205,6 +208,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },
 	{ "spawn",					ShipSpawn,					1 },
 	{ "explode",				ShipExplode,				0 },
+	{ "remove",					ShipRemove,					0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ 0 }
 };
@@ -898,20 +902,14 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 // explode()
 static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	ShipEntity				*thisEnt = nil;
-	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	
-	if (thisEnt == (ShipEntity *)[UNIVERSE station])
-	{
-		// Allow exploding of main station (e.g. nova mission)
-		[UNIVERSE unMagicMainStation];
-	}
-	
-	[thisEnt setEnergy:1];
-	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
-	
-	return YES;
+	return RemoveOrExplodeShip(context, this, argc, argv, outResult, YES);
+}
+
+
+// remove()
+static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	return RemoveOrExplodeShip(context, this, argc, argv, outResult, NO);
 }
 
 
@@ -959,5 +957,25 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 	{
 		[thisEnt commsMessage:message withUnpilotedOverride:YES];
 	}
+	return YES;
+}
+
+
+static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode)
+{
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	if (thisEnt == (ShipEntity *)[UNIVERSE station])
+	{
+		// Allow exploding of main station (e.g. nova mission)
+		[UNIVERSE unMagicMainStation];
+	}
+	
+	[thisEnt setSuppressExplosion:!explode];
+	[thisEnt setEnergy:1];
+	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+	
 	return YES;
 }

@@ -4174,9 +4174,8 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)context
 {
-	suppressExplosion = NO;		// Can only be set in death handler
 	if (whom == nil)  whom = (id)[NSNull null];
-
+	
 	// Is this safe to do here? The script actions will be executed before the status has been set to
 	// STATUS_DEAD, which is the opposite of what was happening inside becomeExplosion - Nikos.
 	if (script != nil)
@@ -4252,13 +4251,6 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 		return;
 	}
 	status = STATUS_DEAD;
-	
-	//scripting
-//	if (script != nil)
-//	{
-//		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-//		[self doScriptEvent:@"shipDied"];
-//	}
 	
 	if ([self isThargoid])  [self broadcastThargoidDestroyed];
 	
@@ -6079,7 +6071,7 @@ BOOL class_masslocks(int some_class)
 	ShipEntity *victim = [UNIVERSE entityForUniversalID:target_laser_hit];
 	if ([victim isShip])
 	{
-		/*	FIXME CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
+		/*	CRASH in [victim->sub_entities containsObject:subent] here (1.69, OS X/x86).
 			Analysis: Crash is in _freedHandler called from CFEqual, indicating either a dead
 			object in victim->sub_entities or dead victim->subentity_taking_damage. I suspect
 			the latter. Probable solution: dying subentities must cause parent to clean up

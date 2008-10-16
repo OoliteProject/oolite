@@ -2132,6 +2132,30 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (GLfloat) forwardShieldLevel
+{
+	return forward_shield;
+}
+
+
+- (GLfloat) aftShieldLevel
+{
+	return aft_shield;
+}
+
+
+- (void) setForwardShieldLevel:(GLfloat)level
+{
+	forward_shield = OOClamp_0_max_f(level, [self maxForwardShieldLevel]);
+}
+
+
+- (void) setAftShieldLevel:(GLfloat)level
+{
+	aft_shield = OOClamp_0_max_f(level, [self maxAftShieldLevel]);
+}
+
+
 - (GLfloat) dialRoll
 {
 	GLfloat result = flightRoll / max_flight_roll;
@@ -3425,11 +3449,21 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self removeEquipmentItem:system_key];
 		if (![UNIVERSE strict])
 		{
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 			[self addEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
+			[self doScriptEvent:@"equipmentDamaged" withArgument:system_name];
+			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
+			{
+				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
+			}
 		}
 		else
-			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
+		{
+			[self doScriptEvent:@"equipmentDestroyed" withArgument:system_name];
+			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
+			{
+				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
+			}
+		}
 		return;
 	}
 	//cosmetic damage

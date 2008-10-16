@@ -87,43 +87,55 @@ static JSExtendedClass sPlayerShipClass =
 enum
 {
 	// Property IDs
-	kPlayerShip_fuelLeakRate,		// fuel leak rate, float, read/write
-	kPlayerShip_docked,				// docked, boolean, read-only
-	kPlayerShip_dockedStation,		// docked station, entity, read-only
-	kPlayerShip_specialCargo,		// special cargo, string, read-only
+	kPlayerShip_fuelLeakRate,			// fuel leak rate, float, read/write
+	kPlayerShip_docked,					// docked, boolean, read-only
+	kPlayerShip_dockedStation,			// docked station, entity, read-only
+	kPlayerShip_specialCargo,			// special cargo, string, read-only
 	kPlayerShip_reticleTargetSensitive,	// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
+	kPlayerShip_forwardShield,			// forward shield charge level, nonnegative float, read/write
+	kPlayerShip_aftShield,				// aft shield charge level, nonnegative float, read/write
+	kPlayerShip_maxForwardShield,		// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_maxAftShield,			// maximum aft shield charge level, positive float, read-only
+	kPlayerShip_forwardShieldRechargeRate,	// forward shield recharge rate, positive float, read-only
+	kPlayerShip_aftShieldRechargeRate,	// aft shield recharge rate, positive float, read-only
 };
 
 
 static JSPropertySpec sPlayerShipProperties[] =
 {
-	// JS name					ID							flags
-	{ "fuelLeakRate",			kPlayerShip_fuelLeakRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "docked",					kPlayerShip_docked,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedStation",			kPlayerShip_dockedStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "specialCargo",			kPlayerShip_specialCargo,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	// JS name						ID									flags
+	{ "fuelLeakRate",				kPlayerShip_fuelLeakRate,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "docked",						kPlayerShip_docked,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockedStation",				kPlayerShip_dockedStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "specialCargo",				kPlayerShip_specialCargo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "reticleTargetSensitive",		kPlayerShip_reticleTargetSensitive,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "forwardShield",				kPlayerShip_forwardShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "aftShield",					kPlayerShip_aftShield,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "maxForwardShield",			kPlayerShip_maxForwardShield,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "maxAftShield",				kPlayerShip_maxAftShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "forwardShieldRechargeRate",	kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "aftShieldRechargeRate",		kPlayerShip_aftShieldRechargeRate,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
 
 static JSFunctionSpec sPlayerShipMethods[] =
 {
-	// JS name					Function						min args
-	{ "awardEquipment",			PlayerShipAwardEquipment,		1 },	// Should be deprecated in favour of equipment object model
-	{ "removeEquipment",		PlayerShipRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
-	{ "hasEquipment",			PlayerShipHasEquipment,			1 },
-	{ "equipmentStatus",		PlayerShipEquipmentStatus,		1 },
-	{ "setEquipmentStatus",		PlayerShipSetEquipmentStatus,	2 },
-	{ "launch",					PlayerShipLaunch,				0 },
-	{ "awardCargo",				PlayerShipAwardCargo,			1 },
-	{ "canAwardCargo",			PlayerShipCanAwardCargo,		1 },
-	{ "removeAllCargo",			PlayerShipRemoveAllCargo,		0 },
-	{ "useSpecialCargo",		PlayerShipUseSpecialCargo,		1 },
+	// JS name						Function							min args
+	{ "awardEquipment",				PlayerShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
+	{ "removeEquipment",			PlayerShipRemoveEquipment,			1 },	// Should be deprecated in favour of equipment object model
+	{ "hasEquipment",				PlayerShipHasEquipment,				1 },
+	{ "equipmentStatus",			PlayerShipEquipmentStatus,			1 },
+	{ "setEquipmentStatus",			PlayerShipSetEquipmentStatus,		2 },
+	{ "launch",						PlayerShipLaunch,					0 },
+	{ "awardCargo",					PlayerShipAwardCargo,				1 },
+	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
+	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
+	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
 	{ "setGalacticHyperspaceBehaviour",	PlayerShipSetGalacticHyperspaceBehaviour,	1 },
 	{ "setGalacticHyperspaceFixedCoords",	PlayerShipSetGalacticHyperspaceFixedCoords,	1 },
 	{ 0 }
@@ -213,6 +225,28 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 		case kPlayerShip_galacticHyperspaceFixedCoords:
 			OK = NSPointToVectorJSValue(context, [player galacticHyperspaceFixedCoords], outValue);
 			break;
+			
+		case kPlayerShip_forwardShield:
+			OK = JS_NewDoubleValue(context, [player forwardShieldLevel], outValue);
+			break;
+			
+		case kPlayerShip_aftShield:
+			OK = JS_NewDoubleValue(context, [player aftShieldLevel], outValue);
+			break;
+			
+		case kPlayerShip_maxForwardShield:
+			OK = JS_NewDoubleValue(context, [player maxForwardShieldLevel], outValue);
+			break;
+			
+		case kPlayerShip_maxAftShield:
+			OK = JS_NewDoubleValue(context, [player maxAftShieldLevel], outValue);
+			break;
+			
+		case kPlayerShip_forwardShieldRechargeRate:
+		case kPlayerShip_aftShieldRechargeRate:
+			// No distinction made internally
+			OK = JS_NewDoubleValue(context, [player shieldRechargeRate], outValue);
+			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"PlayerShip", JSVAL_TO_INT(name));
@@ -246,6 +280,22 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_forwardShield:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player setForwardShieldLevel:fValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_aftShield:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[player setAftShieldLevel:fValue];
 				OK = YES;
 			}
 			break;

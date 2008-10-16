@@ -532,6 +532,12 @@ waitingForStickCallback: 1;
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;
 
+- (GLfloat) forwardShieldLevel;
+- (GLfloat) aftShieldLevel;
+
+- (void) setForwardShieldLevel:(GLfloat)level;
+- (void) setAftShieldLevel:(GLfloat)level;
+
 - (GLfloat) dialRoll;
 - (GLfloat) dialPitch;
 - (GLfloat) dialSpeed;
