@@ -159,7 +159,7 @@ static JSClass sTimerClass;
 }
 
 
-- (jsval)javaScriptValueInContext:(JSContext *)context
+- (jsval) javaScriptValueInContext:(JSContext *)context
 {
 	return OBJECT_TO_JSVAL(_jsSelf);
 }

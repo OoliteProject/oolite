@@ -20,7 +20,7 @@
 		<integer>300</integer>
 		<string>Missile</string>
 		<string>EQ_MISSILE</string>
-		<string>Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targetting scanners.</string>
+		<string>Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.</string>
 		<dict>
 			<key>available_to_all</key>
 			<true/>
@@ -229,7 +229,7 @@
 		<integer>4500</integer>
 		<string>Scanner Targeting Enhancement</string>
 		<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
-		<string>Adds a visible indicator, range and legal status display around the target currently locked into your targetting computer.</string>
+		<string>Adds a visible indicator, range and legal status display around the target currently locked into your targeting computer.</string>
 	</array>
 	<array>
 		<integer>5</integer>

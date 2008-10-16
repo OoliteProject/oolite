@@ -75,6 +75,8 @@ SOFTWARE.
 	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
+	
+	struct JSObject			*_jsSelf;
 }
 
 + (void) loadEquipment;			// Load equipment data; called on loading and when changing to/from strict mode.

@@ -25,6 +25,13 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
 
+#import "OOCollectionExtractors.h"
+#import "Universe.h"
+#import "PlanetEntity.h"
+#import "NSStringOOExtensions.h"
+#import "OOWeakReference.h"
+#import "EntityOOJavaScriptExtensions.h"
+
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"
 #import "OOJSMission.h"
@@ -46,13 +53,7 @@ MA 02110-1301, USA.
 #import "OOJSSoundSource.h"
 #import "OOJSSpecialFunctions.h"
 #import "OOJSSystemInfo.h"
-
-#import "OOCollectionExtractors.h"
-#import "Universe.h"
-#import "PlanetEntity.h"
-#import "NSStringOOExtensions.h"
-#import "OOWeakReference.h"
-#import "EntityOOJavaScriptExtensions.h"
+#import "OOJSEquipmentInfo.h"
 
 #import <stdlib.h>
 
@@ -256,6 +257,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSSoundSource(mainContext, globalObject);
 	InitOOJSSpecialFunctions(mainContext, globalObject);
 	InitOOJSSystemInfo(mainContext, globalObject);
+	InitOOJSEquipmentInfo(mainContext, globalObject);
 	
 	sSharedEngine = self;
 	
