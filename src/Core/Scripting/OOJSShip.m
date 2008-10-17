@@ -967,6 +967,8 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
+	if (!explode && [thisEnt isPlayer])  return YES;	// Silently fail on player.ship.remove()
+	
 	if (thisEnt == (ShipEntity *)[UNIVERSE station])
 	{
 		// Allow exploding of main station (e.g. nova mission)
