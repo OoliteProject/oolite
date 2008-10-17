@@ -110,3 +110,10 @@ SOFTWARE.
 - (NSArray *) conditions;
 
 @end
+
+
+@interface OOEquipmentType (Conveniences)
+
+- (OOTechLevelID) effectiveTechLevel;
+
+@end

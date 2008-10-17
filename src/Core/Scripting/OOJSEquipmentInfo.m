@@ -26,12 +26,14 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "OOEquipmentType.h"
+#import "OOJSPlayer.h"
 
 
 static JSObject *sEquipmentInfoPrototype;
 
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
 // Methods
 static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -40,10 +42,11 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 enum
 {
 	// Property IDs
-	kEquipmentInfo_identifier,
+	kEquipmentInfo_equipmentKey,
 	kEquipmentInfo_name,
 	kEquipmentInfo_description,
 	kEquipmentInfo_techLevel,
+	kEquipmentInfo_effectiveTechLevel,
 	kEquipmentInfo_price,
 	kEquipmentInfo_isAvailableToAll,
 	kEquipmentInfo_requiresEmptyPylon,
@@ -65,10 +68,11 @@ enum
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
-	{ "identifier",						kEquipmentInfo_identifier,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "name",							kEquipmentInfo_name,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "description",					kEquipmentInfo_description,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "techLevel",						kEquipmentInfo_techLevel,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "price",							kEquipmentInfo_price,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiresEmptyPylon",				kEquipmentInfo_requiresEmptyPylon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -103,19 +107,19 @@ static JSExtendedClass sEquipmentInfoClass =
 		"EquipmentInfo",
 		JSCLASS_HAS_PRIVATE | JSCLASS_IS_EXTENDED,
 
-		JS_PropertyStub,		// addProperty
-		JS_PropertyStub,		// delProperty
+		JS_PropertyStub,			// addProperty
+		JS_PropertyStub,			// delProperty
 		EquipmentInfoGetProperty,	// getProperty
-		JS_PropertyStub,		// setProperty
-		JS_EnumerateStub,		// enumerate
-		JS_ResolveStub,			// resolve
-		JS_ConvertStub,			// convert
-		JSObjectWrapperFinalize, // finalize
+		EquipmentInfoSetProperty,	// setProperty
+		JS_EnumerateStub,			// enumerate
+		JS_ResolveStub,				// resolve
+		JS_ConvertStub,				// convert
+		JSObjectWrapperFinalize,	// finalize
 		JSCLASS_NO_OPTIONAL_MEMBERS
 	},
-	JSObjectWrapperEquality,	// equality
-	NULL,						// outerObject
-	NULL,						// innerObject
+	JSObjectWrapperEquality,		// equality
+	NULL,							// outerObject
+	NULL,							// innerObject
 	JSCLASS_NO_RESERVED_MEMBERS
 };
 
@@ -142,7 +146,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kEquipmentInfo_identifier:
+		case kEquipmentInfo_equipmentKey:
 			result = [eqType identifier];
 			break;
 			
@@ -156,6 +160,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			
 		case kEquipmentInfo_techLevel:
 			*outValue = INT_TO_JSVAL([eqType techLevel]);
+			break;
+			
+		case kEquipmentInfo_effectiveTechLevel:
+			*outValue = INT_TO_JSVAL([eqType effectiveTechLevel]);
 			break;
 			
 		case kEquipmentInfo_price:
@@ -229,6 +237,39 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 	}
 	return YES;
 }
+
+
+static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	BOOL						OK = NO;
+	OOEquipmentType				*eqType = nil;
+	int32						iValue;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
+	if (eqType == nil)  return NO;
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kEquipmentInfo_effectiveTechLevel:
+			if ([eqType techLevel] != kOOVariableTechLevel)  return YES;	// Only TL-99 items can be modified in this way
+			if (JS_ValueToInt32(context, *value, &iValue))
+			{
+				if (iValue < 0)  iValue = 0;
+				if (13 < iValue && iValue != kOOVariableTechLevel)  iValue = 13;
+				[OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
+													forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+				OK = YES;
+			}
+			break;
+			
+		default:
+			OOReportJSBadPropertySelector(context, @"EquipmentInfo", JSVAL_TO_INT(name));
+	}
+	
+	return OK;
+}
+	
 
 
 @implementation OOEquipmentType (OOJavaScriptExtensions)

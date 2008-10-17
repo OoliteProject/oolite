@@ -363,3 +363,25 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 }
 
 @end
+
+
+#import "PlayerEntityLegacyScriptEngine.h"
+
+@implementation OOEquipmentType (Conveniences)
+
+- (OOTechLevelID) effectiveTechLevel
+{
+	OOTechLevelID			tl;
+	id						missionVar = nil;
+	
+	tl = [self techLevel];
+	if (tl == kOOVariableTechLevel)
+	{
+		missionVar = [[PlayerEntity sharedPlayer] missionVariableForKey:[@"mission_TL_FOR_" stringByAppendingString:[self identifier]]];
+		tl = OOUIntegerFromObject(missionVar, tl);
+	}
+	
+	return tl;
+}
+
+@end

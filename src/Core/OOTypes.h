@@ -325,6 +325,12 @@ typedef OOUInteger	OOTechLevelID;		// 0..14, 99 is special. NSNotFound is used, 
 typedef uint8_t		OOGovernmentID;		// 0..7
 typedef uint8_t		OOEconomyID;		// 0..7
 
+enum
+{
+	kOOVariableTechLevel	= 99
+};
+
+
 typedef uint8_t		OOGalaxyID;			// 0..7
 typedef int16_t		OOSystemID;			// 0..255, -1 for interstellar space (?)
 

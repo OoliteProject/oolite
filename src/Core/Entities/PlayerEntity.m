@@ -4754,6 +4754,7 @@ static int last_outfitting_index;
 	unsigned i,j;
 	for (i = 0; i < [equipdata count]; i++)
 	{
+		// FIXME: use OOEquipmentType
 		NSString		*eq_key = [[equipdata arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
 		NSString		*eq_key_damaged = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
 		OOTechLevelID	min_techlevel = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
@@ -4770,7 +4771,7 @@ static int last_outfitting_index;
 			[options addObject: eq_key];
 		
 		// check if this is a mission special ..
-		if (min_techlevel == 99)
+		if (min_techlevel == kOOVariableTechLevel)
 		{
 			// check mission variables for the existence of a revised tech level (given when item is awarded)
 			NSString* mission_eq_tl_key = [@"mission_TL_FOR_" stringByAppendingString:eq_key];
