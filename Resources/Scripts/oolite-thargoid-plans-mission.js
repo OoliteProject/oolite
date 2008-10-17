@@ -75,7 +75,7 @@ this.missionOffers = function ()
 					player.ship.removeEquipment("EQ_ENERGY_UNIT_DAMAGED");
 				}
 				player.ship.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
-				missionVariables.TL_FOR_EQ_NAVAL_ENERGY_UNIT = 13;
+				EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
 				mission.unmarkSystem(36);
 			}
 		}

@@ -39,8 +39,8 @@ this.shipWasScooped = function (scooper)
 		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"))
 		{
 			player.ship.awardEquipment("EQ_CLOAKING_DEVICE")
-			// Should we make it possible to buy a replacement?
-			// missionVariables.TL_FOR_EQ_CLOAKING_DEVICE = 14
+			// Should we make it possible to repair?
+			// EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 14;
 		}
 		else
 		{

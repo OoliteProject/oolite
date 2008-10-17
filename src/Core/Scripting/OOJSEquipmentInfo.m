@@ -256,7 +256,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
-				if (13 < iValue && iValue != kOOVariableTechLevel)  iValue = 13;
+				if (14 < iValue && iValue != kOOVariableTechLevel)  iValue = 14;
 				[OOPlayerForScripting() setMissionVariable:[NSString stringWithFormat:@"%u", iValue]
 													forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
 				OK = YES;
