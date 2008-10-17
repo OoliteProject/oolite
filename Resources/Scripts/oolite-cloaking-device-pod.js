@@ -40,7 +40,7 @@ this.shipWasScooped = function (scooper)
 		{
 			player.ship.awardEquipment("EQ_CLOAKING_DEVICE")
 			// Should we make it possible to repair?
-			// EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 14;
+			// EquipmentInfo.infoForKey("EQ_CLOAKING_DEVICE").effectiveTechLevel = 14;
 		}
 		else
 		{
