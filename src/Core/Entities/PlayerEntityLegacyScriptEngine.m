@@ -2001,7 +2001,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) removeMissionDestination:(NSString *)destinations
 {
 	unsigned			i, j;
-	NSNumber			*pnump = nil;
 	int					pnum, dest;
 	NSMutableArray		*tokens = ScanTokensFromString(destinations);
 	BOOL				removeDestination;
@@ -2009,28 +2008,28 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	for (j = 0; j < [tokens count]; j++)
 	{
 		dest = [(NSString *)[tokens objectAtIndex:j] intValue];
-		if (dest < 0 || dest > 255)
-			continue;
-
+		if (dest < 0 || dest > 255)  continue;
+		
 		removeDestination = NO;
 		for (i = 0; i < [missionDestinations count]; i++)
 		{
-			pnump = (NSNumber *)[missionDestinations objectAtIndex:i];
-			pnum = [pnump intValue];
+			pnum = [missionDestinations intAtIndex:i];
 			if (pnum == dest)
 			{
 				removeDestination = YES;
 				break;
 			}
 		}
-
+		
 		if (removeDestination == YES)
+		{
 			[missionDestinations removeObjectAtIndex:i];
+		}
 	}
 }
 
 
-- (void) showShipModel: (NSString *)shipKey
+- (void) showShipModel:(NSString *)shipKey
 {
 	ShipEntity		*ship;
 
@@ -2050,19 +2049,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogNoteShowShipModel, @"::::: showShipModel:'%@' (%@) (%@)", shipKey, ship, [ship name]);
 		[ship setOrientation: q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
-		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll: M_PI/5.0];
-		[ship setPitch: M_PI/10.0];
-		[[ship getAI] setStateMachine: @"nullAI.plist"];
-		[UNIVERSE addEntity: ship];
-		[ship setStatus: STATUS_COCKPIT_DISPLAY];
-
+		[ship setScanClass:CLASS_NO_DRAW];
+		[ship setRoll:M_PI/5.0];
+		[ship setPitch:M_PI/10.0];
+		[[ship getAI] setStateMachine:@"nullAI.plist"];
+		[ship setEscortCount:0];
+		[UNIVERSE addEntity:ship];
+		[ship setStatus:STATUS_COCKPIT_DISPLAY];
+		
 		[ship release];
 	}
 }
 
 
-- (void) setMissionMusic: (NSString *)value
+- (void) setMissionMusic:(NSString *)value
 {
 	if ([value length] == 0 || [[value lowercaseString] isEqual:@"none"])
 	{
@@ -2072,7 +2072,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) setMissionImage: (NSString *)value
+- (void) setMissionImage:(NSString *)value
 {
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
@@ -2085,7 +2085,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) setFuelLeak: (NSString *)value
+- (void) setFuelLeak:(NSString *)value
 {	
 	if (scriptTarget != self)
 	{
@@ -2109,7 +2109,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) setSunNovaIn: (NSString *)time_value
+- (void) setSunNovaIn:(NSString *)time_value
 {
 	double time_until_nova = [time_value doubleValue];
 	[[UNIVERSE sun] setGoingNova:YES inTime: time_until_nova];

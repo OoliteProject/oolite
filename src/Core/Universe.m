@@ -2932,8 +2932,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 	BOOL		isStation = NO;
 	NSString	*shipRoles = [shipDict stringForKey:@"roles"];
-	if (shipRoles)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	if (!isStation)  isStation = [shipDict boolForKey:@"isCarrier" defaultValue:NO];
+	if (shipRoles != nil)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
+	isStation = [shipDict boolForKey:@"isCarrier" defaultValue:isStation];
 	
 	volatile Class shipClass;
 	if (!isStation)  shipClass = [ShipEntity class];
@@ -4222,9 +4222,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	int i;
 	int ent_count = n_entities;
-	//Entity* my_entities[ent_count];
-	//for (i = 0; i < ent_count; i++)
-	//	my_entities[i] = [sortedEntities[i] retain];
 	if (ent_count > 0)
 	{
 		Entity* ent;
@@ -4232,11 +4229,11 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		{
 			ent = sortedEntities[i];
 			if ([ent status] == STATUS_COCKPIT_DISPLAY && ![ent isPlayer])
+			{
 				[self removeEntity:ent];
+			}
 		}
 	}
-	//for (i = 0; i < ent_count; i++)
-	//	[my_entities[i] release];
 	demo_ship = nil;
 }
 
