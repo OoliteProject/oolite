@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
 
-#ifdef WIN32
+#if OOLITE_WINDOWS
 #import "TextureStore.h"
 #endif
 
@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 	int nativeDisplayWidth = 1024;
 	int nativeDisplayHeight = 768;
 
-#if defined(LINUX) && ! defined (WIN32)
+#if OOLITE_LINUX
 	SDL_SysWMinfo  dpyInfo;
 	SDL_VERSION(&dpyInfo.version);
 	if(SDL_GetWMInfo(&dpyInfo))
@@ -64,7 +64,7 @@ MA 02110-1301, USA.
 	{
 		OOLog(@"display.mode.list.native.failed", @"SDL_GetWMInfo failed, defaulting to 1024x768 for native size");
 	}
-#elif defined (WIN32)
+#elif OOLITE_WINDOWS
 	nativeDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
 	nativeDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
 	OOLog(@"display.mode.list.native", @"Windows native resolution detected: %d x %d", nativeDisplayWidth, nativeDisplayHeight);
@@ -100,7 +100,7 @@ MA 02110-1301, USA.
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
 	static char windowCaption[128];
-	NSString *versionString = [NSString stringWithFormat:@"Oolite Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
 	
 	strcpy (windowCaption, [versionString UTF8String]);
 	strcat (windowCaption, " - "__DATE__);
@@ -457,7 +457,7 @@ MA 02110-1301, USA.
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
 
-#ifdef WIN32
+#if OOLITE_WINDOWS
 	if (UNIVERSE)
 	{
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
