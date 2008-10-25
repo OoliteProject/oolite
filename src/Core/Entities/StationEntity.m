@@ -1100,7 +1100,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	// TODO: If player is waiting for docking clearance, send him an update
 	//       every X seconds telling him where he's at in the queue.
-	if (isDockingStation && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
+	if (isDockingStation && player->status == STATUS_IN_FLIGHT && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
 			[shipsOnApproach count] == 0 && [launchQueue count] == 0)
 	{
 		last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
