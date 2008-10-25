@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOJSMissionVariables.h"
 #import "OOJavaScriptEngine.h"
+#import "OOIsNumberLiteral.h"
 
 #import "OOJSPlayer.h"
 
@@ -89,22 +90,7 @@ static JSBool MissionVariablesGetProperty(JSContext *context, JSObject *this, js
 		*outValue = JSVAL_VOID;
 		if ([value isKindOfClass:[NSString class]])	// Currently there should only be strings, but we may want to change this.
 		{
-			/*	The point of this code is to try and tell the JS interpreter to treat numeric strings
-				as numbers where possible so that standard arithmetic works as you'd expect rather than
-				1+1 == "11". So a JSVAL_DOUBLE is returned if possible, otherwise a JSVAL_STRING is returned.
-			*/
-			
-			BOOL	isNumber = NO;
-			double	dVal;
-			
-			dVal = [value doubleValue];
-			if (dVal != 0) isNumber = YES;
-			else
-			{
-				NSCharacterSet *notZeroSet = [[NSCharacterSet characterSetWithCharactersInString:@"-0. "] invertedSet];
-				if ([value rangeOfCharacterFromSet:notZeroSet].location == NSNotFound) isNumber = YES;
-			}
-			if (isNumber)
+			if (OOIsNumberLiteral(value, YES))
 			{
 				BOOL OK = JS_NewDoubleValue(context, [value doubleValue], outValue);
 				if (!OK) *outValue = JSVAL_VOID;
