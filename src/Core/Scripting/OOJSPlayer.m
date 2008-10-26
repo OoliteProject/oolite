@@ -256,7 +256,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 		
 #ifdef DOCKING_CLEARANCE_ENABLED	
 		case kPlayer_dockingClearanceStatus:
-			*outValue = INT_TO_JSVAL([player getDockingClearanceStatus]);
+			*outValue = [DockingClearanceStatusToString([player getDockingClearanceStatus]) javaScriptValueInContext:context];
 			OK = YES;
 			break;
 #endif

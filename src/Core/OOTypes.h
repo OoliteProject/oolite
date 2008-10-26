@@ -298,6 +298,18 @@ typedef enum
 } OOEnergyUnitType;
 
 
+#ifdef DOCKING_CLEARANCE_ENABLED
+typedef enum
+{
+	DOCKING_CLEARANCE_STATUS_NONE,
+	DOCKING_CLEARANCE_STATUS_REQUESTED,
+	DOCKING_CLEARANCE_STATUS_NOT_REQUIRED,
+	DOCKING_CLEARANCE_STATUS_GRANTED,
+	DOCKING_CLEARANCE_STATUS_TIMING_OUT,
+} OODockingClearanceStatus;
+#endif
+
+
 typedef uint32_t	OOCargoQuantity;
 typedef int32_t		OOCargoQuantityDelta;
 

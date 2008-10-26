@@ -558,3 +558,19 @@ NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
 {
 	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
 }
+
+#ifdef DOCKING_CLEARANCE_ENABLED
+NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
+{
+	switch (dockingClearanceStatus)
+	{
+		CASE(DOCKING_CLEARANCE_STATUS_NONE);
+		CASE(DOCKING_CLEARANCE_STATUS_REQUESTED);
+		CASE(DOCKING_CLEARANCE_STATUS_NOT_REQUIRED);
+		CASE(DOCKING_CLEARANCE_STATUS_GRANTED);
+		CASE(DOCKING_CLEARANCE_STATUS_TIMING_OUT);
+	}
+	
+	return @"DOCKING_CLEARANCE_STATUS_UNKNOWN";
+}
+#endif
