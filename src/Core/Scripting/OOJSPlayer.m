@@ -95,7 +95,7 @@ enum
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
 	kPlayer_passengerReputation,		// reputation for passenger contracts, integer, read only
 #ifdef DOCKING_CLEARANCE_ENABLED
-	kPlayer_dockingClearanceStatus,		// docking clearance status, integer, read only
+	kPlayer_dockingClearanceStatus,		// docking clearance status, string, read only
 #endif
 	kPlayer_bounty					// bounty, unsigned int, read/write
 };
