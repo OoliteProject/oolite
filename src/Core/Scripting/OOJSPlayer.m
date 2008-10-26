@@ -93,7 +93,10 @@ enum
 	kPlayer_alertHostiles,			// hostiles present alert flag, boolean, read-only
 	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
-	kPlayer_passengerReputation,	// reputation for passenger contracts, integer, read only
+	kPlayer_passengerReputation,		// reputation for passenger contracts, integer, read only
+#ifdef DOCKING_CLEARANCE_ENABLED
+	kPlayer_dockingClearanceStatus,		// docking clearance status, integer, read only
+#endif
 	kPlayer_bounty					// bounty, unsigned int, read/write
 };
 
@@ -114,7 +117,10 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "alertHostiles",			kPlayer_alertHostiles,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "contractReputation",		kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "passengerReputation",	kPlayer_passengerReputation, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengerReputation",	kPlayer_passengerReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+#ifdef DOCKING_CLEARANCE_ENABLED
+	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+#endif
 	{ "bounty",					kPlayer_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
@@ -247,6 +253,13 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			*outValue = INT_TO_JSVAL([player passengerReputation]);
 			OK = YES;
 			break;
+		
+#ifdef DOCKING_CLEARANCE_ENABLED	
+		case kPlayer_dockingClearanceStatus:
+			*outValue = INT_TO_JSVAL([player getDockingClearanceStatus]);
+			OK = YES;
+			break;
+#endif
 			
 		case kPlayer_bounty:
 			*outValue = INT_TO_JSVAL([player legalStatus]);
