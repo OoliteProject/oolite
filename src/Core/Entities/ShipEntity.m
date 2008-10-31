@@ -4521,7 +4521,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 					quaternion_set_random(&q);
 					[plate setOrientation:q];
 					[plate setScanClass: CLASS_CARGO];
-					[plate setCommodity:9 andAmount:1];
+					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
 					[UNIVERSE addEntity:plate];
 					[plate setStatus:STATUS_IN_FLIGHT];
 					[plate setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];

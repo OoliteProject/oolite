@@ -133,21 +133,8 @@ BOOL IsStationPredicate(Entity *entity, void *parameter)
 
 BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 {
-	if (entity->isPlanet)
-	{
-		switch ([(PlanetEntity *)entity planetType])
-		{
-			case PLANET_TYPE_GREEN:
-				return YES;
-				
-			case PLANET_TYPE_SUN:
-			case PLANET_TYPE_ATMOSPHERE:
-			case PLANET_TYPE_MINIATURE:
-				return NO;
-		}
-	}
-	
-	return NO;
+	if (!entity->isPlanet)  return NO;
+	return [(PlanetEntity *)entity planetType] == PLANET_TYPE_GREEN;
 }
 
 
