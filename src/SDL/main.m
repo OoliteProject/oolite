@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 #import "GameController.h"
 #import "OOLoggingExtended.h"
 
+#if OOLITE_WINDOWS
+#import <locale.h>
+#endif
 GameController* controller;
 #endif
 
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
 		system locale rather than the "C" locale as per spec. Fixing here so
 		numbers don't behave strangely.
 	*/
-	setlocale("C");
+	setlocale(LC_ALL, "C");
 #endif
 
 	// Need this because we're not using the default run loop's autorelease
