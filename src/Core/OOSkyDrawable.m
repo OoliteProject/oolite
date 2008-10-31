@@ -292,7 +292,8 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		basis_vectors_from_quaternion(q, &vi, &vj, &vk);
 		
 		// Select scale; calculate centre position and offset to first corner.
-		size = (1 + (ranrot_rand() % 6)) * SKY_ELEMENT_SCALE_FACTOR;
+		size = (1 + (ranrot_rand() % 6)) * SKY_ELEMENT_SCALE_FACTOR / 2;  // Halve star size, looks a
+										  // bit better - Nikos 20081031
 		middle = vector_multiply_scalar(vk, BILLBOARD_DEPTH);
 		offset = vector_multiply_scalar(vector_add(vi, vj), 0.5f * size);
 		
