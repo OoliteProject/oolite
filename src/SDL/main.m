@@ -22,7 +22,6 @@ MA 02110-1301, USA.
 
 */
 
-#import <AppKit/NSApplication.h>
 
 #ifdef GNUSTEP
 #import <Foundation/NSAutoreleasePool.h>

@@ -20,7 +20,7 @@ mkdir $DST/AddOns
 
 echo "making Oolite"
 make clean
-make
+make debug=no
 
 echo "copying new build to setup folder"
 cp -r oolite.app/* $DST/oolite.app
