@@ -34,8 +34,9 @@ MA 02110-1301, USA.
 @interface Geometry : NSObject
 {
 	// a geometry essentially consists of a whole bunch of Triangles.
-	OOUInteger	n_triangles;			// how many triangles in the geometry
-	OOUInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
+	// Note: simply making these unsigned will break octree generation. If trying it, don't forget to flush the cache. -- Ahruman 20081101
+	OOInteger	n_triangles;			// how many triangles in the geometry
+	OOInteger	max_triangles;			// how many triangles are allowed in the geometry before expansion
 	Triangle	*triangles;				// pointer to an array of triangles which we'll grow as necessary...
 	BOOL		isConvex;				// set at initialisation to NO
 }
