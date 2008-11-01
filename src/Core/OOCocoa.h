@@ -295,6 +295,25 @@ enum {
 #endif
 
 
+/*	Use native exception handling under OS X in release and test builds.
+	This would probably work for Linux too, but not Windows as yet.
+ */
+
+#if OOLITE_MAC_OS_X && defined (OO_DEBUG)
+	#undef NS_DURING
+	#undef NS_HANDLER
+	#undef NS_ENDHANDLER
+	#undef NS_VALUERETURN(v,t)
+	#undef NS_VOIDRETURN
+	
+	#define NS_DURING			@try {
+	#define NS_HANDLER			} @catch (NSException *localException) {
+	#define NS_ENDHANDLER		}
+	#define NS_VALUERETURN(v,t)	return (v)
+	#define NS_VOIDRETURN		return
+#endif
+
+
 /*	For some reason, return types for some comparison callbacks are typed
 	NSInteger/int under OS X but (more sensibly) NSComparisonResult under
 	GNUstep.
