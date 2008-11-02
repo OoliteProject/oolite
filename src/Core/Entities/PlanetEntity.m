@@ -665,8 +665,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	rotationAxis = kBasisYVector;
 	
-	[self performSelector:@selector(inspect)];
-	
 	return self;
 }
 
