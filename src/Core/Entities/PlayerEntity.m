@@ -3721,6 +3721,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	ident_engaged = NO;
 	
+	[UNIVERSE removeDemoShips];
+	
 	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[self playLaunchFromStation];
 }
