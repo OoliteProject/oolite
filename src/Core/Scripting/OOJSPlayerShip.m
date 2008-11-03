@@ -579,6 +579,7 @@ static JSBool PlayerShipSetGalacticHyperspaceBehaviour(JSContext *context, JSObj
 	if (behaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 	{
 		OOReportJSErrorForCaller(context, @"PlayerShip", @"setGalacticHyperspaceBehaviour", @"Unknown galactic hyperspace behaviour name %@.", behavString);
+		return NO;
 	}
 	
 	[player setGalacticHyperspaceBehaviour:behaviour];
