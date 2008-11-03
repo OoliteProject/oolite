@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-global-prefix";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2008 the Oolite team.";
-this.version		= "1.72";
+this.version		= "1.73";
 
 
 this.global = (function () { return this; } ).call();
@@ -167,33 +167,6 @@ this.defineCompatibilitySubMethod = function (singletonName, subName, methodName
 		let sub = this[subName];
 		return sub[methodName].apply(sub, arguments);
 	}
-}
-
-
-/**** To be removed after 1.72 ****/
-this.defineCompatibilityAlias("Log", "log");
-this.defineCompatibilityAlias("LogWithClass", "log");	// Note that log() acts like LogWithClass() given multiple parameters, but like Log() given one.
-this.defineCompatibilityAlias("ExpandDescription", "expandDescription");
-this.defineCompatibilityAlias("RandomName", "randomName");
-this.defineCompatibilityAlias("DisplayNameForCommodity", "displayNameForCommodity");
-
-mission.resetMissionChoice = function()
-{
-	special.jsWarning("mission.resetMissionChoice() is deprecated, use mission.choice = null instead.");
-	this.choice = null;
-}
-
-
-system.legacy_spawn = function()
-{
-	special.jsWarning("system.legacy_spawn() is deprecated (and never worked), use Ship.spawn() instead.");
-}
-
-
-system.setSunNova = function(delay)
-{
-	special.jsWarning("system.setSunNova() is deprecated, use system.sun.goNova() instead.");
-	if (this.sun)  this.sun.goNova(delay);
 }
 
 

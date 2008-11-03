@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-nova";
 this.author			= "Eric Walch, Jens Ayton, Kaks";
 this.copyright		= "© 2008 the Oolite team.";
-this.version		= "1.72";
+this.version		= "1.73";
 
 
 this.missionOffers = function ()

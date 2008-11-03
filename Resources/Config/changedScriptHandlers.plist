@@ -9,6 +9,5 @@
 */
 
 {
-	// To be removed after 1.72
-	"shipBeingAttacked"				= "beingAttacked";
+	
 }
