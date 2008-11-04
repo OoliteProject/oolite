@@ -268,7 +268,7 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kEntity_owner:
 			result = [entity owner];
 			if (result == entity)  result = nil;
-			if (result == nil)  *outValue = JSVAL_NULL;
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kEntity_energy:
