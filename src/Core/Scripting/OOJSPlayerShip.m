@@ -56,8 +56,6 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -111,8 +109,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "dockedStation",				kPlayerShip_dockedStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "specialCargo",				kPlayerShip_specialCargo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "reticleTargetSensitive",		kPlayerShip_reticleTargetSensitive,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "forwardShield",				kPlayerShip_forwardShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "aftShield",					kPlayerShip_aftShield,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "maxForwardShield",			kPlayerShip_maxForwardShield,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -136,8 +134,6 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
-	{ "setGalacticHyperspaceBehaviour",	PlayerShipSetGalacticHyperspaceBehaviour,	1 },
-	{ "setGalacticHyperspaceFixedCoords",	PlayerShipSetGalacticHyperspaceFixedCoords,	1 },
 	{ 0 }
 };
 
@@ -219,7 +215,8 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			OK = JS_NewNumberValue(context, [player galacticHyperspaceBehaviour], outValue);
+			result = GalacticHyperspaceBehaviourToString([player galacticHyperspaceBehaviour]);
+			OK = YES;
 			break;
 			
 		case kPlayerShip_galacticHyperspaceFixedCoords:
@@ -262,7 +259,10 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 	BOOL						OK = NO;
 	PlayerEntity				*player = OOPlayerForScripting();
 	jsdouble					fValue;
-	JSBool					bValue;
+	JSBool						bValue;
+	NSString					*sValue = nil;
+	OOGalacticHyperspaceBehaviour ghBehaviour;
+	Vector						vValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -280,6 +280,27 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[[player hud] setReticleTargetSensitive:bValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_galacticHyperspaceBehaviour:
+			sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+			if (sValue != nil)
+			{
+				ghBehaviour = StringToGalacticHyperspaceBehaviour(sValue);
+				if (ghBehaviour != GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
+				{
+					[player setGalacticHyperspaceBehaviour:ghBehaviour];
+				}
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_galacticHyperspaceFixedCoords:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[player setGalacticHyperspaceFixedCoordsX:OOClamp_0_max_f(vValue.x, 255.0f) y:OOClamp_0_max_f(vValue.y, 255.0f)];
 				OK = YES;
 			}
 			break;
@@ -557,68 +578,5 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	}
 	
 	[player useSpecialCargo:JSValToNSString(context, argv[0])];
-	return YES;
-}
-
-
-// setGalacticHyperspaceBehaviour(behaviour : String)
-static JSBool PlayerShipSetGalacticHyperspaceBehaviour(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*behavString = nil;
-	OOGalacticHyperspaceBehaviour behaviour;
-	
-	behavString = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(behavString == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"setGalacticHyperspaceBehaviour", argc, argv, @"Invalid arguments", @"behaviour name");
-		return NO;
-	}
-	
-	behaviour = StringToGalacticHyperspaceBehaviour(behavString);
-	if (behaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"setGalacticHyperspaceBehaviour", @"Unknown galactic hyperspace behaviour name %@.", behavString);
-		return NO;
-	}
-	
-	[player setGalacticHyperspaceBehaviour:behaviour];
-	return YES;
-}
-
-
-// setGalacticHyperspaceFixedCoords(v : vectorExpression) or setGalacticHyperspaceFixedCoords(x : Number, y : Number)
-static JSBool PlayerShipSetGalacticHyperspaceFixedCoords(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	double					x, y;
-	Vector					v;
-	
-	if (argc == 2)
-	{
-		// Expect two integers
-		if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &x) ||
-					   !JS_ValueToNumber(context, argv[1], &y)))
-		{
-			OOReportJSBadArguments(context, @"PlayerShip", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
-			return NO;
-		}
-	}
-	else
-	{
-		// Expect vectorExpression
-		if (EXPECT_NOT(!VectorFromArgumentList(context, @"PlayerShip", @"setGalacticHyperspaceFixedCoords", argc, argv, &v, NULL)))
-		{
-			OOReportJSBadArguments(context, @"PlayerShip", @"setGalacticHyperspaceFixedCoords", argc, argv, @"Invalid arguments", @"vector expression or two numbers");
-			return NO;
-		}
-		x = v.x;
-		y = v.y;
-	}
-	
-	x = OOClamp_0_max_d(x, 255);
-	y = OOClamp_0_max_d(y, 255);
-	
-	[player setGalacticHyperspaceFixedCoordsX:x y:y];
 	return YES;
 }
