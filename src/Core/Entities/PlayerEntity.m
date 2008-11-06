@@ -5168,9 +5168,10 @@ static int last_outfitting_index;
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
-			
-			[self doScriptEvent:@"playerBoughtEquipment" withArgument:[[[UNIVERSE equipmentData] arrayAtIndex:item] stringAtIndex:EQUIPMENT_KEY_INDEX]];
 		}
+		
+		[self doScriptEvent:@"playerBoughtEquipment" withArgument:[[[UNIVERSE equipmentData] arrayAtIndex:item] stringAtIndex:EQUIPMENT_KEY_INDEX]];
+		
 		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	}
 	else
