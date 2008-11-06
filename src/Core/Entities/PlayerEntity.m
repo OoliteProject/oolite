@@ -5313,8 +5313,8 @@ static int last_outfitting_index;
 	
 	if ([eq_key isEqual:@"EQ_FUEL"])
 	{
-		fuel = [self fuelCapacity];
 		credits -= ([self fuelCapacity] - [self fuel]) * price_per_unit;
+		fuel = [self fuelCapacity];
 		[self setGuiToEquipShipScreen:-1:-1];
 		return YES;
 	}
