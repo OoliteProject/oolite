@@ -473,6 +473,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
+	[autoAIMap autorelease];
+	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+
 	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
