@@ -1,11 +1,12 @@
---- FreeDesktop/oolite.desktop.orig	2007-06-10 17:22:45.000000000 +0100
-+++ FreeDesktop/oolite.desktop	2007-06-10 17:23:27.000000000 +0100
-@@ -2,7 +2,7 @@
- Encoding=UTF-8
- Name=Oolite
+Index: FreeDesktop/oolite.desktop
+===================================================================
+--- FreeDesktop/oolite.desktop	(revision 1831)
++++ FreeDesktop/oolite.desktop	(working copy)
+@@ -4,6 +4,6 @@
  Comment=An OpenGL Elite-like space game
--Exec=oolite
-+Exec=/usr/lib/GNUstep/Local/Applications/oolite.app/oolite
+ Exec=oolite
  Icon=oolite-icon.png
- Terminal=true
+-Terminal=true
++Terminal=false
  Type=Application
+ Categories=Application;Game;

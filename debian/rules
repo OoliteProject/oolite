@@ -3,12 +3,25 @@
 # Ubuntu/Debian build rules file for OOlite
 # Copyright (c) 2007 Chris Crowther <hikari@hikari.org.uk>
 #
-# Based on the exemplar hello project.
-#
-# $Id$
+# Originally based on the exemplar hello project.
+# 
+# Re-written by Darren Salt
+# Tweaked by Michael Werle
 
-package=oolite
-docdir=debian/tmp/usr/share/doc/$(package)
+GSMAKE = gs_make
+JS_SRC = deps/Cross-platform-deps/SpiderMonkey/js/src
+
+CFLAGS += -g
+ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+	CFLAGS += -O2
+	GSMAKE += debug=no
+else
+	CFLAGS += -O0
+	GSMAKE += debug=yes
+endif
+export CFLAGS
+
+export GNUSTEP_INSTALLATION_DOMAIN = SYSTEM
 
 patch:
 	debian/apply-patches
@@ -18,62 +31,68 @@ unpatch:
 	debian/apply-patches -R
 	rm -f patch
 
-build: patch
-	. /usr/lib/GNUstep/System/Tools/GNUstep.sh; $(MAKE)
-	touch build
+build: patch build-stamp
+build-stamp:
+	dh_testdir
+	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref
+	$(MAKE) -C $(JS_SRC) -f Makefile.ref
+	$(GSMAKE)
+	touch $@
 
-clean: unpatch
-	rm -f build
-	. /usr/lib/GNUstep/System/Tools/GNUstep.sh; $(MAKE) distclean
-	rm -rf *~ debian/tmp debian/*~ debian/files* debian/substvars
+clean: clean-stamp unpatch
+clean-stamp:
+	dh_testdir
+	rm -f build-stamp
+	$(GSMAKE) clean
+	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref clean
+	$(MAKE) -C $(JS_SRC) -f Makefile.ref clean
+	rm -rf oolite.app oolite.debug
+	rm -f http+_www.apple.com_DTDs_PropertyList-1.0.dtd
+	find $(JS_SRC) -name Linux_All_DBG.OBJ | xargs -r rm -rf
+	dh_clean
 
-# Build target for the application binary
-binary-indep: checkroot build
-	rm -rf debian/tmp
-	install -d debian/tmp/DEBIAN $(docdir)
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
 
-	# Documentation
-	cp -a debian/changelog $(docdir)/changelog.Debian
-	cp -a Doc/ $(docdir)
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs -i
+	dh_installdocs -i
+	dh_install -i
+	cd debian/oolite-data/usr/lib/GNUstep/Applications/oolite.app && rm -f oolite Resources/Info-gnustep.plist
+	find debian/oolite-data -name .svn | xargs -r rm -rf
+	dh_link -i
+	dh_strip -i
+	dh_compress -i
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
 
-	# Application binary
-	mkdir -p debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
-	cp -a oolite.app/oolite debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
-	mkdir -p debian/tmp/usr/share/applications
-	cp -a FreeDesktop/oolite.desktop debian/tmp/usr/share/applications
-	mkdir -p debian/tmp/usr/share/icons
-	cp -a FreeDesktop/oolite-icon.png debian/tmp/usr/share/icons
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installman -a debian/oolite.6
+	dh_installmenu -a
+	dh_install -a
+	dh_desktop -a FreeDesktop/oolite.desktop
+	rm -rf debian/oolite/usr/share/doc/oolite
+	find debian/oolite -name .svn | xargs -r rm -rf
+	dh_link -a
+	dh_strip -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
-	# dpkg stuff
-	dpkg-shlibdeps debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app/oolite
-	dpkg-gencontrol -poolite
-	chown -R root:root debian/tmp
-	chmod -R u+w,go=rX debian/tmp
-	dpkg --build debian/tmp ..
+binary: binary-arch binary-indep
 
-# Build target for the data package
-data-indep: checkroot build
-	rm -rf debian/tmp
-
-	install -d debian/tmp/DEBIAN $(docdir)-data
-
-	# Documentation
-	cp -a debian/changelog $(docdir)-data/changelog.Debian
-	cp -a oolite.app/Resources/README.TXT $(docdir)-data
-
-	# Application Data
-	mkdir -p debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
-	cp -a oolite.app/Resources debian/tmp/usr/lib/GNUstep/Local/Applications/oolite.app
-
-	# dpkg stuff
-	dpkg-gencontrol -poolite-data
-	chown -R root:root debian/tmp
-	chmod -R u+w,go=rX debian/tmp
-	dpkg --build debian/tmp ..
-
-binary: binary-indep binary-arch data-indep data-arch
-
-checkroot:
-        test $$(id -u) = 0
-
-.PHONY: binary binary-arch binary-indep clean checkroot data-indep data-arch
+.PHONY: binary binary-arch binary-indep build clean install

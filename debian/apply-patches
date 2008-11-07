@@ -3,9 +3,14 @@
 # Quick and dirty patching script.
 # Copyright (C) 2007 Chris Crowther <hikari@hikari.org.uk>
 #
+# Additional Changes: Michael Werle <micha@michaelwerle.com>
+#
+# History:
+# 2008.11.02  MKW  Auto-read all patches from patch directory
+#
 # $Id$
 #
-PATCHES="01_oolite.desktop.patch"
+PATCHES=`ls -1 debian/patches`
 FLAGS=""
 
 while getopts ":R" option
