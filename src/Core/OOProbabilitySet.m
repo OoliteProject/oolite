@@ -975,7 +975,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (void) removeObject:(id)object
 {
-	if (object != nil)  return;
+	if (object == nil)  return;
 	
 	OOUInteger index = [_objects indexOfObject:object];
 	if (index != NSNotFound)
