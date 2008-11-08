@@ -263,6 +263,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			
 		case kPlayer_bounty:
 			*outValue = INT_TO_JSVAL([player legalStatus]);
+			OK = YES;
 			break;
 		
 		default:
