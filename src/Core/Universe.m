@@ -392,7 +392,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager loadScripts];
-	
+
+	// NOTE: Anything in the sharedCache is now trashed and must be
+	//       reloaded. Ideally anything using the sharedCache should
+	//       be aware of cache flushes so it can automatically
+	//       reinitialize itself - mwerle 20081107.
+	[[OOShipRegistry sharedRegistry] init];
+
 #ifndef GNUSTEP
 	//// speech stuff
 	
@@ -473,7 +479,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
-	[autoAIMap autorelease];
+	//[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
 	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
 
 	[equipmentData autorelease];

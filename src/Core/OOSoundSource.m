@@ -243,8 +243,9 @@ SOFTWARE.
 	
 }
 
-
+#if OOLITE_MAC_OS_X
 #pragma mark (OOSoundChannelDelegate)
+#endif
 
 - (void)channel:(OOSoundChannel *)channel didFinishPlayingSound:(OOSound *)sound
 {
