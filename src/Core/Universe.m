@@ -8219,7 +8219,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (id) initWithCustomSoundKey:(NSString *)key
 {
 	[self release];
-	return [[[self class] soundWithCustomSoundKey:key] retain];
+	return [[OOSound soundWithCustomSoundKey:key] retain];
 }
 
 @end

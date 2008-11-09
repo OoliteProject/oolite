@@ -47,8 +47,6 @@ static void PlayTrumbleSqueal(void);
 	{
 		colorPoint1[i] = 1.0;
 		colorPoint2[i] = 1.0;
-		
-		InitTrumbleSounds();
 	}
 	
 	return self;
@@ -203,6 +201,8 @@ static void PlayTrumbleSqueal(void);
 							  anisotropy:0.0f
 								 lodBias:kOOTextureDefaultLODBias];
 	[texture retain];
+	
+	InitTrumbleSounds();
 	
 	readyToSpawn = NO;
 }
