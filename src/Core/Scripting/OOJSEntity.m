@@ -171,14 +171,6 @@ BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 }
 
 
-BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity)
-{
-	if (outEntity == NULL)  return NO;
-	*outEntity = JSObjectToObjectOfClass(context, entityObj, [Entity class]);
-	return *outEntity != nil;
-}
-
-
 JSClass *JSEntityClass(void)
 {
 	return &sEntityClass.base;

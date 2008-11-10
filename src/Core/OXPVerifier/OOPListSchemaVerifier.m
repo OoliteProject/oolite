@@ -588,7 +588,7 @@ static SchemaType StringToSchemaType(NSString *string, NSError **outError)
 	}
 	
 	result = [[typeMap objectForKey:string] unsignedIntValue];
-	if (result == kTypeUnknown)
+	if (result == kTypeUnknown && outError != NULL)
 	{
 		if ([string hasPrefix:@"$"])
 		{

@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#import <jsapi.h>
+#import "OOJavaScriptEngine.h"
 
 @class Entity;
 
@@ -34,7 +34,7 @@ void InitOOJSEntity(JSContext *context, JSObject *global);
 
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity);	// Value may be Entity or integer (OOUniversalID).
 
-BOOL JSEntityGetEntity(JSContext *context, JSObject *entityObj, Entity **outEntity);
+DEFINE_JS_OBJECT_GETTER(JSEntityGetEntity, Entity)
 
 JSClass *JSEntityClass(void);
 JSObject *JSEntityPrototype(void);

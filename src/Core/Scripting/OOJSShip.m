@@ -36,6 +36,9 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 
 
+DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
+
+
 static JSObject *sShipPrototype;
 
 
@@ -221,23 +224,6 @@ void InitOOJSShip(JSContext *context, JSObject *global)
 }
 
 
-BOOL JSShipGetShipEntity(JSContext *context, JSObject *shipObj, ShipEntity **outEntity)
-{
-	BOOL						result;
-	Entity						*entity = nil;
-	
-	if (outEntity != NULL)  *outEntity = nil;
-	
-	result = JSEntityGetEntity(context, shipObj, &entity);
-	if (!result)  return NO;
-	
-	if (![entity isKindOfClass:[ShipEntity class]])  return NO;
-	
-	*outEntity = (ShipEntity *)entity;
-	return YES;
-}
-
-
 JSClass *JSShipClass(void)
 {
 	return &sShipClass.base;
@@ -374,7 +360,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_weaponRange:
 			OK = JS_NewDoubleValue(context, [entity weaponRange], outValue);
-			OK = YES;
 			break;
 			
 		case kShip_scannerRange:

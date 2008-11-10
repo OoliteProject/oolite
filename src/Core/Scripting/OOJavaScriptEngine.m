@@ -262,10 +262,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	sSharedEngine = self;
 	
 	// Run prefix script.
-	OOJSScript *prefixScript = [OOJSScript nonLegacyScriptFromFileNamed:@"oolite-global-prefix.js"
-															 properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
-																									forKey:@"special"]];
-	prefixScript = nil;
+	[OOJSScript nonLegacyScriptFromFileNamed:@"oolite-global-prefix.js"
+								  properties:[NSDictionary dictionaryWithObject:JSSpecialFunctionsObjectWrapper(mainContext)
+																		 forKey:@"special"]];
 	
 	OOLog(@"script.javaScript.init.success", @"Set up JavaScript context.");
 	

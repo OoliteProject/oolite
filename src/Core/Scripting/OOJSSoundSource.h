@@ -30,5 +30,3 @@ MA 02110-1301, USA.
 
 
 void InitOOJSSoundSource(JSContext *context, JSObject *global);
-
-BOOL JSSoundSourceGetSoundSource(JSContext *context, JSObject *soundObj, OOSound **outSound);

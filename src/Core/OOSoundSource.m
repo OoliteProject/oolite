@@ -243,10 +243,8 @@ SOFTWARE.
 	
 }
 
-#if OOLITE_MAC_OS_X
-#pragma mark (OOSoundChannelDelegate)
-#endif
 
+// OOSoundChannelDelegate
 - (void)channel:(OOSoundChannel *)channel didFinishPlayingSound:(OOSound *)sound
 {
 	assert(_channel == channel);

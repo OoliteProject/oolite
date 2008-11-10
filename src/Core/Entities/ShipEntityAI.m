@@ -306,7 +306,7 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	if (found_target != NO_TARGET)
+	if (things_found != 0)
 	{
 		found_target = thing_uids_found[ranrot_rand() % things_found];
 		[shipAI message:@"TARGET_FOUND"];

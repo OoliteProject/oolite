@@ -30,9 +30,10 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 
 
-static JSObject		*sSunPrototype;
+DEFINE_JS_OBJECT_GETTER(JSSunGetPlanetEntity, PlanetEntity)
 
-static BOOL JSSunGetPlanetEntity(JSContext *context, JSObject *SunObj, PlanetEntity **outEntity);
+
+static JSObject		*sSunPrototype;
 
 
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -102,23 +103,6 @@ void OOSunGetClassAndPrototype(JSClass **outClass, JSObject **outPrototype)
 {
 	*outClass = &sSunClass.base;
 	*outPrototype = sSunPrototype;
-}
-
-
-static BOOL JSSunGetPlanetEntity(JSContext *context, JSObject *stationObj, PlanetEntity **outEntity)
-{
-	BOOL						result;
-	Entity						*entity = nil;
-	
-	if (outEntity != NULL)  *outEntity = nil;
-	
-	result = JSEntityGetEntity(context, stationObj, &entity);
-	if (!result)  return NO;
-	
-	if (![entity isKindOfClass:[PlanetEntity class]])  return NO;
-	
-	*outEntity = (PlanetEntity *)entity;
-	return YES;
 }
 
 

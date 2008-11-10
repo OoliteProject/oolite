@@ -33,6 +33,9 @@ MA 02110-1301, USA.
 static JSObject *sSoundPrototype;
 
 
+DEFINE_JS_OBJECT_GETTER(JSSoundGetSound, OOSound)
+
+
 static OOSound *GetNamedSound(NSString *name);
 
 
@@ -106,14 +109,6 @@ void InitOOJSSound(JSContext *context, JSObject *global)
 {
 	sSoundPrototype = JS_InitClass(context, global, NULL, &sSoundClass.base, NULL, 0, sSoundProperties, sSoundMethods, NULL, sSoundStaticMethods);
 	JSRegisterObjectConverter(&sSoundClass.base, JSBasicPrivateObjectConverter);
-}
-
-
-BOOL JSSoundGetSound(JSContext *context, JSObject *soundObj, OOSound **outSound)
-{
-	if (outSound == NULL)  return NO;
-	*outSound = JSObjectToObjectOfClass(context, soundObj, [OOSound class]);
-	return *outSound != nil;
 }
 
 

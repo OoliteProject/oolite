@@ -909,7 +909,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	double		sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
 	double		sun_radius = (2.5 + randf() - randf() ) * planet_radius;
 	Quaternion  q_sun;
-	Vector		sunPos = kZeroVector;
+	Vector		sunPos;
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -1692,7 +1692,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		
+#if DEAD_STORE
 		escortsAdded = 0;
+#endif
 		
 		if ((Ranrot() & 7) < government)
 		{
@@ -1714,7 +1716,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 				{
 					[hunter_ship setEscortCount:[hunter_ship escortCount] + 2];
 				}
+#if DEAD_STORE
 				escortsAdded = [hunter_ship escortCount];
+#endif
 			}
 		}
 		else
@@ -1824,7 +1828,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 			[self addEntity:hermit];
 			[[hermit getAI] setState:@"GLOBAL"];
 			[hermit release];
+#if DEAD_STORE
 			clusterSize++;
+#endif
 		}
 	}
 	
@@ -1936,9 +1942,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	Vector  s_pos = the_sun->position;
 	
 	const char* c_sys = [l_sys UTF8String];
-	Vector p0 = make_vector(1,0,0);
-	Vector p1 = make_vector(0,1,0);
-	Vector p2 = make_vector(0,0,1);
+	Vector p0, p1, p2;
 	
 	switch (c_sys[0])
 	{
@@ -2037,9 +2041,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	Vector  s_pos = the_sun->position;
 	
 	const char* c_sys = [l_sys UTF8String];
-	Vector p0 = make_vector(1,0,0);
-	Vector p1 = make_vector(0,1,0);
-	Vector p2 = make_vector(0,0,1);
+	Vector p0, p1, p2;
 	
 	switch (c_sys[0])
 	{
@@ -4046,8 +4048,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		
 		if (![entity validForAddToUniverse])  return NO;
 		
-		int index = n_entities;
-		
 		// don't add things twice!
 		if ([entities containsObject:entity])
 			return YES;
@@ -4131,7 +4131,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		double z_distance = magnitude2(delta);
 		entity->zero_distance = z_distance;
 		entity->relativePosition = delta;
-		index = n_entities;
+		unsigned index = n_entities;
 		sortedEntities[index] = entity;
 		entity->zero_index = index;
 		while ((index > 0)&&(z_distance < sortedEntities[index - 1]->zero_distance))	// bubble into place
@@ -4480,7 +4480,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if (srcEntity == nil) return NO_TARGET;
 	
-	BOOL			isSubentity = NO;
 	ShipEntity		*hit_entity = nil;
 	ShipEntity		*hit_subentity = nil;
 	Vector			p0 = [srcEntity position];
@@ -4498,7 +4497,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		p0 = [srcEntity absolutePositionForSubentityOffset:midfrontplane];
 		q1 = [parent orientation];
 		if ([parent isPlayer])  q1.w = -q1.w;
-		isSubentity = YES;
 	}
 	
 	int				result = NO_TARGET;
@@ -5013,21 +5011,22 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			ms = DESC(@"starboard-view-string");
 			displayGUI = NO;   // switch off any text displays
 			break;
-		/* GILES custom views */
 		
 		case VIEW_CUSTOM:
 			ms = [[PlayerEntity sharedPlayer] customViewDescription];
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
-		/* -- */
 		default:
 			mouseDelta = NO;
 			break;
 	}
 #if OOLITE_SDL
 	[gameView setMouseInDeltaMode: mouseDelta];
+#else
+	(void)mouseDelta;
 #endif
+	
 	if ((viewDirection != vd)|(viewDirection = VIEW_CUSTOM))
 	{
 		viewDirection = vd;
@@ -6396,9 +6395,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		NSDictionary* node = node_open[location];
 		[open_nodes removeObjectAtIndex:0];
-				
+		
 		cost_from_start =		[node doubleForKey:@"cost_from_start"];
+#if DEAD_STORE
 		cost_to_goal =			[node doubleForKey:@"cost_to_goal"];
+#endif
 		total_cost_estimate =	[node doubleForKey:@"total_cost_estimate"];
 		parent_node =			[node dictionaryForKey:@"parent_node"];
 		
@@ -6411,10 +6412,13 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			{
 				[route insertObject:[node objectForKey:@"location"] atIndex:0];
 				node = parent_node;
+#if DEAD_STORE
+				//Unused variables. -- Ahruman 2008-11-10
 				location =				[node intForKey:@"location"];
 				cost_from_start =		[node doubleForKey:@"cost_from_start"];
 				cost_to_goal =			[node doubleForKey:@"cost_to_goal"];
 				total_cost_estimate =	[node doubleForKey:@"total_cost_estimate"];
+#endif
 				parent_node =			[node dictionaryForKey:@"parent_node"];
 			}
 			[route insertUnsignedInteger:start atIndex:0];
@@ -6564,12 +6568,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (BOOL) generateEconomicDataWithEconomy:(OOEconomyID) economy andRandomFactor:(int) random_factor
 {
-	StationEntity *some_station = [self station];
-	NSString *stationRole = [some_station primaryRole];
-	if ([commodityLists arrayForKey:stationRole] == nil)  stationRole = @"default";
-	
 	[commodityData release];
-	commodityData = [[self commodityDataForEconomy:economy andStation:some_station andRandomFactor:random_factor] retain];
+	commodityData = [[self commodityDataForEconomy:economy andStation:[self station] andRandomFactor:random_factor] retain];
 	return YES;
 }
 
@@ -6577,7 +6577,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor
 {
 	NSString		*stationRole = nil;
-	NSMutableArray		*ourEconomy = nil;
+	NSMutableArray	*ourEconomy = nil;
 	unsigned		i;
 	
 	stationRole = [[self currentSystemData] stringForKey:@"market"];
@@ -6806,7 +6806,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	if (interval <= 0.0)
 		return DESC(@"contracts-no-time");
 	
-	if ((parts < 2)&&(r_time > 86400))
+	if (r_time > 86400)
 	{
 		int days = floor(r_time / 86400);
 		r_time -= 86400 * days;
@@ -6815,7 +6815,7 @@ double estimatedTimeForJourney(double distance, int hops)
 									DESC(@"contracts-day-word")];
 		parts++;
 	}
-	if ((parts < 2)&&(r_time > 3600))
+	if (r_time > 3600)
 	{
 		int hours = floor(r_time / 3600);
 		r_time -= 3600 * hours;
@@ -6824,7 +6824,7 @@ double estimatedTimeForJourney(double distance, int hops)
 									DESC(@"contracts-hour-word")];
 		parts++;
 	}
-	if ((parts < 2)&&(r_time > 60))
+	if (parts < 2 && r_time > 60)
 	{
 		int mins = floor(r_time / 60);
 		r_time -= 60 * mins;
@@ -6833,13 +6833,12 @@ double estimatedTimeForJourney(double distance, int hops)
 									DESC(@"contracts-minute-word")];
 		parts++;
 	}
-	if ((parts < 2)&&(r_time > 0))
+	if (parts < 2 && r_time > 0)
 	{
 		int secs = floor(r_time);
 		result = [NSString stringWithFormat:@"%@ %d %@", result, secs, (secs > 1) ?
 									DESC(@"contracts-second-word-plural") :
 									DESC(@"contracts-second-word")];
-		parts++;
 	}
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }

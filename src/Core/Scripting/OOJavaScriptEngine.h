@@ -263,6 +263,14 @@ id JSObjectToObject(JSContext *context, JSObject *object);
 id JSValueToObjectOfClass(JSContext *context, jsval value, Class requiredClass);
 id JSObjectToObjectOfClass(JSContext *context, JSObject *object, Class requiredClass);
 
+#define DEFINE_JS_OBJECT_GETTER(NAME, CLASS) \
+OOINLINE BOOL NAME(JSContext *context, JSObject *inObject, CLASS **outObject) \
+{ \
+	if (outObject == NULL)  return NO; \
+	*outObject = JSObjectToObjectOfClass(context, inObject, [CLASS class]); \
+	return *outObject != nil; \
+}
+
 
 /*	Support for JSValueToObject()
 	

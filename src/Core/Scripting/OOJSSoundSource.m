@@ -31,6 +31,9 @@ MA 02110-1301, USA.
 static JSObject *sSoundSourcePrototype;
 
 
+DEFINE_JS_OBJECT_GETTER(JSSoundSourceGetSoundSource, OOSoundSource)
+
+
 static JSBool SoundSourceGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool SoundSourceSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool SoundSourceConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -104,14 +107,6 @@ void InitOOJSSoundSource(JSContext *context, JSObject *global)
 {
 	sSoundSourcePrototype = JS_InitClass(context, global, NULL, &sSoundSourceClass.base, SoundSourceConstruct, 0, sSoundSourceProperties, sSoundSourceMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sSoundSourceClass.base, JSBasicPrivateObjectConverter);
-}
-
-
-BOOL JSSoundSourceGetSoundSource(JSContext *context, JSObject *soundSourceObj, OOSoundSource **outSoundSource)
-{
-	if (outSoundSource == NULL)  return NO;
-	*outSoundSource = JSObjectToObjectOfClass(context, soundSourceObj, [OOSoundSource class]);
-	return *outSoundSource != nil;
 }
 
 

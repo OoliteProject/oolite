@@ -142,7 +142,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
-	if (eqType == nil)  return NO;
+	if (EXPECT_NOT(eqType == nil))  return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -247,7 +247,7 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	eqType = JSObjectToObjectOfClass(context, this, [OOEquipmentType class]);
-	if (eqType == nil)  return NO;
+	if (EXPECT_NOT(eqType == nil))  return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{

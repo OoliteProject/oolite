@@ -31,9 +31,10 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 
 
-static JSObject		*sPlanetPrototype;
+DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, PlanetEntity)
 
-static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *PlanetObj, PlanetEntity **outEntity);
+
+static JSObject		*sPlanetPrototype;
 
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -95,23 +96,6 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
 	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, sPlanetMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sPlanetClass.base, JSBasicPrivateObjectConverter);
-}
-
-
-static BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *stationObj, PlanetEntity **outEntity)
-{
-	BOOL						result;
-	Entity						*entity = nil;
-	
-	if (outEntity != NULL)  *outEntity = nil;
-	
-	result = JSEntityGetEntity(context, stationObj, &entity);
-	if (!result)  return NO;
-	
-	if (![entity isKindOfClass:[PlanetEntity class]])  return NO;
-	
-	*outEntity = (PlanetEntity *)entity;
-	return YES;
 }
 
 

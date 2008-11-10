@@ -184,7 +184,6 @@ MA 02110-1301, USA.
 	[self setLongDescription: [self shortDescription]];
 	
 	// determine legalStatus for a completely random character
-	NSString *legalDesc;
 	[self setLegalStatus: 0];	// clean
 	int legal_index = gen_rnd_number() & gen_rnd_number() & 0x03;
 	while (((gen_rnd_number() & 0xf) < criminal_tendency)&&(legal_index < 3))
@@ -193,6 +192,10 @@ MA 02110-1301, USA.
 		[self setLegalStatus: criminal_tendency + criminal_tendency * (gen_rnd_number() & 0x03) + (gen_rnd_number() & gen_rnd_number() & 0x7f)];
 	legal_index = 0;
 	if (legalStatus)	legal_index = (legalStatus <= 50) ? 1 : 2;
+	
+#if 0
+	NSString *legalDesc = nil;
+	// Never used! What was intended? -- Ahruman 2008-11-10
 	switch (legal_index)
 	{
 		case 0:
@@ -208,6 +211,7 @@ MA 02110-1301, USA.
 			// never should get here
 			legalDesc = @"an unperson";
 	}
+#endif
 
 	// if clean - determine insurance level (if any)
 	[self setInsuranceCredits:0];
