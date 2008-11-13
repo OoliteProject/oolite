@@ -3207,6 +3207,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	status = STATUS_ESCAPE_SEQUENCE;	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
+#ifdef DOCKING_CLEARANCE_ENABLED
+	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
+#endif
 	
 	q1.w = -q1.w;   // player view is reversed remember!
 	

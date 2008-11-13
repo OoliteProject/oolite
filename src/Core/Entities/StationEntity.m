@@ -1876,22 +1876,27 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// time-out or cancellation (but only for the Player).
 	if( result == nil && [other isPlayer] && self == [player getTargetDockStation])
 	{
-		if ([player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_TIMING_OUT)
+		switch( [player getDockingClearanceStatus] )
 		{
-			last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
-			[self sendExpandedMessage:[NSString stringWithFormat:
-				DESC(@"your-docking-clearance-has-been-extended-until-@"),
-				ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
+			case DOCKING_CLEARANCE_STATUS_TIMING_OUT:
+				last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
+				[self sendExpandedMessage:[NSString stringWithFormat:
+					DESC(@"your-docking-clearance-has-been-extended-until-@"),
+						ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
 					toShip:other];
-			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-			result = @"DOCKING_CLEARANCE_EXTENDED";
-		}
-		else if ([player getDockingClearanceStatus] > DOCKING_CLEARANCE_STATUS_REQUESTED)
-		{
-			last_launch_time = timeNow;
-			[self sendExpandedMessage:DESC(@"docking-clearance-cancelled") toShip:other];
-			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-			result = @"DOCKING_CLEARANCE_CANCELLED";
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+				result = @"DOCKING_CLEARANCE_EXTENDED";
+				break;
+			case DOCKING_CLEARANCE_STATUS_REQUESTED:
+			case DOCKING_CLEARANCE_STATUS_GRANTED:
+				last_launch_time = timeNow;
+				[self sendExpandedMessage:DESC(@"docking-clearance-cancelled") toShip:other];
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+				result = @"DOCKING_CLEARANCE_CANCELLED";
+				break;
+			case DOCKING_CLEARANCE_STATUS_NONE:
+			case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
+				break;
 		}
 	}
 
