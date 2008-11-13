@@ -10,7 +10,7 @@
 	"trader",
 	"shuttle",
 	
-	// Known trader-like roles from pre-1-70 plug-ins
+	// Known trader-like roles from pre-1.70 plug-ins
 	"delta",
 	"gemini",
 	"starseeker",

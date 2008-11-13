@@ -253,7 +253,7 @@ static OOMaterial *sActiveMaterial = nil;
 	if ([textures count] != 0)  [newConfig setObject:textures forKey:@"textures"];
 	if ([uniforms count] != 0)  [newConfig setObject:uniforms forKey:@"uniforms"];
 	
-	[newConfig setObject:modifiedMacros forKey:@"_synthesized_material_macros"];
+	[newConfig setObject:modifiedMacros forKey:@"_oo_synthesized_material_macros"];
 	return newConfig;
 }
 
@@ -302,7 +302,7 @@ static OOMaterial *sActiveMaterial = nil;
 		result =  [self materialWithName:name
 						   forModelNamed:modelName
 						   configuration:synthesizedConfig
-								  macros:[synthesizedConfig objectForKey:@"_synthesized_material_macros"]
+								  macros:[synthesizedConfig objectForKey:@"_oo_synthesized_material_macros"]
 						   bindingTarget:target
 						 forSmoothedMesh:YES];
 	}

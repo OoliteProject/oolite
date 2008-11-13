@@ -692,6 +692,8 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 - (BOOL) isHitByOctree:(Octree*) other withOrigin: (Vector) v0 andIJK: (Triangle) ijk
 {
+	if (other == nil)  return NO;
+	
 	BOOL hit = isHitByOctree( [self octreeDetails], [other octreeDetails], v0, ijk);
 	
 	hasCollision = hasCollision | hit;

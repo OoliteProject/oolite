@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 #if OOLITE_MAC_OS_X
 #define CACHE_PLIST_FORMAT	NSPropertyListBinaryFormat_v1_0
 #else
-#define CACHE_PLIST_FORMAT	NSPropertyListGNUstepBinaryFormat	// NSPropertyListXMLFormat_v1_0
+#define CACHE_PLIST_FORMAT	NSPropertyListGNUstepBinaryFormat
 #endif
 
 
@@ -64,7 +64,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 22
+	kFormatVersionValue		= 24
 };
 
 

@@ -53,6 +53,7 @@ SOFTWARE.
 #import "NSDictionaryOOExtensions.h"
 #import "OOProbabilitySet.h"
 #import "OORoleSet.h"
+#import "OOStringParsing.h"
 
 
 static OOShipRegistry	*sSingleton = nil;
@@ -76,6 +77,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
+- (BOOL) tagSubEntities:(NSMutableDictionary *)ioData;
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
 - (void) mergeShipRoles:(NSString *)roles forShipKey:(NSString *)shipKey intoProbabilityMap:(NSMutableDictionary *)probabilitySets;
 
@@ -242,7 +244,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	{
 		if (![[result objectForKey:key] isKindOfClass:[NSDictionary class]])
 		{
-			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary, ignoring.", key);
+			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary.", key);
 			[result removeObjectForKey:key];
 		}
 	}
@@ -252,6 +254,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
+	
+	// Tag subentities so they won't be pruned.
+	if (![self tagSubEntities:result])  return;
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result])  return;
@@ -391,6 +396,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSDictionary			*shipEntry = nil;
 	NSDictionary			*parentEntry = nil;
 	unsigned				count, lastCount;
+	NSMutableArray			*reportedBadShips = nil;
 	
 	// Build set of ships with like_ship references
 	remainingLikeShips = [NSMutableSet set];
@@ -427,11 +433,21 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		count = [remainingLikeShips count];
 		if (count == lastCount)
 		{
-			// Fail: we couldn't resolve all like_ship entries. Remove unresolved ones.
-			OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", remainingLikeShips);
+			/*	Fail: we couldn't resolve all like_ship entries.
+				Remove unresolved entries, building a list of the ones that
+				don't have is_external_dependency set.
+			*/
+			reportedBadShips = [NSMutableArray array];
 			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
 			{
+				[reportedBadShips addObject:key];
 				[ioData removeObjectForKey:key];
+			}
+			
+			if ([reportedBadShips count] != 0)
+			{
+				[reportedBadShips sortUsingSelector:@selector(caseInsensitiveCompare:)];
+				OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: ", reportedBadShips);
 			}
 			break;
 		}
@@ -450,8 +466,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	[result addEntriesFromDictionary:child];
 	[result removeObjectForKey:@"like_ship"];
 	
-	// As a special case, display_name cannot be inherited.
+	// Certain properties cannot be inherited.
 	if ([child stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
+	if ([child stringForKey:@"is_template"] == nil)  [result removeObjectForKey:@"is_template"];
 	
 	return [[result copy] autorelease];
 }
@@ -478,7 +495,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			overridesEntry = [overrides objectForKey:key];
 			if (![overridesEntry isKindOfClass:[NSDictionary class]])
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata-overrides.plist entry \"%@\" is not a dictionary, ignoring.", key);
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata-overrides.plist entry \"%@\" is not a dictionary.", key);
 			}
 			else
 			{
@@ -559,27 +576,119 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
+- (BOOL) tagSubEntities:(NSMutableDictionary *)ioData
+{
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSDictionary			*shipEntry = nil;
+	NSArray					*subEntityDeclarations = nil;
+	NSEnumerator			*subEntityEnum = nil;
+	NSString				*subEntityKey = nil;
+	NSArray					*subEntityDef = nil;
+	NSDictionary			*subEntityShipEntry = nil;
+	BOOL					remove;
+	NSMutableSet			*badSubEntities = nil;
+	NSString				*badSubEntitiesList = nil;
+	
+	// Add _oo_is_subentity=YES to all entries used as subentities.
+	// Iterate over all ships. (Iterates over a copy of keys since it mutates the dictionary.)
+	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	{
+		shipEntry = [ioData objectForKey:shipKey];
+		remove = NO;
+		badSubEntities = nil;
+		
+		// Iterate over each subentity declaration of each ship
+		subEntityDeclarations = [shipEntry arrayForKey:@"subentities"];
+		for (subEntityEnum = [subEntityDeclarations objectEnumerator]; (subEntityKey = [subEntityEnum nextObject]); )
+		{
+			subEntityDef = ScanTokensFromString(subEntityKey);
+			
+			// While we're at it, do basic sanity checking on subentity defs.
+			if ([subEntityDef count] != 8)
+			{
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken role definition \"%@\" (should have 8 tokens, has %u).", shipKey, subEntityKey, [subEntityDef count]);
+				remove = YES;
+			}
+			else
+			{
+				subEntityKey = [subEntityDef stringAtIndex:0];
+				if (![subEntityKey isEqualToString:@"*FLASHER*"])
+				{
+					subEntityShipEntry = [ioData objectForKey:subEntityKey];
+					if (subEntityShipEntry == nil)
+					{
+						// Oops, reference to non-existent subent
+						if (badSubEntities == nil)  badSubEntities = [NSMutableSet set];
+						[badSubEntities addObject:subEntityKey];
+					}
+					else if (![subEntityShipEntry boolForKey:@"_oo_is_subentity"])
+					{
+						// Subent exists, add _oo_is_subentity so roles aren't required
+						subEntityShipEntry = [subEntityShipEntry dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:@"_oo_is_subentity"];
+						[ioData setObject:subEntityShipEntry forKey:subEntityKey];
+					}
+				}
+			}
+		}
+		
+		if (badSubEntities != nil)
+		{
+			if (![shipEntry boolForKey:@"is_external_dependency"])
+			{
+				badSubEntitiesList = [[[badSubEntities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubEntities count] == 1) ? @"y" : @"ies", badSubEntitiesList);
+			}
+			remove = YES;
+		}
+		
+		if (remove)
+		{
+			// Removal is deferred to avoid bogus "entry doesn't exist" errors.
+			shipEntry = [shipEntry dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:@"_oo_deferred_remove"];
+			[ioData setObject:shipEntry forKey:shipKey];
+		}
+	}
+	
+	return YES;
+}
+
+
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
 	NSDictionary			*shipEntry = nil;
+	BOOL					remove;
+	NSString				*modelName = nil;
 	
 	// Clean out invalid entries and templates. (Iterates over a copy of keys since it mutates the dictionary.)
 	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
 		shipEntry = [ioData objectForKey:shipKey];
-		if ([shipEntry boolForKey:@"is_template"])  [ioData removeObjectForKey:shipKey];
-		else if ([[shipEntry stringForKey:@"roles"] length] == 0)
+		remove = NO;
+		
+		if ([shipEntry boolForKey:@"is_template"] || [shipEntry boolForKey:@"_oo_deferred_remove"])  remove = YES;
+		else if ([[shipEntry stringForKey:@"roles"] length] == 0 && ![shipEntry boolForKey:@"_oo_is_subentity"])
 		{
-			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", shipKey, @"roles");
-			[ioData removeObjectForKey:shipKey];
+			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
+			remove = YES;
 		}
-		else if ([[shipEntry stringForKey:@"model"] length] == 0)
+		else
 		{
-			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@, ignoring.", shipKey, @"model");
-			[ioData removeObjectForKey:shipKey];
+			modelName = [shipEntry stringForKey:@"model"];
+			if ([modelName length] == 0)
+			{
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
+				remove = YES;
+			}
+			else if ([ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
+			{
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName, @"model");
+				remove = YES;
+			}
 		}
+		if (remove)  [ioData removeObjectForKey:shipKey];
 	}
 	
 	return YES;

@@ -2685,7 +2685,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (ghBehaviour == GALACTIC_HYPERSPACE_BEHAVIOUR_UNKNOWN)
 	{
 		OOLog(@"player.setGalacticHyperspaceBehaviour.invalidInput",
-			  @"setGalacticHyperspaceBehaviour: called with unknown behaviour %@.", galacticHyperspaceBehaviourString);
+			  @"setGalacticHyperspaceBehaviourTo: called with unknown behaviour %@.", galacticHyperspaceBehaviourString);
 	}
 	[self setGalacticHyperspaceBehaviour:ghBehaviour];
 }

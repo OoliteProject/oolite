@@ -361,6 +361,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 									 smooth:[shipDict boolForKey:@"smooth"]
 							   shaderMacros:DefaultShipShaderMacros()
 						shaderBindingTarget:self];
+		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
 	}
 	

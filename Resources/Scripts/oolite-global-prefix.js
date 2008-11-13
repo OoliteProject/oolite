@@ -198,6 +198,7 @@ this.defineCompatibilitySubMethod("player", "ship", "removeAllCargo");
 this.defineCompatibilitySubMethod("player", "ship", "useSpecialCargo");
 this.defineCompatibilitySubMethod("player", "ship", "setGalacticHyperspaceBehaviour");
 this.defineCompatibilitySubMethod("player", "ship", "setGalacticHyperspaceFixedCoords");
+this.defineCompatibilitySubMethod("player", "ship", "spawnOne");
 
 this.defineCompatibilitySubGetter("player", "ship", "AI");
 this.defineCompatibilitySubGetterAndSetter("player", "ship", "AIState");
