@@ -1986,7 +1986,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
 		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		id				determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		id		determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{
 			NSArray *conditions = (NSArray *)determinant;
@@ -1996,9 +1997,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				success &= [player scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
 			return success;
 		}
-		if ([determinant isKindOfClass:[NSNumber class]])
+		else
 		{
-			float chance = [(NSNumber*)determinant floatValue];
+			float chance = [shipinfoDictionary fuzzyBooleanForKey:@"hasShipyard"];
 			return (randf() < chance);
 		}
 	}
