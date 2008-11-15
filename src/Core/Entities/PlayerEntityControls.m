@@ -462,8 +462,6 @@ static NSTimeInterval	time_last_frame;
 - (void) pollFlightControls:(double)delta_t
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
-	HeadUpDisplay *playersHud = [self hud];
-	static GLfloat sPrevHudAlpha = -1.0f;
 	
 	// DJS: TODO: Sort where SDL keeps its stuff.
 	if(!stickHandler)
@@ -1182,14 +1180,12 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 		}
 		
+#ifndef NDEBUG
 		if ([gameView isDown:'o'])// look for the 'o' key
 		{
-			if (sPrevHudAlpha < 0.0f) 
-			{
-				sPrevHudAlpha = [playersHud overallAlpha];
-			}
-			[playersHud setOverallAlpha:0.0f]; // remove hud by making it fully transparent
+			gDebugFlags |= DEBUG_HIDE_HUD;
 		}
+#endif
 		
 		if ([gameView isDown:'n'])// look for the 'n' key
 		{
@@ -1200,7 +1196,6 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
 #endif	// NDEBUG
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
-			if (sPrevHudAlpha != -1.0f) [playersHud setOverallAlpha:sPrevHudAlpha];
 #ifdef ALLOW_PROCEDURAL_PLANETS
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
 			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];

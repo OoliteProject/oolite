@@ -3698,16 +3698,32 @@ static const OOMatrix	starboard_matrix =
 			glLineWidth(line_width);
 
 			[self drawMessage];
-
-			if ((v_status != STATUS_DEAD)&&(v_status != STATUS_ESCAPE_SEQUENCE))
+			
+			HeadUpDisplay *theHUD = [player hud];
+#ifndef NDEBUG
+			static float sPrevHudAlpha = -1.0f;
+			if (gDebugFlags & DEBUG_HIDE_HUD)
 			{
-				if (!displayGUI)
-					[self drawCrosshairs];
+				if (sPrevHudAlpha < 0.0f)
+				{
+					sPrevHudAlpha = [theHUD overallAlpha];
+					[theHUD setOverallAlpha:0.0f];
+				}
+			}
+			else if (sPrevHudAlpha >= 0.0f)
+			{
+				[theHUD setOverallAlpha:sPrevHudAlpha];
+				sPrevHudAlpha = 1.0f;
+			}
+#endif
+			
+			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
+			{
+				if (!displayGUI)  [self drawCrosshairs];
 				
-				HeadUpDisplay *the_hud = [player hud];
-				[the_hud setLine_width:line_width];
-				[the_hud drawLegends];
-				[the_hud drawDials];
+				[theHUD setLine_width:line_width];
+				[theHUD drawLegends];
+				[theHUD drawDials];
 			}
 			
 			glFlush();	// don't wait around for drawing to complete
@@ -5217,6 +5233,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) update:(OOTimeDelta)delta_t
 {
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_SLOW_MODE)  delta_t *= DEBUG_SLOW_MODE_FACTOR;
+#endif
+	
 	if (!no_update)
 	{
 		NSString * volatile update_stage = @"initialisation";

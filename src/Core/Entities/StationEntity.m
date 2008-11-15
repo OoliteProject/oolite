@@ -1986,7 +1986,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
 		PlayerEntity	*player = [PlayerEntity sharedPlayer];
-		id		determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		id				determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{

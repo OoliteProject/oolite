@@ -757,6 +757,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	ship_desc = PLAYER_SHIP_DESC;
 	ship_trade_in_factor = 95;
 	
+#ifndef NDEBUG
+	gDebugFlags &= ~DEBUG_HIDE_HUD;
+#endif
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	[hud release];
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
@@ -1028,6 +1031,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
 		if (huddict)
 		{
+#ifndef NDEBUG
+			gDebugFlags &= ~DEBUG_HIDE_HUD;
+#endif
 			[hud release];
 			hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 			[hud setScannerZoom:1.0];
@@ -2306,7 +2312,12 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (NSString*) dial_fpsinfo
 {
-	return [NSString stringWithFormat:@"FPS: %3d", fps_counter];
+	unsigned fpsVal = fps_counter;
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_SLOW_MODE)  fpsVal *= DEBUG_SLOW_MODE_FACTOR;
+#endif
+	
+	return [NSString stringWithFormat:@"FPS: %3d", fpsVal];
 }
 
 

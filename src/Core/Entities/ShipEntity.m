@@ -4736,7 +4736,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (script != nil)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"shipDied"];
+		[self doScriptEvent:@"shipDied"];	// FIXME: params missing
 	}
 
 	// two parts to the explosion:
