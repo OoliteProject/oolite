@@ -1,12 +1,19 @@
-!packhdr "Oolite.dat" "upx.exe --best Oolite.dat"
+!ifndef VER
+!error "VER not defined."
+!endif
+!ifndef DST
+!define DST ..\..\oolite.app
+!endif
+
+;!packhdr "Oolite.dat" "upx.exe --best Oolite.dat"
 SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "OoliteInstall-$%VER%.exe"
+OutFile "..\..\..\OoliteInstall-${VER}.exe"
 BrandingText "Oolite"
 Name "Oolite"
-Caption "Oolite $%VER%"
+Caption "Oolite ${VER}"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -29,83 +36,73 @@ FunctionEnd
 Function un.RegSetup
 FunctionEnd
 
+;------------------------------------------------------------
+; Installation Section
 Section ""
 SetOutPath $INSTDIR
 
+; Package files
 CreateDirectory "$INSTDIR\AddOns"
+CreateDirectory "$INSTDIR\GNUstep\Library\DTDs"
 
-WriteRegStr HKLM Software\Oolite "Install_Dir" "$INSTDIR"
-WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite DisplayName "Oolite Package"
-WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite UninstallString '"$INSTDIR\UninstOolite.exe"'
+File "Oolite.ico"
+File "RunOolite.bat"
+File "Oolite_Readme.txt"
+File "OoliteRS.pdf"
+File /r /x .svn /x *~ "${DST}"
+
+SetOutPath $INSTDIR\GNUstep\Library\DTDs
+File /r /x .svn /x *~ "..\..\deps\Cross-platform-deps\DTDs\*.*"
+
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
 
+; Registry entries
+WriteRegStr HKLM Software\Oolite "Install_Dir" "$INSTDIR"
+WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite DisplayName "Oolite ${VER}"
+WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite UninstallString '"$INSTDIR\UninstOolite.exe"'
+
+; Start Menu shortcuts
+SetOutPath $INSTDIR
 CreateDirectory "$SMPROGRAMS\Oolite"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\RunOolite.bat" "" "$INSTDIR\Oolite.ico"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\Oolite_Readme.txt"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite reference sheet.lnk" "$INSTDIR\OoliteRS.pdf"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite website.lnk" "http://Oolite.aegidian.org/"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Reference Sheet.lnk" "$INSTDIR\OoliteRS.pdf"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://Oolite.aegidian.org/"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
-
-File "Oolite.ico"
-File /r "$%DST%\*.*"
 
 Call RegSetup
 
-ClearErrors
-FileOpen $0 $INSTDIR\RunOolite.bat w
-IfErrors doneWriting
-
-FileWrite $0 "@echo off"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "set GNUSTEP_PATH_HANDLING=windows"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "set GNUSTEP_LOCAL_ROOT=$INSTDIR\oolite.app"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "set GNUSTEP_NETWORK_ROOT=$INSTDIR\oolite.app"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "set GNUSTEP_SYSTEM_ROOT=$INSTDIR\oolite.app"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "set HOMEPATH=$INSTDIR\oolite.app"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileWrite $0 "oolite.app\oolite.exe"
-FileWriteByte $0 "13"
-FileWriteByte $0 "10"
-
-FileClose $0
-doneWriting:
-
-Exec "notepad.exe $INSTDIR/Oolite_Readme.txt"
+Exec "notepad.exe $INSTDIR\Oolite_Readme.txt"
 
 SectionEnd
 
+;------------------------------------------------------------
+; Uninstaller Section
 Section "Uninstall"
+
+; Remove registry entries
 DeleteRegKey HKLM Software\Oolite
 DeleteRegKey HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite
 Call un.RegSetup
 
-RMDir /r "$INSTDIR\oolite.app\Contents"
-RMDir /r "$INSTDIR\oolite.app\GNUstep"
-RMDir /r "$INSTDIR\oolite.app\Library"
-RMDir /r "$INSTDIR\oolite.app\GNUstep"
-RMDir /r "$INSTDIR\oolite.app\oolite.app"
-RMDir /r "$INSTDIR\oolite.app\Resources"
-RMDir /r "$INSTDIR\oolite.app\share"
-Delete "$INSTDIR\*.*"
-Delete "$INSTDIR\oolite.app\*.*"
-
+; Remove Start Menu entries
 RMDir /r "$SMPROGRAMS\Oolite"
+
+; Remove Package files (but leave any generated content behind)
+RMDir /r "$INSTDIR\oolite.app"
+RMDir /r "$INSTDIR\Logs"
+RMDir /r "$INSTDIR\GNUstep\Library\DTDs"
+Delete "$INSTDIR\GNUstep\Library\Caches\Oolite-cache.plist"
+RMDir "$INSTDIR\GNUstep\Library\Caches"
+RMDir "$INSTDIR\GNUstep\Library"
+RMDir "$INSTDIR\GNUstep"
+RMDir "$INSTDIR\AddOns"
+Delete "$INSTDIR\Oolite.ico"
+Delete "$INSTDIR\RunOolite.bat"
+Delete "$INSTDIR\Oolite_Readme.txt"
+Delete "$INSTDIR\OoliteRS.pdf"
+Delete "$INSTDIR\UninstOolite.exe"
+RMDir "$INSTDIR"
 
 SectionEnd
 

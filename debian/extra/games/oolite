@@ -1,5 +1,2 @@
 #!/bin/sh
-set -e
-mkdir -p ~/.Oolite
-cd ~/.Oolite
-openapp oolite
+openapp oolite &

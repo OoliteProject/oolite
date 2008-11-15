@@ -4,33 +4,30 @@
 # to live (Contents/Resources)
 #
 ifeq ($(debug),yes)
-	EXTENSION=debug
-else
-	EXTENSION=app
+	EXT=.dbg
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	BINARY=$(OBJC_PROGRAM_NAME).exe
-else
-	BINARY=$(OBJC_PROGRAM_NAME)
+	OS_EXT=.exe
 endif
+SRC_BIN=$(OBJC_PROGRAM_NAME)$(OS_EXT)
+DEST_BIN=$(OBJC_PROGRAM_NAME)$(EXT)$(OS_EXT)
 
-PROGDIR=$(OBJC_PROGRAM_NAME).$(EXTENSION)
-GNUSTEP_OW=$(OBJC_PROGRAM_NAME).$(EXTENSION)/Resources/Info-gnustep.plist
+PROGDIR=$(OBJC_PROGRAM_NAME).app
 
 after-all:: 
-	rm -rf $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)
 	$(MKDIRS) $(PROGDIR)/Resources
-	$(CP) -r Resources $(PROGDIR)
-	$(CP) -r Schemata $(PROGDIR)/Resources
-	$(CP) src/Cocoa/Info-Oolite.plist $(GNUSTEP_OW)
-	if test -d obj; then \
-	  $(CP) obj/$(BINARY) $(PROGDIR); \
-	else \
-	  if test -d shared_debug_obj; then \
-	    $(CP) shared_debug_obj/$(BINARY) $(PROGDIR); \
-	  else \
-	    $(CP) shared_obj/$(BINARY) $(PROGDIR); \
-	  fi; \
-	fi;
+	$(CP) -r -u -f Resources $(PROGDIR)
+	$(CP) -r -u -f Schemata $(PROGDIR)/Resources
+	$(CP) -u -f src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
+	$(CP) -u -f $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
+ifeq ($(debug),no)
+	strip $(PROGDIR)/$(DEST_BIN)
+endif
+ifeq ($(GNUSTEP_HOST_OS),mingw32)
+	$(CP) -r -u -f deps/Windows-x86-deps/DLLs/*.dll $(PROGDIR)
+endif
+
+after-clean::
+	rm -rf $(GNUSTEP_OBJ_DIR_NAME)

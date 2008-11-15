@@ -34,8 +34,8 @@ unpatch:
 build: patch build-stamp
 build-stamp:
 	dh_testdir
-	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref
-	$(MAKE) -C $(JS_SRC) -f Makefile.ref
+	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref BUILD_OPT=1
+	$(MAKE) -C $(JS_SRC) -f Makefile.ref BUILD_OPT=1
 	$(GSMAKE)
 	touch $@
 
@@ -48,7 +48,7 @@ clean-stamp:
 	$(MAKE) -C $(JS_SRC) -f Makefile.ref clean
 	rm -rf oolite.app oolite.debug
 	rm -f http+_www.apple.com_DTDs_PropertyList-1.0.dtd
-	find $(JS_SRC) -name Linux_All_DBG.OBJ | xargs -r rm -rf
+	find $(JS_SRC) -name Linux_All_OPT.OBJ | xargs -r rm -rf
 	dh_clean
 
 install: build
