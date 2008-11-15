@@ -54,9 +54,11 @@ pkg-debclean:
 # And here are our Windows packager targets
 #
 NSIS="C:\Program Files\NSIS\makensis.exe"
-NSIS_ARGS=-V1 -DVER=1.73-dev
+# The args seem to cause failure with some versions of NSIS.
+# Because of this, we set the version string on the installer script itself.
+# NSIS_ARGS=-V1 -DVER=1.73-dev
 pkg-win: release
-	$(NSIS) $(NSIS_ARGS) installers/win32/OOlite.nsi
+	$(NSIS) installers/win32/OOlite.nsi
 
 help:
 	@echo "Use this Makefile to build Oolite:"

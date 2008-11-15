@@ -1,17 +1,19 @@
 !ifndef VER
-!error "VER not defined."
+!define VER 1.73-dev
 !endif
 !ifndef DST
 !define DST ..\..\oolite.app
 !endif
+
+!include "MUI.nsh"
 
 ;!packhdr "Oolite.dat" "upx.exe --best Oolite.dat"
 SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "..\..\..\OoliteInstall-${VER}.exe"
-BrandingText "Oolite"
+OutFile "OoliteInstall-${VER}.exe"
+BrandingText "(C) 2003-2008 Giles Williams and contributors"
 Name "Oolite"
 Caption "Oolite ${VER}"
 SubCaption 0 " "
@@ -30,6 +32,19 @@ InstProgressFlags smooth
 AutoCloseWindow false
 SetOverwrite on
 
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
+!define MUI_ICON oolite.ico
+!define MUI_UNICON oolite.ico
+
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES  
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+
+!insertmacro MUI_LANGUAGE "English"
+
 Function RegSetup
 FunctionEnd
 
@@ -43,16 +58,12 @@ SetOutPath $INSTDIR
 
 ; Package files
 CreateDirectory "$INSTDIR\AddOns"
-CreateDirectory "$INSTDIR\GNUstep\Library\DTDs"
 
 File "Oolite.ico"
 File "RunOolite.bat"
 File "Oolite_Readme.txt"
 File "OoliteRS.pdf"
 File /r /x .svn /x *~ "${DST}"
-
-SetOutPath $INSTDIR\GNUstep\Library\DTDs
-File /r /x .svn /x *~ "..\..\deps\Cross-platform-deps\DTDs\*.*"
 
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
 
@@ -91,7 +102,6 @@ RMDir /r "$SMPROGRAMS\Oolite"
 ; Remove Package files (but leave any generated content behind)
 RMDir /r "$INSTDIR\oolite.app"
 RMDir /r "$INSTDIR\Logs"
-RMDir /r "$INSTDIR\GNUstep\Library\DTDs"
 Delete "$INSTDIR\GNUstep\Library\Caches\Oolite-cache.plist"
 RMDir "$INSTDIR\GNUstep\Library\Caches"
 RMDir "$INSTDIR\GNUstep\Library"
