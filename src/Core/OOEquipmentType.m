@@ -105,6 +105,12 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 }
 
 
++ (NSEnumerator *) equipmentEnumerator
+{
+	return [sEquipmentTypes objectEnumerator];
+}
+
+
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier
 {
 	return [sEquipmentTypesByIdentifier objectForKey:identifier];
@@ -249,6 +255,12 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 }
 
 
+- (NSString *) damagedIdentifier
+{
+	return [_identifier stringByAppendingString:@"_DAMAGED"];
+}
+
+
 - (NSString *) name
 {
 	return _name;
@@ -318,6 +330,12 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 - (BOOL) requiresNonFullFuel
 {
 	return _requiresNonFullFuel;
+}
+
+
+- (BOOL) isPrimaryWeapon
+{
+	return [[self identifier] hasPrefix:@"EQ_WEAPON"];
 }
 
 

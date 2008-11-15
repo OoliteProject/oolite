@@ -26,10 +26,10 @@ MA 02110-1301, USA.
 */
 
 
-this.name		= "oolite-thargoid-plans";
-this.author  	= "eric walch";
-this.copyright   = "© 2008 the Oolite team.";
-this.version 	= "1.73";
+this.name			= "oolite-thargoid-plans";
+this.author			= "eric walch";
+this.copyright		= "© 2008 the Oolite team.";
+this.version		= "1.73";
 
 
 this.missionOffers = function ()

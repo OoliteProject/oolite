@@ -1994,13 +1994,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			BOOL success = YES;
 			unsigned i;
 			for (i = 0; (i < [conditions count])&&(success); i++)
-				success &= [player scriptTestCondition:(NSString *)[conditions objectAtIndex:i]];
+			{
+				success = success && [player scriptTestCondition:[conditions stringAtIndex:i]];
+			}
 			return success;
 		}
 		else
 		{
-			float chance = [shipinfoDictionary fuzzyBooleanForKey:@"hasShipyard"];
-			return (randf() < chance);
+			return [shipinfoDictionary fuzzyBooleanForKey:@"hasShipyard"];
 		}
 	}
 	return NO;

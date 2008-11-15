@@ -2517,7 +2517,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self setGuiToEquipShipScreen:0:-1];
+					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 				

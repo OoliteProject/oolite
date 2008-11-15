@@ -50,7 +50,7 @@ this.global = (function () { return this; } ).call();
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
 Ship.__proto__.spawnOne = function (role)
 {
-	let result = this.spawn(role, 1);
+	var result = this.spawn(role, 1);
 	if (result)  return result[0];
 	else  return null;
 }
@@ -85,7 +85,7 @@ this.defineCompatibilityAlias = function (oldName, newName)
 // Define a read-only property that is an alias for another property.
 this.defineCompatibilityGetter = function (constructorName, oldName, newName)
 {
-	let getter = function ()
+	var getter = function ()
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
 		return this[newName];
@@ -96,7 +96,7 @@ this.defineCompatibilityGetter = function (constructorName, oldName, newName)
 // Define a write-only property that is an alias for another property.
 this.defineCompatibilitySetter = function (constructorName, oldName, newName)
 {
-	let setter = function (value)
+	var setter = function (value)
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
 		this[newName] = value;
@@ -114,12 +114,12 @@ this.defineCompatibilityGetterAndSetter = function (constructorName, oldName, ne
 // Define a write-only property that is an alias for a function.
 this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName)
 {
-	let getter = function ()
+	var getter = function ()
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated and write-only.");
 		return undefined;
 	}
-	let setter = function (value)
+	var setter = function (value)
 	{
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + funcName + "() instead.");
 		this[funcName](value);
@@ -132,7 +132,7 @@ this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName
 // Example: to map player.docked to player.ship.docked, this.defineCompatibilitySubGetter("player", "ship", "docked")
 this.defineCompatibilitySubGetter = function (singletonName, subName, propName)
 {
-	let getter = function ()
+	var getter = function ()
 	{
 		special.jsWarning(singletonName + "." + propName + " is deprecated, use " + singletonName + "." + subName + "." + propName + " instead.");
 		return this[subName][propName];
@@ -143,7 +143,7 @@ this.defineCompatibilitySubGetter = function (singletonName, subName, propName)
 // Define a compatibility setter for a property that's moved to another property.
 this.defineCompatibilitySubSetter = function (singletonName, subName, propName)
 {
-	let setter = function (value)
+	var setter = function (value)
 	{
 		special.jsWarning(singletonName + "." + propName + " is deprecated, use " + singletonName + "." + subName + "." + propName + " instead.");
 		this[subName][propName] = value;
@@ -164,7 +164,7 @@ this.defineCompatibilitySubMethod = function (singletonName, subName, methodName
 	global[singletonName][methodName] = function ()
 	{
 		special.jsWarning(singletonName + "." + methodName + "() is deprecated, use " + singletonName + "." + subName + "." + methodName + "() instead.");
-		let sub = this[subName];
+		var sub = this[subName];
 		return sub[methodName].apply(sub, arguments);
 	}
 }

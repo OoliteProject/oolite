@@ -145,7 +145,7 @@ this.sendShipsAwayForMission = function()
 this.blowUpAllStations = function ()
 {
 	// Find all stations in the system.
-	let stations = system.filteredEntities(this, function (entity) { return entity.isStation; });
+	var stations = system.filteredEntities(this, function (entity) { return entity.isStation; });
 	
 	// Blow them all up.
 	stations.forEach(function (entity) { entity.explode(); });

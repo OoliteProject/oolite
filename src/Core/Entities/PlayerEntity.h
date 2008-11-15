@@ -611,7 +611,8 @@ waitingForStickCallback: 1;
 - (void) setGuiToShortRangeChartScreen;
 - (void) setGuiToLoadSaveScreen;
 - (void) setGuiToGameOptionsScreen;
-- (void) setGuiToEquipShipScreen:(int) skip :(int) itemForSelectFacing;
+- (void) setGuiToEquipShipScreen:(int)skip selectingFacingFor:(NSString *)eqKeyForSelectFacing;
+- (void) setGuiToEquipShipScreen:(int)skip;
 - (void) showInformationForSelectedUpgrade;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
@@ -624,7 +625,6 @@ waitingForStickCallback: 1;
 - (OOGUIScreenID) guiScreen;
 
 - (void) buySelectedItem;
-- (BOOL) tryBuyingItem:(int) index;
 - (BOOL) marketFlooded:(int) index;
 - (BOOL) tryBuyingCommodity:(int) index;
 - (BOOL) trySellingCommodity:(int) index;

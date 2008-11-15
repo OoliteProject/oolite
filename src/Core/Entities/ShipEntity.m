@@ -7065,7 +7065,7 @@ BOOL class_masslocks(int some_class)
 	if (energy <= 0.0)
 	{
 		[hunter noteTargetDestroyed:self];
-		[self getDestroyedBy:other context:@"energy damage"];
+		[self getDestroyedBy:other context:suppressExplosion ? @"energy damage" : @"removed"];
 	}
 	else
 	{

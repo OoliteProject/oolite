@@ -117,6 +117,9 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) updateIdentSystem;
 - (void) updateMissiles;
 
+// Shopping
+- (BOOL) tryBuyingItem:(NSString *)eqKey;
+
 @end
 
 
@@ -4708,9 +4711,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
+
 static int last_outfitting_index;
 
-- (void) setGuiToEquipShipScreen:(int) skipParam :(int) itemForSelectFacing
+- (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
 	missiles = [self countMissiles];
 	
@@ -4731,109 +4735,84 @@ static int last_outfitting_index;
 	
 	last_outfitting_index = skip;
 
-	NSArray		*equipdata = [UNIVERSE equipmentData];
-
 	OOCargoQuantityDelta cargo_space = max_cargo - current_cargo;
 	if (cargo_space < 0)  cargo_space = 0;
 
-	double price_factor = 1.0;
+	double priceFactor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
 
 	if (dockedStation)
 	{
-		price_factor = [dockedStation equipmentPriceFactor];
+		priceFactor = [dockedStation equipmentPriceFactor];
 		if ([dockedStation equivalentTechLevel] != NSNotFound)
 			techlevel = [dockedStation equivalentTechLevel];
 	}
 
 	// build an array of all equipment - and take away that which has been bought (or is not permitted)
-	NSMutableArray* equipment_allowed = [NSMutableArray array];
+	NSMutableArray		*equipmentAllowed = [NSMutableArray array];
 	
 	// find options that agree with this ship
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:ship_desc];
-	NSMutableArray		*options = [NSMutableArray arrayWithArray:[shipyardInfo arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+	NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+	
 	// add standard items too!
 	[options addObjectsFromArray:[[[registry shipyardInfoForKey:ship_desc] dictionaryForKey:KEY_STANDARD_EQUIPMENT] arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	
-	unsigned i,j;
-	for (i = 0; i < [equipdata count]; i++)
+	unsigned			i = 0;
+	NSEnumerator		*eqEnum = nil;
+	OOEquipmentType		*eqType = nil;
+	
+	for (eqEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqEnum nextObject]); i++)
 	{
-		// FIXME: use OOEquipmentType
-		NSString		*eq_key = [[equipdata arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
-		NSString		*eq_key_damaged = [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-		OOTechLevelID	min_techlevel = [[equipdata arrayAtIndex:i] unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+		NSString			*eqKey = [eqType identifier];
+		OOTechLevelID		minTechLevel = [eqType effectiveTechLevel];
 		
-		NSMutableDictionary	*eq_extra_info_dict = [NSMutableDictionary dictionary];
-		if ([(NSArray *)[equipdata objectAtIndex:i] count] > 5)
-			[eq_extra_info_dict addEntriesFromDictionary:(NSDictionary *)[(NSArray *)[equipdata objectAtIndex:i] objectAtIndex:EQUIPMENT_EXTRA_INFO_INDEX]];
-
 		// set initial availability to NO
 		BOOL isOK = NO;
-
-		// check special availability
-		if ([eq_extra_info_dict objectForKey:@"available_to_all"])
-			[options addObject: eq_key];
 		
-		// check if this is a mission special ..
-		if (min_techlevel == kOOVariableTechLevel)
-		{
-			// check mission variables for the existence of a revised tech level (given when item is awarded)
-			NSString* mission_eq_tl_key = [@"mission_TL_FOR_" stringByAppendingString:eq_key];
-			min_techlevel = [mission_variables unsignedIntForKey:mission_eq_tl_key defaultValue:min_techlevel];
-		}
+		// check special availability
+		if ([eqType isAvailableToAll])  [options addObject:eqKey];
 		
 		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
-		if (min_techlevel != 0 && [self hasEquipmentItem:eq_key_damaged])
-			min_techlevel--;
+		if (minTechLevel != 0 && [self hasEquipmentItem:[eqType damagedIdentifier]])  minTechLevel--;
 		
 		// reduce the minimum techlevel occasionally as a bonus..
-		
-		if ((![UNIVERSE strict])&&(techlevel < min_techlevel)&&(techlevel + 3 > min_techlevel))
+		if (![UNIVERSE strict] && techlevel < minTechLevel && techlevel + 3 > minTechLevel)
 		{
-			int day = i * 13 + (int)floor([UNIVERSE getTime] / 86400.0);
-			unsigned char day_rnd = (day & 0xff) ^ system_seed.a;
-			OOTechLevelID original_min_techlevel = min_techlevel;
+			unsigned day = i * 13 + (unsigned)floor([UNIVERSE getTime] / 86400.0);
+			unsigned char dayRnd = (day & 0xff) ^ system_seed.a;
+			OOTechLevelID originalMinTechLevel = minTechLevel;
 			
-			while ((min_techlevel > 0)&&(min_techlevel > original_min_techlevel - 3)&&!(day_rnd & 7))	// bargain tech days every 1/8 days
+			while (minTechLevel > 0 && minTechLevel > originalMinTechLevel - 3 && !(dayRnd & 7))	// bargain tech days every 1/8 days
 			{
-				day_rnd = day_rnd >> 2;
-				min_techlevel--;	// occasional bonus items according to TL
+				dayRnd = dayRnd >> 2;
+				minTechLevel--;	// occasional bonus items according to TL
 			}
 		}
-
+		
 		// check initial availability against options AND standard extras
-		// FIXME: options should be a set.
-		for (j = 0; j < [options count]; j++)
+		if ([options containsObject:eqKey])
 		{
-			if ([eq_key isEqual:[options objectAtIndex:j]])
-			{
-				isOK = YES;
-				[options removeObjectAtIndex:j];
-				break;
-			}
+			isOK = YES;
+			[options removeObject:eqKey];
 		}
 		
 		if (isOK)
 		{
-			if (techlevel < min_techlevel)  isOK = NO;
-			if (![self canAddEquipment:eq_key])  isOK = NO;
+			if (techlevel < minTechLevel)  isOK = NO;
+			if (![self canAddEquipment:eqKey])  isOK = NO;
+			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
 		
-		if (isOK)  [equipment_allowed addUnsignedInteger:i];
-		
-		if ((int)i == itemForSelectFacing)
+		if ([eqKeyForSelectFacing isEqualToString:eqKey])
 		{
-			skip = [equipment_allowed count] - 1;	// skip to this upgrade
+			skip = [equipmentAllowed count] - 1;	// skip to this upgrade
 			unsigned available_facings = [shipyardInfo unsignedIntForKey:KEY_WEAPON_FACINGS];
-			if (available_facings & WEAPON_FACING_FORWARD)
-				[equipment_allowed addUnsignedInteger:i];
-			if (available_facings & WEAPON_FACING_AFT)
-				[equipment_allowed addUnsignedInteger:i];
-			if (available_facings & WEAPON_FACING_PORT)
-				[equipment_allowed addUnsignedInteger:i];
-			if (available_facings & WEAPON_FACING_STARBOARD)
-				[equipment_allowed addUnsignedInteger:i];
+			if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKey];
+			if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKey];
+			if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKey];
+			if (available_facings & WEAPON_FACING_STARBOARD)  [equipmentAllowed addObject:eqKey];
 		}
 	}
 
@@ -4842,7 +4821,6 @@ static int last_outfitting_index;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		unsigned		i;
 		unsigned		facing_count = 0;
 		BOOL			weaponMounted = NO;
 
@@ -4858,40 +4836,38 @@ static int last_outfitting_index;
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
 		
-		if ([equipment_allowed count] > 0)
+		if ([equipmentAllowed count] > 0)
 		{
 			if (skip > 0)	// lose the first row to Back <--
 			{
 				int	previous = skip - n_rows;
 				if (previous < 0)	previous = 0;
-				if (itemForSelectFacing >= 0)
-					previous = -1;	// ie. last index!
+				if (eqKeyForSelectFacing != nil)  previous = -1;	// ie. last index!
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
-			for (i = skip; (i < [equipment_allowed count])&&(row - start_row < (int)n_rows - 1); i++)
+			for (i = skip; i < [equipmentAllowed count] && (row - start_row < (int)n_rows - 1); i++)
 			{
-				unsigned			item = [equipment_allowed unsignedIntAtIndex:i];
-				NSArray				*itemInfo = [equipdata arrayAtIndex:item];
-				OOCreditsQuantity	price_per_unit = [itemInfo unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
-				NSString			*desc = [NSString stringWithFormat:@" %@ ", [itemInfo stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX]];
-				NSString			*eq_key = [(NSArray *)[equipdata objectAtIndex: item] stringAtIndex:EQUIPMENT_KEY_INDEX];
-				NSString			*eq_key_damaged	= [eq_key stringByAppendingString:@"_DAMAGED"];
+				NSString			*eqKey = [equipmentAllowed stringAtIndex:i];
+				OOEquipmentType		*eqInfo = [OOEquipmentType equipmentTypeWithIdentifier:eqKey];
+				OOCreditsQuantity	pricePerUnit = [eqInfo price];
+				NSString			*desc = [NSString stringWithFormat:@" %@ ", [eqInfo name]];
+				NSString			*eq_key_damaged	= [eqInfo damagedIdentifier];
 				double				price;
 				
-				if ([eq_key isEqual:@"EQ_FUEL"])
+				if ([eqKey isEqual:@"EQ_FUEL"])
 				{
-					price = (PLAYER_MAX_FUEL - fuel) * price_per_unit;
+					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit;
 				}
-				else if ([eq_key isEqual:@"EQ_RENOVATION"])
+				else if ([eqKey isEqual:@"EQ_RENOVATION"])
 				{
 					price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
 				}
-				else price = price_per_unit;
+				else price = pricePerUnit;
 				
-				price *= price_factor;  // increased prices at some stations
+				price *= priceFactor;  // increased prices at some stations
 				
 				// color repairs and renovation items orange
 				if ([self hasEquipmentItem:eq_key_damaged])
@@ -4900,14 +4876,14 @@ static int last_outfitting_index;
 					price /= 2.0;
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
-				if ([eq_key isEqual:@"EQ_RENOVATION"])
+				if ([eqKey isEqual:@"EQ_RENOVATION"])
 				{
 					[gui setColor:[OOColor orangeColor] forRow:row];
 				}
 
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
-
-				if ((int)item == itemForSelectFacing)
+				
+				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
 					switch (facing_count)
 					{
@@ -4937,14 +4913,20 @@ static int last_outfitting_index;
 					}
 					
 					facing_count++;
-					if(weaponMounted) [gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-					else [gui setColor:[OOColor greenColor] forRow:row];
+					if(weaponMounted)
+					{
+						[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+					}
+					else
+					{
+						[gui setColor:[OOColor greenColor] forRow:row];
+					}
 				}
-				[gui setKey:[NSString stringWithFormat:@"%d",item] forRow:row];			// save the index of the item as the key for the row
+				[gui setKey:eqKey forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
 				row++;
 			}
-			if (i < [equipment_allowed count])
+			if (i < [equipmentAllowed count])
 			{
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
@@ -4957,8 +4939,10 @@ static int last_outfitting_index;
 			if ([gui selectedRow] != start_row)
 				[gui setSelectedRow:start_row];
 
-			if (itemForSelectFacing >= 0)
+			if (eqKeyForSelectFacing != nil)
+			{
 				[gui setSelectedRow:start_row + ((skip > 0)? 1: 0)];
+			}
 
 			[self showInformationForSelectedUpgrade];
 			
@@ -4988,6 +4972,12 @@ static int last_outfitting_index;
 }
 
 
+- (void) setGuiToEquipShipScreen:(int)skip
+{
+	[self setGuiToEquipShipScreen:skip selectingFacingFor:nil];
+}
+
+
 - (void) showInformationForSelectedUpgrade
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
@@ -5004,11 +4994,11 @@ static int last_outfitting_index;
 		{
 			int item = [key intValue];
 			NSString*   desc = (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
-			NSString*   eq_key			= (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
-			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
+			NSString*   eqKey			= (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
+			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eqKey];
 			if ([self hasEquipmentItem:eq_key_damaged])
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
-			else if([eq_key hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
+			else if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
 				desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
@@ -5136,7 +5126,7 @@ static int last_outfitting_index;
 	{
 		int from_item = [[key componentsSeparatedByString:@":"] intAtIndex:1];
 
-		[self setGuiToEquipShipScreen:from_item:-1];
+		[self setGuiToEquipShipScreen:from_item];
 		if ([gui selectedRow] < 0)
 			[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 		if (from_item == 0)
@@ -5144,21 +5134,20 @@ static int last_outfitting_index;
 		return;
 	}
 	
-	int item = [key intValue];
-	NSString	*item_text = [gui selectedRowText];
+	NSString		*itemText = [gui selectedRowText];
 	
-	// FIXME: this is nuts, should be associating lines with keys in sone sensible way. --Ahruman 20080311
-	if ([item_text isEqual:FORWARD_FACING_STRING])
+	// FIXME: this is nuts, should be associating lines with keys in some sensible way. --Ahruman 20080311
+	if ([itemText isEqual:FORWARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_FORWARD;
-	if ([item_text isEqual:AFT_FACING_STRING])
+	if ([itemText isEqual:AFT_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_AFT;
-	if ([item_text isEqual:PORT_FACING_STRING])
+	if ([itemText isEqual:PORT_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_PORT;
-	if ([item_text isEqual:STARBOARD_FACING_STRING])
+	if ([itemText isEqual:STARBOARD_FACING_STRING])
 		chosen_weapon_facing = WEAPON_FACING_STARBOARD;
 	
 	OOCreditsQuantity old_credits = credits;
-	if ([self tryBuyingItem:item])
+	if ([self tryBuyingItem:key])
 	{
 		if (credits == old_credits)
 		{
@@ -5173,7 +5162,7 @@ static int last_outfitting_index;
 			ship_clock_adjust += time_adjust + 600.0;
 		}
 		
-		[self doScriptEvent:@"playerBoughtEquipment" withArgument:[[[UNIVERSE equipmentData] arrayAtIndex:item] stringAtIndex:EQUIPMENT_KEY_INDEX]];
+		[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
 		
 		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	}
@@ -5184,65 +5173,64 @@ static int last_outfitting_index;
 }
 
 
-- (BOOL) tryBuyingItem:(int) index
+- (BOOL) tryBuyingItem:(NSString *)eqKey
 {
 	// note this doesn't check the availability by tech-level
-	NSArray					*equipdata		= [UNIVERSE equipmentData];
-	OOCreditsQuantity		price_per_unit	= [[equipdata arrayAtIndex:index] unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
-	NSString				*eq_key			= [[equipdata arrayAtIndex:index] stringAtIndex:EQUIPMENT_KEY_INDEX];
-	NSString				*eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eq_key];
-	double					price			= price_per_unit;
-	double					price_factor	= 1.0;
-	OOCargoQuantityDelta	cargo_space		= max_cargo - current_cargo;
-	OOCreditsQuantity		tradeIn = 0;
-
+	OOEquipmentType			*eqType			= [OOEquipmentType equipmentTypeWithIdentifier:eqKey];
+	OOCreditsQuantity		pricePerUnit	= [eqType price];
+	NSString				*eqKeyDamaged	= [eqType damagedIdentifier];
+	double					price			= pricePerUnit;
+	double					priceFactor		= 1.0;
+	OOCargoQuantityDelta	cargoSpace		= max_cargo - current_cargo;
+	OOCreditsQuantity		tradeIn			= 0;
+	
 	// repairs cost 50%
-	if ([self hasEquipmentItem:eq_key_damaged])
+	if ([self hasEquipmentItem:eqKeyDamaged])
 	{
 		price /= 2.0;
 	}
-
-	if ([eq_key isEqual:@"EQ_RENOVATION"])
+	
+	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		price = cunningFee(0.1 * [UNIVERSE tradeInValueForCommanderDictionary:[self commanderDataDictionary]]);
 	}
-
+	
 	if (dockedStation)
 	{
-		price_factor = [dockedStation equipmentPriceFactor];
+		priceFactor = [dockedStation equipmentPriceFactor];
 	}
-
-	price *= price_factor;  // increased prices at some stations
-
+	
+	price *= priceFactor;  // increased prices at some stations
+	
 	if (price > credits)
 	{
 		return NO;
 	}
-
-	if ([eq_key hasPrefix:@"EQ_WEAPON"] && chosen_weapon_facing == WEAPON_FACING_NONE)
+	
+	if ([eqType isPrimaryWeapon] && chosen_weapon_facing == WEAPON_FACING_NONE)
 	{
-		[self setGuiToEquipShipScreen:-1:index];	// reset
+		[self setGuiToEquipShipScreen:-1 selectingFacingFor:eqKey];	// reset
 		return YES;
 	}
-
-	if ([eq_key hasPrefix:@"EQ_WEAPON"] && chosen_weapon_facing != WEAPON_FACING_NONE)
+	
+	if ([eqType isPrimaryWeapon] && chosen_weapon_facing != WEAPON_FACING_NONE)
 	{
 		int chosen_weapon = WEAPON_NONE;
 		int current_weapon = WEAPON_NONE;
-
-		if ([eq_key isEqual:@"EQ_WEAPON_TWIN_PLASMA_CANNON"])
+		
+		if ([eqKey isEqualToString:@"EQ_WEAPON_TWIN_PLASMA_CANNON"])
 			chosen_weapon = WEAPON_PLASMA_CANNON;
-		if ([eq_key isEqual:@"EQ_WEAPON_PULSE_LASER"])
+		if ([eqKey isEqualToString:@"EQ_WEAPON_PULSE_LASER"])
 			chosen_weapon = WEAPON_PULSE_LASER;
-		if ([eq_key isEqual:@"EQ_WEAPON_BEAM_LASER"])
+		if ([eqKey isEqualToString:@"EQ_WEAPON_BEAM_LASER"])
 			chosen_weapon = WEAPON_BEAM_LASER;
-		if ([eq_key isEqual:@"EQ_WEAPON_MINING_LASER"])
+		if ([eqKey isEqualToString:@"EQ_WEAPON_MINING_LASER"])
 			chosen_weapon = WEAPON_MINING_LASER;
-		if ([eq_key isEqual:@"EQ_WEAPON_MILITARY_LASER"])
+		if ([eqKey isEqualToString:@"EQ_WEAPON_MILITARY_LASER"])
 			chosen_weapon = WEAPON_MILITARY_LASER;
-		if ([eq_key isEqual:@"EQ_WEAPON_THARGOID_LASER"])
+		if ([eqKey isEqualToString:@"EQ_WEAPON_THARGOID_LASER"])
 			chosen_weapon = WEAPON_THARGOID_LASER;
-
+		
 		switch (chosen_weapon_facing)
 		{
 			case WEAPON_FACING_FORWARD :
@@ -5262,12 +5250,12 @@ static int last_outfitting_index;
 				starboard_weapon = chosen_weapon;
 				break;
 		}
-
+		
 		credits -= price;
-
+		
 		// refund here for current_weapon
-		/*	BUG: equipment_price_factor does not affect trade-ins. This means
-			that an equipment_price_factor less than one can be exploited.
+		/*	BUG: equipment_priceFactor does not affect trade-ins. This means
+			that an equipment_priceFactor less than one can be exploited.
 			Analysis: price factor simply not being applied here.
 			Fix: trivial.
 			Acknowledgment: bug and fix both reported by Cmdr James on forum.
@@ -5296,34 +5284,34 @@ static int last_outfitting_index;
 			case WEAPON_NONE :
 				break;
 		}	
-		[self doTradeIn:tradeIn forPriceFactor:price_factor];
+		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		//if equipped, remove damaged weapon after repairs.
-		[self removeEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED",eq_key]];
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self removeEquipmentItem:eqKeyDamaged];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
-
-	if (([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"]) && missiles >= max_missiles)
+	
+	if ([eqType isMissileOrMine] && missiles >= max_missiles)
 	{
 		OOLog(@"equip.buy.mounted.failed.full", @"rejecting missile because already full");
 		return NO;
 	}
-
-	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"] && cargo_space < 5)
+	
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"] && cargoSpace < 5)
 	{
 		return NO;
 	}
 	
-	if ([eq_key isEqual:@"EQ_FUEL"])
+	if ([eqKey isEqualToString:@"EQ_FUEL"])
 	{
-		credits -= ([self fuelCapacity] - [self fuel]) * price_per_unit;
+		credits -= ([self fuelCapacity] - [self fuel]) * pricePerUnit;
 		fuel = [self fuelCapacity];
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 	
 	// check energy unit replacement
-	if ([eq_key hasSuffix:@"ENERGY_UNIT"] && [self energyUnitType] != ENERGY_UNIT_NONE)
+	if ([eqKey hasSuffix:@"ENERGY_UNIT"] && [self energyUnitType] != ENERGY_UNIT_NONE)
 	{
 		switch ([self energyUnitType])
 		{
@@ -5346,11 +5334,11 @@ static int last_outfitting_index;
 			default :
 				break;
 		}
-		[self doTradeIn:tradeIn forPriceFactor:price_factor];
+		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 	}
 	
 	// maintain ship
-	if ([eq_key isEqual:@"EQ_RENOVATION"])
+	if ([eqKey isEqualToString:@"EQ_RENOVATION"])
 	{
 		OOTechLevelID techLevel = NSNotFound;
 		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
@@ -5361,15 +5349,15 @@ static int last_outfitting_index;
 		if (ship_trade_in_factor > 100)
 			ship_trade_in_factor = 100;
 		
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
-	if ([eq_key hasSuffix:@"MISSILE"] || [eq_key hasSuffix:@"MINE"])
+	if ([eqKey hasSuffix:@"MISSILE"] || [eqKey hasSuffix:@"MINE"])
 	{
-		ShipEntity* weapon = [[UNIVERSE newShipWithRole:eq_key] autorelease];
-		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eq_key);
-		else  OOLog(kOOLogBuyMountedFailed, @"Could not find ship for mounted weapon role %@", eq_key);
+		ShipEntity* weapon = [[UNIVERSE newShipWithRole:eqKey] autorelease];
+		if (weapon)  OOLog(kOOLogBuyMountedOK, @"Got ship for mounted weapon role %@", eqKey);
+		else  OOLog(kOOLogBuyMountedFailed, @"Could not find ship for mounted weapon role %@", eqKey);
 
 		BOOL mounted_okay = [self mountMissile:weapon];
 		if (mounted_okay)
@@ -5379,29 +5367,29 @@ static int last_outfitting_index;
 			[self sortMissiles];
 			[self selectNextMissile];
 		}
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self setGuiToEquipShipScreen:-1];
 		return mounted_okay;
 	}
 
-	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH"])
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 	{
 		max_passengers++;
 		max_cargo -= 5;
 		credits -= price;
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
-	if ([eq_key isEqual:@"EQ_PASSENGER_BERTH_REMOVAL"])
+	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 	{
 		max_passengers--;
 		max_cargo += 5;
 		credits -= price;
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
-	if ([eq_key isEqual:@"EQ_MISSILE_REMOVAL"])
+	if ([eqKey isEqualToString:@"EQ_MISSILE_REMOVAL"])
 	{
 		credits -= price;
 		[self safeAllMissiles];
@@ -5420,23 +5408,16 @@ static int last_outfitting_index;
 			}
 		}
 		missiles = 0;
-		[self doTradeIn:tradeIn forPriceFactor:price_factor];
-		[self setGuiToEquipShipScreen:-1:-1];
+		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
-
-	unsigned i;
-	for (i = 0; i < [equipdata count]; i++)
+	
+	if ([self canAddEquipment:eqKey])
 	{
-		NSString *w_key = [[equipdata arrayAtIndex:i] stringAtIndex:EQUIPMENT_KEY_INDEX];
-		if (([eq_key isEqual:w_key])&&(![self hasEquipmentItem:eq_key]))
-		{
-			credits -= price;
-			[self addEquipmentItem:eq_key];
-			[self setGuiToEquipShipScreen:-1:-1];
-
-			return YES;
-		}
+		credits -= price;
+		[self addEquipmentItem:eqKey];
+		return YES;
 	}
 
 	return NO;
@@ -5557,11 +5538,11 @@ static int last_outfitting_index;
 			NSString* desc = [NSString stringWithFormat:@" %@ ", CommodityDisplayNameForCommodityArray(marketDef)];
 			OOCargoQuantity available_units = [marketDef unsignedIntAtIndex:MARKET_QUANTITY];
 			OOCargoQuantity units_in_hold = in_hold[i];
-			OOCreditsQuantity price_per_unit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
+			OOCreditsQuantity pricePerUnit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [marketDef unsignedIntAtIndex:MARKET_UNITS];
 			
 			NSString *available = (available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
-			NSString *price = [NSString stringWithFormat:@" %.1f ",0.1 * price_per_unit];
+			NSString *price = [NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit];
 			NSString *owned = (units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
@@ -5630,13 +5611,13 @@ static int last_outfitting_index;
 	NSMutableArray		*localMarket = [self localMarket];
 	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
 	OOCargoQuantity		available_units	= [commodityArray unsignedIntAtIndex:MARKET_QUANTITY];
-	OOCreditsQuantity	price_per_unit	= [commodityArray unsignedIntAtIndex:MARKET_PRICE];
+	OOCreditsQuantity	pricePerUnit	= [commodityArray unsignedIntAtIndex:MARKET_PRICE];
 	OOMassUnit			unit			= [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
 	if ((specialCargo != nil)&&(unit == 0))
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 	
-	if ((available_units == 0)||(price_per_unit > credits)||((unit == 0)&&(current_cargo >= max_cargo)))		return NO;
+	if ((available_units == 0)||(pricePerUnit > credits)||((unit == 0)&&(current_cargo >= max_cargo)))		return NO;
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:index]];
@@ -5645,7 +5626,7 @@ static int last_outfitting_index;
 	int market_quantity = [market_commodity intAtIndex:MARKET_QUANTITY];
 	manifest_quantity++;
 	market_quantity--;
-	credits -= price_per_unit;
+	credits -= pricePerUnit;
 	if (unit == UNITS_TONS)
 		current_cargo++;
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
@@ -5668,7 +5649,7 @@ static int last_outfitting_index;
 	
 	NSMutableArray *localMarket = [self localMarket];
 	int available_units = [[shipCommodityData arrayAtIndex:index] intAtIndex:MARKET_QUANTITY];
-	int price_per_unit = [[localMarket arrayAtIndex:index] intAtIndex:MARKET_PRICE];
+	int pricePerUnit = [[localMarket arrayAtIndex:index] intAtIndex:MARKET_PRICE];
 	if (available_units == 0)  return NO;
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
@@ -5682,7 +5663,7 @@ static int last_outfitting_index;
 	
 	manifest_quantity--;
 	market_quantity++;
-	credits += price_per_unit;
+	credits += pricePerUnit;
 	
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
@@ -5739,7 +5720,7 @@ static int last_outfitting_index;
 	// deal with trumbles..
 	if ([equipmentKey isEqualToString:@"EQ_TRUMBLE"])
 	{
-		/*	Bug fix: must return here if eq_key == @"EQ_TRUMBLE", even if
+		/*	Bug fix: must return here if eqKey == @"EQ_TRUMBLE", even if
 			trumbleCount >= 1. Otherwise, the player becomes immune to
 			trumbles. See comment in -setCommanderDataFromDictionary: for more
 			details.

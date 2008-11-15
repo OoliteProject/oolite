@@ -82,9 +82,12 @@ SOFTWARE.
 + (void) loadEquipment;			// Load equipment data; called on loading and when changing to/from strict mode.
 
 + (NSArray *) allEquipmentTypes;
++ (NSEnumerator *) equipmentEnumerator;
+
 + (OOEquipmentType *) equipmentTypeWithIdentifier:(NSString *)identifier;
 
 - (NSString *) identifier;
+- (NSString *) damagedIdentifier;
 - (NSString *) name;			// localized
 - (NSString *) descriptiveText;	// localized
 - (OOTechLevelID) techLevel;
@@ -98,6 +101,7 @@ SOFTWARE.
 - (BOOL) requiresFreePassengerBerth;
 - (BOOL) requiresFullFuel;
 - (BOOL) requiresNonFullFuel;
+- (BOOL) isPrimaryWeapon;
 - (BOOL) isMissileOrMine;
 - (BOOL) isPortableBetweenShips;
 
