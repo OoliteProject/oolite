@@ -426,6 +426,7 @@ static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, u
 		{
 			[player removeEquipmentItem:key];
 			[player addEquipmentItem:damagedKey];
+			[player doScriptEvent:@"equipmentDamaged" withArgument:key];
 		}
 	}
 	else
