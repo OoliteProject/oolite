@@ -3467,7 +3467,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (![UNIVERSE strict])
 		{
 			[self addEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
-			[self doScriptEvent:@"equipmentDamaged" withArgument:system_name];
+			[self doScriptEvent:@"equipmentDamaged" withArgument:system_key];
 			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
 			{
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
@@ -3475,7 +3475,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 		else
 		{
-			[self doScriptEvent:@"equipmentDestroyed" withArgument:system_name];
+			[self doScriptEvent:@"equipmentDestroyed" withArgument:system_key];
 			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
 			{
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];

@@ -860,7 +860,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[self playAutopilotCannotDockWithTarget];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"Target is not capable of autopilot-docking") forCount:4.5];
+						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-cannot-dock-with-target]") forCount:4.5];
 					}
 				}
 				target_autopilot_key_pressed = YES;
