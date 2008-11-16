@@ -3707,13 +3707,13 @@ static const OOMatrix	starboard_matrix =
 				if (sPrevHudAlpha < 0.0f)
 				{
 					sPrevHudAlpha = [theHUD overallAlpha];
-					[theHUD setOverallAlpha:0.0f];
 				}
+				[theHUD setOverallAlpha:0.0f];
 			}
 			else if (sPrevHudAlpha >= 0.0f)
 			{
 				[theHUD setOverallAlpha:sPrevHudAlpha];
-				sPrevHudAlpha = 1.0f;
+				//sPrevHudAlpha = 1.0f;	// Do we need this here? - Nikos
 			}
 #endif
 			
