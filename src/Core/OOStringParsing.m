@@ -255,6 +255,8 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 	// but to check this does not infinitely recurse
 	// we'll stop after 32 loops.
 	
+	if (text == nil)  return nil;
+	
 	int stack_check = 32;
 	NSString	*old_desc = [NSString stringWithString:text];
 	NSString	*result = text;

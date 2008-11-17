@@ -164,20 +164,6 @@ enum
 }
 
 
-- (BOOL)pause
-{
-	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
-	return NO;
-}
-
-
-- (BOOL)resume
-{
-	OOLog(kOOLogDeprecatedMethodOOCASound, @"%s called but ignored - please report.", __FUNCTION__);
-	return NO;
-}
-
-
 - (BOOL)prepareToPlayWithContext:(OOCASoundRenderContext *)outContext looped:(BOOL)inLoop
 {
 	BOOL							OK = YES;
@@ -215,10 +201,9 @@ enum
 		OK = (noErr == MPCreateQueue(&sFeederQueue)) && (sFeederQueue != kInvalidID);
 	}
 	
-	if (OK && !sFeederThreadActive)
+	if (OK)
 	{
-		[NSThread detachNewThreadSelector:@selector(feederThread:) toTarget:[OOCAStreamingSound class] withObject:nil];
-	
+		if (!sFeederThreadActive) [NSThread detachNewThreadSelector:@selector(feederThread:) toTarget:[OOCAStreamingSound class] withObject:nil];
 		[self retain];	// Will be released by fillBuffers... when stopped is true and pendingCount is 0.
 		++context->pendingCount;
 		[self fillBuffersWithContext:context];

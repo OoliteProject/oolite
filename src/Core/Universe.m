@@ -5231,8 +5231,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (void) update:(OOTimeDelta)delta_t
+- (void) update:(OOTimeDelta)inDeltaT
 {
+	volatile float delta_t = inDeltaT;
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_SLOW_MODE)  delta_t *= DEBUG_SLOW_MODE_FACTOR;
 #endif
@@ -5426,7 +5427,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[my_ent autorelease];
 		[entitiesDeadThisUpdate removeObjectAtIndex:0];
 	}
-	//[entitiesDeadThisUpdate removeAllObjects];
 }
 
 

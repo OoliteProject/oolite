@@ -60,7 +60,7 @@ MA 02110-1301, USA.
 							scale;
 	signed					starCount,	// Need to be able to hold -1...
 							nebulaCount;
-	unsigned			starCountMultiplier, 
+	unsigned				starCountMultiplier, 
 							nebulaCountMultiplier;
 	
 	self = [super init];

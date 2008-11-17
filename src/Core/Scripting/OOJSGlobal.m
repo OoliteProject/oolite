@@ -180,6 +180,11 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 	NSString			*string = nil;
 	
 	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (string == nil)
+	{
+		OOReportJSBadArguments(context, @"System", @"expandDescription", argc, argv, @"Invalid arguments", @"string");
+		return NO;
+	}
 	string = ExpandDescriptionForCurrentSystem(string);
 	*outResult = [string javaScriptValueInContext:context];
 	
@@ -193,6 +198,11 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 	NSString			*string = nil;
 	
 	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (string == nil)
+	{
+		OOReportJSBadArguments(context, @"System", @"displayNameForCommodity", argc, argv, @"Invalid arguments", @"string");
+		return NO;
+	}
 	string = CommodityDisplayNameForSymbolicName(string);
 	*outResult = [string javaScriptValueInContext:context];
 	
