@@ -3,13 +3,16 @@
 !include /NONFATAL "OoliteVersions.nsh"
 
 !ifndef SVNREV
+!warning "No SVN Revision supplied"
 !define SVNREV 0
 !endif
-!ifndef VER
+!ifndef VERSION
+!warning "No Version information supplied"
+!define VERSION 0.0.0.0
+!endif
 ; Version number must be of format X.X.X.X.
 ; We use M.m.R.S:  M-major, m-minor, R-revision, S-subversion
-!define VER 1.73.0.${SVNREV}
-!endif
+!define VER ${VERSION}
 !ifndef DST
 !define DST ..\..\oolite.app
 !endif
@@ -20,7 +23,6 @@
 !ifndef SNAPSHOT
 !define EXTVER ""
 !else
-!define SVNREVSTR ".r${SVNREV}"
 !define EXTVER "-dev"
 !endif
 
