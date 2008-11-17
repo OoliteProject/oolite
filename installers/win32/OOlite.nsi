@@ -1,21 +1,39 @@
+; Need to include the versions as we can't pass them in as parameters
+; and it's too much work to try to dynamically edit this file
+!include /NONFATAL "OoliteVersions.nsh"
+
+!ifndef SVNREV
+!define SVNREV 0
+!endif
 !ifndef VER
-!define VER 1.73-dev
+; Version number must be of format X.X.X.X.
+; We use M.m.R.S:  M-major, m-minor, R-revision, S-subversion
+!define VER 1.73.0.${SVNREV}
 !endif
 !ifndef DST
 !define DST ..\..\oolite.app
 !endif
+!ifndef OUTDIR
+!define OUTDIR .
+!endif
+
+!ifndef SNAPSHOT
+!define EXTVER ""
+!else
+!define SVNREVSTR ".r${SVNREV}"
+!define EXTVER "-dev"
+!endif
 
 !include "MUI.nsh"
 
-;!packhdr "Oolite.dat" "upx.exe --best Oolite.dat"
 SetCompress auto
 SetCompressor LZMA
 SetCompressorDictSize 32
 SetDatablockOptimize on
-OutFile "OoliteInstall-${VER}.exe"
+OutFile "${OUTDIR}\OoliteInstall-${VER}${EXTVER}.exe"
 BrandingText "(C) 2003-2008 Giles Williams and contributors"
 Name "Oolite"
-Caption "Oolite ${VER}"
+Caption "Oolite ${VER}${EXTVER} Setup"
 SubCaption 0 " "
 SubCaption 1 " "
 SubCaption 2 " "
@@ -25,12 +43,23 @@ Icon Oolite.ico
 UninstallIcon Oolite.ico
 InstallDirRegKey HKLM Software\Oolite "Install_Dir"
 InstallDir $PROGRAMFILES\Oolite
-DirText "Choose a directory to install Oolite"
 CRCCheck on
 InstallColors /windows
 InstProgressFlags smooth
 AutoCloseWindow false
 SetOverwrite on
+
+VIAddVersionKey "ProductName" "Oolite"
+VIAddVersionKey "FileDescription" "A space combat/trading game, inspired by Elite."
+VIAddVersionKey "LegalCopyright" "© 2003-2008 Giles Williams and contributors"
+VIAddVersionKey "FileVersion" "${VER}"
+!ifdef SNAPSHOT
+VIAddVersionKey "SVN Revision" "${SVNREV}"
+!endif
+!ifdef BUILDTIME
+VIAddVersionKey "Build Time" "${BUILDTIME}"
+!endif
+VIProductVersion "${VER}"
 
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
@@ -44,6 +73,40 @@ SetOverwrite on
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
+Function .onInit
+ ; 1. Check for multiple running installers
+ System::Call 'kernel32::CreateMutexA(i 0, i 0, t "OoliteInstallerMutex") i .r1 ?e'
+ Pop $R0
+ 
+ StrCmp $R0 0 +3
+   MessageBox MB_OK|MB_ICONEXCLAMATION "Another instance of the Oolite installer is already running."
+   Abort
+
+  ; 2. Checks for already-installed versions of Oolite and offers to uninstall
+  ReadRegStr $R0 HKLM \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite" \
+  "UninstallString"
+  StrCmp $R0 "" done
+ 
+  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+  "Oolite is already installed. $\n$\nClick `OK` to remove the \
+  previous version or `Cancel` to cancel this upgrade." \
+  IDOK uninst
+  Abort
+ 
+;Run the uninstaller
+uninst:
+  ClearErrors
+  ExecWait '$R0 _?=$INSTDIR'
+  IfErrors no_remove_uninstaller
+    Delete "$INSTDIR\UninstOolite.exe"
+    Goto done
+  no_remove_uninstaller:
+    MessageBox MB_OK|MB_ICONEXCLAMATION "The Uninstaller did not complete successfully.  Please ensure Oolite was correctly uninstalled then run the installer again."
+    Abort
+done:
+FunctionEnd
 
 Function RegSetup
 FunctionEnd
@@ -69,7 +132,7 @@ WriteUninstaller "$INSTDIR\UninstOolite.exe"
 
 ; Registry entries
 WriteRegStr HKLM Software\Oolite "Install_Dir" "$INSTDIR"
-WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite DisplayName "Oolite ${VER}"
+WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite DisplayName "Oolite ${VER}${EXTVER}"
 WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite UninstallString '"$INSTDIR\UninstOolite.exe"'
 
 ; Start Menu shortcuts
