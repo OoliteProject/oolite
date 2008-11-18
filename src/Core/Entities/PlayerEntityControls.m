@@ -1333,6 +1333,13 @@ static NSTimeInterval	time_last_frame;
 			
 			show_info_flag = ([gameView isDown:key_map_info] && ![UNIVERSE strict]);
 			
+			// If we have entered this screen with the injectors key pressed, make sure
+			// that injectors switch off when we release it - Nikos.
+			if (afterburner_engaged && ![gameView isDown:key_inject_fuel])
+			{
+				afterburner_engaged = NO;
+			}
+			
 			if (status != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([gameView isDown:gvMouseLeftButton])
