@@ -578,7 +578,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				fValue = OOMax_d(fValue, 0.125);
-				[entity setHeatInsulation:fValue * SHIP_MAX_CABIN_TEMP];
+				[entity setHeatInsulation:fValue];
 				OK = YES;
 			}
 			break;
