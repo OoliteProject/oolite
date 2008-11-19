@@ -7195,7 +7195,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					if ([item techLevel] > techlevel)
 					{
 						// Cap maximum tech level.
-						eqTechLevel = MAX(eqTechLevel, 15U);
+						eqTechLevel = MIN(eqTechLevel, 15U);
 						
 						// Higher tech items are rarer!
 						if (randf() * (eqTechLevel - techlevel) < 1.0)
