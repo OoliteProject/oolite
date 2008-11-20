@@ -158,6 +158,7 @@ MA 02110-1301, USA.
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
+							isUnpiloted: 1,			// Is meant to not have crew
 	
 	// scripting
 							haveExecutedSpawnAction: 1,
@@ -484,6 +485,7 @@ MA 02110-1301, USA.
 - (BOOL)isEscort;		// Primary role is "escort" or "wingman"
 - (BOOL)isShuttle;		// Primary role is "shuttle"
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
+- (BOOL)isUnpiloted;		// Has unpiloted = yes in its shipdata.plist entry
 
 - (BOOL) hasHostileTarget;
 

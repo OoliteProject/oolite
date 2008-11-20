@@ -466,7 +466,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	// unpiloted (like missiles asteroids etc.)
-	if ([shipDict fuzzyBooleanForKey:@"unpiloted"])  [self setCrew:nil];
+	if ((isUnpiloted = [shipDict fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
 	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
 	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
@@ -3439,6 +3439,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (BOOL)isPirateVictim
 {
 	return [UNIVERSE roleIsPirateVictim:[self primaryRole]];
+}
+
+
+- (BOOL)isUnpiloted
+{
+	return isUnpiloted;
 }
 
 
