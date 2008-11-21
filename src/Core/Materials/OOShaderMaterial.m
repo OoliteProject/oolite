@@ -56,6 +56,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
+#import "OOIsNumberLiteral.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -356,8 +357,16 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else if ([definition isKindOfClass:[NSString class]])
 		{
-			binding = definition;
-			type = @"binding";
+			if (OOIsNumberLiteral(definition, NO))
+			{
+				value = definition;
+				type = @"float";
+			}
+			else
+			{
+				binding = definition;
+				type = @"binding";
+			}
 		}
 		else if ([definition isKindOfClass:[NSArray class]])
 		{
