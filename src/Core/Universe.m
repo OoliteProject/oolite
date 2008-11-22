@@ -3867,18 +3867,14 @@ static const OOMatrix	starboard_matrix =
 {
 	glDisable(GL_TEXTURE_2D);	// for background sheets
 	
-	if (message_gui)
-		[message_gui drawGUI:[message_gui alpha] drawCursor:NO];
-
-	if (comm_log_gui)
-		[comm_log_gui drawGUI:[comm_log_gui alpha] drawCursor:NO];
+	float overallAlpha = [[[PlayerEntity sharedPlayer] hud] overallAlpha];
+	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];
+	[comm_log_gui drawGUI:[comm_log_gui alpha] * overallAlpha drawCursor:NO];
 
 	if (displayGUI)
 	{
-		if (displayCursor)
-			cursor_row = [gui drawGUI:1.0 drawCursor:YES];
-		else
-			[gui drawGUI:1.0 drawCursor:NO];
+		if (displayCursor)  cursor_row = [gui drawGUI:1.0 drawCursor:YES];
+		else  [gui drawGUI:1.0 drawCursor:NO];
 	}
 }
 
