@@ -2704,7 +2704,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (StationEntity *) station
 {
-	if (cachedStation == nil)
+	if (cachedSun != nil && cachedStation == nil)
 	{
 		cachedStation = [self findOneEntityMatchingPredicate:IsCandidateMainStationPredicate
 												   parameter:nil];
