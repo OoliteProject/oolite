@@ -3779,9 +3779,9 @@ static const OOMatrix	starboard_matrix =
 - (void) drawCrosshairs
 {
 	PlayerEntity*   playerShip = [PlayerEntity sharedPlayer];
-
+	
 	if (viewDirection == VIEW_CUSTOM)	return;	// don't try to draw cross hairs in a custom view
-
+	
 	int	weapon	= [playerShip weaponForView:viewDirection];
 	if ((playerShip)&&((playerShip->status == STATUS_IN_FLIGHT)||(playerShip->status == STATUS_WITCHSPACE_COUNTDOWN)))
 	{	

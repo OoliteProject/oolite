@@ -135,7 +135,18 @@ static NSString *MacrosToString(NSDictionary *macros);
 		
 		if (vertexShader != nil || fragmentShader != nil)
 		{
-			shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader fragmentShaderName:fragmentShader prefix:macroString];
+			static NSDictionary *attributeBindings = nil;
+			if (attributeBindings == nil)
+			{
+				attributeBindings = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kTangentAttributeIndex]
+																forKey:@"tangent"];
+				[attributeBindings retain];
+			}
+			
+			shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
+															fragmentShaderName:fragmentShader
+																		prefix:macroString
+															 attributeBindings:attributeBindings];
 		}
 		else
 		{
@@ -416,7 +427,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else if ([type isEqualToString:@"int"] || [type isEqualToString:@"integer"] || [type isEqualToString:@"texture"])
 		{
-			/*	"texture" is allowed as a synonym for "int" because shader#d
+			/*	"texture" is allowed as a synonym for "int" because shader
 				uniforms are mapped to texture units by specifying an integer
 				index.
 				uniforms = { diffuseMap = { type = texture; value = 0; }; };

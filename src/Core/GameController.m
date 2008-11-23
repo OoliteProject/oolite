@@ -580,6 +580,11 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 			NSOpenGLPFADepthSize, 32,
 			NSOpenGLPFADoubleBuffer,
 			NSOpenGLPFAAccelerated,
+#if FSAA
+			// Need a preference or other sane way to activate this
+			NSOpenGLPFASampleBuffers, 1,
+			NSOpenGLPFASamples,4,
+#endif
 			0
 		};
 		GLint rendererID;

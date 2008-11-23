@@ -166,4 +166,15 @@ typedef uint16_t OOUniformConvertOptions;
 
 @end
 
+
+enum
+{
+	/*	ID of vertex attribute used for tangents. A fixed ID is used for
+		simplicty.
+		NOTE: on Nvidia hardware, attribute 15 is aliased to
+		gl_MultiTexCoord7. This is not expected to become a problem.
+	*/
+	kTangentAttributeIndex = 15
+};
+
 #endif // NO_SHADERS

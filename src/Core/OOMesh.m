@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 #import "OODebugGLDrawing.h"
 #import "OOShaderMaterial.h"
+#import "OOMacroOpenGL.h"
 
 
 // If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
@@ -75,12 +76,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (BOOL) loadData:(NSString *)filename;
 - (void) checkNormalsAndAdjustWinding;
+- (void) generateFaceTangents;
 - (void) calculateVertexNormals;
 
 - (NSDictionary*) modelData;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
 
-- (Vector) normalForVertex:(int)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
+- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
 - (void) setUpVertexArrays;
 
@@ -208,6 +210,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		return;
 	}
 	
+	OO_ENTER_OPENGL();
+	
 	int			ti;
 	
 	glPushAttrib(GL_ENABLE_BIT);
@@ -226,6 +230,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
 	glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
 	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
+	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	{
+		glEnableVertexAttribArrayARB(kTangentAttributeIndex);
+		glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, entityData.tangent_array);
+	}
 	
 	glDisable(GL_BLEND);
 	glEnable(GL_TEXTURE_2D);
@@ -245,6 +254,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		for (ti = 0; ti < materialCount; ti++)
 		{
 			[materials[ti] apply];
+#if 0
 			if (listsReady)
 			{
 				glCallList(displayList0 + ti);
@@ -255,6 +265,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 				glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
 				glEndList();
 			}
+#else
+			glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+#endif
 		}
 		
 		listsReady = YES;
@@ -272,6 +285,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif
+	
+	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	{
+		glDisableVertexAttribArrayARB(kTangentAttributeIndex);
+	}
 	
 	[OOMaterial applyNone];
 	CheckOpenGLErrors(@"OOMesh after drawing %@", self);
@@ -579,6 +597,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	if (listsReady)
 	{
+		OO_ENTER_OPENGL();
+		
 		glDeleteLists(displayList0, materialCount);
 		listsReady = NO;
 	}
@@ -591,6 +611,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						*faceCnt = nil;
 	NSData				*vertData = nil,
 						*normData = nil,
+						*tanData = nil,
 						*faceData = nil;
 	NSArray				*mtlKeys = nil;
 	NSNumber			*smooth = nil;
@@ -601,16 +622,18 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	vertData = [NSData dataWithBytes:vertices length:sizeof *vertices * vertexCount];
 	normData = [NSData dataWithBytes:normals length:sizeof *normals * vertexCount];
+	tanData = [NSData dataWithBytes:tangents length:sizeof *tangents * vertexCount];
 	faceData = [NSData dataWithBytes:faces length:sizeof *faces * faceCount];
 	
 	mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
 	smooth = [NSNumber numberWithBool:isSmoothShaded];
 	
-	// Ensure we have all thr required data elements.
+	// Ensure we have all the required data elements.
 	if (vertCnt == nil ||
 		faceCnt == nil ||
 		vertData == nil ||
 		normData == nil ||
+		tanData == nil ||
 		faceData == nil ||
 		mtlKeys == nil ||
 		smooth == nil)
@@ -623,6 +646,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						vertCnt, @"vertex count",
 						vertData, @"vertex data",
 						normData, @"normal data",
+						tanData, @"tangent data",
 						faceCnt, @"face count",
 						faceData, @"face data",
 						mtlKeys, @"material keys",
@@ -637,6 +661,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						*faceCnt = nil;
 	NSData				*vertData = nil,
 						*normData = nil,
+						*tanData = nil,
 						*faceData = nil;
 	NSArray				*mtlKeys = nil;
 	NSNumber			*smooth = nil;
@@ -651,6 +676,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	vertData = [dict dataForKey:@"vertex data"];
 	normData = [dict dataForKey:@"normal data"];
+	tanData = [dict dataForKey:@"tangent data"];
 	faceData = [dict dataForKey:@"face data"];
 	
 	mtlKeys = [dict arrayForKey:@"material keys"];
@@ -661,6 +687,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		faceCnt == nil ||
 		vertData == nil ||
 		normData == nil ||
+		tanData == nil ||
 		faceData == nil ||
 		mtlKeys == nil ||
 		smooth == nil)
@@ -678,11 +705,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	// Ensure data objects are of correct size.
 	if ([vertData length] != sizeof *vertices * vertexCount)  return NO;
 	if ([normData length] != sizeof *normals * vertexCount)  return NO;
+	if ([tanData length] != sizeof *tangents * vertexCount)  return NO;
 	if ([faceData length] != sizeof *faces * faceCount)  return NO;
 	
 	// Copy data.
 	memcpy(vertices, [vertData bytes], [vertData length]);
 	memcpy(normals, [normData bytes], [normData length]);
+	memcpy(tangents, [tanData bytes], [tanData length]);
 	memcpy(faces, [faceData bytes], [faceData length]);
 	
 	// Copy material keys.
@@ -1008,6 +1037,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 		
 		[self checkNormalsAndAdjustWinding];
+		[self generateFaceTangents];
 		
 		if (failFlag)
 		{
@@ -1015,8 +1045,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 
 		// check for smooth shading and recalculate normals
-		if (isSmoothShaded)
-			[self calculateVertexNormals];
+		if (isSmoothShaded)  [self calculateVertexNormals];
 		
 		// save the resulting data for possible reuse
 		[OOCacheManager setMeshData:[self modelData] forName:filename];
@@ -1074,63 +1103,112 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
+- (void) generateFaceTangents
+{
+	int i;
+	for (i = 0; i < faceCount; i++)
+	{
+		OOMeshFace *face = faces + i;
+		
+		/*	Generate tangents, i.e. vectors that run in the direction of the s
+			texture coordinate. Based on code I found in a forum somewhere and
+			then lost track of. Sorry to whomever I should be crediting.
+			-- Ahruman 2008-11-23
+		*/
+		Vector vAB = vector_subtract(vertices[face->vertex[1]], vertices[face->vertex[0]]);
+		Vector vAC = vector_subtract(vertices[face->vertex[2]], vertices[face->vertex[0]]);
+		Vector nA = face->normal;
+		
+		// projAB = aB - (nA . vAB) * nA
+		Vector vProjAB = vector_subtract(vAB, vector_multiply_scalar(nA, dot_product(nA, vAB)));
+		Vector vProjAC = vector_subtract(vAC, vector_multiply_scalar(nA, dot_product(nA, vAC)));
+		
+		// delta s/t
+		GLfloat dsAB = face->s[1] - face->s[0];
+		GLfloat dsAC = face->s[2] - face->s[0];
+		GLfloat dtAB = face->t[1] - face->t[0];
+		GLfloat dtAC = face->t[2] - face->t[0];
+		
+		if (dsAC * dtAB > dsAB * dtAC)
+		{
+			dsAB = -dsAB;
+			dsAC = -dsAC;
+		}
+		
+		Vector tangent = vector_subtract(vector_multiply_scalar(vProjAB, dsAC), vector_multiply_scalar(vProjAC, dsAB));
+		face->tangent = cross_product(face->normal, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
+	}
+}
+
+
+static float FaceArea(GLint *vertIndices, Vector *vertices)
+{
+	// calculate areas using Herons formula
+	// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
+	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
+	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
+	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
+	return sqrtf(2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
+}
+
+
 - (void) calculateVertexNormals
 {
 	int i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
-		// calculate areas using Herons formula
-		// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
-		float	a2 = distance2( vertices[faces[i].vertex[0]], vertices[faces[i].vertex[1]]);
-		float	b2 = distance2( vertices[faces[i].vertex[1]], vertices[faces[i].vertex[2]]);
-		float	c2 = distance2( vertices[faces[i].vertex[2]], vertices[faces[i].vertex[0]]);
-		triangle_area[i] = sqrt( 2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
+		triangle_area[i] = FaceArea(faces[i].vertex, vertices);
 	}
 	for (i = 0; i < vertexCount; i++)
 	{
 		Vector normal_sum = kZeroVector;
+		Vector tangent_sum = kZeroVector;
+		
 		for (j = 0; j < faceCount; j++)
 		{
 			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
 			if (is_shared)
 			{
 				float t = triangle_area[j]; // weight sum by area
-				normal_sum.x += t * faces[j].normal.x;	normal_sum.y += t * faces[j].normal.y;	normal_sum.z += t * faces[j].normal.z;
+				normal_sum = vector_add(normal_sum, vector_multiply_scalar(faces[j].normal, t));
+				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(faces[j].tangent, t));
 			}
 		}
-		if (normal_sum.x||normal_sum.y||normal_sum.z)
-			normal_sum = unit_vector(&normal_sum);
-		else
-			normal_sum.z = 1.0;
+		
+		normal_sum = vector_normal_or_fallback(normal_sum, kBasisZVector);
+		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
+		
 		normals[i] = normal_sum;
+		tangents[i] = tangent_sum;
 	}
 }
 
-- (Vector) normalForVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
+
+- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
 {
+	assert(outNormal != NULL && outTangent != NULL);
+	
 	int j;
 	Vector normal_sum = kZeroVector;
+	Vector tangent_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
 	{
 		if (faces[j].smoothGroup == smoothGroup)
 		{
 			if ((faces[j].vertex[0] == v_index)||(faces[j].vertex[1] == v_index)||(faces[j].vertex[2] == v_index))
 			{
-				float	a2 = distance2( vertices[faces[j].vertex[0]], vertices[faces[j].vertex[1]]);
-				float	b2 = distance2( vertices[faces[j].vertex[1]], vertices[faces[j].vertex[2]]);
-				float	c2 = distance2( vertices[faces[j].vertex[2]], vertices[faces[j].vertex[0]]);
-				float	t = sqrt( 2.0 * (a2 * b2 + b2 * c2 + c2 * a2) - 0.25 * (a2 * a2 + b2 * b2 +c2 * c2));
-				normal_sum.x += t * faces[j].normal.x;	normal_sum.y += t * faces[j].normal.y;	normal_sum.z += t * faces[j].normal.z;
+				float area = FaceArea(faces[j].vertex, vertices);
+				normal_sum = vector_add(normal_sum, vector_multiply_scalar(faces[j].normal, area));
+				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(faces[j].tangent, area));
 			}
 		}
 	}
-	if (normal_sum.x||normal_sum.y||normal_sum.z)
-		normal_sum = unit_vector(&normal_sum);
-	else
-		normal_sum.z = 1.0;
-	return normal_sum;
+	
+	*outNormal = vector_normal_or_fallback(normal_sum, kBasisZVector);
+	*outTangent = vector_normal_or_fallback(tangent_sum, kBasisXVector);
 }
+
 
 - (void) setUpVertexArrays
 {
@@ -1176,7 +1254,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		for (fi = 0; fi < faceCount; fi++)
 		{
-			Vector normal;
+			Vector normal, tangent;
 			
 			if (faces[fi].materialIndex == mi)
 			{
@@ -1186,17 +1264,24 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (isSmoothShaded)
 					{
 						if (is_edge_vertex[v])
-							normal = [self normalForVertex:v inSmoothGroup:faces[fi].smoothGroup];
+						{
+							[self getNormal:&normal	andTangent:&tangent forVertex:v inSmoothGroup:faces[fi].smoothGroup];
+						}
 						else
+						{
 							normal = normals[v];
+							tangent = tangents[v];
+						}
 					}
 					else
 					{
 						normal = faces[fi].normal;
+						tangent = faces[fi].tangent;
 					}
 					
 					entityData.index_array[tri_index++] = vertex_index;
 					entityData.normal_array[vertex_index] = normal;
+					entityData.tangent_array[vertex_index] = tangent;
 					entityData.vertex_array[vertex_index++] = vertices[v];
 					entityData.texture_uv_array[uv_index++] = faces[fi].s[vi];
 					entityData.texture_uv_array[uv_index++] = faces[fi].t[vi];
@@ -1335,10 +1420,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 - (void)debugDrawNormals
 {
 	GLint				i, max = 0;
-	Vector				v, n;
+	Vector				v, n, t, b;
 	float				length, blend;
 	GLfloat				color[3];
 	OODebugWFState		state;
+	
+	OO_ENTER_OPENGL();
 	
 	state = OODebugBeginWireframe(NO);
 	
@@ -1354,7 +1441,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		v = entityData.vertex_array[i];
 		n = entityData.normal_array[i];
+		t = entityData.tangent_array[i];
+		b = true_cross_product(n, t);
 		
+		// Draw normal
 		length = magnitude2(n);
 		blend = fabsf(length - 1) * 5.0;
 		color[0] = MIN(blend, 1.0f);
@@ -1364,8 +1454,20 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		glVertex3f(v.x, v.y, v.z);
 		scale_vector(&n, 5.0f);
-		v = vector_add(n, v);
+		n = vector_add(n, v);
+		glVertex3f(n.x, n.y, n.z);
+		
+		// Draw tangent
+		glColor3f(1.0f, 1.0f, 0.0f);
+		t = vector_add(v, vector_multiply_scalar(t, 3.0f));
 		glVertex3f(v.x, v.y, v.z);
+		glVertex3f(t.x, t.y, t.z);
+		
+		// Draw binormal
+		glColor3f(0.0f, 1.0f, 0.0f);
+		b = vector_add(v, vector_multiply_scalar(b, 3.0f));
+		glVertex3f(v.x, v.y, v.z);
+		glVertex3f(b.x, b.y, b.z);
 	}
 	glEnd();
 	

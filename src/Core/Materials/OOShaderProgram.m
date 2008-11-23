@@ -53,6 +53,7 @@ SOFTWARE.
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
+#import "OOCollectionExtractors.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -69,7 +70,10 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			fragmentShaderSource:(NSString *)fragmentSource
 					  vertexName:(NSString *)vertexName
 					fragmentName:(NSString *)fragmentName
+			   attributeBindings:(NSDictionary *)attributeBindings
 							 key:(NSString *)key;
+
+- (void) bindAttributes:(NSDictionary *)attributeBindings;
 
 @end
 
@@ -79,6 +83,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 + (id)shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
 					 fragmentShaderName:(NSString *)fragmentShaderName
 								 prefix:(NSString *)prefixString
+					  attributeBindings:(NSDictionary *)attributeBindings
 {
 	NSString				*cacheKey = nil;
 	OOShaderProgram			*result = nil;
@@ -101,6 +106,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 												fragmentShaderSource:fragmentSource
 														  vertexName:vertexShaderName
 														fragmentName:fragmentShaderName
+												   attributeBindings:attributeBindings
 																 key:cacheKey];
 		
 		if (result != nil)
@@ -180,6 +186,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			fragmentShaderSource:(NSString *)fragmentSource
 					  vertexName:(NSString *)vertexName
 					fragmentName:(NSString *)fragmentName
+			   attributeBindings:(NSDictionary *)attributeBindings
 							 key:(NSString *)inKey
 {
 	BOOL					OK = YES;
@@ -243,6 +250,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		{
 			if (vertexShader != NULL_SHADER)  glAttachObjectARB(program, vertexShader);
 			if (fragmentShader != NULL_SHADER)  glAttachObjectARB(program, fragmentShader);
+			[self bindAttributes:attributeBindings];
 			glLinkProgramARB(program);
 			
 			glGetObjectParameterivARB(program, GL_OBJECT_LINK_STATUS_ARB, &compileStatus);
@@ -271,6 +279,20 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		self = nil;
 	}
 	return self;
+}
+
+
+- (void) bindAttributes:(NSDictionary *)attributeBindings
+{
+	OO_ENTER_OPENGL();
+	
+	NSString				*attrKey = nil;
+	NSEnumerator			*keyEnum = nil;
+	
+	for (keyEnum = [attributeBindings keyEnumerator]; (attrKey = [keyEnum nextObject]); )
+	{
+		glBindAttribLocationARB(program, [attributeBindings unsignedIntForKey:attrKey], [attrKey UTF8String]);	
+	}
 }
 
 @end

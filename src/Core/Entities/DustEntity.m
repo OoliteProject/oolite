@@ -130,6 +130,10 @@ MA 02110-1301, USA.
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_NO_DUST)  return;
+#endif
+	
 	int ct;
 	int vi;
 

@@ -9,6 +9,7 @@
 	"ship-prefix-macros" =
 	{
 		"OO_USER_DEFINED_BINDINGS" = 1;
+		"OO_TANGENT_ATTR" = 1;
 	};
 
 

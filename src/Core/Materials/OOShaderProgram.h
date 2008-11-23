@@ -63,14 +63,15 @@ SOFTWARE.
 }
 
 // Loads a shader from a file, caching and sharing shader program instances.
-+ (id)shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
-					 fragmentShaderName:(NSString *)fragmentShaderName
-								 prefix:(NSString *)prefixString;
++ (id) shaderProgramWithVertexShaderName:(NSString *)vertexShaderName
+					  fragmentShaderName:(NSString *)fragmentShaderName
+								  prefix:(NSString *)prefixString			// String prepended to program source (both vs and fs)
+					   attributeBindings:(NSDictionary *)attributeBindings;	// Maps vertex attribute names to "locations".
 
-- (void)apply;
-+ (void)applyNone;
+- (void) apply;
++ (void) applyNone;
 
-- (GLhandleARB)program;
+- (GLhandleARB) program;
 
 @end
 

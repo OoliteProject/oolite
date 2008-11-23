@@ -67,6 +67,7 @@ typedef struct
 	GLint					vertex[kOOMeshMaxVertsPerFace];
 	
 	Vector					normal;
+	Vector					tangent;
 	GLfloat					s[kOOMeshMaxVertsPerFace];
 	GLfloat					t[kOOMeshMaxVertsPerFace];
 } OOMeshFace;
@@ -78,6 +79,7 @@ typedef struct
 	GLfloat					texture_uv_array[3 * kOOMeshMaxFaces * 2];
 	Vector					vertex_array[3 * kOOMeshMaxFaces];
 	Vector					normal_array[3 * kOOMeshMaxFaces];
+	Vector					tangent_array[3 * kOOMeshMaxFaces];
 	
 	int						n_triangles;	// Actually number of entries, i.e. triangle count * 3.
 } EntityData;
@@ -97,6 +99,7 @@ typedef struct
 	
 	Vector					vertices[kOOMeshMaxVertices];
 	Vector					normals[kOOMeshMaxVertices];
+	Vector					tangents[kOOMeshMaxVertices];
 	OOMeshFace				faces[kOOMeshMaxFaces];
 	
 	EntityData				entityData;
