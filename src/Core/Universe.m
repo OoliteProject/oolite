@@ -2888,7 +2888,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	while ([pset count] > 0)
 	{
 		// Select a ship, check conditions and return it if possible.
-		shipKey = [registry randomShipKeyForRole:role];
+		shipKey = [pset randomObject];
 		if ([self canInstantiateShip:shipKey])  return shipKey;
 		
 		// Condition failed -> remove ship from consideration.

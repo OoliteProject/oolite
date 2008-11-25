@@ -899,12 +899,13 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (id) randomObject
 {
-	float					target = 0.0f, sum = 0.0f;
+	float					target = 0.0f, sum = 0.0f, sumOfWeights;
 	OOUInteger				i = 0, count = 0;
 	
-	target = randf() * _sumOfWeights;
+	sumOfWeights = [self sumOfWeights];
+	target = randf() * sumOfWeights;
 	count = [_objects count];
-	if (count == 0 || _sumOfWeights <= 0.0f)  return nil;
+	if (count == 0 || sumOfWeights <= 0.0f)  return nil;
 	
 	for (i = 0; i < count; ++i)
 	{
@@ -912,7 +913,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 		if (sum >= target)  return [_objects objectAtIndex:i];
 	}
 	
-	OOLog(@"probabilitySet.broken", @"%s fell off end, returning first object. Sum = %f, target = %f, count = %u. This is an internal error, please report it.", __PRETTY_FUNCTION__, _sumOfWeights, target, count);
+	OOLog(@"probabilitySet.broken", @"%s fell off end, returning first object. Nominal sum = %f, target = %f, actual sum = %f, count = %u. This is an internal error, please report it.", __PRETTY_FUNCTION__, sumOfWeights, target, sum, count);
 	return [_objects objectAtIndex:0];
 }
 
@@ -936,6 +937,17 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (float) sumOfWeights
 {
+	if (_sumOfWeights < 0.0f)
+	{
+		OOUInteger			i, count;
+		count = [self count];
+		
+		_sumOfWeights = 0.0f;
+		for (i = 0; i < count; ++i)
+		{
+			_sumOfWeights += [_weights floatAtIndex:i];
+		}
+	}
 	return _sumOfWeights;
 }
 
@@ -966,8 +978,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	}
 	else
 	{
-		_sumOfWeights -= [_weights floatAtIndex:index];
-		_sumOfWeights += weight;
+		_sumOfWeights = -1.0f;	// Simply subtracting the relevant weight doesn't work if the weight is large, due to floating-point precision issues.
 		[_weights replaceObjectAtIndex:index withObject:[NSNumber numberWithFloat:weight]];
 	}
 }
@@ -981,7 +992,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	if (index != NSNotFound)
 	{
 		[_objects removeObjectAtIndex:index];
-		_sumOfWeights -= [_weights floatAtIndex:index];
+		_sumOfWeights = -1.0f;	// Simply subtracting the relevant weight doesn't work if the weight is large, due to floating-point precision issues.
 		[_weights removeObjectAtIndex:index];
 	}
 }

@@ -440,14 +440,17 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			reportedBadShips = [NSMutableArray array];
 			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
 			{
-				[reportedBadShips addObject:key];
+				if (![[ioData objectForKey:key] boolForKey:@"is_external_dependency"])
+				{
+					[reportedBadShips addObject:key];
+				}
 				[ioData removeObjectForKey:key];
 			}
 			
 			if ([reportedBadShips count] != 0)
 			{
 				[reportedBadShips sortUsingSelector:@selector(caseInsensitiveCompare:)];
-				OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: ", reportedBadShips);
+				OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", [reportedBadShips componentsJoinedByString:@", "]);
 			}
 			break;
 		}
