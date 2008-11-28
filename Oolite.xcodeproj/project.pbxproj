@@ -1430,7 +1430,7 @@
 		1A62F0FB0E26A2A000897506 /* OOEquipmentType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEquipmentType.m; sourceTree = "<group>"; };
 		1A62F0FC0E26A2A000897506 /* OOEquipmentType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEquipmentType.h; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; explicitFileType = sourcecode.vert; fileEncoding = 4; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
-		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
+		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
 		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };

@@ -1,3 +1,61 @@
+/*
+	oolite-default-shader.fragment
+	Default fragment shader for Oolite ships.
+	
+	This is similar to normal ship shaders, but has special controlling
+	macros (like OOSTD_DIFFUSE_MAP, OOSTD_SPECULAR etc.) which are specific
+	to the default shader.
+	
+	A note on the structure of this file: the GLSL implementation on Mac OS X
+	10.4.x can't handle shaders with nested #if/#ifdefs on some systems. I
+	haven't explored this in detail, but it seems to be PowerPC-specific.
+	Avoiding such nesting while dealing with several controlling macros leads
+	to this rather messy code structure.
+	This bug is fixed in Mac OS X 10.5.
+	
+	
+	© 2007–2008 Jens Ayton
+
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+	
+	
+	This file may also be distributed under the MIT/X11 license:
+	
+	Copyright © 2007–2008 Jens Ayton
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.
+*/
+
+
 #ifndef OOSTD_DIFFUSE_MAP
 #define OOSTD_DIFFUSE_MAP 0
 #endif
@@ -117,8 +175,6 @@ vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
 	return lightColor * intensity;
 }
 
-#define DIFFUSE_LIGHT(lightVector, lightColor)  diffuseLight += CalcDiffuseLight(lightVector, normal, lightColor)
-
 
 vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent, in vec3 normal, in vec4 lightColor)
 {
@@ -135,15 +191,6 @@ vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent
 	intensity = pow(max(intensity, 0.0), exponent);
 	return lightColor * intensity;
 }
-
-#define SPECULAR_LIGHT(lightVector, lightColor)  specularLight  += CalcSpecularLight(lightVector, eyeVector, exponent, normal, lightColor)
-
-
-#if OOSTD_SPECULAR && OO_LIGHT_0_FIX
-#define SPECULAR_LIGHT_0 SPECULAR_LIGHT(light0Vector, gl_LightSource[0].specular)
-#else
-#define SPECULAR_LIGHT_0
-#endif
 
 
 #ifndef OO_REDUCED_COMPLEXITY
@@ -251,9 +298,9 @@ void main(void)
 	
 	vec4 diffuseLight = vec4(0);
 #if OO_LIGHT_0_FIX
-	DIFFUSE_LIGHT(light0Vector, gl_LightSource[0].diffuse);
+	diffuseLight += CalcDiffuseLight(light0Vector, normal, gl_LightSource[0].diffuse);
 #endif
-	DIFFUSE_LIGHT(light1Vector, gl_LightSource[1].diffuse);
+	diffuseLight += CalcDiffuseLight(light1Vector, normal, gl_LightSource[1].diffuse);
 	
 #if HAVE_ILLUMINATION
 	diffuseLight += illuminationMapLight;
@@ -264,18 +311,23 @@ void main(void)
 	vec4 specularMapColor = texture2D(uSpecularMap, texCoord);
 	float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
 	specularMapColor.a = 1.0;
-	#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0;
+	#define APPLY_MAPPED_EXPONENT exponent = (exponent - 1.0) * specularExponentLevel + 1.0
 #else
-	#define APPLY_MAPPED_EXPONENT exponent += 0.001;
+	#define APPLY_MAPPED_EXPONENT exponent += 0.001
 #endif
 	
 	// Calculate specular light
+#if OOSTD_SPECULAR && OO_LIGHT_0_FIX
+	#define SPECULAR_LIGHT_0 specularLight += CalcSpecularLight(light0Vector, eyeVector, exponent, normal, gl_LightSource[0].specular)
+#else
+	#define SPECULAR_LIGHT_0
+#endif
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
 	float exponent = gl_FrontMaterial.shininess;
-	APPLY_MAPPED_EXPONENT
+	APPLY_MAPPED_EXPONENT;
 	SPECULAR_LIGHT_0;
-	SPECULAR_LIGHT(light1Vector, gl_LightSource[1].specular);
+	specularLight += CalcSpecularLight(light1Vector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	specularLight.a = 1.0;
 #endif
 	
