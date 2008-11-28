@@ -1,0 +1,54 @@
+/*
+	oolite-tangent-space-vertex.vertex
+	Basic vertex shader for Oolite ships using tangent-space effects.
+	
+	
+	© 2008 Jens Ayton
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+*/
+
+attribute vec3			tangent;
+
+
+// No vNormal, because normal is always 0,0,1 in tangent space.
+varying vec3			vEyeVector;
+varying vec2			vTexCoord;
+varying vec3			vLight0Vector;
+varying vec3			vLight1Vector;
+
+
+void main(void)
+{
+	// Build tangent basis
+	vec3 n = normalize(gl_NormalMatrix * gl_Normal);
+	vec3 t = normalize(gl_NormalMatrix * tangent);
+	vec3 b = cross(n, t);
+	
+	mat3 TBN = mat3(t, b, n);
+	
+	vec3 eyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
+	vEyeVector = eyeVector * TBN;
+	
+	vec3 light0Vector = gl_LightSource[0].position.xyz + eyeVector;
+	vLight0Vector = light0Vector * TBN;
+	
+	vec3 light1Vector = gl_LightSource[1].position.xyz + eyeVector;
+	vLight1Vector = light1Vector * TBN;
+	
+	vTexCoord = gl_MultiTexCoord0.st;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}

@@ -68,6 +68,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 - (id)initWithVertexShaderSource:(NSString *)vertexSource
 			fragmentShaderSource:(NSString *)fragmentSource
+					prefixString:(NSString *)prefixString
 					  vertexName:(NSString *)vertexName
 					fragmentName:(NSString *)fragmentName
 			   attributeBindings:(NSDictionary *)attributeBindings
@@ -104,6 +105,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		if (!GetShaderSource(fragmentShaderName, @"fragment", prefixString, &fragmentSource))  return nil;
 		result = [[OOShaderProgram alloc] initWithVertexShaderSource:vertexSource
 												fragmentShaderSource:fragmentSource
+														prefixString:prefixString
 														  vertexName:vertexShaderName
 														fragmentName:fragmentShaderName
 												   attributeBindings:attributeBindings
@@ -184,13 +186,14 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 
 - (id)initWithVertexShaderSource:(NSString *)vertexSource
 			fragmentShaderSource:(NSString *)fragmentSource
+					prefixString:(NSString *)prefixString
 					  vertexName:(NSString *)vertexName
 					fragmentName:(NSString *)fragmentName
 			   attributeBindings:(NSDictionary *)attributeBindings
 							 key:(NSString *)inKey
 {
 	BOOL					OK = YES;
-	const GLcharARB			*sourceString = NULL;
+	const GLcharARB			*sourceStrings[2] = { "", NULL };
 	GLint					compileStatus;
 	GLhandleARB				vertexShader = NULL_SHADER;
 	GLhandleARB				fragmentShader = NULL_SHADER;
@@ -202,20 +205,25 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	
 	if (OK && vertexSource == nil && fragmentSource == nil)  OK = NO;	// Must have at least one shader!
 	
+	if (OK && prefixString != nil)
+	{
+		sourceStrings[0] = [prefixString UTF8String];
+	}
+	
 	if (OK && vertexSource != nil)
 	{
 		// Compile vertex shader.
 		vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
 		if (vertexShader != NULL_SHADER)
 		{
-			sourceString = [vertexSource UTF8String];
-			glShaderSourceARB(vertexShader, 1, &sourceString, NULL);
+			sourceStrings[1] = [vertexSource UTF8String];
+			glShaderSourceARB(vertexShader, 2, sourceStrings, NULL);
 			glCompileShaderARB(vertexShader);
 			
 			glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
 			if (compileStatus != GL_TRUE)
 			{
-				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "vertex", vertexName, GetGLSLInfoLog(vertexShader), vertexSource);
+				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "vertex", vertexName, GetGLSLInfoLog(vertexShader));
 				OK = NO;
 			}
 		}
@@ -228,14 +236,14 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
 		if (fragmentShader != NULL_SHADER)
 		{
-			sourceString = [fragmentSource UTF8String];
-			glShaderSourceARB(fragmentShader, 1, &sourceString, NULL);
+			sourceStrings[1] = [fragmentSource UTF8String];
+			glShaderSourceARB(fragmentShader, 2, sourceStrings, NULL);
 			glCompileShaderARB(fragmentShader);
 			
 			glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
 			if (compileStatus != GL_TRUE)
 			{
-				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n\n>>>>> GLSL source code:\n%@\n", "fragment", fragmentName, GetGLSLInfoLog(fragmentShader), fragmentSource);
+				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "fragment", fragmentName, GetGLSLInfoLog(fragmentShader));
 				OK = NO;
 			}
 		}
@@ -334,12 +342,12 @@ static BOOL GetShaderSource(NSString *fileName, NSString *shaderType, NSString *
 			return NO;
 		}
 	}
-		
+	/*	
 	if (result != nil && prefix != nil)
 	{
 		result = [prefix stringByAppendingString:result];
 	}
-	
+	*/
 	if (outResult != NULL) *outResult = result;
 	return YES;
 }

@@ -1,41 +1,3 @@
-/*
-	oolite-default-shader.fragment
-	Default fragment shader for Oolite ships.
-	
-	This is similar to normal ship shaders, but has special controlling
-	macros (like OOSTD_DIFFUSE_MAP, OOSTD_SPECULAR etc.) which are specific
-	to the default shader.
-	
-	A note on the structure of this file: the GLSL implementation on Mac OS X
-	10.4.x can't handle shaders with nested #if/#ifdefs on some systems. I
-	haven't explored this in detail, but it seems to be PowerPC-specific.
-	Avoiding such nesting while dealing with several controlling macros leads
-	to this rather messy code structure.
-	This bug is fixed in Mac OS X 10.5.
-	
-	
-	© 2007 Jens Ayton
-
-	This program is free software; you can redistribute it and/or
-	modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 2
-	of the License, or (at your option) any later version.
-
-	This program is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with this program; if not, write to the Free Software
-	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-	MA 02110-1301, USA.
-*/
-
-varying vec3			vNormal;
-varying vec3			vEyeVector;
-
-
 #ifndef OOSTD_DIFFUSE_MAP
 #define OOSTD_DIFFUSE_MAP 0
 #endif
@@ -47,6 +9,14 @@ varying vec3			vEyeVector;
 
 #ifndef OOSTD_SPECULAR_MAP
 #define OOSTD_SPECULAR_MAP 0
+#endif
+
+#ifndef OOSTD_NORMAL_MAP
+#define OOSTD_NORMAL_MAP 0
+#endif
+
+#ifndef OOSTD_NORMAL_AND_PARALLAX_MAP
+#define OOSTD_NORMAL_AND_PARALLAX_MAP 0
 #endif
 
 #ifndef OOSTD_EMISSION
@@ -70,7 +40,7 @@ varying vec3			vEyeVector;
 #endif
 
 
-#if OOSTD_EMISSION_AND_ILLUMINATION_MAP && ! OOSTD_EMISSION_MAP
+#if OOSTD_EMISSION_AND_ILLUMINATION_MAP && !OOSTD_EMISSION_MAP
 #undef OOSTD_EMISSION_MAP
 #define OOSTD_EMISSION_MAP 1
 #endif
@@ -78,60 +48,99 @@ varying vec3			vEyeVector;
 #undef OOSTD_EMISSION_AND_ILLUMINATION_MAP
 #define OOSTD_EMISSION_AND_ILLUMINATION_MAP 0
 #endif
-
-
-#ifdef OOSTD_DIFFUSE_MAP
-uniform sampler2D		uDiffuseMap;
-#endif
-
-#ifdef OOSTD_SPECULAR_MAP
-uniform sampler2D		uSpecularMap;
-#endif
-
-#ifdef OOSTD_EMISSION_MAP
-uniform sampler2D		uEmissionMap;
-#endif
-
-#ifdef OOSTD_ILLUMINATION_MAP
-uniform sampler2D		uIlluminationMap;
+#if OOSTD_NORMAL_AND_PARALLAX_MAP && !OOSTD_NORMAL_MAP
+#undef OOSTD_NORMAL_AND_PARALLAX_MAP
+#define OOSTD_NORMAL_AND_PARALLAX_MAP 0
 #endif
 
 
-#if OOSTD_DIFFUSE_MAP || OOSTD_SPECULAR_MAP || OOSTD_EMISSION_MAP || OOSTD_ILLUMINATION_MAP
-#define NEED_TEX_COORD
+#if OOSTD_SPECULAR
+#define NEED_EYE_VECTOR 1
+#else
+#define NEED_EYE_VECTOR 0
 #endif
 
 #if OOSTD_EMISSION_AND_ILLUMINATION_MAP || OOSTD_ILLUMINATION_MAP
-#define HAVE_ILLUMINATION
+#define HAVE_ILLUMINATION 1
+#else
+#define HAVE_ILLUMINATION 0
 #endif
 
 
-// Lambertian diffuse lighting model
-#define DIFFUSE_LIGHT(idx) \
-	{ \
-		vec3 lightVector = normalize(gl_LightSource[idx].position.xyz); \
-		float intensity = max(dot(normal, lightVector), 0.0); \
-		diffuseLight += gl_LightSource[idx].diffuse * intensity; \
-	}
-
-
-
-#if OOSTD_SPECULAR
-#define SPECULAR_LIGHT(idx) \
-	{ \
-		vec3 lightVector = normalize(gl_LightSource[idx].position.xyz); \
-		vec3 reflection = normalize(-reflect(lightVector, normal)); \
-		float intensity = pow(max(dot(reflection, eyeVector), 0.0), exponent); \
-		specularLight += gl_LightSource[idx].specular * intensity; \
-	}
+#if NEED_EYE_VECTOR
+varying vec3			vEyeVector;
 #endif
 
-#if OOSTD_SPECULAR
-#define NEED_EYE_VECTOR
+varying vec2			vTexCoord;
+
+#if OO_LIGHT_0_FIX
+varying vec3			vLight0Vector;
 #endif
+varying vec3			vLight1Vector;
+
+
+#if OOSTD_DIFFUSE_MAP
+uniform sampler2D		uDiffuseMap;
+#endif
+
+#if OOSTD_SPECULAR_MAP
+uniform sampler2D		uSpecularMap;
+#endif
+
+#if OOSTD_NORMAL_MAP
+uniform sampler2D		uNormalMap;
+#endif
+
+#if OOSTD_EMISSION_MAP
+uniform sampler2D		uEmissionMap;
+#endif
+
+#if OOSTD_ILLUMINATION_MAP
+uniform sampler2D		uIlluminationMap;
+#endif
+
+#if OOSTD_NORMAL_AND_PARALLAX_MAP
+uniform float			uParallaxScale;
+uniform float			uParallaxBias;
+#endif
+
+
+vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
+{
+#if OOSTD_NORMAL_MAP
+	float intensity = dot(normal, lightVector);
+#else
+	// dot(v, (0,0,1)) is v.x*0 + v.y*0 + v.z*1 = v.z
+	float intensity = lightVector.z;
+#endif
+	intensity = max(intensity, 0.0);
+	return lightColor * intensity;
+}
+
+#define DIFFUSE_LIGHT(lightVector, lightColor)  diffuseLight += CalcDiffuseLight(lightVector, normal, lightColor)
+
+
+vec4 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent, in vec3 normal, in vec4 lightColor)
+{
+#if OOSTD_NORMAL_MAP
+	vec3 reflection = -reflect(lightVector, normal);
+#else
+	/*	reflect(I, N) is defined as I - 2 * dot(N, I) * N
+		If N is (0,0,1), this becomes (I.x,I.y,-I.z).
+		Note that we want it negated as per above.
+	*/
+	vec3 reflection = vec3(-lightVector.x, -lightVector.y, lightVector.z);
+#endif
+	float intensity = dot(reflection, eyeVector);
+	intensity = pow(max(intensity, 0.0), exponent);
+	return lightColor * intensity;
+}
+
+#define SPECULAR_LIGHT(lightVector, lightColor)  specularLight  += CalcSpecularLight(lightVector, eyeVector, exponent, normal, lightColor)
+
 
 #if OOSTD_SPECULAR && OO_LIGHT_0_FIX
-#define SPECULAR_LIGHT_0 SPECULAR_LIGHT(0)
+#define SPECULAR_LIGHT_0 SPECULAR_LIGHT(light0Vector, gl_LightSource[0].specular)
 #else
 #define SPECULAR_LIGHT_0
 #endif
@@ -185,16 +194,38 @@ vec4 TemperatureGlow(float level)
 void main(void)
 {
 	vec4 totalColor = vec4(0);
-	vec3 normal = normalize(vNormal);
-#ifdef NEED_EYE_VECTOR
+	
+	// Get eye vector
+#if NEED_EYE_VECTOR
 	vec3 eyeVector = normalize(vEyeVector);
 #endif
-#ifdef NEED_TEX_COORD
-	vec2 texCoord = gl_TexCoord[0].st;
+	
+	// Get texture coords, using parallax mapping if appropriate
+#if OOSTD_NORMAL_AND_PARALLAX_MAP
+	float parallax = texture2D(uNormalMap, vTexCoord).a;
+	parallax = parallax * uParallaxScale + uParallaxBias;
+	vec2 texCoord = vTexCoord - parallax * eyeVector.xy * vec2(-1.0, 1.0);
+#else
+	#define texCoord vTexCoord
 #endif
 	
+	// Get normal
+#if OOSTD_NORMAL_MAP
+	vec3 normal = texture2D(uNormalMap, texCoord).rgb;
+#else
+	const vec3 normal = vec3(0.0, 0.0, 1.0);
+#endif
+	
+	// Get light vectors
+#if OO_LIGHT_0_FIX
+	vec3 light0Vector = normalize(vLight0Vector);
+#endif
+	vec3 light1Vector = normalize(vLight1Vector);
+	
+	// Get ambient colour
 	vec4 ambientLight = gl_FrontMaterial.ambient * gl_LightModel.ambient;
 	
+	// Get emission colour
 #if OOSTD_EMISSION || OOSTD_EMISSION_MAP
 	vec4 emissionColor = vec4(1.0);
 #endif
@@ -209,6 +240,8 @@ void main(void)
 	emissionColor.a = 1.0;
 	totalColor += emissionColor;
 #endif
+	
+	// Get illumination colour
 #if OOSTD_EMISSION_AND_ILLUMINATION_MAP
 	// Use alpha channel of emission map as white illumination
 	vec4 illuminationMapLight = vec4(emissionMapColor.aaa, 1.0);
@@ -218,14 +251,15 @@ void main(void)
 	
 	vec4 diffuseLight = vec4(0);
 #if OO_LIGHT_0_FIX
-	DIFFUSE_LIGHT(0)
+	DIFFUSE_LIGHT(light0Vector, gl_LightSource[0].diffuse);
 #endif
-	DIFFUSE_LIGHT(1)
+	DIFFUSE_LIGHT(light1Vector, gl_LightSource[1].diffuse);
 	
-#ifdef HAVE_ILLUMINATION
+#if HAVE_ILLUMINATION
 	diffuseLight += illuminationMapLight;
 #endif
 	
+	// Get specular parameters
 #if OOSTD_SPECULAR_MAP
 	vec4 specularMapColor = texture2D(uSpecularMap, texCoord);
 	float specularExponentLevel = pow(specularMapColor.a, 2.0) + 0.001;
@@ -234,12 +268,14 @@ void main(void)
 #else
 	#define APPLY_MAPPED_EXPONENT exponent += 0.001;
 #endif
+	
+	// Calculate specular light
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
 	float exponent = gl_FrontMaterial.shininess;
 	APPLY_MAPPED_EXPONENT
-	SPECULAR_LIGHT_0
-	SPECULAR_LIGHT(1)
+	SPECULAR_LIGHT_0;
+	SPECULAR_LIGHT(light1Vector, gl_LightSource[1].specular);
 	specularLight.a = 1.0;
 #endif
 	
