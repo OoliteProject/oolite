@@ -1568,7 +1568,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	double d_route2 = sqrt(magnitude2(v_route2));
 	
 	if (v_route2.x||v_route2.y||v_route2.z)
-		v_route2 = unit_vector(&v_route1);
+		v_route2 = vector_normal(v_route1);
 	else
 		v_route2.x = 1.0;
 	
@@ -1987,12 +1987,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	}
 	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
 	if (k.x||k.y||k.z)
-		k = unit_vector(&k);	//	'forward'
+		k = vector_normal(k);	//	'forward'
 	else
 		k.z = 1.0;
 	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
 	if (v.x||v.y||v.z)
-		v = unit_vector(&v);		//	temporary vector in plane of 'forward' and 'right'
+		v = vector_normal(v);		//	temporary vector in plane of 'forward' and 'right'
 	else
 		v.x = 1.0;
 	Vector j = cross_product(k, v);	// 'up'
@@ -2086,12 +2086,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	}
 	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
 	if (k.x||k.y||k.z)
-		k = unit_vector(&k);			//	'z' axis in m
+		k = vector_normal(k);			//	'z' axis in m
 	else
 		k.z = 1.0;
 	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
 	if (v.x||v.y||v.z)
-		v = unit_vector(&v);		//	temporary vector in plane of 'forward' and 'right'
+		v = vector_normal(v);		//	temporary vector in plane of 'forward' and 'right'
 	else
 		v.x = 1.0;
 	Vector j = cross_product(k, v);	// 'y' axis in m
@@ -2233,7 +2233,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 				v_from_center.y += walk_factor * (randf() - 0.5);
 				v_from_center.z += walk_factor * (randf() - 0.5);	// drunkards walk
 			} while ((v_from_center.x == 0.0)&&(v_from_center.y == 0.0)&&(v_from_center.z == 0.0));
-			v_from_center = unit_vector(&v_from_center);	// guaranteed non-zero
+			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
 						
 			ship_pos = make_vector(	launchPos.x + distance_from_center * v_from_center.x,
 									launchPos.y + distance_from_center * v_from_center.y,
@@ -2437,7 +2437,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 		rpos.x -= spos.x;	rpos.y -= spos.y;	rpos.z -= spos.z; // position relative to ship
 		if (rpos.x || rpos.y || rpos.z)
 		{
-			rpos = unit_vector(&rpos);
+			rpos = vector_normal(rpos);
 			q1 = quaternion_rotation_between(make_vector(0,0,1), rpos);
 			
 			GLfloat check = dot_product(vector_forward_from_quaternion(q1), rpos);
@@ -4281,7 +4281,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		my_entities[i] = [sortedEntities[i] retain]; //	retained
 	
 	if (v1.x || v1.y || v1.z)
-		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
 	else
 		f1 = make_vector(0, 0, 1);
 	
@@ -4343,7 +4343,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		my_entities[i] = [sortedEntities[i] retain]; //	retained
 
 	if (v1.x || v1.y || v1.z)
-		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
 	else
 		f1 = make_vector(0, 0, 1);
 	
@@ -4402,7 +4402,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	double  nearest = sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z) - dist;  // length of vector
 	
 	if (v1.x || v1.y || v1.z)
-		f1 = unit_vector(&v1);   // unit vector in direction of p2 from p1
+		f1 = vector_normal(v1);   // unit vector in direction of p2 from p1
 	else
 		f1 = make_vector(0, 0, 1);
 		
@@ -4449,7 +4449,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					Vector outward = nearest_point;
 					outward.x -= result.x;	outward.y -= result.y;	outward.z -= result.z;
 					if (outward.x||outward.y||outward.z)
-						outward = unit_vector(&outward);
+						outward = vector_normal(outward);
 					else
 						outward.y = 1.0;
 					// outward holds unit vector through the nearest point on the line from the center of incident object
@@ -4457,7 +4457,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					Vector backward = p1;
 					backward.x -= result.x;	backward.y -= result.y;	backward.z -= result.z;
 					if (backward.x||backward.y||backward.z)
-						backward = unit_vector(&backward);
+						backward = vector_normal(backward);
 					else
 						backward.z = -1.0;
 					// backward holds unit vector from center of the incident object to the center of the ship
@@ -7639,7 +7639,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	Vector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;	// vector from sun to ship
 	if (v1.x||v1.y||v1.z)
-		v1 = unit_vector(&v1);
+		v1 = vector_normal(v1);
 	else
 		v1.z = 1.0;
 	double radius = SUN_SKIM_RADIUS_FACTOR * the_sun->collision_radius - 250.0; // 250 m inside the skim radius
@@ -7668,17 +7668,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	Vector v1 = ship->position;
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
 	if (v1.x||v1.y||v1.z)
-		v1 = unit_vector(&v1);
+		v1 = vector_normal(v1);
 	else
 		v1.z = 1.0;
 	Vector v2 = make_vector(randf()-0.5, randf()-0.5, randf()-0.5);	// random vector
 	if (v2.x||v2.y||v2.z)
-		v2 = unit_vector(&v2);
+		v2 = vector_normal(v2);
 	else
 		v2.x = 1.0;
 	Vector v3 = cross_product(v1, v2);	// random vector at 90 degrees to v1 and v2 (random Vector)
 	if (v3.x||v3.y||v3.z)
-		v3 = unit_vector(&v3);
+		v3 = vector_normal(v3);
 	else
 		v3.y = 1.0;
 	double radius = the_sun->collision_radius * SUN_SKIM_RADIUS_FACTOR - 250.0; // 250 m inside the skim radius
@@ -7687,7 +7687,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	v1.x += 15000 * v3.x;	v1.y += 15000 * v3.y;	v1.z += 15000 * v3.z;	// point 15000m at a tangent to sun from v1
 	v1.x -= v0.x;	v1.y -= v0.y;	v1.z -= v0.z;
 	if (v1.x||v1.y||v1.z)
-		v1 = unit_vector(&v1);
+		v1 = vector_normal(v1);
 	else
 		v1.z = 1.0;
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;

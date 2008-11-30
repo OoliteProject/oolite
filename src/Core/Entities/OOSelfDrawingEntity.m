@@ -669,7 +669,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			}
 		}
 		if (normal_sum.x||normal_sum.y||normal_sum.z)
-			normal_sum = unit_vector(&normal_sum);
+			normal_sum = vector_normal(normal_sum);
 		else
 			normal_sum.z = 1.0;
 		vertex_normal[i] = normal_sum;
@@ -696,7 +696,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		}
 	}
 	if (normal_sum.x||normal_sum.y||normal_sum.z)
-		normal_sum = unit_vector(&normal_sum);
+		normal_sum = vector_normal(normal_sum);
 	else
 		normal_sum.z = 1.0;
 	return normal_sum;

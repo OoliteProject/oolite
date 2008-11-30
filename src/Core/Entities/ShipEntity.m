@@ -2689,7 +2689,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	Vector rel = vector_between(d1, position);	// vector from d1 to position 
 	Vector ref = vector_between(d2, d1);		// vector from d2 to d1
-	ref = unit_vector(&ref);
+	ref = vector_normal(ref);
 	
 	Vector xp = make_vector(ref.y * rel.z - ref.z * rel.y, ref.z * rel.x - ref.x * rel.z, ref.x * rel.y - ref.y * rel.x);	
 	
@@ -5163,7 +5163,7 @@ BOOL class_masslocks(int some_class)
 		return;	// ON TARGET!
 	
 	if (vector_to_target.x||vector_to_target.y||vector_to_target.z)
-		vector_to_target = unit_vector(&vector_to_target);
+		vector_to_target = vector_normal(vector_to_target);
 	else
 		vector_to_target.z = 1.0;
 	
@@ -5716,7 +5716,7 @@ BOOL class_masslocks(int some_class)
 	rel_pos.z -= position.z;
 	d2 = magnitude2(rel_pos);
 	if (d2)
-		urp = unit_vector(&rel_pos);
+		urp = vector_normal(rel_pos);
 	else
 		urp = make_vector(0, 0, 1);
 	dq = dot_product(urp, v_forward);				// cosine of angle between v_forward and unit relative position
@@ -5975,7 +5975,7 @@ BOOL class_masslocks(int some_class)
 	Vector			r_pos = my_target->position;
 	r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
 	if (r_pos.x||r_pos.y||r_pos.z)
-		r_pos = unit_vector(&r_pos);
+		r_pos = vector_normal(r_pos);
 	else
 		r_pos.z = 1.0;
 
@@ -6289,7 +6289,7 @@ BOOL class_masslocks(int some_class)
 	
 	double mcr = missile->collision_radius;
 	
-	v_eject = unit_vector(&start);
+	v_eject = vector_normal(start);
 	
 	vel = kZeroVector;	// starting velocity
 	
@@ -6539,7 +6539,7 @@ BOOL class_masslocks(int some_class)
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"aft_eject_position"], &start);
 
-	v_eject = unit_vector(&start);
+	v_eject = vector_normal(start);
 
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - jcr)&&(start.x < boundingBox.max.x + jcr)&&

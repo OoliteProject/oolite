@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #import "OOMaths.h"
 #import "Octree.h"
-#import "ShipEntity.h"
 #import "OOLogging.h"
 
 

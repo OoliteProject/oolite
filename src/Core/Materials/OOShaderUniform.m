@@ -497,7 +497,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 			break;
 		
 		case kOOShaderUniformTypeMatrix:
-			glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(value.constMatrix));
+			GLUniformMatrix(location, value.constMatrix);
 	}
 }
 
@@ -639,7 +639,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	}
 	else if (isMatrix)
 	{
-		glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(mVal));
+		GLUniformMatrix(location, mVal);
 	}
 }
 

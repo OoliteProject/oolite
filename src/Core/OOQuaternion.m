@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOLogging.h"
 
-#include "legacy_random.h"
 
 const Quaternion		kIdentityQuaternion = { 1.0f, 0.0f, 0.0f, 0.0f };
 const Quaternion		kZeroQuaternion = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -50,10 +49,10 @@ Quaternion quaternion_multiply(Quaternion q1, Quaternion q2)
 // NOTE: this is broken - its distribution is weighted towards corners of the hypercube. Probably doesn't matter, though.
 void quaternion_set_random(Quaternion *quat)
 {
-	quat->w = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->x = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->y = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->z = (GLfloat)(ranrot_rand() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->w = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->x = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->y = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->z = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
 	quaternion_normalize(quat);
 }
 
@@ -80,7 +79,7 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 	res.y = yz + wx;
 	res.z = 1.0f - xx - yy;
 	
-	if (res.x||res.y||res.z)  return unit_vector(&res);
+	if (res.x||res.y||res.z)  return vector_normal(res);
 	else  return make_vector(0.0f, 0.0f, 1.0f);
 }
 
@@ -108,7 +107,7 @@ Vector vector_up_from_quaternion(Quaternion quat)
 	res.y = 1.0f - xx - zz;
 	res.z = yz - wx;
 	
-	if (res.x||res.y||res.z)  return unit_vector(&res);
+	if (res.x||res.y||res.z)  return vector_normal(res);
 	else  return make_vector(0.0f, 1.0f, 0.0f);
 }
 
@@ -136,7 +135,7 @@ Vector vector_right_from_quaternion(Quaternion quat)
 	res.y = xy - wz;
 	res.z = xz + wy;
 	
-	if (res.x||res.y||res.z)  return unit_vector(&res);
+	if (res.x||res.y||res.z)  return vector_normal(res);
 	else  return make_vector(1.0f, 0.0f, 0.0f);
 }
 

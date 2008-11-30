@@ -474,13 +474,13 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	Vector p_e1 = e1->position;
 	Vector v_sun = make_vector( p_sun.x - p_e1.x, p_sun.y - p_e1.y, p_sun.z - p_e1.z);
 	if (v_sun.x||v_sun.y||v_sun.z)
-		v_sun = unit_vector( &v_sun);
+		v_sun = vector_normal(v_sun);
 	else
 		v_sun.z = 1.0f;
 	//
 	Vector v_e2 = make_vector( p_e2.x - p_e1.x, p_e2.y - p_e1.y, p_e2.z - p_e1.z);
 	if (v_e2.x||v_e2.y||v_e2.z)
-		v_e2 = unit_vector( &v_e2);
+		v_e2 = vector_normal(v_e2);
 	else
 		v_e2.x = 1.0f;
 	double phi = acos( dot_product( v_sun, v_e2));		// angle between sun and e2 from e1's viewpoint

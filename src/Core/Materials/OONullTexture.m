@@ -47,6 +47,7 @@ SOFTWARE.
 */
 
 #import "OONullTexture.h"
+#import "OOCocoa.h"
 
 
 static OONullTexture *sSingleton = nil;

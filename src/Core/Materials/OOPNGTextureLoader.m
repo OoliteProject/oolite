@@ -48,7 +48,7 @@ SOFTWARE.
 #import "png.h"
 #import "OOPNGTextureLoader.h"
 #import "OOFunctionAttributes.h"
-#import "OOCPUInfo.h"
+#import "OOLogging.h"
 
 
 void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;

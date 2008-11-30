@@ -981,7 +981,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				Vector v_out = vector_forward_from_quaternion(q1);
 				Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
 				if (r_pos.x||r_pos.y||r_pos.z)
-					r_pos = unit_vector(&r_pos);
+					r_pos = vector_normal(r_pos);
 				else
 					r_pos.z = 1.0;
 				//
@@ -1039,7 +1039,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					Vector v_out = vector_forward_from_quaternion(q1);
 					Vector r_pos = make_vector(ship->position.x - ppos.x, ship->position.y - ppos.y, ship->position.z - ppos.z);
 					if (r_pos.x||r_pos.y||r_pos.z)
-						r_pos = unit_vector(&r_pos);
+						r_pos = vector_normal(r_pos);
 					else
 						r_pos.z = 1.0;
 					//

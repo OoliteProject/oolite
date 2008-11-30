@@ -521,11 +521,11 @@ MA 02110-1301, USA.
 		Vector p_pos = the_planet->position;
 		double p_cr = the_planet->collision_radius;   // 200m above the surface
 		Vector p1 = vector_between(p_pos, position);
-		p1 = unit_vector(&p1);			// vector towards ship
+		p1 = vector_normal(p1);			// vector towards ship
 		p1.x += 0.5 * (randf() - 0.5);
 		p1.y += 0.5 * (randf() - 0.5);
 		p1.z += 0.5 * (randf() - 0.5);
-		p1 = unit_vector(&p1); 
+		p1 = vector_normal(p1); 
 		destination = make_vector(p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
 		desired_range = collision_radius + 50.0;   // +50m from the destination
 	}
@@ -1239,7 +1239,7 @@ WormholeEntity*	whole;
 		Vector sun_dir =  make_vector(sun_pos.x - stn_pos.x, sun_pos.y - stn_pos.y, sun_pos.z - stn_pos.z);
 		Vector vSun = make_vector(0, 0, 1);
 		if (sun_dir.x||sun_dir.y||sun_dir.z)
-			vSun = unit_vector(&sun_dir);
+			vSun = vector_normal(sun_dir);
 		Vector v0 = vector_forward_from_quaternion(the_station->orientation);
 		Vector v1 = cross_product(v0, vSun);
 		Vector v2 = cross_product(v0, v1);
@@ -1317,7 +1317,7 @@ WormholeEntity*	whole;
 	Vector vs = the_sun->position;
 	Vector vout = make_vector(v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);
 	if (vout.x||vout.y||vout.z)
-		vout = unit_vector(&vout);
+		vout = vector_normal(vout);
 	else
 		vout.z = 1.0;
 	v1.x += 10000 * vout.x;	v1.y += 10000 * vout.y;	v1.z += 10000 * vout.z;

@@ -512,7 +512,7 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction)
 
 void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 {
-	OOLog(kOOLogParameterError, @"***** %s is a subclass responsibility. (This is an internal programming error, please report it.)", inFunction);
+	OOLog(kOOLogSubclassResponsibility, @"***** %s is a subclass responsibility. (This is an internal programming error, please report it.)", inFunction);
 }
 
 

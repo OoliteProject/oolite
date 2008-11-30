@@ -199,7 +199,7 @@ uniform float			uTime;
 
 
 // Irregular flickering function.
-float Pulse(float value, float timeScale)
+float Pulse(in float value, in float timeScale)
 {
 	float t = uTime * timeScale;   
 	
@@ -224,7 +224,7 @@ float Pulse(float value, float timeScale)
 
 
 // Colour ramp from black through reddish brown/dark orange to yellow-white.
-vec4 TemperatureGlow(float level)
+vec4 TemperatureGlow(in float level)
 {
 	vec4 result = vec4(0);
 	

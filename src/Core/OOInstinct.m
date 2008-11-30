@@ -103,7 +103,7 @@ MA 02110-1301, USA.
 		if (d < 0.01)
 			d = 0.01;	// 1 cm is suitably small
 		Vector	rv = vector_subtract([ent velocity], u);
-		GLfloat	approach_v = dot_product(rv, unit_vector(&rp));
+		GLfloat	approach_v = dot_product(rv, vector_normal(rp));
 		
 		GLfloat assessment = sz * approach_v / d;		// == size x approach velocity / distance
 		

@@ -467,7 +467,7 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 
 		Vector norm = make_vector( 24.0 * (yW - yE), 24.0 * (yS - yN), 2.0);
 		
-		norm = unit_vector(&norm);
+		norm = vector_normal(norm);
 		
 		GLfloat shade = powf( norm.z, 3.2);
 		
@@ -532,7 +532,7 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 
 		Vector norm = make_vector( factor * (yW - yE), factor * (yS - yN), 2.0);
 		
-		norm = unit_vector(&norm);
+		norm = vector_normal(norm);
 		
 		norm.x = 0.5 * (norm.x + 1.0);
 		norm.y = 0.5 * (norm.y + 1.0);

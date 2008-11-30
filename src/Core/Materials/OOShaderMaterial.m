@@ -57,6 +57,7 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
 #import "OOIsNumberLiteral.h"
+#import "OOlogging.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);

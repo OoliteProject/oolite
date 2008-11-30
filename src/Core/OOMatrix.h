@@ -92,6 +92,7 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 #define GLLoadOOMatrix(M) do { OOMatrix m_ = M; glLoadMatrixf(OOMatrixValuesForOpenGL(m_)); } while (0)
 #define GLMultTransposeOOMatrix(M) do { OOMatrix m_ = M; glMultTransposeMatrixf(OOMatrixValuesForOpenGL(m_)); } while (0)
 #define GLLoadTransposeOOMatrix(M) do { OOMatrix m_ = M; glLoadTransposeMatrixf(OOMatrixValuesForOpenGL(m_)); } while (0)
+#define GLUniformMatrix(location, M) do { glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(M)); } while (0)
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID) ALWAYS_INLINE_FUNC;
 

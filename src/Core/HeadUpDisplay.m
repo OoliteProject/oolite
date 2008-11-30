@@ -1574,7 +1574,7 @@ static BOOL hostiles;
 			rpn.z = 0;	// flatten vector
 			if (rpn.x||rpn.y)
 			{
-				rpn = unit_vector(&rpn);
+				rpn = vector_normal(rpn);
 				glBegin(GL_LINES);
 					glColor4fv(clear_color);
 					glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);

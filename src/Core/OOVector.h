@@ -81,7 +81,7 @@ OOINLINE GLfloat fast_magnitude(Vector vec) INLINE_CONST_FUNC;
 /* Normalize vector */
 OOINLINE Vector vector_normal(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
-OOINLINE Vector unit_vector(const Vector *vec) NONNULL_FUNC INLINE_CONST_FUNC;
+
 /* Normalize vector, returning fallback if zero vector. */
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal_or_zbasis(Vector vec) INLINE_CONST_FUNC;
@@ -253,12 +253,6 @@ OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback)
 OOINLINE Vector fast_vector_normal(Vector vec)
 {
 	return fast_vector_normal_or_fallback(vec, kZeroVector);
-}
-
-
-OOINLINE Vector unit_vector(const Vector *vec)
-{
-	return vector_normal(*vec);
 }
 
 

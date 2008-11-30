@@ -2768,7 +2768,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	missiles = [self countMissiles];
 
 
-	v_eject = unit_vector(&start);
+	v_eject = vector_normal(start);
 
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - mcr)&&(start.x < boundingBox.max.x + mcr)&&

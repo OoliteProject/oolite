@@ -1916,7 +1916,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 		base_vertex_array[vindex].x += base_vertex_array[vb].x;
 		base_vertex_array[vindex].y += base_vertex_array[vb].y;
 		base_vertex_array[vindex].z += base_vertex_array[vb].z;
-		base_vertex_array[vindex] = unit_vector(&base_vertex_array[vindex]);	// guaranteed non-zero
+		base_vertex_array[vindex] = vector_normal(base_vertex_array[vindex]);	// guaranteed non-zero
 
 		if (textured)
 		{

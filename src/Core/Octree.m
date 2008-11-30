@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "Entity.h"
 #import "OOOpenGL.h"
-#import "legacy_random.h"
 #import "OODebugGLDrawing.h"
 #import "OOMacroOpenGL.h"
 
@@ -782,7 +781,7 @@ Vector randomFullNodeFrom( Octree_details details, Vector offset)
 	int*	nextBuffer = &octBuffer[nextLevel];
 	nextDetails.radius = 0.5 * octRadius;
 	int		i, oct;
-	oct = ranrot_rand() & 7;
+	oct = Ranrot() & 7;
 	for (i = 0; i < 8; i++)
 	{
 		int octant = oct ^ i;
