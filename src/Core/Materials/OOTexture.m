@@ -1,49 +1,49 @@
 /*
-
-OOTexture.m
-
-Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-
-
-This file may also be distributed under the MIT/X11 license:
-
-Copyright (C) 2007 Jens Ayton
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
+ 
+ OOTexture.m
+ 
+ Oolite
+ Copyright (C) 2004-2008 Giles C Williams and contributors
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ 
+ 
+ This file may also be distributed under the MIT/X11 license:
+ 
+ Copyright (C) 2007 Jens Ayton
+ 
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ 
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ 
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ 
+ */
 
 #import "OOTexture.h"
 #import "OONullTexture.h"
@@ -58,21 +58,21 @@ SOFTWARE.
 
 
 /*	Texture caching:
-	two parallel caching mechanisms are used. sInUseTextures tracks all live
-	texture objects, without retaining them (using NSValues to refer to the
-	objects). sRecentTextures tracks up to kRecentTexturesCount textures which
-	have been used recently, and retains them.
-	
-	This means that the number of live texture objects will never fall below
-	80% of kRecentTexturesCount (80% comes from the behaviour of OOCache), but
-	old textures will eventually be released. If the number of active textures
-	exceeds kRecentTexturesCount, all of them will be reusable through
-	sInUseTextures, but only a most-recently-fetched subset will be kept
-	around by the cache when the number drops.
-	
-	Note that any texture in sRecentTextures will also be in sInUseTextures,
-	but not necessarily vice versa.
-*/
+ two parallel caching mechanisms are used. sInUseTextures tracks all live
+ texture objects, without retaining them (using NSValues to refer to the
+ objects). sRecentTextures tracks up to kRecentTexturesCount textures which
+ have been used recently, and retains them.
+ 
+ This means that the number of live texture objects will never fall below
+ 80% of kRecentTexturesCount (80% comes from the behaviour of OOCache), but
+ old textures will eventually be released. If the number of active textures
+ exceeds kRecentTexturesCount, all of them will be reusable through
+ sInUseTextures, but only a most-recently-fetched subset will be kept
+ around by the cache when the number drops.
+ 
+ Note that any texture in sRecentTextures will also be in sInUseTextures,
+ but not necessarily vice versa.
+ */
 enum
 {
 	kRecentTexturesCount		= 50
@@ -86,11 +86,11 @@ static BOOL		sCheckedExtensions = NO;
 
 
 #if OOLITE_BIG_ENDIAN
-	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
+#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
 #elif OOLITE_LITTLE_ENDIAN
-	#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
 #else
-	#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
+#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
 
 
@@ -234,25 +234,27 @@ static BOOL		sRectangleTextureAvailable;
 	result = (id)[[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{
-	//	OOLog(@"texture.caching", @":::------::: key NOT found  in cache : '%@'.", key);
+		//	OOLog(@"texture.caching", @":::------::: key NOT found  in cache : '%@'.", key);
 		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
 			if (!noFNF)  OOLog(kOOLogFileNotFound, @"----- WARNING: Could not find texture file \"%@\". Used default no textures material instead.", name);
 			return nil;
 		}
-				
+		
 		// No existing texture, load texture...
 		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
 		
+#ifndef OOTEXTURE_NO_CACHE
 		if (result != nil)
 		{
 			// ...and remember it. Use an NSValue so sInUseTextures doesn't retain the texture.
 			if (sInUseTextures == nil)  sInUseTextures = [[NSMutableDictionary alloc] init];
 			[sInUseTextures setObject:[NSValue valueWithPointer:result] forKey:key];
 		}
+#endif
 	}
-
+	
 	
 	return result;
 }
@@ -341,7 +343,7 @@ static BOOL		sRectangleTextureAvailable;
 	if (_loaded)
 	{
 		if (_textureName != 0)  GLRecycleTextureName(_textureName, _mipLevels);
-		if (_bytes != NULL) free(_bytes);
+		free(_bytes);
 	}
 	
 	[_loader release];
@@ -500,6 +502,7 @@ static BOOL		sRectangleTextureAvailable;
 	
 	_key = [inKey copy];
 	
+#ifndef OOTEXTURE_NO_CACHE
 	// Add self to recent textures cache
 	if (EXPECT_NOT(sRecentTextures == nil))
 	{
@@ -509,6 +512,7 @@ static BOOL		sRectangleTextureAvailable;
 		[sRecentTextures setPruneThreshold:kRecentTexturesCount];
 	}
 	[sRecentTextures setObject:self forKey:_key];
+#endif
 	
 	return self;
 }
@@ -593,8 +597,8 @@ static BOOL		sRectangleTextureAvailable;
 {
 	GLint					glFormat, internalFormat, type;
 	unsigned				w = _width,
-							h = _height,
-							level = 0;
+	h = _height,
+	level = 0;
 	char					*bytes = _bytes;
 	uint8_t					planes = OOTexturePlanesForFormat(format);
 	
@@ -607,7 +611,7 @@ static BOOL		sRectangleTextureAvailable;
 			internalFormat = GL_RGBA;
 			type = RGBA_IMAGE_TYPE;
 			break;
-		
+			
 		case kOOTextureDataGrayscale:
 			if (_options & kOOTextureAlphaMask)
 			{
@@ -621,7 +625,7 @@ static BOOL		sRectangleTextureAvailable;
 			}
 			type = GL_UNSIGNED_BYTE;
 			break;
-		
+			
 		default:
 			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
 			return;
