@@ -2001,7 +2001,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		else
 		{
-			return [shipinfoDictionary fuzzyBooleanForKey:@"hasShipyard"];
+			OOFuzzyBooleanFromObject(determinant, 0.0f);
 		}
 	}
 	return NO;

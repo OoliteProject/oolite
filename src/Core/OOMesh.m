@@ -545,14 +545,22 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		for (i = 0; i != materialCount; ++i)
 		{
-			material = [OOMaterial materialWithName:materialKeys[i]
-									  forModelNamed:baseFile
-								 materialDictionary:materialDict
-								  shadersDictionary:shadersDict
-											 macros:macros
-									  bindingTarget:target
-									forSmoothedMesh:isSmoothShaded];
-			if (material!=nil)
+			if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"])
+			{
+				material = [OOMaterial materialWithName:materialKeys[i]
+										  forModelNamed:baseFile
+									 materialDictionary:materialDict
+									  shadersDictionary:shadersDict
+												 macros:macros
+										  bindingTarget:target
+										forSmoothedMesh:isSmoothShaded];
+			}
+			else
+			{
+				material = nil;
+			}
+			
+			if (material != nil)
 			{
 				materials[i] = [material retain];
 			}
@@ -625,7 +633,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	tanData = [NSData dataWithBytes:tangents length:sizeof *tangents * vertexCount];
 	faceData = [NSData dataWithBytes:faces length:sizeof *faces * faceCount];
 	
-	mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
+	if (materialCount != 0)
+	{
+		mtlKeys = [NSArray arrayWithObjects:materialKeys count:materialCount];
+	}
+	else
+	{
+		mtlKeys = [NSArray array];
+	}
 	smooth = [NSNumber numberWithBool:isSmoothShaded];
 	
 	// Ensure we have all the required data elements.
@@ -1033,6 +1048,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		{
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data (will use placeholder material)\n",failString];
+			materialKeys[0] = @"_oo_placeholder_material";
 			materialCount = 1;
 		}
 		
@@ -1041,7 +1057,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		if (failFlag)
 		{
-			OOLog(@"mesh.error", [NSString stringWithFormat:@"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)"]);
+			OOLog(@"mesh.error", @"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)");
 		}
 
 		// check for smooth shading and recalculate normals
@@ -1279,6 +1295,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 						tangent = faces[fi].tangent;
 					}
 					
+					// FIXME: avoid redundant vertices so index array is actualyl useful.
 					entityData.index_array[tri_index++] = vertex_index;
 					entityData.normal_array[vertex_index] = normal;
 					entityData.tangent_array[vertex_index] = tangent;
