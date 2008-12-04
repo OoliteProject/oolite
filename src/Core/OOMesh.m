@@ -2,6 +2,19 @@
 
 OOMesh.m
 
+A note on memory management:
+The dynamically-sized buffers used by OOMesh (_vertex etc) are the byte arrays
+of NSDatas, which are tracked using the _retainedObjects dictionary. This
+simplifies the implementation of -dealloc, but more importantly, it means
+bytes are refcounted. This means bytes read from the cache don't need to be
+copied, we just need to retain the relevant NSData object (by sticking it in
+_retainedObjects).
+
+Since _retainedObjects is a dictionary its members can be replaced,
+potentially allowing mutable meshes, although we have no use for this at
+present.
+
+
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
 
@@ -84,7 +97,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
-- (void) setUpVertexArrays;
+- (BOOL) setUpVertexArrays;
 
 - (void) calculateBoundingVolumes;
 
@@ -93,6 +106,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 #ifndef NDEBUG
 - (void)debugDrawNormals;
 #endif
+
+// Manage set of objects we need to hang on to, particularly NSDatas owning buffers.
+- (void) setRetainedObject:(id)object forKey:(NSString *)key;
+- (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key;
+
+// Allocate all per-vertex/per-face buffers.
+- (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count;
+- (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count;
+- (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count;
 
 @end
 
@@ -167,6 +189,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
+	[_retainedObjects release];
+	
 	[super dealloc];
 }
 
@@ -227,13 +251,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	
-	glVertexPointer(3, GL_FLOAT, 0, entityData.vertex_array);
-	glNormalPointer(GL_FLOAT, 0, entityData.normal_array);
-	glTexCoordPointer(2, GL_FLOAT, 0, entityData.texture_uv_array);
+	glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray);
+	glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray);
+	glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray);
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
 		glEnableVertexAttribArrayARB(kTangentAttributeIndex);
-		glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, entityData.tangent_array);
+		glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray);
 	}
 	
 	glDisable(GL_BLEND);
@@ -326,9 +350,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	for (i = 0; i < faceCount; i++)
 	{
 		Triangle tri;
-		tri.v[0] = vertices[faces[i].vertex[0]];
-		tri.v[1] = vertices[faces[i].vertex[1]];
-		tri.v[2] = vertices[faces[i].vertex[2]];
+		tri.v[0] = _vertices[_faces[i].vertex[0]];
+		tri.v[1] = _vertices[_faces[i].vertex[1]];
+		tri.v[2] = _vertices[_faces[i].vertex[2]];
 		[result addTriangle:tri];
 	}
 	return [result autorelease];
@@ -395,6 +419,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	Vector		rpos = position;
 	int			i;
 	
+	// FIXME: rewrite with matrices
 	rpos = vector_subtract(position, opv);	// model origin relative to opv
 	
 	rv.x = dot_product(ri,rpos);
@@ -407,19 +432,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	}
 	else
 	{
-		pv.x = rpos.x + si.x * vertices[0].x + sj.x * vertices[0].y + sk.x * vertices[0].z;
-		pv.y = rpos.y + si.y * vertices[0].x + sj.y * vertices[0].y + sk.y * vertices[0].z;
-		pv.z = rpos.z + si.z * vertices[0].x + sj.z * vertices[0].y + sk.z * vertices[0].z;	// vertices[0] position rel to opv
+		pv.x = rpos.x + si.x * _vertices[0].x + sj.x * _vertices[0].y + sk.x * _vertices[0].z;
+		pv.y = rpos.y + si.y * _vertices[0].x + sj.y * _vertices[0].y + sk.y * _vertices[0].z;
+		pv.z = rpos.z + si.z * _vertices[0].x + sj.z * _vertices[0].y + sk.z * _vertices[0].z;	// _vertices[0] position rel to opv
 		rv.x = dot_product(ri, pv);
 		rv.y = dot_product(rj, pv);
-		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
+		rv.z = dot_product(rk, pv);	// _vertices[0] position rel to opv in ijk
 		bounding_box_reset_to_vector(&result, rv);
 	}
 	for (i = 1; i < vertexCount; i++)
 	{
-		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
-		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
-		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
+		pv.x = rpos.x + si.x * _vertices[i].x + sj.x * _vertices[i].y + sk.x * _vertices[i].z;
+		pv.y = rpos.y + si.y * _vertices[i].x + sj.y * _vertices[i].y + sk.y * _vertices[i].z;
+		pv.z = rpos.z + si.z * _vertices[i].x + sj.z * _vertices[i].y + sk.z * _vertices[i].z;
 		rv.x = dot_product(ri, pv);
 		rv.y = dot_product(rj, pv);
 		rv.z = dot_product(rk, pv);
@@ -437,12 +462,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	Vector			v;
 	int				i;
 	
-	v = vector_add(position, OOVectorMultiplyMatrix(vertices[0], rotMatrix));
+	v = vector_add(position, OOVectorMultiplyMatrix(_vertices[0], rotMatrix));
 	bounding_box_reset_to_vector(&result,v);
 	
 	for (i = 1; i < vertexCount; i++)
 	{
-		v = vector_add(position, OOVectorMultiplyMatrix(vertices[i], rotMatrix));
+		v = vector_add(position, OOVectorMultiplyMatrix(_vertices[i], rotMatrix));
 		bounding_box_add_vector(&result,v);
 	}
 	
@@ -584,6 +609,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		[result->baseFile retain];
 		[result->octree retain];
+		[result->_retainedObjects retain];
 		
 		for (i = 0; i != kOOMeshMaxMaterials; ++i)
 		{
@@ -628,10 +654,17 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
 	faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
 	
-	vertData = [NSData dataWithBytes:vertices length:sizeof *vertices * vertexCount];
-	normData = [NSData dataWithBytes:normals length:sizeof *normals * vertexCount];
-	tanData = [NSData dataWithBytes:tangents length:sizeof *tangents * vertexCount];
-	faceData = [NSData dataWithBytes:faces length:sizeof *faces * faceCount];
+#if 0
+	vertData = [NSData dataWithBytes:_vertices length:sizeof *_vertices * vertexCount];
+	normData = [NSData dataWithBytes:_normals length:sizeof *_normals * vertexCount];
+	tanData = [NSData dataWithBytes:_tangents length:sizeof *_tangents * vertexCount];
+	faceData = [NSData dataWithBytes:_faces length:sizeof *_faces * faceCount];
+#else
+	vertData = [_retainedObjects objectForKey:@"vertices"];
+	normData = [_retainedObjects objectForKey:@"normals"];
+	tanData = [_retainedObjects objectForKey:@"tangents"];
+	faceData = [_retainedObjects objectForKey:@"faces"];
+#endif
 	
 	if (materialCount != 0)
 	{
@@ -672,62 +705,55 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (BOOL)setModelFromModelData:(NSDictionary *)dict
 {
-	NSNumber			*vertCnt = nil,
-						*faceCnt = nil;
 	NSData				*vertData = nil,
 						*normData = nil,
 						*tanData = nil,
 						*faceData = nil;
 	NSArray				*mtlKeys = nil;
-	NSNumber			*smooth = nil;
 	NSString			*key = nil;
 	unsigned			i;
 	
 	if (dict == nil || ![dict isKindOfClass:[NSDictionary class]])  return NO;
 	
-	// Read data elements from dictionary.
-	vertCnt = [dict objectOfClass:[NSNumber class] forKey:@"vertex count"];
-	faceCnt = [dict objectOfClass:[NSNumber class] forKey:@"face count"];
+	vertexCount = [dict unsignedIntForKey:@"vertex count"];
+	faceCount = [dict unsignedIntForKey:@"face count"];
 	
+	if (vertexCount == 0 || faceCount == 0)  return NO;
+	
+	// Read data elements from dictionary.
 	vertData = [dict dataForKey:@"vertex data"];
 	normData = [dict dataForKey:@"normal data"];
 	tanData = [dict dataForKey:@"tangent data"];
 	faceData = [dict dataForKey:@"face data"];
 	
 	mtlKeys = [dict arrayForKey:@"material keys"];
-	smooth = [dict objectOfClass:[NSNumber class] forKey:@"smooth"];
+	isSmoothShaded = [dict boolForKey:@"smooth"];
 	
-	// Ensure we have all thr required data elements.
-	if (vertCnt == nil ||
-		faceCnt == nil ||
-		vertData == nil ||
+	// Ensure we have all the required data elements.
+	if (vertData == nil ||
 		normData == nil ||
 		tanData == nil ||
 		faceData == nil ||
-		mtlKeys == nil ||
-		smooth == nil)
+		mtlKeys == nil)
 	{
 		return NO;
 	}
 	
-	vertexCount = [vertCnt unsignedIntValue];
-	faceCount = [faceCnt unsignedIntValue];
-	
-	// Check that counts are in range.
-	if (vertexCount == 0 || kOOMeshMaxVertices <= vertexCount)  return NO;
-	if (faceCount == 0 || kOOMeshMaxFaces <= faceCount)  return NO;
-	
 	// Ensure data objects are of correct size.
-	if ([vertData length] != sizeof *vertices * vertexCount)  return NO;
-	if ([normData length] != sizeof *normals * vertexCount)  return NO;
-	if ([tanData length] != sizeof *tangents * vertexCount)  return NO;
-	if ([faceData length] != sizeof *faces * faceCount)  return NO;
+	if ([vertData length] != sizeof *_vertices * vertexCount)  return NO;
+	if ([normData length] != sizeof *_normals * vertexCount)  return NO;
+	if ([tanData length] != sizeof *_tangents * vertexCount)  return NO;
+	if ([faceData length] != sizeof *_faces * faceCount)  return NO;
 	
-	// Copy data.
-	memcpy(vertices, [vertData bytes], [vertData length]);
-	memcpy(normals, [normData bytes], [normData length]);
-	memcpy(tangents, [tanData bytes], [tanData length]);
-	memcpy(faces, [faceData bytes], [faceData length]);
+	// Retain data.
+	_vertices = (Vector *)[vertData bytes];
+	[self setRetainedObject:vertData forKey:@"vertices"];
+	_normals = (Vector *)[normData bytes];
+	[self setRetainedObject:normData forKey:@"normals"];
+	_tangents = (Vector *)[tanData bytes];
+	[self setRetainedObject:tanData forKey:@"tangents"];
+	_faces = (OOMeshFace *)[faceData bytes];
+	[self setRetainedObject:faceData forKey:@"faces"];
 	
 	// Copy material keys.
 	materialCount = [mtlKeys count];
@@ -737,8 +763,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		if (key != nil)  materialKeys[i] = [key retain];
 		else  return NO;
 	}
-	
-	isSmoothShaded = [smooth boolValue] != NO;
 	
 	return YES;
 }
@@ -819,21 +843,21 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to read NVERTS\n",failString];
 		}
-
-		if (vertexCount > kOOMeshMaxVertices)
+		
+		if (![self allocateVertexBuffersWithCount:vertexCount])
 		{
-			OOLog(kOOLogMeshTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, kOOMeshMaxVertices);
+			OOLog(kOOLogAllocationFailure, @"ERROR - failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
 			return NO;
 		}
-
+		
 		// get number of faces
-		//
-		//[scanner setScanLocation:0];	//reset
 		if ([scanner scanString:@"NFACES" intoString:NULL])
 		{
 			int n_f;
 			if ([scanner scanInt:&n_f])
+			{
 				faceCount = n_f;
+			}
 			else
 			{
 				failFlag = YES;
@@ -845,13 +869,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failFlag = YES;
 			failString = [NSString stringWithFormat:@"%@Failed to read NFACES\n",failString];
 		}
-
-		if (faceCount > kOOMeshMaxFaces)
+		
+		if (![self allocateFaceBuffersWithCount:faceCount])
 		{
-			OOLog(kOOLogMeshTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, kOOMeshMaxFaces);
+			OOLog(kOOLogAllocationFailure, @"ERROR - failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
 			return NO;
 		}
-
+		
 		// get vertex data
 		//
 		//[scanner setScanLocation:0];	//reset
@@ -862,15 +886,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				float x, y, z;
 				if (!failFlag)
 				{
-					if (![scanner scanFloat:&x])
-						failFlag = YES;
-					if (![scanner scanFloat:&y])
-						failFlag = YES;
-					if (![scanner scanFloat:&z])
-						failFlag = YES;
+					if (![scanner scanFloat:&x])  failFlag = YES;
+					if (![scanner scanFloat:&y])  failFlag = YES;
+					if (![scanner scanFloat:&z])  failFlag = YES;
 					if (!failFlag)
 					{
-						vertices[j].x = x;	vertices[j].y = y;	vertices[j].z = z;
+						_vertices[j].x = x;
+						_vertices[j].y = y;
+						_vertices[j].z = z;
 					}
 					else
 					{
@@ -897,16 +920,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				if (!failFlag)
 				{
 					// colors
-					//
-					if (![scanner scanInt:&r])
-						failFlag = YES;
-					if (![scanner scanInt:&g])
-						failFlag = YES;
-					if (![scanner scanInt:&b])
-						failFlag = YES;
+					if (![scanner scanInt:&r])  failFlag = YES;
+					if (![scanner scanInt:&g])  failFlag = YES;
+					if (![scanner scanInt:&b])  failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].smoothGroup = r;
+						_faces[j].smoothGroup = r;
 					}
 					else
 					{
@@ -914,18 +933,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					}
 
 					// normal
-					//
-					if (![scanner scanFloat:&nx])
-						failFlag = YES;
-					if (![scanner scanFloat:&ny])
-						failFlag = YES;
-					if (![scanner scanFloat:&nz])
-						failFlag = YES;
+					if (![scanner scanFloat:&nx])  failFlag = YES;
+					if (![scanner scanFloat:&ny])  failFlag = YES;
+					if (![scanner scanFloat:&nz])  failFlag = YES;
 					if (!failFlag)
 					{
-						faces[j].normal.x = nx;
-						faces[j].normal.y = ny;
-						faces[j].normal.z = nz;
+						_faces[j].normal = make_vector(nx, ny, nz);
 					}
 					else
 					{
@@ -933,10 +946,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					}
 
 					// vertices
-					//
 					if ([scanner scanInt:&n_v])
 					{
-						faces[j].n_verts = n_v;
+						_faces[j].n_verts = n_v;
 					}
 					else
 					{
@@ -951,7 +963,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						{
 							if ([scanner scanInt:&vi])
 							{
-								faces[j].vertex[i] = vi;
+								_faces[j].vertex[i] = vi;
 							}
 							else
 							{
@@ -993,7 +1005,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						NSNumber *index = [texFileName2Idx objectForKey:materialKey];
 						if (index != nil)
 						{
-							faces[j].materialIndex = [index unsignedIntValue];
+							_faces[j].materialIndex = [index unsignedIntValue];
 						}
 						else
 						{
@@ -1002,7 +1014,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 								OOLog(kOOLogMeshTooManyMaterials, @"ERROR - model %@ has too many materials (maximum is %d)", filename, kOOMeshMaxMaterials);
 								return NO;
 							}
-							faces[j].materialIndex = materialCount;
+							_faces[j].materialIndex = materialCount;
 							materialKeys[materialCount] = [materialKey retain];
 							index = [NSNumber numberWithUnsignedInt:materialCount];
 							[texFileName2Idx setObject:index forKey:materialKey];
@@ -1014,10 +1026,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					//
 				   if (!failFlag)
 					{
-						if (![scanner scanFloat:&max_x])
-							failFlag = YES;
-						if (![scanner scanFloat:&max_y])
-							failFlag = YES;
+						if (![scanner scanFloat:&max_x])  failFlag = YES;
+						if (![scanner scanFloat:&max_y])  failFlag = YES;
 						if (failFlag)
 							failString = [NSString stringWithFormat:@"%@Failed to read texture size for max_x and max_y in face[%d] in TEXTURES\n", failString, j];
 					}
@@ -1026,16 +1036,14 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					//
 					if (!failFlag)
 					{
-						for (i = 0; i < faces[j].n_verts; i++)
+						for (i = 0; i < _faces[j].n_verts; i++)
 						{
-							if (![scanner scanFloat:&s])
-								failFlag = YES;
-							if (![scanner scanFloat:&t])
-								failFlag = YES;
+							if (![scanner scanFloat:&s])  failFlag = YES;
+							if (![scanner scanFloat:&t])  failFlag = YES;
 							if (!failFlag)
 							{
-								faces[j].s[i] = s / max_x;
-								faces[j].t[i] = t / max_y;
+								_faces[j].s[i] = s / max_x;
+								_faces[j].t[i] = t / max_y;
 							}
 							else
 								failString = [NSString stringWithFormat:@"%@Failed to read s t coordinates for vertex[%d] in face[%d] in TEXTURES\n", failString, i, j];
@@ -1050,6 +1058,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data (will use placeholder material)\n",failString];
 			materialKeys[0] = @"_oo_placeholder_material";
 			materialCount = 1;
+			
+			for (j = 0; j < faceCount; j++)
+			{
+				_faces[j].materialIndex = 0;
+			}
 		}
 		
 		[self checkNormalsAndAdjustWinding];
@@ -1070,7 +1083,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	[self calculateBoundingVolumes];
 	
 	// set up vertex arrays for drawing
-	[self setUpVertexArrays];
+	if (![self setUpVertexArrays])  return NO;
 	
 	return YES;
 }
@@ -1084,35 +1097,35 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	for (i = 0; i < faceCount; i++)
 	{
 		Vector v0, v1, v2, norm;
-		v0 = vertices[faces[i].vertex[0]];
-		v1 = vertices[faces[i].vertex[1]];
-		v2 = vertices[faces[i].vertex[2]];
-		norm = faces[i].normal;
-		calculatedNormal = normal_to_surface (v2, v1, v0);
+		v0 = _vertices[_faces[i].vertex[0]];
+		v1 = _vertices[_faces[i].vertex[1]];
+		v2 = _vertices[_faces[i].vertex[2]];
+		norm = _faces[i].normal;
+		calculatedNormal = normal_to_surface(v2, v1, v0);
 		if (vector_equal(norm, kZeroVector))
 		{
-			faces[i].normal = normal_to_surface (v0, v1, v2);
+			_faces[i].normal = normal_to_surface(v0, v1, v2);
 			norm = normal_to_surface (v0, v1, v2);
 		}
 		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
 		{
 			// normal lies in the WRONG direction!
 			// reverse the winding
-			int			v[faces[i].n_verts];
-			GLfloat		s[faces[i].n_verts];
-			GLfloat		t[faces[i].n_verts];
+			int			v[_faces[i].n_verts];
+			GLfloat		s[_faces[i].n_verts];
+			GLfloat		t[_faces[i].n_verts];
 			
-			for (j = 0; j < faces[i].n_verts; j++)
+			for (j = 0; j < _faces[i].n_verts; j++)
 			{
-				v[j] = faces[i].vertex[faces[i].n_verts - 1 - j];
-				s[j] = faces[i].s[faces[i].n_verts - 1 - j];
-				t[j] = faces[i].t[faces[i].n_verts - 1 - j];
+				v[j] = _faces[i].vertex[_faces[i].n_verts - 1 - j];
+				s[j] = _faces[i].s[_faces[i].n_verts - 1 - j];
+				t[j] = _faces[i].t[_faces[i].n_verts - 1 - j];
 			}
-			for (j = 0; j < faces[i].n_verts; j++)
+			for (j = 0; j < _faces[i].n_verts; j++)
 			{
-				faces[i].vertex[j] = v[j];
-				faces[i].s[j] = s[j];
-				faces[i].t[j] = t[j];
+				_faces[i].vertex[j] = v[j];
+				_faces[i].s[j] = s[j];
+				_faces[i].t[j] = t[j];
 			}
 		}
 	}
@@ -1124,15 +1137,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	int i;
 	for (i = 0; i < faceCount; i++)
 	{
-		OOMeshFace *face = faces + i;
+		OOMeshFace *face = _faces + i;
 		
 		/*	Generate tangents, i.e. vectors that run in the direction of the s
 			texture coordinate. Based on code I found in a forum somewhere and
 			then lost track of. Sorry to whomever I should be crediting.
 			-- Ahruman 2008-11-23
 		*/
-		Vector vAB = vector_subtract(vertices[face->vertex[1]], vertices[face->vertex[0]]);
-		Vector vAC = vector_subtract(vertices[face->vertex[2]], vertices[face->vertex[0]]);
+		Vector vAB = vector_subtract(_vertices[face->vertex[1]], _vertices[face->vertex[0]]);
+		Vector vAC = vector_subtract(_vertices[face->vertex[2]], _vertices[face->vertex[0]]);
 		Vector nA = face->normal;
 		
 		// projAB = aB - (nA . vAB) * nA
@@ -1174,7 +1187,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
-		triangle_area[i] = FaceArea(faces[i].vertex, vertices);
+		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
 	}
 	for (i = 0; i < vertexCount; i++)
 	{
@@ -1183,20 +1196,20 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		
 		for (j = 0; j < faceCount; j++)
 		{
-			BOOL is_shared = ((faces[j].vertex[0] == i)||(faces[j].vertex[1] == i)||(faces[j].vertex[2] == i));
+			BOOL is_shared = ((_faces[j].vertex[0] == i)||(_faces[j].vertex[1] == i)||(_faces[j].vertex[2] == i));
 			if (is_shared)
 			{
 				float t = triangle_area[j]; // weight sum by area
-				normal_sum = vector_add(normal_sum, vector_multiply_scalar(faces[j].normal, t));
-				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(faces[j].tangent, t));
+				normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, t));
+				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
 			}
 		}
 		
 		normal_sum = vector_normal_or_fallback(normal_sum, kBasisZVector);
 		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
 		
-		normals[i] = normal_sum;
-		tangents[i] = tangent_sum;
+		_normals[i] = normal_sum;
+		_tangents[i] = tangent_sum;
 	}
 }
 
@@ -1210,13 +1223,13 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	Vector tangent_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
 	{
-		if (faces[j].smoothGroup == smoothGroup)
+		if (_faces[j].smoothGroup == smoothGroup)
 		{
-			if ((faces[j].vertex[0] == v_index)||(faces[j].vertex[1] == v_index)||(faces[j].vertex[2] == v_index))
+			if ((_faces[j].vertex[0] == v_index)||(_faces[j].vertex[1] == v_index)||(_faces[j].vertex[2] == v_index))
 			{
-				float area = FaceArea(faces[j].vertex, vertices);
-				normal_sum = vector_add(normal_sum, vector_multiply_scalar(faces[j].normal, area));
-				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(faces[j].tangent, area));
+				float area = FaceArea(_faces[j].vertex, _vertices);
+				normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, area));
+				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, area));
 			}
 		}
 	}
@@ -1226,10 +1239,12 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 }
 
 
-- (void) setUpVertexArrays
+- (BOOL) setUpVertexArrays
 {
 	int fi, vi, mi;
-
+	
+	if (![self allocateVertexArrayBuffersWithCount:faceCount])  return NO;
+	
 	// if isSmoothShaded find any vertices that are between faces of different
 	// smoothing groups and mark them as being on an edge and therefore NOT
 	// smooth shaded
@@ -1244,11 +1259,11 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	{
 		for (fi = 0; fi < faceCount; fi++)
 		{
-			GLfloat rv = faces[fi].smoothGroup;
+			GLfloat rv = _faces[fi].smoothGroup;
 			int i;
 			for (i = 0; i < 3; i++)
 			{
-				vi = faces[fi].vertex[i];
+				vi = _faces[fi].vertex[i];
 				if (smoothGroup[vi] < 0.0)	// unassigned
 					smoothGroup[vi] = rv;
 				else if (smoothGroup[vi] != rv)	// a different colour
@@ -1272,43 +1287,44 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		{
 			Vector normal, tangent;
 			
-			if (faces[fi].materialIndex == mi)
+			if (_faces[fi].materialIndex == mi)
 			{
 				for (vi = 0; vi < 3; vi++)
 				{
-					int v = faces[fi].vertex[vi];
+					int v = _faces[fi].vertex[vi];
 					if (isSmoothShaded)
 					{
 						if (is_edge_vertex[v])
 						{
-							[self getNormal:&normal	andTangent:&tangent forVertex:v inSmoothGroup:faces[fi].smoothGroup];
+							[self getNormal:&normal	andTangent:&tangent forVertex:v inSmoothGroup:_faces[fi].smoothGroup];
 						}
 						else
 						{
-							normal = normals[v];
-							tangent = tangents[v];
+							normal = _normals[v];
+							tangent = _tangents[v];
 						}
 					}
 					else
 					{
-						normal = faces[fi].normal;
-						tangent = faces[fi].tangent;
+						normal = _faces[fi].normal;
+						tangent = _faces[fi].tangent;
 					}
 					
-					// FIXME: avoid redundant vertices so index array is actualyl useful.
-					entityData.index_array[tri_index++] = vertex_index;
-					entityData.normal_array[vertex_index] = normal;
-					entityData.tangent_array[vertex_index] = tangent;
-					entityData.vertex_array[vertex_index++] = vertices[v];
-					entityData.texture_uv_array[uv_index++] = faces[fi].s[vi];
-					entityData.texture_uv_array[uv_index++] = faces[fi].t[vi];
+					// FIXME: avoid redundant vertices so index array is actually useful.
+					_displayLists.indexArray[tri_index++] = vertex_index;
+					_displayLists.normalArray[vertex_index] = normal;
+					_displayLists.tangentArray[vertex_index] = tangent;
+					_displayLists.vertexArray[vertex_index++] = _vertices[v];
+					_displayLists.textureUVArray[uv_index++] = _faces[fi].s[vi];
+					_displayLists.textureUVArray[uv_index++] = _faces[fi].t[vi];
 				}
 			}
 		}
 		triangle_range[mi].length = tri_index - triangle_range[mi].location;
 	}
 	
-	entityData.n_triangles = tri_index;	// total number of triangle vertices
+	_displayLists.count = tri_index;	// total number of triangle vertices
+	return YES;
 }
 
 
@@ -1319,14 +1335,14 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	GLfloat result;
 	
 	result = 0.0f;
-	if (vertexCount)  bounding_box_reset_to_vector(&boundingBox,vertices[0]);
+	if (vertexCount)  bounding_box_reset_to_vector(&boundingBox, _vertices[0]);
 	else  bounding_box_reset(&boundingBox);
 
 	for (i = 0; i < vertexCount; i++)
 	{
-		d_squared = vertices[i].x*vertices[i].x + vertices[i].y*vertices[i].y + vertices[i].z*vertices[i].z;
+		d_squared = magnitude2(_vertices[i]);
 		if (d_squared > result)  result = d_squared;
-		bounding_box_add_vector(&boundingBox,vertices[i]);
+		bounding_box_add_vector(&boundingBox, _vertices[i]);
 	}
 
 	length_longest_axis = boundingBox.max.x - boundingBox.min.x;
@@ -1359,7 +1375,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	
 	for (i = 0; i != vertexCount; ++i)
 	{
-		vertex = &vertices[i];
+		vertex = &_vertices[i];
 		
 		vertex->x *= scaleX;
 		vertex->y *= scaleY;
@@ -1367,7 +1383,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		
 		if (!isotropic)
 		{
-			normal = &normals[i];
+			normal = &_normals[i];
 			// For efficiency freaks: let's assume some sort of adaptive branch prediction.
 			normal->x *= scaleX;
 			normal->y *= scaleY;
@@ -1388,55 +1404,10 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 }
 
 
-- (BoundingBox) findBoundingBoxRelativeToPosition:(Vector)opv
-											basis:(Vector)ri :(Vector)rj :(Vector)rk
-									 selfPosition:(Vector)position
-										selfBasis:(Vector)si :(Vector)sj :(Vector)sk
-{
-	Vector		pv, rv;
-	Vector		rpos = position;
-	int			i;
-	
-	rpos = vector_subtract(rpos, opv);
-	
-	rv.x = dot_product(ri, rpos);
-	rv.y = dot_product(rj, rpos);
-	rv.z = dot_product(rk, rpos);	// model origin rel to opv in r_ijk
-	
-	BoundingBox result;
-	if (EXPECT_NOT(vertexCount < 1))
-	{
-		bounding_box_reset_to_vector(&result,rv);
-	}
-	else
-	{
-		pv.x = rpos.x + si.x * vertices[0].x + sj.x * vertices[0].y + sk.x * vertices[0].z;
-		pv.y = rpos.y + si.y * vertices[0].x + sj.y * vertices[0].y + sk.y * vertices[0].z;
-		pv.z = rpos.z + si.z * vertices[0].x + sj.z * vertices[0].y + sk.z * vertices[0].z;	// vertices[0] position rel to opv
-		rv.x = dot_product(ri, pv);
-		rv.y = dot_product(rj, pv);
-		rv.z = dot_product(rk, pv);	// vertices[0] position rel to opv in ijk
-		bounding_box_reset_to_vector(&result, rv);
-	}
-	for (i = 1; i < vertexCount; i++)
-	{
-		pv.x = rpos.x + si.x * vertices[i].x + sj.x * vertices[i].y + sk.x * vertices[i].z;
-		pv.y = rpos.y + si.y * vertices[i].x + sj.y * vertices[i].y + sk.y * vertices[i].z;
-		pv.z = rpos.z + si.z * vertices[i].x + sj.z * vertices[i].y + sk.z * vertices[i].z;
-		rv.x = dot_product(ri, pv);
-		rv.y = dot_product(rj, pv);
-		rv.z = dot_product(rk, pv);
-		bounding_box_add_vector(&result, rv);
-	}
-
-	return result;
-}
-
-
 #ifndef NDEBUG
 - (void)debugDrawNormals
 {
-	GLint				i, max = 0;
+	GLuint				i;
 	Vector				v, n, t, b;
 	float				length, blend;
 	GLfloat				color[3];
@@ -1446,19 +1417,13 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	
 	state = OODebugBeginWireframe(NO);
 	
-	// Find largest used triangle index
-	for (i = 0; i != 3 * kOOMeshMaxFaces; ++i)
-	{
-		if (max < entityData.index_array[i])  max = entityData.index_array[i];
-	}
-	
 	// Draw
 	glBegin(GL_LINES);
-	for (i = 0; i < max; ++i)
+	for (i = 0; i < _displayLists.count; ++i)
 	{
-		v = entityData.vertex_array[i];
-		n = entityData.normal_array[i];
-		t = entityData.tangent_array[i];
+		v = _displayLists.vertexArray[i];
+		n = _displayLists.normalArray[i];
+		t = _displayLists.tangentArray[i];
 		b = true_cross_product(n, t);
 		
 		// Draw normal
@@ -1491,6 +1456,67 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	OODebugEndWireframe(state);
 }
 #endif
+
+
+- (void) setRetainedObject:(id)object forKey:(NSString *)key
+{
+	assert(key != nil);
+	
+	if (object != nil)
+	{
+		if (_retainedObjects == nil)  _retainedObjects = [[NSMutableDictionary alloc] init];
+		[_retainedObjects setObject:object forKey:key];
+	}
+}
+
+
+- (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key
+{
+	size *= count;
+	void *bytes = malloc(size);
+	if (bytes != NULL)
+	{
+		NSData *holder = [NSData dataWithBytesNoCopy:bytes length:size freeWhenDone:YES];
+		[self setRetainedObject:holder forKey:key];
+	}
+	return bytes;
+}
+
+
+- (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count
+{
+	_vertices = [self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
+	_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
+	_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
+	
+	return	_vertices != NULL &&
+			_normals != NULL &&
+			_tangents != NULL;
+}
+
+
+- (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count
+{
+	_faces = [self allocateBytesWithSize:sizeof *_faces count:faceCount key:@"faces"];
+	return	_faces != NULL;
+}
+
+
+- (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count
+{
+	_displayLists.indexArray = [self allocateBytesWithSize:sizeof *_displayLists.indexArray count:count * 3 key:@"indexArray"];
+	_displayLists.textureUVArray = [self allocateBytesWithSize:sizeof *_displayLists.textureUVArray count:count * 6 key:@"textureUVArray"];
+	_displayLists.vertexArray = [self allocateBytesWithSize:sizeof *_displayLists.vertexArray count:count * 3 key:@"vertexArray"];
+	_displayLists.normalArray = [self allocateBytesWithSize:sizeof *_displayLists.normalArray count:count * 3 key:@"normalArray"];
+	_displayLists.tangentArray = [self allocateBytesWithSize:sizeof *_displayLists.tangentArray count:count * 3 key:@"tangentArray"];
+	
+	return	_faces != NULL &&
+			_displayLists.indexArray != NULL &&
+			_displayLists.textureUVArray != NULL &&
+			_displayLists.vertexArray != NULL &&
+			_displayLists.normalArray != NULL &&
+			_displayLists.tangentArray != NULL;
+}
 
 @end
 

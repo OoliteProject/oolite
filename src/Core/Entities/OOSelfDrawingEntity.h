@@ -62,6 +62,17 @@ typedef struct
 } Face;
 
 
+typedef struct
+{
+	GLint					index_array[3 * MAX_FACES_PER_ENTITY];	// triangles
+	GLfloat					texture_uv_array[3 * MAX_FACES_PER_ENTITY * 2];
+	Vector					vertex_array[3 * MAX_FACES_PER_ENTITY];
+	Vector					normal_array[3 * MAX_FACES_PER_ENTITY];
+	
+	int						n_triangles;	// Actually number of entries, i.e. triangle count * 3.
+} EntityData;
+
+
 @interface OOSelfDrawingEntity: Entity
 {
 	uint8_t					isSmoothShaded: 1;

@@ -64,7 +64,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 25
+	kFormatVersionValue		= 26
 };
 
 

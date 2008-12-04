@@ -43,8 +43,6 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOMeshMaxVertices			= 500,
-	kOOMeshMaxFaces				= 800,
 	kOOMeshMaxMaterials			= 8,
 	kOOMeshMaxVertsPerFace		= 16,
 	
@@ -75,18 +73,19 @@ typedef struct
 
 typedef struct
 {
-	GLint					index_array[3 * kOOMeshMaxFaces];	// triangles
-	GLfloat					texture_uv_array[3 * kOOMeshMaxFaces * 2];
-	Vector					vertex_array[3 * kOOMeshMaxFaces];
-	Vector					normal_array[3 * kOOMeshMaxFaces];
-	Vector					tangent_array[3 * kOOMeshMaxFaces];
+	GLint					*indexArray;
+	GLfloat					*textureUVArray;
+	Vector					*vertexArray;
+	Vector					*normalArray;
+	Vector					*tangentArray;
 	
-	int						n_triangles;	// Actually number of entries, i.e. triangle count * 3.
-} EntityData;
+	GLuint					count;
+} OOMeshDisplayLists;
 
 
 @interface OOMesh: OODrawable <NSCopying>
 {
+@private
 	uint8_t					isSmoothShaded: 1,
 							brokenInRender: 1,
 							listsReady: 1;
@@ -97,12 +96,14 @@ typedef struct
 	
 	NSString				*baseFile;
 	
-	Vector					vertices[kOOMeshMaxVertices];
-	Vector					normals[kOOMeshMaxVertices];
-	Vector					tangents[kOOMeshMaxVertices];
-	OOMeshFace				faces[kOOMeshMaxFaces];
+	Vector					*_vertices;
+	Vector					*_normals;
+	Vector					*_tangents;
+	OOMeshFace				*_faces;
 	
-	EntityData				entityData;
+	// Redundancy! Needs fixing.
+	OOMeshDisplayLists		_displayLists;
+	
 	NSRange					triangle_range[kOOMeshMaxMaterials];
 	NSString				*materialKeys[kOOMeshMaxMaterials];
 	OOMaterial				*materials[kOOMeshMaxMaterials];
@@ -113,6 +114,8 @@ typedef struct
 	BoundingBox				boundingBox;
 	
 	Octree					*octree;
+	
+	NSMutableDictionary		*_retainedObjects;
 }
 
 + (id)meshWithName:(NSString *)name
