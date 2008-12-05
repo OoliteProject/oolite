@@ -1,0 +1,282 @@
+{
+	"adder" =
+	{
+		name = "Adder";
+	};
+	"adder-player" =
+	{
+		name = "Adder";
+	};
+	"alloy" =
+	{
+		name = "Metal fragment";
+	};
+	"anaconda" =
+	{
+		name = "Anaconda";
+	};
+	"anaconda-player" =
+	{
+		name = "Anaconda";
+	};
+	"arc-detail" =
+	{
+		name = "Arc Detail";
+	};
+	"asp" =
+	{
+		name = "Asp Mark II";
+	};
+	"asp-cloaked" =
+	{
+		name = "Asp Mark II";
+	};
+	"asp-player" =
+	{
+		name = "Asp Mark II";
+	};
+	"asteroid" =
+	{
+		name = "Asteroid";
+	};
+	"barrel" =
+	{
+		name = "Cargo container";
+	};
+	"boa" =
+	{
+		name = "Boa";
+	};
+	"boa-mk2" =
+	{
+		name = "Boa Class Cruiser";
+	};
+	"boa-mk2-player" =
+	{
+		name = "Boa Class Cruiser";
+	};
+	"boa-player" =
+	{
+		name = "Boa";
+	};
+	"boulder" =
+	{
+		name = "Boulder";
+	};
+	"buoy" =
+	{
+		name = "Navigation Buoy";
+	};
+	"buoy-witchpoint" =
+	{
+		name = "Witchpoint Beacon";
+	};
+	"cloaking-device" =
+	{
+		name = "Unusual cargo container";
+	};
+	"cobra3-alternate" =
+	{
+		name = "Cobra Mark III";
+	};
+	"cobra3-pirate" =
+	{
+		name = "Cobra Mark III";
+	};
+	"cobra3-player" =
+	{
+		name = "Cobra Mark III";
+	};
+	"cobra3-trader" =
+	{
+		name = "Cobra Mark III";
+	};
+	"cobramk1" =
+	{
+		name = "Cobra Mark I";
+	};
+	"cobramk1-alt" =
+	{
+		name = "Cobra Mark I";
+	};
+	"cobramk1-miner" =
+	{
+		name = "Cobra Mark I";
+	};
+	"cobramk1-player" =
+	{
+		name = "Cobra Mark I";
+	};
+	"constrictor" =
+	{
+		name = "Constrictor";
+	};
+	"coriolis-station" =
+	{
+		name = "Coriolis Station";
+	};
+	"dock" =
+	{
+		name = "Docking Slit (Vertical)";
+	};
+	"dock-flat" =
+	{
+		name = "Docking Slit (horizontal)";
+	};
+	"dodecahedron-station" =
+	{
+		name = "Dodecahedron Station";
+	};
+	"ecm-proof-missile" =
+	{
+		name = "ECM Hardened Missile";
+	};
+	"escape-capsule" =
+	{
+		name = "Escape capsule";
+	};
+	"ferdelance" =
+	{
+		name = "Fer-de-Lance";
+	};
+	"ferdelance-player" =
+	{
+		name = "Fer-de-Lance";
+	};
+	"gecko" =
+	{
+		name = "Gecko";
+	};
+	"hermit-docking-slit" =
+	{
+		name = "Docking Slit";
+	};
+	"hermitage" =
+	{
+		name = "Rock Hermit living area";
+	};
+	"icosahedron-station" =
+	{
+		name = "Icosahedron Station";
+	};
+	"krait" =
+	{
+		name = "Krait";
+	};
+	"mamba" =
+	{
+		name = "Mamba";
+	};
+	"mamba-escort" =
+	{
+		name = "Mamba Escort";
+	};
+	"missile" =
+	{
+		name = "Missile";
+	};
+	"moray" =
+	{
+		name = "Moray Star Boat";
+	};
+	"moray-player" =
+	{
+		name = "Moray Star Boat";
+	};
+	"morayMED" =
+	{
+		name = "Moray Medical Boat";
+	};
+	"morayMED-player" =
+	{
+		name = "Moray Medical Boat";
+	};
+	"python" =
+	{
+		name = "Python";
+	};
+	"python-blackdog" =
+	{
+		name = "Python";
+	};
+	"python-player" =
+	{
+		name = "Python";
+	};
+	"python-trader" =
+	{
+		name = "Python";
+	};
+	"qbomb" =
+	{
+		name = "Quirium Cascade Mine";
+	};
+	"rock-hermit" =
+	{
+		name = "Rock Hermit";
+	};
+	"shuttle" =
+	{
+		name = "Orbital Shuttle";
+	};
+	"sidewinder" =
+	{
+		name = "Sidewinder Scout Ship";
+	};
+	"sidewinder-escort" =
+	{
+		name = "Sidewinder Scout Ship";
+	};
+	"splinter" =
+	{
+		name = "Splinter";
+	};
+	"strut" =
+	{
+		name = "Strut 10-10-30";
+	};
+	"tharglet" =
+	{
+		name = "Thargoid Robot Fighter";
+	};
+	"thargoid" =
+	{
+		name = "Thargoid Warship";
+	};
+	"transporter" =
+	{
+		name = "Transporter";
+	};
+	"transporter-miner" =
+	{
+		name = "Mining Transporter";
+	};
+	"viper" =
+	{
+		name = "GalCop Viper";
+	};
+	"viper-interceptor" =
+	{
+		name = "GalCop Viper Interceptor";
+	};
+	"viper-pursuit" =
+	{
+		name = "GalCop Viper";
+	};
+	"worm" =
+	{
+		name = "Worm";
+	};
+	"worm-miner" =
+	{
+		name = "Worm";
+	};
+	"wreckage-component" =
+	{
+		name = "Wreckage";
+	};
+	"ballturret" =
+	{
+		name = "Ball Turret";
+	};
+}

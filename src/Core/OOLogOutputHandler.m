@@ -102,7 +102,6 @@ static void OONSLogPrintfHandler(NSString *message);
 #endif
 
 static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
-static NSString *GetLogBasePath(void);
 
 
 #define kFlushInterval	2.0		// Lower bound on interval between explicit log file flushes.
@@ -221,7 +220,7 @@ void OOLogOutputHandlerPrint(NSString *string)
 
 NSString *OOLogHandlerGetLogPath(void)
 {
-	return [GetLogBasePath() stringByAppendingPathComponent:sLogFileName];	
+	return [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:sLogFileName];	
 }
 
 
@@ -258,7 +257,7 @@ enum
 	// If there is an existing file, move it to Previous.log.
 	if ([fmgr fileExistsAtPath:logPath])
 	{
-		oldPath = [GetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
+		oldPath = [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
 		[fmgr removeFileAtPath:oldPath handler:nil];
 		if (![fmgr movePath:logPath toPath:oldPath handler:nil])
 		{
@@ -561,7 +560,7 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 
 #if OOLITE_MAC_OS_X
 
-static NSString *GetLogBasePath(void)
+NSString *OOLogHandlerGetLogBasePath(void)
 {
 	static NSString		*basePath = nil;
 	
@@ -604,7 +603,7 @@ static NSString *GetAppName(void)
 
 #elif OOLITE_LINUX
 
-static NSString *GetLogBasePath(void)
+NSString *OOLogHandlerGetLogBasePath(void)
 {
 	static NSString		*basePath = nil;
 	
@@ -629,7 +628,7 @@ static NSString *GetLogBasePath(void)
 
 #elif OOLITE_WINDOWS
 
-static NSString *GetLogBasePath(void)
+NSString *OOLogHandlerGetLogBasePath(void)
 {
 	static NSString		*basePath = nil;
 	

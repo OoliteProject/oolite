@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "MyOpenGLView.h"
 #import "OOCollectionExtractors.h"
+#import "OOLogOutputHandler.h"
 
 #import "OOJSScript.h"
 #import "OOPListScript.h"
@@ -857,40 +858,9 @@ static NSMutableDictionary *string_cache;
 }
 
 
-#if OOLITE_MAC_OS_X
-
 + (NSString *) diagnosticFileLocation
 {
-	NSString			*cachePath = nil;
-	
-	/*	Construct the path for diagnostic files, which is:
-		 ~/Library/Logs/Oolite/
-	*/
-	cachePath = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-	cachePath = [cachePath stringByAppendingPathComponent:@"Logs"];
-	if (![self directoryExists:cachePath create:YES]) return nil;
-	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite"];
-	if (![self directoryExists:cachePath create:YES]) return nil;
-	return cachePath;
+	return OOLogHandlerGetLogBasePath();
 }
-
-#else
-
-+ (NSString *) diagnosticFileLocation
-{
-	NSString			*cachePath = nil;
-	
-	/*	Construct the path for diagnostic files, which is:
-	 ~/.Oolite/Diagnostics/
-	 */
-	cachePath = NSHomeDirectory();
-	cachePath = [cachePath stringByAppendingPathComponent:@".Oolite"];
-	if (![self directoryExists:cachePath create:YES]) return nil;
-	cachePath = [cachePath stringByAppendingPathComponent:@"Diagnostics"];
-	if (![self directoryExists:cachePath create:YES]) return nil;
-	return cachePath;
-}
-
-#endif
 
 @end
