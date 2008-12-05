@@ -366,7 +366,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 								withString:OldRandomDigrams()
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
-	[partial	replaceOccurrencesOfString:@"%X"
+	[partial	replaceOccurrencesOfString:@"%N"
 								withString:NewRandomDigrams()
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 
@@ -458,7 +458,7 @@ static NSString *OldRandomDigrams(void)
 
 
 /*	Generates pseudo-random digram string using gen_rnd_number()
-	(world-generation consistent PRNG). Used for "%X" description string.
+	(world-generation consistent PRNG). Used for "%N" description string.
 */
 static NSString *NewRandomDigrams(void)
 {
