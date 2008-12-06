@@ -170,7 +170,7 @@ static inline NSRect ScaleRect(NSRect rect, NSPoint scale)
 				NSPoint point = NSMakePoint((x * 32.0 + self.offsetX) * scale.x, (y * 32.0 + self.offsetY) * scale.y);
 				[string drawAtPoint:point withAttributes:attrs];
 				
-				NSNumber *width = [NSNumber numberWithFloat:[string sizeWithAttributes:attrs].width / 4.0];
+				NSNumber *width = [NSNumber numberWithFloat:[string sizeWithAttributes:attrs].width / (4.0 * scale.x)];
 				if (value < 32)
 				{
 					[widths replaceObjectAtIndex:value withObject:width];
