@@ -191,15 +191,24 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString					*name = nil;
+	JSBool						loop = NO;
 	
 	name = JSValToNSString(context, argv[0]);
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"Sound", @"playMusic", argc, argv, @"Invalid arguments", @"string");
+		OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, &argv[0], @"Invalid arguments", @"string");
 		return NO;
 	}
+	if (argc >= 2)
+	{
+		if (!JS_ValueToBoolean(context, argv[1], &loop))
+		{
+			OOReportJSBadArguments(context, @"Sound", @"playMusic", 1, &argv[1], @"Invalid arguments", @"boolean");
+			return NO;
+		}
+	}
 	
-	[[OOMusicController sharedController] playMusicNamed:name loop:NO];
+	[[OOMusicController sharedController] playMusicNamed:name loop:loop];
 	return YES;
 }
 
@@ -213,7 +222,7 @@ static JSBool SoundStaticStopMusic(JSContext *context, JSObject *this, uintN arg
 		name = JSValToNSString(context, argv[0]);
 		if (name == nil)
 		{
-			OOReportJSBadArguments(context, @"Sound", @"playMusic", argc, argv, @"Invalid arguments", @"string or no argument");
+			OOReportJSBadArguments(context, @"Sound", @"stopMusic", argc, argv, @"Invalid arguments", @"string or no argument");
 			return NO;
 		}
 		[[OOMusicController sharedController] stopMusicNamed:name];

@@ -8120,9 +8120,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		[graphViz appendFormat:@"\t%@ -> percent_H [color=\"0,0,0.45\"]\n", fromNode];
 	}
-	if ([string rangeOfString:@"%R"].location != NSNotFound)
+	if ([string rangeOfString:@"%R"].location != NSNotFound || [string rangeOfString:@"%N"].location != NSNotFound)
 	{
-		[graphViz appendFormat:@"\t%@ -> percent_R [color=\"0,0,0.65\"]\n", fromNode];
+		[graphViz appendFormat:@"\t%@ -> percent_RN [color=\"0,0,0.65\"]\n", fromNode];
 	}
 }
 
@@ -8160,7 +8160,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[graphViz appendString:
 	 @"\tpercent_I [label=\"%I\\nInhabitants\" shape=diamond]\n"
 	 "\tpercent_H [label=\"%H\\nSystem name\" shape=diamond]\n"
-	 "\tpercent_R [label=\"%R\\nRandom name\" shape=diamond]\n\t\n"];
+	 "\tpercent_RN [label=\"%R/%N\\nRandom name\" shape=diamond]\n\t\n"];
 	
 	// Toss in the Thargoid curses, too
 	[graphViz appendString:@"\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n"];
