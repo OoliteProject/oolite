@@ -165,19 +165,13 @@ Call un.RegSetup
 RMDir /r "$SMPROGRAMS\Oolite"
 
 ; Remove Package files (but leave any generated content behind)
-RMDir /r "$INSTDIR\oolite.app"
-RMDir /r "$INSTDIR\Logs"
-Delete "$INSTDIR\GNUstep\Library\Caches\Oolite-cache.plist"
-RMDir "$INSTDIR\GNUstep\Library\Caches"
-RMDir "$INSTDIR\GNUstep\Library"
-RMDir "$INSTDIR\GNUstep"
-RMDir "$INSTDIR\AddOns"
-Delete "$INSTDIR\Oolite.ico"
-Delete "$INSTDIR\RunOolite.bat"
-Delete "$INSTDIR\Oolite_Readme.txt"
-Delete "$INSTDIR\OoliteRS.pdf"
-Delete "$INSTDIR\UninstOolite.exe"
-RMDir "$INSTDIR"
+RMDir /r "$INSTDIR\oolite.app\Contents"
+RMDir /r "$INSTDIR\oolite.app\GNUstep"
+RMDir /r "$INSTDIR\oolite.app\oolite.app"
+RMDir /r "$INSTDIR\oolite.app\Resources"
+RMDir /r "$INSTDIR\oolite.app\Logs"
+Delete "$INSTDIR\*.*"
+Delete "$INSTDIR\oolite.app\*.*"
 
 SectionEnd
 
