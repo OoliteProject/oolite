@@ -529,6 +529,7 @@ waitingForStickCallback: 1;
 
 - (GLfloat) dialRoll;
 - (GLfloat) dialPitch;
+- (GLfloat) dialYaw;
 - (GLfloat) dialSpeed;
 - (GLfloat) dialHyperSpeed;
 

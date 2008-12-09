@@ -240,6 +240,7 @@ MA 02110-1301, USA.
 - (void) drawSpeedBar:(NSDictionary *) info;
 - (void) drawRollBar:(NSDictionary *) info;
 - (void) drawPitchBar:(NSDictionary *) info;
+- (void) drawYawBar:(NSDictionary *) info;
 - (void) drawEnergyGauge:(NSDictionary *) info;
 - (void) drawForwardShieldBar:(NSDictionary *) info;
 - (void) drawAftShieldBar:(NSDictionary *) info;

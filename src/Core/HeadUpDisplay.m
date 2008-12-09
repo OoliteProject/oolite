@@ -1087,6 +1087,34 @@ static BOOL hostiles;
 }
 
 
+- (void) drawYawBar:(NSDictionary *) info
+{
+	PlayerEntity	*player = [PlayerEntity sharedPlayer];
+	int				x;
+	int				y;
+	NSSize			siz;
+	BOOL			draw_surround;
+	
+	// YAW does not exist in strict mode
+	if ([UNIVERSE strict])  return;
+	
+	x = [info intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
+	y = [info intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
+	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
+	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+	if (draw_surround)
+	{
+		// draw YAW surround
+		GLColorWithOverallAlpha(green_color, overallAlpha);
+		hudDrawSurroundAt(x, y, z1, siz);
+	}
+	// draw YAW bar
+	GLColorWithOverallAlpha(yellow_color, overallAlpha);
+	hudDrawIndicatorAt(x, y, z1, siz, [player dialYaw]);
+}
+
+
 - (void) drawEnergyGauge:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];

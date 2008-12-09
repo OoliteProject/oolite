@@ -2187,6 +2187,17 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (GLfloat) dialYaw
+{
+	GLfloat result = -flightYaw / max_flight_yaw;
+	if ((result < 1.0f)&&(result > -1.0f))
+	return result;
+	if (result > 0.0f)
+		return 1.0f;
+	return -1.0f;
+}
+
+
 - (GLfloat) dialSpeed
 {
 	GLfloat result = flightSpeed / maxFlightSpeed;
