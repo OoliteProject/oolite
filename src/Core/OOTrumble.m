@@ -381,7 +381,6 @@ static void PlayTrumbleSqueal(void);
 	GLfloat ht = 96 * size;
 	glShadeModel(GL_SMOOTH);
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[texture apply];
 	//
 	glPushMatrix();

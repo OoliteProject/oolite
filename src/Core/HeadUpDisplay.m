@@ -698,7 +698,6 @@ static BOOL hostiles;
 	if (zl == 1) zoom_color[3] *= 0.75;
 	GLColorWithOverallAlpha(zoom_color, overallAlpha);
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
 	glBegin(GL_QUADS);
 	drawCharacterQuad(48 + zl, cx - 0.4 * siz.width, cy, z1, siz);
@@ -2161,7 +2160,6 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 	const uint8_t	*bytes = NULL;
 	
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
 	
 	data = [sEncodingCoverter convertString:text];
@@ -2196,7 +2194,6 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 	GLfloat ce1 = 1.0 - 0.125 * eco;
 	
 	glEnable(GL_TEXTURE_2D);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[sFontTexture apply];
 
 	glBegin(GL_QUADS);

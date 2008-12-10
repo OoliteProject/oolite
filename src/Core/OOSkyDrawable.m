@@ -224,7 +224,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		glNewList(_displayListName, GL_COMPILE);
 		
 		glEnable(GL_TEXTURE_2D);
-		glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
 		
 		glDisableClientState(GL_INDEX_ARRAY);

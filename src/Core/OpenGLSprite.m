@@ -74,7 +74,6 @@ MA 02110-1301, USA.
 	
 	// Note that the textured Quad is drawn ACW from the Top Left
 	
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	[texture apply];
 	glBegin(GL_QUADS);
 	

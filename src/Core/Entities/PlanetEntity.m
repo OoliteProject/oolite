@@ -1331,7 +1331,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 						glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
 						glBindTexture(GL_TEXTURE_2D, textureName);
-						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 					}
 					else
@@ -1368,7 +1367,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 						
 						glActiveTextureARB(GL_TEXTURE1_ARB);
 						glBindTexture(GL_TEXTURE_2D, normalMapTextureName);
-						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 						locator = glGetUniformLocationARB(shader_program, "tex1");
 						if (locator == -1)
@@ -1378,7 +1376,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 						
 						glActiveTextureARB(GL_TEXTURE0_ARB);
 						glBindTexture(GL_TEXTURE_2D, textureName);
-						glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 						locator = glGetUniformLocationARB(shader_program, "tex0");
 						if (locator == -1)
@@ -1397,7 +1394,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 							glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 							glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
 							glBindTexture(GL_TEXTURE_2D, textureName);
-							glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
 						}
 						else
