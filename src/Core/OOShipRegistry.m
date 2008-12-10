@@ -54,6 +54,8 @@ SOFTWARE.
 #import "OOProbabilitySet.h"
 #import "OORoleSet.h"
 #import "OOStringParsing.h"
+#import "OOMesh.h"
+#import "GameController.h"
 
 
 static OOShipRegistry	*sSingleton = nil;
@@ -74,11 +76,13 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (void) buildRoleProbabilitySets;
 
 - (BOOL) applyLikeShips:(NSMutableDictionary *)ioData;
-- (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
 - (BOOL) tagSubEntities:(NSMutableDictionary *)ioData;
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
+- (BOOL) preloadShipMeshes:(NSMutableDictionary *)ioData;
+
+- (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (void) mergeShipRoles:(NSString *)roles forShipKey:(NSString *)shipKey intoProbabilityMap:(NSMutableDictionary *)probabilitySets;
 
 @end
@@ -264,8 +268,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	// Add shipyard entries into shipdata entries.
 	if (![self loadAndMergeShipyard:result])  return;
 	
-	immutableResult = [[result copy] autorelease];
+#if 0
+	// Preload and cache meshes.
+	if (![self preloadShipMeshes:result])  return;
+#endif
 	
+	immutableResult = [[result copy] autorelease];
 	_shipData = [immutableResult retain];
 	[[OOCacheManager sharedCache] setObject:_shipData forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
 	
@@ -693,6 +701,53 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 		if (remove)  [ioData removeObjectForKey:shipKey];
 	}
+	
+	return YES;
+}
+
+
+- (BOOL) preloadShipMeshes:(NSMutableDictionary *)ioData
+{
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSDictionary			*shipEntry = nil;
+	BOOL					remove;
+	NSString				*modelName = nil;
+	OOMesh					*mesh = nil;
+	NSAutoreleasePool		*pool = nil;
+	OOUInteger				i = 0, count;
+	
+	count = [ioData count];
+	
+	// Preload ship meshes. (Iterates over a copy of keys since it mutates the dictionary.)
+	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	{
+		pool = [[NSAutoreleasePool alloc] init];
+		
+		[[GameController sharedController] setProgressBarValue:(float)i++ / (float)count];
+		
+		shipEntry = [ioData objectForKey:shipKey];
+		remove = NO;
+		
+		modelName = [shipEntry stringForKey:@"model"];
+		mesh = [OOMesh meshWithName:modelName
+				 materialDictionary:nil
+				  shadersDictionary:nil
+							 smooth:[shipEntry boolForKey:@"smooth"]
+					   shaderMacros:nil
+				shaderBindingTarget:nil];
+		
+		[pool release];	// NOTE: mesh is now invalid, but pointer nil check is OK.
+		
+		if (mesh == nil)
+		{
+			// FIXME: what if it's a subentity? Need to rearrange things.
+			OOLog(@"shipData.load.error", @"***** ERROR: model \"%@\" could not be loaded for ship \"%@\", removing.", modelName, shipKey);
+			[ioData removeObjectForKey:shipKey];
+		}
+	}
+	
+	[[GameController sharedController] setProgressBarValue:-1.0f];
 	
 	return YES;
 }

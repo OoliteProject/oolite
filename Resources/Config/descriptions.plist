@@ -760,8 +760,17 @@
 	"game-copyright"				= "by Giles Williams and contributors © 2003–2008";
 	"theme-music-credit"			= "Oolite Theme Music by NoSleep © 2004";
 	"load-previous-commander"		= "Load Previous Commander (Y/N)?";
-	"load-previous-commander-yes"		= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
-	"load-previous-commander-no"		= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
+	"load-previous-commander-yes"	= "y"; // Defines the key that corresponds to the yes answer to load-previous-commander.
+	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
+	
+	// Loading screen (currently Mac only)
+	"Getting display modes..."		= "Getting display modes…";	// Can't be localized, OXPs aren't loaded yet
+	"Loading selected expansion packs..." = "Loading selected expansion packs…";	// Can't be localized, OXPs aren't loaded yet
+	"Loading ships..."				= "Loading ships…";
+	"Initialising universe..."		= "Initialising universe…";
+	"Loading player..."				= "Loading player…";
+	"Populating space..."			= "Populating space…";
+	"Running scripts..."			= "Running scripts…";
 	
 	// Status screen
 	"status-commander-@"			= "Commander %@";

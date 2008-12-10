@@ -210,13 +210,13 @@ static GameController *sSharedController = nil;
 		}
 #endif
 		
-		[self logProgress:@"getting display modes..."];
+		[self logProgress:@"Getting display modes..."];
 		[self getDisplayModes];
 		
 		// moved to before the Universe is created
 		if (expansionPathsToInclude)
 		{
-			[self logProgress:@"loading selected expansion packs..."];
+			[self logProgress:@"Loading selected expansion packs..."];
 			for (i = 0; i < [expansionPathsToInclude count]; i++)
 			{
 				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
@@ -224,11 +224,13 @@ static GameController *sSharedController = nil;
 		}
 		
 		// moved here to try to avoid initialising this before having an Open GL context
-		[self logProgress:@"initialising universe..."];
+		[self logProgress:@"Initialising universe..."];
 		[[Universe alloc] initWithGameView:gameView];
 		
-		[self logProgress:@"loading player..."];
+		[self logProgress:@"Loading player..."];
 		[self loadPlayerIfRequired];
+		
+		[self logProgress:@""];
 		
 		// get the run loop and add the call to performGameTick:
 		[self startAnimationTimer];
@@ -813,8 +815,17 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) logProgress:(NSString *)message
 {
-	[splashProgressTextField setStringValue:message];
+	NSString *text = [UNIVERSE descriptionForKey:message];
+	if (text == nil)  text = message;
+	[splashProgressTextField setStringValue:text];
 	[splashProgressTextField display];
+}
+
+
+- (void) setProgressBarValue:(float)value
+{
+	[progressBar setDoubleValue:value];
+	[progressBar display];
 }
 
 
@@ -849,7 +860,8 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 		[self setPlayerFileDirectory:filename];
 		return YES;
 	}
-	if ([[filename pathExtension] isEqual:@"oxp"]||[[filename pathExtension] isEqual:@"oolite_expansion_pack"])
+	if ([[filename pathExtension] isEqualToString:@"oxp"] ||
+		[[filename pathExtension] isEqual:@"oolite_expansion_pack"])
 	{
 		BOOL dir_test;
 		[[NSFileManager defaultManager] fileExistsAtPath:filename isDirectory:&dir_test];
@@ -883,6 +895,9 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 #elif OOLITE_SDL
 
 - (void) logProgress:(NSString *)message
+{}
+
+- (void) setProgressBarValue:(float)value
 {}
 
 - (void) endSplashScreen

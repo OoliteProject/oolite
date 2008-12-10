@@ -48,6 +48,8 @@
 		1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */; };
 		1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */; };
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
+		1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1E99B40EF04837008B48E2 /* OOProgressBar.h */; };
+		1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1E99B50EF04837008B48E2 /* OOProgressBar.m */; };
 		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
 		1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
@@ -1061,6 +1063,8 @@
 		1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFilteringEnumerator.h; sourceTree = "<group>"; };
 		1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFilteringEnumerator.m; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
+		1A1E99B40EF04837008B48E2 /* OOProgressBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProgressBar.h; sourceTree = "<group>"; };
+		1A1E99B50EF04837008B48E2 /* OOProgressBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProgressBar.m; sourceTree = "<group>"; };
 		1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-ball-turret.dat"; sourceTree = "<group>"; };
 		1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-ball-turret.png"; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
@@ -2401,6 +2405,8 @@
 				1A8A3D9E0B9B05C400AB7625 /* Groolite */,
 				1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */,
 				1AE546300C19A2E2005B89F3 /* JoystickHandler.m */,
+				1A1E99B40EF04837008B48E2 /* OOProgressBar.h */,
+				1A1E99B50EF04837008B48E2 /* OOProgressBar.m */,
 			);
 			name = "Mac-specific";
 			path = ../Cocoa;
@@ -2927,6 +2933,7 @@
 				1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */,
 				1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */,
 				1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */,
+				1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3282,6 +3289,7 @@
 				1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */,
 				1AC27A100EA7E9940054E5F0 /* OOJSEquipmentInfo.m in Sources */,
 				1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */,
+				1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3358,6 +3366,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
+					ALLOW_PROCEDURAL_PLANETS,
 					DOCKING_CLEARANCE_ENABLED,
 					OO_DEBUG,
 					DEBUG_GRAPHVIZ,
