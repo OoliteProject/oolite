@@ -618,7 +618,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			// While we're at it, do basic sanity checking on subentity defs.
 			if ([subEntityDef count] != 8)
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken role definition \"%@\" (should have 8 tokens, has %u).", shipKey, subEntityKey, [subEntityDef count]);
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subEntityKey, [subEntityDef count]);
 				remove = YES;
 			}
 			else
