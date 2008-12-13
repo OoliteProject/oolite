@@ -1485,7 +1485,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int number = [numberString intValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %u ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 	
@@ -1517,7 +1517,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	double posn = [positionString doubleValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %u ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 
@@ -1557,7 +1557,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int number = [numberString intValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %u ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
 		return;
 	}
 
@@ -1599,7 +1599,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int number = [numberString intValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %u ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 
@@ -1607,7 +1607,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![UNIVERSE addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAt: role number coordinate_system x y z)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAtPrecisely: role number coordinate_system x y z)", CurrentScriptDesc(), roles_number_system_x_y_z);
 	}
 }
 
@@ -1633,7 +1633,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %u ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 

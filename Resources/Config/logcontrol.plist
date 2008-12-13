@@ -315,6 +315,9 @@
 	shipData.load.done						= no;
 	
 	
+	shipRegistry.selection.profile			= no;
+	
+	
 	sky.setup								= no;
 	
 	
