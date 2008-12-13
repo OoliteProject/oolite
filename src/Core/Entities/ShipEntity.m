@@ -4870,14 +4870,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void)setSuppressExplosion:(BOOL)suppress
 {
-	// I don't think this is used anywhere. -- Ahruman
-#ifndef NDEBUG
-	if (suppress || ![self isSubEntity])
-	{
-		OOLog(@"method.undead", @"Believed-dead method %s called.", __FUNCTION__);
-	}
-#endif
-	
 	suppressExplosion = suppress != NO;
 }
 
