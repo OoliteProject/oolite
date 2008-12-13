@@ -50,7 +50,7 @@
 
 #if OO_OXP_VERIFIER_ENABLED
 
-#import "OOLogging.h"
+#import "OOLoggingExtended.h"
 #import "OOCollectionExtractors.h"
 #import "OOMaths.h"
 #import <limits.h>
@@ -247,6 +247,7 @@ VERIFY_PROTO(DelegatedType);
 		_schema = [schema retain];
 		_definitions = [[_schema dictionaryForKey:@"$definitions"] retain];
 		sDebugDump = [[NSUserDefaults standardUserDefaults] boolForKey:@"plist-schema-verifier-dump-structure"];
+		if (sDebugDump)  OOLogSetDisplayMessagesInClass(@"verifyOXP.verbose.plistDebugDump", YES);
 		
 		if (_schema == nil)
 		{
@@ -1308,9 +1309,9 @@ static NSError *Verify_FuzzyBoolean(OOPListSchemaVerifier *verifier, id value, N
 {
 	DebugDump(@"* fuzzy boolean: %@", value);
 	
-	// FIXME: does this do the right thing for both probabilities and booleans?
 	// Check basic parseability. If there's inequality here, the default value is being returned.
 	if (OODoubleFromObject(value, 0) == OODoubleFromObject(value, 1))  return nil;
+	else if (OOBooleanFromObject(value, 0) == OOBooleanFromObject(value, 1))  return nil;
 	else  return ErrorTypeMismatch([NSNumber class], @"fuzzy boolean", value, keyPath);
 }
 
@@ -1362,12 +1363,12 @@ static NSError *Verify_DelegatedType(OOPListSchemaVerifier *verifier, id value, 
 	}
 	
 	key = [params objectForKey:@"key"];
-	*outStop = [verifier delegateVerifierWithPropertyList:rootPList
-													named:name
-											 testProperty:value
-												   atPath:keyPath
-											  againstType:key
-													error:&error];
+	*outStop = ![verifier delegateVerifierWithPropertyList:rootPList
+													 named:name
+											  testProperty:value
+													atPath:keyPath
+											   againstType:key
+													 error:&error];
 	return error;
 }
 

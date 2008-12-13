@@ -277,7 +277,8 @@
 			"max_scavengers",
 			"max_defense_ships",
 			"max_police",
-			"equipment_price_factor"
+			"equipment_price_factor",
+			"requires_docking_clearance"
 		);
 		knownPlayerKeys =
 		(
