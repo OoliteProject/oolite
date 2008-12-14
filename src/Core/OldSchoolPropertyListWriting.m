@@ -138,7 +138,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	dstLength = 2 * srcLength + srcLength/8 + 2 + (srcLength/64 * (1 + inIndentation));
 	
 	dstBytes = malloc(dstLength);
-	if (nil == dstBytes)
+	if (dstBytes == NULL)
 	{
 		if (NULL != outErrorDescription)
 		{
