@@ -17,7 +17,10 @@
 NSArray *OOConvertSystemDescriptionsToArrayFormat(NSDictionary *descriptionsInDictionaryFormat, NSDictionary *indicesToKeys);
 NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *descriptionsInArrayFormat, NSDictionary *indicesToKeys);
 
+NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indicesToKeys, BOOL useFallback);
 
 //	Higher-level functions to drive the entire conversion.
 void CompileSystemDescriptions(BOOL asXML);
 void ExportSystemDescriptions(BOOL asXML);
+
+

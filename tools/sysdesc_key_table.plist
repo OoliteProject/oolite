@@ -1,0 +1,57 @@
+{
+	/*	Keys beginning with tharg_ are used directly by thargoid_curses, but many are also
+		used by system description blocks.
+		
+		Note that thargoid_curses also uses some weird combinations, like
+		[tharg_creature_noun_2]-[tharg_creature_noun_4] ("arts graduate-fish") and
+		[tharg_strange_adj] [tharg_tourist_attraction_2_noun] ("strange parking meters").
+	*/
+	
+	// system-description-string = "[planet_root] is [planet_attr_root]."
+	14 = "planet_root";
+	22 = "planet_attr_root";
+	
+	 9 = "main_dispatch";
+	32 = "secondary_dispatch";
+	
+	 0 = "famous_adj";
+	 1 = "degree_adj";
+	15 = "boring_adj";
+	16 = "planet_noun";					// planet, world, dump.
+	 7 = "cursed_adj";
+	26 = "dangerous_adj";				// Used for creatures, drinks and plantation plants.
+	12 = "exciting_adj";				// Used for [entertainment_noun] or creature-based foods.
+	21 = "disaster_frequency_adj";
+	
+	 8 = "disaster_noun_phrase";
+	
+	24 = "tharg_creature_noun_root";	// Builds a creature name frome one of the following
+	30 = "creature_noun_1";				// Also used as food ingredient.
+	31 = "tharg_creature_noun_2";		// Also used as [exciting_adj] food ingredient.
+	17 = "creature_noun_3";
+	 6 = "-oid_prefix_creature_noun";	// Things always used with an -oid suffix by [tharg_creature_noun_root].
+	18 = "tharg_creature_noun_4";		// Art graduate, atc.
+	
+	23 = "creature_attr_adj";
+	
+	19 = "forest_adj";
+	 3 = "tourist_attraction_noun";
+	27 = "tharg_tourist_attraction_2_noun";
+	 2 = "tourist_attraction_adj";
+	
+	29 = "plantation_1";
+	28 = "plantation_2";
+	
+	25 = "behaviour_adj";				// used in conjunction with [tharg_behaviour_noun]
+	20 = "tharg_strange_adj";			// Subset of [behaviour_adj]
+	 4 = "tharg_behaviour_noun";		// shyness, mating traditions, love/loathing of [tharg_object_of_emotion_noun]
+	 5 = "tharg_object_of_emotion_noun";
+	
+	13 = "entertainment_noun";
+	34 = "sport_adj";					// ice, mud, zero-G
+	35 = "sport_noun";
+	
+	33 = "tharg_food_type_noun";
+	10 = "drink_type_noun";
+	11 = "drink_attribute";
+}

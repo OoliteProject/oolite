@@ -15,7 +15,7 @@
 
 
 static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet **outUsedIndices);
-static NSString *IndexToKey(OOUInteger index, NSDictionary *indicesToKeys);
+static NSString *IndexToKey(OOUInteger index, NSDictionary *indicesToKeys, BOOL useFallback);
 static NSArray *ConvertIndicesToKeys(NSArray *entry, NSDictionary *indicesToKeys);
 static NSNumber *KeyToIndex(NSString *key, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, OOUInteger *ioSlotCache);
 static NSArray *ConvertKeysToIndices(NSArray *entry, NSMutableDictionary *ioKeysToIndices, NSMutableSet *ioUsedIndicies, OOUInteger *ioSlotCache);
@@ -190,7 +190,7 @@ NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *description
 	for (entryEnum = [descriptionsInArrayFormat objectEnumerator]; (entry = [entryEnum nextObject]); )
 	{
 		entry = ConvertIndicesToKeys(entry, indicesToKeys);
-		key = IndexToKey(i, indicesToKeys);
+		key = IndexToKey(i, indicesToKeys, YES);
 		++i;
 		
 		[result setObject:entry forKey:key];
@@ -198,6 +198,42 @@ NSDictionary *OOConvertSystemDescriptionsToDictionaryFormat(NSArray *description
 	
 	[pool release];
 	return result;
+}
+
+
+NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indicesToKeys, BOOL useFallback)
+{
+	OOUInteger				p1, p2;
+	NSRange					searchRange;
+	NSString				*before = nil, *after = nil, *middle = nil;
+	NSString				*key = nil;
+	
+	searchRange.location = 0;
+	searchRange.length = [line length];
+	
+	while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound)
+	{
+		p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
+		p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
+		
+		before = [line substringWithRange:NSMakeRange(0, p1)];
+		after = [line substringWithRange:NSMakeRange(p2,[line length] - p2)];
+		middle = [line substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
+		
+		if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""] && ![middle isEqual:@""])
+		{
+			// Found [] around integers only
+			key = IndexToKey([middle intValue], indicesToKeys, useFallback);
+			if (key != nil)
+			{
+				line = [NSString stringWithFormat:@"%@[#%@]%@", before, key, after];
+			}
+		}
+		
+		searchRange.length -= p2 - searchRange.location;
+		searchRange.location = [line length] - searchRange.length;
+	}
+	return line;
 }
 
 
@@ -227,10 +263,10 @@ static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet 
 }
 
 
-static NSString *IndexToKey(OOUInteger index, NSDictionary *indicesToKeys)
+static NSString *IndexToKey(OOUInteger index, NSDictionary *indicesToKeys, BOOL useFallback)
 {
 	NSString *result = [indicesToKeys objectForKey:[NSString stringWithFormat:@"%u", index]];
-	if (result == nil)  result = [NSString stringWithFormat:@"block_%u", index];
+	if (result == nil && useFallback)  result = [NSString stringWithFormat:@"block_%u", index];
 	
 	return result;
 }
@@ -240,38 +276,13 @@ static NSArray *ConvertIndicesToKeys(NSArray *entry, NSDictionary *indicesToKeys
 {
 	NSEnumerator			*lineEnum = nil;
 	NSString				*line = nil;
-	OOUInteger				p1, p2;
-	NSRange					searchRange;
 	NSMutableArray			*result = nil;
-	NSString				*before = nil, *after = nil, *middle = nil;
 	
 	result = [NSMutableArray arrayWithCapacity:[entry count]];
 	
 	for (lineEnum = [entry objectEnumerator]; (line = [lineEnum nextObject]); )
 	{
-		searchRange.location = 0;
-		searchRange.length = [line length];
-		
-		while ([line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location != NSNotFound)
-		{
-			p1 = [line rangeOfString:@"[" options:NSLiteralSearch range:searchRange].location;
-			p2 = [line rangeOfString:@"]" options:NSLiteralSearch range:searchRange].location + 1;
-			
-			before = [line substringWithRange:NSMakeRange(0, p1)];
-			after = [line substringWithRange:NSMakeRange(p2,[line length] - p2)];
-			middle = [line substringWithRange:NSMakeRange(p1 + 1 , p2 - p1 - 2)];
-			
-			if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""] && ![middle isEqual:@""])
-			{
-				// Found [] around integers only
-				line = [NSString stringWithFormat:@"%@[#%@]%@", before, IndexToKey([middle intValue], indicesToKeys), after];
-			}
-			
-			searchRange.length -= p2 - searchRange.location;
-			searchRange.location = [line length] - searchRange.length;
-		}
-		
-		[result addObject:line];
+		[result addObject:OOStringifySystemDescriptionLine(line, indicesToKeys, YES)];
 	}
 	
 	return result;

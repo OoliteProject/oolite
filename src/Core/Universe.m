@@ -8221,7 +8221,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		subCount = [thisDesc count];
 		for (j = 0; j < subCount; ++j)
 		{
-			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString([thisDesc stringAtIndex:j])];
+			label = OOStringifySystemDescriptionLine([thisDesc stringAtIndex:j], keyMap, NO);
+			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
