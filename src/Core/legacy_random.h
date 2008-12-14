@@ -90,6 +90,7 @@ void seed_RNG_only_for_planet_description(Random_Seed s_seed);
 RNG_Seed currentRandomSeed(void);
 void setRandomSeed(RNG_Seed a_seed);
 
+// Range: 0..255
 int gen_rnd_number (void);
 
 void make_pseudo_random_seed (Random_Seed *seed_ptr);

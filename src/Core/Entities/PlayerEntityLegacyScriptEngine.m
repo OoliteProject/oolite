@@ -1452,7 +1452,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	roleString = (NSString *)[tokens objectAtIndex:0];
+	roleString = [tokens objectAtIndex:0];
 	[tokens removeObjectAtIndex:0];
 	messageString = [tokens componentsJoinedByString:@" "];
 
@@ -1587,12 +1587,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	roleString = (NSString *)[tokens objectAtIndex:0];
-	numberString = (NSString *)[tokens objectAtIndex:1];
-	systemString = (NSString *)[tokens objectAtIndex:2];
-	xString = (NSString *)[tokens objectAtIndex:3];
-	yString = (NSString *)[tokens objectAtIndex:4];
-	zString = (NSString *)[tokens objectAtIndex:5];
+	roleString = [tokens objectAtIndex:0];
+	numberString = [tokens objectAtIndex:1];
+	systemString = [tokens objectAtIndex:2];
+	xString = [tokens objectAtIndex:3];
+	yString = [tokens objectAtIndex:4];
+	zString = [tokens objectAtIndex:5];
 
 	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
@@ -1622,9 +1622,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	NSString* roleString = (NSString *)[tokens objectAtIndex:0];
+	NSString* roleString = [tokens objectAtIndex:0];
 	int number = [[tokens objectAtIndex:1] intValue];
-	NSString* systemString = (NSString *)[tokens objectAtIndex:2];
+	NSString* systemString = [tokens objectAtIndex:2];
 	GLfloat x = [[tokens objectAtIndex:3] floatValue];
 	GLfloat y = [[tokens objectAtIndex:4] floatValue];
 	GLfloat z = [[tokens objectAtIndex:5] floatValue];
@@ -1829,7 +1829,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	missionVariableString = (NSString *)[tokens objectAtIndex:0];
+	missionVariableString = [tokens objectAtIndex:0];
 	[tokens removeObjectAtIndex:0];
 	valueString = [tokens componentsJoinedByString:@" "];
 
@@ -2007,7 +2007,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	for (j = 0; j < [tokens count]; j++)
 	{
-		dest = [(NSString *)[tokens objectAtIndex:j] intValue];
+		dest = [[tokens objectAtIndex:j] intValue];
 		if (dest < 0 || dest > 255)  continue;
 		
 		removeDestination = NO;

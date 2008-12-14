@@ -64,6 +64,11 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 
+#ifndef NDEBUG
+#import "OOConvertSystemDescriptions.h"
+#endif
+
+
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
 #define MAX_NUMBER_OF_ENTITIES				200
@@ -100,6 +105,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #if SUPPORT_GRAPHVIZ_OUT
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
+#endif
+
+#ifndef NDEBUG
+- (void) runLocalizationTools;
 #endif
 
 @end
@@ -294,6 +303,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[[GameController sharedController] logProgress:@"Running scripts..."];
 	
 	[player completeInitialSetUp];
+	
+#ifndef NDEBUG
+	[self runLocalizationTools];
+#endif
 	
 #if SUPPORT_GRAPHVIZ_OUT
 	[self dumpDebugGraphViz];
@@ -8142,6 +8155,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	unsigned					i, count, j, subCount;
 	NSString					*descLine = nil;
 	NSArray						*curses = nil;
+	NSString					*label = nil;
+	NSDictionary				*keyMap = nil;
+	
+	keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
+											  inFolder:@"Config"
+											  andMerge:NO];
 	
 	graphViz = [NSMutableString stringWithString:
 				@"// System description grammar:\n\n"
@@ -8191,7 +8210,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	// Define the nodes
 	for (i = 0; i < count; ++i)
 	{
-		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"[%u]\"\n", i, i];
+		// Build label, using sysdesc_key_table.plist if available
+		label = [keyMap objectForKey:[NSString stringWithFormat:@"%u", i]];
+		if (label == nil)  label = [NSString stringWithFormat:@"[%u]", i];
+		else  label = [NSString stringWithFormat:@"[%u] (%@)", i, label];
+		
+		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
 		
 		thisDesc = [systemDescriptions arrayAtIndex:i];
 		subCount = [thisDesc count];
@@ -8222,6 +8246,32 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	// Write file
 	[graphViz appendString:@"\t}\n"];
 	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"SystemDescription.dot"];
+}
+#endif
+
+
+#ifndef NDEBUG
+- (void) runLocalizationTools
+{
+	// Handle command line options to transform system_description array for easier localization
+	
+	NSArray				*arguments = nil;
+	NSEnumerator		*argEnum = nil;
+	NSString			*arg = nil;
+	BOOL				compileSysDesc = NO, exportSysDesc = NO, xml = NO;
+	
+	arguments = [[NSProcessInfo processInfo] arguments];
+	
+	for (argEnum = [arguments objectEnumerator]; (arg = [argEnum nextObject]); )
+	{
+		if ([arg isEqual:@"--compile-sysdesc"])  compileSysDesc = YES;
+		else if ([arg isEqual:@"--export-sysdesc"])  exportSysDesc = YES;
+		else if ([arg isEqual:@"--xml"])  xml = YES;
+		else if ([arg isEqual:@"--openstep"])  xml = NO;
+	}
+	
+	if (compileSysDesc)  CompileSystemDescriptions(xml);
+	if (exportSysDesc)  ExportSystemDescriptions(xml);
 }
 #endif
 

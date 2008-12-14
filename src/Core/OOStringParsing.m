@@ -290,8 +290,11 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
-	int					sub, rnd, opt;
-	int					p1, p2;
+	unsigned			sub, rnd, opt;
+	unsigned			p1, p2;
+	NSArray				*sysDesc = nil;
+	NSArray				*sysDescItem = nil;
+	unsigned			sysDescCount, descItemCount;
 	
 	// add in player info if required
 	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
@@ -328,22 +331,45 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 		}
 		else if ([[middle stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"0123456789"]] isEqual:@""])
 		{
+			part = @"";
+			
 			// if all characters are all from the set "0123456789" interpret it as a number in system_description array
 			if (![middle isEqual:@""])
 			{
+				if (sysDesc == nil)
+				{
+					sysDesc = [all_descriptions arrayForKey:@"system_description"];
+					sysDescCount = [sysDesc count];
+				}
+				
 				sub = [middle intValue];
-				
 				rnd = gen_rnd_number();
-				opt = 0;
-				if (rnd >= 0x33) opt++;
-				if (rnd >= 0x66) opt++;
-				if (rnd >= 0x99) opt++;
-				if (rnd >= 0xCC) opt++;
 				
-				part = [[[all_descriptions objectForKey:@"system_description"] objectAtIndex:sub] objectAtIndex:opt];
+				if (sub < sysDescCount)
+				{
+					sysDescItem = [sysDesc arrayAtIndex:sub];
+					if (sysDescItem != nil)
+					{
+						descItemCount = [sysDescItem count];
+						if (descItemCount == 5)
+						{
+							// Time-honoured Elite-compatible way for five items
+							opt = 0;
+							if (rnd >= 0x33) opt++;
+							if (rnd >= 0x66) opt++;
+							if (rnd >= 0x99) opt++;
+							if (rnd >= 0xCC) opt++;
+						}
+						else
+						{
+							// General way
+							opt = (rnd * descItemCount) / 256;
+						}
+						
+						part = [sysDescItem objectAtIndex:opt];
+					}
+				}
 			}
-			else
-				part = @"";
 		}
 		else
 		{
