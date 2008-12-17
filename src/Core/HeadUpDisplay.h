@@ -27,8 +27,11 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 #import "OOOpenGL.h"
 
+#import "OOTypes.h"
 #import "OOMaths.h"
 #import "MyOpenGLView.h"
+
+@class OOCrosshairs, OOColor;
 
 
 #define SCANNER_CENTRE_X	0
@@ -184,22 +187,31 @@ MA 02110-1301, USA.
 
 @interface HeadUpDisplay: NSObject
 {
-	NSMutableArray  *legendArray;
-	NSMutableArray  *dialArray;
+@private
+	NSMutableArray		*legendArray;
+	NSMutableArray		*dialArray;
 	
 	// zoom level
-	GLfloat			scanner_zoom;
+	GLfloat				scanner_zoom;
 	
 	//where to draw it
-	GLfloat			z1;
-	GLfloat			line_width;
+	GLfloat				z1;
+	GLfloat				line_width;
 	
-	GLfloat			overallAlpha;
+	GLfloat				overallAlpha;
 	
-	BOOL			reticleTargetSensitive;
+	BOOL				reticleTargetSensitive;
 	
-	int			last_transmitter;
+	int					last_transmitter;
 	
+	// Crosshairs
+	OOCrosshairs		*_crosshairs;
+	OOWeaponType		_lastWeaponType;
+	GLfloat				_lastOverallAlpha;
+	NSDictionary		*_crosshairOverrides;
+	OOColor				*_crosshairColor;
+	GLfloat				_crosshairScale;
+	GLfloat				_crosshairWidth;
 }
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
@@ -218,54 +230,9 @@ MA 02110-1301, USA.
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;
 
-- (void) drawLegends;
-- (void) drawDials;
+- (void) renderHUD;
 
-- (void) drawLegend:(NSDictionary *) info;
-- (void) drawHUDItem:(NSDictionary *) info;
-
-- (void) drawScanner:(NSDictionary *) info;
 - (void) refreshLastTransmitter;
-- (void) drawScannerZoomIndicator:(NSDictionary *) info;
-
-- (void) drawCompass:(NSDictionary *) info;
-- (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassTargetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-- (void) drawCompassBeaconBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
-
-- (void) drawAegis:(NSDictionary *) info;
-- (void) drawSpeedBar:(NSDictionary *) info;
-- (void) drawRollBar:(NSDictionary *) info;
-- (void) drawPitchBar:(NSDictionary *) info;
-- (void) drawYawBar:(NSDictionary *) info;
-- (void) drawEnergyGauge:(NSDictionary *) info;
-- (void) drawForwardShieldBar:(NSDictionary *) info;
-- (void) drawAftShieldBar:(NSDictionary *) info;
-- (void) drawFuelBar:(NSDictionary *) info;
-- (void) drawCabinTempBar:(NSDictionary *) info;
-- (void) drawWeaponTempBar:(NSDictionary *) info;
-- (void) drawAltitudeBar:(NSDictionary *) info;
-- (void) drawMissileDisplay:(NSDictionary *) info;
-- (void) drawTargetReticle:(NSDictionary *) info;
-- (void) drawStatusLight:(NSDictionary *) info;
-- (void) drawDirectionCue:(NSDictionary *) info;
-- (void) drawClock:(NSDictionary *) info;
-- (void) drawFPSInfoCounter:(NSDictionary *) info;
-- (void) drawScoopStatus:(NSDictionary *) info;
-
-- (void) drawGreenSurround:(NSDictionary *) info;
-- (void) drawYellowSurround:(NSDictionary *) info;
-
-- (void) drawTrumbles:(NSDictionary *) info;
-
-void drawString(NSString *text, double x, double y, double z, NSSize siz);
-void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
-NSRect rectForString(NSString *text, double x, double y, NSSize siz);
-
-void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
 
 - (void) setLine_width:(GLfloat) value;
 - (GLfloat) line_width;
@@ -282,3 +249,8 @@ void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloa
 - (const char *) cStringUsingOoliteEncodingAndRemapping;
 
 @end
+
+
+void OODrawString(NSString *text, double x, double y, double z, NSSize siz);
+void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
+NSRect OORectFromString(NSString *text, double x, double y, NSSize siz);

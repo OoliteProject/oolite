@@ -535,6 +535,9 @@
 		1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */; };
 		1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
+		1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABC03EB0EF86110003B740A /* OOCrosshairs.h */; };
+		1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC03EC0EF86110003B740A /* OOCrosshairs.m */; };
+		1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1ABC04260EF872B7003B740A /* crosshairs.plist */; };
 		1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */; };
 		1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */; };
 		1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */; };
@@ -710,6 +713,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */,
 				1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */,
 				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */,
 				1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */,
@@ -1565,6 +1569,9 @@
 		1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
 		1ABB688B0D044306008BE96D /* OOLoggingExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLoggingExtended.h; sourceTree = "<group>"; };
+		1ABC03EB0EF86110003B740A /* OOCrosshairs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCrosshairs.h; sourceTree = "<group>"; };
+		1ABC03EC0EF86110003B740A /* OOCrosshairs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = OOCrosshairs.m; sourceTree = "<group>"; };
+		1ABC04260EF872B7003B740A /* crosshairs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = crosshairs.plist; sourceTree = "<group>"; };
 		1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOIsNumberLiteral.m; sourceTree = "<group>"; };
 		1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOIsNumberLiteral.h; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
@@ -1786,6 +1793,7 @@
 		1A2316DD0B9CFAD700EF0852 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				1ABC04260EF872B7003B740A /* crosshairs.plist */,
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
 				1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */,
 				1A2316DE0B9CFAD700EF0852 /* characters.plist */,
@@ -2120,6 +2128,8 @@
 				1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */,
 				1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */,
 				1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */,
+				1ABC03EB0EF86110003B740A /* OOCrosshairs.h */,
+				1ABC03EC0EF86110003B740A /* OOCrosshairs.m */,
 			);
 			name = Graphics;
 			sourceTree = "<group>";
@@ -2948,6 +2958,7 @@
 				1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */,
 				1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */,
 				1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */,
+				1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3306,6 +3317,7 @@
 				1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */,
 				1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */,
 				1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */,
+				1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

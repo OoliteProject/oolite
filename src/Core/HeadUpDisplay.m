@@ -35,6 +35,9 @@ MA 02110-1301, USA.
 #import "OpenGLSprite.h"
 #import "OOCollectionExtractors.h"
 #import "OOEncodingConverter.h"
+#import "OOCrosshairs.h"
+#import "OOConstToString.h"
+
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
@@ -48,15 +51,16 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 
 static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4]);
 
-void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
-void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
-void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
-void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
-void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
-void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive);
+static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
+static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
+static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
+static void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
+static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
+static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive);
+static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
 
 
 static OOTexture			*sFontTexture = nil;
@@ -67,6 +71,56 @@ enum
 {
 	kFontTextureOptions = kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureNoShrink | kOOTextureAlphaMask
 };
+
+
+@interface HeadUpDisplay (Private)
+
+- (void) drawCrosshairs;
+- (void) drawLegends;
+- (void) drawDials;
+
+- (void) drawLegend:(NSDictionary *) info;
+- (void) drawHUDItem:(NSDictionary *) info;
+
+- (void) drawScanner:(NSDictionary *) info;
+- (void) drawScannerZoomIndicator:(NSDictionary *) info;
+
+- (void) drawCompass:(NSDictionary *) info;
+- (void) drawCompassPlanetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+- (void) drawCompassStationBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+- (void) drawCompassSunBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+- (void) drawCompassTargetBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+- (void) drawCompassWitchpointBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+- (void) drawCompassBeaconBlipAt:(Vector) relativePosition Size:(NSSize) siz Alpha:(GLfloat) alpha;
+
+- (void) drawAegis:(NSDictionary *) info;
+- (void) drawSpeedBar:(NSDictionary *) info;
+- (void) drawRollBar:(NSDictionary *) info;
+- (void) drawPitchBar:(NSDictionary *) info;
+- (void) drawYawBar:(NSDictionary *) info;
+- (void) drawEnergyGauge:(NSDictionary *) info;
+- (void) drawForwardShieldBar:(NSDictionary *) info;
+- (void) drawAftShieldBar:(NSDictionary *) info;
+- (void) drawFuelBar:(NSDictionary *) info;
+- (void) drawCabinTempBar:(NSDictionary *) info;
+- (void) drawWeaponTempBar:(NSDictionary *) info;
+- (void) drawAltitudeBar:(NSDictionary *) info;
+- (void) drawMissileDisplay:(NSDictionary *) info;
+- (void) drawTargetReticle:(NSDictionary *) info;
+- (void) drawStatusLight:(NSDictionary *) info;
+- (void) drawDirectionCue:(NSDictionary *) info;
+- (void) drawClock:(NSDictionary *) info;
+- (void) drawFPSInfoCounter:(NSDictionary *) info;
+- (void) drawScoopStatus:(NSDictionary *) info;
+
+- (void) drawGreenSurround:(NSDictionary *) info;
+- (void) drawYellowSurround:(NSDictionary *) info;
+
+- (void) drawTrumbles:(NSDictionary *) info;
+
+- (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon;
+
+@end
 
 
 @implementation HeadUpDisplay
@@ -135,6 +189,12 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	reticleTargetSensitive = [hudinfo boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
+	
+	_crosshairOverrides = [[hudinfo dictionaryForKey:@"crosshairs"] retain];
+	id crosshairColor = [hudinfo objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
+	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
+	_crosshairScale = [hudinfo floatForKey:@"crosshair_scale" defaultValue:32.0f];
+	_crosshairWidth = [hudinfo floatForKey:@"crosshair_width" defaultValue:1.5f];
 	
 	return self;
 }
@@ -302,15 +362,30 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 }
 
 
+- (void) renderHUD
+{
+	glLineWidth(_crosshairWidth * line_width);
+	[self drawCrosshairs];
+	CheckOpenGLErrors(@"HeadUpDisplay after drawCrosshairs");
+	
+	glLineWidth(line_width);
+	[self drawLegends];
+	CheckOpenGLErrors(@"HeadUpDisplay after drawLegends");
+	
+	[self drawDials];
+	CheckOpenGLErrors(@"HeadUpDisplay after drawDials");
+}
+
+
 - (void) drawLegends
 {
 	unsigned		i;
 	
 	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
+	{
 		[self drawLegend:[legendArray dictionaryAtIndex:i]];
-	
-	CheckOpenGLErrors(@"HeadUpDisplay after drawLegends");
+	}
 }
 
 
@@ -321,9 +396,83 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	
 	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
+	{
 		[self drawHUDItem:[dialArray dictionaryAtIndex:i]];
+	}
+}
+
+- (void) drawCrosshairs
+{
+	PlayerEntity				*player = [PlayerEntity sharedPlayer];
+	OOViewID					viewID = [UNIVERSE viewDirection];
+	OOWeaponType				weapon = [player weaponForView:viewID];
+	NSArray						*points = nil;
 	
-	CheckOpenGLErrors(@"HeadUpDisplay after drawDials");
+	if (viewID == VIEW_CUSTOM ||
+		overallAlpha == 0.0f ||
+		!([player status] == STATUS_IN_FLIGHT || [player status] == STATUS_WITCHSPACE_COUNTDOWN) ||
+		[UNIVERSE displayGUI]
+		)
+	{
+		// Don't draw crosshairs
+		return;
+	}
+	
+	if (weapon != _lastWeaponType || overallAlpha != _lastOverallAlpha)
+	{
+		[_crosshairs release];
+		_crosshairs = nil;
+	}
+	
+	if (_crosshairs == nil)
+	{
+		// Make new crosshairs object
+		points = [self crosshairDefinitionForWeaponType:weapon];
+		
+		_crosshairs = [[OOCrosshairs alloc] initWithPoints:points
+													 scale:_crosshairScale
+													 color:_crosshairColor
+											  overallAlpha:overallAlpha];
+		
+		_lastWeaponType = weapon;
+		_lastOverallAlpha = overallAlpha;
+	}
+	
+	[_crosshairs render];
+}
+
+
+- (NSArray *) crosshairDefinitionForWeaponType:(OOWeaponType)weapon
+{
+	NSString					*weaponName = nil;
+	static						NSDictionary *crosshairDefs = nil;
+	NSArray						*result = nil;
+	
+	/*	Search order:
+	 (hud.plist).crosshairs.WEAPON_NAME
+	 (hud.plist).crosshairs.OTHER
+	 (crosshairs.plist).WEAPON_NAME
+	 (crosshairs.plist).OTHER
+	 */
+	
+	weaponName = WeaponTypeToString(weapon);
+	result = [_crosshairOverrides arrayForKey:weaponName];
+	if (result == nil)  result = [_crosshairOverrides arrayForKey:@"OTHER"];
+	if (result == nil)
+	{
+		if (crosshairDefs == nil)
+		{
+			crosshairDefs = [ResourceManager dictionaryFromFilesNamed:@"crosshairs.plist"
+															 inFolder:@"Config"
+															 andMerge:YES];
+			[crosshairDefs retain];
+		}
+		
+		result = [crosshairDefs arrayForKey:weaponName];
+		if (result == nil)  result = [crosshairDefs arrayForKey:@"OTHER"];
+	}
+	
+	return result;
 }
 
 
@@ -351,7 +500,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 			size.width = [info floatForKey:WIDTH_KEY];
 			size.height = [info floatForKey:HEIGHT_KEY];
 			GLColorWithOverallAlpha(green_color, overallAlpha);
-			drawString(legendText, x, y, z1, size);
+			OODrawString(legendText, x, y, z1, size);
 		}
 	}
 }
@@ -835,7 +984,7 @@ static BOOL hostiles;
 				break;
 			case COMPASS_MODE_BEACONS:
 				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-				drawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
+				OODrawString(	[NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
 				break;
 		}
@@ -1159,7 +1308,7 @@ static BOOL hostiles;
 			if (labelled)
 			{
 				GLColorWithOverallAlpha(green_color, overallAlpha);
-				drawString([NSString stringWithFormat:@"E%x",n_bars - i], x + 0.5 * dial_size.width + 2, cy - 0.5 * qy, z1, NSMakeSize(9, (qy < 18)? qy : 18 ));
+				OODrawString([NSString stringWithFormat:@"E%x",n_bars - i], x + 0.5 * dial_size.width + 2, cy - 0.5 * qy, z1, NSMakeSize(9, (qy < 18)? qy : 18 ));
 			}
 			energy -= 1.0;
 			cy += qy;
@@ -1476,7 +1625,7 @@ static BOOL hostiles;
 		glVertex3i(x , y + siz.height, z1);
 		glEnd();
 		GLColorWithOverallAlpha(green_color, overallAlpha);
-		drawString([player dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
+		OODrawString([player dialTargetName], x + sp, y, z1, NSMakeSize(siz.width, siz.height));
 	}
 	
 }
@@ -1631,7 +1780,7 @@ static BOOL hostiles;
 	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
 	
 	GLColorWithOverallAlpha(green_color, overallAlpha);
-	drawString([player dial_clock], x, y, z1, siz);
+	OODrawString([player dial_clock], x, y, z1, siz);
 }
 
 
@@ -1655,10 +1804,10 @@ static BOOL hostiles;
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 
 	glColor4f(0.0, 1.0, 0.0, 1.0);
-	drawString([player dial_fpsinfo], x, y, z1, siz);
-	drawString(collDebugInfo, x, y - siz.height, z1, siz);
+	OODrawString([player dial_fpsinfo], x, y, z1, siz);
+	OODrawString(collDebugInfo, x, y - siz.height, z1, siz);
 	
-	drawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
+	OODrawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
 }
 
 
@@ -1798,7 +1947,7 @@ static BOOL hostiles;
 
 //---------------------------------------------------------------------//
 
-void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	if (siz.width > siz.height)
 	{
@@ -1825,7 +1974,7 @@ void hudDrawIndicatorAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amou
 }
 
 
-void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	if (siz.width > siz.height)
 	{
@@ -1852,7 +2001,7 @@ void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 }
 
 
-void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
+static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 {
 	GLfloat dial_ox =   x - siz.width/2;
 	GLfloat dial_oy =   y - siz.height/2;
@@ -1881,7 +2030,7 @@ void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount)
 }
 
 
-void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
+static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat dial_ox = x - siz.width/2;
 	GLfloat dial_oy = y - siz.height/2;
@@ -1895,7 +2044,7 @@ void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 }
 
 
-void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
+static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 {
 	if (!ptsArray)
 		return;
@@ -1914,7 +2063,7 @@ void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
+static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
 	int oy = y - siz.height / 2.0;
@@ -1931,7 +2080,7 @@ void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
+static void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
 	int oy = y - siz.height / 2.0;
@@ -1947,7 +2096,7 @@ void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
+static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
 	int oy = y - siz.height / 2.0;
@@ -1965,7 +2114,7 @@ void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive)
+static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive)
 {
 	ShipEntity		*target_ship = (ShipEntity *)target;
 	NSString		*legal_desc = nil;
@@ -2095,8 +2244,8 @@ void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, G
 	NSString*	info1 = [target_ship identFromShip: player1];
 	NSString*	info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
 	// no need to set color - tis green already!
-	drawString(info1, rs0, 0.5 * rs2, 0, textsize);
-	drawString(info2, rs0, 0.5 * rs2 - line_height, 0, textsize);
+	OODrawString(info1, rs0, 0.5 * rs2, 0, textsize);
+	OODrawString(info2, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
 	glPopMatrix();
 }
@@ -2151,7 +2300,28 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 }
 
 
-void drawString(NSString *text, double x, double y, double z, NSSize siz)
+NSRect OORectFromString(NSString *text, double x, double y, NSSize siz)
+{
+	unsigned			i;
+	double				w = 0;
+	NSData				*data = nil;
+	const uint8_t		*bytes = NULL;
+	unsigned			length;
+	
+	data = [sEncodingCoverter convertString:text];
+	bytes = [data bytes];
+	length = [data length];
+	
+	for (i = 0; i < length; i++)
+	{
+		w += siz.width * sGlyphWidths[bytes[i]];
+	}
+	
+	return NSMakeRect(x, y, w, siz.height);
+}
+
+
+void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 {
 	unsigned		i;
 	double			cx = x;
@@ -2178,7 +2348,7 @@ void drawString(NSString *text, double x, double y, double z, NSSize siz)
 }
 
 
-void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
+void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz)
 {
 	GLfloat govcol[] = {	0.5, 0.0, 0.7,
 							0.7, 0.5, 0.3,
@@ -2214,28 +2384,7 @@ void drawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSS
 }
 
 
-NSRect rectForString(NSString *text, double x, double y, NSSize siz)
-{
-	unsigned			i;
-	double				w = 0;
-	NSData				*data = nil;
-	const uint8_t		*bytes = NULL;
-	unsigned			length;
-	
-	data = [sEncodingCoverter convertString:text];
-	bytes = [data bytes];
-	length = [data length];
-	
-	for (i = 0; i < length; i++)
-	{
-		w += siz.width * sGlyphWidths[bytes[i]];
-	}
-	
-	return NSMakeRect(x, y, w, siz.height);
-}
-
-
-void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
+static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom)
 {
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;

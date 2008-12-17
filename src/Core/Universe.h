@@ -354,7 +354,6 @@ enum
 - (GameController *) gameController;
 
 - (void) drawUniverse;
-- (void) drawCrosshairs;
 - (void) drawMessage;
 
 // Used to draw subentities. Should be getting this from camera.

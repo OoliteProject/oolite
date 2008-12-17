@@ -527,7 +527,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			  align:(OOGUIAlignment)alignment
 {
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString(str, 0.0f, 0.0f, chSize).size;
+	NSSize strsize = OORectFromString(str, 0.0f, 0.0f, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -544,9 +544,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString(string1, 0.0f, 0.0f, chSize).size;
+			strsize = OORectFromString(string1, 0.0f, 0.0f, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString((NSString *)[words objectAtIndex:0], 0.0f, 0.0f, chSize).size.width;
+				strsize.width += OORectFromString((NSString *)[words objectAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -577,7 +577,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (row == (OOGUIRow)n_rows - 1)
 		[self scrollUp:1];
 	NSSize chSize = pixel_text_size;
-	NSSize strsize = rectForString(str, 0.0f, 0.0f, chSize).size;
+	NSSize strsize = OORectFromString(str, 0.0f, 0.0f, chSize).size;
 	if (strsize.width < size_in_pixels.width)
 	{
 		[self setText:str forRow:row align:alignment];
@@ -602,9 +602,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			[string1 appendString:(NSString *)[words objectAtIndex:0]];
 			[string1 appendString:@" "];
 			[words removeObjectAtIndex:0];
-			strsize = rectForString(string1, 0.0f, 0.0f, chSize).size;
+			strsize = OORectFromString(string1, 0.0f, 0.0f, chSize).size;
 			if ([words count] > 0)
-				strsize.width += rectForString([words stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
+				strsize.width += OORectFromString([words stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -770,11 +770,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if (i < eqpt_items_per_column)
 		{
-			drawString (name, -220, 40 - (15 * i), z, NSMakeSize(15, 15));
+			OODrawString (name, -220, 40 - (15 * i), z, NSMakeSize(15, 15));
 		}
 		else
 		{
-			drawString (name, 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15, 15));
+			OODrawString (name, 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15, 15));
 		}
 		
 		if (damaged)  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Reset text color to yellow.
@@ -1013,9 +1013,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		//
 		// draw the title
 		//
-		strsize = rectForString(title, 0.0f, 0.0f, titleCharacterSize).size;
+		strsize = OORectFromString(title, 0.0f, 0.0f, titleCharacterSize).size;
 		glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
-		drawString(title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
+		OODrawString(title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
 		
 		// draw a horizontal divider
 		//
@@ -1052,7 +1052,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			NSString*   text = (NSString *)[rowText objectAtIndex:i];
 			if (![text isEqual:@""])
 			{
-				strsize = rectForString(text, 0.0f, 0.0f, characterSize).size;
+				strsize = OORectFromString(text, 0.0f, 0.0f, characterSize).size;
 				switch (rowAlignment[i])
 				{
 					case GUI_ALIGN_LEFT :
@@ -1067,7 +1067,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				}
 				if (i == (unsigned)selectedRow)
 				{
-					NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 					glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
 					glBegin(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
@@ -1077,13 +1077,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					glEnd();
 					glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
 				}
-				drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+				OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				
 				// draw cursor at end of current Row
 				//
 				if ((showTextCursor)&&(i == (unsigned)currentRow))
 				{
-					NSRect	tr = rectForString(text, 0.0f, 0.0f, characterSize);
+					NSRect	tr = OORectFromString(text, 0.0f, 0.0f, characterSize);
 					NSPoint cu = NSMakePoint(x + rowPosition[i].x + tr.size.width + 0.2f * characterSize.width, y + rowPosition[i].y);
 					tr.origin = cu;
 					tr.size.width = 0.5f * characterSize.width;
@@ -1110,7 +1110,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					rowPosition[i].x = tabStops[j];
 					if (i == (unsigned)selectedRow)
 					{
-						NSRect block = rectForString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+						NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 						glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
 						glBegin(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);
@@ -1120,7 +1120,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 						glEnd();
 						glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
 					}
-					drawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
+					OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				}
 			}
 		}
@@ -1224,11 +1224,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			NSString*   p_name = [sys_info stringForKey:KEY_NAME];
 			if (![player showInfoFlag])
 			{
-				drawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+				OODrawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
 			}
 			else
 			{
-				drawPlanetInfo(gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+				OODrawPlanetInfo(gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 			}
 		}
 	}
@@ -1386,7 +1386,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
 				glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
 			glEnd();
-			drawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+			OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 		}
 	}
 	
@@ -1468,10 +1468,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			glEnd();
 			
 			// Label the route.
-			drawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
+			OODrawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
 		}
 		// Label the destination, which was not included in the above loop.
-		drawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
+		OODrawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
 	}
 }
 

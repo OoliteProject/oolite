@@ -3739,11 +3739,8 @@ static const OOMatrix	starboard_matrix =
 			
 			if (v_status != STATUS_DEAD && v_status != STATUS_ESCAPE_SEQUENCE)
 			{
-				if (!displayGUI)  [self drawCrosshairs];
-				
 				[theHUD setLine_width:line_width];
-				[theHUD drawLegends];
-				[theHUD drawDials];
+				[theHUD renderHUD];
 			}
 			
 			glFlush();	// don't wait around for drawing to complete
@@ -3793,93 +3790,6 @@ static const OOMatrix	starboard_matrix =
 - (OOMatrix) viewMatrix
 {
 	return viewMatrix;
-}
-
-
-- (void) drawCrosshairs
-{
-	PlayerEntity*   playerShip = [PlayerEntity sharedPlayer];
-	
-	if (viewDirection == VIEW_CUSTOM)	return;	// don't try to draw cross hairs in a custom view
-	
-	int	weapon	= [playerShip weaponForView:viewDirection];
-	if ((playerShip)&&((playerShip->status == STATUS_IN_FLIGHT)||(playerShip->status == STATUS_WITCHSPACE_COUNTDOWN)))
-	{	
-		GLfloat overalLAlpha = [[playerShip hud] overallAlpha];
-		GLfloat k0 = CROSSHAIR_SIZE;
-		GLfloat k1 = CROSSHAIR_SIZE / 2.0;
-		GLfloat k2 = CROSSHAIR_SIZE / 4.0;
-		GLfloat k3 = 3.0 * CROSSHAIR_SIZE / 4.0;
-		GLfloat z1 = [gameView display_z];
-		GLfloat cx_col0[4] = { 0.0, 1.0, 0.0, 0.25 * overalLAlpha};
-		GLfloat cx_col1[4] = { 0.0, 1.0, 0.0, 0.50 * overalLAlpha};
-		GLfloat cx_col2[4] = { 0.0, 1.0, 0.0, 0.75 * overalLAlpha};
-		glDisable(GL_TEXTURE_2D);						// important to do this to avoid disappearing crosshairs!
-		glEnable(GL_LINE_SMOOTH);						// alpha blending for lines
-		glLineWidth(2.0);
-		
-		switch (weapon)
-		{
-			case WEAPON_NONE :
-				glBegin(GL_LINES);
-				glColor4fv(cx_col0);	glVertex3f(k3, 0.0, z1);	glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k3, 0.0, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
-				glEnd();
-				break;
-			case WEAPON_MILITARY_LASER :
-				glBegin(GL_LINES);
-				glColor4fv(cx_col0);	glVertex3f(k2, k0, z1);		glColor4fv(cx_col1);	glVertex3f(0.0, k3, z1);
-				glColor4fv(cx_col0);	glVertex3f(k2, -k0, z1);	glColor4fv(cx_col1);	glVertex3f(0.0, -k3, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, k2, z1);		glColor4fv(cx_col1);	glVertex3f(k3, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, k2, z1);	glColor4fv(cx_col1);	glVertex3f(-k3, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k2, k0, z1);	glColor4fv(cx_col1);	glVertex3f(0.0, k3, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k2, -k0, z1);   glColor4fv(cx_col1);	glVertex3f(0.0, -k3, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, -k2, z1);	glColor4fv(cx_col1);	glVertex3f(k3, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, -k2, z1);   glColor4fv(cx_col1);	glVertex3f(-k3, 0.0, z1);
-				
-				glColor4fv(cx_col1);	glVertex3f(0.0, k3, z1);	glColor4fv(cx_col2);	glVertex3f(0.0, k1, z1);
-				glColor4fv(cx_col1);	glVertex3f(0.0, -k3, z1);   glColor4fv(cx_col2);	glVertex3f(0.0, -k1, z1);
-				glColor4fv(cx_col1);	glVertex3f(k3, 0.0, z1);	glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
-				glColor4fv(cx_col1);	glVertex3f(-k3, 0.0, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
-				glEnd();
-				break;
-			case WEAPON_MINING_LASER :
-				glBegin(GL_LINES);
-				glColor4fv(cx_col0);	glVertex3f(k1, k0, z1);		glColor4fv(cx_col2);	glVertex3f(k1, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k1, -k0, z1);	glColor4fv(cx_col2);	glVertex3f(k1, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, k1, z1);		glColor4fv(cx_col2);	glVertex3f(k1, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, k1, z1);	glColor4fv(cx_col2);	glVertex3f(-k1, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k1, k0, z1);	glColor4fv(cx_col2);	glVertex3f(-k1, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k1, -k0, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, -k1, z1);	glColor4fv(cx_col2);	glVertex3f(k1, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, -k1, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, -k1, z1);
-				glEnd();
-				break;
-			case WEAPON_BEAM_LASER :
-				glBegin(GL_LINES);
-				glColor4fv(cx_col0);	glVertex3f(k2, k0, z1);		glColor4fv(cx_col2);	glVertex3f(0.0, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k2, -k0, z1);	glColor4fv(cx_col2);	glVertex3f(0.0, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, k2, z1);		glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, k2, z1);	glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k2, k0, z1);	glColor4fv(cx_col2);	glVertex3f(0.0, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k2, -k0, z1);   glColor4fv(cx_col2);	glVertex3f(0.0, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, -k2, z1);	glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, -k2, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
-				glEnd();
-				break;
-			case WEAPON_PULSE_LASER :
-			default :
-				glBegin(GL_LINES);
-				glColor4fv(cx_col0);	glVertex3f(0.0, k0, z1);	glColor4fv(cx_col2);	glVertex3f(0.0, k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(0.0, -k0, z1);   glColor4fv(cx_col2);	glVertex3f(0.0, -k1, z1);
-				glColor4fv(cx_col0);	glVertex3f(k0, 0.0, z1);	glColor4fv(cx_col2);	glVertex3f(k1, 0.0, z1);
-				glColor4fv(cx_col0);	glVertex3f(-k0, 0.0, z1);   glColor4fv(cx_col2);	glVertex3f(-k1, 0.0, z1);
-				glEnd();
-				break;
-		}
-		
-		glLineWidth(1.0);
-	}
 }
 
 
