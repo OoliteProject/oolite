@@ -698,6 +698,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 #define DEFAULT_RADIUS 500.0
 
 #if ADD_SHIPS
+// Forum thread: http://www.aegidian.org/bb/viewtopic.php?t=3371
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
