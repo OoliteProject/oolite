@@ -998,7 +998,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
-						[self doScriptEvent:@"playerStartedJumpCountDown" withArgument:@"standard"];
+						[self doScriptEvent:@"playerStartedJumpCountdown" withArgument:@"standard"];
 					}
 				}
 				hyperspace_pressed = YES;
