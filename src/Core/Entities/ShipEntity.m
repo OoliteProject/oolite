@@ -6934,7 +6934,7 @@ BOOL class_masslocks(int some_class)
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
 		[shipAI message:@"CARGO_SCOOPED"];
-		if ([cargo count] == max_cargo)  [shipAI message:@"HOLD_FULL"];
+		if (max_cargo && [cargo count] == max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
 	[self suppressTargetLost];

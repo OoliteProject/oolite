@@ -239,7 +239,7 @@ MA 02110-1301, USA.
 		}
 		if ([cargo count] >= max_cargo)
 		{
-			[shipAI message:@"HOLD_FULL"];		//can't collect loot if holds are full!
+			if (max_cargo)  [shipAI message:@"HOLD_FULL"];	//can't collect loot if holds are full!
 			[shipAI message:@"NOTHING_FOUND"];		//can't collect loot if holds are full!
 			return;
 		}
