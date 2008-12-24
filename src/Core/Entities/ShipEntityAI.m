@@ -325,8 +325,18 @@ MA 02110-1301, USA.
 
 - (void) checkForFullHold
 {
-	if ([cargo count] >= max_cargo)
+	if (!max_cargo)
+	{
+		[shipAI message:@"NO_CARGO_BAY"];
+	}
+	else if ([cargo count] >= max_cargo)
+	{
 		[shipAI message:@"HOLD_FULL"];
+	}
+	else
+	{
+		[shipAI message:@"HOLD_NOT_FULL"];
+	}
 }
 
 
