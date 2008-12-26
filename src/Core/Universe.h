@@ -338,6 +338,7 @@ enum
 - (NSArray *) getContainersOfGoods:(OOCargoQuantity)how_many scarce:(BOOL)scarce;
 - (NSArray *) getContainersOfDrugs:(OOCargoQuantity) how_many;
 - (NSArray *) getContainersOfCommodity:(NSString*) commodity_name :(OOCargoQuantity) how_many;
+- (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod;
 
 - (OOCargoType) getRandomCommodity;
 - (OOCargoQuantity) getRandomAmountOfCommodity:(OOCargoType) co_type;
