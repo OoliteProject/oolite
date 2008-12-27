@@ -1588,7 +1588,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	double d_route2 = sqrt(magnitude2(v_route2));
 	
 	if (v_route2.x||v_route2.y||v_route2.z)
-		v_route2 = vector_normal(v_route1);
+		v_route2 = vector_normal(v_route2);
 	else
 		v_route2.x = 1.0;
 	
