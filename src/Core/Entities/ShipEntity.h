@@ -563,7 +563,9 @@ MA 02110-1301, USA.
 - (GLfloat) heatInsulation;
 - (void) setHeatInsulation:(GLfloat) value;
 
+// the percentage of damage taken (100 is destroyed, 0 is fine)
 - (int) damage;
+
 - (void) dealEnergyDamageWithinDesiredRange;
 - (void) dealMomentumWithinDesiredRange:(double)amount;
 
@@ -641,6 +643,8 @@ BOOL	class_masslocks(int some_class);
 
 - (double) trackPrimaryTarget:(double) delta_t :(BOOL) retreat;
 - (double) missileTrackPrimaryTarget:(double) delta_t;
+
+//return 0.0 if there is no primary target
 - (double) rangeToPrimaryTarget;
 - (BOOL) onTarget:(BOOL) fwd_weapon;
 

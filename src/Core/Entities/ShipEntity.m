@@ -2233,7 +2233,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[self avoidCollision];
 	}
-	if (range > SCANNER_MAX_RANGE)
+	if (range > SCANNER_MAX_RANGE || primaryTarget == NO_TARGET)
 	{
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
@@ -2303,7 +2303,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_mining_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if ((range < 650)||(proximity_alert != NO_TARGET))
+	if (primaryTarget == NO_TARGET || range > SCANNER_MAX_RANGE) 
+	{
+		[self noteLostTarget];
+		desired_speed = maxFlightSpeed * 0.375;
+		return;
+	}
+	else if ((range < 650) || (proximity_alert != NO_TARGET))
 	{
 		if (proximity_alert == NO_TARGET)
 		{
@@ -2316,9 +2322,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if (range > SCANNER_MAX_RANGE)  [self noteLostTarget];
+		//we have a target, its within scanner range, and outside 650
 		desired_speed = maxFlightSpeed * 0.375;
 	}
+
 	[self trackPrimaryTarget:delta_t:NO];
 	[self fireMainWeapon:range];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -2332,7 +2339,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	float	max_available_speed = maxFlightSpeed;
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
-	
+	if (primaryTarget == NO_TARGET)
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		[self noteLostTarget];
+		return;
+	}
 	if ((range < COMBAT_IN_RANGE_FACTOR * weaponRange)||(proximity_alert != NO_TARGET))
 	{
 		if (proximity_alert == NO_TARGET)

@@ -252,24 +252,23 @@ FAIL:
 			[self release];
 			return nil;
 		}
-		Vector offset, scale;
+		Vector offset;
 		offset.x = [values floatAtIndex:0];
 		offset.y = [values floatAtIndex:1];
 		offset.z = [values floatAtIndex:2];
+		position = offset;
+		
+		Vector scale;
 		scale.x = [values floatAtIndex:3];
 		scale.y = [values floatAtIndex:4];
 		scale.z = [values floatAtIndex:5];
-		
-		status = STATUS_EFFECT;
-
 		exhaustScale = scale;
 		
-		position = offset;
+		status = STATUS_EFFECT;
 
 		particle_type = PARTICLE_EXHAUST;
 		
 		[self setOwner:ship];
-		
 		isParticle = YES;
 	}
 	
@@ -771,14 +770,9 @@ FAIL:
 					rotMatrix = [player drawRotationMatrix];
 				}
 				break;
-			
-			case PARTICLE_LASER_BEAM:
-			case PARTICLE_EXHAUST:
-			case PARTICLE_ECM_MINE:
-			case PARTICLE_ENERGY_MINE:
-			case PARTICLE_BILLBOARD:
-			case PARTICLE_HYPERRING:
+			default:
 				break;
+				
 		}
 		switch ([self particleType])
 		{
@@ -1102,7 +1096,7 @@ FAIL:
 		#define OVERALL_ALPHA		1.0f
 	#endif
 	
-	GLfloat ex_emissive[4]	= {0.6, 0.8, 1.0, 0.9 * OVERALL_ALPHA};   // pale blue
+	GLfloat ex_emissive[4]	= {0.6f, 0.8f, 1.0f, 0.9f * OVERALL_ALPHA};   // pale blue
 	const GLfloat s1[8] = { 0.0, 0.707, 1.0, 0.707, 0.0, -0.707, -1.0, -0.707};
 	const GLfloat c1[8] = { 1.0, 0.707, 0.0, -0.707, -1.0, -0.707, 0.0, 0.707};
 	ShipEntity  *ship = [self owner];
@@ -1140,7 +1134,7 @@ FAIL:
 	if ((int)(ranrot_rand() % 25) < dam - 75)
 		flare_factor = 0.0;
 
-	if (flare_length < 0.1)   flare_length = 0.1;
+	if (flare_length < 0.1)  { flare_length = 0.1;}
 	Vector currentPos = ship->position;
 	Vector vfwd = vector_forward_from_quaternion(shipQrotation);
 	GLfloat	spd = 0.5 * [ship flightSpeed];
@@ -1206,9 +1200,9 @@ FAIL:
 	j1.x *= exhaustScale.y;	j1.y *= exhaustScale.y;	j1.z *= exhaustScale.y;
 	for (i = 0; i < 8; i++)
 	{
-		verts[iv++] =	f01.position.x + b01.x + s1[i] * i1.x + c1[i] * j1.x;
-		verts[iv++] =	f01.position.y + b01.y + s1[i] * i1.y + c1[i] * j1.y;
-		verts[iv++] =	f01.position.z + b01.z + s1[i] * i1.z + c1[i] * j1.z;
+		verts[iv++] = f01.position.x + b01.x + s1[i] * i1.x + c1[i] * j1.x;
+		verts[iv++] = f01.position.y + b01.y + s1[i] * i1.y + c1[i] * j1.y;
+		verts[iv++] = f01.position.z + b01.z + s1[i] * i1.z + c1[i] * j1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1226,9 +1220,9 @@ FAIL:
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f03.position.x + b03.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f03.position.y + b03.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f03.position.z + b03.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] = f03.position.x + b03.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] = f03.position.y + b03.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] = f03.position.z + b03.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1246,9 +1240,9 @@ FAIL:
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f06.position.x + b06.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f06.position.y + b06.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f06.position.z + b06.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] = f06.position.x + b06.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] = f06.position.y + b06.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] = f06.position.z + b06.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1266,9 +1260,9 @@ FAIL:
 	for (i = 0; i < 8; i++)
 	{
 		r1 = randf();
-		verts[iv++] =	f08.position.x + b08.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
-		verts[iv++] =	f08.position.y + b08.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
-		verts[iv++] =	f08.position.z + b08.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
+		verts[iv++] = f08.position.x + b08.x + s1[i] * i1.x + c1[i] * j1.x + r1 * k1.x;
+		verts[iv++] = f08.position.y + b08.y + s1[i] * i1.y + c1[i] * j1.y + r1 * k1.y;
+		verts[iv++] = f08.position.z + b08.z + s1[i] * i1.z + c1[i] * j1.z + r1 * k1.z;
 		exhaustBaseColors[ci++] = ex_emissive[0];
 		exhaustBaseColors[ci++] = ex_emissive[1];
 		exhaustBaseColors[ci++] = ex_emissive[2];
@@ -1354,7 +1348,7 @@ FAIL:
 
 	Entity *my_owner = [self owner];
 
-	if (my_owner)
+	if ([self isSubEntity] && my_owner)
 	{
 		// this test provides an opportunity to do simple LoD culling
 		
