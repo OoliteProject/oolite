@@ -35,6 +35,7 @@
 	key_autopilot				= "c";
 	key_autopilot_target		= "C";
 	key_autodock				= "D";
+	key_docking_clearance_request		= "L";
 
 	key_snapshot				= "*";
 	key_docking_music			= "s";
