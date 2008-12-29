@@ -34,7 +34,7 @@ this.version		= "1.73";
 
 this.shipWasScooped = function (scooper)
 {
-	if (scooper == player)
+	if (scooper == player.ship)
 	{
 		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"))
 		{
