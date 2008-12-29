@@ -294,7 +294,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	unsigned			p1, p2;
 	NSArray				*sysDesc = nil;
 	NSArray				*sysDescItem = nil;
-	unsigned			sysDescCount, descItemCount;
+	unsigned			sysDescCount = 0, descItemCount;
 	
 	// add in player info if required
 	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
