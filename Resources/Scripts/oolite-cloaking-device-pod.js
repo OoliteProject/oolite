@@ -34,17 +34,17 @@ this.version		= "1.73";
 
 this.shipWasScooped = function (scooper)
 {
-	if (scooper == player.ship)
+	if (scooper.isPlayer)
 	{
-		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"))
+		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"));
 		{
-			player.ship.awardEquipment("EQ_CLOAKING_DEVICE")
+			player.ship.awardEquipment("EQ_CLOAKING_DEVICE");
 			// Should we make it possible to repair?
 			// EquipmentInfo.infoForKey("EQ_CLOAKING_DEVICE").effectiveTechLevel = 14;
 		}
 		else
 		{
-			player.ship.awardCargo("Gold", 100)
+			player.ship.awardCargo("Gold", 100);
 		}
 	}
 	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.
