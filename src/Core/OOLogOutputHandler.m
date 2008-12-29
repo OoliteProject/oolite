@@ -130,6 +130,7 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
 
 static BOOL						sInited = NO;
 static BOOL						sWriteToStderr = YES;
+static BOOL						sSaturated = NO;
 static OOAsyncLogger			*sLogger = nil;
 static NSString					*sLogFileName = @"Latest.log";
 
@@ -390,6 +391,9 @@ enum
 
 - (void)asyncLogMessage:(NSString *)message
 {
+	// Don't log of saturated flag is set.
+	if (sSaturated)  return;
+	
 	if (message != nil)
 	{
 		message = [message stringByAppendingString:@"\n"];
@@ -422,6 +426,7 @@ enum
 {
 	id					message = nil;
 	NSAutoreleasePool	*rootPool = nil, *pool = nil;
+	OOUInteger			size = 0;
 	
 	rootPool = [[NSAutoreleasePool alloc] init];
 	[NSThread ooSetCurrentThreadName:@"OOLogOutputHandler logging thread"];
@@ -438,8 +443,20 @@ enum
 			
 			message = [messageQueue dequeue];
 			
-			if ([message isKindOfClass:[NSData class]])
+			if (!sSaturated && [message isKindOfClass:[NSData class]])
 			{
+				size += [message length];
+				if (size > 1 << 30)	// 1 GiB
+				{
+					sSaturated = YES;
+#if OOLITE_WINDOWS
+					message = @"\r\n\r\n\r\n***** LOG TRUNCATED DUE TO EXCESSIVE LENGTH *****\r\n";
+#else
+					message = @"\n\n\n***** LOG TRUNCATED DUE TO EXCESSIVE LENGTH *****\n";
+#endif
+					message = [message dataUsingEncoding:NSUTF8StringEncoding];
+				}
+				
 				[logFile writeData:message];
 			}
 			else if ([message isEqual:@"flush"])

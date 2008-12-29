@@ -8071,7 +8071,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	// Add system-description-string as special node (it's the one thing that ties [14] to everything else).
 	descLine = DESC(@"system-description-string");
-	[graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(descLine)];
+	label = OOStringifySystemDescriptionLine(descLine, keyMap, NO);
+	[graphViz appendFormat:@"\tsystem_description_string [label=\"%@\" shape=ellipse]\n", EscapedGraphVizString(label)];
 	[self addNumericRefsInString:descLine
 					  toGraphViz:graphViz
 						fromNode:@"system_description_string"
@@ -8090,7 +8091,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	subCount = [curses count];
 	for (j = 0; j < subCount; ++j)
 	{
-		[graphViz appendFormat:@"\t\tthargoid_curse_%u [label=\"%@\"]\n", j, EscapedGraphVizString([curses stringAtIndex:j])];
+		label = OOStringifySystemDescriptionLine([curses stringAtIndex:j], keyMap, NO);
+		[graphViz appendFormat:@"\t\tthargoid_curse_%u [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
 	}
 	[graphViz appendString:@"\t}\n"];
 	for (j = 0; j < subCount; ++j)

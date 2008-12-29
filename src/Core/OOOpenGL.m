@@ -401,7 +401,6 @@ static void GLDumpFogState(void)
 
 
 #define CASE(x)		case x: return @#x
-#define DEFAULT		default: return [NSString stringWithFormat:@"unknown: %u", value]
 
 static NSString *GLEnumToString(GLenum value)
 {
@@ -444,6 +443,6 @@ static NSString *GLEnumToString(GLenum value)
 		CASE(GL_EXP);
 		CASE(GL_EXP2);
 		
-		DEFAULT;
+		default: return [NSString stringWithFormat:@"unknown: %u", value];
 	}
 }
