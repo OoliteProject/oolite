@@ -3705,14 +3705,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	[station autoDockShipsOnApproach];
 	[station clearDockingCorridor];
 
-	[station launchShip:self];
-	orientation.w = -orientation.w;   // need this as a fix...
-	flightRoll = -flightRoll;
-
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
 #ifdef DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
+	
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
 	gui_screen = GUI_SCREEN_MAIN;
@@ -3720,13 +3717,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayText:NO];
 	[UNIVERSE setDisplayCursor:NO];
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop keybounces
 	
 	[[OOMusicController sharedController] stop];
 
 	ship_clock_adjust = 600.0;			// 10 minutes to leave dock
+	
+	[self setStatus: STATUS_LAUNCHING];	// Required before shipWillLaunchFromStation so Planet.setTexture() will work.
+	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
+	
+	[station launchShip:self];
+	orientation.w = -orientation.w;   // need this as a fix...
+	flightRoll = -flightRoll;
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
 
 	dockedStation = nil;
 	
@@ -3746,12 +3750,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self checkForAegis];
 #endif
 	suppressAegisMessages = NO;
-	
 	ident_engaged = NO;
 	
 	[UNIVERSE removeDemoShips];
 	
-	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[self playLaunchFromStation];
 }
 

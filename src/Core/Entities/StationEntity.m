@@ -1209,20 +1209,23 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) launchShip:(ShipEntity *) ship
 {
-	if ((!ship)||(![ship isShip]))
-		return;
+	if (![ship isShip])  return;
 	
 	Vector launchPos = position;
 	Vector launchVel = velocity;
 	double launchSpeed = 0.5 * [ship maxFlightSpeed];
-	if ((maxFlightSpeed > 0)&&(flightSpeed > 0))
+	if (maxFlightSpeed > 0 && flightSpeed > 0)
+	{
 		launchSpeed = 0.5 * [ship maxFlightSpeed] * (1.0 + flightSpeed/maxFlightSpeed);
+	}
 	Quaternion q1 = orientation;
 	q1 = quaternion_multiply(port_orientation, q1);
 	Vector launchVector = vector_forward_from_quaternion(q1);
 	BoundingBox bb = [ship boundingBox];
 	if ((port_dimensions.x < port_dimensions.y) ^ (bb.max.x - bb.min.x < bb.max.y - bb.min.y))
+	{
 		quaternion_rotate_about_axis(&q1, launchVector, M_PI*0.5);  // to account for the slot being at 90 degrees to vertical
+	}
 	[ship setOrientation:q1];
 	// launch position
 	launchPos.x += port_position.x * v_right.x + port_position.y * v_up.x + port_position.z * v_forward.x;
@@ -1230,7 +1233,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchPos.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
 	[ship setPosition:launchPos];
 	// launch speed
-	launchVel.x += launchSpeed * launchVector.x;	launchVel.y += launchSpeed * launchVector.y;	launchVel.z += launchSpeed * launchVector.z;
+	launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
 	[ship setVelocity:launchVel];
 	// orientation
