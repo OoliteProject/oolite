@@ -490,7 +490,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	if (legendSprite != nil)
 	{
 		float alpha = [info floatForKey:ALPHA_KEY];
-		[legendSprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
+		[legendSprite blitCentredToX:x Y:y Z:z1 alpha:alpha * overallAlpha];
 	}
 	else
 	{
