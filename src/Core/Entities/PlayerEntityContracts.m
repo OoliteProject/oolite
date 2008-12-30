@@ -1403,6 +1403,24 @@ static NSMutableDictionary* currentShipyard = nil;
 		while ([self trySellingCommodity:i]);	// empty loop
 	}
 	
+	// We tried to sell everything. If there are still items present in our inventory, it
+	// means that the market got saturated (quantity in station > 127 t) before we could sell
+	// it all. Everything that could not be sold will be lost. -- Nikos 20083012
+	if (current_cargo)
+	{
+		// Zero out our manifest.
+		NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+		for (i = 0; i < [manifest count]; i++)
+		{
+			NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:i]];
+			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+			[manifest replaceObjectAtIndex:i withObject:manifest_commodity];
+		}
+		[shipCommodityData release];
+		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		current_cargo = 0;
+	}
+	
 	// drop all passengers
 	[passengers removeAllObjects];
 		
