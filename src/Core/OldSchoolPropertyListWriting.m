@@ -54,7 +54,7 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 		else
 		{
 			// Escape quotes, backslashes and newlines
-			newString = [[self substringToIndex:foundRange.location] mutableCopy];
+			newString = [[[self substringToIndex:foundRange.location] mutableCopy] autorelease];
 			
 			for (;;)
 			{

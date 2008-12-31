@@ -132,6 +132,9 @@ enum
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
+	kShip_isMissile,			// is missile, boolean, read-only
+	kShip_isMine,				// is mine, boolean, read-only
+	kShip_isWeapon,				// is missile or mine, boolean, read-only
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
@@ -164,6 +167,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 // "cargo" reserved for array of cargo pods or similar.
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoCapacity",			kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -435,6 +441,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isPirateVictim:
 			*outValue = BOOLToJSVal([entity isPirateVictim]);
+			OK = YES;
+			break;
+			
+		case kShip_isMissile:
+			*outValue = BOOLToJSVal([entity isMissile]);
+			OK = YES;
+			break;
+			
+		case kShip_isMine:
+			*outValue = BOOLToJSVal([entity isMine]);
+			OK = YES;
+			break;
+			
+		case kShip_isWeapon:
+			*outValue = BOOLToJSVal([entity isWeapon]);
 			OK = YES;
 			break;
 			

@@ -68,7 +68,7 @@
 	ai.message.receive						= inherit;
 	ai.takeAction							= inherit;
 	ai.takeAction.noAction					= inherit;
-	ai.takeAction.orphaned					= $error;
+	ai.takeAction.orphaned					= $aiError;
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
 	ai.pop									= inherit;
