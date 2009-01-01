@@ -7032,10 +7032,17 @@ double estimatedTimeForJourney(double distance, int hops)
 		}
 		
 		NSDictionary	*systemInfo = [self generateSystemData:system_seed];
-		OOTechLevelID	techlevel = [systemInfo unsignedIntForKey:KEY_TECHLEVEL];
-		
-		if (specialTL != NSNotFound)  techlevel = specialTL;
-		
+		OOTechLevelID	techlevel;
+		if (specialTL != NSNotFound)  
+		{
+			//if we are passed a tech level use that
+			techlevel = specialTL;
+		}
+		else
+		{
+			//otherwise use default for system
+			techlevel = [systemInfo unsignedIntForKey:KEY_TECHLEVEL];
+		}
 		unsigned		ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
 		NSString		*ship_key = [keysForShips stringAtIndex:ship_index];
 		NSDictionary	*ship_info = [registry shipyardInfoForKey:ship_key];

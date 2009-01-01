@@ -142,12 +142,17 @@ MA 02110-1301, USA.
 
 - (void) setTargetForScript:(ShipEntity *)target
 {
-	ShipEntity			*me = self;
+	ShipEntity *me = self;
 	
 	// Ensure coherence by not fiddling with subentities
-	while ([me isSubEntity])  me = (ShipEntity *)[me owner];
-	while ([target isSubEntity])  target = (ShipEntity *)[target owner];
-	
+	while ([me isSubEntity])  {
+		if (me == [me owner] || [me owner] == nil) break;
+		me = (ShipEntity *)[me owner];
+	}
+	while ([target isSubEntity]) {
+		if (target == [target owner] || [target owner] == nil) break;
+		target = (ShipEntity *)[target owner];
+	}
 	if (![me isKindOfClass:[ShipEntity class]])  return;
 	if (target != nil)  [me addTarget:target];
 	else  [me removeTarget:[me primaryTarget]];

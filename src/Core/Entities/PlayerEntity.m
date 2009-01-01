@@ -6472,7 +6472,7 @@ static int last_outfitting_index;
 
 - (BOOL) isDocked
 {
-	BOOL				isDockedStatus = NO;
+	BOOL isDockedStatus;
 	
 	switch (status)
 	{
@@ -6481,23 +6481,8 @@ static int last_outfitting_index;
 		case STATUS_START_GAME:
 			isDockedStatus = YES;
 			break;
-			
-		case STATUS_EFFECT:
-		case STATUS_ACTIVE:
-		case STATUS_COCKPIT_DISPLAY:
-		case STATUS_TEST:
-		case STATUS_INACTIVE:
-		case STATUS_DEAD:
-		case STATUS_IN_FLIGHT:
-		case STATUS_AUTOPILOT_ENGAGED:
-		case STATUS_LAUNCHING:
-		case STATUS_WITCHSPACE_COUNTDOWN:
-		case STATUS_ENTERING_WITCHSPACE:
-		case STATUS_EXITING_WITCHSPACE:
-		case STATUS_ESCAPE_SEQUENCE:
-		case STATUS_IN_HOLD:
-		case STATUS_BEING_SCOOPED:
-		case STATUS_HANDLING_ERROR:
+		default:
+			isDockedStatus = NO;
 			break;
 	}
 	
@@ -6507,7 +6492,8 @@ static int last_outfitting_index;
 	{
 		if (dockedStation == nil)
 		{
-			OOLog(kOOLogInconsistentState, @"ERROR: status is STATUS_DOCKED, but dockedStation is nil; treating as not docked. This is an internal error, please report it.");
+			//there are a number of possible current statuses, not just STATUS_DOCKED
+			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString(status));
 			status = STATUS_IN_FLIGHT;
 			isDockedStatus = NO;
 		}

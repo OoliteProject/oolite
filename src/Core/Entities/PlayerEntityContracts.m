@@ -1111,17 +1111,22 @@ static NSMutableDictionary* currentShipyard = nil;
 
 - (void) setGuiToShipyardScreen:(unsigned) skip
 {
-	unsigned		i;
+	unsigned i;
 	
 	// set up initial market if there is none
-	StationEntity	*the_station = [UNIVERSE station];
-	OOTechLevelID	station_tl = NSNotFound;
+	StationEntity	*the_station;
+	OOTechLevelID	station_tl;
 	
 	if (dockedStation)
 	{
+		the_station  = dockedStation;
 		station_tl = [dockedStation equivalentTechLevel];
 	}
-
+	else
+	{
+		the_station  = [UNIVERSE station];
+		station_tl = NSNotFound;
+	}
 	if (![the_station localShipyard])
 		[the_station setLocalShipyard:[UNIVERSE shipsForSaleForSystem:system_seed withTL:station_tl atTime:ship_clock]];
 		
@@ -1136,7 +1141,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			[shipyard removeObjectAtIndex:i--];
 	}
 	
-	if (currentShipyard)	[currentShipyard release];
+	if (currentShipyard) [currentShipyard release];
 	currentShipyard = [[NSMutableDictionary alloc] initWithCapacity:[shipyard count]];
 
 	for (i = 0; i < [shipyard count]; i++)
