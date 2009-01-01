@@ -6478,12 +6478,28 @@ static int last_outfitting_index;
 	{
 		case STATUS_DOCKED:
 		case STATUS_DOCKING:
-		case STATUS_START_GAME:
-			isDockedStatus = YES;
-			break;
-		default:
+        case STATUS_START_GAME:
+            isDockedStatus = YES;
+            break;   
+		case STATUS_EFFECT:
+		case STATUS_ACTIVE:
+		case STATUS_COCKPIT_DISPLAY:
+		case STATUS_TEST:
+		case STATUS_INACTIVE:
+		case STATUS_DEAD:
+		case STATUS_IN_FLIGHT:
+		case STATUS_AUTOPILOT_ENGAGED:
+		case STATUS_LAUNCHING:
+		case STATUS_WITCHSPACE_COUNTDOWN:
+		case STATUS_ENTERING_WITCHSPACE:
+		case STATUS_EXITING_WITCHSPACE:
+		case STATUS_ESCAPE_SEQUENCE:
+		case STATUS_IN_HOLD:
+		case STATUS_BEING_SCOOPED:
+		case STATUS_HANDLING_ERROR:
 			isDockedStatus = NO;
-			break;
+            break;
+		//no default, so that we get notified by the compiler if something is missing
 	}
 	
 #ifndef NDEBUG
