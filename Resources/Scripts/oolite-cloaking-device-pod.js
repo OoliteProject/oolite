@@ -36,7 +36,7 @@ this.shipWasScooped = function (scooper)
 {
 	if (scooper.isPlayer)
 	{
-		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"));
+		if (!player.ship.hasEquipment("EQ_CLOAKING_DEVICE"))
 		{
 			player.ship.awardEquipment("EQ_CLOAKING_DEVICE");
 			// Should we make it possible to repair?
