@@ -89,6 +89,7 @@ MA 02110-1301, USA.
 
 - (NSString *) missionChoice_string;	// returns nil or the key for the chosen option
 
+- (NSNumber *) dockedTechLevel_number;
 - (NSString *) dockedStationName_string;	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise
 
 - (NSNumber *) systemGovernment_number;

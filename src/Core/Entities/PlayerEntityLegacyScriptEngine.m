@@ -1039,6 +1039,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (NSNumber *) dockedTechLevel_number
+{
+	if (!dockedStation) 
+	{
+		return [self systemTechLevel_number];
+	}
+	return [NSNumber numberWithInt:[dockedStation equivalentTechLevel]];
+}
+
 - (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
 {
 	NSString			*result = nil;
