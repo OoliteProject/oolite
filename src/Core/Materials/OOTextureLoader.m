@@ -256,7 +256,6 @@ enum
 	}
 	
 	// Set up loading threads.
-	
 #if OO_DEBUG
 	threadCount = kMaxWorkThreads;
 #else

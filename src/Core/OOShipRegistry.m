@@ -58,6 +58,9 @@ SOFTWARE.
 #import "GameController.h"
 
 
+#define PRELOAD 0
+
+
 static OOShipRegistry	*sSingleton = nil;
 
 static NSString * const	kShipRegistryCacheName = @"ship registry";
@@ -80,7 +83,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
 - (BOOL) tagSubEntities:(NSMutableDictionary *)ioData;
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
+
+#if PRELOAD
 - (BOOL) preloadShipMeshes:(NSMutableDictionary *)ioData;
+#endif
 
 - (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (void) mergeShipRoles:(NSString *)roles forShipKey:(NSString *)shipKey intoProbabilityMap:(NSMutableDictionary *)probabilitySets;
@@ -268,7 +274,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	// Add shipyard entries into shipdata entries.
 	if (![self loadAndMergeShipyard:result])  return;
 	
-#if 0
+#if PRELOAD
 	// Preload and cache meshes.
 	if (![self preloadShipMeshes:result])  return;
 #endif
@@ -739,6 +745,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
+#if PRELOAD
 - (BOOL) preloadShipMeshes:(NSMutableDictionary *)ioData
 {
 	NSEnumerator			*shipKeyEnum = nil;
@@ -784,6 +791,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	return YES;
 }
+#endif
 
 
 - (void) mergeShipRoles:(NSString *)roles
