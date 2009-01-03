@@ -1311,7 +1311,7 @@
 		1A26D0A70BCF9CF70073F257 /* DustEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DustEntity.h; sourceTree = "<group>"; };
 		1A26D0A80BCF9CF70073F257 /* Entity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Entity.m; sourceTree = "<group>"; };
 		1A26D0A90BCF9CF80073F257 /* DustEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DustEntity.m; sourceTree = "<group>"; };
-		1A26D0AA0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityLegacyScriptEngine.h; sourceTree = "<group>"; };
+		1A26D0AA0BCF9CF80073F257 /* PlayerEntityLegacyScriptEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = PlayerEntityLegacyScriptEngine.h; sourceTree = "<group>"; };
 		1A26D0AB0BCF9CF80073F257 /* PlayerEntityLoadSave.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PlayerEntityLoadSave.h; sourceTree = "<group>"; };
 		1A26D0D00BCF9D0D0073F257 /* OOShaderMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShaderMaterial.h; sourceTree = "<group>"; };
 		1A26D0D10BCF9D0D0073F257 /* OOShaderMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShaderMaterial.m; sourceTree = "<group>"; };

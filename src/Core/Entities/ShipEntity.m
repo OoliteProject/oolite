@@ -85,6 +85,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) drawDebugStuff;
 #endif
 
+- (void) rescaleBy:(GLfloat)factor;
+
 @end
 
 
@@ -4208,7 +4210,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
-- (void) rescaleBy:(GLfloat) factor
+- (void) rescaleBy:(GLfloat)factor
 {
 	// rescale mesh (and collision detection stuff)
 	[self setMesh:[[self mesh] meshRescaledBy:factor]];
