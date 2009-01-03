@@ -5005,21 +5005,20 @@ static int last_outfitting_index;
 - (void) showInformationForSelectedUpgrade
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
-	NSString* key = [gui selectedRowKey];
+	NSString* eqKey = [gui selectedRowKey];
 	int i;
+	
 	for (i = GUI_ROW_EQUIPMENT_DETAIL; i < GUI_MAX_ROWS; i++)
 	{
 		[gui setText:@"" forRow:i];
 		[gui setColor:[OOColor greenColor] forRow:i];
 	}
-	if (key)
+	if (eqKey)
 	{
-		if (![key hasPrefix:@"More:"])
+		if (![eqKey hasPrefix:@"More:"])
 		{
-			int item = [key intValue];
-			NSString*   desc = (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_LONG_DESC_INDEX];
-			NSString*   eqKey			= (NSString *)[(NSArray *)[[UNIVERSE equipmentData] objectAtIndex:item] objectAtIndex:EQUIPMENT_KEY_INDEX];
-			NSString*	eq_key_damaged	= [NSString stringWithFormat:@"%@_DAMAGED", eqKey];
+			NSString* desc = [[OOEquipmentType equipmentTypeWithIdentifier:eqKey] descriptiveText];
+			NSString* eq_key_damaged = [NSString stringWithFormat:@"%@_DAMAGED", eqKey];
 			if ([self hasEquipmentItem:eq_key_damaged])
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
 			else if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
@@ -5449,6 +5448,7 @@ static int last_outfitting_index;
 	{
 		credits -= price;
 		[self addEquipmentItem:eqKey];
+		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
