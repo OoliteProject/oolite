@@ -18,6 +18,7 @@
 		ATTACKED = (switchLightsOn, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+		RESTARTED = ("setStateTo: DOCK_WITH_STATION");
 	};
 	FLEE =
 	{
