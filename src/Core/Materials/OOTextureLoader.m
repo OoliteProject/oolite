@@ -259,7 +259,7 @@ enum
 #if OO_DEBUG
 	threadCount = kMaxWorkThreads;
 #else
-	threadCount = MIN(OOCPUCount() - 1, (unsigned)kMaxWorkThreads);
+	threadCount = MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
 #endif
 	do
 	{
