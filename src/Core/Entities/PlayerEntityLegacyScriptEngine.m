@@ -1574,7 +1574,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![UNIVERSE addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAt: '%@' (should be addShipsAt: role number coordinate_system x y z)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsAt:", number, roleString);
 	}
 }
 
@@ -1616,7 +1616,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![UNIVERSE addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (should be addShipsAtPrecisely: role number coordinate_system x y z)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsAtPrecisely:", number, roleString);
 	}
 }
 
@@ -1650,7 +1650,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![UNIVERSE addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** CANNOT 'addShipsWithinRadius: %@' (should be 'addShipsWithinRadius: role number coordinate_system x y z r')", CurrentScriptDesc(), roles_number_system_x_y_z_r);
+		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsWithinRadius:", number, roleString);
 	}
 }
 
