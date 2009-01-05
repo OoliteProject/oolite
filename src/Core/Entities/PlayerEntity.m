@@ -6472,7 +6472,7 @@ static int last_outfitting_index;
 
 - (BOOL) isDocked
 {
-	BOOL isDockedStatus;
+	BOOL isDockedStatus = NO;
 	
 	switch (status)
 	{
@@ -6497,7 +6497,6 @@ static int last_outfitting_index;
 		case STATUS_IN_HOLD:
 		case STATUS_BEING_SCOOPED:
 		case STATUS_HANDLING_ERROR:
-			isDockedStatus = NO;
             break;
 		//no default, so that we get notified by the compiler if something is missing
 	}
