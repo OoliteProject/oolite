@@ -259,14 +259,14 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 	}
 	
-	// Resolve like_ship entries.
-	if (![self applyLikeShips:result])  return;
-	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
 	
 	// Tag subentities so they won't be pruned.
 	if (![self tagSubEntities:result])  return;
+	
+	// Resolve like_ship entries.
+	if (![self applyLikeShips:result])  return;
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result])  return;
