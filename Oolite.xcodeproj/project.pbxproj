@@ -538,6 +538,8 @@
 		1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABC03EB0EF86110003B740A /* OOCrosshairs.h */; };
 		1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC03EC0EF86110003B740A /* OOCrosshairs.m */; };
 		1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1ABC04260EF872B7003B740A /* crosshairs.plist */; };
+		1ABC47FE0F155F0500B977AD /* OOJSFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABC47FC0F155F0500B977AD /* OOJSFunction.h */; };
+		1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABC47FD0F155F0500B977AD /* OOJSFunction.m */; };
 		1ABDBA3B0EB365D90086BC3D /* OOIsNumberLiteral.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */; };
 		1ABDBA3C0EB365D90086BC3D /* OOIsNumberLiteral.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */; };
 		1AC27A0F0EA7E9940054E5F0 /* OOJSEquipmentInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC27A0D0EA7E9940054E5F0 /* OOJSEquipmentInfo.h */; };
@@ -1047,7 +1049,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1572,6 +1574,8 @@
 		1ABC03EB0EF86110003B740A /* OOCrosshairs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCrosshairs.h; sourceTree = "<group>"; };
 		1ABC03EC0EF86110003B740A /* OOCrosshairs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = OOCrosshairs.m; sourceTree = "<group>"; };
 		1ABC04260EF872B7003B740A /* crosshairs.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = crosshairs.plist; sourceTree = "<group>"; };
+		1ABC47FC0F155F0500B977AD /* OOJSFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSFunction.h; sourceTree = "<group>"; };
+		1ABC47FD0F155F0500B977AD /* OOJSFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSFunction.m; sourceTree = "<group>"; };
 		1ABDBA390EB365D90086BC3D /* OOIsNumberLiteral.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOIsNumberLiteral.m; sourceTree = "<group>"; };
 		1ABDBA3A0EB365D90086BC3D /* OOIsNumberLiteral.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOIsNumberLiteral.h; sourceTree = "<group>"; };
 		1AC0E9460B974DC200C46994 /* GPL.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GPL.TXT; sourceTree = "<group>"; };
@@ -1739,7 +1743,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -2252,6 +2256,8 @@
 			children = (
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
+				1ABC47FC0F155F0500B977AD /* OOJSFunction.h */,
+				1ABC47FD0F155F0500B977AD /* OOJSFunction.m */,
 				1A43A0D10CB91D3600D0E239 /* Entities */,
 				1A28AA0F0D55434800BC0CE4 /* Sound */,
 				1A28AA130D55435300BC0CE4 /* Global */,
@@ -2959,6 +2965,7 @@
 				1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */,
 				1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */,
 				1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */,
+				1ABC47FE0F155F0500B977AD /* OOJSFunction.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3007,7 +3014,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3318,6 +3325,7 @@
 				1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */,
 				1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */,
 				1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */,
+				1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "OOJSFunction.h"
 
 #import "OOStringParsing.h"
 #import "OOEntityFilterPredicate.h"
@@ -1599,6 +1600,97 @@ WormholeEntity*	whole;
 }
 
 
+- (void) scanForNearestShipMatchingPredicate:(NSString *)predicateExpression
+{
+	/*	Takes a boolean-valued JS expression where "ship" is the ship being
+		evaluated and "this" is our ship's ship script. the expression is
+		turned into a JS function of the form:
+		
+			function _oo_AIScanPredicate(ship)
+			{
+				return $expression;
+			}
+		
+		Examples of expressions:
+		ship.isWeapon
+		this.someComplicatedPredicate(ship)
+		function (ship) { ...do something complicated... } ()
+	*/
+	
+	static NSMutableDictionary	*scriptCache = nil;
+	NSString					*aiName = nil;
+	NSString					*key = nil;
+	OOJSFunction				*function = nil;
+	JSContext					*context = NULL;
+	
+	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	if (predicateExpression == nil)  predicateExpression = @"false";
+	
+	aiName = [[self getAI] name];
+#ifndef NDEBUG
+	/*	In debug/test release builds, scripts are cached per AI in order to be
+		able to report errors correctly. For end-user releases, we only cache
+		one copy of each predicate, potentially leading to error messages for
+		the wrong AI.
+	*/
+	key = [NSString stringWithFormat:@"%@\n%@", aiName, predicateExpression];
+#else
+	key = predicateExpression;
+#endif
+	
+	// Look for cached function
+	function = [scriptCache objectForKey:key];
+	if (function == nil)
+	{
+		NSString					*predicateCode = nil;
+		const char					*argNames[] = { "ship" };
+		
+		// Stuff expression in a function.
+		predicateCode = [NSString stringWithFormat:@"return %@;", predicateExpression];
+		function = [[OOJSFunction alloc] initWithName:@"_oo_AIScanPredicate"
+												scope:NULL
+												 code:predicateCode
+										argumentCount:1
+										argumentNames:argNames
+											 fileName:aiName
+										   lineNumber:0
+											  context:context];
+		
+		// Cache function.
+		if (function != nil)
+		{
+			if (scriptCache == nil)  scriptCache = [[NSMutableDictionary alloc] init];
+			[scriptCache setObject:function forKey:key];
+		}
+	}
+	
+	if (function != nil)
+	{
+		JSFunctionPredicateParameter param = { context, [function function], JSVAL_TO_OBJECT([self javaScriptValueInContext:context]), NO };
+		[self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
+	}
+	else
+	{
+		// Report error (once per occurrence)
+		static NSMutableSet			*errorCache = nil;
+		
+		if (![errorCache containsObject:key])
+		{
+			OOLog(@"ai.scanForNearestShipMatchingPredicate.compile.failed", @"Could not compile JavaScript predicate \"%@\" for AI %@.", predicateExpression, [[self getAI] name]);
+			if (errorCache == nil)  errorCache = [[NSMutableSet alloc] init];
+			[errorCache addObject:key];
+		}
+		
+		// Select nothing
+		found_target = NO_TARGET;
+		[[self getAI] message:@"NOTHING_FOUND"];
+	}
+	
+	JS_ReportPendingException(context);
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+}
+
+
 - (void) setCoordinates:(NSString *)system_x_y_z
 {
 	NSArray*	tokens = ScanTokensFromString(system_x_y_z);
@@ -1626,9 +1718,9 @@ WormholeEntity*	whole;
 	
 	Vector posn = make_vector([xString floatValue], [yString floatValue], [zString floatValue]);
 	GLfloat	scalar = 1.0;
-	//
+	
 	coordinates = [UNIVERSE coordinatesForPosition:posn withCoordinateSystem:systemString returningScalar:&scalar];
-	//
+	
 	[shipAI message:@"APPROACH_COORDINATES"];
 }
 

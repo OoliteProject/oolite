@@ -78,6 +78,7 @@
 	ai.suggestEscort.refused				= inherit;
 	ai.rollD.invalidValue					= $aiError;
 	ai.syntax.setCoordinates				= $aiError;
+	ai.scanForNearestShipMatchingPredicate.compile.failed = $aiError;
 	
 	
 	beacon.list								= $scriptDebugOn;
