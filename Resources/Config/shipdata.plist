@@ -1281,7 +1281,6 @@
 		missiles = 0;
 		model = "new_coriolis.dat";
 		name = "Coriolis Station";
-		port_radius = 500;
 		roles = "coriolis station oolite-coriolis-station";
 		rotating = yes;
 		subentities =
@@ -1340,7 +1339,6 @@
 		missiles = 0;
 		model = "new-dodo.dat";
 		name = "Dodecahedron Station";
-		port_radius = 392;
 		roles = "dodo dodec dodecahedron station oolite-dodecahedron-station";
 		rotating = yes;
 		subentities =
@@ -1603,7 +1601,6 @@
 		missiles = 0;
 		model = "new-icos.dat";
 		name = "Icosahedron Station";
-		port_radius = 500;
 		roles = "ico icosa icosahedron station oolite-icosahedron-station";
 		rotating = yes;
 		subentities =
