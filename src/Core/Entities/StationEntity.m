@@ -1129,6 +1129,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 #endif
 		[launchQueue removeObjectAtIndex:0];
+		[self doScriptEvent:@"NPCShipLaunchedFromStation" withArgument:se];
 	}
 	if (([launchQueue count] == 0)&&(no_docking_while_launching))
 		no_docking_while_launching = NO;	// launching complete
@@ -1643,7 +1644,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
 		[pirate_ship setGroupID:universalID];	// who's your Daddy
-		[pirate_ship setPrimaryRole:@"pirate"];
+		[pirate_ship setPrimaryRole:@"defense_ship"];
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
 		//**Lazygun** added 30 Nov 04 to put a bounty on those pirates' heads.
