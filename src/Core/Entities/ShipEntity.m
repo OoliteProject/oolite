@@ -4009,10 +4009,10 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) decrease_flight_speed:(double) delta
 {
-	if (flightSpeed > -maxFlightSpeed)
-		flightSpeed -= delta;
+	if (flightSpeed > maxFlightSpeed)
+		flightSpeed = maxFlightSpeed;
 	else
-		flightSpeed = -maxFlightSpeed;
+		flightSpeed -= delta;
 }
 
 
@@ -6965,13 +6965,39 @@ BOOL class_masslocks(int some_class)
 	// If it's an energy mine...
 	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
 	{
-		// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
-		if (energy < amount && energy > 10)
+		switch (scanClass)
 		{
-			ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
-			[UNIVERSE addEntity:chainReaction];
-			[chainReaction setOwner:[ent owner]];
-			[chainReaction release];
+			case CLASS_WORMHOLE :
+			case CLASS_ROCK :
+			case CLASS_CARGO :
+			case CLASS_BUOY :
+				// does not normally cascade
+				if ((fuel > MIN_FUEL) || isStation) 
+				{
+					//we have fuel onboard so we can still go pop, or we are a station which can
+				}
+				else break;
+			case CLASS_STATION :
+			case CLASS_MINE :
+			case CLASS_PLAYER :
+			case CLASS_POLICE :
+			case CLASS_MILITARY :
+			case CLASS_THARGOID :
+			case CLASS_MISSILE :
+			case CLASS_NOT_SET :
+			case CLASS_NO_DRAW :
+			case CLASS_NEUTRAL :
+			case CLASS_TARGET :
+				// ...start a chain reaction, if we're dying and have a non-trivial amount of energy.
+				if (energy < amount && energy > 10)
+				{
+					ParticleEntity *chainReaction = [[ParticleEntity alloc] initEnergyMineFromShip:self];
+					[UNIVERSE addEntity:chainReaction];
+					[chainReaction setOwner:[ent owner]];
+					[chainReaction release];
+				}				
+				break;
+			//no default thanks, we want the compiler to tell us if we missed a case.
 		}
 	}
 	
