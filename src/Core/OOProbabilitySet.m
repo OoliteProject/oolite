@@ -717,7 +717,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	{
 		weight = _cumulativeWeights[i];
 		weights[i] = weight - sum;
-		sum += weight;
+		sum += weights[i];
 	}
 	
 	result = [[OOConcreteMutableProbabilitySet allocWithZone:zone] initWithObjects:_objects weights:weights count:_count];
