@@ -3792,6 +3792,11 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setCrew: (NSArray*) crewArray
 {
+	if (isUnpiloted) 
+	{
+		//unpiloted ships cannot have crew
+		return;
+	}
 	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
 	[crew autorelease];
 	crew = [crewArray copy];

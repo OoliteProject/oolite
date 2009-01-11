@@ -1525,7 +1525,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 				
 	[defense_ship setOwner: self];
-	if (groupID != NO_TARGET)
+	if (groupID == NO_TARGET)
 	{
 		[self setGroupID:universalID];	
 	}
@@ -1741,13 +1741,21 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (escort_ship)
 	{
-		if (![escort_ship crew])
+		if (![escort_ship crew] && ![escort_ship isUnpiloted])
 			[escort_ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"hunter"
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
+		
+		[escort_ship setOwner: self];
+		if (groupID == NO_TARGET)
+		{
+			[self setGroupID:universalID];	
+		}
+		[escort_ship setGroupID:groupID];	// who's your Daddy
+		
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
 		
