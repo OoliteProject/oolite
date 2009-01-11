@@ -703,7 +703,7 @@ BOOL	class_masslocks(int some_class);
 - (void) deployEscorts;
 - (void) dockEscorts;
 
-- (void) setTargetToStation;
+- (void) setTargetToNearestStation;
 - (void) setTargetToSystemStation;
 
 - (PlanetEntity *) findNearestLargeBody;
@@ -722,6 +722,7 @@ BOOL	class_masslocks(int some_class);
 - (void) broadcastMessage:(NSString *) message_text withUnpilotedOverride:(BOOL) unpilotedOverride;
 - (void) setCommsMessageColor;
 - (void) receiveCommsMessage:(NSString *) message_text;
+- (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride;
 
 - (BOOL) markForFines;
 

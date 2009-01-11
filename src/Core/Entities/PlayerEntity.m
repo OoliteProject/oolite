@@ -1391,7 +1391,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
 		[[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
-		[self setTargetToStation];
+		[self setTargetToNearestStation];
 		if ([self primaryTarget])
 		{
 			// restore player ship

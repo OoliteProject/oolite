@@ -43,10 +43,7 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
 #import "StationEntity.h"
-
-#ifdef GNUSTEP
 #import "Comparison.h"
-#endif
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
@@ -785,7 +782,6 @@ static BOOL sRunningScript = NO;
 	}
 }
 
-/*-----------------------------------------------------*/
 
 - (NSArray *) missionsList
 {
@@ -807,6 +803,8 @@ static BOOL sRunningScript = NO;
 	}
 	return result;
 }
+
+/*-----------------------------------------------------*/
 
 
 - (void) setMissionDescription:(NSString *)textKey
@@ -1864,7 +1862,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) checkForShips: (NSString *)roleString
+- (void) checkForShips:(NSString *)roleString
 {
 	shipsFound = [UNIVERSE countShipsWithPrimaryRole:roleString];
 }

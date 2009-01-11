@@ -112,6 +112,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSString		*lineBuf = nil;
 	NSString		*messageClass = nil;
 	NSString		*highlight = @"*****";
+	NSString		*activeScript = nil;
 	
 	// Type of problem: error, warning or exception? (Strict flag wilfully ignored.)
 	if (report->flags & JSREPORT_EXCEPTION) severity = @"exception";
@@ -133,7 +134,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%u", severity, report->errorNumber];
 	
 	// First line: problem description
-	OOLog(messageClass, @"%@ JavaScript %@: %@", highlight, severity, messageText);
+	activeScript = [[OOJSScript currentlyRunningScript] displayName];
+	if (activeScript == nil)  activeScript = @"<unidentified script>";
+	OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
 	
 	if (sErrorHandlerStackSkip == 0)
 	{

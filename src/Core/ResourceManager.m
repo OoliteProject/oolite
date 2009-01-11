@@ -383,6 +383,12 @@ static NSMutableDictionary *string_cache;
 		upToDate = NO;
 	}
 	
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"always-flush-cache"])
+	{
+		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
 	oldPaths = [cacheMgr objectForKey:kOOCacheKeySearchPaths inCache:kOOCacheSearchPathModDates];
 	if (upToDate && ![oldPaths isEqual:searchPaths])
 	{
@@ -644,6 +650,25 @@ static NSMutableDictionary *string_cache;
 		}	
 	}	
 	// arrayToProcess has been processed at this point. Any necessary merging has been done.
+}
+
+
++ (NSDictionary *) whitelistDictionary
+{
+	static id				whitelistDictionary = nil;
+	NSString				*path = nil;
+	
+	if (whitelistDictionary == nil)
+	{
+		path = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"whitelist.plist"];
+		whitelistDictionary = [NSDictionary dictionaryWithContentsOfFile:path];
+		if (whitelistDictionary == nil)  whitelistDictionary = [NSNull null];
+		
+		[whitelistDictionary retain];
+	}
+	
+	if (whitelistDictionary == [NSNull null])  return nil;
+	return whitelistDictionary;
 }
 
 

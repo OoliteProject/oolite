@@ -199,8 +199,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 					return NO;
 				}
 				
-				if ((self->isStation)&&([subdesc rangeOfString:@"dock"].location != NSNotFound))
+				if (self->isStation && [subdesc rangeOfString:@"dock"].location != NSNotFound)
+				{
 					[(StationEntity*)self setDockingPortModel:subent :sub_pos :sub_q];
+				}
 				
 				[subent setStatus:STATUS_INACTIVE];
 				
@@ -4588,6 +4590,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+// Exposed to AI
 - (void) becomeEnergyBlast
 {
 	ParticleEntity* blast = [[ParticleEntity alloc] initEnergyMineFromShip:self];
@@ -6354,6 +6357,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
+// Exposed to AI
 - (BOOL) fireECM
 {
 	if (![self hasECM])  return NO;
@@ -7448,6 +7452,7 @@ int w_space_seed = 1234567;
 }
 
 
+// Exposed to AI
 - (void) deployEscorts
 {
 	if (escortCount < 1)
@@ -7501,6 +7506,7 @@ int w_space_seed = 1234567;
 }
 
 
+// Exposed to AI
 - (void) dockEscorts
 {
 	if (escortCount < 1)
@@ -7534,7 +7540,8 @@ int w_space_seed = 1234567;
 }
 
 
-- (void) setTargetToStation
+// Exosed to AI
+- (void) setTargetToNearestStation
 {
 	// check if the groupID (parent ship) points to a station...
 	Entity* mother = [UNIVERSE entityForUniversalID:groupID];
@@ -7580,6 +7587,7 @@ int w_space_seed = 1234567;
 }
 
 
+// Exosed to AI
 - (void) setTargetToSystemStation
 {
 	StationEntity* system_station = [UNIVERSE station];
@@ -7639,6 +7647,7 @@ int w_space_seed = 1234567;
 }
 
 
+// Exposed to AI
 - (void) abortDocking
 {
 	[[UNIVERSE findEntitiesMatchingPredicate:IsStationPredicate
@@ -7826,6 +7835,21 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 - (void) receiveCommsMessage:(NSString *) message_text
 {
 	// ignore messages for now
+}
+
+
+- (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride
+{
+	Random_Seed very_random_seed;
+	very_random_seed.a = rand() & 255;
+	very_random_seed.b = rand() & 255;
+	very_random_seed.c = rand() & 255;
+	very_random_seed.d = rand() & 255;
+	very_random_seed.e = rand() & 255;
+	very_random_seed.f = rand() & 255;
+	seed_RNG_only_for_planet_description(very_random_seed);
+	
+	[self broadcastMessage:valueString withUnpilotedOverride:unpilotedOverride];
 }
 
 

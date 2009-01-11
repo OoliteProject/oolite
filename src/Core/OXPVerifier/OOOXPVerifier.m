@@ -266,8 +266,8 @@ static void OpenLogFile(NSString *name);
 {
 	self = [super init];
 	
-	NSString *verifierPListPath =[[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"verifyOXP.plist"];   
-	_verifierPList =  [[NSDictionary dictionaryWithContentsOfFile:verifierPListPath] retain];
+	NSString *verifierPListPath = [[[ResourceManager builtInPath] stringByAppendingPathComponent:@"Config"] stringByAppendingPathComponent:@"verifyOXP.plist"];
+	_verifierPList = [[NSDictionary dictionaryWithContentsOfFile:verifierPListPath] retain];
 	
 	_basePath = [path copy];
 	_displayName = [[NSFileManager defaultManager] displayNameAtPath:_basePath];

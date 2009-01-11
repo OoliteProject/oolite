@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "OOStringParsing.h"
 #import "OOWeakReference.h"
+#import "OOCacheManager.h"
+#import "OOCollectionExtractors.h"
 
 #import "ShipEntity.h"
 
@@ -54,6 +56,11 @@ static AI *sCurrentlyRunningAI = nil;
 + (void)deferredCallTrampolineWithInfo:(NSValue *)info;
 
 - (void)refreshOwnerDesc;
+
+// Loading/whitelisting
+- (NSDictionary *) loadStateMachine:(NSString *)smName;
+- (NSDictionary *) cleanHandlers:(NSDictionary *)handlers forState:(NSString *)stateKey stateMachine:(NSString *)smName;
+- (NSArray *) cleanActions:(NSArray *)actions forHandler:(NSString *)handlerKey state:(NSString *)stateKey stateMachine:(NSString *)smName;
 
 @end
 
@@ -235,7 +242,7 @@ static AI *sCurrentlyRunningAI = nil;
 
 - (void) setStateMachine:(NSString *) smName
 {
-	NSDictionary* newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
+	NSDictionary *newSM = [self loadStateMachine:smName];
 	
 	if (newSM)
 	{
@@ -626,6 +633,154 @@ static AI *sCurrentlyRunningAI = nil;
 	{
 		ownerDesc = @"no owner";
 	}
+}
+
+
+- (NSDictionary *) loadStateMachine:(NSString *)smName
+{
+	id						newSM = nil;
+	NSMutableDictionary		*cleanSM = nil;
+	OOCacheManager			*cacheMgr = [OOCacheManager sharedCache];
+	NSEnumerator			*stateEnum = nil;
+	NSString				*stateKey = nil;
+	NSDictionary			*stateMessages = nil;
+	
+	newSM = [cacheMgr objectForKey:smName inCache:@"AIs"];
+	if (newSM != nil && ![newSM isKindOfClass:[NSDictionary class]])  return nil;	// catches use of @"nil" to indicate no AI found.
+	
+	if (newSM == nil)
+	{
+		OOLog(@"ai.load", @"Loading and sanitizing AI \"%@\"", smName);
+		OOLogPushIndent();
+		OOLogIndentIf(@"ai.load");
+		
+		NS_DURING
+		// Load state machine and validate against whitelist.
+		newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
+		if (newSM == nil)
+		{
+			[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
+			return nil;
+		}
+		
+		cleanSM = [NSMutableDictionary dictionaryWithCapacity:[newSM count]];
+		
+		for (stateEnum = [newSM keyEnumerator]; (stateKey = [stateEnum nextObject]); )
+		{
+			stateMessages = [newSM objectForKey:stateKey];
+			if (![stateMessages isKindOfClass:[NSDictionary class]])
+			{
+				OOLog(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
+				continue;
+			}
+			
+			stateMessages = [self cleanHandlers:stateMessages forState:stateKey stateMachine:smName];
+			[cleanSM setObject:stateMessages forKey:stateKey];
+		}
+		
+		// Make immutable.
+		newSM = [[cleanSM copy] autorelease];
+		
+		// Cache.
+		[cacheMgr setObject:newSM forKey:smName inCache:@"AIs"];
+		NS_HANDLER
+		OOLogPopIndent();
+		[localException raise];
+		NS_ENDHANDLER
+		
+		OOLogPopIndent();
+	}
+	
+	return newSM;
+}
+
+
+- (NSDictionary *) cleanHandlers:(NSDictionary *)handlers forState:(NSString *)stateKey stateMachine:(NSString *)smName
+{
+	NSEnumerator			*handlerEnum = nil;
+	NSString				*handlerKey = nil;
+	NSArray					*handlerActions = nil;
+	NSMutableDictionary		*result = nil;
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:[handlers count]];
+	for (handlerEnum = [handlers keyEnumerator]; (handlerKey = [handlerEnum nextObject]); )
+	{
+		handlerActions = [handlers objectForKey:handlerKey];
+		if (![handlerActions isKindOfClass:[NSArray class]])
+		{
+			OOLog(@"ai.invalidFormat.handler", @"Handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, smName);
+			continue;
+		}
+		
+		handlerActions = [self cleanActions:handlerActions forHandler:handlerKey state:stateKey stateMachine:smName];
+		[result setObject:handlerActions forKey:handlerKey];
+	}
+	
+	// Return immutable copy.
+	return [[result copy] autorelease];
+}
+
+
+- (NSArray *) cleanActions:(NSArray *)actions forHandler:(NSString *)handlerKey state:(NSString *)stateKey stateMachine:(NSString *)smName
+{
+	NSEnumerator			*actionEnum = nil;
+	NSString				*action = nil;
+	NSRange					spaceRange;
+	NSString				*selector = nil;
+	NSString				*aliasedSelector = nil;
+	NSMutableArray			*result = nil;
+	static NSSet			*whitelist = nil;
+	static NSDictionary		*aliases = nil;
+	NSArray					*whitelistArray1 = nil;
+	NSArray					*whitelistArray2 = nil;
+	
+	if (whitelist == nil)
+	{
+		whitelistArray1 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_methods"];
+		if (whitelistArray1 == nil)  whitelistArray1 = [NSArray array];
+		whitelistArray2 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
+		if (whitelistArray2 != nil)  whitelistArray1 = [whitelistArray1 arrayByAddingObjectsFromArray:whitelistArray2];
+		
+		whitelist = [[NSSet alloc] initWithArray:whitelistArray1];
+		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"ai_method_aliases"] retain];
+	}
+	
+	result = [NSMutableArray arrayWithCapacity:[actions count]];
+	for (actionEnum = [actions objectEnumerator]; (action = [actionEnum nextObject]); )
+	{
+		if (![action isKindOfClass:[NSString class]])
+		{
+			OOLog(@"ai.invalidFormat.action", @"An action in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", handlerKey, stateKey, smName);
+			continue;
+		}
+		
+		// Cut off parameters.
+		spaceRange = [action rangeOfString:@" "];
+		if (spaceRange.location == NSNotFound)  selector = action;
+		else  selector = [action substringToIndex:spaceRange.location];
+		
+		// Look in alias table.
+		aliasedSelector = [aliases stringForKey:selector];
+		if (aliasedSelector != nil)
+		{
+			// Change selector and action to use real method name.
+			selector = aliasedSelector;
+			if (spaceRange.location == NSNotFound)  action = aliasedSelector;
+			else action = [aliasedSelector stringByAppendingString:[action substringFromIndex:spaceRange.location]];
+		}
+		
+		// Check for selector in whitelist.
+		if (![whitelist containsObject:selector])
+		{
+			OOLog(@"ai.unpermittedMethod", @"Handler \"%@\" for state \"%@\" in AI \"%@\" uses \"%@\", which is not a permitted AI method."/*" In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com."*/, handlerKey, stateKey, smName, selector);
+			// continue;
+		}
+		
+		[result addObject:action];
+	}
+	
+	// Return immutable copy.
+	return [[result copy] autorelease];
 }
 
 @end

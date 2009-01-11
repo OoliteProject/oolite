@@ -71,6 +71,8 @@ typedef enum
 						inFolder:(NSString *)folderName
 						andMerge:(BOOL) mergeFiles;
 
++ (NSDictionary *) whitelistDictionary;	// method-whitelist.plist, explicitly not merged like normal plists.
+
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 

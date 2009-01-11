@@ -48,19 +48,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 @implementation StationEntity
 
-- (void) acceptDistressMessageFrom:(ShipEntity *)other
-{
-	if (self != [UNIVERSE station])  return;
-	
-	int old_target = primaryTarget;
-	primaryTarget = [[other primaryTarget] universalID];
-	[(ShipEntity *)[other primaryTarget] markAsOffender:8];	// mark their card
-	[self launchDefenseShip];
-	primaryTarget = old_target;
-
-}
-
-
 - (OOTechLevelID) equivalentTechLevel
 {
 	return equivalentTechLevel;
@@ -730,6 +717,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// ** Set up a the docking port
 	// Look for subentity specifying position
+	/*	NOTE: all this is overriden by -setDockingPortModel:::, called from
+		-setUpSubEntities:, if any subentity key contains "dock" (not just
+		prefixed with "dock" as here). port_radius and port_dimensions should
+		be considered obsolete.
+		-- Ahruman 20090108
+	*/
+	
 	NSArray		*subs = [dict arrayForKey:@"subentities"];
 	NSArray		*dockSubEntity = nil;
 	
@@ -1823,6 +1817,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) becomeExplosion
 {
 	if (self == [UNIVERSE station])  return;
@@ -1850,6 +1845,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) becomeEnergyBlast
 {
 	if (self == [UNIVERSE station])  return;

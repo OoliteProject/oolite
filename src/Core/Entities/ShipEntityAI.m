@@ -49,6 +49,16 @@ MA 02110-1301, USA.
 - (void)scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 - (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 
+- (void) acceptDistressMessageFrom:(ShipEntity *)other;
+- (OOUInteger) numberOfShipsInGroup:(OOUniversalID)ship_group_id;
+
+@end
+
+
+@interface StationEntity (OOAIPrivate)
+
+- (void) acceptDistressMessageFrom:(ShipEntity *)other;
+
 @end
 
 
@@ -712,16 +722,18 @@ MA 02110-1301, USA.
 
 - (void) setDestinationToWitchpoint
 {
-	if (UNIVERSE)
-		destination = [UNIVERSE getWitchspaceExitPosition];
+	destination = [UNIVERSE getWitchspaceExitPosition];
 }
+
+
 - (void) setDestinationToStationBeacon
 {
 	if ([UNIVERSE station])
 		destination = [[UNIVERSE station] getBeaconPosition];
 }
 
-WormholeEntity*	whole;
+
+static WormholeEntity *whole = nil;
 //
 - (void) performHyperSpaceExit
 {
@@ -819,21 +831,6 @@ WormholeEntity*	whole;
 }
 
 
-- (void) commsMessage:(NSString *)valueString withUnpilotedOverride:(BOOL)unpilotedOverride
-{
-	Random_Seed very_random_seed;
-	very_random_seed.a = rand() & 255;
-	very_random_seed.b = rand() & 255;
-	very_random_seed.c = rand() & 255;
-	very_random_seed.d = rand() & 255;
-	very_random_seed.e = rand() & 255;
-	very_random_seed.f = rand() & 255;
-	seed_RNG_only_for_planet_description(very_random_seed);
-
-	[self broadcastMessage:valueString withUnpilotedOverride:unpilotedOverride];
-}
-
-
 - (void) broadcastDistressMessage
 {
 	/*-- Locates all the stations, bounty hunters and police ships in range and tells them that you are under attack --*/
@@ -883,30 +880,6 @@ WormholeEntity*	whole;
 			if ([ship hasPrimaryRole:@"hunter"])
 				[ship acceptDistressMessageFrom:self];
 		}
-	}
-}
-
-
-- (void) acceptDistressMessageFrom:(ShipEntity *)other
-{
-	found_target = [[other primaryTarget] universalID];
-	switch (behaviour)
-	{
-		case BEHAVIOUR_ATTACK_TARGET :
-		case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
-		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
-			// busy - ignore the request
-			break;
-			
-		case BEHAVIOUR_FLEE_TARGET :
-			// scared - ignore the request;
-			break;
-			
-		default:
-			if ([self isPolice])
-				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
-			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
-			break;
 	}
 }
 
@@ -1134,21 +1107,13 @@ WormholeEntity*	whole;
 }
 
 
-- (int) numberOfShipsInGroup:(int) ship_group_id
-{
-	if (ship_group_id == NO_TARGET)
-		return 1;
-	return [[self shipsInGroup:ship_group_id] count];
-}
-
-
 - (void) checkGroupOddsVersusTarget
 {
-	int own_group_id = groupID;
-	int target_group_id = [[UNIVERSE entityForUniversalID:primaryTarget] groupID];
+	OOUniversalID own_group_id = groupID;
+	OOUniversalID target_group_id = [[UNIVERSE entityForUniversalID:primaryTarget] groupID];
 
-	int own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
-	int target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
+	OOUInteger own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
+	OOUInteger target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
 
 	if (own_group_numbers == target_group_numbers)
 	{
@@ -2086,4 +2051,82 @@ WormholeEntity*	whole;
 	[self scanForNearestShipWithPredicate:NOTPredicate parameter:&param];
 }
 
+
+- (void) acceptDistressMessageFrom:(ShipEntity *)other
+{
+	found_target = [[other primaryTarget] universalID];
+	switch (behaviour)
+	{
+		case BEHAVIOUR_ATTACK_TARGET :
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET :
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET :
+			// busy - ignore the request
+			break;
+			
+		case BEHAVIOUR_FLEE_TARGET :
+			// scared - ignore the request;
+			break;
+			
+		default:
+			if ([self isPolice])
+				[[UNIVERSE entityForUniversalID:found_target] markAsOffender:8];  // you have been warned!!
+			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
+			break;
+	}
+}
+
+
+- (OOUInteger) numberOfShipsInGroup:(OOUniversalID)ship_group_id
+{
+	if (ship_group_id == NO_TARGET)
+		return 1;
+	return [[self shipsInGroup:ship_group_id] count];
+}
+
 @end
+
+
+@implementation StationEntity (OOAIPrivate)
+
+- (void) acceptDistressMessageFrom:(ShipEntity *)other
+{
+	if (self != [UNIVERSE station])  return;
+	
+	int old_target = primaryTarget;
+	primaryTarget = [[other primaryTarget] universalID];
+	[(ShipEntity *)[other primaryTarget] markAsOffender:8];	// mark their card
+	[self launchDefenseShip];
+	primaryTarget = old_target;
+	
+}
+
+@end
+
+
+@implementation ShipEntity (OOAIStationStubs)
+
+// AI methods for stations, have no effect on normal ships.
+
+#define STATION_STUB_BASE(PROTO, NAME)  PROTO { OOLog(@"ai.invalid.notAStation", @"Attempt to use station AI method \"%s\" on non-station %@.", NAME, self); }
+#define STATION_STUB_NOARG(NAME)	STATION_STUB_BASE(- (void) NAME, #NAME)
+#define STATION_STUB_ARG(NAME)		STATION_STUB_BASE(- (void) NAME (NSString *)param, #NAME)
+
+STATION_STUB_NOARG(increaseAlertLevel)
+STATION_STUB_NOARG(decreaseAlertLevel)
+STATION_STUB_NOARG(launchPolice)
+STATION_STUB_NOARG(launchDefenseShip)
+STATION_STUB_NOARG(launchScavenger)
+STATION_STUB_NOARG(launchMiner)
+STATION_STUB_NOARG(launchPirateShip)
+STATION_STUB_NOARG(launchShuttle)
+STATION_STUB_NOARG(launchTrader)
+STATION_STUB_NOARG(launchEscort)
+- (BOOL) launchPatrol
+{
+	OOLog(@"ai.invalid.notAStation", @"Attempt to use station AI method \"%s\" on non-station %@.", "launchPatrol", self);
+	return NO;
+}
+STATION_STUB_ARG(launchShipWithRole:)
+
+@end
+
