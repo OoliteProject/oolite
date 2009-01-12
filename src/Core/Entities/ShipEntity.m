@@ -738,9 +738,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (universalID != NO_TARGET)
 	{
 		// set up escorts
-		if (status == STATUS_IN_FLIGHT)	// just popped into existence
+		if (status == STATUS_IN_FLIGHT && !escortsAreSetUp)	// just popped into existence
 		{
-			if ((!escortsAreSetUp) && (escortCount > 0))  [self setUpEscorts];
+			[self setUpEscorts];
 		}
 		else
 		{
@@ -831,6 +831,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary	*autoAIMap = nil;
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
+	
+	if (escortsAreSetUp || escortCount != 0)  return;
 	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
@@ -8240,6 +8242,13 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	[self doScriptEvent:scriptEvent withArgument:argument];
 	[self reactToAIMessage:aiMessage];
+}
+
+
+// Exposed to AI and scripts.
+- (void) doNothing
+{
+	
 }
 
 @end

@@ -804,6 +804,47 @@ static BOOL sRunningScript = NO;
 	return result;
 }
 
+
+- (NSString*) replaceVariablesInString:(NSString*) args
+{
+	NSMutableDictionary	*locals = [self localVariablesForMission:sCurrentMissionKey];
+	NSMutableString		*resultString = [NSMutableString stringWithString: args];
+	NSString			*valueString;
+	unsigned			i;
+	NSMutableArray		*tokens = ScanTokensFromString(args);
+	
+	for (i = 0; i < [tokens  count]; i++)
+	{
+		valueString = [tokens objectAtIndex:i];
+		
+		if ([mission_variables objectForKey:valueString])
+		{
+			[resultString replaceOccurrencesOfString:valueString withString:[mission_variables objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+		}
+		else if ([locals objectForKey:valueString])
+		{
+			[resultString replaceOccurrencesOfString:valueString withString:[locals objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+		}
+		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
+		{
+			SEL valueselector = NSSelectorFromString(valueString);
+			if ([self respondsToSelector:valueselector])
+			{
+				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:valueselector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+			}
+		}
+		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
+		{
+			NSString* replaceString = ExpandDescriptionForCurrentSystem(valueString);
+			[resultString replaceOccurrencesOfString:valueString withString:replaceString options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
+		}
+	}
+	
+	OOLog(kOOLogDebugReplaceVariablesInString, @"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
+	
+	return [NSString stringWithString: resultString];
+}
+
 /*-----------------------------------------------------*/
 
 
@@ -2290,54 +2331,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSString*) replaceVariablesInString:(NSString*) args
-{
-	NSMutableDictionary	*locals = [self localVariablesForMission:sCurrentMissionKey];
-	NSMutableString		*resultString = [NSMutableString stringWithString: args];
-	NSString			*valueString;
-	unsigned			i;
-	NSMutableArray		*tokens = ScanTokensFromString(args);
-
-	for (i = 0; i < [tokens  count]; i++)
-	{
-		valueString = [tokens objectAtIndex:i];
-
-		if ([mission_variables objectForKey:valueString])
-		{
-			[resultString replaceOccurrencesOfString:valueString withString:[mission_variables objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-		}
-		else if ([locals objectForKey:valueString])
-		{
-			[resultString replaceOccurrencesOfString:valueString withString:[locals objectForKey:valueString] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-		}
-		else if (([valueString hasSuffix:@"_number"])||([valueString hasSuffix:@"_bool"])||([valueString hasSuffix:@"_string"]))
-		{
-			SEL valueselector = NSSelectorFromString(valueString);
-			if ([self respondsToSelector:valueselector])
-			{
-				[resultString replaceOccurrencesOfString:valueString withString:[NSString stringWithFormat:@"%@", [self performSelector:valueselector]] options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-			}
-		}
-		else if ([valueString hasPrefix:@"["]&&[valueString hasSuffix:@"]"])
-		{
-			NSString* replaceString = ExpandDescriptionForCurrentSystem(valueString);
-			[resultString replaceOccurrencesOfString:valueString withString:replaceString options:NSLiteralSearch range:NSMakeRange(0, [resultString length])];
-		}
-	}
-
-	OOLog(kOOLogDebugReplaceVariablesInString, @"EXPANSION: \"%@\" becomes \"%@\"", args, resultString);
-
-	return [NSString stringWithString: resultString];
-}
-
-
 - (void) playSound:(NSString *) soundName
 {
 	[self playLegacyScriptSound:soundName];
 }
 
 /*-----------------------------------------------------*/
-
 
 
 - (void) setGuiToMissionScreen

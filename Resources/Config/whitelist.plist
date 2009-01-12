@@ -62,7 +62,6 @@
 		"debugOn",
 		"debugOff",
 		"debugMessage:",
-		"replaceVariablesInString:",
 		"playSound:",
 		"setGuiToMissionScreen",
 	//	"setBackgroundFromDescriptionsKey:",	// Is this ever used from a script? It seems a bad match for future plans of mine. -- Ahruman
@@ -204,6 +203,7 @@
 		"setTargetToNearestStation",
 	//	"setTargetToStation",	// Handled by ai_method_aliases
 		"setTargetToSystemStation",
+		"setUpEscorts"
 	);
 	
 	ai_and_action_methods =
@@ -267,6 +267,12 @@
 	(
 		// FIXME: copy list from http://wiki.alioth.net/index.php/Shaders_in_Oolite:_uniforms when wiki is up.
 	);
+	
+	action_method_aliases =
+	{
+		// ShipEntity.m
+		"setGuiToStatusScreen" = "doNothing";
+	};
 	
 	ai_method_aliases =
 	{
