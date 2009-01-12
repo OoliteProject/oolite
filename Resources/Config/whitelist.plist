@@ -203,7 +203,8 @@
 		"setTargetToNearestStation",
 	//	"setTargetToStation",	// Handled by ai_method_aliases
 		"setTargetToSystemStation",
-		"setUpEscorts"
+		"setUpEscorts",
+		"fireMissile"
 	);
 	
 	ai_and_action_methods =
