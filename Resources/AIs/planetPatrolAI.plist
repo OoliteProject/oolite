@@ -31,6 +31,6 @@
 	};
 	"EXIT_SYSTEM" =
 	{
-		ENTER = (performDocking, exitAI);
+		ENTER = (exitAI);
 	};
 }

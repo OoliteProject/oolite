@@ -4523,7 +4523,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 						[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
 						
 						[wreck setStatus:STATUS_IN_FLIGHT];
-						[UNIVERSE addEntity: wreck];
+						[UNIVERSE addEntity:wreck];
 						[wreck performTumble];
 						[wreck release];
 					}
@@ -7616,36 +7616,36 @@ int w_space_seed = 1234567;
 }
 
 
-- (PlanetEntity *) findNearestLargeBody
+- (PlanetEntity *) findNearestPlanet
 {
-	/*- selects the nearest planet it can find -*/
-	if (!UNIVERSE)
-		return nil;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	Entity*		my_entities[ent_count];
-	int i;
-	int planet_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isPlanet)
-			my_entities[planet_count++] = [uni_entities[i] retain];		//	retained
-	//
-	PlanetEntity	*the_planet =  nil;
-	double nearest2 = SCANNER_MAX_RANGE2 * 10000000000.0; // 100 000x scanner range (2 560 000 km), squared.
-	for (i = 0; i < planet_count; i++)
+	NSArray				*planets = nil;
+	
+	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
+											parameter:NULL
+											  inRange:-1
+											 ofEntity:self];
+	
+	if ([planets count] == 0)  return nil;
+	return [planets objectAtIndex:0];
+}
+
+
+- (void) landOnPlanet:(PlanetEntity *)planet
+{
+	if (planet)
 	{
-		PlanetEntity  *thing = (PlanetEntity*)my_entities[i];
-		double range2 = distance2(position, thing->position);
-		if ((!the_planet)||(range2 < nearest2))
-		{
-			the_planet = (PlanetEntity *)thing;
-			nearest2 = range2;
-		}
+		[planet welcomeShuttle:self];   // 10km from the surface
 	}
-	for (i = 0; i < planet_count; i++)
-		[my_entities[i] release];		//	released
-	//
-	return the_planet;
+	[shipAI message:@"LANDED_ON_PLANET"];
+	
+#ifndef NDEBUG
+	if ([self reportAIMessages])
+	{
+		OOLog(@"planet.collide.shuttleLanded", @"DEBUG %@ landed on planet %@", self, planet);
+	}
+#endif
+	
+	[UNIVERSE removeEntity:self];
 }
 
 

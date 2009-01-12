@@ -4017,15 +4017,6 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) performDocking
-{
-	// Huh? What is this? Doesn't seem to get called. -- ahruman
-	[self abortDocking];			// let the station know that you are no longer on approach
-	autopilot_engaged = NO;
-	status = STATUS_IN_FLIGHT;
-}
-
-
 ///////////////////////////////////
 
 - (void) setGuiToStatusScreen

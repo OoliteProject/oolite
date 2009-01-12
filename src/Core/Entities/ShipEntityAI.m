@@ -62,13 +62,237 @@ MA 02110-1301, USA.
 @end
 
 
+@interface ShipEntity (PureAI)
+
+// Methods used only by AI.
+
+- (void) pauseAI:(NSString *)intervalString;
+
+- (void) setDestinationToCurrentLocation;
+
+- (void) setDesiredRangeTo:(NSString *)rangeString;
+
+- (void) setSpeedTo:(NSString *)speedString;
+
+- (void) setSpeedFactorTo:(NSString *)speedString;
+
+- (void) performFlyToRangeFromDestination;
+
+- (void) performIdle;
+
+- (void) performHold;
+
+- (void) setTargetToPrimaryAggressor;
+
+- (void) performAttack;
+
+- (void) scanForNearestMerchantmen;
+- (void) scanForRandomMerchantmen;
+
+- (void) scanForLoot;
+
+- (void) scanForRandomLoot;
+
+- (void) setTargetToFoundTarget;
+
+- (void) checkForFullHold;
+
+- (void) performCollect;
+
+- (void) performIntercept;
+
+- (void) performFlee;
+
+- (void) requestDockingCoordinates;
+
+- (void) getWitchspaceEntryCoordinates;
+
+- (void) setDestinationFromCoordinates;
+
+- (void) performFaceDestination;
+
+- (void) fightOrFleeMissile;
+
+- (void) setCourseToPlanet;
+- (void) setTakeOffFromPlanet;
+- (void) landOnPlanet;
+
+- (void) checkTargetLegalStatus;
+
+- (void) exitAI;
+
+- (void) setDestinationToTarget;
+- (void) setDestinationWithinTarget;
+
+- (void) checkCourseToDestination;
+
+- (void) scanForOffenders;
+
+- (void) setCourseToWitchpoint;
+
+- (void) setDestinationToWitchpoint;
+- (void) setDestinationToStationBeacon;
+
+- (void) performHyperSpaceExit;
+- (void) performHyperSpaceExitWithoutReplacing;
+- (void) wormholeEscorts;
+- (void) wormholeGroup;
+- (void) wormholeEntireGroup;
+
+- (void) commsMessage:(NSString *)valueString;
+- (void) commsMessageByUnpiloted:(NSString *)valueString;
+- (void) broadcastDistressMessage;
+
+- (void) ejectCargo;
+
+- (void) scanForThargoid;
+- (void) scanForNonThargoid;
+- (void) becomeUncontrolledThargon;
+
+- (void) initialiseTurret;
+
+- (void) checkDistanceTravelled;
+
+- (void) fightOrFleeHostiles;
+
+- (void) suggestEscort;
+
+- (void) escortCheckMother;
+
+- (void) performEscort;
+
+- (void) checkGroupOddsVersusTarget;
+
+- (void) groupAttackTarget;
+
+- (void) scanForFormationLeader;
+
+- (void) messageMother:(NSString *)msgString;
+
+- (void) setPlanetPatrolCoordinates;
+
+- (void) setSunSkimStartCoordinates;
+
+- (void) setSunSkimEndCoordinates;
+
+- (void) setSunSkimExitCoordinates;
+
+- (void) patrolReportIn;
+
+- (void) checkForMotherStation;
+
+- (void) sendTargetCommsMessage:(NSString *) message;
+
+- (void) markTargetForFines;
+
+- (void) markTargetForOffence:(NSString *) valueString;
+
+- (void) scanForRocks;
+
+- (void) performMining;
+
+- (void) setDestinationToDockingAbort;
+
+- (void) requestNewTarget;
+
+- (void) rollD:(NSString *) die_number;
+
+- (void) scanForNearestShipWithPrimaryRole:(NSString *)scanRole;
+- (void) scanForNearestShipHavingRole:(NSString *)scanRole;
+- (void) scanForNearestShipWithAnyPrimaryRole:(NSString *)scanRoles;
+- (void) scanForNearestShipHavingAnyRole:(NSString *)scanRoles;
+- (void) scanForNearestShipWithScanClass:(NSString *)scanScanClass;
+
+- (void) scanForNearestShipWithoutPrimaryRole:(NSString *)scanRole;
+- (void) scanForNearestShipNotHavingRole:(NSString *)scanRole;
+- (void) scanForNearestShipWithoutAnyPrimaryRole:(NSString *)scanRoles;
+- (void) scanForNearestShipNotHavingAnyRole:(NSString *)scanRoles;
+- (void) scanForNearestShipWithoutScanClass:(NSString *)scanScanClass;
+
+- (void) setCoordinates:(NSString *)system_x_y_z;
+
+- (void) checkForNormalSpace;
+
+- (void) recallDockingInstructions;
+
+- (void) addFuel:(NSString *) fuel_number;
+
+- (void) enterTargetWormhole;
+
+- (void) scriptActionOnTarget:(NSString *) action;
+
+- (void) sendScriptMessage:(NSString *)message;
+
+// racing code.
+- (void) targetFirstBeaconWithCode:(NSString *) code;
+- (void) targetNextBeaconWithCode:(NSString *) code;
+- (void) setRacepointsFromTarget;
+- (void) performFlyRacepoints;
+
+@end
+
+
 @implementation ShipEntity (AI)
 
-/*-----------------------------------------
+- (void) setAITo:(NSString *)aiString
+{
+	[[self getAI] setStateMachine:aiString];
+}
 
-	methods for AI
 
------------------------------------------*/
+- (void) switchAITo:(NSString *)aiString
+{
+	[[self getAI] setStateMachine:aiString];
+	[[self getAI] clearStack];
+}
+
+
+- (void) scanForHostiles
+{
+	/*-- Locates all the ships in range targetting the receiver and chooses the nearest --*/
+	found_target = NO_TARGET;
+	found_hostiles = 0;
+	
+	[self checkScanner];
+	unsigned i;
+	GLfloat found_d2 = scannerRange * scannerRange;
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		ShipEntity *thing = scanned_ships[i];
+		GLfloat d2 = distance2_scanned_ships[i];
+		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget])))
+		{
+			found_target = [thing universalID];
+			found_d2 = d2;
+			found_hostiles++;
+		}
+	}
+	
+	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
+	else  [shipAI message:@"NOTHING_FOUND"];
+}
+
+
+- (void) performTumble
+{
+	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
+	flightPitch = max_flight_pitch*2.0*(randf() - 0.5);
+	behaviour = BEHAVIOUR_TUMBLE;
+	frustration = 0.0;
+}
+
+
+- (void) performStop
+{
+	behaviour = BEHAVIOUR_STOP_STILL;
+	desired_speed = 0.0;
+	frustration = 0.0;
+}
+
+@end
+
+
+@implementation ShipEntity (PureAI)
 
 - (void) pauseAI:(NSString *)intervalString
 {
@@ -111,14 +335,6 @@ MA 02110-1301, USA.
 - (void) performIdle
 {
 	behaviour = BEHAVIOUR_IDLE;
-	frustration = 0.0;
-}
-
-
-- (void) performStop
-{
-	behaviour = BEHAVIOUR_STOP_STILL;
-	desired_speed = 0.0;
 	frustration = 0.0;
 }
 
@@ -429,24 +645,9 @@ MA 02110-1301, USA.
 }
 
 
-- (void) performDocking
-{
-	OOLog(@"ai.performDocking.unimplemented", @"ShipEntity.performDocking NOT IMPLEMENTED!");
-}
-
-
 - (void) performFaceDestination
 {
 	behaviour = BEHAVIOUR_FACE_DESTINATION;
-	frustration = 0.0;
-}
-
-
-- (void) performTumble
-{
-	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
-	flightPitch = max_flight_pitch*2.0*(randf() - 0.5);
-	behaviour = BEHAVIOUR_TUMBLE;
 	frustration = 0.0;
 }
 
@@ -519,20 +720,6 @@ MA 02110-1301, USA.
 }
 
 
-- (PlanetEntity *) findNearestPlanet
-{
-	NSArray				*planets = nil;
-	
-	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
-											parameter:NULL
-											  inRange:-1
-											 ofEntity:self];
-	
-	if ([planets count] == 0)  return nil;
-	return [planets objectAtIndex:0];
-}
-
-
 - (void) setCourseToPlanet
 {
 	/*- selects the nearest planet it can find -*/
@@ -564,33 +751,16 @@ MA 02110-1301, USA.
 		desired_range = 50.0;
 	}
 	else
+	{
 		OOLog(@"ai.setTakeOffFromPlanet.noPlanet", @"***** Error. Planet not found during take off!");
+	}
 }
 
 
 - (void) landOnPlanet
 {
-	/*- selects the nearest planet it can find -*/
-	PlanetEntity	*the_planet =  [self findNearestPlanet];
-	if (the_planet)
-	{
-		[the_planet welcomeShuttle:self];   // 10km from the surface
-	}
-	[shipAI message:@"LANDED_ON_PLANET"];
-	[UNIVERSE removeEntity:self];
-}
-
-
-- (void) setAITo:(NSString *)aiString
-{
-	[[self getAI] setStateMachine:aiString];
-}
-
-
-- (void) switchAITo:(NSString *)aiString
-{
-	[[self getAI] setStateMachine:aiString];
-	[[self getAI] clearStack];
+	// Selects the nearest planet it can find.
+	[self landOnPlanet:[self findNearestPlanet]];
 }
 
 
@@ -974,32 +1144,6 @@ static WormholeEntity *whole = nil;
 {
 	if (distanceTravelled > desired_range)
 		[shipAI message:@"GONE_BEYOND_RANGE"];
-}
-
-
-- (void) scanForHostiles
-{
-	/*-- Locates all the ships in range targetting the receiver and chooses the nearest --*/
-	found_target = NO_TARGET;
-	found_hostiles = 0;
-
-	[self checkScanner];
-	unsigned i;
-	GLfloat found_d2 = scannerRange * scannerRange;
-	for (i = 0; i < n_scanned_ships ; i++)
-	{
-		ShipEntity *thing = scanned_ships[i];
-		GLfloat d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && ([thing isThargoid] || (([thing primaryTarget] == self) && [thing hasHostileTarget])))
-		{
-			found_target = [thing universalID];
-			found_d2 = d2;
-			found_hostiles++;
-		}
-	}
-		
-	if (found_target != NO_TARGET)  [shipAI message:@"TARGET_FOUND"];
-	else  [shipAI message:@"NOTHING_FOUND"];
 }
 
 
@@ -1489,13 +1633,6 @@ static WormholeEntity *whole = nil;
 	{
 		OOLog(@"ai.rollD.invalidValue", @"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
 	}
-}
-
-
-// Old name for -scanForNearestShipWithPrimaryRole:
-- (void) scanForNearestShipWithRole:(NSString *)scanRole
-{
-	return [self scanForNearestShipWithPrimaryRole:scanRole];
 }
 
 

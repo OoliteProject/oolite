@@ -1542,16 +1542,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-/*	Spelling variant, because people get confused about whether Oolite uses
-	UK or US spelling. (General answer: it varies.)
- */
-// Exposed to AI
-- (void) launchDefenceShip
-{
-	[self launchDefenseShip];
-}
-
-
 // Exposed to AI
 - (void) launchScavenger
 {

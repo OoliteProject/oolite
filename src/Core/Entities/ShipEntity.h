@@ -706,7 +706,9 @@ BOOL	class_masslocks(int some_class);
 - (void) setTargetToNearestStation;
 - (void) setTargetToSystemStation;
 
-- (PlanetEntity *) findNearestLargeBody;
+- (PlanetEntity *) findNearestPlanet;
+
+- (void) landOnPlanet:(PlanetEntity *)planet;
 
 - (void) abortDocking;
 

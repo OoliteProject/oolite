@@ -1056,13 +1056,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 		ShipEntity *ship = (ShipEntity *)other;
 		if ([ship isShuttle])
 		{
-			[ship landOnPlanet];
-#ifndef NDEBUG
-			if ([ship reportAIMessages])
-			{
-				OOLog(@"planet.collide.shuttleLanded", @"DEBUG %@ landed on planet %@", other, self);
-			}
-#endif
+			[ship landOnPlanet:self];
 			return NO;
 		}
 #ifndef NDEBUG

@@ -1041,9 +1041,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSNumber *) fuel_level_number		// returns the fuel level in LY
+- (NSNumber *) fuelLevel_number			// returns the fuel level in LY
 {
 	return [NSNumber numberWithFloat:floor(0.1 * fuel)];
+}
+
+
+// FIXME: remove once whitelist aliases are implemented.
+- (NSNumber *) fuel_level_number
+{
+	return [self fuelLevel_number];
 }
 
 
@@ -2151,9 +2158,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSNumber *) fuel_leak_rate_number
+- (NSNumber *) fuelLeakRate_number
 {
 	return [NSNumber numberWithFloat:[self fuelLeakRate]];
+}
+
+
+// FIXME: remove once whitelist aliases are implemented.
+- (NSNumber *) fuel_leak_rate_number
+{
+	return [self fuelLeakRate_number];
 }
 
 
