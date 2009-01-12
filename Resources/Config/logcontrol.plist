@@ -367,7 +367,7 @@
 	universe.setup.badStation				= $scriptError;		// Message generated if the main station turns out not to be a station (for instance, this could happen if a non-station ship had the role coriolis).
 	
 	
-	verifyOXP.verbose						= no;
+	verifyOXP.verbose						= yes;
 	
 	
 	/*** Mac OS X/Cocoa-specific ***/

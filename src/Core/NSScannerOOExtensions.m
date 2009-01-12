@@ -54,6 +54,7 @@ MA 02110-1301, USA.
 	return YES;
 }
 
+
 - (BOOL) ooliteScanUpToCharactersFromSet:(NSCharacterSet *)set intoString:(NSString **)value
 {
 	unsigned int	currentLocation = [self scanLocation];

@@ -174,7 +174,7 @@
 		"targetNextBeaconWithCode:",
 		"setRacepointsFromTarget",
 		"performFlyRacepoints",
-		"performDocking",
+		"performDocking",		// Note: this method does nothing.
 		
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
@@ -262,6 +262,7 @@
 		"commanderShipDisplayName_string",
 		"fuel_leak_rate_number"		
 	);
+	
 	shader_binding_methods =
 	(
 		// FIXME: copy list from http://wiki.alioth.net/index.php/Shaders_in_Oolite:_uniforms when wiki is up.

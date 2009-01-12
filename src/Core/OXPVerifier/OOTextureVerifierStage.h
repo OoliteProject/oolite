@@ -35,7 +35,7 @@ MA 02110-1301, USA.
 	NSMutableSet					*_usedTextures;
 }
 
-// Returns name to be used in -dependents by other stages; also registers stage.
+// Returns name to be used in -dependents by other stages.
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier;
 
 /*	This can be called by other stages *before* the texture stage runs.

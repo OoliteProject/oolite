@@ -70,6 +70,7 @@ NSMutableArray *ScanTokensFromString(NSString *values)
 	return result;
 }
 
+
 BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector)
 {
 	GLfloat					xyz[] = {0.0, 0.0, 0.0};

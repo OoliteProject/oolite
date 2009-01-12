@@ -64,17 +64,6 @@ static NSString * const kStageName	= @"Testing textures and images";
 
 + (NSString *)nameForReverseDependencyForVerifier:(OOOXPVerifier *)verifier
 {
-#if 0
-	// In order to allow this stage to be disabled with excludeStages, it is _not_ implicitly pulled in but rather listed explicitly.
-	OOTextureVerifierStage *stage = [verifier stageWithName:kStageName];
-	if (stage == nil)
-	{
-		stage = [[OOListUnusedFilesStage alloc] init];
-		[verifier registerStage:stage];
-		[stage release];
-	}
-#endif
-	
 	return kStageName;
 }
 

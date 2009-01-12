@@ -102,7 +102,6 @@
 		1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AA0B9D022500EF0852 /* route2patrolAI.plist */; };
 		1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AB0B9D022500EF0852 /* route2sunskimAI.plist */; };
 		1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AC0B9D022500EF0852 /* scavengerAI.plist */; };
-		1A2317CF0B9D022500EF0852 /* shuttleAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AD0B9D022500EF0852 /* shuttleAI.plist */; };
 		1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AE0B9D022500EF0852 /* stationAI.plist */; };
 		1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317AF0B9D022500EF0852 /* sunSkimExitAI.plist */; };
 		1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A2317B00B9D022500EF0852 /* thargletAI.plist */; };
@@ -345,6 +344,10 @@
 		1A2DA3A40CB4D35800DE6823 /* OOJSConsole.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA34B0CB4D0D800DE6823 /* OOJSConsole.m */; };
 		1A2DA3EE0CB4E84900DE6823 /* OODebugSupport.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */; };
 		1A2DA3EF0CB4E84900DE6823 /* OODebugSupport.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */; };
+		1A3159270F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */; };
+		1A3159280F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */; };
+		1A3159590F1B894F00328E4A /* OOAIStateMachineVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */; };
+		1A31595A0F1B895000328E4A /* OOAIStateMachineVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */; };
 		1A34912A0BC25EAA00802DA7 /* world-scripts.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A3491290BC25EAA00802DA7 /* world-scripts.plist */; };
 		1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */ = {isa = PBXBuildFile; fileRef = 1A358CE10C1AB80D00E52220 /* ReadMe.rtfd */; };
 		1A35916D0C1C375400E52220 /* oolite-nebula-1.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A3591690C1C375400E52220 /* oolite-nebula-1.png */; };
@@ -784,7 +787,6 @@
 				1A2317CC0B9D022500EF0852 /* route2patrolAI.plist in Copy AIs */,
 				1A2317CD0B9D022500EF0852 /* route2sunskimAI.plist in Copy AIs */,
 				1A2317CE0B9D022500EF0852 /* scavengerAI.plist in Copy AIs */,
-				1A2317CF0B9D022500EF0852 /* shuttleAI.plist in Copy AIs */,
 				1A2317D00B9D022500EF0852 /* stationAI.plist in Copy AIs */,
 				1A2317D10B9D022500EF0852 /* sunSkimExitAI.plist in Copy AIs */,
 				1A2317D20B9D022500EF0852 /* thargletAI.plist in Copy AIs */,
@@ -1040,6 +1042,8 @@
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
 				1AAF55AC0F183C7D00A2F2E6 /* OOJSFunction.m in Copy Debug OXP */,
+				1A3159270F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h in Copy Debug OXP */,
+				1A3159280F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1383,6 +1387,8 @@
 		1A2F63960C5CC737003872C8 /* hudSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = hudSchema.plist; sourceTree = "<group>"; };
 		1A2F63980C5CC737003872C8 /* shipdataEntrySchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipdataEntrySchema.plist; sourceTree = "<group>"; };
 		1A2F63990C5CC737003872C8 /* shipyardSchema.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = shipyardSchema.plist; sourceTree = "<group>"; };
+		1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAIStateMachineVerifierStage.h; sourceTree = "<group>"; };
+		1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAIStateMachineVerifierStage.m; sourceTree = "<group>"; };
 		1A3491290BC25EAA00802DA7 /* world-scripts.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "world-scripts.plist"; sourceTree = "<group>"; };
 		1A3491AA0BC282DE00802DA7 /* ReleaseLockProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ReleaseLockProxy.h; sourceTree = "<group>"; };
 		1A3491AB0BC282DE00802DA7 /* ReleaseLockProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ReleaseLockProxy.m; sourceTree = "<group>"; };
@@ -2674,6 +2680,8 @@
 				1A7D3B9A0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.m */,
 				1A7D3C470C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.h */,
 				1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */,
+				1A3159250F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h */,
+				1A3159260F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m */,
 				1A7D3D290C4F8D01008EDC33 /* OOTextureVerifierStage.h */,
 				1A7D3D2A0C4F8D02008EDC33 /* OOTextureVerifierStage.m */,
 				1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */,
@@ -2976,6 +2984,7 @@
 				1ABC03ED0EF86110003B740A /* OOCrosshairs.h in Headers */,
 				1ABC47FE0F155F0500B977AD /* OOJSFunction.h in Headers */,
 				1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */,
+				1A31595A0F1B895000328E4A /* OOAIStateMachineVerifierStage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3336,6 +3345,7 @@
 				1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */,
 				1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */,
 				1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */,
+				1A3159590F1B894F00328E4A /* OOAIStateMachineVerifierStage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

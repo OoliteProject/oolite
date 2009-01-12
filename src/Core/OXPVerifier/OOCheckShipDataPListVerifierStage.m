@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOStringParsing.h"
 #import "OOPListSchemaVerifier.h"
+#import "OOAIStateMachineVerifierStage.h"
 
 static NSString * const kStageName	= @"Checking shipdata.plist";
 
@@ -77,6 +78,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 {
 	NSMutableSet *result = [[super dependents] mutableCopy];
 	[result addObject:[OOModelVerifierStage nameForReverseDependencyForVerifier:[self verifier]]];
+	[result addObject:[OOAIStateMachineVerifierStage nameForReverseDependencyForVerifier:[self verifier]]];
 	return [result autorelease];
 }
 
@@ -112,6 +114,9 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 								checkBuiltIn:NO];
 	
 	if (_shipdataPList == nil)  return;
+	
+	// Get AI verifier stage (may be nil).
+	_aiVerifierStage = [[self verifier] stageWithName:[OOAIStateMachineVerifierStage nameForReverseDependencyForVerifier:[self verifier]]];
 	
 	ooliteShipData = [ResourceManager dictionaryFromFilesNamed:@"shipdata.plist"
 													  inFolder:@"Config"
@@ -187,6 +192,9 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[self checkKeys];
 	[self checkSchema];
 	[self checkModel];
+	
+	NSString *aiName = [info stringForKey:@"ai_type"];
+	if (aiName != nil)  [_aiVerifierStage stateMachineNamed:aiName usedByShip:name];
 	
 	// Todo: check for pirates with 0 bounty
 	

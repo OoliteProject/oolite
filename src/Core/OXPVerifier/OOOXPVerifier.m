@@ -178,6 +178,12 @@ static void OpenLogFile(NSString *name);
 	// Sanity checking
 	if (stage == nil)  return;
 	
+	if (![stage isKindOfClass:[OOOXPVerifierStage class]])
+	{
+		OOLog(@"verifyOXP.registration.failed", @"Attempt to register class %@ as a verifier stage, but it is not a subclass of OOOXPVerifierStage; ignoring.", [stage class]);
+		return;
+	}
+	
 	if (!_openForRegistration)
 	{
 		OOLog(@"verifyOXP.registration.failed", @"Attempt to register verifier stage %@ after registration closed, ignoring.", stage);
@@ -323,6 +329,7 @@ static void OpenLogFile(NSString *name);
 	NSDictionary			*overrides = nil;
 	NSEnumerator			*messageClassEnum = nil;
 	NSString				*messageClass = nil;
+	id						verbose = nil;
 	
 	OOLogSetShowMessageClassTemporary([_verifierPList boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
@@ -331,6 +338,13 @@ static void OpenLogFile(NSString *name);
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, [overrides boolForKey:messageClass defaultValue:NO]);
 	}
+	
+	/*	Since actually editing logControlOverride is a pain, we also allow
+		overriding verifyOXP.verbose through user defaults. This is at least
+		as much a pain under GNUstep, but very convenient under OS X.
+	*/
+	verbose = [[NSUserDefaults standardUserDefaults] objectForKey:@"oxp-verifier-verbose-logging"];
+	if (verbose != nil)  OOLogSetDisplayMessagesInClass(@"verifyOXP.verbose", OOBooleanFromObject(verbose, NO));
 }
 
 
@@ -359,6 +373,11 @@ static void OpenLogFile(NSString *name);
 		if ([stageName isKindOfClass:[NSString class]])
 		{
 			stageClass = NSClassFromString(stageName);
+			if (stageClass == Nil)
+			{
+				OOLog(@"verifyOXP.registration.failed", @"Attempt to register unknown class %@ as a verifier stage, ignoring.", stageName);
+				continue;
+			}
 			stage = [[stageClass alloc] init];
 			[self registerStage:stage];
 			[stage release];
@@ -512,21 +531,27 @@ static void OpenLogFile(NSString *name);
 			break;
 		}
 		
-		stageName = [stageToRun name];
-		if ([stageToRun shouldRun])
-		{
-			NoteVerificationStage(_displayName, stageName);
-			OOLog(@"verifyOXP.runStage", @"%@", stageName);
-			OOLogPushIndent();
-			OOLogIndent();
-			[stageToRun performRun];
-			OOLogPopIndent();
-		}
-		else
-		{
-			OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@ (nothing to do).", stageName);
-			[stageToRun noteSkipped];
-		}
+		stageName = nil;
+		OOLogPushIndent();
+		NS_DURING
+			stageName = [stageToRun name];
+			if ([stageToRun shouldRun])
+			{
+				NoteVerificationStage(_displayName, stageName);
+				OOLog(@"verifyOXP.runStage", @"%@", stageName);
+				OOLogIndent();
+				[stageToRun performRun];
+			}
+			else
+			{
+				OOLog(@"verifyOXP.verbose.skipStage", @"- Skipping stage: %@ (nothing to do).", stageName);
+				[stageToRun noteSkipped];
+			}
+		NS_HANDLER
+			if (stageName == nil)  stageName = [[stageToRun class] description];
+			OOLog(@"verifyOXP.exception", @"***** Exception occurred when running OXP verifier stage \"%@\": %@: %@", stageName, [localException name], [localException reason]);
+		NS_ENDHANDLER
+		OOLogPopIndent();
 		
 		[_waitingStages removeObject:stageToRun];
 		[pool release];

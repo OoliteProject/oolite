@@ -3,7 +3,7 @@
 AI.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -643,13 +643,15 @@ static AI *sCurrentlyRunningAI = nil;
 	OOCacheManager			*cacheMgr = [OOCacheManager sharedCache];
 	NSEnumerator			*stateEnum = nil;
 	NSString				*stateKey = nil;
-	NSDictionary			*stateMessages = nil;
+	NSDictionary			*stateHandlers = nil;
+	NSAutoreleasePool		*pool = nil;
 	
 	newSM = [cacheMgr objectForKey:smName inCache:@"AIs"];
 	if (newSM != nil && ![newSM isKindOfClass:[NSDictionary class]])  return nil;	// catches use of @"nil" to indicate no AI found.
 	
 	if (newSM == nil)
 	{
+		pool = [[NSAutoreleasePool alloc] init];
 		OOLog(@"ai.load", @"Loading and sanitizing AI \"%@\"", smName);
 		OOLogPushIndent();
 		OOLogIndentIf(@"ai.load");
@@ -667,15 +669,15 @@ static AI *sCurrentlyRunningAI = nil;
 		
 		for (stateEnum = [newSM keyEnumerator]; (stateKey = [stateEnum nextObject]); )
 		{
-			stateMessages = [newSM objectForKey:stateKey];
-			if (![stateMessages isKindOfClass:[NSDictionary class]])
+			stateHandlers = [newSM objectForKey:stateKey];
+			if (![stateHandlers isKindOfClass:[NSDictionary class]])
 			{
 				OOLog(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
 				continue;
 			}
 			
-			stateMessages = [self cleanHandlers:stateMessages forState:stateKey stateMachine:smName];
-			[cleanSM setObject:stateMessages forKey:stateKey];
+			stateHandlers = [self cleanHandlers:stateHandlers forState:stateKey stateMachine:smName];
+			[cleanSM setObject:stateHandlers forKey:stateKey];
 		}
 		
 		// Make immutable.
@@ -689,6 +691,7 @@ static AI *sCurrentlyRunningAI = nil;
 		NS_ENDHANDLER
 		
 		OOLogPopIndent();
+		[pool release];
 	}
 	
 	return newSM;
@@ -753,6 +756,9 @@ static AI *sCurrentlyRunningAI = nil;
 			OOLog(@"ai.invalidFormat.action", @"An action in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", handlerKey, stateKey, smName);
 			continue;
 		}
+		
+		// Trim spaces from beginning and end.
+		action = [action stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 		
 		// Cut off parameters.
 		spaceRange = [action rangeOfString:@" "];

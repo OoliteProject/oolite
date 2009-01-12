@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #if OO_OXP_VERIFIER_ENABLED
 
-@class OOPListSchemaVerifier;
+@class OOPListSchemaVerifier, OOAIStateMachineVerifierStage;
 
 @interface OOCheckShipDataPListVerifierStage: OOTextureHandlingStage
 {
@@ -40,8 +40,9 @@ MA 02110-1301, USA.
 								*_playerKeys,
 								*_allKeys;
 	OOPListSchemaVerifier		*_schemaVerifier;
+	OOAIStateMachineVerifierStage *_aiVerifierStage;
 	
-	// Info about ship currently being checked. None of these are retained!
+	// Info about ship currently being checked.
 	NSString					*_name;
 	NSDictionary				*_info;
 	NSSet						*_roles;

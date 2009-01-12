@@ -6,11 +6,12 @@
 {
 	stages =
 	(
-		"OOCheckRequiresPListVerifierStage",
-		"OOCheckDemoShipsPListVerifierStage",
-		"OOCheckEquipmentPListVerifierStage",
-		"OOTextureVerifierStage",
-		"OOCheckShipDataPListVerifierStage"
+		OOCheckRequiresPListVerifierStage,
+		OOCheckDemoShipsPListVerifierStage,
+		OOCheckEquipmentPListVerifierStage,
+		OOTextureVerifierStage,
+		OOCheckShipDataPListVerifierStage,
+		OOAIStateMachineVerifierStage
 	);
 	excludeStages =
 	(
@@ -24,13 +25,13 @@
 	logControlOverride =
 	{
 		// Note: only yes and no here, no inherit or $metaclass
-		dataCache.rebuild.pathsChanged = "no";
+		dataCache.rebuild.pathsChanged = no;
 		
-		verifyOXP = "yes";
-		verifyOXP.stage = "yes";
-		verifyOXP.verbose = "no";
+		verifyOXP = yes;
+		verifyOXP.stage = yes;
+		verifyOXP.verbose = no;
 	};
-	logShowMessageClassOverride = "no";
+	logShowMessageClassOverride = no;
 	
 	knownRootDirectories =
 	(
@@ -108,8 +109,6 @@
 			"blur256.png",
 			"asciitext.png",
 			"trumblekit.png"
-			
-			// star64.png and galaxy256.png fall into this category, but they're going to be replaced.
 		);
 	};
 	
