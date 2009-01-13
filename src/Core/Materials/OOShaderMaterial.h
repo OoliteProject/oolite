@@ -135,11 +135,24 @@ typedef uint16_t OOUniformConvertOptions;
 		* For int, float or NSNumber, it clamps to the range [0..1].
 		* For Vector, it normalizes.
 		* For Quaternion, it converts to a rotation matrix (instead of a vector).
+	
+	NOTE: this method *does not* check against the whitelist. See
+	-bindSafeUniform:toObject:propertyNamed:convertOptions: below.
 */
-- (void)bindUniform:(NSString *)uniformName
+- (BOOL)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)target
 		   property:(SEL)selector
 	 convertOptions:(OOUniformConvertOptions)options;
+
+/*	Bind a uniform to a property of an object.
+	
+	This is similar to -bindUniform:toObject:property:convertOptions:, except
+	that it checks against OOUniformBindingPermitted().
+*/
+- (BOOL)bindSafeUniform:(NSString *)uniformName
+			   toObject:(id<OOWeakReferenceSupport>)target
+		  propertyNamed:(NSString *)property
+		 convertOptions:(OOUniformConvertOptions)options;
 
 /*	Set a uniform value.
 */
@@ -176,5 +189,13 @@ enum
 	*/
 	kTangentAttributeIndex = 15
 };
+
+
+/*	OOUniformBindingPermitted()
+	
+	Predicate determining whether a given property may be used as a binding.
+	Client code is responsible for implementing this.
+*/
+BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget);
 
 #endif // NO_SHADERS

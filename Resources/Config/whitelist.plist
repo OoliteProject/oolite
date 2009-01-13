@@ -260,9 +260,8 @@
 		"fuelLeakRate_number"		
 	);
 	
-	shader_binding_methods =
+	shader_entity_binding_methods =
 	(
-		// Entity
 		"position",
 		"orientation",
 		"relativePosition",
@@ -274,9 +273,11 @@
 		"universalTime",
 		"spawnTime",
 		"timeElapsedSinceSpawn",
-		"throwingSparks",
-		
-		// Ship
+		"throwingSparks"
+	);
+	
+	shader_ship_binding_methods =
+	(
 		"isBeacon",
 		"isFrangible",
 		"isCloaked",
@@ -306,9 +307,11 @@
 		"rangeToDestination",
 		"rangeToPrimaryTarget",
 		"laserColor",
-		"isHulk",
-		
-		// Player ship
+		"isHulk"
+	);
+	
+	shader_player_ship_binding_methods =
+	(	
 		"massLocked",
 		"atHyperspeed",
 		"velocityVector",

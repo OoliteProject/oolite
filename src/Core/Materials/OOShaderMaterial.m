@@ -203,14 +203,14 @@ static NSString *MacrosToString(NSDictionary *macros);
 }
 
 
-- (void)bindUniform:(NSString *)uniformName
+- (BOOL)bindUniform:(NSString *)uniformName
 		   toObject:(id<OOWeakReferenceSupport>)source
 		   property:(SEL)selector
 	 convertOptions:(OOUniformConvertOptions)options
 {
 	OOShaderUniform			*uniform = nil;
 	
-	if (uniformName == nil) return;
+	if (uniformName == nil) return NO;
 	
 	uniform = [[OOShaderUniform alloc] initWithName:uniformName
 									  shaderProgram:shaderProgram
@@ -222,12 +222,39 @@ static NSString *MacrosToString(NSDictionary *macros);
 		OOLog(@"shader.uniform.set", @"Set up uniform %@", uniform);
 		[uniforms setObject:uniform forKey:uniformName];
 		[uniform release];
+		return YES;
 	}
 	else
 	{
 		OOLog(@"shader.uniform.unSet", @"Did not set uniform \"%@\"", uniformName);
 		[uniforms removeObjectForKey:uniformName];
+		return NO;
 	}
+}
+
+
+- (BOOL)bindSafeUniform:(NSString *)uniformName
+			   toObject:(id<OOWeakReferenceSupport>)target
+		  propertyNamed:(NSString *)property
+		 convertOptions:(OOUniformConvertOptions)options
+{
+	SEL					selector = NULL;
+	
+	selector = NSSelectorFromString(property);
+	
+	if (selector != NULL && OOUniformBindingPermitted(property, target))
+	{
+		return [self bindUniform:uniformName
+						toObject:target
+						property:selector
+				  convertOptions:options];
+	}
+	else
+	{
+		OOLog(@"shader.uniform.unpermittedMethod", @"Did not bind uniform \"%@\" to property -[%@ %@] - unpermitted method.", uniformName, [target class], property);
+	}
+	
+	return NO;
 }
 
 
@@ -335,7 +362,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	GLfloat					floatValue;
 	BOOL					gotValue;
 	OOShaderUniform			*uniform = nil;
-	SEL						selector = NULL;
 	OOUniformConvertOptions	convertOptions;
 	BOOL					quatAsMatrix = YES;
 	GLfloat					scale = 1.0;
@@ -459,28 +485,24 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else if (target != nil && [type isEqualToString:@"binding"])
 		{
-			selector = NSSelectorFromString(binding);
-			if (selector)
+			if ([definition isKindOfClass:[NSDictionary class]])
 			{
-				if ([definition isKindOfClass:[NSDictionary class]])
+				convertOptions = 0;
+				if ([definition boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
+				if ([definition boolForKey:@"normalized" defaultValue:[definition boolForKey:@"normalised" defaultValue:NO]])
 				{
-					convertOptions = 0;
-					if ([definition boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
-					if ([definition boolForKey:@"normalized" defaultValue:[definition boolForKey:@"normalised" defaultValue:NO]])
-					{
-						convertOptions |= kOOUniformConvertNormalize;
-					}
-					if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
-					if (![definition boolForKey:@"bindToSubentity" defaultValue:NO])  convertOptions |= kOOUniformBindToSuperTarget;
+					convertOptions |= kOOUniformConvertNormalize;
 				}
-				else
-				{
-					convertOptions = kOOUniformConvertDefaults;
-				}
-				
-				[self bindUniform:name toObject:target property:selector convertOptions:convertOptions];
-				gotValue = YES;
+				if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
+				if (![definition boolForKey:@"bindToSubentity" defaultValue:NO])  convertOptions |= kOOUniformBindToSuperTarget;
 			}
+			else
+			{
+				convertOptions = kOOUniformConvertDefaults;
+			}
+			
+			[self bindSafeUniform:name toObject:target propertyNamed:binding convertOptions:convertOptions];
+			gotValue = YES;
 		}
 		
 		if (!gotValue)
@@ -632,4 +654,4 @@ static NSString *MacrosToString(NSDictionary *macros)
 	return result;
 }
 
-#endif // NO_SHADERS
+#endif	// NO_SHADERS

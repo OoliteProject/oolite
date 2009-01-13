@@ -8303,3 +8303,34 @@ NSDictionary *DefaultShipShaderMacros(void)
 	
 	return macros;
 }
+
+
+BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
+{
+	static NSSet			*entityWhitelist = nil;
+	static NSSet			*shipWhitelist = nil;
+	static NSSet			*playerShipWhitelist = nil;
+	
+	if (entityWhitelist == nil)
+	{
+		NSDictionary *wlDict = [ResourceManager whitelistDictionary];
+		entityWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_entity_binding_methods"]];
+		shipWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_ship_binding_methods"]];
+		playerShipWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_player_ship_binding_methods"]];
+	}
+	
+	if ([bindingTarget isKindOfClass:[Entity class]])
+	{
+		if ([entityWhitelist containsObject:propertyName])  return YES;
+	}
+	if ([bindingTarget isKindOfClass:[ShipEntity class]])
+	{
+		if ([shipWhitelist containsObject:propertyName])  return YES;
+	}
+	if ([bindingTarget isKindOfClass:[PlayerEntity class]])
+	{
+		if ([playerShipWhitelist containsObject:propertyName])  return YES;
+	}
+	
+	return NO;
+}
