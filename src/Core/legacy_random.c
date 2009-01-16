@@ -106,7 +106,7 @@ unsigned Ranrot(void)
 
 float randf (void)
 {
-	return (Ranrot() & 0xffff) * (1.0f / 65536.0f);
+	return (Ranrot() & 0xffff) * 0.0000152587890625f; //(1.0f / 65536.0f);
 }
 
 

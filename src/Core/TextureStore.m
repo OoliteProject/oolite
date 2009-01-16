@@ -301,8 +301,9 @@ void fillRanNoiseBuffer()
 
 float my_lerp( float v0, float v1, float q)
 {
-	float q1 = 0.5 * (1.0 + cosf((q + 1.0) * M_PI));
-	return v0 * (1.0 - q1) + v1 * q1;
+	//float q1 = 0.5 * (1.0 + cosf((q + 1.0) * M_PI));
+	//return  v0 * (1.0 - q1) + v1 * q1;
+	return (v0 + q * (v1 - v0));
 }
 
 void addNoise(float * buffer, int p, int n, float scale)
