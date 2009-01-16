@@ -903,6 +903,7 @@ static BOOL sRunningScript = NO;
 		if (comparator == COMPARISON_ONEOF)
 		{
 			rhsComponents = [expandedRHS componentsSeparatedByString:@","];
+			count = [rhsComponents count];
 			
 			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %u elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
 			
