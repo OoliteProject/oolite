@@ -30,6 +30,33 @@ MA 02110-1301, USA.
 @class OOScript;
 
 
+typedef enum
+{
+#if OBSOLETE
+	COMPARISON_NO,
+#endif
+	COMPARISON_EQUAL,
+	COMPARISON_NOTEQUAL,
+	COMPARISON_LESSTHAN,
+	COMPARISON_GREATERTHAN,
+	COMPARISON_ONEOF,
+	COMPARISON_UNDEFINED
+} OOComparisonType;
+
+
+typedef enum
+{
+	OP_STRING,
+	OP_NUMBER,
+	OP_BOOL,
+	OP_MISSION_VAR,
+	OP_LOCAL_VAR,
+	OP_FALSE,
+	
+	OP_INVALID	// Must be last.
+} OOOperationType;
+
+
 @interface PlayerEntity (Scripting)
 
 - (void) checkScript;
@@ -42,9 +69,10 @@ MA 02110-1301, USA.
 
 - (void)runScript:(NSArray *)actions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
 
-- (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity;
-- (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity;
-- (BOOL) scriptTestCondition:(NSString *) scriptCondition;
+// Test (sanitized) legacy script conditions array.
+- (BOOL) scriptTestConditions:(NSArray *)array;
+
+- (void) scriptAction:(NSString *)scriptAction onEntity:(Entity *)entity;
 
 - (NSDictionary*) missionVariables;
 
@@ -228,4 +256,4 @@ MA 02110-1301, USA.
 @end
 
 
-
+NSString *OOComparisonTypeToString(OOComparisonType type) CONST_FUNC;

@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "StationEntity.h"
 #import "Comparison.h"
+#import "OOLegacyScriptWhitelist.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
@@ -61,23 +62,6 @@ MA 02110-1301, USA.
 
 
 #define TRACE_AND_RETURN(x)	do { BOOL r = (x); TraceLog(kOOLogTraceTestConditionResult, @"      Result: %@", r ? @"YES" : @"NO"); return r; } while (0)
-
-
-typedef enum
-{
-	COMPARISON_NO,
-	COMPARISON_EQUAL,
-	COMPARISON_NOTEQUAL,
-	COMPARISON_LESSTHAN,
-	COMPARISON_GREATERTHAN,
-	COMPARISON_ONEOF,
-	COMPARISON_UNDEFINED
-} OOComparisonType;
-
-
-#if SUPPORT_TRACE_MESSAGES
-static NSString *ComparisonTypeToString(OOComparisonType type) CONST_FUNC;
-#endif
 
 
 static NSString * const kOOLogScriptAddShipsFailed			= @"script.addShips.failed";
@@ -141,6 +125,15 @@ static NSString * const kActionTempFormat					= @ ACTIONS_TEMP_PREFIX ".%u";
 static NSString		*sMissionStringValue = nil;
 static NSString		*sCurrentMissionKey = nil;
 static ShipEntity	*scriptTarget = nil;
+
+
+@interface PlayerEntity (ScriptingPrivate)
+
+- (BOOL) scriptTestCondition:(NSArray *)scriptCondition;
+- (void) checkCouplet:(NSDictionary *)couplet onEntity:(Entity *)entity;
+- (NSString *) expandScriptRightHandSide:(NSArray *)rhsComponents;
+
+@end
 
 
 @implementation PlayerEntity (Scripting)
@@ -331,7 +324,8 @@ static BOOL sRunningScript = NO;
 }
 
 
-- (BOOL) checkCouplet:(NSDictionary *) couplet onEntity:(Entity *) entity
+#if OBSOLETE
+- (void) checkCouplet:(NSDictionary *)couplet onEntity:(Entity *)entity
 {
 	NSArray				*conditions = nil;
 	NSArray				*actions = nil;
@@ -385,6 +379,50 @@ static BOOL sRunningScript = NO;
 	
 	return conditionsPassed;
 }
+#else
+- (void) checkCouplet:(NSDictionary *)couplet onEntity:(Entity *)entity
+{
+	NSArray				*conditions = nil;
+	NSString			*actionsName = nil;
+	NSArray				*actions = nil;
+	
+	conditions = [couplet arrayForKey:@"conditions"];
+	if (conditions == nil)
+	{
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR no 'conditions' in %@.", couplet);
+		return;
+	}
+	if (![conditions isKindOfClass:[NSArray class]])
+	{
+		OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"conditions = %@\" is not an array.", conditions);
+		return;
+	}
+	
+	// FIXME: preprocess scripts.
+	NS_DURING
+		conditions = OOSanitizeLegacyScriptConditions(conditions, CurrentScriptDesc());
+		
+		if ([self scriptTestConditions:conditions])  actionsName = @"do";
+		else  actionsName = @"else";
+		
+		actions = [couplet objectForKey:actionsName];
+		if (actions != nil)
+		{
+			if (![actions isKindOfClass:[NSArray class]])
+			{
+				OOLog(kOOLogSyntaxBadConditional, @"SCRIPT ERROR \"%@\" actions = %@ is not an array.", actionsName, actions);
+			}
+			else
+			{
+				PerformScriptActions(actions, entity);
+			}
+		}
+	NS_HANDLER
+		OOLog(kOOLogException, @"SCRIPT ERROR in %@ ***** EXCEPTION %@ (%@) during plist script evaluation.", CurrentScriptDesc(), [localException name], [localException reason]);
+		// Suppress
+	NS_ENDHANDLER
+}
+#endif
 
 
 - (void) scriptAction:(NSString *) scriptAction onEntity:(Entity *) entity
@@ -460,6 +498,21 @@ static BOOL sRunningScript = NO;
 }
 
 
+- (BOOL) scriptTestConditions:(NSArray *)array
+{
+	NSEnumerator		*condEnum = nil;
+	NSArray				*condition = nil;
+	
+	for (condEnum = [array objectEnumerator]; (condition = [condEnum nextObject]); )
+	{
+		if (![self scriptTestCondition:condition])  return NO;
+	}
+	
+	return YES;
+}
+
+
+#if OBSOLETE
 - (BOOL) scriptTestCondition:(NSString *) scriptCondition
 {
 	/*
@@ -496,8 +549,8 @@ static BOOL sRunningScript = NO;
 	NSString			*valueString = nil;
 	SEL					selector;
 	OOComparisonType	comparator = COMPARISON_NO;
-	unsigned			tokenCount;
-	unsigned			i, count;
+	OOUInteger			tokenCount;
+	OOUInteger			i, count;
 	NSArray				*valueStrings = nil;
 	NSNumber			*value = nil;
 	
@@ -587,7 +640,7 @@ static BOOL sRunningScript = NO;
 				 NSStringFromSelector(selector),
 				 valueString ? valueString: (NSString *)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
 				 [valueString class] ? (id)[valueString class] : (id)@"nil",
-				ComparisonTypeToString(comparator));
+				OOComparisonTypeToString(comparator));
 	
 		switch (comparator)
 		{
@@ -640,7 +693,7 @@ static BOOL sRunningScript = NO;
 					 NSStringFromSelector(selector),
 					 valueString ? valueString : (NSString *)@"nil",
 					 [valueString class] ? (id)[valueString class] : (id)@"nil",
-					 ComparisonTypeToString(comparator));
+					 OOComparisonTypeToString(comparator));
 			
 			count = [valueStrings count];
 			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %d elements: is %@ ONEOF %@", count, result, valueStrings);
@@ -668,7 +721,7 @@ static BOOL sRunningScript = NO;
 					 NSStringFromSelector(selector),
 					 value ? (id)value : (id)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
 					 [value class] ? (id)[value class] : (id)@"nil",
-					 ComparisonTypeToString(comparator));
+					 OOComparisonTypeToString(comparator));
 			
 			switch (comparator)
 			{
@@ -715,6 +768,249 @@ static BOOL sRunningScript = NO;
 	// default!
 	return NO;
 }
+#else
+
+- (BOOL) scriptTestCondition:(NSArray *)scriptCondition
+{
+	/*	Test a script condition sanitized by OOLegacyScriptWhitelist.
+		
+		A sanitized condition is an array of the form:
+			(opType, rawString, selector, comparisonType, operandArray).
+		
+		opType and comparisonType are NSNumbers containing OOOperationType and
+		OOComparisonType enumerators, respectively.
+		
+		rawString is the original textual representation of the condition for
+		display purposes.
+		
+		selector is a string, either a method selector or a mission/local
+		variable name.
+		
+		operandArray is an array of operands. Each operand is itself an array
+		of two items: a boolean indicating whether it's a method selector
+		(true) or a string (false), and a string.
+		
+		The special opType OP_FALSE doesn't require any other elements in the
+		array. All other valid opTypes require the array to have five elements.
+		
+		For performance reasons, this method assumes the script condition will
+		have been generated by OOSanitizeLegacyScriptConditions() and doesn't
+		perform extensive validity checks.
+	*/
+	
+	OOOperationType				opType;
+	NSString					*selectorString = nil;
+	SEL							selector = NULL;
+	OOComparisonType			comparator;
+	NSArray						*operandArray = nil;
+	NSString					*lhsString = nil;
+	NSString					*expandedRHS = nil;
+	NSArray						*rhsComponents = nil;
+	NSString					*rhsItem = nil;
+	OOUInteger					i, count;
+	NSCharacterSet				*whitespace = nil;
+	double						lhsValue, rhsValue;
+	BOOL						lhsFlag, rhsFlag;
+	
+	opType = [[scriptCondition objectAtIndex:0] unsignedIntValue];
+	if (opType == OP_FALSE)  return NO;
+	
+	selectorString = [scriptCondition objectAtIndex:2];
+	comparator = [[scriptCondition objectAtIndex:3] unsignedIntValue];
+	operandArray = [scriptCondition objectAtIndex:4];
+	
+	TraceLog(kOOLogTraceTestCondition, @"scriptTestCondition: \"%@\"", [scriptCondition objectAtIndex:1]);
+	
+	// Transform mission/local var ops into string ops.
+	if (opType == OP_MISSION_VAR)
+	{
+		sMissionStringValue = [mission_variables objectForKey:selectorString];
+		selector = @selector(mission_string);
+		opType = OP_STRING;
+	}
+	else if (opType == OP_LOCAL_VAR)
+	{
+		sMissionStringValue = [[self localVariablesForMission:sCurrentMissionKey] objectForKey:selectorString];
+		selector = @selector(mission_string);
+		opType = OP_STRING;
+	}
+	else
+	{
+		selector = NSSelectorFromString(selectorString);
+	}
+	
+	expandedRHS = [self expandScriptRightHandSide:operandArray];
+	
+	if (opType == OP_STRING)
+	{
+		lhsString = [self performSelector:selector];
+		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %@ (from %@) to \"%@\" with operator %@",
+				 lhsString ? [NSString stringWithFormat:@"\"%@\"", lhsString] : (NSString *)@"nil",
+				 selectorString,
+				 expandedRHS ? expandedRHS: (NSString *)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
+				OOComparisonTypeToString(comparator));
+		
+		switch (comparator)
+		{
+			case COMPARISON_UNDEFINED:
+				TRACE_AND_RETURN(lhsString == nil);
+				
+			case COMPARISON_EQUAL:
+				TRACE_AND_RETURN([lhsString isEqualToString:expandedRHS]);
+				
+			case COMPARISON_NOTEQUAL:
+				TRACE_AND_RETURN(![lhsString isEqualToString:expandedRHS]);
+				
+			case COMPARISON_LESSTHAN:
+				TRACE_AND_RETURN([lhsString doubleValue] < [expandedRHS doubleValue]);
+				
+			case COMPARISON_GREATERTHAN:
+				TRACE_AND_RETURN([lhsString doubleValue] > [expandedRHS doubleValue]);
+				
+			case COMPARISON_ONEOF:
+				{
+					rhsComponents = [expandedRHS componentsSeparatedByString:@","];
+					count = [rhsComponents count];
+					
+					TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %u elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
+					
+					whitespace = [NSCharacterSet whitespaceCharacterSet];
+					lhsString = [lhsString stringByTrimmingCharactersInSet:whitespace];
+					
+					for (i = 0; i < count; i++)
+					{
+						rhsItem = [[rhsComponents objectAtIndex:i] stringByTrimmingCharactersInSet:whitespace];
+						if ([lhsString isEqualToString:rhsItem])
+						{
+							TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (\"%@\") in ONEOF!", rhsItem);
+							TRACE_AND_RETURN(YES);
+						}
+					}
+				}
+				TRACE_AND_RETURN(NO);
+		}
+	}
+	else if (opType == OP_NUMBER)
+	{
+		lhsValue = [[self performSelector:selector] doubleValue];
+		
+		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %g (from %@) to \"%@\" with operator %@",
+				 lhsValue,
+				 selectorString,
+				 expandedRHS ? expandedRHS : (NSString *)@"nil",
+				 OOComparisonTypeToString(comparator));
+		
+		if (comparator == COMPARISON_ONEOF)
+		{
+			rhsComponents = [expandedRHS componentsSeparatedByString:@","];
+			
+			TraceLog(kOOLogTraceTestConditionOneOf, @"performing a ONEOF comparison with %u elements: is %@ ONEOF %@ ?", count, lhsString, expandedRHS);
+			
+			for (i = 0; i < count; i++)
+			{
+				rhsItem = [rhsComponents objectAtIndex:i];
+				rhsValue = [rhsItem doubleValue];
+				
+				if (lhsValue == rhsValue)
+				{
+					TraceLog(kOOLogTraceTestConditionOneOf, @"found a match (%@) in ONEOF!", rhsItem);
+					TRACE_AND_RETURN(YES);
+				}
+			}
+			
+			TraceLog(kOOLogTraceTestConditionOneOf, @"No match in ONEOF");
+			TRACE_AND_RETURN(NO);
+		}
+		else
+		{
+			rhsValue = [expandedRHS doubleValue];
+			
+			switch (comparator)
+			{
+				case COMPARISON_EQUAL:
+					TRACE_AND_RETURN(lhsValue == rhsValue);
+					
+				case COMPARISON_NOTEQUAL:
+					TRACE_AND_RETURN(lhsValue != rhsValue);
+					
+				case COMPARISON_LESSTHAN:
+					TRACE_AND_RETURN(lhsValue < rhsValue);
+					
+				case COMPARISON_GREATERTHAN:
+					TRACE_AND_RETURN(lhsValue > rhsValue);
+					
+				case COMPARISON_UNDEFINED:
+				case COMPARISON_ONEOF:
+					// "Can't happen" - undefined should have been caught by the sanitizer, oneof is handled above.
+					OOLog(@"script.error.unexpectedOperator", @"SCRIPT ERROR in %@: ***** operator %@ is not valid for numbers, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
+					TRACE_AND_RETURN(NO);
+			}
+		}
+	}
+	else if (opType == OP_BOOL)
+	{
+		lhsFlag = [[self performSelector:selector] isEqual:@"YES"];
+		rhsFlag = [expandedRHS isEqual:@"YES"];
+		
+		switch (comparator)
+		{
+			case COMPARISON_EQUAL:
+				TRACE_AND_RETURN(lhsFlag == rhsFlag);
+				
+			case COMPARISON_NOTEQUAL:
+				TRACE_AND_RETURN(lhsFlag != rhsFlag);
+				
+			case COMPARISON_LESSTHAN:
+			case COMPARISON_GREATERTHAN:
+			case COMPARISON_UNDEFINED:
+			case COMPARISON_ONEOF:
+				// "Can't happen" - should have been caught by the sanitizer.
+				OOLog(@"script.error.unexpectedOperator", @"SCRIPT ERROR in %@: ***** operator %@ is not valid for booleans, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
+				TRACE_AND_RETURN(NO);
+		}
+	}
+	
+	// What are we doing here?
+	OOLog(@"script.error.fallthrough", @"SCRIPT ERROR in %@: ***** condition handler fell through to bottom for condition \"%@\" (%@). This is an internal error, please report it.", CurrentScriptDesc(), [scriptCondition objectAtIndex:1], scriptCondition);
+	return NO;
+}
+
+
+- (NSString *) expandScriptRightHandSide:(NSArray *)rhsComponents
+{
+	NSMutableArray			*result = nil;
+	NSEnumerator			*componentEnum = nil;
+	NSArray					*component = nil;
+	NSString				*value = nil;
+	
+	result = [NSMutableArray arrayWithCapacity:[rhsComponents count]];
+	
+	for (componentEnum = [rhsComponents objectEnumerator]; (component = [componentEnum nextObject]); )
+	{
+		/*	Each component is a two-element array. The second element is a
+			string. The first element is a boolean indicating whether the
+			string is a selector (true) or a literal (false).
+			
+			All valid selectors return a string or an NSNumber; in either
+			case, -description gives us a useful value to substitute into
+			the expanded string.
+		*/
+		
+		value = [component objectAtIndex:1];
+		
+		if ([[component objectAtIndex:0] boolValue])
+		{
+			value = [[self performSelector:NSSelectorFromString(value)] description];
+			if (value == nil)  value = @"(null)";	// for backwards compatibility
+		}
+		
+		[result addObject:value];
+	}
+	
+	return [result componentsJoinedByString:@" "];
+}
+
+#endif
 
 
 - (NSDictionary *) missionVariables
@@ -2440,10 +2736,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ([couplet objectForKey:@"else"])
 		else_actions = [NSArray arrayWithObject: [couplet objectForKey:@"else"]];
 	BOOL success = YES;
-	unsigned i;
 	if (conditions == nil)
 	{
-		OOLog(@"script.scene.couplett.badConditions", @"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
+		OOLog(@"script.scene.couplet.badConditions", @"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
 	}
 	else
 	{
@@ -2455,8 +2750,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	// check conditions..
-	for (i = 0; (i < [conditions count])&&(success); i++)
-		success &= [self scriptTestCondition:[conditions stringAtIndex:i]];
+	success = [self scriptTestConditions:OOSanitizeLegacyScriptConditions(conditions, @"<scene dictionary conditions>")];
 
 	// perform successful actions...
 	if ((success) && (actions) && [actions count])
@@ -2728,12 +3022,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 @end
 
 
-#if SUPPORT_TRACE_MESSAGES
-static NSString *ComparisonTypeToString(OOComparisonType type)
+NSString *OOComparisonTypeToString(OOComparisonType type)
 {
 	switch (type)
 	{
+#if OBSOLETE
 		case COMPARISON_NO:				return @"NO";
+#endif
 		case COMPARISON_EQUAL:			return @"equal";
 		case COMPARISON_NOTEQUAL:		return @"notequal";
 		case COMPARISON_LESSTHAN:		return @"lessthan";
@@ -2743,4 +3038,3 @@ static NSString *ComparisonTypeToString(OOComparisonType type)
 	}
 	return @"<error: invalid comparison type>";
 }
-#endif

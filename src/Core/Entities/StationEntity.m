@@ -1991,19 +1991,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// NOTE: non-standard capitalization is documented and entrenched.
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
-		PlayerEntity	*player = [PlayerEntity sharedPlayer];
 		id				determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{
-			NSArray *conditions = (NSArray *)determinant;
-			BOOL success = YES;
-			unsigned i;
-			for (i = 0; (i < [conditions count])&&(success); i++)
-			{
-				success = success && [player scriptTestCondition:[conditions stringAtIndex:i]];
-			}
-			return success;
+			
+			return [[PlayerEntity sharedPlayer] scriptTestConditions:determinant];
 		}
 		else
 		{

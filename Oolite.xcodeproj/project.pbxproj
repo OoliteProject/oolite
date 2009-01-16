@@ -363,6 +363,9 @@
 		1A3ACFEC0C5FF33A00EC50A7 /* OOJSShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */; };
 		1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */; };
 		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
+		1A3C67F50F1C90BF0000D45B /* OOLegacyScriptWhitelist.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */; };
+		1A3C67F60F1C90BF0000D45B /* OOLegacyScriptWhitelist.m in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */; };
+		1A3C67FB0F1C910E0000D45B /* OOLegacyScriptWhitelist.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */; };
@@ -462,8 +465,6 @@
 		1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73712C0C623DAE0097AC37 /* OOJSStation.m */; };
 		1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7376BC0C64AE330097AC37 /* OOJSSystem.h */; };
 		1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7376BD0C64AE330097AC37 /* OOJSSystem.m */; };
-		1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */; };
-		1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */; };
 		1A7B967F0E620C9E00322821 /* OOSoundInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7B967E0E620C9E00322821 /* OOSoundInternal.h */; };
 		1A7BA8830D843485003C6CA3 /* ShipEntityScriptMethods.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */; };
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
@@ -1044,6 +1045,8 @@
 				1AAF55AC0F183C7D00A2F2E6 /* OOJSFunction.m in Copy Debug OXP */,
 				1A3159270F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.h in Copy Debug OXP */,
 				1A3159280F1B7B7E00328E4A /* OOAIStateMachineVerifierStage.m in Copy Debug OXP */,
+				1A3C67F50F1C90BF0000D45B /* OOLegacyScriptWhitelist.h in Copy Debug OXP */,
+				1A3C67F60F1C90BF0000D45B /* OOLegacyScriptWhitelist.m in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1406,6 +1409,8 @@
 		1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShip.m; sourceTree = "<group>"; };
 		1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSVector.h; sourceTree = "<group>"; };
 		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
+		1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyScriptWhitelist.h; sourceTree = "<group>"; };
+		1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyScriptWhitelist.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
 		1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLExtensionManager.m; sourceTree = "<group>"; };
 		1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlanet.h; sourceTree = "<group>"; };
@@ -1504,8 +1509,6 @@
 		1A73712C0C623DAE0097AC37 /* OOJSStation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSStation.m; sourceTree = "<group>"; };
 		1A7376BC0C64AE330097AC37 /* OOJSSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSystem.h; sourceTree = "<group>"; };
 		1A7376BD0C64AE330097AC37 /* OOJSSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSystem.m; sourceTree = "<group>"; };
-		1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyEventHandlerScript.h; sourceTree = "<group>"; };
-		1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyEventHandlerScript.m; sourceTree = "<group>"; };
 		1A7B967E0E620C9E00322821 /* OOSoundInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundInternal.h; sourceTree = "<group>"; };
 		1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityScriptMethods.h; sourceTree = "<group>"; };
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
@@ -2256,11 +2259,11 @@
 				1A5DBAA20BC000DC00D57389 /* OOScript.m */,
 				1A5DBA9E0BC000DC00D57389 /* OOPListScript.h */,
 				1A5DBA9F0BC000DC00D57389 /* OOPListScript.m */,
-				1A73795B0C65CF090097AC37 /* OOLegacyEventHandlerScript.h */,
-				1A73795C0C65CF090097AC37 /* OOLegacyEventHandlerScript.m */,
 				1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */,
 				1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */,
 				1A5DBAB50BC000E700D57389 /* JavaScript */,
+				1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */,
+				1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */,
 			);
 			path = Scripting;
 			sourceTree = "<group>";
@@ -2924,7 +2927,6 @@
 				1A736C7F0C61FD220097AC37 /* OOJSCall.h in Headers */,
 				1A73712D0C623DAE0097AC37 /* OOJSStation.h in Headers */,
 				1A7376BE0C64AE330097AC37 /* OOJSSystem.h in Headers */,
-				1A73795D0C65CF090097AC37 /* OOLegacyEventHandlerScript.h in Headers */,
 				1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */,
 				1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */,
 				1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */,
@@ -3293,7 +3295,6 @@
 				1A736C800C61FD220097AC37 /* OOJSCall.m in Sources */,
 				1A73712E0C623DAE0097AC37 /* OOJSStation.m in Sources */,
 				1A7376BF0C64AE330097AC37 /* OOJSSystem.m in Sources */,
-				1A73795E0C65CF090097AC37 /* OOLegacyEventHandlerScript.m in Sources */,
 				1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */,
 				1ACEA34A0C91507000C7CE97 /* OORoleSet.m in Sources */,
 				1ACEA6C00C91DA3E00C7CE97 /* OOJSGlobal.m in Sources */,
@@ -3346,6 +3347,7 @@
 				1ABC03EE0EF86110003B740A /* OOCrosshairs.m in Sources */,
 				1ABC47FF0F155F0500B977AD /* OOJSFunction.m in Sources */,
 				1A3159590F1B894F00328E4A /* OOAIStateMachineVerifierStage.m in Sources */,
+				1A3C67FB0F1C910E0000D45B /* OOLegacyScriptWhitelist.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

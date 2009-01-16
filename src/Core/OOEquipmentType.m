@@ -51,6 +51,7 @@ SOFTWARE.
 #import "OOEquipmentType.h"
 #import "Universe.h"
 #import "OOCollectionExtractors.h"
+#import "OOLegacyScriptWhitelist.h"
 
 
 static NSArray			*sEquipmentTypes = nil;
@@ -121,6 +122,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 {
 	BOOL				OK = YES;
 	NSDictionary		*extra = nil;
+	NSArray				*conditions = nil;
 	
 	self = [super init];
 	if (self == nil)  OK = NO;
@@ -204,11 +206,16 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			}
 			
 			object = [extra objectForKey:@"conditions"];
-			if ([object isKindOfClass:[NSString class]])  _conditions = [[NSArray arrayWithObject:object] retain];
-			else if ([object isKindOfClass:[NSArray class]])  _conditions = [object retain];
+			if ([object isKindOfClass:[NSString class]])  conditions = [[NSArray arrayWithObject:object] retain];
+			else if ([object isKindOfClass:[NSArray class]])  conditions = [object retain];
 			else if (object != nil)
 			{
 				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"conditions", _identifier);
+			}
+			if (conditions != nil)
+			{
+				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"equipment type \"%@\"", _name]);
+				[_conditions retain];
 			}
 		}
 	}

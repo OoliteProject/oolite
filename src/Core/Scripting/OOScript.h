@@ -54,9 +54,6 @@ MA 02110-1301, USA.
 //	Load a single JavaScript script. Or, y'know, a future-scripting-language script.
 + (id)nonLegacyScriptFromFileNamed:(NSString *)fileName properties:(NSDictionary *)properties;
 
-//	Convert one or more plist script actions to a script with event handlers.
-+ (id)scriptWithLegacyEventHandlers:(NSDictionary *)handlers forOwner:(Entity *)owner;
-
 - (void)resetState;	// Clear local variables, for instance.
 
 - (NSString *)name;

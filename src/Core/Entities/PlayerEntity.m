@@ -5721,19 +5721,7 @@ static int last_outfitting_index;
 	if (![super canAddEquipment:equipmentKey])  return NO;
 	
 	NSArray *conditions = [[OOEquipmentType equipmentTypeWithIdentifier:equipmentKey] conditions];
-	if (conditions != nil)
-	{
-		NSEnumerator	*condEnum = nil;
-		NSString		*condition = nil;
-		
-		for (condEnum = [conditions objectEnumerator]; (condition = [condEnum nextObject]); )
-		{
-			if ([condition isKindOfClass:[NSString class]])
-			{
-				if (![self scriptTestCondition:condition])  return NO;
-			}
-		}
-	}
+	if (conditions != nil && ![self scriptTestConditions:conditions])  return NO;
 	
 	return YES;
 }

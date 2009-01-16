@@ -377,15 +377,15 @@ static NSMutableDictionary *string_cache;
 	NSString			*path = nil;
 	id					modDate = nil;
 	
-	if ([[UNIVERSE gameView] pollShiftKey])
-	{
-		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
-		upToDate = NO;
-	}
-	
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"always-flush-cache"])
 	{
 		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with always-flush-cache preference. Rebuilding from scratch.");
+		upToDate = NO;
+	}
+	
+	if (upToDate && [[UNIVERSE gameView] pollShiftKey])
+	{
+		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
 		upToDate = NO;
 	}
 	

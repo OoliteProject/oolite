@@ -2834,15 +2834,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (BOOL) canInstantiateShip:(NSString *)shipKey
 {
-	PlayerEntity			*player = nil;
 	NSDictionary			*shipInfo = nil;
+	NSArray					*conditions = nil;
 	
 	shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-	if ([shipInfo objectForKey:@"conditions"] == nil)  return YES;
+	conditions = [shipInfo arrayForKey:@"conditions"];
+	if (conditions == nil)  return YES;
 	
 	// Check conditions
-	player = [PlayerEntity sharedPlayer];
-	return [player checkCouplet:shipInfo onEntity:player];
+	return [[PlayerEntity sharedPlayer] scriptTestConditions:conditions];
 }
 
 
@@ -7024,10 +7024,11 @@ double estimatedTimeForJourney(double distance, int hops)
 			//eliminate any ships that fail a 'conditions test'
 			NSString		*key = [keysForShips stringAtIndex:si];
 			NSDictionary	*dict = [registry shipyardInfoForKey:key];
-			if ([dict objectForKey:@"conditions"])
+			NSArray			*conditions = [dict arrayForKey:@"conditions"];
+			
+			if (![player scriptTestConditions:conditions])
 			{
-				if (![player checkCouplet:dict onEntity:player])
-					[keysForShips removeObjectAtIndex:si--];
+				[keysForShips removeObjectAtIndex:si--];
 			}
 		}
 		

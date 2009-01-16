@@ -217,7 +217,6 @@
 	
 	query_methods =
 	(
-		"mission_string",
 		"status_string",
 		"gui_screen_string",
 		"galaxy_number",

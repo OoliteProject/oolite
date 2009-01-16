@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "OOScript.h"
 #import "OOJSScript.h"
 #import "OOPListScript.h"
-#import "OOLegacyEventHandlerScript.h"
 #import "OOLogging.h"
 #import "Universe.h"
 #import "OOJavaScriptEngine.h"
@@ -210,12 +209,6 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	
 	OOLog(@"script.load.badName", @"***** Don't know how to load a script from %@.", fileName);
 	return nil;
-}
-
-
-+ (id)scriptWithLegacyEventHandlers:(NSDictionary *)handlers forOwner:(Entity *)owner
-{
-	return [[[OOLegacyEventHandlerScript alloc] initWithEventHandlers:handlers forOwner:owner] autorelease];
 }
 
 
