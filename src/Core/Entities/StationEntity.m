@@ -1494,7 +1494,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (defense_ship_key != nil)
 	{
 		defense_ship = [UNIVERSE newShipWithName:defense_ship_key];
-		defense_ship_ai = nil;
 	}
 	if (!defense_ship)
 	{
