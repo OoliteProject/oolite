@@ -4565,6 +4565,14 @@ static PlayerEntity *sSharedPlayer = nil;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS];
 		
+#ifdef ALLOW_PROCEDURAL_PLANETS
+		if ([UNIVERSE doProcedurallyTexturedPlanets])
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no") forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS align:GUI_ALIGN_CENTER];
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS];
+#endif
+		
 		if ([UNIVERSE reducedDetail])
 			[gui setText:DESC(@"gameoptions-reduced-detail-yes") forRow:GUI_ROW_GAMEOPTIONS_DETAIL align:GUI_ALIGN_CENTER];
 		else

@@ -854,6 +854,8 @@
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
+	"gameoptions-procedurally-textured-planets-yes"	= " Procedurally Textured Planets: On ";
+	"gameoptions-procedurally-textured-planets-no"	= " Procedurally Textured Planets: Off ";
 	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";

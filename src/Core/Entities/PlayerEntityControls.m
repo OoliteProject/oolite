@@ -1166,7 +1166,7 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 #endif
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#ifdef ALLOW_PROCEDURAL_PLANETS_AS_DEBUG_FLAG
 		if ([gameView isDown:'t'])// look for the 't' key
 		{
 			[UNIVERSE setDoProcedurallyTexturedPlanets: YES];
@@ -1196,7 +1196,7 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
 #endif	// NDEBUG
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#ifdef ALLOW_PROCEDURAL_PLANETS_AS_DEBUG_FLAG
 			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
 			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
 #endif	// ALLOW_PROCEDURAL_PLANETS
@@ -2036,6 +2036,19 @@ static NSTimeInterval	time_last_frame;
 		else
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
 	}
+	
+#ifdef ALLOW_PROCEDURAL_PLANETS
+	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	{
+		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE doProcedurallyTexturedPlanets])
+			[self playChangedOption];
+		[UNIVERSE setDoProcedurallyTexturedPlanets:[gameView isDown:gvArrowKeyRight]];
+		if ([UNIVERSE doProcedurallyTexturedPlanets])
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes")  forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS  align:GUI_ALIGN_CENTER];
+		else
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS  align:GUI_ALIGN_CENTER];
+	}
+#endif
 	
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{

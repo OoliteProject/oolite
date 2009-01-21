@@ -140,6 +140,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	no_update = NO;
 	
+#ifdef ALLOW_PROCEDURAL_PLANETS	
+	doProcedurallyTexturedPlanets = NO;
+#endif
+	
 	OOCPUInfoInit();
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
@@ -293,10 +297,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	entitiesDeadThisUpdate = [[NSMutableArray alloc] init];
 	
 	framesDoneThisUpdate = 0;
-	
-#ifdef ALLOW_PROCEDURAL_PLANETS	
-	doProcedurallyTexturedPlanets = NO;
-#endif
 	
 	OOInitDebugSupport();
 	
