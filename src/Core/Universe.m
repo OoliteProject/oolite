@@ -140,10 +140,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	no_update = NO;
 	
-#ifdef ALLOW_PROCEDURAL_PLANETS	
-	doProcedurallyTexturedPlanets = NO;
-#endif
-	
 	OOCPUInfoInit();
 	
 	// init OpenGL extension manager (must be done before any other threads might use it)
@@ -161,6 +157,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
+#ifdef ALLOW_PROCEDURAL_PLANETS	
+	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
+#endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
 	
@@ -371,7 +370,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value
 {
-	doProcedurallyTexturedPlanets = value;
+	doProcedurallyTexturedPlanets = !!value;	// ensure yes or no
+	[[NSUserDefaults standardUserDefaults] setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
 }
 #endif
 
