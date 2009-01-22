@@ -157,7 +157,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
-#if (defined (ALLOW_PROCEDURAL_PLANETS) || defined (ALLOW_PROCEDURAL_PLANETS_AS_DEBUG_FLAG))
+#ifdef ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;

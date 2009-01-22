@@ -1166,13 +1166,6 @@ static NSTimeInterval	time_last_frame;
 		}
 		
 #endif
-#ifdef ALLOW_PROCEDURAL_PLANETS_AS_DEBUG_FLAG
-		if ([gameView isDown:'t'])// look for the 't' key
-		{
-			[UNIVERSE setDoProcedurallyTexturedPlanets: YES];
-			[UNIVERSE addMessage:@"Procedural Textures On" forCount:3];
-		}
-#endif
 		
 		if ([gameView isDown:'s'])// look for the 's' key
 		{
@@ -1196,10 +1189,6 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
 #endif	// NDEBUG
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
-#ifdef ALLOW_PROCEDURAL_PLANETS_AS_DEBUG_FLAG
-			[UNIVERSE setDoProcedurallyTexturedPlanets: NO];
-			[UNIVERSE addMessage:@"Procedural textures OFF" forCount:3];
-#endif	// ALLOW_PROCEDURAL_PLANETS
 		}
 	}
 	
