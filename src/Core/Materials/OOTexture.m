@@ -494,7 +494,7 @@ static BOOL		sRectangleTextureAvailable;
 	_options = options;
 	
 #if GL_EXT_texture_filter_anisotropic
-	_anisotropy = OOClamp_0_1_f(_anisotropy) * sAnisotropyScale;
+	_anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
 #endif
 #if GL_EXT_texture_lod_bias
 	_lodBias = inLodBias;
@@ -667,7 +667,7 @@ static BOOL		sRectangleTextureAvailable;
 #if GL_EXT_texture_filter_anisotropic
 	sAnisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &sAnisotropyScale);
-	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] floatForKey:@"texture-anisotropy-bias" defaultValue:1.0]);
+	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
 #endif
 	
 #ifdef GL_CLAMP_TO_EDGE
