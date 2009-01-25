@@ -149,8 +149,6 @@ MA 02110-1301, USA.
 - (void) scanForNonThargoid;
 - (void) becomeUncontrolledThargon;
 
-- (void) initialiseTurret;
-
 - (void) checkDistanceTravelled;
 
 - (void) fightOrFleeHostiles;
@@ -1132,14 +1130,6 @@ static WormholeEntity *whole = nil;
 }
 
 
-- (void) initialiseTurret
-{
-	[self setBehaviour: BEHAVIOUR_TRACK_AS_TURRET];
-	weapon_recharge_rate = 0.5;	// test
-	[self setStatus: STATUS_ACTIVE];
-}
-
-
 - (void) checkDistanceTravelled
 {
 	if (distanceTravelled > desired_range)
@@ -1960,7 +1950,9 @@ static WormholeEntity *whole = nil;
 	{
 		oldTarget = [player scriptTarget];
 		[player setScriptTarget:(ShipEntity*)targEnt];
-		[player scriptAction:action onEntity:targEnt];
+		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
+							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
+								  forTarget:targEnt];
 		[player checkScript];	// react immediately to any changes this makes
 		[player setScriptTarget:oldTarget];
 	}
@@ -1977,7 +1969,9 @@ static WormholeEntity *whole = nil;
 	{
 		oldTarget = [player scriptTarget];
 		[player setScriptTarget:(ShipEntity*)targEnt];
-		[player scriptAction:action onEntity:targEnt];
+		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
+							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
+								  forTarget:targEnt];
 		[player setScriptTarget:oldTarget];
 	}
 }

@@ -746,21 +746,18 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	PlayerEntity*		player = [PlayerEntity sharedPlayer];
 	Quaternion			randomQ;
 	
-	NSMutableDictionary*	systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
+	NSMutableDictionary *systeminfo = [NSMutableDictionary dictionaryWithCapacity:4];
 
-	if (player)
-	{
-		Random_Seed		s1 = player->system_seed;
-		Random_Seed		s2 = player->target_system_seed;
-		NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
-		
-		// check at this point
-		// for scripted overrides for this insterstellar area
-		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
-		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:@"interstellar space"]];
-		[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:override_key]];
-		[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides dictionaryForKey:override_key]];
-	}
+	Random_Seed		s1 = player->system_seed;
+	Random_Seed		s2 = player->target_system_seed;
+	NSString*		override_key = [self keyForInterstellarOverridesForSystemSeeds:s1 :s2 inGalaxySeed:galaxy_seed];
+	
+	// check at this point
+	// for scripted overrides for this insterstellar area
+	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
+	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:@"interstellar space"]];
+	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:override_key]];
+	[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides dictionaryForKey:override_key]];
 	
 	[universeRegion clearSubregions];
 	
@@ -825,7 +822,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 			[thargoid setStatus:STATUS_IN_FLIGHT];
 			[self addEntity:thargoid];
 			if (thargoid_group == NO_TARGET)
+			{
 				thargoid_group = [thargoid universalID];
+			}
 			
 			[thargoid setGroupID:thargoid_group];
 			
@@ -835,7 +834,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
-	if (script_actions != nil)  [player scriptActions:script_actions forTarget: nil];
+	if (script_actions != nil)
+	{
+		[player runUnsanitizedScriptActions:script_actions
+							withContextName:@"witchspace script_actions"
+								  forTarget:nil];
+	}
 	
 	OOLogOutdentIf(kOOLogUniversePopulateWitchspace);
 }
@@ -1129,7 +1133,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
-		[[PlayerEntity sharedPlayer] scriptActions:script_actions forTarget:nil];
+		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
+							withContextName:@"system script_actions"
+								  forTarget:nil];
 	}
 }
 

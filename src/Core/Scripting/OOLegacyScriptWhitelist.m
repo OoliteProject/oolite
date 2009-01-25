@@ -31,9 +31,53 @@ MA 02110-1301, USA.
 
 
 static NSArray *SanitizeCondition(NSString *condition, NSString *context);
-static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedMethod);
-static NSString *SanitizeQueryMethod(NSString *selectorString);	// Checks aliases and whitelist, returns nil if whitelist fails.
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context);
+static NSArray *SanitizeActionStatement(NSString *statement, NSString *context);
+static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedMethod, NSString *context);
+static NSString *SanitizeQueryMethod(NSString *selectorString);		// Checks aliases and whitelist, returns nil if whitelist fails.
+static NSString *SanitizeActionMethod(NSString *selectorString);	// Checks aliases and whitelist, returns nil if whitelist fails.
 static NSArray *AlwaysFalseConditions(void);
+static BOOL IsAlwaysFalseConditions(NSArray *conditions);
+
+
+NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context)
+{
+	NSAutoreleasePool			*pool = nil;
+	NSMutableArray				*result = nil;
+	NSEnumerator				*statementEnum = nil;
+	id							statement = nil;
+	
+	pool = [[NSAutoreleasePool alloc] init];
+	
+	result = [NSMutableArray arrayWithCapacity:[script count]];
+	
+	for (statementEnum = [script objectEnumerator]; (statement = [statementEnum nextObject]); )
+	{
+		if ([statement isKindOfClass:[NSDictionary class]])
+		{
+			statement = SanitizeConditionalStatement(statement, context);
+		}
+		else if ([statement isKindOfClass:[NSString class]])
+		{
+			statement = SanitizeActionStatement(statement, context);
+		}
+		else
+		{
+			OOLog(@"script.syntax.statement.invalidType", @"SCRIPT ERROR in %@ ***** Statment is of invalid type - expected string or dictionary, got %@.", context, [statement class]);
+			statement = nil;
+		}
+		
+		if (statement != nil)
+		{
+			[result addObject:statement];
+		}
+	}
+	
+	result = [result copy];
+	[pool release];
+	
+	return [result autorelease];
+}
 
 
 NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context)
@@ -108,7 +152,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 	
 	// Parse left-hand side.
 	selectorString = [tokens stringAtIndex:0];
-	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString);
+	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, context);
 	if (opType >= OP_INVALID)
 	{
 		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\".", context, selectorString);
@@ -221,7 +265,87 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 }
 
 
-static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedSelector)
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context)
+{
+	NSArray					*conditions = nil;
+	NSArray					*doActions = nil;
+	NSArray					*elseActions = nil;
+	
+	conditions = [statement arrayForKey:@"conditions"];
+	if (conditions == nil)
+	{
+		OOLog(@"script.syntax.noConditions", @"SCRIPT ERROR in %@ ***** Conditions array contains no \"conditions\" entry, ignoring.", context);
+		return nil;
+	}
+	
+	// Sanitize conditions.
+	conditions = OOSanitizeLegacyScriptConditions(conditions, context);
+	if (conditions == nil)
+	{
+		return nil;
+	}
+	
+	// Sanitize do and else.
+	if (!IsAlwaysFalseConditions(conditions))  doActions = [statement arrayForKey:@"do"];
+	if (doActions != nil)  doActions = OOSanitizeLegacyScript(doActions, context);
+	
+	elseActions = [statement arrayForKey:@"else"];
+	if (elseActions != nil)  elseActions = OOSanitizeLegacyScript(elseActions, context);
+	
+	// If neither does anything, the statment has no effect.
+	if ([doActions count] == 0 && [elseActions count] == 0)
+	{
+		return nil;
+	}
+	
+	if (doActions == nil)  doActions = [NSArray array];
+	if (elseActions == nil)  elseActions = [NSArray array];
+	
+	return [NSArray arrayWithObjects:[NSNumber numberWithBool:YES], conditions, doActions, elseActions, nil];
+}
+
+
+static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
+{
+	NSMutableArray				*tokens = nil;
+	OOUInteger					tokenCount;
+	NSString					*rawSelectorString = nil;
+	NSString					*selectorString = nil;
+	NSString					*argument = nil;
+	
+	tokens = ScanTokensFromString(statement);
+	tokenCount = [tokens count];
+	if (tokenCount == 0)  return nil;
+	
+	rawSelectorString = [tokens objectAtIndex:0];
+	selectorString = SanitizeActionMethod(rawSelectorString);
+	if (selectorString == nil)
+	{
+		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\". In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com.", context, rawSelectorString);
+		
+	//	return nil;
+		selectorString = rawSelectorString;
+	}
+	
+	if ([selectorString hasSuffix:@":"])
+	{
+		// Expects an argument
+		if (tokenCount == 2)
+		{
+			argument = [tokens objectAtIndex:1];
+		}
+		else
+		{
+			[tokens removeObjectAtIndex:0];
+			argument = [tokens componentsJoinedByString:@" "];
+		}
+	}
+	
+	return [NSArray arrayWithObjects:[NSNumber numberWithBool:NO], selectorString, argument, nil];
+}
+
+
+static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedSelector, NSString *context)
 {
 	assert(outSanitizedSelector != NULL);
 	
@@ -233,7 +357,13 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	
 	// If it's a real method, check against whitelist.
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
-	if (*outSanitizedSelector == nil)  return OP_INVALID;
+	if (*outSanitizedSelector == nil)
+	{
+		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\". In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com.", context, selectorString);
+		
+		// return OP_INVALID;
+		*outSanitizedSelector = selectorString;
+	}
 	
 	// If it's a real method, and in the whitelist, classify by suffix.
 	if ([selectorString hasSuffix:@"_string"])  return OP_STRING;
@@ -248,27 +378,68 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 
 static NSString *SanitizeQueryMethod(NSString *selectorString)
 {
-	static NSSet				*queryWhitelist = nil;
-	static NSDictionary			*queryAliases = nil;
+	static NSSet				*whitelist = nil;
+	static NSDictionary			*aliases = nil;
 	NSString					*aliasedSelector = nil;
 	
-	if (queryWhitelist == nil)
+	if (whitelist == nil)
 	{
-		queryWhitelist = [[NSSet alloc] initWithArray:[[ResourceManager whitelistDictionary] arrayForKey:@"query_methods"]];
-		queryAliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"query_method_aliases"] retain];
+		whitelist = [[NSSet alloc] initWithArray:[[ResourceManager whitelistDictionary] arrayForKey:@"query_methods"]];
+		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"query_method_aliases"] retain];
 	}
 	
-	aliasedSelector = [queryAliases stringForKey:selectorString];
+	aliasedSelector = [aliases stringForKey:selectorString];
 	if (aliasedSelector != nil)  selectorString = aliasedSelector;
 	
-	if (![queryWhitelist containsObject:selectorString])  selectorString = nil;
+	if (![whitelist containsObject:selectorString])  selectorString = nil;
 	
 	return selectorString;
 }
 
 
+static NSString *SanitizeActionMethod(NSString *selectorString)
+{
+	static NSSet				*whitelist = nil;
+	static NSDictionary			*aliases = nil;
+	NSString					*aliasedSelector = nil;
+	NSArray						*whitelistArray1 = nil;
+	NSArray						*whitelistArray2 = nil;
+	
+	if (whitelist == nil)
+	{
+		whitelistArray1 = [[ResourceManager whitelistDictionary] arrayForKey:@"action_methods"];
+		if (whitelistArray1 == nil)  whitelistArray1 = [NSArray array];
+		whitelistArray2 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
+		if (whitelistArray2 != nil)  whitelistArray1 = [whitelistArray1 arrayByAddingObjectsFromArray:whitelistArray2];
+		
+		whitelist = [[NSSet alloc] initWithArray:whitelistArray1];
+		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"action_method_aliases"] retain];
+	}
+	
+	aliasedSelector = [aliases stringForKey:selectorString];
+	if (aliasedSelector != nil)  selectorString = aliasedSelector;
+	
+	if (![whitelist containsObject:selectorString])  selectorString = nil;
+	
+	return selectorString;
+}
+
+
+//	Return a conditions array that always evaluates as false.
 static NSArray *AlwaysFalseConditions(void)
 {
-	//	Return a conditions array that always evaluates as false.
-	return [NSArray arrayWithObject:[NSArray arrayWithObject:[NSNumber numberWithUnsignedInt:OP_FALSE]]];
+	static NSArray *alwaysFalse = nil;
+	if (alwaysFalse != nil)
+	{
+		alwaysFalse = [NSArray arrayWithObject:[NSArray arrayWithObject:[NSNumber numberWithUnsignedInt:OP_FALSE]]];
+		[alwaysFalse retain];
+	}
+	
+	return alwaysFalse;
+}
+
+
+static BOOL IsAlwaysFalseConditions(NSArray *conditions)
+{
+	return [[conditions arrayAtIndex:0] unsignedIntAtIndex:0] == OP_FALSE;
 }

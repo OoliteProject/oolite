@@ -66,7 +66,10 @@
 		"setGuiToMissionScreen",
 	//	"setBackgroundFromDescriptionsKey:",	// Is this ever used from a script? It seems a bad match for future plans of mine. -- Ahruman
 		"setGalacticHyperspaceBehaviourTo:",
-		"setGalacticHyperspaceFixedCoordsTo:"
+		"setGalacticHyperspaceFixedCoordsTo:",
+		
+		// ShipEntity.m
+		"initialiseTurret"
 	);
 	ai_methods =
 	(
@@ -99,8 +102,6 @@
 		"setCourseToPlanet",
 		"setTakeOffFromPlanet",
 		"landOnPlanet",
-		"setAITo:",
-		"switchAITo:",
 		"checkTargetLegalStatus",
 		"exitAI",
 		"setDestinationToTarget",
@@ -122,7 +123,6 @@
 		"scanForThargoid",
 		"scanForNonThargoid",
 		"becomeUncontrolledThargon",
-		"initialiseTurret",
 		"checkDistanceTravelled",
 		"scanForHostiles",
 		"fightOrFleeHostiles",
@@ -210,6 +210,11 @@
 		"switchLightsOn",
 		"switchLightsOff",
 		"doNothing",
+		"spawn:",
+		
+		// ShipEntityAI.m
+		"setAITo:",
+		"switchAITo:",
 		
 		// PlayerEntityLegacyScriptEngine.m
 		"targetNearestHostile",

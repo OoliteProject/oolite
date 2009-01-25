@@ -6515,6 +6515,12 @@ static int last_outfitting_index;
 }
 
 
+- (void) initialiseTurret
+{
+	OOLog(@"script.invalid", @"SCRIPT ERROR: attempt to call initialiseTurret for player.");
+}
+
+
 #ifdef DOCKING_CLEARANCE_ENABLED
 - (BOOL)clearedToDock
 {

@@ -209,7 +209,7 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 		if (location == -1)
 		{
 			OK = NO;
-			OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %s] (no uniform of that name could be found).", uniformName, [target class], selector);
+			OOLog(@"shader.uniform.bind.failed", @"Could not bind uniform \"%@\" to -[%@ %@] (no uniform of that name could be found).", uniformName, [target class], NSStringFromSelector(selector));
 		}
 	}
 	

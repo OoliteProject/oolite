@@ -939,7 +939,9 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	}
 	
 	[player setScriptTarget:thisEnt];
-	[player scriptActions:actions forTarget:target];
+	[player runUnsanitizedScriptActions:actions
+						withContextName:[NSString stringWithFormat:@"ship \"%@\" legacy actions", [thisEnt name]]
+							  forTarget:target];
 	
 	return YES;
 }

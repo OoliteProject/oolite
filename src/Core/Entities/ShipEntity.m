@@ -4146,6 +4146,15 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
+// Exposed to script actions
+- (void) initialiseTurret
+{
+	[self setBehaviour: BEHAVIOUR_TRACK_AS_TURRET];
+	weapon_recharge_rate = 0.5;	// test
+	[self setStatus: STATUS_ACTIVE];
+}
+
+
 // Exposed to AI
 - (void) dealEnergyDamageWithinDesiredRange
 {
@@ -7206,9 +7215,11 @@ BOOL class_masslocks(int some_class)
 - (void) enterDock:(StationEntity *)station
 {
 	// throw these away now we're docked...
-	if (dockingInstructions)
+	if (dockingInstructions != nil)
+	{
 		[dockingInstructions autorelease];
-	dockingInstructions = nil;
+		dockingInstructions = nil;
+	}
 	
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
 	[self doScriptEvent:@"shipDockedWithStation" withArgument:station];
@@ -7901,6 +7912,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 }
 
 
+// Exposed to AI and legacy scripts.
 - (void) spawn:(NSString *)roles_number
 {
 	NSArray		*tokens = ScanTokensFromString(roles_number);

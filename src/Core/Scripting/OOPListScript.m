@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOPListScript.h"
 #import "OOPListParsing.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "OOLegacyScriptWhitelist.h"
 
 
 static NSString * const kMDKeyName			= @"name";
@@ -90,7 +91,9 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 	OOLog(@"script.trace.plist.run", @"Running script %@", [self displayName]);
 	OOLogIndentIf(@"script.trace.plist.run");
 	
-	[[PlayerEntity sharedPlayer] runScript:_script withName:[self name] forTarget:(ShipEntity *)target];
+	[[PlayerEntity sharedPlayer] runScriptActions:_script
+								  withContextName:[self name]
+										forTarget:(ShipEntity *)target];
 	
 	OOLogOutdentIf(@"script.trace.plist.run");
 }
@@ -127,10 +130,14 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 			[scriptArray isKindOfClass:[NSArray class]] &&
 			![key isEqual:kKeyMetadata])
 		{
-			script = [[self alloc] initWithName:key scriptArray:scriptArray metadata:metadata];
-			if (script != nil)
+			scriptArray = OOSanitizeLegacyScript(scriptArray, key);
+			if (scriptArray != nil)
 			{
-				[result addObject:script];
+				script = [[self alloc] initWithName:key scriptArray:scriptArray metadata:metadata];
+				if (script != nil)
+				{
+					[result addObject:script];
+				}
 			}
 		}
 	}

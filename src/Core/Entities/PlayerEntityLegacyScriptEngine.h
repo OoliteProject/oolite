@@ -32,9 +32,6 @@ MA 02110-1301, USA.
 
 typedef enum
 {
-#if OBSOLETE
-	COMPARISON_NO,
-#endif
 	COMPARISON_EQUAL,
 	COMPARISON_NOTEQUAL,
 	COMPARISON_LESSTHAN,
@@ -64,15 +61,11 @@ typedef enum
 - (void) setScriptTarget:(ShipEntity *)ship;
 - (ShipEntity*) scriptTarget;
 
-- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target;
-- (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target missionKey:(NSString *)missionKey;
-
-- (void)runScript:(NSArray *)actions withName:(NSString *)scriptName forTarget:(ShipEntity *)target;	// Hook for OOPListScript
+- (void) runScriptActions:(NSArray *)sanitizedActions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target;
+- (void) runUnsanitizedScriptActions:(NSArray *)unsanitizedActions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target;
 
 // Test (sanitized) legacy script conditions array.
 - (BOOL) scriptTestConditions:(NSArray *)array;
-
-- (void) scriptAction:(NSString *)scriptAction onEntity:(Entity *)entity;
 
 - (NSDictionary*) missionVariables;
 
@@ -107,7 +100,7 @@ typedef enum
 - (NSNumber *) clock_hours_number;		// returns the game time in hours
 - (NSNumber *) clock_days_number;		// returns the game time in days
 
-- (NSNumber *) fuel_level_number;		// returns the fuel level in LY
+- (NSNumber *) fuelLevel_number;		// returns the fuel level in LY
 
 - (NSString *) dockedAtMainStation_bool;
 - (NSString *) foundEquipment_bool;
@@ -222,7 +215,7 @@ typedef enum
 - (void) setMissionImage: (NSString *)value;
 
 - (void) setFuelLeak: (NSString *)value;
-- (NSNumber *)fuel_leak_rate_number;
+- (NSNumber *)fuelLeakRate_number;
 - (void) setSunNovaIn: (NSString *)time_value;
 - (void) launchFromStation;
 - (void) blowUpStation;

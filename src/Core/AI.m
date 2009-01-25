@@ -778,7 +778,7 @@ static AI *sCurrentlyRunningAI = nil;
 		// Check for selector in whitelist.
 		if (![whitelist containsObject:selector])
 		{
-			OOLog(@"ai.unpermittedMethod", @"Handler \"%@\" for state \"%@\" in AI \"%@\" uses \"%@\", which is not a permitted AI method."/*" In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com."*/, handlerKey, stateKey, smName, selector);
+			OOLog(@"ai.unpermittedMethod", @"Handler \"%@\" for state \"%@\" in AI \"%@\" uses \"%@\", which is not a permitted AI method. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com.", handlerKey, stateKey, smName, selector);
 			// continue;
 		}
 		
