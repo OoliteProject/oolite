@@ -55,8 +55,6 @@ MA 02110-1301, USA.
 	GLfloat			ring_inner_radius, ring_outer_radius;
 	
 	int				particle_type;
-	
-	GLfloat			alpha_for_vertex[MAX_VERTICES_PER_ENTITY];
 		
 	NSSize			size;
 
