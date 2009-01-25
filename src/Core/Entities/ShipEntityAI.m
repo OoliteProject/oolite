@@ -1844,7 +1844,6 @@ static WormholeEntity *whole = nil;
 	
 	StationEntity	*station =  nil;
 	Entity			*targStation = nil;
-	NSMutableArray	*allStations = nil;
 	NSString		*message = nil;
 	
 	targStation = [UNIVERSE entityForUniversalID:targetStation];
@@ -1854,11 +1853,9 @@ static WormholeEntity *whole = nil;
 	}
 	else
 	{
-		allStations = [UNIVERSE findShipsMatchingPredicate:IsStationPredicate
-												 parameter:nil
-												   inRange:SCANNER_MAX_RANGE2 * 1000000.0 // 1000x scanner range (25600 km), squared.
-												  ofEntity:self];
-		if ([allStations count] != 0)  station = [allStations objectAtIndex:0];
+		station = [UNIVERSE nearestShipMatchingPredicate:IsStationPredicate
+												parameter:nil
+												relativeToEntity:self];
 	}
 	
 	if (station != nil)
