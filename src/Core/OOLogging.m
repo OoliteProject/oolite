@@ -117,7 +117,6 @@ static BOOL						sShowFunction = NO;
 static BOOL						sShowFileAndLine = NO;
 static BOOL						sShowClass = YES;
 static BOOL						sDefaultDisplay = YES;
-static BOOL						sShowApplication = NO;
 static BOOL						sOverrideInEffect = NO;
 static BOOL						sOverrideValue = NO;
 
@@ -459,22 +458,6 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 			}
 		}
 		
-		if (sShowApplication)
-		{
-			if (sShowClass)
-			{
-				formattedMessage = [NSString stringWithFormat:@"%@ %@", APPNAME, formattedMessage];
-			}
-			else if (sShowFunction || sShowFileAndLine)
-			{
-				formattedMessage = [NSString stringWithFormat:@"%@ - %@", APPNAME, formattedMessage];
-			}
-			else
-			{
-				formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
-			}
-		}
-		
 		// Apply indentation
 		indentLevel = GetIndentLevel();
 		if (indentLevel != 0)
@@ -513,24 +496,6 @@ void OOLogGenericParameterErrorForFunction(const char *inFunction)
 void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction)
 {
 	OOLog(kOOLogSubclassResponsibility, @"***** %s is a subclass responsibility. (This is an internal programming error, please report it.)", inFunction);
-}
-
-
-BOOL OOLogShowApplicationName(void)
-{
-	return sShowApplication;
-}
-
-
-void OOLogSetShowApplicationName(BOOL flag)
-{
-	flag = !!flag;	// YES or NO, not 42.
-	
-	if (flag != sShowApplication)
-	{
-		sShowApplication = flag;
-		[[NSUserDefaults standardUserDefaults] setBool:flag forKey:@"logging-show-app-name"];
-	}
 }
 
 
@@ -676,7 +641,6 @@ static void OOLogInternal_(const char *inFunction, NSString *inFormat, ...)
 		va_end(args);
 		
 		formattedMessage = [NSString stringWithFormat:@"OOLogging internal - %s: %@", inFunction, formattedMessage];
-		if (sShowApplication) formattedMessage = [NSString stringWithFormat:@"%@: %@", APPNAME, formattedMessage];
 		
 		OOLogOutputHandlerPrint(formattedMessage);
 	NS_HANDLER
@@ -757,7 +721,6 @@ static void LoadExplicitSettings(void)
 	}
 	
 	// Load display settings
-	sShowApplication = [prefs boolForKey:@"logging-show-app-name" defaultValue:sShowApplication];
 	sShowFunction = [prefs boolForKey:@"logging-show-function" defaultValue:sShowFunction];
 	sShowFileAndLine = [prefs boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
 	sShowClass = [prefs boolForKey:@"logging-show-class" defaultValue:sShowClass];

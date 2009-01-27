@@ -21,11 +21,9 @@ _OBJC_CLASS_$_AI
 _OOLogWithFunctionFileAndLine
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
-_OOLogSetShowApplicationName
 _OOLogSetShowFileAndLine
 _OOLogSetShowFunction
 _OOLogSetShowMessageClass
-_OOLogShowApplicationName
 _OOLogShowFileAndLine
 _OOLogShowFunction
 _OOLogShowMessageClass

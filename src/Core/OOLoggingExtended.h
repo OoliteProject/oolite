@@ -64,8 +64,6 @@ void OOLogInsertMarker(void);
 
 
 // Get/set display settings. These are stored in user defaults.
-BOOL OOLogShowApplicationName(void);
-void OOLogSetShowApplicationName(BOOL flag);
 BOOL OOLogShowFunction(void);
 void OOLogSetShowFunction(BOOL flag);
 BOOL OOLogShowFileAndLine(void);

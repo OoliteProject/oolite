@@ -9,7 +9,6 @@
 	examples.
 	
 	Log output can be modified using the following preference keys:
-		logging-show-app-name
 		logging-show-class
 		logging-show-function
 		logging-show-file-and-line
