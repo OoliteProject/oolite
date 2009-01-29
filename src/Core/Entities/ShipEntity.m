@@ -4415,7 +4415,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 			}
 
 			//  Throw out rocks and alloys to be scooped up
-			if ([self hasPrimaryRole:@"asteroid"])
+			if ([self hasRole:@"asteroid"])
 			{
 				if (!noRocks && (being_mined || randf() < 0.20))
 				{
@@ -4451,7 +4451,7 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 				return; // don't do anything more
 			}
 
-			if ([self hasPrimaryRole:@"boulder"])
+			if ([self hasRole:@"boulder"])
 			{
 				if ((being_mined)||(ranrot_rand() % 100 < 20))
 				{
