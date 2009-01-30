@@ -999,7 +999,7 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
 						[self doScriptEvent:@"playerStartedJumpCountdown"
-							  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+							  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 					}
 				}
 				hyperspace_pressed = YES;
