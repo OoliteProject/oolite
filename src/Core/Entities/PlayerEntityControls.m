@@ -998,7 +998,8 @@ static NSTimeInterval	time_last_frame;
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
-						[self doScriptEvent:@"playerStartedJumpCountdown" withArgument:@"standard"];
+						[self doScriptEvent:@"playerStartedJumpCountdown"
+							  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 					}
 				}
 				hyperspace_pressed = YES;
@@ -1037,7 +1038,8 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
 						
-						[self doScriptEvent:@"playerStartedJumpCountdown" withArgument:@"galactic"];
+						[self doScriptEvent:@"playerStartedJumpCountdown"
+							  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
 					}
 				}
 				galhyperspace_pressed = YES;
