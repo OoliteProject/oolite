@@ -68,6 +68,9 @@ MA 02110-1301, USA.
 
 - (void) pauseAI:(NSString *)intervalString;
 
+- (void) dropMessages:(NSString *)messageString;
+- (void) debugDumpPendingMessages;
+
 - (void) setDestinationToCurrentLocation;
 
 - (void) setDesiredRangeTo:(NSString *)rangeString;
@@ -298,6 +301,26 @@ MA 02110-1301, USA.
 }
 
 
+- (void) dropMessages:(NSString *)messageString
+{
+	NSArray				*messages = nil;
+	NSEnumerator		*messageEnum = nil;
+	NSString			*message = nil;
+	
+	messages = ScanTokensFromString(messageString);
+	for (messageEnum = [messages objectEnumerator]; (message = [messageEnum nextObject]); )
+	{
+		[shipAI dropMessage:messageString];
+	}
+}
+
+
+- (void) debugDumpPendingMessages
+{
+	[shipAI debugDumpPendingMessages];
+}
+
+
 - (void) setDestinationToCurrentLocation
 {
 	// randomly add a .5m variance
@@ -500,9 +523,13 @@ MA 02110-1301, USA.
 		}
 	}
 	if (found_target != NO_TARGET)
+	{
 		[shipAI message:@"TARGET_FOUND"];
+	}
 	else
+	{
 		[shipAI message:@"NOTHING_FOUND"];
+	}
 }
 
 

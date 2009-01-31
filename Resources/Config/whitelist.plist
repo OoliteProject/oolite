@@ -171,6 +171,8 @@
 		"targetNextBeaconWithCode:",
 		"setRacepointsFromTarget",
 		"performFlyRacepoints",
+		"debugDumpMessages",
+		"dropMessages:",
 		
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",

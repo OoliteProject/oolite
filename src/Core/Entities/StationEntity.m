@@ -1110,7 +1110,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
 		[self launchShip:se];
-		//OOLog(@"launchqueue.objectDump", @":::::: ai name: %@ ship name: %@ - %@ ::::::", [[se getAI] name], [se displayName], [se groupID] == universalID ? @"defender" : @"civilian" );
 #if 0
 		// This code is most likely causing many ships to leave the station with the wrong AI
 		// (route1PatrolAi.plist). Disabling it for now - Nikos

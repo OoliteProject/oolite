@@ -96,6 +96,9 @@ MA 02110-1301, USA.
 - (void) think;
 
 - (void) message:(NSString *) ms;
+- (void) dropMessage:(NSString *) ms;
+- (NSSet *) pendingMessages;
+- (void) debugDumpPendingMessages;
 
 - (void) setNextThinkTime:(OOTimeAbsolute) ntt;
 - (OOTimeAbsolute) nextThinkTime;

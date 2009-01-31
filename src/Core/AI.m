@@ -508,6 +508,37 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
+- (void) dropMessage:(NSString *) ms
+{
+	[pendingMessages removeObject:ms];
+}
+	
+
+- (NSSet *) pendingMessages
+{
+	return [[pendingMessages copy] autorelease];
+}
+
+
+- (void) debugDumpPendingMessages
+{
+	NSArray				*sortedMessages = nil;
+	NSString			*displayMessages = nil;
+	
+	if ([pendingMessages count] > 0)
+	{
+		sortedMessages = [[pendingMessages allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
+		displayMessages = [sortedMessages componentsJoinedByString:@", "];
+	}
+	else
+	{
+		displayMessages = @"none";
+	}
+	
+	OOLog(@"ai.debug.pendingMessages", @"Pending messages for AI %@: %@", [self descriptionComponents], displayMessages);
+}
+
+
 - (void) setNextThinkTime:(OOTimeAbsolute) ntt
 {
 	nextThinkTime = ntt;

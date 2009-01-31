@@ -1,0 +1,17 @@
+{
+	GLOBAL =
+	{
+		ENTER = ("rollD: 4");
+		ROLL_1 = ("pauseAI: 0.7");
+		ROLL_2 = ("pauseAI: 1.2");
+		ROLL_3 = ("pauseAI: 1.8");
+		ROLL_3 = ("pauseAI: 2.5");
+		
+		UPDATE = ("setStateTo: REACT");
+	};
+	REACT =
+	{
+		ENTER = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
+		UPDATE = (exitAI);
+	};
+}
