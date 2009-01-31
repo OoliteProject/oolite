@@ -657,37 +657,37 @@ static AI *sCurrentlyRunningAI = nil;
 		OOLogIndentIf(@"ai.load");
 		
 		NS_DURING
-		// Load state machine and validate against whitelist.
-		newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
-		if (newSM == nil)
-		{
-			[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
-			return nil;
-		}
-		
-		cleanSM = [NSMutableDictionary dictionaryWithCapacity:[newSM count]];
-		
-		for (stateEnum = [newSM keyEnumerator]; (stateKey = [stateEnum nextObject]); )
-		{
-			stateHandlers = [newSM objectForKey:stateKey];
-			if (![stateHandlers isKindOfClass:[NSDictionary class]])
+			// Load state machine and validate against whitelist.
+			newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
+			if (newSM == nil)
 			{
-				OOLog(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
-				continue;
+				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
+				return nil;
 			}
 			
-			stateHandlers = [self cleanHandlers:stateHandlers forState:stateKey stateMachine:smName];
-			[cleanSM setObject:stateHandlers forKey:stateKey];
-		}
-		
-		// Make immutable.
-		newSM = [[cleanSM copy] autorelease];
-		
-		// Cache.
-		[cacheMgr setObject:newSM forKey:smName inCache:@"AIs"];
+			cleanSM = [NSMutableDictionary dictionaryWithCapacity:[newSM count]];
+			
+			for (stateEnum = [newSM keyEnumerator]; (stateKey = [stateEnum nextObject]); )
+			{
+				stateHandlers = [newSM objectForKey:stateKey];
+				if (![stateHandlers isKindOfClass:[NSDictionary class]])
+				{
+					OOLog(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
+					continue;
+				}
+				
+				stateHandlers = [self cleanHandlers:stateHandlers forState:stateKey stateMachine:smName];
+				[cleanSM setObject:stateHandlers forKey:stateKey];
+			}
+			
+			// Make immutable.
+			newSM = [[cleanSM copy] autorelease];
+			
+			// Cache.
+			[cacheMgr setObject:newSM forKey:smName inCache:@"AIs"];
 		NS_HANDLER
-		OOLogPopIndent();
-		[localException raise];
+			OOLogPopIndent();
+			[localException raise];
 		NS_ENDHANDLER
 		
 		OOLogPopIndent();

@@ -680,7 +680,14 @@ static BOOL		sRectangleTextureAvailable;
 #endif
 	
 #if GL_EXT_texture_lod_bias
-	sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"use-texture-lod-bias" defaultValue:YES])
+	{
+		sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
+	}
+	else
+	{
+		sTextureLODBiasAvailable = NO;
+	}
 #endif
 	
 #if GL_EXT_texture_rectangle
