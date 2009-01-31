@@ -1,12 +1,10 @@
-/*	This file controls the visibility of various error messages and groups of
-	error messages, or “message classes”. It can be selectively overridden
-	using a dictionary called “logging-enable” in Oolite’s preferences which
-	allows you to reduce the flow of log messages to a more managable
-	quantity.
+/*	This file controls the visibility of various error messages and groups of error
+	messages, or “message classes”. It can be selectively overridden using a separate
+	logcontrol.plist file in your AddOns folder, or a dictionary called “logging-enable” in
+	Oolite’s preferences.
 	
-	classes which are related, but not hierarchically, can be controlled using
-	metaclasses, whose names start with a $. See $error etc. below for
-	examples.
+	Classes which are related, but not hierarchically, can be controlled using metaclasses, 
+	whose names start with a $. See $error etc. below for examples.
 	
 	Log output can be modified using the following preference keys:
 		logging-show-class
@@ -15,14 +13,8 @@
 		logging-echo-to-stderr
 	
 	“logging-show-class” defaults to YES. The others default to NO.
-	“logging-echo-to-stderr” is specific to Mac OS X and causes log
-	information to be printed to the standard error file (generally viewable
-	in the Console utility) in addition to the log file.
-	
-	NOTE: the GNUstep plist parser cannot parse this file, presumably because
-	of the $s. Until this is properly analyzed, an XML version is used
-	instead. The XML version is automatically generated from this version when
-	building with Xcode under OS X.
+	“logging-echo-to-stderr” causes log information to be printed to the standard error
+	file in addition to the log file.
 */
 
 

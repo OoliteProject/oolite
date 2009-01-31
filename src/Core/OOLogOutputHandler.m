@@ -208,14 +208,21 @@ void OOLogOutputHandlerPrint(NSString *string)
 {
 	if (sInited && sLogger != nil)  [sLogger asyncLogMessage:string];
 	
+	BOOL doCStringStuff = sWriteToStderr;
 #if SET_CRASH_REPORTER_INFO
-	if (sCrashReporterInfoAvailable || sWriteToStderr)
+	doCStringStuff = doCStringStuff || sCrashReporterInfoAvailable;
+#endif
+	
+	if (doCStringStuff)
 	{
 		const char *cStr = [[string stringByAppendingString:@"\n"] UTF8String];
-		if (sCrashReporterInfoAvailable)  SetCrashReporterInfo(cStr);
 		if (sWriteToStderr)  fputs(cStr, stderr);
-	}
+		
+#if SET_CRASH_REPORTER_INFO
+		if (sCrashReporterInfoAvailable)  SetCrashReporterInfo(cStr);
 #endif
+	}
+	
 }
 
 
