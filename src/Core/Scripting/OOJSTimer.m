@@ -4,7 +4,7 @@ OOJSTimer.m
 
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -358,7 +358,7 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	{
 		if (!JS_ValueToObject(context, argv[0], &this))
 		{
-			OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "first", "this", "an object");
+			OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"first", @"this", @"an object");
 			return NO;
 		}
 	}
@@ -366,13 +366,13 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	function = JS_ValueToFunction(context, argv[1]);
 	if (function == NULL)
 	{
-		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "second", "function", "a function");
+		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"second", @"function", @"a function");
 		return NO;
 	}
 	
 	if (!JS_ValueToNumber(context, argv[2], &delay))
 	{
-		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", "third", "delay", "a number");
+		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"third", @"delay", @"a number");
 		return NO;
 	}
 	
