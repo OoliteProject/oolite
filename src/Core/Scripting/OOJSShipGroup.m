@@ -97,7 +97,7 @@ static JSFunctionSpec sShipGroupMethods[] =
 };
 
 
-void InitOOShipGroup(JSContext *context, JSObject *global)
+void InitOOJSShipGroup(JSContext *context, JSObject *global)
 {
 	sShipGroupPrototype = JS_InitClass(context, global, NULL, &sShipGroupClass.base, ShipGroupConstruct, 0, sShipGroupProperties, sShipGroupMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sShipGroupClass.base, JSBasicPrivateObjectConverter);

@@ -54,6 +54,7 @@ MA 02110-1301, USA.
 #import "OOJSSpecialFunctions.h"
 #import "OOJSSystemInfo.h"
 #import "OOJSEquipmentInfo.h"
+#import "OOJSShipGroup.h"
 
 #import <stdlib.h>
 
@@ -261,6 +262,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	InitOOJSSpecialFunctions(mainContext, globalObject);
 	InitOOJSSystemInfo(mainContext, globalObject);
 	InitOOJSEquipmentInfo(mainContext, globalObject);
+	InitOOJSShipGroup(mainContext, globalObject);
 	
 	sSharedEngine = self;
 	
