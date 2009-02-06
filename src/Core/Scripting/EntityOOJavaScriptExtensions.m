@@ -117,6 +117,7 @@ MA 02110-1301, USA.
 }
 
 
+#if OBSOLETE
 - (NSArray *) escorts
 {
 	unsigned			i;
@@ -138,6 +139,7 @@ MA 02110-1301, USA.
 	if ([result count] == 0)  result = nil;
 	return result;
 }
+#endif
 
 
 - (void) setTargetForScript:(ShipEntity *)target

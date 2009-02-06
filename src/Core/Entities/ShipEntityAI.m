@@ -3,7 +3,7 @@
 ShipEntityAI.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOJSFunction.h"
+#import "OOShipGroup.h"
 
 #import "OOStringParsing.h"
 #import "OOEntityFilterPredicate.h"
@@ -50,7 +51,6 @@ MA 02110-1301, USA.
 - (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 
 - (void) acceptDistressMessageFrom:(ShipEntity *)other;
-- (OOUInteger) numberOfShipsInGroup:(OOUniversalID)ship_group_id;
 
 @end
 
@@ -681,23 +681,32 @@ MA 02110-1301, USA.
 {
 	// find an incoming missile...
 	//
-	ShipEntity *missile =  nil;
+	ShipEntity			*missile =  nil;
+	unsigned			i;
+	NSEnumerator		*escortEnum = nil;
+	ShipEntity			*escort = nil;
+	ShipEntity			*target = nil;
+	
 	[self checkScanner];
-	unsigned i;
 	for (i = 0; (i < n_scanned_ships)&&(missile == nil); i++)
 	{
 		ShipEntity *thing = scanned_ships[i];
 		if (thing->scanClass == CLASS_MISSILE)
 		{
-			if ([thing primaryTarget] == self)
-				missile = thing;
-			if ((escortCount > 0)&&(missile == nil))
+			target = [thing primaryTarget];
+			
+			if (target == self)
 			{
-				unsigned j;
-				for (j = 0; j < escortCount; j++)
+				missile = thing;
+			}
+			else
+			{
+				for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 				{
-					if ([thing primaryTargetID] == escort_ids[j])
+					if (target == escort)
+					{
 						missile = thing;
+					}
 				}
 			}
 		}
@@ -711,24 +720,26 @@ MA 02110-1301, USA.
 	ShipEntity *hunter = [missile owner];
 	[self doScriptEvent:@"beingAttacked" withArgument:hunter];
 	
+	if ([self isPolice])
+	{
+		// Notify other police in group of attacker.
+		// Note: prior to 1.73 this was done only if we had ECM.
+		NSEnumerator	*policeEnum = nil;
+		ShipEntity		*police = nil;
+		
+		for (policeEnum = [[self group] objectEnumerator]; (police = [policeEnum nextObject]); )
+		{
+			[police setFound_target:hunter];
+			[police setPrimaryAggressor:hunter];
+		}
+	}
+	
 	if ([self hasECM])
 	{
 		// use the ECM and battle on
 		
 		[self setPrimaryAggressor:hunter];	// lets get them now for that!
 		found_target = primaryAggressor;
-		
-		if ([self isPolice])
-		{
-			NSArray	*fellow_police = [self shipsInGroup:groupID];
-			unsigned i;
-			for (i = 0; i < [fellow_police count]; i++)
-			{
-				ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
-				[other_police setFound_target:hunter];
-				[other_police setPrimaryAggressor:hunter];
-			}
-		}
 		
 		// if I'm a copper and you're not, then mark the other as an offender!
 		if ([self isPolice] && ![hunter isPolice])  [hunter markAsOffender:64];
@@ -942,75 +953,44 @@ static WormholeEntity *whole = nil;
 }
 
 
+// FIXME: resolve this stuff.
 - (void) wormholeEscorts
 {
-	if (escortCount < 1)
-		return;
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*ship = nil;
 	
-	if (!whole)
-		return;
-		
-	unsigned i;
-	for (i = 0; i < escortCount; i++)
+	if (whole == nil)  return;
+	
+	for (shipEnum = [self escortEnumerator]; (ship = [shipEnum nextObject]); )
 	{
-		int escort_id = escort_ids[i];
-		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
-		// check it's still an escort ship
-		BOOL escorter_okay = YES;
-		if (!escorter)
-			escorter_okay = NO;
-		else
-			escorter_okay = escorter->isShip;
-		if (escorter_okay)
-		{
-			[escorter addTarget: whole];
-			[[escorter getAI] reactToMessage:@"ENTER WORMHOLE"];
-		}
-		escort_ids[i] = NO_TARGET;
+		[ship addTarget:whole];
+		[ship reactToAIMessage:@"ENTER WORMHOLE"];
 	}
 	
-	[self setEscortCount:0];
+	// We now have no escorts..
+	[_escortGroup release];
+	_escortGroup = nil;
 
 }
 
 
 - (void) wormholeGroup
 {
-	NSArray* group = [self shipsInGroup: universalID];	// ships in group of which this is a leader
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*ship = nil;
 	
-	if (![group count])
-		return;
-
-	unsigned i;
-	for (i = 0; i < [group count]; i++)
+	for (shipEnum = [[self group] objectEnumerator]; (ship = [shipEnum nextObject]); )
 	{
-		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
-		if ((ship)&&(ship->isShip))	
-		{
-			[ship addTarget: whole];
-			[[ship getAI] reactToMessage:@"ENTER WORMHOLE"];
-		}
+		[ship addTarget:whole];
+		[ship reactToAIMessage:@"ENTER WORMHOLE"];
 	}
 }
 
 
 - (void) wormholeEntireGroup
 {
-	NSArray* group = [self shipsInGroup: groupID];	// ships in this group
-	
-	if (![group count])
-		return;
-
-	unsigned i;
-	for (i = 0; i < [group count]; i++)
-	{
-		ShipEntity  *ship = (ShipEntity *)[group objectAtIndex:i];
-		if ((ship)&&(ship->isShip))	
-		{
-			[ship addTarget: whole];
-			[[ship getAI] reactToMessage:@"ENTER WORMHOLE"];
-		}
-	}
+	[self wormholeGroup];
+	[self wormholeEscorts];
 }
 
 
@@ -1166,7 +1146,7 @@ static WormholeEntity *whole = nil;
 
 - (void) fightOrFleeHostiles
 {
-	if (escortCount > 0)
+	if ([self hasEscorts])
 	{
 		if (found_target == last_escort_target)  return;
 		
@@ -1225,8 +1205,9 @@ static WormholeEntity *whole = nil;
 				[mother setBounty: [mother legalStatus] + extra];
 				bounty += extra;	// obviously we're dodgier than we thought!
 			}
-			//
+			
 			[self setOwner:mother];
+			[self setGroup:[mother escortGroup]];
 			[shipAI message:@"ESCORTING"];
 			return;
 		}
@@ -1247,17 +1228,19 @@ static WormholeEntity *whole = nil;
 - (void) escortCheckMother
 {
 	ShipEntity   *mother = [self owner];
-	if (mother)
+	
+	if ([mother acceptAsEscort:self])
 	{
-		if ([mother acceptAsEscort:self])
-		{
-			[self setOwner:mother];
-			[shipAI message:@"ESCORTING"];
-			return;
-		}
+		[self setOwner:mother];
+		[self setGroup:[mother escortGroup]];
+		[shipAI message:@"ESCORTING"];
 	}
-	[self setOwner:self];
-	[shipAI message:@"NOT_ESCORTING"];
+	else
+	{
+		[self setOwner:self];
+		if ([self group] == [mother escortGroup])  [self setGroup:nil];
+		[shipAI message:@"NOT_ESCORTING"];
+	}
 }
 
 
@@ -1270,48 +1253,43 @@ static WormholeEntity *whole = nil;
 
 - (void) checkGroupOddsVersusTarget
 {
-	OOUniversalID own_group_id = groupID;
-	OOUniversalID target_group_id = [[UNIVERSE entityForUniversalID:primaryTarget] groupID];
-
-	OOUInteger own_group_numbers = [self numberOfShipsInGroup:own_group_id] + (ranrot_rand() & 3);			// add a random fudge factor
-	OOUInteger target_group_numbers = [self numberOfShipsInGroup:target_group_id] + (ranrot_rand() & 3);	// add a random fudge factor
-
-	if (own_group_numbers == target_group_numbers)
+	OOUInteger ownGroupCount = [[self group] count] + (ranrot_rand() & 3);			// add a random fudge factor
+	OOUInteger targetGroupCount = [[[self primaryTarget] group] count] + (ranrot_rand() & 3);	// add a random fudge factor
+	
+	if (ownGroupCount == targetGroupCount)
 	{
 		[shipAI message:@"ODDS_LEVEL"];
-		return;
 	}
-	if (own_group_numbers > target_group_numbers)
+	else if (ownGroupCount > targetGroupCount)
+	{
 		[shipAI message:@"ODDS_GOOD"];
+	}
 	else
+	{
 		[shipAI message:@"ODDS_BAD"];
-	return;
+	}
 }
 
 
 - (void) groupAttackTarget
 {
-	if (groupID == NO_TARGET)		// ship is alone!
+	NSEnumerator		*shipEnum = nil;
+	ShipEntity			*target = nil, *ship = nil;
+	
+	if ([self group] == nil)		// ship is alone!
 	{
 		found_target = primaryTarget;
 		[shipAI reactToMessage:@"GROUP_ATTACK_TARGET"];
 		return;
 	}
 	
-	NSArray* fellow_ships = [self shipsInGroup:groupID];
-	ShipEntity *target_ship = (ShipEntity*) [UNIVERSE entityForUniversalID:primaryTarget];
+	target = [self primaryTarget];
 	
-	if ((!target_ship)||(target_ship->isShip != YES))
-		return;
-	
-	unsigned i;
-	for (i = 0; i < [fellow_ships count]; i++)
+	for (shipEnum = [[self group] objectEnumerator]; (ship = [shipEnum nextObject]); )
 	{
-		ShipEntity *other_ship = (ShipEntity *)[fellow_ships objectAtIndex:i];
-		[other_ship setFound_target: target_ship];
-		[[other_ship getAI] reactToMessage:@"GROUP_ATTACK_TARGET"];
+		[ship setFound_target:target];
+		[ship reactToAIMessage:@"GROUP_ATTACK_TARGET"];
 	}
-	return;
 }
 
 
@@ -1601,9 +1579,8 @@ static WormholeEntity *whole = nil;
 - (void) requestNewTarget
 {
 	ShipEntity *mother = [self owner];
-	if ((mother == nil)&&([UNIVERSE entityForUniversalID:groupID]))
-		mother = [UNIVERSE entityForUniversalID:groupID];
-	if (!mother)
+	if (mother == nil)  mother = [[self group] leader];
+	if (mother == nil)
 	{
 		[shipAI message:@"MOTHER_LOST"];
 		return;
@@ -2228,14 +2205,6 @@ static WormholeEntity *whole = nil;
 			[shipAI reactToMessage:@"ACCEPT_DISTRESS_CALL"];
 			break;
 	}
-}
-
-
-- (OOUInteger) numberOfShipsInGroup:(OOUniversalID)ship_group_id
-{
-	if (ship_group_id == NO_TARGET)
-		return 1;
-	return [[self shipsInGroup:ship_group_id] count];
 }
 
 @end

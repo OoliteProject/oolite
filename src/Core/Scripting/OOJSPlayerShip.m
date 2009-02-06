@@ -340,7 +340,7 @@ static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
 	
@@ -358,7 +358,7 @@ static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uint
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"removeEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		OOReportJSBadArguments(context, @"PlayerShip", @"removeEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
 	
@@ -376,7 +376,7 @@ static JSBool PlayerShipHasEquipment(JSContext *context, JSObject *this, uintN a
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"hasEquipment", argc, argv, @"Invalid arguments", @"equipment key");
+		OOReportJSBadArguments(context, @"PlayerShip", @"hasEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
 	
@@ -405,7 +405,7 @@ static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, u
 	
 	if (EXPECT_NOT(key == nil || status == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key and status");
+		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, nil, @"equipment key and status");
 		return NO;
 	}
 	
@@ -451,7 +451,7 @@ static JSBool PlayerShipEquipmentStatus(JSContext *context, JSObject *this, uint
 	
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, @"Invalid arguments", @"equipment key");
+		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, nil, @"equipment key");
 		return NO;
 	}
 	
@@ -484,7 +484,7 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
 	if (EXPECT_NOT(typeString == nil || !gotAmount))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardCargo", argc, argv, nil, @"type and optional quantity");
 		return NO;
 	}
 	
@@ -525,7 +525,7 @@ static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN 
 	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
 	if (EXPECT_NOT(typeString == nil || !gotAmount))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"canAwardCargo", argc, argv, @"Invalid arguments", @"type and optional quantity");
+		OOReportJSBadArguments(context, @"PlayerShip", @"canAwardCargo", argc, argv, nil, @"type and optional quantity");
 		return NO;
 	}
 	
@@ -574,7 +574,7 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	name = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, argv, @"Invalid arguments", @"special cargo description");
+		OOReportJSBadArguments(context, @"PlayerShip", @"useSpecialCargo", argc, argv, nil, @"special cargo description");
 		return NO;
 	}
 	

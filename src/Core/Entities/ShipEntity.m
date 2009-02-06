@@ -2,8 +2,9 @@
 
 ShipEntity.m
 
+
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -38,6 +39,8 @@ MA 02110-1301, USA.
 #import "NSScannerOOExtensions.h"
 #import "OOFilteringEnumerator.h"
 #import "OORoleSet.h"
+#import "OOShipGroup.h"
+#import "OOExcludeObjectEnumerator.h"
 
 #import "OOCharacter.h"
 #import "AI.h"
@@ -426,8 +429,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 		
 	//  escorts
-	escortCount = [shipDict unsignedIntForKey:@"escorts"];
-	escortsAreSetUp = (escortCount == 0);
+	_pendingEscortCount = _maxEscortCount = [shipDict unsignedIntForKey:@"escorts"];
 
 	// beacons
 	[self setBeaconCode:[shipDict stringForKey:@"beacon"]];
@@ -509,6 +511,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[self setSubEntityTakingDamage:nil];
 	[self removeAllEquipment];
+	
+	[_group removeShip:self];
+	[_group release];
+	[_escortGroup removeShip:self];
+	[_escortGroup release];
 	
 	[super dealloc];
 }
@@ -738,13 +745,21 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (universalID != NO_TARGET)
 	{
 		// set up escorts
-		if (status == STATUS_IN_FLIGHT && !escortsAreSetUp)	// just popped into existence
+		if (status == STATUS_IN_FLIGHT && _pendingEscortCount != 0)	// just popped into existence
 		{
 			[self setUpEscorts];
 		}
 		else
 		{
-			escortsAreSetUp = YES;	// we don't do this ourself!
+			/*	Should be zero already, but make sure just in case. (Escorts
+				aren't set up here if we're launched from a station, but in
+				that case the station sets pending count to zero.)
+			*/
+			if (_pendingEscortCount != 0)
+			{
+				OOLog(@"ship.escortSetup.wtf", @"Pending escort count for %@ is %u, expected 0. This is an internal error, please report it.", self, _pendingEscortCount);
+			}
+			_pendingEscortCount = 0;
 		}
 	}
 
@@ -832,7 +847,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
 	
-	if (escortsAreSetUp || escortCount != 0)  return;
+	if (_pendingEscortCount == 0)  return;
 	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
@@ -853,21 +868,32 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			escortShipKey = nil;
 		}
 	}
-
-	while (escortCount > 0)
+	
+	OOShipGroup *escortGroup = [self escortGroup];
+	if ([self group] == nil)
 	{
-		Vector ex_pos = [self coordinatesForEscortPosition:escortCount - 1];
+		[self setGroup:escortGroup];
+	}
+	[escortGroup setLeader:self];
+	
+	while (_pendingEscortCount > 0)
+	{
+		Vector ex_pos = [self coordinatesForEscortPosition:_pendingEscortCount - 1];
 		
 		ShipEntity *escorter = nil;
 		
 		if (escortShipKey)
+		{
 			escorter = [UNIVERSE newShipWithName:escortShipKey];	// retained
+		}
 		else
+		{
 			escorter = [UNIVERSE newShipWithRole:escortRole];	// retained
+		}
 		
-		if (!escorter)  break;
+		if (escorter == nil)  break;
 		
-		if (![escorter crew])
+		if ([escorter crew] == nil)
 		{
 			[escorter setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: @"hunter"
@@ -906,10 +932,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			[escortAI setStateMachine:autoAI];   // must happen after adding to the UNIVERSE!
 		}
 		
-		if ([self groupID] == NO_TARGET) 
-			[self setGroupID:universalID]; // make self part of group
-		[escorter setGroupID:universalID];
-		[escorter setOwner: self];	// make self group leader
+		[escorter setGroup:escortGroup];
+		[escorter setOwner:self];	// make self group leader
 		
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
 		[escorter doScriptEvent:@"spawnedAsEscort" withArgument:self];
@@ -925,9 +949,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			[escorter setBounty:0];
 		}
 		[escorter release];
-		escortCount--;
+		_pendingEscortCount--;
 	}
-	if (escortCount == 0) escortsAreSetUp = YES;
 }
 
 
@@ -1591,19 +1614,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		// update destination position for escorts
-		if (escortCount > 0)
+		if ([self hasEscorts])
 		{
-			unsigned i;
-			for (i = 0; i < escortCount; i++)
+			NSEnumerator			*escortEnum = nil;
+			ShipEntity				*escort = nil;
+			unsigned				i = 0;
+			
+			for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 			{
-				ShipEntity *escorter = [UNIVERSE entityForUniversalID:escort_ids[i]];
-				// check it's still an escort ship
-				BOOL escorter_okay = (escorter != nil) && escorter->isShip;
-				
-				if (escorter_okay)
-					[escorter setDestination:[self coordinatesForEscortPosition:i]];	// update its destination
-				else
-					escort_ids[i--] = escort_ids[--escortCount];	// remove the escort
+				[escort setDestination:[self coordinatesForEscortPosition:i++]];
 			}
 		}
 	}
@@ -1651,7 +1670,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other
 {
-	Entity *source = nil;
+	Entity				*source = nil;
 	
 	if ([other isKindOfClass:[ShipEntity class]])
 	{
@@ -1664,7 +1683,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			//police never get into a fight with each other
 			return;
 		}
-		if (groupID != NO_TARGET && groupID == [hunter groupID]) 
+		
+		OOShipGroup *group = [self group];
+		
+		if (group != nil && group == [hunter group]) 
 		{
 			//we are in the same group, do we forgive you?
 			//criminals are less likely to forgive
@@ -1673,22 +1695,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				//it was an honest mistake, lets get on with it
 				return;
 			}
-			ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
-			if (hunter == group_leader)
+			
+			ShipEntity *groupLeader = [group leader];
+			if (hunter == groupLeader)
 			{
 				//oops we were attacked by our leader, desert him
-				[self setGroupID:NO_TARGET];
+				[self setGroup:nil];
 			}
 			else 
 			{
 				//evict them from our group
-				[hunter setGroupID:NO_TARGET];
-				if ((group_leader)&&(group_leader->isShip))
-				{
-					[group_leader setFound_target:other];
-					[group_leader setPrimaryAggressor:hunter];
-					[group_leader respondToAttackFrom:from becauseOf:other];
-				}
+				[hunter setGroup:nil];
+				
+				[groupLeader setFound_target:other];
+				[groupLeader setPrimaryAggressor:hunter];
+				[groupLeader respondToAttackFrom:from becauseOf:other];
 			}
 		}
 	}
@@ -3248,18 +3269,78 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (int) groupID
+- (OOShipGroup *) group
 {
-	return groupID;
+	return _group;
 }
 
 
-- (void) setGroupID:(int) value
+- (void) setGroup:(OOShipGroup *)group
 {
-	groupID = value;
+	if (group != _group)
+	{
+		if (self == [_group leader])  [_group setLeader:nil];
+		[_group removeShip:self];
+		[_group release];
+		[group addShip:self];
+		_group = [group retain];
+	}
 }
 
 
+- (OOShipGroup *) escortGroup
+{
+	if (_escortGroup == nil)
+	{
+		_escortGroup = [[OOShipGroup alloc] initWithName:@"escort group"];
+		[_escortGroup setLeader:self];
+	}
+	
+	return _escortGroup;
+}
+
+
+- (BOOL) hasEscorts
+{
+	if (_escortGroup == nil)  return NO;
+	return [_escortGroup count] > 1;	// If only one memeber, it's self.
+}
+
+
+- (NSEnumerator *) escortEnumerator
+{
+	if (_escortGroup == nil)  return [[NSArray array] objectEnumerator];
+	return [[_escortGroup objectEnumerator] ooExcludingObject:self];
+}
+
+
+- (NSArray *) escortArray
+{
+	if (_escortGroup == nil)  return [NSArray array];
+	return [[self escortEnumerator] allObjects];
+}
+
+
+- (uint8_t) escortCount
+{
+	if (_escortGroup == nil)  return 0;
+	return [_escortGroup count] - 1;
+}
+
+
+- (uint8_t) pendingEscortCount
+{
+	return _pendingEscortCount;
+}
+
+
+- (void) setPendingEscortCount:(uint8_t)count
+{
+	_pendingEscortCount = count;
+}
+
+
+#if OBSOLETE
 - (unsigned) escortCount
 {
 	return escortCount;
@@ -3271,6 +3352,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	escortCount = value;
 	escortsAreSetUp = (escortCount == 0);
 }
+#endif
 
 
 - (ShipEntity*) proximity_alert
@@ -6343,7 +6425,7 @@ BOOL class_masslocks(int some_class)
 	else  [missile setOwner:[self owner]];
 	
 	[missile addTarget:target];
-	[missile setGroupID:groupID];
+	[missile setGroup:[self group]];
 	[missile setPosition:origin];
 	[missile setOrientation:q1];
 	[missile setVelocity:vel];
@@ -7054,62 +7136,60 @@ BOOL class_masslocks(int some_class)
 
 		// tell ourselves we've been attacked
 		if (energy > 0)
+		{
 			[self respondToAttackFrom:ent becauseOf:other];
+		}
 
 		// tell our group we've been attacked
-		if (groupID != NO_TARGET && (groupID != [hunter groupID]) && (!iAmTheLaw && !uAreTheLaw))
+		OOShipGroup *group = [self group];
+		if (group != nil && group != [hunter group] && !(iAmTheLaw || uAreTheLaw))
 		{
 			if ([self isTrader] || [self isEscort])
 			{
-				ShipEntity *group_leader = [UNIVERSE entityForUniversalID:groupID];
-				if ((group_leader)&&(group_leader->isShip))
-				{
-					[group_leader setFound_target:hunter];
-					[group_leader setPrimaryAggressor:hunter];
-					[group_leader respondToAttackFrom:ent becauseOf:hunter];
-				}
-				else if (self != group_leader) 
-				{
-					[self setGroupID:NO_TARGET];
-				}
+				ShipEntity *groupLeader = [group leader];
+				[groupLeader setFound_target:hunter];
+				[groupLeader setPrimaryAggressor:hunter];
+				[groupLeader respondToAttackFrom:ent becauseOf:hunter];
 				//unsetting group leader for carriers can break stuff
 			}
 			if ([self isPirate])
 			{
-				NSArray	*fellow_pirates = [self shipsInGroup:groupID];
-				unsigned int i;
-				for (i = 0; i < [fellow_pirates count]; i++)
+				NSEnumerator		*groupEnum = nil;
+				ShipEntity			*otherPirate = nil;
+				
+				for (groupEnum = [group objectEnumerator]; (otherPirate = [groupEnum nextObject]); )
 				{
-					ShipEntity *other_pirate = (ShipEntity *)[fellow_pirates objectAtIndex:i];
 					if (randf() < 0.5)	// 50% chance they'll help
 					{
-						[other_pirate setFound_target:hunter];
-						[other_pirate setPrimaryAggressor:hunter];
-						[other_pirate respondToAttackFrom:ent becauseOf:hunter];
+						[otherPirate setFound_target:hunter];
+						[otherPirate setPrimaryAggressor:hunter];
+						[otherPirate respondToAttackFrom:ent becauseOf:hunter];
 					}
 				}
 			}
-			if (iAmTheLaw)
+			else if (iAmTheLaw)
 			{
-				NSArray	*fellow_police = [self shipsInGroup:groupID];
-				unsigned int i;
-				for (i = 0; i < [fellow_police count]; i++)
+				NSEnumerator		*groupEnum = nil;
+				ShipEntity			*otherPolice = nil;
+				
+				for (groupEnum = [group objectEnumerator]; (otherPolice = [groupEnum nextObject]); )
 				{
-					ShipEntity *other_police = (ShipEntity *)[fellow_police objectAtIndex:i];
-					[other_police setFound_target:hunter];
-					[other_police setPrimaryAggressor:hunter];
-					[other_police respondToAttackFrom:ent becauseOf:hunter];
+					[otherPolice setFound_target:hunter];
+					[otherPolice setPrimaryAggressor:hunter];
+					[otherPolice respondToAttackFrom:ent becauseOf:hunter];
 				}
 			}
 		}
 
 		// if I'm a copper and you're not, then mark the other as an offender!
-		if ((iAmTheLaw)&&(!uAreTheLaw))
-			[hunter markAsOffender:64];
-
-		// avoid shooting each other
-		if (([hunter groupID] == groupID)||(iAmTheLaw && uAreTheLaw))
+		if (iAmTheLaw && !uAreTheLaw)
 		{
+			[hunter markAsOffender:64];
+		}
+
+		if ([hunter group] == group || (iAmTheLaw && uAreTheLaw))
+		{
+			// avoid shooting each other
 			if ([hunter behaviour] == BEHAVIOUR_ATTACK_FLY_TO_TARGET)	// avoid me please!
 			{
 				[hunter setBehaviour:BEHAVIOUR_ATTACK_FLY_FROM_TARGET];
@@ -7407,38 +7487,38 @@ int w_space_seed = 1234567;
 	
 	if ([self canAcceptEscort:other_ship])
 	{
-		unsigned i;
-		// check it's not already been accepted
-		for (i = 0; i < escortCount; i++)
-		{
-			if (escort_ids[i] == [other_ship universalID])
-			{
-				//[other_ship setGroupID:universalID];
-				//[self setGroupID:universalID];		// make self part of same group
-				return YES;
-			}
-		}
+		OOShipGroup *escortGroup = [self escortGroup];
+		
+		if ([escortGroup containsShip:other_ship])  return YES;
 		
 		// check total number acceptable
-		unsigned max_escorts = [shipinfoDictionary unsignedIntForKey:@"escorts" defaultValue:0];
+		unsigned maxEscorts = _maxEscortCount;
+		unsigned escortCount = [escortGroup count] - 1;
+		
 		//however the system's patrols don't have escorts inside their dictionary 
-		if (max_escorts == 0 && ([self hasRole:@"police"]||[self hasRole:@"interceptor"]||[self hasRole:@"hunter"]))
-			max_escorts = MAX_ESCORTS;
-		if ((escortCount < MAX_ESCORTS)&&(escortCount < max_escorts))
+		if (maxEscorts == 0 && ([self hasRole:@"police"] || [self hasRole:@"interceptor"] || [self hasRole:@"hunter"]))
 		{
-			escort_ids[escortCount] = [other_ship universalID];
-			[other_ship setGroupID:universalID];
-			[self setGroupID:universalID];		// make self part of same group
-			escortCount++;
-			//OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
+			maxEscorts = MAX_ESCORTS;
+		}
+		else if (maxEscorts > MAX_ESCORTS)
+		{
+			maxEscorts = MAX_ESCORTS;
+		}
+		
+		if (escortCount < maxEscorts)
+		{
+			[escortGroup addShip:other_ship];
+			[other_ship setGroup:escortGroup];
+			
+			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
+			
 			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
 			[other_ship doScriptEvent:@"escortAccepted" withArgument:self];
 			return YES;
 		}
-		else
+		else if (maxEscorts > 0)
 		{
-			if (max_escorts > 0)
-				OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.",self, escortCount, other_ship);
+			OOLog(@"ship.escort.reject", @" %@ already got max escorts(%d). Escort rejected: %@.",self, escortCount, other_ship);
 		}
 	}
 	return NO;
@@ -7468,53 +7548,52 @@ int w_space_seed = 1234567;
 // Exposed to AI
 - (void) deployEscorts
 {
-	if (escortCount < 1)
-		return;
+	NSEnumerator	*escortEnum = nil;
+	ShipEntity		*escort = nil;
+	ShipEntity		*target = nil;
+	NSMutableSet	*idleEscorts = nil;
+	unsigned		deployCount;
 	
-	if (!escortsAreSetUp)  return;
-
-	if (![self primaryTarget])
-		return;
-
-	if ([self groupID] == NO_TARGET)
-	{
-		[self setGroupID:universalID];
-	}
+	if ([self primaryTarget] == nil || _escortGroup == nil)  return;
+	
+	OOShipGroup *escortGroup = [self escortGroup];
+	unsigned escortCount = [escortGroup count] - 1;
+	if (escortCount == 0)  return;
+	
+	if ([self group] == nil)  [self setGroup:escortGroup];
+	
 	if (primaryTarget == last_escort_target)
 	{
 		// already deployed escorts onto this target!
 		return;
 	}
-
+	
 	last_escort_target = primaryTarget;
-
-	int n_deploy = ranrot_rand() % escortCount;
-	if (n_deploy == 0)
-		n_deploy = 1;
-
-	int i_deploy = escortCount - 1;
-	while ((n_deploy > 0)&&(escortCount > 0))
+	
+	// Find idle escorts
+	idleEscorts = [NSMutableSet set];
+	for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 	{
-		int escort_id = escort_ids[i_deploy];
-		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
-		// check it's still an escort ship
-		if (escorter != nil && escorter->isShip)
+		if (![[[escort getAI] name] isEqualToString:@"interceptAI.plist"])
 		{
-			[escorter setGroupID:groupID]; //you still belong to me, see  [Bug #14011 ] Carriers should have groupID set.
-			[escorter addTarget:[self primaryTarget]];
-			[[escorter getAI] setStateMachine:@"interceptAI.plist"];
-			[[escorter getAI] setState:@"GLOBAL"];
-			[escorter doScriptEvent:@"escortAttack" withArgument:[self primaryTarget]];
-			
-			escort_ids[i_deploy] = NO_TARGET;
-			i_deploy--;
-			n_deploy--;
-			escortCount--;
+			[idleEscorts addObject:escort];
 		}
-		else
-		{
-			escort_ids[i_deploy--] = escort_ids[--escortCount];	// remove the escort
-		}
+	}
+	
+	escortCount = [idleEscorts count];
+	if (escortCount == 0)  return;
+	
+	deployCount = ranrot_rand() % escortCount + 1;
+	
+	// Deply deployCount idle escorts.
+	target = [self primaryTarget];
+	for (escortEnum = [idleEscorts objectEnumerator]; (escort = [escortEnum nextObject]); )
+	{
+		[escort addTarget:target];
+		[escort setStateMachine:@"interceptAI.plist"];
+		[escort doScriptEvent:@"escortAttack" withArgument:target];
+		
+		if (--deployCount == 0)  break;
 	}
 }
 
@@ -7522,34 +7601,30 @@ int w_space_seed = 1234567;
 // Exposed to AI
 - (void) dockEscorts
 {
-	if (escortCount < 1)
-		return;
-
-	unsigned i;
-	for (i = 0; i < escortCount; i++)
+	if (![self hasEscorts])  return;
+	
+	OOShipGroup			*escortGroup = [self escortGroup];
+	NSEnumerator		*escortEnum = nil;
+	ShipEntity			*escort = nil;
+	unsigned			i = 0;
+	
+	for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 	{
-		int escort_id = escort_ids[i];
-		ShipEntity  *escorter = [UNIVERSE entityForUniversalID:escort_id];
-		// check it's still an escort ship
-		BOOL escorter_okay = YES;
-		if (!escorter)
-			escorter_okay = NO;
-		else
-			escorter_okay = escorter->isShip;
-		if (escorter_okay)
-		{
-			float		delay = i * 3.0 + 1.5;		// send them off at three second intervals
-			AI			*ai = [escorter getAI];
-			
-			[escorter setGroupID:NO_TARGET];	// act individually now!
-			[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
-			[ai setState:@"ABORT" afterDelay:delay + 0.25];
-			[escorter doScriptEvent:@"escortDock" withArgument:[NSNumber numberWithFloat:delay]];
-		}
-		escort_ids[i] = NO_TARGET;
+		float		delay = i++ * 3.0 + 1.5;		// send them off at three second intervals
+		AI			*ai = [escort getAI];
+		
+		// act individually now!
+		if ([escort group] == escortGroup)  [escort setGroup:nil];
+		if ([escort owner] == self)  [escort setOwner:nil];
+		
+		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
+		[ai setState:@"ABORT" afterDelay:delay + 0.25];
+		[escort doScriptEvent:@"escortDock" withArgument:[NSNumber numberWithFloat:delay]];
 	}
-	escortCount = 0;
-
+	
+	// We now have no escorts.
+	[_escortGroup release];
+	_escortGroup = nil;
 }
 
 
@@ -7557,10 +7632,10 @@ int w_space_seed = 1234567;
 - (void) setTargetToNearestStation
 {
 	// check if the groupID (parent ship) points to a station...
-	Entity* mother = [UNIVERSE entityForUniversalID:groupID];
-	if ((mother)&&(mother->isStation))
+	Entity* mother = [[self group] leader];
+	if ([mother isStation])
 	{
-		primaryTarget = groupID;
+		primaryTarget = [mother universalID];
 		targetStation = primaryTarget;
 		return;	// head for mother!
 	}
@@ -7733,28 +7808,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 			[auth reactToAIMessage:@"OFFENCE_COMMITTED"];
 		}
 	}
-}
-
-
-- (NSArray *) shipsInGroup:(int) ship_group_id
-{
-	//-- Locates all the ships with this particular group id --//
-	NSMutableArray* result = [NSMutableArray array];	// is autoreleased
-	if (!UNIVERSE)
-		return (NSArray *)result;
-	int			ent_count =		UNIVERSE->n_entities;
-	Entity**	uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	int i;
-	for (i = 0; i < ent_count; i++)
-	{
-		if (uni_entities[i]->isShip)
-		{
-			ShipEntity* ship = (ShipEntity*)uni_entities[i];
-			if ([ship groupID] == ship_group_id)
-				[result addObject: ship];
-		}
-	}
-	return (NSArray *)result;
 }
 
 
@@ -8106,7 +8159,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
 	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);
-	if (escortCount != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", escortCount);
+	if ([self escortCount] != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", [self escortCount]);
 	OOLog(@"dumpState.shipEntity", @"Fuel: %i", fuel);
 	OOLog(@"dumpState.shipEntity", @"Fuel accumulator: %g", fuel_accumulator);
 	OOLog(@"dumpState.shipEntity", @"Missile count: %u", missiles);
@@ -8152,7 +8205,6 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
 	ADD_FLAG_IF_SET(military_jammer_active);
 	ADD_FLAG_IF_SET(docking_match_rotation);
-	ADD_FLAG_IF_SET(escortsAreSetUp);
 	ADD_FLAG_IF_SET(pitching_over);
 	ADD_FLAG_IF_SET(reportAIMessages);
 	ADD_FLAG_IF_SET(being_mined);

@@ -8,7 +8,6 @@ This code is hereby placed in the public domain.
 */
 
 #import "OOWeakReference.h"
-#import "OOLogging.h"
 
 
 @interface OOWeakReferenceTemplates: NSObject

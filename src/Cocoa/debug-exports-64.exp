@@ -59,6 +59,7 @@ _EntityStatusToString
 _QuaternionDescription
 _VectorDescription
 _BehaviourToString
+_kOOLogUnconvertedNSLog
 
 # Debug value formatter support
 _JSValueToStrDbg

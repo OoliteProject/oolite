@@ -324,3 +324,9 @@ enum {
 	typedef NSComparisonResult OOComparisonResult;
 #endif
 
+
+#if OOLITE_MAC_OS_X && OOLITE_LEOPARD
+	#define OOLITE_FAST_ENUMERATION		1
+#else
+	#define OOLITE_FAST_ENUMERATION		0
+#endif

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
+#import "OOShipGroup.h"
 
 #import "AI.h"
 #import "OOCharacter.h"
@@ -805,8 +806,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	last_patrol_report_time -= patrol_launch_interval;
 	
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
-	if ([self groupID] == NO_TARGET) {
-		[self setGroupID:universalID];
+	
+	if ([self group] == nil)
+	{
+		[self setGroup:[self escortGroup]];
 	}
 	return YES;
 }
@@ -1308,7 +1311,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
 	//stations must ignore friendly fire, otherwise the defenders' AI gets stuck.
-	BOOL isFriend = [other isShip] && groupID != NO_TARGET && (([(ShipEntity*)other groupID]==groupID) || (([(ShipEntity*)other groupID]==universalID))) ;
+	BOOL			isFriend = NO;
+	OOShipGroup		*group = [self group];
+	
+	if ([other isShip] && group != nil)
+	{
+		OOShipGroup *otherGroup = [(ShipEntity *)other group];
+		isFriend = otherGroup == group || [otherGroup leader] == self;
+	}
+	
 	// If this is the system's main station...
 	if (self == [UNIVERSE station] && !isFriend)
 	{
@@ -1317,7 +1328,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		BOOL isEnergyMine = (ent && [ent isParticle] && [ent scanClass] == CLASS_MINE);
 		unsigned b=isEnergyMine ? 96 : 64;
 		if ([(ShipEntity*)other bounty] >= b)	//already a hardened criminal?
+		{
 			b *= 1.5; //bigger bounty!
+		}
 		[(ShipEntity*)other markAsOffender:b];
 		
 		[self setPrimaryAggressor:other];
@@ -1332,8 +1345,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 	}
 	if (!isFriend)
+	{
 		// Handle damage like a ship.
 		[super takeEnergyDamage:amount from:ent becauseOf:other];
+	}
 }
 
 - (void) adjustVelocity:(Vector) xVel
@@ -1444,11 +1459,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[OOCharacter randomCharacterWithRole: @"police"
 									   andOriginalSystem: [UNIVERSE systemSeed]]]];
 			}
-
-			[police_ship setGroupID:universalID];	// who's your Daddy	
+			
+			[police_ship setGroup:[self escortGroup]];	// who's your Daddy
 			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
-			[police_ship setScanClass: CLASS_POLICE];
+			[police_ship setScanClass:CLASS_POLICE];
 			[police_ship setBounty:0];
 			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship];
@@ -1517,11 +1532,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 				
 	[defense_ship setOwner: self];
-	if (groupID == NO_TARGET)
+	if ([self group] == nil)
 	{
-		[self setGroupID:universalID];	
+		[self setGroup:[self escortGroup]];	
 	}
-	[defense_ship setGroupID:groupID];	// who's your Daddy
+	[defense_ship setGroup:[self escortGroup]];	// who's your Daddy
 	
 	if ([defense_ship isPolice])
 	{
@@ -1561,7 +1576,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
-		[scavenger_ship setGroupID:universalID];	// who's your Daddy
+		[scavenger_ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship];
 		[scavenger_ship release];
@@ -1591,8 +1606,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		scavengers_launched++;
-		[miner_ship setScanClass: CLASS_NEUTRAL];
-		[miner_ship setGroupID:universalID];	// who's your Daddy
+		[miner_ship setScanClass:CLASS_NEUTRAL];
+		[miner_ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship];
 		[miner_ship release];
@@ -1633,7 +1648,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
-		[pirate_ship setGroupID:universalID];	// who's your Daddy
+		[pirate_ship setGroup:[self escortGroup]];	// who's your Daddy
 		[pirate_ship setPrimaryRole:@"defense_ship"];
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
@@ -1703,11 +1718,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[self addShipToLaunchQueue:trader_ship];
 
 		// add escorts to the trader
-		int escorts = [trader_ship escortCount];
-		//
-		[trader_ship setEscortCount:0];
-		while (escorts--)
-			[self launchEscort];
+		unsigned escorts = [trader_ship pendingEscortCount];
+		
+		[trader_ship setPendingEscortCount:0];
+		while (escorts--)  [self launchEscort];
 			
 		[trader_ship release];
 	}
@@ -1732,11 +1746,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		
 		[escort_ship setOwner: self];
-		if (groupID == NO_TARGET)
+		if ([self group] == nil)
 		{
-			[self setGroupID:universalID];	
+			[self setGroup:[self escortGroup]];	
 		}
-		[escort_ship setGroupID:groupID];	// who's your Daddy
+		[escort_ship setGroup:[self escortGroup]];	// who's your Daddy
 		
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
@@ -1775,7 +1789,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setScanClass: CLASS_POLICE];
 			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
-			[patrol_ship setGroupID:universalID];	// who's your Daddy
+			[patrol_ship setGroup:[self escortGroup]];	// who's your Daddy
 			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship];
 			[self acceptPatrolReportFrom:patrol_ship];
@@ -1798,7 +1812,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[OOCharacter randomCharacterWithRole: role
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 		[ship setPrimaryRole:role];
-		[ship setGroupID:universalID];	// who's your Daddy
+		[ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: does this make sense? Should we have a separate launchEscortShipWithRole:?
 		[self addShipToLaunchQueue:ship];
 		[ship release];
 	}

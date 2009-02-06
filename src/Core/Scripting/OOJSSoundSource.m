@@ -211,7 +211,7 @@ static JSBool SoundSourcePlay(JSContext *context, JSObject *this, uintN argc, js
 	if (EXPECT_NOT(!JSSoundSourceGetSoundSource(context, this, &thisv))) return NO;
 	if (argc > 0 && !JS_ValueToInt32(context, argv[0], &count))
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"play", argc, argv, @"Invalid arguments", @"integer count or no argument");
+		OOReportJSBadArguments(context, @"SoundSource", @"play", argc, argv, nil, @"integer count or no argument");
 		return NO;
 	}
 	
@@ -260,13 +260,13 @@ static JSBool SoundSourcePlaySound(JSContext *context, JSObject *this, uintN arg
 	sound = SoundFromJSValue(context, argv[0]);
 	if (sound == nil)
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, @"Invalid arguments", @"sound or sound name");
+		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, nil, @"sound or sound name");
 		return NO;
 	}
 	
 	if (argc > 1 && !JS_ValueToInt32(context, argv[1], &count))
 	{
-		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, @"Invalid arguments", @"sound or sound name and optional integer count");
+		OOReportJSBadArguments(context, @"SoundSource", @"playSound", argc, argv, nil, @"sound or sound name and optional integer count");
 		return NO;
 	}
 	

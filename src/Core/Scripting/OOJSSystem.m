@@ -508,7 +508,7 @@ static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"System", @"countShipsWithPrimaryRole", argc, argv, @"Invalid arguments", @"role");
+		OOReportJSBadArguments(context, @"System", @"countShipsWithPrimaryRole", argc, argv, nil, @"role");
 		return NO;
 	}
 	
@@ -532,7 +532,7 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"System", @"countShipsWithRole", argc, argv, @"Invalid arguments", @"role");
+		OOReportJSBadArguments(context, @"System", @"countShipsWithRole", argc, argv, nil, @"role");
 		return NO;
 	}
 	
@@ -557,7 +557,7 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 	role = JSValToNSString(context, *argv);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"System", @"shipsWithPrimaryRole", argc, argv, @"Invalid arguments", @"role and optional reference entity and range");
+		OOReportJSBadArguments(context, @"System", @"shipsWithPrimaryRole", argc, argv, nil, @"role and optional reference entity and range");
 		return NO;
 	}
 	
@@ -591,7 +591,7 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 	role = JSValToNSString(context, *argv);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"System", @"shipsWithRole", argc, argv, @"Invalid arguments", @"role and optional reference entity and range");
+		OOReportJSBadArguments(context, @"System", @"shipsWithRole", argc, argv, nil, @"role and optional reference entity and range");
 		return NO;
 	}
 	
@@ -626,7 +626,7 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 	scString = JSValToNSString(context, *argv);
 	if (scString == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"entitiesWithScanClass", argc, argv, @"Invalid arguments", @"scan class and optional reference entity and range");
+		OOReportJSBadArguments(context, @"System", @"entitiesWithScanClass", argc, argv, nil, @"scan class and optional reference entity and range");
 		return NO;
 	}
 	
@@ -669,7 +669,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	function = JS_ValueToFunction(context, argv[1]);
 	if (EXPECT_NOT(function == NULL || !JS_ValueToObject(context, argv[0], &jsThis)))
 	{
-		OOReportJSBadArguments(context, @"System", @"filteredEntities", argc, argv, @"Invalid arguments", @"this, predicate function, and optional reference entity and range");
+		OOReportJSBadArguments(context, @"System", @"filteredEntities", argc, argv, nil, @"this, predicate function, and optional reference entity and range");
 		return NO;
 	}
 	
@@ -742,7 +742,7 @@ static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN arg
 				   argc < 2 ||
 				   count < 1 || 64 < count))
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addShips", argc, argv, @"Invalid arguments", @"role and positive count no greater than 64");
+		OOReportJSBadArguments(context, @"System", @"legacy_addShips", argc, argv, nil, @"role and positive count no greater than 64");
 		return NO;
 	}
 	
@@ -766,7 +766,7 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 				   argc < 3 ||
 				   !JS_ValueToNumber(context, argv[2], &position)))
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addSystemShips", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, and position along route");
+		OOReportJSBadArguments(context, @"System", @"legacy_addSystemShips", argc, argv, nil, @"role, positive count no greater than 64, and position along route");
 		return NO;
 	}
 	
@@ -795,7 +795,7 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 				   argc < 4 ||
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, NULL)))
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAt", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, coordinate scheme and coordinates");
+		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAt", argc, argv, nil, @"role, positive count no greater than 64, coordinate scheme and coordinates");
 		return NO;
 	}
 	
@@ -825,7 +825,7 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 				   argc < 4 ||
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, NULL)))
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAtPrecisely", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, coordinate scheme and coordinates");
+		OOReportJSBadArguments(context, @"System", @"legacy_addShipsAtPrecisely", argc, argv, nil, @"role, positive count no greater than 64, coordinate scheme and coordinates");
 		return NO;
 	}
 	
@@ -858,7 +858,7 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 				   !VectorFromArgumentListNoError(context, argc - 3, argv + 3, &where, &consumed) ||
 				   !JS_ValueToNumber(context, argv[3 + consumed], &radius)))
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addShipWithinRadius", argc, argv, @"Invalid arguments", @"role, positive count no greater than 64, coordinate scheme, coordinates and radius");
+		OOReportJSBadArguments(context, @"System", @"legacy_addShipWithinRadius", argc, argv, nil, @"role, positive count no greater than 64, coordinate scheme, coordinates and radius");
 		return NO;
 	}
 	
@@ -878,7 +878,7 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 	key = JSValToNSString(context, argv[0]);
 	if (key == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"legacy_addShipWithinRadius", argc, argv, @"Invalid arguments", @"ship key");
+		OOReportJSBadArguments(context, @"System", @"legacy_addShipWithinRadius", argc, argv, nil, @"ship key");
 		return NO;
 	}
 	
@@ -896,7 +896,7 @@ static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, ui
 	
 	if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
 	{
-		OOReportJSBadArguments(context, @"System", @"systemNameForID", argc, argv, @"Invalid arguments", @"system ID");
+		OOReportJSBadArguments(context, @"System", @"systemNameForID", argc, argv, nil, @"system ID");
 		return NO;
 	}
 	
@@ -913,7 +913,7 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, ui
 	name = JSValToNSString(context, argv[0]);
 	if (name == nil)
 	{
-		OOReportJSBadArguments(context, @"System", @"systemIDForName", argc, argv, @"Invalid arguments", @"string");
+		OOReportJSBadArguments(context, @"System", @"systemIDForName", argc, argv, nil, @"string");
 		return NO;
 	}
 	
@@ -930,7 +930,7 @@ static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uint
 	
 	if (argc < 2 || !JS_ValueToInt32(context, argv[0], &galaxyID) || !JS_ValueToInt32(context, argv[1], &systemID))
 	{
-		OOReportJSBadArguments(context, @"System", @"infoForSystem", argc, argv, @"Invalid arguments", @"galaxy ID and system ID");
+		OOReportJSBadArguments(context, @"System", @"infoForSystem", argc, argv, nil, @"galaxy ID and system ID");
 		return NO;
 	}
 	

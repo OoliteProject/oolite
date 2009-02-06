@@ -6,7 +6,7 @@ Entity subclass representing a ship, or various other flying things like cargo
 pods and stations (a subclass).
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOEntityWithDrawable.h"
 
 @class	OOColor, StationEntity, ParticleEntity, PlanetEntity,
-		WormholeEntity, AI, Octree, OOMesh, OOScript, OORoleSet;
+		WormholeEntity, AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup;
 #ifdef OO_BRAIN_AI
 @class OOBrain;
 #endif
@@ -116,9 +116,11 @@ MA 02110-1301, USA.
 	//docking instructions
 	NSDictionary			*dockingInstructions;
 	
+#if OBSOLETE
 	OOUniversalID			escort_ids[MAX_ESCORTS];	// replaces the mutable array
 	unsigned				escortCount;				// initially, number of escorts to set up, later number of escorts available
-	int						groupID;					// id of group leader
+#endif
+	
 	OOUniversalID			last_escort_target;			// last target an escort was deployed after
 	unsigned				found_hostiles;				// number of hostiles found
 	
@@ -138,7 +140,9 @@ MA 02110-1301, USA.
 	unsigned				military_jammer_active: 1,	// military_jammer
 	
 							docking_match_rotation: 1,
+#if OBSOLETE
 							escortsAreSetUp: 1,			// set to YES once escorts are initialised (a bit of a hack)
+#endif
 	
 	
 							pitching_over: 1,			// set to YES if executing a sharp loop
@@ -247,7 +251,7 @@ MA 02110-1301, USA.
 	// beacons
 	NSString				*beaconCode;
 	char					beaconChar;					// character displayed for this beacon
-	int						nextBeaconID;				// next beacon in sequence
+	OOUniversalID			nextBeaconID;				// next beacon in sequence
 	
 	//position of gun ports
 	Vector					forwardWeaponOffset,
@@ -297,6 +301,11 @@ MA 02110-1301, USA.
 	
 	NSMutableSet			*_equipment;
 	float					_heatInsulation;
+	
+	OOShipGroup				*_group;
+	OOShipGroup				*_escortGroup;
+	uint8_t					_maxEscortCount;
+	uint8_t					_pendingEscortCount;
 }
 
 // ship brains
@@ -453,11 +462,26 @@ MA 02110-1301, USA.
 - (double) messageTime;
 - (void) setMessageTime:(double) value;
 
-- (int) groupID;
-- (void) setGroupID:(int) value;
+//- (int) groupID;
+//- (void) setGroupID:(int) value;
 
-- (unsigned) escortCount;
+- (OOShipGroup *) group;
+- (void) setGroup:(OOShipGroup *)group;
+
+- (OOShipGroup *) escortGroup;
+- (BOOL) hasEscorts;
+- (NSEnumerator *) escortEnumerator;
+- (NSArray *) escortArray;
+
+- (uint8_t) escortCount;
+
+// Pending escort count: number of escorts to set up "later".
+- (uint8_t) pendingEscortCount;
+- (void) setPendingEscortCount:(uint8_t)count;
+
+#if OBSOLETE
 - (void) setEscortCount:(unsigned) value;
+#endif
 
 - (ShipEntity *) proximity_alert;
 - (void) setProximity_alert:(ShipEntity*) other;
@@ -485,7 +509,7 @@ MA 02110-1301, USA.
 - (BOOL)isEscort;		// Primary role is "escort" or "wingman"
 - (BOOL)isShuttle;		// Primary role is "shuttle"
 - (BOOL)isPirateVictim;	// Primary role is listed in pirate-victim-roles.plist
-- (BOOL)isUnpiloted;		// Has unpiloted = yes in its shipdata.plist entry
+- (BOOL)isUnpiloted;	// Has unpiloted = yes in its shipdata.plist entry
 
 - (BOOL) hasHostileTarget;
 
@@ -715,8 +739,6 @@ BOOL	class_masslocks(int some_class);
 - (void) broadcastThargoidDestroyed;
 
 - (void) broadcastHitByLaserFrom:(ShipEntity*) aggressor_ship;
-
-- (NSArray *) shipsInGroup:(int) ship_group_id;
 
 - (void) sendExpandedMessage:(NSString *) message_text toShip:(ShipEntity*) other_ship;
 - (void) broadcastAIMessage:(NSString *) ai_message;

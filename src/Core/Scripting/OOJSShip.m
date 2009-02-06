@@ -3,7 +3,7 @@
 OOJSShip.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "EntityOOJavaScriptExtensions.h"
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
+#import "OOShipGroup.h"
 
 
 DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
@@ -104,6 +105,8 @@ enum
 	kShip_hasSuspendedAI,		// AI has suspended staes, boolean, read-only
 	kShip_target,				// target, Ship, read/write
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
+	kShip_group,				// group, ShipGroup, read/write
+	kShip_escortGroup,			// group, ShipGroup, read-only
 	kShip_temperature,			// hull temperature, double, read/write
 	kShip_heatInsulation,		// hull heat insulation, double, read/write
 	kShip_entityPersonality,	// per-ship random number, int, read-only
@@ -112,7 +115,6 @@ enum
 	kShip_isFrangible,			// frangible, boolean, read-only
 	kShip_isCloaked,			// cloaked, boolean, read/write (if cloaking device installed)
 	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
-	kShip_groupID,				// group ID, integer, read-only
 	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_hasHostileTarget,		// has hostile target, boolean, read-only
 	kShip_weaponRange,			// weapon range, double, read-only
@@ -152,8 +154,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "bounty",					kShip_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "entityPersonality",		kShip_entityPersonality,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "escorts",				kShip_escorts,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "group",					kShip_group,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "escortGroup",			kShip_escortGroup,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "groupID",				kShip_groupID,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasHostileTarget",		kShip_hasHostileTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -307,10 +310,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_escorts:
-			result = [entity escorts];
+			// FIXME: use implemention in oolite-global-prefix.js once ShipGroup works.
+			result = [[entity escortGroup] memberArray];
+			if ([result count] == 0)  result = [NSNull null];
+			break;
+			
+		case kShip_group:
+			result = [entity group];
 			if (result == nil)  result = [NSNull null];
 			break;
-		
+			
+		case kShip_escortGroup:
+			result = [entity escortGroup];
+			if (result == nil)  result = [NSNull null];
+			break;
+			
 		case kShip_temperature:
 			OK = JS_NewDoubleValue(context, [entity temperature] / SHIP_MAX_CABIN_TEMP, outValue);
 			break;
@@ -346,11 +360,6 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isJamming:
 			*outValue = BOOLToJSVal([entity isJammingScanning]);
-			OK = YES;
-			break;
-			
-		case kShip_groupID:
-			*outValue = INT_TO_JSVAL([entity groupID]);
 			OK = YES;
 			break;
 		
@@ -502,6 +511,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	jsdouble					fValue;
 	int32						iValue;
 	JSBool						bValue;
+	OOShipGroup					*group = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
@@ -585,6 +595,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 				OK = YES;
 			}
 			break;
+			
+		case kShip_group:
+			group = JSValueToObjectOfClass(context, *value, [OOShipGroup class]);
+			if (group != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setGroup:group];
+				OK = YES;
+			}
+			break;
 		
 		case kShip_temperature:
 			if (JS_ValueToNumber(context, *value, &fValue))
@@ -663,7 +682,7 @@ static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsva
 	name = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"setScript", argc, argv, @"Invalid arguments", @"script name");
+		OOReportJSBadArguments(context, @"Ship", @"setScript", argc, argv, nil, @"script name");
 		return NO;
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -687,7 +706,7 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 	name = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"setAI", argc, argv, @"Invalid arguments", @"AI name");
+		OOReportJSBadArguments(context, @"Ship", @"setAI", argc, argv, nil, @"AI name");
 		return NO;
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -711,7 +730,7 @@ static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval
 	name = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(name == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"switchAI", argc, argv, @"Invalid arguments", @"AI name");
+		OOReportJSBadArguments(context, @"Ship", @"switchAI", argc, argv, nil, @"AI name");
 		return NO;
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -761,7 +780,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 	message = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(message == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"reactToAIMessage", argc, argv, @"Invalid arguments", @"message");
+		OOReportJSBadArguments(context, @"Ship", @"reactToAIMessage", argc, argv, nil, @"message");
 		return NO;
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -809,7 +828,7 @@ static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval 
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"hasRole", argc, argv, @"Invalid arguments", @"role");
+		OOReportJSBadArguments(context, @"Ship", @"hasRole", argc, argv, nil, @"role");
 		return NO;
 	}
 	
@@ -829,7 +848,7 @@ static JSBool ShipEjectItem(JSContext *context, JSObject *this, uintN argc, jsva
 	role = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(role == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"ejectItem", argc, argv, @"Invalid arguments", @"role");
+		OOReportJSBadArguments(context, @"Ship", @"ejectItem", argc, argv, nil, @"role");
 		return NO;
 	}
 	
@@ -850,7 +869,7 @@ static JSBool ShipEjectSpecificItem(JSContext *context, JSObject *this, uintN ar
 	itemKey = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(itemKey == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"ejectSpecificItem", argc, argv, @"Invalid arguments", @"ship key");
+		OOReportJSBadArguments(context, @"Ship", @"ejectSpecificItem", argc, argv, nil, @"ship key");
 		return NO;
 	}
 	
@@ -894,7 +913,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, argv[1], &count);
 	if (EXPECT_NOT(role == nil || !gotCount || count < 1 || count > 64))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"spawn", argc, argv, @"Invalid arguments", @"role and optional positive count no greater than 64");
+		OOReportJSBadArguments(context, @"Ship", @"spawn", argc, argv, nil, @"role and optional positive count no greater than 64");
 		return NO;
 	}
 	
@@ -934,7 +953,7 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, JSVAL_TO_OBJECT(argv[0]), &target) ||
 				   ![actions isKindOfClass:[NSArray class]]))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"runLegacyScriptActions", argc, argv, @"Invalid arguments", @"target and array of actions");
+		OOReportJSBadArguments(context, @"Ship", @"runLegacyScriptActions", argc, argv, nil, @"target and array of actions");
 		return NO;
 	}
 	
@@ -957,7 +976,7 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 	message = [NSString stringWithJavaScriptValue:*argv inContext:context];
 	if (EXPECT_NOT(message == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, @"Invalid arguments", @"message");
+		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, nil, @"message");
 		return NO;
 	}
 	

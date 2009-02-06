@@ -143,7 +143,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 
 #if OOLOG_POISON_NSLOG
 	#pragma GCC poison NSLog	// Use OOLog instead
-#else
+#elif !OOLOG_NO_HIJACK_NSLOG
 	// Hijack NSLog. Buahahahaha.
 	#define NSLog(format, ...)		OOLog(kOOLogUnconvertedNSLog, format, ## __VA_ARGS__)
 	#define NSLogv(format, args)	OOLogWithArgmuents(kOOLogUnconvertedNSLog, format, args)

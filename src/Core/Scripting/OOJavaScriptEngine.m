@@ -528,6 +528,7 @@ void OOReportJSBadPropertySelector(JSContext *context, NSString *className, jsin
 
 void OOReportJSBadArguments(JSContext *context, NSString *scriptClass, NSString *function, uintN argc, jsval *argv, NSString *message, NSString *expectedArgsDescription)
 {
+	if (message == nil)  message = @"Invalid arguments";
 	message = [NSString stringWithFormat:@"%@ %@", message, [NSString stringWithJavaScriptParameters:argv count:argc inContext:context]];
 	if (expectedArgsDescription != nil)  message = [NSString stringWithFormat:@"%@ -- expected %@", message, expectedArgsDescription];
 	

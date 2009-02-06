@@ -2066,7 +2066,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[ship setRoll:M_PI/5.0];
 		[ship setPitch:M_PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
-		[ship setEscortCount:0];
+		[ship setPendingEscortCount:0];
 		[UNIVERSE addEntity:ship];
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		

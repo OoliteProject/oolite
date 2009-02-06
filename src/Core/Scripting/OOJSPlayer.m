@@ -333,7 +333,7 @@ static JSBool PlayerCommsMessage(JSContext *context, JSObject *this, uintN argc,
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
 	if (EXPECT_NOT(message == nil || !gotTime))
 	{
-		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, @"Invalid arguments", @"message and optional duration");
+		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, nil, @"message and optional duration");
 		return NO;
 	}
 	
@@ -353,7 +353,7 @@ static JSBool PlayerConsoleMessage(JSContext *context, JSObject *this, uintN arg
 	if (argc > 1)  gotTime = JS_ValueToNumber(context, argv[1], &time);
 	if (EXPECT_NOT(message == nil || !gotTime))
 	{
-		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, @"Invalid arguments", @"message and optional duration");
+		OOReportJSBadArguments(context, @"Player", @"commsMessage", argc, argv, nil, @"message and optional duration");
 		return NO;
 	}
 	

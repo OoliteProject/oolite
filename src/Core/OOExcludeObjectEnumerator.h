@@ -1,11 +1,12 @@
 /*
 
-EntityOOJavaScriptExtensions.h
+OOExcludeObjectEnumerator.h
 
-JavaScript support methods for entities.
+Simple filter to exclude one object from an NSEnumerator.
+
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,36 +25,24 @@ MA 02110-1301, USA.
 
 */
 
-
-#import "Entity.h"
-#import "OOJavaScriptEngine.h"
+#import <Cocoa/Cocoa.h>
 
 
-@interface Entity (OOJavaScriptExtensions)
+@interface OOExcludeObjectEnumerator: NSEnumerator
+{
+@private
+	NSEnumerator			*_enumerator;
+	id						_excludeObject;
+}
 
-- (BOOL)isVisibleToScripts;
-
-- (NSString *)jsClassName;
-
-// Internal:
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype;
-- (void)deleteJSSelf;
++ (id) enumeratorWithEnumerator:(NSEnumerator *)enumerator
+				excludingObject:(id)object;
 
 @end
 
 
-@interface ShipEntity (OOJavaScriptExtensions)
+@interface NSEnumerator (OOExcludingObject)
 
-// "Normal" subentities, excluding flashers and exhaust plumes.
-- (NSArray *)subEntitiesForScript;
-
-- (void)setTargetForScript:(ShipEntity *)target;
-
-@end
-
-
-@interface PlayerEntity (OOJavaScriptExtensions)
-
-- (void)setJSSelf:(JSObject *)val context:(JSContext *)context;
+- (id) ooExcludingObject:(id)object;
 
 @end

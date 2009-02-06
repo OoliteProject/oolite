@@ -310,7 +310,9 @@
 	
 	
 	ship.noPrimaryRole						= no;
-	ship.escort.reject						= no;
+	ship.escort								= no;
+	ship.escort.accept						= inherit;
+	ship.escort.reject						= inherit;
 	
 	shipData.load.shipyard.unknown			= no;					// Warning for when shipyard.plist entries do not have matching shipdata.plist entry, disabled by default for Realistic Shipyards OXP.
 	shipData.load.begin						= yes;

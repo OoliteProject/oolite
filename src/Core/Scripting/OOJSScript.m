@@ -510,18 +510,18 @@ static JSFunctionSpec sScriptMethods[] =
 
 
 /*	Generate default name for script which doesn't set its name property when
-first run.
-
-The generated name is <name>.anon-script, where <name> is selected as
-follows:
-* If path is nil (futureproofing), use the address of the script object.
-* If the file's name is something other than script.*, use the file name.
-* If the containing directory is something other than Config, use the
-containing directory's name.
-* Otherwise, use the containing directory's parent (which will generally
-													be an OXP root directory).
-* If either of the two previous steps results in an empty string, fall
-back on the full path.
+	first run.
+ 
+	The generated name is <name>.anon-script, where <name> is selected as
+	follows:
+	* If path is nil (futureproofing), use the address of the script object.
+	* If the file's name is something other than script.*, use the file name.
+	* If the containing directory is something other than Config, use the
+	containing directory's name.
+	* Otherwise, use the containing directory's parent (which will generally
+														be an OXP root directory).
+	* If either of the two previous steps results in an empty string, fall
+	back on the full path.
 */
 - (NSString *)scriptNameFromPath:(NSString *)path
 {

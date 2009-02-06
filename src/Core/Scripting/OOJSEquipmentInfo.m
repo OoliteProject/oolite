@@ -301,7 +301,7 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 	key = JSValToNSString(context, argv[0]);
 	if (key == nil)
 	{
-		OOReportJSBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, argv, @"Invalid arguments", @"string");
+		OOReportJSBadArguments(context, @"EquipmentInfo", @"infoForKey", argc, argv, nil, @"string");
 		return NO;
 	}
 	
