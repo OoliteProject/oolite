@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "ShipEntity.h"
 #import "OOShipGroup.h"
 #import "OOMaths.h"
 
