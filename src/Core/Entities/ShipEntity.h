@@ -116,11 +116,6 @@ MA 02110-1301, USA.
 	//docking instructions
 	NSDictionary			*dockingInstructions;
 	
-#if OBSOLETE
-	OOUniversalID			escort_ids[MAX_ESCORTS];	// replaces the mutable array
-	unsigned				escortCount;				// initially, number of escorts to set up, later number of escorts available
-#endif
-	
 	OOUniversalID			last_escort_target;			// last target an escort was deployed after
 	unsigned				found_hostiles;				// number of hostiles found
 	
@@ -140,9 +135,6 @@ MA 02110-1301, USA.
 	unsigned				military_jammer_active: 1,	// military_jammer
 	
 							docking_match_rotation: 1,
-#if OBSOLETE
-							escortsAreSetUp: 1,			// set to YES once escorts are initialised (a bit of a hack)
-#endif
 	
 	
 							pitching_over: 1,			// set to YES if executing a sharp loop
@@ -478,10 +470,6 @@ MA 02110-1301, USA.
 // Pending escort count: number of escorts to set up "later".
 - (uint8_t) pendingEscortCount;
 - (void) setPendingEscortCount:(uint8_t)count;
-
-#if OBSOLETE
-- (void) setEscortCount:(unsigned) value;
-#endif
 
 - (ShipEntity *) proximity_alert;
 - (void) setProximity_alert:(ShipEntity*) other;

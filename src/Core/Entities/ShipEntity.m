@@ -3340,21 +3340,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-#if OBSOLETE
-- (unsigned) escortCount
-{
-	return escortCount;
-}
-
-
-- (void) setEscortCount:(unsigned) value
-{
-	escortCount = value;
-	escortsAreSetUp = (escortCount == 0);
-}
-#endif
-
-
 - (ShipEntity*) proximity_alert
 {
 	return [UNIVERSE entityForUniversalID:proximity_alert];

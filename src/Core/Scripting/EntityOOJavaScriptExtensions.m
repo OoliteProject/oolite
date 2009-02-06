@@ -117,31 +117,6 @@ MA 02110-1301, USA.
 }
 
 
-#if OBSOLETE
-- (NSArray *) escorts
-{
-	unsigned			i;
-	NSMutableArray		*result = nil;
-	id					object = nil;
-	
-	if (escortCount == 0)  return nil;
-	result = [NSMutableArray arrayWithCapacity:escortCount];
-	
-	for (i = 0; i != escortCount; ++i)
-	{
-		object = [UNIVERSE entityForUniversalID:escort_ids[i]];
-		if ([object isKindOfClass:[ShipEntity class]])
-		{
-			[result addObject:object];
-		}
-	}
-	
-	if ([result count] == 0)  result = nil;
-	return result;
-}
-#endif
-
-
 - (void) setTargetForScript:(ShipEntity *)target
 {
 	ShipEntity *me = self;
