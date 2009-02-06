@@ -33,8 +33,211 @@ endif
 
 OBJC_PROGRAM_NAME = oolite
 
-oolite_C_FILES = legacy_random.c strlcpy.c OOTCPStreamDecoder.c
-oolite_OBJC_FILES = OOCocoa.m Comparison.m AI.m DustEntity.m Entity.m GameController.m GuiDisplayGen.m HeadUpDisplay.m main.m MyOpenGLView.m OpenGLSprite.m ParticleEntity.m PlanetEntity.m PlayerEntityLegacyScriptEngine.m PlayerEntityContracts.m PlayerEntityControls.m PlayerEntityLoadSave.m PlayerEntitySound.m PlayerEntity.m ResourceManager.m RingEntity.m ShipEntityAI.m ShipEntity.m SkyEntity.m StationEntity.m Universe.m NSFileManagerOOExtensions.m JoystickHandler.m PlayerEntityStickMapper.m OOCharacter.m OOTrumble.m WormholeEntity.m NSScannerOOExtensions.m OOXMLExtensions.m NSMutableDictionaryOOExtensions.m Geometry.m Octree.m CollisionRegion.m OOColor.m OOLogging.m OOCacheManager.m OOCache.m OOStringParsing.m OOCollectionExtractors.m OOVector.m OOMatrix.m OOQuaternion.m OOVoxel.m OOTriangle.m OOPListParsing.m OOFastArithmetic.m OOTextureScaling.m OOConstToString.m OOScript.m OOJSScript.m OOJavaScriptEngine.m OOPListScript.m NSStringOOExtensions.m PlayerEntityScriptMethods.m OOWeakReference.m OOJSEntity.m EntityOOJavaScriptExtensions.m OOJSQuaternion.m OOMaterial.m OOShaderMaterial.m OOShaderProgram.m OOShaderUniform.m OOTexture.m OONullTexture.m OOTextureLoader.m OOPNGTextureLoader.m OOOpenGLExtensionManager.m OOBasicMaterial.m OOSingleTextureMaterial.m OOCPUInfo.m OOSelfDrawingEntity.m OOEntityWithDrawable.m OODrawable.m OOJSVector.m OOMesh.m OOOpenGL.m OOGraphicsResetManager.m OOProbabilisticTextureManager.m OODebugGLDrawing.m OOShaderUniformMethodType.m OOAsyncQueue.m TextureStore.m OOOXPVerifier.m OOOXPVerifierStage.m OOFileScannerVerifierStage.m OOCheckRequiresPListVerifierStage.m OOCheckDemoShipsPListVerifierStage.m OOCheckEquipmentPListVerifierStage.m OOTextureVerifierStage.m OOModelVerifierStage.m OOCheckShipDataPListVerifierStage.m OOPListSchemaVerifier.m OOJSShip.m OOJSPlayer.m OOJSCall.m OOJSStation.m OOJSSystem.m OOJSOolite.m OORoleSet.m OOJSGlobal.m OOJSMissionVariables.m OOJSMission.m OOPriorityQueue.m OOScriptTimer.m OOJSTimer.m OOJSClock.m OODebugSupport.m OODebugMonitor.m OOJSConsole.m OODebugTCPConsoleClient.m OOTCPStreamDecoderAbstractionLayer.m OOEntityFilterPredicate.m OOJSPlanet.m OOJSWorldScripts.m OOJSSun.m NSThreadOOExtensions.m OOEncodingConverter.m OOJSSound.m OOJSSoundSource.m OOMusicController.m OOLogHeader.m OOJSSpecialFunctions.m OOSpatialReference.m OOSkyDrawable.m OOFilteringEnumerator.m OOSoundSourcePool.m ShipEntityScriptMethods.m OOShipRegistry.m OOProbabilitySet.m OOJSSystemInfo.m NSDictionaryOOExtensions.m OOEquipmentType.m OOCamera.m OOJSPlayerShip.m OOSDLSound.m OOSDLConcreteSound.m OOSoundSource.m OOSDLSoundMixer.m OOSDLSoundChannel.m OOBasicSoundReferencePoint.m SDLMusic.m OOLogOutputHandler.m OOJSEquipmentInfo.m OOIsNumberLiteral.m OOConvertSystemDescriptions.m OldSchoolPropertyListWriting.m OOCrosshairs.m OOJSFunction.m OOAIStateMachineVerifierStage.m OOLegacyScriptWhitelist.m OOShipGroup.m OOJSShipGroup.m OOExcludeEnumeratorObject.m
+oolite_C_FILES = \
+	legacy_random.c \
+	strlcpy.c \
+	OOTCPStreamDecoder.c
+
+
+OOLITE_DEBUG_FILES = \
+	OODebugMonitor.m \
+	OODebugSupport.m \
+	OODebugTCPConsoleClient.m \
+	OOJSConsole.m \
+	OOTCPStreamDecoderAbstractionLayer.m
+
+OOLITE_ENTITY_FILES = \
+	DustEntity.m \
+	Entity.m \
+	OOEntityWithDrawable.m \
+	OOSelfDrawingEntity.m \
+	ParticleEntity.m \
+	PlanetEntity.m \
+	PlayerEntity.m \
+	PlayerEntityContracts.m \
+	PlayerEntityControls.m \
+	PlayerEntityLegacyScriptEngine.m \
+	PlayerEntityLoadSave.m \
+	PlayerEntityScriptMethods.m \
+	PlayerEntitySound.m \
+	PlayerEntityStickMapper.m \
+	RingEntity.m \
+	ShipEntity.m \
+	ShipEntityAI.m \
+	ShipEntityScriptMethods.m \
+	SkyEntity.m \
+	StationEntity.m \
+	WormholeEntity.m
+
+OOLITE_GRAPHICS_DRAWABLE_FILES = \
+	OODrawable.m \
+	OOMesh.m
+
+OOLITE_GRAPHICS_MATERIAL_FILES = \
+	OOBasicMaterial.m \
+	OOMaterial.m \
+	OONullTexture.m \
+	OOPNGTextureLoader.m \
+	OOShaderMaterial.m \
+	OOShaderProgram.m \
+	OOShaderUniform.m \
+	OOShaderUniformMethodType.m \
+	OOSingleTextureMaterial.m \
+	OOTexture.m \
+	OOTextureLoader.m \
+	OOTextureScaling.m
+
+OOLITE_GRAPHICS_MISC_FILES = \
+	OOCamera.m \
+	OOCrosshairs.m \
+	OODebugGLDrawing.m \
+	OOGraphicsResetManager.m \
+	OOLight.m \
+	OOOpenGL.m \
+	OOOpenGLExtensionManager.m \
+	OOProbabilisticTextureManager.m \
+	OOSkyDrawable.m \
+	OpenGLSprite.m
+
+OOLITE_MATHS_FILES = \
+	CollisionRegion.m \
+	Geometry.m \
+	Octree.m \
+	OOFastArithmetic.m \
+	OOMatrix.m \
+	OOQuaternion.m \
+	OOTriangle.m \
+	OOVector.m \
+	OOVoxel.m
+
+OOLITE_OXP_VERIFIER_FILES = \
+	OOAIStateMachineVerifierStage.m \
+	OOCheckDemoShipsPListVerifierStage.m \
+	OOCheckEquipmentPListVerifierStage.m \
+	OOCheckRequiresPListVerifierStage.m \
+	OOCheckShipDataPListVerifierStage.m \
+	OOFileScannerVerifierStage.m \
+	OOModelVerifierStage.m \
+	OOOXPVerifier.m \
+	OOOXPVerifierStage.m \
+	OOPListSchemaVerifier.m \
+	OOTextureVerifierStage.m
+
+OOLITE_RSRC_MGMT_FILES = \
+	OldSchoolPropertyListWriting.m \
+	OOCache.m \
+	OOCacheManager.m \
+	OOConvertSystemDescriptions.m \
+	OOPListParsing.m \
+	ResourceManager.m \
+	TextureStore.m
+
+OOLITE_SCRIPTING_FILES = \
+	EntityOOJavaScriptExtensions.m \
+	OOJavaScriptEngine.m \
+	OOJSCall.m \
+	OOJSClock.m \
+	OOJSEntity.m \
+	OOJSEquipmentInfo.m \
+	OOJSFunction.m \
+	OOJSGlobal.m \
+	OOJSMission.m \
+	OOJSMissionVariables.m \
+	OOJSOolite.m \
+	OOJSPlanet.m \
+	OOJSPlayer.m \
+	OOJSPlayerShip.m \
+	OOJSQuaternion.m \
+	OOJSScript.m \
+	OOJSShip.m \
+	OOJSShipGroup.m \
+	OOJSSound.m \
+	OOJSSoundSource.m \
+	OOJSSpecialFunctions.m \
+	OOJSStation.m \
+	OOJSSun.m \
+	OOJSSystem.m \
+	OOJSSystemInfo.m \
+	OOJSTimer.m \
+	OOJSVector.m \
+	OOJSWorldScripts.m \
+	OOLegacyScriptWhitelist.m \
+	OOPListScript.m \
+	OOScript.m \
+	OOScriptTimer.m
+
+OOLITE_SOUND_FILES = \
+	OOBasicSoundReferencePoint.m \
+	OOMusicController.m \
+	OOSDLConcreteSound.m \
+	OOSDLSound.m \
+	OOSDLSoundChannel.m \
+	OOSDLSoundMixer.m \
+	OOSoundSource.m \
+	OOSoundSourcePool.m \
+	SDLMusic.m
+
+OOLITE_UI_FILES = \
+	GuiDisplayGen.m \
+	HeadUpDisplay.m \
+	OOEncodingConverter.m
+
+OO_UTILITY_FILES = \
+	Comparison.m \
+	NSDictionaryOOExtensions.m \
+	NSFileManagerOOExtensions.m \
+	NSMutableDictionaryOOExtensions.m \
+	NSScannerOOExtensions.m \
+	NSStringOOExtensions.m \
+	NSThreadOOExtensions.m \
+	OOAsyncQueue.m \
+	OOCollectionExtractors.m \
+	OOColor.m \
+	OOConstToString.m \
+	OOCPUInfo.m \
+	OOEntityFilterPredicate.m \
+	OOExcludeObjectEnumerator.m \
+	OOFilteringEnumerator.m \
+	OOIsNumberLiteral.m \
+	OOLogging.m \
+	OOLogHeader.m \
+	OOLogOutputHandler.m \
+	OOPriorityQueue.m \
+	OOProbabilitySet.m \
+	OOShipGroup.m \
+	OOStringParsing.m \
+	OOWeakReference.m \
+	OOXMLExtensions.m
+
+OOLITE_MISC_FILES = \
+	AI.m \
+	GameController.m \
+	JoystickHandler.m \
+	main.m \
+	MyOpenGLView.m \
+	OOCharacter.m \
+	OOCocoa.m \
+	OOEquipmentType.m \
+	OORoleSet.m \
+	OOShipRegistry.m \
+	OOSpatialReference.m \
+	OOTrumble.m \
+	Universe.m
+
+oolite_OBJC_FILES = \
+	$(OOLITE_DEBUG_FILES) \
+	$(OOLITE_ENTITY_FILES) \
+	$(OOLITE_GRAPHICS_DRAWABLE_FILES) \
+	$(OOLITE_GRAPHICS_MATERIAL_FILES) \
+	$(OOLITE_GRAPHICS_MISC_FILES) \
+	$(OOLITE_MATHS_FILES) \
+	$(OOLITE_OXP_VERIFIER_FILES) \
+	$(OOLITE_RSRC_MGMT_FILES) \
+	$(OOLITE_SCRIPTING_FILES) \
+	$(OOLITE_SOUND_FILES) \
+	$(OOLITE_UI_FILES) \
+	$(OO_UTILITY_FILES) \
+	$(OOLITE_MISC_FILES)
 
 include $(GNUSTEP_MAKEFILES)/objc.make
 include GNUmakefile.postamble
