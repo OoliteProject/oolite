@@ -366,7 +366,7 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) stopAfterburnerSound
 {
-	afterburnerSoundLooping = NO;
+	// Do nothing, stop is detected in updateAfterburnerSound
 }
 
 
