@@ -1836,32 +1836,39 @@ static PlayerEntity *sSharedPlayer = nil;
 	// check for lost ident target and ensure the ident system is actually scanning
 	if (ident_engaged)
 	{
-		if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
+		ShipEntity *e = [self  primaryTarget];
+		if (e != nil && ![e isShip])
 		{
-			ShipEntity *e = [self  primaryTarget];
-			if (![e isShip])  e = nil;
-			
-			if (e == nil ||
-				e->zero_distance > SCANNER_MAX_RANGE2 ||
-				[e isCloaked] ||	// checks for cloaked ships
-				([e isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+			[self removeTarget:e];
+			e = nil;
+		}
+		
+		if (e == nil && missile_status != MISSILE_STATUS_TARGET_LOCKED)  return;
+		
+		if (e == nil ||
+			e->zero_distance > SCANNER_MAX_RANGE2 ||
+			[e isCloaked] ||	// checks for cloaked ships
+			([e isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+		{
+			if (!suppressTargetLost)
 			{
-				if (!suppressTargetLost)
-				{
-					[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
-					[self playTargetLost];
-				}
-				else
-				{
-					suppressTargetLost = NO;
-				}
+				[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
+				[self playTargetLost];
+			}
+			else
+			{
+				suppressTargetLost = NO;
+			}
+			
+			if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
+			{
 				primaryTarget = NO_TARGET;
 				missile_status = MISSILE_STATUS_SAFE;
 			}
-		}
-		else
-		{
-			missile_status = MISSILE_STATUS_ARMED;
+			else
+			{
+				missile_status = MISSILE_STATUS_ARMED;
+			}
 		}
 	}
 }
