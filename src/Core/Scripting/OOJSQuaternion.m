@@ -47,6 +47,7 @@ static JSBool QuaternionEquality(JSContext *context, JSObject *this, jsval value
 
 // Methods
 static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool QuaternionToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionMultiply(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionDot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool QuaternionRotate(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -111,6 +112,7 @@ static JSFunctionSpec sQuaternionMethods[] =
 {
 	// JS name					Function					min args
 	{ "toString",				QuaternionToString,			0, },
+	{ "toSource",				QuaternionToSource,			0, },
 	{ "multiply",				QuaternionMultiply,			1, },
 	{ "dot",					QuaternionDot,				1, },
 	{ "rotate",					QuaternionRotate,			2, },
@@ -412,6 +414,14 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
+    //	If called without new, replace this with a new Vector object.
+    if (!JS_IsConstructing(context))
+	{
+        this = JS_NewObject(context, &sQuaternionClass.base, NULL, NULL);
+        if (this == NULL)  return NO;
+		*outResult = OBJECT_TO_JSVAL(this);
+    }
+	
 	if (argc != 0)
 	{
 		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, NO)))
@@ -461,6 +471,19 @@ static JSBool QuaternionToString(JSContext *context, JSObject *this, uintN argc,
 	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
 	
 	*outResult = [QuaternionDescription(thisq) javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// toSource() : String
+static JSBool QuaternionToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Quaternion				thisq;
+	
+	if (EXPECT_NOT(!JSObjectGetQuaternion(context, this, &thisq))) return NO;
+	
+	*outResult = [[NSString stringWithFormat:@"Quaternion(%g, %g, %g, %g)", thisq.w, thisq.x, thisq.y, thisq.z]
+				  javaScriptValueInContext:context];
 	return YES;
 }
 

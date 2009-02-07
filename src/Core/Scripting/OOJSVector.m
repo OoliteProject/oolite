@@ -47,6 +47,7 @@ static JSBool VectorEquality(JSContext *context, JSObject *this, jsval value, JS
 
 // Methods
 static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool VectorToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorAdd(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -68,6 +69,7 @@ static JSBool VectorStaticInterpolate(JSContext *context, JSObject *this, uintN 
 static JSBool VectorStaticRandom(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticRandomDirection(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool VectorStaticRandomDirectionAndLength(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+//static JSBool VectorStaticConstruct(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sVectorClass =
@@ -116,6 +118,7 @@ static JSFunctionSpec sVectorMethods[] =
 {
 	// JS name					Function					min args
 	{ "toString",				VectorToString,				0, },
+	{ "toSource",				VectorToSource,				0, },
 	{ "add",					VectorAdd,					1, },
 	{ "subtract",				VectorSubtract,				1, },
 	{ "distanceTo",				VectorDistanceTo,			1, },
@@ -416,6 +419,14 @@ static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, js
 	private = malloc(sizeof *private);
 	if (EXPECT_NOT(private == NULL))  return NO;
 	
+    //	If called without new, replace this with a new Vector object.
+    if (!JS_IsConstructing(context))
+	{
+        this = JS_NewObject(context, &sVectorClass.base, NULL, NULL);
+        if (this == NULL)  return NO;
+		*outResult = OBJECT_TO_JSVAL(this);
+    }
+	
 	if (argc != 0)
 	{
 		if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, NO)))
@@ -464,6 +475,19 @@ static JSBool VectorToString(JSContext *context, JSObject *this, uintN argc, jsv
 	if (EXPECT_NOT(!JSObjectGetVector(context, this, &thisv))) return NO;
 	
 	*outResult = [VectorDescription(thisv) javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// toSource() : String
+static JSBool VectorToSource(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	Vector					thisv;
+	
+	if (EXPECT_NOT(!JSObjectGetVector(context, this, &thisv))) return NO;
+	
+	*outResult = [[NSString stringWithFormat:@"Vector(%g, %g, %g)", thisv.x, thisv.y, thisv.z]
+				  javaScriptValueInContext:context];
 	return YES;
 }
 

@@ -641,6 +641,8 @@ static BOOL		sRectangleTextureAvailable;
 	}
 	
 	_mipLevels = level - 1;
+	
+	// FIXME: GL_TEXTURE_MAX_LEVEL requires OpenGL 1.2. This should be fixed by generating all mip-maps for non-square textures so we don't need to use it.
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels);
 }
 

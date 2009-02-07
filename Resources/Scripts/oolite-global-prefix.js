@@ -278,5 +278,34 @@ this.defineCompatibilitySubGetter("player", "ship", "isPlanet");
 this.defineCompatibilitySubGetter("player", "ship", "isSun");
 this.defineCompatibilitySubGetter("player", "ship", "distanceTravelled");
 this.defineCompatibilitySubGetter("player", "ship", "spawnTime");
-this.defineCompatibilitySubMethod("player", "ship", "setPosition");
-this.defineCompatibilitySubMethod("player", "ship", "setOrientation");
+
+
+player.setPosition = function ()
+{
+	special.jsWarning("player.setPosition() is deprecated, use player.ship.position = foo instead.");
+	this.ship.position = Vector.apply(Vector, arguments);
+}
+
+
+player.setOrientation = function ()
+{
+	special.jsWarning("player.setOrientation() is deprecated, use player.ship.orientation = foo instead.");
+	this.ship.orientation = Quaternion.apply(Quaternion, arguments);
+}
+
+
+/**** To be removed after 1.74 at the latest ****/
+Entity.__proto__.setPosition = function ()
+{
+	special.jsWarning("Entity.setPosition() is deprecated, use entity.position = foo instead.");
+	this.position = Vector.apply(Vector, arguments);
+}
+
+
+Entity.__proto__.setOrientation = function ()
+{
+	special.jsWarning("Entity.setOrientation() is deprecated, use entity.orientation = foo instead.");
+	this.orientation = Quaternion.apply(Quaternion, arguments);
+}
+
+// Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity

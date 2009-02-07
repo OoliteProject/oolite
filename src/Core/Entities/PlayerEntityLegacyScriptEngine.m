@@ -241,7 +241,7 @@ static void PerformActionStatment(NSArray *statement, Entity *target)
 	selectorString = [statement objectAtIndex:1];
 	if ([statement count] > 2)  argumentString = [statement objectAtIndex:2];
 	
-	TraceLog(kOOLogTraceScriptAction, @"script action: \"%@%@\"", selectorString, argumentString ? [@" " stringByAppendingString:argumentString] : @"");
+	TraceLog(kOOLogTraceScriptAction, @"script action: \"%@%@\"", selectorString, argumentString ? (NSString *)[@" " stringByAppendingString:argumentString] : (NSString *)@"");
 	
 	selector = NSSelectorFromString(selectorString);
 	
@@ -515,7 +515,7 @@ static BOOL sRunningScript = NO;
 	{
 		lhsString = [self performSelector:selector];
 		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %@ (from %@) to \"%@\" with operator %@",
-				 lhsString ? [NSString stringWithFormat:@"\"%@\"", lhsString] : (NSString *)@"nil",
+				 lhsString ? (NSString *)[NSString stringWithFormat:@"\"%@\"", lhsString] : (NSString *)@"nil",
 				 selectorString,
 				 expandedRHS ? expandedRHS: (NSString *)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
 				OOComparisonTypeToString(comparator));
