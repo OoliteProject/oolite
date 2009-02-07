@@ -57,7 +57,7 @@ MA 02110-1301, USA.
 	[gui setArray:[NSArray arrayWithObject:@"Select a function and press Enter to modify or 'u' to unset."]
 		   forRow:GUI_ROW_INSTRUCT];
 	
-	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
+	[gui setSelectedRow: GUI_ROW_FUNCSTART];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
 }
