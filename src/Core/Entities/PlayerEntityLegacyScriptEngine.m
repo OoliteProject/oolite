@@ -304,7 +304,8 @@ static BOOL TestScriptConditions(NSArray *conditions)
 
 OOINLINE OOEntityStatus RecursiveRemapStatus(OOEntityStatus status)
 {
-	// Some player stutuses should only be seen once per "event". This remaps them to something innocuous in case of recursion.
+	// Some player stutuses should only be seen once per "event".
+	// This remaps them to something innocuous in case of recursion.
 	if (status == STATUS_DOCKING ||
 		status == STATUS_LAUNCHING ||
 		status == STATUS_ENTERING_WITCHSPACE ||
@@ -325,7 +326,7 @@ static BOOL sRunningScript = NO;
 - (void) checkScript
 {
 	BOOL						wasRunningScript = sRunningScript;
-	OOEntityStatus				restoreStatus;
+	OOEntityStatus				status, restoreStatus;
 	
 	[self setScriptTarget:self];
 	
@@ -348,13 +349,19 @@ static BOOL sRunningScript = NO;
 		In summary, scriptActionOnTarget: is bad, and calling it from scripts
 		rather than AIs is very bad.
 		-- Ahruman, 20080302
+		
+		Addendum: scriptActionOnTarget: is currently not in the whitelist for
+		script methods. Let's hope this doesn't turn out to be a problem.
+		-- Ahruman, 20090208
 	*/
+	status = [self status];
 	restoreStatus = status;
 	NS_DURING
 		if (sRunningScript)
 		{
 			status = RecursiveRemapStatus(status);
-			if (status != restoreStatus)
+			[self setStatus:status];
+			if (RecursiveRemapStatus(status) != restoreStatus)
 			{
 				OOLog(@"script.trace.runWorld.recurse.lying", @"----- Running world script recursively and temporarily changing player status from %@ to %@.", EntityStatusToString(restoreStatus), EntityStatusToString(status));
 			}
@@ -373,20 +380,14 @@ static BOOL sRunningScript = NO;
 	
 	// Restore anti-recursion measures.
 	sRunningScript = wasRunningScript;
-	status = restoreStatus;
+	if (status != restoreStatus)  [self setStatus:restoreStatus];
 	
 	OOLogPopIndent();
 }
 
 
 - (void)runScriptActions:(NSArray *)actions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target
-{/*
-	[self setScriptTarget:target];
-	sCurrentMissionKey = scriptName;
-	[self scriptActions:scriptActions forTarget:target missionKey:scriptName];
-	sCurrentMissionKey = nil;
-	*/
-	
+{
 	NSAutoreleasePool		*pool = nil;
 	NSString				*oldMissionKey = nil;
 	NSString * volatile		theMissionKey = contextName;	// Work-around for silly exception macros
@@ -872,7 +873,7 @@ static BOOL sRunningScript = NO;
 
 - (NSString *) status_string
 {
-	return EntityStatusToString(status);
+	return EntityStatusToString([self status]);
 }
 
 
@@ -1055,7 +1056,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (NSString *) dockedStationName_string	// returns 'NONE' if the player isn't docked, [station name] if it is, 'UNKNOWN' otherwise (?)
 {
 	NSString			*result = nil;
-	if (status != STATUS_DOCKED)  return @"NONE";
+	if ([self status] != STATUS_DOCKED)  return @"NONE";
 	
 	result = [self dockedStationName];
 	if (result == nil)  result = @"UNKNOWN";
@@ -1375,7 +1376,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if (scriptTarget != self)  return;
 	
-	if (status != STATUS_DOCKED && !forceRemoval)
+	if ([self status] != STATUS_DOCKED && !forceRemoval)
 	{
 		OOLog(kOOLogRemoveAllCargoNotDocked, @"SCRIPT ERROR in %@ ***** Error: removeAllCargo only works when docked.", CurrentScriptDesc());
 		return;
@@ -1402,7 +1403,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 	}
 
-	if(forceRemoval && status != STATUS_DOCKED)
+	if(forceRemoval && [self status] != STATUS_DOCKED)
 	{
 		int i;
 		for (i = [cargo count]-1; i >=0; i--)

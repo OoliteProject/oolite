@@ -253,7 +253,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			// poll the gameView keyboard things
 			[self pollApplicationControls]; // quit command-f etc.
-			switch (status)
+			switch ([self status])
 			{
 				case STATUS_WITCHSPACE_COUNTDOWN:
 				case STATUS_IN_FLIGHT:
@@ -387,7 +387,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 	
 	// handle pressing Q or [esc] in error-handling mode
-	if (status == STATUS_HANDLING_ERROR)
+	if ([self status] == STATUS_HANDLING_ERROR)
 	{
 		if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
 		{
@@ -801,7 +801,7 @@ static NSTimeInterval	time_last_frame;
 						ident_engaged = NO;
 						[self safeAllMissiles];
 						velocity = kZeroVector;
-						status = STATUS_AUTOPILOT_ENGAGED;
+						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
 						[self playAutopilotOn];
 #ifdef DOCKING_CLEARANCE_ENABLED
@@ -839,7 +839,7 @@ static NSTimeInterval	time_last_frame;
 						ident_engaged = NO;
 						[self safeAllMissiles];
 						velocity = kZeroVector;
-						status = STATUS_AUTOPILOT_ENGAGED;
+						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 						[shipAI setState:@"GLOBAL"];	// restart the AI
 						[self playAutopilotOn];
 #ifdef DOCKING_CLEARANCE_ENABLED
@@ -880,7 +880,7 @@ static NSTimeInterval	time_last_frame;
 						{
 							if (legalStatus > 50)
 							{
-								status = STATUS_AUTOPILOT_ENGAGED;
+								[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 								[self interpretAIMessage:@"DOCKING_REFUSED"];
 							}
 							else
@@ -974,12 +974,12 @@ static NSTimeInterval	time_last_frame;
 						jumpOK = NO;
 					}
 					
-					if (status == STATUS_WITCHSPACE_COUNTDOWN)
+					if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
 						jumpOK = NO;
 						galactic_witchjump = NO;
-						status = STATUS_IN_FLIGHT;
+						[self setStatus:STATUS_IN_FLIGHT];
 						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
@@ -992,7 +992,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						galactic_witchjump = NO;
 						witchspaceCountdown = hyperspaceMotorSpinTime;
-						status = STATUS_WITCHSPACE_COUNTDOWN;
+						[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
 						[self playStandardHyperspace];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
@@ -1015,12 +1015,12 @@ static NSTimeInterval	time_last_frame;
 				{
 					BOOL	jumpOK = YES;
 					
-					if (status == STATUS_WITCHSPACE_COUNTDOWN)
+					if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
 					{
 						// abort!
 						jumpOK = NO;
 						galactic_witchjump = NO;
-						status = STATUS_IN_FLIGHT;
+						[self setStatus:STATUS_IN_FLIGHT];
 						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
@@ -1033,7 +1033,7 @@ static NSTimeInterval	time_last_frame;
 					{
 						galactic_witchjump = YES;
 						witchspaceCountdown = hyperspaceMotorSpinTime;
-						status = STATUS_WITCHSPACE_COUNTDOWN;
+						[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
 						[self playGalacticHyperspace];
 						// say it!
 						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
@@ -1331,7 +1331,7 @@ static NSTimeInterval	time_last_frame;
 				afterburner_engaged = NO;
 			}
 			
-			if (status != STATUS_WITCHSPACE_COUNTDOWN)
+			if ([self status] != STATUS_WITCHSPACE_COUNTDOWN)
 			{
 				if ([gameView isDown:gvMouseLeftButton])
 				{
@@ -1409,7 +1409,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ((status == STATUS_DOCKED)&&([gameView isDown:key_contract_info]))  // '?' toggle between maps/info and contract screen
+			if ([self status] == STATUS_DOCKED && [gameView isDown:key_contract_info])  // '?' toggle between maps/info and contract screen
 			{
 				if (!queryPressed)
 				{
@@ -1572,7 +1572,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
 			
-			if ([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick])   // 'enter'
+			if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])   // 'enter'
 			{
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
@@ -1592,7 +1592,7 @@ static NSTimeInterval	time_last_frame;
 			break;
 			
 		case GUI_SCREEN_MARKET:
-			if (status == STATUS_DOCKED)
+			if ([self status] == STATUS_DOCKED)
 			{
 				[self handleGUIUpDownArrowKeys];
 				
@@ -1678,12 +1678,12 @@ static NSTimeInterval	time_last_frame;
 			break;
 			
 		case GUI_SCREEN_CONTRACTS:
-			if (status == STATUS_DOCKED)
+			if ([self status] == STATUS_DOCKED)
 			{
 				if ([self handleGUIUpDownArrowKeys])
 					[self setGuiToContractsScreen];
 				
-				if ((status == STATUS_DOCKED)&&([gameView isDown:13]||[gameView isDown:gvMouseDoubleClick]))   // 'enter' | doubleclick
+				if ([self status] == STATUS_DOCKED && ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick]))   // 'enter' | doubleclick
 				{
 					if ([gameView isDown:gvMouseDoubleClick])
 						[gameView clearMouse];
@@ -2453,7 +2453,7 @@ static NSTimeInterval	time_last_frame;
 	
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	BOOL			docked_okay = (status == STATUS_DOCKED);
+	BOOL			docked_okay = ([self status] == STATUS_DOCKED);
 	
 	//  text displays
 	if (([gameView isDown:gvFunctionKey5])||([gameView isDown:gvNumberKey5]))
@@ -2622,7 +2622,7 @@ static BOOL toggling_music;
 			frustration = 0.0;
 			autopilot_engaged = NO;
 			primaryTarget = NO_TARGET;
-			status = STATUS_IN_FLIGHT;
+			[self setStatus:STATUS_IN_FLIGHT];
 			[self playAutopilotOff];
 			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
 #ifdef DOCKING_CLEARANCE_ENABLED

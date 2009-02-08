@@ -608,7 +608,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	// deal with the machine going to sleep
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	if ((player)&&(player->status == STATUS_IN_FLIGHT))
+	if ((player)&&([player status] == STATUS_IN_FLIGHT))
 	{
 		[self displayMessage:@" Paused (press 'p') " forCount:1.0];
 		[[gameView gameController] pause_game];
@@ -2817,7 +2817,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 - (BOOL) breakPatternHide
 {
 	Entity* player = [PlayerEntity sharedPlayer];
-	return ((breakPatternCounter > 5)||(!player)||(player->status == STATUS_DOCKING));
+	return ((breakPatternCounter > 5)||(!player)||([player status] == STATUS_DOCKING));
 }
 
 
@@ -3548,16 +3548,15 @@ static const OOMatrix	starboard_matrix =
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
 				{
-					int d_status;
 					drawthing = my_entities[i];
-					d_status = drawthing->status;
+					OOEntityStatus d_status = [drawthing status];
 					
 					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 					
 					GLfloat flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
 					GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
 					
-					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
+					if ((d_status == STATUS_COCKPIT_DISPLAY && inGUIMode) || (d_status != STATUS_COCKPIT_DISPLAY && !inGUIMode))
 					{
 						// reset material properties
 						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
@@ -3629,13 +3628,12 @@ static const OOMatrix	starboard_matrix =
 				
 				for (i = furthest; i >= nearest; i--)
 				{
-					int d_status;
 					drawthing = my_entities[i];
-					d_status = drawthing->status;
+					OOEntityStatus d_status = [drawthing status];
 					
 					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 					
-					if (((d_status == STATUS_COCKPIT_DISPLAY)&&(inGUIMode)) || ((d_status != STATUS_COCKPIT_DISPLAY)&&(!inGUIMode)))
+					if ((d_status == STATUS_COCKPIT_DISPLAY && inGUIMode) || (d_status != STATUS_COCKPIT_DISPLAY && !inGUIMode))
 					{
 						// experimental - atmospheric fog
 						BOOL fogging = (airResistanceFactor > 0.01);
@@ -3802,13 +3800,15 @@ static const OOMatrix	starboard_matrix =
 		return nil;
 	
 	Entity *ent = entity_for_uid[u_id];
-	if (ent->isParticle)	// particles SHOULD NOT HAVE U_IDs!
+	if ([ent isParticle])	// particles SHOULD NOT HAVE U_IDs!
+	{
 		return nil;
-	int ent_status = ent->status;
-	if (ent_status == STATUS_DEAD)
+	}
+	
+	if ([ent status] == STATUS_DEAD || [ent status] == STATUS_DOCKED)
+	{
 		return nil;
-	if (ent_status == STATUS_DOCKED)
-		return nil;
+	}
 
 	return ent;
 }

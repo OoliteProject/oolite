@@ -79,7 +79,7 @@ Ringdata	ringentity;
 	}
 	
 	lifetime = 50.0;
-	status = STATUS_EFFECT;
+	[self setStatus:STATUS_EFFECT];
 	
 	velocity.x = 0.0;
 	velocity.y = 0.0;

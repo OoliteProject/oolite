@@ -71,7 +71,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	collidingEntities = [[NSMutableArray alloc] init];
 	
 	scanClass = CLASS_NOT_SET;
-	status = STATUS_COCKPIT_DISPLAY;
+	[self setStatus:STATUS_COCKPIT_DISPLAY];
 	
 	spawnTime = [UNIVERSE getTime];
 	
@@ -654,13 +654,13 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (void) setStatus:(OOEntityStatus) stat
 {
-	status = stat;
+	_status = stat;
 }
 
 
 - (OOEntityStatus) status
 {
-	return status;
+	return _status;
 }
 
 
@@ -787,7 +787,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	if (player)
 	{
-		if (status != STATUS_COCKPIT_DISPLAY)
+		if ([self status] != STATUS_COCKPIT_DISPLAY)
 			relativePosition = vector_between(player->position, position);
 		else
 			relativePosition = position;
@@ -1052,7 +1052,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	OOLog(@"dumpState.entity", @"Universal ID: %u", universalID);
 	OOLog(@"dumpState.entity", @"Scan class: %@", ScanClassToString(scanClass));
-	OOLog(@"dumpState.entity", @"Status: %@", EntityStatusToString(status));
+	OOLog(@"dumpState.entity", @"Status: %@", EntityStatusToString([self status]));
 	OOLog(@"dumpState.entity", @"Position: %@", VectorDescription(position));
 	OOLog(@"dumpState.entity", @"Orientation: %@", QuaternionDescription(orientation));
 	OOLog(@"dumpState.entity", @"Distance travelled: %g", distanceTravelled);

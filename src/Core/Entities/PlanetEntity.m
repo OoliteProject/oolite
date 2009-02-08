@@ -616,7 +616,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	
 	scanClass = CLASS_NO_DRAW;
-	status = STATUS_COCKPIT_DISPLAY;
+	[self setStatus:STATUS_COCKPIT_DISPLAY];
 	
 	orientation.w =  M_SQRT1_2;
 	orientation.x =  M_SQRT1_2;

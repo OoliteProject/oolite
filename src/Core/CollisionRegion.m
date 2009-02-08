@@ -537,7 +537,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	{
 		e1 = entity_array[i];
 		BOOL occluder_moved = NO;
-		if (e1->status == STATUS_COCKPIT_DISPLAY)
+		if ([e1 status] == STATUS_COCKPIT_DISPLAY)
 		{
 			e1->isSunlit = YES;
 			e1->shadingEntityID = NO_TARGET;

@@ -55,7 +55,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		witch_mass = 0.0;
 		shipsInTransit = [[NSMutableArray arrayWithCapacity:4] retain];
 		collision_radius = 0.0;
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_MINE;
 		position = [ship position];
 		zero_distance = distance2([[PlayerEntity sharedPlayer] position], position);

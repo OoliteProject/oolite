@@ -1155,7 +1155,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL) canCollide
 {
-	switch (status)
+	switch ([self status])
 	{
 		case STATUS_START_GAME:
 		case STATUS_DOCKING:
@@ -1202,6 +1202,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self updateTrumbles:delta_t];
 	
+	OOEntityStatus status = [self status];
 	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
 	{
 		[self setGuiToIntro1Screen];	//set up demo mode
@@ -1370,6 +1371,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	//Bug #11692 CmdrJames added Status entering witchspace
+	OOEntityStatus status = [self status];
 	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
 		// work on the cabin temperature
@@ -1595,7 +1597,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	if (script_time <= script_time_check)  return;
 	
-	if (status != STATUS_IN_FLIGHT)
+	if ([self status] != STATUS_IN_FLIGHT)
 	{
 		switch (gui_screen)
 		{
@@ -1722,7 +1724,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			[UNIVERSE clearPreviousMessage];
 			[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-blocked-by-@"), [blocker name]] forCount: 4.5];
 			[self playWitchjumpBlocked];
-			status = STATUS_IN_FLIGHT;
+			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"blocked"];
 			go = NO;
 		}
@@ -1737,7 +1739,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				[UNIVERSE clearPreviousMessage];
 				[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
 				[self playWitchjumpDistanceTooGreat];
-				status = STATUS_IN_FLIGHT;
+				[self setStatus:STATUS_IN_FLIGHT];
 				[self doScriptEvent:@"playerJumpFailed" withArgument:@"too far"];
 				go = NO;
 			}
@@ -1752,7 +1754,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			[UNIVERSE clearPreviousMessage];
 			[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount: 4.5];
 			[self playWitchjumpInsufficientFuel];
-			status = STATUS_IN_FLIGHT;
+			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"playerJumpFailed" withArgument:@"insufficient fuel"];
 			go = NO;
 		}
@@ -1786,7 +1788,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		else
 			[UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0];
 		
-		status = STATUS_IN_FLIGHT;
+		[self setStatus:STATUS_IN_FLIGHT];
 		[self doScriptEvent:@"shipExitedWitchspace"];
 		suppressAegisMessages=NO;
 	}
@@ -1801,7 +1803,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self checkScript];
 		// next check in 10s
 		
-		status = STATUS_IN_FLIGHT;
+		[self setStatus:STATUS_IN_FLIGHT];
 
 #ifdef DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
@@ -1899,7 +1901,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	if (missile_status == MISSILE_STATUS_ARMED &&
 		(ident_engaged || [missile_entity[activeMissile] isMissile]) &&
-		(status == STATUS_IN_FLIGHT || status == STATUS_WITCHSPACE_COUNTDOWN))
+		([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
 		ShipEntity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
 		if (target != nil)  [self addTarget:target];
@@ -2071,10 +2073,19 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
-	if ((status == STATUS_DEAD)||(status == STATUS_COCKPIT_DISPLAY)||(status == STATUS_DOCKED)||(status == STATUS_START_GAME)||[UNIVERSE breakPatternHide])
-		return;	// don't draw
-
-	[super drawEntity: immediate : translucent];
+	switch ([self status])
+	{
+		case STATUS_DEAD:
+		case STATUS_COCKPIT_DISPLAY:
+		case STATUS_DOCKED:
+		case STATUS_START_GAME:
+			return;
+			
+		default:
+			if ([UNIVERSE breakPatternHide])  return;
+	}
+	
+	[super drawEntity:immediate :translucent];
 }
 
 
@@ -2110,7 +2121,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) setDockedAtMainStation
 {
 	dockedStation = [UNIVERSE station];
-	status=STATUS_DOCKED;
+	[self setStatus:STATUS_DOCKED];
 }
 
 - (StationEntity *) dockedStation
@@ -2643,7 +2654,9 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	OOAlertCondition old_alert_condition = alertCondition;
 	alertCondition = ALERT_CONDITION_GREEN;
-	[self setAlertFlag:ALERT_FLAG_DOCKED to:(status == STATUS_DOCKED)];
+	
+	[self setAlertFlag:ALERT_FLAG_DOCKED to:[self status] == STATUS_DOCKED];
+	
 	if (alertFlags & ALERT_FLAG_DOCKED)
 	{
 		alertCondition = ALERT_CONDITION_DOCKED;
@@ -2687,13 +2700,13 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	if ([ms isEqual:@"ECM"])  [self playHitByECMSound];
 
-	if ([ms isEqual:@"DOCKING_REFUSED"]&&(status == STATUS_AUTOPILOT_ENGAGED))
+	if ([ms isEqual:@"DOCKING_REFUSED"] && [self status] == STATUS_AUTOPILOT_ENGAGED)
 	{
 		[self playDockingDenied];
 		[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
 		autopilot_engaged = NO;
 		primaryTarget = NO_TARGET;
-		status = STATUS_IN_FLIGHT;
+		[self setStatus:STATUS_IN_FLIGHT];
 		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:@"playerDockingRefused"];
 	}
@@ -3038,7 +3051,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	double		d_forward;
 	BOOL		internal_damage = NO;	// base chance
 
-	if (status == STATUS_DEAD)  return;
+	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
 	[[ent retain] autorelease];
@@ -3116,7 +3129,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
 
-	if (status == STATUS_DEAD)
+	if ([self status] == STATUS_DEAD)
 		return;
 
 	[[ent retain] autorelease];
@@ -3177,7 +3190,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) takeHeatDamage:(double) amount
 {
-	if (status == STATUS_DEAD)					// it's too late for this one!
+	if ([self status] == STATUS_DEAD)					// it's too late for this one!
 		return;
 
 	if (amount < 0.0)
@@ -3237,7 +3250,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	int				result = NO;
 	Quaternion		q1 = orientation;
 	
-	status = STATUS_ESCAPE_SEQUENCE;	// firstly
+	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 #ifdef DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
@@ -3525,7 +3538,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self playGameOver];
 	
 	flightSpeed = 160.0f;
-	status = STATUS_DEAD;
+	[self setStatus:STATUS_DEAD];
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:scoreMS forCount:30.0];
@@ -3570,10 +3583,10 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) enterDock:(StationEntity *)station
 {
-	if (status == STATUS_DEAD)
+	if ([self status] == STATUS_DEAD)
 		return;
 	
-	status = STATUS_DOCKING;
+	[self setStatus:STATUS_DOCKING];
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
 
 	ident_engaged = NO;
@@ -3693,6 +3706,15 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+#if 0
+- (void) setStatus:(OOEntityStatus)val
+{
+	[super setStatus:val];
+	OOLog(@"player.temp.status", @"Player status set to %@", EntityStatusToString(val));
+}
+#endif
+
+
 - (void) leaveDock:(StationEntity *)station
 {
 	if (station == nil)  return;
@@ -3767,7 +3789,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) enterGalacticWitchspace
 {
-	status = STATUS_ENTERING_WITCHSPACE;
+	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
@@ -3858,7 +3880,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
 	target_system_seed = [w_hole destination];
-	status = STATUS_ENTERING_WITCHSPACE;
+	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
@@ -3905,7 +3927,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 
-	status = STATUS_ENTERING_WITCHSPACE;
+	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
 	[self transitionToAegisNone];
 	suppressAegisMessages=YES;
@@ -4011,7 +4033,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;
 	flightSpeed = maxFlightSpeed * 0.25f;
-	status = STATUS_EXITING_WITCHSPACE;
+	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	gui_screen = GUI_SCREEN_MAIN;
 	being_fined = NO;				// until you're scanned by a copper!
 	[self clearTargetMemory];
@@ -4635,9 +4657,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GameController	*controller = [UNIVERSE gameController];
 
-	if (status == STATUS_DOCKED)
+	if ([self status] == STATUS_DOCKED)
 	{
-		if (!dockedStation)
+		if (dockedStation == nil)
 			dockedStation = [UNIVERSE station];
 		canLoadOrSave = (dockedStation == [UNIVERSE station]);
 	}
@@ -5598,7 +5620,7 @@ static int last_outfitting_index;
 		
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
 		
-		if (status == STATUS_DOCKED)	// can only buy or sell in dock
+		if ([self status] == STATUS_DOCKED)	// can only buy or sell in dock
 		{
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];
 			if (([gui selectedRow] < start_row)||([gui selectedRow] >=row))
@@ -5618,10 +5640,10 @@ static int last_outfitting_index;
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_MARKET;
 	
-	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
-	[UNIVERSE setDisplayCursor: (status == STATUS_DOCKED)];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[self setShowDemoShips:NO];
+	[UNIVERSE setDisplayText:YES];
+	[UNIVERSE setDisplayCursor:[self status] == STATUS_DOCKED];
+	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 	
 	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 }
@@ -6204,7 +6226,7 @@ static int last_outfitting_index;
 // override shipentity addTarget to implement target_memory
 - (void) addTarget:(Entity *) targetEntity
 {
-	if (status != STATUS_IN_FLIGHT && status != STATUS_WITCHSPACE_COUNTDOWN)  return;
+	if ([self status] != STATUS_IN_FLIGHT && [self status] != STATUS_WITCHSPACE_COUNTDOWN)  return;
 	if (targetEntity == self)  return;
 	
 	if (missile_status == MISSILE_STATUS_SAFE)
@@ -6468,7 +6490,7 @@ static int last_outfitting_index;
 {
 	BOOL isDockedStatus = NO;
 	
-	switch (status)
+	switch ([self status])
 	{
 		case STATUS_DOCKED:
 		case STATUS_DOCKING:
@@ -6502,8 +6524,8 @@ static int last_outfitting_index;
 		if (dockedStation == nil)
 		{
 			//there are a number of possible current statuses, not just STATUS_DOCKED
-			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString(status));
-			status = STATUS_IN_FLIGHT;
+			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			[self setStatus:STATUS_IN_FLIGHT];
 			isDockedStatus = NO;
 		}
 	}
@@ -6511,8 +6533,8 @@ static int last_outfitting_index;
 	{
 		if (dockedStation != nil)
 		{
-			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, not STATUS_DOCKED, but dockedStation is not nil; treating as docked. This is an internal error, please report it.", EntityStatusToString(status));
-			status = STATUS_DOCKED;
+			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, not STATUS_DOCKED, but dockedStation is not nil; treating as docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			[self setStatus:STATUS_DOCKED];
 			isDockedStatus = YES;
 		}
 	}

@@ -120,7 +120,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	isShip = YES;
 	entity_personality = ranrot_rand() & 0x7FFF;
-	status = STATUS_IN_FLIGHT;
+	[self setStatus:STATUS_IN_FLIGHT];
 	
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
 	weapon_recharge_rate = 6.0;
@@ -745,7 +745,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (universalID != NO_TARGET)
 	{
 		// set up escorts
-		if (status == STATUS_IN_FLIGHT && _pendingEscortCount != 0)	// just popped into existence
+		if ([self status] == STATUS_IN_FLIGHT && _pendingEscortCount != 0)	// just popped into existence
 		{
 			[self setUpEscorts];
 		}
@@ -987,7 +987,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 BOOL ship_canCollide (ShipEntity* ship)
 {
-	int		s_status =		ship->status;
+	int		s_status =		[ship status];
 	int		s_scan_class =	ship->scanClass;
 	if ((s_status == STATUS_COCKPIT_DISPLAY)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
 		return NO;
@@ -1415,7 +1415,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	aegis_status = [self checkForAegis];   // is a station or something nearby??
 
 	//scripting
-	if (!haveExecutedSpawnAction && script != nil && status == STATUS_IN_FLIGHT)
+	if (!haveExecutedSpawnAction && script != nil && [self status] == STATUS_IN_FLIGHT)
 	{
 		[[PlayerEntity sharedPlayer] setScriptTarget:self];
 		[self doScriptEvent:@"shipSpawned"];
@@ -1424,11 +1424,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// behaviours according to status and behaviour
 	//
-	if (status == STATUS_LAUNCHING)
+	if ([self status] == STATUS_LAUNCHING)
 	{
 		if ([UNIVERSE getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
 		{
-			status = STATUS_IN_FLIGHT;
+			[self setStatus:STATUS_IN_FLIGHT];
 			[self doScriptEvent:@"shipLaunchedFromStation"];
 			[shipAI reactToMessage: @"LAUNCHED OKAY"];
 		}
@@ -1460,19 +1460,19 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//
 	// double check scooped behaviour
 	//
-	if (status == STATUS_BEING_SCOOPED)
+	if ([self status] == STATUS_BEING_SCOOPED)
 	{
 		//if we are being tractored, but we have no owner, then we have a problem
 		if (behaviour != BEHAVIOUR_TRACTORED  || [self owner] == nil || [self owner] == self || [self owner] == NO_TARGET)
 		{
 			// escaped tractor beam
-			status = STATUS_IN_FLIGHT;	// should correct 'uncollidable objects' bug
+			[self setStatus:STATUS_IN_FLIGHT];	// should correct 'uncollidable objects' bug
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 		}
 	}
 	
-	if (status == STATUS_COCKPIT_DISPLAY)
+	if ([self status] == STATUS_COCKPIT_DISPLAY)
 	{
 		[self applyRoll: delta_t * flightRoll andClimb: delta_t * flightPitch];
 		GLfloat range2 = 0.1 * distance2(position, destination) / (collision_radius * collision_radius);
@@ -2072,7 +2072,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (distance < desired_range)
 		{
 			behaviour = BEHAVIOUR_TUMBLE;
-			status = STATUS_IN_FLIGHT;
+			[self setStatus:STATUS_IN_FLIGHT];
 			[hauler scoopUp:self];
 			return;
 		}
@@ -2101,7 +2101,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			velocity.z += moment * dp.z;
 		}
 		//
-		if (status == STATUS_BEING_SCOOPED)
+		if ([self status] == STATUS_BEING_SCOOPED)
 		{
 			BOOL lost_contact = (distance > hauler->collision_radius + collision_radius + 250.0f);	// 250m range for tractor beam
 			if ([hauler isPlayer])
@@ -2118,7 +2118,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if (lost_contact)	// 250m range for tractor beam
 			{
 				// escaped tractor beam
-				status = STATUS_IN_FLIGHT;
+				[self setStatus:STATUS_IN_FLIGHT];
 				behaviour = BEHAVIOUR_IDLE;
 				frustration = 0.0;
 				[shipAI exitStateMachine];	// exit nullAI.plist
@@ -2951,7 +2951,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	if (status == STATUS_ACTIVE)
+	if ([self status] == STATUS_ACTIVE)
 	{
 		Vector abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
 		Entity		*last = nil;
@@ -3849,9 +3849,11 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 
 - (void) setStatus:(OOEntityStatus) stat
 {
-	status = stat;
-	if ((status == STATUS_LAUNCHING)&&(UNIVERSE))
+	[super setStatus:stat];
+	if (stat == STATUS_LAUNCHING)
+	{
 		launch_time = [UNIVERSE getTime];
+	}
 }
 
 
@@ -4352,12 +4354,12 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 	int speed_low = 200;
 	int n_alloys = floor(sqrtf(sqrtf(mass / 25000.0)));
 
-	if (status == STATUS_DEAD)
+	if ([self status] == STATUS_DEAD)
 	{
 		[UNIVERSE removeEntity:self];
 		return;
 	}
-	status = STATUS_DEAD;
+	[self setStatus:STATUS_DEAD];
 	
 	if ([self isThargoid])  [self broadcastThargoidDestroyed];
 	
@@ -4836,8 +4838,8 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
 
-	if (status == STATUS_DEAD)  return;
-	status = STATUS_DEAD;
+	if ([self status] == STATUS_DEAD)  return;
+	[self setStatus:STATUS_DEAD];
 	
 	//scripting
 	if (script != nil)
@@ -5229,7 +5231,7 @@ BOOL class_masslocks(int some_class)
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 	[self orientationChanged];
 	
-	status = STATUS_ACTIVE;
+	[self setStatus:STATUS_ACTIVE];
 	
 	return aim_cos;
 }
@@ -5325,7 +5327,7 @@ BOOL class_masslocks(int some_class)
 	quaternion_rotate_about_axis(&orientation, axis_to_track_by, thrust * delta_t);
 	[self orientationChanged];
 	
-	status = STATUS_ACTIVE;
+	[self setStatus:STATUS_ACTIVE];
 	
 	return aim_cos;
 }
@@ -5794,12 +5796,14 @@ BOOL class_masslocks(int some_class)
 	Vector rel_pos, urp;
 	int weapon_type = (fwd_weapon)? forward_weapon_type : aft_weapon_type;
 	if (weapon_type == WEAPON_THARGOID_LASER)
+	{
 		return (randf() < 0.05);	// one in twenty shots on target
+	}
+	
 	Entity  *target = [self primaryTarget];
-	if (target == nil)   // leave now!
-		return NO;
-	if (target->status == STATUS_DEAD)
-		return NO;
+	if (target == nil)  return NO;
+	if ([target status] == STATUS_DEAD)  return NO;
+	
 	if (isSunlit && (target->isSunlit == NO) && (randf() < 0.75))
 		return NO;	// 3/4 of the time you can't see from a lit place into a darker place
 	radius = target->collision_radius;
@@ -6910,7 +6914,7 @@ BOOL class_masslocks(int some_class)
 	desired_speed = 0.0;
 	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or behaviour
 	behaviour = BEHAVIOUR_TRACTORED;
-	status = STATUS_BEING_SCOOPED;
+	[self setStatus:STATUS_BEING_SCOOPED];
 	[self addTarget:other];
 	[self setOwner:other];
 }
@@ -7046,7 +7050,7 @@ BOOL class_masslocks(int some_class)
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	if (status == STATUS_DEAD)  return;
+	if ([self status] == STATUS_DEAD)  return;
 	if (amount <= 0.0)  return;
 	
 	// If it's an energy mine...
@@ -7222,11 +7226,11 @@ BOOL class_masslocks(int some_class)
 
 - (void) takeScrapeDamage:(double) amount from:(Entity *) ent
 {
-	if (status == STATUS_DEAD)  return;
+	if ([self status] == STATUS_DEAD)  return;
 
-	if (status == STATUS_LAUNCHING)					// no collisions during launches please
+	if ([self status] == STATUS_LAUNCHING)			// no collisions during launches please
 		return;
-	if (ent && ent->status == STATUS_LAUNCHING)		// no collisions during launches please
+	if ([ent status] == STATUS_LAUNCHING)			// no collisions during launches please
 		return;
 	
 	energy -= amount;
@@ -7253,7 +7257,7 @@ BOOL class_masslocks(int some_class)
 
 - (void) takeHeatDamage:(double) amount
 {
-	if (status == STATUS_DEAD)					// it's too late for this one!
+	if ([self status] == STATUS_DEAD)					// it's too late for this one!
 		return;
 
 	if (amount < 0.0)
@@ -7306,7 +7310,7 @@ BOOL class_masslocks(int some_class)
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.5;
 	
-	status = STATUS_LAUNCHING;
+	[self setStatus:STATUS_LAUNCHING];
 	
 	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
 	[shipAI message:@"LAUNCHED"];
@@ -7379,7 +7383,7 @@ int w_space_seed = 1234567;
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.25;
-	status = STATUS_LAUNCHING;
+	[self setStatus:STATUS_LAUNCHING];
 	[shipAI message:@"EXITED_WITCHSPACE"];
 	[UNIVERSE addEntity:self];
 

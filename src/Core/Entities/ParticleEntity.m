@@ -153,7 +153,7 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 		
 		particle_type = PARTICLE_TEST;
 		isParticle = YES;
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		
 		basefile = @"Particle";
 		[self setTexture:@"blur256.png"];
@@ -178,7 +178,7 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	if (ship == nil)  goto FAIL;
 #endif
 	
-	status = STATUS_EFFECT;
+	[self setStatus:STATUS_EFFECT];
 	if (ship == srcEntity)  position = [ship position];
 	else
 	{
@@ -264,7 +264,7 @@ FAIL:
 		scale.z = [values floatAtIndex:5];
 		exhaustScale = scale;
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 
 		particle_type = PARTICLE_EXHAUST;
 		
@@ -291,7 +291,7 @@ FAIL:
 		duration = ECM_EFFECT_DURATION;
 		position = [ship position];
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_ECM_MINE;
@@ -326,7 +326,7 @@ FAIL:
 		alpha = 0.5;
 		collision_radius = 0;
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_MINE;
 		
 		particle_type = PARTICLE_ENERGY_MINE;
@@ -360,7 +360,7 @@ FAIL:
 		[self setOrientation:ship->orientation];
 		[self setVelocity:[ship velocity]];
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_HYPERRING;
@@ -413,7 +413,7 @@ FAIL:
 			faces[i].normal.x = 16.0 * speed_low / speed;
 		}
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_FRAGBURST;
@@ -468,7 +468,7 @@ FAIL:
 			faces[i].normal.z = 1.0;
 		}
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_BURST2;
@@ -514,7 +514,7 @@ FAIL:
 		[self setColor:flashColor];
 		color_fv[3] = 1.0;
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_FLASH;
@@ -550,7 +550,7 @@ FAIL:
 		[self setColor:[OOColor whiteColor]];
 		color_fv[3] = 1.0;
 		
-		status = STATUS_EFFECT;
+		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_NO_DRAW;
 		
 		particle_type = PARTICLE_BILLBOARD;
@@ -1357,7 +1357,7 @@ FAIL:
 			return; // TOO FAR AWAY TO DRAW
 	}
 
-	if ((particle_type == PARTICLE_FLASHER)&&(status != STATUS_INACTIVE))
+	if (particle_type == PARTICLE_FLASHER && [self status] != STATUS_INACTIVE)
 	{
 		Vector		abspos = position;  // in control of it's own orientation
 		int			view_dir = [UNIVERSE viewDirection];

@@ -426,7 +426,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ship = scanned_ships[i];
-		if ([ship isPirateVictim] && (ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED))
+		if ([ship isPirateVictim] && ([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED))
 		{
 			d2 = distance2_scanned_ships[i];
 			if (PIRATES_PREFER_PLAYER && (d2 < desired_range * desired_range) && ship->isPlayer && [self isPirate])
@@ -459,7 +459,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if ((ship->status != STATUS_DEAD) && (ship->status != STATUS_DOCKED) && [ship isPirateVictim])
+		if (([ship status] != STATUS_DEAD) && ([ship status] != STATUS_DOCKED) && [ship isPirateVictim])
 			ids_found[n_found++] = ship->universalID;
 	}
 	if (n_found == 0)
@@ -896,7 +896,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if ((ship->scanClass != CLASS_CARGO)&&(ship->status != STATUS_DEAD)&&(ship->status != STATUS_DOCKED))
+		if ((ship->scanClass != CLASS_CARGO)&&([ship status] != STATUS_DEAD)&&([ship status] != STATUS_DOCKED))
 		{
 			GLfloat	d2 = distance2_scanned_ships[i];
 			float	legal_factor = [ship legalStatus] * gov_factor;
@@ -1102,10 +1102,10 @@ static WormholeEntity *whole = nil;
 	{
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if ((thing->scanClass != CLASS_CARGO) && (thing->status != STATUS_DOCKED) && ![thing isThargoid] && (d2 < found_d2))
+		if (([thing scanClass] != CLASS_CARGO) && ([thing status] != STATUS_DOCKED) && ![thing isThargoid] && (d2 < found_d2))
 		{
 			found_target = [thing universalID];
-			if (thing->isPlayer) d2 = 0.0;   // prefer the player
+			if ([thing isPlayer]) d2 = 0.0;   // prefer the player
 			found_d2 = d2;
 		}
 	}
@@ -1470,7 +1470,7 @@ static WormholeEntity *whole = nil;
 - (void) sendTargetCommsMessage:(NSString*) message
 {
 	ShipEntity *ship = [self primaryTarget];
-	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
+	if ((ship == nil) || ([ship status] == STATUS_DEAD) || ([ship status] == STATUS_DOCKED))
 	{
 		[self noteLostTarget];
 		return;
@@ -1482,7 +1482,7 @@ static WormholeEntity *whole = nil;
 - (void) markTargetForFines
 {
 	ShipEntity *ship = [self primaryTarget];
-	if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
+	if ((ship == nil) || ([ship status] == STATUS_DEAD) || ([ship status] == STATUS_DOCKED))
 	{
 		[self noteLostTarget];
 		return;
@@ -1496,7 +1496,7 @@ static WormholeEntity *whole = nil;
 	if ((isStation)||(scanClass == CLASS_POLICE))
 	{
 		ShipEntity *ship = [self primaryTarget];
-		if ((ship == nil) || (ship->status == STATUS_DEAD) || (ship->status == STATUS_DOCKED))
+		if ((ship == nil) || ([ship status] == STATUS_DEAD) || ([ship status] == STATUS_DOCKED))
 		{
 			[self noteLostTarget];
 			return;
@@ -2165,7 +2165,7 @@ static WormholeEntity *whole = nil;
 	{
 		candidate = scanned_ships[i];
 		d2 = distance2_scanned_ships[i];
-		if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && (candidate->status != STATUS_DOCKED) && predicate(candidate, parameter))
+		if ((d2 < found_d2) && (candidate->scanClass != CLASS_CARGO) && ([candidate status] != STATUS_DOCKED) && predicate(candidate, parameter))
 		{
 			found_target = candidate->universalID;
 			found_d2 = d2;

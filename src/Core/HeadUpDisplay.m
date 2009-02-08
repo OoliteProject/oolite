@@ -894,12 +894,12 @@ static BOOL hostiles;
 	glEnd();
 	glLineWidth(line_width);	// thinner
 	
-	PlanetEntity*	the_sun = [UNIVERSE sun];
-	PlanetEntity*	the_planet = [UNIVERSE planet];
-	StationEntity*	the_station = [UNIVERSE station];
-	Entity*			the_target = [player primaryTarget];
-	Entity*			the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
-	int				p_status = player->status;
+	PlanetEntity	*the_sun = [UNIVERSE sun];
+	PlanetEntity	*the_planet = [UNIVERSE planet];
+	StationEntity	*the_station = [UNIVERSE station];
+	Entity			*the_target = [player primaryTarget];
+	Entity			*the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];
+	OOEntityStatus	p_status = [player status];
 	if	(((p_status == STATUS_IN_FLIGHT)
 		||(p_status == STATUS_AUTOPILOT_ENGAGED)
 		||(p_status == STATUS_LAUNCHING)
@@ -1432,7 +1432,7 @@ static BOOL hostiles;
 		GLColorWithOverallAlpha(red_color, overallAlpha);
 	if ((flash)&&(temp > .90))
 		GLColorWithOverallAlpha(redplus_color, overallAlpha);
-	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&(player->status == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([player status] == STATUS_IN_FLIGHT))];
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -1484,7 +1484,7 @@ static BOOL hostiles;
 
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
-	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&(player->status == STATUS_IN_FLIGHT))];
+	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([player status] == STATUS_IN_FLIGHT))];
 }
 
 

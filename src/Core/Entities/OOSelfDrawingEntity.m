@@ -171,7 +171,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			return; // TOO FAR AWAY
 		}
 	}
-	if (status == STATUS_ACTIVE)
+	if ([self status] == STATUS_ACTIVE)
 	{
 		Vector		abspos = position;  // STATUS_ACTIVE means it is in control of it's own orientation
 		Entity		*last = nil;

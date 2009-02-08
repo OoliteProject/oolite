@@ -460,7 +460,7 @@
 	[UNIVERSE setUpSpace];
 	[UNIVERSE setAutoSaveNow:NO];
 	
-	status = STATUS_DOCKED;
+	[self setStatus:STATUS_DOCKED];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 	
 	dockedStation = [UNIVERSE station];

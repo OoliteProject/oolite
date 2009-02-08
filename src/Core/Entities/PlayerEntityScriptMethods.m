@@ -88,7 +88,7 @@ MA 02110-1301, USA.
 
 - (BOOL) dockedAtMainStation
 {
-	return status == STATUS_DOCKED && dockedStation == [UNIVERSE station];
+	return [self status] == STATUS_DOCKED && dockedStation == [UNIVERSE station];
 }
 
 
@@ -117,7 +117,7 @@ MA 02110-1301, USA.
 	
 	unit = [commodityArray intAtIndex:MARKET_UNITS];
 	
-	if (status != STATUS_DOCKED)
+	if ([self status] != STATUS_DOCKED)
 	{
 		// in-flight
 		while (amount)

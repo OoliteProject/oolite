@@ -56,7 +56,7 @@ MA 02110-1301, USA.
 	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
 	displayListName = 0;
-	status = STATUS_ACTIVE;
+	[self setStatus:STATUS_ACTIVE];
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
 	

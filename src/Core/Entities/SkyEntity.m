@@ -112,7 +112,7 @@ MA 02110-1301, USA.
 	[self setDrawable:skyDrawable];
 	[skyDrawable release];
 	
-	status = STATUS_EFFECT;
+	[self setStatus:STATUS_EFFECT];
 	isSky = YES;
 	
 	return self;

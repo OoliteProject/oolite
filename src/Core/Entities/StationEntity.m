@@ -249,7 +249,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 #ifdef DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
-	if (isDockingStation && player && player->status == STATUS_IN_FLIGHT &&
+	if (isDockingStation && player && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
 		[self sendExpandedMessage:DESC(@"docking-clearance-abort-cancelled") toShip:player];
@@ -349,7 +349,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = self == [player getTargetDockStation];
 	if (isDockingStation && ![shipsOnApproach objectForKey:shipID] &&
-			player && player->status == STATUS_IN_FLIGHT &&
+			player && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_REQUESTED)
 	{
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
@@ -897,7 +897,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		//
 	}
 	
-	if (ship->status == STATUS_LAUNCHING)
+	if ([ship status] == STATUS_LAUNCHING)
 		return YES;
 	
 	// if close enough (within 50%) correct and add damage
@@ -966,7 +966,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
 		double		d2 = distance2(position, ship->position);
-		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
+		if ((ship != self)&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self getPortPosition];
 			d2 = distance2(ppos, ship->position);
@@ -1020,7 +1020,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		ShipEntity*	ship = (ShipEntity*)my_entities[i];
 		double		d2 = distance2(position, ship->position);
-		if ((ship != self)&&(d2 < 25000000)&&(ship->status != STATUS_DOCKED))	// within 5km
+		if ((ship != self)&&(d2 < 25000000)&&([ship status] != STATUS_DOCKED))	// within 5km
 		{
 			Vector ppos = [self getPortPosition];
 			float time_out = -15.00;	// 15 secs
@@ -1081,7 +1081,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 #ifdef DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
-	if (isDockingStation && player->status == STATUS_IN_FLIGHT &&
+	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
 			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_GRANTED)
 	{
 		if (last_launch_time-20 < unitime && [player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_TIMING_OUT)
@@ -1097,7 +1097,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	// TODO: If player is waiting for docking clearance, send him an update
 	//       every X seconds telling him where he's at in the queue.
-	if (isDockingStation && player->status == STATUS_IN_FLIGHT && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
+	if (isDockingStation && [player status] == STATUS_IN_FLIGHT && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
 			[shipsOnApproach count] == 0 && [launchQueue count] == 0)
 	{
 		last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
@@ -1826,7 +1826,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// launch docked ships if possible
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	if ((player)&&(player->status == STATUS_DOCKED)&&([player dockedStation] == self))
+	if ((player)&&([player status] == STATUS_DOCKED)&&([player dockedStation] == self))
 	{
 		// undock the player!
 		[player leaveDock:self];

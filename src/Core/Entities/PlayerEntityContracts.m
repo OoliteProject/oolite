@@ -886,7 +886,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		
 		
-		if (status == STATUS_DOCKED)
+		if ([self status] == STATUS_DOCKED)
 		{
 			unsigned n_commodities = [shipCommodityData count];
 			current_cargo = 0;  // for calculating remaining hold space
@@ -902,7 +902,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui clear];
 		[gui setTitle:DESC(@"manifest-title")];
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), (status == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
+		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), ([self status] == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
 		[gui setText:DESC(@"manifest-none")	forRow:cargo_row];
 		[gui setColor:[OOColor yellowColor]	forRow:cargo_row - 1];
 		[gui setColor:[OOColor greenColor]	forRow:cargo_row];
@@ -1516,7 +1516,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	NSDictionary* cmdr_dict = [self commanderDataDictionary];	// gather up all the info
 	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
 
-	status = STATUS_DOCKED;
+	[self setStatus:STATUS_DOCKED];
 	
 	// adjust the clock forward by an hour
 	ship_clock_adjust += 3600.0;
