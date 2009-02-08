@@ -2121,7 +2121,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self setStatus:STATUS_IN_FLIGHT];
 				behaviour = BEHAVIOUR_IDLE;
 				frustration = 0.0;
-				[shipAI exitStateMachine];	// exit nullAI.plist
+				[shipAI exitStateMachineWithMessage:nil];	// exit nullAI.plist
 			}
 			else if ([hauler isPlayer])
 			{

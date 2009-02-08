@@ -230,12 +230,13 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
-- (void) exitStateMachine
+- (void) exitStateMachineWithMessage:(NSString *)message
 {
 	if ([aiStack count] != 0)
 	{
 		[self restorePreviousStateMachine];
-		[self reactToMessage:@"RESTARTED"];
+		if (message == nil)  message = @"RESTARTED";
+		[self reactToMessage:message];
 	}
 }
 
@@ -761,7 +762,7 @@ static AI *sCurrentlyRunningAI = nil;
 	NSString				*action = nil;
 	NSRange					spaceRange;
 	NSString				*selector = nil;
-	NSString				*aliasedSelector = nil;
+	id						aliasedSelector = nil;
 	NSMutableArray			*result = nil;
 	static NSSet			*whitelist = nil;
 	static NSDictionary		*aliases = nil;
@@ -797,13 +798,22 @@ static AI *sCurrentlyRunningAI = nil;
 		else  selector = [action substringToIndex:spaceRange.location];
 		
 		// Look in alias table.
-		aliasedSelector = [aliases stringForKey:selector];
+		aliasedSelector = [aliases objectForKey:selector];
 		if (aliasedSelector != nil)
 		{
-			// Change selector and action to use real method name.
-			selector = aliasedSelector;
-			if (spaceRange.location == NSNotFound)  action = aliasedSelector;
-			else action = [aliasedSelector stringByAppendingString:[action substringFromIndex:spaceRange.location]];
+			if ([aliasedSelector isKindOfClass:[NSString class]])
+			{
+				// Change selector and action to use real method name.
+				selector = aliasedSelector;
+				if (spaceRange.location == NSNotFound)  action = aliasedSelector;
+				else action = [aliasedSelector stringByAppendingString:[action substringFromIndex:spaceRange.location]];
+			}
+			else if ([aliasedSelector isKindOfClass:[NSArray class]] && [aliasedSelector count] != 0)
+			{
+				// Alias is complete expression, pretokenized in anticipation of a tokenized future.
+				action = [aliasedSelector componentsJoinedByString:@" "];
+				selector = [[aliasedSelector objectAtIndex:0] description];
+			}
 		}
 		
 		// Check for selector in whitelist.

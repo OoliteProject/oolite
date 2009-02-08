@@ -749,6 +749,7 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 {
 	ShipEntity				*thisEnt = nil;
 	AI						*thisAI = nil;
+	NSString				*message = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -758,13 +759,18 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 	}
 	thisAI = [thisEnt getAI];
 	
+	if (argc > 0)
+	{
+		message = JSValToNSString(context, argv[0]);
+	}
+	
 	if (![thisAI hasSuspendedStateMachines])
 	{
 		OOReportJSWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot cannot exit current AI state machine because there are no suspended state machines.");
 	}
 	else
 	{
-		[thisAI exitStateMachine];
+		[thisAI exitStateMachineWithMessage:message];
 	}
 	return YES;
 }

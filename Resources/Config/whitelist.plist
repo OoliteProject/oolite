@@ -103,7 +103,6 @@
 		"setTakeOffFromPlanet",
 		"landOnPlanet",
 		"checkTargetLegalStatus",
-		"exitAI",
 		"setDestinationToTarget",
 		"setDestinationWithinTarget",
 		"checkCourseToDestination",
@@ -133,6 +132,7 @@
 		"groupAttackTarget",
 		"scanForFormationLeader",
 		"messageMother:",
+		"messageSelf:",
 		"setPlanetPatrolCoordinates",
 		"setSunSkimStartCoordinates",
 		"setSunSkimEndCoordinates",
@@ -375,5 +375,6 @@
 		"launchDefenceShip"= "launchDefenseShip";
 		"setTargetToStation" = "setTargetToNearestStation";
 		"performDocking" = "doNothing";
+		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
 	};
 }

@@ -122,7 +122,7 @@ MA 02110-1301, USA.
 
 - (void) checkTargetLegalStatus;
 
-- (void) exitAI;
+- (void) exitAIWithMessage:(NSString *)message;
 
 - (void) setDestinationToTarget;
 - (void) setDestinationWithinTarget;
@@ -831,9 +831,10 @@ MA 02110-1301, USA.
 }
 
 
-- (void) exitAI
+- (void) exitAIWithMessage:(NSString *)message;
 {
-	[shipAI exitStateMachine];
+	if ([message length] == 0)  message = @"RESTARTED";
+	[shipAI exitStateMachineWithMessage:message];
 }
 
 
@@ -1331,19 +1332,25 @@ static WormholeEntity *whole = nil;
 
 - (void) messageMother:(NSString *)msgString
 {
-	ShipEntity   *mother = [self owner];
-	if (mother)
+	ShipEntity *mother = [self owner];
+	if (mother != nil && mother != self)
 	{
-		[[mother getAI] reactToMessage:msgString];
+		[mother reactToAIMessage:msgString];
 	}
+}
+
+
+- (void) messageSelf:(NSString *)msgString
+{
+	[self sendAIMessage:msgString];
 }
 
 
 - (void) setPlanetPatrolCoordinates
 {
 	// check we've arrived near the last given coordinates
-	Vector r_pos = make_vector(position.x - coordinates.x, position.y - coordinates.y, position.z - coordinates.z);
-	if ((magnitude2(r_pos) < 1000000)||(patrol_counter == 0))
+	Vector r_pos = vector_subtract(position, coordinates);
+	if (magnitude2(r_pos) < 1000000 || patrol_counter == 0)
 	{
 		Entity *the_sun = [UNIVERSE sun];
 		Entity *the_station = [UNIVERSE station];

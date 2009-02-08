@@ -85,7 +85,7 @@ MA 02110-1301, USA.
 - (void) restorePreviousStateMachine;
 
 - (BOOL) hasSuspendedStateMachines;
-- (void) exitStateMachine;
+- (void) exitStateMachineWithMessage:(NSString *)message;
 
 - (unsigned) stackDepth;
 
