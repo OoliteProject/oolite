@@ -173,6 +173,7 @@
 		"performFlyRacepoints",
 		"debugDumpMessages",
 		"dropMessages:",
+		"exitAIWithMessage:",
 		
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
