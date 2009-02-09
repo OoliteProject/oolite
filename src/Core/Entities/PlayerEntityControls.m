@@ -1444,6 +1444,28 @@ static NSTimeInterval	time_last_frame;
 #if OOLITE_HAVE_JOYSTICK
 		case GUI_SCREEN_STICKMAPPER:
 			[self stickMapperInputHandler: gui view: gameView];
+
+			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
+			if (leftRightKeyPressed)
+			{
+				NSString* key = [gui keyForRow: [gui selectedRow]];
+				if ([gameView isDown:gvArrowKeyRight])
+				{
+					key = [gui keyForRow: GUI_ROW_FUNCEND];
+				}
+				if ([gameView isDown:gvArrowKeyLeft])
+				{
+					key = [gui keyForRow: GUI_ROW_FUNCSTART];
+				}
+				int from_function = [[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
+				if (from_function < 0)  from_function = 0;
+				
+				[self setGuiToStickMapperScreen:from_function];
+				if ([[UNIVERSE gui] selectedRow] < 0)
+					[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART];
+				if (from_function == 0)
+					[[UNIVERSE gui] setSelectedRow: GUI_ROW_FUNCSTART + MAX_ROWS_FUNCTIONS - 1];
+			}
 			break;
 #endif
 			

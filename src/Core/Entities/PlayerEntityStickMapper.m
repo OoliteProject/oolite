@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 		selFunctionIdx=[[[key componentsSeparatedByString:@":"] objectAtIndex: 1] intValue];
 	else
 		selFunctionIdx=-1;
-	
+
 	if([gameView isDown: 13])
 	{
 		if ([key hasPrefix:@"More:"])
@@ -256,7 +256,7 @@ MA 02110-1301, USA.
 			n_rows -= 1;
 			start_row += 1;
 			if (skip > MAX_ROWS_FUNCTIONS)
-				previous = skip - MAX_ROWS_FUNCTIONS - 2;
+				previous = skip - (MAX_ROWS_FUNCTIONS - 2);
 			else
 				previous = 0;
 		}
