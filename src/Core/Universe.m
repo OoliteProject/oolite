@@ -7276,8 +7276,8 @@ double estimatedTimeForJourney(double distance, int hops)
 
 static OOComparisonResult compareName(id dict1, id dict2, void * context)
 {
-	NSDictionary	*ship1 = [dict1 dictionaryForKey:SHIPYARD_KEY_SHIP];
-	NSDictionary	*ship2 = [dict2 dictionaryForKey:SHIPYARD_KEY_SHIP];
+	NSDictionary	*ship1 = [(NSDictionary *)dict1 dictionaryForKey:SHIPYARD_KEY_SHIP];
+	NSDictionary	*ship2 = [(NSDictionary *)dict2 dictionaryForKey:SHIPYARD_KEY_SHIP];
 	NSString		*name1 = [ship1 stringForKey:KEY_NAME];
 	NSString		*name2 = [ship2 stringForKey:KEY_NAME];
 	
@@ -7290,8 +7290,8 @@ static OOComparisonResult compareName(id dict1, id dict2, void * context)
 
 static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
-	NSNumber		*price1 = [dict1 objectForKey:SHIPYARD_KEY_PRICE];
-	NSNumber		*price2 = [dict2 objectForKey:SHIPYARD_KEY_PRICE];
+	NSNumber		*price1 = [(NSDictionary *)dict1 objectForKey:SHIPYARD_KEY_PRICE];
+	NSNumber		*price2 = [(NSDictionary *)dict2 objectForKey:SHIPYARD_KEY_PRICE];
 	
 	return [price1 compare:price2];
 }

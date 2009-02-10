@@ -670,7 +670,7 @@ static AI *sCurrentlyRunningAI = nil;
 
 - (NSDictionary *) loadStateMachine:(NSString *)smName
 {
-	id						newSM = nil;
+	NSDictionary			*newSM = nil;
 	NSMutableDictionary		*cleanSM = nil;
 	OOCacheManager			*cacheMgr = [OOCacheManager sharedCache];
 	NSEnumerator			*stateEnum = nil;

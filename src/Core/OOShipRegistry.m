@@ -459,7 +459,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			reportedBadShips = [NSMutableArray array];
 			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
 			{
-				if (![[ioData objectForKey:key] boolForKey:@"is_external_dependency"])
+				if (![[ioData dictionaryForKey:key] boolForKey:@"is_external_dependency"])
 				{
 					[reportedBadShips addObject:key];
 				}
