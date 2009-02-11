@@ -1174,10 +1174,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	BOOL					initiallyOn;
 	
 	// "Validate" is really "clean up", since all values have defaults.
-	colors = [result arrayForKey:@"colors"];
-	if (colors == nil)
+	colors = [declaration arrayForKey:@"colors"];
+	if ([colors count] == 0)
 	{
-		colorDesc = [result objectForKey:@"color"];
+		colorDesc = [declaration objectForKey:@"color"];
 		if (colorDesc == nil)  colorDesc = @"redColor";
 		colors = [NSArray arrayWithObject:colorDesc];
 	}
