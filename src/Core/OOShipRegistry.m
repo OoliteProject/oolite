@@ -1041,7 +1041,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 		else
 		{
-			OOLog(@"shipData.load.error.badFlasher", @"----- WARNING: the shipdata.plist entry \"%@\" has a broken flasher definition \"%@\" (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, subentityKey, [tokens count]);
+			OOLog(@"shipData.load.warning.badFlasher", @"----- WARNING: the shipdata.plist entry \"%@\" has a broken flasher definition \"%@\" (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, subentityKey, [tokens count]);
 		}
 		return nil;
 	}
@@ -1077,7 +1077,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	hue = [tokens floatAtIndex:4];
 	frequency = [tokens floatAtIndex:5];
-	phase = [tokens floatAtIndex:6] * 2.0;
+	phase = [tokens floatAtIndex:6];
 	size = [tokens floatAtIndex:7];
 	
 	colorDict = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:hue] forKey:@"hue"];
@@ -1123,7 +1123,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	quaternion_normalize(&orientation);
 	
-	if (!isTurret)  isDock = [shipKey rangeOfString:@"dock"].location != NSNotFound;
+	if (!isTurret)
+	{
+		isDock = [subentityKey rangeOfString:@"dock"].location != NSNotFound;
+	}
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:5];
 	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
@@ -1145,6 +1148,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSString				*type = nil;
 	
 	type = [declaration stringForKey:@"type"];
+	if (type == nil)  type = @"standard";
+	
 	if ([type isEqualToString:@"flasher"])
 	{
 		return [self validateNewStyleFlasherDeclaration:declaration forShip:shipKey fatalError:outFatalError];
@@ -1188,7 +1193,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	if (size <= 0)
 	{
-		OOLog(@"shipData.load.error.badSubentity", @"----- WARNING: skipping flasher of invalid size %g for ship %@.", size, shipKey);
+		OOLog(@"shipData.load.warning.flasher.badSize", @"----- WARNING: skipping flasher of invalid size %g for ship %@.", size, shipKey);
 		return nil;
 	}
 	
@@ -1234,6 +1239,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if (isTurret)
 	{
 		fireRate = [declaration floatForKey:@"fire_rate" defaultValue:0.5];
+		if (fireRate < 0.25)
+		{
+			OOLog(@"shipData.load.warning.turret.badFireRate", @"----- WARNING: ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
+			fireRate = 0.25;
+		}
 	}
 	else
 	{

@@ -1285,25 +1285,142 @@
 		rotating = yes;
 		subentities =
 		(
-			"dock-flat 0 0 500 1 0 0 1",	// rotated 90 degrees
-			"arc-detail 0 0 0 1 0 0 0",
-			"arc-detail 0 0 0 1 0 0 1",
-			"arc-detail 0 0 0 0 0 0 1",
-			"arc-detail 0 0 0 1 0 0 -1",
-			"*FLASHER* 0 92 475 60.0 1 -0.50 12",
-			"*FLASHER* 0 92 425 75.0 1 -0.60 12",
-			"*FLASHER* 0 92 375 90.0 1 -0.70 12",
-			"*FLASHER* 0 92 325 105.0 1 -0.80 12",
-			"*FLASHER* 0 92 275 120.0 1 -0.90 12",
-			"*FLASHER* 0 -92 475 60.0 1 -0.50 12",
-			"*FLASHER* 0 -92 425 75.0 1 -0.60 12",
-			"*FLASHER* 0 -92 375 90.0 1 -0.70 12",
-			"*FLASHER* 0 -92 325 105.0 1 -0.80 12",
-			"*FLASHER* 0 -92 275 120.0 1 -0.90 12",
-			"*FLASHER* 0 -16 252 30.0 1 0.5 12",
-			"*FLASHER* 0 16 252 30.0 1 0.5 12",
-			"*FLASHER* 16 0 252 30.0 1 0.0 12",
-			"*FLASHER* -16 0 252 30.0 1 0.0 12"
+			{
+				subentity_key = "dock-flat";
+				orientation = ( 1, 0, 0, 1);	// rotated 90 degrees
+				position = ( 0, 0, 500 );
+				is_dock = true;
+			},
+			{
+				subentity_key = "arc-detail";
+			},
+			{
+				subentity_key = "arc-detail";
+				orientation = ( 1, 0, 0, 1 );
+			},
+			{
+				subentity_key = "arc-detail";
+				orientation = ( 0, 0, 0, 1 );
+			},
+			{
+				subentity_key = "arc-detail";
+				orientation = ( 1, 0, 0, -1 );
+			},
+			
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -1;
+				position = ( 0, 92, 475 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -1.2;
+				position = ( 0, 92, 425 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -1.2;
+				position = ( 0, 92, 375 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -1.6;
+				position = ( 0, 92, 325 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -1.8;
+				position = ( 0, 92, 275 );
+			},
+			
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 60; };
+				frequency = 1;
+				phase = -1;
+				position = ( 0, -92, 475 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 75; };
+				frequency = 1;
+				phase = -1.2;
+				position = ( 0, -92, 425 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 90; };
+				frequency = 1;
+				phase = -1.2;
+				position = ( 0, -92, 375 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 105; };
+				frequency = 1;
+				phase = -1.6;
+				position = ( 0, -92, 325 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = { hue = 120; };
+				frequency = 1;
+				phase = -1.8;
+				position = ( 0, -92, 275 );
+			},
+			
+			{
+				type = flasher;
+				size = 12;
+				color = "orangeColor";
+				frequency = 1;
+				phase = 0.5;
+				position = ( 0, -16, 252 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = "orangeColor";
+				frequency = 1;
+				phase = 0.5;
+				position = ( 0, 16, 252 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = "orangeColor";
+				frequency = 1;
+				phase = 0;
+				position = ( 16, 0, 252 );
+			},
+			{
+				type = flasher;
+				size = 12;
+				color = "orangeColor";
+				frequency = 1;
+				phase = 0;
+				position = ( -16, 0, 252 );
+			}
 		);
 		thrust = 100;
 		weapon_energy = 0;
