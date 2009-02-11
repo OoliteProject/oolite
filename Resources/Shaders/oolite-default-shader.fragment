@@ -258,7 +258,7 @@ void main(void)
 	
 	// Get normal
 #if OOSTD_NORMAL_MAP
-	vec3 normal = texture2D(uNormalMap, texCoord).rgb;
+	vec3 normal = texture2D(uNormalMap, texCoord).rgb - 0.5;
 #else
 	const vec3 normal = vec3(0.0, 0.0, 1.0);
 #endif
