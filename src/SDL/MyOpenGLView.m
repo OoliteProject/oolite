@@ -409,7 +409,7 @@ MA 02110-1301, USA.
 #if OOLITE_WINDOWS
 	image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
 #elif OOLITE_LINUX  
-	image = SDL_LoadBMP("Resources/Images/splash.bmp");
+	//image = SDL_LoadBMP("Resources/Images/splash.bmp"); //TODO : splashscreen in linux
 #endif
 
 	if (image == NULL)
@@ -472,7 +472,7 @@ MA 02110-1301, USA.
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
 	int videoModeFlags;
-	GLfloat	sun_ambient[] =	{0.3, 0.3, 0.3, 1.0};
+	GLfloat	sun_ambient[] =	{0.1, 0.1, 0.1, 1.0};
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};

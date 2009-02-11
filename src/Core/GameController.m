@@ -63,10 +63,6 @@ static GameController *sSharedController = nil;
 
 - (id) init
 {
-#if !OOLITE_HAVE_APPKIT
-	//try and show the basic SDL splash screen asap!
-	[self beginSplashScreen];
-#endif
 	if (sSharedController != nil)
 	{
 		[self release];
@@ -262,22 +258,20 @@ static GameController *sSharedController = nil;
 
 - (void) beginSplashScreen
 {
-
 #if !OOLITE_HAVE_APPKIT
-	//called twice from SDL
+
 	if(!gameView){
-		//initialise!
 		gameView = [MyOpenGLView alloc];
 		[gameView init];
 		[gameView setGameController:self];
 		[gameView initSplashScreen];
-	} else {
-		// TODO: enable writing to splash screen.
 	}
+	
 #else
-	[gameView drawRect:[gameView bounds]];
-#endif
 
+	[gameView drawRect:[gameView bounds]];
+	
+#endif
 }
 
 
