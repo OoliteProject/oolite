@@ -1865,12 +1865,9 @@ static PlayerEntity *sSharedPlayer = nil;
 			if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
 			{
 				primaryTarget = NO_TARGET;
-				missile_status = MISSILE_STATUS_SAFE;
 			}
-			else
-			{
-				missile_status = MISSILE_STATUS_ARMED;
-			}
+			
+			missile_status = MISSILE_STATUS_ARMED;
 		}
 	}
 }

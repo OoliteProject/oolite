@@ -176,11 +176,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	//Jester Speech End
 #endif
 	
-	[[GameController sharedController] logProgress:@"Loading ship data..."];
+	[[GameController sharedController] logProgress:DESC(@"loading-ships")];
 	// Load ship data
 	[OOShipRegistry sharedRegistry];
 	
-	[[GameController sharedController] logProgress:@"Initialising universe..."];
+	[[GameController sharedController] logProgress:DESC(@"initialising-universe")];
 	
  	dumpCollisionInfo = NO;
 	next_universal_id = 100;	// start arbitrarily above zero
@@ -282,7 +282,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
 	
-	[[GameController sharedController] logProgress:@"Populating space..."];
+	[[GameController sharedController] logProgress:DESC(@"populating-space")];
 	
 	[self setUpSpace];
 	
@@ -300,7 +300,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	OOInitDebugSupport();
 	
-	[[GameController sharedController] logProgress:@"Running scripts..."];
+	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	
 	[player completeInitialSetUp];
 	

@@ -766,11 +766,11 @@
 	// Loading screen (currently Mac only)
 	"Getting display modes..."		= "Getting display modes…";	// Can't be localized, OXPs aren't loaded yet
 	"Loading selected expansion packs..." = "Loading selected expansion packs…";	// Can't be localized, OXPs aren't loaded yet
-	"Loading ships..."				= "Loading ships…";
-	"Initialising universe..."		= "Initialising universe…";
-	"Loading player..."				= "Loading player…";
-	"Populating space..."			= "Populating space…";
-	"Running scripts..."			= "Running scripts…";
+	"loading-ships"					= "Loading ship data…";
+	"initialising-universe"			= "Initialising universe…";
+	"loading-player"				= "Loading player…";
+	"populating-space"				= "Populating space…";
+	"running-scripts"				= "Running scripts…";
 	
 	// Status screen
 	"status-commander-@"			= "Commander %@";
@@ -854,8 +854,8 @@
 	"gameoptions-joystick-configuration"	= " Joystick Configuration ";
 	"gameoptions-wireframe-graphics-yes"	= " Wireframe Graphics: On ";
 	"gameoptions-wireframe-graphics-no"		= " Wireframe Graphics: Off ";
-	"gameoptions-procedurally-textured-planets-yes"	= " Procedurally Textured Planets: On ";
-	"gameoptions-procedurally-textured-planets-no"	= " Procedurally Textured Planets: Off ";
+	"gameoptions-procedurally-textured-planets-yes"	= " Detailed Planets: On ";
+	"gameoptions-procedurally-textured-planets-no"	= " Detailed Planets: Off ";
 	"gameoptions-reduced-detail-yes"		= " Reduced Detail: On ";
 	"gameoptions-reduced-detail-no"			= " Reduced Detail: Off ";
 	"gameoptions-shaderfx-not-available"	= " Shader Effects: Not available ";

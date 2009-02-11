@@ -92,7 +92,6 @@ extern int debug;
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
 	GameController		*gameController;
-	OpenGLSprite		*splashSprite;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
 
@@ -120,7 +119,7 @@ extern int debug;
 
    // Full screen sizes
 	NSMutableArray		*screenSizes;
-	unsigned				currentSize;
+	unsigned			currentSize;
 	BOOL				fullScreen;
 
 	// Windowed mode
@@ -132,6 +131,8 @@ extern int debug;
    BOOL  mouseInDeltaMode;
 }
 
+- (void) initSplashScreen;
+- (void) endSplashScreen;
 
 - (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
@@ -147,8 +148,10 @@ extern int debug;
 - (void) setGameController:(GameController *) controller;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
+- (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
 
-- (void)drawRect:(NSRect)rect;
+- (void) drawRect:(NSRect)rect;
+- (void) drawRect:(NSRect)rect useVideoMode:(BOOL) v_mode;
 
 - (void) snapShot;
 

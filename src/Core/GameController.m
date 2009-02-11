@@ -63,6 +63,10 @@ static GameController *sSharedController = nil;
 
 - (id) init
 {
+#if !OOLITE_HAVE_APPKIT
+	//try and show the basic SDL splash screen asap!
+	[self beginSplashScreen];
+#endif
 	if (sSharedController != nil)
 	{
 		[self release];
@@ -192,17 +196,9 @@ static GameController *sSharedController = nil;
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
-#if !OOLITE_HAVE_APPKIT
-		gameView = [MyOpenGLView alloc];
-		[gameView init];
-		[gameView setGameController:self];
-#endif
-		
-		// ensure the gameView is drawn to, so OpenGL is initialised and so textures can initialse.
-		[gameView drawRect:[gameView bounds]];
-		
+		// ensures the gameView is drawn to: OpenGL is initialised and so textures can initialse.
 		[self beginSplashScreen];
-		
+
 #if OO_OXP_VERIFIER_ENABLED
 		if ([OOOXPVerifier runVerificationIfRequested])
 		{
@@ -210,13 +206,15 @@ static GameController *sSharedController = nil;
 		}
 #endif
 		
-		[self logProgress:@"Getting display modes..."];
+		//[self logProgress:@"Getting display modes..."]; //cannot localise strings before loading OXPs
+		[self logProgress:@"..."]; //language neutral
 		[self getDisplayModes];
 		
 		// moved to before the Universe is created
 		if (expansionPathsToInclude)
 		{
-			[self logProgress:@"Loading selected expansion packs..."];
+			//[self logProgress:@"Loading selected expansion packs..."]; //cannot localise strings before loading OXPs
+			[self logProgress:@".........."]; //language neutral
 			for (i = 0; i < [expansionPathsToInclude count]; i++)
 			{
 				[ResourceManager addExternalPath: (NSString*)[expansionPathsToInclude objectAtIndex: i]];
@@ -224,10 +222,10 @@ static GameController *sSharedController = nil;
 		}
 		
 		// moved here to try to avoid initialising this before having an Open GL context
-		[self logProgress:@"Initialising universe..."];
+		[self logProgress:DESC(@"initialising-universe")];
 		[[Universe alloc] initWithGameView:gameView];
 		
-		[self logProgress:@"Loading player..."];
+		[self logProgress:DESC(@"loading-player")];
 		[self loadPlayerIfRequired];
 		
 		[self logProgress:@""];
@@ -264,7 +262,22 @@ static GameController *sSharedController = nil;
 
 - (void) beginSplashScreen
 {
-	// Nothing to do
+
+#if !OOLITE_HAVE_APPKIT
+	//called twice from SDL
+	if(!gameView){
+		//initialise!
+		gameView = [MyOpenGLView alloc];
+		[gameView init];
+		[gameView setGameController:self];
+		[gameView initSplashScreen];
+	} else {
+		// TODO: enable writing to splash screen.
+	}
+#else
+	[gameView drawRect:[gameView bounds]];
+#endif
+
 }
 
 
@@ -815,9 +828,9 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) logProgress:(NSString *)message
 {
-	NSString *text = [UNIVERSE descriptionForKey:message];
-	if (text == nil)  text = message;
-	[splashProgressTextField setStringValue:text];
+	//NSString *text = [UNIVERSE descriptionForKey:message];
+	//if (text == nil)  text = message;
+	[splashProgressTextField setStringValue:message];
 	[splashProgressTextField display];
 }
 
@@ -901,8 +914,9 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 {}
 
 - (void) endSplashScreen
-{}
-
+{
+	[gameView endSplashScreen];
+}
 
 - (void) exitApp
 {

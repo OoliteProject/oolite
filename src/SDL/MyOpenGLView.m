@@ -35,6 +35,10 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
 
+/* ---  OOTexture Splash
+#import "OOTexture.h"
+#import "OpenGLSprite.h"
+*/
 #if OOLITE_WINDOWS
 #import "TextureStore.h"
 #endif
@@ -83,6 +87,9 @@ MA 02110-1301, USA.
 {
 	self = [super init];
 
+	Uint32          colorkey;
+	SDL_Surface     *image;
+
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
 	OOLog(@"sdl.init", @"initialising SDL");
@@ -104,9 +111,22 @@ MA 02110-1301, USA.
 	
 	strcpy (windowCaption, [versionString UTF8String]);
 	strcat (windowCaption, " - "__DATE__);
-	SDL_WM_SetCaption (windowCaption, "OOLITE");	// Set window title.
+	SDL_WM_SetCaption (windowCaption, "Oolite");	// Set window title.
 
+#if OOLITE_WINDOWS
+	image = SDL_LoadBMP("Resources\\Images\\WMicon.bmp");
+#else
+	image = SDL_LoadBMP("Resources/Images/WMicon.bmp");
+#endif
+	if (image != NULL)
+	{
+		colorkey = SDL_MapRGB(image->format, 128, 0, 128);
+		SDL_SetColorKey(image, SDL_SRCCOLORKEY, colorkey);
+		SDL_WM_SetIcon(image, NULL);
+	}
+	SDL_FreeSurface(image);
 
+	
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
@@ -121,7 +141,28 @@ MA 02110-1301, USA.
 	// Find what the full screen and windowed settings are.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
+	
+	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
+	surface = SDL_SetVideoMode (1.0f, 1.0f, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
+	bounds.size.width = surface->w;
+	bounds.size.height = surface->h;
+	
+	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 
+	typedString = [[NSMutableString alloc] initWithString:@""];
+	allowingStringInput = NO;
+	isAlphabetKeyDown = NO;
+
+	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+
+	m_glContextInitialized = NO;
+	
+	return self;
+}
+
+- (void) endSplashScreen
+{
+	//set up the surface dimensions
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen)
 	{
@@ -150,21 +191,7 @@ MA 02110-1301, USA.
 		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
 			SDL_ShowCursor(SDL_ENABLE);
 	}
-
-	virtualJoystickPosition = NSMakePoint(0.0,0.0);
-
-	typedString = [[NSMutableString alloc] initWithString:@""];
-	allowingStringInput = NO;
-	isAlphabetKeyDown = NO;
-
-	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-
-	m_glContextInitialized = NO;
-	
-	return self;
 }
-
-
 - (void) dealloc
 {
 	if (typedString)
@@ -326,8 +353,12 @@ MA 02110-1301, USA.
 	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
 }
 
-
 - (void) drawRect:(NSRect)rect
+{
+	[self drawRect: rect useVideoMode:YES];
+}
+
+- (void) drawRect:(NSRect)rect useVideoMode:(BOOL) v_mode
 {
 	if ((viewSize.width != surface->w)||(viewSize.height != surface->h)) // resized
 	{
@@ -338,7 +369,7 @@ MA 02110-1301, USA.
 
     if (m_glContextInitialized == NO)
 	{
-		[self initialiseGLWithSize:viewSize];
+		[self initialiseGLWithSize:viewSize useVideoMode:v_mode];
 	}
 
 	if (surface == 0)
@@ -357,11 +388,91 @@ MA 02110-1301, USA.
 	SDL_GL_SwapBuffers();
 }
 
+- (void) initSplashScreen
+{
+/* Could not figure out OOtexture & OpenGLSprite properly.
+ Texture initialises, but would only show as white against
+ the background instead of showing the bitmap. Switched to
+ native SDL functions (.bmp only, no .png) for the moment.
+*/
+
+/*---  OOTexture Splash 
+	OOTexture			*texture = nil;
+	NSSize				imageSize;
+	OpenGLSprite		*sprite = nil;
+*/
+
+	SDL_Rect			dest;
+	GLfloat 			z = 0.0f;
+	SDL_Surface     	*image=NULL;
+	
+#if OOLITE_WINDOWS
+	image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
+#elif OOLITE_LINUX  
+	image = SDL_LoadBMP("Resources/Images/splash.bmp");
+#endif
+
+	if (image == NULL)
+	{
+		SDL_FreeSurface(image);
+		OOLog(@"unclassified.GameStart", @"----- WARNING: splash screen bitmap not found");
+		[self endSplashScreen];
+		return;
+	}
+	else
+	{
+		dest.x = 0;
+		dest.y = 0;
+		dest.w = image->w;
+		dest.h = image->h;
+
+		SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
+		surface = SDL_SetVideoMode (dest.w, dest.h, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_DOUBLEBUF);
+		SDL_BlitSurface(image, NULL, surface, &dest);
+		SDL_FreeSurface(image);
+	}
+
+
+
+/* ---  OOTexture Splash
+
+	texture = [OOTexture textureWithName:@"splash.png" inFolder:@"Images"];
+	if (texture == nil)
+	{
+		OOLog(@"unclassified.GameStart", @"----- WARNING: splash screen image not found");
+		return;
+	}
+	imageSize = [texture dimensions];
+	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
+	surface = SDL_SetVideoMode (imageSize.width, imageSize.height, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
+	sprite = [[OpenGLSprite alloc] initWithTexture:texture];
+	
+	//glClearColor(0.8,0.2,0.2,1.0);
+	//glClear(GL_COLOR_BUFFER_BIT);	
+	if (sprite)
+	{
+		//different values of x & y only offset the blank texture against the black background 
+		[sprite blitCentredToX: 0.0f Y: 0.0f Z:z alpha:0.5f]; 
+	}
+	SDL_UpdateRect(surface, 0, 0, imageSize.width, imageSize.height);
+ */
+
+	glFlush();
+	SDL_Flip(surface);
+	//set the OpenGL flag
+	surface = SDL_SetVideoMode (dest.w, dest.h, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
+
+}
 
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
+	[self initialiseGLWithSize:v_size useVideoMode:YES];
+}
+
+- (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
+{
 	int videoModeFlags;
-	GLfloat	sun_ambient[] =	{0.0, 0.0, 0.0, 1.0};
+	GLfloat	sun_ambient[] =	{0.3, 0.3, 0.3, 1.0};
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};
@@ -381,14 +492,18 @@ MA 02110-1301, USA.
 
 	OOLog(@"display.initGL", @"Creating a new surface of %d x %d", (int)v_size.width, (int)v_size.height);
 	videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
-	if (fullScreen == YES)
+	
+	if (v_mode == NO)
+		videoModeFlags |= SDL_NOFRAME;
+	else if (fullScreen == YES)
 		videoModeFlags |= SDL_FULLSCREEN;
 	else
 		videoModeFlags |= SDL_RESIZABLE;
 
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
-
-	if (fullScreen)
+	
+	//the splash screen is a window too
+	if (fullScreen && v_mode == NO)
 	{
 		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
 			SDL_ShowCursor(SDL_DISABLE);
@@ -910,19 +1025,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					break;
 					
 					case SDLK_F12:
-					/*TODO Should this be: [self toggleScreenMode] ? 
-					 * Works under Windows/Linux, what about OS-X? - mwerle 20081006 */
-					if (fullScreen == NO)
-					{
-						fullScreen = YES;
-						[self initialiseGLWithSize: [self modeAsSize: currentSize]];
-					}
-					else
-					{
-						// flip to user-selected size
-						fullScreen = NO;
-						[self initialiseGLWithSize: currentWindowSize];
-					}
+					[self toggleScreenMode];
 					break;
 					
 					case SDLK_ESCAPE:
