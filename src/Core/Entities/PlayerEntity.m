@@ -828,8 +828,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	isSpeechOn = NO;
 	
-	[custom_views release];
-	custom_views = nil;
+	[_customViews release];
+	_customViews = nil;
+	_customViewIndex = 0;
 	
 	mouse_control_on = NO;
 	
@@ -1067,8 +1068,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSArray *customViews = [shipDict arrayForKey:@"custom_views"];
 	if (customViews != nil)
 	{
-		[custom_views release];
-		custom_views = [customViews mutableCopy];	// FIXME: This is mutable because it's used as a queue rather than using an index. Silly, fix. -- Ahruman
+		[_customViews release];
+		_customViews = [customViews retain];
+		_customViewIndex = 0;
 	}
 	
 	// set weapon offsets
@@ -1132,7 +1134,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[save_path release];
 
-	[custom_views release];
+	[_customViews release];
 	
 	[dockingReport release];
 
@@ -6538,12 +6540,6 @@ static int last_outfitting_index;
 #endif
 	
 	return isDockedStatus;
-}
-
-
-- (void) initialiseTurret
-{
-	OOLog(@"script.invalid", @"SCRIPT ERROR: attempt to call initialiseTurret for player.");
 }
 
 

@@ -207,7 +207,8 @@ OO_UTILITY_FILES = \
 	OOShipGroup.m \
 	OOStringParsing.m \
 	OOWeakReference.m \
-	OOXMLExtensions.m
+	OOXMLExtensions.m \
+	OODeepCopy.m
 
 OOLITE_MISC_FILES = \
 	AI.m \

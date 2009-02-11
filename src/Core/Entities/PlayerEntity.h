@@ -412,7 +412,6 @@ typedef enum
 	int						target_memory_index;
 	
 	// custom view points
-	NSMutableArray			*custom_views;
 	Quaternion				customViewQuaternion;
 	OOMatrix				customViewMatrix;
 	Vector					customViewOffset, customViewForwardVector, customViewUpVector, customViewRightVector;
@@ -471,6 +470,10 @@ waitingForStickCallback: 1;
 	
 	OOGalacticHyperspaceBehaviour		galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
+	
+@private
+	NSArray					*_customViews;
+	OOUInteger				_customViewIndex;
 	
 #ifdef DOCKING_CLEARANCE_ENABLED
 	OODockingClearanceStatus dockingClearanceStatus;

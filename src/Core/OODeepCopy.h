@@ -1,8 +1,26 @@
 /*
 
-OOShipRegistry.h
+OODeepCopy.h
 
-Manage the set of installed ships.
+Informal protocol and utility function for making efficient deep copies of
+immutable collections.
+
+It is implemented in such a way that all objects can be deep copied. Objects
+that implement the NSCopying protocol are automatically copied, while others
+are retained. The following special cases exist:
+  * NSStrings and NSValues (including NSNumbers) are uniqued - that is, the
+    resulting collection will only include one (immutable) copy of any string
+    or number.
+  * Arrays, sets and dictionaries deep copy their contents.
+
+For objects where the mutable/immutable distinction exists, the result should
+be expected to be immutable.
+
+This self-optimizing behaviour is similar to that performed by binary plist
+export.
+
+NOTE: in accordance with Cocoa coding conventions, methods and functions with
+Copy in the name return objects owned by the receiver.
 
 
 Oolite
@@ -26,7 +44,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2008-2009 Jens Ayton
+Copyright (C) 2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,32 +68,12 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 
-@class OOProbabilitySet;
+
+id OODeepCopy(id object);
 
 
-@interface OOShipRegistry: NSObject
-{
-	NSDictionary			*_shipData;
-	NSArray					*_demoShips;
-	NSArray					*_playerShips;
-	NSDictionary			*_probabilitySets;
-}
+@interface NSObject (OODeepCopy)
 
-+ (OOShipRegistry *) sharedRegistry;
-
-- (NSDictionary *) shipInfoForKey:(NSString *)key;
-- (NSDictionary *) shipyardInfoForKey:(NSString *)key;
-- (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;
-
-- (NSArray *) demoShipKeys;
-- (NSArray *) playerShipKeys;
-
-@end
-
-
-@interface OOShipRegistry (OOConveniences)
-
-- (NSArray *) shipKeysWithRole:(NSString *)role;
-- (NSString *) randomShipKeyForRole:(NSString *)role;
+- (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects;
 
 @end

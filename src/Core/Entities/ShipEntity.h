@@ -211,7 +211,7 @@ MA 02110-1301, USA.
 	NSMutableDictionary		*previousCondition;			// restored after collision avoidance
 	
 	// derived variables
-	double					weapon_recharge_rate;		// time between shots
+	float					weapon_recharge_rate;		// time between shots
 	int						shot_counter;				// number of shots fired
 	double					cargo_dump_time;			// time cargo was last dumped
 	
@@ -503,7 +503,9 @@ MA 02110-1301, USA.
 
 - (GLfloat) weaponRange;
 - (void) setWeaponRange:(GLfloat) value;
-- (void) setWeaponDataFromType:(int) weapon_type;
+- (void) setWeaponDataFromType:(OOWeaponType)weapon_type;
+- (float) weaponRechargeRate;
+- (void) setWeaponRechargeRate:(float)value;
 
 - (GLfloat) scannerRange;
 - (void) setScannerRange: (GLfloat) value;

@@ -327,6 +327,11 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
 		selectorString = rawSelectorString;
 	}
 	
+	if ([selectorString isEqualToString:@"doNothing"])
+	{
+		return nil;
+	}
+	
 	if ([selectorString hasSuffix:@":"])
 	{
 		// Expects an argument

@@ -577,6 +577,8 @@
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
+		1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */; };
+		1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
@@ -1630,6 +1632,8 @@
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
 		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
+		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
+		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
@@ -2510,6 +2514,8 @@
 				1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */,
 				1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */,
 				1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */,
+				1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */,
+				1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -3000,6 +3006,7 @@
 				1ABAD7320F350B3400FD2CBF /* OOShipGroup.h in Headers */,
 				1A11F84B0F35F60C001C886C /* OOJSShipGroup.h in Headers */,
 				1A20F7060F36EE0500156DE9 /* OOExcludeObjectEnumerator.h in Headers */,
+				1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3364,6 +3371,7 @@
 				1ABAD7310F350B3400FD2CBF /* OOShipGroup.m in Sources */,
 				1A11F84A0F35F60C001C886C /* OOJSShipGroup.m in Sources */,
 				1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */,
+				1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

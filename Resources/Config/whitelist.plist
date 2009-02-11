@@ -67,9 +67,6 @@
 	//	"setBackgroundFromDescriptionsKey:",	// Is this ever used from a script? It seems a bad match for future plans of mine. -- Ahruman
 		"setGalacticHyperspaceBehaviourTo:",
 		"setGalacticHyperspaceFixedCoordsTo:",
-		
-		// ShipEntity.m
-		"initialiseTurret"
 	);
 	ai_methods =
 	(
@@ -362,6 +359,7 @@
 	action_method_aliases =
 	{
 		"setGuiToStatusScreen" = "doNothing";
+		"initialiseTurret" = "doNothing";
 	};
 	
 	query_method_aliases =

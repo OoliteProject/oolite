@@ -710,48 +710,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
-	unsigned int i;
 	
 	isShip = YES;
 	isStation = YES;
 	alertLevel = STATION_ALERT_LEVEL_GREEN;
 	
-	// ** Set up a the docking port
-	// Look for subentity specifying position
-	/*	NOTE: all this is overriden by -setDockingPortModel:::, called from
-		-setUpSubEntities:, if any subentity key contains "dock" (not just
-		prefixed with "dock" as here). port_radius and port_dimensions should
-		be considered obsolete.
-		-- Ahruman 20090108
-	*/
-	
-	NSArray		*subs = [dict arrayForKey:@"subentities"];
-	NSArray		*dockSubEntity = nil;
-	
-	for (i = 0; i < [subs count]; i++)
-	{
-		NSArray* details = ScanTokensFromString([subs objectAtIndex:i]);
-		if (([details count] == 8) && ([[details objectAtIndex:0] hasPrefix:@"dock"]))  dockSubEntity = details;
-	}
-	
-	if (dockSubEntity != nil)
-	{
-		port_position.x = [(NSString *)[dockSubEntity objectAtIndex:1] floatValue];
-		port_position.y = [(NSString *)[dockSubEntity objectAtIndex:2] floatValue];
-		port_position.z = [(NSString *)[dockSubEntity objectAtIndex:3] floatValue];
-		port_orientation.w = [(NSString *)[dockSubEntity objectAtIndex:4] floatValue];
-		port_orientation.x = [(NSString *)[dockSubEntity objectAtIndex:5] floatValue];
-		port_orientation.y = [(NSString *)[dockSubEntity objectAtIndex:6] floatValue];
-		port_orientation.z = [(NSString *)[dockSubEntity objectAtIndex:7] floatValue];
-		quaternion_normalize(&port_orientation);
-	}
-	else
-	{
-		// No dock* subentity found, use defaults.
-		double port_radius = [dict nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
-		port_position = make_vector(0, 0, port_radius);
-		port_orientation = kIdentityQuaternion;
-	}
+	double port_radius = [dict nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
+	port_position = make_vector(0, 0, port_radius);
+	port_orientation = kIdentityQuaternion;
 	
 	// port_dimensions can be set for rock-hermits and other specials
 	port_dimensions = make_vector(69, 69, 250);

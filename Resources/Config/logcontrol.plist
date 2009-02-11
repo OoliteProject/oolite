@@ -319,6 +319,7 @@
 	shipData.load.done						= no;
 	shipData.load.error						= $error;
 	shipData.load.warning					= $error;
+	shipData.translateSubentity				= no;
 	
 	
 	shipRegistry.selection.profile			= no;

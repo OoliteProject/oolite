@@ -2189,16 +2189,15 @@ static NSTimeInterval	time_last_frame;
 	
 	if ([gameView isDown:key_custom_view])
 	{
-		if ((!customView_pressed)&&(custom_views)&&(![UNIVERSE displayCursor]))
+		if (!customView_pressed && [_customViews count] != 0 && ![UNIVERSE displayCursor])
 		{
 			if ([UNIVERSE viewDirection] == VIEW_CUSTOM)	// already in custom view mode
 			{
 				// rotate the custom views
-				[custom_views addObject:[custom_views objectAtIndex:0]];
-				[custom_views removeObjectAtIndex:0];
+				_customViewIndex = (_customViewIndex + 1) % [_customViews count];
 			}
 			
-			[self setCustomViewDataFromDictionary:(NSDictionary*)[custom_views objectAtIndex:0]];
+			[self setCustomViewDataFromDictionary:[_customViews dictionaryAtIndex:_customViewIndex]];
 			
 			if ([UNIVERSE displayGUI])
 				[self switchToMainView];

@@ -281,10 +281,10 @@
 			type = "dictionary";
 			schema =
 			{
-				view_description = "string";
-				view_position = "vector";
-				view_orientation = "quaternion";
-				weapon_facing =
+				"view_description" = "string";
+				"view_position" = "vector";
+				"view_orientation" = "quaternion";
+				"weapon_facing" =
 				{
 					type = "enumeration";
 					filter = "lowerCase";
@@ -373,9 +373,55 @@
 		};
 		$subEntitySpecifier =
 		{
-			type = "delegatedType";
-			baseType = "string";
-			key = "subEntitySpecifier";
+			type = "oneOf";
+			options = 
+			(
+				{
+					type = "delegatedType";
+					baseType = "string";
+					key = "subEntitySpecifier";
+				},
+				{
+					type = "dictionary";
+					requiredKeys = ( "type", "subentity_key" );
+					schema =
+					{
+						"type" =
+						{
+							type = "enumeration";
+							values = ( "standard", "ball_turret" );
+						};
+						subentity_key = "$shipKey";
+						position = "vector";
+						orientation = "quaternion";
+						is_dock = "boolean";
+					};
+				},
+				{
+					type = "dictionary";
+					requiredKeys = ( "type" );
+					schema =
+					{
+						"type" =
+						{
+							type = "enumeration";
+							values = ( "flasher" );
+						};
+						color = "$colorSpecifier";
+						colors =
+						{
+							type = array;
+							valueType = "$colorSpecifier";
+						};
+						position = "vector";
+						orientation = "quaternion";
+						size = "positiveFloat";
+						frequency = "float";
+						phase = "float";
+						initially_on = "boolean";
+					};
+				}
+			);
 		};
 		$scriptActions =
 		{

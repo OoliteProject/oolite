@@ -4,7 +4,7 @@ OOShipRegistry.m
 
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2008 Jens Ayton
+Copyright (C) 2008-2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -57,6 +57,7 @@ SOFTWARE.
 #import "OOMesh.h"
 #import "GameController.h"
 #import "OOLegacyScriptWhitelist.h"
+#import "OODeepCopy.h"
 
 
 #define PRELOAD 0
@@ -81,8 +82,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 
 - (BOOL) applyLikeShips:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData;
+- (BOOL) stripPrivateKeys:(NSMutableDictionary *)ioData;
+- (BOOL) makeShipEntriesMutable:(NSMutableDictionary *)ioData;
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData;
-- (BOOL) tagSubEntities:(NSMutableDictionary *)ioData;
+- (BOOL) canonicalizeAndTagSubentities:(NSMutableDictionary *)ioData;
 - (BOOL) removeUnusableEntries:(NSMutableDictionary *)ioData;
 - (BOOL) sanitizeConditions:(NSMutableDictionary *)ioData;
 
@@ -90,8 +93,35 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (BOOL) preloadShipMeshes:(NSMutableDictionary *)ioData;
 #endif
 
-- (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
+- (NSMutableDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent;
 - (void) mergeShipRoles:(NSString *)roles forShipKey:(NSString *)shipKey intoProbabilityMap:(NSMutableDictionary *)probabilitySets;
+
+- (NSDictionary *) canonicalizeSubentityDeclaration:(id)declaration
+											forShip:(NSString *)shipKey
+										   shipData:(NSDictionary *)shipData
+										 fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) translateOldStyleSubentityDeclaration:(NSString *)declaration
+												 forShip:(NSString *)shipKey
+												shipData:(NSDictionary *)shipData
+											  fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) translateOldStyleFlasherDeclaration:(NSArray *)tokens
+											   forShip:(NSString *)shipKey
+											fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) translateOldStandardBasicSubentityDeclaration:(NSArray *)tokens
+														 forShip:(NSString *)shipKey
+														shipData:(NSDictionary *)shipData
+													  fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) validateNewStyleSubentityDeclaration:(NSDictionary *)declaration
+												forShip:(NSString *)shipKey
+											 fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) validateNewStyleFlasherDeclaration:(NSDictionary *)declaration
+											  forShip:(NSString *)shipKey
+										   fatalError:(BOOL *)outFatalError;
+- (NSDictionary *) validateNewStyleStandardSubentityDeclaration:(NSDictionary *)declaration
+														forShip:(NSString *)shipKey
+													 fatalError:(BOOL *)outFatalError;
+
+- (BOOL) shipIsBallTurretForKey:(NSString *)shipKey inShipData:(NSDictionary *)shipData;
 
 @end
 
@@ -176,7 +206,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 
 - (NSDictionary *) shipyardInfoForKey:(NSString *)key
 {
-	return [[self shipInfoForKey:key] objectForKey:@"shipyard"];
+	return [[self shipInfoForKey:key] objectForKey:@"_oo_shipyard"];
 }
 
 
@@ -232,9 +262,6 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 - (void) loadShipData
 {
 	NSMutableDictionary		*result = nil;
-	NSEnumerator			*enumerator = nil;
-	NSString				*key = nil;
-	NSDictionary			*immutableResult = nil;
 	
 	OOLog(@"shipData.load.begin", @"Loading ship data...");
 	OOLogIndentIf(@"shipData.load.begin");
@@ -251,21 +278,17 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 												   cache:NO] mutableCopy] autorelease];
 	if (result == nil)  return;
 	
-	// Clean out any non-dictionaries. (Iterates over a copy of keys since it mutates the dictionary.)
-	for (enumerator = [[result allKeys] objectEnumerator]; (key = [enumerator nextObject]); )
-	{
-		if (![[result objectForKey:key] isKindOfClass:[NSDictionary class]])
-		{
-			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary.", key);
-			[result removeObjectForKey:key];
-		}
-	}
+	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
+	if (![self makeShipEntriesMutable:result])  return;
 	
 	// Apply patches.
 	if (![self loadAndApplyShipDataOverrides:result])  return;
 	
-	// Tag subentities so they won't be pruned.
-	if (![self tagSubEntities:result])  return;
+	// Strip private keys (anything starting with _oo_).
+	if (![self stripPrivateKeys:result])  return;
+	
+	// Clean up subentity declarations and tag subentities so they won't be pruned.
+	if (![self canonicalizeAndTagSubentities:result])  return;
 	
 	// Resolve like_ship entries.
 	if (![self applyLikeShips:result])  return;
@@ -284,8 +307,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if (![self preloadShipMeshes:result])  return;
 #endif
 	
-	immutableResult = [[result copy] autorelease];
-	_shipData = [immutableResult retain];
+	_shipData = OODeepCopy(result);
 	[[OOCacheManager sharedCache] setObject:_shipData forKey:kShipDataCacheKey inCache:kShipRegistryCacheName];
 	
 	OOLogOutdentIf(@"shipData.load.begin");
@@ -480,7 +502,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (NSDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent
+- (NSMutableDictionary *) mergeShip:(NSDictionary *)child withParent:(NSDictionary *)parent
 {
 	NSMutableDictionary *result = [[parent mutableCopy] autorelease];
 	if (result == nil)  return nil;
@@ -492,15 +514,42 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if ([child stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
 	if ([child stringForKey:@"is_template"] == nil)  [result removeObjectForKey:@"is_template"];
 	
-	return [[result copy] autorelease];
+	return result;
+}
+
+
+- (BOOL) makeShipEntriesMutable:(NSMutableDictionary *)ioData
+{
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSDictionary			*shipEntry = nil;
+	
+	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	{
+		shipEntry = [ioData objectForKey:shipKey];
+		if (![shipEntry isKindOfClass:[NSDictionary class]])
+		{
+			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary.", shipKey);
+			[ioData removeObjectForKey:shipKey];
+		}
+		else
+		{
+			shipEntry = [shipEntry mutableCopy];
+			
+			[ioData setObject:shipEntry forKey:shipKey];
+			[shipEntry release];
+		}
+	}
+	
+	return YES;
 }
 
 
 - (BOOL) loadAndApplyShipDataOverrides:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*enumerator = nil;
-	NSString				*key = nil;
-	NSDictionary			*shipEntry = nil;
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSMutableDictionary		*shipEntry = nil;
 	NSDictionary			*overrides = nil;
 	NSDictionary			*overridesEntry = nil;
 	
@@ -509,20 +558,44 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 												mergeMode:MERGE_SMART
 													cache:NO];
 	
-	for (enumerator = [overrides keyEnumerator]; (key = [enumerator nextObject]); )
+	for (shipKeyEnum = [overrides keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
-		shipEntry = [ioData objectForKey:key];
+		shipEntry = [ioData objectForKey:shipKey];
 		if (shipEntry != nil)
 		{
-			overridesEntry = [overrides objectForKey:key];
+			overridesEntry = [overrides objectForKey:shipKey];
 			if (![overridesEntry isKindOfClass:[NSDictionary class]])
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata-overrides.plist entry \"%@\" is not a dictionary.", key);
+				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata-overrides.plist entry \"%@\" is not a dictionary.", shipKey);
 			}
 			else
 			{
-				shipEntry = [shipEntry dictionaryByAddingEntriesFromDictionary:overridesEntry];
-				[ioData setObject:shipEntry forKey:key];
+				[shipEntry addEntriesFromDictionary:overridesEntry];
+			}
+		}
+	}
+	
+	return YES;
+}
+
+
+- (BOOL) stripPrivateKeys:(NSMutableDictionary *)ioData
+{
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSMutableDictionary		*shipEntry = nil;
+	NSEnumerator			*attrKeyEnum = nil;
+	NSString				*attrKey = nil;
+	
+	for (shipKeyEnum = [ioData keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
+	{
+		shipEntry = [ioData objectForKey:shipKey];
+		
+		for (attrKeyEnum = [shipEntry keyEnumerator]; (attrKey = [attrKeyEnum nextObject]); )
+		{
+			if ([attrKey hasPrefix:@"_oo_"])
+			{
+				[shipEntry removeObjectForKey:attrKey];
 			}
 		}
 	}
@@ -540,9 +613,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 */
 - (BOOL) loadAndMergeShipyard:(NSMutableDictionary *)ioData
 {
-	NSEnumerator			*enumerator = nil;
-	NSString				*key = nil;
-	NSDictionary			*shipEntry = nil;
+	NSEnumerator			*shipKeyEnum = nil;
+	NSString				*shipKey = nil;
+	NSMutableDictionary		*shipEntry = nil;
 	NSDictionary			*shipyard = nil;
 	NSDictionary			*shipyardOverrides = nil;
 	NSDictionary			*shipyardEntry = nil;
@@ -550,12 +623,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSMutableSet			*playerShips = nil;
 	
 	// Strip out any shipyard stuff in shipdata (there shouldn't be any).
-	for (enumerator = [ioData keyEnumerator]; (key = [enumerator nextObject]); )
+	for (shipKeyEnum = [ioData keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
-		shipEntry = [ioData objectForKey:key];
-		if ([shipEntry objectForKey:@"shipyard"] != nil)
+		shipEntry = [ioData objectForKey:shipKey];
+		if ([shipEntry objectForKey:@"_oo_shipyard"] != nil)
 		{
-			[ioData setObject:[shipEntry dictionaryByRemovingObjectForKey:@"shipyard"] forKey:key];
+			[shipEntry removeObjectForKey:@"_oo_shipyard"];
 		}
 	}
 	
@@ -571,23 +644,22 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	playerShips = [NSMutableArray arrayWithCapacity:[shipyard count]];
 	
 	// Insert merged shipyard and shipyardOverrides entries.
-	for (enumerator = [shipyard keyEnumerator]; (key = [enumerator nextObject]); )
+	for (shipKeyEnum = [shipyard keyEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
-		shipEntry = [ioData objectForKey:key];
+		shipEntry = [ioData objectForKey:shipKey];
 		if (shipEntry != nil)
 		{
-			shipyardEntry = [shipyard objectForKey:key];
-			shipyardOverridesEntry = [shipyardOverrides objectForKey:key];
+			shipyardEntry = [shipyard objectForKey:shipKey];
+			shipyardOverridesEntry = [shipyardOverrides objectForKey:shipKey];
 			shipyardEntry = [shipyardEntry dictionaryByAddingEntriesFromDictionary:shipyardOverridesEntry];
 			
-			shipEntry = [shipEntry dictionaryByAddingObject:shipyardEntry forKey:@"shipyard"];
-			[ioData setObject:shipEntry forKey:key];
+			[shipEntry setObject:shipyardEntry forKey:@"_oo_shipyard"];
 			
-			[playerShips addObject:key];
+			[playerShips addObject:shipKey];
 		}
 		else
 		{
-			OOLog(@"shipData.load.shipyard.unknown", @"WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", key);
+			OOLog(@"shipData.load.shipyard.unknown", @"WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
 		}
 	}
 	
@@ -598,110 +670,95 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
-- (BOOL) tagSubEntities:(NSMutableDictionary *)ioData
+- (BOOL) canonicalizeAndTagSubentities:(NSMutableDictionary *)ioData
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
-	NSDictionary			*shipEntry = nil;
-	NSArray					*subEntityDeclarations = nil;
-	NSEnumerator			*subEntityEnum = nil;
-	NSString				*subEntityKey = nil;
-	NSArray					*subEntityDef = nil;
-	NSDictionary			*subEntityShipEntry = nil;
-	BOOL					remove;
-	NSMutableSet			*badSubEntities = nil;
-	NSString				*badSubEntitiesList = nil;
-	BOOL					isFlasher;
-	NSMutableArray			*okSubEntities = nil;
+	NSMutableDictionary		*shipEntry = nil;
+	NSArray					*subentityDeclarations = nil;
+	NSEnumerator			*subentityEnum = nil;
+	id						subentityDecl = nil;
+	NSDictionary			*subentityDict = nil;
+	NSString				*subentityKey = nil;
+	NSMutableDictionary		*subentityShipEntry = nil;
+	NSMutableSet			*badSubentities = nil;
+	NSString				*badSubentitiesList = nil;
+	NSMutableArray			*okSubentities = nil;
+	BOOL					remove, fatal;
 	
-	// Add _oo_is_subentity=YES to all entries used as subentities.
+	// Convert all subentity declarations to dictionaries and add
+	// _oo_is_subentity=YES to all entries used as subentities.
+	
 	// Iterate over all ships. (Iterates over a copy of keys since it mutates the dictionary.)
 	for (shipKeyEnum = [[ioData allKeys] objectEnumerator]; (shipKey = [shipKeyEnum nextObject]); )
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		remove = NO;
-		badSubEntities = nil;
+		badSubentities = nil;
 		
 		// Iterate over each subentity declaration of each ship
-		subEntityDeclarations = [shipEntry arrayForKey:@"subentities"];
-		if (subEntityDeclarations != nil)
+		subentityDeclarations = [shipEntry arrayForKey:@"subentities"];
+		if (subentityDeclarations != nil)
 		{
-			okSubEntities = [NSMutableArray arrayWithCapacity:[subEntityDeclarations count]];
-			for (subEntityEnum = [subEntityDeclarations objectEnumerator]; (subEntityKey = [subEntityEnum nextObject]); )
+			okSubentities = [NSMutableArray arrayWithCapacity:[subentityDeclarations count]];
+			for (subentityEnum = [subentityDeclarations objectEnumerator]; (subentityDecl = [subentityEnum nextObject]); )
 			{
-				subEntityDef = ScanTokensFromString(subEntityKey);
-				if([subEntityDef count] != 0)  subEntityKey = [subEntityDef stringAtIndex:0];
-				else  subEntityKey = nil;
-				isFlasher = [subEntityKey isEqualToString:@"*FLASHER*"];
+				subentityDict = [self canonicalizeSubentityDeclaration:subentityDecl forShip:shipKey shipData:ioData fatalError:&fatal];
 				
-				// While we're at it, do basic sanity checking on subentity defs.
-				if ([subEntityDef count] != 8)
+				// If entry is broken, we need to kill this ship.
+				if (fatal)
 				{
-					if (!isFlasher)
-					{
-						OOLog(@"shipData.load.error.badSubEntity", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subEntityKey, [subEntityDef count]);
-						if (![shipEntry boolForKey:@"frangible"])  remove = YES;
-					}
-					else
-					{
-						OOLog(@"shipData.load.error.badFlasher", @"----- WARNING: the shipdata.plist entry \"%@\" has a broken flasher definition \"%@\" (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, subEntityKey, [subEntityDef count]);
-					}
+					remove = YES;
 				}
 				else
 				{
-					[okSubEntities addObject:subEntityKey];
+					[okSubentities addObject:subentityDict];
 					
-					if (!isFlasher)
+					// Tag subentities.
+					if (![[subentityDict stringForKey:@"type"] isEqualToString:@"flasher"])
 					{
-						subEntityShipEntry = [ioData objectForKey:subEntityKey];
-						if (subEntityShipEntry == nil)
+						subentityKey = [subentityDict stringForKey:@"subentity_key"];
+						subentityShipEntry = [ioData objectForKey:subentityKey];
+						if (subentityKey == nil)
 						{
-							// Oops, reference to non-existent subent
-							if (badSubEntities == nil)  badSubEntities = [NSMutableSet set];
-							[badSubEntities addObject:subEntityKey];
+							// Oops, reference to non-existent subent.
+							if (badSubentities == nil)  badSubentities = [NSMutableSet set];
+							[badSubentities addObject:subentityKey];
 						}
-						else if (![subEntityShipEntry boolForKey:@"_oo_is_subentity"])
+						else
 						{
-							// Subent exists, add _oo_is_subentity so roles aren't required
-							subEntityShipEntry = [subEntityShipEntry dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:@"_oo_is_subentity"];
-							[ioData setObject:subEntityShipEntry forKey:subEntityKey];
+							// Subent exists, add _oo_is_subentity so roles aren't required.
+							[subentityShipEntry setBool:YES forKey:@"_oo_is_subentity"];
 						}
 					}
 				}
 			}
 			
-			// If subentities have been excluded (i.e. there are bad flashers,
-			// or there are bad subentities but the ship is frangible), copy
-			// in new shortened list.
-			if ([okSubEntities count] != [subEntityDeclarations count] && !remove)
+			// Set updated subentity list.
+			if ([okSubentities count] != 0)
 			{
-				shipEntry = [[shipEntry mutableCopy] autorelease];
-				if ([okSubEntities count] == 0)
-				{
-					[(NSMutableDictionary *)shipEntry removeObjectForKey:@"subentities"];
-				}
-				else
-				{
-					[(NSMutableDictionary *)shipEntry setObject:[[okSubEntities copy] autorelease] forKey:@"subentities"];
-				}
+				[shipEntry setObject:okSubentities forKey:@"subentities"];
 			}
-		}
-		
-		if (badSubEntities != nil)
-		{
-			if (![shipEntry boolForKey:@"is_external_dependency"])
+			else
 			{
-				badSubEntitiesList = [[[badSubEntities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubEntities count] == 1) ? @"y" : @"ies", badSubEntitiesList);
+				[shipEntry removeObjectForKey:@"subentities"];
 			}
-			remove = YES;
-		}
-		
-		if (remove)
-		{
-			// Removal is deferred to avoid bogus "entry doesn't exist" errors.
-			shipEntry = [shipEntry dictionaryByAddingObject:[NSNumber numberWithBool:YES] forKey:@"_oo_deferred_remove"];
-			[ioData setObject:shipEntry forKey:shipKey];
+			
+			if (badSubentities != nil)
+			{
+				if (![shipEntry boolForKey:@"is_external_dependency"])
+				{
+					badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
+					OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
+				}
+				remove = YES;
+			}
+			
+			if (remove)
+			{
+				// Removal is deferred to avoid bogus "entry doesn't exist" errors.
+				[shipEntry setBool:YES forKey:@"_oo_deferred_remove"];
+			}
 		}
 	}
 	
@@ -713,7 +770,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
-	NSDictionary			*shipEntry = nil;
+	NSMutableDictionary		*shipEntry = nil;
 	BOOL					remove;
 	NSString				*modelName = nil;
 	
@@ -757,8 +814,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
-	NSDictionary			*shipEntry = nil;
-	NSMutableDictionary		*mutableEntry = nil;
+	NSMutableDictionary		*shipEntry = nil;
 	NSMutableDictionary		*mutableShipyard = nil;
 	NSArray					*conditions = nil;
 	NSArray					*hasShipyard = nil;
@@ -770,11 +826,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		conditions = [shipEntry objectForKey:@"conditions"];
 		hasShipyard = [shipEntry objectForKey:@"hasShipyard"];
 		if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
-		shipyardConditions = [[shipEntry dictionaryForKey:@"shipyard"] objectForKey:@"conditions"];
+		shipyardConditions = [[shipEntry dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
 		
 		if (conditions == nil && hasShipyard && shipyardConditions == nil)  continue;
-		
-		mutableEntry = [[shipEntry mutableCopy] autorelease];
 		
 		if (conditions != nil)
 		{
@@ -790,11 +844,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			if (conditions != nil)
 			{
-				[mutableEntry setObject:conditions forKey:@"conditions"];
+				[shipEntry setObject:conditions forKey:@"conditions"];
 			}
 			else
 			{
-				[mutableEntry removeObjectForKey:@"conditions"];
+				[shipEntry removeObjectForKey:@"conditions"];
 			}
 		}
 		
@@ -804,17 +858,17 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			if (hasShipyard != nil)
 			{
-				[mutableEntry setObject:hasShipyard forKey:@"hasShipyard"];
+				[shipEntry setObject:hasShipyard forKey:@"hasShipyard"];
 			}
 			else
 			{
-				[mutableEntry removeObjectForKey:@"hasShipyard"];
+				[shipEntry removeObjectForKey:@"hasShipyard"];
 			}
 		}
 		
 		if (shipyardConditions != nil)
 		{
-			mutableShipyard = [[[shipEntry dictionaryForKey:@"shipyard"] mutableCopy] autorelease];
+			mutableShipyard = [[[shipEntry dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
 			
 			if ([shipyardConditions isKindOfClass:[NSArray class]])
 			{
@@ -835,10 +889,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 				[mutableShipyard removeObjectForKey:@"conditions"];
 			}
 			
-			[mutableEntry setObject:mutableShipyard forKey:@"shipyard"];
+			[shipEntry setObject:mutableShipyard forKey:@"_oo_shipyard"];
 		}
-		
-		[ioData setObject:[[mutableEntry copy] autorelease] forKey:shipKey];
 	}
 	
 	return YES;
@@ -850,7 +902,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSEnumerator			*shipKeyEnum = nil;
 	NSString				*shipKey = nil;
-	NSDictionary			*shipEntry = nil;
+	NSMutableDictionary		*shipEntry = nil;
 	BOOL					remove;
 	NSString				*modelName = nil;
 	OOMesh					*mesh = nil;
@@ -919,6 +971,306 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		
 		[probSet setWeight:[rolesAndWeights floatForKey:role] forObject:shipKey];
 	}
+}
+
+
+- (NSDictionary *) canonicalizeSubentityDeclaration:(id)declaration
+											forShip:(NSString *)shipKey
+										   shipData:(NSDictionary *)shipData
+										 fatalError:(BOOL *)outFatalError
+{
+	NSDictionary			*result = nil;
+	
+	assert(outFatalError != NULL);
+	*outFatalError = NO;
+	
+	if ([declaration isKindOfClass:[NSString class]])
+	{
+		// Update old-style string-based declaration.
+		result = [self translateOldStyleSubentityDeclaration:declaration
+													 forShip:shipKey
+													shipData:shipData
+												  fatalError:outFatalError];
+		
+		// TODO: remove
+		result = [self validateNewStyleSubentityDeclaration:result
+													forShip:shipKey
+												 fatalError:outFatalError];
+	}
+	else if ([declaration isKindOfClass:[NSDictionary class]])
+	{
+		// Validate dictionary-based declaration.
+		result = [self validateNewStyleSubentityDeclaration:declaration
+													forShip:shipKey
+												 fatalError:outFatalError];
+	}
+	else
+	{
+		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ should be string or dictionary, found %@.", shipKey, [declaration class]);
+		*outFatalError = YES;
+	}
+	
+	// For frangible ships, bad subentities are non-fatal.
+	if (*outFatalError && [[shipData dictionaryForKey:shipKey] boolForKey:@"frangible"])  *outFatalError = NO;
+	
+	return result;
+}
+
+
+- (NSDictionary *) translateOldStyleSubentityDeclaration:(NSString *)declaration
+												 forShip:(NSString *)shipKey
+												shipData:(NSDictionary *)shipData
+											  fatalError:(BOOL *)outFatalError
+{
+	NSArray					*tokens = nil;
+	NSString				*subentityKey = nil;
+	BOOL					isFlasher;
+	
+	tokens = ScanTokensFromString(declaration);
+	
+	subentityKey = [tokens objectAtIndex:0];
+	isFlasher = [subentityKey isEqualToString:@"*FLASHER*"];
+	
+	// Sanity check: require eight tokens.
+	if ([tokens count] != 8)
+	{
+		if (!isFlasher)
+		{
+			OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subentityKey, [tokens count]);
+			*outFatalError = YES;
+		}
+		else
+		{
+			OOLog(@"shipData.load.error.badFlasher", @"----- WARNING: the shipdata.plist entry \"%@\" has a broken flasher definition \"%@\" (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, subentityKey, [tokens count]);
+		}
+		return nil;
+	}
+	
+	if (isFlasher)
+	{
+		return [self translateOldStyleFlasherDeclaration:tokens
+												 forShip:shipKey
+											  fatalError:outFatalError];
+	}
+	else
+	{
+		return [self translateOldStandardBasicSubentityDeclaration:tokens
+														   forShip:shipKey
+														  shipData:shipData
+														fatalError:outFatalError];
+	}
+}
+
+
+- (NSDictionary *) translateOldStyleFlasherDeclaration:(NSArray *)tokens
+											   forShip:(NSString *)shipKey
+											fatalError:(BOOL *)outFatalError
+{
+	Vector					position;
+	float					size, frequency, phase, hue;
+	NSDictionary			*colorDict = nil;
+	NSDictionary			*result = nil;
+	
+	position.x = [tokens floatAtIndex:1];
+	position.y = [tokens floatAtIndex:2];
+	position.z = [tokens floatAtIndex:3];
+	
+	hue = [tokens floatAtIndex:4];
+	frequency = [tokens floatAtIndex:5];
+	phase = [tokens floatAtIndex:6] * 2.0;
+	size = [tokens floatAtIndex:7];
+	
+	colorDict = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:hue] forKey:@"hue"];
+	
+	result = [NSDictionary dictionaryWithObjectsAndKeys:
+			  @"flasher", @"type",
+			  OOPropertyListFromVector(position), @"position",
+			  [NSArray arrayWithObject:colorDict], @"colors",
+			  [NSNumber numberWithFloat:frequency], @"frequency",
+			  [NSNumber numberWithFloat:phase], @"phase",
+			  [NSNumber numberWithFloat:size], @"size",
+			  nil];
+	
+	OOLog(@"shipData.translateSubentity.flasher", @"Translated flasher declaration \"%@\" to %@", [tokens componentsJoinedByString:@" "], result);
+	
+	return result;
+}
+
+
+- (NSDictionary *) translateOldStandardBasicSubentityDeclaration:(NSArray *)tokens
+														 forShip:(NSString *)shipKey
+														shipData:(NSDictionary *)shipData
+													  fatalError:(BOOL *)outFatalError
+{
+	NSString				*subentityKey = nil;
+	Vector					position;
+	Quaternion				orientation;
+	NSMutableDictionary		*result = nil;
+	BOOL					isTurret, isDock = NO;
+	
+	subentityKey = [tokens stringAtIndex:0];
+	
+	isTurret = [self shipIsBallTurretForKey:subentityKey inShipData:shipData];
+	
+	position.x = [tokens floatAtIndex:1];
+	position.y = [tokens floatAtIndex:2];
+	position.z = [tokens floatAtIndex:3];
+	
+	orientation.w = [tokens floatAtIndex:4];
+	orientation.x = [tokens floatAtIndex:5];
+	orientation.y = [tokens floatAtIndex:6];
+	orientation.z = [tokens floatAtIndex:7];
+	
+	quaternion_normalize(&orientation);
+	
+	if (!isTurret)  isDock = [shipKey rangeOfString:@"dock"].location != NSNotFound;
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:5];
+	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
+	[result setObject:subentityKey forKey:@"subentity_key"];
+	[result setVector:position forKey:@"position"];
+	[result setQuaternion:orientation forKey:@"orientation"];
+	if (isDock)  [result setBool:YES forKey:@"is_dock"];
+	
+	OOLog(@"shipData.translateSubentity.standard", @"Translated subentity declaration \"%@\" to %@", [tokens componentsJoinedByString:@" "], result);
+	
+	return [[result copy] autorelease];
+}
+
+
+- (NSDictionary *) validateNewStyleSubentityDeclaration:(NSDictionary *)declaration
+												forShip:(NSString *)shipKey
+											 fatalError:(BOOL *)outFatalError
+{
+	NSString				*type = nil;
+	
+	type = [declaration stringForKey:@"type"];
+	if ([type isEqualToString:@"flasher"])
+	{
+		return [self validateNewStyleFlasherDeclaration:declaration forShip:shipKey fatalError:outFatalError];
+	}
+	else if ([type isEqualToString:@"standard"] || [type isEqualToString:@"ball_turret"])
+	{
+		return [self validateNewStyleStandardSubentityDeclaration:declaration forShip:shipKey fatalError:outFatalError];
+	}
+	else
+	{
+		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ does not declare a valid type (must be standard, flasher or ball_turret).", shipKey);
+		*outFatalError = YES;
+		return nil;
+	}
+}
+
+
+- (NSDictionary *) validateNewStyleFlasherDeclaration:(NSDictionary *)declaration
+											  forShip:(NSString *)shipKey
+										   fatalError:(BOOL *)outFatalError
+{
+	NSMutableDictionary		*result = nil;
+	Vector					position = kZeroVector;
+	NSArray					*colors = nil;
+	id						colorDesc = nil;
+	float					size, frequency, phase;
+	BOOL					initiallyOn;
+	
+	// "Validate" is really "clean up", since all values have defaults.
+	colors = [result arrayForKey:@"colors"];
+	if (colors == nil)
+	{
+		colorDesc = [result objectForKey:@"color"];
+		if (colorDesc == nil)  colorDesc = @"redColor";
+		colors = [NSArray arrayWithObject:colorDesc];
+	}
+	
+	position = [declaration vectorForKey:@"position"];
+	
+	size = [declaration floatForKey:@"size" defaultValue:8.0];
+	
+	if (size <= 0)
+	{
+		OOLog(@"shipData.load.error.badSubentity", @"----- WARNING: skipping flasher of invalid size %g for ship %@.", size, shipKey);
+		return nil;
+	}
+	
+	frequency = [declaration floatForKey:@"frequency" defaultValue:2.0];
+	phase = [declaration floatForKey:@"phase" defaultValue:0.0];
+	
+	initiallyOn = [declaration boolForKey:@"initially_on" defaultValue:NO];
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:7];
+	[result setObject:@"flasher" forKey:@"type"];
+	[result setObject:colors forKey:@"colors"];
+	[result setVector:position forKey:@"position"];
+	[result setObject:[NSNumber numberWithFloat:size] forKey:@"size"];
+	[result setObject:[NSNumber numberWithFloat:frequency] forKey:@"frequency"];
+	if (phase != 0)  [result setObject:[NSNumber numberWithFloat:phase] forKey:@"phase"];
+	if (initiallyOn)  [result setObject:[NSNumber numberWithBool:YES] forKey:@"initially_on"];
+	
+	return [[result copy] autorelease];
+}
+
+
+- (NSDictionary *) validateNewStyleStandardSubentityDeclaration:(NSDictionary *)declaration
+														forShip:(NSString *)shipKey
+													 fatalError:(BOOL *)outFatalError
+{
+	NSMutableDictionary		*result = nil;
+	NSString				*subentityKey = nil;
+	Vector					position = kZeroVector;
+	Quaternion				orientation = kIdentityQuaternion;
+	BOOL					isTurret;
+	BOOL					isDock = NO;
+	float					fireRate;
+	
+	subentityKey = [declaration objectForKey:@"subentity_key"];
+	if (subentityKey == nil)
+	{
+		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ specifies no subentity_key.", shipKey);
+		*outFatalError = YES;
+		return nil;
+	}
+	
+	isTurret = [[declaration stringForKey:@"type"] isEqualToString:@"ball_turret"];
+	if (isTurret)
+	{
+		fireRate = [declaration floatForKey:@"fire_rate" defaultValue:0.5];
+	}
+	else
+	{
+		isDock = [declaration boolForKey:@"is_dock"];
+	}
+	
+	position = [declaration vectorForKey:@"position"];
+	orientation = [declaration quaternionForKey:@"orientation"];
+	quaternion_normalize(&orientation);
+	
+	result = [NSMutableDictionary dictionaryWithCapacity:5];
+	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
+	[result setObject:subentityKey forKey:@"subentity_key"];
+	[result setVector:position forKey:@"position"];
+	[result setQuaternion:orientation forKey:@"orientation"];
+	if (isDock)  [result setBool:YES forKey:@"is_dock"];
+	if (isTurret)  [result setFloat:fireRate forKey:@"fire_rate"];
+	
+	return [[result copy] autorelease];
+}
+
+
+- (BOOL) shipIsBallTurretForKey:(NSString *)shipKey inShipData:(NSDictionary *)shipData
+{
+	// Test for presence of setup_actions containing initialiseTurret.
+	NSArray					*setupActions = nil;
+	NSEnumerator			*actionEnum = nil;
+	NSString				*action = nil;
+	
+	setupActions = [[shipData dictionaryForKey:shipKey] arrayForKey:@"setup_actions"];
+	
+	for (actionEnum = [setupActions objectEnumerator]; (action = [actionEnum nextObject]); )
+	{
+		if ([[ScanTokensFromString(action) objectAtIndex:0] isEqualToString:@"initialiseTurret"])  return YES;
+	}
+	
+	return NO;
 }
 
 @end

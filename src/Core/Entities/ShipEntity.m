@@ -90,6 +90,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) rescaleBy:(GLfloat)factor;
 
+
+- (BOOL) setUpOneSubentity:(NSDictionary *) subentDict;
+- (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
+- (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret;
+
 @end
 
 
@@ -142,88 +147,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return self;
 }
 
-
-- (BOOL) setUpSubEntities: (NSDictionary *) shipDict
-{
-	unsigned int	i;
-	NSArray			*plumes = [shipDict arrayForKey:@"exhaust"];
-	
-	for (i = 0; i < [plumes count]; i++)
-	{
-		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
-		[self addExhaust:exhaust];
-		[exhaust release];
-	}
-	
-	NSArray *subs = [shipDict arrayForKey:@"subentities"];
-	
-	for (i = 0; i < [subs count]; i++)
-	{
-		NSArray *details = ScanTokensFromString([subs objectAtIndex:i]);
-
-		if ([details count] == 8)
-		{
-			Vector sub_pos;
-			sub_pos.x = [details floatAtIndex:1];
-			sub_pos.y = [details floatAtIndex:2];
-			sub_pos.z = [details floatAtIndex:3];
-			
-			Quaternion sub_q;
-			sub_q.w = [details floatAtIndex:4];
-			sub_q.x = [details floatAtIndex:5];
-			sub_q.y = [details floatAtIndex:6];
-			sub_q.z = [details floatAtIndex:7];
-			
-			NSString* subdesc = [details stringAtIndex:0];
-			if ([subdesc isEqual:@"*FLASHER*"])
-			{
-				ParticleEntity *flasher;
-				flasher = [[ParticleEntity alloc]
-							initFlasherWithSize:sub_q.z
-									  frequency:sub_q.x
-										  phase:2.0 * sub_q.y];
-				[flasher setColor:[OOColor colorWithCalibratedHue:sub_q.w/360.0
-													   saturation:1.0
-													   brightness:1.0
-															alpha:1.0]];
-				[flasher setPosition:sub_pos];
-				[self addFlasher:flasher];
-				[flasher release];
-			}
-			else
-			{
- 				quaternion_normalize(&sub_q);
-
-				ShipEntity* subent = [UNIVERSE newShipWithName:subdesc];	// retained
-				if (subent == nil)
-				{
-					// Failing to find a subentity could result in a partial ship, which'd be, y'know, weird.
-					OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with missing subentity %@!", self, subdesc);
-					return NO;
-				}
-				
-				if (self->isStation && [subdesc rangeOfString:@"dock"].location != NSNotFound)
-				{
-					[(StationEntity*)self setDockingPortModel:subent :sub_pos :sub_q];
-				}
-				
-				[subent setStatus:STATUS_INACTIVE];
-				
-				Vector ref = vector_forward_from_quaternion(sub_q);	// VECTOR FORWARD
-				
-				[subent setReference: ref];
-				[subent setPosition: sub_pos];
-				[subent setOrientation: sub_q];
-				
-				[self addSolidSubentityToCollisionRadius:subent];
-				
-				[self addSubEntity:subent];
-				[subent release];
-			}
-		}
-	}
-	return YES;
-}
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
 {
@@ -479,6 +402,110 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[self setShipScript:[shipDict stringForKey:@"script"]];
 
+	return YES;
+}
+
+
+- (BOOL) setUpSubEntities: (NSDictionary *) shipDict
+{
+	unsigned int	i;
+	NSArray			*plumes = [shipDict arrayForKey:@"exhaust"];
+	
+	for (i = 0; i < [plumes count]; i++)
+	{
+		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
+		[self addExhaust:exhaust];
+		[exhaust release];
+	}
+	
+	NSArray *subs = [shipDict arrayForKey:@"subentities"];
+	
+	for (i = 0; i < [subs count]; i++)
+	{
+		[self setUpOneSubentity:[subs dictionaryAtIndex:i]];
+	}
+	return YES;
+}
+
+
+- (BOOL) setUpOneSubentity:(NSDictionary *) subentDict
+{
+	NSString			*type = nil;
+	
+	type = [subentDict stringForKey:@"type"];
+	if ([type isEqualToString:@"flasher"])
+	{
+		return [self setUpOneFlasher:subentDict];
+	}
+	else
+	{
+		return [self setUpOneStandardSubentity:subentDict asTurret:[type isEqualToString:@"ball_turret"]];
+	}
+}
+
+
+- (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
+{
+	ParticleEntity		*flasher = nil;
+	float				size, frequency, phase;
+	
+	size = [subentDict floatForKey:@"size"];
+	frequency = [subentDict floatForKey:@"frequency"];
+	phase = [subentDict floatForKey:@"phase"];
+	
+	flasher = [[ParticleEntity alloc] initFlasherWithSize:size frequency:frequency phase:phase];
+	[flasher setColor:[OOColor colorWithDescription:[[subentDict arrayForKey:@"colors"] objectAtIndex:0]]];
+	[flasher setPosition:[subentDict vectorForKey:@"position"]];
+	if ([subentDict boolForKey:@"initially_on"])  [flasher setStatus:STATUS_EFFECT];
+	
+	[self addFlasher:flasher];
+	[flasher release];
+	
+	return YES;
+}
+
+
+- (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret
+{
+	ShipEntity			*subentity = nil;
+	NSString			*subentKey = nil;
+	Vector				subPosition;
+	Quaternion			subOrientation;
+	
+	subentKey = [subentDict stringForKey:@"subentity_key"];
+	if (subentKey == nil)  return NO;
+	
+	subentity = [UNIVERSE newShipWithName:subentKey];
+	if (subentity == nil)  return NO;
+	
+	subPosition = [subentDict vectorForKey:@"position"];
+	subOrientation = [subentDict quaternionForKey:@"orientation"];
+	
+	if (!asTurret && [self isStation] && [subentDict boolForKey:@"is_dock"])
+	{
+		[(StationEntity *)self setDockingPortModel:subentity :subPosition :subOrientation];
+	}
+	
+	[subentity setPosition:subPosition];
+	[subentity setOrientation:subOrientation];
+	[subentity setReference:vector_forward_from_quaternion(subOrientation)];
+	
+	if (asTurret)
+	{
+		[subentity setBehaviour:BEHAVIOUR_TRACK_AS_TURRET];
+		[subentity setWeaponRechargeRate:[subentDict floatForKey:@"fire_rate"]];
+		[subentity setStatus: STATUS_ACTIVE];
+	}
+	else
+	{
+		[subentity setStatus:STATUS_INACTIVE];
+	}
+	
+	[self addSolidSubentityToCollisionRadius:subentity];
+	
+	[self addSubEntity:subentity];
+	[subentity release];
+	
 	return YES;
 }
 
@@ -3559,7 +3586,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-- (void) setWeaponDataFromType: (int) weapon_type
+- (void) setWeaponDataFromType: (OOWeaponType) weapon_type
 {
 	switch (weapon_type)
 	{
@@ -3599,6 +3626,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			weaponRange =			32000;
 			break;
 	}
+}
+
+
+- (float) weaponRechargeRate
+{
+	return weapon_recharge_rate;
+}
+
+
+- (void) setWeaponRechargeRate:(float)value
+{
+	weapon_recharge_rate = value;
 }
 
 
@@ -4212,15 +4251,6 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 - (int) damage
 {
 	return (int)(100 - (100 * energy / maxEnergy));
-}
-
-
-// Exposed to script actions
-- (void) initialiseTurret
-{
-	[self setBehaviour: BEHAVIOUR_TRACK_AS_TURRET];
-	weapon_recharge_rate = 0.5;	// test
-	[self setStatus: STATUS_ACTIVE];
 }
 
 
