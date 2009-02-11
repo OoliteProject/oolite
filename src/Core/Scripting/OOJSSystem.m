@@ -106,8 +106,6 @@ enum
 	kSystem_name,				// name, string, read/write
 	kSystem_description,		// description, string, read/write
 	kSystem_inhabitantsDescription, // description of inhabitant species, string, read/write
-	kSystem_goingNova,			// sun is going nova, boolean, read-only (should be moved to sun)
-	kSystem_goneNova,			// sun has gone nova, boolean, read-only (should be moved to sun)
 	kSystem_government,			// government ID, integer, read/write
 	kSystem_governmentDescription,	// government ID description, string, read-only
 	kSystem_economy,			// economy ID, integer, read/write
@@ -135,8 +133,6 @@ static JSPropertySpec sSystemProperties[] =
 	{ "name",					kSystem_name,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "description",			kSystem_description,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "inhabitantsDescription",	kSystem_inhabitantsDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "goingNova",				kSystem_goingNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "goneNova",				kSystem_goneNova,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "government",				kSystem_government,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "governmentDescription",	kSystem_governmentDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "economy",				kSystem_economy,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -241,14 +237,6 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 		case kSystem_inhabitantsDescription:
 			result = [systemData objectForKey:KEY_INHABITANTS];
 			if (result == nil)  result = [NSNull null];
-			break;
-		
-		case kSystem_goingNova:
-			*outValue = BOOLToJSVal([[UNIVERSE sun] willGoNova]);
-			break;
-		
-		case kSystem_goneNova:
-			*outValue = BOOLToJSVal([[UNIVERSE sun] goneNova]);
 			break;
 			
 		case kSystem_government:

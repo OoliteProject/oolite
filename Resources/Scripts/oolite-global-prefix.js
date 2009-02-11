@@ -309,3 +309,17 @@ Entity.__proto__.setOrientation = function ()
 }
 
 // Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity
+
+
+system.__defineGetter__("goingNova", function ()
+{
+	special.jsWarning("system.goingNova is deprecated, use system.sun.isGoingNova instead.");
+	return this.sun.isGoingNova;
+});
+
+
+system.__defineGetter__("goneNova", function ()
+{
+	special.jsWarning("system.goneNova is deprecated, use system.sun.hasGoneNova instead.");
+	return this.sun.hasGoneNova;
+});
