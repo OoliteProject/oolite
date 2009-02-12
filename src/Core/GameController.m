@@ -822,10 +822,7 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) logProgress:(NSString *)message
 {
-	//NSString *text = [UNIVERSE descriptionForKey:message];
-	//if (text == nil)  text = message;
-	[splashProgressTextField setStringValue:message];
-	[splashProgressTextField display];
+	[splashProgressTextField setStringValue:message];	[splashProgressTextField display];
 }
 
 
@@ -908,10 +905,7 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 {}
 
 - (void) endSplashScreen
-{
-	[gameView endSplashScreen];
-}
-
+{	[gameView endSplashScreen];	[gameView drawRect:[gameView bounds]];}
 - (void) exitApp
 {
 	[[NSUserDefaults standardUserDefaults] synchronize];

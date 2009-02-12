@@ -35,10 +35,6 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
 
-/* ---  OOTexture Splash
-#import "OOTexture.h"
-#import "OpenGLSprite.h"
-*/
 #if OOLITE_WINDOWS
 #import "TextureStore.h"
 #endif
@@ -88,7 +84,8 @@ MA 02110-1301, USA.
 	self = [super init];
 
 	Uint32          colorkey;
-	SDL_Surface     *image;
+	SDL_Surface     *icon;
+		
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
@@ -100,6 +97,8 @@ MA 02110-1301, USA.
 		return nil;
 	}
 	
+	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
+	
 	stickHandler=[[JoystickHandler alloc] init];
 	// end TODO
 	
@@ -108,24 +107,32 @@ MA 02110-1301, USA.
 	// Generate the window caption, containing the version number and the date the executable was compiled.
 	static char windowCaption[128];
 	NSString *versionString = [NSString stringWithFormat:@"Oolite v%@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
-	
+
 	strcpy (windowCaption, [versionString UTF8String]);
 	strcat (windowCaption, " - "__DATE__);
 	SDL_WM_SetCaption (windowCaption, "Oolite");	// Set window title.
 
 #if OOLITE_WINDOWS
-	image = SDL_LoadBMP("Resources\\Images\\WMicon.bmp");
-#else
-	image = SDL_LoadBMP("Resources/Images/WMicon.bmp");
-#endif
-	if (image != NULL)
-	{
-		colorkey = SDL_MapRGB(image->format, 128, 0, 128);
-		SDL_SetColorKey(image, SDL_SRCCOLORKEY, colorkey);
-		SDL_WM_SetIcon(image, NULL);
-	}
-	SDL_FreeSurface(image);
 
+	icon = SDL_LoadBMP("oolite.app\\Resources\\Images\\WMicon.bmp");
+	if (icon == NULL)
+	{
+		icon = SDL_LoadBMP("Resources\\Images\\WMicon.bmp");
+	}
+
+#else
+
+	icon = SDL_LoadBMP("Resources/Images/WMicon.bmp");
+
+#endif
+
+	if (icon != NULL)
+	{
+		colorkey = SDL_MapRGB(icon->format, 128, 0, 128);
+		SDL_SetColorKey(icon, SDL_SRCCOLORKEY, colorkey);
+		SDL_WM_SetIcon(icon, NULL);
+	}
+	SDL_FreeSurface(icon);
 	
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 5);
@@ -141,27 +148,6 @@ MA 02110-1301, USA.
 	// Find what the full screen and windowed settings are.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
-	
-	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-	surface = SDL_SetVideoMode (1.0f, 1.0f, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
-	bounds.size.width = surface->w;
-	bounds.size.height = surface->h;
-	
-	virtualJoystickPosition = NSMakePoint(0.0,0.0);
-
-	typedString = [[NSMutableString alloc] initWithString:@""];
-	allowingStringInput = NO;
-	isAlphabetKeyDown = NO;
-
-	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-
-	m_glContextInitialized = NO;
-	
-	return self;
-}
-
-- (void) endSplashScreen
-{
 	//set up the surface dimensions
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen)
@@ -192,6 +178,10 @@ MA 02110-1301, USA.
 			SDL_ShowCursor(SDL_ENABLE);
 	}
 }
+- (void) endSplashScreen
+{
+}
+
 - (void) dealloc
 {
 	if (typedString)
@@ -390,77 +380,92 @@ MA 02110-1301, USA.
 
 - (void) initSplashScreen
 {
-/* Could not figure out OOtexture & OpenGLSprite properly.
- Texture initialises, but would only show as white against
- the background instead of showing the bitmap. Switched to
- native SDL functions (.bmp only, no .png) for the moment.
-*/
+	// stub.
+	//[self endSplashScreen];
+	[self drawRect: bounds];
+	return;
+	
+/*	
+	//can't use OOTexture. It will pollute the cache, and n
 
-/*---  OOTexture Splash 
-	OOTexture			*texture = nil;
-	NSSize				imageSize;
-	OpenGLSprite		*sprite = nil;
-*/
-
-	SDL_Rect			dest;
-	GLfloat 			z = 0.0f;
 	SDL_Surface     	*image=NULL;
+	NSSize				splashSize;
+	GLuint 				splash;
+
+
 	
 #if OOLITE_WINDOWS
-	image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
+	
+	image = SDL_LoadBMP("oolite.app\\Resources\\Images\\splash.bmp");
+	if (image == NULL)
+	{
+		image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
+	}
+	
 #elif OOLITE_LINUX  
-	//image = SDL_LoadBMP("Resources/Images/splash.bmp"); //TODO : splashscreen in linux
+
+	image = SDL_LoadBMP("Resources/Images/splash.bmp");
+
 #endif
 
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
-		OOLog(@"unclassified.GameStart", @"----- WARNING: splash screen bitmap not found");
+		OOLog(@"Sdl.GameStart", @"----- Image 'splash.bmp' not found!");
 		[self endSplashScreen];
 		return;
 	}
-	else
-	{
-		dest.x = 0;
-		dest.y = 0;
-		dest.w = image->w;
-		dest.h = image->h;
-
-		SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-		surface = SDL_SetVideoMode (dest.w, dest.h, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_DOUBLEBUF);
-		SDL_BlitSurface(image, NULL, surface, &dest);
-		SDL_FreeSurface(image);
-	}
-
-
-
-/* ---  OOTexture Splash
-
-	texture = [OOTexture textureWithName:@"splash.png" inFolder:@"Images"];
-	if (texture == nil)
-	{
-		OOLog(@"unclassified.GameStart", @"----- WARNING: splash screen image not found");
-		return;
-	}
-	imageSize = [texture dimensions];
-	SDL_putenv ("SDL_VIDEO_WINDOW_POS=center");
-	surface = SDL_SetVideoMode (imageSize.width, imageSize.height, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
-	sprite = [[OpenGLSprite alloc] initWithTexture:texture];
 	
-	//glClearColor(0.8,0.2,0.2,1.0);
-	//glClear(GL_COLOR_BUFFER_BIT);	
-	if (sprite)
-	{
-		//different values of x & y only offset the blank texture against the black background 
-		[sprite blitCentredToX: 0.0f Y: 0.0f Z:z alpha:0.5f]; 
-	}
-	SDL_UpdateRect(surface, 0, 0, imageSize.width, imageSize.height);
- */
+	
+	//generate texture from surface...
+	glGenTextures(1, &splash);
+	glBindTexture(GL_TEXTURE_2D, splash);
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, image->w, image->h, 0, GL_BGR, GL_UNSIGNED_BYTE, image->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	
+	splashSize.width = image->w;
+	splashSize.height = image->h;
 
+	//SDL_putenv ("SDL_VIDEO_WINDOW_POS=center"); //better put it in init
+	surface = SDL_SetVideoMode (splashSize.width, splashSize.height, 32, SDL_HWSURFACE  | SDL_NOFRAME | SDL_OPENGL);
+
+	//Set 2D matrices 
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(0, splashSize.width, 0, splashSize.height, -1, 1);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	//Draw the textured quad
+
+	glBindTexture(GL_TEXTURE_2D, splash);
+	glBegin(GL_QUADS);
+	glTexCoord2f(0,1);
+	glVertex2i(0,splashSize.height);
+	glTexCoord2f(0,0);
+	glVertex2i(0,0);
+	glTexCoord2f(1,0);
+	glVertex2i(splashSize.width,0);
+	glTexCoord2f(1,1);
+	glVertex2i(splashSize.width,splashSize.height);
+
+	glEnd();
 	glFlush();
-	SDL_Flip(surface);
-	//set the OpenGL flag
-	surface = SDL_SetVideoMode (dest.w, dest.h, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_OPENGL);
+	SDL_GL_SwapBuffers();
+
+	// Restore 3D matrices 
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	
+	SDL_FreeSurface(image);
+	
+*/
 
 }
 
@@ -503,7 +508,7 @@ MA 02110-1301, USA.
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
 	
 	//the splash screen is a window too
-	if (fullScreen && v_mode == NO)
+	if (fullScreen == YES && v_mode == YES)
 	{
 		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
 			SDL_ShowCursor(SDL_DISABLE);
