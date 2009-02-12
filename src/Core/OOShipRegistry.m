@@ -1225,7 +1225,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	Quaternion				orientation = kIdentityQuaternion;
 	BOOL					isTurret;
 	BOOL					isDock = NO;
-	float					fireRate;
+	float					fireRate = 0.5f;
 	
 	subentityKey = [declaration objectForKey:@"subentity_key"];
 	if (subentityKey == nil)
@@ -1238,11 +1238,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	isTurret = [[declaration stringForKey:@"type"] isEqualToString:@"ball_turret"];
 	if (isTurret)
 	{
-		fireRate = [declaration floatForKey:@"fire_rate" defaultValue:0.5];
-		if (fireRate < 0.25)
+		fireRate = [declaration floatForKey:@"fire_rate" defaultValue:0.5f];
+		if (fireRate < 0.25f)
 		{
 			OOLog(@"shipData.load.warning.turret.badFireRate", @"----- WARNING: ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
-			fireRate = 0.25;
+			fireRate = 0.25f;
 		}
 	}
 	else

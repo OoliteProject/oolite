@@ -295,11 +295,11 @@ enum {
 #endif
 
 
-/*	Use native exception handling under OS X in release and test builds.
+/*	Use native exception handling under OS X.
 	This would probably work for Linux too, but not Windows as yet.
  */
 
-#if OOLITE_MAC_OS_X && defined (OO_DEBUG)
+#if OOLITE_MAC_OS_X
 	#undef NS_DURING
 	#undef NS_HANDLER
 	#undef NS_ENDHANDLER
