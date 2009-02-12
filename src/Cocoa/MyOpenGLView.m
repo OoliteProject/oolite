@@ -264,12 +264,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-		//
-		// light for demo ships display.. 
-		GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
-		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+
+		// light for demo ships display ( GL_LIGHT0 ) is set from within UNIVERSE!
 		
 		glEnable(GL_LIGHT1);		// lighting
 		glEnable(GL_LIGHT0);		// lighting

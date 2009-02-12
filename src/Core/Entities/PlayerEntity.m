@@ -5148,6 +5148,8 @@ static int last_outfitting_index;
 	[UNIVERSE set_up_intro2];
 	
 	if (gui)  gui_screen = GUI_SCREEN_INTRO2;
+
+	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];

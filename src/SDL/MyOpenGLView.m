@@ -178,14 +178,22 @@ MA 02110-1301, USA.
 			SDL_ShowCursor(SDL_ENABLE);
 	}
 	
+	virtualJoystickPosition = NSMakePoint(0.0,0.0);
+
+	typedString = [[NSMutableString alloc] initWithString:@""];
+	allowingStringInput = NO;
+	isAlphabetKeyDown = NO;
+
+	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+
+	m_glContextInitialized = NO;
+	
 	return self;
 }
-
-
 - (void) endSplashScreen
 {
-}
 
+}
 
 - (void) dealloc
 {
@@ -482,11 +490,13 @@ MA 02110-1301, USA.
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
 	int videoModeFlags;
-	GLfloat	sun_ambient[] =	{0.1, 0.1, 0.1, 1.0};
+
+	GLfloat	sun_ambient[] = {0.1, 0.1, 0.1, 1.0};	
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};
 	GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
+
 
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0)
@@ -565,12 +575,8 @@ MA 02110-1301, USA.
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-		//
-		// light for demo ships display..
-		GLfloat	white[] = { 1.0, 1.0, 1.0, 1.0};	// white light
-		glLightfv(GL_LIGHT0, GL_AMBIENT, white);
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-		glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+
+		// light for demo ships display ( GL_LIGHT0 ) is set from within UNIVERSE!
 
 		glEnable(GL_LIGHT1);		// lighting
 		glEnable(GL_LIGHT0);		// lighting

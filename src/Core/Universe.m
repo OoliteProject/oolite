@@ -1143,7 +1143,7 @@ BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 //
-GLfloat docked_light_ambient[4]	= { (GLfloat) 0.25, (GLfloat) 0.25, (GLfloat) 0.25, (GLfloat) 1.0};	// dark gray (low ambient)
+GLfloat docked_light_ambient[4]	= { (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 1.0};	// bright-ish, but shaders still visible!
 GLfloat docked_light_diffuse[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
 GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
 
