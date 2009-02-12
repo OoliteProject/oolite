@@ -113,7 +113,7 @@ this.choiceEvaluation = function()
 // general, used when player enters nova system after mission.
 this.sendShipsAway = function()
 {
-	if (!system.goneNova)
+	if (!system.sun.hasGoneNova)
 	{
 		this.novaTimer.stop();
 		return;
@@ -200,7 +200,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 
 this.shipExitedWitchspace = function()
 {
-	if (system.goneNova)
+	if (system.sun.hasGoneNova)
 	{
 		if (this.novaTimer)  this.novaTimer.start();
 		else  this.novaTimer = new Timer(this, this.sendShipsAway, 1, 60);

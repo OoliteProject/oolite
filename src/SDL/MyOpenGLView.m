@@ -177,10 +177,15 @@ MA 02110-1301, USA.
 		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
 			SDL_ShowCursor(SDL_ENABLE);
 	}
+	
+	return self;
 }
+
+
 - (void) endSplashScreen
 {
 }
+
 
 - (void) dealloc
 {
