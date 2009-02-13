@@ -269,7 +269,7 @@ static GameController *sSharedController = nil;
 	
 #else
 
-	[gameView drawRect:[gameView bounds]];
+	[gameView updateScreen];
 	
 #endif
 }
@@ -905,7 +905,9 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 {}
 
 - (void) endSplashScreen
-{	[gameView endSplashScreen];	[gameView drawRect:[gameView bounds]];}
+{	
+	[gameView endSplashScreen];
+}
 - (void) exitApp
 {
 	[[NSUserDefaults standardUserDefaults] synchronize];
@@ -936,7 +938,7 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void)windowDidResize:(NSNotification *)aNotification
 {
-	[gameView drawRect:[gameView bounds]];
+	[gameView updateScreen];
 }
 
 

@@ -567,7 +567,7 @@
 	{
 		
 		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
-		[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-saved]") forCount:2];
+		[UNIVERSE addMessage:DESC(@"game-saved") forCount:2];
 		[save_path autorelease];
 		save_path = [path copy];
 		[[UNIVERSE gameController] setPlayerFileToLoad:save_path];

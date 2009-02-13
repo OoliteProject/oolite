@@ -624,8 +624,7 @@ waitingForStickCallback: 1;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 
-- (void) setGuiToIntro1Screen;
-- (void) setGuiToIntro2Screen;
+- (void) setGuiToIntroFirstGo: (BOOL) justCobra;
 
 - (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
 

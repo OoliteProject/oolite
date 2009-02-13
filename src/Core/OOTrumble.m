@@ -618,7 +618,7 @@ static void PlayTrumbleSqueal(void);
 			if (trumbleAppetiteAccumulator > 10.0)
 			{
 				// eaten all of this cargo!
-				NSString* ms = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[trumbles-eat-@]"),
+				NSString* ms = [NSString stringWithFormat:DESC(@"trumbles-eat-@"),
 								[UNIVERSE displayNameForCommodity:[selectedCargopod commodityType]]];
 				
 				[UNIVERSE addMessage: ms forCount: 4.5];

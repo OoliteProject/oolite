@@ -133,6 +133,7 @@ extern int debug;
 
 - (void) initSplashScreen;
 - (void) endSplashScreen;
+- (void) autoShowMouse;
 
 - (void) setStringInput: (enum StringInput) value;
 - (void) allowStringInput: (BOOL) value;
@@ -150,13 +151,14 @@ extern int debug;
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
 
+- (void) display;
+- (void) updateScreen;
 - (void) drawRect:(NSRect)rect;
-- (void) drawRect:(NSRect)rect useVideoMode:(BOOL) v_mode;
+- (void) updateScreenWithVideoMode:(BOOL) v_mode;
 
 - (void) snapShot;
 
 - (NSRect) bounds;
-- (void) display;
 + (NSMutableDictionary *) getNativeSize;
 
 - (void) setFullScreenMode:(BOOL)fsm;

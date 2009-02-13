@@ -368,7 +368,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			[[gameView gameController] exitFullScreenMode];
 			if (mouse_control_on)
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
+				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 			mouse_control_on = NO;
 		}
 		
@@ -437,7 +437,7 @@ static NSTimeInterval	time_last_frame;
 				mouse_control_on = !mouse_control_on;
 				if (mouse_control_on)
 				{
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-on]") forCount:3.0];
+					[UNIVERSE addMessage:DESC(@"mouse-on") forCount:3.0];
 					/*	Ensure the keyboard pitch override (intended to lock
 					 out the joystick if the player runs to the keyboard)
 					 is reset */
@@ -446,7 +446,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 				{
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[mouse-off]") forCount:3.0];
+					[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 				}
 			}
 			m_key_pressed = YES;
@@ -492,14 +492,14 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (fuel > 0 && !afterburner_engaged)
 				{
-					[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-inject-on]") forCount:1.5];
+					[UNIVERSE addMessage:DESC(@"fuel-inject-on") forCount:1.5];
 					afterburner_engaged = YES;
 					[self startAfterburnerSound];
 				}
 				else
 				{
 					if (fuel <= 0.0)
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[fuel-out]") forCount:1.5];
+						[UNIVERSE addMessage:DESC(@"fuel-out") forCount:1.5];
 				}
 				afterburner_engaged = (fuel > 0);
 			}
@@ -577,7 +577,7 @@ static NSTimeInterval	time_last_frame;
 						if (hyperspeed_locked)
 						{
 							[self playJumpMassLocked];
-							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[jump-mass-locked]") forCount:1.5];
+							[UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:1.5];
 						}
 					}
 					else
@@ -739,7 +739,7 @@ static NSTimeInterval	time_last_frame;
 					if ([self fireECM])
 					{
 						[self playFiredECMSound];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[ecm-on]") forCount:3.0];
+						[UNIVERSE addMessage:DESC(@"ecm-on") forCount:3.0];
 					}
 				}
 			}
@@ -789,7 +789,7 @@ static NSTimeInterval	time_last_frame;
 						{
 							isOkayToUseAutopilot = NO;
 							[self playAutopilotOutOfRange];
-							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
+							[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
 						}
 					}
 					
@@ -807,7 +807,7 @@ static NSTimeInterval	time_last_frame;
 #ifdef DOCKING_CLEARANCE_ENABLED
 						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
 						[[OOMusicController sharedController] playDockingMusic];
@@ -845,7 +845,7 @@ static NSTimeInterval	time_last_frame;
 #ifdef DOCKING_CLEARANCE_ENABLED
 						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-on]") forCount:4.5];
+						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						[self doScriptEvent:@"playerStartedAutoPilot"];
 						
 						[[OOMusicController sharedController] playDockingMusic];
@@ -860,7 +860,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[self playAutopilotCannotDockWithTarget];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-cannot-dock-with-target]") forCount:4.5];
+						[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
 					}
 				}
 				target_autopilot_key_pressed = YES;
@@ -911,7 +911,7 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[self playAutopilotOutOfRange];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-out-of-range]") forCount:4.5];
+						[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
 					}
 				}
 				fast_autopilot_key_pressed = YES;
@@ -996,7 +996,7 @@ static NSTimeInterval	time_last_frame;
 						[self playStandardHyperspace];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-to-@-in-f-seconds]"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
 						
 						[self doScriptEvent:@"playerStartedJumpCountdown"
 							  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
@@ -1024,7 +1024,7 @@ static NSTimeInterval	time_last_frame;
 						[self playHyperspaceAborted];
 						// say it!
 						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[witch-user-abort]") forCount:3.0];
+						[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
 						
 						[self doScriptEvent:@"playerCancelledJumpCountdown"];
 					}
@@ -1036,7 +1036,7 @@ static NSTimeInterval	time_last_frame;
 						[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
 						[self playGalacticHyperspace];
 						// say it!
-						[UNIVERSE addMessage:[NSString stringWithFormat:ExpandDescriptionForCurrentSystem(@"[witch-galactic-in-f-seconds]"), witchspaceCountdown] forCount:1.0];
+						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
 						
 						[self doScriptEvent:@"playerStartedJumpCountdown"
 							  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
@@ -1056,19 +1056,19 @@ static NSTimeInterval	time_last_frame;
 					{
 						if ([self activateCloakingDevice])
 						{
-							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-on]") forCount:2];
+							[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
 							[self playCloakingDeviceOn];
 						}
 						else
 						{
-							[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-low-juice]") forCount:3];
+							[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
 							[self playCloakingDeviceInsufficientEnergy];
 						}
 					}
 					else
 					{
 						[self deactivateCloakingDevice];
-						[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[cloak-off]") forCount:2];
+						[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
 						[self playCloakingDeviceOff];
 					}
 				}
@@ -1242,8 +1242,8 @@ static NSTimeInterval	time_last_frame;
 				saved_view_direction = [UNIVERSE viewDirection];
 				saved_script_time = script_time;
 				saved_gui_screen = gui_screen;
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused]") forCount:1.0];
-				[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[game-paused-options]") forCount:1.0];
+				[UNIVERSE addMessage:DESC(@"game-paused") forCount:1.0];
+				[UNIVERSE addMessage:DESC(@"game-paused-options") forCount:1.0];
 				[[gameView gameController] pause_game];
 			}
 		}
@@ -2646,7 +2646,7 @@ static BOOL toggling_music;
 			primaryTarget = NO_TARGET;
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self playAutopilotOff];
-			[UNIVERSE addMessage:ExpandDescriptionForCurrentSystem(@"[autopilot-off]") forCount:4.5];
+			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
 #ifdef DOCKING_CLEARANCE_ENABLED
 			[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
@@ -2739,13 +2739,13 @@ static BOOL toggling_music;
 					[gui clearBackground];
 					if (![self loadPlayer])
 					{
-						[self setGuiToIntro2Screen];
+						[self setGuiToIntroFirstGo:NO];
 					}
 				}
 			}
 			if (([gameView isDown:loadPreviousCommanderNo]) || ([gameView isDown:loadPreviousCommanderNo - 32]))
 			{
-				[self setGuiToIntro2Screen];
+				[self setGuiToIntroFirstGo:NO];
 			}
 			
 			break;

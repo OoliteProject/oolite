@@ -298,8 +298,7 @@ enum
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q;
 - (void) game_over;
 
-- (void) set_up_intro1;
-- (void) set_up_intro2;
+- (void) setupIntroFirstGo: (BOOL) justCobra;
 - (void) selectIntro2Previous;
 - (void) selectIntro2Next;
 

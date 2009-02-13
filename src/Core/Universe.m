@@ -558,7 +558,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player setOrientation:q0];
 	if(showDemo)
 	{
-		[player setGuiToIntro2Screen];
+		[player setGuiToIntroFirstGo:NO];
 		[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
 	}
 	else
@@ -2576,8 +2576,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	[self reinitAndShowDemo:NO];
 }
 
-
-- (void) set_up_intro1
+- (void) setupIntroFirstGo: (BOOL) justCobra
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	ShipEntity		*ship;
@@ -2585,83 +2584,58 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
 	quaternion_rotate_about_y(&q2,M_PI);
 	
-	// in status demo : draw ships and display text
-	
+	// in status demo draw ships and display text
+	if (justCobra==NO)
+	{
+		[self removeDemoShips];
+	}
 	[player setStatus: STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	displayGUI = YES;
 	
-	/*- cobra -*/
-	ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
-	if (ship)
+	if (justCobra==YES)
 	{
-		[ship setStatus: STATUS_COCKPIT_DISPLAY];
-		[ship setOrientation:q2];
-		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];	// some way ahead
-		
-		[ship setScanClass: CLASS_NO_DRAW];
-		[ship setRoll:M_PI/5.0];
-		[ship setPitch:M_PI/10.0];
-		[[ship getAI] setStateMachine:@"nullAI.plist"];
-		[self addEntity:ship];
-		
-		demo_ship = ship;
-		
-		[ship release];
+		/*- cobra -*/
+		ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
+	}
+	else
+	{
+		/*- demo ships -*/
+		demo_ship_index = 0;
+		ship = [self newShipWithName:[demo_ships stringAtIndex:0]];   // retain count = 1
 	}
 	
-	[self setViewDirection:VIEW_GUI_DISPLAY];
-	displayGUI = YES;
-	
-	
-}
-
-
-- (void) set_up_intro2
-{
-	ShipEntity		*ship;
-	Quaternion		q2;
-	q2.x = 0.0;   q2.y = 0.0;   q2.z = 0.0; q2.w = 1.0;
-	quaternion_rotate_about_y(&q2,M_PI);
-	
-	// in status demo draw ships and display text
-	
-	[self removeDemoShips];
-	[[PlayerEntity sharedPlayer] setStatus: STATUS_START_GAME];
-	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
-	displayGUI = YES;
-	
-	/*- demo ships -*/
-	demo_ship_index = 0;
-	ship = [self newShipWithName:[demo_ships stringAtIndex:0]];   // retain count = 1
 	if (ship)
 	{
 		[ship setOrientation:q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];
-		[ship setDestination: ship->position];	// ideal position
-		
+		if (justCobra==NO)
+		{
+			[ship setDestination: ship->position];	// ideal position
+		}
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:M_PI/5.0];
 		[ship setPitch:M_PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
 		[self addEntity:ship];
-		
 		// set status here because addEntity may affect status
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
-		
 		demo_ship = ship;
-		
-		[gui setText:[ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:19];
-		
+		if (justCobra==NO)
+		{
+			[gui setText:[ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
+			[gui setColor:[OOColor whiteColor] forRow:19];
+		}
 		[ship release];
 	}
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	displayGUI = YES;
-	
-	demo_stage = DEMO_SHOW_THING;
-	demo_stage_time = universal_time + 3.0;
+	if (justCobra==NO)
+	{
+		demo_stage = DEMO_SHOW_THING;
+		demo_stage_time = universal_time + 3.0;
+	}
 	
 }
 
@@ -7688,20 +7662,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	displayCursor = !!value;
 	
 #ifdef GNUSTEP
-	if ([gameView inFullScreenMode])
-	{
-		if (displayCursor == YES)
-		{
-			// *** Is the query actually necessary or meaningful? -- Jens
-			if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
-				SDL_ShowCursor(SDL_ENABLE);
-		}
-		else
-		{
-			if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
-				SDL_ShowCursor(SDL_DISABLE);
-		}
-	}
+
+	[gameView autoShowMouse];
+	
 #endif
 }
 

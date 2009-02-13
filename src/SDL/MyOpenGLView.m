@@ -41,6 +41,8 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
+#define SDL_SPLASH 0 // 0 or 1 
+
 #include <ctype.h>
 
 @implementation MyOpenGLView
@@ -148,7 +150,55 @@ MA 02110-1301, USA.
 	// Find what the full screen and windowed settings are.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
+	
 	//set up the surface dimensions
+
+#if !SDL_SPLASH
+
+
+	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
+	if (fullScreen)
+	{
+		videoModeFlags |= SDL_FULLSCREEN;
+		NSSize fs=[self modeAsSize: currentSize];
+		surface = SDL_SetVideoMode(fs.width, fs.height, 32, videoModeFlags);
+   	}
+	else
+	{
+		videoModeFlags |= SDL_RESIZABLE;
+		surface = SDL_SetVideoMode(currentWindowSize.width,
+                                 currentWindowSize.height,
+                                 32, videoModeFlags);
+	}
+
+#else
+
+	surface = SDL_SetVideoMode(8, 8, 32, SDL_HWSURFACE  | SDL_NOFRAME | SDL_OPENGL);
+
+#endif
+
+	bounds.size.width = surface->w;
+	bounds.size.height = surface->h;
+	
+	[self autoShowMouse];
+	
+	virtualJoystickPosition = NSMakePoint(0.0,0.0);
+
+	typedString = [[NSMutableString alloc] initWithString:@""];
+	allowingStringInput = NO;
+	isAlphabetKeyDown = NO;
+
+	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
+
+	m_glContextInitialized = NO;
+	
+	return self;
+}
+- (void) endSplashScreen
+{
+
+#if SDL_SPLASH
+
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	if (fullScreen)
 	{
@@ -167,31 +217,10 @@ MA 02110-1301, USA.
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
 
-	if (fullScreen)
-	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
-			SDL_ShowCursor(SDL_DISABLE);
-	}
-	else
-	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
-			SDL_ShowCursor(SDL_ENABLE);
-	}
-	
-	virtualJoystickPosition = NSMakePoint(0.0,0.0);
+	[self autoShowMouse];
+	[self updateScreen];
 
-	typedString = [[NSMutableString alloc] initWithString:@""];
-	allowingStringInput = NO;
-	isAlphabetKeyDown = NO;
-
-	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
-
-	m_glContextInitialized = NO;
-	
-	return self;
-}
-- (void) endSplashScreen
-{
+#endif
 
 }
 
@@ -217,6 +246,20 @@ MA 02110-1301, USA.
 	[super dealloc];
 }
 
+- (void) autoShowMouse
+{
+	//call after the bounds property is set & shouldn't touch the 'please wait...' cursor.
+	if (fullScreen)
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+			SDL_ShowCursor(SDL_ENABLE);
+	}
+	else
+	{
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)		
+			SDL_ShowCursor(SDL_DISABLE);
+	}
+}
 
 - (void) setStringInput: (enum StringInput) value
 {
@@ -353,15 +396,20 @@ MA 02110-1301, USA.
 
 - (void) display
 {
+	[self updateScreen];
+}
+
+- (void) updateScreen
+{
 	[self drawRect: NSMakeRect(0, 0, viewSize.width, viewSize.height)];
 }
 
 - (void) drawRect:(NSRect)rect
 {
-	[self drawRect: rect useVideoMode:YES];
+	[self updateScreenWithVideoMode:YES];
 }
 
-- (void) drawRect:(NSRect)rect useVideoMode:(BOOL) v_mode
+- (void) updateScreenWithVideoMode:(BOOL) v_mode
 {
 	if ((viewSize.width != surface->w)||(viewSize.height != surface->h)) // resized
 	{
@@ -393,21 +441,19 @@ MA 02110-1301, USA.
 
 - (void) initSplashScreen
 {
-	// stub.
-	//[self endSplashScreen];
-	[self drawRect: bounds];
-	return;
-	
-/*	
-	//can't use OOTexture. It will pollute the cache, and n
+#if !SDL_SPLASH
+
+	[self updateScreen];
+
+#else
+
+	//too early for OOTexture!
 
 	SDL_Surface     	*image=NULL;
-	NSSize				splashSize;
-	GLuint 				splash;
-
+	SDL_Rect			dest;
 
 	
-#if OOLITE_WINDOWS
+  #if OOLITE_WINDOWS
 	
 	image = SDL_LoadBMP("oolite.app\\Resources\\Images\\splash.bmp");
 	if (image == NULL)
@@ -415,11 +461,11 @@ MA 02110-1301, USA.
 		image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
 	}
 	
-#elif OOLITE_LINUX  
+  #elif OOLITE_LINUX  
 
 	image = SDL_LoadBMP("Resources/Images/splash.bmp");
 
-#endif
+  #endif
 
 	if (image == NULL)
 	{
@@ -429,56 +475,30 @@ MA 02110-1301, USA.
 		return;
 	}
 	
+		dest.x = 0;
+		dest.y = 0;
+		dest.w = image->w;
+		dest.h = image->h;
+
+		//SDL_putenv ("SDL_VIDEO_WINDOW_POS=center"); //done in init
+		surface = SDL_SetVideoMode (dest.w, dest.h, 32, SDL_HWPALETTE  | SDL_NOFRAME | SDL_DOUBLEBUF);
+		SDL_BlitSurface(image, NULL, surface, &dest);
+		SDL_FreeSurface(image);
+		SDL_Flip(surface);
+		
+		//set SDL_HWSURFACE  | SDL_OPENGL  before returning
+  #if OOLITE_LINUX
+
+		SDL_Delay(2700);
+  		surface = SDL_SetVideoMode (1, 1, 32,  SDL_HWSURFACE  | SDL_NOFRAME | SDL_OPENGL);
+
+  #else
+
+		surface = SDL_SetVideoMode (dest.w, dest.h, 32,  SDL_HWSURFACE  | SDL_NOFRAME | SDL_OPENGL);
+
+  #endif
 	
-	//generate texture from surface...
-	glGenTextures(1, &splash);
-	glBindTexture(GL_TEXTURE_2D, splash);
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, image->w, image->h, 0, GL_BGR, GL_UNSIGNED_BYTE, image->pixels);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	
-	splashSize.width = image->w;
-	splashSize.height = image->h;
-
-	//SDL_putenv ("SDL_VIDEO_WINDOW_POS=center"); //better put it in init
-	surface = SDL_SetVideoMode (splashSize.width, splashSize.height, 32, SDL_HWSURFACE  | SDL_NOFRAME | SDL_OPENGL);
-
-	//Set 2D matrices 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0, splashSize.width, 0, splashSize.height, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	//Draw the textured quad
-
-	glBindTexture(GL_TEXTURE_2D, splash);
-	glBegin(GL_QUADS);
-	glTexCoord2f(0,1);
-	glVertex2i(0,splashSize.height);
-	glTexCoord2f(0,0);
-	glVertex2i(0,0);
-	glTexCoord2f(1,0);
-	glVertex2i(splashSize.width,0);
-	glTexCoord2f(1,1);
-	glVertex2i(splashSize.width,splashSize.height);
-
-	glEnd();
-	glFlush();
-	SDL_GL_SwapBuffers();
-
-	// Restore 3D matrices 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
-	
-	SDL_FreeSurface(image);
-	
-*/
+#endif
 
 }
 
@@ -516,23 +536,15 @@ MA 02110-1301, USA.
 	if (v_mode == NO)
 		videoModeFlags |= SDL_NOFRAME;
 	else if (fullScreen == YES)
+	{
 		videoModeFlags |= SDL_FULLSCREEN;
+	}
 	else
-		videoModeFlags |= SDL_RESIZABLE;
-
+	{
+		videoModeFlags |= SDL_RESIZABLE;;
+	}
 	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
-	
-	//the splash screen is a window too
-	if (fullScreen == YES && v_mode == YES)
-	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)
-			SDL_ShowCursor(SDL_DISABLE);
-	}
-	else
-	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
-			SDL_ShowCursor(SDL_ENABLE);
-	}
+	[self autoShowMouse];
 
 	glShadeModel(GL_FLAT);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -579,7 +591,6 @@ MA 02110-1301, USA.
 		// light for demo ships display ( GL_LIGHT0 ) is set from within UNIVERSE!
 
 		glEnable(GL_LIGHT1);		// lighting
-		glEnable(GL_LIGHT0);		// lighting
 	}
 	glEnable(GL_LIGHTING);		// lighting
 

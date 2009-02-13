@@ -1207,7 +1207,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	OOEntityStatus status = [self status];
 	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
 	{
-		[self setGuiToIntro1Screen];	//set up demo mode
+		[self setGuiToIntroFirstGo:YES];	//set up demo mode
 	}
 	
 	if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
@@ -5056,99 +5056,79 @@ static int last_outfitting_index;
 }
 
 
-- (void) setGuiToIntro1Screen
+- (void) setGuiToIntroFirstGo: (BOOL) justCobra
 {
 	NSString *text;
 	GuiDisplayGen* gui = [UNIVERSE gui];
-	
-	[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
-	
-	// GUI stuff
-	int ms_line = 2;
-	
+	int msgLine = 2;
+	if(justCobra==YES)
+	{
+		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
+	}
 	[gui clear];
 	[gui setTitle:@"Oolite"];
 	
-	text = DESC(@"game-copyright");
-	[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor whiteColor] forRow:17];
-	
-	text = DESC(@"theme-music-credit");
-	[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor grayColor] forRow:19];
-	
-	text = DESC(@"load-previous-commander");
-	[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor yellowColor] forRow:21];
-	
-	
-	// check for error messages from Resource Manager
-	[ResourceManager paths];
-	NSString *errors = [ResourceManager errors];
-	if (errors != nil)
+	if(justCobra==YES)
 	{
-		int ms_start = ms_line;
-		int i = ms_line = [gui addLongText:errors startingAtRow:ms_start align:GUI_ALIGN_LEFT];
-		for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
-		ms_line++;
+		text = DESC(@"game-copyright");
+		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor whiteColor] forRow:17];
+		
+		text = DESC(@"theme-music-credit");
+		[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor grayColor] forRow:19];
+		
+		text = DESC(@"load-previous-commander");
+		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor yellowColor] forRow:21];
+		
+		// check for error messages from Resource Manager
+		[ResourceManager paths];
+		NSString *errors = [ResourceManager errors];
+		if (errors != nil)
+		{
+			int ms_start = msgLine;
+			int i = msgLine = [gui addLongText:errors startingAtRow:ms_start align:GUI_ALIGN_LEFT];
+			for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor redColor] forRow:i];
+			msgLine++;
+		}
+		
+		// check for messages from the command line
+		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
+		unsigned i;
+		for (i = 0; i < [arguments count]; i++)
+		{
+			if (([[arguments objectAtIndex:i] isEqual:@"-message"])&&(i < [arguments count] - 1))
+			{
+				int ms_start = msgLine;
+				NSString* message = (NSString*)[arguments objectAtIndex: i + 1];
+				int i = msgLine = [gui addLongText:message startingAtRow:ms_start align:GUI_ALIGN_CENTER];
+				for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
+			}
+			if ([[arguments objectAtIndex:i] isEqual:@"-showversion"])
+			{
+				int ms_start = msgLine;
+				NSString *version = [NSString stringWithFormat:@"Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+				int i = msgLine = [gui addLongText:version startingAtRow:ms_start align:GUI_ALIGN_CENTER];
+				for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
+			}
+		}
 	}
-	
-	// check for messages from the command line
-	NSArray* arguments = [[NSProcessInfo processInfo] arguments];
-	unsigned i;
-	for (i = 0; i < [arguments count]; i++)
+	else
 	{
-		if (([[arguments objectAtIndex:i] isEqual:@"-message"])&&(i < [arguments count] - 1))
-		{
-			int ms_start = ms_line;
-			NSString* message = (NSString*)[arguments objectAtIndex: i + 1];
-			int i = ms_line = [gui addLongText:message startingAtRow:ms_start align:GUI_ALIGN_CENTER];
-			for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
-		}
-		if ([[arguments objectAtIndex:i] isEqual:@"-showversion"])
-		{
-			int ms_start = ms_line;
-			NSString *version = [NSString stringWithFormat:@"Version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
-			int i = ms_line = [gui addLongText:version startingAtRow:ms_start align:GUI_ALIGN_CENTER];
-			for (i-- ; i >= ms_start; i--) [gui setColor:[OOColor magentaColor] forRow:i];
-		}
+		text = DESC(@"press-space-commander");
+		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor yellowColor] forRow:21];
 	}
-
-	[gui setShowTextCursor:NO];
-
-	[UNIVERSE set_up_intro1];
-
-	if (gui)
-		gui_screen = GUI_SCREEN_INTRO1;
-
-	[[OOMusicController sharedController] playThemeMusic];
-
-
-	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayText: YES];
-	[UNIVERSE setDisplayCursor: NO];
-	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-}
-
-
-- (void) setGuiToIntro2Screen
-{
-	NSString *text = nil;
-	GuiDisplayGen* gui = [UNIVERSE gui];
-	
-	[gui clear];
-	[gui setTitle:@"Oolite"];
-	
-	text = ExpandDescriptionForCurrentSystem(@"[press-space-commander]");
-	[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
-	[gui setColor:[OOColor yellowColor] forRow:21];
 	
 	[gui setShowTextCursor:NO];
 	
-	[UNIVERSE set_up_intro2];
+	[UNIVERSE setupIntroFirstGo: justCobra];
 	
-	if (gui)  gui_screen = GUI_SCREEN_INTRO2;
-
+	if (gui !=NULL)  
+	{
+			gui_screen = (justCobra==YES) ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
+	}
 	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips: YES];

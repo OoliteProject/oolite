@@ -92,7 +92,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		else if ([rescuee insuranceCredits])
 		{
 			// claim insurance reward
-			[result appendFormat:ExpandDescriptionForCurrentSystem(@"[rescue-reward-for-@@-@-credits]\n"),
+			[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)];
 			credits += 10 * [rescuee insuranceCredits];
 		}
@@ -100,7 +100,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			// claim bounty for capture
 			float reward = (5.0 + government) * [rescuee legalStatus];
-			[result appendFormat:ExpandDescriptionForCurrentSystem(@"[capture-reward-for-@@-@-credits]\n"),
+			[result appendFormat:DESC(@"capture-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO)];
 			credits += reward;
 		}
@@ -177,7 +177,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			if (dest_eta < 0)
 			{
 				// we've run out of time!
-				[result appendFormatLine:DESC(@"[passenger-failed-@]"), passenger_name];
+				[result appendFormatLine:DESC(@"passenger-failed-@"), passenger_name];
 				
 				[passengers removeObjectAtIndex:i--];
 				[self decreasePassengerReputation];

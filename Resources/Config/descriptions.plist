@@ -1093,8 +1093,8 @@
 	"character-a-@-from-@"			= "a %@ from %@";
 	
 	// rewards and bounties from escapepods
-	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ credits.";
-	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ credits.";
+	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ credits.\n";
+	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ credits.\n";
 	
 	// Commodity names
 	"commodity-name food"			= "Food";

@@ -145,7 +145,8 @@ extern int debug;
 
 - (void) initialiseGLWithSize:(NSSize) v_size;
 
-- (void)drawRect:(NSRect)rect;
+- (void) drawRect:(NSRect)rect;
+- (void) updateScreen;
 
 - (void) snapShot;
 

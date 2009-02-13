@@ -184,7 +184,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
-- (void)drawRect:(NSRect)rect
+- (void) updateScreen
+{
+	[self drawRect:NSMakeRect(0, 0, viewSize.width, viewSize.height)];
+}
+
+
+- (void) drawRect:(NSRect)rect
 {
 	if ((viewSize.width != [self frame].size.width)||(viewSize.height != [self frame].size.height)) // resized
 	{
