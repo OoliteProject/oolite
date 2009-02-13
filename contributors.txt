@@ -32,11 +32,10 @@ Library credits:
 GNUstep: various and numerous.
 libpng: Glenn Randers-Pehrson, Andreas Dilger, Guy Eric Schalnat
         and contributors.
+SpiderMonkey: Brendan Eich et al, Mozilla Foundation.
 
 
 Mac OS X-specific libraries:
 ----------------------------
-F-Script: Philippe Mougin and contributors.
 RBSplitView: Rainer Brockerhoff
-SpiderMonkey: Brendan Eich et al, Mozilla Foundation.
 VirtualRingBuffer: Kurt Revis
