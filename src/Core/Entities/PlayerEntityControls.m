@@ -831,7 +831,10 @@ static NSTimeInterval	time_last_frame;
 				if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
 				{
 					Entity* primeTarget = [self primaryTarget];
-					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
+					BOOL primeTargetIsHostile = [self hasHostileTarget];
+					if ((primeTarget) && (primeTarget->isStation) && 
+						[primeTarget isKindOfClass:[StationEntity class]] &&
+						!primeTargetIsHostile)
 					{
 						targetStation = primaryTarget;
 						primaryTarget = NO_TARGET;
@@ -860,7 +863,14 @@ static NSTimeInterval	time_last_frame;
 					else
 					{
 						[self playAutopilotCannotDockWithTarget];
-						[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
+						if (primeTargetIsHostile && [primeTarget isStation])
+						{
+							[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
+						}
+						else
+						{
+							[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
+						}
 					}
 				}
 				target_autopilot_key_pressed = YES;

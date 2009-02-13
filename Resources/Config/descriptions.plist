@@ -384,6 +384,7 @@
 	"autopilot-off"					= ( "Autopilot disengaged." );
 	"autopilot-out-of-range"		= ( "Could not contact station for docking instructions." );
 	"autopilot-cannot-dock-with-target" = ( "Target is not capable of autopilot-docking." );
+	"autopilot-target-docking-instructions-denied" = ( "Target has denied broadcast of docking instructions." );
 	"autopilot-denied"				= ( "Station refuses to issue docking instructions." );
 	"witch-to-@-in-f-seconds"		= ( "Witchspace to %@ in %.0f s." );
 	"witch-blocked-by-@"			= ( "Witchspace jump aborted (too close to %@.)" );
