@@ -996,6 +996,7 @@
 	"mission-information"			= "Mission Information";
 	
 	// Game Over screen
+	"gameoverscreen-score-@-f"		= "Score: %@, %.1f ₢";
 	"gameoverscreen-game-over"		= "Game Over";
 	"gameoverscreen-press-space"	= "Press Space";
 	
@@ -1094,8 +1095,8 @@
 	"character-a-@-from-@"			= "a %@ from %@";
 	
 	// rewards and bounties from escapepods
-	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@ credits.\n";
-	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@ credits.\n";
+	"rescue-reward-for-@@-@-credits" = "For rescuing %@, %@, their insurance pays %@  ₢.\n";
+	"capture-reward-for-@@-@-credits" = "For capturing %@, %@, you’re paid a bounty of %@  ₢.\n";
 	
 	// Commodity names
 	"commodity-name food"			= "Food";

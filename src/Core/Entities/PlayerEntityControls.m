@@ -140,6 +140,11 @@ static NSTimeInterval	time_last_frame;
 	unsigned char	keychar;
 	NSString		*keystring = nil;
 	
+#if OOLITE_WINDOWS
+	// override windows keyboard autoselect
+	[[UNIVERSE gameView] setKeyboardTo:[kdic stringForKey:@"windows_keymap" defaultValue:@"auto"]];
+#endif
+
 	keys = [kdic allKeys];
 	for (i = 0; i < [keys count]; i++)
 	{
@@ -454,6 +459,14 @@ static NSTimeInterval	time_last_frame;
 		else
 		{
 			m_key_pressed = NO;
+		}
+	}
+	else
+	{
+		if (mouse_control_on)
+		{
+			mouse_control_on = NO;
+			[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 		}
 	}
 }
@@ -2246,8 +2259,8 @@ static NSTimeInterval	time_last_frame;
 			scanner_zoom_rate = SCANNER_ZOOM_RATE_DOWN;
 	}
 	
-	// Compass mode '/'
-	if ([gameView isDown:key_next_compass_mode]) // look for the '/' key
+	// Compass mode '\'
+	if ([gameView isDown:key_next_compass_mode]) // look for the '\' key
 	{
 		if ((!compass_mode_pressed)&&(compassMode != COMPASS_MODE_BASIC))
 			[self setNextCompassMode];

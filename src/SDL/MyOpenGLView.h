@@ -87,6 +87,13 @@ enum StringInput
 	gvStringInputAll = 2
 };
 
+enum KeyboardType
+{
+	gvKeyboardAuto,
+	gvKeyboardUS,
+	gvKeyboardUK
+};
+
 extern int debug;
 
 @interface MyOpenGLView : OpenGLViewSuperClass
@@ -94,6 +101,7 @@ extern int debug;
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
+	unsigned			keyboardMap;
 
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
@@ -185,6 +193,7 @@ extern int debug;
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 
+- (void) setKeyboardTo: (NSString *) value;
 - (void) clearKeys;
 - (void) clearMouse;
 - (BOOL) isAlphabetKeyDown;

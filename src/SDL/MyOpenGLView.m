@@ -35,6 +35,10 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
 
+
+#import "OOShipRegistry.h"
+#import "OOTexture.h"
+
 #if OOLITE_WINDOWS
 #import "TextureStore.h"
 #endif
@@ -251,13 +255,13 @@ MA 02110-1301, USA.
 	//call after the bounds property is set & shouldn't touch the 'please wait...' cursor.
 	if (fullScreen)
 	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
-			SDL_ShowCursor(SDL_ENABLE);
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)		
+			SDL_ShowCursor(SDL_DISABLE);
 	}
 	else
 	{
-		if (SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE)		
-			SDL_ShowCursor(SDL_DISABLE);
+		if (SDL_ShowCursor(SDL_QUERY) == SDL_DISABLE)
+			SDL_ShowCursor(SDL_ENABLE);
 	}
 }
 
@@ -529,7 +533,6 @@ MA 02110-1301, USA.
 
 	if (surface != 0)
 		SDL_FreeSurface(surface);
-
 	OOLog(@"display.initGL", @"Creating a new surface of %d x %d", (int)v_size.width, (int)v_size.height);
 	videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 	
@@ -598,14 +601,15 @@ MA 02110-1301, USA.
 	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_RESCALE_NORMAL);
-
-#if OOLITE_WINDOWS
+	
+  #if OOLITE_WINDOWS
 	if (UNIVERSE)
 	{
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
-#endif
-
+  #endif
+	[[OOShipRegistry sharedRegistry] init];	//partial texture fix
+	
 	m_glContextInitialized = YES;
 }
 
@@ -834,6 +838,19 @@ MA 02110-1301, USA.
 	return NUM_KEYS;
 }
 
+- (void) setKeyboardTo: (NSString *) value
+{
+	keyboardMap=gvKeyboardAuto;
+
+	if ([value isEqual: @"UK"])
+	{
+		keyboardMap=gvKeyboardUK;
+	}
+	else if ([value isEqual: @"US"])
+	{
+		keyboardMap=gvKeyboardUS;
+	}
+}
 
 - (void)pollControls
 {
@@ -948,7 +965,34 @@ MA 02110-1301, USA.
 if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; } \
 } while (0)
 				
+#if OOLITE_WINDOWS
+				/*
+					Enable backslash in win/UK
+				*/
+				if (kbd_event->keysym.scancode==86)
+				{
+					//non-US scancode. If in autodetect, we'll assume UK  :)
+					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
+					{	KEYCODE_DOWN_EITHER (166, 92);	}		//	windows	UK 	| or \.
+				}
+
 				switch (kbd_event->keysym.sym) {
+
+					case SDLK_BACKSLASH: 
+						if (keyboardMap==gvKeyboardUK )
+						{			
+							keys[35] = YES;						//	windows	UK	#  
+						}
+						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
+						{
+							KEYCODE_DOWN_EITHER (166, 92); 		// 	windows	US	| or \.
+						}
+						break;
+#else
+				switch (kbd_event->keysym.sym) {
+				
+					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (166, 92); break;	// | or \.
+#endif
 					case SDLK_1: KEYCODE_DOWN_EITHER (33, gvNumberKey1); break;	// ! or 1
 					case SDLK_2: KEYCODE_DOWN_EITHER (64, gvNumberKey2); break;	// @ or 2
 					case SDLK_3: KEYCODE_DOWN_EITHER (35, gvNumberKey3); break;	// # or 3
@@ -990,7 +1034,6 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_x: KEYCODE_DOWN_EITHER (88, 120); break;		// X or x
 					case SDLK_y: KEYCODE_DOWN_EITHER (89, 121); break;		// Y or y
 					case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
-					case SDLK_BACKSLASH: KEYCODE_DOWN_EITHER (166, 92); break;	// | or \.
 						//SDLK_BACKQUOTE is a special case. No SDLK_ with code 126 exists.
 					case SDLK_BACKQUOTE: if (!shift) keys[96] = YES; break;		// ` 
 					case SDLK_HOME: keys[gvHomeKey] = YES; break;	
@@ -1025,47 +1068,51 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
-					shift = YES;
-					break;
+						shift = YES;
+						break;
 					
 					case SDLK_LCTRL:
 					case SDLK_RCTRL:
-					ctrl = YES;
-					break;
+						ctrl = YES;
+						break;
 					
 					case SDLK_F11:
-					if(!fullScreen)
+						// Only 1 screen size under windows!
+#if OOLITE_LINUX
+						if(!fullScreen)
+							break;
+						if(shift)
+						{
+							currentSize--;
+							if (currentSize < 0)
+								currentSize = [screenSizes count] - 1;
+						}
+						else
+						{
+							currentSize++;
+							if (currentSize >= [screenSizes count])
+								currentSize = 0;
+						}
+						[self initialiseGLWithSize: [self modeAsSize: currentSize]];
+#endif
 						break;
-					if(shift)
-					{
-						currentSize--;
-						if (currentSize < 0)
-							currentSize = [screenSizes count] - 1;
-					}
-					else
-					{
-						currentSize++;
-						if (currentSize >= [screenSizes count])
-							currentSize = 0;
-					}
-					[self initialiseGLWithSize: [self modeAsSize: currentSize]];
-					break;
 					
 					case SDLK_F12:
-					[self toggleScreenMode];
-					break;
+						[self toggleScreenMode];
+						break;
 					
 					case SDLK_ESCAPE:
-					if (shift)
-					{
-						SDL_FreeSurface(surface);
-						[gameController exitApp];
-					}
-					else
-						keys[27] = YES;
-					
+						if (shift)
+						{
+							SDL_FreeSurface(surface);
+							[gameController exitApp];
+						}
+						else
+							keys[27] = YES;
+						break;
 					default:
 						// Numerous cases not handled.
+						//OOLog(@"keys.test", @"Keydown scancode: %d", kbd_event->keysym.scancode);
 						;
 				}
 				break;
@@ -1078,8 +1125,36 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 #define KEYCODE_UP_BOTH(a,b)	do { \
 keys[a] = NO; keys[b] = NO; \
 } while (0)
-				
+
+#if OOLITE_WINDOWS
+				/*
+					Windows locale patch. 
+				*/
+				if (kbd_event->keysym.scancode==86)
+				{
+					//non-US scancode. If in autodetect, we'll assume UK  :)
+					if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUK)
+					{	KEYCODE_UP_BOTH (166, 92);	}			//	windows	UK 	| or \.
+				}
+
 				switch (kbd_event->keysym.sym) {
+
+					case SDLK_BACKSLASH: 
+						if (keyboardMap==gvKeyboardUK )
+						{			
+							keys[35] = NO;						//	windows	UK	#  
+						}
+						else if (keyboardMap==gvKeyboardAuto || keyboardMap==gvKeyboardUS)
+						{
+							KEYCODE_UP_BOTH (166, 92); 			// 	windows	US	| or \.
+						}
+						break;
+#else
+				switch (kbd_event->keysym.sym) {
+				
+					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (166, 92); break;	// | or \.
+#endif
+
 					case SDLK_1: KEYCODE_UP_BOTH (33, gvNumberKey1); break;		// ! and 1
 					case SDLK_2: KEYCODE_UP_BOTH (64, gvNumberKey2); break;		// @ and 2
 					case SDLK_3: KEYCODE_UP_BOTH (35, gvNumberKey3); break;		// # and 3
@@ -1121,7 +1196,6 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_x: KEYCODE_UP_BOTH (88, 120); break;			// X and x
 					case SDLK_y: KEYCODE_UP_BOTH (89, 121); break;			// Y and y
 					case SDLK_z: KEYCODE_UP_BOTH (90, 122); break;			// Z and z
-					case SDLK_BACKSLASH: KEYCODE_UP_BOTH (166, 92); break;		// | and \.
 						//SDLK_BACKQUOTE is a special case. No SDLK_ with code 126 exists.
 					case SDLK_BACKQUOTE: keys[96] = NO; break;			// `
 					case SDLK_HOME: keys[gvHomeKey] = NO; break;

@@ -419,6 +419,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	//       be aware of cache flushes so it can automatically
 	//       reinitialize itself - mwerle 20081107.
 	[[OOShipRegistry sharedRegistry] init];
+	
+	[[gameView gameController] unpause_game];
 
 #ifndef GNUSTEP
 	//// speech stuff

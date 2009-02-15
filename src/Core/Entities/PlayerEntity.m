@@ -3521,7 +3521,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)why
 {
-	NSString *scoreMS = [NSString stringWithFormat:@"Score: %.1f Credits",credits/10.0];
+	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),
+							KillCountToRatingAndKillString(ship_kills),credits/10.0];
 
 	if (![[UNIVERSE gameController] playerFileToLoad])
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
@@ -4626,10 +4627,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setText:DESC(@"gui-back") forRow:GUI_ROW_GAMEOPTIONS_BACK align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_BACK];
 
-			
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_GAMEOPTIONS_END_OF_LIST - first_sel_row)];
 		[gui setSelectedRow: first_sel_row];
-		
 
 		[gui setShowTextCursor:NO];
 	}
@@ -4687,8 +4686,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
 
-		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : ([[UNIVERSE gameController] gameIsPaused]) ?
-							GUI_ROW_OPTIONS_GAMEOPTIONS : GUI_ROW_OPTIONS_BEGIN_NEW;
+		int first_sel_row = (canLoadOrSave)? GUI_ROW_OPTIONS_SAVE : GUI_ROW_OPTIONS_BEGIN_NEW;
 		if (canQuickSave)
 			first_sel_row = GUI_ROW_OPTIONS_QUICKSAVE;
 
@@ -4715,14 +4713,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 		
 		[gui setText:DESC(@"options-begin-new-game") forRow:GUI_ROW_OPTIONS_BEGIN_NEW align:GUI_ALIGN_CENTER];
-		if (![[UNIVERSE gameController] gameIsPaused])
-		{
-			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
-		}
-		else
-		{
-			[gui setColor:[OOColor grayColor] forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
-		}
+		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_BEGIN_NEW];
 		
 		[gui setText:DESC(@"options-game-options") forRow:GUI_ROW_OPTIONS_GAMEOPTIONS align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_GAMEOPTIONS];
@@ -4742,11 +4733,17 @@ static PlayerEntity *sSharedPlayer = nil;
 			[gui setText:DESC(@"options-reset-to-strict-play") forRow:GUI_ROW_OPTIONS_STRICT align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_OPTIONS_STRICT];
 
-		
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST - first_sel_row)];
-		[gui setSelectedRow: first_sel_row];
-		
 
+		if ([[UNIVERSE gameController] gameIsPaused])
+		{
+			[gui setSelectedRow: GUI_ROW_OPTIONS_GAMEOPTIONS];
+		}
+		else
+		{
+			[gui setSelectedRow: first_sel_row];
+		}
+		
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
