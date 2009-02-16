@@ -1077,24 +1077,22 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						break;
 					
 					case SDLK_F11:
-						// Only 1 screen size under windows!
-#if OOLITE_LINUX
-						if(!fullScreen)
-							break;
-						if(shift)
+						if (fullScreen==YES && [screenSizes count] > 1)
 						{
-							currentSize--;
-							if (currentSize < 0)
-								currentSize = [screenSizes count] - 1;
+							if(shift)
+							{
+								currentSize--;
+								if (currentSize < 0)
+									currentSize = [screenSizes count] - 1;
+							}
+							else
+							{
+								currentSize++;
+								if (currentSize >= [screenSizes count])
+									currentSize = 0;
+							}
+							[self initialiseGLWithSize: [self modeAsSize: currentSize]];
 						}
-						else
-						{
-							currentSize++;
-							if (currentSize >= [screenSizes count])
-								currentSize = 0;
-						}
-						[self initialiseGLWithSize: [self modeAsSize: currentSize]];
-#endif
 						break;
 					
 					case SDLK_F12:
