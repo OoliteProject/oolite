@@ -608,7 +608,6 @@ MA 02110-1301, USA.
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
   #endif
-	[[OOShipRegistry sharedRegistry] init];	//partial texture fix
 	
 	m_glContextInitialized = YES;
 }
