@@ -6608,8 +6608,8 @@ double estimatedTimeForJourney(double distance, int hops)
 				double route_length = [routeInfo doubleForKey:@"distance"];
 				int route_hops = [[routeInfo arrayForKey:@"route"] count] - 1;
 				
-				// Credits increase exponentially with number of hops (more with reputation > 4) + 8..15 cr per LY + bonus for low government level of destination
-				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 4 ? 2.8 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
+				// Credits increase exponentially with number of hops (more with reputation > 5) + 8..15 cr per LY + bonus for low government level of destination
+				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 5 ? 2.65 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
 				
 				fee = cunningFee(fee);
 				
