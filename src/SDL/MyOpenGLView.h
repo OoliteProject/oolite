@@ -101,7 +101,6 @@ extern int debug;
 	GameController		*gameController;
 	BOOL				keys[NUM_KEYS];
 	BOOL				supressKeys;    // DJS
-	unsigned			keyboardMap;
 
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
@@ -134,6 +133,17 @@ extern int debug;
 	NSSize currentWindowSize;
 	SDL_Surface* surface;
 	JoystickHandler *stickHandler;
+	
+#if OOLITE_WINDOWS
+
+	BOOL				wasFullScreen;
+	BOOL				splashScreen;
+	unsigned			keyboardMap;
+	HWND 				SDL_Window;
+
+#endif
+
+	NSSize				firstScreen;
 
    // Mouse mode indicator (for mouse movement model)
    BOOL  mouseInDeltaMode;

@@ -256,11 +256,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	if (UNIVERSE)
 	{
-		Entity* the_sun = [UNIVERSE sun];
-		Vector sun_pos = (the_sun)? the_sun->position : kZeroVector;
-		sun_center_position[0] = sun_pos.x;
-		sun_center_position[1] = sun_pos.y;
-		sun_center_position[2] = sun_pos.z;
 		[UNIVERSE setLighting];
 	}
 	else
@@ -270,11 +265,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
 		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
 		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-
-		// light for demo ships display ( GL_LIGHT0 ) is set from within UNIVERSE!
 		
 		glEnable(GL_LIGHT1);		// lighting
-		glEnable(GL_LIGHT0);		// lighting
+
 	}
 	glEnable(GL_LIGHTING);		// lighting
 	

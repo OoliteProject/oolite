@@ -179,8 +179,8 @@ static GameController *sSharedController = nil;
 {
 	[gameView release];
 	gameView = [view retain];
-	[UNIVERSE setGameView:gameView];
 	[gameView setGameController:self];
+	[UNIVERSE setGameView:gameView];
 }
 
 
