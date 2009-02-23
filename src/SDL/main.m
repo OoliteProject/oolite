@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 
 #if OOLITE_WINDOWS
 #import <locale.h>
+#include <SDL.h>
 #endif
 GameController* controller;
 #endif
@@ -53,6 +54,25 @@ int main(int argc, char *argv[])
 	int i;
 	
 #if OOLITE_WINDOWS
+
+	// Detect current working directory and set up GNUstep environment variables
+	#define MAX_PATH_LEN 256
+	char currentWorkingDir[MAX_PATH_LEN];
+	char envVarString[2 * MAX_PATH_LEN];
+	GetCurrentDirectory(MAX_PATH_LEN - 1, currentWorkingDir);
+
+	#define SETENVVAR(var, value) do {\
+			sprintf(envVarString, "%s=%s", (var), (value));\
+			SDL_putenv (envVarString);\
+			} while (0);
+	
+	SETENVVAR("GNUSTEP_PATH_HANDLING", "windows");
+	SETENVVAR("GNUSTEP_SYSTEM_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_LOCAL_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_NETWORK_ROOT", currentWorkingDir);
+	SETENVVAR("GNUSTEP_USERS_ROOT", currentWorkingDir);
+	SETENVVAR("HOMEPATH", currentWorkingDir);
+
 	/*	Windows amibtiously starts apps with the C library locale set to the
 		system locale rather than the "C" locale as per spec. Fixing here so
 		numbers don't behave strangely.

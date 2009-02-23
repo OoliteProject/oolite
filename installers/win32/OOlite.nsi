@@ -138,9 +138,9 @@ WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite Disp
 WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite UninstallString '"$INSTDIR\UninstOolite.exe"'
 
 ; Start Menu shortcuts
-SetOutPath $INSTDIR
+SetOutPath $INSTDIR\oolite.app
 CreateDirectory "$SMPROGRAMS\Oolite"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\RunOolite.bat" "" "$INSTDIR\Oolite.ico"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\oolite.app\oolite.exe" "" "$INSTDIR\Oolite.ico"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\Oolite_Readme.txt"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Reference Sheet.lnk" "$INSTDIR\OoliteRS.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://Oolite.aegidian.org/"

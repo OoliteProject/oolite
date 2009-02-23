@@ -121,6 +121,9 @@ static NSMutableDictionary *string_cache;
 										stringByAppendingPathComponent:@"Application Support"]
 										stringByAppendingPathComponent:@"Oolite"]
 										stringByAppendingPathComponent:@"AddOns"];
+#elif OOLITE_WINDOWS
+		NSString	*app_addon_path = @"../Addons";
+		NSString	*appsupport_path = nil;
 #else
 		NSString	*app_addon_path = @"AddOns";
 		NSString	*appsupport_path = nil;
@@ -148,7 +151,7 @@ static NSMutableDictionary *string_cache;
 	/*	[[NSBundle mainBundle] resourcePath] causes complaints under Windows,
 		because we don't have a properly-built bundle.
 	*/
-	return @"oolite.app/Resources";
+	return @"Resources";
 #else
 	return [[NSBundle mainBundle] resourcePath];
 #endif
