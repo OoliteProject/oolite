@@ -138,6 +138,7 @@ extern int debug;
 
 	BOOL				wasFullScreen;
 	BOOL				splashScreen;
+	BOOL				saveSize;
 	unsigned			keyboardMap;
 	HWND 				SDL_Window;
 

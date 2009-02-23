@@ -159,14 +159,12 @@ MA 02110-1301, USA.
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 
-	#if !SDL_SPLASH
+#if !SDL_SPLASH
 
 	//Windows TODO:  decouple mouse boundaries, snapshots & planet roundness from initial setVideoMode resolution.
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-	if (fullScreen)
-	{
-		[self initialiseGLWithSize: firstScreen];	// needed for windows. works in linux too
-	}
+	// blank the surface / go to fullscreen
+	[self initialiseGLWithSize: firstScreen];
 	
 #else
 
@@ -180,10 +178,6 @@ MA 02110-1301, USA.
 	ShowWindow(SDL_Window,SW_MINIMIZE);
 	//TODO:  decouple mouse boundaries, snapshots & planet roundness from initial setVideoMode resolution.
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-	if (fullScreen)
-	{
-		[self initialiseGLWithSize: firstScreen];
-	}
 
 	//post setVideoMode adjustments
 	currentWindowSize=tmp;
@@ -603,6 +597,7 @@ MA 02110-1301, USA.
 		return;
 	}
   #endif
+
 	DEVMODE settings;
 	settings.dmSize        = sizeof(DEVMODE);
 	settings.dmDriverExtra = 0;
@@ -631,7 +626,8 @@ MA 02110-1301, USA.
 		
 	}
 	else if ( wasFullScreen ){
-	
+		// stop saveWindowSize from reacting to caption & frame
+		saveSize=NO;
 		ChangeDisplaySettings(NULL, 0);
 		SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
 
@@ -1397,7 +1393,16 @@ keys[a] = NO; keys[b] = NO; \
 #if OOLITE_WINDOWS
 				if (!fullScreen && !splashScreen)
 				{
-					[self saveWindowSize: newSize];
+					if (saveSize == NO)
+					{
+						// event triggered by caption & frame
+						// next event will be a real resize.
+						saveSize = YES;
+					}
+					else
+					{
+						[self saveWindowSize: newSize];
+					}
 				}
 #else
 				[self saveWindowSize: newSize];
