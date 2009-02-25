@@ -7133,7 +7133,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						}
 						else
 						{
-							if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BIRTH"])
+							if ([equipmentKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 							{
 								if ((max_cargo >= 5) && (randf() < chance))
 								{
