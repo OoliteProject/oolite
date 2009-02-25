@@ -7090,8 +7090,26 @@ double estimatedTimeForJourney(double distance, int hops)
 						{
 							// All included equip has a 10% discount.
 							eqPrice *= (tech_price_boost + eqTechLevel - techlevel) * 90 / 100;
+							
+							if ([item incompatibleEquipment] != nil && extras != nil)
+							{
+								NSEnumerator				*keyEnum = nil;
+								id							key = nil;
+
+								for (keyEnum = [[item incompatibleEquipment] objectEnumerator]; (key = [keyEnum nextObject]); )
+								{
+									if ([extras containsObject:key])
+									{
+										[options removeObject:equipmentKey];
+										eqPrice = 0;
+										
+										break;
+									}
+								}
+							}
 						}
-						else  eqPrice = 0;	// Bar this upgrade.
+						else 
+							eqPrice = 0;	// Bar this upgrade.
 					}
 					
 					if (eqPrice > 0)
