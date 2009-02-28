@@ -217,6 +217,7 @@ enum
 	StationEntity			*cachedStation;
 	PlanetEntity			*cachedPlanet;
 	PlanetEntity			*cachedSun;
+	NSMutableArray			*allPlanets;
 	
 	BOOL					strict;
 	
@@ -305,8 +306,7 @@ enum
 - (StationEntity *) station;
 - (PlanetEntity *) planet;
 - (PlanetEntity *) sun;
-- (NSMutableArray *) planets;	// Note: does not include sun.
-- (NSMutableArray *) planetsAndSun;
+- (NSArray *) planets;	// Note: does not include sun.
 
 // Turn main station into just another station, for blowUpStation.
 - (void) unMagicMainStation;

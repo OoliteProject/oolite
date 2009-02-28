@@ -2462,21 +2462,27 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"]||[i_key isEqual:@"role"])
 	{
 		if ([i_info count] != 10)	// must be item_name_x_y_z_W_X_Y_Z_align
+		{
 			return NO;				//		   0... 1... 2 3 4 5 6 7 8 9....
+		}
+		
 		ShipEntity* ship = nil;
+		
 		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
-			ship = [UNIVERSE newShipWithName:(NSString*)[i_info objectAtIndex: 1]];
-		if ([i_key isEqual:@"role"])
-			ship = [UNIVERSE newShipWithRole:(NSString*)[i_info objectAtIndex: 1]];
+		{
+			ship = [UNIVERSE newShipWithName:[i_info stringAtIndex: 1]];
+		}
+		else if ([i_key isEqual:@"role"])
+		{
+			ship = [UNIVERSE newShipWithRole:[i_info stringAtIndex: 1]];
+		}
 		if (!ship)
 			return NO;
 
 		ScanVectorAndQuaternionFromString([[i_info subarrayWithRange:NSMakeRange(2, 7)] componentsJoinedByString:@" "], &model_p0, &model_q);
 		
-		Vector	model_offset = positionOffsetForShipInRotationToAlignment(ship, model_q, (NSString*)[i_info objectAtIndex:9]);
-		model_p0.x += off.x - model_offset.x;
-		model_p0.y += off.y - model_offset.y;
-		model_p0.z += off.z - model_offset.z;
+		Vector	model_offset = positionOffsetForShipInRotationToAlignment(ship, model_q, [i_info stringAtIndex:9]);
+		model_p0 = vector_add(model_p0, vector_subtract(off, model_offset));
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
 		[ship setOrientation: model_q];
@@ -2568,9 +2574,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
-		model_p0.x += off.x;
-		model_p0.y += off.y;
-		model_p0.z += off.z;
+		model_p0 = vector_add(model_p0, off);
 
 		OOLog(kOOLogDebugProcessSceneStringAddTargetPlanet, @"::::: adding target-planet to scene:'%@'", doppelganger);
 		[doppelganger setOrientation: model_q];
@@ -2598,10 +2602,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		ParticleEntity* billboard = [[ParticleEntity alloc] initBillboard:billSize withTexture:texturefile];
 		if (!billboard)
 			return NO;
-			
-		billboard->position.x += model_p0.x;
-		billboard->position.y += model_p0.y;
-		billboard->position.z += model_p0.z;
+		
+		[billboard setPosition:vector_add([billboard position], model_p0)];
 			
 		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
 		

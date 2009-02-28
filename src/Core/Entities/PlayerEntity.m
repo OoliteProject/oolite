@@ -2303,7 +2303,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// find nearest planet type entity...
 	assert(UNIVERSE != nil);
 	
-	PlanetEntity	*nearestPlanet = [self findPlanetNearestSurface];
+	PlanetEntity	*nearestPlanet = [self findNearestStellarBody];
 	if (nearestPlanet == nil)  return 1.0f;
 	
 	GLfloat	zd = nearestPlanet->zero_distance;

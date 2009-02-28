@@ -1758,6 +1758,7 @@ static WormholeEntity *whole = nil;
 											 fileName:aiName
 										   lineNumber:0
 											  context:context];
+		[function autorelease];
 		
 		// Cache function.
 		if (function != nil)

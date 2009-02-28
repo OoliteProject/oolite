@@ -3690,7 +3690,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		PlanetEntity* the_planet;
 		if (aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
 		{
-			the_planet = [self findPlanetNearestSurface];
+			the_planet = [self findNearestStellarBody];
 		}
 		else	//must be the main planet!
 		{
@@ -3708,11 +3708,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-NSComparisonResult planetSort(id i1, id i2, void* context)
+NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	Vector p = [(ShipEntity*) context position];
-	PlanetEntity* e1= i1;
-	PlanetEntity* e2= i2;
+	PlanetEntity* e1 = i1;
+	PlanetEntity* e2 = i2;
 	//fx: empirical value used to help determine proximity when non-nested planets are close to each other
 	float fx=1.35;
 	float r;
@@ -3731,27 +3731,45 @@ NSComparisonResult planetSort(id i1, id i2, void* context)
 }
 
 
-- (PlanetEntity *) findPlanetNearestSurface
+- (PlanetEntity *) findNearestPlanet
 {
-	NSMutableArray		*planets = nil;
-	NSArray			*sortedPlanets = nil;
+	PlanetEntity		*result = nil;
+	NSArray				*planets = nil;
 	
-	planets = [UNIVERSE planetsAndSun];
+	planets = [UNIVERSE planets];
 	if ([planets count] == 0)  return nil;
 	
-	PlanetEntity* the_planet = [planets objectAtIndex:0];
-	if ([planets count] >1)
+	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
+	result = [planets objectAtIndex:0];
+	
+	return result;
+}
+
+
+- (PlanetEntity *) findNearestStellarBody
+{
+	PlanetEntity		*result = nil;
+	NSArray				*planets = nil;
+	PlanetEntity		*sun = nil;
+	
+	planets = [UNIVERSE planets];
+	sun = [UNIVERSE sun];
+	if (sun != nil)
 	{
-		sortedPlanets = [planets sortedArrayUsingFunction:planetSort context:self];
-		the_planet = [sortedPlanets objectAtIndex:0];		
+		planets = [planets arrayByAddingObject:sun];
 	}
-	return the_planet;
+	if ([planets count] == 0)  return nil;
+	
+	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
+	result = [planets objectAtIndex:0];
+	
+	return result;
 }
 
 
 - (OOAegisStatus) checkForAegis
 {
-	PlanetEntity	*the_planet = [self findPlanetNearestSurface];
+	PlanetEntity	*the_planet = [self findNearestStellarBody];
 	PlanetEntity	*warnedPlanet = nil;
 	PlanetEntity	*mainPlanet = nil;
 	
@@ -7718,20 +7736,6 @@ int w_space_seed = 1234567;
 	primaryTarget = [system_station universalID];
 	targetStation = primaryTarget;
 	return;
-}
-
-
-- (PlanetEntity *) findNearestPlanet
-{
-	NSArray				*planets = nil;
-	
-	planets = [UNIVERSE findEntitiesMatchingPredicate:IsPlanetPredicate
-											parameter:NULL
-											  inRange:-1
-											 ofEntity:self];
-	
-	if ([planets count] == 0)  return nil;
-	return [planets objectAtIndex:0];
 }
 
 

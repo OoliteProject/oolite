@@ -517,7 +517,8 @@ MA 02110-1301, USA.
 - (void) setReportAIMessages:(BOOL) yn;
 
 - (void) transitionToAegisNone;
-- (PlanetEntity *) findPlanetNearestSurface;
+- (PlanetEntity *) findNearestPlanet;
+- (PlanetEntity *) findNearestStellarBody;		// NOTE: includes sun.
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
 
@@ -719,8 +720,6 @@ BOOL	class_masslocks(int some_class);
 
 - (void) setTargetToNearestStation;
 - (void) setTargetToSystemStation;
-
-- (PlanetEntity *) findNearestPlanet;
 
 - (void) landOnPlanet:(PlanetEntity *)planet;
 

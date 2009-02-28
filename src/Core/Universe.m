@@ -119,8 +119,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
-	PlayerEntity	*player;
-	int				i;
+	PlayerEntity	*player = nil;
 	
 	if (gSharedUniverse != nil)
 	{
@@ -132,14 +131,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[self setGameView:inGameView];
 	gSharedUniverse = self;
 	
-	n_entities = 0;
-	
-	x_list_start = y_list_start = z_list_start = nil;
-	
-	firstBeacon = NO_TARGET;
-	lastBeacon = NO_TARGET;
-	
-	no_update = NO;
+	allPlanets = [[NSMutableArray alloc] init];
 	
 	OOCPUInfoInit();
 	
@@ -182,10 +174,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[[GameController sharedController] logProgress:DESC(@"initialising-universe")];
 	
- 	dumpCollisionInfo = NO;
 	next_universal_id = 100;	// start arbitrarily above zero
-	for (i = 0; i < MAX_ENTITY_UID; i++)
-		entity_for_uid[i] = nil;
 	
 	entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
@@ -195,7 +184,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	sun_center_position[3] = 1.0;
 	
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
-	displayGUI = NO;
 	
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
@@ -223,11 +211,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
-	displayFPS = NO;
-	
-	time_delta = 0.0;
-	universal_time = 0.0;
-	
 	commodityLists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
 	
@@ -252,13 +235,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
-	demo_ship_index = 0;
-	
-	breakPatternCounter = 0;
-	
-	cachedSun = nil;
-	cachedPlanet = nil;
-	cachedStation = nil;
 	
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
@@ -289,8 +265,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (cachedStation)  [player setPosition:cachedStation->position];
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	
-	demo_ship = nil;
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
 	
@@ -2676,9 +2650,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (PlanetEntity *) planet
 {
-	if (cachedPlanet == nil)
+	if (cachedPlanet == nil && [allPlanets count] != 0)
 	{
-		cachedPlanet = [self findOneEntityMatchingPredicate:IsPlanetPredicate  parameter:nil];
+		cachedPlanet = [allPlanets objectAtIndex:0];
 	}
 	return cachedPlanet;
 }
@@ -2688,31 +2662,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	if (cachedSun == nil)
 	{
-		cachedSun = [self findOneEntityMatchingPredicate:IsSunPredicate	 parameter:nil];
+		cachedSun = [self findOneEntityMatchingPredicate:IsSunPredicate parameter:nil];
 	}
 	return cachedSun;
 }
 
 
-- (NSMutableArray *) planets
+- (NSArray *) planets
 {
-	return [self findEntitiesMatchingPredicate:IsPlanetPredicate
-									 parameter:NULL
-									   inRange:-1
-									  ofEntity:nil];
-}
-
-
-- (NSMutableArray *) planetsAndSun
-{
-	NSMutableArray *result = [self planets];
-	PlanetEntity *sun = [self sun];
-	if (sun != nil)
-	{
-		if (result != nil)  [result addObject:sun];
-		else  result = [NSMutableArray arrayWithObject:sun];
-	}
-	return result;
+	return [[allPlanets copy] autorelease];
 }
 
 
@@ -3960,7 +3918,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			return NO;
 		}
 		
-		if (!(entity->isParticle))
+		if (![entity isParticle])
 		{
 			unsigned limiter = UNIVERSE_MAX_ENTITIES;
 			while (entity_for_uid[next_universal_id] != nil)	// skip allocated numbers
@@ -4011,7 +3969,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			}
 		}
 		else
+		{
 			[entity setUniversalID:NO_TARGET];
+		}
 		
 		// lighting considerations
 		entity->isSunlit = YES;
@@ -4046,10 +4006,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		// add entity to linked lists
 		[entity addToLinkedLists];	// position and universe have been set - so we can do this
 		if ([entity canCollide])	// filter only collidables disappearing
+		{
 			doLinkedListMaintenanceThisUpdate = YES;
+		}
 		
-		if (entity->isWormhole)
+		if ([entity isWormhole])
+		{
 			[activeWormholes addObject:entity];
+		}
+		else if ([entity isPlanet] && ![entity isSun])
+		{
+			[allPlanets addObject:entity];
+		}
 		
 		return YES;
 	}
@@ -7863,7 +7831,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
 	// remove reference to entity in linked lists
 	if ([entity canCollide])	// filter only collidables disappearing
+	{
 		doLinkedListMaintenanceThisUpdate = YES;
+	}
 	
 	[entity removeFromLinkedLists];
 	
@@ -7943,8 +7913,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		}
 		
 		
-		if (entity->isWormhole)
+		if ([entity isWormhole])
+		{
 			[activeWormholes removeObject:entity];
+		}
+		else if ([entity isPlanet] && ![entity isSun])
+		{
+			[allPlanets removeObject:entity];
+		}
 		
 		[entities removeObject:entity];
 		return YES;
