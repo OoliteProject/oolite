@@ -6391,11 +6391,12 @@ static int last_outfitting_index;
 	{
 		currentWeaponFacing = VIEW_STARBOARD;
 	}
-	else
+	else if ([facing isEqual:@"forward"])
 	{
-		// Forward or unknown
 		currentWeaponFacing = VIEW_FORWARD;
 	}
+	// if the weapon facing is unset / unknown, 
+	// don't change current weapon facing!
 }
 
 

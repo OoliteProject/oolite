@@ -169,6 +169,9 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 - (id) initLaserFromShip:(ShipEntity *) srcEntity view:(OOViewID) view offset:(Vector)offset
 {
 	ShipEntity			*ship = [srcEntity rootShipEntity];
+	BoundingBox 		bbox = [srcEntity boundingBox];
+	float				midx = 0.5 * (bbox.max.x + bbox.min.x);
+	float				midz = 0.5 * (bbox.max.z + bbox.min.z);
 	
 	self = [super init];
 	if (self == nil)  goto FAIL;
@@ -179,13 +182,13 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 #endif
 	
 	[self setStatus:STATUS_EFFECT];
-	if (ship == srcEntity)  position = [ship position];
-	else
-	{
-		// FIXME: shouldn't the subentity case work in any case?
-		BoundingBox bbox = [srcEntity boundingBox];
-		Vector midfrontplane = make_vector(0.5 * (bbox.max.x + bbox.min.x), 0.5 * (bbox.max.y + bbox.min.y), bbox.max.z);
-		position = [srcEntity absolutePositionForSubentityOffset:midfrontplane];
+	
+	Vector middle = make_vector(midx, 0.5 * (bbox.max.y + bbox.min.y), midz);
+	//should now work ok in all cases
+	position = [srcEntity absolutePositionForSubentityOffset:middle];
+	if (ship == srcEntity) {
+		// laser positioning
+		position = vector_add(position,OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
 	}
 	
 	orientation = [ship normalOrientation];
@@ -198,23 +201,20 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	switch (view)
 	{
 		default:
-		case VIEW_FORWARD:
-			viewOffset = vector_multiply_scalar(v_forward, [srcEntity boundingBox].max.z);
-			break;
-			
 		case VIEW_AFT:
-			quaternion_rotate_about_axis(&orientation, v_up, M_PI);
-			viewOffset = vector_multiply_scalar(v_forward, [srcEntity boundingBox].min.z);
+			quaternion_rotate_about_axis(&orientation, v_up, M_PI);	
+		case VIEW_FORWARD:
+			viewOffset = vector_multiply_scalar(v_forward, midz);
 			break;
-			
+
 		case VIEW_PORT:
 			quaternion_rotate_about_axis(&orientation, v_up, M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, [srcEntity boundingBox].min.x);
+			viewOffset = vector_multiply_scalar(v_right, midx);
 			break;
 			
 		case VIEW_STARBOARD:
 			quaternion_rotate_about_axis(&orientation, v_up, -M_PI/2.0);
-			viewOffset = vector_multiply_scalar(v_right, [srcEntity boundingBox].max.x);
+			viewOffset = vector_multiply_scalar(v_right, midx);
 			break;
 	}
 	position = vector_add(position, viewOffset);
