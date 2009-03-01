@@ -153,7 +153,6 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 		goto FAIL;
 	}
 	png_set_strip_16(png);			// 16 bits per channel -> 8 bpc
-	png_set_packing(png);			// <8 bpc -> 8 bpc (is this needed with png_set_expand()?)
 	if (depth < 8 || colorType == PNG_COLOR_TYPE_PALETTE)
 	{
 		png_set_expand(png);		// Paletted -> RGB, greyscale -> 8 bpc
@@ -205,7 +204,6 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	{
 		rows[i] = ((png_bytep)data) + i * rowBytes;
 	}
-	png_set_rows(png, pngInfo, rows);
 	png_read_image(png, rows);
 	png_read_end(png, pngEndInfo);
 	
