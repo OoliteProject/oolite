@@ -2,6 +2,7 @@
 #import <stdint.h>
 #import <assert.h>
 #import <math.h>
+#import <unistd.h>
 #import "GrayMap.h"
 
 
@@ -17,24 +18,47 @@ static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap);
 static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint32_t y);
 
 
+static bool wrap = false;
+
+
 static inline uint32_t RoundSize(uint32_t size)
 {
 	return (size + kDownscale - 1) / kDownscale;
 }
 
 
-int main (int argc, const char * argv[])
+int main (int argc, char * argv[])
 {
 	GrayMap						*source = NULL;
 	GrayMap						*dmap = NULL;
+	BOOL						printUsage = false;
 	
-	if (argc < 2)
+	// Get options
+	for (;;)
 	{
-		fprintf(stderr, "Usage: %s <filename.png>\n", argv[0]);
+		int option = getopt(argc, argv, "w");
+		if (option == -1)  break;
+		
+		switch (option)
+		{
+			case 'w':
+				wrap = true;
+				break;
+			
+			default:
+				printUsage = true;
+		}
+	}
+	
+	if (argc <= optind) printUsage = true;
+	
+	if (printUsage)
+	{
+		fprintf(stderr, "Usage: %s [-w] <filename.png>\n", argv[0]);
 		return EXIT_FAILURE;
 	}
 	
-	source = ReadGrayMap(argv[1]);
+	source = ReadGrayMap(argv[optind]);
 	if (source == NULL)  return EXIT_FAILURE;
 	
 	dmap = NewGrayMap(RoundSize(source->width), RoundSize(source->height), 0);
@@ -128,5 +152,16 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint
 
 static bool ReadPx(GrayMap *source, uint32_t x, uint32_t y, int16_t dx, int16_t dy)
 {
-	return GrayMapGet(source, x * kDownscale + dx - kHalfDownscale, y * kDownscale + dy - kHalfDownscale) >= kThreshold;
+	int32_t				ax = x * kDownscale + dx - kHalfDownscale;
+	int32_t				ay = y * kDownscale + dy - kHalfDownscale;
+	
+	if (wrap)
+	{
+		ax = ax % source->width;
+		if (ax < 0)  ax += source->width;
+		ay = ay % source->height;
+		if (ay < 0)  ay += source->height;
+	}
+	
+	return GrayMapGet(source, ax, ay) >= kThreshold;
 }

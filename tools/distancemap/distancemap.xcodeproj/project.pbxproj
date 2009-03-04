@@ -40,7 +40,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 08FB7793FE84155DC02AAC07 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 1AE75A660F5AAF74009DAA51 /* libpng-custom */;
+			remoteGlobalIDString = 1AE75A660F5AAF74009DAA51;
 			remoteInfo = "libpng-custom";
 		};
 /* End PBXContainerItemProxy section */
@@ -303,6 +303,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				SDKROOT = macosx10.4;
 			};
 			name = Debug;
 		};
@@ -324,6 +325,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				SDKROOT = macosx10.4;
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -340,6 +342,7 @@
 				HEADER_SEARCH_PATHS = "../../deps/Cross-platform-deps/libpng/";
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = distancemap;
+				SDKROOT = macosx10.4;
 			};
 			name = Debug;
 		};
@@ -353,6 +356,7 @@
 				GCC_PREFIX_HEADER = distancemap_Prefix.pch;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = distancemap;
+				SDKROOT = macosx10.4;
 			};
 			name = Release;
 		};

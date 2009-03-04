@@ -17,11 +17,12 @@ float AntiAliasFactor()
 
 float DistanceMap(sampler2D texture, vec2 texCoords, float threshold)
 {
-	float dmap = texture2D(tex, gl_TexCoord[0].xy).r;
+	float dmap = texture2D(tex, texCoords).r;
 	
 	// Fake anti-aliasing with a hermite blur.
 	// The fwidth() term lets us scale this appropriately for the screen.
-	float aaFactor = length(fwidth(gl_TexCoord[0].xy)) * 2.0;
+	vec2 fw = fwidth(texCoords);
+	float aaFactor = (fw.x + fw.y) * 1.5;
 	// If fwidth() doesn't provide useful data, use a fixed blur instead.
 	// Setting kFallbackAAFactor to zero gives you aliased output in the fallback case.
 	aaFactor = (aaFactor == 0.0) ? kFallbackAAFactor : aaFactor;
@@ -31,7 +32,7 @@ float DistanceMap(sampler2D texture, vec2 texCoords, float threshold)
 
 void main()
 {
-#if 0
+#if 1
 	float inner = DistanceMap(tex, gl_TexCoord[0].xy, kThreshold + 0.01);
 	float outer = DistanceMap(tex, gl_TexCoord[0].xy, kThreshold - 0.02);
 	
