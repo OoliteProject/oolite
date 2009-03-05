@@ -202,6 +202,8 @@ MA 02110-1301, USA.
 	
 	BOOL				reticleTargetSensitive;
 	
+	BOOL				cloakIndicatorOnStatusLight;
+	
 	int					last_transmitter;
 	
 	// Crosshairs

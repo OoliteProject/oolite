@@ -188,6 +188,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	
 	reticleTargetSensitive = [hudinfo boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	
+	cloakIndicatorOnStatusLight = [hudinfo boolForKey:@"cloak_indicator_on_status_light" defaultValue:NO];
+	
 	last_transmitter = NO_TARGET;
 	
 	_crosshairOverrides = [[hudinfo dictionaryForKey:@"crosshairs"] retain];
@@ -1649,6 +1651,7 @@ static BOOL hostiles;
 	int				x;
 	int				y;
 	NSSize			siz;
+	BOOL			blueAlert = cloakIndicatorOnStatusLight && [player isCloaked];
 	
 	x = [info intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
 	y = [info intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
@@ -1664,17 +1667,17 @@ static BOOL hostiles;
 		case ALERT_CONDITION_RED :
 			status_color[0] = red_color[0];
 			status_color[1] = red_color[1];
-			status_color[2] = red_color[2];
+			status_color[2] = blueAlert ? blue_color[2] : red_color[2];
 			break;
 		case ALERT_CONDITION_GREEN :
 			status_color[0] = green_color[0];
 			status_color[1] = green_color[1];
-			status_color[2] = green_color[2];
+			status_color[2] = blueAlert ? blue_color[2] : green_color[2];
 			break;
 		case ALERT_CONDITION_YELLOW :
 			status_color[0] = yellow_color[0];
 			status_color[1] = yellow_color[1];
-			status_color[2] = yellow_color[2];
+			status_color[2] = blueAlert ? blue_color[2] : yellow_color[2];
 			break;
 		default :
 		case ALERT_CONDITION_DOCKED :

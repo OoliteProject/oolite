@@ -400,5 +400,7 @@
 	</array>
 	<key>reticle_target_sensitive</key>
 	<false/>
+	<key>cloak_indicator_on_status_light</key>
+	<false/>
 </dict>
 </plist>
