@@ -161,7 +161,7 @@ MA 02110-1301, USA.
 
 #if !SDL_SPLASH
 
-	//Windows TODO:  decouple mouse boundaries, snapshots & planet roundness from initial setVideoMode resolution.
+	// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 	// blank the surface / go to fullscreen
 	[self initialiseGLWithSize: firstScreen];
@@ -225,6 +225,7 @@ MA 02110-1301, USA.
 
 	videoModeFlags |= (fullScreen) ? SDL_FULLSCREEN : SDL_RESIZABLE;
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
+	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 	
   #endif
  
@@ -639,7 +640,7 @@ MA 02110-1301, USA.
 
 	GetClientRect(SDL_Window, &wDC);
 
-	// change width only in 4 pixels steps! (see snapShot method)
+	// change width in 4 pixels steps! (see snapShot method)
 	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
@@ -669,9 +670,13 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		videoModeFlags |= SDL_RESIZABLE;;
+		videoModeFlags |= SDL_RESIZABLE;
 	}
-	surface = SDL_SetVideoMode((int)v_size.width, (int)v_size.height, 32, videoModeFlags);
+	// change width in 4 pixels steps! (see snapShot method)
+	int w=viewSize.width;
+	if (w & 3) w = w + 4 - (w & 3);
+	viewSize.width=w;
+	surface = SDL_SetVideoMode((int)viewSize.width, (int)viewSize.height, 32, videoModeFlags);
 
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
