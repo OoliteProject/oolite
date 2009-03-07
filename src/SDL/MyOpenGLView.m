@@ -173,10 +173,8 @@ MA 02110-1301, USA.
 	NSSize tmp=currentWindowSize;
 	splashScreen=YES;	//don't update the window!
 	ShowWindow(SDL_Window,SW_HIDE);
-	MoveWindow(SDL_Window,(GetSystemMetrics(SM_CXSCREEN))/2,
-				(GetSystemMetrics(SM_CYSCREEN))/2,8,8,TRUE);
 	ShowWindow(SDL_Window,SW_MINIMIZE);
-	//TODO:  decouple mouse boundaries, snapshots & planet roundness from initial setVideoMode resolution.
+	// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
 	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 
 	//post setVideoMode adjustments
@@ -603,6 +601,7 @@ MA 02110-1301, USA.
 	settings.dmDriverExtra = 0;
 	EnumDisplaySettings(0, ENUM_CURRENT_SETTINGS, &settings);
 			//ChangeDisplaySettings(NULL, 0);
+	RECT wDC;
 
 	if (fullScreen)
 	{
@@ -625,21 +624,35 @@ MA 02110-1301, USA.
 		}
 		
 	}
-	else if ( wasFullScreen ){
-		// stop saveWindowSize from reacting to caption & frame
-		saveSize=NO;
-		ChangeDisplaySettings(NULL, 0);
-		SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
+	else if ( wasFullScreen )
+	{
+			// stop saveWindowSize from reacting to caption & frame
+			saveSize=NO;
+			ChangeDisplaySettings(NULL, 0);
+			SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) | WS_CAPTION | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX );
 
-		MoveWindow(SDL_Window,(GetSystemMetrics(SM_CXSCREEN)-(int)viewSize.width)/2,
-		(GetSystemMetrics(SM_CYSCREEN)-(int)viewSize.height)/2 -16,(int)viewSize.width,(int)viewSize.height,TRUE);
+			MoveWindow(SDL_Window,(GetSystemMetrics(SM_CXSCREEN)-(int)viewSize.width)/2,
+			(GetSystemMetrics(SM_CYSCREEN)-(int)viewSize.height)/2 -16,(int)viewSize.width,(int)viewSize.height,TRUE);
 
-		ShowWindow(SDL_Window,SW_SHOW);
-
+			ShowWindow(SDL_Window,SW_SHOW);
 	}
-	RECT wDC;
 
 	GetClientRect(SDL_Window, &wDC);
+
+	// change width only in 4 pixels steps! (see snapShot method)
+	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
+					|| bounds.size.height != wDC.bottom - wDC.top))
+	{
+		bounds.size.width = wDC.right - wDC.left;
+		int w=bounds.size.width;
+		if (w & 3) w = w + 4 - (w & 3);
+		GetWindowRect(SDL_Window, &wDC);
+		viewSize.width = wDC.right - wDC.left + w - bounds.size.width;
+		viewSize.height = wDC.bottom - wDC.top;
+		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width,viewSize.height,TRUE);
+		GetClientRect(SDL_Window, &wDC);
+	}
+	
 	bounds.size.width = wDC.right - wDC.left;
 	bounds.size.height = wDC.bottom - wDC.top;
 	wasFullScreen=fullScreen;
@@ -664,7 +677,7 @@ MA 02110-1301, USA.
 	bounds.size.height = surface->h;
 
 #endif
-	OOLog(@"display.initGL", @"Creating a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
+	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 
 
 	GLfloat	sun_ambient[] = {0.1, 0.1, 0.1, 1.0};	
