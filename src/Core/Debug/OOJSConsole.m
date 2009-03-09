@@ -197,10 +197,11 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	switch (JSVAL_TO_INT(name))
 	{
+#ifndef NDEBUG
 		case kConsole_debugFlags:
 			*outValue = INT_TO_JSVAL(gDebugFlags);
 			break;
-			
+#endif			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
@@ -218,13 +219,14 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	switch (JSVAL_TO_INT(name))
 	{
+#ifndef NDEBUG
 		case kConsole_debugFlags:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				gDebugFlags = iValue;
 			}
 			break;
-			
+#endif			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
