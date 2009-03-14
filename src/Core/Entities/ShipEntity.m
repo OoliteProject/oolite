@@ -3742,6 +3742,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
 	result = [planets objectAtIndex:0];
 	
+	// ignore miniature planets when determining nearest planet - Nikos 20090313
+	if ([result planetType] == PLANET_TYPE_MINIATURE)
+	{
+		if ([UNIVERSE sun])	// if we are not in witchspace give us the next in the list, else nothing
+		{
+			result = [planets objectAtIndex:1];
+		}
+		else
+		{
+			result = nil;
+		}
+	}
+	
 	return result;
 }
 
@@ -3763,6 +3776,19 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
 	result = [planets objectAtIndex:0];
 	
+	// ignore miniature planets when determining nearest stellar body - Nikos 20090313
+	if ([result planetType] == PLANET_TYPE_MINIATURE)
+	{
+		if (sun)	// if we are not in witchspace give us the next in the list, else nothing
+		{
+			result = [planets objectAtIndex:1];
+		}
+		else
+		{
+			result = nil;
+		}
+	}
+
 	return result;
 }
 
