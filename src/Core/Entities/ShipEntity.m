@@ -1649,6 +1649,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			
 			for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 			{
+				if ([self scanClass] != [escort scanClass]) {
+					//you are only allowed to escort something with the same scanclass, so you are on your own now
+					[escort setGroup:NO_TARGET];	
+				}
 				[escort setDestination:[self coordinatesForEscortPosition:i++]];
 			}
 		}
