@@ -330,3 +330,13 @@ enum {
 #else
 	#define OOLITE_FAST_ENUMERATION		0
 #endif
+
+
+/*	Speech synthesis
+*/
+#if MAC_OS_X || defined(HAVE_LIBESPEAK)
+#define OOLITE_SPEECH_SYNTH				1
+#else
+#define OOLITE_SPEECH_SYNTH				0
+#endif
+

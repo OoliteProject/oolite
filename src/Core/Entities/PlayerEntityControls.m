@@ -1946,7 +1946,7 @@ static NSTimeInterval	time_last_frame;
 		switching_resolution = NO;
 	}
 	
-#if OOLITE_MAC_OS_X
+#if OOLITE_SPEECH_SYNTH
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)

@@ -4549,14 +4549,16 @@ static PlayerEntity *sSharedPlayer = nil;
 				  forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
 			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_GROWL];
 		}
-		
+#endif
+#if OOLITE_SPEECH_SYNTH
 		// Speech control
 		if (isSpeechOn)
 			[gui setText:DESC(@"gameoptions-spoken-messages-yes") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		else
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
-#else
+#endif
+#if !OOLITE_MAC_OS_X
 		// window/fullscreen
 		if([gameView inFullScreenMode])
 		{

@@ -1,4 +1,10 @@
 (
+// Format:
+// (
+//   [required] Original text,
+//   [required] replacement text (Apple),
+//   [optional] replacement text (espeak) or "_" (original text is unchanged)
+// )
 	(
 		"\\n",
 		" "
@@ -10,7 +16,12 @@
 	(
 		// must come before ' Cr'
 		Cruiser,
-		"[[inpt PHON]]kr1UWz2AXr[[inpt TEXT]]"
+		"[[inpt PHON]]kr1UWz2AXr[[inpt TEXT]]",
+		"[[kr'u:z3]]"
+	),
+	(
+		" cr.",
+		" credits."
 	),
 	(
 		" Cr",
@@ -24,41 +35,50 @@
 		Purse,
 		", Total "
 	),
-	(
-		"Mark III",
-		"Mach Three"
-	),
-	(
-		"Mark II",
-		"Mach Two"
-	),
-	(
-		"Mark I",
-		"Mach One"
-	),
+	(	"Mark V",	"Mark Five" ),
+	(	"Mark IV",	"Mark Four" ),
+	(	"Mark III",	"Mark Three" ),
+	(	"Mark II",	"Mark Two" ),
+	(	"Mark I",	"Mark One" ),
+	(	"MkV",		"Mark Five" ),
+	(	"MkIV",		"Mark Four" ),
+	(	"MkIII",	"Mark Three" ),
+	(	"MkII",		"Mark Two" ),
+	(	"MkI",		"Mark One" ),
+	(	"Mk V",		"Mark Five" ),
+	(	"Mk IV",	"Mark Four" ),
+	(	"Mk III",	"Mark Three" ),
+	(	"Mk II",	"Mark Two" ),
+	(	"Mk I",		"Mark One" ),
 	(
 		GalCop,
-		"[[inpt PHON]]g1AElkUXp[[inpt TEXT]]"
+		"[[inpt PHON]]g1AElkUXp[[inpt TEXT]]",
+		_
 	),
 	(
 		Witchspace,
-		"[[inpt PHON]]w1IHCsp2EYs[[inpt TEXT]]"
+		"[[inpt PHON]]w1IHCsp2EYs[[inpt TEXT]]",
+		_
 	),
 	(
 		"Fer-de-Lance",
-		"[[inpt PHON]]f1<EY<<AE=dEH=l2UXns[[inpt TEXT]]"
+		"[[inpt PHON]]f1<EY<<AE=dEH=l2UXns[[inpt TEXT]]",
+		"[[f'e3 d@ l'A:ns]]"
 	),
 	(
 		Sidewinder,
-		"[[inpt PHON]]s1AYdw2AYndAX[[inpt TEXT]]"
+		"[[inpt PHON]]s1AYdw2AYndAX[[inpt TEXT]]",
+		_
 	),
 	(
 		Rebel,
-		"[[inpt PHON]]rEHbUXl[[inpt TEXT]]"
+		"[[inpt PHON]]rEHbUXl[[inpt TEXT]]",
+		_
 	),
 	(
 		"Metal fragment",
-		"metal [[inpt PHON]]fr1AEgmUHnt[[inpt TEXT]]"
+		"metal [[inpt PHON]]fr1AEgmUHnt[[inpt TEXT]]",
+		_
 	),
 	(
 		Ident,

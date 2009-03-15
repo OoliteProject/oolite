@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Chris Crowther <hikari@hikari.org.uk>
 Standards-Version: 3.7.2
 Build-Depends: debhelper (>= 5),
-	libsdl1.2-dev, libsdl-mixer1.2-dev,
+	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
 	libgnustep-base-dev, gnustep-core-devel,
 	libpng-dev, mesa-common-dev
 

@@ -246,6 +246,8 @@ enum
 	
 #if OOLITE_MAC_OS_X
 	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
+#endif
+#if OOLITE_SPEECH_SYNTH
 	NSArray					*speechArray;
 #endif
 }
