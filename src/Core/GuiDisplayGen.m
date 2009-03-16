@@ -554,6 +554,19 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 }
 
+- (void) leaveLastLine
+{
+	unsigned i;
+	for (i=0; i < n_rows-1; i++)
+	{
+		[rowText	replaceObjectAtIndex:i withObject:@""];
+		[rowColor	replaceObjectAtIndex:i withObject:textColor];
+		[rowKey		replaceObjectAtIndex:i withObject:@""];
+		rowAlignment[i] = GUI_ALIGN_LEFT;
+		rowFadeTime[i]	= 0.0f;
+	}
+	rowFadeTime[i]	= 0.4f; // fade the last line...
+}
 
 - (void) printLongText:(NSString *)str
 				 align:(OOGUIAlignment) alignment

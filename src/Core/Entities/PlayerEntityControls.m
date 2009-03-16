@@ -1133,6 +1133,7 @@ static NSTimeInterval	time_last_frame;
 		
 		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
+			[[UNIVERSE message_gui] leaveLastLine];
 			NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 			OOTimeDelta		time_delta;
 			if (![[GameController sharedController] gameIsPaused])

@@ -122,7 +122,7 @@ static NSMutableDictionary *string_cache;
 										stringByAppendingPathComponent:@"Oolite"]
 										stringByAppendingPathComponent:@"AddOns"];
 #elif OOLITE_WINDOWS
-		NSString	*app_addon_path = @"../Addons";
+		NSString	*app_addon_path = @"../AddOns";
 		NSString	*appsupport_path = nil;
 #else
 		NSString	*app_addon_path = @"AddOns";

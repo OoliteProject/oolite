@@ -923,8 +923,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		
 		modelName = [shipEntry stringForKey:@"model"];
 		mesh = [OOMesh meshWithName:modelName
-				 materialDictionary:nil
-				  shadersDictionary:nil
+				 materialDictionary:[shipEntry dictionaryForKey:@"materials"]
+				  shadersDictionary:[shipEntry dictionaryForKey:@"shaders"]
 							 smooth:[shipEntry boolForKey:@"smooth"]
 					   shaderMacros:nil
 				shaderBindingTarget:nil];

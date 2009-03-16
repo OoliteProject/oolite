@@ -48,6 +48,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 
 static JSBool ShipSetScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetAIState(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -208,6 +209,7 @@ static JSFunctionSpec sShipMethods[] =
 	// JS name					Function					min args
 	{ "setScript",				ShipSetScript,				1 },
 	{ "setAI",					ShipSetAI,					1 },
+	{ "setAIState",				ShipSetAIState,				1 },
 	{ "switchAI",				ShipSwitchAI,				1 },
 	{ "exitAI",					ShipExitAI,					0 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
@@ -716,6 +718,36 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 	}
 	
 	[thisEnt setAITo:name];
+	return YES;
+}
+
+
+// setAIState(aiName : String)
+static JSBool ShipSetAIState(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*name = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	name = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(name == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setAIState", argc, argv, nil, @"State name");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"setAIState", @"Cannot modify AI state for player.");
+		return NO;
+	}
+	[[thisEnt getAI] setState:name];
+	
+	if ([[thisEnt getAI] state] != name)
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"setAIState", @"Could not set AI state to '%@'.",name);
+		return NO;
+	}
+
 	return YES;
 }
 

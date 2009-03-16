@@ -25,7 +25,6 @@ MA 02110-1301, USA.
 #import "OOSelfDrawingEntity.h"
 #import "Universe.h"
 #import "Geometry.h"
-#import "TextureStore.h"
 #import "ResourceManager.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOGraphicsResetManager.h"

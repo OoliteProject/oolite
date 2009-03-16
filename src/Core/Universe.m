@@ -897,7 +897,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	/*- space planet -*/
 	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
 	double planet_radius = [a_planet radius];
-	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 10..14 pr (planet radii) ahead
+	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
 	
 	[a_planet setPlanetType:PLANET_TYPE_GREEN];
 	[a_planet setStatus:STATUS_ACTIVE];
