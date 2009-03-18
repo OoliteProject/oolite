@@ -1649,11 +1649,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			
 			for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
 			{
-				if ([self scanClass] != [escort scanClass]) {
-					//you are only allowed to escort something with the same scanclass, so you are on your own now
-					[escort setGroup:NO_TARGET];	
-				}
 				[escort setDestination:[self coordinatesForEscortPosition:i++]];
+			}
+		}
+		if ([self escortGroup] != nil) 
+		{
+			ShipEntity *leader = [[self escortGroup] leader];
+			if (leader != nil && ([leader scanClass] != [self scanClass])) {
+				OOLog(@"ship.sanityCheck.failed", @"Ship %@ escorting %@ with wrong scanclass!", self, leader);
+				[[self escortGroup] removeShip:self];
+				[[self escortGroup] release];
 			}
 		}
 	}

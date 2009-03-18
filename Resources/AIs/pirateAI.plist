@@ -68,14 +68,14 @@
 	};
 	"TRAVEL_TO_LURK_AREA" =
 	{
-		ENTER =
-		(setDestinationToCurrentLocation, "setDesiredRangeTo: 1500.0", performFlyToRangeFromDestination);
+		ENTER = (setDestinationToCurrentLocation, "setDesiredRangeTo: 3500.0", performFlyToRangeFromDestination);
 		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK");
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");	// Unreachable? If so, enteringPirateAI and enteringTraderAI are unused.
+		"FRUSTRATED" = ("setStateTo: LURK");
 	};
 	"CONSIDER_DOCKING" =
 	{
