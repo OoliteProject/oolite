@@ -88,7 +88,6 @@ typedef enum
 - (NSNumber *) scriptTimer_number;
 - (NSNumber *) shipsFound_number;
 
-- (NSNumber *) legalStatus_number;
 - (NSNumber *) d100_number;
 - (NSNumber *) pseudoFixedD100_number;
 - (NSNumber *) d256_number;

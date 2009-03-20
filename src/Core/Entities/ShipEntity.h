@@ -305,7 +305,8 @@ MA 02110-1301, USA.
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
 - (void) setShipScript:(NSString *) script_name;
-- (OOScript *)shipScript;
+- (OOScript *) shipScript;
+- (double) frustration;
 
 - (void) interpretAIMessage:(NSString *)message;
 

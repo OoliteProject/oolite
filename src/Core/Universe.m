@@ -405,13 +405,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[[gameView gameController] unpause_game];
 
-#ifndef GNUSTEP
-	//// speech stuff
-	
+#if OOLITE_SPEECH_SYNTH
 	[speechArray autorelease];
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	////
 #endif
 	
 	

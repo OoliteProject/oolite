@@ -1647,7 +1647,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			ShipEntity				*escort = nil;
 			unsigned				i = 0;
 			
-			for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
+			// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
+			for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
 			{
 				[escort setDestination:[self coordinatesForEscortPosition:i++]];
 			}
@@ -4018,6 +4019,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 											 properties:properties];
 	}
 	[script retain];
+}
+
+
+- (double)frustration
+{
+	return frustration;
 }
 
 

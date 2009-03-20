@@ -14,7 +14,7 @@ If auto-pruning is on, the cache will pruned to 80% of the prune threshold
 whenever the prune threshold is exceeded. If auto-pruning is off, the cache
 can be pruned to the prune threshold by explicitly calling -prune.
 
-While OOCacheManager-manged caches must have string keys and property list
+While OOCacheManager-managed caches must have string keys and property list
 values, OOCaches used directly may have any keys allowable for a mutable
 dictionary (that is, keys should conform to <NSCopying> and values may be
 arbitrary objects) -- an 'unmanaged' cache is essentially a mutable dictionary

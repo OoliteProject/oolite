@@ -230,7 +230,6 @@
 		"credits_number",
 		"scriptTimer_number",
 		"shipsFound_number",
-		"legalStatus_number",
 		"commanderLegalStatus_number",
 		"commanderLegalStatus_string",
 		"d100_number",
@@ -366,6 +365,7 @@
 	{
 		"fuel_leak_rate_number" = "fuelLeakRate_number";
 		"fuel_level_number" = "fuelLevel_number";
+		"legalStatus_number" = "commanderLegalStatus_number";
 	};
 	
 	ai_method_aliases =

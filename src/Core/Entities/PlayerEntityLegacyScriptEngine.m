@@ -920,12 +920,6 @@ static int shipsFound;
 }
 
 
-- (NSNumber *) legalStatus_number
-{
-	return [NSNumber numberWithInt:[self legalStatus]];
-}
-
-
 - (NSNumber *) commanderLegalStatus_number
 {
 	return [NSNumber numberWithInt:[self legalStatus]];
