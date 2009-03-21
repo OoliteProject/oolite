@@ -111,7 +111,7 @@ static NSString * const kStageName	= @"Validating AIs";
 				  referencedFrom:[NSString stringWithFormat:@"shipdata.plist entry \"%@\"", shipName]
 					checkBuiltIn:YES])
 	{
-		OOLog(@"verifyOXP.validateAI.notFound", @"WARNING: AI state machine \"%@\" referenced in shipdata.plist entry \"%@\" could not be found in %@ or in Oolite.", name, shipName, [[self verifier] oxpDisplayName]);
+		OOLog(@"verifyOXP.validateAI.notFound", @"----- WARNING: AI state machine \"%@\" referenced in shipdata.plist entry \"%@\" could not be found in %@ or in Oolite.", name, shipName, [[self verifier] oxpDisplayName]);
 	}
 }
 
@@ -150,7 +150,7 @@ static NSString * const kStageName	= @"Validating AIs";
 	aiStateMachine = OODictionaryFromFile(path);
 	if (aiStateMachine == nil)
 	{
-		OOLog(@"verifyOXP.validateAI.failed.notDictPlist", @"ERROR: could not interpret \"%@\" as a dictionary.");
+		OOLog(@"verifyOXP.validateAI.failed.notDictPlist", @"***** ERROR: could not interpret \"%@\" as a dictionary.");
 		return;
 	}
 	
@@ -160,7 +160,7 @@ static NSString * const kStageName	= @"Validating AIs";
 		stateHandlers = [aiStateMachine objectForKey:stateKey];
 		if (![stateHandlers isKindOfClass:[NSDictionary class]])
 		{
-			OOLog(@"verifyOXP.validateAI.failed.invalidFormat.state", @"ERROR: state \"%@\" in AI \"%@\" is not a dictionary.", stateKey, aiName);
+			OOLog(@"verifyOXP.validateAI.failed.invalidFormat.state", @"***** ERROR: state \"%@\" in AI \"%@\" is not a dictionary.", stateKey, aiName);
 			continue;
 		}
 		
@@ -170,7 +170,7 @@ static NSString * const kStageName	= @"Validating AIs";
 			handlerActions = [stateHandlers objectForKey:handlerKey];
 			if (![handlerActions isKindOfClass:[NSArray class]])
 			{
-				OOLog(@"verifyOXP.validateAI.failed.invalidFormat.handler", @"ERROR: gandler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, aiName);
+				OOLog(@"verifyOXP.validateAI.failed.invalidFormat.handler", @"***** ERROR: handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, aiName);
 				continue;
 			}
 			
@@ -181,7 +181,7 @@ static NSString * const kStageName	= @"Validating AIs";
 				index++;
 				if (![action isKindOfClass:[NSString class]])
 				{
-					OOLog(@"verifyOXP.validateAI.failed.invalidFormat.action", @"ERROR: action %u in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", index - 1, handlerKey, stateKey, aiName);
+					OOLog(@"verifyOXP.validateAI.failed.invalidFormat.action", @"***** ERROR: action %u in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", index - 1, handlerKey, stateKey, aiName);
 					continue;
 				}
 				
@@ -205,7 +205,7 @@ static NSString * const kStageName	= @"Validating AIs";
 	if ([badSelectors count] != 0)
 	{
 		badSelectorDesc = [[[badSelectors allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-		OOLog(@"verifyOXP.validateAI.failed.badSelector", @"ERROR: the AI \"%@\" uses %u unpermitted method%s: %@", aiName, [badSelectors count], ([badSelectors count] == 1) ? "" : "s", badSelectorDesc);
+		OOLog(@"verifyOXP.validateAI.failed.badSelector", @"***** ERROR: the AI \"%@\" uses %u unpermitted method%s: %@", aiName, [badSelectors count], ([badSelectors count] == 1) ? "" : "s", badSelectorDesc);
 	}
 	
 	OOLogOutdentIf(@"verifyOXP.verbose.validateAI");

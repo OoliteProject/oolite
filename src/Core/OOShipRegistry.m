@@ -659,7 +659,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 		else
 		{
-			OOLog(@"shipData.load.shipyard.unknown", @"WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
+			OOLog(@"shipData.load.shipyard.unknown", @"----- WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
 		}
 	}
 	

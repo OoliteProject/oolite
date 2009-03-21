@@ -118,7 +118,7 @@ static void OpenLogFile(NSString *name);
 			foundPath = [argEnum nextObject];
 			if (foundPath == nil)
 			{
-				OOLog(@"verifyOXP.noPath", @"ERROR: %@ passed without path argument; nothing to verify.", arg);
+				OOLog(@"verifyOXP.noPath", @"***** ERROR: %@ passed without path argument; nothing to verify.", arg);
 				[pool release];
 				return YES;
 			}
@@ -137,11 +137,11 @@ static void OpenLogFile(NSString *name);
 	exists = [[NSFileManager defaultManager] fileExistsAtPath:foundPath isDirectory:&isDirectory];
 	if (!exists)
 	{
-		OOLog(@"verifyOXP.badPath", @"ERROR: no OXP exists at path \"%@\"; nothing to verify.", foundPath);
+		OOLog(@"verifyOXP.badPath", @"***** ERROR: no OXP exists at path \"%@\"; nothing to verify.", foundPath);
 	}
 	else if (!isDirectory)
 	{
-		OOLog(@"verifyOXP.badPath", @"ERROR: path \"%@\" refers to a file, not an OXP directory; nothing to verify.", foundPath);
+		OOLog(@"verifyOXP.badPath", @"***** ERROR: path \"%@\" refers to a file, not an OXP directory; nothing to verify.", foundPath);
 	}
 	else
 	{
@@ -286,7 +286,7 @@ static void OpenLogFile(NSString *name);
 	if (_verifierPList == nil ||
 		_basePath == nil)
 	{
-		OOLog(@"verifyOXP.setup.failed", @"ERROR: failed to set up OXP verifier.");
+		OOLog(@"verifyOXP.setup.failed", @"***** ERROR: failed to set up OXP verifier.");
 		[self release];
 		return nil;
 	}

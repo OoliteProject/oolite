@@ -301,7 +301,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		if (data == nil)
 		{
 			// Model not found
-			OOLog(kOOLogEntityDataNotFound, @"ERROR - could not find %@", filename);
+			OOLog(kOOLogEntityDataNotFound, @"***** ERROR: could not find '%@'.", filename);
 			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No data for model called '%@' could be found in %@.", filename, [ResourceManager paths]];
 		}
 
@@ -352,11 +352,12 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 		if (vertexCount > MAX_VERTICES_PER_ENTITY)
 		{
-			OOLog(kOOLogEntityTooManyVertices, @"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY);
+			//2 error lines for just one error?
+			OOLog(kOOLogEntityTooManyVertices, @"***** ERROR: model %@ has too many vertices (model has %d, maximum is %d).", filename, vertexCount, MAX_VERTICES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
 			[NSException raise:@"OoliteException"
-						format:@"ERROR - model %@ has too many vertices (model has %d, maximum is %d)", filename, vertexCount, MAX_VERTICES_PER_ENTITY];
+						format:@"***** ERROR: model %@ has too many vertices (model has %d, maximum is %d).", filename, vertexCount, MAX_VERTICES_PER_ENTITY];
 		}
 
 		// get number of faces
@@ -381,11 +382,12 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 		if (faceCount > MAX_FACES_PER_ENTITY)
 		{
-			OOLog(kOOLogEntityTooManyFaces, @"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY);
+			//2 error lines for just one error?
+			OOLog(kOOLogEntityTooManyFaces, @"***** ERROR: model %@ has too many faces (model has %d, maximum is %d).", filename, faceCount, MAX_FACES_PER_ENTITY);
 			failFlag = YES;
 			// ERROR model file not found
 			[NSException raise:@"OoliteException"
-						format:@"ERROR - model %@ has too many faces (model has %d, maximum is %d)", filename, faceCount, MAX_FACES_PER_ENTITY];
+						format:@"***** ERROR: model %@ has too many faces (model has %d, maximum is %d).", filename, faceCount, MAX_FACES_PER_ENTITY];
 		}
 
 		// get vertex data

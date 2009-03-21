@@ -614,7 +614,7 @@ static BOOL sRunningScript = NO;
 				case COMPARISON_UNDEFINED:
 				case COMPARISON_ONEOF:
 					// "Can't happen" - undefined should have been caught by the sanitizer, oneof is handled above.
-					OOLog(@"script.error.unexpectedOperator", @"SCRIPT ERROR in %@: ***** operator %@ is not valid for numbers, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
+					OOLog(@"script.error.unexpectedOperator", @"***** SCRIPT ERROR: in %@, operator %@ is not valid for numbers, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
 					TRACE_AND_RETURN(NO);
 			}
 		}
@@ -637,13 +637,13 @@ static BOOL sRunningScript = NO;
 			case COMPARISON_UNDEFINED:
 			case COMPARISON_ONEOF:
 				// "Can't happen" - should have been caught by the sanitizer.
-				OOLog(@"script.error.unexpectedOperator", @"SCRIPT ERROR in %@: ***** operator %@ is not valid for booleans, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
+				OOLog(@"script.error.unexpectedOperator", @"***** SCRIPT ERROR: in %@, operator %@ is not valid for booleans, evaluating to false.", CurrentScriptDesc(), OOComparisonTypeToString(comparator));
 				TRACE_AND_RETURN(NO);
 		}
 	}
 	
 	// What are we doing here?
-	OOLog(@"script.error.fallthrough", @"SCRIPT ERROR in %@: ***** condition handler fell through to bottom for condition \"%@\" (%@). This is an internal error, please report it.", CurrentScriptDesc(), [scriptCondition objectAtIndex:1], scriptCondition);
+	OOLog(@"script.error.fallthrough", @"***** SCRIPT ERROR: in %@, unhandled condition '%@' (%@). This is an internal error, please report it.", CurrentScriptDesc(), [scriptCondition objectAtIndex:1], scriptCondition);
 	return NO;
 }
 
@@ -819,12 +819,12 @@ static BOOL sRunningScript = NO;
 	NSString		*text = [[UNIVERSE missiontext] stringForKey:textKey];
 	if (!text)
 	{
-		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR in %@ ***** no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", CurrentScriptDesc(), textKey, [UNIVERSE missiontext]);
+		OOLog(kOOLogScriptMissionDescNoText, @"***** SCRIPT ERROR: in %@, no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", CurrentScriptDesc(), textKey, [UNIVERSE missiontext]);
 		return;
 	}
 	if (!sCurrentMissionKey)
 	{
-		OOLog(kOOLogScriptMissionDescNoKey, @"SCRIPT ERROR in %@ ***** sCurrentMissionKey not set", CurrentScriptDesc());
+		OOLog(kOOLogScriptMissionDescNoKey, @"***** SCRIPT ERROR: in %@, sCurrentMissionKey not set", CurrentScriptDesc());
 		return;
 	}
 	text = ExpandDescriptionForCurrentSystem(text);
@@ -838,7 +838,7 @@ static BOOL sRunningScript = NO;
 {
 	if (!sCurrentMissionKey)
 	{
-		OOLog(kOOLogScriptMissionDescNoText, @"SCRIPT ERROR in %@ ***** sCurrentMissionKey not set", CurrentScriptDesc());
+		OOLog(kOOLogScriptMissionDescNoText, @"***** SCRIPT ERROR: in %@, sCurrentMissionKey not set", CurrentScriptDesc());
 		return;
 	}
 	if (![mission_variables objectForKey:sCurrentMissionKey])
@@ -1234,12 +1234,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	if([equipString hasPrefix:@"EQ_WEAPON"] && ![equipString hasSuffix:@"_DAMAGED"])
 	{
-		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
+		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
 		return;
 	}
 	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length] - [@"_DAMAGED" length]]])
 	{
-		OOLog(kOOLogSyntaxAwardEquipment, @"SCRIPT ERROR in %@ ***** CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
+		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
 	}
 	else if (![self hasEquipmentItem:equipString])
 	{
@@ -1277,7 +1277,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxSetPlanetInfo, @"SCRIPT ERROR in %@ ***** CANNOT setPlanetinfo: '%@' (bad parameter count)", CurrentScriptDesc(), key_valueString);
+		OOLog(kOOLogSyntaxSetPlanetInfo, @"***** SCRIPT ERROR: in %@, CANNOT setPlanetinfo: '%@' (bad parameter count)", CurrentScriptDesc(), key_valueString);
 		return;
 	}
 	
@@ -1298,7 +1298,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 4)
 	{
-		OOLog(kOOLogSyntaxSetPlanetInfo, @"SCRIPT ERROR in %@ ***** CANNOT setSpecificPlanetInfo: '%@' (bad parameter count)", CurrentScriptDesc(), key_valueString);
+		OOLog(kOOLogSyntaxSetPlanetInfo, @"***** SCRIPT ERROR: in %@, CANNOT setSpecificPlanetInfo: '%@' (bad parameter count)", CurrentScriptDesc(), key_valueString);
 		return;
 	}
 
@@ -1324,7 +1324,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"SCRIPT ERROR in %@ ***** CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"bad parameter count");
+		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"bad parameter count");
 		return;
 	}
 	
@@ -1336,21 +1336,21 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if (commodityArray == nil)
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"SCRIPT ERROR in %@ ***** CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"unknown type");
+		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"unknown type");
 		return;
 	}
 	
 	amount = [tokens intAtIndex:0];
 	if (amount < 0)
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"SCRIPT ERROR in %@ ***** CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"negative quantity");
+		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"negative quantity");
 		return;
 	}
 	
 	unit = [UNIVERSE unitsForCommodity:type];
 	if (specialCargo && unit == UNITS_TONS)
 	{
-		OOLog(kOOLogSyntaxAwardCargo, @"SCRIPT ERROR in %@ ***** CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"cargo hold full with special cargo");
+		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"cargo hold full with special cargo");
 		return;
 	}
 	
@@ -1372,17 +1372,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([self status] != STATUS_DOCKED && !forceRemoval)
 	{
-		OOLog(kOOLogRemoveAllCargoNotDocked, @"SCRIPT ERROR in %@ ***** Error: removeAllCargo only works when docked.", CurrentScriptDesc());
+		OOLog(kOOLogRemoveAllCargoNotDocked, @"***** SCRIPT ERROR: in %@, removeAllCargo: only works when docked.", CurrentScriptDesc());
 		return;
 	}
 	
 	if (forceRemoval)
 	{
-		OOLog(kOOLogNoteRemoveAllCargo, @"Forcing removeAllCargo");
+		OOLog(kOOLogNoteRemoveAllCargo, @"Forcing removeAllCargo:");
 	}
 	else
 	{
-		OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo");
+		OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo:");
 	}
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
@@ -1456,7 +1456,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(kOOLogSyntaxMessageShipAIs, @"SCRIPT ERROR in %@ ***** CANNOT messageShipAIs: '%@' (bad parameter count)", CurrentScriptDesc(), roles_message);
+		OOLog(kOOLogSyntaxMessageShipAIs, @"***** SCRIPT ERROR: in %@, CANNOT messageShipAIs: '%@' (bad parameter count)", CurrentScriptDesc(), roles_message);
 		return;
 	}
 
@@ -1483,7 +1483,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShips: '%@' (expected <role> <count>)", CurrentScriptDesc(), roles_number);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, CANNOT addShips: '%@' (expected <role> <count>)", CurrentScriptDesc(), roles_number);
 		return;
 	}
 	
@@ -1493,11 +1493,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	int number = [numberString intValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 	
-	OOLog(kOOLogNoteAddShips, @"DEBUG ..... Going to add %d ships with role '%@'", number, roleString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG: Going to add %d ships with role '%@'", number, roleString);
 	
 	while (number--)
 		[UNIVERSE witchspaceShipWithPrimaryRole:roleString];
@@ -1513,7 +1513,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 3)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addSystemShips: '%@' (expected <role> <count> <position>)", CurrentScriptDesc(), roles_number_position);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, CANNOT addSystemShips: '%@' (expected <role> <count> <position>)", CurrentScriptDesc(), roles_number_position);
 		return;
 	}
 
@@ -1525,11 +1525,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	double posn = [positionString doubleValue];
 	if (number < 0)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
 		return;
 	}
 
-	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
+	OOLog(kOOLogNoteAddShips, @"DEBUG: Going to add %d ships with role '%@' at a point %.3f along route1", number, roleString, posn);
 
 	while (number--)
 		[UNIVERSE addShipWithRole:roleString nearRouteOneAt:posn];
@@ -1549,7 +1549,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAt: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, CANNOT addShipsAt: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1563,17 +1563,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
-	if (number < 0)
+	if (number < 1)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know.", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"----- WARNING in %@  Tried to add %i ships -- no ship added.", CurrentScriptDesc(), number);
 		return;
 	}
 
-	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG: Going to add %d ship(s) with role '%@' at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![UNIVERSE addShips: number withRole:roleString nearPosition: posn withCoordinateSystem: systemString])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsAt:", number, roleString);
+		OOLog(kOOLogScriptAddShipsFailed, @"***** SCRIPT ERROR: in %@, %@ could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsAt:", number, roleString);
 	}
 }
 
@@ -1591,7 +1591,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 6)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT addShipsAtPrecisely: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@,* CANNOT addShipsAtPrecisely: '%@' (expected <role> <count> <coordinate-system> <x> <y> <z>)", CurrentScriptDesc(), roles_number_system_x_y_z);
 		return;
 	}
 
@@ -1605,17 +1605,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	Vector posn = make_vector( [xString floatValue], [yString floatValue], [zString floatValue]);
 
 	int number = [numberString intValue];
-	if (number < 0)
+	if (number < 1)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"----- WARNING: in %@, Can't add %i ships -- no ship added.", CurrentScriptDesc(), number);
 		return;
 	}
 
-	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG: Going to add %d ship(s) with role '%@' precisely at point (%.3f, %.3f, %.3f) using system %@", number, roleString, posn.x, posn.y, posn.z, systemString);
 
 	if (![UNIVERSE addShips: number withRole:roleString atPosition: posn withCoordinateSystem: systemString])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsAtPrecisely:", number, roleString);
+		OOLog(kOOLogScriptAddShipsFailed, @"***** SCRIPT ERROR: in %@, %@ could not add %u ships with role '%@'", CurrentScriptDesc(), @"addShipsAtPrecisely:", number, roleString);
 	}
 }
 
@@ -1626,7 +1626,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] != 7)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** CANNOT 'addShipsWithinRadius: %@' (expected <role> <count> <coordinate-system> <x> <y> <z> <radius>))", CurrentScriptDesc(), roles_number_system_x_y_z_r);
+		OOLog(kOOLogSyntaxAddShips, @"***** SCRIPT ERROR: in %@, CANNOT 'addShipsWithinRadius: %@' (expected <role> <count> <coordinate-system> <x> <y> <z> <radius>))", CurrentScriptDesc(), roles_number_system_x_y_z_r);
 		return;
 	}
 
@@ -1639,17 +1639,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	GLfloat r = [[tokens objectAtIndex:6] floatValue];
 	Vector posn = make_vector( x, y, z);
 
-	if (number < 0)
+	if (number < 1)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"SCRIPT ERROR in %@ ***** Can't add %i ships -- that's less than zero, y'know..", CurrentScriptDesc(), number);
+		OOLog(kOOLogSyntaxAddShips, @"----- WARNING: in %@, can't add %i ships -- no ship added.", CurrentScriptDesc(), number);
 		return;
 	}
 
-	OOLog(kOOLogNoteAddShips, @"DEBUG Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
+	OOLog(kOOLogNoteAddShips, @"DEBUG: Going to add %d ship(s) with role '%@' within %.2f radius about point (%.3f, %.3f, %.3f) using system %@", number, roleString, r, x, y, z, systemString);
 
 	if (![UNIVERSE addShips:number withRole: roleString nearPosition: posn withCoordinateSystem: systemString withinRadius: r])
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** %@: Could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsWithinRadius:", number, roleString);
+		OOLog(kOOLogScriptAddShipsFailed, @"***** SCRIPT ERROR :in %@, %@ could not add %u ships with role \"%@\"", CurrentScriptDesc(), @"addShipsWithinRadius:", number, roleString);
 	}
 }
 
@@ -1658,11 +1658,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if ([UNIVERSE spawnShip:ship_key])
 	{
-		OOLog(kOOLogNoteAddShips, @"DEBUG Spawned ship with shipdata key '%@'.", ship_key);
+		OOLog(kOOLogNoteAddShips, @"DEBUG: Spawned ship with shipdata key '%@'.", ship_key);
 	}
 	else
 	{
-		OOLog(kOOLogScriptAddShipsFailed, @"SCRIPT ERROR in %@ ***** Could not spawn ship with shipdata key '%@'.", CurrentScriptDesc(), ship_key);
+		OOLog(kOOLogScriptAddShipsFailed, @"***** SCRIPT ERROR: in %@, could not spawn ship with shipdata key '%@'.", CurrentScriptDesc(), ship_key);
 	}
 }
 
@@ -1676,7 +1676,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(kOOLogSyntaxSet, @"SCRIPT ERROR in %@ ***** CANNOT SET: '%@' (expected mission_variable or local_variable followed by value expression)", CurrentScriptDesc(), missionvariable_value);
+		OOLog(kOOLogSyntaxSet, @"***** SCRIPT ERROR: in %@, CANNOT SET '%@' (expected mission_variable or local_variable followed by value expression)", CurrentScriptDesc(), missionvariable_value);
 		return;
 	}
 
@@ -1689,11 +1689,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!hasMissionPrefix && !hasLocalPrefix)
 	{
-		OOLog(kOOLogSyntaxSet, @"SCRIPT ERROR in %@ ***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
+		OOLog(kOOLogSyntaxSet, @"***** SCRIPT ERROR: in %@, IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
 		return;
 	}
 
-	OOLog(kOOLogNoteSet, @"SCRIPT %@ is set to %@", missionVariableString, valueString);
+	OOLog(kOOLogNoteSet, @"DEBUG: script %@ is set to %@", missionVariableString, valueString);
 	
 	if (hasMissionPrefix)
 	{
@@ -1724,7 +1724,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxReset, @"SCRIPT ERROR in %@ ***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
+		OOLog(kOOLogSyntaxReset, @"***** SCRIPT ERROR: in %@, IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
 	}
 }
 
@@ -1751,7 +1751,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxIncrement, @"SCRIPT ERROR in %@ ***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
+		OOLog(kOOLogSyntaxIncrement, @"***** SCRIPT ERROR: in %@, IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
 	}
 }
 
@@ -1778,7 +1778,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxDecrement, @"SCRIPT ERROR in %@ ***** IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
+		OOLog(kOOLogSyntaxDecrement, @"***** SCRIPT ERROR: in %@, IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString);
 	}
 }
 
@@ -1793,7 +1793,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(kOOLogSyntaxAdd, @"SCRIPT ERROR in %@ ***** CANNOT ADD: '%@'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@'", CurrentScriptDesc(), missionVariableString_value);
 		return;
 	}
 
@@ -1818,7 +1818,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxAdd, @"SCRIPT ERROR in %@ ***** CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
 	}
 }
 
@@ -1833,7 +1833,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(@"script.debug.syntax.subtract", @"SCRIPT ERROR in %@ ***** CANNOT SUBTRACT: '%@'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(@"script.debug.syntax.subtract", @"***** SCRIPT ERROR: in %@, CANNOT SUBTRACT: '%@'", CurrentScriptDesc(), missionVariableString_value);
 		return;
 	}
 
@@ -1858,7 +1858,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxAdd, @"SCRIPT ERROR in %@ ***** CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
 	}
 }
 
@@ -2187,12 +2187,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:planetKey];
 	if (!dict)
 	{
-		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", planetKey);
+		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", planetKey);
 		return;
 	}
 
 	/*- add planet -*/
-	OOLog(kOOLogDebugAddPlanet, @"DEBUG initPlanetFromDictionary: %@", dict);
+	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
 	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
@@ -2204,11 +2204,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![dict objectForKey:@"position"])
 	{
-		OOLog(@"script.error.addPlanet.noPosition", @"ERROR - you must specify a position for scripted planet '%@' before it can be created", planetKey);
+		OOLog(@"script.error.addPlanet.noPosition", @"***** ERROR: you must specify a position for scripted planet '%@' before it can be created", planetKey);
 		return;
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
+	if([positionString hasPrefix:@"abs "] && ([UNIVERSE planet] != nil || [UNIVERSE sun] !=nil))
+	{
+		OOLogWARN(@"script.deprecated", @"position for planet '%@' set in 'abs' inside planetinfo.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",planetKey);
+	}
+	
 	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
@@ -2227,18 +2232,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) addMoon: (NSString *)moonKey
 {
-	OOLog(kOOLogNoteAddPlanet, @"DEBUG addMoon: %@", moonKey);
+	OOLog(kOOLogNoteAddPlanet, @"DEBUG: addMoon '%@'", moonKey);
 
 	if (!UNIVERSE)
 		return;
 	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:moonKey];
 	if (!dict)
 	{
-		OOLog(@"script.error.addPlanet.keyNotFound", @"ERROR - could not find an entry in planetinfo.plist for '%@'", moonKey);
+		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", moonKey);
 		return;
 	}
 
-	OOLog(kOOLogDebugAddPlanet, @"DEBUG initMoonFromDictionary: %@", dict);
+	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
 	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict] autorelease];
 	[planet setStatus:STATUS_ACTIVE];
 	
@@ -2250,11 +2255,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (![dict objectForKey:@"position"])
 	{
-		OOLog(@"script.error.addPlanet.noPosition", @"ERROR - you must specify a position for scripted moon '%@' before it can be created", moonKey);
+		OOLog(@"script.error.addPlanet.noPosition", @"***** ERROR: you must specify a position for scripted moon '%@' before it can be created", moonKey);
 		return;
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
+	if([positionString hasPrefix:@"abs "] && ([UNIVERSE planet] != nil || [UNIVERSE sun] !=nil))
+	{
+		OOLogWARN(@"script.deprecated", @"position for moon '%@' set in 'abs' inside planetinfo.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",moonKey);
+	}
 	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)
 	{
@@ -2388,13 +2397,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	BOOL success = YES;
 	if (conditions == nil)
 	{
-		OOLog(@"script.scene.couplet.badConditions", @"SCENE ERROR no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
+		OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
 	}
 	else
 	{
 		if (![conditions isKindOfClass:[NSArray class]])
 		{
-			OOLog(@"script.scene.couplet.badConditions", @"SCENE ERROR \"conditions = %@\" is not an array - returning NO.", [conditions description]);
+			OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: \"conditions = %@\" is not an array - returning NO.", [conditions description]);
 			return NO;
 		}
 	}

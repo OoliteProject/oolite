@@ -227,7 +227,7 @@ static PlayerEntity *sSharedPlayer = nil;
 					}
 					else
 					{
-						OOLog(@"player.loadCargoPods.noContainer", @"***** ERROR couldn't find a container while trying to [PlayerEntity loadCargoPods] *****");
+						OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
 						// throw an exception here...
 						[NSException raise:OOLITE_EXCEPTION_FATAL
 							format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
@@ -6505,7 +6505,7 @@ static int last_outfitting_index;
 		if (dockedStation == nil)
 		{
 			//there are a number of possible current statuses, not just STATUS_DOCKED
-			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			OOLog(kOOLogInconsistentState, @"***** ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString([self status]));
 			[self setStatus:STATUS_IN_FLIGHT];
 			isDockedStatus = NO;
 		}
@@ -6514,7 +6514,7 @@ static int last_outfitting_index;
 	{
 		if (dockedStation != nil)
 		{
-			OOLog(kOOLogInconsistentState, @"ERROR: status is %@, not STATUS_DOCKED, but dockedStation is not nil; treating as docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			OOLog(kOOLogInconsistentState, @"***** ERROR: status is %@, not STATUS_DOCKED, but dockedStation is not nil; treating as docked. This is an internal error, please report it.", EntityStatusToString([self status]));
 			[self setStatus:STATUS_DOCKED];
 			isDockedStatus = YES;
 		}

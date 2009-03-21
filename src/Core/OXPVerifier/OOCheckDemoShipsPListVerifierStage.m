@@ -77,7 +77,7 @@ static NSString * const kStageName	= @"Checking demoships.plist";
 	// Check that it's an array
 	if (![demoshipsPList isKindOfClass:[NSArray class]])
 	{
-		OOLog(@"verifyOXP.demoshipsPList.notArray", @"ERROR: demoships.plist is not an array.");
+		OOLog(@"verifyOXP.demoshipsPList.notArray", @"***** ERROR: demoships.plist is not an array.");
 		return;
 	}
 	
@@ -92,7 +92,7 @@ static NSString * const kStageName	= @"Checking demoships.plist";
 	// Check that it's a dictionary
 	if (![shipdataPList isKindOfClass:[NSDictionary class]])
 	{
-		OOLog(@"verifyOXP.demoshipsPList.notDict", @"ERROR: shipdata.plist is not a dictionary.");
+		OOLog(@"verifyOXP.demoshipsPList.notDict", @"***** ERROR: shipdata.plist is not a dictionary.");
 		return;
 	}
 	
@@ -113,7 +113,7 @@ static NSString * const kStageName	= @"Checking demoships.plist";
 	{
 		if ([shipdataPList objectForKey:name] == nil)
 		{
-			OOLog(@"verifyOXP.demoshipsPList.unknownShip", @"WARNING: demoships.plist entry \"%@\" not found in shipdata.plist.", name);
+			OOLog(@"verifyOXP.demoshipsPList.unknownShip", @"----- WARNING: demoships.plist entry \"%@\" not found in shipdata.plist.", name);
 		}
 	}
 }

@@ -125,7 +125,7 @@ OOINLINE void FreeElement(OOAsyncQueueElement *element)
 	
 	if (_elemCount != 0)
 	{
-		OOLog(@"asyncQueue.nonEmpty", @"WARNING: %@ deallocated while non-empty, flushing.", self);
+		OOLogWARN(@"asyncQueue.nonEmpty", @"%@ deallocated while non-empty, flushing.", self);
 		[self doEmptyQueueWithAcquiredLock];
 	}
 	

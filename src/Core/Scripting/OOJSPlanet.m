@@ -123,14 +123,17 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 - (NSString *)jsClassName
 {
-	if ([self planetType] == PLANET_TYPE_SUN)
-	{
-		return @"Sun";
+	switch ([self planetType]) {
+		case PLANET_TYPE_SUN:
+			return @"Sun";
+		case PLANET_TYPE_GREEN:
+			return @"Planet";
+		case PLANET_TYPE_MOON:
+			return @"Moon";
+		default:
+			return @"Unknown";
 	}
-	else
-	{
-		return @"Planet";
-	}
+
 }
 
 @end

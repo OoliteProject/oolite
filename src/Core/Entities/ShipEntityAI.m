@@ -1193,7 +1193,7 @@ static WormholeEntity *whole = nil;
 #ifndef NDEBUG
 		if (reportAIMessages)
 		{
-			OOLog(@"ai.suggestEscort", @"DEBUG %@ suggests escorting %@", self, mother);
+			OOLog(@"ai.suggestEscort", @"DEBUG: %@ suggests escorting %@", self, mother);
 		}
 #endif
 		
@@ -1216,7 +1216,7 @@ static WormholeEntity *whole = nil;
 #ifndef NDEBUG
 		if (reportAIMessages)
 		{
-			OOLog(@"ai.suggestEscort.refused", @"DEBUG %@ refused by %@", self, mother);
+			OOLog(@"ai.suggestEscort.refused", @"DEBUG: %@ refused by %@", self, mother);
 		}
 #endif
 
@@ -1632,7 +1632,7 @@ static WormholeEntity *whole = nil;
 	}
 	else
 	{
-		OOLog(@"ai.rollD.invalidValue", @"***** AI_ERROR - invalid value supplied to rollD: '%@'", die_number);
+		OOLog(@"ai.rollD.invalidValue", @"***** ERROR: invalid value supplied to rollD: '%@'.", die_number);
 	}
 }
 
@@ -1805,7 +1805,7 @@ static WormholeEntity *whole = nil;
 
 	if ([tokens count] != 4)
 	{
-		OOLog(@"ai.syntax.setCoordinates", @"***** AI_ERROR CANNOT setCoordinates: '%@'",system_x_y_z);
+		OOLog(@"ai.syntax.setCoordinates", @"***** ERROR: cannot setCoordinates: '%@'.",system_x_y_z);
 		return;
 	}
 	
@@ -1950,11 +1950,11 @@ static WormholeEntity *whole = nil;
 	if (!deprecationWarning)
 	{
 		deprecationWarning = YES;
-		OOLog(@"script.deprecated.scriptActionOnTarget", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used. It is slow and has unpredictable side effects. The recommended alternative is to use sendScriptMessage: to call a function in a ship's JavaScript ship script instead. scriptActionOnTarget: should not be used at all from scripts. An alternative is safeScriptActionOnTarget:, which is similar to scriptActionOnTarget: but has less side effects.", [AI currentlyRunningAIDescription]);
+		OOLog(@"script.deprecated.scriptActionOnTarget", @"----- WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used. It is slow and has unpredictable side effects. The recommended alternative is to use sendScriptMessage: to call a function in a ship's JavaScript ship script instead. scriptActionOnTarget: should not be used at all from scripts. An alternative is safeScriptActionOnTarget:, which is similar to scriptActionOnTarget: but has less side effects.", [AI currentlyRunningAIDescription]);
 	}
 	else
 	{
-		OOLog(@"script.deprecated.scriptActionOnTarget.repeat", @"***** WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used.", [AI currentlyRunningAIDescription]);
+		OOLog(@"script.deprecated.scriptActionOnTarget.repeat", @"----- WARNING in AI %@: the AI method scriptActionOnTarget: is deprecated and should not be used.", [AI currentlyRunningAIDescription]);
 	}
 #endif
 	

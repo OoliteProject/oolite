@@ -115,7 +115,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		OOLog(@"savedGame.read.fail.fileNotFound", @"DEBUG ERROR! File at path '%@' could not be found.", savePath);
+		OOLogERR(@"savedGame.read.fail.fileNotFound", @"File at path '%@' could not be found.", savePath);
 		return nil;
 	}
 }
@@ -158,7 +158,7 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			OOLog(@"savedGame.defaultPath.create.failed", @"ERROR ***** Unable to create: %@ saved games will go to the home directory *****", savedir);
+			OOLogERR(@"savedGame.defaultPath.create.failed", @"Unable to create '%@'. Saved games will go to the home directory.", savedir);
 			return NSHomeDirectory();
 		}
 	}
@@ -166,7 +166,7 @@ MA 02110-1301, USA.
 	// is it a directory?
 	if (!pathIsDirectory)
 	{
-		OOLog(@"savedGame.defaultPath.notDirectory", @"ERROR ***** %@ is not a directory, saved games will go to the home directory *****", savedir);
+		OOLogERR(@"savedGame.defaultPath.notDirectory", @"'%@' is not a directory, saved games will go to the home directory.", savedir);
 		return NSHomeDirectory();
 	}
 	

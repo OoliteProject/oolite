@@ -201,7 +201,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if runtime creation failed, end the program here
 	if (runtime == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"runtime");
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"runtime");
 		exit(1);
 	}
 
@@ -211,7 +211,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// if context creation failed, end the program here
 	if (mainContext == NULL)
 	{
-		OOLog(@"script.javaScript.init.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
+		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"context");
 		exit(1);
 	}
 	
@@ -345,7 +345,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		// if context creation failed, end the program here
 		if (context == NULL)
 		{
-			OOLog(@"script.javaScript.error", @"FATAL ERROR: failed to create JavaScript %@.", @"context");
+			OOLog(@"script.javaScript.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"context");
 			exit(1);
 		}
 		
@@ -1287,6 +1287,7 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 	{
 		switch ([(PlanetEntity *)entity planetType])
 		{
+			case PLANET_TYPE_MOON:
 			case PLANET_TYPE_GREEN:
 			case PLANET_TYPE_SUN:
 				return YES;

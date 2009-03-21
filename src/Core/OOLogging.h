@@ -125,10 +125,14 @@ void OOLogIndentIf(NSString *inMessageClass);
 void OOLogOutdentIf(NSString *inMessageClass);
 #endif
 
+#define OOLogERR(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, @"***** ERROR: ",format, ## __VA_ARGS__)
+#define OOLogWARN(class, format, ...) OOLogWithPrefix(class, OOLOG_FUNCTION_NAME, OOLOG_FILE_NAME, __LINE__, @"----- WARNING: ",format, ## __VA_ARGS__)
+
 // Remember/restore indent levels, for cases where an exception may occur while indented.
 void OOLogPushIndent(void);
 void OOLogPopIndent(void);
 
+void OOLogWithPrefix(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inPrefix, NSString *inFormat, ...);
 void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...);
 void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, va_list inArguments);
 
@@ -155,6 +159,7 @@ void OOLogGenericSubclassResponsibilityForFunction(const char *inFunction);
 	for each instance -- for instance, -[Entity warnAboutHostiles] uses
 	@"general.error.subclassResponsibility.Entity-warnAboutHostiles".
 */
+
 extern NSString * const kOOLogSubclassResponsibility;		// @"general.error.subclassResponsibility"
 extern NSString * const kOOLogParameterError;				// @"general.error.parameterError"
 extern NSString * const kOOLogDeprecatedMethod;				// @"general.error.deprecatedMethod"

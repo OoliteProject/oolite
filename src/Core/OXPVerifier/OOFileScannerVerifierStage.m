@@ -212,7 +212,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			if (![_caseWarnings containsObject:lcDirName])
 			{
 				[_caseWarnings addObject:lcDirName];
-				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: directory \"%@\" should be called \"%@\".", realDirName, folder);
+				OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: directory '%@' should be called '%@'.", realDirName, folder);
 			}
 		}
 		
@@ -228,7 +228,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 				if (context != nil)  context = [@" referenced in " stringByAppendingString:context];
 				else  context = @"";
 				
-				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: request for file \"%@\"%@ resolved to \"%@\".", expectedPath, context, path);
+				OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: request for file '%@'%@ resolved to '%@'.", expectedPath, context, path);
 			}
 		}
 		
@@ -393,7 +393,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else
 			{
-				OOLog(@"verifyOXP.scanFiles.overloadedName", @"ERROR: %@ named \"%@\" conflicts with %@ named \"%@\", ignoring. (OXPs must work on case-insensitive file systems!)", @"directory", name, existingType, existing);
+				OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"directory", name, existingType, existing);
 			}
 		}
 		else if ([type isEqualToString:NSFileTypeRegular])
@@ -404,7 +404,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else if ([readMeNames containsObject:lcName])
 			{
-				OOLog(@"verifyOXP.scanFiles.readMe", @"WARNING: apparent Read Me file (\"%@\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", name);
+				OOLog(@"verifyOXP.scanFiles.readMe", @"----- WARNING: apparent Read Me file (\"%@\") inside OXP. This is the wrong place for a Read Me file, because it will not be read.", name);
 			}
 			else if (!CheckNameConflict(lcName, directoryCases, rootFiles, &existing, &existingType))
 			{
@@ -413,16 +413,16 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else
 			{
-				OOLog(@"verifyOXP.scanFiles.overloadedName", @"ERROR: %@ named \"%@\" conflicts with %@ named \"%@\", ignoring. (OXPs must work on case-insensitive file systems!)", @"file", name, existingType, existing);
+				OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"file", name, existingType, existing);
 			}
 		}
 		else if ([type isEqualToString:NSFileTypeSymbolicLink])
 		{
-			OOLog(@"verifyOXP.scanFiles.symLink", @"WARNING: \"%@\" is a symbolic link, ignoring.", name);
+			OOLog(@"verifyOXP.scanFiles.symLink", @"----- WARNING: \"%@\" is a symbolic link, ignoring.", name);
 		}
 		else
 		{
-			OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"WARNING: \"%@\" is a non-standard file (%@), ignoring.", name, type);
+			OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"----- WARNING: \"%@\" is a non-standard file (%@), ignoring.", name, type);
 		}
 	}
 	
@@ -454,7 +454,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		
 		if (![actual isEqualToString:name])
 		{
-			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: directory \"%@\" should be called \"%@\".", actual, name);
+			OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: directory '%@' should be called '%@'.", actual, name);
 		}
 		[_caseWarnings addObject:lcName];
 	}
@@ -488,7 +488,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		if (![realFileName isEqualToString:name])
 		{
 			if (inConfigDir)  realFileName = [@"Config" stringByAppendingPathComponent:realFileName];
-			OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: configuration file \"%@\" should be called \"%@\".", realFileName, name);
+			OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: configuration file '%@' should be called '%@'.", realFileName, name);
 		}
 	}
 }
@@ -533,7 +533,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			if (![realFileName isEqualToString:name])
 			{
 				if (inDirectory)  realFileName = [directory stringByAppendingPathComponent:realFileName];
-				OOLog(@"verifyOXP.files.caseMismatch", @"ERROR: case mismatch: file \"%@\" should be called \"%@\".", realFileName, name);
+				OOLog(@"verifyOXP.files.caseMismatch", @"***** ERROR: case mismatch: file '%@' should be called '%@'.", realFileName, name);
 			}
 		}
 	}
@@ -601,7 +601,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else
 			{
-				OOLog(@"verifyOXP.scanFiles.overloadedName", @"ERROR: %@ named \"%@\" conflicts with %@ named \"%@\", ignoring. (OXPs must work on case-insensitive file systems!)", @"file", relativeName, @"file", [dirName stringByAppendingPathComponent:existing]);
+				OOLog(@"verifyOXP.scanFiles.overloadedName", @"***** ERROR: %@ '%@' conflicts with %@ named '%@', ignoring. (OXPs must work on case-insensitive file systems!)", @"file", relativeName, @"file", [dirName stringByAppendingPathComponent:existing]);
 			}
 		}
 		else
@@ -611,7 +611,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 				[dirEnum skipDescendents];
 				if (![_skipDirectoryNames containsObject:name])
 				{
-					OOLog(@"verifyOXP.scanFiles.directory", @"WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
+					OOLog(@"verifyOXP.scanFiles.directory", @"----- WARNING: \"%@\" is a nested directory, ignoring.", relativeName);
 				}
 				else
 				{
@@ -620,11 +620,11 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			}
 			else if ([type isEqualToString:NSFileTypeSymbolicLink])
 			{
-				OOLog(@"verifyOXP.scanFiles.symLink", @"WARNING: \"%@\" is a symbolic link, ignoring.", relativeName);
+				OOLog(@"verifyOXP.scanFiles.symLink", @"----- WARNING: \"%@\" is a symbolic link, ignoring.", relativeName);
 			}
 			else
 			{
-				OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"WARNING: \"%@\" is a non-standard file (%@), ignoring.", relativeName, type);
+				OOLog(@"verifyOXP.scanFiles.nonStandardFile", @"----- WARNING: \"%@\" is a non-standard file (%@), ignoring.", relativeName, type);
 			}
 		}
 	}
@@ -669,7 +669,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 					formatDesc = [NSString stringWithFormat:@"unknown format (%i)", (int)format];
 			}
 			
-			OOLog(@"verifyOXP.plist.weirdFormat", @"Property list %@ is in %@; OpenStep text format and XML format are the recommended formats for Oolite.", displayPath, formatDesc);
+			OOLog(@"verifyOXP.plist.weirdFormat", @"----- WARNING: Property list %@ is in %@; OpenStep text format and XML format are the recommended formats for Oolite.", displayPath, formatDesc);
 		}
 	}
 }

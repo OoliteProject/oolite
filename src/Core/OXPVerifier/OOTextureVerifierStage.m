@@ -118,7 +118,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 				  referencedFrom:context
 					checkBuiltIn:YES])
 	{
-		OOLog(@"verifyOXP.texture.notFound", @"WARNING: texture \"%@\" referenced in %@ could not be found in %@ or in Oolite.", name, context, [[self verifier] oxpDisplayName]);
+		OOLog(@"verifyOXP.texture.notFound", @"----- WARNING: texture \"%@\" referenced in %@ could not be found in %@ or in Oolite.", name, context, [[self verifier] oxpDisplayName]);
 	}
 }
 
@@ -155,7 +155,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 	displayName = [fileScanner displayNameForFile:name andFolder:folder];
 	if (loader == nil)
 	{
-		OOLog(@"verifyOXP.texture.failed", @"ERROR: image %@ could not be read.", displayName);
+		OOLog(@"verifyOXP.texture.failed", @"***** ERROR: image %@ could not be read.", displayName);
 	}
 	else
 	{
@@ -168,7 +168,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 			rHeight = OORoundUpToPowerOf2((2 * height) / 3);
 			if (width != rWidth || height != rHeight)
 			{
-				OOLog(@"verifyOXP.texture.notPOT", @"WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
+				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
 			}
 			else
 			{
@@ -177,7 +177,7 @@ static NSString * const kStageName	= @"Testing textures and images";
 		}
 		else
 		{
-			OOLog(@"verifyOXP.texture.failed", @"ERROR: texture loader failed to load %@.", displayName);
+			OOLog(@"verifyOXP.texture.failed", @"***** ERROR: texture loader failed to load %@.", displayName);
 		}
 	}
 }

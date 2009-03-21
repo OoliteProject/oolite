@@ -63,7 +63,7 @@ NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context)
 		}
 		else
 		{
-			OOLog(@"script.syntax.statement.invalidType", @"SCRIPT ERROR in %@ ***** Statment is of invalid type - expected string or dictionary, got %@.", context, [statement class]);
+			OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", context, [statement class]);
 			statement = nil;
 		}
 		
@@ -97,7 +97,7 @@ NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context
 	{
 		if (![condition isKindOfClass:[NSString class]])
 		{
-			OOLog(@"script.syntax.condition.notString", @"SCRIPT ERROR in %@ ***** Bad condition - expected string, got %@; ignoring.", context, [condition class]);
+			OOLog(@"script.syntax.condition.notString", @"***** SCRIPT ERROR: in %@, bad condition - expected string, got %@; ignoring.", context, [condition class]);
 			OK = NO;
 			break;
 		}
@@ -146,7 +146,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 	
 	if (tokenCount < 1)
 	{
-		OOLog(@"script.debug.syntax.scriptCondition.noneSpecified", @"SCRIPT ERROR in %@ ***** Empty script condition.", context);
+		OOLog(@"script.debug.syntax.scriptCondition.noneSpecified", @"***** SCRIPT ERROR: in %@, empty script condition.", context);
 		return NO;
 	}
 	
@@ -155,7 +155,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, context);
 	if (opType >= OP_INVALID)
 	{
-		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\".", context, selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed.", context, selectorString);
 		return NO;
 	}
 	
@@ -172,7 +172,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 		else if ([comparatorString isEqualToString:@"undefined"])  comparatorValue = COMPARISON_UNDEFINED;
 		else
 		{
-			OOLog(@"script.debug.syntax.badComparison", @"SCRIPT ERROR in %@ ***** Unknown comparison operator \"%@\", will return NO.", context, comparatorString);
+			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@' , will return NO.", context, comparatorString);
 			return NO;
 		}
 	}
@@ -183,14 +183,14 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 			Returning NO here causes AlwaysFalseConditions() to be used, which
 			has the same effect.
 		 */
-		OOLog(@"script.debug.syntax.noOperator", @"SCRIPT WARNING in %@ ----- No operator in expression \"%@\", will always evaluate as false.", context, condition);
+		OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression '%@', will always evaluate as false.", context, condition);
 		return NO;
 	}
 	
 	// Check for invalid opType/comparator combinations.
 	if (opType == OP_NUMBER && comparatorValue == COMPARISON_UNDEFINED)
 	{
-		OOLog(@"script.debug.syntax.invalidOperator", @"SCRIPT ERROR in %@ ***** Comparator \"%@\" is not valid for %@.", context, @"undefined", @"numbers");
+		OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", context, @"undefined", @"numbers");
 		return NO;
 	}
 	else if (opType == OP_BOOL)
@@ -203,7 +203,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 				break;
 			
 			default:
-				OOLog(@"script.debug.syntax.invalidOperator", @"SCRIPT ERROR in %@ ***** Comparator \"%@\" is not valid for %@.", context, OOComparisonTypeToString(comparatorValue), @"booleans");
+				OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", context, OOComparisonTypeToString(comparatorValue), @"booleans");
 				return NO;
 				
 		}
@@ -274,7 +274,7 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 	conditions = [statement arrayForKey:@"conditions"];
 	if (conditions == nil)
 	{
-		OOLog(@"script.syntax.noConditions", @"SCRIPT ERROR in %@ ***** Conditions array contains no \"conditions\" entry, ignoring.", context);
+		OOLog(@"script.syntax.noConditions", @"***** SCRIPT ERROR: in %@, conditions array contains no \"conditions\" entry, ignoring.", context);
 		return nil;
 	}
 	
@@ -321,7 +321,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
 	selectorString = SanitizeActionMethod(rawSelectorString);
 	if (selectorString == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\". In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com.", context, rawSelectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to oolite.bug.reports@gmail.com.", context, rawSelectorString);
 		
 	//	return nil;
 		selectorString = rawSelectorString;
@@ -364,7 +364,7 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
 	if (*outSanitizedSelector == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"SCRIPT ERROR in %@ ***** Unpermitted method \"%@\". In a future version of Oolite, this method will be removed from the handler. If you believe the handler should be a permitted method, please report it to oolite.bug.reports@gmail.com.", context, selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to oolite.bug.reports@gmail.com.", context, selectorString);
 		
 		// return OP_INVALID;
 		*outSanitizedSelector = selectorString;
@@ -376,7 +376,7 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	if ([selectorString hasSuffix:@"_bool"])  return OP_BOOL;
 	
 	// If we got here, something's wrong.
-	OOLog(@"script.sanitize.unclassifiedSelector", @"***** ERROR: Whitelisted query method \"%@\" has no type suffix, treating as invalid.", selectorString);
+	OOLog(@"script.sanitize.unclassifiedSelector", @"***** ERROR: Whitelisted query method '%@' has no type suffix, treating as invalid.", selectorString);
 	return OP_INVALID;
 }
 

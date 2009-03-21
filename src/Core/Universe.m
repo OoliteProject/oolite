@@ -567,7 +567,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	if (!OOLogWillDisplayMessagesInClass(@"universe.objectDump"))  return;
 	
-	OOLog(@"universe.objectDump", @"DEBUG ENTITY DUMP: [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
+	OOLog(@"universe.objectDump", @"DEBUG: Entity Dump - [entities count] = %d,\tn_entities = %d", [entities count], n_entities);
 	
 	OOLogIndent();
 	for (i = 0; i < show_count; i++)
@@ -2396,6 +2396,11 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	positionString = [spawndict stringForKey:@"position"];
 	if (positionString != nil)
 	{
+		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
+		{
+			OOLogWARN(@"script.deprecated", @"position for entity '%@' set in 'abs' inside shipdata.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",shipdesc);
+		}
+
 		pos = [self coordinatesFromCoordinateSystemString:positionString];
 		[ship setPosition:pos];
 	}
@@ -2404,6 +2409,11 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	positionString = [spawndict stringForKey:@"facing_position"];
 	if (positionString != nil)
 	{
+		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
+		{
+			OOLogWARN(@"script.deprecated", @"facing_position for entity '%@' set in 'abs' inside shipdata.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",shipdesc);
+		}
+
 		spos = [ship position];
 		Quaternion q1;
 		rpos = [self coordinatesFromCoordinateSystemString:positionString];
@@ -2726,7 +2736,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	}
 	else
 	{
-		OOLog(@"universe.beacon.error", @"INTERNAL ERROR! Universe setNextBeacon:%@ where the ship has no beaconChar set", beaconShip);
+		OOLog(@"universe.beacon.error", @"***** ERROR: Universe setNextBeacon '%@'. The ship has no beaconChar set.", beaconShip);
 	}
 }
 
@@ -3064,7 +3074,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		}
 		else
 		{
-			OOLog(@"universe.createContainer.failed", @"***** ERROR failed to find a container to fill with %@ *****", commodity_name);
+			OOLog(@"universe.createContainer.failed", @"***** ERROR: failed to find a container to fill with %@.", commodity_name);
 		}
 		how_much -= amount;
 	}
@@ -7958,14 +7968,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		if (sortedEntities[index] != entity)
 		{
-			OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
+			OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity:%@ ENTITY IS NOT IN THE RIGHT PLACE IN THE ZERO_DISTANCE SORTED LIST -- FIXING...", entity);
 			unsigned i;
 			index = -1;
 			for (i = 0; (i < n_entities)&&(index == -1); i++)
 				if (sortedEntities[i] == entity)
 					index = i;
 			if (index == -1)
-				 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
+				 OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity:%@ ENTITY IS NOT IN THE ZERO_DISTANCE SORTED LIST -- CONTINUING...", entity);
 		}
 		if (index != -1)
 		{
@@ -7979,7 +7989,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 				index++;
 			}
 			if (n > 1)
-				 OOLog(kOOLogInconsistentState, @"DEBUG Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
+				 OOLog(kOOLogInconsistentState, @"DEBUG: Universe removeEntity: REMOVED %d EXTRA COPIES OF %@ FROM THE ZERO_DISTANCE SORTED LIST", n - 1, entity);
 			while (n--)
 			{
 				n_entities--;

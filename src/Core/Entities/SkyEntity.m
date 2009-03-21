@@ -188,7 +188,7 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
+			OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
 		}
 	}
 	colorDesc = [dictionary objectForKey:@"sky_color_1"];
@@ -196,14 +196,14 @@ MA 02110-1301, USA.
 	{
 		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
 		if (color != nil)  *ioColor1 = color;
-		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+		else  OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 	colorDesc = [dictionary objectForKey:@"sky_color_2"];
 	if (colorDesc != nil)
 	{
 		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
 		if (color != nil)  *ioColor2 = color;
-		else  OOLog(@"sky.fromDict", @"ERROR: could not interpret \"%@\" as a colour.", colorDesc);
+		else  OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 }
 

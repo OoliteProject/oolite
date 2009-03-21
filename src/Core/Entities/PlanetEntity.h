@@ -32,10 +32,11 @@ MA 02110-1301, USA.
 
 typedef enum
 {
-	PLANET_TYPE_GREEN		= 100,
-	PLANET_TYPE_SUN			= 200,
-	PLANET_TYPE_ATMOSPHERE  = 300,
-	PLANET_TYPE_MINIATURE	= 111
+	PLANET_TYPE_GREEN,
+	PLANET_TYPE_SUN,
+	PLANET_TYPE_ATMOSPHERE,
+	PLANET_TYPE_MOON,
+	PLANET_TYPE_MINIATURE
 } OOPlanetType;
 
 
@@ -127,8 +128,9 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 - (id) initWithSeed:(Random_Seed) p_seed;
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
-- (id) initPlanetFromDictionary:(NSDictionary*) dict;
 - (id) initMoonFromDictionary:(NSDictionary*) dict;
+- (id) initPlanetFromDictionary:(NSDictionary*) dict;
+- (id) initPlanetFromDictionary:(NSDictionary*) dict withAtmosphere: (BOOL) atmo andSeed:(Random_Seed) p_seed;
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat* col4v1, int rv);

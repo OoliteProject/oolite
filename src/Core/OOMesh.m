@@ -230,7 +230,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	if (EXPECT_NOT(baseFile == nil))
 	{
-		OOLog(kOOLogFileNotLoaded, @"***** ERROR no baseFile for entity %@", self);
+		OOLog(kOOLogFileNotLoaded, @"***** ERROR: no baseFile for entity %@", self);
 		return;
 	}
 	
@@ -795,7 +795,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		if (data == nil)
 		{
 			// Model not found
-			OOLog(kOOLogMeshDataNotFound, @"ERROR - could not find %@", filename);
+			OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
 			return NO;
 		}
 
@@ -846,7 +846,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		if (![self allocateVertexBuffersWithCount:vertexCount])
 		{
-			OOLog(kOOLogAllocationFailure, @"ERROR - failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+			OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
 			return NO;
 		}
 		
@@ -872,7 +872,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		
 		if (![self allocateFaceBuffersWithCount:faceCount])
 		{
-			OOLog(kOOLogAllocationFailure, @"ERROR - failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
+			OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices, %u faces).", filename, vertexCount, faceCount);
 			return NO;
 		}
 		
@@ -1011,7 +1011,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						{
 							if (materialCount == kOOMeshMaxMaterials)
 							{
-								OOLog(kOOLogMeshTooManyMaterials, @"ERROR - model %@ has too many materials (maximum is %d)", filename, kOOMeshMaxMaterials);
+								OOLog(kOOLogMeshTooManyMaterials, @"***** ERROR: model %@ has too many materials (maximum is %d)", filename, kOOMeshMaxMaterials);
 								return NO;
 							}
 							_faces[j].materialIndex = materialCount;

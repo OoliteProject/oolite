@@ -161,7 +161,7 @@ static inline id CacheValue(BOOL inValue)
 static inline BOOL Inited(void)
 {
 	if (EXPECT(sInited)) return YES;
-	OOLogInternal(OOLOG_NOT_INITED, @"ERROR: OOLoggingInit() has not been called.");
+	OOLogInternal(OOLOG_NOT_INITED, @"***** ERROR: OOLoggingInit() has not been called.");
 	return NO;
 }
 
@@ -397,6 +397,16 @@ void OOLogOutdent(void)
 }
 
 
+void OOLogWithPrefix(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inPrefix, NSString *inFormat, ...)
+{
+	if (!OOLogWillDisplayMessagesInClass(inMessageClass)) return;
+	va_list				args;
+	va_start(args, inFormat);
+	OOLogWithFunctionFileAndLineAndArguments(inMessageClass, inFunction, inFile, inLine, [inPrefix stringByAppendingString:inFormat], args);
+	va_end(args);
+}
+
+
 void OOLogWithFunctionFileAndLine(NSString *inMessageClass, const char *inFunction, const char *inFile, unsigned long inLine, NSString *inFormat, ...)
 {
 	va_list				args;
@@ -609,7 +619,6 @@ void OOLogInsertMarker(void)
 	marker = [NSString stringWithFormat:@"\n\n========== [Marker %u] ==========", thisMarkerID];
 	OOLogOutputHandlerPrint(marker);
 }
-
 
 NSString * const kOOLogSubclassResponsibility		= @"general.error.subclassResponsibility";
 NSString * const kOOLogParameterError				= @"general.error.parameterError";

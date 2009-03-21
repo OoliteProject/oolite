@@ -186,7 +186,7 @@ static AI *sCurrentlyRunningAI = nil;
 	
 	if ([aiStack count] > 32)
 	{
-		OOLog(@"ai.pushStateMachine.overflow", @"***** ERROR: AI stack overflow for %@ stack:\n%@", [_owner shortDescription], aiStack);
+		OOLogERR(@"ai.pushStateMachine.overflow", @"AI stack overflow for %@ stack:\n%@", [_owner shortDescription], aiStack);
 		[NSException raise:@"OoliteException"
 					format:@"AI stack overflow for %@", _owner];
 	}
@@ -348,7 +348,7 @@ static AI *sCurrentlyRunningAI = nil;
 	*/
 	if (recursionLimiter > 32)
 	{
-		OOLog(@"ai.error.recursion", @"ERROR: AI reactToMessage: recursion in AI %@, state %@, aborting. It is not valid to call reactToMessage: FOO in state FOO.", stateMachineName, currentState);
+		OOLogERR(@"ai.error.recursion", @"AI reactToMessage: recursion in AI %@, state %@, aborting. It is not valid to call reactToMessage: FOO in state FOO.", stateMachineName, currentState);
 		return;
 	}
 	
@@ -443,11 +443,11 @@ static AI *sCurrentlyRunningAI = nil;
 				if ([selectorStr isEqual:@"setStateTo:"])  [self setState:dataString];
 				else if ([selectorStr isEqual:@"debugMessage:"])
 				{
-					OOLog(@"ai.takeAction.debugMessage", @"AI-DEBUG MESSAGE from %@ : %@", ownerDesc, dataString);
+					OOLog(@"ai.takeAction.debugMessage", @"DEBUG: AI MESSAGE from %@: %@", ownerDesc, dataString);
 				}
 				else
 				{
-					OOLog(@"ai.takeAction.badSelector", @"***** ERROR in AI %@ in state %@: %@ does not respond to %@", stateMachineName, currentState, ownerDesc, selectorStr);
+					OOLogERR(@"ai.takeAction.badSelector", @"in AI %@ in state %@: %@ does not respond to %@", stateMachineName, currentState, ownerDesc, selectorStr);
 				}
 			}
 		}
@@ -459,7 +459,7 @@ static AI *sCurrentlyRunningAI = nil;
 	else
 	{
 #ifndef NDEBUG
-		if (report)  OOLog(@"ai.takeAction.noAction", @"  - no action '%@'", action);
+		if (report)  OOLog(@"ai.takeAction.noAction", @"DEBUG: - no action '%@'", action);
 #endif
 	}
 	
@@ -500,7 +500,7 @@ static AI *sCurrentlyRunningAI = nil;
 
 	if ([pendingMessages count] > 32)
 	{
-		OOLog(@"ai.message.failed.overflow", @"***** ERROR: AI pending messages overflow for '%@'; pending messages:\n%@", ownerDesc, pendingMessages);
+		OOLogERR(@"ai.message.failed.overflow", @"AI pending messages overflow for '%@'; pending messages:\n%@", ownerDesc, pendingMessages);
 		[NSException raise:@"OoliteException"
 					format:@"AI pendingMessages overflow for %@", ownerDesc];
 	}
@@ -704,7 +704,7 @@ static AI *sCurrentlyRunningAI = nil;
 				stateHandlers = [newSM objectForKey:stateKey];
 				if (![stateHandlers isKindOfClass:[NSDictionary class]])
 				{
-					OOLog(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
+					OOLogWARN(@"ai.invalidFormat.state", @"State \"%@\" in AI \"%@\" is not a dictionary, ignoring.", stateKey, smName);
 					continue;
 				}
 				
@@ -743,7 +743,7 @@ static AI *sCurrentlyRunningAI = nil;
 		handlerActions = [handlers objectForKey:handlerKey];
 		if (![handlerActions isKindOfClass:[NSArray class]])
 		{
-			OOLog(@"ai.invalidFormat.handler", @"Handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, smName);
+			OOLogWARN(@"ai.invalidFormat.handler", @"Handler \"%@\" for state \"%@\" in AI \"%@\" is not an array, ignoring.", handlerKey, stateKey, smName);
 			continue;
 		}
 		
@@ -785,7 +785,7 @@ static AI *sCurrentlyRunningAI = nil;
 	{
 		if (![action isKindOfClass:[NSString class]])
 		{
-			OOLog(@"ai.invalidFormat.action", @"An action in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", handlerKey, stateKey, smName);
+			OOLogWARN(@"ai.invalidFormat.action", @"An action in handler \"%@\" for state \"%@\" in AI \"%@\" is not a string, ignoring.", handlerKey, stateKey, smName);
 			continue;
 		}
 		

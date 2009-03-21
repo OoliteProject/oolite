@@ -4790,7 +4790,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	if ([self hasSubEntity:sub])
 	{
-		OOLog(@"shipEntity.bug.subEntityRetainUnderflow", @"***** VALIDATION ERROR: Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.");
+		OOLogERR(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.");
 		
 		count = [subEntities count];
 		if (count != 1)
@@ -7792,7 +7792,7 @@ int w_space_seed = 1234567;
 #ifndef NDEBUG
 	if ([self reportAIMessages])
 	{
-		OOLog(@"planet.collide.shuttleLanded", @"DEBUG %@ landed on planet %@", self, planet);
+		OOLog(@"planet.collide.shuttleLanded", @"DEBUG: %@ landed on planet %@", self, planet);
 	}
 #endif
 	
@@ -8407,7 +8407,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	// Sanity check; this should always be true.
 	if (![self hasSubEntity:(ShipEntity *)other])
 	{
-		OOLog(@"ship.subentity.sanityCheck.failed", @"***** VALIDATION ERROR: %@ thinks it's a subentity of %@, but the supposed parent does not agree. This is an internal error, please report it.", [other shortDescription], [self shortDescription]);
+		OOLogERR(@"ship.subentity.sanityCheck.failed", @"%@ thinks it's a subentity of %@, but the supposed parent does not agree. This is an internal error, please report it.", [other shortDescription], [self shortDescription]);
 		[other setOwner:nil];
 		return NO;
 	}

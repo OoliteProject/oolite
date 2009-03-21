@@ -186,7 +186,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	int					tex_bytes = texture_w * texture_h * 4;
 
 	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (textureData)
+	if (imageBuffer)
 		(*textureData) = imageBuffer;
 
 	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
@@ -504,7 +504,7 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 {
 	if (nplanes != 4)
 	{
-		OOLog(@"textureStore.planetMap.failed", @"ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
+		OOLog(@"textureStore.planetMap.failed", @"***** ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
 		return;
 	}
 	

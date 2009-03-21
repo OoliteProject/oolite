@@ -78,7 +78,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 	// Check that it's an array
 	if (![equipmentPList isKindOfClass:[NSArray class]])
 	{
-		OOLog(@"verifyOXP.equipmentPList.notArray", @"ERROR: equipment.plist is not an array.");
+		OOLog(@"verifyOXP.equipmentPList.notArray", @"***** ERROR: equipment.plist is not an array.");
 		return;
 	}
 	
@@ -107,7 +107,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		// Entries should be arrays.
 		if (![entry isKindOfClass:[NSArray class]])
 		{
-			OOLog(@"verifyOXP.equipmentPList.entryNotArray", @"ERROR: equipment.plist entry %u of equipment.plist is not an array.", entryIndex);
+			OOLog(@"verifyOXP.equipmentPList.entryNotArray", @"***** ERROR: equipment.plist entry %u of equipment.plist is not an array.", entryIndex);
 			continue;
 		}
 		
@@ -123,12 +123,12 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		// Check that the entry has an acceptable number of elements.
 		if (elemCount < 5)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"ERROR: equipment.plist entry %@ has too few elements (%u, should be 5 or 6).", entryDesc, elemCount);
+			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"***** ERROR: equipment.plist entry %@ has too few elements (%u, should be 5 or 6).", entryDesc, elemCount);
 			continue;
 		}
 		if (6 < elemCount)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"WARNING: equipment.plist entry %@ has too many elements (%u, should be 5 or 6).", entryDesc, elemCount);
+			OOLog(@"verifyOXP.equipmentPList.badEntrySize", @"----- WARNING: equipment.plist entry %@ has too many elements (%u, should be 5 or 6).", entryDesc, elemCount);
 		}
 		
 		/*	Check element types. The numbers are required to be unsigned
@@ -137,30 +137,30 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		*/
 		if ([entry longAtIndex:EQUIPMENT_TECH_LEVEL_INDEX defaultValue:-1] < 0)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: tech level for entry %@ of equipment.plist is not a positive integer.", entryDesc);
+			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: tech level for entry %@ of equipment.plist is not a positive integer.", entryDesc);
 		}
 		if ([entry longAtIndex:EQUIPMENT_PRICE_INDEX defaultValue:-1] < 0)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: price for entry %@ of equipment.plist is not a positive integer.", entryDesc);
+			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: price for entry %@ of equipment.plist is not a positive integer.", entryDesc);
 		}
 		if ([entry stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] == nil)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: short description for entry %@ of equipment.plist is not a string.", entryDesc);
+			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: short description for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
 		if ([entry stringAtIndex:EQUIPMENT_KEY_INDEX] == nil)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: key for entry %@ of equipment.plist is not a string.", entryDesc);
+			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: key for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
 		if ([entry stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] == nil)
 		{
-			OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: long description for entry %@ of equipment.plist is not a string.", entryDesc);
+			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: long description for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
 		
 		if (5 < elemCount)
 		{
 			if ([entry dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] == nil)
 			{
-				OOLog(@"verifyOXP.equipmentPList.badElementType", @"ERROR: equipment.plist entry %@'s extra information dictionary is not a dictionary.", entryDesc);
+				OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: equipment.plist entry %@'s extra information dictionary is not a dictionary.", entryDesc);
 			}
 			// TODO: verify contents of extra info dictionary.
 		}
