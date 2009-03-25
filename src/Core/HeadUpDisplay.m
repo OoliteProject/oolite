@@ -986,8 +986,7 @@ static BOOL hostiles;
 				break;
 			case COMPASS_MODE_BEACONS:
 				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-				NSString *roles = [(ShipEntity*)the_next_beacon primaryRole];
-				NSArray	 *icon = [[UNIVERSE descriptions] arrayForKey:roles];
+				NSArray	 *icon = [[UNIVERSE descriptions] arrayForKey:[(ShipEntity*)the_next_beacon primaryRole]];
 				if (icon == nil)
 					OODrawString([NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));

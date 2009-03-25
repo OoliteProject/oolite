@@ -1115,15 +1115,25 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			unsigned j;
 			NSArray*	array = (NSArray *)[rowText objectAtIndex:i];
-			for (j = 0; ((j < [array count])&&(j < n_columns)) ; j++)
+			unsigned max_columns=[array count] < n_columns ? [array count] : n_columns;
+			BOOL isLeftAligned;
+			
+			for (j = 0; j < max_columns ; j++)
 			{
 				NSString*   text = [array stringAtIndex:j];
 				if ([text length] != 0)
 				{
-					rowPosition[i].x = tabStops[j];
+					isLeftAligned=tabStops[j]>=0;
+					rowPosition[i].x = abs(tabStops[j]);
+					NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
+					if(!isLeftAligned)
+					{
+						rowPosition[i].x -=block.size.width+6;
+						block = OORectFromString(text, x + rowPosition[i].x, y + rowPosition[i].y + 2, characterSize);
+						block.size.width+=2;
+					}					
 					if (i == (unsigned)selectedRow)
 					{
-						NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
 						glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
 						glBegin(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);

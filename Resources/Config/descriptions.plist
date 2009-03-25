@@ -946,7 +946,7 @@
 	// Shipyard screen
 	"@-shipyard-title"				= "%@ Ships For Sale";
 	"shipyard-shiptype"				= "Ship Type:";
-	"shipyard-price"				= "Price:";
+	"shipyard-price"				= "Price:    ";
 	"shipyard-cargo"				= "Cargo:";
 	"shipyard-cargo-d-tc"			= "Cargo: %d TC";
 	"shipyard-speed"				= "Speed:";
@@ -1091,6 +1091,7 @@
 	
 	// background scenes for GUI screens
 	"gui-scene-show-planet"			= ( "target-planet   120 80 640" );
+	"gui-scene-show-local-planet"	= ( "local-planet   120 80 640" );
 	
 	// character descriptions
 	// basic short desc - “A $species from $homeworld”

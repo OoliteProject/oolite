@@ -6887,7 +6887,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						fee = cunningFee(fee);
 
 						// premium = local price
-						float premium = local_cargo_value;
+						float premium = round(local_cargo_value);
 						
 						// 1hr per LY*LY, + 30 mins per hop
 						double contract_arrival_time = contract_departure_time + estimatedTimeForJourney(route_length, route_hops); 

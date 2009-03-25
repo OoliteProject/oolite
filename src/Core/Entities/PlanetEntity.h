@@ -78,6 +78,7 @@ typedef struct
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
 	BOOL					isTextured;
+	BOOL					isTextureImage; //is the texture a png image?
 	GLuint					textureName;
 	unsigned char			*textureData;
 	
@@ -126,6 +127,7 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 	
 - (id) initAsSunWithColor:(OOColor *) sun_color;
 - (id) initWithSeed:(Random_Seed) p_seed;
+- (void) miniaturize;
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
 - (id) initMoonFromDictionary:(NSDictionary*) dict;

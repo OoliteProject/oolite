@@ -2182,7 +2182,7 @@ static NSTimeInterval	time_last_frame;
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
 
 	//  view keys
-	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || (([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) && gui_screen == GUI_SCREEN_SHORT_RANGE_CHART))
+	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || (([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];

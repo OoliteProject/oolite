@@ -4334,8 +4334,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
 	[UNIVERSE removeDemoShips];
-	[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
-	
+	if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
+		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
+	else
+		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	if (oldScreen != gui_screen) [self checkScript];
 }
@@ -4646,11 +4648,6 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-
-
-
-
-
 - (void) setGuiToLoadSaveScreen
 {
 	BOOL			canLoadOrSave = NO;
@@ -4668,7 +4665,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	OOUInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
 	if (displayModeIndex == NSNotFound)
 	{
-		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
+		OOLogERR(@"display.currentMode.notFound", @"couldn't find current display mode, switching to basic 640x480.");
 		displayModeIndex = 0;
 	}
 
@@ -4881,7 +4878,7 @@ static int last_outfitting_index;
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
-		tab_stops[1] = 320;
+		tab_stops[1] = -380;
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
@@ -5581,9 +5578,9 @@ static int last_outfitting_index;
 			OOCreditsQuantity pricePerUnit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
 			OOMassUnit unit = [marketDef unsignedIntAtIndex:MARKET_UNITS];
 			
-			NSString *available = (available_units > 0) ? (NSString *)[NSString stringWithFormat:@"%d",available_units] : DESC(@"commodity-quantity-none");
-			NSString *price = [NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit];
-			NSString *owned = (units_in_hold > 0) ? (NSString *)[NSString stringWithFormat:@"%d",units_in_hold] : DESC(@"commodity-quantity-none");
+			NSString *available = (available_units > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",available_units],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
+			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
+			NSString *owned = (units_in_hold > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",units_in_hold],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
 			NSString *units = DisplayStringForMassUnit(unit);
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];

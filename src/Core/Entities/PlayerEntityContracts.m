@@ -587,8 +587,8 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		tab_stops[0] = 0;
 		tab_stops[1] = 160;
 		tab_stops[2] = 240;
-		tab_stops[3] = 360;
-		tab_stops[4] = 440;
+		tab_stops[3] = -410;
+		tab_stops[4] = -476;
 		
 		[gui setTabStops:tab_stops];
 		
@@ -1171,7 +1171,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 0;
-		tab_stops[1] = 160;
+		tab_stops[1] = -258;
 		tab_stops[2] = 270;
 		tab_stops[3] = 370;
 		tab_stops[4] = 450;
@@ -1206,7 +1206,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_LABELS];
 			[gui setArray:[NSArray arrayWithObjects:DESC(@"shipyard-shiptype"), DESC(@"shipyard-price"),
 					DESC(@"shipyard-cargo"), DESC(@"shipyard-speed"), nil] forRow:GUI_ROW_SHIPYARD_LABELS];
-			
+
 			if (skip > 0)
 			{
 				[gui setColor:[OOColor greenColor] forRow:GUI_ROW_SHIPYARD_START];
@@ -1232,7 +1232,7 @@ static NSMutableDictionary* currentShipyard = nil;
 				[gui setKey:[NSString stringWithFormat:@"More:%d", n_rows + skip] forRow:start_row + i];
 				i++;
 			}
-			
+
 			[gui setSelectableRange:NSMakeRange( GUI_ROW_SHIPYARD_START, i + start_row - GUI_ROW_SHIPYARD_START)];
 			[self showShipyardInfoForSelection];
 		}

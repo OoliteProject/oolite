@@ -207,8 +207,7 @@
 	script.debug.onOff						= inherit;				// debugOn/debugOff script actions
 	script.debug.processSceneString.addScene = inherit;
 	script.debug.processSceneString.addModel = inherit;
-	script.debug.processSceneString.addLocalPlanet = inherit;
-	script.debug.processSceneString.addTargetPlanet = inherit;
+	script.debug.processSceneString.addMiniPlanet = inherit;
 	script.debug.processSceneString.addBillboard = inherit;
 	script.debug.setSunNovaIn				= inherit;
 	

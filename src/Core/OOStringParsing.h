@@ -79,6 +79,7 @@ OOINLINE NSString *OOIntCredits(OOCreditsQuantity integerCredits)
 	return OOStringFromIntCredits(integerCredits, YES);
 }
 
+NSString *OOPadStringTo(NSString * string, float numSpaces);
 
 @interface NSString (OOUtilities)
 

@@ -76,8 +76,7 @@ static NSString * const kOOLogDebugAddPlanet				= @"script.debug.addPlanet";
 static NSString * const kOOLogDebugReplaceVariablesInString	= @"script.debug.replaceVariablesInString";
 static NSString * const kOOLogDebugProcessSceneStringAddScene = @"script.debug.processSceneString.addScene";
 static NSString * const kOOLogDebugProcessSceneStringAddModel = @"script.debug.processSceneString.addModel";
-static NSString * const kOOLogDebugProcessSceneStringAddLocalPlanet = @"script.debug.processSceneString.addLocalPlanet";
-static NSString * const kOOLogDebugProcessSceneStringAddTargetPlanet = @"script.debug.processSceneString.addTargetPlanet";
+static NSString * const kOOLogDebugProcessSceneStringAddMiniPlanet = @"script.debug.processSceneString.addMiniPlanet";
 static NSString * const kOOLogDebugProcessSceneStringAddBillboard = @"script.debug.processSceneString.addBillboard";
 
 static NSString * const kOOLogTraceScriptAction				= @"script.debug.trace.scriptAction";
@@ -2537,56 +2536,42 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return YES;
 	}
 	//
-	// Add local planet model:
+	// Add  planet model: selected via gui-scene-show-planet/-local-planet
 	//
-	if ([i_key isEqual:@"local-planet"])
+	if ([i_key isEqual:@"local-planet"] || [i_key isEqual:@"target-planet"])
 	{
-		if ([i_info count] != 4)	// must be local-planet_x_y_z
+		if ([i_info count] != 4)	// must be xxxxx-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
-
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];   // retain count = 1
-		if (!doppelganger)  return NO;
-		
-		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
-		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
-		model_p0.x += off.x;
-		model_p0.y += off.y;
-		model_p0.z += off.z;
-
-		OOLog(kOOLogDebugProcessSceneStringAddLocalPlanet, @"::::: adding local-planet to scene:'%@'", doppelganger);
-		[doppelganger setOrientation: model_q];
-		[doppelganger setPosition: model_p0];
-		[UNIVERSE addEntity: doppelganger];
-
-		[doppelganger release];
-		return YES;
-	}
-	//
-	// Add target planet model:
-	//
-	if ([i_key isEqual:@"target-planet"])
-	{
-		if ([i_info count] != 4)	// must be local-planet_x_y_z
-			return NO;				//		   0........... 1 2 3
-
-		PlanetEntity* targetplanet = [[[PlanetEntity alloc] initWithSeed:target_system_seed] autorelease];
-
-		PlanetEntity* doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:targetplanet];   // retain count = 1
+		PlanetEntity* doppelganger=nil;
+#ifdef ALLOW_PROCEDURAL_PLANETS
+		if ([i_key isEqual:@"local-planet"] && [UNIVERSE doProcedurallyTexturedPlanets])
+		{
+			// can safely show retextured planets!
+			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
+		}
+		else
+#endif
+		{
+			doppelganger = [[PlanetEntity alloc] initWithSeed:target_system_seed];
+			if (doppelganger)
+				[doppelganger miniaturize];
+		}
 		if (!doppelganger)
 			return NO;
-
+		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
-		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
+		Quaternion model_q = { 0.707, 0.314, 0.707, 0.0 };
 		model_p0 = vector_add(model_p0, off);
 
-		OOLog(kOOLogDebugProcessSceneStringAddTargetPlanet, @"::::: adding target-planet to scene:'%@'", doppelganger);
+		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
 		[UNIVERSE addEntity: doppelganger];
 
-		[doppelganger release];
+		[doppelganger autorelease];
 		return YES;
 	}
+
 	//
 	// Add billboard model:
 	//

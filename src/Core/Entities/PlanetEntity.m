@@ -90,7 +90,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
-	shuttle_launch_interval = 60 * 60;
+	shuttle_launch_interval = 3600.0;
 	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
@@ -166,7 +166,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
-	shuttle_launch_interval = 60 * 60;
+	shuttle_launch_interval = 3600.0;
 	
 	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
 	
@@ -275,19 +275,19 @@ static GLfloat	texture_uv_array[10400 * 2];
 	amb_land[0] = gen_rnd_number() / 256.0;
 	amb_land[1] = gen_rnd_number() / 256.0;
 	amb_land[2] = gen_rnd_number() / 256.0;
-	amb_land[3] = CLEAR_SKY_ALPHA;  // bluesky .. zero clouds
+	amb_land[3] = CLEAR_SKY_ALPHA;  			// blue sky, zero clouds
 	amb_sea[0] = 0.5 + gen_rnd_number() / 512.0;
 	amb_sea[1] = 0.5 + gen_rnd_number() / 512.0;
 	amb_sea[2] = 0.5 + gen_rnd_number() / 512.0;
-	amb_sea[3] = CLOUD_ALPHA;  // 50% opaque clouds
+	amb_sea[3] = CLOUD_ALPHA;  					// 50% opaque clouds
 	amb_polar_land[0] = gen_rnd_number() / 256.0;
 	amb_polar_land[1] = gen_rnd_number() / 256.0;
 	amb_polar_land[2] = gen_rnd_number() / 256.0;
-	amb_polar_land[3] = POLAR_CLEAR_SKY_ALPHA;	// 34 gray clouds
+	amb_polar_land[3] = POLAR_CLEAR_SKY_ALPHA;	// 34% gray clouds
 	amb_polar_sea[0] = 0.9 + gen_rnd_number() / 2560.0;
 	amb_polar_sea[1] = 0.9 + gen_rnd_number() / 2560.0;
 	amb_polar_sea[2] = 0.9 + gen_rnd_number() / 2560.0;
-	amb_polar_sea[3] = POLAR_CLOUD_ALPHA;	// 75% clouds
+	amb_polar_sea[3] = POLAR_CLOUD_ALPHA;		// 75% clouds
 	
 	// Colour overrides from dictionary
 	OOColor		*clearSkyColor = nil;
@@ -296,11 +296,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 	OOColor		*polarCloudColor = nil;
 	float		cloudAlpha;
 	
+	
 	clearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"clear_sky_color"]];
 	cloudColor = [OOColor colorWithDescription:[dict objectForKey:@"cloud_color"]];
 	polarClearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_clear_sky_color"]];
 	polarCloudColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_cloud_color"]];
-	cloudAlpha = [dict floatForKey:@"cloud_alpha" defaultValue:1.0];
+	cloudAlpha = OOClamp_0_1_f([dict floatForKey:@"cloud_alpha" defaultValue:1.0]);
 	
 	if (clearSkyColor != nil)
 	{
@@ -310,7 +311,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 	if (cloudColor != nil)
 	{
 		[cloudColor getGLRed:&amb_sea[0] green:&amb_sea[1] blue:&amb_sea[2] alpha:&amb_sea[3]];
-		amb_sea[3] *= cloudAlpha;
 	}
 	
 	if (polarClearSkyColor != nil)
@@ -326,13 +326,17 @@ static GLfloat	texture_uv_array[10400 * 2];
 	if (polarCloudColor != nil)
 	{
 		[polarCloudColor getGLRed:&amb_polar_sea[0] green:&amb_polar_sea[1] blue:&amb_polar_sea[2] alpha:&amb_polar_sea[3]];
-		amb_sea[3] *= cloudAlpha;
 	}
 	else if (cloudColor != nil)
 	{
 		memmove(amb_polar_sea, amb_sea, sizeof amb_polar_sea);
 		amb_polar_sea[3] *= (POLAR_CLOUD_ALPHA / CLOUD_ALPHA);
 	}
+	
+	//amb_land[3] is already 0.05
+	amb_sea[3] *= cloudAlpha;
+	amb_polar_land[3] *= cloudAlpha;
+	amb_polar_sea[3] *= cloudAlpha;
 	
 	amb_sea[3] = OOClamp_0_1_f(amb_sea[3]);
 	amb_polar_sea[3] = OOClamp_0_1_f(amb_polar_sea[3]);
@@ -344,7 +348,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 	{
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
 		RNG_Seed saved_seed = currentRandomSeed();
-		cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: 1.0];
+		cloudColor = [OOColor colorWithCalibratedRed: amb_sea[0] green: amb_sea[1] blue: amb_sea[2] alpha: amb_sea[3]];
 		float cloud_bias = -0.01 * (float)percent_land;
 		float cloud_impress = 1.0 - cloud_bias;
 	
@@ -377,11 +381,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 	if (planet->planet_type == PLANET_TYPE_GREEN)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
 	if (planet->planet_type == PLANET_TYPE_MINIATURE)
-		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR; //  atmosphere is 500m deep only
+		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
-	shuttle_launch_interval = 60 * 60;
+	shuttle_launch_interval = 3600.0;
 
 	scanClass = CLASS_NO_DRAW;
 	
@@ -398,13 +402,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 		displayListNames[i] = 0;	// empty for now!
 	
 	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
-	
 	[self rescaleTo:1.0];
-	
 	[self initialiseBaseVertexArray];
-	
 	[self initialiseBaseTerrainArray:percent_land];
-	
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
 	
@@ -430,6 +430,27 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
+- (void) miniaturize
+{
+	shuttles_on_ground = 0;
+	last_launch_time = 0.0;
+	shuttle_launch_interval = 3600.0;
+	[self setStatus:STATUS_COCKPIT_DISPLAY];
+	planet_type = PLANET_TYPE_MINIATURE;
+	collision_radius = [self collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
+	[self rescaleTo:1.0];
+	[self scaleVertices];
+	if (!!atmosphere)
+	{
+		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
+		[atmosphere rescaleTo:1.0];
+		[atmosphere scaleVertices];
+	}
+	rotational_velocity = 0.04;
+	rotationAxis = kBasisYVector;
+}
+
+
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet
 {
 	int		i;
@@ -437,13 +458,13 @@ static GLfloat	texture_uv_array[10400 * 2];
 	self = [super init];
 	
 	isTextured = [planet isTextured];
-	textureName = [planet textureName];	//debug texture
+	textureName = [planet textureName];	
 	
-	planet_seed = [planet planet_seed];	// pseudo-random set-up for vertex colours
+	planet_seed = [planet planet_seed];
 	
 	shuttles_on_ground = 0;
-	last_launch_time = 8400.0;
-	shuttle_launch_interval = 8400.0;
+	last_launch_time = 0.0;
+	shuttle_launch_interval = 3600.0;
 	
 	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	
@@ -452,7 +473,16 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	orientation = planet->orientation;
 	
-	planet_type = PLANET_TYPE_MINIATURE;
+	if ([planet planetType] != PLANET_TYPE_ATMOSPHERE)
+	{
+		planet_type = PLANET_TYPE_MINIATURE;
+		rotational_velocity = 0.04;
+	}
+	else
+	{
+		planet_type = PLANET_TYPE_ATMOSPHERE;
+		rotational_velocity = 0.02;
+	}
 	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
@@ -468,20 +498,21 @@ static GLfloat	texture_uv_array[10400 * 2];
 		amb_polar_land[i] =	[planet amb_polar_land][i];
 		amb_polar_sea[i] =	[planet amb_polar_sea][i];
 	}
-		
+	
 	vertexdata=planet->vertexdata;
-
 	[self scaleVertices];
 	
-	// set speed of rotation
-	rotational_velocity = 0.05;
 	
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self];
+	if (planet->atmosphere)
+	{
+		NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
+		if(isTextureImage)	// need fainter clouds for miniature planet.
+			[atmo_dictionary setObject:[NSNumber numberWithFloat:0.6f] forKey:@"cloud_alpha"];
+		atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
+		isPlanet = YES;
+		root_planet = self;
+	}
 
-	isPlanet = YES;
-	
-	root_planet = self;
-	
 	rotationAxis = kBasisYVector;
 	
 	return self;
@@ -512,10 +543,11 @@ static GLfloat	texture_uv_array[10400 * 2];
 	else
 		planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	
+	isTextureImage = NO;
 	if ([dict objectForKey:@"texture"])
 	{
 		textureName = [TextureStore getTextureNameFor:[dict stringForKey:@"texture"]];
-		isTextured = (textureName != 0);
+		isTextureImage = isTextured = (textureName != 0);
 	}
 	else
 	{
@@ -1356,44 +1388,31 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	int		i;
 	BOOL wasTextured=isTextured;
 	textureName = tName;
-	isTextured = YES;
-	[self setModelName:@"icostextured.dat" ];
-	
-	[self rescaleTo:1.0];
-	for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
-	
-	Vector land_hsb, land_polar_hsb;
+	isTextureImage = isTextured = YES;
 
-	land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
-	//sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
-	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
-	
-	amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
-	amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
-	amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
-	amb_sea[3] = amb_land[3] = 1.0;
+#ifdef ALLOW_PROCEDURAL_PLANETS
+	if (![UNIVERSE doProcedurallyTexturedPlanets])
+#endif
+	{
+		[self setModelName:@"icostextured.dat" ];
+		[self rescaleTo:1.0];
+		for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
+		[self initialiseBaseVertexArray];
+		[self initialiseBaseTerrainArray:100];
+		for (i =  0; i < next_free_vertex; i++)
+			[self paintVertex:i :planet_seed];
+	}
 
-	amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
-	amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
-	amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
-	amb_polar_sea[3] =amb_polar_land[3] = 1.0;
-	
-	[self initialiseBaseVertexArray];
-
-	[self initialiseBaseTerrainArray:100];
-	
-	for (i =  0; i < next_free_vertex; i++)
-		[self paintVertex:i :planet_seed];
 	if(wasTextured) {
 		if (textureData)  free(textureData);
 		if (normalMapTextureData)  free(normalMapTextureData);
 	}
 	[self scaleVertices];
 	rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
-	NSMutableDictionary *atmo = [NSMutableDictionary dictionary];
-	[atmo setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
+	NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
+	[atmo_dictionary setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
 	[atmosphere autorelease];
-	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo];
+	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
 
 	rotationAxis = kBasisYVector;
 

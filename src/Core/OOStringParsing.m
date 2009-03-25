@@ -528,6 +528,18 @@ NSString *RandomDigrams(void)
 }
 
 
+NSString *OOPadStringTo(NSString * string, float numSpaces)
+{
+	NSString		*result = string;
+	numSpaces -= [result length];
+	if (numSpaces>0)
+	{
+		result=[[@"" stringByPaddingToLength: numSpaces*2 withString: @" " startingAtIndex:0] stringByAppendingString: result];
+	}
+	return result;
+}
+
+
 NSString *OOStringFromDeciCredits(OOCreditsQuantity tenthsOfCredits, BOOL includeDecimal, BOOL includeSymbol)
 {
 	NSString			*result = nil;

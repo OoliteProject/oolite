@@ -54,7 +54,7 @@ typedef enum
 
 
 typedef int OOGUIRow;	// -1 for none
-typedef unsigned OOGUITabStop;
+typedef int OOGUITabStop; // negative value = right align text
 typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 
