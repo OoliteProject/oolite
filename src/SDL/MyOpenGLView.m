@@ -459,7 +459,7 @@ MA 02110-1301, USA.
 	if (image == NULL)
 	{
 		SDL_FreeSurface(image);
-		OOLog(@"Sdl.GameStart", @"----- Image 'splash.bmp' not found!");
+		OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
 		[self endSplashScreen];
 		return;
 	}

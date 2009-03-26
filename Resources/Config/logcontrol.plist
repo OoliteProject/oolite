@@ -25,14 +25,14 @@
 	
 	
 	/*** Metaclasses ***/
-	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
-	$scriptError							= $error;
 	$aiError								= $scriptError;
+	$entityState							= no;
+	$error									= yes;					// Most errors, ranging from minor to major. Should probably always be enabled.
+	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
+	$scriptError							= $error;
+	$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
 	$shaderError							= $error;
 	$troubleShootingDump					= yes;
-	$entityState							= no;
-	$scriptDebugOn							= no;					// This metaclass is set by the debugOn and debugOff script actions.
-	$shaderDebugOn							= no;					// Enabled by 's' key while paused, disabled by 'n' while paused.
 	
 	
 	/*** Common programming problems ***/
@@ -83,7 +83,7 @@
 	beacon.list.flightTraining				= inherit;
 	
 	
-	character								= inherit;
+	character								= $error;
 	character.load.unknownSystem			= inherit;
 	
 	
@@ -117,7 +117,7 @@
 	display.mode.found.failed				= $error;
 	display.mode.list						= no;
 	display.mode.list.none					= $error;
-	display.mode.list.native			= yes;
+	display.mode.list.native				= yes;
 	display.mode.list.native.failed			= $error;
 	display.mode.switch.failed				= $error;
 	display.mode.unknown					= $error;
@@ -126,7 +126,7 @@
 	
 	$linkedListError						= $error;
 	entity.behaviour.changed				= $entityState;
-	entity.linkedList						= inherit;				// Management/verification of the lists used to track the relative position of entities.
+	entity.linkedList						= $scriptDebugOn;			// Management/verification of the lists used to track the relative position of entities.
 	entity.linkedList.add					= inherit;
 	entity.linkedList.add.error				= $linkedListError;
 	entity.linkedList.remove				= inherit;
@@ -144,16 +144,14 @@
 	gui.reset								= no;
 	
 	
+	input.keyMapping						= no;
 	input.keyMapping.codeOutOfRange			= inherit;
 	input.keyMapping.keyPress				= no;
 	input.keyMapping.keyPress.keyDown		= inherit;
 	input.keyMapping.keyPress.keyUp			= inherit;
 	
 	
-	iTunesIntegration.failed				= $error;
-	
-	
-	joystickHandler.init				= yes;
+	joystickHandler.init					= yes;
 	
 	
 	mesh.load.error							= $error;
@@ -199,6 +197,7 @@
 	
 	
 	script.addShips.failed					= $scriptError;
+	script.missionDescription				= $scriptError;
 	script.missionDescription.noMissionText	= inherit;
 	script.missionDescription.noMissionKey	= inherit;
 	
@@ -285,7 +284,7 @@
 	script.unpermittedMethod				= $scriptError;
 	
 	
-	sdl.init								= no;
+	sdl										= no;
 	sdl.init.failed							= $error;
 	sdl.init.audio.failed					= $error;
 	
@@ -327,7 +326,36 @@
 	sky.setup								= no;
 	
 	
-	sounds.customSounds.recursion			= $error;				// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
+	$soundError								= $error;
+	$soundDebug								= no;
+	$soundDebugVerbose						= $soundDebug;
+	sound.channel.cleanup.success			= $soundDebugVerbose;
+	sound.channel.cleanup.failed			= $soundError;
+	sound.channel.cleanup.failed.broken		= inherit;
+	sound.channel.cleanup.failed.badState	= inherit;
+	sound.channel.machPortError				= $soundError;
+	sound.customSounds						= $error;
+	sound.customSounds.recursion			= inherit;				// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
+	sound.initialization					= $soundError;
+	sound.initialization.error				= inherit;
+	sound.load.success						= $soundDebug;
+	sound.load.failed						= $soundError;
+	sound.mixer.outOfChannels				= $soundError;
+	sound.mixer.inspector.loadFailed		= $soundError;
+	sound.mixer.replacingBrokenChannel		= $soundDebug;
+	sound.mixer.failedToConnectChannel		= $soundError;
+	sound.play.success						= $soundDebugVerbose;
+	sound.play.failed						= $soundError;
+	sound.play.failed.badReuse				= inherit;
+	sound.play.failed.setupFailed			= inherit;
+	sound.play.failed.auError				= inherit;
+	sound.render.undexpectedNull			= $soundError;
+	sound.streaming.refill					= $soundDebugVerbose;
+	sound.streaming.loop					= $soundDebug;
+	sound.streaming.underflow				= $soundError;
+	sound.virtualringbuffer					= $soundError;
+	sound.streaming.releaseContext			= $soundDebug;
+	sound.invalidBeep						= $soundError;
 	
 	
 	strings.conversion						= $scriptError;			// Conversion of text to values (vectors, quaternions etc)
@@ -340,12 +368,10 @@
 	sun.nova								= no;					// Debug messages for nova
 	
 	
-	texture.planet.generate					= inherit;
-	
-	
 	$textureDebug							= no;
 	texture.load.noName						= $error;
 	texture.dealloc							= $textureDebug;
+	texture.planet.generate					= $textureDebug;
 	texture.upload							= $textureDebug;
 	
 	textureCache							= $textureDebug;
@@ -372,32 +398,6 @@
 	growl.error								= $error;
 	growl.debug								= no;
 	
-	$soundError								= $error;
-	$soundDebug								= no;
-	$soundDebugVerbose						= $soundDebug;
-	sound.channel.cleanup.success			= $soundDebugVerbose;
-	sound.channel.cleanup.failed			= $soundError;
-	sound.channel.cleanup.failed.broken		= inherit;
-	sound.channel.cleanup.failed.badState	= inherit;
-	sound.channel.machPortError				= $soundError;
-	sound.initialization					= inherit;
-	sound.initialization.error				= $soundError;
-	sound.load.success						= $soundDebug;
-	sound.load.failed						= $soundError;
-	sound.mixer.outOfChannels				= $soundError;
-	sound.mixer.inspector.loadFailed		= $soundError;
-	sound.mixer.replacingBrokenChannel		= $soundDebug;
-	sound.mixer.failedToConnectChannel		= $soundError;
-	sound.play.success						= $soundDebugVerbose;
-	sound.play.failed						= $soundError;
-	sound.play.failed.badReuse				= inherit;
-	sound.play.failed.setupFailed			= inherit;
-	sound.play.failed.auError				= inherit;
-	sound.render.undexpectedNull			= $soundError;
-	sound.streaming.refill					= $soundDebugVerbose;
-	sound.streaming.loop					= $soundDebug;
-	sound.streaming.underflow				= $soundError;
-	sound.virtualringbuffer					= $soundError;
-	sound.streaming.releaseContext			= $soundDebug;
-	sound.invalidBeep						= inherit;
+	
+	iTunesIntegration.failed				= $error;
 }

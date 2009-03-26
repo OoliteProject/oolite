@@ -488,7 +488,7 @@ MA 02110-1301, USA.
 		Random_Seed seed = [UNIVERSE systemSeedForSystemName:origin];
 		if (is_nil_seed(seed))
 		{
-			OOLog(@"character.load.unknownSystem", @"Character loading error: could not find a system with the name \"%@\" in this galaxy.", origin);
+			OOLogERR(@"character.load.unknownSystem", @"could not find a system named '%@' in this galaxy.", origin);
 		}
 		else
 		{

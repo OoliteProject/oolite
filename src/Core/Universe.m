@@ -4949,23 +4949,38 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			for (;;)
 			{
 				[seen addObject:result];
-				result = [customsounds objectForKey:result];
+				object = [customsounds objectForKey:result];
+				if( [object isKindOfClass:[NSArray class]] && [object count] > 0)
+				{
+					result = [object stringAtIndex:Ranrot() % [object count]];
+					if ([key hasPrefix:@"["] && [key hasSuffix:@"]"]) key=result;
+				}
+				else
+				{
+					if ([object isKindOfClass:[NSString class]])
+						result = object;
+					else
+						result = nil;
+				}
 				if (result == nil || ![result hasPrefix:@"["] || ![result hasSuffix:@"]"])  break;
 				if ([seen containsObject:result])
 				{
-					OOLog(@"sounds.customSounds.recursion", @"***** ERROR: recursion in customsounds.plist for %@ (at %@), no sound will be played.", key, result);
+					OOLogERR(@"sound.customSounds.recursion", @"recursion in customsounds.plist for '%@' (at '%@'), no sound will be played.", key, result);
 					result = nil;
 					break;
 				}
 			}
 		}
-		
+
 		if (result == nil)  result = @"__oolite-no-sound";
-		
 		[[OOCacheManager sharedCache] setObject:result forKey:key inCache:@"resolved custom sounds"];
 	}
 	
-	if ([result isEqualToString:@"__oolite-no-sound"])  result = nil;
+	if ([result isEqualToString:@"__oolite-no-sound"])
+	{
+		OOLogERR(@"sound.customSounds", @"could not resolve sound name in customsounds.plist for '%@', no sound will be played.", key);
+		result = nil;
+	}
 	return result;
 }
 
