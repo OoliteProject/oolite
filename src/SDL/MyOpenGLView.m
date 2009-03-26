@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
+#import "ResourceManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
@@ -117,18 +118,10 @@ MA 02110-1301, USA.
 	SDL_VERSION(&wInfo.version);
 	SDL_GetWMInfo(&wInfo);
 	SDL_Window   = wInfo.window;
-
-	icon = SDL_LoadBMP("oolite.app\\Resources\\Images\\WMicon.bmp");
-	if (icon == NULL)
-	{
-		icon = SDL_LoadBMP("Resources\\Images\\WMicon.bmp");
-	}
-
-#else
-
-	icon = SDL_LoadBMP("Resources/Images/WMicon.bmp");
-
+	
 #endif
+
+	icon = SDL_LoadBMP([[ResourceManager pathForFileNamed:@"WMicon.bmp" inFolder:@"Images"] cString]);
 
 	if (icon != NULL)
 	{
@@ -461,19 +454,7 @@ MA 02110-1301, USA.
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
 	
-  #if OOLITE_WINDOWS
-
-	image = SDL_LoadBMP("oolite.app\\Resources\\Images\\splash.bmp");
-	if (image == NULL)
-	{
-		image = SDL_LoadBMP("Resources\\Images\\splash.bmp");
-	}
-	
-  #else
-
-	image = SDL_LoadBMP("Resources/Images/splash.bmp");
-
-  #endif
+	image = SDL_LoadBMP([[ResourceManager pathForFileNamed:@"splash.bmp" inFolder:@"Images"] cString]);
 
 	if (image == NULL)
 	{

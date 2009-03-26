@@ -4927,23 +4927,36 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	NSString				*result = nil;
 	NSMutableSet			*seen = nil;
+	id object = [customsounds objectForKey:key];
 	
+	if ([object isKindOfClass:[NSArray class]] && [object count] > 0)
+	{
+		key = [object stringAtIndex:Ranrot() % [object count]];
+	}
+	else
+	{
+		object=nil;
+	}
+
 	result = [[OOCacheManager sharedCache] objectForKey:key inCache:@"resolved custom sounds"];
 	if (result == nil)
 	{
 		// Resolve sound, allowing indirection within customsounds.plist
 		seen = [NSMutableSet set];
 		result = key;
-		for (;;)
+		if (object == nil || [result hasPrefix:@"["] && [result hasSuffix:@"]"])
 		{
-			[seen addObject:result];
-			result = [customsounds objectForKey:result];
-			if (result == nil || ![result hasPrefix:@"["] || ![result hasSuffix:@"]"])  break;
-			if ([seen containsObject:result])
+			for (;;)
 			{
-				OOLog(@"sounds.customSounds.recursion", @"***** ERROR: recursion in customsounds.plist for %@ (at %@), no sound will be played.", key, result);
-				result = nil;
-				break;
+				[seen addObject:result];
+				result = [customsounds objectForKey:result];
+				if (result == nil || ![result hasPrefix:@"["] || ![result hasSuffix:@"]"])  break;
+				if ([seen containsObject:result])
+				{
+					OOLog(@"sounds.customSounds.recursion", @"***** ERROR: recursion in customsounds.plist for %@ (at %@), no sound will be played.", key, result);
+					result = nil;
+					break;
+				}
 			}
 		}
 		
@@ -8049,14 +8062,28 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (void) preloadSounds
 {
 	NSEnumerator			*soundEnum = nil;
+	NSEnumerator			*arraySoundEnum = nil;
+	id						object=nil;
 	NSString				*soundName = nil;
 	
 	// Preload sounds to avoid loading stutter.
-	for (soundEnum = [customsounds objectEnumerator]; (soundName = [soundEnum nextObject]); )
+	for (soundEnum = [customsounds objectEnumerator]; (object = [soundEnum nextObject]); )
 	{
-		if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+		if([object isKindOfClass:[NSString class]])
 		{
-			[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
+			soundName=object;
+			if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+			{
+				[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
+			}
+		}
+		else if([object isKindOfClass:[NSArray class]] && [object count] > 0)
+		{
+			for (arraySoundEnum = [object objectEnumerator]; (soundName = [arraySoundEnum nextObject]); )
+			if (![soundName hasPrefix:@"["] && ![soundName hasSuffix:@"]"])
+			{
+				[ResourceManager ooSoundNamed:soundName	inFolder:@"Sounds"];
+			}
 		}
 	}
 }
