@@ -184,11 +184,15 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	[self setStatus:STATUS_EFFECT];
 	
 	Vector middle = make_vector(midx, 0.5 * (bbox.max.y + bbox.min.y), midz);
-	//should now work ok in all cases
-	position = [srcEntity absolutePositionForSubentityOffset:middle];
-	if (ship == srcEntity) {
-		// laser positioning
-		position = vector_add(position,OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
+	if (ship == srcEntity) 
+	{
+		// main laser offset
+		position = vector_add([ship position],OOVectorMultiplyMatrix(offset, [ship drawRotationMatrix]));
+	}
+	else
+	{
+		// subentity laser
+		position = [srcEntity absolutePositionForSubentityOffset:middle];
 	}
 	
 	orientation = [ship normalOrientation];

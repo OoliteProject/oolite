@@ -644,6 +644,7 @@ waitingForStickCallback: 1;
 - (void) getFined;
 
 - (void) setDefaultViewOffsets;
+- (void) setDefaultCustomViews;
 - (Vector) weaponViewOffset;
 
 - (void) setUpTrumbles;

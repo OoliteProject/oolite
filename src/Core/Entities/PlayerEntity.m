@@ -1065,13 +1065,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	ScanVectorFromString([shipDict stringForKey:@"view_position_port"], &portViewOffset);
 	ScanVectorFromString([shipDict stringForKey:@"view_position_starboard"], &starboardViewOffset);
 	
-	NSArray *customViews = [shipDict arrayForKey:@"custom_views"];
-	if (customViews != nil)
-	{
-		[_customViews release];
-		_customViews = [customViews retain];
-		_customViewIndex = 0;
-	}
+	[self setDefaultCustomViews];
+	
+	_customViews = [shipDict arrayForKey:@"custom_views" defaultValue:_customViews];
 	
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
@@ -5923,6 +5919,20 @@ static int last_outfitting_index;
 }
 
 
+- (void) setDefaultCustomViews
+{
+	//NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] arrayForKey:@"custom_views"];
+	NSArray *customViews = nil;
+	
+	[_customViews release];
+	_customViewIndex = 0;
+	if (customViews != nil)
+	{
+		_customViews = [customViews retain];
+	}
+}
+
+
 - (Vector) weaponViewOffset
 {
 	switch (currentWeaponFacing)
@@ -5944,18 +5954,6 @@ static int last_outfitting_index;
 			break;
 	}
 	return kZeroVector;
-}
-
-
-- (void) setDefaultWeaponOffsets
-{
-	float halfLength = 0.5f * (boundingBox.max.z - boundingBox.min.z);
-	float halfWidth = 0.5f * (boundingBox.max.x - boundingBox.min.x);
-
-	forwardWeaponOffset = make_vector(0.0f, -5.0f, boundingBox.max.z - halfLength);
-	aftWeaponOffset = make_vector(0.0f, -5.0f, boundingBox.min.z + halfLength);
-	portWeaponOffset = make_vector(boundingBox.min.x + halfWidth, -5.0f, 0.0f);
-	starboardWeaponOffset = make_vector(boundingBox.max.x - halfWidth, -5.0f, 0.0f);
 }
 
 
