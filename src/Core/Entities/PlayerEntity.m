@@ -3,7 +3,7 @@
 PlayerEntity.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -114,8 +114,8 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) performLaunchingUpdates:(OOTimeDelta)delta_t;
 - (void) performDockingUpdates:(OOTimeDelta)delta_t;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
-- (void) updateIdentSystem;
-- (void) updateMissiles;
+- (void) updateTargetting;
+- (BOOL) isValidTarget:(Entity*)target;
 
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
@@ -1219,9 +1219,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (status == STATUS_DOCKING)  [self performDockingUpdates:delta_t];
 	if (status == STATUS_DEAD)  [self performDeadUpdates:delta_t];
 	
-	// TODO: these should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
-	[self updateIdentSystem];
-	[self updateMissiles];
+	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
+	[self updateTargetting];
 }
 
 
@@ -1831,24 +1830,43 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) updateIdentSystem
+// Target is valid if it's a ship, AND
+// Target is within Scanner range, AND
+// Target is not cloaked or jamming
+- (BOOL)isValidTarget:(Entity*)target
+{
+	// Just in case we got called with a bad target.
+	if (!target)
+		return false;
+
+	// If target is beyond scanner range, it's lost
+	if(target->zero_distance > SCANNER_MAX_RANGE2)
+		return false;
+
+	// If target is not a ship
+	if (![target isShip])
+		return false;
+
+	// Check whether the ship is cloaked or is actively jamming our scanner
+	ShipEntity *targetShip = (ShipEntity*)target;
+	if ([targetShip isCloaked] ||	// checks for cloaked ships
+			([targetShip isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+	{
+		return false;
+	}
+	return true;
+}
+
+// Check for lost targetting - both on the ships' main target as well as each
+// missile.
+// If we're actively scanning and we don't have a current target, then check
+// to see if we've locked onto a new target.
+- (void) updateTargetting
 {
 	// check for lost ident target and ensure the ident system is actually scanning
-	if (ident_engaged)
+	if (ident_engaged && [self primaryTargetID] != NO_TARGET)
 	{
-		ShipEntity *e = [self  primaryTarget];
-		if (e != nil && ![e isShip])
-		{
-			[self removeTarget:e];
-			e = nil;
-		}
-		
-		if (e == nil && missile_status != MISSILE_STATUS_TARGET_LOCKED)  return;
-		
-		if (e == nil ||
-			e->zero_distance > SCANNER_MAX_RANGE2 ||
-			[e isCloaked] ||	// checks for cloaked ships
-			([e isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+		if (![self isValidTarget:[self primaryTarget]])
 		{
 			if (!suppressTargetLost)
 			{
@@ -1859,47 +1877,43 @@ static PlayerEntity *sSharedPlayer = nil;
 			{
 				suppressTargetLost = NO;
 			}
-			
-			if (missile_status == MISSILE_STATUS_TARGET_LOCKED)
-			{
-				primaryTarget = NO_TARGET;
-			}
-			
-			missile_status = MISSILE_STATUS_ARMED;
+
+			primaryTarget = NO_TARGET;
 		}
 	}
-}
 
-
-- (void) updateMissiles
-{
 	// check each unlaunched missile's target still exists and is in-range
-	unsigned i;
-	for (i = 0; i < max_missiles; i++)
+	if (missile_status != MISSILE_STATUS_SAFE)
 	{
-		if ([missile_entity[i] primaryTargetID] != NO_TARGET)
+		unsigned i;
+		for (i = 0; i < max_missiles; i++)
 		{
-			ShipEntity	*target_ship = (ShipEntity *)[missile_entity[i] primaryTarget];
-			if (![target_ship isShip] || target_ship->zero_distance > SCANNER_MAX_RANGE2)
+			if ([missile_entity[i] primaryTargetID] != NO_TARGET &&
+					![self isValidTarget:[missile_entity[i] primaryTarget]])
 			{
 				[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 				[self playTargetLost];
 				[missile_entity[i] removeTarget:nil];
-				if (i == activeMissile && !ident_engaged)
+				if (i == activeMissile)
 				{
 					primaryTarget = NO_TARGET;
-					missile_status = MISSILE_STATUS_SAFE;
+					missile_status = MISSILE_STATUS_ARMED;
 				}
 			}
 		}
 	}
-	
-	if (missile_status == MISSILE_STATUS_ARMED &&
-		(ident_engaged || [missile_entity[activeMissile] isMissile]) &&
-		([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
+
+	// if we don't have a primary target, and we're scanning, then check for a new
+	// target to lock on to
+	if ([self primaryTargetID] == NO_TARGET && 
+			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
+			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
-		ShipEntity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
-		if (target != nil)  [self addTarget:target];
+		Entity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
+		if (target != nil)
+		{
+			[self addTarget:target];
+		}
 	}
 }
 
@@ -2600,20 +2614,37 @@ static PlayerEntity *sSharedPlayer = nil;
 		int next_missile = (activeMissile + i) % max_missiles;
 		if (missile_entity[next_missile])
 		{
-			// if this is a missile then select it
-			if (missile_entity[next_missile])	// if it exists
+			// If we don't have the multi-targetting module installed, clear the active missiles' target
+			if( ![self hasEquipmentItem:@"EQ_MULTI_TARGET"] && [missile_entity[activeMissile] isMissile] )
 			{
-				[self setActiveMissile:next_missile];
-				if (([missile_entity[next_missile] isMissile])&&([missile_entity[next_missile] primaryTarget] != nil))
-				{
-					// copy the missile's target
-					[self addTarget:[missile_entity[next_missile] primaryTarget]];
-					missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				}
-				else
-					missile_status = MISSILE_STATUS_SAFE;
-				return;
+				[missile_entity[activeMissile] removeTarget:nil];
 			}
+
+			// Set next missile to active
+			[self setActiveMissile:next_missile];
+
+			if (missile_status != MISSILE_STATUS_SAFE)
+			{
+				missile_status = MISSILE_STATUS_ARMED;
+
+				// If the newly active pylon contains a missile then work out its target, if any
+				if( [missile_entity[activeMissile] isMissile] )
+				{
+					if( [self hasEquipmentItem:@"EQ_MULTI_TARGET"] &&
+							([missile_entity[next_missile] primaryTargetID] != NO_TARGET))
+					{
+						// copy the missile's target
+						[self addTarget:[missile_entity[next_missile] primaryTarget]];
+						missile_status = MISSILE_STATUS_TARGET_LOCKED;
+					}
+					else if ([self primaryTargetID] != NO_TARGET)
+					{
+						[missile_entity[activeMissile] addTarget:[self primaryTarget]];
+						missile_status = MISSILE_STATUS_TARGET_LOCKED;
+					}
+				}
+			}
+			return;
 		}
 	}
 }
@@ -2754,7 +2785,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	double mcr = missile->collision_radius;
 
-	if ([missile isMine]&&((missile_status == MISSILE_STATUS_ARMED)||(missile_status == MISSILE_STATUS_TARGET_LOCKED)))
+	if ([missile isMine]&&(missile_status != MISSILE_STATUS_SAFE))
 	{
 		BOOL launchedOK = [self launchMine:missile];
 		if (launchedOK)
@@ -2768,7 +2799,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		return launchedOK;
 	}
 
-	if ((missile_status != MISSILE_STATUS_TARGET_LOCKED)||(ident_engaged))
+	if (missile_status != MISSILE_STATUS_TARGET_LOCKED)
 		return NO;
 
 	Vector  vel;
@@ -5397,7 +5428,7 @@ static int last_outfitting_index;
 			credits -= price;
 			[self safeAllMissiles];
 			[self sortMissiles];
-			[self selectNextMissile];
+			[self setActiveMissile:0];
 		}
 		[self setGuiToEquipShipScreen:-1];
 		return mounted_okay;
@@ -6204,13 +6235,7 @@ static int last_outfitting_index;
 	if ([self status] != STATUS_IN_FLIGHT && [self status] != STATUS_WITCHSPACE_COUNTDOWN)  return;
 	if (targetEntity == self)  return;
 	
-	if (missile_status == MISSILE_STATUS_SAFE)
-	{
-		missile_status = MISSILE_STATUS_ARMED;
-		ident_engaged = YES;
-	}
 	[super addTarget:targetEntity];
-	missile_status = MISSILE_STATUS_TARGET_LOCKED;
 	
 	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
 	{
@@ -6245,8 +6270,6 @@ static int last_outfitting_index;
 		}
 	}
 	
-	if (missile_entity[activeMissile] == nil && ident_engaged)  ident_engaged = YES;
-	
 	if (ident_engaged)
 	{
 		[self playIdentLockedOn];
@@ -6254,9 +6277,19 @@ static int last_outfitting_index;
 	}
 	else
 	{
-		[missile_entity[activeMissile] addTarget:targetEntity];
-		[self playMissileLockedOn];
-		[self printIdentLockedOnForMissile:YES];
+		if ([missile_entity[activeMissile] isMissile])
+		{
+			missile_status = MISSILE_STATUS_TARGET_LOCKED;
+			[missile_entity[activeMissile] addTarget:targetEntity];
+			[self playMissileLockedOn];
+			[self printIdentLockedOnForMissile:YES];
+		}
+		else // It's a mine or something
+		{
+			missile_status = MISSILE_STATUS_ARMED;
+			[self playIdentLockedOn];
+			[self printIdentLockedOnForMissile:NO];
+		}
 	}
 }
 
@@ -6287,9 +6320,24 @@ static int last_outfitting_index;
 			if (potential_target->zero_distance < SCANNER_MAX_RANGE2)
 			{
 				[super addTarget:potential_target];
-				if (missile_status == MISSILE_STATUS_SAFE) ident_engaged = YES;
-				missile_status = MISSILE_STATUS_TARGET_LOCKED;
-				[self printIdentLockedOnForMissile:!ident_engaged];
+				if (missile_status != MISSILE_STATUS_SAFE)
+				{
+					if( [missile_entity[activeMissile] isMissile])
+					{
+						missile_status = MISSILE_STATUS_TARGET_LOCKED;
+						[self printIdentLockedOnForMissile:YES];
+					}
+					else
+					{
+						missile_status = MISSILE_STATUS_ARMED;
+						[self playIdentLockedOn];
+						[self printIdentLockedOnForMissile:NO];
+					}
+				}
+				else
+				{
+					[self printIdentLockedOnForMissile:NO];
+				}
 				[self playTargetSwitched];
 				return YES;
 			}

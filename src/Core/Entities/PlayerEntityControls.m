@@ -3,7 +3,7 @@
 PlayerEntityControls.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -630,7 +630,7 @@ static NSTimeInterval	time_last_frame;
 			//  shoot 'y'   // next missile
 			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
 			{
-				if ((!ident_engaged)&&(!next_missile_pressed)&&([self hasEquipmentItem:@"EQ_MULTI_TARGET"]))
+				if ((!ident_engaged)&&(!next_missile_pressed))
 				{
 					[self playNextMissileSelected];
 					[self selectNextMissile];
@@ -667,11 +667,23 @@ static NSTimeInterval	time_last_frame;
 				// ident 'on' here
 				if (!ident_pressed)
 				{
-					missile_status = MISSILE_STATUS_ARMED;
-					primaryTarget = NO_TARGET;
+					// Clear current target if we're already in Ident mode
+					if (ident_engaged)
+					{
+						primaryTarget = NO_TARGET;
+					}
+					[self safeAllMissiles];
 					ident_engaged = YES;
-					[self playIdentOn];
-					[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
+					if ([self primaryTargetID] == NO_TARGET)
+					{
+						[self playIdentOn];
+						[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
+					}
+					else
+					{
+						[self playIdentLockedOn];
+						[self printIdentLockedOnForMissile:NO];
+					}
 				}
 				ident_pressed = YES;
 			}
@@ -683,24 +695,26 @@ static NSTimeInterval	time_last_frame;
 				// targetting 'on' here
 				if (!target_missile_pressed)
 				{
-					missile_status = MISSILE_STATUS_ARMED;
-					if ((ident_engaged) && ([self primaryTarget]))
+					// Clear current target if we're already in Missile Targetting mode
+					if (missile_status != MISSILE_STATUS_SAFE)
 					{
-						if ([missile_entity[activeMissile] isMissile])
+						primaryTarget = NO_TARGET;
+					}
+
+					// Arm missile and check for missile lock
+					missile_status = MISSILE_STATUS_ARMED;
+					if ([missile_entity[activeMissile] isMissile])
+					{
+						if ([self primaryTargetID] != NO_TARGET)
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
 							[self printIdentLockedOnForMissile:YES];
 							[self playMissileLockedOn];
 						}
-					}
-					else
-					{
-						primaryTarget = NO_TARGET;
-						if ([missile_entity[activeMissile] isMissile])
+						else
 						{
-							if (missile_entity[activeMissile])
-								[missile_entity[activeMissile] removeTarget:nil];
+							[missile_entity[activeMissile] removeTarget:nil];
 							[UNIVERSE addMessage:DESC(@"missile-armed") forCount:2.0];
 							[self playMissileArmed];
 						}
@@ -722,21 +736,20 @@ static NSTimeInterval	time_last_frame;
 				if (!safety_pressed)
 				{
 					//targetting off in both cases!
+					primaryTarget = NO_TARGET;
+					[self safeAllMissiles];
 					if (!ident_engaged)
 					{
-						if (missile_status !=MISSILE_STATUS_SAFE)
-								[UNIVERSE addMessage:[NSString stringWithFormat:@"%@ %@", DESC(@"missile-safe"), (primaryTarget != NO_TARGET && [self hasEquipmentItem:@"EQ_SCANNER_SHOW_MISSILE_TARGET"])? DESC(@"ident-off") : (NSString *)@""] forCount:2.5];
-						primaryTarget = NO_TARGET;
-						[self safeAllMissiles];
+						if (missile_status != MISSILE_STATUS_SAFE)
+							[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
+								//[UNIVERSE addMessage:[NSString stringWithFormat:@"%@ %@", DESC(@"missile-safe"), (primaryTarget != NO_TARGET && [self hasEquipmentItem:@"EQ_SCANNER_SHOW_MISSILE_TARGET"])? DESC(@"ident-off") : (NSString *)@""] forCount:2.5];
 						[self playMissileSafe];
 
 					}
 					else
 					{
-						primaryTarget = NO_TARGET;
-						[self safeAllMissiles];
-						[self playIdentOff];
 						[UNIVERSE addMessage:DESC(@"ident-off") forCount:2.0];
+						[self playIdentOff];
 					}
 					ident_engaged = NO;
 				}

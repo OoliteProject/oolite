@@ -236,7 +236,7 @@
 		<integer>3250</integer>
 		<string>Multi-Targeting System</string>
 		<string>EQ_MULTI_TARGET</string>
-		<string>Allows switching between missile stations and multiple target locks.</string>
+		<string>Per-missile target memory, maintains multiple target locks.</string>
 	</array>
 	<array>
 		<integer>7</integer>

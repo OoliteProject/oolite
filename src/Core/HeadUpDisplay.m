@@ -3,7 +3,7 @@
 HeadUpDisplay.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1651,7 +1651,7 @@ static BOOL hostiles;
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	
-	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
+	if ([player primaryTargetID] != NO_TARGET)
 	{
 		hudDrawReticleOnTarget([player primaryTarget], player, z1, overallAlpha, reticleTargetSensitive);
 		[self drawDirectionCue:info];
@@ -1723,62 +1723,59 @@ static BOOL hostiles;
 	if ([UNIVERSE displayGUI])
 		return;
 	
-	if ([player dialMissileStatus] == MISSILE_STATUS_TARGET_LOCKED)
+	GLfloat		clear_color[4] = {0.0, 1.0, 0.0, 0.0};
+	Entity		*target = [player primaryTarget];
+	if (!target)
+		return;
+	
+	// draw the direction cue
+	OOMatrix	rotMatrix;
+	Vector		position = [player position];
+	
+	rotMatrix = [player rotationMatrix];
+	
+	if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 	{
-		GLfloat		clear_color[4] = {0.0, 1.0, 0.0, 0.0};
-		Entity		*target = [player primaryTarget];
-		if (!target)
-			return;
+		GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
+		GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
+		GLfloat siz2 = CROSSHAIR_SIZE * (1.0 + ONE_EIGHTH);
 		
-		// draw the direction cue
-		OOMatrix	rotMatrix;
-		Vector		position = [player position];
+		// Transform the view
+		Vector rpn = vector_subtract([target position], position);
+		rpn = OOVectorMultiplyMatrix(rpn, rotMatrix);
 		
-		rotMatrix = [player rotationMatrix];
-		
-		if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
+		switch ([UNIVERSE viewDirection])
 		{
-			GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
-			GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
-			GLfloat siz2 = CROSSHAIR_SIZE * (1.0 + ONE_EIGHTH);
+			case VIEW_AFT:
+				rpn.x = - rpn.x;
+				break;
+			case VIEW_PORT:
+				rpn.x = rpn.z;
+				break;
+			case VIEW_STARBOARD:
+				rpn.x = -rpn.z;
+				break;
+			case VIEW_CUSTOM:
+				rpn = OOVectorMultiplyMatrix(rpn, [player customViewMatrix]);
+				break;
 			
-			// Transform the view
-			Vector rpn = vector_subtract([target position], position);
-			rpn = OOVectorMultiplyMatrix(rpn, rotMatrix);
-			
-			switch ([UNIVERSE viewDirection])
-			{
-				case VIEW_AFT:
-					rpn.x = - rpn.x;
-					break;
-				case VIEW_PORT:
-					rpn.x = rpn.z;
-					break;
-				case VIEW_STARBOARD:
-					rpn.x = -rpn.z;
-					break;
-				case VIEW_CUSTOM:
-					rpn = OOVectorMultiplyMatrix(rpn, [player customViewMatrix]);
-					break;
-				
-				default:
-					break;
-			}
-			rpn.z = 0;	// flatten vector
-			if (rpn.x||rpn.y)
-			{
-				rpn = vector_normal(rpn);
-				glBegin(GL_LINES);
-					glColor4fv(clear_color);
-					glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
-					GLColorWithOverallAlpha(green_color, overallAlpha);
-					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
-					glColor4fv(clear_color);
-					glVertex3f(rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
-					GLColorWithOverallAlpha(green_color, overallAlpha);
-					glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
-				glEnd();
-			}
+			default:
+				break;
+		}
+		rpn.z = 0;	// flatten vector
+		if (rpn.x||rpn.y)
+		{
+			rpn = vector_normal(rpn);
+			glBegin(GL_LINES);
+				glColor4fv(clear_color);
+				glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
+				GLColorWithOverallAlpha(green_color, overallAlpha);
+				glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
+				glColor4fv(clear_color);
+				glVertex3f(rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
+				GLColorWithOverallAlpha(green_color, overallAlpha);
+				glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
+			glEnd();
 		}
 	}
 }
@@ -2169,9 +2166,6 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	}
 	
 	if ([player1 guiScreen] != GUI_SCREEN_MAIN)	// don't draw on text screens
-		return;
-	
-	if (!target)
 		return;
 	
 	OOMatrix		back_mat;

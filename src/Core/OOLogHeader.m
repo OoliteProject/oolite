@@ -4,7 +4,7 @@ OOLogHeader.m
 
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -97,6 +97,20 @@ void OOPrintLogHeader(void)
 		#define RELEASE_VARIANT_STRING ""
 	#endif
 	
+	#ifdef ALLOW_PROCEDURAL_PLANETS
+		#define OPT1_STR " [Procedural Planets]"
+	#else
+		#define OPT1_STR ""
+	#endif
+	
+	#ifdef DOCKING_CLEARANCE_ENABLED
+		#define OPT2_STR " [Docking Clearance]"
+	#else
+		#define OPT2_STR ""
+	#endif
+	
+	#define OPT_STR OPT1_STR OPT2_STR
+	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X
 		NSString *systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@", [[NSProcessInfo processInfo] operatingSystemVersionString]];
@@ -110,6 +124,7 @@ void OOPrintLogHeader(void)
 	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite version %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, systemString, [NSDate date]];
 	
 	[miscString appendString:AdditionalLogHeaderInfo()];
+	[miscString appendString:@"\nOolite Options:" OPT_STR "\n"];
 	
 	[miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
 	
