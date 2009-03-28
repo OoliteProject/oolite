@@ -1067,7 +1067,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setDefaultCustomViews];
 	
-	_customViews = [shipDict arrayForKey:@"custom_views" defaultValue:_customViews];
+	NSArray *customViews = [shipDict arrayForKey:@"custom_views"];
+	if (customViews != nil)
+	{
+		[_customViews release];
+		_customViews = [customViews retain];
+		_customViewIndex = 0;
+	}
 	
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
@@ -5956,6 +5962,7 @@ static int last_outfitting_index;
 	NSArray *customViews = nil;
 	
 	[_customViews release];
+	_customViews = nil;
 	_customViewIndex = 0;
 	if (customViews != nil)
 	{
