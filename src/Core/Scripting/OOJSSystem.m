@@ -140,7 +140,7 @@ static JSPropertySpec sSystemProperties[] =
 	{ "techLevel",				kSystem_techLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "population",				kSystem_population,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "productivity",			kSystem_productivity,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "isInterstellarSpace",	kSystem_isInterstellarSpace, JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "isInterstellarSpace",	kSystem_isInterstellarSpace, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
 	{ "mainStation",			kSystem_mainStation,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "mainPlanet",				kSystem_mainPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "sun",					kSystem_sun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -421,7 +421,8 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 		default:
 			OOReportJSBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
 	}
-	
+	// now reset the systemdata cache
+	[UNIVERSE generateSystemData:player->system_seed useCache:NO];
 	return OK;
 }
 

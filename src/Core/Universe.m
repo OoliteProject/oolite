@@ -895,10 +895,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
 	
-	[a_planet setPlanetType:PLANET_TYPE_GREEN];
 	[a_planet setStatus:STATUS_ACTIVE];
 	[a_planet setPositionX:0 y:0 z:planet_zpos];
-	[a_planet setScanClass: CLASS_NO_DRAW];
 	[a_planet setEnergy:  1000000.0];
 	[self addEntity:a_planet];
 	
@@ -910,9 +908,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	sunDistanceModifier = [systeminfo nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 
 	double		sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
-	double		sun_radius = (2.5 + randf() - randf() ) * planet_radius;
+	double		sun_radius;
+	id			dict_object;
 	Quaternion  q_sun;
 	Vector		sunPos;
+	
+	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -929,22 +930,30 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	} while (magnitude2(sunPos) < 16 * sun_radius * sun_radius);	// stay at least 4 radii away!
 	
-	a_sun = [[PlanetEntity alloc] initAsSunWithColor:pale_bgcolor];	// alloc retains!
-	[a_sun setPlanetType:PLANET_TYPE_SUN];
+	NSMutableDictionary* sun_dict = [[NSMutableDictionary alloc] initWithCapacity:4];
+	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
+	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
+	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
+	dict_object=[systeminfo objectForKey: @"corona_hues"];
+	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_hues"];
+	dict_object=[systeminfo objectForKey: @"corona_flare"];
+	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_flare"];
+	//dict_object=[systeminfo objectForKey: @"sun_texture"];
+	//if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"sun_texture"];
+	
+	a_sun = [[PlanetEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos];
 	sun_center_position[0] = sunPos.x;
 	sun_center_position[1] = sunPos.y;
 	sun_center_position[2] = sunPos.z;
 	sun_center_position[3] = 1.0;
-	[a_sun setRadius:sun_radius];			// 2.5 pr
-	[a_sun setScanClass: CLASS_NO_DRAW];
 	[a_sun setEnergy:  1000000.0];
 	[self addEntity:a_sun];
 	
 	if (sunGoneNova)
 	{
-		[a_sun setRadius: sun_radius + 600000];
+		[a_sun setRadius: sun_radius + MAX_CORONAFLARE];
 		[a_sun setThrowSparks:YES];
 		[a_sun setVelocity: kZeroVector];
 	}
@@ -4944,7 +4953,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		// Resolve sound, allowing indirection within customsounds.plist
 		seen = [NSMutableSet set];
 		result = key;
-		if (object == nil || [result hasPrefix:@"["] && [result hasSuffix:@"]"])
+		if (object == nil || ([result hasPrefix:@"["] && [result hasSuffix:@"]"]))
 		{
 			for (;;)
 			{
@@ -5761,11 +5770,20 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed
 {
+	return [self generateSystemData:s_seed useCache:YES];
+}
+
+
+- (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache
+{
 	static NSDictionary	*cachedResult = nil;
 	static Random_Seed	cachedSeed = {0};
 	
-	// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
-	if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return [[cachedResult retain] autorelease];
+	if (useCache)
+	{
+		// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
+		if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return [[cachedResult retain] autorelease];
+	}
 	
 	[cachedResult release];
 	cachedResult = nil;

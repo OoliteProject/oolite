@@ -56,6 +56,7 @@ static int triangle_start[MAX_SUBDIVIDE];
 static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 
 static GLfloat	texture_uv_array[10400 * 2];
+static float corona_blending;
 
 
 @interface PlanetEntity (OOPrivate)
@@ -141,11 +142,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 }
 
 
-- (id) initAsSunWithColor:(OOColor *) sun_color
+- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict;
 {
 	int			i;
 	OOCGFloat	hue, sat, bri, alf;
 	OOColor		*color;
+	double		sun_radius;
 	
 	self = [super init];
 	
@@ -156,14 +158,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	collision_radius = 100000.0; //  100km across
 	
-	lim4k =		LIM4K;
-	lim8k =		LIM8K;
-	lim16k =	LIM16K;
-	
 	scanClass = CLASS_NO_DRAW;
-	
 	planet_type =   PLANET_TYPE_SUN;
-	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0;
@@ -171,12 +167,14 @@ static GLfloat	texture_uv_array[10400 * 2];
 	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
 	
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
-	
-	float		hue_drift = 0.34f * (randf() - randf());
+	hue /=360;
+
+	float hue_drift = 0.34f * abs(randf() - randf());
 
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
 	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
+	corona_blending=OOClamp_0_1_f([dict floatForKey:@"corona_hues" defaultValue:1.0f]);
 
 	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
@@ -201,7 +199,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	// nearest corona much more saturation
 	hue += hue_drift;
-	if (hue < 0.0)	hue += 1.0;
 	if (hue > 1.0)	hue -= 1.0;
 	color = [OOColor colorWithCalibratedHue:hue saturation: sat * 0.625 brightness:(bri + 2.0)/3.0 alpha:alf];
 	amb_polar_land[0] = [color redComponent];
@@ -211,7 +208,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	// next corona slightly more saturation
 	hue += hue_drift;
-	if (hue < 0.0)	hue += 1.0;
 	if (hue > 1.0)	hue -= 1.0;
 	color = [OOColor colorWithCalibratedHue:hue saturation:sat brightness:bri alpha:alf];
 	amb_sea[0] = [color redComponent];
@@ -219,27 +215,40 @@ static GLfloat	texture_uv_array[10400 * 2];
 	amb_sea[2] = [color blueComponent];
 	amb_sea[3] = 1.0;
 	
-	// next corona 100% saturation less bright
+	// last corona, highest saturation, less bright
 	hue += hue_drift;
-	if (hue < 0.0)	hue += 1.0;
 	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithCalibratedHue:hue saturation:1.0 brightness:bri * 0.75 alpha:alf];
+	// saturation = 1 would shift white to red
+	color = [OOColor colorWithCalibratedHue:hue saturation:OOClamp_0_1_f(sat*1.3) brightness:bri * 0.75 alpha:alf*0.6];
 	amb_polar_sea[0] = [color redComponent];
 	amb_polar_sea[1] = [color greenComponent];
 	amb_polar_sea[2] = [color blueComponent];
 	amb_polar_sea[3] = 1.0;
 	
-	corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
+	corona_speed_factor=[dict floatForKey:@"corona_shimmer" defaultValue:-1.0];
+	if(corona_speed_factor<0)
+	{
+		// from .22222 to 2
+		corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
+	}
+	else
+	{
+		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
+		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
+	}
 	corona_stage = 0.0;
-	for (i = 0; i < 729; i++)
+	for (i = 0; i < 720; i++)
 		rvalue[i] = randf();
 	
+	sun_radius=[dict floatForKey:@"sun_radius"];
+	// set the corona first
+	[self setRadius: sun_radius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict floatForKey:@"corona_flare" defaultValue:0.0f]))];
+	// then set  the real radius
+	collision_radius = sun_radius;								
+
 	isPlanet = YES;
-	
-	root_planet = self;
-	
-	textureData = NULL;
-	
+	root_planet = self;	
+	textureData = NULL;	
 	return self;
 }
 
@@ -453,6 +462,12 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet
 {
+	return [self initMiniatureFromPlanet:planet withAlpha:1.0f];
+}
+
+
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha
+{
 	int		i;
 	
 	self = [super init];
@@ -473,15 +488,15 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	orientation = planet->orientation;
 	
-	if ([planet planetType] != PLANET_TYPE_ATMOSPHERE)
-	{
-		planet_type = PLANET_TYPE_MINIATURE;
-		rotational_velocity = 0.04;
-	}
-	else
+	if ([planet planetType] == PLANET_TYPE_ATMOSPHERE)
 	{
 		planet_type = PLANET_TYPE_ATMOSPHERE;
 		rotational_velocity = 0.02;
+	}
+	else
+	{
+		planet_type = PLANET_TYPE_MINIATURE;
+		rotational_velocity = 0.04;
 	}
 	
 	for (i = 0; i < 5; i++)
@@ -491,24 +506,27 @@ static GLfloat	texture_uv_array[10400 * 2];
 	
 	[self rescaleTo:1.0];
 	
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 3; i++)
 	{
 		amb_land[i] =		[planet amb_land][i];
 		amb_sea[i] =		[planet amb_sea][i];
 		amb_polar_land[i] =	[planet amb_polar_land][i];
 		amb_polar_sea[i] =	[planet amb_polar_sea][i];
 	}
+	//alpha channel
+	amb_land[i] =		[planet amb_land][i] * alpha;
+	amb_sea[i] =		[planet amb_sea][i] * alpha;
+	amb_polar_land[i] =	[planet amb_polar_land][i] * alpha;
+	amb_polar_sea[i] =	[planet amb_polar_sea][i] * alpha;
+
 	
 	vertexdata=planet->vertexdata;
 	[self scaleVertices];
 	
-	
 	if (planet->atmosphere)
 	{
-		NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
-		if(isTextureImage)	// need fainter clouds for miniature planet.
-			[atmo_dictionary setObject:[NSNumber numberWithFloat:0.6f] forKey:@"cloud_alpha"];
-		atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
+		// copy clouds but make fainter if isTextureImage
+		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:isTextureImage ? 0.6f : 1.0f ];
 		isPlanet = YES;
 		root_planet = self;
 	}
@@ -958,7 +976,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 					{
 						 int i;
 						 corona_stage -= 1.0;
-						 for (i = 0; i < 369; i++)
+						 for (i = 0; i < 360; i++)
 						 {
 							rvalue[i] = rvalue[360 + i];
 							rvalue[360 + i] = randf();
@@ -1325,15 +1343,15 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLE_STRIP);
-	for (i = 0; i < 360; i += step)
+	for (i = 1; i < 358; i += step) // 358+362=720
 	{
 		si = sinf(theta);
 		ci = cosf(theta);
 		theta += delta;
 		
-		rv0 = (1.0 - corona_stage) * rvalue[i + rv] + corona_stage * rvalue[i + rv + 360];
-		rv1 = (1.0 - corona_stage) * rvalue[i + rv + 1] + corona_stage * rvalue[i + rv + 361];
-		rv2 = (1.0 - corona_stage) * rvalue[i + rv + 2] + corona_stage * rvalue[i + rv + 362];
+		rv0 = (1.0 - corona_stage) * rvalue[i + rv]*corona_blending + corona_stage * rvalue[i + rv + 360]*corona_blending;
+		rv1 = (1.0 - corona_stage) * rvalue[i + rv + 1]*corona_blending + corona_stage * rvalue[i + rv + 361]*corona_blending;
+		rv2 = (1.0 - corona_stage) * rvalue[i + rv + 2]*corona_blending + corona_stage * rvalue[i + rv + 362]*corona_blending;
 
 		s1 = r1 * si;
 		c1 = r1 * ci;
@@ -1346,9 +1364,9 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		glVertex3f(s0, c0, -z0);
 	}
 	
-	rv0 = (1.0 - corona_stage) * rvalue[rv] + corona_stage * rvalue[360 + rv];
-	rv1 = (1.0 - corona_stage) * rvalue[1 + rv] + corona_stage * rvalue[361 + rv];
-	rv2 = (1.0 - corona_stage) * rvalue[2 + rv] + corona_stage * rvalue[362 + rv];
+	rv0 = (1.0 - corona_stage) * rvalue[rv]*corona_blending + corona_stage * rvalue[360 + rv]*corona_blending;
+	rv1 = (1.0 - corona_stage) * rvalue[1 + rv]*corona_blending + corona_stage * rvalue[361 + rv]*corona_blending;
+	rv2 = (1.0 - corona_stage) * rvalue[2 + rv]*corona_blending + corona_stage * rvalue[362 + rv]*corona_blending;
 
 	glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
 	glVertex3f(0.0, r1, -z1);	//repeat the zero value to close

@@ -62,14 +62,17 @@ MA 02110-1301, USA.
 							nebulaCount;
 	unsigned				starCountMultiplier, 
 							nebulaCountMultiplier;
-	
+
 	self = [super init];
 	if (self == nil)  return nil;
 	
 	// Load colours
 	[self readColor1:&col1 andColor2:&col2 fromDictionary:systemInfo];
-	skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 	
+	skyColor = [[OOColor colorWithDescription:[systemInfo objectForKey:@"sun_color"]] retain];
+	if (skyColor == nil)
+		skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
+
 	// Load distribution values
 	clusterChance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
 	alpha = [systemInfo floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
@@ -177,18 +180,18 @@ MA 02110-1301, USA.
 		
 		if ([tokens count] == 6)
 		{
-			float r1 = [tokens floatAtIndex:0];
-			float g1 = [tokens floatAtIndex:1];
-			float b1 = [tokens floatAtIndex:2];
-			float r2 = [tokens floatAtIndex:3];
-			float g2 = [tokens floatAtIndex:4];
-			float b2 = [tokens floatAtIndex:5];
+			float r1 = OOClamp_0_1_f([tokens floatAtIndex:0]);
+			float g1 = OOClamp_0_1_f([tokens floatAtIndex:1]);
+			float b1 = OOClamp_0_1_f([tokens floatAtIndex:2]);
+			float r2 = OOClamp_0_1_f([tokens floatAtIndex:3]);
+			float g2 = OOClamp_0_1_f([tokens floatAtIndex:4]);
+			float b2 = OOClamp_0_1_f([tokens floatAtIndex:5]);
 			*ioColor1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
 			*ioColor2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
 		}
 		else
 		{
-			OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
+			OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as two RGB colours (must be six numbers).", string);
 		}
 	}
 	colorDesc = [dictionary objectForKey:@"sky_color_1"];
@@ -196,14 +199,14 @@ MA 02110-1301, USA.
 	{
 		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
 		if (color != nil)  *ioColor1 = color;
-		else  OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+		else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 	colorDesc = [dictionary objectForKey:@"sky_color_2"];
 	if (colorDesc != nil)
 	{
 		color = [[OOColor colorWithDescription:colorDesc] premultipliedColor];
 		if (color != nil)  *ioColor2 = color;
-		else  OOLogERR(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+		else  OOLogWARN(@"sky.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 }
 

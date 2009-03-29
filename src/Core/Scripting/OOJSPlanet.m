@@ -178,11 +178,8 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
-	if([player status] != STATUS_LAUNCHING && [player status] != STATUS_EXITING_WITCHSPACE)
-	{
-		OOReportJSError(context, @"Planet.%@ must be called only during shipWillLaunchFromStation or shipWillExitWitchspace.", @"setTexture");
-	}
-	else if (name != nil)
+	// can now retexture at any time, eg during huge surface explosion
+	if (name != nil)
 	{
 		if ([thisEnt setUpPlanetFromTexture:name])  return YES;
 		else  OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);

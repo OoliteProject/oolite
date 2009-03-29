@@ -41,10 +41,10 @@ MA 02110-1301, USA.
 
 - (void) setHSBA:(OOCGFloat)h:(OOCGFloat)s:(OOCGFloat)b:(OOCGFloat)a
 {
+	rgba[3] = a;
 	if (s == 0.0f)
 	{
 		rgba[0] = rgba[1] = rgba[2] = b;
-		rgba[3] = a;
 		return;
 	}
 	OOCGFloat f, p, q, t;
@@ -74,7 +74,6 @@ MA 02110-1301, USA.
 		case 5:
 			rgba[0] = b;	rgba[1] = p;	rgba[2] = q;	break;
 	}
-	rgba[3] = a;
 }
 
 
@@ -452,22 +451,24 @@ MA 02110-1301, USA.
 - (void)getHue:(OOCGFloat *)hue saturation:(OOCGFloat *)saturation brightness:(OOCGFloat *)brightness alpha:(OOCGFloat *)alpha
 {
 	*alpha = rgba[3];
-	OOCGFloat maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? rgba[0]:rgba[2]):((rgba[1] > rgba[2])? rgba[1]:rgba[2]);
-	OOCGFloat minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? rgba[0]:rgba[2]):((rgba[1] < rgba[2])? rgba[1]:rgba[2]);
-	*brightness = 0.5 * (maxrgb + minrgb);
-	if (maxrgb == minrgb)
+	
+	int maxrgb = (rgba[0] > rgba[1])? ((rgba[0] > rgba[2])? 0:2):((rgba[1] > rgba[2])? 1:2);
+	int minrgb = (rgba[0] < rgba[1])? ((rgba[0] < rgba[2])? 0:2):((rgba[1] < rgba[2])? 1:2);
+	*brightness = 0.5 * (rgba[maxrgb] + rgba[minrgb]);
+	if (rgba[maxrgb] == rgba[minrgb])
 	{
 		*saturation = 0.0;
 		*hue = 0.0;
 		return;
 	}
-	OOCGFloat delta = maxrgb - minrgb;
-	*saturation = (*brightness <= 0.5)? (delta / (maxrgb + minrgb)) : (delta / (2.0 - (maxrgb + minrgb)));
-	if (rgba[0] == maxrgb)
+	OOCGFloat delta = rgba[maxrgb] - rgba[minrgb];
+	*saturation = (*brightness <= 0.5)? (delta / (rgba[maxrgb] + rgba[minrgb])) : (delta / (2.0 - (rgba[maxrgb] + rgba[minrgb])));
+
+	if (maxrgb==0)
 		*hue = (rgba[1] - rgba[2]) / delta;
-	else if (rgba[1] == maxrgb)
+	else if (maxrgb==1)
 		*hue = 2.0 + (rgba[2] - rgba[0]) / delta;
-	else if (rgba[2] == maxrgb)
+	else if (maxrgb==2)
 		*hue = 4.0 + (rgba[0] - rgba[1]) / delta;
 	*hue *= 60.0;
 	while (*hue < 0.0) *hue += 360.0;
