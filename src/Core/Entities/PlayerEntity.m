@@ -934,6 +934,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
 	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
+	[self setCloaked:NO];
+	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
 	if (andReset) [self doScriptEvent:@"reset"];
