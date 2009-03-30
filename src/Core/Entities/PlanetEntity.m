@@ -237,7 +237,7 @@ static float corona_blending;
 		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
 	}
 	corona_stage = 0.0;
-	for (i = 0; i < 720; i++)
+	for (i = 0; i < 729; i++)
 		rvalue[i] = randf();
 	
 	sun_radius=[dict floatForKey:@"sun_radius"];
@@ -1343,7 +1343,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLE_STRIP);
-	for (i = 1; i < 358; i += step) // 358+362=720
+	for (i = 0; i < 360; i += step) // 358+362=720
 	{
 		si = sinf(theta);
 		ci = cosf(theta);
@@ -1363,7 +1363,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
 		glVertex3f(s0, c0, -z0);
 	}
-	
+
 	rv0 = (1.0 - corona_stage) * rvalue[rv]*corona_blending + corona_stage * rvalue[360 + rv]*corona_blending;
 	rv1 = (1.0 - corona_stage) * rvalue[1 + rv]*corona_blending + corona_stage * rvalue[361 + rv]*corona_blending;
 	rv2 = (1.0 - corona_stage) * rvalue[2 + rv]*corona_blending + corona_stage * rvalue[362 + rv]*corona_blending;

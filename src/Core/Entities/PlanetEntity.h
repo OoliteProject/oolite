@@ -124,7 +124,7 @@ typedef struct
 // straight c
 double		corona_speed_factor;	// multiply delta_t by this before adding it to corona_stage
 double		corona_stage;			// 0.0 -> 1.0
-GLfloat		rvalue[720];			// stores random values for adjusting colors in the corona
+GLfloat		rvalue[729];			// stores random values for adjusting colors in the corona
 
 - (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;
 - (id) initWithSeed:(Random_Seed) p_seed;
