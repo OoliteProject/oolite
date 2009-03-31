@@ -1203,23 +1203,24 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 						break;
 					
 					case SDLK_F11:
-						if (fullScreen==YES && [screenSizes count] > 1)
+						if (fullScreen==YES && [[gameController displayModes] count] > 1)
 						{
+							int count=[[gameController displayModes] count];
 							if(shift)
 							{
 								currentSize--;
 								if (currentSize < 0)
-									currentSize = [screenSizes count] - 1;
+									currentSize = count - 1;
 							}
 							else
 							{
 								currentSize++;
-								if (currentSize >= [screenSizes count])
+								if (currentSize >= count)
 									currentSize = 0;
 							}
 							//save the new fullscreen mode
-							NSSize newSize = [self modeAsSize: currentSize];
-							NSDictionary *mode=[screenSizes objectAtIndex: currentSize];
+							NSDictionary *mode=[[gameController displayModes] objectAtIndex: currentSize];
+							NSSize newSize = NSMakeSize ([[mode objectForKey:kOODisplayWidth] intValue], [[mode objectForKey:kOODisplayHeight] intValue]);
 							[gameController setDisplayWidth:newSize.width
 									Height:newSize.height Refresh:[[mode objectForKey:kOODisplayRefreshRate] intValue]];
 							[self initialiseGLWithSize: newSize];

@@ -1917,7 +1917,7 @@ static NSTimeInterval	time_last_frame;
 		[self setGuiToStickMapperScreen: 0];
 	}
 #endif
-	
+
 	if (!switching_resolution &&
 		guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAY &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
@@ -1926,7 +1926,7 @@ static NSTimeInterval	time_last_frame;
 		OOInteger	displayModeIndex = [controller indexOfCurrentDisplayMode];
 		if (displayModeIndex == NSNotFound)
 		{
-			OOLog(@"graphics.mode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
+			OOLogWARN(@"graphics.mode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 			displayModeIndex = 0;
 		}
 		else

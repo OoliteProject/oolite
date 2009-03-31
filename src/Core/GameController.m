@@ -396,10 +396,10 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
 	{
 		mode = [modes objectAtIndex: modeIndex];
-		modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
-		modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
-		color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
-		modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
+		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
+		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
+		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
+		modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
 		
 		if (color < DISPLAY_MIN_COLOURS ||
 			modeWidth < DISPLAY_MIN_WIDTH ||
@@ -433,20 +433,20 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 	for (modeIndex = 0; modeIndex + 1 < [displayModes count]; modeIndex++)
 	{
 		mode = [displayModes objectAtIndex:modeIndex];
-		modeWidth = [mode unsignedIntForKey:(NSString *)kCGDisplayWidth];
-		modeHeight = [mode unsignedIntForKey:(NSString *)kCGDisplayHeight];
-		modeRefresh = [mode floatForKey:(NSString *)kCGDisplayRefreshRate];
-		color = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
+		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
+		modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
+		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
 		stretched = [mode boolForKey:(NSString *)kCGDisplayModeIsStretched];
 		interlaced = [mode boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
 		
 		for (mode2Index = modeIndex + 1; mode2Index < [displayModes count]; ++mode2Index)
 		{
 			mode2 = [displayModes objectAtIndex:mode2Index];
-			modeWidth2 = [mode2 unsignedIntForKey:(NSString *)kCGDisplayWidth];
-			modeHeight2 = [mode2 unsignedIntForKey:(NSString *)kCGDisplayHeight];
-			modeRefresh2 = [mode2 floatForKey:(NSString *)kCGDisplayRefreshRate];
-			color2 = [mode unsignedIntForKey:(NSString *)kCGDisplayBitsPerPixel];
+			modeWidth2 = [mode2 unsignedIntForKey:kOODisplayWidth];
+			modeHeight2 = [mode2 unsignedIntForKey:kOODisplayHeight];
+			modeRefresh2 = [mode2 floatForKey:kOODisplayRefreshRate];
+			color2 = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
 			stretched2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsStretched];
 			interlaced2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
 			
@@ -501,29 +501,6 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 		height = [[fullscreenDisplayMode objectForKey:kOODisplayHeight] intValue];
 		refresh = [[fullscreenDisplayMode objectForKey:kOODisplayRefreshRate] intValue];
 	}
-}
-
-
-- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
-{
-	int i, modeCount;
-	NSDictionary *mode;
-	unsigned int modeWidth, modeHeight, modeRefresh;
-	
-	modeCount = [displayModes count];
-	
-	for (i = 0; i < modeCount; i++)
-	{
-		mode = [displayModes objectAtIndex: i];
-		modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
-		modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-		modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] intValue];
-		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
-		{
-			return mode;
-		}
-	}
-	return nil;
 }
 
 
@@ -787,18 +764,30 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) getDisplayModes
 {
-	// SDL code all lives in the gameview.
-	displayModes = [gameView getScreenSizeArray];
+	NSArray *modes = [gameView getScreenSizeArray];
+	NSDictionary		*mode = nil;
+	unsigned	int		modeIndex, modeCount;
+	unsigned	int		modeWidth, modeHeight;
+
+	displayModes = [[NSMutableArray alloc] init];
+	modeCount = [modes count];
+	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
+	{
+		mode = [modes objectAtIndex: modeIndex];
+		modeWidth = [[mode objectForKey: kOODisplayWidth] intValue];
+		modeHeight = [[mode objectForKey: kOODisplayHeight] intValue];
+		
+		if (modeWidth < DISPLAY_MIN_WIDTH ||
+			modeWidth > DISPLAY_MAX_WIDTH ||
+			modeHeight < DISPLAY_MIN_HEIGHT ||
+			modeHeight > DISPLAY_MAX_HEIGHT)
+			continue;
+		[displayModes addObject: mode];
+	}
+	
 	NSSize fsmSize = [gameView currentScreenSize];
 	width = fsmSize.width;
 	height = fsmSize.height;
-}
-
-
-- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
-{
-	int modenum=[gameView findDisplayModeForWidth: d_width Height: d_height Refresh: d_refresh];
-	return [displayModes objectAtIndex: modenum];
 }
 
 
@@ -921,6 +910,27 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 	#error Unknown environment!
 #endif
 
+- (NSDictionary *) findDisplayModeForWidth:(unsigned int) d_width Height:(unsigned int) d_height Refresh:(unsigned int) d_refresh
+{
+	int i, modeCount;
+	NSDictionary *mode;
+	unsigned int modeWidth, modeHeight, modeRefresh;
+	
+	modeCount = [displayModes count];
+	
+	for (i = 0; i < modeCount; i++)
+	{
+		mode = [displayModes objectAtIndex: i];
+		modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
+		modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
+		modeRefresh = [[mode objectForKey:kOODisplayRefreshRate] intValue];
+		if ((modeWidth == d_width)&&(modeHeight == d_height)&&(modeRefresh == d_refresh))
+		{
+			return mode;
+		}
+	}
+	return nil;
+}
 
 - (void) exitFullScreenMode
 {

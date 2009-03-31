@@ -1335,23 +1335,26 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	GLfloat				z0 = c * r / z;
 	
 	GLfloat				rv0, rv1, rv2;
+	GLfloat				pt0, pt1;
 	
 	unsigned short		i;
 	GLfloat				theta = 0.0f, delta;
 	
 	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
+	pt0=(1.0 - corona_stage) * corona_blending;
+	pt1=corona_stage * corona_blending;
 	
 	glShadeModel(GL_SMOOTH);
 	glBegin(GL_TRIANGLE_STRIP);
-	for (i = 0; i < 360; i += step) // 358+362=720
+	for (i = 0; i < 360; i += step)
 	{
 		si = sinf(theta);
 		ci = cosf(theta);
 		theta += delta;
 		
-		rv0 = (1.0 - corona_stage) * rvalue[i + rv]*corona_blending + corona_stage * rvalue[i + rv + 360]*corona_blending;
-		rv1 = (1.0 - corona_stage) * rvalue[i + rv + 1]*corona_blending + corona_stage * rvalue[i + rv + 361]*corona_blending;
-		rv2 = (1.0 - corona_stage) * rvalue[i + rv + 2]*corona_blending + corona_stage * rvalue[i + rv + 362]*corona_blending;
+		rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
+		rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
+		rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
 
 		s1 = r1 * si;
 		c1 = r1 * ci;
@@ -1364,9 +1367,9 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		glVertex3f(s0, c0, -z0);
 	}
 
-	rv0 = (1.0 - corona_stage) * rvalue[rv]*corona_blending + corona_stage * rvalue[360 + rv]*corona_blending;
-	rv1 = (1.0 - corona_stage) * rvalue[1 + rv]*corona_blending + corona_stage * rvalue[361 + rv]*corona_blending;
-	rv2 = (1.0 - corona_stage) * rvalue[2 + rv]*corona_blending + corona_stage * rvalue[362 + rv]*corona_blending;
+	rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
+	rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
+	rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
 
 	glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
 	glVertex3f(0.0, r1, -z1);	//repeat the zero value to close

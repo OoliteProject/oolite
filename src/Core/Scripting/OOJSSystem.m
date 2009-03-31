@@ -421,7 +421,8 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 		default:
 			OOReportJSBadPropertySelector(context, @"System", JSVAL_TO_INT(name));
 	}
-	// now reset the systemdata cache
+	// Must reset the systemdata cache now, otherwise getproperty will fetch the unchanged values.
+	// A cleaner implementation than the rev1545 fix (somehow removed in rev1661).
 	[UNIVERSE generateSystemData:player->system_seed useCache:NO];
 	return OK;
 }

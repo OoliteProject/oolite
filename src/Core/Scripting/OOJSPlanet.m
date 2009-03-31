@@ -174,7 +174,6 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 {
 	PlanetEntity			*thisEnt = nil;
 	NSString				*name = nil;
-	PlayerEntity			*player = [PlayerEntity sharedPlayer];
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	name = [NSString stringWithJavaScriptValue:*argv inContext:context];

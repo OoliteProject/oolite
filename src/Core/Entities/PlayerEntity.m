@@ -3025,7 +3025,6 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-
 - (BOOL) fireMainWeapon
 {
 	int weapon_to_be_fired = [self weaponForView: currentWeaponFacing];
@@ -4578,22 +4577,17 @@ static PlayerEntity *sSharedPlayer = nil;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 #endif
 	GameController	*controller = [UNIVERSE gameController];
-
 	OOUInteger		displayModeIndex = [controller indexOfCurrentDisplayMode];
+	NSArray			*modeList = [controller displayModes];
+	NSDictionary	*mode = nil;
 	
 	if (displayModeIndex == NSNotFound)
 	{
-		OOLog(@"display.currentMode.notFound", @"***** couldn't find current display mode switching to basic 640x480");
+		OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 		displayModeIndex = 0;
 	}
 
-	// oolite-linux:
-	// Check that there are display modes listed before trying to
-	// get them or an exception occurs.
-	NSArray			*modeList;
-	NSDictionary	*mode = nil;
-
-	modeList = [controller displayModes];
+	// in linux modeList may be empty & cause an exception here
 	if ([modeList count])
 	{
 		mode = [modeList objectAtIndex:displayModeIndex];
@@ -4773,19 +4767,16 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
 	OOUInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
+	NSArray			*modeList = [controller displayModes];
+	NSDictionary	*mode = nil;
+
 	if (displayModeIndex == NSNotFound)
 	{
-		OOLogERR(@"display.currentMode.notFound", @"couldn't find current display mode, switching to basic 640x480.");
+		OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 		displayModeIndex = 0;
 	}
 
-	// oolite-linux:
-	// Check that there are display modes listed before trying to
-	// get them or an exception occurs.
-	NSArray			*modeList;
-	NSDictionary	*mode = nil;
-
-	modeList = [controller displayModes];
+	// in linux modeList may be empty & cause an exception here
 	if ([modeList count])
 	{
 		mode = [modeList objectAtIndex:displayModeIndex];

@@ -31,10 +31,10 @@ MA 02110-1301, USA.
 #define MODE_FULL_SCREEN		200
 
 #define DISPLAY_MIN_COLOURS		32
-#ifndef GNUSTEP
 #define DISPLAY_MIN_WIDTH		640
 #define DISPLAY_MIN_HEIGHT		480
 
+#ifndef GNUSTEP
 /*	OS X apps are permitted to assume 800x600 screens. Under OS X, we always
 	start up in windowed mode. Therefore, the default size fits an 800x600
 	screen and leaves space for the menu bar and title bar.
@@ -42,11 +42,8 @@ MA 02110-1301, USA.
 #define DISPLAY_DEFAULT_WIDTH	800
 #define DISPLAY_DEFAULT_HEIGHT	540
 #define DISPLAY_DEFAULT_REFRESH	75
-#else
-// *** Is there a reason for this difference? -- Ahruman
-#define DISPLAY_MIN_WIDTH		800
-#define DISPLAY_MIN_HEIGHT		600
 #endif
+
 #define DISPLAY_MAX_WIDTH		2400
 #define DISPLAY_MAX_HEIGHT		1800
 

@@ -190,7 +190,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type];
 	
-	weapon_energy = [shipDict floatForKey:@"weapon_energy"];
 	scannerRange = [shipDict floatForKey:@"scanner_range" defaultValue:25600.0];
 	missiles = [shipDict intForKey:@"missiles"];
 
@@ -5922,6 +5921,7 @@ BOOL class_masslocks(int some_class)
 	// set the values for the forward weapon
 	//
 	[self setWeaponDataFromType:forward_weapon_type];
+	weapon_energy = OOClamp_0_max_f([shipinfoDictionary floatForKey:@"weapon_energy" defaultValue:weapon_energy],50.0);
 	
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
