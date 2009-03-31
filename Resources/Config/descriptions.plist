@@ -1018,6 +1018,8 @@
 	"legal-desc-system-vessel"		= "System Vessel";
 	"legal-desc-military-vessel"	= "Military Vessel";
 	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
+	"wormhole-desc"				= "Wormhole";
+	"wormhole-to-@"				= "Wormhole to %@";
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
 	

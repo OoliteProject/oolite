@@ -27,6 +27,9 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
+#ifdef WORMHOLE_SCANNER
+#import "WormholeEntity.h"
+#endif
 #import "ShipEntity.h"
 #import "OOTypes.h"
 
@@ -480,6 +483,9 @@ waitingForStickCallback: 1;
 #ifdef DOCKING_CLEARANCE_ENABLED
 	OODockingClearanceStatus dockingClearanceStatus;
 #endif
+#ifdef WORMHOLE_SCANNER
+	NSMutableArray *scannedWormholes;
+#endif
 }
 
 + (PlayerEntity *)sharedPlayer;
@@ -557,7 +563,8 @@ waitingForStickCallback: 1;
 
 - (int) dialFuelScoopStatus;
 
-- (double) clockTime;	// Note that this is not an OOTimeAbsolute
+- (double) clockTime;		// Note that this is not an OOTimeAbsolute
+- (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute
 - (BOOL) clockAdjusting;
 
 - (NSString *) dial_clock;

@@ -7,7 +7,7 @@ technical terminology -- the blue blobby thing you see hanging in space. The
 purple tunnel is RingEntity.)
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -35,21 +35,41 @@ MA 02110-1301, USA.
 
 @interface WormholeEntity: Entity
 {
-	double			time_counter, expiry_time;
+	double			expiry_time;  // Time when wormhole entrance closes
+	double			travel_time;  // Time taken for a ship to traverse the wormhole
+	double			arrival_time; // Time when wormhole exit opens
 	
+	Random_Seed		origin;
 	Random_Seed		destination;
 	
 	NSMutableArray	*shipsInTransit;
 	
 	double			witch_mass;
 	
+	BOOL			is_scanned; // YES if the player has scanned this wormhole
+	BOOL			hasExitPosition;
 }
 
-- (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship;
+- (WormholeEntity*) initWithDict:(NSDictionary*)dict;
+- (WormholeEntity*) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship;
 
 - (BOOL) suckInShip:(ShipEntity *) ship;
 - (void) disgorgeShips;
 
+- (Random_Seed) origin;
 - (Random_Seed) destination;
+
+- (double) expiryTime;	// Time at which the wormholes entrance closes
+- (double) arrivalTime;	// Time at which the wormholes exit opens
+- (double) travelTime;	// Time needed for a ship to traverse the wormhole
+
+- (BOOL) isScanned;
+- (void) setScanned:(BOOL) scanned;
+
+- (NSArray*) shipsInTransit;
+
+- (NSString *) identFromShip:(ShipEntity*) ship;
+
+- (NSDictionary *)getDict;
 
 @end

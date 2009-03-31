@@ -32,36 +32,115 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "AI.h"
 #import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
+// Hidden interface
+@interface WormholeEntity (Private)
 
+-(WormholeEntity *) init;
+
+@end
+
+// Static local functions
 static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int step, GLfloat z_distance, GLfloat *col4v1);
 
 
-@implementation WormholeEntity
+@implementation WormholeEntity (Private)
 
-- (id) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship
+- (WormholeEntity*)init
 {
 	if ((self = [super init]))
 	{
-		if (ship == nil)
-		{
-			[self release];
-			return nil;
-		}
-		
-		destination = s_seed;
-		time_counter = 0.0;
-		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
 		witch_mass = 0.0;
 		shipsInTransit = [[NSMutableArray arrayWithCapacity:4] retain];
 		collision_radius = 0.0;
 		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_MINE;
+		scanClass = CLASS_WORMHOLE;
+		isWormhole = YES;
+		is_scanned = NO;
+		hasExitPosition = NO;
+	}
+	return self;
+}
+
+@end // Private interface implementation
+
+
+//
+// Public Wormhole Implementation
+//
+
+@implementation WormholeEntity
+
+- (WormholeEntity*)initWithDict:(NSDictionary*)dict
+{
+	assert(dict != nil);
+
+	if ([self init])
+	{
+		origin = RandomSeedFromString([dict stringForKey:@"origin_seed"]);
+		destination = RandomSeedFromString([dict stringForKey:@"dest_seed"]);
+
+		// We only ever init from dictionary if we're loaded by the player, so
+		// by definition we have been scanned
+		is_scanned = YES;
+
+		// Remember, times are stored as Ship Clock - but anything
+		// saving/restoring wormholes from dictionaries should know this!
+		expiry_time = [dict doubleForKey:@"expiry_time"];
+		arrival_time = [dict doubleForKey:@"arrival_time"];
+		NSDictionary * posDict = [dict objectForKey:@"position"];
+		position.x = [posDict floatForKey:@"x"];
+		position.y = [posDict floatForKey:@"y"];
+		position.z = [posDict floatForKey:@"z"];
+
+		// Setup shipsInTransit
+		NSArray * shipDictsArray = [dict arrayForKey:@"ships"];
+		NSEnumerator * shipDicts = [shipDictsArray objectEnumerator];
+		NSDictionary * currShipDict;
+		[shipsInTransit removeAllObjects];
+		while ((currShipDict = [shipDicts nextObject]) != nil)
+		{
+			double time = [currShipDict doubleForKey:@"time_delta"];
+			NSMutableDictionary * myShipDict = [currShipDict objectForKey:@"ship"];
+			ShipEntity * ship = [ShipEntity alloc];
+			[ship initWithDictionary:myShipDict];
+
+			[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+				ship, @"ship",
+				[NSNumber numberWithDouble:time], @"time",
+				nil]];
+
+			[ship release];
+			/*
+			   [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+			   [NSNumber numberWithDouble:[currShipDict doubleForKey:@"time_delta"]], @"time",
+			   [[ShipEntity alloc] initWithDictionary:[currShipDict objectForKey:@"ship"]], @"ship",
+			   nil]];
+			   */
+		}
+	}
+	return self;
+}
+
+- (WormholeEntity*) initWormholeTo:(Random_Seed) s_seed fromShip:(ShipEntity *) ship
+{
+	assert(ship != nil);
+
+	if ((self = [self init]))
+	{
+		double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+		double distance;
+
+		origin = [UNIVERSE systemSeed];
+		destination = s_seed;
+		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
+		expiry_time = now + WORMHOLE_EXPIRES_TIMEINTERVAL;
+		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
+		arrival_time = now + travel_time;
 		position = [ship position];
 		zero_distance = distance2([[PlayerEntity sharedPlayer] position], position);
-		isWormhole = YES;
-	}
-	
+	}	
 	return self;
 }
 
@@ -71,86 +150,136 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	if (equal_seeds(destination, [UNIVERSE systemSeed]))
 		return NO;	// far end of the wormhole!
 	
-	if (ship)
-	{
-		[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-										ship, @"ship",
-										[NSNumber numberWithDouble: time_counter], @"time",
-										nil]];
-		witch_mass += [ship mass];
-		expiry_time = time_counter + WORMHOLE_EXPIRES_TIMEINTERVAL;
-		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
+	if (!ship)
+		return NO;
 
-		// witchspace entry effects here
-		ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
-		[UNIVERSE addEntity:ring];
-		[ring release];
-		ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
-		[ring setSize:NSMakeSize([ring size].width * -2.5 ,[ring size].height * -2.0 )]; // shrinking!
-		[UNIVERSE addEntity:ring];
-		[ring release];
+	double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+	[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+						ship, @"ship",
+						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
+						nil]];
+	witch_mass += [ship mass];
+	expiry_time = now + WORMHOLE_EXPIRES_TIMEINTERVAL;
+	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
+
+	// witchspace entry effects here
+	ParticleEntity *ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
+	[UNIVERSE addEntity:ring];
+	[ring release];
+	ring = [[ParticleEntity alloc] initHyperringFromShip:ship]; // retained
+	[ring setSize:NSMakeSize([ring size].width * -2.5 ,[ring size].height * -2.0 )]; // shrinking!
+	[UNIVERSE addEntity:ring];
+	[ring release];
 		
-		// Should probably pass the wormhole, but they have no JS representation
-		[ship doScriptEvent:@"shipWillEnterWormhole"];
-		[[ship getAI] message:@"ENTERED_WITCHSPACE"];
+	// Should probably pass the wormhole, but they have no JS representation
+	[ship doScriptEvent:@"shipWillEnterWormhole"];
+	[[ship getAI] message:@"ENTERED_WITCHSPACE"];
 	
-		[UNIVERSE removeEntity:ship];
-		[[ship getAI] clearStack];	// get rid of any preserved states
+	[UNIVERSE removeEntity:ship];
+	[[ship getAI] clearStack];	// get rid of any preserved states
 		
-		return YES;
-	}
-	// fall through
-	return NO;
+	return YES;
 }
 
 
 - (void) disgorgeShips
 {
+	double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
 	int n_ships = [shipsInTransit count];
+	NSMutableArray * shipsStillInTransit = [[NSMutableArray alloc] initWithCapacity:n_ships];
 	
 	int i;
 	for (i = 0; i < n_ships; i++)
 	{
 		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
-		double	time_entered = [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
-		double	time_passed = time_counter - time_entered;
+		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
+		double	time_passed = now - ship_arrival_time;
 
-		Vector pos = [UNIVERSE getWitchspaceExitPosition];
-		Quaternion	q1;
-		quaternion_set_random(&q1);
-		double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
-		if (abs(d1) < 500.0)	// no closer than 500m
-			d1 += ((d1 > 0.0)? 500.0: -500.0);
-		Vector		v1 = vector_forward_from_quaternion(q1);
-		pos.x += v1.x * d1; // randomise exit position
-		pos.y += v1.y * d1;
-		pos.z += v1.z * d1;
-		[ship setPosition: pos];
-		[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
-		[ship setPitch: 0.0];
-		[ship setRoll: 0.0];
+		if (ship_arrival_time > now)
+		{
+			[shipsStillInTransit addObject:[shipsInTransit objectAtIndex:i]];
+		}
+		else
+		{
+			// Only calculate exit position once so that all ships arrive from the same point
+			if (!hasExitPosition)
+			//if ( vector_equal(position, kZeroVector) )
+			{
+				hasExitPosition = true;
+				position = [UNIVERSE getWitchspaceExitPosition];
+				Quaternion	q1;
+				quaternion_set_random(&q1);
+				double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);
+				if (abs(d1) < 500.0)	// no closer than 500m
+					d1 += ((d1 > 0.0)? 500.0: -500.0);
+				Vector		v1 = vector_forward_from_quaternion(q1);
+				position.x += v1.x * d1; // randomise exit position
+				position.y += v1.y * d1;
+				position.z += v1.z * d1;
+			}
+			[ship setPosition: position];
+			[ship setOrientation: [UNIVERSE getWitchspaceExitRotation]];
+			[ship setPitch: 0.0];
+			[ship setRoll: 0.0];
 		
-		[ship setBounty:[ship bounty]/2];	// adjust legal status for new system
+			[ship setBounty:[ship bounty]/2];	// adjust legal status for new system
 		
-		if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
-			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
+			if ([ship cargoFlag] == CARGO_FLAG_FULL_PLENTIFUL)
+				[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 		
-		[UNIVERSE addEntity:ship];
+			[UNIVERSE addEntity:ship];
 		
-		// Should probably pass the wormhole, but they have no JS representation
-		[ship doScriptEvent:@"shipExitedWormhole" andReactToAIMessage:@"EXITED WITCHSPACE"];
+			// Should probably pass the wormhole, but they have no JS representation
+			[ship doScriptEvent:@"shipExitedWormhole" andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
-		// update the ships's position
-		[ship update: time_passed];
+			// update the ships's position
+			[ship update: time_passed];
+		}
 	}
+	[shipsInTransit release];
+	shipsInTransit = shipsStillInTransit;
 }
 
+
+- (Random_Seed) origin
+{
+	return origin;
+}
 
 - (Random_Seed) destination
 {
 	return destination;
 }
 
+- (double) expiryTime
+{
+	return expiry_time;
+}
+
+- (double) arrivalTime
+{
+	return arrival_time;
+}
+
+- (double) travelTime
+{
+	return travel_time;
+}
+
+- (BOOL) isScanned
+{
+	return is_scanned;
+}
+
+- (void) setScanned:(BOOL)scanned
+{
+	is_scanned = scanned;
+}
+
+- (NSArray*) shipsInTransit
+{
+	return shipsInTransit;
+}
 
 - (void) dealloc
 {
@@ -162,7 +291,19 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs", [UNIVERSE getSystemName:destination], WORMHOLE_EXPIRES_TIMEINTERVAL - time_counter];
+	double now = [UNIVERSE getTime];
+	return [NSString stringWithFormat:@"destination: %@ ttl: %.2fs arrival: %@",
+		[UNIVERSE getSystemName:destination],
+		WORMHOLE_EXPIRES_TIMEINTERVAL - now,
+		ClockToString(arrival_time, false)];
+}
+
+- (NSString *) identFromShip:(ShipEntity*)ship
+{
+	if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])
+		return [NSString stringWithFormat:DESC(@"wormhole-to-@"), [UNIVERSE getSystemName:destination]];
+	else
+		return DESC(@"wormhole-desc");
 }
 
 
@@ -189,8 +330,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player position]);
-	
-	time_counter += delta_t;
+	double now = [player clockTimeAdjusted];
 	
 	if (witch_mass > 0.0)
 	{
@@ -203,8 +343,12 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 	scanClass = (witch_mass > 0.0)? CLASS_WORMHOLE : CLASS_NO_DRAW;
 	
-	if (time_counter > expiry_time)
+	if (now > expiry_time)
+	{
+		//position.x = position.y = position.z = 0;
+		position = kZeroVector;
 		[UNIVERSE removeEntity: self];
+	}
 }
 
 
@@ -310,6 +454,47 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	glVertex3f(s1, c1, 0.0);
 	
 	glEnd();
+}
+
+- (NSDictionary *)getDict
+{
+	NSMutableDictionary * myDict = [[NSMutableDictionary dictionary] retain];
+	NSString * str = nil;
+
+	str = [NSString stringWithFormat:@"%d %d %d %d %d %d",origin.a, origin.b, origin.c, origin.d, origin.e, origin.f];
+	[myDict setObject:str forKey:@"origin_seed"];
+	str = [NSString stringWithFormat:@"%d %d %d %d %d %d",destination.a, destination.b, destination.c, destination.d, destination.e, destination.f];
+	[myDict setObject:str forKey:@"dest_seed"];
+	// Anything converting a wormhole to a dictionary should already have 
+	// modified its time to shipClock time
+	[myDict setFloat:(expiry_time) forKey:@"expiry_time"];
+	[myDict setFloat:(arrival_time) forKey:@"arrival_time"];
+	[myDict setObject:[NSDictionary dictionaryWithObjectsAndKeys:
+		[NSNumber numberWithFloat:position.x], @"x", 
+		[NSNumber numberWithFloat:position.y], @"y",
+		[NSNumber numberWithFloat:position.z], @"z",
+		nil] forKey:@"position"];
+
+	NSMutableArray * shipArray = [NSMutableArray arrayWithCapacity:[shipsInTransit count]];
+	NSEnumerator * ships = [shipsInTransit objectEnumerator];
+	NSDictionary * currShipDict = nil;
+	while ((currShipDict = [ships nextObject]) != nil)
+	{
+		/*
+		NSMutableDictionary * myShipDict = [NSMutableDictionary dictionary];
+		[myShipDict setFloat:([currShipDict doubleForKey:@"time"]) forKey:@"time_delta"];
+		ShipEntity * currShip = (ShipEntity*)[currShipDict objectForKey:@"ship"];
+		[myShipDict setObject:[currShip shipInfoDictionary] forKey:@"ship"];
+		[shipArray addObject:myShipDict];
+		*/
+		[shipArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+			[NSNumber numberWithDouble:[currShipDict doubleForKey:@"time"]], @"arrival_time",
+			[[currShipDict objectForKey:@"ship"] shipInfoDictionary], @"ship",
+			nil]];
+	}
+	[myDict setObject:shipArray forKey:@"ships"];
+
+	return myDict;
 }
 
 @end

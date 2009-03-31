@@ -3,7 +3,7 @@
 Universe.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1232,9 +1232,15 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		NS_DURING
-			WormholeEntity* whole = [activeWormholes objectAtIndex:0];
-			
+			WormholeEntity* whole = [activeWormholes objectAtIndex:0];		
+#ifdef WORMHOLE_SCANNER
+			// If the wormhole has been scanned by the player then the
+			// PlayerEntity will take care of it
+			if (![whole isScanned] &&
+				equal_seeds([whole destination], system_seed))
+#else
 			if (equal_seeds([whole destination], system_seed))
+#endif
 			{			
 				// this is a wormhole to this system
 				[whole disgorgeShips];
@@ -2910,6 +2916,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	// Otherwise, if caller doesn't set a role, one will be selected randomly.
 	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
 	
+	// MKW 20090327 - retain count is actually 2!
 	return ship;   // retain count = 1
 }
 
@@ -4487,10 +4494,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (ShipEntity *)getFirstEntityTargettedByPlayer
+- (Entity *)getFirstEntityTargettedByPlayer
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-	ShipEntity		*hit_entity = nil;
+	Entity			*hit_entity = nil;
 	double			nearest = SCANNER_MAX_RANGE - 100;	// 100m shorter than range at which target is lost
 	int				i;
 	int				ent_count = n_entities;
@@ -4498,7 +4505,11 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	Entity			*my_entities[ent_count];
 	
 	for (i = 0; i < ent_count; i++)
+#ifdef WORMHOLE_SCANNER
+		if ( ([sortedEntities[i] isShip] && ![sortedEntities[i] isPlayer]) || [sortedEntities[i] isWormhole])
+#else
 		if ((sortedEntities[i]->isShip)&&(sortedEntities[i] != player))
+#endif
 			my_entities[ship_count++] = [sortedEntities[i] retain];	// retained
 
 	Vector p1 = player->position;
@@ -4529,10 +4540,10 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	r1 = vector_right_from_quaternion(q1);
 	for (i = 0; i < ship_count; i++)
 	{
-		ShipEntity *e2 = (ShipEntity *)my_entities[i];
-		if ([e2 canCollide]&&(e2->scanClass != CLASS_NO_DRAW))
+		Entity *e2 = my_entities[i];
+		if ([e2 canCollide]&&([e2 scanClass] != CLASS_NO_DRAW))
 		{
-			Vector rp = e2->position;
+			Vector rp = [e2 position];
 			rp.x -= p1.x;	rp.y -= p1.y;	rp.z -= p1.z;
 			double dist2 = magnitude2(rp);
 			if (dist2 < nearest * nearest)
@@ -4542,7 +4553,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 				{
 					double du = dot_product(u1,rp);
 					double dr = dot_product(r1,rp);
-					double cr = e2->collision_radius;
+					double cr = [e2 collisionRadius];
 					if (du*du + dr*dr < cr*cr)
 					{
 						hit_entity = e2;
@@ -4553,8 +4564,14 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		}
 	}
 	// check for MASC'M
-	if ((hit_entity) && [hit_entity isJammingScanning] && ![player hasMilitaryScannerFilter])
-		hit_entity = nil;
+	if ((hit_entity) && [hit_entity isShip])
+	{
+		ShipEntity * ship = (ShipEntity*)hit_entity;
+		if ([ship isJammingScanning] && ![player hasMilitaryScannerFilter])
+		{
+			hit_entity = nil;
+		}
+	}
 	
 	for (i = 0; i < ship_count; i++)
 		[my_entities[i] release]; //	released

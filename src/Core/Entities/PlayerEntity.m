@@ -116,6 +116,10 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
 - (void) updateTargetting;
 - (BOOL) isValidTarget:(Entity*)target;
+#ifdef WORMHOLE_SCANNER
+- (void) addScannedWormhole:(WormholeEntity*)wormhole;
+- (void) updateWormholes;
+#endif
 
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
@@ -439,6 +443,18 @@ static PlayerEntity *sSharedPlayer = nil;
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 
+#ifdef WORMHOLES_SCANNER
+	// wormhole information
+	NSMutableArray * wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
+	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
+	WormholeEntity * wh;
+	while ((wh = (WormholeEntity*)[wormholes nextObject]))
+	{
+		[wormholeDicts addObject:[wh getDict]];
+	}
+	[result setObject:wormholeDicts forKey:@"wormholes"];
+#endif
+
 	// create checksum
 	clear_checksum();
 	munge_checksum(galaxy_seed.a);	munge_checksum(galaxy_seed.b);	munge_checksum(galaxy_seed.c);
@@ -686,6 +702,29 @@ static PlayerEntity *sSharedPlayer = nil;
 	//  things...
 	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+
+#ifdef WORMHOLE_SCANNER
+	// wormholes
+	NSArray * whArray;
+	whArray = [dict objectForKey:@"wormholes"];
+	NSEnumerator * whDicts = [whArray objectEnumerator];
+	NSDictionary * whCurrDict;
+	[scannedWormholes release];
+	scannedWormholes = [[NSMutableArray alloc] initWithCapacity:[whArray count]];
+	while ((whCurrDict = [whDicts nextObject]) != nil)
+	{
+		WormholeEntity * wh = [[WormholeEntity alloc] initWithDict:whCurrDict];
+		[scannedWormholes addObject:wh];
+		/* TODO - add to Universe if the wormhole hasn't expired yet; but in this case
+		 * we need to save/load position and mass as well, which we currently 
+		 * don't
+		if (equal_seeds([wh origin], system_seed))
+		{
+			[UNIVERSE addEntity:wh];
+		}
+		*/
+	}
+#endif
 	
 	// trumble information
 	[self setUpTrumbles];
@@ -912,6 +951,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	[save_path autorelease];
 	save_path = nil;
 	
+#ifdef WORMHOLE_SCANNER	
+	[scannedWormholes release];
+	scannedWormholes = [[NSMutableArray alloc] init];
+#endif
+
 	[self setUpTrumbles];
 	
 	suppressTargetLost = NO;
@@ -1144,6 +1188,11 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[self destroySound];
 
+#ifdef WORMHOLE_SCANNER
+	[scannedWormholes release];
+	scannedWormholes = nil;
+#endif
+
 	int i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)  [missile_entity[i] release];
 
@@ -1229,6 +1278,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
 	[self updateTargetting];
+#ifdef WORMHOLE_SCANNER
+	[self updateWormholes];
+#endif
 }
 
 
@@ -1838,7 +1890,7 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-// Target is valid if it's a ship, AND
+// Target is valid if it's either a ship or a wormhole, AND
 // Target is within Scanner range, AND
 // Target is not cloaked or jamming
 - (BOOL)isValidTarget:(Entity*)target
@@ -1851,18 +1903,26 @@ static PlayerEntity *sSharedPlayer = nil;
 	if(target->zero_distance > SCANNER_MAX_RANGE2)
 		return false;
 
-	// If target is not a ship
-	if (![target isShip])
-		return false;
-
-	// Check whether the ship is cloaked or is actively jamming our scanner
-	ShipEntity *targetShip = (ShipEntity*)target;
-	if ([targetShip isCloaked] ||	// checks for cloaked ships
-			([targetShip isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+	// If target is a ship, check whether it's cloaked or is actively jamming our scanner
+	if ([target isShip])
 	{
-		return false;
+		ShipEntity *targetShip = (ShipEntity*)target;
+		if ([targetShip isCloaked] ||	// checks for cloaked ships
+			([targetShip isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
+		{
+			return false;
+		}
+		return true;
 	}
-	return true;
+
+#ifdef WORMHOLE_SCANNER
+	// If target is a wormhole, no further tests required
+	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW)
+		return true;
+#endif
+	
+	// Target is neither a wormhole nor a ship
+	return false;
 }
 
 // Check for lost targetting - both on the ships' main target as well as each
@@ -2337,6 +2397,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	return ship_clock;
 }
 
+- (double) clockTimeAdjusted
+{
+	return ship_clock + ship_clock_adjust;
+}
+
 
 - (BOOL) clockAdjusting
 {
@@ -2536,10 +2601,16 @@ static PlayerEntity *sSharedPlayer = nil;
 - (NSString *) dialTargetName
 {
 	Entity* target_entity = [UNIVERSE entityForUniversalID:primaryTarget];
-	if ((target_entity)&&(target_entity->isShip))
-		return [(ShipEntity*)target_entity identFromShip:self];
-	else
+	if (!target_entity)
 		return DESC(@"no-target-string");
+	if ([target_entity isShip])
+		return [(ShipEntity*)target_entity identFromShip:self];
+#ifdef WORMHOLE_SCANNER
+	if ([target_entity isWormhole])
+		return [(WormholeEntity*)target_entity identFromShip:self];
+#endif
+
+	return DESC(@"unknown-target");
 }
 
 
@@ -2825,7 +2896,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	Quaternion q1 = orientation;
 	q1.w = -q1.w;   // player view is reversed remember!
 
-	ShipEntity  *target = [self primaryTarget];
+	Entity  *target = [self primaryTarget];
 
 	// select a new active missile and decrease the missiles count
 	missile_entity[activeMissile] = nil;
@@ -2863,9 +2934,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE addEntity:missile];
 	[missile release];
 	
-	[target setPrimaryAggressor:self];
-	[target doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
-	[target reactToAIMessage:@"INCOMING_MISSILE"];
+	if ([target isShip])
+	{	
+		ShipEntity *targetShip = (ShipEntity*)target;
+		[targetShip setPrimaryAggressor:self];
+		[targetShip doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+		[targetShip reactToAIMessage:@"INCOMING_MISSILE"];
+	}
 	
 	[self playMissileLaunched];
 
@@ -5907,7 +5982,7 @@ static int last_outfitting_index;
 - (BOOL) hasHostileTarget
 {
 	ShipEntity *playersTarget = [self primaryTarget];
-	return (playersTarget != nil && [playersTarget hasHostileTarget] && [playersTarget primaryTarget] == self);
+	return ([playersTarget isShip] && [playersTarget hasHostileTarget] && [playersTarget primaryTarget] == self);
 }
 
 
@@ -6628,6 +6703,66 @@ static int last_outfitting_index;
 
 #endif
 
+#ifdef WORMHOLE_SCANNER
+//
+// Wormhole Scanner support functions
+//
+- (void)addScannedWormhole:(WormholeEntity*)wormhole
+{
+	assert(scannedWormholes != nil);
+	assert(wormhole != nil);
+	
+	// Only add if we don't have it already!
+	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
+	WormholeEntity * wh;
+	while ((wh = [wormholes nextObject]))
+	{
+		if ([wh universalID] == [wormhole universalID])
+			return;
+	}
+	[wormhole setScanned:YES];
+	[scannedWormholes addObject:wormhole];
+}
+
+// Checks through our array of wormholes for any which have expired
+// If it is in the current system, spawn ships
+// Else remove it
+- (void)updateWormholes
+{
+	assert(scannedWormholes != nil);
+	
+	if ([scannedWormholes count] == 0)
+		return;
+
+	double now = [self clockTimeAdjusted];
+
+	NSMutableArray * savedWormholes = [[NSMutableArray alloc] initWithCapacity:[scannedWormholes count]];
+	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
+	WormholeEntity *wh;
+
+	while ((wh = (WormholeEntity*)[wormholes nextObject]))
+	{
+		// TODO: Start drawing wormhole exit a few seconds before the first
+		//       ship is disgorged.
+		if ([wh arrivalTime] > now)
+		{
+			[savedWormholes addObject:wh];
+		}
+		else if (equal_seeds([wh destination], [self system_seed]))
+		{
+			[wh disgorgeShips];
+			if ([[wh shipsInTransit] count] > 0)
+			{
+				[savedWormholes addObject:wh];
+			}
+		}
+		// Else wormhole has expired in another system, let it expire
+	}
+
+	[scannedWormholes release];
+	scannedWormholes = savedWormholes;
+}
+#endif
 
 #ifndef NDEBUG
 - (void)dumpSelfState

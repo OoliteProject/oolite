@@ -109,7 +109,13 @@ void OOPrintLogHeader(void)
 		#define OPT2_STR ""
 	#endif
 	
-	#define OPT_STR OPT1_STR OPT2_STR
+	#ifdef WORMHOLE_SCANNER
+		#define OPT3_STR " [Wormhole Scanner]"
+	#else
+		#define OPT3_STR ""
+	#endif
+	
+	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR
 	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X

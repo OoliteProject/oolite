@@ -2130,14 +2130,17 @@ static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
 
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive)
 {
-	ShipEntity		*target_ship = (ShipEntity *)target;
+	ShipEntity		*target_ship = nil;
 	NSString		*legal_desc = nil;
 	if ((!target)||(!player1))
 		return;
 
+	if ([target isShip])
+		target_ship = (ShipEntity*)target;
+
 	if ([target_ship isCloaked])  return;
 	
-	switch ([target_ship scanClass])
+	switch ([target scanClass])
 	{
 		case CLASS_NEUTRAL:
 			{
@@ -2252,11 +2255,10 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	float range = (sqrtf(target->zero_distance) - target->collision_radius) * 0.001f;
 	NSSize textsize = NSMakeSize(rdist * ONE_SIXTYFOURTH, rdist * ONE_SIXTYFOURTH);
 	float line_height = rdist * ONE_SIXTYFOURTH;
-	NSString*	info1 = [target_ship identFromShip: player1];
-	NSString*	info2 = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
+	NSString*	info = (legal_desc == nil)? [NSString stringWithFormat:@"%0.3f km", range] : [NSString stringWithFormat:@"%0.3f km (%@)", range, legal_desc];
 	// no need to set color - tis green already!
-	OODrawString(info1, rs0, 0.5 * rs2, 0, textsize);
-	OODrawString(info2, rs0, 0.5 * rs2 - line_height, 0, textsize);
+	OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
+	OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
 	glPopMatrix();
 }
