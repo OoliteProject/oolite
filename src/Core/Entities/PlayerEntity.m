@@ -1890,9 +1890,9 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-// Target is valid if it's either a ship or a wormhole, AND
-// Target is within Scanner range, AND
-// Target is not cloaked or jamming
+// Target is valid if it's within Scanner range, AND
+// Target is a ship AND is not cloaked or jamming, OR
+// Target is a wormhole AND player has the Wormhole Scanner
 - (BOOL)isValidTarget:(Entity*)target
 {
 	// Just in case we got called with a bad target.
@@ -1916,8 +1916,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 #ifdef WORMHOLE_SCANNER
-	// If target is a wormhole, no further tests required
-	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW)
+	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
+	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
+		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
 		return true;
 #endif
 	
@@ -1978,7 +1979,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
 		Entity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
-		if (target != nil && (![target isWormhole] || ([target isWormhole] && [self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])))
+		if ([self isValidTarget:target])
 		{
 			[self addTarget:target];
 		}
@@ -6350,7 +6351,7 @@ static int last_outfitting_index;
 		[self playIdentLockedOn];
 		[self printIdentLockedOnForMissile:NO];
 	}
-	else
+	else if( [targetEntity isShip] ) // Only let missiles target-lock onto ships
 	{
 		if ([missile_entity[activeMissile] isMissile])
 		{

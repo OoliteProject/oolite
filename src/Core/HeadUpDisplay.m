@@ -130,6 +130,7 @@ GLfloat redplus_color[4] =  {1.0, 0.0, 0.5, 1.0};
 GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
 GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
 GLfloat darkgreen_color[4] ={0.0, 0.75, 0.0, 1.0};
+GLfloat cyan_color[4] =		{0.0, 1.0, 1.0, 1.0};
 GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
 GLfloat black_color[4] =	{0.0, 0.0, 0.0, 1.0};
 GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
@@ -2227,18 +2228,24 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
 	// draw the reticle
-	// If reticleis target sensitive, draw target box in red when target passes through crosshairs.
-	if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == target && ![target isWormhole])
+#ifdef WORMHOLE_SCANNER
+	// Draw reticle cyan for Wormholes
+	if ([target isWormhole] )
 	{
-		GLColorWithOverallAlpha(red_color, overallAlpha);
-	}
-	else if ([target isWormhole])	// wormholes go with a blue reticle
-	{
-		GLColorWithOverallAlpha(blue_color, overallAlpha);
+		GLColorWithOverallAlpha(cyan_color, overallAlpha);
 	}
 	else
+#endif
 	{
-		GLColorWithOverallAlpha(green_color, overallAlpha);
+		// If reticle is target sensitive, draw target box in red when target passes through crosshairs.
+		if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == [player1 primaryTarget])
+		{
+			GLColorWithOverallAlpha(red_color, overallAlpha);
+		}
+		else
+		{
+			GLColorWithOverallAlpha(green_color, overallAlpha);
+		}
 	}
 	glBegin(GL_LINES);
 		glVertex2f(rs0,rs2);	glVertex2f(rs0,rs0);

@@ -705,7 +705,7 @@ static NSTimeInterval	time_last_frame;
 					missile_status = MISSILE_STATUS_ARMED;
 					if ([missile_entity[activeMissile] isMissile])
 					{
-						if ([self primaryTargetID] != NO_TARGET)
+						if ([[self primaryTarget] isShip])
 						{
 							missile_status = MISSILE_STATUS_TARGET_LOCKED;
 							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
@@ -714,12 +714,13 @@ static NSTimeInterval	time_last_frame;
 						}
 						else
 						{
+							[self removeTarget:nil];
 							[missile_entity[activeMissile] removeTarget:nil];
 							[UNIVERSE addMessage:DESC(@"missile-armed") forCount:2.0];
 							[self playMissileArmed];
 						}
 					}
-					if ([missile_entity[activeMissile] isMine])
+					else if ([missile_entity[activeMissile] isMine])
 					{
 						[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
 						[self playMineArmed];
