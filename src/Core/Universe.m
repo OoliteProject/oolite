@@ -7678,7 +7678,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-- (void) allShipAIsReactToMessage:(NSString*) message
+- (void) allShipsDoScriptEvent:(NSString*) event andReactToAIMessage:(NSString*) message
 {
 	int i;
 	int ent_count = n_entities;
@@ -7691,6 +7691,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	for (i = 0; i < ship_count; i++)
 	{
 		ShipEntity* se = my_ships[i];
+		[se doScriptEvent:event];
 		[[se getAI] reactToMessage:message];
 		[se release]; //	released
 	}

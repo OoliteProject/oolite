@@ -5,7 +5,7 @@ Universe.h
 Manages a lot of stuff that isn't managed somewhere else.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -519,7 +519,7 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (NSArray*) listBeaconsWithCode:(NSString*) code;
 
-- (void) allShipAIsReactToMessage:(NSString*) message;
+- (void) allShipsDoScriptEvent:(NSString*) event andReactToAIMessage:(NSString*) message;
 
 ///////////////////////////////////////
 

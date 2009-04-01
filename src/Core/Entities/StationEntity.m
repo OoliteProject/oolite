@@ -3,7 +3,7 @@
 StationEntity.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1310,7 +1310,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			return;
 		}
 	}
-	if (!isFriend)
+	// Stop damage if main station & close to death!
+	if (!isFriend && (self != [UNIVERSE station] || amount < energy) )
 	{
 		// Handle damage like a ship.
 		[super takeEnergyDamage:amount from:ent becauseOf:other];
@@ -1399,7 +1400,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOTechLevelID	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
 	
-	for (i = 0; (i < 4)&&(police_launched <= max_police) ; i++)
+	for (i = 0; (i < 4)&&(police_launched < max_police) ; i++)
 	{
 		ShipEntity  *police_ship = nil;
 		if (![UNIVERSE entityForUniversalID:police_target])
@@ -1893,7 +1894,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 	// Deny docking for fugitives at the main station
 	// TODO: Should this be another key in shipdata.plist and/or should this
-	//       apply to all stations?
+	//  apply to all stations?
 	if (result == nil && self == [UNIVERSE station] && [other bounty] > 50)	// do not grant docking clearance to fugitives
 	{
 		[self sendExpandedMessage:DESC(@"H-station-refuses-to-grant-docking-clearance") toShip:other];

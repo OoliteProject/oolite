@@ -3912,8 +3912,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	scanner_zoom_rate = 0.0f;
 	
 	[UNIVERSE setDisplayText:NO];
-	
-	[UNIVERSE allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+
+	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	
@@ -4014,7 +4014,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[UNIVERSE setDisplayText:NO];
 
-	[UNIVERSE allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	[UNIVERSE setSystemTo:target_system_seed];
@@ -4051,7 +4051,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[UNIVERSE setDisplayText:NO];
 
-	[UNIVERSE allShipAIsReactToMessage:@"PLAYER WITCHSPACE"];
+	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
 
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	

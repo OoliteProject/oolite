@@ -3,7 +3,7 @@
 MyOpenGLView.m
 
 Oolite
-Copyright (C) 2004-2007 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -34,7 +34,6 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "PlanetEntity.h"
 #import "OOGraphicsResetManager.h"
-#import "ResourceManager.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
@@ -83,7 +82,8 @@ MA 02110-1301, USA.
 	self = [super init];
 
 	Uint32          colorkey;
-	SDL_Surface     *icon;
+	SDL_Surface     *icon=NULL;
+	NSString		*imagesDir;
 
 
 	// TODO: This code up to and including stickHandler really ought
@@ -100,7 +100,7 @@ MA 02110-1301, USA.
 	
 	stickHandler=[[JoystickHandler alloc] init];
 	// end TODO
-	
+
 	[OOSound setUp];
 
 	// Generate the window caption, containing the version number and the date the executable was compiled.
@@ -118,10 +118,15 @@ MA 02110-1301, USA.
 	SDL_VERSION(&wInfo.version);
 	SDL_GetWMInfo(&wInfo);
 	SDL_Window   = wInfo.window;
+	imagesDir = @"Resources/Images";
 	
+#else
+
+	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+
 #endif
 
-	icon = SDL_LoadBMP([[ResourceManager pathForFileNamed:@"WMicon.bmp" inFolder:@"Images"] cString]);
+	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] cString]);
 
 	if (icon != NULL)
 	{
@@ -209,7 +214,7 @@ MA 02110-1301, USA.
   
 	wasFullScreen=!fullScreen;
 	splashScreen=NO;
-
+	ShowWindow(SDL_Window,SW_RESTORE);
 	[self initialiseGLWithSize: firstScreen];
   
   #else
@@ -454,7 +459,13 @@ MA 02110-1301, USA.
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
 	
-	image = SDL_LoadBMP([[ResourceManager pathForFileNamed:@"splash.bmp" inFolder:@"Images"] cString]);
+  #if OOLITE_WINDOWS
+	NSString		*imagesDir = @"Resources/Images";
+  #else
+	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+  #endif
+
+	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] cString]);
 
 	if (image == NULL)
 	{
@@ -470,11 +481,13 @@ MA 02110-1301, USA.
 		dest.h = image->h;
 
   #if OOLITE_WINDOWS
+
+	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
+	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
 	SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-  	ShowWindow(SDL_Window,SW_RESTORE);
-	MoveWindow(SDL_Window,(GetSystemMetrics(SM_CXSCREEN)- dest.w)/2,
-				(GetSystemMetrics(SM_CYSCREEN)-dest.h)/2,dest.w,dest.h,TRUE);
-		
+	ShowWindow(SDL_Window,SW_RESTORE);
+	MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
+
   #else
 
 	surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
