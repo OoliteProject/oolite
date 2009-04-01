@@ -1978,7 +1978,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
 		Entity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
-		if (target != nil)
+		if (target != nil && (![target isWormhole] || ([target isWormhole] && [self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])))
 		{
 			[self addTarget:target];
 		}

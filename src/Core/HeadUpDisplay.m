@@ -2228,9 +2228,13 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	GLMultOOMatrix(back_mat);
 	// draw the reticle
 	// If reticleis target sensitive, draw target box in red when target passes through crosshairs.
-	if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == [player1 primaryTarget])
+	if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == target && ![target isWormhole])
 	{
 		GLColorWithOverallAlpha(red_color, overallAlpha);
+	}
+	else if ([target isWormhole])	// wormholes go with a blue reticle
+	{
+		GLColorWithOverallAlpha(blue_color, overallAlpha);
 	}
 	else
 	{
