@@ -1,406 +1,252 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>crosshair_scale</key>
-	<real>32.0</real>
-	<key>crosshair_width</key>
-	<real>1.5</real>
-	<key>crosshair_color</key>
-	<string>greenColor</string>
-	<key>dials</key><!-- these are drawn, in order, after the legends -->
-	<array>
-		<dict><!-- Targetting enhancement -->
-			<key>equipment_required</key>
-			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
-			<key>selector</key>
-			<string>drawTargetReticle:</string>
-		</dict>
-		<dict><!-- scanner -->
-			<key>alpha</key>
-			<real>0.75</real>
-			<key>selector</key>
-			<string>drawScanner:</string>
-			<key>x</key>
-			<integer>0</integer>
-			<key>y</key>
-			<integer>-180</integer>
-			<key>height</key>
-			<real>72</real>
-			<key>width</key>
-			<real>288</real>
-			<key>rgb_color</key>
-			<array>
-				<real>1.0</real>
-				<real>0</real>
-				<real>0</real>
-			</array>
-		</dict>
-		<dict><!-- scanner zoom indicator -->
-			<key>alpha</key>
-			<real>1</real>
-			<key>selector</key>
-			<string>drawScannerZoomIndicator:</string>
-			<key>x</key>
-			<integer>108</integer>
-			<key>y</key>
-			<integer>-216</integer>
-		</dict>
-		<dict><!-- compass -->
-			<key>alpha</key>
-			<real>1</real>
-			<key>selector</key>
-			<string>drawCompass:</string>
-			<key>x</key>
-			<integer>132</integer>
-			<key>y</key>
-			<integer>-216</integer>
-		</dict>
-		<dict><!-- station aegis -->
-			<key>alpha</key>
-			<real>1</real>
-			<key>selector</key>
-			<string>drawAegis:</string>
-			<key>x</key>
-			<integer>-132</integer>
-			<key>y</key>
-			<integer>-216</integer>
-		</dict>
-		<dict><!-- fuel scoop status -->
-			<key>alpha</key>
-			<real>0.75</real>
-			<key>selector</key>
-			<string>drawScoopStatus:</string>
-			<key>x</key>
-			<integer>-132</integer>
-			<key>y</key>
-			<integer>-152</integer>
-		</dict>
-		<dict><!-- speed bar, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawSpeedBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>200</integer>
-			<key>y</key>
-			<integer>-145</integer>
-		</dict>
-		<dict><!-- roll bar, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawRollBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>200</integer>
-			<key>y</key>
-			<integer>-160</integer>
-		</dict>
-		<dict><!-- pitch bar, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawPitchBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>200</integer>
-			<key>y</key>
-			<integer>-170</integer>
-		</dict>
-		<dict><!-- energy guage, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>48</integer>
-			<key>selector</key>
-			<string>drawEnergyGauge:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>200</integer>
-			<key>y</key>
-			<integer>-205</integer>
-			<key>labelled</key>
-			<true/>
-		</dict>
-		<dict><!-- forward shield bar, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawForwardShieldBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-146</integer>
-		</dict>
-		<dict><!-- aft shield bar, can draw a surround 2 units out from the dial size specified -->
-			<key>draw_surround</key>
-			<true/>
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawAftShieldBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-162</integer>
-		</dict>
-		<dict><!-- just draws a surround 2 units around the selected size, you could also use drawGreenSurround: -->
-			<key>height</key>
-			<integer>40</integer>
-			<key>selector</key>
-			<string>drawYellowSurround:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-194</integer>
-		</dict>
-		<dict><!-- fuel bar -->
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawFuelBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-179</integer>
-		</dict>
-		<dict><!-- cabin temperature bar -->
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawCabinTempBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-189</integer>
-		</dict>
-		<dict><!-- weapon temperature bar -->
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawWeaponTempBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-199</integer>
-		</dict>
-		<dict><!-- altitude bar -->
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawAltitudeBar:</string>
-			<key>width</key>
-			<integer>80</integer>
-			<key>x</key>
-			<integer>-200</integer>
-			<key>y</key>
-			<integer>-209</integer>
-		</dict>
-		<dict><!-- missile display, x and y give the location, the x-spacing is given by spacing, the size defines the icon size -->
-			<key>height</key>
-			<integer>12</integer>
-			<key>selector</key>
-			<string>drawMissileDisplay:</string>
-			<key>spacing</key>
-			<integer>16</integer>
-			<key>width</key>
-			<integer>12</integer>
-			<key>x</key>
-			<integer>-228</integer>
-			<key>y</key>
-			<integer>-224</integer>
-		</dict>
-		<dict><!-- status indicator light, x and y give the location, the size defines the icon size -->
-			<key>height</key>
-			<integer>8</integer>
-			<key>selector</key>
-			<string>drawStatusLight:</string>
-			<key>width</key>
-			<integer>8</integer>
-			<key>x</key>
-			<integer>-108</integer>
-			<key>y</key>
-			<integer>-216</integer>
-		</dict>
-		<dict><!-- ship's clock, x and y give the location, the size defines the character size -->
-			<key>height</key>
-			<integer>12</integer>
-			<key>selector</key>
-			<string>drawClock:</string>
-			<key>width</key>
-			<integer>12</integer>
-			<key>x</key>
-			<integer>-48</integer>
-			<key>y</key>
-			<integer>-234</integer>
-		</dict>
-		<dict><!-- fps counter, x and y give the location, the size defines the character size -->
-			<key>height</key>
-			<integer>18</integer>
-			<key>selector</key>
-			<string>drawFPSInfoCounter:</string>
-			<key>width</key>
-			<integer>18</integer>
-			<key>x</key>
-			<integer>-300</integer>
-			<key>y</key>
-			<integer>220</integer>
-		</dict>
-	</array>
-	<key>legends</key><!-- these are drawn, in order, before the dials, add any other images you want here -->
-	<array>
-		<!-- LHS -->
-		<dict>
-			<key>text</key>
-			<string>FWD</string>
-			<key>x</key>
-			<integer>-264</integer>
-			<key>y</key>
-			<string>-158</string>
-			<key>height</key>
-			<integer>20</integer>
-			<key>width</key>
-			<integer>10</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>AFT</string>
-			<key>x</key>
-			<integer>-262</integer>
-			<key>y</key>
-			<string>-174</string>
-			<key>height</key>
-			<integer>20</integer>
-			<key>width</key>
-			<integer>10</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>FUEL</string>
-			<key>x</key>
-			<integer>-264</integer>
-			<key>y</key>
-			<string>-188</string>
-			<key>height</key>
-			<integer>14</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>CT</string>
-			<key>x</key>
-			<integer>-255</integer>
-			<key>y</key>
-			<string>-198</string>
-			<key>height</key>
-			<integer>14</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>LT</string>
-			<key>x</key>
-			<integer>-254</integer>
-			<key>y</key>
-			<string>-208</string>
-			<key>height</key>
-			<integer>14</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>ALT</string>
-			<key>x</key>
-			<integer>-260</integer>
-			<key>y</key>
-			<string>-218</string>
-			<key>height</key>
-			<integer>14</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>MISS</string>
-			<key>x</key>
-			<integer>-266</integer>
-			<key>y</key>
-			<string>-236</string>
-			<key>height</key>
-			<integer>16</integer>
-			<key>width</key>
-			<integer>10</integer>
-		</dict>
-		<!-- RHS -->
-		<dict>
-			<key>text</key>
-			<string>SPD</string>
-			<key>x</key>
-			<integer>241</integer>
-			<key>y</key>
-			<string>-158</string>
-			<key>height</key>
-			<integer>20</integer>
-			<key>width</key>
-			<integer>10</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>ROLL</string>
-			<key>x</key>
-			<integer>241</integer>
-			<key>y</key>
-			<string>-168</string>
-			<key>height</key>
-			<integer>12</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-		<dict>
-			<key>text</key>
-			<string>PITCH</string>
-			<key>x</key>
-			<integer>241</integer>
-			<key>y</key>
-			<string>-178</string>
-			<key>height</key>
-			<integer>12</integer>
-			<key>width</key>
-			<integer>9</integer>
-		</dict>
-	</array>
-	<key>reticle_target_sensitive</key>
-	<false/>
-	<key>cloak_indicator_on_status_light</key>
-	<false/>
-</dict>
-</plist>
+{
+	crosshair_scale		= 32.0;
+	crosshair_width		= 1.5;
+	crosshair_color		= "greenColor";
+	dials			= //these are drawn, in order, after the legends
+	(
+		{	// Targetting enhancement
+			equipment_required 	= "EQ_SCANNER_SHOW_MISSILE_TARGET";
+			selector		= "drawTargetReticle:";
+		},
+		{	// scanner
+			alpha		= 0.75;
+			selector	= "drawScanner:";
+			x		= 0;
+			y		= -180;
+			height		= 72.0;
+			width		= 288.0;
+			rgb_color	= (1.0, 0.0, 0.0);
+		},
+		{	// scanner zoom indicator
+			alpha		= 1.0;
+			selector	= "drawScannerZoomIndicator:";
+			x		= 108;
+			y		= -216;
+		},
+		{	// compass
+			alpha		= 1.0;
+			selector	= "drawCompass:";
+			x		= 132;
+			y		= -216;
+		},
+		{	// station aegis
+			alpha		= 1.0;
+			selector	= "drawAegis:";
+			x		= -132;
+			y		= -216;
+		},
+		{	// fuel scoop status
+			alpha		= 0.75;
+			selector	= "drawScoopStatus:";
+			x		= -132;
+			y		= -152;
+		},
+		{	// speed bar, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 8;
+			selector	= "drawSpeedBar:";
+			width:		= 80;
+			x		= 200;
+			y		= -145;
+		},
+		{	// roll bar, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 8;
+			selector	= "drawRollBar:";
+			width		= 80;
+			x		= 200;
+			y		= -160;
+		},
+		{	// pitch bar, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 8;
+			selector	= "drawPitchBar:";
+			width		= 80;
+			x		= 200;
+			y		= -170;
+		},
+		//{	// yaw bar, can draw a surround 2 units out from the dial size specified
+		//	// this is disabled by default, uncomment as required to enable
+		//	draw_surround	= yes;
+		//	height		= 8;
+		//	selector	= "drawYawBar:";
+		//	width		= 80;
+		//	x		= 200;
+		//	y		= -130;
+		//},
+		{	// energy gauge, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 48;
+			selector	= "drawEnergyGauge:";
+			width		= 80;
+			x		= 200;
+			y		= -205;
+			labelled	= yes;
+		},
+		{	// forward shield bar, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 8;
+			selector	= "drawForwardShieldBar:";
+			width		= 80;
+			x		= -200;
+			y		= -146;
+		},
+		{	// aft shield bar, can draw a surround 2 units out from the dial size specified
+			draw_surround	= yes;
+			height		= 8;
+			selector	= "drawAftShieldBar:";
+			width		= 80;
+			x		= -200;
+			y		= -162;
+		},
+		{	// just draws a surround 2 units around the selected size, you could also use drawGreenSurround:
+			height		= 40;
+			selector	= "drawYellowSurround:";
+			width		= 80;
+			x		= -200;
+			y		= -194;
+		},
+		{	// fuel bar
+			height		= 8;
+			selector	= "drawFuelBar:";
+			width		= 80;
+			x		= -200;
+			y		= -179;
+		},
+		{	// cabin temperature bar
+			height		= 8;
+			selector	= "drawCabinTempBar:";
+			width		= 80;
+			x		= -200;
+			y		= -189;
+		},
+		{	// weapon temperature bar
+			height		= 8;
+			selector	= "drawWeaponTempBar:";
+			width		= 80;
+			x		= -200;
+			y		= -199;
+		},
+		{	// altitude bar
+			height		= 8;
+			selector	= "drawAltitudeBar:";
+			width		= 80;
+			x		= -200;
+			y		= -209;
+		},
+		{	// missile display, x and y give the location, the x-spacing is given by spacing, the size defines the icon size
+			height		= 12;
+			selector	= "drawMissileDisplay:";
+			spacing		= 16;
+			width		= 12;
+			x		= -228;
+			y		= -224;
+		},
+		{	// status indicator light, x and y give the location, the size defines the icon size
+			height		= 8;
+			selector	= "drawStatusLight:";
+			width		= 8;
+			x		= -108;
+			y		= -216;
+		},
+		{	// ship's clock, x and y give the location, the size defines the character size
+			height		= 12;
+			selector	= "drawClock:";
+			width		= 12;
+			x		= -48;
+			y		= -234;
+		},
+		{	// fps counter, x and y give the location, the size defines the character size
+			height		= 18;
+			selector	= "drawFPSInfoCounter:";
+			width		= 18;
+			x		= -300;
+			y		= 220;
+		}
+	);
+	
+	legends		= // these are drawn, in order, before the dials, add any other images you want here
+	(
+		{	// LHS
+			text		= "FWD";
+			x		= -264;
+			y		= -158;
+			height		= 20;
+			width		= 10;
+		},
+		{	text		= "AFT";
+			x		= -262;
+			y		= -174;
+			height		= 20;
+			width		= 10;
+		},
+		{
+			text		= "FUEL";
+			x		= -264;
+			y		= -188;
+			height		= 14;
+			width		= 9;
+		},
+		{
+			text		= "CT";
+			x		= -255;
+			y		= -198;
+			height		= 14;
+			width		= 9;
+		},
+		{
+			text		= "LT";
+			x		= -254;
+			y		= -208;
+			height		= 14;
+			width		= 9;
+		},
+		{
+			text		= "ALT";
+			x		= -260;
+			y		= -218;
+			height		= 14;
+			width		= 9;
+		},
+		{
+			text		= "MISS";
+			x		= -266;
+			y		= -236;
+			height		= 16;
+			width		= 10;
+		},
+		{	// RHS
+			text		= "SPD";
+			x		= 241;
+			y		= -158;
+			height		= 20;
+			width		= 10;
+		},
+		{
+			text		= "ROLL";
+			x		= 241;
+			y		= -168;
+			height		= 12;
+			width		= 9;
+		},
+		//{	// yaw bar legend, disabled by default
+		//	// uncomment as required to enable
+		//	text		= "YAW";
+		//	x		= 241;
+		//	y		= -138;
+		//	height		= 12;
+		//	width		= 9;
+		//},
+		{
+			text		= "PITCH";
+			x		= 241;
+			y		= -178;
+			height		= 12;
+			width		= 9;
+		}
+	);
+	
+	overall_alpha	= 0.75;
+	reticle_target_sensitive = no;
+	cloak_indicator_on_status_light = yes;
+}
