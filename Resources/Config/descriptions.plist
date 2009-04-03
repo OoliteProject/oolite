@@ -1020,6 +1020,8 @@
 	"planetname-derivative-suffix"	= "ian";	// This is the suffix used with %I (producing 'Laveian' for example)
 	"wormhole-desc"				= "Wormhole";
 	"wormhole-to-@"				= "Wormhole to %@";
+	"wormhole-destination-computed-@"	= "Wormhole Scanner - Destination computed: %@";
+	"wormhole-arrival-time-computed-@"	= "Wormhole Scanner - Arrival time computed: %@";
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
 	

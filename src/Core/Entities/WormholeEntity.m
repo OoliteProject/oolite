@@ -57,7 +57,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		[self setStatus:STATUS_EFFECT];
 		scanClass = CLASS_WORMHOLE;
 		isWormhole = YES;
-		is_scanned = NO;
+		scan_info = WH_SCANINFO_NONE;
+		scan_time = 0;
 		hasExitPosition = NO;
 	}
 	return self;
@@ -83,7 +84,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 		// We only ever init from dictionary if we're loaded by the player, so
 		// by definition we have been scanned
-		is_scanned = YES;
+		scan_info = WH_SCANINFO_SCANNED;
 
 		// Remember, times are stored as Ship Clock - but anything
 		// saving/restoring wormholes from dictionaries should know this!
@@ -266,14 +267,34 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	return travel_time;
 }
 
-- (BOOL) isScanned
+- (double) scanTime
 {
-	return is_scanned;
+	return scan_time;
 }
 
-- (void) setScanned:(BOOL)scanned
+- (BOOL) isScanned
 {
-	is_scanned = scanned;
+	return scan_info > WH_SCANINFO_NONE;
+}
+
+- (void) setScannedAt:(double)p_scanTime
+{
+	if( scan_info == WH_SCANINFO_NONE )
+	{
+		scan_time = p_scanTime;
+		scan_info = WH_SCANINFO_SCANNED;
+	}
+	// else we previously scanned this wormhole
+}
+
+- (WORMHOLE_SCANINFO) scanInfo
+{
+	return scan_info;
+}
+
+- (void) setScanInfo:(WORMHOLE_SCANINFO)p_scanInfo
+{
+	scan_info = p_scanInfo;
 }
 
 - (NSArray*) shipsInTransit
@@ -300,7 +321,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (NSString *) identFromShip:(ShipEntity*)ship
 {
-	if ([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"])
+	assert([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
+	if ([self scanInfo] >= WH_SCANINFO_DESTINATION)
 		return [NSString stringWithFormat:DESC(@"wormhole-to-@"), [UNIVERSE getSystemName:destination]];
 	else
 		return DESC(@"wormhole-desc");

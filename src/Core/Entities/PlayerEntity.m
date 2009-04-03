@@ -22,6 +22,8 @@ MA 02110-1301, USA.
 
 */
 
+#import <assert.h>
+
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityContracts.h"
@@ -1277,7 +1279,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (status == STATUS_DEAD)  [self performDeadUpdates:delta_t];
 	
 	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
-	[self updateTargetting];
+	// Moved to performInFlightUpdates. -- Micha 20090403
+	//[self updateTargetting];
 #ifdef WORMHOLE_SCANNER
 	[self updateWormholes];
 #endif
@@ -1758,6 +1761,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self applyYaw:(float)delta_t*flightYaw];
 	}
 	[self moveForward:delta_t*flightSpeed];
+	
+	[self updateTargetting];
 }
 
 
@@ -1930,6 +1935,8 @@ static PlayerEntity *sSharedPlayer = nil;
 // missile.
 // If we're actively scanning and we don't have a current target, then check
 // to see if we've locked onto a new target.
+// Finally, if we have a target and it's a wormhole, check whether we have more
+// information
 - (void) updateTargetting
 {
 	// check for lost ident target and ensure the ident system is actually scanning
@@ -1984,6 +1991,47 @@ static PlayerEntity *sSharedPlayer = nil;
 			[self addTarget:target];
 		}
 	}
+	
+#ifdef WORMHOLE_SCANNER
+	// If our primary target is a wormhole, check to see if we have additional
+	// information
+	if ([[self primaryTarget] isWormhole] )
+	{
+		WormholeEntity *wh = [self primaryTarget];
+		switch([wh scanInfo])
+		{
+			case WH_SCANINFO_NONE:
+				OOLog(kOOLogInconsistentState, @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
+				assert(false);
+				break;
+			case WH_SCANINFO_SCANNED:
+				if( [self clockTimeAdjusted] > [wh scanTime]+3 )
+				{
+					[wh setScanInfo:WH_SCANINFO_DESTINATION];
+					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-destination-computed-@"),
+									  [UNIVERSE getSystemName:[wh destination]]] forCount:5.0];
+				}
+				break;
+			case WH_SCANINFO_DESTINATION:
+				if( [self clockTimeAdjusted] > [wh scanTime]+8 )
+				{
+					[wh setScanInfo:WH_SCANINFO_ARRIVAL_TIME];
+					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-arrival-time-computed-@"),
+									  ClockToString([wh arrivalTime], NO)] forCount:5.0];
+				}
+				break;
+			case WH_SCANINFO_ARRIVAL_TIME:
+				if( [self clockTimeAdjusted] > [wh scanTime]+13 )
+				{
+					[wh setScanInfo:WH_SCANINFO_SHIP];
+					// TODO: Extract last ship from wormhole and display its name
+				}
+				break;
+			case WH_SCANINFO_SHIP:
+				break;
+		}
+	}
+#endif
 }
 
 
@@ -6313,6 +6361,14 @@ static int last_outfitting_index;
 	
 	[super addTarget:targetEntity];
 	
+#ifdef WORMHOLE_SCANNER
+	if ([targetEntity isWormhole])
+	{
+		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
+		[self addScannedWormhole:(WormholeEntity*)targetEntity];
+	}
+#endif
+
 	if ([self hasEquipmentItem:@"EQ_TARGET_MEMORY"])
 	{
 		int i = 0;
@@ -6712,7 +6768,7 @@ static int last_outfitting_index;
 		if ([wh universalID] == [wormhole universalID])
 			return;
 	}
-	[wormhole setScanned:YES];
+	[wormhole setScannedAt:[self clockTimeAdjusted]];
 	[scannedWormholes addObject:wormhole];
 }
 

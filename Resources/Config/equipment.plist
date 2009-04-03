@@ -327,8 +327,8 @@
 		</dict>
 	</array>
 	<array>
-		<integer>4</integer>
-		<integer>5000</integer>
+		<integer>9</integer>
+		<integer>4950</integer>
 		<string>Wormhole Scanner</string>
 		<string>EQ_WORMHOLE_SCANNER</string>
 		<string>The Mynerium-Krantz Works wormhole scanner integrates into your existing targetting system.  It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.</string>

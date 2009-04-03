@@ -33,11 +33,21 @@ MA 02110-1301, USA.
 
 @class ShipEntity, Universe;
 
+typedef enum
+{
+	WH_SCANINFO_NONE = 0,
+	WH_SCANINFO_SCANNED,
+	WH_SCANINFO_DESTINATION,
+	WH_SCANINFO_ARRIVAL_TIME,
+	WH_SCANINFO_SHIP,
+} WORMHOLE_SCANINFO;
+
 @interface WormholeEntity: Entity
 {
-	double			expiry_time;  // Time when wormhole entrance closes
-	double			travel_time;  // Time taken for a ship to traverse the wormhole
-	double			arrival_time; // Time when wormhole exit opens
+	double			expiry_time;	// Time when wormhole entrance closes
+	double			travel_time;	// Time taken for a ship to traverse the wormhole
+	double			arrival_time;	// Time when wormhole exit opens
+	double			scan_time;		// Time when wormhole was scanned
 	
 	Random_Seed		origin;
 	Random_Seed		destination;
@@ -46,7 +56,7 @@ MA 02110-1301, USA.
 	
 	double			witch_mass;
 	
-	BOOL			is_scanned; // YES if the player has scanned this wormhole
+	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;
 }
 
@@ -62,9 +72,12 @@ MA 02110-1301, USA.
 - (double) expiryTime;	// Time at which the wormholes entrance closes
 - (double) arrivalTime;	// Time at which the wormholes exit opens
 - (double) travelTime;	// Time needed for a ship to traverse the wormhole
+- (double) scanTime;	// Time when wormhole was scanned
+- (void) setScannedAt:(double)time;
 
-- (BOOL) isScanned;
-- (void) setScanned:(BOOL) scanned;
+- (BOOL) isScanned;		// True if the wormhole has been scanned by the player
+- (WORMHOLE_SCANINFO) scanInfo; // Stage of scanning
+- (void)setScanInfo:(WORMHOLE_SCANINFO) scanInfo;
 
 - (NSArray*) shipsInTransit;
 
