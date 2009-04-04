@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOEncodingConverter.h"
 #import "OOCrosshairs.h"
 #import "OOConstToString.h"
+#import "OOStringParsing.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
@@ -2270,6 +2271,25 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	// no need to set color - tis green already!
 	OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
 	OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
+	
+#ifdef WORMHOLE_SCANNER
+	if ([target isWormhole])
+	{
+		int wormholeScanInfo = [(WormholeEntity *)target scanInfo];
+		double timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
+		int minutesToCollapse = floor (timeForCollapsing / 60.0);
+		int secondsToCollapse = (int)timeForCollapsing % 60;
+		
+		NSString *wormholeExpiringIn = [NSString stringWithFormat:DESC(@"wormhole-collapsing-in-mm:ss"), minutesToCollapse, secondsToCollapse];
+		OODrawString(wormholeExpiringIn, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
+		
+		if (wormholeScanInfo >= WH_SCANINFO_ARRIVAL_TIME)
+		{
+			NSString *wormholeETA = [NSString stringWithFormat:DESC(@"wormhole-ETA-@"), ClockToString([(WormholeEntity *)target arrivalTime], NO)];
+			OODrawString(wormholeETA, rs0, 0.5 * rs2 - 2 * line_height, 0, textsize);
+		}
+	}
+#endif
 	
 	glPopMatrix();
 }

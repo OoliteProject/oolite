@@ -1022,6 +1022,8 @@
 	"wormhole-to-@"				= "Wormhole to %@";
 	"wormhole-destination-computed-@"	= "Wormhole Scanner - Destination computed: %@";
 	"wormhole-arrival-time-computed-@"	= "Wormhole Scanner - Arrival time computed: %@";
+	"wormhole-ETA-@"			= "ETA: %@";
+	"wormhole-collapsing-in-mm:ss"		= "Collapsing in %02d:%02d";
 	
 	"oxp-is-incompatible"			= "\t“%@” is incompatible with version %@ of Oolite.";
 	

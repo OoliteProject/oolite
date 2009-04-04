@@ -136,7 +136,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;
 		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
-		expiry_time = now + WORMHOLE_EXPIRES_TIMEINTERVAL;
+		witch_mass = [ship mass];
+		expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE);
 		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
 		arrival_time = now + travel_time;
 		position = [ship position];
@@ -160,7 +161,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
 						nil]];
 	witch_mass += [ship mass];
-	expiry_time = now + WORMHOLE_EXPIRES_TIMEINTERVAL;
+	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE);
 	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 
 	// witchspace entry effects here
