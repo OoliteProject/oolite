@@ -164,6 +164,9 @@
 	oxp.versionMismatch						= $error;
 	
 	
+	player.ship								= no;
+	player.ship.damage						= no;
+	
 	$plistError								= $error;
 	plist.parse.foundation.failed			= $plistError;
 	plist.wrongType							= $plistError;

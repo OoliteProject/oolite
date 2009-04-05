@@ -3207,7 +3207,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	Vector		rel_pos;
 	double		d_forward;
 	BOOL		internal_damage = NO;	// base chance
-
+	
+	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
+	
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
@@ -3261,7 +3263,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= (float)amount;
 		[self playDirectHit];
-		ship_temperature += (float)amount; // Should heat-shielding reduce this amount? -- Micha 20090403
+		ship_temperature += ((float)amount / [self heatInsulation]);
 	}
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
@@ -3285,6 +3287,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	Vector  rel_pos;
 	double  d_forward;
 	BOOL	internal_damage = NO;	// base chance
+	if (amount < 0) 
+	{
+		OOLog(@"player.ship.damage",  @"Player took negative scrape damage %.3f so we made it positive", amount);		
+		amount = -amount;
+	}
+	OOLog(@"player.ship.damage",  @"Player took %.3f scrape damage from %@", amount, ent);
 
 	if ([self status] == STATUS_DEAD)
 		return;
@@ -3297,7 +3305,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self playScrapeDamage];
 	if (d_forward >= 0)
 	{
-		forward_shield -= (float)amount;
+		forward_shield -= amount;
 		if (forward_shield < 0.0)
 		{
 			amount = -forward_shield;
@@ -3310,7 +3318,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	else
 	{
-		aft_shield -= (float)amount;
+		aft_shield -= amount;
 		if (aft_shield < 0.0)
 		{
 			amount = -aft_shield;
@@ -3327,7 +3335,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 	}
 	
-	energy -= (float)amount;
+	energy -= amount;
 	if (energy <= 0.0)
 	{
 		if ([ent isShip])
@@ -3679,8 +3687,11 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)why
 {
+	
+	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, why);	
 	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),
 							KillCountToRatingAndKillString(ship_kills),credits/10.0];
+
 
 	if (![[UNIVERSE gameController] playerFileToLoad])
 		[[UNIVERSE gameController] setPlayerFileToLoad: save_path];	// make sure we load the correct game
