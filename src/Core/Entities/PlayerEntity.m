@@ -445,7 +445,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 
-#ifdef WORMHOLES_SCANNER
+#ifdef WORMHOLE_SCANNER
 	// wormhole information
 	NSMutableArray * wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
 	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
@@ -3261,7 +3261,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		internal_damage = ((ranrot_rand() & PLAYER_INTERNAL_DAMAGE_FACTOR) < amount);	// base chance of damage to systems
 		energy -= (float)amount;
 		[self playDirectHit];
-		ship_temperature += (float)amount;
+		ship_temperature += (float)amount; // Should heat-shielding reduce this amount? -- Micha 20090403
 	}
 	
 	if (energy <= 0.0) //use normal ship temperature calculations for heat damage
