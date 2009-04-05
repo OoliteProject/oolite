@@ -2275,18 +2275,32 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 #ifdef WORMHOLE_SCANNER
 	if ([target isWormhole])
 	{
-		int wormholeScanInfo = [(WormholeEntity *)target scanInfo];
-		double timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
-		int minutesToCollapse = floor (timeForCollapsing / 60.0);
-		int secondsToCollapse = (int)timeForCollapsing % 60;
-		
-		NSString *wormholeExpiringIn = [NSString stringWithFormat:DESC(@"wormhole-collapsing-in-mm:ss"), minutesToCollapse, secondsToCollapse];
-		OODrawString(wormholeExpiringIn, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
-		
-		if (wormholeScanInfo >= WH_SCANINFO_ARRIVAL_TIME)
+		// Note: No break statements in the following switch() since every case
+		//       falls through to the next.  Cases arranged in reverse order.
+		switch([(WormholeEntity *)target scanInfo])
 		{
-			NSString *wormholeETA = [NSString stringWithFormat:DESC(@"wormhole-ETA-@"), ClockToString([(WormholeEntity *)target arrivalTime], NO)];
-			OODrawString(wormholeETA, rs0, 0.5 * rs2 - 2 * line_height, 0, textsize);
+			case WH_SCANINFO_SHIP:
+				// TOOD: Render anything on the HUD for this?
+			case WH_SCANINFO_DESTINATION:
+				// Rendered above in dialTargetName, so no need to do anything here
+				// unless we want a separate line Destination: XXX ?
+			case WH_SCANINFO_ARRIVAL_TIME:
+			{
+				NSString *wormholeETA = [NSString stringWithFormat:DESC(@"wormhole-ETA-@"), ClockToString([(WormholeEntity *)target arrivalTime], NO)];
+				OODrawString(wormholeETA, rs0, 0.5 * rs2 - 3 * line_height, 0, textsize);
+			}
+			case WH_SCANINFO_COLLAPSE_TIME:
+			{
+				double timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
+				int minutesToCollapse = floor (timeForCollapsing / 60.0);
+				int secondsToCollapse = (int)timeForCollapsing % 60;
+		
+				NSString *wormholeExpiringIn = [NSString stringWithFormat:DESC(@"wormhole-collapsing-in-mm:ss"), minutesToCollapse, secondsToCollapse];
+				OODrawString(wormholeExpiringIn, rs0, 0.5 * rs2 - 2 * line_height, 0, textsize);
+			}
+			case WH_SCANINFO_SCANNED:
+			case WH_SCANINFO_NONE:
+				break;
 		}
 	}
 #endif

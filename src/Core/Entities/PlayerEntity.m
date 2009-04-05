@@ -2005,23 +2005,31 @@ static PlayerEntity *sSharedPlayer = nil;
 				assert(false);
 				break;
 			case WH_SCANINFO_SCANNED:
-				if( [self clockTimeAdjusted] > [wh scanTime]+3 )
+				if( [self clockTimeAdjusted] > [wh scanTime]+2 )
 				{
-					[wh setScanInfo:WH_SCANINFO_DESTINATION];
-					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-destination-computed-@"),
-									  [UNIVERSE getSystemName:[wh destination]]] forCount:5.0];
+					[wh setScanInfo:WH_SCANINFO_COLLAPSE_TIME];
+					//[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-collapse-time-computed"),
+					//						   [UNIVERSE getSystemName:[wh destination]]] forCount:5.0];
 				}
 				break;
-			case WH_SCANINFO_DESTINATION:
-				if( [self clockTimeAdjusted] > [wh scanTime]+8 )
+			case WH_SCANINFO_COLLAPSE_TIME:
+				if( [self clockTimeAdjusted] > [wh scanTime]+4 )
 				{
 					[wh setScanInfo:WH_SCANINFO_ARRIVAL_TIME];
 					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-arrival-time-computed-@"),
-									  ClockToString([wh arrivalTime], NO)] forCount:5.0];
+											   ClockToString([wh arrivalTime], NO)] forCount:5.0];
 				}
 				break;
 			case WH_SCANINFO_ARRIVAL_TIME:
-				if( [self clockTimeAdjusted] > [wh scanTime]+13 )
+				if( [self clockTimeAdjusted] > [wh scanTime]+7 )
+				{
+					[wh setScanInfo:WH_SCANINFO_DESTINATION];
+					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-destination-computed-@"),
+											   [UNIVERSE getSystemName:[wh destination]]] forCount:5.0];
+				}
+				break;
+			case WH_SCANINFO_DESTINATION:
+				if( [self clockTimeAdjusted] > [wh scanTime]+10 )
 				{
 					[wh setScanInfo:WH_SCANINFO_SHIP];
 					// TODO: Extract last ship from wormhole and display its name
