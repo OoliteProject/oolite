@@ -1712,12 +1712,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
 		
-		[escort_ship setOwner: self];
-		if ([self group] == nil)
+		if (![escort_ship escortGroup])	// ensure that we do not give to stations escorts assigned to other ships
 		{
-			[self setGroup:[self escortGroup]];	
+			[escort_ship setOwner: self];
+			if ([self group] == nil)
+			{
+				[self setGroup:[self escortGroup]];	
+			}
+			[escort_ship setGroup:[self escortGroup]];	// who's your Daddy
 		}
-		[escort_ship setGroup:[self escortGroup]];	// who's your Daddy
 		
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];

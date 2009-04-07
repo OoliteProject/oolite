@@ -1335,15 +1335,17 @@ static PlayerEntity *sSharedPlayer = nil;
 			if (energy < CLOAKING_DEVICE_MIN_ENERGY)
 				[self deactivateCloakingDevice];
 		}
-		else
-		{
-			if (energy < maxEnergy)
-			{
-				energy += (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-				if (energy > maxEnergy)
-					energy = maxEnergy;
-			}
-		}
+		// Does this have a good reason for being here? Energy should not be added if the
+		// cloaking device is not used - Nikos 20090407
+		//else
+		//{
+		//	if (energy < maxEnergy)
+		//	{
+		//		energy += (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+		//		if (energy > maxEnergy)
+		//			energy = maxEnergy;
+		//	}
+		//}
 	}
 
 	// military_jammer
