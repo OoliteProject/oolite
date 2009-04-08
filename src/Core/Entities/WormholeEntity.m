@@ -3,7 +3,7 @@
 WormholeEntity.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -511,7 +511,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		[shipArray addObject:myShipDict];
 		*/
 		[shipArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:[currShipDict doubleForKey:@"time"]], @"arrival_time",
+			[NSNumber numberWithDouble:[currShipDict doubleForKey:@"time"]], @"time_delta",
 			[[currShipDict objectForKey:@"ship"] shipInfoDictionary], @"ship",
 			nil]];
 	}

@@ -61,4 +61,6 @@ SOFTWARE.
 
 - (NSString *)name;
 
++ (BOOL) isSoundOK;
+
 @end

@@ -89,7 +89,8 @@ static int	sEffectiveMasterVolume = MIX_MAX_VOLUME;
 
 + (void) setMasterVolume:(float) fraction
 {
-	if (!sIsSetUp)  [self setUp];
+	if (!sIsSetUp && ![self setUp])
+		return;
 	
 	fraction = OOClamp_0_1_f(fraction);
 	int volume = (float)MIX_MAX_VOLUME * fraction;
@@ -108,7 +109,8 @@ static int	sEffectiveMasterVolume = MIX_MAX_VOLUME;
 
 + (float) masterVolume
 {
-	if (!sIsSetUp)  [self setUp];
+	if (!sIsSetUp && ![self setUp] )
+		return 0;
 	
 	return (float)sEffectiveMasterVolume / (float)MIX_MAX_VOLUME;
 }
@@ -139,7 +141,14 @@ static int	sEffectiveMasterVolume = MIX_MAX_VOLUME;
 
 + (void) update
 {
-	[[OOSoundMixer sharedMixer] update];
+	OOSoundMixer * mixer = [OOSoundMixer sharedMixer];
+	if( sIsSoundOK && mixer)
+		[mixer update];
+}
+
++ (BOOL) isSoundOK
+{
+  return sIsSoundOK;
 }
 
 @end

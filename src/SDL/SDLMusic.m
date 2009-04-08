@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #include "SDLMusic.h"
 #import "OOLogging.h"
+#include "OOSDLSound.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.SDLMusic"
 
@@ -72,6 +73,8 @@ void musicFinished()
  */
 - (id) initWithContentsOfFile:(NSString*) filepath
 {
+	if( ![OOSound isSoundOK] ) return nil;
+
 	[super init];
 
 	music = Mix_LoadMUS([filepath cString]);

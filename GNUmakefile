@@ -3,7 +3,7 @@ CP = cp
 BUILD_WITH_DEBUG_FUNCTIONALITY = yes
 DOCKING_CLEARANCE = yes
 PROCEDURAL_PLANETS = yes
-WORMHOLE_SCANNER = no
+WORMHOLE_SCANNER = yes
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug
@@ -50,7 +50,6 @@ ifeq ($(WORMHOLE_SCANNER),yes)
 	ADDITIONAL_CFLAGS += -DWORMHOLE_SCANNER
 	ADDITIONAL_OBJCFLAGS += -DWORMHOLE_SCANNER
 endif
-
 
 OBJC_PROGRAM_NAME = oolite
 
