@@ -788,9 +788,16 @@ static float corona_blending;
 - (void) dealloc
 {
 	[atmosphere release];
-	if (textureData)  free(textureData);
-	if (normalMapTextureData)  free(normalMapTextureData);
-	
+	if (textureData)  
+	{
+		free(textureData);
+		textureData = NULL;
+	}
+	if (normalMapTextureData)
+	{
+		free(normalMapTextureData);
+		normalMapTextureData = NULL;
+	}
 	[super dealloc];
 }
 
@@ -1424,9 +1431,18 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 			[self paintVertex:i :planet_seed];
 	}
 
-	if(wasTextured) {
-		if (textureData)  free(textureData);
-		if (normalMapTextureData)  free(normalMapTextureData);
+	if(wasTextured)
+	{
+		if (textureData)
+		{
+			free(textureData);
+			textureData = NULL;
+		}
+		if (normalMapTextureData)
+		{
+			free(normalMapTextureData);
+			normalMapTextureData = NULL;
+		}
 	}
 	[self scaleVertices];
 	rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005

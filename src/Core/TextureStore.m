@@ -137,7 +137,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	int					tex_bytes = texture_w * texture_h * 4;
 
 	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (textureData)
+	if (imageBuffer)
 		(*textureData) = imageBuffer;
 
 	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
@@ -226,7 +226,7 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	tex_bytes = texture_w * texture_h * 4;
 
 	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (textureData)
+	if (imageBuffer)
 		(*textureData) = imageBuffer;
 
 //	fillRanNoiseBuffer();
