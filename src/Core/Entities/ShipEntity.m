@@ -7688,8 +7688,8 @@ int w_space_seed = 1234567;
 	NSEnumerator		*escortEnum = nil;
 	ShipEntity			*escort = nil;
 	unsigned			i = 0;
-	
-	for (escortEnum = [self escortEnumerator]; (escort = [escortEnum nextObject]); )
+	// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
+	for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
 	{
 		float		delay = i++ * 3.0 + 1.5;		// send them off at three second intervals
 		AI			*ai = [escort getAI];
