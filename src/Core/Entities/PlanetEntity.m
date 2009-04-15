@@ -142,7 +142,7 @@ static float corona_blending;
 }
 
 
-- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict;
+- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict
 {
 	int			i;
 	OOCGFloat	hue, sat, bri, alf;
