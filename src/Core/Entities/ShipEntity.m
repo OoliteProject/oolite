@@ -90,7 +90,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) rescaleBy:(GLfloat)factor;
 
-
 - (BOOL) setUpOneSubentity:(NSDictionary *) subentDict;
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
 - (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret;
@@ -4694,6 +4693,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[wreck setStatus:STATUS_IN_FLIGHT];
 						[UNIVERSE addEntity:wreck];
 						[wreck performTumble];
+						[wreck rescaleBy: 1.0/scale_factor];
 						[wreck release];
 					}
 				}
