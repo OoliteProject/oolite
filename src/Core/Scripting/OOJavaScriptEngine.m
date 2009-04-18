@@ -921,7 +921,9 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	JSString				*string = NULL;
 	BOOL					tempCtxt = NO;
 	
-	if (JSVAL_IS_NULL(value) || JSVAL_IS_VOID(value))  return nil;
+	//make sure to return a string -  if this function returns nil we can get a CTD!
+	if (JSVAL_IS_VOID(value))  return @"undefined";
+	if (JSVAL_IS_NULL(value))  return @"null";
 	
 	if (context == NULL)
 	{
@@ -944,7 +946,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	NSMutableString			*result = [NSMutableString stringWithString:@"("];
 	NSString				*valString = nil;
 	
-	for (i = 0; i != count; ++i)
+	for (i = 0; i < count; ++i)
 	{
 		if (i != 0)  [result appendString:@", "];
 		
@@ -956,15 +958,10 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		else if (JSVAL_IS_OBJECT(val) && JS_IsArrayObject(context, JSVAL_TO_OBJECT(val)))
 		{
-			[result appendFormat:@"[%@]", valString];
+			[result appendFormat:@"[%@]", valString ];
 		}
 		else
 		{
-			if (valString == nil)
-			{
-				if (JSVAL_IS_VOID(val))  valString = @"undefined";
-				else valString = @"null";
-			}
 			[result appendString:valString];
 		}
 	}

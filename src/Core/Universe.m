@@ -824,6 +824,39 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
+- (PlanetEntity	*) setUpPlanet
+{
+	PlanetEntity		*a_planet;
+
+	// set the system seed for random number generation
+	seed_for_planet_description(system_seed);
+	
+	/*- space planet -*/
+	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
+	double planet_radius = [a_planet radius];
+	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
+	
+	[a_planet setStatus:STATUS_ACTIVE];
+	[a_planet setPositionX:0 y:0 z:planet_zpos];
+	[a_planet setEnergy:  1000000.0];
+	
+	if ([self planet])
+	{
+		PlanetEntity *tmp=[allPlanets objectAtIndex:0];
+		[self addEntity:a_planet];
+		[allPlanets removeObject:a_planet];
+		cachedPlanet=a_planet;
+		[allPlanets replaceObjectAtIndex:0 withObject:a_planet];
+		[self removeEntity:(Entity *)tmp];
+	}
+	else
+	{
+		[self addEntity:a_planet];
+	}
+	return a_planet;
+}
+
+
 - (void) setUpSpace
 {
 	Entity				*thing;
@@ -886,19 +919,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// actual entities next...
 	
-	
-	// set the system seed for random number generation
-	seed_for_planet_description(system_seed);
-	
-	/*- space planet -*/
-	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
+	a_planet=[self setUpPlanet];
 	double planet_radius = [a_planet radius];
-	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
-	
-	[a_planet setStatus:STATUS_ACTIVE];
-	[a_planet setPositionX:0 y:0 z:planet_zpos];
-	[a_planet setEnergy:  1000000.0];
-	[self addEntity:a_planet];
 	
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
@@ -1134,8 +1156,8 @@ BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 //
 GLfloat docked_light_ambient[4]	= { (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 1.0};	// bright-ish, but shaders still visible!
-GLfloat docked_light_diffuse[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 1.0};	// white
-GLfloat docked_light_specular[4]	= { (GLfloat) 1.0, (GLfloat) 1.0, (GLfloat) 0.5, (GLfloat) 1.0};	// yellow-white
+GLfloat docked_light_diffuse[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 1.0};	// whitish
+GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4, (GLfloat) 1.0};	// yellow-white
 
 // Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
 // TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322

@@ -287,11 +287,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	// Strip private keys (anything starting with _oo_).
 	if (![self stripPrivateKeys:result])  return;
 	
-	// Clean up subentity declarations and tag subentities so they won't be pruned.
-	if (![self canonicalizeAndTagSubentities:result])  return;
-	
 	// Resolve like_ship entries.
 	if (![self applyLikeShips:result])  return;
+	
+	// Clean up subentity declarations and tag subentities so they won't be pruned.
+	if (![self canonicalizeAndTagSubentities:result])  return;
 	
 	// Clean out templates and invalid entries.
 	if (![self removeUnusableEntries:result])  return;

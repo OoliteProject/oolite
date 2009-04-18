@@ -279,6 +279,7 @@ enum
 - (void) set_up_witchspace;
 - (void) setUpSpace;
 - (void) setLighting;
+- (PlanetEntity	*) setUpPlanet;
 
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;

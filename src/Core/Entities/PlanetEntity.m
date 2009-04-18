@@ -435,6 +435,13 @@ static float corona_blending;
 - (id) initWithSeed:(Random_Seed) p_seed
 {
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
+#ifdef ALLOW_PROCEDURAL_PLANETS
+	if (![UNIVERSE doProcedurallyTexturedPlanets])
+#endif
+	{
+		//only allow .png textures with procedural textures
+		[planetInfo removeObjectForKey:@"texture"];
+	}
 	return [self initPlanetFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
 }
 
@@ -526,7 +533,11 @@ static float corona_blending;
 	if (planet->atmosphere)
 	{
 		// copy clouds but make fainter if isTextureImage
-		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:isTextureImage ? 0.6f : 1.0f ];
+		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:planet->isTextureImage ? 0.6f : 1.0f ];
+		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
+		[atmosphere rescaleTo:1.0];
+		[atmosphere scaleVertices];
+
 		isPlanet = YES;
 		root_planet = self;
 	}
@@ -546,9 +557,9 @@ static float corona_blending;
 {
 	int		i;
 	int		percent_land;
-	
+	BOOL	procGen = NO;
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 #endif
 	
 	if (dict == nil)  dict = [NSDictionary dictionary];
@@ -569,14 +580,12 @@ static float corona_blending;
 	}
 	else
 	{
-#ifdef ALLOW_PROCEDURAL_PLANETS
 		if (procGen)
 		{
 			//generate the texture later
 			isTextured = NO;
 		}
 		else
-#endif
 		{
 			textureName = atmo ? 0: [TextureStore getTextureNameFor:@"metal.png"];
 			isTextured = (textureName != 0);
@@ -625,11 +634,7 @@ static float corona_blending;
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
-#ifdef ALLOW_PROCEDURAL_PLANETS	
 	[self setModelName:(procGen || isTextured) ? @"icostextured.dat" : @"icosahedron.dat"];
-#else
-	[self setModelName:(isTextured) ? @"icostextured.dat" : @"icosahedron.dat"];
-#endif
 	
 	[self rescaleTo:1.0];
 	
@@ -649,7 +654,7 @@ static float corona_blending;
 	
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	
-	polar_color_factor = [dict doubleForKey:@"polar_color_factor" defaultValue:1.0f];
+	polar_color_factor = [dict doubleForKey:@"polar_color_factor" defaultValue:0.5f];
 	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 	
@@ -673,8 +678,8 @@ static float corona_blending;
 	ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
 	
 	// polar areas are brighter but have less color (closer to white)
-	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
-	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 5.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
+	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 4.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
+	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 4.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
 	
 	OOColor* amb_land_color = [OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
 	OOColor* amb_sea_color = [OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];

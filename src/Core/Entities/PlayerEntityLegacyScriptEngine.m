@@ -2543,8 +2543,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 4)	// must be xxxxx-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
 		PlanetEntity* doppelganger=nil;
+		BOOL	procGen = NO;
 #ifdef ALLOW_PROCEDURAL_PLANETS
-		if ([i_key isEqual:@"local-planet"] && [UNIVERSE doProcedurallyTexturedPlanets])
+		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+		if ([i_key isEqual:@"local-planet"] && procGen)
 		{
 			// can safely show retextured planets!
 			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
@@ -2560,7 +2562,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
-		Quaternion model_q = { 0.707, 0.314, 0.707, 0.0 };
+		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
+		if (procGen)
+		{
+			model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
+		} 
 		model_p0 = vector_add(model_p0, off);
 
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);

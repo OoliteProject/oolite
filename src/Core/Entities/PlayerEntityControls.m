@@ -2093,8 +2093,14 @@ static NSTimeInterval	time_last_frame;
 	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE doProcedurallyTexturedPlanets])
+		{
+			[UNIVERSE setDoProcedurallyTexturedPlanets:[gameView isDown:gvArrowKeyRight]];
 			[self playChangedOption];
-		[UNIVERSE setDoProcedurallyTexturedPlanets:[gameView isDown:gvArrowKeyRight]];
+			if ([UNIVERSE planet])
+			{
+				[UNIVERSE setUpPlanet];
+			}
+		}
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes")  forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS  align:GUI_ALIGN_CENTER];
 		else
