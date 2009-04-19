@@ -279,7 +279,9 @@ enum {
 		typedef float			OOCGFloat;
 	#endif
 #elif OOLITE_GNUSTEP
-	#if GNUSTEP_BASE_MAJOR_VERSION > 1 || GNUSTEP_BASE_MINOR_VERSION >= 16
+	/* MKW 20090414 - GNUStep 1.19 still has the NSInteger bug, so let's revert
+	 * to the older definitions for OOInteger */
+	#if GNUSTEP_BASE_MAJOR_VERSION > 1 || GNUSTEP_BASE_MINOR_VERSION >= 20
 		typedef NSInteger OOInteger;
 		typedef NSUInteger OOUInteger;
 	#else

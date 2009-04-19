@@ -186,6 +186,12 @@ MA 02110-1301, USA.
   #endif
 
 #endif
+    if (!surface)
+    {
+        char * errStr = SDL_GetError();
+        OOLog(@"display.mode.error", @"ERROR creating display: %s", errStr);
+    }
+    assert(surface != NULL);
 
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;

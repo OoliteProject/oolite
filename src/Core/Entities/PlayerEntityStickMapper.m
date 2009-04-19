@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 	GuiDisplayGen *gui=[UNIVERSE gui];
 	NSArray *stickList=[stickHandler listSticks];
 	unsigned i;
-	unsigned tabStop[GUI_MAX_COLUMNS];
+	OOGUITabStop tabStop[GUI_MAX_COLUMNS];
 	tabStop[0]=50;
 	tabStop[1]=210;
 	tabStop[2]=320;

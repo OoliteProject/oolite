@@ -1424,12 +1424,32 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	isTextureImage = isTextured = YES;
 
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	if (![UNIVERSE doProcedurallyTexturedPlanets])
+	// We always need to reset the model in order to repaint it - otherwise if someone
+	// has specified colour overrides in an OXP, those overrides affect the texture!
+	// What if someone -wants- to re-colour a planetary texture using an OXP?
+	// -- Micha 20090419
+	//if (![UNIVERSE doProcedurallyTexturedPlanets])
 #endif
 	{
 		[self setModelName:@"icostextured.dat" ];
 		[self rescaleTo:1.0];
 		for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
+
+		Vector land_hsb, land_polar_hsb;
+		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
+		//sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
+		land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
+
+		amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+		amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+		amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+		amb_sea[3] = amb_land[3] = 1.0;
+
+		amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+		amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+		amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+		amb_polar_sea[3] =amb_polar_land[3] = 1.0;
+
 		[self initialiseBaseVertexArray];
 		[self initialiseBaseTerrainArray:100];
 		for (i =  0; i < next_free_vertex; i++)
@@ -1450,7 +1470,10 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		}
 	}
 	[self scaleVertices];
-	rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
+	// No need to reset rotational speed here? Otherwise we override whatever was set in an OXP.
+	// -- Micha 20090419
+	//rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
+
 	NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
 	[atmo_dictionary setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
 	[atmosphere autorelease];
