@@ -1132,4 +1132,9 @@
 	// Nova mission strings
 	"oolite-nova-coward"			= "Coward! You chose not to help the refugees!";
 	"oolite-nova-refugees"			= "A hold full of %I refugees.";
+	"oolite-nova-distress-call"		= (
+							"Warning, the %I sun is going nova.",
+							"Mayday! Orbital Station in danger.",
+							"To all receiving vessels: This is a system-wide Sierra November alert. Station in need of assistance."
+						  );
 }
