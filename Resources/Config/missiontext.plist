@@ -27,6 +27,7 @@
 	// Nova mission (oolite-legacy-script.plist)
 	"nova_1" = "You’ve arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!";
 	"nova_hero" = "Commander, we thank you.\n\nYou’ve bought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!";
+	"nova_coward" = "Commander, you should be ashamed.\nThose people you left behind had laid their hopes on you and you just left them to their fate.\n\nYour behaviour has been that of a coward.";
 	"nova_missiondesc" = "Get the refugees to safety.";
 	"nova_yesno" =
 	{

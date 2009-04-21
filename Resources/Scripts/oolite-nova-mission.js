@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 
 this.name         = "oolite-nova"; 
 this.author         = "Eric Walch, Jens Ayton, Kaks"; 
-this.copyright      = "¬© 2009 the Oolite team."; 
+this.copyright      = "© 2009 the Oolite team."; 
 this.version      = "1.73"; 
 
 
@@ -65,9 +65,12 @@ this.missionOffers = function ()
 				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string. 
 				mission.setInstructionsKey(null); 
 			}
-			if (missionVariables.nova == "NOVA_ESCAPE_COWARD")  // do something negative here? Or just a message? 
+			if (missionVariables.nova == "NOVA_ESCAPE_COWARD" && !system.sun.isGoingNova && !system.sun.hasGoneNova)
 			{
+				mission.runMissionScreen("nova_coward", "solar.png");
 				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string. 
+				player.decreaseContractReputation();
+				player.decreasePassengerReputation();
 			}
 		}
 	}
@@ -191,8 +194,8 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 { 
 	if (galaxyNumber == 3) 
 	{
-		if (missionVariables.novacount)  missionVariables.novacount++; 
-		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova) 
+		if (missionVariables.novacount !== undefined)  missionVariables.novacount++; 
+		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova && !System.isInterstellarSpace) 
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO"; 
 			player.ship.fuelLeakRate = 25; 
@@ -212,7 +215,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 
 this.shipExitedWitchspace = function() 
 { 
-	if (system.sun.hasGoneNova) 
+	if (system.sun && system.sun.hasGoneNova) 
 	{
 		if (this.novaTimer)  this.novaTimer.start(); 
 		else  this.novaTimer = new Timer(this, this.sendShipsAway, 1, 60); 
