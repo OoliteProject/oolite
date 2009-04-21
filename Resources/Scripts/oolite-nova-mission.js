@@ -195,7 +195,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 	if (galaxyNumber == 3) 
 	{
 		if (missionVariables.novacount !== undefined)  missionVariables.novacount++; 
-		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova && !System.isInterstellarSpace) 
+		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova && !system.isInterstellarSpace) 
 		{
 			missionVariables.nova = "TWO_HRS_TO_ZERO"; 
 			player.ship.fuelLeakRate = 25; 
