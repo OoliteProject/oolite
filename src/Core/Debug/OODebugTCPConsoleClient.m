@@ -138,12 +138,11 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 			[_outStream open];
 			
 			// Need to wait for the streams to reach open status before we can send packets
-			// TODO: Implement a time-out: we don't want to wait for ever.  OTOH, it's possible that
-			// the socket will timeout anyway, need to test. - Micha 20090425
 			// TODO: Might be neater to use the handleEvent callback to flag this.. - Micha 20090425
 			NSRunLoop * myRunLoop = [NSRunLoop currentRunLoop];
+			NSDate * timeOut = [NSDate dateWithTimeIntervalSinceNow:3]; // Wait up to 3 seconds
 			while( ([_inStream streamStatus] < 2 || [_outStream streamStatus] < 2) &&
-					[myRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]])
+					[myRunLoop runMode:NSDefaultRunLoopMode beforeDate:timeOut])
 				; // Wait
 
 			_decoder = OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, NULL, self);
