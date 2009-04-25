@@ -1009,6 +1009,7 @@ MA 02110-1301, USA.
 			case SDL_JOYAXISMOTION:
 			case SDL_JOYBUTTONUP:
 			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYHATMOTION:
 				[stickHandler handleSDLEvent: &event];
 				break;
 				
