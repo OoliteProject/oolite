@@ -476,15 +476,15 @@ MA 02110-1301, USA.
          // adjust current states now
          if(precisionMode)
          {
-            axstate[AXIS_PITCH] /= STICK_PRECISIONFAC;
-            axstate[AXIS_ROLL] /= STICK_PRECISIONFAC;
-            axstate[AXIS_YAW] /= STICK_PRECISIONFAC;
+            if (axstate[AXIS_PITCH] != STICK_AXISUNASSIGNED) axstate[AXIS_PITCH] /= STICK_PRECISIONFAC;
+            if (axstate[AXIS_ROLL] != STICK_AXISUNASSIGNED) axstate[AXIS_ROLL] /= STICK_PRECISIONFAC;
+            if (axstate[AXIS_YAW] != STICK_AXISUNASSIGNED) axstate[AXIS_YAW] /= STICK_PRECISIONFAC;
          }
          else
          {
-            axstate[AXIS_PITCH] *= STICK_PRECISIONFAC;
-            axstate[AXIS_ROLL] *= STICK_PRECISIONFAC;
-            axstate[AXIS_YAW] *= STICK_PRECISIONFAC;
+            if (axstate[AXIS_PITCH] != STICK_AXISUNASSIGNED) axstate[AXIS_PITCH] *= STICK_PRECISIONFAC;
+            if (axstate[AXIS_ROLL] != STICK_AXISUNASSIGNED) axstate[AXIS_ROLL] *= STICK_PRECISIONFAC;
+            if (axstate[AXIS_YAW] != STICK_AXISUNASSIGNED) axstate[AXIS_YAW] *= STICK_PRECISIONFAC;
          }
       }
    }
