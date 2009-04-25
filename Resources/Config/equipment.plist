@@ -328,7 +328,7 @@
 	</array>
 	<array>
 		<integer>9</integer>
-		<integer>13950</integer>
+		<integer>23950</integer>
 		<string>Wormhole Scanner</string>
 		<string>EQ_WORMHOLE_SCANNER</string>
 		<string>The Mössbauer-Krantz Works wormhole scanner integrates into your existing targetting system.  It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.</string>

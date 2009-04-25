@@ -141,8 +141,8 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 			// TODO: Might be neater to use the handleEvent callback to flag this.. - Micha 20090425
 			NSRunLoop * myRunLoop = [NSRunLoop currentRunLoop];
 			NSDate * timeOut = [NSDate dateWithTimeIntervalSinceNow:3]; // Wait up to 3 seconds
-			while( ([_inStream streamStatus] < 2 || [_outStream streamStatus] < 2) &&
-					[myRunLoop runMode:NSDefaultRunLoopMode beforeDate:timeOut])
+			while( _host != nil && ([_inStream streamStatus] < 2 || [_outStream streamStatus] < 2) &&
+					[myRunLoop runMode:NSDefaultRunLoopMode beforeDate:timeOut] )
 				; // Wait
 
 			_decoder = OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, NULL, self);
