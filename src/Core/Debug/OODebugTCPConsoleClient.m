@@ -5,7 +5,7 @@ OODebugTCPConsoleClient.m
 
 Oolite Debug OXP
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -137,6 +137,15 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 			[_inStream open];
 			[_outStream open];
 			
+			// Need to wait for the streams to reach open status before we can send packets
+			// TODO: Implement a time-out: we don't want to wait for ever.  OTOH, it's possible that
+			// the socket will timeout anyway, need to test. - Micha 20090425
+			// TODO: Might be neater to use the handleEvent callback to flag this.. - Micha 20090425
+			NSRunLoop * myRunLoop = [NSRunLoop currentRunLoop];
+			while( ([_inStream streamStatus] < 2 || [_outStream streamStatus] < 2) &&
+					[myRunLoop runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]])
+				; // Wait
+
 			_decoder = OOTCPStreamDecoderCreate(DecoderPacket, DecoderError, NULL, self);
 		}
 		
@@ -657,8 +666,8 @@ noteChangedConfigrationValue:(in id)newValue
 	if (errorDesc == nil)  errorDesc = [error description];
 	if (errorDesc == nil)  errorDesc = @"unknown error.";
 	[self breakConnectionWithMessage:[NSString stringWithFormat:
-	   @"Lost connection to remote debug console. Stream status: %i. Stream error: %@",
-		[_outStream streamStatus], errorDesc]];
+	   @"Lost connection to remote debug console. outStream status: %i, inStream status: %i. Stream error: %@",
+		[_outStream streamStatus], [_inStream streamStatus], errorDesc]];
 }
 
 @end
