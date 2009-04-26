@@ -62,6 +62,7 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 
@@ -222,6 +223,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "explode",				ShipExplode,				0 },
 	{ "remove",					ShipRemove,					0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
+	{ "fireECM",				ShipFireECM,				0 },
 	{ 0 }
 };
 
@@ -997,6 +999,21 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 	if (![thisEnt isPlayer])
 	{
 		[thisEnt commsMessage:message withUnpilotedOverride:YES];
+	}
+	return YES;
+}
+
+
+static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))  return YES;	// stale reference, no-op.
+	
+	if (![thisEnt fireECM])
+	{
+		OOReportJSWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
+		return NO;
 	}
 	return YES;
 }
