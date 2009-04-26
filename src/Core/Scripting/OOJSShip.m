@@ -1013,7 +1013,6 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 	if (![thisEnt fireECM])
 	{
 		OOReportJSWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
-		return NO;
 	}
 	return YES;
 }
