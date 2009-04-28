@@ -341,6 +341,13 @@ MA 02110-1301, USA.
 			desc=[NSString stringWithFormat: @"Stick %d axis %d",
 				  stickNumber+1, thingNumber+1];
 		}
+		else if(thingNumber >= MAX_REAL_BUTTONS)
+		{
+			static const char dir[][6] = { "up", "right", "down", "left" };
+			desc=[NSString stringWithFormat: @"Stick %d hat %d %s",
+				  stickNumber+1, (thingNumber - MAX_REAL_BUTTONS) / 4 + 1,
+				  dir[thingNumber & 3]];
+		}
 		else
 		{
 			desc=[NSString stringWithFormat: @"Stick %d button %d",
