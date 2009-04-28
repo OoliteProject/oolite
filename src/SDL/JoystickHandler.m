@@ -88,7 +88,7 @@ MA 02110-1301, USA.
          rc=YES;
          break;
       case SDL_JOYHATMOTION:
-         [self decodeHatEvent: (SDL_JoyButtonEvent *)evt];
+         [self decodeHatEvent: (SDL_JoyHatEvent *)evt];
          rc=YES;
          break;
       default:
