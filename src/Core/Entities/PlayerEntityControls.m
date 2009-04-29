@@ -62,6 +62,9 @@ static BOOL				previous_target_pressed;
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
+#ifdef TARGET_INCOMING_MISSILES
+static BOOL				target_incoming_missile_pressed;
+#endif
 static BOOL				ident_pressed;
 static BOOL				safety_pressed;
 static BOOL				cloak_pressed;
@@ -190,6 +193,9 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_target_missile,		't'					);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
+#ifdef TARGET_INCOMING_MISSILES
+	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'					);
+#endif
 	LOAD_KEY_SETTING(key_ident_system,			'r'					);
 	
 	LOAD_KEY_SETTING(key_scanner_zoom,			'z'					);
@@ -688,6 +694,18 @@ static NSTimeInterval	time_last_frame;
 				ident_pressed = YES;
 			}
 			else  ident_pressed = NO;
+#ifdef TARGET_INCOMING_MISSILES
+			// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
+			if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
+			{
+				if (!target_incoming_missile_pressed)
+				{
+					[self targetNearestIncomingMissile];
+				}
+				target_incoming_missile_pressed = YES;
+			}
+			else  target_incoming_missile_pressed = NO;
+#endif
 			
 			//  shoot 't'   // switch on missile targetting
 			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))

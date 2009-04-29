@@ -37,8 +37,10 @@ MA 02110-1301, USA.
 - (void) switchAITo:(NSString *)aiString;
 
 - (void) scanForHostiles;
-
 - (void) performTumble;
 - (void) performStop;
+#ifdef TARGET_INCOMING_MISSILES
+- (void) scanForNearestIncomingMissile;
+#endif
 
 @end

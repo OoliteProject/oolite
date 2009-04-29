@@ -233,6 +233,9 @@ typedef enum
 
 - (BOOL) mapKey:(NSString *) keycode toOXP:(OOScript *)oxp;
 - (void) targetNearestHostile;
+#ifdef TARGET_INCOMING_MISSILES
+- (void) targetNearestIncomingMissile;
+#endif
 
 - (void) setGalacticHyperspaceBehaviourTo:(NSString *) galacticHyperspaceBehaviourString;
 - (void) setGalacticHyperspaceFixedCoordsTo:(NSString *) galacticHyperspaceFixedCoordsString;

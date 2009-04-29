@@ -3575,6 +3575,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (primaryTarget == NO_TARGET)
 		return NO;
+	if ([self isMissile])
+		return YES;	// missiles are always fired against a hostile target
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
 		int old_behaviour = [previousCondition intForKey:@"behaviour"];

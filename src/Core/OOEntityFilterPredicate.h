@@ -73,3 +73,6 @@ BOOL HasRolePredicate(Entity *ship, void *parameter);					// Parameter: NSString
 BOOL HasPrimaryRolePredicate(Entity *ship, void *parameter);			// Parameter: NSString
 BOOL HasRoleInSetPredicate(Entity *ship, void *parameter);				// Parameter: NSSet
 BOOL HasPrimaryRoleInSetPredicate(Entity *ship, void *parameter);		// Parameter: NSSet
+#ifdef TARGET_INCOMING_MISSILES
+BOOL IsHostileAgainstTargetPredicate(Entity *ship, void *parameter);		// Parameter: id
+#endif

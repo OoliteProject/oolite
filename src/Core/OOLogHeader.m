@@ -115,7 +115,13 @@ void OOPrintLogHeader(void)
 		#define OPT3_STR ""
 	#endif
 	
-	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR
+	#ifdef TARGET_INCOMING_MISSILES
+		#define OPT4_STR " [Target Incoming Missiles]"
+	#else
+		#define OPT4_STR ""
+	#endif
+	
+	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR
 	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X

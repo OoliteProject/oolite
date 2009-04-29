@@ -349,6 +349,9 @@ typedef enum
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
+#ifdef TARGET_INCOMING_MISSILES
+	OOKeyCode				key_target_incoming_missile;
+#endif
 	OOKeyCode				key_ident_system;
 	
 	OOKeyCode				key_scanner_zoom;

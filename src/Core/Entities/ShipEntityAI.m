@@ -274,6 +274,19 @@ MA 02110-1301, USA.
 }
 
 
+#ifdef TARGET_INCOMING_MISSILES
+- (void) scanForNearestIncomingMissile
+{
+	BinaryOperationPredicateParameter param =
+	{
+		HasScanClassPredicate, [NSNumber numberWithInt:CLASS_MISSILE],
+		IsHostileAgainstTargetPredicate, self
+	};
+	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
+}
+#endif
+
+
 - (void) performTumble
 {
 	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
