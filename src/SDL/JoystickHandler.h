@@ -171,6 +171,7 @@ enum {
 - (int) getNumSticks;
 - (BOOL) getButtonState: (int)function;
 - (double) getAxisState: (int)function;
+- (double) getSensitivity;
 
 // This one just returns a pointer to the entire state array to
 // allow for multiple lookups with only one objc_sendMsg

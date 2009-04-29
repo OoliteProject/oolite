@@ -143,6 +143,7 @@ enum {
 - (NSPoint) getRollPitchAxis;
 - (NSPoint) getViewAxis;
 - (double) getAxisState:(int)function;
+- (double) getSensitivity;
 - (const BOOL *) getAllButtonStates;
 
 @end

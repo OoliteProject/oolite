@@ -128,6 +128,11 @@ MA 02110-1301, USA.
 }
 
 
+- (double) getSensitivity
+{
+   return precisionMode ? STICK_PRECISIONFAC : 1.0;
+}
+
 - (NSArray *)listSticks
 {
    int i;

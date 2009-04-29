@@ -84,6 +84,12 @@ JoystickHandler *sSharedStickHandler = nil;
 }
 
 
+- (double) getSensitivity
+{
+	return 1.0;
+}
+
+
 - (const BOOL *) getAllButtonStates
 {
 	return butstate;
