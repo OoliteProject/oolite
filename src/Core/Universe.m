@@ -7998,8 +7998,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	text = [frags componentsJoinedByString:@""];
 #endif
 	size_t length = [text length];
-	const char *ctext = [text cString];
-	espeak_Synth(ctext, length + 1 /* inc. NUL */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
+	char *ctext = malloc (length + 2);
+	sprintf (ctext, "%s%c", [text cString], 0); // extra NUL; working around an apparent misrendering bug...
+	espeak_Synth(ctext, length + 2 /* inc. NULs */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
+	free (ctext);
 }
 
 - (void) stopSpeaking
