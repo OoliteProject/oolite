@@ -419,6 +419,10 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	//speech
 	[result setObject:[NSNumber numberWithBool:isSpeechOn] forKey:@"speech_on"];
+#if HAVE_LIBESPEAK
+	[result setObject:[UNIVERSE voiceName:voice_no] forKey:@"speech_voice"];
+	[result setObject:[NSNumber numberWithBool:voice_gender_m] forKey:@"speech_gender"];
+#endif
 
 	//base ship description
 	[result setObject:ship_desc forKey:@"ship_desc"];
@@ -560,6 +564,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// speech
 	isSpeechOn = [dict boolForKey:@"speech_on"];
+#if HAVE_LIBESPEAK
+	voice_gender_m = [dict boolForKey:@"speech_gender" defaultValue:YES];
+	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
+#endif
 	
 	// reputation
 	[reputation release];
@@ -868,6 +876,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	ship_clock_adjust = 0.0;
 	
 	isSpeechOn = NO;
+#if HAVE_LIBESPEAK
+	voice_gender_m = YES;
+	voice_no = [UNIVERSE setVoice:-1 withGenderM:voice_gender_m];
+#endif
 	
 	[_customViews release];
 	_customViews = nil;
@@ -4733,6 +4745,17 @@ static PlayerEntity *sSharedPlayer = nil;
 		else
 			[gui setText:DESC(@"gameoptions-spoken-messages-no") forRow:GUI_ROW_GAMEOPTIONS_SPEECH align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH];
+#endif
+#if HAVE_LIBESPEAK
+		{
+			NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
+			[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE];
+
+			message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
+			[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_GENDER align:GUI_ALIGN_CENTER];
+			[gui setKey:GUI_KEY_OK forRow:GUI_ROW_GAMEOPTIONS_SPEECH_GENDER];
+		}
 #endif
 #if !OOLITE_MAC_OS_X
 		// window/fullscreen

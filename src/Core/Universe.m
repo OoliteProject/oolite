@@ -169,6 +169,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #elif defined(HAVE_LIBESPEAK)
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
+	espeak_voices = espeak_ListVoices(NULL);
+	for (espeak_voice_count = 0;
+	     espeak_voices[espeak_voice_count];
+	     ++espeak_voice_count)
+		/**/;
 #endif
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 #endif
@@ -8012,6 +8017,56 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (BOOL) isSpeaking
 {
 	return espeak_IsPlaying();
+}
+
+- (NSString *) voiceName:(unsigned int) index
+{
+	if (index >= espeak_voice_count)
+		return @"-";
+	return [NSString stringWithCString: espeak_voices[index]->name];
+}
+
+- (unsigned int) voiceNumber:(NSString *) name
+{
+	if (name == nil)
+		return UINT_MAX;
+
+	const char *const label = [name cString];
+	if (!label)
+		return UINT_MAX;
+
+	unsigned int index = -1;
+	while (espeak_voices[++index] && strcmp (espeak_voices[index]->name, label))
+			/**/;
+	return (index < espeak_voice_count) ? index : UINT_MAX;
+}
+
+- (unsigned int) nextVoice:(unsigned int) index
+{
+	if (++index >= espeak_voice_count)
+		index = 0;
+	return index;
+}
+
+- (unsigned int) prevVoice:(unsigned int) index
+{
+	if (--index >= espeak_voice_count)
+		index = espeak_voice_count - 1;
+	return index;
+}
+
+- (unsigned int) setVoice:(unsigned int) index withGenderM:(BOOL) isMale
+{
+	if (index == UINT_MAX)
+		index = [self voiceNumber:DESC(@"espeak-default-voice")];
+
+	if (index < espeak_voice_count)
+	{
+		espeak_VOICE voice = { espeak_voices[index]->name, NULL, NULL, isMale ? 1 : 2 };
+		espeak_SetVoiceByProperties (&voice);
+	}
+
+	return index;
 }
 
 #else

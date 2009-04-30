@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOSound.h"
 
+#if HAVE_LIBESPEAK
+#include <espeak/speak_lib.h>
+#endif
+
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 		Entity, ShipEntity, StationEntity, PlanetEntity, PlayerEntity,
 		OORoleSet;
@@ -249,6 +253,8 @@ enum
 #endif
 #if OOLITE_SPEECH_SYNTH
 	NSArray					*speechArray;
+	const espeak_VOICE		**espeak_voices;
+	unsigned int			espeak_voice_count;
 #endif
 }
 
@@ -565,6 +571,14 @@ double estimatedTimeForJourney(double distance, int hops);
 - (void) stopSpeaking;
 //
 - (BOOL) isSpeaking;
+//
+#if HAVE_LIBESPEAK
+- (NSString *) voiceName:(unsigned int) index;
+- (unsigned int) voiceNumber:(NSString *) name;
+- (unsigned int) nextVoice:(unsigned int) index;
+- (unsigned int) prevVoice:(unsigned int) index;
+- (unsigned int) setVoice:(unsigned int) index withGenderM:(BOOL) isMale;
+#endif
 //
 ////
 

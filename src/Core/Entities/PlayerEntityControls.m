@@ -1985,10 +1985,68 @@ static NSTimeInterval	time_last_frame;
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
 			[self playChangedOption];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
+		NSString *message = DESC(isSpeechOn ? @"gameoptions-spoken-messages-yes" : @"gameoptions-spoken-messages-no");
+		[gui setText:message	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
 		if (isSpeechOn)
-			[gui setText:DESC(@"gameoptions-spoken-messages-yes")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
+		{
+			if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
+			[UNIVERSE startSpeakingString:message];
+		}
+	}
+#endif
+#if HAVE_LIBESPEAK
+	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE)
+	{
+		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
+		{
+			if (!leftRightKeyPressed && script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)
+			{
+				[self playChangedOption];
+				if ([gameView isDown:gvArrowKeyRight])
+					voice_no = [UNIVERSE nextVoice: voice_no];
+				else
+					voice_no = [UNIVERSE prevVoice: voice_no];
+				[UNIVERSE setVoice: voice_no withGenderM:voice_gender_m];
+				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
+				[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE align:GUI_ALIGN_CENTER];
+				if (isSpeechOn)
+				{
+					if ([UNIVERSE isSpeaking])
+						[UNIVERSE stopSpeaking];
+					[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
+				}
+			}
+			leftRightKeyPressed = YES;
+		}
 		else
-			[gui setText:DESC(@"gameoptions-spoken-messages-no")	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
+			leftRightKeyPressed = NO;
+	}
+
+	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH_GENDER)
+	{
+		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
+		{
+			if (!leftRightKeyPressed && script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL)
+			{
+				[self playChangedOption];
+				BOOL m = [gameView isDown:gvArrowKeyRight];
+				if (m != voice_gender_m)
+				{
+					voice_gender_m = m;
+					[UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
+					NSString *message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
+					[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_GENDER align:GUI_ALIGN_CENTER];
+					if (isSpeechOn)
+					{
+						if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
+						[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
+					}
+				}
+			}
+			leftRightKeyPressed = YES;
+		}
+		else
+			leftRightKeyPressed = NO;
 	}
 #endif
 	

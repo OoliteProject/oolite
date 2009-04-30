@@ -849,6 +849,9 @@
 	"gameoptions-show-growl-messages-@"		= " Show Growl Messages: %@ ";
 	"gameoptions-spoken-messages-yes"		= " Spoken Messages: On ";
 	"gameoptions-spoken-messages-no"		= " Spoken Messages: Off ";
+	"gameoptions-voice-@"					= " Voice: %@ ";
+	"gameoptions-voice-M"					= " Gender: Male ";
+	"gameoptions-voice-F"					= " Gender: Female ";
 	"gameoptions-music-mode-@"				= " Music: %@ ";
 	"gameoptions-fullscreen-mode-d-by-d-at-g-hz" = " Full Screen Mode: %d × %d at %.3g Hz ";
 	"gameoptions-fullscreen-mode-d-by-d"	= " Full Screen Mode: %d × %d ";
@@ -1137,4 +1140,7 @@
 							"Mayday! Orbital Station in danger.",
 							"To all receiving vessels: This is a system-wide Sierra November alert. Station in need of assistance."
 						  );
+
+	// Locale-specific defaults
+	"espeak-default-voice"	= "default";
 }

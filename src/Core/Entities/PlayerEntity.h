@@ -73,6 +73,8 @@ enum
 #endif
 #if OOLITE_SPEECH_SYNTH
 	GUI_ROW_GAMEOPTIONS_SPEECH,
+	GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE,
+	GUI_ROW_GAMEOPTIONS_SPEECH_GENDER,
 #endif
 	GUI_ROW_GAMEOPTIONS_MUSIC,
 	GUI_ROW_GAMEOPTIONS_SPACER2,
@@ -466,7 +468,11 @@ typedef enum
 							keyboardRollPitchOverride: 1,
 							keyboardYawOverride: 1,
 waitingForStickCallback: 1;
-	
+#if HAVE_LIBESPEAK
+	unsigned int			voice_no;
+	BOOL					voice_gender_m;
+#endif
+
 	// Note: joystick stuff does nothing under OS X.
 	// Keeping track of joysticks
 	int						numSticks;
