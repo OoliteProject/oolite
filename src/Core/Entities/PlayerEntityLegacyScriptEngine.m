@@ -2649,16 +2649,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) targetNearestIncomingMissile
 {
 	[self scanForNearestIncomingMissile];
-	if (found_target != NO_TARGET)
+	Entity *ent = [UNIVERSE entityForUniversalID:found_target];
+	if (ent != nil)
 	{
-		Entity *ent = [UNIVERSE entityForUniversalID:found_target];
-		if (ent != 0x00)
-		{
-			ident_engaged = YES;
-			missile_status = MISSILE_STATUS_TARGET_LOCKED;
-			[self addTarget:ent];
-		}
+		ident_engaged = YES;
+		missile_status = MISSILE_STATUS_TARGET_LOCKED;
+		[self addTarget:ent];
 	}
+	[self doScriptEvent:@"playerTargettedMissile" withArgument:ent];
 }
 #endif
 
