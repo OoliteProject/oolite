@@ -1299,7 +1299,6 @@ static NSTimeInterval	time_last_frame;
 				saved_script_time = script_time;
 				saved_gui_screen = gui_screen;
 				[UNIVERSE addMessage:DESC(@"game-paused") forCount:1.0];
-				[UNIVERSE addMessage:DESC(@"game-paused-options") forCount:1.0];
 				[[gameView gameController] pause_game];
 			}
 		}

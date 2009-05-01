@@ -3625,11 +3625,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	if (score > 9)
 	{
-		NSString *bonusMS1 = [NSString stringWithFormat:DESC(@"bounty-@"), OOCredits(score)];
-		NSString *bonusMS2 = [NSString stringWithFormat:DESC(@"total-@-credits"), OOCredits(credits)];
+		NSString *bonusMsg = [NSString stringWithFormat:DESC(@"bounty-@-total-@"), OOCredits(score), OOCredits(credits)];
 		
-		[UNIVERSE addDelayedMessage:bonusMS1 forCount:6 afterDelay:0.15];
-		[UNIVERSE addDelayedMessage:bonusMS2 forCount:6 afterDelay:0.15];
+		[UNIVERSE addDelayedMessage:bonusMsg forCount:6 afterDelay:0.15];
 	}
 	
 	if (killAward)

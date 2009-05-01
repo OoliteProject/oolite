@@ -377,8 +377,7 @@
 	
 	// *** Misc. messages ***
 	// Messages used when awarding bounties
-	"bounty-@"						= "Bounty: %@";
-	"total-@-credits"				= "Total: %@";
+	"bounty-@-total-@"						= "Bounty: %@\nTotal: %@";
 	"right-on-commander"			= "Right On, Commander!";
 	
 	// Assorted messages used by the onboard computer
@@ -396,8 +395,7 @@
 	"witch-too-far"					= ( "Engines incapable of witchspace jump to that target." );
 	"witch-engine-malfunction"		= ( "Witchspace engine malfunction!" );
 	"witch-galactic-in-f-seconds"	= ( "Intergalactic jump in %.0f s." );
-	"game-paused"					= ( "Game paused." );
-	"game-paused-options"			= ( "Press F2 for options, P to resume." );
+	"game-paused"					= ( "Game paused.\nPress F2 for options, P to resume." );
 	"game-saved"					= ( "Game saved." );
 	"mouse-on"						= ( "Mouse control on." );
 	"mouse-off"						= ( "Mouse control off." );
