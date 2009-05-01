@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOSound.h"
 
-#if HAVE_LIBESPEAK
+#ifdef HAVE_LIBESPEAK
 #include <espeak/speak_lib.h>
 #endif
 
@@ -572,7 +572,7 @@ double estimatedTimeForJourney(double distance, int hops);
 //
 - (BOOL) isSpeaking;
 //
-#if HAVE_LIBESPEAK
+#ifdef HAVE_LIBESPEAK
 - (NSString *) voiceName:(unsigned int) index;
 - (unsigned int) voiceNumber:(NSString *) name;
 - (unsigned int) nextVoice:(unsigned int) index;

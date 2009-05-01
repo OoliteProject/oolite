@@ -468,7 +468,7 @@ typedef enum
 							keyboardRollPitchOverride: 1,
 							keyboardYawOverride: 1,
 waitingForStickCallback: 1;
-#if HAVE_LIBESPEAK
+#ifdef HAVE_LIBESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
 #endif

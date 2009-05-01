@@ -1994,7 +1994,7 @@ static NSTimeInterval	time_last_frame;
 		}
 	}
 #endif
-#if HAVE_LIBESPEAK
+#ifdef HAVE_LIBESPEAK
 	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE)
 	{
 		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
