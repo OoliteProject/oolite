@@ -1680,7 +1680,7 @@ static NSTimeInterval	time_last_frame;
 						if (!wait_for_key_up)
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self tryBuyingCommodity:item])
+							if ([self tryBuyingCommodity:item all:[gameView isShiftDown]])
 							{
 								[self playBuyCommodity];
 								[self setGuiToMarketScreen];
@@ -1697,7 +1697,7 @@ static NSTimeInterval	time_last_frame;
 						if (!wait_for_key_up)
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
-							if ([self trySellingCommodity:item])
+							if ([self trySellingCommodity:item all:[gameView isShiftDown]])
 							{
 								[self playSellCommodity];
 								[self setGuiToMarketScreen];
@@ -1720,28 +1720,24 @@ static NSTimeInterval	time_last_frame;
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
 							int yours =		[[shipCommodityData arrayAtIndex:item] intAtIndex:1];
-							if ((yours > 0)&&(![self marketFlooded:item]))  // sell all you can
+							if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
 							{
-								int i;
-								for (i = 0; i < yours; i++)
-									[self trySellingCommodity:item];
+								[self playBuyCommodity];
+								[self setGuiToMarketScreen];
+							}
+							else if ((yours > 0) && [self trySellingCommodity:item all:YES])	// sell all you can
+							{
 								[self playSellCommodity];
 								[self setGuiToMarketScreen];
 							}
-							else			// buy as much as possible
+							else if ([self tryBuyingCommodity:item all:YES])			// buy as much as possible
 							{
-								int amount_bought = 0;
-								while ([self tryBuyingCommodity:item])
-									amount_bought++;
+								[self playBuyCommodity];
 								[self setGuiToMarketScreen];
-								if (amount_bought == 0)
-								{
-									[self playCantBuyCommodity];
-								}
-								else
-								{
-									[self playBuyCommodity];
-								}
+							}
+							else
+							{
+								[self playCantBuyCommodity];
 							}
 							wait_for_key_up = YES;
 						}

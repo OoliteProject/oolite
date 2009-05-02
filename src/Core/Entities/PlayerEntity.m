@@ -5833,7 +5833,7 @@ static int last_outfitting_index;
 }
 
 
-- (BOOL) tryBuyingCommodity:(int) index
+- (BOOL) tryBuyingCommodity:(int) index all:(BOOL) all
 {
 	if (![self isDocked])  return NO; // can't buy if not docked.
 	
@@ -5845,19 +5845,29 @@ static int last_outfitting_index;
 
 	if ((specialCargo != nil)&&(unit == 0))
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
-	
-	if ((available_units == 0)||(pricePerUnit > credits)||((unit == 0)&&(current_cargo >= max_cargo)))		return NO;
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
 	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:index]];
 	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket arrayAtIndex:index]];
 	int manifest_quantity = [manifest_commodity intAtIndex:MARKET_QUANTITY];
 	int market_quantity = [market_commodity intAtIndex:MARKET_QUANTITY];
-	manifest_quantity++;
-	market_quantity--;
-	credits -= pricePerUnit;
+
+	int purchase = all ? 127 : 1;
+	if (purchase > market_quantity)
+		purchase = market_quantity;					// limit to what's available
+	if (purchase * pricePerUnit > credits)
+		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
+	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 999))
+		purchase = max_cargo - current_cargo;		// limit to available cargo space
+	if (purchase == 0)
+		return NO;									// stop if that results in nothing to be bought
+
+	manifest_quantity += purchase;
+	market_quantity -= purchase;
+	credits -= pricePerUnit * purchase;
 	if (unit == UNITS_TONS)
-		current_cargo++;
+		current_cargo += purchase;
+
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];
 	[manifest replaceObjectAtIndex:index withObject:[NSArray arrayWithArray:manifest_commodity]];
@@ -5872,13 +5882,14 @@ static int last_outfitting_index;
 }
 
 
-- (BOOL) trySellingCommodity:(int) index
+- (BOOL) trySellingCommodity:(int) index all:(BOOL) all
 {
 	if (![self isDocked])  return NO; // can't sell if not docked.
 	
 	NSMutableArray *localMarket = [self localMarket];
 	int available_units = [[shipCommodityData arrayAtIndex:index] intAtIndex:MARKET_QUANTITY];
 	int pricePerUnit = [[localMarket arrayAtIndex:index] intAtIndex:MARKET_PRICE];
+
 	if (available_units == 0)  return NO;
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
@@ -5887,13 +5898,18 @@ static int last_outfitting_index;
 	int manifest_quantity = [manifest_commodity intAtIndex:MARKET_QUANTITY];
 	int market_quantity =   [market_commodity intAtIndex:MARKET_QUANTITY];
 	
-	// check the market's not flooded
-	if (market_quantity >= 127)  return NO;
-	
-	current_cargo--;
-	manifest_quantity--;
-	market_quantity++;
-	credits += pricePerUnit;
+	int sell = all ? 127 : 1;
+	if (sell > available_units)
+		sell = available_units;					// limit to what's in the hold
+	if (sell + market_quantity > 127)
+		sell = 127 - market_quantity;			// avoid flooding the market
+	if (sell == 0)
+		return NO;								// stop if that results in nothing to be sold
+
+	current_cargo -= sell;
+	manifest_quantity -= sell;
+	market_quantity += sell;
+	credits += pricePerUnit * sell;
 	
 	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 	[market_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:market_quantity]];

@@ -650,8 +650,8 @@ waitingForStickCallback: 1;
 
 - (void) buySelectedItem;
 - (BOOL) marketFlooded:(int) index;
-- (BOOL) tryBuyingCommodity:(int) index;
-- (BOOL) trySellingCommodity:(int) index;
+- (BOOL) tryBuyingCommodity:(int) index all:(BOOL) all;
+- (BOOL) trySellingCommodity:(int) index all:(BOOL) all;
 
 - (BOOL) isSpeechOn;
 

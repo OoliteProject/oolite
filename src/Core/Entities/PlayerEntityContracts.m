@@ -1407,7 +1407,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	unsigned i;
 	for (i = 0; i < [shipCommodityData count]; i++)
 	{
-		while ([self trySellingCommodity:i]);	// empty loop
+		[self trySellingCommodity:i all:YES];
 	}
 	
 	// We tried to sell everything. If there are still items present in our inventory, it
