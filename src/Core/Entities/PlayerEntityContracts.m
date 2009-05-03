@@ -1276,7 +1276,17 @@ static NSMutableDictionary* currentShipyard = nil;
 	NSString* key = [gui keyForRow:sel_row];
 	
 	NSDictionary* info = (NSDictionary *)[currentShipyard objectForKey:key];
-	
+
+	// clean up the display ready for the newly-selected ship (if there is one)
+	[row_info replaceObjectAtIndex:2 withObject:@""];
+	[row_info replaceObjectAtIndex:3 withObject:@""];
+	for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH; i++)
+	{
+		[gui setText:@"" forRow:i];
+		[gui setColor:[OOColor greenColor] forRow:i];
+	}
+	[UNIVERSE removeDemoShips];
+
 	if (info)
 	{
 		// the key is a particular ship - show the details
@@ -1299,17 +1309,10 @@ static NSMutableDictionary* currentShipyard = nil;
 		
 		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
 		[row_info replaceObjectAtIndex:3 withObject:[NSString stringWithFormat:DESC(@"shipyard-speed-f-ls"), speed_rating]];
-		[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_SHIPYARD_LABELS];
 		
-		for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++)
-		{
-			[gui setText:@"" forRow:i];
-			[gui setColor:[OOColor greenColor] forRow:i];
-		}
 		[gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
 			
 		// now display the ship
-		[UNIVERSE removeDemoShips];
 		[self showShipyardModel:shipDict];
 	}
 	else
@@ -1318,6 +1321,8 @@ static NSMutableDictionary* currentShipyard = nil;
 		// build an array from the entries for that model in the currentShipyard TODO
 		// 
 	}
+
+	[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_SHIPYARD_LABELS];
 }
 
 
