@@ -4972,6 +4972,10 @@ static int last_outfitting_index;
 	{
 		skip = skipParam;
 	}
+
+	// don't show a "Back" item if we're only skipping one item - just show the item
+	if (skip == 1)
+		skip = 0;
 	
 	last_outfitting_index = skip;
 
@@ -5075,20 +5079,30 @@ static int last_outfitting_index;
 		[gui setTabStops:tab_stops];
 		
 		unsigned n_rows = GUI_MAX_ROWS_EQUIPMENT;
-		
-		if ([equipmentAllowed count] > 0)
+		unsigned count = [equipmentAllowed count];
+
+		if (count > 0)
 		{
 			if (skip > 0)	// lose the first row to Back <--
 			{
-				int	previous = skip - n_rows;
-				if (previous < 0)	previous = 0;
+				unsigned int previous;
+
+				if (count <= n_rows || skip < n_rows)
+					previous = 0;					// single page
+				else
+				{
+					previous = skip - n_rows - 2;	// multi-page
+					if (previous < 2)
+						previous = 0;				// if only one previous item, just show it
+				}
+
 				if (eqKeyForSelectFacing != nil)  previous = -1;	// ie. last index!
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
-			for (i = skip; i < [equipmentAllowed count] && (row - start_row < (int)n_rows - 1); i++)
+			for (i = skip; i < count && (row - start_row < n_rows); i++)
 			{
 				NSString			*eqKey = [equipmentAllowed stringAtIndex:i];
 				OOEquipmentType		*eqInfo = [OOEquipmentType equipmentTypeWithIdentifier:eqKey];
@@ -5166,12 +5180,12 @@ static int last_outfitting_index;
 				[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
 				row++;
 			}
-			if (i < [equipmentAllowed count])
+			if (i < count)
 			{
-				[gui setColor:[OOColor greenColor] forRow:row];
-				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row];
-				[gui setKey:[NSString stringWithFormat:@"More:%d", i] forRow:row];
-				row++;
+				// just overwrite the last item :-)
+				[gui setColor:[OOColor greenColor] forRow:row - 1];
+				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil] forRow:row - 1];
+				[gui setKey:[NSString stringWithFormat:@"More:%d", i - 1] forRow:row - 1];
 			}
 			
 			[gui setSelectableRange:NSMakeRange(start_row,row - start_row)];

@@ -1161,6 +1161,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	//error check
 	if (skip >= n_ships)
 		skip = n_ships - 1;
+	if (skip < 2)
+		skip = 0;
 	
 	// GUI stuff
 	{
@@ -1177,28 +1179,24 @@ static NSMutableDictionary* currentShipyard = nil;
 		tab_stops[4] = 450;
 		[gui setTabStops:tab_stops];
 		
-		int n_rows, start_row, previous = 0;
+		int n_rows = MAX_ROWS_SHIPS_FOR_SALE;
+		int start_row = GUI_ROW_SHIPYARD_START;
+		int previous = 0;
 		
-		if (n_ships < MAX_ROWS_SHIPS_FOR_SALE)
-		{
+		if (n_ships <= MAX_ROWS_SHIPS_FOR_SALE)
 			skip = 0;
-			previous = 0;
-			n_rows = MAX_ROWS_SHIPS_FOR_SALE;
-			start_row = GUI_ROW_SHIPYARD_START;
-		}
 		else
 		{
-			n_rows = MAX_ROWS_SHIPS_FOR_SALE - 1;
-			start_row = GUI_ROW_SHIPYARD_START;
 			if (skip > 0)
 			{
 				n_rows -= 1;
 				start_row += 1;
-				if (skip > MAX_ROWS_SHIPS_FOR_SALE)
-					previous = skip - MAX_ROWS_SHIPS_FOR_SALE - 2;
-				else
+				previous = skip - MAX_ROWS_SHIPS_FOR_SALE + 2;
+				if (previous < 2)
 					previous = 0;
 			}
+			if (skip + n_rows < n_ships)
+				n_rows -= 1;
 		}
 		
 		if (n_ships > 0)
