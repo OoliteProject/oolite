@@ -427,7 +427,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	//base ship description
 	[result setObject:ship_desc forKey:@"ship_desc"];
 	[result setObject:[[[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
-	
+
+	//custom view no.
+	[result setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
+
 	//local market
 	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
 
@@ -730,6 +733,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 #endif
 	
+	// custom view no.
+	if (_customViews != nil)
+		_customViewIndex = [dict unsignedIntForKey:@"custom_view_index"] % [_customViews count];
+
 	// trumble information
 	[self setUpTrumbles];
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
