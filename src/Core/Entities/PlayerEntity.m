@@ -431,9 +431,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	//local market
 	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
 
-	// reduced detail option
-	[result setObject:[NSNumber numberWithBool:[UNIVERSE reducedDetail]] forKey:@"reducedDetail"];
-
 	// strict UNIVERSE?
 	if ([UNIVERSE strict])
 	{
@@ -602,9 +599,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	shipyard_record = [[dict dictionaryForKey:@"shipyard_record"] mutableCopy];
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
 
-	// reducedDetail
-	[UNIVERSE setReducedDetail:[dict boolForKey:@"reducedDetail" defaultValue:[UNIVERSE reducedDetail]]];
-	
 	// Normalize cargo capacity
 	unsigned original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
 	max_cargo = [dict intForKey:@"max_cargo" defaultValue:max_cargo];
