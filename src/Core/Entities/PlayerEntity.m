@@ -5854,11 +5854,10 @@ static int last_outfitting_index;
 	
 	NSMutableArray		*localMarket = [self localMarket];
 	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
-	OOCargoQuantity		available_units	= [commodityArray unsignedIntAtIndex:MARKET_QUANTITY];
 	OOCreditsQuantity	pricePerUnit	= [commodityArray unsignedIntAtIndex:MARKET_PRICE];
 	OOMassUnit			unit			= [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
-	if ((specialCargo != nil)&&(unit == 0))
+	if ((specialCargo != nil)&&(unit == UNITS_TONS))
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
