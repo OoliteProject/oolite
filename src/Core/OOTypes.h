@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #include "OOFunctionAttributes.h"
 #include "OOCocoa.h"
 
+#define ARRAY_LENGTH(array) (sizeof (array) / sizeof (array)[0])
+
 
 typedef enum
 {

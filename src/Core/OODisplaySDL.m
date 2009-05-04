@@ -115,7 +115,7 @@ static OODisplaySDL		*sDisplay = nil;
 	NSMutableArray		*modes = nil;
 	OODisplayModeSDL	*mode = nil;
 	const unsigned		depths[] = {8, 16, 32};
-	const unsigned		depthCount = sizeof depths / sizeof *depths;
+	const unsigned		depthCount = ARRAY_LENGTH(depths);
 	const SDL_VideoInfo	*info = NULL;
 	NSMutableArray		*rects = nil;
 	NSSize				size;
