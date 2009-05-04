@@ -5102,7 +5102,7 @@ static int last_outfitting_index;
 				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
-			for (i = skip; i < count && (row - start_row < n_rows); i++)
+			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
 				NSString			*eqKey = [equipmentAllowed stringAtIndex:i];
 				OOEquipmentType		*eqInfo = [OOEquipmentType equipmentTypeWithIdentifier:eqKey];
