@@ -1319,6 +1319,7 @@ static NSTimeInterval	time_last_frame;
 	NSString		*commanderFile;
 	GameController  *controller = [UNIVERSE gameController];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
+	GUI_ROW_INIT(gui);
 	
 	// deal with string inputs as necessary
 	if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART)
@@ -1535,7 +1536,7 @@ static NSTimeInterval	time_last_frame;
 			
 			if (selectKeyPress)   // 'enter'
 			{
-				if ((guiSelectedRow == GUI_ROW_OPTIONS_QUICKSAVE)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW(,QUICKSAVE))&&(!disc_operation_in_progress))
 				{
 					NS_DURING
 						disc_operation_in_progress = YES;
@@ -1556,12 +1557,12 @@ static NSTimeInterval	time_last_frame;
 						}
 					NS_ENDHANDLER
 				}
-				if ((guiSelectedRow == GUI_ROW_OPTIONS_SAVE)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW(,SAVE))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					[self savePlayer];
 				}
-				if ((guiSelectedRow == GUI_ROW_OPTIONS_LOAD)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW(,LOAD))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					if (![self loadPlayer])
@@ -1572,7 +1573,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				
 				
-				if ((guiSelectedRow == GUI_ROW_OPTIONS_BEGIN_NEW)&&(!disc_operation_in_progress))
+				if ((guiSelectedRow == GUI_ROW(,BEGIN_NEW))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
 					[UNIVERSE reinit];
@@ -1590,13 +1591,13 @@ static NSTimeInterval	time_last_frame;
 			// quit only appears in GNUstep as users aren't
 			// used to Cmd-Q equivs. Same goes for window
 			// vs fullscreen.
-			if ((guiSelectedRow == GUI_ROW_OPTIONS_QUIT) && selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW(,QUIT)) && selectKeyPress)
 			{
 				[[gameView gameController] exitApp];
 			}
 #endif
 			
-			if ((guiSelectedRow == GUI_ROW_OPTIONS_GAMEOPTIONS) && selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW(,GAMEOPTIONS)) && selectKeyPress)
 			{
 				[gameView clearKeys];
 				[self setGuiToGameOptionsScreen];
@@ -1608,7 +1609,7 @@ static NSTimeInterval	time_last_frame;
 			 system. The stack trace shows it crashes when it hits
 			 the if statement, trying to send the message to one of
 			 the things contained.) */
-			if ((guiSelectedRow == GUI_ROW_OPTIONS_STRICT)&& selectKeyPress)
+			if ((guiSelectedRow == GUI_ROW(,STRICT))&& selectKeyPress)
 			{
 				[UNIVERSE setStrict:![UNIVERSE strict]];
 			}
@@ -1916,6 +1917,7 @@ static NSTimeInterval	time_last_frame;
 	NSArray				*modes = [controller displayModes];
 	MyOpenGLView		*gameView = [UNIVERSE gameView];
 	GuiDisplayGen		*gui = [UNIVERSE gui];
+	GUI_ROW_INIT(gui);
 	
 	[self handleGUIUpDownArrowKeys];
 	int guiSelectedRow = [gui selectedRow];
@@ -1925,7 +1927,7 @@ static NSTimeInterval	time_last_frame;
 		
 	
 #if OOLITE_HAVE_JOYSTICK
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_STICKMAPPER) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW(GAME,STICKMAPPER)) && selectKeyPress)
 	{
 		selFunctionIdx = 0;
 		[self setGuiToStickMapperScreen: 0];
@@ -1933,7 +1935,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 
 	if (!switching_resolution &&
-		guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAY &&
+		guiSelectedRow == GUI_ROW(GAME,DISPLAY) &&
 		([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
 		int			direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
@@ -1966,7 +1968,7 @@ static NSTimeInterval	time_last_frame;
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
 		
 		[self playChangedOption];
-		[gui setText:displayModeString	forRow:GUI_ROW_GAMEOPTIONS_DISPLAY  align:GUI_ALIGN_CENTER];
+		[gui setText:displayModeString	forRow:GUI_ROW(GAME,DISPLAY)  align:GUI_ALIGN_CENTER];
 		switching_resolution = YES;
 	}
 	if (switching_resolution && ![gameView isDown:gvArrowKeyRight] && ![gameView isDown:gvArrowKeyLeft] && !selectKeyPress)
@@ -1975,13 +1977,13 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 #if OOLITE_SPEECH_SYNTH
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,SPEECH))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != isSpeechOn)
 			[self playChangedOption];
 		isSpeechOn = [gameView isDown:gvArrowKeyRight];
 		NSString *message = DESC(isSpeechOn ? @"gameoptions-spoken-messages-yes" : @"gameoptions-spoken-messages-no");
-		[gui setText:message	forRow:GUI_ROW_GAMEOPTIONS_SPEECH  align:GUI_ALIGN_CENTER];
+		[gui setText:message	forRow:GUI_ROW(GAME,SPEECH)  align:GUI_ALIGN_CENTER];
 		if (isSpeechOn)
 		{
 			if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
@@ -1990,7 +1992,7 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 #ifdef HAVE_LIBESPEAK
-	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE)
+	if (guiSelectedRow == GUI_ROW(GAME,SPEECH_LANGUAGE))
 	{
 		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
 		{
@@ -2003,7 +2005,7 @@ static NSTimeInterval	time_last_frame;
 					voice_no = [UNIVERSE prevVoice: voice_no];
 				[UNIVERSE setVoice: voice_no withGenderM:voice_gender_m];
 				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-voice-@"), [UNIVERSE voiceName: voice_no]];
-				[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_LANGUAGE align:GUI_ALIGN_CENTER];
+				[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 				if (isSpeechOn)
 				{
 					if ([UNIVERSE isSpeaking])
@@ -2017,7 +2019,7 @@ static NSTimeInterval	time_last_frame;
 			leftRightKeyPressed = NO;
 	}
 
-	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SPEECH_GENDER)
+	if (guiSelectedRow == GUI_ROW(GAME,SPEECH_GENDER))
 	{
 		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
 		{
@@ -2030,7 +2032,7 @@ static NSTimeInterval	time_last_frame;
 					voice_gender_m = m;
 					[UNIVERSE setVoice:voice_no withGenderM:voice_gender_m];
 					NSString *message = [NSString stringWithFormat:DESC(voice_gender_m ? @"gameoptions-voice-M" : @"gameoptions-voice-F")];
-					[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_SPEECH_GENDER align:GUI_ALIGN_CENTER];
+					[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
 					if (isSpeechOn)
 					{
 						if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
@@ -2045,7 +2047,7 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 	
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_MUSIC)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,MUSIC))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if (!musicModeKeyPressed)
 		{
@@ -2062,25 +2064,25 @@ static NSTimeInterval	time_last_frame;
 			{
 				[self playChangedOption];
 				NSString *message = [NSString stringWithFormat:DESC(@"gameoptions-music-mode-@"), [UNIVERSE descriptionForArrayKey:@"music-mode" index:mode]];
-				[gui setText:message forRow:GUI_ROW_GAMEOPTIONS_MUSIC  align:GUI_ALIGN_CENTER];
+				[gui setText:message forRow:GUI_ROW(GAME,MUSIC)  align:GUI_ALIGN_CENTER];
 			}
 		}
 		musicModeKeyPressed = YES;
 	}
 	else  musicModeKeyPressed = NO;
 	
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_AUTOSAVE)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,AUTOSAVE))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE autoSave])
 			[self playChangedOption];
 		[UNIVERSE setAutoSave:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE autoSave])
-			[gui setText:DESC(@"gameoptions-autosave-yes")	forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-autosave-yes")	forRow:GUI_ROW(GAME,AUTOSAVE)  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:DESC(@"gameoptions-autosave-no")	forRow:GUI_ROW_GAMEOPTIONS_AUTOSAVE  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-autosave-no")	forRow:GUI_ROW(GAME,AUTOSAVE)  align:GUI_ALIGN_CENTER];
 	}
 
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_VOLUME)
+	if ((guiSelectedRow == GUI_ROW(GAME,VOLUME))
 		&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft]))
 		&&[OOSound respondsToSelector:@selector(masterVolume)])
 	{
@@ -2101,10 +2103,10 @@ static NSTimeInterval	time_last_frame;
 				NSString* v0_string = @".........................";
 				v1_string = [v1_string substringToIndex:volume / 5];
 				v0_string = [v0_string substringToIndex:20 - volume / 5];
-				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
+				[gui setText:[NSString stringWithFormat:@"%@%@%@ ", soundVolumeWordDesc, v1_string, v0_string]	forRow:GUI_ROW(GAME,VOLUME)  align:GUI_ALIGN_CENTER];
 			}
 			else
-				[gui setText:DESC(@"gameoptions-sound-volume-mute")	forRow:GUI_ROW_GAMEOPTIONS_VOLUME  align:GUI_ALIGN_CENTER];
+				[gui setText:DESC(@"gameoptions-sound-volume-mute")	forRow:GUI_ROW(GAME,VOLUME)  align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;
 		}
 		volumeControlPressed = YES;
@@ -2113,7 +2115,7 @@ static NSTimeInterval	time_last_frame;
 		volumeControlPressed = NO;
 	
 #if OOLITE_MAC_OS_X
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_GROWL)&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
+	if ((guiSelectedRow == GUI_ROW(GAME,GROWL))&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
 	{
 		if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
@@ -2137,7 +2139,7 @@ static NSTimeInterval	time_last_frame;
 				growl_min_priority = new_priority;
 				NSString* growl_priority_desc = [Groolite priorityDescription:growl_min_priority];
 				[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-show-growl-messages-@"), growl_priority_desc]
-					  forRow:GUI_ROW_GAMEOPTIONS_GROWL align:GUI_ALIGN_CENTER];
+					  forRow:GUI_ROW(GAME,GROWL) align:GUI_ALIGN_CENTER];
 				[self playChangedOption];
 				[prefs setInteger:growl_min_priority forKey:@"groolite-min-priority"];
 			}
@@ -2149,19 +2151,19 @@ static NSTimeInterval	time_last_frame;
 		leftRightKeyPressed = NO;
 #endif
 	
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,WIREFRAMEGRAPHICS))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE wireframeGraphics])
 			[self playChangedOption];
 		[UNIVERSE setWireframeGraphics:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE wireframeGraphics])
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-yes")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
 	}
 	
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE doProcedurallyTexturedPlanets])
 		{
@@ -2173,25 +2175,25 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
-			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes")  forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-no")  forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS)  align:GUI_ALIGN_CENTER];
 	}
 #endif
 	
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DETAIL)&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
+	if ((guiSelectedRow == GUI_ROW(GAME,DETAIL))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE reducedDetail])
 			[self playChangedOption];
 		[UNIVERSE setReducedDetail:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE reducedDetail])
-			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-yes")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
 		else
-			[gui setText:DESC(@"gameoptions-reduced-detail-no")	forRow:GUI_ROW_GAMEOPTIONS_DETAIL  align:GUI_ALIGN_CENTER];
+			[gui setText:DESC(@"gameoptions-reduced-detail-no")	forRow:GUI_ROW(GAME,DETAIL)  align:GUI_ALIGN_CENTER];
 	}
 	
 	
-	if (guiSelectedRow == GUI_ROW_GAMEOPTIONS_SHADEREFFECTS && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
+	if (guiSelectedRow == GUI_ROW(GAME,SHADEREFFECTS) && ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft]))
 	{
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
@@ -2204,7 +2206,7 @@ static NSTimeInterval	time_last_frame;
 				shaderEffects = SHADERS_MAX;
 			[UNIVERSE setShaderEffectsLevel:shaderEffects];
 			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)]
-				  forRow:GUI_ROW_GAMEOPTIONS_SHADEREFFECTS
+				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
 				   align:GUI_ALIGN_CENTER];
 			timeLastKeyPress = script_time;
 		}
@@ -2213,7 +2215,7 @@ static NSTimeInterval	time_last_frame;
 	else shaderSelectKeyPressed = NO;
 	
 #if OOLITE_SDL
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW(GAME,DISPLAYSTYLE)) && selectKeyPress)
 	{
 		[gameView toggleScreenMode];
 		// redraw GUI
@@ -2221,7 +2223,7 @@ static NSTimeInterval	time_last_frame;
 	}
 #endif
 
-	if ((guiSelectedRow == GUI_ROW_GAMEOPTIONS_BACK) && selectKeyPress)
+	if ((guiSelectedRow == GUI_ROW(GAME,BACK)) && selectKeyPress)
 	{
 		[gameView clearKeys];
 		[self setGuiToLoadSaveScreen];

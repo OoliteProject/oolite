@@ -192,7 +192,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	sun_center_position[1] = 0.0;
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
-	
+
+	// this MUST have the default no. of rows else the GUI_ROW macros in PlayerEntity.h need modification
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
 	
 	message_gui = [[GuiDisplayGen alloc]

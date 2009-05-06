@@ -30,6 +30,9 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 
 
+#define GUI_DEFAULT_COLUMNS			6
+#define GUI_DEFAULT_ROWS			24
+
 #define GUI_MAX_ROWS				64
 #define GUI_MAX_COLUMNS				40
 #define MAIN_GUI_PIXEL_HEIGHT		480

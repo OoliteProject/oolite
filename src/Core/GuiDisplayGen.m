@@ -46,8 +46,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	self = [super init];
 		
 	size_in_pixels  = NSMakeSize(MAIN_GUI_PIXEL_WIDTH, MAIN_GUI_PIXEL_HEIGHT);
-	n_columns		= 6;
-	n_rows			= 24;
+	n_columns		= GUI_DEFAULT_COLUMNS;
+	n_rows			= GUI_DEFAULT_ROWS;
 	pixel_row_center = size_in_pixels.width / 2;
 	pixel_row_height = MAIN_GUI_ROW_HEIGHT;
 	pixel_row_start	= MAIN_GUI_PIXEL_ROW_START;		// first position down the page...
