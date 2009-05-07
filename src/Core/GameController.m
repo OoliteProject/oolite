@@ -349,7 +349,7 @@ static GameController *sSharedController = nil;
 
 
 #if OOLITE_MAC_OS_X && !OOLITE_SDL
-static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
+static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {
    // TODO: If fullscreen mode is practical in GNUstep
 	NSDictionary *mode1 = (NSDictionary *)arg1;
@@ -361,11 +361,17 @@ static OOInteger CompareDisplayModes(id arg1, id arg2, void *context)
 			[[mode1 objectForKey:kOODisplayHeight] intValue];
 	size2 = [[mode2 objectForKey:kOODisplayWidth] intValue] *
 			[[mode2 objectForKey:kOODisplayHeight] intValue];
-	if (size1 != size2)  return size1 - size2;
 
 	// Then on refresh rate
-	return (int)[[mode1 objectForKey:kOODisplayRefreshRate] intValue] -
-		   (int)[[mode2 objectForKey:kOODisplayRefreshRate] intValue];
+	if (size1 == size2)
+	{
+		size1 = (int)[[mode1 objectForKey:kOODisplayRefreshRate] intValue];
+		size2 = (int)[[mode2 objectForKey:kOODisplayRefreshRate] intValue];
+	}
+
+	return (size1 < size2) ? NSOrderedAscending
+		 : (size1 > size2) ? NSOrderedDescending
+		 : NSOrderedSame;
 }
 
 

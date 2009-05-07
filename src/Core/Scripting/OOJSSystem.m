@@ -50,7 +50,7 @@ static JSObject *sSystemPrototype;
 static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioArgv, Entity **outRelativeTo, double *outRange) NONNULL_FUNC;
 static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
-static OOInteger CompareEntitiesByDistance(id a, id b, void *relativeTo);
+static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo);
 
 
 static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -999,7 +999,7 @@ static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Enti
 }
 
 
-static OOInteger CompareEntitiesByDistance(id a, id b, void *relativeTo)
+static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo)
 {
 	Entity				*ea = a,
 	*eb = b,
