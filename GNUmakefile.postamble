@@ -30,4 +30,4 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 
 after-clean::
-	rm -rf $(GNUSTEP_OBJ_DIR_NAME)
+	rm -rf $(GNUSTEP_OBJ_DIR_BASENAME) $(addprefix $(GNUSTEP_OBJ_DIR_BASENAME), .spk .dbg .spk.dbg)
