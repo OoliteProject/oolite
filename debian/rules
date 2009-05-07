@@ -15,9 +15,11 @@ CFLAGS += -g
 ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O2
 	GSMAKE += debug=no
+	override EXT =
 else
 	CFLAGS += -O0
 	GSMAKE += debug=yes
+	override EXT = .dbg
 endif
 export CFLAGS
 
@@ -56,6 +58,9 @@ install: build
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
+ifneq (,$(EXT))
+	mv -f "oolite.app/oolite$(EXT)" oolite.app/oolite
+endif
 
 binary-indep: build install
 	dh_testdir
