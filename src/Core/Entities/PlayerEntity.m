@@ -4387,16 +4387,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	if (max_passengers > 0)
 	{
-		// Using distinct strings for single and multiple passenger berths because different languages
-		// may have quite different ways of phrasing the two.
-		if  (max_passengers > 1)
-		{
-			desc = [NSString stringWithFormat:DESC(@"equipment-multiple-pass-berth-@"), max_passengers];
-		}
-		else
-		{
-			desc = DESC(@"equipment-single-pass-berth-@");
-		}
+		desc = [NSString stringWithFormat:DESC_PLURAL(@"equipment-pass-berth-@", max_passengers), max_passengers];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 	

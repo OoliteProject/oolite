@@ -1,4 +1,40 @@
 {
+	// Plural-form handling.
+	// * The format is an array of rules, each one a string, as set out below.
+	// * |index| is, by default, 0 for the first rule.
+	//   It is incremented by 1 for each following rule.
+	// * |index| is returned if a rule is matched.
+	// * |index|+1 (wrt the last rule) is returned if none are matched.
+	// * The input is always an integer, and should be -1 if a plural should
+	//   be used but the quantity is indeterminate.
+	// * Each rule is a string containing a list of commands and/or
+	//   conditions, whitespace-separated:
+	//		#n		command		index = n
+	//							affects following rules, is still incremented
+	//		~		command		remaining conditions' results are inverted
+	//							rest of this rule only; second time cancels
+	//		%n		command		input %= n
+	//							rest of this rule only; n >= 2
+	//		=n		condition	input == n
+	//		!n		condition	input != n
+	//		<n		condition	input < n
+	//		>n		condition	input > n
+	// * Parsing of the rule stops at the first false condition.
+	//   #n is therefore normally only useful in one of two places in any rule:
+	//   - the start, so that it always affects following rules;
+	//   - the end, so that it affects only this rule.
+	// * All conditions must be true for the rule to be true.
+	// * If you require either of two conditions, you need two rules.
+	//   The second rule will require use of #n.
+	// * Suffix your tokens with "%n", e.g. "item%0"="item", "item%1"="items".
+	// * If the plural rule list is undefined, you will get English rules.
+	// * If the plural rule list is empty, you will get index 0.
+	"plural-rules" =
+	(
+		"=1"	// index 0: singular
+	//	"!1"	// index 1: plural
+	);
+
 	// *** Basic lists ***
 	condition =
 	(
@@ -788,8 +824,8 @@
 	"equipment-aft-weapon-@"		= "Aft %@";
 	"equipment-stb-weapon-@"		= "Starboard %@";
 	"equipment-port-weapon-@"		= "Port %@";
-	"equipment-single-pass-berth-@"	= "1 Passenger Berth";
-	"equipment-multiple-pass-berth-@" = "%d Passenger Berths";
+	"equipment-pass-berth-@%0"		= "1 Passenger Berth";
+	"equipment-pass-berth-@%1"		= "%d Passenger Berths";
 	"equipment-@-not-available"		= "%@ (N/A)";
 	"manifest-cargo-quantity-format" = "%d %@ × %@";	// $count $units × $commodityName
 	
@@ -910,22 +946,24 @@
 	"contracts-cargo-cargotype"		= "Cargo:";
 	"contracts-cargo-premium"		= "Premium:";
 	"contracts-cargo-pays"			= "Pays:";
-	"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths" = "Cash: %@. Load %d of %d t. Passengers %d of %d berths.";
+	"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths%0" = "Cash: %@. Load %d of %d t. Passengers %d of %d berth.";
+	"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths%1" = "Cash: %@. Load %d of %d t. Passengers %d of %d berths.";
 	"contracts-@-a-@-wishes-to-go-to-@" = "%@, a %@, wishes to go to %@.";
-	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
+	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps%0" = "%@ The route is %.1f light years long, a minimum of %d jump.";
+	"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps%1" = "%@ The route is %.1f light years long, a minimum of %d jumps.";
 	"contracts-@-you-will-need-to-depart-within-@-in-order-to-arrive-within-@-time" = "%@ You will need to depart within %@, in order to arrive within %@ time.";
 	"contracts-@-will-pay-@-@-in-advance-and-@-on-arrival" = "%@ Will pay %@: %@ in advance, and %@ on arrival.";
 	"contracts-deliver-a-cargo-of-@-to-@" = "Deliver a cargo of %@ to %@.";
 	"contracts-@-the-contract-will-cost-you-@-and-pay-a-total-of-@" = "%@ The contract will cost you %@, and pay a total of %@.";
 	"contracts-no-time"				= "no time";
-	"contracts-day-word"			= "day";
-	"contracts-day-word-plural"		= "days";
-	"contracts-hour-word"			= "hr";
-	"contracts-hour-word-plural"	= "hrs";
-	"contracts-minute-word"			= "min";
-	"contracts-minute-word-plural"	= "mins";
-	"contracts-second-word"			= "sec";
-	"contracts-second-word-plural"	= "secs";
+	"contracts-day-word%0"			= "day";
+	"contracts-day-word%1"			= "days";
+	"contracts-hour-word%0"			= "hr";
+	"contracts-hour-word%1"			= "hrs";
+	"contracts-minute-word%0"		= "min";
+	"contracts-minute-word%1"		= "mins";
+	"contracts-second-word%0"		= "sec";
+	"contracts-second-word%1"		= "secs";
 	
 	"cargo-ton"						= "ton";
 	"cargo-gram"					= "gram";
@@ -955,8 +993,8 @@
 	"shipyard-no-ships-available-for-purchase" = "No ships available for purchase.";
 	"shipyard-your-@-trade-in-value-@" = "Your %@’s trade-in value: %@.";
 	"shipyard-total-available-%@-%@-plus-%@-trade" = "Total available: %@. (%@ Cash + %@ Trade.)";
-	"passenger-berth-plural"		= "Passenger Berths";
-	"passenger-berth-single"		= "Passenger Berth";
+	"passenger-berth%0"				= "Passenger Berth";
+	"passenger-berth%1"				= "Passenger Berths";
 	"extra-@-@"						= " Extra %@ (%@)";
 	"plus-@"						= " Plus %@.";
 	"shipyard-standard-customer-model" = " Standard customer model.";
@@ -1010,8 +1048,8 @@
 	"strict-play-enabled"			= "Strict Play Enabled";
 	"unrestricted-play-enabled"		= "Unrestricted Play Enabled";
 	"human-word"					= "human"; // Important – only lower case characters here!
-	"human-colonial-description"	= "Human Colonial";
-	"human-colonial-description-plural" = "Human Colonials";
+	"human-colonial-description%0"	= "Human Colonial";
+	"human-colonial-description%1"	= "Human Colonials";
 	"clock-format"					= "%07d:%02d:%02d:%02d";
 	"clock-format-adjusting"		= "%07d:%02d:%02d:%02d (adjusting)";
 	"danger-fuel-leak"				= "Danger! Fuel leak!";

@@ -611,7 +611,9 @@ OOINLINE Universe *GetUniverse(void)
 
 // Only for use with string literals, and only for looking up strings.
 NSString *DESC_(NSString *key);
+NSString *DESC_PLURAL_(NSString *key, int count);
 #define DESC(key)	(DESC_(key ""))
+#define DESC_PLURAL(key,count)	(DESC_PLURAL_(key, count))
 
 
 @interface OOSound (OOCustomSounds)

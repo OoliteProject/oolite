@@ -664,7 +664,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				[gui setKey:GUI_KEY_OK forRow:GUI_ROW_CARGO_START + i];
 		}
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths"), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
 		for (i = GUI_ROW_CARGO_START + n_contracts; i < GUI_ROW_MARKET_CASH; i++)
 		{
@@ -1022,7 +1022,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		else
 			text_row = [gui addLongText:report startingAtRow:text_row align:GUI_ALIGN_LEFT];
 
-		[gui setText:[NSString stringWithFormat:DESC(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths"), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
 		[gui setText:@"press-space-commander" forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
@@ -1083,7 +1083,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			}
 		}
 
-		[gui setText:[NSString stringWithFormat:DESC(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths"), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
+		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];

@@ -6062,15 +6062,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if (s_seed.e < 127)
 	{
-		if (plural)
-		{
-			// TODO: use plist
-			[inhabitants appendString:DESC(@"human-colonial-description-plural")];
-		}
-		else
-		{
-			[inhabitants appendString:DESC(@"human-colonial-description")];
-		}
+		// TODO: use plist
+		[inhabitants appendString:DESC_PLURAL(@"human-colonial-description", plural ? -1 : 1)];
 	}
 	else
 	{
@@ -6710,7 +6703,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					passenger_name, passenger_species_string, destination_name];
 					
 				long_description = [NSString stringWithFormat:
-					DESC(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps"), long_description,
+					DESC_PLURAL(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps", route_hops), long_description,
 					route_length, route_hops];
 					
 				long_description = [NSString stringWithFormat:
@@ -6794,35 +6787,27 @@ double estimatedTimeForJourney(double distance, int hops)
 	{
 		int days = floor(r_time / 86400);
 		r_time -= 86400 * days;
-		result = [NSString stringWithFormat:@"%@ %d %@", result, days, (days > 1) ?
-									DESC(@"contracts-day-word-plural") :
-									DESC(@"contracts-day-word")];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, days, DESC_PLURAL(@"contracts-day-word", days)];
 		parts++;
 	}
 	if (r_time > 3600)
 	{
 		int hours = floor(r_time / 3600);
 		r_time -= 3600 * hours;
-		result = [NSString stringWithFormat:@"%@ %d %@", result, hours, (hours > 1) ?
-									DESC(@"contracts-hour-word-plural") :
-									DESC(@"contracts-hour-word")];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, hours, DESC_PLURAL(@"contracts-hour-word", hours)];
 		parts++;
 	}
 	if (parts < 2 && r_time > 60)
 	{
 		int mins = floor(r_time / 60);
 		r_time -= 60 * mins;
-		result = [NSString stringWithFormat:@"%@ %d %@", result, mins, (mins > 1) ?
-									DESC(@"contracts-minute-word-plural") :
-									DESC(@"contracts-minute-word")];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, mins, DESC_PLURAL(@"contracts-minute-word", mins)];
 		parts++;
 	}
 	if (parts < 2 && r_time > 0)
 	{
 		int secs = floor(r_time);
-		result = [NSString stringWithFormat:@"%@ %d %@", result, secs, (secs > 1) ?
-									DESC(@"contracts-second-word-plural") :
-									DESC(@"contracts-second-word")];
+		result = [NSString stringWithFormat:@"%@ %d %@", result, secs, DESC_PLURAL(@"contracts-second-word", secs)];
 	}
 	return [result stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
@@ -6988,7 +6973,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							[self describeCommodity:co_type amount:co_amount], destination_name];
 							
 						long_description = [NSString stringWithFormat:
-							DESC(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps"), long_description,
+							DESC_PLURAL(@"contracts-@-the-route-is-f-light-years-long-a-minimum-of-d-jumps", route_hops), long_description,
 							route_length, route_hops];
 							
 						long_description = [NSString stringWithFormat:
@@ -7277,7 +7262,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			if (passenger_berths)
 			{
 				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : (id)@"";
-				NSString* ppb = (passenger_berths > 1)? DESC(@"passenger-berth-plural") : DESC(@"passenger-berth-single");
+				NSString* ppb = DESC_PLURAL(@"passenger-berth", passenger_berths);
 				[description appendFormat:@"Extra %@%@ (%@)", npb, ppb, passengerBerthLongDesc];
 				[short_description appendFormat:@"Extra %@%@.", npb, ppb];
 			}
@@ -8466,4 +8451,86 @@ NSString *DESC_(NSString *key)
 	NSString *result = [UNIVERSE descriptionForKey:key];
 	if (result == nil)  result = key;
 	return result;
+}
+
+
+// There's a hint of gettext about this...
+NSString *DESC_PLURAL(NSString *key, int count)
+{
+	NSArray *conditions = [[UNIVERSE descriptions] arrayForKey:@"plural-rules"];
+
+	if (conditions == nil)
+		return DESC_([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
+
+	int i;
+	long int index;
+
+	for (index = i = 0; i < [conditions count]; ++index, ++i)
+	{
+		const char *cond = [[conditions stringAtIndex:i] cString];
+		if (!cond)
+			break;
+
+		long int input = count;
+		BOOL flag = NO; // we XOR test results with this
+
+		while (isspace (*cond))
+			++cond;
+
+		for (;;)
+		{
+			while (isspace (*cond))
+				++cond;
+
+			char command = *cond++;
+
+			switch (command)
+			{
+			case 0:
+				goto passed; // end of string
+
+			case '~':
+				flag = !flag;
+				continue;
+			}
+
+			long int param = strtol (cond, (char **)&cond, 10);
+
+			switch (command)
+			{
+			case '#':
+				index = param;
+				continue;
+
+			case '%':
+				if (param < 2)
+					break; // ouch - fail this!
+				input %= param;
+				continue;
+
+			case '=':
+				if (flag ^ (input == param))
+					continue;
+				break;
+			case '!':
+				if (flag ^ (input != param))
+					continue;
+				break;
+
+			case '<':
+				if (flag ^ (input < param))
+					continue;
+				break;
+			case '>':
+				if (flag ^ (input > param))
+					continue;
+				break;
+			}
+			// if we arrive here, we have an unknown test or a test has failed
+			break;
+		}
+	}
+
+passed:
+	return DESC_([NSString stringWithFormat:@"%@%%%d", key, index]);
 }
