@@ -8462,7 +8462,7 @@ NSString *DESC_PLURAL(NSString *key, int count)
 	if (conditions == nil)
 		return DESC_([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
 
-	int i;
+	int unsigned i;
 	long int index;
 
 	for (index = i = 0; i < [conditions count]; ++index, ++i)
