@@ -2944,16 +2944,6 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	// Otherwise, if caller doesn't set a role, one will be selected randomly.
 	if ([ship hasRole:shipKey])  [ship setPrimaryRole:shipKey];
 	
-	// Ensure that the new ship does not try to create escorts initialized with the same dictionary key.
-	// This would lead to circular reference memory overflows (e.g. "boa-mk2" trying to create 4 "boa-mk2"
-	// escorts) - Nikos 20090509
-	if ([[shipDict stringForKey:@"escort-ship"] isEqualTo:shipKey])
-	{
-		OOLogWARN(@"universe.newShipWithName.escortShipCircularReference", 
-				@"Ship %@ (%@) specifies itself as escort-ship. Avoiding circular reference overflow by ignoring escort setup.", ship,shipKey);
-		[ship setPendingEscortCount:0];
-	}
-	
 	// MKW 20090327 - retain count is actually 2!
 	return ship;   // retain count = 1
 }

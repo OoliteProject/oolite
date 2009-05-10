@@ -874,6 +874,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
 	
+	// Ensure that we do not try to create escorts if we are an escort ship ourselves.
+	// This could lead to circular reference memory overflows (e.g. "boa-mk2" trying to create 4 "boa-mk2"
+	// escorts or the case of two ships specifying eachother as escorts) - Nikos 20090510
+	if ([self isEscort])
+	{
+		OOLogWARN(@"shipEntity.setupEscorts.escortShipCircularReference", 
+				@"Ship %@ requested escorts, when it is an escort ship itself. Avoiding possible circular reference overflow by ignoring escort setup.", self);
+		return;
+	}
+	
 	if (_pendingEscortCount == 0)  return;
 	
 	if ([self isPolice])  defaultRole = @"wingman";
