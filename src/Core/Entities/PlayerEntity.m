@@ -3912,7 +3912,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	// ensure we've not left keyboard entry on
 	[[UNIVERSE gameView] allowStringInput: NO];
 	
-	if (gui_screen == GUI_SCREEN_MISSION)  [self doScriptEvent:@"missionScreenEnded"];
+	if (gui_screen == GUI_SCREEN_MISSION)
+	{
+		[[UNIVERSE gui] clearBackground];
+		[self doScriptEvent:@"missionScreenEnded"];
+	}
 	
 	if (station == [UNIVERSE station])
 	{
