@@ -7557,6 +7557,10 @@ int w_space_seed = 1234567;
 	{
 		return [potentialEscort hasRole:@"wingman"];
 	}
+	if ([self bounty] == 0 && [potentialEscort bounty] != 0) // clean mothers can only accept clean escorts
+	{
+		return NO;
+	}
 	if (![self isEscort])
 	{
 		return [potentialEscort hasRole:@"escort"];
