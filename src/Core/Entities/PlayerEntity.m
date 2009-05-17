@@ -4073,6 +4073,9 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
+	// Before anything, store player's target system, it may not be the same as the wormhole destination
+	Random_Seed playersOriginalDestination = target_system_seed ;
+	
 	target_system_seed = [w_hole destination];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
@@ -4107,6 +4110,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	system_seed = target_system_seed;
 	galaxy_coordinates.x = system_seed.d;
 	galaxy_coordinates.y = system_seed.b;
+	target_system_seed = playersOriginalDestination; // restore the player's target system now
 	legalStatus /= 2;										// 'another day, another system'
 	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
