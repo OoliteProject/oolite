@@ -4,7 +4,7 @@ BUILD_WITH_DEBUG_FUNCTIONALITY = yes
 DOCKING_CLEARANCE = yes
 PROCEDURAL_PLANETS = yes
 WORMHOLE_SCANNER = yes
-TARGET_INCOMING_MISSILES = no
+TARGET_INCOMING_MISSILES = yes
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.c src/SDL:src/Core:src/BSDCompat:src/Core/Debug
