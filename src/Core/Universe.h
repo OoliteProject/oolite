@@ -227,6 +227,8 @@ enum
 	
 	BOOL					no_update;
 	
+	float				time_acceleration_factor;
+	
 	NSMutableDictionary		*localPlanetInfoOverrides;
 	
 	NSException				*exception;
@@ -441,6 +443,9 @@ enum
 - (void) showCommsLog:(OOTimeDelta) how_long;
 
 - (void) update:(OOTimeDelta)delta_t;
+
+- (float) timeAccelerationFactor;
+- (void) setTimeAccelerationFactor:(float)newTimeAccelerationFactor;
 
 - (void) filterSortedLists;
 

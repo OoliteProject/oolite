@@ -455,6 +455,7 @@
 		return NO;
 	}
 	
+	[UNIVERSE setTimeAccelerationFactor:1.0f];
 	[UNIVERSE setSystemTo:system_seed];
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	[UNIVERSE setUpSpace];

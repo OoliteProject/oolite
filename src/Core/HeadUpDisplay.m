@@ -1816,6 +1816,7 @@ static BOOL hostiles;
 	
 	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
+	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: x%.2f", [UNIVERSE timeAccelerationFactor]];
 	
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 
@@ -1824,6 +1825,7 @@ static BOOL hostiles;
 	OODrawString(collDebugInfo, x, y - siz.height, z1, siz);
 	
 	OODrawString(positionInfo, x, y - 1.8 * siz.height, z1, siz08);
+	OODrawString(timeAccelerationFactorInfo, x, y - 3.2 * siz08.height, z1, siz08);
 }
 
 

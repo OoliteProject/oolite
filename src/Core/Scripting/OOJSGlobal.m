@@ -49,6 +49,7 @@ extern NSString * const kOOLogDebugMessage;
 
 
 static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -65,7 +66,7 @@ static JSClass sGlobalClass =
 	JS_PropertyStub,
 	JS_PropertyStub,
 	GlobalGetProperty,
-	JS_PropertyStub,
+	GlobalSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
 	JS_ConvertStub,
@@ -78,6 +79,7 @@ enum
 	// Property IDs
 	kGlobal_galaxyNumber,		// galaxy number, integer, read-only
 	kGlobal_guiScreen,			// current GUI screen, string, read-only
+	kGlobal_timeAccelerationFactor	// time acceleration, float, read/write
 };
 
 
@@ -86,6 +88,7 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "guiScreen",				kGlobal_guiScreen,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "timeAccelerationFactor",		kGlobal_timeAccelerationFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -134,6 +137,10 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 			result = [player gui_screen_string];
 			break;
 			
+		case kGlobal_timeAccelerationFactor:
+			JS_NewDoubleValue(context, [UNIVERSE timeAccelerationFactor], outValue);
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
 			return NO;
@@ -141,6 +148,31 @@ static JSBool GlobalGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	if (result != nil)  *outValue = [result javaScriptValueInContext:context];
 	return YES;
+}
+
+
+static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
+{
+	BOOL						OK = NO;
+	jsdouble					fValue;
+	
+	if (!JSVAL_IS_INT(name))  return YES;
+	
+	switch (JSVAL_TO_INT(name))
+	{
+		case kGlobal_timeAccelerationFactor:
+			if (JS_ValueToNumber(context, *value, &fValue))
+			{
+				[UNIVERSE setTimeAccelerationFactor:fValue];
+				OK = YES;
+			}
+			break;
+	
+		default:
+			OOReportJSBadPropertySelector(context, @"Global", JSVAL_TO_INT(name));
+	}
+	
+	return OK;
 }
 
 

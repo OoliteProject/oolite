@@ -1652,7 +1652,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (![self clockAdjusting])
 		{
-			fps_counter = (int)floor([UNIVERSE framesDoneThisUpdate] / (fps_check_time - last_fps_check_time));
+			fps_counter = (int)([UNIVERSE timeAccelerationFactor] * floor([UNIVERSE framesDoneThisUpdate] / (fps_check_time - last_fps_check_time)));
 			last_fps_check_time = fps_check_time;
 			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
 		}
@@ -1660,7 +1660,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			// Good approximation for when the clock is adjusting and proper fps calculation
 			// cannot be performed.
-			fps_counter = (int)floor(1.0 / delta_t);
+			fps_counter = (int)([UNIVERSE timeAccelerationFactor] * floor(1.0 / delta_t));
 			fps_check_time = ship_clock + MINIMUM_GAME_TICK;
 		}
 		[UNIVERSE resetFramesDoneThisUpdate];	// Reset frame counter

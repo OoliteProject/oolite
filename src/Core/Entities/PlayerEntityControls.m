@@ -1237,6 +1237,21 @@ static NSTimeInterval	time_last_frame;
 			gDebugFlags |= DEBUG_HIDE_HUD;
 		}
 #endif
+
+		if ([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight])
+		{
+			if (!leftRightKeyPressed)
+			{
+				float newTimeAccelerationFactor = [gameView isDown:gvArrowKeyLeft] ? 
+						OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, 0.0625f) :
+						OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, 16.0f);
+				[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
+			}
+			leftRightKeyPressed = YES;
+		}
+		else
+			leftRightKeyPressed = NO;
+				
 		
 		if ([gameView isDown:'n'])// look for the 'n' key
 		{
