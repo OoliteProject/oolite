@@ -26,9 +26,13 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global missionVariables*/
+
+
 this.name			= "oolite-cloaking-device-target-ship";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2008 the Oolite team.";
+this.copyright		= "© 2008-2009 the Oolite team.";
 this.version		= "1.73";
 
 
@@ -36,4 +40,4 @@ this.shipDied = function ()
 {
 	this.ship.spawn("cloaking-device");
 	missionVariables.cloak = "COMPLETE";
-}
+};

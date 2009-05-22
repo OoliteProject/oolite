@@ -26,9 +26,13 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global player*/
+
+
 this.name			= "oolite-cloaking-device-pod";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007 the Oolite team.";
+this.copyright		= "© 2007–2009 the Oolite team.";
 this.version		= "1.73";
 
 
@@ -48,4 +52,4 @@ this.shipWasScooped = function (scooper)
 		}
 	}
 	// Should probably award 100 gold to non-player ships too, but they don’t have awardCargo at the moment.
-}
+};

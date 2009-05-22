@@ -26,9 +26,13 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global guiScreen, mission, missionVariables, player*/
+
+
 this.name			= "oolite-trumbles";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2008 the Oolite team.";
+this.copyright		= "© 2008–2009 the Oolite team.";
 this.description	= "Random offers of trumbles.";
 this.version		= "1.73";
 
@@ -45,12 +49,12 @@ this.startUp = this.reset = function ()
 	{
 		missionVariables.trumbles = "";
 	}
-}
+};
 
 
 this.shipDockedWithStation = function ()
 {
-	if (!player.ship.docked)  return;	// Player might have been forcibly undocked by another script.
+	if (!player.ship.docked)  { return; }	// Player might have been forcibly undocked by another script.
 	
 	/*	In the pre-JavaScript implementation, the mission variable was set to
 		OFFER_MADE while the mission screen was shown. If the player lanched
@@ -59,35 +63,38 @@ this.shipDockedWithStation = function ()
 		implementation uses unique choice keys and doesn't change the mission
 		variable, which should be more reliable in all cases.
 	*/
-	if (missionVariables.trumbles == "OFFER_MADE")  missionVariables.trumbles = "BUY_ME"
+	if (missionVariables.trumbles === "OFFER_MADE")
+	{
+		missionVariables.trumbles = "BUY_ME";
+	}
 	
 	if (player.ship.dockedStation.isMainStation &&
-		missionVariables.trumbles == "" &&
+		missionVariables.trumbles === "" &&
 		!missionVariables.novacount &&		// So the offers eventually stop for long-time players who keep refusing.
 		player.credits > 6553.5)
 	{
 		missionVariables.trumbles = "BUY_ME";
 	}
 	
-	if (missionVariables.trumbles == "BUY_ME" && player.trumbleCount == 0)
+	if (missionVariables.trumbles === "BUY_ME" && player.trumbleCount === 0)
 	{
 		// 20% chance of trumble being offered, if no other script got this dock session first.
-		if (guiScreen == "GUI_SCREEN_STATUS"
-			&& Math.random() < 0.2)
+		if (guiScreen === "GUI_SCREEN_STATUS" &&
+			Math.random() < 0.2)
 		{
 			// Show the mission screen.
 			mission.runMissionScreen("oolite_trumble_offer", "trumblebox.png", "oolite_trumble_offer_yesno");
 		}
 	}
-}
+};
 
 
 this.missionScreenEnded = function ()
 {
-	if (missionVariables.trumbles == "BUY_ME")
+	if (missionVariables.trumbles === "BUY_ME")
 	{
 		// Could have been trumble mission screen.
-		if (mission.choice == "OOLITE_TRUMBLE_YES")
+		if (mission.choice === "OOLITE_TRUMBLE_YES")
 		{
 			// Trumble bought.
 			missionVariables.trumbles = "TRUMBLE_BOUGHT";
@@ -95,7 +102,7 @@ this.missionScreenEnded = function ()
 			player.credits -= 30;
 			player.ship.awardEquipment("EQ_TRUMBLE");
 		}
-		else if (mission.choice == "OOLITE_TRUMBLE_NO")
+		else if (mission.choice === "OOLITE_TRUMBLE_NO")
 		{
 			// Trumble bought.
 			missionVariables.trumbles = "NOT_NOW";
@@ -103,14 +110,14 @@ this.missionScreenEnded = function ()
 		}
 		// else it was someone else's mission screen, so we do nothing.
 	}
-}
+};
 
 
 this.shipWillExitWitchspace = function ()
 {
 	// If player has rejected a trumble offer, reset trumble mission with 2% probability per jump.
-	if (missionVariables.trumbles == "NOT_NOW" && Math.random < 0.02)
+	if (missionVariables.trumbles === "NOT_NOW" && Math.random < 0.02)
 	{
 		missionVariables.trumbles = "BUY_ME";
 	}
-}
+};

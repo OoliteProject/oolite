@@ -26,17 +26,21 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global galaxyNumber, guiScreen, mission, missionVariables, player, system*/
+
+
 this.name			= "oolite-constrictor-hunt";
-this.author			= "eric walch";
-this.copyright		= "© 2008 the Oolite team.";
+this.author			= "Eric Walch";
+this.copyright		= "© 2008–2009 the Oolite team.";
 this.version		= "1.73";
 
 
 this.addToScreen = function ()
 {
-	if (guiScreen == "GUI_SCREEN_SYSTEM_DATA")
+	if (guiScreen === "GUI_SCREEN_SYSTEM_DATA")
 	{
-		if (galaxyNumber == 0)
+		if (galaxyNumber === 0)
 		{
 			switch (system.ID)
 			{
@@ -50,7 +54,7 @@ this.addToScreen = function ()
 					break;
 			}
 		}
-		if (galaxyNumber == 1)
+		if (galaxyNumber === 1)
 		{
 			switch (system.ID)
 			{
@@ -83,12 +87,12 @@ this.addToScreen = function ()
 			}
 		}
 	}
-}
+};
 
 
 this.missionOffers = function ()
 {
-	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.ship.docked)  return;
+	if (guiScreen === "GUI_SCREEN_MISSION" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
 	
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
 	if (player.ship.dockedStation.isMainStation)
@@ -96,12 +100,18 @@ this.missionOffers = function ()
 		if (galaxyNumber < 2 && !missionVariables.conhunt && player.score > 255)
 		{
 			mission.runMissionScreen("constrictor_hunt_brief1", null, null, "constrictor");
-			if (galaxyNumber == 0)  mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
-			else  mission.addMessageTextKey("constrictor_hunt_brief1b"); // galaxy = 1
+			if (galaxyNumber === 0)
+			{
+				mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
+			}
+			else
+			{
+				mission.addMessageTextKey("constrictor_hunt_brief1b"); // galaxy = 1
+			}
 			missionVariables.conhunt = "STAGE_1";
 			mission.setInstructionsKey("conhunt_short_desc1");
 		}
-		if (missionVariables.conhunt == "CONSTRICTOR_DESTROYED")  // Variable is set by the ship-script
+		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship-script
 		{
 			mission.runMissionScreen("constrictor_hunt_debrief", null, null, "constrictor");
 			player.credits += 5000;
@@ -111,39 +121,46 @@ this.missionOffers = function ()
 			missionVariables.conhunt = "MISSION_COMPLETE";
 		}
 	}
-}
+};
+
 
 this.setUpShips = function ()
 {
-	if (galaxyNumber == 1 &&
-		system.ID == 193 &&
-		missionVariables.conhunt == "STAGE_1" &&
-		system.countShipsWithRole("constrictor") == 0)
+	if (galaxyNumber === 1 &&
+		system.ID === 193 &&
+		missionVariables.conhunt === "STAGE_1" &&
+		system.countShipsWithRole("constrictor") === 0)
 	{
 		system.legacy_addShips("constrictor", 1);
 	}
-}
+};
 
 
 /**** Event handlers ****/
 
 this.guiScreenChanged = function ()
 {
-	if (galaxyNumber < 2 && missionVariables.conhunt == "STAGE_1")  this.addToScreen();
-}
+	if (galaxyNumber < 2 && missionVariables.conhunt === "STAGE_1")
+	{
+		this.addToScreen();
+	}
+};
+
 
 this.shipDockedWithStation = function ()
 {
 	this.missionOffers();
-}
+};
+
 
 this.missionScreenEnded = this.missionChoiceWasReset = function ()
 {
-	if (!player.ship.docked) return;
+	if (!player.ship.docked)  { return; }
 	this.missionOffers();
-}
+};
+
 
 this.shipExitedWitchspace = this.shipLaunchedFromStation = function ()
 {
 	this.setUpShips();
-}
+};

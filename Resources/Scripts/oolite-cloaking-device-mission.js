@@ -26,27 +26,37 @@ MA 02110-1301, USA.
 */
 
 
-this.name           = "oolite-cloaking-device";
-this.author         = "Jens Ayton";
-this.copyright      = "© 2007-2008 the Oolite team.";
-this.description    = "Cloaking device mission in galaxy 5.";
-this.version        = "1.73";
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global galaxyNumber, missionVariables, system*/
+
+
+this.name			= "oolite-cloaking-device";
+this.author			= "Jens Ayton";
+this.copyright		= "© 2007-2009 the Oolite team.";
+this.description	= "Cloaking device mission in galaxy 5.";
+this.version		= "1.73";
 
 
 this.shipWillExitWitchspace = function ()
 {
 	// If we're in galaxy 5...
-	if (galaxyNumber == 4)
+	if (galaxyNumber === 4)
 	{
 		// ...and the asp-cloaked's death_actions haven't triggered...
-		if (missionVariables.cloak == null)
+		if (missionVariables.cloak === null)
 		{
 			// ...then we count of jumps...
-			if (!missionVariables.cloakcounter)  missionVariables.cloakcounter = 1;
-			else  missionVariables.cloakcounter++;
+			if (!missionVariables.cloakcounter)
+			{
+				missionVariables.cloakcounter = 1;
+			}
+			else
+			{
+				missionVariables.cloakcounter++;
+			}
 			
 			// ...until we reach six or more.
-			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") == 0)
+			if (missionVariables.cloakcounter > 6 && system.countShipsWithRole("asp-cloaked") === 0)
 			{
 				// Then trigger the ambush!
 				system.legacy_addShips("asp-cloaked", 1);
@@ -54,4 +64,4 @@ this.shipWillExitWitchspace = function ()
 			}
 		}
 	}
-}
+};

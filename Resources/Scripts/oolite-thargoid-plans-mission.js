@@ -26,32 +26,36 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, eqeqeq: true, immed: true, newcap: true*/
+/*global EquipmentInfo, Timer, galaxyNumber, guiScreen, mission, missionVariables, player, system*/
+
+
 this.name			= "oolite-thargoid-plans";
-this.author			= "eric walch";
-this.copyright		= "© 2008 the Oolite team.";
+this.author			= "Eric Walch";
+this.copyright		= "© 2008–2009 the Oolite team.";
 this.version		= "1.73";
 
 
 this.missionOffers = function ()
 {
-	if (guiScreen == "GUI_SCREEN_MISSION" || (mission.choice && mission.choice != "") || !player.ship.docked)  return;
+	if (guiScreen === "GUI_SCREEN_MISSION" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
 	if (player.ship.dockedStation.isMainStation)
 	{
-		if (galaxyNumber == 2)
+		if (galaxyNumber === 2)
 		{
 			if (!missionVariables.thargplans &&
-				missionVariables.conhunt == "MISSION_COMPLETE" &&
+				missionVariables.conhunt === "MISSION_COMPLETE" &&
 				player.score > 1280 &&
-				system.ID != 83)
+				system.ID !== 83)
 			{
 				mission.runMissionScreen("thargoid_plans_intro_brief");
 				missionVariables.thargplans = "PRELUDE";
 				mission.setInstructionsKey("thargplans_short_desc1");
 				mission.markSystem(83);
 			}
-			else if (missionVariables.thargplans == "PRELUDE" &&
-				system.ID == 83)
+			else if (missionVariables.thargplans === "PRELUDE" &&
+				system.ID === 83)
 			{
 				mission.unmarkSystem(83);
 				mission.runMissionScreen("thargoid_plans_main_brief", null, null, "thargoid");
@@ -59,8 +63,8 @@ this.missionOffers = function ()
 				mission.setInstructionsKey("thargplans_short_desc2");
 				mission.markSystem(36);
 			}
-			else if (missionVariables.thargplans == "RUNNING" &&
-					 system.ID == 36)
+			else if (missionVariables.thargplans === "RUNNING" &&
+					 system.ID === 36)
 			{
 				mission.runMissionScreen("thargoid_plans_debrief", null, null, "thargoid");
 				player.score += 256; // ship kills
@@ -80,7 +84,7 @@ this.missionOffers = function ()
 			}
 		}
 	}
-}
+};
 
 
 this.addTargoids = function ()
@@ -88,7 +92,7 @@ this.addTargoids = function ()
 	this.loopcount++; // 5 loops of adding in the legacy script with a script timer.
 	if (this.loopcount > 5)
 	{
-		this.targoidTimer.stop;
+		this.targoidTimer.stop();
 		return;
 	}
 	if (system.countShipsWithRole("thargoid") < 2)
@@ -100,47 +104,53 @@ this.addTargoids = function ()
 	{
 		system.legacy_addShips("thargoid", 1);
 	}
-}
+};
 
 
 this.setUpShips = function ()
 {
-	if (missionVariables.thargplans == "RUNNING" && galaxyNumber == 2)
+	if (missionVariables.thargplans === "RUNNING" && galaxyNumber === 2)
 	{
-		if (this.targoidTimer)  this.targoidTimer.start();
-		else  this.targoidTimer = new Timer(this, this.addTargoids, 10, 10);
+		if (this.targoidTimer)
+		{
+			this.targoidTimer.start();
+		}
+		else
+		{
+			this.targoidTimer = new Timer(this, this.addTargoids, 10, 10);
+		}
 	}
-}
+};
 
 
 /**** Event handlers ****/
 this.startUp = this.reset = function ()
 {
 	this.loopcount = 0;  // should be zero on the first launch after a reset.
-}
+};
 
 
 this.shipDockedWithStation = function ()
 {
 	this.missionOffers();
-}
+};
 
 
 this.missionScreenEnded = this.missionChoiceWasReset = function ()
 {
-	if (!player.ship.docked) return;
+	if (!player.ship.docked)  { return; }
 	this.missionOffers();
-}
+};
 
 
 this.shipLaunchedFromStation = function ()
 {
 	this.setUpShips();
-}
+};
 
 
 this.shipExitedWitchspace = function ()
 {
 	this.loopcount = 0;
 	this.setUpShips();
-}
+};

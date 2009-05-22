@@ -26,15 +26,18 @@ MA 02110-1301, USA.
 */
 
 
+/*jslint bitwise: true, undef: true, undef: true, eqeqeq: true, newcap: true*/
+
+
 this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007-2008 the Oolite team.";
+this.copyright		= "© 2007–2009 the Oolite team.";
 this.description	= "Standard script for ships.";
 this.version		= "1.73";
 
 
 // launch_actions handled on didSpawn().
-if (this.legacy_launchActions != undefined)
+if (this.legacy_launchActions !== undefined)
 {
 	this.shipSpawned = function ()
 	{
@@ -47,12 +50,12 @@ if (this.legacy_launchActions != undefined)
 		// These can only be used once; keeping them around after that is pointless.
 		delete this.didSpawn;
 		delete this.legacy_launchActions;
-	}
+	};
 }
 
 
 // death_actions handled on shipDied().
-if (this.legacy_deathActions != undefined)
+if (this.legacy_deathActions !== undefined)
 {
 	this.shipDied = function ()
 	{
@@ -61,12 +64,12 @@ if (this.legacy_deathActions != undefined)
 			the future. Do not use it in your own scripts.
 		*/
 		this.ship.runLegacyScriptActions(this.ship, this.legacy_deathActions);
-	}
+	};
 }
 
 
 // script_actions handled on shipDidDock() and wasScooped().
-if (this.legacy_scriptActions != undefined)
+if (this.legacy_scriptActions !== undefined)
 {
 	/*	legacy script_actions should be called for stations when the player
 		docks, and for cargo pods when they are is scooped. No sane vessel can
@@ -82,7 +85,7 @@ if (this.legacy_scriptActions != undefined)
 			*/
 			this.ship.runLegacyScriptActions(docker, this.legacy_scriptActions);
 		}
-	}
+	};
 	this.shipWasScooped = function (scooper)
 	{
 		/*	IMPORTANT: runLegacyScriptActions() is a private function. It may
@@ -92,12 +95,12 @@ if (this.legacy_scriptActions != undefined)
 		
 		// Note "backwards" call, allowing awardEquipment: and similar to affect the scooper rather than the scoopee.
 		scooper.runLegacyScriptActions(this.ship, this.legacy_scriptActions);
-	}
+	};
 }
 
 
 // setup_actions handled on script initialization.
-if (this.legacy_setupActions != undefined)
+if (this.legacy_setupActions !== undefined)
 {
 	/*	IMPORTANT: runLegacyScriptActions() is a private function. It may be
 		removed, renamed or have its semantics changed at any time in the
