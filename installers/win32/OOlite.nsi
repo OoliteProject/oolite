@@ -127,6 +127,7 @@ CreateDirectory "$INSTDIR\AddOns"
 File "Oolite.ico"
 File "Oolite_Readme.txt"
 File "OoliteRS.pdf"
+File "..\..\Doc\AdviceForNewCommanders.pdf"
 File /r /x .svn /x *~ "${DST}"
 
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
