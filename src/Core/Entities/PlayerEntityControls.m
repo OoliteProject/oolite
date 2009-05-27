@@ -1238,7 +1238,7 @@ static NSTimeInterval	time_last_frame;
 		}
 #endif
 
-		if ([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight])
+		if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
 		{
 			if (!leftRightKeyPressed)
 			{
