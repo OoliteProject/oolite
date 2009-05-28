@@ -677,7 +677,7 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) fireLaserShotInDirection: (OOViewID) direction;
 - (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color;
 - (BOOL) fireMissile;
-- (BOOL) isMissileFlag;
+- (BOOL) isMissileFlagSet;
 - (void) setIsMissileFlag:(BOOL)newValue;
 - (BOOL) fireECM;
 - (BOOL) activateCloakingDevice;

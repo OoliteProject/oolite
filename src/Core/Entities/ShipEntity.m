@@ -6517,7 +6517,7 @@ BOOL class_masslocks(int some_class)
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
-	if (!isMissile)  [missile setOwner:self];
+	if (![self isMissileFlagSet])  [missile setOwner:self];
 	else  [missile setOwner:[self owner]];
 	
 	[missile addTarget:target];
@@ -6546,7 +6546,7 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (BOOL) isMissileFlag
+- (BOOL) isMissileFlagSet
 {
 	return isMissile; // were we created using fireMissile? (for tracking submunitions)
 }
