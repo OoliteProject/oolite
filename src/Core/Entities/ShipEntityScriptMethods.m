@@ -82,7 +82,7 @@ extern NSString * const kOOLogNoteAddShips;
 			{
 				[spawned setOwner:[self owner]];
 				[spawned addTarget:[self primaryTarget]];
-				spawned->isMissile = YES;
+				[spawned setIsMissileFlag:YES];
 			}
 			[result addObject:spawned];
 		}

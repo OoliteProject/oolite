@@ -3000,6 +3000,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[missile addTarget:target];
 	[missile setOrientation:q1];
 	[missile setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
+	[missile setIsMissileFlag:YES];
 	[missile setVelocity: vel];
 	[missile setSpeed:150.0];
 	[missile setOwner:self];

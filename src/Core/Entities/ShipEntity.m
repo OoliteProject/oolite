@@ -6528,7 +6528,7 @@ BOOL class_masslocks(int some_class)
 	[missile setSpeed:150.0];
 	[missile setDistanceTravelled:0.0];
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
-	missile->isMissile = YES;
+	[missile setIsMissileFlag:YES];
 	[missile resetShotTime];
 	
 	[UNIVERSE addEntity:missile];
@@ -6543,6 +6543,18 @@ BOOL class_masslocks(int some_class)
 	}
 
 	return YES;
+}
+
+
+- (BOOL) isMissileFlag
+{
+	return isMissile; // were we created using fireMissile? (for tracking submunitions)
+}
+
+
+- (void) setIsMissileFlag:(BOOL)newValue
+{
+	isMissile = !!newValue; // set the isMissile flag, used for tracking submunitions
 }
 
 
