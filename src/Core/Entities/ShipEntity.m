@@ -210,6 +210,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	canFragment = [shipDict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
 	
+	// Each new ship should start in seemingly good operating condition, unless specifically told not to
+	[self setThrowSparks:[shipDict boolForKey:@"throw_sparks" defaultValue:NO]];
+	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
 	

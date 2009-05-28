@@ -1037,6 +1037,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
 	
+	// Each new ship should start in seemingly good operating condition, unless specifically told not to
+	[self setThrowSparks:[shipDict boolForKey:@"throw_sparks" defaultValue:NO]];
+	
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type]; 
