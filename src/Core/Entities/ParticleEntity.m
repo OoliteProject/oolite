@@ -1370,11 +1370,13 @@ FAIL:
 		OOMatrix	r_mat;
 		OOMatrix	temp_matrix;
 		
-		while ((father)&&(father != last))
+		while ((father) && (father != last) && father != NO_TARGET)
 		{
 			r_mat = [father drawRotationMatrix];
 			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
 			last = father;
+			
+			if (![last isSubEntity]) break;
 			father = [father owner];
 		}
 
