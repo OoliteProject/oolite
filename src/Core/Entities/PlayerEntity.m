@@ -5876,7 +5876,7 @@ static int last_outfitting_index;
 		purchase = market_quantity;					// limit to what's available
 	if (purchase * pricePerUnit > credits)
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
-	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 999))
+	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 10000))
 		purchase = max_cargo - current_cargo;		// limit to available cargo space
 	if (purchase == 0)
 		return NO;									// stop if that results in nothing to be bought
