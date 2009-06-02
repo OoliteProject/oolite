@@ -1062,12 +1062,15 @@ static WormholeEntity *whole = nil;
 				//
 				thanked_ship_id = NO_TARGET;
 			}
-			if (ship->isStation)
-				[ship acceptDistressMessageFrom:self];
-			if ([ship hasPrimaryRole:@"police"])	// Not isPolice because we don't want wingmen shooting off... but what about interceptors?
-				[ship acceptDistressMessageFrom:self];
-			if ([ship hasPrimaryRole:@"hunter"])
-				[ship acceptDistressMessageFrom:self];
+			if ([self bounty] == 0) // Only clean ships can have their distress calls accepted
+			{
+				if (ship->isStation)
+					[ship acceptDistressMessageFrom:self];
+				if ([ship hasPrimaryRole:@"police"])	// Not isPolice because we don't want wingmen shooting off... but what about interceptors?
+					[ship acceptDistressMessageFrom:self];
+				if ([ship hasPrimaryRole:@"hunter"])
+					[ship acceptDistressMessageFrom:self];
+			}
 		}
 	}
 }
