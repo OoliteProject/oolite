@@ -125,6 +125,10 @@ enum
 
 #define BILLBOARD_DEPTH						50000.0
 
+#define TIME_ACCELERATION_FACTOR_MIN		0.0625f
+#define TIME_ACCELERATION_FACTOR_DEFAULT	1.0f
+#define TIME_ACCELERATION_FACTOR_MAX		16.0f
+
 
 @interface Universe: OOWeakRefObject
 {

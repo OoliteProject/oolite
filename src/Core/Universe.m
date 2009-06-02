@@ -247,7 +247,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 	
-	time_acceleration_factor = 1.0f;
+	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
 	
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
@@ -463,7 +463,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
 	
 	time_delta = 0.0;
-	time_acceleration_factor = 1.0f;
+	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
 	universal_time = 0.0;
 	
 	[commodityLists autorelease];
@@ -5185,9 +5185,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) update:(OOTimeDelta)inDeltaT
 {
 	volatile float delta_t = inDeltaT;
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_SLOW_MODE)  delta_t *= DEBUG_SLOW_MODE_FACTOR;
-#endif
+
 	delta_t *= [self timeAccelerationFactor];
 	
 	if (!no_update)
@@ -5390,9 +5388,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) setTimeAccelerationFactor:(float)newTimeAccelerationFactor
 {
-	if (newTimeAccelerationFactor < 0.0625f || newTimeAccelerationFactor > 16.0f)
+	if (newTimeAccelerationFactor < TIME_ACCELERATION_FACTOR_MIN || newTimeAccelerationFactor > TIME_ACCELERATION_FACTOR_MAX)
 	{
-		newTimeAccelerationFactor = 1.0f;
+		newTimeAccelerationFactor = TIME_ACCELERATION_FACTOR_DEFAULT;
 	}
 	time_acceleration_factor = newTimeAccelerationFactor;
 }

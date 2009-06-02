@@ -2498,11 +2498,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (NSString*) dial_fpsinfo
 {
-	unsigned fpsVal = fps_counter;
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_SLOW_MODE)  fpsVal *= DEBUG_SLOW_MODE_FACTOR;
-#endif
-	
+	unsigned fpsVal = fps_counter;	
 	return [NSString stringWithFormat:@"FPS: %3d", fpsVal];
 }
 

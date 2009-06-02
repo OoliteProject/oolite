@@ -759,7 +759,7 @@ static NSTimeInterval	time_last_frame;
 					[self safeAllMissiles];
 					if (!ident_engaged)
 					{
-						[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];			
+						[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
 						[self playMissileSafe];
 					}
 					else
@@ -1240,8 +1240,8 @@ static NSTimeInterval	time_last_frame;
 			if (!leftRightKeyPressed)
 			{
 				float newTimeAccelerationFactor = [gameView isDown:gvArrowKeyLeft] ? 
-						OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, 0.0625f) :
-						OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, 16.0f);
+						OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
+						OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
 				[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
 			}
 			leftRightKeyPressed = YES;
