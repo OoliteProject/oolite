@@ -473,7 +473,7 @@ static OOCacheManager *sSingleton = nil;
 	
 	NS_DURING
 		data = [NSData dataWithContentsOfFile:path];
-		if (data == nil) return nil;
+		if (data == nil)  NS_VALUERETURN(nil, NSDictionary *);
 		
 		contents = [NSPropertyListSerialization propertyListFromData:data
 													mutabilityOption:NSPropertyListImmutable

@@ -694,7 +694,7 @@ static AI *sCurrentlyRunningAI = nil;
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
-				return nil;
+				NS_VALUERETURN(nil, NSDictionary *);
 			}
 			
 			cleanSM = [NSMutableDictionary dictionaryWithCapacity:[newSM count]];
