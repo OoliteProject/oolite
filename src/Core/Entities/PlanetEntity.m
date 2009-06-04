@@ -477,6 +477,8 @@ static float corona_blending;
 {
 	int		i;
 	
+	if (!planet)  return nil;
+	
 	self = [super init];
 	
 	isTextured = [planet isTextured];

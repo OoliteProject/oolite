@@ -3823,6 +3823,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	PlanetEntity	*the_planet = [self findNearestStellarBody];
 	PlanetEntity	*warnedPlanet = nil;
 	PlanetEntity	*mainPlanet = nil;
+	BOOL		sunGoneNova = [[UNIVERSE sun] goneNova];
 	
 	if (the_planet == nil)
 	{
@@ -3865,12 +3866,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		warnedPlanet = the_planet;	// Avoid duplicate message
 	}
 	
-	d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
-	cr2 = [[UNIVERSE planet] collisionRadius];
-	cr2 *= cr2;
-	if (d2 < cr2 * 9.0f) // to 3x radius of main planet
+	if (!sunGoneNova)
 	{
-		result = AEGIS_CLOSE_TO_MAIN_PLANET;
+		d2 = magnitude2(vector_subtract([[UNIVERSE planet] position], [self position]));
+		cr2 = [[UNIVERSE planet] collisionRadius];
+		cr2 *= cr2;
+		if (d2 < cr2 * 9.0f) // to 3x radius of main planet
+		{
+			result = AEGIS_CLOSE_TO_MAIN_PLANET;
+		}
 	}
 	
 	// check station
@@ -3895,7 +3899,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		// script/AI messages on change in status
 		// approaching..
-		if ((aegis_status == AEGIS_NONE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
+		if ((aegis_status == AEGIS_NONE) && (result == AEGIS_CLOSE_TO_MAIN_PLANET) && !sunGoneNova)
 		{
 			mainPlanet = [UNIVERSE planet];
 			if (warnedPlanet != mainPlanet)
@@ -3914,7 +3918,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		if ((aegis_status == AEGIS_CLOSE_TO_ANY_PLANET || result == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_MAIN_PLANET))
 		{
 			[self doScriptEvent:@"shipExitedPlanetaryVicinity"]; //needs work!
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			if (!sunGoneNova)
+			{
+				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			}
 			[shipAI message:@"AWAY_FROM_PLANET"];
 			[shipAI message:@"CLOSE_TO_PLANET"];
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];
@@ -3922,11 +3929,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 		if ((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET || result == AEGIS_IN_DOCKING_RANGE)&&(result == AEGIS_CLOSE_TO_ANY_PLANET))
 		{
-			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			if (!sunGoneNova)
+			{
+				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[UNIVERSE planet]];
+			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
 			[shipAI message:@"AWAY_FROM_PLANET"];
 			[shipAI message:@"CLOSE_TO_PLANET"];
-		}		
+		}
 		if (((aegis_status == AEGIS_CLOSE_TO_MAIN_PLANET)||(aegis_status == AEGIS_NONE))&&(result == AEGIS_IN_DOCKING_RANGE))
 		{
 			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];

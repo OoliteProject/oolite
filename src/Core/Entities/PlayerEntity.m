@@ -4476,6 +4476,10 @@ static PlayerEntity *sSharedPlayer = nil;
 			population = 0;
 			productivity = 0;
 			radius = 0;
+			techlevel = -1;	// So it dispalys as 0 on the system info screen
+			government_desc = DESC(@"nova-system-government");
+			economy_desc = DESC(@"nova-system-economy");
+			inhabitants = DESC(@"nova-system-inhabitants");
 			system_desc = ExpandDescriptionForSeed(@"[nova-system-description]", target_system_seed);
 		}
 

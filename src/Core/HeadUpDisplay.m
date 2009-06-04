@@ -909,7 +909,8 @@ static BOOL hostiles;
 		||(p_status == STATUS_LAUNCHING)
 		||(p_status == STATUS_WITCHSPACE_COUNTDOWN))	// be in the right mode
 		&&(the_sun)
-		&&(the_planet))									// and be in a system
+		&&(the_planet)					// and be in a system
+		&& ![the_sun goneNova])				// and the system has not been novabombed
 	{
 		Entity *reference = nil;
 		

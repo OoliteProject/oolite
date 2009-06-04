@@ -2546,7 +2546,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		BOOL	procGen = NO;
 #ifdef ALLOW_PROCEDURAL_PLANETS
 		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-		if ([i_key isEqual:@"local-planet"] && procGen)
+		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
 			// can safely show retextured planets!
 			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];

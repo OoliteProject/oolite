@@ -2903,6 +2903,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 				if (autoAI != nil)
 				{
 					[ship setAITo:autoAI];
+					
+					// Pirate with auto_ai? Assign some bounty to the baddie
+					if ([autoAI isEqualToString:@"pirateAI.plist"])
+					{
+						[ship setBounty:20 + randf() * 50];
+					}
 				}
 			}
 		}
