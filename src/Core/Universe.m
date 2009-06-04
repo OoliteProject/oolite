@@ -2904,11 +2904,14 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 				{
 					[ship setAITo:autoAI];
 					
+				#if 0 	// Disabling this code for the moment, I think it has some side effects
+					// that require further investigation - Nikos 20090604
 					// Pirate with auto_ai? Assign some bounty to the baddie
 					if ([autoAI isEqualToString:@"pirateAI.plist"])
 					{
 						[ship setBounty:20 + randf() * 50];
 					}
+				#endif
 				}
 			}
 		}
