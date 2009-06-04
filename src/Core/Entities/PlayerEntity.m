@@ -4476,7 +4476,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			population = 0;
 			productivity = 0;
 			radius = 0;
-			system_desc = ExpandDescriptionForCurrentSystem(@"[nova-system-description]");
+			system_desc = ExpandDescriptionForSeed(@"[nova-system-description]", target_system_seed);
 		}
 
 		[gui clear];
