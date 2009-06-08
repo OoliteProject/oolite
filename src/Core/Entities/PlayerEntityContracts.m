@@ -1242,9 +1242,7 @@ static NSMutableDictionary* currentShipyard = nil;
 			[gui setNoSelectedRow];
 		}
 		
-		OOCreditsQuantity tradeIn = [self tradeInValue];
-		[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), shipName, OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
-		[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
+		[self showTradeInInformationFooter];
 		
 		[gui setShowTextCursor:NO];
 	}
@@ -1280,7 +1278,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	// clean up the display ready for the newly-selected ship (if there is one)
 	[row_info replaceObjectAtIndex:2 withObject:@""];
 	[row_info replaceObjectAtIndex:3 withObject:@""];
-	for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH; i++)
+	for (i = GUI_ROW_SHIPYARD_INFO_START; i < GUI_ROW_MARKET_CASH - 1; i++)
 	{
 		[gui setText:@"" forRow:i];
 		[gui setColor:[OOColor greenColor] forRow:i];
@@ -1310,8 +1308,11 @@ static NSMutableDictionary* currentShipyard = nil;
 		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
 		[row_info replaceObjectAtIndex:3 withObject:[NSString stringWithFormat:DESC(@"shipyard-speed-f-ls"), speed_rating]];
 		
-		[gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
-			
+		if ([gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT] < GUI_ROW_MARKET_CASH - 1)
+		{
+			[self showTradeInInformationFooter];
+		}
+		
 		// now display the ship
 		[self showShipyardModel:shipDict];
 	}
@@ -1323,6 +1324,15 @@ static NSMutableDictionary* currentShipyard = nil;
 	}
 
 	[gui setArray:[NSArray arrayWithArray:row_info] forRow:GUI_ROW_SHIPYARD_LABELS];
+}
+
+
+- (void) showTradeInInformationFooter
+{
+	GuiDisplayGen *gui = [UNIVERSE gui];
+	OOCreditsQuantity tradeIn = [self tradeInValue];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
+	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
 }
 
 
