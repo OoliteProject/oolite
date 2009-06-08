@@ -30,6 +30,8 @@
       "DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
       "DOCKING_ABORTED" = ("setStateTo: ABORT");
       "COLLISION" = ("setStateTo: ABORT");
+      ATTACKED = ("setStateTo: ATTACK_SHIP");
+      "GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
       "RESTART_DOCKING" = ("setStateTo: GLOBAL");
    };
    RETREAT =
@@ -45,7 +47,7 @@
    };
    "GO_TO_COORDS" =
    {
-      ENTER = (performFaceDestination);
+      ENTER = (performFaceDestination, dockEscorts);
       FRUSTRATED = ("setSpeedTo: 0.0", performFaceDestination);
       "FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination);
       ATTACKED = ("setStateTo: ATTACK_SHIP");
@@ -58,13 +60,14 @@
    };
    ABORT =
    {
-      ENTER = (abortDocking, "setSpeedTo: 0.0", setDestinationToDockingAbort, "setDesiredRangeTo: 500.0", performFaceDestination);
+      ENTER = (abortDocking, "setSpeedTo: 0.0", setDestinationToDockingAbort, "setDesiredRangeTo: 500.0", performFaceDestination, "pauseAI: 10");
       "FACING_DESTINATION" = ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination);
       "RESTART_DOCKING" = ("setStateTo: GLOBAL");
       "REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
       "DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
       ATTACKED = ("setStateTo: ATTACK_SHIP");
       "GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
+      "UPDATE" = ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination, "pauseAI: 10");
    };
    "ATTACK_SHIP" =
    {
@@ -73,6 +76,6 @@
    };
    "EXIT_SYSTEM" =
    {
-      ENTER = (performDocking, exitAI);
+      ENTER = (exitAI);
    };
 }
