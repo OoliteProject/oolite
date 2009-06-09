@@ -838,7 +838,7 @@ static NSTimeInterval	time_last_frame;
 					if (isOkayToUseAutopilot)
 					{
 						primaryTarget = NO_TARGET;
-						targetStation = NO_TARGET;
+						[self setTargetToSystemStation];
 						autopilot_engaged = YES;
 						ident_engaged = NO;
 						[self safeAllMissiles];
