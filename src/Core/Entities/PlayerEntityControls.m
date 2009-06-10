@@ -838,7 +838,7 @@ static NSTimeInterval	time_last_frame;
 					if (isOkayToUseAutopilot)
 					{
 						primaryTarget = NO_TARGET;
-						[self setTargetToSystemStation];
+						targetStation = [[UNIVERSE station] universalID];
 						autopilot_engaged = YES;
 						ident_engaged = NO;
 						[self safeAllMissiles];
@@ -2775,6 +2775,7 @@ static BOOL toggling_music;
 			frustration = 0.0;
 			autopilot_engaged = NO;
 			primaryTarget = NO_TARGET;
+			targetStation = NO_TARGET;
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self playAutopilotOff];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];

@@ -1863,8 +1863,11 @@ static WormholeEntity *whole = nil;
 	StationEntity	*station =  nil;
 	Entity			*targStation = nil;
 	NSString		*message = nil;
+	double		distanceToStation2 = 0.0;
+	BOOL		insideMainStationAegis = NO;
 	
 	targStation = [UNIVERSE entityForUniversalID:targetStation];
+	insideMainStationAegis = (targStation == [UNIVERSE station] && [self withinStationAegis]);
 	if ([targStation isStation])
 	{
 		station = (StationEntity*)targStation;
@@ -1876,7 +1879,9 @@ static WormholeEntity *whole = nil;
 												relativeToEntity:self];
 	}
 	
-	if (station != nil)
+	distanceToStation2 = distance2( [station position], [self position] );
+	
+	if ((station != nil && distanceToStation2 < SCANNER_MAX_RANGE2) || insideMainStationAegis)
 	{
 		// remember the instructions
 		[dockingInstructions release];
