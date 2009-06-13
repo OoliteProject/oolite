@@ -1920,11 +1920,11 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	// Just in case we got called with a bad target.
 	if (!target)
-		return false;
+		return NO;
 
 	// If target is beyond scanner range, it's lost
 	if(target->zero_distance > SCANNER_MAX_RANGE2)
-		return false;
+		return NO;
 
 	// If target is a ship, check whether it's cloaked or is actively jamming our scanner
 	if ([target isShip])
@@ -1933,20 +1933,20 @@ static PlayerEntity *sSharedPlayer = nil;
 		if ([targetShip isCloaked] ||	// checks for cloaked ships
 			([targetShip isJammingScanning] && ![self hasMilitaryScannerFilter]))	// checks for activated jammer
 		{
-			return false;
+			return NO;
 		}
-		return true;
+		return YES;
 	}
 
 #ifdef WORMHOLE_SCANNER
 	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
 	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
 		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
-		return true;
+		return YES;
 #endif
 	
 	// Target is neither a wormhole nor a ship
-	return false;
+	return NO;
 }
 
 // Check for lost targetting - both on the ships' main target as well as each
@@ -2013,17 +2013,17 @@ static PlayerEntity *sSharedPlayer = nil;
 #ifdef WORMHOLE_SCANNER
 	// If our primary target is a wormhole, check to see if we have additional
 	// information
-	if ([[self primaryTarget] isWormhole] )
+	if ([[self primaryTarget] isWormhole])
 	{
 		WormholeEntity *wh = [self primaryTarget];
-		switch([wh scanInfo])
+		switch ([wh scanInfo])
 		{
 			case WH_SCANINFO_NONE:
 				OOLog(kOOLogInconsistentState, @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
-				assert(false);
+				assert(NO);
 				break;
 			case WH_SCANINFO_SCANNED:
-				if( [self clockTimeAdjusted] > [wh scanTime]+2 )
+				if ([self clockTimeAdjusted] > [wh scanTime] + 2)
 				{
 					[wh setScanInfo:WH_SCANINFO_COLLAPSE_TIME];
 					//[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-collapse-time-computed"),
@@ -2031,7 +2031,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				}
 				break;
 			case WH_SCANINFO_COLLAPSE_TIME:
-				if( [self clockTimeAdjusted] > [wh scanTime]+4 )
+				if([self clockTimeAdjusted] > [wh scanTime] + 4)
 				{
 					[wh setScanInfo:WH_SCANINFO_ARRIVAL_TIME];
 					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-arrival-time-computed-@"),
@@ -2039,7 +2039,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				}
 				break;
 			case WH_SCANINFO_ARRIVAL_TIME:
-				if( [self clockTimeAdjusted] > [wh scanTime]+7 )
+				if ([self clockTimeAdjusted] > [wh scanTime] + 7)
 				{
 					[wh setScanInfo:WH_SCANINFO_DESTINATION];
 					[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"wormhole-destination-computed-@"),
@@ -2047,7 +2047,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				}
 				break;
 			case WH_SCANINFO_DESTINATION:
-				if( [self clockTimeAdjusted] > [wh scanTime]+10 )
+				if ([self clockTimeAdjusted] > [wh scanTime] + 10)
 				{
 					[wh setScanInfo:WH_SCANINFO_SHIP];
 					// TODO: Extract last ship from wormhole and display its name

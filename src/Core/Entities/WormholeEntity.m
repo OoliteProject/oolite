@@ -207,7 +207,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if (!hasExitPosition)
 			//if ( vector_equal(position, kZeroVector) )
 			{
-				hasExitPosition = true;
+				hasExitPosition = YES;
 				position = [UNIVERSE getWitchspaceExitPosition];
 				Quaternion	q1;
 				quaternion_set_random(&q1);

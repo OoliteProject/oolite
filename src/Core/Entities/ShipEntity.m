@@ -6678,9 +6678,9 @@ BOOL class_masslocks(int some_class)
 				OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
 				[ch setLegalStatus: [self legalStatus] | [ch legalStatus]];
 			}
-			[pod setCrew: crew];
-			[self setCrew: nil];
-			[self setHulk: true]; //CmdrJames experiment with fixing ejection behaviour
+			[pod setCrew:crew];
+			[self setCrew:nil];
+			[self setHulk:YES]; //CmdrJames experiment with fixing ejection behaviour
 		}
 		[[pod getAI] setStateMachine:@"homeAI.plist"];
 		[self dumpItem:pod];
@@ -8242,7 +8242,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 
 - (void) pilotArrived
 {
-	[self setHulk:false];
+	[self setHulk:NO];
 	[self reactToAIMessage:@"PILOT_ARRIVED"];
 }
 
