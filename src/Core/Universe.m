@@ -7403,6 +7403,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	NSDictionary		*shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:ship_desc];
 	NSDictionary		*basic_info = [shipyard_info dictionaryForKey:KEY_STANDARD_EQUIPMENT];
 	OOCreditsQuantity	base_price = [shipyard_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+	// This checks a rare, but possible case. If the ship for which we are trying to calculate a trade in value
+	// does not have a shipyard dictionary entry, report it and set its base price to 0 -- Nikos 20090613.
+	if (shipyard_info == nil)
+	{
+		OOLogERR(@"universe.tradeInValueForCommanderDictionary.valueCalculationError",
+			@"Shipyard dictionary entry for ship %@ required for trade in value calculation, but does not exist. Setting ship value to 0.", ship_desc);
+			
+		base_price = 0ULL;
+	}
 	unsigned			base_missiles = [basic_info unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
 	OOCreditsQuantity	base_missiles_value = base_missiles * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
 	NSString			*base_fwd_weapon_key = [basic_info stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
@@ -7453,9 +7462,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		}
 	}
 	
-	int extra_equipment_value = ship_max_passengers * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_PASSENGER_BERTH"] / 10;
+	OOCreditsQuantity extra_equipment_value = ship_max_passengers * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_PASSENGER_BERTH"] / 10ULL;
 	for (i = 0; i < [ship_extra_equipment count]; i++)
-		extra_equipment_value += [UNIVERSE getPriceForWeaponSystemWithKey:[ship_extra_equipment stringAtIndex:i]] / 10;
+		extra_equipment_value += [UNIVERSE getPriceForWeaponSystemWithKey:[ship_extra_equipment stringAtIndex:i]] / 10ULL;
 	
 	// final reckoning
 	OOCreditsQuantity result = base_price;
