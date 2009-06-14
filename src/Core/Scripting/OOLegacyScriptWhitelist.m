@@ -172,7 +172,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 		else if ([comparatorString isEqualToString:@"undefined"])  comparatorValue = COMPARISON_UNDEFINED;
 		else
 		{
-			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@' , will return NO.", context, comparatorString);
+			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@', will return NO.", context, comparatorString);
 			return NO;
 		}
 	}
@@ -321,7 +321,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
 	selectorString = SanitizeActionMethod(rawSelectorString);
 	if (selectorString == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to oolite.bug.reports@gmail.com.", context, rawSelectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", context, rawSelectorString);
 		
 	//	return nil;
 		selectorString = rawSelectorString;
@@ -364,7 +364,7 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
 	if (*outSanitizedSelector == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to oolite.bug.reports@gmail.com.", context, selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", context, selectorString);
 		
 		// return OP_INVALID;
 		*outSanitizedSelector = selectorString;
