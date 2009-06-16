@@ -1982,10 +1982,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		else
 		{
-			OOFuzzyBooleanFromObject(determinant, 0.0f);
+			return OOFuzzyBooleanFromObject(determinant, 0.0f);
 		}
 	}
-	return NO;
+	else
+	{
+		return NO;
+	}
 }
 
 
