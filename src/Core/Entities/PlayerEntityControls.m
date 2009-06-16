@@ -536,30 +536,25 @@ static NSTimeInterval	time_last_frame;
 				// DJS: original keyboard code
 				if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 				{
-					if (flightSpeed < maxFlightSpeed)
-						flightSpeed += speed_delta * delta_t;
-					if (flightSpeed > maxFlightSpeed)
-						flightSpeed = maxFlightSpeed;
+					flightSpeed += speed_delta * delta_t;
 				}
 				
 				// ** tgape ** - decrease obviously means no hyperspeed
 				if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
 				{
-					if (flightSpeed > 0.0)
-						flightSpeed -= speed_delta * delta_t;
-					if (flightSpeed < 0.0)
-						flightSpeed = 0.0;
+					flightSpeed -= speed_delta * delta_t;
+					
 					// ** tgape ** - decrease obviously means no hyperspeed
 					hyperspeed_engaged = NO;
 				}
 			} // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
 			else
 			{
-				if(flightSpeed < maxFlightSpeed * reqSpeed)
+				if (flightSpeed < maxFlightSpeed * reqSpeed)
 				{
 					flightSpeed += speed_delta * delta_t;
 				}
-				if(flightSpeed > maxFlightSpeed * reqSpeed)
+				if (flightSpeed > maxFlightSpeed * reqSpeed)
 				{
 					flightSpeed -= speed_delta * delta_t;
 				}
@@ -567,22 +562,17 @@ static NSTimeInterval	time_last_frame;
 #else
 			if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 			{
-				if (flightSpeed < maxFlightSpeed)
-					flightSpeed += speed_delta * delta_t;
-				if (flightSpeed > maxFlightSpeed)
-					flightSpeed = maxFlightSpeed;
+				flightSpeed += speed_delta * delta_t;
 			}
-			// ** tgape ** - decrease obviously means no hyperspeed
+			
 			if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
 			{
-				if (flightSpeed > 0.0)
-					flightSpeed -= speed_delta * delta_t;
-				if (flightSpeed < 0.0)
-					flightSpeed = 0.0;
+				flightSpeed -= speed_delta * delta_t;
 				// ** tgape ** - decrease obviously means no hyperspeed
 				hyperspeed_engaged = NO;
 			}
 #endif
+			flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
 			
 			//  hyperspeed controls
 			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
