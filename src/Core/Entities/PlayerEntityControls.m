@@ -572,7 +572,10 @@ static NSTimeInterval	time_last_frame;
 				hyperspeed_engaged = NO;
 			}
 #endif
-			flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
+			if (!afterburner_engaged && ![self atHyperspeed])
+			{
+				flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
+			}
 			
 			//  hyperspeed controls
 			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
