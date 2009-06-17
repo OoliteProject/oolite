@@ -572,7 +572,7 @@ static NSTimeInterval	time_last_frame;
 				hyperspeed_engaged = NO;
 			}
 #endif
-			if (!afterburner_engaged && ![self atHyperspeed])
+			if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged)
 			{
 				flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
 			}
