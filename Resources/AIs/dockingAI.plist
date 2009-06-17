@@ -14,6 +14,7 @@
       "TRY_AGAIN_LATER" = ("pauseAI: 30.0", "setStateTo: ABORT");
       "COLLISION" = ("setStateTo: ABORT");
       "RESTART_DOCKING" = ("setStateTo: GLOBAL");
+      "NO_STATION_FOUND" = ("setStateTo: EXIT_SYSTEM");
       DOCKED = ("setStateTo: EXIT_SYSTEM");
       UPDATE = ("pauseAI: 2");
    };
