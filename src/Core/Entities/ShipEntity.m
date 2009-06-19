@@ -7225,7 +7225,7 @@ BOOL class_masslocks(int some_class)
 	being_mined = NO;
 	ShipEntity *hunter = nil;
 	
-	if ([other isShip])
+	if ([other isShip] && [self owner] != other) // our owner could be the same entity as the one responsible for our taking damage in the case of submunitions
 	{
 		hunter = (ShipEntity *)other;
 		if ([hunter isCloaked])
@@ -7321,7 +7321,7 @@ BOOL class_masslocks(int some_class)
 	// die if I'm out of energy
 	if (energy <= 0.0)
 	{
-		[hunter noteTargetDestroyed:self];
+		if (hunter != nil)  [hunter noteTargetDestroyed:self];
 		[self getDestroyedBy:other context:suppressExplosion ? @"energy damage" : @"removed"];
 	}
 	else

@@ -4845,14 +4845,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	for (i = 0; i < n_entities; i++)
 	{
 		Entity *e2 = sortedEntities[i];
-		float distanceToReferenceEntity = (float)distance2(p1, [e2 position]);
+		float distanceToReferenceEntitySquared = (float)distance2(p1, [e2 position]);
 		
 		if (entity != e2 &&
-			distanceToReferenceEntity < rangeSq &&
+			distanceToReferenceEntitySquared < rangeSq &&
 			predicate(e2, parameter))
 		{
 			result = e2;
-			rangeSq = distanceToReferenceEntity;
+			rangeSq = distanceToReferenceEntitySquared;
 		}
 	}
 	
