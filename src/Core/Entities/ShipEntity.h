@@ -180,6 +180,7 @@ MA 02110-1301, USA.
 	GLfloat					scannerRange;				// typically 25600
 	
 	unsigned				missiles;					// number of on-board missiles
+	NSString				*missileRole;
 	
 #ifdef OO_BRAIN_AI
 	OOBrain					*brain;						// brain controlling ship, could be a character brain or the autopilot
@@ -364,8 +365,9 @@ MA 02110-1301, USA.
 - (void)respondToAttackFrom:(Entity *)from becauseOf:(Entity *)other;
 
 // Equipment
-- (BOOL) hasEquipmentItem:(id)equipmentKeys;		// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment.
-- (BOOL) hasAllEquipment:(id)equipmentKeys;			// As above, but requires _all_ equipment in collection.
+- (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons;	// This can take a string or an set or array of strings. If a collection, returns YES if ship has _any_ of the specified equipment. If includeWeapons is NO, missiles and primary weapons are not checked.
+- (BOOL) hasEquipmentItem:(id)equipmentKeys;			// Short for hasEquipmentItem:foo includeWeapons:NO
+- (BOOL) hasAllEquipment:(id)equipmentKeys;			// Like hasEquipmentItem:, but requires _all_ equipment in collection.
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;	// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
 - (void) addEquipmentItem:(NSString *)equipmentKey;
@@ -378,6 +380,10 @@ MA 02110-1301, USA.
 - (unsigned) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
+
+// Internal, subject to change.
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles;
+- (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType;
 
 // Passengers - not supported for NPCs, but interface is here for genericity.
 - (unsigned) passengerCount;

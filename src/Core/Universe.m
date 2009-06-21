@@ -7148,8 +7148,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			[description appendFormat:@"%@:", shipName];
 			[short_description appendFormat:@"%@:", shipName];
 			
-			OOWeaponType fwd_weapon = EquipmentStringToWeaponType(fwd_weapon_string);
-			OOWeaponType aft_weapon = EquipmentStringToWeaponType(aft_weapon_string);
+			OOWeaponType fwd_weapon = EquipmentStringToWeaponTypeSloppy(fwd_weapon_string);
+			OOWeaponType aft_weapon = EquipmentStringToWeaponTypeSloppy(aft_weapon_string);
 			//port and starboard weapons are not modified in the shipyard
 
 			int passenger_berths = 0;
@@ -7213,7 +7213,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					{
 						if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
 						{
-							OOWeaponType new_weapon = EquipmentStringToWeaponType(equipmentKey);
+							OOWeaponType new_weapon = EquipmentStringToWeaponTypeSloppy(equipmentKey);
 							//fit best weapon forward
 							if (new_weapon > fwd_weapon)
 							{

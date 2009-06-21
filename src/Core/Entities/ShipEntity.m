@@ -193,6 +193,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 	scannerRange = [shipDict floatForKey:@"scanner_range" defaultValue:25600.0];
 	missiles = [shipDict intForKey:@"missiles"];
+	missileRole = [shipDict stringForKey:@"missile_role"];
 
 	// upgrades:
 	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
@@ -1773,12 +1774,54 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 // Equipment
 
-- (BOOL) hasEquipmentItem:(id)equipmentKeys
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
+{
+	if ([_equipment containsObject:itemKey])  return YES;
+	
+	if (includeMissiles && missiles != 0)
+	{
+		/*	Note: this is slightly misleading.
+			When an NPC ship doesn't specify a missile_role, the actual missile
+			to fire is chosen at random when a missile is fired. There is a
+			90 % chance "EQ_MISSILE" will be used, and a 10 % chance that
+			"missile" will be used. A ship for which hasEquipmentItem:@"EQ_MISSILE"
+			returns YES could fire missiles that are not of the EQ_MISSILE
+			role. This technicality is unlikely to matter most of the time,
+			but someone will probably come along with a need to differentiate
+			specific missiles at which point our reply will have to be "tough".
+			-- Ahruman 2009-06-21
+		*/
+		NSString *mRole = missileRole;
+		if (mRole == nil)  mRole = @"EQ_MISSILE";
+		if ([itemKey isEqual:mRole])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
+{
+	NSEnumerator				*subEntEnum = nil;
+	ShipEntity					*subEntity = nil;
+	
+	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType)  return YES;
+	
+	for (subEntEnum = [self shipSubEntityEnumerator]; (subEntity = [subEntEnum nextObject]); )
+	{
+		if ([subEntity hasPrimaryWeapon:weaponType])  return YES;
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
 {
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	
-	if (_equipment == nil)  return NO;
+	if (!includeWeapons && _equipment == nil)  return NO;
 	
 	// Make sure it's an array or set, using a single-object set if it's a string.
 	if ([equipmentKeys isKindOfClass:[NSString class]])  equipmentKeys = [NSArray arrayWithObject:equipmentKeys];
@@ -1786,10 +1829,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if ([_equipment containsObject:key])  return YES;
+		if ([self hasOneEquipmentItem:key includeMissiles:includeWeapons])  return YES;
+		if (includeWeapons)
+		{
+			// Check for primary weapon
+			OOWeaponType weaponType = EquipmentStringToWeaponTypeStrict(key);
+			if (weaponType != WEAPON_NONE)
+			{
+				if ([self hasPrimaryWeapon:weaponType])  return YES;
+			}
+		}
 	}
 	
 	return NO;
+}
+
+
+- (BOOL) hasEquipmentItem:(id)equipmentKeys
+{
+	return [self hasEquipmentItem:equipmentKeys includeWeapons:NO];
 }
 
 
@@ -6453,7 +6511,6 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) fireMissile
 {
-	NSString		*missileRole = nil;
 	ShipEntity		*missile = nil;
 	Vector			vel;
 	Vector			origin = position;
@@ -6483,7 +6540,6 @@ BOOL class_masslocks(int some_class)
 	}
 
 	// custom missiles
-	missileRole = [shipinfoDictionary stringForKey:@"missile_role"];
 	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
 	if (missile == nil)	// no custom role
 	{

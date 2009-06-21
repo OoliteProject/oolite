@@ -301,10 +301,11 @@ NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
 			break;
 	}
 	return nil;
+#undef EQ_CASE
 }
 
 
-OOWeaponType EquipmentStringToWeaponType(NSString *string)
+OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string)
 {
 #define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
 //	EQ_REVERSE_CASE(PLASMA_CANNON);
@@ -315,6 +316,22 @@ OOWeaponType EquipmentStringToWeaponType(NSString *string)
 	EQ_REVERSE_CASE(THARGOID_LASER);
 	
 	return WEAPON_NONE;
+#undef EQ_REVERSE_CASE
+}
+
+
+OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string)
+{
+#define EQ_REVERSE_CASE(foo) if ([string isEqual:@"EQ_WEAPON_" #foo]) return WEAPON_##foo;
+//	EQ_REVERSE_CASE(PLASMA_CANNON);
+	EQ_REVERSE_CASE(PULSE_LASER);
+	EQ_REVERSE_CASE(BEAM_LASER);
+	EQ_REVERSE_CASE(MINING_LASER);
+	EQ_REVERSE_CASE(MILITARY_LASER);
+	EQ_REVERSE_CASE(THARGOID_LASER);
+	
+	return WEAPON_NONE;
+#undef EQ_REVERSE_CASE
 }
 
 

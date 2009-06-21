@@ -1462,10 +1462,10 @@ static NSMutableDictionary* currentShipyard = nil;
 	legalStatus = 0;
 	
 	// get forward_weapon aft_weapon port_weapon starboard_weapon from ship_info
-	aft_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"aft_weapon_type"]);
-	port_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"port_weapon_type"]);
-	starboard_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"starboard_weapon_type"]);
-	forward_weapon = EquipmentStringToWeaponType([shipDict stringForKey:@"forward_weapon_type"]);
+	aft_weapon = EquipmentStringToWeaponTypeSloppy([shipDict stringForKey:@"aft_weapon_type"]);
+	port_weapon = EquipmentStringToWeaponTypeSloppy([shipDict stringForKey:@"port_weapon_type"]);
+	starboard_weapon = EquipmentStringToWeaponTypeSloppy([shipDict stringForKey:@"starboard_weapon_type"]);
+	forward_weapon = EquipmentStringToWeaponTypeSloppy([shipDict stringForKey:@"forward_weapon_type"]);
 	
 	// get basic max_cargo
 	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];

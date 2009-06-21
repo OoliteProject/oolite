@@ -63,6 +63,7 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 
@@ -224,6 +225,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "fireECM",				ShipFireECM,				0 },
+	{ "hasEquipment",			ShipHasEquipment,			1 },
 	{ 0 }
 };
 
@@ -1004,6 +1006,7 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
+// fireECM()
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
@@ -1014,6 +1017,36 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 	{
 		OOReportJSWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
 	}
+	return YES;
+}
+
+
+// hasEquipment(key : String [, includeWeapons : Boolean]) : Boolean
+static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	JSBool						includeWeapons = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment key");
+		return NO;
+	}
+	
+	if (argc > 1)
+	{
+		if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[1], &includeWeapons)))
+		{
+			OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc - 1, argv + 1, nil, @"boolean");
+			return NO;
+		}
+	}
+	
+	*outResult = BOOLToJSVal([thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
 	return YES;
 }
 

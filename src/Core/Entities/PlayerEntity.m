@@ -3055,6 +3055,34 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
+{
+	// Check basic equipment the normal way.
+	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO])  return YES;
+	
+	// Custom handling for player missiles.
+	if (includeMissiles)
+	{
+		unsigned i;
+		for (i = 0; i < max_missiles; i++)
+		{
+			if ([[self missileForStation:i] hasPrimaryRole:itemKey])  return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
+{
+	if (forward_weapon == weaponType || aft_weapon == weaponType)  return YES;
+	if (port_weapon == weaponType || starboard_weapon == weaponType)  return YES;
+	
+	return [super hasPrimaryWeapon:weaponType];
+}
+
+
 - (OOEnergyUnitType) installedEnergyUnitType
 {
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])  return ENERGY_UNIT_NAVAL;

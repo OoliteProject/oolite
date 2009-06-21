@@ -54,7 +54,8 @@ OOWeaponType StringToWeaponType(NSString *string) PURE_FUNC;
 
 // Weapon strings prefixed with EQ_, used in shipyard.plist.
 NSString *WeaponTypeToEquipmentString(OOWeaponType weapon) CONST_FUNC;
-OOWeaponType EquipmentStringToWeaponType(NSString *string) PURE_FUNC;
+OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string) PURE_FUNC;	// Uses suffix match for backwards compatibility.
+OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string) PURE_FUNC;
 
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;

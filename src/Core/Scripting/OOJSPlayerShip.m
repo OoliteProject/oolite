@@ -48,7 +48,6 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 
 static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -126,7 +125,6 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	// JS name						Function							min args
 	{ "awardEquipment",				PlayerShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
 	{ "removeEquipment",			PlayerShipRemoveEquipment,			1 },	// Should be deprecated in favour of equipment object model
-	{ "hasEquipment",				PlayerShipHasEquipment,				1 },
 	{ "equipmentStatus",			PlayerShipEquipmentStatus,			1 },
 	{ "setEquipmentStatus",			PlayerShipSetEquipmentStatus,		2 },
 	{ "launch",						PlayerShipLaunch,					0 },
@@ -363,24 +361,6 @@ static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uint
 	}
 	
 	[player removeEquipmentItem:key];
-	return YES;
-}
-
-
-// hasEquipment(key : String) : Boolean
-static JSBool PlayerShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"hasEquipment", argc, argv, nil, @"equipment key");
-		return NO;
-	}
-	
-	*outResult = BOOLToJSVal([player hasEquipmentItem:key]);
 	return YES;
 }
 
