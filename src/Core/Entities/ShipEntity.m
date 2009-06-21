@@ -1774,6 +1774,23 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 // Equipment
 
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeWeapons:(BOOL)includeWeapons
+{
+	if ([self hasOneEquipmentItem:itemKey includeMissiles:includeWeapons])  return YES;
+	if (includeWeapons)
+	{
+		// Check for primary weapon
+		OOWeaponType weaponType = EquipmentStringToWeaponTypeStrict(itemKey);
+		if (weaponType != WEAPON_NONE)
+		{
+			if ([self hasPrimaryWeapon:weaponType])  return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
 {
 	if ([_equipment containsObject:itemKey])  return YES;
@@ -1829,16 +1846,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if ([self hasOneEquipmentItem:key includeMissiles:includeWeapons])  return YES;
-		if (includeWeapons)
-		{
-			// Check for primary weapon
-			OOWeaponType weaponType = EquipmentStringToWeaponTypeStrict(key);
-			if (weaponType != WEAPON_NONE)
-			{
-				if ([self hasPrimaryWeapon:weaponType])  return YES;
-			}
-		}
+		if ([self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return YES;
 	}
 	
 	return NO;
@@ -1851,7 +1859,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (BOOL) hasAllEquipment:(id)equipmentKeys
+- (BOOL) hasAllEquipment:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
 {
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
@@ -1864,10 +1872,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (keyEnum = [equipmentKeys objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
-		if (![_equipment containsObject:key])  return NO;
+		if (![self hasOneEquipmentItem:key includeWeapons:includeWeapons])  return NO;
 	}
 	
 	return YES;
+}
+
+
+- (BOOL) hasAllEquipment:(id)equipmentKeys
+{
+	return [self hasAllEquipment:equipmentKeys includeWeapons:NO];
 }
 
 
@@ -1902,9 +1916,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ([eqType requiresEmptyPylon] && [self missileCount] >= [self missileCapacity])  return NO;
 	if ([eqType  requiresMountedPylon] && [self missileCount] == 0)  return NO;
 	if ([self availableCargoSpace] < [eqType requiredCargoSpace])  return NO;
-	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment]])  return NO;
-	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment]])  return NO;
-	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment]])  return NO;
+	if ([eqType requiresEquipment] != nil && ![self hasAllEquipment:[eqType requiresEquipment] includeWeapons:YES])  return NO;
+	if ([eqType requiresAnyEquipment] != nil && ![self hasEquipmentItem:[eqType requiresAnyEquipment] includeWeapons:YES])  return NO;
+	if ([eqType incompatibleEquipment] != nil && [self hasEquipmentItem:[eqType incompatibleEquipment] includeWeapons:YES])  return NO;
 	if ([eqType requiresCleanLegalRecord] && [self legalStatus] != 0)  return NO;
 	if ([eqType requiresNonCleanLegalRecord] && [self legalStatus] == 0)  return NO;
 	if ([eqType requiresFreePassengerBerth] && [self passengerCount] >= [self passengerCapacity])  return NO;
