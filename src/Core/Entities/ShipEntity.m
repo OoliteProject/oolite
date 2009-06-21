@@ -1964,8 +1964,33 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
-	[_equipment removeObject:equipmentKey];
-	if ([_equipment count] == 0)  [self removeAllEquipment];
+	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	if (eqType == nil)  return;
+	
+	if ([eqType isMissileOrMine])
+	{
+		[self removeExternalStore:eqType];
+	}
+	else
+	{
+		[_equipment removeObject:equipmentKey];
+		if ([_equipment count] == 0)  [self removeAllEquipment];
+	}
+}
+
+
+- (void) removeExternalStore:(OOEquipmentType *)eqType
+{
+	NSString *identifier = [eqType identifier];
+	
+	// If we have missiles, and equipment identifier matches our missile role, decrement missile count.
+	if (missiles > 0)
+	{
+		if ([missileRole isEqualToString:identifier] || (missileRole == nil && [identifier isEqualToString:@"EQ_MISSILE"]))
+		{
+			missiles--;
+		}
+	}
 }
 
 
@@ -1974,6 +1999,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[_equipment release];
 	_equipment = nil;
 }
+
+
 - (unsigned) passengerCount
 {
 	return 0;

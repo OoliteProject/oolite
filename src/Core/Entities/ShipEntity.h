@@ -27,8 +27,9 @@ MA 02110-1301, USA.
 
 #import "OOEntityWithDrawable.h"
 
-@class	OOColor, StationEntity, ParticleEntity, PlanetEntity,
-		WormholeEntity, AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup;
+@class	OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity,
+		AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup, OOEquipmentType;
+
 #ifdef OO_BRAIN_AI
 @class OOBrain;
 #endif
@@ -381,9 +382,10 @@ MA 02110-1301, USA.
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
 
-// Internal, subject to change.
+// Internal, subject to change. Use the methods above instead.
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles;
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType;
+- (void) removeExternalStore:(OOEquipmentType *)eqType;
 
 // Passengers - not supported for NPCs, but interface is here for genericity.
 - (unsigned) passengerCount;

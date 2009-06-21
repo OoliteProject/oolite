@@ -2918,6 +2918,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (missile_entity[i] == nil)
 		{
 			missile_entity[i] = [missile retain];
+			missiles = [self countMissiles];
+			if (missiles == 1)  [self selectNextMissile];
 			return YES;
 		}
 	}
@@ -3052,34 +3054,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		return NO;
 	}
-}
-
-
-- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
-{
-	// Check basic equipment the normal way.
-	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO])  return YES;
-	
-	// Custom handling for player missiles.
-	if (includeMissiles)
-	{
-		unsigned i;
-		for (i = 0; i < max_missiles; i++)
-		{
-			if ([[self missileForStation:i] hasPrimaryRole:itemKey])  return YES;
-		}
-	}
-	
-	return NO;
-}
-
-
-- (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
-{
-	if (forward_weapon == weaponType || aft_weapon == weaponType)  return YES;
-	if (port_weapon == weaponType || starboard_weapon == weaponType)  return YES;
-	
-	return [super hasPrimaryWeapon:weaponType];
 }
 
 
@@ -6103,6 +6077,63 @@ static int last_outfitting_index;
 			[self removeEquipmentItem:eqDesc];
 		}
 	}
+}
+
+
+- (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles
+{
+	// Check basic equipment the normal way.
+	if ([super hasOneEquipmentItem:itemKey includeMissiles:NO])  return YES;
+	
+	// Custom handling for player missiles.
+	if (includeMissiles)
+	{
+		unsigned i;
+		for (i = 0; i < max_missiles; i++)
+		{
+			if ([[self missileForStation:i] hasPrimaryRole:itemKey])  return YES;
+		}
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
+{
+	if (forward_weapon == weaponType || aft_weapon == weaponType)  return YES;
+	if (port_weapon == weaponType || starboard_weapon == weaponType)  return YES;
+	
+	return [super hasPrimaryWeapon:weaponType];
+}
+
+
+- (void) removeExternalStore:(OOEquipmentType *)eqType
+{
+	NSString *identifier = [eqType identifier];
+	
+	// Look for matching missile.
+	unsigned i;
+	for (i = 0; i < max_missiles; i++)
+	{
+		if ([[self missileForStation:i] hasPrimaryRole:identifier])
+		{
+			// Remove the missile.
+			[missile_entity[i] release];
+			missile_entity[i] = nil;
+			
+			// If it's the currently selected missile, deselect it.
+			if (i == [self activeMissile])
+			{
+				[self selectNextMissile];
+			}
+			
+			// Just remove one at a time.
+			break;
+		}
+	}
+	
+	missiles = [self countMissiles];
 }
 
 
