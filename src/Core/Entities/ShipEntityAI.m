@@ -224,6 +224,8 @@ MA 02110-1301, USA.
 
 - (void) sendScriptMessage:(NSString *)message;
 
+- (void) ai_throwSparks;
+
 // racing code.
 - (void) targetFirstBeaconWithCode:(NSString *) code;
 - (void) targetNextBeaconWithCode:(NSString *) code;
@@ -2027,6 +2029,12 @@ static WormholeEntity *whole = nil;
 }
 
 
+- (void) ai_throwSparks
+{
+	[self setThrowSparks:YES];
+}
+
+
 // racing code TODO
 - (void) targetFirstBeaconWithCode:(NSString*) code
 {
@@ -2280,6 +2288,7 @@ STATION_STUB_NOARG(launchEscort)
 	return NO;
 }
 STATION_STUB_ARG(launchShipWithRole:)
+STATION_STUB_NOARG(abortAllDockings)
 
 @end
 

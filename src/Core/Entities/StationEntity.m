@@ -234,6 +234,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (void) abortAllDockings
 {
 	unsigned i;

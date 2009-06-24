@@ -47,7 +47,7 @@ void CompileSystemDescriptions(BOOL asXML)
 	sysDescArray = OOConvertSystemDescriptionsToArrayFormat(sysDescDict, keyMap);
 	if (sysDescArray == nil)
 	{
-		OOLog(@"sysdesc.compile.failed.conversion", @"Could not convert sysdesc.plist do descriptions.plist format for some reason.");
+		OOLog(@"sysdesc.compile.failed.conversion", @"Could not convert sysdesc.plist to descriptions.plist format for some reason.");
 		return;
 	}
 	

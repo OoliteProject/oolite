@@ -171,6 +171,7 @@
 		"debugDumpMessages",
 		"dropMessages:",
 		"exitAIWithMessage:",
+		"ai_throwSparks",	// Don't use, use throwSparks instead
 		
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
@@ -185,6 +186,7 @@
 		"launchEscort",
 		"launchPatrol",
 		"launchShipWithRole:",
+		"abortAllDockings",
 		
 		// Simulated method
 		"setStateTo:",
@@ -375,5 +377,6 @@
 		"setTargetToStation" = "setTargetToNearestStation";
 		"performDocking" = "doNothing";
 		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
+		"throwSparks" = "ai_throwSparks";
 	};
 }
