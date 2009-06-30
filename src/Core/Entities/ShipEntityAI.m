@@ -1866,10 +1866,8 @@ static WormholeEntity *whole = nil;
 	Entity			*targStation = nil;
 	NSString		*message = nil;
 	double		distanceToStation2 = 0.0;
-	BOOL		insideMainStationAegis = NO;
 	
 	targStation = [UNIVERSE entityForUniversalID:targetStation];
-	insideMainStationAegis = (targStation == [UNIVERSE station] && [self withinStationAegis]);
 	if ([targStation isStation])
 	{
 		station = (StationEntity*)targStation;
@@ -1883,7 +1881,10 @@ static WormholeEntity *whole = nil;
 	
 	distanceToStation2 = distance2( [station position], [self position] );
 	
-	if ((station != nil && distanceToStation2 < SCANNER_MAX_RANGE2) || insideMainStationAegis)
+	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
+	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
+	// NPC ships getting stuck with a dockingAI while just outside the aegis - Nikos 20090630, as proposed by Eric
+	if (station != nil && distanceToStation2 < SCANNER_MAX_RANGE2 * 6.25)
 	{
 		// remember the instructions
 		[dockingInstructions release];
