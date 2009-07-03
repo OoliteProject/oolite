@@ -299,6 +299,8 @@ this.defineCompatibilitySubGetter("player", "ship", "isPlanet");
 this.defineCompatibilitySubGetter("player", "ship", "isSun");
 this.defineCompatibilitySubGetter("player", "ship", "distanceTravelled");
 this.defineCompatibilitySubGetter("player", "ship", "spawnTime");
+this.defineCompatibilitySubGetter("player", "ship", "galaxyCoordinates");
+this.defineCompatibilitySubGetter("player", "ship", "cursorCoordinates");
 
 
 player.setPosition = function ()

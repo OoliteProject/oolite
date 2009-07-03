@@ -97,6 +97,8 @@ enum
 	kPlayerShip_maxAftShield,			// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_forwardShieldRechargeRate,	// forward shield recharge rate, positive float, read-only
 	kPlayerShip_aftShieldRechargeRate,	// aft shield recharge rate, positive float, read-only
+	kPlayerShip_galaxyCoordinates,		//galaxy coordinates, vector, read only
+	kPlayerShip_cursorCoordinates,		//cursor coordinates, vector, read only
 };
 
 
@@ -116,6 +118,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "maxAftShield",				kPlayerShip_maxAftShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "forwardShieldRechargeRate",	kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "aftShieldRechargeRate",		kPlayerShip_aftShieldRechargeRate,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -241,6 +245,14 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 		case kPlayerShip_aftShieldRechargeRate:
 			// No distinction made internally
 			OK = JS_NewDoubleValue(context, [player shieldRechargeRate], outValue);
+			break;
+			
+		case kPlayerShip_galaxyCoordinates:
+			OK = NSPointToVectorJSValue(context, [player galaxy_coordinates], outValue);
+			break;
+			
+		case kPlayerShip_cursorCoordinates:
+			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], outValue);
 			break;
 		
 		default:
