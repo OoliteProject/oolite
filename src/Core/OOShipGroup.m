@@ -203,6 +203,12 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 }
 
 
+- (NSSet *) membersExcludingLeader
+{
+	return [NSSet setWithArray:[self memberArrayExcludingLeader]];
+}
+
+
 #if OOLITE_FAST_ENUMERATION
 - (NSArray *) memberArray
 {
@@ -216,6 +222,32 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 	for (id ship in self)
 	{
 		objects[count++] = ship;
+	}
+	
+	result = [NSArray arrayWithObjects:objects count:count];
+	free(objects);
+	
+	return result;
+}
+
+
+- (NSArray *) memberArrayExcludingLeader
+{
+	id						*objects = NULL;
+	OOUInteger				count = 0;
+	NSArray					*result = nil;
+	ShipEntity				*leader = nil;
+	
+	if (_count == 0)  return [NSArray array];
+	leader = self.leader;
+	
+	objects = malloc(sizeof *objects * _count);
+	for (id ship in self)
+	{
+		if (ship != leader)
+		{
+			objects[count++] = ship;
+		}
 	}
 	
 	result = [NSArray arrayWithObjects:objects count:count];
@@ -243,6 +275,35 @@ static id ShipGroupIterate(OOShipGroupEnumerator *enumerator);
 - (NSArray *) memberArray
 {
 	return [[self objectEnumerator] allObjects];
+}
+
+
+- (NSArray *) memberArrayExcludingLeader
+{
+	id						*objects = NULL;
+	OOUInteger				count = 0;
+	NSArray					*result = nil;
+	NSEnumerator			*shipEnum = nil;
+	ShipEntity				*ship = nil;
+	ShipEntity				*leader = nil;
+	
+	if (_count == 0)  return [NSArray array];
+	leader = [self leader];
+	if (leader == nil)  return [self memberArray];
+	
+	objects = malloc(sizeof *objects * _count);
+	for (shipEnum = [self objectEnumerator]; (ship = [shipEnum nextObject]); )
+	{
+		if (ship != leader)
+		{
+			objects[count++] = ship;
+		}
+	}
+	
+	result = [NSArray arrayWithObjects:objects count:count];
+	free(objects);
+	
+	return result;
 }
 
 

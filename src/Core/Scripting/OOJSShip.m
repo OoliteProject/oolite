@@ -315,7 +315,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_escorts:
 			// FIXME: use implemention in oolite-global-prefix.js once ShipGroup works.
-			result = [[entity escortGroup] memberArray];
+			result = [[entity escortGroup] memberArrayExcludingLeader];
 			if ([result count] == 0)  result = [NSNull null];
 			break;
 			

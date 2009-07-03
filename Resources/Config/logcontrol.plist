@@ -337,8 +337,8 @@
 	sound.channel.cleanup.failed.broken		= inherit;
 	sound.channel.cleanup.failed.badState	= inherit;
 	sound.channel.machPortError				= $soundError;
-	sound.customSounds						= $error;
-	sound.customSounds.recursion			= inherit;				// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
+	sound.customSounds						= $soundDebug;
+	sound.customSounds.recursion			= $soundError;			// Circular dependency in customsounds.plist, e.g. [foo] = [bar], [bar] = [foo].
 	sound.initialization					= $soundError;
 	sound.initialization.error				= inherit;
 	sound.load.success						= $soundDebug;

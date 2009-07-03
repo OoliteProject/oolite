@@ -59,6 +59,8 @@ MA 02110-1301, USA.
 - (NSEnumerator *) objectEnumerator;
 - (NSSet *) members;
 - (NSArray *) memberArray;	// arbitrary order
+- (NSSet *) membersExcludingLeader;
+- (NSArray *) memberArrayExcludingLeader;	// arbitrary order
 
 - (BOOL) containsShip:(ShipEntity *)ship;
 - (void) addShip:(ShipEntity *)ship;

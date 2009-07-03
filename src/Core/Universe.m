@@ -5046,7 +5046,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if ([result isEqualToString:@"__oolite-no-sound"])
 	{
-		OOLogERR(@"sound.customSounds", @"could not resolve sound name in customsounds.plist for '%@', no sound will be played.", key);
+		OOLog(@"sound.customSounds", @"Could not resolve sound name in customsounds.plist for '%@', no sound will be played.", key);
 		result = nil;
 	}
 	return result;
