@@ -210,7 +210,7 @@ Vector offsetForOctant(int oct, GLfloat r)
 	OODebugWFState state = OODebugBeginWireframe(NO);
 	
 	OO_ENTER_OPENGL();
-	glEnable(GL_ALPHA);
+	glEnable(GL_BLEND);
 	glBegin(GL_LINES);
 	glColor4f(0.4, 0.4, 0.4, 0.5);
 	

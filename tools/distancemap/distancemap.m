@@ -14,8 +14,8 @@ enum
 };
 
 
-static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap);
-static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint32_t y);
+static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap, GrayMap *amap);
+static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, uint32_t x, uint32_t y);
 
 
 static bool wrap = false;
@@ -31,18 +31,24 @@ int main (int argc, char * argv[])
 {
 	GrayMap						*source = NULL;
 	GrayMap						*dmap = NULL;
-	BOOL						printUsage = false;
+	GrayMap						*amap = NULL;
+	bool						printUsage = false;
+	bool						angleMap = false;
 	
 	// Get options
 	for (;;)
 	{
-		int option = getopt(argc, argv, "w");
+		int option = getopt(argc, argv, "wa");
 		if (option == -1)  break;
 		
 		switch (option)
 		{
 			case 'w':
 				wrap = true;
+				break;
+			
+			case 'a':
+				angleMap = true;
 				break;
 			
 			default:
@@ -62,20 +68,22 @@ int main (int argc, char * argv[])
 	if (source == NULL)  return EXIT_FAILURE;
 	
 	dmap = NewGrayMap(RoundSize(source->width), RoundSize(source->height), 0);
-	if (dmap == NULL)
+	if (angleMap)  amap = NewGrayMap(RoundSize(source->width), RoundSize(source->height), 0);
+	if (dmap == NULL || (angleMap && amap == NULL))
 	{
 		fprintf(stderr, "Could not allocate memory for output image.\n");
 		return EXIT_FAILURE;
 	}
 	
-	PerformDistanceMapping(source, dmap);
+	PerformDistanceMapping(source, dmap, amap);
 	
 	WriteGrayMap("distance_map.png", dmap);
+	if (angleMap)  WriteGrayMap("angle_map.png", amap);
 	
     return 0;
 }
 
-static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap)
+static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap, GrayMap *amap)
 {
 	uint32_t				width, height, x, y;
 	
@@ -88,7 +96,7 @@ static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap)
 	{
 		for (x = 0; x != width; ++x)
 		{
-			DistanceMapOnePixel(source, dmap, x, y);
+			DistanceMapOnePixel(source, dmap, amap, x, y);
 		}
 		
 		putchar('.');
@@ -100,38 +108,57 @@ static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap)
 static bool ReadPx(GrayMap *source, uint32_t x, uint32_t y, int16_t dx, int16_t dy);
 
 
-static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint32_t y)
+static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, uint32_t x, uint32_t y)
 {
-	int16_t					dx, dy;
+	int32_t					dx, dy;
 	bool					target;
-	uint8_t					count;
 	uint32_t				distanceSq, bestDistanceSq = UINT32_MAX;
 	uint32_t				bestDistance;
+	float					bestAngle;
+	uint32_t				currDistance, maxDistance = MAX(source->width, source->height);
+	int8_t					ddx = 1, ddy = 0, ddt;
+	uint8_t					countdown = 3;
+	uint32_t				i, length = 2;
+	int32_t					bestDx = 1, bestDy = 1;
 	
-	/*	Count number of pixels at middle that are inside. If three or four are
-		inside, we're deemed to be overall inside and search for outside
-		pixels. Otherwise, we're deemed overall outside and search for inside
-		pixels.
-	*/
+	dx = 0;
+	dy = -1;
+	if (amap == NULL)  maxDistance = MIN(maxDistance, 128);
+	target = !ReadPx(source, x, y, 0, 0);
 	
-	count = 0;
-	if (ReadPx(source, x, y, 0, 0))  count++;
-	if (ReadPx(source, x, y, 0, 1))  count++;
-	if (ReadPx(source, x, y, 1, 0))  count++;
-	if (ReadPx(source, x, y, 1, 1))  count++;
-	
-	target = count < 3;
-	
-	for (dy = -128; dy != 128; dy++)
+	for (;;)
 	{
-		for (dx = -128; dx != 128; dx++)
+		// Spiral outwards.
+		do
 		{
-			if (ReadPx(source, x, y, dx, dy) == target)
+			for (i = 0; i < length; i++)
 			{
-				distanceSq = dx * dx + dy * dy;
-				if (distanceSq < bestDistanceSq)  bestDistanceSq = distanceSq;
+				if (ReadPx(source, x, y, dx, dy) == target)
+				{
+					distanceSq = dx * dx + dy * dy;
+					if (distanceSq < bestDistanceSq)
+					{
+						bestDistanceSq = distanceSq;
+						bestDx = dx;
+						bestDy = dy;
+					}
+				}
+				
+				dx += ddx;
+				dy += ddy;
 			}
+			// Turn a corner.
+			ddt = ddx;
+			ddx = -ddy;
+			ddy = ddt;
 		}
+		while (--countdown);
+		
+		currDistance = MAX(ABS(dx), ABS(dy));
+		if ((currDistance * currDistance) > bestDistanceSq || currDistance > maxDistance)  break;
+		
+		countdown = 2;
+		length++;
 	}
 	
 	bestDistance = sqrt(bestDistanceSq);
@@ -139,6 +166,8 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint
 	{
 		if (bestDistance > 128)  bestDistance = 0;
 		else  bestDistance = 128 - bestDistance;
+		bestDx = -bestDx;
+		bestDy = -bestDy;
 	}
 	else
 	{
@@ -147,6 +176,13 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, uint32_t x, uint
 	}
 	
 	GrayMapSet(dmap, x, y, bestDistance);
+	
+	if (amap != NULL)
+	{
+		bestAngle = atan2(bestDx, bestDy);
+		bestAngle = (bestAngle + M_PI) * 127.5 / M_PI;	// Convert from +/-pi to 0..255
+		GrayMapSet(amap, x, y, bestAngle);
+	}
 }
 
 

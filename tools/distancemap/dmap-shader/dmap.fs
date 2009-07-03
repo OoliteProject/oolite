@@ -1,7 +1,11 @@
-uniform sampler2D tex;
+uniform sampler2D directionMap;
+uniform sampler2D angleMap;
 
 const float kThreshold = 0.5;
+const float kInnerThreshold = kThreshold + 0.01;
+const float kOuterThreshold = kThreshold - 0.1;
 const float kFallbackAAFactor = 0.03;
+const float kAABlurFactor = 1.5;
 
 const vec4 kBlack = vec4(0.0, 0.0, 0.0, 1.0);
 const vec4 kWhite = vec4(1.0);
@@ -17,12 +21,12 @@ float AntiAliasFactor()
 
 float DistanceMap(sampler2D texture, vec2 texCoords, float threshold)
 {
-	float dmap = texture2D(tex, texCoords).r;
+	float dmap = texture2D(texture, texCoords).r;
 	
 	// Fake anti-aliasing with a hermite blur.
 	// The fwidth() term lets us scale this appropriately for the screen.
 	vec2 fw = fwidth(texCoords);
-	float aaFactor = (fw.x + fw.y) * 1.5;
+	float aaFactor = (fw.x + fw.y) * kAABlurFactor;
 	// If fwidth() doesn't provide useful data, use a fixed blur instead.
 	// Setting kFallbackAAFactor to zero gives you aliased output in the fallback case.
 	aaFactor = (aaFactor == 0.0) ? kFallbackAAFactor : aaFactor;
@@ -32,16 +36,11 @@ float DistanceMap(sampler2D texture, vec2 texCoords, float threshold)
 
 void main()
 {
-#if 1
-	float inner = DistanceMap(tex, gl_TexCoord[0].xy, kThreshold + 0.01);
-	float outer = DistanceMap(tex, gl_TexCoord[0].xy, kThreshold - 0.02);
+	float inner = DistanceMap(directionMap, gl_TexCoord[0].xy, kInnerThreshold);
+	float outer = DistanceMap(directionMap, gl_TexCoord[0].xy, kOuterThreshold);
 	
-	vec4 decalColor = mix(kBlack, kRed, inner);
-	decalColor = mix(kWhite, decalColor, outer);
-#else
-	float mask = DistanceMap(tex, gl_TexCoord[0].xy, kThreshold);
-	vec4 decalColor = mix(kWhite, kBlack, mask);
-#endif
+	vec4 color = mix(kBlack, kRed, inner);
+	color = mix(kWhite, color, outer);
 	
-	gl_FragColor = decalColor;
+	gl_FragColor = color;
 }
