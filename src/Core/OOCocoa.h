@@ -336,9 +336,14 @@ enum {
 
 /*	Speech synthesis
 */
-#if MAC_OS_X || defined(HAVE_LIBESPEAK)
-#define OOLITE_SPEECH_SYNTH				1
+#if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)
+	#define OOLITE_SPEECH_SYNTH			1
+	#if defined(HAVE_LIBESPEAK)
+		#define OOLITE_ESPEAK			1
+	#else
+		#define OOLITE_ESPEAK			0
+	#endif
 #else
-#define OOLITE_SPEECH_SYNTH				0
+	#define OOLITE_SPEECH_SYNTH			0
 #endif
 

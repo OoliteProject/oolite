@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOSound.h"
 
-#ifdef HAVE_LIBESPEAK
+#if OOLITE_ESPEAK
 #include <espeak/speak_lib.h>
 #endif
 
@@ -254,13 +254,14 @@ enum
 	NSMutableArray			*entitiesDeadThisUpdate;
 	int				framesDoneThisUpdate;
 	
+#if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
 	NSSpeechSynthesizer		*speechSynthesizer;		// use this from OS X 10.3 onwards
-#endif
-#if OOLITE_SPEECH_SYNTH
-	NSArray					*speechArray;
+#elif OOLITE_ESPEAK
 	const espeak_VOICE		**espeak_voices;
 	unsigned int			espeak_voice_count;
+#endif
+	NSArray					*speechArray;
 #endif
 }
 
@@ -581,7 +582,7 @@ double estimatedTimeForJourney(double distance, int hops);
 //
 - (BOOL) isSpeaking;
 //
-#ifdef HAVE_LIBESPEAK
+#if OOLITE_ESPEAK
 - (NSString *) voiceName:(unsigned int) index;
 - (unsigned int) voiceNumber:(NSString *) name;
 - (unsigned int) nextVoice:(unsigned int) index;

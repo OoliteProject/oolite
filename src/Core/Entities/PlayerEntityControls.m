@@ -1991,12 +1991,11 @@ static NSTimeInterval	time_last_frame;
 		[gui setText:message	forRow:GUI_ROW(GAME,SPEECH)  align:GUI_ALIGN_CENTER];
 		if (isSpeechOn)
 		{
-			if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
+			[UNIVERSE stopSpeaking];
 			[UNIVERSE startSpeakingString:message];
 		}
 	}
-#endif
-#ifdef HAVE_LIBESPEAK
+#if OOLITE_ESPEAK
 	if (guiSelectedRow == GUI_ROW(GAME,SPEECH_LANGUAGE))
 	{
 		if ([gameView isDown:gvArrowKeyRight] || [gameView isDown:gvArrowKeyLeft])
@@ -2013,8 +2012,7 @@ static NSTimeInterval	time_last_frame;
 				[gui setText:message forRow:GUI_ROW(GAME,SPEECH_LANGUAGE) align:GUI_ALIGN_CENTER];
 				if (isSpeechOn)
 				{
-					if ([UNIVERSE isSpeaking])
-						[UNIVERSE stopSpeaking];
+					[UNIVERSE stopSpeaking];
 					[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
 				}
 			}
@@ -2040,7 +2038,7 @@ static NSTimeInterval	time_last_frame;
 					[gui setText:message forRow:GUI_ROW(GAME,SPEECH_GENDER) align:GUI_ALIGN_CENTER];
 					if (isSpeechOn)
 					{
-						if ([UNIVERSE isSpeaking])  [UNIVERSE stopSpeaking];
+						[UNIVERSE stopSpeaking];
 						[UNIVERSE startSpeakingString:[UNIVERSE voiceName: voice_no]];
 					}
 				}
@@ -2050,6 +2048,7 @@ static NSTimeInterval	time_last_frame;
 		else
 			leftRightKeyPressed = NO;
 	}
+#endif
 #endif
 	
 	if ((guiSelectedRow == GUI_ROW(GAME,MUSIC))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))

@@ -69,9 +69,30 @@ MA 02110-1301, USA.
 #import "OOConvertSystemDescriptions.h"
 #endif
 
-#ifdef HAVE_LIBESPEAK
+#if OOLITE_ESPEAK
 #include <espeak/speak_lib.h>
 #endif
+
+
+#if OOLITE_MAC_OS_X && !OOLITE_LEOPARD
+
+enum
+{
+	NSSpeechImmediateBoundary =  0,
+	NSSpeechWordBoundary,
+	NSSpeechSentenceBoundary
+};
+typedef OOUInteger NSSpeechBoundary;
+
+
+@interface NSSpeechSynthesizer (Leopard)
+
+- (void) stopSpeakingAtBoundary:(NSSpeechBoundary)boundary;
+
+@end
+
+#endif
+
 
 #define kOOLogUnconvertedNSLog @"unclassified.Universe"
 
@@ -166,7 +187,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #if OOLITE_MAC_OS_X
 	//// speech stuff
 	speechSynthesizer = [[NSSpeechSynthesizer alloc] init];
-#elif defined(HAVE_LIBESPEAK)
+#elif OOLITE_ESPEAK
 	espeak_Initialize(AUDIO_OUTPUT_PLAYBACK, 100, NULL, 0);
 	espeak_SetParameter(espeakPUNCTUATION, espeakPUNCT_NONE, 0);
 	espeak_voices = espeak_ListVoices(NULL);
@@ -344,7 +365,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[speechArray release];
 #if OOLITE_MAC_OS_X
 	[speechSynthesizer release];
-#elif defined(HAVE_LIBESPEAK)
+#elif OOLITE_ESPEAK
 	espeak_Cancel();
 #endif
 #endif
@@ -5136,7 +5157,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					NSString *original_phrase = [thePair stringAtIndex:0];
 #if OOLITE_MAC_OS_X
 					NSString *replacement_phrase = [thePair stringAtIndex:1];
-#else
+#elif OOLITE_ESPEAK
 					NSString *replacement_phrase = [thePair stringAtIndex:([thePair count] > 2 ? 2 : 1)];
 					if (![replacement_phrase isEqualToString:@"_"])
 #endif
@@ -5145,7 +5166,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				spoken_text = [[spoken_text componentsSeparatedByString: systemName] componentsJoinedByString: systemSaid];
 				spoken_text = [[spoken_text componentsSeparatedByString: h_systemName] componentsJoinedByString: h_systemSaid];
 			}
-			if ([self isSpeaking])  [self stopSpeaking];
+			[self stopSpeaking];
 			[self startSpeakingString:spoken_text];
 			
 		}
@@ -7941,7 +7962,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) stopSpeaking
 {
-	[speechSynthesizer stopSpeaking];
+	if ([speechSynthesizer respondsToSelector:@selector(stopSpeakingAtBoundary:)])
+	{
+		[speechSynthesizer stopSpeakingAtBoundary:NSSpeechWordBoundary];
+	}
+	else
+	{
+		[speechSynthesizer stopSpeaking];
+	}
 }
 
 
@@ -7950,82 +7978,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	return [speechSynthesizer isSpeaking];
 }
 
-#elif defined(HAVE_LIBESPEAK)
+#elif OOLITE_ESPEAK
 
 - (void) startSpeakingString:(NSString *) text
 {
-#if 0
-	// First, do some translation of phoneme representation from Apple to espeak.
-	// We recognise phonemes listed at
-	// http://developer.apple.com/documentation/userexperience/conceptual/speechsynthesisprogrammingguide/Phonemes/chapter_952_section_1.html
-	// and controls "[[inpt PHON]]" and "[[inpt TEXT]]".
-	NSMutableArray *frags = [NSMutableArray arrayWithCapacity:20];
-	[frags setArray:[text componentsSeparatedByString:@"[[inpt PHON]]"]];
-	int frag;
-	for (frag = 1; frag < [frags count]; ++frag)
-	{
-		NSArray *parts = [[frags objectAtIndex:frag] componentsSeparatedByString:@"[[inpt TEXT]]"];
-		const char *oldp = [[parts stringAtIndex:0] cString] - 1;
-		char *newp = malloc (strlen (oldp) * 2);
-		char *ptr = newp;
-		while (*++oldp)
-		{
-			switch (*oldp)
-			{
-				case '%': case '@': *ptr++ = ' '; break;
-				case 'A':
-					switch (*++oldp)
-					{
-						case 'A': *ptr++ = '\''; *ptr++ = 'A'; *ptr++ = ':'; break;	// AA → 'A:
-						case 'E': *ptr++ = '\''; *ptr++ = 'a'; break;				// AE → 'a
-						case 'O': *ptr++ = '\''; *ptr++ = 'O'; *ptr++ = ':'; break;	// AO → 'O:
-						case 'W': *ptr++ = '\''; *ptr++ = 'a'; *ptr++ = 'U'; break;	// AW → 'aU
-						case 'X': *ptr++ = 'a'; *ptr++ = '2'; break;				// AX → a2
-						case 'Y': *ptr++ = '\''; *ptr++ = 'a'; *ptr++ = 'I'; break;	// AY → 'aI
-						default: --oldp; *ptr++ = 'A'; break;
-					}
-				case 'C': *ptr++ = 't'; *ptr++ = 'S'; break;						// C → tS
-				case 'E':
-					switch (*++oldp)
-					{
-						case 'H': *ptr++ = '\''; *ptr++ = 'E'; break;				// EH → 'E
-						case 'Y': *ptr++ = '\''; *ptr++ = 'e'; *ptr++ = 'I'; break;	// EY → 'eI
-						default: --oldp; *ptr++ = 'E'; break;
-					}
-				case 'I':
-					switch (*++oldp)
-					{
-						case 'H': *ptr++ = '\''; *ptr++ = 'I'; break;				// IH → 'I
-						case 'X': *ptr++ = 'I'; *ptr++ = '2'; break;				// IX → I2
-						case 'Y': *ptr++ = '\''; *ptr++ = 'i'; *ptr++ = ':'; break;	// IY → 'i:
-						default: --oldp; *ptr++ = 'I'; break;
-					}
-				case 'J': *ptr++ = 'd'; *ptr++ = 'Z'; break;						// J → dZ
-				case 'O':
-					switch (*++oldp)
-					{
-						case 'W': *ptr++ = '\''; *ptr++ = 'o'; *ptr++ = 'U'; break;	// OW → 'oU
-						case 'Y': *ptr++ = '\''; *ptr++ = 'O'; *ptr++ = 'I'; break;	// OY → 'OI
-						default: --oldp; *ptr++ = 'O'; break;
-					}
-				case 'U':
-					switch (*++oldp)
-					{
-						case 'H': *ptr++ = '\''; *ptr++ = 'U'; break;				// UH → 'U
-						case 'W': *ptr++ = '\''; *ptr++ = 'u'; *ptr++ = ':'; break;	// UW → 'u:
-						case 'X': *ptr++ = '\''; *ptr++ = 'V'; break;				// UX → 'V
-						default: --oldp; *ptr++ = 'U'; break;
-					}
-				case 'y': *ptr++ = 'j'; break;										// y → j
-				default: *ptr++ = *oldp; break;
-			}
-		}
-		*ptr = 0;
-		[frags replaceObjectAtIndex:frag withObject:[NSString stringWithFormat:@"[[%s]]%@", newp, ([frags count] == 2 ? [parts objectAtIndex:1] : (id)@"")]];
-		free (newp);
-	}
-	text = [frags componentsJoinedByString:@""];
-#endif
 	size_t length = [text length];
 	char *ctext = malloc (length + 2);
 	sprintf (ctext, "%s%c", [text cString], 0); // extra NUL; working around an apparent misrendering bug...
