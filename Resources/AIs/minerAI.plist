@@ -22,10 +22,11 @@
 	};
 	"LOOK_FOR_SPLINTERS" =
 	{
-		ENTER = (performIdle);
+		ENTER = (performIdle, checkForFullHold);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: COLLECT_STUFF");
 		"NOTHING_FOUND" = ("setStateTo: LOOK_FOR_ROCKS");
 		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
+		"NO_CARGO_BAY" = ("setStateTo: DOCK_WITH_STATION"); 
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		UPDATE = (scanForRandomLoot, "pauseAI: 10.0");
@@ -34,7 +35,8 @@
 	{
 		ENTER = (performCollect);
 		FRUSTRATED = ("setStateTo: LOOK_FOR_SPLINTERS");
-		"CARGO_SCOOPED" = (checkForFullHold, "setStateTo: LOOK_FOR_SPLINTERS");
+		"CARGO_SCOOPED" = ("setStateTo: LOOK_FOR_SPLINTERS");
+		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		"COLLISION" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");

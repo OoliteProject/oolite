@@ -26,12 +26,14 @@
 		"TARGET_OFFENDER" = ("sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
 		"TARGET_FUGITIVE" = ("setAITo: interceptAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
-		"INCOMING_MISSILE" = ("setAITo: delayedReactToAttackAI.plist");
-		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
+		"INCOMING_MISSILE" = (setTargetToFoundTarget, "markTargetForOffence: 15",
+					"setAITo: delayedReactToAttackAI.plist");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7",
+					"sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
 		UPDATE = (setDestinationFromCoordinates, checkCourseToDestination, scanForOffenders, "pauseAI: 7.5");
 	};
 	"EXIT_SYSTEM" =
 	{
-		ENTER = (exitAI);
+		ENTER = (performDocking, exitAI);
 	};
 }

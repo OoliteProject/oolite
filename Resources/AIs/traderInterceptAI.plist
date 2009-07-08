@@ -1,0 +1,77 @@
+{
+	GLOBAL = 
+	{
+		ENTER = (fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile,
+					fightOrFleeHostiles, "setStateTo: FLEE_FOR_MISSILE"); 
+		"TARGET_DESTROYED" = (exitAI); 
+		"TARGET_LOST" = (exitAI);
+		// UPDATE = ("setStateTo: RETURN"); // only needed for 1.72
+	}; 
+	"RETURN" = 
+	{
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
+		"TARGET_DESTROYED" = (exitAI); 
+		"TARGET_LOST" = (exitAI); 
+		UPDATE = (setTargetToPrimaryAggressor, "setStateTo: FLEE");  // Happens never except when fightOrFleeHostiles gives no answer.
+	}; 
+	"ATTACK_SHIP" = 
+	{
+		ENTER = (deployEscorts, broadcastDistressMessage, performAttack); 
+		"ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, deployEscorts, "setStateTo: FLEE"); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setStateTo: FLEE_FOR_MISSILE"); 
+		"TARGET_DESTROYED" = (exitAI); 
+		"TARGET_LOST" = (exitAI); 
+	}; 
+	FLEE = 
+	{
+		ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+		ATTACKED = (fightOrFleeHostiles); 
+		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		DEPLOYING_ESCORTS = (setTargetToPrimaryAggressor, "setStateTo: FLEE_WITH_ESCORTS");
+		"TARGET_LOST" = (performIdle, exitAI); 
+		"TARGET_DESTROYED" = (performIdle, exitAI); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile,
+					fightOrFleeHostiles, "setStateTo: FLEE_FOR_MISSILE"); 
+		"REACHED_SAFETY" = (performIdle, exitAI); 
+	}; 
+	"FLEE_WITH_ESCORTS" = 
+	{
+		ENTER = ("setDesiredRangeTo: 25600", performFlee); 
+		ATTACKED = (scanForHostiles); 
+		"TARGET_FOUND" = (setTargetToPrimaryAggressor, deployEscorts, "rollD: 3");
+		"ROLL_1" = ("setStateTo: ATTACK_SHIP");
+		"ROLL_2" = ("setDesiredRangeTo: 25600", performFlee);
+		"ROLL_3" = ("setDesiredRangeTo: 25600", performFlee);
+		"TARGET_LOST" = (performIdle, exitAI); 
+		"TARGET_DESTROYED" = (performIdle, exitAI); 
+		"ENERGY_LOW" = (setTargetToPrimaryAggressor, deployEscorts); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile,
+					fightOrFleeHostiles, "setStateTo: FLEE_FOR_MISSILE"); 
+		"REACHED_SAFETY" = (performIdle, exitAI); 
+	}; 
+	FLEE_FOR_MISSILE = 
+	{
+		ENTER = ("setDesiredRangeTo: 25600", broadcastDistressMessage, performFlee, "pauseAI: 5"); 
+		ATTACKED = ("setStateTo: GLOBAL"); 
+		"TARGET_LOST" = (scanForHostiles); 
+		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: GLOBAL");
+		"NOTHING_FOUND" = (exitAI);
+		"TARGET_DESTROYED" = (performIdle, exitAI); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 0.75"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile,
+					fightOrFleeHostiles, "setStateTo: FLEE_FOR_MISSILE"); 
+		"REACHED_SAFETY" = (performIdle, exitAI); 
+		"UPDATE" = (fightOrFleeMissile, "pauseAI: 10");
+	}; 
+}

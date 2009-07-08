@@ -7,6 +7,8 @@
 	{
 		ENTER = (checkForFullHold);
 		"HOLD_FULL" = ("switchAITo: enteringTraderAI.plist");
+        	"HOLD_NOT_FULL" = ("switchAITo: pirateAI.plist"); 
+        	"NO_CARGO_BAY" = ("switchAITo: pirateAI.plist"); 
 		UPDATE = ("setStateTo: STILL_HUNGRY");
 	};
 	"STILL_HUNGRY" =

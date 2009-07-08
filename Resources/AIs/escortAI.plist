@@ -6,7 +6,7 @@
 	"FLYING_ESCORT" =
 	{
 		ENTER = (performEscort);
-		RESTARTED = ("setStateTo: BEGIN_BUSINESS");
+		RESTARTED = ("setStateTo: NEXT_TARGET");
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
@@ -36,6 +36,7 @@
 			performFlyToRangeFromDestination
 		);
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
 	};
 	"CLEAR_STATION" = {
 		ENTER = (
@@ -61,4 +62,12 @@
 		"NOTHING_FOUND" = ("switchAITo: route1patrolAI.plist");
 		UPDATE = ("pauseAI: 7.5", scanForFormationLeader);
 	};
+    "NEXT_TARGET" = {
+        	ENTER = (requestNewTarget); 
+		RESTARTED = (requestNewTarget); 
+        	"NOTHING_FOUND" = (switchLightsOff, "setStateTo: FLYING_ESCORT"); 
+        	"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
+        	"MOTHER_LOST" = (switchLightsOff, "setStateTo: BEGIN_BUSINESS"); 
+		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
+    }; 
 }

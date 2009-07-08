@@ -10,6 +10,7 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_PLANET");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
+		"AEGIS_CLOSE_TO_PLANET" = ("setStateTo: HEAD_FOR_SUN");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
@@ -39,6 +40,8 @@
 		"APPROACH_COORDINATES" = (setDestinationFromCoordinates, "setDesiredRangeTo: 25000", checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 0.80", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_SUN");
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
+		"AEGIS_CLOSE_TO_PLANET" = ("setStateTo: HEAD_FOR_PLANET");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setStateTo: OUTBOUND_LOOT");
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);

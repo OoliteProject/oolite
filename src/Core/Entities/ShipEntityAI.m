@@ -68,7 +68,10 @@ MA 02110-1301, USA.
 
 - (void) pauseAI:(NSString *)intervalString;
 
+- (void) randomPauseAI:(NSString *)intervalString;
+
 - (void) dropMessages:(NSString *)messageString;
+
 - (void) debugDumpPendingMessages;
 
 - (void) setDestinationToCurrentLocation;
@@ -313,6 +316,25 @@ MA 02110-1301, USA.
 - (void) pauseAI:(NSString *)intervalString
 {
 	[shipAI setNextThinkTime:[UNIVERSE getTime] + [intervalString doubleValue]];
+}
+
+
+- (void) randomPauseAI:(NSString *)intervalString
+{
+	NSArray*	tokens = ScanTokensFromString(intervalString);
+	double start, end;
+
+	if ([tokens count] != 2)
+	{
+		OOLog(@"ai.syntax.randomPauseAI", @"***** ERROR: cannot read min and max value for pause, needs 2 values: '%@'.", intervalString);
+		return;
+	}
+
+	start = [(NSString *)[tokens objectAtIndex:0] doubleValue];
+	end   = [(NSString *)[tokens objectAtIndex:1] doubleValue];
+
+
+	[shipAI setNextThinkTime:[UNIVERSE getTime] + (start + (end - start)*randf())];
 }
 
 

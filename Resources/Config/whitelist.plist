@@ -72,6 +72,7 @@
 	(
 		// Implicitly includes ai_and_action_methods
 		"pauseAI:",
+		"randomPauseAI:",
 		"setDestinationToCurrentLocation",
 		"setDesiredRangeTo:",
 		"performFlyToRangeFromDestination",

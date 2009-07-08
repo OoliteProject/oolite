@@ -3,48 +3,6 @@
 	{
 		ENTER = ("setStateTo: HEAD_FOR_PLANET"); 
 	}; 
-	FLEE = 
-	{
-		ENTER = ("setDesiredRangeTo: 25600", performFlee); 
-		ATTACKED = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		"TARGET_LOST" = (performIdle, "setStateTo: GLOBAL"); 
-		"TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL"); 
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles); 
-		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL"); 
-		UPDATE = (); 
-	}; 
-	"ATTACK_SHIP" = 
-	{
-		ENTER = (broadcastDistressMessage, performAttack); 
-		"ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE"); 
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, "setStateTo: FLEE"); 
-		"TARGET_DESTROYED" = ("setStateTo: HEAD_FOR_PLANET"); 
-		"TARGET_LOST" = ("setStateTo: HEAD_FOR_PLANET"); 
-	}; 
-	"GO_TO_STATION" = 
-	{
-		ENTER = (setTargetToSystemStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
-		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
-		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
-		"TARGET_FOUND" = (fightOrFleeHostiles); 
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
-		ATTACKED = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
-		UPDATE = 
-		(
-			setTargetToSystemStation,
-			"setDesiredRangeTo: 5000.0",
-			setDestinationToTarget,
-			checkCourseToDestination,
-			scanForHostiles,
-			"pauseAI: 10.0"
-		);
-	}; 
 	"HEAD_FOR_PLANET" = 
 	{
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 30000.0", "setSpeedFactorTo: 0.35", checkCourseToDestination);
@@ -53,15 +11,36 @@
 		"AEGIS_CLOSE_TO_PLANET" = ("setStateTo: GO_TO_STATION");
 		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, "setStateTo: GO_TO_STATION");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_STATION");
-		"TARGET_FOUND" = (fightOrFleeHostiles);
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, fightOrFleeHostiles, "setStateTo: FLEE"); 
-		ATTACKED = (fightOrFleeHostiles); 
-		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist");
+		// "INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "pauseAI: 1.5"); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.5 2.0"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
+		ATTACKED = ("setAITo: traderInterceptAI.plist"); 
 		UPDATE =
 		(
 			setCourseToPlanet,
 			"setDesiredRangeTo: 30000.0",
+			checkCourseToDestination,
+			scanForHostiles,
+			"pauseAI: 10.0"
+		);
+	}; 
+	"GO_TO_STATION" = 
+	{
+		ENTER = (setTargetToSystemStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
+		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
+		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
+		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist"); 
+		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 1.50"); 
+		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
+		ATTACKED = ("setAITo: traderInterceptAI.plist"); 
+		UPDATE = 
+		(
+			setTargetToSystemStation,
+			"setDesiredRangeTo: 5000.0",
+			setDestinationToTarget,
 			checkCourseToDestination,
 			scanForHostiles,
 			"pauseAI: 10.0"

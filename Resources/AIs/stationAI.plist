@@ -5,8 +5,9 @@
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
 		"RED_ALERT" = (launchDefenseShip);
 		"YELLOW_ALERT" = ("setStateTo: IDLE");
+		"GREEN_ALERT" = ("setStateTo: CHECK_FOR_DEBRIS");  // message added in 1.72
 		"CONDITION_YELLOW" = ("setStateTo: IDLE");
-		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS");
+		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS"); // message removed in 1.72
 		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
 		"TARGET_OFFENDER" = (increaseAlertLevel);
 		"TARGET_FUGITIVE" = (increaseAlertLevel);

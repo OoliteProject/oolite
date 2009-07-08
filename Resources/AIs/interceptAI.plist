@@ -8,15 +8,15 @@
 		ENTER = (performAttack);
 		"ENERGY_LOW" = ("setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
-		"TARGET_DESTROYED" = (switchLightsOff, exitAI);
-		"TARGET_LOST" = (switchLightsOff, exitAI);
+		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
+		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
 	};
 	FLEE =
 	{
-		ENTER = ("setDesiredRangeTo: 25600", performFlee);
+		ENTER = (deployEscorts, "setDesiredRangeTo: 25600", performFlee);
 		"ENERGY_FULL" = ("setStateTo: ATTACK_SHIP");
-		"TARGET_LOST" = (switchLightsOff, exitAI);
-		"TARGET_DESTROYED" = (switchLightsOff, exitAI);
+		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);
+		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 	};
 }

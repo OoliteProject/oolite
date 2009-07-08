@@ -23,10 +23,11 @@
 	FLEE =
 	{
 		ENTER = ("setDesiredRangeTo: 25600", performFlee);
+		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"ENERGY_FULL" = (performIdle, "setStateTo: LOOK_FOR_STUFF");
 		"TARGET_LOST" = (performIdle, "setStateTo: LOOK_FOR_STUFF");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
-		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle);
+		"REACHED_SAFETY" = ("setSpeedTo: 0.0", "pauseAI: 60", "setStateTo: LOOK_FOR_STUFF");
 	};
 	"COLLECT_STUFF" =
 	{

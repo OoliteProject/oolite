@@ -6,18 +6,21 @@
 	"GO_TO_WAYPOINT" =
 	{
 		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
-		"DESIRED_RANGE_ACHIEVED" = (exitAI);
-		ATTACKED = (exitAI);
-		"INCOMING_MISSILE" = (exitAI);
-		UPDATE = ("setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, checkCourseToDestination);
+		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
+		ATTACKED = ("exitAIWithMessage: ATTACKED");
+		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
+		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
+		UPDATE = ("setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, 
+				checkCourseToDestination, "pauseAI: 2.0");
 	};
 	"NEW_WAYPOINT" =
 	{
 		ENTER = ("setSpeedFactorTo: 0.0", "setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
 		"COURSE_OK" = ("setStateTo: GO_TO_WAYPOINT");
-		"DESIRED_RANGE_ACHIEVED" = (exitAI);
-		ATTACKED = (exitAI);
-		"INCOMING_MISSILE" = (exitAI);
+		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
+		ATTACKED = ("exitAIWithMessage: ATTACKED");
+		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
+		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
 	};
 }
