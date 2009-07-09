@@ -326,14 +326,13 @@ MA 02110-1301, USA.
 
 	if ([tokens count] != 2)
 	{
-		OOLog(@"ai.syntax.randomPauseAI", @"***** ERROR: cannot read min and max value for pause, needs 2 values: '%@'.", intervalString);
+		OOLog(@"ai.syntax.randomPauseAI", @"***** ERROR: cannot read min and max value for randomPauseAI:, needs 2 values: '%@'.", intervalString);
 		return;
 	}
-
-	start = [(NSString *)[tokens objectAtIndex:0] doubleValue];
-	end   = [(NSString *)[tokens objectAtIndex:1] doubleValue];
-
-
+	
+	start = [tokens doubleAtIndex:0];
+	end   = [tokens doubleAtIndex:1];
+	
 	[shipAI setNextThinkTime:[UNIVERSE getTime] + (start + (end - start)*randf())];
 }
 
