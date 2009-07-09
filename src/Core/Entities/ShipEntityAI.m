@@ -1188,7 +1188,11 @@ static WormholeEntity *whole = nil;
 {
 	if ([self hasEscorts])
 	{
-		if (found_target == last_escort_target)  return;
+		if (found_target == last_escort_target)
+		{
+			[shipAI message:@"FLEEING"];
+			return;
+		}
 		
 		primaryAggressor = found_target;
 		primaryTarget = found_target;
@@ -2044,7 +2048,7 @@ static WormholeEntity *whole = nil;
 	}
 	else
 	{
-		NSString *function = [components objectAtIndex:1];
+		NSString *function = [components objectAtIndex:0];
 		components = [components subarrayWithRange:NSMakeRange(1, [components count] - 1)];
 		[self doScriptEvent:function withArgument:components];
 	}

@@ -1,12 +1,7 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("rollD: 4");
-		ROLL_1 = ("pauseAI: 0.7");
-		ROLL_2 = ("pauseAI: 1.2");
-		ROLL_3 = ("pauseAI: 1.8");
-		ROLL_3 = ("pauseAI: 2.5");
-		
+		ENTER = ("randomPauseAI: 0.7 2.5");
 		UPDATE = ("setStateTo: REACT");
 	};
 	REACT =

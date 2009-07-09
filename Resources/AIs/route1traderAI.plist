@@ -11,11 +11,10 @@
 		"AEGIS_CLOSE_TO_PLANET" = ("setStateTo: GO_TO_STATION");
 		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, "setStateTo: GO_TO_STATION");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_STATION");
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist");
-		// "INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "pauseAI: 1.5"); 
-		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.5 2.0"); 
+		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
+		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0"); 
 		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
-		ATTACKED = ("setAITo: traderInterceptAI.plist"); 
+		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		UPDATE =
 		(
 			setCourseToPlanet,
@@ -32,10 +31,10 @@
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
 		"AEGIS_IN_DOCKING_RANGE" = (dockEscorts, setTargetToSystemStation, "setAITo: dockingAI.plist");
-		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist"); 
-		"INCOMING_MISSILE" = ("messageSelf: FIGHT_MISSILE", "randomPauseAI: 0.25 1.50"); 
+		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
+		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 1.5"); 
 		"FIGHT_MISSILE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
-		ATTACKED = ("setAITo: traderInterceptAI.plist"); 
+		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
 		UPDATE = 
 		(
 			setTargetToSystemStation,
