@@ -44,7 +44,7 @@ SubCaption 4 " "
 Icon Oolite.ico
 UninstallIcon Oolite.ico
 InstallDirRegKey HKLM Software\Oolite "Install_Dir"
-InstallDir $PROGRAMFILES\Oolite
+InstallDir $INSTDIR	; $INSTDIR is set in .onInit
 CRCCheck on
 InstallColors /windows
 InstProgressFlags smooth
@@ -77,7 +77,11 @@ VIProductVersion "${VER}"
 !insertmacro MUI_LANGUAGE "English"
 
 Function .onInit
- ; 1. Check for multiple running installers
+ ; 1. Get the system drive
+ StrCpy $R9 $WINDIR 2
+ StrCpy $INSTDIR $R9\Oolite
+
+ ; 2. Check for multiple running installers
  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "OoliteInstallerMutex") i .r1 ?e'
  Pop $R0
  
@@ -85,7 +89,7 @@ Function .onInit
    MessageBox MB_OK|MB_ICONEXCLAMATION "Another instance of the Oolite installer is already running."
    Abort
 
-  ; 2. Checks for already-installed versions of Oolite and offers to uninstall
+  ; 3. Checks for already-installed versions of Oolite and offers to uninstall
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite" \
   "UninstallString"

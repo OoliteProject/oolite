@@ -1046,6 +1046,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	missiles = (unsigned)[shipDict doubleForKey:@"missiles"];
+	max_missiles = [shipDict intForKey:@"max_missiles" defaultValue:missiles];
+	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
+	if (missiles > max_missiles)  missiles = max_missiles;
+	
 	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
 	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
 	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
@@ -1087,8 +1091,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
-	
-	max_missiles = [shipDict intForKey:@"max_missiles" defaultValue:missiles];
 	
 	NSString *hud_desc = [shipDict stringForKey:@"hud"];
 	if (hud_desc != nil)
