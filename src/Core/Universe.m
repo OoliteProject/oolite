@@ -3754,9 +3754,10 @@ static const OOMatrix	starboard_matrix =
 				[my_entities[i] release];		//	released
 			
 			no_update = NO;	// allow other attempts to draw
-			
-#ifdef SNAPSHOT_BUILD
-			[self drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
+
+#if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
+
+			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			
 			// frame complete, when it is time to update the fps_counter, updateClocks:delta_t
@@ -3778,17 +3779,6 @@ static const OOMatrix	starboard_matrix =
 		
 		NS_ENDHANDLER
 	}
-}
-
-
-- (void) drawWatermarkString:(NSString *)watermarkString
-{
-	NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
-	
-	glColor4f(0.0, 1.0, 0.0, 1.0);
-	// position the watermark string on the top right hand corner of the game window and right-align it
-	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
-				      MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, [gameView display_z], NSMakeSize(10,10));
 }
 
 

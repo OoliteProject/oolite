@@ -239,6 +239,8 @@ MA 02110-1301, USA.
 - (void) setLine_width:(GLfloat) value;
 - (GLfloat) line_width;
 
+- (void) drawWatermarkString:(NSString *)watermarkString;
+
 @end
 
 
