@@ -8467,10 +8467,19 @@ NSString *DESC_(NSString *key)
 NSString *DESC_PLURAL_(NSString *key, int count)
 {
 	NSArray *conditions = [[UNIVERSE descriptions] arrayForKey:@"plural-rules"];
+		
+	// are we using an older descriptions.plist (1.72.x) ?
+	NSString *tmp = [UNIVERSE descriptionForKey:key];
+	if (tmp != nil)
+		OOLogWARN(@"localization.plurals", @"'%@' found in descriptions.plist, should be '%@%%0'. Localization data needs updating.",key,key);
 
 	if (conditions == nil)
-		return DESC_([NSString stringWithFormat:@"%@", key]);
-
+	{
+		if (tmp == nil) // this should mean that descriptions.plist is from 1.73 or above.
+			return DESC_([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
+		// still using an older descriptions.plist
+		return tmp;
+	}
 	int unsigned i;
 	long int index;
 
