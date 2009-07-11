@@ -29,6 +29,10 @@ DEPS=$(LIBJS)
 .PHONY: release
 release: $(DEPS)
 	make -f GNUmakefile debug=no
+	
+.PHONY: release-snapshot
+release-snapshot: $(DEPS)
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
 
 .PHONY: debug
 debug: $(DEPS)
@@ -53,7 +57,7 @@ endif
 	rm -Rf obj obj.dbg oolite.app
 
 .PHONY: all
-all: release debug
+all: release release-snapshot debug
 
 .PHONY: remake
 remake: clean all
@@ -91,7 +95,7 @@ pkg-win: release ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
 
 .PHONY: pkg-win-snapshot
-pkg-win-snapshot: release ${NSISVERSIONS}
+pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
 	@echo "!define SNAPSHOT 1" >> ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
 

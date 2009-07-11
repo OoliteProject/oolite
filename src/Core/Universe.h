@@ -599,6 +599,8 @@ double estimatedTimeForJourney(double distance, int hops);
 - (int) framesDoneThisUpdate;
 - (void) resetFramesDoneThisUpdate;
 
+- (void) drawWatermarkString:(NSString *)watermarkString;
+
 @end
 
 

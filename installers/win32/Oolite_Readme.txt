@@ -30,14 +30,11 @@ least once to have it generated.
 Switching between full screen and windowed mode, or changing resolution
 -----------------------------------------------------------------------
 
-There are still some problems with models and their textures, but for the
-most part all the textures get reinitialised and keep working.
+The long standing issues with textures being corrupted when resizing the
+game window have been resolved as of version 1.73.
 
 If in doubt, delete .GNUstepDefaults and restart the game. That will start
 you in windowed mode.
-
-Do not try to resize the window in windowed mode. The settings are not
-saved under Windows and the game will restart in an 800x600 widow.
 
 To change the full screen mode resolution, you can use the Game Options...
 menu or alternatively edit the .GNUstepDefaults file by changing the
@@ -100,9 +97,11 @@ Tips
 
 Links
 -----
+Oolite website at: http://oolite.org
+
 Oolite Message Board at: http://www.aegidian.org/bb
 
-Oolite Development Project Page at: http://project.oolite.org 
+Oolite Development Project Page at: https://developer.berlios.de/projects/oolite-linux/
 
 Browse the Oolite wiki at: http://wiki.alioth.net/index.php/Oolite_Main_Page
 
