@@ -6,11 +6,11 @@
 	LOOT =
 	{
 		ENTER = (performCollect);
-		ATTACKED = (exitAI);
+		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"COLLISION" = (exitAI);
-		"CARGO_SCOOPED" = (exitAI);
-		"HOLD_FULL" = (exitAI);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, exitAI);
+		"CARGO_SCOOPED" = ("exitAIWithMessage: CARGO_SCOOPED");
+		"HOLD_FULL" = ("exitAIWithMessage: HOLD_FULL");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, "exitAIWithMessage: INCOMING_MISSILE");
 		"TARGET_LOST" = (exitAI);
 	};
 }

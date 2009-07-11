@@ -234,6 +234,9 @@ MA 02110-1301, USA.
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
 	
+	PlanetEntity			*lastPlanet;				// remember last aegis planet
+
+	
 	double					messageTime;				// counts down the seconds a radio message is active for
 	
 	double					next_spark_time;			// time of next spark when throwing sparks
