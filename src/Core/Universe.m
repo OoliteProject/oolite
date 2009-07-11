@@ -8449,12 +8449,12 @@ NSString *DESC_(NSString *key)
 
 
 // There's a hint of gettext about this...
-NSString *DESC_PLURAL(NSString *key, int count)
+NSString *DESC_PLURAL_(NSString *key, int count)
 {
 	NSArray *conditions = [[UNIVERSE descriptions] arrayForKey:@"plural-rules"];
 
 	if (conditions == nil)
-		return DESC_([NSString stringWithFormat:@"%@%%%d", key, count != 1]);
+		return DESC_([NSString stringWithFormat:@"%@", key]);
 
 	int unsigned i;
 	long int index;
