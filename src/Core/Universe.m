@@ -6069,7 +6069,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
 {
-	[self getSystemInhabitants:s_seed plural:YES];
+	return [self getSystemInhabitants:s_seed plural:YES];
 }
 
 
