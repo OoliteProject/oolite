@@ -803,6 +803,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	show_info_flag = NO;
 	
+	// if there is cargo remaining from previously (e.g. a game restart), remove it
+	if ([self cargoList] != nil)
+	{
+		[self removeAllCargo:YES];		// force removal of cargo even
+	}
+	
 	[ship_desc release];
 	ship_desc = PLAYER_SHIP_DESC;
 	ship_trade_in_factor = 95;
@@ -909,6 +915,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
 	ident_engaged = NO;
+	
 	
 	max_cargo				= 20; // will be reset later
 	
