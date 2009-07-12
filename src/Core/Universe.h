@@ -89,6 +89,7 @@ enum
 #define KEY_PRODUCTIVITY					@"productivity"
 #define KEY_RADIUS							@"radius"
 #define KEY_NAME							@"name"
+#define KEY_INHABITANT						@"inhabitant"
 #define KEY_INHABITANTS						@"inhabitants"
 #define KEY_DESCRIPTION						@"description"
 #define KEY_SHORT_DESCRIPTION				@"short_description"
@@ -457,6 +458,7 @@ enum
 ///////////////////////////////////////
 
 - (void) setGalaxy_seed:(Random_Seed) gal_seed;
+- (void) setGalaxy_seed:(Random_Seed) gal_seed andReinit:(BOOL) forced;
 
 - (void) setSystemTo:(Random_Seed) s_seed;
 
@@ -487,6 +489,7 @@ enum
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
+- (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;

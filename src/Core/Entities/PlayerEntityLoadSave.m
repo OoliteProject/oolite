@@ -486,6 +486,7 @@
 		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
 	[self calculateCurrentCargo];
+	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
 	[self setGuiToStatusScreen];
 	return loadedOK;
 }

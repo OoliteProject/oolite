@@ -145,7 +145,7 @@ MA 02110-1301, USA.
 	// determine the character's species
 	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
 	BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
-	NSString* speciesString = (species == 3)? [UNIVERSE generateSystemInhabitants: genSeed plural:NO]:[UNIVERSE generateSystemInhabitants: originSystemSeed plural:NO];
+	NSString* speciesString = (species == 3)? [UNIVERSE getSystemInhabitants: genSeed plural:NO]:[UNIVERSE getSystemInhabitants: originSystemSeed plural:NO];
 	if (lowercaseIgnore)
 	{
 		return [speciesString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];

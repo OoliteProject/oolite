@@ -163,8 +163,8 @@ static JSExtendedClass sSystemInfoClass =
 
 
 - (void) setValue:(id)value forKey:(NSString *)key
-{
-	[UNIVERSE setObject:value forKey:key forPlanetKey:_planetKey];
+{	
+	[UNIVERSE setSystemDataForGalaxy:_galaxy planet:_system key:key value:value];
 }
 
 

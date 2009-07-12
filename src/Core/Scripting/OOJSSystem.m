@@ -423,7 +423,9 @@ static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	// Must reset the systemdata cache now, otherwise getproperty will fetch the unchanged values.
 	// A cleaner implementation than the rev1545 fix (somehow removed in rev1661).
-	[UNIVERSE generateSystemData:player->system_seed useCache:NO];
+	//[UNIVERSE generateSystemData:player->system_seed useCache:NO]; 
+	// more comprehensive implementation now inside setSystemDataForGalaxy: now
+	// cache resets when system info changes are made via legacy script & jssysteminfo too.
 	return OK;
 }
 
@@ -890,7 +892,7 @@ static JSBool SystemStaticSystemNameForID(JSContext *context, JSObject *this, ui
 		return NO;
 	}
 	
-	*outResult = [[UNIVERSE generateSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]] javaScriptValueInContext:context];
+	*outResult = [[UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:systemID]] javaScriptValueInContext:context];
 	return YES;
 }
 

@@ -507,6 +507,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	galaxy_seed = RandomSeedFromString([dict stringForKey:@"galaxy_seed"]);
 	if (is_nil_seed(galaxy_seed))  return NO;
+	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES];
 	
 	NSArray *coord_vals = ScanTokensFromString([dict stringForKey:@"galaxy_coordinates"]);
 	galaxy_coordinates.x = [coord_vals unsignedCharAtIndex:0];

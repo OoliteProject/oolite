@@ -1395,6 +1395,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//
 	glLineWidth(1.5f);
 	glColor4f(0.0f, 1.0f, 0.0f, alpha);
+	int n_matches=0;
+	for (i = 0; i < 256; i++) if (systems_found[i]) n_matches++;
+	BOOL drawNames=n_matches<4;
 	for (i = 0; i < 256; i++)
 	{
 		BOOL mark = systems_found[i];
@@ -1409,7 +1412,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
 				glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
 			glEnd();
-			OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+			if (drawNames)
+				OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 		}
 	}
 	

@@ -283,7 +283,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
-	[self setGalaxy_seed: [player galaxy_seed]];
+	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	
@@ -547,10 +547,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
-
-	[self setGalaxy_seed: [player galaxy_seed]];
-
-	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 	
 	if (activeWormholes)
 		[activeWormholes autorelease];
@@ -559,6 +555,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[characterPool removeAllObjects];
 
 	[self setUpSpace];
+	
+	// these lines are needed here to reset systeminfo and long range chart properly
+	[localPlanetInfoOverrides removeAllObjects];
+	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
+	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
+
 	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
 	[player setDockedAtMainStation];
 
@@ -579,7 +581,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (delayedReset) [player doScriptEvent:@"reset"];
 	[player release];
 	no_update = NO;
-	[localPlanetInfoOverrides removeAllObjects];
 }
 
 
@@ -710,7 +711,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
-	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self generateSystemName:system_seed], [player dial_clock_adjusted]]
+	[comm_log_gui printLongText:[NSString stringWithFormat:@"%@ %@", [self getSystemName:system_seed], [player dial_clock_adjusted]]
 		align:GUI_ALIGN_CENTER color:[OOColor whiteColor] fadeTime:0 key:nil addToArray:[player commLog]];
 	
 	displayGUI = NO;
@@ -5147,10 +5148,18 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		//speech synthesis
 		if ([player isSpeechOn])
 		{
-			NSString* systemName = [self generateSystemName:system_seed];
-			NSString* systemSaid = [self generatePhoneticSystemName:system_seed];
-			NSString* h_systemName = [self generateSystemName:[player target_system_seed]];
-			NSString* h_systemSaid = [self generatePhoneticSystemName:[player target_system_seed]];
+			BOOL isStandard = NO;
+			NSString* systemSaid=nil;
+			NSString* h_systemSaid=nil;
+			
+			NSString* systemName = [self getSystemName:system_seed];
+			isStandard = [systemName isEqualToString: [self generateSystemName:system_seed]];
+			//if the name is not the standard generated one, we can't  use the generated phonemes.
+			systemSaid = isStandard ? [self generatePhoneticSystemName:system_seed] : systemName;
+			
+			NSString* h_systemName = [self getSystemName:[player target_system_seed]];
+			isStandard= [h_systemName isEqualToString: [self generateSystemName:[player target_system_seed]]];
+			h_systemSaid = isStandard ? [self generatePhoneticSystemName:[player target_system_seed]]: h_systemName;
 			
 			NSString *spoken_text = text;
 			if(nil != speechArray)
@@ -5688,11 +5697,17 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) setGalaxy_seed:(Random_Seed) gal_seed
 {
+	[self setGalaxy_seed:gal_seed andReinit:NO];
+}
+
+
+- (void) setGalaxy_seed:(Random_Seed) gal_seed andReinit:(BOOL) forced
+{
 	int						i;
 	Random_Seed				g_seed = gal_seed;
 	NSAutoreleasePool		*pool = nil;
 
-	if (!equal_seeds(galaxy_seed, gal_seed)) {
+	if (!equal_seeds(galaxy_seed, gal_seed) || forced) {
 		galaxy_seed = gal_seed;
 	
 		// systems
@@ -5906,6 +5921,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	unsigned radius = (((s_seed.f & 15) + 11) * 256) + s_seed.d;
 	
 	NSString *name = [self generateSystemName:s_seed];
+	NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
 	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
 	NSString *description = DescriptionForSystem(s_seed);
 	
@@ -5918,6 +5934,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	[systemdata setUnsignedInteger:productivity	forKey:KEY_PRODUCTIVITY];
 	[systemdata setUnsignedInteger:radius		forKey:KEY_RADIUS];
 	[systemdata setObject:name					forKey:KEY_NAME];
+	[systemdata setObject:inhabitant			forKey:KEY_INHABITANT];
 	[systemdata setObject:inhabitants			forKey:KEY_INHABITANTS];
 	[systemdata setObject:description			forKey:KEY_DESCRIPTION];
 	
@@ -5934,7 +5951,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 	cachedResult = [systemdata copy];
 	[systemdata release];
-	
+
 	return cachedResult;
 }
 
@@ -6026,11 +6043,25 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
 {
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	BOOL sameGalaxy=equal_seeds(galaxy_seed,[player galaxy_seed]);
+	// long range map fixes
+	if ([key isEqualToString:KEY_NAME])
+	{	
+		object=(id)[[(NSString *)object lowercaseString] capitalizedString];
+		if(sameGalaxy)
+		{
+			if (system_names[pnum]) [system_names[pnum] release];
+			system_names[pnum] = [(NSString *)object retain];
+		}
+	}
 	[self setObject:object forKey:key forPlanetKey:overrideKey];
+	if (sameGalaxy) // refresh the current systemData cache!
+		[self generateSystemData:system_seed useCache:NO];
 }
 
 
-- (NSString *) getSystemName:(Random_Seed) s_seed
+- (NSString *) getSystemName:(Random_Seed)s_seed
 {
 	return	[[self generateSystemData:s_seed] stringForKey:KEY_NAME];
 }
@@ -6038,7 +6069,19 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
 {
-	return	[[self generateSystemData:s_seed] stringForKey:KEY_INHABITANTS];
+	[self getSystemInhabitants:s_seed plural:YES];
+}
+
+
+- (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural
+{	
+	NSString *ret = nil;
+	if (!plural)
+		ret = [[self generateSystemData:s_seed] stringForKey:KEY_INHABITANT];
+	if (ret != nil) // the singular form might be absent.
+		return ret;
+	else
+		return [[self generateSystemData:s_seed] stringForKey:KEY_INHABITANTS];
 }
 
 
@@ -6108,22 +6151,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL) plural
+- (NSString *) generateSystemInhabitants:(Random_Seed)s_seed plural:(BOOL)plural
 {
 	NSMutableString	*inhabitants = [NSMutableString string];
 	NSArray			*inhabitantStrings = nil;
 	//i18n: Some languages have different plural and singular forms for adjectives.
 	BOOL			singularAdjectivesExist = NO;
 	
+	// getSystemInhabitants is now used in most cases, to enable plist overrides.
 	if (s_seed.e < 127)
 	{
-		// TODO: use plist
 		[inhabitants appendString:DESC_PLURAL(@"human-colonial-description", plural ? -1 : 1)];
 	}
 	else
 	{
 		inhabitantStrings = [[self descriptions] arrayForKey:KEY_INHABITANTS];
-		
 		// The first 5 arrays in 'inhabitants' are the standard ones, anything else below is language specific
 		// and will refer to the different singular forms for the particular language we are translating to.
 		// If this is the case, three more arrays are expected, raising the total count of subarrays to 8.
@@ -6319,26 +6361,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 	NSPoint system_coords = NSMakePoint(-1.0,-1.0);
 	int i;
-	int n_matches = 0;
 	int result = -1;
 	for (i = 0; i < 256; i++)
 	{
 		system_found[i] = NO;
 		if ([[system_names[i] lowercaseString] hasPrefix:p_fix])
 		{
-			system_found[i] = ([p_fix length] > 2);
+			system_found[i] = YES;
 			if (result < 0)
 			{
 				system_coords.x = systems[i].d;
 				system_coords.y = systems[i].b;
 				result = i;
 			}
-			n_matches++;
 		}
 	}
-	if (n_matches == 1)
-		system_found[result] = YES;	// no matter how few letters
-	
 	return system_coords;
 }
 
@@ -6667,7 +6704,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	// to give a time somewhen in the 97 days before and after the current_time
 	
 	int start = [self findSystemNumberAtCoords:NSMakePoint(s_seed.d, s_seed.b) withGalaxySeed:galaxy_seed];
-	NSString* native_species = [self generateSystemInhabitants:s_seed plural:NO];
+	NSString* native_species = [self getSystemInhabitants:s_seed plural:NO];
 	
 	// adjust basic seed by market random factor
 	Random_Seed passenger_seed = s_seed;
@@ -6708,10 +6745,10 @@ double estimatedTimeForJourney(double distance, int hops)
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
 			NSString* passenger_species_string = [NSString stringWithString:native_species];
 			if (passenger_species == 2)
-				passenger_species_string = DESC(@"human-colonial-description");
+				passenger_species_string = DESC(@"human-colonial-description%0");
 			if (passenger_species == 3)
 			{
-				passenger_species_string = [self generateSystemInhabitants:passenger_seed plural:NO];
+				passenger_species_string = [self getSystemInhabitants:passenger_seed plural:NO];
 			}
 			if(!lowercaseIgnore)
 			{
@@ -6735,7 +6772,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			// some routes are impossible!
 			if (routeInfo)
 			{
-				NSString* destination_name = [self generateSystemName:destination_seed];
+				NSString* destination_name = [self getSystemName:destination_seed];
 				
 				double route_length = [routeInfo doubleForKey:@"distance"];
 				int route_hops = [[routeInfo arrayForKey:@"route"] count] - 1;
@@ -6999,7 +7036,7 @@ double estimatedTimeForJourney(double distance, int hops)
 					// some routes are impossible!
 					if (routeInfo)
 					{
-						NSString *destination_name = [self generateSystemName:destination_seed];
+						NSString *destination_name = [self getSystemName:destination_seed];
 						
 						double route_length = [routeInfo doubleForKey:@"distance"];
 						int route_hops = [[routeInfo arrayForKey:@"route"] count] - 1;

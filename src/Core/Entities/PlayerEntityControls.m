@@ -1375,6 +1375,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
+				[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
 				planetSearchString = nil;
 			}
 			
@@ -1420,6 +1421,7 @@ static NSTimeInterval	time_last_frame;
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
 					[gameView clearMouse];
+					[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
 					[self setGuiToSystemDataScreen];
 				}
 				if ([gameView isDown:key_map_home])
