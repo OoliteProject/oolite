@@ -806,7 +806,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
 	if ([self cargoList] != nil)
 	{
-		[self removeAllCargo:YES];		// force removal of cargo even
+		[self removeAllCargo:YES];		// force removal of cargo
 	}
 	
 	[ship_desc release];
