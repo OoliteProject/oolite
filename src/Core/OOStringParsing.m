@@ -251,11 +251,18 @@ NSString *StringFromRandomSeed(Random_Seed seed)
 
 NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 {
+	return ExpandDescriptionForSeedName(text, seed, nil);
+
+}
+
+
+NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSString *name)
+{
 	// to enable variables to return strings that can be expanded (eg. @"[commanderName_string]")
 	// we're going to loop until every expansion has been done!
 	// but to check this does not infinitely recurse
 	// we'll stop after 32 loops.
-	
+
 	if (text == nil)  return nil;
 	
 	int stack_check = 32;
@@ -265,7 +272,7 @@ NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed)
 	do
 	{
 		old_desc = result;
-		result = ExpandDescriptionsWithLocalsForSystemSeed(result, seed, nil);
+		result = ExpandDescriptionsWithLocalsForSystemSeedName(result, seed, nil, name);
 	} while (--stack_check && ![result isEqual:old_desc]);
 	
 	if (!stack_check)
@@ -286,6 +293,12 @@ NSString *ExpandDescriptionForCurrentSystem(NSString *text)
 
 NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals)
 {
+	return ExpandDescriptionsWithLocalsForSystemSeedName(text, seed, locals, nil);
+}
+
+
+NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *locals, NSString *pName)
+{
 	PlayerEntity		*player = [PlayerEntity sharedPlayer];
 	NSMutableString		*partial = [[text mutableCopy] autorelease];
 	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
@@ -299,7 +312,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	
 	// add in player info if required
 	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
-	
+
 	if ([text rangeOfString:@"[commander_"].location != NSNotFound)
 	{
 		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
@@ -308,7 +321,8 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
 		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
 	}
-	
+	if (pName == nil) pName=[UNIVERSE getSystemName:seed];
+
 	while ([partial rangeOfString:@"["].location != NSNotFound)
 	{
 		p1 = [partial rangeOfString:@"["].location;
@@ -382,11 +396,11 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed 
 	}
 		
 	[partial	replaceOccurrencesOfString:@"%H"
-				withString:[UNIVERSE generateSystemName:seed]
+				withString:pName
 				options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%I"
-				withString:[NSString stringWithFormat:@"%@%@",[UNIVERSE generateSystemName:seed], DESC(@"planetname-derivative-suffix")]
+				withString:[NSString stringWithFormat:@"%@%@",pName, DESC(@"planetname-derivative-suffix")]
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
 	
 	[partial	replaceOccurrencesOfString:@"%R"
@@ -407,16 +421,16 @@ NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDiction
 }
 
 
-NSString *DescriptionForSystem(Random_Seed seed)
+NSString *DescriptionForSystem(Random_Seed seed,NSString *name)
 {
 	seed_RNG_only_for_planet_description(seed);
-	return ExpandDescriptionForSeed(@"[system-description-string]", seed);
+	return ExpandDescriptionForSeedName(@"[system-description-string]", seed, name);
 }
 
 
 NSString *DescriptionForCurrentSystem(void)
 {
-	return DescriptionForSystem([[PlayerEntity sharedPlayer] system_seed]);
+	return DescriptionForSystem([[PlayerEntity sharedPlayer] system_seed], [UNIVERSE getSystemName:[[PlayerEntity sharedPlayer] system_seed]]);
 }
 
 

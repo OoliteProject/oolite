@@ -5905,7 +5905,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
 		if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return [[cachedResult retain] autorelease];
 	}
-	
+
 	[cachedResult release];
 	cachedResult = nil;
 	cachedSeed = s_seed;
@@ -5929,8 +5929,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	NSString *name = [self generateSystemName:s_seed];
 	NSString *inhabitant = [self generateSystemInhabitants:s_seed plural:NO];
 	NSString *inhabitants = [self generateSystemInhabitants:s_seed plural:YES];
-	NSString *description = DescriptionForSystem(s_seed);
-	
+	NSString *description = DescriptionForSystem(s_seed,name); //avoids parsestring recursion
+
 	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
 	
 	[systemdata setUnsignedInteger:government	forKey:KEY_GOVERNMENT];
@@ -5954,7 +5954,13 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
 	overrides = [localPlanetInfoOverrides dictionaryForKey:override_key];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-
+	
+	// check if the description needs to be recalculated
+	if ([description isEqual:[systemdata stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata stringForKey:KEY_NAME]])
+	{
+		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
+	}
+	
 	cachedResult = [systemdata copy];
 	[systemdata release];
 
@@ -6069,7 +6075,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) getSystemName:(Random_Seed)s_seed
 {
-	return	[[self generateSystemData:s_seed] stringForKey:KEY_NAME];
+	return [[self generateSystemData:s_seed] stringForKey:KEY_NAME];
 }
 
 

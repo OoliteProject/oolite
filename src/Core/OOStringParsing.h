@@ -50,12 +50,14 @@ NSString *StringFromRandomSeed(Random_Seed seed);
 
 
 NSString *ExpandDescriptionForSeed(NSString *text, Random_Seed seed);
+NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSString *name);
 NSString *ExpandDescriptionForCurrentSystem(NSString *text);
 
 NSString *ExpandDescriptionsWithLocalsForSystemSeed(NSString *text, Random_Seed seed, NSDictionary *locals);
+NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_Seed seed, NSDictionary *locals, NSString *name);
 NSString *ExpandDescriptionsWithLocalsForCurrentSystem(NSString *text, NSDictionary *locals);
 
-NSString *DescriptionForSystem(Random_Seed seed);
+NSString *DescriptionForSystem(Random_Seed seed,NSString *name);
 NSString *DescriptionForCurrentSystem(void);
 
 // target and localVariables are optional; target will default to the player.
