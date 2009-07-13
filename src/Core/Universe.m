@@ -1453,61 +1453,64 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	}
 	
 	// add the raiders to route1 (witchspace exit to space-station / planet)
-	OOShipGroup *wolfpackGroup = [OOShipGroup groupWithName:@"raider wolfpack"];
-	for (i = 0; (i < raiding_parties)&&(!sunGoneNova); i++)
+	// Eric 2009-07-13: reordered the wolfpack addition code for the new group code so each wolfpack group stays a seperate group.
+	i = 0;
+	while ((i < raiding_parties)&&(!sunGoneNova))
 	{
-		pool = [[NSAutoreleasePool alloc] init];
+		OOShipGroup *wolfpackGroup = [OOShipGroup groupWithName:@"raider wolfpack"];
+		wolfPackCounter = 0;
 		
-		ShipEntity  *pirate_ship;
 		launchPos = h1_pos;
-		if ((i > 0)&&((Ranrot() & 7) > wolfPackCounter))
+		// random group position along route1
+		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
+		double ship_location = d_route1 * r / total_clicks;
+		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		lastPiratePosition = launchPos;
+
+		while (((Ranrot() & 7) > wolfPackCounter || wolfPackCounter == 0) && i < raiding_parties)
 		{
-			// use last position
+			pool = [[NSAutoreleasePool alloc] init];
+			
+			ShipEntity  *pirate_ship;
+			// use last group position
 			launchPos = lastPiratePosition;
 			launchPos.x += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1; // pack them closer together
 			launchPos.y += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
 			launchPos.z += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
 			wolfPackCounter++;
-		}
-		else
-		{
-			// random position along route1
-			r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
-			double ship_location = d_route1 * r / total_clicks;
-			launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			launchPos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			lastPiratePosition = launchPos;
-			wolfPackCounter = 0;
-		}
-		pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
-		if (pirate_ship)
-		{
-			if (![pirate_ship crew])
+
+			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
+			if (pirate_ship)
 			{
-				[pirate_ship setCrew:[NSArray arrayWithObject:
-					[OOCharacter randomCharacterWithRole:@"pirate"
-					andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
+				if (![pirate_ship crew])
+				{
+					[pirate_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole:@"pirate"
+						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
+				}
+				
+				if (pirate_ship->scanClass == CLASS_NOT_SET)
+				{
+					[pirate_ship setScanClass: CLASS_NEUTRAL];
+				}
+				[pirate_ship setPosition:launchPos];
+				[pirate_ship setStatus:STATUS_IN_FLIGHT];
+				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
+				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+				
+				[self addEntity:pirate_ship];
+				
+				[pirate_ship setGroup:wolfpackGroup];
+				
+				[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				[pirate_ship release];
 			}
 			
-			if (pirate_ship->scanClass == CLASS_NOT_SET)
-			{
-				[pirate_ship setScanClass: CLASS_NEUTRAL];
-			}
-			[pirate_ship setPosition:launchPos];
-			[pirate_ship setStatus:STATUS_IN_FLIGHT];
-			[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
-			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
-			
-			[self addEntity:pirate_ship];
-			
-			[pirate_ship setGroup:wolfpackGroup];
-			
-			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-			[pirate_ship release];
+			[pool release];
+			i++;
 		}
-		
-		[pool release];
 	}
 	
 	// add the hunters and police ships to route1 (witchspace exit to space-station / planet)
@@ -1690,58 +1693,61 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	}
 	
 	// add the raiders to route2
-	for (i = 0; (i < skim_raiding_parties)&&(!sunGoneNova); i++)
+	i = 0;
+	while ((i < skim_raiding_parties)&&(!sunGoneNova))
 	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		ShipEntity*	pirate_ship;
+		OOShipGroup *wolfpackGroup = [OOShipGroup groupWithName:@"raider wolfpack"];
+		wolfPackCounter = 0;
+
 		Vector		launchPos = p1_pos;
-		if ((i > 0)&&((Ranrot() & 7) > wolfPackCounter))
+		// random position along route2
+		double		start = 4.0 * [[self planet] radius];
+		double		end = 3.0 * [[self sun] radius];
+		double		maxLength = d_route2 - (start + end);
+		double		ship_location = randf() * maxLength + start;
+		launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		lastPiratePosition = launchPos;
+
+		while (((Ranrot() & 7) > wolfPackCounter || wolfPackCounter == 0) && i < skim_raiding_parties)
 		{
+			pool = [[NSAutoreleasePool alloc] init];
+			
+			ShipEntity*	pirate_ship;
 			// use last position
 			launchPos = lastPiratePosition;
 			launchPos.x += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1; // pack them closer together
 			launchPos.y += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
 			launchPos.z += SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5)*0.1;
 			wolfPackCounter++;
-		}
-		else
-		{
-			// random position along route2
-			double		start = 4.0 * [[self planet] radius];
-			double		end = 3.0 * [[self sun] radius];
-			double		maxLength = d_route2 - (start + end);
-			double		ship_location = randf() * maxLength + start;
-			launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-			lastPiratePosition = launchPos;
-			wolfPackCounter = 0;
-		}
-		pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
-		if (pirate_ship)
-		{
-			if (![pirate_ship crew])
-				[pirate_ship setCrew:[NSArray arrayWithObject:
-					[OOCharacter randomCharacterWithRole:@"pirate"
-					andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 
-			if (pirate_ship->scanClass == CLASS_NOT_SET)
-				[pirate_ship setScanClass: CLASS_NEUTRAL];
-			[pirate_ship setPosition: launchPos];
-			[pirate_ship setStatus: STATUS_IN_FLIGHT];
-			[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
-			[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+			pirate_ship = [self newShipWithRole:@"pirate"];   // retain count = 1
+			if (pirate_ship)
+			{
+				if (![pirate_ship crew])
+					[pirate_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole:@"pirate"
+						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 
-			[self addEntity:pirate_ship];
+				if (pirate_ship->scanClass == CLASS_NOT_SET)
+					[pirate_ship setScanClass: CLASS_NEUTRAL];
+				[pirate_ship setPosition: launchPos];
+				[pirate_ship setStatus: STATUS_IN_FLIGHT];
+				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
+				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+
+				[self addEntity:pirate_ship];
+				
+				[pirate_ship setGroup:wolfpackGroup];
+				
+				[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				[pirate_ship release];
+			}
 			
-			[pirate_ship setGroup:wolfpackGroup];
-			
-			[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-			[pirate_ship release];
+			[pool release];
+			i++;
 		}
-		
-		[pool release];
 	}
 	
 	// add the hunters and police ships to route2
