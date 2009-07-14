@@ -2719,7 +2719,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double max_cos = 0.995;
 	double distance = [self rangeToDestination];
 	desired_speed = 0.0;
-	if (desired_range > 1.0)
+	if (desired_range > 1.0 && distance > desired_range)
 		max_cos = sqrt(1 - desired_range*desired_range/(distance * distance));
 	else
 		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
@@ -2731,6 +2731,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
 	}
+
+	frustration += delta_t;
+	if (frustration > 15.0 / max_flight_pitch)	// allow more time for slow ships.
+	{
+		[shipAI reactToMessage:@"FRUSTRATED"];
+		frustration = 0.0;
+	}	
+	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
@@ -5853,8 +5861,9 @@ BOOL class_masslocks(int some_class)
 
 	relPos = vector_subtract(destination, position);
 	double range2 = magnitude2(relPos);
+	double desired_range2 = desired_range*desired_range;
 
-	max_cos = sqrt(1 - desired_range*desired_range/range2);
+	if (range2 > desired_range2) max_cos = sqrt(1 - desired_range2/range2);
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
