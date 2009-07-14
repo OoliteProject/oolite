@@ -584,6 +584,9 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path)
 
 #if OOLITE_MAC_OS_X
 
+static void ExcludeFromTimeMachine(NSString *path);
+
+
 NSString *OOLogHandlerGetLogBasePath(void)
 {
 	static NSString		*basePath = nil;
@@ -600,11 +603,27 @@ NSString *OOLogHandlerGetLogBasePath(void)
 		// ~/Library/Logs/Oolite
 		basePath = [basePath stringByAppendingPathComponent:GetAppName()];
 		if (!DirectoryExistCreatingIfNecessary(basePath))  return nil;
+		ExcludeFromTimeMachine(basePath);
 		
 		[basePath retain];
 	}
 	
 	return basePath;
+}
+
+
+static void ExcludeFromTimeMachine(NSString *path)
+{
+	OSStatus (*CSBackupSetItemExcluded)(NSURL *item, Boolean exclude, Boolean excludeByPath) = NULL;
+	CFBundleRef carbonCoreBundle = CFBundleGetBundleWithIdentifier(CFSTR("com.apple.CoreServices.CarbonCore"));
+	if (carbonCoreBundle)
+	{
+		CSBackupSetItemExcluded = CFBundleGetFunctionPointerForName(carbonCoreBundle, CFSTR("CSBackupSetItemExcluded"));
+		if (CSBackupSetItemExcluded != NULL)
+		{
+			(void)CSBackupSetItemExcluded([NSURL fileURLWithPath:path], YES, NO);
+		}
+	}
 }
 
 

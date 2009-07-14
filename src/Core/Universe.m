@@ -8510,7 +8510,16 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 	// are we using an older descriptions.plist (1.72.x) ?
 	NSString *tmp = [UNIVERSE descriptionForKey:key];
 	if (tmp != nil)
-		OOLogWARN(@"localization.plurals", @"'%@' found in descriptions.plist, should be '%@%%0'. Localization data needs updating.",key,key);
+	{
+		static NSMutableSet *warned = nil;
+		
+		if (![warned containsObject:tmp])
+		{
+			OOLogWARN(@"localization.plurals", @"'%@' found in descriptions.plist, should be '%@%%0'. Localization data needs updating.",key,key);
+			if (warned == nil)  warned = [[NSMutableSet alloc] init];
+			[warned addObject:tmp];
+		}
+	}
 
 	if (conditions == nil)
 	{
