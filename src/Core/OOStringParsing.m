@@ -96,7 +96,7 @@ BOOL ScanVectorFromString(NSString *xyzString, Vector *outVector)
 	}
 	else
 	{
-		 OOLog(kOOLogStringVectorConversion, @"***** ERROR: cannot make vector from '%@': %@", xyzString, error);
+		 OOLogERR(kOOLogStringVectorConversion, @"cannot make vector from '%@': %@", xyzString, error);
 		 return NO;
 	}
 }
@@ -131,7 +131,7 @@ BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 	}
 	else
 	{
-		OOLog(kOOLogStringQuaternionConversion, @"***** ERROR: cannot make quaternion from '%@': %@", wxyzString, error);
+		OOLogERR(kOOLogStringQuaternionConversion, @"cannot make quaternion from '%@': %@", wxyzString, error);
 		return NO;
 	}
 }
@@ -156,7 +156,7 @@ BOOL ScanVectorAndQuaternionFromString(NSString *xyzwxyzString, Vector *outVecto
 	
 	if (error)
 	{
-		OOLog(kOOLogStringQuaternionConversion, @"***** ERROR: cannot make vector and quaternion from '%@': %@", xyzwxyzString, error);
+		OOLogERR(kOOLogStringQuaternionConversion, @"cannot make vector and quaternion from '%@': %@", xyzwxyzString, error);
 		return NO;
 	}
 	
@@ -235,7 +235,7 @@ Random_Seed RandomSeedFromString(NSString *abcdefString)
 	}
 	else
 	{
-		OOLog(kOOLogStringRandomSeedConversion, @"***** ERROR: cannot make Random_Seed from '%@': %@", abcdefString, error);
+		OOLogERR(kOOLogStringRandomSeedConversion, @"cannot make Random_Seed from '%@': %@", abcdefString, error);
 		result = kNilRandomSeed;
 	}
 	
@@ -278,7 +278,7 @@ NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSStrin
 	if (!stack_check)
 	{
 		// If we get here, we broke the loop due to recursion; the resulting string will have [expansionKey]s in it.
-		OOLog(kOOLogExpandDescriptionsRecursionLimitExceeded, @"***** ERROR: exceeded recusion limit trying to expand description \"%@\"", text);
+		OOLogERR(kOOLogExpandDescriptionsRecursionLimitExceeded, @"exceeded recusion limit trying to expand description \"%@\"", text);
 	}
 	
 	return result;
@@ -402,7 +402,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	[partial	replaceOccurrencesOfString:@"%I"
 				withString:[NSString stringWithFormat:@"%@%@",pName, DESC(@"planetname-derivative-suffix")]
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
-	
+
 	[partial	replaceOccurrencesOfString:@"%R"
 								withString:OldRandomDigrams()
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
@@ -410,6 +410,71 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	[partial	replaceOccurrencesOfString:@"%N"
 								withString:NewRandomDigrams()
 								   options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+
+
+	// Now replace  all occurrences of %J000 to %J255 with the corresponding  system name. 
+
+	NSRange foundToken, foundID;
+	NSString *stringID=@"";
+	char s;
+	BOOL err=NO;
+	int intVal;
+
+    foundToken = [partial rangeOfString:@"%J"];
+
+    while (foundToken.location != NSNotFound)
+    {
+		foundID=NSMakeRange(foundToken.location+2,3);
+		if(foundID.location+3 > [partial length])
+		{
+			err = YES;
+			stringID=[partial substringFromIndex:foundID.location];
+		}
+		else
+		{
+			stringID = [partial substringWithRange:foundID];
+			// these 3 characters must be numerical: 000 to 255
+			s=[stringID characterAtIndex:0];
+			if (s < '0' || s > '2') err = YES;
+			s=[stringID characterAtIndex:1];
+			if (s < '0' || s > '9') err = YES;
+			s=[stringID characterAtIndex:2];
+			if (s < '0' || s > '9') err = YES;
+			if (!err)
+			{
+				intVal = [stringID intValue];
+				if ( intVal < 256 )
+				{
+					[partial	replaceOccurrencesOfString:[NSString stringWithFormat:@"%%J%@",stringID]
+							withString:[UNIVERSE getSystemName:[UNIVERSE systemSeedForSystemNumber:(OOSystemID)intVal]] 
+							options:NSLiteralSearch range:NSMakeRange(0, [partial length])];
+				}
+				else
+					err = YES;
+			}
+		}
+		if (err)
+		{
+			static NSMutableSet *warned = nil;
+			if (![warned containsObject:stringID])
+			{
+				OOLogWARN(@"strings.expand", @"'%%J%@' not a planetary system number - use %Jxxx, where xxx is a number from 000 to 255",stringID);
+				if (warned == nil)  warned = [[NSMutableSet alloc] init];
+				[warned addObject:stringID];
+			}
+			err = NO; // keep parsing the string for other %J tokens!
+		}
+
+		if (foundID.location + 5 > [partial length])
+		{
+			foundToken.location=NSNotFound;
+		}
+		else
+		{
+			foundToken = [[partial substringFromIndex:foundID.location] rangeOfString:@"%J"];
+			if (foundToken.location!=NSNotFound) foundToken.location += foundID.location;
+		}
+    }
 
 	return partial; 
 }
