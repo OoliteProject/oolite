@@ -2728,7 +2728,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired facing achieved
 		[shipAI message:@"FACING_DESTINATION"];
-		behaviour = BEHAVIOUR_IDLE;
+		if(docking_match_rotation)  // IDLE stops rotating while docking
+		{
+			behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
+		}
+		else
+		{
+			behaviour = BEHAVIOUR_IDLE;
+		}
 		frustration = 0.0;
 	}
 
@@ -2767,9 +2774,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired range achieved
 		[shipAI message:@"DESIRED_RANGE_ACHIEVED"];
-		behaviour = BEHAVIOUR_IDLE;
+		if(!docking_match_rotation) // IDLE stops rotating while docking
+		{
+			behaviour = BEHAVIOUR_IDLE;
+			desired_speed = 0.0;
+		}
 		frustration = 0.0;
-		desired_speed = 0.0;
 	}
 	else
 	{

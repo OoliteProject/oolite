@@ -52,6 +52,7 @@
 		ENTER = (performFaceDestination, dockEscorts);
 		FRUSTRATED = ("setSpeedTo: 0.0", performFaceDestination);
 		"FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination);
+		"FRUSTRATED" = (recallDockingInstructions, performFlyToRangeFromDestination);
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
