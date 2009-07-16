@@ -125,12 +125,12 @@ MA 02110-1301, USA.
 	   // it probably doesn't exist.
 		if (![self createDirectoryAtPath: savedir attributes: nil])
 		{
-			OOLog(@"savedGame.defaultPath.create.failed", @"Unable to create directory %@", savedir);
+			OOLog(@"savedSnapshot.defaultPath.create.failed", @"Unable to create directory %@", savedir);
 			return NO;
 		}
 		if (![self changeCurrentDirectoryPath: savedir])
 		{
-			OOLog(@"savedGame.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
+			OOLog(@"savedSnapshot.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
 			return NO;
 		}
 	}
