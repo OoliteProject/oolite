@@ -36,42 +36,6 @@ MA 02110-1301, USA.
 
 @implementation NSFileManager (OOExtensions)
 
-- (NSArray *)commanderContents
-{
-	if ([self chdirToDefaultCommanderPath])
-	{
-		NSMutableArray *contents = [NSMutableArray arrayWithArray:[self directoryContentsAtPath: @"."]];
-		
-		// at this point we should strip out any files not loadable as Oolite saved games
-		unsigned i;
-		for (i = 0; i < [contents count]; i++)
-		{
-			NSString *path = (NSString*)[contents objectAtIndex:i];
-			
-			// check file extension
-			if (![[path pathExtension] isEqual:@"oolite-save"])
-			{
-				OOLog(@"savedGame.read.fail.notOoliteSave", @">>>> %@ is not a saved game.", path);
-				[contents removeObjectAtIndex: i--];
-				continue;
-			}
-			
-			// check can parse the file okay
-			NSDictionary *cdr = OODictionaryFromFile(path); 
-			if (!cdr)
-			{
-				OOLog(@"savedGame.read.fail.notDictionary", @">>>> %@ could not be parsed as a saved game.", path);
-				[contents removeObjectAtIndex: i--];
-				continue;
-			}
-			
-		}
-		return contents;
-	}
-	return nil;
-}
-
-
 - (NSArray *) commanderContentsOfPath:(NSString*) savePath
 {
 	BOOL pathIsDirectory = NO;
@@ -118,28 +82,6 @@ MA 02110-1301, USA.
 		OOLogERR(@"savedGame.read.fail.fileNotFound", @"File at path '%@' could not be found.", savePath);
 		return nil;
 	}
-}
-
-
-- (BOOL)chdirToDefaultCommanderPath
-{
-	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR];
-	if (![self changeCurrentDirectoryPath: savedir])
-	{
-	   // it probably doesn't exist.
-		if (![self createDirectoryAtPath: savedir attributes: nil])
-		{
-			OOLog(@"savedGame.defaultPath.create.failed", @"Unable to create directory %@", savedir);
-			return NO;
-		}
-		if (![self changeCurrentDirectoryPath: savedir])
-		{
-			OOLog(@"savedGame.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
-			return NO;
-		}
-	}
-	
-	return YES;
 }
 
 

@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOOXPVerifier.h"
 #import "OOLoggingExtended.h"
+#import "NSFileManagerOOExtensions.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -521,8 +522,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	// empty the event queue and strip all keys - stop problems with hangover keys
 	{
 		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-		NSEvent *event;
-		while ((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES]));
+		
+		while ([NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES] != NULL)  {}
+		
 		[pool release];
 		[gameView clearKeys];
 	}
@@ -969,26 +971,44 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	if (playerFileToLoad)
 		[playerFileToLoad autorelease];
 	playerFileToLoad = nil;
-	if ([[filename pathExtension] isEqual:@"oolite-save"])
+	if ([[[filename pathExtension] lowercaseString] isEqual:@"oolite-save"])
 		playerFileToLoad = [[NSString stringWithString:filename] retain];
 }
 
 
 - (NSString *) playerFileDirectory
 {
+	if (playerFileDirectory == nil)
+	{
+		playerFileDirectory = [[NSUserDefaults standardUserDefaults] stringForKey:@"save-directory"];
+		if (playerFileDirectory != nil && ![[NSFileManager defaultManager] fileExistsAtPath:playerFileDirectory])
+		{
+			playerFileDirectory = nil;
+		}
+		if (playerFileDirectory == nil)  playerFileDirectory = [[NSFileManager defaultManager] defaultCommanderPath];
+		
+		[playerFileDirectory retain];
+	}
+	
 	return playerFileDirectory;
 }
 
 
 - (void) setPlayerFileDirectory:(NSString *)filename
 {	
-	if (playerFileDirectory)
+	if (playerFileDirectory != nil)
+	{
 		[playerFileDirectory autorelease];
-	playerFileDirectory = nil;
-	if ([[filename pathExtension] isEqual:@"oolite-save"])
-		playerFileDirectory = [[filename stringByDeletingLastPathComponent] retain];
-	else
-		playerFileDirectory = [filename retain];
+		playerFileDirectory = nil;
+	}
+	
+	if ([[[filename pathExtension] lowercaseString] isEqual:@"oolite-save"])
+	{
+		filename = [filename stringByDeletingLastPathComponent];
+	}
+	
+	playerFileDirectory = [filename retain];
+	[[NSUserDefaults standardUserDefaults] setObject:filename forKey:@"save-directory"];
 }
 
 

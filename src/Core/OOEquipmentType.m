@@ -206,8 +206,8 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			}
 			
 			object = [extra objectForKey:@"conditions"];
-			if ([object isKindOfClass:[NSString class]])  conditions = [[NSArray arrayWithObject:object] retain];
-			else if ([object isKindOfClass:[NSArray class]])  conditions = [object retain];
+			if ([object isKindOfClass:[NSString class]])  conditions = [NSArray arrayWithObject:object];
+			else if ([object isKindOfClass:[NSArray class]])  conditions = object;
 			else if (object != nil)
 			{
 				OOLog(@"equipment.load", @"***** ERROR: %@ for equipment item %@ is not a string or an array.", @"conditions", _identifier);

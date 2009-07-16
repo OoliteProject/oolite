@@ -135,7 +135,6 @@
 	NSString		*tmp_path = nil;
 	NSString		*tmp_name = nil;
 	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	tmp_name = player_name;
 	tmp_path = save_path;
@@ -145,7 +144,7 @@
 	
 	[player_name autorelease];
 	player_name = [saveName copy];
-
+	
 	[self writePlayerToPath:savePath];
 	
 	if (tmp_path != nil)
@@ -182,7 +181,6 @@
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	int idx;
 	if([self handleGUIUpDownArrowKeys])
@@ -263,7 +261,6 @@
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	NSString		*dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)  dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	if ([self handleGUIUpDownArrowKeys])
 	{
@@ -589,7 +586,6 @@
 - (void)nativeSavePlayer:(NSString *)cdrName
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	NSString *savePath = [dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	
@@ -605,8 +601,6 @@
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
-	
 	
 	gui_screen = GUI_SCREEN_LOAD;
 	
@@ -616,7 +610,7 @@
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
 	
-	[(MyOpenGLView *)[UNIVERSE gameView] supressKeysUntilKeyUp];
+	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];
@@ -628,14 +622,10 @@
 - (void) setGuiToSaveCommanderScreen: (NSString *)cdrName
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
-	MyOpenGLView*	gameView = (MyOpenGLView*)[UNIVERSE gameView];
+	MyOpenGLView*	gameView = [UNIVERSE gameView];
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
-	
-	// Don't poll controls
-	pollControls=NO;
-	
+	pollControls = NO;
 	gui_screen = GUI_SCREEN_SAVE;
 	
 	[gui clear];
@@ -662,7 +652,7 @@
 - (void) setGuiToOverwriteScreen: (NSString *)cdrName
 {
 	GuiDisplayGen *gui=[UNIVERSE gui];
-	MyOpenGLView*	gameView = (MyOpenGLView*)[UNIVERSE gameView];
+	MyOpenGLView*	gameView = [UNIVERSE gameView];
 	
 	// Don't poll controls
 	pollControls=NO;
@@ -866,7 +856,6 @@
 - (BOOL) existingNativeSave: (NSString *)cdrName
 {
 	NSString*	dir = [[UNIVERSE gameController] playerFileDirectory];
-	if (!dir)	dir = [[NSFileManager defaultManager] defaultCommanderPath];
 	
 	NSString *savePath=[dir stringByAppendingPathComponent:[cdrName stringByAppendingPathExtension:@"oolite-save"]];
 	return [[NSFileManager defaultManager] fileExistsAtPath:savePath];

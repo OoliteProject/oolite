@@ -236,6 +236,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	}
 	
 	// If we get here, the file wasn't found in the OXP.
+	// FIXME: should check case for built-in files.
 	if (checkBuiltIn)  return [ResourceManager pathForFileNamed:file inFolder:folder];
 	
 	return nil;

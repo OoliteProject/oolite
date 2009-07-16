@@ -32,10 +32,8 @@ MA 02110-1301, USA.
 
 @interface NSFileManager (OOExtensions)
 
-- (NSArray*)	commanderContents;
-- (NSArray*)	commanderContentsOfPath:(NSString*) savePath;
-- (BOOL)	chdirToDefaultCommanderPath;
-- (NSString*)	defaultCommanderPath;
+- (NSArray*) commanderContentsOfPath:(NSString*) savePath;
+- (NSString*) defaultCommanderPath;
 
 @end
 

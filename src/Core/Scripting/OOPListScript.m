@@ -137,6 +137,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 				if (script != nil)
 				{
 					[result addObject:script];
+					[script release];
 				}
 			}
 		}
