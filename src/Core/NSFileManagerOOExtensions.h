@@ -29,11 +29,13 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 
 #define SAVEDIR "oolite-saves"
+#define SNAPSHOTDIR "snapshots"
 
 @interface NSFileManager (OOExtensions)
 
 - (NSArray*) commanderContentsOfPath:(NSString*) savePath;
 - (NSString*) defaultCommanderPath;
+- (BOOL)chdirToSnapshotPath;
 
 @end
 

@@ -766,7 +766,7 @@ MA 02110-1301, USA.
 
 	// save in the oolite-saves directory.
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
-	[[NSFileManager defaultManager] chdirToDefaultCommanderPath];
+	[[NSFileManager defaultManager] chdirToSnapshotPath];
 
 	int imageNo = 1;
 
@@ -1182,6 +1182,8 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_z: KEYCODE_DOWN_EITHER (90, 122); break;		// Z or z
 						//SDLK_BACKQUOTE is a special case. No SDLK_ with code 126 exists.
 					case SDLK_BACKQUOTE: if (!shift) keys[96] = YES; break;		// ` 
+					case SDLK_LEFTBRACKET: keys[91] = YES; break;
+					case SDLK_RIGHTBRACKET: keys[93] = YES; break;
 					case SDLK_HOME: keys[gvHomeKey] = YES; break;	
 					case SDLK_SPACE: keys[32] = YES; break;
 					case SDLK_RETURN: keys[13] = YES; break;

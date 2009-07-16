@@ -115,6 +115,29 @@ MA 02110-1301, USA.
 	return savedir;
 }
 
+
+- (BOOL)chdirToSnapshotPath
+{
+	// default path for snapshots is oolite.app/oolite-saves/snapshots
+	NSString *savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	if (![self changeCurrentDirectoryPath: savedir])
+	{
+	   // it probably doesn't exist.
+		if (![self createDirectoryAtPath: savedir attributes: nil])
+		{
+			OOLog(@"savedGame.defaultPath.create.failed", @"Unable to create directory %@", savedir);
+			return NO;
+		}
+		if (![self changeCurrentDirectoryPath: savedir])
+		{
+			OOLog(@"savedGame.defaultPath.chdir.failed", @"Created %@ but couldn't make it the current directory.", savedir);
+			return NO;
+		}
+	}
+	
+	return YES;
+}
+
 @end
 
 
