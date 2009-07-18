@@ -2421,7 +2421,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double	slow_down_range = weaponRange * COMBAT_WEAPON_RANGE_FACTOR * ((isUsingAfterburner)? 3.0 * [self afterburnerFactor] : 1.0);
 	ShipEntity*	target = [UNIVERSE entityForUniversalID:primaryTarget];
 	double target_speed = [target speed];
+		double last_success_factor = success_factor; // EW
 	double distance = [self rangeToDestination];
+		success_factor = distance; // EW
+		
 	if (range < slow_down_range)
 	{
 		desired_speed = OOMax_d(target_speed, 0.4 * maxFlightSpeed);
@@ -2457,7 +2460,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		destination = [target distance_twelve:1250];
 	}
 
-	[self trackDestination:delta_t :NO];
+	double confidenceFactor = [self trackDestination:delta_t :NO];
+	
+	if(success_factor > last_success_factor || confidenceFactor < 0.85) frustration += delta_t;  // EW
+	else if(frustration > 0.0) frustration -= delta_t;
+	if(frustration > 10)  // EW
+	{
+		frustration = 0.0;
+		if (randf() < 0.4) 
+		{
+			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
+		}
+		else
+		{
+			if (randf() < 0.5)
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX;
+			else
+				behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE;
+		}
+	}
 
 	// use weaponry
 	int missile_chance = 0;
@@ -2718,9 +2739,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	double max_cos = 0.995;
 	double distance = [self rangeToDestination];
+	double old_pitch = flightPitch;
 	desired_speed = 0.0;
 	if (desired_range > 1.0 && distance > desired_range)
-		max_cos = sqrt(1 - desired_range*desired_range/(distance * distance));
+		max_cos = sqrt(1 - 0.90 * desired_range*desired_range/(distance * distance));   // Head for a point within 95% of desired_range (must match the value in trackDestination)
 	else
 		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
 	double confidenceFactor = [self trackDestination:delta_t:NO];
@@ -2728,6 +2750,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// desired facing achieved
 		[shipAI message:@"FACING_DESTINATION"];
+		frustration = 0.0;
 		if(docking_match_rotation)  // IDLE stops rotating while docking
 		{
 			behaviour = BEHAVIOUR_FLY_TO_DESTINATION;
@@ -2736,15 +2759,25 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			behaviour = BEHAVIOUR_IDLE;
 		}
-		frustration = 0.0;
 	}
 
-	frustration += delta_t;
+	if(flightSpeed == 0) frustration += delta_t;
 	if (frustration > 15.0 / max_flight_pitch)	// allow more time for slow ships.
 	{
-		[shipAI reactToMessage:@"FRUSTRATED"];
 		frustration = 0.0;
+		[shipAI reactToMessage:@"FRUSTRATED"];
 	}	
+	
+	/* 2009-7-18 Eric: the condition check below is intended to eliminate the flippering between two positions for fast turning ships
+	   during low FPS conditions. This flippering is particular frustrating on slow computers during docking. But with my current computer I can't
+	   induce those low FPS conditions so I can't properly test if it helps.
+	   I did try with the TAF time acceleration that also generated larger frame jumps and than it seemed to help.
+	*/
+	if(flightSpeed == 0 && frustration > 5 && confidenceFactor > 0.5 && ((flightPitch > 0 && old_pitch < 0) || (flightPitch < 0 && old_pitch > 0)))
+	{
+		// OOLog(@"ship.flippering", @"Damping for: %@ resulted in old flightPitch = %g, new flightPitch = %g and confidence = %g.", name, old_pitch, flightPitch, confidenceFactor);
+		flightPitch += 0.5 * old_pitch; // damping with last pitch value.
+	}
 	
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
@@ -2806,7 +2839,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		else
 		{
 			frustration += delta_t;
-			if ((frustration > slowdownTime * 10.0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
+			if ((frustration > slowdownTime * 10.0 && slowdownTime > 0)||(frustration > 15.0))	// 10x slowdownTime or 15s of frustration
 			{
 				[shipAI reactToMessage:@"FRUSTRATED"];
 				frustration -= slowdownTime * 5.0;	//repeat after another five units of frustration
@@ -5872,8 +5905,14 @@ BOOL class_masslocks(int some_class)
 	relPos = vector_subtract(destination, position);
 	double range2 = magnitude2(relPos);
 	double desired_range2 = desired_range*desired_range;
-
-	if (range2 > desired_range2) max_cos = sqrt(1 - desired_range2/range2);
+	
+	/*	2009-7-18 Eric: We need to aim well inide the desired_range sphere round the target and not at the surface of the sphere. 
+		Because of the framerate most ships normally overshoot the target and they end up flying clearly on a path
+		through the sphere. Those ships give no problems, but ships with a very low turnrate will aim close to the surface and will than
+		have large trouble with reaching their destination. When those ships enter the slowdown range, they have almost no speed vector
+		in the direction of the target. I now used 95% of desired_range to aim at, but a smaller value might even be better. 
+	*/
+	if (range2 > desired_range2) max_cos = sqrt(1 - 0.90 * desired_range2/range2);  // Head for a point within 95% of desired_range.
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;

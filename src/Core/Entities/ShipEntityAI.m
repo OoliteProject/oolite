@@ -443,6 +443,7 @@ MA 02110-1301, USA.
 - (void) performAttack
 {
 	behaviour = BEHAVIOUR_ATTACK_TARGET;
+	desired_range = 1250 * randf() + 750; // 750 til 2000
 	frustration = 0.0;
 }
 
