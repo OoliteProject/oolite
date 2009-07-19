@@ -2821,14 +2821,33 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		success_factor = distance;
 
 		// do the actual piloting!!
-		[self trackDestination:delta_t: NO];
+		double confidenceFactor = [self trackDestination:delta_t: NO];
 		
-		GLfloat eta = (distance - desired_range) / (0.51 * flightSpeed);	// 2% safety margin assuming an average of half current speed
+		/*	2009-07-19 Eric: Estimated Time of Arrival (eta) should also take the "angle to target" into account (confidenceFactor = cos(angle to target))
+			and should not fuss about that last meter and use "distance + 1" instead of just "distance".
+			This should prevent ships crawling to their destination when they try to pull up close to their destination.
+		*/
+		GLfloat eta = ((distance + 1) - desired_range) / (0.51 * flightSpeed * confidenceFactor);	// 2% safety margin assuming an average of half current speed
 		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
 		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+			
+		/*
+		Eric next lines should prevent ships circling around their target without reaching destination. It happens for example with a waypoint plist.
+		When I per console reduce their speed, their problem is over. Formula based on satelite orbit:
+				orbitspeed = turnrate (rad/sec) * radius (m)
+		Speed must be lower or it can never approach its destination. 
+		
+		I am still experimenting to find a suitible multiplyer. When working I'll add the code in the above if statement.
+		
+		if(flightSpeed > max_flight_pitch * 4 * distance)  // flightSpeed > max_flight_pitch * 2 Pi * distance
+		{
+			desired_speed = flightSpeed * 0.50; 
+			OOLog(@"ship", @"A %@ is reducing speed. flightspeed = %g and distance = %g.", name, flightSpeed, distance);
+		}
+		*/
 
 		if (distance < last_distance)	// improvement
 		{
@@ -3497,6 +3516,18 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	}
 	
 	return _escortGroup;
+}
+
+
+- (OOShipGroup *) stationGroup
+{
+	if (_group == nil)
+	{
+		_group = [[OOShipGroup alloc] initWithName:@"station group"];
+		[_group setLeader:self];
+	}
+	
+	return _group;
 }
 
 

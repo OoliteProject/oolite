@@ -776,7 +776,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if ([self group] == nil)
 	{
-		[self setGroup:[self escortGroup]];
+		[self setGroup:[self stationGroup]];
 	}
 	return YES;
 }
@@ -1428,7 +1428,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 									   andOriginalSystem: [UNIVERSE systemSeed]]]];
 			}
 			
-			[police_ship setGroup:[self escortGroup]];	// who's your Daddy
+			[police_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[police_ship setPrimaryRole:@"police"];
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			[police_ship setScanClass:CLASS_POLICE];
@@ -1502,9 +1502,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[defense_ship setOwner: self];
 	if ([self group] == nil)
 	{
-		[self setGroup:[self escortGroup]];	
+		[self setGroup:[self stationGroup]];	
 	}
-	[defense_ship setGroup:[self escortGroup]];	// who's your Daddy
+	[defense_ship setGroup:[self stationGroup]];	// who's your Daddy
 	
 	if ([defense_ship isPolice])
 	{
@@ -1544,7 +1544,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 				
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
-		[scavenger_ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
+		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship];
 		[scavenger_ship release];
@@ -1575,7 +1575,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		scavengers_launched++;
 		[miner_ship setScanClass:CLASS_NEUTRAL];
-		[miner_ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
+		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship];
 		[miner_ship release];
@@ -1616,7 +1616,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		// set the owner of the ship to the station so that it can check back for docking later
 		[pirate_ship setOwner:self];
-		[pirate_ship setGroup:[self escortGroup]];	// who's your Daddy
+		[pirate_ship setGroup:[self stationGroup]];	// who's your Daddy
 		[pirate_ship setPrimaryRole:@"defense_ship"];
 		[pirate_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 		[pirate_ship setScanClass: CLASS_NEUTRAL];
@@ -1760,7 +1760,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setScanClass: CLASS_POLICE];
 			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
-			[patrol_ship setGroup:[self escortGroup]];	// who's your Daddy
+			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
 			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship];
 			[self acceptPatrolReportFrom:patrol_ship];
@@ -1782,8 +1782,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: role
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
+		if (ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];
 		[ship setPrimaryRole:role];
-		[ship setGroup:[self escortGroup]];	// who's your Daddy -- FIXME: does this make sense? Should we have a separate launchEscortShipWithRole:?
+		[ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: does this make sense? Should we have a separate launchEscortShipWithRole:?
 		[self addShipToLaunchQueue:ship];
 		[ship release];
 	}
