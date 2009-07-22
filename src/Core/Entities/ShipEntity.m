@@ -776,7 +776,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (universalID != NO_TARGET)
 	{
 		// set up escorts
-		if ([self status] == STATUS_IN_FLIGHT && _pendingEscortCount != 0)	// just popped into existence
+		if (([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING) && _pendingEscortCount != 0)	// just popped into existence
 		{
 			[self setUpEscorts];
 		}
@@ -785,6 +785,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 			/*	Should be zero already, but make sure just in case. (Escorts
 				aren't set up here if we're launched from a station, but in
 				that case the station sets pending count to zero.)
+				STATUS_LAUNCHING also is valid for replacement ships for
+				wormholing ships. In that case escorts still must be set up.
 			*/
 			if (_pendingEscortCount != 0)
 			{
@@ -2775,7 +2777,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	*/
 	if(flightSpeed == 0 && frustration > 5 && confidenceFactor > 0.5 && ((flightPitch > 0 && old_pitch < 0) || (flightPitch < 0 && old_pitch > 0)))
 	{
-		// OOLog(@"ship.flippering", @"Damping for: %@ resulted in old flightPitch = %g, new flightPitch = %g and confidence = %g.", name, old_pitch, flightPitch, confidenceFactor);
 		flightPitch += 0.5 * old_pitch; // damping with last pitch value.
 	}
 	
@@ -2788,7 +2789,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_formation_form_up:(double) delta_t
 {
-	// get updated destination from owner
+	// destination for each escort is set in update() from owner.
 	ShipEntity* leadShip = [self owner];
 	double distance = [self rangeToDestination];
 	double eta = (distance - desired_range) / flightSpeed;
@@ -2822,33 +2823,26 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 		// do the actual piloting!!
 		double confidenceFactor = [self trackDestination:delta_t: NO];
+		if(confidenceFactor < 0.2) confidenceFactor = 0.2;  // don't allow small or negative values.
 		
 		/*	2009-07-19 Eric: Estimated Time of Arrival (eta) should also take the "angle to target" into account (confidenceFactor = cos(angle to target))
 			and should not fuss about that last meter and use "distance + 1" instead of just "distance".
+			trackDestination already did pitch regulation, use confidence here only for cutting down to high speeds.
 			This should prevent ships crawling to their destination when they try to pull up close to their destination.
+			
+			To prevent ships circling around their target without reaching destination I added a limitation based on turnrate,
+			speed and distance to target. Formula based on satelite orbit:
+					orbitspeed = turnrate (rad/sec) * radius (m)   or   flightSpeed = max_flight_pitch * 2 Pi * distance
+			Speed must be significant lower when not flying in direction of target (low confidenceFactor) or it can never approach its destination 
+			and the ships runs the risk flying in circles around the target. (exclude active escorts)
 		*/
 		GLfloat eta = ((distance + 1) - desired_range) / (0.51 * flightSpeed * confidenceFactor);	// 2% safety margin assuming an average of half current speed
 		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
-		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
+		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor) || (flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance && behaviour != BEHAVIOUR_FORMATION_FORM_UP))
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 			
-		/*
-		Eric next lines should prevent ships circling around their target without reaching destination. It happens for example with a waypoint plist.
-		When I per console reduce their speed, their problem is over. Formula based on satelite orbit:
-				orbitspeed = turnrate (rad/sec) * radius (m)
-		Speed must be lower or it can never approach its destination. 
-		
-		I am still experimenting to find a suitible multiplyer. When working I'll add the code in the above if statement.
-		
-		if(flightSpeed > max_flight_pitch * 4 * distance)  // flightSpeed > max_flight_pitch * 2 Pi * distance
-		{
-			desired_speed = flightSpeed * 0.50; 
-			OOLog(@"ship", @"A %@ is reducing speed. flightspeed = %g and distance = %g.", name, flightSpeed, distance);
-		}
-		*/
-
 		if (distance < last_distance)	// improvement
 		{
 			frustration -= 0.25 * delta_t;

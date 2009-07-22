@@ -5,12 +5,13 @@
 	};
 	"GO_TO_WAYPOINT" =
 	{
+		ENTER = ("setSpeedFactorTo: 0.75");
 		"WAYPOINT_SET" = ("setStateTo: NEW_WAYPOINT");
 		"DESIRED_RANGE_ACHIEVED" = ("setDesiredRangeTo: 1000.0", exitAI);
 		ATTACKED = ("exitAIWithMessage: ATTACKED");
 		"FRUSTRATED" = ("setSpeedFactorTo: 0.1", "setDesiredRangeTo: 1000.0", exitAI);
 		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
-		UPDATE = ("setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, 
+		UPDATE = (performFlyToRangeFromDestination, 
 				checkCourseToDestination, "pauseAI: 2.0");
 	};
 	"NEW_WAYPOINT" =

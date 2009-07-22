@@ -967,6 +967,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	Vector		sunPos;
 	
 	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
+	if(sun_radius > 250000) sun_distance += sun_radius; // To avoid an unresolvable while loop. 241920 m is the highest possible in-game generated sun_radius.
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -2518,7 +2519,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 {
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
 	ShipEntity		*ship = nil;
+	NSDictionary		*systeminfo = nil;
+	OOGovernmentID		government;
 	
+ 	government = [systeminfo unsignedCharForKey:KEY_GOVERNMENT];
+	systeminfo = [self generateSystemData:system_seed];
+
 	ship = [self newShipWithRole:role];   // retain count = 1
 	
 	// Deal with scripted cargopods and ensure they are filled with something.
@@ -2538,6 +2544,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[[ship getAI] setStateMachine:@"route1traderAI.plist"];
 			else
 				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+
+			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
+			{
+				int nx = [ship pendingEscortCount] - 2 * (1 + (Ranrot() & 3));	// remove 2,4,6, or 8 escorts
+				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
+			}
 		}
 		if ([role isEqual:@"pirate"])
 		{

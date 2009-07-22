@@ -1659,7 +1659,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) launchTrader
 {
 	BOOL		sunskimmer = (randf() < 0.1);	// 10%
-	ShipEntity  *trader_ship = nil;
+	ShipEntity		*trader_ship = nil;
+	NSString		*defaultRole = @"escort";
+	NSString		*escortRole = nil;
+	NSString		*escortShipKey = nil;
+	NSDictionary	*traderDict = nil;
 	
 	if (!sunskimmer)  trader_ship = [UNIVERSE newShipWithRole:@"trader"];   // retain count = 1
 	else  trader_ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];   // retain count = 1
@@ -1673,7 +1677,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		[trader_ship setPrimaryRole:@"trader"];
 		[trader_ship setScanClass: CLASS_NEUTRAL];
+		[trader_ship setBounty:0];
 		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+		traderDict = [trader_ship shipInfoDictionary];
 		
 		if (sunskimmer)
 		{
@@ -1682,15 +1688,74 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		else
 		{
 			[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
+			if([trader_ship fuel] == 0) [trader_ship setFuel:70];
 		}
 		[self addShipToLaunchQueue:trader_ship];
 
+		OOShipGroup *escortGroup = [trader_ship escortGroup];
+		if ([self group] == nil) [self setGroup:escortGroup];
+		// Eric: Escorts are defined both as _group and as _escortGroup because friendly attacks are only handled withing _group.
+		[escortGroup setLeader:trader_ship];
+				
 		// add escorts to the trader
 		unsigned escorts = [trader_ship pendingEscortCount];
+		if(escorts > 0)
+		{
+			escortRole = [traderDict stringForKey:@"escort-role" defaultValue:defaultRole];
+			if (![escortRole isEqualToString: defaultRole])
+			{
+				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
+				{
+					escortRole = defaultRole;
+				}
+			}
+			
+			escortShipKey = [traderDict stringForKey:@"escort-ship"];
+			if (escortShipKey != nil)
+			{
+				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
+				{
+					escortShipKey = nil;
+				}
+			}
+		}
+				
+		// while (escorts--)  [self launchEscort];
+		while (escorts--)
+		{
+			ShipEntity  *escort_ship;
+
+			// escort_ship = [UNIVERSE newShipWithRole:@"escort"];   // retain count = 1
+			if (escortShipKey)
+			{
+				escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
+			}
+			else
+			{
+				escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
+			}
+			
+			if (escort_ship)
+			{
+				if (![escort_ship crew] && ![escort_ship isUnpiloted])
+					[escort_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole: @"hunter"
+						andOriginalSystem: [UNIVERSE systemSeed]]]];
+						
+				[escort_ship setScanClass: CLASS_NEUTRAL];
+				[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
+				
+				[escort_ship setGroup:escortGroup];
+				[escort_ship setOwner:trader_ship];
+				
+				[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+				[self addShipToLaunchQueue:escort_ship];
+				
+				[escort_ship release];
+			}
+		}
 		
 		[trader_ship setPendingEscortCount:0];
-		while (escorts--)  [self launchEscort];
-			
 		[trader_ship release];
 	}
 }
@@ -1712,17 +1777,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-		
-		if (![escort_ship escortGroup])	// ensure that we do not give to stations escorts assigned to other ships
-		{
-			[escort_ship setOwner: self];
-			if ([self group] == nil)
-			{
-				[self setGroup:[self escortGroup]];	
-			}
-			[escort_ship setGroup:[self escortGroup]];	// who's your Daddy
-		}
-		
 		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
 		
