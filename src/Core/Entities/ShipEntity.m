@@ -2840,7 +2840,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
-		if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor) || (flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance && behaviour != BEHAVIOUR_FORMATION_FORM_UP))
+		if (((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor)) || ((flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance) && (behaviour != BEHAVIOUR_FORMATION_FORM_UP)))
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 			
 		if (distance < last_distance)	// improvement
