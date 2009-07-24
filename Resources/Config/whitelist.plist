@@ -187,6 +187,7 @@
 		"launchEscort",
 		"launchPatrol",
 		"launchShipWithRole:",
+		"launchIndependentShipWithRole:",
 		"abortAllDockings",
 		
 		// Simulated method

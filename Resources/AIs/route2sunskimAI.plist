@@ -11,9 +11,9 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 0.80", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_SUN");
 		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setStateTo: GO_TO_SKIM");
-		ATTACKED = ("setAITo: traderInterceptAI.plist");
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, 
-				"setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
+		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
+		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
+        "EXITED WITCHSPACE" = ("switchAITo: route1traderAI.plist"); 
 		"RESTARTED" = (setSunSkimStartCoordinates);
 	};
 	"GO_TO_WAYPOINT_SUN" =
@@ -22,9 +22,8 @@
 		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
-		ATTACKED = ("setAITo: traderInterceptAI.plist");
-		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile, 
-				"setAITo: traderInterceptAI.plist", "setStateTo: FLEE_FOR_MISSILE");
+		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
+		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
 		"RESTARTED" = ("setStateTo: HEAD_FOR_SUN");
 	};
 	"GO_TO_SKIM" =

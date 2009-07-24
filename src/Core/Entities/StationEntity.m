@@ -1196,6 +1196,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchPos.y += port_position.x * v_right.y + port_position.y * v_up.y + port_position.z * v_forward.y;
 	launchPos.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
 	[ship setPosition:launchPos];
+	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0]; // Make sure no extra escorts are added after launch. (e.g. for miners etc.)
 	// launch speed
 	launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
@@ -1375,6 +1376,129 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 	}
 }
+
+
+- (void) launchIndependentShip:(NSString*) role
+{
+	BOOL			trader = (role == @"trader"); // trader becomes only true when called by "launchTrader"
+	BOOL			sunskimmer = false;
+	ShipEntity		*ship = nil;
+	NSString		*defaultRole = @"escort";
+	NSString		*escortRole = nil;
+	NSString		*escortShipKey = nil;
+	NSDictionary	*traderDict = nil;
+	
+	if((trader && (randf() < 0.1))) 
+	{
+		ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];   // retain count = 1
+		sunskimmer = true;
+	}
+	else
+	{
+		ship = [UNIVERSE newShipWithRole:role];   // retain count = 1
+	}
+
+	if (ship)
+	{
+		traderDict = [ship shipInfoDictionary];
+		if (![ship crew])
+			[ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: role
+				andOriginalSystem: [UNIVERSE systemSeed]]]];
+				
+		[ship setPrimaryRole:role];
+
+		if(trader || ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL]; // keep defined scanclasses for non-traders.
+		
+		if (trader)
+		{
+			[ship setBounty:0];
+			[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+			if (sunskimmer) 
+			{
+				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];
+				if([ship heatInsulation] < 7) [ship setHeatInsulation:7]; 
+				// even with this value the slow sunskim-anaconda will burn in a big sun.
+			}
+			else
+			{
+				[[ship getAI] setStateMachine:@"exitingTraderAI.plist"];
+				if([ship fuel] == 0) [ship setFuel:70];
+			}
+		}
+		
+		[self addShipToLaunchQueue:ship];
+
+		OOShipGroup *escortGroup = [ship escortGroup];
+		if ([ship group] == nil) [ship setGroup:escortGroup];
+		// Eric: Escorts are defined both as _group and as _escortGroup because friendly attacks are only handled withing _group.
+		[escortGroup setLeader:ship];
+				
+		// add escorts to the trader
+		unsigned escorts = [ship pendingEscortCount];
+		if(escorts > 0)
+		{
+			escortRole = [traderDict stringForKey:@"escort-role" defaultValue:defaultRole];
+			if (![escortRole isEqualToString: defaultRole])
+			{
+				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
+				{
+					escortRole = defaultRole;
+				}
+			}
+			
+			escortShipKey = [traderDict stringForKey:@"escort-ship"];
+			if (escortShipKey != nil)
+			{
+				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
+				{
+					escortShipKey = nil;
+				}
+			}
+		}
+				
+		// while (escorts--)  [self launchEscort];
+		while (escorts--)
+		{
+			ShipEntity  *escort_ship;
+
+			if (escortShipKey)
+			{
+				escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
+			}
+			else
+			{
+				escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
+			}
+			
+			if (escort_ship)
+			{
+				if (![escort_ship crew] && ![escort_ship isUnpiloted])
+					[escort_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole: @"hunter"
+						andOriginalSystem: [UNIVERSE systemSeed]]]];
+						
+				[escort_ship setScanClass: CLASS_NEUTRAL];
+				[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
+				
+				if (sunskimmer && [escort_ship heatInsulation] < [ship heatInsulation]) 
+						[escort_ship setHeatInsulation:[ship heatInsulation]];
+
+				[escort_ship setGroup:escortGroup];
+				[escort_ship setOwner:ship];
+				
+				[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+				[self addShipToLaunchQueue:escort_ship];
+				
+				[escort_ship release];
+			}
+		}
+		
+		[ship setPendingEscortCount:0];
+		[ship release];
+	}
+}
+
 
 //////////////////////////////////////////////// extra AI routines
 
@@ -1654,112 +1778,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
-
 // Exposed to AI
 - (void) launchTrader
 {
-	BOOL		sunskimmer = (randf() < 0.1);	// 10%
-	ShipEntity		*trader_ship = nil;
-	NSString		*defaultRole = @"escort";
-	NSString		*escortRole = nil;
-	NSString		*escortShipKey = nil;
-	NSDictionary	*traderDict = nil;
-	
-	if (!sunskimmer)  trader_ship = [UNIVERSE newShipWithRole:@"trader"];   // retain count = 1
-	else  trader_ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];   // retain count = 1
-	
-	if (trader_ship)
-	{
-		if (![trader_ship crew])
-			[trader_ship setCrew:[NSArray arrayWithObject:
-				[OOCharacter randomCharacterWithRole: @"trader"
-				andOriginalSystem: [UNIVERSE systemSeed]]]];
-				
-		[trader_ship setPrimaryRole:@"trader"];
-		[trader_ship setScanClass: CLASS_NEUTRAL];
-		[trader_ship setBounty:0];
-		[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-		traderDict = [trader_ship shipInfoDictionary];
-		
-		if (sunskimmer)
-		{
-			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];
-		}
-		else
-		{
-			[[trader_ship getAI] setStateMachine:@"exitingTraderAI.plist"];
-			if([trader_ship fuel] == 0) [trader_ship setFuel:70];
-		}
-		[self addShipToLaunchQueue:trader_ship];
-
-		OOShipGroup *escortGroup = [trader_ship escortGroup];
-		if ([self group] == nil) [self setGroup:escortGroup];
-		// Eric: Escorts are defined both as _group and as _escortGroup because friendly attacks are only handled withing _group.
-		[escortGroup setLeader:trader_ship];
-				
-		// add escorts to the trader
-		unsigned escorts = [trader_ship pendingEscortCount];
-		if(escorts > 0)
-		{
-			escortRole = [traderDict stringForKey:@"escort-role" defaultValue:defaultRole];
-			if (![escortRole isEqualToString: defaultRole])
-			{
-				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
-				{
-					escortRole = defaultRole;
-				}
-			}
-			
-			escortShipKey = [traderDict stringForKey:@"escort-ship"];
-			if (escortShipKey != nil)
-			{
-				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
-				{
-					escortShipKey = nil;
-				}
-			}
-		}
-				
-		// while (escorts--)  [self launchEscort];
-		while (escorts--)
-		{
-			ShipEntity  *escort_ship;
-
-			// escort_ship = [UNIVERSE newShipWithRole:@"escort"];   // retain count = 1
-			if (escortShipKey)
-			{
-				escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
-			}
-			else
-			{
-				escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
-			}
-			
-			if (escort_ship)
-			{
-				if (![escort_ship crew] && ![escort_ship isUnpiloted])
-					[escort_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole: @"hunter"
-						andOriginalSystem: [UNIVERSE systemSeed]]]];
-						
-				[escort_ship setScanClass: CLASS_NEUTRAL];
-				[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-				
-				[escort_ship setGroup:escortGroup];
-				[escort_ship setOwner:trader_ship];
-				
-				[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
-				[self addShipToLaunchQueue:escort_ship];
-				
-				[escort_ship release];
-			}
-		}
-		
-		[trader_ship setPendingEscortCount:0];
-		[trader_ship release];
-	}
+	[self launchIndependentShip:@"trader"];
 }
 
+// Exposed to AI
+- (void) launchIndependentShipWithRole:(NSString*) role
+{
+	[self launchIndependentShip:role];
+}
 
 // Exposed to AI
 - (void) launchEscort
@@ -1838,7 +1867,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				andOriginalSystem: [UNIVERSE systemSeed]]]];
 		if (ship->scanClass == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];
 		[ship setPrimaryRole:role];
-		[ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: does this make sense? Should we have a separate launchEscortShipWithRole:?
+		[ship setGroup:[self stationGroup]];	// who's your Daddy
 		[self addShipToLaunchQueue:ship];
 		[ship release];
 	}

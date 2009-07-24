@@ -978,6 +978,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[escorter setGroup:escortGroup];
 		[escorter setOwner:self];	// make self group leader
 		
+		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
+
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
 		[escorter doScriptEvent:@"spawnedAsEscort" withArgument:self];
 		
