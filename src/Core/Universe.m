@@ -553,11 +553,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
 	
 	[characterPool removeAllObjects];
-
-	[self setUpSpace];
 	
 	// these lines are needed here to reset systeminfo and long range chart properly
 	[localPlanetInfoOverrides removeAllObjects];
+
+	[self setUpSpace];
 	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
 
@@ -900,7 +900,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	Vector				vf;
 
-	NSDictionary		*systeminfo = [self generateSystemData:system_seed];
+	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
 	unsigned			techlevel = [systeminfo unsignedIntForKey:KEY_TECHLEVEL];
 	NSString			*stationDesc = nil, *defaultStationDesc = nil;
 	OOColor				*bgcolor;
@@ -957,17 +957,36 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	seed_for_planet_description(system_seed);
 	
 	/*- space sun -*/
-	double		sunDistanceModifier;
-	sunDistanceModifier = [systeminfo nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
-
-	double		sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
 	double		sun_radius;
+	double		sun_distance;
+	double		sunDistanceModifier;
+	double		safeDistance;
+	int			posIterator=0;
 	id			dict_object;
 	Quaternion  q_sun;
 	Vector		sunPos;
 	
 	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
-	if(sun_radius > 250000) sun_distance += sun_radius; // To avoid an unresolvable while loop. 241920 m is the highest possible in-game generated sun_radius.
+	// clamp the sun radius
+	if (sun_radius < 1000.0) sun_radius = 1000.0;
+	if (sun_radius > 1000000.0) sun_radius = 1000000.0;
+
+	sunDistanceModifier = [systeminfo nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
+	// Any smaller than 6, the main planet can end up inside the sun
+	if (sunDistanceModifier < 6.0) sunDistanceModifier = 6.0;
+	sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
+
+	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
+	
+	// generated sun_distance/sun_radius ratios vary from 4.29 ( 15/3.5 ) to 16.67 ( 25/1.5 )
+	// if ratio is less than 4 there's an OXP asking for an unusual system.
+	if (sun_distance <= 4.2 * sun_radius)
+	{
+		// recalculate base distance: lowest  2.60 sun radii, highest  4.28 sun radii
+		sun_distance= (2.6 + sun_distance /(2.5 * sun_radius)) * sun_radius;
+		// decrease the safe distance, so we have a better chance to exit the loop normally
+		safeDistance *= 0.6; // ~ 3 times the sun radius
+	}
 	
 	// here we need to check if the sun collides with (or is too close to) the witchpoint
 	// otherwise at (for example) Maregais in Galaxy 1 we go BANG!
@@ -980,9 +999,15 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		[a_planet setOrientation:q_sun];
 		
 		vf = vector_right_from_quaternion(q_sun);
-		sunPos = vector_subtract(sunPos, vector_multiply_scalar(vf, sun_distance)); // back off from the planet by 16..24 pr
+		sunPos = vector_subtract(sunPos, vector_multiply_scalar(vf, sun_distance)); // back off from the planet by 15..25 planet radii
+		posIterator++;
+
+	} while (magnitude2(sunPos) < safeDistance && posIterator <= 10);	// try 10 times before giving up
 	
-	} while (magnitude2(sunPos) < 16 * sun_radius * sun_radius);	// stay at least 4 radii away!
+	if (posIterator>10)
+	{
+		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
+	}
 	
 	NSMutableDictionary* sun_dict = [[NSMutableDictionary alloc] initWithCapacity:4];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];

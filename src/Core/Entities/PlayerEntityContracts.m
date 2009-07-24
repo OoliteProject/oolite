@@ -607,7 +607,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		{
 			NSDictionary* passenger_info = [passenger_market dictionaryAtIndex:i];
 			NSString *Name = [passenger_info stringForKey:PASSENGER_KEY_NAME];
-			if([Name length] >26)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
+			if([Name length] >27)	Name =[[Name substringToIndex:25] stringByAppendingString:@"..."];
 			int dest_eta = [passenger_info doubleForKey:PASSENGER_KEY_ARRIVAL_TIME] - ship_clock;
 			[row_info removeAllObjects];
 			[row_info addObject:[NSString stringWithFormat:@" %@ ",Name]];

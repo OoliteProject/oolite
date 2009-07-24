@@ -201,6 +201,7 @@
 	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
+		[self playMenuPagePrevious];
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
@@ -208,6 +209,7 @@
 	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
+		[self playMenuPageNext];
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
@@ -783,6 +785,7 @@
 	
 	if (page)
 	{
+		[gui setColor:[OOColor greenColor] forRow:STARTROW-1];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil]
 			   forRow:STARTROW-1];
 		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
@@ -799,6 +802,7 @@
 	else
 	{
 		lastIndex=(page * NUMROWS) + NUMROWS;
+		[gui setColor:[OOColor greenColor] forRow:ENDROW];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil]
 			   forRow:ENDROW];
 		[gui setKey:GUI_KEY_OK forRow:ENDROW];

@@ -299,17 +299,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	unsigned char   *blue = (unsigned char *) malloc( nPixels);
 	
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
-	int imageNo = 1;
-	NSString	*pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
+	int imageNo = 0;
+	NSString	*pathToPic;
 		
-	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	do 
 	{
 		imageNo++;
 		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
-	}
-		
-	NSString	*pathToPng = [[pathToPic stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
-	
+	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+			
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
 	NSBitmapImageRep* bitmapRep = 
@@ -345,7 +343,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 	
 	[[bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], NSImageInterlaced, NULL]]
-		writeToFile:pathToPng atomically:YES];			// save PNG representation of Image
+		writeToFile:pathToPic atomically:YES];			// save PNG representation of Image
 	
 	// free allocated objects and memory
 	[bitmapRep release];
