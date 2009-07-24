@@ -517,7 +517,7 @@ NSString *KillCountToRatingString(unsigned kills)
 	unsigned			i;
 	
 	ratingNames = [[UNIVERSE descriptions] arrayForKey:@"rating"];
-	for (i = 0; i != kRatingCount - 1; ++i)
+	for (i = 0; i < kRatingCount - 1; ++i)
 	{
 		if (kills < killThresholds[i])  return [ratingNames stringAtIndex:i];
 	}
@@ -528,7 +528,7 @@ NSString *KillCountToRatingString(unsigned kills)
 
 NSString *KillCountToRatingAndKillString(unsigned kills)
 {
-	return [NSString stringWithFormat:@"%@ (%u)", KillCountToRatingString(kills), kills];
+	return [NSString stringWithFormat:@"%@   (%u)", KillCountToRatingString(kills), kills];
 }
 
 

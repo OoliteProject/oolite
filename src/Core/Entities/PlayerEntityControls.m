@@ -1813,7 +1813,41 @@ static NSTimeInterval	time_last_frame;
 			else
 				spacePressed = NO;
 			break;
+		case GUI_SCREEN_STATUS:
+			if ([gameView isDown:gvArrowKeyLeft])
+			{
+
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW] isEqual:GUI_KEY_OK])
+					{
+						[self playMenuPagePrevious];
+						[gui setStatusPage:-1];
+						[self setGuiToStatusScreen];
+						[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			if ([gameView isDown:gvArrowKeyRight])
+			{
+
+				if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+				{
+					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS] isEqual:GUI_KEY_OK])
+					{
+						[self playMenuPageNext];
+						[gui setStatusPage:+1];
+						[self setGuiToStatusScreen];
+						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS];
+
+					}
+					timeLastKeyPress = script_time;
+				}
+			}
+			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
 			
+			break;
 		case GUI_SCREEN_SHIPYARD:
 			if ([self handleGUIUpDownArrowKeys])
 			{
@@ -1856,11 +1890,7 @@ static NSTimeInterval	time_last_frame;
 					OOCreditsQuantity money = credits;
 					if ([self buySelectedShip])
 					{
-						if (money == credits)	// we just skipped to another page
-						{
-							[self playCantBuyShip];
-						}
-						else
+						if (money != credits)	// money == credits means we skipped to another page, don't do anything
 						{
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];

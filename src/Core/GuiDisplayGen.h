@@ -106,6 +106,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	OOTimeDelta		fade_duration;		// period
 	OOTimeAbsolute	fade_from_time;		// from [universe getTime]
 	GLfloat			fade_sign;			//	-1.0 to 1.0
+	int				statusPage; 		// status  screen: paging equipped items
 }
 
 - (id) init;
@@ -218,7 +219,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z;
-
+- (void) setStatusPage:(int) pageNum;
 - (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha;
 
 @end

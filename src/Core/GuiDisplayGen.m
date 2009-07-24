@@ -746,127 +746,111 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z
+- (void) setStatusPage:(int) pageNum
 {
-	int 		eqpt_items_per_column = 12;	// Default value.
-	int i;
+	if (pageNum==0) 
+		statusPage=1;
+	else 
+		statusPage += pageNum;
+}
+
+
+- (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z 
+{
+	if (eqptList == nil) return;
 	
-	if (eqptList == nil) return;	
+	int first_row = STATUS_EQUIPMENT_FIRST_ROW;
+	int items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
+
+	int first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
+	int	items_count = [eqptList count];
+	int page_count=1;
+	int i, start;
+	NSArray			*info;
+	NSString		*name;
+	BOOL			damaged;
+
 	
-	int		equipment_list_items_count = [eqptList count];
+	// Paging calculations. Assuming 10 lines we get - one page:20 items per page (ipp)
+	// two pages: 18 ipp - three+ pages:  1st & last 18pp,  middle pages 16ipp
 	
-	// Nikos - Draw the equipment list.
-	// How it works: By default we have two columns of 12 items each, for a total of 24. If the player has
-	// acquired more than 24 equipment items, the total number of items in the player's posession is checked
-	// for oddness/evenness. If it is odd (e.g. for 25 items), then the number of items per column becomes
-	// the total number of inventory items over 2 plus 1. If it is even, then number of items per column will
-	// be total number of inventory items over 2. So, for example, in the case of 25 or 26 inventory items,
-	// this will create two columns, each capable of holding 13 items. For 27 or 28 items, we will have two
-	// columns of capacity 14 each. This approach was chosen because it simulates the original equipment list
-	// behavior best.
-	
-	if (equipment_list_items_count > eqpt_items_per_column * 2)
+	i = items_per_column * 2 + 2;
+	if (items_count > i) // don't fit in one page?
 	{
-		eqpt_items_per_column = (equipment_list_items_count % 2 == 1) ? 
-						(equipment_list_items_count / 2) + 1 :
-						 equipment_list_items_count / 2;
+		i = items_per_column * 4; // total items in the first and last pages
+		items_per_column--; // for all the middle pages.
+		if (items_count <= i) // two pages
+		{
+			page_count++;
+			if (statusPage == 1) start=0;
+			else
+			{
+				statusPage = 2;
+				start = i/statusPage; // for the for loop
+			}
+		}
+		else // three or more
+		{
+			page_count = ceil((float)(items_count-i)/(items_per_column*2)) + 2;
+			statusPage = OOClampInteger(statusPage, 1, page_count);
+			start = (statusPage == 1) ? 0 : (statusPage-1) * items_per_column * 2 + 2;
+		}
+	}
+	else
+	{
+		statusPage=page_count; // one page
+		start=0;
 	}
 	
-	for (i=0; i < equipment_list_items_count; i++)
+	if (statusPage == 1 || statusPage == page_count) items_per_column++;
+	[self setSelectableRange:NSMakeRange(first_row, first_row + items_per_column)];
+	if (statusPage > 1)
 	{
-		// Damaged items in the equipment list appear in orange color.
-		NSArray			*info = [eqptList objectAtIndex:i];
-		NSString		*name = [info stringAtIndex:0];
-		BOOL			damaged = ![info boolAtIndex:1];
-		
-		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f);
-		
-		if (i < eqpt_items_per_column)
+		[self setColor:[OOColor greenColor] forRow:first_row];
+		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:first_row];
+		[self setKey:GUI_KEY_OK forRow:first_row];
+		first_y -= 16; // start 1 row down!
+		if ([self selectedRow] != first_row + items_per_column) [self setSelectedRow:first_row];
+	}
+	if (statusPage < page_count)
+	{
+		[self setColor:[OOColor greenColor] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setKey:GUI_KEY_OK forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		if ([self selectedRow] != first_row) [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+	}
+
+	items_count = OOClampInteger(items_count, 1, start + items_per_column * 2);
+	for (i=start; i < items_count; i++)
+	{
+		info = [eqptList objectAtIndex:i];
+		name = [info stringAtIndex:0];
+		damaged = ![info boolAtIndex:1];
+		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items  show up  orange.
+		if([name length] > 42)  name =[[name substringToIndex:40] stringByAppendingString:@"..."];
+		if (i - start < items_per_column)
 		{
-			OODrawString (name, -220, 40 - (15 * i), z, NSMakeSize(15, 15));
+			OODrawString (name, -220, first_y - 16 * (i - start), z, NSMakeSize(15, 15));
 		}
 		else
 		{
-			OODrawString (name, 50, 40 - (15 * (i - eqpt_items_per_column)), z, NSMakeSize(15, 15));
+			OODrawString (name, 50, first_y - 16 * (i - items_per_column - start), z, NSMakeSize(15, 15));
 		}
-		
 		if (damaged)  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Reset text color to yellow.
 	}
+	[self drawGLDisplay:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :[[UNIVERSE gameView] display_z]  :z];
 }
 
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
-	GLfloat z1 = [[UNIVERSE gameView] display_z];
-	if (alpha > 0.05f)
-	{
-		PlayerEntity* player = [PlayerEntity sharedPlayer];
+	return [self drawGUI:drawPosition.x :drawPosition.y :[[UNIVERSE gameView] display_z] :alpha drawCursor:drawCursor];
+}
 
-		[self drawGLDisplay: drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
 
-		glEnable(GL_LINE_SMOOTH);
-
-		if (self == [UNIVERSE gui])
-		{
-			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
-				[self drawStarChart:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
-			if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
-			{
-				[self drawGalaxyChart:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :z1 :alpha];
-			}
-			if ([player guiScreen] == GUI_SCREEN_STATUS)
-			{
-				[self drawEqptList:[player equipmentList] :z1];
-			}
-		}
-		
-		if (fade_sign)
-		{
-			fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
-			if (fade_alpha < 0.0)	// done fading out
-			{
-				fade_alpha = 0.0f;
-				fade_sign = 0.0f;
-			}
-			if (fade_alpha > 1.0)	// done fading in
-			{
-				fade_alpha = 1.0f;
-				fade_sign = 0.0f;
-			}
-		}
-	}
-	
-	int cursor_row = 0;
-
-	if (drawCursor)
-	{
-		NSPoint vjpos = [[UNIVERSE gameView] virtualJoystickPosition];
-		double cursor_x = size_in_pixels.width * vjpos.x;
-		if (cursor_x < -size_in_pixels.width * 0.5f)  cursor_x = -size_in_pixels.width * 0.5f;
-		if (cursor_x > size_in_pixels.width * 0.5f)   cursor_x = size_in_pixels.width * 0.5f;
-		double cursor_y = -size_in_pixels.height * vjpos.y;
-		if (cursor_y < -size_in_pixels.height * 0.5f)  cursor_y = -size_in_pixels.height * 0.5f;
-		if (cursor_y > size_in_pixels.height * 0.5f)   cursor_y = size_in_pixels.height * 0.5f;
-		
-		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
-		cursor_row = 1 + (float)(floor((0.5f * size_in_pixels.height - pixel_row_start - cursor_y) / pixel_row_height));
-		
-		GLfloat h1 = 3.0f;
-		GLfloat h3 = 9.0f;
-		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
-		glLineWidth(2.0f);
-		cursor_x += drawPosition.x;
-		cursor_y += drawPosition.y;
-		glBegin(GL_LINES);
-			glVertex3f((float)cursor_x - h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z1);
-			glVertex3f((float)cursor_x + h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z1);
-			glVertex3f((float)cursor_x, (float)cursor_y - h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z1);
-			glVertex3f((float)cursor_x, (float)cursor_y + h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z1);
-		glEnd();
-		glLineWidth(1.0f);
-	}
-	
-	return cursor_row;
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
+{
+	[self drawGUI:x :y :z :alpha drawCursor:NO];
 }
 
 
@@ -878,9 +862,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
-		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
-
 		glEnable(GL_LINE_SMOOTH);
+		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 
 		if (self == [UNIVERSE gui])
 		{
@@ -892,19 +875,19 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList] :z1];
+				[self drawEqptList:[player equipmentList] :z1 ];
 			}
 		}
 		
 		if (fade_sign)
 		{
 			fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
-			if (fade_alpha < 0.0)	// done fading out
+			if (fade_alpha < 0.05f)	// done fading out
 			{
 				fade_alpha = 0.0f;
 				fade_sign = 0.0f;
 			}
-			if (fade_alpha > 1.0)	// done fading in
+			if (fade_alpha > 1.0f)	// done fading in
 			{
 				fade_alpha = 1.0f;
 				fade_sign = 0.0f;
@@ -930,6 +913,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		GLfloat h3 = 9.0f;
 		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
 		glLineWidth(2.0f);
+		
+		cursor_x += x;
+		cursor_y += y;
+		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
+
 		glBegin(GL_LINES);
 			glVertex3f((float)cursor_x - h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z1);
 			glVertex3f((float)cursor_x + h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z1);
@@ -938,52 +926,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glEnd();
 		glLineWidth(1.0f);
 		
-		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 	}
 	
 	return cursor_row;
-}
-
-
-- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
-{
-	if (alpha < 0.05f)
-		return;			// too dim to see!
-
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
-
-	[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
-
-	glEnable(GL_LINE_SMOOTH);
-
-	if (self == [UNIVERSE gui])
-	{
-		if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
-			[self drawStarChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
-		if ([player guiScreen] == GUI_SCREEN_LONG_RANGE_CHART)
-		{
-			[self drawGalaxyChart:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
-		}
-		if ([player guiScreen] == GUI_SCREEN_STATUS)
-		{
-			[self drawEqptList:[player equipmentList] :z];
-		}
-	}
-	
-	if (fade_sign)
-	{
-		fade_alpha += (float)(fade_sign * [UNIVERSE getTimeDelta]);
-		if (fade_alpha < 0.0f)	// done fading out
-		{
-			fade_alpha = 0.0f;
-			fade_sign = 0.0f;
-		}
-		if (fade_alpha > 1.0)	// done fading in
-		{
-			fade_alpha = 1.0f;
-			fade_sign = 0.0f;
-		}
-	}
 }
 
 

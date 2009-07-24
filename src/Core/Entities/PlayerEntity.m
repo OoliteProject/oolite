@@ -4294,7 +4294,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		OOGUITabSettings tab_stops;
 		tab_stops[0] = 20;
 		tab_stops[1] = 160;
-		tab_stops[2] = 256;
+		tab_stops[2] = 290;
 		[gui setTabStops:tab_stops];
 
 		ship_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
@@ -4336,7 +4336,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	
 	[[UNIVERSE gameView] clearMouse];
-	
+		
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_STATUS;
 	
@@ -4354,8 +4354,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setShowDemoShips: YES];
 // END TEST
 #endif
-	
-	[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	if (oldScreen != GUI_SCREEN_STATUS)
+	{
+		[[UNIVERSE gui] setStatusPage:0];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 
@@ -6202,7 +6205,9 @@ static int last_outfitting_index;
 	[UNIVERSE addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)
+	{
 		[self setGuiToStatusScreen];
+	}
 }
 
 
