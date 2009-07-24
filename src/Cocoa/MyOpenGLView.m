@@ -306,7 +306,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		imageNo++;
 		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
-	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 			
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
