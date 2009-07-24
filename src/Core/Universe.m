@@ -556,10 +556,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// these lines are needed here to reset systeminfo and long range chart properly
 	[localPlanetInfoOverrides removeAllObjects];
-
-	[self setUpSpace];
+	
 	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
+	
+	[self setUpSpace];
 
 	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
 	[player setDockedAtMainStation];
