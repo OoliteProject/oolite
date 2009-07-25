@@ -1814,6 +1814,7 @@ static NSTimeInterval	time_last_frame;
 				spacePressed = NO;
 			break;
 		case GUI_SCREEN_STATUS:
+			[self handleGUIUpDownArrowKeys];
 			if ([gameView isDown:gvArrowKeyLeft])
 			{
 
@@ -1821,10 +1822,10 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW] isEqual:GUI_KEY_OK])
 					{
+						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW];
 						[self playMenuPagePrevious];
 						[gui setStatusPage:-1];
 						[self setGuiToStatusScreen];
-						[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					}
 					timeLastKeyPress = script_time;
 				}
@@ -1836,17 +1837,36 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([[gui keyForRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS] isEqual:GUI_KEY_OK])
 					{
+						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS];
 						[self playMenuPageNext];
 						[gui setStatusPage:+1];
 						[self setGuiToStatusScreen];
-						[gui setSelectedRow:STATUS_EQUIPMENT_FIRST_ROW + STATUS_EQUIPMENT_MAX_ROWS];
-
 					}
 					timeLastKeyPress = script_time;
 				}
 			}
 			leftRightKeyPressed = [gameView isDown:gvArrowKeyRight]|[gameView isDown:gvArrowKeyLeft];
 			
+			if ([gameView isDown:13] || [gameView isDown:gvMouseDoubleClick])   // 'enter'
+			{
+				if ([gameView isDown:gvMouseDoubleClick])
+				{
+					selectPressed = NO;
+					[gameView clearMouse];
+				}
+				if ((!selectPressed)&&([gui selectedRow] > -1))
+				{
+					[gui setStatusPage:([gui selectedRow] == STATUS_EQUIPMENT_FIRST_ROW ? -1 : +1)];
+					[self setGuiToStatusScreen];
+
+					selectPressed = YES;
+				}
+			}
+			else
+			{
+				selectPressed = NO;
+			}
+
 			break;
 		case GUI_SCREEN_SHIPYARD:
 			if ([self handleGUIUpDownArrowKeys])

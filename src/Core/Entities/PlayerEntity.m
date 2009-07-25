@@ -4342,7 +4342,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
-	[UNIVERSE setDisplayCursor: NO];
+	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
 #if 0

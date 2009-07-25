@@ -769,7 +769,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	NSArray			*info;
 	NSString		*name;
 	BOOL			damaged;
-
 	
 	// Paging calculations. Assuming 10 lines we get - one page:20 items per page (ipp)
 	// two pages: 18 ipp - three+ pages:  1st & last 18pp,  middle pages 16ipp
@@ -802,24 +801,24 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		start=0;
 	}
 	
-	if (statusPage == 1 || statusPage == page_count) items_per_column++;
-	[self setSelectableRange:NSMakeRange(first_row, first_row + items_per_column)];
+	[self setSelectableRange:NSMakeRange(first_row, first_row + STATUS_EQUIPMENT_MAX_ROWS)];
 	if (statusPage > 1)
 	{
 		[self setColor:[OOColor greenColor] forRow:first_row];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:first_row];
 		[self setKey:GUI_KEY_OK forRow:first_row];
 		first_y -= 16; // start 1 row down!
-		if ([self selectedRow] != first_row + items_per_column) [self setSelectedRow:first_row];
+		if (statusPage == page_count) [self setSelectedRow:first_row];
 	}
 	if (statusPage < page_count)
 	{
 		[self setColor:[OOColor greenColor] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setKey:GUI_KEY_OK forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
-		if ([self selectedRow] != first_row) [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		if (statusPage == 1) [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 	}
 
+	if (statusPage == 1 || statusPage == page_count) items_per_column++;
 	items_count = OOClampInteger(items_count, 1, start + items_per_column * 2);
 	for (i=start; i < items_count; i++)
 	{
@@ -827,6 +826,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		name = [info stringAtIndex:0];
 		damaged = ![info boolAtIndex:1];
 		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items  show up  orange.
+		else glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Normal items in yellow.
 		if([name length] > 42)  name =[[name substringToIndex:40] stringByAppendingString:@"..."];
 		if (i - start < items_per_column)
 		{
@@ -836,9 +836,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			OODrawString (name, 50, first_y - 16 * (i - items_per_column - start), z, NSMakeSize(15, 15));
 		}
-		if (damaged)  glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Reset text color to yellow.
 	}
-	[self drawGLDisplay:drawPosition.x - 0.5f * size_in_pixels.width :drawPosition.y - 0.5f * size_in_pixels.height :[[UNIVERSE gameView] display_z]  :z];
 }
 
 
@@ -863,7 +861,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 
 		glEnable(GL_LINE_SMOOTH);
-		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 
 		if (self == [UNIVERSE gui])
 		{
@@ -878,6 +875,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				[self drawEqptList:[player equipmentList] :z1 ];
 			}
 		}
+		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		
 		if (fade_sign)
 		{
