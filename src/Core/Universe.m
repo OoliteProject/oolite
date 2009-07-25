@@ -1702,6 +1702,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
+			if([trader_ship heatInsulation] < 7) [trader_ship setHeatInsulation:7]; // With this value most ships will survive the sun trip.
 			[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
