@@ -966,19 +966,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	id			dict_object;
 	Quaternion  q_sun;
 	Vector		sunPos;
-	
-	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
-	// clamp the sun radius
-	if (sun_radius < 1000.0) sun_radius = 1000.0;
-	if (sun_radius > 1000000.0) sun_radius = 1000000.0;
 
 	sunDistanceModifier = [systeminfo nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
 	if (sunDistanceModifier < 6.0) sunDistanceModifier = 6.0;
 	sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
 
+	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
+	// clamp the sun radius
+	if (sun_radius < 1000.0) sun_radius = 1000.0;
+	if (sun_radius > 1000000.0) sun_radius = 1000000.0;
+
 	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
-	
+
 	// generated sun_distance/sun_radius ratios vary from 4.29 ( 15/3.5 ) to 16.67 ( 25/1.5 )
 	// if ratio is less than 4 there's an OXP asking for an unusual system.
 	if (sun_distance <= 4.2 * sun_radius)
@@ -1009,7 +1009,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
 	}
-	
+
 	NSMutableDictionary* sun_dict = [[NSMutableDictionary alloc] initWithCapacity:4];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
