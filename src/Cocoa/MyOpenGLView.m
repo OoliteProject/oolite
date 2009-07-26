@@ -300,7 +300,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
 	int imageNo = 0;
-	NSString	*pathToPic;
+	NSString	*pathToPic = nil;
 		
 	do 
 	{
@@ -343,7 +343,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	}
 	
 	[[bitmapRep representationUsingType:NSPNGFileType properties:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:YES], NSImageInterlaced, NULL]]
-		writeToFile:pathToPic atomically:YES];			// save PNG representation of Image
+		writeToFile:pathToPic atomically:YES];			// save PNG representation of image
 	
 	// free allocated objects and memory
 	[bitmapRep release];

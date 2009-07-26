@@ -39,6 +39,21 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+@interface GuiDisplayGen (Internal)
+
+- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor;
+- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+
+- (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+
+- (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
+- (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha;
+
+@end
+
+
 @implementation GuiDisplayGen
 
 - (id) init
@@ -746,7 +761,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setStatusPage:(int) pageNum
+- (void) setStatusPage:(int)pageNum
 {
 	if (pageNum==0) 
 		statusPage=1;
@@ -755,19 +770,19 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) drawEqptList: (NSArray *)eqptList :(GLfloat)z 
+- (void) drawEqptList:(NSArray *)eqptList z:(GLfloat)z 
 {
 	if (eqptList == nil) return;
 	
-	int first_row = STATUS_EQUIPMENT_FIRST_ROW;
-	int items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
+	int				first_row = STATUS_EQUIPMENT_FIRST_ROW;
+	int				items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
 
-	int first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
-	int	items_count = [eqptList count];
-	int page_count=1;
-	int i, start;
-	NSArray			*info;
-	NSString		*name;
+	int				first_y = 40;	// first_row =10 :-> 40  - first_row=11 -> 24 etc...
+	int				items_count = [eqptList count];
+	int				page_count=1;
+	int				i, start;
+	NSArray			*info = nil;
+	NSString		*name = nil;
 	BOOL			damaged;
 	
 	// Paging calculations. Assuming 10 lines we get - one page:20 items per page (ipp)
@@ -872,7 +887,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList] :z1 ];
+				[self drawEqptList:[player equipmentList] z:z1 ];
 			}
 		}
 		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
