@@ -101,6 +101,7 @@
 		"setTakeOffFromPlanet",
 		"landOnPlanet",
 		"checkTargetLegalStatus",
+		"checkOwnLegalStatus",
 		"setDestinationToTarget",
 		"setDestinationWithinTarget",
 		"checkCourseToDestination",

@@ -124,6 +124,7 @@ MA 02110-1301, USA.
 - (void) landOnPlanet;
 
 - (void) checkTargetLegalStatus;
+- (void) checkOwnLegalStatus;
 
 - (void) exitAIWithMessage:(NSString *)message;
 
@@ -865,6 +866,33 @@ MA 02110-1301, USA.
 		}
 		[shipAI message:@"TARGET_CLEAN"];
 	}
+}
+
+
+- (void) checkOwnLegalStatus
+{
+	if (scanClass == CLASS_THARGOID)
+	{
+		[shipAI message:@"SELF_THARGOID"];
+		return;
+	}
+	int ls = [self legalStatus];
+	if (ls > 50)
+	{
+		[shipAI message:@"SELF_FUGITIVE"];
+		return;
+	}
+	if (ls > 20)
+	{
+		[shipAI message:@"SELF_OFFENDER"];
+		return;
+	}
+	if (ls > 0)
+	{
+		[shipAI message:@"SELF_MINOR_OFFENDER"];
+		return;
+	}
+	[shipAI message:@"SELF_CLEAN"];
 }
 
 

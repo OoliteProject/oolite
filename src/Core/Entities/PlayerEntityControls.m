@@ -1915,6 +1915,7 @@ static NSTimeInterval	time_last_frame;
 							[UNIVERSE removeDemoShips];
 							[self setGuiToStatusScreen];
 							[self playBuyShip];
+							[self doScriptEvent:@"playerBoughtNewShip" withArgument:self]; // some equipment.oxp might want to know everything has changed.
 						}
 					}
 					else

@@ -72,8 +72,16 @@
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
-		"NOTHING_FOUND" = ("switchAITo: route1patrolAI.plist");
-		"FRUSTRATED" = ("switchAITo: route1patrolAI.plist");
+		"NOTHING_FOUND" = (checkOwnLegalStatus);
+		"FRUSTRATED" = (checkOwnLegalStatus);
+		"SELF_CLEAN" = ("switchAITo: route1patrolAI.plist");
+		"SELF_MINOR_OFFENDER" = ("switchAITo: route1patrolAI.plist");
+		"SELF_OFFENDER" = (checkForFullHold);
+		"SELF_FUGITIVE" = ("switchAITo: pirateAI.plist");
+		"SELF_THARGOID" = ("switchAITo: thargoidAI.plist");
+		"NO_CARGO_BAY" = ("switchAITo: route1patrolAI.plist");
+		"HOLD_FULL" = ("switchAITo: route1traderAI.plist");
+		"HOLD_NOT_FULL" = ("switchAITo: pirateAI.plist");
 		UPDATE = ("pauseAI: 7.5", scanForFormationLeader);
 	};
     "NEXT_TARGET" = {
