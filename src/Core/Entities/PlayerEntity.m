@@ -942,6 +942,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	ship_kills				= 0;
 	cursor_coordinates		= galaxy_coordinates;
 	
+	scripted_misjump		= NO;
+	
 	forward_shield			= [self maxForwardShieldLevel];
 	aft_shield				= [self maxAftShieldLevel];
 	
@@ -4171,7 +4173,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
-	BOOL misjump = ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
+	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
 
 	fuel -= 10.0 * distance;								// fuel cost to target system
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
@@ -6790,6 +6792,18 @@ static int last_outfitting_index;
 - (NSPoint) galacticHyperspaceFixedCoords
 {
 	return galacticHyperspaceFixedCoords;
+}
+
+
+- (BOOL) scriptedMisjump
+{
+	return scripted_misjump;
+}
+
+
+- (void) setScriptedMisjump:(BOOL)newValue
+{
+	scripted_misjump = !!newValue;
 }
 
 

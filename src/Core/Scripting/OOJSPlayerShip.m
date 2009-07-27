@@ -97,8 +97,9 @@ enum
 	kPlayerShip_maxAftShield,			// maximum aft shield charge level, positive float, read-only
 	kPlayerShip_forwardShieldRechargeRate,	// forward shield recharge rate, positive float, read-only
 	kPlayerShip_aftShieldRechargeRate,	// aft shield recharge rate, positive float, read-only
-	kPlayerShip_galaxyCoordinates,		//galaxy coordinates, vector, read only
-	kPlayerShip_cursorCoordinates,		//cursor coordinates, vector, read only
+	kPlayerShip_galaxyCoordinates,		// galaxy coordinates, vector, read only
+	kPlayerShip_cursorCoordinates,		// cursor coordinates, vector, read only
+	kPlayerShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
 };
 
 
@@ -120,6 +121,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "aftShieldRechargeRate",		kPlayerShip_aftShieldRechargeRate,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -254,6 +256,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 		case kPlayerShip_cursorCoordinates:
 			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], outValue);
 			break;
+			
+		case kPlayerShip_scriptedMisjump:
+			*outValue = BOOLToJSVal([player scriptedMisjump]);
+			OK = YES;
+			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"PlayerShip", JSVAL_TO_INT(name));
@@ -327,6 +334,14 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			if (JS_ValueToNumber(context, *value, &fValue))
 			{
 				[player setAftShieldLevel:fValue];
+				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_scriptedMisjump:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[player setScriptedMisjump:bValue];
 				OK = YES;
 			}
 			break;

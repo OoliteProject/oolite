@@ -461,6 +461,8 @@ typedef enum
 							hyperspeed_engaged: 1,
 							travelling_at_hyperspeed: 1,
 							hyperspeed_locked: 1,
+							
+							scripted_misjump: 1,
 	
 							ident_engaged: 1,
 	
@@ -731,6 +733,9 @@ waitingForStickCallback: 1;
 - (OOGalacticHyperspaceBehaviour) galacticHyperspaceBehaviour;
 - (void) setGalacticHyperspaceFixedCoordsX:(unsigned char)x y:(unsigned char)y;
 - (NSPoint) galacticHyperspaceFixedCoords;
+
+- (BOOL) scriptedMisjump;
+- (void) setScriptedMisjump:(BOOL)newValue;
 
 #ifdef DOCKING_CLEARANCE_ENABLED
 - (BOOL) clearedToDock;
