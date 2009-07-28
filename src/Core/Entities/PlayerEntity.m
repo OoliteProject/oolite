@@ -1881,6 +1881,12 @@ static PlayerEntity *sSharedPlayer = nil;
 			[UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0];
 		
 		[self setStatus:STATUS_IN_FLIGHT];
+		
+		// If we are exiting witchspace after a scripted misjump. then make sure it gets reset now.
+		// Scripted misjump situations should have a lifespan of one jump only, to keep things
+		// simple - Nikos 20090728
+		if ([self scriptedMisjump])  [self setScriptedMisjump:NO];
+		
 		[self doScriptEvent:@"shipExitedWitchspace"];
 		suppressAegisMessages=NO;
 	}
