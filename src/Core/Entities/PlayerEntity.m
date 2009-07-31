@@ -1050,6 +1050,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to
 	[self setThrowSparks:[shipDict boolForKey:@"throw_sparks" defaultValue:NO]];
 	
+	cloakPassive = [shipDict boolForKey:@"cloak_passive" defaultValue:NO];
+	
 	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type]; 
@@ -3035,6 +3037,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	
 	[self playMissileLaunched];
+	
+	if (cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
+		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+	}
 
 	return YES;
 }
@@ -3202,11 +3210,12 @@ static PlayerEntity *sSharedPlayer = nil;
 			break;
 	}
 	
+	BOOL	weaponFired = NO;
 	switch (weapon_to_be_fired)
 	{
 		case WEAPON_PLASMA_CANNON :
 			[self firePlasmaShot:10.0:1000.0:[OOColor greenColor]];
-			return YES;
+			weaponFired = YES;
 			break;
 
 		case WEAPON_PULSE_LASER:
@@ -3214,13 +3223,23 @@ static PlayerEntity *sSharedPlayer = nil;
 		case WEAPON_MINING_LASER:
 		case WEAPON_MILITARY_LASER:
 			[self fireLaserShotInDirection: currentWeaponFacing];
-			return YES;
+			weaponFired = YES;
 			break;
 		
 		case WEAPON_THARGOID_LASER:
 			break;
 	}
-	return NO;
+	
+	if (weaponFired && cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
+		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+	}	
+	
+	if (weaponFired)
+		return YES;
+	else
+		return NO;
 }
 
 

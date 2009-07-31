@@ -570,15 +570,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
 				if (sValue != nil)  [[entity getAI] setState:sValue];
-				
-				if ([[entity getAI] state] != sValue)
-				{
-					OOReportJSError(context, @"Ship.%@ [setter]: could not set state to '%@'.", @"AIState",sValue);
-				}
-				else
-				{
-					OK = YES;
-				}
+				OK = YES;
 			}
 			break;
 		

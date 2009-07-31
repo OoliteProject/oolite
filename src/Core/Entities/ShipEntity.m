@@ -216,6 +216,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
+	cloakPassive = [shipDict boolForKey:@"cloak_passive" defaultValue:NO];
 	
 	// FIXME: give NPCs shields instead.
 	if ([shipDict fuzzyBooleanForKey:@"has_shield_booster"])
@@ -6147,6 +6148,7 @@ BOOL class_masslocks(int some_class)
 		return NO;
 	if (![self onTarget:YES])
 		return NO;
+		
 	//
 	BOOL fired = NO;
 	switch (forward_weapon_type)
@@ -6180,6 +6182,11 @@ BOOL class_masslocks(int some_class)
 	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		if ([se fireSubentityLaserShot:range])  fired = YES;
+	}
+	
+	if (fired && cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
 	}
 	
 	return fired;
@@ -6736,6 +6743,11 @@ BOOL class_masslocks(int some_class)
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
 		[target_ship reactToAIMessage:@"INCOMING_MISSILE"];
+	}
+	
+	if (cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
 	}
 
 	return YES;
