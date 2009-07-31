@@ -103,13 +103,15 @@ this.missionOffers = function ()
 			if (galaxyNumber === 0)
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
+				mission.setInstructionsKey("conhunt_short_desc1");
 			}
 			else
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1b"); // galaxy = 1
+				mission.setInstructionsKey("conhunt_short_desc1b");
 			}
 			missionVariables.conhunt = "STAGE_1";
-			mission.setInstructionsKey("conhunt_short_desc1");
+			// mission.setInstructionsKey("conhunt_short_desc1");
 		}
 		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship-script
 		{

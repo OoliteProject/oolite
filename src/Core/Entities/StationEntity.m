@@ -768,7 +768,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		docked_traders = 0;   // 1..3;
 	}
 	
-	last_patrol_report_time = 0.0;
+	last_patrol_report_time = [UNIVERSE getTime];
 	patrol_launch_interval = 300.0;	// 5 minutes
 	last_patrol_report_time -= patrol_launch_interval;
 	
@@ -1105,7 +1105,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		if (unitime > last_shuttle_launch_time + shuttle_launch_interval)
 		{
-			if ([self hasNPCTraffic])
+			if (([self hasNPCTraffic])&&(aegis_status != AEGIS_NONE))
 			{
 				[self launchShuttle];
 				docked_shuttles--;
@@ -1381,17 +1381,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (void) launchIndependentShip:(NSString*) role
 {
 	BOOL			trader = (role == @"trader"); // trader becomes only true when called by "launchTrader"
-	BOOL			sunskimmer = false;
+	BOOL			sunskimmer = ([role isEqualToString:@"sunskim-trader"]);
 	ShipEntity		*ship = nil;
 	NSString		*defaultRole = @"escort";
 	NSString		*escortRole = nil;
 	NSString		*escortShipKey = nil;
 	NSDictionary	*traderDict = nil;
 	
-	if((trader && (randf() < 0.1))) 
+	if((trader && (randf() < 0.1)) || sunskimmer) 
 	{
 		ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];   // retain count = 1
 		sunskimmer = true;
+		trader = true;
+		role = @"trader"; // make sure also sunskimmers get trader role.
 	}
 	else
 	{

@@ -11,9 +11,10 @@
 	"constrictor_hunt_1_A" = "“I hear a weird looking ship was seen at %J253.”";
 	
 	"constrictor_hunt_brief1" = "---INCOMING MESSAGE\n\nGreetings Commander,\n\nI am Captain Curruthers of Her Imperial Majesty’s Space Navy and I beg a moment of your valuable time. We would like you to do a little job for us.\nThe ship you see here is a new model, the Constrictor, equipped with a top secret new shield generator.\n\nUnfortunately it’s been stolen.\n";
-	"conhunt_short_desc1" = "Hunt for the constrictor stolen from Xeer.";
+	"conhunt_short_desc1" = "Hunt for the Constrictor stolen from %J150.";
+	"conhunt_short_desc1b" = "Hunt for the Constrictor stolen from Xeer Shipyards.";
 	"constrictor_hunt_brief1a" = "It went missing from our ship yard on %J150 five months ago and was last seen at %036. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
-	"constrictor_hunt_brief1b" = "It went missing from our ship yard on Xeer five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
+	"constrictor_hunt_brief1b" = "It went missing from Xeer Shipyards five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
 	"constrictor_hunt_debrief" = "---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty’s Space Navy.\n\nAnd maybe sooner than you think...\n\n---MESSAGE ENDS.";
 	"conhunt-thief-captured" = "You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n";
 	

@@ -1425,7 +1425,8 @@ static WormholeEntity *whole = nil;
 	if (magnitude2(r_pos) < 1000000 || patrol_counter == 0)
 	{
 		Entity *the_sun = [UNIVERSE sun];
-		Entity *the_station = [UNIVERSE station];
+		Entity *the_station = [self owner]; // was: [UNIVERSE station];  // let it work for any station.
+		if(!the_station) the_station = [UNIVERSE station];
 		if ((!the_sun)||(!the_station))
 			return;
 		Vector sun_pos = the_sun->position;
