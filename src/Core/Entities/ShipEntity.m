@@ -2754,7 +2754,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 		max_cos = 0.995;	// 0.995 - cos(5 degrees) is close enough
 	double confidenceFactor = [self trackDestination:delta_t:NO];
-	if (confidenceFactor > max_cos)
+	if (confidenceFactor >= max_cos)
 	{
 		// desired facing achieved
 		[shipAI message:@"FACING_DESTINATION"];
