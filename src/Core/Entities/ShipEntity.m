@@ -179,6 +179,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_flight_roll = [shipDict floatForKey:@"max_flight_roll"];
 	max_flight_pitch = [shipDict floatForKey:@"max_flight_pitch"];
 	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	cruiseSpeed = maxFlightSpeed*0.8;
 	
 	thrust = [shipDict floatForKey:@"thrust"];
 
@@ -980,6 +981,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[escorter setOwner:self];	// make self group leader
 		
 		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
+		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
+				cruiseSpeed = [escorter maxFlightSpeed] * 0.99;  // adapt patrolSpeed to the slowest escort but ignore the very slow ones.
 
 		[escortAI setState:@"FLYING_ESCORT"];	// Begin escort flight. (If the AI doesn't define FLYING_ESCORT, this has no effect.)
 		[escorter doScriptEvent:@"spawnedAsEscort" withArgument:self];
@@ -2640,7 +2643,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x)
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || range == 0)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;
@@ -2668,7 +2671,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > weaponRange)
+	if (range > weaponRange || range == 0)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;
@@ -2691,7 +2694,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
-	if (range > desired_range)
+	if (range > desired_range || range == 0)
 		[shipAI message:@"REACHED_SAFETY"];
 	else
 		desired_speed = max_available_speed;
@@ -5957,7 +5960,7 @@ BOOL class_masslocks(int some_class)
 	if ((d_forward < max_cos)||(retreat))	// not on course so we must adjust controls..
 	{
 
-		if (d_forward < -max_cos)  // hack to avoid just flying away from the destination
+		if (d_forward <= -max_cos)  // hack to avoid just flying away from the destination
 		{
 			d_up = min_d * 2.0;
 		}
@@ -6150,6 +6153,7 @@ BOOL class_masslocks(int some_class)
 		return NO;
 		
 	//
+
 	BOOL fired = NO;
 	switch (forward_weapon_type)
 	{

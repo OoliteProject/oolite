@@ -48,21 +48,8 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
   		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
-		UPDATE = (scanForFormationLeader, "pauseAI: 15.0");
-	};
-	"CLEAR_STATION_BACKUP" = {
-		ENTER = (
-			getWitchspaceEntryCoordinates, 
-			setDestinationFromCoordinates, 
-			"setDesiredRangeTo: 5000.0", 
-			"setSpeedFactorTo: 0.50", 
-			performFlyToRangeFromDestination
-		);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LOOK_FOR_BUSINESS");
-		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
-  		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"NOT_ESCORTING" = (scanForFormationLeader);
-		UPDATE = ("pauseAI: 1.0");
+		UPDATE = (scanForFormationLeader, "pauseAI: 15.0");
 	};
 	"LOOK_FOR_BUSINESS" =
 	{
@@ -72,16 +59,8 @@
 		ATTACKED = (setTargetToPrimaryAggressor, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", "setStateTo: FLYING_ESCORT");
 		"TARGET_FOUND" = (setTargetToFoundTarget, suggestEscort);
-		"NOTHING_FOUND" = (checkOwnLegalStatus);
-		"FRUSTRATED" = (checkOwnLegalStatus);
-		"SELF_CLEAN" = ("switchAITo: route1patrolAI.plist");
-		"SELF_MINOR_OFFENDER" = ("switchAITo: route1patrolAI.plist");
-		"SELF_OFFENDER" = (checkForFullHold);
-		"SELF_FUGITIVE" = ("switchAITo: pirateAI.plist");
-		"SELF_THARGOID" = ("switchAITo: thargoidAI.plist");
-		"NO_CARGO_BAY" = ("switchAITo: route1patrolAI.plist");
-		"HOLD_FULL" = ("switchAITo: route1traderAI.plist");
-		"HOLD_NOT_FULL" = ("switchAITo: pirateAI.plist");
+		"NOTHING_FOUND" = ("setStateTo: CHOOSE_NEW_CAREER");
+		"FRUSTRATED" = ("setStateTo: CHOOSE_NEW_CAREER");
 		UPDATE = ("pauseAI: 7.5", scanForFormationLeader);
 	};
     "NEXT_TARGET" = {
@@ -91,5 +70,16 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: interceptAI.plist"); 
 		"MOTHER_LOST" = (switchLightsOff, "setStateTo: BEGIN_BUSINESS"); 
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
+    }; 
+    "CHOOSE_NEW_CAREER" = {
+		ENTER = (checkOwnLegalStatus); 
+		"SELF_CLEAN" = ("switchAITo: route1patrolAI.plist");
+		"SELF_MINOR_OFFENDER" = (checkForFullHold);
+		"SELF_OFFENDER" = (checkForFullHold);
+		"SELF_FUGITIVE" = ("switchAITo: pirateAI.plist");
+		"SELF_THARGOID" = ("switchAITo: thargoidAI.plist");
+		"NO_CARGO_BAY" = ("switchAITo: route1patrolAI.plist");
+		"HOLD_FULL" = ("switchAITo: route1traderAI.plist");
+		"HOLD_NOT_FULL" = ("switchAITo: pirateAI.plist");
     }; 
 }

@@ -82,6 +82,8 @@ MA 02110-1301, USA.
 
 - (void) setSpeedFactorTo:(NSString *)speedString;
 
+- (void) setSpeedToCruiseSpeed;
+
 - (void) performFlyToRangeFromDestination;
 
 - (void) performIdle;
@@ -389,6 +391,10 @@ MA 02110-1301, USA.
 	desired_speed = maxFlightSpeed * [speedString doubleValue];
 }
 
+- (void) setSpeedToCruiseSpeed
+{
+	desired_speed = cruiseSpeed;
+}
 
 - (void) performIdle
 {
@@ -1458,6 +1464,10 @@ static WormholeEntity *whole = nil;
 				break;
 			case 4:		// go to 25km W of the station
 				coordinates = make_vector(stn_pos.x - 25000 * v2.x, stn_pos.y - 25000 * v2.y, stn_pos.z - 25000 * v2.z);
+				desired_range = 250.0;
+				break;
+			default:	// We should never come here
+				coordinates = make_vector(stn_pos.x + 5000 * v0.x, stn_pos.y + 5000 * v0.y, stn_pos.z + 5000 * v0.z);
 				desired_range = 250.0;
 				break;
 		}

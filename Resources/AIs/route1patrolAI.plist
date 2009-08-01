@@ -1,12 +1,12 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("setStateTo: HEAD_FOR_WITCHPOINT");
+		ENTER = (switchLightsOff, "setStateTo: HEAD_FOR_WITCHPOINT");
 	};
 	"HEAD_FOR_PLANET" =
 	{
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 50000.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DOCKING_REQUESTED" = ("setAITo: receiveDockingAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_WITCHPOINT");
@@ -21,7 +21,7 @@
 	"HEAD_FOR_WITCHPOINT" =
 	{
 		ENTER = (setCourseToWitchpoint, checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"DOCKING_REQUESTED" = ("setAITo: receiveDockingAI.plist");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");

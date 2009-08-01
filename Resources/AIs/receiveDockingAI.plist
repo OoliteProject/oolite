@@ -3,8 +3,8 @@
 	{
 		ENTER = (performStop);
 		"DOCKING_COMPLETE" = (exitAI);
-		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, exitAI);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, groupAttackTarget, exitAI);
+		ATTACKED = ("exitAIWithMessage: ATTACKED");
+		"INCOMING_MISSILE" = ("exitAIWithMessage: INCOMING_MISSILE");
 		UPDATE = ("pauseAI: 10.0");
 	};
 }

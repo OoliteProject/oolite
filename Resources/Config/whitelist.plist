@@ -79,6 +79,7 @@
 		"setSpeedTo:",
 		"setSpeedFactorTo:",
 		"performIdle",
+		"setSpeedToCruiseSpeed",
 		"performStop",
 		"performHold",
 		"setTargetToPrimaryAggressor",

@@ -128,6 +128,7 @@ MA 02110-1301, USA.
 	GLfloat					max_flight_roll;			// maximum roll rate	(2.0 for player)	(3.0 for fast raider)
 	GLfloat					max_flight_pitch;			// maximum pitch rate   (1.0 for player)	(1.5 for fast raider) also radians/sec for (* turrets *)
 	GLfloat					max_flight_yaw;
+	GLfloat					cruiseSpeed;				// 80% of top speed
 	
 	GLfloat					thrust;						// acceleration
 	float					hyperspaceMotorSpinTime;	// duration of hyperspace countdown

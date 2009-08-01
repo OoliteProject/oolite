@@ -7,7 +7,7 @@
 	{
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 50000.0", checkCourseToDestination);
 		RESTARTED = ("setStateTo: INBOUND_LOOT");
-		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_PLANET");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
 		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("setStateTo: HEAD_FOR_SUN");
@@ -23,7 +23,7 @@
 	{
 		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		RESTARTED = ("setStateTo: INBOUND_LOOT");
-		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("setStateTo: HEAD_FOR_SUN");
@@ -39,7 +39,7 @@
 		RESTARTED = ("setStateTo: OUTBOUND_LOOT");
 		"WAIT_FOR_SUN" = ("pauseAI: 10.0", setSunSkimStartCoordinates);
 		"APPROACH_COORDINATES" = (setDestinationFromCoordinates, "setDesiredRangeTo: 25000", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.80", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_SUN");
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"CLOSE_TO_SUN" = ("setStateTo: HEAD_FOR_PLANET");
@@ -55,7 +55,7 @@
 	{
 		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		RESTARTED = ("setStateTo: OUTBOUND_LOOT");
-		"COURSE_OK" = ("setSpeedFactorTo: 0.8", performFlyToRangeFromDestination);
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
 		"CLOSE_TO_SUN" = ("setStateTo: HEAD_FOR_PLANET");

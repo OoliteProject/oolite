@@ -1472,7 +1472,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			}
 
 			[self addEntity:trader_ship];
-			[[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
+			// [[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
+			[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 			[trader_ship release];
 		}
 		
@@ -1531,7 +1532,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				
 				[pirate_ship setGroup:wolfpackGroup];
 				
-				[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1603,7 +1605,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			[hunter_ship setBounty:0];
 			
 			[self addEntity:hunter_ship];
-			[[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
+			// [[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
+			[[hunter_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 
 			[hunter_ship release];
 		}
@@ -1712,7 +1715,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			}
 			
 			[self addEntity:trader_ship];
-			[[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
+			// [[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
+			[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 
 			[trader_ship release];
 		}
@@ -1769,7 +1773,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				
 				[pirate_ship setGroup:wolfpackGroup];
 				
-				[[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
+				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1835,7 +1840,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			[hunter_ship setBounty:0];
 
 			[self addEntity:hunter_ship];
-			[[hunter_ship getAI] setStateMachine:@"route2patrolAI.plist"];	// must happen after adding to the universe!
+			[[hunter_ship getAI] setStateMachine:@"route2patrolAI.plist"];	// this is not set by auto_ai!
 			
 			if (randf() > 0.50)	// 50% chance
 				[[hunter_ship getAI] setState:@"HEAD_FOR_PLANET"];
@@ -2970,15 +2975,10 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 				if (autoAI != nil)
 				{
 					[ship setAITo:autoAI];
-					
-				#if 0 	// Disabling this code for the moment, I think it has some side effects
-					// that require further investigation - Nikos 20090604
-					// Pirate with auto_ai? Assign some bounty to the baddie
-					if ([autoAI isEqualToString:@"pirateAI.plist"])
-					{
-						[ship setBounty:20 + randf() * 50];
-					}
-				#endif
+					// Nikos 20090604
+					// Pirate or trader with auto_ai? Follow populator rules for them.
+					if ([role isEqualToString:@"pirate"]) [ship setBounty:20 + randf() * 50];
+					if ([role isEqualToString:@"trader"]) [ship setBounty:0];
 				}
 			}
 		}

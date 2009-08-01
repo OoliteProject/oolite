@@ -8,7 +8,7 @@
 		ENTER = (performIdle);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: BREAK_ROCKS");
 		"NOTHING_FOUND" = ("setStateTo: DOCK_WITH_STATION");
-		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		UPDATE = (scanForRocks, "pauseAI: 10.0");
 	};
@@ -17,7 +17,7 @@
 		ENTER = (performMining);
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_SPLINTERS");
-		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 	};
 	"LOOK_FOR_SPLINTERS" =
@@ -27,7 +27,7 @@
 		"NOTHING_FOUND" = ("setStateTo: LOOK_FOR_ROCKS");
 		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
 		"NO_CARGO_BAY" = ("setStateTo: DOCK_WITH_STATION"); 
-		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		UPDATE = (scanForRandomLoot, "pauseAI: 10.0");
 	};
@@ -39,14 +39,14 @@
 		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_SPLINTERS");
 		"COLLISION" = ("setStateTo: LOOK_FOR_SPLINTERS");
-		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 	};
 	"DOCK_WITH_STATION" =
 	{
 		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", performIntercept);
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
-		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: ATTACK_SHIP");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: ATTACK_SHIP");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 	};
 	FLEE =
