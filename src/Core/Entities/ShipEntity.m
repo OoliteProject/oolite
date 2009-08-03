@@ -3725,7 +3725,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 - (BOOL)isMissile
 {
-	return [[self primaryRole] hasSuffix:@"MISSILE"];
+	return ([[self primaryRole] hasSuffix:@"MISSILE"] || [self hasPrimaryRole:@"missile"]);
 }
 
 

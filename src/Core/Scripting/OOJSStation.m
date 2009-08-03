@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 #import "OOJSStation.h"
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
+#import "OOJSPlayer.h"
 #import "OOJavaScriptEngine.h"
 
 #import "StationEntity.h"
@@ -36,6 +37,8 @@ static BOOL JSStationGetStationEntity(JSContext *context, JSObject *stationObj, 
 
 static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+
+static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sStationClass =
@@ -89,6 +92,7 @@ static JSPropertySpec sStationProperties[] =
 static JSFunctionSpec sStationMethods[] =
 {
 	// JS name					Function					min args
+	{ "dockPlayer",					StationDockPlayer,				0 },
 	{ 0 }
 };
 
@@ -214,4 +218,31 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 	}
 	
 	return OK;
+}
+
+
+// *** Methods ***
+
+// dockPlayer()
+// Proposed and written by Frame 20090729
+static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity	*player = OOPlayerForScripting();
+	
+	if ([player isDocked])
+	{
+		return YES; //fail silently
+	}
+	
+	StationEntity *stationForDockingPlayer = nil;
+	JSStationGetStationEntity(context, this, &stationForDockingPlayer); 
+	
+#ifdef DOCKING_CLEARANCE_ENABLED
+	[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+#endif
+
+	[player safeAllMissiles];
+	[UNIVERSE setViewDirection:VIEW_FORWARD];
+	[player enterDock:stationForDockingPlayer];
+	return YES;
 }
