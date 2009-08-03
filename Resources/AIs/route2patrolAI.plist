@@ -1,7 +1,7 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("setStateTo: HEAD_FOR_SUN");
+		ENTER = (switchLightsOff, "setStateTo: HEAD_FOR_SUN");
 	};
 	"HEAD_FOR_PLANET" =
 	{
@@ -17,7 +17,7 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
-		UPDATE = (scanForOffenders, "pauseAI: 10.0");
+		UPDATE = (scanForOffenders, checkCourseToDestination, "pauseAI: 10.0");
 	};
 	"GO_TO_WAYPOINT_PLANET" =
 	{
@@ -49,7 +49,7 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
-		UPDATE = (scanForOffenders, "pauseAI: 10.0");
+		UPDATE = (scanForOffenders, checkCourseToDestination, "pauseAI: 10.0");
 	};
 	"GO_TO_WAYPOINT_SUN" =
 	{

@@ -1390,14 +1390,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if((trader && (randf() < 0.1)) || sunskimmer) 
 	{
-		ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];   // retain count = 1
+		ship = [UNIVERSE newShipWithRole:@"sunskim-trader"];
 		sunskimmer = true;
 		trader = true;
 		role = @"trader"; // make sure also sunskimmers get trader role.
 	}
 	else
 	{
-		ship = [UNIVERSE newShipWithRole:role];   // retain count = 1
+		ship = [UNIVERSE newShipWithRole:role];
 	}
 
 	if (ship)
@@ -1457,42 +1457,41 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					escortShipKey = nil;
 				}
 			}
-		}
 				
-		// while (escorts--)  [self launchEscort];
-		while (escorts--)
-		{
-			ShipEntity  *escort_ship;
+			while (escorts--)
+			{
+				ShipEntity  *escort_ship;
 
-			if (escortShipKey)
-			{
-				escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
-			}
-			else
-			{
-				escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
-			}
-			
-			if (escort_ship)
-			{
-				if (![escort_ship crew] && ![escort_ship isUnpiloted])
-					[escort_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole: @"hunter"
-						andOriginalSystem: [UNIVERSE systemSeed]]]];
-						
-				[escort_ship setScanClass: CLASS_NEUTRAL];
-				[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
+				if (escortShipKey)
+				{
+					escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
+				}
+				else
+				{
+					escort_ship = [UNIVERSE newShipWithRole:escortRole];	// retained
+				}
 				
-				if (sunskimmer && [escort_ship heatInsulation] < [ship heatInsulation]) 
-						[escort_ship setHeatInsulation:[ship heatInsulation]];
+				if (escort_ship)
+				{
+					if (![escort_ship crew] && ![escort_ship isUnpiloted])
+						[escort_ship setCrew:[NSArray arrayWithObject:
+							[OOCharacter randomCharacterWithRole: @"hunter"
+							andOriginalSystem: [UNIVERSE systemSeed]]]];
+							
+					[escort_ship setScanClass: CLASS_NEUTRAL];
+					[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
+					
+					if (sunskimmer && [escort_ship heatInsulation] < [ship heatInsulation]) 
+							[escort_ship setHeatInsulation:[ship heatInsulation]];
 
-				[escort_ship setGroup:escortGroup];
-				[escort_ship setOwner:ship];
-				
-				[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
-				[self addShipToLaunchQueue:escort_ship];
-				
-				[escort_ship release];
+					[escort_ship setGroup:escortGroup];
+					[escort_ship setOwner:ship];
+					
+					[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+					[self addShipToLaunchQueue:escort_ship];
+					
+					[escort_ship release];
+				}
 			}
 		}
 		

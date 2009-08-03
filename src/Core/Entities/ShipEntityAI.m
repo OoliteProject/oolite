@@ -935,8 +935,8 @@ MA 02110-1301, USA.
 {
 	Entity *hazard = [UNIVERSE hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
 	
-	if (!hazard)
-		[shipAI message:@"COURSE_OK"];
+	if (!hazard || (hazard->isShip && sqrtf(distance2(position, hazard->position)) > scannerRange) || (hazard->isPlanet && aegis_status == AEGIS_NONE)) 
+		[shipAI message:@"COURSE_OK"]; // Avoid going into a waypoint.plist for far away objects, it cripples the main AI a bit in its funtionality.
 	else
 	{
 		if ((hazard->isShip)&&(weapon_energy * 24.0 > [hazard energy]))

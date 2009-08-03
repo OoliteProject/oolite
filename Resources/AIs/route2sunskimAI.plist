@@ -1,30 +1,26 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("setStateTo: HEAD_FOR_SUN");
+		ENTER = ("setStateTo: LOOK_FOR_SUN");
+	};
+	"LOOK_FOR_SUN" =
+	{
+		ENTER = (setSunSkimStartCoordinates);
+		"WAIT_FOR_SUN" = (setSunSkimStartCoordinates);
+		"APPROACH_COORDINATES" = ("setStateTo: HEAD_FOR_SUN");
+		UPDATE = ("pauseAI: 10");
 	};
 	"HEAD_FOR_SUN" =
 	{
-		ENTER = (setSunSkimStartCoordinates);
-		"WAIT_FOR_SUN" = ("pauseAI: 10.0", setSunSkimStartCoordinates);
-		"APPROACH_COORDINATES" = (setDestinationFromCoordinates, "setDesiredRangeTo: 50000", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.80", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT_SUN");
-		"DESIRED_RANGE_ACHIEVED" = (dockEscorts, "setStateTo: GO_TO_SKIM");
+		ENTER = ("setDesiredRangeTo: 50000", "pauseAI: 0");
+		"COURSE_OK" = (setSpeedToCruiseSpeed, performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
+		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: GO_TO_SKIM");
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
         "EXITED WITCHSPACE" = ("switchAITo: route1traderAI.plist"); 
-		"RESTARTED" = (setSunSkimStartCoordinates);
-	};
-	"GO_TO_WAYPOINT_SUN" =
-	{
-		ENTER = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"COURSE_OK" = ("setSpeedFactorTo: 0.5", performFlyToRangeFromDestination);
-		"WAYPOINT_SET" = ("setDesiredRangeTo: 50.0", checkCourseToDestination);
-		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_SUN");
-		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
-		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0");
-		"RESTARTED" = ("setStateTo: HEAD_FOR_SUN");
+		"RESTARTED" = ("setStateTo: LOOK_FOR_SUN");
+		UPDATE = (setDestinationFromCoordinates, checkCourseToDestination, "pauseAI: 15");
 	};
 	"GO_TO_SKIM" =
 	{
