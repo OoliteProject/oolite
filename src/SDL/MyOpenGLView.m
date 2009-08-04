@@ -1252,12 +1252,16 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 								//refresh to display current fullscreen res
 								[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
 							}
-
 						}
 						break;
 					
 					case SDLK_F12:
 						[self toggleScreenMode];
+							if([[PlayerEntity sharedPlayer] guiScreen]==GUI_SCREEN_GAMEOPTIONS)
+							{
+								//refresh play windowed / full screen
+								[[PlayerEntity sharedPlayer] setGuiToGameOptionsScreen];
+							}
 						break;
 					
 					case SDLK_ESCAPE:

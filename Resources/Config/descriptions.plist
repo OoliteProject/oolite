@@ -809,7 +809,7 @@
 	"Getting display modes..."		= "Getting display modes…";	// Can't be localized, OXPs aren't loaded yet
 	"Loading selected expansion packs..." = "Loading selected expansion packs…";	// Can't be localized, OXPs aren't loaded yet
 	"loading-ships"					= "Loading ship data…";
-	"initialising-universe"			= "Initialising universe…";
+	"Initialising universe"			= "Initialising universe…";
 	"loading-player"				= "Loading player…";
 	"populating-space"				= "Populating space…";
 	"running-scripts"				= "Running scripts…";

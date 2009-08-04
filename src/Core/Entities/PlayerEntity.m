@@ -1357,25 +1357,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	// cloaking device
-	if ([self hasCloakingDevice])
+	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
-		if (cloaking_device_active)
-		{
-			energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-			if (energy < CLOAKING_DEVICE_MIN_ENERGY)
-				[self deactivateCloakingDevice];
-		}
-		// Does this have a good reason for being here? Energy should not be added if the
-		// cloaking device is not used - Nikos 20090407
-		//else
-		//{
-		//	if (energy < maxEnergy)
-		//	{
-		//		energy += (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
-		//		if (energy > maxEnergy)
-		//			energy = maxEnergy;
-		//	}
-		//}
+		energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
+		if (energy < CLOAKING_DEVICE_MIN_ENERGY)
+			[self deactivateCloakingDevice];
 	}
 
 	// military_jammer
@@ -1467,15 +1453,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
 		// work on the cabin temperature
-		
-		ship_temperature += (float)(delta_t * flightSpeed * air_friction / [self heatInsulation]);	// wind_speed
+		float deltaInsulation = delta_t/[self heatInsulation];
+		ship_temperature += (float)( flightSpeed * air_friction * deltaInsulation);	// wind_speed
 		
 		if (external_temp > ship_temperature)
-			ship_temperature += (float)((external_temp - ship_temperature) * delta_t * SHIP_INSULATION_FACTOR / [self heatInsulation]);
+			ship_temperature += (float)((external_temp - ship_temperature) * SHIP_INSULATION_FACTOR  * deltaInsulation);
 		else
 		{
 			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
-				ship_temperature += (float)((external_temp - ship_temperature) * delta_t * SHIP_COOLING_FACTOR / [self heatInsulation]);
+				ship_temperature += (float)((external_temp - ship_temperature) * SHIP_COOLING_FACTOR  * deltaInsulation);
 		}
 
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
@@ -1514,6 +1500,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 		// check for mass lock
 		hyperspeed_locked = [self massLocked];
+		// check for mass lock & external temperature?
+		//hyperspeed_locked = flightSpeed * air_friction > 40.0f+(ship_temperature - external_temp ) * SHIP_COOLING_FACTOR || [self massLocked];
 
 		if (hyperspeed_locked)
 		{
@@ -4369,7 +4357,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
-	[UNIVERSE setDisplayCursor: YES];
+	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
 #if 0
@@ -6228,7 +6216,8 @@ static int last_outfitting_index;
 		credits -= fine;
 	}
 	
-	NSString* fined_message = [NSString stringWithFormat:DESC(@"fined-@-credits"), OOStringFromDeciCredits(fine, YES, NO)];
+	// one of the fined-@-credits strings includes expansion tokens
+	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOStringFromDeciCredits(fine, YES, NO)];
 	[UNIVERSE addMessage:fined_message forCount:6];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)

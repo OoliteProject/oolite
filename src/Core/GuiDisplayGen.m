@@ -41,9 +41,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 @interface GuiDisplayGen (Internal)
 
-- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor;
-- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
-
 - (void) drawGLDisplay:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
@@ -613,8 +610,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			[self setColor:text_color forRow:row];
 		if (text_key)
 			[self setKey:text_key forRow:row];
-		if (text_array)
-			[text_array addObject:str];
 		rowFadeTime[row] = text_fade;
 		if (currentRow < (OOGUIRow)n_rows - 1)
 			currentRow++;
@@ -791,6 +786,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	i = items_per_column * 2 + 2;
 	if (items_count > i) // don't fit in one page?
 	{
+		[UNIVERSE setDisplayCursor: YES];
 		i = items_per_column * 4; // total items in the first and last pages
 		items_per_column--; // for all the middle pages.
 		if (items_count <= i) // two pages
@@ -857,19 +853,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor
 {
-	return [self drawGUI:drawPosition.x :drawPosition.y :[[UNIVERSE gameView] display_z] :alpha drawCursor:drawCursor];
-}
-
-
-- (void) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
-{
-	[self drawGUI:x :y :z :alpha drawCursor:NO];
-}
-
-
-- (int) drawGUI:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha drawCursor:(BOOL) drawCursor
-{
-	GLfloat z1 = [[UNIVERSE gameView] display_z];
+	GLfloat x = drawPosition.x;
+	GLfloat y = drawPosition.y;
+	GLfloat z = [[UNIVERSE gameView] display_z];
+	
 	if (alpha > 0.05f)
 	{
 
@@ -887,7 +874,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			}
 			if ([player guiScreen] == GUI_SCREEN_STATUS)
 			{
-				[self drawEqptList:[player equipmentList] z:z1 ];
+				[self drawEqptList:[player equipmentList] z:z ];
 			}
 		}
 		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
@@ -932,10 +919,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 
 		glBegin(GL_LINES);
-			glVertex3f((float)cursor_x - h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z1);
-			glVertex3f((float)cursor_x + h1, (float)cursor_y, z1);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z1);
-			glVertex3f((float)cursor_x, (float)cursor_y - h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z1);
-			glVertex3f((float)cursor_x, (float)cursor_y + h1, z1);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z1);
+			glVertex3f((float)cursor_x - h1, (float)cursor_y, z);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z);
+			glVertex3f((float)cursor_x + h1, (float)cursor_y, z);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z);
+			glVertex3f((float)cursor_x, (float)cursor_y - h1, z);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z);
+			glVertex3f((float)cursor_x, (float)cursor_y + h1, z);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z);
 		glEnd();
 		glLineWidth(1.0f);
 		

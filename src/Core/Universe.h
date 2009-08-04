@@ -168,6 +168,7 @@ enum
 	GLfloat					skyClearColor[4];
 	
 	NSString				*currentMessage;
+	OOTimeAbsolute			messageRepeatTime;
 	
 	GuiDisplayGen			*gui;
 	GuiDisplayGen			*message_gui;

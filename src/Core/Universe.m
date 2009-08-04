@@ -175,7 +175,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
+	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
@@ -220,11 +220,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
 							  columns:1
-								 rows:8
-							rowHeight:20
+								 rows:9
+							rowHeight:19
 							 rowStart:20
 								title:nil];
-	[message_gui setCurrentRow:7];
+	[message_gui setCurrentRow:8];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
@@ -459,11 +459,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
 							  columns:1
-								 rows:8
-							rowHeight:20
+								 rows:9
+							rowHeight:19
 							 rowStart:20
 								title:nil];
-	[message_gui setCurrentRow:7];
+	[message_gui setCurrentRow:8];
 	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
 	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
@@ -486,6 +486,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	time_delta = 0.0;
 	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
 	universal_time = 0.0;
+	messageRepeatTime = 0.0;
 	
 	[commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -5140,11 +5141,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) displayMessage:(NSString *) text forCount:(OOTimeDelta)count
 {
-	if (![currentMessage isEqual:text])
+	if (![currentMessage isEqual:text] || universal_time >= messageRepeatTime)
 	{
 		if (currentMessage)	[currentMessage release];
 		currentMessage = [text retain];
-		
+		messageRepeatTime=universal_time + 6.0;
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 	}
 }
@@ -5186,7 +5187,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) addMessage:(NSString *)text forCount:(OOTimeDelta)count
 {
-	if (![currentMessage isEqual:text])
+	if (![currentMessage isEqual:text] || universal_time >= messageRepeatTime)
 	{
 #if OOLITE_SPEECH_SYNTH
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -5235,6 +5236,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		[currentMessage release];
 		currentMessage = [text retain];
+		messageRepeatTime=universal_time + 6.0;
 	}
 }
 
@@ -5243,7 +5245,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
 	
-	if (![currentMessage isEqualToString:text])
+	if (![currentMessage isEqualToString:text] || universal_time >= messageRepeatTime)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
@@ -5262,6 +5264,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		[currentMessage release];
 		currentMessage = [text retain];
+		messageRepeatTime=universal_time + 6.0;
 	}
 }
 
