@@ -4,12 +4,12 @@
 		ENTER = ("setSpeedFactorTo: 0.25", "setStateTo: FLY_HOME");
 	};
     "FLY_HOME" = {
-		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 300.0", checkCourseToDestination);
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
 		"WAYPOINT_SET" = ("setStateTo: GO_TO_WAYPOINT");
 		"APPROACHING_SURFACE" = ("setSpeedFactorTo: 0.3", "setStateTo: APPROACH");
 		"DESIRED_RANGE_ACHIEVED" = ("setSpeedFactorTo: 0.7", "setStateTo: APPROACH");
 		"AEGIS_LEAVING_DOCKING_RANGE" = ("setStateTo: APPROACH");
+		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
         ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage); 
         "INCOMING_MISSILE" = (fireECM); 
 		UPDATE = (setCourseToPlanet, "setDesiredRangeTo: 300.0", checkCourseToDestination, "pauseAI: 10.0");
@@ -25,6 +25,11 @@
 		"INCOMING_MISSILE" = (fireECM); 
 		UPDATE = ("pauseAI: 10.0");
 	}; 
+	"CLEAR_STATION" = {
+		ENTER = (getWitchspaceEntryCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100.0",
+			"setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, "pauseAI: 15");
+		UPDATE = ("setStateTo: FLY_HOME", "pauseAI: 5.0");
+	};
     "APPROACH" = {
 		ENTER = (setCourseToPlanet, "setDesiredRangeTo: 100.0", performFlyToRangeFromDestination);
 		"APPROACHING_SURFACE" = ("setSpeedFactorTo: 0.3", performFlyToRangeFromDestination);

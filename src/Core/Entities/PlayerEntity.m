@@ -3876,19 +3876,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 
 	NSString *escapepodReport = [self processEscapePods];
-	if ([escapepodReport length] != 0)
-	{
-		[dockingReport appendString:escapepodReport];
-	}
+	[self addMessageToReport:escapepodReport];
 	
 	[self unloadCargoPods];	// fill up the on-ship commodities before...
 
 	// check contracts
-	NSString *passengerReport = [self checkPassengerContracts];
-	if (passengerReport != nil)
-	{
-		[dockingReport appendFormat:@"\n\n%@", passengerReport];
-	}
+	NSString *passengerAndCargoReport = [self checkPassengerContracts]; // Is also processing cargo contracts.
+	[self addMessageToReport:passengerAndCargoReport];
 		
 	[UNIVERSE setDisplayText:YES];
 	

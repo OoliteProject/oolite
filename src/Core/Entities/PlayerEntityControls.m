@@ -1805,8 +1805,10 @@ static NSTimeInterval	time_last_frame;
 			{
 				if (!spacePressed)
 				{
+					BOOL reportEnded = ([dockingReport length] == 0);
 					[self playDismissedReportScreen];
 					[self setGuiToStatusScreen];
+					if(reportEnded) [self doScriptEvent:@"reportScreenEnded"];  // last report given. Screen is now free for missionscreens.
 				}
 				spacePressed = YES;
 			}

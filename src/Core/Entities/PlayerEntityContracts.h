@@ -80,6 +80,8 @@ MA 02110-1301, USA.
 
 - (void) erodeReputation;
 
+- (void) addMessageToReport:(NSString*) report;
+
 - (void) setGuiToContractsScreen;
 - (BOOL) pickFromGuiContractsScreen;
 - (void) highlightSystemFromGuiContractsScreen;

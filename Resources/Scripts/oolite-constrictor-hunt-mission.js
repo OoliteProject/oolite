@@ -92,7 +92,7 @@ this.addToScreen = function ()
 
 this.missionOffers = function ()
 {
-	if (guiScreen === "GUI_SCREEN_MISSION" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
+	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
 	
 	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
 	if (player.ship.dockedStation.isMainStation)
@@ -155,7 +155,7 @@ this.shipDockedWithStation = function ()
 };
 
 
-this.missionScreenEnded = this.missionChoiceWasReset = function ()
+this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = function ()
 {
 	if (!player.ship.docked)  { return; }
 	this.missionOffers();

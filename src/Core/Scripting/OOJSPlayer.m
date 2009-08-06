@@ -51,6 +51,7 @@ static JSBool PlayerIncreaseContractReputation(JSContext *context, JSObject *thi
 static JSBool PlayerDecreaseContractReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -135,6 +136,7 @@ static JSFunctionSpec sPlayerMethods[] =
 	{ "decreaseContractReputation",		PlayerDecreaseContractReputation,	0 },
 	{ "increasePassengerReputation",	PlayerIncreasePassengerReputation,	0 },
 	{ "decreasePassengerReputation",	PlayerDecreasePassengerReputation,	0 },
+	{ "addMessageToArrivalReport",		PlayerAddMessageToArrivalReport,	1 },
 	{ 0 }
 };
 
@@ -390,5 +392,21 @@ static JSBool PlayerIncreasePassengerReputation(JSContext *context, JSObject *th
 static JSBool PlayerDecreasePassengerReputation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	[OOPlayerForScripting() decreasePassengerReputation];
+	return YES;
+}
+
+// addMessageToReport(message : String)
+static JSBool PlayerAddMessageToArrivalReport(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString				*report = nil;
+	
+	report = JSValToNSString(context, argv[0]);
+	if (report == nil)
+	{
+		OOReportJSBadArguments(context, @"Player", @"addMessageToArrivalReport", argc, argv, nil, @"arrival message");
+		return NO;
+	}
+	
+	[OOPlayerForScripting() addMessageToReport:report];
 	return YES;
 }

@@ -334,6 +334,18 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+- (void) addMessageToReport:(NSString*) report
+{
+	if ([report length] != 0)
+	{
+		if ([dockingReport length] == 0)
+			[dockingReport appendString:report];
+		else
+			[dockingReport appendFormat:@"\n\n%@", report];
+	}
+}
+
+
 - (NSDictionary*) reputation
 {
 	return reputation;
@@ -519,7 +531,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	[reputation setObject:[NSNumber numberWithInt:p_unknown]	forKey:PASSAGE_UNKNOWN_KEY];
 	
 }
-
 
 - (void) setGuiToContractsScreen
 {
