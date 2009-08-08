@@ -262,7 +262,9 @@
 			"is_submunition",
 			"isCarrier",
 			"no_boulders",
-			"hyperspace_motor_spin_time"
+			"hyperspace_motor_spin_time",
+			"throw_sparks",
+			"cloak_passive"
 		);
 		knownStationKeys =
 		(
