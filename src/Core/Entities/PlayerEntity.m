@@ -4237,9 +4237,9 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	quaternion_set_random(&q1);
 	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
-	if (abs((int)d1) < 500)	
-	{// no closer than 500m
-		d1 += ((d1 > 0.0)? 500.0f: -500.0f);
+	if (abs((int)d1) < 750)	
+	{// no closer than 750m. Eric, was original 500m but that collides with some buoy variants.
+		d1 += ((d1 > 0.0)? 750.0f: -750.0f);
 	}
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	pos.x += v1.x * d1; // randomise exit position

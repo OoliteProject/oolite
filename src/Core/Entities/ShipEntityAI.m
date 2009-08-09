@@ -965,6 +965,7 @@ MA 02110-1301, USA.
 	unsigned i;
 	float	worst_legal_factor = 0;
 	GLfloat found_d2 = scannerRange * scannerRange;
+	OOShipGroup *group = [self group];
 	for (i = 0; i < n_scanned_ships ; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
@@ -975,12 +976,15 @@ MA 02110-1301, USA.
 			int random_factor = ranrot_rand() & 255;   // 25% chance of spotting a fugitive in 15s
 			if ((d2 < found_d2)&&(random_factor < legal_factor)&&(legal_factor > worst_legal_factor))
 			{
-				found_target = [ship universalID];
-				worst_legal_factor = legal_factor;
+				if (group == nil || group != [ship group])  // fellows with bounty can't be offenders
+				{
+					found_target = [ship universalID];
+					worst_legal_factor = legal_factor;
+				}
 			}
 		}
 	}
-		
+	
 	if (found_target != NO_TARGET)
 		[shipAI message:@"TARGET_FOUND"];
 	else
@@ -1402,6 +1406,9 @@ static WormholeEntity *whole = nil;
 			// become free-lance police :)
 			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
 			[self setPrimaryRole:@"police"];
+			// FIXME: Eric 2009-08-06, Here, or later on, goes something wrong with groups. When the leader dies this wingman takes the leader job. 
+			// This ship however looses its group property and ends up with a group containing only itself
+			// All other former group members keep the total group, including this ship.
 		}
 	}
 

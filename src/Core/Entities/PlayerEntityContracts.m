@@ -57,6 +57,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	if ([UNIVERSE strict])  return [NSString string];	// return a blank string
 	
 	unsigned		i;
+	BOOL added_entry = NO; // to prevent empty lines for slaves and the rare empty report.
 	NSMutableString	*result = [NSMutableString string];
 	NSMutableArray	*rescuees = [NSMutableArray array];
 	OOGovernmentID	government = [[[UNIVERSE currentSystemData] objectForKey:KEY_GOVERNMENT] intValue];
@@ -95,6 +96,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[result appendFormat:DESC(@"rescue-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits([rescuee insuranceCredits] * 10, YES, NO)];
 			credits += 10 * [rescuee insuranceCredits];
+			added_entry = YES;
 		}
 		else if ([rescuee legalStatus])
 		{
@@ -103,14 +105,16 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			[result appendFormat:DESC(@"capture-reward-for-@@-@-credits"),
 				[rescuee name], [rescuee shortDescription], OOStringFromDeciCredits(reward, YES, NO)];
 			credits += reward;
+			added_entry = YES;
 		}
 		else
 		{
 			// sell as slave - increase no. of slaves in manifest
 			[self awardCargo:@"1 Slaves"];
 		}
-		if (i < [rescuees count] - 1)
+		if ((i < [rescuees count] - 1) && added_entry)
 			[result appendString:@"\n"];
+		added_entry = NO;
 	}
 	
 	[self calculateCurrentCargo];
