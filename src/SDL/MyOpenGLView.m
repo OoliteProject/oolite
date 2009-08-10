@@ -768,26 +768,26 @@ MA 02110-1301, USA.
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 
-	int imageNo = 1;
+	int imageNo = 0;
 
-	NSString	*pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
-	while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic])
+	NSString	*pathToPic = nil;
+	do
 	{
 		imageNo++;
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
-	}
+	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
 
-	unsigned char *puntos = malloc(surface->w * surface->h * 3);
+	unsigned char *pixls = malloc(surface->w * surface->h * 3);
 //	SDL_Surface *screen;
-	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,puntos);
+	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,pixls);
 
 	int pitch = surface->w * 3;
 	unsigned char *aux = malloc( pitch );
 	short h2=surface->h/2;
-	unsigned char *p1=puntos;
-	unsigned char *p2=puntos+((surface->h-1)*pitch); //go to last line
+	unsigned char *p1=pixls;
+	unsigned char *p2=pixls+((surface->h-1)*pitch); //go to last line
 	int i;
 	for(i=0; i<h2; i++){
 		memcpy(aux,p1,pitch);
@@ -798,10 +798,10 @@ MA 02110-1301, USA.
 	}
 	free(aux);
 
-	tmpSurface=SDL_CreateRGBSurfaceFrom(puntos,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
+	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
 	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
 	SDL_FreeSurface(tmpSurface);
-	free(puntos);
+	free(pixls);
 
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }

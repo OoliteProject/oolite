@@ -6212,7 +6212,7 @@ static int last_outfitting_index;
 	
 	// one of the fined-@-credits strings includes expansion tokens
 	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOStringFromDeciCredits(fine, YES, NO)];
-	[UNIVERSE addMessage:fined_message forCount:6];
+	[UNIVERSE addCommsMessage:fined_message forCount:8 andShowComms:NO];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)
 	{
@@ -6919,7 +6919,7 @@ static int last_outfitting_index;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
-	[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:6];
+	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:8 andShowComms:NO];
 }
 
 #endif

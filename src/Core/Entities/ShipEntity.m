@@ -140,7 +140,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Problem observed in testing -- Ahruman
 	if (self != nil && !isfinite(maxFlightSpeed))
 	{
-		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed!", self);
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed, clamped to 300!", self);
 		maxFlightSpeed = 300;
 	}
 	return self;
@@ -330,8 +330,20 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
+#if 0
+	//scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
+	//let's see if scan_class is set... 
+	scanClass = StringToScanClass([shipDict stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
+	
+	//try.'scanClass' if 'scan_class' isn't set.
+	if (scanClass == CLASS_NOT_SET)
+	{
+		scanClass = StringToScanClass([shipDict stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+	}
+#else
 	// scan class. NOTE: non-standard capitalization is documented and entrenched.
-	scanClass = StringToScanClass([shipDict objectForKey:@"scanClass"]);
+	scanClass = StringToScanClass([shipDict stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+#endif
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default

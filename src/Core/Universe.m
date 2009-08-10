@@ -182,7 +182,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// Set up the internal game strings
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-	
+	// DESC expansion is now possible!
+	[[GameController sharedController] logProgress:DESC(@"Initialising universe")];
+
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
 	//// speech stuff
@@ -202,8 +204,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[[GameController sharedController] logProgress:DESC(@"loading-ships")];
 	// Load ship data
 	[OOShipRegistry sharedRegistry];
-	
-	[[GameController sharedController] logProgress:DESC(@"initialising-universe")];
 	
 	next_universal_id = 100;	// start arbitrarily above zero
 	
@@ -1972,7 +1972,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 				
-		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
+		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];
@@ -2261,7 +2261,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 				
-		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
+		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];
@@ -2348,7 +2348,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 			
 		} while (!safe);
 		
-		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
+		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:ship_pos];
 		
@@ -2468,7 +2468,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 				
-		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
+		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
 		[self addEntity:ship];
@@ -2632,8 +2632,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		}
-				
-		if (ship->scanClass <= CLASS_NO_DRAW)
+
+		if (ship->scanClass == CLASS_NOT_SET)
 		{
 			[ship setScanClass: CLASS_NEUTRAL];
 		}
@@ -5230,7 +5230,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			[self startSpeakingString:spoken_text];
 			
 		}
-#endif	// OOLITE_MAC_OS_X
+#endif	// OOLITE_SPEECH_SYNTH
 		
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:count key:nil addToArray:nil];
 		
@@ -5242,6 +5242,12 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 
 - (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count
+{
+	[self addCommsMessage:text forCount:count andShowComms:YES];
+}
+
+
+- (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count andShowComms:(BOOL) showComms
 {
 	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
 	
@@ -5259,8 +5265,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
 		
 		[comm_log_gui printLongText:text align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
-		[comm_log_gui setAlpha:1.0];
-		[comm_log_gui fadeOutFromTime:[self getTime] overDuration:6.0];
+		if (showComms) [self showCommsLog:6.0];
 		
 		[currentMessage release];
 		currentMessage = [text retain];
