@@ -171,7 +171,7 @@ static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc
 	PlayerEntity		*player = OOPlayerForScripting();
 	
 	// If argv[0] can't be converted to a string -- e.g., null or undefined -- this will clear the ship model.
-	[player showShipModel:[NSString stringWithJavaScriptValue:argv[0] inContext:context]];
+	[player showShipModel:JSValToNSString(context,argv[0])];
 	
 	return YES;
 }
@@ -209,7 +209,7 @@ static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
-	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	key = JSValToNSString(context,argv[0]);
 	[player addMissionText:key];
 	
 	return YES;
@@ -222,7 +222,7 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
 	
-	text = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	text = JSValToNSString(context,argv[0]);
 	[player addLiteralMissionText:text];
 	
 	return YES;
@@ -235,7 +235,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
-	if (argc >= 1)  key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	if (argc >= 1)  key = JSValToNSString(context,argv[0]);
 	[player setMissionImage:key];
 	
 	return YES;
@@ -248,7 +248,7 @@ static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, js
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
-	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	key =  JSValToNSString(context,argv[0]);
 	[player setMissionMusic:key];
 	
 	return YES;
@@ -261,7 +261,7 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
-	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	key = JSValToNSString(context,argv[0]);
 	[player setMissionChoices:key];
 	
 	return YES;
@@ -275,7 +275,7 @@ static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uint
 	NSString			*key = nil;
 	NSString			*missionKey = nil;
 	
-	key = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	key = JSValToNSString(context,argv[0]);
 	if ([key isKindOfClass:[NSNull class]])  key = nil;
 	
 	if (argc > 1)

@@ -219,7 +219,9 @@ JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, 
 + (id)stringWithJavaScriptString:(JSString *)string;
 
 // Convert an arbitrary JS object to an NSString, using JS_ValueToString.
-+ (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
++ (id) stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
++ (id)stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context;
+
 
 // For diagnostic messages; produces things like @"(42, true, "a string", an object description)".
 + (id)stringWithJavaScriptParameters:(jsval *)params count:(uintN)count inContext:(JSContext *)context;
@@ -235,7 +237,7 @@ JSBool JSObjectWrapperEquality(JSContext *context, JSObject *this, jsval value, 
 
 OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 {
-	return [NSString stringWithJavaScriptValue:value inContext:context];
+	return [NSString stringOrNilWithJavaScriptValue:value inContext:context];
 }
 
 

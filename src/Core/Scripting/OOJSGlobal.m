@@ -187,7 +187,7 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 	if (argc < 2)
 	{
 		messageClass = kOOLogDebugMessage;
-		message = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+		message = JSValToNSString(context,argv[0]);
 	}
 	else
 	{
@@ -211,7 +211,7 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 {
 	NSString			*string = nil;
 	
-	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	string = JSValToNSString(context,argv[0]);
 	if (string == nil)
 	{
 		OOReportJSBadArguments(context, @"System", @"expandDescription", argc, argv, nil, @"string");
@@ -229,7 +229,7 @@ static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, 
 {
 	NSString			*string = nil;
 	
-	string = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	string = JSValToNSString(context,argv[0]);
 	if (string == nil)
 	{
 		OOReportJSBadArguments(context, @"System", @"displayNameForCommodity", argc, argv, nil, @"string");

@@ -204,6 +204,11 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 	
 	if (argc >= 1)
 	{
+		if (!JSVAL_IS_STRING(argv[0]))
+		{
+			OOReportJSBadArguments(context, nil, @"ShipGroup()", 1, argv, @"Could not create ShipGroup", @"group name");
+			return NO;
+		}
 		name = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
 	}
 	
@@ -212,7 +217,7 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 		leader = JSValueToObjectOfClass(context, argv[1], [ShipEntity class]);
 		if (leader == nil && !JSVAL_IS_NULL(argv[1]))
 		{
-			OOReportJSBadArguments(context, nil, @"ShipGroup()", 1, argv + 1, @"Could not construct ShipGroup", @"ship");
+			OOReportJSBadArguments(context, nil, @"ShipGroup()", 1, argv + 1, @"Could not create ShipGroup", @"ship");
 			return NO;
 		}
 	}

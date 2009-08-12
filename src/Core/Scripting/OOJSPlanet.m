@@ -176,7 +176,7 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 	NSString				*name = nil;
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	name = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	name = JSValToNSString(context,argv[0]);
 	// can now retexture at any time, eg during huge surface explosion
 	if (name != nil)
 	{

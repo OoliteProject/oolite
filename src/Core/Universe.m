@@ -175,7 +175,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
 #ifdef ALLOW_PROCEDURAL_PLANETS
-	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:YES];
+	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
@@ -6102,8 +6102,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 - (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
 {
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	BOOL sameGalaxy=equal_seeds(galaxy_seed,[player galaxy_seed]);
+	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
+	BOOL sameGalaxy=([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
+
 	// long range map fixes
 	if ([key isEqualToString:KEY_NAME])
 	{	
@@ -6119,6 +6120,29 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[self generateSystemData:system_seed useCache:NO];
 }
 
+
+- (id) getSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key
+{
+	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
+	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
+	BOOL sameGalaxy=([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
+
+	if (sameGalaxy)
+	{
+		return [[self generateSystemData:s_seed] objectForKey:key];
+	}
+	else
+	{
+		// TODO: a safe way to retrieve other galaxies system data?
+		
+		// Retrieving data from other galaxies requires temporarily altering the present galaxy_seed.
+		// Altering the galaxy seed might affect system populators, markets etc. Since each
+		// galaxy is supposed to be a totally separate entity from the others, the usefulness
+		// of reading other galaxies data is actually pretty marginal. Kaks 20090812
+
+		return @"_OTHER_GALAXY_";
+	}
+}
 
 - (NSString *) getSystemName:(Random_Seed)s_seed
 {

@@ -529,7 +529,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			else
 			{
-				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				sValue = JSValToNSString(context,*value);
 				if (sValue != nil)  [entity setName:sValue];
 				OK = YES;
 			}
@@ -542,7 +542,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			else
 			{
-				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				sValue = JSValToNSString(context,*value);
 				if (sValue != nil)  [entity setDisplayName:sValue];
 				OK = YES;
 			}
@@ -555,7 +555,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			else
 			{
-				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				sValue = JSValToNSString(context,*value);
 				if (sValue != nil)  [entity setPrimaryRole:sValue];
 				OK = YES;
 			}
@@ -568,7 +568,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			else
 			{
-				sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+				sValue = JSValToNSString(context,*value);
 				if (sValue != nil)  [[entity getAI] setState:sValue];
 				OK = YES;
 			}
@@ -983,7 +983,7 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 	NSString				*message = nil;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	message = [NSString stringWithJavaScriptValue:*argv inContext:context];
+	message = JSValToNSString(context, *argv);
 	if (EXPECT_NOT(message == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"commsMessage", argc, argv, nil, @"message");

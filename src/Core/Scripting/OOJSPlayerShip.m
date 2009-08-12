@@ -302,7 +302,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			break;
 			
 		case kPlayerShip_galacticHyperspaceBehaviour:
-			sValue = [NSString stringWithJavaScriptValue:*value inContext:context];
+			sValue = JSValToNSString(context,*value);
 			if (sValue != nil)
 			{
 				ghBehaviour = StringToGalacticHyperspaceBehaviour(sValue);

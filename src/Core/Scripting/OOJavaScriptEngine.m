@@ -918,6 +918,19 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 
 + (id)stringWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
 {
+	// In some cases we didn't test the original stringWith... function for nil, causing difficult
+	// to track crashes. We now have two similar functions: stringWith... which never returns nil and 
+	// stringOrNilWith... (alias JSValToNSString) which can return nil and is used in most cases.
+
+	if (JSVAL_IS_VOID(value))  return @"undefined";
+	if (JSVAL_IS_NULL(value))  return @"null";
+
+	return [self stringOrNilWithJavaScriptValue:value inContext:context];
+}
+
+
++ (id)stringOrNilWithJavaScriptValue:(jsval)value inContext:(JSContext *)context
+{
 	JSString				*string = NULL;
 	BOOL					tempCtxt = NO;
 
@@ -960,7 +973,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		}
 		else
 		{
-			[result appendString:valString];
+			[result appendString:valString]; //crash if valString is nil
 		}
 	}
 	

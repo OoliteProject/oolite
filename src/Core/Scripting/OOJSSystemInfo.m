@@ -157,8 +157,7 @@ static JSExtendedClass sSystemInfoClass =
 
 - (id) valueForKey:(NSString *)key
 {
-	// FIXME
-	return nil;
+	return [UNIVERSE getSystemDataForGalaxy:_galaxy	planet:_system key:key];
 }
 
 
@@ -271,6 +270,11 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 		id				value = nil;
 		
 		value = [info valueForKey:key];
+		if ([@"_OTHER_GALAXY_" isEqualToString:(NSString *)value])
+		{
+			OOReportJSWarning(context, @"Cannot read systemInfo values for other galaxies.");
+			value = nil;
+		}
 		*outValue = [value javaScriptValueInContext:context];
 	}
 	return YES;

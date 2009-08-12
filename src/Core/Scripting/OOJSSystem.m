@@ -700,10 +700,15 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	uintN				consumed;
 	
 	role = JSValToNSString(context, argv[0]);
+	if (scString == nil)
+	{
+		OOReportJSError(context, @"System.%@(): role not defined.", @"addShips");
+		return NO;
+	}
 	if (!JS_ValueToInt32(context, argv[1], &count) || count < 1 || 64 < count)
 	{
 		OOReportJSError(context, @"System.%@(): expected positive count, got %@.", @"addShips", JSValToNSString(context, argv[1]));
-		return YES;
+		return NO;
 	}
 	
 	if (!VectorFromArgumentList(context, @"System", @"addShips", argc - 2, argv + 2, &where, &consumed))  return YES;

@@ -343,8 +343,8 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 		return NO;
 	}
 	
-	colorKey = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
-	message = [NSString stringWithJavaScriptValue:argv[1] inContext:context];
+	colorKey = JSValToNSString(context,argv[0]);
+	message = JSValToNSString(context,argv[1]);
 	
 	if (4 <= argc)
 	{
@@ -475,7 +475,7 @@ static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *thi
 	NSString				*messageClass = nil;
 	JSBool					flag;
 	
-	messageClass = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	messageClass = JSValToNSString(context, argv[0]);
 	if (messageClass != nil && JS_ValueToBoolean(context, argv[1], &flag))
 	{
 		OOLogSetDisplayMessagesInClass(messageClass, flag);

@@ -489,6 +489,7 @@ enum
 
 - (void) setSystemDataKey:(NSString*) key value:(NSObject*) object;
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
+- (id) getSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;

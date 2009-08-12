@@ -61,7 +61,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 		[[PlayerEntity sharedPlayer] setScriptTarget:object];
 	}
 	
-	selectorString = [NSString stringWithJavaScriptValue:argv[0] inContext:context];
+	selectorString = JSValToNSString(context,argv[0]);
 	
 	// Join all parameters together with spaces.
 	if (1 < argc && [selectorString hasSuffix:@":"])
