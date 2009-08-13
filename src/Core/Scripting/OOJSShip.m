@@ -530,8 +530,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			else
 			{
 				sValue = JSValToNSString(context,*value);
-				if (sValue != nil)  [entity setName:sValue];
-				OK = YES;
+				if (sValue != nil)
+				{
+					[entity setName:sValue];
+					OK = YES;
+				}
 			}
 			break;
 			
@@ -543,8 +546,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			else
 			{
 				sValue = JSValToNSString(context,*value);
-				if (sValue != nil)  [entity setDisplayName:sValue];
-				OK = YES;
+				if (sValue != nil)
+				{
+					[entity setDisplayName:sValue];
+					OK = YES;
+				}
 			}
 			break;
 		
@@ -556,8 +562,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			else
 			{
 				sValue = JSValToNSString(context,*value);
-				if (sValue != nil)  [entity setPrimaryRole:sValue];
-				OK = YES;
+				if (sValue != nil)
+				{
+					[entity setPrimaryRole:sValue];
+					OK = YES;
+				}
 			}
 			break;
 		
@@ -569,8 +578,11 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			else
 			{
 				sValue = JSValToNSString(context,*value);
-				if (sValue != nil)  [[entity getAI] setState:sValue];
-				OK = YES;
+				if (sValue != nil)
+				{
+					[[entity getAI] setState:sValue];
+					OK = YES;
+				}
 			}
 			break;
 		
@@ -669,7 +681,10 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
-	
+	if (OK == NO)
+	{
+		OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
+	}
 	return OK;
 }
 
@@ -770,7 +785,7 @@ static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *
 	
 	if (![thisAI hasSuspendedStateMachines])
 	{
-		OOReportJSWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot cannot exit current AI state machine because there are no suspended state machines.");
+		OOReportJSWarningForCaller(context, @"Ship", @"exitAI()", @"Cannot exit current AI state machine because there are no suspended state machines.");
 	}
 	else
 	{
