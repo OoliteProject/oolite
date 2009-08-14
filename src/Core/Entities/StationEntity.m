@@ -1380,7 +1380,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) launchIndependentShip:(NSString*) role
 {
-	BOOL			trader = (role == @"trader"); // trader becomes only true when called by "launchTrader"
+	BOOL			trader = [role isEqualToString:@"trader"]; // trader becomes only true when called by "launchTrader"
 	BOOL			sunskimmer = ([role isEqualToString:@"sunskim-trader"]);
 	ShipEntity		*ship = nil;
 	NSString		*defaultRole = @"escort";
