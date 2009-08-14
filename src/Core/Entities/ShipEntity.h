@@ -730,6 +730,7 @@ BOOL	class_masslocks(int some_class);
 - (void) switchLightsOff;
 
 - (void) setDestination:(Vector) dest;
+- (void) setEscortDestination:(Vector) dest;
 
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort;
 - (BOOL) acceptAsEscort:(ShipEntity *) other_ship;

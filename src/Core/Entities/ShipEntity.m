@@ -1684,7 +1684,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
 			for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
 			{
-				[escort setDestination:[self coordinatesForEscortPosition:i++]];
+				[escort setEscortDestination:[self coordinatesForEscortPosition:i++]];
 			}
 		}
 		if ([self escortGroup] != nil) 
@@ -2655,7 +2655,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || range == 0)
+	if (primaryTarget == NO_TARGET)
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		[self noteLostTarget];
+		return;
+	}
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;
@@ -2716,7 +2723,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	int rhs = 3.2 / delta_t;
 	if (rhs)	missile_chance = 1 + (ranrot_rand() % rhs);
 
-	if (([self hasEnergyBomb]) && (range < 10000.0))
+	if (([self hasEnergyBomb]) && (range < 10000.0) && canBurn)
 	{
 		float	qbomb_chance = 0.01 * delta_t;
 		if (randf() < qbomb_chance)
@@ -2786,6 +2793,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		frustration = 0.0;
 		[shipAI reactToMessage:@"FRUSTRATED"];
+		if(flightPitch == old_pitch) flightPitch = 0.5 * max_flight_pitch; // hack to get out of frustration.
 	}	
 	
 	/* 2009-7-18 Eric: the condition check below is intended to eliminate the flippering between two positions for fast turning ships
@@ -2811,11 +2819,50 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	ShipEntity* leadShip = [self owner];
 	double distance = [self rangeToDestination];
 	double eta = (distance - desired_range) / flightSpeed;
+	if(eta < 0) eta = 0;
 	if ((eta < 5.0)&&(leadShip)&&(leadShip->isShip))
-		desired_speed = [leadShip flightSpeed] * 1.25;
+		desired_speed = [leadShip flightSpeed] * (1 + eta * 0.05); // EW: This code works better, specialy at low speeds.
+		// desired_speed = [leadShip flightSpeed] * 1.25; // EW Original code, escorts always fly 25% to fast or drop speed 50% later on.
+		// this speed dropping does not work well at low speeds leading to escorts "waggling".
 	else
 		desired_speed = maxFlightSpeed;
-	[self behaviour_fly_to_destination: delta_t];
+
+	double last_distance = success_factor;
+	success_factor = distance;
+
+	// do the actual piloting!!
+	[self trackDestination:delta_t: NO];
+
+	eta = eta / 0.51;	// 2% safety margin assuming an average of half current speed
+	GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
+	GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
+
+	if ((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor))
+		desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
+		
+	if (distance < last_distance)	// improvement
+	{
+		frustration -= 0.25 * delta_t;
+		if (frustration < 0.0)
+			frustration = 0.0;
+	}
+	else
+	{
+		frustration += delta_t;
+		if (frustration > 15.0)
+		{
+			if (!leadShip) [shipAI reactToMessage:@"FRUSTRATED"]; // escorts never reach their destination when following leader.
+			else if (distance > 0.5 * scannerRange) 
+			{
+				flightPitch = max_flight_pitch; // hack to get out of frustration.
+			}
+			frustration = 0;
+		}
+	}
+	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
+		[self avoidCollision];
+	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
+	[self applyThrust:delta_t];
 }
 
 
@@ -2835,8 +2882,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		double last_success_factor = success_factor;
-		double last_distance = last_success_factor;
+		double last_distance = success_factor;
 		success_factor = distance;
 
 		// do the actual piloting!!
@@ -2858,7 +2904,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		GLfloat slowdownTime = (thrust > 0.0)? flightSpeed / thrust : 4.0;
 		GLfloat minTurnSpeedFactor = 0.05 * max_flight_pitch * max_flight_roll;	// faster turning implies higher speeds
 
-		if (((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor)) || ((flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance) && (behaviour != BEHAVIOUR_FORMATION_FORM_UP)))
+		if (((eta < slowdownTime)&&(flightSpeed > maxFlightSpeed * minTurnSpeedFactor)) || (flightSpeed > max_flight_pitch * 5 * confidenceFactor * distance))
 			desired_speed = flightSpeed * 0.50;   // cut speed by 50% to a minimum minTurnSpeedFactor of speed
 			
 		if (distance < last_distance)	// improvement
@@ -4408,10 +4454,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) decrease_flight_speed:(double) delta
 {
-	if (flightSpeed > maxFlightSpeed)
-		flightSpeed = maxFlightSpeed;
-	else
+	if (flightSpeed > delta)
 		flightSpeed -= delta;
+	else
+		flightSpeed = 0;
 }
 
 
@@ -5937,7 +5983,7 @@ BOOL class_masslocks(int some_class)
 	double reverse = 1.0;
 
 	double min_d = 0.004;
-	double max_cos = 0.85;
+	double max_cos = 0.995;  // was 0.85; should match default value of max_cos in behaviour_fly_to_destination!
 
 	if (retreat)
 		reverse = -reverse;
@@ -7559,7 +7605,7 @@ BOOL class_masslocks(int some_class)
 				[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 				thrust = thrust * 0.5;
 				desired_speed = 0.0;
-				maxFlightSpeed = 0.0;
+				// maxFlightSpeed = 0.0;
 				[self setHulk:YES];
 			}
 		}
@@ -7789,6 +7835,12 @@ int w_space_seed = 1234567;
 }
 
 
+- (void) setEscortDestination:(Vector) dest
+{
+	destination = dest; // don't reset frustration for escorts.
+}
+
+
 - (BOOL) canAcceptEscort:(ShipEntity *)potentialEscort
 {
 	//this condition has to be checked first! 
@@ -7846,6 +7898,9 @@ int w_space_seed = 1234567;
 			[escortGroup addShip:other_ship];
 			[other_ship setGroup:escortGroup];
 			
+			if(([other_ship maxFlightSpeed] < cruiseSpeed) && ([other_ship maxFlightSpeed] > cruiseSpeed * 0.3)) 
+					cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;
+
 			OOLog(@"ship.escort.accept", @"Accepting existing escort %@.", other_ship);
 			
 			[self doScriptEvent:@"shipAcceptedEscort" withArgument:other_ship];
@@ -7867,7 +7922,8 @@ int w_space_seed = 1234567;
 	int f_lo = f_pos & 3;
 
 	int fp = f_lo * 3;
-	int escort_positions[12] = {	-2,0,-1,   2,0,-1,  -3,0,-3,	3,0,-3  };
+	int escort_positions[12] = {	-2,0,-1,   2,0,-1,  -3,0,-3,	3,0,-3  }; // V-shape escort pattern
+	// int escort_positions[12] = {	-2,0,+2,   2,0,+2,  -3,0,-3,	3,0,-3  }; // X-shape escort pattern
 	Vector pos = position;
 	double spacing = collision_radius * ESCORT_SPACING_FACTOR;
 	double xx = f_hi * spacing * escort_positions[fp++];
@@ -7893,7 +7949,7 @@ int w_space_seed = 1234567;
 	if ([self primaryTarget] == nil || _escortGroup == nil)  return;
 	
 	OOShipGroup *escortGroup = [self escortGroup];
-	unsigned escortCount = [escortGroup count] - 1;
+	unsigned escortCount = [escortGroup count] - 1;  // escorts minus leader.
 	if (escortCount == 0)  return;
 	
 	if ([self group] == nil)  [self setGroup:escortGroup];

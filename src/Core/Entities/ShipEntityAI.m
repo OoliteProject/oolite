@@ -1329,8 +1329,11 @@ static WormholeEntity *whole = nil;
 
 - (void) performEscort
 {
-	behaviour = BEHAVIOUR_FORMATION_FORM_UP;
-	frustration = 0.0;
+	if(behaviour != BEHAVIOUR_FORMATION_FORM_UP) 
+	{
+		behaviour = BEHAVIOUR_FORMATION_FORM_UP;
+		frustration = 0.0; // behavior changed, reset frustration.
+	}
 }
 
 
