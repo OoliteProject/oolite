@@ -574,7 +574,6 @@
 	{
 		aft_eject_position = "0.0 -15.75 -50.75";
 		energy_recharge_rate = 3.2;
-		escorts = 4;
 		exhaust = ("9.75 1.5 -57.5 9.0 9.0 9.0", "-9.75 1.5 -57.5 9.0 9.0 9.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		hud = "hud.plist";
