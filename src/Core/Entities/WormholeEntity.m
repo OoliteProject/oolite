@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 
 #import "Universe.h"
 #import "AI.h"
+#import "OORoleSet.h"
+#import "OOShipRegistry.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 
@@ -79,6 +81,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 	if ([self init])
 	{
+		NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
 		origin = RandomSeedFromString([dict stringForKey:@"origin_seed"]);
 		destination = RandomSeedFromString([dict stringForKey:@"dest_seed"]);
 
@@ -103,16 +107,43 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		while ((currShipDict = [shipDicts nextObject]) != nil)
 		{
 			double time = [currShipDict doubleForKey:@"time_delta"];
-			NSMutableDictionary * myShipDict = [currShipDict objectForKey:@"ship"];
+			NSDictionary * myShipDict = [currShipDict objectForKey:@"ship"];
 			ShipEntity * ship = [ShipEntity alloc];
-			[ship initWithDictionary:myShipDict];
+			ship = [ship initWithDictionary:myShipDict];
+			// MKW 20090815 - Check to make sure the ship loaded ok - if not, let's try to load
+			//                a compatible alternative.
+			if( !ship )
+			{
+				OOLog(@"wormhole.load.warning", @"Ship '%@' failed to initialize - missing OXP?  Attempting to replace with random ship using roles '%@'.",
+						[myShipDict stringForKey:@"name"], [myShipDict stringForKey:@"roles"]);
+				OORoleSet * roleSet = [OORoleSet roleSetWithString:[myShipDict stringForKey:@"roles"]];
+				NSString * shipRole = [roleSet anyRole];
+				NSString * shipKey = [[OOShipRegistry sharedRegistry] randomShipKeyForRole:shipRole];
+				if( shipKey )
+				{
+					ship = [ShipEntity alloc];
+					myShipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+					ship = [ship initWithDictionary:myShipDict];
+				}
+				if( ship )
+				{
+					OOLog(@"wormhole.load.warning", @"Loaded alternative ship '%@' with role '%@'.", 
+							[ship name], shipRole);
+				}
+				else
+				{
+					OOLog(@"wormhole.load.warning", @"Failed to load alternative ship - skipping Wormhole ship.");
+				}
+			}
 
-			[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-				ship, @"ship",
-				[NSNumber numberWithDouble:time], @"time",
-				nil]];
-
-			[ship release];
+			if( ship )
+			{
+				[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+					ship, @"ship",
+					[NSNumber numberWithDouble:time], @"time",
+					nil]];
+				[ship release];
+			}
 			/*
 			   [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
 			   [NSNumber numberWithDouble:[currShipDict doubleForKey:@"time_delta"]], @"time",
@@ -120,6 +151,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			   nil]];
 			   */
 		}
+		[pool release];
 	}
 	return self;
 }

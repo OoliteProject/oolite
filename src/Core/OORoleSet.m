@@ -220,7 +220,7 @@ SOFTWARE.
 	selected = randf() * _totalProb;
 	prob = 0.0f;
 	
-	if ([_roles count] == 0)  return nil;
+	if ([_rolesAndProbabilities count] == 0)  return nil;
 	
 	for (roleEnum = [_rolesAndProbabilities keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
@@ -297,6 +297,18 @@ SOFTWARE.
 	if ([super init] == nil)  return nil;
 	
 	// Note: _roles and _roleString are derived on the fly as needed.
+	// MKW 20090815 - if we are re-initialising this OORoleSet object, we need
+	//                to ensure that _roles and _roleString are cleared.
+	if( _roles )
+	{
+		[_roles release];
+		_roles = nil;
+	}
+	if( _roleString )
+	{
+		[_roleString release];
+		_roleString = nil;
+	}
 	_rolesAndProbabilities = [dict copy];
 	
 	for (roleEnum = [dict keyEnumerator]; (role = [roleEnum nextObject]); )
