@@ -1069,10 +1069,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	Octree		*prime_octree = prime->octree;
 	Octree		*other_octree = other->octree;
 	
-	Vector		other_position = [prime absolutePositionForSubentity];
-	Triangle	other_ijk = [prime absoluteIJKForSubentity];
-	Vector		prime_position = [other absolutePositionForSubentity];
-	Triangle	prime_ijk = [other absoluteIJKForSubentity];
+	Vector		prime_position = [prime absolutePositionForSubentity];
+	Triangle	prime_ijk = [prime absoluteIJKForSubentity];
+	Vector		other_position = [other absolutePositionForSubentity];
+	Triangle	other_ijk = [other absoluteIJKForSubentity];
 
 	Vector		relative_position_of_other = resolveVectorInIJK(vector_between(prime_position, other_position), prime_ijk);
 	Triangle	relative_ijk_of_other;
