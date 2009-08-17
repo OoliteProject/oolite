@@ -975,9 +975,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
 	// clamp the sun radius
-	if (sun_radius < 1000.0) sun_radius = 1000.0;
-	if (sun_radius > 1000000.0) sun_radius = 1000000.0;
-
+	if (sun_radius < 1000.0 || sun_radius > 1000000.0 ) 
+	{
+		sun_radius = sun_radius < 1000.0 ? 1000.0 : 1000000.0;
+	}
 	safeDistance=16 * sun_radius * sun_radius; // 4 times the sun radius
 
 	// generated sun_distance/sun_radius ratios vary from 4.29 ( 15/3.5 ) to 16.67 ( 25/1.5 )
@@ -6101,10 +6102,19 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) setSystemDataForGalaxy:(OOGalaxyID)gnum planet:(OOSystemID)pnum key:(NSString *)key value:(id)object
 {
+	// trying to set  unsettable properties?  
+	if ([key isEqualToString:KEY_RADIUS]) // buggy if we allow this key to be set
+	{
+		OOLogERR(@"script.error", @"System property '%@' cannot be set.",key);
+		return;
+	}
+
 	NSString	*overrideKey = [NSString stringWithFormat:@"%u %u", gnum, pnum];
 	Random_Seed s_seed = [self systemSeedForSystemNumber:pnum];
-	BOOL sameGalaxy=([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
-
+	BOOL sameGalaxy = ([overrideKey isEqualToString:[self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed: galaxy_seed]]);
+	BOOL sameSystem = (sameGalaxy && equal_seeds([self systemSeed], s_seed));
+	NSDictionary *sysInfo = nil;
+	
 	// long range map fixes
 	if ([key isEqualToString:KEY_NAME])
 	{	
@@ -6115,9 +6125,71 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			system_names[pnum] = [(NSString *)object retain];
 		}
 	}
+	else if ([key isEqualToString:@"sun_radius"])
+	{
+		if ([object doubleValue] < 1000.0 || [object doubleValue] > 1000000.0 ) 
+		{
+			object = ([object doubleValue] < 1000.0 ? (id)@"1000.0" : (id)@"1000000.0"); // works!
+		}
+	}
+	else if ([key hasPrefix:@"corona_"])
+	{
+		object = (id)[NSString stringWithFormat:@"%f",OOClamp_0_1_f([object floatValue])];
+	}
+	
 	[self setObject:object forKey:key forPlanetKey:overrideKey];
+	
 	if (sameGalaxy) // refresh the current systemData cache!
-		[self generateSystemData:system_seed useCache:NO];
+		sysInfo=[self generateSystemData:system_seed useCache:NO]; // needed if sameSystem
+
+	// Apply changes that can be effective immediately, issue warning if they can't be changed just now
+	if (sameSystem)
+	{
+		if ([key isEqualToString:KEY_ECONOMY])
+		{	
+			if([self station]) [[self station] initialiseLocalMarketWithSeed:s_seed andRandomFactor:[[PlayerEntity sharedPlayer] random_factor]];
+		}
+		else if ([key isEqualToString:KEY_TECHLEVEL])
+		{	
+			if([self station]){
+				[[self station] setEquivalentTechLevel:[object intValue]];
+				[[self station] setLocalShipyard:[self shipsForSaleForSystem:system_seed
+								withTL:[object intValue] atTime:[[PlayerEntity sharedPlayer] clockTime]]];
+			}
+		}
+		else if ([key isEqualToString:@"sun_color"] || [key isEqualToString:@"star_count_multiplier"] ||
+				[key isEqualToString:@"nebula_count_multiplier"] || [key hasPrefix:@"sky_"])
+		{
+			SkyEntity	*the_sky = nil;
+			int i;
+			
+			for (i = n_entities - 1; i > 0; i--)
+				if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[SkyEntity class]]))
+					the_sky = (SkyEntity*)sortedEntities[i];
+			
+			if (the_sky != nil)
+			{
+				[the_sky changeProperty:key withDictionary:sysInfo];
+				
+				if ([key isEqualToString:@"sun_color"])
+				{
+					OOColor *color=[[the_sky skyColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
+					if ([self sun]) [[self sun] setSunColor:color];
+					for (i = n_entities - 1; i > 0; i--)
+						if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[DustEntity class]]))
+							[(DustEntity*)sortedEntities[i] setDustColor:color];
+				}
+			}
+		}
+		else if ([self sun] && ([key hasPrefix:@"sun_"] || [key hasPrefix:@"corona_"]))
+		{
+			[[self sun] changeSunProperty:key withDictionary:sysInfo];
+		}
+		else if ([key isEqualToString:@"texture"])
+		{
+			[[self planet] setUpPlanetFromTexture:(NSString *)object];
+		}
+	}
 }
 
 

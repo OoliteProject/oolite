@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 
 #define GUI_DEFAULT_COLUMNS			6
-#define GUI_DEFAULT_ROWS			24
+#define GUI_DEFAULT_ROWS			30
 
 #define GUI_MAX_ROWS				64
 #define GUI_MAX_COLUMNS				40

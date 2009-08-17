@@ -136,6 +136,31 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) changeProperty:(NSString *)key withDictionary:(NSDictionary*) dict
+{
+	id	object = [dict objectForKey:key];
+	
+	// TODO: properties requiring reInit?
+	if ([key isEqualToString:@"sun_color"])
+	{
+		OOColor 	*col=[[OOColor colorWithDescription:object] retain]; 
+		if (col != nil)
+		{
+			[skyColor release];
+			skyColor = [col copy];
+			[col release];
+			[UNIVERSE setLighting];
+		}
+	}
+	else
+	{
+		OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.",key);
+		return NO;
+	}
+	return YES;
+}
+
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	PlayerEntity *player = [PlayerEntity sharedPlayer];

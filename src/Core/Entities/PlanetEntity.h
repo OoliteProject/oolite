@@ -136,6 +136,8 @@ GLfloat		rvalue[729];			// stores random values for adjusting colors in the coro
 - (id) initPlanetFromDictionary:(NSDictionary*) dict;
 - (id) initPlanetFromDictionary:(NSDictionary*) dict withAtmosphere: (BOOL) atmo andSeed:(Random_Seed) p_seed;
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
+- (BOOL) setSunColor:(OOColor*)sun_color;
+- (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict;
 
 void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat* col4v1, int rv);
 

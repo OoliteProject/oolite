@@ -142,30 +142,13 @@ static float corona_blending;
 }
 
 
-- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict
+- (BOOL) setSunColor:(OOColor*)sun_color
 {
-	int			i;
+	if (sun_color == nil) return NO;
+	
 	OOCGFloat	hue, sat, bri, alf;
 	OOColor		*color;
-	double		sun_radius;
-	
-	self = [super init];
-	
-	isTextured = NO;
-#ifndef NO_SHADERS
-	isShadered = NO;
-#endif
-	
-	collision_radius = 100000.0; //  100km across
-	
-	scanClass = CLASS_NO_DRAW;
-	planet_type =   PLANET_TYPE_SUN;
-	shuttles_on_ground = 0;
-	last_launch_time = 0.0;
-	shuttle_launch_interval = 3600.0;
-	
-	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
-	
+
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	hue /=360;
 
@@ -174,7 +157,6 @@ static float corona_blending;
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
 	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
-	corona_blending=OOClamp_0_1_f([dict floatForKey:@"corona_hues" defaultValue:1.0f]);
 
 	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
@@ -224,7 +206,36 @@ static float corona_blending;
 	amb_polar_sea[1] = [color greenComponent];
 	amb_polar_sea[2] = [color blueComponent];
 	amb_polar_sea[3] = 1.0;
+
+	return YES;
+}
+
+
+- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict
+{
+	int			i;
+	double		sun_radius;
 	
+	self = [super init];
+	
+	isTextured = NO;
+#ifndef NO_SHADERS
+	isShadered = NO;
+#endif
+	
+	collision_radius = 100000.0; //  100km across
+	
+	scanClass = CLASS_NO_DRAW;
+	planet_type =   PLANET_TYPE_SUN;
+	shuttles_on_ground = 0;
+	last_launch_time = 0.0;
+	shuttle_launch_interval = 3600.0;
+	
+	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
+	
+	[self setSunColor:sun_color];
+	
+	corona_blending=OOClamp_0_1_f([dict floatForKey:@"corona_hues" defaultValue:1.0f]);
 	corona_speed_factor=[dict floatForKey:@"corona_shimmer" defaultValue:-1.0];
 	if(corona_speed_factor<0)
 	{
@@ -1415,6 +1426,40 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 {
 	return textureName;
 }
+
+
+- (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
+{
+	id	object = [dict objectForKey:key];
+	
+	if ([key isEqualToString:@"sun_radius"])
+	{
+		// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
+		[self setRadius: [object doubleValue] + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict floatForKey:@"corona_flare" defaultValue:0.0f]))];
+		collision_radius = [object doubleValue];								
+	}
+	else if ([key isEqualToString:@"corona_flare"])
+	{
+		double rad=collision_radius;
+		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
+		collision_radius = rad;
+	}
+	else if ([key isEqualToString:@"corona_shimmer"])
+	{
+		corona_speed_factor=OOClamp_0_1_f([object floatValue]) * 2.0 + randf() * randf();
+	}
+	else if ([key isEqualToString:@"corona_hues"])
+	{
+		corona_blending=OOClamp_0_1_f([object floatValue]);
+	}
+	else
+	{
+		OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.",key);
+		return NO;
+	}
+	return YES;
+}
+
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName
 {

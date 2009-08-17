@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 // Hidden interface
 @interface WormholeEntity (Private)
 
--(WormholeEntity *) init;
+-(id) init;
 
 @end
 
@@ -49,7 +49,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 @implementation WormholeEntity (Private)
 
-- (WormholeEntity*)init
+-(id) init
 {
 	if ((self = [super init]))
 	{
