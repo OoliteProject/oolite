@@ -707,7 +707,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	}
 	if (!JS_ValueToInt32(context, argv[1], &count) || count < 1 || 64 < count)
 	{
-		OOReportJSError(context, @"System.%@(): expected positive count, got %@.", @"addShips", JSValToNSString(context, argv[1]));
+		OOReportJSError(context, @"System.%@(): expected positive count, got %@.", @"addShips", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
 		return NO;
 	}
 	

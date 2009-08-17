@@ -433,7 +433,7 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 	object = JSObjectToObject(context, this);
 	if (object == nil)
 	{
-		OOReportJSError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", JSValToNSString(context, OBJECT_TO_JSVAL(this)));
+		OOReportJSError(context, @"Attempt to call __callObjCMethod() for non-Objective-C object %@.", [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(this) inContext:context]);
 		return NO;
 	}
 	

@@ -64,21 +64,18 @@ static JSBool WorldScriptsGetProperty(JSContext *context, JSObject *this, jsval 
 	NSString					*scriptName = nil;
 	id							script = nil;
 	
-	if (JSVAL_IS_STRING(name))
+	scriptName = JSValToNSString(context, name);
+	if (scriptName != nil)
 	{
-		scriptName = [NSString stringWithJavaScriptValue:name inContext:context];
-		if (scriptName != nil)
+		script = [[player worldScriptsByName] objectForKey:scriptName];
+		if (script != nil)
 		{
-			script = [[player worldScriptsByName] objectForKey:scriptName];
-			if (script != nil)
-			{
-				/*	If script is an OOJSScript, this should return a JS Script
-					object. For other OOScript subclasses, it will return
-					JSVAL_NULL. If no script exists, the value will be
-					JSVAL_VOID.
-				*/
-				*outValue = [script javaScriptValueInContext:context];
-			}
+			/*	If script is an OOJSScript, this should return a JS Script
+			 object. For other OOScript subclasses, it will return
+			 JSVAL_NULL. If no script exists, the value will be
+			 JSVAL_VOID.
+			 */
+			*outValue = [script javaScriptValueInContext:context];
 		}
 	}
 	
