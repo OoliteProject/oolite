@@ -2009,6 +2009,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		[_equipment removeObject:equipmentKey];
 		if ([_equipment count] == 0)  [self removeAllEquipment];
+		if (isPlayer)
+		{
+			if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [(PlayerEntity*)self setCompassMode:COMPASS_MODE_BASIC];		
+		}
 	}
 }
 
