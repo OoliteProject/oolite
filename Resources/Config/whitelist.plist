@@ -382,5 +382,6 @@
 		"performDocking" = "doNothing";
 		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
 		"throwSparks" = "ai_throwSparks";
+		"setStateMachine:" = "setAITo:";
 	};
 }
