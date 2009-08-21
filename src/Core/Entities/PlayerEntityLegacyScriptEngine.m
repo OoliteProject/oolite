@@ -2544,7 +2544,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			return NO;				//		   0........... 1 2 3
 		PlanetEntity* doppelganger=nil;
 		BOOL	procGen = NO;
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
@@ -2645,7 +2645,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 - (void) targetNearestIncomingMissile
 {
 	[self scanForNearestIncomingMissile];

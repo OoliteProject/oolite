@@ -89,7 +89,7 @@ typedef enum
 	
 	double					last_patrol_report_time;
 	double					patrol_launch_interval;
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	BOOL 				requiresDockingClearance;	
 #endif
 	
@@ -186,7 +186,7 @@ typedef enum
 
 - (void) acceptPatrolReportFrom:(ShipEntity*) patrol_ship;
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other;
 - (BOOL) requiresDockingClearance;
 - (void) setRequiresDockingClearance:(BOOL)newValue;

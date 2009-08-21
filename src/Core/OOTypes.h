@@ -300,7 +300,7 @@ typedef enum
 } OOEnergyUnitType;
 
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 typedef enum
 {
 	DOCKING_CLEARANCE_STATUS_NONE,

@@ -247,7 +247,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	[shipsOnApproach removeAllObjects];
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && player && [player status] == STATUS_IN_FLIGHT &&
@@ -343,7 +343,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return instructions(universalID, ship->position, 0, 100, @"TRY_AGAIN_LATER", nil, NO);
 	}
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	// If the ship is not on its docking approach and the player has
 	// requested or even been granted docking clearance, then tell the
 	// ship to wait.
@@ -743,7 +743,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	equipmentPriceFactor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
 	hasNPCTraffic = [dict fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
 	NSDictionary *universalInfo = [[UNIVERSE planetInfo] dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
@@ -1045,7 +1045,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[super update:delta_t];
 	
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
@@ -1924,7 +1924,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (NSString *) acceptDockingClearanceRequestFrom:(ShipEntity *)other
 {
 	NSString	*result = nil;

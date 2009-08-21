@@ -249,7 +249,7 @@ enum
 	BOOL					doLinkedListMaintenanceThisUpdate;
 	
 	// experimental proc-genned textures
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	BOOL					doProcedurallyTexturedPlanets;
 #endif
 	
@@ -269,7 +269,7 @@ enum
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
 
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets;
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value;
 #endif

@@ -275,7 +275,7 @@ static float corona_blending;
 	int		i;
 	int		percent_land;
 	
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	BOOL	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 #endif
 	
@@ -363,7 +363,7 @@ static float corona_blending;
 	
 	atmosphere = nil;
 	
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
 	{
 		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
@@ -446,7 +446,7 @@ static float corona_blending;
 - (id) initWithSeed:(Random_Seed) p_seed
 {
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	if (![UNIVERSE doProcedurallyTexturedPlanets])
 #endif
 	{
@@ -571,7 +571,7 @@ static float corona_blending;
 	int		i;
 	int		percent_land;
 	BOOL	procGen = NO;
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 #endif
 	
@@ -723,7 +723,7 @@ static float corona_blending;
 	[planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
 
 
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
 	{
 		if (!isTextured)
@@ -1470,7 +1470,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	textureName = tName;
 	isTextureImage = isTextured = YES;
 
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	// We always need to reset the model in order to repaint it - otherwise if someone
 	// has specified colour overrides in an OXP, those overrides affect the texture!
 	// What if someone -wants- to re-colour a planetary texture using an OXP?

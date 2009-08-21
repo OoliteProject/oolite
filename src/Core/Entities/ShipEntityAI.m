@@ -282,7 +282,7 @@ MA 02110-1301, USA.
 }
 
 
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 - (void) scanForNearestIncomingMissile
 {
 	BinaryOperationPredicateParameter param =

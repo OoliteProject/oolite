@@ -62,7 +62,7 @@ static BOOL				previous_target_pressed;
 static BOOL				next_missile_pressed;
 static BOOL				fire_missile_pressed;
 static BOOL				target_missile_pressed;
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 static BOOL				target_incoming_missile_pressed;
 #endif
 static BOOL				ident_pressed;
@@ -72,7 +72,7 @@ static BOOL				rotateCargo_pressed;
 static BOOL				autopilot_key_pressed;
 static BOOL				fast_autopilot_key_pressed;
 static BOOL				target_autopilot_key_pressed;
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 static BOOL				docking_clearance_request_key_pressed;
 #endif
 #ifndef NDEBUG
@@ -193,7 +193,7 @@ static NSTimeInterval	time_last_frame;
 	
 	LOAD_KEY_SETTING(key_target_missile,		't'					);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'					);
 #endif
 	LOAD_KEY_SETTING(key_ident_system,			'r'					);
@@ -214,7 +214,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_autopilot,				'c'					);
 	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
 	LOAD_KEY_SETTING(key_autodock,				'D'					);
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	LOAD_KEY_SETTING(key_docking_clearance_request,		'L'				);
 #endif
 	
@@ -687,7 +687,7 @@ static NSTimeInterval	time_last_frame;
 				ident_pressed = YES;
 			}
 			else  ident_pressed = NO;
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 			// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
 			if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
 			{
@@ -839,7 +839,7 @@ static NSTimeInterval	time_last_frame;
 						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 						[shipAI setState:@"GLOBAL"];	// reboot the AI
 						[self playAutopilotOn];
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
@@ -880,7 +880,7 @@ static NSTimeInterval	time_last_frame;
 						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 						[shipAI setState:@"GLOBAL"];	// restart the AI
 						[self playAutopilotOn];
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
@@ -942,7 +942,7 @@ static NSTimeInterval	time_last_frame;
 										[self markForFines];
 									}
 								}
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 								[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif
 								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
@@ -964,7 +964,7 @@ static NSTimeInterval	time_last_frame;
 			else
 				fast_autopilot_key_pressed = NO;
 			
-#ifdef DOCKING_CLEARANCE_ENABLED	
+#if DOCKING_CLEARANCE_ENABLED	
 			// docking clearance request 'L', not available in strict mode
 			if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
 			{
@@ -2224,7 +2224,7 @@ static NSTimeInterval	time_last_frame;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no")  forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)  align:GUI_ALIGN_CENTER];
 	}
 	
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	if ((guiSelectedRow == GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS))&&(([gameView isDown:gvArrowKeyRight])||([gameView isDown:gvArrowKeyLeft])))
 	{
 		if ([gameView isDown:gvArrowKeyRight] != [UNIVERSE doProcedurallyTexturedPlanets])
@@ -2829,7 +2829,7 @@ static BOOL toggling_music;
 			[self setStatus:STATUS_IN_FLIGHT];
 			[self playAutopilotOff];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 			[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 			[self doScriptEvent:@"playerCancelledAutoPilot"];

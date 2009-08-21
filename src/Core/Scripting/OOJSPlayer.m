@@ -95,7 +95,7 @@ enum
 	kPlayer_trumbleCount,			// number of trumbles, integer, read-only
 	kPlayer_contractReputation,		// reputation for cargo contracts, integer, read only
 	kPlayer_passengerReputation,		// reputation for passenger contracts, integer, read only
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	kPlayer_dockingClearanceStatus,		// docking clearance status, string, read only
 #endif
 	kPlayer_bounty					// bounty, unsigned int, read/write
@@ -119,7 +119,7 @@ static JSPropertySpec sPlayerProperties[] =
 	{ "trumbleCount",			kPlayer_trumbleCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "contractReputation",		kPlayer_contractReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerReputation",	kPlayer_passengerReputation,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	{ "dockingClearanceStatus",	kPlayer_dockingClearanceStatus,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 #endif
 	{ "bounty",					kPlayer_bounty,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -256,7 +256,7 @@ static JSBool PlayerGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OK = YES;
 			break;
 		
-#ifdef DOCKING_CLEARANCE_ENABLED	
+#if DOCKING_CLEARANCE_ENABLED	
 		case kPlayer_dockingClearanceStatus:
 			*outValue = [DockingClearanceStatusToString([player getDockingClearanceStatus]) javaScriptValueInContext:context];
 			OK = YES;

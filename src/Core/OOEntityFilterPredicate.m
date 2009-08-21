@@ -168,7 +168,7 @@ BOOL HasPrimaryRoleInSetPredicate(Entity *ship, void *parameter)
 }
 
 
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 BOOL IsHostileAgainstTargetPredicate(Entity *ship, void *parameter)
 {
 	return [(ShipEntity *)ship hasHostileTarget] && [(ShipEntity *)ship primaryTarget] == (ShipEntity *)parameter;

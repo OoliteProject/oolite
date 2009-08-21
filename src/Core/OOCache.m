@@ -948,11 +948,11 @@ static void AgeListCheckIntegrity(OOCacheImpl *cache, NSString *context)
 #endif	// OOCACHE_PERFORM_INTEGRITY_CHECKS
 
 
-#ifdef DEBUG_GRAPHVIZ
+#if DEBUG_GRAPHVIZ
 
 /*	NOTE: enabling AGE_LIST can result in graph rendering times of many hours,
 	because determining paths for non-constraint arcs is NP-hard. In particular,
-	I have up on rendering a dump of a fairly minimal cache manager after
+	I gave up on rendering a dump of a fairly minimal cache manager after
 	three and a half hours. Individual caches were fine.
 */
 #define AGE_LIST 0

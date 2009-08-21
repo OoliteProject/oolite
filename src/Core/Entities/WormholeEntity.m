@@ -352,6 +352,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		ClockToString(arrival_time, false)];
 }
 
+#if WORMHOLE_SCANNER
 - (NSString *) identFromShip:(ShipEntity*)ship
 {
 	assert([ship hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
@@ -360,6 +361,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	else
 		return DESC(@"wormhole-desc");
 }
+#endif
 
 
 - (BOOL) canCollide

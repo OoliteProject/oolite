@@ -715,7 +715,7 @@ static OOCacheManager *sSingleton = nil;
 @end
 
 
-#ifdef DEBUG_GRAPHVIZ
+#if DEBUG_GRAPHVIZ
 @interface OOCache (DebugGraphViz)
 - (NSString *) generateGraphVizBodyWithRootNamed:(NSString *)rootName;
 @end

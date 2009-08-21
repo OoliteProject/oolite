@@ -2243,7 +2243,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	//rotate to face player1
 	GLMultOOMatrix(back_mat);
 	// draw the reticle
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	// Draw reticle cyan for Wormholes
 	if ([target isWormhole] )
 	{
@@ -2286,7 +2286,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	OODrawString([player1 dialTargetName], rs0, 0.5 * rs2, 0, textsize);
 	OODrawString(info, rs0, 0.5 * rs2 - line_height, 0, textsize);
 	
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	if ([target isWormhole])
 	{
 		// Note: No break statements in the following switch() since every case

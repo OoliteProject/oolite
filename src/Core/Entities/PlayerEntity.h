@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 #import "WormholeEntity.h"
 #endif
 #import "ShipEntity.h"
@@ -93,7 +93,7 @@ enum
 	GUI_ROW_GAMEOPTIONS_DISPLAYSTYLE,
 	GUI_ROW_GAMEOPTIONS_DETAIL,
 	GUI_ROW_GAMEOPTIONS_WIREFRAMEGRAPHICS,
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	GUI_ROW_GAMEOPTIONS_PROCEDURALLYTEXTUREDPLANETS,
 #endif
 	GUI_ROW_GAMEOPTIONS_SHADEREFFECTS,
@@ -286,7 +286,7 @@ typedef enum
 // ...end save screen   
 
 	StationEntity			*dockedStation;
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 /* Used by the DOCKING_CLEARANCE code to implement docking at non-main
  * stations. Could possibly overload use of 'dockedStation' instead
  * but that needs futher investigation to ensure it doesn't break anything. */
@@ -365,7 +365,7 @@ typedef enum
 	
 	OOKeyCode				key_target_missile;
 	OOKeyCode				key_untarget_missile;
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 	OOKeyCode				key_target_incoming_missile;
 #endif
 	OOKeyCode				key_ident_system;
@@ -410,7 +410,7 @@ typedef enum
 	
 	OOKeyCode				key_custom_view;
 	
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	OOKeyCode				key_docking_clearance_request;
 #endif
 	
@@ -505,10 +505,10 @@ waitingForStickCallback: 1;
 	NSArray					*_customViews;
 	OOUInteger				_customViewIndex;
 	
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	OODockingClearanceStatus dockingClearanceStatus;
 #endif
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	NSMutableArray *scannedWormholes;
 #endif
 }
@@ -550,7 +550,7 @@ waitingForStickCallback: 1;
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (void) setTargetDockStationTo:(StationEntity *) value;
 - (StationEntity *) getTargetDockStation;
 #endif
@@ -737,7 +737,7 @@ waitingForStickCallback: 1;
 - (BOOL) scriptedMisjump;
 - (void) setScriptedMisjump:(BOOL)newValue;
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (BOOL) clearedToDock;
 - (void) setDockingClearanceStatus:(OODockingClearanceStatus) newValue;
 - (OODockingClearanceStatus) getDockingClearanceStatus;

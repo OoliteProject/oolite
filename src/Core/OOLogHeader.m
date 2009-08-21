@@ -89,7 +89,7 @@ void OOPrintLogHeader(void)
 		#define OS_TYPE_STRING "unknown system"
 	#endif
 	
-	#ifdef OO_DEBUG
+	#if OO_DEBUG
 		#define RELEASE_VARIANT_STRING " debug"
 	#elif !defined (NDEBUG)
 		#define RELEASE_VARIANT_STRING " test release"
@@ -97,25 +97,25 @@ void OOPrintLogHeader(void)
 		#define RELEASE_VARIANT_STRING ""
 	#endif
 	
-	#ifdef ALLOW_PROCEDURAL_PLANETS
+	#if ALLOW_PROCEDURAL_PLANETS
 		#define OPT1_STR " [Procedural Planets]"
 	#else
 		#define OPT1_STR ""
 	#endif
 	
-	#ifdef DOCKING_CLEARANCE_ENABLED
+	#if DOCKING_CLEARANCE_ENABLED
 		#define OPT2_STR " [Docking Clearance]"
 	#else
 		#define OPT2_STR ""
 	#endif
 	
-	#ifdef WORMHOLE_SCANNER
+	#if WORMHOLE_SCANNER
 		#define OPT3_STR " [Wormhole Scanner]"
 	#else
 		#define OPT3_STR ""
 	#endif
 	
-	#ifdef TARGET_INCOMING_MISSILES
+	#if TARGET_INCOMING_MISSILES
 		#define OPT4_STR " [Target Incoming Missiles]"
 	#else
 		#define OPT4_STR ""

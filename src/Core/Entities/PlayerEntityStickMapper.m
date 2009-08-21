@@ -425,7 +425,7 @@ MA 02110-1301, USA.
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_UNARM]];
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 	[funcList addObject:
 	 [self makeStickGuiDict: @"Target nearest incoming missile"
 				  allowable: HW_BUTTON

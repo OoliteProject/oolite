@@ -14,7 +14,7 @@
 #define OOINLINE			static inline
 
 
-#ifndef OO_DEBUG
+#if !OO_DEBUG
 #define ALWAYS_INLINE_FUNC	GCC_ATTR((always_inline))	// Force inlining of function
 #else
 #define ALWAYS_INLINE_FUNC								// Don't force inlining of function (because gdb is silly)

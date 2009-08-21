@@ -118,7 +118,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
 - (void) updateTargetting;
 - (BOOL) isValidTarget:(Entity*)target;
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
 - (void) updateWormholes;
 #endif
@@ -449,7 +449,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// trumble information
 	[result setObject:[self trumbleValue] forKey:@"trumbles"];
 
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	// wormhole information
 	NSMutableArray * wormholeDicts = [NSMutableArray arrayWithCapacity:[scannedWormholes count]];
 	NSEnumerator * wormholes = [scannedWormholes objectEnumerator];
@@ -711,7 +711,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	// wormholes
 	NSArray * whArray;
 	whArray = [dict objectForKey:@"wormholes"];
@@ -951,7 +951,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[UNIVERSE clearGUIs];
 	
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_GRANTED;
 	targetDockStation = nil;
 #endif
@@ -976,7 +976,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[save_path autorelease];
 	save_path = nil;
 	
-#ifdef WORMHOLE_SCANNER	
+#if WORMHOLE_SCANNER	
 	[scannedWormholes release];
 	scannedWormholes = [[NSMutableArray alloc] init];
 #endif
@@ -1220,7 +1220,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[self destroySound];
 
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	[scannedWormholes release];
 	scannedWormholes = nil;
 #endif
@@ -1311,7 +1311,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
 	// Moved to performInFlightUpdates. -- Micha 20090403
 	//[self updateTargetting];
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	[self updateWormholes];
 #endif
 }
@@ -1893,7 +1893,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		
 		[self setStatus:STATUS_IN_FLIGHT];
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 		[self doScriptEvent:@"shipLaunchedFromStation"];
@@ -1946,7 +1946,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		return YES;
 	}
 
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	// If target is an unexpired wormhole and the player has bought the Wormhole Scanner and we're in ID mode
 	if ([target isWormhole] && [target scanClass] != CLASS_NO_DRAW && 
 		[self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"] && ident_engaged)
@@ -2018,7 +2018,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 	}
 	
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	// If our primary target is a wormhole, check to see if we have additional
 	// information
 	if ([[self primaryTarget] isWormhole])
@@ -2289,7 +2289,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	return dockedStation;
 }
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (void) setTargetDockStationTo:(StationEntity *) value
 {
 	targetDockStation = value;
@@ -2684,7 +2684,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		return DESC(@"no-target-string");
 	if ([target_entity isShip])
 		return [(ShipEntity*)target_entity identFromShip:self];
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	if ([target_entity isWormhole])
 		return [(WormholeEntity*)target_entity identFromShip:self];
 #endif
@@ -3467,7 +3467,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
 #endif
 	
@@ -3889,7 +3889,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[[OOMusicController sharedController] stopDockingMusic];
 	[[OOMusicController sharedController] playDockedMusic];
 	
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	// Did we fail to observe traffic control regulations? However, due to the state of emergency,
 	// apply no unauthorized docking penalties if a nova is ongoing.
 	if (![UNIVERSE strict] && [dockedStation requiresDockingClearance] &&
@@ -3950,7 +3950,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[station clearDockingCorridor];
 
 	[self setAlertFlag:ALERT_FLAG_DOCKED to:NO];
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
 	
@@ -4822,7 +4822,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
 		
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
 		else
@@ -6522,7 +6522,7 @@ static int last_outfitting_index;
 	
 	[super addTarget:targetEntity];
 	
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 	if ([targetEntity isWormhole])
 	{
 		assert ([self hasEquipmentItem:@"EQ_WORMHOLE_SCANNER"]);
@@ -6873,7 +6873,7 @@ static int last_outfitting_index;
 }
 
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 - (BOOL)clearedToDock
 {
 	return dockingClearanceStatus > DOCKING_CLEARANCE_STATUS_REQUESTED;
@@ -6924,7 +6924,7 @@ static int last_outfitting_index;
 
 #endif
 
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 //
 // Wormhole Scanner support functions
 //

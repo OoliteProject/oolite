@@ -1632,6 +1632,7 @@
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
 		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
+		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
 		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
@@ -2792,6 +2793,7 @@
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
 				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
+				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
 				1AC0E9380B974D8700C46994 /* Documentation */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
@@ -3433,7 +3435,7 @@
 /* Begin XCBuildConfiguration section */
 		08B31CAD08FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				COPY_SCHEMATA = 1;
@@ -3448,12 +3450,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
-					ALLOW_PROCEDURAL_PLANETS,
-					DOCKING_CLEARANCE_ENABLED,
-					WORMHOLE_SCANNER,
-					OO_DEBUG,
-					DEBUG_GRAPHVIZ,
+					"OO_DEBUG=1",
+					"DEBUG_GRAPHVIZ=1",
 					DEBUG,
+					$OOLITE_OPTION_MACROS,
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -3505,7 +3505,7 @@
 		};
 		08B31CAE08FE63D70038D42F /* Deployment */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
@@ -3517,8 +3517,7 @@
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
-					DOCKING_CLEARANCE_ENABLED,
-					WORMHOLE_SCANNER,
+					$OOLITE_OPTION_MACROS,
 					NDEBUG,
 					OO_EXCLUDE_DEBUG_SUPPORT,
 				);
@@ -3636,11 +3635,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
-				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
-					DOCKING_CLEARANCE_ENABLED,
-					WORMHOLE_SCANNER,
-					"OO_SMART_CRASH_REPORT_INSTALL=1",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = $OOLITE_OPTION_MACROS;
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
@@ -3740,7 +3735,7 @@
 		};
 		1A581F5E0E311A59007594C1 /* Debug GCC 4.2/Leopard */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 1A846BA90D79F9570081280D /* oolite-version.xcconfig */;
+			baseConfigurationReference = 1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "ppc i386 ppc64 x86_64";
@@ -3756,11 +3751,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = XP_UNIX;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = (
-					DOCKING_CLEARANCE_ENABLED,
-					WORMHOLE_SCANNER,
-					OO_DEBUG,
-					DEBUG_GRAPHVIZ,
+					"OO_DEBUG=1",
+					"DEBUG_GRAPHVIZ=1",
 					DEBUG,
+					$OOLITE_OPTION_MACROS,
 				);
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;

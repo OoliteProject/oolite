@@ -606,7 +606,7 @@ NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
 	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
 }
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)
 {
 	switch (dockingClearanceStatus)

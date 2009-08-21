@@ -347,3 +347,7 @@ enum {
 	#define OOLITE_SPEECH_SYNTH			0
 #endif
 
+
+#ifndef OO_DEBUG
+#define OO_DEBUG 0
+#endif

@@ -174,7 +174,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
@@ -374,7 +374,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 }
 
 
-#ifdef ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS
 - (BOOL) doProcedurallyTexturedPlanets
 {
 	return doProcedurallyTexturedPlanets;
@@ -1315,7 +1315,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		pool = [[NSAutoreleasePool alloc] init];
 		NS_DURING
 			WormholeEntity* whole = [activeWormholes objectAtIndex:0];		
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 			// If the wormhole has been scanned by the player then the
 			// PlayerEntity will take care of it
 			if (![whole isScanned] &&
@@ -4619,7 +4619,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	Entity			*my_entities[ent_count];
 	
 	for (i = 0; i < ent_count; i++)
-#ifdef WORMHOLE_SCANNER
+#if WORMHOLE_SCANNER
 		if ( ([sortedEntities[i] isShip] && ![sortedEntities[i] isPlayer]) || [sortedEntities[i] isWormhole])
 #else
 		if ((sortedEntities[i]->isShip)&&(sortedEntities[i] != player))

@@ -113,7 +113,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 
 - (void)removeObjectAtIndex:(OOUInteger)i;
 
-#ifdef OO_DEBUG
+#if OO_DEBUG
 - (void) appendDebugDataToString:(NSMutableString *)string index:(OOUInteger)i depth:(OOUInteger)depth;
 #endif
 
@@ -178,7 +178,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 }
 
 
-#ifdef OO_DEBUG
+#if OO_DEBUG
 - (NSString *) debugDescription
 {
 	NSMutableString				*result = nil;
@@ -536,7 +536,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 }
 
 
-#ifdef OO_DEBUG
+#if OO_DEBUG
 - (void) appendDebugDataToString:(NSMutableString *)string index:(OOUInteger)i depth:(OOUInteger)depth
 {
 	OOUInteger				spaces;
@@ -598,7 +598,7 @@ OOINLINE NSComparisonResult PQCompare(id a, id b, SEL comparator)
 @end
 
 
-#ifdef DEBUG_GRAPHVIZ
+#if DEBUG_GRAPHVIZ
 @implementation OOPriorityQueue (DebugGraphViz)
 
 // Workaround for Xcode auto-indent bug

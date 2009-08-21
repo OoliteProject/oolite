@@ -233,7 +233,7 @@ typedef enum
 
 - (BOOL) mapKey:(NSString *) keycode toOXP:(OOScript *)oxp;
 - (void) targetNearestHostile;
-#ifdef TARGET_INCOMING_MISSILES
+#if TARGET_INCOMING_MISSILES
 - (void) targetNearestIncomingMissile;
 #endif
 

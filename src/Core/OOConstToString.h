@@ -82,6 +82,6 @@ NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity);
 OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *string) PURE_FUNC;
 NSString *GalacticHyperspaceBehaviourToString(OOGalacticHyperspaceBehaviour behaviour) CONST_FUNC;
 
-#ifdef DOCKING_CLEARANCE_ENABLED
+#if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus) PURE_FUNC;
 #endif
