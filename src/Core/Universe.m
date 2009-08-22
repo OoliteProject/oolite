@@ -2728,6 +2728,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		[ship setRoll:M_PI/5.0];
 		[ship setPitch:M_PI/10.0];
 		[[ship getAI] setStateMachine:@"nullAI.plist"];
+		if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
 		[self addEntity:ship];
 		// set status here because addEntity may affect status
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];

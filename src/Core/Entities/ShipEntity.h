@@ -536,6 +536,7 @@ MA 02110-1301, USA.
 - (void) transitionToAegisNone;
 - (PlanetEntity *) findNearestPlanet;
 - (PlanetEntity *) findNearestStellarBody;		// NOTE: includes sun.
+- (PlanetEntity *) findNearestPlanetExcludingMoons;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
 

@@ -2751,6 +2751,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (distance < desired_range)
 	{
 		behaviour = BEHAVIOUR_FLY_FROM_DESTINATION;
+		desired_speed = maxFlightSpeed;  // Not all AI define speed when flying away. Start with max speed to stay compatible with such AI's.
 	}
 	else
 	{
@@ -2945,10 +2946,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		frustration = 0.0;
 		desired_speed = 0.0;
 	}
-	else
-	{
-		desired_speed = maxFlightSpeed;
-	}
+
 	[self trackDestination:delta_t:YES];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 		[self avoidCollision];
@@ -4054,6 +4052,33 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 	}
 
+	return result;
+}
+
+
+- (PlanetEntity *) findNearestPlanetExcludingMoons
+{
+	PlanetEntity		*result = nil;
+	PlanetEntity		*planet = nil;
+	NSArray				*bodies = nil;
+	NSArray				*planets = nil;
+	unsigned			i;
+	
+	bodies = [UNIVERSE planets];
+	planets = [NSMutableArray arrayWithCapacity:[bodies count]];
+
+	for (i=0; i < [bodies count]; i++)
+	{
+		planet = [bodies objectAtIndex:i];
+		if([planet planetType] == PLANET_TYPE_GREEN)
+					planets = [planets arrayByAddingObject:planet];
+	}
+	
+	if ([planets count] == 0)  return nil;
+	
+	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
+	result = [planets objectAtIndex:0];
+		
 	return result;
 }
 

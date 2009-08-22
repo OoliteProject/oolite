@@ -803,7 +803,8 @@ MA 02110-1301, USA.
 - (void) setCourseToPlanet
 {
 	/*- selects the nearest planet it can find -*/
-	PlanetEntity	*the_planet =  [self findNearestPlanet];
+	PlanetEntity	*the_planet =  [self findNearestPlanetExcludingMoons];
+	// PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
 		Vector p_pos = the_planet->position;
@@ -1409,9 +1410,6 @@ static WormholeEntity *whole = nil;
 			// become free-lance police :)
 			[shipAI setStateMachine:@"route1patrolAI.plist"];	// use this to avoid referencing a released AI
 			[self setPrimaryRole:@"police"];
-			// FIXME: Eric 2009-08-06, Here, or later on, goes something wrong with groups. When the leader dies this wingman takes the leader job. 
-			// This ship however looses its group property and ends up with a group containing only itself
-			// All other former group members keep the total group, including this ship.
 		}
 	}
 
