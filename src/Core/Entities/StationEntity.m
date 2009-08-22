@@ -1465,7 +1465,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				if (escortShipKey)
 				{
 					escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
-					if(escort_ship) [escort_ship setPrimaryRole:@"escort"];
 				}
 				else
 				{
@@ -1481,7 +1480,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 							
 					[escort_ship setScanClass: CLASS_NEUTRAL];
 					[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-					
+					[escort_ship setPrimaryRole:@"escort"];					
 					if (sunskimmer && [escort_ship heatInsulation] < [ship heatInsulation]) 
 							[escort_ship setHeatInsulation:[ship heatInsulation]];
 
