@@ -751,16 +751,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		universalInfo != nil ?	[universalInfo boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
 	
+	double unitime = [UNIVERSE getTime];
+
 	if ([self isRotatingStation] && [self hasNPCTraffic])
 	{
 		docked_shuttles = ranrot_rand() & 3;   // 0..3;
-		last_shuttle_launch_time = 0.0;
 		shuttle_launch_interval = 15.0 * 60.0;  // every 15 minutes
-		last_shuttle_launch_time = - (ranrot_rand() & 63) * shuttle_launch_interval / 60.0;
+		last_shuttle_launch_time = unitime - (ranrot_rand() & 63) * shuttle_launch_interval / 60.0;
 		
 		docked_traders = 3 + (ranrot_rand() & 7);   // 1..3;
 		trader_launch_interval = 3600.0 / docked_traders;  // every few minutes
-		last_trader_launch_time = 60.0 - trader_launch_interval; // in one minute's time
+		last_trader_launch_time = unitime + 60.0 - trader_launch_interval; // in one minute's time
 	}
 	else
 	{
@@ -768,9 +769,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		docked_traders = 0;   // 1..3;
 	}
 	
-	last_patrol_report_time = [UNIVERSE getTime];
 	patrol_launch_interval = 300.0;	// 5 minutes
-	last_patrol_report_time -= patrol_launch_interval;
+	last_patrol_report_time = unitime - patrol_launch_interval;
 	
 	[self setCrew:[NSArray arrayWithObject:[OOCharacter characterWithRole:@"police" andOriginalSystem:[UNIVERSE systemSeed]]]];
 	
@@ -1465,6 +1465,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				if (escortShipKey)
 				{
 					escort_ship = [UNIVERSE newShipWithName:escortShipKey];	// retained
+					if(escort_ship) [escort_ship setPrimaryRole:@"escort"];
 				}
 				else
 				{
