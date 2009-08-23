@@ -1,6 +1,19 @@
 /*	Methods that may be used from old-style script actions or conditions.
 	
 	This plist cannot be extended or overriden by OXPs.
+	
+	action_methods				Commands permitted in world scripts.
+	ai_methods					Commands permitted in AIs.
+	ai_and_action_methods		Commands permitted in world scripts and AIs.
+	query_methods				Values that may be queried in script conditions.
+	action_method_aliases		Mappings from script commands (left) to internal names (right).
+	ai_method_aliases			Mappings from AI commands (left) to internal names (right).
+	query_method_aliases		Mappings from script queries (left) to internal names (right).
+	shader_*_binding_methods	Values that may be queried through shader bindings.
+	
+	Most Other types of legacy script - ship actions, character scripts,
+	scriptActionOnTarget: - can use both action_methods and ai_methods. The exception is
+	systeminfo scripts, which can't use ai_methods as they aren't run with a ship target.
 */
 
 {
@@ -223,7 +236,7 @@
 		"switchAITo:",
 		
 		// PlayerEntityLegacyScriptEngine.m
-		"targetNearestHostile",
+		"targetNearestHostile"
 	);
 	
 	query_methods =

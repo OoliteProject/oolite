@@ -28,19 +28,20 @@ MA 02110-1301, USA.
 #import	"ResourceManager.h"
 #import "OOCollectionExtractors.h"
 #import "PlayerEntityLegacyScriptEngine.h"
+#import "NSDictionaryOOExtensions.h"
 
 
 static NSArray *SanitizeCondition(NSString *condition, NSString *context);
-static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context);
-static NSArray *SanitizeActionStatement(NSString *statement, NSString *context);
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context, BOOL allowAIMethods);
+static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, BOOL allowAIMethods);
 static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedMethod, NSString *context);
-static NSString *SanitizeQueryMethod(NSString *selectorString);		// Checks aliases and whitelist, returns nil if whitelist fails.
-static NSString *SanitizeActionMethod(NSString *selectorString);	// Checks aliases and whitelist, returns nil if whitelist fails.
+static NSString *SanitizeQueryMethod(NSString *selectorString);							// Checks aliases and whitelist, returns nil if whitelist fails.
+static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMethods);	// Checks aliases and whitelist, returns nil if whitelist fails.
 static NSArray *AlwaysFalseConditions(void);
 static BOOL IsAlwaysFalseConditions(NSArray *conditions);
 
 
-NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context)
+NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAIMethods)
 {
 	NSAutoreleasePool			*pool = nil;
 	NSMutableArray				*result = nil;
@@ -55,11 +56,11 @@ NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context)
 	{
 		if ([statement isKindOfClass:[NSDictionary class]])
 		{
-			statement = SanitizeConditionalStatement(statement, context);
+			statement = SanitizeConditionalStatement(statement, context, allowAIMethods);
 		}
 		else if ([statement isKindOfClass:[NSString class]])
 		{
-			statement = SanitizeActionStatement(statement, context);
+			statement = SanitizeActionStatement(statement, context, allowAIMethods);
 		}
 		else
 		{
@@ -265,7 +266,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 }
 
 
-static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context)
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context, BOOL allowAIMethods)
 {
 	NSArray					*conditions = nil;
 	NSArray					*doActions = nil;
@@ -287,10 +288,10 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 	
 	// Sanitize do and else.
 	if (!IsAlwaysFalseConditions(conditions))  doActions = [statement arrayForKey:@"do"];
-	if (doActions != nil)  doActions = OOSanitizeLegacyScript(doActions, context);
+	if (doActions != nil)  doActions = OOSanitizeLegacyScript(doActions, context, allowAIMethods);
 	
 	elseActions = [statement arrayForKey:@"else"];
-	if (elseActions != nil)  elseActions = OOSanitizeLegacyScript(elseActions, context);
+	if (elseActions != nil)  elseActions = OOSanitizeLegacyScript(elseActions, context, allowAIMethods);
 	
 	// If neither does anything, the statment has no effect.
 	if ([doActions count] == 0 && [elseActions count] == 0)
@@ -305,7 +306,7 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 }
 
 
-static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
+static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, BOOL allowAIMethods)
 {
 	NSMutableArray				*tokens = nil;
 	OOUInteger					tokenCount;
@@ -318,7 +319,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context)
 	if (tokenCount == 0)  return nil;
 	
 	rawSelectorString = [tokens objectAtIndex:0];
-	selectorString = SanitizeActionMethod(rawSelectorString);
+	selectorString = SanitizeActionMethod(rawSelectorString, allowAIMethods);
 	if (selectorString == nil)
 	{
 		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", context, rawSelectorString);
@@ -402,29 +403,49 @@ static NSString *SanitizeQueryMethod(NSString *selectorString)
 }
 
 
-static NSString *SanitizeActionMethod(NSString *selectorString)
+static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMethods)
 {
 	static NSSet				*whitelist = nil;
+	static NSSet				*whitelistWithAI = nil;
 	static NSDictionary			*aliases = nil;
+	static NSDictionary			*aliasesWithAI = nil;
 	NSString					*aliasedSelector = nil;
-	NSArray						*whitelistArray1 = nil;
-	NSArray						*whitelistArray2 = nil;
 	
 	if (whitelist == nil)
 	{
-		whitelistArray1 = [[ResourceManager whitelistDictionary] arrayForKey:@"action_methods"];
-		if (whitelistArray1 == nil)  whitelistArray1 = [NSArray array];
-		whitelistArray2 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
-		if (whitelistArray2 != nil)  whitelistArray1 = [whitelistArray1 arrayByAddingObjectsFromArray:whitelistArray2];
+		NSArray						*actionMethods = nil;
+		NSArray						*aiMethods = nil;
+		NSArray						*aiAndActionMethods = nil;
 		
-		whitelist = [[NSSet alloc] initWithArray:whitelistArray1];
+		actionMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"action_methods"];
+		aiMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_methods"];
+		aiAndActionMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
+		
+		if (actionMethods == nil)  actionMethods = [NSArray array];
+		if (aiMethods == nil)  aiMethods = [NSArray array];
+		
+		if (aiAndActionMethods != nil)  actionMethods = [actionMethods arrayByAddingObjectsFromArray:aiAndActionMethods];
+		
+		whitelist = [[NSSet alloc] initWithArray:actionMethods];
+		whitelistWithAI = [[NSSet alloc] initWithArray:[aiMethods arrayByAddingObjectsFromArray:actionMethods]];
+		
 		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"action_method_aliases"] retain];
+		
+		aliasesWithAI = [[ResourceManager whitelistDictionary] dictionaryForKey:@"ai_method_aliases"];
+		if (aliasesWithAI != nil)
+		{
+			aliasesWithAI = [[aliasesWithAI dictionaryByAddingEntriesFromDictionary:aliases] copy];
+		}
+		else
+		{
+			aliasesWithAI = [aliases copy];
+		}
 	}
 	
-	aliasedSelector = [aliases stringForKey:selectorString];
+	aliasedSelector = [(allowAIMethods ? aliasesWithAI : aliases) stringForKey:selectorString];
 	if (aliasedSelector != nil)  selectorString = aliasedSelector;
 	
-	if (![whitelist containsObject:selectorString])  selectorString = nil;
+	if (![(allowAIMethods ? whitelistWithAI : whitelist) containsObject:selectorString])  selectorString = nil;
 	
 	return selectorString;
 }

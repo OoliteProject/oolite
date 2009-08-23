@@ -122,7 +122,7 @@ MA 02110-1301, USA.
 
 
 // context is used for error messages.
-NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context);
+NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAIMethods);
 NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context);
 
 

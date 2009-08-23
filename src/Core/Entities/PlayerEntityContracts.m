@@ -87,6 +87,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if ([rescuee script])
 		{
 			[self runUnsanitizedScriptActions:[rescuee script]
+							allowingAIMethods:YES
 							  withContextName:[NSString stringWithFormat:@"character \"%@\" script", [rescuee name]]
 									forTarget:nil];
 		}

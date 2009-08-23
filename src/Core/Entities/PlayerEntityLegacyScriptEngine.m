@@ -414,9 +414,9 @@ static BOOL sRunningScript = NO;
 }
 
 
-- (void) runUnsanitizedScriptActions:(NSArray *)actions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target
+- (void) runUnsanitizedScriptActions:(NSArray *)actions allowingAIMethods:(BOOL)allowAIMethods withContextName:(NSString *)contextName forTarget:(ShipEntity *)target
 {
-	[self runScriptActions:OOSanitizeLegacyScript(actions, contextName)
+	[self runScriptActions:OOSanitizeLegacyScript(actions, contextName, allowAIMethods)
 		   withContextName:contextName
 				 forTarget:target];
 }

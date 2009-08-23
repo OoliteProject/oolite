@@ -849,6 +849,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (script_actions != nil)
 	{
 		[player runUnsanitizedScriptActions:script_actions
+						  allowingAIMethods:NO
 							withContextName:@"witchspace script_actions"
 								  forTarget:nil];
 	}
@@ -1204,8 +1205,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (script_actions != nil)
 	{
 		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
-							withContextName:@"system script_actions"
-								  forTarget:nil];
+											   allowingAIMethods:NO
+												 withContextName:@"system script_actions"
+													   forTarget:nil];
 	}
 }
 

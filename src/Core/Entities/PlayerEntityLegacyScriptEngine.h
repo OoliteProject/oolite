@@ -62,7 +62,7 @@ typedef enum
 - (ShipEntity*) scriptTarget;
 
 - (void) runScriptActions:(NSArray *)sanitizedActions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target;
-- (void) runUnsanitizedScriptActions:(NSArray *)unsanitizedActions withContextName:(NSString *)contextName forTarget:(ShipEntity *)target;
+- (void) runUnsanitizedScriptActions:(NSArray *)unsanitizedActions allowingAIMethods:(BOOL)allowAIMethods withContextName:(NSString *)contextName forTarget:(ShipEntity *)target;
 
 // Test (sanitized) legacy script conditions array.
 - (BOOL) scriptTestConditions:(NSArray *)array;

@@ -2060,6 +2060,7 @@ static WormholeEntity *whole = nil;
 		oldTarget = [player scriptTarget];
 		[player setScriptTarget:(ShipEntity*)targEnt];
 		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
+						  allowingAIMethods:YES
 							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
 								  forTarget:targEnt];
 		[player checkScript];	// react immediately to any changes this makes
@@ -2079,6 +2080,7 @@ static WormholeEntity *whole = nil;
 		oldTarget = [player scriptTarget];
 		[player setScriptTarget:(ShipEntity*)targEnt];
 		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
+						  allowingAIMethods:YES
 							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
 								  forTarget:targEnt];
 		[player setScriptTarget:oldTarget];

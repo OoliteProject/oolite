@@ -130,7 +130,7 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 			[scriptArray isKindOfClass:[NSArray class]] &&
 			![key isEqual:kKeyMetadata])
 		{
-			scriptArray = OOSanitizeLegacyScript(scriptArray, key);
+			scriptArray = OOSanitizeLegacyScript(scriptArray, key, NO);
 			if (scriptArray != nil)
 			{
 				script = [[self alloc] initWithName:key scriptArray:scriptArray metadata:metadata];
