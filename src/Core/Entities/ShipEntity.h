@@ -476,7 +476,7 @@ MA 02110-1301, USA.
 - (void) setGroup:(OOShipGroup *)group;
 
 - (OOShipGroup *) escortGroup;
-- (OOShipGroup *) stationGroup; // should probably be defined in stationEmtity.m
+- (OOShipGroup *) stationGroup; // should probably be defined in stationEntity.m
 
 - (BOOL) hasEscorts;
 - (NSEnumerator *) escortEnumerator;
