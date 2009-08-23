@@ -377,6 +377,7 @@
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
+		1A4D67D91041DCF3001AC80F /* oolite-javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A4D67D81041DCF3001AC80F /* oolite-javascript-errors.plist */; };
 		1A4FB23A0C8D6A9A00DC8E1F /* jsautocfg.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */; };
 		1A4FB23C0C8D6AA900DC8E1F /* jsapi.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */; };
 		1A4FB23F0C8D6AB400DC8E1F /* jspubtd.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */; };
@@ -724,6 +725,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
+				1A4D67D91041DCF3001AC80F /* oolite-javascript-errors.plist in Copy Config */,
 				1ABC04270EF872B7003B740A /* crosshairs.plist in Copy Config */,
 				1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */,
 				1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */,
@@ -1059,7 +1061,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1422,6 +1424,7 @@
 		1A472916096B5454000E78D8 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		1A47291F096B5468000E78D8 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
 		1A472920096B5468000E78D8 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		1A4D67D81041DCF3001AC80F /* oolite-javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-javascript-errors.plist"; sourceTree = "<group>"; };
 		1A4FB2390C8D6A9A00DC8E1F /* jsautocfg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsautocfg.h; path = xcode/jsautocfg.h; sourceTree = "<group>"; };
 		1A4FB23B0C8D6AA900DC8E1F /* jsapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsapi.h; path = src/jsapi.h; sourceTree = "<group>"; };
 		1A4FB23E0C8D6AB400DC8E1F /* jspubtd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jspubtd.h; path = src/jspubtd.h; sourceTree = "<group>"; };
@@ -1764,7 +1767,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -1818,6 +1821,7 @@
 		1A2316DD0B9CFAD700EF0852 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				1A4D67D81041DCF3001AC80F /* oolite-javascript-errors.plist */,
 				1ABC04260EF872B7003B740A /* crosshairs.plist */,
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
 				1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */,
@@ -3030,7 +3034,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {

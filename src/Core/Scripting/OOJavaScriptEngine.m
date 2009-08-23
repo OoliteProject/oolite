@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "OOWeakReference.h"
 #import "EntityOOJavaScriptExtensions.h"
+#import "ResourceManager.h"
 
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"
@@ -108,12 +109,24 @@ static id JSGenericObjectConverter(JSContext *context, JSObject *object);
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
 {
-	NSString		*severity = nil;
+	NSString		*severity = @"error";
 	NSString		*messageText = nil;
 	NSString		*lineBuf = nil;
 	NSString		*messageClass = nil;
 	NSString		*highlight = @"*****";
 	NSString		*activeScript = nil;
+	
+	jschar empty[1] = { 0 };
+	JSErrorReport blankReport =
+	{
+		.filename = "<unspecified file>",
+		.linebuf = "",
+		.uclinebuf = empty,
+		.uctokenptr = empty,
+		.ucmessage = empty
+	};
+	if (EXPECT_NOT(report == NULL))  report = &blankReport;
+	if (EXPECT_NOT(message == NULL || *message == '\0'))  message = "<unspecified error>";
 	
 	// Type of problem: error, warning or exception? (Strict flag wilfully ignored.)
 	if (report->flags & JSREPORT_EXCEPTION) severity = @"exception";
@@ -122,7 +135,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		severity = @"warning";
 		highlight = @"-----";
 	}
-	else severity = @"error";
 	
 	// The error message itself
 	messageText = [NSString stringWithUTF8String:message];
@@ -131,8 +143,14 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	lineBuf = [NSString stringWithUTF16String:report->uclinebuf];
 	while ([lineBuf hasSuffix:@"\n"] || [lineBuf hasSuffix:@"\r"])  lineBuf = [lineBuf substringToIndex:[lineBuf length] - 1];
 	
+	// Get string for error number, for useful log message classes
+	NSDictionary *errorNames = [ResourceManager dictionaryFromFilesNamed:@"oolite-javascript-errors.plist" inFolder:@"Config" andMerge:YES];
+	NSString *errorNumberStr = [NSString stringWithFormat:@"%u", report->errorNumber];
+	NSString *errorName = [errorNames stringForKey:errorNumberStr];
+	if (errorName == nil)  errorName = errorNumberStr;
+	
 	// Log message class
-	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%u", severity, report->errorNumber];
+	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%@", severity, errorName];
 	
 	// First line: problem description
 	activeScript = [[OOJSScript currentlyRunningScript] displayName];
