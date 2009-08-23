@@ -32,7 +32,6 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
-#import "SmartCrashReportsInstall.h"
 
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
@@ -101,24 +100,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	if (typedString)
 		[typedString release];
 	[super dealloc];
-}
-
-
-- (void)awakeFromNib
-{
-	[self performSelector:@selector(performLateSetup) withObject:nil afterDelay:0.0];
-}
-
-
-- (void)performLateSetup
-{
-#if OO_SMART_CRASH_REPORT_INSTALL
-	Boolean authenticationWillBeRequired = NO;
-	if (UnsanitySCR_CanInstall(&authenticationWillBeRequired))
-	{
-		UnsanitySCR_Install(authenticationWillBeRequired ? kUnsanitySCR_GlobalInstall : 0);
-	}
-#endif
 }
 
 

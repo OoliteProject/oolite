@@ -572,8 +572,6 @@
 		1ACEA7AA0C91E32800C7CE97 /* OOJSMission.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */; };
 		1ACEA7AB0C91E32800C7CE97 /* OOJSMission.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */; };
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
-		1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */; };
-		1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */; };
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
@@ -1061,7 +1059,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1627,8 +1625,6 @@
 		1ACEA7A80C91E32800C7CE97 /* OOJSMission.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSMission.h; sourceTree = "<group>"; };
 		1ACEA7A90C91E32800C7CE97 /* OOJSMission.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSMission.m; sourceTree = "<group>"; };
 		1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */ = {isa = PBXFileReference; explicitFileType = text.plist; fileEncoding = 4; languageSpecificationIdentifier = plist; path = autoAImap.plist; sourceTree = "<group>"; };
-		1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCRDynamicShim.m; sourceTree = "<group>"; };
-		1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SmartCrashReportsInstall.h; sourceTree = "<group>"; };
 		1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSThreadOOExtensions.h; sourceTree = "<group>"; };
 		1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSThreadOOExtensions.m; sourceTree = "<group>"; };
 		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
@@ -1768,7 +1764,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -2742,25 +2738,6 @@
 			name = Misc;
 			sourceTree = "<group>";
 		};
-		1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */ = {
-			isa = PBXGroup;
-			children = (
-				1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */,
-				1AD0C6E40C47B82C0070BD23 /* SmartCrashReportsInstall.h */,
-			);
-			name = "Smart Crash Reports";
-			path = "deps/Cocoa-deps/Smart Crash Reports SDK/For Compiling on 10.4";
-			sourceTree = "<group>";
-		};
-		1AD0C6BC0C47B7350070BD23 /* SCRDynamicShim */ = {
-			isa = PBXGroup;
-			children = (
-				1AD0C6C80C47B76F0070BD23 /* SCRDynamicShim.m */,
-			);
-			name = SCRDynamicShim;
-			path = "deps/Cocoa-deps/SCRDynamicShim";
-			sourceTree = SOURCE_ROOT;
-		};
 		1ADC3F850BFA1388000E0F89 /* Drawables */ = {
 			isa = PBXGroup;
 			children = (
@@ -2809,7 +2786,6 @@
 			isa = PBXGroup;
 			children = (
 				1AEAAC6C0BA457C3000705D0 /* SpiderMonkey */,
-				1AD0C6B90C47B70F0070BD23 /* Smart Crash Reports */,
 				1A71E6FB0BCE345800CD5C13 /* libpng */,
 				1A71E8780BCE8EB100CD5C13 /* libz.dylib */,
 				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
@@ -2928,7 +2904,6 @@
 				1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */,
 				1A5E46300C32DACE008104B4 /* OOShaderUniformMethodType.h in Headers */,
 				1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */,
-				1AD0C6E60C47B82C0070BD23 /* SmartCrashReportsInstall.h in Headers */,
 				1AB2AAFA0C4CE0CC0008CF4E /* OOOXPVerifier.h in Headers */,
 				1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */,
 				1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */,
@@ -3043,8 +3018,6 @@
 				1A2319BA0B9D032700EF0852 /* Copy Sounds */,
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
 				1A6514FE0CCC9D7A0054D01B /* Copy Shaders */,
-				1AD0C7890C47C1680070BD23 /* Build SCR Shim */,
-				1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */,
 				1A2F63BD0C5CC80B003872C8 /* Copy Schemata */,
 			);
 			buildRules = (
@@ -3057,7 +3030,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3167,38 +3140,6 @@
 			shellPath = /bin/sh;
 			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Resources/Schemata\"\n\nif [ $COPY_SCHEMATA ]\nthen\n\techo \"Copying schemata\"\n\t\n\tSRC_DIR=\"$SRCROOT/Schemata/\";\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tfor item in `ls \"$SRC_DIR\"`\n\tdo\n\t\tcp \"$SRC_DIR/$item\" \"$TARGET_DIR/\"\n\tdone\n\trm \"$TARGET_DIR/README.txt\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
 		};
-		1AD0C7300C47BDEF0070BD23 /* Copy SCR Shim (test release only) */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib",
-			);
-			name = "Copy SCR Shim (test release only)";
-			outputPaths = (
-				"$(BUILT_PRODUCTS_DIR)/$(PRODUCT_NAME).app/Contents/Frameworks/SCRDynamicShim.dylib",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
-			shellScript = "TARGET_DIR=\"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.app/Contents/Frameworks\"\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Copying SCR shim\"\n\t\n\tif [ ! -e \"$TARGET_DIR\" ]\n\tthen\n\t\tmkdir \"$TARGET_DIR\"\n\tfi\n\tcp \"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib\" \"$TARGET_DIR/SCRDynamicShim.dylib\"\nelse\n\tif [ -e \"$TARGET_DIR\" ]\n\tthen\n\t\trmdir \"$TARGET_DIR\"\n\tfi\nfi\n";
-		};
-		1AD0C7890C47C1680070BD23 /* Build SCR Shim */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/SmartCrashReportsInstall.o",
-			);
-			name = "Build SCR Shim";
-			outputPaths = (
-				"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin/SCRDynamicShim.dylib",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/bash;
-			shellScript = "# A copy of this script is used in the \"Build SCR Shim\" build phase in Xcode.\n\nif [ $COPY_SCR_SHIM ]\nthen\n\techo \"Building SCR shim\"\n\t\n\tSHIM_DIR=\"$SRCROOT/deps/Cocoa-deps/SCRDynamicShim/\"\n\tBIN_DIR=\"$SHIM_DIR/bin\"\n\tif [ ! -e \"$BIN_DIR\" ]\n\tthen\n\t\tmkdir \"$BIN_DIR\"\n\tfi\n\t\n\tLIB_DIR=\"$SHIM_DIR/../Smart Crash Reports SDK/For Compiling on 10.4\"\n\t\n\t/usr/bin/gcc -o \"$BIN_DIR/SCRDynamicShim.dylib\" -L/Developer/SDKs/MacOSX10.4u.sdk/usr/lib/gcc/darwin/default \"$LIB_DIR/SmartCrashReportsInstall.o\" -exported_symbols_list \"$SHIM_DIR/ExportList.txt\" -framework Carbon -framework Security -lz -arch ppc -Wl,-single_module -compatibility_version 1 -current_version 1 -install_name /usr/local/lib/SCRDynamicShim.dylib -Wl,-Y,1455 -dynamiclib -mmacosx-version-min=10.4 -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk\nfi\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -3301,7 +3242,6 @@
 				1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */,
 				1A5E462F0C32DACE008104B4 /* OOShaderUniformMethodType.m in Sources */,
 				1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */,
-				1AD0C6C90C47B77E0070BD23 /* SCRDynamicShim.m in Sources */,
 				1AB2AAFB0C4CE0CC0008CF4E /* OOOXPVerifier.m in Sources */,
 				1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */,
 				1A27DB430C4E34B300CB4CE8 /* OOFileScannerVerifierStage.m in Sources */,
@@ -3667,7 +3607,6 @@
 				);
 				OTHER_LDFLAGS_QUOTED_FOR_TARGET_1 = "\"$(OGGVORBISROOT)/libOgg.a\"";
 				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
-				OTHER_LDFLAGS_i386 = "\"$(SRCROOT)/deps/Cocoa-deps/Smart Crash Reports SDK/For Compiling on 10.4/SmartCrashReportsInstall.o\" -framework Security";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
 				SDKROOT_i386 = /Developer/SDKs/MacOSX10.4u.sdk;
