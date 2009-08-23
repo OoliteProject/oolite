@@ -975,7 +975,8 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
 	actions = JSValueToObject(context, argv[1]);
-	if (EXPECT_NOT(!JSShipGetShipEntity(context, JSVAL_TO_OBJECT(argv[0]), &target) ||
+	if (EXPECT_NOT(!JSVAL_IS_OBJECT(argv[0]) ||
+				   !JSShipGetShipEntity(context, JSVAL_TO_OBJECT(argv[0]), &target) ||
 				   ![actions isKindOfClass:[NSArray class]]))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"runLegacyScriptActions", argc, argv, nil, @"target and array of actions");
