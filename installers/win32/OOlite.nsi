@@ -132,6 +132,7 @@ File "Oolite.ico"
 File "Oolite_Readme.txt"
 File "OoliteRS.pdf"
 File "..\..\Doc\AdviceForNewCommanders.pdf"
+File "..\..\Doc\OoliteReadMe.pdf"
 File /r /x .svn /x *~ "${DST}"
 
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
@@ -145,8 +146,9 @@ WriteRegStr HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite Unin
 SetOutPath $INSTDIR\oolite.app
 CreateDirectory "$SMPROGRAMS\Oolite"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\oolite.app\oolite.exe" "" "$INSTDIR\Oolite.ico"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\Oolite_Readme.txt"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\OoliteReadMe.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Reference Sheet.lnk" "$INSTDIR\OoliteRS.pdf"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite - Advice for New Commanders.lnk" "$INSTDIR\AdviceForNewCommanders.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
 

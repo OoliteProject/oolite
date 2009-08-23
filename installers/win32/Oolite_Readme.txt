@@ -4,8 +4,9 @@ How to run Oolite
 -----------------
 
 A folder has been created in Start -> Program Files called Oolite. This
-folder has icons for running the game, the reference sheet, this file,
-and an uninstall program.
+folder has icons for running the game, the reference sheet, the Advice
+for New Commanders guide, the link to the official Oolite website,a more
+detailed ReadMe document in PDF format and an uninstall program.
 
 To run the game, choose the Oolite icon in the Oolite folder.
 
@@ -86,6 +87,9 @@ Tips
 ----
 
 * Read the installed "Oolite reference sheet" PDF for the controls
+
+* More detailed information about the game can be found inside the Acrobat
+  PDF OoliteReadMe file, already installed in your root Oolite folder
 
 * Use Shift+Escape to quit the game
 
