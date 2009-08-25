@@ -81,6 +81,7 @@ typedef struct
 	BOOL					isTextured;
 	BOOL					isTextureImage; //is the texture a png image?
 	GLuint					textureName;
+	NSString				*textureFile;
 	unsigned char			*textureData;
 	
 #ifndef NO_SHADERS
@@ -145,6 +146,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 - (int) planet_seed;
 - (BOOL) isTextured;
 - (GLuint) textureName;
+- (NSString *) textureFileName;
 
 - (double) polar_color_factor;
 - (GLfloat *) amb_land;

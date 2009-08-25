@@ -174,11 +174,22 @@ static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, j
 {
 	PlanetEntity			*thisEnt = nil;
 	NSString				*name = nil;
+	BOOL					procGen = NO;
+	NSString				*pre = @"";
+	OOEntityStatus			playerStatus = [[PlayerEntity sharedPlayer] status];
 	
 	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	name = JSValToNSString(context,argv[0]);
-	// can now retexture at any time, eg during huge surface explosion
-	if (name != nil)
+#if ALLOW_PROCEDURAL_PLANETS
+	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+	if (!procGen) pre=@"Detailed planets option not set. ";
+#endif
+	// if procGen == on we can retexture at any time, eg during huge surface explosions
+	if(!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
+	{
+		OOReportJSError(context, @"%@Use of %@ restricted to shipWillLaunchFromStation and shipWillExitWitchspace.", pre, @"setTexture");
+	}
+	else if (name != nil)
 	{
 		if ([thisEnt setUpPlanetFromTexture:name])  return YES;
 		else  OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);

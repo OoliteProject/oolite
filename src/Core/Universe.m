@@ -6190,7 +6190,16 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		}
 		else if ([key isEqualToString:@"texture"])
 		{
-			[[self planet] setUpPlanetFromTexture:(NSString *)object];
+			BOOL procGen=NO;
+#if ALLOW_PROCEDURAL_PLANETS
+			procGen = doProcedurallyTexturedPlanets;
+#endif
+			if (procGen)
+				[[self planet] setUpPlanetFromTexture:(NSString *)object];
+		}
+		else if ([key isEqualToString:@"texture_hsb_color"])
+		{
+			[[self planet] setUpPlanetFromTexture: [[self planet] textureFileName]];
 		}
 	}
 }

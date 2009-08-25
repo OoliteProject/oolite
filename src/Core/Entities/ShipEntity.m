@@ -8665,10 +8665,13 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 {
 	NSArray				*arguments = nil;
 	
-	if (argument == nil)  argument = [NSNull null];
-	arguments = [NSArray arrayWithObject:argument];
-	
-	[self doScriptEvent:message withArguments:arguments];
+	if (argument == nil)
+		[self doScriptEvent:message];
+	else
+	{
+		arguments = [NSArray arrayWithObject:argument];
+		[self doScriptEvent:message withArguments:arguments];
+	}
 }
 
 

@@ -63,7 +63,7 @@ static float corona_blending;
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet;
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
-
+- (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
 @end
 
 
@@ -77,6 +77,7 @@ static float corona_blending;
 	self = [super init];
 	
 	isTextured = NO;
+	textureFile = nil;
 	
 	collision_radius = 25000.0; //  25km across
 	
@@ -445,6 +446,7 @@ static float corona_blending;
 
 - (id) initWithSeed:(Random_Seed) p_seed
 {
+	// this is exclusively called to initialise the main planet
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
 #if ALLOW_PROCEDURAL_PLANETS
 	if (![UNIVERSE doProcedurallyTexturedPlanets])
@@ -453,6 +455,8 @@ static float corona_blending;
 		//only allow .png textures with procedural textures
 		[planetInfo removeObjectForKey:@"texture"];
 	}
+
+	[planetInfo setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
 	return [self initPlanetFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
 }
 
@@ -586,9 +590,11 @@ static float corona_blending;
 		planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	
 	isTextureImage = NO;
+	textureFile = nil;
 	if ([dict objectForKey:@"texture"])
 	{
-		textureName = [TextureStore getTextureNameFor:[dict stringForKey:@"texture"]];
+		textureFile = [[dict stringForKey:@"texture"] retain];
+		textureName = [TextureStore getTextureNameFor:textureFile];
 		isTextureImage = isTextured = (textureName != 0);
 	}
 	else
@@ -686,42 +692,48 @@ static float corona_blending;
 		sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
 	}
 	
-	//// possibly get land_hsb and sea_hsb from planetinfo.plist entry
-	ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
-	ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
-	
-	// polar areas are brighter but have less color (closer to white)
-	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 4.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
-	sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 4.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
-	
-	OOColor* amb_land_color = [OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
-	OOColor* amb_sea_color = [OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];
-	OOColor* amb_polar_land_color = [OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0];
-	OOColor* amb_polar_sea_color = [OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0];
-	
-	amb_land[0] = [amb_land_color redComponent];
-	amb_land[1] = [amb_land_color blueComponent];
-	amb_land[2] = [amb_land_color greenComponent];
-	amb_land[3] = 1.0;
-	amb_sea[0] = [amb_sea_color redComponent];
-	amb_sea[1] = [amb_sea_color blueComponent];
-	amb_sea[2] = [amb_sea_color greenComponent];
-	amb_sea[3] = 1.0;
-	amb_polar_land[0] = [amb_polar_land_color redComponent];
-	amb_polar_land[1] = [amb_polar_land_color blueComponent];
-	amb_polar_land[2] = [amb_polar_land_color greenComponent];
-	amb_polar_land[3] = 1.0;
-	amb_polar_sea[0] = [amb_polar_sea_color redComponent];
-	amb_polar_sea[1] = [amb_polar_sea_color blueComponent];
-	amb_polar_sea[2] = [amb_polar_sea_color greenComponent];
-	amb_polar_sea[3] = 1.0;
-	
-
-	[planetInfo setObject:amb_land_color forKey:@"land_color"];
-	[planetInfo setObject:amb_sea_color forKey:@"sea_color"];
-	[planetInfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
-	[planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
-
+	if (isTextureImage)
+	{
+		// override the mainPlanet texture colour...
+		[self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:[dict boolForKey:@"mainForLocalSystem" defaultValue:NO]];
+	}
+	else
+	{
+		// possibly get land_hsb and sea_hsb from planetinfo.plist entry
+		ScanVectorFromString([dict objectForKey:@"land_hsb_color"], &land_hsb);
+		ScanVectorFromString([dict objectForKey:@"sea_hsb_color"], &sea_hsb);
+		
+		// polar areas are brighter but have less color (closer to white)
+		land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 4.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
+		sea_polar_hsb.x = sea_hsb.x;  sea_polar_hsb.y = (sea_hsb.y / 4.0);  sea_polar_hsb.z = 1.0 - (sea_hsb.z / 10.0);
+		
+		OOColor* amb_land_color = [OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0];
+		OOColor* amb_sea_color = [OOColor colorWithCalibratedHue:sea_hsb.x saturation:sea_hsb.y brightness:sea_hsb.z alpha:1.0];
+		OOColor* amb_polar_land_color = [OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0];
+		OOColor* amb_polar_sea_color = [OOColor colorWithCalibratedHue:sea_polar_hsb.x saturation:sea_polar_hsb.y brightness:sea_polar_hsb.z alpha:1.0];
+		
+		amb_land[0] = [amb_land_color redComponent];
+		amb_land[1] = [amb_land_color blueComponent];
+		amb_land[2] = [amb_land_color greenComponent];
+		amb_land[3] = 1.0;
+		amb_sea[0] = [amb_sea_color redComponent];
+		amb_sea[1] = [amb_sea_color blueComponent];
+		amb_sea[2] = [amb_sea_color greenComponent];
+		amb_sea[3] = 1.0;
+		amb_polar_land[0] = [amb_polar_land_color redComponent];
+		amb_polar_land[1] = [amb_polar_land_color blueComponent];
+		amb_polar_land[2] = [amb_polar_land_color greenComponent];
+		amb_polar_land[3] = 1.0;
+		amb_polar_sea[0] = [amb_polar_sea_color redComponent];
+		amb_polar_sea[1] = [amb_polar_sea_color blueComponent];
+		amb_polar_sea[2] = [amb_polar_sea_color greenComponent];
+		amb_polar_sea[3] = 1.0;
+		
+		[planetInfo setObject:amb_land_color forKey:@"land_color"];
+		[planetInfo setObject:amb_sea_color forKey:@"sea_color"];
+		[planetInfo setObject:amb_polar_land_color forKey:@"polar_land_color"];
+		[planetInfo setObject:amb_polar_sea_color forKey:@"polar_sea_color"];
+	}
 
 #if ALLOW_PROCEDURAL_PLANETS
 	if (procGen)
@@ -772,8 +784,9 @@ static float corona_blending;
 	if ([dict objectForKey:@"rotational_velocity"])
 	{
 		rotational_velocity = [dict floatForKey:@"rotational_velocity" defaultValue:0.01f * randf()];	// 0.0 .. 0.01 avr 0.005
-	} else {
-
+	}
+	else
+	{
 		rotational_velocity = [planetInfo floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
 		rotational_velocity *= [planetInfo floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
@@ -1428,6 +1441,12 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 }
 
 
+- (NSString *) textureFileName
+{
+	return textureFile;
+}
+
+
 - (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
 {
 	id	object = [dict objectForKey:key];
@@ -1461,12 +1480,41 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 }
 
 
+- (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal
+{	
+	Vector land_hsb, land_polar_hsb;
+	land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// white
+	
+	// the colour override should only apply to main planets
+	if (isMain)
+	{
+		if (isLocal)
+			ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
+		else
+			ScanVectorFromString([[UNIVERSE generateSystemData:[[PlayerEntity sharedPlayer] target_system_seed]] objectForKey:@"texture_hsb_color"], &land_hsb);
+	}
+	
+	land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
+	
+	amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
+	amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
+	amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
+	amb_sea[3] = amb_land[3] = 1.0;
+	amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
+	amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
+	amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
+	amb_polar_sea[3] =amb_polar_land[3] = 1.0;
+}
+
+
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName
 {
 	GLuint tName=[TextureStore getTextureNameFor:fileName];
 	if (tName == 0) return NO;
 	int		i;
 	BOOL wasTextured=isTextured;
+	//if(!!textureFile) [textureFile release];
+	textureFile=[[NSString stringWithString:fileName] retain];
 	textureName = tName;
 	isTextureImage = isTextured = YES;
 
@@ -1481,25 +1529,9 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		[self setModelName:@"icostextured.dat" ];
 		[self rescaleTo:1.0];
 		for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
-
-		Vector land_hsb, land_polar_hsb;
-		land_hsb.x = 0.0;	land_hsb.y = 0.0;	land_hsb.z = 1.0;	// non-saturated fully bright (white)
-		//sea_hsb.x = 0.0;	sea_hsb.y = 1.0;	sea_hsb.z = 1.0;	// fully-saturated fully bright (red)
-		
-		// Possibly override texture colour from planetinfo.plist
-		ScanVectorFromString([[UNIVERSE currentSystemData] objectForKey:@"texture_hsb_color"], &land_hsb);
-
-		land_polar_hsb.x = land_hsb.x;  land_polar_hsb.y = (land_hsb.y / 5.0);  land_polar_hsb.z = 1.0 - (land_hsb.z / 10.0);
-
-		amb_sea[0] = amb_land[0] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] redComponent];
-		amb_sea[1] = amb_land[1] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] blueComponent];
-		amb_sea[2] = amb_land[2] = [[OOColor colorWithCalibratedHue:land_hsb.x saturation:land_hsb.y brightness:land_hsb.z alpha:1.0] greenComponent];
-		amb_sea[3] = amb_land[3] = 1.0;
-
-		amb_polar_sea[0] =amb_polar_land[0] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] redComponent];
-		amb_polar_sea[1] =amb_polar_land[1] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] blueComponent];
-		amb_polar_sea[2] = amb_polar_land[2] = [[OOColor colorWithCalibratedHue:land_polar_hsb.x saturation:land_polar_hsb.y brightness:land_polar_hsb.z alpha:1.0] greenComponent];
-		amb_polar_sea[3] =amb_polar_land[3] = 1.0;
+		// recolour main planet according to "texture_hsb_color"
+		// this function is only called for local systems!
+		[self setTextureColorForPlanet:([UNIVERSE planet] == self) inSystem:YES];
 
 		[self initialiseBaseVertexArray];
 		[self initialiseBaseTerrainArray:100];
@@ -1521,9 +1553,6 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 		}
 	}
 	[self scaleVertices];
-	// No need to reset rotational speed here? Otherwise we override whatever was set in an OXP.
-	// -- Micha 20090419
-	//rotational_velocity = 0.01f * randf();	// 0.0 .. 0.01 avr 0.005
 
 	NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
 	[atmo_dictionary setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
