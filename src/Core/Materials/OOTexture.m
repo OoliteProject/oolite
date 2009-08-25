@@ -336,7 +336,8 @@ static BOOL		sRectangleTextureAvailable;
 	if (_key != nil)
 	{
 		[sInUseTextures removeObjectForKey:_key];
-		assert([sRecentTextures objectForKey:_key] != self);
+		//assert([sRecentTextures objectForKey:_key] != self); //miscount in autorelease
+		[sRecentTextures removeObjectForKey:_key]; // make sure there's no reference left inside sRecentTexture
 		[_key release];
 	}
 	

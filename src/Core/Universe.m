@@ -175,7 +175,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
 #if ALLOW_PROCEDURAL_PLANETS
-	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:NO];
+	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
 	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
@@ -2509,7 +2509,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	{
 		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
 		{
-			OOLogWARN(@"script.deprecated", @"position for entity '%@' set in 'abs' inside shipdata.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",shipdesc);
+			OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"entity",shipdesc);
 		}
 
 		pos = [self coordinatesFromCoordinateSystemString:positionString];
@@ -2522,7 +2522,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	{
 		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
 		{
-			OOLogWARN(@"script.deprecated", @"facing_position for entity '%@' set in 'abs' inside shipdata.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",shipdesc);
+			OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"facing_position",@"entity",shipdesc);
 		}
 
 		spos = [ship position];

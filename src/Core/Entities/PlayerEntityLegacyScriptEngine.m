@@ -2210,7 +2210,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString *positionString = [dict objectForKey:@"position"];
 	if([positionString hasPrefix:@"abs "] && ([UNIVERSE planet] != nil || [UNIVERSE sun] !=nil))
 	{
-		OOLogWARN(@"script.deprecated", @"position for planet '%@' set in 'abs' inside planetinfo.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",planetKey);
+		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"planet",planetKey);
 	}
 	
 	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
@@ -2261,7 +2261,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString *positionString = [dict objectForKey:@"position"];
 	if([positionString hasPrefix:@"abs "] && ([UNIVERSE planet] != nil || [UNIVERSE sun] !=nil))
 	{
-		OOLogWARN(@"script.deprecated", @"position for moon '%@' set in 'abs' inside planetinfo.plist ('abs' is intended for dynamic positioning only). Use coordinates relative to main system objects instead.",moonKey);
+		OOLogWARN(@"script.deprecated", @"setting %@ for %@ '%@' in 'abs' inside .plists can cause compatibility issues across Oolite versions. Use coordinates relative to main system objects instead.",@"position",@"moon",moonKey);
 	}
 	Vector posn = [UNIVERSE coordinatesFromCoordinateSystemString:positionString];
 	if (posn.x || posn.y || posn.z)

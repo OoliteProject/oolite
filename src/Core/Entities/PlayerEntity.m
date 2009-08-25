@@ -4468,7 +4468,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSString*		targetSystemName;
 	
 	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
-	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
+	targetSystemName =		[targetSystemData stringForKey:KEY_NAME];
 	
 	BOOL	sunGoneNova = NO;
 	if ([targetSystemData objectForKey:@"sun_gone_nova"])
@@ -4540,7 +4540,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[[UNIVERSE gameView] clearMouse];
 	
 	[targetSystemData release];
-	[targetSystemName release];
 	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_SYSTEM_DATA;
@@ -4711,7 +4710,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		GuiDisplayGen* gui = [UNIVERSE gui];
 		GUI_ROW_INIT(gui);
 
-		int first_sel_row = GUI_FIRST_ROW(GAME);
+		int first_sel_row = GUI_FIRST_ROW(GAME)-5; // repositioned menu
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"status-commander-@"), player_name]]; // Same title as status screen.
@@ -6236,8 +6235,7 @@ static int last_outfitting_index;
 
 - (void) setDefaultCustomViews
 {
-	//NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] arrayForKey:@"custom_views"];
-	NSArray *customViews = nil;
+	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] arrayForKey:@"custom_views"];
 	
 	[_customViews release];
 	_customViews = nil;
