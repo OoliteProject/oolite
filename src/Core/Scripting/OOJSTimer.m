@@ -132,6 +132,14 @@ static JSClass sTimerClass;
 {
 	jsval					rval = JSVAL_VOID;
 	
+	if (JSVAL_IS_NULL(_jsThis))
+	{
+		[self unscheduleTimer];
+		[self release];
+		self = nil;
+		return;
+	}
+	
 	[OOJSScript pushScript:_owningScript];
 	[[OOJavaScriptEngine sharedEngine] callJSFunction:_function
 											forObject:_jsThis
