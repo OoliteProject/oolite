@@ -5394,6 +5394,8 @@ static int last_outfitting_index;
 			[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 		if (from_item == 0)
 			[gui setSelectedRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1];
+		[self showInformationForSelectedUpgrade];
+
 		return;
 	}
 	
@@ -5419,15 +5421,13 @@ static int last_outfitting_index;
 		else
 		{
 			[self playBuyCommodity];
-			
+			[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
+			[self setGuiToEquipShipScreen:0]; // show any change due to playerBoughtEquipment
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
+			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 		}
-		
-		[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
-		
-		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	}
 	else
 	{
@@ -5472,7 +5472,7 @@ static int last_outfitting_index;
 	
 	if ([eqType isPrimaryWeapon] && chosen_weapon_facing == WEAPON_FACING_NONE)
 	{
-		[self setGuiToEquipShipScreen:-1 selectingFacingFor:eqKey];	// reset
+		[self setGuiToEquipShipScreen:0 selectingFacingFor:eqKey];	// reset
 		return YES;
 	}
 	
@@ -5550,7 +5550,6 @@ static int last_outfitting_index;
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		//if equipped, remove damaged weapon after repairs.
 		[self removeEquipmentItem:eqKeyDamaged];
-		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 	
@@ -5572,7 +5571,6 @@ static int last_outfitting_index;
 		{
 			credits -= creditsForRefuel;
 			fuel = [self fuelCapacity];
-			[self setGuiToEquipShipScreen:-1];
 			return YES;
 		}
 		else
@@ -5617,10 +5615,7 @@ static int last_outfitting_index;
 		
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
-		if (ship_trade_in_factor > 100)
-			ship_trade_in_factor = 100;
-		
-		[self setGuiToEquipShipScreen:-1];
+		if (ship_trade_in_factor > 100) ship_trade_in_factor = 100;		
 		return YES;
 	}
 
@@ -5638,7 +5633,6 @@ static int last_outfitting_index;
 			[self sortMissiles];
 			[self setActiveMissile:0];
 		}
-		[self setGuiToEquipShipScreen:-1];
 		return mounted_okay;
 	}
 
@@ -5647,7 +5641,6 @@ static int last_outfitting_index;
 		max_passengers++;
 		max_cargo -= 5;
 		credits -= price;
-		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
@@ -5656,7 +5649,6 @@ static int last_outfitting_index;
 		max_passengers--;
 		max_cargo += 5;
 		credits -= price;
-		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
@@ -5680,7 +5672,6 @@ static int last_outfitting_index;
 		}
 		missiles = 0;
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
-		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 	
@@ -5688,7 +5679,6 @@ static int last_outfitting_index;
 	{
 		credits -= price;
 		[self addEquipmentItem:eqKey];
-		[self setGuiToEquipShipScreen:-1];
 		return YES;
 	}
 
