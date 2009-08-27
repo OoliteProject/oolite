@@ -194,7 +194,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_target_missile,		't'					);
 	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
 #if TARGET_INCOMING_MISSILES
-	LOAD_KEY_SETTING(key_target_incoming_missile,	'T'					);
+	LOAD_KEY_SETTING(key_target_incoming_missile, 'T'				);
 #endif
 	LOAD_KEY_SETTING(key_ident_system,			'r'					);
 	
@@ -215,7 +215,7 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
 	LOAD_KEY_SETTING(key_autodock,				'D'					);
 #if DOCKING_CLEARANCE_ENABLED
-	LOAD_KEY_SETTING(key_docking_clearance_request,		'L'				);
+	LOAD_KEY_SETTING(key_docking_clearance_request, 'L'				);
 #endif
 	
 	LOAD_KEY_SETTING(key_snapshot,				'*'					);
