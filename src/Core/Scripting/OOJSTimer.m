@@ -85,7 +85,7 @@ static JSClass sTimerClass;
 			self = nil;
 		}
 		
-		_owningScript = [OOJSScript currentlyRunningScript];
+		_owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
 		[[OOJavaScriptEngine sharedEngine] releaseContext:context];
 	}
 	
@@ -95,6 +95,8 @@ static JSClass sTimerClass;
 
 - (void) dealloc
 {
+	[_owningScript release];
+	
 	// Allow garbage collection.
 	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsThis];
 	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_functionObject];
@@ -131,14 +133,6 @@ static JSClass sTimerClass;
 - (void) timerFired
 {
 	jsval					rval = JSVAL_VOID;
-	
-	if (JSVAL_IS_NULL(_jsThis))
-	{
-		[self unscheduleTimer];
-		[self release];
-		self = nil;
-		return;
-	}
 	
 	[OOJSScript pushScript:_owningScript];
 	[[OOJavaScriptEngine sharedEngine] callJSFunction:_function
