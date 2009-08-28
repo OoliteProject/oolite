@@ -159,7 +159,7 @@ static float corona_blending;
 	GLfloat		r,g,b,a;
 	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
 
-	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
+	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// real ambient light inside gl_LightModel.ambient
 	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
 	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
 	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
@@ -498,7 +498,6 @@ static float corona_blending;
 	
 	isTextured = [planet isTextured];
 	textureName = [planet textureName];	
-	
 	planet_seed = [planet planet_seed];
 	
 	shuttles_on_ground = 0;

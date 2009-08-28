@@ -271,11 +271,11 @@
 		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
 		{
 			[self showCommanderShip: idx];
-		}
 		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 			commanderNameString = [[cdrDetailArray dictionaryAtIndex:idx] stringForKey:@"player_name"];
 		else
 			commanderNameString = [gameView typedString];
+		}
 	}
 	else
 		commanderNameString = [gameView typedString];
@@ -806,7 +806,7 @@
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-more"), @" --> ", nil]
 			   forRow:ENDROW];
 		[gui setKey:GUI_KEY_OK forRow:ENDROW];
-		[gui setSelectableRange: NSMakeRange(rangeStart, NUMROWS+1)];
+		[gui setSelectableRange: NSMakeRange(rangeStart, MOREROW)];
 	}
 	
 	for (i=firstIndex; i < lastIndex; i++)
@@ -880,21 +880,20 @@
 	if ([cdr boolForKey:@"isFolder"])
 	{
 		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
-		
+		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
-		
 		return;
 	}
 	
 	if ([cdr boolForKey:@"isParentFolder"])
 	{
 		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
-		
+		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
-		
 		return;
 	}
-	
+	[gui setColor: [OOColor yellowColor] forRow: CDRDESCROW];
+
 	if (![cdr boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
 	
