@@ -271,10 +271,10 @@
 		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
 		{
 			[self showCommanderShip: idx];
-		if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
-			commanderNameString = [[cdrDetailArray dictionaryAtIndex:idx] stringForKey:@"player_name"];
-		else
-			commanderNameString = [gameView typedString];
+			if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
+				commanderNameString = [[cdrDetailArray dictionaryAtIndex:idx] stringForKey:@"player_name"];
+			else
+				commanderNameString = [gameView typedString];
 		}
 	}
 	else
@@ -333,7 +333,6 @@
 				[self setGuiToStatusScreen];
 			}
 		}
-		
 	}
 	
 	if([gameView isDown: 27])
