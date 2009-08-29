@@ -235,8 +235,6 @@ MA 02110-1301, USA.
 	float					pitch_tolerance;
 	
 	OOAegisStatus			aegis_status;				// set to YES when within the station's protective zone
-	
-	PlanetEntity			*lastPlanet;				// remember last aegis planet
 
 	
 	double					messageTime;				// counts down the seconds a radio message is active for
@@ -300,6 +298,8 @@ MA 02110-1301, USA.
 	
 	NSMutableSet			*_equipment;
 	float					_heatInsulation;
+	
+	OOWeakReference			*_lastPlanet;				// remember last aegis planet
 	
 	OOShipGroup				*_group;
 	OOShipGroup				*_escortGroup;

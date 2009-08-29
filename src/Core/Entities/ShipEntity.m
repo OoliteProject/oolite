@@ -94,6 +94,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
 - (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret;
 
+- (PlanetEntity *) lastPlanet;
+- (void) setLastPlanet:(PlanetEntity *)lastPlanet;
+
 @end
 
 
@@ -561,6 +564,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[_group release];
 	[_escortGroup removeShip:self];
 	[_escortGroup release];
+	
+	[_lastPlanet release];
 	
 	[super dealloc];
 }
@@ -3947,11 +3952,12 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (!suppressAegisMessages && aegis_status != AEGIS_NONE)
 	{
-		if(lastPlanet)
+		PlanetEntity *lastPlanet = [self lastPlanet];
+		if (lastPlanet != nil)
 		{
 			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:lastPlanet];
 			
-			if(lastPlanet == [UNIVERSE sun])
+			if (lastPlanet == [UNIVERSE sun])
 			{
 				[shipAI message:@"AWAY_FROM_SUN"];
 			}
@@ -3959,8 +3965,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 			{
 				[shipAI message:@"AWAY_FROM_PLANET"];
 			}
+			[self setLastPlanet:nil];
 		}
-		lastPlanet = nil;
 
 		if (aegis_status != AEGIS_CLOSE_TO_ANY_PLANET)
 		{
@@ -4164,11 +4170,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if(aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
 			{
-				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:lastPlanet];
+				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[self lastPlanet]];
 				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
 			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-			lastPlanet = [UNIVERSE planet];
+			[self setLastPlanet:[UNIVERSE planet]];
 			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
@@ -4181,7 +4187,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[shipAI message:@"AWAY_FROM_PLANET"];
 			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
-			lastPlanet = the_planet;
+			[self setLastPlanet:the_planet];
 			if(the_planet == [UNIVERSE sun])
 			{
 				[shipAI message:@"CLOSE_TO_SUN"];
@@ -4204,10 +4210,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
 			
-			if(!lastPlanet && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
+			if([self lastPlanet] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
 			{
 				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-				lastPlanet = [UNIVERSE planet];
+				[self setLastPlanet:[UNIVERSE planet]];
 			}
 		}
 		// leaving..
@@ -4218,9 +4224,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 		if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
 		{
-			if(!lastPlanet && !sunGoneNova)
+			if([self lastPlanet] == nil && !sunGoneNova)
 			{
-				lastPlanet = [UNIVERSE planet];  // in case of a first launch.
+				[self setLastPlanet:[UNIVERSE planet]];  // in case of a first launch.
 			}
 			[self transitionToAegisNone];
 		}
@@ -4234,6 +4240,26 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (BOOL) withinStationAegis
 {
 	return aegis_status == AEGIS_IN_DOCKING_RANGE;
+}
+
+
+- (PlanetEntity *) lastPlanet
+{
+	PlanetEntity *planet = [_lastPlanet weakRefUnderlyingObject];
+	if (planet == nil)
+	{
+		[_lastPlanet release];
+		_lastPlanet = nil;
+	}
+	
+	return planet;
+}
+
+
+- (void) setLastPlanet:(PlanetEntity *)lastPlanet
+{
+	[_lastPlanet release];
+	_lastPlanet = [lastPlanet weakRetain];
 }
 
 
