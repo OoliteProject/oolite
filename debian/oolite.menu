@@ -1,0 +1,5 @@
+?package(oolite):needs="X11" section="Games/Simulation" \
+  longtitle="Oolite - space-sim game" \
+  title="Oolite" command="/usr/games/oolite" \
+  icon="/usr/share/pixmaps/oolite-logo1.xpm" \
+  hints="Flight,GNUstep"

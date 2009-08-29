@@ -1,0 +1,37 @@
+Source: oolite
+Section: games
+Priority: optional
+Maintainer: Chris Crowther <hikari@hikari.org.uk>
+Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5),
+	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
+	libgnustep-base-dev, gnustep-core-devel,
+	libpng-dev, mesa-common-dev
+Homepage: http://oolite.org/
+Vcs-Svn: svn://svn.berlios.de/oolite-linux
+Vcs-Browser: http://svn.berlios.de/wsvn/oolite-linux
+
+Package: oolite
+Architecture: any
+Depends: ${shlibs:Depends}, oolite-data (>= ${source:Version})
+Description: space sim game, inspired by Elite
+ Oolite is a space sim game, inspired by Elite, powered by Objective-C 
+ and OpenGL, and designed as a small game that is easy for users to pick 
+ up, modify and expand upon. Almost every aspect of the game can be changed 
+ by using simple, free graphics packages and text-editors.
+ .
+ Originally written for Mac OS X, and under continuous development for over
+ three years. Oolite is available for Mac OS X (10.3.9 and higher), Windows XP
+ and Linux. It requires at least a 400MHz processor, 256Mb of memory, and a 
+ graphics card capable of accelerating OpenGL graphics.
+
+Package: oolite-data
+Architecture: all
+Recommends: oolite (>= ${source:Version})
+Description: space sim game, inspired by Elite (data files)
+ Oolite is a space sim game, inspired by Elite, powered by Objective-C 
+ and OpenGL, and designed as a small game that is easy for users to pick 
+ up, modify and expand upon. Almost every aspect of the game can be changed 
+ by using simple, free graphics packages and text-editors.
+ .
+ This package contains the data files for the game.

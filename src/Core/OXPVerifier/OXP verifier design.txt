@@ -1,0 +1,120 @@
+Oolite: OXP Verifier design notes
+=================================
+
+The OXP Verifier needs to perform a variety of different checks on an OXP,
+most of which are independent of each other. However, some checks do need to
+be performed in specific orders; notably, most checks need to be able to look
+up files while ensuring case-insensitivity checks. Additionally, some checks
+need to be performed after an open set of other checks which provide
+information for them, notably checking for unused files and testing that
+referenced textures are readable.
+
+The general independence and potentially large number of verifier passes
+suggests a modular design. The partial ordering suggests some form of
+dependency management. The chosen solution involves objects representing the
+individual passes, or stages, and a manager object to ensure the stages are
+executed in an appropriate order. The manager also handles some aspects of
+resource management, such as autorelease pools and a dictionary of settings
+read from verifyOXP.plist.
+
+Each verifier stage is implemented as a subclass of OXPVerifierStage. Each
+stage has a unique name, a set of stages that must be executed before it (its
+dependencies), and a set of stages that should be executed after it (its
+dependents, or reverse dependencies). The difference between “must” and
+“should” here is significant: a stage whose dependencies are not fulfilled
+cannot be run, but the verifier will ignore reverse dependencies if necessary
+to produce a cycle-free dependency graph.
+
+The actual verification process works as follows: first, an OXPVerifier object
+is created for an OXP. The design allows for multiple OXPs to be verified by
+separate OXPVerifiers in a serial fashion, although this is not currently done.
+The OXPVerifier loads verifyOXP.plist, which contains, among other things, a
+root set of verifier stages (by class name). The OXPVerifier looks up these
+classes, instantiates them, and registers each one with itself. It then
+proceeds to build the dependency tree.
+
+In order to do this, it asks each registered verifier stage for its
+dependencies and reverse dependencies. The verifier stages may register
+additional stages at this time; for instance, the OOFileScannerVerifierStage,
+which is used by almost all other stages, is initialized at this time.
+
+Once there are no registered stages whose dependencies and dependents have not
+been queried, the OXP verifier iterates over each stage’s dependencies,
+building the basic dependency graph. If a stage has a dependency that can’t be
+resolved, or a dependency that would introduce a cycle, that stage is removed.
+Then, the reverse dependencies are checked; in this case, unresolved or
+cyclical dependencies are simply ignored.
+
+Having built the dependency graph (and optionally written a graphviz file for
+debugging, see below), the verifier repeatedly looks for verifier stages whose
+dependencies are resolved, i.e., have run. For each such ready-to-run stage,
+it queries whether the stage wishes to run (using -shouldRun), runs it if so,
+then marks it as completed and updates all stages depending on it. (Note that
+this means dependent stages can run even if -shouldRun returns NO.) The use of
+-shouldRun is essentially to avoid listing irrelevant stages in the run log,
+such as the OOCheckRequiresPListVerifierStage for an OXP with no
+requires.plist.
+
+When no stages are ready to run, the verifier exits its stage-running loop.
+If any stages have not been run for any reason, the verifier lists these.
+After this, the verification is complete.
+
+
+Debugging
+=========
+For analysis and debugging of OXPVerifier’s dependency management, it can
+generate a graphviz file showing the dependency graph. This is done by setting
+the "oxp-verifier-dump-debug-graphviz" default to true. (Under Mac OS X, use
+“defaults write org.aegidian.oolite oxp-verifier-dump-debug-graphviz -bool yes”;
+for GNUstep, edit oolite.app/gnustep/defaults/.gnustepdefaults and add
+“oxp-verifier-dump-debug-graphviz = <*BY>”.) The graphviz file, named
+OXPVerifierStageDependencies.dot, will be written to the current working
+directory. There should be no problem viewing the file with the cross-platform
+graphviz tools (see http://www.graphviz.org/ ); the Mac GUI version (see
+http://www.pixelglow.com/graphviz/ ) will helpfully update whenever the file
+is regenerated.
+
+The graph consists of two special nodes, Start and End, and a node for each
+runnable verifier stage. Blue arrows indicate possible orders of execution,
+starting with Start. Green lines with circles indicate reverse dependencies,
+terminating in End. Whenever a blue arrow connects two stage nodes, there
+should be a matching green line and vice versa; if this is not the case, the
+dependency graph generation is broken.
+
+Additionally, the log message class verifyOXP.verbose may be set to cause
+additional data to be logged, including messages about verifier stages that
+are skipped (because -shouldRun returned NO) with the more specific message
+class verifyOXP.verbose.skipStage.
+
+
+The file scanner
+================
+The file scanner stage, OOFileScannerVerifierStage, is somewhat special in
+that it is used by almost every other stage. It is responsible for finding the
+files in an OXP, tracking which are used, ensuring OXPs will work on both
+case-sensitive and case-insensistive systems, loading files for other stages
+and warning about unused files. For this last task, a helper stage, the
+OOListUnusedFilesStage, is used. Every other stage, at the time of writing,
+has OOFileScannerVerifierStage as a dependency and OOListUnusedFilesStage as a
+reverse dependency. To assist in implementing this pattern, an abstract class
+OOFileHandlingVerifierStage is provided.
+
+The file scanner is built around dictionaries mapping lowercase file and
+directory names to actual case names, i.e., names in the case present in the
+file system. When another stage requests a file, the file scanner converts the
+name to lowercase, looks up the actual name, and logs a warning if the actual
+case string is not the same as the requested name (in “canonical case”). It
+also keeps track of every file that is requested, in order to be able to list
+the ones that aren’t referenced. Additionally, it checks that the root
+directory only contains directories with known names and that there are no
+Read Me files inside the root directory, and warns about junk files like
+.DS_Store and Thumbs.db.
+
+The file scanner is based on Oolite’s specific needs. In particular, it
+assumes there will be no more than one level of directories inside an OXP.
+
+
+Acknowledgement
+===============
+This design was probably influenced by the video session on the LLVM
+optimization pass manager I saw recently.

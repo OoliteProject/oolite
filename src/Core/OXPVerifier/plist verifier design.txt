@@ -1,0 +1,47 @@
+String filters:
+lowerCase
+upperCase
+capitalized
+truncFront:#
+truncBack:#
+subStringTo:$ (No effect if specified string is not a substring)
+subStringFrom:$ (No effect if specified string is not a substring)
+subStringToInclusive:$ (No effect if specified string is not a substring)
+subStringFromInclusive:$ (No effect if specified string is not a substring)
+Can be chained using array.
+
+Strings:
+filters applied first.
+requiredPrefix (may be array)
+requiredSuffix (may be array)
+requiredSubString (may be array)
+minLength
+maxLength
+
+Numerical types:
+minimum
+maximum
+
+Enumerations:
+filters applied before test.
+values
+
+Dictionary:
+minCount
+maxCount
+valueType
+schema
+allowOthers (default:YES)
+requiredKeys
+
+Array:
+minCount
+maxCount
+valueType
+
+oneOf:
+options
+
+delegatedType:
+baseType
+key
