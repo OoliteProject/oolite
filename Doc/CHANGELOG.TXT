@@ -1,3 +1,173 @@
+Changes between Oolite 1.72.2 and Oolite 1.73:
+Gameplay
+* Made procedurally textured planets a game option. Can be switched on/off in
+  settings. (This feature is not available on the mac environment)
+* Added splash screen and application icon to windows & linux versions.
+* Added normal mapping for use in shaders. (This adds optical depth to smooth
+  surfaces)
+* Game over screen now displays ranking as well as credit.
+* Make passenger carrier market a bit more interesting by rewarding long taxi
+  runs. Credits paid increase exponentially with number of hops required.
+* Reputation of player is also taken into account.
+* Implemented the key cloak_indicator_on_status_light in hud.plist (Off by
+  default).
+* Interface change: While in flight, pressing h from the local galaxy map will
+  initiate hyperspace jumps - before, the player had to exit the map to do so.
+* Added new equipment: Wormhole Scanner.
+* Added example of drawing a yaw indicator bar (disabled by default).
+* Implemented targetting of nearest incoming missile. This is activated using
+* Shift+t or an assigned joystick button.
+* Sell/buy as much as possible on the F8 screen via Shift+left/right. Prefer
+  to buy with Shift+Return.
+* Time Acceleration Factor. Activated while in pause mode with left and right
+* arrow keys. Can be from 1/16 to 16 times the normal time. TAF is visible in
+  the FPS display.
+* Bump the limit on gold, platinum & gemstones to 10000 units.
+* Various AI changes. Most noticeable is that docking ships are now more
+  likely to react on attacks and less crashes in the final docking stage with
+  bigger ships.
+* Find systems on the F6/F6 screen: all possible matches now highlighted while
+  typing.
+* Last save directory is now saved in prefs; oolite-saves is only created when
+  defaulting to it.
+* Repositioned message row. Messages now fully readable in standard Oolite.
+* Much equipment  on the status screen no longer overwrite text below it but
+  becomes divided into multiple screens.
+* If a message is repeated after 6 seconds, it will now show again, otherwise
+  it's ignored as before.
+* Game settings screen: mac fullscreen resolution changes are now immediate,
+  if no external views are defined for player ships, the cobra3 ones are used
+  instead.
+ 
+Scripting
+* Work towards securing legacy scripts, AIs and shader uniform bindings by
+  whitelisting methods. Game will now print an error message in the log if
+  non-whitelisted methods are used in legacy scripts or AIs.
+* Added class ShipGroup. Groups are now defined in a different way than
+  previously. ShipGroups are exposed to JS as a property of ship
+* Subentity definitions in shipData can now be dictionaries.
+* Added Darren's patch for enabling icons/symbols on advanced compass.
+* Customsounds will now accept arrays, in a similar way to descriptions.
+* Added new system settings to planetinfo.plist:"sun_radius" (float),
+  "sun_color" = (any Color string), "corona_shimmer"= (float: 0-1),
+  "corona_hues"= (float: 0-1), "corona_flare"= (float: 0-1),
+  "texture_hsb_color" = (any Color string)
+* Plural handling for languages with more than one plural form.
+* Made TAF controllable by JavaScript using the read/write
+  timeAccelerationFactor global property for bullet-time-like effects.
+* Added throw_sparks key to shipData (off by default )
+* PlayerShip.removeEquipment() now works for missiles. Also,
+  awardEquipment()ing a missile when the player has none now causes the new
+  missile to be selected.
+* requires_equipment, requires_any_equipment and incompatible_with_equipment
+  restrictions now work for weapons.
+* Reworked Aegis messages. sun aegis is recognised, approaching planet event
+  is restored, all handlers have a planet or station as argument.
+* Renamed planets: %H & %I now use scripted planet names, including inside
+  planet descriptions.
+* New %J token for string expansion: expands %J000 to %J255 to its
+  corresponding system name.
+* Made the left and right square bracket keys recognizable by Oolite.
+* Added the JavaScript read/write player ship property scriptedMisjump. 
+  Boolean value, scripted misjumps have a lifespan of one jump only. After
+  that, auto reset occurs and subsequent jumps become normal ones again.
+* Introduced the cloak_passive ship dictionary key. When set to true (or yes),
+  it will cause the cloaking device to be deactivated whenever a main weapon
+  or missile is fired, making the cloak somewhat less of a superweapon.
+  Default is NO.
+* Bounty for script added pirates and traders follow now populator rules when
+  auto_ai is true.
+* CLASS_NO_DRAW can be used inside plists for specific (ghost?) ships again,
+  as in 1.65 & before. However, system populator still overrides CLASS_NO_DRAW
+  for incoming ships.
+* JS system.info.xx & system.infoForSystem([present galaxy],[system
+  number]).xx are readable, as originally intended. infoForSystem now returns
+  null - and a warning - if trying to access any info outside the present
+  galaxy.
+
+Naw event handlers:
+* stationLaunchedShip(ship)
+* playerWillEnterWitchspace()
+* playerTargettedMissile(missile)
+* playerBoughtNewShip(ship)
+* arrivalReportScreenEnded()
+ 
+New JS methods:
+* ship.setAIState()
+* ship.fireECM()
+* player.ship.galaxyCoordinates()
+* player.ship.cursorCoordinates()
+* station.dockPlayer()
+* player.addMessageToArrivalReport(message)
+ 
+New AI commands:
+* opMessages
+* debugDumpPendingMessages
+* exitAIWithMessage:
+* messageSelf:
+* abortAllDockings
+* throwSparks
+* randomPauseAI:
+* launchIndependentShipWithRole:
+* checkOwnLegalStatus
+* setSpeedToCruiseSpeed
+  
+Changed commands:
+* Added delay parameter to playerStartedJumpCountdown event.
+* Made Entity.position and Entity.orienation read/write and deprecated
+* Entity.setPosition() and Entity.setOrientation()
+* Ship.exitAI() now can transfer a parameter. Default is RESTARTED
+* Deprecated system.goingNova and system.goneNova in favour of existing Sun
+  equivalents.
+
+Bug fixes
+* Fixed far away docking of ships. Ships that start the dockingAI further away
+  than 2.5 times scanner distance from a station are sent back to their
+  originalAI.
+* All SDL & windows fixes: reworked windows port to resize game view without
+  texture loss. Splash screen for both linux & windows.  When switching
+  fullscreen resolutions using F11 oolite now saves the new fullscreen
+  resolution.
+* Fixed negative cargo bug shown in shipyard for ships with cargo capacity
+  less than 5t that had EQ_PASSENGER_BERTH as optional equipment.
+* Now Oolite takes into account incompatible equipment when generating ships
+  for sale.
+* Fixed weapon position. Now it follows the defined position in shipData
+  instead of always the default one.
+* Fixed an inconsistency in oolite-font.plist.
+* Prevent ships from escorting things with different scan classes.
+* Returning pirates of a piratecove now are added correctly to the station
+  defence ships.
+* Cloak no longer works as an energy generator when not cloaked.
+* Fixed memory overflow that was happening when a ship dictionary contained an
+  escort-ship key of the same name as the dictionary key of the mother ship
+  (e.g. boa-mk2 attempting to generate 4 boa-mk2 escorts).
+* Better fix for escort ship circular references. The fix is that escorts
+  cannot have escorts of their own anymore. This avoids memory overflows in
+  cases of recursive escort-ship, escort-role and mutual escort ship
+  references between two or more ships.
+* Clean mothers can now only accept clean escorts.
+* Fixed hasShipyard.
+* Fixed crash when max_missiles is set to higher than maximum allowed (16).
+* Fixed bug with hanging still in performFaceDestination.
+* launchTrader now launches traders with correct escorts for that ship type.
+* sun_radius loop bug: should now cope with all sun_radius values.
+* Limited checkcourseToDestination to scanner range so it only changes course
+  when it actually "sees" something.
+* scanForOffenders no longer finds group members
+* Minimum distance player-bouy on system entering raised from 500 to 750
+  meters.
+* Resolved bug that caused ships with subentities exploding inside closed
+  structures and other sudden collisions near bigger ships.
+* More systemInfo changes for the current system are now validated and are
+  effective immediately, including most sun settings, main planet texture, and
+  derivative ones (ie commodity market / economy, ships & equipment markets /
+  techlevel). Properties not yet effective immediately produce a warning.
+* AI command setCourseToPlanet no longer sets course to moons, only to the
+  closest planet.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.72.1 and Oolite 1.72.2:
 * Fixed bug in selecting ships after a spawn condition blocked the initial
   selection. This was causing disappearing buoys and police ships with some
