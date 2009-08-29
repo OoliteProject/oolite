@@ -1405,6 +1405,7 @@
 		1A35916C0C1C375400E52220 /* oolite-nebula-2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-2.png"; sourceTree = "<group>"; };
 		1A3591810C1C382700E52220 /* nebulatextures.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = nebulatextures.plist; sourceTree = "<group>"; };
 		1A3591820C1C382700E52220 /* startextures.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = startextures.plist; sourceTree = "<group>"; };
+		1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CHANGELOG.TXT; path = Doc/CHANGELOG.TXT; sourceTree = "<group>"; };
 		1A38B4AA0B988532001ED4A0 /* OOLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogging.h; sourceTree = "<group>"; };
 		1A38B4AB0B988532001ED4A0 /* OOLogging.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogging.m; sourceTree = "<group>"; };
 		1A3A04610BC547DC00B5E2D9 /* OOTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTypes.h; sourceTree = "<group>"; };
@@ -2773,6 +2774,7 @@
 			children = (
 				1A9407BF0BAF7032005F6CF3 /* GNUmakefile */,
 				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
+				1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */,
 				1A846BA90D79F9570081280D /* oolite-version.xcconfig */,
 				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
