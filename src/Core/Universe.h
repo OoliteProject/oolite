@@ -390,7 +390,7 @@ enum
 - (Vector) getSafeVectorFromEntity:(Entity *) e1 toDistance:(double)dist fromPoint:(Vector) p2;
 
 - (OOUniversalID) getFirstEntityHitByLaserFromEntity:(ShipEntity *)srcEntity inView:(OOViewID)viewdir offset:(Vector)offset rangeFound:(GLfloat*)range_ptr;
-- (Entity *) getFirstEntityTargettedByPlayer;
+- (Entity *) getFirstEntityTargetedByPlayer;
 
 - (NSArray *) getEntitiesWithinRange:(double)range ofEntity:(Entity *)entity;
 - (unsigned) countShipsWithRole:(NSString *)role inRange:(double)range ofEntity:(Entity *)entity;

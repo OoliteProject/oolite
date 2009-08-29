@@ -2253,7 +2253,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 #endif
 	{
 		// If reticle is target sensitive, draw target box in red when target passes through crosshairs.
-		if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargettedByPlayer] == [player1 primaryTarget])
+		if (reticleTargetSensitive && [UNIVERSE getFirstEntityTargetedByPlayer] == [player1 primaryTarget])
 		{
 			GLColorWithOverallAlpha(red_color, overallAlpha);
 		}

@@ -4611,7 +4611,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 }
 
 
-- (Entity *)getFirstEntityTargettedByPlayer
+- (Entity *)getFirstEntityTargetedByPlayer
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	Entity			*hit_entity = nil;

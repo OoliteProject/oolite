@@ -2656,7 +2656,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		missile_status = MISSILE_STATUS_TARGET_LOCKED;
 		[self addTarget:ent];
 	}
-	[self doScriptEvent:@"playerTargettedMissile" withArgument:ent];
+	[self doScriptEvent:@"playerTargetedMissile" withArgument:ent];
 }
 #endif
 

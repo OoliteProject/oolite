@@ -2011,7 +2011,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
 	{
-		Entity *target = [UNIVERSE getFirstEntityTargettedByPlayer];
+		Entity *target = [UNIVERSE getFirstEntityTargetedByPlayer];
 		if ([self isValidTarget:target])
 		{
 			[self addTarget:target];
@@ -6524,7 +6524,7 @@ static int last_outfitting_index;
 	{
 		int i = 0;
 		BOOL foundSlot = NO;
-		// if targetted previously use that memory space
+		// if targeted previously use that memory space
 		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 		{
 			if (primaryTarget == target_memory[i])
