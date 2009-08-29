@@ -1,3 +1,7 @@
+; Include the NSIS logic library. Required for the code that handles 
+; adding of the changelog file in the non-snapshot distributions
+!include "LogicLib.nsh"
+
 ; Need to include the versions as we can't pass them in as parameters
 ; and it's too much work to try to dynamically edit this file
 !include /NONFATAL "OoliteVersions.nsh"
@@ -22,8 +26,10 @@
 
 !ifndef SNAPSHOT
 !define EXTVER ""
+!define ADDCHANGELOG 1	; Official distributions go with a changelog file
 !else
 !define EXTVER "-dev"
+!define ADDCHANGELOG 0	; Snapshot distributions do not need changelog
 !endif
 
 !include "MUI.nsh"
@@ -133,6 +139,9 @@ File "Oolite_Readme.txt"
 File "OoliteRS.pdf"
 File "..\..\Doc\AdviceForNewCommanders.pdf"
 File "..\..\Doc\OoliteReadMe.pdf"
+${If} ${ADDCHANGELOG} == "1"
+  File "..\..\Doc\CHANGELOG.TXT"
+${EndIf}
 File /r /x .svn /x *~ "${DST}"
 
 WriteUninstaller "$INSTDIR\UninstOolite.exe"
