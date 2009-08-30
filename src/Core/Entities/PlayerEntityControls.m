@@ -987,7 +987,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 			
 			// hyperspace 'h'
-			if ([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
+			if ((![gameView isCommandDown] && [gameView isDown:key_hyperspace]) || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
 			{
 				if (!hyperspace_pressed)
 				{
@@ -1048,6 +1048,7 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 				hyperspace_pressed = YES;
+				[gameView clearKeys];
 			}
 			else
 				hyperspace_pressed = NO;
@@ -1137,7 +1138,6 @@ static NSTimeInterval	time_last_frame;
 		}
 		else  dump_target_state_pressed = NO;
 #endif
-		
 		
 		//  text displays
 		[self pollGuiScreenControls];
