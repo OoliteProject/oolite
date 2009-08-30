@@ -64,6 +64,7 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 
@@ -226,6 +227,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "hasEquipment",			ShipHasEquipment,			1 },
+	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ 0 }
 };
 
@@ -1089,5 +1091,16 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 	[thisEnt setEnergy:1];
 	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
 	
+	return YES;
+}
+
+
+static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	[thisEnt abandonShip];
 	return YES;
 }

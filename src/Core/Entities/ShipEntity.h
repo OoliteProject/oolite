@@ -715,8 +715,10 @@ BOOL	class_masslocks(int some_class);
 - (void) getTractoredBy:(ShipEntity *)other;
 - (void) scoopIn:(ShipEntity *)other;
 - (void) scoopUp:(ShipEntity *)other;
-- (void) takeScrapeDamage:(double) amount from:(Entity *) ent;
 
+- (void) abandonShip;
+
+- (void) takeScrapeDamage:(double) amount from:(Entity *) ent;
 - (void) takeHeatDamage:(double) amount;
 
 - (void) enterDock:(StationEntity *)station;

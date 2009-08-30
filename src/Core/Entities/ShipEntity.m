@@ -7701,22 +7701,45 @@ BOOL class_masslocks(int some_class)
 		}
 		if (energy < maxEnergy *0.125 && [self hasEscapePod] && (ranrot_rand() & 3) == 0)  // 25% chance he gets to an escape pod
 		{
-			// TODO: abandoning ship should be split out into a separate method.
-			if ([self launchEscapeCapsule] != NO_TARGET)
-			{
-				[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
-				
-				[shipAI setStateMachine:@"nullAI.plist"];
-				[shipAI setState:@"GLOBAL"];
-				behaviour = BEHAVIOUR_IDLE;
-				frustration = 0.0;
-				[self setScanClass: CLASS_CARGO];			// we're unmanned now!
-				thrust = thrust * 0.5;
-				desired_speed = 0.0;
-				// maxFlightSpeed = 0.0;
-				[self setHulk:YES];
-			}
+			[self abandonShip];
 		}
+	}
+}
+
+
+- (void) abandonShip
+{
+	if ([self isPlayer] && [(PlayerEntity *)self isDocked])
+	{
+		OOLog(@"ShipEntity.abandonShip.failed", @"Player cannot abandon ship while docked.");
+		return;
+	}
+	
+	if (![self hasEscapePod])
+	{
+		OOLog(@"ShipEntity.abandonShip.failed", @"Ship abandonment was requested for %@, but this ship does not carry escape pod(s).", self);
+		return;
+	}
+		
+	if ([self launchEscapeCapsule] != NO_TARGET)	// -launchEscapeCapsule takes care of everyhing for the player
+	{
+		if (![self isPlayer])
+		{
+			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
+			[shipAI setStateMachine:@"nullAI.plist"];
+			[shipAI setState:@"GLOBAL"];
+			behaviour = BEHAVIOUR_IDLE;
+			frustration = 0.0;
+			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
+			thrust = thrust * 0.5;
+			desired_speed = 0.0;
+			//maxFlightSpeed = 0.0;
+			[self setHulk:YES];
+		}
+	}
+	else
+	{
+		OOLog(@"ShipEntity.abandonShip.notPossible", @"Ship %@ cannot be abandoned at this time.", self);
 	}
 }
 
