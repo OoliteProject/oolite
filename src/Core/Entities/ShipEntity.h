@@ -312,6 +312,7 @@ MA 02110-1301, USA.
 - (void) setAI:(AI *) ai;
 - (AI *) getAI;
 - (void) setShipScript:(NSString *) script_name;
+- (void) removeScript;
 - (OOScript *) shipScript;
 - (double) frustration;
 

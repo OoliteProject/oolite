@@ -959,6 +959,17 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 // remove()
 static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	ShipEntity				*thisEnt = nil;
+	JSBool					noDeathActions = NO;
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+
+	if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &noDeathActions)))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"remove", argc, argv, nil, @"boolean");
+		return NO;
+	}
+
+	if (noDeathActions && ![thisEnt isPlayer]) [thisEnt removeScript];
 	return RemoveOrExplodeShip(context, this, argc, argv, outResult, NO);
 }
 

@@ -545,7 +545,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[roleSet release];
 	[primaryRole release];
 	[laser_color release];
-	[script release];
+	if (script != nil) 
+	{
+		[script release];
+		script = nil;
+	}
 	
 	[previousCondition release];
 	
@@ -568,6 +572,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[_lastPlanet release];
 	
 	[super dealloc];
+}
+
+
+- (void) removeScript
+{
+	if (script != nil) [script autorelease];
+	script=nil;
 }
 
 
