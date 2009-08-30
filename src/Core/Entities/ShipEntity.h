@@ -565,6 +565,7 @@ MA 02110-1301, USA.
 
 - (OOCargoQuantity) maxCargo;
 - (OOCargoQuantity) availableCargoSpace;
+- (OOCargoQuantity) cargoQuantityOnBoard;
 - (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;

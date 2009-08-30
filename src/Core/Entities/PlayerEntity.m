@@ -253,6 +253,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (NSMutableArray *) shipCommodityData
+{
+	return shipCommodityData;
+}
+
+
 - (int) random_factor
 {
 	return market_rnd;

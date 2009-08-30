@@ -1995,6 +1995,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	[_equipment removeObject:alterKey];
 	
+	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
+	{
+		max_cargo += extra_cargo;
+	}
+	
 	// add the equipment
 	[_equipment addObject:equipmentKey];
 }
@@ -4453,8 +4458,45 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOCargoQuantity) availableCargoSpace
 {
-	return [self maxCargo] - [[self cargo] count];
+	return [self maxCargo] - [self cargoQuantityOnBoard];
 }
+
+
+- (OOCargoQuantity) cargoQuantityOnBoard
+{
+	OOCargoQuantity		cargoQtyOnBoard = 0;
+	unsigned i;
+	
+	if ([self isPlayer] && [self status] == STATUS_DOCKED)
+	{
+		/*
+	  	  The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
+	  	  this reason, we must use a slightly more complex method to determine the quantity of cargo
+	  	  carried in this case - Nikos 20090830
+		*/
+		PlayerEntity*	player = [PlayerEntity sharedPlayer];
+		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:[player shipCommodityData]] retain];
+		for (i = 0; i < [manifest count]; i++)
+		{
+			NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
+			OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
+			OOMassUnit	commodityUnits = [[commodityInfo objectAtIndex:MARKET_UNITS] intValue];
+			
+			if (commodityUnits == UNITS_KILOGRAMS)  quantity /= 1000;
+			if (commodityUnits == UNITS_GRAMS)  quantity /= 1000000;
+			cargoQtyOnBoard += quantity;
+			[commodityInfo release];
+		}
+		[manifest release];
+	}
+	else	// if not docked, the cargo array is valid and can be used as per standard
+	{
+		cargoQtyOnBoard = [[self cargo] count];
+	}
+	
+	return cargoQtyOnBoard;
+}
+
 
 
 - (OOCargoType) cargoType

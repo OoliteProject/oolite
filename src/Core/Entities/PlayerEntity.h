@@ -1,6 +1,6 @@
 /*
 
-PlayerEntity.m
+PlayerEntity.h
 
 Entity subclass nominally representing the player's ship, but also
 implementing much of the interaction, menu system etc. Breaking it up into
@@ -524,6 +524,7 @@ waitingForStickCallback: 1;
 
 - (void) unloadCargoPods;
 - (void) loadCargoPods;
+- (NSMutableArray *) shipCommodityData;
 
 - (int) random_factor;
 - (Random_Seed) galaxy_seed;
