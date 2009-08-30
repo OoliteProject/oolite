@@ -126,6 +126,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (BOOL)doRemoveEntity:(Entity *)entity;
 - (void) preloadSounds;
+- (void) initSettings;
+- (void) initPlayerSettings;
 
 #if SUPPORT_GRAPHVIZ_OUT
 - (void) dumpDebugGraphViz;
@@ -205,105 +207,32 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	// Load ship data
 	[OOShipRegistry sharedRegistry];
 	
-	next_universal_id = 100;	// start arbitrarily above zero
-	
 	entities = [[NSMutableArray arrayWithCapacity:MAX_NUMBER_OF_ENTITIES] retain];
 	
-	sun_center_position[0] = 4000000.0;
-	sun_center_position[1] = 0.0;
-	sun_center_position[2] = 0.0;
-	sun_center_position[3] = 1.0;
-
 	// this MUST have the default no. of rows else the GUI_ROW macros in PlayerEntity.h need modification
 	gui = [[GuiDisplayGen alloc] init]; // alloc retains
-	
-	message_gui = [[GuiDisplayGen alloc]
-					initWithPixelSize:NSMakeSize(480, 160)
-							  columns:1
-								 rows:9
-							rowHeight:19
-							 rowStart:20
-								title:nil];
-	[message_gui setCurrentRow:8];
-	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
-	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
-	[message_gui setAlpha:1.0];
-	
-	comm_log_gui = [[GuiDisplayGen alloc]
-					initWithPixelSize:NSMakeSize(360, 120)
-							  columns:1
-								 rows:10
-							rowHeight:12
-							 rowStart:12
-								title:nil];
-	[comm_log_gui setCurrentRow:9];
-	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
-	[comm_log_gui setTextColor:[OOColor whiteColor]];
-	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
-	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
-	
-	commodityLists = [(NSDictionary *)[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
-	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
-	
-	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
-	[self preloadSounds];
-	
-	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
-	
-	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
-	
-	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-	
-	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	[OOEquipmentType loadEquipment];
-	
-	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:8];
-	
+	comm_log_gui = [[GuiDisplayGen alloc] init]; // alloc retains
+
+	localPlanetInfoOverrides = [[NSMutableDictionary alloc] initWithCapacity:8];	
+
 	missiontext = [[ResourceManager dictionaryFromFilesNamed:@"missiontext.plist" inFolder:@"Config" andMerge:YES] retain];
-	
+
 	demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
 	
-	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
-	
+	[self initSettings];
+
 	player = [[PlayerEntity alloc] init];	// alloc retains!
 	[self addEntity:player];
-	[player release];
-	
-	player->x_next = nil;	player->x_previous = nil;	x_list_start = player;
-	player->y_next = nil;	player->y_previous = nil;	y_list_start = player;
-	player->z_next = nil;	player->z_previous = nil;	z_list_start = player;
-	
-	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
 
 	[player setStatus:STATUS_START_GAME];
 	[player setShowDemoShips: YES];
 	
-	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
-	
-	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
-	
-	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
-	
-	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
-	
-	[[GameController sharedController] logProgress:DESC(@"populating-space")];
-	
-	[self setUpSpace];
-	
-	if (cachedStation)  [player setPosition:cachedStation->position];
-	
-	[self setViewDirection:VIEW_GUI_DISPLAY];
+	[[GameController sharedController] logProgress:DESC(@"populating-space")];	
+
+	[self initPlayerSettings];
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
-	
 	entitiesDeadThisUpdate = [[NSMutableArray alloc] init];
-	
 	framesDoneThisUpdate = 0;
 	
 	OOInitDebugSupport();
@@ -311,6 +240,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	
 	[player completeInitialSetUp];
+	[player release];
 	
 #ifndef NDEBUG
 	[self runLocalizationTools];
@@ -414,12 +344,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) reinitAndShowDemo:(BOOL)showDemo
 {
-	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
-	Quaternion q0 = kIdentityQuaternion;
-	int i;
 	BOOL delayedReset=NO;
 	
 	no_update = YES;
+	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	
 	[self removeAllEntitiesExceptPlayer:NO];
 	
@@ -439,91 +367,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 #endif
 	
-	
-	firstBeacon = NO_TARGET;
-	lastBeacon = NO_TARGET;
-	
-	next_universal_id = 100;	// start arbitrarily above zero
-	for (i = 0; i < MAX_ENTITY_UID; i++)
-		entity_for_uid[i] = nil;
-	
-	sun_center_position[0] = 4000000.0;
-	sun_center_position[1] = 0.0;
-	sun_center_position[2] = 0.0;
-	sun_center_position[3] = 1.0;
-	
-	[gui autorelease];
-	gui = [[GuiDisplayGen alloc] init];
-	
-	[message_gui autorelease];
-	message_gui = [[GuiDisplayGen alloc]
-					initWithPixelSize:NSMakeSize(480, 160)
-							  columns:1
-								 rows:9
-							rowHeight:19
-							 rowStart:20
-								title:nil];
-	[message_gui setCurrentRow:8];
-	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
-	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
-	[message_gui setAlpha:1.0];
-	
-	[comm_log_gui autorelease];
-	comm_log_gui = [[GuiDisplayGen alloc]
-					initWithPixelSize:NSMakeSize(360, 120)
-							  columns:1
-								 rows:10
-							rowHeight:12
-							 rowStart:12
-								title:nil];
-	[comm_log_gui setCurrentRow:9];
-	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
-	[comm_log_gui setTextColor:[OOColor whiteColor]];
-	[comm_log_gui setAlpha:0.0];
-	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
-	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
-	
-	time_delta = 0.0;
-	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
-	universal_time = 0.0;
-	messageRepeatTime = 0.0;
-	
-	[commodityLists autorelease];
-	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[commodityData autorelease];
-	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
-	
-	[illegal_goods autorelease];
-	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[descriptions autorelease];
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[characters autorelease];
-	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[customsounds autorelease];
-	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
-	
-	[planetInfo autorelease];
-	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
-	
-	[pirateVictimRoles autorelease];
-	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
-	
-	//[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
-	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-
-	[equipmentData autorelease];
-	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
-	{
-		NSArray* strict_equipment = [equipmentData subarrayWithRange:NSMakeRange(0, NUMBER_OF_STRICT_EQUIPMENT_ITEMS)];	// alloc retains
-		[equipmentData autorelease];
-		equipmentData = [strict_equipment retain];
-	}
-	[OOEquipmentType loadEquipment];
 	if(showDemo)
 	{
 		[demo_ships release];
@@ -537,6 +380,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	cachedPlanet = nil;
 	cachedStation = nil;
 	
+	[self initSettings];
+
 	if (player == nil)
 		player = [[PlayerEntity alloc] init];
 	else
@@ -545,32 +390,16 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		delayedReset=YES;
 	}
 	[self addEntity:player];
-	
+	demo_ship = nil;
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
-	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
-	
-	if (activeWormholes)
-		[activeWormholes autorelease];
-	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
-	
-	[characterPool removeAllObjects];
-	
-	// these lines are needed here to reset systeminfo and long range chart properly
-	[localPlanetInfoOverrides removeAllObjects];
-	
-	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
-	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
-	[self setUpSpace];
 
+	[self initPlayerSettings];
+	
+	[player setOrientation:kIdentityQuaternion];
+	
 	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
 	[player setDockedAtMainStation];
-
-	demo_ship = nil;
-
-	[self setViewDirection:VIEW_GUI_DISPLAY];
-	[player setPosition:kZeroVector];
-	[player setOrientation:q0];
+	
 	if(showDemo)
 	{
 		[player setGuiToIntroFirstGo:NO];
@@ -8274,6 +8103,120 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 
 @implementation Universe (OOPrivate)
+
+- (void) initSettings
+{
+	int i;
+
+	firstBeacon = NO_TARGET;
+	lastBeacon = NO_TARGET;
+
+	next_universal_id = 100;	// start arbitrarily above zero
+	for (i = 0; i < MAX_ENTITY_UID; i++)
+		entity_for_uid[i] = nil;
+	
+	sun_center_position[0] = 4000000.0;
+	sun_center_position[1] = 0.0;
+	sun_center_position[2] = 0.0;
+	sun_center_position[3] = 1.0;
+	
+	[gui autorelease];
+	gui = [[GuiDisplayGen alloc] init];
+	
+	[message_gui autorelease];
+	message_gui = [[GuiDisplayGen alloc]
+					initWithPixelSize:NSMakeSize(480, 160)
+							  columns:1
+								 rows:9
+							rowHeight:19
+							 rowStart:20
+								title:nil];
+	[message_gui setCurrentRow:8];
+	[message_gui setCharacterSize:NSMakeSize(16,20)];	// slightly narrower characters
+	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
+	[message_gui setAlpha:1.0];
+	
+	[comm_log_gui autorelease];
+	comm_log_gui = [[GuiDisplayGen alloc]
+					initWithPixelSize:NSMakeSize(360, 120)
+							  columns:1
+								 rows:10
+							rowHeight:12
+							 rowStart:12
+								title:nil];
+	[comm_log_gui setCurrentRow:9];
+	[comm_log_gui setBackgroundColor:[OOColor colorWithCalibratedRed:0.0 green:0.05 blue:0.45 alpha:0.5]];
+	[comm_log_gui setTextColor:[OOColor whiteColor]];
+	[comm_log_gui setAlpha:0.0];
+	[comm_log_gui printLongText:DESC(@"communications-log-string") align:GUI_ALIGN_CENTER color:[OOColor yellowColor] fadeTime:0 key:nil addToArray:nil];
+	[comm_log_gui setDrawPosition: make_vector(0.0, 180.0, 640.0)];
+	
+	time_delta = 0.0;
+	time_acceleration_factor = TIME_ACCELERATION_FACTOR_DEFAULT;
+	universal_time = 0.0;
+	messageRepeatTime = 0.0;
+	
+	[commodityLists autorelease];
+	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
+	
+	[commodityData autorelease];
+	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
+	
+	[illegal_goods autorelease];
+	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
+	
+	[descriptions autorelease];
+	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	
+	[characters autorelease];
+	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
+	
+	[customsounds autorelease];
+	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
+	
+	[planetInfo autorelease];
+	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
+	
+	[pirateVictimRoles autorelease];
+	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
+
+	//	[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
+	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+
+	[equipmentData autorelease];
+	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
+	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
+	{
+		NSArray* strict_equipment = [equipmentData subarrayWithRange:NSMakeRange(0, NUMBER_OF_STRICT_EQUIPMENT_ITEMS)];	// alloc retains
+		[equipmentData autorelease];
+		equipmentData = [strict_equipment retain];
+	}
+	[OOEquipmentType loadEquipment];
+}
+
+
+- (void) initPlayerSettings
+{
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
+	
+	if (activeWormholes) [activeWormholes autorelease];
+	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];
+	if (characterPool) [characterPool autorelease];
+	characterPool = [[NSMutableArray arrayWithCapacity:256] retain];
+	
+	// these lines are needed here to reset systeminfo and long range chart properly
+	[localPlanetInfoOverrides removeAllObjects];
+
+	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
+	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
+	
+	[self setUpSpace];
+	[self setViewDirection:VIEW_GUI_DISPLAY];
+	
+	[player setPosition:[[self station] position]];
+}
+
 
 - (BOOL)doRemoveEntity:(Entity *)entity
 {

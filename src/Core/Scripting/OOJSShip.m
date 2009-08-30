@@ -962,16 +962,23 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	JSBool					noDeathActions = NO;
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-
-	if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &noDeathActions)))
+	JSBool					removeDeathActions = NO;
+	if (!JSShipGetShipEntity(context, this, &thisEnt) ) return YES;	// stale reference, no-op.
+	if ([thisEnt isPlayer]) return NO;
+	
+	if ( argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &removeDeathActions)))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"remove", argc, argv, nil, @"boolean");
 		return NO;
 	}
 
-	if (noDeathActions && ![thisEnt isPlayer]) [thisEnt removeScript];
+	[thisEnt doScriptEvent:@"shipRemoved" withArgument:[NSNumber numberWithBool:removeDeathActions]];
+
+	if (removeDeathActions)
+	{
+		//OOReportJSWarning(context, @"Ship.remove(): all death actions will now be removed from %@", thisEnt);
+		[thisEnt removeScript];
+	}
 	return RemoveOrExplodeShip(context, this, argc, argv, outResult, NO);
 }
 
