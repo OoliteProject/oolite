@@ -287,7 +287,7 @@ BOOL VectorFromArgumentList(JSContext *context, NSString *scriptClass, NSString 
 }
 
 
-static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed, BOOL warnAboutNumberList)
+static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed, BOOL permitNumberList)
 {
 	double				x, y, z;
 	
@@ -309,6 +309,8 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 		}
 	}
 	
+	if (!permitNumberList)  return NO;
+	
 	// Otherwise, look for three numbers.
 	if (argc < 3)  return NO;
 	
@@ -321,16 +323,11 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	*outVector = make_vector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
 	
-	if (warnAboutNumberList)
-	{
-		OOReportJSWarning(context, @"The ability to pass three numbers instead of a vector is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace v.add(1, 2, z) with v.add([1, 2, z]).");
-	}
-	
 	return YES;
 }
 BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)
 {
-	return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, YES);
+	return VectorFromArgumentListNoErrorInternal(context, argc, argv, outVector, outConsumed, NO);
 }
 
 
@@ -429,7 +426,7 @@ static JSBool VectorConstruct(JSContext *context, JSObject *this, uintN argc, js
 	
 	if (argc != 0)
 	{
-		if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, NO)))
+		if (EXPECT_NOT(!VectorFromArgumentListNoErrorInternal(context, argc, argv, &vector, NULL, YES)))
 		{
 			free(private);
 			OOReportJSBadArguments(context, NULL, NULL, argc, argv,

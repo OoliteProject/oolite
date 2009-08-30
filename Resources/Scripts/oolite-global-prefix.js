@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 this.name			= "oolite-global-prefix";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2009 the Oolite team.";
-this.version		= "1.73";
+this.version		= "1.74";
 
 
 this.global = (function () { return this; } ).call();
@@ -191,133 +191,7 @@ this.defineCompatibilitySubMethod = function (singletonName, subName, methodName
 };
 
 
-/**** To be removed after 1.73 ****/
-// Ability to pass three numbers instead of vector/array/entity in place of Vector3D, and corresponding for Quaternion.
-
-global.Vector = Vector3D;
-
-this.defineCompatibilityGetter("Ship", "maxCargo", "cargoCapacity");
-this.defineCompatibilityGetterAndSetter("Ship", "shipDescription", "name");
-this.defineCompatibilityGetterAndSetter("Ship", "shipDisplayName", "displayName");
-
-// Lots of Player properties, including inherited ones, moved to playerShip
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "fuelLeakRate");
-this.defineCompatibilitySubGetter("player", "ship", "docked");
-this.defineCompatibilitySubGetter("player", "ship", "dockedStation");
-this.defineCompatibilitySubGetter("player", "ship", "specialCargo");
-this.defineCompatibilitySubGetter("player", "ship", "galacticHyperspaceBehaviour");
-this.defineCompatibilitySubGetter("player", "ship", "galacticHyperspaceFixedCoords");
-this.defineCompatibilitySubMethod("player", "ship", "awardEquipment");
-this.defineCompatibilitySubMethod("player", "ship", "removeEquipment");
-this.defineCompatibilitySubMethod("player", "ship", "hasEquipment");
-this.defineCompatibilitySubMethod("player", "ship", "equipmentStatus");
-this.defineCompatibilitySubMethod("player", "ship", "setEquipmentStatus");
-this.defineCompatibilitySubMethod("player", "ship", "launch");
-this.defineCompatibilitySubMethod("player", "ship", "awardCargo");
-this.defineCompatibilitySubMethod("player", "ship", "canAwardCargo");
-this.defineCompatibilitySubMethod("player", "ship", "removeAllCargo");
-this.defineCompatibilitySubMethod("player", "ship", "useSpecialCargo");
-this.defineCompatibilitySubMethod("player", "ship", "setGalacticHyperspaceBehaviour");
-this.defineCompatibilitySubMethod("player", "ship", "setGalacticHyperspaceFixedCoords");
-this.defineCompatibilitySubMethod("player", "ship", "spawnOne");
-
-this.defineCompatibilitySubGetter("player", "ship", "AI");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "AIState");
-this.defineCompatibilitySubGetter("player", "ship", "beaconCode");
-//this.defineCompatibilitySubGetterAndSetter("player", "ship", "bounty"); -- bounty is exposed on both player and player.ship
-this.defineCompatibilitySubGetter("player", "ship", "entityPersonality");
-this.defineCompatibilitySubGetter("player", "ship", "escorts");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "fuel");
-this.defineCompatibilitySubGetter("player", "ship", "groupID");
-this.defineCompatibilitySubGetter("player", "ship", "hasHostileTarget");
-this.defineCompatibilitySubGetter("player", "ship", "hasSuspendedAI");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "heatInsulation");
-this.defineCompatibilitySubGetter("player", "ship", "isBeacon");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "isCloaked");
-this.defineCompatibilitySubGetter("player", "ship", "isFrangible");
-this.defineCompatibilitySubGetter("player", "ship", "isJamming");
-this.defineCompatibilitySubGetter("player", "ship", "isPirate");
-this.defineCompatibilitySubGetter("player", "ship", "isPirateVictim");
-this.defineCompatibilitySubGetter("player", "ship", "isPlayer");
-this.defineCompatibilitySubGetter("player", "ship", "isPolice");
-this.defineCompatibilitySubGetter("player", "ship", "isThargoid");
-this.defineCompatibilitySubGetter("player", "ship", "isTrader");
-this.defineCompatibilitySubGetter("player", "ship", "cargoSpaceUsed");
-this.defineCompatibilitySubGetter("player", "ship", "cargoCapacity");
-this.defineCompatibilitySubGetter("player", "ship", "availableCargoSpace");
-this.defineCompatibilitySubGetter("player", "ship", "maxSpeed");
-this.defineCompatibilitySubGetter("player", "ship", "potentialCollider");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "primaryRole");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "reportAIMessages");
-this.defineCompatibilitySubGetter("player", "ship", "roleProbabilities");
-this.defineCompatibilitySubGetter("player", "ship", "roles");
-this.defineCompatibilitySubGetter("player", "ship", "scannerRange");
-this.defineCompatibilitySubGetter("player", "ship", "scriptInfo");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "shipDescription");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "shipDisplayName");
-this.defineCompatibilitySubGetter("player", "ship", "speed");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "desiredSpeed");
-this.defineCompatibilitySubGetter("player", "ship", "subEntities");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "target");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "temperature");
-this.defineCompatibilitySubGetter("player", "ship", "weaponRange");
-this.defineCompatibilitySubGetter("player", "ship", "withinStationAegis");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "trackCloseContacts");
-this.defineCompatibilitySubGetter("player", "ship", "passengerCount");
-this.defineCompatibilitySubGetter("player", "ship", "passengerCapacity");
-this.defineCompatibilitySubMethod("player", "ship", "setScript");
-this.defineCompatibilitySubMethod("player", "ship", "setAI");
-this.defineCompatibilitySubMethod("player", "ship", "switchAI");
-this.defineCompatibilitySubMethod("player", "ship", "exitAI");
-this.defineCompatibilitySubMethod("player", "ship", "reactToAIMessage");
-this.defineCompatibilitySubMethod("player", "ship", "deployEscorts");
-this.defineCompatibilitySubMethod("player", "ship", "dockEscorts");
-this.defineCompatibilitySubMethod("player", "ship", "hasRole");
-this.defineCompatibilitySubMethod("player", "ship", "ejectItem");
-this.defineCompatibilitySubMethod("player", "ship", "ejectSpecificItem");
-this.defineCompatibilitySubMethod("player", "ship", "dumpCargo");
-this.defineCompatibilitySubMethod("player", "ship", "runLegacyScriptActions");
-this.defineCompatibilitySubMethod("player", "ship", "spawn");
-this.defineCompatibilitySubMethod("player", "ship", "explode");
-
-this.defineCompatibilitySubGetter("player", "ship", "ID");
-this.defineCompatibilitySubGetter("player", "ship", "position");
-this.defineCompatibilitySubGetter("player", "ship", "orientation");
-this.defineCompatibilitySubGetter("player", "ship", "heading");
-this.defineCompatibilitySubGetter("player", "ship", "status");
-this.defineCompatibilitySubGetter("player", "ship", "scanClass");
-this.defineCompatibilitySubGetter("player", "ship", "mass");
-this.defineCompatibilitySubGetter("player", "ship", "owner");
-this.defineCompatibilitySubGetterAndSetter("player", "ship", "energy");
-this.defineCompatibilitySubGetter("player", "ship", "maxEnergy");
-this.defineCompatibilitySubGetter("player", "ship", "isValid");
-this.defineCompatibilitySubGetter("player", "ship", "isShip");
-this.defineCompatibilitySubGetter("player", "ship", "isStation");
-this.defineCompatibilitySubGetter("player", "ship", "isSubEntity");
-this.defineCompatibilitySubGetter("player", "ship", "isPlayer");
-this.defineCompatibilitySubGetter("player", "ship", "isPlanet");
-this.defineCompatibilitySubGetter("player", "ship", "isSun");
-this.defineCompatibilitySubGetter("player", "ship", "distanceTravelled");
-this.defineCompatibilitySubGetter("player", "ship", "spawnTime");
-this.defineCompatibilitySubGetter("player", "ship", "galaxyCoordinates");
-this.defineCompatibilitySubGetter("player", "ship", "cursorCoordinates");
-
-
-player.setPosition = function ()
-{
-	special.jsWarning("player.setPosition() is deprecated, use player.ship.position = foo instead.");
-	this.ship.position = Vector3D.apply(Vector3D, arguments);
-};
-
-
-player.setOrientation = function ()
-{
-	special.jsWarning("player.setOrientation() is deprecated, use player.ship.orientation = foo instead.");
-	this.ship.orientation = Quaternion.apply(Quaternion, arguments);
-};
-
-
-/**** To be removed after 1.74 at the latest ****/
+/**** To be removed after 1.74 ****/
 Entity.__proto__.setPosition = function ()
 {
 	special.jsWarning("Entity.setPosition() is deprecated, use entity.position = foo instead.");

@@ -271,7 +271,7 @@ BOOL QuaternionFromArgumentList(JSContext *context, NSString *scriptClass, NSStr
 }
 
 
-static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed, BOOL warnAboutNumberList)
+static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed, BOOL permitNumberList)
 {
 	double				w, x, y, z;
 	
@@ -293,6 +293,8 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 		}
 	}
 	
+	if (!permitNumberList)  return NO;
+	
 	// Otherwise, look for four numbers.
 	if (EXPECT_NOT(argc < 4))  return NO;
 	
@@ -306,18 +308,13 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	*outQuaternion = make_quaternion(w, x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 4;
 	
-	if (warnAboutNumberList)
-	{
-		OOReportJSWarning(context, @"The ability to pass four numbers instead of a quaternion is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace q.multiply(w, 1, 2, 3) with q.multiply([w, 1, 2, 3]).");
-	}
-	
 	return YES;
 }
 
 
 BOOL QuaternionFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Quaternion *outQuaternion, uintN *outConsumed)
 {
-	return QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, YES);
+	return QuaternionFromArgumentListNoErrorInternal(context, argc, argv, outQuaternion, outConsumed, NO);
 }
 
 
@@ -424,7 +421,7 @@ static JSBool QuaternionConstruct(JSContext *context, JSObject *this, uintN argc
 	
 	if (argc != 0)
 	{
-		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, NO)))
+		if (EXPECT_NOT(!QuaternionFromArgumentListNoErrorInternal(context, argc, argv, &quaternion, NULL, YES)))
 		{
 			free(private);
 			OOReportJSBadArguments(context, NULL, NULL, argc, argv,
