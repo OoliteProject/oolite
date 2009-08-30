@@ -1,8 +1,8 @@
-oolite (1.73) unstable; urgency=low
+oolite (1.74~) unstable; urgency=low
 
-  * 
+  * VCS snapshot.
 
- -- Michael Werle <micha@michaelwerle.com>  Fri, 07 Nov 2008 01:00:00 +0100
+ -- Darren Salt <linux@youmustbejoking.demon.co.uk>  Sun, 30 Aug 2009 15:03:02 +0100
 
 oolite (1.72.1-1) testing; urgency=low
 
