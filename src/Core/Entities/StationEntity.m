@@ -1060,6 +1060,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			[self sendExpandedMessage:DESC(@"docking-clearance-expired") toShip:player];
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
+			if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
 		}
 	}
 	// TODO: If player is waiting for docking clearance, send him an update
@@ -1967,6 +1968,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				[self sendExpandedMessage:DESC(@"docking-clearance-cancelled") toShip:other];
 				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 				result = @"DOCKING_CLEARANCE_CANCELLED";
+				if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
 				break;
 			case DOCKING_CLEARANCE_STATUS_NONE:
 			case DOCKING_CLEARANCE_STATUS_NOT_REQUIRED:
@@ -2024,6 +2026,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if ([other isPlayer])
 			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 		result = @"DOCKING_CLEARANCE_GRANTED";
+		[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
 	}
 	return result;
 }
