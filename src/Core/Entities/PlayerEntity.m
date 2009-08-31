@@ -5422,20 +5422,23 @@ static int last_outfitting_index;
 	{
 		if (credits == old_credits)
 		{
-			// we did get the item, but it didn't cost anything. CantBuy is associated with failiure to get the equipment
-			// better to use a generic menu sound for audio feedback.
+			// laser purchase, or free equipment
 			[self playMenuNavigationDown];
 		}
 		else
 		{
 			[self playBuyCommodity];
+		}			
+			
+		if(credits != old_credits || ![key hasPrefix:@"EQ_WEAPON_"])
+		{
+			[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
+			[self setGuiToEquipShipScreen:0]; // show any change due to playerBoughtEquipment
+			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
+			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
+			ship_clock_adjust += time_adjust + 600.0;
+			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 		}
-		[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
-		[self setGuiToEquipShipScreen:0]; // show any change due to playerBoughtEquipment
-		// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
-		double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
-		ship_clock_adjust += time_adjust + 600.0;
-		if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	}
 	else
 	{
