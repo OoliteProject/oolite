@@ -323,6 +323,8 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	*outVector = make_vector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
 	
+	OOReportJSWarning(context, @"The ability to pass three numbers instead of a vector is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace v.add(1, 2, z) with v.add([1, 2, z]).");
+	
 	return YES;
 }
 BOOL VectorFromArgumentListNoError(JSContext *context, uintN argc, jsval *argv, Vector *outVector, uintN *outConsumed)

@@ -5422,7 +5422,7 @@ static int last_outfitting_index;
 	{
 		if (credits == old_credits)
 		{
-			// laser purchase, or free equipment
+			// laser pre-purchase, or free equipment
 			[self playMenuNavigationDown];
 		}
 		else
