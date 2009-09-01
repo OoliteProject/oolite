@@ -87,10 +87,10 @@
 	character.load.unknownSystem			= inherit;
 	
 	
-	$dataCacheStatus = yes;
-	$dataCacheError = $error;
-	$dataCacheDebug = no;
-	dataCache.found							= no;	// $dataCacheStatus;	// Generally redundant since it will be folllowed by .upToDate or .rebuild.*
+	$dataCacheStatus						= no;
+	$dataCacheError							= $error;
+	$dataCacheDebug							= no;
+	dataCache.found							= $dataCacheStatus;
 	dataCache.upToDate						= $dataCacheStatus;
 	dataCache.notFound						= $dataCacheError;
 	dataCache.rebuild						= $dataCacheStatus;
@@ -98,6 +98,7 @@
 	dataCache.rebuild.datesChanged			= inherit;
 	dataCache.rebuild.explicitFlush			= inherit;
 	dataCache.removedOld					= $dataCacheStatus;
+	dataCache.willWrite						= $dataCacheStatus;
 	dataCache.write.success					= $dataCacheStatus;
 	dataCache.write.buildPath.failed		= $dataCacheError;
 	dataCache.write.failed					= $dataCacheError;

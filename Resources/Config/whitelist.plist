@@ -306,7 +306,6 @@
 		"isJammingScanning",
 		"hasMilitaryScannerFilter",
 		"messageTime",
-		"groupID",
 		"escortCount",
 		"hasHostileTarget",
 		"weaponRange",
