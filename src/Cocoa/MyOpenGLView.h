@@ -89,6 +89,7 @@ extern int debug;
 
 @interface MyOpenGLView : OpenGLViewSuperClass
 {
+@private
 	GameController		*gameController;
 
 	BOOL				keys[NUM_KEYS];
@@ -97,6 +98,8 @@ extern int debug;
 	BOOL				opt, ctrl, command, shift;
 	BOOL				allowingStringInput;
 	BOOL				isAlphabetKeyDown;
+	BOOL				commandQ;
+	BOOL				commandF;
 	
 	int					keycodetrans[255];
 	
@@ -193,6 +196,11 @@ extern int debug;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
 - (int) numKeys;
+
+// Command-key combinations need special handling.
+- (BOOL) isCommandQDown;
+- (BOOL) isCommandFDown;
+- (void) clearCommandF;
 
 // Check current state of shift key rather than relying on last event.
 - (BOOL)pollShiftKey;

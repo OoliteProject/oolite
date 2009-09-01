@@ -367,6 +367,22 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	OOLog(kOOLogKeyUp, @"Key up: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
 	
+	// Special handling of command keys used in full-screen mode.
+	if ([theEvent modifierFlags] & NSCommandKeyMask)
+	{
+		switch (key)
+		{
+			case 'q':
+				commandQ = NO;
+				break;
+				
+			case 'f':
+				commandF = NO;
+				break;
+		}
+		// Pass through to allow clearing of normal key as well.
+	}
+	
 	isAlphabetKeyDown = NO;
 	if ((key >= 0)&&(key < [self numKeys])&&(keys[key]))
 	{
@@ -404,6 +420,23 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	OOLog(kOOLogKeyDown, @"Key down: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
 	
+	// Special handling of command keys used in full-screen mode.
+	if ([theEvent modifierFlags] & NSCommandKeyMask)
+	{
+		switch (key)
+		{
+			case kKeyQ:
+				commandQ = YES;
+				break;
+				
+			case kKeyF:
+				commandF = YES;
+				break;
+		}
+		
+		return;
+	}
+	
 	keycodetrans[keycode] = key;	// record the chracter we got for pressing the hardware at key location 'keycode'
 	
 	if ((key >= 0)&&(key < [self numKeys])&&(!keys[key]))
@@ -415,12 +448,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			// limited input for planet find screen
 			if (allowingStringInput == gvStringInputAlpha)
 			{
-				if (((key > 64)&&(key < 91))||((key > 96)&&(key < 123)))
+				if (isalpha(key))
 				{
-					// alphanumeric
 					isAlphabetKeyDown = YES;
 					// convert to lowercase
-					[typedString appendFormat:@"%c", (key | 64)];
+					[typedString appendFormat:@"%c", tolower(key)];
 				}
 				else
 					isAlphabetKeyDown = NO;
@@ -434,9 +466,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			// full input for load-save screen
 			if (allowingStringInput == gvStringInputAll)
 			{
-				if ((key > 31)&&(key < 123))
+				if (isprint(key) && key != '/')
 				{
-					// alphanumeric
 					isAlphabetKeyDown = YES;
 					// convert to lowercase
 					[typedString appendFormat:@"%c", key];
@@ -633,7 +664,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (BOOL) isAlphabetKeyDown
 {
-	return isAlphabetKeyDown = NO;;
+	return isAlphabetKeyDown = NO;
 }
 
 // DJS: When entering submenus in the gui, it is not helpful if the
@@ -693,6 +724,24 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 - (int) numKeys
 {
 	return NUM_KEYS;
+}
+
+
+- (BOOL) isCommandQDown
+{
+	return commandQ;
+}
+
+
+- (BOOL) isCommandFDown
+{
+	return commandF;
+}
+
+
+- (void) clearCommandF
+{
+	commandF = NO;
 }
 
 

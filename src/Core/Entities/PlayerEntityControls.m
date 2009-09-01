@@ -373,17 +373,19 @@ static NSTimeInterval	time_last_frame;
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
 	//  command-key controls
-	if (([gameView isCommandDown])&&([[gameView gameController] inFullScreenMode]))
+	if ([[gameView gameController] inFullScreenMode])
 	{
-		if (([gameView isCommandDown])&&([gameView isDown:102]))   //  command f
+		if ([gameView isCommandFDown])
 		{
 			[[gameView gameController] exitFullScreenMode];
 			if (mouse_control_on)
+			{
 				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-			mouse_control_on = NO;
+				mouse_control_on = NO;
+			}
 		}
 		
-		if (([gameView isCommandDown])&&([gameView isDown:113]))   //  command q
+		if ([gameView isCommandQDown])
 		{
 			[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
 		}
@@ -987,7 +989,7 @@ static NSTimeInterval	time_last_frame;
 #endif
 			
 			// hyperspace 'h'
-			if ((![gameView isCommandDown] && [gameView isDown:key_hyperspace]) || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
+			if (([gameView isDown:key_hyperspace]) || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
 			{
 				if (!hyperspace_pressed)
 				{
@@ -1048,7 +1050,6 @@ static NSTimeInterval	time_last_frame;
 					}
 				}
 				hyperspace_pressed = YES;
-				[gameView clearKeys];
 			}
 			else
 				hyperspace_pressed = NO;
@@ -1361,7 +1362,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			if ([[gameView typedString] length])
 			{
-				planetSearchString = [gameView typedString];
+				planetSearchString = [[gameView typedString] lowercaseString];
 				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{

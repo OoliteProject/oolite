@@ -646,6 +646,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		stayInFullScreenMode = YES;
 		
 		fullscreen = YES;
+		[gameView clearCommandF];	// Avoid immediately switching back to windowed mode.
 						
 		BOOL past_first_mouse_delta = NO;
 		

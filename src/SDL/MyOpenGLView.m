@@ -979,6 +979,25 @@ MA 02110-1301, USA.
 	return NUM_KEYS;
 }
 
+
+- (BOOL) isCommandQDown
+{
+	return NO;
+}
+
+
+- (BOOL) isCommandFDown
+{
+	return NO;
+}
+
+
+- (void) clearCommandF
+{
+	
+}
+
+
 - (void) setKeyboardTo: (NSString *) value
 {
 #if OOLITE_WINDOWS
@@ -1483,7 +1502,7 @@ keys[a] = NO; keys[b] = NO; \
 			}
 			[typedString appendFormat:@"%c", key];
 		}
-
+		
 		// keys 0-9, Space
 		// Left-Shift seems to produce the key code for 0 :/
 		if((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE)
