@@ -4276,7 +4276,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) setGuiToStatusScreen
 {
 	// intercept any docking messages
-	if ([dockingReport length] > 0)
+	if ([dockingReport length] > 0 && [self isDocked])
 	{
 		[self setGuiToDockingReportScreen];	// go here instead!
 		return;

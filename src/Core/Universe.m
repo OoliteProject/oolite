@@ -7473,6 +7473,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			
 		base_price = 0ULL;
 	}
+	if(base_price == 0ULL) return base_price;
+	
 	unsigned			base_missiles = [basic_info unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
 	OOCreditsQuantity	base_missiles_value = base_missiles * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
 	NSString			*base_fwd_weapon_key = [basic_info stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
