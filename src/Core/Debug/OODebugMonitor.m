@@ -132,7 +132,7 @@ static OODebugMonitor *sSingleton = nil;
 	// NOTE: assumes single-threaded access. The debug monitor is not, on the whole, thread safe.
 	if (sSingleton == nil)
 	{
-		[[self alloc] init];
+		sSingleton = [[self alloc] init];
 	}
 	
 	return sSingleton;

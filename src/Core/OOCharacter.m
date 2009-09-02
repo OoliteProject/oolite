@@ -239,7 +239,6 @@ MA 02110-1301, USA.
 - (BOOL) castInRole:(NSString *) role
 {
 	BOOL		specialSetUpDone = NO;
-	NSString	*legalDesc;
 	
 	role = [role lowercaseString];
 	
@@ -248,16 +247,10 @@ MA 02110-1301, USA.
 		// determine legalStatus for a completely random character
 		int sins = 0x08 | (genSeed.a & genSeed.b);
 		[self setLegalStatus: sins & 0x7f];
-		int legal_index = (legalStatus <= 50) ? 1 : 2;
-		switch (legal_index)
-		{
-			case 1:
-				legalDesc = @"offender";
-				break;
-			case 2:
-				legalDesc = @"fugitive";
-				break;
-		}
+		
+		NSString	*legalDesc = @"offender";
+		if (legalStatus > 50)  legalDesc = @"fugitive";
+		
 		[self setLongDescription:
 			ExpandDescriptionForSeed([NSString stringWithFormat:@"%@ is a [21] %@ from %@", [self name], legalDesc, [self planetOfOrigin]], genSeed)];
 		
@@ -266,7 +259,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"trader"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus: 0];	// clean
 
 		int insurance_index = gen_rnd_number() & 0x03;
@@ -289,7 +281,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"hunter"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
 		if (insurance_index == 3)
@@ -299,7 +290,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"police"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:125];
 		specialSetUpDone = YES;
@@ -307,7 +297,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"miner"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:25];
 		specialSetUpDone = YES;
@@ -315,7 +304,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"passenger"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus:0];	// clean
 		int insurance_index = gen_rnd_number() & 0x03;
 		switch (insurance_index)
@@ -337,7 +325,6 @@ MA 02110-1301, USA.
 	
 	if ([role isEqual:@"slave"])
 	{
-		legalDesc = @"clean";
 		[self setLegalStatus:0];	// clean
 		[self setInsuranceCredits:0];
 		specialSetUpDone = YES;

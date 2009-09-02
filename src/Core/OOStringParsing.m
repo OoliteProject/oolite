@@ -266,7 +266,7 @@ NSString *ExpandDescriptionForSeedName(NSString *text, Random_Seed seed, NSStrin
 	if (text == nil)  return nil;
 	
 	int stack_check = 32;
-	NSString	*old_desc = [NSString stringWithString:text];
+	NSString	*old_desc = nil;
 	NSString	*result = text;
 	
 	do

@@ -134,7 +134,6 @@ MA 02110-1301, USA.
 	if (gDebugFlags & DEBUG_NO_DUST)  return;
 #endif
 	
-	int ct;
 	int vi;
 
 	GLfloat *fogcolor = [UNIVERSE skyClearColor];
@@ -160,16 +159,12 @@ MA 02110-1301, USA.
 		glHint(GL_FOG_HINT, GL_NICEST);
 		glFogf(GL_FOG_START, quarter_scale);
 		glFogf(GL_FOG_END, half_scale);
-		//
+		
 		// disapply lighting and texture
 		glDisable(GL_TEXTURE_2D);
-		//
-		if (player->isSunlit)
-			glColor4fv(color_fv);
-		else
-			glColor4fv(UNIVERSE->stars_ambient);
-		//
-		ct = 0;
+		
+		if (player->isSunlit)  glColor4fv(color_fv);
+		else  glColor4fv(UNIVERSE->stars_ambient);
 		
 		GLenum dustMode;
 		

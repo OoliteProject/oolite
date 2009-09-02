@@ -57,7 +57,7 @@ static GameController *sSharedController = nil;
 
 + (id)sharedController
 {
-	if (sSharedController == nil)  [[self alloc] init];
+	if (sSharedController == nil)  sSharedController = [[self alloc] init];
 	return sSharedController;
 }
 
@@ -406,7 +406,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
 		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
 		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
-		modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
+	//	modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
 		
 		if (color < DISPLAY_MIN_COLOURS ||
 			modeWidth < DISPLAY_MIN_WIDTH ||

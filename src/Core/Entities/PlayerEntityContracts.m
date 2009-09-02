@@ -193,22 +193,22 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// check cargo contracts
 	for (i = 0; i < [contracts count]; i++)
 	{
-		NSDictionary* contract_info = (NSDictionary *)[contracts objectAtIndex:i];
-		NSString* contract_cargo_desc = (NSString *)[contract_info objectForKey:CONTRACT_KEY_CARGO_DESCRIPTION];
-		int dest = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_DESTINATION] intValue];
-		int dest_eta = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME] doubleValue] - ship_clock;
+		NSDictionary* contract_info = [contracts dictionaryAtIndex:i];
+		NSString* contract_cargo_desc = [contract_info stringForKey:CONTRACT_KEY_CARGO_DESCRIPTION];
+		int dest = [contract_info intForKey:CONTRACT_KEY_DESTINATION];
+		int dest_eta = [contract_info doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
 		
-		int premium = 10 * [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_PREMIUM] floatValue];
-		int fee = 10 * [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_FEE] floatValue];
+		int premium = 10 * [contract_info floatForKey:CONTRACT_KEY_PREMIUM];
+		int fee = 10 * [contract_info floatForKey:CONTRACT_KEY_FEE];
 		
-		int contract_cargo_type = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_CARGO_TYPE] intValue];
-		int contract_amount = [(NSNumber*)[contract_info objectForKey:CONTRACT_KEY_CARGO_AMOUNT] intValue];
+		int contract_cargo_type = [contract_info intForKey:CONTRACT_KEY_CARGO_TYPE];
+		int contract_amount = [contract_info intForKey:CONTRACT_KEY_CARGO_AMOUNT];
 		
 		NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:contract_cargo_type]];
-		int quantity_on_hand =  [(NSNumber *)[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
+		int quantity_on_hand =  [commodityInfo intAtIndex:MARKET_QUANTITY];
 		
-		if (equal_seeds( system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
+		if (equal_seeds(system_seed, [UNIVERSE systemSeedForSystemNumber:dest]))
 		{
 			// we've arrived in system!
 			if (dest_eta > 0)
@@ -243,13 +243,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					
 					if (percent_delivered >= acceptable_ratio)
 					{
-						
 						// remove the goods...
-						quantity_on_hand = 0;
 						[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
 						[manifest replaceObjectAtIndex:contract_cargo_type withObject:commodityInfo];
-						if (shipCommodityData)
-							[shipCommodityData release];
+						[shipCommodityData release];
 						shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 						// pay the premium and fee
 						int shortfall = 100 - percent_delivered;
@@ -890,17 +887,13 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSArray*	passengerManifest = [self passengerList];
 		NSArray*	contractManifest = [self contractList];
 		NSArray*	missionsManifest = [self missionsList];
-
-		int legal_index = 0;
-		if (legalStatus != 0)
-			legal_index = (legalStatus <= 50) ? 1 : 2;
+		
 		unsigned rating = 0;
 		unsigned kills[8] = { 0x0008,  0x0010,  0x0020,  0x0040,  0x0080,  0x0200,  0x0A00,  0x1900 };
 		while ((rating < 8)&&(kills[rating] <= ship_kills))
 		{
 			rating ++;
 		}
-		
 		
 		if ([self status] == STATUS_DOCKED)
 		{
@@ -913,7 +906,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					current_cargo += [[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
 			}
 		}
-		
 
 		[gui clear];
 		[gui setTitle:DESC(@"manifest-title")];
@@ -1018,25 +1010,26 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	
-	int text_row = 1;
 	
 	// GUI stuff
 	{
 		[gui clear];
 		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
 		
-
 		// report might be a multi-line message
 		
 		if ([report rangeOfString:@"\n"].location != NSNotFound)
 		{
+			int text_row = 1;
 			NSArray	*sections = [report componentsSeparatedByString:@"\n"];
 			unsigned	i;
 			for (i = 0; i < [sections count]; i++)
 				text_row = [gui addLongText:(NSString *)[sections objectAtIndex:i] startingAtRow:text_row align:GUI_ALIGN_LEFT];
 		}
 		else
-			text_row = [gui addLongText:report startingAtRow:text_row align:GUI_ALIGN_LEFT];
+		{
+			(void)[gui addLongText:report startingAtRow:1 align:GUI_ALIGN_LEFT];
+		}
 
 		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
@@ -1164,21 +1157,15 @@ static NSMutableDictionary* currentShipyard = nil;
 
 	for (i = 0; i < [shipyard count]; i++)
 	{
-		[currentShipyard	setObject:[shipyard objectAtIndex:i]
-							forKey:[(NSDictionary *)[shipyard objectAtIndex:i] stringForKey:SHIPYARD_KEY_ID]];
+		[currentShipyard setObject:[shipyard objectAtIndex:i]
+							forKey:[[shipyard dictionaryAtIndex:i] stringForKey:SHIPYARD_KEY_ID]];
 	}
 	
-	NSDictionary *shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
-	NSString *shipName = [shipInfo stringForKey:@"display_name"];
-	if (shipName == nil) shipName = [shipInfo stringForKey:KEY_NAME];
-		
 	unsigned n_ships = [shipyard count];
 
 	//error check
-	if (skip >= n_ships)
-		skip = n_ships - 1;
-	if (skip < 2)
-		skip = 0;
+	if (skip >= n_ships)  skip = n_ships - 1;
+	if (skip < 2)  skip = 0;
 	
 	// GUI stuff
 	{

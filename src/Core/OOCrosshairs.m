@@ -180,6 +180,8 @@
 	*ioBuffer++ = g;
 	*ioBuffer++ = b;
 	*ioBuffer++ = a2;
+	
+	(void)ioBuffer;
 }
 
 @end

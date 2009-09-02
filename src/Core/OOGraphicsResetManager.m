@@ -66,7 +66,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 
 + (id)sharedManager
 {
-	if (sSingleton == nil)  [[self alloc] init];
+	if (sSingleton == nil)  sSingleton = [[self alloc] init];
 	return sSingleton;
 }
 

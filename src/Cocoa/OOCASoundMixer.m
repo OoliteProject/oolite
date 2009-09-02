@@ -76,7 +76,7 @@ static OOSoundMixer *sSingleton = nil;
 {
 	if (nil == sSingleton)
 	{
-		[[self alloc] init];
+		sSingleton = [[self alloc] init];
 	}
 	return sSingleton;
 }

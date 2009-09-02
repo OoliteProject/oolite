@@ -77,7 +77,6 @@ Vector offsetForOctant(int oct, GLfloat r);
 - (void) drawOctreeCollisions;
 #endif
 
-BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
 - (GLfloat) isHitByLine: (Vector) v0: (Vector) v1;
 
 BOOL	isHitByOctree(	Octree_details axialDetails,

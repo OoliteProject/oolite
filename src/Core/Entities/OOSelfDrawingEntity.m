@@ -756,10 +756,10 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 			for (fi = 0; fi < faceCount; fi++)
 			{
-				Vector normal = make_vector( 0.0, 0.0, 1.0);
 				int v;
-				if (!isSmoothShaded)
-					normal = faces[fi].normal;
+				
+				Vector normal;
+				
 				if (strcmp(faces[fi].textureFileName, faces[face].textureFileName) == 0)
 				{
 					for (vi = 0; vi < 3; vi++)

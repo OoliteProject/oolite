@@ -117,7 +117,7 @@ MA 02110-1301, USA.
 {
 	NSString *name = [self name];
 	if (name == nil)  name = @"<anonymous>";
-	return [NSString stringWithFormat:@"%@()", [self name]];
+	return [NSString stringWithFormat:@"%@()", name];
 }
 
 

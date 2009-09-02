@@ -109,16 +109,16 @@ static JSClass sTimerClass;
 {
 	JSString				*funcJSName = NULL;
 	NSString				*funcName = nil;
-	NSString				*thisDesc = nil;
 	
 	funcJSName = JS_GetFunctionId(_function);
-	if (funcJSName == NULL)  funcName = @"anonymous";
+	if (funcJSName == NULL)
+	{
+		funcName = @"anonymous";
+	}
 	else
 	{
 		funcName = [NSString stringWithFormat:@"\"%@\"", [NSString stringWithJavaScriptString:funcJSName]];
-	}  
-	
-	thisDesc = [NSString stringWithJavaScriptValue:OBJECT_TO_JSVAL(_jsThis) inContext:NULL];
+	}
 	
 	return [NSString stringWithFormat:@"%@, %spersistent, function: %@", [super descriptionComponents], [self isPersistent] ? "" : "not ", funcName];
 }

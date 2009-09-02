@@ -132,7 +132,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	if (sSingleton == nil)
 	{
-		[[self alloc] init];
+		sSingleton = [[self alloc] init];
 	}
 	
 	return sSingleton;

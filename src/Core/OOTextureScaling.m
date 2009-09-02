@@ -1073,7 +1073,7 @@ static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWid
 	uint8_t				*src, *srcStart, *dst;
 	uint8_t				borderPx;
 	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
-	uint_fast32_t		fractX, endFractX, deltaX;
+	uint_fast32_t		endFractX, deltaX;
 	uint_fast32_t		accum, weight;
 	uint_fast8_t		borderWeight;
 	
@@ -1095,7 +1095,6 @@ static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWid
 		xCount = dstWidth;
 		while (xCount--)
 		{
-			fractX = endFractX;
 			endFractX += deltaX;
 			endX = endFractX >> 12;
 			
@@ -1134,7 +1133,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 {
 	uint8_t				*src, *srcStart, *dst;
 	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
-	uint_fast32_t		fractY, endFractY, deltaY;
+	uint_fast32_t		endFractY, deltaY;
 	uint_fast32_t		accum, weight;
 	uint_fast8_t		startWeight, endWeight;
 	
@@ -1152,7 +1151,6 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	
 	while (endY < lastRow)
 	{
-		fractY = endFractY;
 		endFractY += deltaY;
 		startY = endY;
 		endY = endFractY >> 12;
@@ -1231,7 +1229,7 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 	uint32_t			*src, *srcStart, *dst;
 	uint32_t			borderPx, ag, br;
 	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
-	uint_fast32_t		fractX, endFractX, deltaX;
+	uint_fast32_t		endFractX, deltaX;
 	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
 	uint_fast8_t		borderWeight;
 	
@@ -1253,7 +1251,6 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 		xCount = dstWidth;
 		while (xCount--)
 		{
-			fractX = endFractX;
 			endFractX += deltaX;
 			endX = endFractX >> 12;
 			
@@ -1292,7 +1289,7 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	uint32_t			*src, *srcStart, *dst;
 	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
 	uint32_t			ag, br;
-	uint_fast32_t		fractY, endFractY, deltaY;
+	uint_fast32_t		endFractY, deltaY;
 	uint_fast32_t		accum1, accum2, accum3, accum4, weight;
 	uint_fast8_t		startWeight, endWeight;
 	
@@ -1310,7 +1307,6 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	
 	while (endY < lastRow)
 	{
-		fractY = endFractY;
 		endFractY += deltaY;
 		startY = endY;
 		endY = endFractY >> 12;

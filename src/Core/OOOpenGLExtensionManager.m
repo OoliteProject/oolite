@@ -199,7 +199,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 + (id)sharedManager
 {
 	// NOTE: assumes single-threaded first access. See header.
-	if (sSingleton == nil)  [[self alloc] init];
+	if (sSingleton == nil)  sSingleton = [[self alloc] init];
 	return sSingleton;
 }
 

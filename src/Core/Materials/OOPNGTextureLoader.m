@@ -107,8 +107,6 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	int							depth,
 								colorType;
 	uint32_t					i;
-	BOOL						grayscale;
-	uint8_t						planes;
 	
 	// Set up PNG decoding
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, self, PNGError, PNGWarning);
@@ -160,16 +158,12 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	if (colorType == PNG_COLOR_TYPE_GRAY)
 	{
 		// TODO: what about PNG_COLOR_TYPE_GRAY_ALPHA ?
-		grayscale = YES;
-		planes = 1;
 		format = kOOTextureDataGrayscale;
 		
 	//	png_set_invert_mono(png);
 	}
 	else
 	{
-		grayscale = NO;
-		planes = 4;
 		format = kOOTextureDataRGBA;
 		
 		png_set_bgr(png);

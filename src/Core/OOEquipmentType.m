@@ -387,6 +387,17 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	return _conditions;
 }
 
+
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	this ivar is unused (but may be used by categories, which they are).
+	FIXME: there must be a feature macro we can use to avoid actually building
+	this into the app, but I can't find it in docs.
+*/
+- (BOOL) suppressClangStuff
+{
+	return !_jsSelf;
+}
+
 @end
 
 

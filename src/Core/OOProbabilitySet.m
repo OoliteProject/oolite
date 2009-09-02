@@ -93,7 +93,7 @@ static NSString * const	kWeightsKey = @"weights";
 
 @interface OOEmptyProbabilitySet: OOProbabilitySet
 
-+ (OOEmptyProbabilitySet *) singleton;
++ (OOEmptyProbabilitySet *) singleton OO_RETURNS_RETAINED;
 
 @end
 
@@ -151,7 +151,7 @@ static void ThrowAbstractionViolationException(id obj)  GCC_ATTR((noreturn));
 
 + (id) probabilitySet
 {
-	return [OOEmptyProbabilitySet singleton];
+	return [[OOEmptyProbabilitySet singleton] autorelease];
 }
 
 
@@ -344,7 +344,7 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 {
 	if (sOOEmptyProbabilitySetSingleton == nil)
 	{
-		[[self alloc] init];
+		sOOEmptyProbabilitySetSingleton = [[self alloc] init];
 	}
 	
 	return sOOEmptyProbabilitySetSingleton;
@@ -802,8 +802,8 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 	
 	if ((self = [super initPriv]))
 	{
-		_objects = objects;
-		_weights = weights;
+		_objects = [objects retain];
+		_weights = [weights retain];
 		_sumOfWeights = sumOfWeights;
 	}
 	
@@ -1031,8 +1031,8 @@ static OOEmptyProbabilitySet *sOOEmptyProbabilitySetSingleton = nil;
 
 - (id) mutableCopyWithZone:(NSZone *)zone
 {
-	return [[OOConcreteMutableProbabilitySet alloc] initPrivWithObjectArray:[_objects mutableCopyWithZone:zone]
-															   weightsArray:[_weights mutableCopyWithZone:zone]
+	return [[OOConcreteMutableProbabilitySet alloc] initPrivWithObjectArray:[[_objects mutableCopyWithZone:zone] autorelease]
+															   weightsArray:[[_weights mutableCopyWithZone:zone] autorelease]
 																		sum:_sumOfWeights];
 }
 

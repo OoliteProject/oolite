@@ -60,7 +60,7 @@ static OONullTexture *sSingleton = nil;
 	// NOTE: assumes single-threaded access.
 	if (sSingleton == nil)
 	{
-		[[self alloc] init];
+		sSingleton = [[self alloc] init];
 	}
 	
 	return sSingleton;

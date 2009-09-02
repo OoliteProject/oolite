@@ -51,6 +51,9 @@ MA 02110-1301, USA.
 @end
 
 
+static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit);
+
+
 @implementation Octree
 
 - (id) init
@@ -383,9 +386,20 @@ BOOL drawTestForCollisions;
 #endif // OODEBUGLDRAWING_DISABLE
 
 
+OOINLINE BOOL isHitByLineSub(int* octbuffer, unsigned char* collbuffer, int nextLevel, GLfloat rad, GLfloat rd2, Vector v0, Vector v1, int octantMask)
+{
+	if (octbuffer[nextLevel + octantMask])
+	{
+		Vector moveLine = offsetForOctant(octantMask, rad);
+		return isHitByLine(octbuffer, collbuffer, nextLevel + octantMask, rd2, v0, v1, moveLine, 0);
+	}
+	else  return NO;
+}
+
+
 BOOL hasCollided = NO;
 GLfloat hit_dist = 0.0;
-BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit)
+static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat rad, Vector v0, Vector v1, Vector off, int face_hit)
 {
 	// displace the line by the offset
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
@@ -445,7 +459,6 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	else
 	{	
 		OctreeDebugLogVerbose(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
-		faces = 0;	// inside the cube!
 	}
 	
 	hasCollided = YES;
@@ -454,7 +467,7 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	
 	OctreeDebugLogVerbose(@"----> testing octants...");
 	
-	int nextlevel = level + octbuffer[level];
+	int nextLevel = level + octbuffer[level];
 		
 	GLfloat rd2 = 0.5 * rad;
 	
@@ -464,66 +477,29 @@ BOOL	isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GLfloat r
 	oct1 = oct0 ^ 0x01;	// adjacent x
 	oct2 = oct0 ^ 0x02;	// adjacent y
 	oct3 = oct0 ^ 0x04;	// adjacent z
-
-	Vector moveLine = off;
-
+	
 	OctreeDebugLogVerbose(@"----> testing first octant hit [+%d]", oct0);
-	if (octbuffer[nextlevel + oct0])
-	{
-		moveLine = offsetForOctant( oct0, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct0, rd2, u0, u1, moveLine, faces)) return YES;	// first octant
-	}
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))  return YES;	// first octant
 		
 	// test the three adjacent octants
 
 	OctreeDebugLogVerbose(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
-	
-	if (octbuffer[nextlevel + oct1])
-	{
-		moveLine = offsetForOctant( oct1, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct1, rd2, u0, u1, moveLine, 0)) return YES;	// second octant
-	}
-	if (octbuffer[nextlevel + oct2])
-	{
-		moveLine = offsetForOctant( oct2, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct2, rd2, u0, u1, moveLine, 0)) return YES;	// third octant
-	}
-	if (octbuffer[nextlevel + oct3])
-	{
-		moveLine = offsetForOctant( oct3, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct3, rd2, u0, u1, moveLine, 0)) return YES;	// fourth octant
-	}
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))  return YES;	// second octant
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))  return YES;	// third octant
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))  return YES;	// fourth octant
 	
 	// go to the next four octants
 	
 	oct0 ^= 0x07;	oct1 ^= 0x07;	oct2 ^= 0x07;	oct3 ^= 0x07;
 	
 	OctreeDebugLogVerbose(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
-	
-	if (octbuffer[nextlevel + oct1])
-	{
-		moveLine = offsetForOctant( oct1, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct1, rd2, u0, u1, moveLine, 0)) return YES;	// fifth octant
-	}
-	if (octbuffer[nextlevel + oct2])
-	{
-		moveLine = offsetForOctant( oct2, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct2, rd2, u0, u1, moveLine, 0)) return YES;	// sixth octant
-	}
-	if (octbuffer[nextlevel + oct3])
-	{
-		moveLine = offsetForOctant( oct3, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct3, rd2, u0, u1, moveLine, 0)) return YES;	// seventh octant
-	}
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))  return YES;	// fifth octant
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))  return YES;	// sixth octant
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))  return YES;	// seventh octant
 	
 	// and check the last octant
 	OctreeDebugLogVerbose(@"----> testing final octant [+%d]", oct0);
-	
-	if (octbuffer[nextlevel + oct0])
-	{
-		moveLine = offsetForOctant( oct0, rad);
-		if (isHitByLine(octbuffer, collbuffer, nextlevel + oct0, rd2, u0, u1, moveLine, 0)) return YES;	// last octant
-	}
+	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))  return YES;	// last octant
 	
 	return NO;
 }

@@ -416,11 +416,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	BoundingBox	result;
 	Vector		pv, rv;
-	Vector		rpos = position;
 	int			i;
 	
 	// FIXME: rewrite with matrices
-	rpos = vector_subtract(position, opv);	// model origin relative to opv
+	Vector rpos = vector_subtract(position, opv);	// model origin relative to opv
 	
 	rv.x = dot_product(ri,rpos);
 	rv.y = dot_product(rj,rpos);
@@ -520,6 +519,17 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
 }
 #endif
+
+
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	these ivars are unused (but may be used by categories, which they are).
+	FIXME: there must be a feature macro we can use to avoid actually building
+	this into the app, but I can't find it in docs.
+*/
+- (BOOL) suppressClangStuff
+{
+	return _normals && _tangents && _faces && boundingBox.min.x;
+}
 
 @end
 

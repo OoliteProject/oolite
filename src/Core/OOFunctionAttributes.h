@@ -11,6 +11,13 @@
 #endif
 
 
+// Clang feature testing extension.
+#ifndef __has_feature
+	#define __has_feature(x) (0)
+#endif
+
+
+
 #define OOINLINE			static inline
 
 
@@ -36,6 +43,14 @@
 #else
 	#define EXPECT(x)		(x)
 	#define EXPECT_NOT(x)	(x)
+#endif
+
+
+// OO_RETURNS_RETAINED: indicates the caller of a method owns a reference to the return value.
+#if __has_feature(attribute_ns_returns_retained)
+	#define OO_RETURNS_RETAINED __attribute__((ns_returns_retained))
+#else
+	#define OO_RETURNS_RETAINED
 #endif
 
 

@@ -789,8 +789,6 @@
 			   forRow:STARTROW-1];
 		[gui setKey:GUI_KEY_OK forRow:STARTROW-1];
 		rangeStart=STARTROW-1;
-		if(!highlightIdx)
-			highlightIdx=firstIndex;
 	}
 	
 	if (firstIndex + NUMROWS >= [cdrDetailArray count])

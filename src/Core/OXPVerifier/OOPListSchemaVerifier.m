@@ -1074,7 +1074,7 @@ static NSError *Verify_Dictionary(OOPListSchemaVerifier *verifier, id value, NSD
 	// Check that all required keys were present.
 	if (!prematureExit && [requiredKeys count] != 0)
 	{
-		error = ErrorWithProperty(kPListErrorDictionaryMissingRequiredKeys, &keyPath, kMissingRequiredKeysErrorKey, requiredKeys, @"Required keys %@ missing from dictionary.", SetForErrorReport(requiredKeys));
+		return ErrorWithProperty(kPListErrorDictionaryMissingRequiredKeys, &keyPath, kMissingRequiredKeysErrorKey, requiredKeys, @"Required keys %@ missing from dictionary.", SetForErrorReport(requiredKeys));
 	}
 	
 	*outStop = stop && !tentative;
