@@ -214,6 +214,8 @@ extern int debug;
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
+- (BOOL) isCommandQDown;
+- (BOOL) isCommandFDown;
 - (int) numKeys;
 
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
