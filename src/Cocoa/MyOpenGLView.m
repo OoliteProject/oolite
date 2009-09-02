@@ -425,11 +425,11 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	{
 		switch (key)
 		{
-			case kKeyQ:
+			case 'q':
 				commandQ = YES;
 				break;
 				
-			case kKeyF:
+			case 'f':
 				commandF = YES;
 				break;
 		}
