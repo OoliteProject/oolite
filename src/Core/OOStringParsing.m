@@ -754,18 +754,19 @@ static NSString * const kEscapedQuotationMark = @"\\\"";
 
 NSString *EscapedGraphVizString(NSString *string)
 {
-	const NSString			*srcStrings[] =
+	NSString * const srcStrings[] =
 	{
 		//Note: backslash must be first.
 		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
 	};
-	const NSString			*subStrings[] =
+	NSString * const subStrings[] =
 	{
 		//Note: must be same order.
 		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil
 	};
 	
-	NSString				**src = srcStrings, **sub = subStrings;
+	NSString * const *		src = srcStrings;
+	NSString * const *		sub = subStrings;
 	NSMutableString			*mutable = nil;
 	NSString				*result = nil;
 	

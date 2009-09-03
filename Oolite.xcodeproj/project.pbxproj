@@ -447,7 +447,6 @@
 		1A71E71F0BCE34CF00CD5C13 /* pngwtran.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70B0BCE34CF00CD5C13 /* pngwtran.c */; };
 		1A71E7200BCE34CF00CD5C13 /* pngread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70C0BCE34CF00CD5C13 /* pngread.c */; };
 		1A71E7210BCE34CF00CD5C13 /* pngrutil.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70D0BCE34CF00CD5C13 /* pngrutil.c */; };
-		1A71E7220BCE34CF00CD5C13 /* pngtest.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70E0BCE34CF00CD5C13 /* pngtest.c */; };
 		1A71E7230BCE34CF00CD5C13 /* pngerror.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E70F0BCE34CF00CD5C13 /* pngerror.c */; };
 		1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7100BCE34CF00CD5C13 /* pngset.c */; };
 		1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7110BCE34CF00CD5C13 /* pngwrite.c */; };
@@ -1062,7 +1061,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1771,7 +1770,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* OoliteDev.app */,
+				0865432206B8447D000CA0AB /* Oolite.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -3042,7 +3041,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
+			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3068,6 +3067,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				ORGANIZATIONNAME = "the Oolite team";
 			};
 			buildConfigurationList = 08B31CB008FE63D70038D42F /* Build configuration list for PBXProject "Oolite" */;
@@ -3345,7 +3345,6 @@
 				1A71E71F0BCE34CF00CD5C13 /* pngwtran.c in Sources */,
 				1A71E7200BCE34CF00CD5C13 /* pngread.c in Sources */,
 				1A71E7210BCE34CF00CD5C13 /* pngrutil.c in Sources */,
-				1A71E7220BCE34CF00CD5C13 /* pngtest.c in Sources */,
 				1A71E7230BCE34CF00CD5C13 /* pngerror.c in Sources */,
 				1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */,
 				1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */,
@@ -3413,6 +3412,8 @@
 				GCC_REUSE_STRINGS = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_VERSION = 4.2;
+				"GCC_VERSION[sdk=macosx10.4][arch=*]" = 4.0;
 				HEADER_SEARCH_PATHS = (
 					"$(HEADER_SEARCH_PATHS_QUOTED_1)",
 					"$(HEADER_SEARCH_PATHS_QUOTED_2)",
@@ -3567,7 +3568,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				LLVM_LTO = YES;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
 				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
@@ -3657,13 +3658,11 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
+				GENERATE_MASTER_OBJECT_FILE = YES;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
-				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
-				ZERO_LINK = NO;
 			};
 			name = Debug;
 		};

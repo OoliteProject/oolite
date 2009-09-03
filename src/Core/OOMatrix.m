@@ -27,13 +27,13 @@ MA 02110-1301, USA.
 
 
 const OOMatrix	kIdentityMatrix = 
-								{ m: {
+								{ .m = {
 									{1.0f, 0.0f, 0.0f, 0.0f},
 									{0.0f, 1.0f, 0.0f, 0.0f},
 									{0.0f, 0.0f, 1.0f, 0.0f},
 									{0.0f, 0.0f, 0.0f, 1.0f}
 								}};
-const OOMatrix	kZeroMatrix		= { m: {
+const OOMatrix	kZeroMatrix		= { .m = {
 									{0.0f, 0.0f, 0.0f, 0.0f},
 									{0.0f, 0.0f, 0.0f, 0.0f},
 									{0.0f, 0.0f, 0.0f, 0.0f},

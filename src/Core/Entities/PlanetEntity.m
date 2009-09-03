@@ -45,6 +45,11 @@ MA 02110-1301, USA.
 #define LIM16K  16000.0*16000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 
 
+static double		corona_speed_factor;	// multiply delta_t by this before adding it to corona_stage
+static double		corona_stage;			// 0.0 -> 1.0
+static GLfloat		rvalue[729];			// stores random values for adjusting colors in the corona
+
+
 // straight c
 static Vector base_vertex_array[10400];
 static int base_terrain_array[10400];

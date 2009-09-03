@@ -305,7 +305,7 @@ enum {
 	#undef NS_DURING
 	#undef NS_HANDLER
 	#undef NS_ENDHANDLER
-	#undef NS_VALUERETURN(v,t)
+	#undef NS_VALUERETURN
 	#undef NS_VOIDRETURN
 	
 	#define NS_DURING			@try {

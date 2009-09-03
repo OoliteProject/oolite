@@ -3600,7 +3600,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 }
 
 
-#if OO_DEBUG
+#if NDEBUG
 - (OOShipGroup *) rawEscortGroup
 {
 	return _escortGroup;

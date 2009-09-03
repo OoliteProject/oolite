@@ -293,7 +293,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	}
 #endif
 	
-	const NSString		*requiredExtension[] = 
+	NSString * const requiredExtension[] = 
 						{
 							@"GL_ARB_shading_language_100",
 							@"GL_ARB_fragment_shader",
@@ -302,7 +302,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 							@"GL_ARB_shader_objects",
 							nil	// sentinel - don't remove!
 						};
-	NSString			**required = NULL;
+	NSString * const *required = NULL;
 	
 	for (required = requiredExtension; *required != nil; ++required)
 	{

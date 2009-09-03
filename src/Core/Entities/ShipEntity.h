@@ -804,7 +804,7 @@ BOOL	class_masslocks(int some_class);
 @end
 
 
-#if OO_DEBUG
+#ifndef NDEBUG
 @interface ShipEntity (Debug)
 
 - (OOShipGroup *) rawEscortGroup;

@@ -155,7 +155,7 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 {
 	OO_ENTER_OPENGL();
 	
-	OODebugWFState state = { material: [OOMaterial current] };
+	OODebugWFState state = { .material = [OOMaterial current] };
 	[OOMaterial applyNone];
 	
 	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
