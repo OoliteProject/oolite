@@ -63,7 +63,10 @@
 	ai.takeAction.debugMessage				= inherit;
 	ai.takeAction.badSelector				= inherit;
 	ai.pop									= inherit;
-	ai.error.recursion						= $aiError;
+	ai.error								= $aiError;
+	ai.error.recursion						= inherit;
+	ai.error.stackOverflow					= inherit;
+	ai.error.stackOverflow.dump				= inherit;
 	ai.setTakeOffFromPlanet.noPlanet		= $aiError;
 	ai.suggestEscort						= inherit;
 	ai.suggestEscort.refused				= inherit;

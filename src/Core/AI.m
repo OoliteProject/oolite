@@ -1,3 +1,4 @@
+
 /*
 
 AI.m
@@ -36,6 +37,13 @@ MA 02110-1301, USA.
 #endif
 
 #define kOOLogUnconvertedNSLog @"unclassified.AI"
+
+
+enum
+{
+	kRecursionLimiter		= 32,	// reactToMethod: recursion
+	kStackLimiter			= 32	// setAITo: stack overflow
+};
 
 
 typedef struct
@@ -170,6 +178,32 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
+- (void) reportStackOverflow
+{
+	if (OOLogWillDisplayMessagesInClass(@"ai.error.stackOverflow"))
+	{
+		BOOL stackDump = OOLogWillDisplayMessagesInClass(@"ai.error.stackOverflow.dump");
+		
+		NSString *trailer = stackDump ? @" -- stack:" : @".";
+		OOLogERR(@"ai.error.stackOverflow", @"AI stack overflow for %@ in %@: %@%@\n", [_owner shortDescription], stateMachineName, currentState, trailer);
+		
+		if (stackDump)
+		{
+			OOLogIndent();
+			
+			unsigned count = [aiStack count];
+			while (count--)
+			{
+				NSDictionary *pickledMachine = [aiStack objectAtIndex:count];
+				OOLog(@"ai.error.stackOverflow.dump", @"%3u: %@: %@", count, [pickledMachine stringForKey:@"stateMachineName"], [pickledMachine stringForKey:@"currentState"]);
+			}
+			
+			OOLogOutdent();
+		}
+	}
+}
+
+
 - (void) preserveCurrentStateMachine
 {
 	if (!stateMachine)
@@ -184,9 +218,10 @@ static AI *sCurrentlyRunningAI = nil;
 	
 	if (aiStack == nil)  aiStack = [[NSMutableArray alloc] init];
 	
-	if ([aiStack count] > 32)
+	if ([aiStack count] >= kStackLimiter)
 	{
-		OOLogERR(@"ai.pushStateMachine.overflow", @"AI stack overflow for %@ stack:\n%@", [_owner shortDescription], aiStack);
+		[self reportStackOverflow];
+		
 		[NSException raise:@"OoliteException"
 					format:@"AI stack overflow for %@", _owner];
 	}
@@ -346,7 +381,7 @@ static AI *sCurrentlyRunningAI = nil;
 		in takeAction:, but that could potentially miss indirect recursion via
 		scripts.
 	*/
-	if (recursionLimiter > 32)
+	if (recursionLimiter > kRecursionLimiter)
 	{
 		OOLogERR(@"ai.error.recursion", @"AI reactToMessage: recursion in AI %@, state %@, aborting. It is not valid to call reactToMessage: FOO in state FOO.", stateMachineName, currentState);
 		return;
