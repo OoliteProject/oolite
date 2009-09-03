@@ -258,7 +258,7 @@ MA 02110-1301, USA.
 
 - (void) scanForHostiles
 {
-	/*-- Locates all the ships in range targetting the receiver and chooses the nearest --*/
+	/*-- Locates all the ships in range targeting the receiver and chooses the nearest --*/
 	found_target = NO_TARGET;
 	found_hostiles = 0;
 	
@@ -1684,7 +1684,7 @@ static WormholeEntity *whole = nil;
 		return;
 	}
 	
-	/*-- Locates all the ships in range targetting the mother ship and chooses the nearest/biggest --*/
+	/*-- Locates all the ships in range targeting the mother ship and chooses the nearest/biggest --*/
 	found_target = NO_TARGET;
 	found_hostiles = 0;
 	[self checkScanner];

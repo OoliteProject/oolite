@@ -13,7 +13,7 @@ Gameplay
 * Interface change: While in flight, pressing H from the local galaxy map will
   initiate hyperspace jumps - before, the player had to exit the map to do so.
 * Added new equipment: Wormhole Scanner.
-* Implemented targetting of nearest incoming missile. This is activated using
+* Implemented targeting of nearest incoming missile. This is activated using
   Shift+T or an assigned joystick button.
 * Sell/buy as much as possible on the F8 screen via Shift+left/right. Prefer
   to buy with Shift+Return.

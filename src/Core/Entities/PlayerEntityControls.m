@@ -702,13 +702,13 @@ static NSTimeInterval	time_last_frame;
 			else  target_incoming_missile_pressed = NO;
 #endif
 			
-			//  shoot 't'   // switch on missile targetting
+			//  shoot 't'   // switch on missile targeting
 			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
 			{
-				// targetting 'on' here
+				// targeting 'on' here
 				if (!target_missile_pressed)
 				{
-					// Clear current target if we're already in Missile Targetting mode
+					// Clear current target if we're already in Missile Targeting mode
 					if (missile_status != MISSILE_STATUS_SAFE)
 					{
 						primaryTarget = NO_TARGET;
@@ -744,12 +744,12 @@ static NSTimeInterval	time_last_frame;
 			}
 			else  target_missile_pressed = NO;
 			
-			//  shoot 'u'   // disarm missile targetting
+			//  shoot 'u'   // disarm missile targeting
 			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
 			{
 				if (!safety_pressed)
 				{
-					//targetting off in both cases!
+					//targeting off in both cases!
 					primaryTarget = NO_TARGET;
 					[self safeAllMissiles];
 					if (!ident_engaged)

@@ -4,7 +4,7 @@
 <dict>
 	<key>dials</key><!-- these are drawn, in order, after the legends -->
 	<array>
-		<dict><!-- Targetting enhancement -->
+		<dict><!-- Targeting enhancement -->
 			<key>equipment_required</key>
 			<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
 			<key>selector</key>

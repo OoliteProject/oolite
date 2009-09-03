@@ -4,7 +4,7 @@
 	crosshair_color		= "greenColor";
 	dials			= //these are drawn, in order, after the legends
 	(
-		{	// Targetting enhancement
+		{	// Targeting enhancement
 			equipment_required 	= "EQ_SCANNER_SHOW_MISSILE_TARGET";
 			selector		= "drawTargetReticle:";
 		},

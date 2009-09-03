@@ -116,7 +116,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) performLaunchingUpdates:(OOTimeDelta)delta_t;
 - (void) performDockingUpdates:(OOTimeDelta)delta_t;
 - (void) performDeadUpdates:(OOTimeDelta)delta_t;
-- (void) updateTargetting;
+- (void) updateTargeting;
 - (BOOL) isValidTarget:(Entity*)target;
 #if WORMHOLE_SCANNER
 - (void) addScannedWormhole:(WormholeEntity*)wormhole;
@@ -1316,7 +1316,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
 	// Moved to performInFlightUpdates. -- Micha 20090403
-	//[self updateTargetting];
+	//[self updateTargeting];
 #if WORMHOLE_SCANNER
 	[self updateWormholes];
 #endif
@@ -1788,7 +1788,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	[self moveForward:delta_t*flightSpeed];
 	
-	[self updateTargetting];
+	[self updateTargeting];
 }
 
 
@@ -1963,13 +1963,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	return NO;
 }
 
-// Check for lost targetting - both on the ships' main target as well as each
+// Check for lost targeting - both on the ships' main target as well as each
 // missile.
 // If we're actively scanning and we don't have a current target, then check
 // to see if we've locked onto a new target.
 // Finally, if we have a target and it's a wormhole, check whether we have more
 // information
-- (void) updateTargetting
+- (void) updateTargeting
 {
 	// check for lost ident target and ensure the ident system is actually scanning
 	if (ident_engaged && [self primaryTargetID] != NO_TARGET)
@@ -2778,7 +2778,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		int next_missile = (activeMissile + i) % max_missiles;
 		if (missile_entity[next_missile])
 		{
-			// If we don't have the multi-targetting module installed, clear the active missiles' target
+			// If we don't have the multi-targeting module installed, clear the active missiles' target
 			if( ![self hasEquipmentItem:@"EQ_MULTI_TARGET"] && [missile_entity[activeMissile] isMissile] )
 			{
 				[missile_entity[activeMissile] removeTarget:nil];
