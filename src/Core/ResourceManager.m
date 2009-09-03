@@ -590,7 +590,7 @@ static NSMutableDictionary *string_cache;
 			// Special handling for arrays merging. Currently, equipment.plist only gets its objects merged.
 			// A lookup index is required. For the equipment.plist items, this is the index corresponging to the
 			// EQ_* string, which describes the role of an equipment item and is unique.
-			if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
+			if ([array count] != 0 && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 			{
 				if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
 					[self handleEquipmentListMerging:results forLookupIndex:3]; // Index 3 is the role string (EQ_*).
@@ -599,9 +599,9 @@ static NSMutableDictionary *string_cache;
 			{
 				arrayPath = [[path stringByAppendingPathComponent:folderName] stringByAppendingPathComponent:fileName];
 				array = [[OOArrayFromFile(arrayPath) mutableCopy] autorelease];
-				if (array != nil) [results addObject:array];
+				if (array != nil)  [results addObject:array];
 				
-				if (array != nil && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
+				if ([array count] != 0 && [[array objectAtIndex:0] isKindOfClass:[NSArray class]])
 				{
 					if ([[fileName lowercaseString] isEqualToString:@"equipment.plist"])
 						[self handleEquipmentListMerging:results forLookupIndex:3]; // Index 3 is the role string (EQ_*).
@@ -636,22 +636,24 @@ static NSMutableDictionary *string_cache;
 	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
 	
 	// Any change to arrayRef will directly modify arrayToProcess.
-				
+	
 	for (i = 0; i < [refArray count]; i++)
 	{
 		for (j = 0; j < [arrayToProcess count] - 1; j++)
 		{
 			for (k=0; k < [[arrayToProcess objectAtIndex:j] count] - 1; k++)
-			{				
-				if ([[[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupIndex] isEqual:
-					[[refArray objectAtIndex:i] objectAtIndex:lookupIndex]])
+			{
+				id processValue = [[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupIndex defaultValue:nil];
+				id refValue = [[refArray objectAtIndex:i] objectAtIndex:lookupIndex defaultValue:nil];
+				
+				if ([processValue isEqual:refValue])
 				{
-					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];					
-					[refArray removeObjectAtIndex:i];									
+					[[arrayToProcess objectAtIndex:j] replaceObjectAtIndex:k withObject:[refArray objectAtIndex:i]];
+					[refArray removeObjectAtIndex:i];
 				}
 			}
-		}	
-	}	
+		}
+	}
 	// arrayToProcess has been processed at this point. Any necessary merging has been done.
 }
 
