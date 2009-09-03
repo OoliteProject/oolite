@@ -188,7 +188,8 @@
 		"dropMessages:",
 		"exitAIWithMessage:",
 		"ai_throwSparks",	// Don't use, use throwSparks instead
-		
+		"checkAegis",
+				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
 		"decreaseAlertLevel",

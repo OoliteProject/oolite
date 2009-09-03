@@ -28,7 +28,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"AEGIS_CLOSE_TO_MAIN_PLANET" = ("setStateTo: HEAD_FOR_SUN");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setStateTo: INBOUND_LOOT");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
@@ -44,7 +44,7 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: HEAD_FOR_PLANET");
 		"CLOSE_TO_SUN" = ("setStateTo: HEAD_FOR_PLANET");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setStateTo: OUTBOUND_LOOT");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, deployEscorts, groupAttackTarget);
@@ -63,16 +63,16 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", deployEscorts, groupAttackTarget);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setStateTo: OUTBOUND_LOOT");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 	};
 	"OUTBOUND_LOOT" =
 	{
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget, "setStateTo: OUTBOUND_LOOT");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
-		"NOTHING_FOUND" = ("setStateTo: HEAD_FOR_SUN");
+		"NOTHING_FOUND" = (checkAegis, "setStateTo: HEAD_FOR_SUN");
 		UPDATE = (scanForLoot, "pauseAI: 10.0");
 	};
 	"INBOUND_LOOT" =
@@ -80,9 +80,9 @@
 		ENTER = ("setSpeedTo: 0.0", performIdle);
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget);
-		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget,"setStateTo: INBOUND_LOOT");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, deployEscorts, groupAttackTarget);
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: collectLootAI.plist");
-		"NOTHING_FOUND" = ("setStateTo: HEAD_FOR_PLANET");
+		"NOTHING_FOUND" = (checkAegis, "setStateTo: HEAD_FOR_PLANET");
 		UPDATE = (scanForLoot, "pauseAI: 10.0");
 	};
 }

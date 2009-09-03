@@ -15,6 +15,7 @@
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setAITo: traderInterceptAI.plist", fightOrFleeHostiles);
 		"INCOMING_MISSILE" = ("setAITo: traderInterceptAI.plist", "setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.5 2.0"); 
 		ATTACKED = ("setAITo: traderInterceptAI.plist", fightOrFleeHostiles); 
+		RESTARTED = (checkAegis);
 		UPDATE =
 		(
 			setCourseToPlanet,

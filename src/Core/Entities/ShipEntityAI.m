@@ -135,6 +135,8 @@ MA 02110-1301, USA.
 
 - (void) checkCourseToDestination;
 
+- (void) checkAegis;
+
 - (void) scanForOffenders;
 
 - (void) setCourseToWitchpoint;
@@ -945,6 +947,47 @@ MA 02110-1301, USA.
 		
 		destination = [UNIVERSE getSafeVectorFromEntity:self toDistance:desired_range fromPoint:destination];
 		[shipAI message:@"WAYPOINT_SET"];
+	}
+}
+
+
+- (void) checkAegis
+{
+	switch(aegis_status)
+	{
+		case AEGIS_CLOSE_TO_MAIN_PLANET: 
+			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];
+			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
+			break;
+		case AEGIS_CLOSE_TO_ANY_PLANET:
+			{
+				PlanetEntity	*the_planet = [self findNearestStellarBody];
+				
+				if(the_planet == [UNIVERSE sun])
+				{
+					[shipAI message:@"CLOSE_TO_SUN"];
+				}
+				else
+				{
+					[shipAI message:@"CLOSE_TO_PLANET"];
+					if ([the_planet planetType] == PLANET_TYPE_MOON)
+					{
+						[shipAI message:@"CLOSE_TO_MOON"];
+					}
+					else
+					{
+						[shipAI message:@"CLOSE_TO_SECONDARY_PLANET"];
+					}
+				}
+				break;
+			}
+		case AEGIS_IN_DOCKING_RANGE:
+			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
+			break;
+		case AEGIS_NONE:
+		default: 
+			[shipAI message:@"AEGIS_NONE"];
+			break;
 	}
 }
 
