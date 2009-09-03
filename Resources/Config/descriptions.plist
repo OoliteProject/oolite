@@ -1102,7 +1102,7 @@
 						  );
 	"you-are-cleared-to-dock-please-proceed-clearance-expires-at-@"
 						= (
-							"You are cleared to dock. Please proceeed. Clearance expires at %@",
+							"You are cleared to dock. Please proceed. Clearance expires at %@",
 							"You have docking clearance, Commander. Your window is up to %@",
 							"Docking authorized. You have an approach slot terminating at %@",
 							"Permission granted. Proceed for docking approach. Slot valid until %@"
