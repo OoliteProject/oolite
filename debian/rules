@@ -65,14 +65,14 @@ endif
 binary-indep: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs -i
+	dh_installchangelogs -i Doc/CHANGELOG.TXT
 	dh_installdocs -i
 	dh_install -i
 	cd debian/oolite-data/usr/lib/GNUstep/Applications/oolite.app && rm -f oolite Resources/Info-gnustep.plist
 	find debian/oolite-data -name .svn | xargs -r rm -rf
 	dh_link -i
 	dh_strip -i
-	dh_compress -i
+	dh_compress -i -X.pdf -X.rtf
 	dh_fixperms -i
 	dh_installdeb -i
 	dh_gencontrol -i
