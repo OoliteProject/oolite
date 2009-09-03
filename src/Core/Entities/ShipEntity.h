@@ -804,6 +804,15 @@ BOOL	class_masslocks(int some_class);
 @end
 
 
+#if OO_DEBUG
+@interface ShipEntity (Debug)
+
+- (OOShipGroup *) rawEscortGroup;
+
+@end
+#endif
+
+
 // For the common case of testing whether foo is a ship, bar is a ship, bar is a subentity of foo and this relationship is represented sanely.
 @interface Entity (SubEntityRelationship)
 

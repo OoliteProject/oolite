@@ -8024,7 +8024,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
 	size_t length = [text length];
 	char *ctext = malloc (length + 2);
-	sprintf (ctext, "%s%c", [text cString], 0); // extra NUL; working around an apparent misrendering bug...
+	sprintf (ctext, "%s%c", [text UTF8String], 0); // extra NUL; working around an apparent misrendering bug...
 	espeak_Synth(ctext, length + 2 /* inc. NULs */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
 	free (ctext);
 }
@@ -8051,7 +8051,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	if (name == nil)
 		return UINT_MAX;
 
-	const char *const label = [name cString];
+	const char *const label = [name UTF8String];
 	if (!label)
 		return UINT_MAX;
 
@@ -8640,7 +8640,7 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 
 	for (index = i = 0; i < [conditions count]; ++index, ++i)
 	{
-		const char *cond = [[conditions stringAtIndex:i] cString];
+		const char *cond = [[conditions stringAtIndex:i] UTF8String];
 		if (!cond)
 			break;
 

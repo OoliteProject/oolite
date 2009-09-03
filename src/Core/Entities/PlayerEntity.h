@@ -516,6 +516,8 @@ waitingForStickCallback: 1;
 
 + (PlayerEntity *)sharedPlayer;
 
+- (NSString *) captainName;
+
 - (BOOL) isDocked;
 
 - (void)completeInitialSetUp;

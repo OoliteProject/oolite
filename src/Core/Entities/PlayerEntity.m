@@ -6814,6 +6814,12 @@ static int last_outfitting_index;
 }
 
 
+- (NSString *) captainName
+{
+	return [[player_name retain] autorelease];
+}
+
+
 - (BOOL) isDocked
 {
 	BOOL isDockedStatus = NO;

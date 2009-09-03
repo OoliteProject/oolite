@@ -22,7 +22,7 @@
 
 - (void) setUpDataForOnePoint:(NSArray *)pointInfo
 						scale:(GLfloat)scale
-				   colorComps:(GLfloat[4])colorComps
+				   colorComps:(OOCGFloat[4])colorComps
 				 overallAlpha:(GLfloat)alpha
 						 data:(GLfloat *)ioBuffer;
 
@@ -103,7 +103,7 @@
 				overallAlpha:(GLfloat)alpha
 {
 	unsigned				i;
-	GLfloat					colorComps[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+	OOCGFloat				colorComps[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
 	GLfloat					*data = NULL;
 	
 	_count = [points count];
@@ -128,7 +128,7 @@
 
 - (void) setUpDataForOnePoint:(NSArray *)pointInfo
 						scale:(GLfloat)scale
-				   colorComps:(GLfloat[4])colorComps
+				   colorComps:(OOCGFloat[4])colorComps
 				 overallAlpha:(GLfloat)alpha
 						 data:(GLfloat *)ioBuffer
 {

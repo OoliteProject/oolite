@@ -1,4 +1,4 @@
-#import <Cocoa/Cocoa.h>
+#import "OOCocoa.h"
 #import "OOLoggingExtended.h"
 
 
