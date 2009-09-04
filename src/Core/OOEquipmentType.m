@@ -214,7 +214,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			}
 			if (conditions != nil)
 			{
-				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"equipment type \"%@\"", _name]);
+				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
 				[_conditions retain];
 			}
 		}

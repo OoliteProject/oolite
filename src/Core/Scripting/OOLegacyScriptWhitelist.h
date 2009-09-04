@@ -68,8 +68,8 @@ the sanitized form (with rawString values replaced with "..." for simplicity) is
 		(
 			true,	// This is a conditonal statement
 			(		// conditions
-				(OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, (false, "4")),
-				(OP_STRING, "...", "status_string", COMPARISON_EQUAL, (false, "STATUS_EXITING_WITCHSPACE")),
+				(OP_NUMBER, "...", "galaxy_number", COMPARISON_EQUAL, ((false, "4"))),
+				(OP_STRING, "...", "status_string", COMPARISON_EQUAL, ((false, "STATUS_EXITING_WITCHSPACE"))),
 				(OP_MISSION_VAR, "...", "mission_cloak", COMPARISON_UNDEFINED, ())
 			),
 			(		// do
@@ -83,8 +83,8 @@ the sanitized form (with rawString values replaced with "..." for simplicity) is
 				(false, "checkForShips:", "asp-cloaked"),
 				(true,
 					(
-						(OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, (false, "0")),
-						(OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, (false, "6")),
+						(OP_NUMBER, "...", "shipsFound_number", COMPARISON_EQUAL, ((false, "0"))),
+						(OP_MISSION_VAR, "...", "mission_cloakcounter, COMPARISON_GREATERTHAN, ((false, "6"))),
 					),
 					(
 						(false, "addShips:", "asp-cloaked 1"),

@@ -60,6 +60,8 @@
 		1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A20F7050F36EE0500156DE9 /* OOExcludeObjectEnumerator.m */; };
 		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
 		1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */; };
+		1A2123271051892500530CDE /* shipdata-overrides.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A2123261051892500530CDE /* shipdata-overrides.plist */; };
+		1A2123291051892D00530CDE /* slow-gpus.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1A2123281051892D00530CDE /* slow-gpus.plist */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
@@ -1065,7 +1067,7 @@
 		083325DC09DDBCDE00F5B8E4 /* OOColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOColor.m; sourceTree = "<group>"; };
 		083DB4D30A70E51E00B419B2 /* OOBrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBrain.h; sourceTree = "<group>"; };
 		083DB4D40A70E51E00B419B2 /* OOBrain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBrain.m; sourceTree = "<group>"; };
-		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0865432206B8447D000CA0AB /* OoliteDev.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OoliteDev.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
@@ -1101,6 +1103,8 @@
 		1A20F7050F36EE0500156DE9 /* OOExcludeObjectEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExcludeObjectEnumerator.m; sourceTree = "<group>"; };
 		1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-ball-turret.dat"; sourceTree = "<group>"; };
 		1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-ball-turret.png"; sourceTree = "<group>"; };
+		1A2123261051892500530CDE /* shipdata-overrides.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "shipdata-overrides.plist"; sourceTree = "<group>"; };
+		1A2123281051892D00530CDE /* slow-gpus.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "slow-gpus.plist"; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
@@ -1778,7 +1782,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0865432206B8447D000CA0AB /* Oolite.app */,
+				0865432206B8447D000CA0AB /* OoliteDev.app */,
 				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
 			);
 			name = Products;
@@ -1854,7 +1858,9 @@
 				1AC973F90C9847850010C42B /* pirate-victim-roles.plist */,
 				1A95338A0C02089E004EBB58 /* planetinfo.plist */,
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
+				1A2123261051892500530CDE /* shipdata-overrides.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
+				1A2123281051892D00530CDE /* slow-gpus.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
 				1A3591820C1C382700E52220 /* startextures.plist */,
 				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
@@ -3055,7 +3061,7 @@
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
 			productName = Oolite;
-			productReference = 0865432206B8447D000CA0AB /* Oolite.app */;
+			productReference = 0865432206B8447D000CA0AB /* OoliteDev.app */;
 			productType = "com.apple.product-type.application";
 		};
 		1A71E6F20BCE340C00CD5C13 /* libpng-custom */ = {
@@ -3150,6 +3156,8 @@
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
 				1ABFEE2210507987005AA752 /* oolite-nonshared.xcconfig in Resources */,
+				1A2123271051892500530CDE /* shipdata-overrides.plist in Resources */,
+				1A2123291051892D00530CDE /* slow-gpus.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

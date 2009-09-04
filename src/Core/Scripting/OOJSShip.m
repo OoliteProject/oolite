@@ -1006,7 +1006,7 @@ static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uin
 	[player setScriptTarget:thisEnt];
 	[player runUnsanitizedScriptActions:actions
 					  allowingAIMethods:YES
-						withContextName:[NSString stringWithFormat:@"ship \"%@\" legacy actions", [thisEnt name]]
+						withContextName:[NSString stringWithFormat:@"<ship \"%@\" legacy actions>", [thisEnt name]]
 							  forTarget:target];
 	
 	return YES;

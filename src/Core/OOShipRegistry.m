@@ -834,7 +834,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		{
 			if ([conditions isKindOfClass:[NSArray class]])
 			{
-				conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"shipdata.plist entry \"%@\"", shipKey]);
+				conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<shipdata.plist entry \"%@\">", shipKey]);
 			}
 			else
 			{
@@ -854,7 +854,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		
 		if (hasShipyard != nil)
 		{
-			hasShipyard = OOSanitizeLegacyScriptConditions(hasShipyard, [NSString stringWithFormat:@"shipdata.plist entry \"%@\" hasShipyard conditions", shipKey]);
+			hasShipyard = OOSanitizeLegacyScriptConditions(hasShipyard, [NSString stringWithFormat:@"<shipdata.plist entry \"%@\" hasShipyard conditions>", shipKey]);
 			
 			if (hasShipyard != nil)
 			{
@@ -872,7 +872,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			if ([shipyardConditions isKindOfClass:[NSArray class]])
 			{
-				shipyardConditions = OOSanitizeLegacyScriptConditions(shipyardConditions, [NSString stringWithFormat:@"shipyard.plist entry \"%@\"", shipKey]);
+				shipyardConditions = OOSanitizeLegacyScriptConditions(shipyardConditions, [NSString stringWithFormat:@"<shipyard.plist entry \"%@\">", shipKey]);
 			}
 			else
 			{

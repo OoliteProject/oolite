@@ -679,7 +679,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		[player runUnsanitizedScriptActions:script_actions
 						  allowingAIMethods:NO
-							withContextName:@"witchspace script_actions"
+							withContextName:@"<witchspace script_actions>"
 								  forTarget:nil];
 	}
 	
@@ -1035,7 +1035,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
 											   allowingAIMethods:NO
-												 withContextName:@"system script_actions"
+												 withContextName:@"<system script_actions>"
 													   forTarget:nil];
 	}
 }

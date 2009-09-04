@@ -2104,7 +2104,7 @@ static WormholeEntity *whole = nil;
 		[player setScriptTarget:(ShipEntity*)targEnt];
 		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
 						  allowingAIMethods:YES
-							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
+							withContextName:[NSString stringWithFormat:@"<AI \"%@\" state %@ - scriptActionOnTarget:>", [[self getAI] name], [[self getAI] state]]
 								  forTarget:targEnt];
 		[player checkScript];	// react immediately to any changes this makes
 		[player setScriptTarget:oldTarget];
@@ -2124,7 +2124,7 @@ static WormholeEntity *whole = nil;
 		[player setScriptTarget:(ShipEntity*)targEnt];
 		[player runUnsanitizedScriptActions:[NSArray arrayWithObject:action]
 						  allowingAIMethods:YES
-							withContextName:[NSString stringWithFormat:@"AI \"%@\" state %@", [[self getAI] name], [[self getAI] state]]
+							withContextName:[NSString stringWithFormat:@"<AI \"%@\" state %@ - safeScriptActionOnTarget:>", [[self getAI] name], [[self getAI] state]]
 								  forTarget:targEnt];
 		[player setScriptTarget:oldTarget];
 	}

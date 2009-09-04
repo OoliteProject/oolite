@@ -111,7 +111,6 @@ static NSString * const kOOLogSyntaxIncrement				= @"script.debug.syntax.increme
 static NSString * const kOOLogSyntaxDecrement				= @"script.debug.syntax.decrement";
 static NSString * const kOOLogSyntaxAdd						= @"script.debug.syntax.add";
 static NSString * const kOOLogSyntaxSubtract				= @"script.debug.syntax.subtract";
-static NSString * const kOOLogInvalidComparison				= @"script.debug.syntax.badComparison";
 
 static NSString * const kOOLogRemoveAllCargoNotDocked		= @"script.error.removeAllCargo.notDocked";
 
@@ -1832,7 +1831,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if ([tokens count] < 2)
 	{
-		OOLog(@"script.debug.syntax.subtract", @"***** SCRIPT ERROR: in %@, CANNOT SUBTRACT: '%@'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxSubtract, @"***** SCRIPT ERROR: in %@, CANNOT SUBTRACT: '%@'", CurrentScriptDesc(), missionVariableString_value);
 		return;
 	}
 
@@ -1857,7 +1856,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 	else
 	{
-		OOLog(kOOLogSyntaxAdd, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
+		OOLog(kOOLogSyntaxSubtract, @"***** SCRIPT ERROR: in %@, CANNOT ADD: '%@' -- IDENTIFIER '%@' DOES NOT BEGIN WITH 'mission_' or 'local_'", CurrentScriptDesc(), missionVariableString_value);
 	}
 }
 

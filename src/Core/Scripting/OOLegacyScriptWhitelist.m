@@ -31,22 +31,47 @@ MA 02110-1301, USA.
 #import "NSDictionaryOOExtensions.h"
 
 
-static NSArray *SanitizeCondition(NSString *condition, NSString *context);
-static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context, BOOL allowAIMethods);
-static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, BOOL allowAIMethods);
-static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedMethod, NSString *context);
+#define OUTPUT_PLIST_PATHS	0		// If nonzero, output is formatted for script-patches.plist.
+
+
+typedef struct SanStackElement SanStackElement;
+struct SanStackElement
+{
+	SanStackElement		*back;
+	NSString			*key;		// Dictionary key; nil for arrays.
+	OOUInteger			index;		// Array index if key is nil.
+};
+
+
+static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement *stack, BOOL allowAIMethods);
+static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, SanStackElement *stack);
+
+static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack);
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, SanStackElement *stack, BOOL allowAIMethods);
+static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *stack, BOOL allowAIMethods);
+static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedMethod, SanStackElement *stack);
 static NSString *SanitizeQueryMethod(NSString *selectorString);							// Checks aliases and whitelist, returns nil if whitelist fails.
 static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMethods);	// Checks aliases and whitelist, returns nil if whitelist fails.
 static NSArray *AlwaysFalseConditions(void);
 static BOOL IsAlwaysFalseConditions(NSArray *conditions);
 
+static NSString *StringFromStack(SanStackElement *topOfStack);
+
 
 NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAIMethods)
+{
+	SanStackElement stackRoot = { NULL, context, 0 };
+	return OOSanitizeLegacyScriptInternal(script, &stackRoot, allowAIMethods);
+}
+
+
+static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement *stack, BOOL allowAIMethods)
 {
 	NSAutoreleasePool			*pool = nil;
 	NSMutableArray				*result = nil;
 	NSEnumerator				*statementEnum = nil;
 	id							statement = nil;
+	OOUInteger					index = 0;
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -54,17 +79,22 @@ NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAI
 	
 	for (statementEnum = [script objectEnumerator]; (statement = [statementEnum nextObject]); )
 	{
+		SanStackElement subStack =
+		{
+			stack, nil, index++
+		};
+		
 		if ([statement isKindOfClass:[NSDictionary class]])
 		{
-			statement = SanitizeConditionalStatement(statement, context, allowAIMethods);
+			statement = SanitizeConditionalStatement(statement, &subStack, allowAIMethods);
 		}
 		else if ([statement isKindOfClass:[NSString class]])
 		{
-			statement = SanitizeActionStatement(statement, context, allowAIMethods);
+			statement = SanitizeActionStatement(statement, &subStack, allowAIMethods);
 		}
 		else
 		{
-			OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", context, [statement class]);
+			OOLog(@"script.syntax.statement.invalidType", @"***** SCRIPT ERROR: in %@, statement is of invalid type - expected string or dictionary, got %@.", StringFromStack(stack), [statement class]);
 			statement = nil;
 		}
 		
@@ -83,27 +113,40 @@ NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAI
 
 NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context)
 {
+	if (context == nil)  context = @"<anonymous conditions>";
+	SanStackElement stackRoot = { NULL, context, 0 };
+	return OOSanitizeLegacyScriptConditionsInternal(conditions, &stackRoot);
+}
+
+
+static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, SanStackElement *stack)
+{
 	NSEnumerator				*conditionEnum = nil;
 	NSString					*condition = nil;
 	NSMutableArray				*result = nil;
 	NSArray						*tokens = nil;
 	BOOL						OK = YES;
+	OOUInteger					index = 0;
 	
 	if (OOLegacyConditionsAreSanitized(conditions) || conditions == nil)  return conditions;
-	if (context == nil)  context = @"<anonymous conditions>";
 	
 	result = [NSMutableArray arrayWithCapacity:[conditions count]];
 	
 	for (conditionEnum = [conditions objectEnumerator]; (condition = [conditionEnum nextObject]); )
 	{
+		SanStackElement subStack =
+		{
+			stack, nil, index++
+		};
+		
 		if (![condition isKindOfClass:[NSString class]])
 		{
-			OOLog(@"script.syntax.condition.notString", @"***** SCRIPT ERROR: in %@, bad condition - expected string, got %@; ignoring.", context, [condition class]);
+			OOLog(@"script.syntax.condition.notString", @"***** SCRIPT ERROR: in %@, bad condition - expected string, got %@; ignoring.", StringFromStack(stack), [condition class]);
 			OK = NO;
 			break;
 		}
 		
-		tokens = SanitizeCondition(condition, context);
+		tokens = SanitizeCondition(condition, &subStack);
 		if (tokens != nil)
 		{
 			[result addObject:tokens];
@@ -127,7 +170,7 @@ BOOL OOLegacyConditionsAreSanitized(NSArray *conditions)
 }
 
 
-static NSArray *SanitizeCondition(NSString *condition, NSString *context)
+static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 {
 	NSArray						*tokens = nil;
 	OOUInteger					i, tokenCount;
@@ -147,16 +190,16 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 	
 	if (tokenCount < 1)
 	{
-		OOLog(@"script.debug.syntax.scriptCondition.noneSpecified", @"***** SCRIPT ERROR: in %@, empty script condition.", context);
+		OOLog(@"script.debug.syntax.scriptCondition.noneSpecified", @"***** SCRIPT ERROR: in %@, empty script condition.", StringFromStack(stack));
 		return NO;
 	}
 	
 	// Parse left-hand side.
 	selectorString = [tokens stringAtIndex:0];
-	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, context);
+	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, stack);
 	if (opType >= OP_INVALID)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed.", context, selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed.", StringFromStack(stack), selectorString);
 		return NO;
 	}
 	
@@ -173,7 +216,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 		else if ([comparatorString isEqualToString:@"undefined"])  comparatorValue = COMPARISON_UNDEFINED;
 		else
 		{
-			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@', will return NO.", context, comparatorString);
+			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@', will return NO.", StringFromStack(stack), comparatorString);
 			return NO;
 		}
 	}
@@ -184,14 +227,14 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 			Returning NO here causes AlwaysFalseConditions() to be used, which
 			has the same effect.
 		 */
-		OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression '%@', will always evaluate as false.", context, condition);
+		OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression '%@', will always evaluate as false.", StringFromStack(stack), condition);
 		return NO;
 	}
 	
 	// Check for invalid opType/comparator combinations.
 	if (opType == OP_NUMBER && comparatorValue == COMPARISON_UNDEFINED)
 	{
-		OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", context, @"undefined", @"numbers");
+		OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", StringFromStack(stack), @"undefined", @"numbers");
 		return NO;
 	}
 	else if (opType == OP_BOOL)
@@ -204,7 +247,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 				break;
 			
 			default:
-				OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", context, OOComparisonTypeToString(comparatorValue), @"booleans");
+				OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", StringFromStack(stack), OOComparisonTypeToString(comparatorValue), @"booleans");
 				return NO;
 				
 		}
@@ -266,7 +309,7 @@ static NSArray *SanitizeCondition(NSString *condition, NSString *context)
 }
 
 
-static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *context, BOOL allowAIMethods)
+static NSArray *SanitizeConditionalStatement(NSDictionary *statement, SanStackElement *stack, BOOL allowAIMethods)
 {
 	NSArray					*conditions = nil;
 	NSArray					*doActions = nil;
@@ -275,12 +318,13 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 	conditions = [statement arrayForKey:@"conditions"];
 	if (conditions == nil)
 	{
-		OOLog(@"script.syntax.noConditions", @"***** SCRIPT ERROR: in %@, conditions array contains no \"conditions\" entry, ignoring.", context);
+		OOLog(@"script.syntax.noConditions", @"***** SCRIPT ERROR: in %@, conditions array contains no \"conditions\" entry, ignoring.", StringFromStack(stack));
 		return nil;
 	}
 	
 	// Sanitize conditions.
-	conditions = OOSanitizeLegacyScriptConditions(conditions, context);
+	SanStackElement subStack = { stack, @"conditions", 0 };
+	conditions = OOSanitizeLegacyScriptConditionsInternal(conditions, &subStack);
 	if (conditions == nil)
 	{
 		return nil;
@@ -288,10 +332,18 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 	
 	// Sanitize do and else.
 	if (!IsAlwaysFalseConditions(conditions))  doActions = [statement arrayForKey:@"do"];
-	if (doActions != nil)  doActions = OOSanitizeLegacyScript(doActions, context, allowAIMethods);
+	if (doActions != nil)
+	{
+		subStack.key = @"do";
+		doActions = OOSanitizeLegacyScriptInternal(doActions, &subStack, allowAIMethods);
+	}
 	
 	elseActions = [statement arrayForKey:@"else"];
-	if (elseActions != nil)  elseActions = OOSanitizeLegacyScript(elseActions, context, allowAIMethods);
+	if (elseActions != nil)
+	{
+		subStack.key = @"else";
+		elseActions = OOSanitizeLegacyScriptInternal(elseActions, &subStack, allowAIMethods);
+	}
 	
 	// If neither does anything, the statment has no effect.
 	if ([doActions count] == 0 && [elseActions count] == 0)
@@ -306,7 +358,7 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, NSString *
 }
 
 
-static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, BOOL allowAIMethods)
+static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *stack, BOOL allowAIMethods)
 {
 	NSMutableArray				*tokens = nil;
 	OOUInteger					tokenCount;
@@ -322,7 +374,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, 
 	selectorString = SanitizeActionMethod(rawSelectorString, allowAIMethods);
 	if (selectorString == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", context, rawSelectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), rawSelectorString);
 		
 	//	return nil;
 		selectorString = rawSelectorString;
@@ -351,7 +403,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, NSString *context, 
 }
 
 
-static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedSelector, NSString *context)
+static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NSString **outSanitizedSelector, SanStackElement *stack)
 {
 	assert(outSanitizedSelector != NULL);
 	
@@ -365,7 +417,7 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
 	if (*outSanitizedSelector == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", context, selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), selectorString);
 		
 		// return OP_INVALID;
 		*outSanitizedSelector = selectorString;
@@ -468,4 +520,36 @@ static NSArray *AlwaysFalseConditions(void)
 static BOOL IsAlwaysFalseConditions(NSArray *conditions)
 {
 	return [[conditions arrayAtIndex:0] unsignedIntAtIndex:0] == OP_FALSE;
+}
+
+
+static NSMutableString *StringFromStackInternal(SanStackElement *topOfStack)
+{
+	if (topOfStack == NULL)  return nil;
+	
+	NSMutableString *base = StringFromStackInternal(topOfStack->back);
+	if (base == nil)  base = [NSMutableString string];
+	
+	NSString *string = topOfStack->key;
+	if (string == nil)  string = [NSString stringWithFormat:@"%lu", (unsigned long)topOfStack->index];
+#if OUTPUT_PLIST_PATHS
+	else  string = [NSString stringWithFormat:@"\"%@\"", string];
+	if ([base length] > 0)  [base appendString:@", "];
+#else
+	if ([base length] > 0)  [base appendString:@"."];
+#endif
+	
+	[base appendString:string];
+	
+	return base;
+}
+
+
+static NSString *StringFromStack(SanStackElement *topOfStack)
+{
+#if OUTPUT_PLIST_PATHS
+	return [NSString stringWithFormat:@"(%@)", StringFromStackInternal(topOfStack)];
+#else
+	return StringFromStackInternal(topOfStack);
+#endif
 }

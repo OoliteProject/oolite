@@ -1,0 +1,26 @@
+/*	Recognition patterns for OpenGL renderers known to have low shader
+	performance, for which simple shader mode should be the default.
+*/
+
+(
+	{
+		// NVIDIA GeForce FX 5200
+		vendor =
+		{
+			sequences =
+			(
+				( "GeForce", "5200" )
+			);
+		};
+	},
+	{
+		// Also NVIDIA GeForce FX 5200
+		vendor =
+		{
+			sequences =
+			(
+				( "NV34MAP" )
+			);
+		};
+	}
+)
