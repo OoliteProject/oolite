@@ -172,15 +172,8 @@
 	player.ship.damage						= no;
 	
 	$plistError								= $error;
-	plist.parse.foundation.failed			= $plistError;
+	plist.parse.failed						= $plistError;
 	plist.wrongType							= $plistError;
-	plist.homebrew.badEncoding				= $plistError;
-	plist.homebrew.exception				= $plistError;
-	plist.homebrew.parseError				= $plistError;
-	plist.homebrew.parseWarning				= $plistError;
-	plist.homebrew.tokenize.trace			= no;					// Log details of first stage of homebrew parsing. Extremely verbose!
-	plist.homebrew.interpret.trace			= no;					// Log details of second stage of homebrew parsing. Also extremely verbose!
-	plist.homebrew.success					= yes;
 	
 	
 	rendering.opengl.error					= no;					// Test for and display OpenGL errors
