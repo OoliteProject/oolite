@@ -62,6 +62,11 @@ all: release release-snapshot debug
 .PHONY: remake
 remake: clean all
 
+# Here are our linux autopackager targets
+#
+pkg-autopackage:
+	makepackage -c -m
+
 # Here are our Debian packager targets
 #
 .PHONY: pkg-deb
