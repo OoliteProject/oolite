@@ -2,14 +2,14 @@
 
 OOTextureLoader.h
 
-Manage asynchronous (threaded) loading of textures. In general, this should be
-used through OOTexture.
+Abstract base class for asynchronous texture loaders, which are dispatched by
+OOTextureLoadDispatcher. In general, this should be used through OOTexture.
 
-Note: interface is likely to change in future to support other buffer (like
-S3TC/DXT#).
+Note: interface is likely to change in future to support other buffer types
+(like S3TC/DXT#).
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2007-2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,8 +53,6 @@ SOFTWARE.
 
 #import "OOTexture.h"
 
-#define INSTRUMENT_TEXTURE_LOADING	(!defined NDEBUG)
-
 
 @interface OOTextureLoader: NSObject
 {
@@ -64,9 +62,6 @@ SOFTWARE.
 								scaleAsNormalMap: 1,
 								avoidShrinking: 1,
 								noScalingWhatsoever: 1,
-#if INSTRUMENT_TEXTURE_LOADING
-								debugHasLoaded: 1,
-#endif
 								ready: 1;
 	OOTextureDataFormat			format;
 	

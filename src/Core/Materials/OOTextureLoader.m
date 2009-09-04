@@ -3,7 +3,7 @@
 OOTextureLoader.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2007-2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -52,25 +52,15 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "OOTextureScaling.h"
-#import "OOCPUInfo.h"
 #import <stdlib.h>
-#import "OOAsyncQueue.h"
-#import "NSThreadOOExtensions.h"
+#import "OOTextureLoadDispatcher.h"
 
 
-static OOAsyncQueue			*sLoadQueue,
-							*sReadyQueue;
 static unsigned				sGLMaxSize;
 static uint32_t				sUserMaxSize;
 static BOOL					sReducedDetail;
 static BOOL					sHaveNPOTTextures = NO;	// TODO: support "true" non-power-of-two textures.
 static BOOL					sHaveSetUp = NO;
-
-
-enum
-{
-	kMaxWorkThreads			= 4U
-};
 
 
 @interface OOTextureLoader (OOPrivate)
@@ -82,17 +72,8 @@ enum
 
 @interface OOTextureLoader (OOTextureLoadingThread)
 
-+ (void)queueTask:(NSNumber *)threadNumber;
-- (void)performLoad;
 - (void)applySettings;
 - (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
-
-@end
-
-
-@interface OOTextureLoader (OOCompletionNotification)
-
-- (void)waitForCompletion;
 
 @end
 
@@ -124,7 +105,7 @@ enum
 	
 	if (result != nil)
 	{
-		if (![sLoadQueue enqueue:result])  result = nil;
+		if (![[OOTextureLoadDispatcher sharedTextureLoadDispatcher] dispatchLoader:result])  result = nil;
 	}
 	
 	return result;
@@ -199,14 +180,20 @@ enum
 }
 
 
+- (void) markAsReady
+{
+	ready = YES;
+}
+
+
 - (BOOL)getResult:(void **)outData
 		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
 		   height:(uint32_t *)outHeight
-{	
+{
 	if (!ready)
 	{
-		[self waitForCompletion];
+		[[OOTextureLoadDispatcher sharedTextureLoadDispatcher] waitForLoaderToComplete:self];
 	}
 	
 	if (data != NULL)
@@ -233,7 +220,7 @@ enum
 
 - (void)loadTexture
 {
-	OOLog(kOOLogSubclassResponsibility, @"%s is a subclass responsibility!", __PRETTY_FUNCTION__);
+	OOLogGenericSubclassResponsibility();
 }
 
 
@@ -244,29 +231,8 @@ enum
 
 + (void)setUp
 {
-	int						threadCount, threadNumber = 1;
-	GLint					maxSize;
-	
-	sLoadQueue = [[OOAsyncQueue alloc] init];
-	sReadyQueue = [[OOAsyncQueue alloc] init];
-	if (sLoadQueue == nil || sReadyQueue == nil)
-	{
-		OOLog(@"textureLoader.createQueues.failed", @"***** FATAL ERROR: could not set up texture loader queues!");
-		exit(EXIT_FAILURE);
-	}
-	
-	// Set up loading threads.
-#if OO_DEBUG
-	threadCount = kMaxWorkThreads;
-#else
-	threadCount = MIN(OOCPUCount(), (unsigned)kMaxWorkThreads);
-#endif
-	do
-	{
-		[NSThread detachNewThreadSelector:@selector(queueTask:) toTarget:self withObject:[NSNumber numberWithInt:threadNumber++]];
-	} while (--threadCount > 0);
-	
 	// Load two maximum sizes - graphics hardware limit and user-specified limit.
+	GLint maxSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
 	sGLMaxSize = MAX(maxSize, 64);
 	
@@ -284,39 +250,6 @@ enum
 /*** Methods performed on the loader thread. ***/
 
 @implementation OOTextureLoader (OOTextureLoadingThread)
-
-+ (void)queueTask:(NSNumber *)threadNumber
-{
-	NSAutoreleasePool			*pool = nil;
-	OOTextureLoader				*loader = nil;
-	
-	/*	Lower thread priority so the loader doesn't go "Hey! This thread's
-		just woken up, let's give it exclusive use of the CPU for a second or
-		five!", thus stopping graphics from happening, which is somewhat
-		against the point.
-		
-		This leads to priority inversion when the main thread blocks for
-		texture load completion. I'm assuming people aren't going to be
-		running other CPU-hogging tasks at the same time as Oolite, so it
-		won't be a problem.
-		-- Ahruman
-	*/
-	[NSThread setThreadPriority:0.5];
-	pool = [[NSAutoreleasePool alloc] init];
-	[NSThread ooSetCurrentThreadName:[NSString stringWithFormat:@"OOTextureLoader loader thread %@", threadNumber]];
-	[pool release];
-	
-	for (;;)
-	{
-		pool = [[NSAutoreleasePool alloc] init];
-		
-		loader = [sLoadQueue dequeue];
-		[loader performLoad];
-		
-		[pool release];
-	}
-}
-
 
 - (void)performLoad
 {
@@ -337,11 +270,6 @@ enum
 			data = NULL;
 		}
 	NS_ENDHANDLER
-	
-#if INSTRUMENT_TEXTURE_LOADING
-	debugHasLoaded = YES;
-#endif
-	[sReadyQueue enqueue:self];
 }
 
 
@@ -439,68 +367,6 @@ enum
 	
 	if (outDesiredWidth != NULL)  *outDesiredWidth = desiredWidth;
 	if (outDesiredHeight != NULL)  *outDesiredHeight = desiredHeight;
-}
-
-@end
-
-
-@implementation OOTextureLoader (OOCompletionNotification)
-
-/*	-waitForCompletion
-	In order for a texture loader to be considered loaded, it must be pulled
-	off the "ready queue". Since the order of items in the ready queue is not
-	necessarily (or generally) the order in which they're used, we keep pulling
-	texture loaders off and marking them as loaded until we get the one we're
-	looking for. If the loading isn't actually completed, we'll stall on the
-	dequeue operation until one of the loader threads pushes a loader.
-	
-	If INSTRUMENT_TEXTURE_LOADING, we log whether stalling occurred for each
-	loader. Rather than detecting this directly, we set a flag in the loader
-	thread to indicate whether the texture has been queued; if it has not yet
-	been queued when we start looking for it in the queue, we assume it will
-	stall and time the operation. NOTE: we could not simply use this flag to
-	check for completion and bypass the queue in all cases, because we need
-	to block when a stall occurs (busy-waiting is bad and counter-productive)
-	and we need to clean out the non-stalled loaders from the queue.
-	
-	Because loaders that happen to complete before the one we're waiting for
-	are dequeued and marked done as a side effect, asynchronous loads end up
-	being reported in batches. In each batch, the last loader listed is the
-	one for which -waitForCompletion was called. In many cases it will be
-	listed as an asynchronous load, because we needed to look in the queue but
-	there was no stall - it had already been enqueued by the time we started
-	looking. (This is the if (!debugHasLoaded) check at the top.)
-*/
-
-- (void)waitForCompletion
-{
-	OOTextureLoader				*loader = nil;
-	
-#if INSTRUMENT_TEXTURE_LOADING
-	NSTimeInterval				start = 0;
-	if (!debugHasLoaded)  start = [NSDate timeIntervalSinceReferenceDate];
-#endif
-	
-	do
-	{
-		// Dequeue a loader and mark it as done.
-		loader = [sReadyQueue dequeue];
-		loader->ready = YES;
-		
-#if INSTRUMENT_TEXTURE_LOADING
-		if (loader != self || start == 0)
-		{
-			OOLog(@"textureLoader.asyncLoad.notStall", @"Texture %@ loaded asynchronously.", [[loader path] lastPathComponent]);
-		}
-#endif
-	}  while (loader != self);	// We don't control order, so keep looking until we get the one we care about.
-	
-#if INSTRUMENT_TEXTURE_LOADING
-	if (start != 0)
-	{
-		OOLog(@"textureLoader.asyncLoad.stall", @"Waited %f seconds for texture %@ to load.", [NSDate timeIntervalSinceReferenceDate] - start, [path lastPathComponent]);
-	}
-#endif
 }
 
 @end

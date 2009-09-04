@@ -118,6 +118,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOSingleTextureMaterial.m \
 	OOTexture.m \
 	OOTextureLoader.m \
+	OOTextureLoadDispatcher.m \
 	OOTextureScaling.m
 
 OOLITE_GRAPHICS_MISC_FILES = \

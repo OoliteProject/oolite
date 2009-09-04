@@ -389,6 +389,7 @@
 	textureLoader.block						= $textureDebug;
 	textureLoader.block.done				= inherit;
 	textureLoader.detachThreads.failed		= $error;
+	textureLoader.dispatchMethod			= no;
 	textureLoader.queueTask.inconsistency	= $error;
 	textureLoader.unknownType				= $error;
 	
