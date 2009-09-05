@@ -308,8 +308,6 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	*outQuaternion = make_quaternion(w, x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 4;
 
-	OOReportJSWarning(context, @"The ability to pass four numbers instead of a quaternion is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace q.multiply(w, 1, 2, 3) with q.multiply([w, 1, 2, 3]).");
-
 	return YES;
 }
 

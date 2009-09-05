@@ -311,7 +311,7 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	
 	if (!permitNumberList)  return NO;
 	
-	// Otherwise, look for three numbers.
+	// As a special case for VectorConstruct(), look for four numbers.
 	if (argc < 3)  return NO;
 	
 	// Given a string, JS_ValueToNumber() returns YES but provides a NaN number.
@@ -322,8 +322,6 @@ static BOOL VectorFromArgumentListNoErrorInternal(JSContext *context, uintN argc
 	// We got our three numbers.
 	*outVector = make_vector(x, y, z);
 	if (outConsumed != NULL)  *outConsumed = 3;
-	
-	OOReportJSWarning(context, @"The ability to pass three numbers instead of a vector is deprecated and will be removed in a future version of Oolite. Use an array literal instead (for instance, replace v.add(1, 2, z) with v.add([1, 2, z]).");
 	
 	return YES;
 }
