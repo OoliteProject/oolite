@@ -7,6 +7,8 @@ Changes between Oolite 1.73 and Oolite 1.73.1:
 * Various cosmetic and spelling errors fixed (especially 'targetting').
 * Improvements to Mac OS X 10.6 crash reports.
 * Legacy scripts inside CARGO_SCRIPTED_ITEMs now work again. (bug #15454)
+* Fixed bug that allowed players to get rich quickly by selling missiles at
+  start of game and then going to the shipyard screen.
 
 -------------------------------------------------------------------------------
 
