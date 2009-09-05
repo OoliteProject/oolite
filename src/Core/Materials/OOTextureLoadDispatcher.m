@@ -64,6 +64,7 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 @end
 
 
+#if !OO_HAVE_NSOPERATION
 @interface OOTextureLoadManualDispatcher: OOTextureLoadDispatcher
 {
 @private
@@ -72,6 +73,7 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 	BOOL					_haveInited;
 }
 @end
+#endif
 
 
 @interface OOTextureLoadOperationQueueDispatcher: OOTextureLoadDispatcher
@@ -79,7 +81,9 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 	id						_operationQueue;
 }
 
+#if !OO_HAVE_NSOPERATION
 + (BOOL) canBeUsed;
+#endif
 
 @end
 
@@ -90,6 +94,7 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 {
 	if (sSingleton == nil)
 	{
+#if !OO_HAVE_NSOPERATION
 		if ([OOTextureLoadOperationQueueDispatcher canBeUsed])
 		{
 			sSingleton = [[OOTextureLoadOperationQueueDispatcher alloc] init];
@@ -98,6 +103,9 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 		{
 			sSingleton = [[OOTextureLoadManualDispatcher alloc] init];
 		}
+#else
+		sSingleton = [[OOTextureLoadOperationQueueDispatcher alloc] init];
+#endif
 		
 		if (sSingleton == nil)
 		{
@@ -287,11 +295,13 @@ enum
 
 @implementation OOTextureLoadOperationQueueDispatcher
 
+#if !OO_HAVE_NSOPERATION
 + (BOOL) canBeUsed
 {
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-texture-loader"])  return NO;
 	return [OONSInvocationOperationClass() class] != Nil;
 }
+#endif
 
 
 - (id) init

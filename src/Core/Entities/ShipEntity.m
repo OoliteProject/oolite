@@ -577,8 +577,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) removeScript
 {
-	if (script != nil) [script autorelease];
-	script=nil;
+	[script autorelease];
+	script = nil;
 }
 
 
