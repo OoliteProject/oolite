@@ -286,25 +286,26 @@ static AI *sCurrentlyRunningAI = nil;
 		[stateMachine release];	// release old state machine
 		stateMachine = [newSM retain];
 		nextThinkTime = 0.0;	// think at next tick
+		
+		[currentState release];
+		currentState = @"GLOBAL";
+		/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
+			Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
+			through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
+			invalid self is therefore possible.
+			Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
+			 -- Ahruman, 20070706
+		*/
+		[self reactToMessage:@"ENTER"];
+		
+		// refresh name
+		[self refreshOwnerDesc];
+		
+		// refresh stateMachineName
+		[stateMachineName release];
+		stateMachineName = [smName copy];
 	}
-	
-	[currentState release];
-	currentState = @"GLOBAL";
-	/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
-		Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
-		through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
-		invalid self is therefore possible.
-		Attempted fix: new delayed dispatch with trampoline, see -[AI setStateMachine:afterDelay:].
-		 -- Ahruman, 20070706
-	*/
-	[self reactToMessage:@"ENTER"];
-	
-	// refresh name
-	[self refreshOwnerDesc];
-	
-	// refresh stateMachineName
-	[stateMachineName release];
-	stateMachineName = [smName copy];
+
 }
 
 
@@ -729,6 +730,7 @@ static AI *sCurrentlyRunningAI = nil;
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
+				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI from %@:%@ to %@ - could not load file.", [self name], [self state], smName);
 				NS_VALUERETURN(nil, NSDictionary *);
 			}
 			

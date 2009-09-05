@@ -79,6 +79,7 @@
 	ai.invalidFormat.action					= inherit;
 	ai.unpermittedMethod					= $aiError;
 	ai.load									= no;
+	ai.load.failed.unknownAI				= $aiError;
 	ai.invalid.notAStation					= $aiError;				// Warning when station AI message is used on non-station.
 	
 	
