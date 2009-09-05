@@ -1,4 +1,4 @@
-Changes between Oolite 1.73 and Oolite 1.73.1:
+Changes between Oolite 1.73 and Oolite 1.73.2:
 * Fixed incorrect counting of cargo when docked, which partially resulted in
   misbehaviour of -availableCargoSpace.
 * Fixed laser purchasing bug.
