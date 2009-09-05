@@ -520,7 +520,7 @@ waitingForStickCallback: 1;
 
 - (BOOL) isDocked;
 
-- (void)completeInitialSetUp;
+- (void)completeSetUp;
 
 - (void) warnAboutHostiles;
 
@@ -540,8 +540,7 @@ waitingForStickCallback: 1;
 - (NSDictionary *) commanderDataDictionary;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
 
-- (void) set_up;
-- (void) set_up:(BOOL) andReset;
+- (void) setUp;
 
 - (void) doBookkeeping:(double) delta_t;
 

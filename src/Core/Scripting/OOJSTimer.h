@@ -33,7 +33,6 @@ MA 02110-1301, USA.
 @interface OOJSTimer: OOScriptTimer
 {
 @private
-	BOOL				_persistent;
 	jsval				_function;
 	JSObject			*_jsThis;	// The object that is 'this' in the function call.
 	
@@ -41,8 +40,6 @@ MA 02110-1301, USA.
 	
 	JSObject			*_jsSelf;	// The JS Timer object proxy for this OOJSTimer.
 }
-
-- (void) setPersistent:(BOOL)value;
 
 @end
 

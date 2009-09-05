@@ -57,7 +57,6 @@ MA 02110-1301, USA.
 
 // Subclass responsibility:
 - (void) timerFired;
-- (BOOL) isPersistent;	// Default: NO.
 
 - (BOOL) scheduleTimer;
 - (void) unscheduleTimer;

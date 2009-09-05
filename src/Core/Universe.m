@@ -239,7 +239,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	
-	[player completeInitialSetUp];
+	[player completeSetUp];
 	[player release];
 	
 #ifndef NDEBUG
@@ -343,14 +343,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 - (void) reinitAndShowDemo:(BOOL)showDemo
 {
-	BOOL delayedReset=NO;
-	
 	no_update = YES;
 	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
+	assert(player != nil);
 	
 	[self removeAllEntitiesExceptPlayer:NO];
 	[ResourceManager clearCaches];
-	[OOTexture clearCache];	// Force reload of textures, since search paths effectively change
+	[OOTexture clearCache];
 	
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager loadScripts];
@@ -383,13 +382,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self initSettings];
 
-	if (player == nil)
-		player = [[PlayerEntity alloc] init];
-	else
-	{
-		[player set_up:NO];
-		delayedReset=YES;
-	}
+	[player setUp];
+	
 	[self addEntity:player];
 	demo_ship = nil;
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
@@ -410,7 +404,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		[player setGuiToStatusScreen];
 	}
-	if (delayedReset) [player doScriptEvent:@"reset"];
+	[player completeSetUp];
 	[player release];
 	no_update = NO;
 }

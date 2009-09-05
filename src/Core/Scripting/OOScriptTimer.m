@@ -120,12 +120,6 @@ static OOPriorityQueue *sTimers = nil;
 }
 
 
-- (BOOL) isPersistent
-{
-	return NO;
-}
-
-
 - (BOOL) scheduleTimer
 {
 	if (_isScheduled)  return YES;
@@ -177,12 +171,11 @@ static OOPriorityQueue *sTimers = nil;
 	NSEnumerator		*timerEnum = nil;
 	OOScriptTimer		*timer = nil;
 	
-	// Intermediate array is required so we don't get stuck in an endless loop over reinserted timers
+	// Intermediate array is required so we don't get stuck in an endless loop over reinserted timers. Note that -sortedObjects also clears the queue!
 	timers = [sTimers sortedObjects];
 	for (timerEnum = [timers objectEnumerator]; (timer = [timerEnum nextObject]); )
 	{
 		timer->_isScheduled = NO;
-		if ([timer isPersistent])  [timer scheduleTimer];
 	}
 }
 

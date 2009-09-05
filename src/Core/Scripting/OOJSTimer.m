@@ -118,7 +118,7 @@ static JSClass sTimerClass;
 		funcName = [NSString stringWithFormat:@"\"%@\"", [NSString stringWithJavaScriptString:funcJSName]];
 	}
 	
-	return [NSString stringWithFormat:@"%@, %spersistent, function: %@", [super descriptionComponents], [self isPersistent] ? "" : "not ", funcName];
+	return [NSString stringWithFormat:@"%@, function: %@", [super descriptionComponents], funcName];
 }
 
 
@@ -139,18 +139,6 @@ static JSClass sTimerClass;
 												 argv:NULL
 											   result:&rval];
 	[OOJSScript popScript:_owningScript];
-}
-
-
-- (BOOL) isPersistent
-{
-	return _persistent;
-}
-
-
-- (void) setPersistent:(BOOL)value
-{
-	_persistent = (value != NO);
 }
 
 
@@ -194,7 +182,6 @@ enum
 	// Property IDs
 	kTimer_nextTime,			// next fire time, double, read/write
 	kTimer_interval,			// interval, double, read/write
-	kTimer_isPersistent,		// is persistent, boolean, read/write
 	kTimer_isRunning			// is scheduled, boolean, read-only
 };
 
@@ -204,7 +191,6 @@ static JSPropertySpec sTimerProperties[] =
 	// JS name					ID							flags
 	{ "nextTime",				kTimer_nextTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "interval",				kTimer_interval,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "isPersistent",			kTimer_isPersistent,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isRunning",				kTimer_isRunning,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
@@ -259,11 +245,6 @@ static JSBool TimerGetProperty(JSContext *context, JSObject *this, jsval name, j
 			OK = JS_NewDoubleValue(context, [timer interval], outValue);
 			break;
 			
-		case kTimer_isPersistent:
-			*outValue = BOOLToJSVal([timer isPersistent]);
-			OK = YES;
-			break;
-			
 		case kTimer_isRunning:
 			*outValue = BOOLToJSVal([timer isScheduled]);
 			OK = YES;
@@ -282,7 +263,6 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 	BOOL					OK = YES;
 	OOJSTimer				*timer = nil;
 	double					fValue;
-	JSBool					bValue;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSTimerGetTimer(context, this, &timer))) return NO;
@@ -305,14 +285,6 @@ static JSBool TimerSetProperty(JSContext *context, JSObject *this, jsval name, j
 			{
 				OK = YES;
 				[timer setInterval:fValue];
-			}
-			break;
-			
-		case kTimer_isPersistent:
-			if (JS_ValueToBoolean(context, *value, &bValue))
-			{
-				OK = YES;
-				[timer setPersistent:bValue];
 			}
 			break;
 			

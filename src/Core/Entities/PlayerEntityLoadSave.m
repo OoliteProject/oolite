@@ -422,10 +422,10 @@
 	
 	if (loadedOK)
 	{
-		[self set_up:NO]; //don't run reset yet
+		[self setUp];
 		if ([self setCommanderDataFromDictionary:fileDic])
 		{
-			[self doScriptEvent:@"reset"]; //after the mission variables are loaded from the save game
+			[self completeSetUp];
 		}
 		else
 		{

@@ -143,7 +143,7 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void)completeInitialSetUp
+- (void)completeSetUp
 {
 	dockedStation = [UNIVERSE station];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil];
@@ -773,7 +773,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	int i;
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 		missile_entity[i] = nil;
-	[self set_up];
+	[self setUp];
 	
 	isPlayer = YES;
 	
@@ -786,8 +786,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	target_memory_index = 0;
 	
 	dockingReport = [[NSMutableString alloc] init];
-	
-	worldScripts = [[ResourceManager loadScripts] retain];
 
 	[self initControls];
 	
@@ -795,13 +793,7 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (void) set_up
-{
-	[self set_up:YES];
-}
-
-
-- (void) set_up:(BOOL) andReset;
+- (void) setUp
 {
 	unsigned i;
 	Random_Seed gal_seed = {0x4a, 0x5a, 0x48, 0x02, 0x53, 0xb7};
@@ -809,6 +801,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	showDemoShips = NO;
 	
 	show_info_flag = NO;
+	
+	[worldScripts release];
+	worldScripts = [[ResourceManager loadScripts] retain];
 	
 	// if there is cargo remaining from previously (e.g. a game restart), remove it
 	if ([self cargoList] != nil)
@@ -1013,7 +1008,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
-	if (andReset) [self doScriptEvent:@"reset"];
 }
 
 
