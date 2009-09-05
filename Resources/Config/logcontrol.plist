@@ -301,6 +301,7 @@
 	shader.uniform.badDescription			= inherit;				// A uniform specified in shipdata.plist could not be set up, because the configuration could not be understood.
 	shader.uniform.bind.failed				= inherit;				// Problem setting up uniform bound to an object property.
 	shader.uniform.unpermittedMethod		= $shaderError;
+	shader.uniform.unknownType				= $shaderError;
 	shader.vessel.init						= $shaderDebug;
 	shader.compile.vertex.failure			= $shaderError;
 	shader.compile.fragment.failure			= $shaderError;
