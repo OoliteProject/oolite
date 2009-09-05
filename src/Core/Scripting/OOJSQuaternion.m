@@ -295,7 +295,7 @@ static BOOL QuaternionFromArgumentListNoErrorInternal(JSContext *context, uintN 
 	
 	if (!permitNumberList)  return NO;
 	
-	// Otherwise, look for four numbers.
+	// As a special case for QuaternionConstruct(), look for four numbers.
 	if (EXPECT_NOT(argc < 4))  return NO;
 	
 	// Given a string, JS_ValueToNumber() returns YES but provides a NaN number.

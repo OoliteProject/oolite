@@ -1289,6 +1289,10 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 			param->errorFlag = YES;
 		}
 	}
+	else
+	{
+		param->errorFlag = YES;
+	}
 	
 	return result;
 }

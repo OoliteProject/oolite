@@ -233,7 +233,7 @@ enum
 	
 	BOOL					no_update;
 	
-	float				time_acceleration_factor;
+	float					time_acceleration_factor;
 	
 	NSMutableDictionary		*localPlanetInfoOverrides;
 	
@@ -496,6 +496,7 @@ enum
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
 - (NSString *) generatePhoneticSystemName:(Random_Seed) s_seed;
 - (NSString *) generateSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
+- (NSPoint) coordinatesForSystem:(Random_Seed)s_seed;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 
 - (NSArray*) nearbyDestinationsWithinRange:(double) range;

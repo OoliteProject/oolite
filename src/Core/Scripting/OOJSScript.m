@@ -362,12 +362,12 @@ static JSFunctionSpec sScriptMethods[] =
 	function = [self functionNamed:eventName context:context];
 	if (function != NULL)
 	{
-		// Push self on stack of running scripts
+		// Push self on stack of running scripts.
 		stackElement.back = sRunningStack;
 		stackElement.current = self;
 		sRunningStack = &stackElement;
 		
-		// Convert arguments to JS values and make them temporarily un-garbage-collectable
+		// Convert arguments to JS values and make them temporarily un-garbage-collectable.
 		argc = [arguments count];
 		if (argc != 0)
 		{
@@ -383,10 +383,10 @@ static JSFunctionSpec sScriptMethods[] =
 			else  argc = 0;
 		}
 		
-		// Actually call the function
+		// Actually call the function.
 		OK = JS_CallFunction(context, _jsSelf, function, argc, argv, &value);
 		
-		// Re-garbage-collectibalize the arguments and free the array
+		// Re-garbage-collectibalize the arguments and free the array.
 		if (argv != NULL)
 		{
 			for (i = 0; i != argc; ++i)

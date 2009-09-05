@@ -5790,7 +5790,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	cachedResult = nil;
 	cachedSeed = s_seed;
 	
-	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] initWithCapacity:8];
+	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] init];
 	
 	OOGovernmentID government = (s_seed.c / 8) & 7;
 	
@@ -6194,6 +6194,12 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	}
 	
 	return inhabitants;
+}
+
+
+- (NSPoint) coordinatesForSystem:(Random_Seed)s_seed
+{
+	return NSMakePoint(s_seed.d, s_seed.b);
 }
 
 

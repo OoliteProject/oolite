@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 
 
 /*jslint bitwise: true, undef: true, undef: true, eqeqeq: true, newcap: true*/
-/*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D*/
+/*global Entity, global, mission, player, Quaternion, Ship, special, system, Vector3D, SystemInfo*/
 
 
 this.name			= "oolite-global-prefix";
@@ -89,6 +89,24 @@ String.prototype.trim = function ()
 	while (ws.test(str.charAt(--i))){}
 	return str.slice(0, i + 1);
 };
+
+
+/*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
+	certain distance.
+*/
+SystemInfo.systemsInRange = function(range)
+{
+	if (range === undefined)
+	{
+		range = 7;
+	}
+	
+	var thisSystem = system.info;
+	return SystemInfo.filteredSystems(this, function(other)
+	{
+		return (other !== thisSystem) && (thisSystem.distanceToSystem(other) <= range);
+	});
+}
 
 
 /**** Backwards-compatibility functions. These will be removed before next stable. ****/
