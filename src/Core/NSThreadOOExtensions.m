@@ -97,9 +97,10 @@ static int (*PThreadSetNameNPFunc)(const char *name) = InitialSetNameFunc;
 
 + (void) ooSetCurrentThreadName:(NSString *)name
 {
-	NSThread			*thread = nil;
+	// We may be called with no pool in place.
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	
-	thread = [NSThread currentThread];
+	NSThread *thread = [NSThread currentThread];
 	if ([thread respondsToSelector:@selector(setName:)])
 	{
 		[thread setName:name];
@@ -108,6 +109,8 @@ static int (*PThreadSetNameNPFunc)(const char *name) = InitialSetNameFunc;
 		crash reports, but, annoyingly, -[NSThread setName:] does not call it.
 	*/
 	pthread_setname_np([name UTF8String]);
+	
+	[pool release];
 }
 
 @end
