@@ -6,8 +6,7 @@ Changes between Oolite 1.73 and Oolite 1.73.1:
   refreshed, even if this screen had ceased to be the active one.
 * Various cosmetic and spelling errors fixed (especially 'targetting').
 * Improvements to Mac OS X 10.6 crash reports.
-* Fixed Berlios bug #15454 - legacy scripts inside CARGO_SCRIPTED_ITEMs now
-  work again.
+* Legacy scripts inside CARGO_SCRIPTED_ITEMs now work again. (bug #15454)
 
 -------------------------------------------------------------------------------
 
