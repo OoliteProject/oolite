@@ -330,7 +330,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (strict == value)  return;
 	
 	strict = !!value;
-	[OOTexture clearCache];	// Force reload of textures, since search paths effectively change
 	
 	[self reinit];
 }
@@ -350,6 +349,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
 	
 	[self removeAllEntitiesExceptPlayer:NO];
+	[ResourceManager clearCaches];
+	[OOTexture clearCache];	// Force reload of textures, since search paths effectively change
 	
 	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager loadScripts];

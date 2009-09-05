@@ -70,8 +70,8 @@ static NSMutableArray	*sErrors;
 
 // caches allow us to load any given file once only
 //
-static NSMutableDictionary *sound_cache;
-static NSMutableDictionary *string_cache;
+static NSMutableDictionary *sSoundCache;
+static NSMutableDictionary *sStringCache;
 
 
 @implementation ResourceManager
@@ -766,7 +766,7 @@ static NSMutableDictionary *string_cache;
 {
 	return [self retrieveFileNamed:fileName
 						  inFolder:folderName
-							 cache:&sound_cache
+							 cache:&sSoundCache
 							   key:[NSString stringWithFormat:@"OOSound:%@:%@", folderName, fileName]
 							 class:[OOSound class]];
 }
@@ -775,7 +775,7 @@ static NSMutableDictionary *string_cache;
 {
 	return [self retrieveFileNamed:fileName
 						  inFolder:folderName
-							 cache:&string_cache
+							 cache:&sStringCache
 							   key:nil
 							 class:[NSString class]];
 }
@@ -891,6 +891,15 @@ static NSMutableDictionary *string_cache;
 + (NSString *) diagnosticFileLocation
 {
 	return OOLogHandlerGetLogBasePath();
+}
+
+
++ (void) clearCaches
+{
+	[sSoundCache release];
+	sSoundCache = nil;
+	[sStringCache release];
+	sStringCache = nil;
 }
 
 @end
