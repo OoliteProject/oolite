@@ -1,3 +1,16 @@
+Changes between Oolite 1.73 and Oolite 1.73.1:
+* Fixed incorrect counting of cargo when docked, which partially resulted in
+  misbehaviour of -availableCargoSpace.
+* Fixed laser purchasing bug.
+* Fixed bug whereby after buying an item, the equip ship screen would be
+  refreshed, even if this screen had ceased to be the active one.
+* Various cosmetic and spelling errors fixed (especially 'targetting').
+* Improvements to Mac OS X 10.6 crash reports.
+* Fixed Berlios bug #15454 - legacy scripts inside CARGO_SCRIPTED_ITEMs now
+  work again.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.72.2 and Oolite 1.73:
 Gameplay
 * Made procedurally textured planets a game option. Can be switched on/off in
@@ -38,11 +51,13 @@ Gameplay
 * If no external views are defined for player ships, the cobra3 ones are used
   instead.
 * The left and right square bracket keys can now be used as controls.
+* Joystick hats are now supported on the Windows and Linux builds.
 
 Expansion packs
 * Icons and symbols can now be associated to beacons, and will be shown on the
   advanced compass.
 * Subentity definitions in shipData can now be dictionaries.
+* Removed restrictions on vertex and face counts for ship models.
 * Introduced the cloak_passive ship dictionary key. When set to true (or yes),
   it will cause the cloaking device to be deactivated whenever a main weapon
   or missile is fired, making the cloak somewhat less of a superweapon.
@@ -167,6 +182,9 @@ Bug fixes
   techlevel). Properties not yet effective immediately produce a warning.
 * AI command setCourseToPlanet no longer sets course to moons, only to the
   closest planet.
+* Fixed joystick precision mode switch causing continuous yaw to left (Linux
+  and Windows builds only).
+  
 
 -------------------------------------------------------------------------------
 
