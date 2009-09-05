@@ -1,5 +1,4 @@
-#include "oolite-targets.xcconfig"
-
+#include "oolite-options.xcconfig"
 
 EXPORTED_SYMBOLS_FILE = src/Cocoa/debug-exports.exp
 EXPORTED_SYMBOLS_FILE[arch=x86_64] = src/Cocoa/debug-exports-64.exp
