@@ -7537,7 +7537,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	extra_equipment_value += ship_other_weapons_value;
 	
 	// add on missile values
-	extra_equipment_value += ship_missiles_value - base_missiles_value;
+	extra_equipment_value += (ship_missiles_value > base_missiles_value) ? ship_missiles_value - base_missiles_value : 0ULL;
 	
 	// add on equipment
 	result += (extra_equipment_value * 0.9); //discount 10% for second hand value
