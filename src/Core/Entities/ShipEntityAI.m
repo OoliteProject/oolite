@@ -1904,7 +1904,7 @@ static WormholeEntity *whole = nil;
 	
 	if (function != nil)
 	{
-		JSFunctionPredicateParameter param = { context, [function function], JSVAL_TO_OBJECT([self javaScriptValueInContext:context]), NO };
+		JSFunctionPredicateParameter param = { context, OBJECT_TO_JSVAL(JS_GetFunctionObject([function function])), JSVAL_TO_OBJECT([self javaScriptValueInContext:context]), NO };
 		[self scanForNearestShipWithPredicate:JSFunctionPredicate parameter:&param];
 	}
 	else

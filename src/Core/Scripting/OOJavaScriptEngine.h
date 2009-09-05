@@ -66,8 +66,8 @@ enum
 // The current context. NULL if nothing executing.
 // - (JSContext *)context;
 
-// Call a JS function, setting up new contexts as necessary.
-- (BOOL) callJSFunction:(JSFunction *)function
+// Call a JS function, setting up new contexts as necessary. Caller is responsible for ensuring the jsval passed really is a function.
+- (BOOL) callJSFunction:(jsval)function
 			  forObject:(JSObject *)jsThis
 				   argc:(uintN)argc
 				   argv:(jsval *)argv
@@ -245,7 +245,7 @@ OOINLINE NSString *JSValToNSString(JSContext *context, jsval value)
 typedef struct
 {
 	JSContext				*context;
-	JSFunction				*function;
+	jsval					function;	// Caller is responsible for ensuring this is a function object (using JS_ObjectIsFunction()).
 	JSObject				*jsThis;
 	BOOL					errorFlag;	// Set if a JS exception occurs. The
 										// exception will have been reported.

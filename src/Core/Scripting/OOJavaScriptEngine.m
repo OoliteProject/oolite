@@ -318,7 +318,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (BOOL) callJSFunction:(JSFunction *)function
+- (BOOL) callJSFunction:(jsval)function
 			  forObject:(JSObject *)jsThis
 				   argc:(uintN)argc
 				   argv:(jsval *)argv
@@ -327,8 +327,10 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext					*context = NULL;
 	BOOL						result;
 	
+	NSAssert(JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
+	
 	context = [self acquireContext];
-	result = JS_CallFunction(context, jsThis, function, argc, argv, outResult);
+	result = JS_CallFunctionValue(context, jsThis, function, argc, argv, outResult);
 	JS_ReportPendingException(context);
 	[self releaseContext:context];
 	
@@ -1280,7 +1282,7 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	if (param->errorFlag)  return NO;
 	
 	args[0] = [entity javaScriptValueInContext:param->context];
-	if (JS_CallFunction(param->context, param->jsThis, param->function, 1, args, &rval))
+	if (JS_CallFunctionValue(param->context, param->jsThis, param->function, 1, args, &rval))
 	{
 		if (!JS_ValueToBoolean(param->context, rval, &result))  result = NO;
 		if (JS_IsExceptionPending(param->context))

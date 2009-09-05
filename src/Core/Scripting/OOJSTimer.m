@@ -40,7 +40,7 @@ static JSClass sTimerClass;
 
 - (id) initWithDelay:(OOTimeAbsolute)delay
 			interval:(OOTimeDelta)interval
-			function:(JSFunction *)function
+			function:(jsval)function
 				this:(JSObject *)jsThis;
 
 @end
@@ -50,29 +50,23 @@ static JSClass sTimerClass;
 
 - (id) initWithDelay:(OOTimeAbsolute)delay
 			interval:(OOTimeDelta)interval
-			function:(JSFunction *)function
+			function:(jsval)function
 				this:(JSObject *)jsThis
 {
 	JSContext				*context = NULL;
-	
-	if (function == NULL)
-	{
-		[self release];
-		return nil;
-	}
 	
 	self = [super initWithNextTime:[UNIVERSE getTime] + delay interval:interval];
 	if (self != nil)
 	{
 		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 		
+		NSAssert(JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
+		
 		_jsThis = jsThis;
 		JS_AddNamedRoot(context, &_jsThis, "OOJSTimer this");
 		
 		_function = function;
-		_functionObject = JS_GetFunctionObject(_function);
-		
-		JS_AddNamedRoot(context, &_functionObject, "OOJSTimer function");
+		JS_AddNamedRoot(context, &_function, "OOJSTimer function");
 		
 		_jsSelf = JS_NewObject(context, &sTimerClass, sTimerPrototype, NULL);
 		if (_jsSelf != NULL)
@@ -99,7 +93,7 @@ static JSClass sTimerClass;
 	
 	// Allow garbage collection.
 	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_jsThis];
-	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_functionObject];
+	[[OOJavaScriptEngine sharedEngine] removeGCRoot:&_function];
 	
 	[super dealloc];
 }
@@ -109,8 +103,12 @@ static JSClass sTimerClass;
 {
 	JSString				*funcJSName = NULL;
 	NSString				*funcName = nil;
+	JSContext				*context = NULL;
 	
-	funcJSName = JS_GetFunctionId(_function);
+	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	funcJSName = JS_GetFunctionId(JS_ValueToFunction(context, _function));
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	
 	if (funcJSName == NULL)
 	{
 		funcName = @"anonymous";
@@ -346,7 +344,7 @@ static void TimerFinalize(JSContext *context, JSObject *this)
 static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, jsval *argv, jsval *outResult)
 {
 	JSObject				*this = NULL;
-	JSFunction				*function = NULL;
+	jsval					function = JSVAL_VOID;
 	double					delay;
 	double					interval = -1.0;
 	OOJSTimer				*timer = nil;
@@ -360,8 +358,8 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 		}
 	}
 	
-	function = JS_ValueToFunction(context, argv[1]);
-	if (function == NULL)
+	function = argv[1];
+	if (!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
 	{
 		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"second", @"function", @"a function");
 		return NO;

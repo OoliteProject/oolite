@@ -32,9 +32,9 @@ MA 02110-1301, USA.
 
 @interface OOJSTimer: OOScriptTimer
 {
+@private
 	BOOL				_persistent;
-	JSFunction			*_function;
-	JSObject			*_functionObject;
+	jsval				_function;
 	JSObject			*_jsThis;	// The object that is 'this' in the function call.
 	
 	OOJSScript			*_owningScript;

@@ -652,14 +652,14 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	JSObject			*jsThis = NULL;
-	JSFunction			*function = NULL;
+	jsval				function = JSVAL_VOID;
 	Entity				*relativeTo = nil;
 	double				range = -1;
 	NSArray				*result = nil;
 	
 	// Get this and predicate arguments
-	function = JS_ValueToFunction(context, argv[1]);
-	if (EXPECT_NOT(function == NULL || !JS_ValueToObject(context, argv[0], &jsThis)))
+	function = argv[1];
+	if (!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
 	{
 		OOReportJSBadArguments(context, @"System", @"filteredEntities", argc, argv, nil, @"this, predicate function, and optional reference entity and range");
 		return NO;
@@ -668,7 +668,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	// Get optional arguments
 	argc -= 2;
 	argv += 2;
-	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
+	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
 	
 	// Search for entities
 	JSFunctionPredicateParameter param = { context, function, jsThis, NO };
