@@ -96,7 +96,7 @@
 	dataCache.found							= $dataCacheStatus;
 	dataCache.upToDate						= $dataCacheStatus;
 	dataCache.notFound						= $dataCacheError;
-	dataCache.rebuild						= $dataCacheStatus;
+	dataCache.rebuild						= yes;
 	dataCache.rebuild.pathsChanged			= inherit;
 	dataCache.rebuild.datesChanged			= inherit;
 	dataCache.rebuild.explicitFlush			= inherit;
