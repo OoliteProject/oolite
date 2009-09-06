@@ -655,7 +655,7 @@ static NSMutableDictionary *sStringCache;
 // the latest entry replaces the earliest.
 + (void) handleEquipmentListMerging: (NSMutableArray *)arrayToProcess forLookupIndex:(unsigned)lookupIndex
 {
-	unsigned i,j,k;
+	OOUInteger i,j,k;
 	NSMutableArray *refArray = [arrayToProcess objectAtIndex:[arrayToProcess count] - 1];
 	
 	// Any change to arrayRef will directly modify arrayToProcess.
@@ -664,10 +664,13 @@ static NSMutableDictionary *sStringCache;
 	{
 		for (j = 0; j < [arrayToProcess count] - 1; j++)
 		{
-			for (k=0; k < [[arrayToProcess objectAtIndex:j] count] - 1; k++)
+			OOUInteger count = [[arrayToProcess oo_arrayAtIndex:j] count];
+			if (count == 0)  continue;
+			
+			for (k=0; k < count - 1; k++)
 			{
-				id processValue = [[[arrayToProcess objectAtIndex:j] objectAtIndex:k] oo_objectAtIndex:lookupIndex defaultValue:nil];
-				id refValue = [[refArray objectAtIndex:i] oo_objectAtIndex:lookupIndex defaultValue:nil];
+				id processValue = [[[arrayToProcess oo_arrayAtIndex:j] oo_arrayAtIndex:k] oo_objectAtIndex:lookupIndex defaultValue:nil];
+				id refValue = [[refArray oo_arrayAtIndex:i] oo_objectAtIndex:lookupIndex defaultValue:nil];
 				
 				if ([processValue isEqual:refValue])
 				{

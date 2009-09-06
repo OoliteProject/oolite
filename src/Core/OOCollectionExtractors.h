@@ -139,7 +139,7 @@ SOFTWARE.
 - (double) oo_nonNegativeDoubleAtIndex:(OOUInteger)index;
 
 // Default: nil
-// - (id)objectAtIndex:(OOUInteger)index;	// Already defined
+- (id) oo_objectAtIndex:(OOUInteger)index;	// Differs from objectAtIndex: in that it returns nil rather than throwing NSRangeException.
 - (id) oo_objectOfClass:(Class)class atIndex:(OOUInteger)index;
 - (NSString *) oo_stringAtIndex:(OOUInteger)index;
 - (NSArray *) oo_arrayAtIndex:(OOUInteger)index;

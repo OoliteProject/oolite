@@ -60,117 +60,117 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 
 - (char) oo_charAtIndex:(OOUInteger)index defaultValue:(char)value
 {
-	return OOCharFromObject([self objectAtIndex:index], value);
+	return OOCharFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (short) oo_shortAtIndex:(OOUInteger)index defaultValue:(short)value
 {
-	return OOShortFromObject([self objectAtIndex:index], value);
+	return OOShortFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (int) oo_intAtIndex:(OOUInteger)index defaultValue:(int)value
 {
-	return OOIntFromObject([self objectAtIndex:index], value);
+	return OOIntFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (long) oo_longAtIndex:(OOUInteger)index defaultValue:(long)value
 {
-	return OOLongFromObject([self objectAtIndex:index], value);
+	return OOLongFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (long long) oo_longLongAtIndex:(OOUInteger)index defaultValue:(long long)value
 {
-	return OOLongLongFromObject([self objectAtIndex:index], value);
+	return OOLongLongFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (OOInteger) oo_integerAtIndex:(OOUInteger)index defaultValue:(OOInteger)value
 {
-	return OOIntegerFromObject([self objectAtIndex:index], value);
+	return OOIntegerFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (unsigned char) oo_unsignedCharAtIndex:(OOUInteger)index defaultValue:(unsigned char)value
 {
-	return OOUnsignedCharFromObject([self objectAtIndex:index], value);
+	return OOUnsignedCharFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (unsigned short) oo_unsignedShortAtIndex:(OOUInteger)index defaultValue:(unsigned short)value
 {
-	return OOUnsignedShortFromObject([self objectAtIndex:index], value);
+	return OOUnsignedShortFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (unsigned int) oo_unsignedIntAtIndex:(OOUInteger)index defaultValue:(unsigned int)value
 {
-	return OOUnsignedIntFromObject([self objectAtIndex:index], value);
+	return OOUnsignedIntFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (unsigned long) oo_unsignedLongAtIndex:(OOUInteger)index defaultValue:(unsigned long)value
 {
-	return OOUnsignedLongFromObject([self objectAtIndex:index], value);
+	return OOUnsignedLongFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (unsigned long long) oo_unsignedLongLongAtIndex:(OOUInteger)index defaultValue:(unsigned long long)value
 {
-	return OOUnsignedLongLongFromObject([self objectAtIndex:index], value);
+	return OOUnsignedLongLongFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (OOUInteger) oo_unsignedIntegerAtIndex:(OOUInteger)index defaultValue:(OOUInteger)value
 {
-	return OOUIntegerFromObject([self objectAtIndex:index], value);
+	return OOUIntegerFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (BOOL) oo_boolAtIndex:(OOUInteger)index defaultValue:(BOOL)value
 {
-	return OOBooleanFromObject([self objectAtIndex:index], value);
+	return OOBooleanFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (BOOL) oo_fuzzyBooleanAtIndex:(OOUInteger)index defaultValue:(float)value
 {
-	return OOFuzzyBooleanFromObject([self objectAtIndex:index], value);
+	return OOFuzzyBooleanFromObject([self oo_objectAtIndex:index], value);
 }
 #endif
 
 
 - (float) oo_floatAtIndex:(OOUInteger)index defaultValue:(float)value
 {
-	return OOFloatFromObject([self objectAtIndex:index], value);
+	return OOFloatFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (double) oo_doubleAtIndex:(OOUInteger)index defaultValue:(double)value
 {
-	return OODoubleFromObject([self objectAtIndex:index], value);
+	return OODoubleFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (float) oo_nonNegativeFloatAtIndex:(OOUInteger)index defaultValue:(float)value
 {
-	return OONonNegativeFloatFromObject([self objectAtIndex:index], value);
+	return OONonNegativeFloatFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (double) oo_nonNegativeDoubleAtIndex:(OOUInteger)index defaultValue:(double)value
 {
-	return OONonNegativeDoubleFromObject([self objectAtIndex:index], value);
+	return OONonNegativeDoubleFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (id) oo_objectAtIndex:(OOUInteger)index defaultValue:(id)value
 {
-	id					objVal = [self objectAtIndex:index];
+	id					objVal = [self oo_objectAtIndex:index];
 	id					result;
 	
 	if (objVal != nil)  result = objVal;
@@ -182,7 +182,7 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 
 - (id) oo_objectOfClass:(Class)class atIndex:(OOUInteger)index defaultValue:(id)value
 {
-	id					objVal = [self objectAtIndex:index];
+	id					objVal = [self oo_objectAtIndex:index];
 	NSString			*result;
 	
 	if ([objVal isKindOfClass:class])  result = objVal;
@@ -194,7 +194,7 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 
 - (NSString *) oo_stringAtIndex:(OOUInteger)index defaultValue:(NSString *)value
 {
-	return StringForObject([self objectAtIndex:index], value);
+	return StringForObject([self oo_objectAtIndex:index], value);
 }
 
 
@@ -206,7 +206,7 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 
 - (NSSet *) oo_setAtIndex:(OOUInteger)index defaultValue:(NSSet *)value
 {
-	return SetForObject([self objectAtIndex:index], value);
+	return SetForObject([self oo_objectAtIndex:index], value);
 }
 
 
@@ -225,13 +225,13 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 - (Vector) oo_vectorAtIndex:(OOUInteger)index defaultValue:(Vector)value
 {
-	return OOVectorFromObject([self objectAtIndex:index], value);
+	return OOVectorFromObject([self oo_objectAtIndex:index], value);
 }
 
 
 - (Quaternion) oo_quaternionAtIndex:(OOUInteger)index defaultValue:(Quaternion)value;
 {
-	return OOQuaternionFromObject([self objectAtIndex:index], value);
+	return OOQuaternionFromObject([self oo_objectAtIndex:index], value);
 }
 #endif
 
@@ -324,25 +324,32 @@ static NSString *StringForObject(id object, NSString *defaultValue);
 
 - (float) oo_floatAtIndex:(OOUInteger)index
 {
-	return OOFloatFromObject([self objectAtIndex:index], 0.0f);
+	return OOFloatFromObject([self oo_objectAtIndex:index], 0.0f);
 }
 
 
 - (double) oo_doubleAtIndex:(OOUInteger)index
 {
-	return OODoubleFromObject([self objectAtIndex:index], 0.0);
+	return OODoubleFromObject([self oo_objectAtIndex:index], 0.0);
 }
 
 
 - (float) oo_nonNegativeFloatAtIndex:(OOUInteger)index
 {
-	return OONonNegativeFloatFromObject([self objectAtIndex:index], 0.0f);
+	return OONonNegativeFloatFromObject([self oo_objectAtIndex:index], 0.0f);
 }
 
 
 - (double) oo_nonNegativeDoubleAtIndex:(OOUInteger)index
 {
-	return OONonNegativeDoubleFromObject([self objectAtIndex:index], 0.0);
+	return OONonNegativeDoubleFromObject([self oo_objectAtIndex:index], 0.0);
+}
+
+
+- (id) oo_objectAtIndex:(OOUInteger)index
+{
+	if (index < [self count])  return [self objectAtIndex:index];
+	else  return nil;
 }
 
 
