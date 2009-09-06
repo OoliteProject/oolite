@@ -77,7 +77,7 @@ static int	sEffectiveMasterVolume = MIX_MAX_VOLUME;
 		Mix_AllocateChannels(kMixerGeneralChannels);
 		sIsSoundOK = YES;
 		
-		float volume = [[NSUserDefaults standardUserDefaults] floatForKey:KEY_VOLUME_CONTROL defaultValue:1.0];
+		float volume = [[NSUserDefaults standardUserDefaults] oo_floatForKey:KEY_VOLUME_CONTROL defaultValue:1.0];
 		[self setMasterVolume:volume];
 		
 		[OOSoundMixer sharedMixer];

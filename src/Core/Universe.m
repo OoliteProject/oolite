@@ -314,7 +314,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value
 {
 	doProcedurallyTexturedPlanets = !!value;	// ensure yes or no
-	[[NSUserDefaults standardUserDefaults] oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
+	[[NSUserDefaults standardUserDefaults] setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
 }
 #endif
 
