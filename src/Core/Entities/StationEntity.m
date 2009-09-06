@@ -1441,7 +1441,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		unsigned escorts = [ship pendingEscortCount];
 		if(escorts > 0)
 		{
-			escortRole = [traderDict oo_stringForKey:@"escort-role" defaultValue:defaultRole];
+			escortRole = [traderDict oo_stringForKey:@"escort_role" defaultValue:nil];
+			if (escortRole == nil)
+				escortRole = [traderDict oo_stringForKey:@"escort-role" defaultValue:defaultRole];
 			if (![escortRole isEqualToString: defaultRole])
 			{
 				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
@@ -1450,7 +1452,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				}
 			}
 			
-			escortShipKey = [traderDict oo_stringForKey:@"escort-ship"];
+			escortShipKey = [traderDict oo_stringForKey:@"escort_ship" defaultValue:nil];
+			if (escortShipKey == nil)
+				escortShipKey = [traderDict oo_stringForKey:@"escort-ship"];
+			
 			if (escortShipKey != nil)
 			{
 				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
@@ -2058,11 +2063,27 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return NO;
 	if ([UNIVERSE station] == self)
 		return YES;
-	
+	id				determinant;
+
+	if ([shipinfoDictionary objectForKey:@"has_shipyard"])
+	{
+		determinant = [shipinfoDictionary objectForKey:@"has_shipyard"];
+		
+		if ([determinant isKindOfClass:[NSArray class]])
+		{
+			
+			return [[PlayerEntity sharedPlayer] scriptTestConditions:determinant];
+		}
+		else
+		{
+			return OOFuzzyBooleanFromObject(determinant, 0.0f);
+		}
+	}
+		
 	// NOTE: non-standard capitalization is documented and entrenched.
 	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
 	{
-		id				determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
+		determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{

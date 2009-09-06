@@ -1257,7 +1257,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// Pause game 'p'
-	if ([gameView isDown:key_pausebutton])// look for the 'p' key
+	if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)// look for the 'p' key
 	{
 		if (!pause_pressed)
 		{
@@ -1360,7 +1360,7 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
-			if ([[gameView typedString] length])
+			if ([[gameView typedString] length] > 0 )
 			{
 				planetSearchString = [[gameView typedString] lowercaseString];
 				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
@@ -1372,6 +1372,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView resetTypedString];
+					planetSearchString = nil;
 				}
 			}
 			else
@@ -2338,7 +2339,7 @@ static NSTimeInterval	time_last_frame;
 	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
 
 	//  view keys
-	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || (([gameView isDown:key_hyperspace] || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
+	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || (([gameView isDown:key_hyperspace] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
 	{
 		if ([UNIVERSE displayGUI])
 			[self switchToMainView];

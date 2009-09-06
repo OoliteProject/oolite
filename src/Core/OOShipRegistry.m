@@ -825,8 +825,13 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	{
 		shipEntry = [ioData objectForKey:shipKey];
 		conditions = [shipEntry objectForKey:@"conditions"];
-		hasShipyard = [shipEntry objectForKey:@"hasShipyard"];
+		hasShipyard = [shipEntry objectForKey:@"has_shipyard"];
 		if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
+		if (hasShipyard == nil)
+		{
+			hasShipyard = [shipEntry objectForKey:@"hasShipyard"];
+			if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
+		}
 		shipyardConditions = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
 		
 		if (conditions == nil && hasShipyard && shipyardConditions == nil)  continue;
@@ -859,11 +864,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			if (hasShipyard != nil)
 			{
-				[shipEntry setObject:hasShipyard forKey:@"hasShipyard"];
+				[shipEntry setObject:hasShipyard forKey:@"has_shipyard"];
 			}
 			else
 			{
 				[shipEntry removeObjectForKey:@"hasShipyard"];
+				[shipEntry removeObjectForKey:@"has_shipyard"];
 			}
 		}
 		

@@ -253,7 +253,8 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	rolesString = [_info objectForKey:@"roles"];
 	_roles = [self rolesFromString:rolesString];
 	_isPlayer = [_roles containsObject:@"player"];
-	_isStation = [_info oo_boolForKey:@"isCarrier" defaultValue:NO] ||
+	_isStation = [_info oo_boolForKey:@"is_carrier" defaultValue:NO] ||
+				 [_info oo_boolForKey:@"isCarrier" defaultValue:NO] ||
 				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
 				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
 	

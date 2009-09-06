@@ -335,20 +335,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
-#if 0
-	//scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
-	//let's see if scan_class is set... 
+
+	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
+	// let's see if scan_class is set... 
 	scanClass = StringToScanClass([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
 	
-	//try.'scanClass' if 'scan_class' isn't set.
+	// if not, try 'scanClass'. NOTE: non-standard capitalization is documented and entrenched.
 	if (scanClass == CLASS_NOT_SET)
 	{
 		scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
-#else
-	// scan class. NOTE: non-standard capitalization is documented and entrenched.
-	scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
-#endif
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
@@ -927,7 +923,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
-	escortRole = [shipinfoDictionary oo_stringForKey:@"escort-role" defaultValue:defaultRole];
+	escortRole = [shipinfoDictionary oo_stringForKey:@"escort_role" defaultValue:nil];
+	if (escortRole == nil)
+		escortRole = [shipinfoDictionary oo_stringForKey:@"escort-role" defaultValue:defaultRole];
 	if (![escortRole isEqualToString: defaultRole])
 	{
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
@@ -936,7 +934,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		}
 	}
 	
-	escortShipKey = [shipinfoDictionary oo_stringForKey:@"escort-ship"];
+	escortShipKey = [shipinfoDictionary oo_stringForKey:@"escort_ship" defaultValue:nil];
+	if (escortShipKey == nil)
+		escortShipKey = [shipinfoDictionary oo_stringForKey:@"escort-ship"];
+	
 	if (escortShipKey != nil)
 	{
 		if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
