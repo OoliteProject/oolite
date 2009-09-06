@@ -145,7 +145,7 @@ static NSTimeInterval	time_last_frame;
 	
 #if OOLITE_WINDOWS
 	// override windows keyboard autoselect
-	[[UNIVERSE gameView] setKeyboardTo:[kdic stringForKey:@"windows_keymap" defaultValue:@"auto"]];
+	[[UNIVERSE gameView] setKeyboardTo:[kdic oo_stringForKey:@"windows_keymap" defaultValue:@"auto"]];
 #endif
 
 	keys = [kdic allKeys];
@@ -173,7 +173,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	// set default keys.
-#define LOAD_KEY_SETTING(name, default)	name = [kdic unsignedShortForKey:@#name defaultValue:default]
+#define LOAD_KEY_SETTING(name, default)	name = [kdic oo_unsignedShortForKey:@#name defaultValue:default]
 	
 	LOAD_KEY_SETTING(key_roll_left,				gvArrowKeyLeft		);
 	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
@@ -936,7 +936,7 @@ static NSTimeInterval	time_last_frame;
 								{
 									// there's a slight chance you'll be fined for your past offences when autodocking
 									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-									int government = 1 + [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];	// 1..8
+									int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];	// 1..8
 									if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 									fine_chance /= government;
 									if (fine_chance < legalStatus)
@@ -1584,7 +1584,7 @@ static NSTimeInterval	time_last_frame;
 				if ((guiSelectedRow == GUI_ROW(,BEGIN_NEW))&&(!disc_operation_in_progress))
 				{
 					disc_operation_in_progress = YES;
-					[UNIVERSE reinit];
+					[UNIVERSE reinitAndShowDemo:YES];
 				}
 				
 				if ([gameView isDown:gvMouseDoubleClick])
@@ -1728,7 +1728,7 @@ static NSTimeInterval	time_last_frame;
 						if (!wait_for_key_up)
 						{
 							int item = [(NSString *)[gui selectedRowKey] intValue];
-							int yours =		[[shipCommodityData arrayAtIndex:item] intAtIndex:1];
+							int yours =		[[shipCommodityData oo_arrayAtIndex:item] oo_intAtIndex:1];
 							if ([gameView isShiftDown] && [self tryBuyingCommodity:item all:YES])	// buy as much as possible (with Shift)
 							{
 								[self playBuyCommodity];
@@ -2016,9 +2016,9 @@ static NSTimeInterval	time_last_frame;
 				displayModeIndex = 0;
 		}
 		NSDictionary	*mode = [modes objectAtIndex:displayModeIndex];
-		int modeWidth = [mode intForKey:kOODisplayWidth];
-		int modeHeight = [mode intForKey:kOODisplayHeight];
-		int modeRefresh = [mode intForKey:kOODisplayRefreshRate];
+		int modeWidth = [mode oo_intForKey:kOODisplayWidth];
+		int modeHeight = [mode oo_intForKey:kOODisplayHeight];
+		int modeRefresh = [mode oo_intForKey:kOODisplayRefreshRate];
 		[controller setDisplayWidth:modeWidth Height:modeHeight Refresh:modeRefresh];
 
 		NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
@@ -2377,7 +2377,7 @@ static NSTimeInterval	time_last_frame;
 				_customViewIndex = (_customViewIndex + 1) % [_customViews count];
 			}
 			
-			[self setCustomViewDataFromDictionary:[_customViews dictionaryAtIndex:_customViewIndex]];
+			[self setCustomViewDataFromDictionary:[_customViews oo_dictionaryAtIndex:_customViewIndex]];
 			
 			if ([UNIVERSE displayGUI])
 				[self switchToMainView];
@@ -2904,8 +2904,8 @@ static BOOL toggling_music;
 			// In order to support multiple languages, the Y/N response cannot be hardcoded. We get the keys
 			// corresponding to Yes/No from descriptions.plist and if they are not found there, we set them
 			// by default to [yY] and [nN] respectively.
-			id valueYes = [[UNIVERSE descriptions] stringForKey:@"load-previous-commander-yes" defaultValue:@"y"];
-			id valueNo = [[UNIVERSE descriptions] stringForKey:@"load-previous-commander-no" defaultValue:@"n"];
+			id valueYes = [[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"];
+			id valueNo = [[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"];
 			unsigned char loadPreviousCommanderYes, loadPreviousCommanderNo;
 
 			loadPreviousCommanderYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.

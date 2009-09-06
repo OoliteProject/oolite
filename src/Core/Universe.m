@@ -173,14 +173,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[ResourceManager paths];
 	
 	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-	reducedDetail = [prefs boolForKey:@"reduced-detail-graphics" defaultValue:NO];
-	autoSave = [prefs boolForKey:@"autosave" defaultValue:NO];
-	wireframeGraphics = [prefs boolForKey:@"wireframe-graphics" defaultValue:NO];
+	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
+	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
+	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 #if ALLOW_PROCEDURAL_PLANETS
-	doProcedurallyTexturedPlanets = [prefs boolForKey:@"procedurally-textured-planets" defaultValue:YES];
+	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
 	shaderEffectsLevel = SHADERS_SIMPLE;
-	[self setShaderEffectsLevel:[prefs intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
+	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
 	
 	// Set up the internal game strings
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -314,7 +314,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) setDoProcedurallyTexturedPlanets:(BOOL) value
 {
 	doProcedurallyTexturedPlanets = !!value;	// ensure yes or no
-	[[NSUserDefaults standardUserDefaults] setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
+	[[NSUserDefaults standardUserDefaults] oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurally-textured-planets"];
 }
 #endif
 
@@ -331,12 +331,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	strict = !!value;
 	
-	[self reinit];
-}
-
-
-- (void) reinit
-{	
 	[self reinitAndShowDemo:YES];
 }
 
@@ -348,7 +342,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	assert(player != nil);
 	
 	[self removeAllEntitiesExceptPlayer:NO];
-	[ResourceManager clearCaches];
 	[OOTexture clearCache];
 	
 	[ResourceManager setUseAddOns:!strict];
@@ -593,10 +586,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	// check at this point
 	// for scripted overrides for this insterstellar area
-	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
-	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:@"interstellar space"]];
-	[systeminfo addEntriesFromDictionary:[planetInfo dictionaryForKey:override_key]];
-	[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides dictionaryForKey:override_key]];
+	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY]];
+	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:@"interstellar space"]];
+	[systeminfo addEntriesFromDictionary:[planetInfo oo_dictionaryForKey:override_key]];
+	[systeminfo addEntriesFromDictionary:[localPlanetInfoOverrides oo_dictionaryForKey:override_key]];
 	
 	[universeRegion clearSubregions];
 	
@@ -669,7 +662,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
+	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
 		[player runUnsanitizedScriptActions:script_actions
@@ -728,13 +721,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	Vector				vf;
 
 	NSDictionary		*systeminfo = [self generateSystemData:system_seed useCache:NO];
-	unsigned			techlevel = [systeminfo unsignedIntForKey:KEY_TECHLEVEL];
+	unsigned			techlevel = [systeminfo oo_unsignedIntForKey:KEY_TECHLEVEL];
 	NSString			*stationDesc = nil, *defaultStationDesc = nil;
 	OOColor				*bgcolor;
 	OOColor				*pale_bgcolor;
 	BOOL				sunGoneNova;
 	
-	sunGoneNova = [systeminfo boolForKey:@"sun_gone_nova"];
+	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
 	[universeRegion clearSubregions];
 	
@@ -793,12 +786,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	Quaternion  q_sun;
 	Vector		sunPos;
 
-	sunDistanceModifier = [systeminfo nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
+	sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
 	if (sunDistanceModifier < 6.0) sunDistanceModifier = 6.0;
 	sun_distance = (sunDistanceModifier + (Ranrot() % 5) - (Ranrot() % 5) ) * planet_radius;
 
-	sun_radius = [systeminfo nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
+	sun_radius = [systeminfo oo_nonNegativeDoubleForKey:@"sun_radius" defaultValue:(2.5 + randf() - randf() ) * planet_radius];
 	// clamp the sun radius
 	if (sun_radius < 1000.0 || sun_radius > 1000000.0 ) 
 	{
@@ -887,7 +880,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	
 	//// possibly systeminfo has an override for the station
-	stationDesc = [systeminfo stringForKey:@"station" defaultValue:defaultStationDesc];
+	stationDesc = [systeminfo oo_stringForKey:@"station" defaultValue:defaultStationDesc];
 	
 	a_station = (StationEntity *)[self newShipWithRole:stationDesc];			// retain count = 1
 	
@@ -1025,7 +1018,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[a_planet release];
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
-	NSArray *script_actions = [systeminfo arrayForKey:@"script_actions"];
+	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
 	if (script_actions != nil)
 	{
 		[[PlayerEntity sharedPlayer] runUnsanitizedScriptActions:script_actions
@@ -1109,7 +1102,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		r = r * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[0] * SUN_AMBIENT_INFLUENCE;
 		g = g * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[1] * SUN_AMBIENT_INFLUENCE;
 		b = b * (1.0 - SUN_AMBIENT_INFLUENCE) + sun_diffuse[2] * SUN_AMBIENT_INFLUENCE;
-		GLfloat ambient_level = [systeminfo floatForKey:@"ambient_level" defaultValue:1.0];
+		GLfloat ambient_level = [systeminfo oo_floatForKey:@"ambient_level" defaultValue:1.0];
 		stars_ambient[0] = ambient_level * 0.0625 * (1.0 + r) * (1.0 + r);
 		stars_ambient[1] = ambient_level * 0.0625 * (1.0 + g) * (1.0 + g);
 		stars_ambient[2] = ambient_level * 0.0625 * (1.0 + b) * (1.0 + b);
@@ -1182,11 +1175,11 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	unsigned			wolfPackCounter = 0;
 	
 	systeminfo = [self generateSystemData:system_seed];
-	sunGoneNova = [systeminfo boolForKey:@"sun_gone_nova"];
+	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
-	techlevel = [systeminfo unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
-	government = [systeminfo unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
-	economy = [systeminfo unsignedCharForKey:KEY_ECONOMY];			// 0 .. 7 (0 richest .. 7 poorest)
+	techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
+	government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
+	economy = [systeminfo  oo_unsignedCharForKey:KEY_ECONOMY];			// 0 .. 7 (0 richest .. 7 poorest)
 	
 	thargoidChance = (system_seed.e < 127) ? 10 : 3; // if Human Colonials live here, there's a greater % chance the Thargoids will attack!
 	
@@ -2053,7 +2046,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		return make_vector(0,0,0);
 	}
 	GLfloat dummy;
-	return [self coordinatesForPosition:make_vector([tokens floatAtIndex:1], [tokens floatAtIndex:2], [tokens floatAtIndex:3]) withCoordinateSystem:[tokens stringAtIndex:0] returningScalar:&dummy];
+	return [self coordinatesForPosition:make_vector([tokens oo_floatAtIndex:1], [tokens oo_floatAtIndex:2], [tokens oo_floatAtIndex:3]) withCoordinateSystem:[tokens oo_stringAtIndex:0] returningScalar:&dummy];
 }
 
 
@@ -2323,12 +2316,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	if (ship == nil)  return NO;
 	
 	// set any spawning characteristics
-	NSDictionary	*spawndict = [shipdict dictionaryForKey:@"spawn"];
+	NSDictionary	*spawndict = [shipdict oo_dictionaryForKey:@"spawn"];
 	Vector			pos, rpos, spos;
 	NSString		*positionString = nil;
 	
 	// position
-	positionString = [spawndict stringForKey:@"position"];
+	positionString = [spawndict oo_stringForKey:@"position"];
 	if (positionString != nil)
 	{
 		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
@@ -2341,7 +2334,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	}
 	
 	// facing_position
-	positionString = [spawndict stringForKey:@"facing_position"];
+	positionString = [spawndict oo_stringForKey:@"facing_position"];
 	if (positionString != nil)
 	{
 		if([positionString hasPrefix:@"abs "] && ([self planet] != nil || [self sun] !=nil))
@@ -2382,7 +2375,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	NSDictionary		*systeminfo = nil;
 	OOGovernmentID		government;
 	
- 	government = [systeminfo unsignedCharForKey:KEY_GOVERNMENT];
+ 	government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];
 	systeminfo = [self generateSystemData:system_seed];
 
 	ship = [self newShipWithRole:role];   // retain count = 1
@@ -2539,7 +2532,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	{
 		/*- demo ships -*/
 		demo_ship_index = 0;
-		ship = [self newShipWithName:[demo_ships stringAtIndex:0]];   // retain count = 1
+		ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0]];   // retain count = 1
 	}
 	
 	if (ship)
@@ -2726,7 +2719,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	NSArray					*conditions = nil;
 	
 	shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-	conditions = [shipInfo arrayForKey:@"conditions"];
+	conditions = [shipInfo oo_arrayForKey:@"conditions"];
 	if (conditions == nil)  return YES;
 	
 	// Check conditions
@@ -2797,7 +2790,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 			[ship setPrimaryRole:role];
 			
 			shipInfo = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-			if ([shipInfo fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
+			if ([shipInfo oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
 			{
 				// Set AI based on role
 				autoAI = [self defaultAIForRole:role];
@@ -2827,9 +2820,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	if (shipDict == nil)  return nil;
 
 	BOOL		isStation = NO;
-	NSString	*shipRoles = [shipDict stringForKey:@"roles"];
+	NSString	*shipRoles = [shipDict oo_stringForKey:@"roles"];
 	if (shipRoles != nil)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	isStation = [shipDict boolForKey:@"isCarrier" defaultValue:isStation];
+	isStation = [shipDict oo_boolForKey:@"isCarrier" defaultValue:isStation];
 	
 	volatile Class shipClass;
 	if (!isStation)  shipClass = [ShipEntity class];
@@ -2859,7 +2852,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSString *)defaultAIForRole:(NSString *)role
 {
-	return [autoAIMap stringForKey:role];
+	return [autoAIMap oo_stringForKey:role];
 }
 
 
@@ -2871,7 +2864,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	if (dict)
 	{
-		return [dict unsignedIntForKey:@"max_cargo" defaultValue:0];
+		return [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:0];
 	}
 	else  return 0;
 }
@@ -2888,12 +2881,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	count = [equipmentData count];
 	for (i = 0; i < count; i++)
 	{
-		itemData = [equipmentData arrayAtIndex:i];
-		itemType = [itemData stringAtIndex:EQUIPMENT_KEY_INDEX];
+		itemData = [equipmentData oo_arrayAtIndex:i];
+		itemType = [itemData oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 		
 		if ([itemType isEqual:weapon_key])
 		{
-			return [itemData unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
+			return [itemData oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
 		}
 	}
 	return 0;
@@ -2912,11 +2905,11 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	count = [manifest count];
 	for (i = 0; i < count; i++)
 	{
-		entry = [manifest arrayAtIndex:i];
-		commodity = [entry stringAtIndex:MARKET_NAME];
-		amount = [entry unsignedIntAtIndex:MARKET_QUANTITY];
+		entry = [manifest oo_arrayAtIndex:i];
+		commodity = [entry oo_stringAtIndex:MARKET_NAME];
+		amount = [entry oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		
-		penaltyPerUnit = [illegal_goods unsignedIntForKey:commodity defaultValue:0];
+		penaltyPerUnit = [illegal_goods oo_unsignedIntForKey:commodity defaultValue:0];
 		penalty += amount * penaltyPerUnit;
 	}
 	return penalty;
@@ -2935,7 +2928,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	unsigned i;
 	for (i = 0; i < [commodityData count]; i++)
 	{
-		OOCargoQuantity q = [[commodityData arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
+		OOCargoQuantity q = [[commodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		if (scarce)
 		{
 			if (q < 64)  q = 64 - q;
@@ -3061,7 +3054,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	if (co_type < 0 || [commodityData count] <= commidityIndex)  {
 		return 0;
 	}
-	units = [[commodityData arrayAtIndex:commidityIndex] intAtIndex:MARKET_UNITS];
+	units = [[commodityData oo_arrayAtIndex:commidityIndex] oo_intAtIndex:MARKET_UNITS];
 	switch (units)
 	{
 		case 0 :	// TONNES
@@ -3082,7 +3075,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 {
 	if (type < 0 || [commodityData count] <= (unsigned)type)  return nil;
 	
-	return [commodityData arrayAtIndex:type];
+	return [commodityData oo_arrayAtIndex:type];
 }
 
 
@@ -3099,7 +3092,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 			Fix: look in [commodityData objectAtIndex:i].
 			-- Ahruman 20070714
 		*/
-		name = [[commodityData arrayAtIndex:i] stringAtIndex:MARKET_NAME];
+		name = [[commodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME];
 		if ([co_name caseInsensitiveCompare:name] == NSOrderedSame)
 		{
 			return i;
@@ -3115,7 +3108,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	if (commodity == nil)  return @"";
 	
-	return [commodity stringAtIndex:MARKET_NAME];
+	return [commodity oo_stringAtIndex:MARKET_NAME];
 }
 
 
@@ -3131,7 +3124,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	if (commodity == nil)  return NSNotFound;
 	
-	return [commodity intAtIndex:MARKET_UNITS];
+	return [commodity oo_intAtIndex:MARKET_UNITS];
 }
 
 
@@ -3144,7 +3137,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	if (commodity == nil) return @"";
 	
-	units = [commodity intAtIndex:MARKET_UNITS];
+	units = [commodity oo_intAtIndex:MARKET_UNITS];
 	if (co_amount == 1)
 	{
 		switch (units)
@@ -3925,7 +3918,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					{
 						// check for station_roll override
 						NSDictionary*	systeminfo = [self generateSystemData:system_seed];
-						double stationRoll = [systeminfo doubleForKey:@"station_roll" defaultValue:0.4];
+						double stationRoll = [systeminfo oo_doubleForKey:@"station_roll" defaultValue:0.4];
 						
 						[se setRoll: stationRoll];
 						[(StationEntity*)se setPlanet:[self planet]];
@@ -4900,7 +4893,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	
 	if ([object isKindOfClass:[NSArray class]] && [object count] > 0)
 	{
-		key = [object stringAtIndex:Ranrot() % [object count]];
+		key = [object oo_stringAtIndex:Ranrot() % [object count]];
 	}
 	else
 	{
@@ -4921,7 +4914,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				object = [customsounds objectForKey:result];
 				if( [object isKindOfClass:[NSArray class]] && [object count] > 0)
 				{
-					result = [object stringAtIndex:Ranrot() % [object count]];
+					result = [object oo_stringAtIndex:Ranrot() % [object count]];
 					if ([key hasPrefix:@"["] && [key hasSuffix:@"]"]) key=result;
 				}
 				else
@@ -5005,9 +4998,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	NSString		*msg = nil;
 	OOTimeDelta		msg_duration;
 	
-	msg = [textdict stringForKey:@"message"];
+	msg = [textdict oo_stringForKey:@"message"];
 	if (msg == nil)  return;
-	msg_duration = [textdict nonNegativeDoubleForKey:@"duration" defaultValue:3.0];
+	msg_duration = [textdict oo_nonNegativeDoubleForKey:@"duration" defaultValue:3.0];
 	
 	[self addMessage:msg forCount:msg_duration];
 }
@@ -5042,11 +5035,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				NSArray			*thePair = nil;
 				for (speechEnumerator = [speechArray objectEnumerator]; (thePair = [speechEnumerator nextObject]); )
 				{
-					NSString *original_phrase = [thePair stringAtIndex:0];
+					NSString *original_phrase = [thePair oo_stringAtIndex:0];
 #if OOLITE_MAC_OS_X
-					NSString *replacement_phrase = [thePair stringAtIndex:1];
+					NSString *replacement_phrase = [thePair oo_stringAtIndex:1];
 #elif OOLITE_ESPEAK
-					NSString *replacement_phrase = [thePair stringAtIndex:([thePair count] > 2 ? 2 : 1)];
+					NSString *replacement_phrase = [thePair oo_stringAtIndex:([thePair count] > 2 ? 2 : 1)];
 					if (![replacement_phrase isEqualToString:@"_"])
 #endif
 						spoken_text = [[spoken_text componentsSeparatedByString: original_phrase] componentsJoinedByString: replacement_phrase];
@@ -5174,7 +5167,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								NSDictionary	*shipDict = nil;
 								
 								demo_ship_index = (demo_ship_index + 1) % [demo_ships count];
-								shipDesc = [demo_ships stringAtIndex:demo_ship_index];
+								shipDesc = [demo_ships oo_stringAtIndex:demo_ship_index];
 								shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 								if (shipDict != nil)
 								{
@@ -5622,7 +5615,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	target_system_seed = s_seed;
 	
 	systemData = [self generateSystemData:target_system_seed];
-	economy = [systemData unsignedCharForKey:KEY_ECONOMY];
+	economy = [systemData  oo_unsignedCharForKey:KEY_ECONOMY];
 	
 	[self generateEconomicDataWithEconomy:economy andRandomFactor:[player random_factor] & 0xff];
 }
@@ -5702,14 +5695,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {
 	id object = [[self descriptions] objectForKey:key];
 	if ([object isKindOfClass:[NSString class]])  return object;
-	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object stringAtIndex:Ranrot() % [object count]];
+	else if ([object isKindOfClass:[NSArray class]] && [object count] > 0)  return [object oo_stringAtIndex:Ranrot() % [object count]];
 	return nil;
 }
 
 
 - (NSString *)descriptionForArrayKey:(NSString *)key index:(unsigned)index
 {
-	NSArray *array = [[self descriptions] arrayForKey:key];
+	NSArray *array = [[self descriptions] oo_arrayForKey:key];
 	if ([array count] <= index)  return nil;	// Catches nil array
 	return [array objectAtIndex:index];
 }
@@ -5717,7 +5710,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (BOOL) descriptionBooleanForKey:(NSString *)key
 {
-	return [[self descriptions] boolForKey:key];
+	return [[self descriptions] oo_boolForKey:key];
 }
 
 
@@ -5808,32 +5801,32 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 	NSString *override_key = [self keyForPlanetOverridesForSystemSeed:s_seed inGalaxySeed:galaxy_seed];
 	
-	[systemdata setUnsignedInteger:government	forKey:KEY_GOVERNMENT];
-	[systemdata setUnsignedInteger:economy		forKey:KEY_ECONOMY];
-	[systemdata setUnsignedInteger:techlevel	forKey:KEY_TECHLEVEL];
-	[systemdata setUnsignedInteger:population	forKey:KEY_POPULATION];
-	[systemdata setUnsignedInteger:productivity	forKey:KEY_PRODUCTIVITY];
-	[systemdata setUnsignedInteger:radius		forKey:KEY_RADIUS];
-	[systemdata setObject:name					forKey:KEY_NAME];
-	[systemdata setObject:inhabitant			forKey:KEY_INHABITANT];
-	[systemdata setObject:inhabitants			forKey:KEY_INHABITANTS];
-	[systemdata setObject:description			forKey:KEY_DESCRIPTION];
+	[systemdata oo_setUnsignedInteger:government	forKey:KEY_GOVERNMENT];
+	[systemdata oo_setUnsignedInteger:economy		forKey:KEY_ECONOMY];
+	[systemdata oo_setUnsignedInteger:techlevel		forKey:KEY_TECHLEVEL];
+	[systemdata oo_setUnsignedInteger:population	forKey:KEY_POPULATION];
+	[systemdata oo_setUnsignedInteger:productivity	forKey:KEY_PRODUCTIVITY];
+	[systemdata oo_setUnsignedInteger:radius		forKey:KEY_RADIUS];
+	[systemdata setObject:name						forKey:KEY_NAME];
+	[systemdata setObject:inhabitant				forKey:KEY_INHABITANT];
+	[systemdata setObject:inhabitants				forKey:KEY_INHABITANTS];
+	[systemdata setObject:description				forKey:KEY_DESCRIPTION];
 	
 	// check at this point
 	// for scripted overrides for this planet
 	NSDictionary *overrides = nil;
 	
-	overrides = [planetInfo dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
+	overrides = [planetInfo oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	overrides = [planetInfo dictionaryForKey:override_key];
+	overrides = [planetInfo oo_dictionaryForKey:override_key];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
-	overrides = [localPlanetInfoOverrides dictionaryForKey:override_key];
+	overrides = [localPlanetInfoOverrides oo_dictionaryForKey:override_key];
 	if (overrides != nil)  [systemdata addEntriesFromDictionary:overrides];
 	
 	// check if the description needs to be recalculated
-	if ([description isEqual:[systemdata stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata stringForKey:KEY_NAME]])
+	if ([description isEqual:[systemdata oo_stringForKey:KEY_DESCRIPTION]] && ![name isEqual:[systemdata oo_stringForKey:KEY_NAME]])
 	{
-		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
+		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
 	}
 	
 	cachedResult = [systemdata copy];
@@ -6054,7 +6047,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (NSString *) getSystemName:(Random_Seed)s_seed
 {
-	return [[self generateSystemData:s_seed] stringForKey:KEY_NAME];
+	return [[self generateSystemData:s_seed] oo_stringForKey:KEY_NAME];
 }
 
 
@@ -6068,11 +6061,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 {	
 	NSString *ret = nil;
 	if (!plural)
-		ret = [[self generateSystemData:s_seed] stringForKey:KEY_INHABITANT];
+		ret = [[self generateSystemData:s_seed] oo_stringForKey:KEY_INHABITANT];
 	if (ret != nil) // the singular form might be absent.
 		return ret;
 	else
-		return [[self generateSystemData:s_seed] stringForKey:KEY_INHABITANTS];
+		return [[self generateSystemData:s_seed] oo_stringForKey:KEY_INHABITANTS];
 }
 
 
@@ -6156,7 +6149,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	}
 	else
 	{
-		inhabitantStrings = [[self descriptions] arrayForKey:KEY_INHABITANTS];
+		inhabitantStrings = [[self descriptions] oo_arrayForKey:KEY_INHABITANTS];
 		// The first 5 arrays in 'inhabitants' are the standard ones, anything else below is language specific
 		// and will refer to the different singular forms for the particular language we are translating to.
 		// If this is the case, three more arrays are expected, raising the total count of subarrays to 8.
@@ -6164,28 +6157,28 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		
 		int inhab = (s_seed.f / 4) & 7;
 		if (inhab < 3)
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
-								0 : singularAdjectivesExist ? 5 : 0] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
+								0 : singularAdjectivesExist ? 5 : 0] oo_stringAtIndex:inhab]];
 		
 		inhab = s_seed.f / 32;
 		if (inhab < 6)
 		{
 			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
-								1 : singularAdjectivesExist ? 6 : 1] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
+								1 : singularAdjectivesExist ? 6 : 1] oo_stringAtIndex:inhab]];
 		}
 
 		inhab = (s_seed.d ^ s_seed.b) & 7;
 		if (inhab < 6)
 		{
 			[inhabitants appendString:@" "];
-			[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ?
-								2 : singularAdjectivesExist ? 7 : 2] stringAtIndex:inhab]];
+			[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ?
+								2 : singularAdjectivesExist ? 7 : 2] oo_stringAtIndex:inhab]];
 		}
 
 		inhab = (inhab + (s_seed.f & 3)) & 7;
 		[inhabitants appendString:@" "];
-		[inhabitants appendString:[[inhabitantStrings arrayAtIndex:plural ? 4 : 3] stringAtIndex:inhab]];
+		[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ? 4 : 3] oo_stringAtIndex:inhab]];
 	}
 	
 	return inhabitants;
@@ -6457,17 +6450,17 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	while ([open_nodes count] > 0)
 	{
 		// pop the node from open list
-		location = [open_nodes unsignedCharAtIndex:0];
+		location = [open_nodes oo_unsignedCharAtIndex:0];
 		
 		NSDictionary* node = node_open[location];
 		[open_nodes removeObjectAtIndex:0];
 		
-		cost_from_start =		[node doubleForKey:@"cost_from_start"];
+		cost_from_start =		[node oo_doubleForKey:@"cost_from_start"];
 #if DEAD_STORE
-		cost_to_goal =			[node doubleForKey:@"cost_to_goal"];
+		cost_to_goal =			[node oo_doubleForKey:@"cost_to_goal"];
 #endif
-		total_cost_estimate =	[node doubleForKey:@"total_cost_estimate"];
-		parent_node =			[node dictionaryForKey:@"parent_node"];
+		total_cost_estimate =	[node oo_doubleForKey:@"total_cost_estimate"];
+		parent_node =			[node oo_dictionaryForKey:@"parent_node"];
 		
 		// if at goal we're done!
 		if (location == goal)
@@ -6480,14 +6473,14 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				node = parent_node;
 #if DEAD_STORE
 				//Unused variables. -- Ahruman 2008-11-10
-				location =				[node intForKey:@"location"];
-				cost_from_start =		[node doubleForKey:@"cost_from_start"];
-				cost_to_goal =			[node doubleForKey:@"cost_to_goal"];
-				total_cost_estimate =	[node doubleForKey:@"total_cost_estimate"];
+				location =				[node oo_intForKey:@"location"];
+				cost_from_start =		[node oo_doubleForKey:@"cost_from_start"];
+				cost_to_goal =			[node oo_doubleForKey:@"cost_to_goal"];
+				total_cost_estimate =	[node oo_doubleForKey:@"total_cost_estimate"];
 #endif
-				parent_node =			[node dictionaryForKey:@"parent_node"];
+				parent_node =			[node oo_dictionaryForKey:@"parent_node"];
 			}
-			[route insertUnsignedInteger:start atIndex:0];
+			[route oo_insertUnsignedInteger:start atIndex:0];
 			return [NSDictionary dictionaryWithObjectsAndKeys:
 						route,									@"route",
 						[NSNumber numberWithDouble:total_cost],	@"distance",
@@ -6495,11 +6488,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		}
 		else
 		{
-			NSArray* neighbours = [neighbour_systems arrayAtIndex:location];
+			NSArray* neighbours = [neighbour_systems oo_arrayAtIndex:location];
 			
 			for (i = 0; i < [neighbours count]; i++)
 			{
-				OOSystemID newLocation = [neighbours intAtIndex:i];
+				OOSystemID newLocation = [neighbours oo_intAtIndex:i];
 				double newCostFromStart = cost_from_start + distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b);
 				double newCostToGoal = distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b);
 				double newTotalCostEstimate = newCostFromStart + newCostToGoal;
@@ -6508,7 +6501,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				BOOL ignore_node = node_closed[newLocation];
 				if (node_open[newLocation])
 				{
-					if ([node_open[newLocation] doubleForKey:@"cost_from_start"] <= newCostFromStart)
+					if ([node_open[newLocation] oo_doubleForKey:@"cost_from_start"] <= newCostFromStart)
 						ignore_node = YES;
 				}
 				if (!ignore_node)
@@ -6529,8 +6522,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					unsigned p = 0;
 					while (p < [open_nodes count])
 					{
-						NSDictionary* node_ref = node_open[[open_nodes unsignedCharAtIndex:p]];
-						if ([node_ref doubleForKey:@"total_cost_estimate"] > newTotalCostEstimate)
+						NSDictionary* node_ref = node_open[[open_nodes oo_unsignedCharAtIndex:p]];
+						if ([node_ref oo_doubleForKey:@"total_cost_estimate"] > newTotalCostEstimate)
 						{
 							[open_nodes insertObject:[NSNumber numberWithInt:newLocation] atIndex:p];
 							p = 99999;
@@ -6646,22 +6639,22 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	NSMutableArray	*ourEconomy = nil;
 	unsigned		i;
 	
-	stationRole = [[self currentSystemData] stringForKey:@"market"];
+	stationRole = [[self currentSystemData] oo_stringForKey:@"market"];
 	if (stationRole == nil) stationRole = [some_station primaryRole];
-	if ([commodityLists arrayForKey:stationRole] == nil)  stationRole = @"default";
+	if ([commodityLists oo_arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
-	ourEconomy = [NSMutableArray arrayWithArray:[commodityLists arrayForKey:stationRole]];
+	ourEconomy = [NSMutableArray arrayWithArray:[commodityLists oo_arrayForKey:stationRole]];
 	
 	for (i = 0; i < [ourEconomy count]; i++)
 	{
-		NSMutableArray *commodityInfo = [[ourEconomy arrayAtIndex:i] mutableCopy];
+		NSMutableArray *commodityInfo = [[ourEconomy oo_arrayAtIndex:i] mutableCopy];
 		
-		int base_price =			[commodityInfo intAtIndex:MARKET_BASE_PRICE];
-		int eco_adjust_price =		[commodityInfo intAtIndex:MARKET_ECO_ADJUST_PRICE];
-		int eco_adjust_quantity =	[commodityInfo intAtIndex:MARKET_ECO_ADJUST_QUANTITY];
-		int base_quantity =			[commodityInfo intAtIndex:MARKET_BASE_QUANTITY];
-		int mask_price =			[commodityInfo intAtIndex:MARKET_MASK_PRICE];
-		int mask_quantity =			[commodityInfo intAtIndex:MARKET_MASK_QUANTITY];
+		int base_price =			[commodityInfo oo_intAtIndex:MARKET_BASE_PRICE];
+		int eco_adjust_price =		[commodityInfo oo_intAtIndex:MARKET_ECO_ADJUST_PRICE];
+		int eco_adjust_quantity =	[commodityInfo oo_intAtIndex:MARKET_ECO_ADJUST_QUANTITY];
+		int base_quantity =			[commodityInfo oo_intAtIndex:MARKET_BASE_QUANTITY];
+		int mask_price =			[commodityInfo oo_intAtIndex:MARKET_MASK_PRICE];
+		int mask_quantity =			[commodityInfo oo_intAtIndex:MARKET_MASK_QUANTITY];
 		
 		int price =		(base_price + (random_factor & mask_price) + (economy * eco_adjust_price)) & 255;
 		int quantity =  (base_quantity + (random_factor & mask_quantity) - (economy * eco_adjust_quantity)) & 255;
@@ -6731,13 +6724,13 @@ double estimatedTimeForJourney(double distance, int hops)
 		OOSystemID		passenger_destination = passenger_seed.d;	// system number 0..255
 		Random_Seed		destination_seed = systems[passenger_destination];
 		NSDictionary	*destinationInfo = [self generateSystemData:destination_seed];
-		OOGovernmentID	destination_government = [destinationInfo unsignedIntForKey:KEY_GOVERNMENT];
+		OOGovernmentID	destination_government = [destinationInfo oo_unsignedIntForKey:KEY_GOVERNMENT];
 		
 		int pick_up_factor = destination_government + floor(days_until_departure) - 7;	// lower for anarchies (gov 0)
 				
 		if ((days_until_departure > 0.0)&&(pick_up_factor <= player_repute)&&(passenger_seed.d != start))
 		{
-			BOOL lowercaseIgnore = [[self descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
+			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"]; // i18n.
 			// determine the passenger's species
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
 			NSString* passenger_species_string = [NSString stringWithString:native_species];
@@ -6771,8 +6764,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				NSString* destination_name = [self getSystemName:destination_seed];
 				
-				double route_length = [routeInfo doubleForKey:@"distance"];
-				int route_hops = [[routeInfo arrayForKey:@"route"] count] - 1;
+				double route_length = [routeInfo oo_doubleForKey:@"distance"];
+				int route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 				
 				// Credits increase exponentially with number of hops (more with reputation > 5) + 8..15 cr per LY + bonus for low government level of destination
 				OOCreditsQuantity fee = 5 * pow(route_hops, player_repute > 5 ? 2.65 : 2.5) + route_length * (8 + (passenger_seed.e & 7)) + 5 * (7 - destination_government) * (7 - destination_government);
@@ -6952,13 +6945,13 @@ double estimatedTimeForJourney(double distance, int hops)
 		Random_Seed destination_seed = systems[contract_destination];
 		
 		NSDictionary *destinationInfo = [self generateSystemData:destination_seed];
-		OOGovernmentID destination_government = [destinationInfo unsignedIntForKey:KEY_GOVERNMENT];
+		OOGovernmentID destination_government = [destinationInfo oo_unsignedIntForKey:KEY_GOVERNMENT];
 		
 		int pick_up_factor = destination_government + floor(days_until_departure) - 7;	// lower for anarchies (gov 0)
 						
 		if ((days_until_departure > 0.0)&&(pick_up_factor <= player_repute)&&(contract_seed.d != start))
 		{			
-			OOGovernmentID destination_economy = [destinationInfo unsignedIntForKey:KEY_ECONOMY];
+			OOGovernmentID destination_economy = [destinationInfo oo_unsignedIntForKey:KEY_ECONOMY];
 			NSArray *destinationMarket = [self commodityDataForEconomy:destination_economy andStation:[self station] andRandomFactor:random_factor];
 			
 			// now we need a commodity that's both plentiful here and scarce there...
@@ -6970,12 +6963,12 @@ double estimatedTimeForJourney(double distance, int hops)
 			for (i = 0; i < [localMarket count]; i++)
 			{
 				// -- plentiful here
-				int q = [[localMarket arrayAtIndex:i] intAtIndex:MARKET_QUANTITY];
+				int q = [[localMarket oo_arrayAtIndex:i] oo_intAtIndex:MARKET_QUANTITY];
 				if (q < 0)  q = 0;
 				if (q > 64) q = 64;
 				quantities[i] = q;
 				// -- and scarce there
-				q = 64 - [[destinationMarket arrayAtIndex:i] intAtIndex:MARKET_QUANTITY];
+				q = 64 - [[destinationMarket oo_arrayAtIndex:i] oo_intAtIndex:MARKET_QUANTITY];
 				if (q < 0)  q = 0;
 				if (q > 64) q = 64;
 				quantities[i] *= q;	// multiply plentiful factor x scarce factor
@@ -7014,13 +7007,13 @@ double estimatedTimeForJourney(double distance, int hops)
 				if (discount > 35)
 					discount = 35;
 				
-				int price_per_unit = [[localMarket arrayAtIndex:co_type] unsignedIntAtIndex:MARKET_PRICE] * (100 - discount) / 100 ;
+				int price_per_unit = [[localMarket oo_arrayAtIndex:co_type] oo_unsignedIntAtIndex:MARKET_PRICE] * (100 - discount) / 100 ;
 				
 				// what is that worth locally
 				float local_cargo_value = 0.1 * co_amount * price_per_unit;
 				
 				// and the mark-up
-				float destination_cargo_value = 0.1 * co_amount * [[destinationMarket arrayAtIndex:co_type] unsignedIntAtIndex:MARKET_PRICE] * (200 + discount) / 200 ;
+				float destination_cargo_value = 0.1 * co_amount * [[destinationMarket oo_arrayAtIndex:co_type] oo_unsignedIntAtIndex:MARKET_PRICE] * (200 + discount) / 200 ;
 				
 				// total profit
 				float profit_for_trip = destination_cargo_value - local_cargo_value;
@@ -7035,8 +7028,8 @@ double estimatedTimeForJourney(double distance, int hops)
 					{
 						NSString *destination_name = [self getSystemName:destination_seed];
 						
-						double route_length = [routeInfo doubleForKey:@"distance"];
-						int route_hops = [[routeInfo arrayForKey:@"route"] count] - 1;
+						double route_length = [routeInfo oo_doubleForKey:@"distance"];
+						int route_hops = [[routeInfo oo_arrayForKey:@"route"] count] - 1;
 						
 						// percentage taken by contracter
 						int contractors_share = 90 + destination_government;
@@ -7148,9 +7141,9 @@ double estimatedTimeForJourney(double distance, int hops)
 		for (si = 0; si < [keysForShips count]; si++)
 		{
 			//eliminate any ships that fail a 'conditions test'
-			NSString		*key = [keysForShips stringAtIndex:si];
+			NSString		*key = [keysForShips oo_stringAtIndex:si];
 			NSDictionary	*dict = [registry shipyardInfoForKey:key];
-			NSArray			*conditions = [dict arrayForKey:@"conditions"];
+			NSArray			*conditions = [dict oo_arrayForKey:@"conditions"];
 			
 			if (![player scriptTestConditions:conditions])
 			{
@@ -7168,14 +7161,14 @@ double estimatedTimeForJourney(double distance, int hops)
 		else
 		{
 			//otherwise use default for system
-			techlevel = [systemInfo unsignedIntForKey:KEY_TECHLEVEL];
+			techlevel = [systemInfo oo_unsignedIntForKey:KEY_TECHLEVEL];
 		}
 		unsigned		ship_index = (ship_seed.d * 0x100 + ship_seed.e) % [keysForShips count];
-		NSString		*ship_key = [keysForShips stringAtIndex:ship_index];
+		NSString		*ship_key = [keysForShips oo_stringAtIndex:ship_index];
 		NSDictionary	*ship_info = [registry shipyardInfoForKey:ship_key];
-		OOTechLevelID	ship_techlevel = [ship_info intForKey:KEY_TECHLEVEL];
+		OOTechLevelID	ship_techlevel = [ship_info oo_intForKey:KEY_TECHLEVEL];
 		
-		double chance = 1.0 - pow(1.0 - [ship_info doubleForKey:KEY_CHANCE], OOMax_f(1, techlevel - ship_techlevel));
+		double chance = 1.0 - pow(1.0 - [ship_info oo_doubleForKey:KEY_CHANCE], OOMax_f(1, techlevel - ship_techlevel));
 		
 		// seed random number generator
 		int super_rand1 = ship_seed.a * 0x10000 + ship_seed.c * 0x100 + ship_seed.e;
@@ -7191,15 +7184,15 @@ double estimatedTimeForJourney(double distance, int hops)
 			NSMutableDictionary* ship_dict = [NSMutableDictionary dictionaryWithDictionary:ship_base_dict];
 			NSMutableString* description = [NSMutableString stringWithCapacity:256];
 			NSMutableString* short_description = [NSMutableString stringWithCapacity:256];
-			NSString *shipName = [ship_dict stringForKey:@"display_name" defaultValue:[ship_dict stringForKey:KEY_NAME]];
-			OOCreditsQuantity price = [ship_info unsignedIntForKey:KEY_PRICE];
+			NSString *shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
+			OOCreditsQuantity price = [ship_info oo_unsignedIntForKey:KEY_PRICE];
 			OOCreditsQuantity base_price = price;
-			NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info dictionaryForKey:KEY_STANDARD_EQUIPMENT] arrayForKey:KEY_EQUIPMENT_EXTRAS]];
-			NSString* fwd_weapon_string = [[ship_info dictionaryForKey:KEY_STANDARD_EQUIPMENT] stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-			NSString* aft_weapon_string = [[ship_info dictionaryForKey:KEY_STANDARD_EQUIPMENT] stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
+			NSMutableArray* extras = [NSMutableArray arrayWithArray:[[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+			NSString* fwd_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+			NSString* aft_weapon_string = [[ship_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON];
 
-			NSMutableArray* options = [NSMutableArray arrayWithArray:[ship_info arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
-			OOCargoQuantity max_cargo = [ship_dict unsignedIntForKey:@"max_cargo"];
+			NSMutableArray* options = [NSMutableArray arrayWithArray:[ship_info oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+			OOCargoQuantity max_cargo = [ship_dict oo_unsignedIntForKey:@"max_cargo"];
 			
 //			// more info for potential purchasers - how to reveal this I'm not yet sure...
 //			NSString* brochure_desc = [self brochureDescriptionWithDictionary: ship_dict standardEquipment: extras optionalEquipment: options];
@@ -7228,7 +7221,7 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				chance *= chance;	//decrease the chance of a further customisation (unless it is 1, which might be a bug)
 				int				option_index = Ranrot() % [options count];
-				NSString		*equipmentKey = [options stringAtIndex:option_index];
+				NSString		*equipmentKey = [options oo_stringAtIndex:option_index];
 				OOEquipmentType	*item = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 				
 				if (item != nil)
@@ -7346,7 +7339,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				}
 			}
 			// i18n: Some languages require that no conversion to lower case string takes place.
-			BOOL lowercaseIgnore = [[self descriptions] boolForKey:@"lowercase_ignore"];
+			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"];
 					
 			if (passenger_berths)
 			{
@@ -7427,10 +7420,10 @@ double estimatedTimeForJourney(double distance, int hops)
 
 static OOComparisonResult compareName(id dict1, id dict2, void * context)
 {
-	NSDictionary	*ship1 = [(NSDictionary *)dict1 dictionaryForKey:SHIPYARD_KEY_SHIP];
-	NSDictionary	*ship2 = [(NSDictionary *)dict2 dictionaryForKey:SHIPYARD_KEY_SHIP];
-	NSString		*name1 = [ship1 stringForKey:KEY_NAME];
-	NSString		*name2 = [ship2 stringForKey:KEY_NAME];
+	NSDictionary	*ship1 = [(NSDictionary *)dict1 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
+	NSDictionary	*ship2 = [(NSDictionary *)dict2 oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
+	NSString		*name1 = [ship1 oo_stringForKey:KEY_NAME];
+	NSString		*name2 = [ship2 oo_stringForKey:KEY_NAME];
 	
 	NSComparisonResult result = [name1 compare:name2];
 	if (result != NSOrderedSame)
@@ -7451,20 +7444,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 {
 	// get basic information about the craft
 	
-	NSString			*ship_desc = [dict stringForKey:@"ship_desc"];
-	OOWeaponType		ship_fwd_weapon = [dict unsignedIntForKey:@"forward_weapon"];
-	OOWeaponType		ship_aft_weapon = [dict unsignedIntForKey:@"aft_weapon"];
-	OOWeaponType		ship_port_weapon = [dict unsignedIntForKey:@"port_weapon"];
-	OOWeaponType		ship_starboard_weapon = [dict unsignedIntForKey:@"starboard_weapon"];
-	unsigned			ship_missiles = [dict unsignedIntForKey:@"missiles"];
-	unsigned			ship_max_passengers = [dict unsignedIntForKey:@"max_passengers"];
-	NSMutableArray		*ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict dictionaryForKey:@"extra_equipment"] allKeys]];
+	NSString			*ship_desc = [dict oo_stringForKey:@"ship_desc"];
+	OOWeaponType		ship_fwd_weapon = [dict oo_unsignedIntForKey:@"forward_weapon"];
+	OOWeaponType		ship_aft_weapon = [dict oo_unsignedIntForKey:@"aft_weapon"];
+	OOWeaponType		ship_port_weapon = [dict oo_unsignedIntForKey:@"port_weapon"];
+	OOWeaponType		ship_starboard_weapon = [dict oo_unsignedIntForKey:@"starboard_weapon"];
+	unsigned			ship_missiles = [dict oo_unsignedIntForKey:@"missiles"];
+	unsigned			ship_max_passengers = [dict oo_unsignedIntForKey:@"max_passengers"];
+	NSMutableArray		*ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict oo_dictionaryForKey:@"extra_equipment"] allKeys]];
 	
 	// given the ship model (from ship_desc)
 	// get the basic information about the standard customer model for that craft
 	NSDictionary		*shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:ship_desc];
-	NSDictionary		*basic_info = [shipyard_info dictionaryForKey:KEY_STANDARD_EQUIPMENT];
-	OOCreditsQuantity	base_price = [shipyard_info unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
+	NSDictionary		*basic_info = [shipyard_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT];
+	OOCreditsQuantity	base_price = [shipyard_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	// This checks a rare, but possible case. If the ship for which we are trying to calculate a trade in value
 	// does not have a shipyard dictionary entry, report it and set its base price to 0 -- Nikos 20090613.
 	if (shipyard_info == nil)
@@ -7476,11 +7469,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	}
 	if(base_price == 0ULL) return base_price;
 	
-	unsigned			base_missiles = [basic_info unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
+	unsigned			base_missiles = [basic_info oo_unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
 	OOCreditsQuantity	base_missiles_value = base_missiles * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
-	NSString			*base_fwd_weapon_key = [basic_info stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+	NSString			*base_fwd_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
 	OOCreditsQuantity	base_weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:base_fwd_weapon_key] / 10;
-	NSArray				*base_extra_equipment = [basic_info arrayForKey:KEY_EQUIPMENT_EXTRAS];
+	NSArray				*base_extra_equipment = [basic_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
 	NSString			*weapon_key = nil;
 	
 	
@@ -7516,19 +7509,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	int j;
 	for (i = 0; i < [base_extra_equipment count]; i++)
 	{
-		NSString *standard_option = [base_extra_equipment stringAtIndex:i];
+		NSString *standard_option = [base_extra_equipment oo_stringAtIndex:i];
 		for (j = 0; j < (int)[ship_extra_equipment count]; j++)
 		{
-			if ([[ship_extra_equipment stringAtIndex:j] isEqual:standard_option])
+			if ([[ship_extra_equipment oo_stringAtIndex:j] isEqual:standard_option])
 				[ship_extra_equipment removeObjectAtIndex:j--];
-			if ((j > 0)&&([[ship_extra_equipment stringAtIndex:j] isEqual:@"EQ_PASSENGER_BERTH"]))
+			if ((j > 0)&&([[ship_extra_equipment oo_stringAtIndex:j] isEqual:@"EQ_PASSENGER_BERTH"]))
 				[ship_extra_equipment removeObjectAtIndex:j--];
 		}
 	}
 	
 	OOCreditsQuantity extra_equipment_value = ship_max_passengers * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_PASSENGER_BERTH"] / 10ULL;
 	for (i = 0; i < [ship_extra_equipment count]; i++)
-		extra_equipment_value += [UNIVERSE getPriceForWeaponSystemWithKey:[ship_extra_equipment stringAtIndex:i]] / 10ULL;
+		extra_equipment_value += [UNIVERSE getPriceForWeaponSystemWithKey:[ship_extra_equipment oo_stringAtIndex:i]] / 10ULL;
 	
 	// final reckoning
 	OOCreditsQuantity result = base_price;
@@ -7551,13 +7544,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	NSMutableArray	*mut_extras = [NSMutableArray arrayWithArray:extras];
 	NSString		*allOptions = [options componentsJoinedByString:@" "];
 	
-	NSMutableString	*desc = [NSMutableString stringWithFormat:@"The %@.", [dict stringForKey: KEY_NAME]];
+	NSMutableString	*desc = [NSMutableString stringWithFormat:@"The %@.", [dict oo_stringForKey: KEY_NAME]];
 
 	// cargo capacity and expansion
-	OOCargoQuantity	max_cargo = [dict unsignedIntForKey:@"max_cargo"];
+	OOCargoQuantity	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo"];
 	if (max_cargo)
 	{
-		OOCargoQuantity	extra_cargo = [dict unsignedIntForKey:@"max_cargo" defaultValue:15];
+		OOCargoQuantity	extra_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:15];
 		[desc appendFormat:@" Cargo capacity %dt", max_cargo];
 		BOOL canExpand = ([allOptions rangeOfString:@"EQ_CARGO_BAY"].location != NSNotFound);
 		if (canExpand)
@@ -7566,7 +7559,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	}
 
 	// speed
-	float top_speed = [dict intForKey:@"max_flight_speed"];
+	float top_speed = [dict oo_intForKey:@"max_flight_speed"];
 	[desc appendFormat:@" Top speed %.3fLS.", 0.001 * top_speed];
 
 	// passenger berths
@@ -7576,7 +7569,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		unsigned i;
 		for (i = 0; i < [mut_extras count]; i++)
 		{
-			NSString* item_key = [mut_extras stringAtIndex:i];
+			NSString* item_key = [mut_extras oo_stringAtIndex:i];
 			if ([item_key isEqual:@"EQ_PASSENGER_BERTH"])
 			{
 				n_berths++;
@@ -7599,13 +7592,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		unsigned i, j;
 		for (i = 0; i < [mut_extras count]; i++)
 		{
-			NSString* item_key = [mut_extras stringAtIndex:i];
+			NSString* item_key = [mut_extras oo_stringAtIndex:i];
 			NSString* item_desc = nil;
 			for (j = 0; ((j < [equipmentData count])&&(!item_desc)) ; j++)
 			{
-				NSString *eq_type = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString *eq_type = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 				if ([eq_type isEqual:item_key])
-					item_desc = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+					item_desc = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 			}
 			if (item_desc)
 			{
@@ -7633,13 +7626,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		unsigned i, j;
 		for (i = 0; i < [options count]; i++)
 		{
-			NSString* item_key = [options stringAtIndex:i];
+			NSString* item_key = [options oo_stringAtIndex:i];
 			NSString* item_desc = nil;
 			for (j = 0; ((j < [equipmentData count])&&(!item_desc)) ; j++)
 			{
-				NSString *eq_type = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_KEY_INDEX];
+				NSString *eq_type = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 				if ([eq_type isEqual:item_key])
-					item_desc = [[equipmentData arrayAtIndex:j] stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
+					item_desc = [[equipmentData oo_arrayAtIndex:j] oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX];
 			}
 			if (item_desc)
 			{
@@ -8163,7 +8156,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[commodityData autorelease];
-	commodityData = [[NSArray arrayWithArray:[commodityLists arrayForKey:@"default"]] retain];
+	commodityData = [[NSArray arrayWithArray:[commodityLists oo_arrayForKey:@"default"]] retain];
 	
 	[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -8438,7 +8431,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 				"\tedge [arrowhead=dot]\n"
 				"\tnode [shape=none height=0.2 width=3 fontname=Helvetica]\n\t\n"];
 	
-	systemDescriptions = [[self descriptions] arrayForKey:@"system_description"];
+	systemDescriptions = [[self descriptions] oo_arrayForKey:@"system_description"];
 	count = [systemDescriptions count];
 	
 	// Add system-description-string as special node (it's the one thing that ties [14] to everything else).
@@ -8460,17 +8453,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	// Toss in the Thargoid curses, too
 	[graphViz appendString:@"\tsubgraph cluster_thargoid_curses\n\t{\n\t\tlabel = \"Thargoid curses\"\n"];
-	curses = [[self descriptions] arrayForKey:@"thargoid_curses"];
+	curses = [[self descriptions] oo_arrayForKey:@"thargoid_curses"];
 	subCount = [curses count];
 	for (j = 0; j < subCount; ++j)
 	{
-		label = OOStringifySystemDescriptionLine([curses stringAtIndex:j], keyMap, NO);
+		label = OOStringifySystemDescriptionLine([curses oo_stringAtIndex:j], keyMap, NO);
 		[graphViz appendFormat:@"\t\tthargoid_curse_%u [label=\"%@\"]\n", j, EscapedGraphVizString(label)];
 	}
 	[graphViz appendString:@"\t}\n"];
 	for (j = 0; j < subCount; ++j)
 	{
-		[self addNumericRefsInString:[curses stringAtIndex:j]
+		[self addNumericRefsInString:[curses oo_stringAtIndex:j]
 						  toGraphViz:graphViz
 							fromNode:[NSString stringWithFormat:@"thargoid_curse_%u", j]
 						   nodeCount:count];
@@ -8488,11 +8481,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		
 		[graphViz appendFormat:@"\tsubgraph cluster_%u\n\t{\n\t\tlabel=\"%@\"\n", i, EscapedGraphVizString(label)];
 		
-		thisDesc = [systemDescriptions arrayAtIndex:i];
+		thisDesc = [systemDescriptions oo_arrayAtIndex:i];
 		subCount = [thisDesc count];
 		for (j = 0; j < subCount; ++j)
 		{
-			label = OOStringifySystemDescriptionLine([thisDesc stringAtIndex:j], keyMap, NO);
+			label = OOStringifySystemDescriptionLine([thisDesc oo_stringAtIndex:j], keyMap, NO);
 			[graphViz appendFormat:@"\t\tn%u_%u [label=\"\\\"%@\\\"\"]\n", i, j, EscapedGraphVizString(label)];
 		}
 		
@@ -8503,11 +8496,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	// Define the edges
 	for (i = 0; i != count; ++i)
 	{
-		thisDesc = [systemDescriptions arrayAtIndex:i];
+		thisDesc = [systemDescriptions oo_arrayAtIndex:i];
 		subCount = [thisDesc count];
 		for (j = 0; j != subCount; ++j)
 		{
-			descLine = [thisDesc stringAtIndex:j];
+			descLine = [thisDesc oo_stringAtIndex:j];
 			[self addNumericRefsInString:descLine
 							  toGraphViz:graphViz
 								fromNode:[NSString stringWithFormat:@"n%u_%u", i, j]
@@ -8613,7 +8606,7 @@ NSString *DESC_(NSString *key)
 // There's a hint of gettext about this...
 NSString *DESC_PLURAL_(NSString *key, int count)
 {
-	NSArray *conditions = [[UNIVERSE descriptions] arrayForKey:@"plural-rules"];
+	NSArray *conditions = [[UNIVERSE descriptions] oo_arrayForKey:@"plural-rules"];
 		
 	// are we using an older descriptions.plist (1.72.x) ?
 	NSString *tmp = [UNIVERSE descriptionForKey:key];
@@ -8641,7 +8634,7 @@ NSString *DESC_PLURAL_(NSString *key, int count)
 
 	for (index = i = 0; i < [conditions count]; ++index, ++i)
 	{
-		const char *cond = [[conditions stringAtIndex:i] UTF8String];
+		const char *cond = [[conditions oo_stringAtIndex:i] UTF8String];
 		if (!cond)
 			break;
 

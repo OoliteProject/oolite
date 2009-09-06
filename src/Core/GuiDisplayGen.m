@@ -594,7 +594,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		NSArray		*lines = [str componentsSeparatedByString:@"\n"];
 		unsigned	i;
 		for (i = 0; i < [lines count]; i++)
-			[self printLongText:[lines stringAtIndex:i] align:alignment color:text_color fadeTime:text_fade key:text_key addToArray:text_array];
+			[self printLongText:[lines oo_stringAtIndex:i] align:alignment color:text_color fadeTime:text_fade key:text_key addToArray:text_array];
 		return;
 	}
 	
@@ -627,7 +627,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			[words removeObjectAtIndex:0];
 			strsize = OORectFromString(string1, 0.0f, 0.0f, chSize).size;
 			if ([words count] > 0)
-				strsize.width += OORectFromString([words stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
+				strsize.width += OORectFromString([words oo_stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
 		[string2 appendString:[words componentsJoinedByString:@" "]];
 		[self setText:string1		forRow:row			align:alignment];
@@ -834,8 +834,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	for (i=start; i < items_count; i++)
 	{
 		info = [eqptList objectAtIndex:i];
-		name = [info stringAtIndex:0];
-		damaged = ![info boolAtIndex:1];
+		name = [info oo_stringAtIndex:0];
+		damaged = ![info oo_boolAtIndex:1];
 		if (damaged)  glColor4f (1.0f, 0.5f, 0.0f, 1.0f); // Damaged items  show up  orange.
 		else glColor4f (1.0f, 1.0f, 0.0f, 1.0f);	// Normal items in yellow.
 		if([name length] > 42)  name =[[name substringToIndex:40] stringByAppendingString:@"..."];
@@ -1065,7 +1065,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			
 			for (j = 0; j < max_columns ; j++)
 			{
-				NSString*   text = [array stringAtIndex:j];
+				NSString*   text = [array oo_stringAtIndex:j];
 				if ([text length] != 0)
 				{
 					isLeftAligned=tabStops[j]>=0;
@@ -1152,7 +1152,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if ((dx < 20)&&(dy < 38))
 		{
-			if ([markedDestinations boolAtIndex:i])	// is marked
+			if ([markedDestinations oo_boolAtIndex:i])	// is marked
 			{
 				GLfloat mark_size = 0.5f * blob_size + 2.5f;
 				glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
@@ -1186,10 +1186,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		if ((dx < 20)&&(dy < 38))
 		{
 			NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
-			int tec = [sys_info intForKey:KEY_TECHLEVEL];
-			int eco = [sys_info intForKey:KEY_ECONOMY];
-			int gov = [sys_info intForKey:KEY_GOVERNMENT];
-			NSString*   p_name = [sys_info stringForKey:KEY_NAME];
+			int tec = [sys_info oo_intForKey:KEY_TECHLEVEL];
+			int eco = [sys_info oo_intForKey:KEY_ECONOMY];
+			int gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
+			NSString*   p_name = [sys_info oo_stringForKey:KEY_NAME];
 			if (![player showInfoFlag])
 			{
 				OODrawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));

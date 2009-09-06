@@ -232,14 +232,14 @@
 				break;
 			default:
 				cdr=[cdrDetailArray objectAtIndex: idx];
-				if ([cdr boolForKey:@"isSavedGame"])
-					return [cdr stringForKey:@"saved_game_path"];
+				if ([cdr oo_boolForKey:@"isSavedGame"])
+					return [cdr oo_stringForKey:@"saved_game_path"];
 				else
 				{
 					if ([gameView isCommandModifierKeyDown]||[gameView isDown:gvMouseDoubleClick])
 					{
 						// change directory to the selected path
-						NSString* newDir = [cdr stringForKey:@"saved_game_path"];
+						NSString* newDir = [cdr oo_stringForKey:@"saved_game_path"];
 						[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 						dir = newDir;
 						currentPage = 0;
@@ -271,8 +271,8 @@
 		if (guiSelectedRow != MOREROW && guiSelectedRow != BACKROW)
 		{
 			[self showCommanderShip: idx];
-			if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
-				commanderNameString = [[cdrDetailArray dictionaryAtIndex:idx] stringForKey:@"player_name"];
+			if ([(NSDictionary *)[cdrDetailArray objectAtIndex:idx] oo_boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
+				commanderNameString = [[cdrDetailArray oo_dictionaryAtIndex:idx] oo_stringForKey:@"player_name"];
 			else
 				commanderNameString = [gameView typedString];
 		}
@@ -308,10 +308,10 @@
 			int guiSelectedRow=[gui selectedRow];
 			int	idx = (guiSelectedRow - STARTROW) + (currentPage * NUMROWS);
 			NSDictionary* cdr = [cdrDetailArray objectAtIndex:idx];
-			if (![cdr boolForKey:@"isSavedGame"])	// don't open saved games
+			if (![cdr oo_boolForKey:@"isSavedGame"])	// don't open saved games
 			{
 				// change directory to the selected path
-				NSString* newDir = [cdr stringForKey:@"saved_game_path"];
+				NSString* newDir = [cdr oo_stringForKey:@"saved_game_path"];
 				[[UNIVERSE gameController] setPlayerFileDirectory: newDir];
 				dir = newDir;
 				currentPage = 0;
@@ -409,7 +409,7 @@
 		NSString		*shipKey = nil;
 		NSDictionary	*shipDict = nil;
 		
-		shipKey = [fileDic stringForKey:@"ship_desc"];
+		shipKey = [fileDic oo_stringForKey:@"ship_desc"];
 		shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 		
 		if (shipDict == nil)
@@ -479,7 +479,7 @@
 	
 	if (![dockedStation localMarket])
 	{
-		NSArray *market = [fileDic arrayForKey:@"localMarket"];
+		NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
 		if (market != nil)  [dockedStation setLocalMarket:market];
 		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
 	}
@@ -809,24 +809,24 @@
 	for (i=firstIndex; i < lastIndex; i++)
 	{
 		NSDictionary *cdr=[cdrDetailArray objectAtIndex: i];
-		if ([cdr boolForKey:@"isSavedGame"])
+		if ([cdr oo_boolForKey:@"isSavedGame"])
 		{
-			NSString *ratingDesc = KillCountToRatingString([cdr unsignedIntForKey:@"ship_kills"]);
+			NSString *ratingDesc = KillCountToRatingString([cdr oo_unsignedIntForKey:@"ship_kills"]);
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" %@ ",[cdr stringForKey:@"player_name"]],
+				[NSString stringWithFormat:@" %@ ",[cdr oo_stringForKey:@"player_name"]],
 				[NSString stringWithFormat:@" %@ ",ratingDesc],
 				nil]
 				   forRow:row];
-			if ([player_name isEqualToString:[cdr stringForKey:@"player_name"]])
+			if ([player_name isEqualToString:[cdr oo_stringForKey:@"player_name"]])
 				highlightRowOnPage = row;
 			
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
-		if ([cdr boolForKey:@"isParentFolder"])
+		if ([cdr oo_boolForKey:@"isParentFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" (..) %@ ", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]],
+				[NSString stringWithFormat:@" (..) %@ ", [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]],
 				@"",
 				nil]
 				   forRow:row];
@@ -834,10 +834,10 @@
 			[gui setKey:GUI_KEY_OK forRow:row];
 			row++;
 		}
-		if ([cdr boolForKey:@"isFolder"])
+		if ([cdr oo_boolForKey:@"isFolder"])
 		{
 			[gui setArray:[NSArray arrayWithObjects:
-				[NSString stringWithFormat:@" >> %@ ", [[cdr stringForKey:@"saved_game_path"] lastPathComponent]],
+				[NSString stringWithFormat:@" >> %@ ", [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]],
 				@"",
 				nil]
 				   forRow:row];
@@ -874,30 +874,30 @@
 	[gui setText:@"" forRow:CDRDESCROW + 1 align:GUI_ALIGN_LEFT];
 	[gui setText:@"" forRow:CDRDESCROW + 2 align:GUI_ALIGN_LEFT];
 	
-	if ([cdr boolForKey:@"isFolder"])
+	if ([cdr oo_boolForKey:@"isFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]];
 		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
 		return;
 	}
 	
-	if ([cdr boolForKey:@"isParentFolder"])
+	if ([cdr oo_boolForKey:@"isParentFolder"])
 	{
-		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr stringForKey:@"saved_game_path"] lastPathComponent]];
+		NSString *folderDesc=[NSString stringWithFormat: DESC(@"loadsavescreen-hold-@-and-press-return-to-open-parent-folder-@"), @COMMAND_MODIFIER_KEY, [[cdr oo_stringForKey:@"saved_game_path"] lastPathComponent]];
 		[gui setColor: [OOColor orangeColor] forRow: CDRDESCROW];
 		[gui addLongText: folderDesc startingAtRow: CDRDESCROW align: GUI_ALIGN_LEFT];
 		return;
 	}
 	[gui setColor: [OOColor yellowColor] forRow: CDRDESCROW];
 
-	if (![cdr boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
+	if (![cdr oo_boolForKey:@"isSavedGame"])	// don't show things that aren't saved games
 		return;
 	
 	if(!dockedStation)  dockedStation = [UNIVERSE station];
 	
 	// Display the commander's ship.
-	NSString			*shipDesc = [cdr stringForKey:@"ship_desc"];
+	NSString			*shipDesc = [cdr oo_stringForKey:@"ship_desc"];
 	NSString			*shipName = nil;
 	NSDictionary		*shipDict = nil;
 	NSString			*rating = nil;
@@ -906,13 +906,13 @@
 	if(shipDict != nil)
 	{
 		[self showShipyardModel:shipDict];
-		shipName = [shipDict stringForKey:@"display_name"];
-		if (shipName == nil) shipName = [shipDict stringForKey:KEY_NAME];
+		shipName = [shipDict oo_stringForKey:@"display_name"];
+		if (shipName == nil) shipName = [shipDict oo_stringForKey:KEY_NAME];
 	}
 	else
 	{
 		[self showShipyardModel:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"]];
-		shipName = [cdr stringForKey:@"ship_name" defaultValue:@"unknown"];
+		shipName = [cdr oo_stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}
 	
@@ -920,10 +920,10 @@
 	NSString			*legalDesc = nil;
 	OOCreditsQuantity	money;
 	
-	legalDesc = LegalStatusToString([cdr intForKey:@"legal_status"]);
+	legalDesc = LegalStatusToString([cdr oo_intForKey:@"legal_status"]);
 	
-	rating = KillCountToRatingAndKillString([cdr unsignedIntForKey:@"ship_kills"]);
-	money = [cdr unsignedLongLongForKey:@"credits"];
+	rating = KillCountToRatingAndKillString([cdr oo_unsignedIntForKey:@"ship_kills"]);
+	money = [cdr oo_unsignedLongLongForKey:@"credits"];
 	
 	// Nikos - Add some more information in the load game screen (current location, galaxy number and timestamp).
 	//-------------------------------------------------------------------------------------------------------------------------
@@ -934,7 +934,7 @@
 	
 	int			galNumber;
 	NSString		*timeStamp  = nil;
-	NSString 		*locationName = [cdr stringForKey:@"current_system_name"];
+	NSString 		*locationName = [cdr oo_stringForKey:@"current_system_name"];
 	
 	// If there is no key containing the name of the current system in the savefile, fall back to
 	// extracting the name from the galaxy seed and coordinates information.
@@ -944,22 +944,22 @@
 		NSPoint			gal_coords;
 		int			locationNumber;
 		
-		gal_coords = PointFromString([cdr stringForKey:@"galaxy_coordinates"]);
-		gal_seed = RandomSeedFromString([cdr stringForKey:@"galaxy_seed"]);
+		gal_coords = PointFromString([cdr oo_stringForKey:@"galaxy_coordinates"]);
+		gal_seed = RandomSeedFromString([cdr oo_stringForKey:@"galaxy_seed"]);
 		locationNumber = [UNIVERSE findSystemNumberAtCoords:gal_coords withGalaxySeed:gal_seed];
 		locationName = [UNIVERSE systemNameIndex:locationNumber];
 	}
 	
-	galNumber = [cdr intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
+	galNumber = [cdr oo_intForKey:@"galaxy_number"] + 1;	// Galaxy numbering starts at 0.
 	
-	timeStamp = ClockToString([cdr doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START], NO);
+	timeStamp = ClockToString([cdr oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START], NO);
 	
 	//-------------------------------------------------------------------------------------------------------------------------
 	
 	NSString		*cdrDesc = nil;
 	
 	cdrDesc = [NSString stringWithFormat:DESC(@"loadsavescreen-commander-@-rated-@-has-@-legal-status-@-ship-@-location-@-g-@-timestamp-@"),
-		[cdr stringForKey:@"player_name"],
+		[cdr oo_stringForKey:@"player_name"],
 		rating,
 		OOCredits(money),
 		legalDesc,
@@ -980,7 +980,7 @@
 	unsigned i;
 	for (i=0; i < [cdrDetailArray count]; i++)
 	{
-		NSString *currentName = [[cdrDetailArray dictionaryAtIndex: i] stringForKey:@"player_name"];
+		NSString *currentName = [[cdrDetailArray oo_dictionaryAtIndex: i] oo_stringForKey:@"player_name"];
 		if([cdrName compare: currentName] == NSOrderedSame)
 		{
 			return i;

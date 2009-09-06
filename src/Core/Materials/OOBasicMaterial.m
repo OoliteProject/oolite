@@ -95,7 +95,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	colorDesc = [configuration objectForKey:@"emission"];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	shininessVal = [configuration intForKey:@"shininess" defaultValue:-1];
+	shininessVal = [configuration oo_intForKey:@"shininess" defaultValue:-1];
 	if (shininessVal != 0 && ![UNIVERSE reducedDetail])
 	{
 		colorDesc = [configuration objectForKey:@"specular"];

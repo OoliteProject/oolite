@@ -132,11 +132,11 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	if (OK)
 	{
 		// Read required attributes
-		_techLevel = [info unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
-		_price = [info unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
-		_name = [[info stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] retain];
-		_identifier = [[info stringAtIndex:EQUIPMENT_KEY_INDEX] retain];
-		_description = [[info stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] retain];
+		_techLevel = [info oo_unsignedIntAtIndex:EQUIPMENT_TECH_LEVEL_INDEX];
+		_price = [info oo_unsignedIntAtIndex:EQUIPMENT_PRICE_INDEX];
+		_name = [[info oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] retain];
+		_identifier = [[info oo_stringAtIndex:EQUIPMENT_KEY_INDEX] retain];
+		_description = [[info oo_stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] retain];
 		
 		if (_name == nil || _identifier == nil || _description == nil)
 		{
@@ -166,20 +166,20 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX)
 	{
 		// Read extra info dictionary
-		extra = [info dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+		extra = [info oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
 		if (extra != nil)
 		{
-			_isAvailableToAll = [extra boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
-			_requiresEmptyPylon = [extra boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
-			_requiresMountedPylon = [extra boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];
-			_requiresClean = [extra boolForKey:@"requires_clean" defaultValue:_requiresClean];
-			_requiresNotClean = [extra boolForKey:@"requires_not_clean" defaultValue:_requiresNotClean];
-			_portableBetweenShips = [extra boolForKey:@"portable_between_ships" defaultValue:_portableBetweenShips];
-			_requiresFreePassengerBerth = [extra boolForKey:@"requires_free_passenger_berth" defaultValue:_requiresFreePassengerBerth];
-			_requiresFullFuel = [extra boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
-			_requiresNonFullFuel = [extra boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
+			_isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
+			_requiresEmptyPylon = [extra oo_boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
+			_requiresMountedPylon = [extra oo_boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];
+			_requiresClean = [extra oo_boolForKey:@"requires_clean" defaultValue:_requiresClean];
+			_requiresNotClean = [extra oo_boolForKey:@"requires_not_clean" defaultValue:_requiresNotClean];
+			_portableBetweenShips = [extra oo_boolForKey:@"portable_between_ships" defaultValue:_portableBetweenShips];
+			_requiresFreePassengerBerth = [extra oo_boolForKey:@"requires_free_passenger_berth" defaultValue:_requiresFreePassengerBerth];
+			_requiresFullFuel = [extra oo_boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
+			_requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
 			
-			_requiredCargoSpace = [extra unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
+			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 			
 			id object = [extra objectForKey:@"requires_equipment"];
 			if ([object isKindOfClass:[NSString class]])  _requiresEquipment = [[NSSet setWithObject:object] retain];

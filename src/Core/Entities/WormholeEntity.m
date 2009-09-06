@@ -83,8 +83,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 		NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
-		origin = RandomSeedFromString([dict stringForKey:@"origin_seed"]);
-		destination = RandomSeedFromString([dict stringForKey:@"dest_seed"]);
+		origin = RandomSeedFromString([dict oo_stringForKey:@"origin_seed"]);
+		destination = RandomSeedFromString([dict oo_stringForKey:@"dest_seed"]);
 
 		// We only ever init from dictionary if we're loaded by the player, so
 		// by definition we have been scanned
@@ -92,21 +92,21 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 		// Remember, times are stored as Ship Clock - but anything
 		// saving/restoring wormholes from dictionaries should know this!
-		expiry_time = [dict doubleForKey:@"expiry_time"];
-		arrival_time = [dict doubleForKey:@"arrival_time"];
+		expiry_time = [dict oo_doubleForKey:@"expiry_time"];
+		arrival_time = [dict oo_doubleForKey:@"arrival_time"];
 		NSDictionary * posDict = [dict objectForKey:@"position"];
-		position.x = [posDict floatForKey:@"x"];
-		position.y = [posDict floatForKey:@"y"];
-		position.z = [posDict floatForKey:@"z"];
+		position.x = [posDict oo_floatForKey:@"x"];
+		position.y = [posDict oo_floatForKey:@"y"];
+		position.z = [posDict oo_floatForKey:@"z"];
 
 		// Setup shipsInTransit
-		NSArray * shipDictsArray = [dict arrayForKey:@"ships"];
+		NSArray * shipDictsArray = [dict oo_arrayForKey:@"ships"];
 		NSEnumerator * shipDicts = [shipDictsArray objectEnumerator];
 		NSDictionary * currShipDict;
 		[shipsInTransit removeAllObjects];
 		while ((currShipDict = [shipDicts nextObject]) != nil)
 		{
-			double time = [currShipDict doubleForKey:@"time_delta"];
+			double time = [currShipDict oo_doubleForKey:@"time_delta"];
 			NSDictionary * myShipDict = [currShipDict objectForKey:@"ship"];
 			ShipEntity * ship = [ShipEntity alloc];
 			ship = [ship initWithDictionary:myShipDict];
@@ -115,8 +115,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			if( !ship )
 			{
 				OOLog(@"wormhole.load.warning", @"Ship '%@' failed to initialize - missing OXP?  Attempting to replace with random ship using roles '%@'.",
-						[myShipDict stringForKey:@"name"], [myShipDict stringForKey:@"roles"]);
-				OORoleSet * roleSet = [OORoleSet roleSetWithString:[myShipDict stringForKey:@"roles"]];
+						[myShipDict oo_stringForKey:@"name"], [myShipDict oo_stringForKey:@"roles"]);
+				OORoleSet * roleSet = [OORoleSet roleSetWithString:[myShipDict oo_stringForKey:@"roles"]];
 				NSString * shipRole = [roleSet anyRole];
 				NSString * shipKey = [[OOShipRegistry sharedRegistry] randomShipKeyForRole:shipRole];
 				if( shipKey )
@@ -146,7 +146,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			}
 			/*
 			   [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-			   [NSNumber numberWithDouble:[currShipDict doubleForKey:@"time_delta"]], @"time",
+			   [NSNumber numberWithDouble:[currShipDict oo_doubleForKey:@"time_delta"]], @"time",
 			   [[ShipEntity alloc] initWithDictionary:[currShipDict objectForKey:@"ship"]], @"ship",
 			   nil]];
 			   */
@@ -524,8 +524,8 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	[myDict setObject:str forKey:@"dest_seed"];
 	// Anything converting a wormhole to a dictionary should already have 
 	// modified its time to shipClock time
-	[myDict setFloat:(expiry_time) forKey:@"expiry_time"];
-	[myDict setFloat:(arrival_time) forKey:@"arrival_time"];
+	[myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
+	[myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
 	[myDict setObject:[NSDictionary dictionaryWithObjectsAndKeys:
 		[NSNumber numberWithFloat:position.x], @"x", 
 		[NSNumber numberWithFloat:position.y], @"y",
@@ -539,13 +539,13 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 		/*
 		NSMutableDictionary * myShipDict = [NSMutableDictionary dictionary];
-		[myShipDict setFloat:([currShipDict doubleForKey:@"time"]) forKey:@"time_delta"];
+		[myShipDict oo_setFloat:([currShipDict oo_doubleForKey:@"time"]) forKey:@"time_delta"];
 		ShipEntity * currShip = (ShipEntity*)[currShipDict objectForKey:@"ship"];
 		[myShipDict setObject:[currShip shipInfoDictionary] forKey:@"ship"];
 		[shipArray addObject:myShipDict];
 		*/
 		[shipArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:[currShipDict doubleForKey:@"time"]], @"time_delta",
+			[NSNumber numberWithDouble:[currShipDict oo_doubleForKey:@"time"]], @"time_delta",
 			[[currShipDict objectForKey:@"ship"] shipInfoDictionary], @"ship",
 			nil]];
 	}

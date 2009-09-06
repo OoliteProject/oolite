@@ -237,7 +237,7 @@ static BOOL					sHaveSetUp = NO;
 	sGLMaxSize = MAX(maxSize, 64);
 	
 	// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
-	sUserMaxSize = [[NSUserDefaults standardUserDefaults] unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
+	sUserMaxSize = [[NSUserDefaults standardUserDefaults] oo_unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
 	sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
 	sUserMaxSize = MAX(sUserMaxSize, 64U);
 	

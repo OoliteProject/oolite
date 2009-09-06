@@ -335,8 +335,8 @@ MA 02110-1301, USA.
 		return;
 	}
 	
-	start = [tokens doubleAtIndex:0];
-	end   = [tokens doubleAtIndex:1];
+	start = [tokens oo_doubleAtIndex:0];
+	end   = [tokens oo_doubleAtIndex:1];
 	
 	[shipAI setNextThinkTime:[UNIVERSE getTime] + (start + (end - start)*randf())];
 }
@@ -2024,15 +2024,15 @@ static WormholeEntity *whole = nil;
 {
 	if (dockingInstructions != nil)
 	{
-		destination = [dockingInstructions vectorForKey:@"destination"];
-		desired_speed = fminf([dockingInstructions floatForKey:@"speed"], maxFlightSpeed);
-		desired_range = [dockingInstructions floatForKey:@"range"];
+		destination = [dockingInstructions oo_vectorForKey:@"destination"];
+		desired_speed = fminf([dockingInstructions oo_floatForKey:@"speed"], maxFlightSpeed);
+		desired_range = [dockingInstructions oo_floatForKey:@"range"];
 		if ([dockingInstructions objectForKey:@"station_id"])
 		{
-			primaryTarget = [dockingInstructions intForKey:@"station_id"];
+			primaryTarget = [dockingInstructions oo_intForKey:@"station_id"];
 			targetStation = primaryTarget;
 		}
-		docking_match_rotation = [dockingInstructions boolForKey:@"match_rotation"];
+		docking_match_rotation = [dockingInstructions oo_boolForKey:@"match_rotation"];
 	}
 }
 

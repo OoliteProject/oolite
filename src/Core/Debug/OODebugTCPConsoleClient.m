@@ -494,7 +494,7 @@ noteChangedConfigrationValue:(in id)newValue
 		// Build "Connected..." message with two optional parts, console identity and host name.
 		connectedMessage = [NSMutableString stringWithString:@"Connected to external debug console"];
 		
-		consoleIdentity = [packet stringForKey:kOOTCPConsoleIdentity];
+		consoleIdentity = [packet oo_stringForKey:kOOTCPConsoleIdentity];
 		if (consoleIdentity != nil)  [connectedMessage appendFormat:@" \"%@\"", consoleIdentity];
 		
 		hostName = [_host name];
@@ -528,7 +528,7 @@ noteChangedConfigrationValue:(in id)newValue
 		OOLog(@"debugTCP.protocolError.outOfOrder", @"Got %@ packet from debug console in wrong context.", kOOTCPPacket_RejectConnection);
 	}
 	
-	message = [packet stringForKey:kOOTCPMessage];
+	message = [packet oo_stringForKey:kOOTCPMessage];
 	if (message == nil)  message = @"Console refused connection.";
 	[self breakConnectionWithMessage:message];
 }
@@ -542,7 +542,7 @@ noteChangedConfigrationValue:(in id)newValue
 	{
 		OOLog(@"debugTCP.protocolError.outOfOrder", @"Got %@ packet from debug console in wrong context.", kOOTCPPacket_CloseConnection);
 	}
-	message = [packet stringForKey:kOOTCPMessage];
+	message = [packet oo_stringForKey:kOOTCPMessage];
 	if (message == nil)  message = @"Console closed connection.";
 	[self breakConnectionWithMessage:message];
 }
@@ -558,7 +558,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (_monitor == nil)  return;
 	
-	configuration = [packet dictionaryForKey:kOOTCPConfiguration];
+	configuration = [packet oo_dictionaryForKey:kOOTCPConfiguration];
 	if (configuration != nil)
 	{
 		for (keyEnum = [configuration keyEnumerator]; (key = [keyEnum nextObject]); )
@@ -568,7 +568,7 @@ noteChangedConfigrationValue:(in id)newValue
 		}
 	}
 	
-	removed = [configuration arrayForKey:kOOTCPRemovedConfigurationKeys];
+	removed = [configuration oo_arrayForKey:kOOTCPRemovedConfigurationKeys];
 	for (keyEnum = [removed objectEnumerator]; (key = [keyEnum nextObject]); )
 	{
 		[_monitor setConfigurationValue:nil forKey:key];
@@ -580,7 +580,7 @@ noteChangedConfigrationValue:(in id)newValue
 {
 	NSString				*message = nil;
 	
-	message = [packet stringForKey:kOOTCPMessage];
+	message = [packet oo_stringForKey:kOOTCPMessage];
 	if (message != nil)  [_monitor performJSConsoleCommand:message];
 }
 
@@ -590,7 +590,7 @@ noteChangedConfigrationValue:(in id)newValue
 	NSString				*key = nil;
 	id						value = nil;
 	
-	key = [packet stringForKey:kOOTCPConfigurationKey];
+	key = [packet oo_stringForKey:kOOTCPConfigurationKey];
 	if (key != nil)
 	{
 		value = [_monitor configurationValueForKey:key];

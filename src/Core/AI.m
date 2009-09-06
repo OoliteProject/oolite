@@ -195,7 +195,7 @@ static AI *sCurrentlyRunningAI = nil;
 			while (count--)
 			{
 				NSDictionary *pickledMachine = [aiStack objectAtIndex:count];
-				OOLog(@"ai.error.stackOverflow.dump", @"%3u: %@: %@", count, [pickledMachine stringForKey:@"stateMachineName"], [pickledMachine stringForKey:@"currentState"]);
+				OOLog(@"ai.error.stackOverflow.dump", @"%3u: %@: %@", count, [pickledMachine oo_stringForKey:@"stateMachineName"], [pickledMachine oo_stringForKey:@"currentState"]);
 			}
 			
 			OOLogOutdent();
@@ -726,7 +726,7 @@ static AI *sCurrentlyRunningAI = nil;
 		
 		NS_DURING
 			// Load state machine and validate against whitelist.
-			newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" andMerge:NO];
+			newSM = [ResourceManager dictionaryFromFilesNamed:smName inFolder:@"AIs" mergeMode:MERGE_NONE cache:NO];
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
@@ -808,13 +808,13 @@ static AI *sCurrentlyRunningAI = nil;
 	
 	if (whitelist == nil)
 	{
-		whitelistArray1 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_methods"];
+		whitelistArray1 = [[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"];
 		if (whitelistArray1 == nil)  whitelistArray1 = [NSArray array];
-		whitelistArray2 = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
+		whitelistArray2 = [[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"];
 		if (whitelistArray2 != nil)  whitelistArray1 = [whitelistArray1 arrayByAddingObjectsFromArray:whitelistArray2];
 		
 		whitelist = [[NSSet alloc] initWithArray:whitelistArray1];
-		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"ai_method_aliases"] retain];
+		aliases = [[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"] retain];
 	}
 	
 	result = [NSMutableArray arrayWithCapacity:[actions count]];

@@ -73,85 +73,85 @@ SOFTWARE.
 
 @interface NSArray (OOExtractor)
 
-- (char)charAtIndex:(OOUInteger)index defaultValue:(char)value;
-- (short)shortAtIndex:(OOUInteger)index defaultValue:(short)value;
-- (int)intAtIndex:(OOUInteger)index defaultValue:(int)value;
-- (long)longAtIndex:(OOUInteger)index defaultValue:(long)value;
-- (long long)longLongAtIndex:(OOUInteger)index defaultValue:(long long)value;
-- (OOInteger)integerAtIndex:(OOUInteger)index defaultValue:(OOInteger)value;
+- (char) oo_charAtIndex:(OOUInteger)index defaultValue:(char)value;
+- (short) oo_shortAtIndex:(OOUInteger)index defaultValue:(short)value;
+- (int) oo_intAtIndex:(OOUInteger)index defaultValue:(int)value;
+- (long) oo_longAtIndex:(OOUInteger)index defaultValue:(long)value;
+- (long long) oo_longLongAtIndex:(OOUInteger)index defaultValue:(long long)value;
+- (OOInteger) oo_integerAtIndex:(OOUInteger)index defaultValue:(OOInteger)value;
 
-- (unsigned char)unsignedCharAtIndex:(OOUInteger)index defaultValue:(unsigned char)value;
-- (unsigned short)unsignedShortAtIndex:(OOUInteger)index defaultValue:(unsigned short)value;
-- (unsigned int)unsignedIntAtIndex:(OOUInteger)index defaultValue:(unsigned int)value;
-- (unsigned long)unsignedLongAtIndex:(OOUInteger)index defaultValue:(unsigned long)value;
-- (unsigned long long)unsignedLongLongAtIndex:(OOUInteger)index defaultValue:(unsigned long long)value;
-- (OOUInteger)unsignedIntegerAtIndex:(OOUInteger)index defaultValue:(OOUInteger)value;
+- (unsigned char) oo_unsignedCharAtIndex:(OOUInteger)index defaultValue:(unsigned char)value;
+- (unsigned short) oo_unsignedShortAtIndex:(OOUInteger)index defaultValue:(unsigned short)value;
+- (unsigned int) oo_unsignedIntAtIndex:(OOUInteger)index defaultValue:(unsigned int)value;
+- (unsigned long) oo_unsignedLongAtIndex:(OOUInteger)index defaultValue:(unsigned long)value;
+- (unsigned long long) oo_unsignedLongLongAtIndex:(OOUInteger)index defaultValue:(unsigned long long)value;
+- (OOUInteger) oo_unsignedIntegerAtIndex:(OOUInteger)index defaultValue:(OOUInteger)value;
 
-- (BOOL)boolAtIndex:(OOUInteger)index defaultValue:(BOOL)value;
+- (BOOL) oo_boolAtIndex:(OOUInteger)index defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanAtIndex:(OOUInteger)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanAtIndex:(OOUInteger)index defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
-- (float)floatAtIndex:(OOUInteger)index defaultValue:(float)value;
-- (double)doubleAtIndex:(OOUInteger)index defaultValue:(double)value;
-- (float)nonNegativeFloatAtIndex:(OOUInteger)index defaultValue:(float)value;
-- (double)nonNegativeDoubleAtIndex:(OOUInteger)index defaultValue:(double)value;
+- (float) oo_floatAtIndex:(OOUInteger)index defaultValue:(float)value;
+- (double) oo_doubleAtIndex:(OOUInteger)index defaultValue:(double)value;
+- (float) oo_nonNegativeFloatAtIndex:(OOUInteger)index defaultValue:(float)value;
+- (double) oo_nonNegativeDoubleAtIndex:(OOUInteger)index defaultValue:(double)value;
 
-- (id)objectAtIndex:(OOUInteger)index defaultValue:(id)value;
-- (id)objectOfClass:(Class)class atIndex:(OOUInteger)index defaultValue:(id)value;
-- (NSString *)stringAtIndex:(OOUInteger)index defaultValue:(NSString *)value;
-- (NSArray *)arrayAtIndex:(OOUInteger)index defaultValue:(NSArray *)value;
-- (NSSet *)setAtIndex:(OOUInteger)index defaultValue:(NSSet *)value;
-- (NSDictionary *)dictionaryAtIndex:(OOUInteger)index defaultValue:(NSDictionary *)value;
-- (NSData *)dataAtIndex:(OOUInteger)index defaultValue:(NSData *)value;
+- (id) oo_objectAtIndex:(OOUInteger)index defaultValue:(id)value;
+- (id) oo_objectOfClass:(Class)class atIndex:(OOUInteger)index defaultValue:(id)value;
+- (NSString *) oo_stringAtIndex:(OOUInteger)index defaultValue:(NSString *)value;
+- (NSArray *) oo_arrayAtIndex:(OOUInteger)index defaultValue:(NSArray *)value;
+- (NSSet *) oo_setAtIndex:(OOUInteger)index defaultValue:(NSSet *)value;
+- (NSDictionary *) oo_dictionaryAtIndex:(OOUInteger)index defaultValue:(NSDictionary *)value;
+- (NSData *) oo_dataAtIndex:(OOUInteger)index defaultValue:(NSData *)value;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (Vector)vectorAtIndex:(OOUInteger)index defaultValue:(Vector)value;
-- (Quaternion)quaternionAtIndex:(OOUInteger)index defaultValue:(Quaternion)value;
+- (Vector) oo_vectorAtIndex:(OOUInteger)index defaultValue:(Vector)value;
+- (Quaternion) oo_quaternionAtIndex:(OOUInteger)index defaultValue:(Quaternion)value;
 #endif
 
 
 // Default: 0
-- (char)charAtIndex:(OOUInteger)index;
-- (short)shortAtIndex:(OOUInteger)index;
-- (int)intAtIndex:(OOUInteger)index;
-- (long)longAtIndex:(OOUInteger)index;
-- (long long)longLongAtIndex:(OOUInteger)index;
-- (OOInteger)integerAtIndex:(OOUInteger)index;
+- (char) oo_charAtIndex:(OOUInteger)index;
+- (short) oo_shortAtIndex:(OOUInteger)index;
+- (int) oo_intAtIndex:(OOUInteger)index;
+- (long) oo_longAtIndex:(OOUInteger)index;
+- (long long) oo_longLongAtIndex:(OOUInteger)index;
+- (OOInteger) oo_integerAtIndex:(OOUInteger)index;
 
-- (unsigned char)unsignedCharAtIndex:(OOUInteger)index;
-- (unsigned short)unsignedShortAtIndex:(OOUInteger)index;
-- (unsigned int)unsignedIntAtIndex:(OOUInteger)index;
-- (unsigned long)unsignedLongAtIndex:(OOUInteger)index;
-- (unsigned long long)unsignedLongLongAtIndex:(OOUInteger)index;
-- (OOUInteger)unsignedIntegerAtIndex:(OOUInteger)index;
+- (unsigned char) oo_unsignedCharAtIndex:(OOUInteger)index;
+- (unsigned short) oo_unsignedShortAtIndex:(OOUInteger)index;
+- (unsigned int) oo_unsignedIntAtIndex:(OOUInteger)index;
+- (unsigned long) oo_unsignedLongAtIndex:(OOUInteger)index;
+- (unsigned long long) oo_unsignedLongLongAtIndex:(OOUInteger)index;
+- (OOUInteger) oo_unsignedIntegerAtIndex:(OOUInteger)index;
 
 // Default: NO
-- (BOOL)boolAtIndex:(OOUInteger)index;
+- (BOOL) oo_boolAtIndex:(OOUInteger)index;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanAtIndex:(OOUInteger)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanAtIndex:(OOUInteger)index;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
 // Default: 0.0
-- (float)floatAtIndex:(OOUInteger)index;
-- (double)doubleAtIndex:(OOUInteger)index;
-- (float)nonNegativeFloatAtIndex:(OOUInteger)index;
-- (double)nonNegativeDoubleAtIndex:(OOUInteger)index;
+- (float) oo_floatAtIndex:(OOUInteger)index;
+- (double) oo_doubleAtIndex:(OOUInteger)index;
+- (float) oo_nonNegativeFloatAtIndex:(OOUInteger)index;
+- (double) oo_nonNegativeDoubleAtIndex:(OOUInteger)index;
 
 // Default: nil
 // - (id)objectAtIndex:(OOUInteger)index;	// Already defined
-- (id)objectOfClass:(Class)class atIndex:(OOUInteger)index;
-- (NSString *)stringAtIndex:(OOUInteger)index;
-- (NSArray *)arrayAtIndex:(OOUInteger)index;
-- (NSSet *)setAtIndex:(OOUInteger)index;
-- (NSDictionary *)dictionaryAtIndex:(OOUInteger)index;
-- (NSData *)dataAtIndex:(OOUInteger)index;
+- (id) oo_objectOfClass:(Class)class atIndex:(OOUInteger)index;
+- (NSString *) oo_stringAtIndex:(OOUInteger)index;
+- (NSArray *) oo_arrayAtIndex:(OOUInteger)index;
+- (NSSet *) oo_setAtIndex:(OOUInteger)index;
+- (NSDictionary *) oo_dictionaryAtIndex:(OOUInteger)index;
+- (NSData *) oo_dataAtIndex:(OOUInteger)index;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
-- (Vector)vectorAtIndex:(OOUInteger)index;
+- (Vector) oo_vectorAtIndex:(OOUInteger)index;
 // Default: kIdentityQuaternion
-- (Quaternion)quaternionAtIndex:(OOUInteger)index;
+- (Quaternion) oo_quaternionAtIndex:(OOUInteger)index;
 #endif
 
 @end
@@ -159,85 +159,85 @@ SOFTWARE.
 
 @interface NSDictionary (OOExtractor)
 
-- (char)charForKey:(id)key defaultValue:(char)value;
-- (short)shortForKey:(id)key defaultValue:(short)value;
-- (int)intForKey:(id)key defaultValue:(int)value;
-- (long)longForKey:(id)key defaultValue:(long)value;
-- (long long)longLongForKey:(id)key defaultValue:(long long)value;
-- (OOInteger)integerForKey:(id)key defaultValue:(OOInteger)value;
+- (char) oo_charForKey:(id)key defaultValue:(char)value;
+- (short) oo_shortForKey:(id)key defaultValue:(short)value;
+- (int) oo_intForKey:(id)key defaultValue:(int)value;
+- (long) oo_longForKey:(id)key defaultValue:(long)value;
+- (long long) oo_longLongForKey:(id)key defaultValue:(long long)value;
+- (OOInteger) oo_integerForKey:(id)key defaultValue:(OOInteger)value;
 
-- (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
-- (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
-- (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
-- (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
-- (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
-- (OOUInteger)unsignedIntegerForKey:(id)key defaultValue:(OOUInteger)value;
+- (unsigned char) oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
+- (unsigned short) oo_unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
+- (unsigned int) oo_unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
+- (unsigned long) oo_unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
+- (unsigned long long) oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
+- (OOUInteger) oo_unsignedIntegerForKey:(id)key defaultValue:(OOUInteger)value;
 
-- (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+- (BOOL) oo_boolForKey:(id)key defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
-- (float)floatForKey:(id)key defaultValue:(float)value;
-- (double)doubleForKey:(id)key defaultValue:(double)value;
-- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value;
-- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
+- (float) oo_floatForKey:(id)key defaultValue:(float)value;
+- (double) oo_doubleForKey:(id)key defaultValue:(double)value;
+- (float) oo_nonNegativeFloatForKey:(id)key defaultValue:(float)value;
+- (double) oo_nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
 
-- (id)objectForKey:(id)key defaultValue:(id)value;
-- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
-- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
-- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
-- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value;
-- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
-- (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
+- (id) oo_objectForKey:(id)key defaultValue:(id)value;
+- (id) oo_objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
+- (NSString *) oo_stringForKey:(id)key defaultValue:(NSString *)value;
+- (NSArray *) oo_arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSSet *) oo_setForKey:(id)key defaultValue:(NSSet *)value;
+- (NSDictionary *) oo_dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
+- (NSData *) oo_dataForKey:(id)key defaultValue:(NSData *)value;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (Vector)vectorForKey:(id)key defaultValue:(Vector)value;
-- (Quaternion)quaternionForKey:(id)key defaultValue:(Quaternion)value;
+- (Vector) oo_vectorForKey:(id)key defaultValue:(Vector)value;
+- (Quaternion) oo_quaternionForKey:(id)key defaultValue:(Quaternion)value;
 #endif
 
 
 // Default: 0
-- (char)charForKey:(id)key;
-- (short)shortForKey:(id)key;
-- (int)intForKey:(id)key;
-- (long)longForKey:(id)key;
-- (long long)longLongForKey:(id)key;
-- (OOInteger)integerForKey:(id)key;
+- (char) oo_charForKey:(id)key;
+- (short) oo_shortForKey:(id)key;
+- (int) oo_intForKey:(id)key;
+- (long) oo_longForKey:(id)key;
+- (long long) oo_longLongForKey:(id)key;
+- (OOInteger) oo_integerForKey:(id)key;
 
-- (unsigned char)unsignedCharForKey:(id)key;
-- (unsigned short)unsignedShortForKey:(id)key;
-- (unsigned int)unsignedIntForKey:(id)key;
-- (unsigned long)unsignedLongForKey:(id)key;
-- (unsigned long long)unsignedLongLongForKey:(id)key;
-- (OOUInteger)unsignedIntegerForKey:(id)key;
+- (unsigned char) oo_unsignedCharForKey:(id)key;
+- (unsigned short) oo_unsignedShortForKey:(id)key;
+- (unsigned int) oo_unsignedIntForKey:(id)key;
+- (unsigned long) oo_unsignedLongForKey:(id)key;
+- (unsigned long long) oo_unsignedLongLongForKey:(id)key;
+- (OOUInteger) oo_unsignedIntegerForKey:(id)key;
 
 // Default: NO
-- (BOOL)boolForKey:(id)key;
+- (BOOL) oo_boolForKey:(id)key;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
 // Default: 0.0
-- (float)floatForKey:(id)key;
-- (double)doubleForKey:(id)key;
-- (float)nonNegativeFloatForKey:(id)key;
-- (double)nonNegativeDoubleForKey:(id)key;
+- (float) oo_floatForKey:(id)key;
+- (double) oo_doubleForKey:(id)key;
+- (float) oo_nonNegativeFloatForKey:(id)key;
+- (double) oo_nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
 // - (id)objectForKey:(id)key;	// Already defined
-- (id)objectOfClass:(Class)class forKey:(id)key;
-- (NSString *)stringForKey:(id)key;
-- (NSArray *)arrayForKey:(id)key;
-- (NSSet *)setForKey:(id)key;
-- (NSDictionary *)dictionaryForKey:(id)key;
-- (NSData *)dataForKey:(id)key;
+- (id) oo_objectOfClass:(Class)class forKey:(id)key;
+- (NSString *) oo_stringForKey:(id)key;
+- (NSArray *) oo_arrayForKey:(id)key;
+- (NSSet *) oo_setForKey:(id)key;
+- (NSDictionary *) oo_dictionaryForKey:(id)key;
+- (NSData *) oo_dataForKey:(id)key;
 
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 // Default: kZeroVector
-- (Vector)vectorForKey:(id)key;
+- (Vector) oo_vectorForKey:(id)key;
 // Default: kIdentityQuaternion
-- (Quaternion)quaternionForKey:(id)key;
+- (Quaternion) oo_quaternionForKey:(id)key;
 #endif
 
 @end
@@ -245,92 +245,92 @@ SOFTWARE.
 
 @interface NSUserDefaults (OOExtractor)
 
-- (char)charForKey:(id)key defaultValue:(char)value;
-- (short)shortForKey:(id)key defaultValue:(short)value;
-- (int)intForKey:(id)key defaultValue:(int)value;
-- (long)longForKey:(id)key defaultValue:(long)value;
-- (long long)longLongForKey:(id)key defaultValue:(long long)value;
+- (char) oo_charForKey:(id)key defaultValue:(char)value;
+- (short) oo_shortForKey:(id)key defaultValue:(short)value;
+- (int) oo_intForKey:(id)key defaultValue:(int)value;
+- (long) oo_longForKey:(id)key defaultValue:(long)value;
+- (long long) oo_longLongForKey:(id)key defaultValue:(long long)value;
 
-- (unsigned char)unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
-- (unsigned short)unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
-- (unsigned int)unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
-- (unsigned long)unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
-- (unsigned long long)unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
+- (unsigned char) oo_unsignedCharForKey:(id)key defaultValue:(unsigned char)value;
+- (unsigned short) oo_unsignedShortForKey:(id)key defaultValue:(unsigned short)value;
+- (unsigned int) oo_unsignedIntForKey:(id)key defaultValue:(unsigned int)value;
+- (unsigned long) oo_unsignedLongForKey:(id)key defaultValue:(unsigned long)value;
+- (unsigned long long) oo_unsignedLongLongForKey:(id)key defaultValue:(unsigned long long)value;
 
-- (BOOL)boolForKey:(id)key defaultValue:(BOOL)value;
+- (BOOL) oo_boolForKey:(id)key defaultValue:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanForKey:(id)key defaultValue:(float)value;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
-- (float)floatForKey:(id)key defaultValue:(float)value;
-- (double)doubleForKey:(id)key defaultValue:(double)value;
-- (float)nonNegativeFloatForKey:(id)key defaultValue:(float)value;
-- (double)nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
+- (float) oo_floatForKey:(id)key defaultValue:(float)value;
+- (double) oo_doubleForKey:(id)key defaultValue:(double)value;
+- (float) oo_nonNegativeFloatForKey:(id)key defaultValue:(float)value;
+- (double) oo_nonNegativeDoubleForKey:(id)key defaultValue:(double)value;
 
-- (id)objectForKey:(id)key defaultValue:(id)value;
-- (id)objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
-- (NSString *)stringForKey:(id)key defaultValue:(NSString *)value;
-- (NSArray *)arrayForKey:(id)key defaultValue:(NSArray *)value;
-- (NSSet *)setForKey:(id)key defaultValue:(NSSet *)value;
-- (NSDictionary *)dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
-- (NSData *)dataForKey:(id)key defaultValue:(NSData *)value;
+- (id) oo_objectForKey:(id)key defaultValue:(id)value;
+- (id) oo_objectOfClass:(Class)class forKey:(id)key defaultValue:(id)value;
+- (NSString *) oo_stringForKey:(id)key defaultValue:(NSString *)value;
+- (NSArray *) oo_arrayForKey:(id)key defaultValue:(NSArray *)value;
+- (NSSet *) oo_setForKey:(id)key defaultValue:(NSSet *)value;
+- (NSDictionary *) oo_dictionaryForKey:(id)key defaultValue:(NSDictionary *)value;
+- (NSData *) oo_dataForKey:(id)key defaultValue:(NSData *)value;
 
 
 // Default: 0
-- (char)charForKey:(id)key;
-- (short)shortForKey:(id)key;
-- (int)intForKey:(id)key;
-- (long)longForKey:(id)key;
-- (long long)longLongForKey:(id)key;
+- (char) oo_charForKey:(id)key;
+- (short) oo_shortForKey:(id)key;
+- (int) oo_intForKey:(id)key;
+- (long) oo_longForKey:(id)key;
+- (long long) oo_longLongForKey:(id)key;
 
-- (unsigned char)unsignedCharForKey:(id)key;
-- (unsigned short)unsignedShortForKey:(id)key;
-- (unsigned int)unsignedIntForKey:(id)key;
-- (unsigned long)unsignedLongForKey:(id)key;
-- (unsigned long long)unsignedLongLongForKey:(id)key;
+- (unsigned char) oo_unsignedCharForKey:(id)key;
+- (unsigned short) oo_unsignedShortForKey:(id)key;
+- (unsigned int) oo_unsignedIntForKey:(id)key;
+- (unsigned long) oo_unsignedLongForKey:(id)key;
+- (unsigned long long) oo_unsignedLongLongForKey:(id)key;
 
 // Default: NO
-// - (BOOL)boolForKey:(id)key;
+// - (BOOL) boolForKey:(id)key;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (BOOL)fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
+- (BOOL) oo_fuzzyBooleanForKey:(id)key;	// Reads a float in the range [0, 1], and returns YES with that probability.
 #endif
 
 // Default: 0.0
-// - (float)floatForKey:(id)key;
-- (double)doubleForKey:(NSString *)key;
-- (float)nonNegativeFloatForKey:(id)key;
-- (double)nonNegativeDoubleForKey:(id)key;
+// - (float) floatForKey:(id)key;
+- (double) oo_doubleForKey:(NSString *)key;
+- (float) oo_nonNegativeFloatForKey:(id)key;
+- (double) oo_nonNegativeDoubleForKey:(id)key;
 
 // Default: nil
-// - (id)objectForKey:(id)key;	// Already defined
-- (id)objectOfClass:(Class)class forKey:(id)key;
-// - (NSString *)stringForKey:(id)key;
-// - (NSArray *)arrayForKey:(id)key;
-- (NSSet *)setForKey:(id)key;
-// - (NSDictionary *)dictionaryForKey:(id)key;
-// - (NSData *)dataForKey:(id)key;
+// - (id) objectForKey:(id)key;	// Already defined
+- (id) oo_objectOfClass:(Class)class forKey:(id)key;
+// - (NSString *) stringForKey:(id)key;
+// - (NSArray *) arrayForKey:(id)key;
+- (NSSet *) oo_setForKey:(id)key;
+// - (NSDictionary *) dictionaryForKey:(id)key;
+// - (NSData *) dataForKey:(id)key;
 
 @end
 
 
 @interface NSMutableArray (OOInserter)
 
-- (void)addInteger:(long)value;
-- (void)addUnsignedInteger:(unsigned long)value;
-- (void)addFloat:(double)value;
-- (void)addBool:(BOOL)value;
+- (void) oo_addInteger:(long)value;
+- (void) oo_addUnsignedInteger:(unsigned long)value;
+- (void) oo_addFloat:(double)value;
+- (void) oo_addBool:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (void)addVector:(Vector)value;
-- (void)addQuaternion:(Quaternion)value;
+- (void) oo_addVector:(Vector)value;
+- (void) oo_addQuaternion:(Quaternion)value;
 #endif
 
-- (void)insertInteger:(long)value atIndex:(OOUInteger)index;
-- (void)insertUnsignedInteger:(unsigned long)value atIndex:(OOUInteger)index;
-- (void)insertFloat:(double)value atIndex:(OOUInteger)index;
-- (void)insertBool:(BOOL)value atIndex:(OOUInteger)index;
+- (void) oo_insertInteger:(long)value atIndex:(OOUInteger)index;
+- (void) oo_insertUnsignedInteger:(unsigned long)value atIndex:(OOUInteger)index;
+- (void) oo_insertFloat:(double)value atIndex:(OOUInteger)index;
+- (void) oo_insertBool:(BOOL)value atIndex:(OOUInteger)index;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (void)insertVector:(Vector)value atIndex:(OOUInteger)index;
-- (void)insertQuaternion:(Quaternion)value atIndex:(OOUInteger)index;
+- (void) oo_insertVector:(Vector)value atIndex:(OOUInteger)index;
+- (void) oo_insertQuaternion:(Quaternion)value atIndex:(OOUInteger)index;
 #endif
 
 @end
@@ -338,15 +338,15 @@ SOFTWARE.
 
 @interface NSMutableDictionary (OOInserter)
 
-- (void)setInteger:(long)value forKey:(id)key;
-- (void)setUnsignedInteger:(unsigned long)value forKey:(id)key;
-- (void)setLongLong:(long long)value forKey:(id)key;
-- (void)setUnsignedLongLong:(unsigned long long)value forKey:(id)key;
-- (void)setFloat:(double)value forKey:(id)key;
-- (void)setBool:(BOOL)value forKey:(id)key;
+- (void) oo_setInteger:(long)value forKey:(id)key;
+- (void) oo_setUnsignedInteger:(unsigned long)value forKey:(id)key;
+- (void) oo_setLongLong:(long long)value forKey:(id)key;
+- (void) oo_setUnsignedLongLong:(unsigned long long)value forKey:(id)key;
+- (void) oo_setFloat:(double)value forKey:(id)key;
+- (void) oo_setBool:(BOOL)value forKey:(id)key;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (void)setVector:(Vector)value forKey:(id)key;
-- (void)setQuaternion:(Quaternion)value forKey:(id)key;
+- (void) oo_setVector:(Vector)value forKey:(id)key;
+- (void) oo_setQuaternion:(Quaternion)value forKey:(id)key;
 #endif
 
 @end
@@ -354,13 +354,13 @@ SOFTWARE.
 
 @interface NSMutableSet (OOInserter)
 
-- (void)addInteger:(long)value;
-- (void)addUnsignedInteger:(unsigned long)value;
-- (void)addFloat:(double)value;
-- (void)addBool:(BOOL)value;
+- (void)oo_addInteger:(long)value;
+- (void)oo_addUnsignedInteger:(unsigned long)value;
+- (void)oo_addFloat:(double)value;
+- (void)oo_addBool:(BOOL)value;
 #ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
-- (void)addVector:(Vector)value;
-- (void)addQuaternion:(Quaternion)value;
+- (void)oo_addVector:(Vector)value;
+- (void)oo_addQuaternion:(Quaternion)value;
 #endif
 
 @end

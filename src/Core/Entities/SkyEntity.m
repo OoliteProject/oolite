@@ -74,14 +74,14 @@ MA 02110-1301, USA.
 		skyColor = [[col2 blendedColorWithFraction:0.5 ofColor:col1] retain];
 
 	// Load distribution values
-	clusterChance = [systemInfo floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
-	alpha = [systemInfo floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
-	scale = [systemInfo floatForKey:@"sky_blur_scale" defaultValue:SKY_scale];
+	clusterChance = [systemInfo oo_floatForKey:@"sky_blur_cluster_chance" defaultValue:SKY_clusterChance];
+	alpha = [systemInfo oo_floatForKey:@"sky_blur_alpha" defaultValue:SKY_alpha];
+	scale = [systemInfo oo_floatForKey:@"sky_blur_scale" defaultValue:SKY_scale];
 	
 	// Load star count
-	starCount = [systemInfo floatForKey:@"sky_n_stars" defaultValue:-1];
-	starCountMultiplier = [systemInfo unsignedIntForKey:@"star_count_multiplier" defaultValue:1];
-	nebulaCountMultiplier = [systemInfo unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
+	starCount = [systemInfo oo_floatForKey:@"sky_n_stars" defaultValue:-1];
+	starCountMultiplier = [systemInfo oo_unsignedIntForKey:@"star_count_multiplier" defaultValue:1];
+	nebulaCountMultiplier = [systemInfo oo_unsignedIntForKey:@"nebula_count_multiplier" defaultValue:1];
 	if (0 <= starCount)
 	{
 		starCount = MIN(SKY_MAX_STARS, starCount);
@@ -92,7 +92,7 @@ MA 02110-1301, USA.
 	}
 	
 	// ...and sky count. (Note: simplifying this would change the appearance of stars/blobs.)
-	nebulaCount = [systemInfo floatForKey:@"sky_n_blurs" defaultValue:-1];
+	nebulaCount = [systemInfo oo_floatForKey:@"sky_n_blurs" defaultValue:-1];
 	if (0 <= nebulaCount)
 	{
 		nebulaCount = MIN(SKY_MAX_BLOBS, nebulaCount);
@@ -198,19 +198,19 @@ MA 02110-1301, USA.
 	
 	assert(ioColor1 != NULL && ioColor2 != NULL);
 	
-	string = [dictionary stringForKey:@"sky_rgb_colors"];
+	string = [dictionary oo_stringForKey:@"sky_rgb_colors"];
 	if (string != nil)
 	{
 		tokens = ScanTokensFromString(string);
 		
 		if ([tokens count] == 6)
 		{
-			float r1 = OOClamp_0_1_f([tokens floatAtIndex:0]);
-			float g1 = OOClamp_0_1_f([tokens floatAtIndex:1]);
-			float b1 = OOClamp_0_1_f([tokens floatAtIndex:2]);
-			float r2 = OOClamp_0_1_f([tokens floatAtIndex:3]);
-			float g2 = OOClamp_0_1_f([tokens floatAtIndex:4]);
-			float b2 = OOClamp_0_1_f([tokens floatAtIndex:5]);
+			float r1 = OOClamp_0_1_f([tokens oo_floatAtIndex:0]);
+			float g1 = OOClamp_0_1_f([tokens oo_floatAtIndex:1]);
+			float b1 = OOClamp_0_1_f([tokens oo_floatAtIndex:2]);
+			float r2 = OOClamp_0_1_f([tokens oo_floatAtIndex:3]);
+			float g2 = OOClamp_0_1_f([tokens oo_floatAtIndex:4]);
+			float b2 = OOClamp_0_1_f([tokens oo_floatAtIndex:5]);
 			*ioColor1 = [OOColor colorWithCalibratedRed:r1 green:g1 blue:b1 alpha:1.0];
 			*ioColor2 = [OOColor colorWithCalibratedRed:r2 green:g2 blue:b2 alpha:1.0];
 		}

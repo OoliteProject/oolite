@@ -161,23 +161,23 @@ MA 02110-1301, USA.
 		if ([dict objectForKey:@"hue"] != nil)
 		{
 			// Treat as HSB(A) dictionary
-			float h = [dict floatForKey:@"hue"];
-			float s = [dict floatForKey:@"saturation" defaultValue:1.0f];
-			float b = [dict floatForKey:@"brightness" defaultValue:-1.0f];
-			if (b < 0.0f)  b = [dict floatForKey:@"value" defaultValue:1.0f];
-			float a = [dict floatForKey:@"alpha" defaultValue:-1.0f];
-			if (a < 0.0f)  a = [dict floatForKey:@"opacity" defaultValue:1.0f];
+			float h = [dict oo_floatForKey:@"hue"];
+			float s = [dict oo_floatForKey:@"saturation" defaultValue:1.0f];
+			float b = [dict oo_floatForKey:@"brightness" defaultValue:-1.0f];
+			if (b < 0.0f)  b = [dict oo_floatForKey:@"value" defaultValue:1.0f];
+			float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
+			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
 			return [OOColor colorWithCalibratedHue:h / 360.0f saturation:s brightness:b alpha:a];
 		}
 		else
 		{
 			// Treat as RGB(A) dictionary
-			float r = [dict floatForKey:@"red"];
-			float g = [dict floatForKey:@"green"];
-			float b = [dict floatForKey:@"blue"];
-			float a = [dict floatForKey:@"alpha" defaultValue:-1.0f];
-			if (a < 0.0f)  a = [dict floatForKey:@"opacity" defaultValue:1.0f];
+			float r = [dict oo_floatForKey:@"red"];
+			float g = [dict oo_floatForKey:@"green"];
+			float b = [dict oo_floatForKey:@"blue"];
+			float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
+			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
 			return [OOColor colorWithCalibratedRed:r green:g blue:b alpha:a];
 		}

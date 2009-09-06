@@ -390,9 +390,9 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	
 	// Load preferences.
 	userDefaults = [NSUserDefaults standardUserDefaults];
-	width = [userDefaults intForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
-	height = [userDefaults intForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
-	refresh = [userDefaults intForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
+	width = [userDefaults oo_intForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
+	height = [userDefaults oo_intForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
+	refresh = [userDefaults oo_intForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
 	
 	// Get the list of all available modes
 	modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
@@ -403,10 +403,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	for (modeIndex = 0; modeIndex < modeCount; modeIndex++)
 	{
 		mode = [modes objectAtIndex: modeIndex];
-		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
-		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
-		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
-	//	modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
+		modeWidth = [mode oo_unsignedIntForKey:kOODisplayWidth];
+		modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
+		color = [mode oo_unsignedIntForKey:kOODisplayBitsPerPixel];
+	//	modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
 		
 		if (color < DISPLAY_MIN_COLOURS ||
 			modeWidth < DISPLAY_MIN_WIDTH ||
@@ -440,22 +440,22 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	for (modeIndex = 0; modeIndex + 1 < [displayModes count]; modeIndex++)
 	{
 		mode = [displayModes objectAtIndex:modeIndex];
-		modeWidth = [mode unsignedIntForKey:kOODisplayWidth];
-		modeHeight = [mode unsignedIntForKey:kOODisplayHeight];
-		modeRefresh = [mode floatForKey:kOODisplayRefreshRate];
-		color = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
-		stretched = [mode boolForKey:(NSString *)kCGDisplayModeIsStretched];
-		interlaced = [mode boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
+		modeWidth = [mode oo_unsignedIntForKey:kOODisplayWidth];
+		modeHeight = [mode oo_unsignedIntForKey:kOODisplayHeight];
+		modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
+		color = [mode oo_unsignedIntForKey:kOODisplayBitsPerPixel];
+		stretched = [mode oo_boolForKey:(NSString *)kCGDisplayModeIsStretched];
+		interlaced = [mode oo_boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
 		
 		for (mode2Index = modeIndex + 1; mode2Index < [displayModes count]; ++mode2Index)
 		{
 			mode2 = [displayModes objectAtIndex:mode2Index];
-			modeWidth2 = [mode2 unsignedIntForKey:kOODisplayWidth];
-			modeHeight2 = [mode2 unsignedIntForKey:kOODisplayHeight];
-			modeRefresh2 = [mode2 floatForKey:kOODisplayRefreshRate];
-			color2 = [mode unsignedIntForKey:kOODisplayBitsPerPixel];
-			stretched2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsStretched];
-			interlaced2 = [mode2 boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
+			modeWidth2 = [mode2 oo_unsignedIntForKey:kOODisplayWidth];
+			modeHeight2 = [mode2 oo_unsignedIntForKey:kOODisplayHeight];
+			modeRefresh2 = [mode2 oo_floatForKey:kOODisplayRefreshRate];
+			color2 = [mode oo_unsignedIntForKey:kOODisplayBitsPerPixel];
+			stretched2 = [mode2 oo_boolForKey:(NSString *)kCGDisplayModeIsStretched];
+			interlaced2 = [mode2 oo_boolForKey:(NSString *)kCGDisplayModeIsInterlaced];
 			
 			if (modeWidth == modeWidth2 &&
 				modeHeight == modeHeight2 &&

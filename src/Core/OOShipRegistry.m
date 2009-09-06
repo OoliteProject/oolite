@@ -333,7 +333,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	initialDemoShips = [ResourceManager arrayFromFilesNamed:@"demoships.plist"
 												   inFolder:@"Config"
-												   andMerge:YES];
+												   andMerge:YES
+													  cache:NO];
 	demoShips = [NSMutableArray arrayWithArray:initialDemoShips];
 	
 	// Note: iterate over initialDemoShips to avoid mutating the collection being enu,erated.
@@ -394,7 +395,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	for (shipEnum = [_shipData keyEnumerator]; (shipKey = [shipEnum nextObject]); )
 	{
 		shipEntry = [_shipData objectForKey:shipKey];
-		roles = [shipEntry stringForKey:@"roles"];
+		roles = [shipEntry oo_stringForKey:@"roles"];
 		[self mergeShipRoles:roles forShipKey:shipKey intoProbabilityMap:probabilitySets];
 	}
 	
@@ -444,7 +445,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	for (enumerator = [ioData keyEnumerator]; (key = [enumerator nextObject]); )
 	{
 		shipEntry = [ioData objectForKey:key];
-		if ([shipEntry stringForKey:@"like_ship"] != nil)
+		if ([shipEntry oo_stringForKey:@"like_ship"] != nil)
 		{
 			[remainingLikeShips addObject:key];
 		}
@@ -481,7 +482,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			reportedBadShips = [NSMutableArray array];
 			for (enumerator = [remainingLikeShips objectEnumerator]; (key = [enumerator nextObject]); )
 			{
-				if (![[ioData dictionaryForKey:key] boolForKey:@"is_external_dependency"])
+				if (![[ioData oo_dictionaryForKey:key] oo_boolForKey:@"is_external_dependency"])
 				{
 					[reportedBadShips addObject:key];
 				}
@@ -511,8 +512,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	[result removeObjectForKey:@"like_ship"];
 	
 	// Certain properties cannot be inherited.
-	if ([child stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
-	if ([child stringForKey:@"is_template"] == nil)  [result removeObjectForKey:@"is_template"];
+	if ([child oo_stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
+	if ([child oo_stringForKey:@"is_template"] == nil)  [result removeObjectForKey:@"is_template"];
 	
 	return result;
 }
@@ -697,7 +698,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		badSubentities = nil;
 		
 		// Iterate over each subentity declaration of each ship
-		subentityDeclarations = [shipEntry arrayForKey:@"subentities"];
+		subentityDeclarations = [shipEntry oo_arrayForKey:@"subentities"];
 		if (subentityDeclarations != nil)
 		{
 			okSubentities = [NSMutableArray arrayWithCapacity:[subentityDeclarations count]];
@@ -715,9 +716,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 					[okSubentities addObject:subentityDict];
 					
 					// Tag subentities.
-					if (![[subentityDict stringForKey:@"type"] isEqualToString:@"flasher"])
+					if (![[subentityDict oo_stringForKey:@"type"] isEqualToString:@"flasher"])
 					{
-						subentityKey = [subentityDict stringForKey:@"subentity_key"];
+						subentityKey = [subentityDict oo_stringForKey:@"subentity_key"];
 						subentityShipEntry = [ioData objectForKey:subentityKey];
 						if (subentityKey == nil)
 						{
@@ -728,7 +729,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 						else
 						{
 							// Subent exists, add _oo_is_subentity so roles aren't required.
-							[subentityShipEntry setBool:YES forKey:@"_oo_is_subentity"];
+							[subentityShipEntry oo_setBool:YES forKey:@"_oo_is_subentity"];
 						}
 					}
 				}
@@ -746,7 +747,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			
 			if (badSubentities != nil)
 			{
-				if (![shipEntry boolForKey:@"is_external_dependency"])
+				if (![shipEntry oo_boolForKey:@"is_external_dependency"])
 				{
 					badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
 					OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
@@ -757,7 +758,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			if (remove)
 			{
 				// Removal is deferred to avoid bogus "entry doesn't exist" errors.
-				[shipEntry setBool:YES forKey:@"_oo_deferred_remove"];
+				[shipEntry oo_setBool:YES forKey:@"_oo_deferred_remove"];
 			}
 		}
 	}
@@ -780,15 +781,15 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		shipEntry = [ioData objectForKey:shipKey];
 		remove = NO;
 		
-		if ([shipEntry boolForKey:@"is_template"] || [shipEntry boolForKey:@"_oo_deferred_remove"])  remove = YES;
-		else if ([[shipEntry stringForKey:@"roles"] length] == 0 && ![shipEntry boolForKey:@"_oo_is_subentity"])
+		if ([shipEntry oo_boolForKey:@"is_template"] || [shipEntry oo_boolForKey:@"_oo_deferred_remove"])  remove = YES;
+		else if ([[shipEntry oo_stringForKey:@"roles"] length] == 0 && ![shipEntry oo_boolForKey:@"_oo_is_subentity"])
 		{
 			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
 			remove = YES;
 		}
 		else
 		{
-			modelName = [shipEntry stringForKey:@"model"];
+			modelName = [shipEntry oo_stringForKey:@"model"];
 			if ([modelName length] == 0)
 			{
 				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
@@ -826,7 +827,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		conditions = [shipEntry objectForKey:@"conditions"];
 		hasShipyard = [shipEntry objectForKey:@"hasShipyard"];
 		if (![hasShipyard isKindOfClass:[NSArray class]])  hasShipyard = nil;	// May also be fuzzy boolean
-		shipyardConditions = [[shipEntry dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
+		shipyardConditions = [[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] objectForKey:@"conditions"];
 		
 		if (conditions == nil && hasShipyard && shipyardConditions == nil)  continue;
 		
@@ -868,7 +869,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		
 		if (shipyardConditions != nil)
 		{
-			mutableShipyard = [[[shipEntry dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
+			mutableShipyard = [[[shipEntry oo_dictionaryForKey:@"_oo_shipyard"] mutableCopy] autorelease];
 			
 			if ([shipyardConditions isKindOfClass:[NSArray class]])
 			{
@@ -921,11 +922,11 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		shipEntry = [ioData objectForKey:shipKey];
 		remove = NO;
 		
-		modelName = [shipEntry stringForKey:@"model"];
+		modelName = [shipEntry oo_stringForKey:@"model"];
 		mesh = [OOMesh meshWithName:modelName
-				 materialDictionary:[shipEntry dictionaryForKey:@"materials"]
-				  shadersDictionary:[shipEntry dictionaryForKey:@"shaders"]
-							 smooth:[shipEntry boolForKey:@"smooth"]
+				 materialDictionary:[shipEntry oo_dictionaryForKey:@"materials"]
+				  shadersDictionary:[shipEntry oo_dictionaryForKey:@"shaders"]
+							 smooth:[shipEntry oo_boolForKey:@"smooth"]
 					   shaderMacros:nil
 				shaderBindingTarget:nil];
 		
@@ -969,7 +970,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			[probabilitySets setObject:probSet forKey:role];
 		}
 		
-		[probSet setWeight:[rolesAndWeights floatForKey:role] forObject:shipKey];
+		[probSet setWeight:[rolesAndWeights oo_floatForKey:role] forObject:shipKey];
 	}
 }
 
@@ -1011,7 +1012,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	
 	// For frangible ships, bad subentities are non-fatal.
-	if (*outFatalError && [[shipData dictionaryForKey:shipKey] boolForKey:@"frangible"])  *outFatalError = NO;
+	if (*outFatalError && [[shipData oo_dictionaryForKey:shipKey] oo_boolForKey:@"frangible"])  *outFatalError = NO;
 	
 	return result;
 }
@@ -1071,14 +1072,14 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSDictionary			*colorDict = nil;
 	NSDictionary			*result = nil;
 	
-	position.x = [tokens floatAtIndex:1];
-	position.y = [tokens floatAtIndex:2];
-	position.z = [tokens floatAtIndex:3];
+	position.x = [tokens oo_floatAtIndex:1];
+	position.y = [tokens oo_floatAtIndex:2];
+	position.z = [tokens oo_floatAtIndex:3];
 	
-	hue = [tokens floatAtIndex:4];
-	frequency = [tokens floatAtIndex:5];
-	phase = [tokens floatAtIndex:6];
-	size = [tokens floatAtIndex:7];
+	hue = [tokens oo_floatAtIndex:4];
+	frequency = [tokens oo_floatAtIndex:5];
+	phase = [tokens oo_floatAtIndex:6];
+	size = [tokens oo_floatAtIndex:7];
 	
 	colorDict = [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:hue] forKey:@"hue"];
 	
@@ -1108,18 +1109,18 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSMutableDictionary		*result = nil;
 	BOOL					isTurret, isDock = NO;
 	
-	subentityKey = [tokens stringAtIndex:0];
+	subentityKey = [tokens oo_stringAtIndex:0];
 	
 	isTurret = [self shipIsBallTurretForKey:subentityKey inShipData:shipData];
 	
-	position.x = [tokens floatAtIndex:1];
-	position.y = [tokens floatAtIndex:2];
-	position.z = [tokens floatAtIndex:3];
+	position.x = [tokens oo_floatAtIndex:1];
+	position.y = [tokens oo_floatAtIndex:2];
+	position.z = [tokens oo_floatAtIndex:3];
 	
-	orientation.w = [tokens floatAtIndex:4];
-	orientation.x = [tokens floatAtIndex:5];
-	orientation.y = [tokens floatAtIndex:6];
-	orientation.z = [tokens floatAtIndex:7];
+	orientation.w = [tokens oo_floatAtIndex:4];
+	orientation.x = [tokens oo_floatAtIndex:5];
+	orientation.y = [tokens oo_floatAtIndex:6];
+	orientation.z = [tokens oo_floatAtIndex:7];
 	
 	quaternion_normalize(&orientation);
 	
@@ -1131,9 +1132,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	result = [NSMutableDictionary dictionaryWithCapacity:5];
 	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
 	[result setObject:subentityKey forKey:@"subentity_key"];
-	[result setVector:position forKey:@"position"];
-	[result setQuaternion:orientation forKey:@"orientation"];
-	if (isDock)  [result setBool:YES forKey:@"is_dock"];
+	[result oo_setVector:position forKey:@"position"];
+	[result oo_setQuaternion:orientation forKey:@"orientation"];
+	if (isDock)  [result oo_setBool:YES forKey:@"is_dock"];
 	
 	OOLog(@"shipData.translateSubentity.standard", @"Translated subentity declaration \"%@\" to %@", [tokens componentsJoinedByString:@" "], result);
 	
@@ -1147,7 +1148,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSString				*type = nil;
 	
-	type = [declaration stringForKey:@"type"];
+	type = [declaration oo_stringForKey:@"type"];
 	if (type == nil)  type = @"standard";
 	
 	if ([type isEqualToString:@"flasher"])
@@ -1179,7 +1180,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	BOOL					initiallyOn;
 	
 	// "Validate" is really "clean up", since all values have defaults.
-	colors = [declaration arrayForKey:@"colors"];
+	colors = [declaration oo_arrayForKey:@"colors"];
 	if ([colors count] == 0)
 	{
 		colorDesc = [declaration objectForKey:@"color"];
@@ -1187,9 +1188,9 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		colors = [NSArray arrayWithObject:colorDesc];
 	}
 	
-	position = [declaration vectorForKey:@"position"];
+	position = [declaration oo_vectorForKey:@"position"];
 	
-	size = [declaration floatForKey:@"size" defaultValue:8.0];
+	size = [declaration oo_floatForKey:@"size" defaultValue:8.0];
 	
 	if (size <= 0)
 	{
@@ -1197,15 +1198,15 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		return nil;
 	}
 	
-	frequency = [declaration floatForKey:@"frequency" defaultValue:2.0];
-	phase = [declaration floatForKey:@"phase" defaultValue:0.0];
+	frequency = [declaration oo_floatForKey:@"frequency" defaultValue:2.0];
+	phase = [declaration oo_floatForKey:@"phase" defaultValue:0.0];
 	
-	initiallyOn = [declaration boolForKey:@"initially_on" defaultValue:NO];
+	initiallyOn = [declaration oo_boolForKey:@"initially_on" defaultValue:NO];
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:7];
 	[result setObject:@"flasher" forKey:@"type"];
 	[result setObject:colors forKey:@"colors"];
-	[result setVector:position forKey:@"position"];
+	[result oo_setVector:position forKey:@"position"];
 	[result setObject:[NSNumber numberWithFloat:size] forKey:@"size"];
 	[result setObject:[NSNumber numberWithFloat:frequency] forKey:@"frequency"];
 	if (phase != 0)  [result setObject:[NSNumber numberWithFloat:phase] forKey:@"phase"];
@@ -1235,10 +1236,10 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		return nil;
 	}
 	
-	isTurret = [[declaration stringForKey:@"type"] isEqualToString:@"ball_turret"];
+	isTurret = [[declaration oo_stringForKey:@"type"] isEqualToString:@"ball_turret"];
 	if (isTurret)
 	{
-		fireRate = [declaration floatForKey:@"fire_rate" defaultValue:0.5f];
+		fireRate = [declaration oo_floatForKey:@"fire_rate" defaultValue:0.5f];
 		if (fireRate < 0.25f)
 		{
 			OOLog(@"shipData.load.warning.turret.badFireRate", @"----- WARNING: ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
@@ -1247,20 +1248,20 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	else
 	{
-		isDock = [declaration boolForKey:@"is_dock"];
+		isDock = [declaration oo_boolForKey:@"is_dock"];
 	}
 	
-	position = [declaration vectorForKey:@"position"];
-	orientation = [declaration quaternionForKey:@"orientation"];
+	position = [declaration oo_vectorForKey:@"position"];
+	orientation = [declaration oo_quaternionForKey:@"orientation"];
 	quaternion_normalize(&orientation);
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:5];
 	[result setObject:isTurret ? @"ball_turret" : @"standard" forKey:@"type"];
 	[result setObject:subentityKey forKey:@"subentity_key"];
-	[result setVector:position forKey:@"position"];
-	[result setQuaternion:orientation forKey:@"orientation"];
-	if (isDock)  [result setBool:YES forKey:@"is_dock"];
-	if (isTurret)  [result setFloat:fireRate forKey:@"fire_rate"];
+	[result oo_setVector:position forKey:@"position"];
+	[result oo_setQuaternion:orientation forKey:@"orientation"];
+	if (isDock)  [result oo_setBool:YES forKey:@"is_dock"];
+	if (isTurret)  [result oo_setFloat:fireRate forKey:@"fire_rate"];
 	
 	return [[result copy] autorelease];
 }
@@ -1273,7 +1274,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	NSEnumerator			*actionEnum = nil;
 	NSString				*action = nil;
 	
-	setupActions = [[shipData dictionaryForKey:shipKey] arrayForKey:@"setup_actions"];
+	setupActions = [[shipData oo_dictionaryForKey:shipKey] oo_arrayForKey:@"setup_actions"];
 	
 	for (actionEnum = [setupActions objectEnumerator]; (action = [actionEnum nextObject]); )
 	{

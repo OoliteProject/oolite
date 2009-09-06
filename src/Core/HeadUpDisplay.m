@@ -166,11 +166,11 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
 	
 	// populate arrays
-	NSArray *dials = [hudinfo arrayForKey:DIALS_KEY];
+	NSArray *dials = [hudinfo oo_arrayForKey:DIALS_KEY];
 	for (i = 0; i < [dials count]; i++)
 	{
-		NSDictionary	*dial_info = [dials dictionaryAtIndex:i];
-		if (!areTrumblesToBeDrawn && [[dial_info stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
+		NSDictionary	*dial_info = [dials oo_dictionaryAtIndex:i];
+		if (!areTrumblesToBeDrawn && [[dial_info oo_stringForKey:SELECTOR_KEY] isEqualToString:@"drawTrumbles:"])  areTrumblesToBeDrawn = YES;
 		[self addDial:dial_info];
 	}
 	
@@ -180,25 +180,25 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 		[self addDial:trumble_dial_info];
 	}
 	
-	NSArray *legends = [hudinfo arrayForKey:LEGENDS_KEY];
+	NSArray *legends = [hudinfo oo_arrayForKey:LEGENDS_KEY];
 	for (i = 0; i < [legends count]; i++)
 	{
-		[self addLegend:[legends dictionaryAtIndex:i]];
+		[self addLegend:[legends oo_dictionaryAtIndex:i]];
 	}
 	
-	overallAlpha = [hudinfo floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
+	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
 	
-	reticleTargetSensitive = [hudinfo boolForKey:@"reticle_target_sensitive" defaultValue:NO];
+	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	
-	cloakIndicatorOnStatusLight = [hudinfo boolForKey:@"cloak_indicator_on_status_light" defaultValue:NO];
+	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:NO];
 	
 	last_transmitter = NO_TARGET;
 	
-	_crosshairOverrides = [[hudinfo dictionaryForKey:@"crosshairs"] retain];
-	id crosshairColor = [hudinfo objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
+	_crosshairOverrides = [[hudinfo oo_dictionaryForKey:@"crosshairs"] retain];
+	id crosshairColor = [hudinfo oo_objectForKey:@"crosshair_color" defaultValue:@"greenColor"];
 	_crosshairColor = [[OOColor colorWithDescription:crosshairColor] retain];
-	_crosshairScale = [hudinfo floatForKey:@"crosshair_scale" defaultValue:32.0f];
-	_crosshairWidth = [hudinfo floatForKey:@"crosshair_width" defaultValue:1.5f];
+	_crosshairScale = [hudinfo oo_floatForKey:@"crosshair_scale" defaultValue:32.0f];
+	_crosshairWidth = [hudinfo oo_floatForKey:@"crosshair_width" defaultValue:1.5f];
 	
 	return self;
 }
@@ -247,7 +247,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 		else
 			[message_gui setAlpha: 1.0];
 		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[message_gui setBackgroundColor:[OOColor colorFromString:[gui_info stringForKey:BACKGROUND_RGBA_KEY]]];
+			[message_gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
 	}
 	
 	GuiDisplayGen* comm_log_gui = [UNIVERSE comm_log_gui];
@@ -277,7 +277,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 		else
 			[comm_log_gui setAlpha: 1.0];
 		if ([gui_info objectForKey:BACKGROUND_RGBA_KEY])
-			[comm_log_gui setBackgroundColor:[OOColor colorFromString:[gui_info stringForKey:BACKGROUND_RGBA_KEY]]];
+			[comm_log_gui setBackgroundColor:[OOColor colorFromString:[gui_info oo_stringForKey:BACKGROUND_RGBA_KEY]]];
 	}
 	
 	
@@ -327,7 +327,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	OpenGLSprite		*legendSprite = nil;
 	NSMutableDictionary	*legendDict = nil;
 	
-	imageName = [info stringForKey:IMAGE_KEY];
+	imageName = [info oo_stringForKey:IMAGE_KEY];
 	if (imageName != nil)
 	{
 		texture = [OOTexture textureWithName:imageName inFolder:@"Images"];
@@ -338,8 +338,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 		}
 		
 		imageSize = [texture dimensions];
-		imageSize.width = [info floatForKey:WIDTH_KEY defaultValue:imageSize.width];
-		imageSize.height = [info floatForKey:HEIGHT_KEY defaultValue:imageSize.height];
+		imageSize.width = [info oo_floatForKey:WIDTH_KEY defaultValue:imageSize.width];
+		imageSize.height = [info oo_floatForKey:HEIGHT_KEY defaultValue:imageSize.height];
 		
  		legendSprite = [[OpenGLSprite alloc] initWithTexture:texture size:imageSize];
 		
@@ -349,7 +349,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 		[legendDict release];
 		[legendSprite release];
 	}
-	else if ([info stringForKey:TEXT_KEY] != nil)
+	else if ([info oo_stringForKey:TEXT_KEY] != nil)
 	{
 		[legendArray addObject:info];
 	}
@@ -358,9 +358,9 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 
 - (void) addDial:(NSDictionary *) info
 {
-	if ([info stringForKey:SELECTOR_KEY] != nil)
+	if ([info oo_stringForKey:SELECTOR_KEY] != nil)
 	{
-		SEL _selector = NSSelectorFromString([info stringForKey:SELECTOR_KEY]);
+		SEL _selector = NSSelectorFromString([info oo_stringForKey:SELECTOR_KEY]);
 		if ([self respondsToSelector:_selector])  [dialArray addObject:info];
 	}
 }
@@ -388,7 +388,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [legendArray count]; i++)
 	{
-		[self drawLegend:[legendArray dictionaryAtIndex:i]];
+		[self drawLegend:[legendArray oo_dictionaryAtIndex:i]];
 	}
 }
 
@@ -401,7 +401,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	z1 = [[UNIVERSE gameView] display_z];
 	for (i = 0; i < [dialArray count]; i++)
 	{
-		[self drawHUDItem:[dialArray dictionaryAtIndex:i]];
+		[self drawHUDItem:[dialArray oo_dictionaryAtIndex:i]];
 	}
 }
 
@@ -460,8 +460,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	 */
 	
 	weaponName = WeaponTypeToString(weapon);
-	result = [_crosshairOverrides arrayForKey:weaponName];
-	if (result == nil)  result = [_crosshairOverrides arrayForKey:@"OTHER"];
+	result = [_crosshairOverrides oo_arrayForKey:weaponName];
+	if (result == nil)  result = [_crosshairOverrides oo_arrayForKey:@"OTHER"];
 	if (result == nil)
 	{
 		if (crosshairDefs == nil)
@@ -472,8 +472,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 			[crosshairDefs retain];
 		}
 		
-		result = [crosshairDefs arrayForKey:weaponName];
-		if (result == nil)  result = [crosshairDefs arrayForKey:@"OTHER"];
+		result = [crosshairDefs oo_arrayForKey:weaponName];
+		if (result == nil)  result = [crosshairDefs oo_arrayForKey:@"OTHER"];
 	}
 	
 	return result;
@@ -487,22 +487,22 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 	float						x, y;
 	NSSize						size;
 	
-	x = [info floatForKey:X_KEY];
-	y = [info floatForKey:Y_KEY];
+	x = [info oo_floatForKey:X_KEY];
+	y = [info oo_floatForKey:Y_KEY];
 	
 	legendSprite = [info objectForKey:SPRITE_KEY];
 	if (legendSprite != nil)
 	{
-		float alpha = [info floatForKey:ALPHA_KEY] * overallAlpha;
+		float alpha = [info oo_floatForKey:ALPHA_KEY] * overallAlpha;
 		[legendSprite blitCentredToX:x Y:y Z:z1 alpha:alpha];
 	}
 	else
 	{
-		legendText = [info stringForKey:TEXT_KEY];
+		legendText = [info oo_stringForKey:TEXT_KEY];
 		if (legendText != nil)
 		{
-			size.width = [info floatForKey:WIDTH_KEY];
-			size.height = [info floatForKey:HEIGHT_KEY];
+			size.width = [info oo_floatForKey:WIDTH_KEY];
+			size.height = [info oo_floatForKey:HEIGHT_KEY];
 			GLColorWithOverallAlpha(green_color, overallAlpha);
 			OODrawString(legendText, x, y, z1, size);
 		}
@@ -512,13 +512,13 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 
 - (void) drawHUDItem:(NSDictionary *) info
 {
-	NSString *equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
+	NSString *equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipment != nil && ![[PlayerEntity sharedPlayer] hasEquipmentItem:equipment])
 		return;
 	
-	if ([info stringForKey:SELECTOR_KEY] != nil)
+	if ([info oo_stringForKey:SELECTOR_KEY] != nil)
 	{
-		SEL _selector = NSSelectorFromString([info stringForKey:SELECTOR_KEY]);
+		SEL _selector = NSSelectorFromString([info oo_stringForKey:SELECTOR_KEY]);
 		if ([self respondsToSelector:_selector])
 			[self performSelector:_selector withObject:info];
 		else
@@ -538,10 +538,10 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
-	x = [info intForKey:X_KEY defaultValue:SCANNER_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
 	GetRGBAArrayFromInfo(info, scanner_color);
 	
 	scanner_color[3] *= overallAlpha;
@@ -836,10 +836,10 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
 	
-	x = [info intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
 	GetRGBAArrayFromInfo(info, zoom_color);
 	
 	GLfloat cx = x - 0.3 * siz.width;
@@ -869,11 +869,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	float			alpha;
 	
-	x = [info intForKey:X_KEY defaultValue:COMPASS_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
-	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0] * overallAlpha;
+	x = [info oo_intForKey:X_KEY defaultValue:COMPASS_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
+	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0] * overallAlpha;
 	
 	// draw the compass
 	OOMatrix		rotMatrix;
@@ -989,7 +989,7 @@ static BOOL hostiles;
 				break;
 			case COMPASS_MODE_BEACONS:
 				[self drawCompassBeaconBlipAt:relativePosition Size:sz Alpha:alpha];
-				NSArray	 *icon = [[UNIVERSE descriptions] arrayForKey:[(ShipEntity*)the_next_beacon primaryRole]];
+				NSArray	 *icon = [[UNIVERSE descriptions] oo_arrayForKey:[(ShipEntity*)the_next_beacon primaryRole]];
 				if (icon == nil)
 					OODrawString([NSString stringWithFormat:@"%c", [(ShipEntity*)the_next_beacon beaconChar]],
 							x - 2.5 * sz.width, y - 3.0 * sz.height, z1, NSMakeSize(sz.width * 2, sz.height * 2));
@@ -1146,12 +1146,12 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			alpha = 0.5f;
 	
-	x = [info intForKey:X_KEY defaultValue:AEGIS_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
-	alpha *= [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
+	x = [info oo_intForKey:X_KEY defaultValue:AEGIS_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
+	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
 
 	// draw the aegis indicator
 	//
@@ -1178,11 +1178,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SPEED_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SPEED_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
 	
 	double ds = [player dialSpeed];
 
@@ -1210,11 +1210,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:ROLL_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ROLL_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:ROLL_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ROLL_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
 
 	if (draw_surround)
 	{
@@ -1236,11 +1236,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 
 	if (draw_surround)
 	{
@@ -1265,11 +1265,11 @@ static BOOL hostiles;
 	// YAW does not exist in strict mode
 	if ([UNIVERSE strict])  return;
 	
-	x = [info intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 	if (draw_surround)
 	{
 		// draw YAW surround
@@ -1290,15 +1290,15 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround, labelled;
 	
-	x = [info intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ENERGY_GAUGE_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ENERGY_GAUGE_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
-	labelled = [info boolForKey:LABELLED_KEY defaultValue:YES];
+	x = [info oo_intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ENERGY_GAUGE_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ENERGY_GAUGE_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
+	labelled = [info oo_boolForKey:LABELLED_KEY defaultValue:YES];
 	
 	int n_bars = [player dialMaxEnergy]/64.0;
-	n_bars = [info unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
+	n_bars = [info oo_unsignedIntForKey:N_BARS_KEY defaultValue:n_bars];
 	if (n_bars < 1)  n_bars = 1;
 	if (n_bars > 8)  labelled = NO;
 	
@@ -1345,11 +1345,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FORWARD_SHIELD_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FORWARD_SHIELD_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
 
 	double shield = [player dialForwardShield];
 	if (draw_surround)
@@ -1376,11 +1376,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:AFT_SHIELD_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
-	draw_surround = [info boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
+	x = [info oo_intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:AFT_SHIELD_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
+	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
 
 	double shield = [player dialAftShield];
 	if (draw_surround)
@@ -1407,10 +1407,10 @@ static BOOL hostiles;
 	NSSize			siz;
 	float			fu, hr;
 	
-	x = [info intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:FUEL_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:FUEL_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
 	
 	fu = [player dialFuel];
 	hr = [player dialHyperRange];
@@ -1435,10 +1435,10 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:CABIN_TEMP_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CABIN_TEMP_BAR_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CABIN_TEMP_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CABIN_TEMP_BAR_HEIGHT];
 	
 	double temp = [player hullHeatLevel];
 	int flash = (int)([UNIVERSE getTime] * 4);
@@ -1463,10 +1463,10 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
 
 	double temp = [player laserHeatLevel];
 	// draw weapon_temp bar
@@ -1486,10 +1486,10 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:ALTITUDE_BAR_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:ALTITUDE_BAR_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
 	
 	GLfloat alt = [player dialAltitude];
 	int flash = (int)([UNIVERSE getTime] * 4);
@@ -1515,11 +1515,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	int				sp;
 	
-	x = [info intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X];
-	y = [info intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y];
-	sp = [info unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:MISSILE_ICON_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y];
+	sp = [info oo_unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:MISSILE_ICON_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
 	
 	if (![player dialIdentEngaged])
 	{
@@ -1531,7 +1531,7 @@ static BOOL hostiles;
 			{
 				// TODO: copy icon data into missile object instead of looking it up each time. Possibly make weapon stores a ShipEntity subclass?
 				NSString	*miss_roles = [[player missileForStation:i] primaryRole];
-				NSArray		*miss_icon = [[UNIVERSE descriptions] arrayForKey:miss_roles];
+				NSArray		*miss_icon = [[UNIVERSE descriptions] oo_arrayForKey:miss_roles];
 				if (i == [player activeMissile])
 				{
 					GLColorWithOverallAlpha(yellow_color, overallAlpha);
@@ -1670,10 +1670,10 @@ static BOOL hostiles;
 	NSSize			siz;
 	BOOL			blueAlert = cloakIndicatorOnStatusLight && [player isCloaked];
 	
-	x = [info intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	
 	GLfloat status_color[4] = { 0.25, 0.25, 0.25, 1.0};
 	int alertCondition = [player alertCondition];
@@ -1719,7 +1719,7 @@ static BOOL hostiles;
 	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
-	equipment = [info stringForKey:EQUIPMENT_REQUIRED_KEY];
+	equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipment != nil && ![player hasEquipmentItem:equipment])
 		return;
 	
@@ -1791,10 +1791,10 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X];
-	y = [info intForKey:Y_KEY defaultValue:CLOCK_DISPLAY_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:CLOCK_DISPLAY_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
 	
 	GLColorWithOverallAlpha(green_color, overallAlpha);
 	OODrawString([player dial_clock], x, y, z1, siz);
@@ -1810,10 +1810,10 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	
-	x = [info intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X];
-	y = [info intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
+	x = [info oo_intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
 	
 	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
@@ -1838,11 +1838,11 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			alpha;
 	
-	x = [info intForKey:X_KEY defaultValue:SCOOPSTATUS_CENTRE_X];
-	y = [info intForKey:Y_KEY defaultValue:SCOOPSTATUS_CENTRE_Y];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
-	alpha = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
+	x = [info oo_intForKey:X_KEY defaultValue:SCOOPSTATUS_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:SCOOPSTATUS_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
+	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
 
 	GLfloat* s0_color = red_color;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -1926,10 +1926,10 @@ static BOOL hostiles;
 	OOInteger		y;
 	NSSize			siz;
 	
-	x = [info integerForKey:X_KEY defaultValue:NSNotFound];
-	y = [info integerForKey:Y_KEY defaultValue:NSNotFound];
-	siz.width = [info nonNegativeFloatForKey:WIDTH_KEY defaultValue:NAN];
-	siz.height = [info nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NAN];
+	x = [info oo_integerForKey:X_KEY defaultValue:NSNotFound];
+	y = [info oo_integerForKey:Y_KEY defaultValue:NSNotFound];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:NAN];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:NAN];
 	
 	if (x == NSNotFound || y == NSNotFound || isnan(siz.width) || isnan(siz.height))  return;
 	
@@ -2086,8 +2086,8 @@ static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize 
 	int npts = [ptsArray count] & 0xfffe;	// make sure it's an even number
 	while (i < npts)
 	{
-		int x = [ptsArray intAtIndex:i++];
-		int y = [ptsArray intAtIndex:i++];
+		int x = [ptsArray oo_intAtIndex:i++];
+		int y = [ptsArray oo_intAtIndex:i++];
 		glVertex3i(ox + x * w, oy + y * h, z);
 	}
 }
@@ -2164,7 +2164,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 				int legal_i = 0;
 				if (target_legal > 0)
 					legal_i =  (target_legal <= 50) ? 1 : 2;
-				legal_desc = [[[UNIVERSE descriptions] arrayForKey:@"legal_status"] stringAtIndex:legal_i];
+				legal_desc = [[[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"] oo_stringAtIndex:legal_i];
 			}
 			break;
 	
@@ -2334,7 +2334,7 @@ static void InitTextEngine(void)
 												inFolder:@"Config"
 												andMerge:NO];
 	
-	texName = [fontSpec stringForKey:@"texture" defaultValue:@"oolite-font.png"];
+	texName = [fontSpec oo_stringForKey:@"texture" defaultValue:@"oolite-font.png"];
 	sFontTexture = [OOTexture textureWithName:texName
 									 inFolder:@"Textures"
 									  options:kFontTextureOptions
@@ -2343,12 +2343,12 @@ static void InitTextEngine(void)
 	[sFontTexture retain];
 	
 	sEncodingCoverter = [[OOEncodingConverter alloc] initWithFontPList:fontSpec];
-	widths = [fontSpec arrayForKey:@"widths"];
+	widths = [fontSpec oo_arrayForKey:@"widths"];
 	count = [widths count];
 	if (count > 256)  count = 256;
 	for (i = 0; i != count; ++i)
 	{
-		sGlyphWidths[i] = [widths floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
+		sGlyphWidths[i] = [widths oo_floatAtIndex:i] * 0.13; // 0.13 is an inherited magic number
 	}
 }
 
@@ -2608,12 +2608,12 @@ static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
 	}
 	
 	// Failing that, look for rgb_color and alpha.
-	colorDesc = [info arrayForKey:RGB_COLOR_KEY];
+	colorDesc = [info oo_arrayForKey:RGB_COLOR_KEY];
 	if (colorDesc != nil && [colorDesc count] == 3)
 	{
-		ioColor[0] = [colorDesc nonNegativeFloatAtIndex:0];
-		ioColor[1] = [colorDesc nonNegativeFloatAtIndex:1];
-		ioColor[2] = [colorDesc nonNegativeFloatAtIndex:2];
+		ioColor[0] = [colorDesc oo_nonNegativeFloatAtIndex:0];
+		ioColor[1] = [colorDesc oo_nonNegativeFloatAtIndex:1];
+		ioColor[2] = [colorDesc oo_nonNegativeFloatAtIndex:2];
 	}
-	ioColor[3] = [info nonNegativeFloatForKey:ALPHA_KEY defaultValue:ioColor[3]];
+	ioColor[3] = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:ioColor[3]];
 }

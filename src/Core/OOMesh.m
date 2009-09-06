@@ -154,7 +154,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		NSDictionary			*materialDefaults = nil;
 		
 		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults dictionaryForKey:@"no-textures-material"]];
+		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults oo_dictionaryForKey:@"no-textures-material"]];
 	}
 	
 	return placeholderMaterial;
@@ -725,19 +725,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	if (dict == nil || ![dict isKindOfClass:[NSDictionary class]])  return NO;
 	
-	vertexCount = [dict unsignedIntForKey:@"vertex count"];
-	faceCount = [dict unsignedIntForKey:@"face count"];
+	vertexCount = [dict oo_unsignedIntForKey:@"vertex count"];
+	faceCount = [dict oo_unsignedIntForKey:@"face count"];
 	
 	if (vertexCount == 0 || faceCount == 0)  return NO;
 	
 	// Read data elements from dictionary.
-	vertData = [dict dataForKey:@"vertex data"];
-	normData = [dict dataForKey:@"normal data"];
-	tanData = [dict dataForKey:@"tangent data"];
-	faceData = [dict dataForKey:@"face data"];
+	vertData = [dict oo_dataForKey:@"vertex data"];
+	normData = [dict oo_dataForKey:@"normal data"];
+	tanData = [dict oo_dataForKey:@"tangent data"];
+	faceData = [dict oo_dataForKey:@"face data"];
 	
-	mtlKeys = [dict arrayForKey:@"material keys"];
-	isSmoothShaded = [dict boolForKey:@"smooth"];
+	mtlKeys = [dict oo_arrayForKey:@"material keys"];
+	isSmoothShaded = [dict oo_boolForKey:@"smooth"];
 	
 	// Ensure we have all the required data elements.
 	if (vertData == nil ||
@@ -769,7 +769,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	materialCount = [mtlKeys count];
 	for (i = 0; i != materialCount; ++i)
 	{
-		key = [mtlKeys stringAtIndex:i];
+		key = [mtlKeys oo_stringAtIndex:i];
 		if (key != nil)  materialKeys[i] = [key retain];
 		else  return NO;
 	}
@@ -801,7 +801,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		texFileName2Idx = [NSMutableDictionary dictionary];
 		
-		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models"];
+		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
 		if (data == nil)
 		{
 			// Model not found

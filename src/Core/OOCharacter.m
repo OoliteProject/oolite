@@ -144,7 +144,7 @@ MA 02110-1301, USA.
 {
 	// determine the character's species
 	int species = genSeed.f & 0x03;	// 0-1 native to home system, 2 human colonial, 3 other
-	BOOL lowercaseIgnore = [[UNIVERSE descriptions] boolForKey:@"lowercase_ignore"]; // i18n.
+	BOOL lowercaseIgnore = [[UNIVERSE descriptions] oo_boolForKey:@"lowercase_ignore"]; // i18n.
 	NSString* speciesString = (species == 3)? [UNIVERSE getSystemInhabitants: genSeed plural:NO]:[UNIVERSE getSystemInhabitants: originSystemSeed plural:NO];
 	if (lowercaseIgnore)
 	{
@@ -485,19 +485,19 @@ MA 02110-1301, USA.
 	
 	if ([dict objectForKey:@"random_seed"])
 	{
-		Random_Seed g_seed = RandomSeedFromString([dict stringForKey:@"random_seed"]);
+		Random_Seed g_seed = RandomSeedFromString([dict oo_stringForKey:@"random_seed"]);
 		[self setGenSeed: g_seed];
 		[self basicSetUp];
 	}
 	
-	if ([dict stringForKey:@"role"])  [self castInRole:[dict stringForKey:@"role"]];
-	if ([dict stringForKey:@"name"])  [self setName:[dict stringForKey:@"name"]];
-	if ([dict stringForKey:@"short_description"])  [self setShortDescription:[dict stringForKey:@"short_description"]];
-	if ([dict stringForKey:@"long_description"])  [self setLongDescription:[dict stringForKey:@"long_description"]];
-	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[dict intForKey:@"legal_status"]];
-	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[dict intForKey:@"bounty"]];
-	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[dict unsignedLongLongForKey:@"insurance"]];
-	if ([dict arrayForKey:@"script_actions"])  [self setScript:[dict arrayForKey:@"script_actions"]];
+	if ([dict oo_stringForKey:@"role"])  [self castInRole:[dict oo_stringForKey:@"role"]];
+	if ([dict oo_stringForKey:@"name"])  [self setName:[dict oo_stringForKey:@"name"]];
+	if ([dict oo_stringForKey:@"short_description"])  [self setShortDescription:[dict oo_stringForKey:@"short_description"]];
+	if ([dict oo_stringForKey:@"long_description"])  [self setLongDescription:[dict oo_stringForKey:@"long_description"]];
+	if ([dict objectForKey:@"legal_status"])  [self setLegalStatus:[dict oo_intForKey:@"legal_status"]];
+	if ([dict objectForKey:@"bounty"])  [self setLegalStatus:[dict oo_intForKey:@"bounty"]];
+	if ([dict objectForKey:@"insurance"])  [self setInsuranceCredits:[dict oo_unsignedLongLongForKey:@"insurance"]];
+	if ([dict oo_arrayForKey:@"script_actions"])  [self setScript:[dict oo_arrayForKey:@"script_actions"]];
 }
 
 @end

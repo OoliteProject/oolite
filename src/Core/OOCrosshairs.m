@@ -116,7 +116,7 @@
 	data = _data;
 	for (i = 0; i < _count; i++)
 	{
-		[self setUpDataForOnePoint:[points arrayAtIndex:i]
+		[self setUpDataForOnePoint:[points oo_arrayAtIndex:i]
 							 scale:scale
 						colorComps:colorComps
 					  overallAlpha:alpha
@@ -137,12 +137,12 @@
 	
 	if ([pointInfo count] >= 6)
 	{
-		a1 = [pointInfo floatAtIndex:0];
-		x1 = [pointInfo floatAtIndex:1] * scale;
-		y1 = [pointInfo floatAtIndex:2] * scale;
-		a2 = [pointInfo floatAtIndex:3];
-		x2 = [pointInfo floatAtIndex:4] * scale;
-		y2 = [pointInfo floatAtIndex:5] * scale;
+		a1 = [pointInfo oo_floatAtIndex:0];
+		x1 = [pointInfo oo_floatAtIndex:1] * scale;
+		y1 = [pointInfo oo_floatAtIndex:2] * scale;
+		a2 = [pointInfo oo_floatAtIndex:3];
+		x2 = [pointInfo oo_floatAtIndex:4] * scale;
+		y2 = [pointInfo oo_floatAtIndex:5] * scale;
 		r = colorComps[0];
 		g = colorComps[1];
 		b = colorComps[2];

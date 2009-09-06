@@ -55,6 +55,7 @@ enum
 - (void)removeObjectForKey:(NSString *)inKey inCache:(NSString *)inCacheKey;
 - (void)clearCache:(NSString *)inCacheKey;
 - (void)clearAllCaches;
+- (void) reloadAllCaches;
 
 /*	Prune thresholds:
 	when the number of objects in a cache reaches the prune threshold, old

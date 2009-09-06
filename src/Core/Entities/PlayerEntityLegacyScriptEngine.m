@@ -724,7 +724,7 @@ static BOOL sRunningScript = NO;
 
 - (NSString *)localVariableForKey:(NSString *)variableName andMission:(NSString *)missionKey
 {
-	return [[localVariables dictionaryForKey:missionKey] objectForKey:variableName];
+	return [[localVariables oo_dictionaryForKey:missionKey] objectForKey:variableName];
 }
 
 
@@ -814,7 +814,7 @@ static BOOL sRunningScript = NO;
 
 - (void) setMissionDescription:(NSString *)textKey
 {
-	NSString		*text = [[UNIVERSE missiontext] stringForKey:textKey];
+	NSString		*text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (!text)
 	{
 		OOLog(kOOLogScriptMissionDescNoText, @"***** SCRIPT ERROR: in %@, no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", CurrentScriptDesc(), textKey, [UNIVERSE missiontext]);
@@ -1300,8 +1300,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 
-	gnum = [tokens intAtIndex:0];
-	pnum = [tokens intAtIndex:1];
+	gnum = [tokens oo_intAtIndex:0];
+	pnum = [tokens oo_intAtIndex:1];
 	keyString = [[tokens objectAtIndex:2] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 	valueString = [[tokens objectAtIndex:3] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 
@@ -1338,7 +1338,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return;
 	}
 	
-	amount = [tokens intAtIndex:0];
+	amount = [tokens oo_intAtIndex:0];
 	if (amount < 0)
 	{
 		OOLog(kOOLogSyntaxAwardCargo, @"***** SCRIPT ERROR: in %@, CANNOT awardCargo: '%@' (%@)", CurrentScriptDesc(), amount_typeString, @"negative quantity");
@@ -1386,8 +1386,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 	for (type = 0; type < (OOCargoType)[manifest count]; type++)
 	{
-		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:type]];
-		unit = [manifest_commodity intAtIndex:MARKET_UNITS];
+		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
+		unit = [manifest_commodity oo_intAtIndex:MARKET_UNITS];
 		if (unit == UNITS_TONS)
 		{
 			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
@@ -1885,7 +1885,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	lastTextKey = [textKey copy];
 	
 	// Replace literal \n in strings with line breaks and perform expansions.
-	text = [[UNIVERSE missiontext] stringForKey:textKey];
+	text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
 	if (text == nil)  return;
 	text = ExpandDescriptionForCurrentSystem(text);
 	paras = [text componentsSeparatedByString:@"\\n"];
@@ -1925,7 +1925,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// and only if the selectable range is not present ask:
 	// Press Space Commander...
 	//
-	NSDictionary *choices_dict = [[UNIVERSE missiontext] dictionaryForKey:choicesKey];
+	NSDictionary *choices_dict = [[UNIVERSE missiontext] oo_dictionaryForKey:choicesKey];
 	if ([choices_dict count] == 0)
 	{
 		return;
@@ -1983,14 +1983,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	for (j = 0; j < [tokens count]; j++)
 	{
-		dest = [tokens intAtIndex:j];
+		dest = [tokens oo_intAtIndex:j];
 		if (dest < 0 || dest > 255)
 			continue;
 
 		addDestination = YES;
 		for (i = 0; i < [missionDestinations count]; i++)
 		{
-			pnum = [missionDestinations intAtIndex:i];
+			pnum = [missionDestinations oo_intAtIndex:i];
 			if (pnum == dest)
 			{
 				addDestination = NO;
@@ -2019,7 +2019,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		removeDestination = NO;
 		for (i = 0; i < [missionDestinations count]; i++)
 		{
-			pnum = [missionDestinations intAtIndex:i];
+			pnum = [missionDestinations oo_intAtIndex:i];
 			if (pnum == dest)
 			{
 				removeDestination = YES;
@@ -2182,7 +2182,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:planetKey];
+	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:planetKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", planetKey);
@@ -2234,7 +2234,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	if (!UNIVERSE)
 		return;
-	NSDictionary* dict = [[UNIVERSE planetInfo] dictionaryForKey:moonKey];
+	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:moonKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", moonKey);
@@ -2471,18 +2471,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
 		{
-			ship = [UNIVERSE newShipWithName:[i_info stringAtIndex: 1]];
+			ship = [UNIVERSE newShipWithName:[i_info oo_stringAtIndex: 1]];
 		}
 		else if ([i_key isEqual:@"role"])
 		{
-			ship = [UNIVERSE newShipWithRole:[i_info stringAtIndex: 1]];
+			ship = [UNIVERSE newShipWithRole:[i_info oo_stringAtIndex: 1]];
 		}
 		if (!ship)
 			return NO;
 
 		ScanVectorAndQuaternionFromString([[i_info subarrayWithRange:NSMakeRange(2, 7)] componentsJoinedByString:@" "], &model_p0, &model_q);
 		
-		Vector	model_offset = positionOffsetForShipInRotationToAlignment(ship, model_q, [i_info stringAtIndex:9]);
+		Vector	model_offset = positionOffsetForShipInRotationToAlignment(ship, model_q, [i_info oo_stringAtIndex:9]);
 		model_p0 = vector_add(model_p0, vector_subtract(off, model_offset));
 
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
@@ -2682,8 +2682,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		galacticHyperspaceFixedCoords.x = galacticHyperspaceFixedCoords.y = 0x60;
 	}
 	
-	[self setGalacticHyperspaceFixedCoordsX:[coord_vals unsignedCharAtIndex:0]
-										  y:[coord_vals unsignedCharAtIndex:1]];
+	[self setGalacticHyperspaceFixedCoordsX:[coord_vals oo_unsignedCharAtIndex:0]
+										  y:[coord_vals oo_unsignedCharAtIndex:1]];
 }
 
 @end

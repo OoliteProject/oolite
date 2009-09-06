@@ -257,15 +257,15 @@ FAIL:
 			return nil;
 		}
 		Vector offset;
-		offset.x = [values floatAtIndex:0];
-		offset.y = [values floatAtIndex:1];
-		offset.z = [values floatAtIndex:2];
+		offset.x = [values oo_floatAtIndex:0];
+		offset.y = [values oo_floatAtIndex:1];
+		offset.z = [values oo_floatAtIndex:2];
 		position = offset;
 		
 		Vector scale;
-		scale.x = [values floatAtIndex:3];
-		scale.y = [values floatAtIndex:4];
-		scale.z = [values floatAtIndex:5];
+		scale.x = [values oo_floatAtIndex:3];
+		scale.y = [values oo_floatAtIndex:4];
+		scale.z = [values oo_floatAtIndex:5];
 		exhaustScale = scale;
 		
 		[self setStatus:STATUS_EFFECT];

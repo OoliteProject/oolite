@@ -178,56 +178,56 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
 	
 	// set things from dictionary from here out
-	maxFlightSpeed = [shipDict floatForKey:@"max_flight_speed"];
-	max_flight_roll = [shipDict floatForKey:@"max_flight_roll"];
-	max_flight_pitch = [shipDict floatForKey:@"max_flight_pitch"];
-	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed"];
+	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll"];
+	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch"];
+	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	cruiseSpeed = maxFlightSpeed*0.8;
 	
-	thrust = [shipDict floatForKey:@"thrust"];
+	thrust = [shipDict oo_floatForKey:@"thrust"];
 
-	maxEnergy = [shipDict floatForKey:@"max_energy"];
-	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate"];
+	maxEnergy = [shipDict oo_floatForKey:@"max_energy"];
+	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate"];
 	
-	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	forward_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type];
 	// no front laser? It's probably a missile - no limits to weapon_energy.
-	if (weapon_energy == 0.0) weapon_energy = [shipDict floatForKey:@"weapon_energy"];
+	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
 
-	scannerRange = [shipDict floatForKey:@"scanner_range" defaultValue:25600.0];
-	missiles = [shipDict intForKey:@"missiles"];
-	missileRole = [shipDict stringForKey:@"missile_role"];
+	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:25600.0];
+	missiles = [shipDict oo_intForKey:@"missiles"];
+	missileRole = [shipDict oo_stringForKey:@"missile_role"];
 
 	// upgrades:
-	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
-	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
-	if ([shipDict fuzzyBooleanForKey:@"has_energy_bomb"])  [self addEquipmentItem:@"EQ_ENERGY_BOMB"];
-	if ([shipDict fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipmentItem:@"EQ_CLOAKING_DEVICE"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_energy_bomb"])  [self addEquipmentItem:@"EQ_ENERGY_BOMB"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_cloaking_device"])  [self addEquipmentItem:@"EQ_CLOAKING_DEVICE"];
 	if (![UNIVERSE strict])
 	{
 		// These items are not available in strict mode.
-		if ([shipDict fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION"];
-		if ([shipDict fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER"];
-		if ([shipDict fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER"];
+		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
 	}
 	
-	canFragment = [shipDict fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
+	canFragment = [shipDict oo_fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
 	
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to
-	[self setThrowSparks:[shipDict boolForKey:@"throw_sparks" defaultValue:NO]];
+	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
 	cloaking_device_active = NO;
 	military_jammer_active = NO;
-	cloakPassive = [shipDict boolForKey:@"cloak_passive" defaultValue:NO];
+	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
 	
 	// FIXME: give NPCs shields instead.
-	if ([shipDict fuzzyBooleanForKey:@"has_shield_booster"])
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])
 	{
 		maxEnergy += 256.0f;
 	}
-	if ([shipDict fuzzyBooleanForKey:@"has_shield_enhancer"])
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])
 	{
 		maxEnergy += 256.0f;
 		energy_recharge_rate *= 1.5;
@@ -236,30 +236,30 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Moved here from above upgrade loading so that ships start with full energy banks. -- Ahruman
 	energy = maxEnergy;
 	
-	fuel = [shipDict unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
+	fuel = [shipDict oo_unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
 	if (![UNIVERSE strict])
 	{
-		hyperspaceMotorSpinTime = [shipDict floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
 	}
 	else
 	{
 		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
 	}
 	
-	bounty = [shipDict unsignedIntForKey:@"bounty"];
+	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
-	[shipAI setStateMachine:[shipDict stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
+	[shipAI setStateMachine:[shipDict oo_stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
-	max_cargo = [shipDict unsignedIntForKey:@"max_cargo"];
-	likely_cargo = [shipDict unsignedIntForKey:@"likely_cargo"];
-	extra_cargo = [shipDict unsignedIntForKey:@"extra_cargo" defaultValue:15];
-	if ([shipDict fuzzyBooleanForKey:@"no_boulders"])  noRocks = YES;
+	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
+	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
+	extra_cargo = [shipDict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
+	if ([shipDict oo_fuzzyBooleanForKey:@"no_boulders"])  noRocks = YES;
 	
-	NSString *cargoString = [shipDict stringForKey:@"cargo_carried"];
+	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
 	{
 		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
@@ -275,13 +275,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		else
 		{
 			c_amount = 1;
-			c_commodity = [UNIVERSE commodityForName: [shipDict stringForKey:@"cargo_carried"]];
+			c_commodity = [UNIVERSE commodityForName: [shipDict oo_stringForKey:@"cargo_carried"]];
 		}
 
 		if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
 	
-	cargoString = [shipDict stringForKey:@"cargo_type"];
+	cargoString = [shipDict oo_stringForKey:@"cargo_type"];
 	if (cargoString)
 	{
 		cargo_type = StringToCargoType(cargoString);
@@ -291,43 +291,43 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	// Load the model (must be before subentities)
-	NSString *modelName = [shipDict stringForKey:@"model"];
+	NSString *modelName = [shipDict oo_stringForKey:@"model"];
 	if (modelName != nil)
 	{
 		OOMesh *mesh = [OOMesh meshWithName:modelName
-						 materialDictionary:[shipDict dictionaryForKey:@"materials"]
-						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
-									 smooth:[shipDict boolForKey:@"smooth"]
+						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+									 smooth:[shipDict oo_boolForKey:@"smooth"]
 							   shaderMacros:DefaultShipShaderMacros()
 						shaderBindingTarget:self];
 		if (mesh == nil)  return NO;
 		[self setMesh:mesh];
 	}
 	
-	float density = [shipDict floatForKey:@"density" defaultValue:1.0];
+	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0];
 	if (octree)  mass = density * 20.0 * [octree volume];
 	
 	[name autorelease];
-	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
+	name = [[shipDict oo_stringForKey:@"name" defaultValue:name] copy];
 	
 	[displayName autorelease];
-	displayName = [[shipDict stringForKey:@"display_name" defaultValue:name] copy];
+	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[roleSet release];
-	roleSet = [[[OORoleSet roleSetWithString:[shipDict stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
+	roleSet = [[[OORoleSet roleSetWithString:[shipDict oo_stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
 	[primaryRole release];
 	primaryRole = nil;
 	
 	[self setOwner:self];
 	
-	[self setHulk:[shipDict boolForKey:@"is_hulk"]];
+	[self setHulk:[shipDict oo_boolForKey:@"is_hulk"]];
 	
 	if (![self setUpSubEntities: shipDict]) 
 	{
 		return NO;
 	}
 	
-	isFrangible = [shipDict boolForKey:@"frangible" defaultValue:YES];
+	isFrangible = [shipDict oo_boolForKey:@"frangible" defaultValue:YES];
 	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
@@ -336,20 +336,20 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 #if 0
 	//scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
 	//let's see if scan_class is set... 
-	scanClass = StringToScanClass([shipDict stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
+	scanClass = StringToScanClass([shipDict oo_stringForKey:@"scan_class" defaultValue:@"CLASS_NOT_SET"]);
 	
 	//try.'scanClass' if 'scan_class' isn't set.
 	if (scanClass == CLASS_NOT_SET)
 	{
-		scanClass = StringToScanClass([shipDict stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+		scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
 #else
 	// scan class. NOTE: non-standard capitalization is documented and entrenched.
-	scanClass = StringToScanClass([shipDict stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
+	scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 #endif
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
-	accuracy = [shipDict floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
+	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
 	{
 		pitch_tolerance = 0.01 * (85.0f + accuracy);
@@ -373,10 +373,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 		
 	//  escorts
-	_pendingEscortCount = _maxEscortCount = [shipDict unsignedIntForKey:@"escorts"];
+	_pendingEscortCount = _maxEscortCount = [shipDict oo_unsignedIntForKey:@"escorts"];
 
 	// beacons
-	[self setBeaconCode:[shipDict stringForKey:@"beacon"]];
+	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
 	
 	// rotating subentities
 	subentityRotationalVelocity = kIdentityQuaternion;
@@ -385,7 +385,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// contact tracking entities
 	if ([shipDict objectForKey:@"track_contacts"])
 	{
-		[self setTrackCloseContacts:[shipDict boolForKey:@"track_contacts"]];
+		[self setTrackCloseContacts:[shipDict oo_boolForKey:@"track_contacts"]];
 	}
 	else
 	{
@@ -405,10 +405,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
 	
 	// ship skin insulation factor (1.0 is normal)
-	[self setHeatInsulation:[shipDict floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
+	[self setHeatInsulation:[shipDict oo_floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
 	
 	// crew and passengers
-	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict stringForKey:@"pilot"]];
+	NSDictionary* cdict = [[UNIVERSE characters] objectForKey:[shipDict oo_stringForKey:@"pilot"]];
 	if (cdict != nil)
 	{
 		OOCharacter	*pilot = [OOCharacter characterWithDictionary:cdict];
@@ -416,12 +416,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	}
 	
 	// unpiloted (like missiles asteroids etc.)
-	if ((isUnpiloted = [shipDict fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
+	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
 	
 	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
-	scriptInfo = [[shipDict dictionaryForKey:@"script_info" defaultValue:nil] retain];
+	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
 	
-	[self setShipScript:[shipDict stringForKey:@"script"]];
+	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
 
 	return YES;
 }
@@ -430,7 +430,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (BOOL) setUpSubEntities: (NSDictionary *) shipDict
 {
 	unsigned int	i;
-	NSArray			*plumes = [shipDict arrayForKey:@"exhaust"];
+	NSArray			*plumes = [shipDict oo_arrayForKey:@"exhaust"];
 	
 	for (i = 0; i < [plumes count]; i++)
 	{
@@ -439,11 +439,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[exhaust release];
 	}
 	
-	NSArray *subs = [shipDict arrayForKey:@"subentities"];
+	NSArray *subs = [shipDict oo_arrayForKey:@"subentities"];
 	
 	for (i = 0; i < [subs count]; i++)
 	{
-		[self setUpOneSubentity:[subs dictionaryAtIndex:i]];
+		[self setUpOneSubentity:[subs oo_dictionaryAtIndex:i]];
 	}
 	return YES;
 }
@@ -453,7 +453,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 {
 	NSString			*type = nil;
 	
-	type = [subentDict stringForKey:@"type"];
+	type = [subentDict oo_stringForKey:@"type"];
 	if ([type isEqualToString:@"flasher"])
 	{
 		return [self setUpOneFlasher:subentDict];
@@ -470,14 +470,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ParticleEntity		*flasher = nil;
 	float				size, frequency, phase;
 	
-	size = [subentDict floatForKey:@"size"];
-	frequency = [subentDict floatForKey:@"frequency"] * 2.0;
-	phase = [subentDict floatForKey:@"phase"];
+	size = [subentDict oo_floatForKey:@"size"];
+	frequency = [subentDict oo_floatForKey:@"frequency"] * 2.0;
+	phase = [subentDict oo_floatForKey:@"phase"];
 	
 	flasher = [[ParticleEntity alloc] initFlasherWithSize:size frequency:frequency phase:phase];
-	[flasher setColor:[OOColor brightColorWithDescription:[[subentDict arrayForKey:@"colors"] objectAtIndex:0]]];
-	[flasher setPosition:[subentDict vectorForKey:@"position"]];
-	if ([subentDict boolForKey:@"initially_on"])  [flasher setStatus:STATUS_EFFECT];
+	[flasher setColor:[OOColor brightColorWithDescription:[[subentDict oo_arrayForKey:@"colors"] objectAtIndex:0]]];
+	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
+	if ([subentDict oo_boolForKey:@"initially_on"])  [flasher setStatus:STATUS_EFFECT];
 	
 	[self addFlasher:flasher];
 	[flasher release];
@@ -493,16 +493,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	Vector				subPosition;
 	Quaternion			subOrientation;
 	
-	subentKey = [subentDict stringForKey:@"subentity_key"];
+	subentKey = [subentDict oo_stringForKey:@"subentity_key"];
 	if (subentKey == nil)  return NO;
 	
 	subentity = [UNIVERSE newShipWithName:subentKey];
 	if (subentity == nil)  return NO;
 	
-	subPosition = [subentDict vectorForKey:@"position"];
-	subOrientation = [subentDict quaternionForKey:@"orientation"];
+	subPosition = [subentDict oo_vectorForKey:@"position"];
+	subOrientation = [subentDict oo_quaternionForKey:@"orientation"];
 	
-	if (!asTurret && [self isStation] && [subentDict boolForKey:@"is_dock"])
+	if (!asTurret && [self isStation] && [subentDict oo_boolForKey:@"is_dock"])
 	{
 		[(StationEntity *)self setDockingPortModel:subentity :subPosition :subOrientation];
 	}
@@ -514,7 +514,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (asTurret)
 	{
 		[subentity setBehaviour:BEHAVIOUR_TRACK_AS_TURRET];
-		[subentity setWeaponRechargeRate:[subentDict floatForKey:@"fire_rate"]];
+		[subentity setWeaponRechargeRate:[subentDict oo_floatForKey:@"fire_rate"]];
 		[subentity setStatus: STATUS_ACTIVE];
 	}
 	else
@@ -924,7 +924,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	if ([self isPolice])  defaultRole = @"wingman";
 	
-	escortRole = [shipinfoDictionary stringForKey:@"escort-role" defaultValue:defaultRole];
+	escortRole = [shipinfoDictionary oo_stringForKey:@"escort-role" defaultValue:defaultRole];
 	if (![escortRole isEqualToString: defaultRole])
 	{
 		if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
@@ -933,7 +933,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		}
 	}
 	
-	escortShipKey = [shipinfoDictionary stringForKey:@"escort-ship"];
+	escortShipKey = [shipinfoDictionary oo_stringForKey:@"escort-ship"];
 	if (escortShipKey != nil)
 	{
 		if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
@@ -989,12 +989,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 		escortShipDict = [escorter shipInfoDictionary];
 		autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-		autoAI = [autoAIMap stringForKey:defaultRole];
+		autoAI = [autoAIMap oo_stringForKey:defaultRole];
 		if (autoAI==nil) // no 'wingman' defined in autoAImap?
 		{
-			autoAI = [autoAIMap stringForKey:@"escort" defaultValue:@"nullAI.plist"];
+			autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
 		}
-		if (escortShipKey && [escortShipDict fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
+		if (escortShipKey && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
 		{
 			[escorter setAITo:autoAI];
 		}
@@ -3521,11 +3521,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 
 		previousCondition = [[NSMutableDictionary dictionaryWithCapacity:5] retain];
 		
-		[previousCondition setInteger:behaviour forKey:@"behaviour"];
-		[previousCondition setInteger:primaryTarget forKey:@"primaryTarget"];
-		[previousCondition setFloat:desired_range forKey:@"desired_range"];
-		[previousCondition setFloat:desired_speed forKey:@"desired_speed"];
-		[previousCondition setVector:destination forKey:@"destination"];
+		[previousCondition oo_setInteger:behaviour forKey:@"behaviour"];
+		[previousCondition oo_setInteger:primaryTarget forKey:@"primaryTarget"];
+		[previousCondition oo_setFloat:desired_range forKey:@"desired_range"];
+		[previousCondition oo_setFloat:desired_speed forKey:@"desired_speed"];
+		[previousCondition oo_setVector:destination forKey:@"destination"];
 		
 		destination = [prox_ship position];
 		destination = OOVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
@@ -3541,11 +3541,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (!previousCondition)  return;
 	
-	behaviour =		[previousCondition intForKey:@"behaviour"];
-	primaryTarget =	[previousCondition intForKey:@"primaryTarget"];
-	desired_range =	[previousCondition floatForKey:@"desired_range"];
-	desired_speed =	[previousCondition floatForKey:@"desired_speed"];
-	destination =	[previousCondition vectorForKey:@"destination"];
+	behaviour =		[previousCondition oo_intForKey:@"behaviour"];
+	primaryTarget =	[previousCondition oo_intForKey:@"primaryTarget"];
+	desired_range =	[previousCondition oo_floatForKey:@"desired_range"];
+	desired_speed =	[previousCondition oo_floatForKey:@"desired_speed"];
+	destination =	[previousCondition oo_vectorForKey:@"destination"];
 	
 	[previousCondition release];
 	previousCondition = nil;
@@ -3862,7 +3862,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		return YES;	// missiles are always fired against a hostile target
 	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
 	{
-		int old_behaviour = [previousCondition intForKey:@"behaviour"];
+		int old_behaviour = [previousCondition oo_intForKey:@"behaviour"];
 		return IsBehaviourHostile(old_behaviour);
 	}
 	return IsBehaviourHostile(behaviour);
@@ -4353,13 +4353,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	if (script == nil)
 	{
-		actions = [shipinfoDictionary arrayForKey:@"launch_actions"];
+		actions = [shipinfoDictionary oo_arrayForKey:@"launch_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_launchActions"];	
-		actions = [shipinfoDictionary arrayForKey:@"script_actions"];
+		actions = [shipinfoDictionary oo_arrayForKey:@"script_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_scriptActions"];
-		actions = [shipinfoDictionary arrayForKey:@"death_actions"];
+		actions = [shipinfoDictionary oo_arrayForKey:@"death_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_deathActions"];
-		actions = [shipinfoDictionary arrayForKey:@"setup_actions"];
+		actions = [shipinfoDictionary oo_arrayForKey:@"setup_actions"];
 		if (actions)  [properties setObject:actions forKey:@"legacy_setupActions"];
 		
 		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-ship-script.js"
@@ -4904,7 +4904,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				
 				case CARGO_FLAG_FULL_UNIFORM :
 					{
-						NSString* commodity_name = [shipinfoDictionary stringForKey:@"cargo_carried"];
+						NSString* commodity_name = [shipinfoDictionary oo_stringForKey:@"cargo_carried"];
 						jetsam = [UNIVERSE getContainersOfCommodity:commodity_name :cargo_to_go];
 					}
 					break;
@@ -6319,7 +6319,7 @@ BOOL class_masslocks(int some_class)
 	// set the values for the forward weapon
 	//
 	[self setWeaponDataFromType:forward_weapon_type];
-	weapon_energy = OOClamp_0_max_f([shipinfoDictionary floatForKey:@"weapon_energy" defaultValue:weapon_energy],50.0);
+	weapon_energy = OOClamp_0_max_f([shipinfoDictionary oo_floatForKey:@"weapon_energy" defaultValue:weapon_energy],50.0);
 	
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
@@ -7040,9 +7040,9 @@ BOOL class_masslocks(int some_class)
 	if ([UNIVERSE station] == nil)  return NO_TARGET;
 	
 	// check number of pods aboard -- require at least one.
-	n_pods = [shipinfoDictionary unsignedIntForKey:@"has_escape_pod"];
+	n_pods = [shipinfoDictionary oo_unsignedIntForKey:@"has_escape_pod"];
 	
-	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
 	mainPod = pod;
 	
 	if (pod)
@@ -8507,8 +8507,8 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 		return;
 	}
 	
-	roleString = [tokens stringAtIndex:0];
-	numberString = [tokens stringAtIndex:1];
+	roleString = [tokens oo_stringAtIndex:0];
+	numberString = [tokens oo_stringAtIndex:1];
 	
 	number = [numberString intValue];
 	
@@ -8893,7 +8893,7 @@ NSDictionary *DefaultShipShaderMacros(void)
 	if (macros == nil)
 	{
 		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		macros = [[materialDefaults dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
+		macros = [[materialDefaults oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
 	}
 	
 	return macros;
@@ -8909,9 +8909,9 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 	if (entityWhitelist == nil)
 	{
 		NSDictionary *wlDict = [ResourceManager whitelistDictionary];
-		entityWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_entity_binding_methods"]];
-		shipWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_ship_binding_methods"]];
-		playerShipWhitelist = [[NSSet alloc] initWithArray:[wlDict arrayForKey:@"shader_player_ship_binding_methods"]];
+		entityWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_entity_binding_methods"]];
+		shipWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_ship_binding_methods"]];
+		playerShipWhitelist = [[NSSet alloc] initWithArray:[wlDict oo_arrayForKey:@"shader_player_ship_binding_methods"]];
 	}
 	
 	if ([bindingTarget isKindOfClass:[Entity class]])

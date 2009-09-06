@@ -91,8 +91,8 @@ void OOInitDebugSupport(void)
 														mergeMode:MERGE_BASIC
 															cache:NO];
 		
-		consoleHost = [debugSettings stringForKey:@"console-host"];
-		consolePort = [debugSettings unsignedShortForKey:@"console-port"];
+		consoleHost = [debugSettings oo_stringForKey:@"console-host"];
+		consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];
 		
 		// If consoleHost is nil, and the debug plug-in can set up a debugger, use that.
 		if (consoleHost == nil && [plugInController respondsToSelector:@selector(setUpDebugger)])

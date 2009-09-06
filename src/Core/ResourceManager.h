@@ -58,6 +58,7 @@ typedef enum
 + (NSString *)errors;			// Errors which occured during path scanning - essentially a list of OXPs whose requires.plist is bad.
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName;
++ (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
 
 + (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
 								  inFolder:(NSString *)folderName
@@ -65,18 +66,23 @@ typedef enum
 + (NSDictionary *)dictionaryFromFilesNamed:(NSString *)fileName
 								  inFolder:(NSString *)folderName
 								 mergeMode:(OOResourceMergeMode)mergeMode
-									 cache:(BOOL)cache;
+									 cache:(BOOL)useCache;
 
 + (NSArray *)arrayFromFilesNamed:(NSString *)fileName
 						inFolder:(NSString *)folderName
 						andMerge:(BOOL) mergeFiles;
++ (NSArray *)arrayFromFilesNamed:(NSString *)fileName
+						inFolder:(NSString *)folderName
+						andMerge:(BOOL) mergeFiles
+						   cache:(BOOL)useCache;
 
 + (NSDictionary *) whitelistDictionary;	// method-whitelist.plist, explicitly not merged like normal plists.
 
 + (OOSound *)ooSoundNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 + (OOMusic *)ooMusicNamed:(NSString *)fileName inFolder:(NSString *)folderName;
 
-+ (NSString *)stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName;
++ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName;
++ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
 
 + (NSDictionary *)loadScripts;
 

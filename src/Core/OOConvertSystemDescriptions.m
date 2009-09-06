@@ -89,7 +89,7 @@ void ExportSystemDescriptions(BOOL asXML)
 	NSData				*data = nil;
 	NSString			*error = nil;
 	
-	sysDescArray = [[UNIVERSE descriptions] arrayForKey:@"system_description"];
+	sysDescArray = [[UNIVERSE descriptions] oo_arrayForKey:@"system_description"];
 	
 	keyMap = [ResourceManager dictionaryFromFilesNamed:@"sysdesc_key_table.plist"
 											  inFolder:@"Config"

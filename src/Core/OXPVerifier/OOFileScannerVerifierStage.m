@@ -184,7 +184,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	if (folder != nil)
 	{
 		lcDirName = [folder lowercaseString];
-		realFileName = [[_directoryListings dictionaryForKey:lcDirName] objectForKey:lcName];
+		realFileName = [[_directoryListings oo_dictionaryForKey:lcDirName] objectForKey:lcName];
 		
 		if (realFileName != nil)
 		{
@@ -195,7 +195,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	if (path == nil)
 	{
-		realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
+		realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
 		
 		if (realFileName != nil)
 		{
@@ -481,9 +481,9 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 		*/
 		
 		lcName = [name lowercaseString];
-		realFileName = [[_directoryListings dictionaryForKey:@"config"] objectForKey:lcName];
+		realFileName = [[_directoryListings oo_dictionaryForKey:@"config"] objectForKey:lcName];
 		inConfigDir = realFileName != nil;
-		if (!inConfigDir)  realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
+		if (!inConfigDir)  realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
 		if (realFileName == nil)  continue;
 		
 		if (![realFileName isEqualToString:name])
@@ -522,12 +522,12 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 			*/
 			
 			lcName = [name lowercaseString];
-			realFileName = [[_directoryListings dictionaryForKey:lcDirectory] objectForKey:lcName];
+			realFileName = [[_directoryListings oo_dictionaryForKey:lcDirectory] objectForKey:lcName];
 			inDirectory = (realFileName != nil);
 			if (!inDirectory)
 			{
 				// Allow for files in root directory of OXP
-				realFileName = [[_directoryListings dictionaryForKey:@""] objectForKey:lcName];
+				realFileName = [[_directoryListings oo_dictionaryForKey:@""] objectForKey:lcName];
 			}
 			if (realFileName == nil)  continue;
 			
@@ -554,7 +554,7 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	
 	for (i = 0; i != count; ++i)
 	{
-		canonical = [array stringAtIndex:i];
+		canonical = [array oo_stringAtIndex:i];
 		if (canonical != nil)
 		{
 			lowercase = [canonical lowercaseString];
@@ -687,8 +687,8 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 							*extension = nil;
 	
 	dict = [[self verifier] configurationDictionaryForKey:@"readMeNames"];
-	stems = [dict arrayForKey:@"stems"];
-	extensions = [dict arrayForKey:@"extensions"];
+	stems = [dict oo_arrayForKey:@"stems"];
+	extensions = [dict oo_arrayForKey:@"extensions"];
 	stemCount = [stems count];
 	extCount = [extensions count];
 	if (stemCount * extCount == 0)  return nil;
@@ -697,12 +697,12 @@ static BOOL CheckNameConflict(NSString *lcName, NSDictionary *directoryCases, NS
 	result = [NSMutableSet setWithCapacity:stemCount * extCount];
 	for (i = 0; i != stemCount; ++i)
 	{
-		stem = [[stems stringAtIndex:i] lowercaseString];
+		stem = [[stems oo_stringAtIndex:i] lowercaseString];
 		if (stem != nil)
 		{
 			for (j = 0; j != extCount; ++j)
 			{
-				extension = [[extensions stringAtIndex:j] lowercaseString];
+				extension = [[extensions oo_stringAtIndex:j] lowercaseString];
 				if (extension != nil)
 				{
 					[result addObject:[stem stringByAppendingString:extension]];

@@ -337,7 +337,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 		if ([value isKindOfClass:[NSArray class]] && [value count] > 0)
 		{
 			rnd = gen_rnd_number() % [value count];
-			part = [value stringAtIndex:rnd];
+			part = [value oo_stringAtIndex:rnd];
 			if (part == nil)  part = @"";
 		}
 		else if ([value isKindOfClass:[NSString class]])
@@ -353,7 +353,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 			{
 				if (sysDesc == nil)
 				{
-					sysDesc = [all_descriptions arrayForKey:@"system_description"];
+					sysDesc = [all_descriptions oo_arrayForKey:@"system_description"];
 					sysDescCount = [sysDesc count];
 				}
 				
@@ -362,7 +362,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 				
 				if (sub < sysDescCount)
 				{
-					sysDescItem = [sysDesc arrayAtIndex:sub];
+					sysDescItem = [sysDesc oo_arrayAtIndex:sub];
 					if (sysDescItem != nil)
 					{
 						descItemCount = [sysDescItem count];

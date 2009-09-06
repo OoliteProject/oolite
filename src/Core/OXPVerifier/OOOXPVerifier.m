@@ -241,25 +241,25 @@ static void OpenLogFile(NSString *name);
 
 - (NSArray *)configurationArrayForKey:(NSString *)key
 {
-	return [_verifierPList arrayForKey:key];
+	return [_verifierPList oo_arrayForKey:key];
 }
 
 
 - (NSDictionary *)configurationDictionaryForKey:(NSString *)key
 {
-	return [_verifierPList dictionaryForKey:key];
+	return [_verifierPList oo_dictionaryForKey:key];
 }
 
 
 - (NSString *)configurationStringForKey:(NSString *)key
 {
-	return [_verifierPList stringForKey:key];
+	return [_verifierPList oo_stringForKey:key];
 }
 
 
 - (NSSet *)configurationSetForKey:(NSString *)key
 {
-	NSArray *array = [_verifierPList arrayForKey:key];
+	NSArray *array = [_verifierPList oo_arrayForKey:key];
 	return array != nil ? [NSSet setWithArray:array] : nil;
 }
 
@@ -331,12 +331,12 @@ static void OpenLogFile(NSString *name);
 	NSString				*messageClass = nil;
 	id						verbose = nil;
 	
-	OOLogSetShowMessageClassTemporary([_verifierPList boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
+	OOLogSetShowMessageClassTemporary([_verifierPList oo_boolForKey:@"logShowMessageClassOverride" defaultValue:NO]);
 	
-	overrides = [_verifierPList dictionaryForKey:@"logControlOverride"];
+	overrides = [_verifierPList oo_dictionaryForKey:@"logControlOverride"];
 	for (messageClassEnum = [overrides keyEnumerator]; (messageClass = [messageClassEnum nextObject]); )
 	{
-		OOLogSetDisplayMessagesInClass(messageClass, [overrides boolForKey:messageClass defaultValue:NO]);
+		OOLogSetDisplayMessagesInClass(messageClass, [overrides oo_boolForKey:messageClass defaultValue:NO]);
 	}
 	
 	/*	Since actually editing logControlOverride is a pain, we also allow
@@ -649,23 +649,23 @@ static void OpenLogFile(NSString *name);
 	OOOXPVerifierStage			*dep = nil;
 	
 	graphVizTemplate = [self configurationDictionaryForKey:@"debugGraphvizTempate"];
-	graphViz = [NSMutableString stringWithFormat:[graphVizTemplate stringForKey:@"preamble"], [NSDate date]];
+	graphViz = [NSMutableString stringWithFormat:[graphVizTemplate oo_stringForKey:@"preamble"], [NSDate date]];
 	
 	/*	Pass 1: enumerate over graph setting node attributes for each stage.
 		We use pointers as node names for simplicity of generation.
 	*/
-	template = [graphVizTemplate stringForKey:@"node"];
+	template = [graphVizTemplate oo_stringForKey:@"node"];
 	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
 	{
 		[graphViz appendFormat:template, stage, [stage class], [stage name]];
 	}
 	
-	[graphViz appendString:[graphVizTemplate stringForKey:@"forwardPreamble"]];
+	[graphViz appendString:[graphVizTemplate oo_stringForKey:@"forwardPreamble"]];
 	
 	/*	Pass 2: enumerate over graph setting forward arcs for each dependency.
 	*/
-	template = [graphVizTemplate stringForKey:@"forwardArc"];
-	startTemplate = [graphVizTemplate stringForKey:@"startArc"];
+	template = [graphVizTemplate oo_stringForKey:@"forwardArc"];
+	startTemplate = [graphVizTemplate oo_stringForKey:@"startArc"];
 	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
 	{
 		deps = [stage resolvedDependencies];
@@ -682,12 +682,12 @@ static void OpenLogFile(NSString *name);
 		}
 	}
 	
-	[graphViz appendString:[graphVizTemplate stringForKey:@"backwardPreamble"]];
+	[graphViz appendString:[graphVizTemplate oo_stringForKey:@"backwardPreamble"]];
 	
 	/*	Pass 3: enumerate over graph setting backward arcs for each dependent.
 	*/
-	template = [graphVizTemplate stringForKey:@"backwardArc"];
-	endTemplate = [graphVizTemplate stringForKey:@"endArc"];
+	template = [graphVizTemplate oo_stringForKey:@"backwardArc"];
+	endTemplate = [graphVizTemplate oo_stringForKey:@"endArc"];
 	for (stageEnum = [_stagesByName objectEnumerator]; (stage = [stageEnum nextObject]); )
 	{
 		deps = [stage resolvedDependents];
@@ -704,7 +704,7 @@ static void OpenLogFile(NSString *name);
 		}
 	}
 	
-	[graphViz appendString:[graphVizTemplate stringForKey:@"postamble"]];
+	[graphViz appendString:[graphVizTemplate oo_stringForKey:@"postamble"]];
 	
 	// Write file
 	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"OXPVerifierStageDependencies.dot"];
@@ -735,7 +735,7 @@ static void OpenLogFile(NSString *name)
 {
 	//	Open log file in appropriate application.
 	
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
+	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
 	{
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 	}

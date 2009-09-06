@@ -73,9 +73,9 @@ static NSString * const kStageName	= @"Validating AIs";
 	
 	// Build whitelist. Note that we merge in aliases since the distinction doesn't matter when just validating.
 	whitelist = [[NSMutableSet alloc] init];
-	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] arrayForKey:@"ai_methods"]];
-	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"]];
-	[whitelist addObjectsFromArray:[[[ResourceManager whitelistDictionary] dictionaryForKey:@"ai_method_aliases"] allKeys]];
+	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"]];
+	[whitelist addObjectsFromArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"]];
+	[whitelist addObjectsFromArray:[[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"] allKeys]];
 	_whitelist = [whitelist copy];
 	[whitelist release];
 	

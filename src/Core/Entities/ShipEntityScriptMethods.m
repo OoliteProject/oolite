@@ -78,7 +78,7 @@ extern NSString * const kOOLogNoteAddShips;
 		if (spawned != nil)
 		{
 			[spawned setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
-			if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] boolForKey:@"is_submunition"])
+			if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] oo_boolForKey:@"is_submunition"])
 			{
 				[spawned setOwner:[self owner]];
 				[spawned addTarget:[self primaryTarget]];

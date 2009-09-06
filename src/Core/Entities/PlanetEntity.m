@@ -241,8 +241,8 @@ static float corona_blending;
 	
 	[self setSunColor:sun_color];
 	
-	corona_blending=OOClamp_0_1_f([dict floatForKey:@"corona_hues" defaultValue:1.0f]);
-	corona_speed_factor=[dict floatForKey:@"corona_shimmer" defaultValue:-1.0];
+	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
+	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
 	if(corona_speed_factor<0)
 	{
 		// from .22222 to 2
@@ -257,9 +257,9 @@ static float corona_blending;
 	for (i = 0; i < 729; i++)
 		rvalue[i] = randf();
 	
-	sun_radius=[dict floatForKey:@"sun_radius"];
+	sun_radius=[dict oo_floatForKey:@"sun_radius"];
 	// set the corona first
-	[self setRadius: sun_radius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict floatForKey:@"corona_flare" defaultValue:0.0f]))];
+	[self setRadius: sun_radius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
 	// then set  the real radius
 	collision_radius = sun_radius;								
 
@@ -289,7 +289,7 @@ static float corona_blending;
 	
 	self = [super init];
 	
-	percent_land = 100 - [dict intForKey:@"percent_cloud" defaultValue:100 - (3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31))];
+	percent_land = 100 - [dict oo_intForKey:@"percent_cloud" defaultValue:100 - (3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31))];
 	
 	polar_color_factor = 1.0;
 	
@@ -327,7 +327,7 @@ static float corona_blending;
 	cloudColor = [OOColor colorWithDescription:[dict objectForKey:@"cloud_color"]];
 	polarClearSkyColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_clear_sky_color"]];
 	polarCloudColor = [OOColor colorWithDescription:[dict objectForKey:@"polar_cloud_color"]];
-	cloudAlpha = OOClamp_0_1_f([dict floatForKey:@"cloud_alpha" defaultValue:1.0]);
+	cloudAlpha = OOClamp_0_1_f([dict oo_floatForKey:@"cloud_alpha" defaultValue:1.0]);
 	
 	if (clearSkyColor != nil)
 	{
@@ -437,7 +437,7 @@ static float corona_blending;
 	[self scaleVertices];
 
 	// set speed of rotation
-	rotational_velocity = [dict floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f + 0.02f * randf()]; // 0.01 .. 0.03 avr 0.02
+	rotational_velocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f + 0.02f * randf()]; // 0.01 .. 0.03 avr 0.02
 	
 	isPlanet = YES;
 	
@@ -461,7 +461,7 @@ static float corona_blending;
 		[planetInfo removeObjectForKey:@"texture"];
 	}
 
-	[planetInfo setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
+	[planetInfo oo_setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
 	return [self initPlanetFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
 }
 
@@ -597,7 +597,7 @@ static float corona_blending;
 	textureFile = nil;
 	if ([dict objectForKey:@"texture"])
 	{
-		textureFile = [[dict stringForKey:@"texture"] retain];
+		textureFile = [[dict oo_stringForKey:@"texture"] retain];
 		textureName = [TextureStore getTextureNameFor:textureFile];
 		isTextureImage = isTextured = (textureName != 0);
 	}
@@ -615,7 +615,7 @@ static float corona_blending;
 		}
 	}
 	
-	NSString *seedStr = [dict stringForKey:@"seed"];
+	NSString *seedStr = [dict oo_stringForKey:@"seed"];
 	if (seedStr != nil)
 	{
 		Random_Seed seed = RandomSeedFromString(seedStr);
@@ -632,10 +632,10 @@ static float corona_blending;
 	seed_for_planet_description(p_seed);
 	
 	NSMutableDictionary	*planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-	int	radius_km = [dict intForKey:KEY_RADIUS 
-						defaultValue:[planetInfo intForKey:KEY_RADIUS]];
-	int techlevel = [dict intForKey:KEY_TECHLEVEL
-						defaultValue:[planetInfo intForKey:KEY_TECHLEVEL]];
+	int	radius_km = [dict oo_intForKey:KEY_RADIUS 
+						defaultValue:[planetInfo oo_intForKey:KEY_RADIUS]];
+	int techlevel = [dict oo_intForKey:KEY_TECHLEVEL
+						defaultValue:[planetInfo oo_intForKey:KEY_TECHLEVEL]];
 	
 	shuttles_on_ground = 1 + floor(techlevel * 0.5);
 	last_launch_time = 0.0;
@@ -661,7 +661,7 @@ static float corona_blending;
 	
 	[self rescaleTo:1.0];
 	
-	percent_land = [planetInfo intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
+	percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	//if (isTextured)  percent_land =  atmo ? 0 :100; // moon/planet override
 	
 	// save the current random number generator seed
@@ -677,7 +677,7 @@ static float corona_blending;
 	
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	
-	polar_color_factor = [dict doubleForKey:@"polar_color_factor" defaultValue:0.5f];
+	polar_color_factor = [dict oo_doubleForKey:@"polar_color_factor" defaultValue:0.5f];
 	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 	
@@ -699,7 +699,7 @@ static float corona_blending;
 	if (isTextureImage)
 	{
 		// override the mainPlanet texture colour...
-		[self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:[dict boolForKey:@"mainForLocalSystem" defaultValue:NO]];
+		[self setTextureColorForPlanet:!![dict objectForKey:@"mainForLocalSystem"] inSystem:[dict oo_boolForKey:@"mainForLocalSystem" defaultValue:NO]];
 	}
 	else
 	{
@@ -787,12 +787,12 @@ static float corona_blending;
 	// set speed of rotation	
 	if ([dict objectForKey:@"rotational_velocity"])
 	{
-		rotational_velocity = [dict floatForKey:@"rotational_velocity" defaultValue:0.01f * randf()];	// 0.0 .. 0.01 avr 0.005
+		rotational_velocity = [dict oo_floatForKey:@"rotational_velocity" defaultValue:0.01f * randf()];	// 0.0 .. 0.01 avr 0.005
 	}
 	else
 	{
-		rotational_velocity = [planetInfo floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
-		rotational_velocity *= [planetInfo floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
+		rotational_velocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
+		rotational_velocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
 
 	// do atmosphere
@@ -1458,7 +1458,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	if ([key isEqualToString:@"sun_radius"])
 	{
 		// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: [object doubleValue] + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict floatForKey:@"corona_flare" defaultValue:0.0f]))];
+		[self setRadius: [object doubleValue] + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
 		collision_radius = [object doubleValue];								
 	}
 	else if ([key isEqualToString:@"corona_flare"])

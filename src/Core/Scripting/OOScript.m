@@ -92,7 +92,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 		}
 	}
 	
-	// Third, try to load an plist script.
+	// Third, try to load a plist script.
 	if (result == nil)
 	{
 		filePath = [path stringByAppendingPathComponent:@"script.plist"];

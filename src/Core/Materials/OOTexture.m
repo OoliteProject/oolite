@@ -289,28 +289,28 @@ static BOOL		sRectangleTextureAvailable;
 	}
 	else if ([configuration isKindOfClass:[NSDictionary class]])
 	{
-		name = [(NSDictionary *)configuration stringForKey:@"name"];
+		name = [(NSDictionary *)configuration oo_stringForKey:@"name"];
 		if (name == nil)
 		{
 			OOLog(@"texture.load.noName", @"Invalid texture configuration dictionary (must specify name):\n%@", configuration);
 			return nil;
 		}
 		
-		filterString = [configuration stringForKey:@"min_filter" defaultValue:@"default"];
+		filterString = [configuration oo_stringForKey:@"min_filter" defaultValue:@"default"];
 		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMinFilterNearest;
 		else if ([filterString isEqualToString:@"linear"])  options |= kOOTextureMinFilterLinear;
 		else if ([filterString isEqualToString:@"mipmap"])  options |= kOOTextureMinFilterMipMap;
 		else  options |= kOOTextureMinFilterDefault;	// Covers "default"
 		
-		filterString = [configuration stringForKey:@"mag_filter" defaultValue:@"default"];
+		filterString = [configuration oo_stringForKey:@"mag_filter" defaultValue:@"default"];
 		if ([filterString isEqualToString:@"nearest"])  options |= kOOTextureMagFilterNearest;
 		else  options |= kOOTextureMagFilterLinear;	// Covers "default" and "linear"
 		
-		if ([configuration boolForKey:@"no_shrink" defaultValue:NO])  options |= kOOTextureNoShrink;
-		if ([configuration boolForKey:@"repeat_s" defaultValue:NO])  options |= kOOTextureRepeatS;
-		if ([configuration boolForKey:@"repeat_t" defaultValue:NO])  options |= kOOTextureRepeatT;
-		anisotropy = [configuration floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
-		lodBias = [configuration floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
+		if ([configuration oo_boolForKey:@"no_shrink" defaultValue:NO])  options |= kOOTextureNoShrink;
+		if ([configuration oo_boolForKey:@"repeat_s" defaultValue:NO])  options |= kOOTextureRepeatS;
+		if ([configuration oo_boolForKey:@"repeat_t" defaultValue:NO])  options |= kOOTextureRepeatT;
+		anisotropy = [configuration oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
+		lodBias = [configuration oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
 	}
 	else
 	{
@@ -670,7 +670,7 @@ static BOOL		sRectangleTextureAvailable;
 #if GL_EXT_texture_filter_anisotropic
 	sAnisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
 	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &sAnisotropyScale);
-	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
+	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
 #endif
 	
 #ifdef GL_CLAMP_TO_EDGE
@@ -683,7 +683,7 @@ static BOOL		sRectangleTextureAvailable;
 #endif
 	
 #if GL_EXT_texture_lod_bias
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"use-texture-lod-bias" defaultValue:YES])
+	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"use-texture-lod-bias" defaultValue:YES])
 	{
 		sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
 	}

@@ -146,7 +146,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	// Get string for error number, for useful log message classes
 	NSDictionary *errorNames = [ResourceManager dictionaryFromFilesNamed:@"oolite-javascript-errors.plist" inFolder:@"Config" andMerge:YES];
 	NSString *errorNumberStr = [NSString stringWithFormat:@"%u", report->errorNumber];
-	NSString *errorName = [errorNames stringForKey:errorNumberStr];
+	NSString *errorName = [errorNames oo_stringForKey:errorNumberStr];
 	if (errorName == nil)  errorName = errorNumberStr;
 	
 	// Log message class
@@ -237,7 +237,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JS_SetVersion(mainContext, OOJSENGINE_JSVERSION);
 	
 #if JS_GC_ZEAL
-	uint8_t gcZeal = [[NSUserDefaults standardUserDefaults] unsignedCharForKey:@"js-gc-zeal"];
+	uint8_t gcZeal = [[NSUserDefaults standardUserDefaults]  oo_unsignedCharForKey:@"js-gc-zeal"];
 	if (gcZeal > 0)
 	{
 		// Useful js-gc-zeal values are 0 (off), 1 and 2.

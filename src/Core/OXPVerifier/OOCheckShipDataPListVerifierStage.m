@@ -132,16 +132,16 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	// Keys that apply to all ships
 	_ooliteShipNames = [NSSet setWithArray:[ooliteShipData allKeys]];
 	settings = [[self verifier] configurationDictionaryForKey:@"shipdataPListSettings"];
-	_basicKeys = [settings setForKey:@"knownShipKeys"];
+	_basicKeys = [settings oo_setForKey:@"knownShipKeys"];
 	
 	// Keys that apply to stations/carriers
 	mergeSet = [_basicKeys mutableCopy];
-	[mergeSet addObjectsFromArray:[settings arrayForKey:@"knownStationKeys"]];
+	[mergeSet addObjectsFromArray:[settings oo_arrayForKey:@"knownStationKeys"]];
 	_stationKeys = mergeSet;
 	
 	// Keys that apply to player ships
 	mergeSet = [_basicKeys mutableCopy];
-	[mergeSet addObjectsFromArray:[settings arrayForKey:@"knownPlayerKeys"]];
+	[mergeSet addObjectsFromArray:[settings oo_arrayForKey:@"knownPlayerKeys"]];
 	_playerKeys = [[mergeSet copy] autorelease];
 	
 	// Keys that apply to _any_ ship -- union of the above
@@ -156,7 +156,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		shipInfo = [_shipdataPList dictionaryForKey:shipKey];
+		shipInfo = [_shipdataPList oo_dictionaryForKey:shipKey];
 		if (shipInfo == nil)
 		{
 			OOLog(@"verifyOXP.shipdata.badType", @"***** ERROR: shipdata.plist entry for \"%@\" is not a dictionary.", shipKey);
@@ -193,7 +193,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	[self checkSchema];
 	[self checkModel];
 	
-	NSString *aiName = [info stringForKey:@"ai_type"];
+	NSString *aiName = [info oo_stringForKey:@"ai_type"];
 	if (aiName != nil)  [_aiVerifierStage stateMachineNamed:aiName usedByShip:name];
 	
 	// Todo: check for pirates with 0 bounty
@@ -253,7 +253,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	rolesString = [_info objectForKey:@"roles"];
 	_roles = [self rolesFromString:rolesString];
 	_isPlayer = [_roles containsObject:@"player"];
-	_isStation = [_info boolForKey:@"isCarrier" defaultValue:NO] ||
+	_isStation = [_info oo_boolForKey:@"isCarrier" defaultValue:NO] ||
 				 [rolesString rangeOfString:@"station"].location != NSNotFound ||
 				 [rolesString rangeOfString:@"carrier"].location != NSNotFound;
 	
@@ -304,9 +304,9 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 								materials = nil,
 								shaders = nil;
 	
-	model = [_info stringForKey:@"model"];
-	materials = [_info dictionaryForKey:@"materials"];
-	shaders = [_info dictionaryForKey:@"shaders"];
+	model = [_info oo_stringForKey:@"model"];
+	materials = [_info oo_dictionaryForKey:@"materials"];
+	shaders = [_info oo_dictionaryForKey:@"shaders"];
 	
 	if (model != nil)
 	{
@@ -321,7 +321,7 @@ static NSString * const kStageName	= @"Checking shipdata.plist";
 	}
 	else
 	{
-		if ([_info stringForKey:@"like_ship"] == nil)
+		if ([_info oo_stringForKey:@"like_ship"] == nil)
 		{
 			[self message:@"***** ERROR: ship does not specify model or like_ship."];
 		}

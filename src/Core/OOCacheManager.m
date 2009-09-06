@@ -53,7 +53,6 @@ static NSString * const kOOLogDataCacheClearSuccess			= @"dataCache.clear.succes
 static NSString * const kOOLogDataCacheParamError			= @"general.error.parameterError.OOCacheManager";
 static NSString * const kOOLogDataCacheBuildPathError		= @"dataCache.write.buildPath.failed";
 static NSString * const kOOLogDataCacheSerializationError	= @"dataCache.write.serialize.failed";
-static NSString * const kOOLogDataCacheRemovedOld			= @"dataCache.removedOld";
 
 static NSString * const kCacheKeyVersion					= @"CFBundleVersion";	// Legacy name
 static NSString * const kCacheKeyEndianTag					= @"endian tag";
@@ -64,7 +63,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 29
+	kFormatVersionValue		= 30
 };
 
 
@@ -79,7 +78,6 @@ static OOCacheManager *sSingleton = nil;
 - (BOOL)dirty;
 - (void)markClean;
 
-- (void)deleteOldCache;
 - (NSDictionary *)loadDict;
 - (BOOL)writeDict:(NSDictionary *)inDict;
 
@@ -94,7 +92,6 @@ static OOCacheManager *sSingleton = nil;
 @interface OOCacheManager (PlatformSpecific)
 
 - (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate;
-- (NSString *)oldCachePath;
 
 @end
 
@@ -107,7 +104,6 @@ static OOCacheManager *sSingleton = nil;
 	if (self != nil)
 	{
 		_permitWrites = YES;
-		[self deleteOldCache];
 		[self loadCache];
 	}
 	return self;
@@ -249,8 +245,15 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)clearAllCaches
 {
-	[_caches release];
+	[self clear];
 	_caches = [[NSMutableDictionary alloc] init];
+}
+
+
+- (void) reloadAllCaches
+{
+	[self clear];
+	[self loadCache];
 }
 
 
@@ -446,21 +449,6 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
-- (void)deleteOldCache
-{
-	// Since the cache location has changed, we delete the old cache (if any).
-	NSString			*path = [self oldCachePath];
-	NSFileManager		*fmgr;
-	
-	fmgr = [NSFileManager defaultManager];
-	if ([fmgr fileExistsAtPath:path])
-	{
-		OOLog(kOOLogDataCacheRemovedOld, @"Removed old data cache.");
-		[fmgr removeFileAtPath:path handler:nil];
-	}
-}
-
-
 - (NSDictionary *)loadDict
 {
 	NSString			*path = nil;
@@ -619,19 +607,6 @@ static OOCacheManager *sSingleton = nil;
 	return cachePath;
 }
 
-
-- (NSString *)oldCachePath
-{
-	NSString			*path = nil;
-	
-	path = [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-	path = [path stringByAppendingPathComponent:@"Application Support"];
-	path = [path stringByAppendingPathComponent:@"Oolite"];
-	path = [path stringByAppendingPathComponent:@"cache"];
-	
-	return path;
-}
-
 #else
 
 - (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate
@@ -640,6 +615,10 @@ static OOCacheManager *sSingleton = nil;
 	
 	/*	Construct the path for the cache file, which is:
 			~/GNUstep/Library/Caches/Oolite-cache.plist
+		
+		FIXME: we shouldn't be hard-coding ~/GNUstep/. Does
+		NSSearchPathForDirectoriesInDomains() not work?
+		-- Ahruman 2009-09-06
 	*/
 	cachePath = [NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"];
 	if (![self directoryExists:cachePath create:inCreate]) return nil;
@@ -650,14 +629,6 @@ static OOCacheManager *sSingleton = nil;
 	cachePath = [cachePath stringByAppendingPathComponent:@"Oolite-cache.plist"];
 	
 	return cachePath;
-}
-
-
-- (NSString *)oldCachePath
-{
-	return [[[NSHomeDirectory() stringByAppendingPathComponent:@"GNUstep"]
-								stringByAppendingPathComponent:@"Library"]
-								stringByAppendingPathComponent:@"Oolite-cache"];
 }
 
 #endif

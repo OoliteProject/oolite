@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "NSDictionaryOOExtensions.h"
+#import "OODeepCopy.h"
 
 
 #define OUTPUT_PLIST_PATHS	0		// If nonzero, output is formatted for script-patches.plist.
@@ -61,7 +62,8 @@ static NSString *StringFromStack(SanStackElement *topOfStack);
 NSArray *OOSanitizeLegacyScript(NSArray *script, NSString *context, BOOL allowAIMethods)
 {
 	SanStackElement stackRoot = { NULL, context, 0 };
-	return OOSanitizeLegacyScriptInternal(script, &stackRoot, allowAIMethods);
+	NSArray *result = OOSanitizeLegacyScriptInternal(script, &stackRoot, allowAIMethods);
+	return [OODeepCopy(result) autorelease];
 }
 
 
@@ -104,7 +106,7 @@ static NSArray *OOSanitizeLegacyScriptInternal(NSArray *script, SanStackElement 
 		}
 	}
 	
-	result = [result copy];
+	[result retain];
 	[pool release];
 	
 	return [result autorelease];
@@ -115,7 +117,8 @@ NSArray *OOSanitizeLegacyScriptConditions(NSArray *conditions, NSString *context
 {
 	if (context == nil)  context = @"<anonymous conditions>";
 	SanStackElement stackRoot = { NULL, context, 0 };
-	return OOSanitizeLegacyScriptConditionsInternal(conditions, &stackRoot);
+	NSArray *result = OOSanitizeLegacyScriptConditionsInternal(conditions, &stackRoot);
+	return [OODeepCopy(result) autorelease];
 }
 
 
@@ -158,7 +161,7 @@ static NSArray *OOSanitizeLegacyScriptConditionsInternal(NSArray *conditions, Sa
 		}
 	}
 	
-	if (OK)  return [[result copy] autorelease];
+	if (OK)  return result;
 	else  return AlwaysFalseConditions();
 }
 
@@ -195,7 +198,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 	}
 	
 	// Parse left-hand side.
-	selectorString = [tokens stringAtIndex:0];
+	selectorString = [tokens oo_stringAtIndex:0];
 	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, stack);
 	if (opType >= OP_INVALID)
 	{
@@ -206,7 +209,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 	// Parse operator.
 	if (tokenCount > 1)
 	{
-		comparatorString = [tokens stringAtIndex:1];
+		comparatorString = [tokens oo_stringAtIndex:1];
 		if ([comparatorString isEqualToString:@"equal"])  comparatorValue = COMPARISON_EQUAL;
 		else if ([comparatorString isEqualToString:@"notequal"])  comparatorValue = COMPARISON_NOTEQUAL;
 		else if ([comparatorString isEqualToString:@"lessthan"])  comparatorValue = COMPARISON_LESSTHAN;
@@ -264,7 +267,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 		rhs = [NSMutableArray arrayWithCapacity:tokenCount - 2];
 		for (i = 2; i < tokenCount; i++)
 		{
-			rhsItem = [tokens stringAtIndex:i];
+			rhsItem = [tokens oo_stringAtIndex:i];
 			rhsSelector = SanitizeQueryMethod(rhsItem);
 			if (rhsSelector != nil)
 			{
@@ -315,7 +318,7 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, SanStackEl
 	NSArray					*doActions = nil;
 	NSArray					*elseActions = nil;
 	
-	conditions = [statement arrayForKey:@"conditions"];
+	conditions = [statement oo_arrayForKey:@"conditions"];
 	if (conditions == nil)
 	{
 		OOLog(@"script.syntax.noConditions", @"***** SCRIPT ERROR: in %@, conditions array contains no \"conditions\" entry, ignoring.", StringFromStack(stack));
@@ -331,14 +334,14 @@ static NSArray *SanitizeConditionalStatement(NSDictionary *statement, SanStackEl
 	}
 	
 	// Sanitize do and else.
-	if (!IsAlwaysFalseConditions(conditions))  doActions = [statement arrayForKey:@"do"];
+	if (!IsAlwaysFalseConditions(conditions))  doActions = [statement oo_arrayForKey:@"do"];
 	if (doActions != nil)
 	{
 		subStack.key = @"do";
 		doActions = OOSanitizeLegacyScriptInternal(doActions, &subStack, allowAIMethods);
 	}
 	
-	elseActions = [statement arrayForKey:@"else"];
+	elseActions = [statement oo_arrayForKey:@"else"];
 	if (elseActions != nil)
 	{
 		subStack.key = @"else";
@@ -442,11 +445,11 @@ static NSString *SanitizeQueryMethod(NSString *selectorString)
 	
 	if (whitelist == nil)
 	{
-		whitelist = [[NSSet alloc] initWithArray:[[ResourceManager whitelistDictionary] arrayForKey:@"query_methods"]];
-		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"query_method_aliases"] retain];
+		whitelist = [[NSSet alloc] initWithArray:[[ResourceManager whitelistDictionary] oo_arrayForKey:@"query_methods"]];
+		aliases = [[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"query_method_aliases"] retain];
 	}
 	
-	aliasedSelector = [aliases stringForKey:selectorString];
+	aliasedSelector = [aliases oo_stringForKey:selectorString];
 	if (aliasedSelector != nil)  selectorString = aliasedSelector;
 	
 	if (![whitelist containsObject:selectorString])  selectorString = nil;
@@ -469,9 +472,9 @@ static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMeth
 		NSArray						*aiMethods = nil;
 		NSArray						*aiAndActionMethods = nil;
 		
-		actionMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"action_methods"];
-		aiMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_methods"];
-		aiAndActionMethods = [[ResourceManager whitelistDictionary] arrayForKey:@"ai_and_action_methods"];
+		actionMethods = [[ResourceManager whitelistDictionary] oo_arrayForKey:@"action_methods"];
+		aiMethods = [[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_methods"];
+		aiAndActionMethods = [[ResourceManager whitelistDictionary] oo_arrayForKey:@"ai_and_action_methods"];
 		
 		if (actionMethods == nil)  actionMethods = [NSArray array];
 		if (aiMethods == nil)  aiMethods = [NSArray array];
@@ -481,9 +484,9 @@ static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMeth
 		whitelist = [[NSSet alloc] initWithArray:actionMethods];
 		whitelistWithAI = [[NSSet alloc] initWithArray:[aiMethods arrayByAddingObjectsFromArray:actionMethods]];
 		
-		aliases = [[[ResourceManager whitelistDictionary] dictionaryForKey:@"action_method_aliases"] retain];
+		aliases = [[[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"action_method_aliases"] retain];
 		
-		aliasesWithAI = [[ResourceManager whitelistDictionary] dictionaryForKey:@"ai_method_aliases"];
+		aliasesWithAI = [[ResourceManager whitelistDictionary] oo_dictionaryForKey:@"ai_method_aliases"];
 		if (aliasesWithAI != nil)
 		{
 			aliasesWithAI = [[aliasesWithAI dictionaryByAddingEntriesFromDictionary:aliases] copy];
@@ -494,7 +497,7 @@ static NSString *SanitizeActionMethod(NSString *selectorString, BOOL allowAIMeth
 		}
 	}
 	
-	aliasedSelector = [(allowAIMethods ? aliasesWithAI : aliases) stringForKey:selectorString];
+	aliasedSelector = [(allowAIMethods ? aliasesWithAI : aliases) oo_stringForKey:selectorString];
 	if (aliasedSelector != nil)  selectorString = aliasedSelector;
 	
 	if (![(allowAIMethods ? whitelistWithAI : whitelist) containsObject:selectorString])  selectorString = nil;
@@ -519,7 +522,7 @@ static NSArray *AlwaysFalseConditions(void)
 
 static BOOL IsAlwaysFalseConditions(NSArray *conditions)
 {
-	return [[conditions arrayAtIndex:0] unsignedIntAtIndex:0] == OP_FALSE;
+	return [[conditions oo_arrayAtIndex:0] oo_unsignedIntAtIndex:0] == OP_FALSE;
 }
 
 

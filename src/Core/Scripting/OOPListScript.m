@@ -26,17 +26,23 @@ MA 02110-1301, USA.
 #import "OOPListParsing.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
+#import "OOCacheManager.h"
+#import "OOCollectionExtractors.h"
 
 
 static NSString * const kMDKeyName			= @"name";
 static NSString * const kMDKeyDescription	= @"description";
 static NSString * const kMDKeyVersion		= @"version";
 static NSString * const kKeyMetadata		= @"!metadata!";
+static NSString * const kKeyScript			= @"script";
+
+static NSString * const kCacheName			= @"sanitized legacy scripts";
 
 
 @interface OOPListScript (SetUp)
 
-+ (NSArray *)scriptsFromDictionaryOfScripts:(NSDictionary *)dictionary;
++ (NSArray *)scriptsFromDictionaryOfScripts:(NSDictionary *)dictionary filePath:(NSString *)filePath;
++ (NSArray *) loadCachedScripts:(NSDictionary *)cachedScripts;
 - (id)initWithName:(NSString *)name scriptArray:(NSArray *)script metadata:(NSDictionary *)metadata;
 
 @end
@@ -46,10 +52,17 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 
 + (NSArray *)scriptsInPListFile:(NSString *)filePath
 {
-	NSDictionary		*dict = nil;
-	
-	dict = OODictionaryFromFile(filePath);
-	return [self scriptsFromDictionaryOfScripts:dict];
+	NSDictionary *cachedScripts = [[OOCacheManager sharedCache] objectForKey:filePath inCache:kCacheName];
+	if (cachedScripts != nil)
+	{
+		return [self loadCachedScripts:cachedScripts];
+	}
+	else
+	{
+		NSDictionary *dict = OODictionaryFromFile(filePath);
+		if (dict == nil)  return nil;
+		return [self scriptsFromDictionaryOfScripts:dict filePath:filePath];
+	}
 }
 
 
@@ -110,16 +123,20 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 
 @implementation OOPListScript (SetUp)
 
-+ (NSArray *)scriptsFromDictionaryOfScripts:(NSDictionary *)dictionary
++ (NSArray *)scriptsFromDictionaryOfScripts:(NSDictionary *)dictionary filePath:(NSString *)filePath
 {
 	NSMutableArray		*result = nil;
 	NSEnumerator		*keyEnum = nil;
 	NSString			*key = nil;
 	NSArray				*scriptArray = nil;
 	NSDictionary		*metadata = nil;
+	NSMutableDictionary	*cachedScripts = nil;
 	OOPListScript		*script = nil;
 	
-	result = [NSMutableArray arrayWithCapacity:[dictionary count]];
+	OOUInteger count = [dictionary count];
+	result = [NSMutableArray arrayWithCapacity:count];
+	cachedScripts = [NSMutableDictionary dictionaryWithCapacity:count];
+	
 	metadata = [dictionary objectForKey:kKeyMetadata];
 	if (![metadata isKindOfClass:[NSDictionary class]]) metadata = nil;
 	
@@ -137,13 +154,41 @@ static NSString * const kKeyMetadata		= @"!metadata!";
 				if (script != nil)
 				{
 					[result addObject:script];
+					[cachedScripts setObject:[NSDictionary dictionaryWithObjectsAndKeys:scriptArray, kKeyScript, metadata, kKeyMetadata, nil] forKey:key];
+					
 					[script release];
 				}
 			}
 		}
 	}
 	
-	return result;
+	[[OOCacheManager sharedCache] setObject:cachedScripts forKey:filePath inCache:kCacheName];
+	
+	return [[result copy] autorelease];
+}
+
+
++ (NSArray *) loadCachedScripts:(NSDictionary *)cachedScripts
+{
+	NSEnumerator		*keyEnum = nil;
+	NSString			*key = nil;
+	
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[cachedScripts count]];
+	
+	for (keyEnum = [cachedScripts keyEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		NSDictionary *cacheValue = [cachedScripts oo_dictionaryForKey:key];
+		NSArray *scriptArray = [cacheValue oo_arrayForKey:kKeyScript];
+		NSDictionary *metadata = [cacheValue oo_dictionaryForKey:kKeyMetadata];
+		OOPListScript *script = [[self alloc] initWithName:key scriptArray:scriptArray metadata:metadata];
+		if (script != nil)
+		{
+			[result addObject:script];
+			[script release];
+		}
+	}
+	
+	return [[result copy] autorelease];
 }
 
 

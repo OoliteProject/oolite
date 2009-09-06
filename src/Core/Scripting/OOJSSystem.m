@@ -240,35 +240,35 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_government:
-			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_GOVERNMENT]);
+			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_GOVERNMENT]);
 			break;
 			
 		case kSystem_governmentDescription:
-			result = GovernmentToString([systemData intForKey:KEY_GOVERNMENT]);
+			result = GovernmentToString([systemData oo_intForKey:KEY_GOVERNMENT]);
 			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;
 			
 		case kSystem_economy:
-			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_ECONOMY]);
+			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_ECONOMY]);
 			break;
 			
 		case kSystem_economyDescription:
-			result = EconomyToString([systemData intForKey:KEY_ECONOMY]);
+			result = EconomyToString([systemData oo_intForKey:KEY_ECONOMY]);
 			if (result == nil && [UNIVERSE inInterstellarSpace])  result = DESC(@"not-applicable");
 			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kSystem_techLevel:
-			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_TECHLEVEL]);
+			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_TECHLEVEL]);
 			break;
 			
 		case kSystem_population:
-			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_POPULATION]);
+			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_POPULATION]);
 			break;
 			
 		case kSystem_productivity:
-			*outValue = INT_TO_JSVAL([systemData intForKey:KEY_PRODUCTIVITY]);
+			*outValue = INT_TO_JSVAL([systemData oo_intForKey:KEY_PRODUCTIVITY]);
 			break;
 			
 		case kSystem_isInterstellarSpace:

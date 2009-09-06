@@ -114,7 +114,7 @@ static unsigned				sCacheMisses = 0;
 
 - (id) initWithFontPList:(NSDictionary *)fontPList
 {
-	return [self initWithEncoding:EncodingFromString([fontPList stringForKey:@"encoding"]) substitutions:[fontPList dictionaryForKey:@"substitutions"]];
+	return [self initWithEncoding:EncodingFromString([fontPList oo_stringForKey:@"encoding"]) substitutions:[fontPList oo_dictionaryForKey:@"substitutions"]];
 }
 
 

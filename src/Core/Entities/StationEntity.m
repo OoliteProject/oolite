@@ -154,7 +154,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 - (NSMutableArray *) initialiseLocalMarketWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
 {
 	int rf = (random_factor ^ universalID) & 0xff;
-	int economy = [[UNIVERSE generateSystemData:s_seed] intForKey:KEY_ECONOMY];
+	int economy = [[UNIVERSE generateSystemData:s_seed] oo_intForKey:KEY_ECONOMY];
 	if (localMarket)
 		[localMarket release];
 	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
@@ -383,7 +383,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		Vector portPos = [self getPortPosition];
 		Vector portDir = vector_forward_from_quaternion(port_orientation);		
 		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
-		BOOL isRotatingStation = [shipinfoDictionary boolForKey:@"rotating" defaultValue:NO];
+		BOOL isRotatingStation = [shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO];
 		if ((!isRotatingStation)&&(isOffCentre))
 		{
 			if (![shipsOnHold objectForKey:shipID])
@@ -442,7 +442,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	float speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
 	float rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
 	BOOL match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-	NSString* comms_message = [nextCoords stringForKey:@"comms_message"];
+	NSString* comms_message = [nextCoords oo_stringForKey:@"comms_message"];
 	
 	// calculate world coordinates from relative coordinates
 	Vector rel_coords;
@@ -476,7 +476,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
 		rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
 		match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-		comms_message = [nextCoords stringForKey:@"comms_message"];
+		comms_message = [nextCoords oo_stringForKey:@"comms_message"];
 		
 		if (comms_message)
 			[self sendExpandedMessage: comms_message toShip: ship];
@@ -716,13 +716,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	isStation = YES;
 	alertLevel = STATION_ALERT_LEVEL_GREEN;
 	
-	double port_radius = [dict nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
+	double port_radius = [dict oo_nonNegativeDoubleForKey:@"port_radius" defaultValue:500.0];
 	port_position = make_vector(0, 0, port_radius);
 	port_orientation = kIdentityQuaternion;
 	
 	// port_dimensions can be set for rock-hermits and other specials
 	port_dimensions = make_vector(69, 69, 250);
-	NSString *portDimensionsStr = [dict stringForKey:@"port_dimensions"];
+	NSString *portDimensionsStr = [dict oo_stringForKey:@"port_dimensions"];
 	if (portDimensionsStr != nil)   // this can be set for rock-hermits and other specials
 	{
 		NSArray* tokens = [portDimensionsStr componentsSeparatedByString:@"x"];
@@ -736,19 +736,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if (![super setUpShipFromDictionary:dict])  return NO;
 	
-	equivalentTechLevel = [dict unsignedIntegerForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
-	max_scavengers = [dict unsignedIntForKey:@"max_scavengers" defaultValue:3];
-	max_defense_ships = [dict unsignedIntForKey:@"max_defense_ships" defaultValue:3];
-	max_police = [dict unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
-	equipmentPriceFactor = [dict nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
+	equivalentTechLevel = [dict oo_unsignedIntegerForKey:@"equivalent_tech_level" defaultValue:NSNotFound];
+	max_scavengers = [dict oo_unsignedIntForKey:@"max_scavengers" defaultValue:3];
+	max_defense_ships = [dict oo_unsignedIntForKey:@"max_defense_ships" defaultValue:3];
+	max_police = [dict oo_unsignedIntForKey:@"max_police" defaultValue:STATION_MAX_POLICE];
+	equipmentPriceFactor = [dict oo_nonNegativeFloatForKey:@"equipment_price_factor" defaultValue:1.0];
 	equipmentPriceFactor = OOMax_f(equipmentPriceFactor, 0.5f);
-	hasNPCTraffic = [dict fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
+	hasNPCTraffic = [dict oo_fuzzyBooleanForKey:@"has_npc_traffic" defaultValue:YES];
 #if DOCKING_CLEARANCE_ENABLED
 	// Non main stations may have requiresDockingClearance set to yes as a result of the code below,
 	// but this variable should be irrelevant for them, as they do not make use of it anyway.
-	NSDictionary *universalInfo = [[UNIVERSE planetInfo] dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
-	requiresDockingClearance = [dict boolForKey:@"requires_docking_clearance" defaultValue:
-		universalInfo != nil ?	[universalInfo boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
+	NSDictionary *universalInfo = [[UNIVERSE planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY];
+	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
+		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
 	
 	double unitime = [UNIVERSE getTime];
@@ -1441,7 +1441,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		unsigned escorts = [ship pendingEscortCount];
 		if(escorts > 0)
 		{
-			escortRole = [traderDict stringForKey:@"escort-role" defaultValue:defaultRole];
+			escortRole = [traderDict oo_stringForKey:@"escort-role" defaultValue:defaultRole];
 			if (![escortRole isEqualToString: defaultRole])
 			{
 				if (![[UNIVERSE newShipWithRole:escortRole] autorelease])
@@ -1450,7 +1450,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				}
 			}
 			
-			escortShipKey = [traderDict stringForKey:@"escort-ship"];
+			escortShipKey = [traderDict oo_stringForKey:@"escort-ship"];
 			if (escortShipKey != nil)
 			{
 				if (![[UNIVERSE newShipWithName:escortShipKey] autorelease])
@@ -1598,14 +1598,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return;
 	}
 	
-	defense_ship_key = [shipinfoDictionary stringForKey:@"defense_ship"];
+	defense_ship_key = [shipinfoDictionary oo_stringForKey:@"defense_ship"];
 	if (defense_ship_key != nil)
 	{
 		defense_ship = [UNIVERSE newShipWithName:defense_ship_key];
 	}
 	if (!defense_ship)
 	{
-		defense_ship_role = [shipinfoDictionary stringForKey:@"defense_ship_role" defaultValue:default_defense_ship_role];
+		defense_ship_role = [shipinfoDictionary oo_stringForKey:@"defense_ship_role" defaultValue:default_defense_ship_role];
 		defense_ship = [UNIVERSE newShipWithRole:defense_ship_role];
 	}
 	
@@ -2047,7 +2047,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) isRotatingStation
 {
-	if ([shipinfoDictionary boolForKey:@"rotating" defaultValue:NO])  return YES;
+	if ([shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO])  return YES;
 	return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound;	// legacy
 }
 

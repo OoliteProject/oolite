@@ -76,8 +76,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 {
 	if (configuration == nil)  return NO;
 	
-	if ([configuration stringForKey:@"vertex_shader"] != nil)  return YES;
-	if ([configuration stringForKey:@"fragment_shader"] != nil)  return YES;
+	if ([configuration oo_stringForKey:@"vertex_shader"] != nil)  return YES;
+	if ([configuration oo_stringForKey:@"fragment_shader"] != nil)  return YES;
 	
 	return NO;
 }
@@ -131,8 +131,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (OK)
 	{
-		vertexShader = [configuration stringForKey:@"vertex_shader"];
-		fragmentShader = [configuration stringForKey:@"fragment_shader"];
+		vertexShader = [configuration oo_stringForKey:@"vertex_shader"];
+		fragmentShader = [configuration oo_stringForKey:@"fragment_shader"];
 		
 		if (vertexShader != nil || fragmentShader != nil)
 		{
@@ -161,8 +161,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	if (OK)
 	{
 		// Load uniforms
-		uniformDefs = [configuration dictionaryForKey:@"uniforms"];
-		textureDefs = [configuration arrayForKey:@"textures"];
+		uniformDefs = [configuration oo_dictionaryForKey:@"uniforms"];
+		textureDefs = [configuration oo_arrayForKey:@"textures"];
 		
 		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count]];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
@@ -379,9 +379,9 @@ static NSString *MacrosToString(NSDictionary *macros);
 		if ([definition isKindOfClass:[NSDictionary class]])
 		{
 			value = [(NSDictionary *)definition objectForKey:@"value"];
-			binding = [(NSDictionary *)definition stringForKey:@"binding"];
-			type = [(NSDictionary *)definition stringForKey:@"type"];
-			scale = [(NSDictionary *)definition floatForKey:@"scale" defaultValue:1.0];
+			binding = [(NSDictionary *)definition oo_stringForKey:@"binding"];
+			type = [(NSDictionary *)definition oo_stringForKey:@"type"];
+			scale = [(NSDictionary *)definition oo_floatForKey:@"scale" defaultValue:1.0];
 			if (type == nil)
 			{
 				if (value == nil && binding != nil)  type = @"binding";
@@ -476,7 +476,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		{
 			if ([definition isKindOfClass:[NSDictionary class]])
 			{
-				quatAsMatrix = [definition boolForKey:@"asMatrix" defaultValue:quatAsMatrix];
+				quatAsMatrix = [definition oo_boolForKey:@"asMatrix" defaultValue:quatAsMatrix];
 			}
 			[self setUniform:name
 			 quaternionValue:OOQuaternionFromObject(value, kIdentityQuaternion)
@@ -488,13 +488,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 			if ([definition isKindOfClass:[NSDictionary class]])
 			{
 				convertOptions = 0;
-				if ([definition boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
-				if ([definition boolForKey:@"normalized" defaultValue:[definition boolForKey:@"normalised" defaultValue:NO]])
+				if ([definition oo_boolForKey:@"clamped" defaultValue:NO])  convertOptions |= kOOUniformConvertClamp;
+				if ([definition oo_boolForKey:@"normalized" defaultValue:[definition oo_boolForKey:@"normalised" defaultValue:NO]])
 				{
 					convertOptions |= kOOUniformConvertNormalize;
 				}
-				if ([definition boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
-				if (![definition boolForKey:@"bindToSubentity" defaultValue:NO])  convertOptions |= kOOUniformBindToSuperTarget;
+				if ([definition oo_boolForKey:@"asMatrix" defaultValue:YES])  convertOptions |= kOOUniformConvertToMatrix;
+				if (![definition oo_boolForKey:@"bindToSubentity" defaultValue:NO])  convertOptions |= kOOUniformBindToSuperTarget;
 			}
 			else
 			{

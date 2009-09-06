@@ -277,7 +277,6 @@ enum
 - (BOOL) strict;
 - (void) setStrict:(BOOL) value;
 
-- (void) reinit;
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
 

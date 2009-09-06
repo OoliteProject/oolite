@@ -516,13 +516,13 @@ NSString *KillCountToRatingString(unsigned kills)
 						};
 	unsigned			i;
 	
-	ratingNames = [[UNIVERSE descriptions] arrayForKey:@"rating"];
+	ratingNames = [[UNIVERSE descriptions] oo_arrayForKey:@"rating"];
 	for (i = 0; i < kRatingCount - 1; ++i)
 	{
-		if (kills < killThresholds[i])  return [ratingNames stringAtIndex:i];
+		if (kills < killThresholds[i])  return [ratingNames oo_stringAtIndex:i];
 	}
 	
-	return [ratingNames stringAtIndex:kRatingCount - 1];
+	return [ratingNames oo_stringAtIndex:kRatingCount - 1];
 }
 
 
@@ -544,20 +544,20 @@ NSString *LegalStatusToString(int legalStatus)
 						};
 	unsigned			i;
 	
-	statusNames = [[UNIVERSE descriptions] arrayForKey:@"legal_status"];
+	statusNames = [[UNIVERSE descriptions] oo_arrayForKey:@"legal_status"];
 	for (i = 0; i != kStatusCount - 1; ++i)
 	{
-		if (legalStatus < statusThresholds[i])  return [statusNames stringAtIndex:i];
+		if (legalStatus < statusThresholds[i])  return [statusNames oo_stringAtIndex:i];
 	}
 	
-	return [statusNames stringAtIndex:kStatusCount - 1];
+	return [statusNames oo_stringAtIndex:kStatusCount - 1];
 }
 
 
 NSString *AlertConditionToString(OOAlertCondition alertCondition)
 {
-	NSArray *conditionNames = [[UNIVERSE descriptions] arrayForKey:@"condition"];
-	return [conditionNames stringAtIndex:alertCondition];
+	NSArray *conditionNames = [[UNIVERSE descriptions] oo_arrayForKey:@"condition"];
+	return [conditionNames oo_stringAtIndex:alertCondition];
 }
 
 
@@ -584,7 +584,7 @@ NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName)
 
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition)
 {
-	return CommodityDisplayNameForSymbolicName([commodityDefinition stringAtIndex:MARKET_NAME]);
+	return CommodityDisplayNameForSymbolicName([commodityDefinition oo_stringAtIndex:MARKET_NAME]);
 }
 
 

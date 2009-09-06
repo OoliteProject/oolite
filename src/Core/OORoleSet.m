@@ -176,7 +176,7 @@ SOFTWARE.
 
 - (float)probabilityForRole:(NSString *)role
 {
-	return [_rolesAndProbabilities floatForKey:role defaultValue:0.0f];
+	return [_rolesAndProbabilities oo_floatForKey:role defaultValue:0.0f];
 }
 
 
@@ -224,7 +224,7 @@ SOFTWARE.
 	
 	for (roleEnum = [_rolesAndProbabilities keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
-		prob += [_rolesAndProbabilities floatForKey:role];
+		prob += [_rolesAndProbabilities oo_floatForKey:role];
 		if (selected <= prob)  break;
 	}
 	if (role == nil)
@@ -313,7 +313,7 @@ SOFTWARE.
 	
 	for (roleEnum = [dict keyEnumerator]; (role = [roleEnum nextObject]); )
 	{
-		prob = [dict floatForKey:role defaultValue:-1];
+		prob = [dict oo_floatForKey:role defaultValue:-1];
 		if (prob < 0)
 		{
 			OOLog(@"roleSet.badValue", @"Attempt to create a role set with negative or non-numerical probability for role %@.", role);

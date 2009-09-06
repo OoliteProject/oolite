@@ -114,7 +114,7 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 		elemCount = [entry count];
 		
 		// Make a name for entry for display purposes.
-		if (EQUIPMENT_KEY_INDEX < elemCount)  name = [entry stringAtIndex:EQUIPMENT_KEY_INDEX];
+		if (EQUIPMENT_KEY_INDEX < elemCount)  name = [entry oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 		else  name = nil;
 		
 		if (name != nil)  entryDesc = [NSString stringWithFormat:@"%u (\"%@\")", entryIndex, name];
@@ -135,30 +135,30 @@ static NSString * const kStageName	= @"Checking equipment.plist";
 			integers; the use of a negative default will catch both negative
 			values and unconvertable values.
 		*/
-		if ([entry longAtIndex:EQUIPMENT_TECH_LEVEL_INDEX defaultValue:-1] < 0)
+		if ([entry oo_longAtIndex:EQUIPMENT_TECH_LEVEL_INDEX defaultValue:-1] < 0)
 		{
 			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: tech level for entry %@ of equipment.plist is not a positive integer.", entryDesc);
 		}
-		if ([entry longAtIndex:EQUIPMENT_PRICE_INDEX defaultValue:-1] < 0)
+		if ([entry oo_longAtIndex:EQUIPMENT_PRICE_INDEX defaultValue:-1] < 0)
 		{
 			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: price for entry %@ of equipment.plist is not a positive integer.", entryDesc);
 		}
-		if ([entry stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] == nil)
+		if ([entry oo_stringAtIndex:EQUIPMENT_SHORT_DESC_INDEX] == nil)
 		{
 			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: short description for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
-		if ([entry stringAtIndex:EQUIPMENT_KEY_INDEX] == nil)
+		if ([entry oo_stringAtIndex:EQUIPMENT_KEY_INDEX] == nil)
 		{
 			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: key for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
-		if ([entry stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] == nil)
+		if ([entry oo_stringAtIndex:EQUIPMENT_LONG_DESC_INDEX] == nil)
 		{
 			OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: long description for entry %@ of equipment.plist is not a string.", entryDesc);
 		}
 		
 		if (5 < elemCount)
 		{
-			if ([entry dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] == nil)
+			if ([entry oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX] == nil)
 			{
 				OOLog(@"verifyOXP.equipmentPList.badElementType", @"***** ERROR: equipment.plist entry %@'s extra information dictionary is not a dictionary.", entryDesc);
 			}

@@ -91,7 +91,7 @@ static NSMutableDictionary *sStringCache;
 	for (i = 0; i != count; ++i)
 	{
 		error = [sErrors objectAtIndex:i];
-		errStr = [UNIVERSE descriptionForKey:[error stringAtIndex:0]];
+		errStr = [UNIVERSE descriptionForKey:[error oo_stringAtIndex:0]];
 		if (errStr != nil)
 		{
 			errStr = [NSString stringWithFormat:errStr, [error objectAtIndex:1], [error objectAtIndex:2]];
@@ -234,6 +234,20 @@ static NSMutableDictionary *sStringCache;
 	if (sUseAddOns != useAddOns)
 	{
 		sUseAddOns = useAddOns;
+		[ResourceManager clearCaches];
+		
+		OOCacheManager *cmgr = [OOCacheManager sharedCache];
+		if (sUseAddOns)
+		{
+			[cmgr reloadAllCaches];
+			[cmgr setAllowCacheWrites:YES];
+		}
+		else
+		{
+			[cmgr clearAllCaches];
+			[cmgr setAllowCacheWrites:NO];
+		}
+		
 		[self checkCacheUpToDateForPaths:[self paths]];
 	}
 }
@@ -303,7 +317,7 @@ static NSMutableDictionary *sStringCache;
 	// Check "version" (minimum version)
 	if (OK)
 	{
-		// Not stringForKey:, because we need to be able to complain about non-strings.
+		// Not oo_stringForKey:, because we need to be able to complain about non-strings.
 		requiredVersion = [requirements objectForKey:@"version"];
 		if (requiredVersion != nil)
 		{
@@ -324,7 +338,7 @@ static NSMutableDictionary *sStringCache;
 	// Check "max_version" (minimum max_version)
 	if (OK)
 	{
-		// Not stringForKey:, because we need to be able to complain about non-strings.
+		// Not oo_stringForKey:, because we need to be able to complain about non-strings.
 		maxVersion = [requirements objectForKey:@"max_version"];
 		if (maxVersion != nil)
 		{
@@ -544,6 +558,12 @@ static NSMutableDictionary *sStringCache;
 
 + (NSArray *) arrayFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName andMerge:(BOOL) mergeFiles
 {
+	return [self arrayFromFilesNamed:fileName inFolder:folderName andMerge:mergeFiles cache:YES];
+}
+
+
++ (NSArray *) arrayFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName andMerge:(BOOL) mergeFiles cache:(BOOL)useCache
+{
 	id				result = nil;
 	NSMutableArray	*results = nil;
 	NSString		*cacheKey = nil;
@@ -556,9 +576,12 @@ static NSMutableDictionary *sStringCache;
 	
 	if (fileName == nil)  return nil;
 	
-	cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (folderName != nil) ? [folderName stringByAppendingString:@"/"] : (NSString *)@"", fileName, mergeFiles ? @"yes" : @"no"];
-	result = [cache objectForKey:cacheKey inCache:@"arrays"];
-	if (result != nil)  return result;
+	if (useCache)
+	{
+		cacheKey = [NSString stringWithFormat:@"%@%@ merge:%@", (folderName != nil) ? [folderName stringByAppendingString:@"/"] : (NSString *)@"", fileName, mergeFiles ? @"yes" : @"no"];
+		result = [cache objectForKey:cacheKey inCache:@"arrays"];
+		if (result != nil)  return result;
+	}
 	
 	if (!mergeFiles)
 	{
@@ -621,7 +644,7 @@ static NSMutableDictionary *sStringCache;
 		result = [[result copy] autorelease];	// Make immutable
 	}
 	
-	if (result != nil)  [cache setObject:result forKey:cacheKey inCache:@"arrays"];
+	if (useCache && result != nil)  [cache setObject:result forKey:cacheKey inCache:@"arrays"];
 	
 	return [NSArray arrayWithArray:result];
 }
@@ -643,8 +666,8 @@ static NSMutableDictionary *sStringCache;
 		{
 			for (k=0; k < [[arrayToProcess objectAtIndex:j] count] - 1; k++)
 			{
-				id processValue = [[[arrayToProcess objectAtIndex:j] objectAtIndex:k] objectAtIndex:lookupIndex defaultValue:nil];
-				id refValue = [[refArray objectAtIndex:i] objectAtIndex:lookupIndex defaultValue:nil];
+				id processValue = [[[arrayToProcess objectAtIndex:j] objectAtIndex:k] oo_objectAtIndex:lookupIndex defaultValue:nil];
+				id refValue = [[refArray objectAtIndex:i] oo_objectAtIndex:lookupIndex defaultValue:nil];
 				
 				if ([processValue isEqual:refValue])
 				{
@@ -679,6 +702,12 @@ static NSMutableDictionary *sStringCache;
 
 + (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
+	return [self pathForFileNamed:fileName inFolder:folderName cache:YES];
+}
+
+
++ (NSString *) pathForFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache
+{
 	NSString		*result = nil;
 	NSString		*cacheKey = nil;
 	OOCacheManager	*cache = [OOCacheManager sharedCache];
@@ -689,10 +718,13 @@ static NSMutableDictionary *sStringCache;
 	
 	if (fileName == nil)  return nil;
 	
-	if (folderName != nil)  cacheKey = [NSString stringWithFormat:@"%@/%@", folderName, fileName];
-	else  cacheKey = fileName;
-	result = [cache objectForKey:cacheKey inCache:@"resolved paths"];
-	if (result != nil)  return result;
+	if (cache)
+	{
+		if (folderName != nil)  cacheKey = [NSString stringWithFormat:@"%@/%@", folderName, fileName];
+		else  cacheKey = fileName;
+		result = [cache objectForKey:cacheKey inCache:@"resolved paths"];
+		if (result != nil)  return result;
+	}
 	
 	// Search for file
 	fmgr = [NSFileManager defaultManager];
@@ -716,14 +748,22 @@ static NSMutableDictionary *sStringCache;
 	if (result != nil)
 	{
 		OOLog(@"resourceManager.foundFile", @"Found %@/%@ at %@", folderName, fileName, filePath);
-		[cache setPruneThreshold:500 forCache:@"resolved paths"];
-		[cache setObject:result forKey:cacheKey inCache:@"resolved paths"];
+		if (useCache)
+		{
+			[cache setPruneThreshold:500 forCache:@"resolved paths"];
+			[cache setObject:result forKey:cacheKey inCache:@"resolved paths"];
+		}
 	}
 	return result;
 }
 
 
-+ (id) retrieveFileNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(NSMutableDictionary **)ioCache key:(NSString *)key class:(Class)class
++ (id) retrieveFileNamed:(NSString *)fileName
+				inFolder:(NSString *)folderName
+				   cache:(NSMutableDictionary **)ioCache
+					 key:(NSString *)key
+				   class:(Class)class
+			usePathCache:(BOOL)useCache
 {
 	id				result = nil;
 	NSString		*path = nil;
@@ -739,7 +779,7 @@ static NSMutableDictionary *sStringCache;
 		}
 	}
 	
-	path = [self pathForFileNamed:fileName inFolder:folderName];
+	path = [self pathForFileNamed:fileName inFolder:folderName cache:useCache];
 	if (path != nil)  result = [[[class alloc] initWithContentsOfFile:path] autorelease];
 	
 	if (result != nil && ioCache != NULL)
@@ -758,7 +798,8 @@ static NSMutableDictionary *sStringCache;
 						  inFolder:folderName
 							 cache:NULL	// Don't cache music objects; minimizing latency isn't really important.
 							   key:[NSString stringWithFormat:@"OOMusic:%@:%@", folderName, fileName]
-							 class:[OOMusic class]];
+							 class:[OOMusic class]
+					  usePathCache:YES];
 }
 
 
@@ -768,16 +809,25 @@ static NSMutableDictionary *sStringCache;
 						  inFolder:folderName
 							 cache:&sSoundCache
 							   key:[NSString stringWithFormat:@"OOSound:%@:%@", folderName, fileName]
-							 class:[OOSound class]];
+							 class:[OOSound class]
+					  usePathCache:YES];
 }
+
 
 + (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName
 {
+	return [self stringFromFilesNamed:fileName inFolder:folderName cache:YES];
+}
+
+
++ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
+{
 	return [self retrieveFileNamed:fileName
 						  inFolder:folderName
-							 cache:&sStringCache
+							 cache:useCache ? &sStringCache : NULL
 							   key:nil
-							 class:[NSString class]];
+							 class:[NSString class]
+					  usePathCache:useCache];
 }
 
 

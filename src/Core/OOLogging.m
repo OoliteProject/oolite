@@ -730,9 +730,9 @@ static void LoadExplicitSettings(void)
 	}
 	
 	// Load display settings
-	sShowFunction = [prefs boolForKey:@"logging-show-function" defaultValue:sShowFunction];
-	sShowFileAndLine = [prefs boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
-	sShowClass = [prefs boolForKey:@"logging-show-class" defaultValue:sShowClass];
+	sShowFunction = [prefs oo_boolForKey:@"logging-show-function" defaultValue:sShowFunction];
+	sShowFileAndLine = [prefs oo_boolForKey:@"logging-show-file-and-line" defaultValue:sShowFileAndLine];
+	sShowClass = [prefs oo_boolForKey:@"logging-show-class" defaultValue:sShowClass];
 	
 	OOLogInternal(OOLOG_SETTING_SET, @"Settings: %@", sExplicitSettings);
 }

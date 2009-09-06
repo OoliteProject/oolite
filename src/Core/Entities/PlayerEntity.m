@@ -319,38 +319,38 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result setObject:player_name		forKey:@"player_name"];
 	
-	[result setUnsignedLongLong:credits	forKey:@"credits"];
-	[result setUnsignedInteger:fuel		forKey:@"fuel"];
+	[result oo_setUnsignedLongLong:credits	forKey:@"credits"];
+	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
 	
-	[result setInteger:galaxy_number	forKey:@"galaxy_number"];
+	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
-	[result setInteger:forward_weapon	forKey:@"forward_weapon"];
-	[result setInteger:aft_weapon		forKey:@"aft_weapon"];
-	[result setInteger:port_weapon		forKey:@"port_weapon"];
-	[result setInteger:starboard_weapon	forKey:@"starboard_weapon"];
+	[result oo_setInteger:forward_weapon	forKey:@"forward_weapon"];
+	[result oo_setInteger:aft_weapon		forKey:@"aft_weapon"];
+	[result oo_setInteger:port_weapon		forKey:@"port_weapon"];
+	[result oo_setInteger:starboard_weapon	forKey:@"starboard_weapon"];
 	
-	[result setInteger:max_cargo + 5 * max_passengers	forKey:@"max_cargo"];
+	[result oo_setInteger:max_cargo + 5 * max_passengers	forKey:@"max_cargo"];
 	
 	[result setObject:shipCommodityData		forKey:@"shipCommodityData"];
 	
 	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
-	[result setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
-	[result setBool:[self hasGalacticHyperdrive]	forKey:@"has_galactic_hyperdrive"];
-	[result setBool:[self hasEscapePod]				forKey:@"has_escape_pod"];
-	[result setBool:[self hasECM]					forKey:@"has_ecm"];
-	[result setBool:[self hasScoop]					forKey:@"has_scoop"];
-	[result setBool:[self hasEnergyBomb]			forKey:@"has_energy_bomb"];
-	[result setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
+	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
+	[result oo_setBool:[self hasGalacticHyperdrive]	forKey:@"has_galactic_hyperdrive"];
+	[result oo_setBool:[self hasEscapePod]				forKey:@"has_escape_pod"];
+	[result oo_setBool:[self hasECM]					forKey:@"has_ecm"];
+	[result oo_setBool:[self hasScoop]					forKey:@"has_scoop"];
+	[result oo_setBool:[self hasEnergyBomb]			forKey:@"has_energy_bomb"];
+	[result oo_setBool:[self hasFuelInjection]			forKey:@"has_fuel_injection"];
 	
 	if ([self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"])
 	{
-		[result setBool:YES forKey:@"has_energy_unit"];
-		[result setInteger:OLD_ENERGY_UNIT_NAVAL forKey:@"energy_unit"];
+		[result oo_setBool:YES forKey:@"has_energy_unit"];
+		[result oo_setInteger:OLD_ENERGY_UNIT_NAVAL forKey:@"energy_unit"];
 	}
 	else if ([self hasEquipmentItem:@"EQ_ENERGY_UNIT"])
 	{
-		[result setBool:YES forKey:@"has_energy_unit"];
-		[result setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
+		[result oo_setBool:YES forKey:@"has_energy_unit"];
+		[result oo_setInteger:OLD_ENERGY_UNIT_NORMAL forKey:@"energy_unit"];
 	}
 	
 	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
@@ -368,14 +368,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	[result setObject:missileRoles forKey:@"missile_roles"];
 	
-	[result setInteger:missiles forKey:@"missiles"];
+	[result oo_setInteger:missiles forKey:@"missiles"];
 	
-	[result setInteger:legalStatus forKey:@"legal_status"];
-	[result setInteger:market_rnd forKey:@"market_rnd"];
-	[result setInteger:ship_kills forKey:@"ship_kills"];
+	[result oo_setInteger:legalStatus forKey:@"legal_status"];
+	[result oo_setInteger:market_rnd forKey:@"market_rnd"];
+	[result oo_setInteger:ship_kills forKey:@"ship_kills"];
 
 	// ship depreciation
-	[result setInteger:ship_trade_in_factor forKey:@"ship_trade_in_factor"];
+	[result oo_setInteger:ship_trade_in_factor forKey:@"ship_trade_in_factor"];
 
 	// mission variables
 	if (mission_variables != nil)
@@ -393,7 +393,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSString			*eqDesc = nil;
 	for (eqEnum = [self equipmentEnumerator]; (eqDesc = [eqEnum nextObject]); )
 	{
-		[equipment setBool:YES forKey:eqDesc];
+		[equipment oo_setBool:YES forKey:eqDesc];
 	}
 	if ([equipment count] != 0)
 	{
@@ -404,7 +404,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[result setObject:reputation forKey:@"reputation"];
 	
 	// passengers
-	[result setInteger:max_passengers forKey:@"max_passengers"];
+	[result oo_setInteger:max_passengers forKey:@"max_passengers"];
 	[result setObject:passengers forKey:@"passengers"];
 	[result setObject:passenger_record forKey:@"passenger_record"];
 	
@@ -432,10 +432,10 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	//base ship description
 	[result setObject:ship_desc forKey:@"ship_desc"];
-	[result setObject:[[[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc] stringForKey:KEY_NAME] forKey:@"ship_name"];
+	[result setObject:[[[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc] oo_stringForKey:KEY_NAME] forKey:@"ship_name"];
 
 	//custom view no.
-	[result setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
+	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
 
 	//local market
 	if ([dockedStation localMarket])  [result setObject:[dockedStation localMarket] forKey:@"localMarket"];
@@ -484,7 +484,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	int final_checksum = munge_checksum([[ship_desc description] length]);
 
 	//set checksum
-	[result setInteger:final_checksum forKey:@"checksum"];
+	[result oo_setInteger:final_checksum forKey:@"checksum"];
 	
 	return result;
 }
@@ -493,12 +493,12 @@ static PlayerEntity *sSharedPlayer = nil;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
 	// Required keys
-	if ([dict stringForKey:@"ship_desc"] == nil)  return NO;
-	if ([dict stringForKey:@"galaxy_seed"] == nil)  return NO;
-	if ([dict stringForKey:@"galaxy_coordinates"] == nil)  return NO;
+	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
+	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
+	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
 	// TODO: use CollectionExtractors for type-safety. -- Ahruman
-	[UNIVERSE setStrict:[dict boolForKey:@"strict" defaultValue:NO]];
+	[UNIVERSE setStrict:[dict oo_boolForKey:@"strict" defaultValue:NO]];
 	
 	//base ship description
 	[ship_desc release];
@@ -509,48 +509,48 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
 	
 	// ship depreciation
-	ship_trade_in_factor = [dict intForKey:@"ship_trade_in_factor" defaultValue:95];
+	ship_trade_in_factor = [dict oo_intForKey:@"ship_trade_in_factor" defaultValue:95];
 	
-	galaxy_seed = RandomSeedFromString([dict stringForKey:@"galaxy_seed"]);
+	galaxy_seed = RandomSeedFromString([dict oo_stringForKey:@"galaxy_seed"]);
 	if (is_nil_seed(galaxy_seed))  return NO;
 	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES];
 	
-	NSArray *coord_vals = ScanTokensFromString([dict stringForKey:@"galaxy_coordinates"]);
-	galaxy_coordinates.x = [coord_vals unsignedCharAtIndex:0];
-	galaxy_coordinates.y = [coord_vals unsignedCharAtIndex:1];
+	NSArray *coord_vals = ScanTokensFromString([dict oo_stringForKey:@"galaxy_coordinates"]);
+	galaxy_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
+	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	cursor_coordinates = galaxy_coordinates;
 	
-	NSString *coords = [dict stringForKey:@"target_coordinates"];
+	NSString *coords = [dict oo_stringForKey:@"target_coordinates"];
 	if (coords != nil)
 	{
 		coord_vals = ScanTokensFromString([dict objectForKey:@"target_coordinates"]);
-		cursor_coordinates.x = [coord_vals unsignedCharAtIndex:0];
-		cursor_coordinates.y = [coord_vals unsignedCharAtIndex:1];
+		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
+		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
 	
 	[player_name release];
-	player_name = [[dict stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME] copy];
+	player_name = [[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME] copy];
 	
 	[shipCommodityData autorelease];
-	shipCommodityData = [[dict arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
+	shipCommodityData = [[dict oo_arrayForKey:@"shipCommodityData" defaultValue:shipCommodityData] copy];
 	
 	// extra equipment flags
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[dict objectForKey:@"extra_equipment"]];
 	
 	// Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
-	if ([dict boolForKey:@"has_docking_computer"])		[self addEquipmentItem:@"EQ_DOCK_COMP"];
-	if ([dict boolForKey:@"has_galactic_hyperdrive"])	[self addEquipmentItem:@"EQ_GAL_DRIVE"];
-	if ([dict boolForKey:@"has_escape_pod"])			[self addEquipmentItem:@"EQ_ESCAPE_POD"];
-	if ([dict boolForKey:@"has_ecm"])					[self addEquipmentItem:@"EQ_ECM"];
-	if ([dict boolForKey:@"has_scoop"])					[self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([dict boolForKey:@"has_energy_bomb"])			[self addEquipmentItem:@"EQ_ENERGY_BOMB"];
-	if ([dict boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+	if ([dict oo_boolForKey:@"has_docking_computer"])		[self addEquipmentItem:@"EQ_DOCK_COMP"];
+	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[self addEquipmentItem:@"EQ_GAL_DRIVE"];
+	if ([dict oo_boolForKey:@"has_escape_pod"])			[self addEquipmentItem:@"EQ_ESCAPE_POD"];
+	if ([dict oo_boolForKey:@"has_ecm"])					[self addEquipmentItem:@"EQ_ECM"];
+	if ([dict oo_boolForKey:@"has_scoop"])					[self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
+	if ([dict oo_boolForKey:@"has_energy_bomb"])			[self addEquipmentItem:@"EQ_ENERGY_BOMB"];
+	if ([dict oo_boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
 	
 	// Legacy energy unit type -> energy unit equipment item
-	if ([dict boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
+	if ([dict oo_boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
 	{
-		OOEnergyUnitType eType = [dict intForKey:@"energy_unit" defaultValue:ENERGY_UNIT_NORMAL];
+		OOEnergyUnitType eType = [dict oo_intForKey:@"energy_unit" defaultValue:ENERGY_UNIT_NORMAL];
 		switch (eType)
 		{
 			case OLD_ENERGY_UNIT_NORMAL:
@@ -570,88 +570,88 @@ static PlayerEntity *sSharedPlayer = nil;
 	else  compassMode = COMPASS_MODE_BASIC;
 	
 	// speech
-	isSpeechOn = [dict boolForKey:@"speech_on"];
+	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
 #if OOLITE_ESPEAK
-	voice_gender_m = [dict boolForKey:@"speech_gender" defaultValue:YES];
-	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
+	voice_gender_m = [dict oo_boolForKey:@"speech_gender" defaultValue:YES];
+	voice_no = [UNIVERSE setVoice:[UNIVERSE voiceNumber:[dict oo_stringForKey:@"speech_voice" defaultValue:nil]] withGenderM:voice_gender_m];
 #endif
 	
 	// reputation
 	[reputation release];
-	reputation = [[dict dictionaryForKey:@"reputation"] mutableCopy];
+	reputation = [[dict oo_dictionaryForKey:@"reputation"] mutableCopy];
 	if (reputation == nil)  reputation = [[NSMutableDictionary alloc] init];
 
 	// passengers
-	max_passengers = [dict intForKey:@"max_passengers"];
+	max_passengers = [dict oo_intForKey:@"max_passengers"];
 	[passengers release];
-	passengers = [[dict arrayForKey:@"passengers"] mutableCopy];
+	passengers = [[dict oo_arrayForKey:@"passengers"] mutableCopy];
 	if (passengers == nil)  passengers = [[NSMutableArray alloc] init];
 	[passenger_record release];
-	passenger_record = [[dict dictionaryForKey:@"passenger_record"] mutableCopy];
+	passenger_record = [[dict oo_dictionaryForKey:@"passenger_record"] mutableCopy];
 	if (passenger_record == nil)  passenger_record = [[NSMutableDictionary alloc] init];
 	
 	//specialCargo
 	[specialCargo release];
-	specialCargo = [[dict stringForKey:@"special_cargo"] copy];
+	specialCargo = [[dict oo_stringForKey:@"special_cargo"] copy];
 
 	// contracts
 	[contracts release];
-	contracts = [[dict arrayForKey:@"contracts"] mutableCopy];
+	contracts = [[dict oo_arrayForKey:@"contracts"] mutableCopy];
 	if (contracts == nil)  contracts = [[NSMutableArray alloc] init];
-	contract_record = [[dict dictionaryForKey:@"contract_record"] mutableCopy];
+	contract_record = [[dict oo_dictionaryForKey:@"contract_record"] mutableCopy];
 	if (contract_record == nil)  contract_record = [[NSMutableDictionary alloc] init];
 	
 	// mission destinations
-	missionDestinations = [[dict arrayForKey:@"missionDestinations"] mutableCopy];
+	missionDestinations = [[dict oo_arrayForKey:@"missionDestinations"] mutableCopy];
 	if (missionDestinations == nil)  missionDestinations = [[NSMutableArray alloc] init];
 
 	// shipyard
-	shipyard_record = [[dict dictionaryForKey:@"shipyard_record"] mutableCopy];
+	shipyard_record = [[dict oo_dictionaryForKey:@"shipyard_record"] mutableCopy];
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
 
 	// Normalize cargo capacity
 	unsigned original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
-	max_cargo = [dict intForKey:@"max_cargo" defaultValue:max_cargo];
+	max_cargo = [dict oo_intForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0) - max_passengers * 5;
 	
-	credits = [dict unsignedLongLongForKey:@"credits" defaultValue:credits];
-	fuel = [dict unsignedIntForKey:@"fuel" defaultValue:fuel];
+	credits = [dict oo_unsignedLongLongForKey:@"credits" defaultValue:credits];
+	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	
-	galaxy_number = [dict intForKey:@"galaxy_number"];
-	forward_weapon = [dict intForKey:@"forward_weapon"];
-	aft_weapon = [dict intForKey:@"aft_weapon"];
-	port_weapon = [dict intForKey:@"port_weapon"];
-	starboard_weapon = [dict intForKey:@"starboard_weapon"];
+	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
+	forward_weapon = [dict oo_intForKey:@"forward_weapon"];
+	aft_weapon = [dict oo_intForKey:@"aft_weapon"];
+	port_weapon = [dict oo_intForKey:@"port_weapon"];
+	starboard_weapon = [dict oo_intForKey:@"starboard_weapon"];
 	
 	[self setWeaponDataFromType:forward_weapon]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
-	missiles = [dict unsignedIntForKey:@"missiles"];
+	missiles = [dict oo_unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
 	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles)  missiles = max_missiles;
 	// end sanity check
 	
-	legalStatus = [dict intForKey:@"legal_status"];
-	market_rnd = [dict intForKey:@"market_rnd"];
-	ship_kills = [dict intForKey:@"ship_kills"];
+	legalStatus = [dict oo_intForKey:@"legal_status"];
+	market_rnd = [dict oo_intForKey:@"market_rnd"];
+	ship_kills = [dict oo_intForKey:@"ship_kills"];
 	
-	ship_clock = [dict doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
+	ship_clock = [dict oo_doubleForKey:@"ship_clock" defaultValue:PLAYER_SHIP_CLOCK_START];
 	fps_check_time = ship_clock;
 
 	// mission_variables
 	[mission_variables release];
-	mission_variables = [[dict dictionaryForKey:@"mission_variables"] mutableCopy];
+	mission_variables = [[dict oo_dictionaryForKey:@"mission_variables"] mutableCopy];
 	if (mission_variables == nil)  mission_variables = [[NSMutableArray alloc] init];
 	
 	// persistant UNIVERSE info
-	NSDictionary *planetInfoOverrides = [dict dictionaryForKey:@"local_planetinfo_overrides"];
+	NSDictionary *planetInfoOverrides = [dict oo_dictionaryForKey:@"local_planetinfo_overrides"];
 	if (planetInfoOverrides != nil)  [UNIVERSE setLocalPlanetInfoOverrides:planetInfoOverrides];
 	
 	// communications log
 	[commLog release];
-	commLog = [[dict arrayForKey:@"comm_log"] mutableCopy];
+	commLog = [[dict oo_arrayForKey:@"comm_log"] mutableCopy];
 	
 	// set up missiles
 	unsigned i,j;
@@ -661,7 +661,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
 	}
-	NSArray *missileRoles = [dict arrayForKey:@"missile_roles"];
+	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
 		if (max_missiles < [missileRoles count])
@@ -672,7 +672,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		
 		for (i = 0, j = 0; i < max_missiles && i < [missileRoles count]; i++, j++)
 		{
-			NSString *missile_desc = [missileRoles stringAtIndex:i];
+			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
 			{
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
@@ -742,7 +742,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// custom view no.
 	if (_customViews != nil)
-		_customViewIndex = [dict unsignedIntForKey:@"custom_view_index"] % [_customViews count];
+		_customViewIndex = [dict oo_unsignedIntForKey:@"custom_view_index"] % [_customViews count];
 
 	// trumble information
 	[self setUpTrumbles];
@@ -836,12 +836,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[reputation release];
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
-	[reputation setInteger:0 forKey:CONTRACTS_GOOD_KEY];
-	[reputation setInteger:0 forKey:CONTRACTS_BAD_KEY];
-	[reputation setInteger:7 forKey:CONTRACTS_UNKNOWN_KEY];
-	[reputation setInteger:0 forKey:PASSAGE_GOOD_KEY];
-	[reputation setInteger:0 forKey:PASSAGE_BAD_KEY];
-	[reputation setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
+	[reputation oo_setInteger:0 forKey:CONTRACTS_GOOD_KEY];
+	[reputation oo_setInteger:0 forKey:CONTRACTS_BAD_KEY];
+	[reputation oo_setInteger:7 forKey:CONTRACTS_UNKNOWN_KEY];
+	[reputation oo_setInteger:0 forKey:PASSAGE_GOOD_KEY];
+	[reputation oo_setInteger:0 forKey:PASSAGE_BAD_KEY];
+	[reputation oo_setInteger:7 forKey:PASSAGE_UNKNOWN_KEY];
 	
 	energy					= 256;
 	weapon_temp				= 0.0f;
@@ -1001,8 +1001,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setSystem_seed:[UNIVERSE findSystemAtCoords:[self galaxy_coordinates] withGalaxySeed:[self galaxy_seed]]];
 	
-	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
-	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
+	[self setGalacticHyperspaceBehaviourTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_behaviour" defaultValue:@"BEHAVIOUR_STANDARD"]];
+	[self setGalacticHyperspaceFixedCoordsTo:[[UNIVERSE planetInfo] oo_stringForKey:@"galactic_hyperspace_fixed_coords" defaultValue:@"96 96"]];
 	
 	[self setCloaked:NO];
 	
@@ -1022,76 +1022,76 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// set things from dictionary from here out
 	
-	maxFlightSpeed = [shipDict floatForKey:@"max_flight_speed" defaultValue:160.0f];
-	max_flight_roll = [shipDict floatForKey:@"max_flight_roll" defaultValue:2.0f];
-	max_flight_pitch = [shipDict floatForKey:@"max_flight_pitch" defaultValue:1.0f];
-	max_flight_yaw = [shipDict floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
+	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];
+	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll" defaultValue:2.0f];
+	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch" defaultValue:1.0f];
+	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	
 	// set control factors..
 	roll_delta =		2.0f * max_flight_roll;
 	pitch_delta =		2.0f * max_flight_pitch;
 	yaw_delta =			2.0f * max_flight_yaw;
 	
-	thrust = [shipDict floatForKey:@"thrust" defaultValue:thrust];
+	thrust = [shipDict oo_floatForKey:@"thrust" defaultValue:thrust];
 	
 	if (![UNIVERSE strict])
 	{
-		hyperspaceMotorSpinTime = [shipDict floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
 	}
 	else
 	{
 		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
 	}
 	
-	maxEnergy = [shipDict floatForKey:@"max_energy" defaultValue:maxEnergy];
-	energy_recharge_rate = [shipDict floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
+	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:maxEnergy];
+	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
 	
 	// Each new ship should start in seemingly good operating condition, unless specifically told not to
-	[self setThrowSparks:[shipDict boolForKey:@"throw_sparks" defaultValue:NO]];
+	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
-	cloakPassive = [shipDict boolForKey:@"cloak_passive" defaultValue:NO];
+	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
 	
-	forward_weapon_type = StringToWeaponType([shipDict stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([shipDict stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	forward_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
+	aft_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
-	missiles = (unsigned)[shipDict doubleForKey:@"missiles"];
-	max_missiles = [shipDict intForKey:@"max_missiles" defaultValue:missiles];
+	missiles = (unsigned)[shipDict oo_doubleForKey:@"missiles"];
+	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles)  missiles = max_missiles;
 	
-	if ([shipDict fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
-	if ([shipDict fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([shipDict fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
 	
-	max_cargo = [shipDict intForKey:@"max_cargo"];
-	extra_cargo = [shipDict intForKey:@"extra_cargo" defaultValue:15];
+	max_cargo = [shipDict oo_intForKey:@"max_cargo"];
+	extra_cargo = [shipDict oo_intForKey:@"extra_cargo" defaultValue:15];
 	
 	// Load the model (must be before subentities)
-	NSString *modelName = [shipDict stringForKey:@"model"];
+	NSString *modelName = [shipDict oo_stringForKey:@"model"];
 	if (modelName != nil)
 	{
 		OOMesh *mesh = [OOMesh meshWithName:modelName
-						 materialDictionary:[shipDict dictionaryForKey:@"materials"]
-						  shadersDictionary:[shipDict dictionaryForKey:@"shaders"]
-									 smooth:[shipDict boolForKey:@"smooth" defaultValue:NO]
+						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
 							   shaderMacros:DefaultShipShaderMacros()
 						shaderBindingTarget:self];
 		[self setMesh:mesh];
 	}
 	
-	float density = [shipDict floatForKey:@"density" defaultValue:1.0f];
+	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
 	if (octree)  
 	{
 		mass = (GLfloat)(density * 20.0 * [octree volume]);
 	}
 	[name autorelease];
-	name = [[shipDict stringForKey:@"name" defaultValue:name] copy];
+	name = [[shipDict oo_stringForKey:@"name" defaultValue:name] copy];
 	
 	[displayName autorelease];
-	displayName = [[shipDict stringForKey:@"display_name" defaultValue:name] copy];
+	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[roleSet release];
 	roleSet = nil;
@@ -1104,7 +1104,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
 	
-	NSString *hud_desc = [shipDict stringForKey:@"hud"];
+	NSString *hud_desc = [shipDict oo_stringForKey:@"hud"];
 	if (hud_desc != nil)
 	{
 		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
@@ -1138,14 +1138,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	// set view offsets
 	[self setDefaultViewOffsets];
 	
-	ScanVectorFromString([shipDict stringForKey:@"view_position_forward"], &forwardViewOffset);
-	ScanVectorFromString([shipDict stringForKey:@"view_position_aft"], &aftViewOffset);
-	ScanVectorFromString([shipDict stringForKey:@"view_position_port"], &portViewOffset);
-	ScanVectorFromString([shipDict stringForKey:@"view_position_starboard"], &starboardViewOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_forward"], &forwardViewOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_aft"], &aftViewOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_port"], &portViewOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"view_position_starboard"], &starboardViewOffset);
 	
 	[self setDefaultCustomViews];
 	
-	NSArray *customViews = [shipDict arrayForKey:@"custom_views"];
+	NSArray *customViews = [shipDict oo_arrayForKey:@"custom_views"];
 	if (customViews != nil)
 	{
 		[_customViews release];
@@ -1156,14 +1156,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
 	
-	ScanVectorFromString([shipDict stringForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([shipDict stringForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([shipDict stringForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([shipDict stringForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_forward"], &forwardWeaponOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_aft"], &aftWeaponOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_port"], &portWeaponOffset);
+	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
 	
 	// fuel scoop destination position (where cargo gets sucked into)
 	tractor_position = kZeroVector;
-	ScanVectorFromString([shipDict stringForKey:@"scoop_position"], &tractor_position);
+	ScanVectorFromString([shipDict oo_stringForKey:@"scoop_position"], &tractor_position);
 	
 	[subEntities autorelease];
 	subEntities = nil;
@@ -1177,7 +1177,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// Load script
 	[script release];			
-	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict stringForKey:@"script"] 
+	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
 										 properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
 	
 	return YES;
@@ -4307,7 +4307,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setTabStops:tab_stops];
 
 		ship_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
-		shipName = [ship_dict stringForKey:@"display_name" defaultValue:[ship_dict stringForKey:KEY_NAME]];
+		shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
 
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
 
@@ -4440,7 +4440,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// following changed to work whether docked or not
 	for (i = 0; i < n_commodities; i++)
 	{
-		in_hold[i] = [[shipCommodityData arrayAtIndex:i] unsignedIntAtIndex:MARKET_QUANTITY];
+		in_hold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_unsignedIntAtIndex:MARKET_QUANTITY];
 	}
 	for (i = 0; i < [cargo count]; i++)
 	{
@@ -4452,7 +4452,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (in_hold[i] > 0)
 		{
-			NSString *desc = CommodityDisplayNameForCommodityArray([shipCommodityData arrayAtIndex:i]);
+			NSString *desc = CommodityDisplayNameForCommodityArray([shipCommodityData oo_arrayAtIndex:i]);
 			NSString *units = DisplayStringForMassUnitForCommodity(i);
 			[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"), in_hold[i], units, desc]];
 		}
@@ -4468,7 +4468,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSString*		targetSystemName;
 	
 	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
-	targetSystemName =		[targetSystemData stringForKey:KEY_NAME];
+	targetSystemName =		[targetSystemData oo_stringForKey:KEY_NAME];
 	
 	BOOL	sunGoneNova = NO;
 	if ([targetSystemData objectForKey:@"sun_gone_nova"])
@@ -4484,15 +4484,15 @@ static PlayerEntity *sSharedPlayer = nil;
 		tab_stops[2] = 144;
 		[gui setTabStops:tab_stops];
 
-		int techlevel =		[targetSystemData intForKey:KEY_TECHLEVEL];
-		int population =	[targetSystemData intForKey:KEY_POPULATION];
-		int productivity =	[targetSystemData intForKey:KEY_PRODUCTIVITY];
-		int radius =		[targetSystemData intForKey:KEY_RADIUS];
+		int techlevel =		[targetSystemData oo_intForKey:KEY_TECHLEVEL];
+		int population =	[targetSystemData oo_intForKey:KEY_POPULATION];
+		int productivity =	[targetSystemData oo_intForKey:KEY_PRODUCTIVITY];
+		int radius =		[targetSystemData oo_intForKey:KEY_RADIUS];
 
-		NSString	*government_desc =	GovernmentToString([targetSystemData intForKey:KEY_GOVERNMENT]);
-		NSString	*economy_desc =		EconomyToString([targetSystemData intForKey:KEY_ECONOMY]);
-		NSString	*inhabitants =		[targetSystemData stringForKey:KEY_INHABITANTS];
-		NSString	*system_desc =		[targetSystemData stringForKey:KEY_DESCRIPTION];
+		NSString	*government_desc =	GovernmentToString([targetSystemData oo_intForKey:KEY_GOVERNMENT]);
+		NSString	*economy_desc =		EconomyToString([targetSystemData oo_intForKey:KEY_ECONOMY]);
+		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
+		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
 
 		if ((sunGoneNova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
 			(sunGoneNova && (!equal_seeds(target_system_seed, system_seed))))
@@ -4568,15 +4568,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	for (i = 0; i < [passengers count]; i++)
 	{
-		mark[[[passengers dictionaryAtIndex:i] unsignedCharForKey:PASSENGER_KEY_DESTINATION]] = YES;
+		mark[[[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:PASSENGER_KEY_DESTINATION]] = YES;
 	}
 	for (i = 0; i < [contracts count]; i++)
 	{
-		mark[[[contracts dictionaryAtIndex:i] unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
+		mark[[[contracts oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
 	}
 	for (i = 0; i < [missionDestinations count]; i++)
 	{
-		mark[[missionDestinations unsignedCharAtIndex:i]] = YES;
+		mark[[missionDestinations oo_unsignedCharAtIndex:i]] = YES;
 	}
 	for (i = 0; i < 256; i++)
 	{
@@ -5011,7 +5011,7 @@ static int last_outfitting_index;
 	if (cargo_space < 0)  cargo_space = 0;
 
 	double priceFactor = 1.0;
-	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] intForKey:KEY_TECHLEVEL];
+	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
 
 	if (dockedStation)
 	{
@@ -5026,10 +5026,10 @@ static int last_outfitting_index;
 	// find options that agree with this ship
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
 	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:ship_desc];
-	NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
+	NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
 	
 	// add standard items too!
-	[options addObjectsFromArray:[[[registry shipyardInfoForKey:ship_desc] dictionaryForKey:KEY_STANDARD_EQUIPMENT] arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+	[options addObjectsFromArray:[[[registry shipyardInfoForKey:ship_desc] oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
@@ -5080,7 +5080,7 @@ static int last_outfitting_index;
 		if ([eqKeyForSelectFacing isEqualToString:eqKey])
 		{
 			skip = [equipmentAllowed count] - 1;	// skip to this upgrade
-			unsigned available_facings = [shipyardInfo unsignedIntForKey:KEY_WEAPON_FACINGS];
+			unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
 			if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKey];
 			if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKey];
 			if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKey];
@@ -5132,7 +5132,7 @@ static int last_outfitting_index;
 			}
 			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
 			{
-				NSString			*eqKey = [equipmentAllowed stringAtIndex:i];
+				NSString			*eqKey = [equipmentAllowed oo_stringAtIndex:i];
 				OOEquipmentType		*eqInfo = [OOEquipmentType equipmentTypeWithIdentifier:eqKey];
 				OOCreditsQuantity	pricePerUnit = [eqInfo price];
 				NSString			*desc = [NSString stringWithFormat:@" %@ ", [eqInfo name]];
@@ -5387,7 +5387,7 @@ static int last_outfitting_index;
 
 	if ([key hasPrefix:@"More:"])
 	{
-		int from_item = [[key componentsSeparatedByString:@":"] intAtIndex:1];
+		int from_item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
 
 		[self setGuiToEquipShipScreen:from_item];
 		if ([gui selectedRow] < 0)
@@ -5616,7 +5616,7 @@ static int last_outfitting_index;
 	{
 		OOTechLevelID techLevel = NSNotFound;
 		if (dockedStation != nil)  techLevel = [dockedStation equivalentTechLevel];
-		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] unsignedIntForKey:KEY_TECHLEVEL];
+		if (techLevel == NSNotFound)  techLevel = [[UNIVERSE generateSystemData:system_seed] oo_unsignedIntForKey:KEY_TECHLEVEL];
 		
 		credits -= price;
 		ship_trade_in_factor += 5 + techLevel;	// you get better value at high-tech repair bases
@@ -5710,7 +5710,7 @@ static int last_outfitting_index;
 	// following works whether docked or not
 	
 	for (i = 0; i < n_commodities; i++)
-		in_hold[i] = [[shipCommodityData arrayAtIndex:i] intAtIndex:MARKET_QUANTITY];
+		in_hold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_intAtIndex:MARKET_QUANTITY];
 	for (i = 0; i < [cargo count]; i++)
 	{
 		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
@@ -5721,7 +5721,7 @@ static int last_outfitting_index;
 	
 	for (i = 0; i < n_commodities; i++)
 	{
-		if ([[shipCommodityData arrayAtIndex:i] intAtIndex:MARKET_UNITS] == UNITS_TONS)
+		if ([[shipCommodityData oo_arrayAtIndex:i] oo_intAtIndex:MARKET_UNITS] == UNITS_TONS)
 		{
 			current_cargo += in_hold[i];
 		}
@@ -5800,13 +5800,13 @@ static int last_outfitting_index;
 		
 		for (i = 0; i < n_commodities; i++)
 		{
-			marketDef = [localMarket arrayAtIndex:i];
+			marketDef = [localMarket oo_arrayAtIndex:i];
 			
 			NSString* desc = [NSString stringWithFormat:@" %@ ", CommodityDisplayNameForCommodityArray(marketDef)];
-			OOCargoQuantity available_units = [marketDef unsignedIntAtIndex:MARKET_QUANTITY];
+			OOCargoQuantity available_units = [marketDef oo_unsignedIntAtIndex:MARKET_QUANTITY];
 			OOCargoQuantity units_in_hold = in_hold[i];
-			OOCreditsQuantity pricePerUnit = [marketDef unsignedIntAtIndex:MARKET_PRICE];
-			OOMassUnit unit = [marketDef unsignedIntAtIndex:MARKET_UNITS];
+			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
+			OOMassUnit unit = [marketDef oo_unsignedIntAtIndex:MARKET_UNITS];
 			
 			NSString *available = (available_units > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",available_units],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
 			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
@@ -5864,8 +5864,8 @@ static int last_outfitting_index;
 
 - (BOOL) marketFlooded:(int) index
 {
-	NSArray *commodityArray = [[self localMarket] arrayAtIndex:index];
-	int available_units = [commodityArray intAtIndex:MARKET_QUANTITY];
+	NSArray *commodityArray = [[self localMarket] oo_arrayAtIndex:index];
+	int available_units = [commodityArray oo_intAtIndex:MARKET_QUANTITY];
 	
 	return (available_units >= 127);
 }
@@ -5877,17 +5877,17 @@ static int last_outfitting_index;
 	
 	NSMutableArray		*localMarket = [self localMarket];
 	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
-	OOCreditsQuantity	pricePerUnit	= [commodityArray unsignedIntAtIndex:MARKET_PRICE];
+	OOCreditsQuantity	pricePerUnit	= [commodityArray oo_unsignedIntAtIndex:MARKET_PRICE];
 	OOMassUnit			unit			= [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
 
 	if ((specialCargo != nil)&&(unit == UNITS_TONS))
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity intAtIndex:MARKET_QUANTITY];
-	int market_quantity = [market_commodity intAtIndex:MARKET_QUANTITY];
+	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
+	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
+	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+	int market_quantity = [market_commodity oo_intAtIndex:MARKET_QUANTITY];
 
 	int purchase = all ? 127 : 1;
 	if (purchase > market_quantity)
@@ -5924,16 +5924,16 @@ static int last_outfitting_index;
 	if (![self isDocked])  return NO; // can't sell if not docked.
 	
 	NSMutableArray *localMarket = [self localMarket];
-	int available_units = [[shipCommodityData arrayAtIndex:index] intAtIndex:MARKET_QUANTITY];
-	int pricePerUnit = [[localMarket arrayAtIndex:index] intAtIndex:MARKET_PRICE];
+	int available_units = [[shipCommodityData oo_arrayAtIndex:index] oo_intAtIndex:MARKET_QUANTITY];
+	int pricePerUnit = [[localMarket oo_arrayAtIndex:index] oo_intAtIndex:MARKET_PRICE];
 
 	if (available_units == 0)  return NO;
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
-	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest arrayAtIndex:index]];
-	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket arrayAtIndex:index]];
-	int manifest_quantity = [manifest_commodity intAtIndex:MARKET_QUANTITY];
-	int market_quantity =   [market_commodity intAtIndex:MARKET_QUANTITY];
+	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:index]];
+	NSMutableArray* market_commodity = [NSMutableArray arrayWithArray:[localMarket oo_arrayAtIndex:index]];
+	int manifest_quantity = [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+	int market_quantity =   [market_commodity oo_intAtIndex:MARKET_QUANTITY];
 	
 	int sell = all ? 127 : 1;
 	if (sell > available_units)
@@ -6061,7 +6061,7 @@ static int last_outfitting_index;
 		if ([eqDesc isEqualToString:@"EQ_TRUMBLE"])  continue;
 		
 		// Traditional form is a dictionary of booleans; we only accept those where the value is true.
-		if (dict != nil && ![dict boolForKey:eqDesc])  continue;
+		if (dict != nil && ![dict oo_boolForKey:eqDesc])  continue;
 		
 		// We need to add the entire collection without validation first and then remove the items that are
 		// not compliant (like items that do not satisfy the requiresEquipment criterion). This is to avoid
@@ -6188,7 +6188,7 @@ static int last_outfitting_index;
 {
 	if (legalStatus == 0)  return;				// nothing to pay for
 	
-	OOGovernmentID local_gov = [[UNIVERSE currentSystemData] intForKey:KEY_GOVERNMENT];
+	OOGovernmentID local_gov = [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];
 	if ([UNIVERSE inInterstellarSpace])  local_gov = 1;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
 	OOCreditsQuantity fine = 500 + ((local_gov < 2)||(local_gov > 5))? 500:0;
 	fine *= legalStatus;
@@ -6230,7 +6230,7 @@ static int last_outfitting_index;
 
 - (void) setDefaultCustomViews
 {
-	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] arrayForKey:@"custom_views"];
+	NSArray *customViews = [[[OOShipRegistry sharedRegistry] shipInfoForKey:@"cobra3-player"] oo_arrayForKey:@"custom_views"];
 	
 	[_customViews release];
 	_customViews = nil;
@@ -6391,11 +6391,11 @@ static int last_outfitting_index;
 		{
 			NSArray* values = (NSArray*) trumbleValue;
 			if ([values count] >= 1)
-				putativeNTrumbles = [values intAtIndex:0];
+				putativeNTrumbles = [values oo_intAtIndex:0];
 			if ([values count] >= 2)
-				putativeHash = [values intAtIndex:1];
+				putativeHash = [values oo_intAtIndex:1];
 			if ([values count] >= 3)
-				putativeTrumbleArray = [values arrayAtIndex:2];
+				putativeTrumbleArray = [values oo_arrayAtIndex:2];
 		}
 		// calculate a hash for the putative values
 		clear_checksum();
@@ -6696,7 +6696,7 @@ static int last_outfitting_index;
 	customViewOffset = kZeroVector;
 	if (viewDict == nil)  return;
 	
-	customViewQuaternion = [viewDict quaternionForKey:@"view_orientation"];
+	customViewQuaternion = [viewDict oo_quaternionForKey:@"view_orientation"];
 	
 	customViewRightVector = vector_right_from_quaternion(customViewQuaternion);
 	customViewUpVector = vector_up_from_quaternion(customViewQuaternion);
@@ -6706,10 +6706,10 @@ static int last_outfitting_index;
 	q1.w = -q1.w;
 	customViewMatrix = OOMatrixForQuaternionRotation(q1);
 	
-	customViewOffset = [viewDict vectorForKey:@"view_position"];
-	customViewDescription = [viewDict stringForKey:@"view_description"];
+	customViewOffset = [viewDict oo_vectorForKey:@"view_position"];
+	customViewDescription = [viewDict oo_stringForKey:@"view_description"];
 	
-	NSString *facing = [[viewDict stringForKey:@"weapon_facing"] lowercaseString];
+	NSString *facing = [[viewDict oo_stringForKey:@"weapon_facing"] lowercaseString];
 	if ([facing isEqual:@"aft"])
 	{
 		currentWeaponFacing = VIEW_AFT;

@@ -115,7 +115,7 @@ MA 02110-1301, USA.
 	
 	OOLog(@"script.debug.note.awardCargo", @"Going to award cargo: %d x '%@'", amount, CommodityDisplayNameForCommodityArray(commodityArray));
 	
-	unit = [commodityArray intAtIndex:MARKET_UNITS];
+	unit = [commodityArray oo_intAtIndex:MARKET_UNITS];
 	
 	if ([self status] != STATUS_DOCKED)
 	{

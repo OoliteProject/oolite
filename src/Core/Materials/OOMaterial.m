@@ -184,16 +184,16 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	diffuse = [OOColor colorWithDescription:[configuration objectForKey:@"diffuse"]];
 	specular = [OOColor colorWithDescription:[configuration objectForKey:@"specular"]];
 	emission = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
-	shininess = [configuration intForKey:@"shininess" defaultValue:-1];
-	diffuseMap = [configuration stringForKey:@"diffuse_map"];
-	specularMap = [configuration stringForKey:@"specular_map"];
-	emissionMap = [configuration stringForKey:@"emission_map"];
-	emissionAndIlluminationMap = [configuration stringForKey:@"emission_and_illumination_map"];
-	illuminationMap = [configuration stringForKey:@"illumination_map"];
-	normalMap = [configuration stringForKey:@"normal_map"];
-	normalAndParallaxMap = [configuration stringForKey:@"normal_and_parallax_map"];
-	parallaxScale = [configuration floatForKey:@"parallax_scale" defaultValue:0.01];
-	parallaxBias = [configuration floatForKey:@"parallax_bias" defaultValue:0.00];
+	shininess = [configuration oo_intForKey:@"shininess" defaultValue:-1];
+	diffuseMap = [configuration oo_stringForKey:@"diffuse_map"];
+	specularMap = [configuration oo_stringForKey:@"specular_map"];
+	emissionMap = [configuration oo_stringForKey:@"emission_map"];
+	emissionAndIlluminationMap = [configuration oo_stringForKey:@"emission_and_illumination_map"];
+	illuminationMap = [configuration oo_stringForKey:@"illumination_map"];
+	normalMap = [configuration oo_stringForKey:@"normal_map"];
+	normalAndParallaxMap = [configuration oo_stringForKey:@"normal_and_parallax_map"];
+	parallaxScale = [configuration oo_floatForKey:@"parallax_scale" defaultValue:0.01];
+	parallaxBias = [configuration oo_floatForKey:@"parallax_bias" defaultValue:0.00];
 	
 	if (diffuseMap == nil)  diffuseMap = name;
 	
@@ -420,13 +420,13 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 #ifndef NO_SHADERS
 	if ([UNIVERSE useShaders])
 	{
-		configuration = [shadersDict dictionaryForKey:name];
+		configuration = [shadersDict oo_dictionaryForKey:name];
 	}
 #endif
 	
 	if (configuration == nil)
 	{
-		configuration = [materialDict dictionaryForKey:name];
+		configuration = [materialDict oo_dictionaryForKey:name];
 	}
 	
 	return [self materialWithName:name

@@ -299,7 +299,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	
 	for (keyEnum = [attributeBindings keyEnumerator]; (attrKey = [keyEnum nextObject]); )
 	{
-		glBindAttribLocationARB(program, [attributeBindings unsignedIntForKey:attrKey], [attrKey UTF8String]);	
+		glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]);	
 	}
 }
 
