@@ -55,7 +55,6 @@ typedef enum
 	PARTICLE_EXHAUST			= 300,
 	PARTICLE_ECM_MINE			= 400,
 	PARTICLE_ENERGY_MINE		= 500,
-	PARTICLE_FLASHER			= 600,
 	PARTICLE_BILLBOARD			= 700,
 	PARTICLE_HYPERRING			= 800
 } OOParticleType;
@@ -64,7 +63,6 @@ typedef enum
 @interface ParticleEntity (OOPrivate)
 
 - (void) updateExplosion:(double) delta_t;
-- (void) updateFlasher:(double) delta_t;
 - (void) updateECMMine:(double) delta_t;
 - (void) updateEnergyMine:(double) delta_t;
 - (void) updateShot:(double) delta_t;
@@ -571,20 +569,6 @@ FAIL:
 }
 
 
-- (id) initFlasherWithSize:(float)inSize frequency:(float)frequency phase:(float)phase
-{
-	self = [self init];
-	if (self != nil)
-	{
-		[self setSize:NSMakeSize(inSize, inSize)];
-		[self setEnergy:phase];
-		[self setDuration:frequency];
-		particle_type = PARTICLE_FLASHER;
-	}
-	return self;
-}
-
-
 - (id) initPlasmaShotAt:(Vector)inPosition
 			   velocity:(Vector)inVelocity
 				 energy:(float)inEnergy
@@ -658,7 +642,6 @@ FAIL:
 		CASE(PARTICLE_EXHAUST);
 		CASE(PARTICLE_ECM_MINE);
 		CASE(PARTICLE_ENERGY_MINE);
-		CASE(PARTICLE_FLASHER);
 		CASE(PARTICLE_BILLBOARD);
 		CASE(PARTICLE_HYPERRING);
 	}
@@ -763,7 +746,6 @@ FAIL:
 			case PARTICLE_TEST:
 			case PARTICLE_SPARK:
 			case PARTICLE_SHOT_PLASMA:
-			case PARTICLE_FLASHER:
 			case PARTICLE_EXPLOSION:
 			case PARTICLE_FRAGBURST:
 			case PARTICLE_BURST2:
@@ -808,10 +790,6 @@ FAIL:
 				[self updateEnergyMine:delta_t];
 				break;
 
-			case PARTICLE_FLASHER:
-				[self updateFlasher:delta_t];
-				break;
-
 			case PARTICLE_SPARK:
 				[self updateSpark:delta_t];
 				break;
@@ -851,12 +829,6 @@ FAIL:
 	alpha = (duration - time_counter);
 	if (time_counter > duration)
 		[UNIVERSE removeEntity:self];
-}
-
-
-- (void) updateFlasher:(double) delta_t
-{
-	alpha = 0.5 * sin(duration * M_PI * (time_counter + energy)) + 0.5;
 }
 
 
@@ -1290,8 +1262,6 @@ FAIL:
 {
 	if (UNIVERSE == nil || [UNIVERSE breakPatternHide])  return;
 
-	if ((particle_type == PARTICLE_FLASHER)&&(zero_distance > no_draw_distance))	return;	// TOO FAR AWAY TO SEE
-
 	if (translucent)
 	{
 		switch ([self particleType])
@@ -1343,95 +1313,7 @@ FAIL:
 
 - (void) drawSubEntity:(BOOL) immediate:(BOOL) translucent
 {
-	if (particle_type == PARTICLE_EXHAUST)
-	{
-		if (translucent)
-			[self drawExhaust2];
-		return;
-	}
-
-	Entity *my_owner = [self owner];
-
-	if ([self isSubEntity] && my_owner)
-	{
-		// this test provides an opportunity to do simple LoD culling
-		
-		zero_distance = [my_owner zeroDistance];
-		if (zero_distance > no_draw_distance)
-			return; // TOO FAR AWAY TO DRAW
-	}
-
-	if (particle_type == PARTICLE_FLASHER && [self status] != STATUS_INACTIVE)
-	{
-		Vector		abspos = position;  // in control of it's own orientation
-		int			view_dir = [UNIVERSE viewDirection];
-		Entity		*last = nil;
-		Entity		*father = my_owner;
-		OOMatrix	r_mat;
-		OOMatrix	temp_matrix;
-		
-		while ((father) && (father != last) && father != NO_TARGET)
-		{
-			r_mat = [father drawRotationMatrix];
-			abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
-			last = father;
-			
-			if (![last isSubEntity]) break;
-			father = [father owner];
-		}
-
-		if (view_dir == VIEW_GUI_DISPLAY)
-		{
-			if (translucent)
-			{
-				temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
-				glPopMatrix();	glPushMatrix();  // restore zero!
-				glTranslatef(abspos.x, abspos.y, abspos.z); // move to absolute position
-				GLfloat	xx = 0.5 * size.width;
-				GLfloat	yy = 0.5 * size.height;
-				
-				alpha = OOClamp_0_1_f(alpha);
-				
-				color_fv[3] = alpha;
-				glEnable(GL_TEXTURE_2D);
-				glColor4fv(color_fv);
-				glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
-				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-				[texture apply];
-				
-				glBegin(GL_QUADS);
-					glTexCoord2f(0.0, 1.0);
-					glVertex3f(-xx, -yy, -xx);
-					
-					glTexCoord2f(1.0, 1.0);
-					glVertex3f(xx, -yy, -xx);
-					
-					glTexCoord2f(1.0, 0.0);
-					glVertex3f(xx, yy, -xx);
-					
-					glTexCoord2f(0.0, 0.0);
-					glVertex3f(-xx, yy, -xx);
-					
-				glEnd();
-				
-				glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-				GLLoadOOMatrix(temp_matrix);
-			}
-		}
-		else
-		{
-			temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
-			glPopMatrix();  // restore zero!
-			glPushMatrix();
-					// position and orientation is absolute
-			GLTranslateOOVector(abspos);
-			GLMultOOMatrix([[PlayerEntity sharedPlayer] drawRotationMatrix]);
-
-			[self drawEntity:immediate:translucent];
-			
-			GLLoadOOMatrix(temp_matrix);
-		}
-	}
+	assert(0);
 }
 
 
@@ -1810,12 +1692,6 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 			glTexCoord2f(0.0, 0.0);	glVertex3f(x-xx, y+yy, z);
 			break;
 	}
-}
-
-
-- (BOOL)isFlasher
-{
-	return particle_type == PARTICLE_FLASHER;
 }
 
 

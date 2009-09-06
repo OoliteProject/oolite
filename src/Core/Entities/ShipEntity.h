@@ -332,7 +332,6 @@ MA 02110-1301, USA.
 
 - (NSEnumerator *)subEntityEnumerator;
 - (NSEnumerator *)shipSubEntityEnumerator;
-- (NSEnumerator *)particleSubEntityEnumerator;
 - (NSEnumerator *)flasherEnumerator;
 - (NSEnumerator *)exhaustEnumerator;
 
@@ -460,7 +459,6 @@ MA 02110-1301, USA.
 
 - (void) addSubEntity:(Entity *) subent;
 - (void) addExhaust:(ParticleEntity *) exhaust;
-- (void) addFlasher:(ParticleEntity *) flasher;
 
 - (void) applyThrust:(double) delta_t;
 

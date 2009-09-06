@@ -589,6 +589,10 @@
 		1ADBA5510BD0F173008FC99C /* OOBasicMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */; };
 		1ADF5CEC0B9DF59A00FDB2A3 /* OOCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A231A170B9D8B1B00EF0852 /* OOCacheManager.m */; };
 		1ADF5F130B9E374B00FDB2A3 /* JoystickHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */; };
+		1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */; };
+		1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */; };
+		1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */; };
+		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
@@ -1655,6 +1659,10 @@
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
 		1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOBasicMaterial.m; sourceTree = "<group>"; };
 		1ADF5F110B9E374B00FDB2A3 /* JoystickHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JoystickHandler.h; sourceTree = "<group>"; };
+		1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFlasherEntity.h; sourceTree = "<group>"; };
+		1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFlasherEntity.m; sourceTree = "<group>"; };
+		1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLightParticleEntity.h; sourceTree = "<group>"; };
+		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
@@ -2445,8 +2453,8 @@
 			children = (
 				1A8A3C0C0B963FF8007D20B8 /* Entities */,
 				1A8A3C0F0B964002007D20B8 /* AI */,
-				1A8A3C1E0B9640B4007D20B8 /* Mathematics */,
 				1A8A3C180B964030007D20B8 /* Resource Management */,
+				1A8A3C1E0B9640B4007D20B8 /* Mathematics */,
 				1A8A3C1B0B96407A007D20B8 /* User Interface */,
 				1A8A3BFB0B963F91007D20B8 /* Utilities */,
 				1A8A3BF20B963F3C007D20B8 /* Mac-specific */,
@@ -2576,6 +2584,10 @@
 				1A26D0A00BCF9CF70073F257 /* WormholeEntity.m */,
 				1A26D0A70BCF9CF70073F257 /* DustEntity.h */,
 				1A26D0A90BCF9CF80073F257 /* DustEntity.m */,
+				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
+				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
+				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
+				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -3019,6 +3031,8 @@
 				1A5A798E105044DD00A8F4B5 /* OOPrefixHeader.h in Headers */,
 				1A43F23F10515CF7003FDE8B /* OOTextureLoadDispatcher.h in Headers */,
 				1A43F28B105170A8003FDE8B /* OONSOperation.h in Headers */,
+				1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */,
+				1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3357,6 +3371,8 @@
 				1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */,
 				1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */,
 				1A43F24010515CF7003FDE8B /* OOTextureLoadDispatcher.m in Sources */,
+				1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */,
+				1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

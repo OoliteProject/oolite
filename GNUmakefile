@@ -100,7 +100,9 @@ OOLITE_ENTITY_FILES = \
 	ShipEntityScriptMethods.m \
 	SkyEntity.m \
 	StationEntity.m \
-	WormholeEntity.m
+	WormholeEntity.m \
+	OOLightParticleEntity.m \
+	OOFlasherEntity.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

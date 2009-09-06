@@ -57,9 +57,11 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "PlanetEntity.h"
 #import "PlayerEntity.h"
+#import "WormholeEntity.h"
+#import "OOFlasherEntity.h"
+
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
-#import "WormholeEntity.h"
 #import "GuiDisplayGen.h"
 #import "HeadUpDisplay.h"
 #import "OOEntityFilterPredicate.h"
@@ -467,6 +469,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
+#if 0
 	ParticleEntity		*flasher = nil;
 	float				size, frequency, phase;
 	
@@ -479,10 +482,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
 	if ([subentDict oo_boolForKey:@"initially_on"])  [flasher setStatus:STATUS_EFFECT];
 	
-	[self addFlasher:flasher];
+	[self addSubEntity:flasher];
 	[flasher release];
 	
 	return YES;
+#else
+	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
+	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
+	[self addSubEntity:flasher];
+	return YES;
+#endif
 }
 
 
@@ -644,12 +653,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (NSEnumerator *)shipSubEntityEnumerator
 {
 	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
-}
-
-
-- (NSEnumerator *)particleSubEntityEnumerator
-{
-	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isParticle)];
 }
 
 
@@ -3418,12 +3421,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 - (void) addExhaust:(ParticleEntity *)exhaust
 {
 	[self addSubEntity:exhaust];
-}
-
-
-- (void) addFlasher:(ParticleEntity *)flasher
-{
-	[self addSubEntity:flasher];
 }
 
 
@@ -7941,12 +7938,12 @@ int w_space_seed = 1234567;
 - (void) switchLightsOn
 {
 	NSEnumerator	*subEnum = nil;
-	ParticleEntity	*se = nil;
+	OOFlasherEntity	*se = nil;
 	ShipEntity		*sub = nil;
 	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
-		[se setStatus:STATUS_EFFECT];
+		[se setActive:YES];
 	}
 	for (subEnum = [self shipSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
@@ -7958,12 +7955,12 @@ int w_space_seed = 1234567;
 - (void) switchLightsOff
 {
 	NSEnumerator	*subEnum = nil;
-	ParticleEntity	*se = nil;
+	OOFlasherEntity	*se = nil;
 	ShipEntity		*sub = nil;
 	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
-		[se setStatus:STATUS_INACTIVE];
+		[se setActive:NO];
 	}
 	for (subEnum = [self shipSubEntityEnumerator]; (sub = [subEnum nextObject]); )
 	{
