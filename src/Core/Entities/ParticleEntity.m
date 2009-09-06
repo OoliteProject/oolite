@@ -1313,7 +1313,14 @@ FAIL:
 
 - (void) drawSubEntity:(BOOL) immediate:(BOOL) translucent
 {
-	assert(0);
+	if (particle_type == PARTICLE_EXHAUST)
+	{
+		if (translucent)  [self drawExhaust2];
+	}
+	else
+	{
+		assert(0);
+	}
 }
 
 
