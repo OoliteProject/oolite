@@ -21,7 +21,7 @@
 		missiles = 1;
 		model = "adder_redux.dat";
 		name = "Adder";
-		roles = "hunter scavenger shuttle hermit-ship oolite-adder";
+		roles = "hunter scavenger shuttle hermit-ship";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -22.5";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -133,7 +133,7 @@
 		missiles = 0;
 		model = "alloy.dat";
 		name = "Metal fragment";
-		roles = "alloy oolite-alloy";
+		roles = "alloy";
 		scanClass = "CLASS_CARGO";
 		thrust = 0;
 		materials =
@@ -171,7 +171,7 @@
 		missiles = 7;
 		model = "anaconda_redux.dat";
 		name = "Anaconda";
-		roles = "trader oolite-anaconda";
+		roles = "trader";
 		thrust = 14;
 		weapon_position_aft = "0.0 0.0 -85.0";
 		weapon_position_forward = "0.0 -4.0 85.0";
@@ -274,7 +274,7 @@
 		ai_type = "nullAI.plist";
 		model = "arcdetail.dat";
 		name = "Arc Detail";
-		roles = "arc-detail oolite-arc-detail";
+		roles = "arc-detail";
 		smooth = yes;
 	};
 	"asp" =
@@ -300,7 +300,7 @@
 		missiles = 1;
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
-		roles = "hunter pirate asp-pirate oolite-asp";
+		roles = "hunter pirate asp-pirate";
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -327,7 +327,7 @@
 		missiles = 1;
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
-		roles = "asp-cloaked oolite-asp-cloaked";
+		roles = "asp-cloaked";
 		script = "oolite-cloaking-device-target-ship.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
@@ -441,7 +441,7 @@
 		missiles = 0;
 		model = "asteroid.dat";
 		name = "Asteroid";
-		roles = "asteroid oolite-asteroid";
+		roles = "asteroid";
 		scanClass = "CLASS_ROCK";
 		smooth = yes;
 		thrust = 0;
@@ -461,7 +461,7 @@
 	{
 		like_ship = "asteroid";
 		model = "asteroid1.dat";
-		roles = "asteroid oolite-asteroid-alternative";
+		roles = "asteroid";
 	};
 	"barrel" =
 	{
@@ -499,7 +499,7 @@
 		missiles = 0;
 		model = "barrel.dat";
 		name = "Cargo container";
-		roles = "cargopod 1t-cargopod oolite-barrel";
+		roles = "cargopod 1t-cargopod";
 		scanClass = "CLASS_CARGO";
 		thrust = 0;
 		unpiloted = yes;
@@ -530,7 +530,7 @@
 		missiles = 4;
 		model = "boa_redux.dat";
 		name = "Boa";
-		roles = "trader oolite-boa";
+		roles = "trader";
 		thrust = 36;
 		weapon_position_aft = "0.0 11.0 -56.0";
 		weapon_position_forward = "0.0 8.0 57.5";
@@ -562,7 +562,7 @@
 		missiles = 5;
 		model = "boa2_redux.dat";
 		name = "Boa Class Cruiser";
-		roles = "trader sunskim-trader oolite-boa-mk2";
+		roles = "trader sunskim-trader";
 		thrust = 40;
 		weapon_energy = 15;
 		weapon_position_aft = "0.0 8.625 -54.125";
@@ -769,7 +769,7 @@
 		missiles = 0;
 		model = "boulder.dat";
 		name = "Boulder";
-		roles = "boulder oolite-boulder";
+		roles = "boulder";
 		scanClass = "CLASS_ROCK";
 		smooth = yes;
 		thrust = 0;
@@ -788,7 +788,7 @@
 	{
 		like_ship = "boulder";
 		model = "boulder1.dat";
-		roles = "boulder oolite-boulder-alternative";
+		roles = "boulder";
 	};
 	"buoy" =
 	{
@@ -804,7 +804,7 @@
 		missiles = 0;
 		model = "buoy.dat";
 		name = "Navigation Buoy";
-		roles = "buoy oolite-buoy";
+		roles = "buoy";
 		thrust = 100;
 		unpiloted = yes;
 		weapon_energy = 0;
@@ -831,7 +831,7 @@
 		missiles = 0;
 		model = "buoy.dat";
 		name = "Witchpoint Beacon";
-		roles = "buoy-witchpoint oolite-buoy-witchpoint";
+		roles = "buoy-witchpoint";
 		subentities = (
 			"*FLASHER* 0 0 60 60 0.15 1 150",
 			"*FLASHER* 0 0 -60 30 0.15 0.0 150",
@@ -863,7 +863,7 @@
 		max_flight_speed = 50;
 		model = "barrel.dat";
 		name = "Unusual cargo container";
-		roles = "cloaking-device oolite-cloaking-device";
+		roles = "cloaking-device";
 		scanClass = "CLASS_CARGO";
 		script = "oolite-cloaking-device-pod.js";
 		thrust = 0;
@@ -892,7 +892,7 @@
 		missiles = 3;
 		model = "cobra3_redux1.dat";
 		name = "Cobra Mark III";
-		roles = "hunter pirate trader hermit-ship sunskim-trader oolite-cobra3-alternate";
+		roles = "hunter pirate trader hermit-ship sunskim-trader";
 		thrust = 32;
 		weapon_energy = 15;
 		weapon_position_aft = "0.0 0.0 -32.5";
@@ -925,7 +925,7 @@
 		missiles = 1;
 		model = "cobra3_redux.dat";
 		name = "Cobra Mark III";
-		roles = "pirate hunter oolite-cobra3-pirate";
+		roles = "pirate hunter";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1047,7 +1047,7 @@
 		missiles = 3;
 		model = "cobra3_redux.dat";
 		name = "Cobra Mark III";
-		roles = "trader scavenger sunskim-trader oolite-cobra3-trader";
+		roles = "trader scavenger sunskim-trader";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1075,7 +1075,7 @@
 		missiles = 1;
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
-		roles = "pirate hunter scavenger trader hermit-ship oolite-cobramk1";
+		roles = "pirate hunter scavenger trader hermit-ship";
 		thrust = 25;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1105,7 +1105,7 @@
 		missiles = 1;
 		model = "cobra1_redux1.dat";
 		name = "Cobra Mark I";
-		roles = "pirate oolite-cobramk1-alt";
+		roles = "pirate";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1133,7 +1133,7 @@
 		missiles = 1;
 		model = "cobra1_redux2.dat";
 		name = "Cobra Mark I";
-		roles = "miner oolite-cobramk1-miner";
+		roles = "miner";
 		thrust = 25;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1255,7 +1255,7 @@
 		model = "constrictor_redux.dat";
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
-		roles = "constrictor oolite-constrictor";
+		roles = "constrictor";
 		script = "oolite-constrictor.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -4.5 -30.0";
@@ -1280,7 +1280,7 @@
 		missiles = 0;
 		model = "new_coriolis.dat";
 		name = "Coriolis Station";
-		roles = "coriolis station oolite-coriolis-station";
+		roles = "coriolis station";
 		rotating = yes;
 		subentities =
 		(
@@ -1436,7 +1436,7 @@
 		ai_type = "nullAI.plist";
 		model = "dock-flat.dat";
 		name = "Docking Slit (horizontal)";
-		roles = "docking-slit-horizontal oolite-dock-flat";
+		roles = "docking-slit-horizontal";
 	};
 	"dodecahedron-station" =
 	{
@@ -1455,7 +1455,7 @@
 		missiles = 0;
 		model = "new-dodo.dat";
 		name = "Dodecahedron Station";
-		roles = "dodo dodec dodecahedron station oolite-dodecahedron-station";
+		roles = "dodo dodec dodecahedron station";
 		rotating = yes;
 		subentities =
 		(
@@ -1493,7 +1493,7 @@
 		missiles = 0;
 		model = "missile.dat";
 		name = "ECM Hardened Missile";
-		roles = "missile EQ_HARDENED_MISSILE oolite-ecm-proof-missile";
+		roles = "missile EQ_HARDENED_MISSILE";
 		scanClass = "CLASS_MISSILE";
 		thrust = 250;
 		unpiloted = yes;
@@ -1520,7 +1520,7 @@
 		missiles = 0;
 		model = "escpod_redux.dat";
 		name = "Escape capsule";
-		roles = "escape-capsule oolite-escape-capsule";
+		roles = "escape-capsule";
 		scanClass = "CLASS_CARGO";
 		subentities =
 		(
@@ -1560,7 +1560,7 @@
 		missiles = 2;
 		model = "ferdelance_redux.dat";
 		name = "Fer-de-Lance";
-		roles = "pirate hunter oolite-ferdelance";
+		roles = "pirate hunter";
 		thrust = 36;
 		weapon_position_aft = "0.0 0.0 -42.5";
 		weapon_position_forward = "0.0 0.0 4.18";
@@ -1680,7 +1680,7 @@
 		missiles = 1;
 		model = "gecko_redux.dat";
 		name = "Gecko";
-		roles = "pirate oolite-gecko";
+		roles = "pirate";
 		thrust = 45;
 		weapon_position_forward = "0.0 0.0417 16.6667";
 		weapon_position_port = "-13.75 -2.0625 -1.875";
@@ -1691,14 +1691,14 @@
 		ai_type = "nullAI.plist";
 		model = "rock-dock.dat";
 		name = "Docking Slit";
-		roles = "docking-slit oolite-hermit-docking-slit";
+		roles = "docking-slit";
 	};
 	"hermitage" =
 	{
 		ai_type = "nullAI.plist";
 		model = "rock-box.dat";
 		name = "Rock Hermit living area";
-		roles = "rock-box oolite-hermitage";
+		roles = "rock-box";
 	};
 	"icosahedron-station" =
 	{
@@ -1717,7 +1717,7 @@
 		missiles = 0;
 		model = "new-icos.dat";
 		name = "Icosahedron Station";
-		roles = "ico icosa icosahedron station oolite-icosahedron-station";
+		roles = "ico icosa icosahedron station";
 		rotating = yes;
 		subentities =
 		(
@@ -1764,7 +1764,7 @@
 		missiles = 0;
 		model = "krait_redux.dat";
 		name = "Krait";
-		roles = "pirate hunter oolite-krait";
+		roles = "pirate hunter";
 		thrust = 35;
 		weapon_position_aft = "0.0 -5.0 -20.0";
 		weapon_position_forward = "0.0 0.0417 16.6667";
@@ -1792,7 +1792,7 @@
 		missiles = 0;
 		model = "mamba_redux.dat";
 		name = "Mamba";
-		roles = "pirate oolite-mamba";
+		roles = "pirate";
 		thrust = 32;
 		weapon_position_aft = "0.0 -4.5 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1818,7 +1818,7 @@
 		missiles = 0;
 		model = "mamba_redux1.dat";
 		name = "Mamba Escort";
-		roles = "escort oolite-mamba-escort";
+		roles = "escort";
 		thrust = 32;
 		weapon_position_aft = "0.0 -4.5 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1839,7 +1839,7 @@
 		missiles = 0;
 		model = "missile.dat";
 		name = "Missile";
-		roles = "missile EQ_MISSILE oolite-missile";
+		roles = "missile EQ_MISSILE";
 		scanClass = "CLASS_MISSILE";
 		thrust = 250;
 		unpiloted = yes;
@@ -1867,7 +1867,7 @@
 		missiles = 2;
 		model = "moray_redux.dat";
 		name = "Moray Star Boat";
-		roles = "pirate oolite-moray";
+		roles = "pirate";
 		thrust = 32;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1986,7 +1986,7 @@
 		missiles = 2;
 		model = "moray_redux1.dat";
 		name = "Moray Medical Boat";
-		roles = "trader sunskim-trader oolite-morayMED";
+		roles = "trader sunskim-trader";
 		thrust = 32;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -2100,7 +2100,7 @@
 		};
 		model = "oolite-unknown-ship.dat";
 		name = "Question Mark";
-		roles = "oo-unknown-ship oolite-unknown-ship";
+		roles = "oolite-unknown-ship";
 		smooth = yes;
 	};
 	"python" =
@@ -2126,7 +2126,7 @@
 		missiles = 2;
 		model = "python_redux.dat";
 		name = "Python";
-		roles = "trader pirate oolite-python";
+		roles = "trader pirate";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2158,7 +2158,7 @@
 		missiles = 2;
 		model = "python_redux2.dat";
 		name = "Python";
-		roles = "pirate oolite-python-blackdog";
+		roles = "pirate";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2279,7 +2279,7 @@
 		missiles = 2;
 		model = "python_redux1.dat";
 		name = "Python";
-		roles = "trader oolite-python-trader";
+		roles = "trader";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2296,7 +2296,7 @@
 		max_flight_speed = 1000;
 		model = "qbomb.dat";
 		name = "Quirium Cascade Mine";
-		roles = "energy-bomb EQ_QC_MINE oolite-qbomb";
+		roles = "energy-bomb EQ_QC_MINE";
 		thrust = 0;
 	};
 	"rock-hermit" =
@@ -2322,7 +2322,7 @@
 		name = "Rock Hermit";
 		port_radius = 250;
 		requires_docking_clearance = no;
-		roles = "rockhermit station oolite-rock-hermit";
+		roles = "rockhermit station";
 		smooth = yes;
 		subentities = (
 			"hermit-docking-slit 0 0 0 1 0 0 0",
@@ -2350,7 +2350,7 @@
 		like_ship = "alloy";
 		
 		model = "scarred_alloy.dat";
-		roles = "alloy oolite-scarred-alloy";
+		roles = "alloy";
 		
 		materials =
 		{
@@ -2389,7 +2389,7 @@
 		missiles = 0;
 		model = "shuttle_redux.dat";
 		name = "Orbital Shuttle";
-		roles = "shuttle oolite-shuttle";
+		roles = "shuttle";
 		thrust = 16;
 		weapon_position_aft = "0.0 0.0 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
@@ -2413,7 +2413,7 @@
 		missiles = 0;
 		model = "sidewinder_redux.dat";
 		name = "Sidewinder Scout Ship";
-		roles = "pirate hunter oolite-sidewinder";
+		roles = "pirate hunter";
 		thrust = 37;
 		weapon_position_aft = "0.0 -6.5 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
@@ -2437,7 +2437,7 @@
 		missiles = 0;
 		model = "sidewinder_redux.dat";
 		name = "Sidewinder Scout Ship";
-		roles = "escort hunter oolite-sidewinder-escort";
+		roles = "escort hunter";
 		thrust = 37;
 		weapon_position_aft = "0.0 -6.5 -17.5";
 		weapon_position_forward = "0.0 -4.5 17.5";
@@ -2461,7 +2461,7 @@
 		missiles = 0;
 		model = "splinter.dat";
 		name = "Splinter";
-		roles = "splinter oolite-splinter";
+		roles = "splinter";
 		scanClass = "CLASS_CARGO";
 		smooth = yes;
 		thrust = 0;
@@ -2480,14 +2480,14 @@
 	{
 		like_ship = "splinter";
 		model = "splinter1.dat";
-		roles = "splinter oolite-splinter-alternative";
+		roles = "splinter";
 	};
 	"strut" =
 	{
 		ai_type = "nullAI.plist";
 		model = "strut.dat";
 		name = "Strut 10-10-30";
-		roles = "strut oolite-strut";
+		roles = "strut";
 		unpiloted = yes;
 	};
 	"tharglet" =
@@ -2505,7 +2505,7 @@
 		missiles = 0;
 		model = "thargon_redux.dat";
 		name = "Thargoid Robot Fighter";
-		roles = "tharglet thargon oolite-tharglet";
+		roles = "tharglet thargon";
 		scanClass = "CLASS_THARGOID";
 		scanner_range = 50000;
 		thrust = 40;
@@ -2536,7 +2536,7 @@
 		missiles = 5;
 		model = "thargoid_redux.dat";
 		name = "Thargoid Warship";
-		roles = "thargoid oolite-thargoid thargoid-mothership";
+		roles = "thargoid thargoid-mothership";
 		scanClass = "CLASS_THARGOID";
 		scanner_range = 60000;
 		script = "oolite-thargoid-warship.js";
@@ -2559,7 +2559,7 @@
 		missiles = 0;
 		model = "transporter_redux.dat";
 		name = "Transporter";
-		roles = "shuttle oolite-transporter";
+		roles = "shuttle";
 		thrust = 20;
 		weapon_position_aft = "0.0 -1.0 -17.5";
 		weapon_position_forward = "0.0 -3.4 17.5";
@@ -2585,7 +2585,7 @@
 		missiles = 0;
 		model = "transporter_redux1.dat";
 		name = "Mining Transporter";
-		roles = "miner oolite-transporter-miner";
+		roles = "miner";
 		thrust = 20;
 		weapon_position_aft = "0.0 -1.0 -17.5";
 		weapon_position_forward = "0.0 -3.4 17.5";
@@ -2610,7 +2610,7 @@
 		missiles = 1;
 		model = "viper_redux.dat";
 		name = "GalCop Viper";
-		roles = "police oolite-viper";
+		roles = "police";
 		scanClass = "CLASS_POLICE";
 		subentities = (
 			"*FLASHER* -25.00 0.0 -27.50 260.0 2 0.5 8",
@@ -2656,7 +2656,7 @@
 		missiles = 3;
 		model = "viperi_redux.dat";
 		name = "GalCop Viper Interceptor";
-		roles = "interceptor wingman oolite-viper-interceptor";
+		roles = "interceptor wingman";
 		scanClass = "CLASS_POLICE";
 		subentities = (
 			"*FLASHER* -32.00 0.00 -22.00 260.0 2 0.5 8",
@@ -2696,7 +2696,7 @@
 		missiles = 1;
 		model = "viper_redux.dat";
 		name = "GalCop Viper";
-		roles = "wingman oolite-viper-pursuit";
+		roles = "wingman";
 		thrust = 36;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 -2.67 18.33";
@@ -2721,7 +2721,7 @@
 		missiles = 0;
 		model = "worm_redux.dat";
 		name = "Worm";
-		roles = "shuttle oolite-worm";
+		roles = "shuttle";
 		thrust = 12;
 		weapon_position_aft = "0.0 -4.8 -17.5";
 		weapon_position_forward = "0.0 -4.4 15.5";
@@ -2747,7 +2747,7 @@
 		missiles = 0;
 		model = "worm_redux1.dat";
 		name = "Worm";
-		roles = "miner oolite-worm-miner";
+		roles = "miner";
 		thrust = 12;
 		weapon_position_aft = "0.0 -4.8 -17.5";
 		weapon_position_forward = "0.0 -4.4 15.5";
@@ -2768,7 +2768,7 @@
 		max_flight_speed = 500;
 		model = "wreck1.dat";
 		name = "Wreckage";
-		roles = "wreckage oolite-wreckage-component";
+		roles = "wreckage";
 		scanClass = "CLASS_CARGO";
 		thrust = 0;
 	};
@@ -2776,25 +2776,25 @@
 	{
 		like_ship = "wreckage-component";
 		model = "wreck2.dat";
-		roles = "wreckage oolite-more-wreckage2";
+		roles = "wreckage";
 	};
 	"more-wreckage3" =
 	{
 		like_ship = "wreckage-component";
 		model = "wreck3.dat";
-		roles = "wreckage oolite-more-wreckage3";
+		roles = "wreckage";
 	};
 	"more-wreckage4" =
 	{
 		like_ship = "wreckage-component";
 		model = "wreck4.dat";
-		roles = "wreckage oolite-more-wreckage4";
+		roles = "wreckage";
 	};
 	"more-wreckage5" =
 	{
 		like_ship = "wreckage-component";
 		model = "wreck5.dat";
-		roles = "wreckage oolite-more-wreckage5";
+		roles = "wreckage";
 	};
 	"ballturret" =
 	{
