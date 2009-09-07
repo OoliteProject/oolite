@@ -198,6 +198,7 @@ enum
 };
 
 
+#if !OO_HAVE_NSOPERATION
 @implementation OOTextureLoadManualDispatcher
 
 - (id) init
@@ -288,6 +289,7 @@ enum
 }
 
 @end
+#endif
 
 
 /******* OOTextureLoadOperationQueueDispatcher - dispatch through NSOperationQueue if available *******/
