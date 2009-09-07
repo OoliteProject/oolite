@@ -2821,9 +2821,15 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	if (shipDict == nil)  return nil;
 
 	BOOL		isStation = NO;
+	id			isCarrier;
 	NSString	*shipRoles = [shipDict oo_stringForKey:@"roles"];
 	if (shipRoles != nil)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	isStation = [shipDict oo_boolForKey:@"isCarrier" defaultValue:isStation];
+
+	isCarrier = [shipDict objectForKey:@"is_carrier"];
+	if (isCarrier)
+		isStation = [shipDict oo_boolForKey:@"is_carrier"];
+	else
+		isStation = [shipDict oo_boolForKey:@"isCarrier" defaultValue:isStation];
 	
 	volatile Class shipClass;
 	if (!isStation)  shipClass = [ShipEntity class];

@@ -2063,31 +2063,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return NO;
 	if ([UNIVERSE station] == self)
 		return YES;
-	id				determinant;
+	id	determinant = [shipinfoDictionary objectForKey:@"has_shipyard"];
 
-	if ([shipinfoDictionary objectForKey:@"has_shipyard"])
-	{
-		determinant = [shipinfoDictionary objectForKey:@"has_shipyard"];
-		
-		if ([determinant isKindOfClass:[NSArray class]])
-		{
-			
-			return [[PlayerEntity sharedPlayer] scriptTestConditions:determinant];
-		}
-		else
-		{
-			return OOFuzzyBooleanFromObject(determinant, 0.0f);
-		}
-	}
-		
-	// NOTE: non-standard capitalization is documented and entrenched.
-	if ([shipinfoDictionary objectForKey:@"hasShipyard"])
-	{
+	if (!determinant)
 		determinant = [shipinfoDictionary objectForKey:@"hasShipyard"];
 		
+	// NOTE: non-standard capitalization is documented and entrenched.
+	if (determinant)
+	{		
 		if ([determinant isKindOfClass:[NSArray class]])
 		{
-			
 			return [[PlayerEntity sharedPlayer] scriptTestConditions:determinant];
 		}
 		else
