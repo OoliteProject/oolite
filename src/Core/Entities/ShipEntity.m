@@ -3272,8 +3272,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		GLLoadOOMatrix([UNIVERSE viewMatrix]);
-		glPopMatrix();
-		glPushMatrix();
+		OOGL(glPopMatrix());
+		OOGL(glPushMatrix());
 		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
 		
@@ -3281,14 +3281,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		glPushMatrix();
+		OOGL(glPushMatrix());
 		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
 		
-		glPopMatrix();
+		OOGL(glPopMatrix());
 	}
 	
 #ifndef NDEBUG

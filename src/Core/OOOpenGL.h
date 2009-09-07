@@ -119,3 +119,43 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 */
 GLuint GLAllocateTextureName(void);
 void GLRecycleTextureName(GLuint name, GLuint mipLevels);
+
+
+/*	OO_CHECK_GL_HEAVY and error-checking stuff
+	
+	If OO_CHECK_GL_HEAVY is non-zero, the following error-checking facilities
+	come into play:
+	OOGL(foo) checks for GL errors before and after performing the statement foo.
+	OOGLBEGIN(mode) checks for GL errors, then calls glBegin(mode).
+	OOGLEND() calls glEnd(), then checks for GL errors.
+	CheckOpenGLErrorsHeavy() checks for errors exactly like CheckOpenGLErrors().
+	
+	If OO_CHECK_GL_HEAVY is zero, these macros don't perform error checking,
+	but otherwise continue to work as before, so:
+	OOGL(foo) performs the statement foo.
+	OOGLBEGIN(mode) calls glBegin(mode);
+	OOGLEND() calls glEnd().
+	CheckOpenGLErrorsHeavy() does nothing (including not performing any parameter side-effects).
+*/
+#ifndef OO_CHECK_GL_HEAVY
+#define OO_CHECK_GL_HEAVY 0
+#endif
+
+
+#if OO_CHECK_GL_HEAVY
+
+NSString *OOLogAbbreviatedFileName(const char *inName);
+#define OOGL_PERFORM_CHECK(label)  CheckOpenGLErrors(@"%s %@:%u (%s)", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__)
+#define OOGL(statement)  do { OOGL_PERFORM_CHECK("PRE"); statement; OOGL_PERFORM_CHECK("POST"); } while (0)
+#define CheckOpenGLErrorsHeavy CheckOpenGLErrors
+#define OOGLBEGIN(mode) do { OOGL_PERFORM_CHECK("PRE-BEGIN"); glBegin(mode); } while (0)
+#define OOGLEND() do { glEnd(); OOGL_PERFORM_CHECK("POST-END"); } while (0)
+
+#else
+
+#define OOGL(statement)  do { statement; } while (0)
+#define CheckOpenGLErrorsHeavy(...) do {} while (0)
+#define OOGLBEGIN glBegin
+#define OOGLEND glEnd
+
+#endif

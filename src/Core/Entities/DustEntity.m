@@ -68,7 +68,7 @@ MA 02110-1301, USA.
 {
 	[dust_color release];
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
-	glDeleteLists(displayListName, 1);
+	OOGL(glDeleteLists(displayListName, 1));
 	
 	[super dealloc];
 }
@@ -153,44 +153,45 @@ MA 02110-1301, USA.
 		
 	if (translucent)
 	{
-		glEnable(GL_FOG);
-		glFogi(GL_FOG_MODE, GL_LINEAR);
-		glFogfv(GL_FOG_COLOR, fogcolor);
-		glHint(GL_FOG_HINT, GL_NICEST);
-		glFogf(GL_FOG_START, quarter_scale);
-		glFogf(GL_FOG_END, half_scale);
+		OOGL(glEnable(GL_FOG));
+		OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
+		OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
+		OOGL(glHint(GL_FOG_HINT, GL_NICEST));
+		OOGL(glFogf(GL_FOG_START, quarter_scale));
+		OOGL(glFogf(GL_FOG_END, half_scale));
 		
 		// disapply lighting and texture
-		glDisable(GL_TEXTURE_2D);
+		OOGL(glDisable(GL_TEXTURE_2D));
 		
-		if (player->isSunlit)  glColor4fv(color_fv);
-		else  glColor4fv(UNIVERSE->stars_ambient);
+		if (player->isSunlit)  OOGL(glColor4fv(color_fv));
+		else  OOGL(glColor4fv(UNIVERSE->stars_ambient));
 		
 		GLenum dustMode;
 		
 		if (!warp_stars)
 		{
-			glEnable(GL_POINT_SMOOTH);
-			glPointSize(dust_size);
+			OOGL(glEnable(GL_POINT_SMOOTH));
+			OOGL(glPointSize(dust_size));
 			dustMode = GL_POINTS;
 		}
 		else
 		{
-			glEnable(GL_LINE_SMOOTH);
-			glLineWidth(line_size);
+			OOGL(glEnable(GL_LINE_SMOOTH));
+			OOGL(glLineWidth(line_size));
 			dustMode = GL_LINES;
 		}
 		
-		glBegin(dustMode);
+		OOGLBEGIN(dustMode);
 		
 		for (vi = 0; vi < DUST_N_PARTICLES; vi++)
 		{
 			GLVertexOOVector(vertices[vi]);
 			if (warp_stars)  GLVertexOOVector(vector_subtract(vertices[vi], warp_vector));
 		}
-		glEnd();
+		OOGLEND();
+		
 		// reapply normal conditions
-		glDisable(GL_FOG);
+		OOGL(glDisable(GL_FOG));
 	}
 	
 	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
@@ -201,7 +202,7 @@ MA 02110-1301, USA.
 {
 	if (displayListName != 0)
 	{
-		glDeleteLists(displayListName, 1);
+		OOGL(glDeleteLists(displayListName, 1));
 		displayListName = 0;
 	}
 }

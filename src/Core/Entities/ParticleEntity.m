@@ -97,22 +97,22 @@ typedef enum
 #if ADDITIVE_BLENDING
 static inline void BeginAdditiveBlending(BOOL withGL_ONE)
 {
-	glPushAttrib(GL_COLOR_BUFFER_BIT);
-	glEnable(GL_BLEND);
+	OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT));
+	OOGL(glEnable(GL_BLEND));
 	if (withGL_ONE)
 	{
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	}
 	else
 	{
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	}
 }
 
 
 static inline void EndAdditiveBlending(void)
 {
-	glPopAttrib();
+	OOGL(glPopAttrib());
 }
 
 #define GL_ONE_YES	YES
@@ -1337,18 +1337,18 @@ FAIL:
 	// movies:
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
 
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glEnable(GL_TEXTURE_2D));
 
-	glColor4fv(color_fv);
+	OOGL(glColor4fv(color_fv));
 
-	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv));
+	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
 
 	[texture apply];
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 
 	viewdir = [UNIVERSE viewDirection];
 
@@ -1441,10 +1441,10 @@ FAIL:
 			glVertex3f(-xx, yy, -xx);
 			break;
 	}
-	glEnd();
+	OOGLEND();
 	
 	EndAdditiveBlending();
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
 }
 
 
@@ -1452,31 +1452,29 @@ FAIL:
 {
 	color_fv[3]		= 0.75;  // set alpha
 
-	glDisable(GL_CULL_FACE);			// face culling
+	OOGL(glDisable(GL_CULL_FACE));	// face culling
 
-	glDisable(GL_TEXTURE_2D);
+	OOGL(glDisable(GL_TEXTURE_2D));
 
-	glColor4fv(color_fv);
+	OOGL(glColor4fv(color_fv));
 	
 	BeginAdditiveBlending(GL_ONE_NO);
 
-	glBegin(GL_QUADS);
-
-	glVertex3f(0.25, 0.0, 0.0);
-	glVertex3f(0.25, 0.0, collision_radius);
-	glVertex3f(-0.25, 0.0, collision_radius);
-	glVertex3f(-0.25, 0.0, 0.0);
-
-	glVertex3f(0.0, 0.25, 0.0);
-	glVertex3f(0.0, 0.25, collision_radius);
-	glVertex3f(0.0, -0.25, collision_radius);
-	glVertex3f(0.0, -0.25, 0.0);
-
-	glEnd();
+	OOGLBEGIN(GL_QUADS);
+		glVertex3f(0.25, 0.0, 0.0);
+		glVertex3f(0.25, 0.0, collision_radius);
+		glVertex3f(-0.25, 0.0, collision_radius);
+		glVertex3f(-0.25, 0.0, 0.0);
+		
+		glVertex3f(0.0, 0.25, 0.0);
+		glVertex3f(0.0, 0.25, collision_radius);
+		glVertex3f(0.0, -0.25, collision_radius);
+		glVertex3f(0.0, -0.25, 0.0);
+	OOGLEND();
 	
 	EndAdditiveBlending();
 
-	glEnable(GL_CULL_FACE);			// face culling
+	OOGL(glEnable(GL_CULL_FACE));	// face culling
 }
 
 GLuint tfan1[10] = {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1};		// initial fan 0..9
@@ -1495,34 +1493,34 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	if ([ship speedFactor] <= 0.0)	// don't draw if there's no fire!
 		return;
 
-	glPopMatrix();	// restore absolute positioning
-	glPushMatrix();	// avoid stack underflow
+	OOGL(glPopMatrix());	// restore absolute positioning
+	OOGL(glPushMatrix());	// avoid stack underflow
 
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_CULL_FACE);		// face culling
-	glShadeModel(GL_SMOOTH);
+	OOGL(glDisable(GL_TEXTURE_2D));
+	OOGL(glDisable(GL_CULL_FACE));		// face culling
+	OOGL(glShadeModel(GL_SMOOTH));
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 0, verts);
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_FLOAT, 0, exhaustBaseColors);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableClientState(GL_INDEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_EDGE_FLAG_ARRAY);
+	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, verts));
+	OOGL(glEnableClientState(GL_COLOR_ARRAY));
+	OOGL(glColorPointer(4, GL_FLOAT, 0, exhaustBaseColors));
+	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+	OOGL(glDisableClientState(GL_INDEX_ARRAY));
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
-	glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1);
-	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1);
-	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2);
-	glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3);
-	glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2);
+	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan1));
+	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip1));
+	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip2));
+	OOGL(glDrawElements(GL_QUAD_STRIP, 18, GL_UNSIGNED_INT, qstrip3));
+	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2));
 
 	EndAdditiveBlending();
 	
-	glEnable(GL_CULL_FACE);		// face culling
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glEnable(GL_CULL_FACE));		// face culling
+	OOGL(glEnable(GL_TEXTURE_2D));
 }
 
 
@@ -1534,30 +1532,30 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
 	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
 
-	glPushMatrix();
-	glDisable(GL_CULL_FACE);			// face culling
-	glDisable(GL_TEXTURE_2D);
-	glShadeModel(GL_SMOOTH);
+	OOGL(glPushMatrix());
+	OOGL(glDisable(GL_CULL_FACE));			// face culling
+	OOGL(glDisable(GL_TEXTURE_2D));
+	OOGL(glShadeModel(GL_SMOOTH));
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 	
 	// movies:
 	// draw data required ring_inner_radius, ring_outer_radius
 
-	glBegin(GL_TRIANGLE_STRIP);
+	OOGLBEGIN(GL_TRIANGLE_STRIP);
 	for (i = 0; i < 65; i++)
 	{
 		glColor4fv(ex_em_lo);
-		glVertex3f(ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z );
+		glVertex3f(ring_inner_radius*circleVertex[i].x, ring_inner_radius*circleVertex[i].y, ring_inner_radius*circleVertex[i].z);
 		glColor4fv(ex_em_hi);
-		glVertex3f(ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z );
+		glVertex3f(ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z);
 	}
-	glEnd();
+	OOGLEND();
 	
 	EndAdditiveBlending();
 
-	glEnable(GL_CULL_FACE);			// face culling
-	glPopMatrix();
+	OOGL(glEnable(GL_CULL_FACE));	// face culling
+	OOGL(glPopMatrix());
 }
 
 
@@ -1567,23 +1565,21 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 
 	color_fv[3]		= alpha;  // set alpha
 
-	glDisable(GL_CULL_FACE);			// face culling
-	glDisable(GL_TEXTURE_2D);
+	OOGL(glDisable(GL_CULL_FACE));	// face culling
+	OOGL(glDisable(GL_TEXTURE_2D));
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 
 	int step = 4;
 
-	glColor4fv(color_fv);
-	glBegin(GL_TRIANGLE_FAN);
+	OOGL(glColor4fv(color_fv));
+	OOGLBEGIN(GL_TRIANGLE_FAN);
+		GLDrawBallBillboard(collision_radius, step, szd);
+	OOGLEND();
 	
-	GLDrawBallBillboard(collision_radius, step, szd);
-	
-	glEnd();
-
 	EndAdditiveBlending();
 	
-	glEnable(GL_CULL_FACE);			// face culling
+	OOGL(glEnable(GL_CULL_FACE));			// face culling
 }
 
 
@@ -1591,24 +1587,24 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 {
 	int i;
 
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
-	glPushMatrix();
+	OOGL(glPushMatrix());
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, faces[i].normal.x, faces[i].normal.x);
 	}
-	glEnd();
+	OOGLEND();
 	
 	EndAdditiveBlending();
-
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
+	
+	OOGL(glPopMatrix());
+	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 
@@ -1616,39 +1612,39 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 {
 	int i;
 
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
-	glPushMatrix();
+	OOGL(glPushMatrix());
 	
 	BeginAdditiveBlending(GL_ONE_YES);
 
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
 		DrawQuadForView(vertices[i].x, vertices[i].y, vertices[i].z, size.width, size.width);
 	}
-	glEnd();
+	OOGLEND();
 	
 	EndAdditiveBlending();
-
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
+	
+	OOGL(glPopMatrix());
+	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 
 - (void) drawBillboard
 {	
-	glColor4fv(color_fv);
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glColor4fv(color_fv));
+	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
-	glPushMatrix();
+	OOGL(glPushMatrix());
 
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 		DrawQuadForView(position.x, position.y, position.z, size.width, size.height);
-	glEnd();
+	OOGLEND();
 
-	glPopMatrix();
+	OOGL(glPopMatrix());
 }
 
 

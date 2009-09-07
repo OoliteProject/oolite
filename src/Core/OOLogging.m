@@ -143,7 +143,6 @@ OOINLINE void SetIndentLevel(unsigned level);
 
 #ifndef OOLOG_NO_FILE_NAME
 static NSMutableDictionary		*sFileNamesCache = nil;
-static NSString *AbbreviatedFileName(const char *inName);
 #endif
 
 
@@ -440,11 +439,11 @@ void OOLogWithFunctionFileAndLineAndArguments(NSString *inMessageClass, const ch
 		{
 			if (sShowFunction)
 			{
-				formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, AbbreviatedFileName(inFile), inLine, formattedMessage];
+				formattedMessage = [NSString stringWithFormat:@"%s (%@:%u): %@", inFunction, OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
 			}
 			else
 			{
-				formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", AbbreviatedFileName(inFile), inLine, formattedMessage];
+				formattedMessage = [NSString stringWithFormat:@"%@:%u: %@", OOLogAbbreviatedFileName(inFile), inLine, formattedMessage];
 			}
 		}
 		else
@@ -802,12 +801,11 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 }
 
 
-#ifndef OOLOG_NO_FILE_NAME
-/*	AbbreviatedFileName()
+/*	OOLogAbbreviatedFileName()
 	Map full file paths provided by __FILE__ to more mananagable file names,
 	with caching.
 */
-static NSString *AbbreviatedFileName(const char *inName)
+NSString *OOLogAbbreviatedFileName(const char *inName)
 {
 	NSValue				*key = nil;
 	NSString			*name = nil;
@@ -827,7 +825,6 @@ static NSString *AbbreviatedFileName(const char *inName)
 	
 	return name;
 }
-#endif
 
 
 /*	Look up setting for a message class in explicit settings, resolving

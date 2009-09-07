@@ -85,7 +85,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 {
 	[basefile release];
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
-	glDeleteLists(displayListName, 1);
+	OOGL(glDeleteLists(displayListName, 1));
 	
 	[super dealloc];
 }
@@ -98,7 +98,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	[basefile autorelease];
 	basefile = [modelName retain];
 	
-	glDeleteLists(displayListName,1);
+	OOGL(glDeleteLists(displayListName,1));
 	displayListName = 0;
 	
 	NS_DURING
@@ -185,8 +185,8 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 			last = father;
 			father = [father owner];
 		}
-		glPopMatrix();  // one down
-		glPushMatrix();
+		OOGL(glPopMatrix());  // one down
+		OOGL(glPushMatrix());
 				// position and orientation is absolute
 		GLTranslateOOVector(abspos);
 		GLMultOOMatrix(rotMatrix);
@@ -195,26 +195,26 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 	}
 	else
 	{
-		glPushMatrix();
+		OOGL(glPushMatrix());
 		
 		GLTranslateOOVector(position);
 		GLMultOOMatrix(rotMatrix);
 		
 		[self drawEntity:immediate :translucent];
 		
-		glPopMatrix();
+		OOGL(glPopMatrix());
 	}
 }
 
 
 - (void) generateDisplayList
 {
-	displayListName = glGenLists(1);
+	OOGL(displayListName = glGenLists(1));
 	if (displayListName != 0)
 	{
-		glNewList(displayListName, GL_COMPILE);
+		OOGL(glNewList(displayListName, GL_COMPILE));
 		[self drawEntity:YES:NO];	//	immediate YES	translucent NO
-		glEndList();
+		OOGL(glEndList());
 	}
 }
 
@@ -270,7 +270,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 {
 	if (displayListName != 0)
 	{
-		glDeleteLists(displayListName, 1);
+		OOGL(glDeleteLists(displayListName, 1));
 		displayListName = 0;
 	}
 }

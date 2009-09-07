@@ -85,8 +85,8 @@ static OOTexture *sBlobTexture = nil;
 	}
 	
 	OOMatrix temp_matrix = OOMatrixLoadGLMatrix(GL_MODELVIEW_MATRIX);
-	glPopMatrix();	glPushMatrix();  // restore zero!
-	GLTranslateOOVector(abspos); // move to absolute position
+	OOGL(glPopMatrix());  OOGL(glPushMatrix());  // restore zero!
+	GLTranslateOOVector(abspos);	// move to absolute position
 	
 	[self drawEntity:immediate :translucent];
 	
@@ -102,14 +102,14 @@ static OOTexture *sBlobTexture = nil;
 	
 	OO_ENTER_OPENGL();
 		
-	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT));
+	OOGL(glEnable(GL_BLEND));
+	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
-	glEnable(GL_TEXTURE_2D);
-	glColor4fv(_colorComponents);
-	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, _colorComponents);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
+	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glColor4fv(_colorComponents));
+	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, _colorComponents));
+	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
 	[[self texture] apply];
 	
 	OOViewID viewDir = [UNIVERSE viewDirection];
@@ -118,7 +118,7 @@ static OOTexture *sBlobTexture = nil;
 	GLfloat	xx = 0.5 * _size.width;
 	GLfloat	yy = 0.5 * _size.height;
 	
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 	switch (viewDir)
 	{
 		case VIEW_FORWARD:
@@ -209,10 +209,10 @@ static OOTexture *sBlobTexture = nil;
 			glVertex3f(-xx, yy, -xx);
 			break;
 	}
-	glEnd();
+	OOGLEND();
 	
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-	glPopAttrib();
+	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+	OOGL(glPopAttrib());
 }
 
 

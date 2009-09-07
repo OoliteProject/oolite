@@ -238,35 +238,35 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	int			ti;
 	
-	glPushAttrib(GL_ENABLE_BIT);
+	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	
-	if (isSmoothShaded)  glShadeModel(GL_SMOOTH);
-	else  glShadeModel(GL_FLAT);
+	if (isSmoothShaded)  OOGL(glShadeModel(GL_SMOOTH));
+	else  OOGL(glShadeModel(GL_FLAT));
 	
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_INDEX_ARRAY);
-	glDisableClientState(GL_EDGE_FLAG_ARRAY);
+	OOGL(glDisableClientState(GL_COLOR_ARRAY));
+	OOGL(glDisableClientState(GL_INDEX_ARRAY));
+	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	
-	glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray);
-	glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray);
-	glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray);
+	OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
+	OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
+	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
-		glEnableVertexAttribArrayARB(kTangentAttributeIndex);
-		glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray);
+		OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
+		OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray));
 	}
 	
-	glDisable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glDisable(GL_BLEND));
+	OOGL(glEnable(GL_TEXTURE_2D));
 	
 	NS_DURING
 		if (!listsReady)
 		{
-			displayList0 = glGenLists(materialCount);
+			OOGL(displayList0 = glGenLists(materialCount));
 			
 			// Ensure all textures are loaded
 			for (ti = 0; ti < materialCount; ti++)
@@ -281,16 +281,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 #if 0
 			if (listsReady)
 			{
-				glCallList(displayList0 + ti);
+				OOGL(glCallList(displayList0 + ti));
 			}
 			else
 			{
-				glNewList(displayList0 + ti, GL_COMPILE_AND_EXECUTE);
-				glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
-				glEndList();
+				OOGL(glNewList(displayList0 + ti, GL_COMPILE_AND_EXECUTE));
+				OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
+				OOGL(glEndList());
 			}
 #else
-			glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length);
+			OOGL(glDrawArrays(GL_TRIANGLES, triangle_range[ti].location, triangle_range[ti].length));
 #endif
 		}
 		
@@ -312,7 +312,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
-		glDisableVertexAttribArrayARB(kTangentAttributeIndex);
+		OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
 	}
 	
 	[OOMaterial applyNone];
@@ -322,7 +322,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
 #endif
 	
-	glPopAttrib();
+	OOGL(glPopAttrib());
 }
 
 
@@ -643,7 +643,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		OO_ENTER_OPENGL();
 		
-		glDeleteLists(displayList0, materialCount);
+		OOGL(glDeleteLists(displayList0, materialCount));
 		listsReady = NO;
 	}
 }
@@ -1428,7 +1428,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	state = OODebugBeginWireframe(NO);
 	
 	// Draw
-	glBegin(GL_LINES);
+	OOGLBEGIN(GL_LINES);
 	for (i = 0; i < _displayLists.count; ++i)
 	{
 		v = _displayLists.vertexArray[i];
@@ -1461,7 +1461,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		glVertex3f(v.x, v.y, v.z);
 		glVertex3f(b.x, b.y, b.z);
 	}
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 }

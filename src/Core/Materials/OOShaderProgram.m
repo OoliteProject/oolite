@@ -142,7 +142,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		[key release];
 	}
 	
-	glDeleteObjectARB(program);
+	OOGL(glDeleteObjectARB(program));
 	
 	[super dealloc];
 }
@@ -156,7 +156,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	{
 		[sActiveProgram release];
 		sActiveProgram = [self retain];
-		glUseProgramObjectARB(program);
+		OOGL(glUseProgramObjectARB(program));
 	}
 }
 
@@ -169,7 +169,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	{
 		[sActiveProgram release];
 		sActiveProgram = nil;
-		glUseProgramObjectARB(NULL_SHADER);
+		OOGL(glUseProgramObjectARB(NULL_SHADER));
 	}
 }
 
@@ -213,14 +213,14 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	if (OK && vertexSource != nil)
 	{
 		// Compile vertex shader.
-		vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB);
+		OOGL(vertexShader = glCreateShaderObjectARB(GL_VERTEX_SHADER_ARB));
 		if (vertexShader != NULL_SHADER)
 		{
 			sourceStrings[1] = [vertexSource UTF8String];
-			glShaderSourceARB(vertexShader, 2, sourceStrings, NULL);
-			glCompileShaderARB(vertexShader);
+			OOGL(glShaderSourceARB(vertexShader, 2, sourceStrings, NULL));
+			OOGL(glCompileShaderARB(vertexShader));
 			
-			glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
+			OOGL(glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus));
 			if (compileStatus != GL_TRUE)
 			{
 				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "vertex", vertexName, GetGLSLInfoLog(vertexShader));
@@ -233,14 +233,14 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	if (OK && fragmentSource != nil)
 	{
 		// Compile fragment shader.
-		fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB);
+		OOGL(fragmentShader = glCreateShaderObjectARB(GL_FRAGMENT_SHADER_ARB));
 		if (fragmentShader != NULL_SHADER)
 		{
 			sourceStrings[1] = [fragmentSource UTF8String];
-			glShaderSourceARB(fragmentShader, 2, sourceStrings, NULL);
-			glCompileShaderARB(fragmentShader);
+			OOGL(glShaderSourceARB(fragmentShader, 2, sourceStrings, NULL));
+			OOGL(glCompileShaderARB(fragmentShader));
 			
-			glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus);
+			OOGL(glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus));
 			if (compileStatus != GL_TRUE)
 			{
 				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "fragment", fragmentName, GetGLSLInfoLog(fragmentShader));
@@ -253,15 +253,15 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	if (OK)
 	{
 		// Link shader.
-		program = glCreateProgramObjectARB();
+		OOGL(program = glCreateProgramObjectARB());
 		if (program != NULL_SHADER)
 		{
-			if (vertexShader != NULL_SHADER)  glAttachObjectARB(program, vertexShader);
-			if (fragmentShader != NULL_SHADER)  glAttachObjectARB(program, fragmentShader);
+			if (vertexShader != NULL_SHADER)  OOGL(glAttachObjectARB(program, vertexShader));
+			if (fragmentShader != NULL_SHADER)  OOGL(glAttachObjectARB(program, fragmentShader));
 			[self bindAttributes:attributeBindings];
-			glLinkProgramARB(program);
+			OOGL(glLinkProgramARB(program));
 			
-			glGetObjectParameterivARB(program, GL_OBJECT_LINK_STATUS_ARB, &compileStatus);
+			OOGL(glGetObjectParameterivARB(program, GL_OBJECT_LINK_STATUS_ARB, &compileStatus));
 			if (compileStatus != GL_TRUE)
 			{
 				OOLog(@"shader.link.failure", @"***** GLSL shader linking failed:\n>>>>> GLSL log:\n%@\n", GetGLSLInfoLog(program));
@@ -276,12 +276,16 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 		key = [inKey copy];
 	}
 	
-	if (vertexShader != NULL_SHADER)  glDeleteObjectARB(vertexShader);
-	if (fragmentShader != NULL_SHADER)  glDeleteObjectARB(fragmentShader);
+	if (vertexShader != NULL_SHADER)  OOGL(glDeleteObjectARB(vertexShader));
+	if (fragmentShader != NULL_SHADER)  OOGL(glDeleteObjectARB(fragmentShader));
 	
 	if (!OK)
 	{
-		if (program != NULL_SHADER)  glDeleteObjectARB(program);
+		if (program != NULL_SHADER)
+		{
+			OOGL(glDeleteObjectARB(program));
+			program = NULL_SHADER;
+		}
 		
 		[self release];
 		self = nil;
@@ -299,7 +303,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 	
 	for (keyEnum = [attributeBindings keyEnumerator]; (attrKey = [keyEnum nextObject]); )
 	{
-		glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]);	
+		OOGL(glBindAttribLocationARB(program, [attributeBindings oo_unsignedIntForKey:attrKey], [attrKey UTF8String]));	
 	}
 }
 
@@ -363,7 +367,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject)
 	
 	if (EXPECT_NOT(shaderObject == NULL_SHADER))  return nil;
 	
-	glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+	OOGL(glGetObjectParameterivARB(shaderObject, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length));
 	log = malloc(length);
 	if (log == NULL)
 	{
@@ -371,7 +375,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject)
 		log = malloc(length);
 		if (log == NULL)  return @"<out of memory>";
 	}
-	glGetInfoLogARB(shaderObject, length, NULL, log);
+	OOGL(glGetInfoLogARB(shaderObject, length, NULL, log));
 	
 	result = [NSString stringWithUTF8String:log];
 	if (result == nil)  result = [[[NSString alloc] initWithBytes:log length:length - 1 encoding:NSISOLatin1StringEncoding] autorelease];

@@ -38,6 +38,10 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 	const GLubyte	*errString = NULL;
 	BOOL			errorOccurred = NO;
 	va_list			args;
+	static BOOL		noReenter;
+	
+	if (noReenter)  return NO;
+	noReenter = YES;
 	
 	OO_ENTER_OPENGL();
 	
@@ -60,6 +64,16 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 			OOLog(kOOLogOpenGLError, @"OpenGL error: \"%s\" (%#x), context: %@", errString, errCode, format);
 		}
 	}
+	
+#if OO_CHECK_GL_HEAVY
+	if (errorOccurred)
+	{
+		LogOpenGLState();
+		while (glGetError() != 0) {}	// Suppress any errors caused by LogOpenGLState().
+	}
+#endif
+	
+	noReenter = NO;
 	return errorOccurred;
 }
 
@@ -68,10 +82,10 @@ void GLDebugWireframeModeOn(void)
 {
 	OO_ENTER_OPENGL();
 	
-	glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT);
-	glLineWidth(1.0f);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDisable(GL_TEXTURE_2D);
+	OOGL(glPushAttrib(GL_POLYGON_BIT | GL_LINE_BIT | GL_TEXTURE_BIT));
+	OOGL(glLineWidth(1.0f));
+	OOGL(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 
@@ -79,7 +93,7 @@ void GLDebugWireframeModeOff(void)
 {
 	OO_ENTER_OPENGL();
 	
-	glPopAttrib();
+	OOGL(glPopAttrib());
 }
 
 
@@ -133,9 +147,9 @@ void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
 	OO_ENTER_OPENGL();
 	
-	glBegin(GL_LINE_STRIP);
+	OOGLBEGIN(GL_LINE_STRIP);
 	GLDrawOvalPoints(x, y, z, siz, step);
-	glEnd();
+	OOGLEND();
 }
 
 
@@ -143,9 +157,9 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 {
 	OO_ENTER_OPENGL();
 	
-	glBegin(GL_TRIANGLE_FAN);
+	OOGLBEGIN(GL_TRIANGLE_FAN);
 	GLDrawOvalPoints(x, y, z, siz, step);
-	glEnd();
+	OOGLEND();
 }
 
 
@@ -172,7 +186,7 @@ GLuint GLAllocateTextureName(void)
 		
 		OOLog(@"textureCache.fill", @"Adding %u elements to texture names cache.", kTextureNameCacheMaxSize);
 		// Allocate a block of names.
-		glGenTextures(kTextureNameCacheMaxSize, sTextureNameCache);
+		OOGL(glGenTextures(kTextureNameCacheMaxSize, sTextureNameCache));
 		sTextureNameCacheSize = kTextureNameCacheMaxSize;
 	}
 	
@@ -195,7 +209,7 @@ void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 		OOLog(@"textureCache.flush", @"Deleting %u elements from texture names cache.", kTextureNameCacheFlushCount);
 		// No more space; delete several elements (to avoid a series of individual deletes)
 		sTextureNameCacheSize -= kTextureNameCacheFlushCount;
-		glDeleteTextures(kTextureNameCacheFlushCount, &sTextureNameCache[sTextureNameCacheSize]);
+		OOGL(glDeleteTextures(kTextureNameCacheFlushCount, &sTextureNameCache[sTextureNameCacheSize]));
 	}
 	
 	assert(sTextureNameCacheSize < kTextureNameCacheMaxSize);
@@ -205,8 +219,8 @@ void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 	
 	for (i = 0; i != mipLevels; ++i)
 	{
-		glBindTexture(GL_TEXTURE_2D, name);
-		glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk);
+		OOGL(glBindTexture(GL_TEXTURE_2D, name));
+		OOGL(glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk));
 	}
 	
 	sTextureNameCache[sTextureNameCacheSize++] = name;
@@ -274,18 +288,18 @@ static void GLDumpLightState(unsigned lightIdx)
 	
 	OO_ENTER_OPENGL();
 	
-	enabled = glIsEnabled(lightID);
+	OOGL(enabled = glIsEnabled(lightID));
 	OOLog(kOOLogOpenGLStateDump, @"Light %u: %s", lightIdx, enabled ? "enabled" : "disabled");
 	
 	if (enabled)
 	{
 		OOLogIndent();
 		
-		glGetLightfv(GL_LIGHT1, GL_AMBIENT, color);
+		OOGL(glGetLightfv(GL_LIGHT1, GL_AMBIENT, color));
 		OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
-		glGetLightfv(GL_LIGHT1, GL_DIFFUSE, color);
+		OOGL(glGetLightfv(GL_LIGHT1, GL_DIFFUSE, color));
 		OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
-		glGetLightfv(GL_LIGHT1, GL_SPECULAR, color);
+		OOGL(glGetLightfv(GL_LIGHT1, GL_SPECULAR, color));
 		OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
 		
 		OOLogOutdent();
@@ -308,39 +322,39 @@ static void GLDumpMaterialState(void)
 	OOLog(kOOLogOpenGLStateDump, @"Material state:");
 	OOLogIndent();
 	
-	glGetMaterialfv(GL_FRONT, GL_AMBIENT, color);
+	OOGL(glGetMaterialfv(GL_FRONT, GL_AMBIENT, color));
 	OOLog(kOOLogOpenGLStateDump, @"Ambient: %@", GLColorToString(color));
 	
-	glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color);
+	OOGL(glGetMaterialfv(GL_FRONT, GL_DIFFUSE, color));
 	OOLog(kOOLogOpenGLStateDump, @"Diffuse: %@", GLColorToString(color));
 	
-	glGetMaterialfv(GL_FRONT, GL_EMISSION, color);
+	OOGL(glGetMaterialfv(GL_FRONT, GL_EMISSION, color));
 	OOLog(kOOLogOpenGLStateDump, @"Emission: %@", GLColorToString(color));
 	
-	glGetMaterialfv(GL_FRONT, GL_SPECULAR, color);
+	OOGL(glGetMaterialfv(GL_FRONT, GL_SPECULAR, color));
 	OOLog(kOOLogOpenGLStateDump, @"Specular: %@", GLColorToString(color));
 	
-	glGetMaterialfv(GL_FRONT, GL_SHININESS, &shininess);
+	OOGL(glGetMaterialfv(GL_FRONT, GL_SHININESS, &shininess));
 	OOLog(kOOLogOpenGLStateDump, @"Shininess: %g", shininess);
 	
-	OOLog(kOOLogOpenGLStateDump, @"Colour material: %s", glIsEnabled(GL_COLOR_MATERIAL) ? "enabled" : "disabled");
+	OOGL(OOLog(kOOLogOpenGLStateDump, @"Colour material: %s", glIsEnabled(GL_COLOR_MATERIAL) ? "enabled" : "disabled"));
 	
-	glGetFloatv(GL_CURRENT_COLOR, color);
+	OOGL(glGetFloatv(GL_CURRENT_COLOR, color));
 	OOLog(kOOLogOpenGLStateDump, @"Current color: %@", GLColorToString(color));
 	
-	glGetIntegerv(GL_SHADE_MODEL, &shadeModel);
+	OOGL(glGetIntegerv(GL_SHADE_MODEL, &shadeModel));
 	OOLog(kOOLogOpenGLStateDump, @"Shade model: %@", GLEnumToString(shadeModel));
 	
-	blending = glIsEnabled(GL_BLEND);
+	OOGL(blending = glIsEnabled(GL_BLEND));
 	OOLog(kOOLogOpenGLStateDump, @"Blending: %s", blending ? "enabled" : "disabled");
 	if (blending)
 	{
-		glGetIntegerv(GL_BLEND_SRC, &blendSrc);
-		glGetIntegerv(GL_BLEND_DST, &blendDst);
+		OOGL(glGetIntegerv(GL_BLEND_SRC, &blendSrc));
+		OOGL(glGetIntegerv(GL_BLEND_DST, &blendDst));
 		OOLog(kOOLogOpenGLStateDump, @"Blend function: %@, %@", GLEnumToString(blendSrc), GLEnumToString(blendDst));
 	}
 	
-	glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texMode);
+	OOGL(glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texMode));
 	OOLog(kOOLogOpenGLStateDump, @"Texture env mode: %@", GLEnumToString(texMode));
 	
 	OOLogOutdent();
@@ -353,10 +367,10 @@ static void GLDumpCullingState(void)
 	
 	OO_ENTER_OPENGL();
 	
-	glGetIntegerv(GL_CULL_FACE_MODE, &value);
+	OOGL(glGetIntegerv(GL_CULL_FACE_MODE, &value));
 	OOLog(kOOLogOpenGLStateDump, @"Cull face mode: %@", GLEnumToString(value));
 	
-	glGetIntegerv(GL_FRONT_FACE, &value);
+	OOGL(glGetIntegerv(GL_FRONT_FACE, &value));
 	OOLog(kOOLogOpenGLStateDump, @"Front face direction: %@", GLEnumToString(value));
 }
 
@@ -373,26 +387,26 @@ static void GLDumpFogState(void)
 	
 	OO_ENTER_OPENGL();
 	
-	enabled = glIsEnabled(GL_FOG);
+	OOGL(enabled = glIsEnabled(GL_FOG));
 	OOLog(kOOLogOpenGLStateDump, @"Fog: %s", enabled ? "enabled" : "disabled");
 	if (enabled)
 	{
 		OOLogIndent();
 		
-		glGetIntegerv(GL_FOG_MODE, &value);
+		OOGL(glGetIntegerv(GL_FOG_MODE, &value));
 		OOLog(kOOLogOpenGLStateDump, @"Fog mode: *@", GLEnumToString(value));
 		
-		glGetFloatv(GL_FOG_COLOR, color);
+		OOGL(glGetFloatv(GL_FOG_COLOR, color));
 		OOLog(kOOLogOpenGLStateDump, @"Fog colour: %@", GLColorToString(color));
 		
-		glGetFloatv(GL_FOG_START, &start);
-		glGetFloatv(GL_FOG_START, &end);
+		OOGL(glGetFloatv(GL_FOG_START, &start));
+		OOGL(glGetFloatv(GL_FOG_START, &end));
 		OOLog(kOOLogOpenGLStateDump, @"Fog start, end: %g, %g", start, end);
 		
-		glGetFloatv(GL_FOG_DENSITY, &density);
+		OOGL(glGetFloatv(GL_FOG_DENSITY, &density));
 		OOLog(kOOLogOpenGLStateDump, @"Fog density: %g", density);
 		
-		glGetFloatv(GL_FOG_DENSITY, &index);
+		OOGL(glGetFloatv(GL_FOG_DENSITY, &index));
 		OOLog(kOOLogOpenGLStateDump, @"Fog index: %g", index);
 		
 		OOLogOutdent();

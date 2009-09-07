@@ -121,7 +121,13 @@ void OOPrintLogHeader(void)
 		#define OPT4_STR ""
 	#endif
 	
-	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR
+	#if OO_CHECK_GL_HEAVY
+		#define OPT5_STR " [Heavy OpenGL Error Checking]"
+	#else
+		#define OPT5_STR ""
+	#endif
+	
+	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR OPT5_STR
 	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X

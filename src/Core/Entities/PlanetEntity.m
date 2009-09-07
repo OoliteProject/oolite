@@ -174,9 +174,9 @@ static float corona_blending;
 	sun_specular[2] = b;
 	sun_specular[3] = 1.0;
 
-	glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-	glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+	OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
+	OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
+	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 
 	// main disc less saturation more brightness
 	color = [OOColor colorWithCalibratedHue: hue saturation: sat * 0.333 brightness: 1.0 alpha: alf];
@@ -1088,7 +1088,7 @@ static float corona_blending;
 		
 	lastSubdivideLevel = subdivideLevel;	// record
 	
-	glFrontFace(GL_CW);			// face culling - front faces are AntiClockwise!
+	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
 
 	/*
 
@@ -1130,179 +1130,194 @@ static float corona_blending;
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
 
 				if (!isTextured)
-					glDisable(GL_TEXTURE_2D);	// stop any problems from this being left on!
+					OOGL(glDisable(GL_TEXTURE_2D));	// stop any problems from this being left on!
 				else
 				{
-					glEnable(GL_TEXTURE_2D);
-					glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+					OOGL(glEnable(GL_TEXTURE_2D));
+					OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
+					OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 				}
 
-				glShadeModel(GL_SMOOTH);
+				OOGL(glShadeModel(GL_SMOOTH));
 				
 				// far enough away to draw flat ?
 				if (ignoreDepthBuffer)
-					glDisable(GL_DEPTH_TEST);
+				{
+					OOGL(glDisable(GL_DEPTH_TEST));
+				}
 
-				glColor4fv(mat1);
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
+				OOGL(glColor4fv(mat1));
+				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 
-				glFrontFace(GL_CCW);
+				OOGL(glFrontFace(GL_CCW));
 				if (displayListNames[subdivideLevel] != 0)
 				{
 					
-					glDisableClientState(GL_INDEX_ARRAY);
-					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					OOGL(glDisableClientState(GL_INDEX_ARRAY));
+					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 					
 					if (isTextured)
 					{
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
+						OOGL(glEnableClientState(GL_COLOR_ARRAY));
+						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 						
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-						glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
-						glBindTexture(GL_TEXTURE_2D, textureName);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
+						OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
+						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 					}
 					else
 					{
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+						OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 						
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
+						OOGL(glEnableClientState(GL_COLOR_ARRAY));
+						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 					}
 					
-					glEnableClientState(GL_VERTEX_ARRAY);
-					glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array);
-					glEnableClientState(GL_NORMAL_ARRAY);
-					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
+					OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+					OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
-					glCallList(displayListNames[subdivideLevel]);
+					OOGL(glCallList(displayListNames[subdivideLevel]));
 					
 				}
 				else
 				{
-					glDisableClientState(GL_INDEX_ARRAY);
-					glDisableClientState(GL_EDGE_FLAG_ARRAY);
+					OOGL(glDisableClientState(GL_INDEX_ARRAY));
+					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 					
 #ifndef NO_SHADERS
 					if (isShadered)
 					{
 						GLint locator;
-						glUseProgramObjectARB(shader_program);	// shader ON!
-						glEnableClientState(GL_COLOR_ARRAY);
-						glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
+						OOGL(glUseProgramObjectARB(shader_program));	// shader ON!
+						OOGL(glEnableClientState(GL_COLOR_ARRAY));
+						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 						
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-						glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
+						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
 						
-						glActiveTextureARB(GL_TEXTURE1_ARB);
-						glBindTexture(GL_TEXTURE_2D, normalMapTextureName);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
-						locator = glGetUniformLocationARB(shader_program, "tex1");
+						OOGL(glActiveTextureARB(GL_TEXTURE1_ARB));
+						OOGL(glBindTexture(GL_TEXTURE_2D, normalMapTextureName));
+						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+						OOGL(locator = glGetUniformLocationARB(shader_program, "tex1"));
 						if (locator == -1)
-							OOLogERR(@"planet.shaders.noUniform", @"GLSL couldn't find location of tex0 in shader_program %d", shader_program);
+						{
+								OOLogERR(@"planet.shaders.noUniform", @"GLSL couldn't find location of tex0 in shader_program %d", shader_program);
+						}
 						else
-							glUniform1iARB(locator, 1);	// associate texture unit number i with texture 0
+						{
+							OOGL(glUniform1iARB(locator, 1));	// associate texture unit number i with texture 1
+							
+						}
 						
-						glActiveTextureARB(GL_TEXTURE0_ARB);
-						glBindTexture(GL_TEXTURE_2D, textureName);
-						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
-						locator = glGetUniformLocationARB(shader_program, "tex0");
+						OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+						OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
+						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+						OOGL(locator = glGetUniformLocationARB(shader_program, "tex0"));
 						if (locator == -1)
+						{
 							OOLogERR(@"planet.shaders.noUniform", @"GLSL couldn't find location of tex0 in shader_program %d", shader_program);
+						}
 						else
-							glUniform1iARB(locator, 0);	// associate texture unit number i with texture 0
+						{
+							OOGL(glUniform1iARB(locator, 0));// associate texture unit number i with texture 0
+							
+						}
 					}
 					else
 #endif
 					{
 						if (isTextured)
 						{
-							glEnableClientState(GL_COLOR_ARRAY);		// test shading
-							glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
+							OOGL(glEnableClientState(GL_COLOR_ARRAY));		// test shading
+							OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 							
-							glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-							glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array);
-							glBindTexture(GL_TEXTURE_2D, textureName);
-							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//wrap around horizontally
+							OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+							OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
+							OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
+							OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 						}
 						else
 						{
-							glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+							OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 							
-							glEnableClientState(GL_COLOR_ARRAY);
-							glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array);
+							OOGL(glEnableClientState(GL_COLOR_ARRAY));
+							OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 						}
 					}
 					
-					glEnableClientState(GL_VERTEX_ARRAY);
-					glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array);
-					glEnableClientState(GL_NORMAL_ARRAY);
-					glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array);
+					OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+					OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
 #ifndef NO_SHADERS
 					if (isShadered)
 					{
-						glColor4fv(mat1);
-						glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
-						glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-						glEnable(GL_COLOR_MATERIAL);
+						OOGL(glColor4fv(mat1));
+						OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
+						OOGL(glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
+						OOGL(glEnable(GL_COLOR_MATERIAL));
 						
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						
-						glDisable(GL_COLOR_MATERIAL);
-						glUseProgramObjectARB(NULL_SHADER);	// shader OFF
+						OOGL(glDisable(GL_COLOR_MATERIAL));
+						OOGL(glUseProgramObjectARB(NULL_SHADER));	// shader OFF
 					}
 					else
 #endif
 					{
-						displayListNames[subdivideLevel] = glGenLists(1);
+						OOGL(displayListNames[subdivideLevel] = glGenLists(1));
 						if (displayListNames[subdivideLevel] != 0)	// sanity check
 						{
-							glNewList(displayListNames[subdivideLevel], GL_COMPILE);
+							OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE));
 							
-							glColor4fv(mat1);
-							glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
-							glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-							glEnable(GL_COLOR_MATERIAL);
+							OOGL(glColor4fv(mat1));
+							OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
+							OOGL(glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
+							OOGL(glEnable(GL_COLOR_MATERIAL));
 							
 							[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 							
-							glDisable(GL_COLOR_MATERIAL);
-							
-							glEndList();
+							OOGL(glDisable(GL_COLOR_MATERIAL));
+							OOGL(glEndList());
 						}
 					}
 					
 				}
-				glFrontFace(GL_CW);
+				OOGL(glFrontFace(GL_CW));
 
-				glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1);
+				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 
 
 				if (atmosphere)
 				{
-					glDisable(GL_DEPTH_TEST);
+					OOGL(glDisable(GL_DEPTH_TEST));
 
-					glPopMatrix();	// get old draw matrix back
-					glPushMatrix();	// and store it again
-					glTranslatef(position.x,position.y,position.z); // centre on the planet
+					OOGL(glPopMatrix());	// get old draw matrix back
+					OOGL(glPushMatrix());	// and store it again
+					OOGL(glTranslatef(position.x,position.y,position.z)); // centre on the planet
 					// rotate
 					GLMultOOMatrix([atmosphere rotationMatrix]);
 					// draw atmosphere entity
 					[atmosphere drawEntity:immediate :translucent];
 
-					glEnable(GL_DEPTH_TEST);
+					OOGL(glEnable(GL_DEPTH_TEST));
 				}
 				else if (ignoreDepthBuffer)
-					glEnable(GL_DEPTH_TEST);
+				{
+					OOGL(glEnable(GL_DEPTH_TEST));
+				}
 
 			}
 			
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
 			if ([UNIVERSE wireframeGraphics])
+			{
 				GLDebugWireframeModeOff();
+			}
 			break;
 
 		case PLANET_TYPE_SUN:
@@ -1312,19 +1327,22 @@ static float corona_blending;
 
 				// far enough away to draw flat ?
 				if (ignoreDepthBuffer)
-					glDisable(GL_DEPTH_TEST);
+				{
+					OOGL(glDisable(GL_DEPTH_TEST));
+				}
 
-				glDisable(GL_TEXTURE_2D);
-				glDisable(GL_LIGHTING);
-				glColor4fv(amb_land);
-
-				glBegin(GL_TRIANGLE_FAN);
+				OOGL(glDisable(GL_TEXTURE_2D));
+				OOGL(glDisable(GL_LIGHTING));
+				OOGL(glColor4fv(amb_land));
+				
+				// FIXME: use vertex arrays
+				OOGLBEGIN(GL_TRIANGLE_FAN);
 					GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-				glEnd();
+				OOGLEND();
 
 				if (![UNIVERSE reducedDetail])
 				{
-					glDisable(GL_DEPTH_TEST);
+					OOGL(glDisable(GL_DEPTH_TEST));
 					if (zero_distance < lim4k)
 					{
 						GLfloat col1[4] = { amb_polar_land[0], amb_polar_land[1], amb_polar_land[2], 0.75};
@@ -1340,18 +1358,20 @@ static float corona_blending;
 						GLfloat col1[4] = { amb_polar_sea[0], amb_polar_sea[1], amb_polar_sea[2], 0.5};
 						drawActiveCorona(collision_radius, collision_radius + cor16k, steps, sqrt_zero_distance, col1, 0);
 					}
-					glEnable(GL_DEPTH_TEST);
+					OOGL(glEnable(GL_DEPTH_TEST));
 				}
-				glEnable(GL_LIGHTING);
+				OOGL(glEnable(GL_LIGHTING));
 
 				// far enough away to draw flat ?
 				if (ignoreDepthBuffer)
-					glEnable(GL_DEPTH_TEST);
+				{
+					OOGL(glEnable(GL_DEPTH_TEST));
+				}
 
 			}
 			break;
 	}
-	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
+	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }
 
@@ -1386,38 +1406,38 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	pt0=(1.0 - corona_stage) * corona_blending;
 	pt1=corona_stage * corona_blending;
 	
-	glShadeModel(GL_SMOOTH);
-	glBegin(GL_TRIANGLE_STRIP);
-	for (i = 0; i < 360; i += step)
-	{
-		si = sinf(theta);
-		ci = cosf(theta);
-		theta += delta;
+	OOGL(glShadeModel(GL_SMOOTH));
+	OOGLBEGIN(GL_TRIANGLE_STRIP);
+		for (i = 0; i < 360; i += step)
+		{
+			si = sinf(theta);
+			ci = cosf(theta);
+			theta += delta;
+			
+			rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
+			rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
+			rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
+
+			s1 = r1 * si;
+			c1 = r1 * ci;
+			glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
+			glVertex3f(s1, c1, -z1);
+
+			s0 = r0 * si;
+			c0 = r0 * ci;
+			glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
+			glVertex3f(s0, c0, -z0);
+		}
+	
+		rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
+		rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
+		rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
 		
-		rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
-		rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
-		rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
-
-		s1 = r1 * si;
-		c1 = r1 * ci;
 		glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
-		glVertex3f(s1, c1, -z1);
-
-		s0 = r0 * si;
-		c0 = r0 * ci;
+		glVertex3f(0.0, r1, -z1);	//repeat the zero value to close
 		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
-		glVertex3f(s0, c0, -z0);
-	}
-
-	rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
-	rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
-	rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
-
-	glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
-	glVertex3f(0.0, r1, -z1);	//repeat the zero value to close
-	glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
-	glVertex3f(0.0, r0, -z0);	//repeat the zero value to close
-	glEnd();
+		glVertex3f(0.0, r0, -z0);	//repeat the zero value to close
+	OOGLEND();
 }
 
 
@@ -1650,7 +1670,7 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 
 - (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide
 {
-	glDrawElements(GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]);
+	OOGL(glDrawElements(GL_TRIANGLES, 3 * n_triangles[subdivide], GL_UNSIGNED_INT, &vertexdata.index_array[triangle_start[subdivide]]));
 }
 
 
