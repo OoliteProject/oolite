@@ -1362,7 +1362,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			if ([[gameView typedString] length] > 0 )
 			{
-				planetSearchString = [[gameView typedString] lowercaseString];
+				planetSearchString = [[[gameView typedString] lowercaseString] retain];
 				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
@@ -1372,12 +1372,14 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView resetTypedString];
+					if(planetSearchString) [planetSearchString release];
 					planetSearchString = nil;
 				}
 			}
 			else
 			{
 				[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
+				if(planetSearchString) [planetSearchString release];
 				planetSearchString = nil;
 			}
 			

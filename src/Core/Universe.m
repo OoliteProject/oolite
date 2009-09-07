@@ -7459,15 +7459,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		OOLogERR(@"universe.tradeInValueForCommanderDictionary.valueCalculationError",
 			@"Shipyard dictionary entry for ship %@ required for trade in value calculation, but does not exist. Setting ship value to 0.", ship_desc);
-			
-		base_price = 0ULL;
 	}
 	else
 	{
 		base_price = [shipyard_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE defaultValue:0ULL];
 	}
-
+	
 	if(base_price == 0ULL) return base_price;
+	
 	OOCreditsQuantity	scrap_value = 351; // translates to 250 cr.
 	
 	OOWeaponType		ship_fwd_weapon = [dict oo_unsignedIntForKey:@"forward_weapon"];
