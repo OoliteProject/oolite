@@ -219,7 +219,7 @@ static GameController *sSharedController = nil;
 		}
 		
 		// moved here to try to avoid initialising this before having an Open GL context
-		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after the next line!
+		//[self logProgress:DESC(@"Initialising universe")]; // DESC expansions only possible after Universe init
 		[[Universe alloc] initWithGameView:gameView];
 		
 		[self logProgress:DESC(@"loading-player")];

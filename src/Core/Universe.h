@@ -347,7 +347,7 @@ enum
 
 - (OOCargoQuantity) maxCargoForShip:(NSString *) desc;
 
-- (OOCreditsQuantity) getPriceForWeaponSystemWithKey:(NSString *)weapon_key;
+- (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *) eq_key;
 
 - (int) legal_status_of_manifest:(NSArray *)manifest;
 

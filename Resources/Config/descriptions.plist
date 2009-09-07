@@ -806,10 +806,8 @@
 	"load-previous-commander-no"	= "n"; // Defines the key that corresponds to the no answer to load-previous-commander.
 	
 	// Loading screen (currently Mac only)
-	"Getting display modes..."		= "Getting display modes…";	// Can't be localized, OXPs aren't loaded yet
-	"Loading selected expansion packs..." = "Loading selected expansion packs…";	// Can't be localized, OXPs aren't loaded yet
 	"loading-ships"					= "Loading ship data…";
-	"Initialising universe"			= "Initialising universe…";
+	"initialising-universe"			= "Initialising universe…";
 	"loading-player"				= "Loading player…";
 	"populating-space"				= "Populating space…";
 	"running-scripts"				= "Running scripts…";

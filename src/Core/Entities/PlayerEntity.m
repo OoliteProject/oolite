@@ -5532,22 +5532,22 @@ static int last_outfitting_index;
 		switch (current_weapon)
 		{
 			case WEAPON_PLASMA_CANNON :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_TWIN_PLASMA_CANNON"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_TWIN_PLASMA_CANNON"];
 				break;
 			case WEAPON_PULSE_LASER :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_PULSE_LASER"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_PULSE_LASER"];
 				break;
 			case WEAPON_BEAM_LASER :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_BEAM_LASER"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_BEAM_LASER"];
 				break;
 			case WEAPON_MINING_LASER :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MINING_LASER"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_MINING_LASER"];
 				break;
 			case WEAPON_MILITARY_LASER :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_MILITARY_LASER"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_MILITARY_LASER"];
 				break;
 			case WEAPON_THARGOID_LASER :
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_WEAPON_THARGOID_LASER"];
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_THARGOID_LASER"];
 				break;
 			case WEAPON_NONE :
 				break;
@@ -5591,18 +5591,18 @@ static int last_outfitting_index;
 		{
 			case ENERGY_UNIT_NAVAL :
 				[self removeEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"];
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_NAVAL_ENERGY_UNIT"] / 2;	// 50 % refund
 				break;
 			case ENERGY_UNIT_NAVAL_DAMAGED :
 				[self removeEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"];
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_NAVAL_ENERGY_UNIT"] / 4;	// half of the working one
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_NAVAL_ENERGY_UNIT"] / 4;	// half of the working one
 			case ENERGY_UNIT_NORMAL :
 				[self removeEquipmentItem:@"EQ_ENERGY_UNIT"];
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 4;		// 75 % refund
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_ENERGY_UNIT"] * 3 / 4;		// 75 % refund
 				break;
 			case ENERGY_UNIT_NORMAL_DAMAGED :
 				[self removeEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"];
-				tradeIn = [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_ENERGY_UNIT"] * 3 / 8;		// half of the working one
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_ENERGY_UNIT"] * 3 / 8;		// half of the working one
 				break;
 
 			default :
@@ -5670,7 +5670,7 @@ static int last_outfitting_index;
 			if (weapon)
 			{
 				NSString* weapon_key = [weapon primaryRole];
-				int weapon_value = (int)[UNIVERSE getPriceForWeaponSystemWithKey:weapon_key];
+				int weapon_value = (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
 				tradeIn += weapon_value;
 				[weapon release];
 			}

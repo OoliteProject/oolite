@@ -169,23 +169,26 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	// Preload cache
 	[OOCacheManager sharedCache];
 	
+	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];	
+	strict = [prefs oo_boolForKey:@"strict-gameplay" defaultValue:NO];
+	
 	// init the Resource Manager
+	[ResourceManager setUseAddOns:!strict];
 	[ResourceManager paths];
 	
-	NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+	// Set up the internal game strings
+	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
+	// DESC expansion is now possible!
+	[[GameController sharedController] logProgress:DESC(@"initialising-universe")];
+	
 	reducedDetail = [prefs oo_boolForKey:@"reduced-detail-graphics" defaultValue:NO];
 	autoSave = [prefs oo_boolForKey:@"autosave" defaultValue:NO];
 	wireframeGraphics = [prefs oo_boolForKey:@"wireframe-graphics" defaultValue:NO];
 #if ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
-	shaderEffectsLevel = SHADERS_SIMPLE;
-	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:shaderEffectsLevel]];
+	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:SHADERS_SIMPLE]];
 	
-	// Set up the internal game strings
-	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
-	// DESC expansion is now possible!
-	[[GameController sharedController] logProgress:DESC(@"Initialising universe")];
 
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -330,7 +333,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	if (strict == value)  return;
 	
 	strict = !!value;
-	
+	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
 	[self reinitAndShowDemo:YES];
 }
 
@@ -338,14 +341,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) reinitAndShowDemo:(BOOL)showDemo
 {
 	no_update = YES;
-	PlayerEntity* player = [[PlayerEntity sharedPlayer] retain];
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	
 	[self removeAllEntitiesExceptPlayer:NO];
 	[OOTexture clearCache];
 	
 	[ResourceManager setUseAddOns:!strict];
-	[ResourceManager loadScripts];
+	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
 
 	// NOTE: Anything in the sharedCache is now trashed and must be
 	//       reloaded. Ideally anything using the sharedCache should
@@ -383,22 +386,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 	[self initPlayerSettings];
 	
-	[player setOrientation:kIdentityQuaternion];
-	
 	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
-	[player setDockedAtMainStation];
 	
 	if(showDemo)
 	{
 		[player setGuiToIntroFirstGo:NO];
 		[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
+		[player setStatus:STATUS_START_GAME];
 	}
 	else
 	{
 		[player setGuiToStatusScreen];
+		[player setStatus:STATUS_DOCKED];
 	}
 	[player completeSetUp];
-	[player release];
 	no_update = NO;
 }
 
@@ -2872,7 +2873,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 /*
  * Price for an item expressed in 10ths of credits (divide by 10 to get credits)
  */
-- (OOCreditsQuantity) getPriceForWeaponSystemWithKey:(NSString *)weapon_key
+- (OOCreditsQuantity) getEquipmentPriceForKey:(NSString *)eq_key
 {
 	unsigned				i, count;
 	NSArray					*itemData = nil;
@@ -2884,7 +2885,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		itemData = [equipmentData oo_arrayAtIndex:i];
 		itemType = [itemData oo_stringAtIndex:EQUIPMENT_KEY_INDEX];
 		
-		if ([itemType isEqual:weapon_key])
+		if ([itemType isEqual:eq_key])
 		{
 			return [itemData oo_unsignedLongLongAtIndex:EQUIPMENT_PRICE_INDEX];
 		}
@@ -7271,7 +7272,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							if (new_weapon > fwd_weapon)
 							{
 								//again remember to divide price by 10 to get credits from tenths of credit
-								price -= [self getPriceForWeaponSystemWithKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
+								price -= [self getEquipmentPriceForKey:fwd_weapon_string] * 90 / 1000;	// 90% credits
 								price += eqPrice;
 								fwd_weapon_string = equipmentKey;
 								fwd_weapon = new_weapon;
@@ -7284,7 +7285,7 @@ double estimatedTimeForJourney(double distance, int hops)
 								//if less good than current forward, try fitting is to rear
 								if (!aft_weapon || new_weapon > aft_weapon)
 								{
-									price -= [self getPriceForWeaponSystemWithKey:aft_weapon_string] * 90 / 1000;	// 90% credits
+									price -= [self getEquipmentPriceForKey:aft_weapon_string] * 90 / 1000;	// 90% credits
 									price += eqPrice;
 									aft_weapon_string = equipmentKey;
 									aft_weapon = new_weapon;
@@ -7443,21 +7444,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (OOCreditsQuantity) tradeInValueForCommanderDictionary:(NSDictionary*) dict;
 {
 	// get basic information about the craft
-	
+	OOCreditsQuantity	base_price = 0ULL;
 	NSString			*ship_desc = [dict oo_stringForKey:@"ship_desc"];
-	OOWeaponType		ship_fwd_weapon = [dict oo_unsignedIntForKey:@"forward_weapon"];
-	OOWeaponType		ship_aft_weapon = [dict oo_unsignedIntForKey:@"aft_weapon"];
-	OOWeaponType		ship_port_weapon = [dict oo_unsignedIntForKey:@"port_weapon"];
-	OOWeaponType		ship_starboard_weapon = [dict oo_unsignedIntForKey:@"starboard_weapon"];
-	unsigned			ship_missiles = [dict oo_unsignedIntForKey:@"missiles"];
-	unsigned			ship_max_passengers = [dict oo_unsignedIntForKey:@"max_passengers"];
-	NSMutableArray		*ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict oo_dictionaryForKey:@"extra_equipment"] allKeys]];
-	
-	// given the ship model (from ship_desc)
-	// get the basic information about the standard customer model for that craft
 	NSDictionary		*shipyard_info = [[OOShipRegistry sharedRegistry] shipyardInfoForKey:ship_desc];
-	NSDictionary		*basic_info = [shipyard_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT];
-	OOCreditsQuantity	base_price = [shipyard_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE];
 	// This checks a rare, but possible case. If the ship for which we are trying to calculate a trade in value
 	// does not have a shipyard dictionary entry, report it and set its base price to 0 -- Nikos 20090613.
 	if (shipyard_info == nil)
@@ -7467,76 +7456,121 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			
 		base_price = 0ULL;
 	}
+	else
+	{
+		base_price = [shipyard_info oo_unsignedLongLongForKey:SHIPYARD_KEY_PRICE defaultValue:0ULL];
+	}
+
 	if(base_price == 0ULL) return base_price;
+	OOCreditsQuantity	scrap_value = 351; // translates to 250 cr.
 	
+	OOWeaponType		ship_fwd_weapon = [dict oo_unsignedIntForKey:@"forward_weapon"];
+	OOWeaponType		ship_aft_weapon = [dict oo_unsignedIntForKey:@"aft_weapon"];
+	OOWeaponType		ship_port_weapon = [dict oo_unsignedIntForKey:@"port_weapon"];
+	OOWeaponType		ship_starboard_weapon = [dict oo_unsignedIntForKey:@"starboard_weapon"];
+	unsigned			ship_missiles = [dict oo_unsignedIntForKey:@"missiles"];
+	unsigned			ship_max_passengers = [dict oo_unsignedIntForKey:@"max_passengers"];
+	NSMutableArray		*ship_extra_equipment = [NSMutableArray arrayWithArray:[[dict oo_dictionaryForKey:@"extra_equipment"] allKeys]];
+	
+	NSDictionary		*basic_info = [shipyard_info oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT];
 	unsigned			base_missiles = [basic_info oo_unsignedIntForKey:KEY_EQUIPMENT_MISSILES];
-	OOCreditsQuantity	base_missiles_value = base_missiles * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
-	NSString			*base_fwd_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
-	OOCreditsQuantity	base_weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:base_fwd_weapon_key] / 10;
-	NSArray				*base_extra_equipment = [basic_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS];
+	OOCreditsQuantity	base_missiles_value = base_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
+	NSString			*base_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_FORWARD_WEAPON];
+	OOCreditsQuantity	base_weapons_value = [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
+	NSMutableArray		*base_extra_equipment = [NSMutableArray arrayWithArray:[basic_info oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	NSString			*weapon_key = nil;
 	
+	// was aft_weapon defined as standard equipment ?
+	base_weapon_key = [basic_info oo_stringForKey:KEY_EQUIPMENT_AFT_WEAPON defaultValue:nil];
+	if (base_weapon_key != nil)
+		base_weapons_value += [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
 	
-	OOCreditsQuantity	ship_fwd_weapon_value = 0;
+	OOCreditsQuantity	ship_main_weapons_value = 0;
 	OOCreditsQuantity	ship_other_weapons_value = 0;
 	
-	OOCreditsQuantity	ship_missiles_value = ship_missiles * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_MISSILE"] / 10;
+	OOCreditsQuantity	ship_missiles_value = ship_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
+	
+	// needs to be a signed value, we can then subtract from the base price, if less than standard equipment.
+	long long extra_equipment_value = ship_max_passengers * [UNIVERSE getEquipmentPriceForKey:@"EQ_PASSENGER_BERTH"]/10;
+	
+	// add on missile values
+	extra_equipment_value += ship_missiles_value - base_missiles_value;
+
 	
 	// work out weapon values
 	if (ship_fwd_weapon)
 	{
 		weapon_key = WeaponTypeToEquipmentString(ship_fwd_weapon);
-		ship_fwd_weapon_value = [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key] / 10;
+		ship_main_weapons_value = [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	if (ship_aft_weapon)
 	{
 		weapon_key = WeaponTypeToEquipmentString(ship_aft_weapon);
-		ship_other_weapons_value += [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key] / 10;
+		if (base_weapon_key != nil)
+			ship_main_weapons_value += [UNIVERSE getEquipmentPriceForKey:base_weapon_key] / 10;
+		else
+			ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	if (ship_port_weapon)
 	{
 		weapon_key = WeaponTypeToEquipmentString(ship_port_weapon);
-		ship_other_weapons_value += [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key] / 10;
+		ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
 	if (ship_starboard_weapon)
 	{
 		weapon_key = WeaponTypeToEquipmentString(ship_starboard_weapon);
-		ship_other_weapons_value += [UNIVERSE getPriceForWeaponSystemWithKey:weapon_key] / 10;
+		ship_other_weapons_value += [UNIVERSE getEquipmentPriceForKey:weapon_key] / 10;
 	}
-	
-	// remove from ship_extra_equipment any items in base_extra_equipment
-	unsigned i;
-	int j;
-	for (i = 0; i < [base_extra_equipment count]; i++)
-	{
-		NSString *standard_option = [base_extra_equipment oo_stringAtIndex:i];
-		for (j = 0; j < (int)[ship_extra_equipment count]; j++)
-		{
-			if ([[ship_extra_equipment oo_stringAtIndex:j] isEqual:standard_option])
-				[ship_extra_equipment removeObjectAtIndex:j--];
-			if ((j > 0)&&([[ship_extra_equipment oo_stringAtIndex:j] isEqual:@"EQ_PASSENGER_BERTH"]))
-				[ship_extra_equipment removeObjectAtIndex:j--];
-		}
-	}
-	
-	OOCreditsQuantity extra_equipment_value = ship_max_passengers * [UNIVERSE getPriceForWeaponSystemWithKey:@"EQ_PASSENGER_BERTH"] / 10ULL;
-	for (i = 0; i < [ship_extra_equipment count]; i++)
-		extra_equipment_value += [UNIVERSE getPriceForWeaponSystemWithKey:[ship_extra_equipment oo_stringAtIndex:i]] / 10ULL;
-	
-	// final reckoning
-	OOCreditsQuantity result = base_price;
 	
 	// add on extra weapons - base weapons
-	extra_equipment_value += ship_fwd_weapon_value - base_weapon_value;
+	extra_equipment_value += ship_main_weapons_value - base_weapons_value;
 	extra_equipment_value += ship_other_weapons_value;
+
+	int i;
+	NSString *eq_key = nil;
 	
-	// add on missile values
-	extra_equipment_value += (ship_missiles_value > base_missiles_value) ? ship_missiles_value - base_missiles_value : 0ULL;
+	// shipyard.plist settings might have duplicate keys.
+
+	// cull possible duplicates from inside base equipment
+	for (i = [base_extra_equipment count]-1; i > 0;i--)
+	{
+		eq_key = [base_extra_equipment oo_stringAtIndex:i];
+	    if ([base_extra_equipment indexOfObject:eq_key inRange:NSMakeRange(0, i-1)] != NSNotFound)
+								[base_extra_equipment removeObjectAtIndex:i];
+	}
 	
-	// add on equipment
-	result += (extra_equipment_value * 0.9); //discount 10% for second hand value
+	// do we at least have the same equipment as a standard ship? 
+	for (i = [base_extra_equipment count]-1; i >= 0; i--)
+	{
+		eq_key = [base_extra_equipment oo_stringAtIndex:i];
+		if ([ship_extra_equipment containsObject:eq_key])
+				[ship_extra_equipment removeObject:eq_key];
+		else // if the ship has less equipment than standard, deduct the missing equipent's price
+				extra_equipment_value -= ([UNIVERSE getEquipmentPriceForKey:eq_key] / 10);
+	}
 	
-	return result;
+	// remove portable equipment from the totals
+	OOEquipmentType	*item = nil;
+	
+	for (i = [ship_extra_equipment count]-1; i >= 0; i--)
+	{
+		eq_key = [ship_extra_equipment oo_stringAtIndex:i];
+		item = [OOEquipmentType equipmentTypeWithIdentifier:eq_key];
+		if ([item isPortableBetweenShips]) [ship_extra_equipment removeObjectAtIndex:i];
+	}
+	
+	// add up what we've got left.
+	for (i = [ship_extra_equipment count]-1; i >= 0; i--)
+		extra_equipment_value += ([UNIVERSE getEquipmentPriceForKey:[ship_extra_equipment oo_stringAtIndex:i]] / 10);		
+	
+	// 10% discount for second hand value, steeper reduction if worse than standard.
+	extra_equipment_value *= extra_equipment_value < 0 ? 1.4 : 0.9;
+	
+	// we'll return at least the scrap value
+	// TODO: calculate scrap value based on the size of the ship.
+	if ((long long)scrap_value > (long long)base_price + extra_equipment_value) return scrap_value; 
+
+	return base_price + extra_equipment_value;
 }
 
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options
@@ -8211,6 +8245,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	
 	[player setPosition:[[self station] position]];
+	[player setOrientation:kIdentityQuaternion];
 }
 
 
