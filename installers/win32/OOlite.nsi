@@ -136,7 +136,7 @@ CreateDirectory "$INSTDIR\AddOns"
 
 File "Oolite.ico"
 File "Oolite_Readme.txt"
-File "OoliteRS.pdf"
+File "..\..\Doc\OoliteRS.pdf"
 File "..\..\Doc\AdviceForNewCommanders.pdf"
 File "..\..\Doc\OoliteReadMe.pdf"
 ${If} ${ADDCHANGELOG} == "1"
