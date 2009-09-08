@@ -2,9 +2,9 @@
 #import "OOLoggingExtended.h"
 
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 uint32_t gDebugFlags = 0;
-#endif
+//#endif
 
 
 int main(int argc, const char *argv[])
