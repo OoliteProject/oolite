@@ -555,7 +555,7 @@ MA 02110-1301, USA.
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity *other = (ShipEntity *)scanned_ships[i];
-		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
+		if ([other scanClass] == CLASS_CARGO && [other cargoType] != CARGO_NOT_CARGO && [other status] != STATUS_BEING_SCOOPED)
 		{
 			if ((![self isPolice]) || ([other commodityType] == 3)) // police only rescue lifepods and slaves
 			{
@@ -597,7 +597,7 @@ MA 02110-1301, USA.
 	for (i = 0; (i < n_scanned_ships)&&(things_found < 16) ; i++)
 	{
 		ShipEntity *other = scanned_ships[i];
-		if ((other->scanClass == CLASS_CARGO)&&([other cargoType] != CARGO_NOT_CARGO))
+		if ([other scanClass] == CLASS_CARGO && [other cargoType] != CARGO_NOT_CARGO && [other status] != STATUS_BEING_SCOOPED)
 		{
 			found_target = [other universalID];
 			thing_uids_found[things_found++] = found_target;

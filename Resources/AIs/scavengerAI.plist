@@ -5,13 +5,13 @@
 	};
 	"LOOK_FOR_STUFF" =
 	{
-		ENTER = (performIdle);
+		ENTER = (performTumble,checkForFullHold);
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"HOLD_FULL" = ("setStateTo: DOCK_WITH_STATION");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: COLLECT_STUFF");
 		"NOTHING_FOUND" = ("setStateTo: DOCK_WITH_STATION");
-		UPDATE = (scanForRandomLoot, "pauseAI: 10.0");
+		UPDATE = (scanForRandomLoot, "pauseAI: 8.0");
 	};
 	"DOCK_WITH_STATION" =
 	{
@@ -34,7 +34,7 @@
 		ENTER = (performCollect);
 		FRUSTRATED = ("setSpeedTo: 0.0", setDestinationToTarget, "setDesiredRangeTo: 2.0", performFaceDestination);
 		"FACING_DESTINATION" = (performCollect);
-		"CARGO_SCOOPED" = (checkForFullHold, "setStateTo: LOOK_FOR_STUFF");
+		"CARGO_SCOOPED" = ("setStateTo: LOOK_FOR_STUFF");
 		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_STUFF");
 		"COLLISION" = ("setStateTo: LOOK_FOR_STUFF");

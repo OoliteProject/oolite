@@ -1220,7 +1220,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	else if ([ship isTrader] && ![ship isPlayer])  docked_traders++;
 	else if (([ship isPolice] && ![ship isEscort]) || [ship hasPrimaryRole:@"hermit-ship"] || [ship hasPrimaryRole:@"defense_ship"])
 	{
-		if (0 < police_launched)  police_launched--;
+		if (0 < defenders_launched)  defenders_launched--;
 	}
 	else if ([ship hasPrimaryRole:@"scavenger"] || [ship hasPrimaryRole:@"miner"])	// treat miners and scavengers alike!
 	{
@@ -1529,7 +1529,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOTechLevelID	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
 	
-	for (i = 0; (i < 4)&&(police_launched < max_police) ; i++)
+	for (i = 0; (i < 4)&&(defenders_launched < max_police) ; i++)
 	{
 		ShipEntity  *police_ship = nil;
 		if (![UNIVERSE entityForUniversalID:police_target])
@@ -1564,7 +1564,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship];
 			[police_ship release];
-			police_launched++;
+			defenders_launched++;
 		}
 	}
 	no_docking_while_launching = YES;
@@ -1591,7 +1591,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	else
 		default_defense_ship_role	= @"police";
 	
-	if (police_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
+	if (defenders_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
 		return;
 	
 	if (![UNIVERSE entityForUniversalID:defense_target])
@@ -1618,7 +1618,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[defense_ship setPrimaryRole:@"defense_ship"];
 	
-	police_launched++;
+	defenders_launched++;
 	
 	if (![defense_ship crew])
 	{
@@ -1719,7 +1719,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity		*pirate_ship = nil;
 	
-	if (police_launched >= max_defense_ships)  return;   // shuttles are to rockhermits what police ships are to stations
+	if (defenders_launched >= max_defense_ships)  return;   // shuttles are to rockhermits what police ships are to stations
 	
 	if (![UNIVERSE entityForUniversalID:defense_target])
 	{
@@ -1727,7 +1727,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		return;
 	}
 	
-	police_launched++;
+	defenders_launched++;
 	
 	// Yep! The standard hermit defence ships, even if they're the aggressor.
 	pirate_ship = [UNIVERSE newShipWithRole:@"pirate"];   // retain count = 1
@@ -1821,7 +1821,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 // Exposed to AI
 - (BOOL) launchPatrol
 {
-	if (police_launched < max_police)
+	if (defenders_launched < max_police)
 	{
 		ShipEntity		*patrol_ship = nil;
 		OOTechLevelID	techlevel;
@@ -1830,7 +1830,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (techlevel == NSNotFound)
 			techlevel = 6;
 			
-		police_launched++;
+		defenders_launched++;
 		
 		if ((Ranrot() & 7) + 6 <= techlevel)
 			patrol_ship = [UNIVERSE newShipWithRole:@"interceptor"];   // retain count = 1
@@ -2119,7 +2119,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	OOLog(@"dumpState.stationEntity", @"Alert level: %@", alertString);
 	OOLog(@"dumpState.stationEntity", @"Max police: %u", max_police);
 	OOLog(@"dumpState.stationEntity", @"Max defense ships: %u", max_defense_ships);
-	OOLog(@"dumpState.stationEntity", @"Police launched: %u", police_launched);
+	OOLog(@"dumpState.stationEntity", @"Defenders launched: %u", defenders_launched);
 	OOLog(@"dumpState.stationEntity", @"Max scavengers: %u", max_scavengers);
 	OOLog(@"dumpState.stationEntity", @"Scavengers launched: %u", scavengers_launched);
 	OOLog(@"dumpState.stationEntity", @"Docked shuttles: %u", docked_shuttles);

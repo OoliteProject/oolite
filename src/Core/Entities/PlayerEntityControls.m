@@ -2876,7 +2876,7 @@ static BOOL toggling_music;
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			
 			//don't autosave immediately after a load
-			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow]) [self autosavePlayer];
+			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow] && ![[UNIVERSE generateSystemData:system_seed] oo_boolForKey:@"sun_gone_nova"]) [self autosavePlayer];
 			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 			
 			[self leaveDock:dockedStation];

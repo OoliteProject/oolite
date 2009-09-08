@@ -56,7 +56,7 @@ typedef enum
 	
 	unsigned				max_police;					// max no. of police ships allowed
 	unsigned				max_defense_ships;			// max no. of defense ships allowed
-	unsigned				police_launched;
+	unsigned				defenders_launched;
 	
 	unsigned				max_scavengers;				// max no. of scavenger ships allowed
 	unsigned				scavengers_launched;

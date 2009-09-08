@@ -4475,7 +4475,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	targetSystemName =		[targetSystemData oo_stringForKey:KEY_NAME];
 	
 	BOOL	sunGoneNova = NO;
-	if ([targetSystemData objectForKey:@"sun_gone_nova"])
+	if ([targetSystemData oo_boolForKey:@"sun_gone_nova"])
 		sunGoneNova = YES;
 	
 	// GUI stuff
@@ -4498,8 +4498,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		NSString	*inhabitants =		[targetSystemData oo_stringForKey:KEY_INHABITANTS];
 		NSString	*system_desc =		[targetSystemData oo_stringForKey:KEY_DESCRIPTION];
 
-		if ((sunGoneNova && equal_seeds(target_system_seed, system_seed) && [[UNIVERSE sun] goneNova])||
-			(sunGoneNova && (!equal_seeds(target_system_seed, system_seed))))
+		if (sunGoneNova)
 		{
 			population = 0;
 			productivity = 0;
@@ -4554,12 +4553,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
 	[UNIVERSE removeDemoShips];
-	if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
+	if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]] && !sunGoneNova)
 	{
 		if (!sunGoneNova) // if we are in a system that has gone nova, do not display local planet
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
 	}
-	else
+	else if (!sunGoneNova)
 	{
 		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 	}
@@ -4890,7 +4889,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (dockedStation == nil)
 			dockedStation = [UNIVERSE station];
-		canLoadOrSave = (dockedStation == [UNIVERSE station]);
+		canLoadOrSave = (dockedStation == [UNIVERSE station] && ![[UNIVERSE sun] goneNova]);
 	}
 	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));

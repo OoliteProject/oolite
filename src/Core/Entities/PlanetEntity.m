@@ -220,7 +220,6 @@ static float corona_blending;
 - (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict
 {
 	int			i;
-	double		sun_radius;
 	
 	self = [super init];
 	
@@ -257,12 +256,9 @@ static float corona_blending;
 	for (i = 0; i < 729; i++)
 		rvalue[i] = randf();
 	
-	sun_radius=[dict oo_floatForKey:@"sun_radius"];
-	// set the corona first
-	[self setRadius: sun_radius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-	// then set  the real radius
-	collision_radius = sun_radius;								
-
+	// set up the radius properties
+	[self changeSunProperty:@"sun_radius" withDictionary:dict];
+	
 	isPlanet = YES;
 	root_planet = self;	
 	textureData = NULL;	
@@ -1474,16 +1470,16 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 - (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
 {
 	id	object = [dict objectForKey:key];
-	
+	static GLfloat oldRadius = 0.0;
 	if ([key isEqualToString:@"sun_radius"])
 	{
-		// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: [object doubleValue] + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-		collision_radius = [object doubleValue];								
+		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
+		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
+		collision_radius = oldRadius;								
 	}
 	else if ([key isEqualToString:@"corona_flare"])
 	{
-		double rad=collision_radius;
+		double rad = collision_radius;
 		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
 		collision_radius = rad;
 	}
@@ -1495,9 +1491,25 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 	{
 		corona_blending=OOClamp_0_1_f([object floatValue]);
 	}
+	else if ([key isEqualToString:@"sun_gone_nova"])
+	{
+
+		if ([dict oo_boolForKey:key])
+		{
+			[self setGoingNova:YES inTime:0];
+		}
+		else
+		{
+			[self setGoingNova:NO inTime:0];
+			// oldRadius is always the radius we had before going nova...
+			[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
+			collision_radius = oldRadius;
+
+		}
+	}
 	else
 	{
-		OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only on leaving and re-entering this system.",key);
+		OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only after leaving this system.",key);
 		return NO;
 	}
 	return YES;
