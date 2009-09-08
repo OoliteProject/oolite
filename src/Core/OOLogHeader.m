@@ -97,37 +97,49 @@ void OOPrintLogHeader(void)
 		#define RELEASE_VARIANT_STRING ""
 	#endif
 	
-	#if ALLOW_PROCEDURAL_PLANETS
-		#define OPT1_STR " [Procedural Planets]"
+	#ifndef NO_SHADERS
+		#define OPT1_STR " [GLSL Shaders]"
 	#else
 		#define OPT1_STR ""
 	#endif
 	
-	#if DOCKING_CLEARANCE_ENABLED
-		#define OPT2_STR " [Docking Clearance]"
+	#if ALLOW_PROCEDURAL_PLANETS
+		#define OPT2_STR " [Procedural Planets]"
 	#else
 		#define OPT2_STR ""
 	#endif
 	
-	#if WORMHOLE_SCANNER
-		#define OPT3_STR " [Wormhole Scanner]"
+	#if DOCKING_CLEARANCE_ENABLED
+		#define OPT3_STR " [Docking Clearance]"
 	#else
 		#define OPT3_STR ""
 	#endif
 	
-	#if TARGET_INCOMING_MISSILES
-		#define OPT4_STR " [Target Incoming Missiles]"
+	#if WORMHOLE_SCANNER
+		#define OPT4_STR " [Wormhole Scanner]"
 	#else
 		#define OPT4_STR ""
 	#endif
 	
-	#if OO_CHECK_GL_HEAVY
-		#define OPT5_STR " [Heavy OpenGL Error Checking]"
+	#if TARGET_INCOMING_MISSILES
+		#define OPT5_STR " [Target Incoming Missiles]"
 	#else
 		#define OPT5_STR ""
 	#endif
 	
-	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR OPT5_STR
+	#if OO_CHECK_GL_HEAVY
+		#define OPT6_STR " [Heavy OpenGL Error Checking]"
+	#else
+		#define OPT6_STR ""
+	#endif
+	
+	#ifndef OO_EXCLUDE_DEBUG_SUPPORT
+		#define OPT7_STR " [OXP Debug Features]"
+	#else
+		#define OPT7_STR ""
+	#endif
+	
+	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR OPT5_STR OPT6_STR OPT7_STR
 	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X

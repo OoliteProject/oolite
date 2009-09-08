@@ -1111,7 +1111,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 @end
 
 
-//#ifndef NDEBUG
+#ifndef NDEBUG
 
 // For use in debugger
 const char *JSValueToStrDbg(jsval val)
@@ -1138,7 +1138,7 @@ const char *JSValueTypeDbg(jsval val)
 	return "unknown";
 }
 
-//#endif
+#endif
 
 
 @implementation NSArray (OOJavaScriptConversion)
