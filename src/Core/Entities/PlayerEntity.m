@@ -4555,9 +4555,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[UNIVERSE removeDemoShips];
 	if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
-		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
+	{
+		if (!sunGoneNova) // if we are in a system that has gone nova, do not display local planet
+			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
+	}
 	else
+	{
 		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
+	}
 	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	if (oldScreen != gui_screen) [self checkScript];
 }
