@@ -1730,7 +1730,6 @@
 		25F3E8A60994FE65002F25FD /* oolite-icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = "oolite-icon.icns"; sourceTree = "<group>"; };
 		25F3E8B30994FE9B002F25FD /* InfoPlist.strings */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; path = InfoPlist.strings; sourceTree = "<group>"; };
 		25F3E8BC09950088002F25FD /* Info-Oolite.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Info-Oolite.plist"; path = "../src/Cocoa/Info-Oolite.plist"; sourceTree = "<group>"; };
-		25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "Info-OoliteDev.plist"; path = "../src/Cocoa/Info-OoliteDev.plist"; sourceTree = "<group>"; };
 		25F3E8C3099500F1002F25FD /* SoundInspector.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = SoundInspector.nib; path = ../src/Cocoa/SoundInspector.nib; sourceTree = "<group>"; };
 		25F46750099695D5009483BF /* OoliteApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OoliteApp.h; sourceTree = "<group>"; };
 		25F46751099695D5009483BF /* OoliteApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OoliteApp.m; sourceTree = "<group>"; };
@@ -1811,7 +1810,6 @@
 			isa = PBXGroup;
 			children = (
 				25F3E8BC09950088002F25FD /* Info-Oolite.plist */,
-				25F3E8BD09950088002F25FD /* Info-OoliteDev.plist */,
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
 				25F3E8A60994FE65002F25FD /* oolite-icon.icns */,
@@ -3473,7 +3471,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_5 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/src\"";
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
-				INFOPLIST_FILE = "src/Cocoa/Info-OoliteDev.plist";
+				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -3571,11 +3569,12 @@
 		08B31CB108FE63D70038D42F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
 				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = macosx10.4;
 			};
@@ -3690,6 +3689,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
+				SDKROOT = macosx10.4;
 			};
 			name = TestRelease;
 		};
