@@ -5968,7 +5968,7 @@ BOOL class_masslocks(int some_class)
 - (double) missileTrackPrimaryTarget:(double) delta_t
 {
 	Vector  relPos;
-	GLfloat  d_forward, d_up, d_right, range2;
+	GLfloat  d_forward, d_up, d_right;
 	Entity  *target = [self primaryTarget];
 
 	if (!target)   // leave now!
@@ -6004,9 +6004,6 @@ BOOL class_masslocks(int some_class)
 		relPos.y += (lead * leading.y * (accuracy / 10.0f)); 
 		relPos.z += (lead * leading.z * (accuracy / 10.0f)); 
 	}
-
-
-	range2 = magnitude2(relPos);
 
 	if (!vector_equal(relPos, kZeroVector))  relPos = vector_normal(relPos);
 	else  relPos.z = 1.0;
@@ -7219,7 +7216,7 @@ BOOL class_masslocks(int some_class)
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
 	Vector  loc;
-	double  inc1, dam1, dam2;
+	double  dam1, dam2;
 	
 	if (!other)
 		return NO;
@@ -7228,8 +7225,6 @@ BOOL class_masslocks(int some_class)
 	BOOL otherIsStation = other == [UNIVERSE station];
 	// calculate line of centers using centres
 	loc = vector_normal_or_zbasis(vector_subtract([other absolutePositionForSubentity], position));
-	
-	inc1 = dot_product(v_forward, loc);
 	
 	if ([self canScoop:other])
 	{
@@ -7341,7 +7336,7 @@ BOOL class_masslocks(int some_class)
 		
 		if (otherDestroyed)	// inelastic! - take explosion velocity damage instead
 		{
-			vel2a = vector_multiply_scalar(vel1a, -1);
+			vel1a = vector_multiply_scalar(vel1a, -1);
 			[self adjustVelocity:vel1a];
 		}
 	}
