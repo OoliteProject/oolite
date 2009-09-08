@@ -127,6 +127,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) initSettings;
 - (void) initPlayerSettings;
 
+- (void) resetSystemDataCache;
+
 #if OO_LOCALIZATION_TOOLS
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
@@ -338,6 +340,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self removeAllEntitiesExceptPlayer:NO];
 	[OOTexture clearCache];
+	[self resetSystemDataCache];
 	
 	[ResourceManager setUseAddOns:!strict];
 	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
@@ -5762,19 +5765,21 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
+static NSDictionary	*sCachedSystemData = nil;
+
+
 - (NSDictionary *) generateSystemData:(Random_Seed) s_seed useCache:(BOOL) useCache
 {
-	static NSDictionary	*cachedResult = nil;
 	static Random_Seed	cachedSeed = {0};
 	
 	if (useCache)
 	{
 		// Cache hit ratio is over 95% during respawn, about 80% during initial set-up.
-		if (EXPECT(cachedResult != nil && equal_seeds(cachedSeed, s_seed)))  return [[cachedResult retain] autorelease];
+		if (EXPECT(sCachedSystemData != nil && equal_seeds(cachedSeed, s_seed)))  return [[sCachedSystemData retain] autorelease];
 	}
 
-	[cachedResult release];
-	cachedResult = nil;
+	[sCachedSystemData release];
+	sCachedSystemData = nil;
 	cachedSeed = s_seed;
 	
 	NSMutableDictionary* systemdata = [[NSMutableDictionary alloc] init];
@@ -5828,10 +5833,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[systemdata setObject:DescriptionForSystem(s_seed,[systemdata oo_stringForKey:KEY_NAME]) forKey:KEY_DESCRIPTION];
 	}
 	
-	cachedResult = [systemdata copy];
+	sCachedSystemData = [systemdata copy];
 	[systemdata release];
 
-	return cachedResult;
+	return sCachedSystemData;
 }
 
 
@@ -8376,6 +8381,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 			}
 		}
 	}
+}
+
+
+- (void) resetSystemDataCache
+{
+	[sCachedSystemData release];
+	sCachedSystemData = nil;
 }
 
 
