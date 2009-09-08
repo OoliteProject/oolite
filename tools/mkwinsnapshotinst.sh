@@ -33,6 +33,6 @@ cd installers/win32
 
 echo Oolite v$VER, snapshot build of svn revision $SVNREV \(`date -I`\) >$DST/Oolite_Readme.txt
 cat Oolite_Readme.txt >>$DST/Oolite_Readme.txt
-cp OoliteRS.pdf $DST
+cp ../../Doc/OoliteRS.pdf $DST
 
 "/c/Program Files/NSIS/makensis" OoliteSnapshot_ModernUI.nsi
