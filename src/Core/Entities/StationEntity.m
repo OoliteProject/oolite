@@ -438,11 +438,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	// get the docking information from the instructions	
 	NSMutableDictionary* nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:0];
-	int docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
-	float speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
-	float rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
-	BOOL match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-	NSString* comms_message = [nextCoords oo_stringForKey:@"comms_message"];
+	int docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
+	float speedAdvised = [nextCoords oo_floatForKey:@"speed"];
+	float rangeAdvised = [nextCoords oo_floatForKey:@"range"];
 	
 	// calculate world coordinates from relative coordinates
 	Vector rel_coords;
@@ -472,11 +470,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 		// get the NEXT coordinates
 		nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:1];
-		docking_stage = [(NSNumber *)[nextCoords objectForKey:@"docking_stage"] intValue];
-		speedAdvised = [(NSNumber *)[nextCoords objectForKey:@"speed"] floatValue];
-		rangeAdvised = [(NSNumber *)[nextCoords objectForKey:@"range"] floatValue];
-		match_rotation = ([nextCoords objectForKey:@"match_rotation"] != nil);
-		comms_message = [nextCoords oo_stringForKey:@"comms_message"];
+		docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
+		speedAdvised = [nextCoords oo_floatForKey:@"speed"];
+		rangeAdvised = [nextCoords oo_floatForKey:@"range"];
+		BOOL match_rotation = [nextCoords oo_boolForKey:@"match_rotation"];
+		NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
 		
 		if (comms_message)
 			[self sendExpandedMessage: comms_message toShip: ship];
@@ -1163,10 +1161,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	unsigned i, count, result = 0;
 	count = [launchQueue count];
 	
-	for (i = 0; i < [launchQueue count]; i++)
+	for (i = 0; i < count; i++)
 	{
-		if ([[launchQueue objectAtIndex:i] hasPrimaryRole:role])
-			result++;
+		if ([[launchQueue objectAtIndex:i] hasPrimaryRole:role])  result++;
 	}
 	return result;
 }

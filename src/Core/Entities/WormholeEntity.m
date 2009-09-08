@@ -513,10 +513,10 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	glEnd();
 }
 
-- (NSDictionary *)getDict
+- (NSDictionary *) getDict
 {
-	NSMutableDictionary * myDict = [[NSMutableDictionary dictionary] retain];
-	NSString * str = nil;
+	NSMutableDictionary *myDict = [NSMutableDictionary dictionary];
+	NSString *str = nil;
 
 	str = [NSString stringWithFormat:@"%d %d %d %d %d %d",origin.a, origin.b, origin.c, origin.d, origin.e, origin.f];
 	[myDict setObject:str forKey:@"origin_seed"];

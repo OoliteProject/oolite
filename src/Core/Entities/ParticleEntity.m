@@ -1247,7 +1247,7 @@ FAIL:
 	
 	ex_emissive[3] = 0.0;	// fade alpha towards rear of exhaust
 	ex_emissive[1] = 0.0;	// diminish green part towards rear of exhaust
-	ex_emissive[0] = 0.0;		// diminish red part towards rear of exhaust
+	ex_emissive[0] = 0.0;	// diminish red part towards rear of exhaust
 	verts[iv++] = f10.position.x;
 	verts[iv++] = f10.position.y;
 	verts[iv++] = f10.position.z;
@@ -1255,6 +1255,8 @@ FAIL:
 	exhaustBaseColors[ci++] = ex_emissive[1];
 	exhaustBaseColors[ci++] = ex_emissive[2];
 	exhaustBaseColors[ci++] = ex_emissive[3];
+	
+	(void)iv; (void)ci;	// Suppress Clang static analyzer warnings.
 }
 
 
