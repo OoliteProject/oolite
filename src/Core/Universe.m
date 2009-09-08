@@ -349,7 +349,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	//       reloaded. Ideally anything using the sharedCache should
 	//       be aware of cache flushes so it can automatically
 	//       reinitialize itself - mwerle 20081107.
-	[[OOShipRegistry sharedRegistry] init];
+	[OOShipRegistry reload];
 	
 	[[gameView gameController] unpause_game];
 
@@ -826,7 +826,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		OOLogWARN(@"universe.setup.badSun",@"Sun positioning: max iterations exceeded for '%@'. Adjust radius, sun_radius or sun_distance_modifier.",[systeminfo objectForKey: @"name"]);
 	}
 
-	NSMutableDictionary* sun_dict = [[NSMutableDictionary alloc] initWithCapacity:4];
+	NSMutableDictionary* sun_dict = [NSMutableDictionary dictionaryWithCapacity:4];
 	[sun_dict setObject:[NSNumber numberWithDouble:sun_radius] forKey:@"sun_radius"];
 	dict_object=[systeminfo objectForKey: @"corona_shimmer"];
 	if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"corona_shimmer"];
@@ -837,7 +837,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	//dict_object=[systeminfo objectForKey: @"sun_texture"];
 	//if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"sun_texture"];
 	
-	a_sun = [[PlanetEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!	
+	a_sun = [[PlanetEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
+	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos];
 	sun_center_position[0] = sunPos.x;
@@ -927,7 +928,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		}
 	}
 	
-	if (a_station)
+	if (a_station != nil)
 	{
 		[a_station setStatus:STATUS_ACTIVE];
 		[a_station setOrientation: q_station];
@@ -949,17 +950,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	
-	/*- nav beacon -*/
-	nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
-	if (nav_buoy)
+	if (a_station != nil)
 	{
-		[nav_buoy setRoll:	0.10];
-		[nav_buoy setPitch:	0.15];
-		[nav_buoy setPosition: [cachedStation getBeaconPosition]];
-		[nav_buoy setScanClass: CLASS_BUOY];
-		[self addEntity:nav_buoy];
-		[nav_buoy setStatus:STATUS_IN_FLIGHT];
-		[nav_buoy release];
+		/*- nav beacon -*/
+		nav_buoy = [self newShipWithRole:@"buoy"];	// retain count = 1
+		if (nav_buoy)
+		{
+			[nav_buoy setRoll:	0.10];
+			[nav_buoy setPitch:	0.15];
+			[nav_buoy setPosition:[a_station getBeaconPosition]];
+			[nav_buoy setScanClass: CLASS_BUOY];
+			[self addEntity:nav_buoy];
+			[nav_buoy setStatus:STATUS_IN_FLIGHT];
+			[nav_buoy release];
+		}
 	}
 	/*--*/
 	
@@ -2367,12 +2371,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role
 {
 	// adds a ship exiting witchspace (corollary of when ships leave the system)
-	ShipEntity		*ship = nil;
+	ShipEntity			*ship = nil;
 	NSDictionary		*systeminfo = nil;
 	OOGovernmentID		government;
 	
- 	government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];
 	systeminfo = [self generateSystemData:system_seed];
+ 	government = [systeminfo oo_unsignedCharForKey:KEY_GOVERNMENT];
 
 	ship = [self newShipWithRole:role];   // retain count = 1
 	

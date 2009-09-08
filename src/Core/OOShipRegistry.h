@@ -63,6 +63,8 @@ SOFTWARE.
 
 + (OOShipRegistry *) sharedRegistry;
 
++ (void) reload;
+
 - (NSDictionary *) shipInfoForKey:(NSString *)key;
 - (NSDictionary *) shipyardInfoForKey:(NSString *)key;
 - (OOProbabilitySet *) probabilitySetForRole:(NSString *)role;

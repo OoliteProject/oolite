@@ -139,6 +139,18 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 
++ (void) reload
+{
+	if (sSingleton != nil)
+	{
+		[sSingleton release];
+		sSingleton = nil;
+		
+		(void) [self sharedRegistry];
+	}
+}
+
+
 - (id) init
 {
 	if ((self = [super init]))
