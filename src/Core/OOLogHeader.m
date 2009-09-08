@@ -50,6 +50,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 #import "OOLogging.h"
 #import "OOOXPVerifier.h"
+#import "Universe.h"
 
 
 static NSString *AdditionalLogHeaderInfo(void);
@@ -105,7 +106,7 @@ void OOPrintLogHeader(void)
 	#endif
 	
 	#if ALLOW_PROCEDURAL_PLANETS
-		@"procedural Planets",
+		@"procedural planet textures",
 	#endif
 	
 	#if DOCKING_CLEARANCE_ENABLED
