@@ -419,7 +419,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	for (i = 0; i < show_count; i++)
 	{
 		ShipEntity* se = (sortedEntities[i]->isShip)? (id)sortedEntities[i]: nil;
-		OOLog(@"universe.objectDump", @"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [se getAI]);
+		OOLog(@"universe.objectDump", @"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [[se getAI] shortDescription]);
 	}
 	OOLogOutdent();
 	

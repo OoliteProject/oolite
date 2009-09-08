@@ -600,6 +600,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	return [NSString stringWithFormat:@"\"%@\" %@", [self name], [super descriptionComponents]];
 }
 
+
 - (NSString *) shortDescriptionComponents
 {
 	return [NSString stringWithFormat:@"\"%@\"", [self name]];

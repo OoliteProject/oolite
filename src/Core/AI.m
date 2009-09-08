@@ -143,6 +143,12 @@ static AI *sCurrentlyRunningAI = nil;
 }
 
 
+- (NSString *) shortDescriptionComponents
+{
+	return [NSString stringWithFormat:@"%@:%@", stateMachineName, currentState];
+}
+
+
 #ifdef OO_BRAIN_AI
 - (OOInstinct *) rulingInstinct
 {
