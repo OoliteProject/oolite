@@ -358,11 +358,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	*/
 	if ([stringValue length] < 1)  return;
 	
-	key = [stringValue characterAtIndex:0];
-	keycode = [theEvent keyCode] & 255;
-	
 	supressKeys = NO;
 	
+	keycode = [theEvent keyCode] & 255;
 	key = keycodetrans[keycode];	// retrieve the character we got for pressing the hardware at key location 'keycode'
 	
 	OOLog(kOOLogKeyUp, @"Key up: stringValue = \"%@\", keyCode = %d, key = %u", stringValue, keycode, key);
@@ -753,6 +751,17 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	GetKeys(map);
 	return KEYMAP_GET(map, 56) || KEYMAP_GET(map, 60);	// Left shift or right shift -- although 60 shouldn't occur.
+}
+
+
+/*	This method exists purely to suppress Clang static analyzer warnings that
+	these ivars are unused (but may be used by categories, which they are).
+	FIXME: there must be a feature macro we can use to avoid actually building
+	this into the app, but I can't find it in docs.
+*/
+- (BOOL) suppressClangStuff
+{
+	return stickHandler != nil;
 }
 
 @end

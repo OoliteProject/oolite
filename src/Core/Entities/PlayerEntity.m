@@ -3505,7 +3505,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		// FIXME: this should use OOShipType, which should exist. -- Ahruman
 		[self setMesh:[escapePod mesh]];
-		[escapePod release];
 	}
 	
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
@@ -3535,6 +3534,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE addMessage:DESC(@"escape-sequence") forCount:4.5];
 	[self resetShotTime];
 	
+	[escapePod release];
+	
 	return result;
 }
 
@@ -3560,21 +3561,24 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) rotateCargo
 {
 	int n_cargo = [cargo count];
-	if (n_cargo == 0)
-		return;
+	if (n_cargo == 0)  return;
+	
 	ShipEntity* pod = (ShipEntity*)[[cargo objectAtIndex:0] retain];
 	int current_contents = [pod commodityType];
-	int contents = [pod commodityType];
+	int contents;
 	int rotates = 0;
-	do	{
+	
+	do
+	{
 		[cargo removeObjectAtIndex:0];	// take it from the eject position
 		[cargo addObject:pod];	// move it to the last position
 		[pod release];
 		pod = (ShipEntity*)[[cargo objectAtIndex:0] retain];
 		contents = [pod commodityType];
 		rotates++;
-	}	while ((contents == current_contents)&&(rotates < n_cargo));
+	} while ((contents == current_contents)&&(rotates < n_cargo));
 	[pod release];
+	
 	if (contents != CARGO_NOT_CARGO)
 	{
 		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ready-to-eject"), [UNIVERSE displayNameForCommodity:contents]] forCount:3.0];
@@ -4693,18 +4697,19 @@ static PlayerEntity *sSharedPlayer = nil;
 		OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
 		displayModeIndex = 0;
 	}
-
-	// in linux modeList may be empty & cause an exception here
+	
 	if ([modeList count])
 	{
 		mode = [modeList objectAtIndex:displayModeIndex];
 	}
+	if (mode == nil)  return;	// Got a better idea?
+	
 	int modeWidth = [[mode objectForKey:kOODisplayWidth] intValue];
 	int modeHeight = [[mode objectForKey:kOODisplayHeight] intValue];
-	float modeRefresh = (float)[[mode objectForKey:kOODisplayRefreshRate] doubleValue];
-
+	float modeRefresh = [mode oo_floatForKey:kOODisplayRefreshRate];
+	
 	NSString *displayModeString = [self screenModeStringForWidth:modeWidth height:modeHeight refreshRate:modeRefresh];
-
+	
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
@@ -4875,7 +4880,6 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	BOOL			canLoadOrSave = NO;
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
-	GameController	*controller = [UNIVERSE gameController];
 
 	if ([self status] == STATUS_DOCKED)
 	{
@@ -4883,24 +4887,9 @@ static PlayerEntity *sSharedPlayer = nil;
 			dockedStation = [UNIVERSE station];
 		canLoadOrSave = (dockedStation == [UNIVERSE station]);
 	}
-
+	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));
-	OOUInteger displayModeIndex = [controller indexOfCurrentDisplayMode];
-	NSArray			*modeList = [controller displayModes];
-	NSDictionary	*mode = nil;
-
-	if (displayModeIndex == NSNotFound)
-	{
-		OOLogWARN(@"display.currentMode.notFound", @"couldn't find current fullscreen setting, switching to default.");
-		displayModeIndex = 0;
-	}
-
-	// in linux modeList may be empty & cause an exception here
-	if ([modeList count])
-	{
-		mode = [modeList objectAtIndex:displayModeIndex];
-	}
-
+	
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
@@ -5006,9 +4995,6 @@ static int last_outfitting_index;
 		skip = 0;
 	
 	last_outfitting_index = skip;
-
-	OOCargoQuantityDelta cargo_space = max_cargo - current_cargo;
-	if (cargo_space < 0)  cargo_space = 0;
 
 	double priceFactor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
@@ -5596,6 +5582,7 @@ static int last_outfitting_index;
 			case ENERGY_UNIT_NAVAL_DAMAGED :
 				[self removeEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"];
 				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_NAVAL_ENERGY_UNIT"] / 4;	// half of the working one
+				break;
 			case ENERGY_UNIT_NORMAL :
 				[self removeEquipmentItem:@"EQ_ENERGY_UNIT"];
 				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_ENERGY_UNIT"] * 3 / 4;		// 75 % refund
@@ -5605,7 +5592,7 @@ static int last_outfitting_index;
 				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_ENERGY_UNIT"] * 3 / 8;		// half of the working one
 				break;
 
-			default :
+			default:
 				break;
 		}
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
@@ -6074,7 +6061,6 @@ static int last_outfitting_index;
 	// Pass 2: Remove items that do not satisfy validation criteria (like requires_equipment etc.).
 	if ([equipment isKindOfClass:[NSDictionary class]])
 	{
-		dict = equipment;
 		eqEnum = [equipment keyEnumerator];
 	}
 	else if ([equipment isKindOfClass:[NSArray class]] || [equipment isKindOfClass:[NSSet class]])

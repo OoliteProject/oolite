@@ -1563,8 +1563,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		double  target_speed = maxFlightSpeed;
-		
 		ShipEntity *target = [UNIVERSE entityForUniversalID:primaryTarget];
 		
 		if (target == nil || [target scanClass] == CLASS_NO_DRAW || ![target isShip] || [target isCloaked])
@@ -1577,15 +1575,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 					[self doScriptEvent:@"shipTargetCloaked" andReactToAIMessage:@"TARGET_CLOAKED"];
 				}
 				[self noteLostTarget];
-			}
-			else
-			{
-				target_speed = [target flightSpeed];
-				if (target_speed < maxFlightSpeed)
-				{
-					target_speed += maxFlightSpeed;
-					target_speed /= 2.0;
-				}
 			}
 		}
 
@@ -3431,7 +3420,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	GLfloat dt_thrust = thrust * delta_t;
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
 	float	max_available_speed = maxFlightSpeed;
-	if (canBurn) max_available_speed *= [self afterburnerFactor];
+	if (canBurn)  max_available_speed *= [self afterburnerFactor];
 	
 	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 	
@@ -3472,7 +3461,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		while (fuel_accumulator < 0.0)
 		{
 			if (fuel-- <= MIN_FUEL)
-				max_available_speed = maxFlightSpeed;
+				desired_speed = maxFlightSpeed;
 			fuel_accumulator += 1.0;
 		}
 	}

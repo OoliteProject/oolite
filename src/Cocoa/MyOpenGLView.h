@@ -104,7 +104,6 @@ extern int debug;
 	int					keycodetrans[255];
 	
 	BOOL				m_glContextInitialized;
-	NSPoint				mouseDragStartPoint;
 	
 	NSTimeInterval		timeIntervalAtLastClick;
 	BOOL				doubleClick;

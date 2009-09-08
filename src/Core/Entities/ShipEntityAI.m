@@ -351,7 +351,7 @@ MA 02110-1301, USA.
 	messages = ScanTokensFromString(messageString);
 	for (messageEnum = [messages objectEnumerator]; (message = [messageEnum nextObject]); )
 	{
-		[shipAI dropMessage:messageString];
+		[shipAI dropMessage:message];
 	}
 }
 

@@ -161,8 +161,8 @@ int32_t	OSAtomicAdd32(int32_t __theAmount, volatile int32_t *__theValue);
 #define DUMP_MIP_MAP_DUMP(px, w, h)		if (dumpThis) DumpMipMap(px, w, h, dumpPlanes, dumpID, dumpLevel++);
 static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level);
 #else
-#define DUMP_MIP_MAP_PREPARE(pl)		do {} while (0)
-#define DUMP_MIP_MAP_DUMP(px, w, h)		do {} while (0)
+#define DUMP_MIP_MAP_PREPARE(pl)		do { (void)pl; } while (0)
+#define DUMP_MIP_MAP_DUMP(px, w, h)		do { (void)px; (void)w; (void)h; } while (0)
 #endif
 
 

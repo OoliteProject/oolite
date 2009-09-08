@@ -188,7 +188,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 
 + (OOJavaScriptEngine *)sharedEngine
 {
-	if (sSharedEngine == nil) [[self alloc] init];
+	if (sSharedEngine == nil)  sSharedEngine =[[self alloc] init];
 	
 	return sSharedEngine;
 }
