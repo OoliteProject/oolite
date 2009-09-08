@@ -131,6 +131,11 @@ enum
 #define TIME_ACCELERATION_FACTOR_MAX		16.0f
 
 
+#ifndef OO_LOCALIZATION_TOOLS
+#define OO_LOCALIZATION_TOOLS	1
+#endif
+
+
 @interface Universe: OOWeakRefObject
 {
 @public

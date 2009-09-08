@@ -5,14 +5,15 @@
 //  Created by Jens Ayton on 2008-12-14.
 //  Copyright 2008 Jens Ayton. All rights reserved.
 //
+#import	"Universe.h"
 
-#import "OOCocoa.h"
+
+#if OO_LOCALIZATION_TOOLS
+
 #import "OOConvertSystemDescriptions.h"
 #import "OldSchoolPropertyListWriting.h"
 #import "OOCollectionExtractors.h"
 #import "ResourceManager.h"
-#import	"Universe.h"
-
 
 static NSMutableDictionary *InitKeyToIndexDict(NSDictionary *dict, NSMutableSet **outUsedIndices);
 static NSString *IndexToKey(OOUInteger index, NSDictionary *indicesToKeys, BOOL useFallback);
@@ -370,3 +371,5 @@ static OOUInteger HighestIndex(NSMutableDictionary *sparseArray)
 	
 	return highest;
 }
+
+#endif

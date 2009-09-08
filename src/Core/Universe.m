@@ -65,7 +65,7 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 
-#ifndef NDEBUG
+#if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
 #endif
 
@@ -102,8 +102,6 @@ typedef OOUInteger NSSpeechBoundary;
 
 #define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
 
-#define SUPPORT_GRAPHVIZ_OUT	(!defined NDEBUG)
-
 
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
@@ -129,12 +127,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) initSettings;
 - (void) initPlayerSettings;
 
-#if SUPPORT_GRAPHVIZ_OUT
+#if OO_LOCALIZATION_TOOLS
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
-#endif
-
-#ifndef NDEBUG
 - (void) runLocalizationTools;
 #endif
 
@@ -245,11 +240,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[player completeSetUp];
 	[player release];
 	
-#ifndef NDEBUG
+#if OO_LOCALIZATION_TOOLS
 	[self runLocalizationTools];
-#endif
-	
-#if SUPPORT_GRAPHVIZ_OUT
 	[self dumpDebugGraphViz];
 #endif
 	
@@ -8387,7 +8379,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 
 
-#if SUPPORT_GRAPHVIZ_OUT
+#if OO_LOCALIZATION_TOOLS
 - (void) dumpDebugGraphViz
 {
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"universe-dump-debug-graphviz"])
@@ -8552,10 +8544,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[graphViz appendString:@"\t}\n"];
 	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"SystemDescription.dot"];
 }
-#endif
 
 
-#ifndef NDEBUG
 - (void) runLocalizationTools
 {
 	// Handle command line options to transform system_description array for easier localization

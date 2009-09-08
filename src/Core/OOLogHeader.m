@@ -49,6 +49,7 @@ SOFTWARE.
 #import "OOLogHeader.h"
 #import "OOCPUInfo.h"
 #import "OOLogging.h"
+#import "OOOXPVerifier.h"
 
 
 static NSString *AdditionalLogHeaderInfo(void);
@@ -97,49 +98,50 @@ void OOPrintLogHeader(void)
 		#define RELEASE_VARIANT_STRING ""
 	#endif
 	
+	NSArray *featureStrings = [NSArray arrayWithObjects:
+	// User features
 	#ifndef NO_SHADERS
-		#define OPT1_STR " [GLSL Shaders]"
-	#else
-		#define OPT1_STR ""
+		@"GLSL shaders",
 	#endif
 	
 	#if ALLOW_PROCEDURAL_PLANETS
-		#define OPT2_STR " [Procedural Planets]"
-	#else
-		#define OPT2_STR ""
+		@"procedural Planets",
 	#endif
 	
 	#if DOCKING_CLEARANCE_ENABLED
-		#define OPT3_STR " [Docking Clearance]"
-	#else
-		#define OPT3_STR ""
+		@"docking clearance",
 	#endif
 	
 	#if WORMHOLE_SCANNER
-		#define OPT4_STR " [Wormhole Scanner]"
-	#else
-		#define OPT4_STR ""
+		@"wormhole scanner",
 	#endif
 	
 	#if TARGET_INCOMING_MISSILES
-		#define OPT5_STR " [Target Incoming Missiles]"
-	#else
-		#define OPT5_STR ""
+		@"target incoming missiles",
 	#endif
 	
+	// Debug features
 	#if OO_CHECK_GL_HEAVY
-		#define OPT6_STR " [Heavy OpenGL Error Checking]"
-	#else
-		#define OPT6_STR ""
+		@"heavy OpenGL error checking",
 	#endif
 	
 	#ifndef OO_EXCLUDE_DEBUG_SUPPORT
-		#define OPT7_STR " [OXP Debug Features]"
-	#else
-		#define OPT7_STR ""
+		@"JavaScript console support",
+		#if OOLITE_MAC_OS_X
+			// Under Mac OS X, Debug.oxp adds more than console support.
+			@"Debug plug-in support",
+		#endif
 	#endif
 	
-	#define OPT_STR OPT1_STR OPT2_STR OPT3_STR OPT4_STR OPT5_STR OPT6_STR OPT7_STR
+	#if OO_OXP_VERIFIER_ENABLED
+		@"OXP verifier",
+	#endif
+	
+	#if OO_LOCALIZATION_TOOLS
+		@"localization tools",
+	#endif
+	
+		nil];
 	
 	// systemString: NSString with system type and possibly version.
 	#if OOLITE_MAC_OS_X
@@ -154,7 +156,10 @@ void OOPrintLogHeader(void)
 	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite version %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, systemString, [NSDate date]];
 	
 	[miscString appendString:AdditionalLogHeaderInfo()];
-	[miscString appendString:@"\nOolite Options:" OPT_STR "\n"];
+	
+	NSString *featureDesc = [featureStrings componentsJoinedByString:@", "];
+	if ([featureDesc length] == 0)  featureDesc = @"none";
+	[miscString appendFormat:@"\nOolite options: %@.\n", featureDesc];
 	
 	[miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
 	

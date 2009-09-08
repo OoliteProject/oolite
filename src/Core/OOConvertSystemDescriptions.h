@@ -22,5 +22,3 @@ NSString *OOStringifySystemDescriptionLine(NSString *line, NSDictionary *indices
 //	Higher-level functions to drive the entire conversion.
 void CompileSystemDescriptions(BOOL asXML);
 void ExportSystemDescriptions(BOOL asXML);
-
-
