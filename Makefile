@@ -14,9 +14,8 @@ else
 DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}")
 endif
 DEB_REV  := -$(shell cat debian/revision)
-pkg-deb: DEB_VER := $(shell echo "${DEB_VER}${DEB_REV}")
-pkg-debtest: DEB_VER := $(shell echo "${DEB_VER}~test${DEB_REV}")
-pkg-debsnapshot: DEB_VER := $(shell echo "${DEB_VER}~svn${SVNREVISION}${DEB_REV}")
+pkg-debtest: DEB_REV := $(shell echo "~test${DEB_REV}")
+pkg-debsnapshot: DEB_REV := $(shell echo "~svn${SVNREVISION}${DEB_REV}")
 
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
@@ -81,7 +80,7 @@ pkg-autopackage:
 #
 .PHONY: debian/changelog
 debian/changelog:
-	cat debian/changelog.in | sed -e "s/@@VERSION@@/${DEB_VER}/g" -e "s/@@TIMESTAMP@@/${DEB_BUILDTIME}/g" > debian/changelog
+	cat debian/changelog.in | sed -e "s/@@VERSION@@/${DEB_VER}/g" -e "s/@@REVISION@@/${DEB_REV}/g" -e "s/@@TIMESTAMP@@/${DEB_BUILDTIME}/g" > debian/changelog
 
 .PHONY: pkg-deb pkg-debtest pkg-debsnapshot
 pkg-deb: debian/changelog

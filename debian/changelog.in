@@ -1,8 +1,15 @@
-oolite (@@VERSION@@) stable; urgency=low
+oolite (@@VERSION@@@@REVISION@@) stable; urgency=low
 
-  * VCS snapshot.
+  * VCS snapshot of Oolite @@VERSION@@.
 
  -- Darren Salt <linux@youmustbejoking.demon.co.uk>  @@TIMESTAMP@@
+
+oolite (1.73.2-1) stable; urgency=low
+
+  * Packaging release of Oolite 1.73.2
+    See /usr/share/doc/oolite/changelog.gz for upstream changes
+
+ -- Michael Werle <micha@michaelwerle.com>  Sat, 5 Sep 2009 18:30:00 +0100
 
 oolite (1.73-test-1) stable; urgency=low
 

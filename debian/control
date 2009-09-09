@@ -1,7 +1,7 @@
 Source: oolite
 Section: games
 Priority: optional
-Maintainer: Chris Crowther <hikari@hikari.org.uk>
+Maintainer: Michael Werle <micha@michaelwerle.com>
 Standards-Version: 3.7.2
 Build-Depends: debhelper (>= 5),
 	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
