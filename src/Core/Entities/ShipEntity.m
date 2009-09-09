@@ -7410,6 +7410,19 @@ BOOL class_masslocks(int some_class)
 	[self setStatus:STATUS_BEING_SCOOPED];
 	[self addTarget:other];
 	[self setOwner:other];
+	[self checkScanner];
+	unsigned i;
+	for (i = 0; i < n_scanned_ships ; i++)
+	{
+		ShipEntity *scooper = (ShipEntity *)scanned_ships[i];
+		// very specific. might break if the AI convention changes.
+		// if (other != scoopers && (id) self == [scoopers primaryTarget] && [[[scoopers getAI] state] isEqualToString: @"COLLECT_STUFF"])
+		// more generic, if other ships are trying to shoot the scooped item, they'll lose it too.
+		if (other != scooper && (id) self == [scooper primaryTarget])
+		{
+			[scooper noteLostTarget];
+		}
+	}
 }
 
 
