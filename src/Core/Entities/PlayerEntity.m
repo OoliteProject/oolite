@@ -1896,7 +1896,8 @@ static PlayerEntity *sSharedPlayer = nil;
 #if DOCKING_CLEARANCE_ENABLED
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif
-		[self doScriptEvent:@"shipLaunchedFromStation"];
+		StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
+		[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
 	}
 }
 

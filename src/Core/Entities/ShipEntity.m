@@ -1510,8 +1510,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if ([UNIVERSE getTime] > launch_time + LAUNCH_DELAY)		// move for while before thinking
 		{
+			StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 			[self setStatus:STATUS_IN_FLIGHT];
-			[self doScriptEvent:@"shipLaunchedFromStation"];
+			[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
 			[shipAI reactToMessage: @"LAUNCHED OKAY"];
 		}
 		else
