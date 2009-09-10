@@ -2343,6 +2343,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (BOOL) isMouseControlOn
+{
+	return mouse_control_on;
+}
+
+
 - (GLfloat) dialRoll
 {
 	GLfloat result = flightRoll / max_flight_roll;

@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 #import "OOCrosshairs.h"
 #import "OOConstToString.h"
 #import "OOStringParsing.h"
+#import "JoystickHandler.h"
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
@@ -113,6 +114,7 @@ enum
 - (void) drawClock:(NSDictionary *) info;
 - (void) drawFPSInfoCounter:(NSDictionary *) info;
 - (void) drawScoopStatus:(NSDictionary *) info;
+- (void) drawStickSenitivityIndicator:(NSDictionary *) info;
 
 - (void) drawGreenSurround:(NSDictionary *) info;
 - (void) drawYellowSurround:(NSDictionary *) info;
@@ -1910,6 +1912,51 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		glVertex3f(x, y - h4, z1);	glVertex3f(x + w2, y - h2, z1);	glVertex3f(x + w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 	OOGLEND();
 	
+}
+
+
+- (void) drawStickSensitivityIndicator:(NSDictionary *) info
+{
+	GLfloat			x, y;
+	NSSize			siz;
+	BOOL			mouse;
+	JoystickHandler	*stick;
+
+	mouse = [[PlayerEntity sharedPlayer] isMouseControlOn];
+	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
+	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
+	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
+
+	stick = [[UNIVERSE gameView] getStickHandler];
+	GLfloat div = [stick getSensitivity];
+
+	GLColorWithOverallAlpha(black_color, overallAlpha / 4);
+	GLDrawFilledOval(x, y, z1, siz, 10);
+
+	GLColorWithOverallAlpha((div < 1.0 || mouse) ? lightgray_color : green_color, overallAlpha);
+	OOGL(glLineWidth(_crosshairWidth * line_width));
+
+	if (div >= 1.0)
+	{
+		if (!mouse)
+		{
+			NSSize siz8th = { siz.width / 8, siz.height / 8 };
+			GLDrawFilledOval(x, y, z1, siz8th, 30);
+
+			if (div == 1.0) // normal mode
+				GLColorWithOverallAlpha(lightgray_color, overallAlpha);
+		}
+
+		if ([stick getNumSticks])
+		{
+			siz.width -= _crosshairWidth * line_width / 2;
+			siz.height -= _crosshairWidth * line_width / 2;
+			GLDrawOval(x, y, z1, siz, 10);
+		}
+	}
+	else if (div < 1.0) // insensitive mode (shouldn't happen)
+		GLDrawFilledOval(x, y, z1, siz, 10);
 }
 
 

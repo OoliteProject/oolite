@@ -569,6 +569,8 @@ waitingForStickCallback: 1;
 - (void) setForwardShieldLevel:(GLfloat)level;
 - (void) setAftShieldLevel:(GLfloat)level;
 
+- (BOOL) isMouseControlOn;
+
 - (GLfloat) dialRoll;
 - (GLfloat) dialPitch;
 - (GLfloat) dialYaw;
