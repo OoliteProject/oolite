@@ -326,6 +326,10 @@ MA 02110-1301, USA.
 - (OOMesh *)mesh;
 - (void)setMesh:(OOMesh *)mesh;
 
+- (Vector) forwardVector;
+- (Vector) upVector;
+- (Vector) rightVector;
+
 - (NSArray *)subEntities;
 - (unsigned) subEntityCount;
 - (BOOL) hasSubEntity:(ShipEntity *)sub;
@@ -447,18 +451,12 @@ MA 02110-1301, USA.
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
 
-
-- (void) resetTracking;
-
 - (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
 
 - (BOOL)isCloaked;
 - (void)setCloaked:(BOOL)cloak;
 
 - (BOOL) isJammingScanning;
-
-- (void) addSubEntity:(Entity *) subent;
-- (void) addExhaust:(ParticleEntity *) exhaust;
 
 - (void) applyThrust:(double) delta_t;
 
@@ -615,9 +613,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (BoundingBox) findSubentityBoundingBox;
 
-- (Vector) absolutePositionForSubentity;
-- (Vector) absolutePositionForSubentityOffset:(Vector) offset;
-
 - (Triangle) absoluteIJKForSubentity;
 
 - (void) addSolidSubentityToCollisionRadius:(ShipEntity *)subent;
@@ -632,6 +627,8 @@ ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (GLint)entityPersonalityInt;
 
 - (void)setSuppressExplosion:(BOOL)suppress;
+
+- (void) resetExhaustPlumes;
 
 /*-----------------------------------------
 

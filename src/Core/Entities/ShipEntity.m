@@ -59,6 +59,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "WormholeEntity.h"
 #import "OOFlasherEntity.h"
+#import "OOExhaustPlumeEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -98,6 +99,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (PlanetEntity *) lastPlanet;
 - (void) setLastPlanet:(PlanetEntity *)lastPlanet;
+
+- (void) addSubEntity:(Entity *) subent;
 
 @end
 
@@ -432,9 +435,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	for (i = 0; i < [plumes count]; i++)
 	{
-		ParticleEntity *exhaust = [[ParticleEntity alloc] initExhaustFromShip:self details:[plumes objectAtIndex:i]];
-		[self addExhaust:exhaust];
-		[exhaust release];
+		NSArray *definition = ScanTokensFromString([plumes oo_stringAtIndex:i]);
+		OOExhaustPlumeEntity *exhaust = [OOExhaustPlumeEntity exhaustForShip:self withDefinition:definition];
+		[self addSubEntity:exhaust];
 	}
 	
 	NSArray *subs = [shipDict oo_arrayForKey:@"subentities"];
@@ -621,6 +624,24 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		[octree autorelease];
 		octree = [[mesh octree] retain];
 	}
+}
+
+
+- (Vector) forwardVector
+{
+	return v_forward;
+}
+
+
+- (Vector) upVector
+{
+	return v_up;
+}
+
+
+- (Vector) rightVector
+{
+	return v_right;
 }
 
 
@@ -829,7 +850,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	//	Tell subentities, too
 	[subEntities makeObjectsPerformSelector:@selector(wasAddedToUniverse)];
 	
-	[self resetTracking];	// resets stuff for tracking/exhausts
+	[self resetExhaustPlumes];
 }
 
 
@@ -1220,31 +1241,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (Vector) absolutePositionForSubentity
-{
-	return [self absolutePositionForSubentityOffset:kZeroVector];
-}
-
-
-- (Vector) absolutePositionForSubentityOffset:(Vector) offset
-{
-	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
-	Entity		*last = nil;
-	Entity		*father = [self parentEntity];
-	OOMatrix	r_mat;
-	
-	while ((father)&&(father != last)  && (father != NO_TARGET))
-	{
-		r_mat = [father drawRotationMatrix];
-		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
-		last = father;
-		if (![last isSubEntity]) break;
-		father = [father owner];
-	}
-	return abspos;
-}
-
-
 - (Triangle) absoluteIJKForSubentity
 {
 	Triangle	result = {{ kBasisXVector, kBasisYVector, kBasisZVector, kZeroVector }};
@@ -1310,7 +1306,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// deal with collisions
 	//
 	[self manageCollisions];
-	[self saveToLastFrame];
 	
 	//
 	// reset any inadvertant legal mishaps
@@ -3101,68 +3096,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) saveToLastFrame
-{
-	double t_now = [UNIVERSE getTime];
-	
-	if (t_now >= trackTime + 0.1)		// update at most every 1/10 of a second
-	{
-		// save previous data
-		Quaternion qrot = [self normalOrientation];
-		trackTime = t_now;
-		track[trackIndex].position =	position;
-		track[trackIndex].orientation =	qrot;
-		track[trackIndex].timeframe =	trackTime;
-		track[trackIndex].k =	v_forward;
-		
-		// Update exhaust
-		NSEnumerator	*subEnum = nil;
-		ShipEntity		*se = nil;
-		Frame			thisFrame = { trackTime, kZeroVector, qrot, v_forward };
-		
-		for (subEnum = [self exhaustEnumerator]; (se = [subEnum nextObject]); )
-		{
-			Vector	sepos = [se position];
-			thisFrame.position = make_vector(
-											 position.x + v_right.x * sepos.x + v_up.x * sepos.y + v_forward.x * sepos.z,
-											 position.y + v_right.y * sepos.x + v_up.y * sepos.y + v_forward.y * sepos.z,
-											 position.z + v_right.z * sepos.x + v_up.z * sepos.y + v_forward.z * sepos.z);
-			[se saveFrame:thisFrame atIndex:trackIndex];	// syncs subentity trackIndex to this entity
-		}
-		
-		trackIndex = (trackIndex + 1 ) & 0xff;
-	}
-}
-
-
-// reset position tracking
-- (void) resetTracking
-{
-	Quaternion	qrot = [self normalOrientation];
-	Vector		vi = vector_right_from_quaternion(qrot);
-	Vector		vj = vector_up_from_quaternion(qrot);
-	Vector		vk = vector_forward_from_quaternion(qrot);
-	Frame		resetFrame = { 0, position, qrot, vk };
-	
-	Vector vel = vector_multiply_scalar(vk, flightSpeed);
-	
-	[self resetFramesFromFrame:resetFrame withVelocity:vel];
-	
-	NSEnumerator	*subEnum = nil;
-	ShipEntity		*se = nil;
-	
-	for (subEnum = [self exhaustEnumerator]; (se = [subEnum nextObject]); )
-	{
-		Vector sepos = [se position];
-		resetFrame.position = make_vector(
-										  position.x + vi.x * sepos.x + vj.x * sepos.y + vk.x * sepos.z,
-										  position.y + vi.y * sepos.x + vj.y * sepos.y + vk.y * sepos.z,
-										  position.z + vi.z * sepos.x + vj.z * sepos.y + vk.z * sepos.z);
-		[se resetFramesFromFrame:resetFrame withVelocity:vel];
-	}
-}
-
-
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	NSEnumerator				*subEntityEnum = nil;
@@ -3407,12 +3340,6 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	{
 		[drawable_ setBindingTarget:self];
 	}
-}
-
-
-- (void) addExhaust:(ParticleEntity *)exhaust
-{
-	[self addSubEntity:exhaust];
 }
 
 
@@ -5444,6 +5371,19 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 {
 	suppressExplosion = suppress != NO;
 }
+
+
+- (void) resetExhaustPlumes
+{
+	NSEnumerator *exEnum = nil;
+	OOExhaustPlumeEntity *exEnt = nil;
+	
+	for (exEnum = [self exhaustEnumerator]; (exEnt = [exEnum nextObject]); )
+	{
+		[exEnt resetPlume];
+	}
+}
+
 
 /*-----------------------------------------
 

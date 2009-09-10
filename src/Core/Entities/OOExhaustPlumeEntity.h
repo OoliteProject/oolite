@@ -1,8 +1,6 @@
 /*
 
-OOFlasherEntity.h
-
-Flashing light attached to ships.
+OOExhaustPlumeEntity.h
 
 
 Oolite
@@ -25,34 +23,45 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOLightParticleEntity.h"
+#import "Entity.h"
 
 
-@interface OOFlasherEntity: OOLightParticleEntity
+typedef struct
+{
+	double					timeframe;		// universal time for this frame
+	Vector					position;
+	Quaternion				orientation;
+	Vector					k;				// direction vectors
+} Frame;
+
+
+enum
+{
+	kExhaustFrameCount = 16
+};
+
+
+@interface OOExhaustPlumeEntity: Entity
 {
 @private
-	float					_frequency;
-	float					_phase;
-	NSArray					*_colors;
-	OOUInteger				_activeColor;
-	
-	OOTimeDelta				_time;
-	
-	BOOL					_active;
+	Vector			_exhaustScale;
+	GLfloat			_vertices[34 * 3];
+	GLfloat			_exhaustBaseColors[34 * 4];
+	Frame			_track[kExhaustFrameCount];
+	OOTimeAbsolute	_trackTime;
+	uint8_t			_nextFrame;
 }
 
-+ (id) flasherWithDictionary:(NSDictionary *)dictionary;
-- (id) initWithDictionary:(NSDictionary *)dictionary;
++ (id) exhaustForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition;
+- (id) initForShip:(ShipEntity *)ship withDefinition:(NSArray *)definition;
 
-- (BOOL) isActive;
-- (void) setActive:(BOOL)active;
-
-@end
-
-
-@interface Entity (OOFlasherEntityExtensions)
-
-- (BOOL) isFlasher;
+- (void) resetPlume;
 
 @end
 
+
+@interface Entity (OOExhaustPlume)
+
+- (BOOL)isExhaust;
+
+@end

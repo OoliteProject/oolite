@@ -102,7 +102,8 @@ OOLITE_ENTITY_FILES = \
 	StationEntity.m \
 	WormholeEntity.m \
 	OOLightParticleEntity.m \
-	OOFlasherEntity.m
+	OOFlasherEntity.m \
+	OOExhaustPlumeEntity.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

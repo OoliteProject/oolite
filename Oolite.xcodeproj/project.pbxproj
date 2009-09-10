@@ -46,6 +46,8 @@
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
+		1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */; };
+		1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */; };
 		1A11F84A0F35F60C001C886C /* OOJSShipGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A11F8480F35F60C001C886C /* OOJSShipGroup.m */; };
 		1A11F84B0F35F60C001C886C /* OOJSShipGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A11F8490F35F60C001C886C /* OOJSShipGroup.h */; };
 		1A1502F60C1201C30032F3E8 /* oolite-unknown-ship.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */; };
@@ -1093,6 +1095,8 @@
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
 		1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSpecialFunctions.m; sourceTree = "<group>"; };
+		1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExhaustPlumeEntity.h; sourceTree = "<group>"; };
+		1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExhaustPlumeEntity.m; sourceTree = "<group>"; };
 		1A11F8480F35F60C001C886C /* OOJSShipGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShipGroup.m; sourceTree = "<group>"; };
 		1A11F8490F35F60C001C886C /* OOJSShipGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSShipGroup.h; sourceTree = "<group>"; };
 		1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-unknown-ship.dat"; sourceTree = "<group>"; };
@@ -2586,6 +2590,8 @@
 				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
 				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
 				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
+				1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */,
+				1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -3031,6 +3037,7 @@
 				1A43F28B105170A8003FDE8B /* OONSOperation.h in Headers */,
 				1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */,
 				1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */,
+				1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3371,6 +3378,7 @@
 				1A43F24010515CF7003FDE8B /* OOTextureLoadDispatcher.m in Sources */,
 				1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */,
 				1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */,
+				1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -52,6 +52,8 @@ MA 02110-1301, USA.
 
 
 extern uint32_t gDebugFlags;
+extern uint32_t gLiveEntityCount;
+extern size_t gTotalEntityMemory;
 
 #endif
 
@@ -64,15 +66,6 @@ extern uint32_t gDebugFlags;
 #define SCANNER_MAX_RANGE2			655360000.0
 
 #define CLOSE_COLLISION_CHECK_MAX_RANGE2 1000000000.0
-
-
-typedef struct
-{
-	double					timeframe;		// universal time for this frame
-	Vector					position;		// position
-	Quaternion				orientation;		// rotation
-	Vector					k;				// direction vectors
-} Frame;
 
 
 @interface Entity: OOWeakRefObject
@@ -141,12 +134,6 @@ typedef struct
 	
 	Vector					velocity;
 	
-	// positions+rotations for trails and trackbacks
-	// TODO: Can these be moved into a subclass? -- Ahruman
-	Frame					track[256];
-	int						trackIndex;
-	OOTimeAbsolute			trackTime;
-	
 	GLfloat					energy;
 	GLfloat					maxEnergy;
 	
@@ -203,6 +190,9 @@ typedef struct
 - (void) setPositionX:(GLfloat)x y:(GLfloat)y z:(GLfloat)z;
 - (Vector) position;
 
+- (Vector) absolutePositionForSubentity;
+- (Vector) absolutePositionForSubentityOffset:(Vector) offset;
+
 - (double) zeroDistance;
 - (Vector) relativePosition;
 - (NSComparisonResult) compareZeroDistance:(Entity *)otherEntity;
@@ -243,6 +233,8 @@ typedef struct
 
 - (OOMatrix) rotationMatrix;
 - (OOMatrix) drawRotationMatrix;
+- (OOMatrix) transformationMatrix;
+- (OOMatrix) drawTransformationMatrix;
 
 - (BOOL) canCollide;
 - (GLfloat) collisionRadius;
@@ -250,13 +242,6 @@ typedef struct
 - (NSMutableArray *)collisionArray;
 
 - (void) update:(OOTimeDelta) delta_t;
-- (void) saveToLastFrame;
-- (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index;
-- (void) saveFrame:(Frame)frame atIndex:(int)t_index;
-- (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1;
-- (BOOL) resetToTime:(double) t_frame;
-- (Frame) frameAtTime:(double) t_frame;	// timeframe is relative to now ie. -0.5 = half a second ago.
-- (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero;	// t_frame is relative to now ie. -0.5 = half a second ago.
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other;
 

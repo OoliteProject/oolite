@@ -1283,7 +1283,6 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// deal with collisions
 	[self manageCollisions];
-	[self saveToLastFrame];
 	
 	[self pollControls:delta_t];
 	
@@ -2128,6 +2127,13 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (OOMatrix) drawTransformationMatrix
+{
+	OOMatrix result = playerRotMatrix;
+	return OOMatrixTranslate(result, position);
+}
+
+
 - (Quaternion) normalOrientation
 {
 	return make_quaternion(-orientation.w, orientation.x, orientation.y, orientation.z);
@@ -2519,7 +2525,12 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (NSString*) dial_objinfo
 {
-	return [NSString stringWithFormat:@"Objs: %3d", [UNIVERSE obj_count]];
+	NSString *result = [NSString stringWithFormat:@"Entities: %3d", [UNIVERSE obj_count]];
+#ifndef NDEBUG
+	result = [NSString stringWithFormat:@"%@ (%d, %u KiB, avg %u bytes)", result, gLiveEntityCount, gTotalEntityMemory >> 10, gTotalEntityMemory / gLiveEntityCount];
+#endif
+	
+	return result;
 }
 
 

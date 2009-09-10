@@ -57,13 +57,9 @@ MA 02110-1301, USA.
 	int				particle_type;
 		
 	NSSize			size;
-
-	Vector			exhaustScale;
-	GLfloat			exhaustBaseColors[34 * 4], verts[34 * 3];
 }
 
 - (id) initLaserFromShip:(ShipEntity *) ship view:(OOViewID) view offset:(Vector)offset;
-- (id) initExhaustFromShip:(ShipEntity *) ship details:(NSString *) details;
 - (id) initECMMineFromShip:(ShipEntity *) ship;
 - (id) initEnergyMineFromShip:(ShipEntity *) ship;
 - (id) initHyperringFromShip:(ShipEntity *) ship;
@@ -88,7 +84,5 @@ MA 02110-1301, USA.
 @interface Entity (OOParticleExtensions)
 
 - (BOOL)isParticle;
-- (BOOL)isFlasher;
-- (BOOL)isExhaust;
 
 @end

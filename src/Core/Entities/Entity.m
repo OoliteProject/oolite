@@ -40,6 +40,24 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.Entity"
 
+#ifndef NDEBUG
+uint32_t gLiveEntityCount = 0;
+size_t gTotalEntityMemory = 0;
+#if __OBJC2__
+#import <objc/runtime.h>
+#else
+#if OOLITE_MAC_OS_X
+#import <objc/objc-class.h>
+#else
+#import <objc/objc-objc.h>
+#endif
+OOINLINE size_t class_getInstanceSize(Class cls)
+{
+	return cls->instance_size;
+}
+#endif
+#endif
+
 
 static NSString * const kOOLogEntityAddToList				= @"entity.linkedList.add";
 static NSString * const kOOLogEntityAddToListError			= @"entity.linkedList.add.error";
@@ -77,6 +95,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	isSunlit = YES;
 	
+#ifndef NDEBUG
+	gLiveEntityCount++;
+	gTotalEntityMemory += class_getInstanceSize([self class]);
+#endif
+	
 	return self;
 }
 
@@ -88,6 +111,11 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	[collisionRegion release];
 	[self deleteJSSelf];
 	[self setOwner:nil];
+	
+#ifndef NDEBUG
+	gLiveEntityCount--;
+	gTotalEntityMemory -= class_getInstanceSize([self class]);
+#endif
 	
 	[super dealloc];
 }
@@ -557,6 +585,31 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (Vector) absolutePositionForSubentity
+{
+	return [self absolutePositionForSubentityOffset:kZeroVector];
+}
+
+
+- (Vector) absolutePositionForSubentityOffset:(Vector) offset
+{
+	Vector		abspos = vector_add(position, OOVectorMultiplyMatrix(offset, rotMatrix));
+	Entity		*last = nil;
+	Entity		*father = [self parentEntity];
+	OOMatrix	r_mat;
+	
+	while ((father)&&(father != last)  && (father != NO_TARGET))
+	{
+		r_mat = [father drawRotationMatrix];
+		abspos = vector_add(OOVectorMultiplyMatrix(abspos, r_mat), [father position]);
+		last = father;
+		if (![last isSubEntity]) break;
+		father = [father owner];
+	}
+	return abspos;
+}
+
+
 - (double) zeroDistance
 {
 	return zero_distance;
@@ -752,6 +805,20 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 }
 
 
+- (OOMatrix) transformationMatrix
+{
+	OOMatrix result = rotMatrix;
+	return OOMatrixTranslate(result, position);
+}
+
+
+- (OOMatrix) drawTransformationMatrix
+{
+	OOMatrix result = rotMatrix;
+	return OOMatrixTranslate(result, position);
+}
+
+
 - (Vector) position
 {
 	return position;
@@ -801,198 +868,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	hasRotated = !quaternion_equal(orientation, lastOrientation);
 	lastPosition = position;
 	lastOrientation = orientation;
-}
-
-
-- (void) saveToLastFrame
-{
-	double t_now = [UNIVERSE getTime];
-	if (t_now >= trackTime + 0.1)		// update every 1/10 of a second
-	{
-		// save previous data
-		trackTime = t_now;
-		track[trackIndex].position =	position;
-		track[trackIndex].orientation =	orientation;
-		track[trackIndex].timeframe =	trackTime;
-		track[trackIndex].k =	vector_forward_from_quaternion(orientation);
-		trackIndex = (trackIndex + 1 ) & 0xff;
-	}
-}
-
-
-- (void) savePosition:(Vector)pos atTime:(double)t_time atIndex:(int)t_index
-{
-	trackTime = t_time;
-	track[t_index].position = pos;
-	track[t_index].timeframe =	t_time;
-	trackIndex = (t_index + 1 ) & 0xff;
-}
-
-
-- (void) saveFrame:(Frame)frame atIndex:(int)t_index
-{
-	track[t_index] = frame;
-	trackTime = frame.timeframe;
-	trackIndex = (t_index + 1 ) & 0xff;
-}
-
-// reset frames
-//
-- (void) resetFramesFromFrame:(Frame) resetFrame withVelocity:(Vector) vel1
-{
-	Vector		v1 = make_vector(0.1 * vel1.x, 0.1 * vel1.y, 0.1 * vel1.z);
-	double		t_now = [UNIVERSE getTime];
-	Vector		pos = resetFrame.position;
-	Vector		vk = resetFrame.k;
-	Quaternion	qr = resetFrame.orientation;
-	int i;
-	for (i = 0; i < 256; i++)
-	{
-		track[255-i].position = make_vector(pos.x - i * v1.x, pos.y - i * v1.y, pos.z - i * v1.z);
-		track[255-i].timeframe = t_now - 0.1 * i;
-		track[255-i].orientation = qr;
-		track[255-i].k = vk;
-	}
-	trackTime = t_now;
-	trackIndex = 0;
-}
-
-
-- (BOOL) resetToTime:(double) t_frame	// timeframe is relative to now ie. -0.5 = half a second ago.
-{
-	if (t_frame >= 0)
-		return NO;
-
-	Frame	selectedFrame = [self frameAtTime:t_frame];
-	[self setPosition:selectedFrame.position];
-	[self setOrientation:selectedFrame.orientation];
-	return YES;
-}
-
-
-- (Frame) frameAtTime:(double) t_frame	// t_frame is relative to now ie. -0.5 = half a second ago.
-{
-	Frame result;
-	result.position = position;
-	result.orientation = orientation;
-	result.timeframe = [UNIVERSE getTime];
-	result.k = vector_forward_from_quaternion(orientation);
-	//
-	if (t_frame >= 0.0)
-		return result;
-	//
-	double moment_in_time = [UNIVERSE getTime] + t_frame;
-	if (moment_in_time >= trackTime)					// between the last saved frame and now
-	{
-		int t1 = (trackIndex - 1)&0xff;	// last saved moment
-		double period = result.timeframe - trackTime;
-		double f0 = (result.timeframe - moment_in_time)/period;
-		double f1 = 1.0 - f0;
-		Vector posn;
-		posn.x =	f0 * result.position.x + f1 * track[t1].position.x;
-		posn.y =	f0 * result.position.y + f1 * track[t1].position.y;
-		posn.z =	f0 * result.position.z + f1 * track[t1].position.z;
-		Quaternion qrot;
-		qrot.w =	f0 * result.orientation.w + f1 * track[t1].orientation.w;
-		qrot.x =	f0 * result.orientation.x + f1 * track[t1].orientation.x;
-		qrot.y =	f0 * result.orientation.y + f1 * track[t1].orientation.y;
-		qrot.z =	f0 * result.orientation.z + f1 * track[t1].orientation.z;
-		result.position = posn;
-		result.orientation = qrot;
-		result.timeframe = moment_in_time;
-		result.k = vector_forward_from_quaternion(qrot);
-		return result;
-	}
-	//
-	if (moment_in_time < track[trackIndex].timeframe)	// more than 256 frames back
-	{
-		return track[trackIndex];
-	}
-	//
-	int t1 = (trackIndex - 1)&0xff;
-	while (moment_in_time < track[t1].timeframe)
-		t1 = (t1 - 1) & 0xff;
-	int t0 = (t1 + 1) & 0xff;
-	// interpolate between t0 and t1
-	double period = track[0].timeframe - track[1].timeframe;
-	double f0 = (track[t0].timeframe - moment_in_time)/period;
-	double f1 = 1.0 - f0;
-	Vector posn;
-	posn.x =	f0 * track[t0].position.x + f1 * track[t1].position.x;
-	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
-	posn.z =	f0 * track[t0].position.z + f1 * track[t1].position.z;
-	Quaternion qrot;
-	qrot.w =	f0 * track[t0].orientation.w + f1 * track[t1].orientation.w;
-	qrot.x =	f0 * track[t0].orientation.x + f1 * track[t1].orientation.x;
-	qrot.y =	f0 * track[t0].orientation.y + f1 * track[t1].orientation.y;
-	qrot.z =	f0 * track[t0].orientation.z + f1 * track[t1].orientation.z;
-	result.position = posn;
-	result.orientation = qrot;
-	result.timeframe = moment_in_time;
-	result.k = vector_forward_from_quaternion(qrot);
-	return result;
-}
-
-
-- (Frame) frameAtTime:(double) t_frame fromFrame:(Frame) frame_zero	// t_frame is relative to now ie. -0.5 = half a second ago.
-{
-	Frame result = frame_zero;
-	//
-	if (t_frame >= 0.0)
-		return result;
-	//
-	double moment_in_time = [UNIVERSE getTime] + t_frame;
-	if (moment_in_time > trackTime)					// between the last saved frame and now
-	{
-		Frame fr1 = track[(trackIndex - 1)&0xff];	// last saved moment
-		double period = (moment_in_time - t_frame) - trackTime;
-		double f1 =	-t_frame/period;
-		double f0 =	1.0 - f1;
-		
-		Vector posn;
-		posn.x =	f0 * result.position.x + f1 * fr1.position.x;
-		posn.y =	f0 * result.position.y + f1 * fr1.position.y;
-		posn.z =	f0 * result.position.z + f1 * fr1.position.z;
-		Quaternion qrot;
-		qrot.w =	f0 * result.orientation.w + f1 * fr1.orientation.w;
-		qrot.x =	f0 * result.orientation.x + f1 * fr1.orientation.x;
-		qrot.y =	f0 * result.orientation.y + f1 * fr1.orientation.y;
-		qrot.z =	f0 * result.orientation.z + f1 * fr1.orientation.z;
-		result.position = posn;
-		result.orientation = qrot;
-		result.timeframe = moment_in_time;
-		result.k = vector_forward_from_quaternion(qrot);
-		return result;
-	}
-	//
-	if (moment_in_time < track[trackIndex].timeframe)	// more than 256 frames back
-	{
-		return track[trackIndex];
-	}
-	//
-	int t1 = (trackIndex - 1)&0xff;
-	while (moment_in_time < track[t1].timeframe)
-		t1 = (t1 - 1) & 0xff;
-	int t0 = (t1 + 1) & 0xff;
-	// interpolate between t0 and t1
-	double period = track[t0].timeframe - track[t1].timeframe;
-	double f0 = (moment_in_time - track[t1].timeframe)/period;
-	double f1 = 1.0 - f0;
-	
-	Vector posn;
-	posn.x =	f0 * track[t0].position.x + f1 * track[t1].position.x;
-	posn.y =	f0 * track[t0].position.y + f1 * track[t1].position.y;
-	posn.z =	f0 * track[t0].position.z + f1 * track[t1].position.z;
-	Quaternion qrot;
-	qrot.w =	f0 * track[t0].orientation.w + f1 * track[t1].orientation.w;
-	qrot.x =	f0 * track[t0].orientation.x + f1 * track[t1].orientation.x;
-	qrot.y =	f0 * track[t0].orientation.y + f1 * track[t1].orientation.y;
-	qrot.z =	f0 * track[t0].orientation.z + f1 * track[t1].orientation.z;
-	result.position = posn;
-	result.orientation = qrot;
-	result.timeframe = moment_in_time;
-	result.k = vector_forward_from_quaternion(qrot);
-	return result;
 }
 
 
