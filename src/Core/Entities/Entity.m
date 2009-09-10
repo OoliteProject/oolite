@@ -48,8 +48,6 @@ size_t gTotalEntityMemory = 0;
 #else
 #if OOLITE_MAC_OS_X
 #import <objc/objc-class.h>
-#else
-#import <objc/objc-objc.h>
 #endif
 OOINLINE size_t class_getInstanceSize(Class cls)
 {
