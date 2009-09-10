@@ -197,6 +197,13 @@ this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = 
 };
 
 
+this.shipWillEnterWitchspace = function ()
+{
+	if (missionVariables.nova === "NOVA_ESCAPE_HERO" || missionVariables.nova === "NOVA_ESCAPE_COWARD" || missionVariables.nova === "TWO_HRS_TO_ZERO")
+		system.info.sun_gone_nova = true;
+}
+
+
 this.shipWillExitWitchspace = function ()  // call this as soon as possible so other scripts can see it will go nova.
 {
 	if (galaxyNumber === 3)
@@ -209,7 +216,6 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 			system.sun.goNova(7200);
 			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
 			system.info.market = "none";
-			system.info.sun_gone_nova = "YES";
 			this.buoyLoaded = false;  // w-bouy is not in system yet.
 
 			if (this.novaMissionTimer)
