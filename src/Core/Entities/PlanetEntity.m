@@ -1084,6 +1084,7 @@ static float corona_blending;
 		
 	lastSubdivideLevel = subdivideLevel;	// record
 	
+	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
 
 	/*
@@ -1284,7 +1285,7 @@ static float corona_blending;
 					
 				}
 				OOGL(glFrontFace(GL_CW));
-
+				
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 
 
@@ -1299,12 +1300,6 @@ static float corona_blending;
 					GLMultOOMatrix([atmosphere rotationMatrix]);
 					// draw atmosphere entity
 					[atmosphere drawEntity:immediate :translucent];
-
-					OOGL(glEnable(GL_DEPTH_TEST));
-				}
-				else if (ignoreDepthBuffer)
-				{
-					OOGL(glEnable(GL_DEPTH_TEST));
 				}
 
 			}
@@ -1354,19 +1349,12 @@ static float corona_blending;
 						GLfloat col1[4] = { amb_polar_sea[0], amb_polar_sea[1], amb_polar_sea[2], 0.5};
 						drawActiveCorona(collision_radius, collision_radius + cor16k, steps, sqrt_zero_distance, col1, 0);
 					}
-					OOGL(glEnable(GL_DEPTH_TEST));
-				}
-				OOGL(glEnable(GL_LIGHTING));
-
-				// far enough away to draw flat ?
-				if (ignoreDepthBuffer)
-				{
-					OOGL(glEnable(GL_DEPTH_TEST));
 				}
 
 			}
 			break;
 	}
+	glPopAttrib();
 	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }

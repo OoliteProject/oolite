@@ -1263,7 +1263,9 @@ FAIL:
 - (void) drawEntity:(BOOL) immediate:(BOOL) translucent;
 {
 	if (UNIVERSE == nil || [UNIVERSE breakPatternHide])  return;
-
+	
+	OOGL(glPushAttrib(GL_ENABLE_BIT));
+	
 	if (translucent)
 	{
 		switch ([self particleType])
@@ -1309,6 +1311,9 @@ FAIL:
 				break;
 		}
 	}
+	
+	OOGL(glPopAttrib());
+	
 	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self);
 }
 
@@ -1453,11 +1458,9 @@ FAIL:
 - (void) drawLaser
 {
 	color_fv[3]		= 0.75;  // set alpha
-
+	
 	OOGL(glDisable(GL_CULL_FACE));	// face culling
-
 	OOGL(glDisable(GL_TEXTURE_2D));
-
 	OOGL(glColor4fv(color_fv));
 	
 	BeginAdditiveBlending(GL_ONE_NO);
@@ -1475,8 +1478,6 @@ FAIL:
 	OOGLEND();
 	
 	EndAdditiveBlending();
-
-	OOGL(glEnable(GL_CULL_FACE));	// face culling
 }
 
 GLuint tfan1[10] = {	0,	1,	2,	3,	4,	5,	6,	7,	8,	1};		// initial fan 0..9
@@ -1520,9 +1521,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	OOGL(glDrawElements(GL_TRIANGLE_FAN, 10, GL_UNSIGNED_INT, tfan2));
 
 	EndAdditiveBlending();
-	
-	OOGL(glEnable(GL_CULL_FACE));		// face culling
-	OOGL(glEnable(GL_TEXTURE_2D));
 }
 
 
@@ -1555,9 +1553,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	OOGLEND();
 	
 	EndAdditiveBlending();
-
-	OOGL(glEnable(GL_CULL_FACE));	// face culling
-	OOGL(glPopMatrix());
 }
 
 
@@ -1580,8 +1575,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	OOGLEND();
 	
 	EndAdditiveBlending();
-	
-	OOGL(glEnable(GL_CULL_FACE));			// face culling
 }
 
 
@@ -1606,7 +1599,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	EndAdditiveBlending();
 	
 	OOGL(glPopMatrix());
-	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 
@@ -1631,7 +1623,6 @@ GLuint tfan2[10] = {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25};	// final fan 64..7
 	EndAdditiveBlending();
 	
 	OOGL(glPopMatrix());
-	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 

@@ -1136,6 +1136,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	GLfloat strip[] = { -7,8, -6,5, 5,8, 3,5, 7,2, 4,2, 6,-1, 4,2, -4,-1, -6,2, -4,-1, -7,-1, -3,-4, -5,-7, 6,-4, 7,-7 };
 	
+#if 0
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGLBEGIN(GL_QUAD_STRIP);
 		int i;
@@ -1144,6 +1145,23 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			glVertex3f(x + w * strip[i], y - h * strip[i + 1], z1);
 		}
 	OOGLEND();
+#else
+	glPushMatrix();
+	glTranslatef(x, y, z1);
+	glScalef(w, -h, 1.0f);
+	
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
+	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
+	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+	OOGL(glDisableClientState(GL_COLOR_ARRAY));
+	
+	if ([[UNIVERSE gameView] pollShiftKey])  LogOpenGLState();
+	
+	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
+	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	
+	glPopMatrix();
+#endif
 }
 
 

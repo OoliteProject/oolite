@@ -67,7 +67,6 @@
 		glPushMatrix();
 		glTranslatef(0, 0, [[UNIVERSE gameView] display_z]);
 		
-#if 1
 		glVertexPointer(2, GL_FLOAT, sizeof (GLfloat) * 6, _data);
 		glColorPointer(4, GL_FLOAT, sizeof (GLfloat) * 6, _data + 2);
 		
@@ -75,21 +74,6 @@
 		glEnableClientState(GL_COLOR_ARRAY);
 		
 		glDrawArrays(GL_LINES, 0, _count * 2);
-		
-		glDisableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY);
-#else
-		unsigned i;
-		GLfloat *data = _data;
-		glBegin(GL_LINES);
-		for (i = 0; i < _count * 2; i++)
-		{
-			glColor4f(data[2], data[3], data[4], data[5]);
-			glVertex2f(data[0], data[1]);
-			data += 6;
-		}
-		glEnd();
-#endif
 		
 		glPopMatrix();
 		glPopAttrib();

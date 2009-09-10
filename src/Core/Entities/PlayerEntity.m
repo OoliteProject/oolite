@@ -1326,8 +1326,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	PlanetEntity*	sun = [UNIVERSE sun];
 	double	external_temp = 0;
 	GLfloat	air_friction = 0.0f;
-	if (UNIVERSE)
-		air_friction = 0.5f * [UNIVERSE airResistanceFactor];
+	air_friction = 0.5f * [UNIVERSE airResistanceFactor];
 
 	// cool all weapons
 	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);

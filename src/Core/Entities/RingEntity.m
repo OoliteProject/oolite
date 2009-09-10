@@ -25,6 +25,8 @@ MA 02110-1301, USA.
 #import "RingEntity.h"
 
 #import "Universe.h"
+#import "OOMacroOpenGL.h"
+
 
 @implementation RingEntity
 
@@ -91,6 +93,7 @@ Ringdata	ringentity;
 	return self;
 }
 
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	[super update:delta_t];
@@ -104,10 +107,15 @@ Ringdata	ringentity;
 	}
 }
 
+
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	glShadeModel(GL_SMOOTH);
-	glDisable(GL_LIGHTING);	
+	OO_ENTER_OPENGL();
+	
+	OOGL(glPushAttrib(GL_ENABLE_BIT));
+	
+	OOGL(glShadeModel(GL_SMOOTH));
+	OOGL(glDisable(GL_LIGHTING));	
 	
 	if (translucent || immediate)
 	{
@@ -115,37 +123,42 @@ Ringdata	ringentity;
 		{
 			if (immediate)
 			{
-				glEnableClientState(GL_VERTEX_ARRAY);
-				glVertexPointer( 3, GL_FLOAT, 0, ringentity.vertex_array);
+				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+				OOGL(glVertexPointer( 3, GL_FLOAT, 0, ringentity.vertex_array));
 				// 3 coords per vertex
 				// of type GL_FLOAT
 				// 0 stride (tightly packed)
 				// pointer to first vertex
 
-				glEnableClientState(GL_COLOR_ARRAY);
-				glColorPointer( 4, GL_FLOAT, 0, ringentity.color_array);
+				OOGL(glEnableClientState(GL_COLOR_ARRAY));
+				OOGL(glColorPointer( 4, GL_FLOAT, 0, ringentity.color_array));
 				// 4 values per vertex color
 				// of type GL_FLOAT
 				// 0 stride (tightly packed)
 				// pointer to quadruplet
 
-				glDisableClientState(GL_NORMAL_ARRAY);
-				glDisableClientState(GL_INDEX_ARRAY);
-				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				glDisableClientState(GL_EDGE_FLAG_ARRAY);
+				OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+				OOGL(glDisableClientState(GL_INDEX_ARRAY));
+				OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 
-				glDrawElements( GL_TRIANGLES, 3 * 64, GL_UNSIGNED_INT, ringentity.triangle_index_array);
+				OOGL(glDrawElements( GL_TRIANGLES, 3 * 64, GL_UNSIGNED_INT, ringentity.triangle_index_array));
 			}
 			else
 			{
 				if (displayListName != 0)
-					glCallList(displayListName);
+				{
+					OOGL(glCallList(displayListName));
+				}
 				else
+				{
 					[self generateDisplayList];
+				}
 			}
 		}
 	}
-	glEnable(GL_LIGHTING);
+	
+	OOGL(glPopAttrib());
 	CheckOpenGLErrors(@"RingEntity after drawing %@", self);
 }
 

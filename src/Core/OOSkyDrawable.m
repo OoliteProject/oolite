@@ -206,11 +206,20 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	
 	OO_ENTER_OPENGL();
 	
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);	// don't read the depth buffer
-	glDepthMask(GL_FALSE);		// don't write to depth buffer
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_FOG);
+	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
+	
+	OOGL(glDisable(GL_LIGHTING));
+	OOGL(glDisable(GL_DEPTH_TEST));		// don't read the depth buffer
+	OOGL(glDepthMask(GL_FALSE));		// don't write to depth buffer
+	OOGL(glDisable(GL_CULL_FACE));
+	OOGL(glDisable(GL_FOG));
+	
+	OOGL(glDisableClientState(GL_INDEX_ARRAY));
+	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
+	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	OOGL(glEnableClientState(GL_COLOR_ARRAY));
 	
 	if (_displayListName != 0)
 	{
@@ -221,31 +230,21 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		// Set up display list
 		[self ensureTexturesLoaded];
 		_displayListName = glGenLists(1);
-		glNewList(_displayListName, GL_COMPILE);
+		OOGL(glNewList(_displayListName, GL_COMPILE));
 		
-		glEnable(GL_TEXTURE_2D);
-		glBlendFunc(GL_ONE, GL_ONE);	// Pure additive blending, ignoring alpha
-		
-		glDisableClientState(GL_INDEX_ARRAY);
-		glDisableClientState(GL_NORMAL_ARRAY);
-		glDisableClientState(GL_EDGE_FLAG_ARRAY);
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+		OOGL(glEnable(GL_TEXTURE_2D));
+		OOGL(glBlendFunc(GL_ONE, GL_ONE));	// Pure additive blending, ignoring alpha
 		
 		[_quadSets makeObjectsPerformSelector:@selector(render)];
 		
-		glDisable(GL_TEXTURE_2D);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// Basic alpha blending
+		OOGL(glDisable(GL_TEXTURE_2D));
+		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));	// Basic alpha blending
 		
-		glEndList();
+		OOGL(glEndList());
 	}
 	
 	// Restore state
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_DEPTH_TEST);	// read the depth buffer
-	glDepthMask(GL_TRUE);		// restore write to depth buffer
-	glEnable(GL_LIGHTING);
+	OOGL(glPopAttrib());
 }
 
 
@@ -637,11 +636,11 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	
 	[_texture apply];
 	
-	glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0, _positions);
-	glTexCoordPointer(kSkyQuadSetTexCoordEntriesPerVertex, GL_FLOAT, 0, _texCoords);
-	glColorPointer(kSkyQuadSetColorEntriesPerVertex, GL_FLOAT, 0, _colors);
+	OOGL(glVertexPointer(kSkyQuadSetPositionEntriesPerVertex, GL_FLOAT, 0, _positions));
+	OOGL(glTexCoordPointer(kSkyQuadSetTexCoordEntriesPerVertex, GL_FLOAT, 0, _texCoords));
+	OOGL(glColorPointer(kSkyQuadSetColorEntriesPerVertex, GL_FLOAT, 0, _colors));
 	
-	glDrawArrays(GL_QUADS, 0, 4 * _count);
+	OOGL(glDrawArrays(GL_QUADS, 0, 4 * _count));
 }
 
 @end
