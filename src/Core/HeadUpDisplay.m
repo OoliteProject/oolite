@@ -1155,8 +1155,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	
-	if ([[UNIVERSE gameView] pollShiftKey])  LogOpenGLState();
-	
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	
