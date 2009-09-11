@@ -1235,7 +1235,7 @@ FAIL:
 
 	GLfloat ex_em_hi[4]		= {0.6, 0.8, 1.0, aleph};   // pale blue
 	GLfloat ex_em_lo[4]		= {0.2, 0.0, 1.0, 0.0};		// purplish-blue-black
-
+	
 	OOGL(glPushMatrix());
 	OOGL(glDisable(GL_CULL_FACE));			// face culling
 	OOGL(glDisable(GL_TEXTURE_2D));
@@ -1255,6 +1255,8 @@ FAIL:
 		glVertex3f(ring_outer_radius*circleVertex[i].x, ring_outer_radius*circleVertex[i].y, ring_outer_radius*circleVertex[i].z);
 	}
 	OOGLEND();
+	
+	OOGL(glPopMatrix());
 	
 	EndAdditiveBlending();
 }
