@@ -24,7 +24,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOSelfDrawingEntity.h"
+#import "Entity.h"
 
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600

@@ -78,6 +78,12 @@ MA 02110-1301, USA.
 }
 
 
+- (double)findCollisionRadius
+{
+	return 0;	// FIXME: something sensible. Where does plume length come from anyway?
+}
+
+
 - (void) update:(OOTimeDelta) delta_t
 {
 	OOTimeAbsolute now = [UNIVERSE getTime];
@@ -108,7 +114,7 @@ MA 02110-1301, USA.
 	GLfloat flare_factor = flare_length * ex_emissive[3] * hyper_fade;
 	GLfloat red_factor = flare_length * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
 	GLfloat green_factor = flare_length * ex_emissive[1] * hyper_fade;
-
+	
 	if (flare_length > 1.0)	// afterburner!
 	{
 		red_factor = 1.5;
@@ -121,7 +127,7 @@ MA 02110-1301, USA.
 		green_factor = 0.0;
 	if ((int)(ranrot_rand() % 25) < dam - 75)
 		flare_factor = 0.0;
-
+	
 	if (flare_length < 0.1)  { flare_length = 0.1;}
 	Vector currentPos = ship->position;
 	Vector vfwd = vector_forward_from_quaternion(shipQrotation);

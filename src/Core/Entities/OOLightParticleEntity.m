@@ -62,6 +62,12 @@ static OOTexture *sBlobTexture = nil;
 }
 
 
+- (NSSize) size
+{
+	return _size;
+}
+
+
 - (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent)  return;

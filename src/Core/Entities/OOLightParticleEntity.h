@@ -40,6 +40,8 @@ MA 02110-1301, USA.
 
 - (id) initWithSize:(NSSize)size;
 
+- (NSSize) size;
+
 /*	For subclasses that don't want the default blur texture.
 	NOTE: such subclasses must deal with the OOGraphicsResetManager.
 */

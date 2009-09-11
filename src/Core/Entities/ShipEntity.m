@@ -102,6 +102,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) addSubEntity:(Entity *) subent;
 
+- (void) addSubentityToCollisionRadius:(Entity*) subent;
+
 @end
 
 
@@ -433,6 +435,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	unsigned int	i;
 	NSArray			*plumes = [shipDict oo_arrayForKey:@"exhaust"];
 	
+	_profileRadius = collision_radius;
+	
 	for (i = 0; i < [plumes count]; i++)
 	{
 		NSArray *definition = ScanTokensFromString([plumes oo_stringAtIndex:i]);
@@ -446,6 +450,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		[self setUpOneSubentity:[subs oo_dictionaryAtIndex:i]];
 	}
+	
+	no_draw_distance = _profileRadius * _profileRadius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 2.0;
+	
 	return YES;
 }
 
@@ -529,8 +536,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		[subentity setStatus:STATUS_INACTIVE];
 	}
-	
-	[self addSolidSubentityToCollisionRadius:subentity];
 	
 	[self addSubEntity:subentity];
 	[subentity release];
@@ -755,6 +760,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	brain = aBrain;
 }
 #endif
+
+
+- (Octree *) octree
+{
+	return octree;
+}
+
+
+- (float) volume
+{
+	return [octree volume];
+}
 
 
 - (GLfloat)doesHitLine:(Vector)v0: (Vector)v1;
@@ -1263,16 +1280,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) addSolidSubentityToCollisionRadius:(ShipEntity*) subent
+- (void) addSubentityToCollisionRadius:(Entity*)subent
 {
-	if (!subent)
-		return;
-
-	double distance = sqrt(magnitude2(subent->position)) + [subent findCollisionRadius];
-	if (distance > collision_radius)
-		collision_radius = distance;
+	if (!subent)  return;
 	
-	mass += 20.0 * [subent->octree volume];
+	double distance = magnitude([subent position]) + [subent findCollisionRadius];
+	if ([subent isKindOfClass:[ShipEntity class]])	// Solid subentity
+	{
+		if (distance > collision_radius)
+		{
+			collision_radius = distance;
+		}
+		
+		mass += 20.0 * [(ShipEntity *)subent volume];
+	}
+	if (distance > _profileRadius)
+	{
+		_profileRadius = distance;
+	}
 }
 
 
@@ -3323,6 +3348,8 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	// Order matters - need consistent state in setOwner:. -- Ahruman 2008-04-20
 	[subEntities addObject:sub];
 	[sub setOwner:self];
+	
+	[self addSubentityToCollisionRadius:sub];
 }
 
 

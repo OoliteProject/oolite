@@ -305,6 +305,8 @@ MA 02110-1301, USA.
 	OOShipGroup				*_escortGroup;
 	uint8_t					_maxEscortCount;
 	uint8_t					_pendingEscortCount;
+	
+	GLfloat					_profileRadius;
 }
 
 // ship brains
@@ -343,6 +345,9 @@ MA 02110-1301, USA.
 - (void) setSubEntityTakingDamage:(ShipEntity *)sub;
 
 - (void) clearSubEntities;	// Releases and clears subentity array, after making sure subentities don't think ship is owner.
+
+- (Octree *) octree;
+- (float) volume;
 
 // octree collision hunting
 - (GLfloat)doesHitLine:(Vector) v0: (Vector) v1;
@@ -614,8 +619,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 - (BoundingBox) findSubentityBoundingBox;
 
 - (Triangle) absoluteIJKForSubentity;
-
-- (void) addSolidSubentityToCollisionRadius:(ShipEntity *)subent;
 
 ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 
