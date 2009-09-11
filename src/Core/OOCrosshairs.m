@@ -11,6 +11,7 @@
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
+#import "OOMacroOpenGL.h"
 
 
 @interface OOCrosshairs (Private)
@@ -60,23 +61,25 @@
 {
 	if (_data != NULL)
 	{
-		glPushAttrib(GL_ENABLE_BIT);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_TEXTURE_2D);
-		glEnable(GL_LINE_SMOOTH);
-		glPushMatrix();
-		glTranslatef(0, 0, [[UNIVERSE gameView] display_z]);
+		OO_ENTER_OPENGL();
 		
-		glVertexPointer(2, GL_FLOAT, sizeof (GLfloat) * 6, _data);
-		glColorPointer(4, GL_FLOAT, sizeof (GLfloat) * 6, _data + 2);
+		OOGL(glPushAttrib(GL_ENABLE_BIT));
+		OOGL(glDisable(GL_LIGHTING));
+		OOGL(glDisable(GL_TEXTURE_2D));
+		OOGL(glEnable(GL_LINE_SMOOTH));
+		OOGL(glPushMatrix());
+		OOGL(glTranslatef(0, 0, [[UNIVERSE gameView] display_z]));
 		
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+		OOGL(glVertexPointer(2, GL_FLOAT, sizeof (GLfloat) * 6, _data));
+		OOGL(glColorPointer(4, GL_FLOAT, sizeof (GLfloat) * 6, _data + 2));
 		
-		glDrawArrays(GL_LINES, 0, _count * 2);
+		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+		OOGL(glEnableClientState(GL_COLOR_ARRAY));
 		
-		glPopMatrix();
-		glPopAttrib();
+		OOGL(glDrawArrays(GL_LINES, 0, _count * 2));
+		
+		OOGL(glPopMatrix());
+		OOGL(glPopAttrib());
 	}
 }
 

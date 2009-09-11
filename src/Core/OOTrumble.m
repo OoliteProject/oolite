@@ -429,7 +429,7 @@ static void PlayTrumbleSqueal(void);
 		case TRUMBLE_EYES_OPEN :
 			eyeTextureOffset = 0.0;	break;
 		case TRUMBLE_EYES_SHUT :
-			eyeTextureOffset = 0.25;	break;
+			eyeTextureOffset = 0.25; break;
 		case TRUMBLE_EYES_WIDE :
 			eyeTextureOffset = 0.5;	break;
 	}

@@ -138,11 +138,28 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @end
 
 
+#import <objc/objc-class.h>
+#import "OOExhaustPlumeEntity.h"
+#import "OOFlasherEntity.h"
+
+
 @implementation Universe
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
 	PlayerEntity	*player = nil;
+	
+#if ! __OBJC2__
+#define DUMP_SIZE(cls)  OOLog(@"size.dump", @"%@: %u bytes", [cls class], [cls class]->instance_size);
+	
+	DUMP_SIZE(Entity);
+	DUMP_SIZE(ShipEntity);
+	DUMP_SIZE(ParticleEntity);
+	DUMP_SIZE(OOExhaustPlumeEntity);
+	DUMP_SIZE(OOFlasherEntity);
+	DUMP_SIZE(SkyEntity);
+	DUMP_SIZE(PlanetEntity);
+#endif
 	
 	if (gSharedUniverse != nil)
 	{
@@ -1073,9 +1090,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		sun_specular[1] = the_sun->sun_specular[1];
 		sun_specular[2] = the_sun->sun_specular[2];
 		sun_specular[3] = the_sun->sun_specular[3];
-		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
+		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
+		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 		sun_pos[0] = the_sun->position.x;
 		sun_pos[1] = the_sun->position.y;
 		sun_pos[2] = the_sun->position.z;
@@ -1087,12 +1104,12 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		stars_ambient[0] = 0.05;	stars_ambient[1] = 0.20;	stars_ambient[2] = 0.05;	stars_ambient[3] = 1.0;
 		sun_diffuse[0] = 0.85;	sun_diffuse[1] = 1.0;	sun_diffuse[2] = 0.85;	sun_diffuse[3] = 1.0;
 		sun_specular[0] = 0.95;	sun_specular[1] = 1.0;	sun_specular[2] = 0.95;	sun_specular[3] = 1.0;
-		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
+		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
+		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
+		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 	}
 	
-	glLightfv(GL_LIGHT1, GL_POSITION, sun_pos);
+	OOGL(glLightfv(GL_LIGHT1, GL_POSITION, sun_pos));
 	
 	if (the_sky)
 	{
@@ -1110,17 +1127,15 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	}
 	
 	// light for demo ships display..
-	glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
+	OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
+	OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
+	OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
 	
-	// glLightModel details...
+	OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 	
-	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-	
-	glDisable(GL_LIGHT0);
+	OOGL(glDisable(GL_LIGHT0));
 	demo_light_on = NO;
-	glDisable(GL_LIGHT1);
+	OOGL(glDisable(GL_LIGHT1));
 	sun_light_on = NO;
 }
 
@@ -3204,18 +3219,18 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-void	setSunLight(BOOL yesno)
+void setSunLight(BOOL yesno)
 {
 	if (yesno != sun_light_on)
 	{
-		if (yesno)
-			glEnable(GL_LIGHT1);
-		else
-			glDisable(GL_LIGHT1);
+		if (yesno)  OOGL(glEnable(GL_LIGHT1));
+		else  OOGL(glDisable(GL_LIGHT1));
 		sun_light_on = yesno;
 	}
 }
-void	setDemoLight(BOOL yesno, Vector position)
+
+
+void setDemoLight(BOOL yesno, Vector position)
 {
 	if (yesno != demo_light_on)
 	{
@@ -3224,12 +3239,10 @@ void	setDemoLight(BOOL yesno, Vector position)
 			demo_light_position[0] = position.x;
 			demo_light_position[1] = position.y;
 			demo_light_position[2] = position.z;
-			glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position);
+			OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));
 		}
-		if (yesno)
-			glEnable(GL_LIGHT0);
-		else
-			glDisable(GL_LIGHT0);
+		if (yesno)  OOGL(glEnable(GL_LIGHT0));
+		else  OOGL(glDisable(GL_LIGHT0));
 		demo_light_on = yesno;
 	}
 }
@@ -3370,24 +3383,28 @@ static const OOMatrix	starboard_matrix =
 			
 			CheckOpenGLErrors(@"Universe before doing anything");
 			
-			glEnable(GL_LIGHTING);
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);			// face culling
-			glDepthMask(GL_TRUE);	// restore write to depth buffer
+			OOGL(glEnable(GL_LIGHTING));
+			OOGL(glEnable(GL_DEPTH_TEST));
+			OOGL(glEnable(GL_CULL_FACE));			// face culling
+			OOGL(glDepthMask(GL_TRUE));	// restore write to depth buffer
 			
 			if (!displayGUI)
-				glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]);
+			{
+				OOGL(glClearColor(skyClearColor[0], skyClearColor[1], skyClearColor[2], skyClearColor[3]));
+			}
 			else
-				glClearColor(0.0, 0.0, 0.0, 0.0);
+			{
+				OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+			}
 			
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			glLoadIdentity();	// reset matrix
+			OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+			OOGL(glLoadIdentity());	// reset matrix
 			
-			gluLookAt(0.0, 0.0, 0.0,	0.0, 0.0, 1.0,	0.0, 1.0, 0.0);
+			OOGL(gluLookAt(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0));
 			
 			// HACK BUSTED
-			glScalef(-1.0,  1.0,	1.0);   // flip left and right
-			glPushMatrix(); // save this flat viewpoint
+			OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
+			OOGL(glPushMatrix()); // save this flat viewpoint
 			
 			// Set up view transformation matrix
 			OOMatrix flipMatrix = kIdentityMatrix;
@@ -3395,7 +3412,7 @@ static const OOMatrix	starboard_matrix =
 			view_matrix = OOMatrixMultiply(view_matrix, flipMatrix);
 			Vector viewOffset = [player viewpointOffset];
 			
-			gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z);
+			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
 			
 			if (!displayGUI || inGUIMode)
 			{
@@ -3411,20 +3428,20 @@ static const OOMatrix	starboard_matrix =
 				}
 				
 				// position the sun and docked lights correctly
-				glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);	// this is necessary or the sun will move with the player
+				OOGL(glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position));	// this is necessary or the sun will move with the player
 				
 				if (inGUIMode)
 				{
 					// light for demo ships display.. 
-					glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient);
-					glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse);
-					glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular);
+					OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
+					OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
+					OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
 					
 					demo_light_on = NO;	// be contrary - force enabling of the light
 					setDemoLight(YES, demo_light_origin);
 					sun_light_on = YES;	// be contrary - force disabling of the light
 					setSunLight(NO);
-					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient);
+					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
 				}
 				else
 				{
@@ -3432,18 +3449,20 @@ static const OOMatrix	starboard_matrix =
 					setDemoLight(NO, demo_light_origin);
 					sun_light_on = NO;	// be contrary - force enabling of the light
 					setSunLight(YES);
-					glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 				}
 				
 				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
 				viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW);
 				
 				// turn on lighting
-				glEnable(GL_LIGHTING);
+				OOGL(glEnable(GL_LIGHTING));
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
 				BOOL	bpHide = [self breakPatternHide];
+				
+				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
@@ -3459,13 +3478,13 @@ static const OOMatrix	starboard_matrix =
 					if ((d_status == STATUS_COCKPIT_DISPLAY && inGUIMode) || (d_status != STATUS_COCKPIT_DISPLAY && !inGUIMode))
 					{
 						// reset material properties
-						glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff);
-						glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no);
+						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
+						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 
 						// atmospheric fog
 						BOOL fogging = ((airResistanceFactor > 0.01)&&(!drawthing->isPlanet));
 						
-						glPushMatrix();
+						OOGL(glPushMatrix());
 						obj_position = [drawthing position];
 						if (drawthing != player)
 						{
@@ -3487,12 +3506,11 @@ static const OOMatrix	starboard_matrix =
 						{
 							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
 							double half_scale = fog_scale * 0.50;
-							glEnable(GL_FOG);
-							glFogi(GL_FOG_MODE, GL_LINEAR);
-							glFogfv(GL_FOG_COLOR, skyClearColor);
-							glHint(GL_FOG_HINT, GL_NICEST);
-							glFogf(GL_FOG_START, half_scale);
-							glFogf(GL_FOG_END, fog_scale);
+							OOGL(glEnable(GL_FOG));
+							OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
+							OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
+							OOGL(glFogf(GL_FOG_START, half_scale));
+							OOGL(glFogf(GL_FOG_END, fog_scale));
 						}
 						
 						// lighting
@@ -3513,18 +3531,19 @@ static const OOMatrix	starboard_matrix =
 						
 						// atmospheric fog
 						if (fogging)
-							glDisable(GL_FOG);
+						{
+							OOGL(glDisable(GL_FOG));
+						}
 						
-						glPopMatrix();
-						
+						OOGL(glPopMatrix());
 					}
 				}
 				
 				
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				
-				glDepthMask(GL_FALSE);				// don't write to depth buffer
-				glDisable(GL_LIGHTING);
+				OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
+				OOGL(glDisable(GL_LIGHTING));
 				
 				for (i = furthest; i >= nearest; i--)
 				{
@@ -3538,7 +3557,7 @@ static const OOMatrix	starboard_matrix =
 						// experimental - atmospheric fog
 						BOOL fogging = (airResistanceFactor > 0.01);
 						
-						glPushMatrix();
+						OOGL(glPushMatrix());
 						obj_position = [drawthing position];
 						if (drawthing != player)
 						{
@@ -3560,12 +3579,11 @@ static const OOMatrix	starboard_matrix =
 						{
 							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
 							double half_scale = fog_scale * 0.50;
-							glEnable(GL_FOG);
-							glFogi(GL_FOG_MODE, GL_LINEAR);
-							glFogfv(GL_FOG_COLOR, skyClearColor);
-							glHint(GL_FOG_HINT, GL_NICEST);
-							glFogf(GL_FOG_START, half_scale);
-							glFogf(GL_FOG_END, fog_scale);
+							OOGL(glEnable(GL_FOG));
+							OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
+							OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
+							OOGL(glFogf(GL_FOG_START, half_scale));
+							OOGL(glFogf(GL_FOG_END, fog_scale));
 						}
 						
 						// draw the thing
@@ -3573,25 +3591,27 @@ static const OOMatrix	starboard_matrix =
 						
 						// atmospheric fog
 						if (fogging)
-							glDisable(GL_FOG);
+						{
+							OOGL(glDisable(GL_FOG));
+						}
 						
-						glPopMatrix();
+						OOGL(glPopMatrix());
 					}
 				}
 								
-				glDepthMask(GL_TRUE);	// restore write to depth buffer
+				OOGL(glDepthMask(GL_TRUE));	// restore write to depth buffer
 			}
 			
-			glPopMatrix(); //restore saved flat viewpoint
+			OOGL(glPopMatrix()); //restore saved flat viewpoint
 
-			glDisable(GL_LIGHTING);				// disable lighting
-			glDisable(GL_DEPTH_TEST);			// disable depth test
-			glDisable(GL_CULL_FACE);			// face culling
-			glDepthMask(GL_FALSE);				// don't write to depth buffer
+			OOGL(glDisable(GL_LIGHTING));			// disable lighting
+			OOGL(glDisable(GL_DEPTH_TEST));			// disable depth test
+			OOGL(glDisable(GL_CULL_FACE));			// face culling
+			OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
 
 			GLfloat	line_width = [gameView viewSize].width / 1024.0; // restore line size
 			if (line_width < 1.0)  line_width = 1.0;
-			glLineWidth(line_width);
+			OOGL(glLineWidth(line_width));
 
 			[self drawMessage];
 			
@@ -3619,7 +3639,7 @@ static const OOMatrix	starboard_matrix =
 				[theHUD renderHUD];
 			}
 			
-			glFlush();	// don't wait around for drawing to complete
+			OOGL(glFlush());	// don't wait around for drawing to complete
 			
 			// clear errors - and announce them
 			CheckOpenGLErrors(@"Universe after all entity drawing is done.");
@@ -3644,7 +3664,9 @@ static const OOMatrix	starboard_matrix =
 		NS_HANDLER
 		
 			if ([[localException name] hasPrefix:@"Oolite"])
+			{
 				[self handleOoliteException:localException];
+			}
 			else
 			{
 				OOLog(kOOLogException, @"***** Exception: %@ : %@ *****",[localException name], [localException reason]);
@@ -3676,7 +3698,7 @@ static const OOMatrix	starboard_matrix =
 
 - (void) drawMessage
 {
-	glDisable(GL_TEXTURE_2D);	// for background sheets
+	OOGL(glDisable(GL_TEXTURE_2D));	// for background sheets
 	
 	float overallAlpha = [[[PlayerEntity sharedPlayer] hud] overallAlpha];
 	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];

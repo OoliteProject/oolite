@@ -148,7 +148,8 @@ static void InitTextEngine(void);
 
 OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 {
-	OOGL(glColor4f(color[0], color[1], color[2], color[3] * alpha));
+	// NO OOGL(), this is called within immediate mode blocks.
+	glColor4f(color[0], color[1], color[2], color[3] * alpha);
 }
 
 
@@ -1140,7 +1141,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	GLfloat strip[] = { -7,8, -6,5, 5,8, 3,5, 7,2, 4,2, 6,-1, 4,2, -4,-1, -6,2, -4,-1, -7,-1, -3,-4, -5,-7, 6,-4, 7,-7 };
 	
-#if 0
+#if 1
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGLBEGIN(GL_QUAD_STRIP);
 		int i;
@@ -1150,9 +1151,9 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		}
 	OOGLEND();
 #else
-	glPushMatrix();
-	glTranslatef(x, y, z1);
-	glScalef(w, -h, 1.0f);
+	OOGL(glPushMatrix());
+	OOGL(glTranslatef(x, y, z1));
+	OOGL(glScalef(w, -h, 1.0f));
 	
 	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	OOGL(glVertexPointer(2, GL_FLOAT, 0, strip));
@@ -1162,7 +1163,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	OOGL(glDrawArrays(GL_QUAD_STRIP, 0, sizeof strip / sizeof *strip / 2));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	
-	glPopMatrix();
+	OOGL(glPopMatrix());
 #endif
 }
 
@@ -1913,7 +1914,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		glVertex3f(x, y - h4, z1);	glVertex3f(x - w2, y - h2, z1);	glVertex3f(x - w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 		glVertex3f(x, y - h4, z1);	glVertex3f(x + w2, y - h2, z1);	glVertex3f(x + w2, y - h1, z1);	glVertex3f(x, y - h2, z1);
 	OOGLEND();
-	
 }
 
 
