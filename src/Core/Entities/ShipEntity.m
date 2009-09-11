@@ -3374,8 +3374,9 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	GLfloat dt_thrust = thrust * delta_t;
 	BOOL	canBurn = [self hasFuelInjection] && (fuel > MIN_FUEL);
+	BOOL	isUsingAfterburner = (canBurn && (flightSpeed > maxFlightSpeed) && (desired_speed >= flightSpeed));
 	float	max_available_speed = maxFlightSpeed;
-	if (canBurn)  max_available_speed *= [self afterburnerFactor];
+	if (canBurn) max_available_speed *= [self afterburnerFactor];
 	
 	position = vector_add(position, vector_multiply_scalar(velocity, delta_t));
 	
@@ -3410,13 +3411,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	[self moveForward: delta_t*flightSpeed];
 
 	// burn fuel at the appropriate rate
-	if ((flightSpeed > maxFlightSpeed) && canBurn)
+	if (isUsingAfterburner) // no fuelconsumption on slowdown
 	{
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
 			if (fuel-- <= MIN_FUEL)
-				desired_speed = maxFlightSpeed;
+				max_available_speed = maxFlightSpeed;
 			fuel_accumulator += 1.0;
 		}
 	}
@@ -4518,8 +4519,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) decrease_flight_speed:(double) delta
 {
-	if (flightSpeed > delta)
-		flightSpeed -= delta;
+	double factor = 1.0;
+	if (flightSpeed > maxFlightSpeed) factor = [self afterburnerFactor] / 2;
+
+	if (flightSpeed > factor * delta)
+		flightSpeed -= factor * delta;  // Player uses here: flightSpeed -= 5 * HYPERSPEED_FACTOR * delta (= 160 * delta);
 	else
 		flightSpeed = 0;
 }

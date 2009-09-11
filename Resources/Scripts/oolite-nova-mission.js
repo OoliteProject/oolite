@@ -199,8 +199,11 @@ this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = 
 
 this.shipWillEnterWitchspace = function ()
 {
-	if (missionVariables.nova === "NOVA_ESCAPE_HERO" || missionVariables.nova === "NOVA_ESCAPE_COWARD" || missionVariables.nova === "TWO_HRS_TO_ZERO")
+	if (this.willGoNova)
+	{
 		system.info.sun_gone_nova = true;
+		delete this.willGoNova;
+	}
 }
 
 
@@ -214,6 +217,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 			missionVariables.nova = "TWO_HRS_TO_ZERO";
 			player.ship.fuelLeakRate = 25;
 			system.sun.goNova(7200);
+			this.willGoNova = true;
 			player.consoleMessage(expandDescription("[danger-fuel-leak]"), 4.5);
 			system.info.market = "none";
 			this.buoyLoaded = false;  // w-bouy is not in system yet.
