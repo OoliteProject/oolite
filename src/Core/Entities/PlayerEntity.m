@@ -2610,14 +2610,17 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) setNextCompassMode
 {
+	OOAegisStatus	aegis = AEGIS_NONE;
+	
 	switch (compassMode)
 	{
 		case COMPASS_MODE_BASIC:
 		case COMPASS_MODE_PLANET:
-			if ([self checkForAegis] == AEGIS_NONE)
-				[self setCompassMode:COMPASS_MODE_SUN];
-			else
+			aegis = [self checkForAegis];
+			if (aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE)
 				[self setCompassMode:COMPASS_MODE_STATION];
+			else
+				[self setCompassMode:COMPASS_MODE_SUN];
 			break;
 		case COMPASS_MODE_STATION:
 			[self setCompassMode:COMPASS_MODE_SUN];

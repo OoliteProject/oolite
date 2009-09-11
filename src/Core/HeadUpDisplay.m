@@ -911,12 +911,14 @@ static BOOL hostiles;
 		&& ![the_sun goneNova])				// and the system has not been novabombed
 	{
 		Entity *reference = nil;
+		OOAegisStatus	aegis = AEGIS_NONE;
 		
 		switch ([player compassMode])
 		{
 			case COMPASS_MODE_BASIC:
 				
-				if ([player checkForAegis] != AEGIS_NONE && the_station)
+				aegis = [player checkForAegis];
+				if ((aegis == AEGIS_CLOSE_TO_MAIN_PLANET || aegis == AEGIS_IN_DOCKING_RANGE) && the_station)
 				{
 					reference = the_station;
 				}
