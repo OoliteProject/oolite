@@ -171,6 +171,8 @@ SOFTWARE.
 		bzero(ioData->mBuffers[1].mData + toCopy, underflow * sizeof (float));
 	}
 	
+	OOCASoundVerifyBuffers(ioData, inNumFrames, self);
+	
 	return done ? endOfDataReached : noErr;
 }
 

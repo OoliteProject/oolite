@@ -383,8 +383,10 @@ enum
 		if (0 == available) *ioFlags |= kAudioUnitRenderAction_OutputIsSilence;
 		
 		bzero(ioData->mBuffers[0].mData + available, underflow);
-		bzero(ioData->mBuffers[0].mData + available, underflow);
+		bzero(ioData->mBuffers[1].mData + available, underflow);
 	}
+	
+	OOCASoundVerifyBuffers(ioData, inNumFrames, self);
 	
 	remaining -= available;
 	if (!context->atEnd && remaining < kStreamBufferRefillThreshold * sizeof (float) && sFeederQueue != kInvalidID)

@@ -135,3 +135,10 @@ static inline OSStatus OOAUGraphNodeInfo(AUGraph inGraph, AUNode inNode, Compone
 }
 
 #endif
+
+
+#ifndef NDEBUG
+void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSound *sound);
+#else
+#define OOCASoundVerifyBuffers(buffers, numFrames, sound)  do {} while (0)
+#endif

@@ -77,6 +77,18 @@ static OOSound				*sSingletonOOSound = nil;
 static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 
 
+#ifndef NDEBUG
+static struct
+{
+	BOOL hasData;
+	float badVal;
+	OOSound *badSound;
+} sSoundError;
+
+#import <Foundation/NSDebug.h>
+#endif
+
+
 @implementation OOSound
 
 #pragma mark NSObject
@@ -169,6 +181,21 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 + (void) update
 {
 	[[OOSoundMixer sharedMixer] update];
+	
+#ifndef NDEBUG
+	if (sSoundError.hasData)
+	{
+		float badVal = sSoundError.badVal;
+		OOSound *badSound = sSoundError.badSound;
+		sSoundError.hasData = NO;
+		
+		NSString *desc = nil;
+		if (NSIsFreedObject(badSound))  desc = [NSString stringWithFormat:@"released sound %p", badSound];
+		else  desc = [badSound description];
+		
+		OOLog(@"sound.renderingError", @"Sound rendering error detected for sound %@ (bad value: %f)", desc, badVal);
+	}
+#endif
 }
 
 
@@ -303,3 +330,62 @@ static size_t				sMaxBufferedSoundSize = 1 << 20;	// 1 MB
 }
 
 @end
+
+
+#ifndef NDEBUG
+static BOOL VerifyOneBuffer(AudioBuffer *buffer, OOUInteger numFrames, float *badVal);
+
+
+void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSound *sound)
+{
+	BOOL allOK = YES;
+	UInt32 i;
+	float badVal;
+	
+	for (i = 0; i < buffers->mNumberBuffers; i++)
+	{
+		if (!VerifyOneBuffer(&buffers->mBuffers[i], numFrames, &badVal))
+		{
+			allOK = NO;
+			
+			if (!sSoundError.hasData)
+			{
+				sSoundError.badSound = sound;
+				sSoundError.badVal = badVal;
+				sSoundError.hasData = YES;	// Must be last!
+			}
+		}
+	}
+}
+
+
+static BOOL VerifyOneBuffer(AudioBuffer *buffer, OOUInteger numFrames, float *badVal)
+{
+	if (buffer == NULL || buffer->mData == NULL || badVal == NULL)  return NO;
+	
+	*badVal = 0.0;
+	
+	if (numFrames * sizeof(float) > buffer->mDataByteSize)
+	{
+		memset(buffer->mData, 0, buffer->mDataByteSize);
+		return NO;
+	}
+	
+	// Assume data is float.
+	float *floatBuffer = (float *)buffer->mData;
+	OOUInteger i;
+	for (i = 0; i < numFrames; i++)
+	{
+		float val = floatBuffer[i];
+		if (isnan(val) || !isfinite(val) || fabs(val) > 1.01f)
+		{
+			*badVal = val;
+			memset(buffer->mData, 0, buffer->mDataByteSize);
+			return NO;
+		}
+	}
+	
+	return YES;
+}
+
+#endif
