@@ -110,9 +110,10 @@ Function .onInit
 ;Run the uninstaller
 uninst:
   ClearErrors
-  ExecWait '$R0 _?=$INSTDIR'
+  ReadRegStr $R1 HKLM "Software\Oolite" Install_Dir
+  ExecWait '$R0 _?=$R1'
   IfErrors no_remove_uninstaller
-    Delete "$INSTDIR\UninstOolite.exe"
+    Delete "$R1\UninstOolite.exe"
     Goto done
   no_remove_uninstaller:
     MessageBox MB_OK|MB_ICONEXCLAMATION "The Uninstaller did not complete successfully.  Please ensure Oolite was correctly uninstalled then run the installer again."
