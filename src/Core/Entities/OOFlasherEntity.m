@@ -123,7 +123,14 @@ MA 02110-1301, USA.
 	[super update:delta_t];
 	
 	_time += delta_t;
-	_colorComponents[3] = 0.5 * sin(_frequency * M_PI * (_time + _phase)) + 0.5;
+	if (_frequency != 0)
+	{
+		_colorComponents[3] = 0.5 * sin(_frequency * M_PI * (_time + _phase)) + 0.5;
+	}
+	else
+	{
+		_colorComponents[3] = 1.0;
+	}
 }
 
 
