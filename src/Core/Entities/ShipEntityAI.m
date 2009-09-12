@@ -347,11 +347,12 @@ MA 02110-1301, USA.
 	NSArray				*messages = nil;
 	NSEnumerator		*messageEnum = nil;
 	NSString			*message = nil;
+	NSCharacterSet		*whiteSpace = [NSCharacterSet whitespaceCharacterSet];
 	
-	messages = ScanTokensFromString(messageString);
+	messages = [messageString componentsSeparatedByString:@","];
 	for (messageEnum = [messages objectEnumerator]; (message = [messageEnum nextObject]); )
 	{
-		[shipAI dropMessage:message];
+		[shipAI dropMessage:[message stringByTrimmingCharactersInSet:whiteSpace]];
 	}
 }
 
