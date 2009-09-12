@@ -45,7 +45,6 @@ MA 02110-1301, USA.
 typedef enum
 {
 	PARTICLE_TEST				= 1,
-	PARTICLE_SPARK				= 102,
 	PARTICLE_SHOT_PLASMA		= 110,
 	PARTICLE_LASER_BEAM			= 160,
 	PARTICLE_EXPLOSION			= 201,
@@ -557,29 +556,6 @@ FAIL:
 }
 
 
-- (id) initSparkAt:(Vector)inPosition
-		  velocity:(Vector)inVelocity
-		  duration:(OOTimeDelta)inDuration
-			  size:(float)inSize
-			 color:(OOColor *)inColor
-{
-	self = [self init];
-	if (self != nil)
-	{
-		particle_type = PARTICLE_SPARK;
-		[self setPosition:inPosition];
-		[self setVelocity:inVelocity];
-		[self setScanClass:CLASS_NO_DRAW];
-		[self setDuration:inDuration];
-		[self setCollisionRadius:2.0];
-		[self setEnergy:0.0];
-		[self setSize:NSMakeSize(inSize, inSize)];
-		[self setColor:inColor];
-	}
-	return self;
-}
-
-
 - (void) dealloc
 {
 	[texture release];
@@ -599,7 +575,6 @@ FAIL:
 		CASE(PARTICLE_TEST);
 		CASE(PARTICLE_LASER_BEAM);
 		CASE(PARTICLE_SHOT_PLASMA);
-		CASE(PARTICLE_SPARK);
 		CASE(PARTICLE_EXPLOSION);
 		CASE(PARTICLE_FLASH);
 		CASE(PARTICLE_FRAGBURST);
@@ -708,7 +683,6 @@ FAIL:
 		switch ([self particleType])
 		{
 			case PARTICLE_TEST:
-			case PARTICLE_SPARK:
 			case PARTICLE_SHOT_PLASMA:
 			case PARTICLE_EXPLOSION:
 			case PARTICLE_FRAGBURST:
@@ -748,10 +722,6 @@ FAIL:
 
 			case PARTICLE_ENERGY_MINE:
 				[self updateEnergyMine:delta_t];
-				break;
-
-			case PARTICLE_SPARK:
-				[self updateSpark:delta_t];
 				break;
 
 			case PARTICLE_FRAGBURST:
@@ -832,7 +802,7 @@ FAIL:
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	rotMatrix = OOMatrixForBillboard(position, [player position]);
-
+	
 	GLfloat tf = time_counter / duration;
 	GLfloat stf = tf * tf;
 	GLfloat expansion_speed = 0.0;
@@ -840,9 +810,9 @@ FAIL:
 		expansion_speed = 240 + 10 / (tf * tf);
 	if (expansion_speed > 1000.0)
 		expansion_speed = 1000.0;
-
+	
 	velocity.z = expansion_speed;
-
+	
 	collision_radius += delta_t * expansion_speed;		// expand
 //	energy = 10000 - 9000 * tf;	// 10000 -> 1000
 	energy = delta_t * (100000 - 90000 * tf);	// adjusted to take into account delta_t
@@ -855,7 +825,7 @@ FAIL:
 	color_fv[1] = 1.0 - 5.0 * tf;
 	if (color_fv[1] > 1.0)	color_fv[1] = 1.0;
 	if (color_fv[1] < 0.0)	color_fv[1] = 0.0;
-
+	
 	// manageCollisions
 	if ([collidingEntities count] > 0)
 	{
@@ -866,7 +836,7 @@ FAIL:
 			[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
 		}
 	}
-
+	
 	// expire after ttl
 	if (time_counter > duration)	// until the timer runs out!
 		[UNIVERSE removeEntity:self];
@@ -1026,7 +996,7 @@ FAIL:
 
 - (void) drawEntity:(BOOL) immediate:(BOOL) translucent;
 {
-	if (UNIVERSE == nil || [UNIVERSE breakPatternHide])  return;
+	if ([UNIVERSE breakPatternHide])  return;
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT));
 	
@@ -1037,35 +1007,31 @@ FAIL:
 			case PARTICLE_LASER_BEAM:
 				[self drawLaser];
 				break;
-
+				
 			case PARTICLE_HYPERRING:
 				[self drawHyperring];
 				break;
-
+				
 			case PARTICLE_ECM_MINE:
 				// not a visible entity
 				break;
-
+				
 			case PARTICLE_ENERGY_MINE:
 				[self drawEnergyMine];
 				break;
-
+				
 			case PARTICLE_FRAGBURST:
 				[self drawFragburst];
 				break;
-
+				
 			case PARTICLE_BURST2:
 				[self drawBurst2];
 				break;
-
-			case PARTICLE_FLASH:
-				[self drawParticle];
-				break;
-
+				
 			case PARTICLE_BILLBOARD:
 				[self drawBillboard];
 				break;
-
+				
 			default:
 				[self drawParticle];
 				break;
@@ -1087,17 +1053,17 @@ FAIL:
 
 	alpha = OOClamp_0_1_f(alpha);
 	color_fv[3] = alpha;
-
+	
 	// movies:
 	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
-
+	
 	OOGL(glEnable(GL_TEXTURE_2D));
-
+	
 	OOGL(glColor4fv(color_fv));
-
+	
 	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv));
 	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
-
+	
 	[texture apply];
 	
 	BeginAdditiveBlending(GL_ONE_YES);

@@ -102,8 +102,7 @@ MA 02110-1301, USA.
 
 - (void) getCurrentColorComponents
 {
-	GLfloat alpha;
-	[[_colors objectAtIndex:_activeColor] getGLRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&alpha];
+	[self setColor:[_colors objectAtIndex:_activeColor] alpha:_colorComponents[3]];
 }
 
 
@@ -121,6 +120,8 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
+	[super update:delta_t];
+	
 	_time += delta_t;
 	_colorComponents[3] = 0.5 * sin(_frequency * M_PI * (_time + _phase)) + 0.5;
 }

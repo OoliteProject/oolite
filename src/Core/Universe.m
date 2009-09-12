@@ -139,14 +139,16 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 
 #if __OBJC2__
-#	import <objc/runtime.h>
+#import <objc/runtime.h>
 #else
-#	if OOLITE_MAC_OS_X
-#		import <objc/objc-class.h>
-#	endif
+#if OOLITE_MAC_OS_X
+#import <objc/objc-class.h>
 #endif
-#import "OOExhaustPlumeEntity.h"
-#import "OOFlasherEntity.h"
+OOINLINE size_t class_getInstanceSize(Class cls)
+{
+	return cls->instance_size;
+}
+#endif
 
 
 @implementation Universe
@@ -156,13 +158,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	PlayerEntity	*player = nil;
 	
 #if ! __OBJC2__
-#define DUMP_SIZE(cls)  OOLog(@"size.dump", @"%@: %u bytes", [cls class], [cls class]->instance_size);
+#define DUMP_SIZE(cls)  do { Class c = NSClassFromString(@#cls); OOLog(@"size.dump", @"%@: %u bytes", c, class_getInstanceSize(c)); } while (0)
 	
 	DUMP_SIZE(Entity);
 	DUMP_SIZE(ShipEntity);
 	DUMP_SIZE(ParticleEntity);
 	DUMP_SIZE(OOExhaustPlumeEntity);
 	DUMP_SIZE(OOFlasherEntity);
+	DUMP_SIZE(OOSparkEntity);
 	DUMP_SIZE(SkyEntity);
 	DUMP_SIZE(PlanetEntity);
 #endif

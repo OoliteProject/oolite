@@ -60,6 +60,7 @@ MA 02110-1301, USA.
 #import "WormholeEntity.h"
 #import "OOFlasherEntity.h"
 #import "OOExhaustPlumeEntity.h"
+#import "OOSparkEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -1462,7 +1463,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		throw_sparks = YES;
 
 	// burning effects
-	//
 	if (throw_sparks)
 	{
 		next_spark_time -= delta_t;
@@ -1472,7 +1472,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			throw_sparks = NO;	// until triggered again
 		}
 	}
-
+	
 	// cloaking device
 	if ([self hasCloakingDevice])
 	{
@@ -6671,10 +6671,9 @@ BOOL class_masslocks(int some_class)
 	return YES;
 }
 
-
 - (void) throwSparks
 {
-	ParticleEntity*	spark;
+	OOSparkEntity *spark = nil;
 	Vector  vel;
 	Vector  origin = position;
 
@@ -6704,11 +6703,12 @@ BOOL class_masslocks(int some_class)
 	
 	OOColor *color = [OOColor colorWithCalibratedHue:0.08 + 0.17 * randf() saturation:1.0 brightness:1.0 alpha:1.0];
 	
-	spark = [[ParticleEntity alloc] initSparkAt:origin
-									   velocity:vel
-									   duration:2.0 + 3.0 * randf()
-										   size:sz
-										  color:color];
+	spark = [[OOSparkEntity alloc] initWithPosition:origin
+										   velocity:vel
+										   duration:2.0 + 3.0 * randf()
+											   size:sz
+											  color:color];
+	
 	[spark setOwner:self];
 	[UNIVERSE addEntity:spark];
 	[spark release];

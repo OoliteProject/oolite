@@ -58,6 +58,8 @@
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
 		1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1E99B40EF04837008B48E2 /* OOProgressBar.h */; };
 		1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1E99B50EF04837008B48E2 /* OOProgressBar.m */; };
+		1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */; };
+		1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */; };
 		1A20F7060F36EE0500156DE9 /* OOExcludeObjectEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */; };
 		1A20F7070F36EE0500156DE9 /* OOExcludeObjectEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A20F7050F36EE0500156DE9 /* OOExcludeObjectEnumerator.m */; };
 		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
@@ -1109,6 +1111,8 @@
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A1E99B40EF04837008B48E2 /* OOProgressBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProgressBar.h; sourceTree = "<group>"; };
 		1A1E99B50EF04837008B48E2 /* OOProgressBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProgressBar.m; sourceTree = "<group>"; };
+		1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSparkEntity.h; sourceTree = "<group>"; };
+		1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSparkEntity.m; sourceTree = "<group>"; };
 		1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExcludeObjectEnumerator.h; sourceTree = "<group>"; };
 		1A20F7050F36EE0500156DE9 /* OOExcludeObjectEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOExcludeObjectEnumerator.m; sourceTree = "<group>"; };
 		1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-ball-turret.dat"; sourceTree = "<group>"; };
@@ -2590,6 +2594,8 @@
 				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
 				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
 				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
+				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
+				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
 				1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */,
 				1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */,
 			);
@@ -3038,6 +3044,7 @@
 				1AE242C51054226900EAA7F2 /* OOFlasherEntity.h in Headers */,
 				1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */,
 				1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */,
+				1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3379,6 +3386,7 @@
 				1AE242C61054226900EAA7F2 /* OOFlasherEntity.m in Sources */,
 				1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */,
 				1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */,
+				1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

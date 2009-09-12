@@ -56,6 +56,8 @@ static OOTexture *sBlobTexture = nil;
 		_colorComponents[1] = 1.0f;
 		_colorComponents[2] = 1.0f;
 		_colorComponents[3] = 1.0f;
+		
+		[self setScanClass:CLASS_NO_DRAW];
 	}
 	
 	return self;
@@ -65,6 +67,17 @@ static OOTexture *sBlobTexture = nil;
 - (NSSize) size
 {
 	return _size;
+}
+- (void) setColor:(OOColor *)color
+{
+	[color getGLRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&_colorComponents[3]];
+}
+
+
+- (void) setColor:(OOColor *)color alpha:(GLfloat)alpha
+{
+	[self setColor:color];
+	_colorComponents[3] = alpha;
 }
 
 
@@ -102,7 +115,7 @@ static OOTexture *sBlobTexture = nil;
 
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
-	if (!translucent)  return;
+	if (!translucent || [UNIVERSE breakPatternHide])  return;
 	
 	// FIXME: check distance.
 	

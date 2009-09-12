@@ -1,8 +1,6 @@
 /*
 
-OOLightParticleEntity.h
-
-Simple particle-type effect entity. Draws a billboard with additive blending.
+OOSparkEntity.h
 
 
 Oolite
@@ -25,29 +23,20 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
-
-@class OOTexture, OOColor;
+#import "OOLightParticleEntity.h"
 
 
-@interface OOLightParticleEntity: Entity
+@interface OOSparkEntity: OOLightParticleEntity
 {
-@protected
-	GLfloat					_colorComponents[4];
 @private
-	NSSize					_size;
+	GLfloat				_baseRGBA[4];
+	GLfloat				_duration, _timeRemaining;
 }
 
-- (id) initWithSize:(NSSize)size;
-
-- (NSSize) size;
-
-- (void) setColor:(OOColor *)color;
-- (void) setColor:(OOColor *)color alpha:(GLfloat)alpha;
-
-/*	For subclasses that don't want the default blur texture.
-	NOTE: such subclasses must deal with the OOGraphicsResetManager.
-*/
-- (OOTexture *) texture;
+- (id) initWithPosition:(Vector)position
+			   velocity:(Vector)velocity
+			   duration:(OOTimeDelta)duration
+				   size:(float)size
+				  color:(OOColor *)color;
 
 @end
