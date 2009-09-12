@@ -4486,6 +4486,27 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (NSArray *) cargoListArray
+{
+	NSEnumerator	*cargoListEnum = nil;
+	NSString	*cargoItemDescription = nil;
+	NSMutableArray	*result = [NSMutableArray array];
+	
+	NSArray		*originalCargoList = [self cargoList];
+	
+	for (cargoListEnum = [originalCargoList objectEnumerator]; (cargoItemDescription = [cargoListEnum nextObject]); )
+	{
+		NSArray *tokens = ScanTokensFromString(cargoItemDescription);	// original cargoList indexes:
+		unsigned commodityQuantity = [tokens oo_unsignedIntAtIndex:0];	// index 0: quantity
+		NSString *commodityUnit = [tokens oo_stringAtIndex:1];		// index 1: unit
+		NSString *commodityName = [tokens objectAtIndex:3];		// index 3: commodity name (index 2 is the x, not useful)
+		[result addObject:[NSArray arrayWithObjects:commodityName, [NSNumber numberWithUnsignedInt:commodityQuantity], commodityUnit, nil]];
+	}
+	
+	return [[result copy] autorelease];	// return an immutable copy
+}
+
+
 - (void) setGuiToSystemDataScreen
 {
 	NSDictionary*   targetSystemData;

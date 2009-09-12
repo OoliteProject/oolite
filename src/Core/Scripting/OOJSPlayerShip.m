@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOCollectionExtractors.h"
 #import "OOJSPlayer.h"
 #import "OOJSEntity.h"
 #import "OOJSShip.h"
@@ -55,6 +56,7 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerShipQueryCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -138,6 +140,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
+	{ "queryCargo",			PlayerShipQueryCargo,			0 },
 	{ 0 }
 };
 
@@ -586,5 +589,44 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	}
 	
 	[player useSpecialCargo:JSValToNSString(context, argv[0])];
+	return YES;
+}
+
+
+static JSBool PlayerShipQueryCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSArray				*shipCommodityList = nil;
+	NSObject			*result = nil;
+	unsigned			i;
+	
+	shipCommodityList = [player cargoListArray];
+	
+	if (argc == 0)	// if no arguments are passed, return the array of cargo names, tonnages and units
+	{
+		result = (NSArray *)shipCommodityList;
+		if ([(NSArray *)result count] == 0)  result = nil;
+	}
+	else if (shipCommodityList != nil)	// if we are querying a cargo item, return its quantity instead
+	{
+		NSString	*commodityQueriedName = JSValToNSString(context, argv[0]);
+		
+		if (EXPECT_NOT(commodityQueriedName == nil))
+		{
+			OOReportJSBadArguments(context, @"PlayerShip", @"queryCargo", argc, argv, nil, @"[commodity name]");
+			return NO;
+		}
+		
+		for (i = 0; i < [shipCommodityList count]; i++)
+		{
+			NSArray *cargoItem = [shipCommodityList oo_arrayAtIndex:i];
+			if ([commodityQueriedName caseInsensitiveCompare:[cargoItem oo_stringAtIndex:0]] == NSOrderedSame)
+			{
+				result = [NSNumber numberWithUnsignedInt:[cargoItem oo_unsignedIntAtIndex:1]];
+			}
+		}
+	}
+
+	*outResult = [result javaScriptValueInContext:context];
 	return YES;
 }
