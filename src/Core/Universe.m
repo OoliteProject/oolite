@@ -5101,11 +5101,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 
 - (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count
 {
-	[self addCommsMessage:text forCount:count andShowComms:YES];
+	[self addCommsMessage:text forCount:count andShowComms:YES logOnly:NO];
 }
 
 
-- (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count andShowComms:(BOOL) showComms
+- (void) addCommsMessage:(NSString *)text forCount:(OOTimeDelta)count andShowComms:(BOOL)showComms logOnly:(BOOL)logOnly
 {
 	if ([[PlayerEntity sharedPlayer] showDemoShips]) return;
 	
@@ -5113,21 +5113,25 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
-		if ([player isSpeechOn])
+		if (!logOnly)
 		{
-			if ([self isSpeaking])
-				[self stopSpeaking];
-			[self startSpeakingString:@"Incoming message."];
+			if ([player isSpeechOn])
+			{
+				if ([self isSpeaking])
+					[self stopSpeaking];
+				[self startSpeakingString:@"Incoming message."];
+			}
+			
+			[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
+			
+			[currentMessage release];
+			currentMessage = [text retain];
+			messageRepeatTime=universal_time + 6.0;
 		}
 		
-		[message_gui printLongText:text align:GUI_ALIGN_CENTER color:[OOColor greenColor] fadeTime:(float)count key:nil addToArray:nil];
-		
 		[comm_log_gui printLongText:text align:GUI_ALIGN_LEFT color:nil fadeTime:0.0 key:nil addToArray:[player commLog]];
-		if (showComms) [self showCommsLog:6.0];
 		
-		[currentMessage release];
-		currentMessage = [text retain];
-		messageRepeatTime=universal_time + 6.0;
+		if (showComms)  [self showCommsLog:6.0];
 	}
 }
 

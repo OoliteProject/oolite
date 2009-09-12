@@ -499,7 +499,7 @@ waitingForStickCallback: 1;
 	int						selFunctionIdx;
 	NSArray					*stickFunctions; 
 	
-	OOGalacticHyperspaceBehaviour		galacticHyperspaceBehaviour;
+	OOGalacticHyperspaceBehaviour galacticHyperspaceBehaviour;
 	NSPoint					galacticHyperspaceFixedCoords;
 	
 @private

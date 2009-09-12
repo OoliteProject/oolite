@@ -241,7 +241,7 @@ MA 02110-1301, USA.
 	
 	double					next_spark_time;			// time of next spark when throwing sparks
 	
-	int						thanked_ship_id;			// last ship thanked
+	OOUniversalID			thanked_ship_id;			// last ship thanked
 	
 	Vector					collision_vector;			// direction of colliding thing.
 	

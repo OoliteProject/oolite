@@ -85,8 +85,8 @@ MA 02110-1301, USA.
 enum
 {
 	// If comm log is kCommLogTrimThreshold or more lines long, it will be cut to kCommLogTrimSize.
-	kCommLogTrimThreshold				= 125,
-	kCommLogTrimSize					= 100
+	kCommLogTrimThreshold				= 15U,
+	kCommLogTrimSize					= 10U
 };
 
 
@@ -386,7 +386,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	// communications log
 	NSArray *log = [self commLog];
 	if (log != nil)  [result setObject:log forKey:@"comm_log"];
-
+	
+	[result oo_setUnsignedInteger:entity_personality forKey:@"entity_personality"];
+	
 	// extra equipment flags
 	NSMutableDictionary	*equipment = [NSMutableDictionary dictionary];
 	NSEnumerator		*eqEnum = nil;
@@ -492,6 +494,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
+	unsigned i,j;
+	
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
@@ -651,10 +655,23 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// communications log
 	[commLog release];
-	commLog = [[dict oo_arrayForKey:@"comm_log"] mutableCopy];
+	commLog = [[NSMutableArray alloc] initWithCapacity:kCommLogTrimThreshold];
+	
+	NSArray *savedCommLog = [[dict oo_arrayForKey:@"comm_log"] mutableCopy];
+	unsigned commCount = [savedCommLog count];
+	for (i = 0; i < commCount; i++)
+	{
+		[UNIVERSE addCommsMessage:[savedCommLog objectAtIndex:i] forCount:0 andShowComms:NO logOnly:YES];
+	}
+	
+	/*	entity_personality for scripts and shaders. If undefined, we fall back
+		to old behaviour of using a random value each time game is loaded (set
+		up in -setUp). Saving of entity_personality was added in 1.74.
+		-- Ahruman 2009-09-13
+	*/
+	entity_personality = [dict oo_unsignedShortForKey:@"entity_personality" defaultValue:entity_personality];
 	
 	// set up missiles
-	unsigned i,j;
 	[self setActiveMissile:0];
 	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
 	{
@@ -6237,7 +6254,7 @@ static int last_outfitting_index;
 	
 	// one of the fined-@-credits strings includes expansion tokens
 	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOStringFromDeciCredits(fine, YES, NO)];
-	[UNIVERSE addCommsMessage:fined_message forCount:8 andShowComms:NO];
+	[UNIVERSE addCommsMessage:fined_message forCount:8 andShowComms:NO logOnly:NO];
 	ship_clock_adjust = 24 * 3600;	// take up a day
 	if (gui_screen != GUI_SCREEN_STATUS)
 	{
@@ -6949,7 +6966,7 @@ static int last_outfitting_index;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
-	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:8 andShowComms:NO];
+	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:8 andShowComms:NO logOnly:NO];
 }
 
 #endif

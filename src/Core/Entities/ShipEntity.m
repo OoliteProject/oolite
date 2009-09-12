@@ -852,16 +852,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		}
 		else
 		{
-			/*	Should be zero already, but make sure just in case. (Escorts
-				aren't set up here if we're launched from a station, but in
-				that case the station sets pending count to zero.)
-				STATUS_LAUNCHING also is valid for replacement ships for
-				wormholing ships. In that case escorts still must be set up.
+			/*	Earlier there was a silly log message here because I thought
+				this would never happen, but wasn't entirely sure. Turns out
+				it did!
+				-- Ahruman 2009-09-13
 			*/
-			if (_pendingEscortCount != 0)
-			{
-				OOLog(@"ship.escortSetup.wtf", @"Pending escort count for %@ is %u, expected 0. This is an internal error, please report it.", self, _pendingEscortCount);
-			}
 			_pendingEscortCount = 0;
 		}
 	}
