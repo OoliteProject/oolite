@@ -136,6 +136,7 @@ BOOL ScanQuaternionFromString(NSString *wxyzString, Quaternion *outQuaternion)
 	}
 }
 
+
 BOOL ScanVectorAndQuaternionFromString(NSString *xyzwxyzString, Vector *outVector, Quaternion *outQuaternion)
 {
 	GLfloat					xyzwxyz[] = { 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0};
@@ -573,7 +574,7 @@ static NSString *NewRandomDigrams(void)
 	NSMutableString		*name = nil;
 	
 	length = (gen_rnd_number() % 4) + 1;
-	if ((Ranrot() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
+	if ((gen_rnd_number() % 5) < ((length == 1) ? 3 : 1))  ++length;	// Make two-letter names rarer and 10-letter names happen sometimes
 	digrams = [[UNIVERSE descriptions] objectForKey:@"digrams"];
 	count = [digrams length] / 2;
 	name = [NSMutableString stringWithCapacity:length * 2];
