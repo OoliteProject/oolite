@@ -110,7 +110,7 @@ static OOSoundMixer *sSingleton = nil;
 			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 			desc.componentFlags = 0;
 			desc.componentFlagsMask = 0;
-			if (!err) err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
+			if (!err)  err = OOAUGraphAddNode(_graph, &desc, &_outputNode);
 			
 			// Add mixer node
 			desc.componentType = kAudioUnitType_Mixer;
@@ -118,16 +118,18 @@ static OOSoundMixer *sSingleton = nil;
 			desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 			desc.componentFlags = 0;
 			desc.componentFlagsMask = 0;
-			if (!err) err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
+			if (!err)  err = OOAUGraphAddNode(_graph, &desc, &_mixerNode);
 			
 			// Connect mixer to output
-			if (!err) err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
+			if (!err)  err = AUGraphConnectNodeInput(_graph, _mixerNode, 0, _outputNode, 0);
 			
 			// Open the graph (turn it into concrete AUs) and extract mixer AU
-			if (!err) err = AUGraphOpen(_graph);
-			if (!err) err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
+			if (!err)  err = AUGraphOpen(_graph);
+			if (!err)  err = OOAUGraphNodeInfo(_graph, _mixerNode, NULL, &_mixerUnit);
 			
-			if (err) OK = NO;
+			if (!err)  [self setMasterVolume:1.0];
+			
+			if (err)  OK = NO;
 		}
 		
 		if (OK)
@@ -149,6 +151,12 @@ static OOSoundMixer *sSingleton = nil;
 		
 		if (!OK)
 		{
+			static bool onlyOnce;
+			if (!onlyOnce)
+			{
+				onlyOnce = YES;
+				OOLog(@"sound.mixer.init.failed", @"Failed to initialize sound mixer - error %i ('%.4s')", err, &err);
+			}
 			[super release];
 			self = nil;
 		}
@@ -249,7 +257,7 @@ static OOSoundMixer *sSingleton = nil;
 
 - (void)setMasterVolume:(float)inVolume
 {
-	AudioUnitSetParameter(_mixerUnit, kStereoMixerParam_Volume, kAudioUnitScope_Output, 0, inVolume, 0);
+	AudioUnitSetParameter(_mixerUnit, kStereoMixerParam_Volume, kAudioUnitScope_Output, 0, inVolume / kOOAudioSlop, 0);
 }
 
 

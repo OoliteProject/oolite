@@ -142,3 +142,11 @@ void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSo
 #else
 #define OOCASoundVerifyBuffers(buffers, numFrames, sound)  do {} while (0)
 #endif
+
+
+
+/*	The Vorbis floating-point decoder gives us out-of-range values for certain
+	built-in sounds. To compensate, we reduce overall volume slightly to avoid
+	clipping. (The worst observed value is -1.341681f in bigbang.ogg.)
+*/
+#define kOOAudioSlop 1.341682f

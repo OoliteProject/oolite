@@ -374,18 +374,31 @@ static BOOL VerifyOneBuffer(AudioBuffer *buffer, OOUInteger numFrames, float *ba
 	// Assume data is float.
 	float *floatBuffer = (float *)buffer->mData;
 	OOUInteger i;
+	BOOL OK = YES;
+	BOOL worstAbnormal = NO;
 	for (i = 0; i < numFrames; i++)
 	{
 		float val = floatBuffer[i];
-		if (isnan(val) || !isfinite(val) || fabs(val) > 1.01f)
+		BOOL abnormal = isnan(val) || !isfinite(val);
+		
+		if (abnormal || (fabsf(val) > kOOAudioSlop))
 		{
-			*badVal = val;
-			memset(buffer->mData, 0, buffer->mDataByteSize);
-			return NO;
+			if (abnormal || (!abnormal && !worstAbnormal && fabsf(*badVal < fabsf(val))))
+			{
+				worstAbnormal = abnormal;
+				*badVal = val;
+			}
+			
+			OK = NO;
 		}
 	}
 	
-	return YES;
+	if (OK == NO)
+	{
+		memset(buffer->mData, 0, buffer->mDataByteSize);
+	}
+	
+	return OK;
 }
 
 #endif
