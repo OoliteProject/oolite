@@ -260,6 +260,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
+	[shipAI setOwner:self];
 	[shipAI setStateMachine:[shipDict oo_stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
 	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];

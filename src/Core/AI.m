@@ -104,7 +104,7 @@ static AI *sCurrentlyRunningAI = nil;
 	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
 	thinkTimeInterval = AI_THINK_INTERVAL;
 	
-	stateMachineName = [[NSString stringWithString:@"None allocated"] retain];	// no initial brain
+	stateMachineName = [[NSString stringWithString:@"<no AI>"] retain];	// no initial brain
 	
 	return self;
 }
@@ -736,7 +736,7 @@ static AI *sCurrentlyRunningAI = nil;
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
-				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@ from %@:%@ to %@ - could not load file.", [[self owner] shortDescription], [self name], [self state], smName);
+				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@ from %@:%@ to \"%@\" - could not load file.", [[self owner] shortDescription], [self name], [self state], smName);
 				NS_VALUERETURN(nil, NSDictionary *);
 			}
 			
