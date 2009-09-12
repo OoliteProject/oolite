@@ -736,7 +736,7 @@ static AI *sCurrentlyRunningAI = nil;
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
-				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@ from %@:%@ to %@ - could not load file.", [[self owner] shortDescription], [self state], smName);
+				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@ from %@:%@ to %@ - could not load file.", [[self owner] shortDescription], [self name], [self state], smName);
 				NS_VALUERETURN(nil, NSDictionary *);
 			}
 			
