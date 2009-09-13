@@ -1,4 +1,13 @@
 {
+	GLOBAL =
+	{
+		ENTER = ("pauseAI: 0.5", "setSpeedFactorTo: 1.0");
+		ECM = ("rollD: 20");
+		"TARGET_LOST" = ("setStateTo: EXPLODE");
+		"ROLL_1" = ("setStateTo: DETONATE");
+		"ROLL_2" = ("setStateTo: EXPLODE");
+		UPDATE = ("setStateTo: ATTACK_SHIP");
+	};
 	"ATTACK_SHIP" =
 	{
 		ENTER = ("setDesiredRangeTo: 25.0", performIntercept);
@@ -15,21 +24,15 @@
 	};
 	EXPLODE =
 	{
-		ENTER = (becomeExplosion);
+		ENTER = ("randomPauseAI: 0.25 1.50");
+		UPDATE = (becomeExplosion);
 	};
 	"CHECK_EXPLOSION" =
 	{
 		ENTER = ("rollD: 20");
 		"ROLL_1" = ("setStateTo: DETONATE");
 		"ROLL_2" = ("setStateTo: EXPLODE");
-		UPDATE = ("setStateTo: ATTACK_SHIP");
-	};
-	GLOBAL =
-	{
-		ENTER = ("pauseAI: 0.5", "setSpeedFactorTo: 1.0");
-		ECM = ("rollD: 20");
-		"ROLL_1" = ("setStateTo: DETONATE");
-		"ROLL_2" = ("setStateTo: EXPLODE");
+		"TARGET_LOST" = ("setStateTo: EXPLODE");
 		UPDATE = ("setStateTo: ATTACK_SHIP");
 	};
 }

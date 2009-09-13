@@ -3,6 +3,7 @@
 	{
 		ENTER = ("pauseAI: 0.5", "setSpeedFactorTo: 1.0");
 		ECM = ("setStateTo: EXPLODE");
+		"TARGET_LOST" = ("setStateTo: EXPLODE");
 		UPDATE = ("setStateTo: ATTACK_SHIP");
 	};
 	"ATTACK_SHIP" =
@@ -21,6 +22,7 @@
 	};
 	EXPLODE =
 	{
-		ENTER = (becomeExplosion);
+		ENTER = ("randomPauseAI: 0.25 0.75");
+		UPDATE = (becomeExplosion);
 	};
 }
