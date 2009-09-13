@@ -660,6 +660,7 @@ waitingForStickCallback: 1;
 - (void) setGuiToGameOptionsScreen;
 - (void) setGuiToEquipShipScreen:(int)skip selectingFacingFor:(NSString *)eqKeyForSelectFacing;
 - (void) setGuiToEquipShipScreen:(int)skip;
+- (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;

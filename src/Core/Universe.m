@@ -350,11 +350,17 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 
 - (void) setStrict:(BOOL)value
 {
+	[self setStrict:value fromSaveGame:NO];
+}
+
+
+- (void) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame
+{
 	if (strict == value)  return;
 	
 	strict = !!value;
 	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
-	[self reinitAndShowDemo:YES];
+	[self reinitAndShowDemo:!saveGame];
 }
 
 

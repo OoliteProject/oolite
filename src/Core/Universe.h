@@ -281,6 +281,7 @@ enum
 
 - (BOOL) strict;
 - (void) setStrict:(BOOL) value;
+- (void) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame;
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 

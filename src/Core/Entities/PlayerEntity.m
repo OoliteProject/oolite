@@ -497,11 +497,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
 	// TODO: use CollectionExtractors for type-safety. -- Ahruman
-	[UNIVERSE setStrict:[dict oo_boolForKey:@"strict" defaultValue:NO]];
+	[UNIVERSE setStrict:[dict oo_boolForKey:@"strict" defaultValue:NO] fromSaveGame:YES];
 	
 	//base ship description
 	[ship_desc release];
-	ship_desc = [[dict objectForKey:@"ship_desc"] copy];
+	ship_desc = [[dict oo_stringForKey:@"ship_desc"] copy];
 	
 	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
 	if (shipDict == nil)  return NO;
@@ -522,7 +522,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSString *coords = [dict oo_stringForKey:@"target_coordinates"];
 	if (coords != nil)
 	{
-		coord_vals = ScanTokensFromString([dict objectForKey:@"target_coordinates"]);
+		coord_vals = ScanTokensFromString([dict oo_stringForKey:@"target_coordinates"]);
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
@@ -1116,22 +1116,23 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
 	
-	NSString *hud_desc = [shipDict oo_stringForKey:@"hud"];
-	if (hud_desc != nil)
+	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
+	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
+	if (huddict == nil)
 	{
-		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
-		if (huddict)
-		{
-#ifndef NDEBUG
-			gDebugFlags &= ~DEBUG_HIDE_HUD;
-#endif
-			[hud release];
-			hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-			[hud setScannerZoom:1.0];
-			[hud resizeGuis: huddict];
-		}
+		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	}
-	
+	// buggy oxp could override hud.plist with a non-dictionary.
+	if (huddict != nil)
+	{
+#ifndef NDEBUG
+		gDebugFlags &= ~DEBUG_HIDE_HUD;
+#endif
+		[hud release];
+		hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
+		[hud setScannerZoom:1.0];
+		[hud resizeGuis: huddict];
+	}
 
 	// set up missiles
 	unsigned i;
@@ -5034,6 +5035,52 @@ static PlayerEntity *sSharedPlayer = nil;
 
 static int last_outfitting_index;
 
+
+- (void) highlightEquipShipScreenKey:(NSString *)key
+{
+	int 			i=0;
+	OOGUIRow		row;
+	NSString 		*otherKey = @"";
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	
+	// TODO: redo the equipShipScreen in a way that isn't broken. this whole method 'works'
+	// based on the way setGuiToEquipShipScreen  'worked' on 20090913 - Kaks 
+	
+	// setGuiToEquipShipScreen doesn't take a page number, it takes an offset from the beginning
+	// of the  dicitonary, the first line will show the key at that offset... the last element should contain
+	
+	// try the last page first - 10 pages max.
+	while (otherKey)
+	{
+		[self setGuiToEquipShipScreen:i];
+		for (row = GUI_ROW_EQUIPMENT_START;row<=GUI_MAX_ROWS_EQUIPMENT+2;row++)
+		{
+			otherKey = [gui keyForRow:row];
+			if (!otherKey)
+			{
+				[self setGuiToEquipShipScreen:0];
+				return;
+			}
+			//OOLog(@"kaks",@" loop %d %d - %@ == %@",i, row, otherKey, key);
+			if ([otherKey isEqualToString:key])
+			{
+				[gui setSelectedRow:row];
+				return;
+			}
+		}
+		if ([otherKey hasPrefix:@"More:"])
+		{
+			i = [[otherKey componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		}
+		else
+		{
+			[self setGuiToEquipShipScreen:0];
+			return;
+		}
+	}
+}
+
+
 - (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
 	missiles = [self countMissiles];
@@ -5043,7 +5090,7 @@ static int last_outfitting_index;
 	// if skip < 0 then use the last recorded index
 	if (skipParam < 0)
 	{
-		if (last_outfitting_index >= 0)
+		if (last_outfitting_index > 0)
 			skip = last_outfitting_index;
 		else
 			skip = 0;
@@ -5057,7 +5104,7 @@ static int last_outfitting_index;
 	if (skip == 1)
 		skip = 0;
 	
-	last_outfitting_index = skip;
+	if (skip > 0) last_outfitting_index = skip;
 
 	double priceFactor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
@@ -5476,7 +5523,13 @@ static int last_outfitting_index;
 		if(credits != old_credits || ![key hasPrefix:@"EQ_WEAPON_"])
 		{
 			[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
-			if (gui_screen == GUI_SCREEN_EQUIP_SHIP)  [self setGuiToEquipShipScreen:0]; // show any change due to playerBoughtEquipment, if we have not changed gui screen
+			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment
+			{ 
+				// show any change due to playerBoughtEquipment
+				[self setGuiToEquipShipScreen:0];
+				// then try to go back where we were
+				[self highlightEquipShipScreenKey:key];
+			}
 			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
 			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
 			ship_clock_adjust += time_adjust + 600.0;
