@@ -52,7 +52,7 @@ MA 02110-1301, USA.
 
 
 // If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
-#define ADAPTIVE_OCTREE_DEPTH		0
+#define ADAPTIVE_OCTREE_DEPTH		1
 
 
 enum
@@ -62,7 +62,7 @@ enum
 	kSmallOctreeDepth				= 4,	// 16x16x16
 	kVerySmallOctreeDepth			= 3,	// 8x8x8
 	kOctreeSizeThreshold			= 900,	// Size at which we start increasing octree depth
-	kOctreeSmallSizeThreshold		= 60,
+	kOctreeSmallSizeThreshold		= 50,
 	kOctreeVerySmallSizeThreshold	= 15
 };
 
