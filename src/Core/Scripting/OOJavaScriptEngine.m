@@ -144,7 +144,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	while ([lineBuf hasSuffix:@"\n"] || [lineBuf hasSuffix:@"\r"])  lineBuf = [lineBuf substringToIndex:[lineBuf length] - 1];
 	
 	// Get string for error number, for useful log message classes
-	NSDictionary *errorNames = [ResourceManager dictionaryFromFilesNamed:@"oolite-javascript-errors.plist" inFolder:@"Config" andMerge:YES];
+	NSDictionary *errorNames = [ResourceManager dictionaryFromFilesNamed:@"javascript-errors.plist" inFolder:@"Config" andMerge:YES];
 	NSString *errorNumberStr = [NSString stringWithFormat:@"%u", report->errorNumber];
 	NSString *errorName = [errorNames oo_stringForKey:errorNumberStr];
 	if (errorName == nil)  errorName = errorNumberStr;
