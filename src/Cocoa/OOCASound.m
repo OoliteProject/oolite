@@ -340,7 +340,7 @@ void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSo
 {
 	BOOL allOK = YES;
 	UInt32 i;
-	float badVal;
+	float badVal = 0.0;
 	
 	for (i = 0; i < buffers->mNumberBuffers; i++)
 	{

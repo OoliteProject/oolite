@@ -4567,19 +4567,16 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 
 		[gui clear];
+		[UNIVERSE removeDemoShips];
+		
 		[gui setTitle:[NSString stringWithFormat:DESC(@"sysdata-planet-name-@"),   targetSystemName]];
 		
-		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]						forRow:1];
-		
+		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-eco"), economy_desc, nil]					forRow:1];
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-govt"), government_desc, nil]				forRow:3];
-		
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-tl"), [NSString stringWithFormat:@"%d", techlevel + 1], nil]	forRow:5];
-		
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-pop"), [NSString stringWithFormat:@"%.1f %@", 0.1*population, DESC(@"sysdata-billion-word")], nil]	forRow:7];
 		[gui setArray:[NSArray arrayWithObjects:@"", [NSString stringWithFormat:@"(%@)", inhabitants], nil]				forRow:8];
-		
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-prod"), @"", [NSString stringWithFormat:DESC(@"sysdata-prod-worth"), productivity], nil]	forRow:10];
-		
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"sysdata-radius"), @"", [NSString stringWithFormat:@"%5d km", radius], nil]	forRow:12];
 		
 		int i = [gui addLongText:system_desc startingAtRow:15 align:GUI_ALIGN_LEFT];
@@ -4605,14 +4602,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-	
-	[UNIVERSE removeDemoShips];
+
 	
 	// if the system has gone nova, display the sun instead of the planet
 	if (sunGoneNova)
 	{
-		// FIXME: commented out until gui clearBackground is fixed.
-		//[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:@"solar.png" inFolder:@"Images"]];
+		[[UNIVERSE gui] setBackgroundTexture:[[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"] retain]];
 	}
 	else
 	{

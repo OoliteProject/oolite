@@ -505,6 +505,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	[self setShowTextCursor:NO];
 	[self setSelectableRange:NSMakeRange(0,0)];
+	[self clearBackground];
 }
 
 
@@ -955,7 +956,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// show background image...
 	//
-	if (backgroundSprite)
+	if (backgroundSprite!=nil)
 	{
 		[backgroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
 	}

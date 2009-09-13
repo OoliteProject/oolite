@@ -660,6 +660,9 @@
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
+		2B13C51F105D342D00AF4A7B /* oolite-nova-system.png in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
+		2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
+		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -728,6 +731,7 @@
 			dstPath = Images;
 			dstSubfolderSpec = 7;
 			files = (
+				2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */,
 				1A2315520B9C778400EF0852 /* solar.png in Copy Images */,
 				1A2315550B9C778400EF0852 /* trumblebox.png in Copy Images */,
 			);
@@ -1063,6 +1067,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
+				2B13C51F105D342D00AF4A7B /* oolite-nova-system.png in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1745,6 +1750,7 @@
 		29B97319FDCFA39411CA2CEA /* MainMenu.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = MainMenu.nib; path = ../src/Cocoa/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nova-system.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1842,6 +1848,7 @@
 		1A23154D0B9C778400EF0852 /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */,
 				1A23154E0B9C778400EF0852 /* solar.png */,
 				1A23154F0B9C778400EF0852 /* splash.png */,
 				1A2315500B9C778400EF0852 /* splashback.png */,
@@ -3188,6 +3195,7 @@
 				1ABFEE2210507987005AA752 /* oolite-nonshared.xcconfig in Resources */,
 				1A2123271051892500530CDE /* shipdata-overrides.plist in Resources */,
 				1A2123291051892D00530CDE /* slow-gpus.plist in Resources */,
+				2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
