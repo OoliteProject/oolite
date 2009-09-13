@@ -2035,8 +2035,8 @@ double longitudeFromVector(Vector v)
 	throw_sparks = yesno;
 	if (throw_sparks)
 	{
-		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", interval);
 		velocity.x = fmax(interval, 0.0);
+		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", velocity.x);
 	}
 	
 	velocity.y = 0;

@@ -36,6 +36,12 @@ this.copyright		= "© 2009 the Oolite team.";
 this.version		= "1.74";
 
 
+this.startUp = function ()
+{
+	if (missionVariables.nova && missionVariables.nova === "NOVA_HERO") this.cleanUp();
+}
+
+
 this.missionOffers = function ()
 {
 	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
@@ -48,7 +54,7 @@ this.missionOffers = function ()
 			if (!missionVariables.nova && !missionVariables.novacount)  { missionVariables.novacount = 0; }
 			if (missionVariables.nova === "TWO_HRS_TO_ZERO")
 			{
-				mission.runMissionScreen("nova_1", "solar.png", "nova_yesno");
+				mission.runMissionScreen("oolite_nova", "solar.png", "oolite_nova_yesno");
 				this.novaOffer = "NOVA_CHOICE";  // use a temporary variable for the offering.
 				this.novaMissionTimer.stop();
 			}
@@ -59,26 +65,63 @@ this.missionOffers = function ()
 			{
 				player.ship.removeAllCargo();
 				player.ship.awardCargo("Gem-Stones", 100);
-				mission.runMissionScreen("nova_hero", "solar.png");
-				missionVariables.nova = "NOVA_HERO";
-				mission.setInstructionsKey(null);
+				mission.runMissionScreen("oolite_nova_hero", "solar.png");
+				this.endTheMission();
 			}
-			if (missionVariables.nova === "NOVA_ESCAPE_POD")
+			else if (missionVariables.nova === "NOVA_ESCAPE_POD")
 			{
 				player.ship.removeAllCargo();  // can only be done while docked.
-				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string.
-				mission.setInstructionsKey(null);
+				mission.runMissionScreen("oolite_nova_disappointed", "solar.png");
+				this.endTheMission();
 			}
-			if (missionVariables.nova === "NOVA_ESCAPE_COWARD" && !system.sun.isGoingNova && !system.sun.hasGoneNova)
+			else if (missionVariables.nova === "NOVA_ESCAPE_OTHER")
 			{
-				mission.runMissionScreen("nova_coward", "solar.png");
-				missionVariables.nova = "NOVA_HERO";  // not a real hero but other scripts expect this missionend string.
+				mission.runMissionScreen("oolite_nova_ignored", "solar.png");
+				this.endTheMission();
+			}
+			else if (missionVariables.nova === "NOVA_ESCAPE_COWARD" && !system.sun.isGoingNova && !system.sun.hasGoneNova)
+			{
 				player.decreaseContractReputation();
 				player.decreasePassengerReputation();
+				mission.runMissionScreen("oolite_nova_disappointed", "solar.png");
+				this.endTheMission();
 			}
 		}
 	}
+	else if (missionVariables.nova === "TWO_HRS_TO_ZERO")
+	{
+		// this is the the nova system, but not the main station.
+		player.ship.launch();
+		player.commsMessage(expandDescription("[oolite-nova-visit-main]"));
+	}
 };
+
+
+this.endTheMission = function()
+{
+	missionVariables.nova = "NOVA_HERO";  // even if not a hero, scripts expect this string at mission end.
+	mission.setInstructionsKey(null);
+	this.cleanUp();
+}
+
+
+this.cleanUp = function()
+{
+	// mission is over, we don't need most of the event handlers
+	// this.shipExitedWitchspace is still needed after the nova mission.
+	delete this.shipWillEnterWitchspace;
+	delete this.shipWillExitWitchspace;
+	delete this.shipDockedWithStation;
+	delete this.missionScreenEnded;
+	delete this.reportScreenEnded;
+	delete this.missionChoiceWasReset;
+	delete this.shipLaunchedEscapePod;
+
+	// after the mission is over, we don't need the following functions.
+	delete this.missionOffers;
+	delete this.choiceEvaluation;
+	delete this.sendShipsAwayForMission;
+}
 
 
 this.choiceEvaluation = function()
@@ -88,7 +131,7 @@ this.choiceEvaluation = function()
 		if (mission.choice === "YES")
 		{
 			player.ship.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
-			mission.setInstructionsKey("nova_missiondesc");
+			mission.setInstructionsKey("oolite_nova_short_desc");
 			missionVariables.nova = "NOVA_ESCAPE_HERO";
 			player.ship.launch();
 			this.blowUpAllStations();
@@ -97,10 +140,10 @@ this.choiceEvaluation = function()
 		}
 		else
 		{
- 			// mission.choice = "NO", or null when player launched without a choice.
+ 			// mission.choice == "NO", or null when player launched without a choice.
  			missionVariables.nova = "NOVA_ESCAPE_COWARD";
  			player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
- 			system.sun.goNova(3);
+ 			system.sun.goNova(10);
  			missionVariables.novacount = null;
 		}
 		
@@ -117,30 +160,10 @@ this.choiceEvaluation = function()
 };
 
 
-// general, used when player enters nova system after mission.
-this.sendShipsAway = function()
-{
-	if (!system.sun.hasGoneNova)
-	{
-		this.novaTimer.stop();
-		return;
-	}
-	else
-	{
-		system.sendAllShipsAway();
-	}
-};
 
-
-// special, used when player enters nova system during mission.
+// used when player enters nova system during nova mission.
 this.sendShipsAwayForMission = function()
 {
-	if (!system.sun.isGoingNova)  // player left system without dockin at main station
-	{
-		this.novaMissionTimer.stop();
-		missionVariables.nova = "NOVA_ESCAPE_COWARD";
-		return;
-	}
 	if (missionVariables.nova !== "TWO_HRS_TO_ZERO")
 	{
 		this.novaMissionTimer.stop();
@@ -169,6 +192,55 @@ this.blowUpAllStations = function ()
 	stations.forEach(function (entity) { entity.explode(); });
 };
 
+
+// used when player enters nova system after nova mission.
+this.sendShipsAway = function()
+{
+	if (!system.sun.hasGoneNova)
+	{
+		this.novaTimer.stop();
+		return;
+	}
+	else
+	{
+		system.sendAllShipsAway();
+	}
+};
+
+
+this.flareUp = function()
+{
+	system.info.corona_hues=1;
+	// This flare up (.25 to .5 flare) will last between 10 and 30 seconds
+	this.flareChange(.25 + Math.random()*.25,this.flareDown,Math.random() * 20 + 10);
+};
+
+
+this.flareDown = function()
+{
+	system.info.corona_hues = .8;
+	// This quiet moment  ( .1 to .2 flare ) will last between 30 seconds and 2 minutes
+	this.flareChange(.1 + Math.random() * .1,this.flareUp,Math.random() * 90 + 30);
+};
+
+
+this.flareChange = function(toValue,callFunc,callDelay,pass)
+{
+	this.flareTimer.stop();
+	delete this.flareTimer;
+	pass = pass || 0;
+	if (pass < 5 )
+	{
+		var f = system.info.corona_flare; 
+		system.info.corona_flare = (f < toValue ? toValue*1.5+f : toValue+f*1.5) / 2.5;
+		this.flareTimer = new Timer(this, function(){this.flareChange(toValue,callFunc,callDelay,++pass);}, .25);
+	}
+	else 
+	{
+		system.info.corona_flare = toValue;
+		this.flareTimer = new Timer(this, callFunc, callDelay);
+	}
+}
 
 /**** Event handlers ****/
 
@@ -203,13 +275,15 @@ this.shipWillEnterWitchspace = function ()
 	{
 		system.info.sun_gone_nova = true;
 		delete this.willGoNova;
+		// did the player leave the nova system without docking at the main station?
+		if (missionVariables.nova === "TWO_HRS_TO_ZERO") missionVariables.nova = "NOVA_ESCAPE_OTHER";
 	}
 }
 
 
 this.shipWillExitWitchspace = function ()  // call this as soon as possible so other scripts can see it will go nova.
 {
-	if (galaxyNumber === 3)
+	if (!missionVariables.nova && galaxyNumber === 3)
 	{
 		if (missionVariables.novacount !== undefined)  { missionVariables.novacount++; }
 		if (player.ship.hasEquipment("EQ_GAL_DRIVE") && missionVariables.novacount > 3 && !missionVariables.nova && !system.isInterstellarSpace)
@@ -228,7 +302,7 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 			}
 			else
 			{
-				this.novaMissionTimer = new Timer(this, this.sendShipsAwayForMission, 15, 30);
+				this.novaMissionTimer = new Timer(this, this.sendShipsAwayForMission, 5, 30);
 			}
 		}
 	}
@@ -241,15 +315,29 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 
 this.shipExitedWitchspace = function()
 {
-	if (system.sun && system.sun.hasGoneNova)
+	if (system.sun)
 	{
-		if (this.novaTimer)
+		if (this.flareTimer)
 		{
-			this.novaTimer.start();
+			this.flareTimer.stop();
+			delete this.flareTimer;
 		}
-		else
+
+		if(system.sun.isGoingNova || system.sun.hasGoneNova)
 		{
-			this.novaTimer = new Timer(this, this.sendShipsAway, 1, 60);
+			if (this.novaTimer)
+			{
+				this.novaTimer.start();
+			}
+			else
+			{
+				this.novaTimer = new Timer(this, this.sendShipsAway, 5, 60);
+			}
+		}
+		if(system.sun.isGoingNova) 
+		{
+			// The first flare up will begin in between 30 seconds and 1 minute
+			this.flareTimer = new Timer(this, this.flareUp,  Math.random() * 30 + 30);
 		}
 	}
 };

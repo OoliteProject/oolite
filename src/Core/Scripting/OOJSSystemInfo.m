@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "Universe.h"
 #import "OOJSVector.h"
+#import "OOIsNumberLiteral.h"
 
 
 static JSObject *sSystemInfoPrototype;
@@ -373,7 +374,19 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 		
 		if (value != nil)
 		{
-			*outValue = [value javaScriptValueInContext:context];
+			if (OOIsNumberLiteral(value, YES))
+			{
+				BOOL OK = JS_NewDoubleValue(context, [value doubleValue], outValue);
+				if (!OK)
+				{
+					*outValue = JSVAL_VOID;
+					return NO;
+				}
+			}
+			else
+			{
+				*outValue = [value javaScriptValueInContext:context];
+			}
 		}
 	}
 	return YES;

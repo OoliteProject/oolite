@@ -74,13 +74,10 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntity"
 
-
 // 10m/s forward drift
 #define	OG_ELITE_FORWARD_DRIFT			10.0f
 
-
 #define PLAYER_DEFAULT_NAME				@"Jameson"
-
 
 enum
 {
@@ -93,9 +90,7 @@ enum
 static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
 static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 
-
 static PlayerEntity *sSharedPlayer = nil;
-
 
 @interface PlayerEntity (OOPrivate)
 
@@ -1446,9 +1441,12 @@ static PlayerEntity *sSharedPlayer = nil;
 		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
 		external_temp = SUN_TEMPERATURE * alt1;
-		if ([[UNIVERSE sun] goneNova])
+		if ([sun goneNova])
 			external_temp *= 100;
-
+		// make fuel scooping during the nova mission very unlikely
+		if ([sun willGoNova])
+			external_temp *= 3;
+			
 		// do Revised sun-skimming check here...
 		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
@@ -4589,9 +4587,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		for (i-- ; i > 14 ; i--)
 			[gui setColor:[OOColor greenColor] forRow:i];
 		
-
 		[gui setShowTextCursor:NO];
-
 	}
 	/* ends */
 	
@@ -4611,15 +4607,25 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
 	[UNIVERSE removeDemoShips];
-	if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]] && !sunGoneNova)
+	
+	// if the system has gone nova, display the sun instead of the planet
+	if (sunGoneNova)
 	{
-		if (!sunGoneNova) // if we are in a system that has gone nova, do not display local planet
+		// FIXME: commented out until gui clearBackground is fixed.
+		//[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:@"solar.png" inFolder:@"Images"]];
+	}
+	else
+	{
+		if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
+		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
+		}
+		else
+		{
+			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
+		}
 	}
-	else if (!sunGoneNova)
-	{
-		[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
-	}
+	
 	[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	if (oldScreen != gui_screen) [self checkScript];
 }

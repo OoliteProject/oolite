@@ -2155,10 +2155,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	for (i = 1; i < ent_count; i++)
 	{
 		Entity* e1 = my_entities[i];
-		if (e1->isShip)
+		// Nova mission fix: if a station jumps away, the large witchjump cloud they leave behind 
+		// becomes a shortcut to another system. FIXME: Behemoths present a similar problem.
+		if ([e1 isShip] && ! [e1 isStation])
 		{
 			ShipEntity* se1 = (ShipEntity*)e1;
-			int e_class = e1->scanClass;
+			int e_class = [e1 scanClass];
 			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
 			{
 				AI*	se1AI = [se1 getAI];
@@ -2166,13 +2168,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
 				// FIXME: I don't think the following line does anything meaningful. -- Ahruman
+				// The following shoulf prevent all ships leaving at once (freezes oolite on slower machines)
 				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
 				[se1 setPrimaryRole:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}
 		}
 	}
-	for (i = 0; i < ent_count; i++)
-		[my_entities[i] release];		//	released
+	// ships need to be released after their AIs makes them jump away.
+	//for (i = 0; i < ent_count; i++)
+	//	[my_entities[i] release];		//	released
 }
 
 
@@ -2395,13 +2399,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	BOOL success = YES;
 	if (conditions == nil)
 	{
-		OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: no 'conditions' in %@ - returning YES and performing 'do' actions.", [couplet description]);
+		OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: %@ - conditions not %@, returning %@.", [couplet description], @" found",@"YES and performing 'do' actions");
 	}
 	else
 	{
 		if (![conditions isKindOfClass:[NSArray class]])
 		{
-			OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: \"conditions = %@\" is not an array - returning NO.", [conditions description]);
+			OOLog(@"script.scene.couplet.badConditions", @"***** SCENE ERROR: %@ - conditions not %@, returning %@.", [conditions description], @"an array",@"NO");
 			return NO;
 		}
 	}
