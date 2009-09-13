@@ -6586,16 +6586,20 @@ static int last_outfitting_index;
 				break;
 			}
 		}
-		// find and use a blank space in memory
-		for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
+		
+		if (!foundSlot)
 		{
-			if (target_memory[target_memory_index] == NO_TARGET)
+			// find and use a blank space in memory
+			for (i = 0; i < PLAYER_TARGET_MEMORY_SIZE; i++)
 			{
-				target_memory[target_memory_index] = primaryTarget;
-				foundSlot = YES;
-				break;
+				if (target_memory[target_memory_index] == NO_TARGET)
+				{
+					target_memory[target_memory_index] = primaryTarget;
+					foundSlot = YES;
+					break;
+				}
+				target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
 			}
-			target_memory_index = (target_memory_index + 1) % PLAYER_TARGET_MEMORY_SIZE;
 		}
 		if (!foundSlot)
 		{

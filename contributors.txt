@@ -9,6 +9,7 @@ Nikos Barkas (another_commander)
 Commander McLane
 Dermot Costello
 Chris Crowther (hikari)
+Jelmer Graafstra
 James Hobson (Cmdr James)
 Influence D
 Kaks
