@@ -32,7 +32,8 @@ MA 02110-1301, USA.
 #import "OODeepCopy.h"
 
 
-#define OUTPUT_PLIST_PATHS	0		// If nonzero, output is formatted for script-patches.plist.
+#define OUTPUT_PLIST_PATHS	0		// If nonzero, error locators are formatted for script-patches.plist.
+#define INCLUDE_RAW_STRING !defined(NDEBUG)	// If nonzero, raw condition strings are included; if zero, a placeholder is used.
 
 
 typedef struct SanStackElement SanStackElement;
@@ -202,7 +203,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 	opType = ClassifyLHSConditionSelector(selectorString, &sanitizedSelectorString, stack);
 	if (opType >= OP_INVALID)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed.", StringFromStack(stack), selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed.", StringFromStack(stack), condition, selectorString);
 		return NO;
 	}
 	
@@ -219,7 +220,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 		else if ([comparatorString isEqualToString:@"undefined"])  comparatorValue = COMPARISON_UNDEFINED;
 		else
 		{
-			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@, unknown comparison operator '%@', will return NO.", StringFromStack(stack), comparatorString);
+			OOLog(@"script.debug.syntax.badComparison", @"***** SCRIPT ERROR: in %@ (\"%@\"), unknown comparison operator \"%@\", will return NO.", StringFromStack(stack), condition, comparatorString);
 			return NO;
 		}
 	}
@@ -230,14 +231,14 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 			Returning NO here causes AlwaysFalseConditions() to be used, which
 			has the same effect.
 		 */
-		OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression '%@', will always evaluate as false.", StringFromStack(stack), condition);
+		OOLog(@"script.debug.syntax.noOperator", @"----- WARNING: SCRIPT in %@ -- No operator in expression \"%@\", will always evaluate as false.", StringFromStack(stack), condition);
 		return NO;
 	}
 	
 	// Check for invalid opType/comparator combinations.
 	if (opType == OP_NUMBER && comparatorValue == COMPARISON_UNDEFINED)
 	{
-		OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", StringFromStack(stack), @"undefined", @"numbers");
+		OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@ (\"%@\"), comparison operator \"%@\" is not valid for %@.", StringFromStack(stack), condition, @"undefined", @"numbers");
 		return NO;
 	}
 	else if (opType == OP_BOOL)
@@ -250,7 +251,7 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 				break;
 			
 			default:
-				OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@, comparison operator '%@' is not valid for %@.", StringFromStack(stack), OOComparisonTypeToString(comparatorValue), @"booleans");
+				OOLog(@"script.debug.syntax.invalidOperator", @"***** SCRIPT ERROR: in %@ (\"%@\"), comparison operator \"%@\" is not valid for %@.", StringFromStack(stack), condition, OOComparisonTypeToString(comparatorValue), @"booleans");
 				return NO;
 				
 		}
@@ -302,9 +303,16 @@ static NSArray *SanitizeCondition(NSString *condition, SanStackElement *stack)
 		rhs = [NSArray array];
 	}
 	
+	NSString *rawString = nil;
+#if INCLUDE_RAW_STRING
+	rawString = condition;
+#else
+	rawString = @"<condition>";
+#endif
+	
 	return [NSArray arrayWithObjects:
 			[NSNumber numberWithUnsignedInt:opType],
-			condition,
+			rawString,
 			sanitizedSelectorString,
 			[NSNumber numberWithUnsignedInt:comparatorValue],
 			rhs,
@@ -377,7 +385,7 @@ static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *st
 	selectorString = SanitizeActionMethod(rawSelectorString, allowAIMethods);
 	if (selectorString == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), rawSelectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), statement, rawSelectorString);
 		
 	//	return nil;
 		selectorString = rawSelectorString;
@@ -420,10 +428,9 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
 	if (*outSanitizedSelector == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method '%@' not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), selectorString);
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method \"%@\" not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), selectorString);
 		
-		// return OP_INVALID;
-		*outSanitizedSelector = selectorString;
+		return OP_INVALID;
 	}
 	
 	// If it's a real method, and in the whitelist, classify by suffix.
@@ -432,7 +439,7 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	if ([selectorString hasSuffix:@"_bool"])  return OP_BOOL;
 	
 	// If we got here, something's wrong.
-	OOLog(@"script.sanitize.unclassifiedSelector", @"***** ERROR: Whitelisted query method '%@' has no type suffix, treating as invalid.", selectorString);
+	OOLog(@"script.sanitize.unclassifiedSelector", @"***** ERROR: Whitelisted query method \"%@\" has no type suffix, treating as invalid.", selectorString);
 	return OP_INVALID;
 }
 
