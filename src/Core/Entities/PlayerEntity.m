@@ -1118,9 +1118,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
+	// hud defined, but buggy?
 	if (huddict == nil)
 	{
-		NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
+		huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	}
 	// buggy oxp could override hud.plist with a non-dictionary.
 	if (huddict != nil)
