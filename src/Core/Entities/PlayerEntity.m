@@ -5066,6 +5066,7 @@ static int last_outfitting_index;
 			if ([otherKey isEqualToString:key])
 			{
 				[gui setSelectedRow:row];
+				[self showInformationForSelectedUpgrade];
 				return;
 			}
 		}
@@ -5221,10 +5222,18 @@ static int last_outfitting_index;
 						previous = 0;				// if only one previous item, just show it
 				}
 
-				if (eqKeyForSelectFacing != nil)  previous = -1;	// ie. last index!
+				if (eqKeyForSelectFacing != nil)
+				{
+					previous = 0;
+					// keep weapon selected if we go back.
+					[gui setKey:[NSString stringWithFormat:@"More:%d:%@", previous, eqKeyForSelectFacing] forRow:row];
+				}
+				else
+				{
+					[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
+				}
 				[gui setColor:[OOColor greenColor] forRow:row];
 				[gui setArray:[NSArray arrayWithObjects:DESC(@"gui-back"), @" <-- ", nil] forRow:row];
-				[gui setKey:[NSString stringWithFormat:@"More:%d", previous] forRow:row];
 				row++;
 			}
 			for (i = skip; i < count && (row - start_row < (OOGUIRow)n_rows); i++)
@@ -5484,14 +5493,22 @@ static int last_outfitting_index;
 
 	if ([key hasPrefix:@"More:"])
 	{
-		int from_item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		int 		from_item = [[key componentsSeparatedByString:@":"] oo_intAtIndex:1];
+		NSString	*weaponKey = [[key componentsSeparatedByString:@":"] oo_stringAtIndex:2];
 
 		[self setGuiToEquipShipScreen:from_item];
-		if ([gui selectedRow] < 0)
-			[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
-		if (from_item == 0)
-			[gui setSelectedRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1];
-		[self showInformationForSelectedUpgrade];
+		if (weaponKey != nil)
+		{
+			[self highlightEquipShipScreenKey:weaponKey];
+		}
+		else
+		{
+			if ([gui selectedRow] < 0)
+				[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
+			if (from_item == 0)
+				[gui setSelectedRow:GUI_ROW_EQUIPMENT_START + GUI_MAX_ROWS_EQUIPMENT - 1];
+			[self showInformationForSelectedUpgrade];
+		}
 
 		return;
 	}
