@@ -5034,7 +5034,7 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-static int last_outfitting_index;
+static NSString *last_outfitting_key=nil;
 
 
 - (void) highlightEquipShipScreenKey:(NSString *)key
@@ -5043,7 +5043,10 @@ static int last_outfitting_index;
 	OOGUIRow		row;
 	NSString 		*otherKey = @"";
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	
+	[last_outfitting_key release];
+	last_outfitting_key = [[NSString stringWithString:key] retain];
+	[self setGuiToEquipShipScreen:-1];
+	key = last_outfitting_key;
 	// TODO: redo the equipShipScreen in a way that isn't broken. this whole method 'works'
 	// based on the way setGuiToEquipShipScreen  'worked' on 20090913 - Kaks 
 	
@@ -5086,27 +5089,24 @@ static int last_outfitting_index;
 - (void) setGuiToEquipShipScreen:(int)skipParam selectingFacingFor:(NSString *)eqKeyForSelectFacing
 {
 	missiles = [self countMissiles];
-	
+	OOEntityStatus searchStatus; // use STATUS_TEST, STATUS_DEAD & STATUS_ACTIVE
+	NSString *showKey = nil;
 	unsigned skip;
 
-	// if skip < 0 then use the last recorded index
 	if (skipParam < 0)
 	{
-		if (last_outfitting_index > 0)
-			skip = last_outfitting_index;
-		else
-			skip = 0;
+		skip = 0;
+		searchStatus = STATUS_TEST;
 	}
 	else
 	{
 		skip = skipParam;
+		searchStatus = STATUS_ACTIVE;
 	}
 
 	// don't show a "Back" item if we're only skipping one item - just show the item
 	if (skip == 1)
 		skip = 0;
-	
-	if (skip > 0) last_outfitting_index = skip;
 
 	double priceFactor = 1.0;
 	OOTechLevelID techlevel = [[UNIVERSE generateSystemData:system_seed] oo_intForKey:KEY_TECHLEVEL];
@@ -5144,7 +5144,7 @@ static int last_outfitting_index;
 		// check special availability
 		if ([eqType isAvailableToAll])  [options addObject:eqKey];
 		
-		// if you have a dmaged system you can get it repaired at a tech level one less than that required to buy it
+		// if you have a damaged system you can get it repaired at a tech level one less than that required to buy it
 		if (minTechLevel != 0 && [self hasEquipmentItem:[eqType damagedIdentifier]])  minTechLevel--;
 		
 		// reduce the minimum techlevel occasionally as a bonus..
@@ -5167,7 +5167,11 @@ static int last_outfitting_index;
 			isOK = YES;
 			[options removeObject:eqKey];
 		}
-		
+		if (eqKeyForSelectFacing != nil && ![eqKeyForSelectFacing isEqualToString:eqKey])
+		{
+			isOK = NO;
+			[options removeObject:eqKey];
+		}
 		if (isOK)
 		{
 			if (techlevel < minTechLevel)  isOK = NO;
@@ -5177,15 +5181,33 @@ static int last_outfitting_index;
 		
 		if ([eqKeyForSelectFacing isEqualToString:eqKey])
 		{
-			skip = [equipmentAllowed count] - 1;	// skip to this upgrade
+			skip = 1;	// show the back button
+			[equipmentAllowed addObject:eqKey]; // needed by the GUI(?!)
 			unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
 			if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKey];
 			if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKey];
 			if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKey];
 			if (available_facings & WEAPON_FACING_STARBOARD)  [equipmentAllowed addObject:eqKey];
 		}
+		
+		if (searchStatus == STATUS_DEAD && isOK)
+		{
+			showKey=[NSString stringWithString:eqKey];
+			searchStatus = STATUS_ACTIVE;
+		}
+		if (searchStatus == STATUS_TEST)
+		{
+			if (isOK) showKey=[NSString stringWithString:eqKey];
+			if ([eqKey isEqualToString:last_outfitting_key]) 
+				searchStatus = isOK ? STATUS_ACTIVE : STATUS_DEAD;
+		}
 	}
-
+	if (searchStatus != STATUS_TEST && showKey)
+	{
+		[last_outfitting_key release];
+		last_outfitting_key = [showKey retain];
+	}
+	
 	// GUI stuff
 	{
 		GuiDisplayGen	*gui = [UNIVERSE gui];
