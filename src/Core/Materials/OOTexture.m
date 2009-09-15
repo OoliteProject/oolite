@@ -88,7 +88,7 @@ static BOOL		sCheckedExtensions = NO;
 #if OOLITE_BIG_ENDIAN
 #define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
 #elif OOLITE_LITTLE_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8
+#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE //GL_UNSIGNED_INT_8_8_8_8_REV
 #else
 #error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
@@ -113,7 +113,7 @@ static float	sAnisotropyScale;	// Scale of anisotropy values
 #ifdef GL_CLAMP_TO_EDGE
 static BOOL		sClampToEdgeAvailable;
 #else
-#warning GL_CLAMP_TO_EDGE (OpenGL 1.2) and GL_SGIS_texture_edge_clamp are unavialble -- are you using an up-to-date gl.h?
+#warning GL_CLAMP_TO_EDGE (OpenGL 1.2) and GL_SGIS_texture_edge_clamp are unavailable -- are you using an up-to-date gl.h?
 #define sClampToEdgeAvailable	(NO)
 #define GL_CLAMP_TO_EDGE		GL_CLAMP
 #endif
