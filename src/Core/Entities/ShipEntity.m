@@ -944,6 +944,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	NSDictionary	*autoAIMap = nil;
 	NSDictionary	*escortShipDict = nil;
 	AI				*escortAI = nil;
+	BOOL			isSelfGroupmember = NO;
 	
 	// Ensure that we do not try to create escorts if we are an escort ship ourselves.
 	// This could lead to circular reference memory overflows (e.g. "boa-mk2" trying to create 4 "boa-mk2"
@@ -986,6 +987,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if ([self group] == nil)
 	{
 		[self setGroup:escortGroup];
+	}
+	else
+	{
+		isSelfGroupmember = YES;
 	}
 	[escortGroup setLeader:self];
 	
@@ -1047,6 +1052,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 		[escorter setGroup:escortGroup];
 		[escorter setOwner:self];	// make self group leader
+		if(isSelfGroupmember) [[self group] addShip:escorter]; // put escorts also in leaders group when present.
 		
 		if([escorter heatInsulation] < [self heatInsulation]) [escorter setHeatInsulation:[self heatInsulation]]; // give escorts same protection as mother.
 		if(([escorter maxFlightSpeed] < cruiseSpeed) && ([escorter maxFlightSpeed] > cruiseSpeed * 0.3)) 
@@ -8106,6 +8112,7 @@ int w_space_seed = 1234567;
 	OOShipGroup			*escortGroup = [self escortGroup];
 	NSEnumerator		*escortEnum = nil;
 	ShipEntity			*escort = nil;
+	ShipEntity			*target = [self primaryTarget];
 	unsigned			i = 0;
 	// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
 	for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
@@ -8116,6 +8123,7 @@ int w_space_seed = 1234567;
 		// act individually now!
 		if ([escort group] == escortGroup)  [escort setGroup:nil];
 		if ([escort owner] == self)  [escort setOwner:nil];
+		if(target && [target isStation]) [escort addTarget:target];
 		
 		[ai setStateMachine:@"dockingAI.plist" afterDelay:delay];
 		[ai setState:@"ABORT" afterDelay:delay + 0.25];

@@ -2134,6 +2134,37 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([self isRotatingStation]) { [flags addObject:@"rotatingStation"]; }
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.stationEntity", @"Flags: %@", flagsString);
+	
+	// approach and hold lists.
+	unsigned i;
+	ShipEntity		*ship = nil;
+	NSArray*	ships = [shipsOnApproach allKeys];
+	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on approach (unsorted):", [ships count]);
+	for (i = 0; i < [ships count]; i++)
+	{
+		int sid = [[ships objectAtIndex:i] intValue];
+		if ([UNIVERSE entityForUniversalID:sid])
+		{
+			ship = [UNIVERSE entityForUniversalID:sid];
+			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i+1, [ship displayName], 
+																			sqrtf(distance2(position, [ship position])),
+																					[ship primaryRole]);
+		}
+	}
+
+	ships = [shipsOnHold allKeys];  // only used with moving stations (= carriers)
+	if([ships count] > 0 ) OOLog(@"dumpState.stationEntity", @"%i Ships on hold (unsorted):", [ships count]);
+	for (i = 0; i < [ships count]; i++)
+	{
+		int sid = [[ships objectAtIndex:i] intValue];
+		if ([UNIVERSE entityForUniversalID:sid])
+		{
+			ship = [UNIVERSE entityForUniversalID:sid];
+			OOLog(@"dumpState.stationEntity", @"Nr %i: %@ at distance %g with role: %@", i+1, [ship displayName], 
+																			sqrtf(distance2(position, [ship position])),
+																					[ship primaryRole]);
+		}
+	}
 }
 
 @end

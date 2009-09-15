@@ -681,9 +681,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
 			[thargoid setStatus:STATUS_IN_FLIGHT];
-			[self addEntity:thargoid];
-			
 			[thargoid setGroup:thargoidGroup];
+			
+			[self addEntity:thargoid];
 			
 			[thargoid release];
 		}
@@ -1378,10 +1378,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[pirate_ship setStatus:STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+				[pirate_ship setGroup:wolfpackGroup];
 				
 				[self addEntity:pirate_ship];
-				
-				[pirate_ship setGroup:wolfpackGroup];
 				
 				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
@@ -1619,11 +1618,10 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 				[pirate_ship setStatus: STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
+				[pirate_ship setGroup:wolfpackGroup];
 
 				[self addEntity:pirate_ship];
-				
-				[pirate_ship setGroup:wolfpackGroup];
-				
+								
 				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
 				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
