@@ -867,7 +867,7 @@
 	"sysdata-radius"				= "Average radius:";
 	"system-description-string"		= "[14] is [22].";
 	
-	// Options (sometimes referred to as loadsave) screen
+	// Options / Loadsave screen
 	"options-quick-save"			= " Quick-Save ";
 	"options-save-commander"		= " Save Commander ";
 	"options-load-commander"		= " Load Commander ";
@@ -936,6 +936,9 @@
 	"aft-facing-string"				= " Aft ";
 	"port-facing-string"			= " Port ";
 	"starboard-facing-string"		= " Starboard ";
+	"@-select-where-to-install"		= "%@  \nPlease select where to install this weapon.";
+	"weapon-@-enter-to-replace"		= "Weapon installed: %@. \nPress enter to replace it.";
+	"no-weapon-enter-to-install"	= "No weapon installed. \nPress enter to install this weapon here.";
 	
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";

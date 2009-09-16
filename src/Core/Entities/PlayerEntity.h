@@ -662,6 +662,7 @@ waitingForStickCallback: 1;
 - (void) setGuiToEquipShipScreen:(int)skip;
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
+- (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 

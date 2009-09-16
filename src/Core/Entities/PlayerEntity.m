@@ -5065,7 +5065,6 @@ static NSString *last_outfitting_key=nil;
 				[self setGuiToEquipShipScreen:0];
 				return;
 			}
-			//OOLog(@"kaks",@" loop %d %d - %@ == %@",i, row, otherKey, key);
 			if ([otherKey isEqualToString:key])
 			{
 				[gui setSelectedRow:row];
@@ -5133,7 +5132,19 @@ static NSString *last_outfitting_key=nil;
 	NSEnumerator		*eqEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	
-	for (eqEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqEnum nextObject]); i++)
+	if (eqKeyForSelectFacing != nil)
+	{
+		skip = 1;	// show the back button
+		// the lines below are needed by the present GUI. TODO:create a sane GUI. Kaks - 20090915
+		[equipmentAllowed addObject:eqKeyForSelectFacing]; // needed by the GUI ?
+		[equipmentAllowed addObject:eqKeyForSelectFacing]; // needed by the GUI !
+		unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
+		if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKeyForSelectFacing];
+		if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKeyForSelectFacing];
+		if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKeyForSelectFacing];
+		if (available_facings & WEAPON_FACING_STARBOARD)  [equipmentAllowed addObject:eqKeyForSelectFacing];
+	}
+	else for (eqEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqEnum nextObject]); i++)
 	{
 		NSString			*eqKey = [eqType identifier];
 		OOTechLevelID		minTechLevel = [eqType effectiveTechLevel];
@@ -5167,27 +5178,12 @@ static NSString *last_outfitting_key=nil;
 			isOK = YES;
 			[options removeObject:eqKey];
 		}
-		if (eqKeyForSelectFacing != nil && ![eqKeyForSelectFacing isEqualToString:eqKey])
-		{
-			isOK = NO;
-			[options removeObject:eqKey];
-		}
+
 		if (isOK)
 		{
 			if (techlevel < minTechLevel)  isOK = NO;
 			if (![self canAddEquipment:eqKey])  isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
-		}
-		
-		if ([eqKeyForSelectFacing isEqualToString:eqKey])
-		{
-			skip = 1;	// show the back button
-			[equipmentAllowed addObject:eqKey]; // needed by the GUI(?!)
-			unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
-			if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKey];
-			if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKey];
-			if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKey];
-			if (available_facings & WEAPON_FACING_STARBOARD)  [equipmentAllowed addObject:eqKey];
 		}
 		
 		if (searchStatus == STATUS_DEAD && isOK)
@@ -5351,10 +5347,13 @@ static NSString *last_outfitting_key=nil;
 
 			if (eqKeyForSelectFacing != nil)
 			{
-				[gui setSelectedRow:start_row + ((skip > 0)? 1: 0)];
+				[gui setSelectedRow:start_row + 1];
+				[self showInformationForSelectedUpgradeWithFormatString:DESC(@"@-select-where-to-install")];
 			}
-
-			[self showInformationForSelectedUpgrade];
+			else
+			{
+				[self showInformationForSelectedUpgrade];
+			}
 			
 		}
 		else
@@ -5390,6 +5389,12 @@ static NSString *last_outfitting_key=nil;
 
 - (void) showInformationForSelectedUpgrade
 {
+	[self showInformationForSelectedUpgradeWithFormatString:nil];
+}
+
+	
+- (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)formatString
+{
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	NSString* eqKey = [gui selectedRowKey];
 	int i;
@@ -5409,6 +5414,7 @@ static NSString *last_outfitting_key=nil;
 				desc = [NSString stringWithFormat:DESC(@"upgradeinfo-@-price-is-for-repairing"), desc];
 			else if([eqKey hasSuffix:@"ENERGY_UNIT"] && ([self hasEquipmentItem:@"EQ_ENERGY_UNIT_DAMAGED"] || [self hasEquipmentItem:@"EQ_ENERGY_UNIT"] || [self hasEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT_DAMAGED"]))
 				desc = [NSString stringWithFormat:DESC(@"@-will-replace-other-energy"), desc];
+			if (formatString) desc = [NSString stringWithFormat:formatString, desc];
 			[gui addLongText:desc startingAtRow:GUI_ROW_EQUIPMENT_DETAIL align:GUI_ALIGN_LEFT];
 		}
 	}

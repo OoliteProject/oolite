@@ -1630,7 +1630,26 @@ static NSTimeInterval	time_last_frame;
 		case GUI_SCREEN_EQUIP_SHIP:
 			if ([self handleGUIUpDownArrowKeys])
 			{
-				[self showInformationForSelectedUpgrade];
+				NSString		*itemText = [gui selectedRowText];
+				NSString		*weaponName = nil;
+				
+				if ([itemText isEqual:FORWARD_FACING_STRING])
+					weaponName = forward_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon];
+				if ([itemText isEqual:AFT_FACING_STRING])
+					weaponName = aft_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon];
+				if ([itemText isEqual:PORT_FACING_STRING])
+					weaponName = port_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon];
+				if ([itemText isEqual:STARBOARD_FACING_STRING])
+					weaponName = starboard_weapon == WEAPON_NONE ? @"" :  [UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon];
+				
+				if (weaponName != nil)
+				{
+					// override showInformation _completely_ with itemText
+					itemText = [weaponName isEqualToString:@""] ? DESC(@"no-weapon-enter-to-install") : [NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
+					[self showInformationForSelectedUpgradeWithFormatString:itemText];
+				}
+				else
+					[self showInformationForSelectedUpgrade];
 			}
 			
 			if ([gameView isDown:gvArrowKeyLeft])
