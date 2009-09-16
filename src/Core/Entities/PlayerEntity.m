@@ -5623,14 +5623,14 @@ static NSString *last_outfitting_key=nil;
 		return NO;
 	}
 	
-	if ([eqType isPrimaryWeapon] && chosen_weapon_facing == WEAPON_FACING_NONE)
+	if ([eqType isPrimaryWeapon] )
 	{
-		[self setGuiToEquipShipScreen:0 selectingFacingFor:eqKey];	// reset
-		return YES;
-	}
-	
-	if ([eqType isPrimaryWeapon] && chosen_weapon_facing != WEAPON_FACING_NONE)
-	{
+		if (chosen_weapon_facing == WEAPON_FACING_NONE)
+		{
+			[self setGuiToEquipShipScreen:0 selectingFacingFor:eqKey];	// reset
+			return YES;
+		}
+		
 		int chosen_weapon = WEAPON_NONE;
 		int current_weapon = WEAPON_NONE;
 		

@@ -1631,21 +1631,21 @@ static NSTimeInterval	time_last_frame;
 			if ([self handleGUIUpDownArrowKeys])
 			{
 				NSString		*itemText = [gui selectedRowText];
-				NSString		*weaponName = nil;
+				OOWeaponType		weaponType = WEAPON_UNDEFINED;
 				
-				if ([itemText isEqual:FORWARD_FACING_STRING])
-					weaponName = forward_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon];
-				if ([itemText isEqual:AFT_FACING_STRING])
-					weaponName = aft_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon];
-				if ([itemText isEqual:PORT_FACING_STRING])
-					weaponName = port_weapon == WEAPON_NONE ? @"" : [UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon];
-				if ([itemText isEqual:STARBOARD_FACING_STRING])
-					weaponName = starboard_weapon == WEAPON_NONE ? @"" :  [UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon];
+				if ([itemText isEqual:FORWARD_FACING_STRING]) weaponType = forward_weapon;
+				if ([itemText isEqual:AFT_FACING_STRING]) weaponType = aft_weapon;
+				if ([itemText isEqual:PORT_FACING_STRING]) weaponType = port_weapon;
+				if ([itemText isEqual:STARBOARD_FACING_STRING]) weaponType = starboard_weapon;
 				
-				if (weaponName != nil)
+				if (weaponType != WEAPON_UNDEFINED)
 				{
+					BOOL		sameAs = EquipmentStringToWeaponTypeSloppy([gui selectedRowKey]) == weaponType;
+					NSString	*weaponName = weaponType == WEAPON_NONE ? @"" :  [UNIVERSE descriptionForArrayKey:@"weapon_name" index:weaponType];
 					// override showInformation _completely_ with itemText
-					itemText = [weaponName isEqualToString:@""] ? DESC(@"no-weapon-enter-to-install") : [NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
+					itemText = [weaponName isEqualToString:@""] ? DESC(@"no-weapon-enter-to-install") :
+								sameAs ? [NSString stringWithFormat:DESC(@"weapon-installed-@"), weaponName] :
+								[NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
 					[self showInformationForSelectedUpgradeWithFormatString:itemText];
 				}
 				else

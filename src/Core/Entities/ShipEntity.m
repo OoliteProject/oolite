@@ -3831,37 +3831,38 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	switch (weapon_type)
 	{
-		case WEAPON_PLASMA_CANNON :
+		case WEAPON_PLASMA_CANNON:
 			weapon_energy =			6.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			5000;
 			break;
-		case WEAPON_PULSE_LASER :
+		case WEAPON_PULSE_LASER:
 			weapon_energy =			15.0;
 			weapon_recharge_rate =	0.33;
 			weaponRange =			12500;
 			break;
-		case WEAPON_BEAM_LASER :
+		case WEAPON_BEAM_LASER:
 			weapon_energy =			15.0;
 			weapon_recharge_rate =	0.25;
 			weaponRange =			15000;
 			break;
-		case WEAPON_MINING_LASER :
+		case WEAPON_MINING_LASER:
 			weapon_energy =			50.0;
 			weapon_recharge_rate =	0.5;
 			weaponRange =			12500;
 			break;
-		case WEAPON_THARGOID_LASER :		// omni directional lasers FRIGHTENING!
+		case WEAPON_THARGOID_LASER:		// omni directional lasers FRIGHTENING!
 			weapon_energy =			12.5;
 			weapon_recharge_rate =	0.5;
 			weaponRange =			17500;
 			break;
-		case WEAPON_MILITARY_LASER :
+		case WEAPON_MILITARY_LASER:
 			weapon_energy =			23.0;
 			weapon_recharge_rate =	0.20;
 			weaponRange =			30000;
 			break;
-		case WEAPON_NONE :
+		case WEAPON_NONE:
+		case WEAPON_UNDEFINED:
 			weapon_energy =			0.0;	// indicating no weapon!
 			weapon_recharge_rate =	0.20;	// maximum rate
 			weaponRange =			32000;
@@ -6314,6 +6315,7 @@ BOOL class_masslocks(int some_class)
 			break;
 		
 		case WEAPON_NONE:
+		case WEAPON_UNDEFINED:
 			// Do nothing
 			break;
 	}
@@ -6372,6 +6374,7 @@ BOOL class_masslocks(int some_class)
 				break;
 			
 			case WEAPON_PLASMA_CANNON:	// FIXME: NPCs can't have rear plasma cannons, for no obvious reason.
+			case WEAPON_UNDEFINED:
 			case WEAPON_NONE:
 				// do nothing
 				break;

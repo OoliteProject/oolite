@@ -265,6 +265,7 @@ NSString *WeaponTypeToString(OOWeaponType weapon)
 		CASE(WEAPON_MINING_LASER);
 		CASE(WEAPON_MILITARY_LASER);
 		CASE(WEAPON_THARGOID_LASER);
+		CASE(WEAPON_UNDEFINED);
 	}
 	return @"Unknown weapon";
 }
@@ -297,6 +298,7 @@ NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
 		EQ_CASE(WEAPON_THARGOID_LASER);
 		
 		case WEAPON_PLASMA_CANNON:
+		case WEAPON_UNDEFINED:
 		case WEAPON_NONE:
 			break;
 	}
@@ -308,7 +310,7 @@ NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
 OOWeaponType EquipmentStringToWeaponTypeSloppy(NSString *string)
 {
 #define EQ_REVERSE_CASE(foo) if ([string hasSuffix:@#foo]) return WEAPON_##foo;
-//	EQ_REVERSE_CASE(PLASMA_CANNON);
+	EQ_REVERSE_CASE(PLASMA_CANNON); // reuired in playerEntityControls (case GUI_SCREEN_EQUIP_SHIP)
 	EQ_REVERSE_CASE(PULSE_LASER);
 	EQ_REVERSE_CASE(BEAM_LASER);
 	EQ_REVERSE_CASE(MINING_LASER);

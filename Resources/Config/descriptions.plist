@@ -937,6 +937,7 @@
 	"port-facing-string"			= " Port ";
 	"starboard-facing-string"		= " Starboard ";
 	"@-select-where-to-install"		= "%@  \nPlease select where to install this weapon.";
+	"weapon-installed-@"			= "Weapon installed: %@.";
 	"weapon-@-enter-to-replace"		= "Weapon installed: %@. \nPress enter to replace it.";
 	"no-weapon-enter-to-install"	= "No weapon installed. \nPress enter to install this weapon here.";
 	
