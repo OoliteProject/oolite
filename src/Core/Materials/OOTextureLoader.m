@@ -56,6 +56,12 @@ SOFTWARE.
 #import "OOTextureLoadDispatcher.h"
 #import "OOCPUInfo.h"
 
+#if OOLITE_WINDOWS
+#import <winsock2.h>
+#else
+#import <arpa/inet.h>	// For htonl
+#endif
+
 
 static unsigned				sGLMaxSize;
 static uint32_t				sUserMaxSize;
