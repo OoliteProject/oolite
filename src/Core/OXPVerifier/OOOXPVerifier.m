@@ -66,9 +66,17 @@ static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
 
 #if OOLITE_MAC_OS_X
+
 static void OpenLogFile(NSString *name);
+
+#elseif OOLITE_WINDOWS
+
+#define OpenLogFile(name) {printf([[NSString stringWithFormat:@"echo logged to \"Logs\\%@\",name] cString]);do {} while (0);}
+
 #else
+
 #define OpenLogFile(name) do {} while (0)
+
 #endif
 
 

@@ -330,6 +330,7 @@
 			else
 			{
 				[self nativeSavePlayer: commanderNameString];
+				[gameView supressKeysUntilKeyUp];
 				[self setGuiToStatusScreen];
 			}
 		}
