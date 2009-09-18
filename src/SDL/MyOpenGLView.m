@@ -37,8 +37,6 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
-#define SDL_SPLASH 1
-
 #include <ctype.h>
 
 @implementation MyOpenGLView
@@ -84,7 +82,6 @@ MA 02110-1301, USA.
 	Uint32          colorkey;
 	SDL_Surface     *icon=NULL;
 	NSString		*imagesDir;
-
 
 	// TODO: This code up to and including stickHandler really ought
 	// not to be in this class.
@@ -156,42 +153,51 @@ MA 02110-1301, USA.
 	// changing the flags can trigger texture bugs
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
-
-#if !SDL_SPLASH
-
-	// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
-	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-	// blank the surface / go to fullscreen
-	[self initialiseGLWithSize: firstScreen];
 	
-#else
+	splashScreenShow = YES;
+	NSArray* cmdline_arguments = [[NSProcessInfo processInfo] arguments];
+	NSUserDefaults *defaults=[NSUserDefaults standardUserDefaults];
+	if ([defaults objectForKey:@"splash_screen"])
+	{
+		[self setSplashScreenShow:[defaults boolForKey:@"splash_screen"]];
+	}
+	if ([cmdline_arguments containsObject:@"-nosplash"])
+	{
+		[self setSplashScreenShow:NO];
+	}
 
+	if (!splashScreenShow)
+	{
+		// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
+		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
+		// blank the surface / go to fullscreen
+		[self initialiseGLWithSize: firstScreen];
+	}
+	else
+	{
   #if OOLITE_WINDOWS
-	//pre setVideoMode adjustments
-	NSSize tmp=currentWindowSize;
-	splashScreen=YES;	//don't update the window!
-	ShowWindow(SDL_Window,SW_HIDE);
-	ShowWindow(SDL_Window,SW_MINIMIZE);
-	// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
-	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
+		//pre setVideoMode adjustments
+		NSSize tmp=currentWindowSize;
+		splashScreen=YES;	//don't update the window!
+		ShowWindow(SDL_Window,SW_HIDE);
+		ShowWindow(SDL_Window,SW_MINIMIZE);
+		// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
+		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 
-	//post setVideoMode adjustments
-	currentWindowSize=tmp;
+		//post setVideoMode adjustments
+		currentWindowSize=tmp;
   #else
-  
-  	// SDL_NOFRAME here triggers the same texture bug
-	// as  multiple setVideoMode in windows.
-	surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags );
-
+  		// SDL_NOFRAME here triggers the same texture bug
+		// as  multiple setVideoMode in windows.
+		surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags );
   #endif
-
-#endif
-    if (!surface)
-    {
-        char * errStr = SDL_GetError();
-        OOLog(@"display.mode.error", @"ERROR creating display: %s", errStr);
-    }
-    assert(surface != NULL);
+	}
+	if (!surface)
+	{
+		char * errStr = SDL_GetError();
+		OOLog(@"display.mode.error", @"ERROR creating display: %s", errStr);
+	}
+	assert(surface != NULL);
 
 	bounds.size.width = surface->w;
 	bounds.size.height = surface->h;
@@ -214,31 +220,42 @@ MA 02110-1301, USA.
 - (void) endSplashScreen
 {
 
-#if SDL_SPLASH
-
+	if (splashScreenShow)
+	{
   #if OOLITE_WINDOWS
   
-	wasFullScreen=!fullScreen;
-	splashScreen=NO;
-	ShowWindow(SDL_Window,SW_RESTORE);
-	[self initialiseGLWithSize: firstScreen];
+		wasFullScreen=!fullScreen;
+		splashScreen=NO;
+		ShowWindow(SDL_Window,SW_RESTORE);
+		[self initialiseGLWithSize: firstScreen];
   
   #else
 
-	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
+		int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL;
 
-	videoModeFlags |= (fullScreen) ? SDL_FULLSCREEN : SDL_RESIZABLE;
-	surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-	SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
+		videoModeFlags |= (fullScreen) ? SDL_FULLSCREEN : SDL_RESIZABLE;
+		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
+		SDL_putenv ("SDL_VIDEO_WINDOW_POS=none"); //stop linux from auto centering on resize
 	
   #endif
  
-	[self autoShowMouse];
-	[self updateScreen];
-
-#endif
-
+		[self autoShowMouse];
+		[self updateScreen];
+	}
 }
+
+
+- (void) setSplashScreenShow:(BOOL) newValue
+{
+	splashScreenShow = !!newValue;
+}
+
+
+- (BOOL) splashScreenShow
+{
+	return splashScreenShow;
+}
+
 
 - (void) dealloc
 {
@@ -459,27 +476,27 @@ MA 02110-1301, USA.
 
 - (void) initSplashScreen
 {
-#if SDL_SPLASH
-
-	//too early for OOTexture!
-	SDL_Surface     	*image=NULL;
-	SDL_Rect			dest;
+	if (splashScreenShow)
+	{
+		//too early for OOTexture!
+		SDL_Surface     	*image=NULL;
+		SDL_Rect			dest;
 	
   #if OOLITE_WINDOWS
-	NSString		*imagesDir = @"Resources/Images";
+		NSString		*imagesDir = @"Resources/Images";
   #else
-	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
+		NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
   #endif
 
-	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] cString]);
+		image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] cString]);
 
-	if (image == NULL)
-	{
-		SDL_FreeSurface(image);
-		OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
-		[self endSplashScreen];
-		return;
-	}
+		if (image == NULL)
+		{
+			SDL_FreeSurface(image);
+			OOLogWARN(@"sdl.gameStart", @"image 'splash.bmp' not found!");
+			[self endSplashScreen];
+			return;
+		}
 	
 		dest.x = 0;
 		dest.y = 0;
@@ -488,94 +505,94 @@ MA 02110-1301, USA.
 
   #if OOLITE_WINDOWS
 
-	dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
-	dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
-	SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
-	ShowWindow(SDL_Window,SW_RESTORE);
-	MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
+		dest.x = (GetSystemMetrics(SM_CXSCREEN)- dest.w)/2;
+		dest.y = (GetSystemMetrics(SM_CYSCREEN)-dest.h)/2;
+		SetWindowLong(SDL_Window,GWL_STYLE,GetWindowLong(SDL_Window,GWL_STYLE) & ~WS_CAPTION & ~WS_THICKFRAME);
+		ShowWindow(SDL_Window,SW_RESTORE);
+		MoveWindow(SDL_Window,dest.x,dest.y,dest.w,dest.h,TRUE);
 
   #else
 
-	surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
+		surface = SDL_SetVideoMode(dest.w, dest.h, 32, SDL_HWSURFACE | SDL_OPENGL);
 
   #endif
   
-	glViewport( 0, 0, dest.w, dest.h);
+		glViewport( 0, 0, dest.w, dest.h);
 
-	glEnable( GL_TEXTURE_2D );
-	glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-	glClear( GL_COLOR_BUFFER_BIT );
+		glEnable( GL_TEXTURE_2D );
+		glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+		glClear( GL_COLOR_BUFFER_BIT );
 
-	glMatrixMode( GL_PROJECTION );
-	glPushMatrix();
-	glLoadIdentity();
+		glMatrixMode( GL_PROJECTION );
+		glPushMatrix();
+		glLoadIdentity();
 
-	glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
+		glOrtho(0.0f, dest.w , dest.h, 0.0f, -1.0f, 1.0f);
 
-	glMatrixMode( GL_MODELVIEW );
-	glPushMatrix();
-	glLoadIdentity();
+		glMatrixMode( GL_MODELVIEW );
+		glPushMatrix();
+		glLoadIdentity();
 
-	GLuint texture;
-	GLenum texture_format;
-	GLint  nOfColors;
+		GLuint texture;
+		GLenum texture_format;
+		GLint  nOfColors;
  
-	// get the number of channels in the SDL image
-	nOfColors = image->format->BytesPerPixel;
-	if (nOfColors == 4)     // contains an alpha channel
-	{
-		if (image->format->Rmask == 0x000000ff)
-			texture_format = GL_RGBA;
-		else
-			texture_format = GL_BGRA;
-	}
-	else if (nOfColors == 3)     // no alpha channel
-	{
-		if (image->format->Rmask == 0x000000ff)
-			texture_format = GL_RGB;
-		else
-			texture_format = GL_BGR;
-	} else {
-		SDL_FreeSurface(image);
-		OOLog(@"Sdl.GameStart", @"----- Encoding error within image 'splash.bmp'");
-		[self endSplashScreen];
-		return;
-	}
+		// get the number of channels in the SDL image
+		nOfColors = image->format->BytesPerPixel;
+		if (nOfColors == 4)     // contains an alpha channel
+		{
+			if (image->format->Rmask == 0x000000ff)
+				texture_format = GL_RGBA;
+			else
+				texture_format = GL_BGRA;
+		}
+		else if (nOfColors == 3)     // no alpha channel
+		{
+			if (image->format->Rmask == 0x000000ff)
+				texture_format = GL_RGB;
+			else
+				texture_format = GL_BGR;
+		} else {
+			SDL_FreeSurface(image);
+			OOLog(@"Sdl.GameStart", @"----- Encoding error within image 'splash.bmp'");
+			[self endSplashScreen];
+			return;
+		}
         
-	glGenTextures( 1, &texture );
-	glBindTexture( GL_TEXTURE_2D, texture );
+		glGenTextures( 1, &texture );
+		glBindTexture( GL_TEXTURE_2D, texture );
  
-	// Set the texture's stretching properties
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		// Set the texture's stretching properties
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
  
-	// Set the texture image data with the information  from SDL_Surface 
-	glTexImage2D( GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
-                      texture_format, GL_UNSIGNED_BYTE, image->pixels );
+		// Set the texture image data with the information  from SDL_Surface 
+		glTexImage2D( GL_TEXTURE_2D, 0, nOfColors, image->w, image->h, 0,
+                	      texture_format, GL_UNSIGNED_BYTE, image->pixels );
 
-	glBindTexture( GL_TEXTURE_2D, texture );
-	glBegin( GL_QUADS );
+		glBindTexture( GL_TEXTURE_2D, texture );
+		glBegin( GL_QUADS );
 
-	glTexCoord2i( 0, 0 );
-	glVertex2i( 0, 0 );
-	glTexCoord2i( 1, 0 );
-	glVertex2i( dest.w, 0 );
-	glTexCoord2i( 1, 1 );
-	glVertex2i( dest.h, dest.h );
-	glTexCoord2i( 0, 1 );
-	glVertex2i( 0, dest.h );
+		glTexCoord2i( 0, 0 );
+		glVertex2i( 0, 0 );
+		glTexCoord2i( 1, 0 );
+		glVertex2i( dest.w, 0 );
+		glTexCoord2i( 1, 1 );
+		glVertex2i( dest.h, dest.h );
+		glTexCoord2i( 0, 1 );
+		glVertex2i( 0, dest.h );
 	
-	glEnd();
+		glEnd();
 	
-	SDL_GL_SwapBuffers();
-	glLoadIdentity();       // reset matrix
+		SDL_GL_SwapBuffers();
+		glLoadIdentity();       // reset matrix
  
-	if ( image ) { 
-		SDL_FreeSurface( image );
+		if ( image ) { 
+			SDL_FreeSurface( image );
+		}
+		glDeleteTextures(1, &texture);
+
 	}
-	glDeleteTextures(1, &texture);
-
-#endif
 
 }
 
@@ -590,12 +607,13 @@ MA 02110-1301, USA.
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 
 #if OOLITE_WINDOWS
-  #if SDL_SPLASH
-	if (splashScreen)
+	if (splashScreenShow)
 	{
-		return;
+		if (splashScreen)
+		{
+			return;
+		}
 	}
-  #endif
 
 	DEVMODE settings;
 	settings.dmSize        = sizeof(DEVMODE);

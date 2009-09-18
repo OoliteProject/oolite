@@ -109,6 +109,7 @@ extern int debug;
 	int					keycodetrans[255];
 
 	BOOL				m_glContextInitialized;
+	BOOL				splashScreenShow;
     NSPoint				mouseDragStartPoint;
 
 	NSTimeInterval		timeIntervalAtLastClick;
@@ -152,6 +153,8 @@ extern int debug;
 
 - (void) initSplashScreen;
 - (void) endSplashScreen;
+- (void) setSplashScreenShow:(BOOL) newValue;
+- (BOOL) splashScreenShow;
 - (void) autoShowMouse;
 
 - (void) setStringInput: (enum StringInput) value;
