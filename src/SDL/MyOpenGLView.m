@@ -199,7 +199,9 @@ MA 02110-1301, USA.
 	}
 	else
 	{
+	  #if OOLITE_WINDOWS
 		updateContext = YES;
+	  #endif
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
