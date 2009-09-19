@@ -652,7 +652,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[commLog release];
 	commLog = [[NSMutableArray alloc] initWithCapacity:kCommLogTrimThreshold];
 	
-	NSArray *savedCommLog = [[dict oo_arrayForKey:@"comm_log"] mutableCopy];
+	NSArray *savedCommLog = [dict oo_arrayForKey:@"comm_log"];
 	unsigned commCount = [savedCommLog count];
 	for (i = 0; i < commCount; i++)
 	{
@@ -4614,7 +4614,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// if the system has gone nova, display the sun instead of the planet
 	if (sunGoneNova)
 	{
-		[[UNIVERSE gui] setBackgroundTexture:[[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"] retain]];
+		[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"]];
 	}
 	else
 	{

@@ -513,11 +513,14 @@ static BOOL sRunningScript = NO;
 	if (opType == OP_STRING)
 	{
 		lhsString = [self performSelector:selector];
+		
 		TraceLog(kOOLogTraceTestConditionValues, @"..... comparing %@ (from %@) to \"%@\" with operator %@",
 				 lhsString ? (NSString *)[NSString stringWithFormat:@"\"%@\"", lhsString] : (NSString *)@"nil",
 				 selectorString,
 				 expandedRHS ? expandedRHS: (NSString *)(comparator == COMPARISON_UNDEFINED ? @"undefined" : @"nil"),
 				OOComparisonTypeToString(comparator));
+		
+	#define DOUBLEVAL(x) ((x != nil) ? [x doubleValue] : 0.0)
 		
 		switch (comparator)
 		{
@@ -531,10 +534,10 @@ static BOOL sRunningScript = NO;
 				TRACE_AND_RETURN(![lhsString isEqualToString:expandedRHS]);
 				
 			case COMPARISON_LESSTHAN:
-				TRACE_AND_RETURN([lhsString doubleValue] < [expandedRHS doubleValue]);
+				TRACE_AND_RETURN(DOUBLEVAL(lhsString) < DOUBLEVAL(expandedRHS));
 				
 			case COMPARISON_GREATERTHAN:
-				TRACE_AND_RETURN([lhsString doubleValue] > [expandedRHS doubleValue]);
+				TRACE_AND_RETURN(DOUBLEVAL(lhsString) > DOUBLEVAL(expandedRHS));
 				
 			case COMPARISON_ONEOF:
 				{

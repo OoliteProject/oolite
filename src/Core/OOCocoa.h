@@ -36,7 +36,7 @@ MA 02110-1301, USA.
 	#define OOLITE_MAC_OS_X			1
 	#define OOLITE_HAVE_APPKIT		1
 	#ifdef OOLITE_SDL_MAC
-		#define OOLITE_SDL				1
+		#define OOLITE_SDL			1
 	#endif
 	
 	/*	Enforce type-clean use of nil and Nil under OS X. (They are untyped in
@@ -47,6 +47,10 @@ MA 02110-1301, USA.
 	#define nil ((id)0)
 	#undef Nil
 	#define Nil ((Class)nil)
+	
+	/*	Useful macro copied from GNUstep.
+	*/
+	#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
 	
 	/*	Lots of stuff changed between 10.3.9 SDK used for 32-bit builds and 10.5
 		SDK used for 64-bit builds.

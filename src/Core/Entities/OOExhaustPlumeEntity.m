@@ -105,20 +105,19 @@ MA 02110-1301, USA.
 	Frame zero;
 	zero.orientation = shipQrotation;
 	int dam = [ship damage];
-	GLfloat flare_length = [ship speedFactor];
+	GLfloat speed = [ship speedFactor];
 	
-	if (flare_length <= 0)  return;	// don't draw if there's no fire!
+	if (speed <= 0)  return;	// don't draw if there's no fire!
 	
-	GLfloat hyper_fade = 8.0f / (8.0f + flare_length * flare_length * flare_length);
+	GLfloat hyper_fade = 8.0f / (8.0f + speed * speed * speed);
 	
-	GLfloat flare_factor = flare_length * ex_emissive[3] * hyper_fade;
-	GLfloat red_factor = flare_length * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
-	GLfloat green_factor = flare_length * ex_emissive[1] * hyper_fade;
+	GLfloat flare_factor = speed * ex_emissive[3] * hyper_fade;
+	GLfloat red_factor = speed * ex_emissive[0] * (ranrot_rand() % 11) * 0.1;	// random fluctuations
+	GLfloat green_factor = speed * ex_emissive[1] * hyper_fade;
 	
-	if (flare_length > 1.0)	// afterburner!
+	if (speed > 1.0)	// afterburner!
 	{
 		red_factor = 1.5;
-		flare_length = 1.0 + 0.25 * flare_length;
 	}
 	
 	if ((int)(ranrot_rand() % 50) < dam - 50)   // flicker the damaged engines
@@ -128,7 +127,6 @@ MA 02110-1301, USA.
 	if ((int)(ranrot_rand() % 25) < dam - 75)
 		flare_factor = 0.0;
 	
-	if (flare_length < 0.1)  { flare_length = 0.1;}
 	Vector currentPos = ship->position;
 	Vector vfwd = vector_forward_from_quaternion(shipQrotation);
 	GLfloat	spd = 0.5 * [ship flightSpeed];

@@ -3429,8 +3429,13 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
+#if 0
+			/*	FIXME: max_available_speed is not read after this point. What
+				is the intention? -- Ahruman 2009-09-18
+			*/
 			if (fuel-- <= MIN_FUEL)
 				max_available_speed = maxFlightSpeed;
+#endif
 			fuel_accumulator += 1.0;
 		}
 	}
@@ -5153,6 +5158,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				if (element != sub)
 				{
 					[newSubs addObject:element];
+					// NOTE: next line causes a static analysis issue, but is intentional. -- Ahruman 2009-09-18
 					[element release];	// Let it die later, even though there's a reference in the leaked array.
 				}
 			}
