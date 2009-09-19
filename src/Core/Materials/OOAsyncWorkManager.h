@@ -27,8 +27,10 @@ SOFTWARE.
 
 */
 
-@class OOAsyncQueue;
+#import "OOCocoa.h"
 
+
+@class OOAsyncQueue;
 
 @protocol OOAsyncWorkTask;
 
@@ -59,7 +61,7 @@ typedef enum
 @end
 
 
-@protocol OOAsyncWorkTask
+@protocol OOAsyncWorkTask <NSObject>
 
 // Called on a worker thread. There may be multiple worker threads.
 - (void) performAsyncTask;

@@ -53,7 +53,7 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOTextureScaling.h"
 #import <stdlib.h>
-#import "OOTextureLoadDispatcher.h"
+#import "OOAsyncWorkManager.h"
 
 
 static unsigned				sGLMaxSize;
@@ -70,7 +70,7 @@ static BOOL					sHaveSetUp = NO;
 @end
 
 
-@interface OOTextureLoader (OOTextureLoadingThread)
+@interface OOTextureLoader (OOAsyncWorkTask) <OOAsyncWorkTask>
 
 - (void)applySettings;
 - (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
@@ -105,7 +105,7 @@ static BOOL					sHaveSetUp = NO;
 	
 	if (result != nil)
 	{
-		if (![[OOTextureLoadDispatcher sharedTextureLoadDispatcher] dispatchLoader:result])  result = nil;
+		if (![[OOAsyncWorkManager sharedAsyncWorkManager] addTask:result priority:kOOAsyncPriorityMedium])  result = nil;
 	}
 	
 	return result;
@@ -180,12 +180,6 @@ static BOOL					sHaveSetUp = NO;
 }
 
 
-- (void) markAsReady
-{
-	ready = YES;
-}
-
-
 - (BOOL)getResult:(void **)outData
 		   format:(OOTextureDataFormat *)outFormat
 			width:(uint32_t *)outWidth
@@ -193,7 +187,7 @@ static BOOL					sHaveSetUp = NO;
 {
 	if (!ready)
 	{
-		[[OOTextureLoadDispatcher sharedTextureLoadDispatcher] waitForLoaderToComplete:self];
+		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:self];
 	}
 	
 	if (data != NULL)
@@ -249,9 +243,9 @@ static BOOL					sHaveSetUp = NO;
 
 /*** Methods performed on the loader thread. ***/
 
-@implementation OOTextureLoader (OOTextureLoadingThread)
+@implementation OOTextureLoader (OOAsyncWorkTask)
 
-- (void)performLoad
+- (void)performAsyncTask
 {
 	NS_DURING
 		OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
@@ -367,6 +361,12 @@ static BOOL					sHaveSetUp = NO;
 	
 	if (outDesiredWidth != NULL)  *outDesiredWidth = desiredWidth;
 	if (outDesiredHeight != NULL)  *outDesiredHeight = desiredHeight;
+}
+
+
+- (void) completeAsyncTask
+{
+	ready = YES;
 }
 
 @end

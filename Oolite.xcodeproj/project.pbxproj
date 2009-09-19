@@ -553,6 +553,8 @@
 		1AB812900E90179D00A84923 /* TextureStore.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161134099544390037C2E1 /* TextureStore.h */; };
 		1AB813090E90D8E500A84923 /* OOLogOutputHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */; };
 		1AB8130A0E90D8E500A84923 /* OOLogOutputHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */; };
+		1AB987B61065842700AF9B0A /* OOAsyncWorkManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB987B41065842700AF9B0A /* OOAsyncWorkManager.h */; };
+		1AB987B71065842700AF9B0A /* OOAsyncWorkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB987B51065842700AF9B0A /* OOAsyncWorkManager.m */; };
 		1ABAD7310F350B3400FD2CBF /* OOShipGroup.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */; };
 		1ABAD7320F350B3400FD2CBF /* OOShipGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */; };
 		1ABB688C0D044306008BE96D /* OOLoggingExtended.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABB688B0D044306008BE96D /* OOLoggingExtended.h */; };
@@ -1627,6 +1629,8 @@
 		1AB784F80D554F7B00517983 /* OOJSSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSoundSource.m; sourceTree = "<group>"; };
 		1AB813070E90D8E500A84923 /* OOLogOutputHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLogOutputHandler.m; sourceTree = "<group>"; };
 		1AB813080E90D8E500A84923 /* OOLogOutputHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLogOutputHandler.h; sourceTree = "<group>"; };
+		1AB987B41065842700AF9B0A /* OOAsyncWorkManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOAsyncWorkManager.h; path = Materials/OOAsyncWorkManager.h; sourceTree = "<group>"; };
+		1AB987B51065842700AF9B0A /* OOAsyncWorkManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = OOAsyncWorkManager.m; path = Materials/OOAsyncWorkManager.m; sourceTree = "<group>"; };
 		1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOShipGroup.m; sourceTree = "<group>"; };
 		1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOShipGroup.h; sourceTree = "<group>"; };
 		1ABB688B0D044306008BE96D /* OOLoggingExtended.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLoggingExtended.h; sourceTree = "<group>"; };
@@ -2508,8 +2512,6 @@
 		1A8A3BFB0B963F91007D20B8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */,
-				1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */,
 				1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */,
 				1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */,
 				1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */,
@@ -2524,6 +2526,8 @@
 				1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */,
 				1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */,
 				1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */,
+				1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */,
+				1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */,
 				1A8A394D0B96229C007D20B8 /* NSFileManagerOOExtensions.h */,
 				1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */,
 				1A8A3A360B962AEF007D20B8 /* NSScannerOOExtensions.h */,
@@ -2551,6 +2555,8 @@
 				1A2A8E020BC67CCC001E00FB /* OOWeakReference.m */,
 				1A2A17D40BD1587D00152975 /* OOCPUInfo.h */,
 				1A2A17D50BD1587D00152975 /* OOCPUInfo.m */,
+				1AB987B41065842700AF9B0A /* OOAsyncWorkManager.h */,
+				1AB987B51065842700AF9B0A /* OOAsyncWorkManager.m */,
 				1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */,
 				1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */,
 				1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */,
@@ -3058,6 +3064,7 @@
 				1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */,
 				1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */,
 				1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */,
+				1AB987B61065842700AF9B0A /* OOAsyncWorkManager.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3403,6 +3410,7 @@
 				1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */,
 				1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */,
 				1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */,
+				1AB987B71065842700AF9B0A /* OOAsyncWorkManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

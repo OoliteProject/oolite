@@ -25,15 +25,24 @@ SOFTWARE.
 
 */
 
-#import "OOTextureLoadDispatcher.h"
+#import "OOAsyncWorkManager.h"
 #import "OOAsyncQueue.h"
 #import "OOCPUInfo.h"
 #import "OOCollectionExtractors.h"
 #import "NSThreadOOExtensions.h"
 #import "OONSOperation.h"
+#import <pthread.h>
 
 
-static OOTextureLoadDispatcher *sSingleton = nil;
+static OOAsyncWorkManager *sSingleton = nil;
+
+
+@interface NSThread (MethodsThatMayExistDependingOnSystem)
+
+- (BOOL) isMainThread;
++ (BOOL) isMainThread;
+
+@end
 
 
 /*	OOAsyncWorkManagerInternal: shared superclass of our two implementations,
@@ -43,9 +52,18 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 {
 @private
 	OOAsyncQueue			*_readyQueue;
+	
+#if OO_DEBUG
+	NSMutableSet			*_pendingCompletableOperations;
+	NSLock					*_pendingOpsLock;
+#endif
 }
 
 - (void) queueResult:(id<OOAsyncWorkTask>)task;
+
+#if OO_DEBUG
+- (void) noteTaskQueued:(id<OOAsyncWorkTask>)task;
+#endif
 
 @end
 
@@ -64,11 +82,6 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 @interface OOOperationQueueAsyncWorkManager: OOAsyncWorkManagerInternal
 {
 	OONSOperationQueue		_operationQueue;
-	
-#if OO_DEBUG
-	NSMutableSet			*_pendingCompletableOperations;
-	NSLock					*_pendingOpsLock;
-#endif
 }
 
 #if !OO_HAVE_NSOPERATION
@@ -78,7 +91,7 @@ static OOTextureLoadDispatcher *sSingleton = nil;
 @end
 
 
-static void InitAsyncWorkManager
+static void InitAsyncWorkManager(void)
 {
 	NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
 	
@@ -131,6 +144,7 @@ static void InitAsyncWorkManager
 - (void) dealloc
 {
 	abort();
+	[super dealloc];
 }
 
 
@@ -180,6 +194,17 @@ static void InitAsyncWorkManager
 			[self release];
 			return nil;
 		}
+		
+#if OO_DEBUG
+		_pendingCompletableOperations = [[NSMutableSet alloc] init];
+		_pendingOpsLock = [[NSLock alloc] init];
+		
+		if (_pendingOpsLock == nil)
+		{
+			[self release];
+			return nil;
+		}
+#endif
 	}
 	
 	return self;
@@ -188,16 +213,27 @@ static void InitAsyncWorkManager
 
 - (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
-	OOTextureLoader				*next = nil;
+#if OO_DEBUG
+	NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
+	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __FUNCTION__);
 	
-	NSParameterAssert([task respondsToSelector:@selector(completeAsyncTask)]);
-	NSAssert(![NSThread respondsToSelector:@selector(isMainThread)] || [NSThread isMainThread], @"%s can only be called from the main thread.", __FUNCTION__);
+	[_pendingOpsLock lock];
+	BOOL exists = [_pendingCompletableOperations containsObject:task];
+	if (exists)  [_pendingCompletableOperations removeObject:task];
+	[_pendingOpsLock unlock];
 	
+	if (!exists)
+	{
+		[NSException raise:NSInternalInconsistencyException format:@"%s: attempt to wait for a task that has not been queued.", __FUNCTION__];
+	}
+#endif
+	
+	id next = nil;
 	do
 	{
 		// Dequeue a task and complete it.
 		next = [_readyQueue dequeue];
-		[(id)next completeAsyncTask];
+		[next completeAsyncTask];
 		
 	}  while (next != task);	// We don't control order, so keep looking until we get the one we care about.
 }
@@ -211,11 +247,21 @@ static void InitAsyncWorkManager
 	}
 }
 
+
+#if OO_DEBUG
+- (void) noteTaskQueued:(id<OOAsyncWorkTask>)task
+{
+	[_pendingOpsLock lock];
+	[_pendingCompletableOperations addObject:task];
+	[_pendingOpsLock unlock];
+}
+#endif
+
 @end
 
 
 
-/******* OOTextureLoadManualDispatcher - manual thread management *******/
+/******* OOManualDispatchAsyncWorkManager - manual thread management *******/
 
 enum
 {
@@ -224,7 +270,7 @@ enum
 
 
 #if !OO_HAVE_NSOPERATION
-@implementation OOTextureLoadManualDispatcher
+@implementation OOManualDispatchAsyncWorkManager
 
 - (id) init
 {
@@ -236,16 +282,9 @@ enum
 		_taskQueue = [[OOAsyncQueue alloc] init];
 		if (_taskQueue == nil)
 		{
-			// Must necessarily leak, as superclass is un-deletable. If we get here, we're probably crashing anyway.
+			[self release];
 			return nil;
 		}
-		
-#if OO_DEBUG
-		_pendingCompletableOperations = [[NSMutableSet alloc] init];
-		_pendingOpsLock = [[NSLock alloc] init];
-		
-		if (_pendingOpsLock == nil)  return nil;
-#endif
 		
 		// Set up loading threads.
 		OOUInteger threadCount, threadNumber = 1;
@@ -268,38 +307,19 @@ enum
 
 - (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
 {
+	if (EXPECT_NOT(task == nil))  return NO;
+	
 #if OO_DEBUG
-	[_pendingOpsLock lock];
-	[_pendingCompletableOperations addObject:task];
-	[_pendingOpsLock unlock];
+	[super noteTaskQueued:task];
 #endif
-	
-	return [_taskQueue enqueue:loader];
+	// Priority is ignored.
+	return [_taskQueue enqueue:task];
 }
-
-
-#if OO_DEBUG
-- (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
-{
-	[_pendingOpsLock lock];
-	BOOL exists = [_pendingCompletableOperations containsObject:task];
-	if (exists)  [_pendingCompletableOperations removeObject:task];
-	[_pendingOpsLock unlock];
-	
-	if (!exists)
-	{
-		[NSException raise:NSInternalInconsistencyException format:@"%s: attempt to wait for a task that has not been queued.", __FUNCTION__];
-	}
-	
-	[super waitForLoaderToComplete:task];
-}
-#endif
 
 
 - (void) queueTask:(NSNumber *)threadNumber
 {
 	NSAutoreleasePool			*rootPool = nil, *pool = nil;
-	id<OOAsyncWorkTask>			task = nil;
 	
 	rootPool = [[NSAutoreleasePool alloc] init];
 	
@@ -315,7 +335,7 @@ enum
 			[task performAsyncTask];
 		NS_HANDLER
 		NS_ENDHANDLER
-		[self queueResult:loader];
+		[self queueResult:task];
 		
 		[pool release];
 	}
@@ -327,10 +347,10 @@ enum
 #endif
 
 
-/******* OOTextureLoadOperationQueueDispatcher - dispatch through NSOperationQueue if available *******/
+/******* OOOperationQueueAsyncWorkManager - dispatch through NSOperationQueue if available *******/
 
 
-@implementation OOTextureLoadOperationQueueDispatcher
+@implementation OOOperationQueueAsyncWorkManager
 
 #if !OO_HAVE_NSOPERATION
 + (BOOL) canBeUsed
@@ -366,24 +386,33 @@ enum
 }
 
 
-- (BOOL) dispatchLoader:(OOTextureLoader *)loader
+- (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority
 {
-	id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(performLoadOperation:) object:loader];
+	if (EXPECT_NOT(task == nil))  return NO;
+	
+	id operation = [[OONSInvocationOperationClass() alloc] initWithTarget:self selector:@selector(dispatchTask:) object:task];
 	if (operation == nil)  return NO;
+	
+	if (priority == kOOAsyncPriorityLow)  [operation setQueuePriority:OONSOperationQueuePriorityLow];
+	else if (priority == kOOAsyncPriorityHigh)  [operation setQueuePriority:OONSOperationQueuePriorityHigh];
 	
 	[_operationQueue addOperation:operation];
 	[operation release];
+	
+#if OO_DEBUG
+	[super noteTaskQueued:task];
+#endif
 	return YES;
 }
 
 
-- (void) performLoadOperation:(OOTextureLoader *) loader
+- (void) dispatchTask:(id<OOAsyncWorkTask>)task
 {
 	NS_DURING
-		[loader performLoad];
+		[task performAsyncTask];
 	NS_HANDLER
 	NS_ENDHANDLER
-	[self queueResult:loader];
+	[self queueResult:task];
 }
 
 @end
