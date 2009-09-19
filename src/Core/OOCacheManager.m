@@ -293,10 +293,21 @@ static OOCacheManager *sSingleton = nil;
 
 - (void)flush
 {
+	if (_permitWrites && [self dirty] && _scheduledWrite == nil)
+	{
+		[self write];
+		[self markClean];
+	}
+}
+
+
+- (void)flushSynchronously
+{
 	if (_permitWrites && [self dirty])
 	{
 		[self write];
 		[self markClean];
+		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:_scheduledWrite];
 	}
 }
 
@@ -394,7 +405,7 @@ static OOCacheManager *sSingleton = nil;
 	uint64_t				endianTagValue = kEndianTagValue;
 	
 	if (_caches == nil) return;
-	if (_writeScheduled)  return;
+	if (_scheduledWrite != nil)  return;
 	
 #if PRUNE_BEFORE_FLUSH
 	[[_caches allValues] makeObjectsPerformSelector:@selector(prune)];
@@ -418,10 +429,8 @@ static OOCacheManager *sSingleton = nil;
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
 	
-	OOAsyncCacheWriter *writer = [[OOAsyncCacheWriter alloc] initWithCacheContents:newCache];
-	_writeScheduled = YES;
-	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:writer priority:kOOAsyncPriorityLow];
-	[writer release];
+	_scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:newCache];
+	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:_scheduledWrite priority:kOOAsyncPriorityLow];
 }
 
 
@@ -514,7 +523,7 @@ static OOCacheManager *sSingleton = nil;
 	}
 	
 	BOOL result = [plist writeToFile:path atomically:NO];
-	_writeScheduled = NO;
+	DESTROY(_scheduledWrite);
 	return result;
 }
 
@@ -794,7 +803,6 @@ static OOCacheManager *sSingleton = nil;
 {
 	if ([[OOCacheManager sharedCache] writeDict:_cacheContents])
 	{
-		[[OOCacheManager sharedCache] markClean];
 		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
 	}
 	else
@@ -802,6 +810,12 @@ static OOCacheManager *sSingleton = nil;
 		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
 	}
 	DESTROY(_cacheContents);
+}
+
+
+- (void) completeAsyncTask
+{
+	// Don't need to do anything, but this needs to be here so we can wait on it.
 }
 
 @end

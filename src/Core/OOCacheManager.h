@@ -45,8 +45,8 @@ enum
 {
 @private
 	NSMutableDictionary		*_caches;
+	id						_scheduledWrite;
 	BOOL					_permitWrites;
-	BOOL					_writeScheduled;
 }
 
 + (id)sharedCache;
@@ -69,5 +69,6 @@ enum
 - (void)setAllowCacheWrites:(BOOL)flag;
 
 - (void)flush;
+- (void)flushSynchronously;
 
 @end

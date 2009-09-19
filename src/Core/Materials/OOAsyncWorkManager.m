@@ -213,6 +213,8 @@ static void InitAsyncWorkManager(void)
 
 - (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
+	if (task == nil)  return;
+	
 #if OO_DEBUG
 	NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
 	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __FUNCTION__);
