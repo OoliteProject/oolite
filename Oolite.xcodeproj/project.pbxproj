@@ -371,6 +371,8 @@
 		1A3ACFEC0C5FF33A00EC50A7 /* OOJSShip.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */; };
 		1A3AFF1F0BC4462200B5E2D9 /* OOJSVector.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */; };
 		1A3AFF200BC4462200B5E2D9 /* OOJSVector.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */; };
+		1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */; };
+		1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */; };
 		1A3C67FB0F1C910E0000D45B /* OOLegacyScriptWhitelist.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
@@ -1441,6 +1443,8 @@
 		1A3ACFEA0C5FF33A00EC50A7 /* OOJSShip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSShip.m; sourceTree = "<group>"; };
 		1A3AFF1D0BC4462200B5E2D9 /* OOJSVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSVector.h; sourceTree = "<group>"; };
 		1A3AFF1E0BC4462200B5E2D9 /* OOJSVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSVector.m; sourceTree = "<group>"; };
+		1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSNumberOOExtensions.h; sourceTree = "<group>"; };
+		1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSNumberOOExtensions.m; sourceTree = "<group>"; };
 		1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyScriptWhitelist.h; sourceTree = "<group>"; };
 		1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyScriptWhitelist.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
@@ -2506,6 +2510,8 @@
 		1A8A3BFB0B963F91007D20B8 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */,
+				1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */,
 				1ABAD7300F350B3400FD2CBF /* OOShipGroup.h */,
 				1ABAD72F0F350B3400FD2CBF /* OOShipGroup.m */,
 				1A20F7040F36EE0500156DE9 /* OOExcludeObjectEnumerator.h */,
@@ -3053,6 +3059,7 @@
 				1AE24373105439B500EAA7F2 /* OOLightParticleEntity.h in Headers */,
 				1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */,
 				1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */,
+				1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3397,6 +3404,7 @@
 				1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */,
 				1A11273C105994D000DF9D12 /* OOExhaustPlumeEntity.m in Sources */,
 				1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */,
+				1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
