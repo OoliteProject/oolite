@@ -105,7 +105,11 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 - (id)init
 {
-	NSDistributedNotificationCenter		*dnc;
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"groolite-disable"])
+	{
+		[self release];
+		return nil;
+	}
 	
 	self = [super init];
 	if (nil != self)
@@ -115,7 +119,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 			This is necessary in case GrowlHelperApp currently isn't running, and in case
 			it is restarted.
 		*/
-		dnc = [NSDistributedNotificationCenter defaultCenter];
+		NSDistributedNotificationCenter *dnc = [NSDistributedNotificationCenter defaultCenter];
 		[dnc addObserver:self selector:@selector(connectToGrowl:) name:GROWL_IS_READY object:nil];
 		
 		// Also, try to connect on the off chance it’s running now.
