@@ -65,13 +65,10 @@ SOFTWARE.
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
 
-#if OOLITE_MAC_OS_X
+#if OOLITE_MAC_OS_X || OOLITE_WINDOWS
 
 static void OpenLogFile(NSString *name);
 
-#elif OOLITE_WINDOWS
-
-#define OpenLogFile(name) {system([[NSString stringWithFormat:@"echo Verify complete. Please see 'Logs\\%@' & pause",name] cString]);do {} while (0);}
 #else
 
 #define OpenLogFile(name) do {} while (0)
@@ -745,6 +742,18 @@ static void OpenLogFile(NSString *name)
 	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
 	{
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
+	}
+}
+
+#elif OOLITE_WINDOWS
+
+static void OpenLogFile(NSString *name)
+{
+	//	Open log file in appropriate application.
+	
+	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
+	{
+		system([[NSString stringWithFormat:@"echo Verify complete. Please see 'Logs\\%@' & pause", name] cString]);
 	}
 }
 
