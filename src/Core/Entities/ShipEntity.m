@@ -8014,6 +8014,7 @@ int w_space_seed = 1234567;
 		{
 			[escortGroup addShip:other_ship];
 			[other_ship setGroup:escortGroup];
+			if ([self group] && [self group] != escortGroup) [[self group] addShip:other_ship];
 			
 			if(([other_ship maxFlightSpeed] < cruiseSpeed) && ([other_ship maxFlightSpeed] > cruiseSpeed * 0.3)) 
 					cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;

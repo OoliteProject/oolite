@@ -43,7 +43,7 @@
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 	}; 
-	FLEE_FOR_MISSILE = 
+	"FLEE_FOR_MISSILE" = 
 	{
 		ENTER = ("setDesiredRangeTo: 25600", broadcastDistressMessage, performFlee, "pauseAI: 5"); 
 		ATTACKED = ("setStateTo: GLOBAL", fightOrFleeHostiles); 
@@ -55,9 +55,9 @@
 		"REACHED_SAFETY" = (performIdle, exitAI); 
 		"UPDATE" = (fightOrFleeMissile, "pauseAI: 10");
 	}; 
-	INCOMING_MISSILE = 
+	"INCOMING_MISSILE" = 
 	{
-		ATTACKED = ("setStateTo: GLOBAL", fightOrFleeMissile); 
+		ATTACKED = ("setStateTo: GLOBAL", fightOrFleeMissile, fightOrFleeHostiles); 
 		"UPDATE" = (setTargetToPrimaryAggressor, fightOrFleeMissile, "setStateTo: FLEE_FOR_MISSILE"); 
 	}; 
 }

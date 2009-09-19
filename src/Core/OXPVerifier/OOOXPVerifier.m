@@ -69,9 +69,9 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage);
 
 static void OpenLogFile(NSString *name);
 
-#elseif OOLITE_WINDOWS
+#elif OOLITE_WINDOWS
 
-#define OpenLogFile(name) {printf([[NSString stringWithFormat:@"echo logged to \"Logs\\%@\",name] cString]);do {} while (0);}
+#define OpenLogFile(name) {printf([[NSString stringWithFormat:@"echo logged to \"Logs\\%@\"",name] cString]);do {} while (0);}
 
 #else
 

@@ -108,6 +108,7 @@
 		"performFlee",
 		"getWitchspaceEntryCoordinates",
 		"setDestinationFromCoordinates",
+		"setCoordinatesFromPosition",
 		"performFaceDestination",
 		"performTumble",
 		"fightOrFleeMissile",
@@ -189,6 +190,7 @@
 		"exitAIWithMessage:",
 		"ai_throwSparks",	// Don't use, use throwSparks instead
 		"checkAegis",
+		"checkEnergy",
 				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",

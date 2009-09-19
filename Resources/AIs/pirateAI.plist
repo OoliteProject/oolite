@@ -1,5 +1,21 @@
 {
-    GLOBAL = {ENTER = ("setStateTo: TRAVEL_TO_LURK_AREA"); }; 
+    GLOBAL = {ENTER = (setCoordinatesFromPosition, "setStateTo: TRAVEL_TO_START_POSITION"); }; 
+    "TRAVEL_TO_START_POSITION" = {
+        ENTER = (
+            setDestinationToCurrentLocation, 
+            "setDesiredRangeTo: 1500.0", 
+            performFlyToRangeFromDestination
+        ); 
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");
+		"FRUSTRATED" = ("setStateTo: LURK");
+    }; 
     "ATTACK_SHIP" = {
         ENTER = (performAttack); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
@@ -8,27 +24,39 @@
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
         "TARGET_DESTROYED" = ("setStateTo: COLLECT_LOOT"); 
         "TARGET_LOST" = ("setStateTo: COLLECT_LOOT"); 
+        "CARGO_DUMPED" = (checkForFullHold);
+        "HOLD_NOT_FULL" = ("rollD: 4"); 
+        "ROLL_1" = ("setStateTo: COLLECT_LOOT"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
     }; 
     FLEE = {
         ENTER = ("setDesiredRangeTo: 25600", performFlee); 
-        "ENERGY_FULL" = ("setStateTo: LURK"); 
-        "TARGET_LOST" = ("setStateTo: LURK"); 
-        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
+        "ENERGY_FULL" = ("setStateTo: COLLECT_LOOT"); 
+        "TARGET_LOST" = ("setStateTo: RECOVER"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-        "REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0"); 
+        "REACHED_SAFETY" = ("setStateTo: RECOVER"); 
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE"); 
     }; 
     "FLEE_FOR_CLOAKED" = {
         ENTER = ("setDesiredRangeTo: 7500", performFlee); 
         "ENERGY_FULL" = ("setStateTo: LURK"); 
         "ENERGY_LOW" = ("setStateTo: FLEE"); 
-        "TARGET_LOST" = ("setStateTo: LURK"); 
-        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
+        "TARGET_LOST" = ("setStateTo: RECOVER"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: RECOVER"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-        "REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 10.0"); 
+        "REACHED_SAFETY" = ("setStateTo: RECOVER");
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+    }; 
+    RECOVER = {
+		ENTER = ("setSpeedTo: 0.0", performIdle, "pauseAI: 5.0");
+        "ENERGY_FULL" = ("setStateTo: COLLECT_LOOT"); 
+        "ENERGY_HIGH" = ("setStateTo: COLLECT_LOOT"); 
+        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+        UPDATE = (checkEnergy, "pauseAI: 10.0"); 
     }; 
     "COLLECT_LOOT" = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
@@ -61,7 +89,7 @@
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
         "HOLD_FULL" = ("setStateTo: CONSIDER_LEAVING"); 
         "HOLD_NOT_FULL" = ("setStateTo: COLLECT_LOOT"); 
-        "NO_CARGO_BAY" = ("setStateTo: COLLECT_LOOT"); 
+        "NO_CARGO_BAY" = ("setStateTo: CONSIDER_DOCKING"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
@@ -72,6 +100,7 @@
 		"NOTHING_FOUND" = ("setStateTo: EXIT_SYSTEM", "pauseAI: 5.0");
 		"STATION_FOUND" = ("setAITo: dockingAI.plist");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		UPDATE = (checkForMotherStation);
 	}; 
     "EXIT_SYSTEM" = {
@@ -87,10 +116,11 @@
     "CONSIDER_DOCKING" = {
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
-		"NOTHING_FOUND" = ("setStateTo: LURK");
-		"STATION_FOUND" = ("setAITo: dockingAI.plist");
+		"NOTHING_FOUND" = ("setStateTo: TRAVEL_TO_LURK_AREA");
+		"STATION_FOUND" = (dockEscorts, "setAITo: dockingAI.plist");
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 		UPDATE = (checkForMotherStation);
 	}; 
     "DOCK_WITH_STATION" = {
@@ -98,8 +128,9 @@
         ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"NOTHING_FOUND" = ("setAITo: route1traderAI.plist");
-		"STATION_FOUND" = ("setAITo: dockingAI.plist");
+		"STATION_FOUND" = (dockEscorts, "setAITo: dockingAI.plist");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
 	}; 
     "ENTER_WORMHOLE" = {
 		ENTER = (setDestinationToTarget,
@@ -111,13 +142,34 @@
 		"DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
 		"PLAYER WITCHSPACE" = (enterTargetWormhole);
     }; 
+    "TRAVEL_TO_LURK_AREA" = {
+        ENTER = (
+            setDestinationFromCoordinates, 
+            "setDesiredRangeTo: 3500.0", 
+            checkCourseToDestination
+        ); 
+		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
+        ATTACKED = (setTargetToPrimaryAggressor,  groupAttackTarget); 
+        "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
+        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
+        "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
+        "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
+		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
+		"FRUSTRATED" = ("setStateTo: LURK");
+        "TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget); 
+        "ODDS_GOOD" = (groupAttackTarget); 
+        "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
+        RESTARTED = ("setStateTo: LURK"); 
+        UPDATE = (scanForRandomMerchantmen, "pauseAI: 10.0"); 
+    }; 
     LURK = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
 		"TARGET_LOST" = ("setStateTo: TRAVEL_TO_LURK_AREA", "pauseAI: 0.5");
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-        "NOTHING_FOUND" = ("setStateTo: COLLECT_LOOT"); 
+        "NOTHING_FOUND" = ("setStateTo: SCAN_FOR_LOOT"); 
         "TARGET_FOUND" = (setTargetToFoundTarget, checkGroupOddsVersusTarget); 
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
         "ODDS_GOOD" = (groupAttackTarget); 
@@ -126,21 +178,16 @@
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
         UPDATE = (scanForRandomMerchantmen, "pauseAI: 5.0"); 
     }; 
-    "TRAVEL_TO_LURK_AREA" = {
-        ENTER = (
-            setDestinationToCurrentLocation, 
-            "setDesiredRangeTo: 1500.0", 
-            performFlyToRangeFromDestination
-        ); 
-        ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP"); 
+    "SCAN_FOR_LOOT" = {
+        ENTER = ("setSpeedTo: 0.0", performIdle); 
+        ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget); 
         "ATTACKED_BY_CLOAKED" = ("setStateTo: FLEE_FOR_CLOAKED"); 
-        "DESIRED_RANGE_ACHIEVED" = ("setStateTo: LURK"); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
         "INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE"); 
-		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
+        "TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: LOOT"); 
+        "NOTHING_FOUND" = ("setStateTo: LURK"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
-		"EXITED WITCHSPACE" = ("switchAITo: enteringPirateAI.plist");
-		"FRUSTRATED" = ("setStateTo: LURK");
+        UPDATE = (scanForLoot, "pauseAI: 7.0"); 
     }; 
 	"CLEAR_STATION" = {
 		ENTER = (

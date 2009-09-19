@@ -116,6 +116,7 @@ MA 02110-1301, USA.
 - (void) getWitchspaceEntryCoordinates;
 
 - (void) setDestinationFromCoordinates;
+- (void) setCoordinatesFromPosition;
 
 - (void) performFaceDestination;
 
@@ -136,6 +137,8 @@ MA 02110-1301, USA.
 - (void) checkCourseToDestination;
 
 - (void) checkAegis;
+
+- (void) checkEnergy;
 
 - (void) scanForOffenders;
 
@@ -717,6 +720,12 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setCoordinatesFromPosition
+{
+	coordinates = position;
+}
+
+
 - (void) performFaceDestination
 {
 	behaviour = BEHAVIOUR_FACE_DESTINATION;
@@ -807,7 +816,6 @@ MA 02110-1301, USA.
 {
 	/*- selects the nearest planet it can find -*/
 	PlanetEntity	*the_planet =  [self findNearestPlanetExcludingMoons];
-	// PlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
 		Vector p_pos = the_planet->position;
@@ -820,6 +828,10 @@ MA 02110-1301, USA.
 		p1 = vector_normal(p1); 
 		destination = make_vector(p_pos.x + p1.x * p_cr, p_pos.y + p1.y * p_cr, p_pos.z + p1.z * p_cr);	// on surface
 		desired_range = collision_radius + 50.0;   // +50m from the destination
+	}
+	else
+	{
+		[shipAI message:@"NO_PLANET_FOUND"];
 	}
 }
 
@@ -990,6 +1002,27 @@ MA 02110-1301, USA.
 			[shipAI message:@"AEGIS_NONE"];
 			break;
 	}
+}
+
+
+- (void) checkEnergy
+{
+	if (energy == maxEnergy)
+	{
+		[shipAI message:@"ENERGY_FULL"];
+		return;
+	}
+	if (energy >= maxEnergy * 0.25)
+	{
+		[shipAI message:@"ENERGY_HIGH"];
+		return;
+	}
+	if (energy <= maxEnergy * 0.25)
+	{
+		[shipAI message:@"ENERGY_LOW"];
+		return;
+	}
+	[shipAI message:@"ENERGY_MEDIUM"];
 }
 
 

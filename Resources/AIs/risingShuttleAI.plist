@@ -46,6 +46,7 @@
 		ENTER = ("setDesiredRangeTo: 25600", performFlee);
 		"TARGET_LOST" = (performIdle, "setStateTo: GLOBAL");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
-		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 30.0");
+		ATTACKED = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
+		"REACHED_SAFETY" = ("setSpeedTo: 0.0", performIdle, "pauseAI: 90.0", "messageSelf: TARGET_LOST");
 	};
 }
