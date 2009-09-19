@@ -2036,7 +2036,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
-	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	NSString *equipmentTypeCheckKey = equipmentKey;
+	
+	// determine the equipment type and make sure it works also in the case of damaged equipment
+	if ([equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		equipmentTypeCheckKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
+	}
+	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentTypeCheckKey];
 	if (eqType == nil)  return;
 	
 	if ([eqType isMissileOrMine])
