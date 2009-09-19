@@ -1012,7 +1012,7 @@ MA 02110-1301, USA.
 		[shipAI message:@"ENERGY_FULL"];
 		return;
 	}
-	if (energy >= maxEnergy * 0.25)
+	if (energy >= maxEnergy * 0.75)
 	{
 		[shipAI message:@"ENERGY_HIGH"];
 		return;
