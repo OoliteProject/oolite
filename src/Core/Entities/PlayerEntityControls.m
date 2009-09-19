@@ -2202,7 +2202,7 @@ static NSTimeInterval	time_last_frame;
 #if OOLITE_MAC_OS_X
 	if ((guiSelectedRow == GUI_ROW(GAME,GROWL))&&([gameView isDown:gvArrowKeyRight]||[gameView isDown:gvArrowKeyLeft]))
 	{
-		if ((!leftRightKeyPressed)||(script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
+		if ([Groolite isEnabled] && (!leftRightKeyPressed || script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
 			BOOL rightKeyDown = [gameView isDown:gvArrowKeyRight];

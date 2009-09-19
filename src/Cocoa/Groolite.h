@@ -55,6 +55,8 @@ enum
 	IBOutlet GameController	*gameController;
 }
 
-+ (NSString*) priorityDescription: (int) min_priority;
++ (NSString *) priorityDescription: (int)min_priority;
+
++ (BOOL) isEnabled;
 
 @end

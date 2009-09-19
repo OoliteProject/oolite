@@ -105,7 +105,7 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 
 - (id)init
 {
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"groolite-disable"])
+	if (![Groolite isEnabled])
 	{
 		[self release];
 		return nil;
@@ -249,10 +249,16 @@ static NSString * const kOOLogGrooliteDebug	= @"growl.debug";
 }
 
 
-+ (NSString*) priorityDescription: (int) min_priority
++ (NSString *) priorityDescription:(int)min_priority
 {
 	if (min_priority < kGroolitePriorityMinimum || min_priority > kGroolitePriorityMaximum)  return @"?";
 	return [UNIVERSE descriptionForArrayKey:@"growl-priority-levels" index:min_priority - kGroolitePriorityMinimum];
+}
+
+
++ (BOOL) isEnabled
+{
+	return ![[NSUserDefaults standardUserDefaults] boolForKey:@"groolite-disable"];
 }
 
 @end

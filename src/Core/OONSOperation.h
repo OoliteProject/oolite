@@ -29,6 +29,10 @@
 
 #import "OOFunctionAttributes.h"
 
+#define OONSOperationQueue				id
+#define OONSOperation					id
+#define OONSInvocationOperation			id
+
 /*	NOTE: if OO_HAVE_NSOPERATION, these will compile to class names, which are
 	not values. If you want an actual Class object, use [OONSOperationClass() class].
 */
@@ -72,7 +76,7 @@ enum {
 	on id variables.
 */
 
-@interface OONSOperation
+@interface OONSOperationProto
 
 - (void) start;
 - (void) main;
@@ -98,7 +102,7 @@ enum {
 @end
 
 
-@interface OONSInvocationOperation
+@interface OONSInvocationOperationProto
 
 - (id) initWithTarget:(id)target selector:(SEL)sel object:(id)arg;
 - (id) initWithInvocation:(NSInvocation *)inv;
@@ -110,7 +114,7 @@ enum {
 @end
 
 
-@interface OONSOperationQueue
+@interface OONSOperationQueueProto
 
 - (void) addOperation:(NSOperation *)op;
 
@@ -129,6 +133,10 @@ enum {
 @end
 
 #else
+
+#define OONSOperationQueue				NSOperationQueue
+#define OONSOperation					NSOperation
+#define OONSInvocationOperation			NSInvocationOperation
 
 #define OONSOperationQueueClass()		NSOperationQueue
 #define OONSOperationClass()			NSOperation

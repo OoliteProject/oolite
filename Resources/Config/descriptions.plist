@@ -924,6 +924,7 @@
 		"Off (for all messages)"
 	);
 	"growl-not-available"					= "Not available";
+	"growl-disabled"						= "Disabled";
 	
 	// Equip ship screen
 	"equip-title"					= "Ship Outfitting";

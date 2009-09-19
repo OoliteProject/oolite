@@ -352,6 +352,25 @@ enum {
 #endif
 
 
+/*	@optional directive for protocols: added in Objective-C 2.0.
+	
+	As a nasty, nasty hack, the OOLITE_OPTIONAL(foo) macro allows an optional
+	section with or without @optional. If @optional is not available, it
+	actually ends the protocol and starts an appropriately-named informal
+	protocol, i.e. a category on NSObject. Since it ends the protocol, there
+	can only be one and there's no way to switch back to @required.
+*/
+#ifndef OOLITE_HAVE_PROTOCOL_OPTIONAL
+#define OOLITE_HAVE_PROTOCOL_OPTIONAL OOLITE_LEOPARD
+#endif
+
+#if OOLITE_HAVE_PROTOCOL_OPTIONAL
+#define OOLITE_OPTIONAL(protocolName) @optional
+#else
+#define OOLITE_OPTIONAL(protocolName) @end @interface NSObject (protocolName ## Optional)
+#endif
+
+
 #ifndef OO_DEBUG
 #define OO_DEBUG 0
 #endif
