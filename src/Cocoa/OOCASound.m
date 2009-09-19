@@ -347,14 +347,14 @@ void OOCASoundVerifyBuffers(AudioBufferList *buffers, OOUInteger numFrames, OOSo
 		if (!VerifyOneBuffer(&buffers->mBuffers[i], numFrames, &badVal))
 		{
 			allOK = NO;
-			
-			if (!sSoundError.hasData)
-			{
-				sSoundError.badSound = sound;
-				sSoundError.badVal = badVal;
-				sSoundError.hasData = YES;	// Must be last!
-			}
 		}
+	}
+	
+	if (!allOK && !sSoundError.hasData)
+	{
+		sSoundError.badSound = sound;
+		sSoundError.badVal = badVal;
+		sSoundError.hasData = YES;	// Must be last!
 	}
 }
 
