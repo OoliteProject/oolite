@@ -83,6 +83,9 @@
 	ai.invalid.notAStation					= $aiError;				// Warning when station AI message is used on non-station.
 	
 	
+	asyncWorkManager.dispatchMethod			= no;
+	
+	
 	beacon.list								= $scriptDebugOn;
 	beacon.list.flightTraining				= inherit;
 	
@@ -384,7 +387,6 @@
 	textureLoader.block						= $textureDebug;
 	textureLoader.block.done				= inherit;
 	textureLoader.detachThreads.failed		= $error;
-	textureLoader.dispatchMethod			= no;
 	textureLoader.queueTask.inconsistency	= $error;
 	textureLoader.unknownType				= $error;
 	

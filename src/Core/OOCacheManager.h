@@ -46,6 +46,7 @@ enum
 @private
 	NSMutableDictionary		*_caches;
 	BOOL					_permitWrites;
+	BOOL					_writeScheduled;
 }
 
 + (id)sharedCache;

@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OOCache.h"
 #import "OOPListParsing.h"
+#import "OOAsyncWorkManager.h"
 
 
 #define AUTO_PRUNE				0
@@ -92,6 +93,17 @@ static OOCacheManager *sSingleton = nil;
 @interface OOCacheManager (PlatformSpecific)
 
 - (NSString *)cachePathCreatingIfNecessary:(BOOL)inCreate;
+
+@end
+
+
+@interface OOAsyncCacheWriter: NSObject <OOAsyncWorkTask>
+{
+@private
+	NSDictionary			*_cacheContents;
+}
+
+- (id) initWithCacheContents:(NSDictionary *)cacheContents;
 
 @end
 
@@ -382,12 +394,13 @@ static OOCacheManager *sSingleton = nil;
 	uint64_t				endianTagValue = kEndianTagValue;
 	
 	if (_caches == nil) return;
+	if (_writeScheduled)  return;
 	
 #if PRUNE_BEFORE_FLUSH
 	[[_caches allValues] makeObjectsPerformSelector:@selector(prune)];
 #endif
 	
-	OOLog(@"dataCache.willWrite", @"About to write data cache.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
+	OOLog(@"dataCache.willWrite", @"Scheduling data cache write.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
 	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
@@ -405,15 +418,10 @@ static OOCacheManager *sSingleton = nil;
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
 	
-	if ([self writeDict:newCache])
-	{
-		[self markClean];
-		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
-	}
-	else
-	{
-		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
-	}
+	OOAsyncCacheWriter *writer = [[OOAsyncCacheWriter alloc] initWithCacheContents:newCache];
+	_writeScheduled = YES;
+	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:writer priority:kOOAsyncPriorityLow];
+	[writer release];
 }
 
 
@@ -505,7 +513,9 @@ static OOCacheManager *sSingleton = nil;
 		return NO;
 	}
 	
-	return [plist writeToFile:path atomically:NO];
+	BOOL result = [plist writeToFile:path atomically:NO];
+	_writeScheduled = NO;
+	return result;
 }
 
 
@@ -752,3 +762,46 @@ static OOCacheManager *sSingleton = nil;
 
 @end
 #endif
+
+
+@implementation OOAsyncCacheWriter
+
+- (id) initWithCacheContents:(NSDictionary *)cacheContents
+{
+	if ((self = [super init]))
+	{
+		_cacheContents = [cacheContents copy];
+		if (_cacheContents == nil)
+		{
+			[self release];
+			self = nil;
+		}
+	}
+	
+	return self;
+}
+
+
+- (void) dealloc
+{
+	DESTROY(_cacheContents);
+	
+	[super dealloc];
+}
+
+
+- (void) performAsyncTask
+{
+	if ([[OOCacheManager sharedCache] writeDict:_cacheContents])
+	{
+		[[OOCacheManager sharedCache] markClean];
+		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
+	}
+	else
+	{
+		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
+	}
+	DESTROY(_cacheContents);
+}
+
+@end

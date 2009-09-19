@@ -110,11 +110,11 @@ static void InitAsyncWorkManager(void)
 	
 	if (sSingleton == nil)
 	{
-		OOLog(@"textureLoader.setUpDispatcher.failed", @"***** FATAL ERROR: could not set up texture load dispatcher!");
+		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"***** FATAL ERROR: could not set up texture load dispatcher!");
 		exit(EXIT_FAILURE);
 	}
 	
-	OOLog(@"textureLoader.dispatchMethod", @"Selected texture load dispatcher: %@", [sSingleton class]);
+	OOLog(@"asyncWorkManager.dispatchMethod", @"Selected texture load dispatcher: %@", [sSingleton class]);
 }
 
 
