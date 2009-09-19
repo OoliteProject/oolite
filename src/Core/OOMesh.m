@@ -1480,12 +1480,21 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 }
 
 
+static void Scribble(void *bytes, size_t size)
+{
+	size /= sizeof (uint32_t);
+	uint32_t *mem = bytes;
+	while (size--)  *mem++ = htonl(0xFEEDFACE);
+}
+
+
 - (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key
 {
 	size *= count;
 	void *bytes = malloc(size);
 	if (bytes != NULL)
 	{
+		Scribble(bytes, size);
 		NSData *holder = [NSData dataWithBytesNoCopy:bytes length:size freeWhenDone:YES];
 		[self setRetainedObject:holder forKey:key];
 	}
