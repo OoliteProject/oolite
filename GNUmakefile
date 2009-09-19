@@ -228,6 +228,7 @@ OO_UTILITY_FILES = \
 	NSScannerOOExtensions.m \
 	NSStringOOExtensions.m \
 	NSThreadOOExtensions.m \
+	NSNumberOOExtensions.m \
 	OOAsyncQueue.m \
 	OOCollectionExtractors.m \
 	OOColor.m \

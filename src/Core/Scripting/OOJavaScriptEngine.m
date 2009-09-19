@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOWeakReference.h"
 #import "EntityOOJavaScriptExtensions.h"
 #import "ResourceManager.h"
+#import "NSNumberOOExtensions.h"
 
 #import "OOJSGlobal.h"
 #import "OOJSMissionVariables.h"
@@ -1171,7 +1172,6 @@ const char *JSValueTypeDbg(jsval val)
 {
 	jsval					result;
 	BOOL					isFloat = NO;
-	const char				*type;
 	long long				longLongValue;
 	
 	if (self == [NSNumber numberWithBool:YES])
@@ -1187,17 +1187,15 @@ const char *JSValueTypeDbg(jsval val)
 	}
 	else
 	{
-		longLongValue = [self longLongValue];
-		if (longLongValue < (long long)JSVAL_INT_MIN || (long long)JSVAL_INT_MAX < longLongValue)
+		isFloat = [self oo_isFloatingPointNumber];
+		if (!isFloat)
 		{
-			// values outside JSVAL_INT range are returned as doubles.
-			isFloat = YES;
-		}
-		else
-		{
-			// Check value type.
-			type = [self objCType];
-			if (type[0] == 'f' || type[0] == 'd') isFloat = YES;
+			longLongValue = [self longLongValue];
+			if (longLongValue < (long long)JSVAL_INT_MIN || (long long)JSVAL_INT_MAX < longLongValue)
+			{
+				// values outside JSVAL_INT range are returned as doubles.
+				isFloat = YES;
+			}
 		}
 		
 		if (isFloat)
