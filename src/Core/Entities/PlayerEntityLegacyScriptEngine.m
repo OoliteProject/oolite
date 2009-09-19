@@ -1247,21 +1247,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) removeEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
+- (void) removeEquipment:(NSString *)equipKey  //eg. EQ_NAVAL_ENERGY_UNIT
 {
-	NSString*   eq_type		= equipString;
 
 	if (scriptTarget != self)  return;
 
-	if ([eq_type isEqual:@"EQ_FUEL"])
+	if ([equipKey isEqual:@"EQ_FUEL"])
 	{
 		fuel = 0;
 		return;
 	}
 
-	if ([self hasEquipmentItem:eq_type])
+	if ([self hasEquipmentItem:equipKey] || [self hasEquipmentItem:[equipKey stringByAppendingString:@"_DAMAGED"]])
 	{
-		[self removeEquipmentItem:eq_type];
+		[self removeEquipmentItem:equipKey];
 	}
 
 }

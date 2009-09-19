@@ -2053,6 +2053,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		[_equipment removeObject:equipmentKey];
+		if (![equipmentKey hasSuffix:@"_DAMAGED"])
+		{
+			[_equipment removeObject:[equipmentKey stringByAppendingString:@"_DAMAGED"]];
+		}
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 		if (isPlayer)
 		{

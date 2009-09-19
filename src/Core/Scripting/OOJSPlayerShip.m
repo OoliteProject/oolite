@@ -371,8 +371,14 @@ static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN
 		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
-	
-	[player awardEquipment:key];
+	if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"])
+	{
+		[player removeMissiles];
+	}
+	else
+	{
+		[player awardEquipment:key];
+	}
 	return YES;
 }
 
@@ -413,7 +419,7 @@ static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, u
 		return NO;
 	}
 	
-	if (EXPECT_NOT(key == nil || status == nil))
+	if (EXPECT_NOT(key == nil || status == nil || [key hasSuffix:@"_DAMAGED"]))
 	{
 		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, nil, @"equipment key and status");
 		return NO;
@@ -434,7 +440,12 @@ static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, u
 	{
 		if (hasOK)
 		{
+
 			[player removeEquipmentItem:key];
+			if ([key isEqual:@"EQ_FUEL"])
+			{
+				return YES;
+			}
 			[player addEquipmentItem:damagedKey];
 			[player doScriptEvent:@"equipmentDamaged" withArgument:key];
 		}

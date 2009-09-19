@@ -663,6 +663,7 @@ waitingForStickCallback: 1;
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
+- (int) removeMissiles;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 

@@ -5813,22 +5813,9 @@ static NSString *last_outfitting_key=nil;
 	if ([eqKey isEqualToString:@"EQ_MISSILE_REMOVAL"])
 	{
 		credits -= price;
-		[self safeAllMissiles];
-		[self sortMissiles];
-		unsigned i;
-		for (i = 0; i < missiles; i++)
-		{
-			ShipEntity* weapon = missile_entity[i];
-			missile_entity[i] = nil;
-			if (weapon)
-			{
-				NSString* weapon_key = [weapon primaryRole];
-				int weapon_value = (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
-				tradeIn += weapon_value;
-				[weapon release];
-			}
-		}
-		missiles = 0;
+
+		
+		tradeIn += [self removeMissiles];
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		return YES;
 	}
@@ -5844,7 +5831,30 @@ static NSString *last_outfitting_key=nil;
 }
 
 
--(void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor
+- (int) removeMissiles
+{
+	[self safeAllMissiles];
+	[self sortMissiles];
+	int tradeIn =0;
+	unsigned i;
+	for (i = 0; i < missiles; i++)
+	{
+		ShipEntity* weapon = missile_entity[i];
+		missile_entity[i] = nil;
+		if (weapon)
+		{
+			NSString* weapon_key = [weapon primaryRole];
+			int weapon_value = (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
+			tradeIn += weapon_value;
+			[weapon release];
+		}
+	}
+	missiles = 0;
+	return tradeIn;
+}
+
+
+- (void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor
 {
 	if (tradeInValue != 0)
 	{
