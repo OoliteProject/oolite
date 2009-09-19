@@ -31,7 +31,12 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "NSThreadOOExtensions.h"
 #import "OONSOperation.h"
+
+#if OOLITE_SDL
+#import "pthread.h"
+#else
 #import <pthread.h>
+#endif
 
 
 static OOAsyncWorkManager *sSingleton = nil;
