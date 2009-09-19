@@ -62,7 +62,7 @@ SOFTWARE.
 		apple-gcc 4.0 (even with -O0).
 	*/
 	const char *type = [self objCType];
-	return (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0 || strcmp(type, @encode(long double)) == 0);
+	return (strcmp(type, @encode(double)) == 0 || strcmp(type, @encode(float)) == 0);
 #endif
 }
 
@@ -85,7 +85,7 @@ SOFTWARE.
 #if __COREFOUNDATION_CFNUMBER__
 	return self == (NSNumber *)kCFBooleanTrue || self == (NSNumber *)kCFBooleanFalse;
 #else
-	static NSNumber *sTrue = nil, sFalse;
+	static NSNumber *sTrue = nil, *sFalse;
 	if (EXPECT_NOT(sTrue == nil))
 	{
 		sTrue = [[NSNumber numberWithBool:YES] retain];
@@ -113,7 +113,7 @@ SOFTWARE.
 @end
 
 
-@interface NSBoolNumber (OOExtensions)
+@implementation NSBoolNumber (OOExtensions)
 
 - (BOOL) oo_isBoolean
 {

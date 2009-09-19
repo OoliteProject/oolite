@@ -1641,11 +1641,15 @@ static NSTimeInterval	time_last_frame;
 				if (weaponType != WEAPON_UNDEFINED)
 				{
 					BOOL		sameAs = EquipmentStringToWeaponTypeSloppy([gui selectedRowKey]) == weaponType;
-					NSString	*weaponName = weaponType == WEAPON_NONE ? @"" :  [UNIVERSE descriptionForArrayKey:@"weapon_name" index:weaponType];
 					// override showInformation _completely_ with itemText
-					itemText = [weaponName isEqualToString:@""] ? DESC(@"no-weapon-enter-to-install") :
-								sameAs ? [NSString stringWithFormat:DESC(@"weapon-installed-@"), weaponName] :
-								[NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
+					if (weaponType == WEAPON_NONE)  itemText = DESC(@"no-weapon-enter-to-install");
+					else
+					{
+						NSString *weaponName = [UNIVERSE descriptionForArrayKey:@"weapon_name" index:weaponType];
+						if (sameAs)  itemText = [NSString stringWithFormat:DESC(@"weapon-installed-@"), weaponName];
+						else  itemText = [NSString stringWithFormat:DESC(@"weapon-@-enter-to-replace"), weaponName];
+					}
+					
 					[self showInformationForSelectedUpgradeWithFormatString:itemText];
 				}
 				else

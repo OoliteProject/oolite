@@ -172,7 +172,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 #elif OOLITE_LITTLE_ENDIAN
 		png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
 #else
-#error Don't know how to handle byte order.
+#error Unknown handle byte order.
 #endif
 	}
 	

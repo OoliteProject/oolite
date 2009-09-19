@@ -1482,9 +1482,15 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 
 static void Scribble(void *bytes, size_t size)
 {
+	#if OOLITE_BIG_ENDIAN
+	enum { kScribble = 0xFEEDFACE };
+	#else
+	enum { kScribble = 0xCEFADEFE };
+	#endif
+	
 	size /= sizeof (uint32_t);
 	uint32_t *mem = bytes;
-	while (size--)  *mem++ = htonl(0xFEEDFACE);
+	while (size--)  *mem++ = kScribble;
 }
 
 
