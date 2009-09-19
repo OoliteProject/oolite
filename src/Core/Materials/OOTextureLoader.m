@@ -54,13 +54,6 @@ SOFTWARE.
 #import "OOTextureScaling.h"
 #import <stdlib.h>
 #import "OOTextureLoadDispatcher.h"
-#import "OOCPUInfo.h"
-
-#if OOLITE_WINDOWS
-#import <winsock2.h>
-#else
-#import <arpa/inet.h>	// For htonl
-#endif
 
 
 static unsigned				sGLMaxSize;
@@ -81,10 +74,6 @@ static BOOL					sHaveSetUp = NO;
 
 - (void)applySettings;
 - (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
-
-#if OOLITE_LITTLE_ENDIAN
-- (void) swizzle4;
-#endif
 
 @end
 
@@ -308,14 +297,6 @@ static BOOL					sHaveSetUp = NO;
 		height = desiredHeight;
 	}
 	
-	// Byte-swap RGBA data on little-endian systems. (All graphics cards prefer sane-endian data.)
-#if OOLITE_LITTLE_ENDIAN
-	if (format == kOOTextureDataRGBA)
-	{
-		[self swizzle4];
-	}
-#endif
-	
 	// Generate mip maps if needed.
 	if (generateMipMaps && !rescale)
 	{
@@ -387,23 +368,5 @@ static BOOL					sHaveSetUp = NO;
 	if (outDesiredWidth != NULL)  *outDesiredWidth = desiredWidth;
 	if (outDesiredHeight != NULL)  *outDesiredHeight = desiredHeight;
 }
-
-
-#if OOLITE_LITTLE_ENDIAN
-- (void) swizzle4
-{
-	NSParameterAssert(data != NULL);
-	
-	uint32_t *pixels = data;
-	uint32_t count = height * rowBytes / sizeof (uint32_t);
-	
-	// FIXME: this could do with vectorization.
-	while (count--)
-	{
-		*pixels = htonl(*pixels);
-		pixels++;
-	}
-}
-#endif
 
 @end

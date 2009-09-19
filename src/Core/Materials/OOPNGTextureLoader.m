@@ -49,6 +49,7 @@ SOFTWARE.
 #import "OOPNGTextureLoader.h"
 #import "OOFunctionAttributes.h"
 #import "OOLogging.h"
+#import "OOCPUInfo.h"
 
 
 void png_error(png_structp, png_const_charp) NO_RETURN_FUNC;
@@ -159,17 +160,20 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	{
 		// TODO: what about PNG_COLOR_TYPE_GRAY_ALPHA ?
 		format = kOOTextureDataGrayscale;
-		
-	//	png_set_invert_mono(png);
 	}
 	else
 	{
 		format = kOOTextureDataRGBA;
 		
+#if OOLITE_BIG_ENDIAN
 		png_set_bgr(png);
 		png_set_swap_alpha(png);		// RGBA->ARGB
-		
 		png_set_filler(png, 0xFF, PNG_FILLER_BEFORE);
+#elif OOLITE_LITTLE_ENDIAN
+		png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
+#else
+#error Don't know how to handle byte order.
+#endif
 	}
 	
 	png_read_update_info(png, pngInfo);

@@ -661,7 +661,6 @@
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
-		2B13C51F105D342D00AF4A7B /* oolite-nova-system.png in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
@@ -1070,7 +1069,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
-				2B13C51F105D342D00AF4A7B /* oolite-nova-system.png in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
