@@ -539,6 +539,18 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	  startingAtRow:(OOGUIRow)row
 			  align:(OOGUIAlignment)alignment
 {
+
+	if ([str rangeOfString:@"\n"].location != NSNotFound)
+	{
+		NSArray		*lines = [str componentsSeparatedByString:@"\n"];
+		unsigned	i;
+		for (i = 0; i < [lines count]; i++)
+		{
+			row = [self addLongText:[lines oo_stringAtIndex:i] startingAtRow:row align:alignment];
+		}
+		return row;
+	}
+	
 	NSSize chSize = pixel_text_size;
 	NSSize strsize = OORectFromString(str, 0.0f, 0.0f, chSize).size;
 	if (strsize.width < size_in_pixels.width)
@@ -619,7 +631,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		NSMutableArray	*words = ScanTokensFromString(str);
 		NSMutableString	*string1 = [NSMutableString stringWithCapacity:256];
-		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];
+		NSMutableString	*string2 = [NSMutableString stringWithCapacity:256];	
 		strsize.width = 0.0f;
 		while ((strsize.width < size_in_pixels.width)&&([words count] > 0))
 		{
@@ -630,8 +642,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			if ([words count] > 0)
 				strsize.width += OORectFromString([words oo_stringAtIndex:0], 0.0f, 0.0f, chSize).size.width;
 		}
-		[string2 appendString:[words componentsJoinedByString:@" "]];
+
 		[self setText:string1		forRow:row			align:alignment];
+
+		[string2 appendString:[words componentsJoinedByString:@" "]];
 		if (text_color)
 			[self setColor:text_color forRow:row];
 		if (text_key)

@@ -71,8 +71,7 @@ static void OpenLogFile(NSString *name);
 
 #elif OOLITE_WINDOWS
 
-#define OpenLogFile(name) {printf([[NSString stringWithFormat:@"echo logged to \"Logs\\%@\"",name] cString]);do {} while (0);}
-
+#define OpenLogFile(name) {system([[NSString stringWithFormat:@"echo Verify complete. Please see 'Logs\\%@' & pause",name] cString]);do {} while (0);}
 #else
 
 #define OpenLogFile(name) do {} while (0)
@@ -149,7 +148,7 @@ static void OpenLogFile(NSString *name);
 	}
 	else if (!isDirectory)
 	{
-		OOLog(@"verifyOXP.badPath", @"***** ERROR: path \"%@\" refers to a file, not an OXP directory; nothing to verify.", foundPath);
+		OOLog(@"verifyOXP.badPath", @"***** ERROR: \"%@\" is a file, not an OXP directory; nothing to verify.", foundPath);
 	}
 	else
 	{

@@ -193,14 +193,22 @@ static GameController *sSharedController = nil;
 	pool = [[NSAutoreleasePool alloc] init];
 	
 	NS_DURING
-		// ensures the gameView is drawn to: OpenGL is initialised and so textures can initialse.
-		[self beginSplashScreen];
+		// if not verifying oxps, ensure that gameView is drawn to using beginSplashScreen:
+		// OpenGL is initialised and that allows textures to initialise too.
 
 #if OO_OXP_VERIFIER_ENABLED
+
 		if ([OOOXPVerifier runVerificationIfRequested])
 		{
 			[self exitApp];
 		}
+		else 
+		{
+			[self beginSplashScreen];
+		}
+		
+#else
+		[self beginSplashScreen];
 #endif
 		
 		//[self logProgress:@"Getting display modes..."]; //cannot localise strings before loading OXPs

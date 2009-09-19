@@ -936,10 +936,10 @@
 	"aft-facing-string"				= " Aft ";
 	"port-facing-string"			= " Port ";
 	"starboard-facing-string"		= " Starboard ";
-	"@-select-where-to-install"		= "%@  \nPlease select where to install this weapon.";
+	"@-select-where-to-install"		= "%@\nPlease select where to install this weapon.";
 	"weapon-installed-@"			= "Weapon installed: %@.";
-	"weapon-@-enter-to-replace"		= "Weapon installed: %@. \nPress enter to replace it.";
-	"no-weapon-enter-to-install"	= "No weapon installed. \nPress enter to install this weapon here.";
+	"weapon-@-enter-to-replace"		= "Weapon installed: %@.  Press enter to replace it.";
+	"no-weapon-enter-to-install"	= "No weapon installed.  Press enter to install this weapon here.";
 	
 	// Contracts screen
 	"@-contracts-title"				= "%@ Carrier Market";

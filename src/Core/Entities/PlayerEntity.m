@@ -1182,7 +1182,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[subEntities autorelease];
 	subEntities = nil;
 
-	
+	// setUpSubEntities always returns YES - why the check? kaks 20090918
 	if (![self setUpSubEntities: shipDict])  return NO;
 
 	// rotating subentities
@@ -5240,7 +5240,7 @@ static NSString *last_outfitting_key=nil;
 					previous = 0;					// single page
 				else
 				{
-					previous = skip - n_rows - 2;	// multi-page
+					previous = skip - (n_rows - 2);	// multi-page. 
 					if (previous < 2)
 						previous = 0;				// if only one previous item, just show it
 				}
@@ -5359,7 +5359,6 @@ static NSString *last_outfitting_key=nil;
 			{
 				[self showInformationForSelectedUpgrade];
 			}
-			
 		}
 		else
 		{
