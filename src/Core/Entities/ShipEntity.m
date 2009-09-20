@@ -61,6 +61,7 @@ MA 02110-1301, USA.
 #import "OOFlasherEntity.h"
 #import "OOExhaustPlumeEntity.h"
 #import "OOSparkEntity.h"
+#import "OOECMBlastEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -1464,9 +1465,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if ((energy < maxEnergy * 0.20)&&(energy_recharge_rate > 0.0))	// prevents asteroid etc. from burning
 		throw_sparks = YES;
 	
-	// FIXME temp debug code
-	if (self == [UNIVERSE station])  throw_sparks = YES;
-
 	// burning effects
 	if (throw_sparks)
 	{
@@ -6936,7 +6934,7 @@ BOOL class_masslocks(int some_class)
 {
 	if (![self hasECM])  return NO;
 	
-	ParticleEntity  *ecmDevice = [[ParticleEntity alloc] initECMMineFromShip:self]; // retained
+	OOECMBlastEntity *ecmDevice = [[OOECMBlastEntity alloc] initFromShip:self];
 	[UNIVERSE addEntity:ecmDevice];
 	[ecmDevice release];
 	return YES;

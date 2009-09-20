@@ -36,22 +36,21 @@ MA 02110-1301, USA.
 #import "PlanetEntity.h"
 
 
-// NOTE: these values are documented for scripting, be careful about changing them.
-#define ECM_EFFECT_DURATION		2.0
-#define ECM_PULSE_COUNT			4
-#define ECM_PULSE_INTERVAL		(ECM_EFFECT_DURATION / (double)ECM_PULSE_COUNT)
+/*	Entities that can easily be migrated to OOLightParticleEntity:
+	PARTICLE_SHOT_PLASMA
+	PARTICLE_EXPLOSION
+	PARTICLE_FLASH
+*/
 
 
 typedef enum
 {
-	PARTICLE_TEST				= 1,
 	PARTICLE_SHOT_PLASMA		= 110,
 	PARTICLE_LASER_BEAM			= 160,
 	PARTICLE_EXPLOSION			= 201,
 	PARTICLE_FLASH				= 230,
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
-	PARTICLE_ECM_MINE			= 400,
 	PARTICLE_ENERGY_MINE		= 500,
 	PARTICLE_BILLBOARD			= 700,
 	PARTICLE_HYPERRING			= 800
@@ -61,7 +60,6 @@ typedef enum
 @interface ParticleEntity (OOPrivate)
 
 - (void) updateExplosion:(double) delta_t;
-- (void) updateECMMine:(double) delta_t;
 - (void) updateEnergyMine:(double) delta_t;
 - (void) updateShot:(double) delta_t;
 - (void) updateSpark:(double) delta_t;
@@ -145,9 +143,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	if ((self = [super init]))
 	{
-		time_counter = 0.0;
-		
-		particle_type = PARTICLE_TEST;
 		isParticle = YES;
 		[self setStatus:STATUS_EFFECT];
 		
@@ -239,35 +234,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 FAIL:
 	[self release];
 	return nil;
-}
-
-
-- (id) initECMMineFromShip:(ShipEntity *) ship
-{
-	if (ship == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	if ((self = [super init]))
-	{
-		time_counter = 0.0;
-		activation_time = ECM_PULSE_INTERVAL;
-		duration = ECM_EFFECT_DURATION;
-		position = [ship position];
-		
-		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_NO_DRAW;
-		
-		particle_type = PARTICLE_ECM_MINE;
-		
-		[self setOwner:ship];
-		
-		isParticle = YES;
-	}
-	
-	return self;
 }
 
 
@@ -572,14 +538,12 @@ FAIL:
 	switch ([self particleType])
 	{
 #define CASE(x) case x: type_string = @#x; break;
-		CASE(PARTICLE_TEST);
 		CASE(PARTICLE_LASER_BEAM);
 		CASE(PARTICLE_SHOT_PLASMA);
 		CASE(PARTICLE_EXPLOSION);
 		CASE(PARTICLE_FLASH);
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
-		CASE(PARTICLE_ECM_MINE);
 		CASE(PARTICLE_ENERGY_MINE);
 		CASE(PARTICLE_BILLBOARD);
 		CASE(PARTICLE_HYPERRING);
@@ -682,7 +646,6 @@ FAIL:
 	{
 		switch ([self particleType])
 		{
-			case PARTICLE_TEST:
 			case PARTICLE_SHOT_PLASMA:
 			case PARTICLE_EXPLOSION:
 			case PARTICLE_FRAGBURST:
@@ -700,10 +663,6 @@ FAIL:
 		}
 		switch ([self particleType])
 		{
-			case PARTICLE_TEST:
-				alpha = (sin(time_counter) + 2.0) / 3.0;
-				break;
-
 			case PARTICLE_EXPLOSION:
 				[self updateExplosion:delta_t];
 				break;
@@ -715,11 +674,7 @@ FAIL:
 			case PARTICLE_LASER_BEAM:
 				[self updateLaser:delta_t];
 				break;
-
-			case PARTICLE_ECM_MINE:
-				[self updateECMMine:delta_t];
-				break;
-
+				
 			case PARTICLE_ENERGY_MINE:
 				[self updateEnergyMine:delta_t];
 				break;
@@ -758,40 +713,6 @@ FAIL:
 	[self setSize:NSMakeSize(diameter, diameter)];
 	alpha = (duration - time_counter);
 	if (time_counter > duration)
-		[UNIVERSE removeEntity:self];
-}
-
-
-- (void) updateECMMine:(double) delta_t
-{
-	if (time_counter > activation_time)
-	{
-		// do ecm stuff
-		GLfloat radius = ECM_PULSE_INTERVAL * activation_time * SCANNER_MAX_RANGE;
-		if (radius > SCANNER_MAX_RANGE)
-		{
-			radius = SCANNER_MAX_RANGE;
-		}
-		NSArray* targets = [UNIVERSE getEntitiesWithinRange:radius ofEntity:self];
-		if ([targets count] > 0)
-		{
-			NSNumber *ecmPulsesRemaining = [NSNumber numberWithInt:(duration - activation_time) / ECM_PULSE_INTERVAL];
-			unsigned i;
-			
-			for (i = 0; i < [targets count]; i++)
-			{
-				Entity *e2 = [targets objectAtIndex:i];
-				if (e2->isShip)
-				{
-					[(ShipEntity *)e2 doScriptEvent:@"shipHitByECM"
-									   withArgument:ecmPulsesRemaining
-								andReactToAIMessage:@"ECM"];
-				}
-			}
-		}
-		activation_time += ECM_PULSE_INTERVAL; // go off every half second
-	}
-	if (time_counter > duration)	// until the timer runs out!
 		[UNIVERSE removeEntity:self];
 }
 
@@ -1010,10 +931,6 @@ FAIL:
 				
 			case PARTICLE_HYPERRING:
 				[self drawHyperring];
-				break;
-				
-			case PARTICLE_ECM_MINE:
-				// not a visible entity
 				break;
 				
 			case PARTICLE_ENERGY_MINE:

@@ -418,7 +418,7 @@ static OOCacheManager *sSingleton = nil;
 	if (_scheduledWrite != nil)  return;
 	
 #if PROFILE_WRITES
-	OOProfilingStopwatch *stopwatch = [[OOProfilingStopwatch alloc] init];
+	OOProfilingStopwatch *stopwatch = [[[OOProfilingStopwatch alloc] init] autorelease];
 	[stopwatch start];
 #endif
 	
@@ -468,13 +468,11 @@ static OOCacheManager *sSingleton = nil;
 #else
 	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", endT);
 #endif
-	[stopwatch release];
 #endif
 	
 	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:_scheduledWrite priority:kOOAsyncPriorityLow];
 #else
 #if PROFILE_WRITES
-	[stopwatch release];
 	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", prepareT);
 #endif
 	
@@ -570,7 +568,7 @@ static OOCacheManager *sSingleton = nil;
 	if (path == nil) return NO;	
 	
 #if PROFILE_WRITES
-	OOProfilingStopwatch *stopwatch = [[OOProfilingStopwatch alloc] init];
+	OOProfilingStopwatch *stopwatch = [[[OOProfilingStopwatch alloc] init] autorelease];
 	[stopwatch start];
 #endif
 	
@@ -592,7 +590,6 @@ static OOCacheManager *sSingleton = nil;
 	
 #if PROFILE_WRITES
 	OOTimeDelta writeT = [stopwatch reset];
-	[stopwatch release];
 	
 	OOLog(@"cache.profile", @"Time to serialize cache: %g seconds. Time to write data: %g seconds.", serializeT, writeT);
 #endif

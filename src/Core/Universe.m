@@ -166,6 +166,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	DUMP_SIZE(OOExhaustPlumeEntity);
 	DUMP_SIZE(OOFlasherEntity);
 	DUMP_SIZE(OOSparkEntity);
+	DUMP_SIZE(OOECMBlastEntity);
 	DUMP_SIZE(SkyEntity);
 	DUMP_SIZE(PlanetEntity);
 #endif

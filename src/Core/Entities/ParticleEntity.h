@@ -60,7 +60,6 @@ MA 02110-1301, USA.
 }
 
 - (id) initLaserFromShip:(ShipEntity *) ship view:(OOViewID) view offset:(Vector)offset;
-- (id) initECMMineFromShip:(ShipEntity *) ship;
 - (id) initEnergyMineFromShip:(ShipEntity *) ship;
 - (id) initHyperringFromShip:(ShipEntity *) ship;
 - (id) initFragburstSize:(GLfloat) fragSize fromPosition:(Vector) fragPos;
