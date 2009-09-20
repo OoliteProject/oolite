@@ -52,6 +52,9 @@ static OOTexture *sBlobTexture = nil;
 	if ((self = [super init]))
 	{
 		_size = size;
+		double radius = fmax(size.width, size.height);
+		no_draw_distance = radius * radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 0.5;
+		
 		_colorComponents[0] = 1.0f;
 		_colorComponents[1] = 1.0f;
 		_colorComponents[2] = 1.0f;
@@ -68,6 +71,8 @@ static OOTexture *sBlobTexture = nil;
 {
 	return _size;
 }
+
+
 - (void) setColor:(OOColor *)color
 {
 	[color getGLRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&_colorComponents[3]];
@@ -84,8 +89,8 @@ static OOTexture *sBlobTexture = nil;
 - (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent)  return;
-	
-	// FIXME: check distance.
+	zero_distance = [[self owner] zeroDistance];
+	if (no_draw_distance <= zero_distance)  return;
 	
 	OO_ENTER_OPENGL();
 	
@@ -116,8 +121,7 @@ static OOTexture *sBlobTexture = nil;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent || [UNIVERSE breakPatternHide])  return;
-	
-	// FIXME: check distance.
+	if (no_draw_distance <= zero_distance)  return;
 	
 	OO_ENTER_OPENGL();
 		
@@ -126,7 +130,9 @@ static OOTexture *sBlobTexture = nil;
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
-	OOGL(glColor4fv(_colorComponents));
+	GLfloat distanceAttenuation = 1.0f - zero_distance / no_draw_distance;
+	GLfloat components[4] = { _colorComponents[0], _colorComponents[1], _colorComponents[2], _colorComponents[3] * distanceAttenuation };
+	OOGL(glColor4fv(components));
 	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, _colorComponents));
 	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
 	[[self texture] apply];

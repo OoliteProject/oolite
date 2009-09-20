@@ -1463,6 +1463,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// are we burning due to low energy
 	if ((energy < maxEnergy * 0.20)&&(energy_recharge_rate > 0.0))	// prevents asteroid etc. from burning
 		throw_sparks = YES;
+	
+	// FIXME temp debug code
+	if (self == [UNIVERSE station])  throw_sparks = YES;
 
 	// burning effects
 	if (throw_sparks)

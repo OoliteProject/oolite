@@ -152,7 +152,7 @@ MA 02110-1301, USA.
 - (double)findCollisionRadius
 {
 	NSSize size = [self size];
-	return fmax(size.width, size.height);
+	return fmaxf(size.width, size.height);
 }
 
 @end
