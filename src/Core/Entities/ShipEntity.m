@@ -7093,6 +7093,11 @@ BOOL class_masslocks(int some_class)
 		{
 			[self dumpItem:jetto];
 			[cargo removeObjectAtIndex:0];
+			[[UNIVERSE findShipsMatchingPredicate:YESPredicate
+									   parameter:nil
+										 inRange:SCANNER_MAX_RANGE2
+										ofEntity:self]
+					makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"CARGO_DUMPED"];
 		}
 	}
 	
@@ -7738,6 +7743,24 @@ BOOL class_masslocks(int some_class)
 			desired_speed = 0.0;
 			//maxFlightSpeed = 0.0;
 			[self setHulk:YES];
+
+			if ([self hasEscorts])
+			{
+				OOShipGroup			*escortGroup = [self escortGroup];
+				NSEnumerator		*escortEnum = nil;
+				ShipEntity			*escort = nil;
+				// Note: works on escortArray rather than escortEnumerator because escorts may be mutated.
+				for (escortEnum = [[self escortArray] objectEnumerator]; (escort = [escortEnum nextObject]); )
+				{
+					// act individually now!
+					if ([escort group] == escortGroup)  [escort setGroup:nil];
+					if ([escort owner] == self)  [escort setOwner:nil];
+				}
+				
+				// We now have no escorts.
+				[_escortGroup release];
+				_escortGroup = nil;
+			}
 		}
 	}
 	else
@@ -8031,7 +8054,11 @@ int w_space_seed = 1234567;
 		{
 			[escortGroup addShip:other_ship];
 			[other_ship setGroup:escortGroup];
-			if ([self group] && [self group] != escortGroup) [[self group] addShip:other_ship];
+			if ([self group] == nil)
+			{
+				[self setGroup:escortGroup];
+			}
+			else if ([self group] != escortGroup) [[self group] addShip:other_ship];
 			
 			if(([other_ship maxFlightSpeed] < cruiseSpeed) && ([other_ship maxFlightSpeed] > cruiseSpeed * 0.3)) 
 					cruiseSpeed = [other_ship maxFlightSpeed] * 0.99;

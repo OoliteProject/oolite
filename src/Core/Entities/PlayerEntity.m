@@ -3592,11 +3592,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
 		[self playCargoJettisioned];
-		[[UNIVERSE findShipsMatchingPredicate:YESPredicate
-								   parameter:nil
-									 inRange:SCANNER_MAX_RANGE2
-									ofEntity:self]
-				makeObjectsPerformSelector:@selector(sendAIMessage:) withObject:@"CARGO_DUMPED"];
 	}
 	return result;
 }
