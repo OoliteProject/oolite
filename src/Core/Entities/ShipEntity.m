@@ -7445,6 +7445,13 @@ BOOL class_masslocks(int some_class)
 	OOCargoType		co_type;
 	OOCargoQuantity	co_amount;
 	
+	// don't even think of trying to scoop if the cargo hold is already full
+	if (max_cargo && [cargo count] == max_cargo)
+	{
+		[other setStatus:STATUS_IN_FLIGHT];
+		return;
+	}
+	
 	switch ([other cargoType])
 	{
 		case CARGO_RANDOM:
