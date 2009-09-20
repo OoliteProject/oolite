@@ -32,9 +32,9 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 #import "OONSOperation.h"
 
-#if OOLITE_SDL
-#import "pthread.h"
-#else
+#define USE_PTHREAD_ONCE (!OOLITE_WINDOWS)
+
+#if USE_PTHREAD_ONCE
 #import <pthread.h>
 #endif
 
@@ -96,6 +96,11 @@ static OOAsyncWorkManager *sSingleton = nil;
 @end
 
 
+#if !USE_PTHREAD_ONCE
+static NSLock *sInitLock = nil;
+#endif
+
+
 static void InitAsyncWorkManager(void)
 {
 	NSCAssert(sSingleton == nil, @"Async Work Manager singleton not nil in one-time init");
@@ -115,21 +120,43 @@ static void InitAsyncWorkManager(void)
 	
 	if (sSingleton == nil)
 	{
-		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"***** FATAL ERROR: could not set up texture load dispatcher!");
+		OOLog(@"asyncWorkManager.setUpDispatcher.failed", @"***** FATAL ERROR: could not set up async work manager!");
 		exit(EXIT_FAILURE);
 	}
 	
-	OOLog(@"asyncWorkManager.dispatchMethod", @"Selected texture load dispatcher: %@", [sSingleton class]);
+	OOLog(@"asyncWorkManager.dispatchMethod", @"Selected async work manager: %@", [sSingleton class]);
 }
 
 
 @implementation OOAsyncWorkManager
 
+#if !USE_PTHREAD_ONCE
++ (void) initialize
+{
+	if (sInitLock == nil)
+	{
+		sInitLock = [[NSLock alloc] init];
+		NSAssert(sInitLock != nil, @"Async Work Manager init failed");
+	}
+}
+#endif
+
+
 + (id) sharedAsyncWorkManager
 {
+#if USE_PTHREAD_ONCE
 	static pthread_once_t once = PTHREAD_ONCE_INIT;
 	pthread_once(&once, InitAsyncWorkManager);
 	NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+#else
+	[sInitLock lock];
+	if (sSingleton == nil)
+	{
+		InitAsyncWorkManager();
+		NSAssert(sSingleton != nil, @"Async Work Manager init failed");
+	}
+	[sInitLock unlock];
+#endif
 	
 	return sSingleton;
 }
