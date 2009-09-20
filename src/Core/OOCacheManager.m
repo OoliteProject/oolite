@@ -25,11 +25,14 @@ MA 02110-1301, USA.
 #import "OOCacheManager.h"
 #import "OOCache.h"
 #import "OOPListParsing.h"
-#import "OOAsyncWorkManager.h"
+#import "OODeepCopy.h"
 
 
 #define AUTO_PRUNE				0
 #define PRUNE_BEFORE_FLUSH		0
+#define WRITE_ASYNC				1
+#define WRITE_ASYNC_DEEP_COPY	0
+#define PROFILE_WRITES			1
 
 
 // Use the (presumed) most efficient plist format for each platform.
@@ -37,6 +40,14 @@ MA 02110-1301, USA.
 #define CACHE_PLIST_FORMAT	NSPropertyListBinaryFormat_v1_0
 #else
 #define CACHE_PLIST_FORMAT	NSPropertyListGNUstepBinaryFormat
+#endif
+
+
+#if WRITE_ASYNC
+#import "OOAsyncWorkManager.h"
+#endif
+#if PROFILE_WRITES
+#import "OOProfilingStopwatch.h"
 #endif
 
 
@@ -55,7 +66,7 @@ static NSString * const kOOLogDataCacheParamError			= @"general.error.parameterE
 static NSString * const kOOLogDataCacheBuildPathError		= @"dataCache.write.buildPath.failed";
 static NSString * const kOOLogDataCacheSerializationError	= @"dataCache.write.serialize.failed";
 
-static NSString * const kCacheKeyVersion					= @"CFBundleVersion";	// Legacy name
+static NSString * const kCacheKeyVersion					= @"version";
 static NSString * const kCacheKeyEndianTag					= @"endian tag";
 static NSString * const kCacheKeyFormatVersion				= @"format version";
 static NSString * const kCacheKeyCaches						= @"caches";
@@ -64,7 +75,7 @@ static NSString * const kCacheKeyCaches						= @"caches";
 enum
 {
 	kEndianTagValue			= 0x0123456789ABCDEFULL,
-	kFormatVersionValue		= 31
+	kFormatVersionValue		= 32
 };
 
 
@@ -97,6 +108,7 @@ static OOCacheManager *sSingleton = nil;
 @end
 
 
+#if WRITE_ASYNC
 @interface OOAsyncCacheWriter: NSObject <OOAsyncWorkTask>
 {
 @private
@@ -106,6 +118,7 @@ static OOCacheManager *sSingleton = nil;
 - (id) initWithCacheContents:(NSDictionary *)cacheContents;
 
 @end
+#endif
 
 
 @implementation OOCacheManager
@@ -301,14 +314,11 @@ static OOCacheManager *sSingleton = nil;
 }
 
 
-- (void)flushSynchronously
+- (void)finishOngoingFlush
 {
-	if (_permitWrites && [self dirty])
-	{
-		[self write];
-		[self markClean];
-		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:_scheduledWrite];
-	}
+#if WRITE_ASYNC
+	[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:_scheduledWrite];
+#endif
 }
 
 
@@ -332,7 +342,7 @@ static OOCacheManager *sSingleton = nil;
 	BOOL					accept = YES;
 	uint64_t				endianTagValue = 0;
 	
-	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
+	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 	
 	[self clear];
 	
@@ -407,12 +417,22 @@ static OOCacheManager *sSingleton = nil;
 	if (_caches == nil) return;
 	if (_scheduledWrite != nil)  return;
 	
+#if PROFILE_WRITES
+	OOProfilingStopwatch *stopwatch = [[OOProfilingStopwatch alloc] init];
+	[stopwatch start];
+#endif
+	
+#if WRITE_ASYNC
+	OOLog(@"dataCache.willWrite", @"Scheduling data cache write.");
+#else
+	OOLog(@"dataCache.willWrite", @"About to write cache.");
+#endif
+	
 #if PRUNE_BEFORE_FLUSH
 	[[_caches allValues] makeObjectsPerformSelector:@selector(prune)];
 #endif
 	
-	OOLog(@"dataCache.willWrite", @"Scheduling data cache write.");	// Added for 1.69 to detect possible write-related crash. -- Ahruman
-	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:kCacheKeyVersion];
+	ooliteVersion = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
 	endianTag = [NSData dataWithBytes:&endianTagValue length:sizeof endianTagValue];
 	formatVersion = [NSNumber numberWithUnsignedInt:kFormatVersionValue];
 	
@@ -429,8 +449,45 @@ static OOCacheManager *sSingleton = nil;
 	[newCache setObject:endianTag forKey:kCacheKeyEndianTag];
 	[newCache setObject:pListRep forKey:kCacheKeyCaches];
 	
-	_scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:newCache];
+#if PROFILE_WRITES && (!WRITE_ASYNC || WRITE_ASYNC_DEEP_COPY)
+	OOTimeDelta prepareT = [stopwatch reset];
+#endif
+	
+#if WRITE_ASYNC
+	NSDictionary *cacheData = newCache;
+#if WRITE_ASYNC_DEEP_COPY
+	// This shouldn't be necessary, and if used slows async flushing down to slower than sync flushing.
+	cacheData = [OODeepCopy(cacheData) autorelease];
+#endif
+	_scheduledWrite = [[OOAsyncCacheWriter alloc] initWithCacheContents:cacheData];
+	
+#if PROFILE_WRITES
+	OOTimeDelta endT = [stopwatch reset];
+#if WRITE_ASYNC_DEEP_COPY
+	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds; time to deep copy and set up async writer, %g seconds.", prepareT, endT);
+#else
+	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", endT);
+#endif
+	[stopwatch release];
+#endif
+	
 	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:_scheduledWrite priority:kOOAsyncPriorityLow];
+#else
+#if PROFILE_WRITES
+	[stopwatch release];
+	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", prepareT);
+#endif
+	
+	if ([self writeDict:newCache])
+	{
+		[self markClean];
+		OOLog(kOOLogDataCacheWriteSuccess, @"Wrote data cache.");
+	}
+	else
+	{
+		OOLog(kOOLogDataCacheWriteFailed, @"Failed to write data cache.");
+	}
+#endif
 }
 
 
@@ -512,6 +569,11 @@ static OOCacheManager *sSingleton = nil;
 	path = [self cachePathCreatingIfNecessary:YES];
 	if (path == nil) return NO;	
 	
+#if PROFILE_WRITES
+	OOProfilingStopwatch *stopwatch = [[OOProfilingStopwatch alloc] init];
+	[stopwatch start];
+#endif
+	
 	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];
 	if (plist == nil)
 	{
@@ -522,8 +584,22 @@ static OOCacheManager *sSingleton = nil;
 		return NO;
 	}
 	
+#if PROFILE_WRITES
+	OOTimeDelta serializeT = [stopwatch reset];
+#endif
+	
 	BOOL result = [plist writeToFile:path atomically:NO];
+	
+#if PROFILE_WRITES
+	OOTimeDelta writeT = [stopwatch reset];
+	[stopwatch release];
+	
+	OOLog(@"cache.profile", @"Time to serialize cache: %g seconds. Time to write data: %g seconds.", serializeT, writeT);
+#endif
+	
+#if WRITE_ASYNC
 	DESTROY(_scheduledWrite);
+#endif
 	return result;
 }
 
@@ -773,6 +849,7 @@ static OOCacheManager *sSingleton = nil;
 #endif
 
 
+#if WRITE_ASYNC
 @implementation OOAsyncCacheWriter
 
 - (id) initWithCacheContents:(NSDictionary *)cacheContents
@@ -819,3 +896,4 @@ static OOCacheManager *sSingleton = nil;
 }
 
 @end
+#endif	// WRITE_ASYNC

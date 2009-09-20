@@ -88,7 +88,9 @@ id OODeepCopy(id object)
 
 - (id) ooDeepCopyWithSharedObjects:(NSMutableSet *)objects
 {
-	if ([self length] == 0)  return [[NSString string] retain];
+	OOUInteger length = [self length];
+	if (length == 0)  return [[NSString string] retain];
+	if (length > 128)  return [self copy];
 	
 	id object = [objects member:self];
 	if (object != nil && [object isKindOfClass:[NSString class]])
@@ -271,7 +273,7 @@ id OODeepCopy(id object)
 	NSEnumerator			*keyEnum = nil;
 	
 	count = [self count];
-	if (count == 0)  return [[NSSet set] retain];
+	if (count == 0)  return [[NSDictionary dictionary] retain];
 	
 	keys = malloc(sizeof *keys * count);
 	values = malloc(sizeof *values * count);

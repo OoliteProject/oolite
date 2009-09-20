@@ -898,7 +898,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
-	[[OOCacheManager sharedCache] flushSynchronously];
+	[[OOCacheManager sharedCache] finishOngoingFlush];
 	OOLoggingTerminate();
 	return NSTerminateNow;
 }

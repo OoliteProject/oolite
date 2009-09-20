@@ -29,6 +29,8 @@
 		0865431C06B8447D000CA0AB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		0865431D06B8447D000CA0AB /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 06AFA01500A58FB77F000001 /* OpenGL.framework */; };
 		0878FD30086EF845004CB752 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0878FD2F086EF845004CB752 /* Carbon.framework */; };
+		1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */; };
+		1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */; };
 		1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */; };
 		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
@@ -1086,6 +1088,8 @@
 		0865432206B8447D000CA0AB /* Oolite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Oolite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0878FD2F086EF845004CB752 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProfilingStopwatch.h; sourceTree = "<group>"; };
+		1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProfilingStopwatch.m; sourceTree = "<group>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
@@ -2568,6 +2572,8 @@
 				1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */,
 				1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */,
 				1A43F28A105170A8003FDE8B /* OONSOperation.h */,
+				1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */,
+				1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -3058,6 +3064,7 @@
 				1A1F2842105AAB7900ADB8C5 /* OOSparkEntity.h in Headers */,
 				1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */,
 				1AB987B61065842700AF9B0A /* OOAsyncWorkManager.h in Headers */,
+				1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3403,6 +3410,7 @@
 				1A1F2843105AAB7900ADB8C5 /* OOSparkEntity.m in Sources */,
 				1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */,
 				1AB987B71065842700AF9B0A /* OOAsyncWorkManager.m in Sources */,
+				1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

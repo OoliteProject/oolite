@@ -69,6 +69,6 @@ enum
 - (void)setAllowCacheWrites:(BOOL)flag;
 
 - (void)flush;
-- (void)flushSynchronously;
+- (void)finishOngoingFlush;	// Wait for flush to complete. Does nothing if async flushing is disabled.
 
 @end

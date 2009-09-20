@@ -77,6 +77,7 @@ OOLITE_DEBUG_FILES = \
 	OODebugSupport.m \
 	OODebugTCPConsoleClient.m \
 	OOJSConsole.m \
+	OOProfilingStopwatch.m \
 	OOTCPStreamDecoderAbstractionLayer.m
 
 OOLITE_ENTITY_FILES = \
