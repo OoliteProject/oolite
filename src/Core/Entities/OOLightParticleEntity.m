@@ -89,6 +89,11 @@ static OOTexture *sBlobTexture = nil;
 - (void) drawSubEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (!translucent)  return;
+	
+	/*	TODO: someone will inevitably build a ship so big that individual
+		zero_distances are necessary for flashers, if they haven't already.
+		-- Ahruman 2009-09-20
+	*/
 	zero_distance = [[self owner] zeroDistance];
 	if (no_draw_distance <= zero_distance)  return;
 	
