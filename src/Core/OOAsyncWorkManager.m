@@ -389,7 +389,7 @@ enum
 #if !OO_HAVE_NSOPERATION
 + (BOOL) canBeUsed
 {
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-texture-loader"])  return NO;
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"disable-operation-queue-work-manager"])  return NO;
 	return [OONSInvocationOperationClass() class] != Nil;
 }
 #endif
