@@ -3430,13 +3430,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		fuel_accumulator -= delta_t * AFTERBURNER_NPC_BURNRATE;
 		while (fuel_accumulator < 0.0)
 		{
-#if 0
-			/*	FIXME: max_available_speed is not read after this point. What
-				is the intention? -- Ahruman 2009-09-18
-			*/
-			if (fuel-- <= MIN_FUEL)
-				max_available_speed = maxFlightSpeed;
-#endif
+			fuel--;
 			fuel_accumulator += 1.0;
 		}
 	}
