@@ -1255,7 +1255,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	int 		systemIndex = foundSystem + direction;
 
 	BOOL		*systems_found = [UNIVERSE systems_found];
-	unsigned 	i, first, last, count = 0;
+	unsigned 	i, first = 0, last = 0, count = 0;
 	//Random_Seed	sys;
 	// reset foundSystem, the array might be 0
 	//foundSystem = 0;

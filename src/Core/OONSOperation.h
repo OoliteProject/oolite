@@ -134,9 +134,9 @@ enum {
 
 #else
 
-#define OONSOperationQueue				NSOperationQueue
-#define OONSOperation					NSOperation
-#define OONSInvocationOperation			NSInvocationOperation
+#define OONSOperationQueue				NSOperationQueue *
+#define OONSOperation					NSOperation *
+#define OONSInvocationOperation			NSInvocationOperation *
 
 #define OONSOperationQueueClass()		NSOperationQueue
 #define OONSOperationClass()			NSOperation
