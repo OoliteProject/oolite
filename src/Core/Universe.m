@@ -6392,18 +6392,23 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix withGalaxySeed:(Random_Seed) gal_seed
+- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix
 {
-	if (!equal_seeds(gal_seed, galaxy_seed))
-		[self setGalaxy_seed:gal_seed];
+	[self findSystemCoordinatesWithPrefix:p_fix exactMatch:NO];
+}
 
-	NSPoint system_coords = NSMakePoint(-1.0,-1.0);
+
+- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch
+{
+	NSString 	*system_name = nil;
+	NSPoint 	system_coords = NSMakePoint(-1.0,-1.0);
 	int i;
 	int result = -1;
 	for (i = 0; i < 256; i++)
 	{
 		system_found[i] = NO;
-		if ([[system_names[i] lowercaseString] hasPrefix:p_fix])
+		system_name = [system_names[i] lowercaseString];
+		if ((exactMatch && [system_name isEqualToString:p_fix]) || (!exactMatch && [system_name hasPrefix:p_fix]))
 		{
 			system_found[i] = YES;
 			if (result < 0)

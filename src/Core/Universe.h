@@ -508,7 +508,8 @@ enum
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
-- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix withGalaxySeed:(Random_Seed) gal_seed;
+- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix;
+- (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systems_found;
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal;
