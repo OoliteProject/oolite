@@ -808,12 +808,15 @@
 		thrust = 100;
 		unpiloted = yes;
 		weapon_energy = 0;
+		smooth = yes;
 		materials =
 		{
 			"target_metal.png" =
 			{
-				shininess = 15;
-				specular = (0.55, 0.58, 0.6, 1.0);
+				shininess = 20;
+				specular = (0.8, 0.83, 0.85, 1.0);
+				diffuse = (0.8, 0.8, 0.8);
+				ambient = (0.75, 0.75, 0.75);
 			};
 		};
 	};
