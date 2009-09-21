@@ -1,5 +1,6 @@
 Changes between Oolite 1.73.3 and Oolite 1.73.4:
 * Fixed nova mission.
+* Fixed missing planet name in Constrictor Hunt mission.
 * Fixed bug where subentities of sold ships could come back to haunt your log.
 * When buying a ship which does not specify a HUD, the default HUD is now used
   immediately.
