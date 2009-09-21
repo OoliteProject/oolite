@@ -6394,7 +6394,7 @@ static NSDictionary	*sCachedSystemData = nil;
 
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix
 {
-	[self findSystemCoordinatesWithPrefix:p_fix exactMatch:NO];
+	return [self findSystemCoordinatesWithPrefix:p_fix exactMatch:NO];
 }
 
 

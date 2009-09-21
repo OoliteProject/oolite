@@ -224,6 +224,7 @@
 			"smooth",
 			"density",
 			"name",
+			"display_name",
 			"roles",
 			"exhaust",
 			"is_hulk",
