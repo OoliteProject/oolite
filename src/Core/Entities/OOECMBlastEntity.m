@@ -89,7 +89,7 @@ MA 02110-1301, USA.
 			{
 				[[targets objectAtIndex:i] doScriptEvent:@"shipHitByECM"
 											withArgument:ecmPulsesRemaining
-											 andArgument:@"ECM"];
+											 andReactToAIMessage:@"ECM"];
 			}
 		}
 		_nextBlast += ECM_PULSE_INTERVAL;
