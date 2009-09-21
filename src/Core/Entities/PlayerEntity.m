@@ -865,6 +865,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	starboard_weapon_temp	= 0.0f;
 	ship_temperature		= 60.0f;
 	alertFlags				= 0;
+	hyperspeed_engaged		= NO;
 	
 	max_passengers = 0;
 	[passengers release];

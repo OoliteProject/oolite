@@ -8,6 +8,7 @@ Changes between Oolite 1.73.3 and Oolite 1.73.4:
 * removeEquipment scripting method now works with damaged equipment.
 * awardEquipment scripting method now works with EQ_REMOVE_MISSILES.
 * Fixed spurious OXP verifier warning about display_name key.
+* Hyperspeed is now turned off when dying.
 * [Windows] Installer now uninstalls old versions correctly.
 * [Mac] Fixed an error where random (often very loud) noise could be played
         through the right channel at the end of long sounds.
