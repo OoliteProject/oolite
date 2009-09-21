@@ -1247,6 +1247,54 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (Random_Seed) targetNextFoundSystem:(int)direction // +1 , 0 , -1
+{
+	Random_Seed sys = [[PlayerEntity sharedPlayer] target_system_seed];
+	if ([[PlayerEntity sharedPlayer] guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
+	
+	int 		systemIndex = foundSystem + direction;
+
+	BOOL		*systems_found = [UNIVERSE systems_found];
+	unsigned 	i, first, last, count = 0;
+	//Random_Seed	sys;
+	// reset foundSystem, the array might be 0
+	//foundSystem = 0;
+	for (i = 0; i < 256; i++)
+	{
+		if (systems_found[i])
+		{
+			if (count == 0)
+			{
+				first = last = i;
+			}
+			else
+			{
+				last = i;
+			}
+			if (systemIndex == (int)count) sys = [UNIVERSE systemSeedForSystemNumber:i];
+			count++;
+		}
+	}
+
+	if (count == 0) return sys; // empty systemFound list.
+	
+	// loop back if needed.
+	if (systemIndex < 0)
+	{
+		systemIndex = count - 1;
+		sys = [UNIVERSE systemSeedForSystemNumber:last];
+	}
+	if (systemIndex >= (int)count)
+	{
+		systemIndex = 0;
+		sys = [UNIVERSE systemSeedForSystemNumber:first];
+	}
+	
+	foundSystem = systemIndex;
+	return sys;
+}
+
+
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -1355,25 +1403,44 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//
 	glLineWidth(1.5f);
 	glColor4f(0.0f, 1.0f, 0.0f, alpha);
-	int n_matches=0;
-	for (i = 0; i < 256; i++) if (systems_found[i]) n_matches++;
-	BOOL drawNames=n_matches<4;
-	for (i = 0; i < 256; i++)
+	int n_matches = 0, foundIndex = -1;
+	
+	for (i = 0; i < 256; i++) if (systems_found[i])
 	{
-		BOOL mark = systems_found[i];
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		if (mark)
+		if(foundSystem == n_matches) foundIndex = i;
+		n_matches++;
+	}
+	
+	if (n_matches == 0)
+	{
+		foundSystem = 0;
+	}
+	else
+	{
+		BOOL drawNames = n_matches < 4;
+		for (i = 0; i < 256; i++)
 		{
-			star.x = (float)(g_seed.d * hscale + hoffset);
-			star.y = (float)(g_seed.b * vscale + voffset);
-			glBegin(GL_LINE_LOOP);
-				glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
-				glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
-				glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
-				glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
-			glEnd();
-			if (drawNames)
-				OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+			BOOL mark = systems_found[i];
+			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+			if (mark)
+			{
+				star.x = (float)(g_seed.d * hscale + hoffset);
+				star.y = (float)(g_seed.b * vscale + voffset);
+				glBegin(GL_LINE_LOOP);
+					glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
+					glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
+					glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
+					glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
+				glEnd();
+				if (i == foundIndex)
+				{
+					glColor4f(0.0f, 1.0f, 1.0f, alpha);
+					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+					glColor4f(0.0f, 1.0f, 0.0f, alpha);
+				}
+				else if (drawNames)
+					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
+			}
 		}
 	}
 	
@@ -1455,10 +1522,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			glEnd();
 			
 			// Label the route.
-			OODrawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 6.0, z, NSMakeSize(8,8));
+			OODrawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
 		}
 		// Label the destination, which was not included in the above loop.
-		OODrawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 6.0, z, NSMakeSize(8,8));	
+		OODrawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 10.0, z, NSMakeSize(10,10));	
 	}
 }
 

@@ -107,15 +107,16 @@ static double			timeLastKeyPress;
 static OOGUIRow			oldSelection;
 static int				saved_view_direction;
 static double			saved_script_time;
-static int			saved_gui_screen;
+static int				saved_gui_screen;
+static int 				pressedArrow = 0;
 static NSTimeInterval	time_last_frame;
 
 
 @interface PlayerEntity (OOControlsPrivate)
 
 - (void) pollFlightControls:(double) delta_t;
-- (void) pollFlightArrowKeyControls:(double)delta_t;
-- (void) pollGuiArrowKeyControls:(double)delta_t;
+- (void) pollFlightArrowKeyControls:(double) delta_t;
+- (void) pollGuiArrowKeyControls:(double) delta_t;
 - (void) handleGameOptionsScreenKeys;
 - (void) pollApplicationControls;
 - (void) pollViewControls;
@@ -124,6 +125,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
+- (void) targetNewSystem:(int) idx;
 
 @end
 
@@ -1317,7 +1319,20 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) pollGuiArrowKeyControls:(double)delta_t
+- (void) targetNewSystem:(int) idx
+{
+	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:idx];
+	cursor_coordinates.x = target_system_seed.d;
+	cursor_coordinates.y = target_system_seed.b;
+	found_system_seed = target_system_seed;
+	[[UNIVERSE gameView] resetTypedString];
+	if (planetSearchString) [planetSearchString release];
+	planetSearchString = nil;
+	cursor_moving = YES;
+}
+
+
+- (void) pollGuiArrowKeyControls:(double) delta_t
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	BOOL			moving = NO;
@@ -1360,26 +1375,29 @@ static NSTimeInterval	time_last_frame;
 					pling_pressed = NO;
 				}
 			}
+			
 			if ([[gameView typedString] length] > 0 )
 			{
 				planetSearchString = [[[gameView typedString] lowercaseString] retain];
 				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString withGalaxySeed:galaxy_seed];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
+					found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
 					moving = ((cursor_coordinates.x != search_coords.x)||(cursor_coordinates.y != search_coords.y));
 					cursor_coordinates = search_coords;
 				}
 				else
 				{
 					[gameView resetTypedString];
-					if(planetSearchString) [planetSearchString release];
+					if (planetSearchString) [planetSearchString release];
 					planetSearchString = nil;
 				}
 			}
 			else
 			{
-				[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
-				if(planetSearchString) [planetSearchString release];
+				if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
+					[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
+				if (planetSearchString) [planetSearchString release];
 				planetSearchString = nil;
 			}
 			
@@ -1425,43 +1443,89 @@ static NSTimeInterval	time_last_frame;
 				if ([gameView isDown:gvMouseDoubleClick])
 				{
 					[gameView clearMouse];
-					[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
 					[self setGuiToSystemDataScreen];
 				}
 				if ([gameView isDown:key_map_home])
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
+					[UNIVERSE findSystemCoordinatesWithPrefix:@"" withGalaxySeed:galaxy_seed];
 					moving = YES;
 				}
+				
+				BOOL nextSystem = [gameView isShiftDown] && gui_screen == GUI_SCREEN_LONG_RANGE_CHART;
+				
 				if ([gameView isDown:gvArrowKeyLeft])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates.x -= cursor_speed*delta_t;
-					if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
-					moving = YES;
+					if (nextSystem && pressedArrow != gvArrowKeyLeft)
+					{
+						[self targetNewSystem:-1];
+						pressedArrow = gvArrowKeyLeft;
+					}
+					else if (!nextSystem)
+					{
+						[gameView resetTypedString];
+						cursor_coordinates.x -= cursor_speed*delta_t;
+						if (cursor_coordinates.x < 0.0) cursor_coordinates.x = 0.0;
+						moving = YES;
+					}
 				}
+				else
+					pressedArrow =  pressedArrow == gvArrowKeyLeft ? 0 : pressedArrow;
 				if ([gameView isDown:gvArrowKeyRight])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates.x += cursor_speed*delta_t;
-					if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
-					moving = YES;
+					if (nextSystem && pressedArrow != gvArrowKeyRight)
+					{
+						[self targetNewSystem:+1];
+						pressedArrow = gvArrowKeyRight;
+					}
+					else if (!nextSystem)
+					{
+						[gameView resetTypedString];
+						cursor_coordinates.x += cursor_speed*delta_t;
+						if (cursor_coordinates.x > 256.0) cursor_coordinates.x = 256.0;
+						moving = YES;
+					}
 				}
+				else
+					pressedArrow =  pressedArrow == gvArrowKeyRight ? 0 : pressedArrow;
+
 				if ([gameView isDown:gvArrowKeyDown])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates.y += cursor_speed*delta_t*2.0;
-					if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
-					moving = YES;
+					if (nextSystem && pressedArrow != gvArrowKeyDown)
+					{
+						[self targetNewSystem:+1];
+						pressedArrow = gvArrowKeyDown;
+					}
+					else if (!nextSystem)
+					{
+						[gameView resetTypedString];
+						cursor_coordinates.y += cursor_speed*delta_t*2.0;
+						if (cursor_coordinates.y > 256.0) cursor_coordinates.y = 256.0;
+						moving = YES;
+					}
 				}
+				else
+					pressedArrow =  pressedArrow == gvArrowKeyDown ? 0 : pressedArrow;
+
 				if ([gameView isDown:gvArrowKeyUp])
 				{
-					[gameView resetTypedString];
-					cursor_coordinates.y -= cursor_speed*delta_t*2.0;
-					if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
-					moving = YES;
+					if (nextSystem && pressedArrow != gvArrowKeyUp)
+					{
+						[self targetNewSystem:-1];
+						pressedArrow = gvArrowKeyUp;
+					}	
+					else if (!nextSystem)
+					{
+						[gameView resetTypedString];
+						cursor_coordinates.y -= cursor_speed*delta_t*2.0;
+						if (cursor_coordinates.y < 0.0) cursor_coordinates.y = 0.0;
+						moving = YES;
+					}
 				}
+				else
+					pressedArrow =  pressedArrow == gvArrowKeyUp ? 0 : pressedArrow;
+
 				if ((cursor_moving)&&(!moving))
 				{
 					target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];

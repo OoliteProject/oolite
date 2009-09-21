@@ -40,6 +40,11 @@ MA 02110-1301, USA.
 
 #include <ctype.h>
 
+@interface MyOpenGLView (OOPrivate)
+
+- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
+@end
+
 @implementation MyOpenGLView
 
 + (NSMutableDictionary *) getNativeSize
@@ -223,7 +228,7 @@ MA 02110-1301, USA.
 	virtualJoystickPosition = NSMakePoint(0.0,0.0);
 
 	typedString = [[NSMutableString alloc] initWithString:@""];
-	allowingStringInput = NO;
+	allowingStringInput = gvStringInputNo;
 	isAlphabetKeyDown = NO;
 
 	timeIntervalAtLastClick = [NSDate timeIntervalSinceReferenceDate];
@@ -1006,7 +1011,7 @@ if (!showSplashScreen) return;
 
 - (void) clearCommandF
 {
-	
+	// SDL stub for the mac function.
 }
 
 
@@ -1259,8 +1264,8 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_KP_MINUS: keys[45] = YES; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
 					
-					case SDLK_KP1: keys[310] = YES; break;
-					case SDLK_KP3: keys[311] = YES; break;
+					case SDLK_KP1: keys[44] = YES; break; // equivalent to <
+					case SDLK_KP3: keys[46] = YES; break; // equivalent to >
 					
 					case SDLK_F1: keys[gvFunctionKey1] = YES; break;
 					case SDLK_F2: keys[gvFunctionKey2] = YES; break;
@@ -1272,6 +1277,11 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					case SDLK_F8: keys[gvFunctionKey8] = YES; break;
 					case SDLK_F9: keys[gvFunctionKey9] = YES; break;
 					case SDLK_F10: keys[gvFunctionKey10] = YES; break;
+					
+					case SDLK_BACKSPACE:
+					case SDLK_DELETE:
+						keys[gvDeleteKey] = YES;
+						break;
 					
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
@@ -1436,8 +1446,8 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
 						
-					case SDLK_KP1: keys[310] = NO; break;
-					case SDLK_KP3: keys[311] = NO; break;
+					case SDLK_KP1: keys[44] = NO; break; // equivalent to <
+					case SDLK_KP3: keys[46] = NO; break; // equivalent to >
 						
 					case SDLK_F1: keys[gvFunctionKey1] = NO; break;
 					case SDLK_F2: keys[gvFunctionKey2] = NO; break;
@@ -1449,6 +1459,11 @@ keys[a] = NO; keys[b] = NO; \
 					case SDLK_F8: keys[gvFunctionKey8] = NO; break;
 					case SDLK_F9: keys[gvFunctionKey9] = NO; break;
 					case SDLK_F10: keys[gvFunctionKey10] = NO; break;
+					
+					case SDLK_BACKSPACE:
+					case SDLK_DELETE:
+						keys[gvDeleteKey] = NO;
+						break;
 						
 					case SDLK_LSHIFT:
 					case SDLK_RSHIFT:
@@ -1514,38 +1529,37 @@ keys[a] = NO; keys[b] = NO; \
 	SDLKey key=kbd_event->keysym.sym;
 
 	// Del, Backspace
-	if(key == SDLK_BACKSPACE || key == SDLK_DELETE)
+	if((key == SDLK_BACKSPACE || key == SDLK_DELETE) && [typedString length] > 0)
 	{
-		if([typedString length] >= 1)
-		{
-			[typedString deleteCharactersInRange:
-			NSMakeRange([typedString length]-1, 1)];
-		}
-		else
-		{
-			[self resetTypedString];
-		}
+		// delete
+		[typedString deleteCharactersInRange:NSMakeRange([typedString length]-1, 1)];
 	}
 
-	// Note: if we start using this handler for anything other
-	// than savegames, a more flexible mechanism is needed
-	// for max. string length.
+	isAlphabetKeyDown=NO;
+
+	// TODO: a more flexible mechanism  for max. string length ?
 	if([typedString length] < 40)
 	{
-		// keys a-z
+		// inputAlpha - limited input for planet find screen
+		// alpha keys - either inputAlpha  or inputAll...
 		if(key >= SDLK_a && key <= SDLK_z)
 		{
 			isAlphabetKeyDown=YES;
-			if(shift)
+			// if in inputAlpha, keep in lower case.
+			if(shift && allowingStringInput == gvStringInputAll)
 			{
 				key=toupper(key);
 			}
-			[typedString appendFormat:@"%c", key];
 		}
 		
-		// keys 0-9, Space
-		// Left-Shift seems to produce the key code for 0 :/
-		if((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE)
+		// full input for load-save screen
+		// NB: left-shift could return 0
+		if (allowingStringInput == gvStringInputAll && ((key >= SDLK_0 && key <= SDLK_9) || key == SDLK_SPACE))
+		{
+			isAlphabetKeyDown=YES;
+		}
+
+		if(isAlphabetKeyDown)
 		{
 			[typedString appendFormat:@"%c", key];
 		}

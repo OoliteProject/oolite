@@ -4692,6 +4692,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	OOGUIScreenID oldScreen = gui_screen;
 	gui_screen = GUI_SCREEN_LONG_RANGE_CHART;
+	if (gui_screen != oldScreen)
+		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] withGalaxySeed:galaxy_seed];
 	
 	[targetSystemName release];
 	

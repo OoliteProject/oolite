@@ -90,7 +90,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	
 	NSPoint			rowPosition[GUI_MAX_ROWS];
 	OOGUIAlignment	rowAlignment[GUI_MAX_ROWS];
-	float		rowFadeTime[GUI_MAX_ROWS];
+	float			rowFadeTime[GUI_MAX_ROWS];
 	
 	OOGUITabSettings tabStops;
 	
@@ -107,6 +107,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	OOTimeAbsolute	fade_from_time;		// from [universe getTime]
 	GLfloat			fade_sign;			//	-1.0 to 1.0
 	int				statusPage; 		// status  screen: paging equipped items
+	int				foundSystem;
 }
 
 - (id) init;
@@ -212,5 +213,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
 - (void) setStatusPage:(int) pageNum;
+
+- (Random_Seed) targetNextFoundSystem:(int)direction;
 
 @end

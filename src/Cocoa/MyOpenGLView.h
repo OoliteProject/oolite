@@ -25,57 +25,49 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
-#ifdef GNUSTEP
-#include <SDL/SDL.h>
-#endif
+#define OpenGLViewSuperClass	NSOpenGLView
 
 #define MAX_CLEAR_DEPTH		100000000.0
-#define MAX_CLEAR_DEPTH2	10000000000000000.0
 // 100 000 km.
 
 #define NUM_KEYS			320
-
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
 @class Entity, GameController;
 @class JoystickHandler;
 
-#ifdef GNUSTEP
-#define OpenGLViewSuperClass	NSObject
-#else
-#define OpenGLViewSuperClass	NSOpenGLView
-#endif
-
 enum GameViewKeys
 {
-	gvArrowKeyUp = 255,
-	gvArrowKeyDown = 254,
-	gvArrowKeyLeft = 253,
-	gvArrowKeyRight = 252,
+
 	gvFunctionKey1 = 241,
-	gvFunctionKey2 = 242,
-	gvFunctionKey3 = 243,
-	gvFunctionKey4 = 244,
-	gvFunctionKey5 = 245,
-	gvFunctionKey6 = 246,
-	gvFunctionKey7 = 247,
-	gvFunctionKey8 = 248,
-	gvFunctionKey9 = 249,
-	gvFunctionKey10 = 250,
-	gvFunctionKey11 = 251,
+	gvFunctionKey2,
+	gvFunctionKey3,
+	gvFunctionKey4,
+	gvFunctionKey5,
+	gvFunctionKey6,
+	gvFunctionKey7,
+	gvFunctionKey8,
+	gvFunctionKey9,
+	gvFunctionKey10,
+	gvFunctionKey11,
+	gvArrowKeyRight,
+	gvArrowKeyLeft,
+	gvArrowKeyDown,
+	gvArrowKeyUp,
 	gvMouseLeftButton = 301,
-	gvMouseDoubleClick = 303,
-	gvHomeKey = 302,
+	gvMouseDoubleClick,
+	gvHomeKey,
+	gvDeleteKey,
 	gvNumberKey0 = 48,
-	gvNumberKey1 = 49,
-	gvNumberKey2 = 50,
-	gvNumberKey3 = 51,
-	gvNumberKey4 = 52,
-	gvNumberKey5 = 53,
-	gvNumberKey6 = 54,
-	gvNumberKey7 = 55,
-	gvNumberKey8 = 56,
-	gvNumberKey9 = 57
+	gvNumberKey1,
+	gvNumberKey2,
+	gvNumberKey3,
+	gvNumberKey4,
+	gvNumberKey5,
+	gvNumberKey6,
+	gvNumberKey7,
+	gvNumberKey8,
+	gvNumberKey9
 };
 
 enum StringInput
@@ -115,19 +107,6 @@ extern int debug;
 	NSSize				viewSize;
 	GLfloat				display_z;
 	
-#ifdef GNUSTEP
-	double				squareX,squareY;
-	NSRect				bounds;
-	
-   // Full screen sizes
-	NSMutableArray		*screenSizes;
-	int					currentSize;
-	BOOL				fullScreen;
-	
-	// Windowed mode
-	NSSize currentWindowSize;
-	SDL_Surface* surface;
-#endif
 	JoystickHandler *stickHandler;
 }
 
@@ -152,34 +131,9 @@ extern int debug;
 
 - (void) snapShot;
 
-#ifndef GNUSTEP
 - (void)mouseDown:(NSEvent *)theEvent;
 - (void)mouseUp:(NSEvent *)theEvent;
-#else
-- (NSRect) bounds;
-- (void) display;
-+ (NSMutableDictionary *) getNativeSize;
 
-- (void) setFullScreenMode:(BOOL)fsm;
-- (BOOL) inFullScreenMode;
-- (void) toggleScreenMode;
-- (void) setDisplayMode:(int)mode fullScreen:(BOOL)fsm;
-
-- (int) indexOfCurrentSize;
-- (void) setScreenSize: (int)sizeIndex;
-- (NSMutableArray *)getScreenSizeArray;
-- (void) populateFullScreenModelist;
-- (NSSize) modeAsSize: (int)sizeIndex;
-- (void) saveWindowSize: (NSSize) windowSize;
-- (NSSize) loadWindowSize;
-- (int) loadFullscreenSettings;
-- (int) findDisplayModeForWidth: (unsigned int) d_width Height:(unsigned int) d_height
-						Refresh: (unsigned int)d_refresh;
-- (NSSize) currentScreenSize;
-
-- (void) pollControls: (id)sender;
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
-#endif
 - (JoystickHandler *)getStickHandler; // DJS
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;

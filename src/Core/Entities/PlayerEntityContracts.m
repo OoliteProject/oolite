@@ -802,24 +802,22 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	MyOpenGLView*	gameView = [UNIVERSE gameView];
 	GuiDisplayGen*	gui = [UNIVERSE gui];
 	
-	NSMutableArray*	passenger_market = [[UNIVERSE station] localPassengers];
-	NSMutableArray*	contract_market = [[UNIVERSE station] localContracts];
-	
-	if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_CARGO_START))
+	NSArray*	passenger_market = [[UNIVERSE station] localPassengers];
+	NSArray*	contract_market = [[UNIVERSE station] localContracts];
+	NSString* dest_name = nil;
+	if (([gui selectedRow] < GUI_ROW_CARGO_START) && ([gui selectedRow] >= GUI_ROW_PASSENGERS_START))
 	{
 		NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
-		NSString* passenger_dest_name = (NSString *)[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME];
-		[gameView setTypedString:[passenger_dest_name lowercaseString]];
-		[self setGuiToLongRangeChartScreen];
+		dest_name = (NSString *)[passenger_info objectForKey:PASSENGER_KEY_DESTINATION_NAME];
 	}
-	
-	if (([gui selectedRow] >= GUI_ROW_CARGO_START)&&([gui selectedRow] < GUI_ROW_MARKET_CASH))
+	else if (([gui selectedRow] >= GUI_ROW_CARGO_START) && ([gui selectedRow] < GUI_ROW_MARKET_CASH))
 	{
 		NSDictionary* contract_info = (NSDictionary*)[contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
-		NSString* contract_dest_name = (NSString *)[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME];
-		[gameView setTypedString:[contract_dest_name lowercaseString]];
-		[self setGuiToLongRangeChartScreen];
+		dest_name = (NSString *)[contract_info objectForKey:CONTRACT_KEY_DESTINATION_NAME];
 	}
+	
+	[gameView setTypedString:[dest_name lowercaseString]];
+	[self setGuiToLongRangeChartScreen];
 }
 
 

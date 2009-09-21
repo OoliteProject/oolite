@@ -443,21 +443,22 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		
 		if (allowingStringInput)
 		{
+			if ((key == gvDeleteKey) && [typedString length] > 0)
+			{
+				// delete
+				[typedString deleteCharactersInRange:NSMakeRange([typedString length] - 1, 1)];
+			}
+
+			isAlphabetKeyDown = NO;
+
 			// limited input for planet find screen
 			if (allowingStringInput == gvStringInputAlpha)
 			{
 				if (isalpha(key))
 				{
 					isAlphabetKeyDown = YES;
-					// convert to lowercase
+					// convert to lower case
 					[typedString appendFormat:@"%c", tolower(key)];
-				}
-				else
-					isAlphabetKeyDown = NO;
-				if (key == NSDeleteCharacter)
-				{
-					//delete
-					[typedString setString:@""];
 				}
 			}
 			
@@ -467,15 +468,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 				if (isprint(key) && key != '/')
 				{
 					isAlphabetKeyDown = YES;
-					// convert to lowercase
 					[typedString appendFormat:@"%c", key];
-				}
-				else
-					isAlphabetKeyDown = NO;
-				if ((key == NSDeleteCharacter) && [typedString length])
-				{
-					//delete
-					[typedString deleteCharactersInRange:NSMakeRange([typedString length] - 1, 1)];
 				}
 			}
 			
@@ -496,7 +489,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	ctrl = (flags & NSControlKeyMask) ? YES : NO;
 	command = (flags & NSCommandKeyMask) ? YES : NO;
 	shift = ( flags & NSShiftKeyMask ) ? YES : NO;
-
 }
 
 
@@ -614,6 +606,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			
 		case NSHomeFunctionKey:
 			key = gvHomeKey;
+			break;
+			
+		case NSDeleteCharacter:
+			key = gvDeleteKey;
 			break;
 			
 		default:

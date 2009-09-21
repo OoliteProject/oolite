@@ -25,59 +25,53 @@ MA 02110-1301, USA.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
-#ifdef GNUSTEP
 #include <SDL.h>
-#endif
+
+#define OpenGLViewSuperClass	NSObject
+#define MOUSE_VIRTSTICKSENSITIVITY 930.0f
+#define MOUSEX_MAXIMUM 0.6
+#define MOUSEY_MAXIMUM 0.6
 
 #define MAX_CLEAR_DEPTH		100000000.0
 // 100 000 km.
 
 #define NUM_KEYS			320
-
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
-#define MOUSE_VIRTSTICKSENSITIVITY 930.0f
-#define MOUSEX_MAXIMUM 0.6
-#define MOUSEY_MAXIMUM 0.6
 
 @class Entity, GameController, OpenGLSprite;
-
-#ifdef GNUSTEP
 @class JoystickHandler;
-#define OpenGLViewSuperClass	NSObject
-#else
-#define OpenGLViewSuperClass	NSOpenGLView
-#endif
 
 enum GameViewKeys
 {
-	gvArrowKeyUp = 255,
-	gvArrowKeyDown = 254,
-	gvArrowKeyLeft = 253,
-	gvArrowKeyRight = 252,
 	gvFunctionKey1 = 241,
-	gvFunctionKey2 = 242,
-	gvFunctionKey3 = 243,
-	gvFunctionKey4 = 244,
-	gvFunctionKey5 = 245,
-	gvFunctionKey6 = 246,
-	gvFunctionKey7 = 247,
-	gvFunctionKey8 = 248,
-	gvFunctionKey9 = 249,
-	gvFunctionKey10 = 250,
-	gvFunctionKey11 = 251,
+	gvFunctionKey2,
+	gvFunctionKey3,
+	gvFunctionKey4,
+	gvFunctionKey5,
+	gvFunctionKey6,
+	gvFunctionKey7,
+	gvFunctionKey8,
+	gvFunctionKey9,
+	gvFunctionKey10,
+	gvFunctionKey11,
+	gvArrowKeyRight,
+	gvArrowKeyLeft,
+	gvArrowKeyDown,
+	gvArrowKeyUp,
 	gvMouseLeftButton = 301,
-	gvMouseDoubleClick = 303,
-	gvHomeKey = 302,
+	gvMouseDoubleClick,
+	gvHomeKey,
+	gvDeleteKey,
 	gvNumberKey0 = 48,
-	gvNumberKey1 = 49,
-	gvNumberKey2 = 50,
-	gvNumberKey3 = 51,
-	gvNumberKey4 = 52,
-	gvNumberKey5 = 53,
-	gvNumberKey6 = 54,
-	gvNumberKey7 = 55,
-	gvNumberKey8 = 56,
-	gvNumberKey9 = 57
+	gvNumberKey1,
+	gvNumberKey2,
+	gvNumberKey3,
+	gvNumberKey4,
+	gvNumberKey5,
+	gvNumberKey6,
+	gvNumberKey7,
+	gvNumberKey8,
+	gvNumberKey9 //57
 };
 
 enum StringInput
@@ -172,10 +166,10 @@ extern int debug;
 - (void) initialiseGLWithSize:(NSSize) v_size;
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode;
 
-- (void) display;
-- (void) updateScreen;
 - (void) drawRect:(NSRect)rect;
+- (void) updateScreen;
 - (void) updateScreenWithVideoMode:(BOOL) v_mode;
+- (void) display;
 
 - (void) snapShot;
 
@@ -200,13 +194,12 @@ extern int debug;
 - (NSSize) currentScreenSize;
 
 - (void) pollControls;
-- (void) handleStringInput: (SDL_KeyboardEvent *) kbd_event; // DJS
+
 - (JoystickHandler *)getStickHandler; // DJS
 
 - (void) setVirtualJoystick:(double) vmx :(double) vmy;
 - (NSPoint) virtualJoystickPosition;
 
-- (void) setKeyboardTo: (NSString *) value;
 - (void) clearKeys;
 - (void) clearMouse;
 - (BOOL) isAlphabetKeyDown;
@@ -216,12 +209,17 @@ extern int debug;
 - (BOOL) isCtrlDown;
 - (BOOL) isCommandDown;
 - (BOOL) isShiftDown;
-- (BOOL) isCommandQDown;
-- (BOOL) isCommandFDown;
 - (int) numKeys;
 
+// Command-key combinations need special handling. SDL stubs for these mac functions.
+- (BOOL) isCommandQDown;
+- (BOOL) isCommandFDown;
+- (void) clearCommandF;
+
+- (void) setKeyboardTo: (NSString *) value;
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
 
 // Check current state of shift key rather than relying on last event.
 - (BOOL)pollShiftKey;
+
 @end

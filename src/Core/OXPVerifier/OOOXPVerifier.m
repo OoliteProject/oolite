@@ -64,17 +64,7 @@ SOFTWARE.
 
 static void SwitchLogFile(NSString *name);
 static void NoteVerificationStage(NSString *displayName, NSString *stage);
-
-#if OOLITE_MAC_OS_X || OOLITE_WINDOWS
-
 static void OpenLogFile(NSString *name);
-
-#else
-
-#define OpenLogFile(name) do {} while (0)
-
-#endif
-
 
 @interface OOOXPVerifier (OOPrivate)
 
@@ -719,6 +709,7 @@ static void OpenLogFile(NSString *name);
 
 #import "OOLogOutputHandler.h"
 
+
 static void SwitchLogFile(NSString *name)
 {
 	name = [name stringByAppendingPathExtension:@"log"];
@@ -733,29 +724,24 @@ static void NoteVerificationStage(NSString *displayName, NSString *stage)
 }
 
 
+static void OpenLogFile(NSString *name)
+{
+	//	Open log file in appropriate application / provide feedback.
+	
+	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
+	{
 #if OOLITE_MAC_OS_X
-
-static void OpenLogFile(NSString *name)
-{
-	//	Open log file in appropriate application.
-	
-	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
-	{
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
-	}
-}
-
 #elif OOLITE_WINDOWS
-
-static void OpenLogFile(NSString *name)
-{
-	//	Open log file in appropriate application.
-	
-	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"oxp-verifier-open-log" defaultValue:YES])
-	{
-		system([[NSString stringWithFormat:@"echo Verify complete. Please see 'Logs\\%@' & pause", name] cString]);
+		// start wordpad (for historical reasons wordpad is called write from the command prompt)
+		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] cString]);
+#elif  OOLITE_LINUX
+		system([[NSString stringWithFormat:@"echo Verify complete. Please see \\'~/.Oolite/Logs/%@.log\\'. ; read -p \"Press return to continue...\"", name] cString]);
+#else 
+		do {} while (0);
+#endif
 	}
 }
 
-#endif
+
 #endif	// OO_OXP_VERIFIER_ENABLED

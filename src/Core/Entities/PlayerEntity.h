@@ -231,6 +231,7 @@ typedef enum
 	
 @protected
 	
+	Random_Seed				found_system_seed;
 	NSString				*ship_desc;
 	int						ship_trade_in_factor;
 	
