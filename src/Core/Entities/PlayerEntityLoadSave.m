@@ -356,6 +356,7 @@
 	{
 		pollControls=YES;
 		[self nativeSavePlayer: commanderNameString];
+		[gameView supressKeysUntilKeyUp];
 		[self setGuiToStatusScreen];
 		
 		[self playSaveOverwriteYes];
