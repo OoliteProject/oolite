@@ -1,3 +1,22 @@
+Changes between Oolite 1.73.3 and Oolite 1.73.4:
+* Fixed nova mission.
+* Fixed bug where subentities of sold ships could come back to haunt your log.
+* When buying a ship which does not specify a HUD, the default HUD is now used
+  immediately.
+* Scooping can no longer overfill your cargo bay.
+* Fixed some cosmetic issues with equipment list UIs.
+* removeEquipment scripting method now works with damaged equipment.
+* awardEquipment scripting method now works with EQ_REMOVE_MISSILES.
+* Fixed spurious OXP verifier warning about display_name key.
+* [Windows] Installer now uninstalls old versions correctly.
+* [Mac] Fixed an error where random (often very loud) noise could be played
+        through the right channel at the end of long sounds.
+* [Non-Mac] Fixed a problem with mouse control.
+* [Non-Mac] Added option to suppress splash screen, which forces the game to
+            run with software rendering on some systems.
+
+-------------------------------------------------------------------------------
+
 Changes between Oolite 1.73.2 and Oolite 1.73.3:
 * Fixed failure on startup when two OXPs define the same equipment.
 * Partial fix for bug where the system data screen showed a planet in systems
