@@ -403,14 +403,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	//
 	if (![shipsOnApproach objectForKey:shipID])
 	{
-		Vector	delta = ship->position;
-		delta.x -= position.x;	delta.y -= position.y;	delta.z -= position.z;
-		float	ship_distance = sqrt(magnitude2(delta));
+		Vector	delta = vector_subtract([ship position], [self position]);
+		float	ship_distance = magnitude(delta);
 
 		if (ship_distance > SCANNER_MAX_RANGE)	// too far away - don't claim a docking slot by not putting on approachlist for now.
 			return instructions(universalID, position, 0, 10000, @"APPROACH", nil, NO);
 
 		[self addShipToShipsOnApproach: ship];
+		
+		[self addShipToShipsOnApproach:ship];
 		
 		if (ship_distance < 1000.0 + collision_radius + ship->collision_radius)	// too close - back off
 			return instructions(universalID, position, 0, 5000, @"BACK_OFF", nil, NO);

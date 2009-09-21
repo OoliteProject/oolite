@@ -84,6 +84,8 @@ OOINLINE Vector fast_vector_normal(Vector vec) INLINE_CONST_FUNC;
 
 /* Normalize vector, returning fallback if zero vector. */
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
+OOINLINE Vector vector_normal_or_xbasis(Vector vec) INLINE_CONST_FUNC;
+OOINLINE Vector vector_normal_or_ybasis(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector vector_normal_or_zbasis(Vector vec) INLINE_CONST_FUNC;
 OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback) INLINE_CONST_FUNC;
 
@@ -227,6 +229,18 @@ OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 	GLfloat mag2 = magnitude2(vec);
 	if (EXPECT_NOT(mag2 == 0))  return fallback;
 	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
+}
+
+
+OOINLINE Vector vector_normal_or_xbasis(Vector vec)
+{
+	return vector_normal_or_fallback(vec, kBasisXVector);
+}
+
+
+OOINLINE Vector vector_normal_or_ybasis(Vector vec)
+{
+	return vector_normal_or_fallback(vec, kBasisYVector);
 }
 
 

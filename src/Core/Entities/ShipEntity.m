@@ -3035,17 +3035,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_track_as_turret:(double) delta_t
 {
 	double aim = [self ballTrackLeadingTarget:delta_t];
-	ShipEntity* turret_owner = (ShipEntity *)[self owner];
-	ShipEntity* turret_target = (ShipEntity *)[turret_owner primaryTarget];
-	//
-	if ((turret_owner)&&(turret_target)&&[turret_owner hasHostileTarget])
+	ShipEntity *turret_owner = (ShipEntity *)[self owner];
+	ShipEntity *turret_target = (ShipEntity *)[turret_owner primaryTarget];
+	
+	if (turret_owner && turret_target && [turret_owner hasHostileTarget])
 	{
-		Vector p1 = turret_target->position;
-		Vector p0 = turret_owner->position;
-		double cr = turret_owner->collision_radius;
-		p1.x -= p0.x;	p1.y -= p0.y;	p1.z -= p0.z;
+		Vector p = vector_subtract([turret_target position], [turret_owner position]);
+		double cr = [turret_owner collisionRadius];
+		
 		if (aim > .95)
-			[self fireTurretCannon: sqrt(magnitude2(p1)) - cr];
+		{
+			[self fireTurretCannon:magnitude(p) - cr];
+		}
 	}
 }
 
@@ -3053,8 +3054,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_fly_thru_navpoints:(double) delta_t
 {
 	int navpoint_plus_index = (next_navpoint_index + 1) % number_of_navpoints;
-	Vector d1 = navpoints[ next_navpoint_index];		// head for this one
-	Vector d2 = navpoints[ navpoint_plus_index];	// but be facing this one
+	Vector d1 = navpoints[next_navpoint_index];		// head for this one
+	Vector d2 = navpoints[navpoint_plus_index];	// but be facing this one
 	
 	Vector rel = vector_between(d1, position);	// vector from d1 to position 
 	Vector ref = vector_between(d2, d1);		// vector from d2 to d1
@@ -3068,7 +3069,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// if r0 is negative then we're the wrong side of things
 	
-	GLfloat	r1 = sqrtf(magnitude2(xp));	// distance of position from line
+	GLfloat	r1 = magnitude(xp);	// distance of position from line
 	
 	BOOL in_cone = (r0 > 0.5 * r1);
 	
@@ -3396,12 +3397,10 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 	
 	if (thrust)
 	{
-		GLfloat velmag = sqrtf(magnitude2(velocity));
+		GLfloat velmag = magnitude(velocity);
 		if (velmag)
 		{
-			GLfloat vscale = (velmag - dt_thrust) / velmag;
-			if (vscale < 0.0)
-				vscale = 0.0;
+			GLfloat vscale = fmaxf((velmag - dt_thrust) / velmag, 0.0f);
 			scale_vector(&velocity, vscale);
 		}
 	}

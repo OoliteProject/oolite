@@ -1518,14 +1518,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	//	Now do route2 planet -> sun
 	
 	
-	Vector  v_route2 = s1_pos;
-	v_route2.x -= p1_pos.x;	v_route2.y -= p1_pos.y;	v_route2.z -= p1_pos.z;
-	double d_route2 = sqrt(magnitude2(v_route2));
-	
-	if (v_route2.x||v_route2.y||v_route2.z)
-		v_route2 = vector_normal(v_route2);
-	else
-		v_route2.x = 1.0;
+	Vector  v_route2 = vector_subtract(s1_pos, p1_pos);
+	double d_route2 = magnitude(v_route2);
+	v_route2 = vector_normal_or_xbasis(v_route2);
 	
 	// add the traders to route2
 	for (i = 0; (i < skim_trading_parties)&&(!sunGoneNova); i++)
@@ -1538,7 +1533,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		double		end = 3.0 * [[self sun] radius];
 		double		maxLength = d_route2 - (start + end);
 		double		ship_location = randf() * maxLength + start;
-//
+		
 		launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
@@ -1546,13 +1541,17 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		if (trader_ship)
 		{
 			if (![trader_ship crew])
-				[trader_ship setCrew:[NSArray arrayWithObject:
-					[OOCharacter randomCharacterWithRole:@"trader"
-					andOriginalSystem: (randf() > 0.85)? systems[Ranrot() & 255]:system_seed]]];
-				
+			{
+				OOCharacter *crewperson = [OOCharacter randomCharacterWithRole:@"trader"
+															 andOriginalSystem: (randf() > 0.85)? systems[Ranrot() & 255]:system_seed];
+				[trader_ship setCrew:[NSArray arrayWithObject:crewperson]];
+			}
+			
 			[trader_ship setPrimaryRole:@"trader"];	// set this to allow escorts to pair with the ship
-			if ((trader_ship)&&(trader_ship->scanClass == CLASS_NOT_SET))
+			if ([trader_ship scanClass] == CLASS_NOT_SET)
+			{
 				[trader_ship setScanClass: CLASS_NEUTRAL];
+			}
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
@@ -1930,40 +1929,42 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		default:
 			return kZeroVector;
 	}
-	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-	if (k.x||k.y||k.z)
-		k = vector_normal(k);	//	'forward'
-	else
-		k.z = 1.0;
-	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
-	if (v.x||v.y||v.z)
-		v = vector_normal(v);		//	temporary vector in plane of 'forward' and 'right'
-	else
-		v.x = 1.0;
+	Vector k = vector_normal_or_zbasis(vector_subtract(p1, p0));	// 'forward'
+	Vector v = vector_normal_or_xbasis(vector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
+	
 	Vector j = cross_product(k, v);	// 'up'
 	Vector i = cross_product(j, k);	// 'right'
-	GLfloat scalar = 1.0;
+	
+	GLfloat scale = 1.0;
 	switch (c_sys[2])
 	{
 		case 'p':
-			scalar = ([self planet])? [self planet]->collision_radius: 5000;	break;
+			scale = ([self planet])? [self planet]->collision_radius: 5000;
+			break;
+			
 		case 's':
-			scalar = ([self sun])? [self sun]->collision_radius: 100000;	break;
+			scale = ([self sun])? [self sun]->collision_radius: 100000;
+			break;
+			
 		case 'u':
-			scalar = sqrt(magnitude2(make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)));	break;
+			scale = magnitude(vector_subtract(p1, p0));
+			break;
+			
 		case 'm':
-			scalar = 1.0;	break;
+			scale = 1.0;
+			break;
+			
 		default:
 			return kZeroVector;
 	}
 	if (my_scalar)
-		*my_scalar = scalar;
+		*my_scalar = scale;
 	
 	// result = p0 + ijk
 	Vector result = p0;	// origin
-	result.x += scalar * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
-	result.y += scalar * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
-	result.z += scalar * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
+	result.x += scale * (pos.x * i.x + pos.y * j.x + pos.z * k.x);
+	result.y += scale * (pos.x * i.y + pos.y * j.y + pos.z * k.y);
+	result.z += scale * (pos.x * i.z + pos.y * j.z + pos.z * k.z);
 	
 	return result;
 }
@@ -2029,38 +2030,45 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		default:
 			return nil;
 	}
-	Vector k = make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
-	if (k.x||k.y||k.z)
-		k = vector_normal(k);			//	'z' axis in m
-	else
-		k.z = 1.0;
-	Vector v = make_vector(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
-	if (v.x||v.y||v.z)
-		v = vector_normal(v);		//	temporary vector in plane of 'forward' and 'right'
-	else
-		v.x = 1.0;
+	Vector k = vector_normal_or_zbasis(vector_subtract(p1, p0));	// 'z' axis in m
+	Vector v = vector_normal_or_xbasis(vector_subtract(p2, p0));	// temporary vector in plane of 'forward' and 'right'
+	
 	Vector j = cross_product(k, v);	// 'y' axis in m
 	Vector i = cross_product(j, k);	// 'x' axis in m
-	GLfloat scalar = 1.0;
+	
+	GLfloat scale = 1.0;
 	switch (c_sys[2])
 	{
 		case 'p':
-			scalar = 1.0 / (([self planet])? [self planet]->collision_radius: 5000);	break;
+		{
+			PlanetEntity *planet = [self planet];
+			scale = 1.0f / (planet ? [planet collisionRadius]: 5000);
+			break;
+		}
 		case 's':
-			scalar = 1.0 / (([self sun])? [self sun]->collision_radius: 100000);	break;
+		{
+			PlanetEntity *sun = [self sun];
+			scale = 1.0f / (sun ? [sun collisionRadius]: 100000);
+			break;
+		}
+		
 		case 'u':
-			scalar = 1.0 / sqrt(magnitude2(make_vector(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)));	break;
+			scale = 1.0f / magnitude(vector_subtract(p1, p0));
+			break;
+			
 		case 'm':
-			scalar = 1.0;	break;
+			scale = 1.0f;
+			break;
+			
 		default:
 			return nil;
 	}
 	
 	// result = p0 + ijk
-	Vector r_pos = make_vector(pos.x - p0.x, pos.y - p0.y, pos.z - p0.z);
-	Vector result = make_vector(	scalar * (r_pos.x * i.x + r_pos.y * i.y + r_pos.z * i.z),
-									scalar * (r_pos.x * j.x + r_pos.y * j.y + r_pos.z * j.z),
-									scalar * (r_pos.x * k.x + r_pos.y * k.y + r_pos.z * k.z) ); // scalar * dot_products
+	Vector r_pos = vector_subtract(pos, p0);
+	Vector result = make_vector(	scale * (r_pos.x * i.x + r_pos.y * i.y + r_pos.z * i.z),
+									scale * (r_pos.x * j.x + r_pos.y * j.y + r_pos.z * j.z),
+									scale * (r_pos.x * k.x + r_pos.y * k.y + r_pos.z * k.z) ); // scale * dot_products
 	
 	return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, result.x, result.y, result.z];
 }

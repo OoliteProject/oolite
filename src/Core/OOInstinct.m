@@ -97,11 +97,10 @@ MA 02110-1301, USA.
 	{
 		Entity* ent = entities[entity_index++];
 		
-		Vector	rp = vector_subtract(ent->position, ship->position);
+		Vector	rp = vector_subtract([ent position], [ship position]);
 		GLfloat	sz = ent->collision_radius + cr;
-		GLfloat	d = sqrtf(magnitude2(rp)) - sz;
-		if (d < 0.01)
-			d = 0.01;	// 1 cm is suitably small
+		GLfloat	d = magnitude(rp) - sz;
+		d = fmaxf(d, 0.01);		// 1 cm is suitably small
 		Vector	rv = vector_subtract([ent velocity], u);
 		GLfloat	approach_v = dot_product(rv, vector_normal(rp));
 		
