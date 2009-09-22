@@ -1256,10 +1256,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 	BOOL		*systems_found = [UNIVERSE systems_found];
 	unsigned 	i, first = 0, last = 0, count = 0;
-	//Random_Seed	sys;
+	
 	// reset foundSystem, the array might be 0
 	//foundSystem = 0;
-	for (i = 0, first = 0, last = 0; i < 256; i++)
+	for (i = 0, first, last; i <= kOOMaximumSystemID; i++)
 	{
 		if (systems_found[i])
 		{
