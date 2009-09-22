@@ -246,8 +246,9 @@ static GameController *sSharedController = nil;
 	
 	// Release anything allocated above that is not required.
 	[pool release];
-	
-#if !OOLITE_HAVE_APPKIT
+#if OOLITE_HAVE_APPKIT
+	if (fullscreen) [self goFullscreen:(id)YES];
+#else
 	[[NSRunLoop currentRunLoop] run];
 #endif
 }
@@ -401,6 +402,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	width = [userDefaults oo_intForKey:@"display_width" defaultValue:DISPLAY_DEFAULT_WIDTH];
 	height = [userDefaults oo_intForKey:@"display_height" defaultValue:DISPLAY_DEFAULT_HEIGHT];
 	refresh = [userDefaults oo_intForKey:@"display_refresh" defaultValue:DISPLAY_DEFAULT_REFRESH];
+	fullscreen = [userDefaults oo_boolForKey:@"fullscreen" defaultValue:NO];
 	
 	// Get the list of all available modes
 	modes = (NSArray *)CGDisplayAvailableModes(kCGDirectMainDisplay);
@@ -655,6 +657,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		fullscreen = YES;
 		[gameView clearCommandF];	// Avoid immediately switching back to windowed mode.
+		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"fullscreen"];
 						
 		BOOL past_first_mouse_delta = NO;
 		
@@ -952,6 +955,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void) exitFullScreenMode
 {
+	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"fullscreen"];
 	stayInFullScreenMode = NO;
 }
 
