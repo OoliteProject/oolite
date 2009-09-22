@@ -1,0 +1,19 @@
+Major versions:
+Doc/OoliteReadMe.doc
+Doc/OoliteReadMe.pdf
+Doc/ReadMe.rtfd
+
+Minor versions:
+autopackage/default.apspec
+debian/changelog.in
+src/Cocoa/Info-Oolite.plist
+src/Cocoa/oolite-version.plist
+Resources/Scripts/*
+Resources/InfoPlist.strings (note: UTF-16)
+
+On release:
+http://www.oolite.org/download (current version six times, previous version for Windows updater once)
+Topic of #oolite
+
+Not really necessary:
+tools/simpleDebugConsole/Basic-debug.oxp/requires.plist (will be updated by next Xcode build)
