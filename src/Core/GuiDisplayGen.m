@@ -1259,7 +1259,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//Random_Seed	sys;
 	// reset foundSystem, the array might be 0
 	//foundSystem = 0;
-	for (i = 0; i < 256; i++)
+	for (i = 0, first = 0, last = 0; i < 256; i++)
 	{
 		if (systems_found[i])
 		{

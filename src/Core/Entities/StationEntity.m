@@ -411,8 +411,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 		[self addShipToShipsOnApproach: ship];
 		
-		[self addShipToShipsOnApproach:ship];
-		
 		if (ship_distance < 1000.0 + collision_radius + ship->collision_radius)	// too close - back off
 			return instructions(universalID, position, 0, 5000, @"BACK_OFF", nil, NO);
 		
