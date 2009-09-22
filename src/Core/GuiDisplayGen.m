@@ -1259,7 +1259,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// reset foundSystem, the array might be 0
 	//foundSystem = 0;
-	for (i = 0, first, last; i <= kOOMaximumSystemID; i++)
+	for (i = 0; i <= kOOMaximumSystemID; i++)
 	{
 		if (systems_found[i])
 		{
