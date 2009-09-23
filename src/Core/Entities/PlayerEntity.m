@@ -3294,36 +3294,25 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other
 {
-	Vector		rel_pos = kZeroVector;
+	Vector		rel_pos;
 	double		d_forward;
 	BOOL		internal_damage = NO;	// base chance
-	Entity*		attacker = nil;
 	
 	OOLog(@"player.ship.damage",  @"Player took damage from %@ becauseOf %@", ent, other);
 	
 	if ([self status] == STATUS_DEAD)  return;
 	if (amount == 0.0)  return;
 	
+	// make sure ent (& its position) is the attacking _ship_/missile !
+	if (ent && [ent isSubEntity]) ent = [ent owner];
+	
 	[[ent retain] autorelease];
 	[[other retain] autorelease];
 	
-	// rel_pos = (ent != nil) ? [ent position] : kZeroVector;
-	if(ent) 
-	{
-		if([ent isSubEntity]) 
-		{
-			attacker = [[[ent owner] retain] autorelease];
-			rel_pos = [attacker position];
-		}
-		else
-		{
-			attacker = ent;
-			rel_pos = [attacker position];
-		}
-	}
+	rel_pos = (ent != nil) ? [ent position] : kZeroVector;
 	rel_pos = vector_subtract(rel_pos, position);
 	
-	[self doScriptEvent:@"shipBeingAttacked" withArgument:attacker];
+	[self doScriptEvent:@"shipBeingAttacked" withArgument:ent];
 
 	d_forward = dot_product(rel_pos, v_forward);
 	
