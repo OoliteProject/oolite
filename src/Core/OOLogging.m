@@ -576,14 +576,14 @@ void OOLoggingInit(void)
 	
 	pool = [[NSAutoreleasePool alloc] init];
 	
-	OOLogOutputHandlerInit();
-	
 	sLock = [[NSLock alloc] init];
 	[sLock ooSetName:@"OOLogging lock"];
 	if (sLock == nil) exit(EXIT_FAILURE);
 	
+	sInited = YES;	// Must be before OOLogOutputHandlerInit().
+	OOLogOutputHandlerInit();
+	
 	LoadExplicitSettings();
-	sInited = YES;
 	
 	OOPrintLogHeader();
 	
