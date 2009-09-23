@@ -3,7 +3,7 @@
 GameController.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -310,29 +310,35 @@ static GameController *sSharedController = nil;
 
 - (void)doPerformGameTick
 {
-	if (gameIsPaused)
-		delta_t = 0.0;  // no movement!
-	else
-	{
-		delta_t = [NSDate timeIntervalSinceReferenceDate] - last_timeInterval;
-		last_timeInterval += delta_t;
-		if (delta_t > MINIMUM_GAME_TICK)
-			delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
-	}
-	
-	[UNIVERSE update:delta_t];
-	[OOSound update];
-	
+	NS_DURING
+		if (gameIsPaused)
+			delta_t = 0.0;  // no movement!
+		else
+		{
+			delta_t = [NSDate timeIntervalSinceReferenceDate] - last_timeInterval;
+			last_timeInterval += delta_t;
+			if (delta_t > MINIMUM_GAME_TICK)
+				delta_t = MINIMUM_GAME_TICK;		// peg the maximum pause (at 0.5->1.0 seconds) to protect against when the machine sleeps	
+		}
+		
+		[UNIVERSE update:delta_t];
+		[OOSound update];
+		
 #if OOLITE_HAVE_APPKIT
-	if (fullscreen)
-	{
-		[UNIVERSE drawUniverse];
-		return;
-	}
+		if (fullscreen)
+		{
+			[UNIVERSE drawUniverse];
+			NS_VOIDRETURN;
+		}
 #endif
-
-	if (gameView != nil)  [gameView display];
-	else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
+	NS_HANDLER
+	NS_ENDHANDLER
+	
+	NS_DURING
+		if (gameView != nil)  [gameView display];
+		else  OOLog(kOOLogInconsistentState, @"***** gameView not set : delta_t %f",(float)delta_t);
+	NS_HANDLER
+	NS_ENDHANDLER
 }
 
 

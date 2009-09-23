@@ -3684,7 +3684,9 @@ static const OOMatrix	starboard_matrix =
 			}
 			
 		NS_HANDLER
-		
+			
+			no_update = NO;	// make sure we don't get stuck in all subsequent frames.
+			
 			if ([[localException name] hasPrefix:@"Oolite"])
 			{
 				[self handleOoliteException:localException];

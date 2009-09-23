@@ -3,7 +3,7 @@
 GuiDisplayGen.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -782,7 +782,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawEqptList:(NSArray *)eqptList z:(GLfloat)z 
 {
-	if (eqptList == nil) return;
+	if ([eqptList count] == 0) return;
 	
 	int				first_row = STATUS_EQUIPMENT_FIRST_ROW;
 	int				items_per_column = STATUS_EQUIPMENT_MAX_ROWS;
