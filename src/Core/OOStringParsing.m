@@ -306,7 +306,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
 	unsigned			sub, rnd, opt;
-	unsigned			p1, p2;
+	unsigned			p1, p2 = NSNotFound;
 	NSArray				*sysDesc = nil;
 	NSArray				*sysDescItem = nil;
 	unsigned			sysDescCount = 0, descItemCount;
@@ -327,7 +327,18 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	while ([partial rangeOfString:@"["].location != NSNotFound)
 	{
 		p1 = [partial rangeOfString:@"["].location;
-		p2 = [partial rangeOfString:@"]"].location + 1;
+		
+		unsigned i;
+		for (i = 0; i < [partial length]; i++)
+		{
+			if ([partial characterAtIndex:i] == ']')
+				p2 = [partial rangeOfString:@"]"].location + 1;
+		}
+		if (p2 == NSNotFound)
+		{
+			OOLogWARN(@"ExpandDescriptionsWithLocalsForSystemSeedName", @"Expansion of string without closing bracket ( ] ) requested. Returning nil.");
+			return nil;
+		}
 		
 		before = [partial substringWithRange:NSMakeRange(0, p1)];
 		after = [partial substringWithRange:NSMakeRange(p2,[partial length] - p2)];
