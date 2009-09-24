@@ -712,9 +712,14 @@ static void OpenLogFile(NSString *name);
 
 static void SwitchLogFile(NSString *name)
 {
+//#ifndef OOLITE_LINUX
 	name = [name stringByAppendingPathExtension:@"log"];
 	OOLog(@"verifyOXP.switchingLog", @"Switching log files -- logging to \"%@\".", name);
 	OOLogOutputHandlerChangeLogFile(name);
+//#else
+//	OOLog(@"verifyOXP.switchingLog", @"Switching logging to <stdout>.");
+//	OOLogOutputHandlerStartLoggingToStdout();
+//#endif
 }
 
 
@@ -736,7 +741,9 @@ static void OpenLogFile(NSString *name)
 		// start wordpad (for historical reasons wordpad is called write from the command prompt)
 		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] cString]);
 #elif  OOLITE_LINUX
-		system([[NSString stringWithFormat:@"echo Verify complete. Please see \\'~/.Oolite/Logs/%@.log\\'. ; read -p \"Press return to continue...\"", name] cString]);
+		// Nothing to do here, since we dump to stdout instead of to a file.
+		//OOLogOutputHandlerStopLoggingToStdout();
+		system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] cString]);
 #else 
 		do {} while (0);
 #endif

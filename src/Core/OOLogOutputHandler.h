@@ -69,3 +69,6 @@ void OOLogOutputHandlerPrint(NSString *string);
 NSString *OOLogHandlerGetLogPath(void);
 NSString *OOLogHandlerGetLogBasePath(void);
 void OOLogOutputHandlerChangeLogFile(NSString *newLogName);
+
+void OOLogOutputHandlerStartLoggingToStdout();
+void OOLogOutputHandlerStopLoggingToStdout();

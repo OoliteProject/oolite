@@ -130,6 +130,7 @@ static BOOL DirectoryExistCreatingIfNecessary(NSString *path);
 
 static BOOL						sInited = NO;
 static BOOL						sWriteToStderr = YES;
+static BOOL						sWriteToStdout = NO;
 static BOOL						sSaturated = NO;
 static OOAsyncLogger			*sLogger = nil;
 static NSString					*sLogFileName = @"Latest.log";
@@ -203,12 +204,20 @@ void OOLogOutputHandlerClose(void)
 	}
 }
 
+void OOLogOutputHandlerStartLoggingToStdout()
+{
+	sWriteToStdout = true;
+}
+void OOLogOutputHandlerStopLoggingToStdout()
+{
+	sWriteToStdout = false;
+}
 
 void OOLogOutputHandlerPrint(NSString *string)
 {
-	if (sInited && sLogger != nil)  [sLogger asyncLogMessage:string];
+	if (sInited && sLogger != nil && !sWriteToStdout)  [sLogger asyncLogMessage:string];
 	
-	BOOL doCStringStuff = sWriteToStderr;
+	BOOL doCStringStuff = sWriteToStderr || sWriteToStdout;
 #if SET_CRASH_REPORTER_INFO
 	doCStringStuff = doCStringStuff || sCrashReporterInfoAvailable;
 #endif
@@ -216,7 +225,10 @@ void OOLogOutputHandlerPrint(NSString *string)
 	if (doCStringStuff)
 	{
 		const char *cStr = [[string stringByAppendingString:@"\n"] UTF8String];
-		if (sWriteToStderr)  fputs(cStr, stderr);
+		if (sWriteToStdout)
+			fputs(cStr, stdout);
+		else if (sWriteToStderr)
+			fputs(cStr, stderr);
 		
 #if SET_CRASH_REPORTER_INFO
 		if (sCrashReporterInfoAvailable)  SetCrashReporterInfo(cStr);
