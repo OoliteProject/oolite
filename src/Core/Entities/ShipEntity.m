@@ -6880,7 +6880,7 @@ BOOL class_masslocks(int some_class)
 	else  [missile setOwner:[self owner]];
 	
 	[missile addTarget:target];
-	[missile setGroup:[self group]];
+	// [missile setGroup:[self group]]; We don't need missiles in a group. It can bug when the group is also used as escortGroup.
 	[missile setPosition:origin];
 	[missile setOrientation:q1];
 	[missile setVelocity:vel];

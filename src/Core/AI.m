@@ -295,6 +295,11 @@ static AI *sCurrentlyRunningAI = nil;
 		
 		[currentState release];
 		currentState = @"GLOBAL";
+		
+		// refresh stateMachineName
+		[stateMachineName release];
+		stateMachineName = [smName copy];
+
 		/*	CRASH in objc_msgSend, apparently on [self reactToMessage:@"ENTER"] (1.69, OS X/x86).
 			Analysis: self corrupted. We're being called by __NSFireDelayedPerform, which doesn't go
 			through -[NSObject performSelector:withObject:], suggesting it's using IMP caching. An
@@ -306,10 +311,6 @@ static AI *sCurrentlyRunningAI = nil;
 		
 		// refresh name
 		[self refreshOwnerDesc];
-		
-		// refresh stateMachineName
-		[stateMachineName release];
-		stateMachineName = [smName copy];
 	}
 
 }
