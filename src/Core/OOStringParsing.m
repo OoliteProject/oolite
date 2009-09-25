@@ -305,11 +305,11 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	NSMutableDictionary	*all_descriptions = [[[UNIVERSE descriptions] mutableCopy] autorelease];
 	id					value = nil;
 	NSString			*part = nil, *before = nil, *after = nil, *middle = nil;
-	unsigned			sub, rnd, opt;
-	unsigned			p1, p2;
+	OOUInteger			sub, rnd, opt;
+	OOUInteger			p1, p2;
 	NSArray				*sysDesc = nil;
 	NSArray				*sysDescItem = nil;
-	unsigned			sysDescCount = 0, descItemCount;
+	OOUInteger			sysDescCount = 0, descItemCount;
 	
 	// add in player info if required
 	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
