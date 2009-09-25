@@ -106,7 +106,10 @@ OOLITE_ENTITY_FILES = \
 	OOFlasherEntity.m \
 	OOExhaustPlumeEntity.m \
 	OOSparkEntity.m \
-	OOECMBlastEntity.m
+	OOECMBlastEntity.m \
+	OOPlasmaShotEntity.m \
+	OOPlasmaBurstEntity.m \
+	OOFlashEffectEntity.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

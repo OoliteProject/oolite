@@ -2588,6 +2588,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	if ([i_key isEqual:@"billboard"])
 	{
+#if SUPPORT_BILLBOARD
 		if ([i_info count] != 6)	// must be billboard_imagefile_x_y_w_h
 			return NO;				//		   0........ 1........ 2 3 4 5
 
@@ -2612,6 +2613,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		[billboard release];
 		return YES;
+#else
+		OOLogERR(@"scene.billboard", @"Scene billboards are disabled because Ahruman thought no-one was using them.");
+#endif
 	}
 	//
 	// fall through..

@@ -5134,34 +5134,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void)subEntityReallyDied:(ShipEntity *)sub
 {
-	NSMutableArray		*newSubs = nil;
-	unsigned		i, count;
-	id			element;
-	
 	if ([self subEntityTakingDamage] == sub)  [self setSubEntityTakingDamage:nil];
 	
 	if ([self hasSubEntity:sub])
 	{
-		OOLogERR(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.");
+		OOLogERR(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity of %@ died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.", self);
 		
-		count = [subEntities count];
-		if (count != 1)
-		{
-			newSubs = [[NSMutableArray alloc] initWithCapacity:count - 1];
-			for (i = 0; i != count; ++i)
-			{
-				element = [subEntities objectAtIndex:i];
-				if (element != sub)
-				{
-					[newSubs addObject:element];
-					// NOTE: next line causes a static analysis issue, but is intentional. -- Ahruman 2009-09-18
-					[element release];	// Let it die later, even though there's a reference in the leaked array.
-				}
-			}
-		}
-		
-		// Leak old array, replace with new.
-		subEntities = newSubs;
+		// Leak subentity list.
+		subEntities = nil;
 	}
 }
 

@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
-	PARTICLE_FRAGBURST
+	PARTICLE_FRAGBURST?
 	PARTICLE_BURST2?
 */
 
@@ -48,9 +48,16 @@ typedef enum
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
 	PARTICLE_ENERGY_MINE		= 500,
+#if SUPPORT_BILLBOARD
 	PARTICLE_BILLBOARD			= 700,
+#endif
 	PARTICLE_HYPERRING			= 800
 } OOParticleType;
+
+
+#if OOLITE_LEOPARD
+#define OOPrivate	// Turn private category into a continuation where possible.
+#endif
 
 
 @interface ParticleEntity (OOPrivate)
@@ -61,16 +68,16 @@ typedef enum
 - (void) updateHyperring:(double) delta_t;
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
-- (void) updateExhaust2:(double) delta_t;
 
 - (void) drawParticle;
 - (void) drawLaser;
-- (void) drawExhaust2;
 - (void) drawHyperring;
 - (void) drawEnergyMine;
 - (void) drawFragburst;
 - (void) drawBurst2;
+#if SUPPORT_BILLBOARD
 - (void) drawBillboard;
+#endif
 
 - (void) setTexture:(NSString *) filename;
 - (void) setParticleType:(OOParticleType) p_type;
@@ -79,37 +86,19 @@ typedef enum
 @end
 
 
-#ifndef ADDITIVE_BLENDING
-#define ADDITIVE_BLENDING	1
-#endif
-
-#if ADDITIVE_BLENDING
-static inline void BeginAdditiveBlending(BOOL withGL_ONE)
+OOINLINE void BeginAdditiveBlending(BOOL withGL_ONE)
 {
-//	OOGL(glPushAttrib(GL_COLOR_BUFFER_BIT));
 	OOGL(glEnable(GL_BLEND));
-	if (withGL_ONE)
-	{
-		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
-	}
-	else
-	{
-		OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-	}
+	OOGL(glBlendFunc(GL_SRC_ALPHA, withGL_ONE ? GL_ONE : GL_ONE_MINUS_SRC_ALPHA));
 }
 
 
-static inline void EndAdditiveBlending(void)
+OOINLINE void EndAdditiveBlending(void)
 {
-//	OOGL(glPopAttrib());	// Handled by "master" pop in drawEntity:
 }
 
 #define GL_ONE_YES	YES
 #define GL_ONE_NO	NO
-#else
-#define BeginAdditiveBlending(x)	do {} while (0)
-#define EndAdditiveBlending()	do {} while (0)
-#endif
 
 
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy);
@@ -397,6 +386,7 @@ FAIL:
 }
 
 
+#if SUPPORT_BILLBOARD
 // used for background billboards
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile
 {
@@ -431,6 +421,7 @@ FAIL:
 	}
 	return self;
 }
+#endif
 
 
 - (void) dealloc
@@ -453,7 +444,9 @@ FAIL:
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
 		CASE(PARTICLE_ENERGY_MINE);
+#if SUPPORT_BILLBOARD
 		CASE(PARTICLE_BILLBOARD);
+#endif
 		CASE(PARTICLE_HYPERRING);
 	}
 	if (type_string == nil)  type_string = [NSString stringWithFormat:@"UNKNOWN (%i)", particle_type];
@@ -587,9 +580,11 @@ FAIL:
 			case PARTICLE_BURST2:
 				[self updateBurst2:delta_t];
 				break;
-
+				
+#if SUPPORT_BILLBOARD
 			case PARTICLE_BILLBOARD:
 				break;
+#endif
 			
 			default:
 				OOLog(@"particle.unknown", @"Invalid particle %@, removing.", self);
@@ -768,9 +763,11 @@ FAIL:
 				[self drawBurst2];
 				break;
 				
+#if SUPPORT_BILLBOARD
 			case PARTICLE_BILLBOARD:
 				[self drawBillboard];
 				break;
+#endif
 				
 			default:
 				[self drawParticle];
@@ -1038,6 +1035,7 @@ FAIL:
 }
 
 
+#if SUPPORT_BILLBOARD
 - (void) drawBillboard
 {	
 	OOGL(glColor4fv(color_fv));
@@ -1051,6 +1049,7 @@ FAIL:
 
 	OOGL(glPopMatrix());
 }
+#endif
 
 
 static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat yy)

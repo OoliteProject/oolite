@@ -30,13 +30,9 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 
 #define PARTICLE_LASER_DURATION		0.20
-#define PARTICLE_LASER_LENGTH		10000.0
-#define PARTICLE_LASER_RANGE_LIMIT	1000000000.0
-
-#define LASER_FLASH_SIZE			(1.0 + 2.0 * randf())
 
 
-#define OLD_FLASH 0
+#define SUPPORT_BILLBOARD 0
 
 
 @class OOTexture;
@@ -68,11 +64,9 @@ MA 02110-1301, USA.
 - (id) initHyperringFromShip:(ShipEntity *) ship;
 - (id) initFragburstSize:(GLfloat) fragSize fromPosition:(Vector) fragPos;
 - (id) initBurst2Size:(GLfloat) burstSize fromPosition:(Vector) fragPos;
-#if OLD_FLASH
-- (id) initFlashSize:(GLfloat) burstSize fromPosition:(Vector) fragPos;
-//- (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor;
-#endif
+#if SUPPORT_BILLBOARD
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile;
+#endif
 
 - (void) setColor:(OOColor *) a_color;
 
