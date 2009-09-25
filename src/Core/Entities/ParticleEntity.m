@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
-	PARTICLE_EXPLOSION
 	PARTICLE_FLASH
 */
 
@@ -45,7 +44,6 @@ MA 02110-1301, USA.
 typedef enum
 {
 	PARTICLE_LASER_BEAM			= 160,
-	PARTICLE_EXPLOSION			= 201,
 	PARTICLE_FLASH				= 230,
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
@@ -57,9 +55,7 @@ typedef enum
 
 @interface ParticleEntity (OOPrivate)
 
-- (void) updateExplosion:(double) delta_t;
 - (void) updateEnergyMine:(double) delta_t;
-- (void) updateShot:(double) delta_t;
 - (void) updateSpark:(double) delta_t;
 - (void) updateLaser:(double) delta_t;
 - (void) updateHyperring:(double) delta_t;
@@ -499,7 +495,6 @@ FAIL:
 	{
 #define CASE(x) case x: type_string = @#x; break;
 		CASE(PARTICLE_LASER_BEAM);
-		CASE(PARTICLE_EXPLOSION);
 		CASE(PARTICLE_FLASH);
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
@@ -605,7 +600,6 @@ FAIL:
 	{
 		switch ([self particleType])
 		{
-			case PARTICLE_EXPLOSION:
 			case PARTICLE_FRAGBURST:
 			case PARTICLE_BURST2:
 			case PARTICLE_FLASH:
@@ -621,10 +615,6 @@ FAIL:
 		}
 		switch ([self particleType])
 		{
-			case PARTICLE_EXPLOSION:
-				[self updateExplosion:delta_t];
-				break;
-
 			case PARTICLE_HYPERRING:
 				[self updateHyperring:delta_t];
 				break;
@@ -658,16 +648,6 @@ FAIL:
 		}
 	}
 
-}
-
-
-- (void) updateExplosion:(double) delta_t
-{
-	float diameter = (1.0 + time_counter)*64.0;
-	[self setSize:NSMakeSize(diameter, diameter)];
-	alpha = (duration - time_counter);
-	if (time_counter > duration)
-		[UNIVERSE removeEntity:self];
 }
 
 
@@ -714,37 +694,6 @@ FAIL:
 	
 	// expire after ttl
 	if (time_counter > duration)	// until the timer runs out!
-		[UNIVERSE removeEntity:self];
-}
-
-
-- (void) updateShot:(double) delta_t
-{
-	if ([collidingEntities count] > 0)
-	{
-		unsigned i;
-		for (i = 0; i < [collidingEntities count]; i++)
-		{
-			Entity *	e = (Entity *)[collidingEntities objectAtIndex:i];
-			if (e != [self owner])
-			{
-				[e takeEnergyDamage:energy from:self becauseOf:[self owner]];
-				velocity.x = 0.0;
-				velocity.y = 0.0;
-				velocity.z = 0.0;
-				[self setColor:[OOColor redColor]];
-				[self setSize:NSMakeSize(64.0,64.0)];
-				duration = 2.0;
-				time_counter = 0.0;
-				particle_type = PARTICLE_EXPLOSION;
-			}
-		}
-	}
-	position.x += velocity.x * delta_t;
-	position.y += velocity.y * delta_t;
-	position.z += velocity.z * delta_t;
-	alpha = (duration - time_counter);
-	if (time_counter > duration)
 		[UNIVERSE removeEntity:self];
 }
 

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "PlayerEntity.h"
 #import "OOColor.h"
+#import "OOPlasmaBurstEntity.h"
 
 
 #define kPlasmaShotSize				12.0f
@@ -65,12 +66,6 @@ MA 02110-1301, USA.
 }
 
 
-- (void) dealloc
-{
-	[super dealloc];
-}
-
-
 - (void) setColor:(OOColor *)color
 {
 	float alpha;
@@ -92,7 +87,9 @@ MA 02110-1301, USA.
 
 - (void) update:(double)delta_t
 {
-	OOTimeDelta lifeTime = [UNIVERSE getTime] - [self spawnTime];
+	[super update:delta_t];
+	
+	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
 	
 #if PLASMA_ATTENUATION
 	float attenuation = OOClamp_0_1_f(1.0f - lifeTime / _duration);
@@ -109,18 +106,12 @@ MA 02110-1301, USA.
 			[e takeEnergyDamage:[self energy] * attenuation
 						   from:self
 					  becauseOf:[self owner]];
-			
-			// FIXME: spawn an explosion particle.
-#if 0
-			[self setVelocity:kZeroVector];
-			[self setColor:[OOColor redColor]];
-			[self setSize:NSMakeSize(64.0,64.0)];
-			duration = 2.0;
-			time_counter = 0.0;
-			particle_type = PARTICLE_EXPLOSION;
-#else
 			[UNIVERSE removeEntity:self];
-#endif
+			
+			// Spawn a plasma burst.
+			OOPlasmaBurstEntity *burst = [[OOPlasmaBurstEntity alloc] initWithPosition:[self position]];
+			[UNIVERSE addEntity:burst];
+			[burst release];
 		}
 	}
 	
