@@ -1257,8 +1257,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	BOOL		*systems_found = [UNIVERSE systems_found];
 	unsigned 	i, first = 0, last = 0, count = 0;
 	
-	// reset foundSystem, the array might be 0
-	//foundSystem = 0;
 	for (i = 0; i <= kOOMaximumSystemID; i++)
 	{
 		if (systems_found[i])
@@ -1432,8 +1430,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
 					glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
 				glEnd();
-				if (i == foundIndex)
+				if (i == foundIndex || n_matches == 1)
 				{
+					if (n_matches == 1) foundSystem = 0;
 					glColor4f(0.0f, 1.0f, 1.0f, alpha);
 					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
 					glColor4f(0.0f, 1.0f, 0.0f, alpha);

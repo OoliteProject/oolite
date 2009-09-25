@@ -1182,7 +1182,7 @@
 	"oolite-nova-visit-main"		= (
 							"All services suspended. Emergency services may be available at the main station.",
 							"All facilities closed during this emergency. Report to the main system station.",
-							"All personnel evacuated to the main orbital station. Pleae report there."
+							"All personnel evacuated to the main orbital station. Please report there."
 						);
 	"oolite-nova-distress-call"		= (
 							"Warning, the %I sun is going nova. All pilots needed at the main station.",

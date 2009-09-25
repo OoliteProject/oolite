@@ -303,13 +303,19 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result setObject:[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] forKey:@"written_by_version"];
 
-	NSString *gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d",galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
+	NSString *gal_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", galaxy_seed.a, galaxy_seed.b, galaxy_seed.c, galaxy_seed.d, galaxy_seed.e, galaxy_seed.f];
 	NSString *gal_coords = [NSString stringWithFormat:@"%d %d",(int)galaxy_coordinates.x,(int)galaxy_coordinates.y];
 	NSString *tgt_coords = [NSString stringWithFormat:@"%d %d",(int)cursor_coordinates.x,(int)cursor_coordinates.y];
 
 	[result setObject:gal_seed		forKey:@"galaxy_seed"];
 	[result setObject:gal_coords	forKey:@"galaxy_coordinates"];
 	[result setObject:tgt_coords	forKey:@"target_coordinates"];
+	
+	if (!equal_seeds(found_system_seed,kNilRandomSeed))
+	{
+		NSString *found_seed = [NSString stringWithFormat:@"%d %d %d %d %d %d", found_system_seed.a, found_system_seed.b, found_system_seed.c, found_system_seed.d, found_system_seed.e, found_system_seed.f];
+		[result setObject:found_seed	forKey:@"found_system_seed"];
+	}
 	
 	// Write the name of the current system. Useful for looking up saved game information.
 	[result setObject:[UNIVERSE getSystemName:[self system_seed]] forKey:@"current_system_name"];
@@ -521,13 +527,16 @@ static PlayerEntity *sSharedPlayer = nil;
 	galaxy_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	cursor_coordinates = galaxy_coordinates;
 	
-	NSString *coords = [dict oo_stringForKey:@"target_coordinates"];
-	if (coords != nil)
+	NSString *keyStringValue = [dict oo_stringForKey:@"target_coordinates"];
+	if (keyStringValue != nil)
 	{
-		coord_vals = ScanTokensFromString([dict oo_stringForKey:@"target_coordinates"]);
+		coord_vals = ScanTokensFromString(keyStringValue);
 		cursor_coordinates.x = [coord_vals oo_unsignedCharAtIndex:0];
 		cursor_coordinates.y = [coord_vals oo_unsignedCharAtIndex:1];
 	}
+	
+	keyStringValue = [dict oo_stringForKey:@"found_system_seed"];
+	found_system_seed = (keyStringValue != nil) ? RandomSeedFromString(keyStringValue) : kNilRandomSeed;
 	
 	[player_name release];
 	player_name = [[dict oo_stringForKey:@"player_name" defaultValue:PLAYER_DEFAULT_NAME] copy];

@@ -1383,11 +1383,12 @@ static NSTimeInterval	time_last_frame;
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
 					found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
-					moving = ((cursor_coordinates.x != search_coords.x)||(cursor_coordinates.y != search_coords.y));
+					moving = YES;
 					cursor_coordinates = search_coords;
 				}
 				else
 				{
+					found_system_seed = kNilRandomSeed;
 					[gameView resetTypedString];
 					if (planetSearchString) [planetSearchString release];
 					planetSearchString = nil;
@@ -1396,7 +1397,10 @@ static NSTimeInterval	time_last_frame;
 			else
 			{
 				if ([gameView isDown:gvDeleteKey]) // did we just delete the string ?
+				{
+					found_system_seed = kNilRandomSeed;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
+				}
 				if (planetSearchString) [planetSearchString release];
 				planetSearchString = nil;
 			}
@@ -1449,6 +1453,7 @@ static NSTimeInterval	time_last_frame;
 				{
 					[gameView resetTypedString];
 					cursor_coordinates = galaxy_coordinates;
+					found_system_seed = kNilRandomSeed;
 					[UNIVERSE findSystemCoordinatesWithPrefix:@""];
 					moving = YES;
 				}
@@ -1528,7 +1533,9 @@ static NSTimeInterval	time_last_frame;
 
 				if ((cursor_moving)&&(!moving))
 				{
-					target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+					// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5
+					if (cursor_coordinates.x != found_system_seed.d && cursor_coordinates.y != found_system_seed.b)
+							target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 					cursor_coordinates.x = target_system_seed.d;
 					cursor_coordinates.y = target_system_seed.b;
 					if (gui_screen == GUI_SCREEN_LONG_RANGE_CHART) [self setGuiToLongRangeChartScreen];
