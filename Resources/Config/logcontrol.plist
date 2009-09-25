@@ -43,7 +43,7 @@
 	general.error.inconsistentState			= inherit;
 	
 	
-	exception = yes;
+	exception								= yes;
 	
 	
 	files.notFound							= $error;				// Failure to load a file.

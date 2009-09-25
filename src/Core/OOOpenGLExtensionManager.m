@@ -52,21 +52,13 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 
 
-/*	If nonzero, disable shaders for OpenGL versions less than 1.5. It is my
-	contention that this isn't needed since we test for extensions. Enabling
-	this check disables shaders on Intel GMA 950 hardware under Mac OS 
-	10.4.9; they seem to work fine otherwise. -- Ahruman
-*/
-#define SHADER_CHECK_FOR_VERSION	0
-
-
 #if OOLITE_WINDOWS && !defined(NO_SHADERS)
 /*	Define the function pointers for the OpenGL extensions used in the game
 	(required for Windows only).
 */
 
 #ifndef NO_SHADERS
-void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
+static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
 
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;				
@@ -285,14 +277,6 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 {
 	shadersAvailable = NO;
 	
-#if SHADER_CHECK_FOR_VERSION
-	if (major <= 1 && minor < 5)
-	{
-		OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (OpenGL version < 1.5).");
-		return;
-	}
-#endif
-	
 	NSString * const requiredExtension[] = 
 						{
 							@"GL_ARB_shading_language_100",
@@ -396,7 +380,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 
 #if OOLITE_WINDOWS && !defined(NO_SHADERS)
 
-void OOBadOpenGLExtensionUsed(void)
+static void OOBadOpenGLExtensionUsed(void)
 {
 	OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
 	exit(EXIT_FAILURE);

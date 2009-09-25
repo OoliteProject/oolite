@@ -64,7 +64,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		NSOpenGLPFAScreenMask, CGDisplayIDToOpenGLDisplayMask(kCGDirectMainDisplay),
 		
 		// Specifying "NoRecovery" gives us a context that cannot fall back to the software renderer.
-		//This makes the View-based context a compatible with the fullscreen context, enabling us to use the "shareContext"
+		// This makes the View-based context a compatible with the fullscreen context, enabling us to use the "shareContext"
 		// feature to share textures, display lists, and other OpenGL objects between the two.
 		NSOpenGLPFANoRecovery,
 		
