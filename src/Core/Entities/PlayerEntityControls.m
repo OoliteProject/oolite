@@ -125,7 +125,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
-- (void) targetNewSystem:(int) idx;
+- (void) targetNewSystem:(int) direction;
 
 @end
 
@@ -1319,9 +1319,9 @@ static NSTimeInterval	time_last_frame;
 }
 
 
-- (void) targetNewSystem:(int) idx
+- (void) targetNewSystem:(int) direction
 {
-	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:idx];
+	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
 	cursor_coordinates.x = target_system_seed.d;
 	cursor_coordinates.y = target_system_seed.b;
 	found_system_seed = target_system_seed;
@@ -1376,12 +1376,14 @@ static NSTimeInterval	time_last_frame;
 				}
 			}
 			
-			if ([[gameView typedString] length] > 0 )
+			if ([[gameView typedString] length] > 0)
 			{
 				planetSearchString = [[[gameView typedString] lowercaseString] retain];
 				NSPoint search_coords = [UNIVERSE findSystemCoordinatesWithPrefix:planetSearchString];
 				if ((search_coords.x >= 0.0)&&(search_coords.y >= 0.0))
 				{
+					// always reset the found system index at the beginning of a new search
+					if ([planetSearchString length] == 1) [[UNIVERSE gui] targetNextFoundSystem:0];
 					found_system_seed = [UNIVERSE findSystemAtCoords:search_coords withGalaxySeed:galaxy_seed];
 					moving = YES;
 					cursor_coordinates = search_coords;

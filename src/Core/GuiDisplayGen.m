@@ -1252,10 +1252,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	Random_Seed sys = [[PlayerEntity sharedPlayer] target_system_seed];
 	if ([[PlayerEntity sharedPlayer] guiScreen] != GUI_SCREEN_LONG_RANGE_CHART) return sys;
 	
-	int 		systemIndex = foundSystem + direction;
-
 	BOOL		*systems_found = [UNIVERSE systems_found];
 	unsigned 	i, first = 0, last = 0, count = 0;
+	int 		systemIndex = foundSystem + direction;
+
+	if (direction == 0) systemIndex = 0;
 	
 	for (i = 0; i <= kOOMaximumSystemID; i++)
 	{

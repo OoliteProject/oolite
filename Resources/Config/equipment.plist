@@ -82,10 +82,9 @@
 		<string>Naval Energy Unit</string>
 		<string>EQ_NAVAL_ENERGY_UNIT</string>
 		<string>A special improved efficiency energy recharge unit, as supplied to Navy vessels.</string>
-		<dict>
-			<key>incompatible_with_equipment</key>
-			<string>EQ_ENERGY_UNIT</string>
-		</dict>
+<!-- Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
+Full details at http://developer.berlios.de/bugs/?func=detailbug&bug_id=13507&group_id=3577
+Original fix made in rev 1544 and broken in rev 1686. Fixed once again in rev 2599. Kaks 20090925 -->
 	</array>
 	<array>
 		<integer>9</integer>
