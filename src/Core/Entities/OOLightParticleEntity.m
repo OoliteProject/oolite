@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 static OOTexture *sBlobTexture = nil;
 
 
-@interface OOLightParticleEntity (Internal)
+@interface OOLightParticleEntity (Private)
 
 + (void) setUpTexture;
 + (void) resetGraphicsState;
@@ -51,13 +51,12 @@ static OOTexture *sBlobTexture = nil;
 
 @implementation OOLightParticleEntity
 
-- (id) initWithSize:(NSSize)size
+- (id) initWithDiameter:(float)diameter
 {
 	if ((self = [super init]))
 	{
-		_size = size;
-		double radius = fmax(size.width, size.height);
-		no_draw_distance = pow(radius, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
+		_diameter = diameter;
+		no_draw_distance = pow(diameter / 2.0, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
 		no_draw_distance *= [UNIVERSE reducedDetail] ? PARTICLE_DISTANCE_SCALE_LOW : PARTICLE_DISTANCE_SCALE_HIGH;
 		
 		_colorComponents[0] = 1.0f;
@@ -73,15 +72,15 @@ static OOTexture *sBlobTexture = nil;
 }
 
 
-- (NSSize) size
+- (float) diameter
 {
-	return _size;
+	return _diameter;
 }
 
 
-- (void) setSize:(NSSize)size
+- (void) setDiameter:(float)diameter
 {
-	_size = size;
+	_diameter = diameter;
 }
 
 
@@ -165,8 +164,8 @@ static OOTexture *sBlobTexture = nil;
 		purposes, that scaling is no longer desired.
 		-- Ahruman 2009-09-25
 	*/
-	GLfloat	xx = _size.width;
-	GLfloat	yy = _size.height;
+	GLfloat	xx = _diameter;
+	GLfloat	yy = _diameter;
 	
 	OOGLBEGIN(GL_QUADS);
 	switch (viewDir)

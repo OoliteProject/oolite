@@ -1,6 +1,8 @@
 /*
 
-OOPlasmaShotEntity.h
+OOFlashEffectEntity.h
+
+Flashes during explosions and laser hits - not to be confused with flashers.
 
 
 Oolite
@@ -26,16 +28,14 @@ MA 02110-1301, USA.
 #import "OOLightParticleEntity.h"
 
 
-@interface OOPlasmaShotEntity: OOLightParticleEntity
+@interface OOFlashEffectEntity: OOLightParticleEntity
 {
 @private
-	OOTimeDelta					_duration;
+	float				_duration;
+	float				_growthRate;
 }
 
-- (id) initWithPosition:(Vector)position
-			   velocity:(Vector)velocity
-				 energy:(float)energy
-			   duration:(OOTimeDelta)duration
-				  color:(OOColor *)color;
+- (id) initExplosionFlashWithPosition:(Vector)position size:(float)size;
+- (id) initLaserFlashWithPosition:(Vector)position color:(OOColor *)color;
 
 @end

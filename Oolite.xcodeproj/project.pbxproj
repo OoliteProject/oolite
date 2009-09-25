@@ -505,6 +505,9 @@
 		1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */; };
 		1A817DA0106D3FF000AA2F97 /* OOPlasmaBurstEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */; };
 		1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */; };
+		1A817DBF106D441200AA2F97 /* oolite-particle-flash.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */; };
+		1A817DC3106D443B00AA2F97 /* OOFlashEffectEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */; };
+		1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
@@ -839,6 +842,7 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A817DBF106D441200AA2F97 /* oolite-particle-flash.png in Copy Textures */,
 				1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */,
 				1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */,
 				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */,
@@ -1588,6 +1592,9 @@
 		1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlasmaShotEntity.m; sourceTree = "<group>"; };
 		1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlasmaBurstEntity.h; sourceTree = "<group>"; };
 		1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlasmaBurstEntity.m; sourceTree = "<group>"; };
+		1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-flash.png"; sourceTree = "<group>"; };
+		1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFlashEffectEntity.h; sourceTree = "<group>"; };
+		1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFlashEffectEntity.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
@@ -1961,6 +1968,7 @@
 		1A23181D0B9D026D00EF0852 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				1A817DBE106D441200AA2F97 /* oolite-particle-flash.png */,
 				1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */,
 				1A23181E0B9D026D00EF0852 /* adder_redux.png */,
 				1A23181F0B9D026D00EF0852 /* anaconda_redux.png */,
@@ -2482,6 +2490,27 @@
 			path = src/Cocoa;
 			sourceTree = "<group>";
 		};
+		1A817DCA106D44D900AA2F97 /* Particles */ = {
+			isa = PBXGroup;
+			children = (
+				1A26D0970BCF9CF70073F257 /* ParticleEntity.h */,
+				1A26D0960BCF9CF70073F257 /* ParticleEntity.m */,
+				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
+				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
+				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
+				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
+				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
+				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
+				1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */,
+				1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */,
+				1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */,
+				1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */,
+				1A817DC1106D443B00AA2F97 /* OOFlashEffectEntity.h */,
+				1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */,
+			);
+			name = Particles;
+			sourceTree = "<group>";
+		};
 		1A8A3BE90B963F02007D20B8 /* Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -2616,28 +2645,17 @@
 				1A26D0920BCF9CF70073F257 /* SkyEntity.m */,
 				1A26D0950BCF9CF70073F257 /* RingEntity.h */,
 				1A26D0940BCF9CF70073F257 /* RingEntity.m */,
-				1A26D0970BCF9CF70073F257 /* ParticleEntity.h */,
-				1A26D0960BCF9CF70073F257 /* ParticleEntity.m */,
 				1A26D09A0BCF9CF70073F257 /* PlanetEntity.h */,
 				1A26D0990BCF9CF70073F257 /* PlanetEntity.m */,
 				1A26D0A10BCF9CF70073F257 /* WormholeEntity.h */,
 				1A26D0A00BCF9CF70073F257 /* WormholeEntity.m */,
 				1A26D0A70BCF9CF70073F257 /* DustEntity.h */,
 				1A26D0A90BCF9CF80073F257 /* DustEntity.m */,
-				1AE24371105439B500EAA7F2 /* OOLightParticleEntity.h */,
-				1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */,
-				1AE242C31054226900EAA7F2 /* OOFlasherEntity.h */,
-				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
-				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
-				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
-				1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */,
-				1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */,
-				1A817D9E106D3FF000AA2F97 /* OOPlasmaBurstEntity.h */,
-				1A817D9F106D3FF000AA2F97 /* OOPlasmaBurstEntity.m */,
 				1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */,
 				1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */,
 				1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */,
 				1A00C7B910667D3100A8737D /* OOECMBlastEntity.m */,
+				1A817DCA106D44D900AA2F97 /* Particles */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -3090,6 +3108,7 @@
 				1A00C7DF1066814C00A8737D /* OOAsyncWorkManager.h in Headers */,
 				1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */,
 				1A817DA0106D3FF000AA2F97 /* OOPlasmaBurstEntity.h in Headers */,
+				1A817DC3106D443B00AA2F97 /* OOFlashEffectEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3439,6 +3458,7 @@
 				1A00C7E01066814C00A8737D /* OOAsyncWorkManager.m in Sources */,
 				1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */,
 				1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */,
+				1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

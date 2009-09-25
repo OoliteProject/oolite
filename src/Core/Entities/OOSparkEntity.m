@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 				   size:(float)size
 				  color:(OOColor *)color
 {
-	if ((self = [super initWithSize:NSMakeSize(size, size)]))
+	if ((self = [super initWithDiameter:size]))
 	{
 		[self setPosition:pos];
 		[self setVelocity:vel];

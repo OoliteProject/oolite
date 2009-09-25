@@ -34,14 +34,13 @@ MA 02110-1301, USA.
 {
 @protected
 	GLfloat					_colorComponents[4];
-@private
-	NSSize					_size;
+	float					_diameter;
 }
 
-- (id) initWithSize:(NSSize)size;
+- (id) initWithDiameter:(float)diameter;
 
-- (NSSize) size;
-- (void) setSize:(NSSize)size;
+- (float) diameter;
+- (void) setDiameter:(float)diameter;
 
 - (void) setColor:(OOColor *)color;
 - (void) setColor:(OOColor *)color alpha:(GLfloat)alpha;

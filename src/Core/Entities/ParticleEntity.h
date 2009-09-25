@@ -35,6 +35,10 @@ MA 02110-1301, USA.
 
 #define LASER_FLASH_SIZE			(1.0 + 2.0 * randf())
 
+
+#define OLD_FLASH 0
+
+
 @class OOTexture;
 
 
@@ -64,8 +68,10 @@ MA 02110-1301, USA.
 - (id) initHyperringFromShip:(ShipEntity *) ship;
 - (id) initFragburstSize:(GLfloat) fragSize fromPosition:(Vector) fragPos;
 - (id) initBurst2Size:(GLfloat) burstSize fromPosition:(Vector) fragPos;
+#if OLD_FLASH
 - (id) initFlashSize:(GLfloat) burstSize fromPosition:(Vector) fragPos;
-- (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor;
+//- (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor;
+#endif
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile;
 
 - (void) setColor:(OOColor *) a_color;

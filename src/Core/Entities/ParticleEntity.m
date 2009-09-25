@@ -37,14 +37,14 @@ MA 02110-1301, USA.
 
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
-	PARTICLE_FLASH
+	PARTICLE_FRAGBURST
+	PARTICLE_BURST2?
 */
 
 
 typedef enum
 {
 	PARTICLE_LASER_BEAM			= 160,
-	PARTICLE_FLASH				= 230,
 	PARTICLE_FRAGBURST			= 250,
 	PARTICLE_BURST2				= 270,
 	PARTICLE_ENERGY_MINE		= 500,
@@ -62,7 +62,6 @@ typedef enum
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
 - (void) updateExhaust2:(double) delta_t;
-- (void) updateFlash:(double) delta_t;
 
 - (void) drawParticle;
 - (void) drawLaser;
@@ -397,50 +396,6 @@ FAIL:
 	return self;
 }
 
-// used exclusively for explosion flashes
-- (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos
-{
-	self = [self initFlashSize:flashSize fromPosition:fragPos color:[OOColor whiteColor]];
-	if (self != nil)
-	{
-		if (growth_rate < 6000.0)  growth_rate = 6000.0;
-		duration = 0.4;
-	}
-	
-	return self;
-}
-
-// used for laser flashes
-- (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor
-{
-	if ((self = [super init]))
-	{
-		basefile = @"Particle";
-		[self setTexture:@"flare256.png"];
-		
-		size = NSMakeSize(flashSize, flashSize);
-		
-		growth_rate = 150.0 * flashSize; // if average flashSize is 80 then this is 12000
-		
-		time_counter = 0.0;
-		duration = 0.3;
-		position = fragPos;
-		
-		[self setColor:flashColor];
-		color_fv[3] = 1.0;
-		
-		[self setStatus:STATUS_EFFECT];
-		scanClass = CLASS_NO_DRAW;
-		
-		particle_type = PARTICLE_FLASH;
-		
-		collision_radius = 0;
-		energy = 0;
-		
-		[self setVelocity: kZeroVector];
-	}
-	return self;
-}
 
 // used for background billboards
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile
@@ -495,7 +450,6 @@ FAIL:
 	{
 #define CASE(x) case x: type_string = @#x; break;
 		CASE(PARTICLE_LASER_BEAM);
-		CASE(PARTICLE_FLASH);
 		CASE(PARTICLE_FRAGBURST);
 		CASE(PARTICLE_BURST2);
 		CASE(PARTICLE_ENERGY_MINE);
@@ -602,7 +556,6 @@ FAIL:
 		{
 			case PARTICLE_FRAGBURST:
 			case PARTICLE_BURST2:
-			case PARTICLE_FLASH:
 				{
 					PlayerEntity *player = [PlayerEntity sharedPlayer];
 					assert(player != nil);
@@ -633,10 +586,6 @@ FAIL:
 
 			case PARTICLE_BURST2:
 				[self updateBurst2:delta_t];
-				break;
-
-			case PARTICLE_FLASH:
-				[self updateFlash:delta_t];
 				break;
 
 			case PARTICLE_BILLBOARD:
@@ -786,35 +735,6 @@ FAIL:
 	// disappear eventually
 	if (time_counter > duration)
 		[UNIVERSE removeEntity:self];
-}
-
-
-- (void) updateFlash:(double) delta_t
-{
-	GLfloat tf = duration * 0.667;
-	GLfloat tf1 = duration - tf;
-
-	// move as necessary
-	position.x += velocity.x * delta_t;
-	position.y += velocity.y * delta_t;
-	position.z += velocity.z * delta_t;
-
-	// scale up
-	size.width += delta_t * growth_rate;
-	size.height = size.width;
-
-	// fade up
-	if ((time_counter)&&(time_counter < tf))
-		alpha = time_counter/tf;
-
-	// fade out
-	if (time_counter > tf)
-		alpha = (duration - time_counter)/tf1;
-
-	// disappear eventually
-	if (time_counter > duration)
-		[UNIVERSE removeEntity:self];
-
 }
 
 

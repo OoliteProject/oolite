@@ -63,6 +63,7 @@ MA 02110-1301, USA.
 #import "OOSparkEntity.h"
 #import "OOECMBlastEntity.h"
 #import "OOPlasmaShotEntity.h"
+#import "OOFlashEffectEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -4786,8 +4787,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		[this_ship release];
 	}
 	
-	Vector	xposition = position;
-	ParticleEntity  *fragment;
+	Vector xposition = position;
+	Entity *fragment = nil;
 	int i;
 	Vector v;
 	Quaternion q;
@@ -4826,7 +4827,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 		// 3. flash
-		fragment = [[ParticleEntity alloc] initFlashSize:collision_radius fromPosition:xposition];
+		fragment = [[OOFlashEffectEntity alloc] initExplosionFlashWithPosition:position size:collision_radius];
 		[UNIVERSE addEntity:fragment];
 		[fragment release];
 
@@ -6512,10 +6513,9 @@ BOOL class_masslocks(int some_class)
 			[victim takeEnergyDamage:weapon_energy from:self becauseOf: parent];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
-			Vector flash_pos = [shot position];
 			Vector vd = vector_forward_from_quaternion([shot orientation]);
-			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
+			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];
@@ -6581,10 +6581,9 @@ BOOL class_masslocks(int some_class)
 			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 
 			[shot setCollisionRadius: hit_at_range];
-			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->orientation);
-			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
+			Vector vd = vector_forward_from_quaternion([shot orientation]);
+			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];
@@ -6664,11 +6663,10 @@ BOOL class_masslocks(int some_class)
 		{
 			[victim takeEnergyDamage:weapon_energy from:self becauseOf:self];	// a very palpable hit
 
-			[shot setCollisionRadius: hit_at_range];
-			Vector flash_pos = shot->position;
-			Vector vd = vector_forward_from_quaternion(shot->orientation);
-			flash_pos.x += vd.x * hit_at_range;	flash_pos.y += vd.y * hit_at_range;	flash_pos.z += vd.z * hit_at_range;
-			ParticleEntity* laserFlash = [[ParticleEntity alloc] initFlashSize:1.0 fromPosition: flash_pos color:laser_color];
+			[shot setCollisionRadius:hit_at_range];
+			Vector vd = vector_forward_from_quaternion([shot orientation]);
+			Vector flash_pos = vector_add([shot position], vector_multiply_scalar(vd, hit_at_range));
+			OOFlashEffectEntity *laserFlash = [[OOFlashEffectEntity alloc] initLaserFlashWithPosition:flash_pos color:laser_color];
 			[laserFlash setVelocity:[victim velocity]];
 			[UNIVERSE addEntity:laserFlash];
 			[laserFlash release];

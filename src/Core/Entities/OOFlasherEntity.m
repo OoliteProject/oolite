@@ -50,7 +50,7 @@ MA 02110-1301, USA.
 {
 	float size = [dictionary oo_floatForKey:@"size" defaultValue:1.0f];
 	
-	if ((self = [super initWithSize:NSMakeSize(size, size)]))
+	if ((self = [super initWithDiameter:size]))
 	{
 		_frequency = [dictionary oo_floatForKey:@"frequency" defaultValue:1.0f] * 2.0f;
 		_phase = [dictionary oo_floatForKey:@"phase" defaultValue:0.0f];
@@ -138,8 +138,7 @@ MA 02110-1301, USA.
 
 - (double)findCollisionRadius
 {
-	NSSize size = [self size];
-	return fmaxf(size.width, size.height);
+	return [self diameter] / 2.0;
 }
 
 @end

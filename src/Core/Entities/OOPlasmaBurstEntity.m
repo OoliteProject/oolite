@@ -36,15 +36,12 @@ MA 02110-1301, USA.
 
 - (id) initWithPosition:(Vector)inPosition
 {
-	if ((self = [super initWithSize:NSMakeSize(kPlasmaBurstInitialSize, kPlasmaBurstInitialSize)]))
+	if ((self = [super initWithDiameter:kPlasmaBurstInitialSize]))
 	{
 		[self setPosition:inPosition];
 		[self setCollisionRadius:2.0];
 		
-		_colorComponents[0] = 1.0f;
-		_colorComponents[1] = 0.0f;
-		_colorComponents[2] = 0.0f;
-		_colorComponents[3] = 1.0f;
+		[self setColor:[OOColor redColor]];
 	}
 	
 	return self;
@@ -58,8 +55,7 @@ MA 02110-1301, USA.
 	OOTimeDelta lifeTime = [self timeElapsedSinceSpawn];
 	float attenuation = OOClamp_0_1_f(1.0f - lifeTime / kPlasmaBurstDuration);
 	
-	float diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
-	[self setSize:NSMakeSize(diameter, diameter)];
+	_diameter = kPlasmaBurstInitialSize + lifeTime * kPlasmaBurstGrowthRate;
 	
 	_colorComponents[3] = attenuation;
 	

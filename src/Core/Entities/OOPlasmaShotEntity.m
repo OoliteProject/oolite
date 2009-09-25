@@ -49,13 +49,13 @@ MA 02110-1301, USA.
 			   duration:(OOTimeDelta)duration
 				  color:(OOColor *)color
 {
-	if ((self = [super initWithSize:NSMakeSize(kPlasmaShotSize, kPlasmaShotSize)]))
+	if ((self = [super initWithDiameter:kPlasmaShotSize]))
 	{
 		[self setPosition:inPosition];
 		[self setVelocity:inVelocity];
 		[self setCollisionRadius:2.0];
 		
-		[self setColor:color ? color : [OOColor redColor]];
+		[self setColor:color alpha:1.0];
 		_colorComponents[3] = 1.0f;
 		
 		[self setEnergy:inEnergy];
@@ -63,13 +63,6 @@ MA 02110-1301, USA.
 	}
 	
 	return self;
-}
-
-
-- (void) setColor:(OOColor *)color
-{
-	float alpha;
-	[color getGLRed:&_colorComponents[0] green:&_colorComponents[1] blue:&_colorComponents[2] alpha:&alpha];
 }
 
 
