@@ -259,6 +259,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];
 	
+	[name autorelease];
+	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
+	
+	[displayName autorelease];
+	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
+	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
 	[shipAI setOwner:self];
@@ -316,12 +322,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0];
 	if (octree)  mass = density * 20.0 * [octree volume];
-	
-	[name autorelease];
-	name = [[shipDict oo_stringForKey:@"name" defaultValue:name] copy];
-	
-	[displayName autorelease];
-	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[roleSet release];
 	roleSet = [[[OORoleSet roleSetWithString:[shipDict oo_stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
