@@ -37,7 +37,6 @@ MA 02110-1301, USA.
 
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:
-	PARTICLE_SHOT_PLASMA
 	PARTICLE_EXPLOSION
 	PARTICLE_FLASH
 */
@@ -45,7 +44,6 @@ MA 02110-1301, USA.
 
 typedef enum
 {
-	PARTICLE_SHOT_PLASMA		= 110,
 	PARTICLE_LASER_BEAM			= 160,
 	PARTICLE_EXPLOSION			= 201,
 	PARTICLE_FLASH				= 230,
@@ -143,7 +141,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 {
 	if ((self = [super init]))
 	{
-		isParticle = YES;
 		[self setStatus:STATUS_EFFECT];
 		
 		basefile = @"Particle";
@@ -227,8 +224,6 @@ static Vector circleVertex[65];		// holds vector coordinates for a unit circle
 	
 	collision_radius = [srcEntity weaponRange];
 	
-	isParticle = YES;
-	
 	return self;
 	
 FAIL:
@@ -264,8 +259,6 @@ FAIL:
 		particle_type = PARTICLE_ENERGY_MINE;
 		
 		[self setOwner:[ship owner]];
-		
-		isParticle = YES;
 	}
 	
 	return self;
@@ -298,8 +291,6 @@ FAIL:
 		particle_type = PARTICLE_HYPERRING;
 		
 		[self setOwner:ship];
-		
-		isParticle = YES;
 	}
 	
 	return self;
@@ -352,8 +343,6 @@ FAIL:
 		
 		collision_radius = 0;
 		energy = 0;
-		
-		isParticle = YES;
 	}
 	
 	return self;
@@ -407,8 +396,6 @@ FAIL:
 		
 		collision_radius = 0;
 		energy = 0;
-		
-		isParticle = YES;
 	}
 	
 	return self;
@@ -454,8 +441,6 @@ FAIL:
 		collision_radius = 0;
 		energy = 0;
 		
-		isParticle = YES;
-		
 		[self setVelocity: kZeroVector];
 	}
 	return self;
@@ -490,33 +475,8 @@ FAIL:
 		collision_radius = 0;
 		energy = 0;
 		
-		isParticle = YES;
-		
 		[self setVelocity: kZeroVector];
 		[self setPosition: make_vector(0.0f, 0.0f, 640.0f)];
-	}
-	return self;
-}
-
-
-- (id) initPlasmaShotAt:(Vector)inPosition
-			   velocity:(Vector)inVelocity
-				 energy:(float)inEnergy
-			   duration:(OOTimeDelta)inDuration
-				  color:(OOColor *)inColor
-{
-	self = [self init];
-	if (self != nil)
-	{
-		particle_type = PARTICLE_SHOT_PLASMA;
-		[self setPosition:inPosition];
-		[self setVelocity:inVelocity];
-		[self setScanClass:CLASS_NO_DRAW];
-		[self setDuration:inDuration];
-		[self setCollisionRadius:2.0];
-		[self setEnergy:inEnergy];
-		[self setSize:NSMakeSize(12, 12)];
-		[self setColor:inColor];
 	}
 	return self;
 }
@@ -539,7 +499,6 @@ FAIL:
 	{
 #define CASE(x) case x: type_string = @#x; break;
 		CASE(PARTICLE_LASER_BEAM);
-		CASE(PARTICLE_SHOT_PLASMA);
 		CASE(PARTICLE_EXPLOSION);
 		CASE(PARTICLE_FLASH);
 		CASE(PARTICLE_FRAGBURST);
@@ -559,7 +518,7 @@ FAIL:
 
 - (BOOL) canCollide
 {
-	if (particle_type == PARTICLE_SHOT_PLASMA || particle_type == PARTICLE_ENERGY_MINE)
+	if (particle_type == PARTICLE_ENERGY_MINE)
 	{
 		return time_counter > 0.05;
 	}
@@ -573,7 +532,7 @@ FAIL:
 		return YES;
 	if (other == [self owner])
 		return NO;
-	return !(other->isParticle);
+	return ![other isParticle];
 }
 
 
@@ -646,7 +605,6 @@ FAIL:
 	{
 		switch ([self particleType])
 		{
-			case PARTICLE_SHOT_PLASMA:
 			case PARTICLE_EXPLOSION:
 			case PARTICLE_FRAGBURST:
 			case PARTICLE_BURST2:
@@ -692,10 +650,6 @@ FAIL:
 				break;
 
 			case PARTICLE_BILLBOARD:
-				break;
-
-			case PARTICLE_SHOT_PLASMA:
-				[self updateShot:delta_t];
 				break;
 			
 			default:
@@ -1279,6 +1233,12 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 	}
 }
 
+
+- (BOOL) isParticle
+{
+	return YES;
+}
+
 @end
 
 
@@ -1286,7 +1246,7 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 
 - (BOOL)isParticle
 {
-	return isParticle;
+	return NO;
 }
 
 @end

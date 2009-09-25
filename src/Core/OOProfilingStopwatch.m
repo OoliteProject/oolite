@@ -1,15 +1,23 @@
-//
-//  OOProfilingStopwatch.m
-//  Oolite
-//
-//  Created by Jens Ayton on 2009-09-20.
-//  Copyright 2009 the Oolite team. All rights reserved.
-//
-
 #import "OOProfilingStopwatch.h"
 
 
 @implementation OOProfilingStopwatch
+
+- (id) init
+{
+	if ((self = [super init]))
+	{
+		_start = OOGetHighResTime();
+	}
+	return self;
+}
+
+
++ (id) stopwatch
+{
+	return [[[self alloc] init] autorelease];
+}
+
 
 - (void) dealloc
 {

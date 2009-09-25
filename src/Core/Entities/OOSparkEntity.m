@@ -53,8 +53,6 @@ MA 02110-1301, USA.
 		
 		[color getGLRed:&_baseRGBA[0] green:&_baseRGBA[1] blue:&_baseRGBA[2] alpha:&_baseRGBA[3]];
 		[self performUpdate:0];	// Handle colour mixing and such.
-		
-		[self setStatus:STATUS_EFFECT];
 	}
 	
 	return self;
@@ -83,12 +81,6 @@ MA 02110-1301, USA.
 	
 	// Disappear when gone.
 	if (mix == 0)  [UNIVERSE removeEntity:self];
-}
-
-
-- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
-{
-	[super drawEntity:immediate :translucent];
 }
 
 @end

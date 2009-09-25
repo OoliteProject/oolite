@@ -66,6 +66,7 @@ static OOTexture *sBlobTexture = nil;
 		_colorComponents[3] = 1.0f;
 		
 		[self setScanClass:CLASS_NO_DRAW];
+		[self setStatus:STATUS_EFFECT];
 	}
 	
 	return self;
@@ -75,6 +76,12 @@ static OOTexture *sBlobTexture = nil;
 - (NSSize) size
 {
 	return _size;
+}
+
+
+- (void) setSize:(NSSize)size
+{
+	_size = size;
 }
 
 
@@ -284,6 +291,22 @@ static OOTexture *sBlobTexture = nil;
 {
 	[sBlobTexture release];
 	sBlobTexture = nil;
+}
+
+
+- (BOOL) isParticle
+{
+	return YES;
+}
+
+@end
+
+
+@implementation Entity (OOLightParticleEntityExtensions)
+
+- (BOOL) isParticle
+{
+	return NO;
 }
 
 @end

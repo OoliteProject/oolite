@@ -376,7 +376,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	return !other->isParticle;
+	return ![other isParticle];
 }
 
 

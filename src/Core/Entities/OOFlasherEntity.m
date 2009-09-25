@@ -73,19 +73,6 @@ MA 02110-1301, USA.
 }
 
 
-#ifndef NDEBUG
-- (void) setStatus:(OOEntityStatus)stat
-{
-	if (stat != STATUS_COCKPIT_DISPLAY)
-	{
-		OOLog(@"flasher.status", @"Status set to %u", stat);
-	}
-
-	[super setStatus:stat];
-}
-#endif
-
-
 - (void) setUpColors:(NSArray *)colorSpecifiers
 {
 	NSMutableArray *colors = [NSMutableArray arrayWithCapacity:[colorSpecifiers count]];

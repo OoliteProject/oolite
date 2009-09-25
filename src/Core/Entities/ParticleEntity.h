@@ -67,7 +67,6 @@ MA 02110-1301, USA.
 - (id) initFlashSize:(GLfloat) burstSize fromPosition:(Vector) fragPos;
 - (id) initFlashSize:(GLfloat) flashSize fromPosition:(Vector) fragPos color:(OOColor*) flashColor;
 - (id) initBillboard:(NSSize) billSize withTexture:(NSString*) textureFile;
-- (id) initPlasmaShotAt:(Vector)position velocity:(Vector)velocity energy:(float)energy duration:(OOTimeDelta)duration color:(OOColor *)color;
 
 - (void) setColor:(OOColor *) a_color;
 

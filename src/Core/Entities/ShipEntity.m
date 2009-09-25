@@ -62,6 +62,7 @@ MA 02110-1301, USA.
 #import "OOExhaustPlumeEntity.h"
 #import "OOSparkEntity.h"
 #import "OOECMBlastEntity.h"
+#import "OOPlasmaShotEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -4752,7 +4753,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		if ([se isShip])  [(ShipEntity*)se rescaleBy:factor];
 		
 		// rescale particle subentities
-		if (se->isParticle)
+		if ([se isParticle])
 		{
 			ParticleEntity* pe = (ParticleEntity*)se;
 			NSSize sz = [pe size];
@@ -6308,7 +6309,7 @@ BOOL class_masslocks(int some_class)
 	switch (forward_weapon_type)
 	{
 		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShot: 0.0: 1500.0: [OOColor yellowColor]];
+			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor]];
 			fired = YES;
 			break;
 		
@@ -6417,10 +6418,9 @@ BOOL class_masslocks(int some_class)
 {
 	if ([self shotTime] < weapon_recharge_rate)
 		return NO;
-	if (range > 5050) //50 more than max range - open up just slightly early
+	if (range > TURRET_SHOT_RANGE * 1.01) // 1% more than max range - open up just slightly early
 		return NO;
-
-	ParticleEntity *shot = nil;
+	
 	Vector		origin = position;
 	Entity		*last = nil;
 	Entity		*father = [self parentEntity];
@@ -6440,14 +6440,15 @@ BOOL class_masslocks(int some_class)
 	origin = vector_add(origin, vector_multiply_scalar(vel, collision_radius + 0.5));	// Start just outside collision sphere
 	vel = vector_multiply_scalar(vel, TURRET_SHOT_SPEED);	// Shot velocity
 	
-	shot = [[ParticleEntity alloc] initPlasmaShotAt:origin
-										   velocity:vel
-											 energy:weapon_energy
-										   duration:3.0
-											  color:laser_color];
+	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
+																   velocity:vel
+																	 energy:weapon_energy
+																   duration:TURRET_SHOT_DURATION
+																	  color:laser_color];
+	
 	[shot autorelease];
 	[UNIVERSE addEntity:shot];
-	[shot setOwner:[self owner]];	// has to be done AFTER adding shot to the UNIVERSE
+	[shot setOwner:[self rootShipEntity]];	// has to be done AFTER adding shot to the UNIVERSE
 	
 	[self resetShotTime];
 	return YES;
@@ -6733,9 +6734,8 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color
 {
-	ParticleEntity *shot;
 	Vector  vel, rt;
 	Vector  origin = position;
 	double  start = collision_radius + 0.5;
@@ -6753,19 +6753,15 @@ BOOL class_masslocks(int some_class)
 		switch ([UNIVERSE viewDirection])
 		{
 			case VIEW_AFT :
-				vel = v_forward;
-				vel.x = -vel.x; vel.y = -vel.y; vel.z = -vel.z; // reverse
-				rt = v_right;
-				rt.x = -rt.x;   rt.y = -rt.y;   rt.z = -rt.z; // reverse
+				vel = vector_flip(v_forward);
+				rt = vector_flip(v_right);
 				break;
 			case VIEW_STARBOARD :
 				vel = v_right;
-				rt = v_forward;
-				rt.x = -rt.x;   rt.y = -rt.y;   rt.z = -rt.z; // reverse
+				rt = vector_flip(v_forward);
 				break;
 			case VIEW_PORT :
-				vel = v_right;
-				vel.x = -vel.x; vel.y = -vel.y; vel.z = -vel.z; // reverse
+				vel = vector_flip(v_right);
 				rt = v_forward;
 				break;
 			
@@ -6773,31 +6769,24 @@ BOOL class_masslocks(int some_class)
 				break;
 		}
 	}
-
-	origin.x += vel.x * start;
-	origin.y += vel.y * start;
-	origin.z += vel.z * start;
-
-	origin.x += rt.x * offset;
-	origin.y += rt.y * offset;
-	origin.z += rt.z * offset;
-
-	vel.x *= speed;
-	vel.y *= speed;
-	vel.z *= speed;
 	
-	shot = [[ParticleEntity alloc] initPlasmaShotAt:origin
-										   velocity:vel
-											 energy:weapon_energy
-										   duration:5.0
-											  color:color];
+	origin = vector_add(origin, vector_multiply_scalar(vel, start));
+	origin = vector_add(origin, vector_multiply_scalar(rt, offset));
 	
-	[shot setOwner:self];
+	vel = vector_multiply_scalar(vel, speed);
+	
+	OOPlasmaShotEntity *shot = [[OOPlasmaShotEntity alloc] initWithPosition:origin
+																   velocity:vel
+																	 energy:weapon_energy
+																   duration:MAIN_PLASMA_DURATION
+																	  color:color];
+	
 	[UNIVERSE addEntity:shot];
+	[shot setOwner:[self rootShipEntity]];
 	[shot release];
 	
 	[self resetShotTime];
-
+	
 	return YES;
 }
 
@@ -6817,14 +6806,14 @@ BOOL class_masslocks(int some_class)
 	start.z = boundingBox.max.z + 1.0;	// 1m ahead of bounding box
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
-
+	
 	double  throw_speed = 250.0;
 	Quaternion q1 = orientation;
 	target = [self primaryTarget];
-
+	
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
 		return NO;
-
+	
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity*)target;
@@ -7560,7 +7549,7 @@ BOOL class_masslocks(int some_class)
 	if (amount <= 0.0)  return;
 	
 	// If it's an energy mine...
-	if (ent && ent->isParticle && ent->scanClass == CLASS_MINE)
+	if ([ent isParticle] && [ent scanClass] == CLASS_MINE)
 	{
 		switch (scanClass)
 		{

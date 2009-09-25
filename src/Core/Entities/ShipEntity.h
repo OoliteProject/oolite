@@ -75,6 +75,15 @@ MA 02110-1301, USA.
 #define SHIPENTITY_MAX_MISSILES			16
 
 #define TURRET_SHOT_SPEED				2000.0f
+#define TURRET_SHOT_DURATION			3.0
+#define TURRET_SHOT_RANGE				(TURRET_SHOT_SPEED * TURRET_SHOT_DURATION)
+
+#define NPC_PLASMA_SPEED				1500.0f
+#define MAIN_PLASMA_DURATION			5.0
+#define NPC_PLASMA_RANGE				(MAIN_PLASMA_DURATION * NPC_PLASMA_RANGE)
+
+#define PLAYER_PLASMA_SPEED				1000.0f
+#define PLAYER_PLASMA_RANGE				(MAIN_PLASMA_DURATION * PLAYER_PLASMA_RANGE)
 
 #define TRACTOR_FORCE					2500.0f
 
@@ -692,7 +701,7 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) fireSubentityLaserShot: (double) range;
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (OOViewID) direction;
-- (BOOL) firePlasmaShot:(double) offset :(double) speed :(OOColor *) color;
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
 - (BOOL) fireMissile;
 - (BOOL) isMissileFlagSet;
 - (void) setIsMissileFlag:(BOOL)newValue;

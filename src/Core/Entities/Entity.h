@@ -81,8 +81,7 @@ extern size_t gTotalEntityMemory;
 @public
 	OOUniversalID			universalID;			// used to reference the entity
 	
-	unsigned				isParticle: 1,
-							isRing: 1,
+	unsigned				isRing: 1,
 							isShip: 1,
 							isStation: 1,
 							isPlanet: 1,

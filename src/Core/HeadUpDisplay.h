@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOMaths.h"
 #import "MyOpenGLView.h"
+#import "ParticleEntity.h"
 
 @class OOCrosshairs, OOColor;
 

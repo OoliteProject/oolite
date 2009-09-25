@@ -500,6 +500,9 @@
 		1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
 		1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */; };
+		1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */; };
+		1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */; };
+		1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
@@ -834,6 +837,7 @@
 			dstPath = Textures;
 			dstSubfolderSpec = 7;
 			files = (
+				1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */,
 				1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */,
 				1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */,
 				1AC544FA0D4D217900C90E5B /* oolite-font.png in Copy Textures */,
@@ -1577,6 +1581,9 @@
 		1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckShipDataPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
 		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
+		1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-blur.png"; sourceTree = "<group>"; };
+		1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlasmaShotEntity.h; sourceTree = "<group>"; };
+		1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlasmaShotEntity.m; sourceTree = "<group>"; };
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
@@ -1995,6 +2002,7 @@
 				1A35916C0C1C375400E52220 /* oolite-nebula-2.png */,
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
+				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
@@ -2618,6 +2626,8 @@
 				1AE242C41054226900EAA7F2 /* OOFlasherEntity.m */,
 				1A1F2840105AAB7900ADB8C5 /* OOSparkEntity.h */,
 				1A1F2841105AAB7900ADB8C5 /* OOSparkEntity.m */,
+				1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */,
+				1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */,
 				1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */,
 				1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */,
 				1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */,
@@ -3072,6 +3082,7 @@
 				1A00C65510663D3700A8737D /* OOProfilingStopwatch.h in Headers */,
 				1A00C7BA10667D3100A8737D /* OOECMBlastEntity.h in Headers */,
 				1A00C7DF1066814C00A8737D /* OOAsyncWorkManager.h in Headers */,
+				1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3419,6 +3430,7 @@
 				1A00C65610663D3700A8737D /* OOProfilingStopwatch.m in Sources */,
 				1A00C7BB10667D3100A8737D /* OOECMBlastEntity.m in Sources */,
 				1A00C7E01066814C00A8737D /* OOAsyncWorkManager.m in Sources */,
+				1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3664,10 +3676,9 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				LLVM_LTO = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
-				SDKROOT = macosx10.4;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				ZERO_LINK = NO;
 			};
 			name = TestRelease;
@@ -3720,6 +3731,7 @@
 				OTHER_LDFLAGS_QUOTED_FOR_TARGET_2 = "\"$(OGGVORBISROOT)/libVorbisAll.a\"";
 				PREBINDING = NO;
 				PRODUCT_NAME = Oolite;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				SECTORDER_FLAGS = "";
 				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/\" \"$(SRCROOT)/src/Core/Entites/\" \"$(SRCROOT)/src/Core/Materials/\" \"$(SRCROOT)/src/BSDCompat/\"";
 				WARNING_CFLAGS = (
@@ -3761,6 +3773,7 @@
 				INSTALL_PATH = /usr/local/lib;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Debug;
 		};
@@ -3776,9 +3789,9 @@
 				GCC_PREPROCESSOR_DEFINITIONS_NOT_USED_IN_PRECOMPS = PNG_USER_CONFIG;
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
-				MACOSX_DEPLOYMENT_TARGET = 10.3;
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
+				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};

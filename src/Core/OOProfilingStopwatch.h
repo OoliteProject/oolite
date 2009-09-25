@@ -68,6 +68,8 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 	BOOL				_running;
 }
 
++ (id) stopwatch;
+
 - (void) start;
 - (void) stop;
 - (OOTimeDelta) currentTime;	// Returns stop time - start time if stopped, or now - start time if running.

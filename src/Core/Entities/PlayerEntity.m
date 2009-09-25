@@ -72,6 +72,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityStickMapper.h"
 #endif
 
+
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntity"
 
 // 10m/s forward drift
@@ -842,7 +843,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	gDebugFlags &= ~DEBUG_HIDE_HUD;
 #endif
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
-	[hud release];
+	DESTROY(hud);
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 	[hud setScannerZoom:1.0];
 	[hud resizeGuis:huddict];
@@ -3250,8 +3251,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	BOOL	weaponFired = NO;
 	switch (weapon_to_be_fired)
 	{
-		case WEAPON_PLASMA_CANNON :
-			[self firePlasmaShot:10.0:1000.0:[OOColor greenColor]];
+		case WEAPON_PLASMA_CANNON:
+			[self firePlasmaShotAtOffset:10.0 speed:PLAYER_PLASMA_SPEED color:[OOColor greenColor]];
 			weaponFired = YES;
 			break;
 
