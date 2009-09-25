@@ -142,7 +142,6 @@ static OOTexture *sBlobTexture = nil;
 	OOGL(glEnable(GL_TEXTURE_2D));
 	
 	GLfloat distanceAttenuation = zero_distance / no_draw_distance;
-	distanceAttenuation *= distanceAttenuation;
 	distanceAttenuation = 1.0 - distanceAttenuation;
 	GLfloat components[4] = { _colorComponents[0], _colorComponents[1], _colorComponents[2], _colorComponents[3] * distanceAttenuation };
 	OOGL(glColor4fv(components));
@@ -154,8 +153,13 @@ static OOTexture *sBlobTexture = nil;
 	OOViewID viewDir = [UNIVERSE viewDirection];
 	if (viewDir != VIEW_GUI_DISPLAY)  GLMultOOMatrix([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 	
-	GLfloat	xx = 0.5 * _size.width;
-	GLfloat	yy = 0.5 * _size.height;
+	/*	NOTE: these previously halved the size because they're half-size
+		offsets, but since we use a texture with a border for anti-aliasing
+		purposes, that scaling is no longer desired.
+		-- Ahruman 2009-09-25
+	*/
+	GLfloat	xx = _size.width;
+	GLfloat	yy = _size.height;
 	
 	OOGLBEGIN(GL_QUADS);
 	switch (viewDir)
@@ -266,7 +270,11 @@ static OOTexture *sBlobTexture = nil;
 {
 	if (sBlobTexture == nil)
 	{
-		sBlobTexture = [[OOTexture textureWithName:@"blur256.png" inFolder:@"Textures"] retain];
+		sBlobTexture = [[OOTexture textureWithName:@"oolite-particle-blur.png"
+										  inFolder:@"Textures"
+										   options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear | kOOTextureAlphaMask
+										anisotropy:kOOTextureDefaultAnisotropy / 2.0
+										   lodBias:0.0] retain];
 		[[OOGraphicsResetManager sharedManager] registerClient:(id<OOGraphicsResetClient>)[OOLightParticleEntity class]];
 	}
 }

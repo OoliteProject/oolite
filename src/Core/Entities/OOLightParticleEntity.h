@@ -46,7 +46,9 @@ MA 02110-1301, USA.
 - (void) setColor:(OOColor *)color alpha:(GLfloat)alpha;
 
 /*	For subclasses that don't want the default blur texture.
-	NOTE: such subclasses must deal with the OOGraphicsResetManager.
+	NOTE: such subclasses must deal with the OOGraphicsResetManager. Also,
+	OOLightParticleEntity assumes the texture is twice as big as the nominal
+	size of the particle (with a black border for anti-aliasing purposes).
 */
 - (OOTexture *) texture;
 
