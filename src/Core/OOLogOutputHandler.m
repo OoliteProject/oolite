@@ -186,8 +186,7 @@ void OOLogOutputHandlerClose(void)
 		sInited = NO;
 		
 		[sLogger endLogging];
-		[sLogger release];
-		sLogger = nil;
+		DESTROY(sLogger);
 		
 #if OOLITE_MAC_OS_X
 		if (sDefaultLogCStringFunction != NULL && _NSSetLogCStringFunction != NULL)
@@ -270,32 +269,33 @@ enum
 	NSString			*oldPath = nil;
 	NSFileManager		*fmgr = nil;
 	
-	// We'll need these for a couple of things.
-	fmgr = [NSFileManager defaultManager];
+	self = [super init];
+	if (self == nil)  OK = NO;
 	
-	logPath = OOLogHandlerGetLogPath();
-	// If there is an existing file, move it to Previous.log.
-	if ([fmgr fileExistsAtPath:logPath])
+	if (OK)
 	{
-		oldPath = [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
-		[fmgr removeFileAtPath:oldPath handler:nil];
-		if (![fmgr movePath:logPath toPath:oldPath handler:nil])
+		fmgr = [NSFileManager defaultManager];
+		logPath = OOLogHandlerGetLogPath();
+		
+		// If there is an existing file, move it to Previous.log.
+		if ([fmgr fileExistsAtPath:logPath])
 		{
-			if (![fmgr removeFileAtPath:logPath handler:nil])
+			oldPath = [OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"];
+			[fmgr removeFileAtPath:oldPath handler:nil];
+			if (![fmgr movePath:logPath toPath:oldPath handler:nil])
 			{
-				NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
-				OK = NO;
+				if (![fmgr removeFileAtPath:logPath handler:nil])
+				{
+					NSLog(@"Log setup: could not move or delete existing log at %@, will log to stdout instead.", logPath);
+					OK = NO;
+				}
 			}
 		}
 	}
 	
 	if (OK)  OK = [self startLogging];
 	
-	if (!OK)
-	{
-		[self release];
-		self = nil;
-	}
+	if (!OK)  DESTROY(self);
 	
 	return self;
 }
@@ -303,10 +303,10 @@ enum
 
 - (void)dealloc
 {
-	[messageQueue release];
-	[threadStateMonitor release];
-	[logFile release];
-	[flushTimer invalidate];
+	DESTROY(messageQueue);
+	DESTROY(threadStateMonitor);
+	DESTROY(logFile);
+	// We don't own a reference to flushTimer.
 	
 	[super dealloc];
 }
@@ -318,11 +318,7 @@ enum
 	NSString			*logPath = nil;
 	NSFileManager		*fmgr = nil;
 	
-	// We'll need these for a couple of things.
 	fmgr = [NSFileManager defaultManager];
-	
-	self = [super init];
-	if (self == nil)  OK = NO;
 	
 	if (OK)
 	{
