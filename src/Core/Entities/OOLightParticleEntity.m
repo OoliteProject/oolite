@@ -34,6 +34,10 @@ MA 02110-1301, USA.
 #import "OOGraphicsResetManager.h"
 
 
+#define PARTICLE_DISTANCE_SCALE_LOW		12.0
+#define PARTICLE_DISTANCE_SCALE_HIGH	36.0
+
+
 static OOTexture *sBlobTexture = nil;
 
 
@@ -53,7 +57,8 @@ static OOTexture *sBlobTexture = nil;
 	{
 		_size = size;
 		double radius = fmax(size.width, size.height);
-		no_draw_distance = radius * radius * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR * 0.5;
+		no_draw_distance = pow(radius, M_SQRT2) * NO_DRAW_DISTANCE_FACTOR * NO_DRAW_DISTANCE_FACTOR;
+		no_draw_distance *= [UNIVERSE reducedDetail] ? PARTICLE_DISTANCE_SCALE_LOW : PARTICLE_DISTANCE_SCALE_HIGH;
 		
 		_colorComponents[0] = 1.0f;
 		_colorComponents[1] = 1.0f;
@@ -135,10 +140,14 @@ static OOTexture *sBlobTexture = nil;
 	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
-	GLfloat distanceAttenuation = 1.0f - zero_distance / no_draw_distance;
+	
+	GLfloat distanceAttenuation = zero_distance / no_draw_distance;
+	distanceAttenuation *= distanceAttenuation;
+	distanceAttenuation = 1.0 - distanceAttenuation;
 	GLfloat components[4] = { _colorComponents[0], _colorComponents[1], _colorComponents[2], _colorComponents[3] * distanceAttenuation };
 	OOGL(glColor4fv(components));
-	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, _colorComponents));
+	
+	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, components));
 	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
 	[[self texture] apply];
 	
