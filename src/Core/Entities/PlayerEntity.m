@@ -6193,11 +6193,6 @@ static NSString *last_outfitting_key=nil;
 		[self setCompassMode:COMPASS_MODE_PLANET];
 	}
 	
-	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
-	{
-		max_cargo += extra_cargo;
-	}
-	
 	[super addEquipmentItem:equipmentKey];
 }
 
