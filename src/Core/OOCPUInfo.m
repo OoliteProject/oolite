@@ -45,19 +45,10 @@ MA 02110-1301, USA.
 #else
 #warning 32-bit.
 #endif
-#if OOLITE_ALTIVEC
-#warning AltiVec.
-#if OOLITE_ALTIVEC_DYNAMIC
-#warning Dynamic AltiVec selection.
-#endif
-#endif
 #endif
 
 
 static BOOL				sInited = NO;
-#if OOLITE_ALTIVEC_DYNAMIC
-static BOOL				sAltiVecAvailable = NO;
-#endif
 
 
 static unsigned			sNumberOfCPUs = 0;	// Yes, really 0.
@@ -88,6 +79,9 @@ void OOCPUInfoInit(void)
 	
 	// Count processors
 #if OOLITE_MAC_OS_X
+#if OOLITE_LEOPARD
+	sNumberOfCPUs = [[NSProcessInfo processInfo] processorCount];
+#else
 	int		flag = 0;
 	size_t	size = sizeof flag;
 	if (sysctlbyname("hw.logicalcpu", &flag, &size, NULL, 0) == 0)
@@ -98,6 +92,7 @@ void OOCPUInfoInit(void)
 	{
 		if (1 <= flag)  sNumberOfCPUs = flag;
 	}
+#endif	// OOLITE_LEOPARD
 #elif OOLITE_WINDOWS
 	SYSTEM_INFO	sysInfo;
 	
@@ -107,21 +102,7 @@ void OOCPUInfoInit(void)
 	sNumberOfCPUs = sysconf(_SC_NPROCESSORS_ONLN);
 #else
 	#warning Do not know how to find number of CPUs on this architecture.
-#endif
-	
-	// Check for AltiVec if relelevant
-#if OOLITE_ALTIVEC_DYNAMIC
-#if OOLITE_MAC_OS_X
-	flag = 0;
-	size = sizeof flag;
-	if (sysctlbyname("hw.optional.altivec", &flag, &size, NULL, 0) == 0)
-	{
-		if (flag)  sAltiVecAvailable = YES;
-	}
-#else
-	#error OOLITE_ALTIVEC_DYNAMIC is (still) set, but Oolite does not know how to check for AltiVec on this platform. (The Mac version may work on other BSDs, at least; give it a shot.)
-#endif
-#endif
+#endif	// OS selection
 	
 	sInited = YES;
 }
@@ -132,11 +113,3 @@ unsigned OOCPUCount(void)
 	if (!sInited)  OOCPUInfoInit();
 	return (sNumberOfCPUs != 0) ? sNumberOfCPUs : 1;
 }
-
-
-#if OOLITE_ALTIVEC_DYNAMIC
-BOOL OOAltiVecAvailable(void)
-{
-	return sAltiVecAvailable;
-}
-#endif
