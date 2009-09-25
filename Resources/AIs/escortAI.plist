@@ -10,7 +10,7 @@
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		ESCORTING = ("setDesiredRangeTo: 0.0", performEscort);
 		"INCOMING_MISSILE" = ("messageMother: INCOMING_MISSILE");
-		"ATTACKED" = ("messageMother: ATTACKED");
+		"ATTACKED" = ("messageMother: ATTACKED", "messageMother: ESCORT_ATTACKED");
 		"NOT_ESCORTING" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_BUSINESS");
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_BUSINESS");

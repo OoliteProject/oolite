@@ -7,6 +7,7 @@
 	{
 		ENTER = (performAttack);
 		"ENERGY_LOW" = ("setStateTo: FLEE");
+        "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_DESTROYED" = (performIdle, switchLightsOff, exitAI);
 		"TARGET_LOST" = (performIdle, switchLightsOff, exitAI);

@@ -12,6 +12,7 @@
 	"ATTACK_SHIP" = 
 	{
 		ENTER = (deployEscorts, broadcastDistressMessage, performAttack); 
+        "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); 
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, broadcastDistressMessage, deployEscorts, "setStateTo: FLEE"); 
 		"INCOMING_MISSILE" = ("setStateTo: INCOMING_MISSILE", "randomPauseAI: 0.25 0.75"); 
 		"TARGET_DESTROYED" = (exitAI); 

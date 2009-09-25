@@ -1,7 +1,7 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("setStateTo: DECIDE_ROUTE");
+		ENTER = (performIdle, "setStateTo: DECIDE_ROUTE");
 	};
 	"DECIDE_ROUTE" =
 	{
