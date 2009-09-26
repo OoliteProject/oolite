@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOJSShip.h"
 #import "OOJSEntity.h"
+#import "OOJSVector.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
@@ -143,7 +144,8 @@ enum
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
-	kShip_passengerCapacity		// amount of passenger space on ship, integer, read-only
+	kShip_passengerCapacity,		// amount of passenger space on ship, integer, read-only
+	kShip_coordinates,			// position in system space, Vector, read/write
 	
 };
 
@@ -202,6 +204,7 @@ static JSPropertySpec sShipProperties[] =
 // "passengers" reserved for array of characters or similar.
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "coordinates",			kShip_coordinates,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -494,6 +497,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = YES;
 			break;
 		
+		case kShip_coordinates:
+			OK = VectorToJSValue(context, [entity coordinates], outValue); // @@@@ should be coordinates
+			break;
+		
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
@@ -517,6 +524,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	jsdouble					fValue;
 	int32						iValue;
 	JSBool						bValue;
+	Vector						vValue;
 	OOShipGroup					*group = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
@@ -680,6 +688,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			break;
 		
+		case kShip_coordinates:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				[entity setCoordinate:vValue];
+				OK = YES;
+			}
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}

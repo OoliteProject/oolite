@@ -5597,6 +5597,15 @@ BOOL class_masslocks(int some_class)
 	return destination;
 }
 
+- (Vector) coordinates
+{
+	return coordinates;
+}
+
+- (void) setCoordinate:(Vector) coord // The name "setCoordinates" is already used by AI scripting.
+{
+	coordinates = coord;
+}
 
 - (Vector) distance_six: (GLfloat) dist
 {

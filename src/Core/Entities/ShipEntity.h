@@ -679,6 +679,8 @@ BOOL	class_masslocks(int some_class);
 - (double) trackDestination:(double) delta_t :(BOOL) retreat;
 //- (double) trackPosition:(Vector) track_pos :(double) delta_t :(BOOL) retreat;
 
+- (void) setCoordinate:(Vector)coord;
+- (Vector) coordinates;
 - (Vector) destination;
 - (Vector) distance_six: (GLfloat) dist;
 - (Vector) distance_twelve: (GLfloat) dist;
