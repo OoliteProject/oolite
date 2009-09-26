@@ -62,17 +62,19 @@ enum
 	kOolite_version,			// version number components, array, read-only
 	kOolite_versionString,		// version number as string, string, read-only
 	kOolite_jsVersion,			// JavaScript version, integer, read-only
-	kOolite_jsVersionString		// JavaScript version as string, string, read-only
+	kOolite_jsVersionString,	// JavaScript version as string, string, read-only
+	kOolite_gameSettings		// JavaScript version as string, string, read-only
 };
 
 
 static JSPropertySpec sOoliteProperties[] =
 {
-	// JS name					ID							flags
+	// JS name						ID							flags
 	{ "version",				kOolite_version,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "versionString",			kOolite_versionString,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "jsVersion",				kOolite_jsVersion,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "jsVersionString",		kOolite_jsVersionString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "gameSettings",			kOolite_gameSettings,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -116,6 +118,11 @@ static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, 
 		
 		case kOolite_jsVersionString:
 			*outValue = STRING_TO_JSVAL(JS_NewStringCopyZ(context, JS_VersionToString(JS_GetVersion(context))));
+			break;
+		
+		case kOolite_gameSettings:
+			result = [UNIVERSE gameSettings];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		default:

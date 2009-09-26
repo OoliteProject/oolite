@@ -651,8 +651,9 @@ waitingForStickCallback: 1;
 
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
+- (NSArray *) equipmentListForScripting;
 - (NSArray *) cargoList;
-- (NSArray *) cargoListArray;
+- (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;
 - (NSArray *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;

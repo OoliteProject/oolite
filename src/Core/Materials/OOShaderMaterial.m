@@ -151,7 +151,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		else
 		{
-			OOLog(@"shader.load.noShader", @"***** Error: no vertex or fragment shader specified specified in shader dictionary:\n%@", configuration);
+			OOLog(@"shader.load.noShader", @"***** Error: no vertex or fragment shader specified in shader dictionary:\n%@", configuration);
 		}
 		
 		OK = (shaderProgram != nil);

@@ -56,7 +56,6 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipQueryCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -102,6 +101,8 @@ enum
 	kPlayerShip_galaxyCoordinates,		// galaxy coordinates, vector, read only
 	kPlayerShip_cursorCoordinates,		// cursor coordinates, vector, read only
 	kPlayerShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
+	kPlayerShip_manifest,				// the ships' manifest, read only
+	kPlayerShip_equipmentList,			// the ships' equipment list, read only
 };
 
 
@@ -124,6 +125,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "manifest",					kPlayerShip_manifest,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "equipmentList",				kPlayerShip_equipmentList,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -140,7 +143,6 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
-	{ "queryCargo",			PlayerShipQueryCargo,			0 },
 	{ 0 }
 };
 
@@ -262,6 +264,16 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_scriptedMisjump:
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
+			OK = YES;
+			break;
+			
+		case kPlayerShip_manifest:
+			result = [player cargoListForScripting];
+			OK = YES;
+			break;
+			
+		case kPlayerShip_equipmentList:
+			result = [player equipmentListForScripting];
 			OK = YES;
 			break;
 		
@@ -600,44 +612,5 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	}
 	
 	[player useSpecialCargo:JSValToNSString(context, argv[0])];
-	return YES;
-}
-
-
-static JSBool PlayerShipQueryCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSArray				*shipCommodityList = nil;
-	NSObject			*result = nil;
-	unsigned			i;
-	
-	shipCommodityList = [player cargoListArray];
-	
-	if (argc == 0)	// if no arguments are passed, return the array of cargo names, tonnages and units
-	{
-		result = (NSArray *)shipCommodityList;
-		if ([(NSArray *)result count] == 0)  result = nil;
-	}
-	else if (shipCommodityList != nil)	// if we are querying a cargo item, return its quantity instead
-	{
-		NSString	*commodityQueriedName = JSValToNSString(context, argv[0]);
-		
-		if (EXPECT_NOT(commodityQueriedName == nil))
-		{
-			OOReportJSBadArguments(context, @"PlayerShip", @"queryCargo", argc, argv, nil, @"[commodity name]");
-			return NO;
-		}
-		
-		for (i = 0; i < [shipCommodityList count]; i++)
-		{
-			NSArray *cargoItem = [shipCommodityList oo_arrayAtIndex:i];
-			if ([commodityQueriedName caseInsensitiveCompare:[cargoItem oo_stringAtIndex:0]] == NSOrderedSame)
-			{
-				result = [NSNumber numberWithUnsignedInt:[cargoItem oo_unsignedIntAtIndex:1]];
-			}
-		}
-	}
-
-	*outResult = [result javaScriptValueInContext:context];
 	return YES;
 }

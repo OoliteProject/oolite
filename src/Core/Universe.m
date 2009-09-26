@@ -64,6 +64,7 @@ MA 02110-1301, USA.
 #import "RingEntity.h"
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
+#import "OOMusicController.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -3238,6 +3239,53 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 - (GameController *) gameController
 {
 	return [gameView gameController];
+}
+
+
+- (NSDictionary *) gameSettings
+{
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:5];
+	
+	[result setObject:[NSNumber numberWithBool:reducedDetail] forKey:@"reducedDetailGraphics"];
+	[result setObject:[NSNumber numberWithBool:[[PlayerEntity sharedPlayer] isSpeechOn]] forKey:@"speechOn"];
+	[result setObject:[NSNumber numberWithBool:autoSave] forKey:@"autosave"];
+	[result setObject:[NSNumber numberWithBool:wireframeGraphics] forKey:@"wireframeGraphics"];
+#if ALLOW_PROCEDURAL_PLANETS
+	[result setObject:[NSNumber numberWithBool:doProcedurallyTexturedPlanets] forKey:@"procedurallyTexturedPlanets"];
+#endif
+
+	NSString *desc = nil;
+	switch ([self shaderEffectsLevel])
+	{
+		case SHADERS_OFF:
+			desc = @"SHADERS_OFF";
+			break;
+		
+		case SHADERS_SIMPLE:
+			desc = @"SHADERS_SIMPLE";
+			break;
+		
+		case SHADERS_FULL:
+			desc = @"SHADERS_FULL";
+			break;
+		
+		case SHADERS_NOT_SUPPORTED:
+		default:
+			desc = @"SHADERS_NOT_SUPPORTED";
+			break;
+	}
+	[result setObject:desc forKey:@"shaderEffectsLevel"];
+	
+	switch ([[OOMusicController sharedController] mode])
+	{
+		case kOOMusicOff:		desc = @"MUSIC_OFF"; break;
+		case kOOMusicOn:		desc = @"MUSIC_ON"; break;
+		case kOOMusicITunes:	desc = @"MUSIC_ITUNES"; break;
+	}
+	[result setObject:desc forKey:@"musicMode"];
+
+	
+	return [[result copy] autorelease];
 }
 
 

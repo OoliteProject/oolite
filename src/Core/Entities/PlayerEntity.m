@@ -96,7 +96,7 @@ static PlayerEntity *sSharedPlayer = nil;
 @interface PlayerEntity (OOPrivate)
 
 - (void) setExtraEquipmentFromFlags;
--(void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor;
+- (void) doTradeIn:(OOCreditsQuantity)tradeInValue forPriceFactor:(double)priceFactor;
 
 // Subs of update:
 - (void) updateMovementFlags;
@@ -121,6 +121,9 @@ static PlayerEntity *sSharedPlayer = nil;
 
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
+
+// equipment
+- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type facing:(int) facing isOk:(BOOL) isOk;
 
 @end
 
@@ -4436,6 +4439,27 @@ static PlayerEntity *sSharedPlayer = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 	
+	if (forward_weapon > WEAPON_NONE)
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
+	if (aft_weapon > WEAPON_NONE)
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
+	if (port_weapon > WEAPON_NONE)
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
+	if (starboard_weapon > WEAPON_NONE)
+	{
+		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]];
+		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
+	}
+
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
 		if ([self hasEquipmentItem:[eqType identifier]])
@@ -4453,27 +4477,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 	}
 	
-	if (forward_weapon > WEAPON_NONE)
-	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
-	}
-	if (aft_weapon > WEAPON_NONE)
-	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
-	}
-	if (starboard_weapon > WEAPON_NONE)
-	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
-	}
-	if (port_weapon > WEAPON_NONE)
-	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]];
-		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
-	}
-	
 	if (max_passengers > 0)
 	{
 		desc = [NSString stringWithFormat:DESC_PLURAL(@"equipment-pass-berth-@", max_passengers), max_passengers];
@@ -4484,15 +4487,109 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type facing:(int) facing isOk:(BOOL) isOk
+{
+	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:type, 
+												[NSNumber numberWithInt:facing], [NSNumber numberWithBool:isOk], nil]
+									   forKeys:[NSArray arrayWithObjects:@"type", @"facing", @"isOk", nil]];
+}
+
+
+- (NSArray *) equipmentListForScripting
+{
+	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
+	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
+	NSEnumerator		*eqTypeEnum = nil;
+	OOEquipmentType		*eqType = nil;
+	unsigned			i = 0;
+		
+	if (forward_weapon > WEAPON_NONE)
+	{
+		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(forward_weapon)];
+		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_FORWARD isOk:YES]];
+	}
+	if (aft_weapon > WEAPON_NONE)
+	{
+		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(aft_weapon)];
+		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_AFT isOk:YES]];
+	}
+	if (port_weapon > WEAPON_NONE)
+	{
+		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(port_weapon)];
+		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_PORT isOk:YES]];
+	}
+	if (starboard_weapon > WEAPON_NONE)
+	{
+		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(starboard_weapon)];
+		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_STARBOARD isOk:YES]];
+	}
+	
+	ShipEntity *missileBomb;
+	for (i = 0; i < missiles; i++)
+	{
+		missileBomb = missile_entity[i];
+		if (missileBomb)
+		{
+			eqType = [OOEquipmentType equipmentTypeWithIdentifier:[missileBomb primaryRole]];
+			[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
+		}
+	}
+	
+	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	{
+		if ([self hasEquipmentItem:[eqType identifier]])
+		{
+			[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
+		}
+		else if (![UNIVERSE strict]) // Check for damaged version
+		{
+			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+			{
+				[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:NO]];
+			}
+		}
+	}
+	
+	if (max_passengers > 0)
+	{
+		eqType =[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"];
+		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
+	}
+
+	
+	return [[quip copy] autorelease];
+
+}
+
+
 - (NSArray *) cargoList
 {
 	NSMutableArray	*manifest = [NSMutableArray array];
-
+	NSArray			*list = [self cargoListForScripting];
+	NSEnumerator	*cargoEnum = nil;
+	NSDictionary	*commodity;
+	
 	if (specialCargo) [manifest addObject:specialCargo];
+	
+	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
+	{
+		NSString *desc = [commodity oo_stringForKey:@"displayName"];
+		NSString *units = [commodity oo_stringForKey:@"unit"];
+		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
+							[commodity oo_intForKey:@"quantity"], units, desc]];
+	}
+	
+	return manifest;
+}
 
-	unsigned		n_commodities = [shipCommodityData count];
-	OOCargoQuantity	in_hold[n_commodities];
-	unsigned		i;
+
+- (NSArray *) cargoListForScripting
+{
+	NSMutableArray		*result = [NSMutableArray array];
+	
+	unsigned			n_commodities = [shipCommodityData count];
+	OOCargoQuantity		in_hold[n_commodities];
+	unsigned 			i;
 	
 	// following changed to work whether docked or not
 	for (i = 0; i < n_commodities; i++)
@@ -4509,31 +4606,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (in_hold[i] > 0)
 		{
-			NSString *desc = CommodityDisplayNameForCommodityArray([shipCommodityData oo_arrayAtIndex:i]);
-			NSString *units = DisplayStringForMassUnitForCommodity(i);
-			[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"), in_hold[i], units, desc]];
+			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
+			NSString *symName = [[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME];
+			[commodity setObject:[NSNumber numberWithUnsignedInt:in_hold[i]] forKey:@"quantity"];
+			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
+			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
+			[commodity setObject:symName forKey:@"name"];
+			[result addObject:commodity];
 		}
-	}
-	
-	return manifest;
-}
-
-
-- (NSArray *) cargoListArray
-{
-	NSEnumerator	*cargoListEnum = nil;
-	NSString	*cargoItemDescription = nil;
-	NSMutableArray	*result = [NSMutableArray array];
-	
-	NSArray		*originalCargoList = [self cargoList];
-	
-	for (cargoListEnum = [originalCargoList objectEnumerator]; (cargoItemDescription = [cargoListEnum nextObject]); )
-	{
-		NSArray *tokens = ScanTokensFromString(cargoItemDescription);	// original cargoList indexes:
-		unsigned commodityQuantity = [tokens oo_unsignedIntAtIndex:0];	// index 0: quantity
-		NSString *commodityUnit = [tokens oo_stringAtIndex:1];		// index 1: unit
-		NSString *commodityName = [tokens objectAtIndex:3];		// index 3: commodity name (index 2 is the x, not useful)
-		[result addObject:[NSArray arrayWithObjects:commodityName, [NSNumber numberWithUnsignedInt:commodityQuantity], commodityUnit, nil]];
 	}
 	
 	return [[result copy] autorelease];	// return an immutable copy

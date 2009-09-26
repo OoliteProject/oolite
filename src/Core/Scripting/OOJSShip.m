@@ -125,9 +125,9 @@ enum
 	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_reportAIMessages,		// report AI messages, boolean, read/write
 	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
-	kShip_cargoCapacity,		// free cargo space, integer, read-only
+	kShip_cargoCapacity,		// maximum cargo, integer, read-only
 	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
-	kShip_availableCargoSpace,	// maximum cargo, integer, read-only
+	kShip_availableCargoSpace,	// free cargo space, integer, read-only
 	kShip_speed,				// current flight speed, double, read-only
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_maxSpeed,				// maximum flight speed, double, read-only

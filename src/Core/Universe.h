@@ -375,6 +375,7 @@ enum
 - (void) setGameView:(MyOpenGLView *)view;
 - (MyOpenGLView *) gameView;
 - (GameController *) gameController;
+- (NSDictionary *) gameSettings;
 
 - (void) drawUniverse;
 - (void) drawMessage;

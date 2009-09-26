@@ -38,6 +38,7 @@ static JSObject		*sPlanetPrototype;
 
 
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -51,7 +52,7 @@ static JSExtendedClass sPlanetClass =
 		JS_PropertyStub,		// addProperty
 		JS_PropertyStub,		// delProperty
 		PlanetGetProperty,		// getProperty
-		JS_PropertyStub,		// setProperty
+		PlanetSetProperty,		// setProperty
 		JS_EnumerateStub,		// enumerate
 		JS_ResolveStub,			// resolve
 		JS_ConvertStub,			// convert
@@ -70,7 +71,8 @@ enum
 	// Property IDs
 	kPlanet_isMainPlanet,		// Is [UNIVERSE planet], boolean, read-only
 	kPlanet_hasAtmosphere,
-	kPlanet_radius,				// Radius of planet in metres.
+	kPlanet_radius,				// Radius of planet in metres, read-only
+	kPlanet_texture,			// Planet texture read / write
 };
 
 
@@ -80,6 +82,7 @@ static JSPropertySpec sPlanetProperties[] =
 	{ "isMainPlanet",			kPlanet_isMainPlanet,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "radius",					kPlanet_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "texture",				kPlanet_texture,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -133,7 +136,6 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 		default:
 			return @"Unknown";
 	}
-
 }
 
 @end
@@ -163,6 +165,11 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OK = YES;
 			break;
 			
+		case kPlanet_texture:
+			*outValue = [[planet textureFileName] javaScriptValueInContext:context];
+			OK = YES;
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 	}
@@ -170,33 +177,57 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 }
 
 
-static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
-	PlanetEntity			*thisEnt = nil;
-	NSString				*name = nil;
+	BOOL					OK = NO;
+	PlanetEntity			*planet = nil;
+	NSString				*sValue = nil;
 	BOOL					procGen = NO;
+	
 	NSString				*pre = @"";
 	OOEntityStatus			playerStatus = [[PlayerEntity sharedPlayer] status];
+			
+	if (!JSVAL_IS_INT(name))  return YES;
+	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
-	if (!JSPlanetGetPlanetEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	name = JSValToNSString(context,argv[0]);
+	switch (JSVAL_TO_INT(name))
+	{
+		case kPlanet_texture:
+			// all error messages are self contained
+
+			sValue = JSValToNSString(context, *value);
 #if ALLOW_PROCEDURAL_PLANETS
-	procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-	if (!procGen) pre=@"Detailed planets option not set. ";
+			procGen = [UNIVERSE doProcedurallyTexturedPlanets];
+			if (!procGen) pre=@"Detailed planets option not set. ";
 #endif
-	// if procGen == on we can retexture at any time, eg during huge surface explosions
-	if(!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
-	{
-		OOReportJSError(context, @"%@Use of %@ restricted to shipWillLaunchFromStation and shipWillExitWitchspace.", pre, @"setTexture");
+			// if procGen == on we can retexture at any time, eg during huge surface explosions
+			if(!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
+			{
+				OK = NO;
+				OOReportJSError(context, @"%@Planet.%@ = 'foo' only possible from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre, @"texture");
+			}
+			else if (sValue != nil)
+			{
+				OK = [planet setUpPlanetFromTexture:sValue];
+				if (!OK) OOReportJSWarning(context, @"Cannot find %@ '%@'. Value not set.", @"texture", sValue);
+			}
+			else
+			{
+				//[planet setUpPlanetFromTexture:sValue];
+				OK = NO;
+				OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
+			}
+			break;
+			
+		default:
+			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(sValue));
 	}
-	else if (name != nil)
-	{
-		if ([thisEnt setUpPlanetFromTexture:name])  return YES;
-		else  OOReportJSError(context, @"Planet.%@(\"%@\"): cannot set texture for planet.", @"setTexture", name);
-	}
-	else
-	{
-		OOReportJSError(context, @"Planet.%@(): no texture name specified.", @"setTexture");
-	}
-	return NO;
+	
+	return OK;
+}
+
+static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOReportJSWarning(context, @"The function Planet.setTexture() is deprecated and will be removed in a future version of Oolite. Use planet.texture = 'foo' instead.");
+	return PlanetSetProperty(context, this, INT_TO_JSVAL(kPlanet_texture), argv);
 }

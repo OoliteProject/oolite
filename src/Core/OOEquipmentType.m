@@ -1,6 +1,6 @@
 /*
 
-OOEquipmentType.h
+OOEquipmentType.m
 
 Manage the set of installed ships.
 
