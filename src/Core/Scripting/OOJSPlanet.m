@@ -220,7 +220,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		default:
-			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(sValue));
+			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 	}
 	
 	return OK;
