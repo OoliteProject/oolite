@@ -1209,6 +1209,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[script release];			
 	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
 										 properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
+	[script retain];
 	
 	return YES;
 }
