@@ -199,7 +199,7 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 			OOLog(@"script.load.notFound", @"***** Could not find a script file named %@.", fileName);
 			return nil;
 		}
-		return [OOJSScript scriptWithPath:path properties:properties];
+		return [[OOJSScript scriptWithPath:path properties:properties] retain];
 	}
 	else if ([extension isEqualToString:@"plist"])
 	{
