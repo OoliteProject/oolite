@@ -139,7 +139,9 @@
 	tmp_name = player_name;
 	tmp_path = save_path;
 	
-	NSString *saveName = DESC(@"autosave-commander-name");
+	NSString *saveName = player_name;
+	if (![player_name hasSuffix:DESC(@"autosave-commander-suffix")])
+				saveName = [player_name stringByAppendingString:DESC(@"autosave-commander-suffix")];
 	NSString *savePath = [dir stringByAppendingPathComponent:[saveName stringByAppendingString:@".oolite-save"]];
 	
 	[player_name autorelease];

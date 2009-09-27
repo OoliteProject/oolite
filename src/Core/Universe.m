@@ -356,7 +356,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 }
 
 
-- (void) setStrict:(BOOL)value fromSaveGame: (BOOL)saveGame
+- (void) setStrict:(BOOL) value fromSaveGame:(BOOL) saveGame
 {
 	if (strict == value)  return;
 	
@@ -366,7 +366,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 }
 
 
-- (void) reinitAndShowDemo:(BOOL)showDemo
+- (void) reinitAndShowDemo:(BOOL) showDemo
 {
 	no_update = YES;
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -414,6 +414,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
 
 	[self initPlayerSettings];
+	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
 	
 	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
 	
@@ -520,7 +521,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[self setUpSpace];	// first launch
 	}
 	
-	[self setViewDirection:VIEW_FORWARD];
+	if(!autoSaveNow) [self setViewDirection:VIEW_FORWARD];
 	displayGUI = NO;
 	
 	//reset atmospherics in case we ejected while we were in the atmophere

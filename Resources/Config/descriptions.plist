@@ -1173,8 +1173,8 @@
 	"commodity-name gem-stones"		= "Gem-Stones";
 	"commodity-name alien items"	= "Alien Items";
 	
-	//autosave filename
-	"autosave-commander-name"		= "autosave";
+	// autosave filename identifier
+	"autosave-commander-suffix"		= " (autosave)";
 	
 	// Nova mission strings
 	"oolite-nova-coward"			= "Coward! You chose not to help the refugees!";

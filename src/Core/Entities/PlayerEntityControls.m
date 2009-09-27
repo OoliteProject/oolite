@@ -2239,9 +2239,16 @@ static NSTimeInterval	time_last_frame;
 			[self playChangedOption];
 		[UNIVERSE setAutoSave:[gameView isDown:gvArrowKeyRight]];
 		if ([UNIVERSE autoSave])
+		{
+			// if just enabled, we want to autosave immediately
+			[UNIVERSE setAutoSaveNow:YES];
 			[gui setText:DESC(@"gameoptions-autosave-yes")	forRow:GUI_ROW(GAME,AUTOSAVE)  align:GUI_ALIGN_CENTER];
+		}
 		else
+		{
+			[UNIVERSE setAutoSaveNow:NO];
 			[gui setText:DESC(@"gameoptions-autosave-no")	forRow:GUI_ROW(GAME,AUTOSAVE)  align:GUI_ALIGN_CENTER];
+		}
 	}
 
 	if ((guiSelectedRow == GUI_ROW(GAME,VOLUME))
@@ -2967,14 +2974,13 @@ static BOOL toggling_music;
 		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
 		{
 			// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
-			[UNIVERSE setUpUniverseFromStation]; // launch!
+			[UNIVERSE setUpUniverseFromStation]; // player pre-launch
 			if (!dockedStation)  dockedStation = [UNIVERSE station];
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			
-			//don't autosave immediately after a load
 			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow] && ![[UNIVERSE generateSystemData:system_seed] oo_boolForKey:@"sun_gone_nova"]) [self autosavePlayer];
+			// autosave at the second launch after load / restart
 			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-			
 			[self leaveDock:dockedStation];
 		}
 	}

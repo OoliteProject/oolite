@@ -2126,6 +2126,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) launchFromStation
 {
+	// ensure autosave is ready
+	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 	[self leaveDock:dockedStation];
 }
 
