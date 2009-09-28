@@ -122,9 +122,6 @@ static PlayerEntity *sSharedPlayer = nil;
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
-// equipment
-- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type facing:(int) facing isOk:(BOOL) isOk;
-
 @end
 
 
@@ -4488,78 +4485,47 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type facing:(int) facing isOk:(BOOL) isOk
+- (OOEquipmentType *) weaponTypeForFacing:(int) facing
 {
-	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:type, 
-												[NSNumber numberWithInt:facing], [NSNumber numberWithBool:isOk], nil]
-									   forKeys:[NSArray arrayWithObjects:@"type", @"facing", @"isOk", nil]];
+	OOWeaponType 			weapon_type = WEAPON_NONE;
+	
+	switch (facing)
+	{
+		case WEAPON_FACING_FORWARD:
+			weapon_type = forward_weapon;
+			break;
+		case WEAPON_FACING_AFT:
+			weapon_type = aft_weapon;
+			break;
+		case WEAPON_FACING_PORT:
+			weapon_type = port_weapon;
+			break;
+		case WEAPON_FACING_STARBOARD:
+			weapon_type = starboard_weapon;
+			break;
+		// any other value is not a facing
+		default:
+			break;
+	}
+
+	return [OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(weapon_type)];
 }
 
-
-- (NSArray *) equipmentListForScripting
+- (NSArray *) missilesList
 {
-	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
-	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
-	NSEnumerator		*eqTypeEnum = nil;
-	OOEquipmentType		*eqType = nil;
+	NSMutableArray		*miss = [NSMutableArray arrayWithCapacity:missiles];
+	ShipEntity 			*missileMine;
 	unsigned			i = 0;
-		
-	if (forward_weapon > WEAPON_NONE)
-	{
-		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(forward_weapon)];
-		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_FORWARD isOk:YES]];
-	}
-	if (aft_weapon > WEAPON_NONE)
-	{
-		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(aft_weapon)];
-		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_AFT isOk:YES]];
-	}
-	if (port_weapon > WEAPON_NONE)
-	{
-		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(port_weapon)];
-		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_PORT isOk:YES]];
-	}
-	if (starboard_weapon > WEAPON_NONE)
-	{
-		eqType =[OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(starboard_weapon)];
-		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_STARBOARD isOk:YES]];
-	}
 	
-	ShipEntity *missileBomb;
 	for (i = 0; i < missiles; i++)
 	{
-		missileBomb = missile_entity[i];
-		if (missileBomb)
+		missileMine = missile_entity[i];
+		if (missileMine)
 		{
-			eqType = [OOEquipmentType equipmentTypeWithIdentifier:[missileBomb primaryRole]];
-			[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
+			[miss addObject:[OOEquipmentType equipmentTypeWithIdentifier:[missileMine primaryRole]]];
 		}
 	}
-	
-	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
-	{
-		if ([self hasEquipmentItem:[eqType identifier]])
-		{
-			[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
-		}
-		else if (![UNIVERSE strict]) // Check for damaged version
-		{
-			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
-			{
-				[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:NO]];
-			}
-		}
-	}
-	
-	if (max_passengers > 0)
-	{
-		eqType =[OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"];
-		[quip addObject:[self eqDictionaryWithType:eqType facing:WEAPON_FACING_NONE isOk:YES]];
-	}
-
-	
-	return [[quip copy] autorelease];
-
+	return [[miss copy] autorelease];
 }
 
 
@@ -5739,21 +5705,8 @@ static NSString *last_outfitting_key=nil;
 			return YES;
 		}
 		
-		int chosen_weapon = WEAPON_NONE;
+		int chosen_weapon = EquipmentStringToWeaponTypeStrict(eqKey);
 		int current_weapon = WEAPON_NONE;
-		
-		if ([eqKey isEqualToString:@"EQ_WEAPON_TWIN_PLASMA_CANNON"])
-			chosen_weapon = WEAPON_PLASMA_CANNON;
-		if ([eqKey isEqualToString:@"EQ_WEAPON_PULSE_LASER"])
-			chosen_weapon = WEAPON_PULSE_LASER;
-		if ([eqKey isEqualToString:@"EQ_WEAPON_BEAM_LASER"])
-			chosen_weapon = WEAPON_BEAM_LASER;
-		if ([eqKey isEqualToString:@"EQ_WEAPON_MINING_LASER"])
-			chosen_weapon = WEAPON_MINING_LASER;
-		if ([eqKey isEqualToString:@"EQ_WEAPON_MILITARY_LASER"])
-			chosen_weapon = WEAPON_MILITARY_LASER;
-		if ([eqKey isEqualToString:@"EQ_WEAPON_THARGOID_LASER"])
-			chosen_weapon = WEAPON_THARGOID_LASER;
 		
 		switch (chosen_weapon_facing)
 		{
@@ -5785,29 +5738,9 @@ static NSString *last_outfitting_key=nil;
 			Acknowledgment: bug and fix both reported by Cmdr James on forum.
 			-- Ahruman 20070724
 		*/
-		switch (current_weapon)
-		{
-			case WEAPON_PLASMA_CANNON :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_TWIN_PLASMA_CANNON"];
-				break;
-			case WEAPON_PULSE_LASER :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_PULSE_LASER"];
-				break;
-			case WEAPON_BEAM_LASER :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_BEAM_LASER"];
-				break;
-			case WEAPON_MINING_LASER :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_MINING_LASER"];
-				break;
-			case WEAPON_MILITARY_LASER :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_MILITARY_LASER"];
-				break;
-			case WEAPON_THARGOID_LASER :
-				tradeIn = [UNIVERSE getEquipmentPriceForKey:@"EQ_WEAPON_THARGOID_LASER"];
-				break;
-			case WEAPON_NONE :
-				break;
-		}	
+		if (current_weapon != WEAPON_NONE)
+				tradeIn = [UNIVERSE getEquipmentPriceForKey:WeaponTypeToEquipmentString(current_weapon)];
+		
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
 		//if equipped, remove damaged weapon after repairs.
 		[self removeEquipmentItem:eqKeyDamaged];

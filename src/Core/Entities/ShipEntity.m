@@ -108,6 +108,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
 
+// equipment
+- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged;
+
 @end
 
 
@@ -1957,6 +1960,94 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (OOEquipmentType *) weaponTypeForFacing:(int) facing
+{
+	OOWeaponType 			weapon_type = WEAPON_NONE;
+	
+	switch (facing)
+	{
+		case WEAPON_FACING_FORWARD:
+			weapon_type = forward_weapon_type;
+			break;
+		case WEAPON_FACING_AFT:
+			weapon_type = aft_weapon_type;
+			break;
+		// any other value is not a facing for NPC ships...
+		default:
+			break;
+	}
+
+	return [OOEquipmentType equipmentTypeWithIdentifier:WeaponTypeToEquipmentString(weapon_type)];
+}
+
+
+- (NSArray *) missilesList
+{
+	/*
+	Note: this is slightly misleading.
+	When an NPC ship doesn't specify a missile_role, the actual missile
+	to fire is chosen at random when a missile is fired. There is a
+	90 % chance "EQ_MISSILE" will be used, and a 10 % chance that
+	"missile" will be used. A ship for which hasEquipmentItem:@"EQ_MISSILE"
+	returns YES could fire missiles that are not of the EQ_MISSILE
+	role. This technicality is unlikely to matter most of the time,
+	but someone will probably come along with a need to differentiate
+	specific missiles at which point our reply will have to be "tough".
+	-- ( Copied from the note inside hasOneEquipmentItem by Ahruman 2009-06-21 )
+	*/
+	NSMutableArray		*miss = [NSMutableArray arrayWithCapacity:missiles];
+	NSString 			*mRole = missileRole;
+	if (mRole == nil)	mRole = @"EQ_MISSILE";
+	unsigned			i = 0;
+
+	for (i = 0; i < missiles; i++)
+	{
+		[miss addObject:[OOEquipmentType equipmentTypeWithIdentifier:mRole]];
+	}
+	return [[miss copy] autorelease];
+}
+
+
+- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged
+{
+	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:type, [NSNumber numberWithBool:isDamaged], nil]
+									   forKeys:[NSArray arrayWithObjects:@"type", @"isDamaged", nil]];
+}
+
+
+- (NSArray *) equipmentListForScripting
+{
+	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
+	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
+	NSEnumerator		*eqTypeEnum = nil;
+	OOEquipmentType		*eqType = nil;
+	
+	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	{
+		if ([self hasEquipmentItem:[eqType identifier]])
+		{
+			[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
+		}
+		else if (![UNIVERSE strict]) // Check for damaged version
+		{
+			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+			{
+				[quip addObject:[self eqDictionaryWithType:eqType isDamaged:YES]];
+			}
+		}
+	}
+	
+	// Passengers - not supported for NPCs, but it's here for genericity.
+	if ([self passengerCapacity] > 0)
+	{
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"];
+		[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
+	}
+	
+	return [[quip copy] autorelease];
+}
+
+
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey
 {
 	OOEquipmentType			*eqType = nil;
@@ -2003,7 +2094,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
-	// if we heve one of these with a differen damage status - remove it first
+	// if we heve one of these with a different damage status - remove it first
 	NSString				*alterKey = nil;
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{

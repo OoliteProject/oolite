@@ -101,8 +101,7 @@ enum
 	kPlayerShip_galaxyCoordinates,		// galaxy coordinates, vector, read only
 	kPlayerShip_cursorCoordinates,		// cursor coordinates, vector, read only
 	kPlayerShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
-	kPlayerShip_manifest,				// the ships' manifest, read only
-	kPlayerShip_equipmentList,			// the ships' equipment list, read only
+	kPlayerShip_manifest				// the ship's manifest array of commodities: name,unit,quantity,displayName, read only
 };
 
 
@@ -126,7 +125,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "manifest",					kPlayerShip_manifest,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "equipmentList",				kPlayerShip_equipmentList,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -269,11 +267,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_manifest:
 			result = [player cargoListForScripting];
-			OK = YES;
-			break;
-			
-		case kPlayerShip_equipmentList:
-			result = [player equipmentListForScripting];
 			OK = YES;
 			break;
 		

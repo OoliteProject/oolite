@@ -96,6 +96,12 @@ MA 02110-1301, USA.
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
 
+#define WEAPON_FACING_NONE				0
+#define WEAPON_FACING_FORWARD			1
+#define WEAPON_FACING_AFT				2
+#define WEAPON_FACING_PORT				4
+#define WEAPON_FACING_STARBOARD			8
+
 @interface ShipEntity: OOEntityWithDrawable
 {
 @public
@@ -579,6 +585,10 @@ MA 02110-1301, USA.
 - (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
+
+- (NSArray *) equipmentListForScripting;
+- (OOEquipmentType *) weaponTypeForFacing:(int) facing;
+- (NSArray *) missilesList;
 
 - (OOCargoFlag) cargoFlag;
 - (void) setCargoFlag:(OOCargoFlag) flag;

@@ -144,9 +144,14 @@ enum
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
-	kShip_passengerCapacity,		// amount of passenger space on ship, integer, read-only
+	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_coordinates,			// position in system space, Vector, read/write
-	
+	kShip_equipment,			// the ship's  equipment, array of type:equpmentType, isDamaged:bool, read only
+	kShip_forwardWeapon,		// the ship's  forward weapon, equipmentType, read only
+	kShip_aftWeapon,			// the ship's  aft weapon, equipmentType, read only
+	kShip_portWeapon,			// the ship's  port weapon, equipmentType, read only
+	kShip_starboardWeapon,		// the ship's  starboard weapon, equipmentType, read only
+	kShip_missiles				// the ship's  missiles / external storage, array of equipmentTypes, read only
 };
 
 
@@ -178,7 +183,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-// "cargo" reserved for array of cargo pods or similar.
+// "cargo" reserved for array of cargo contracts.
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoCapacity",			kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "availableCargoSpace",	kShip_availableCargoSpace,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -201,10 +206,16 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-// "passengers" reserved for array of characters or similar.
+// "passengers" reserved for array of passenger contracts.
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "coordinates",			kShip_coordinates,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "equipment",				kShip_equipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "forwardWeapon",			kShip_forwardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "aftWeapon",				kShip_aftWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "portWeapon",				kShip_portWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "starboardWeapon",		kShip_starboardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -499,6 +510,30 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_coordinates:
 			OK = VectorToJSValue(context, [entity coordinates], outValue); // @@@@ should be coordinates
+			break;
+		
+		case kShip_equipment:
+			result = [entity equipmentListForScripting];
+			break;
+			
+		case kShip_forwardWeapon:
+			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
+			break;
+		
+		case kShip_aftWeapon:
+			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
+			break;
+		
+		case kShip_portWeapon:		// for future expansion
+			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
+			break;
+		
+		case kShip_starboardWeapon: // for future expansion
+			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
+			break;
+		
+		case kShip_missiles:
+			result = [entity missilesList];
 			break;
 		
 		default:

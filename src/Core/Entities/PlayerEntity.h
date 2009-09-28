@@ -177,13 +177,6 @@ typedef enum
 #define MS_WITCHSPACE_SF				@"[witch-to-@-in-f-seconds]"
 #define MS_GAL_WITCHSPACE_F				@"[witch-galactic-in-f-seconds]"
 
-
-#define WEAPON_FACING_NONE				0
-#define WEAPON_FACING_FORWARD			1
-#define WEAPON_FACING_AFT				2
-#define WEAPON_FACING_PORT				4
-#define WEAPON_FACING_STARBOARD			8
-
 #define WEAPON_OFFSET_DOWN				20
 
 #define FORWARD_FACING_STRING			DESC(@"forward-facing-string")
@@ -651,7 +644,6 @@ waitingForStickCallback: 1;
 
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
-- (NSArray *) equipmentListForScripting;
 - (NSArray *) cargoList;
 - (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;
