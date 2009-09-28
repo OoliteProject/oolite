@@ -3628,8 +3628,11 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 {
 	if (group != _group)
 	{
-		if (self == [_group leader])  [_group setLeader:nil];
-		[_group removeShip:self];
+		if (_escortGroup != _group) 
+		{
+			if (self == [_group leader])  [_group setLeader:nil];
+			[_group removeShip:self];
+		}
 		[_group release];
 		[group addShip:self];
 		_group = [group retain];
