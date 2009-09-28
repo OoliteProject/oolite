@@ -145,6 +145,7 @@ enum
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
 	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
+	kShip_maxMissiles,			// max missiles capacity, integer, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
 	kShip_equipment,			// the ship's equipment, array of type:equpmentType, isDamaged:bool, read only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read only
@@ -209,6 +210,7 @@ static JSPropertySpec sShipProperties[] =
 // "passengers" reserved for array of passenger contracts.
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "maxMissiles",			kShip_maxMissiles,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "savedCoordinates",		kShip_savedCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "equipment",				kShip_equipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "forwardWeapon",			kShip_forwardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -507,6 +509,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			*outValue = INT_TO_JSVAL([entity passengerCapacity]);
 			OK = YES;
 			break;
+
+		case kShip_maxMissiles:
+			*outValue = INT_TO_JSVAL([entity missileCapacity]);
+			OK = YES;
+			break;			
 		
 		case kShip_savedCoordinates:
 			OK = VectorToJSValue(context, [entity coordinates], outValue);

@@ -2542,7 +2542,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 
 - (void) game_over
 {
-	[self reinitAndShowDemo:NO];
+
+	if ([[gameView gameController] playerFileToLoad]) [[gameView gameController] loadPlayerIfRequired];
+	else [self reinitAndShowDemo:NO];
 }
 
 - (void) setupIntroFirstGo: (BOOL) justCobra

@@ -2202,7 +2202,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (unsigned) missileCapacity
 {
-	// FIXME: need useful maximum from shipdata key max_missiles (or missiles if no max specified).
+	// for player.ship, this function returns max_missiles 
 	return missiles;
 }
 

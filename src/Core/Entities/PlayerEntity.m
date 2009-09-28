@@ -3814,16 +3814,16 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	flightSpeed = 160.0f;
 	[self setStatus:STATUS_DEAD];
+	if (whom == nil)  whom = (id)[NSNull null];
+	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	[self loseTargetStatus];
+
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:scoreMS forCount:30.0];
 	[UNIVERSE displayMessage:@"" forCount:30.0];
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-press-space") forCount:30.0];
 	[self resetShotTime];
-	
-	if (whom == nil)  whom = (id)[NSNull null];
-	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
-	[self loseTargetStatus];
 }
 
 
