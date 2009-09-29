@@ -122,6 +122,9 @@ static PlayerEntity *sSharedPlayer = nil;
 // Shopping
 - (BOOL) tryBuyingItem:(NSString *)eqKey;
 
+// Cargo & passenger contracts
+- (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
+
 @end
 
 
@@ -4097,7 +4100,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			// set the expected arrival time to now, so they storm off the ship at the first port
 			NSMutableDictionary* passenger_info = [NSMutableDictionary dictionaryWithDictionary:(NSDictionary *)[passengers objectAtIndex:i]];
-			[passenger_info setObject:[NSNumber numberWithDouble:ship_clock] forKey:PASSENGER_KEY_ARRIVAL_TIME];
+			[passenger_info setObject:[NSNumber numberWithDouble:ship_clock] forKey:CONTRACT_KEY_ARRIVAL_TIME];
 			[passengers replaceObjectAtIndex:i withObject:passenger_info];
 		}
 	}
@@ -4532,7 +4535,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (NSArray *) cargoList
 {
 	NSMutableArray	*manifest = [NSMutableArray array];
-	NSArray			*list = [self cargoListForScripting];
+	NSArray			*list = [[self cargoListForScripting] objectForKey:@"list"];
 	NSEnumerator	*cargoEnum = nil;
 	NSDictionary	*commodity;
 	
@@ -4550,9 +4553,10 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (NSArray *) cargoListForScripting
+- (NSDictionary *) cargoListForScripting
 {
-	NSMutableArray		*result = [NSMutableArray array];
+	NSMutableDictionary	*result = [NSMutableDictionary dictionaryWithCapacity:4];
+	NSMutableArray		*list = [NSMutableArray array];
 	
 	unsigned			n_commodities = [shipCommodityData count];
 	OOCargoQuantity		in_hold[n_commodities];
@@ -4574,16 +4578,73 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (in_hold[i] > 0)
 		{
 			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
-			NSString *symName = [[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME];
+			NSString *symName = [[[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME] lowercaseString];
+			// commodity, quantity - keep consistency between .manifest and .contracts
+			[commodity setObject:symName forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:in_hold[i]] forKey:@"quantity"];
+			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"commodityName"]; 
 			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
-			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
-			[commodity setObject:symName forKey:@"name"];
-			[result addObject:commodity];
+			[list addObject:commodity];
+			[result setObject:commodity forKey:symName];
 		}
 	}
-	
+	[result setObject:list forKey:@"list"];
+
 	return [[result copy] autorelease];	// return an immutable copy
+}
+
+
+- (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo
+{
+	NSMutableArray		*result = [NSMutableArray array];
+	unsigned 			i;
+
+	for (i = 0; i < [contracts_array count]; i++)
+	{
+		NSMutableDictionary	*contract = [NSMutableDictionary dictionaryWithCapacity:4];
+		NSDictionary		*dict = (NSDictionary *)[contracts_array objectAtIndex:i];
+		if (forCargo)
+		{
+			// commodity, quantity - keep consistency between .manifest and .contracts
+			[contract setObject:[[UNIVERSE symbolicNameForCommodity:[dict oo_intForKey:CARGO_KEY_TYPE]] lowercaseString] forKey:@"commodity"];
+			[contract setObject:[NSNumber numberWithUnsignedInt:[dict oo_intForKey:CARGO_KEY_AMOUNT]] forKey:@"quantity"];
+			[contract setObject:[dict oo_stringForKey:CARGO_KEY_DESCRIPTION] forKey:@"description"];
+		}
+		else
+		{
+			[contract setObject:[dict oo_stringForKey:PASSENGER_KEY_NAME] forKey:PASSENGER_KEY_NAME];
+		}
+		
+		unsigned 	planet = [dict oo_intForKey:CONTRACT_KEY_DESTINATION];
+		NSString 	*planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_DESTINATION];
+		[contract setObject:planetName forKey:@"destinationName"];
+		planet = [dict oo_intForKey:CONTRACT_KEY_START];
+		planetName = [UNIVERSE getSystemName: [UNIVERSE systemSeedForSystemNumber:planet]];
+		[contract setObject:[NSNumber numberWithUnsignedInt:planet] forKey:CONTRACT_KEY_START];
+		[contract setObject:planetName forKey:@"startName"];
+
+		int 		dest_eta = [dict oo_doubleForKey:CONTRACT_KEY_ARRIVAL_TIME] - ship_clock;
+		[contract setObject:[NSNumber numberWithInt:dest_eta] forKey:@"eta"];
+		[contract setObject:[UNIVERSE shortTimeDescription:dest_eta] forKey:@"etaDescription"];
+		[contract setObject:[dict oo_stringForKey:CONTRACT_KEY_PREMIUM] forKey:CONTRACT_KEY_PREMIUM]; 
+		[contract setObject:[dict oo_stringForKey:CONTRACT_KEY_FEE] forKey:CONTRACT_KEY_FEE]; 
+		[result addObject:contract];
+	}
+
+	return [[result copy] autorelease];	// return an immutable copy
+}
+
+
+- (NSArray *) passengerListForScripting
+{
+	return [self contractsListForScriptingFromArray:passengers forCargo:NO];
+}
+
+
+- (NSArray *) contractListForScripting
+{
+	return [self contractsListForScriptingFromArray:contracts forCargo:YES];
 }
 
 
@@ -4700,7 +4761,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	for (i = 0; i < [passengers count]; i++)
 	{
-		mark[[[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:PASSENGER_KEY_DESTINATION]] = YES;
+		mark[[[passengers oo_dictionaryAtIndex:i]  oo_unsignedCharForKey:CONTRACT_KEY_DESTINATION]] = YES;
 	}
 	for (i = 0; i < [contracts count]; i++)
 	{

@@ -152,7 +152,9 @@ enum
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read only
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
-	kShip_missiles				// the ship's missiles / external storage, array of equipmentTypes, read only
+	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
+	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
+	kShip_contracts				// cargo contracts contracts, array - strings & whatnot,, read only
 };
 
 
@@ -184,7 +186,6 @@ static JSPropertySpec sShipProperties[] =
 	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-// "cargo" reserved for array of cargo contracts.
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoCapacity",			kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "availableCargoSpace",	kShip_availableCargoSpace,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -207,7 +208,6 @@ static JSPropertySpec sShipProperties[] =
 	{ "weaponRange",			kShip_weaponRange,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "withinStationAegis",		kShip_withinStationAegis,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "trackCloseContacts",		kShip_trackCloseContacts,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-// "passengers" reserved for array of passenger contracts.
 	{ "passengerCount",			kShip_passengerCount,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "passengerCapacity",		kShip_passengerCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxMissiles",			kShip_maxMissiles,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -218,6 +218,9 @@ static JSPropertySpec sShipProperties[] =
 	{ "portWeapon",				kShip_portWeapon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "starboardWeapon",		kShip_starboardWeapon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "missiles",				kShip_missiles,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "passengers",				kShip_passengers,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+// contracts instead of cargo to distinguish them from the manifest
+	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -541,6 +544,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		
 		case kShip_missiles:
 			result = [entity missilesList];
+			break;
+		
+		case kShip_passengers:
+			result = [entity passengerListForScripting];
+			break;
+		
+		case kShip_contracts:
+			result = [entity contractListForScripting];
 			break;
 		
 		default:

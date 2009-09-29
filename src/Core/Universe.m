@@ -6912,14 +6912,14 @@ double estimatedTimeForJourney(double distance, int hops)
 				
 				NSDictionary* passenger_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 					passenger_name,											PASSENGER_KEY_NAME,
-					destination_name,										PASSENGER_KEY_DESTINATION_NAME,
-					[NSNumber numberWithInt:start],							PASSENGER_KEY_START,
-					[NSNumber numberWithInt:passenger_destination],			PASSENGER_KEY_DESTINATION,
-					long_description,										PASSENGER_KEY_LONG_DESCRIPTION,
-					[NSNumber numberWithDouble:passenger_departure_time],	PASSENGER_KEY_DEPARTURE_TIME,
-					[NSNumber numberWithDouble:passenger_arrival_time],		PASSENGER_KEY_ARRIVAL_TIME,
-					[NSNumber numberWithInt:fee],							PASSENGER_KEY_FEE,
-					[NSNumber numberWithInt:premium],						PASSENGER_KEY_PREMIUM,
+					destination_name,										CONTRACT_KEY_DESTINATION_NAME,
+					[NSNumber numberWithInt:start],							CONTRACT_KEY_START,
+					[NSNumber numberWithInt:passenger_destination],			CONTRACT_KEY_DESTINATION,
+					long_description,										CONTRACT_KEY_LONG_DESCRIPTION,
+					[NSNumber numberWithDouble:passenger_departure_time],	CONTRACT_KEY_DEPARTURE_TIME,
+					[NSNumber numberWithDouble:passenger_arrival_time],		CONTRACT_KEY_ARRIVAL_TIME,
+					[NSNumber numberWithInt:fee],							CONTRACT_KEY_FEE,
+					[NSNumber numberWithInt:premium],						CONTRACT_KEY_PREMIUM,
 					NULL];
 				
 				[resultArray addObject:passenger_info_dictionary];
@@ -7181,13 +7181,13 @@ double estimatedTimeForJourney(double distance, int hops)
 							OOIntCredits(premium), OOIntCredits(premium + fee)];
 
 						NSDictionary* contract_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
-							[NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2 ],CONTRACT_KEY_ID,
+							[NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2 ],CARGO_KEY_ID,
 							[NSNumber numberWithInt:start],										CONTRACT_KEY_START,
 							[NSNumber numberWithInt:contract_destination],						CONTRACT_KEY_DESTINATION,
 							destination_name,													CONTRACT_KEY_DESTINATION_NAME,
-							[NSNumber numberWithInt:co_type],									CONTRACT_KEY_CARGO_TYPE,
-							[NSNumber numberWithInt:co_amount],									CONTRACT_KEY_CARGO_AMOUNT,
-							[self describeCommodity:co_type amount:co_amount],					CONTRACT_KEY_CARGO_DESCRIPTION,
+							[NSNumber numberWithInt:co_type],									CARGO_KEY_TYPE,
+							[NSNumber numberWithInt:co_amount],									CARGO_KEY_AMOUNT,
+							[self describeCommodity:co_type amount:co_amount],					CARGO_KEY_DESCRIPTION,
 							long_description,													CONTRACT_KEY_LONG_DESCRIPTION,
 							[NSNumber numberWithDouble:contract_departure_time],				CONTRACT_KEY_DEPARTURE_TIME,
 							[NSNumber numberWithDouble:contract_arrival_time],					CONTRACT_KEY_ARRIVAL_TIME,

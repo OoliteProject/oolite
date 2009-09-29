@@ -161,19 +161,20 @@
 
 - (void) quicksavePlayer
 {
+	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	NSString		*path = nil;
 	
 	path = save_path;
-	if (!path)  path = [[[UNIVERSE gameView] gameController] playerFileToLoad];
+	if (!path)  path = [[gameView gameController] playerFileToLoad];
 	if (!path)
 	{
-		OOLog(@"quickSave.failed.noName", @"ERROR no file name returned by [[[UNIVERSE gameView] gameController] playerFileToLoad]");
+		OOLog(@"quickSave.failed.noName", @"ERROR no file name returned by [[gameView gameController] playerFileToLoad]");
 		[NSException raise:@"OoliteGameNotSavedException"
-					format:@"ERROR no file name returned by [[UNIVERSE gameView] gameController] playerFileToLoad]"];
+					format:@"ERROR no file name returned by [[gameView gameController] playerFileToLoad]"];
 	}
 	
 	[self writePlayerToPath:path];
-	
+	[gameView supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 }
 

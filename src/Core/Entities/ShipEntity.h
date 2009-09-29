@@ -586,6 +586,8 @@ MA 02110-1301, USA.
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
 
+- (NSArray *) passengerListForScripting;
+- (NSArray *) contractListForScripting;
 - (NSArray *) equipmentListForScripting;
 - (OOEquipmentType *) weaponTypeForFacing:(int) facing;
 - (NSArray *) missilesList;

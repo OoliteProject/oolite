@@ -2008,6 +2008,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (NSArray *) passengerListForScripting
+{
+	return [NSArray array];
+}
+
+
+- (NSArray *) contractListForScripting
+{
+	return [NSArray array];
+}
+
+
 - (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged
 {
 	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:type, [NSNumber numberWithBool:isDamaged], nil]
