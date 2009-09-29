@@ -4330,6 +4330,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) setGuiToStatusScreen
 {
+	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	// intercept any docking messages
 	if ([dockingReport length] > 0 && [self isDocked])
 	{
