@@ -4544,7 +4544,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
 	{
-		NSString *desc = [commodity oo_stringForKey:@"displayName"];
+		NSString *desc = [commodity oo_stringForKey:@"commodityName"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
 		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
 							[commodity oo_intForKey:@"quantity"], units, desc]];
