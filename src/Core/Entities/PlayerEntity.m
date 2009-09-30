@@ -6156,7 +6156,7 @@ static NSString *last_outfitting_key=nil;
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
 	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 10000))
 		purchase = max_cargo - current_cargo;		// limit to available cargo space
-	if (purchase == 0)
+	if (purchase <= 0)
 		return NO;									// stop if that results in nothing to be bought
 
 	manifest_quantity += purchase;
@@ -6200,7 +6200,7 @@ static NSString *last_outfitting_key=nil;
 		sell = available_units;					// limit to what's in the hold
 	if (sell + market_quantity > 127)
 		sell = 127 - market_quantity;			// avoid flooding the market
-	if (sell == 0)
+	if (sell <= 0)
 		return NO;								// stop if that results in nothing to be sold
 
 	current_cargo -= sell;
