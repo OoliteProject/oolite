@@ -157,7 +157,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// Problem observed in testing -- Ahruman
 	if (self != nil && !isfinite(maxFlightSpeed))
 	{
-		OOLog(@"ship.sanityCheck.failed", @"Ship %@ generated with infinite top speed, clamped to 300!", self);
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ infinite top speed, clamped to 300.", self, @"generated with");
 		maxFlightSpeed = 300;
 	}
 	return self;
@@ -190,6 +190,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	shipinfoDictionary = [shipDict copy];
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
+	
+	// set these flags  to NO explicitly, rather than leave them indetermined.
+	haveExecutedSpawnAction = NO;
+	being_fined = NO;
+	isNearPlanetSurface = NO;
+	suppressAegisMessages = NO;
+	isMissile = NO;
+	suppressExplosion = NO;
 	
 	// set things from dictionary from here out
 	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed"];
@@ -278,7 +286,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
 	extra_cargo = [shipDict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
-	if ([shipDict oo_fuzzyBooleanForKey:@"no_boulders"])  noRocks = YES;
+	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
 	
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
@@ -394,14 +402,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
 
 	// contact tracking entities
-	if ([shipDict objectForKey:@"track_contacts"])
-	{
-		[self setTrackCloseContacts:[shipDict oo_boolForKey:@"track_contacts"]];
-	}
-	else
-	{
-		[self setTrackCloseContacts:NO];
-	}
+	[self setTrackCloseContacts:[shipDict oo_boolForKey:@"track_contacts" defaultValue:NO]];
 
 	// set weapon offsets
 	[self setDefaultWeaponOffsets];
@@ -1332,7 +1333,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (!isfinite(maxFlightSpeed))
 	{
-		OOLog(@"ship.sanityCheck.failed", @"Ship %@ has infinite top speed!", self);
+		OOLog(@"ship.sanityCheck.failed", @"Ship %@ %@ infinite top speed, clamped to 300.", self, @"had");
 		maxFlightSpeed = 300;
 	}
 	
@@ -5502,7 +5503,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (void)setSuppressExplosion:(BOOL)suppress
 {
-	suppressExplosion = suppress != NO;
+	suppressExplosion = !!suppress;
 }
 
 

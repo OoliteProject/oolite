@@ -3608,7 +3608,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	int result = [super dumpCargo];
 	if (result != CARGO_NOT_CARGO)
 	{
-		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0];
+		[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-ejected") ,[UNIVERSE displayNameForCommodity:result]] forCount:3.0 forceDisplay:YES];
 		[self playCargoJettisioned];
 	}
 	return result;
@@ -4579,14 +4579,14 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (in_hold[i] > 0)
 		{
 			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
-			NSString *symName = [[[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME] lowercaseString];
+			NSString *symName = [[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME] ;
 			// commodity, quantity - keep consistency between .manifest and .contracts
-			[commodity setObject:symName forKey:@"commodity"];
+			[commodity setObject:[symName lowercaseString] forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:in_hold[i]] forKey:@"quantity"];
 			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"commodityName"]; 
 			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
 			[list addObject:commodity];
-			[result setObject:commodity forKey:symName];
+			[result setObject:commodity forKey:[symName lowercaseString]];
 		}
 	}
 	[result setObject:list forKey:@"list"];
