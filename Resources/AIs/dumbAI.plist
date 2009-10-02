@@ -2,6 +2,7 @@
 	GLOBAL =
 	{
 		ENTER = (performTumble);
+		RESTARTED = (performTumble);
 		UPDATE = ("pauseAI: 3600");
 	};
 }

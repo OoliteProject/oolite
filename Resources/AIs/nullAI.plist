@@ -2,5 +2,6 @@
 	GLOBAL =
 	{
 		UPDATE = ("pauseAI: 3600");
+		EXIT = ("pauseAI: 1");
 	};
 }

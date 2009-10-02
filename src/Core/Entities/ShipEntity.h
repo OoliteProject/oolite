@@ -80,10 +80,10 @@ MA 02110-1301, USA.
 
 #define NPC_PLASMA_SPEED				1500.0f
 #define MAIN_PLASMA_DURATION			5.0
-#define NPC_PLASMA_RANGE				(MAIN_PLASMA_DURATION * NPC_PLASMA_RANGE)
+#define NPC_PLASMA_RANGE				(MAIN_PLASMA_DURATION * NPC_PLASMA_SPEED)
 
 #define PLAYER_PLASMA_SPEED				1000.0f
-#define PLAYER_PLASMA_RANGE				(MAIN_PLASMA_DURATION * PLAYER_PLASMA_RANGE)
+#define PLAYER_PLASMA_RANGE				(MAIN_PLASMA_DURATION * PLAYER_PLASMA_SPEED)
 
 #define TRACTOR_FORCE					2500.0f
 
@@ -567,6 +567,7 @@ MA 02110-1301, USA.
 
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;
+- (void) setThrust:(double) amount;
 
 - (void)setThrustForDemo:(float)factor;
 

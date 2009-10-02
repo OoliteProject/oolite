@@ -1581,6 +1581,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			[self setStatus:STATUS_IN_FLIGHT];	// should correct 'uncollidable objects' bug
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
+			[self setOwner:self];
+			[shipAI exitStateMachineWithMessage:nil];  // Escapepods and others should continue their old AI here.
 		}
 	}
 	
@@ -2393,11 +2395,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_tractored:(double) delta_t
 {
-	double  distance = [self rangeToDestination];
 	desired_range = collision_radius * 2.0;
 	ShipEntity* hauler = (ShipEntity*)[self owner];
 	if ((hauler)&&([hauler isShip]))
 	{
+		destination = [hauler absoluteTractorPosition];
+		double  distance = [self rangeToDestination];
 		if (distance < desired_range)
 		{
 			behaviour = BEHAVIOUR_TUMBLE;
@@ -2406,7 +2409,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			return;
 		}
 		GLfloat tf = TRACTOR_FORCE / mass;
-		destination = [hauler absoluteTractorPosition];
 		// adjust for difference in velocity (spring rule)
 		Vector dv = vector_between([self velocity], [hauler velocity]);
 		GLfloat moment = delta_t * 0.25 * tf;
@@ -2450,6 +2452,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[self setStatus:STATUS_IN_FLIGHT];
 				behaviour = BEHAVIOUR_IDLE;
 				frustration = 0.0;
+				[self setOwner:self];
 				[shipAI exitStateMachineWithMessage:nil];	// exit nullAI.plist
 			}
 			else if ([hauler isPlayer])
@@ -4474,7 +4477,13 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (void)setThrustForDemo:(float)factor
+- (void) setThrust:(double) amount
+{
+	thrust = amount;
+}
+
+
+- (void) setThrustForDemo:(float) factor
 {
 	flightSpeed = factor * maxFlightSpeed;
 }
@@ -5004,12 +5013,14 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (jetsam)
 			{
 				int n_jetsam = [jetsam count];
+				NSDictionary *containerShipDict = nil;
 				//
 				for (i = 0; i < n_jetsam; i++)
 				{
 					if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 					{
 						ShipEntity* container = [jetsam objectAtIndex:i];
+						AI *containerAI = nil;
 						Vector  rpos = xposition;
 						Vector	rrand = randomPositionInBoundingBox(boundingBox);
 						rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -5026,7 +5037,18 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[container setStatus:STATUS_IN_FLIGHT];
 						[container setScanClass: CLASS_CARGO];
 						[UNIVERSE addEntity:container];
-						[[container getAI] setState:@"GLOBAL"];
+						containerAI = [container getAI];
+						if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
+						{
+							containerShipDict = [container shipInfoDictionary];
+							[containerAI exitStateMachineWithMessage:nil];
+							[container setThrust:[containerShipDict oo_floatForKey:@"thrust"]]; // restore old value. Was set to zero on previous scooping.
+							[container setOwner:container];
+						}
+						else 
+						{
+							[containerAI setState:@"GLOBAL"];
+						}
 					}
 				}
 			}
@@ -7186,8 +7208,9 @@ BOOL class_masslocks(int some_class)
 {
 	if (!jetto)
 		return 0;
-	int result = [jetto cargoType];
-	Vector start;
+	int		result = [jetto cargoType];
+	AI		*jettoAI = nil;
+	Vector	start;
 
 	double  eject_speed = 20.0;
 	double  eject_reaction = -eject_speed * [jetto mass] / [self mass];
@@ -7241,7 +7264,19 @@ BOOL class_masslocks(int some_class)
 	[jetto setStatus: STATUS_IN_FLIGHT];
 	[jetto setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
 	[UNIVERSE addEntity:jetto];
-	[[jetto getAI] setState:@"GLOBAL"];
+
+	jettoAI = [jetto getAI];
+	if ([jettoAI hasSuspendedStateMachines]) // check if this was previos scooped cargo.
+	{
+		NSDictionary *jettoShipDict = [jetto shipInfoDictionary];
+		[jetto setThrust:[jettoShipDict oo_floatForKey:@"thrust"]]; // restore old value.
+		[jetto setOwner:jetto];
+		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.
+	}
+	else 
+	{
+		[jettoAI setState:@"GLOBAL"];
+	}
 	cargo_dump_time = [UNIVERSE getTime];
 	return result;
 }
@@ -7480,8 +7515,9 @@ BOOL class_masslocks(int some_class)
 
 - (void) getTractoredBy:(ShipEntity *)other
 {
+	if([self status] == STATUS_BEING_SCOOPED) return; // both cargo and ship call this. Act only once.
 	desired_speed = 0.0;
-	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or behaviour
+	[self setAITo:@"nullAI.plist"];	// prevent AI from changing status or behaviour.
 	behaviour = BEHAVIOUR_TRACTORED;
 	[self setStatus:STATUS_BEING_SCOOPED];
 	[self addTarget:other];
@@ -8791,6 +8827,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	OOLog(@"dumpState.shipEntity", @"Other destination: %@", VectorDescription(coordinates));
 	OOLog(@"dumpState.shipEntity", @"Waypoint count: %u", number_of_navpoints);
 	OOLog(@"dumpState.shipEntity", @"Desired speed: %g", desired_speed);
+	OOLog(@"dumpState.shipEntity", @"Thrust: %g", thrust);
 	if ([self escortCount] != 0)  OOLog(@"dumpState.shipEntity", @"Escort count: %u", [self escortCount]);
 	OOLog(@"dumpState.shipEntity", @"Fuel: %i", fuel);
 	OOLog(@"dumpState.shipEntity", @"Fuel accumulator: %g", fuel_accumulator);
