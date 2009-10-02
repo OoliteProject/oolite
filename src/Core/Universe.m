@@ -7811,19 +7811,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (Vector) getWitchspaceExitPosition
 {
+#if 0
 	Vector result;
 	seed_RNG_only_for_planet_description(system_seed);
-
-	// new system is hyper-centric : witchspace exit point is origin
-	result.x = 0.0;
-	result.y = 0.0;
-	result.z = 0.0;
 	
-	result.x += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);   // offset by a set amount, up to 12.8 km
-	result.y += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
-	result.z += SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
+	result.x = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);   // offset by a set amount, up to 12.8 km
+	result.y = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
+	result.z = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
 	
 	return result;
+#else
+	// Generate three random numbers so that anything implicitly relying on PRNG state is unchanged...
+	seed_RNG_only_for_planet_description(system_seed);
+	gen_rnd_number();
+	gen_rnd_number();
+	gen_rnd_number();
+	
+	return kZeroVector;
+#endif
 }
 
 
