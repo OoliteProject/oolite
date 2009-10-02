@@ -53,6 +53,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdint.h>
 #include <limits.h>
+#include <assert.h>
 
 #if OOMATHS_OPENGL_INTEGRATION
 #include "OOOpenGL.h"

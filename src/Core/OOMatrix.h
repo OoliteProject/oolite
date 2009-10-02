@@ -270,11 +270,13 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 }
 
 
+#if OOMATHS_OPENGL_INTEGRATION
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID)
 {
 	OOMatrix m;
 	glGetFloatv(matrixID, OOMatrixValuesForOpenGL(m));
 	return m;
 }
+#endif
 
 #endif	/* INCLUDED_OOMATHS_h */
