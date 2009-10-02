@@ -1939,6 +1939,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[UNIVERSE clearPreviousMessage];
 
+	[self sanityCheckShipsOnApproach];
+
 	// Docking clearance not required - clear it just in case it's been
 	// set for another nearby station.
 	if (![self requiresDockingClearance])
