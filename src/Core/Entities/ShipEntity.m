@@ -484,29 +484,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict
 {
-#if 0
-	ParticleEntity		*flasher = nil;
-	float				size, frequency, phase;
-	
-	size = [subentDict oo_floatForKey:@"size"];
-	frequency = [subentDict oo_floatForKey:@"frequency"] * 2.0;
-	phase = [subentDict oo_floatForKey:@"phase"];
-	
-	flasher = [[ParticleEntity alloc] initFlasherWithSize:size frequency:frequency phase:phase];
-	[flasher setColor:[OOColor brightColorWithDescription:[[subentDict oo_arrayForKey:@"colors"] objectAtIndex:0]]];
-	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
-	if ([subentDict oo_boolForKey:@"initially_on"])  [flasher setStatus:STATUS_EFFECT];
-	
-	[self addSubEntity:flasher];
-	[flasher release];
-	
-	return YES;
-#else
 	OOFlasherEntity *flasher = [OOFlasherEntity flasherWithDictionary:subentDict];
 	[flasher setPosition:[subentDict oo_vectorForKey:@"position"]];
 	[self addSubEntity:flasher];
 	return YES;
-#endif
 }
 
 

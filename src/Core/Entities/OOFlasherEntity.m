@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "OOColor.h"
 #import "OOCollectionExtractors.h"
+#import "NSDictionaryOOExtensions.h"
 
 
 @interface OOFlasherEntity (Internal)
@@ -80,7 +81,7 @@ MA 02110-1301, USA.
 	NSEnumerator *specEnum = [colorSpecifiers objectEnumerator];
 	while ((specifier = [specEnum nextObject]))
 	{
-		[colors addObject:[OOColor colorWithDescription:specifier]];
+		[colors addObject:[OOColor colorWithDescription:specifier saturationFactor:0.75f]];
 	}
 	
 	_colors = [colors copy];

@@ -69,7 +69,6 @@ typedef enum
 - (void) updateFragburst:(double) delta_t;
 - (void) updateBurst2:(double) delta_t;
 
-- (void) drawParticle;
 - (void) drawLaser;
 - (void) drawHyperring;
 - (void) drawEnergyMine;
@@ -770,7 +769,8 @@ FAIL:
 #endif
 				
 			default:
-				[self drawParticle];
+				OOLog(@"particle.unknown", @"Invalid particle %@, removing.", self);
+				[UNIVERSE removeEntity:self];
 				break;
 		}
 	}
@@ -778,130 +778,6 @@ FAIL:
 	OOGL(glPopAttrib());
 	
 	CheckOpenGLErrors(@"ParticleEntity after drawing %@ %@", self);
-}
-
-
-- (void) drawParticle
-{
-	int viewdir;
-
-	GLfloat	xx = 0.5 * size.width;
-	GLfloat	yy = 0.5 * size.height;
-
-	alpha = OOClamp_0_1_f(alpha);
-	color_fv[3] = alpha;
-	
-	// movies:
-	// draw data required xx, yy, color_fv[0], color_fv[1], color_fv[2]
-	
-	OOGL(glEnable(GL_TEXTURE_2D));
-	
-	OOGL(glColor4fv(color_fv));
-	
-	OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, color_fv));
-	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND));
-	
-	[texture apply];
-	
-	BeginAdditiveBlending(GL_ONE_YES);
-
-	OOGLBEGIN(GL_QUADS);
-
-	viewdir = [UNIVERSE viewDirection];
-
-	switch (viewdir)
-	{
-		case VIEW_FORWARD:
-			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, -xx);
-
-			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
-			break;
-			
-		case	VIEW_AFT:
-			glTexCoord2f(0.0, 1.0);
-			glVertex3f(xx, -yy, xx);
-
-			glTexCoord2f(1.0, 1.0);
-			glVertex3f(-xx, -yy, xx);
-
-			glTexCoord2f(1.0, 0.0);
-			glVertex3f(-xx, yy, xx);
-
-			glTexCoord2f(0.0, 0.0);
-			glVertex3f(xx, yy, xx);
-			break;
-
-		case	VIEW_STARBOARD:
-			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, xx);
-
-			glTexCoord2f(1.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
-
-			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, xx);
-			break;
-
-		case	VIEW_PORT:
-			glTexCoord2f(0.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, xx);
-
-			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, xx);
-
-			glTexCoord2f(0.0, 0.0);
-			glVertex3f(xx, yy, -xx);
-			break;
-
-		case	VIEW_CUSTOM:
-			{
-				PlayerEntity *player = [PlayerEntity sharedPlayer];
-				Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
-				Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
-				Vector vk = [player customViewForwardVector];	vk.x *= xx;	vk.y *= xx;	vk.z *= xx;
-				glTexCoord2f(0.0, 1.0);
-				glVertex3f(-vi.x -vj.x -vk.x, -vi.y -vj.y -vk.y, -vi.z -vj.z -vk.z);
-				glTexCoord2f(1.0, 1.0);
-				glVertex3f(+vi.x -vj.x -vk.x, +vi.y -vj.y -vk.y, +vi.z -vj.z -vk.z);
-				glTexCoord2f(1.0, 0.0);
-				glVertex3f(+vi.x +vj.x -vk.x, +vi.y +vj.y -vk.y, +vi.z +vj.z -vk.z);
-				glTexCoord2f(0.0, 0.0);
-				glVertex3f(-vi.x +vj.x -vk.x, -vi.y +vj.y -vk.y, -vi.z +vj.z -vk.z);
-			}
-			break;
-		
-		default:
-			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
-
-			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, -xx);
-
-			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
-			break;
-	}
-	OOGLEND();
-	
-	EndAdditiveBlending();
-	OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
 }
 
 

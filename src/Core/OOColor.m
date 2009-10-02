@@ -128,13 +128,20 @@ MA 02110-1301, USA.
 
 + (OOColor *)colorWithDescription:(id)description
 {
+	return [self colorWithDescription:description saturationFactor:1.0f];
+}
+
+
++ (OOColor *)colorWithDescription:(id)description saturationFactor:(float)factor
+{
 	NSDictionary			*dict = nil;
+	OOColor					*result = nil;
 	
 	if (description == nil) return nil;
 	
 	if ([description isKindOfClass:[OOColor class]])
 	{
-		return [[description copy] autorelease];
+		result = [[description copy] autorelease];
 	}
 	else if ([description isKindOfClass:[NSString class]])
 	{
@@ -142,17 +149,17 @@ MA 02110-1301, USA.
 		{
 			// +fooColor selector
 			SEL selector = NSSelectorFromString(description);
-			if ([self respondsToSelector:selector])  return [self performSelector:selector];
+			if ([self respondsToSelector:selector])  result = [self performSelector:selector];
 		}
 		else
 		{
 			// Some other string
-			return [self colorFromString:description];
+			result = [self colorFromString:description];
 		}
 	}
 	else if ([description isKindOfClass:[NSArray class]])
 	{
-		return [self colorFromString:[description componentsJoinedByString:@" "]];
+		result = [self colorFromString:[description componentsJoinedByString:@" "]];
 	}
 	else if ([description isKindOfClass:[NSDictionary class]])
 	{
@@ -168,7 +175,8 @@ MA 02110-1301, USA.
 			float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
 			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
-			return [OOColor colorWithCalibratedHue:h / 360.0f saturation:s brightness:b alpha:a];
+			// Not "result =", because we handle the saturation scaling here to allow oversaturation.
+			return [OOColor colorWithCalibratedHue:h / 360.0f saturation:s * factor brightness:b alpha:a];
 		}
 		else
 		{
@@ -179,11 +187,20 @@ MA 02110-1301, USA.
 			float a = [dict oo_floatForKey:@"alpha" defaultValue:-1.0f];
 			if (a < 0.0f)  a = [dict oo_floatForKey:@"opacity" defaultValue:1.0f];
 			
-			return [OOColor colorWithCalibratedRed:r green:g blue:b alpha:a];
+			result = [OOColor colorWithCalibratedRed:r green:g blue:b alpha:a];
 		}
 	}
 	
-	return nil;
+	if (factor != 1.0f && result != nil)
+	{
+		OOCGFloat h, s, b, a;
+		[result getHue:&h saturation:&s brightness:&b alpha:&a];
+		h *= 1.0 / 360.0f;	// See note in header.
+		s *= factor;
+		result = [self colorWithCalibratedHue:h saturation:s brightness:b alpha:a];
+	}
+	
+	return result;
 }
 
 

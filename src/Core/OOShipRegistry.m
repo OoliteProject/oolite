@@ -1011,10 +1011,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 													shipData:shipData
 												  fatalError:outFatalError];
 		
-		// TODO: remove
+#if OO_DEBUG
+		// Ensure internal translation made sense.
 		result = [self validateNewStyleSubentityDeclaration:result
 													forShip:shipKey
 												 fatalError:outFatalError];
+#endif
 	}
 	else if ([declaration isKindOfClass:[NSDictionary class]])
 	{

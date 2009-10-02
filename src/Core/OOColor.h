@@ -58,6 +58,12 @@ typedef struct
 // Like +colorWithDescription:, but forces brightness of at least 0.5.
 + (OOColor *)brightColorWithDescription:(id)description;
 
+/*	Like +colorWithDescription:, but multiplies saturation by provided factor.
+	If the colour is an HSV dictionary, it may specify a saturation greater
+	than 1.0 to override the scaling.
+*/
++ (OOColor *)colorWithDescription:(id)description saturationFactor:(float)factor;
+
 // Creates a colour given a string with components.
 + (OOColor *)colorFromString:(NSString*) colorFloatString;
 

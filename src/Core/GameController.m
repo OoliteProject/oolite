@@ -592,6 +592,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 			NSOpenGLPFAAccelerated,
 #if FSAA
 			// Need a preference or other sane way to activate this
+			NSOpenGLPFAMultisample,
 			NSOpenGLPFASampleBuffers, 1,
 			NSOpenGLPFASamples,4,
 #endif
