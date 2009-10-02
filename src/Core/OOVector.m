@@ -22,23 +22,28 @@ MA 02110-1301, USA.
 
 */
 
-#import "OOMaths.h"
-#import "OOLogging.h"
+#include "OOMaths.h"
 
 
 const Vector			kZeroVector = { 0.0f, 0.0f, 0.0f };
 const Vector			kBasisXVector = { 1.0f, 0.0f, 0.0f };
 const Vector			kBasisYVector = { 0.0f, 1.0f, 0.0f };
 const Vector			kBasisZVector = { 0.0f, 0.0f, 1.0f };
+
+#if !OOMATHS_STANDALONE
 const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
+#endif
 
 
+#if __OBJC__
 NSString *VectorDescription(Vector vector)
 {
 	return [NSString stringWithFormat:@"(%g, %g, %g)", vector.x, vector.y, vector.z];
 }
+#endif
 
 
+#if !OOMATHS_STANDALONE
 /*	This generates random vectors distrubuted evenly over the surface of the
 	unit sphere. It does this the simple way, by generating vectors in the
 	half-unit cube and rejecting those outside the half-unit sphere (and the
@@ -65,7 +70,7 @@ Vector OORandomUnitVector(void)
 }
 
 
-Vector OOVectorRandomSpatial(GLfloat maxLength)
+Vector OOVectorRandomSpatial(OOScalar maxLength)
 {
 	Vector				v;
 	float				m;
@@ -81,7 +86,8 @@ Vector OOVectorRandomSpatial(GLfloat maxLength)
 }
 
 
-Vector OOVectorRandomRadial(GLfloat maxLength)
+Vector OOVectorRandomRadial(OOScalar maxLength)
 {
 	return vector_multiply_scalar(OORandomUnitVector(), randf() * maxLength);
 }
+#endif

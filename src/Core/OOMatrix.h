@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 typedef struct OOMatrix
 {
-	GLfloat				m[4][4];
+	OOScalar				m[4][4];
 } OOMatrix;
 
 
@@ -40,36 +40,36 @@ extern const OOMatrix	kZeroMatrix;			/* {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}
 
 
 /* Matrix construction and standard primitive matrices */
-OOINLINE OOMatrix OOMatrixConstruct(GLfloat aa, GLfloat ab, GLfloat ac, GLfloat ad,
-									GLfloat ba, GLfloat bb, GLfloat bc, GLfloat bd,
-									GLfloat ca, GLfloat cb, GLfloat cc, GLfloat cd,
-									GLfloat da, GLfloat db, GLfloat dc, GLfloat dd) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixConstruct(OOScalar aa, OOScalar ab, OOScalar ac, OOScalar ad,
+									OOScalar ba, OOScalar bb, OOScalar bc, OOScalar bd,
+									OOScalar ca, OOScalar cb, OOScalar cc, OOScalar cd,
+									OOScalar da, OOScalar db, OOScalar dc, OOScalar dd) INLINE_CONST_FUNC;
 
 OOINLINE OOMatrix OOMatrixFromOrientationAndPosition(Quaternion orientation, Vector position) INLINE_CONST_FUNC;
 
 OOINLINE OOMatrix OOMatrixFromBasisVectorsAndPosition(Vector i, Vector j, Vector k, Vector position) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixFromBasisVectors(Vector i, Vector j, Vector k) INLINE_CONST_FUNC;
 
-OOINLINE OOMatrix OOMatrixForRotationX(GLfloat angle) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixForRotationY(GLfloat angle) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixForRotationZ(GLfloat angle) INLINE_CONST_FUNC;
-OOMatrix OOMatrixForRotation(Vector axis, GLfloat angle) CONST_FUNC;
+OOINLINE OOMatrix OOMatrixForRotationX(OOScalar angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixForRotationY(OOScalar angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixForRotationZ(OOScalar angle) INLINE_CONST_FUNC;
+OOMatrix OOMatrixForRotation(Vector axis, OOScalar angle) CONST_FUNC;
 OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation);
 
 OOINLINE OOMatrix OOMatrixForTranslation(Vector v) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLfloat dz) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixForTranslationComponents(OOScalar dx, OOScalar dy, OOScalar dz) INLINE_CONST_FUNC;
 
 OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) CONST_FUNC;
 
 
 /* Matrix transformations */
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, GLfloat dx, GLfloat dy, GLfloat dz) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar dy, OOScalar dz) INLINE_CONST_FUNC;
 
-OOINLINE OOMatrix OOMatrixRotateX(OOMatrix m, GLfloat angle) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, GLfloat angle) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, GLfloat angle) INLINE_CONST_FUNC;
-OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, GLfloat angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixRotateX(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat) INLINE_CONST_FUNC;
 
 
@@ -86,6 +86,7 @@ OOINLINE void OOMatrixGetBasisVectors(OOMatrix m, Vector *outRight, Vector *outU
 OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 
 
+#if OOMATHS_OPENGL_INTEGRATION
 /*	OpenGL conveniences. Need to be macros to work with OOMacroOpenGL. */
 #define OOMatrixValuesForOpenGL(M) (&(M).m[0][0])
 #define GLMultOOMatrix(M) do { OOMatrix m_ = M; OOGL(glMultMatrixf(OOMatrixValuesForOpenGL(m_))); } while (0)
@@ -95,9 +96,10 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m) CONST_FUNC;
 #define GLUniformMatrix(location, M) do { OOGL(glUniformMatrix4fvARB(location, 1, NO, OOMatrixValuesForOpenGL(M))); } while (0)
 
 OOINLINE OOMatrix OOMatrixLoadGLMatrix(unsigned long /* GLenum */ matrixID) ALWAYS_INLINE_FUNC;
+#endif
 
 
-#ifdef __OBJC__
+#if __OBJC__
 NSString *OOMatrixDescription(OOMatrix matrix);		// @"{{#, #, #, #}, {#, #, #, #}, {#, #, #, #}, {#, #, #, #}}"
 #endif
 
@@ -105,10 +107,10 @@ NSString *OOMatrixDescription(OOMatrix matrix);		// @"{{#, #, #, #}, {#, #, #, #
 
 /*** Only inline definitions beyond this point ***/
 
-OOINLINE OOMatrix OOMatrixConstruct(GLfloat aa, GLfloat ab, GLfloat ac, GLfloat ad,
-									GLfloat ba, GLfloat bb, GLfloat bc, GLfloat bd,
-									GLfloat ca, GLfloat cb, GLfloat cc, GLfloat cd,
-									GLfloat da, GLfloat db, GLfloat dc, GLfloat dd)
+OOINLINE OOMatrix OOMatrixConstruct(OOScalar aa, OOScalar ab, OOScalar ac, OOScalar ad,
+									OOScalar ba, OOScalar bb, OOScalar bc, OOScalar bd,
+									OOScalar ca, OOScalar cb, OOScalar cc, OOScalar cd,
+									OOScalar da, OOScalar db, OOScalar dc, OOScalar dd)
 {
 	OOMatrix r =
 	{{
@@ -146,9 +148,9 @@ OOINLINE OOMatrix OOMatrixFromBasisVectors(Vector i, Vector j, Vector k)
 
 
 /* Standard primitive transformation matrices: */
-OOMatrix OOMatrixForRotationX(GLfloat angle)
+OOMatrix OOMatrixForRotationX(OOScalar angle)
 {
-	GLfloat			s, c;
+	OOScalar			s, c;
 	
 	s = sinf(angle);
 	c = cosf(angle);
@@ -163,9 +165,9 @@ OOMatrix OOMatrixForRotationX(GLfloat angle)
 }
 
 
-OOMatrix OOMatrixForRotationY(GLfloat angle)
+OOMatrix OOMatrixForRotationY(OOScalar angle)
 {
-	GLfloat			s, c;
+	OOScalar			s, c;
 	
 	s = sinf(angle);
 	c = cosf(angle);
@@ -180,9 +182,9 @@ OOMatrix OOMatrixForRotationY(GLfloat angle)
 }
 
 
-OOMatrix OOMatrixForRotationZ(GLfloat angle)
+OOMatrix OOMatrixForRotationZ(OOScalar angle)
 {
-	GLfloat			s, c;
+	OOScalar			s, c;
 	
 	s = sinf(angle);
 	c = cosf(angle);
@@ -195,7 +197,7 @@ OOMatrix OOMatrixForRotationZ(GLfloat angle)
 	    0,  0,  0,  1
 	);
 }
-OOINLINE OOMatrix OOMatrixForTranslationComponents(GLfloat dx, GLfloat dy, GLfloat dz)
+OOINLINE OOMatrix OOMatrixForTranslationComponents(OOScalar dx, OOScalar dy, OOScalar dz)
 {
 	return OOMatrixConstruct
 	(
@@ -213,7 +215,7 @@ OOINLINE OOMatrix OOMatrixForTranslation(Vector v)
 }
 
 
-OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, GLfloat dx, GLfloat dy, GLfloat dz)
+OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar dy, OOScalar dz)
 {
 	m.m[3][0] += dx;
 	m.m[3][1] += dy;
@@ -228,25 +230,25 @@ OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset)
 }
 
 
-OOINLINE OOMatrix OOMatrixRotateX(OOMatrix m, GLfloat angle)
+OOINLINE OOMatrix OOMatrixRotateX(OOMatrix m, OOScalar angle)
 {
 	return OOMatrixMultiply(m, OOMatrixForRotationX(angle));
 }
 
 
-OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, GLfloat angle)
+OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, OOScalar angle)
 {
 	return OOMatrixMultiply(m, OOMatrixForRotationY(angle));
 }
 
 
-OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, GLfloat angle)
+OOINLINE OOMatrix OOMatrixRotateZ(OOMatrix m, OOScalar angle)
 {
 	return OOMatrixMultiply(m, OOMatrixForRotationZ(angle));
 }
 
 
-OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, GLfloat angle)
+OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle)
 {
 	return OOMatrixMultiply(m, OOMatrixForRotation(axis, angle));
 }

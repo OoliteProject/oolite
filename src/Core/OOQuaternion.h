@@ -32,10 +32,10 @@ MA 02110-1301, USA.
 
 typedef struct Quaternion
 {
-	GLfloat w;
-	GLfloat x;
-	GLfloat y;
-	GLfloat z;
+	OOScalar w;
+	OOScalar x;
+	OOScalar y;
+	OOScalar z;
 } Quaternion;
 
 
@@ -44,10 +44,10 @@ extern const Quaternion	kZeroQuaternion;		// 0, 0, 0, 0
 
 
 /* Construct quaternion */
-OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat qz) INLINE_CONST_FUNC;
+OOINLINE Quaternion make_quaternion(OOScalar qw, OOScalar qx, OOScalar qy, OOScalar qz) INLINE_CONST_FUNC;
 
 /* Comparison of quaternions */
-OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b) INLINE_CONST_FUNC;
+OOINLINE bool quaternion_equal(Quaternion a, Quaternion b) INLINE_CONST_FUNC;
 
 /* Multiply quaternions */
 Quaternion quaternion_multiply(Quaternion q1, Quaternion q2) CONST_FUNC;
@@ -58,15 +58,17 @@ OOINLINE Quaternion quaternion_negate(Quaternion q) INLINE_CONST_FUNC;
 /* Conjugate, or spacial inverse -- negate x, y, z components */
 OOINLINE Quaternion quaternion_conjugate(Quaternion q) INLINE_CONST_FUNC;
 
+#if !OOMATHS_STANDALONE
 /* Set quaternion to random unit quaternion */
 void quaternion_set_random(Quaternion *quat) NONNULL_FUNC;
 OOINLINE Quaternion OORandomQuaternion(void) ALWAYS_INLINE_FUNC;
+#endif
 
 /* Build quaternion representing a rotation around a given axis */
-OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle) NONNULL_FUNC;
+OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle) NONNULL_FUNC;
 
 /* Inner product of two quaternions */
-OOINLINE GLfloat quaternion_dot_product(Quaternion q1, Quaternion q2) CONST_FUNC;
+OOINLINE OOScalar quaternion_dot_product(Quaternion q1, Quaternion q2) CONST_FUNC;
 
 /* Create basis vectors from a quaternion. */
 Vector vector_forward_from_quaternion(Quaternion quat) CONST_FUNC;
@@ -82,16 +84,16 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1) CONST_FUNC;
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc) CONST_FUNC;
 
 /* Rotate a quaternion about a fixed axis. */
-void quaternion_rotate_about_x(Quaternion *quat, GLfloat angle) NONNULL_FUNC;
-void quaternion_rotate_about_y(Quaternion *quat, GLfloat angle) NONNULL_FUNC;
-void quaternion_rotate_about_z(Quaternion *quat, GLfloat angle) NONNULL_FUNC;
-void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle) NONNULL_FUNC;
+void quaternion_rotate_about_x(Quaternion *quat, OOScalar angle) NONNULL_FUNC;
+void quaternion_rotate_about_y(Quaternion *quat, OOScalar angle) NONNULL_FUNC;
+void quaternion_rotate_about_z(Quaternion *quat, OOScalar angle) NONNULL_FUNC;
+void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle) NONNULL_FUNC;
 
 /* Normalize quaternion */
 OOINLINE void quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 OOINLINE void fast_quaternion_normalize(Quaternion *quat) NONNULL_FUNC ALWAYS_INLINE_FUNC;
 
-#ifdef __OBJC__
+#if __OBJC__
 NSString *QuaternionDescription(Quaternion quaternion);	// @"(w + xi + yj + zk)"
 #endif
 
@@ -102,7 +104,7 @@ Vector quaternion_rotate_vector(Quaternion q, Vector vector) CONST_FUNC;
 
 /*** Only inline definitions beyond this point ***/
 
-OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat qz)
+OOINLINE Quaternion make_quaternion(OOScalar qw, OOScalar qx, OOScalar qy, OOScalar qz)
 {
 	Quaternion result;
 	result.w = qw;
@@ -113,7 +115,7 @@ OOINLINE Quaternion make_quaternion(GLfloat qw, GLfloat qx, GLfloat qy, GLfloat 
 }
 
 
-OOINLINE GLboolean quaternion_equal(Quaternion a, Quaternion b)
+OOINLINE bool quaternion_equal(Quaternion a, Quaternion b)
 {
 	return a.w == b.w && a.x == b.x && a.y == b.y && a.z == b.z;
 }
@@ -131,10 +133,10 @@ OOINLINE Quaternion quaternion_conjugate(Quaternion q)
 }
 
 
-OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
+OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 {
-	GLfloat a = angle * 0.5f;
-	GLfloat scale = sinf(a);
+	OOScalar a = angle * 0.5f;
+	OOScalar scale = sinf(a);
 	
 	quat->w = cosf(a);
 	quat->x = axis.x * scale;
@@ -143,7 +145,7 @@ OOINLINE void quaternion_set_rotate_about_axis(Quaternion *quat, Vector axis, GL
 }
 
 
-OOINLINE GLfloat quaternion_dot_product(Quaternion q1, Quaternion q2)
+OOINLINE OOScalar quaternion_dot_product(Quaternion q1, Quaternion q2)
 {
 	return q1.w*q2.w + q1.x*q2.x + q1.y*q2.y + q1.z*q2.z;
 }
@@ -151,12 +153,12 @@ OOINLINE GLfloat quaternion_dot_product(Quaternion q1, Quaternion q2)
 
 OOINLINE void quaternion_normalize(Quaternion *quat)
 {
-	GLfloat	w = quat->w;
-	GLfloat	x = quat->x;
-	GLfloat	y = quat->y;
-	GLfloat	z = quat->z;
+	OOScalar	w = quat->w;
+	OOScalar	x = quat->x;
+	OOScalar	y = quat->y;
+	OOScalar	z = quat->z;
 	
-	GLfloat	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
+	OOScalar	lv = OOInvSqrtf(w*w + x*x + y*y + z*z);
 	
 	quat->w = lv * w;
 	quat->x = lv * x;
@@ -167,12 +169,12 @@ OOINLINE void quaternion_normalize(Quaternion *quat)
 
 OOINLINE void fast_quaternion_normalize(Quaternion *quat)
 {
-	GLfloat	w = quat->w;
-	GLfloat	x = quat->x;
-	GLfloat	y = quat->y;
-	GLfloat	z = quat->z;
+	OOScalar	w = quat->w;
+	OOScalar	x = quat->x;
+	OOScalar	y = quat->y;
+	OOScalar	z = quat->z;
 	
-	GLfloat	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
+	OOScalar	lv = OOFastInvSqrtf(w*w + x*x + y*y + z*z);
 	
 	quat->w = lv * w;
 	quat->x = lv * x;
@@ -181,11 +183,13 @@ OOINLINE void fast_quaternion_normalize(Quaternion *quat)
 }
 
 
+#if !OOMATHS_STANDALONE
 OOINLINE Quaternion OORandomQuaternion(void)
 {
 	Quaternion q;
 	quaternion_set_random(&q);
 	return q;
 }
+#endif
 
 #endif	/* INCLUDED_OOMATHS_h */

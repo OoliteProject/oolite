@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 
-#import "OOMaths.h"
+#include "OOMaths.h"
 
 
 const OOMatrix	kIdentityMatrix = 
@@ -41,13 +41,13 @@ const OOMatrix	kZeroMatrix		= { .m = {
 								}};
 
 
-OOMatrix OOMatrixForRotation(Vector axis, GLfloat angle)
+OOMatrix OOMatrixForRotation(Vector axis, OOScalar angle)
 {
 	axis = vector_normal(axis);
 	
-	GLfloat x = axis.x, y = axis.y, z = axis.z;
-	GLfloat s = sinf(angle), c = cosf(angle);
-	GLfloat t = 1.0f - c;
+	OOScalar x = axis.x, y = axis.y, z = axis.z;
+	OOScalar s = sinf(angle), c = cosf(angle);
+	OOScalar t = 1.0f - c;
 	
 	// Lots of opportunity for common subexpression elimintation here, but I'll leave it to the compiler for now.
 	return OOMatrixConstruct
@@ -62,10 +62,10 @@ OOMatrix OOMatrixForRotation(Vector axis, GLfloat angle)
 
 OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 {
-	GLfloat	w, wz, wy, wx;
-	GLfloat	x, xz, xy, xx;
-	GLfloat	y, yz, yy;
-	GLfloat	z, zz;
+	OOScalar	w, wz, wy, wx;
+	OOScalar	x, xz, xy, xx;
+	OOScalar	y, yz, yy;
+	OOScalar	z, zz;
 	
 	Quaternion q = orientation;
 	quaternion_normalize(&q);
@@ -111,7 +111,7 @@ OOMatrix OOMatrixMultiply(OOMatrix a, OOMatrix b)
 
 Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m)
 {
-	GLfloat x, y, z, w;
+	OOScalar x, y, z, w;
 	
 	x = m.m[0][0] * v.x + m.m[1][0] * v.y + m.m[2][0] * v.z + m.m[3][0];
 	y = m.m[0][1] * v.x + m.m[1][1] * v.y + m.m[2][1] * v.z + m.m[3][1];
@@ -143,6 +143,7 @@ OOMatrix OOMatrixOrthogonalize(OOMatrix m)
 }
 
 
+#if __OBJC__
 NSString *OOMatrixDescription(OOMatrix matrix)
 {
 	return [NSString stringWithFormat:@"{{%g, %g, %g, %g}, {%g, %g, %g, %g}, {%g, %g, %g, %g}, {%g, %g, %g, %g}}",
@@ -151,6 +152,7 @@ NSString *OOMatrixDescription(OOMatrix matrix)
 			matrix.m[2][0], matrix.m[2][1], matrix.m[2][2], matrix.m[2][3],
 			matrix.m[3][0], matrix.m[3][1], matrix.m[3][2], matrix.m[3][3]];
 }
+#endif
 
 
 OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos)

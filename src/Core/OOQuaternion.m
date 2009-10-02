@@ -23,16 +23,11 @@ MA 02110-1301, USA.
 */
 
 
-#import "OOMaths.h"
-#import "OOLogging.h"
+#include "OOMaths.h"
 
 
 const Quaternion		kIdentityQuaternion = { 1.0f, 0.0f, 0.0f, 0.0f };
 const Quaternion		kZeroQuaternion = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-
-static NSString * const kOOLogMathsZeroRotation = @"maths.quaternion.zeroRotation";
-static NSString * const kOOLogMathsQuatLimitedRotationDebug = @"maths.quaternion.limitedRotation.debug";
 
 
 Quaternion quaternion_multiply(Quaternion q1, Quaternion q2)
@@ -46,23 +41,25 @@ Quaternion quaternion_multiply(Quaternion q1, Quaternion q2)
 }
 
 
+#if !OOMATHS_STANDALONE
 // NOTE: this is broken - its distribution is weighted towards corners of the hypercube. Probably doesn't matter, though.
 void quaternion_set_random(Quaternion *quat)
 {
-	quat->w = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->x = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->y = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
-	quat->z = (GLfloat)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->w = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->x = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->y = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
+	quat->z = (OOScalar)(Ranrot() % 1024) - 511.5f;  // -511.5 to +511.5
 	quaternion_normalize(quat);
 }
+#endif
 
 
 Vector vector_forward_from_quaternion(Quaternion quat)
 {
-	GLfloat	w, wy, wx;
-	GLfloat	x, xz, xx;
-	GLfloat	y, yz, yy;
-	GLfloat	z, zz;
+	OOScalar	w, wy, wx;
+	OOScalar	x, xz, xx;
+	OOScalar	y, yz, yy;
+	OOScalar	z, zz;
 	Vector res;
 	
 	w = quat.w;
@@ -86,10 +83,10 @@ Vector vector_forward_from_quaternion(Quaternion quat)
 
 Vector vector_up_from_quaternion(Quaternion quat)
 {
-	GLfloat	w, wz, wx;
-	GLfloat	x, xy, xx;
-	GLfloat	y, yz, yy;
-	GLfloat	z, zz;
+	OOScalar	w, wz, wx;
+	OOScalar	x, xy, xx;
+	OOScalar	y, yz, yy;
+	OOScalar	z, zz;
 	Vector res;
 	
 	w = quat.w;
@@ -114,10 +111,10 @@ Vector vector_up_from_quaternion(Quaternion quat)
 
 Vector vector_right_from_quaternion(Quaternion quat)
 {
-	GLfloat	w, wz, wy;
-	GLfloat	x, xz, xy;
-	GLfloat	y, yy;
-	GLfloat	z, zz;
+	OOScalar	w, wz, wy;
+	OOScalar	x, xz, xy;
+	OOScalar	y, yy;
+	OOScalar	z, zz;
 	Vector res;
 	
 	w = quat.w;
@@ -142,10 +139,10 @@ Vector vector_right_from_quaternion(Quaternion quat)
 
 void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *outUp, Vector *outForward)
 {
-	GLfloat	w, wz, wy, wx;
-	GLfloat	x, xz, xy, xx;
-	GLfloat	y, yz, yy;
-	GLfloat	z, zz;
+	OOScalar	w, wz, wy, wx;
+	OOScalar	x, xz, xy, xx;
+	OOScalar	y, yz, yy;
+	OOScalar	z, zz;
 	
 	w = quat.w;
 	z = quat.z;
@@ -193,10 +190,10 @@ void basis_vectors_from_quaternion(Quaternion quat, Vector *outRight, Vector *ou
 Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 {
 	Quaternion q;
-	GLfloat s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
 	if (EXPECT(s))
 	{
-		GLfloat is = 1.0f / s;
+		OOScalar is = 1.0f / s;
 		q.x = (v0.y * v1.z - v0.z * v1.y) * is;
 		q.y = (v0.z * v1.x - v0.x * v1.z) * is;
 		q.z = (v0.x * v1.y - v0.y * v1.x) * is;
@@ -206,7 +203,6 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 	{
 		// Is this actually a problem?
 		q = kIdentityQuaternion;
-	//	OOLog(kOOLogMathsZeroRotation, @"***** minarc s == zero!");
 	}
 	return q;
 }
@@ -215,16 +211,15 @@ Quaternion quaternion_rotation_between(Vector v0, Vector v1)
 Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxArc)	// vectors both normalised
 {
 	Quaternion q;
-	GLfloat min_s = 2.0f * cosf(0.5f * maxArc);
-	GLfloat s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
+	OOScalar min_s = 2.0f * cosf(0.5f * maxArc);
+	OOScalar s = sqrtf((1.0f + v0.x * v1.x + v0.y * v1.y + v0.z * v1.z) * 2.0f);
 	if (EXPECT(s != 0))
 	{
 		if (s < min_s)	// larger angle => smaller cos
 		{
-			GLfloat a = maxArc * 0.5f;
-			GLfloat w = cosf(a);
-			GLfloat scale = sinf(a);
-			OOLog(kOOLogMathsQuatLimitedRotationDebug, @"DEBUG using maxArc %.5f \tw %.5f \tscale %.5f", maxArc, w, scale);
+			OOScalar a = maxArc * 0.5f;
+			OOScalar w = cosf(a);
+			OOScalar scale = sinf(a);
 			q.x = (v0.y * v1.z - v0.z * v1.y) * scale;
 			q.y = (v0.z * v1.x - v0.x * v1.z) * scale;
 			q.z = (v0.x * v1.y - v0.y * v1.x) * scale;
@@ -232,7 +227,7 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 		}
 		else
 		{
-			GLfloat is = 1.0f / s;
+			OOScalar is = 1.0f / s;
 			q.x = (v0.y * v1.z - v0.z * v1.y) * is;
 			q.y = (v0.z * v1.x - v0.x * v1.z) * is;
 			q.z = (v0.x * v1.y - v0.y * v1.x) * is;
@@ -243,18 +238,17 @@ Quaternion quaternion_limited_rotation_between(Vector v0, Vector v1, float maxAr
 	{
 		// Is this actually a problem?
 		q = kIdentityQuaternion;
-	//	OOLog(kOOLogMathsZeroRotation, @"***** minarc s == zero!");
 	}
 	return q;
 }
 
 
-void quaternion_rotate_about_x(Quaternion *quat, GLfloat angle)
+void quaternion_rotate_about_x(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
-	GLfloat a = angle * 0.5;
-	GLfloat w = cos(a);
-	GLfloat scale = sin(a);
+	OOScalar a = angle * 0.5;
+	OOScalar w = cos(a);
+	OOScalar scale = sin(a);
 	
 	result.w = quat->w * w - quat->x * scale;
 	result.x = quat->w * scale + quat->x * w;
@@ -268,12 +262,12 @@ void quaternion_rotate_about_x(Quaternion *quat, GLfloat angle)
 }
 
 
-void quaternion_rotate_about_y(Quaternion *quat, GLfloat angle)
+void quaternion_rotate_about_y(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
-	GLfloat a = angle * 0.5f;
-	GLfloat w = cosf(a);
-	GLfloat scale = sinf(a);
+	OOScalar a = angle * 0.5f;
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	result.w = quat->w * w - quat->y * scale;
 	result.x = quat->x * w - quat->z * scale;
@@ -287,12 +281,12 @@ void quaternion_rotate_about_y(Quaternion *quat, GLfloat angle)
 }
 
 
-void quaternion_rotate_about_z(Quaternion *quat, GLfloat angle)
+void quaternion_rotate_about_z(Quaternion *quat, OOScalar angle)
 {
 	Quaternion result;
-	GLfloat a = angle * 0.5f;
-	GLfloat w = cosf(a);
-	GLfloat scale = sinf(a);
+	OOScalar a = angle * 0.5f;
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	result.w = quat->w * w - quat->z * scale;
 	result.x = quat->x * w + quat->y * scale;
@@ -306,12 +300,12 @@ void quaternion_rotate_about_z(Quaternion *quat, GLfloat angle)
 }
 
 
-void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
+void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, OOScalar angle)
 {
 	Quaternion q2 /*, result */;
-	GLfloat a = angle * 0.5f;
-	GLfloat w = cosf(a);
-	GLfloat scale = sinf(a);
+	OOScalar a = angle * 0.5f;
+	OOScalar w = cosf(a);
+	OOScalar scale = sinf(a);
 	
 	q2.w = w;
 	q2.x = axis.x * scale;
@@ -322,6 +316,7 @@ void quaternion_rotate_about_axis(Quaternion *quat, Vector axis, GLfloat angle)
 }
 
 
+#if __OBJC__
 NSString *QuaternionDescription(Quaternion quaternion)
 {
 	float			x, y, z;
@@ -337,6 +332,7 @@ NSString *QuaternionDescription(Quaternion quaternion)
 	
 	return [NSString stringWithFormat:@"(%g %c %gi %c %gj %c %gk)", quaternion.w, xs, x, ys, y, zs, z];
 }
+#endif
 
 
 #if 0
