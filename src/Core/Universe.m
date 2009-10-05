@@ -7916,7 +7916,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		v3 = vector_normal(v3);
 	else
 		v3.y = 1.0;
-	double radius = the_sun->collision_radius * SUN_SKIM_RADIUS_FACTOR - 250.0; // 250 m inside the skim radius
+	double radius = SUN_SKIM_RADIUS_FACTOR * the_sun->collision_radius - 250.0; // 250 m inside the skim radius
 	v1.x *= radius;	v1.y *= radius;	v1.z *= radius;
 	v1.x += v0.x;	v1.y += v0.y;	v1.z += v0.z;
 	v1.x += 15000 * v3.x;	v1.y += 15000 * v3.y;	v1.z += 15000 * v3.z;	// point 15000m at a tangent to sun from v1

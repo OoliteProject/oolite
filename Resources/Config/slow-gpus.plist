@@ -5,22 +5,22 @@
 (
 	{
 		// NVIDIA GeForce FX 5200
-		vendor =
-		{
-			sequences =
-			(
-				( "GeForce", "5200" )
-			);
-		};
+		vendor = ( "NVIDIA" );
+		renderer = ( "GeForce", "5200" );
 	},
 	{
 		// Also NVIDIA GeForce FX 5200
-		vendor =
-		{
-			sequences =
-			(
-				( "NV34MAP" )
-			);
-		};
+		vendor = ( "NVIDIA" );
+		renderer = ( "NV34MAP" );
+	},
+	{
+		// Intel GMA 900
+		vendor = ( "Intel" );
+		renderer = ( "GMA",  "900" )
+	},
+	{
+		// Intel GMA 950
+		vendor = ( "Intel" );
+		renderer = ( "GMA",  "950" )
 	}
 )

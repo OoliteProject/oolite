@@ -75,6 +75,12 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		NSOpenGLPFADepthSize, 32,
 		NSOpenGLPFADoubleBuffer,
 		NSOpenGLPFAAccelerated,
+#if FSAA
+		// Need a preference or other sane way to activate this
+		NSOpenGLPFAMultisample,
+		NSOpenGLPFASampleBuffers, 1,
+		NSOpenGLPFASamples,4,
+#endif
 		0
 	};
 	

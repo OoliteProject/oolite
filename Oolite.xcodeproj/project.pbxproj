@@ -1849,6 +1849,7 @@
 		1A2314300B9C667F00EF0852 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1AC0E9380B974D8700C46994 /* Documentation */,
 				25F3E8BC09950088002F25FD /* Info-Oolite.plist */,
 				25F3E8A40994FE65002F25FD /* oolite-document.icns */,
 				25F3E8A50994FE65002F25FD /* oolite-expansion-document.icns */,
@@ -2817,7 +2818,7 @@
 				1AC0E94B0B974DC200C46994 /* README_LINUX.TXT */,
 			);
 			name = Documentation;
-			path = Doc;
+			path = ../Doc;
 			sourceTree = "<group>";
 		};
 		1ACEA3BC0C915A1600C7CE97 /* Misc */ = {
@@ -2880,7 +2881,6 @@
 				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
-				1AC0E9380B974D8700C46994 /* Documentation */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
 				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,

@@ -3107,7 +3107,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		ShipEntity* prox_ship = [self proximity_alert];
 		if (prox_ship)
 		{
-			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
+			desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 			destination = prox_ship->position;
 		}
 		double dq = [self trackDestination:delta_t:YES];
@@ -3576,7 +3576,7 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 		destination = [prox_ship position];
 		destination = OOVectorInterpolate(position, [prox_ship position], 0.5);		// point between us and them
 		
-		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE;
+		desired_range = prox_ship->collision_radius * PROXIMITY_AVOID_DISTANCE_FACTOR;
 		
 		behaviour = BEHAVIOUR_AVOID_COLLISION;
 	}

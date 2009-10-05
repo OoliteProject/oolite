@@ -188,6 +188,7 @@ static JSBool SoundStaticLoad(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
+// playMusic(name : String [, loop : Boolean])
 static JSBool SoundStaticPlayMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString					*name = nil;

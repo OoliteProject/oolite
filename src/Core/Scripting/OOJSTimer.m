@@ -321,11 +321,17 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	double					interval = -1.0;
 	OOJSTimer				*timer = nil;
 	
+	if (argc < 3)
+	{
+		OOReportJSBadArguments(context, nil, @"Timer", argc, argv, @"Invalid arguments in constructor", @"(object, function, number [, number])");
+		return NO;
+	}
+	
 	if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]))
 	{
 		if (!JS_ValueToObject(context, argv[0], &this))
 		{
-			OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"first", @"this", @"an object");
+			OOReportJSBadArguments(context, nil, @"Timer", 1, argv, @"Invalid argument in constructor", @"object");
 			return NO;
 		}
 	}
@@ -333,13 +339,13 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	function = argv[1];
 	if (!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
 	{
-		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"second", @"function", @"a function");
+		OOReportJSBadArguments(context, nil, @"Timer", 1, argv + 1, @"Invalid argument in constructor", @"function");
 		return NO;
 	}
 	
-	if (!JS_ValueToNumber(context, argv[2], &delay))
+	if (!JS_ValueToNumber(context, argv[2], &delay) || isnan(delay))
 	{
-		OOReportJSError(context, @"Could not construct Timer because %@ argument ('%@') is not %@.", @"third", @"delay", @"a number");
+		OOReportJSBadArguments(context, nil, @"Timer", 1, argv + 2, @"Invalid argument in constructor", @"number");
 		return NO;
 	}
 	

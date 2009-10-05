@@ -44,6 +44,8 @@ MA 02110-1301, USA.
 #define LIM8K   8000.0*8000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 #define LIM16K  16000.0*16000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
 
+#define FIXED_TEX_COORDS 0
+
 
 static double		corona_speed_factor;	// multiply delta_t by this before adding it to corona_stage
 static double		corona_stage;			// 0.0 -> 1.0
@@ -1121,7 +1123,7 @@ static float corona_blending;
 				subdivideLevel = 2;
 				GLDebugWireframeModeOn();
 			}
-				
+			
 			if (!translucent)
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
@@ -1728,6 +1730,41 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 }
 
 
+#if FIXED_TEX_COORDS
+static void CalculateTexCoord(Vector unitVector, GLfloat *outS, GLfloat *outT)
+{
+	assert(outS != NULL && outT != NULL);
+	
+	//	Given a unit vector representing a point on a sphere, calculate the latitude and longitude.
+	float sinLat = unitVector.y;
+	float lat = asinf(sinLat);
+	float recipCosLat = OOInvSqrtf(1.0f - sinLat * sinLat);	// Equivalent to abs(1/cos(lat)). Look at me, I'm doing trigonometry!
+	float sinLon = unitVector.x * recipCosLat;
+	float lon = asinf(sinLon);
+	
+	// Quadrant rectification.
+	if (unitVector.z < 0.0f)
+	{
+		// We're beyond 90 degrees of longitude in some direction.
+		if (unitVector.x < 0.0f)
+		{
+			// ...specifically, west.
+			lon = -M_PI - lon;
+		}
+		else
+		{
+			// ...specifically, east.
+			lon = M_PI - lon;
+		}
+	}
+	
+	// Convert latitude and longitude (in [-pi..pi] and [pi/2..-pi/2] to [0..1] texture coords.
+	*outS = lon * M_1_PI * 0.5 + 0.5;
+	*outT = lat * M_1_PI + 0.5;
+}
+#endif
+
+
 static BOOL last_one_was_textured;
 
 - (void) initialiseBaseVertexArray
@@ -1764,12 +1801,18 @@ static BOOL last_one_was_textured;
 			vertex_index_array[fi * 3 + 2] = faces[fi].vertex[2];
 			if (isTextured)
 			{
+#if FIXED_TEX_COORDS
+				CalculateTexCoord(vertices[faces[fi].vertex[0]], &texture_uv_array[faces[fi].vertex[0] * 2], &texture_uv_array[faces[fi].vertex[0] * 2 + 1]);
+				CalculateTexCoord(vertices[faces[fi].vertex[1]], &texture_uv_array[faces[fi].vertex[1] * 2], &texture_uv_array[faces[fi].vertex[1] * 2 + 1]);
+				CalculateTexCoord(vertices[faces[fi].vertex[2]], &texture_uv_array[faces[fi].vertex[2] * 2], &texture_uv_array[faces[fi].vertex[2] * 2 + 1]);
+#else
 				texture_uv_array[faces[fi].vertex[0] * 2]		= faces[fi].s[0];
 				texture_uv_array[faces[fi].vertex[0] * 2 + 1]	= faces[fi].t[0];
 				texture_uv_array[faces[fi].vertex[1] * 2]		= faces[fi].s[1];
 				texture_uv_array[faces[fi].vertex[1] * 2 + 1]	= faces[fi].t[1];
 				texture_uv_array[faces[fi].vertex[2] * 2]		= faces[fi].s[2];
 				texture_uv_array[faces[fi].vertex[2] * 2 + 1]	= faces[fi].t[2];
+#endif
 			}
 		}
 		
@@ -1835,16 +1878,13 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 		int vindex = next_free_vertex++;
 
 		// calculate position of new vertex
-		base_vertex_array[vindex] = base_vertex_array[va];
-		base_vertex_array[vindex].x += base_vertex_array[vb].x;
-		base_vertex_array[vindex].y += base_vertex_array[vb].y;
-		base_vertex_array[vindex].z += base_vertex_array[vb].z;
-		base_vertex_array[vindex] = vector_normal(base_vertex_array[vindex]);	// guaranteed non-zero
+		Vector pos = vector_add(base_vertex_array[va], base_vertex_array[vb]);
+		pos = vector_normal(pos);	// guaranteed non-zero
+		base_vertex_array[vindex] = pos;
 
 		if (textured)
 		{
 			//calculate new texture coordinates
-			
 			NSPoint	uva = NSMakePoint(texture_uv_array[va * 2], texture_uv_array[va * 2 + 1]);
 			NSPoint	uvb = NSMakePoint(texture_uv_array[vb * 2], texture_uv_array[vb * 2 + 1]);
 			
@@ -1854,8 +1894,12 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 			if ((uvb.y == 0.0)||(uvb.y == 1.0))
 				uvb.x = uva.x;
 			
+#if FIXED_TEX_COORDS
+			CalculateTexCoord(pos, &texture_uv_array[vindex * 2], &texture_uv_array[vindex * 2 + 1]);
+#else
 			texture_uv_array[vindex * 2] = 0.5 * (uva.x + uvb.x);
 			texture_uv_array[vindex * 2 + 1] = 0.5 * (uva.y + uvb.y);
+#endif
 		}
 		
 		// add new edge to the look-up

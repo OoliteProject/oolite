@@ -100,6 +100,7 @@ SOFTWARE.
 {
 	if (_sound != sound)
 	{
+		[self stop];
 		[_sound autorelease];
 		_sound = [sound retain];
 	}
