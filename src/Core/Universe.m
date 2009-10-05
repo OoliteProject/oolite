@@ -3175,6 +3175,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		case COMMODITY_GOLD:
 		case COMMODITY_PLATINUM:
 			return UNITS_KILOGRAMS;
+		default:
+			break;
 	}
 	// default
 	return UNITS_TONS;

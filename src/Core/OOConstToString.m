@@ -420,7 +420,7 @@ NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commod
 		CO_CASE(GOLD);
 		CO_CASE(PLATINUM);
 			
-		case CARGO_UNDEFINED:
+		case COMMODITY_UNDEFINED:
 			break;
 	}
 	return @"unknown commodity";
