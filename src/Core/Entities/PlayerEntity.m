@@ -340,6 +340,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result setObject:shipCommodityData		forKey:@"shipCommodityData"];
 	
+	// sanitise commodity units - the savegame might contain the wrong units
+	NSMutableArray* manifest = [NSMutableArray arrayWithArray:shipCommodityData];
+	int 	i=0;
+	for (i = [manifest count] - 1; i >= 0 ; i--)
+	{
+		NSMutableArray*	commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
+		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
+		[commodityInfo replaceObjectAtIndex:MARKET_UNITS withObject:[NSNumber numberWithInt:[UNIVERSE unitsForCommodity:i]]];
+		[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
+
+	}
+	[shipCommodityData release];
+	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+	
 	// Deprecated equipment flags. New equipment shouldn't be added here (it'll be handled by the extra_equipment dictionary).
 	[result oo_setBool:[self hasDockingComputer]		forKey:@"has_docking_computer"];
 	[result oo_setBool:[self hasGalacticHyperdrive]	forKey:@"has_galactic_hyperdrive"];
@@ -361,7 +375,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	
 	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
-	unsigned i;
+	
 	for (i = 0; i < max_missiles; i++)
 	{
 		if (missile_entity[i])
@@ -3773,7 +3787,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			[self addEquipmentItem:[NSString stringWithFormat:@"%@_DAMAGED", system_key]];	// for possible future repair
 			[self doScriptEvent:@"equipmentDamaged" withArgument:system_key];
-			if (![self hasEquipmentItem:system_name])	// Because script may have undestroyed it
+			if (![self hasEquipmentItem:system_name])	// Because script may have undamaged it
 			{
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-damaged"), system_name] forCount:4.5];
 			}
@@ -5977,15 +5991,7 @@ static NSString *last_outfitting_key=nil;
 		in_hold[[container commodityType]] += [container commodityAmount];
 	}
 
-	current_cargo = 0;  // for calculating remaining hold space
-	
-	for (i = 0; i < n_commodities; i++)
-	{
-		if ([[shipCommodityData oo_arrayAtIndex:i] oo_intAtIndex:MARKET_UNITS] == UNITS_TONS)
-		{
-			current_cargo += in_hold[i];
-		}
-	}
+	current_cargo = [self cargoQuantityOnBoard];
 }
 
 
@@ -6056,8 +6062,6 @@ static NSString *last_outfitting_key=nil;
 		[gui setArray:[NSArray arrayWithObjects: DESC(@"commodity-column-title"), DESC(@"price-column-title"),
 							 DESC(@"for-sale-column-title"), DESC(@"in-hold-column-title"), nil] forRow:GUI_ROW_MARKET_KEY];
 		
-		current_cargo = 0;  // for calculating remaining hold space
-		
 		for (i = 0; i < n_commodities; i++)
 		{
 			marketDef = [localMarket oo_arrayAtIndex:i];
@@ -6066,7 +6070,7 @@ static NSString *last_outfitting_key=nil;
 			OOCargoQuantity available_units = [marketDef oo_unsignedIntAtIndex:MARKET_QUANTITY];
 			OOCargoQuantity units_in_hold = in_hold[i];
 			OOCreditsQuantity pricePerUnit = [marketDef oo_unsignedIntAtIndex:MARKET_PRICE];
-			OOMassUnit unit = [marketDef oo_unsignedIntAtIndex:MARKET_UNITS];
+			OOMassUnit unit = [UNIVERSE unitsForCommodity:i];
 			
 			NSString *available = (available_units > 0) ? OOPadStringTo([NSString stringWithFormat:@"%d",available_units],3.0) : OOPadStringTo(DESC(@"commodity-quantity-none"),2.4);
 			NSString *price = OOPadStringTo([NSString stringWithFormat:@" %.1f ",0.1 * pricePerUnit],7.0);
@@ -6075,15 +6079,12 @@ static NSString *last_outfitting_key=nil;
 			NSString *units_available = [NSString stringWithFormat:@" %@ %@ ",available, units];
 			NSString *units_owned = [NSString stringWithFormat:@" %@ %@ ",owned, units];
 			
-			if (unit == UNITS_TONS)
-				current_cargo += units_in_hold;
-			
 			[gui setKey:[NSString stringWithFormat:@"%d",i] forRow:row];
 			[gui setArray:[NSArray arrayWithObjects: desc, price, units_available, units_owned, nil] forRow:row++];
 		}
-		
-		if ([cargo count] > 0)
-			current_cargo = ([cargo count] <= max_cargo) ? [cargo count] : max_cargo;  // actually count the containers and things (may be > max_cargo)
+		 // actually count the containers and  valuables (may be > max_cargo)
+		current_cargo = [self cargoQuantityOnBoard];
+		if (current_cargo > max_cargo) current_cargo = max_cargo; 
 		
 		[gui setText:[NSString stringWithFormat:DESC(@"cash-@-load-d-of-d"), OOCredits(credits), current_cargo, max_cargo]  forRow: GUI_ROW_MARKET_CASH];
 		
@@ -6138,9 +6139,9 @@ static NSString *last_outfitting_key=nil;
 	NSMutableArray		*localMarket = [self localMarket];
 	NSArray				*commodityArray	= [localMarket objectAtIndex:index];
 	OOCreditsQuantity	pricePerUnit	= [commodityArray oo_unsignedIntAtIndex:MARKET_PRICE];
-	OOMassUnit			unit			= [(NSNumber *)[commodityArray objectAtIndex:MARKET_UNITS] intValue];
+	OOMassUnit			unit			= [UNIVERSE unitsForCommodity:index];
 
-	if ((specialCargo != nil)&&(unit == UNITS_TONS))
+	if (specialCargo != nil && unit == UNITS_TONS)
 		return NO;									// can't buy tons of stuff when carrying a specialCargo
 
 	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
@@ -6154,6 +6155,7 @@ static NSString *last_outfitting_key=nil;
 		purchase = market_quantity;					// limit to what's available
 	if (purchase * pricePerUnit > credits)
 		purchase = floor (credits / pricePerUnit);	// limit to what's affordable
+	// TODO - fix brokenness here...
 	if (purchase + current_cargo > (unit == UNITS_TONS ? max_cargo : 10000))
 		purchase = max_cargo - current_cargo;		// limit to available cargo space
 	if (purchase <= 0)

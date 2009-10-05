@@ -58,10 +58,10 @@ MA 02110-1301, USA.
 
 @interface PlayerEntity (Contracts)
 
-- (NSString*) processEscapePods; // removes pods from cargo bay and treats categories of characters carried
+- (NSString *) processEscapePods;		// removes pods from cargo bay and treats categories of characters carried
 - (NSString *) checkPassengerContracts;	// returns messages from any passengers whose status have changed
 
-- (NSDictionary*) reputation;
+- (NSDictionary *) reputation;
 
 - (int) passengerReputation;
 - (void) increasePassengerReputation;
@@ -79,8 +79,10 @@ MA 02110-1301, USA.
 - (BOOL) pickFromGuiContractsScreen;
 - (void) highlightSystemFromGuiContractsScreen;
 
-- (NSArray*) passengerList;
-- (NSArray*) contractList;
+- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting
+- (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start destination:(unsigned)destination eta:(double)eta fee:(double)fee;	// for js scripting.
+- (NSArray *) passengerList;
+- (NSArray *) contractList;
 - (void) setGuiToManifestScreen;
 
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report;

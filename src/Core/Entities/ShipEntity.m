@@ -4529,36 +4529,37 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (OOCargoQuantity) cargoQuantityOnBoard
 {
 	OOCargoQuantity		cargoQtyOnBoard = 0;
-	unsigned i;
+	int i;
 	
 	if ([self isPlayer] && ([(PlayerEntity*)self specialCargo] != nil))
 	{
 		return [self maxCargo];
 	}	
 	
-	if ([self isPlayer] && [self status] == STATUS_DOCKED)
+	if ([self isPlayer]) // always use this to avoid inconsistencies  - Kaks 20091002
 	{
 		/*
 	  	  The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
 	  	  this reason, we must use a slightly more complex method to determine the quantity of cargo
 	  	  carried in this case - Nikos 20090830
+		  
+		  Optimised this method, to compensate for increased usage - Kaks 20091002
 		*/
 		PlayerEntity*	player = [PlayerEntity sharedPlayer];
-		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:[player shipCommodityData]] retain];
-		for (i = 0; i < [manifest count]; i++)
+		NSArray* manifest = [NSArray arrayWithArray:[player shipCommodityData]];
+		OOMassUnit			commodityUnits = UNITS_TONS;
+		OOCargoQuantity		quantity = 0;
+		for (i = [manifest count] - 1; i >= 0 ; i--)
 		{
-			NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
-			OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
-			OOMassUnit	commodityUnits = [[commodityInfo objectAtIndex:MARKET_UNITS] intValue];
-			
-			if (commodityUnits == UNITS_KILOGRAMS)  quantity /= 1000;
-			if (commodityUnits == UNITS_GRAMS)  quantity /= 1000000;
+			NSArray*	commodityInfo = [NSArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
+			quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
+			// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
+			commodityUnits = [UNIVERSE unitsForCommodity:i];
+			if (commodityUnits != UNITS_TONS) quantity /= (commodityUnits == UNITS_KILOGRAMS) ? 1000 : 1000000; // Kilos : grams
 			cargoQtyOnBoard += quantity;
-			[commodityInfo release];
 		}
-		[manifest release];
 	}
-	else	// if not docked, the cargo array is valid and can be used as per standard
+	else	// NPCs only method
 	{
 		cargoQtyOnBoard = [[self cargo] count];
 	}

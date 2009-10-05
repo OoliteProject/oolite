@@ -1365,6 +1365,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) removeAllCargo:(BOOL)forceRemoval
 {
+	// misnamed function. it only removes  cargo measured in TONS, g & Kg items are not removed. --Kaks 20091004 
 	OOCargoType				type;
 	OOMassUnit				unit;
 	
@@ -1389,7 +1390,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	for (type = 0; type < (OOCargoType)[manifest count]; type++)
 	{
 		NSMutableArray *manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:type]];
-		unit = [manifest_commodity oo_intAtIndex:MARKET_UNITS];
+		// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
+		unit = [UNIVERSE unitsForCommodity:type]; // will return tons for unknown types
 		if (unit == UNITS_TONS)
 		{
 			[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];

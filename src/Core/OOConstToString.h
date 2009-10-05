@@ -60,6 +60,10 @@ OOWeaponType EquipmentStringToWeaponTypeStrict(NSString *string) PURE_FUNC;
 NSString *CargoTypeToString(OOCargoType cargo) CONST_FUNC;
 OOCargoType StringToCargoType(NSString *string) PURE_FUNC;
 
+//NSString *CommodityTypeToOldString(OOCommodityType commodity) CONST_FUNC; // returns the old commodity identifier
+NSString *CommodityTypeToString(OOCommodityType commodity) CONST_FUNC;	// returns the commodity identifier
+OOCommodityType StringToCommodityType(NSString *string) PURE_FUNC;		// needs commodity identifier
+
 NSString *EnergyUnitTypeToString(OOEnergyUnitType unit) CONST_FUNC;
 OOEnergyUnitType StringToEnergyUnitType(NSString *string) PURE_FUNC;
 

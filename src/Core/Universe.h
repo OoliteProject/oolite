@@ -530,12 +530,12 @@ enum
 - (NSArray *) commodityDataForEconomy:(OOEconomyID) economy andStation:(StationEntity *)some_station andRandomFactor:(int) random_factor;
 
 double estimatedTimeForJourney(double distance, int hops);
-
-- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
 - (NSString *) timeDescription:(OOTimeDelta) interval;
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
-- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
 
+- (Random_Seed) marketSeed;
+- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
+- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 
 /* Calculate base cost, before depreciation */

@@ -718,6 +718,84 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 }
 
 
+- (BOOL) addPassenger:(NSString*)Name start:(unsigned)start destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+{
+	NSDictionary* passenger_info = [NSDictionary dictionaryWithObjectsAndKeys:
+		Name,																	PASSENGER_KEY_NAME,
+		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		[NSNumber numberWithDouble:[[PlayerEntity sharedPlayer] clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
+		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
+		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		NULL];
+	
+	// extra check, just in case. TODO: stop adding passengers with duplicate names?
+	if ([passengers count] >= max_passengers) return NO;
+
+	[passengers addObject:passenger_info];
+	[passenger_record setObject:[NSNumber numberWithDouble:eta] forKey:Name];
+	return YES;
+}
+
+
+- (BOOL) awardContract:(unsigned)qty commodity:(NSString*)commodity start:(unsigned)start
+						destination:(unsigned)Destination eta:(double)eta fee:(double)fee
+{
+	OOCargoType Type = [UNIVERSE commodityForName: commodity];
+	Random_Seed r_seed = [UNIVERSE marketSeed];
+	int 		sr1 = r_seed.a * 0x10000 + r_seed.c * 0x100 + r_seed.e;
+	int 		sr2 = r_seed.b * 0x10000 + r_seed.d * 0x100 + r_seed.f;
+	NSString	*cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
+	
+	// avoid duplicate cargo_IDs
+	while ([contract_record objectForKey:cargo_ID] != nil)
+	{
+		sr2++;
+		cargo_ID =[NSString stringWithFormat:@"%06x-%06x", sr1, sr2];
+	}
+
+	NSDictionary* cargo_info = [NSDictionary dictionaryWithObjectsAndKeys:
+		cargo_ID,																CARGO_KEY_ID,
+		[NSNumber numberWithInt:Type],											CARGO_KEY_TYPE,
+		[NSNumber numberWithInt:qty],											CARGO_KEY_AMOUNT,
+		[UNIVERSE describeCommodity:Type amount:qty],							CARGO_KEY_DESCRIPTION,
+		[NSNumber numberWithInt:start],											CONTRACT_KEY_START,
+		[NSNumber numberWithInt:Destination],									CONTRACT_KEY_DESTINATION,
+		[NSNumber numberWithDouble:[[PlayerEntity sharedPlayer] clockTime]],	CONTRACT_KEY_DEPARTURE_TIME,
+		[NSNumber numberWithDouble:eta],										CONTRACT_KEY_ARRIVAL_TIME,
+		[NSNumber numberWithDouble:fee],										CONTRACT_KEY_FEE,
+		[NSNumber numberWithInt:0],												CONTRACT_KEY_PREMIUM,
+		NULL];
+	
+	// check available space
+	
+	OOCargoQuantity		cargoSpaceRequired = qty;
+	OOMassUnit			contractCargoUnits	= [UNIVERSE unitsForCommodity:Type];
+	
+	if (contractCargoUnits == UNITS_KILOGRAMS)  cargoSpaceRequired /= 1000;
+	if (contractCargoUnits == UNITS_GRAMS)  cargoSpaceRequired /= 1000000;
+	
+	if (cargoSpaceRequired > max_cargo - current_cargo) return NO;
+	
+	NSMutableArray* manifest =  [NSMutableArray arrayWithArray:shipCommodityData];
+	NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:[manifest oo_arrayAtIndex:Type]];
+	qty += [manifest_commodity oo_intAtIndex:MARKET_QUANTITY];
+	[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:qty]];
+	[manifest replaceObjectAtIndex:Type withObject:[NSArray arrayWithArray:manifest_commodity]];
+
+	[shipCommodityData release];
+	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+
+	current_cargo = [self cargoQuantityOnBoard];
+
+	[contracts addObject:cargo_info];
+	[contract_record setObject:[NSNumber numberWithDouble:eta] forKey:cargo_ID];
+
+	return YES;
+}
+
+
 - (BOOL) pickFromGuiContractsScreen
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
@@ -728,9 +806,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	if (([gui selectedRow] >= GUI_ROW_PASSENGERS_START)&&([gui selectedRow] < GUI_ROW_CARGO_START))
 	{
 		NSDictionary* passenger_info = (NSDictionary*)[passenger_market objectAtIndex:[gui selectedRow] - GUI_ROW_PASSENGERS_START];
-		NSString* passenger_name = (NSString *)[passenger_info objectForKey:PASSENGER_KEY_NAME];
+		NSString* passenger_name = [passenger_info oo_stringForKey:PASSENGER_KEY_NAME];
 		NSNumber* passenger_arrival_time = (NSNumber*)[passenger_info objectForKey:CONTRACT_KEY_ARRIVAL_TIME];
-		int passenger_premium = [(NSNumber*)[passenger_info objectForKey:CONTRACT_KEY_PREMIUM] intValue];
+		int passenger_premium = [passenger_info oo_intForKey:CONTRACT_KEY_PREMIUM];
 		if ([passengers count] >= max_passengers)
 			return NO;
 		[passengers addObject:passenger_info];
@@ -782,11 +860,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		NSMutableArray* manifest_commodity =	[NSMutableArray arrayWithArray:[manifest objectAtIndex:contractCargoType]];
 		int manifest_quantity = [(NSNumber *)[manifest_commodity objectAtIndex:MARKET_QUANTITY] intValue];
 		manifest_quantity += contractAmount;
-		current_cargo += cargoSpaceRequired;
 		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:manifest_quantity]];
 		[manifest replaceObjectAtIndex:contractCargoType withObject:[NSArray arrayWithArray:manifest_commodity]];
 		[shipCommodityData release];
 		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		current_cargo = [self cargoQuantityOnBoard];
 		
 		[contracts addObject:contractInfo];
 		[contract_record setObject:contractArrivalTime forKey:contractID];
@@ -888,22 +966,12 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			rating ++;
 		}
 		
-		if ([self status] == STATUS_DOCKED)
-		{
-			unsigned n_commodities = [shipCommodityData count];
-			current_cargo = 0;  // for calculating remaining hold space
-			
-			for (i = 0; i < n_commodities; i++)
-			{
-				if ([UNIVERSE unitsForCommodity:i] == UNITS_TONS)
-					current_cargo += [[(NSArray *)[shipCommodityData objectAtIndex:i] objectAtIndex:MARKET_QUANTITY] intValue];
-			}
-		}
+		current_cargo = [self cargoQuantityOnBoard];
 
 		[gui clear];
 		[gui setTitle:DESC(@"manifest-title")];
 		
-		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), ([self status] == STATUS_DOCKED)? current_cargo : [cargo count], max_cargo]	forRow:cargo_row - 1];
+		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, max_cargo]	forRow:cargo_row - 1];
 		[gui setText:DESC(@"manifest-none")	forRow:cargo_row];
 		[gui setColor:[OOColor yellowColor]	forRow:cargo_row - 1];
 		[gui setColor:[OOColor greenColor]	forRow:cargo_row];

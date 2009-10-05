@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OORoleSet.h"
 #import "OOJSPlayer.h"
 #import "OOShipGroup.h"
+#import "PlayerEntityContracts.h"
 
 
 DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
@@ -66,8 +67,11 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
+static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
 
 
 static JSExtendedClass sShipClass =
@@ -247,6 +251,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "fireECM",				ShipFireECM,				0 },
 	{ "hasEquipment",			ShipHasEquipment,			1 },
 	{ "abandonShip",			ShipAbandonShip,			0 },
+	{ "addPassenger",			ShipAddPassenger,			0 },
+	{ "awardContract",			ShipAwardContract,			0 },
 	{ 0 }
 };
 
@@ -985,7 +991,7 @@ static JSBool ShipDumpCargo(JSContext *context, JSObject *this, uintN argc, jsva
 	
 	if ([thisEnt isPlayer] && [(PlayerEntity *)thisEnt isDocked])
 	{
-		OOReportJSWarningForCaller(context, @"Player", @"dumpCargo", @"Can't dump cargo while docked, ignoring.");
+		OOReportJSWarningForCaller(context, @"PlayerShip", @"dumpCargo", @"Can't dump cargo while docked, ignoring.");
 		return YES;
 	}
 	
@@ -1185,5 +1191,126 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 	}
 	
 	*outResult = BOOLToJSVal(hasPod);
+	return YES;
+}
+
+
+static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity			*thisEnt = nil;
+	BOOL				OK = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference or NPC, no-op.
+	
+	NSString			*name = nil;
+	
+	if (argc == 5)
+	{
+		name = JSValToNSString(context, argv[0]);
+		if (EXPECT_NOT(name == nil || JSVAL_IS_INT(argv[0])))
+		{
+			OOReportJSBadArguments(context, @"Ship", @"addPassenger", argc, argv, nil, @"name:string");
+			OK = NO;
+		}
+		OK = OK && ValidateContracts(context, this, argc, argv, outResult, NO) ;
+		if ((OK && ![thisEnt isPlayer]) || (OK && [thisEnt passengerCount] >= [thisEnt passengerCapacity]) )
+		{
+			OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"addPassenger", @"add passenger");
+			OK = NO;
+		}
+	}
+	else
+	{
+		OOReportJSBadArguments(context, @"Ship", @"addPassenger", argc, argv, nil, @"name, start, destination, eta, fee");
+		OK = NO;
+	}
+	
+	if (OK)
+	{
+		jsdouble		eta,fee;
+		JS_ValueToNumber(context, argv[3], &eta);
+		JS_ValueToNumber(context, argv[4], &fee);
+		OK = [(PlayerEntity*)thisEnt addPassenger:name start:JSVAL_TO_INT(argv[1]) destination:JSVAL_TO_INT(argv[2]) eta:eta fee:fee];
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+}
+
+
+static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity			*thisEnt = nil;
+	BOOL				OK = JSVAL_IS_INT(argv[0]);
+	NSString 			*key = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference or NPC, no-op.
+	
+	if (OK && argc == 6)
+	{
+		key = JSValToNSString(context, argv[1]);
+		if (EXPECT_NOT(key == nil || JSVAL_IS_INT(argv[1])))
+		{
+			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"commodity identifier:string");
+			OK = NO;
+		}
+		OK = ValidateContracts(context, this, argc, argv, outResult, YES) && OK; // always go through validate contracts (cargo)
+		
+		unsigned qty = JSVAL_TO_INT(argv[0]);
+		if ((OK && ![thisEnt isPlayer]) || (OK && (qty > [thisEnt availableCargoSpace] || qty < 1)))
+		{
+			OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"awardContract", @"award contract");
+			OK = NO;
+		}
+	}
+	else
+	{
+		if (argc == 6) 
+			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"quantity:int");
+		else
+			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"quantity, commodity, start, destination, eta, fee");
+		OK = NO;
+	}
+	
+	if (OK)
+	{
+		jsdouble		eta,fee;
+		JS_ValueToNumber(context, argv[4], &eta);
+		JS_ValueToNumber(context, argv[5], &fee);
+		OK = [(PlayerEntity*)thisEnt awardContract:JSVAL_TO_INT(argv[0]) commodity:key 
+									start:JSVAL_TO_INT(argv[2]) destination:JSVAL_TO_INT(argv[3]) eta:eta fee:fee];
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+}
+
+static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo)
+{
+	unsigned		offset = isCargo ? 2 : 1;
+	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
+	jsdouble		fValue;
+	
+	if (!JSVAL_IS_INT(argv[offset]) || JSVAL_TO_INT(argv[offset]) > 255 || JSVAL_TO_INT(argv[offset]) < 0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"start:system ID");
+		return NO;
+	}
+	if (!JSVAL_IS_INT(argv[offset + 1]) || JSVAL_TO_INT(argv[offset +1]) > 255 || JSVAL_TO_INT(argv[offset +1]) < 0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"destination:system ID");
+		return NO;
+	}
+	if(!JS_ValueToNumber(context, argv[offset + 2], &fValue) || fValue <= [[PlayerEntity sharedPlayer] clockTime])
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"eta:future time");
+		return NO;
+	}
+	if (!JS_ValueToNumber(context, argv[offset + 3], &fValue) || fValue <= 0.0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"fee:credits");
+		return NO;
+	}
+
 	return YES;
 }
