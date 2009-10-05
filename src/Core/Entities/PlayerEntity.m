@@ -376,7 +376,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	NSMutableArray* missileRoles = [NSMutableArray arrayWithCapacity:max_missiles];
 	
-	for (i = 0; i < max_missiles; i++)
+	for (i = 0; i < (int)max_missiles; i++)
 	{
 		if (missile_entity[i])
 		{
