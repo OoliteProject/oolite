@@ -183,6 +183,7 @@ OOLITE_SCRIPTING_FILES = \
 	OOJSEquipmentInfo.m \
 	OOJSFunction.m \
 	OOJSGlobal.m \
+	OOJSManifest.m \
 	OOJSMission.m \
 	OOJSMissionVariables.m \
 	OOJSOolite.m \

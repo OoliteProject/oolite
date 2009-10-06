@@ -4558,6 +4558,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (commodityUnits != UNITS_TONS) quantity /= (commodityUnits == UNITS_KILOGRAMS) ? 1000 : 1000000; // Kilos : grams
 			cargoQtyOnBoard += quantity;
 		}
+		cargoQtyOnBoard += [[self cargo] count];
 	}
 	else	// NPCs only method
 	{

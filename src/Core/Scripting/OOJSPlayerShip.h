@@ -41,3 +41,4 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global);
 
 JSClass *JSPlayerShipClass(void);
 JSObject *JSPlayerShipPrototype(void);
+JSObject *JSPlayerShipObject(void);

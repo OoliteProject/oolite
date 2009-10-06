@@ -520,6 +520,8 @@ waitingForStickCallback: 1;
 
 - (void) unloadCargoPods;
 - (void) loadCargoPods;
+- (void) unloadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
+- (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
 - (NSMutableArray *) shipCommodityData;
 
 - (int) random_factor;
@@ -645,7 +647,7 @@ waitingForStickCallback: 1;
 - (void) setGuiToStatusScreen;
 - (NSArray *) equipmentList;	// Each entry is an array with a string followed by a boolean indicating availability (NO = damaged).
 - (NSArray *) cargoList;
-- (NSDictionary *) cargoListForScripting;
+- (NSArray *) cargoListForScripting;
 - (void) setGuiToSystemDataScreen;
 - (NSArray *) markedDestinations;
 - (void) setGuiToLongRangeChartScreen;
@@ -658,10 +660,12 @@ waitingForStickCallback: 1;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
 - (int) removeMissiles;
+- (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
+- (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
 - (void) calculateCurrentCargo;
 - (void) setGuiToMarketScreen;
 
-- (void) setGuiToIntroFirstGo: (BOOL) justCobra;
+- (void) setGuiToIntroFirstGo:(BOOL)justCobra;
 
 - (void) noteGuiChangeFrom:(OOGUIScreenID)fromScreen to:(OOGUIScreenID)toScreen;
 

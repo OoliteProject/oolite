@@ -674,6 +674,8 @@
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
 		2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
+		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
+		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 /* End PBXBuildFile section */
@@ -1776,6 +1778,8 @@
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nova-system.png"; sourceTree = "<group>"; };
+		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
+		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2350,6 +2354,8 @@
 		1A5DBAB50BC000E700D57389 /* JavaScript */ = {
 			isa = PBXGroup;
 			children = (
+				2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */,
+				2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */,
 				1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */,
 				1A5DBA9B0BC000DC00D57389 /* OOJavaScriptEngine.m */,
 				1ABC47FC0F155F0500B977AD /* OOJSFunction.h */,
@@ -3105,6 +3111,7 @@
 				1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */,
 				1A817DA0106D3FF000AA2F97 /* OOPlasmaBurstEntity.h in Headers */,
 				1A817DC3106D443B00AA2F97 /* OOFlashEffectEntity.h in Headers */,
+				2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3455,6 +3462,7 @@
 				1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */,
 				1A817DA1106D3FF000AA2F97 /* OOPlasmaBurstEntity.m in Sources */,
 				1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */,
+				2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -238,3 +238,15 @@ system.__defineGetter__("goneNova", function ()
 	special.jsWarning("system.goneNova is deprecated, use system.sun.hasGoneNova instead.");
 	return this.sun.hasGoneNova;
 });
+
+Ship.__defineGetter__("availableCargoSpace", function ()
+{
+	special.jsWarning("ship.availableCargoSpace is deprecated, use ship.cargoSpaceAvailable instead.");
+	return this.cargoSpaceAvailable;
+});
+
+Ship.__defineGetter__("cargoCapacity", function ()
+{
+	special.jsWarning("ship.cargoCapacity is deprecated, use ship.cargoSpaceCapacity instead.");
+	return this.cargoSpaceAvailable;
+});

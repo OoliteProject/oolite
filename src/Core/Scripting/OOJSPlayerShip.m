@@ -3,7 +3,7 @@
 OOJSPlayerShip.h
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -85,23 +85,22 @@ static JSExtendedClass sPlayerShipClass =
 enum
 {
 	// Property IDs
-	kPlayerShip_fuelLeakRate,			// fuel leak rate, float, read/write
-	kPlayerShip_docked,					// docked, boolean, read-only
-	kPlayerShip_dockedStation,			// docked station, entity, read-only
-	kPlayerShip_specialCargo,			// special cargo, string, read-only
-	kPlayerShip_reticleTargetSensitive,	// target box changes color when primary target in crosshairs, boolean, read/write
+	kPlayerShip_fuelLeakRate,					// fuel leak rate, float, read/write
+	kPlayerShip_docked,							// docked, boolean, read-only
+	kPlayerShip_dockedStation,					// docked station, entity, read-only
+	kPlayerShip_specialCargo,					// special cargo, string, read-only
+	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
 	kPlayerShip_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
-	kPlayerShip_forwardShield,			// forward shield charge level, nonnegative float, read/write
-	kPlayerShip_aftShield,				// aft shield charge level, nonnegative float, read/write
-	kPlayerShip_maxForwardShield,		// maximum forward shield charge level, positive float, read-only
-	kPlayerShip_maxAftShield,			// maximum aft shield charge level, positive float, read-only
-	kPlayerShip_forwardShieldRechargeRate,	// forward shield recharge rate, positive float, read-only
-	kPlayerShip_aftShieldRechargeRate,	// aft shield recharge rate, positive float, read-only
-	kPlayerShip_galaxyCoordinates,		// galaxy coordinates, vector, read only
-	kPlayerShip_cursorCoordinates,		// cursor coordinates, vector, read only
-	kPlayerShip_scriptedMisjump,		// next jump will miss if set to true, boolean, read/write
-	kPlayerShip_manifest				// the ship's manifest array of commodities: name,unit,quantity,displayName, read only
+	kPlayerShip_forwardShield,					// forward shield charge level, nonnegative float, read/write
+	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
+	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
+	kPlayerShip_forwardShieldRechargeRate,		// forward shield recharge rate, positive float, read-only
+	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
+	kPlayerShip_galaxyCoordinates,				// galaxy coordinates, vector, read only
+	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
+	kPlayerShip_scriptedMisjump					// next jump will miss if set to true, boolean, read/write
 };
 
 
@@ -124,7 +123,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "manifest",					kPlayerShip_manifest,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -166,6 +164,12 @@ JSClass *JSPlayerShipClass(void)
 JSObject *JSPlayerShipPrototype(void)
 {
 	return sPlayerShipPrototype;
+}
+
+
+JSObject *JSPlayerShipObject(void)
+{
+	return sPlayerShipObject;
 }
 
 
@@ -262,11 +266,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_scriptedMisjump:
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
-			OK = YES;
-			break;
-			
-		case kPlayerShip_manifest:
-			result = [player cargoListForScripting];
 			OK = YES;
 			break;
 		

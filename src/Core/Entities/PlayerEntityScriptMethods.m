@@ -201,6 +201,7 @@ MA 02110-1301, USA.
 		[shipCommodityData release];
 		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 	}
+	[self calculateCurrentCargo];
 }
 
 

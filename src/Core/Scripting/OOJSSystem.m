@@ -119,7 +119,7 @@ enum
 	kSystem_sun,				// system's sun, Planet, read-only
 	kSystem_planets,			// planets in system, array of Planet, read-only
 	kSystem_allShips,			// ships in system, array of Ship, read-only
-	kSystem_info,				// system info dictionary, SystemInfo, read-only
+	kSystem_info,				// system info dictionary, SystemInfo, read/write
 	kSystem_pseudoRandomNumber,	// constant-per-system pseudorandom number in [0..1), double, read-only
 	kSystem_pseudoRandom100,	// constant-per-system pseudorandom number in [0..100), integer, read-only
 	kSystem_pseudoRandom256		// constant-per-system pseudorandom number in [0..256), integer, read-only

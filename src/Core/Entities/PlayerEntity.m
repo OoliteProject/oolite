@@ -149,6 +149,39 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (void) unloadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
+{
+	int 			n_cargo = [cargo count];
+	if (n_cargo == 0)  return;
+	
+	ShipEntity		*cargoItem = nil;
+	int				co_type, amount, i;
+
+	// step through the cargo pods adding in the quantities	
+	for (i =  n_cargo - 1; i >= 0 ; i--)
+	{
+		cargoItem = [cargo objectAtIndex:i];
+		co_type = [cargoItem commodityType];
+		if (co_type == CARGO_UNDEFINED || co_type == type)
+		{
+			if (co_type == type)
+			{
+				NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:co_type]];	
+				amount =  [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + [cargoItem commodityAmount];
+				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
+				[manifest replaceObjectAtIndex:co_type withObject:commodityInfo];
+			}
+			else	// undefined
+			{
+				OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (CARGO_UNDEFINED), rejecting.", cargoItem);
+				continue;
+			}
+			[cargo removeObjectAtIndex:i];
+		}
+	}
+}
+
+
 - (void) unloadCargoPods
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */
@@ -158,93 +191,77 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// copy the quantities in ShipCommodityData to the manifest
 	// (was: zero the quantities in the manifest, making a mutable array of mutable arrays)
+	int amount = 0;
 	
 	for (i = 0; i < [manifest count]; i++)
 	{
 		NSMutableArray* commodityInfo = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]];
 		NSArray* shipCommInfo = [NSArray arrayWithArray:(NSArray *)[shipCommodityData objectAtIndex:i]];
-		int amount = [(NSNumber*)[shipCommInfo objectAtIndex:MARKET_QUANTITY] intValue];
+		amount = [shipCommInfo oo_intAtIndex:MARKET_QUANTITY];
 		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
-	}
-	
-	NSEnumerator	*cargoEnumerator = nil;
-	ShipEntity		*cargoItem = nil;
-	
-	// step through the cargo pods adding in the quantities
-	for (cargoEnumerator = [cargo objectEnumerator]; (cargoItem = [cargoEnumerator nextObject]); )
-	{
-		NSMutableArray	*commodityInfo;
-		int				co_type, co_amount, quantity;
-
-		co_type = [cargoItem commodityType];
-		co_amount = [cargoItem commodityAmount];
-		
-		if (co_type == CARGO_UNDEFINED)
-		{
-			OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (CARGO_UNDEFINED), rejecting.", cargoItem);
-			continue;
-		}
-		commodityInfo = [manifest objectAtIndex:co_type];
-		quantity =  [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue] + co_amount;
-		
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:quantity]]; // enter the adjusted quantity
+		[self unloadCargoPodsForType:i fromArray:manifest];
 	}
 	
 	[shipCommodityData release];
 	shipCommodityData = manifest;
 	
-	[cargo removeAllObjects];   // empty the hold
+	//[cargo removeAllObjects];   // empty the hold - not needed, done individually inside unloadCargoPodsForType
 	
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
+}
+
+
+- (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
+{
+	// load commodities from the ships manifest into individual cargo pods
+	unsigned j;
+
+	NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]] retain];  // retain
+	OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
+	OOMassUnit		units =	[UNIVERSE unitsForCommodity:type];
+	if (quantity > 0 && units == UNITS_TONS)
+	{
+		// put each ton in a separate container
+		for (j = 0; j < quantity; j++)
+		{
+			ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+			if (container)
+			{
+				[container setScanClass: CLASS_CARGO];
+				[container setStatus:STATUS_IN_HOLD];
+				[container setCommodity:type andAmount:1];
+				[cargo addObject:container];
+				[container release];
+			}
+			else
+			{
+				OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
+				// throw an exception here...
+				[NSException raise:OOLITE_EXCEPTION_FATAL
+					format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
+			}
+		}
+		// zero this commodity
+		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
+	}
+	[commodityInfo release]; // release, done
 }
 
 
 - (void) loadCargoPods
 {
 	/* loads commodities from the ships manifest into individual cargo pods */
-	unsigned i,j;
-	NSMutableArray* localMarket = [dockedStation localMarket];
+	unsigned i;
+
 	NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];  // retain
 	
 	if (cargo == nil)  cargo = [[NSMutableArray alloc] init];
 	
 	for (i = 0; i < [manifest count]; i++)
 	{
-		NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:i]] retain];  // retain
-		OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
-		OOMassUnit		units =	[UNIVERSE unitsForCommodity:i];
-		if (quantity > 0)
-		{
-			if (units == UNITS_TONS)
-			{
-				// put each ton in a separate container
-				for (j = 0; j < quantity; j++)
-				{
-					ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
-					if (container)
-					{
-						[container setScanClass: CLASS_CARGO];
-						[container setStatus:STATUS_IN_HOLD];
-						[container setCommodity:i andAmount:1];
-						[cargo addObject:container];
-						[container release];
-					}
-					else
-					{
-						OOLogERR(@"player.loadCargoPods.noContainer", @"couldn't create a container in [PlayerEntity loadCargoPods]");
-						// throw an exception here...
-						[NSException raise:OOLITE_EXCEPTION_FATAL
-							format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
-					}
-				}
-				// zero this commodity
-				[commodityInfo setArray:(NSArray *)[localMarket objectAtIndex:i]];
-				[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
-				[manifest replaceObjectAtIndex:i withObject:[NSArray arrayWithArray:commodityInfo]];
-			}
-		}
-		[commodityInfo release]; // release, done
+		[self loadCargoPodsForType:i fromArray: manifest];
 	}
 	[shipCommodityData release];
 	shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
@@ -4550,7 +4567,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (NSArray *) cargoList
 {
 	NSMutableArray	*manifest = [NSMutableArray array];
-	NSArray			*list = [[self cargoListForScripting] objectForKey:@"list"];
+	NSArray			*list = [self cargoListForScripting];
 	NSEnumerator	*cargoEnum = nil;
 	NSDictionary	*commodity;
 	
@@ -4568,9 +4585,8 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (NSDictionary *) cargoListForScripting
+- (NSArray *) cargoListForScripting
 {
-	NSMutableDictionary	*result = [NSMutableDictionary dictionaryWithCapacity:4];
 	NSMutableArray		*list = [NSMutableArray array];
 	
 	unsigned			n_commodities = [shipCommodityData count];
@@ -4600,12 +4616,10 @@ static PlayerEntity *sSharedPlayer = nil;
 			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"commodityName"]; 
 			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
 			[list addObject:commodity];
-			[result setObject:commodity forKey:[symName lowercaseString]];
 		}
 	}
-	[result setObject:list forKey:@"list"];
 
-	return [[result copy] autorelease];	// return an immutable copy
+	return [[list copy] autorelease];	// return an immutable copy
 }
 
 
@@ -5975,22 +5989,79 @@ static NSString *last_outfitting_key=nil;
 }
 
 
+- (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type
+{
+	OOCargoQuantity 	amount = [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
+	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
+	if  (unit == UNITS_TONS && [self status] != STATUS_DOCKED)
+	{
+		int 			i;
+		OOCommodityType co_type;
+		ShipEntity		*cargoItem = nil;
+		
+		for (i = [cargo count] - 1; i >= 0 ; i--)
+		{
+			cargoItem = [cargo objectAtIndex:i];
+			co_type = [cargoItem commodityType];
+			if (co_type == type)
+			{
+				amount += [cargoItem commodityAmount];
+			}
+		}
+	}
+	
+	return amount;
+}
+
+
+- (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount
+{
+	OOCargoQuantity 	oldAmount = [self  cargoQuantityForType:type];
+	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
+	OOCargoQuantity		available = [self availableCargoSpace];
+	BOOL				inPods = (unit == UNITS_TONS && [self status] != STATUS_DOCKED);
+	
+	// check it against the max amount.
+	if (unit == UNITS_TONS && (available + oldAmount) < amount)
+	{
+		amount =  available + oldAmount;
+	}
+	// if we have 1499 kg the ship registers only 1 ton, so it's possible to exceed the max cargo:
+	// eg: with maxCargo 2 & gold 1499kg, you can still add 1 ton alloy. 
+	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
+	{
+		while (oldAmount >= 1000) available++;
+		if (oldAmount % 1000 >= 500) available++;
+		if (available * 1000 < amount) amount = available * 1000;
+		if (amount < oldAmount) amount = oldAmount;
+	}
+	else if (unit == UNITS_GRAMS && amount > oldAmount)
+	{
+		while (oldAmount >= 1000000) available++;
+		if (oldAmount % 1000000 >= 500000) available++;
+		if (available * 1000000 < amount) amount = available * 1000000;
+		if (amount < oldAmount) amount = oldAmount;
+	}
+	
+	
+
+		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
+		if (inPods) [self unloadCargoPodsForType:type fromArray:manifest];
+		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
+		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
+		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
+		if (inPods) [self loadCargoPodsForType:type fromArray:manifest];
+		[shipCommodityData release];
+		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
+		[manifest release];
+
+	[self cargoQuantityOnBoard];
+	return [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
+}
+
+
 - (void) calculateCurrentCargo
 {
-	unsigned i;
-	unsigned n_commodities = [shipCommodityData count];
-	OOCargoQuantity in_hold[n_commodities];
-
-	// following works whether docked or not
-	
-	for (i = 0; i < n_commodities; i++)
-		in_hold[i] = [[shipCommodityData oo_arrayAtIndex:i] oo_intAtIndex:MARKET_QUANTITY];
-	for (i = 0; i < [cargo count]; i++)
-	{
-		ShipEntity *container = (ShipEntity *)[cargo objectAtIndex:i];
-		in_hold[[container commodityType]] += [container commodityAmount];
-	}
-
 	current_cargo = [self cargoQuantityOnBoard];
 }
 
