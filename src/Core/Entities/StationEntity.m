@@ -1087,8 +1087,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
 		}
 	}
-	// TODO: If player is waiting for docking clearance, send him an update
-	//       every X seconds telling him where he's at in the queue.
+
 	if (isDockingStation && [player status] == STATUS_IN_FLIGHT && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
 			[shipsOnApproach count] == 0 && [launchQueue count] == 0)
 	{
@@ -1265,6 +1264,27 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[self clearIdLocks:ship];
 	
 	[script doEvent:@"otherShipDocked" withArgument:ship];
+	
+#if DOCKING_CLEARANCE_ENABLED
+	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	BOOL isDockingStation = (self == [player getTargetDockStation]);
+	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
+			[player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED)
+	{
+		if ([shipsOnApproach count])
+		{
+			[self sendExpandedMessage:[NSString stringWithFormat:
+				DESC(@"please-wait-until-d-ships-have-completed-their-approach"),
+				[shipsOnApproach count]+1] toShip:player];
+		}
+		else if([launchQueue count])
+		{
+			[self sendExpandedMessage:[NSString stringWithFormat:
+				DESC(@"please-wait-until-d-launching-ships-have-cleared-station"),
+				[launchQueue count]+1] toShip:player];
+		}
+	}
+#endif
 }
 
 
