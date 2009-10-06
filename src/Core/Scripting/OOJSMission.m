@@ -65,7 +65,9 @@ static JSClass sMissionClass =
 enum
 {
 	// Property IDs
-	kMission_choice,			// selected option, string, read-only.
+	kMission_choice,			// selected option, string, read/write.
+	kMission_background,		// mission background image, string, read/write.
+	kMission_shipModel,			// mission ship model role, string, read/write.
 };
 
 
@@ -73,6 +75,9 @@ static JSPropertySpec sMissionProperties[] =
 {
 	// JS name					ID							flags
 	{ "choice",					kMission_choice,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	//{ "backgroundImage",		kMission_background,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	//{ "shipModel",				kMission_shipModel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+
 	{ 0 }	
 };
 
@@ -118,6 +123,16 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name,
 			if (result == nil)  result = [NSNull null];
 			break;
 			
+		case kMission_background:
+			result = [player getMissionImage];
+			if (result == nil)  result = [NSNull null];
+			break;
+			
+		case kMission_shipModel:
+			result = [player getMissionShipModel];
+			if (result == nil)  result = [NSNull null];
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
 			return NO;
@@ -141,6 +156,16 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 		case kMission_choice:
 			if (*value == JSVAL_VOID || *value == JSVAL_NULL)  [player resetMissionChoice];
 			else  [player setMissionChoice:[NSString stringWithJavaScriptValue:*value inContext:context]];
+			break;
+		
+		case kMission_background:
+			// If value can't be converted to a string -- this will clear the background image.
+			[player setMissionImage:JSValToNSString(context,*value)];
+			break;
+		
+		case kMission_shipModel:
+			// If value can't be converted to a string -- this will clear the ship model.
+			[player showShipModel:JSValToNSString(context, *value)];
 			break;
 			
 		default:
@@ -169,7 +194,7 @@ static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN 
 static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
-	
+	//OOReportJSWarning(context, @"The function Mission.showShipModel is deprecated and will be removed in a future version of Oolite.");
 	// If argv[0] can't be converted to a string -- e.g., null or undefined -- this will clear the ship model.
 	[player showShipModel:JSValToNSString(context,argv[0])];
 	
@@ -235,6 +260,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
 	
+	//OOReportJSWarning(context, @"The function Mission.setBackgroundImage is deprecated and will be removed in a future version of Oolite.");
 	if (argc >= 1)  key = JSValToNSString(context,argv[0]);
 	[player setMissionImage:key];
 	

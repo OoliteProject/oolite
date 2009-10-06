@@ -2039,19 +2039,24 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+-(NSString *) getMissionShipModel
+{
+	return missionShipModel;
+}
+
+
 - (void) showShipModel:(NSString *)shipKey
 {
 	ShipEntity		*ship;
 
 	if (!dockedStation)  return;
-
+	missionShipModel = nil;
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
 	if ([shipKey isEqualToString:@"none"] || [shipKey length] == 0)  return;
 	
 	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
-
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
-
+	missionShipModel = [NSString stringWithString:shipKey];
 	ship = [UNIVERSE newShipWithRole: shipKey];   // retain count = 1
 	if (ship)
 	{
@@ -2082,13 +2087,21 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (NSString *) getMissionImage
+{
+	return missionBackgroundFile;
+}
+
+
 - (void) setMissionImage:(NSString *)value
 {
+	missionBackgroundFile = nil;
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
  	{
+		missionBackgroundFile = [NSString stringWithString: value];
 		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionBackgroundTexture retain];
  	}

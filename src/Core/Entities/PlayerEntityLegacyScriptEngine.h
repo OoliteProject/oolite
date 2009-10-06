@@ -212,6 +212,8 @@ typedef enum
 - (void) showShipModel: (NSString *)shipKey;
 - (void) setMissionMusic: (NSString *)value;
 - (void) setMissionImage: (NSString *)value;
+- (NSString *) getMissionShipModel;
+- (NSString *) getMissionImage;
 
 - (void) setFuelLeak: (NSString *)value;
 - (NSNumber *)fuelLeakRate_number;

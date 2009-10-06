@@ -401,9 +401,15 @@ NSString *CommodityTypeToString(OOCommodityType commodity) // returns the commod
 		case COMMODITY_ALIEN_ITEMS: return @"alien items";
 /*
 		// normalised commodity identifiers, for post MNSR
-		case COMMODITY_LIQUOR_WINES: return @"liquor_wines";
-		case COMMODITY_GEM_STONES: return @"gem_stones";
-		case COMMODITY_ALIEN_ITEMS: return @"alien_items";
+		
+		//case COMMODITY_LIQUOR_WINES: return @"liquor_wines";
+		//case COMMODITY_GEM_STONES: return @"gem_stones";
+		//case COMMODITY_ALIEN_ITEMS: return @"alien_items";
+		
+		CO_CASE(LIQUOR_WINES);
+		CO_CASE(GEM_STONES);
+		CO_CASE(ALIEN_ITEMS);
+ 
 */	
 		CO_CASE(FOOD);
 		CO_CASE(TEXTILES);

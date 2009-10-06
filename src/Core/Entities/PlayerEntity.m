@@ -93,6 +93,7 @@ static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 
 static PlayerEntity *sSharedPlayer = nil;
 
+
 @interface PlayerEntity (OOPrivate)
 
 - (void) setExtraEquipmentFromFlags;
@@ -4611,7 +4612,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			NSMutableDictionary	*commodity = [NSMutableDictionary dictionaryWithCapacity:4];
 			NSString *symName = [[shipCommodityData oo_arrayAtIndex:i] oo_stringAtIndex:MARKET_NAME] ;
 			// commodity, quantity - keep consistency between .manifest and .contracts
-			[commodity setObject:[symName lowercaseString] forKey:@"commodity"];
+			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:in_hold[i]] forKey:@"quantity"];
 			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"commodityName"]; 
 			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
@@ -5993,6 +5994,7 @@ static NSString *last_outfitting_key=nil;
 {
 	OOCargoQuantity 	amount = [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
 	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
+	
 	if  (unit == UNITS_TONS && [self status] != STATUS_DOCKED)
 	{
 		int 			i;
@@ -6016,8 +6018,10 @@ static NSString *last_outfitting_key=nil;
 
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount
 {
-	OOCargoQuantity 	oldAmount = [self  cargoQuantityForType:type];
 	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
+	if([self specialCargo] && unit == UNITS_TONS) return 0;	// don't do anything if we've got a special cargo...
+	
+	OOCargoQuantity 	oldAmount = [self  cargoQuantityForType:type];
 	OOCargoQuantity		available = [self availableCargoSpace];
 	BOOL				inPods = (unit == UNITS_TONS && [self status] != STATUS_DOCKED);
 	
@@ -6030,14 +6034,14 @@ static NSString *last_outfitting_key=nil;
 	// eg: with maxCargo 2 & gold 1499kg, you can still add 1 ton alloy. 
 	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
 	{
-		while (oldAmount >= 1000) available++;
+		available += oldAmount / 1000;
 		if (oldAmount % 1000 >= 500) available++;
 		if (available * 1000 < amount) amount = available * 1000;
 		if (amount < oldAmount) amount = oldAmount;
 	}
 	else if (unit == UNITS_GRAMS && amount > oldAmount)
 	{
-		while (oldAmount >= 1000000) available++;
+		available += oldAmount / 1000000;
 		if (oldAmount % 1000000 >= 500000) available++;
 		if (available * 1000000 < amount) amount = available * 1000000;
 		if (amount < oldAmount) amount = oldAmount;

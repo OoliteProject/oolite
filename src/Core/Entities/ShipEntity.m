@@ -4555,7 +4555,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			quantity = [commodityInfo oo_intAtIndex:MARKET_QUANTITY];
 			// manifest contains entries for all 17 commodities, whether their quantity is 0 or more.
 			commodityUnits = [UNIVERSE unitsForCommodity:i];
-			if (commodityUnits != UNITS_TONS) quantity /= (commodityUnits == UNITS_KILOGRAMS) ? 1000 : 1000000; // Kilos : grams
+			if (commodityUnits != UNITS_TONS)
+			{
+				if (commodityUnits == UNITS_KILOGRAMS) quantity = (quantity + 500) / 1000;
+				else quantity = (quantity + 500000) / 1000000;	// grams
+			}
 			cargoQtyOnBoard += quantity;
 		}
 		cargoQtyOnBoard += [[self cargo] count];

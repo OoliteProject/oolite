@@ -270,6 +270,8 @@ typedef enum
 	double					last_fps_check_time;
 	
 	NSString				*planetSearchString;
+	NSString				*missionShipModel;
+	NSString				*missionBackgroundFile;
 	
 	OOMatrix				playerRotMatrix;
 	

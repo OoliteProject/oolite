@@ -314,6 +314,11 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
+	if ([entity specialCargo])
+	{
+		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo when Special Cargo is in use.");
+		return YES;
+	}
 	
 	switch (JSVAL_TO_INT(name))
 	{
