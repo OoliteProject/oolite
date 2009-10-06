@@ -46,6 +46,17 @@ MA 02110-1301, USA.
 
 static NSDictionary* instructions(int station_id, Vector coords, float speed, float range, NSString* ai_message, NSString* comms_message, BOOL match_rotation);
 
+@interface StationEntity (private)
+- (void)clearIdLocks:(ShipEntity*)ship;
+@end
+
+#ifndef NDEBUG
+@interface StationEntity (mwDebug)
+- (NSArray *) dbgGetShipsOnApproach;
+- (NSArray *) dbgGetIdLocks;
+- (NSString *) dbgDumpIdLocks;
+@end
+#endif
 
 @implementation StationEntity
 
@@ -490,19 +501,21 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		coords.y += rel_coords.x * vi.y + rel_coords.y * vj.y + rel_coords.z * vk.y;
 		coords.z += rel_coords.x * vi.z + rel_coords.y * vj.z + rel_coords.z * vk.z;
 		
-		if ((id_lock[docking_stage] == NO_TARGET)
-			&&(id_lock[docking_stage + 1] == NO_TARGET)	
-			&&(id_lock[docking_stage + 2] == NO_TARGET))	// check three stages ahead
+		if( ([id_lock[docking_stage] weakRefUnderlyingObject] == nil)
+		   &&([id_lock[docking_stage + 1] weakRefUnderlyingObject] == nil)
+		   &&([id_lock[docking_stage + 2] weakRefUnderlyingObject] == nil))	// check three stages ahead
 		{
 			// approach is clear - move to next position
 			//
-			int i;	// clear any previously owned docking stages
-			for (i = 1; i < MAX_DOCKING_STAGES; i++)
-				if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
-					id_lock[i] = NO_TARGET;
+			
+			// clear any previously owned docking stages
+			[self clearIdLocks:ship];
 					
 			if (docking_stage > 1)	// don't claim first docking stage
-				id_lock[docking_stage] = ship_id;	// otherwise - claim this docking stage
+			{
+				[id_lock[docking_stage] release];
+				id_lock[docking_stage] = [ship weakRetain];	// otherwise - claim this docking stage
+			}
 			
 			//remove the previous stage from the stack
 			[coordinatesStack removeObjectAtIndex:0];
@@ -642,11 +655,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[shipAI message:@"DOCKING_COMPLETE"];
 	}
 		
-	int i;	// clear any previously owned docking stages
-	for (i = 1; i < MAX_DOCKING_STAGES; i++)
-		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
-			id_lock[i] = NO_TARGET;
-			
+	// clear any previously owned docking stages
+	[self clearIdLocks:ship];
 }
 
 
@@ -699,6 +709,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[shipsOnApproach release];
 	[shipsOnHold release];
 	[launchQueue release];
+	[self clearIdLocks:nil];
 	
 	[localMarket release];
 	[localPassengers release];
@@ -706,6 +717,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[localShipyard release];
 	
 	[super dealloc];
+}
+
+- (void) clearIdLocks:(ShipEntity *)ship
+{
+	int i;
+	for (i = 1; i < MAX_DOCKING_STAGES; i++)
+	{
+		if (ship == nil || ship == [id_lock[i] weakRefUnderlyingObject])
+		{
+			[id_lock[i] release];
+			id_lock[i] = nil;
+		}
+	}
 }
 
 
@@ -1237,10 +1261,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if ([shipsOnApproach count] == 0)
 		[shipAI message:@"DOCKING_COMPLETE"];
 	
-	unsigned i;	// clear any previously owned docking stages
-	for (i = 0; i < MAX_DOCKING_STAGES; i++)
-		if ((id_lock[i] == ship_id)||([UNIVERSE entityForUniversalID:id_lock[i]] == nil))
-			id_lock[i] = NO_TARGET;
+	// clear any previously owned docking stages
+	[self clearIdLocks:ship];
 	
 	[script doEvent:@"otherShipDocked" withArgument:ship];
 }
@@ -2175,6 +2197,35 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 
 #ifndef NDEBUG
+
+@implementation StationEntity (mwDebug)
+- (NSArray *) dbgGetIdLocks
+{
+	// ?? Doesn't work? At least, not as expected..
+	return [NSArray arrayWithObjects:id_lock count:MAX_DOCKING_STAGES];
+}
+
+- (NSString *) dbgDumpIdLocks
+{
+	int i;
+	NSMutableString * ret = [[NSMutableString alloc] initWithString:@"Station ID Locks:\n"];
+	for( i = 1; i < MAX_DOCKING_STAGES; i++ )
+	{
+		[ret appendString:[NSString stringWithFormat:@"   Stage %i contains: %@\n",
+			  i, 
+			  [id_lock[i] weakRefUnderlyingObject]
+//			  ? (ShipEntity*)[id_lock[i] weakRefUnderlyingObject]
+			  ? id_lock[i]
+			  : @"<empty"]];
+	}
+	return ret;
+}
+
+- (NSArray *) dbgGetShipsOnApproach
+{
+	return [shipsOnApproach allKeys];
+}
+@end
 
 @implementation StationEntity (OOWireframeDockingBox)
 

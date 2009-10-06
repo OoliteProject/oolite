@@ -52,7 +52,7 @@ typedef enum
 	double					approach_spacing;
 	OOStationAlertLevel		alertLevel;
 	
-	OOUniversalID			id_lock[MAX_DOCKING_STAGES];	// ship id's or NO_TARGET's
+	ShipEntity				*id_lock[MAX_DOCKING_STAGES];	// OOWeakReferences to a ShipEntity
 	
 	unsigned				max_police;					// max no. of police ships allowed
 	unsigned				max_defense_ships;			// max no. of defense ships allowed
