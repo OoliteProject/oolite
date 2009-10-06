@@ -531,7 +531,7 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 		OOReportJSErrorForCaller(context, @"PlayerShip", @"awardCargo", @"Cannot award %u units of cargo \"%@\" at this time (use canAwardCargo() to avoid this error).", amount, typeString);
 		return NO;
 	}
-	
+	OOReportJSWarning(context, @"Player.ship.awardCargo('foo',bar) is deprecated and will be removed in a future version of Oolite. Use player.ship.manifest['foo'] = bar instead.");
 	[player awardCargoType:type amount:amount];
 	return YES;
 }
@@ -566,7 +566,7 @@ static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN 
 		OOReportJSErrorForCaller(context, @"PlayerShip", @"canAwardCargo", @"Cargo quantity (%i) is negative.", amount);
 		return NO;
 	}
-	
+	OOReportJSWarning(context, @"Player.ship.canAwardCargo() is deprecated and will be removed in a future version of Oolite.");
 	*outResult = BOOLToJSVal([player canAwardCargoType:type amount:amount]);
 	return YES;
 }
