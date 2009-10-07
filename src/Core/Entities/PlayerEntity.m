@@ -7253,7 +7253,7 @@ static NSString *last_outfitting_key=nil;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
-	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"you-have-been-fined-@-cr-for-unauthorized-docking"), OOCredits(amountToPay)] forCount:8 andShowComms:NO logOnly:NO];
+	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-fined-@-cr"), OOCredits(amountToPay)] forCount:8 andShowComms:NO logOnly:NO];
 }
 
 #endif
