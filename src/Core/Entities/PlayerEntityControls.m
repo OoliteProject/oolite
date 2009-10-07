@@ -125,7 +125,6 @@ static NSTimeInterval	time_last_frame;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
-- (void) targetNewSystem:(int) direction;
 
 @end
 
@@ -359,6 +358,19 @@ static NSTimeInterval	time_last_frame;
 	upDownKeyPressed = (arrow_up || arrow_down || mouse_click);
 	
 	return result;
+}
+
+
+- (void) targetNewSystem:(int) direction
+{
+	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
+	cursor_coordinates.x = target_system_seed.d;
+	cursor_coordinates.y = target_system_seed.b;
+	found_system_seed = target_system_seed;
+	[[UNIVERSE gameView] resetTypedString];
+	if (planetSearchString) [planetSearchString release];
+	planetSearchString = nil;
+	cursor_moving = YES;
 }
 
 @end
@@ -1316,19 +1328,6 @@ static NSTimeInterval	time_last_frame;
 	{
 		pause_pressed = NO;
 	}
-}
-
-
-- (void) targetNewSystem:(int) direction
-{
-	target_system_seed = [[UNIVERSE gui] targetNextFoundSystem:direction];
-	cursor_coordinates.x = target_system_seed.d;
-	cursor_coordinates.y = target_system_seed.b;
-	found_system_seed = target_system_seed;
-	[[UNIVERSE gameView] resetTypedString];
-	if (planetSearchString) [planetSearchString release];
-	planetSearchString = nil;
-	cursor_moving = YES;
 }
 
 

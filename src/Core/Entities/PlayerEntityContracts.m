@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityContracts.h"
+#import "PlayerEntityControls.h"
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
@@ -897,9 +898,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		contract_info = (NSDictionary*)[contract_market objectAtIndex:[gui selectedRow] - GUI_ROW_CARGO_START];
 	}
 	dest_name = [contract_info oo_stringForKey:CONTRACT_KEY_DESTINATION_NAME];
-
-	[[UNIVERSE gameView] setTypedString:[dest_name lowercaseString]];
+	
 	[self setGuiToLongRangeChartScreen];
+	[UNIVERSE findSystemCoordinatesWithPrefix:[dest_name lowercaseString] exactMatch:YES]; // if dest_name is 'Ra', make sure there's only 1 result.
+	[self targetNewSystem:1]; // now highlight the 1 result found.
 }
 
 

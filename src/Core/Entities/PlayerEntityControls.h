@@ -33,5 +33,6 @@ MA 02110-1301, USA.
 
 - (void) pollControls:(double)delta_t;
 - (BOOL) handleGUIUpDownArrowKeys;
+- (void) targetNewSystem:(int) direction;
 
 @end
