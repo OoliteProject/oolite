@@ -261,6 +261,7 @@ static GameController *sSharedController = nil;
 		PlayerEntity	*player = [PlayerEntity sharedPlayer];
 		[player loadPlayerFromFile:playerFileToLoad];
 		[player setStatus:STATUS_DOCKED];
+		[[UNIVERSE gameView] supressKeysUntilKeyUp];
 		[player setGuiToStatusScreen];
 	}
 }

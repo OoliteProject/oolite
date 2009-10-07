@@ -4362,7 +4362,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) setGuiToStatusScreen
 {
-	[[UNIVERSE gameView] supressKeysUntilKeyUp];
+	//[[UNIVERSE gameView] supressKeysUntilKeyUp]; //can't leave it here, it transforms the F5/F5 screen into an F5/F5/F5 one
 	// intercept any docking messages
 	if ([dockingReport length] > 0 && [self isDocked])
 	{

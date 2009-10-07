@@ -174,6 +174,7 @@
 	}
 	
 	[self writePlayerToPath:path];
+	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 }
 
@@ -332,6 +333,7 @@
 			else
 			{
 				[self nativeSavePlayer: commanderNameString];
+				[[UNIVERSE gameView] supressKeysUntilKeyUp];
 				[self setGuiToStatusScreen];
 			}
 		}
@@ -358,6 +360,7 @@
 		pollControls=YES;
 		[self nativeSavePlayer: commanderNameString];
 		[self playSaveOverwriteYes];
+		[[UNIVERSE gameView] supressKeysUntilKeyUp];
 		[self setGuiToStatusScreen];
 	}
 	
@@ -484,6 +487,7 @@
 	}
 	[self calculateCurrentCargo];
 	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map
+	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 	return loadedOK;
 }
@@ -576,9 +580,9 @@
 	{
 		OOLog(@"save.failed", @"***** SAVE ERROR: %@", errDesc);
 		[NSException raise:@"OoliteException"
-					format:@"Attempt to save game to file '%@' failed: %@", errDesc];
+					format:@"Attempt to save game to file '%@' failed: %@", path, errDesc];
 	}
-	
+	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	[self setGuiToStatusScreen];
 }
 

@@ -77,6 +77,7 @@ enum
 	kManifest_radioactives,		// commodity quantity, integer, read/write
 	kManifest_slaves,			// commodity quantity, integer, read/write
 	kManifest_liquor_wines,		// standardised identifier commodity quantity, integer, read/write
+	kManifest_liquorWines,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_liquorwines,		// alias to previous commodity quantity, integer, read/write
 	kManifest_luxuries,			// commodity quantity, integer, read/write
 	kManifest_narcotics,		// commodity quantity, integer, read/write
@@ -89,8 +90,10 @@ enum
 	kManifest_gold,				// commodity quantity, integer, read/write
 	kManifest_platinum,			// commodity quantity, integer, read/write
 	kManifest_gem_stones,		// standardised identifier commodity quantity, integer, read/write
+	kManifest_gemStones,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_gemstones,		// alias to previous commodity quantity, integer, read/write
 	kManifest_alien_items,		// standardised identifier commodity quantity, integer, read/write
+	kManifest_alienItems,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_alienitems		// alias to previous commodity quantity, integer, read/write
 };
 
@@ -103,7 +106,9 @@ static JSPropertySpec sManifestProperties[] =
 	{ "textiles",			kManifest_textiles,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "radioactives",		kManifest_radioactives,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "slaves",				kManifest_slaves,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+// 3 possible ways of accessing the same commodity at the moment. TODO; decide what to do! (same applies to alien items and gem-stones too)  -- post MNSR?
 	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "liquor/wines",		kManifest_liquorwines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "luxuries",			kManifest_luxuries,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "narcotics",			kManifest_narcotics,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -116,8 +121,10 @@ static JSPropertySpec sManifestProperties[] =
 	{ "gold",				kManifest_gold,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platinum",			kManifest_platinum,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gem_stones",			kManifest_gem_stones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "gemStones",			kManifest_gemStones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gem-stones",			kManifest_gemstones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alien_items",		kManifest_alien_items,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "alienItems",			kManifest_alienItems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alien items",		kManifest_alienitems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
@@ -230,6 +237,7 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 			
 		case kManifest_liquor_wines:
 		case kManifest_liquorwines:
+		case kManifest_liquorWines:
 			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_LIQUOR_WINES]);
 			OK = YES;
 			break;
@@ -286,12 +294,14 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 			
 		case kManifest_gem_stones:
 		case kManifest_gemstones:
+		case kManifest_gemStones:
 			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_GEM_STONES]);
 			OK = YES;
 			break;
 			
 		case kManifest_alien_items:
 		case kManifest_alienitems:
+		case kManifest_alienItems:
 			*outValue = INT_TO_JSVAL([entity cargoQuantityForType:COMMODITY_ALIEN_ITEMS]);
 			OK = YES;
 			break;
@@ -360,6 +370,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 		
 		case kManifest_liquor_wines:
 		case kManifest_liquorwines:
+		case kManifest_liquorWines:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
@@ -460,6 +471,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 		
 		case kManifest_gem_stones:
 		case kManifest_gemstones:
+		case kManifest_gemStones:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
@@ -470,6 +482,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 		
 		case kManifest_alien_items:
 		case kManifest_alienitems:
+		case kManifest_alienItems:
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;
