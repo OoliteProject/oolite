@@ -1,0 +1,2 @@
+oolite-data: image-file-in-usr-lib usr/lib/GNUstep/Applications/oolite.app/Resources/Images/*
+oolite-data: image-file-in-usr-lib usr/lib/GNUstep/Applications/oolite.app/Resources/Textures/*
