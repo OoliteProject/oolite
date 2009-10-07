@@ -2,7 +2,7 @@ Source: oolite
 Section: games
 Priority: optional
 Maintainer: Michael Werle <micha@michaelwerle.com>
-Standards-Version: 3.7.2
+Standards-Version: 3.8.0
 Build-Depends: debhelper (>= 5),
 	libsdl1.2-dev, libsdl-mixer1.2-dev, libespeak-dev,
 	libgnustep-base-dev, gnustep-core-devel,
