@@ -481,14 +481,14 @@ static BOOL sRunningScript = NO;
 	double						lhsValue, rhsValue;
 	BOOL						lhsFlag, rhsFlag;
 	
-	opType = [[scriptCondition objectAtIndex:0] unsignedIntValue];
+	opType = [scriptCondition oo_unsignedIntAtIndex:0];
 	if (opType == OP_FALSE)  return NO;
 	
-	selectorString = [scriptCondition objectAtIndex:2];
-	comparator = [[scriptCondition objectAtIndex:3] unsignedIntValue];
-	operandArray = [scriptCondition objectAtIndex:4];
+	selectorString = [scriptCondition oo_stringAtIndex:2];
+	comparator = [scriptCondition oo_unsignedIntAtIndex:3];
+	operandArray = [scriptCondition oo_arrayAtIndex:4];
 	
-	TraceLog(kOOLogTraceTestCondition, @"scriptTestCondition [%@]: \"%@\"", CurrentScriptDesc(), [scriptCondition objectAtIndex:1]);
+	TraceLog(kOOLogTraceTestCondition, @"scriptTestCondition [%@]: \"%@\"", CurrentScriptDesc(), [scriptCondition oo_stringAtIndex:1]);
 	
 	// Transform mission/local var ops into string ops.
 	if (opType == OP_MISSION_VAR)
@@ -669,7 +669,7 @@ static BOOL sRunningScript = NO;
 			the expanded string.
 		*/
 		
-		value = [component objectAtIndex:1];
+		value = [component oo_stringAtIndex:1];
 		
 		if ([[component objectAtIndex:0] boolValue])
 		{
