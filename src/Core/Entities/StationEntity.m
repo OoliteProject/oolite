@@ -2230,7 +2230,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	for (i = 1; i < MAX_DOCKING_STAGES; i++)
 	{
 		[ret appendString:[NSString stringWithFormat:@"   Stage %i contains: %@\n",
-			  i, [id_lock[i] weakRefUnderlyingObject] ? id_lock[i] : @"<empty"]];
+			  i, [id_lock[i] weakRefUnderlyingObject] ? (id)id_lock[i] : (id)@"<empty>"]];
 	}
 	return ret;
 }
