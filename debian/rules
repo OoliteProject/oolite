@@ -74,7 +74,7 @@ binary-indep: build install
 	dh_strip -i
 	dh_compress -i -X.pdf -X.rtf
 	dh_fixperms -i
-	dh_lintian -i
+	-dh_lintian -i # Do not fail here, since dh_lintian is only present in debhelper >= 6.0.7, and Ubuntu Hardy has 6.0.4
 	dh_installdeb -i
 	dh_gencontrol -i
 	dh_md5sums -i
@@ -93,7 +93,7 @@ binary-arch: build install
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a
-	dh_lintian -a
+	-dh_lintian -a # Do not fail here, since dh_lintian is only present in debhelper >= 6.0.7, and Ubuntu Hardy has 6.0.4
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a
