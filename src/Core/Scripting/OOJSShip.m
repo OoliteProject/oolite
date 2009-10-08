@@ -321,7 +321,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_bounty:
-			*outValue = INT_TO_JSVAL([entity legalStatus]);
+			*outValue = INT_TO_JSVAL([entity bounty]);
 			OK = YES;
 			break;
 		
