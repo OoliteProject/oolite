@@ -80,6 +80,9 @@ static OOAsyncWorkManager *sSingleton = nil;
 	OOAsyncQueue			*_taskQueue;
 	BOOL					_haveInited;
 }
+
+- (void) queueTask:(NSNumber *)threadNumber;
+
 @end
 #endif
 
@@ -92,6 +95,8 @@ static OOAsyncWorkManager *sSingleton = nil;
 #if !OO_HAVE_NSOPERATION
 + (BOOL) canBeUsed;
 #endif
+
+- (void) dispatchTask:(id<OOAsyncWorkTask>)task;
 
 @end
 

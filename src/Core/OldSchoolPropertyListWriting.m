@@ -19,9 +19,9 @@
 */
 
 #import "OldSchoolPropertyListWriting.h"
+#import "NSNumberOOExtensions.h"
 
 
-static BOOL IsFloatingPoint(NSNumber *number);
 static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDepth);
 
 
@@ -97,10 +97,12 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 	NSString			*result;
 	double				dVal;
 	
-	
-	if (self == [NSNumber numberWithBool:YES]) result = @"true";
-	else if ([NSNumber numberWithBool:NO]) result = @"false";
-	else if (IsFloatingPoint(self))
+	if ([self oo_isFloatingPointNumber])
+	{
+		if ([self boolValue])  result = @"true";
+		else  result = @"false";
+	}
+	else if ([self oo_isFloatingPointNumber])
 	{
 		dVal = [self doubleValue];
 		result = [NSString stringWithFormat:@"%.8g", dVal];
@@ -320,16 +322,6 @@ static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDep
 }
 
 @end
-
-
-static BOOL IsFloatingPoint(NSNumber *number)
-{
-	const char *type = [number objCType];
-	if (strcmp(type, @encode(float)) == 0)  return YES;
-	if (strcmp(type, @encode(double)) == 0)  return YES;
-	
-	return NO;
-}
 
 
 static void AppendNewLineAndIndent(NSMutableString *ioString, unsigned indentDepth)

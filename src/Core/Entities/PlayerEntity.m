@@ -2472,18 +2472,14 @@ static PlayerEntity *sSharedPlayer = nil;
 - (GLfloat) dialForwardShield
 {
 	GLfloat result = forward_shield / [self maxForwardShieldLevel];
-	if (result < 1.0f)
-		return result;
-	return 1.0f;
+	return OOClamp_0_1_f(result);
 }
 
 
 - (GLfloat) dialAftShield
 {
 	GLfloat result = aft_shield / [self maxAftShieldLevel];
-	if (result < 1.0f)
-		return result;
-	return 1.0f;
+	return OOClamp_0_1_f(result);
 }
 
 

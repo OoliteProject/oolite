@@ -731,7 +731,7 @@ waitingForStickCallback: 1;
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;
 
-// *** World cript events.
+// *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
 - (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;

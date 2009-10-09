@@ -213,14 +213,14 @@ Vector offsetForOctant(int oct, GLfloat r)
 	OODebugWFState state = OODebugBeginWireframe(NO);
 	
 	OO_ENTER_OPENGL();
-	glEnable(GL_BLEND);
-	glBegin(GL_LINES);
+	OOGL(glEnable(GL_BLEND));
+	OOGLBEGIN(GL_LINES);
 	glColor4f(0.4, 0.4, 0.4, 0.5);
 	
 	// it's a series of cubes
 	[self drawOctreeFromLocation:0 :radius : kZeroVector];
 	
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 	CheckOpenGLErrors(@"Octree after drawing %@", self);
@@ -328,47 +328,41 @@ BOOL drawTestForCollisions;
 		octree_collision[loc]--;
 		
 		// draw a cube
-		glDisable(GL_CULL_FACE);			// face culling
+		OOGL(glDisable(GL_CULL_FACE));		// face culling
 		
-		glDisable(GL_TEXTURE_2D);
+		OOGL(glDisable(GL_TEXTURE_2D));
 
-		glBegin(GL_LINE_STRIP);
+		OOGLBEGIN(GL_LINE_STRIP);
+			glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+			glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+			glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+			glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+			glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+		OOGLEND();
+		
+		OOGLBEGIN(GL_LINE_STRIP);
+			glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+			glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
+			glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
+			glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+			glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
+		OOGLEND();
 			
-		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-		glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-		glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-		glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-		
-		glEnd();
-		
-		glBegin(GL_LINE_STRIP);
+		OOGLBEGIN(GL_LINES);
+			glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
+			glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
 			
-		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-		glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
-		glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
-		glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-		
-		glEnd();
+			glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
+			glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
 			
-		glBegin(GL_LINES);
+			glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
+			glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
 			
-		glVertex3f(-scale + offset.x, -scale + offset.y, -scale + offset.z);
-		glVertex3f(-scale + offset.x, -scale + offset.y, scale + offset.z);
-		
-		glVertex3f(-scale + offset.x, scale + offset.y, -scale + offset.z);
-		glVertex3f(-scale + offset.x, scale + offset.y, scale + offset.z);
-		
-		glVertex3f(scale + offset.x, scale + offset.y, -scale + offset.z);
-		glVertex3f(scale + offset.x, scale + offset.y, scale + offset.z);
-		
-		glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
-		glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
-		
-		glEnd();
+			glVertex3f(scale + offset.x, -scale + offset.y, -scale + offset.z);
+			glVertex3f(scale + offset.x, -scale + offset.y, scale + offset.z);
+		OOGLEND();
 			
-		glEnable(GL_CULL_FACE);			// face culling
+		OOGL(glEnable(GL_CULL_FACE));		// face culling
 	}
 	if (octree[loc] > 0)
 	{
