@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityScriptMethods.h"
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
+#import "OOCollectionExtractors.h"
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -53,6 +54,7 @@ static JSBool GlobalSetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -95,11 +97,12 @@ static JSPropertySpec sGlobalProperties[] =
 
 static JSFunctionSpec sGlobalMethods[] =
 {
-	// JS name					Function					min args
-	{ "log",					GlobalLog,					1 },
-	{ "expandDescription",		GlobalExpandDescription,	1 },
-	{ "displayNameForCommodity", GlobalDisplayNameForCommodity, 1 },
-	{ "randomName",				GlobalRandomName,			0 },
+	// JS name					Function						min args
+	{ "log",					GlobalLog,						1 },
+	{ "expandDescription",		GlobalExpandDescription,		1 },
+	{ "expandMissionText",		GlobalExpandMissionText,		1 },
+	{ "displayNameForCommodity", GlobalDisplayNameForCommodity,	1 },
+	{ "randomName",				GlobalRandomName,				0 },
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
 	{ 0 }
 };
@@ -219,6 +222,29 @@ static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN 
 	}
 	string = ExpandDescriptionForCurrentSystem(string);
 	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+// expandMissionText(textKey : string)
+static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*string = nil;
+	NSMutableString		*mString = nil;
+	
+	string = JSValToNSString(context,argv[0]);
+	if (string == nil)
+	{
+		OOReportJSBadArguments(context, @"System", @"expandMissionText", argc, argv, nil, @"string");
+		return NO;
+	}
+	
+	string = [[UNIVERSE missiontext] oo_stringForKey:string];
+	mString = [ExpandDescriptionForCurrentSystem(string) mutableCopy];
+	[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
+	*outResult = [mString javaScriptValueInContext:context];
+	[mString release];
 	
 	return YES;
 }

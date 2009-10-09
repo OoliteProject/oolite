@@ -38,7 +38,6 @@ static JSBool MissionShowMissionScreen(JSContext *context, JSObject *this, uintN
 static JSBool MissionShowShipModel(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionMarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -89,7 +88,6 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "showShipModel",			MissionShowShipModel,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
-	{ "addMessageTextKey",		MissionAddMessageTextKey,	1 },
 	{ "addMessageText",			MissionAddMessageText,		1 },
 	{ "setBackgroundImage",		MissionSetBackgroundImage,	1 },
 	{ "setMusic",				MissionSetMusic,			1 },
@@ -223,19 +221,6 @@ static JSBool MissionUnmarkSystem(JSContext *context, JSObject *obj, uintN argc,
 	
 	params = [NSString concatenationOfStringsFromJavaScriptValues:argv count:argc separator:@" " inContext:context];
 	[player removeMissionDestination:params];
-	
-	return YES;
-}
-
-
-// addMessageTextKey(textKey : String)
-static JSBool MissionAddMessageTextKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*key = nil;
-	
-	key = JSValToNSString(context,argv[0]);
-	[player addMissionText:key];
 	
 	return YES;
 }
