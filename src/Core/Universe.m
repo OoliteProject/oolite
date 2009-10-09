@@ -7709,7 +7709,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	OOCargoQuantity	max_cargo = [dict oo_unsignedIntForKey:@"max_cargo"];
 	if (max_cargo)
 	{
-		OOCargoQuantity	extra_cargo = [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:15];
+		OOCargoQuantity	extra_cargo = [dict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
 		[desc appendFormat:@" Cargo capacity %dt", max_cargo];
 		BOOL canExpand = ([allOptions rangeOfString:@"EQ_CARGO_BAY"].location != NSNotFound);
 		if (canExpand)

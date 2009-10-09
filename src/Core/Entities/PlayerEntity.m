@@ -2457,9 +2457,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (GLfloat) dialSpeed
 {
 	GLfloat result = flightSpeed / maxFlightSpeed;
-	if (result < 1.0f)
-		return result;
-	return 1.0f;
+	return OOClamp_0_1_f(result);
 }
 
 
@@ -2486,9 +2484,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (GLfloat) dialEnergy
 {
 	GLfloat result = energy / maxEnergy;
-	if (result < 1.0f)
-		return result;
-	return 1.0f;
+	return OOClamp_0_1_f(result);
 }
 
 
@@ -2518,9 +2514,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (GLfloat) hullHeatLevel
 {
 	GLfloat result = (GLfloat)ship_temperature / (GLfloat)SHIP_MAX_CABIN_TEMP;
-	if (result < 1.0)
-		return result;
-	return 1.0f;
+	return OOClamp_0_1_f(result);
 }
 
 
@@ -3788,6 +3782,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		NSString	*system_key = [systems objectAtIndex:damage_to];
 		NSString	*system_name = nil;
 		
+		// passenger berths, like the cargo bay, should not be damaged by enemy fire. However,
+		// they are not inside the systems array in the first place, so no need exclude them explicitly.
 		if ([system_key hasSuffix:@"MISSILE"] || [system_key hasSuffix:@"MINE"] || [system_key isEqual:@"EQ_CARGO_BAY"])  return;
 		
 		system_name = [[OOEquipmentType equipmentTypeWithIdentifier:system_key] name];
@@ -5920,16 +5916,14 @@ static NSString *last_outfitting_key=nil;
 
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH"])
 	{
-		max_passengers++;
-		max_cargo -= 5;
+		[self changePassengerBerths:+1];
 		credits -= price;
 		return YES;
 	}
 
 	if ([eqKey isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
 	{
-		max_passengers--;
-		max_cargo += 5;
+		[self changePassengerBerths:-1];
 		credits -= price;
 		return YES;
 	}
@@ -5950,6 +5944,15 @@ static NSString *last_outfitting_key=nil;
 	}
 
 	return NO;
+}
+
+
+- (void) changePassengerBerths:(int) addRemove
+{
+	if (addRemove == 0) return;
+	addRemove = (addRemove > 0) ? 1 : -1;	// change only by one berth at a time!
+	max_passengers += addRemove;
+	max_cargo -= 5 * addRemove;
 }
 
 

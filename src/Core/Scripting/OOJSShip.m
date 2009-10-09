@@ -1131,6 +1131,7 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
 	JSBool						includeWeapons = YES;
+	BOOL						OK = YES;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
@@ -1149,8 +1150,9 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 			return NO;
 		}
 	}
+	OK = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
 	
-	*outResult = BOOLToJSVal([thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
+	*outResult = BOOLToJSVal( OK || [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
 	return YES;
 }
 

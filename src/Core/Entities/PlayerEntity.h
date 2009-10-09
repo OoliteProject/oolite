@@ -661,6 +661,7 @@ waitingForStickCallback: 1;
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
+- (void) changePassengerBerths:(int) addRemove;
 - (int) removeMissiles;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;

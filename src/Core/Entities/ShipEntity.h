@@ -425,6 +425,8 @@ MA 02110-1301, USA.
 - (unsigned) missileCount;
 - (unsigned) missileCapacity;
 
+- (unsigned) extraCargo;
+
 // Tests for the various special-cased equipment items
 - (BOOL) hasScoop;
 - (BOOL) hasECM;

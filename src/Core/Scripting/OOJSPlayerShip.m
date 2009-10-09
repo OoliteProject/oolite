@@ -368,6 +368,7 @@ static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN
 {
 	PlayerEntity				*player = OOPlayerForScripting();
 	NSString					*key = nil;
+	BOOL						OK = YES;
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -375,14 +376,19 @@ static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN
 		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
-	if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"])
+	// berths & missile removal are not in hasEquipmentItem
+	OK = ![player hasEquipmentItem:key] || [key isEqualToString:@"EQ_MISSILE_REMOVAL"] ||
+			([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [player availableCargoSpace] >= 5);
+	
+	if (OK)
 	{
-		[player removeMissiles];
+		if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [player removeMissiles];
+		else if ([key isEqualToString:@"EQ_PASSENGER_BERTH"]) [player changePassengerBerths:+1];
+		// EQ_CARGO_BAY is already dealt with correctly inside [player awardEquipment]
+		else [player awardEquipment:key];
 	}
-	else
-	{
-		[player awardEquipment:key];
-	}
+	
+	*outResult = BOOLToJSVal(OK);
 	return YES;
 }
 
@@ -392,6 +398,7 @@ static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uint
 {
 	PlayerEntity				*player = OOPlayerForScripting();
 	NSString					*key = nil;
+	BOOL						OK = YES;
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -399,8 +406,35 @@ static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uint
 		OOReportJSBadArguments(context, @"PlayerShip", @"removeEquipment", argc, argv, nil, @"equipment key");
 		return NO;
 	}
+	// berths are not in hasEquipmentItem
+	OK = [player hasEquipmentItem:key] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [player passengerCapacity] > 0);
+	if (OK)
+	{
+		//exceptions
+		if ([key isEqualToString:@"EQ_PASSENGER_BERTH"] || [key isEqualToString:@"EQ_CARGO_BAY"])
+		{
+			if ([key isEqualToString:@"EQ_PASSENGER_BERTH"])
+			{
+				if ([player passengerCapacity] > [player passengerCount])
+				{
+					[player changePassengerBerths:-1];
+				}
+				else OK = NO;
+			}
+			else	// EQ_CARGO_BAY
+			{
+				if ([player extraCargo] <= [player availableCargoSpace])
+				{
+					[player removeEquipmentItem:key];
+				}
+				else OK = NO;
+			}
+		}
+		else
+			[player removeEquipmentItem:key];
+	}
 	
-	[player removeEquipmentItem:key];
+	*outResult = BOOLToJSVal(OK);
 	return YES;
 }
 

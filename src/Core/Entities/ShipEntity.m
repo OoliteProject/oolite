@@ -2142,6 +2142,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
+		if ([equipmentKey isEqual:@"EQ_CARGO_BAY"] && [_equipment containsObject:equipmentKey])
+		{
+			max_cargo -= extra_cargo;
+		}
+		
 		[_equipment removeObject:equipmentKey];
 		if (![equipmentKey hasSuffix:@"_DAMAGED"])
 		{
@@ -2150,7 +2155,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if ([_equipment count] == 0)  [self removeAllEquipment];
 		if (isPlayer)
 		{
-			if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [(PlayerEntity*)self setCompassMode:COMPASS_MODE_BASIC];		
+			if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [(PlayerEntity*)self setCompassMode:COMPASS_MODE_BASIC];
 		}
 	}
 }
@@ -2200,6 +2205,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	// for player.ship, this function returns max_missiles 
 	return missiles;
+}
+
+
+- (unsigned) extraCargo
+{
+	return extra_cargo;
 }
 
 
@@ -7545,7 +7556,7 @@ BOOL class_masslocks(int some_class)
 	OOCargoQuantity	co_amount;
 	
 	// don't even think of trying to scoop if the cargo hold is already full
-	if (max_cargo && [cargo count] == max_cargo)
+	if (max_cargo && [cargo count] >= max_cargo)
 	{
 		[other setStatus:STATUS_IN_FLIGHT];
 		return;
@@ -7652,7 +7663,7 @@ BOOL class_masslocks(int some_class)
 		[other setStatus:STATUS_IN_HOLD];
 		[other setBehaviour:BEHAVIOUR_TUMBLE];
 		[shipAI message:@"CARGO_SCOOPED"];
-		if (max_cargo && [cargo count] == max_cargo)  [shipAI message:@"HOLD_FULL"];
+		if (max_cargo && [cargo count] >= max_cargo)  [shipAI message:@"HOLD_FULL"];
 	}
 	[[other collisionArray] removeObject:self];			// so it can't be scooped twice!
 	[self suppressTargetLost];
