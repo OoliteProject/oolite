@@ -30,7 +30,7 @@ SOFTWARE.
 	
 	The polygon data is tesselated (on object creation) using a GLU tesselator.
 	Although GLU produces a mix of triangles, triangle fans and triangle
-	strips, we convert those to a single triangle soup since the primitives are
+	strips, we convert those to a single triangle soup since the polygons are
 	unlikely to be large enough that using multiple primitives would be a win.
 	
 	Uniquing vertices and using indices, and using the same vertex array for
@@ -46,13 +46,10 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOMacroOpenGL.h"
 
-#ifdef OOLITE_HAVE_APPKIT
-#define OOVOID_APIENTRY void
-#else	//windows, and possibly linux
-#define OOVOID_APIENTRY void APIENTRY
-#endif
 
-#define TESS_TOLERANCE 0.05	// Feature merging factor: higher values merge more features with greater chance of distortion.
+#if !OOLITE_WINDOWS
+#define APIENTRY
+#endif
 
 
 @interface OOPolygonSprite (Private)
@@ -81,11 +78,12 @@ static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint);	// 
 static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex);
 
 
-static OOVOID_APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
-static OOVOID_APIENTRY SolidVertexCallback(void *vertexData, void *polygonData);
-static OOVOID_APIENTRY SolidEndCallback(void *polygonData);
+static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
+static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData);
+static void APIENTRY SolidCombineCallback(GLdouble	coords[3], void *vertexData[4], GLfloat weight[4], void **outData, void *polygonData);
+static void APIENTRY SolidEndCallback(void *polygonData);
 
-static OOVOID_APIENTRY ErrorCallback(GLenum error, void *polygonData);
+static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 
 @implementation OOPolygonSprite
@@ -184,7 +182,7 @@ static OOVOID_APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, SolidVertexCallback);
 	gluTessCallback(tesselator, GLU_TESS_END_DATA, SolidEndCallback);
 	gluTessCallback(tesselator, GLU_TESS_ERROR_DATA, ErrorCallback);
-	gluTessProperty(tesselator, GLU_TESS_TOLERANCE, TESS_TOLERANCE);
+	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, SolidCombineCallback);
 	
 	gluTessBeginPolygon(tesselator, &polygonData);
 	
@@ -294,7 +292,7 @@ static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex)
 }
 
 
-static OOVOID_APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
+static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -304,7 +302,7 @@ static OOVOID_APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 }
 
 
-static OOVOID_APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
+static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSValue *vertValue = vertexData;
@@ -381,7 +379,14 @@ static OOVOID_APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 }
 
 
-static OOVOID_APIENTRY SolidEndCallback(void *polygonData)
+static void APIENTRY SolidCombineCallback(GLdouble	coords[3], void *vertexData[4], GLfloat weight[4], void **outData, void *polygonData)
+{
+	NSPoint point = { coords[0], coords[1] };
+	*outData = [NSValue valueWithPoint:point];
+}
+
+
+static void APIENTRY SolidEndCallback(void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -391,7 +396,7 @@ static OOVOID_APIENTRY SolidEndCallback(void *polygonData)
 }
 
 
-static OOVOID_APIENTRY ErrorCallback(GLenum error, void *polygonData)
+static void APIENTRY ErrorCallback(GLenum error, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);

@@ -762,9 +762,8 @@
 	);*/
 	//	The following is a test of a complex, multi-contour polygon sprite
 	//	which self-intersects.
-	//	It currently doesn't work, because it requires a combine callback.
 	//	-- Ahruman 2009-10-10
-/*	(
+	/*(
 		(
 			-1, 3,
 			1, 3,
@@ -777,8 +776,8 @@
 			3, -3,
 			-3, -3
 		)
-	);
-*/
+	);*/
+	
 	"oolite-default-mine-icon" =
 	(
 		 0,  2,
