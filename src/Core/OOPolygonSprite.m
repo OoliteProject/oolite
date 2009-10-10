@@ -46,6 +46,11 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOMacroOpenGL.h"
 
+#ifdef OOLITE_HAVE_APPKIT
+#define OOVOID_APIENTRY void
+#else	//windows, and possibly linux
+#define OOVOID_APIENTRY void APIENTRY
+#endif
 
 #define TESS_TOLERANCE 0.05	// Feature merging factor: higher values merge more features with greater chance of distortion.
 
@@ -76,11 +81,11 @@ static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint);	// 
 static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex);
 
 
-static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
-static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData);
-static void APIENTRY SolidEndCallback(void *polygonData);
+static OOVOID_APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
+static OOVOID_APIENTRY SolidVertexCallback(void *vertexData, void *polygonData);
+static OOVOID_APIENTRY SolidEndCallback(void *polygonData);
 
-static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
+static OOVOID_APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 
 @implementation OOPolygonSprite
@@ -289,7 +294,7 @@ static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex)
 }
 
 
-static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
+static OOVOID_APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -299,7 +304,7 @@ static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 }
 
 
-static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
+static OOVOID_APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSValue *vertValue = vertexData;
@@ -376,7 +381,7 @@ static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 }
 
 
-static void APIENTRY SolidEndCallback(void *polygonData)
+static OOVOID_APIENTRY SolidEndCallback(void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -386,7 +391,7 @@ static void APIENTRY SolidEndCallback(void *polygonData)
 }
 
 
-static void APIENTRY ErrorCallback(GLenum error, void *polygonData)
+static OOVOID_APIENTRY ErrorCallback(GLenum error, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
