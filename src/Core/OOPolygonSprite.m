@@ -76,11 +76,11 @@ static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint);	// 
 static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex);
 
 
-static void SolidBeginCallback(GLenum type, void *polygonData);
-static void SolidVertexCallback(void *vertexData, void *polygonData);
-static void SolidEndCallback(void *polygonData);
+static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
+static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData);
+static void APIENTRY SolidEndCallback(void *polygonData);
 
-static void ErrorCallback(GLenum error, void *polygonData);
+static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 
 @implementation OOPolygonSprite
@@ -289,7 +289,7 @@ static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex)
 }
 
 
-static void SolidBeginCallback(GLenum type, void *polygonData)
+static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -299,7 +299,7 @@ static void SolidBeginCallback(GLenum type, void *polygonData)
 }
 
 
-static void SolidVertexCallback(void *vertexData, void *polygonData)
+static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSValue *vertValue = vertexData;
@@ -376,7 +376,7 @@ static void SolidVertexCallback(void *vertexData, void *polygonData)
 }
 
 
-static void SolidEndCallback(void *polygonData)
+static void APIENTRY SolidEndCallback(void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
@@ -386,7 +386,7 @@ static void SolidEndCallback(void *polygonData)
 }
 
 
-static void ErrorCallback(GLenum error, void *polygonData)
+static void APIENTRY ErrorCallback(GLenum error, void *polygonData)
 {
 	TessPolygonData *data = polygonData;
 	NSCParameterAssert(data != NULL);
