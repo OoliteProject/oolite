@@ -6956,6 +6956,7 @@ static NSString *last_outfitting_key=nil;
 				}
 				else
 				{
+					ident_engaged = YES;
 					[self printIdentLockedOnForMissile:NO];
 				}
 				[self playTargetSwitched];
