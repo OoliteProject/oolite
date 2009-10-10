@@ -44,7 +44,7 @@ MA 02110-1301, USA.
 #define DISPLAY_DEFAULT_REFRESH	75
 #endif
 
-#define DISPLAY_MAX_WIDTH		2400
+#define DISPLAY_MAX_WIDTH		5040		// to cope with DaddyHoggy's 3840x1024 & up to 3 x 1680x1050 displays...
 #define DISPLAY_MAX_HEIGHT		1800
 
 #define MINIMUM_GAME_TICK		0.25

@@ -2020,6 +2020,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
+		/*
+		// comprehensive list, but at odds with the rest of the api - Kaks
 		if ([self hasEquipmentItem:[eqType identifier]])
 		{
 			[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
@@ -2031,13 +2033,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				[quip addObject:[self eqDictionaryWithType:eqType isDamaged:YES]];
 			}
 		}
+		*/
+		// less comprehensive list, but consistent with the rest of the API - Kaks
+		if ([self hasEquipmentItem:[eqType identifier]])
+		{
+			[quip addObject:eqType];
+		}
+		else if (![UNIVERSE strict] && [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+		{
+			[quip addObject:eqType];
+		}
 	}
 	
 	// Passengers - not supported for NPCs, but it's here for genericity.
 	if ([self passengerCapacity] > 0)
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"];
-		[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
+		//[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
+		[quip addObject:eqType];
 	}
 	
 	return [[quip copy] autorelease];
