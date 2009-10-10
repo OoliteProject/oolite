@@ -76,6 +76,13 @@ mission.runMissionScreen = function (messageKey, backgroundImage, choiceKey, shi
 };
 
 
+// mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
+mission.addMessageTextKey = function(textKey)
+{
+	mission.addMessageText(expandMissionText(textKey));
+}
+
+
 /*	string.trim(): remove leading and trailing whitespace.
 	Implementation by Steve Leviathan, see:
 	http://blog.stevenlevithan.com/archives/faster-trim-javascript

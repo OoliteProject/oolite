@@ -1179,7 +1179,6 @@ static float corona_blending;
 					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
 					OOGL(glCallList(displayListNames[subdivideLevel]));
-					
 				}
 				else
 				{
@@ -1311,6 +1310,11 @@ static float corona_blending;
 			{
 				GLDebugWireframeModeOff();
 			}
+			
+			OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+			OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+			OOGL(glDisableClientState(GL_COLOR_ARRAY));
+			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 			break;
 
 		case PLANET_TYPE_SUN:

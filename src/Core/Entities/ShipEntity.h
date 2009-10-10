@@ -207,7 +207,7 @@ MA 02110-1301, USA.
 	AI						*shipAI;					// ship's AI system
 	
 	NSString				*name;						// descriptive name
-	NSString				*displayName;					// name shown on screen
+	NSString				*displayName;				// name shown on screen
 	OORoleSet				*roleSet;					// Roles a ship can take, eg. trader, hunter, police, pirate, scavenger &c.
 	NSString				*primaryRole;				// "Main" role of the ship.
 	

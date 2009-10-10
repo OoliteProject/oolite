@@ -78,6 +78,9 @@
 		
 		OOGL(glDrawArrays(GL_LINES, 0, _count * 2));
 		
+		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+		OOGL(glDisableClientState(GL_COLOR_ARRAY));
+		
 		OOGL(glPopMatrix());
 		OOGL(glPopAttrib());
 	}

@@ -142,7 +142,10 @@ Ringdata	ringentity;
 				OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 
-				OOGL(glDrawElements( GL_TRIANGLES, 3 * 64, GL_UNSIGNED_INT, ringentity.triangle_index_array));
+				OOGL(glDrawElements(GL_TRIANGLES, 3 * 64, GL_UNSIGNED_INT, ringentity.triangle_index_array));
+				
+				OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+				OOGL(glDisableClientState(GL_COLOR_ARRAY));
 			}
 			else
 			{

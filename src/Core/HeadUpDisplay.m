@@ -33,12 +33,16 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import "OOTexture.h"
 #import "OpenGLSprite.h"
+#import "OOPolygonSprite.h"
 #import "OOCollectionExtractors.h"
 #import "OOEncodingConverter.h"
 #import "OOCrosshairs.h"
 #import "OOConstToString.h"
 #import "OOStringParsing.h"
 #import "JoystickHandler.h"
+
+
+#define OLD_ICONS 0
 
 
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
@@ -58,7 +62,9 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double 
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
+#if OLD_ICONS
 static void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
+#endif
 static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive);
@@ -371,6 +377,8 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 
 - (void) renderHUD
 {
+	glShadeModel(GL_FLAT);
+	
 	OOGL(glLineWidth(_crosshairWidth * line_width));
 	[self drawCrosshairs];
 	
@@ -1505,6 +1513,103 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
+#if !OLD_ICONS
+
+static NSString * const kDefaultMissileIconKey = @"oolite-default-missile-icon";
+static NSString * const kDefaultMineIconKey = @"oolite-default-mine-icon";
+
+
+static OOPolygonSprite *IconForMissileRole(NSString *role)
+{
+	static NSMutableDictionary	*sIcons = nil;
+	OOPolygonSprite				*result = nil;
+	
+	result = [sIcons objectForKey:role];
+	if (result == nil)
+	{
+		NSString *key = role;
+		NSArray *iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
+		if (iconDef != nil)  result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:0.5f name:key];
+		if (result == nil)	// No custom icon or bad data
+		{
+			/*	Backwards compatibility note:
+				The old implementation used suffixes "MISSILE" and "MINE" (without
+				the underscore), and didn't draw anything if neither was found. I
+				believe any difference in practical behavour due to the change here
+				will be positive.
+				-- Ahruman 2009-10-09
+			*/
+			if ([role hasSuffix:@"_MISSILE"])  key = kDefaultMissileIconKey;
+			else  key = kDefaultMineIconKey;
+			
+			iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
+			result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:0.5f name:key];
+		}
+		
+		if (result != nil)
+		{
+			if (sIcons == nil)  sIcons = [[NSMutableDictionary alloc] init];
+			[sIcons setObject:result forKey:role];
+			[result release];	// Balance alloc
+		}
+	}
+	
+	return result;
+}
+
+
+- (void) drawIconForMissile:(ShipEntity *)missile
+				   selected:(BOOL)selected
+					 status:(OOMissileStatus)status
+						  x:(int)x y:(int)y
+					  width:(GLfloat)width height:(GLfloat)height
+{
+	OOPolygonSprite *sprite = IconForMissileRole([missile primaryRole]);
+	
+	if (selected)
+	{
+		// Draw yellow outline.
+		OOGL(glPushMatrix());
+		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGL(glScalef(width + 1.0f, height + 1.0f, 1.0f));
+		GLColorWithOverallAlpha(yellow_color, overallAlpha);
+		[sprite drawFilled];
+		OOGL(glPopMatrix());
+		
+		// Draw black backing, so outline colour isn’t blended into missile colour.
+		OOGL(glPushMatrix());
+		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
+		OOGL(glScalef(width, height, 1.0f));
+		GLColorWithOverallAlpha(black_color, overallAlpha);
+		[sprite drawFilled];
+		OOGL(glPopMatrix());
+		
+		switch (status)
+		{
+			case MISSILE_STATUS_SAFE :
+				GLColorWithOverallAlpha(green_color, overallAlpha);		break;
+			case MISSILE_STATUS_ARMED :
+				GLColorWithOverallAlpha(yellow_color, overallAlpha);	break;
+			case MISSILE_STATUS_TARGET_LOCKED :
+				GLColorWithOverallAlpha(red_color, overallAlpha);		break;
+		}
+	}
+	else
+	{
+		if ([missile primaryTarget] == nil)  GLColorWithOverallAlpha(green_color, overallAlpha);
+		else  GLColorWithOverallAlpha(red_color, overallAlpha);
+	}
+	
+	OOGL(glPushMatrix());
+	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGL(glScalef(width, height, 1.0f));
+	[sprite drawFilled];
+	OOGL(glPopMatrix());
+}
+
+#endif
+
+
 - (void) drawMissileDisplay:(NSDictionary *) info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
@@ -1521,14 +1626,23 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	
 	if (![player dialIdentEngaged])
 	{
+		OOMissileStatus status = [player dialMissileStatus];
 		unsigned n_mis = [player dialMaxMissiles];
 		unsigned i;
 		for (i = 0; i < n_mis; i++)
 		{
-			if ([player missileForStation:i])
+			ShipEntity *missile = [player missileForStation:i];
+			if (missile)
 			{
+#if !OLD_ICONS
+				[self drawIconForMissile:missile
+								selected:i == [player activeMissile]
+								  status:status
+									   x:x + (int)i * sp + 2 y:y
+								   width:siz.width *0.25f height:siz.height *0.25f];
+#else
 				// TODO: copy icon data into missile object instead of looking it up each time. Possibly make weapon stores a ShipEntity subclass?
-				NSString	*miss_roles = [[player missileForStation:i] primaryRole];
+				NSString	*miss_roles = [missile primaryRole];
 				NSArray		*miss_icon = [[UNIVERSE descriptions] oo_arrayForKey:miss_roles];
 				if (i == [player activeMissile])
 				{
@@ -1575,7 +1689,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 				}
 				else
 				{
-					if ([[player missileForStation:i] primaryTarget])
+					if ([missile primaryTarget])
 						GLColorWithOverallAlpha(red_color, overallAlpha);
 					else
 						GLColorWithOverallAlpha(green_color, overallAlpha);
@@ -1610,9 +1724,10 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 						}
 					OOGLEND();
 				}
+#endif
 			}
 			else
-			{	
+			{
 				GLColorWithOverallAlpha(lightgray_color, overallAlpha);
 				OOGLBEGIN(GL_LINE_LOOP);
 				hudDrawMissileIconAt(x + i * sp, y, z1, siz);
@@ -2123,9 +2238,9 @@ static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize 
 	int ox = x - siz.width / 2.0;
 	int oy = y - siz.height / 2.0;
 	int w = siz.width / 4.0;
-	int h = siz.height / 4.0; 
+	int h = siz.height / 4.0;
 	int i = 0;
-	int npts = [ptsArray count] & 0xfffe;	// make sure it's an even number
+	int npts = [ptsArray count] & ~1;	// make sure it's an even number
 	while (i < npts)
 	{
 		int x = [ptsArray oo_intAtIndex:i++];
@@ -2142,16 +2257,17 @@ static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 	int w = siz.width / 4.0;
 	int h = siz.height / 4.0; 
 
-	glVertex3i(ox, oy + 3 * h, z);
-	glVertex3i(ox + 2 * w, oy, z);
-	glVertex3i(ox + w, oy, z);
-	glVertex3i(ox + w, oy - 2 * h, z);
-	glVertex3i(ox - w, oy - 2 * h, z);
-	glVertex3i(ox - w, oy, z);
-	glVertex3i(ox - 2 * w, oy, z);
+	glVertex3i(ox + 0 * w, oy + 3 * h, z);
+	glVertex3i(ox + 2 * w, oy + 0 * h, z);
+	glVertex3i(ox + 1 * w, oy + 0 * h, z);
+	glVertex3i(ox + 1 * w, oy - 2 * h, z);
+	glVertex3i(ox - 1 * w, oy - 2 * h, z);
+	glVertex3i(ox - 1 * w, oy + 0 * h, z);
+	glVertex3i(ox - 2 * w, oy + 0 * h, z);
 }
 
 
+#if OLD_ICONS
 static void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
@@ -2159,13 +2275,14 @@ static void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 	int w = siz.width / 4.0;
 	int h = siz.height / 4.0; 
 
-	glVertex3i(ox, oy + 2 * h, z);
-	glVertex3i(ox + w, oy + h, z);
-	glVertex3i(ox + w, oy - h, z);
-	glVertex3i(ox, oy - 2 * h, z);
-	glVertex3i(ox - w, oy - h, z);
-	glVertex3i(ox - w, oy + h, z);
+	glVertex3i(ox + 0 * w, oy + 2 * h, z);
+	glVertex3i(ox + 1 * w, oy + 1 * h, z);
+	glVertex3i(ox + 1 * w, oy - 1 * h, z);
+	glVertex3i(ox + 0 * w, oy - 2 * h, z);
+	glVertex3i(ox - 1 * w, oy - 1 * h, z);
+	glVertex3i(ox - 1 * w, oy + 1 * h, z);
 }
+#endif
 
 
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)

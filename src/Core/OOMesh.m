@@ -306,6 +306,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 		else  [localException raise];	// pass these on
 	NS_ENDHANDLER
 	
+	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif
