@@ -1695,7 +1695,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	shot_time += delta_t;
 	script_time += delta_t;
 	ship_clock += delta_t;
-	if (ship_clock_adjust != 0.0)				// adjust for coming out of warp (add LY * LY hrs)
+	if (ship_clock_adjust > 0.0)				// adjust for coming out of warp (add LY * LY hrs)
 	{
 		double fine_adjust = delta_t * 7200.0;
 		if (ship_clock_adjust > 86400)			// more than a day
@@ -1715,6 +1715,8 @@ static PlayerEntity *sSharedPlayer = nil;
 			ship_clock_adjust += fine_adjust;
 		}
 	}
+	else 
+		ship_clock_adjust = 0.0;
 	
 	//fps
 	if (ship_clock > fps_check_time)
@@ -2556,13 +2558,13 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL) clockAdjusting
 {
-	return ship_clock_adjust != 0;
+	return ship_clock_adjust > 0;
 }
 
 
 - (NSString*) dial_clock
 {
-	return ClockToString(ship_clock, ship_clock_adjust != 0);
+	return ClockToString(ship_clock, ship_clock_adjust > 0);
 }
 
 
@@ -5725,6 +5727,11 @@ static NSString *last_outfitting_key=nil;
 			
 		if(credits != old_credits || ![key hasPrefix:@"EQ_WEAPON_"])
 		{
+			// adjust time before playerBoughtEquipment gets to change credits dynamically
+			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
+			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
+			ship_clock_adjust += time_adjust + 600.0;
+			
 			[self doScriptEvent:@"playerBoughtEquipment" withArgument:key];
 			if (gui_screen == GUI_SCREEN_EQUIP_SHIP) //if we haven't changed gui screen inside playerBoughtEquipment
 			{ 
@@ -5733,9 +5740,7 @@ static NSString *last_outfitting_key=nil;
 				// then try to go back where we were
 				[self highlightEquipShipScreenKey:key];
 			}
-			// wind the clock forward by 10 minutes plus 10 minutes for every 60 credits spent
-			double time_adjust = (old_credits > credits) ? (old_credits - credits) : 0.0;
-			ship_clock_adjust += time_adjust + 600.0;
+
 			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 		}
 	}
