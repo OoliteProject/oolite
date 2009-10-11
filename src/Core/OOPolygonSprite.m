@@ -161,6 +161,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	polygonData.OK = YES;
 #ifndef NDEBUG
 	polygonData.name = _name;
+	OOLog(@"tesselate.begin", @"%Tesselating polyogon sprite \"%@\"", _name);
 #endif
 #if !OO_DEBUG
 	// For efficiency, grow to more than big enough for most cases to avoid regrowing.
