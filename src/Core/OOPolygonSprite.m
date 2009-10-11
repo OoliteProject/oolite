@@ -47,7 +47,7 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 
 
-#if !OOLITE_WINDOWS
+#ifndef APIENTRY
 #define APIENTRY
 #endif
 
