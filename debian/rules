@@ -59,7 +59,7 @@ install: build
 	dh_clean -k
 	dh_installdirs
 ifneq (,$(EXT))
-	mv -f "oolite.app/oolite$(EXT)" oolite.app/oolite
+	cp -a "oolite.app/oolite$(EXT)" oolite.app/oolite
 endif
 
 binary-indep: build install
