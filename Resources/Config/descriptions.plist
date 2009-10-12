@@ -448,6 +448,7 @@
 	"ident-locked-onto-@"			= ( "Ident system locked onto %@." );
 	"missile-armed"					= ( "Missile armed." );
 	"mine-armed"					= ( "Mine armed." );
+	"@-armed"					= ( "%@ armed." );
 	"missile-safe"					= ( "Missiles on safety." );
 	"incoming-missile"				= ( "Incoming missile." );
 	"energy-low"					= ( "Energy low." );

@@ -743,13 +743,15 @@ static NSTimeInterval	time_last_frame;
 						{
 							[self removeTarget:nil];
 							[missile_entity[activeMissile] removeTarget:nil];
-							[UNIVERSE addMessage:DESC(@"missile-armed") forCount:2.0];
+							//[UNIVERSE addMessage:DESC(@"missile-armed") forCount:4.5];
+							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
 							[self playMissileArmed];
 						}
 					}
 					else if ([missile_entity[activeMissile] isMine])
 					{
-						[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
+						//[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
+						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
 						[self playMineArmed];
 					}
 					ident_engaged = NO;
