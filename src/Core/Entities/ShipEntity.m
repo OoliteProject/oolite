@@ -2476,6 +2476,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) behaviour_track_target:(double) delta_t
 {
+	if (primaryTarget == NO_TARGET)
+	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		[self noteLostTarget];
+		return;
+	}
 	[self trackPrimaryTarget:delta_t:NO];
 	if ((proximity_alert != NO_TARGET)&&(proximity_alert != primaryTarget))
 	{
@@ -2500,6 +2507,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
+		// = BEHAVIOUR_COLLECT_TARGET
 		ShipEntity*	target = [self primaryTarget];
 		double target_speed = [target speed];
 		double eta = range / (flightSpeed - target_speed);
@@ -2521,7 +2529,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			desired_speed += target_speed;
 			if (target_speed > maxFlightSpeed)
 			{
+				behaviour = BEHAVIOUR_IDLE;
+				frustration = 0.0;
 				[self noteLostTarget];
+				return;
 			}
 		}
 		//
@@ -2530,6 +2541,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			destination = target->position;
 			desired_range = 0.5 * target->collision_radius;
 			[self trackDestination: delta_t : NO];
+		}
+		else
+		{
+			behaviour = BEHAVIOUR_IDLE;
+			frustration = 0.0;
+			[self noteLostTarget];
 		}
 		//
 		if (distance < last_distance)	// improvement
@@ -2602,6 +2619,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		behaviour = BEHAVIOUR_IDLE;
 		frustration = 0.0;
 		[self noteLostTarget];
+		return;
 	}
 
 	// control speed
@@ -2690,6 +2708,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	double  range = [self rangeToPrimaryTarget];
 	if (primaryTarget == NO_TARGET || range > SCANNER_MAX_RANGE) 
 	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
 		[self noteLostTarget];
 		desired_speed = maxFlightSpeed * 0.375;
 		return;
@@ -2765,6 +2785,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 			[self noteLostTarget];
+			return;
 		}
 	}
 
@@ -5674,7 +5695,10 @@ BOOL class_masslocks(int some_class)
 
 - (void) removeTarget:(Entity *) targetEntity
 {
-	[self noteLostTarget];
+	if(targetEntity != nil) [self noteLostTarget];
+	else primaryTarget = NO_TARGET; 
+	// targetEntity == nil is currently only true for mounted player missiles. 
+	// we don't want to send lostTarget messages while the missile is mounted.
 	
 	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(removeTarget:) withObject:targetEntity];
 }
@@ -5700,6 +5724,11 @@ BOOL class_masslocks(int some_class)
 		primaryTarget = NO_TARGET;
 		[self doScriptEvent:@"shipLostTarget" withArgument:(target && target->isShip) ? (id)target : nil];
 		[shipAI reactToMessage:@"TARGET_LOST"];
+	}
+	else
+	{
+		[self doScriptEvent:@"shipLostTarget" withArgument:nil];
+		[shipAI message:@"TARGET_LOST"]; // this often triggers on witchspace jumps, so make it a message.
 	}
 }
 
@@ -5924,6 +5953,8 @@ BOOL class_masslocks(int some_class)
 
 	if (!target)   // leave now!
 	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
 		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}
@@ -5938,6 +5969,8 @@ BOOL class_masslocks(int some_class)
 
 	if (range2 > SCANNER_MAX_RANGE2)
 	{
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
 		[self noteLostTarget];	// NOTE: was AI message: rather than reactToMessage:
 		return 0.0;
 	}

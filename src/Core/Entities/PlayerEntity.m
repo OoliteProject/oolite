@@ -2810,7 +2810,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
-		if (missile_entity[i])
+		if (missile_entity[i] && [missile_entity[i] primaryTarget] != NO_TARGET)
 			[missile_entity[i] removeTarget:nil];
 	}
 	missile_status = MISSILE_STATUS_SAFE;
@@ -3891,6 +3891,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		return;
 	
 	[self setStatus:STATUS_DOCKING];
+	dockedStation = station;
 	[self doScriptEvent:@"shipWillDockWithStation" withArgument:station];
 
 	ident_engaged = NO;
@@ -3912,7 +3913,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self playDockWithStation];
 
 	[station noteDockedShip:self];
-	dockedStation = station;
 
 	[[UNIVERSE gameView] clearKeys];	// try to stop key bounces
 
