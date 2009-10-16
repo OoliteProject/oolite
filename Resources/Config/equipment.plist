@@ -1,368 +1,262 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<array>
-	<array>
-		<integer>0</integer>
-		<integer>2</integer>
-		<string>Fuel</string>
-		<string>EQ_FUEL</string>
-		<string>Fuel for the witchspace engines.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<key>requires_non_full_fuel</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>1</integer>
-		<integer>300</integer>
-		<string>Missile</string>
-		<string>EQ_MISSILE</string>
-		<string>Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
-			<key>requires_empty_pylon</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>1</integer>
-		<integer>4000</integer>
-		<string>Large Cargo Bay</string>
-		<string>EQ_CARGO_BAY</string>
-		<string>Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity.</string>
-	</array>
-	<array>
-		<integer>2</integer>
-		<integer>6000</integer>
-		<string>E.C.M. System</string>
-		<string>EQ_ECM</string>
-		<string>High power disruptor circuits capable of remotely detonating inbound missiles.</string>
-	</array>
-	<array>
-		<integer>5</integer>
-		<integer>5250</integer>
-		<string>Fuel Scoops</string>
-		<string>EQ_FUEL_SCOOPS</string>
-		<string>Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.</string>
-	</array>
-	<array>
-		<integer>6</integer>
-		<integer>10000</integer>
-		<string>Escape Pod</string>
-		<string>EQ_ESCAPE_POD</string>
-		<string>A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems.</string>
-	</array>
-	<array>
-		<integer>7</integer>
-		<integer>9000</integer>
-		<string>Energy Bomb</string>
-		<string>EQ_ENERGY_BOMB</string>
-		<string>A one-shot super-weapon capable of destroying all small craft within range.</string>
-	</array>
-	<array>
-		<integer>8</integer>
-		<integer>15000</integer>
-		<string>Extra Energy Unit</string>
-		<string>EQ_ENERGY_UNIT</string>
-		<string>An improved efficiency energy recharge unit.</string>
-		<dict>
-			<key>incompatible_with_equipment</key>
-			<string>EQ_NAVAL_ENERGY_UNIT</string>
-		</dict>
-	</array>
-<!-- next item has a TL too high to be available at all -->
-	<array>
-		<integer>99</integer>
-		<integer>500000</integer>
-		<string>Naval Energy Unit</string>
-		<string>EQ_NAVAL_ENERGY_UNIT</string>
-		<string>A special improved efficiency energy recharge unit, as supplied to Navy vessels.</string>
-<!-- Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
-Full details at http://developer.berlios.de/bugs/?func=detailbug&bug_id=13507&group_id=3577
-Original fix made in rev 1544 and broken in rev 1686. Fixed once again in rev 2599. Kaks 20090925 -->
-	</array>
-	<array>
-		<integer>9</integer>
-		<integer>15000</integer>
-		<string>Docking Computers</string>
-		<string>EQ_DOCK_COMP</string>
-		<string>A simple autopilot and in-system communication system interlocking with local station systems.</string>
-	</array>
-	<array>
-		<integer>10</integer>
-		<integer>50000</integer>
-		<string>Galactic Hyperdrive</string>
-		<string>EQ_GAL_DRIVE</string>
-		<string>A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>3</integer>
-		<integer>4000</integer>
-		<string>Pulse Laser</string>
-		<string>EQ_WEAPON_PULSE_LASER</string>
-		<string>High powered pulse laser, a basic defense configuration.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>4</integer>
-		<integer>10000</integer>
-		<string>Beam Laser</string>
-		<string>EQ_WEAPON_BEAM_LASER</string>
-		<string>Rapid cycle laser, delivers more energy in less time for more effective results.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>10</integer>
-		<integer>8000</integer>
-		<string>Mining Laser</string>
-		<string>EQ_WEAPON_MINING_LASER</string>
-		<string>High power, slow recharge. Ideal for mineral extraction from large asteroids.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>10</integer>
-		<integer>60000</integer>
-		<string>Military Laser</string>
-		<string>EQ_WEAPON_MILITARY_LASER</string>
-		<string>Increased power beam laser, developed for Naval use.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<!-- next item has a TL too high to be available at all -->
-	<array>
-		<integer>99</integer>
-		<integer>500000</integer>
-		<string>Cloaking Device</string>
-		<string>EQ_CLOAKING_DEVICE</string>
-		<string>Experimental Naval cloaking device.</string>
-		<dict>
-			<key>portable_between_ships</key>
-			<true/>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-<!-- next items are new items, don't place new items before this mark -->
-	<array><!-- Passenger Compartment, like missiles this can be bought multiple times -->
-		<integer>5</integer>
-		<integer>8250</integer>
-		<string>Passenger Berth - takes up 5t of cargo space</string>
-		<string>EQ_PASSENGER_BERTH</string>
-		<string>Provides life support, entertainment and comfort for a single passenger.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<key>requires_cargo_space</key>
-			<integer>5</integer>
-		</dict>
-	</array>
-	<array><!-- Passenger Compartment Removal -->
-		<integer>1</integer>
-		<integer>1000</integer>
-		<string>Remove Passenger Berth - reclaims 5t of cargo space</string>
-		<string>EQ_PASSENGER_BERTH_REMOVAL</string>
-		<string>Removes a passenger berth.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<key>requires_free_passenger_berth</key>
-			<true/>
-		</dict>
-	</array>
-	<array><!-- Missile Removal -->
-		<integer>1</integer>
-		<integer>200</integer>
-		<string>Unmount and sell all pylon mounted weapons</string>
-		<string>EQ_MISSILE_REMOVAL</string>
-		<string>Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<key>requires_mounted_pylon</key>
-			<true/>
-		</dict>
-	</array>
-	<array><!-- ecm hardened missile -->
-		<integer>9</integer>
-		<integer>3500</integer>
-		<string>ECM Hardened Missile</string>
-		<string>EQ_HARDENED_MISSILE</string>
-		<string>Faulcon de Lacy HMX5 homing missile - hardened against ECM.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
-			<key>requires_empty_pylon</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>10</integer>
-		<integer>6000</integer>
-		<string>Witchdrive Fuel Injectors</string>
-		<string>EQ_FUEL_INJECTION</string>
-		<string>A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed.</string>
-	</array>
-	<array>
-		<integer>11</integer>
-		<integer>4500</integer>
-		<string>Scanner Targeting Enhancement</string>
-		<string>EQ_SCANNER_SHOW_MISSILE_TARGET</string>
-		<string>Adds a visible indicator, range and legal status display around the target currently locked into your targeting computer.</string>
-	</array>
-	<array>
-		<integer>5</integer>
-		<integer>3250</integer>
-		<string>Multi-Targeting System</string>
-		<string>EQ_MULTI_TARGET</string>
-		<string>Per-missile target memory, maintains multiple target locks.</string>
-	</array>
-	<array>
-		<integer>7</integer>
-		<integer>6500</integer>
-		<string>Advanced Space Compass</string>
-		<string>EQ_ADVANCED_COMPASS</string>
-		<string>A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>6</integer>
-		<integer>22500</integer>
-		<string>Advanced Navigational Array</string>
-		<string>EQ_ADVANCED_NAVIGATIONAL_ARRAY</string>
-		<string>Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>8</integer>
-		<integer>12500</integer>
-		<string>Target System Memory Expansion</string>
-		<string>EQ_TARGET_MEMORY</string>
-		<string>A sixteen core target memory matrix. Allows selection of previous target locks.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>99</integer>
-		<integer>150000</integer>
-		<string>Thargoid Laser</string>
-		<string>EQ_WEAPON_THARGOID_LASER</string>
-		<string>Captured Thargoid weapon, self-aiming.</string>
-	</array>
-	<array>
-		<integer>6</integer>
-		<integer>25000</integer>
-		<string>Quirium Cascade Mine</string>
-		<string>EQ_QC_MINE</string>
-		<string>Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-			<!-- NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. -->
-			<key>requires_empty_pylon</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>10</integer>
-		<integer>147500</integer>
-		<string>Shield Boosters</string>
-		<string>EQ_SHIELD_BOOSTER</string>
-		<string>Shield boosting technology dramatically increases the capability of standard defensive shields.</string>
-	</array>
-	<array>
-		<integer>13</integer>
-		<integer>475500</integer>
-		<string>Military Shield Enhancement</string>
-		<string>EQ_NAVAL_SHIELD_BOOSTER</string>
-		<string>Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields.</string>
-	</array>
-	<!-- next item was a test item -->
-	<array>
-		<integer>2</integer>
-		<integer>2000</integer>
-		<string>Twin Plasma Cannon</string>
-		<string>EQ_WEAPON_TWIN_PLASMA_CANNON</string>
-		<string>Basic cannon delivering charged plasma bursts at sublight speed.</string>
-	</array>
-	<!-- new items -->
-	<array>
-		<integer>4</integer>
-		<integer>15000</integer>
-		<string>External Heat Shielding</string>
-		<string>EQ_HEAT_SHIELD</string>
-		<string>Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<array>
-		<integer>9</integer>
-		<integer>23950</integer>
-		<string>Wormhole Scanner</string>
-		<string>EQ_WORMHOLE_SCANNER</string>
-		<string>The Mössbauer-Krantz Works wormhole scanner integrates into your existing targeting system. It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<!-- renovation -->
-	<array>
-		<integer>6</integer>
-		<integer>1000</integer>	<!-- dummy value, actually 10% of the ship's value which will vary by ship -->
-		<string>Maintenance Overhaul</string>
-		<string>EQ_RENOVATION</string>
-		<string>Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.</string>
-		<dict>
-			<key>available_to_all</key>
-			<true/>
-		</dict>
-	</array>
-	<!-- next item has a TL too high to be available at all -->
-	<array>
-		<integer>99</integer>
-		<integer>1500000</integer>
-		<string>Military Anti-Scanner Countermeasures (MASC'M)</string>
-		<string>EQ_MILITARY_JAMMER</string>
-		<string>Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft.</string>
-	</array>
-	<!-- next item has a TL too high to be available at all -->
-	<array>
-		<integer>99</integer>
-		<integer>250000</integer>
-		<string>Military Scanner Filtering</string>
-		<string>EQ_MILITARY_SCANNER_FILTER</string>
-		<string>Filters out the jamming signals from MASC'M devices.</string>
-	</array>
-</array>
-</plist>
+(
+	(
+		0, 2, "Fuel", "EQ_FUEL",
+		"Fuel for the witchspace engines.",
+		{
+			"available_to_all" = true;
+			"requires_non_full_fuel" = true;
+		}
+	),
+	(
+		1, 300, "Missile", "EQ_MISSILE",
+		"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.",
+		{
+			"available_to_all" = true;
+			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
+			"requires_empty_pylon" = true;
+		}
+	),
+	(
+		1, 4000, "Large Cargo Bay",
+		"EQ_CARGO_BAY",
+		"Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity."
+	),
+	(
+		2, 6000, "E.C.M. System",
+		"EQ_ECM",
+		"High power disruptor circuits capable of remotely detonating inbound missiles."
+	),
+	(
+		5, 5250, "Fuel Scoops",
+		"EQ_FUEL_SCOOPS",
+		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris."
+	),
+	(
+		6, 10000, "Escape Pod",
+		"EQ_ESCAPE_POD",
+		"A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems."
+	),
+	(
+		7, 9000, "Energy Bomb",
+		"EQ_ENERGY_BOMB",
+		"A one-shot super-weapon capable of destroying all small craft within range."
+	),
+	(
+		8, 15000, "Extra Energy Unit",
+		"EQ_ENERGY_UNIT",
+		"An improved efficiency energy recharge unit.",
+		{
+			"incompatible_with_equipment" = "EQ_NAVAL_ENERGY_UNIT";
+		}
+	),
+	/* next item has a TL too high to be available at all */
+	(
+		99, 500000, "Naval Energy Unit",
+		"EQ_NAVAL_ENERGY_UNIT",
+		"A special improved efficiency energy recharge unit, as supplied to Navy vessels."
+		/* Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
+		Full details at http://developer.berlios.de/bugs/?func=detailbug&bug_id=13507&group_id=3577
+		Original fix made in rev 1544 and broken in rev 1686. Fixed once again in rev 2599. Kaks 20090925 */
+	),
+	(
+		9, 15000, "Docking Computers",
+		"EQ_DOCK_COMP",
+		"A simple autopilot and in-system communication system interlocking with local station systems."
+	),
+	(
+		10, 50000, "Galactic Hyperdrive",
+		"EQ_GAL_DRIVE",
+		"A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		3, 4000, "Pulse Laser",
+		"EQ_WEAPON_PULSE_LASER",
+		"High powered pulse laser, a basic defense configuration.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		4, 10000, "Beam Laser",
+		"EQ_WEAPON_BEAM_LASER",
+		"Rapid cycle laser, delivers more energy in less time for more effective results.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		10, 8000, "Mining Laser",
+		"EQ_WEAPON_MINING_LASER",
+		"High power, slow recharge. Ideal for mineral extraction from large asteroids.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		10, 60000, "Military Laser",
+		"EQ_WEAPON_MILITARY_LASER",
+		"Increased power beam laser, developed for Naval use.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	/* next item has a TL too high to be available at all */
+	(
+		99, 500000, "Cloaking Device",
+		"EQ_CLOAKING_DEVICE",
+		"Experimental Naval cloaking device.",
+		{
+			"portable_between_ships" = true;
+			"available_to_all" = true;
+		}
+	),
+	/* next items are new items, don't place new items before this mark */
+	( /* Passenger Compartment, like missiles this can be bought multiple times */
+		5, 8250, "Passenger Berth - takes up 5t of cargo space",
+		"EQ_PASSENGER_BERTH",
+		"Provides life support, entertainment and comfort for a single passenger.",
+		{
+			"available_to_all" = true;
+			"requires_cargo_space" = 5;
+		}
+	),
+	( /* Passenger Compartment Removal */
+		1, 1000, "Remove Passenger Berth - reclaims 5t of cargo space",
+		"EQ_PASSENGER_BERTH_REMOVAL",
+		"Removes a passenger berth.",
+		{
+			"available_to_all" = true;
+			"requires_free_passenger_berth" = true;
+		}
+	),
+	( /* Missile Removal */
+		1, 200, "Unmount and sell all pylon mounted weapons",
+		"EQ_MISSILE_REMOVAL",
+		"Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.",
+		{
+			"available_to_all" = true;
+			"requires_mounted_pylon" = true;
+		}
+	),
+	( /* ecm hardened missile */
+		9, 3500, "ECM Hardened Missile",
+		"EQ_HARDENED_MISSILE",
+		"Faulcon de Lacy HMX5 homing missile - hardened against ECM.",
+		{
+			"available_to_all" = true;
+			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
+			"requires_empty_pylon" = true;
+		}
+	),
+	(
+		10, 6000, "Witchdrive Fuel Injectors",
+		"EQ_FUEL_INJECTION",
+		"A convertor added to your in-system drive that can inject unused witch-drive fuel into your exhaust, massively increasing your speed."
+	),
+	(
+		11, 4500, "Scanner Targeting Enhancement",
+		"EQ_SCANNER_SHOW_MISSILE_TARGET",
+		"Adds a visible indicator, range and legal status display around the target currently locked into your targeting computer."
+	),
+	(
+		5, 3250, "Multi-Targeting System",
+		"EQ_MULTI_TARGET",
+		"Per-missile target memory, maintains multiple target locks."
+	),
+	(
+		7, 6500, "Advanced Space Compass",
+		"EQ_ADVANCED_COMPASS",
+		"A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		6, 22500, "Advanced Navigational Array",
+		"EQ_ADVANCED_NAVIGATIONAL_ARRAY",
+		"Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		8, 12500, "Target System Memory Expansion",
+		"EQ_TARGET_MEMORY",
+		"A sixteen core target memory matrix. Allows selection of previous target locks.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		99, 150000, "Thargoid Laser",
+		"EQ_WEAPON_THARGOID_LASER",
+		"Captured Thargoid weapon, self-aiming."
+	),
+	(
+		6, 25000, "Quirium Cascade Mine",
+		"EQ_QC_MINE",
+		"Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.",
+		{
+			"available_to_all" = true;
+			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
+			"requires_empty_pylon" = true;
+		}
+	),
+	(
+		10, 147500, "Shield Boosters",
+		"EQ_SHIELD_BOOSTER",
+		"Shield boosting technology dramatically increases the capability of standard defensive shields."
+	),
+	(
+		13, 475500, "Military Shield Enhancement",
+		"EQ_NAVAL_SHIELD_BOOSTER",
+		"Military technology, used in conjunction with ordinary shields and shield boosting technology, further increases the capability of standard defensive shields."
+	),
+	/* next item was a test item */
+	(
+		2, 2000, "Twin Plasma Cannon",
+		"EQ_WEAPON_TWIN_PLASMA_CANNON",
+		"Basic cannon delivering charged plasma bursts at sublight speed."
+	),
+	/* new items */
+	(
+		4, 15000, "External Heat Shielding",
+		"EQ_HEAT_SHIELD",
+		"Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	(
+		9, 23950, "Wormhole Scanner",
+		"EQ_WORMHOLE_SCANNER",
+		"The Mössbauer-Krantz Works wormhole scanner integrates into your existing targeting system. It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	/* renovation price is a dummy value, actually 10% of the ship's value which will vary by ship */
+	(
+		6, 1000, "Maintenance Overhaul",
+		"EQ_RENOVATION",
+		"Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.",
+		{
+			"available_to_all" = true;
+		}
+	),
+	/* next item has a TL too high to be available at all */
+	(
+		99, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
+		"EQ_MILITARY_JAMMER",
+		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft."
+	),
+	/* next item has a TL too high to be available at all */
+	(
+		99, 250000, "Military Scanner Filtering",
+		"EQ_MILITARY_SCANNER_FILTER",
+		"Filters out the jamming signals from MASC'M devices."
+	)
+)
