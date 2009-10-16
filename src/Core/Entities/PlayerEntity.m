@@ -1518,14 +1518,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		// work on the cabin temperature
 		float deltaInsulation = delta_t/[self heatInsulation];
+		float heatThreshold = [self heatInsulation] * 100.0f;
 		ship_temperature += (float)( flightSpeed * air_friction * deltaInsulation);	// wind_speed
 		
-		if (external_temp > ship_temperature)
+		if (external_temp > heatThreshold && external_temp > ship_temperature)
 			ship_temperature += (float)((external_temp - ship_temperature) * SHIP_INSULATION_FACTOR  * deltaInsulation);
 		else
 		{
 			if (ship_temperature > SHIP_MIN_CABIN_TEMP)
-				ship_temperature += (float)((external_temp - ship_temperature) * SHIP_COOLING_FACTOR  * deltaInsulation);
+				ship_temperature += (float)((external_temp - heatThreshold - ship_temperature) * SHIP_COOLING_FACTOR  * deltaInsulation);
 		}
 
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
