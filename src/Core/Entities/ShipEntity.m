@@ -79,6 +79,8 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.ShipEntity"
 
+#define USEMASC 1
+
 
 extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
@@ -231,8 +233,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		// These items are not available in strict mode.
 		if ([shipDict oo_fuzzyBooleanForKey:@"has_fuel_injection"])  [self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+#if USEMASC
 		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_jammer"])  [self addEquipmentItem:@"EQ_MILITARY_JAMMER"];
 		if ([shipDict oo_fuzzyBooleanForKey:@"has_military_scanner_filter"])  [self addEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
+#endif
 	}
 	
 	canFragment = [shipDict oo_fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
@@ -2247,13 +2251,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasMilitaryScannerFilter
 {
+#if USEMASC
 	return [self hasEquipmentItem:@"EQ_MILITARY_SCANNER_FILTER"];
+#else
+	return NO;
+#endif
 }
 
 
 - (BOOL) hasMilitaryJammer
 {
+#if USEMASC
 	return [self hasEquipmentItem:@"EQ_MILITARY_JAMMER"];
+#else
+	return NO;
+#endif
 }
 
 
