@@ -144,4 +144,11 @@ OOINLINE double accurateDistanceBetweenPlanetPositions ( int x1, int y1, int x2,
 	return 0.4 * dist;
 }
 
+
+OOINLINE double travelTimeBetweenPlanetPositions ( int x1, int y1, int x2, int y2)
+{
+	double distance = distanceBetweenPlanetPositions(x1, y1, x2, y2);
+	return distance * distance;
+}
+
 #endif

@@ -6510,7 +6510,7 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal
+- (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedFor:(unsigned) distanceOrTime
 {
 	NSMutableArray	*route = [NSMutableArray arrayWithCapacity:255];
 	
@@ -6559,7 +6559,9 @@ static NSDictionary	*sCachedSystemData = nil;
 	// initialise the start node
 	OOSystemID		location = start;
 	double			cost_from_start = 0.0;
-	double			cost_to_goal = distanceBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b);
+	double			cost_to_goal = distanceOrTime == ROUTE_OPT_DISTANCE ?
+						distanceBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b) :
+						travelTimeBetweenPlanetPositions(systems[start].d, systems[start].b, systems[goal].d, systems[goal].b);
 	double			total_cost_estimate = cost_from_start + cost_to_goal;
 	NSDictionary	*parent_node = nil;
 	
@@ -6611,7 +6613,8 @@ static NSDictionary	*sCachedSystemData = nil;
 			[route oo_insertUnsignedInteger:start atIndex:0];
 			return [NSDictionary dictionaryWithObjectsAndKeys:
 						route,									@"route",
-						[NSNumber numberWithDouble:total_cost],	@"distance",
+						[NSNumber numberWithDouble:total_cost],	
+						distanceOrTime == ROUTE_OPT_DISTANCE ? @"distance" : @"time",
 						nil];	// we're done!
 		}
 		else
@@ -6621,8 +6624,12 @@ static NSDictionary	*sCachedSystemData = nil;
 			for (i = 0; i < [neighbours count]; i++)
 			{
 				OOSystemID newLocation = [neighbours oo_intAtIndex:i];
-				double newCostFromStart = cost_from_start + distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b);
-				double newCostToGoal = distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b);
+				double newCostFromStart = cost_from_start + (distanceOrTime == ROUTE_OPT_DISTANCE ?
+						distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b) :
+						travelTimeBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[location].d, systems[location].b));
+				double newCostToGoal = distanceOrTime == ROUTE_OPT_DISTANCE ?
+						distanceBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b) :
+						travelTimeBetweenPlanetPositions(systems[newLocation].d, systems[newLocation].b, systems[goal].d, systems[goal].b);
 				double newTotalCostEstimate = newCostFromStart + newCostToGoal;
 				
 				// ignore this node if it exists and there's no improvement
@@ -6887,7 +6894,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				passenger_name = [NSString stringWithFormat:@"%@ %@", ExpandDescriptionForSeed(@"%R", passenger_seed), ExpandDescriptionForSeed(@"[nom]", passenger_seed)];
 			
 			// determine information about the route...
-			NSDictionary* routeInfo = [self routeFromSystem:start toSystem:passenger_destination];
+			NSDictionary* routeInfo = [self routeFromSystem:start toSystem:passenger_destination optimizedFor:ROUTE_OPT_DISTANCE];
 			
 			// some routes are impossible!
 			if (routeInfo)
@@ -7140,7 +7147,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				if (profit_for_trip > 100.0)	// overheads!!
 				{
 					// determine information about the route...
-					NSDictionary* routeInfo = [self routeFromSystem:start toSystem:contract_destination];
+					NSDictionary* routeInfo = [self routeFromSystem:start toSystem:contract_destination optimizedFor:ROUTE_OPT_DISTANCE];
 					
 					// some routes are impossible!
 					if (routeInfo)

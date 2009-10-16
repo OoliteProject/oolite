@@ -46,7 +46,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha optimizedFor:(unsigned)distanceOrTime;
 
 @end
 
@@ -1319,7 +1319,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (showAdvancedNavArray && ![UNIVERSE strict] && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha];
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha optimizedFor:[[UNIVERSE gameView] isCtrlDown] ? ROUTE_OPT_TIME : ROUTE_OPT_DISTANCE];
 	}
 	
 	// draw fuel range circle
@@ -1458,7 +1458,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha optimizedFor:(unsigned)distanceOrTime
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
@@ -1497,13 +1497,20 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	// Draw route from player position to currently selected destination.
 	int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber];
+	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedFor:distanceOrTime];
 	
 	if ((destNumber != planetNumber) && routeInfo)
 	{
 		int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] -1;
 		
-		glColor4f (1.0f, 1.0f, 0.0f, alpha); // Yellow for plotting routes.
+		if (distanceOrTime == ROUTE_OPT_DISTANCE)
+		{
+			glColor4f (1.0f, 1.0f, 0.0f, alpha); // Yellow for plotting routes optimized for distance.
+		}
+		else
+		{
+			glColor4f (0.0f, 1.0f, 1.0f, alpha); // Cyan for plotting routes optimized for time.
+		}
 		for (i = 0; i < route_hops; i++)
 		{
 			int loc = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:i] intValue];
