@@ -554,4 +554,38 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	return myDict;
 }
 
+- (NSString *) scanInfoString
+{
+	switch(scan_info)
+	{
+		case WH_SCANINFO_NONE: return @"WH_SCANINFO_NONE";
+		case WH_SCANINFO_SCANNED: return @"WH_SCANINFO_SCANNED";
+		case WH_SCANINFO_COLLAPSE_TIME: return @"WH_SCANINFO_COLLAPSE_TIME";
+		case WH_SCANINFO_ARRIVAL_TIME: return @"WH_SCANINFO_ARRIVAL_TIME";
+		case WH_SCANINFO_DESTINATION: return @"WH_SCANINFO_DESTINATION";
+		case WH_SCANINFO_SHIP: return @"WH_SCANINFO_SHIP";
+	}
+}
+
+- (void)dumpSelfState
+{
+	[super dumpSelfState];
+	OOLog(@"dumpState.wormholeEntity", @"Origin: %@", [UNIVERSE getSystemName:origin]);
+	OOLog(@"dumpState.wormholeEntity", @"Destination: %@", [UNIVERSE getSystemName:destination]);
+	OOLog(@"dumpState.wormholeEntity", @"Expiry Time: %@", ClockToString(expiry_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Arrival Time: %@", ClockToString(arrival_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Scanned Time: %@", ClockToString(scan_time, false));
+	OOLog(@"dumpState.wormholeEntity", @"Scanned State: %@", [self scanInfoString]);
+
+	OOLog(@"dumpState.wormholeEntity", @"Mass: %.2lf", witch_mass);
+	OOLog(@"dumpState.wormholeEntity", @"Ships: %d", [shipsInTransit count]);
+	int i;
+	for (i = 0; i < [shipsInTransit count]; ++i)
+	{
+		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
+		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
+		OOLog(@"dumpState.wormholeEntity.ships", @"Ship %d: %@  mass %.2f  arrival time %@", i+1, ship, [ship mass], ClockToString(ship_arrival_time, false));
+	}
+}
+
 @end

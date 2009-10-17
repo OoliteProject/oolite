@@ -2096,7 +2096,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			case WH_SCANINFO_NONE:
 				OOLog(kOOLogInconsistentState, @"Internal Error - WH_SCANINFO_NONE reached in [PlayerEntity updateTargeting:]");
-				assert(NO);
+				[self dumpState];
+				[wh dumpState];
+				assert([wh scanInfo] != WH_SCANINFO_NONE);
 				break;
 			case WH_SCANINFO_SCANNED:
 				if ([self clockTimeAdjusted] > [wh scanTime] + 2)
