@@ -3,7 +3,7 @@
 RingEntity.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -54,10 +54,30 @@ Ringdata	ringentity;
 	
 	// initialise the vertex arrays
 	//
+	OOColor *col1 = [OOColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.5];
+	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:0.0 blue:1.0 alpha:0.25];
+	[self setColors:col1 and:col2];
+	
+	lifetime = 50.0;
+	[self setStatus:STATUS_EFFECT];
+	
+	velocity.x = 0.0;
+	velocity.y = 0.0;
+	velocity.z = 1.0;
+	
+	isRing = YES;
+	isImmuneToBreakPatternHide = YES;
+	
+	return self;
+}
+
+
+- (void) setColors:(OOColor *) color1 and:(OOColor *) color2
+{
+	GLfloat amb_diff1[] = {[color1 redComponent], [color1 greenComponent], [color1 blueComponent], [color1 alphaComponent]};
+	GLfloat amb_diff2[] = {[color2 redComponent], [color2 greenComponent], [color2 blueComponent], [color2 alphaComponent]};
 	int i;
 	int ti = 0;
-	GLfloat amb_diff1[] = { 1.0, 0.0, 0.0, 0.5};
-	GLfloat amb_diff2[] = { 0.0, 0.0, 1.0, 0.25};
 	for (i = 0; i < 64; i++)
 	{
 		ringentity.vertex_array[i] = vertices[i];
@@ -79,18 +99,6 @@ Ringdata	ringentity;
 			ringentity.color_array[i*4+3] = amb_diff2[3];
 		}
 	}
-	
-	lifetime = 50.0;
-	[self setStatus:STATUS_EFFECT];
-	
-	velocity.x = 0.0;
-	velocity.y = 0.0;
-	velocity.z = 1.0;
-	
-	isRing = YES;
-	isImmuneToBreakPatternHide = YES;
-	
-	return self;
 }
 
 

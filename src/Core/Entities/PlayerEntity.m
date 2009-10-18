@@ -3912,7 +3912,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[self setOrientation: kIdentityQuaternion];	// reset orientation to dock
 
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
 	[self playDockWithStation];
 
 	[station noteDockedShip:self];
@@ -4064,7 +4064,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[station launchShip:self];
 	orientation.w = -orientation.w;   // need this as a fix...
 	flightRoll = -flightRoll;
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
 
 	dockedStation = nil;
 	
@@ -4251,16 +4251,18 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	[UNIVERSE setDisplayText:NO];
 
-	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
-
-	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	
 	//	reset the compass
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
 		compassMode = COMPASS_MODE_PLANET;
 	else
 		compassMode = COMPASS_MODE_BASIC;
+		
+	//[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:NO];
+
+	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
+
+	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	
 	//  perform any check here for forced witchspace encounters
 	
@@ -4349,7 +4351,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setShowDemoShips:NO];
 	[UNIVERSE setDisplayCursor:NO];
 	[UNIVERSE setDisplayText:NO];
-	[UNIVERSE set_up_break_pattern:position quaternion:orientation];
+	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:NO];
 	[self playExitWitchspace];
 	[self doScriptEvent:@"shipWillExitWitchspace"];
 }

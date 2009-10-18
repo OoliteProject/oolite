@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "OOSelfDrawingEntity.h"
 
+@class OOColor;
 
 #define RING_SPEED		200.0
 
@@ -36,5 +37,6 @@ MA 02110-1301, USA.
 }
 
 - (void) setLifetime:(double) amount;
+- (void) setColors:(OOColor *) color1 and:(OOColor *) color2;
 
 @end

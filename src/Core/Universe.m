@@ -2514,20 +2514,43 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 }
 
 
-- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q
+- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q forDocking:(BOOL) forDocking
 {
 	int				i;
 	RingEntity*		ring;
+	id				colorDesc = nil;
+	OOColor*		color = nil;
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
 	q.w = -q.w;		// reverse the quaternion because this is from the player's viewpoint
 	
 	Vector			v = vector_forward_from_quaternion(q);
-		
+	
+	// hyperspace colours
+	
+	OOColor *col1 = [OOColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:0.5];	//standard tunnel colour
+	OOColor *col2 = [OOColor colorWithCalibratedRed:0.0 green:0.0 blue:1.0 alpha:0.25];	//standard tunnel colour
+	
+	colorDesc = [[self planetInfo] objectForKey:@"hyperspace_tunnel_color_1"];
+	if (colorDesc != nil)
+	{
+		color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)  col1 = color;
+		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	colorDesc = [[self planetInfo] objectForKey:@"hyperspace_tunnel_color_2"];
+	if (colorDesc != nil)
+	{
+		color = [OOColor colorWithDescription:colorDesc];
+		if (color != nil)  col2 = color;
+		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
+	}
+	
 	for (i = 1; i < 11; i++)
 	{
 		ring = [[RingEntity alloc] init];
+		if (!forDocking) [ring setColors:col1 and:col2];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setOrientation:q];
 		[ring setVelocity:v];

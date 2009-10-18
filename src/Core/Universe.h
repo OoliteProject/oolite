@@ -326,7 +326,7 @@ enum
 
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 
-- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q;
+- (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q forDocking:(BOOL) forDocking;
 - (void) game_over;
 
 - (void) setupIntroFirstGo: (BOOL) justCobra;
