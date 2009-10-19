@@ -233,7 +233,8 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	{
 		_solidCount = polygonData.count;
 		_solidData = realloc(polygonData.data, polygonData.count * sizeof (GLfloat) * 2);
-		if (_solidData != NULL)  polygonData.data = NULL;
+		if (_solidCount == 0) polygonData.OK = NO;
+		if (_solidData != NULL || !polygonData.OK)  polygonData.data = NULL;
 		else
 		{
 			_solidData = polygonData.data;

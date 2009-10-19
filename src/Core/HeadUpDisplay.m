@@ -377,7 +377,7 @@ OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
 
 - (void) renderHUD
 {
-	glShadeModel(GL_FLAT);
+	//glShadeModel(GL_FLAT);
 	
 	OOGL(glLineWidth(_crosshairWidth * line_width));
 	[self drawCrosshairs];
