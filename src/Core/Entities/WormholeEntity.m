@@ -580,7 +580,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 	OOLog(@"dumpState.wormholeEntity", @"Mass: %.2lf", witch_mass);
 	OOLog(@"dumpState.wormholeEntity", @"Ships: %d", [shipsInTransit count]);
-	int i;
+	unsigned i;
 	for (i = 0; i < [shipsInTransit count]; ++i)
 	{
 		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
