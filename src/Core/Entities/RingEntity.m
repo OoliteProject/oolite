@@ -46,11 +46,11 @@ Ringdata	ringentity;
 	lifetime = amount;
 }
 
-- (id) init
+- (id) initWithModelFile:(NSString *) ringModelFileName
 {
 	self = [super init];
 
-	[self setModelName:@"ring.dat"];
+	[self setModelName:ringModelFileName];
 	
 	// initialise the vertex arrays
 	//

@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 	double lifetime;
 }
 
+- (id) initWithModelFile:(NSString *) ringModelFileName;
 - (void) setLifetime:(double) amount;
 - (void) setColors:(OOColor *) color1 and:(OOColor *) color2;
 

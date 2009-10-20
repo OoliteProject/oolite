@@ -2520,6 +2520,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	RingEntity*		ring;
 	id				colorDesc = nil;
 	OOColor*		color = nil;
+	NSString*		breakPatternModelFileName = nil;
 	
 	[self setViewDirection:VIEW_FORWARD];
 	
@@ -2547,9 +2548,25 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		else  OOLogWARN(@"hyperspaceTunnel.fromDict", @"could not interpret \"%@\" as a colour.", colorDesc);
 	}
 	
-	for (i = 1; i < 11; i++)
+	// Decide what model to use for the break pattern. If we are setting up the pattern for docking/launching, then
+	// use whatever model is selected in the station's shipdata under the 'docking_pattern_model' key(or the universal
+	// default, if no such shipdata key exists). If this is no docking break pattern, then check the 'universal' section
+	// in planetinfo.plist for a key named 'default_breakpattern_model'. If not found, use ring.dat as the default -
+	// Nikos 20091020
+	if (forDocking)
 	{
-		ring = [[RingEntity alloc] init];
+		StationEntity *station = [[PlayerEntity sharedPlayer] dockedStation];
+		breakPatternModelFileName = [station dockingPatternModelFileName];
+	}
+	else
+	{
+		breakPatternModelFileName = [[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] oo_stringForKey:@"default_breakpattern_model"];
+	}
+	if (!breakPatternModelFileName)  breakPatternModelFileName = @"ring.dat";	// be sure there is a model to use
+	
+	for (i = 1; i < 11; i++)
+	{		
+		ring = [[RingEntity alloc] initWithModelFile:breakPatternModelFileName];
 		if (!forDocking) [ring setColors:col1 and:col2];
 		[ring setPositionX:pos.x+v.x*i*50.0 y:pos.y+v.y*i*50.0 z:pos.z+v.z*i*50.0]; // ahead of the player
 		[ring setOrientation:q];

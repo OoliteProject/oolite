@@ -19,6 +19,9 @@
 		
 		// Default docking clearance requirement for main stations.
 		stations_require_docking_clearance = no;
+		
+		// Default break pattern model for use in both launch/dock and hyperspace sequences.
+		default_breakpattern_model = "ring.dat";
 	};
 	
 	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival

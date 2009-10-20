@@ -775,6 +775,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
 		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
+
+	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:
+		universalInfo != nil ? [universalInfo oo_stringForKey:@"default_breakpattern_model" defaultValue:@"ring.dat"] : @"ring.dat"];
 	
 	double unitime = [UNIVERSE getTime];
 
@@ -2096,6 +2099,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	if ([shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO])  return YES;
 	return [[shipinfoDictionary objectForKey:@"roles"] rangeOfString:@"rotating-station"].location != NSNotFound;	// legacy
+}
+
+
+- (NSString *) dockingPatternModelFileName
+{
+	return dockingPatternModelFileName;
 }
 
 
