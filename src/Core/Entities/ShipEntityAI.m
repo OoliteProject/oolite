@@ -774,7 +774,7 @@ MA 02110-1301, USA.
 
 	// Notify own ship script that we are being attacked.	
 	ShipEntity *hunter = [missile owner];
-	[self doScriptEvent:@"beingAttacked" withArgument:hunter];
+	[self doScriptEvent:@"shipBeingAttacked" withArgument:hunter];
 	
 	if ([self isPolice])
 	{
@@ -1259,7 +1259,7 @@ static WormholeEntity *whole = nil;
 	{
 		ShipEntity *thing = scanned_ships[i];
 		GLfloat d2 = distance2_scanned_ships[i];
-		if (([thing scanClass] != CLASS_CARGO) && ([thing status] != STATUS_DOCKED) && ![thing isThargoid] && (d2 < found_d2))
+		if (([thing scanClass] != CLASS_CARGO) && ([thing status] != STATUS_DOCKED) && ![thing isThargoid] && ![thing isCloaked] && (d2 < found_d2))
 		{
 			found_target = [thing universalID];
 			if ([thing isPlayer]) d2 = 0.0;   // prefer the player

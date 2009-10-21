@@ -7736,7 +7736,8 @@ BOOL class_masslocks(int some_class)
 	if (amount <= 0.0)  return;
 	
 	// If it's an energy mine...
-	if ([ent isParticle] && [ent scanClass] == CLASS_MINE)
+	BOOL energyMine = ([ent isParticle] && [ent scanClass] == CLASS_MINE);
+	if (energyMine)
 	{
 		switch (scanClass)
 		{
@@ -7875,7 +7876,7 @@ BOOL class_masslocks(int some_class)
 	if (energy <= 0.0)
 	{
 		if (hunter != nil)  [hunter noteTargetDestroyed:self];
-		[self getDestroyedBy:other context:suppressExplosion ? @"energy damage" : @"removed"];
+		[self getDestroyedBy:other context:suppressExplosion ? @"removed" : (energyMine ? @"cascade weapon" : @"energy damage")];
 	}
 	else
 	{
