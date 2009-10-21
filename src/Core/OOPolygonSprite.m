@@ -69,13 +69,23 @@ typedef struct
 	NSPoint			pending0, pending1;	// Used for splitting GL_TRIANGLE_STRIP/GL_TRIANGLE_FAN primitives.
 	BOOL			OK;					// Set to false to indicate error.
 #ifndef NDEBUG
+	unsigned		primitiveID;
 	NSString		*name;
+	NSMutableString	*debugSVG;
 #endif
 } TessPolygonData;
 
 
 static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint);	// Returns true if capacity grew by at least one.
 static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex);
+
+#ifndef NDEBUG
+static void SVGDumpBegin(TessPolygonData *data);
+static void SVGDumpEnd(TessPolygonData *data);
+static void SVGDumpBeginPrimitive(TessPolygonData *data);
+static void SVGDumpEndPrimitive(TessPolygonData *data);
+static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2);
+#endif
 
 
 static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData);
@@ -162,6 +172,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 #ifndef NDEBUG
 	polygonData.name = _name;
 	OOLog(@"tesselate.begin", @"%Tesselating polyogon sprite \"%@\"", _name);
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"polygon-sprite-dump-svg"])  SVGDumpBegin(&polygonData);
 #endif
 #if !OO_DEBUG
 	// For efficiency, grow to more than big enough for most cases to avoid regrowing.
@@ -231,6 +242,10 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	
 	if (polygonData.OK)
 	{
+#ifndef NDEBUG
+		SVGDumpEnd(&polygonData);
+#endif
+		
 		_solidCount = polygonData.count;
 		_solidData = realloc(polygonData.data, polygonData.count * sizeof (GLfloat) * 2);
 		if (_solidCount == 0) polygonData.OK = NO;
@@ -246,6 +261,9 @@ END:
 	free(polygonData.data);
 	gluDeleteTess(tesselator);
 	[pool release];
+#ifndef NDEBUG
+	DESTROY(polygonData.debugSVG);
+#endif
 	return polygonData.OK;
 }
 
@@ -301,6 +319,10 @@ static void APIENTRY SolidBeginCallback(GLenum type, void *polygonData)
 	
 	data->mode = type;
 	data->vCount = 0;
+	
+#ifndef NDEBUG
+	SVGDumpBeginPrimitive(data);
+#endif
 }
 
 
@@ -319,7 +341,22 @@ static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 	{
 		case GL_TRIANGLES:
 			data->OK = AppendVertex(data, vertex);
-			OOLog(@"tesselate.vertex.tri", @"%u: %@", vCount, NSStringFromPoint(vertex));
+			OOLog(@"tesselate.vertex.tri", @"%u: %@", vCount, NSStringFromPoint(vertex));		
+#ifndef NDEBUG
+			switch (vCount % 3)
+			{
+				case 0:
+					data->pending0 = vertex;
+					break;
+					
+				case 1:
+					data->pending1 = vertex;
+					break;
+					
+				case 2:
+					SVGDumpAppendTriangle(data, data->pending0, data->pending1, vertex);
+			}
+#endif
 			break;
 			
 		case GL_TRIANGLE_FAN:
@@ -331,6 +368,9 @@ static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 						   AppendVertex(data, data->pending1) &&
 						   AppendVertex(data, vertex);
 				OOLog(@"tesselate.vertex.fan", @"%u: (%@ %@) %@", vCount, NSStringFromPoint(data->pending0), NSStringFromPoint(data->pending1), NSStringFromPoint(vertex));
+#ifndef NDEBUG
+				SVGDumpAppendTriangle(data, data->pending0, data->pending1, vertex);
+#endif
 				data->pending1 = vertex;
 			}
 			break;
@@ -366,7 +406,10 @@ static void APIENTRY SolidVertexCallback(void *vertexData, void *polygonData)
 				data->OK = AppendVertex(data, data->pending0) &&
 						   AppendVertex(data, data->pending1) &&
 						   AppendVertex(data, vertex);
-			OOLog(@"tesselate.vertex.strip", @"%u: (%@ %@) %@", vCount, NSStringFromPoint(data->pending0), NSStringFromPoint(data->pending1), NSStringFromPoint(vertex));
+				OOLog(@"tesselate.vertex.strip", @"%u: (%@ %@) %@", vCount, NSStringFromPoint(data->pending0), NSStringFromPoint(data->pending1), NSStringFromPoint(vertex));
+#ifndef NDEBUG
+				SVGDumpAppendTriangle(data, data->pending0, data->pending1, vertex);
+#endif
 				if ((vCount % 2) == 0)  data->pending0 = vertex;
 				else  data->pending1 = vertex;
 			}
@@ -395,6 +438,10 @@ static void APIENTRY SolidEndCallback(void *polygonData)
 	
 	data->mode = 0;
 	data->vCount = 0;
+	
+#ifndef NDEBUG
+	SVGDumpEndPrimitive(data);
+#endif
 }
 
 
@@ -413,3 +460,71 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData)
 	OOLog(@"polygonSprite.tesselate.error", @"Error %s (%u) while tesselating polygon%@.", errStr, error, name);
 	data->OK = NO;
 }
+
+#ifndef NDEBUG
+#import "ResourceManager.h"
+#import "legacy_random.h"
+
+static void SVGDumpBegin(TessPolygonData *data)
+{
+	DESTROY(data->debugSVG);
+	data->debugSVG =
+	[  @"<?xml version=\"1.0\" standalone=\"no\"?>\n"
+		"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
+		"<svg viewBox=\"-5 -5 10 10\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n"
+		"\t<desc>Oolite polygon sprite debug dump.</desc>\n\t\n"
+		mutableCopy];
+}
+
+
+static void SVGDumpEnd(TessPolygonData *data)
+{
+	if (data->debugSVG == nil)  return;
+	
+	[data->debugSVG appendString:@"</svg>\n"];
+	[ResourceManager writeDiagnosticData:[data->debugSVG dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[data->name stringByAppendingPathExtension:@"svg"]];
+	DESTROY(data->debugSVG);
+}
+
+
+static void SVGDumpBeginPrimitive(TessPolygonData *data)
+{
+	if (data->debugSVG == nil)  return;
+	
+	NSString *groupName = @"unknown";
+	switch (data->mode)
+	{
+		case GL_TRIANGLES:
+			groupName = @"GL_TRIANGLES";
+			break;
+			
+		case GL_TRIANGLE_FAN:
+			groupName = @"GL_TRIANGLE_FAN";
+			break;
+			
+		case GL_TRIANGLE_STRIP:
+			groupName = @"GL_TRIANGLE_STRIP";
+			break;
+	}
+	groupName = [groupName stringByAppendingFormat:@" %u", data->primitiveID++];
+	
+	// Pick random colour for the primitive.
+	uint8_t red = (Ranrot() & 0x7F) + 0x80;
+	uint8_t green = (Ranrot() & 0x7F) + 0x80;
+	uint8_t blue = (Ranrot() & 0x7F) + 0x80;
+	
+	[data->debugSVG appendFormat:@"\t<g id=\"%@\" fill=\"#%2X%2X%2X\" stroke=\"black\" stroke-width=\"0.01\">\n", groupName, red, green, blue];
+}
+
+
+static void SVGDumpEndPrimitive(TessPolygonData *data)
+{
+	[data->debugSVG appendString:@"\t</g>\n"];
+}
+
+
+static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2)
+{
+	[data->debugSVG appendFormat:@"\t\t<path d=\"M %f %f L %f %f L %f %f z\"/>\n", v0.x, -v0.y, v1.x, -v1.y, v2.x, -v2.y];
+}
+#endif
