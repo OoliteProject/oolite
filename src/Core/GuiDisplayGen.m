@@ -1185,34 +1185,66 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw names
 	//
-	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
-	for (i = 0; i < 256; i++)
+	// Cache nearby systems so that [UNIVERSE generateSystemData:] does not get called on every frame
+	// Caching code submitted by Y A J, 20091022
+	static Random_Seed saved_galaxy_seed;
+	static NSPoint saved_galaxy_coordinates;
+	static struct saved_system
 	{
-		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		
-		int dx, dy;
-		
-		star.x = (float)(g_seed.d * hscale + hoffset);
-		star.y = (float)(g_seed.b * vscale + voffset);
-		
-		dx = abs(galaxy_coordinates.x - g_seed.d);
-		dy = abs(galaxy_coordinates.y - g_seed.b);
-		
-		if ((dx < 20)&&(dy < 38))
+		int seed_d, seed_b;
+		int tec, eco, gov;
+		NSString* p_name;
+	} nearby_systems[ 256 ];
+	static int num_nearby_systems;
+
+	if( !equal_seeds( [player galaxy_seed], saved_galaxy_seed ) ||
+		galaxy_coordinates.x != saved_galaxy_coordinates.x ||
+		galaxy_coordinates.y != saved_galaxy_coordinates.y )
+	{
+		// saved systems are stale; recompute
+		for (i = 0; i < num_nearby_systems; i++)
+			[nearby_systems[ i ].p_name release];
+
+		num_nearby_systems = 0;
+		for (i = 0; i < 256; i++)
 		{
-			NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
-			int tec = [sys_info oo_intForKey:KEY_TECHLEVEL];
-			int eco = [sys_info oo_intForKey:KEY_ECONOMY];
-			int gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
-			NSString*   p_name = [sys_info oo_stringForKey:KEY_NAME];
-			if (![player showInfoFlag])
+			g_seed = [UNIVERSE systemSeedForSystemNumber:i];
+		
+			int dx, dy;
+		
+			dx = abs(galaxy_coordinates.x - g_seed.d);
+			dy = abs(galaxy_coordinates.y - g_seed.b);
+		
+			if ((dx < 20)&&(dy < 38))
 			{
-				OODrawString(p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+				NSDictionary* sys_info = [UNIVERSE generateSystemData:g_seed];
+				nearby_systems[ num_nearby_systems ].seed_d = g_seed.d;
+				nearby_systems[ num_nearby_systems ].seed_b = g_seed.b;
+				nearby_systems[ num_nearby_systems ].tec = [sys_info oo_intForKey:KEY_TECHLEVEL];
+				nearby_systems[ num_nearby_systems ].eco = [sys_info oo_intForKey:KEY_ECONOMY];
+				nearby_systems[ num_nearby_systems ].gov = [sys_info oo_intForKey:KEY_GOVERNMENT];
+				nearby_systems[ num_nearby_systems ].p_name = [[sys_info oo_stringForKey:KEY_NAME] retain];
+				num_nearby_systems++;
 			}
-			else
-			{
-				OODrawPlanetInfo(gov, eco, tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
-			}
+		}
+		saved_galaxy_seed = [player galaxy_seed];
+		saved_galaxy_coordinates = galaxy_coordinates;
+	}
+	
+	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
+	for (i = 0; i < num_nearby_systems; i++)
+	{
+		struct saved_system* s = nearby_systems + i;
+		
+		star.x = (float)(s->seed_d * hscale + hoffset);
+		star.y = (float)(s->seed_b * vscale + voffset);
+		if (![player showInfoFlag])
+		{
+			OODrawString(s->p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+		}
+		else
+		{
+			OODrawPlanetInfo(s->gov, s->eco, s->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
 	}
 	
