@@ -152,10 +152,13 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 {
 	OO_ENTER_OPENGL();
 	
-	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-	OOGL(glVertexPointer(2, GL_FLOAT, 0, _solidData));
-	OOGL(glDrawArrays(GL_TRIANGLES, 0, _solidCount));
-	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	if (_solidCount != 0)
+	{
+		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+		OOGL(glVertexPointer(2, GL_FLOAT, 0, _solidData));
+		OOGL(glDrawArrays(GL_TRIANGLES, 0, _solidCount));
+		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	}
 }
 
 
@@ -246,14 +249,23 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 		SVGDumpEnd(&polygonData);
 #endif
 		
-		_solidCount = polygonData.count;
-		_solidData = realloc(polygonData.data, polygonData.count * sizeof (GLfloat) * 2);
-		if (_solidCount == 0) polygonData.OK = NO;
-		if (_solidData != NULL || !polygonData.OK)  polygonData.data = NULL;
+		if (polygonData.count != 0)
+		{
+			_solidCount = polygonData.count;
+			_solidData = realloc(polygonData.data, polygonData.count * sizeof (GLfloat) * 2);
+			if (_solidData != NULL)  polygonData.data = NULL;	// realloc succeded.
+			else
+			{
+				// Unlikely, but legal: realloc failed to shrink buffer.
+				_solidData = polygonData.data;
+				if (_solidData == NULL)  polygonData.OK = NO;
+			}
+		}
 		else
 		{
-			_solidData = polygonData.data;
-			if (_solidData == NULL)  polygonData.OK = NO;
+			// Empty polygon.
+			_solidCount = 0;
+			_solidData = NULL;
 		}
 	}
 	
