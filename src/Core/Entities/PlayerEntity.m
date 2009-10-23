@@ -3102,6 +3102,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		ShipEntity *targetShip = (ShipEntity*)target;
 		[targetShip setPrimaryAggressor:self];
 		[targetShip doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:targetShip];
 		[targetShip reactToAIMessage:@"INCOMING_MISSILE"];
 	}
 	

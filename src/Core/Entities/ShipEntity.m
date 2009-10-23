@@ -7060,6 +7060,7 @@ BOOL class_masslocks(int some_class)
 	{
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
+		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
 		[target_ship reactToAIMessage:@"INCOMING_MISSILE"];
 	}
 	
