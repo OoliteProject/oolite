@@ -3334,6 +3334,13 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		case kOOMusicITunes:	desc = @"MUSIC_ITUNES"; break;
 	}
 	[result setObject:desc forKey:@"musicMode"];
+	
+	NSDictionary *gameWindow = [NSDictionary dictionaryWithObjectsAndKeys:
+						[NSNumber numberWithFloat:[gameView viewSize].width], @"width",
+						[NSNumber numberWithFloat:[gameView viewSize].height], @"height",
+						[NSNumber numberWithBool:[gameView inFullScreenMode]], @"fullScreen",
+						nil];
+	[result setObject:gameWindow forKey:@"gameWindow"];
 
 	
 	return [[result copy] autorelease];
