@@ -538,8 +538,8 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 		else
 		{
 			// Mitreing case.
-			NSPoint v1 = PtScale(PtFastNormal(PtRotACW(a)), width);
-			NSPoint v2 = PtScale(PtFastNormal(PtRotACW(b)), width);
+			NSPoint v1 = PtScale(PtFastNormal(PtAdd(PtRotACW(a), a)), width);
+			NSPoint v2 = PtScale(PtFastNormal(PtSub(PtRotACW(b), b)), width);
 			
 			[result addObject:[NSValue valueWithPoint:PtAdd(v1, current)]];
 			[result addObject:[NSValue valueWithPoint:PtAdd(v2, current)]];
