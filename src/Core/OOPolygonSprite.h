@@ -55,5 +55,6 @@ SOFTWARE.
 - (id) initWithDataArray:(NSArray *)dataArray outlineWidth:(GLfloat)outlineWidth name:(NSString *)name;
 
 - (void) drawFilled;
+- (void) drawOutline;
 
 @end

@@ -64,8 +64,8 @@ static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
 #if OLD_ICONS
 static void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
-#endif
 static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
+#endif
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat overallAlpha, BOOL reticleTargetSensitive);
 static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
@@ -1517,7 +1517,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 static NSString * const kDefaultMissileIconKey = @"oolite-default-missile-icon";
 static NSString * const kDefaultMineIconKey = @"oolite-default-mine-icon";
-static const GLfloat kOutlineWidth = 0.2f; 
+static const GLfloat kOutlineWidth = 0.5f; 
 
 
 static OOPolygonSprite *IconForMissileRole(NSString *role)
@@ -1572,9 +1572,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		// Draw yellow outline.
 		OOGL(glPushMatrix());
 		OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
-		OOGL(glScalef(width + 1.0f, height + 1.0f, 1.0f));
+		OOGL(glScalef(width, height, 1.0f));
 		GLColorWithOverallAlpha(yellow_color, overallAlpha);
-		[sprite drawFilled];
+		[sprite drawOutline];
 		OOGL(glPopMatrix());
 		
 		// Draw black backing, so outline colour isn’t blended into missile colour.
@@ -1608,6 +1608,22 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOGL(glPopMatrix());
 }
 
+
+
+- (void) drawIconForEmptyPylonAtX:(int)x y:(int)y
+							width:(GLfloat)width height:(GLfloat)height
+{
+	OOPolygonSprite *sprite = IconForMissileRole(kDefaultMissileIconKey);
+	
+	// Draw gray outline.
+	OOGL(glPushMatrix());
+	OOGL(glTranslatef(x - width * 2.0f, y - height * 2.0f, z1));
+	OOGL(glScalef(width, height, 1.0f));
+	GLColorWithOverallAlpha(lightgray_color, overallAlpha);
+	[sprite drawOutline];
+	OOGL(glPopMatrix());
+}
+
 #endif
 
 
@@ -1627,7 +1643,9 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if (![player dialIdentEngaged])
 	{
+#if !OLD_ICONS
 		OOMissileStatus status = [player dialMissileStatus];
+#endif
 		unsigned n_mis = [player dialMaxMissiles];
 		unsigned i;
 		for (i = 0; i < n_mis; i++)
@@ -1729,10 +1747,15 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			}
 			else
 			{
+#if !OLD_ICONS
+				[self drawIconForEmptyPylonAtX:x + (int)i * sp + 2 y:y
+										 width:siz.width *0.25f height:siz.height *0.25f];
+#else
 				GLColorWithOverallAlpha(lightgray_color, overallAlpha);
 				OOGLBEGIN(GL_LINE_LOOP);
 				hudDrawMissileIconAt(x + i * sp, y, z1, siz);
 				OOGLEND();
+#endif
 			}
 		}
 	}
@@ -2251,6 +2274,7 @@ static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize 
 }
 
 
+#if OLD_ICONS
 static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
@@ -2268,7 +2292,6 @@ static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
 }
 
 
-#if OLD_ICONS
 static void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
 {
 	int ox = x - siz.width / 2.0;
