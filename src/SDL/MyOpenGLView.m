@@ -180,6 +180,7 @@ MA 02110-1301, USA.
 	// changing the flags can trigger texture bugs
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
+	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
 	if (showSplashScreen)
 	{
@@ -261,7 +262,6 @@ MA 02110-1301, USA.
  
 	[self autoShowMouse];
 	[self updateScreen];
-
 }
 
 - (void) dealloc
@@ -662,18 +662,36 @@ if (!showSplashScreen) return;
 	if (!fullScreen && (bounds.size.width != wDC.right - wDC.left
 					|| bounds.size.height != wDC.bottom - wDC.top))
 	{
+		RECT wDCtemp;
+		
+		// MoveWindow is used below to resize the game window when required. The resized window it
+		// creates includes the client plus the non-client area. This means that although dimensions
+		// capable of containing our wanted client area size are requested, the actual window generated has a
+		// slightly smaller client area than intended. We fix this by calculating nonClientAreaCorrection
+		// and adding it to the needed size when necessary (i.e. after splash screen or when switching from
+		// full screen to window) - Nikos 20091024
+		NSSize nonClientAreaCorrection = NSMakeSize(0,0);
+		
 		bounds.size.width = wDC.right - wDC.left;
 		int w=bounds.size.width;
 		if (w & 3) w = w + 4 - (w & 3);
 		GetWindowRect(SDL_Window, &wDC);
+		if (wasFullScreen) // this is true when switching from full screen or when starting in windowed mode after the splash screen has ended
+		{
+			wDCtemp.top = wDC.top; wDCtemp.bottom = wDC.bottom; wDCtemp.left = wDC.left; wDCtemp.right = wDC.right;
+			AdjustWindowRect(&wDCtemp, WS_CAPTION | WS_THICKFRAME, FALSE);
+			nonClientAreaCorrection.width = fabs((wDCtemp.right - wDCtemp.left) - (wDC.right - wDC.left));
+			nonClientAreaCorrection.height = fabs((wDCtemp.bottom - wDCtemp.top) - (wDC.bottom - wDC.top));
+		}
 		viewSize.width = wDC.right - wDC.left + w - bounds.size.width;
 		viewSize.height = wDC.bottom - wDC.top;
-		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width,viewSize.height,TRUE);
+		MoveWindow(SDL_Window,wDC.left,wDC.top,viewSize.width + nonClientAreaCorrection.width,viewSize.height + nonClientAreaCorrection.height,TRUE);
 		GetClientRect(SDL_Window, &wDC);
 	}
 	
-	bounds.size.width = wDC.right - wDC.left;
-	bounds.size.height = wDC.bottom - wDC.top;
+	// Reset bounds and viewSize to current values
+	bounds.size.width = viewSize.width = wDC.right - wDC.left;
+	bounds.size.height = viewSize.height = wDC.bottom - wDC.top;
 	wasFullScreen=fullScreen;
 
 #else //OOLITE_LINUX
