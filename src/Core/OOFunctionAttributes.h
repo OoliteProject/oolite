@@ -17,8 +17,11 @@
 #endif
 
 
-
+#if __cplusplus
+#define OOINLINE			inline
+#else
 #define OOINLINE			static inline
+#endif
 
 
 #if !OO_DEBUG

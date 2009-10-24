@@ -38,6 +38,8 @@ SOFTWARE.
 @private
 	GLfloat					*_solidData;
 	size_t					_solidCount;
+	GLfloat					*_outlineData;
+	size_t					_outlineCount;
 	
 #ifndef NDEBUG
 	NSString				*_name;

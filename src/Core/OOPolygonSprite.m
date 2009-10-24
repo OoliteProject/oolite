@@ -39,12 +39,11 @@ SOFTWARE.
 	the icons we're likely to encounter.
 */
 
-#undef OO_CHECK_GL_HEAVY
-#define OO_CHECK_GL_HEAVY 0
-
 #import "OOPolygonSprite.h"
 #import "OOCollectionExtractors.h"
 #import "OOMacroOpenGL.h"
+#import "OOMaths.h"
+#import "OOPointMaths.h"
 
 
 #ifndef APIENTRY
@@ -52,9 +51,12 @@ SOFTWARE.
 #endif
 
 
+#define kCosMitreLimit 0.866f			// Approximately cos(30 deg)
+
+
 @interface OOPolygonSprite (Private)
 
-- (BOOL) loadPolygons:(NSArray *)dataArray;
+- (BOOL) loadPolygons:(NSArray *)dataArray outlineWidth:(float)outlineWidth;
 
 @end
 
@@ -76,12 +78,16 @@ typedef struct
 } TessPolygonData;
 
 
+static NSArray *DataArrayToPoints(TessPolygonData *data, NSArray *dataArray);
+static NSArray *BuildPathContour(NSArray *dataArray, GLfloat width, BOOL inner);
+
 static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint);	// Returns true if capacity grew by at least one.
 static BOOL AppendVertex(TessPolygonData *data, NSPoint vertex);
 
 #ifndef NDEBUG
 static void SVGDumpBegin(TessPolygonData *data);
 static void SVGDumpEnd(TessPolygonData *data);
+static void SVGDumpAppendBaseContour(TessPolygonData *data, NSArray *points);
 static void SVGDumpBeginPrimitive(TessPolygonData *data);
 static void SVGDumpEndPrimitive(TessPolygonData *data);
 static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2);
@@ -117,7 +123,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 		{
 			dataArray = [NSArray arrayWithObject:dataArray];
 		}
-		if (![self loadPolygons:dataArray])
+		if (![self loadPolygons:dataArray outlineWidth:outlineWidth])
 		{
 			[self release];
 			return nil;
@@ -162,7 +168,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 }
 
 
-- (BOOL) loadPolygons:(NSArray *)dataArray
+- (BOOL) loadPolygons:(NSArray *)dataArray outlineWidth:(float)outlineWidth
 {
 	NSParameterAssert(dataArray != nil);
 	
@@ -193,6 +199,8 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 		goto END;
 	}
 	
+	dataArray = DataArrayToPoints(&polygonData, dataArray);
+	
 	gluTessCallback(tesselator, GLU_TESS_BEGIN_DATA, SolidBeginCallback);
 	gluTessCallback(tesselator, GLU_TESS_VERTEX_DATA, SolidVertexCallback);
 	gluTessCallback(tesselator, GLU_TESS_END_DATA, SolidEndCallback);
@@ -211,30 +219,20 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 			break;
 		}
 		
-		OOUInteger vertexCount = [contour count] / 2, vertexIndex;
+	/*	contour =*/ BuildPathContour(contour, outlineWidth, YES);
+		
+		OOUInteger vertexCount = [contour count], vertexIndex;
 		if (vertexCount > 2)
 		{
 			gluTessBeginContour(tesselator);
 			
 			for (vertexIndex = 0; vertexIndex < vertexCount && polygonData.OK; vertexIndex++)
 			{
-				GLdouble vert[3] =
-				{
-					[contour oo_doubleAtIndex:vertexIndex * 2],
-					[contour oo_doubleAtIndex:vertexIndex * 2 + 1],
-					0.0
-				};
+				NSValue *pointValue = [contour objectAtIndex:vertexIndex];
+				NSPoint p = [pointValue pointValue];
+				GLdouble vert[3] = { p.x, p.y, 0.0 };
 				
-				/*	The third parameter to gluTessVertex() is the data
-					actually passed to our vertex callback. Since the vertex
-					callback isn't called until later, each vertex's data needs
-					to have an independent existence. We pack them into
-					NSValues here and let NSAutoReleasepool clean up
-					afterwards.
-				*/
-				NSPoint p = { vert[0], vert[1] };
-				NSValue *vertValue = [NSValue valueWithPoint:p];
-				gluTessVertex(tesselator, vert, vertValue);
+				gluTessVertex(tesselator, vert, pointValue);
 			}
 			
 			gluTessEndContour(tesselator);
@@ -280,6 +278,170 @@ END:
 }
 
 @end
+
+
+static NSArray *DataArrayToPoints(TessPolygonData *data, NSArray *dataArray)
+{
+	/*	This converts an icon definition in the form of an array of array of
+		numbers to internal data in the form of an array of arrays of NSValues
+		containing NSPoint data. In addition to repacking the data, it performs
+		the following data processing:
+		  * Sequences of duplicate vertices are removed (including across the
+		    beginning and end, in case of manually closed contours).
+		  * Vertices containing nans or infinities are skipped, Just In Case.
+		  * The signed area of each contour is calculated; if it is negative,
+		    the contour is clockwise, and we need to flip it.
+	*/
+	
+	OOUInteger polyIter, polyCount = [dataArray count];
+	NSArray *subArrays[polyCount];
+	
+	for (polyIter = 0; polyIter < polyCount; polyIter++)
+	{
+		NSArray *polyDef = [dataArray objectAtIndex:polyIter];
+		OOUInteger vertIter, vertCount = [polyDef count] / 2;
+		NSMutableArray *newPolyDef = [NSMutableArray arrayWithCapacity:vertCount];
+		OOCGFloat area = 0;
+		
+		OOCGFloat oldX = [polyDef oo_doubleAtIndex:(vertCount -1) * 2];
+		OOCGFloat oldY = [polyDef oo_doubleAtIndex:(vertCount -1) * 2 + 1];
+		
+		for (vertIter = 0; vertIter < vertCount; vertIter++)
+		{
+			OOCGFloat x = [polyDef oo_doubleAtIndex:vertIter * 2];
+			OOCGFloat y = [polyDef oo_doubleAtIndex:vertIter * 2 + 1];
+			
+			// Skip bad or duplicate vertices.
+			if (x == oldX && y == oldY)  continue;
+			if (isnan(x) || isnan(y))  continue;
+			if (!isfinite(x) || !isfinite(y))  continue;
+			
+			area += x * oldY - oldX * y;
+			
+			oldX = x;
+			oldY = y;
+			
+			[newPolyDef addObject:[NSValue valueWithPoint:NSMakePoint(x, y)]];
+		}
+		
+		// Eliminate duplicates at ends - the initialization of oldX and oldY will catch one pair, but not extra-silly cases.
+		while ([newPolyDef count] > 1 && [[newPolyDef objectAtIndex:0] isEqual:[newPolyDef lastObject]])
+		{
+			[newPolyDef removeLastObject];
+		}
+		
+		if (area >= 0)
+		{
+			subArrays[polyIter] = newPolyDef;
+		}
+		else
+		{
+			subArrays[polyIter] = [[newPolyDef reverseObjectEnumerator] allObjects];
+		}
+
+		SVGDumpAppendBaseContour(data, subArrays[polyIter]);
+	}
+	
+	return [NSArray arrayWithObjects:subArrays count:polyCount];
+}
+
+
+static NSArray *BuildPathContour(NSArray *dataArray, GLfloat width, BOOL inner)
+{
+	OOUInteger i, count = [dataArray count];
+	if (count < 2)  return dataArray;
+	
+	/*
+		Generate inner or outer boundary for a contour, offset by the specified
+		width inwards/outwards from the line. At anticlockwise (convex) corners
+		sharper than acos(kCosMitreLimit), the corner is mitred, i.e. an
+		additional line segment is generated so the outline doesn't protrude
+		arbitratrily far.
+		
+		Overview of the maths:
+		For each vertex, we consider a normalized vector A from the previous
+		vertex and a normalized vector B to the next vertex. (These are always
+		defined since the polygons are closed.)
+		
+		The dot product of A and B is the cosine of the angle, which we compare
+		to kCosMitreLimit to determine mitreing. If the dot product is exactly
+		1, the vectors are antiparallel and we have a cap; the mitreing case
+		handles this implicitly. (The non-mitreing case would result in a
+		divide-by-zero.)
+		
+		Non-mitreing case:
+			To position the vertex, we need a vector N normal to the corner.
+			We observe that A + B is tangent to the corner, and a 90 degree
+			rotation in 2D is trivial. The offset along this line is
+			proportional to the secant of the angle between N and the 90 degree
+			rotation of A (or B; the angle is by definition the same), or
+			width / (N dot rA).
+			Since both N and rA are rotated by ninety degrees in the same
+			direction, we can cut out both rotations (i.e., using the tangent
+			and A) and get the same result.
+			
+		Mitreing case:
+			The two new vertices are the original vertex offset by scale along
+			the ninety-degree rotation of A and B respectively.
+	*/
+	
+	NSPoint prev, current, next;
+	if (inner)
+	{
+		prev = [[dataArray objectAtIndex:0] pointValue];
+		current = [[dataArray objectAtIndex:count -1] pointValue];
+		next = [[dataArray objectAtIndex:count - 2] pointValue];	
+	}
+	else
+	{
+		prev = [[dataArray objectAtIndex:count - 1] pointValue];
+		current = [[dataArray objectAtIndex:0] pointValue];
+		next = [[dataArray objectAtIndex:1] pointValue];
+	}
+	
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count];
+	
+	for (i = 0; i < count; i++)
+	{
+		NSPoint a = PtFastNormal(PtSub(current, prev));
+		NSPoint b = PtFastNormal(PtSub(next, current));
+		
+		OOCGFloat dot = PtDot(a, b);
+		BOOL clockwise = PtCross(a, b) < 0.0f;
+		
+		if (-dot < kCosMitreLimit || !clockwise)
+		{
+			// Non-mitreing case.
+			NSPoint t = PtFastNormal(PtAdd(a, b));
+			NSPoint v = PtScale(PtRotACW(t), width / PtDot(t, a));
+			
+			[result addObject:[NSValue valueWithPoint:PtAdd(v, current)]];
+		}
+		else
+		{
+			// Mitreing case.
+			NSPoint v1 = PtScale(PtFastNormal(PtRotACW(a)), width);
+			NSPoint v2 = PtScale(PtFastNormal(PtRotACW(b)), width);
+			
+			[result addObject:[NSValue valueWithPoint:PtAdd(v1, current)]];
+			[result addObject:[NSValue valueWithPoint:PtAdd(v2, current)]];
+		}
+		
+		prev = current;
+		current = next;
+		
+		if (inner)
+		{
+			next = [[dataArray objectAtIndex:(count * 2 - 3 - i) % count] pointValue];
+		}
+		else
+		{
+			next = [[dataArray objectAtIndex:(i + 2) % count] pointValue];
+		}
+	}
+	
+	return result;
+}
 
 
 static BOOL GrowTessPolygonData(TessPolygonData *data, size_t capacityHint)
@@ -480,12 +642,13 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData)
 static void SVGDumpBegin(TessPolygonData *data)
 {
 	DESTROY(data->debugSVG);
-	data->debugSVG =
-	[  @"<?xml version=\"1.0\" standalone=\"no\"?>\n"
+	data->debugSVG = [[NSMutableString alloc] initWithString:
+	   @"<?xml version=\"1.0\" standalone=\"no\"?>\n"
 		"<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n"
 		"<svg viewBox=\"-5 -5 10 10\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n"
-		"\t<desc>Oolite polygon sprite debug dump.</desc>\n\t\n"
-		mutableCopy];
+		"\t<desc>Oolite polygon sprite debug dump.</desc>\n"
+		"\t\n"
+	];
 }
 
 
@@ -496,6 +659,26 @@ static void SVGDumpEnd(TessPolygonData *data)
 	[data->debugSVG appendString:@"</svg>\n"];
 	[ResourceManager writeDiagnosticData:[data->debugSVG dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:[data->name stringByAppendingPathExtension:@"svg"]];
 	DESTROY(data->debugSVG);
+}
+
+
+static void SVGDumpAppendBaseContour(TessPolygonData *data, NSArray *points)
+{
+	if (data->debugSVG == nil)  return;
+	
+	NSString *groupName = [NSString stringWithFormat:@"contour %u", data->primitiveID++];
+	[data->debugSVG appendFormat:@"\t<g id=\"%@\" stroke=\"#BBB\" fill=\"none\">\n\t\t<path stroke-width=\"0.05\" d=\"", groupName];
+	
+	OOUInteger i, count = [points count];
+	for (i = 0; i < count; i++)
+	{
+		NSPoint p = [[points objectAtIndex:i] pointValue];
+		[data->debugSVG appendFormat:@"%c %f %f ", (i == 0) ? 'M' : 'L', p.x, -p.y];
+	}
+	
+	// Close and add a circle at the first vertex. (SVG has support for end markers, but this isn’t reliable across implementations.)
+	NSPoint p = [[points objectAtIndex:0] pointValue];
+	[data->debugSVG appendFormat:@"z\"/>\n\t\t<circle cx=\"%f\" cy=\"%f\" r=\"0.1\" fill=\"#BBB\" stroke=\"none\"/>\n\t</g>\n", p.x, -p.y];
 }
 
 
@@ -525,18 +708,20 @@ static void SVGDumpBeginPrimitive(TessPolygonData *data)
 	uint8_t green = (Ranrot() & 0x7F) + 0x80;
 	uint8_t blue = (Ranrot() & 0x7F) + 0x80;
 	
-	[data->debugSVG appendFormat:@"\t<g id=\"%@\" fill=\"#%2X%2X%2X\" stroke=\"black\" stroke-width=\"0.01\">\n", groupName, red, green, blue];
+	[data->debugSVG appendFormat:@"\t<g id=\"%@\" fill=\"#%2X%2X%2X\" fill-opacity=\"0.5\" stroke=\"black\" stroke-width=\"0.01\">\n", groupName, red, green, blue];
 }
 
 
 static void SVGDumpEndPrimitive(TessPolygonData *data)
 {
+	if (data->debugSVG == nil)  return;
 	[data->debugSVG appendString:@"\t</g>\n"];
 }
 
 
 static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2)
 {
+	if (data->debugSVG == nil)  return;
 	[data->debugSVG appendFormat:@"\t\t<path d=\"M %f %f L %f %f L %f %f z\"/>\n", v0.x, -v0.y, v1.x, -v1.y, v2.x, -v2.y];
 }
 #endif

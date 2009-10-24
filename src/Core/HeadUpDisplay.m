@@ -1517,6 +1517,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 
 static NSString * const kDefaultMissileIconKey = @"oolite-default-missile-icon";
 static NSString * const kDefaultMineIconKey = @"oolite-default-mine-icon";
+static const GLfloat kOutlineWidth = 0.2f; 
 
 
 static OOPolygonSprite *IconForMissileRole(NSString *role)
@@ -1529,7 +1530,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	{
 		NSString *key = role;
 		NSArray *iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
-		if (iconDef != nil)  result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:0.5f name:key];
+		if (iconDef != nil)  result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:kOutlineWidth name:key];
 		if (result == nil)	// No custom icon or bad data
 		{
 			/*	Backwards compatibility note:
@@ -1543,7 +1544,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			else  key = kDefaultMineIconKey;
 			
 			iconDef = [[UNIVERSE descriptions] oo_arrayForKey:key];
-			result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:0.5f name:key];
+			result = [[OOPolygonSprite alloc] initWithDataArray:iconDef outlineWidth:kOutlineWidth name:key];
 		}
 		
 		if (result != nil)

@@ -485,6 +485,7 @@
 		1A7BA8840D843485003C6CA3 /* ShipEntityScriptMethods.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */; };
 		1A7C75C30CC39EC3005D0AA2 /* OOJSSun.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7C75980CC39D11005D0AA2 /* OOJSSun.m */; };
 		1A7C75C50CC39EC9005D0AA2 /* OOJSSun.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7C75990CC39D11005D0AA2 /* OOJSSun.h */; };
+		1A7CBF6E10937DD6005B7797 /* OOPointMaths.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A7CBF6D10937DD6005B7797 /* OOPointMaths.h */; };
 		1A7D3A180C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */; };
 		1A7D3A190C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */; };
 		1A7D3B9B0C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */; };
@@ -1085,6 +1086,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
+				1A7CBF6E10937DD6005B7797 /* OOPointMaths.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1573,6 +1575,7 @@
 		1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityScriptMethods.m; sourceTree = "<group>"; };
 		1A7C75980CC39D11005D0AA2 /* OOJSSun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSun.m; sourceTree = "<group>"; };
 		1A7C75990CC39D11005D0AA2 /* OOJSSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSun.h; sourceTree = "<group>"; };
+		1A7CBF6D10937DD6005B7797 /* OOPointMaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPointMaths.h; sourceTree = "<group>"; };
 		1A7D3A160C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckRequiresPListVerifierStage.h; sourceTree = "<group>"; };
 		1A7D3A170C4F6162008EDC33 /* OOCheckRequiresPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckRequiresPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D3B990C4F7843008EDC33 /* OOCheckDemoShipsPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckDemoShipsPListVerifierStage.h; sourceTree = "<group>"; };
@@ -2743,6 +2746,7 @@
 				1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */,
 				25F3E6300994F033002F25FD /* legacy_random.h */,
 				25F3E6320994F04C002F25FD /* legacy_random.c */,
+				1A7CBF6D10937DD6005B7797 /* OOPointMaths.h */,
 			);
 			name = Mathematics;
 			sourceTree = "<group>";
