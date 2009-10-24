@@ -318,7 +318,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 			polygonData.OK = NO;
 			break;
 		}
-		
+	
 		SubmitVertices(tesselator, &polygonData, BuildOutlineContour(contour, outlineWidth, NO));
 		SubmitVertices(tesselator, &polygonData, BuildOutlineContour(contour, outlineWidth, YES));
 	}
@@ -533,7 +533,10 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 			NSPoint t = PtFastNormal(PtAdd(a, b));
 			NSPoint v = PtScale(PtRotACW(t), width / PtDot(t, a));
 			
-			[result addObject:[NSValue valueWithPoint:PtAdd(v, current)]];
+			if (!isnan(v.x) && !isnan(v.y))
+			{
+				[result addObject:[NSValue valueWithPoint:PtAdd(v, current)]];
+			}
 		}
 		else
 		{
@@ -541,8 +544,14 @@ static NSArray *BuildOutlineContour(NSArray *dataArray, GLfloat width, BOOL inne
 			NSPoint v1 = PtScale(PtAdd(PtRotACW(a), a), width);
 			NSPoint v2 = PtScale(PtSub(PtRotACW(b), b), width);
 			
-			[result addObject:[NSValue valueWithPoint:PtAdd(v1, current)]];
-			[result addObject:[NSValue valueWithPoint:PtAdd(v2, current)]];
+			if (!isnan(v1.x) && !isnan(v1.y))
+			{
+				[result addObject:[NSValue valueWithPoint:PtAdd(v1, current)]];
+			}
+			if (!isnan(v2.x) && !isnan(v2.y))
+			{
+				[result addObject:[NSValue valueWithPoint:PtAdd(v2, current)]];
+			}
 		}
 		
 		prev = current;
