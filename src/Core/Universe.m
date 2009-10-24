@@ -3338,7 +3338,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	NSDictionary *gameWindow = [NSDictionary dictionaryWithObjectsAndKeys:
 						[NSNumber numberWithFloat:[gameView viewSize].width], @"width",
 						[NSNumber numberWithFloat:[gameView viewSize].height], @"height",
-						[NSNumber numberWithBool:[gameView inFullScreenMode]], @"fullScreen",
+						[NSNumber numberWithBool:[[self gameController] inFullScreenMode]], @"fullScreen",
 						nil];
 	[result setObject:gameWindow forKey:@"gameWindow"];
 
