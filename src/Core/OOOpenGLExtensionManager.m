@@ -82,6 +82,18 @@ PFNGLENABLEVERTEXATTRIBARRAYARBPROC	glEnableVertexAttribArrayARB	= (PFNGLENABLEV
 PFNGLVERTEXATTRIBPOINTERARBPROC		glVertexAttribPointerARB	= (PFNGLVERTEXATTRIBPOINTERARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB	= (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
+
+#if GL_ARB_vertex_buffer_object
+PFNGLGENBUFFERSARBPROC				glGenBuffersARB				= (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLDELETEBUFFERSARBPROC			glDeleteBuffersARB			= (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBINDBUFFERARBPROC				glBindBufferARB				= (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLUFFERDATAARBPROC				glBufferDataARB				= (PFNGLUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
+#endif
+#endif
+
+
+#ifndef GL_ARB_vertex_buffer_object
+#warning Building without vertex buffer object support, are your OpenGL headers up to date?
 #endif
 
 
@@ -100,6 +112,10 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 #ifndef NO_SHADERS
 - (void)checkShadersSupported;
 #endif	// NO_SHADERS
+
+#if GL_ARB_vertex_buffer_object
+- (void)checkVBOSupported;
+#endif
 
 @end
 
@@ -168,6 +184,9 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 #ifndef NO_SHADERS
 		[self checkShadersSupported];
 #endif
+#if GL_ARB_vertex_buffer_object
+		[self checkVBOSupported];
+#endif
 	}
 	return self;
 }
@@ -217,6 +236,16 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 {
 #ifndef NO_SHADERS
 	return shadersAvailable;
+#else
+	return NO;
+#endif
+}
+
+
+- (BOOL)vboSupported
+{
+#if GL_ARB_vertex_buffer_object
+	return vboSupported;
 #else
 	return NO;
 #endif
@@ -324,6 +353,31 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	shadersAvailable = YES;
 }
 #endif
+
+
+- (void)checkVBOSupported
+{
+	vboSupported = NO;
+	
+	if ([self majorVersionNumber] > 1 || [self minorVersionNumber] >= 5)
+	{
+		vboSupported = YES;
+	}
+	else if ([self haveExtension:@"GL_ARB_vertex_buffer_object"])
+	{
+		vboSupported = YES;
+	}
+	
+#if OOLITE_WINDOWS && GL_ARB_vertex_buffer_object
+	if (vboSupported)
+	{
+		glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
+		glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
+		glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
+		glBufferDataARB = (PFNGLUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+	}
+#endif
+}
 
 @end
 

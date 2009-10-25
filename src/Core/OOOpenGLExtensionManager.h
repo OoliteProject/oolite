@@ -87,6 +87,7 @@ SOFTWARE.
 
 @interface OOOpenGLExtensionManager: NSObject
 {
+@private
 #if OOOPENGLEXTMGR_LOCK_SET_ACCESS
 	NSLock					*lock;
 #endif
@@ -100,6 +101,9 @@ SOFTWARE.
 #ifndef NO_SHADERS
 	BOOL					shadersAvailable;
 #endif
+#if GL_ARB_vertex_buffer_object
+	BOOL					vboSupported;
+#endif
 }
 
 + (id)sharedManager;
@@ -107,6 +111,7 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
+- (BOOL)vboSupported;		// Vertex buffer objects
 
 - (unsigned)majorVersionNumber;
 - (unsigned)minorVersionNumber;
@@ -150,7 +155,14 @@ PFNGLUNIFORM2FVARBPROC					glUniform2fvARB;
 PFNGLBINDATTRIBLOCATIONARBPROC			glBindAttribLocationARB;
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC		glEnableVertexAttribArrayARB;
 PFNGLVERTEXATTRIBPOINTERARBPROC			glVertexAttribPointerARB;
-PFNGLDISABLEVERTEXATTRIBARRAYARBPROC		glDisableVertexAttribArrayARB;
+PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB;
 #endif	// !defined(NO_SHADERS)
+
+#if GL_ARB_vertex_buffer_object
+PFNGLGENBUFFERSARBPROC					glGenBuffersARB;
+PFNGLDELETEBUFFERSARBPROC				glDeleteBuffersARB;
+PFNGLBINDBUFFERARBPROC					glBindBufferARB;
+PFNGLUFFERDATAARBPROC					glBufferDataARB;
+#endif
 
 #endif	// OOLITE_WINDOWS

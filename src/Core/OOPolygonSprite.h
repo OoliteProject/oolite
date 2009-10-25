@@ -41,6 +41,11 @@ SOFTWARE.
 	GLfloat					*_outlineData;
 	size_t					_outlineCount;
 	
+#if GL_ARB_vertex_buffer_object
+	GLuint					_solidVBO;
+	GLuint					_outlineVBO;
+#endif
+	
 #ifndef NDEBUG
 	NSString				*_name;
 #endif

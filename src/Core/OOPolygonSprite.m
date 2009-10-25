@@ -44,6 +44,8 @@ SOFTWARE.
 #import "OOMacroOpenGL.h"
 #import "OOMaths.h"
 #import "OOPointMaths.h"
+#import "OOGraphicsResetManager.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 #ifndef APIENTRY
@@ -54,7 +56,7 @@ SOFTWARE.
 #define kCosMitreLimit 0.866f			// Approximately cos(30 deg)
 
 
-@interface OOPolygonSprite (Private)
+@interface OOPolygonSprite (Private) <OOGraphicsResetClient>
 
 - (BOOL) loadPolygons:(NSArray *)dataArray outlineWidth:(float)outlineWidth;
 
@@ -133,6 +135,8 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 			[self release];
 			return nil;
 		}
+		
+		[[OOGraphicsResetManager sharedManager] registerClient:self];
 	}
 	
 	return self;
@@ -141,10 +145,11 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 - (void) dealloc
 {
+	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
+	
 #ifndef NDEBUG
 	DESTROY(_name);
 #endif
-	
 	free(_solidData);
 	
 	[super dealloc];
@@ -159,31 +164,77 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 #endif
 
 
-- (void) drawFilled
+- (void) drawWithData:(GLfloat *)data count:(size_t)count VBO:(GLuint *)vbo
 {
+	if (count == 0)  return;
+	NSParameterAssert(vbo != NULL && data != NULL);
+	
 	OO_ENTER_OPENGL();
 	
-	if (_solidCount != 0)
+#if GL_ARB_vertex_buffer_object
+	BOOL useVBO = [[OOOpenGLExtensionManager sharedManager] vboSupported];
+	
+	if (useVBO)
 	{
-		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-		OOGL(glVertexPointer(2, GL_FLOAT, 0, _solidData));
-		OOGL(glDrawArrays(GL_TRIANGLES, 0, _solidCount));
-		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+		if (*vbo == 0)
+		{
+			glGenBuffersARB(1, vbo);
+			if (*vbo != 0)
+			{
+				glBindBufferARB(GL_ARRAY_BUFFER, *vbo);
+				glBufferDataARB(GL_ARRAY_BUFFER, sizeof (GLfloat) * count * 2, data, GL_STATIC_DRAW);
+			}
+		}
+		else
+		{
+			glBindBufferARB(GL_ARRAY_BUFFER, *vbo);
+		}
+		if (*vbo != 0)  data = NULL;	// Must pass NULL pointer to glVertexPointer to use VBO.
 	}
+#endif
+	
+	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+	OOGL(glVertexPointer(2, GL_FLOAT, 0, data));
+	OOGL(glDrawArrays(GL_TRIANGLES, 0, count));
+	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	
+#if GL_ARB_vertex_buffer_object
+	if (useVBO)  glBindBufferARB(GL_ARRAY_BUFFER, 0);
+#endif
+}
+
+
+- (void) drawFilled
+{
+#ifndef GL_ARB_vertex_buffer_object
+	GLint _solidVBO;	// Unusued
+#endif
+	
+	[self drawWithData:_solidData count:_solidCount VBO:&_solidVBO];
 }
 
 
 - (void) drawOutline
 {
+#ifndef GL_ARB_vertex_buffer_object
+	GLint _outlineVBO;	// Unusued
+#endif
+	
+	[self drawWithData:_outlineData count:_outlineCount VBO:&_outlineVBO];
+}
+
+
+- (void)resetGraphicsState
+{
+#if GL_ARB_vertex_buffer_object
 	OO_ENTER_OPENGL();
 	
-	if (_solidCount != 0)
-	{
-		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-		OOGL(glVertexPointer(2, GL_FLOAT, 0, _outlineData));
-		OOGL(glDrawArrays(GL_TRIANGLES, 0, _outlineCount));
-		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
-	}
+	if (_solidVBO != 0)  glDeleteBuffersARB(1, &_solidVBO);
+	if (_outlineVBO != 0)  glDeleteBuffersARB(1, &_outlineVBO);
+	
+	_solidVBO = 0;
+	_outlineVBO = 0;
+#endif
 }
 
 
