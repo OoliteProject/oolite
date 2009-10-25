@@ -150,6 +150,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	DESTROY(_name);
 #endif
 	free(_solidData);
+	free(_outlineData);
 	
 	[super dealloc];
 }
