@@ -87,7 +87,7 @@ PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB	= (PFNGLDISAB
 PFNGLGENBUFFERSARBPROC				glGenBuffersARB				= (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDELETEBUFFERSARBPROC			glDeleteBuffersARB			= (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLBINDBUFFERARBPROC				glBindBufferARB				= (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLUFFERDATAARBPROC				glBufferDataARB				= (PFNGLUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
+PFNGLBUFFERDATAARBPROC				glBufferDataARB				= (PFNGLBUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 #endif
 
@@ -374,7 +374,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
 		glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)wglGetProcAddress("glDeleteBuffersARB");
 		glBindBufferARB = (PFNGLBINDBUFFERARBPROC)wglGetProcAddress("glBindBufferARB");
-		glBufferDataARB = (PFNGLUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
+		glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
 	}
 #endif
 }
