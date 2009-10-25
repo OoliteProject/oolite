@@ -31,6 +31,7 @@ SOFTWARE.
 
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 @interface OOPolygonSprite: NSObject
@@ -41,7 +42,7 @@ SOFTWARE.
 	GLfloat					*_outlineData;
 	size_t					_outlineCount;
 	
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 	GLuint					_solidVBO;
 	GLuint					_outlineVBO;
 #endif

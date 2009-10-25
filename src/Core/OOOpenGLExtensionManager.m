@@ -83,17 +83,12 @@ PFNGLVERTEXATTRIBPOINTERARBPROC		glVertexAttribPointerARB	= (PFNGLVERTEXATTRIBPO
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB	= (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 PFNGLGENBUFFERSARBPROC				glGenBuffersARB				= (PFNGLGENBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDELETEBUFFERSARBPROC			glDeleteBuffersARB			= (PFNGLDELETEBUFFERSARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLBINDBUFFERARBPROC				glBindBufferARB				= (PFNGLBINDBUFFERARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLBUFFERDATAARBPROC				glBufferDataARB				= (PFNGLBUFFERDATAARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
-#endif
-
-
-#ifndef GL_ARB_vertex_buffer_object
-#warning Building without vertex buffer object support, are your OpenGL headers up to date?
 #endif
 
 
@@ -113,7 +108,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (void)checkShadersSupported;
 #endif	// NO_SHADERS
 
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 - (void)checkVBOSupported;
 #endif
 
@@ -184,7 +179,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 #ifndef NO_SHADERS
 		[self checkShadersSupported];
 #endif
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 		[self checkVBOSupported];
 #endif
 	}
@@ -244,7 +239,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 - (BOOL)vboSupported
 {
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 	return vboSupported;
 #else
 	return NO;
@@ -355,6 +350,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 #endif
 
 
+#if OO_USE_VBO
 - (void)checkVBOSupported
 {
 	vboSupported = NO;
@@ -368,7 +364,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		vboSupported = YES;
 	}
 	
-#if OOLITE_WINDOWS && GL_ARB_vertex_buffer_object
+#if OOLITE_WINDOWS
 	if (vboSupported)
 	{
 		glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)wglGetProcAddress("glGenBuffersARB");
@@ -378,6 +374,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	}
 #endif
 }
+#endif
 
 @end
 

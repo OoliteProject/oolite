@@ -45,7 +45,6 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "OOPointMaths.h"
 #import "OOGraphicsResetManager.h"
-#import "OOOpenGLExtensionManager.h"
 
 
 #ifndef APIENTRY
@@ -171,23 +170,23 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	
 	OO_ENTER_OPENGL();
 	
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 	BOOL useVBO = [[OOOpenGLExtensionManager sharedManager] vboSupported];
 	
 	if (useVBO)
 	{
 		if (*vbo == 0)
 		{
-			glGenBuffersARB(1, vbo);
+			OOGL(glGenBuffersARB(1, vbo));
 			if (*vbo != 0)
 			{
-				glBindBufferARB(GL_ARRAY_BUFFER, *vbo);
-				glBufferDataARB(GL_ARRAY_BUFFER, sizeof (GLfloat) * count * 2, data, GL_STATIC_DRAW);
+				OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
+				OOGL(glBufferDataARB(GL_ARRAY_BUFFER, sizeof (GLfloat) * count * 2, data, GL_STATIC_DRAW));
 			}
 		}
 		else
 		{
-			glBindBufferARB(GL_ARRAY_BUFFER, *vbo);
+			OOGL(glBindBufferARB(GL_ARRAY_BUFFER, *vbo));
 		}
 		if (*vbo != 0)  data = NULL;	// Must pass NULL pointer to glVertexPointer to use VBO.
 	}
@@ -198,16 +197,16 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	OOGL(glDrawArrays(GL_TRIANGLES, 0, count));
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	
-#if GL_ARB_vertex_buffer_object
-	if (useVBO)  glBindBufferARB(GL_ARRAY_BUFFER, 0);
+#if OO_USE_VBO
+	if (useVBO)  OOGL(glBindBufferARB(GL_ARRAY_BUFFER, 0));
 #endif
 }
 
 
 - (void) drawFilled
 {
-#ifndef GL_ARB_vertex_buffer_object
-	GLint _solidVBO;	// Unusued
+#if !OO_USE_VBO
+	GLuint _solidVBO;	// Unusued
 #endif
 	
 	[self drawWithData:_solidData count:_solidCount VBO:&_solidVBO];
@@ -216,8 +215,8 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 - (void) drawOutline
 {
-#ifndef GL_ARB_vertex_buffer_object
-	GLint _outlineVBO;	// Unusued
+#if !OO_USE_VBO
+	GLuint _outlineVBO;	// Unusued
 #endif
 	
 	[self drawWithData:_outlineData count:_outlineCount VBO:&_outlineVBO];
@@ -226,7 +225,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 
 - (void)resetGraphicsState
 {
-#if GL_ARB_vertex_buffer_object
+#if OO_USE_VBO
 	OO_ENTER_OPENGL();
 	
 	if (_solidVBO != 0)  glDeleteBuffersARB(1, &_solidVBO);
