@@ -311,16 +311,16 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 	NSArray				*sysDescItem = nil;
 	OOUInteger			sysDescCount = 0, descItemCount;
 	
-	// add in player info if required
-	// -- this is now duplicated with new commanderXXX_string and commanderYYY_number methods in PlayerEntity Additions -- GILES
-
-	if ([text rangeOfString:@"[commander_"].location != NSNotFound)
+	// always add player info when possible, they might be nested ( fixes berlios bug #16369 )
+	// at startup shared_player hasn't got a ship yet, so check for that before adding the player info.
+	if ([player commanderShip_string])
 	{
 		[all_descriptions setObject:[player commanderName_string] forKey:@"commander_name"];
 		[all_descriptions setObject:[player commanderShip_string] forKey:@"commander_shipname"];
 		[all_descriptions setObject:[player commanderShipDisplayName_string] forKey:@"commander_shipdisplayname"];
 		[all_descriptions setObject:[player commanderRank_string] forKey:@"commander_rank"];
 		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
+		[all_descriptions setObject:[NSString stringWithFormat:@"%@",[player commanderLegalStatus_number]] forKey:@"commander_bounty"];
 	}
 	if (pName == nil) pName=[UNIVERSE getSystemName:seed];
 
@@ -470,7 +470,7 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 			static NSMutableSet *warned = nil;
 			if (![warned containsObject:stringID])
 			{
-				OOLogWARN(@"strings.expand", @"'%%J%@' not a planetary system number - use %Jxxx, where xxx is a number from 000 to 255",stringID);
+				OOLogWARN(@"strings.expand", @"'%%J%@' not a planetary system number - use %%Jxxx, where xxx is a number from 000 to 255",stringID);
 				if (warned == nil)  warned = [[NSMutableSet alloc] init];
 				[warned addObject:stringID];
 			}

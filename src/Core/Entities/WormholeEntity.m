@@ -565,7 +565,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		case WH_SCANINFO_DESTINATION: return @"WH_SCANINFO_DESTINATION";
 		case WH_SCANINFO_SHIP: return @"WH_SCANINFO_SHIP";
 	}
-	return @"WH_SCANINFO_INVALID_INFO_STRING"; // should never get to here
+	return @"WH_SCANINFO_UNDEFINED"; // should never get here
 }
 
 - (void)dumpSelfState
