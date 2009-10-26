@@ -617,7 +617,9 @@ if (!showSplashScreen) return;
 
 - (void) initialiseGLWithSize:(NSSize) v_size useVideoMode:(BOOL) v_mode
 {
+#if OOLITE_LINUX
 	NSSize oldViewSize = viewSize;
+#endif
 	viewSize = v_size;
 	OOLog(@"display.initGL", @"Requested a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 
