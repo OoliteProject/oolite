@@ -1638,7 +1638,7 @@ keys[a] = NO; keys[b] = NO; \
 		// presumably because each mode has several refresh rates.
 		// But the modes pointer is an SDL_Rect which can't represent
 		// refresh rates. WHY!?
-		if(modes[i]->w != lastw && modes[i]->h != lasth)
+		if(modes[i]->w != lastw || modes[i]->h != lasth)
 		{
 			// new resolution, save it
 			mode=[NSMutableDictionary dictionary];
