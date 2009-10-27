@@ -146,6 +146,7 @@ MA 02110-1301, USA.
 	GLfloat					max_flight_yaw;
 	GLfloat					cruiseSpeed;				// 80% of top speed
 	
+	GLfloat					max_thrust;					// acceleration
 	GLfloat					thrust;						// acceleration
 	float					hyperspaceMotorSpinTime;	// duration of hyperspace countdown
 	
@@ -450,6 +451,7 @@ MA 02110-1301, USA.
 - (float) shieldRechargeRate;
 
 - (float) afterburnerFactor;
+- (float) maxThrust;
 
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;

@@ -84,6 +84,8 @@ MA 02110-1301, USA.
 
 - (void) setSpeedToCruiseSpeed;
 
+- (void) setThrustFactorTo:(NSString *)thrustFactorString;
+
 - (void) performFlyToRangeFromDestination;
 
 - (void) performIdle;
@@ -401,6 +403,12 @@ MA 02110-1301, USA.
 {
 	desired_speed = cruiseSpeed;
 }
+
+- (void) setThrustFactorTo:(NSString *)thrustFactorString
+{
+	thrust = OOClamp_0_1_f([thrustFactorString doubleValue]) * max_thrust;
+}
+
 
 - (void) performIdle
 {
@@ -1291,6 +1299,7 @@ static WormholeEntity *whole = nil;
 	[shipAI setStateMachine:@"dumbAI.plist"];
 	primaryTarget = NO_TARGET;
 	[self setSpeed: 0.0];
+	[self setGroup:nil];
 }
 
 

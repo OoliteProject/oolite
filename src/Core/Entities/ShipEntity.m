@@ -208,7 +208,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
 	cruiseSpeed = maxFlightSpeed*0.8;
 	
-	thrust = [shipDict oo_floatForKey:@"thrust"];
+	max_thrust = [shipDict oo_floatForKey:@"thrust"];
+	thrust = max_thrust;
 
 	maxEnergy = [shipDict oo_floatForKey:@"max_energy"];
 	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate"];
@@ -2355,6 +2356,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (float) afterburnerFactor
 {
 	return 7.0f;
+}
+
+
+- (float) maxThrust
+{
+	return max_thrust;
 }
 
 
@@ -5058,7 +5065,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if (jetsam)
 			{
 				int n_jetsam = [jetsam count];
-				NSDictionary *containerShipDict = nil;
+				//NSDictionary *containerShipDict = nil;
 				//
 				for (i = 0; i < n_jetsam; i++)
 				{
@@ -5085,9 +5092,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						containerAI = [container getAI];
 						if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 						{
-							containerShipDict = [container shipInfoDictionary];
+							//containerShipDict = [container shipInfoDictionary];
 							[containerAI exitStateMachineWithMessage:nil];
-							[container setThrust:[containerShipDict oo_floatForKey:@"thrust"]]; // restore old value. Was set to zero on previous scooping.
+							//[container setThrust:[containerShipDict oo_floatForKey:@"thrust"]]; // restore old value. Was set to zero on previous scooping.
+							[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
 							[container setOwner:container];
 						}
 						else 
@@ -7042,7 +7050,12 @@ BOOL class_masslocks(int some_class)
 	else  [missile setOwner:[self owner]];
 	
 	[missile addTarget:target];
-	// [missile setGroup:[self group]]; We don't need missiles in a group. It can bug when the group is also used as escortGroup.
+	//We don't want real missiles in a group. Missiles could become escorts when the group is also used as escortGroup.
+	if ([missile scanClass] == CLASS_THARGOID) 
+	{
+		if([self group] == nil) [self setGroup:[OOShipGroup groupWithName:@"thargoid group"]];
+		[missile setGroup:[self group]];
+	}
 	[missile setPosition:origin];
 	[missile setOrientation:q1];
 	[missile setVelocity:vel];
@@ -7326,8 +7339,9 @@ BOOL class_masslocks(int some_class)
 	jettoAI = [jetto getAI];
 	if ([jettoAI hasSuspendedStateMachines]) // check if this was previos scooped cargo.
 	{
-		NSDictionary *jettoShipDict = [jetto shipInfoDictionary];
-		[jetto setThrust:[jettoShipDict oo_floatForKey:@"thrust"]]; // restore old value.
+		//NSDictionary *jettoShipDict = [jetto shipInfoDictionary];
+		//[jetto setThrust:[jettoShipDict oo_floatForKey:@"thrust"]]; // restore old value.
+		[jetto setThrust:[jetto maxThrust]]; // restore old thrust.
 		[jetto setOwner:jetto];
 		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.
 	}

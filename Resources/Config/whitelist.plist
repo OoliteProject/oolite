@@ -191,6 +191,7 @@
 		"ai_throwSparks",	// Don't use, use throwSparks instead
 		"checkAegis",
 		"checkEnergy",
+		"setThrustFactorTo:",
 				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
