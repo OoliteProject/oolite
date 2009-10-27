@@ -134,15 +134,15 @@ enum
 
 @implementation HeadUpDisplay
 
-GLfloat red_color[4] =		{1.0, 0.0, 0.0, 1.0};
-GLfloat redplus_color[4] =  {1.0, 0.0, 0.5, 1.0};
-GLfloat yellow_color[4] =   {1.0, 1.0, 0.0, 1.0};
-GLfloat green_color[4] =	{0.0, 1.0, 0.0, 1.0};
-GLfloat darkgreen_color[4] ={0.0, 0.75, 0.0, 1.0};
-GLfloat cyan_color[4] =		{0.0, 1.0, 1.0, 1.0};
-GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
-GLfloat black_color[4] =	{0.0, 0.0, 0.0, 1.0};
-GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
+static const GLfloat red_color[4] =			{1.0, 0.0, 0.0, 1.0};
+static const GLfloat redplus_color[4] =		{1.0, 0.0, 0.5, 1.0};
+static const GLfloat yellow_color[4] =  	{1.0, 1.0, 0.0, 1.0};
+static const GLfloat green_color[4] =		{0.0, 1.0, 0.0, 1.0};
+static const GLfloat darkgreen_color[4] =	{0.0, 0.75, 0.0, 1.0};
+static const GLfloat cyan_color[4] =		{0.0, 1.0, 1.0, 1.0};
+static const GLfloat blue_color[4] =		{0.0, 0.0, 1.0, 1.0};
+static const GLfloat black_color[4] =		{0.0, 0.0, 0.0, 1.0};
+static const GLfloat lightgray_color[4] =	{0.25, 0.25, 0.25, 1.0};
 
 static float sGlyphWidths[256];
 
@@ -152,7 +152,7 @@ static double drawCharacterQuad(uint8_t chr, double x, double y, double z, NSSiz
 static void InitTextEngine(void);
 
 
-OOINLINE void GLColorWithOverallAlpha(GLfloat *color, GLfloat alpha)
+OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	// NO OOGL(), this is called within immediate mode blocks.
 	glColor4f(color[0], color[1], color[2], color[3] * alpha);
@@ -1981,7 +1981,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
 	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
 
-	GLfloat* s0_color = red_color;
+	const GLfloat* s0_color = red_color;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s3c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -2101,7 +2101,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawSurround:(NSDictionary *)info color:(GLfloat[4])color
+- (void) drawSurround:(NSDictionary *)info color:(const GLfloat[4])color
 {
 	OOInteger		x;
 	OOInteger		y;

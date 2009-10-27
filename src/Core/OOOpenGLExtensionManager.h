@@ -116,7 +116,7 @@ SOFTWARE.
 
 + (id)sharedManager;
 
-- (BOOL)haveExtension:(NSString *)extension;
+- (BOOL)haveExtension:(const NSString *)extension;
 
 - (BOOL)shadersSupported;
 - (BOOL)vboSupported;		// Vertex buffer objects
