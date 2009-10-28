@@ -1142,6 +1142,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	orientation.y = [tokens oo_floatAtIndex:6];
 	orientation.z = [tokens oo_floatAtIndex:7];
 	
+	if(orientation.w == 0 && orientation.x == 0 && orientation.y == 0 && orientation.z == 0) 
+	{
+		orientation.w = 1; // avoid dividing by zero.
+		OOLog(@"shipData.load.error", @"***** ERROR: The ship %@ has an undefined orientation for its %@ subentity. Setting it now at (1,0,0,0)", shipKey, subentityKey);
+	}
+	
 	quaternion_normalize(&orientation);
 	
 	if (!isTurret)
