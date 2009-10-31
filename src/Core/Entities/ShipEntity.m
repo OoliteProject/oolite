@@ -361,6 +361,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
 	
+	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined
+	scanner_display_color1 = [OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color1"]];
+	scanner_display_color2 = [OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color2"]];
 
 	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
 	// let's see if scan_class is set... 
@@ -553,6 +556,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[roleSet release];
 	[primaryRole release];
 	[laser_color release];
+	[scanner_display_color1 release];
+	[scanner_display_color2 release];
 	if (script != nil) 
 	{
 		[script release];
@@ -3430,10 +3435,35 @@ static GLfloat police_color2[4] =	{ 1.0, 0.0, 0.5, 1.0};	// purpley-red
 static GLfloat jammed_color[4] =	{ 0.0, 0.0, 0.0, 0.0};	// clear black
 static GLfloat mascem_color1[4] =	{ 0.3, 0.3, 0.3, 1.0};	// dark gray
 static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
+static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by script
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2
 {
+	// if there are any scripted scanner display colors for the ship, use them
+	if (scannerDisplayColor1 || scannerDisplayColor2)
+	{
+		if (scannerDisplayColor1 && !scannerDisplayColor2)
+		{
+			[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		if (!scannerDisplayColor1 && scannerDisplayColor2)
+		{
+			[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		if (scannerDisplayColor1 && scannerDisplayColor2)
+		{
+			if (flash)
+				[scannerDisplayColor1 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+			else
+				[scannerDisplayColor2 getGLRed:&scripted_color[0] green:&scripted_color[1] blue:&scripted_color[2] alpha:&scripted_color[3]];
+		}
+		
+		return scripted_color;
+	}
 
+	// no scripted scanner display colors defined, proceed as per standard
 	if ([self isJammingScanning])
 	{
 		if (![otherShip hasMilitaryScannerFilter])
@@ -3487,6 +3517,40 @@ static GLfloat mascem_color2[4] =	{ 0.4, 0.1, 0.4, 1.0};	// purple
 				return hostile_color;
 	}
 	return neutral_color;
+}
+
+
+- (void)setScannerDisplayColor1:(OOColor *)color1
+{
+	[scanner_display_color1 release];
+	scanner_display_color1 = nil;
+	if (color1)
+	{
+		scanner_display_color1 = [color1 retain];
+	}
+}
+
+
+- (void)setScannerDisplayColor2:(OOColor *)color2
+{
+	[scanner_display_color2 release];
+	scanner_display_color2 = nil;
+	if (color2)
+	{
+		scanner_display_color2 = [color2 retain];
+	}
+}
+
+
+- (OOColor *)scannerDisplayColor1
+{
+	return [[scanner_display_color1 retain] autorelease];
+}
+
+
+- (OOColor *)scannerDisplayColor2
+{
+	return [[scanner_display_color2 retain] autorelease];
 }
 
 

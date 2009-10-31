@@ -707,7 +707,7 @@ static BOOL hostiles;
 					ShipEntity* ship = (ShipEntity *)drawthing;
 					double wr = [ship weaponRange];
 					isHostile = (([ship hasHostileTarget])&&([ship primaryTarget] == player)&&(drawthing->zero_distance < wr*wr));
-					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash];
+					GLfloat* base_col = [ship scannerDisplayColorForShip:player :isHostile :flash :[ship scannerDisplayColor1] :[ship scannerDisplayColor2]];
 					col[0] = base_col[0];	col[1] = base_col[1];	col[2] = base_col[2];	col[3] = alpha * base_col[3];
 				}
 				

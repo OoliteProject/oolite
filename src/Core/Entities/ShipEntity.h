@@ -137,6 +137,8 @@ MA 02110-1301, USA.
 	unsigned				found_hostiles;				// number of hostiles found
 	
 	OOColor					*laser_color;
+	OOColor					*scanner_display_color1;
+	OOColor					*scanner_display_color2;
 	
 	// per ship-type variables
 	//
@@ -476,7 +478,11 @@ MA 02110-1301, USA.
 - (void) behaviour_track_as_turret:(double) delta_t;
 - (void) behaviour_fly_thru_navpoints:(double) delta_t;
 
-- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash;
+- (GLfloat *) scannerDisplayColorForShip:(ShipEntity*)otherShip :(BOOL)isHostile :(BOOL)flash :(OOColor *)scannerDisplayColor1 :(OOColor *)scannerDisplayColor2;
+- (void)setScannerDisplayColor1:(OOColor *)color1;
+- (void)setScannerDisplayColor2:(OOColor *)color2;
+- (OOColor *)scannerDisplayColor1;
+- (OOColor *)scannerDisplayColor2;
 
 - (BOOL)isCloaked;
 - (void)setCloaked:(BOOL)cloak;

@@ -158,7 +158,9 @@ enum
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
 	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
-	kShip_contracts				// cargo contracts contracts, array - strings & whatnot,, read only
+	kShip_contracts,				// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
+	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 };
 
 
@@ -225,6 +227,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "passengers",				kShip_passengers,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 // contracts instead of cargo to distinguish them from the manifest
 	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -559,6 +563,16 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 		case kShip_contracts:
 			result = [entity contractListForScripting];
 			break;
+			
+		case kShip_scannerDisplayColor1:
+			result = [[entity scannerDisplayColor1] normalizedArray];
+			if (result == nil)  result = [NSNull null];
+			break;
+			
+		case kShip_scannerDisplayColor2:
+			result = [[entity scannerDisplayColor2] normalizedArray];
+			if (result == nil)  result = [NSNull null];
+			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
@@ -585,6 +599,7 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 	JSBool						bValue;
 	Vector						vValue;
 	OOShipGroup					*group = nil;
+	OOColor						*colorForScript = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
@@ -751,6 +766,24 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (JSValueToVector(context, *value, &vValue))
 			{
 				[entity setCoordinate:vValue];
+				OK = YES;
+			}
+			break;
+			
+		case kShip_scannerDisplayColor1:
+			colorForScript = [OOColor colorWithDescription:JSValueToObject(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColor1:colorForScript];
+				OK = YES;
+			}
+			break;
+			
+		case kShip_scannerDisplayColor2:
+			colorForScript = [OOColor colorWithDescription:JSValueToObject(context, *value)];
+			if (colorForScript != nil || JSVAL_IS_NULL(*value))
+			{
+				[entity setScannerDisplayColor2:colorForScript];
 				OK = YES;
 			}
 			break;
