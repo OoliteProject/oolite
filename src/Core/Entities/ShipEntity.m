@@ -1037,7 +1037,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		{
 			autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
 		}
-		if (escortShipKey && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
+		if ((escortShipKey || escortRole) && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
 		{
 			[escorter setAITo:autoAI];
 		}
@@ -5156,9 +5156,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						containerAI = [container getAI];
 						if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 						{
-							//containerShipDict = [container shipInfoDictionary];
 							[containerAI exitStateMachineWithMessage:nil];
-							//[container setThrust:[containerShipDict oo_floatForKey:@"thrust"]]; // restore old value. Was set to zero on previous scooping.
 							[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
 							[container setOwner:container];
 						}
@@ -7403,8 +7401,6 @@ BOOL class_masslocks(int some_class)
 	jettoAI = [jetto getAI];
 	if ([jettoAI hasSuspendedStateMachines]) // check if this was previos scooped cargo.
 	{
-		//NSDictionary *jettoShipDict = [jetto shipInfoDictionary];
-		//[jetto setThrust:[jettoShipDict oo_floatForKey:@"thrust"]]; // restore old value.
 		[jetto setThrust:[jetto maxThrust]]; // restore old thrust.
 		[jetto setOwner:jetto];
 		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.

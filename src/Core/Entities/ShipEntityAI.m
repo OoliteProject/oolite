@@ -630,6 +630,8 @@ MA 02110-1301, USA.
 {
 	if ([UNIVERSE entityForUniversalID:found_target])
 		[self addTarget:[UNIVERSE entityForUniversalID:found_target]];
+	else
+		[shipAI message:@"TARGET_LOST"]; // to prefent the ship going for a wrong, previous target. Should not be a reactToMessage.
 }
 
 
