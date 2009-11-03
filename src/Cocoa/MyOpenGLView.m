@@ -159,6 +159,18 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (GLfloat) x_offset
+{
+	return x_offset;
+}
+
+
+- (GLfloat) y_offset
+{
+	return y_offset;
+}
+
+
 - (GameController *)gameController
 {
 	return gameController;
@@ -209,10 +221,15 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
 
 	viewSize = v_size;
-	if (viewSize.width/viewSize.height > 4.0/3.0)
+	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * viewSize.width/viewSize.height;
-	else
+		x_offset = 320.0 * viewSize.width/viewSize.height;
+		y_offset = 240.0;
+	} else {
 		display_z = 640.0;
+		x_offset = 320.0;
+		y_offset = 320.0 * viewSize.height/viewSize.width;
+	}
 	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;

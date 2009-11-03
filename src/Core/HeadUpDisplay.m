@@ -235,9 +235,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"message_gui"];
 		Vector pos = [message_gui drawPosition];
 		if ([gui_info objectForKey:X_KEY])
-			pos.x = [[gui_info objectForKey:X_KEY] floatValue];
+			pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
+				[[UNIVERSE gameView] x_offset] *
+				[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
 		if ([gui_info objectForKey:Y_KEY])
-			pos.y = [[gui_info objectForKey:Y_KEY] floatValue];
+			pos.y = [[gui_info objectForKey:Y_KEY] floatValue] +
+				[[UNIVERSE gameView] y_offset] *
+				[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 		[message_gui setDrawPosition:pos];
 		NSSize		siz =	[message_gui	size];
 		int			rht =	[message_gui	rowHeight];
@@ -265,9 +269,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		NSDictionary* gui_info = (NSDictionary*)[info objectForKey:@"comm_log_gui"];
 		Vector pos = [comm_log_gui drawPosition];
 		if ([gui_info objectForKey:X_KEY])
-			pos.x = [[gui_info objectForKey:X_KEY] floatValue];
+			pos.x = [[gui_info objectForKey:X_KEY] floatValue] +
+				[[UNIVERSE gameView] x_offset] *
+				[gui_info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
 		if ([gui_info objectForKey:Y_KEY])
-			pos.y = [[gui_info objectForKey:Y_KEY] floatValue];
+			pos.y = [[gui_info objectForKey:Y_KEY] floatValue] + 
+				[[UNIVERSE gameView] y_offset] *
+				[gui_info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 		[comm_log_gui setDrawPosition:pos];
 		NSSize		siz =	[comm_log_gui	size];
 		int			rht =	[comm_log_gui	rowHeight];
@@ -496,9 +504,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	float						x, y;
 	NSSize						size;
 	
-	x = [info oo_floatForKey:X_KEY];
-	y = [info oo_floatForKey:Y_KEY];
-	
+	x = [info oo_floatForKey:X_KEY] + [[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_floatForKey:Y_KEY] + [[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
+
 	legendSprite = [info objectForKey:SPRITE_KEY];
 	if (legendSprite != nil)
 	{
@@ -547,8 +557,12 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			scanner_color[4] = { 1.0, 0.0, 0.0, 1.0 };
 	
-	x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:SCANNER_CENTRE_X] + 
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:SCANNER_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCANNER_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCANNER_HEIGHT];
 	GetRGBAArrayFromInfo(info, scanner_color);
@@ -841,8 +855,12 @@ static BOOL hostiles;
 	NSSize			siz;
 	GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
 	
-	x = [info oo_intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:ZOOM_INDICATOR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
 	GetRGBAArrayFromInfo(info, zoom_color);
@@ -876,8 +894,12 @@ static BOOL hostiles;
 	NSSize			siz;
 	float			alpha;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:COMPASS_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:COMPASS_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:COMPASS_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
 	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0] * overallAlpha;
@@ -1135,8 +1157,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	GLfloat			alpha = 0.5f;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:AEGIS_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:AEGIS_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:AEGIS_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:AEGIS_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
@@ -1184,8 +1210,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:SPEED_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:SPEED_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SPEED_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SPEED_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:SPEED_BAR_DRAW_SURROUND];
@@ -1216,8 +1246,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:ROLL_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:ROLL_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:ROLL_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ROLL_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
@@ -1242,8 +1276,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y] +
+		+ [[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
@@ -1271,8 +1309,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	// YAW does not exist in strict mode
 	if ([UNIVERSE strict])  return;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:PITCH_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:PITCH_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:PITCH_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
@@ -1296,8 +1338,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround, labelled;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:ENERGY_GAUGE_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:ENERGY_GAUGE_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ENERGY_GAUGE_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ENERGY_GAUGE_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ENERGY_GAUGE_DRAW_SURROUND];
@@ -1351,8 +1397,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:FORWARD_SHIELD_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FORWARD_SHIELD_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
@@ -1382,8 +1432,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	BOOL			draw_surround;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:AFT_SHIELD_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:AFT_SHIELD_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
@@ -1413,8 +1467,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	NSSize			siz;
 	float			fu, hr;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:FUEL_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:FUEL_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:FUEL_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FUEL_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FUEL_BAR_HEIGHT];
 	
@@ -1441,8 +1499,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int				y;
 	NSSize			siz;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:CABIN_TEMP_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CABIN_TEMP_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CABIN_TEMP_BAR_HEIGHT];
 	
@@ -1469,8 +1531,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int				y;
 	NSSize			siz;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];	
+	y = [info oo_intForKey:Y_KEY defaultValue:WEAPON_TEMP_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
 
@@ -1492,8 +1558,12 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int				y;
 	NSSize			siz;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:ALTITUDE_BAR_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:ALTITUDE_BAR_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:ALTITUDE_BAR_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ALTITUDE_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ALTITUDE_BAR_HEIGHT];
 	
@@ -1635,8 +1705,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	NSSize			siz;
 	int				sp;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:MISSILES_DISPLAY_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:MISSILES_DISPLAY_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	sp = [info oo_unsignedIntForKey:SPACING_KEY defaultValue:MISSILES_DISPLAY_SPACING];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:MISSILE_ICON_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:MISSILE_ICON_HEIGHT];
@@ -1807,8 +1881,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	NSSize			siz;
 	BOOL			blueAlert = cloakIndicatorOnStatusLight && [player isCloaked];
 	
-	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	
@@ -1928,8 +2006,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	int				y;
 	NSSize			siz;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:CLOCK_DISPLAY_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:CLOCK_DISPLAY_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:CLOCK_DISPLAY_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:CLOCK_DISPLAY_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:CLOCK_DISPLAY_HEIGHT];
 	
@@ -1947,8 +2029,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	int				y;
 	NSSize			siz;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:FPSINFO_DISPLAY_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:FPSINFO_DISPLAY_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
 	
@@ -1975,8 +2061,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	NSSize			siz;
 	GLfloat			alpha;
 	
-	x = [info oo_intForKey:X_KEY defaultValue:SCOOPSTATUS_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:SCOOPSTATUS_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:SCOOPSTATUS_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:SCOOPSTATUS_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
 	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
@@ -2064,8 +2154,12 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	JoystickHandler	*stick;
 
 	mouse = [[PlayerEntity sharedPlayer] isMouseControlOn];
-	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X];
-	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y];
+	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
+		[[UNIVERSE gameView] x_offset] *
+		[info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0];
+	y = [info oo_intForKey:Y_KEY defaultValue:STATUS_LIGHT_CENTRE_Y] +
+		[[UNIVERSE gameView] y_offset] *
+		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 
@@ -2116,7 +2210,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	// draw green surround
 	GLColorWithOverallAlpha(color, overallAlpha);
-	hudDrawSurroundAt(x, y, z1, siz);
+	hudDrawSurroundAt(x + [[UNIVERSE gameView] x_offset] *
+					  [info oo_floatForKey:X_ORIGIN_KEY defaultValue:0.0],
+					  y + [[UNIVERSE gameView] y_offset] *
+					  [info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0], 
+					  z1, siz);
 }
 
 

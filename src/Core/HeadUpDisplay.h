@@ -154,6 +154,8 @@ MA 02110-1301, USA.
 #define LEGENDS_KEY				@"legends"
 #define X_KEY					@"x"
 #define Y_KEY					@"y"
+#define X_ORIGIN_KEY			@"x_origin"
+#define Y_ORIGIN_KEY			@"y_origin"
 #define SPACING_KEY				@"spacing"
 #define ALPHA_KEY				@"alpha"
 #define SELECTOR_KEY			@"selector"

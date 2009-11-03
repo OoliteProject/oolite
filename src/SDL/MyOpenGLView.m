@@ -366,6 +366,18 @@ MA 02110-1301, USA.
 }
 
 
+- (GLfloat) x_offset
+{
+	return x_offset;
+}
+
+
+- (GLfloat) y_offset
+{
+	return y_offset;
+}
+
+
 - (GameController *) gameController
 {
 	return gameController;
@@ -741,10 +753,15 @@ if (!showSplashScreen) return;
 #endif
 	OOLog(@"display.initGL", @"Created a new surface of %d x %d, %@.", (int)viewSize.width, (int)viewSize.height,(fullScreen ? @"fullscreen" : @"windowed"));
 
-	if (viewSize.width/viewSize.height > 4.0/3.0)
+	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * bounds.size.width/bounds.size.height;
-	else
+		x_offset = 320.0 * bounds.size.width/bounds.size.height;
+		y_offset = 240.0;		
+	} else {
 		display_z = 640.0;
+		x_offset = 320.0;
+		y_offset = 320.0 * bounds.size.height/bounds.size.width;
+	}
 
 	float	ratio = 0.5;
 	float   aspect = bounds.size.height/bounds.size.width;
