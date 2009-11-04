@@ -689,7 +689,12 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			break;
 		
 		case kShip_target:
-			if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
+			if (JSVAL_IS_NULL(*value))
+			{
+				[entity setTargetForScript:nil];
+				OK = YES;
+			}
+			else if (JSValueToEntity(context, *value, &target) && [target isKindOfClass:[ShipEntity class]])
 			{
 				[entity setTargetForScript:target];
 				OK = YES;

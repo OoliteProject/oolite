@@ -46,7 +46,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) drawStarChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha;
 - (void) drawEqptList: (NSArray *)eqptList z:(GLfloat)z;
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha optimizedFor:(unsigned)distanceOrTime;
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) route optimizedBy:(OORouteType) optimizeBy;
 
 @end
 
@@ -1328,10 +1328,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) drawGalaxyChart:(GLfloat)x :(GLfloat)y :(GLfloat)z :(GLfloat) alpha
 {
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
-
-	NSPoint	galaxy_coordinates = [player galaxy_coordinates];
-	NSPoint	cursor_coordinates = [player cursor_coordinates];
+	PlayerEntity*	player = [PlayerEntity sharedPlayer];
+	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
+	NSPoint			cursor_coordinates = [player cursor_coordinates];
+	Random_Seed		galaxy_seed = [player galaxy_seed];
 
 	double fuel = 35.0 * [player dialFuel];
 
@@ -1347,12 +1347,33 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	double		vscale = -1.0 * size_in_pixels.height / 512.0;
 	double		hoffset = 0.0f;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
-	int			i;
+	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
 	
-	if (showAdvancedNavArray && ![UNIVERSE strict] && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
+	int			i;
+	double		distance, time;
+	
+	if (showAdvancedNavArray) advancedNavArrayMode = [[UNIVERSE gameView] isCtrlDown] ? OPTIMIZED_BY_TIME : OPTIMIZED_BY_JUMPS;
+
+	if (advancedNavArrayMode != OPTIMIZED_BY_NONE && ![UNIVERSE strict] && [player hasEquipmentItem:@"EQ_ADVANCED_NAVIGATIONAL_ARRAY"])
 	{
-		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha optimizedFor:[[UNIVERSE gameView] isCtrlDown] ? ROUTE_OPT_TIME : ROUTE_OPT_DISTANCE];
+		int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+		int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? routeInfo : nil) optimizedBy:advancedNavArrayMode];
+		distance = [routeInfo oo_doubleForKey:@"distance"];
+		time = [routeInfo oo_doubleForKey:@"time"];
 	}
+	else
+	{
+		Random_Seed dest = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+		distance = distanceBetweenPlanetPositions(dest.d,dest.b,galaxy_coordinates.x,galaxy_coordinates.y);
+		time = distance * distance;
+	}
+
+	[self setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
+	[self setText:(advancedNavArrayMode != OPTIMIZED_BY_NONE ?
+					[NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time] : @"") forRow:19];
 	
 	// draw fuel range circle
 	//
@@ -1490,12 +1511,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 
 // Advanced Navigation Array -- galactic chart route mapping - contributed by Nikos Barkas (another_commander).
-- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha optimizedFor:(unsigned)distanceOrTime
+- (void) drawAdvancedNavArrayAtX:(float)x y:(float)y z:(float)z alpha:(float)alpha usingRoute:(NSDictionary *) routeInfo optimizedBy:(OORouteType) optimizeBy
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-	NSPoint			galaxy_coordinates = [player galaxy_coordinates];
-	NSPoint			cursor_coordinates = [player cursor_coordinates];
-	Random_Seed		galaxy_seed = [player galaxy_seed];
 	Random_Seed		g_seed, g_seed2;
 	int				i, j;
 	double			hscale = size_in_pixels.width / 256.0;
@@ -1526,16 +1544,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	glEnd();
 	
-	// Draw route from player position to currently selected destination.
-	int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedFor:distanceOrTime];
-	
-	if ((destNumber != planetNumber) && routeInfo)
+	if (routeInfo)
 	{
 		int route_hops = [(NSArray *)[routeInfo objectForKey:@"route"] count] -1;
 		
-		if (distanceOrTime == ROUTE_OPT_DISTANCE)
+		if (optimizeBy == OPTIMIZED_BY_JUMPS)
 		{
 			glColor4f (1.0f, 1.0f, 0.0f, alpha); // Yellow for plotting routes optimized for distance.
 		}
@@ -1543,13 +1556,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			glColor4f (0.0f, 1.0f, 1.0f, alpha); // Cyan for plotting routes optimized for time.
 		}
+		int loc;
 		for (i = 0; i < route_hops; i++)
 		{
-			int loc = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:i] intValue];
-			int loc2 = [(NSNumber *)[[routeInfo objectForKey:@"route"] objectAtIndex:(i+1)] intValue];
+			loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
 			
 			g_seed = [UNIVERSE systemSeedForSystemNumber:loc];
-			g_seed2 = [UNIVERSE systemSeedForSystemNumber:(loc2)];
+			g_seed2 = [UNIVERSE systemSeedForSystemNumber:[[routeInfo objectForKey:@"route"] oo_intAtIndex:(i+1)]];
 			star.x = (float)(g_seed.d * hscale + hoffset);
 			star.y = (float)(g_seed.b * vscale + voffset);
 			star2.x = (float)(g_seed2.d * hscale + hoffset);
@@ -1561,10 +1574,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			glEnd();
 			
 			// Label the route.
-			OODrawString([UNIVERSE systemNameIndex:loc] , x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
+			OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));
 		}
 		// Label the destination, which was not included in the above loop.
-		OODrawString([UNIVERSE systemNameIndex:destNumber] , x + star2.x + 2.0, y + star2.y - 10.0, z, NSMakeSize(10,10));	
+		loc = [[routeInfo objectForKey:@"route"] oo_intAtIndex:i];
+		OODrawString([UNIVERSE systemNameIndex:loc], x + star2.x + 2.0, y + star2.y - 10.0, z, NSMakeSize(10,10));	
 	}
 }
 

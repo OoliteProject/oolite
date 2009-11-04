@@ -46,7 +46,7 @@ this.missionOffers = function ()
 {
 	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
 
-	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
+	// Choices are handled inside the missionScreenEnded and missionChoiceWasReset events.
 	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber === 3)

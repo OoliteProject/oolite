@@ -4758,7 +4758,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-
 	
 	// if the system has gone nova, display the sun instead of the planet
 	if (sunGoneNova)
@@ -4813,8 +4812,6 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) setGuiToLongRangeChartScreen
 {
 	NSString	*targetSystemName;
-	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	double		estimatedTravelTime = distance * distance;
 
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
@@ -4828,8 +4825,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"),   galaxy_number+1]];
 		
 		[gui setText:targetSystemName	forRow:17];
-		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
-		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), estimatedTravelTime] : (id)@"") forRow:19];
 		
 		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
 		[gui setText:[NSString stringWithFormat:DESC(@"long-range-chart-find-planet-@"), displaySearchString] forRow:16];
@@ -6344,9 +6339,10 @@ static NSString *last_outfitting_key=nil;
 			details.
 		 -- Ahruman 2008-12-04
 		 */
-		if (trumbleCount < 1)
+		// the old trumbles will kill the new one if there are enough of them.
+		if ((trumbleCount < PLAYER_MAX_TRUMBLES / 4) || (trumbleCount < PLAYER_MAX_TRUMBLES / 2 && ranrot_rand() % 2 > 0))
 		{
-			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first one!
+			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first/new one
 		}
 		return;
 	}

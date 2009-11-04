@@ -98,6 +98,14 @@ typedef enum
 
 typedef enum
 {
+	OPTIMIZED_BY_NONE,
+	OPTIMIZED_BY_JUMPS,
+	OPTIMIZED_BY_TIME
+} OORouteType;
+
+
+typedef enum
+{
 	GUI_SCREEN_MAIN,
 	GUI_SCREEN_INTRO1,
 	GUI_SCREEN_INTRO2,

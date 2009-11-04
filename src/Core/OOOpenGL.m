@@ -220,7 +220,7 @@ void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 	for (i = 0; i != mipLevels; ++i)
 	{
 		OOGL(glBindTexture(GL_TEXTURE_2D, name));
-		OOGL(glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk));
+		OOGL(glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, junk));
 	}
 	
 	sTextureNameCache[sTextureNameCacheSize++] = name;

@@ -73,13 +73,6 @@ enum
 };
 
 
-enum
-{
-	ROUTE_OPT_DISTANCE					= 0,
-	ROUTE_OPT_TIME						= 1
-};
-
-
 #define MAX_MESSAGES						5
 
 #define PROXIMITY_WARN_DISTANCE				20.0
@@ -521,7 +514,7 @@ enum
 - (NSPoint) findSystemCoordinatesWithPrefix:(NSString *) p_fix exactMatch:(BOOL) exactMatch;
 - (BOOL*) systems_found;
 - (NSString*) systemNameIndex:(OOSystemID) index;
-- (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedFor:(unsigned) distanceOrTime;
+- (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
 
 - (NSMutableDictionary *) localPlanetInfoOverrides;
