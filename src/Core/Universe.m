@@ -124,8 +124,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 @interface RouteElement: NSObject
 {
-	OOSystemID location, parent;
-	double cost, distance, time;
+	OOSystemID _location, _parent;
+	double _cost, _distance, _time;
 }
 
 + elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
@@ -143,20 +143,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	RouteElement *r = [[RouteElement alloc] init];
 	
-	r->location = location;
-	r->parent = parent;
-	r->cost = cost;
-	r->distance = distance;
-	r->time = time;
+	r->_location = location;
+	r->_parent = parent;
+	r->_cost = cost;
+	r->_distance = distance;
+	r->_time = time;
 	
 	return r;
 }
 
-- (OOSystemID) getParent { return parent; }
-- (OOSystemID) getLocation { return location; }
-- (double) getCost { return cost; }
-- (double) getDistance { return distance; }
-- (double) getTime { return time; }
+- (OOSystemID) getParent { return _parent; }
+- (OOSystemID) getLocation { return _location; }
+- (double) getCost { return _cost; }
+- (double) getDistance { return _distance; }
+- (double) getTime { return _time; }
 
 @end
 
