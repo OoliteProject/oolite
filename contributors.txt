@@ -18,6 +18,7 @@ Lazygun
 Dave MacLachlan (Jester)
 Nic
 No Sleep Nigel
+Vladimir A. Pavlov (pv4)
 Dennis Pedersen (Frame)
 Erich Ritz (drumz)
 Darren Salt (dsalt/_ds_)
