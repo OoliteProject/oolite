@@ -223,7 +223,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * viewSize.width/viewSize.height;
-		x_offset = 320.0 * viewSize.width/viewSize.height;
+		x_offset = 240.0 * viewSize.width/viewSize.height;
 		y_offset = 240.0;
 	} else {
 		display_z = 640.0;

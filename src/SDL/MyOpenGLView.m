@@ -755,7 +755,7 @@ if (!showSplashScreen) return;
 
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * bounds.size.width/bounds.size.height;
-		x_offset = 320.0 * bounds.size.width/bounds.size.height;
+		x_offset = 240.0 * bounds.size.width/bounds.size.height;
 		y_offset = 240.0;		
 	} else {
 		display_z = 640.0;
