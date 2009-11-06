@@ -1348,6 +1348,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	double		hoffset = 0.0f;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	OORouteType	advancedNavArrayMode = OPTIMIZED_BY_NONE;
+	BOOL		routeExists = YES;
 	
 	int			i;
 	double		distance, time;
@@ -1359,10 +1360,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		int planetNumber = [UNIVERSE findSystemNumberAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 		int destNumber = [UNIVERSE findSystemNumberAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 		NSDictionary* routeInfo = [UNIVERSE routeFromSystem:planetNumber toSystem:destNumber optimizedBy:advancedNavArrayMode];
+		
+		if (!routeInfo)  routeExists = NO;
 
 		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? routeInfo : nil) optimizedBy:advancedNavArrayMode];
-		distance = [routeInfo oo_doubleForKey:@"distance"];
-		time = [routeInfo oo_doubleForKey:@"time"];
+		if (routeExists)
+		{
+			distance = [routeInfo oo_doubleForKey:@"distance"];
+			time = [routeInfo oo_doubleForKey:@"time"];
+		}
 	}
 	else
 	{
@@ -1371,9 +1377,16 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		time = distance * distance;
 	}
 
-	[self setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance]   forRow:18];
-	[self setText:(advancedNavArrayMode != OPTIMIZED_BY_NONE ?
-					[NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time] : @"") forRow:19];
+	if (routeExists)
+	{
+		[self setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance] forRow:18];
+		[self setText:(advancedNavArrayMode != OPTIMIZED_BY_NONE ?
+				[NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time] : @"") forRow:19];
+	}
+	else
+	{
+		[self setText:DESC(@"long-range-chart-system-unreachable")  forRow:18];
+	}
 	
 	// draw fuel range circle
 	//

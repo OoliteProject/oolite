@@ -983,6 +983,7 @@
 	"long-range-chart-distance-f"	= "Distance: %.1f Light Years";
 	"long-range-chart-est-travel-time-f" = "Estimated Travel Time: %.1f Hours";
 	"long-range-chart-find-planet-@" = "Find planet: %@";
+	"long-range-chart-system-unreachable" = "System Unreachable";
 	
 	// Market screen
 	"@-commodity-market"			= "%@ Commodity Market";
