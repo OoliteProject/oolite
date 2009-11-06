@@ -155,7 +155,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	messageClass = [NSString stringWithFormat:@"script.javaScript.%@.%@", severity, errorName];
 	
 	// First line: problem description
-	activeScript = [[OOJSScript currentlyRunningScript] displayName];
+	
+	// avoid windows DEP exceptions!
+	OOJSScript *thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
+	activeScript = [[thisScript weakRefUnderlyingObject] displayName];
+	[thisScript release];
+	
 	if (activeScript == nil)  activeScript = @"<unidentified script>";
 	OOLog(messageClass, @"%@ JavaScript %@ (%@): %@", highlight, severity, activeScript, messageText);
 	
@@ -177,7 +182,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	[[OOJavaScriptEngine sharedEngine] sendMonitorError:report
 											withMessage:messageText
 											  inContext:context];
-	 JS_RestoreExceptionState(context, exState);
+	JS_RestoreExceptionState(context, exState);
 #endif
 }
 

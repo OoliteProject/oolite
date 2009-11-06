@@ -500,7 +500,12 @@ FIXME: this works with CRLF and LF, but not CR.
 	
 	// Note that the "active script" isn't necessarily the one causing the
 	// error, since one script can call another's methods.
-	scriptLine = [[OOJSScript currentlyRunningScript] displayName];
+	
+	// avoid windows DEP exceptions!
+	OOJSScript *thisScript = [[OOJSScript currentlyRunningScript] weakRetain];
+	scriptLine = [[thisScript weakRefUnderlyingObject] displayName];
+	[thisScript release];
+	
 	if (scriptLine != nil)
 	{
 		[formattedMessage appendFormat:@"\n    Active script: %@", scriptLine];

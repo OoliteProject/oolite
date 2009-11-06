@@ -132,6 +132,14 @@ static JSClass sTimerClass;
 {
 	jsval					rval = JSVAL_VOID;
 	
+	// stop and remove this timer if it's out of scope.
+	if([_owningScript weakRefUnderlyingObject] == nil)
+	{
+	[self unscheduleTimer];
+	[self autorelease];
+	return;
+	}
+	
 	[OOJSScript pushScript:_owningScript];
 	[[OOJavaScriptEngine sharedEngine] callJSFunction:_function
 											forObject:_jsThis

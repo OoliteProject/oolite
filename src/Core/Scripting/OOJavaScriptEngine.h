@@ -297,7 +297,7 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 /*	Protocol for debugging "monitor" object.
 	The monitor is an object -- in Oolite, or via Distributed Objects -- which
 	is provided with debugging information by the OOJavaScriptEngine.
-	Currently, this is implemented in the Debug OXP for Mac OS X only.
+	Currently, this is implemented in the Debug OXP.
 */
 
 @protocol OOJavaScriptEngineMonitor <NSObject>
