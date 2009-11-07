@@ -7228,7 +7228,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		targetDockStation = nil;
 	}
-	else if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED)
+	else if (dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_REQUESTED || dockingClearanceStatus == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED)
 	{
 		if ([[self primaryTarget] isStation])
 		{

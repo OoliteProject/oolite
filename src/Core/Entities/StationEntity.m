@@ -1076,31 +1076,42 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 #if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
 	BOOL isDockingStation = (self == [player getTargetDockStation]);
-	if (isDockingStation && [player status] == STATUS_IN_FLIGHT &&
-			[player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_GRANTED)
+	if (isDockingStation && [player status] == STATUS_IN_FLIGHT)
 	{
-		if (last_launch_time-30 < unitime && [player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_TIMING_OUT)
+		if ([player getDockingClearanceStatus] >= DOCKING_CLEARANCE_STATUS_GRANTED)
 		{
-			[self sendExpandedMessage:DESC(@"station-docking-clearance-about-to-expire") toShip:player];
-			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
+			if (last_launch_time-30 < unitime && [player getDockingClearanceStatus] != DOCKING_CLEARANCE_STATUS_TIMING_OUT)
+			{
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-about-to-expire") toShip:player];
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_TIMING_OUT];
+			}
+			else if (last_launch_time < unitime)
+			{
+				[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
+				if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
+			}
 		}
-		else if (last_launch_time < unitime)
-		{
-			[self sendExpandedMessage:DESC(@"station-docking-clearance-expired") toShip:player];
-			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];	// Docking clearance for player has expired.
-			if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
-		}
-	}
 
-	if (isDockingStation && [player status] == STATUS_IN_FLIGHT && [player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
-			[shipsOnApproach count] == 0 && [launchQueue count] == 0)
-	{
-		last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
-		[self sendExpandedMessage:[NSString stringWithFormat:
-				DESC(@"station-docking-clearance-granted-until-@"),
-					ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
-				toShip:player];
-		[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+		else if ([player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_NOT_REQUIRED)
+		{
+			if (last_launch_time < unitime)
+			{
+				[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+				if ([shipsOnApproach count] == 0) [shipAI message:@"DOCKING_COMPLETE"];
+			}
+		}
+
+		else if ([player getDockingClearanceStatus] == DOCKING_CLEARANCE_STATUS_REQUESTED &&
+				[shipsOnApproach count] == 0 && [launchQueue count] == 0)
+		{
+			last_launch_time = unitime + DOCKING_CLEARANCE_WINDOW;
+			[self sendExpandedMessage:[NSString stringWithFormat:
+					DESC(@"station-docking-clearance-granted-until-@"),
+						ClockToString([player clockTime] + DOCKING_CLEARANCE_WINDOW, NO)]
+					toShip:player];
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+		}
 	}
 #endif
 	
@@ -1996,7 +2007,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		//       don't, normal traffic will resume once the timer runs out.
 		[self sendExpandedMessage:DESC(@"station-docking-clearance-not-required") toShip:other];
 		if ([other isPlayer])
-			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+			[player setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NOT_REQUIRED];
+		[shipAI reactToMessage:@"DOCKING_REQUESTED"];	// react to the request	
+		last_launch_time = timeNow + DOCKING_CLEARANCE_WINDOW;
 		result = @"DOCKING_CLEARANCE_NOT_REQUIRED";
 	}
 
