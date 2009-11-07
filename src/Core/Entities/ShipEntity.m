@@ -2370,6 +2370,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (float) thrust
+{
+	return thrust;
+}
+
+
 ////////////////
 //            //
 // behaviours //
@@ -2904,7 +2910,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_running_defense:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
-	if (range > weaponRange || range == 0)
+	if (range > weaponRange || range > 0.8 * scannerRange || range == 0)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;

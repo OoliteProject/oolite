@@ -454,6 +454,7 @@ MA 02110-1301, USA.
 
 - (float) afterburnerFactor;
 - (float) maxThrust;
+- (float) thrust;
 
 // Behaviours
 - (void) behaviour_stop_still:(double) delta_t;

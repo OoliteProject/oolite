@@ -161,6 +161,8 @@ enum
 	kShip_contracts,				// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
+	kShip_maxThrust,			// maximum thrust, double, read-only
+	kShip_thrust,				// the ship's thrust, double, read/write
 };
 
 
@@ -229,6 +231,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "contracts",				kShip_contracts,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scannerDisplayColor1",	kShip_scannerDisplayColor1,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -574,6 +578,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			if (result == nil)  result = [NSNull null];
 			break;
 		
+		case kShip_maxThrust:
+			OK = JS_NewDoubleValue(context, [entity maxThrust], outValue);
+			break;
+			
+		case kShip_thrust:
+			OK = JS_NewDoubleValue(context, [entity thrust], outValue);
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
@@ -793,6 +805,21 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			break;
 			
+		case kShip_thrust:
+			if ([entity isPlayer])
+			{
+				OOReportJSError(context, @"Ship.%@ [setter]: cannot set %@ for player.", @"thrust", @"thrust");
+			}
+			else
+			{
+				if (JS_ValueToNumber(context, *value, &fValue))
+				{
+					[entity setThrust:OOClamp_0_max_f(fValue, [entity maxThrust])];
+					OK = YES;
+				}
+			}
+			break;
+		
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
