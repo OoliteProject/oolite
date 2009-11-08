@@ -5627,7 +5627,7 @@ static NSString *last_outfitting_key=nil;
 			// a certain number of them exist
 			if ([OXPsWithMessages count] < 5)
 			{
-				int i;
+				unsigned i;
 				for (i = 0; i < [OXPsWithMessages count]; i++)
 				{
 					messageToDisplay = [messageToDisplay stringByAppendingString:[NSString stringWithFormat:@" %@", [OXPsWithMessages oo_stringAtIndex:i]]];
