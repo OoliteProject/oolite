@@ -48,6 +48,7 @@ typedef enum
 + (NSArray *)pathsWithAddOns;	// Root paths + add-on paths.
 + (NSArray *)paths;				// builtInPath or pathsWithAddOns, depending on useAddOns state.
 + (BOOL)useAddOns;
++ (NSArray *)OXPsWithMessagesFound;
 + (void)setUseAddOns:(BOOL)useAddOns;
 + (void)addExternalPath:(NSString *)fileName;
 + (NSEnumerator *)pathEnumerator;

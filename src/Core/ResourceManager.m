@@ -54,6 +54,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 @interface ResourceManager (OOPrivate)
 
++ (void) checkOXPMessagesInPath:(NSString *)path;
 + (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
 + (BOOL)areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
@@ -65,6 +66,7 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 
 static NSMutableArray	*sSearchPaths;
 static BOOL				sUseAddOns = YES;
+static NSMutableArray	*sOXPsWithMessagesFound;
 static NSMutableArray	*sExternalPaths;
 static NSMutableArray	*sErrors;
 
@@ -193,6 +195,7 @@ static NSMutableDictionary *sStringCache;
 					if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
 					{
 						[self checkPotentialPath:path :sSearchPaths];
+						if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 					}
 					else
 					{
@@ -207,6 +210,7 @@ static NSMutableDictionary *sStringCache;
 	for (pathEnum = [sExternalPaths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
 		[self checkPotentialPath:path :sSearchPaths];
+		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
 	
 	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n%@", sSearchPaths);
@@ -275,6 +279,33 @@ static NSMutableDictionary *sStringCache;
 + (NSEnumerator *)reversePathEnumerator
 {
 	return [[self paths] reverseObjectEnumerator];
+}
+
+
++ (NSArray *)OXPsWithMessagesFound
+{
+	return [[sOXPsWithMessagesFound copy] autorelease];
+}
+
+
++ (void) checkOXPMessagesInPath:(NSString *)path
+{
+	NSArray *OXPMessageArray = OOArrayFromFile([path stringByAppendingPathComponent:@"OXPMessages.plist"]);
+	
+	if ([OXPMessageArray count] > 0)
+	{
+		unsigned i;
+		for (i = 0; i < [OXPMessageArray count]; i++)
+		{
+			NSString *oxpMessage = [OXPMessageArray oo_stringAtIndex:i];
+			if (oxpMessage)
+			{
+				OOLog(@"oxp.message", @"%@: %@", path, oxpMessage);
+			}
+		}
+		if (sOXPsWithMessagesFound == nil)  sOXPsWithMessagesFound = [[NSMutableArray alloc] init];
+		[sOXPsWithMessagesFound addObject:path];
+	}
 }
 
 

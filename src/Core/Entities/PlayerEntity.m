@@ -5618,6 +5618,27 @@ static NSString *last_outfitting_key=nil;
 			msgLine++;
 		}
 		
+		// check for messages from OXPs
+		NSArray *OXPsWithMessages = [ResourceManager OXPsWithMessagesFound];
+		if ([OXPsWithMessages count] > 0)
+		{
+			NSString *messageToDisplay = DESC(@"oxp-containing-messages-found");
+			// Show which OXPs were found with messages, but don't spam the screen if more than
+			// a certain number of them exist
+			if ([OXPsWithMessages count] < 5)
+			{
+				int i;
+				for (i = 0; i < [OXPsWithMessages count]; i++)
+				{
+					messageToDisplay = [messageToDisplay stringByAppendingString:[NSString stringWithFormat:@" %@", [OXPsWithMessages oo_stringAtIndex:i]]];
+				}
+			}
+			int ms_start = msgLine;
+			int i = msgLine = [gui addLongText:messageToDisplay startingAtRow:ms_start align:GUI_ALIGN_LEFT];
+			for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor orangeColor] forRow:i];
+			msgLine++;
+		}
+		
 		// check for messages from the command line
 		NSArray* arguments = [[NSProcessInfo processInfo] arguments];
 		unsigned i;
