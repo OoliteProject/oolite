@@ -89,7 +89,6 @@ static BOOL				wait_for_key_up;
 static BOOL				upDownKeyPressed;
 static BOOL				leftRightKeyPressed;
 static BOOL				musicModeKeyPressed;
-static BOOL				enterSelectKeyPressed;
 static BOOL				volumeControlPressed;
 static BOOL				shaderSelectKeyPressed;
 static BOOL				selectPressed;
@@ -3118,7 +3117,7 @@ static BOOL toggling_music;
 				
 				if ([gameView isDown:13])	//  '<enter/return>'
 				{
-					if (!enterSelectKeyPressed)
+					if (!selectPressed)
 					{
 						[self setMissionChoice:[gui selectedRowKey]];
 						
@@ -3131,11 +3130,11 @@ static BOOL toggling_music;
 						[self doScriptEvent:@"missionScreenEnded"];
 						[self checkScript];
 					}
-					enterSelectKeyPressed = YES;
+					selectPressed = YES;
 				}
 				else
 				{
-					enterSelectKeyPressed = NO;
+					selectPressed = NO;
 				}
 			}
 			break;
