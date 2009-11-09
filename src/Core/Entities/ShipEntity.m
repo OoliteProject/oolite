@@ -362,8 +362,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[self setLaserColor:color];
 	
 	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined
-	scanner_display_color1 = [OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color1"]];
-	scanner_display_color2 = [OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color2"]];
+	scanner_display_color1 = [[OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color1"]] retain];
+	scanner_display_color2 = [[OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color2"]] retain];
 
 	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
 	// let's see if scan_class is set... 
@@ -557,7 +557,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[primaryRole release];
 	[laser_color release];
 	[scanner_display_color1 release];
+	scanner_display_color1 = nil;
 	[scanner_display_color2 release];
+	scanner_display_color2 = nil;
 	if (script != nil) 
 	{
 		[script release];
