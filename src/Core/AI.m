@@ -489,8 +489,7 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 			}
 			else
 			{
-				if ([selectorStr isEqual:@"setStateTo:"])  [self setState:dataString];
-				else if ([selectorStr isEqual:@"debugMessage:"])
+				if ([selectorStr isEqual:@"debugMessage:"])
 				{
 					OOLog(@"ai.takeAction.debugMessage", @"DEBUG: AI MESSAGE from %@: %@", ownerDesc, dataString);
 				}

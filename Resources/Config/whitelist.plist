@@ -192,6 +192,8 @@
 		"checkAegis",
 		"checkEnergy",
 		"setThrustFactorTo:",
+		"setStateTo:",
+		"debugMessage:",
 				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",
@@ -208,9 +210,7 @@
 		"launchShipWithRole:",
 		"launchIndependentShipWithRole:",
 		"abortAllDockings",
-		
-		// Simulated method
-		"setStateTo:",
+		"setPrimaryRole:",
 		
 		// ShipEntity.m
 		"fireECM",

@@ -66,6 +66,8 @@ MA 02110-1301, USA.
 
 // Methods used only by AI.
 
+- (void) setStateTo:(NSString *)state;
+
 - (void) pauseAI:(NSString *)intervalString;
 
 - (void) randomPauseAI:(NSString *)intervalString;
@@ -250,6 +252,7 @@ MA 02110-1301, USA.
 
 @implementation ShipEntity (AI)
 
+
 - (void) setAITo:(NSString *)aiString
 {
 	[[self getAI] setStateMachine:aiString];
@@ -322,6 +325,12 @@ MA 02110-1301, USA.
 
 
 @implementation ShipEntity (PureAI)
+
+- (void) setStateTo:(NSString *)state
+{
+	[[self getAI] setState:state];
+}
+
 
 - (void) pauseAI:(NSString *)intervalString
 {

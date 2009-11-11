@@ -3958,6 +3958,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+// Exposed to AI.
 - (void)setPrimaryRole:(NSString *)role
 {
 	if (![role isEqual:primaryRole])

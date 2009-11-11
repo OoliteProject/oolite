@@ -104,7 +104,7 @@ enum
 	kShip_displayName,			// name displayed on screen, string, read-only
 	kShip_roles,				// roles, array, read-only
 	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
-	kShip_primaryRole,			// Primary role, string, read-only
+	kShip_primaryRole,			// Primary role, string, read/write
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_fuel,					// fuel, float, read/write
