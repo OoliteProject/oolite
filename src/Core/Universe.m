@@ -171,8 +171,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) resetSystemDataCache;
 
 #if OO_LOCALIZATION_TOOLS
+#if DEBUG_GRAPHVIZ
 - (void) dumpDebugGraphViz;
 - (void) dumpSystemDescriptionGraphViz;
+#endif
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount;
 - (void) runLocalizationTools;
 #endif
 
@@ -312,7 +315,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 #if OO_LOCALIZATION_TOOLS
 	[self runLocalizationTools];
+#if DEBUG_GRAPHVIZ
 	[self dumpDebugGraphViz];
+#endif
 #endif
 	
 	return self;
@@ -8531,62 +8536,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 
 #if OO_LOCALIZATION_TOOLS
+
+#if DEBUG_GRAPHVIZ
 - (void) dumpDebugGraphViz
 {
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"universe-dump-debug-graphviz"])
 	{
 		[self dumpSystemDescriptionGraphViz];
-	}
-}
-
-
-- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount
-{
-	NSString					*index = nil;
-	int							start, end;
-	NSRange						remaining, subRange;
-	unsigned					i;
-	
-	remaining = NSMakeRange(0, [string length]);
-	
-	for (;;)
-	{
-		subRange = [string rangeOfString:@"[" options:NSLiteralSearch range:remaining];
-		if (subRange.location == NSNotFound)  break;
-		start = subRange.location + subRange.length;
-		remaining.length -= start - remaining.location;
-		remaining.location = start;
-		
-		subRange = [string rangeOfString:@"]" options:NSLiteralSearch range:remaining];
-		if (subRange.location == NSNotFound)  break;
-		end = subRange.location;
-		remaining.length -= end - remaining.location;
-		remaining.location = end;
-		
-		index = [string substringWithRange:NSMakeRange(start, end - start)];
-		i = [index intValue];
-		
-		// Each node gets a colour for its incoming edges. The multiplication and mod shuffle them to avoid adjacent nodes having similar colours.
-		[graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i];
-	}
-	
-	if ([string rangeOfString:@"%I"].location != NSNotFound)
-	{
-		[graphViz appendFormat:@"\t%@ -> percent_I [color=\"0,0,0.25\"]\n", fromNode];
-	}
-	if ([string rangeOfString:@"%H"].location != NSNotFound)
-	{
-		[graphViz appendFormat:@"\t%@ -> percent_H [color=\"0,0,0.45\"]\n", fromNode];
-	}
-	if ([string rangeOfString:@"%R"].location != NSNotFound || [string rangeOfString:@"%N"].location != NSNotFound)
-	{
-		[graphViz appendFormat:@"\t%@ -> percent_RN [color=\"0,0,0.65\"]\n", fromNode];
-	}
-	
-	// TODO: test graphViz output for @"%Jxxx"
-	if ([string rangeOfString:@"%J"].location != NSNotFound)
-	{
-		[graphViz appendFormat:@"\t%@ -> percent_J [color=\"0,0,0.75\"]\n", fromNode];
 	}
 }
 
@@ -8694,6 +8650,58 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	// Write file
 	[graphViz appendString:@"\t}\n"];
 	[ResourceManager writeDiagnosticData:[graphViz dataUsingEncoding:NSUTF8StringEncoding] toFileNamed:@"SystemDescription.dot"];
+}
+#endif	// DEBUG_GRAPHVIZ
+
+
+- (void) addNumericRefsInString:(NSString *)string toGraphViz:(NSMutableString *)graphViz fromNode:(NSString *)fromNode nodeCount:(unsigned)nodeCount
+{
+	NSString					*index = nil;
+	int							start, end;
+	NSRange						remaining, subRange;
+	unsigned					i;
+	
+	remaining = NSMakeRange(0, [string length]);
+	
+	for (;;)
+	{
+		subRange = [string rangeOfString:@"[" options:NSLiteralSearch range:remaining];
+		if (subRange.location == NSNotFound)  break;
+		start = subRange.location + subRange.length;
+		remaining.length -= start - remaining.location;
+		remaining.location = start;
+		
+		subRange = [string rangeOfString:@"]" options:NSLiteralSearch range:remaining];
+		if (subRange.location == NSNotFound)  break;
+		end = subRange.location;
+		remaining.length -= end - remaining.location;
+		remaining.location = end;
+		
+		index = [string substringWithRange:NSMakeRange(start, end - start)];
+		i = [index intValue];
+		
+		// Each node gets a colour for its incoming edges. The multiplication and mod shuffle them to avoid adjacent nodes having similar colours.
+		[graphViz appendFormat:@"\t%@ -> n%u_0 [color=\"%f,0.75,0.8\" lhead=cluster_%u]\n", fromNode, i, ((float)(i * 511 % nodeCount)) / ((float)nodeCount), i];
+	}
+	
+	if ([string rangeOfString:@"%I"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_I [color=\"0,0,0.25\"]\n", fromNode];
+	}
+	if ([string rangeOfString:@"%H"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_H [color=\"0,0,0.45\"]\n", fromNode];
+	}
+	if ([string rangeOfString:@"%R"].location != NSNotFound || [string rangeOfString:@"%N"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_RN [color=\"0,0,0.65\"]\n", fromNode];
+	}
+	
+	// TODO: test graphViz output for @"%Jxxx"
+	if ([string rangeOfString:@"%J"].location != NSNotFound)
+	{
+		[graphViz appendFormat:@"\t%@ -> percent_J [color=\"0,0,0.75\"]\n", fromNode];
+	}
 }
 
 

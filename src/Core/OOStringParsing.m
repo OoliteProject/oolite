@@ -883,4 +883,4 @@ static BOOL NameIsTaken(NSString *name, NSSet *uniqueSet)
 	return [keywords containsObject:[name lowercaseString]];
 }
 
-#endif DEBUG_GRAPHVIZ
+#endif //DEBUG_GRAPHVIZ
