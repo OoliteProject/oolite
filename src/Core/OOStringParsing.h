@@ -107,4 +107,18 @@ NSComparisonResult CompareVersions(NSArray *version1, NSArray *version2);
 NSString *ClockToString(double clock, BOOL adjusting);
 
 
+#if DEBUG_GRAPHVIZ
 NSString *EscapedGraphVizString(NSString *string);
+
+/*	GraphVizTokenString()
+	Generate a C-style identifier. Sequences of invalid characters and
+	underscores are replaced with single underscores. If uniqueSet is not nil,
+	uniqueness is achieved by appending numbers if necessary.
+	
+	This can be used for any C-based langauge, but note that it excludes the
+	case-insensitive GraphViz keywords node, edge, graph, digraph, subgraph
+	and strict.
+*/
+NSString *GraphVizTokenString(NSString *string, NSMutableSet *uniqueSet);
+
+#endif

@@ -759,6 +759,8 @@ NSString *ClockToString(double clock, BOOL adjusting)
 }
 
 
+#if DEBUG_GRAPHVIZ
+
 // Workaround for Xcode auto-indent bug
 static NSString * const kQuotationMark = @"\"";
 static NSString * const kEscapedQuotationMark = @"\\\"";
@@ -802,3 +804,83 @@ NSString *EscapedGraphVizString(NSString *string)
 	[mutable release];
 	return result;
 }
+
+
+static BOOL NameIsTaken(NSString *name, NSSet *uniqueSet);
+
+NSString *GraphVizTokenString(NSString *string, NSMutableSet *uniqueSet)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	BOOL lastWasUnderscore = NO;
+	OOUInteger i, length = [string length], ri = 0;
+	unichar result[length];
+	NSString *token = nil;
+	
+	if (length > 0)
+	{
+		// Special case for first char - can't be digit.
+		unichar c = [string characterAtIndex:0];
+		if (!isalpha(c))
+		{
+			c = '_';
+			lastWasUnderscore = YES;
+		}
+		result[ri++] = c;
+		
+		for (i = 1; i < length; i++)
+		{
+			c = [string characterAtIndex:i];
+			if (!isalnum(c))
+			{
+				if (lastWasUnderscore)  continue;
+				c = '_';
+				lastWasUnderscore = YES;
+			}
+			else
+			{
+				lastWasUnderscore = NO;
+			}
+			
+			result[ri++] = c;
+		}
+		
+		token = [NSString stringWithCharacters:result length:ri];
+	}
+	else
+	{
+		token = @"_";
+	}
+	
+	if (NameIsTaken(token, uniqueSet))
+	{
+		if (!lastWasUnderscore)  token = [token stringByAppendingString:@"_"];
+		NSString *uniqueToken = nil;
+		unsigned uniqueID = 2;
+		
+		for (;;)
+		{
+			uniqueToken = [NSString stringWithFormat:@"%@%u", token, uniqueID];
+			if (!NameIsTaken(uniqueToken, uniqueSet))  break;
+		}
+		token = uniqueToken;
+	}
+	[uniqueSet addObject:token];
+	
+	[token retain];
+	[pool release];
+	return [token autorelease];
+}
+
+
+static BOOL NameIsTaken(NSString *name, NSSet *uniqueSet)
+{
+	if ([uniqueSet containsObject:name])  return YES;
+	
+	static NSSet *keywords = nil;
+	if (keywords == nil)  keywords = [[NSSet alloc] initWithObjects:@"node", @"edge", @"graph", @"digraph", @"subgraph", @"strict", nil];
+	
+	return [keywords containsObject:[name lowercaseString]];
+}
+
+#endif DEBUG_GRAPHVIZ
