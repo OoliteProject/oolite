@@ -46,7 +46,7 @@
 	{
 		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", performIntercept);
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
-		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: ATTACK_SHIP");
+		ATTACKED = (setTargetToPrimaryAggressor, groupAttackTarget, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_LOST" = ("setStateTo: GO_TO_STATION");
 	};
