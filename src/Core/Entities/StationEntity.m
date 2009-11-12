@@ -1324,14 +1324,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) hasHostileTarget
 {
-	if (primaryTarget == NO_TARGET)
-		return NO;
-	if ((behaviour == BEHAVIOUR_AVOID_COLLISION)&&(previousCondition))
-	{
-		int old_behaviour = [(NSNumber*)[previousCondition objectForKey:@"behaviour"] intValue];
-		return IsBehaviourHostile(old_behaviour);
-	}
-	return IsBehaviourHostile(behaviour)||(alertLevel == STATION_ALERT_LEVEL_YELLOW)||(alertLevel == STATION_ALERT_LEVEL_RED);
+	return [super hasHostileTarget] || (alertLevel == STATION_ALERT_LEVEL_YELLOW) || (alertLevel == STATION_ALERT_LEVEL_RED);
 }
 
 - (void)takeEnergyDamage:(double)amount from:(Entity *)ent becauseOf:(Entity *)other

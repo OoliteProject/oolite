@@ -165,8 +165,6 @@ typedef enum
 {
 	BEHAVIOUR_IDLE							= 0U,
 	BEHAVIOUR_TRACK_TARGET					= 1,
-//	BEHAVIOUR_FLY_TO_TARGET					= 2,	// Unused
-//	BEHAVIOUR_HANDS_OFF						= 3,	// Unused
 	BEHAVIOUR_TUMBLE						= 4,
 	BEHAVIOUR_STOP_STILL					= 5,
 	
@@ -201,8 +199,6 @@ typedef enum
 	BEHAVIOUR_COLLECT_TARGET				= 300,
 	BEHAVIOUR_INTERCEPT_TARGET				= 350,
 	
-//	BEHAVIOUR_MISSILE_FLY_TO_TARGET			= 901,	// Unused
-	
 	BEHAVIOUR_FORMATION_FORM_UP				= 501,
 	BEHAVIOUR_FORMATION_BREAK				= 502,
 	
@@ -215,6 +211,22 @@ typedef enum
 OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour) INLINE_CONST_FUNC;
 OOINLINE BOOL IsBehaviourHostile(OOBehaviour behaviour)
 {
+	switch (behaviour)
+	{
+		case BEHAVIOUR_ATTACK_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_FROM_TARGET:
+		case BEHAVIOUR_RUNNING_DEFENSE:
+		case BEHAVIOUR_FLEE_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_SIX:
+	//	case BEHAVIOUR_ATTACK_MINING_TARGET:
+		case BEHAVIOUR_ATTACK_FLY_TO_TARGET_TWELVE:
+			return YES;
+			
+		default:
+			return NO;
+	}
+	
 	return 100 < behaviour && behaviour < 120;
 }
 
