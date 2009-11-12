@@ -940,12 +940,16 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 		handlerKeyEnum = [state keyEnumerator];
 		while ((handlerKey = [handlerKeyEnum nextObject]))
 		{
-			NSEnumerator *commandEnum = [[state oo_arrayForKey:handlerKey] objectEnumerator];
+			NSArray *handlerCommands = [state oo_arrayForKey:handlerKey];
+			OOUInteger commandIter, commandCount = [handlerCommands count];
 			NSString *command = nil;
 			BOOL haveSetOrSwichAI = NO;
 			
-			while ((command = [commandEnum nextObject]))
+			for (commandIter = 0; commandIter < commandCount; commandIter++)
 			{
+				command = [handlerCommands oo_stringAtIndex:commandIter];
+				if (EXPECT_NOT(command == nil))  continue;
+				
 				NSArray *components = ScanTokensFromString(command);
 				NSString *method = [components objectAtIndex:0];
 				NSString *handlerToken = HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet);
@@ -1015,53 +1019,46 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 					[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
 					[graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000C0\"]\n", handlerToken, token];
 				}
-				else if ([method isEqualToString:@"setAITo:"])
+				else if ([method isEqualToString:@"setAITo:"] || [method isEqualToString:@"switchAITo:"])
 				{
+					NSString *methodTag = [method substringToIndex:[method length] - 3];	// delete "To:".
+					
 					if ([components count] > 1)
 					{
 						NSString *targetAI = [components objectAtIndex:1];
-						NSString *token = [@"setAI_" stringByAppendingString:targetAI];
-						NSString *label = [@"setAITo:\n" stringByAppendingString:targetAI];
+						NSString *token = [NSString stringWithFormat:@"%@_%@", methodTag, targetAI];
+						NSString *label = [NSString stringWithFormat:@"%@\n%@", method, targetAI];
 						
-						// FIXME: find subsequent setStateTo: and include in node (incl. token)
+						// Look through remaining commands for a setStateTo:, which applies to the new AI.
+						NSString *targetState = nil;
+						OOUInteger j = commandIter;
+						for (; j < commandCount; j++)
+						{
+							NSString *command = [handlerCommands oo_stringAtIndex:j];
+							if ([command hasPrefix:@"setStateTo:"])
+							{
+								NSArray *components = ScanTokensFromString(command);
+								if ([components count] > 1)  targetState = [components objectAtIndex:1];
+							}
+						}
+						if (targetState != nil)
+						{
+							token = [NSString stringWithFormat:@"%@_%@", token, targetState];
+							label = [NSString stringWithFormat:@"%@ (%@)", label, targetState];
+						}
+						
 						haveSetOrSwichAI = YES;
 						token = GraphVizTokenString(token, nil);
 						label = EscapedGraphVizString(label);
 						
-						[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
-						 [graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000A0\"]\n", handlerToken, token];
+						[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#408000\" shape=ellipse]\n", token, label]];
+						 [graphViz appendFormat:@"\t%@ -> %@ [color=\"#408000\"]\n", handlerToken, token];
 					}
 					else
 					{
-						[specialNodes addObject:@"\tspecial_brokenSetAI [label=\"Broken setAITo: command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n"];
-						[graphViz appendFormat:@"\t%@ -> special_brokenSetAI [color=\"#C00000\"]\n", handlerToken];
+						[specialNodes addObject:[NSString stringWithFormat:@"\tspecial_broken_%@ [label=\"Broken %@ command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n", methodTag, method]];
+						[graphViz appendFormat:@"\t%@ -> tspecial_broken_%@ [color=\"#C00000\"]\n", handlerToken, methodTag];
 					}
-				}
-				else if ([method isEqualToString:@"switchAITo:"])
-				{
-					if ([components count] > 1)
-					{
-						NSString *targetAI = [components objectAtIndex:1];
-						NSString *token = [@"switchAI_" stringByAppendingString:targetAI];
-						NSString *label = [@"switchAITo:\n" stringByAppendingString:targetAI];
-						
-						// FIXME: find subsequent setStateTo: and include in node (incl. token)
-						haveSetOrSwichAI = YES;
-						token = GraphVizTokenString(token, nil);
-						label = EscapedGraphVizString(label);
-						
-						[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
-						[graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000A0\"]\n", handlerToken, token];
-					}
-					else
-					{
-						[specialNodes addObject:@"\tspecial_brokenSwitchAI [label=\"Broken switchAITo: command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n"];
-						[graphViz appendFormat:@"\t%@ -> special_brokenSetAI [color=\"#C00000\"]\n", handlerToken];
-					}
-				}
-				else
-				{
-				//	OOLog(@"temp", @"Uninteresting method %@ in %@:%@:%@", method, smName, stateKey, handlerKey);
 				}
 			}
 		}

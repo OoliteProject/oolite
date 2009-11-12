@@ -142,6 +142,10 @@ void OOPrintLogHeader(void)
 		@"localization tools",
 	#endif
 	
+	#if DEBUG_GRAPHVIZ
+		@"debug GraphViz support",
+	#endif
+	
 		nil];
 	
 	// systemString: NSString with system type and possibly version.
