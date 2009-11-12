@@ -13,8 +13,8 @@
 			"pauseAI: 15.0",
 			"setStateTo: EXIT_SYSTEM"
 		);
-		"TARGET_DESTROYED" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
-		"TARGET_LOST" = ("setStateTo: HEAD_AWAY_FROM_PLANET");
+		"TARGET_DESTROYED" = ("setStateTo: CONSIDER_RESUMING");
+		"TARGET_LOST" = ("setStateTo: CONSIDER_RESUMING");
 	};
 	"EXIT_SYSTEM" =
 	{
@@ -30,9 +30,9 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (setTargetToPrimaryAggressor, broadcastDistressMessage, fightOrFleeMissile);
-		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
-		"TARGET_DESTROYED" = (performIdle, "setStateTo: GLOBAL");
-		"TARGET_LOST" = (performIdle, "setStateTo: GLOBAL");
+		"REACHED_SAFETY" = (performIdle, "setStateTo: CONSIDER_RESUMING");
+		"TARGET_DESTROYED" = (performIdle, "setStateTo: CONSIDER_RESUMING");
+		"TARGET_LOST" = (performIdle, "setStateTo: CONSIDER_RESUMING");
 	};
 	"GO_TO_WAYPOINT1" =
 	{
@@ -86,5 +86,16 @@
 		FIGHTING = (setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		FLEEING = (setTargetToPrimaryAggressor, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
+	};
+	CONSIDER_RESUMING =
+	{
+		ENTER = (checkEnergy, "pauseAI: 0");
+		
+		// If energy < 75 %, go back to trying to sun skim.
+		ENERGY_LOW = ("setStateTo: GLOBAL");
+		ENERGY_MEDIUM = ("setStateTo: GLOBAL");
+		
+		// Otherwise, try to leave.
+		UPDATE = ("pauseAI: 15.0", "setStateTo: EXIT_SYSTEM");
 	};
 }
