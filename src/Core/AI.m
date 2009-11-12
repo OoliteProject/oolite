@@ -892,8 +892,8 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 #if DEBUG_GRAPHVIZ
 
 // Generate and track unique identifiers for state-handler pairs.
-static NSString *HandlerLabel(NSString *state, NSString *handler, NSMutableDictionary *handlerKeys, NSMutableSet *uniqueSet);
-static void AddSimpleSpecialNodeLink(NSMutableString *graphViz, NSString *handlerLabel, NSString *name, NSString *color, NSMutableSet *specialNodes);
+static NSString *HandlerToken(NSString *state, NSString *handler, NSMutableDictionary *handlerKeys, NSMutableSet *uniqueSet);
+static void AddSimpleSpecialNodeLink(NSMutableString *graphViz, NSString *handlerToken, NSString *name, NSString *shape, NSString *color, NSMutableSet *specialNodes);
 
 
 static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString *smName)
@@ -907,7 +907,7 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 	 "\tgraph [charset=\"UTF-8\", label=\"%@ transition diagram\", labelloc=t, labeljust=l rankdir=LR compound=true nodesep=0.1 ranksep=2.5 fontname=Helvetica]\n"
 	 "\tedge [arrowhead=normal]\n"
 	 "\tnode [shape=box height=0.2 width=3.5 fontname=Helvetica color=\"#808080\"]\n\t\n"
-	 "\tspecial_start [shape=ellipse color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> %@ [lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n", EscapedGraphVizString(smName), HandlerLabel(@"GLOBAL", @"ENTER", handlerKeys, uniqueSet)];
+	 "\tspecial_start [shape=ellipse color=\"#0000C0\" label=\"Start\"]\n\tspecial_start -> %@ [lhead=\"cluster_GLOBAL\" color=\"#0000A0\"]\n", EscapedGraphVizString(smName), HandlerToken(@"GLOBAL", @"ENTER", handlerKeys, uniqueSet)];
 	
 	NSEnumerator *stateKeyEnum = [stateMachine keyEnumerator];
 	NSString *stateKey = nil;
@@ -925,13 +925,13 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 		NSString *handlerKey = nil;
 		while ((handlerKey = [handlerKeyEnum nextObject]))
 		{
-			[graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerLabel(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
+			[graphViz appendFormat:@"\t\t%@ [label=\"%@\"]\n", HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet), EscapedGraphVizString(handlerKey)];
 		}
 		
 		// Ensure there is an ENTER handler for arrows to point at.
 		if ([state objectForKey:@"ENTER"] == nil)
 		{
-			[graphViz appendFormat:@"\t\t%@ [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerLabel(stateKey, @"ENTER", handlerKeys, uniqueSet)];
+			[graphViz appendFormat:@"\t\t%@ [label=\"ENTER (implicit)\"] // No ENTER handler in file, but it's still the target of any incoming transitions.\n", HandlerToken(stateKey, @"ENTER", handlerKeys, uniqueSet)];
 		}
 		
 		[graphViz appendString:@"\t}\n"];
@@ -942,51 +942,122 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 		{
 			NSEnumerator *commandEnum = [[state oo_arrayForKey:handlerKey] objectEnumerator];
 			NSString *command = nil;
+			BOOL haveSetOrSwichAI = NO;
+			
 			while ((command = [commandEnum nextObject]))
 			{
 				NSArray *components = ScanTokensFromString(command);
 				NSString *method = [components objectAtIndex:0];
-				NSString *handlerLabel = HandlerLabel(stateKey, handlerKey, handlerKeys, uniqueSet);
+				NSString *handlerToken = HandlerToken(stateKey, handlerKey, handlerKeys, uniqueSet);
 				
-				if ([method isEqualToString:@"setStateTo:"])
+				if (!haveSetOrSwichAI && [method isEqualToString:@"setStateTo:"])
 				{
-					// FIXME: setStateTo: _after_ a setAITo:/switchAITo: affects target AI.
 					if ([components count] > 1)
 					{
 						NSString *targetState = [components objectAtIndex:1];
-						NSString *targetLabel = HandlerLabel(targetState, @"ENTER", handlerKeys, uniqueSet);
+						NSString *targetLabel = HandlerToken(targetState, @"ENTER", handlerKeys, uniqueSet);
 						BOOL constraint = YES;
 						if ([targetState isEqualToString:stateKey])  constraint = NO;
 						else if ([targetState isEqualToString:@"GLOBAL"])  constraint = NO;
 						
-						[graphViz appendFormat:@"\t%@ -> %@ [lhead=cluster_%@%@]\n", handlerLabel, targetLabel, targetState, constraint ? @"" : @" constraint=false"];
+						[graphViz appendFormat:@"\t%@ -> %@ [lhead=cluster_%@%@]\n", handlerToken, targetLabel, targetState, constraint ? @"" : @" constraint=false"];
 					}
 					else
 					{
 						[specialNodes addObject:@"\tspecial_brokenSetStateTo [label=\"Broken setStateTo: command!\\n(No target state specified.)\" color=\"#C00000\" shape=diamond]\n"];
-						[graphViz appendFormat:@"\t%@ -> special_brokenSetStateTo [color=\"#C00000\"]\n", handlerLabel];
+						[graphViz appendFormat:@"\t%@ -> special_brokenSetStateTo [color=\"#C00000\"]\n", handlerToken];
 					}
 				}
 				else if ([method isEqualToString:@"becomeExplosion"])
 				{
-					AddSimpleSpecialNodeLink(graphViz, handlerLabel, @"becomeExplosion", @"804000", specialNodes);
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeExplosion", @"diamond", @"804000", specialNodes);
+				}
+				else if ([method isEqualToString:@"becomeEnergyBlast"])
+				{
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeEnergyBlast", @"diamond", @"804000", specialNodes);
 				}
 				else if ([method isEqualToString:@"landOnPlanet"])
 				{
-					AddSimpleSpecialNodeLink(graphViz, handlerLabel, @"landOnPlanet", @"008040", specialNodes);
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"landOnPlanet", @"diamond", @"008040", specialNodes);
 				}
 				else if ([method isEqualToString:@"performHyperSpaceExit"])
 				{
-					AddSimpleSpecialNodeLink(graphViz, handlerLabel, @"performHyperSpaceExit", @"008080", specialNodes);
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"performHyperSpaceExit", @"box", @"008080", specialNodes);
+				}
+				else if ([method isEqualToString:@"performHyperSpaceExitWithoutReplacing"])
+				{
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"performHyperSpaceExitWithoutReplacing", @"box", @"008080", specialNodes);
 				}
 				else if ([method isEqualToString:@"enterTargetWormhole"])
 				{
-					AddSimpleSpecialNodeLink(graphViz, handlerLabel, @"enterTargetWormhole", @"008080", specialNodes);
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"enterTargetWormhole", @"box", @"008080", specialNodes);
+				}
+				else if ([method isEqualToString:@"becomeUncontrolledThargon"])
+				{
+					AddSimpleSpecialNodeLink(graphViz, handlerToken, @"becomeUncontrolledThargon", @"ellipse", @"804000", specialNodes);
 				}
 				else if ([method isEqualToString:@"exitAIWithMessage:"])
 				{
-					[specialNodes addObject:@"\tspecial_exitAI [label=\"exitAI\" color=\"#0000A0\" shape=ellipse]\n"];
-					[graphViz appendFormat:@"\t%@ -> special_exitAI [color=\"#0000C0\"]\n", handlerLabel];
+					NSString *message = ([components count] > 1) ? [components objectAtIndex:1] : nil;
+					NSString *token = nil;
+					NSString *label = nil;
+					if ([message isEqualToString:@"RESTARTED"] || [message length] == 0)
+					{
+						token = @"exitAI";
+						label = @"exitAI";
+					}
+					else
+					{
+						token = GraphVizTokenString([@"exitAI_" stringByAppendingString:message], nil);
+						label = EscapedGraphVizString([@"exitAIWithMessage:\n" stringByAppendingString:message]);
+					}
+					
+					[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
+					[graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000C0\"]\n", handlerToken, token];
+				}
+				else if ([method isEqualToString:@"setAITo:"])
+				{
+					if ([components count] > 1)
+					{
+						NSString *targetAI = [components objectAtIndex:1];
+						NSString *token = [@"setAI_" stringByAppendingString:targetAI];
+						NSString *label = [@"setAITo:\n" stringByAppendingString:targetAI];
+						
+						// FIXME: find subsequent setStateTo: and include in node (incl. token)
+						haveSetOrSwichAI = YES;
+						token = GraphVizTokenString(token, nil);
+						label = EscapedGraphVizString(label);
+						
+						[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
+						 [graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000A0\"]\n", handlerToken, token];
+					}
+					else
+					{
+						[specialNodes addObject:@"\tspecial_brokenSetAI [label=\"Broken setAITo: command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n"];
+						[graphViz appendFormat:@"\t%@ -> special_brokenSetAI [color=\"#C00000\"]\n", handlerToken];
+					}
+				}
+				else if ([method isEqualToString:@"switchAITo:"])
+				{
+					if ([components count] > 1)
+					{
+						NSString *targetAI = [components objectAtIndex:1];
+						NSString *token = [@"switchAI_" stringByAppendingString:targetAI];
+						NSString *label = [@"switchAITo:\n" stringByAppendingString:targetAI];
+						
+						// FIXME: find subsequent setStateTo: and include in node (incl. token)
+						haveSetOrSwichAI = YES;
+						token = GraphVizTokenString(token, nil);
+						label = EscapedGraphVizString(label);
+						
+						[specialNodes addObject:[NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#0000A0\" shape=ellipse]\n", token, label]];
+						[graphViz appendFormat:@"\t%@ -> %@ [color=\"#0000A0\"]\n", handlerToken, token];
+					}
+					else
+					{
+						[specialNodes addObject:@"\tspecial_brokenSwitchAI [label=\"Broken switchAITo: command!\\n(No target AI specified.)\" color=\"#C00000\" shape=diamond]\n"];
+						[graphViz appendFormat:@"\t%@ -> special_brokenSetAI [color=\"#C00000\"]\n", handlerToken];
+					}
 				}
 				else
 				{
@@ -1015,7 +1086,7 @@ static void GenerateGraphVizForStateMachine(NSDictionary *stateMachine, NSString
 }
 
 
-static NSString *HandlerLabel(NSString *state, NSString *handler, NSMutableDictionary *handlerKeys, NSMutableSet *uniqueSet)
+static NSString *HandlerToken(NSString *state, NSString *handler, NSMutableDictionary *handlerKeys, NSMutableSet *uniqueSet)
 {
 	NSString *result = [[handlerKeys oo_dictionaryForKey:state] oo_stringForKey:handler];
 	
@@ -1038,13 +1109,13 @@ static NSString *HandlerLabel(NSString *state, NSString *handler, NSMutableDicti
 }
 
 
-static void AddSimpleSpecialNodeLink(NSMutableString *graphViz, NSString *handlerLabel, NSString *name, NSString *color, NSMutableSet *specialNodes)
+static void AddSimpleSpecialNodeLink(NSMutableString *graphViz, NSString *handlerToken, NSString *name, NSString *shape, NSString *color, NSMutableSet *specialNodes)
 {
 	NSString *identifier = GraphVizTokenString([@"special_" stringByAppendingString:name], nil);
-	NSString *declaration = [NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#%@\" shape=diamond]\n", identifier, EscapedGraphVizString(name), color];
+	NSString *declaration = [NSString stringWithFormat:@"\t%@ [label=\"%@\" color=\"#%@\" shape=%@]\n", identifier, EscapedGraphVizString(name), color, shape];
 	[specialNodes addObject:declaration];
 	
-	[graphViz appendFormat:@"\t%@ -> %@ [color=\"#%@\"]\n", handlerLabel, identifier, color];
+	[graphViz appendFormat:@"\t%@ -> %@ [color=\"#%@\"]\n", handlerToken, identifier, color];
 }
 
 #endif

@@ -8,6 +8,7 @@
 		ENTER = (setSunSkimStartCoordinates);
 		"WAIT_FOR_SUN" = (setSunSkimStartCoordinates);
 		"APPROACH_COORDINATES" = ("setStateTo: HEAD_FOR_SUN");
+        "EXITED WITCHSPACE" = ("switchAITo: route1traderAI.plist"); 
 		UPDATE = ("pauseAI: 10");
 	};
 	"HEAD_FOR_SUN" =

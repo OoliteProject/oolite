@@ -1,8 +1,7 @@
 {
 	GLOBAL =
-	 {
+	{
 		ENTER = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
-		UPDATE = ("pauseAI: 2");
 	};
 	"AWAIT_COORDS" = 
 	{

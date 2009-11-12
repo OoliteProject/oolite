@@ -33,8 +33,4 @@
 					"sendTargetCommsMessage: [police-attack-warning]", "setAITo: interceptAI.plist");
 		UPDATE = (setDestinationFromCoordinates, checkCourseToDestination, scanForOffenders, "pauseAI: 7.5");
 	};
-	"EXIT_SYSTEM" =
-	{
-		ENTER = (performDocking, exitAI);
-	};
 }
