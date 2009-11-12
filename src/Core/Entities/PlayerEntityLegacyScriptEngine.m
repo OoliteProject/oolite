@@ -2175,7 +2175,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		Entity* e1 = my_entities[i];
 		// Nova mission fix: if a station jumps away, the large witchjump cloud they leave behind 
-		// becomes a shortcut to another system. FIXME: Behemoths present a similar problem.
+		// becomes a shortcut to another system. 
+		// FIXME: Large ships present a similar problem. (Carriers like the Behemoths don't jump becouse they are treated as stations)
 		if ([e1 isShip] && ! [e1 isStation])
 		{
 			ShipEntity* se1 = (ShipEntity*)e1;
@@ -2186,9 +2187,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
 				[se1AI setStateMachine:@"exitingTraderAI.plist"];
 				[se1AI setState:@"EXIT_SYSTEM"];
-				// FIXME: I don't think the following line does anything meaningful. -- Ahruman
-				// The following shoulf prevent all ships leaving at once (freezes oolite on slower machines)
-				[se1AI reactToMessage:[NSString stringWithFormat:@"pauseAI: %d", 3 + (ranrot_rand() & 15)]];
+				// The following should prevent all ships leaving at once (freezes oolite on slower machines)
+				[se1AI setNextThinkTime:[UNIVERSE getTime] + 3 + (ranrot_rand() & 15)];
 				[se1 setPrimaryRole:@"none"];	// prevents new ship from appearing at witchpoint when this one leaves!
 			}
 		}

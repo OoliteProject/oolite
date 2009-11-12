@@ -666,7 +666,7 @@
 		"Docking clearance not required.",
 		"Come on in, Commander!",
 	);
-	"station-docking-clearance-H-refused-clearance" =
+	"station-docking-clearance-H-clearance-refused" =
 	(
 		"%H station refuses to grant docking clearance to fugitive vessels.",
 		"Fugitive vessel, we cannot clear you for docking. You are not welcome to %H",
