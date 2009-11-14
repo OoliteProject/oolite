@@ -1243,9 +1243,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[ship setRoll:flightRoll];
 	[ship setPitch:0.0];
 	[ship setStatus: STATUS_LAUNCHING];
-	[[ship getAI] reactToMessage:@"pauseAI: 2.0"]; // pause while launching
 	[UNIVERSE addEntity:ship];
 	last_launch_time = [UNIVERSE getTime];
+	[[ship getAI] setNextThinkTime:last_launch_time + 2]; // pause while launching
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
 }
