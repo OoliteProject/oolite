@@ -262,6 +262,7 @@ OO_UTILITY_FILES = \
 
 OOLITE_MISC_FILES = \
 	AI.m \
+	AIGraphViz.m \
 	GameController.m \
 	JoystickHandler.m \
 	main.m \

@@ -438,6 +438,7 @@
 		1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A644E211052A9FD00833636 /* traderInterceptAI.plist */; };
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
+		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
 		1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */; };
@@ -1526,6 +1527,7 @@
 		1A644E211052A9FD00833636 /* traderInterceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = traderInterceptAI.plist; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
+		1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIGraphViz.m; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
 		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };
@@ -2677,6 +2679,7 @@
 			children = (
 				25161106099544390037C2E1 /* AI.h */,
 				25161101099544380037C2E1 /* AI.m */,
+				1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */,
 				2516111C099544390037C2E1 /* OOCharacter.h */,
 				2516111B099544390037C2E1 /* OOCharacter.m */,
 				083DB4D30A70E51E00B419B2 /* OOBrain.h */,
@@ -3475,6 +3478,7 @@
 				1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */,
 				2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */,
 				1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */,
+				1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
