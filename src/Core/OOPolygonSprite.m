@@ -97,6 +97,15 @@ static void SVGDumpAppendBaseContour(TessPolygonData *data, NSArray *points);
 static void SVGDumpBeginPrimitive(TessPolygonData *data);
 static void SVGDumpEndPrimitive(TessPolygonData *data);
 static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1, NSPoint v2);
+#else
+#define SVGDumpBegin(data) do {} while (0)
+#define SVGDumpEnd(data) do {} while (0)
+#define SVGDumpBeginGroup(data, name) do {} while (0)
+#define SVGDumpEndGroup(data) do {} while (0)
+#define SVGDumpAppendBaseContour(data. points) do {} while (0)
+#define SVGDumpBeginPrimitive(data) do {} while (0)
+#define SVGDumpEndPrimitive(data) do {} while (0)
+#define SVGDumpAppendTriangle(data, v0, v1, v2) do {} while (0)
 #endif
 
 
@@ -253,14 +262,13 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	polygonData.name = _name;
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"polygon-sprite-dump-svg"])  SVGDumpBegin(&polygonData);
 #endif
-#if !OO_DEBUG
+	
 	// For efficiency, grow to more than big enough for most cases to avoid regrowing.
 	if (!GrowTessPolygonData(&polygonData, 100))
 	{
 		polygonData.OK = NO;
 		goto END;
 	}
-#endif
 	
 	tesselator = gluNewTess();
 	if (tesselator == NULL)
@@ -279,10 +287,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	gluTessCallback(tesselator, GLU_TESS_COMBINE_DATA, TessCombineCallback);
 	
 	gluTessBeginPolygon(tesselator, &polygonData);
-	
-#ifndef NDEBUG
 	SVGDumpBeginGroup(&polygonData, @"Fill");
-#endif
 	
 	OOUInteger contourCount = [dataArray count], contourIndex;
 	for (contourIndex = 0; contourIndex < contourCount && polygonData.OK; contourIndex++)
@@ -298,10 +303,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	}
 	
 	gluTessEndPolygon(tesselator);
-	
-#ifndef NDEBUG
 	SVGDumpEndGroup(&polygonData);
-#endif
 	
 	if (polygonData.OK)
 	{
@@ -354,10 +356,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	gluTessProperty(tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE);
 	
 	gluTessBeginPolygon(tesselator, &polygonData);
-	
-#ifndef NDEBUG
 	SVGDumpBeginGroup(&polygonData, @"Outline");
-#endif
 	
 	outlineWidth *= 0.5f; // Half the width in, half the width out.
 	contourCount = [dataArray count], contourIndex;
@@ -375,10 +374,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	}
 	
 	gluTessEndPolygon(tesselator);
-	
-#ifndef NDEBUG
 	SVGDumpEndGroup(&polygonData);
-#endif
 	
 	if (polygonData.OK)
 	{
@@ -403,9 +399,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	}
 	
 END:
-#ifndef NDEBUG
 	SVGDumpEnd(&polygonData);
-#endif
 	free(polygonData.data);
 	gluDeleteTess(tesselator);
 	[pool release];
@@ -452,9 +446,7 @@ static NSArray *DataArrayToPoints(TessPolygonData *data, NSArray *dataArray)
 		    the contour is clockwise, and we need to flip it.
 	*/
 	
-#ifndef NDEBUG
 	SVGDumpBeginGroup(data, @"Base contours");
-#endif
 	
 	OOUInteger polyIter, polyCount = [dataArray count];
 	NSArray *subArrays[polyCount];
@@ -502,15 +494,10 @@ static NSArray *DataArrayToPoints(TessPolygonData *data, NSArray *dataArray)
 			subArrays[polyIter] = [[newPolyDef reverseObjectEnumerator] allObjects];
 		}
 		
-#ifndef NDEBUG
 		SVGDumpAppendBaseContour(data, subArrays[polyIter]);
-#endif
 	}
 	
-#ifndef NDEBUG
 	SVGDumpEndGroup(data);
-#endif
-	
 	return [NSArray arrayWithObjects:subArrays count:polyCount];
 }
 
@@ -672,9 +659,7 @@ static void APIENTRY TessBeginCallback(GLenum type, void *polygonData)
 	data->mode = type;
 	data->vCount = 0;
 	
-#ifndef NDEBUG
 	SVGDumpBeginPrimitive(data);
-#endif
 }
 
 
@@ -718,9 +703,7 @@ static void APIENTRY TessVertexCallback(void *vertexData, void *polygonData)
 				data->OK = AppendVertex(data, data->pending0) &&
 						   AppendVertex(data, data->pending1) &&
 						   AppendVertex(data, vertex);
-#ifndef NDEBUG
 				SVGDumpAppendTriangle(data, data->pending0, data->pending1, vertex);
-#endif
 				data->pending1 = vertex;
 			}
 			break;
@@ -756,18 +739,14 @@ static void APIENTRY TessVertexCallback(void *vertexData, void *polygonData)
 				data->OK = AppendVertex(data, data->pending0) &&
 						   AppendVertex(data, data->pending1) &&
 						   AppendVertex(data, vertex);
-#ifndef NDEBUG
 				SVGDumpAppendTriangle(data, data->pending0, data->pending1, vertex);
-#endif
 				if ((vCount % 2) == 0)  data->pending0 = vertex;
 				else  data->pending1 = vertex;
 			}
 			break;
 			
 		default:
-#ifndef NDEBUG
 			OOLog(@"polygonSprite.tesselate.error", @"Unexpected tesselator primitive mode %u.", data->mode);
-#endif
 			data->OK = NO;
 	}
 }
@@ -788,9 +767,7 @@ static void APIENTRY TessEndCallback(void *polygonData)
 	data->mode = 0;
 	data->vCount = 0;
 	
-#ifndef NDEBUG
 	SVGDumpEndPrimitive(data);
-#endif
 }
 
 
