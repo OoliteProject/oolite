@@ -91,6 +91,21 @@ OOMatrix OOMatrixForQuaternionRotation(Quaternion orientation)
 }
 
 
+bool OOMatrixEqual(OOMatrix a, OOMatrix b)
+{
+	OOScalar *ma = &a.m[0][0];
+	OOScalar *mb = &b.m[0][0];
+	
+	unsigned i;
+	for (i = 0; i < 16; i++)
+	{
+		if (*ma++ != *mb++)  return false;
+	}
+	
+	return true;
+}
+
+
 OOMatrix OOMatrixMultiply(OOMatrix a, OOMatrix b)
 {
 	unsigned			i = 0;

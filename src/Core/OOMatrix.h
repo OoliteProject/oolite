@@ -73,6 +73,10 @@ OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle) INLINE
 OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat) INLINE_CONST_FUNC;
 
 
+bool OOMatrixEqual(OOMatrix a, OOMatrix b) CONST_FUNC;
+OOINLINE bool OOMatrixIsIdentity(OOMatrix m) INLINE_CONST_FUNC;
+
+
 /* Matrix multiplication */
 OOMatrix OOMatrixMultiply(OOMatrix a, OOMatrix b) CONST_FUNC;
 Vector OOVectorMultiplyMatrix(Vector v, OOMatrix m) CONST_FUNC;
@@ -257,6 +261,12 @@ OOINLINE OOMatrix OOMatrixRotate(OOMatrix m, Vector axis, OOScalar angle)
 OOINLINE OOMatrix OOMatrixRotateQuaternion(OOMatrix m, Quaternion quat)
 {
 	return OOMatrixMultiply(m, OOMatrixForQuaternionRotation(quat));
+}
+
+
+OOINLINE bool OOMatrixIsIdentity(OOMatrix m)
+{
+	return OOMatrixEqual(m, kIdentityMatrix);
 }
 
 
