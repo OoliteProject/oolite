@@ -56,6 +56,7 @@ typedef enum
 	NSMutableArray	*shipsInTransit;
 	
 	double			witch_mass;
+	double			shrink_factor;	// used during nova mission
 	
 	WORMHOLE_SCANINFO	scan_info;
 	BOOL			hasExitPosition;

@@ -2174,14 +2174,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	for (i = 1; i < ent_count; i++)
 	{
 		Entity* e1 = my_entities[i];
-		// Nova mission fix: if a station jumps away, the large witchjump cloud they leave behind 
-		// becomes a shortcut to another system. 
-		// FIXME: Large ships present a similar problem. (Carriers like the Behemoths don't jump becouse they are treated as stations)
-		if ([e1 isShip] && ! [e1 isStation])
+		if ([e1 isShip])
 		{
 			ShipEntity* se1 = (ShipEntity*)e1;
 			int e_class = [e1 scanClass];
-			if ((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID))
+			if (((e_class == CLASS_NEUTRAL)||(e_class == CLASS_POLICE)||(e_class == CLASS_MILITARY)||(e_class == CLASS_THARGOID)) &&
+											! ([se1 isStation] && [se1 maxFlightSpeed] == 0)) // exclude only stations, not carriers.
 			{
 				AI*	se1AI = [se1 getAI];
 				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];

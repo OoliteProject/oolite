@@ -164,12 +164,19 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	{
 		double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
 		double distance;
+		PlanetEntity	*sun = [UNIVERSE sun];
 
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;
 		distance = distanceBetweenPlanetPositions(destination.d, destination.b, origin.d, origin.b);
-		witch_mass = [ship mass];
-		expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE);
+		witch_mass = [ship mass]; // NB the [ship mass] is added again on suckInShip. 
+		
+		if (sun && ([sun willGoNova] || [sun goneNova]) && witch_mass > 240000) 
+			shrink_factor = witch_mass / 240000; // don't allow longstanding wormholes in nova systems. (60 sec * WORMHOLE_SHRINK_RATE = 240 000)
+		else
+			shrink_factor = 1;
+			
+		expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
 		travel_time = (distance * distance * 3600); // Taken from PlayerEntity.h
 		arrival_time = now + travel_time;
 		position = [ship position];
@@ -193,7 +200,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 						[NSNumber numberWithDouble: now + travel_time - arrival_time], @"time",
 						nil]];
 	witch_mass += [ship mass];
-	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE);
+	expiry_time = now + (witch_mass / WORMHOLE_SHRINK_RATE / shrink_factor);
 	collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);
 
 	// witchspace entry effects here
@@ -391,7 +398,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	
 	if (witch_mass > 0.0)
 	{
-		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t;
+		witch_mass -= WORMHOLE_SHRINK_RATE * delta_t * shrink_factor;
 		if (witch_mass < 0.0)
 			witch_mass = 0.0;
 		collision_radius = 0.5 * M_PI * pow(witch_mass, 1.0/3.0);

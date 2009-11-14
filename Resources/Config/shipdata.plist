@@ -22,6 +22,7 @@
 		model = "adder_redux.dat";
 		name = "Adder";
 		roles = "hunter scavenger shuttle hermit-ship";
+		scoop_position = "0.0 -2.0 -7.5";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -22.5";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -46,6 +47,7 @@
 		model = "adder_redux.dat";
 		name = "Adder";
 		roles = "player";
+		scoop_position = "0.0 -2.0 -7.5";
 		thrust = 30;
 		view_position_aft = "0.0 2.5  -22.5";
 		view_position_forward = "0.0 2.5 14.0";
@@ -172,6 +174,7 @@
 		model = "anaconda_redux.dat";
 		name = "Anaconda";
 		roles = "trader";
+		scoop_position = "0.0 -30.0 -60";
 		thrust = 14;
 		weapon_position_aft = "0.0 0.0 -85.0";
 		weapon_position_forward = "0.0 -4.0 85.0";
@@ -196,6 +199,7 @@
 		model = "anaconda_redux.dat";
 		name = "Anaconda";
 		roles = "player";
+		scoop_position = "0.0 -30.0 -60";
 		thrust = 14;
 		view_position_aft = "0.0 -4.0 -80.0";
 		view_position_forward = "0.0 -0.5 70.0";
@@ -301,6 +305,7 @@
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
 		roles = "hunter pirate asp-pirate";
+		scoop_position = "0.0 -5.0 -15";
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -328,6 +333,7 @@
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
 		roles = "asp-cloaked";
+		scoop_position = "0.0 -5.0 -15";
 		script = "oolite-cloaking-device-target-ship.js";
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
@@ -351,6 +357,7 @@
 		model = "asp_redux.dat";
 		name = "Asp Mark II";
 		roles = "player";
+		scoop_position = "0.0 -5.0 -15";
 		thrust = 50;
 		view_position_aft = "0.0 5.0 -35.0";
 		view_position_forward = "0.0 5.31 17.5";
@@ -430,6 +437,7 @@
 		bounty = 10;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 0;
+		density = 5;
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
 		has_escape_pod = no;
@@ -531,6 +539,7 @@
 		model = "boa_redux.dat";
 		name = "Boa";
 		roles = "trader";
+		scoop_position = "0.0 -16.0 -19";
 		thrust = 36;
 		weapon_position_aft = "0.0 11.0 -56.0";
 		weapon_position_forward = "0.0 8.0 57.5";
@@ -563,6 +572,7 @@
 		model = "boa2_redux.dat";
 		name = "Boa Class Cruiser";
 		roles = "trader sunskim-trader";
+		scoop_position = "0.0 -20.0 -10.0";
 		thrust = 40;
 		weapon_energy = 15;
 		weapon_position_aft = "0.0 8.625 -54.125";
@@ -588,6 +598,7 @@
 		model = "boa2_redux.dat";
 		name = "Boa Class Cruiser";
 		roles = "player";
+		scoop_position = "0.0 -20.0 -10.0";
 		thrust = 40;
 		view_position_aft = "0.0 22.875 -47.375";
 		view_position_forward = "0.0 12.5 19.4375";
@@ -679,6 +690,7 @@
 		model = "boa_redux.dat";
 		name = "Boa";
 		roles = "player";
+		scoop_position = "0.0 -16.0 -19";
 		thrust = 36;
 		view_position_aft = "0.0 20.5 -50.75";
 		view_position_forward = "0.0 16.25 23.9";
@@ -757,6 +769,7 @@
 		ai_type = "dumbAI.plist";
 		bounty = 5;
 		cargo_type = "CARGO_NOT_CARGO";
+		density = 5;
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
 		has_ecm = no;
@@ -896,6 +909,7 @@
 		model = "cobra3_redux1.dat";
 		name = "Cobra Mark III";
 		roles = "hunter pirate trader hermit-ship sunskim-trader";
+		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 32;
 		weapon_energy = 15;
 		weapon_position_aft = "0.0 0.0 -32.5";
@@ -929,6 +943,7 @@
 		model = "cobra3_redux.dat";
 		name = "Cobra Mark III";
 		roles = "pirate hunter";
+		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -954,6 +969,7 @@
 		model = "cobra3_redux.dat";
 		name = "Cobra Mark III";
 		roles = "player";
+		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 32;
 		view_position_aft = "0.0 7.5 -32.5";
 		view_position_forward = "0.0 7.25 16.25";
@@ -1051,6 +1067,7 @@
 		model = "cobra3_redux.dat";
 		name = "Cobra Mark III";
 		roles = "trader scavenger sunskim-trader";
+		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1079,6 +1096,7 @@
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
 		roles = "pirate hunter scavenger trader hermit-ship";
+		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1109,6 +1127,7 @@
 		model = "cobra1_redux1.dat";
 		name = "Cobra Mark I";
 		roles = "pirate";
+		scoop_position = "0.0 -5.0 -9";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1137,6 +1156,7 @@
 		model = "cobra1_redux2.dat";
 		name = "Cobra Mark I";
 		roles = "miner";
+		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1161,6 +1181,7 @@
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
 		roles = "player";
+		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
 		view_position_forward = "0.0 2.925 15.125";
@@ -1564,6 +1585,7 @@
 		model = "ferdelance_redux.dat";
 		name = "Fer-de-Lance";
 		roles = "pirate hunter";
+		scoop_position = "0.0 -8.0 -14";
 		thrust = 36;
 		weapon_position_aft = "0.0 0.0 -42.5";
 		weapon_position_forward = "0.0 0.0 4.18";
@@ -1589,6 +1611,7 @@
 		model = "ferdelance_redux.dat";
 		name = "Fer-de-Lance";
 		roles = "player";
+		scoop_position = "0.0 -8.0 -14";
 		thrust = 25;
 		view_position_aft = "0.0 5.0 -32.5";
 		view_position_forward = "0.0 0.0 9.0";
@@ -1684,6 +1707,7 @@
 		model = "gecko_redux.dat";
 		name = "Gecko";
 		roles = "pirate";
+		scoop_position = "0.0 -5.0 -9";
 		thrust = 45;
 		weapon_position_forward = "0.0 0.0417 16.6667";
 		weapon_position_port = "-13.75 -2.0625 -1.875";
@@ -1768,6 +1792,7 @@
 		model = "krait_redux.dat";
 		name = "Krait";
 		roles = "pirate hunter";
+		scoop_position = "0.0 -2.0 -3";
 		thrust = 35;
 		weapon_position_aft = "0.0 -5.0 -20.0";
 		weapon_position_forward = "0.0 0.0417 16.6667";
@@ -1796,6 +1821,7 @@
 		model = "mamba_redux.dat";
 		name = "Mamba";
 		roles = "pirate";
+		scoop_position = "0.0 -2.0 -3";
 		thrust = 32;
 		weapon_position_aft = "0.0 -4.5 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1871,6 +1897,7 @@
 		model = "moray_redux.dat";
 		name = "Moray Star Boat";
 		roles = "pirate";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1895,6 +1922,7 @@
 		model = "moray_redux.dat";
 		name = "Moray Star Boat";
 		roles = "player";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		view_position_aft = "0.0 8.875 5.5";
 		view_position_forward = "0.0 4.4 22.5";
@@ -1990,6 +2018,7 @@
 		model = "moray_redux1.dat";
 		name = "Moray Medical Boat";
 		roles = "trader sunskim-trader";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		weapon_position_aft = "0.0 1.625 -20.0";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -2014,6 +2043,7 @@
 		model = "moray_redux1.dat";
 		name = "Moray Medical Boat";
 		roles = "player";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 32;
 		view_position_aft = "0.0 8.875 5.5";
 		view_position_forward = "0.0 4.4 22.5";
@@ -2130,6 +2160,7 @@
 		model = "python_redux.dat";
 		name = "Python";
 		roles = "trader pirate";
+		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2162,6 +2193,7 @@
 		model = "python_redux2.dat";
 		name = "Python";
 		roles = "pirate";
+		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2186,6 +2218,7 @@
 		model = "python_redux.dat";
 		name = "Python";
 		roles = "player";
+		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		view_position_aft = "0.0 15.0 -49.5";
 		view_position_forward = "0.0 10.0 31.5";
@@ -2283,6 +2316,7 @@
 		model = "python_redux1.dat";
 		name = "Python";
 		roles = "trader";
+		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
 		weapon_position_forward = "0.0 0.0 65.0";
@@ -2589,6 +2623,7 @@
 		model = "transporter_redux1.dat";
 		name = "Mining Transporter";
 		roles = "miner";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 -1.0 -17.5";
 		weapon_position_forward = "0.0 -3.4 17.5";
@@ -2751,6 +2786,7 @@
 		model = "worm_redux1.dat";
 		name = "Worm";
 		roles = "miner";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 12;
 		weapon_position_aft = "0.0 -4.8 -17.5";
 		weapon_position_forward = "0.0 -4.4 15.5";
