@@ -39,6 +39,10 @@ DEPS=$(LIBJS)
 release: $(DEPS)
 	make -f GNUmakefile debug=no
 	
+.PHONY: release-deployment
+release-deployment: $(DEPS)
+	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
+	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
 	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
@@ -66,7 +70,7 @@ endif
 	rm -Rf obj obj.dbg oolite.app
 
 .PHONY: all
-all: release release-snapshot debug
+all: release release-deployment release-snapshot debug
 
 .PHONY: remake
 remake: clean all
@@ -117,6 +121,10 @@ ${NSISVERSIONS}:
 .PHONY: pkg-win
 pkg-win: release ${NSISVERSIONS}
 	$(NSIS) installers/win32/OOlite.nsi
+	
+.PHONY: pkg-win-deployment
+pkg-win-deployment: release-deployment ${NSISVERSIONS}
+	$(NSIS) installers/win32/OOlite.nsi
 
 .PHONY: pkg-win-snapshot
 pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
@@ -138,5 +146,6 @@ help:
 	@echo
 	@echo "  pkg-autopackage - builds a Linux autopackage"
 	@echo
-	@echo "  pkg-win - builds a release version Windows installer package"
+	@echo "  pkg-win - builds a release version Windows installer package (test release)"
+	@echo "  pkg-win-deployment - builds a release version Windows installer package (deployment release)"
 	@echo "  pkg-win-snapshot - builds a snapshot version Windows installer package"
