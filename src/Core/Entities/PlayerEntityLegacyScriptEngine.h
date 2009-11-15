@@ -133,6 +133,7 @@ typedef enum
 
 - (void) setMissionDescription:(NSString *)textKey;
 - (void) clearMissionDescription;
+- (void) setMissionInstructions:(NSString *)text forMission:(NSString *)key;
 - (void) setMissionDescription:(NSString *)textKey forMission:(NSString *)key;
 - (void) clearMissionDescriptionForMission:(NSString *)key;
 
@@ -212,8 +213,7 @@ typedef enum
 - (void) showShipModel: (NSString *)shipKey;
 - (void) setMissionMusic: (NSString *)value;
 - (void) setMissionImage: (NSString *)value;
-- (NSString *) getMissionShipModel;
-- (NSString *) getMissionImage;
+- (void) setMissionTitle: (NSString *)value;
 
 - (void) setFuelLeak: (NSString *)value;
 - (NSNumber *)fuelLeakRate_number;
@@ -245,6 +245,9 @@ typedef enum
 /*-----------------------------------------------------*/
 
 - (void) setGuiToMissionScreen;
+- (void) setGuiToMissionScreenWithCallback:(BOOL) callback;
+- (void) doMissionCallback;
+- (void) noticeMissionOpportunity;
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key;
 - (void) addScene:(NSArray *) items atOffset:(Vector) off;
 - (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off;
@@ -252,5 +255,6 @@ typedef enum
 
 @end
 
+NSString *missionTitle;
 
 NSString *OOComparisonTypeToString(OOComparisonType type) CONST_FUNC;

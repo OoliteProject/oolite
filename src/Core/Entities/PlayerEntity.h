@@ -233,6 +233,7 @@ typedef enum
 	NSMutableDictionary		*localVariables;
 	int						missionTextRow;
 	NSString				*missionChoice;
+	BOOL					_missionWithCallback;
 	
 	NSString				*specialCargo;
 	
@@ -270,8 +271,6 @@ typedef enum
 	double					last_fps_check_time;
 	
 	NSString				*planetSearchString;
-	NSString				*missionShipModel;
-	NSString				*missionBackgroundFile;
 	
 	OOMatrix				playerRotMatrix;
 	
@@ -736,6 +735,7 @@ waitingForStickCallback: 1;
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
 - (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
+- (BOOL) doWorldEventUntilMissionScreen:(NSString *)message;
 
 - (BOOL)showInfoFlag;
 

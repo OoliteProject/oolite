@@ -59,21 +59,12 @@ Ship.__proto__.spawnOne = function (role)
 };
 
 
-// mission.runMissionScreen(): one-shot mission screen, until we get a proper MissionScreen class.
-mission.runMissionScreen = function (messageKey, backgroundImage, choiceKey, shipKey, musicKey)
+
+// mission.setInstructionsKey(): load mission text from mission.plist and use it as mission instructions.
+mission.setInstructionsKey = function(textKey)
 {
-	mission.showShipModel(shipKey);
-	mission.setMusic(musicKey);
-	mission.setBackgroundImage(backgroundImage);
-	mission.showMissionScreen();
-	mission.addMessageTextKey(messageKey);
-	if (choiceKey)
-	{
-		mission.setChoicesKey(choiceKey);
-	}
-	mission.setBackgroundImage();
-	mission.setMusic();
-};
+	mission.setInstructions(expandMissionText(textKey));
+}
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
@@ -257,3 +248,11 @@ Ship.__defineGetter__("cargoCapacity", function ()
 	special.jsWarning("ship.cargoCapacity is deprecated, use ship.cargoSpaceCapacity instead.");
 	return this.cargoSpaceAvailable;
 });
+
+
+mission.runMissionScreen = function (_messageKey, _backgroundImage, _choiceKey, _shipKey, _musicKey)
+{
+	special.jsWarning("Mission.runMissionScreen() is deprecated, use Mission.runScreen() instead.");
+	mission.runScreen({music:_musicKey, shipModel:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
+};
+

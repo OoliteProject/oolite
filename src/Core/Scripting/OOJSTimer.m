@@ -135,9 +135,9 @@ static JSClass sTimerClass;
 	// stop and remove this timer if it's out of scope.
 	if([_owningScript weakRefUnderlyingObject] == nil)
 	{
-	[self unscheduleTimer];
-	[self autorelease];
-	return;
+		[self unscheduleTimer];
+		[self autorelease];
+		return;
 	}
 	
 	[OOJSScript pushScript:_owningScript];

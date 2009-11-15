@@ -45,6 +45,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "Comparison.h"
 #import "OOLegacyScriptWhitelist.h"
+#import "OOJavaScriptEngine.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
@@ -131,6 +132,7 @@ static ShipEntity	*scriptTarget = nil;
 - (NSString *) expandScriptRightHandSide:(NSArray *)rhsComponents;
 
 - (void) scriptActions:(NSArray *)actions forTarget:(ShipEntity *)target missionKey:(NSString *)missionKey;
+- (NSString *) expandMessage:(NSString *)valueString;
 
 @end
 
@@ -817,52 +819,57 @@ static BOOL sRunningScript = NO;
 
 - (void) setMissionDescription:(NSString *)textKey
 {
-	NSString		*text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
-	if (!text)
-	{
-		OOLog(kOOLogScriptMissionDescNoText, @"***** SCRIPT ERROR: in %@, no missiontext set for key '%@' [UNIVERSE missiontext] is:\n%@ ", CurrentScriptDesc(), textKey, [UNIVERSE missiontext]);
-		return;
-	}
-	if (!sCurrentMissionKey)
-	{
-		OOLog(kOOLogScriptMissionDescNoKey, @"***** SCRIPT ERROR: in %@, sCurrentMissionKey not set", CurrentScriptDesc());
-		return;
-	}
-	text = ExpandDescriptionForCurrentSystem(text);
-	text = [self replaceVariablesInString: text];
-
-	[mission_variables setObject:text forKey:sCurrentMissionKey];
-}
-
-
-- (void) clearMissionDescription
-{
-	if (!sCurrentMissionKey)
-	{
-		OOLog(kOOLogScriptMissionDescNoText, @"***** SCRIPT ERROR: in %@, sCurrentMissionKey not set", CurrentScriptDesc());
-		return;
-	}
-	if (![mission_variables objectForKey:sCurrentMissionKey])
-		return;
-	[mission_variables removeObjectForKey:sCurrentMissionKey];
+	[self setMissionDescription:textKey forMission:sCurrentMissionKey];
 }
 
 
 - (void) setMissionDescription:(NSString *)textKey forMission:(NSString *)key
 {
-	NSString *old_sCurrentMissionKey = sCurrentMissionKey;
-	sCurrentMissionKey = key;
-	[self setMissionDescription:textKey];
-	sCurrentMissionKey = old_sCurrentMissionKey;
+	NSString		*text = [[UNIVERSE missiontext] oo_stringForKey:textKey];
+	
+	if (!text)
+	{
+		OOLogERR(kOOLogScriptMissionDescNoText, @"in %@, no mission text set for key '%@' [UNIVERSE missiontext] is:\n%@ ", CurrentScriptDesc(), textKey, [UNIVERSE missiontext]);
+		return;
+	}
+	
+	[self setMissionInstructions:text forMission:key];
+}
+
+
+// implementation of mission.setInstructions(), also final part of legacy setMissionDescription
+- (void) setMissionInstructions:(NSString *)text forMission:(NSString *)key
+{
+	if (!key)
+	{
+		OOLogERR(kOOLogScriptMissionDescNoKey, @"in %@, mission key not set", CurrentScriptDesc());
+		return;
+	}
+
+	text = ExpandDescriptionForCurrentSystem(text);
+	text = [self replaceVariablesInString: text];
+
+	[mission_variables setObject:text forKey:key];
+}
+
+
+- (void) clearMissionDescription
+{
+	[self clearMissionDescriptionForMission:sCurrentMissionKey];
 }
 
 
 - (void) clearMissionDescriptionForMission:(NSString *)key
 {
-	NSString *old_sCurrentMissionKey = sCurrentMissionKey;
-	sCurrentMissionKey = key;
-	[self clearMissionDescription];
-	sCurrentMissionKey = old_sCurrentMissionKey;
+	if (!key)
+	{
+		OOLogERR(kOOLogScriptMissionDescNoKey, @"in %@, mission key not set", CurrentScriptDesc());
+		return;
+	}
+	
+	if (![mission_variables objectForKey:key]) return;
+	
+	[mission_variables removeObjectForKey:key];
 }
 
 
@@ -1139,8 +1146,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 /*-----------------------------------------------------*/
 
-- (void) commsMessage:(NSString *)valueString
-{	
+
+- (NSString *) expandMessage:(NSString *)valueString
+{
 	Random_Seed very_random_seed;
 	very_random_seed.a = rand() & 255;
 	very_random_seed.b = rand() & 255;
@@ -1150,9 +1158,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	very_random_seed.f = rand() & 255;
 	seed_RNG_only_for_planet_description(very_random_seed);
 	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
-	expandedMessage = [self replaceVariablesInString: expandedMessage];
+	return [self replaceVariablesInString: expandedMessage];
+}
 
-	[UNIVERSE addCommsMessage:expandedMessage forCount:4.5];
+
+- (void) commsMessage:(NSString *)valueString
+{	
+	[UNIVERSE addCommsMessage:[self expandMessage:valueString] forCount:4.5];
 }
 
 
@@ -1167,35 +1179,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) consoleMessage3s:(NSString *)valueString
 {
-	Random_Seed very_random_seed;
-	very_random_seed.a = rand() & 255;
-	very_random_seed.b = rand() & 255;
-	very_random_seed.c = rand() & 255;
-	very_random_seed.d = rand() & 255;
-	very_random_seed.e = rand() & 255;
-	very_random_seed.f = rand() & 255;
-	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
-	expandedMessage = [self replaceVariablesInString: expandedMessage];
-
-	[UNIVERSE addMessage: expandedMessage forCount: 3];
+	[UNIVERSE addMessage:[self expandMessage:valueString] forCount: 3];
 }
 
 
 - (void) consoleMessage6s:(NSString *)valueString
 {
-	Random_Seed very_random_seed;
-	very_random_seed.a = rand() & 255;
-	very_random_seed.b = rand() & 255;
-	very_random_seed.c = rand() & 255;
-	very_random_seed.d = rand() & 255;
-	very_random_seed.e = rand() & 255;
-	very_random_seed.f = rand() & 255;
-	seed_RNG_only_for_planet_description(very_random_seed);
-	NSString* expandedMessage = ExpandDescriptionForCurrentSystem(valueString);
-	expandedMessage = [self replaceVariablesInString: expandedMessage];
-
-	[UNIVERSE addMessage: expandedMessage forCount: 6];
+	[UNIVERSE addMessage:[self expandMessage:valueString] forCount: 6];
 }
 
 
@@ -1921,7 +1911,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {													// choices/choice phrases in missiontext.plist and also..
 	GuiDisplayGen* gui = [UNIVERSE gui];
 	// TODO: MORE STUFF HERE
-	// must find list of choices in missiontext.plist
+	//
+	// What it does now:
+	// find list of choices in missiontext.plist
 	// add them to gui setting the key for each line to the key in the dict of choices
 	// and the text of the line to the value in the dict of choices
 	// and also set the selectable range
@@ -1973,6 +1965,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) clearMissionScreen
 {
 	[self setMissionImage:nil];
+	[self setMissionTitle:nil];
 	[self setMissionMusic:nil];
 	[self showShipModel:nil];
 }
@@ -2039,24 +2032,16 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
--(NSString *) getMissionShipModel
-{
-	return missionShipModel;
-}
-
-
 - (void) showShipModel:(NSString *)shipKey
 {
 	ShipEntity		*ship;
 
 	if (!dockedStation)  return;
-	missionShipModel = nil;
 	[UNIVERSE removeDemoShips];	// get rid of any pre-existing models on display
 	if ([shipKey isEqualToString:@"none"] || [shipKey length] == 0)  return;
 	
 	[[PlayerEntity sharedPlayer] setShowDemoShips: YES];
 	Quaternion		q2 = { (GLfloat)0.707, (GLfloat)0.707, (GLfloat)0.0, (GLfloat)0.0};
-	missionShipModel = [NSString stringWithString:shipKey];
 	ship = [UNIVERSE newShipWithRole: shipKey];   // retain count = 1
 	if (ship)
 	{
@@ -2087,21 +2072,21 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (NSString *) getMissionImage
+- (void) setMissionTitle:(NSString *)value
 {
-	return missionBackgroundFile;
+	[missionTitle autorelease];
+	missionTitle = nil;
+	if ([value length] != 0) missionTitle = [[NSString stringWithString: value] retain];
 }
 
 
 - (void) setMissionImage:(NSString *)value
 {
-	missionBackgroundFile = nil;
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
  	{
-		missionBackgroundFile = [NSString stringWithString: value];
 		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionBackgroundTexture retain];
  	}
@@ -2327,14 +2312,38 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 /*-----------------------------------------------------*/
 
 
+- (void) doMissionCallback
+{
+	//missionCallback
+	[[OOJavaScriptEngine sharedEngine] runCallback];
+}
+
+
+- (void) noticeMissionOpportunity
+{
+	// Older scripts might intercept missionScreenEnded first, and call secondary mission screens.
+	if(![self doWorldEventUntilMissionScreen:@"missionScreenEnded"])
+	{
+		// if we're here, no mission screen is running. Opportunity! :)
+		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+	}
+}
+
+
 - (void) setGuiToMissionScreen
+{
+	[self setGuiToMissionScreenWithCallback:NO];
+}
+
+
+- (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
 	GuiDisplayGen* gui = [UNIVERSE gui];
 
 	// GUI stuff
 	{
 		[gui clear];
-		[gui setTitle:DESC(@"mission-information")];
+		[gui setTitle: missionTitle ? missionTitle : DESC(@"mission-information")];
 		//
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
@@ -2363,6 +2372,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// the following are necessary...
 	[UNIVERSE setDisplayText:YES];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
+	_missionWithCallback = callback;
 }
 
 

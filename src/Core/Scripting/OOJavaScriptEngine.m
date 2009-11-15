@@ -102,7 +102,6 @@ static unsigned				sErrorHandlerStackSkip = 0;
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report);
 
-
 static void RegisterStandardObjectConverters(JSContext *context);
 
 static id JSArrayConverter(JSContext *context, JSObject *object);
@@ -198,6 +197,12 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	if (sSharedEngine == nil)  sSharedEngine =[[self alloc] init];
 	
 	return sSharedEngine;
+}
+
+
+- (void) runCallback
+{
+	MissionRunCallback();
 }
 
 

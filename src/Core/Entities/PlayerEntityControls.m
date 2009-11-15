@@ -3078,8 +3078,11 @@ static BOOL toggling_music;
 						[gui clearBackground];
 						[self setGuiToStatusScreen];
 						[[OOMusicController sharedController] stopMissionMusic];
-						
-						[self doScriptEvent:@"missionScreenEnded"];
+						if (_missionWithCallback)
+						{
+							[self doMissionCallback];
+						}
+						[self noticeMissionOpportunity];
 					}
 					spacePressed = YES;
 				}
@@ -3132,8 +3135,11 @@ static BOOL toggling_music;
 						[self setGuiToStatusScreen];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
-						
-						[self doScriptEvent:@"missionScreenEnded"];
+						if (_missionWithCallback)
+						{
+							[self doMissionCallback];
+						}
+						[self noticeMissionOpportunity];
 						[self checkScript];
 					}
 					selectPressed = YES;

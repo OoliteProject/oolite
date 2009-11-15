@@ -4023,7 +4023,12 @@ static PlayerEntity *sSharedPlayer = nil;
 	if (gui_screen == GUI_SCREEN_MISSION)
 	{
 		[[UNIVERSE gui] clearBackground];
-		[self doScriptEvent:@"missionScreenEnded"];
+		if (_missionWithCallback)
+		{
+			[self doMissionCallback];
+		}
+		// notify older scripts, but do not trigger missionScreenOpportunity.
+		[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
 	}
 	
 	if (station == [UNIVERSE station])
@@ -7112,6 +7117,19 @@ static NSString *last_outfitting_key=nil;
 {
 	[super doScriptEvent:message withArguments:arguments];
 	[self doWorldScriptEvent:message withArguments:arguments];
+}
+
+
+- (BOOL) doWorldEventUntilMissionScreen:(NSString *)message
+{
+	NSEnumerator	*scriptEnum = [worldScripts objectEnumerator];
+	OOScript		*theScript;
+	// FIXME: does this work ok in all situations? Needs fixing if not.
+	while ((theScript = [scriptEnum nextObject]) && gui_screen != GUI_SCREEN_MISSION)
+	{
+		[theScript doEvent:message withArguments:nil];
+	}
+	return (gui_screen == GUI_SCREEN_MISSION);
 }
 
 
