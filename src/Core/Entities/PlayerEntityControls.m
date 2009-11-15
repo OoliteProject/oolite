@@ -452,7 +452,8 @@ static NSTimeInterval	time_last_frame;
 #if OO_DEBUG
 	allowMouseControl = YES;
 #else
-	allowMouseControl = [[gameView gameController] inFullScreenMode];
+	allowMouseControl = [[gameView gameController] inFullScreenMode] ||
+			    [[NSUserDefaults standardUserDefaults] boolForKey:@"mouse-control-in-windowed-mode"];
 #endif
 	
 	if (allowMouseControl)
