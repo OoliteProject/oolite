@@ -78,6 +78,7 @@ static BOOL				docking_clearance_request_key_pressed;
 #ifndef NDEBUG
 static BOOL				dump_target_state_pressed;
 #endif
+static BOOL				hide_hud_pressed;
 static BOOL				f_key_pressed;
 static BOOL				m_key_pressed;
 static BOOL				taking_snapshot;
@@ -179,70 +180,70 @@ static NSTimeInterval	time_last_frame;
 	LOAD_KEY_SETTING(key_roll_right,			gvArrowKeyRight		);
 	LOAD_KEY_SETTING(key_pitch_forward,			gvArrowKeyUp		);
 	LOAD_KEY_SETTING(key_pitch_back,			gvArrowKeyDown		);
-	LOAD_KEY_SETTING(key_yaw_left,				','					);
-	LOAD_KEY_SETTING(key_yaw_right,				'.'					);
+	LOAD_KEY_SETTING(key_yaw_left,				','			);
+	LOAD_KEY_SETTING(key_yaw_right,				'.'			);
 	
-	LOAD_KEY_SETTING(key_increase_speed,		'w'					);
-	LOAD_KEY_SETTING(key_decrease_speed,		's'					);
-	LOAD_KEY_SETTING(key_inject_fuel,			'i'					);
+	LOAD_KEY_SETTING(key_increase_speed,			'w'			);
+	LOAD_KEY_SETTING(key_decrease_speed,			's'			);
+	LOAD_KEY_SETTING(key_inject_fuel,			'i'			);
 	
-	LOAD_KEY_SETTING(key_fire_lasers,			'a'					);
-	LOAD_KEY_SETTING(key_launch_missile,		'm'					);
-	LOAD_KEY_SETTING(key_next_missile,			'y'					);
-	LOAD_KEY_SETTING(key_ecm,					'e'					);
+	LOAD_KEY_SETTING(key_fire_lasers,			'a'			);
+	LOAD_KEY_SETTING(key_launch_missile,			'm'			);
+	LOAD_KEY_SETTING(key_next_missile,			'y'			);
+	LOAD_KEY_SETTING(key_ecm,				'e'			);
 	
-	LOAD_KEY_SETTING(key_target_missile,		't'					);
-	LOAD_KEY_SETTING(key_untarget_missile,		'u'					);
+	LOAD_KEY_SETTING(key_target_missile,			't'			);
+	LOAD_KEY_SETTING(key_untarget_missile,			'u'			);
 #if TARGET_INCOMING_MISSILES
-	LOAD_KEY_SETTING(key_target_incoming_missile, 'T'				);
+	LOAD_KEY_SETTING(key_target_incoming_missile,		'T'			);
 #endif
-	LOAD_KEY_SETTING(key_ident_system,			'r'					);
+	LOAD_KEY_SETTING(key_ident_system,			'r'			);
 	
-	LOAD_KEY_SETTING(key_scanner_zoom,			'z'					);
-	LOAD_KEY_SETTING(key_scanner_unzoom,		'Z'					);
+	LOAD_KEY_SETTING(key_scanner_zoom,			'z'			);
+	LOAD_KEY_SETTING(key_scanner_unzoom,			'Z'			);
 	
-	LOAD_KEY_SETTING(key_launch_escapepod,		27	/* esc */		);
-	LOAD_KEY_SETTING(key_energy_bomb,			'\t'				);
+	LOAD_KEY_SETTING(key_launch_escapepod,			27	/* esc */	);
+	LOAD_KEY_SETTING(key_energy_bomb,			'\t'			);
 	
-	LOAD_KEY_SETTING(key_galactic_hyperspace,	'g'					);
-	LOAD_KEY_SETTING(key_hyperspace,			'h'					);
-	LOAD_KEY_SETTING(key_jumpdrive,				'j'					);
+	LOAD_KEY_SETTING(key_galactic_hyperspace,		'g'			);
+	LOAD_KEY_SETTING(key_hyperspace,			'h'			);
+	LOAD_KEY_SETTING(key_jumpdrive,				'j'			);
 	
-	LOAD_KEY_SETTING(key_dump_cargo,			'd'					);
-	LOAD_KEY_SETTING(key_rotate_cargo,			'R'					);
+	LOAD_KEY_SETTING(key_dump_cargo,			'd'			);
+	LOAD_KEY_SETTING(key_rotate_cargo,			'R'			);
 	
-	LOAD_KEY_SETTING(key_autopilot,				'c'					);
-	LOAD_KEY_SETTING(key_autopilot_target,		'C'					);
-	LOAD_KEY_SETTING(key_autodock,				'D'					);
+	LOAD_KEY_SETTING(key_autopilot,				'c'			);
+	LOAD_KEY_SETTING(key_autopilot_target,			'C'			);
+	LOAD_KEY_SETTING(key_autodock,				'D'			);
 #if DOCKING_CLEARANCE_ENABLED
-	LOAD_KEY_SETTING(key_docking_clearance_request, 'L'				);
+	LOAD_KEY_SETTING(key_docking_clearance_request, 	'L'			);
 #endif
 	
-	LOAD_KEY_SETTING(key_snapshot,				'*'					);
-	LOAD_KEY_SETTING(key_docking_music,			's'					);
+	LOAD_KEY_SETTING(key_snapshot,				'*'			);
+	LOAD_KEY_SETTING(key_docking_music,			's'			);
 	
-	LOAD_KEY_SETTING(key_advanced_nav_array,	'^'					);
-	LOAD_KEY_SETTING(key_map_home,				gvHomeKey			);
-	LOAD_KEY_SETTING(key_map_info,				'i'					);
+	LOAD_KEY_SETTING(key_advanced_nav_array,		'^'			);
+	LOAD_KEY_SETTING(key_map_home,				gvHomeKey		);
+	LOAD_KEY_SETTING(key_map_info,				'i'			);
 	
-	LOAD_KEY_SETTING(key_pausebutton,			'p'					);
-	LOAD_KEY_SETTING(key_show_fps,				'F'					);
-	LOAD_KEY_SETTING(key_mouse_control,			'M'					);
+	LOAD_KEY_SETTING(key_pausebutton,			'p'			);
+	LOAD_KEY_SETTING(key_show_fps,				'F'			);
+	LOAD_KEY_SETTING(key_mouse_control,			'M'			);
 	
-	LOAD_KEY_SETTING(key_comms_log,				'`'					);
-	LOAD_KEY_SETTING(key_next_compass_mode,		'\\'				);
+	LOAD_KEY_SETTING(key_comms_log,				'`'			);
+	LOAD_KEY_SETTING(key_next_compass_mode,			'\\'			);
 	
-	LOAD_KEY_SETTING(key_cloaking_device,		'0'					);
+	LOAD_KEY_SETTING(key_cloaking_device,			'0'			);
 	
-	LOAD_KEY_SETTING(key_contract_info,			'\?'				);
+	LOAD_KEY_SETTING(key_contract_info,			'\?'			);
 	
-	LOAD_KEY_SETTING(key_next_target,			'+'					);
-	LOAD_KEY_SETTING(key_previous_target,		'-'					);
+	LOAD_KEY_SETTING(key_next_target,			'+'			);
+	LOAD_KEY_SETTING(key_previous_target,			'-'			);
 	
-	LOAD_KEY_SETTING(key_custom_view,			'v'					);
+	LOAD_KEY_SETTING(key_custom_view,			'v'			);
 	
 #ifndef NDEBUG
-	LOAD_KEY_SETTING(key_dump_target_state,		'H'					);
+	LOAD_KEY_SETTING(key_dump_target_state,			'H'			);
 #endif
 	
 	if (key_yaw_left == key_roll_left && key_yaw_left == ',')  key_yaw_left = 0;
@@ -1237,12 +1238,17 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 		}
 		
-#ifndef NDEBUG
 		if ([gameView isDown:'o'])// look for the 'o' key
 		{
-			gDebugFlags |= DEBUG_HIDE_HUD;
+			if (!hide_hud_pressed)
+			{
+				HeadUpDisplay *theHUD = [self hud];
+				[theHUD setIsHidden:![theHUD isHidden]];
+			}
+			hide_hud_pressed = YES;
 		}
-#endif
+		else
+			hide_hud_pressed = NO;
 
 		if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
 		{

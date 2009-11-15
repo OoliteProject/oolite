@@ -3787,7 +3787,7 @@ static const OOMatrix	starboard_matrix =
 			HeadUpDisplay *theHUD = [player hud];
 #ifndef NDEBUG
 			static float sPrevHudAlpha = -1.0f;
-			if (gDebugFlags & DEBUG_HIDE_HUD)
+			if ([theHUD isHidden])
 			{
 				if (sPrevHudAlpha < 0.0f)
 				{

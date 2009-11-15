@@ -195,6 +195,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 		[self addLegend:[legends oo_dictionaryAtIndex:i]];
 	}
 	
+	hudHidden = NO;
+	
 	overallAlpha = [hudinfo oo_floatForKey:@"overall_alpha" defaultValue:DEFAULT_OVERALL_ALPHA];
 	
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
@@ -333,6 +335,18 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 - (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue
 {
 	reticleTargetSensitive = !!newReticleTargetSensitiveValue; // ensure YES or NO.
+}
+
+
+- (BOOL) isHidden
+{
+	return hudHidden;
+}
+
+
+- (void) setIsHidden:(BOOL)newValue
+{
+	hudHidden = !!newValue;	// ensure YES or NO
 }
 
 

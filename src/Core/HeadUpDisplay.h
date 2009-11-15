@@ -207,6 +207,8 @@ MA 02110-1301, USA.
 	
 	BOOL				cloakIndicatorOnStatusLight;
 	
+	BOOL				hudHidden;
+	
 	int					last_transmitter;
 	
 	// Crosshairs
@@ -231,6 +233,9 @@ MA 02110-1301, USA.
 
 - (BOOL) reticleTargetSensitive;
 - (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue;
+
+- (BOOL) isHidden;
+- (void) setIsHidden:(BOOL)newValue;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;
