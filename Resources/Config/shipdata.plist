@@ -136,7 +136,7 @@
 		model = "alloy.dat";
 		name = "Metal fragment";
 		roles = "alloy";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		thrust = 0;
 		materials =
 		{
@@ -450,7 +450,7 @@
 		model = "asteroid.dat";
 		name = "Asteroid";
 		roles = "asteroid";
-		scanClass = "CLASS_ROCK";
+		scan_class = "CLASS_ROCK";
 		smooth = yes;
 		thrust = 0;
 		unpiloted = yes;
@@ -508,7 +508,7 @@
 		model = "barrel.dat";
 		name = "Cargo container";
 		roles = "cargopod 1t-cargopod";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		thrust = 0;
 		unpiloted = yes;
 		weapon_energy = 0;
@@ -783,7 +783,7 @@
 		model = "boulder.dat";
 		name = "Boulder";
 		roles = "boulder";
-		scanClass = "CLASS_ROCK";
+		scan_class = "CLASS_ROCK";
 		smooth = yes;
 		thrust = 0;
 		unpiloted = yes;
@@ -880,7 +880,7 @@
 		model = "barrel.dat";
 		name = "Unusual cargo container";
 		roles = "cloaking-device";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		script = "oolite-cloaking-device-pod.js";
 		thrust = 0;
 		unpiloted = yes;
@@ -1518,7 +1518,7 @@
 		model = "missile.dat";
 		name = "ECM Hardened Missile";
 		roles = "missile EQ_HARDENED_MISSILE";
-		scanClass = "CLASS_MISSILE";
+		scan_class = "CLASS_MISSILE";
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
@@ -1545,7 +1545,7 @@
 		model = "escpod_redux.dat";
 		name = "Escape capsule";
 		roles = "escape-capsule";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		subentities =
 		(
 			"*FLASHER* 0.0 4.42 -1.54\t0.0 2 0.0 2.0",
@@ -1869,7 +1869,7 @@
 		model = "missile.dat";
 		name = "Missile";
 		roles = "missile EQ_MISSILE";
-		scanClass = "CLASS_MISSILE";
+		scan_class = "CLASS_MISSILE";
 		thrust = 250;
 		unpiloted = yes;
 		weapon_energy = 4500;
@@ -2499,7 +2499,7 @@
 		model = "splinter.dat";
 		name = "Splinter";
 		roles = "splinter";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		smooth = yes;
 		thrust = 0;
 		unpiloted = yes;
@@ -2543,7 +2543,7 @@
 		model = "thargon_redux.dat";
 		name = "Thargoid Robot Fighter";
 		roles = "tharglet thargon";
-		scanClass = "CLASS_THARGOID";
+		scan_class = "CLASS_THARGOID";
 		scanner_range = 50000;
 		thrust = 40;
 		unpiloted = yes;
@@ -2574,7 +2574,7 @@
 		model = "thargoid_redux.dat";
 		name = "Thargoid Warship";
 		roles = "thargoid thargoid-mothership";
-		scanClass = "CLASS_THARGOID";
+		scan_class = "CLASS_THARGOID";
 		scanner_range = 60000;
 		script = "oolite-thargoid-warship.js";
 		thrust = 50;
@@ -2649,7 +2649,7 @@
 		model = "viper_redux.dat";
 		name = "GalCop Viper";
 		roles = "police";
-		scanClass = "CLASS_POLICE";
+		scan_class = "CLASS_POLICE";
 		subentities = (
 			"*FLASHER* -25.00 0.0 -27.50 260.0 2 0.5 8",
 			"*FLASHER* -21.88 0.0 -20.63 260.0 2 0.6 8",
@@ -2695,7 +2695,7 @@
 		model = "viperi_redux.dat";
 		name = "GalCop Viper Interceptor";
 		roles = "interceptor wingman";
-		scanClass = "CLASS_POLICE";
+		scan_class = "CLASS_POLICE";
 		subentities = (
 			"*FLASHER* -32.00 0.00 -22.00 260.0 2 0.5 8",
 			"*FLASHER* -29.25 0.00 -15.25 260.0 2 0.6 8",
@@ -2808,7 +2808,7 @@
 		model = "wreck1.dat";
 		name = "Wreckage";
 		roles = "wreckage";
-		scanClass = "CLASS_CARGO";
+		scan_class = "CLASS_CARGO";
 		thrust = 0;
 	};
 	"more-wreckage2" =

@@ -186,6 +186,7 @@
 		knownShipKeys =
 		(
 			"like_ship",
+			"is_template",
 			"max_flight_speed",
 			"max_flight_roll",
 			"max_flight_pitch",
