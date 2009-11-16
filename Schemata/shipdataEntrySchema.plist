@@ -62,6 +62,7 @@
 		frangible = "boolean";
 		laser_color = "$colorSpecifier";
 		scanClass = "$scanClass";
+		scan_class = "$scanClass";
 		launch_actions = "$scriptActions";
 		script_actions = "$scriptActions";
 		death_actions = "$scriptActions";
