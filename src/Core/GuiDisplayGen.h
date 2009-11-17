@@ -79,6 +79,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 	OOColor			*textColor;
 	
 	OpenGLSprite	*backgroundSprite;
+	OpenGLSprite	*foregroundSprite;
 	
 	NSString		*title;
 	
@@ -207,11 +208,13 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) scrollUp:(int) how_much;
 
 - (void)setBackgroundTexture:(OOTexture *)backgroundTexture;
+- (void)setForegroundTexture:(OOTexture *)foregroundTexture;
 - (void)clearBackground;
 
 - (void)leaveLastLine;
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
+- (void) drawGUIBackground;
 - (void) setStatusPage:(int) pageNum;
 
 - (Random_Seed) targetNextFoundSystem:(int)direction;

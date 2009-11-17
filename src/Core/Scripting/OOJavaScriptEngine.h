@@ -63,7 +63,7 @@ enum
 
 - (JSObject *)globalObject;
 
-- (void) runCallback;
+- (void) runMissionCallback;
 
 // The current context. NULL if nothing executing.
 // - (JSContext *)context;

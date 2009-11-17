@@ -1915,7 +1915,11 @@ static NSTimeInterval	time_last_frame;
 					BOOL reportEnded = ([dockingReport length] == 0);
 					[self playDismissedReportScreen];
 					[self setGuiToStatusScreen];
-					if(reportEnded) [self doScriptEvent:@"reportScreenEnded"];  // last report given. Screen is now free for missionscreens.
+					if(reportEnded)
+					{
+						[self doScriptEvent:@"reportScreenEnded"];  // last report given. Screen is now free for missionscreens.
+						[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+					}
 				}
 				spacePressed = YES;
 			}
@@ -3051,8 +3055,9 @@ static BOOL toggling_music;
 				[self setStatus: STATUS_DOCKED];
 				[UNIVERSE removeDemoShips];
 				[gui clearBackground];
-				[self setGuiToStatusScreen];
 				[[OOMusicController sharedController] stopThemeMusic];
+				[self setGuiToStatusScreen];
+				[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// trigger missionScreenOpportunity immediately after (re)start
 			}
 			if ([gameView isDown:gvArrowKeyLeft])	//  '<--'
 			{
@@ -3077,13 +3082,13 @@ static BOOL toggling_music;
 						[self setStatus:STATUS_DOCKED];
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
-						[self setGuiToStatusScreen];
 						[[OOMusicController sharedController] stopMissionMusic];
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self noticeMissionOpportunity];
+						[self setGuiToStatusScreen];
+						[self endMissionScreenAndNoteOpportunity];
 					}
 					spacePressed = YES;
 				}
@@ -3133,14 +3138,14 @@ static BOOL toggling_music;
 						
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
-						[self setGuiToStatusScreen];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self noticeMissionOpportunity];
+						[self setGuiToStatusScreen];
+						[self endMissionScreenAndNoteOpportunity];
 						[self checkScript];
 					}
 					selectPressed = YES;

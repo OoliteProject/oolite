@@ -200,7 +200,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (void) runCallback
+- (void) runMissionCallback
 {
 	MissionRunCallback();
 }

@@ -151,6 +151,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (void) dealloc
 {
 	[backgroundSprite release];
+	[foregroundSprite release];
 	[backgroundColor release];
 	[textColor release];
 	[title release];
@@ -765,9 +766,22 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (void)setForegroundTexture:(OOTexture *)foregroundTexture
+{
+	[foregroundSprite release];
+	foregroundSprite = nil;
+	
+	if (foregroundTexture != nil)
+	{
+		foregroundSprite = [[OpenGLSprite alloc] initWithTexture:foregroundTexture];
+	}
+}
+
+
 - (void)clearBackground
 {
 	[self setBackgroundTexture:nil];
+	[self setForegroundTexture:nil];
 }
 
 
@@ -862,6 +876,19 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		{
 			OODrawString (name, 50, first_y - 16 * (i - items_per_column - start), z, NSMakeSize(15, 15));
 		}
+	}
+}
+
+
+- (void) drawGUIBackground
+{
+	GLfloat x = drawPosition.x;
+	GLfloat y = drawPosition.y;
+	GLfloat z = [[UNIVERSE gameView] display_z];
+
+	if (backgroundSprite!=nil)
+	{
+		[backgroundSprite blitCentredToX:x Y:y Z:z alpha:1.0f];
 	}
 }
 
@@ -968,11 +995,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glEnd();
 	}
 	
-	// show background image...
+	// show foremost background image...
 	//
-	if (backgroundSprite!=nil)
+	
+	if (foregroundSprite!=nil)
 	{
-		[backgroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
+		[foregroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
 	}
 	
 	if (!RowInRange(selectedRow, selectableRange))

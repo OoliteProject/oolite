@@ -633,7 +633,7 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN
 	}
 	else
 	{
-		OOReportJSError(context, @"PlayerShip.removeAllCargo() may only be called when the player is docked.");
+		OOReportJSError(context, @"%@removeAllCargo only works when docked.",@"PlayerShip.");
 		return NO;
 	}
 }

@@ -213,6 +213,7 @@ typedef enum
 - (void) showShipModel: (NSString *)shipKey;
 - (void) setMissionMusic: (NSString *)value;
 - (void) setMissionImage: (NSString *)value;
+- (void) setMissionBackground: (NSString *)value;
 - (void) setMissionTitle: (NSString *)value;
 
 - (void) setFuelLeak: (NSString *)value;
@@ -247,7 +248,7 @@ typedef enum
 - (void) setGuiToMissionScreen;
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback;
 - (void) doMissionCallback;
-- (void) noticeMissionOpportunity;
+- (void) endMissionScreenAndNoteOpportunity;
 - (void) setBackgroundFromDescriptionsKey:(NSString*) d_key;
 - (void) addScene:(NSArray *) items atOffset:(Vector) off;
 - (BOOL) processSceneDictionary:(NSDictionary *) couplet atOffset:(Vector) off;

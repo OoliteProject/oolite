@@ -253,6 +253,7 @@ Ship.__defineGetter__("cargoCapacity", function ()
 mission.runMissionScreen = function (_messageKey, _backgroundImage, _choiceKey, _shipKey, _musicKey)
 {
 	special.jsWarning("Mission.runMissionScreen() is deprecated, use Mission.runScreen() instead.");
-	mission.runScreen({music:_musicKey, shipModel:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
+	// pre-1.74 mission.setBackgroundImage did set the foreground (foremost background image (!)
+	mission.runScreen({music:_musicKey, showModel:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
 };
 

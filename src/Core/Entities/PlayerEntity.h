@@ -242,6 +242,7 @@ typedef enum
 	NSMutableDictionary		*oxpKeys;
 	
 	OOTexture				*missionBackgroundTexture;
+	OOTexture				*missionForegroundTexture;
 	
 	BOOL					found_equipment;
 	

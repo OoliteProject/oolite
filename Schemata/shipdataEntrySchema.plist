@@ -81,7 +81,9 @@
 		pilot = "$characterKey";
 		unpiloted = "fuzzyBoolean";
 		escort-role = "$shipRole";
+		escort_role = "$shipRole";
 		escort-ship = "$shipKey";
+		escort_ship = "$shipKey";
 		missile_launch_position = "vector";
 		missile_role = "$shipRole";
 		escape_pod_model = "$shipRole";
@@ -90,15 +92,8 @@
 		rotating = "boolean";
 		defense_ship = "$shipKey";
 		defense_ship_role = "$shipRole";
-		hasShipyard =
-		{
-			type = "oneOf";
-			options =
-			(
-				"$scriptCondition",
-				"boolean"
-			);
-		};
+		hasShipyard = "$hasShipyard";
+		has_shipyard = "$hasShipyard";
 		conditions = "$scriptConditionList";
 		port_radius = "positiveFloat";
 		port_dimensions = "$portDimensions";
@@ -124,6 +119,7 @@
 		script_info = "dictionary";
 		is_submunition = "boolean";
 		isCarrier = "boolean";
+		is_carrier = "boolean";
 		no_boulders = "fuzzyBoolean";
 		hyperspace_motor_spin_time = "positiveFloat";
 		requires_docking_clearance = "boolean";
@@ -337,6 +333,15 @@
 				requiredSuffix = ".png";
 			};
 			key = "textureFileName";
+		};
+		$hasShipyard =
+		{
+			type = "oneOf";
+			options =
+			(
+				"$scriptCondition",
+				"boolean"
+			);
 		};
 		$aiFileName =
 		{

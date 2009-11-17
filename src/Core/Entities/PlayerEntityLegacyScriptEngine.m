@@ -1363,18 +1363,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([self status] != STATUS_DOCKED && !forceRemoval)
 	{
-		OOLog(kOOLogRemoveAllCargoNotDocked, @"***** SCRIPT ERROR: in %@, removeAllCargo: only works when docked.", CurrentScriptDesc());
+		OOLogWARN(kOOLogRemoveAllCargoNotDocked, @"%@removeAllCargo only works when docked.", [NSString stringWithFormat:@" in %@, ", CurrentScriptDesc()]);
 		return;
 	}
 	
-	if (forceRemoval)
-	{
-		OOLog(kOOLogNoteRemoveAllCargo, @"Forcing removeAllCargo:");
-	}
-	else
-	{
-		OOLog(kOOLogNoteRemoveAllCargo, @"Going to removeAllCargo:");
-	}
+	OOLog(kOOLogNoteRemoveAllCargo, @"%@ removeAllCargo", forceRemoval ? @"Forcing" : @"Going to");
 	
 	NSMutableArray *manifest = [NSMutableArray arrayWithArray:shipCommodityData];
 	for (type = 0; type < (OOCargoType)[manifest count]; type++)
@@ -1413,10 +1406,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) useSpecialCargo:(NSString *)descriptionString;
 {
 	if (scriptTarget != self)  return;
-	
+
+	[self removeAllCargo:YES];	
 	OOLog(kOOLogNoteUseSpecialCargo, @"Going to useSpecialCargo:'%@'", descriptionString);
-	
-	[self removeAllCargo:YES];
 	specialCargo = [ExpandDescriptionForCurrentSystem(descriptionString) retain];
 }
 
@@ -2082,6 +2074,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionImage:(NSString *)value
 {
+	[missionForegroundTexture release];
+	missionForegroundTexture = nil;
+	
+	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
+ 	{
+		missionForegroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
+		[missionForegroundTexture retain];
+ 	}
+}
+
+
+- (void) setMissionBackground:(NSString *)value
+{
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
 	
@@ -2315,11 +2320,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 - (void) doMissionCallback
 {
 	//missionCallback
-	[[OOJavaScriptEngine sharedEngine] runCallback];
+	[[OOJavaScriptEngine sharedEngine] runMissionCallback];
 }
 
 
-- (void) noticeMissionOpportunity
+- (void) endMissionScreenAndNoteOpportunity
 {
 	// Older scripts might intercept missionScreenEnded first, and call secondary mission screens.
 	if(![self doWorldEventUntilMissionScreen:@"missionScreenEnded"])
@@ -2351,6 +2356,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		//
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		[gui setBackgroundTexture:missionBackgroundTexture];
+		[gui setForegroundTexture:missionForegroundTexture];
 
 		[gui setShowTextCursor:NO];
 	}

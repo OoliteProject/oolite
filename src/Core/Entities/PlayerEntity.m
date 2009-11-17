@@ -929,6 +929,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
+	[missionForegroundTexture release];
+	missionForegroundTexture = nil;
 	
 	script_time = 0.0;
 	script_time_check = SCRIPT_TIMER_INTERVAL;
@@ -1265,6 +1267,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[shipyard_record release];
 
 	[missionBackgroundTexture release];
+	[missionForegroundTexture release];
 
 	[player_name release];
 	[shipCommodityData release];
@@ -3985,22 +3988,30 @@ static PlayerEntity *sSharedPlayer = nil;
 		[self penaltyForUnauthorizedDocking];
 	}
 #endif
-
-	// time to check the script!
+		
+	// if not being fined, it's time to check the script - can trigger legacy missions
 	if (!being_fined)  [self checkScript];
 	
-	// if we've not switched to the mission screen then proceed normally..
-	if (gui_screen != GUI_SCREEN_MISSION)
+	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
+
+	// If the player is fined, it shows the fine on screen. If a mission
+	// screen is started, the on-screen message is removed immediately.
+	
+	// fines need to be applied before mission screens.
+	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] == 0)
 	{
-		// check for fines
-		if (being_fined)  [self getFined];
-		
-		[self setGuiToStatusScreen];
+		if (being_fined) [self getFined];
+		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
 	}
 	
+	// if we've not switched to the mission screen yet then proceed normally..
+	if (gui_screen != GUI_SCREEN_MISSION)
+	{
+		// apply any pending fines, if not done above.
+		if (being_fined && [dockingReport length] != 0) [self getFined];
+		[self setGuiToStatusScreen];	// also displays docking reports if needed.
+	}
 	[[OOCacheManager sharedCache] flush];
-	
-	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
 }
 
 
@@ -7129,7 +7140,15 @@ static NSString *last_outfitting_key=nil;
 	{
 		[theScript doEvent:message withArguments:nil];
 	}
-	return (gui_screen == GUI_SCREEN_MISSION);
+	
+	if (gui_screen == GUI_SCREEN_MISSION)
+	{
+		// remove any fines messages from the screen!
+		[[UNIVERSE message_gui] clear];
+		return YES;
+	}
+	
+	return NO;
 }
 
 

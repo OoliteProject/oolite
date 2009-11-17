@@ -48,7 +48,6 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 
 //  Mission screen  callback varibables
 static jsval		callbackFunction;
-static JSContext	*callbackContext;
 static JSObject		*callbackThis;
 static OOJSScript	*callbackScript;
 
@@ -72,10 +71,10 @@ enum
 {
 	// Property IDs
 	kMission_choice,			// selected option, string, read/write.
-	kMission_title,				// title of mission screen, string, read/write.
-	kMission_foreground,		// missionforeground image, string, read/write.
-	kMission_background,		// mission background image, string, read/write.
-	kMission_shipModel,			// mission ship model role, string, read/write.
+	kMission_title,				// title of mission screen, string.
+	kMission_foreground,		// missionforeground image, string.
+	kMission_background,		// mission background image, string.
+	kMission_showModel,			// mission 'ship' model role, string.
 };
 
 
@@ -117,8 +116,9 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 
 void MissionRunCallback()
 {
-	jsval			*argval;
+	jsval			argval = JSVAL_VOID;
 	jsval			rval = JSVAL_VOID;
+	JSContext		*context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	
 	// don't do anything if we don't have a function, or script.
 	if(JSVAL_IS_NULL(callbackFunction) || [callbackScript weakRefUnderlyingObject] == nil)
@@ -126,15 +126,17 @@ void MissionRunCallback()
 		return;
 	}
 	
-	*argval = [[OOPlayerForScripting() missionChoice_string] javaScriptValueInContext:callbackContext];
+	argval = [[OOPlayerForScripting() missionChoice_string] javaScriptValueInContext:context];
 
 	[OOJSScript pushScript:callbackScript];
 	[[OOJavaScriptEngine sharedEngine] callJSFunction:callbackFunction
 											forObject:callbackThis
 												 argc:1
-												 argv:argval
+												 argv:&argval
 											   result:&rval];
 	[OOJSScript popScript:callbackScript];
+	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	callbackFunction = JSVAL_NULL;
 }
 
 
@@ -158,7 +160,7 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name,
 		case kMission_title:
 		case kMission_foreground:
 		case kMission_background:
-		case kMission_shipModel:
+		case kMission_showModel:
 			result = [NSNull null];
 			break;
 		
@@ -198,11 +200,11 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 		
 		case kMission_background:
 			// If value can't be converted to a string this will clear the background image.
-			[player setMissionImage:JSValToNSString(context,*value)];
+			[player setMissionBackground:JSValToNSString(context,*value)];
 			break;
 		
-		case kMission_shipModel:
-			// If value can't be converted to a string this will clear the ship model.
+		case kMission_showModel:
+			// If value can't be converted to a string this will clear the entity (ship) model.
 			[player showShipModel:JSValToNSString(context, *value)];
 			break;
 			
@@ -222,6 +224,7 @@ static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN 
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	
+	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"showMissionScreen");
 	[player setGuiToMissionScreen];
 	
 	return YES;
@@ -287,6 +290,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 	NSString			*key = nil;
 	
 	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"setBackgroundImage");
+	// set the foremost background image - backward compatible.
 	if (argc >= 1)  key = JSValToNSString(context,argv[0]);
 	[player setMissionImage:key];
 	
@@ -409,23 +413,20 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	str=@"foreground";
 	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
-	else
-	{
-		str=@"background";
-		if (JS_GetProperty(context, params, [str UTF8String], &value))
-			MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
-	}
 	
-	str=@"shipModel";
+	str=@"showModel";
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_shipModel), &value);
+		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_showModel), &value);
+	
+	str=@"background";
+	if (JS_GetProperty(context, params, [str UTF8String], &value))
+		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
 	
 	callbackFunction = function;
 	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(function)]; 
 	if (!JSVAL_IS_NULL(function))
 	{
 		callbackThis = this;
-		callbackContext = context;
 		callbackScript = [[OOJSScript currentlyRunningScript] weakRetain];
 	}
 	

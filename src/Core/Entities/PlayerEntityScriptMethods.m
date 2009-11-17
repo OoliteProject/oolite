@@ -233,7 +233,7 @@ MA 02110-1301, USA.
 		}
 		else
 		{
-			[missionChoice release];
+			[missionChoice autorelease];
 			missionChoice = [newChoice copy];
 		}
 	}
