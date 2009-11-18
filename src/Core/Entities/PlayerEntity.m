@@ -3994,24 +3994,21 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self doScriptEvent:@"shipDockedWithStation" withArgument:dockedStation];
 
-	// If the player is fined, it shows the fine on screen. If a mission
-	// screen is started, the on-screen message is removed immediately.
-	
-	// fines need to be applied before mission screens.
-	if (gui_screen != GUI_SCREEN_MISSION && [dockingReport length] == 0)
-	{
-		if (being_fined) [self getFined];
-		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
-	}
-	
 	// if we've not switched to the mission screen yet then proceed normally..
 	if (gui_screen != GUI_SCREEN_MISSION)
 	{
 		// apply any pending fines, if not done above.
-		if (being_fined && [dockingReport length] != 0) [self getFined];
+		if (being_fined) [self getFined];
 		[self setGuiToStatusScreen];	// also displays docking reports if needed.
 	}
 	[[OOCacheManager sharedCache] flush];
+	
+	// If we're showing the report screen, we don't want to do anything now.
+	if (gui_screen != GUI_SCREEN_REPORT)
+	{
+		// When a mission screen is started, any on-screen message is removed immediately.
+		[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+	}
 }
 
 
@@ -5123,7 +5120,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		if (dockedStation == nil)
 			dockedStation = [UNIVERSE station];
-		canLoadOrSave = (dockedStation == [UNIVERSE station] && ![[UNIVERSE sun] goneNova]);
+		canLoadOrSave = (dockedStation == [UNIVERSE station] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova]));
 	}
 	
 	BOOL canQuickSave = (canLoadOrSave && ([[gameView gameController] playerFileToLoad] != nil));

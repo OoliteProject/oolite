@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
 #import "Universe.h"
+#import "PlanetEntity.h"
 #import "GameController.h"
 #import "AI.h"
 #import "MyOpenGLView.h"
@@ -2989,7 +2990,7 @@ static BOOL toggling_music;
 			if (!dockedStation)  dockedStation = [UNIVERSE station];
 			station = dockedStation;	// leaveDock will clear dockedStation.
 			
-			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow] && ![[UNIVERSE generateSystemData:system_seed] oo_boolForKey:@"sun_gone_nova"]) [self autosavePlayer];
+			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova])) [self autosavePlayer];
 			// autosave at the second launch after load / restart
 			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
 			[self leaveDock:dockedStation];
@@ -3083,11 +3084,12 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
+						[self setGuiToStatusScreen];	// some js actions require this to be set first.
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self setGuiToStatusScreen];
+						[self setGuiToStatusScreen];	// we need to provide feedback when something changes inside the callback.
 						[self endMissionScreenAndNoteOpportunity];
 					}
 					spacePressed = YES;
@@ -3140,11 +3142,12 @@ static BOOL toggling_music;
 						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
+						[self setGuiToStatusScreen];	// enable some js commands
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self setGuiToStatusScreen];
+						[self setGuiToStatusScreen];	// enable feedback
 						[self endMissionScreenAndNoteOpportunity];
 						[self checkScript];
 					}

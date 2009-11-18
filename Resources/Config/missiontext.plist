@@ -1,6 +1,7 @@
 {
 	// Constrictor Hunt mission (oolite-constrictor-hunt-mission.js)
 	
+	"constrictor_hunt_title" = "Space Navy Mission";
 	"constrictor_hunt_0_150" = "“The constrictor was last seen at %J036, Commander.”";
 	"constrictor_hunt_0_28" = "“Yep, an unusual new ship had a galactic hyperdrive fitted here, used it too.”";
 	"constrictor_hunt_0_36" = "“A strange looking ship left here a while back. Looked bound for %J028.”";
@@ -12,28 +13,29 @@
 	"constrictor_hunt_1_A" = "“I hear a weird looking ship was seen at %J253.”";
 	
 	"constrictor_hunt_brief1" = "---INCOMING MESSAGE\n\nGreetings Commander,\n\nI am Captain Curruthers of Her Imperial Majesty’s Space Navy and I beg a moment of your valuable time. We would like you to do a little job for us.\nThe ship you see here is a new model, the Constrictor, equipped with a top secret new shield generator.\n\nUnfortunately it’s been stolen.\n";
-	"conhunt_short_desc1" = "Hunt for the Constrictor stolen from %J150.";
-	"conhunt_short_desc1b" = "Hunt for the Constrictor stolen from Xeer Shipyards.";
 	"constrictor_hunt_brief1a" = "It went missing from our ship yard on %J150 five months ago and was last seen at %J036. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
 	"constrictor_hunt_brief1b" = "It went missing from Xeer Shipyards five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
+	"constrictor_hunt_info1a" = "Hunt for the Constrictor stolen from %J150.";
+	"constrictor_hunt_info1b" = "Hunt for the Constrictor stolen from Xeer Shipyards.";
 	"constrictor_hunt_debrief" = "---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty’s Space Navy.\n\nAnd maybe sooner than you think...\n\n---MESSAGE ENDS.";
-	"conhunt-thief-captured" = "You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n";
+	"constrictor_hunt_thief_captured" = "You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n";
 	
 	
 	// Thargoid Plans mission (oolite-thargoid-plans-mission.js)
 	
-	"thargoid_plans_debrief" = "---INCOMING MESSAGE\n\nYou have served us well and we shall remember.\n\nWe did not expect the Thargoids to find out about you.\n\nFor the moment please accept this Navy Extra Energy Unit as payment.\n\n---MESSAGE ENDS.";
-	"thargoid_plans_intro_brief" = "---INCOMING MESSAGE\n\nAttention Commander, I am Captain Fortesque of Her Imperial Majesty’s Space Navy.\n\nWe have need of your services again.\n\nIf you would be so good as to go to %J083 you will be briefed.\n\nIf successful, you will be rewarded.\n\n---MESSAGE ENDS.";
-	"thargoid_plans_main_brief" = "---INCOMING MESSAGE\n\nGood Day Commander.\n\nI am Agent Blake of Naval Intelligence.\nAs you know, the Navy have been keeping the Thargoids off your ass out in deep space for many years now.\nWell the situation has changed. Our boys are ready for a push right to the home system of those murderers.\n\nI have obtained the defence plans for their Hive Worlds. The beetles know we’ve got something but not what. If I transmit the plans to our base on %J036 they’ll intercept the transmission. I need a ship to make the run. You’re elected.\n\nThe plans are unipulse coded within this transmission. You will be paid.\n\nGood luck Commander.\n\n---MESSAGE ENDS.";
-	"thargplans_short_desc1" = "Go to %J083 for a briefing.";
-	"thargplans_short_desc2" = "Convey the secret plans to %J036.";
-	
+	"thargoid_plans_title" = "Space Navy Mission";
+	"thargoid_plans_brief1" = "---INCOMING MESSAGE\n\nAttention Commander, I am Captain Fortesque of Her Imperial Majesty’s Space Navy.\n\nWe have need of your services again.\n\nIf you would be so good as to go to %J083 you will be briefed.\n\nIf successful, you will be rewarded.\n\n---MESSAGE ENDS.";
+	"thargoid_plans_brief2" = "---INCOMING MESSAGE\n\nGood Day Commander.\n\nI am Agent Blake of Naval Intelligence.\nAs you know, the Navy have been keeping the Thargoids off your ass out in deep space for many years now.\nWell the situation has changed. Our boys are ready for a push right to the home system of those murderers.\n\nI have obtained the defence plans for their Hive Worlds. The beetles know we’ve got something but not what. If I transmit the plans to our base on %J036 they’ll intercept the transmission. I need a ship to make the run. You’re elected.\n\nThe plans are unipulse coded within this transmission. You will be paid.\n\nGood luck Commander.\n\n---MESSAGE ENDS.";
+	"thargoid_plans_info1" = "Go to %J083 for a briefing.";
+	"thargoid_plans_info2" = "Convey the secret plans to %J036.";
+	"thargoid_plans_debrief" = "---INCOMING MESSAGE\n\nYou have served us well and we shall remember.\n\nWe did not expect the Thargoids to find out about you.\n\nFor the moment please accept this Navy Extra Energy Unit as payment.\n\n---MESSAGE ENDS.";	
 	
 	// Nova mission (oolite-nova-mission.js)
 	
-	"oolite_nova" = "You’ve arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!";
+	"oolite_nova_title" = "Rescue Mission";
+	"oolite_nova_brief" = "You’ve arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!";
+	"oolite_nova_info" = "Get the refugees to safety.";
 	"oolite_nova_hero" = "Commander, we thank you.\n\nYou’ve brought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!";
-	"oolite_nova_short_desc" = "Get the refugees to safety.";
 	"oolite_nova_disappointed" = "Commander, you should be ashamed.\nThose people you left behind had laid their hopes on you and you just left them to their fate.\n\nYour behaviour has been that of a coward."; 
 	"oolite_nova_ignored" = "Commander,\n you were the last hope for survivival for the remaining refugees. If you hadn’t\nignored the emergency, they could have escaped the nova explosion.\n\nHow could you abandon them to their fate..."; 
 	"oolite_nova_yesno" =
@@ -45,6 +47,7 @@
 	
 	// Trumbles mission (oolite-trumbles-mission.js)
 	
+	"oolite_trumble_title" = "Special Offer";
 	"oolite_trumble_offer" = "Commander [commander_name],\n\nYou look like someone who could use a Trumble on your [commander_shipdisplayname]!\n\nThis is yours for only 30 credits.";
 	"oolite_trumble_offer_yesno" =
 	{

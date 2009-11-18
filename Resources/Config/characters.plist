@@ -31,7 +31,7 @@
 						);
 					},
 					"awardCredits: 1000",
-					"addMissionText: conhunt-thief-captured"
+					"addMissionText: constrictor_hunt_thief_captured"
 				);
 			}
 		);

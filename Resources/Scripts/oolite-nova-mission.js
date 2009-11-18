@@ -36,17 +36,11 @@ this.copyright		= "© 2009 the Oolite team.";
 this.version		= "1.74";
 
 
-this.startUp = function ()
-{
-	if (missionVariables.nova && missionVariables.nova === "NOVA_HERO") this.cleanUp();
-}
-
-
 this.missionOffers = function ()
 {
-	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
+	if (!player.ship.docked)  { return; }
 
-	// Choices are handled inside the missionScreenEnded and missionChoiceWasReset events.
+	// Choices are handled inside this.choiceEvaluation.
 	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber === 3)
@@ -54,8 +48,7 @@ this.missionOffers = function ()
 			if (!missionVariables.nova && !missionVariables.novacount)  { missionVariables.novacount = 0; }
 			if (missionVariables.nova === "TWO_HRS_TO_ZERO")
 			{
-				mission.runMissionScreen("oolite_nova", "solar.png", "oolite_nova_yesno");
-				this.novaOffer = "NOVA_CHOICE";  // use a temporary variable for the offering.
+				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_brief", background:"solar.png", choicesKey:"oolite_nova_yesno"}, this.choiceEvaluation);
 				this.novaMissionTimer.stop();
 			}
 		}
@@ -64,26 +57,26 @@ this.missionOffers = function ()
 			if (missionVariables.nova === "NOVA_ESCAPED_SYSTEM")
 			{
 				player.ship.removeAllCargo();
-				player.ship.awardCargo("Gem-Stones", 100);
-				mission.runMissionScreen("oolite_nova_hero", "solar.png");
+				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_hero", background:"solar.png"}, null);
+				player.ship.manifest["Gem-Stones"] += 100;
 				this.endTheMission();
 			}
 			else if (missionVariables.nova === "NOVA_ESCAPE_POD")
 			{
 				player.ship.removeAllCargo();  // can only be done while docked.
-				mission.runMissionScreen("oolite_nova_disappointed", "solar.png");
+				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_disappointed", background:"solar.png"}, null);
 				this.endTheMission();
 			}
 			else if (missionVariables.nova === "NOVA_ESCAPE_OTHER")
 			{
-				mission.runMissionScreen("oolite_nova_ignored", "solar.png");
+				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_ignored", background:"solar.png"}, null);
 				this.endTheMission();
 			}
 			else if (missionVariables.nova === "NOVA_ESCAPE_COWARD" && !system.sun.isGoingNova && !system.sun.hasGoneNova)
 			{
 				player.decreaseContractReputation();
 				player.decreasePassengerReputation();
-				mission.runMissionScreen("oolite_nova_disappointed", "solar.png");
+				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_disappointed", background:"solar.png"}, null);
 				this.endTheMission();
 			}
 		}
@@ -99,7 +92,7 @@ this.missionOffers = function ()
 
 this.endTheMission = function()
 {
-	missionVariables.nova = "NOVA_HERO";  // even if not a hero, scripts expect this string at mission end.
+	missionVariables.nova = "NOVA_HERO";  // even if not a hero, other scripts expect this string at mission end.
 	mission.setInstructionsKey(null);
 	this.cleanUp();
 }
@@ -111,54 +104,32 @@ this.cleanUp = function()
 	// this.shipExitedWitchspace is still needed after the nova mission.
 	delete this.shipWillEnterWitchspace;
 	delete this.shipWillExitWitchspace;
-	delete this.shipDockedWithStation;
-	delete this.missionScreenEnded;
-	delete this.reportScreenEnded;
-	delete this.missionChoiceWasReset;
+	delete this.missionScreenOpportunity;
 	delete this.shipLaunchedEscapePod;
-
-	// after the mission is over, we don't need the following functions.
-	delete this.missionOffers;
-	delete this.choiceEvaluation;
-	delete this.sendShipsAwayForMission;
+	delete this.shipLaunchedFromStation;
 }
 
 
-this.choiceEvaluation = function()
+this.choiceEvaluation = function(choice)
 {
-	if (this.novaOffer && this.novaOffer === "NOVA_CHOICE")
+	if (choice === "YES")
 	{
-		if (mission.choice === "YES")
-		{
-			player.ship.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
-			mission.setInstructionsKey("oolite_nova_short_desc");
-			missionVariables.nova = "NOVA_ESCAPE_HERO";
-			player.ship.launch();
-			this.blowUpAllStations();
-			system.sun.goNova(30);
-			missionVariables.novacount = null;
-		}
-		else
-		{
- 			// mission.choice == "NO", or null when player launched without a choice.
- 			missionVariables.nova = "NOVA_ESCAPE_COWARD";
- 			player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
- 			system.sun.goNova(10);
- 			missionVariables.novacount = null;
-		}
-		
-		/*   IMPORTANT
-			The line "mission.choice = null" causes a missionChoiceWasReset()
-			event to occur. Our missionChoiceWasReset() handler calls back into
-			choiceEvaluation(). It is therefore imperative that this.novaOffer
-			is cleared _before_ mission.choice, or we end up in the else branch
-			above.
-		*/
-		delete this.novaOffer;
-		mission.choice = null;
+		player.ship.useSpecialCargo(expandDescription("[oolite-nova-refugees]"));
+		mission.setInstructionsKey("oolite_nova_info");
+		missionVariables.nova = "NOVA_ESCAPE_HERO";
+		player.ship.launch();
+		this.blowUpAllStations();
+		system.sun.goNova(30);
 	}
+	else
+	{
+		// mission.choice == "NO", or null when player launched without making a choice.
+		missionVariables.nova = "NOVA_ESCAPE_COWARD";
+		player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
+		system.sun.goNova(10);
+	}
+	missionVariables.novacount = null;
 };
-
 
 
 // used when player enters nova system during nova mission.
@@ -242,7 +213,16 @@ this.flareChange = function(toValue,callFunc,callDelay,pass)
 	}
 }
 
+
 /**** Event handlers ****/
+
+
+this.startUp = function ()
+{
+	// Remove all event handlers once the mission is over.
+	if (missionVariables.nova === "NOVA_HERO") { this.cleanUp(); }
+}
+
 
 this.shipLaunchedEscapePod = function ()
 {
@@ -253,19 +233,9 @@ this.shipLaunchedEscapePod = function ()
 };
 
 
-this.shipDockedWithStation = function ()
+this.missionScreenOpportunity = function ()
 {
 	this.missionOffers();
-};
-
-
-this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = function ()
-{
-	this.choiceEvaluation();
-	if (player.ship.docked)
-	{
-		this.missionOffers();
-	}
 };
 
 
@@ -312,6 +282,13 @@ this.shipWillExitWitchspace = function ()  // call this as soon as possible so o
 	}
 };
 
+this.shipLaunchedFromStation = function()
+{
+	if ((system.sun.isGoingNova || system.sun.hasGoneNova) && missionVariables.nova === "NOVA_ESCAPE_COWARD")
+	{
+		this.blowUpAllStations();
+	}
+}
 
 this.shipExitedWitchspace = function()
 {

@@ -36,6 +36,16 @@ this.copyright		= "© 2008–2009 the Oolite team.";
 this.version		= "1.74";
 
 
+this.cleanUp = function ()
+{
+	// Remove  event handlers.
+	delete this.guiScreenChanged;
+	delete this.missionScreenOpportunity;
+	delete this.shipExitedWitchspace;
+	delete this.shipLaunchedFromStation;
+};
+
+
 this.addToScreen = function ()
 {
 	if (guiScreen === "GUI_SCREEN_SYSTEM_DATA")
@@ -91,36 +101,36 @@ this.addToScreen = function ()
 
 
 this.missionOffers = function ()
-{
-	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
+{	
+	if (!player.ship.docked)  { return; }
 	
-	// Choices are handled inside the missionScreenEnded and missionChoiceWasReset events.
 	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber < 2 && !missionVariables.conhunt && player.score > 255)
 		{
-			mission.runMissionScreen("constrictor_hunt_brief1", null, null, "constrictor");
+			// there are no options to deal with, we don't need a callback function.
+			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_brief1", model: "constrictor"}, null);
 			if (galaxyNumber === 0)
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
-				mission.setInstructionsKey("conhunt_short_desc1");
+				mission.setInstructionsKey("constrictor_hunt_info1a");
 			}
 			else
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1b"); // galaxy = 1
-				mission.setInstructionsKey("conhunt_short_desc1b");
+				mission.setInstructionsKey("constrictor_hunt_info1b");
 			}
 			missionVariables.conhunt = "STAGE_1";
-			// mission.setInstructionsKey("conhunt_short_desc1");
 		}
-		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship-script
+		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship script
 		{
-			mission.runMissionScreen("constrictor_hunt_debrief", null, null, "constrictor");
+			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_debrief", model: "constrictor"}, null);
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status
 			player.score += 256;  // ship kills
-			mission.setInstructionsKey(null);  // reset the missionbriefing
+			mission.setInstructionsKey(null);  // reset the mission briefing
 			missionVariables.conhunt = "MISSION_COMPLETE";
+			this.cleanUp();
 		}
 	}
 };
@@ -140,6 +150,14 @@ this.setUpShips = function ()
 
 /**** Event handlers ****/
 
+
+this.startUp = function ()
+{
+	// Remove event handlers once the mission is over.
+	if (missionVariables.conhunt === "MISSION_COMPLETE") { this.cleanUp(); }
+};
+
+
 this.guiScreenChanged = function ()
 {
 	if (galaxyNumber < 2 && missionVariables.conhunt === "STAGE_1")
@@ -149,15 +167,9 @@ this.guiScreenChanged = function ()
 };
 
 
-this.shipDockedWithStation = function ()
+// this function is potentially called multiple times
+this.missionScreenOpportunity = function ()
 {
-	this.missionOffers();
-};
-
-
-this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = function ()
-{
-	if (!player.ship.docked)  { return; }
 	this.missionOffers();
 };
 

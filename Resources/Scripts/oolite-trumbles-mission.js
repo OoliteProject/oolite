@@ -37,7 +37,7 @@ this.description	= "Random offers of trumbles.";
 this.version		= "1.74";
 
 
-this.startUp = this.reset = function ()
+this.startUp = function ()
 {
 	/*	For simplicity, ensure that missionVariables.trumbles is never
 		undefined when running the rest of the script. If it could be
@@ -52,7 +52,7 @@ this.startUp = this.reset = function ()
 };
 
 
-this.shipDockedWithStation = function ()
+this.missionScreenOpportunity = function ()
 {
 	if (!player.ship.docked)  { return; }	// Player might have been forcibly undocked by another script.
 	
@@ -76,41 +76,28 @@ this.shipDockedWithStation = function ()
 		missionVariables.trumbles = "BUY_ME";
 	}
 	
-	if (missionVariables.trumbles === "BUY_ME" && player.trumbleCount === 0)
+	if (missionVariables.trumbles === "BUY_ME" && player.trumbleCount === 0 &&
+		Math.random() < 0.2) // 20% chance of trumble being offered.
 	{
-		// 20% chance of trumble being offered, if no other script got this dock session first.
-		if (guiScreen === "GUI_SCREEN_STATUS" &&
-			Math.random() < 0.2)
-		{
-			// Show the mission screen.
-			mission.runMissionScreen("oolite_trumble_offer", "trumblebox.png", "oolite_trumble_offer_yesno");
-		}
+		// Show the mission screen
+		mission.runScreen({titleKey:"oolite_trumble_title", messageKey:"oolite_trumble_offer", background:"trumblebox.png", choicesKey:"oolite_trumble_offer_yesno"}, this.trumbleOffered);
 	}
 };
 
 
-this.missionScreenEnded = function ()
+this.trumbleOffered = function(choice)
 {
-	if (missionVariables.trumbles === "BUY_ME")
+	if (choice == "OOLITE_TRUMBLE_YES")
 	{
-		// Could have been trumble mission screen.
-		if (mission.choice === "OOLITE_TRUMBLE_YES")
-		{
-			// Trumble bought.
-			missionVariables.trumbles = "TRUMBLE_BOUGHT";
-			mission.choice = null;
-			player.credits -= 30;
-			player.ship.awardEquipment("EQ_TRUMBLE");
-		}
-		else if (mission.choice === "OOLITE_TRUMBLE_NO")
-		{
-			// Trumble bought.
-			missionVariables.trumbles = "NOT_NOW";
-			mission.choice = null;
-		}
-		// else it was someone else's mission screen, so we do nothing.
+		missionVariables.trumbles = "TRUMBLE_BOUGHT";
+		player.credits -= 30;
+		player.ship.awardEquipment("EQ_TRUMBLE");
 	}
-};
+	else
+	{
+		missionVariables.trumbles = "NOT_NOW";
+	}
+}
 
 
 this.shipWillExitWitchspace = function ()

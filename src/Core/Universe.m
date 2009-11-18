@@ -3584,7 +3584,8 @@ static const OOMatrix	starboard_matrix =
 			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
 			
 			// needs to be here, otherwise it's drawn over the demo ship(s)
-			if (displayGUI)	[gui drawGUIBackground];
+			// dim background image fix
+			if (displayGUI && inGUIMode)	[gui drawGUIBackground];
 			
 			if (!displayGUI || inGUIMode)
 			{

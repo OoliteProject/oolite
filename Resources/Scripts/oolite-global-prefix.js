@@ -61,9 +61,9 @@ Ship.__proto__.spawnOne = function (role)
 
 
 // mission.setInstructionsKey(): load mission text from mission.plist and use it as mission instructions.
-mission.setInstructionsKey = function(textKey)
+mission.setInstructionsKey = function(textKey, missionKey)
 {
-	mission.setInstructions(expandMissionText(textKey));
+	mission.setInstructions(expandMissionText(textKey), missionKey);
 }
 
 
@@ -254,6 +254,6 @@ mission.runMissionScreen = function (_messageKey, _backgroundImage, _choiceKey, 
 {
 	special.jsWarning("Mission.runMissionScreen() is deprecated, use Mission.runScreen() instead.");
 	// pre-1.74 mission.setBackgroundImage did set the foreground (foremost background image (!)
-	mission.runScreen({music:_musicKey, showModel:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
+	mission.runScreen({music:_musicKey, model:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
 };
 

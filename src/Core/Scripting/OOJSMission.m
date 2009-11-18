@@ -29,6 +29,8 @@ MA 02110-1301, USA.
 
 #import "OOJSPlayer.h"
 #import "PlayerEntityScriptMethods.h"
+#import "OOStringParsing.h"
+#import "OOCollectionExtractors.h"
 
 
 static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -48,7 +50,6 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 
 //  Mission screen  callback varibables
 static jsval		callbackFunction;
-static JSObject		*callbackThis;
 static OOJSScript	*callbackScript;
 
 static JSClass sMissionClass =
@@ -74,7 +75,7 @@ enum
 	kMission_title,				// title of mission screen, string.
 	kMission_foreground,		// missionforeground image, string.
 	kMission_background,		// mission background image, string.
-	kMission_showModel,			// mission 'ship' model role, string.
+	kMission_3DModel,		// mission 3D model: role, string.
 };
 
 
@@ -82,10 +83,6 @@ static JSPropertySpec sMissionProperties[] =
 {
 	// JS name					ID							flags
 	{ "choice",					kMission_choice,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	//{ "title",					kMission_title,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	//{ "foregroundImage",		kMission_foreground,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	//{ "backgroundImage",		kMission_background,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	//{ "shipModel",				kMission_shipModel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }	
 };
 
@@ -118,7 +115,7 @@ void MissionRunCallback()
 {
 	jsval			argval = JSVAL_VOID;
 	jsval			rval = JSVAL_VOID;
-	JSContext		*context = [[OOJavaScriptEngine sharedEngine] acquireContext];
+	jsval			function = callbackFunction;
 	
 	// don't do anything if we don't have a function, or script.
 	if(JSVAL_IS_NULL(callbackFunction) || [callbackScript weakRefUnderlyingObject] == nil)
@@ -126,17 +123,18 @@ void MissionRunCallback()
 		return;
 	}
 	
+	callbackFunction = JSVAL_NULL;
+	JSContext		*context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	argval = [[OOPlayerForScripting() missionChoice_string] javaScriptValueInContext:context];
 
 	[OOJSScript pushScript:callbackScript];
-	[[OOJavaScriptEngine sharedEngine] callJSFunction:callbackFunction
-											forObject:callbackThis
+	[[OOJavaScriptEngine sharedEngine] callJSFunction:function
+											forObject:JSVAL_TO_OBJECT([callbackScript javaScriptValueInContext:context])
 												 argc:1
 												 argv:&argval
 											   result:&rval];
 	[OOJSScript popScript:callbackScript];
 	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
-	callbackFunction = JSVAL_NULL;
 }
 
 
@@ -155,13 +153,6 @@ static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name,
 			OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"choice");
 			result = [player missionChoice_string];
 			if (result == nil)  result = [NSNull null];
-			break;
-		
-		case kMission_title:
-		case kMission_foreground:
-		case kMission_background:
-		case kMission_showModel:
-			result = [NSNull null];
 			break;
 		
 		default:
@@ -198,14 +189,14 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 			[player setMissionImage:JSValToNSString(context,*value)];
 			break;
 		
+		case kMission_3DModel:
+			// If value can't be converted to a string this will clear the entity (ship) model.
+			[player showShipModel:JSValToNSString(context, *value)];
+			break;
+		
 		case kMission_background:
 			// If value can't be converted to a string this will clear the background image.
 			[player setMissionBackground:JSValToNSString(context,*value)];
-			break;
-		
-		case kMission_showModel:
-			// If value can't be converted to a string this will clear the entity (ship) model.
-			[player showShipModel:JSValToNSString(context, *value)];
 			break;
 			
 		default:
@@ -368,6 +359,7 @@ static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uint
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	
+	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"clearMissionScreen");
 	[player clearMissionScreen];
 	return YES;
 }
@@ -403,8 +395,19 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	}
 	
 	str=@"title";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, [str UTF8String], &value)&& !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
+	else
+	{
+		str=@"titleKey";
+		if (JS_GetProperty(context, params, [str UTF8String], &value))
+		{
+			str = [[UNIVERSE missiontext] oo_stringForKey:JSValToNSString(context, value)];
+			str = ExpandDescriptionForCurrentSystem(str);
+			str = [player replaceVariablesInString:str];
+			[player setMissionTitle:str];
+		}
+	}
 	
 	str=@"music";
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
@@ -414,9 +417,9 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
 	
-	str=@"showModel";
+	str=@"model";
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
-		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_showModel), &value);
+		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_3DModel), &value);
 	
 	str=@"background";
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
@@ -426,13 +429,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(function)]; 
 	if (!JSVAL_IS_NULL(function))
 	{
-		callbackThis = this;
 		callbackScript = [[OOJSScript currentlyRunningScript] weakRetain];
 	}
-	
-	str=@"choicesKey";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
-		MissionSetChoicesKey(context, this, 1, &value, &noWarning);
 		
 	str=@"message";
 	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
@@ -443,6 +441,10 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		if (JS_GetProperty(context, params, [str UTF8String], &value))
 			[player addMissionText: JSValToNSString(context, value)];
 	}
+	
+	str=@"choicesKey";
+	if (JS_GetProperty(context, params, [str UTF8String], &value))
+		MissionSetChoicesKey(context, this, 1, &value, &noWarning);
 	
 	// now clean up!
 	value = JSVAL_NULL;

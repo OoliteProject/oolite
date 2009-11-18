@@ -38,8 +38,8 @@ this.version		= "1.74";
 
 this.missionOffers = function ()
 {
-	if (guiScreen === "GUI_SCREEN_MISSION" || guiScreen === "GUI_SCREEN_REPORT" || (mission.choice && mission.choice !== "") || !player.ship.docked)  { return; }
-	// there will be a "missionScreenEnded" or a "missionChoiceWasReset" in future to react to.
+	if (!player.ship.docked)  { return; }
+	
 	if (player.ship.dockedStation.isMainStation)
 	{
 		if (galaxyNumber === 2)
@@ -49,38 +49,37 @@ this.missionOffers = function ()
 				player.score > 1280 &&
 				system.ID !== 83)
 			{
-				mission.runMissionScreen("thargoid_plans_intro_brief");
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief1"}, null);
 				missionVariables.thargplans = "PRELUDE";
-				mission.setInstructionsKey("thargplans_short_desc1");
+				mission.setInstructionsKey("thargoid_plans_info1");
 				mission.markSystem(83);
 			}
 			else if (missionVariables.thargplans === "PRELUDE" &&
 				system.ID === 83)
 			{
 				mission.unmarkSystem(83);
-				mission.runMissionScreen("thargoid_plans_main_brief", null, null, "thargoid");
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief2", model: "thargoid"}, null);
 				missionVariables.thargplans = "RUNNING";
-				mission.setInstructionsKey("thargplans_short_desc2");
+				mission.setInstructionsKey("thargoid_plans_info2");
 				mission.markSystem(36);
 			}
 			else if (missionVariables.thargplans === "RUNNING" &&
 					 system.ID === 36)
 			{
-				mission.runMissionScreen("thargoid_plans_debrief", null, null, "thargoid");
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_debrief", model: "thargoid"}, null);
 				player.score += 256; // ship kills
 				mission.setInstructionsKey(null);  // reset the missionbriefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
-				if (player.ship.hasEquipment("EQ_ENERGY_UNIT"))
+				// for backward compatibility, hasEquipment doesn't check the damaged version.
+				if (player.ship.hasEquipment("EQ_ENERGY_UNIT") || player.ship.hasEquipment("EQ_ENERGY_UNIT_DAMAGED"))
 				{
+					// remove the specified equipment, either working or damaged version.
 					player.ship.removeEquipment("EQ_ENERGY_UNIT");
-				}
-				else if (player.ship.hasEquipment("EQ_ENERGY_UNIT_DAMAGED"))
-				{
-					player.ship.removeEquipment("EQ_ENERGY_UNIT_DAMAGED");
 				}
 				player.ship.awardEquipment("EQ_NAVAL_ENERGY_UNIT");
 				EquipmentInfo.infoForKey("EQ_NAVAL_ENERGY_UNIT").effectiveTechLevel = 13;
 				mission.unmarkSystem(36);
+				this.cleanUp();
 			}
 		}
 	}
@@ -123,22 +122,27 @@ this.setUpShips = function ()
 };
 
 
+this.cleanUp = function()
+{
+	// Remove event handlers.
+	delete this.missionScreenOpportunity;
+	delete this.shipLaunchedFromStation;
+	delete this.shipExitedWitchspace;
+}
+
+
 /**** Event handlers ****/
-this.startUp = this.reset = function ()
+
+
+this.startUp = function ()
 {
 	this.loopcount = 0;  // should be zero on the first launch after a reset.
+	if (missionVariables.thargplans === "MISSION_COMPLETE") { this.cleanUp(); }
 };
 
 
-this.shipDockedWithStation = function ()
+this.missionScreenOpportunity = function ()
 {
-	this.missionOffers();
-};
-
-
-this.missionScreenEnded = this.reportScreenEnded = this.missionChoiceWasReset = function ()
-{
-	if (!player.ship.docked)  { return; }
 	this.missionOffers();
 };
 
