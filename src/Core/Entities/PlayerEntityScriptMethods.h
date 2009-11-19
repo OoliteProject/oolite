@@ -52,6 +52,7 @@ MA 02110-1301, USA.
 - (OOSystemID) currentSystemID;
 
 - (void) setMissionChoice:(NSString *)newChoice;
+- (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL) withEvent;
 
 - (OOTimeDelta) scriptTimer;
 

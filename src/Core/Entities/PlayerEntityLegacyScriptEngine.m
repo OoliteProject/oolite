@@ -2319,7 +2319,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) doMissionCallback
 {
-	//missionCallback
+	// make sure we don't call the same callback twice
+	_missionWithCallback = NO;
 	[[OOJavaScriptEngine sharedEngine] runMissionCallback];
 }
 

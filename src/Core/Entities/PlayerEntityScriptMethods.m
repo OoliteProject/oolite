@@ -220,6 +220,12 @@ MA 02110-1301, USA.
 
 - (void) setMissionChoice:(NSString *)newChoice
 {
+	[self setMissionChoice:newChoice withEvent:YES];
+}
+
+
+- (void) setMissionChoice:(NSString *)newChoice withEvent:(BOOL)withEvent
+{
 	BOOL equal = [newChoice isEqualToString:missionChoice] || (newChoice == missionChoice);	// Catch both being nil as well
 	if (!equal)
 	{
@@ -228,8 +234,7 @@ MA 02110-1301, USA.
 			NSString *oldChoice = missionChoice;
 			[missionChoice autorelease];
 			missionChoice = nil;
-			
-			[self doScriptEvent:@"missionChoiceWasReset" withArgument:oldChoice];
+			if (withEvent) [self doScriptEvent:@"missionChoiceWasReset" withArgument:oldChoice];
 		}
 		else
 		{

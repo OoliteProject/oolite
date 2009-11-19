@@ -113,28 +113,32 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 
 void MissionRunCallback()
 {
-	jsval			argval = JSVAL_VOID;
-	jsval			rval = JSVAL_VOID;
-	jsval			function = callbackFunction;
-	
 	// don't do anything if we don't have a function, or script.
 	if(JSVAL_IS_NULL(callbackFunction) || [callbackScript weakRefUnderlyingObject] == nil)
 	{
 		return;
 	}
+	jsval				argval = JSVAL_VOID;
+	jsval				rval = JSVAL_VOID;
+	jsval				function = callbackFunction;
+	PlayerEntity		*player = OOPlayerForScripting();
+	OOJavaScriptEngine	*engine  = [OOJavaScriptEngine sharedEngine];
+	JSContext			*context = [engine acquireContext];
 	
+	// don't run the same callback function more than once.
 	callbackFunction = JSVAL_NULL;
-	JSContext		*context = [[OOJavaScriptEngine sharedEngine] acquireContext];
-	argval = [[OOPlayerForScripting() missionChoice_string] javaScriptValueInContext:context];
+	argval = [[player missionChoice_string] javaScriptValueInContext:context];
+	// now reset the mission choice silently, before calling the callback script.
+	[player setMissionChoice:nil withEvent:NO];
 
 	[OOJSScript pushScript:callbackScript];
-	[[OOJavaScriptEngine sharedEngine] callJSFunction:function
-											forObject:JSVAL_TO_OBJECT([callbackScript javaScriptValueInContext:context])
-												 argc:1
-												 argv:&argval
-											   result:&rval];
+	[engine callJSFunction:function
+				 forObject:JSVAL_TO_OBJECT([callbackScript javaScriptValueInContext:context])
+					  argc:1
+					  argv:&argval
+					result:&rval];
 	[OOJSScript popScript:callbackScript];
-	[[OOJavaScriptEngine sharedEngine] releaseContext:context];
+	[engine releaseContext:context];
 }
 
 
@@ -176,6 +180,7 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 	switch (JSVAL_TO_INT(name))
 	{
 		case kMission_choice:
+			OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"choice");
 			if (*value == JSVAL_VOID || *value == JSVAL_NULL)  [player resetMissionChoice];
 			else  [player setMissionChoice:[NSString stringWithJavaScriptValue:*value inContext:context]];
 			break;
