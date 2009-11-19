@@ -63,14 +63,14 @@ Ship.__proto__.spawnOne = function (role)
 // mission.setInstructionsKey(): load mission text from mission.plist and use it as mission instructions.
 mission.setInstructionsKey = function(textKey, missionKey)
 {
-	mission.setInstructions(expandMissionText(textKey), missionKey);
+	mission.setInstructions((textKey ? expandMissionText(textKey) : null), missionKey);
 }
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.
 mission.addMessageTextKey = function(textKey)
 {
-	mission.addMessageText(expandMissionText(textKey));
+	mission.addMessageText((textKey ? expandMissionText(textKey) : null));
 }
 
 

@@ -36,7 +36,7 @@
 	"oolite_nova_brief" = "You’ve arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!";
 	"oolite_nova_info" = "Get the refugees to safety.";
 	"oolite_nova_hero" = "Commander, we thank you.\n\nYou’ve brought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!";
-	"oolite_nova_disappointed" = "Commander, you should be ashamed.\nThose people you left behind had laid their hopes on you and you just left them to their fate.\n\nYour behaviour has been that of a coward."; 
+	"oolite_nova_disappointed" = "Commander, you should be ashamed.\nThose people you left behind had placed all their hopes on you and you just left them to their fate.\n\nSuch cowardly behaviour hasn’t gone unnoticed."; 
 	"oolite_nova_ignored" = "Commander,\n you were the last hope for survivival for the remaining refugees. If you hadn’t\nignored the emergency, they could have escaped the nova explosion.\n\nHow could you abandon them to their fate..."; 
 	"oolite_nova_yesno" =
 	{

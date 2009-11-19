@@ -68,7 +68,7 @@ this.missionOffers = function ()
 			{
 				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_debrief", model: "thargoid"}, null);
 				player.score += 256; // ship kills
-				mission.setInstructionsKey(null);  // reset the missionbriefing
+				mission.setInstructions(null);  // reset the mission briefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
 				// for backward compatibility, hasEquipment doesn't check the damaged version.
 				if (player.ship.hasEquipment("EQ_ENERGY_UNIT") || player.ship.hasEquipment("EQ_ENERGY_UNIT_DAMAGED"))
@@ -124,7 +124,16 @@ this.setUpShips = function ()
 
 this.cleanUp = function()
 {
-	// Remove event handlers.
+	/*	After the mission is complete, it's good 
+		practice to remove the event handlers. The
+		less event handlers, the smoother the game 
+		experience.
+		From 1.74, loading a savegame - or restarting
+		the game - reloads all world scripts,including
+		all handlers. Calling cleanUp from startUp
+		after the mission is finished allows us to keep
+		the gaming experience as smooth as possible.
+	*/
 	delete this.missionScreenOpportunity;
 	delete this.shipLaunchedFromStation;
 	delete this.shipExitedWitchspace;

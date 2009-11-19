@@ -128,7 +128,7 @@ this.missionOffers = function ()
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status
 			player.score += 256;  // ship kills
-			mission.setInstructionsKey(null);  // reset the mission briefing
+			mission.setInstructions(null);  // reset the mission briefing
 			missionVariables.conhunt = "MISSION_COMPLETE";
 			this.cleanUp();
 		}

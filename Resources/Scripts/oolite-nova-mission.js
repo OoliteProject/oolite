@@ -93,7 +93,7 @@ this.missionOffers = function ()
 this.endTheMission = function()
 {
 	missionVariables.nova = "NOVA_HERO";  // even if not a hero, other scripts expect this string at mission end.
-	mission.setInstructionsKey(null);
+	mission.setInstructions(null);
 	this.cleanUp();
 }
 
@@ -126,7 +126,7 @@ this.choiceEvaluation = function(choice)
 		// mission.choice == "NO", or null when player launched without making a choice.
 		missionVariables.nova = "NOVA_ESCAPE_COWARD";
 		player.commsMessage(expandDescription("[oolite-nova-coward]"), 4.5);
-		system.sun.goNova(10);
+		system.sun.goNova(9);	// barely enough time to jump out of the system.
 	}
 	missionVariables.novacount = null;
 };
