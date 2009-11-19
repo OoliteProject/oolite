@@ -3084,13 +3084,21 @@ static BOOL toggling_music;
 						[UNIVERSE removeDemoShips];
 						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
-						[self setGuiToStatusScreen];	// some js actions require this to be set first.
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self setGuiToStatusScreen];	// we need to provide feedback when something changes inside the callback.
-						[self endMissionScreenAndNoteOpportunity];
+						// fix for launching from inside the callback.
+						if ([self status] == STATUS_DOCKED) 
+						{
+							[self setGuiToStatusScreen];	// enable feedback
+							[self endMissionScreenAndNoteOpportunity];
+						}
+						else
+						{
+							[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+						}
+						
 					}
 					spacePressed = YES;
 				}
@@ -3142,13 +3150,20 @@ static BOOL toggling_music;
 						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
-						[self setGuiToStatusScreen];	// enable some js commands
 						if (_missionWithCallback)
 						{
 							[self doMissionCallback];
 						}
-						[self setGuiToStatusScreen];	// enable feedback
-						[self endMissionScreenAndNoteOpportunity];
+						// fix for launching from inside the callback
+						if ([self status] == STATUS_DOCKED) 
+						{
+							[self setGuiToStatusScreen];	// enable feedback
+							[self endMissionScreenAndNoteOpportunity];
+						}
+						else
+						{
+							[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+						}
 						[self checkScript];
 					}
 					selectPressed = YES;

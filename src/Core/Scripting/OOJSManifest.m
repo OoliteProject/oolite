@@ -95,6 +95,9 @@ enum
 	kManifest_alien_items,		// standardised identifier commodity quantity, integer, read/write
 	kManifest_alienItems,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_alienitems		// alias to previous commodity quantity, integer, read/write
+	
+	// FIXME: using kManifest_alienitems as the length of the array below, to help iterate through the elements.
+	// there must be a better way of doing this.
 };
 
 
@@ -204,7 +207,24 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 	BOOL						OK = NO;
 	id							result = nil;
 	PlayerEntity				*entity = OOPlayerForScripting();
-
+	
+	if (JSVAL_IS_STRING(name))	// let's convert it to a lowercase property
+	{
+		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
+		int			i,len;
+		//FIXME: there must be a better way of doing this.
+		
+		len = kManifest_alienitems + 1; // FIXME: waiting for proper solution.
+		for (i=0; i<len; i++)
+		{
+			if (strcmp(sManifestProperties[i].name, str) == 0) 
+			{
+				name = INT_TO_JSVAL(sManifestProperties[i].tinyid);
+				break;
+			}
+		}
+	}
+	
 	if (!JSVAL_IS_INT(name))  return YES;
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;	// NOTE: to be added if we get NPCs with manifests.
 
@@ -321,6 +341,22 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	BOOL						OK = NO;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
+	
+	if (JSVAL_IS_STRING(name))	// let's convert it to a lowercase property
+	{
+
+		int			i,len;
+		//FIXME: there must be a better way of doing this.
+		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
+		len = kManifest_alienitems + 1; // FIXME: waiting for proper solution.
+		for (i=0; i<len; i++) {
+			if (strcmp(sManifestProperties[i].name, str) == 0) 
+			{
+				name = INT_TO_JSVAL(sManifestProperties[i].tinyid);
+				break;
+			}
+		}
+	}
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
