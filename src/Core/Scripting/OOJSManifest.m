@@ -71,14 +71,11 @@ static JSExtendedClass sManifestClass =
 enum
 {
 	// Property IDs
-	kManifest_list,				// manifest list, array of commodities: name, unit, quantity, displayName - read-only
 	kManifest_food,				// commodity quantity, integer, read/write
 	kManifest_textiles,			// commodity quantity, integer, read/write
 	kManifest_radioactives,		// commodity quantity, integer, read/write
 	kManifest_slaves,			// commodity quantity, integer, read/write
-	kManifest_liquor_wines,		// standardised identifier commodity quantity, integer, read/write
-	kManifest_liquorWines,		// js style alias to previous commodity quantity, integer, read/write
-	kManifest_liquorwines,		// alias to previous commodity quantity, integer, read/write
+	kManifest_liquorwines,		// commodity quantity, integer, read/write
 	kManifest_luxuries,			// commodity quantity, integer, read/write
 	kManifest_narcotics,		// commodity quantity, integer, read/write
 	kManifest_computers,		// commodity quantity, integer, read/write
@@ -89,29 +86,30 @@ enum
 	kManifest_minerals,			// commodity quantity, integer, read/write
 	kManifest_gold,				// commodity quantity, integer, read/write
 	kManifest_platinum,			// commodity quantity, integer, read/write
+	kManifest_gemstones,		// commodity quantity, integer, read/write
+	kManifest_alienitems,		// commodity quantity, integer, read/write
+	
+// Up to kManifest_alienitems, these properties are case insensitive.
+// FIXME: there must be a better way of doing this.
+	
+	kManifest_liquor_wines,		// standardised identifier commodity quantity, integer, read/write
+	kManifest_liquorWines,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_gem_stones,		// standardised identifier commodity quantity, integer, read/write
 	kManifest_gemStones,		// js style alias to previous commodity quantity, integer, read/write
-	kManifest_gemstones,		// alias to previous commodity quantity, integer, read/write
 	kManifest_alien_items,		// standardised identifier commodity quantity, integer, read/write
 	kManifest_alienItems,		// js style alias to previous commodity quantity, integer, read/write
-	kManifest_alienitems		// alias to previous commodity quantity, integer, read/write
 	
-	// FIXME: using kManifest_alienitems as the length of the array below, to help iterate through the elements.
-	// there must be a better way of doing this.
+	kManifest_list				// manifest list, array of commodities: name, unit, quantity, displayName - read-only	
 };
 
 
 static JSPropertySpec sManifestProperties[] =
 {
 	// JS name					ID							flags
-	{ "list",				kManifest_list,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "food",				kManifest_food,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "textiles",			kManifest_textiles,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "radioactives",		kManifest_radioactives,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "slaves",				kManifest_slaves,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-// 3 possible ways of accessing the same commodity at the moment. TODO; decide what to do! (same applies to alien items and gem-stones too)  -- post MNSR?
-	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "liquor/wines",		kManifest_liquorwines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "luxuries",			kManifest_luxuries,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "narcotics",			kManifest_narcotics,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -123,12 +121,21 @@ static JSPropertySpec sManifestProperties[] =
 	{ "minerals",			kManifest_minerals,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gold",				kManifest_gold,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platinum",			kManifest_platinum,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "gem_stones",			kManifest_gem_stones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "gemStones",			kManifest_gemStones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gem-stones",			kManifest_gemstones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alien_items",		kManifest_alien_items,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alienItems",			kManifest_alienItems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alien items",		kManifest_alienitems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+
+// There are 3 possible ways of accessing two-words commodities at the moment.
+// We can either use the case insensitive original names - as above,
+// or use one of the case insensitive variants below.
+
+	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
+	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
+	{ "gem_stones",			kManifest_gem_stones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
+	{ "gemStones",			kManifest_gemStones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
+	{ "alien_items",		kManifest_alien_items,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
+	{ "alienItems",			kManifest_alienItems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
+	
+	{ "list",				kManifest_list,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -190,8 +197,9 @@ void InitOOJSManifest(JSContext *context, JSObject *global)
 	// Create manifest object as a property of the player.ship object.
 	sManifestObject = JS_DefineObject(context, JSPlayerShipObject(), "manifest", &sManifestClass.base, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_SetPrivate(context, sManifestObject, NULL);
-	//JS_SetPrivate(context, sManifestObject, [JSPlayerShipObject() weakRetain]);
-	//[[PlayerEntity sharedPlayer] setJSSelf:sManifestObject context:context];
+	
+	// Also define manifest object as a property of the global object.
+	JS_DefineObject(context, global, "manifest", &sManifestClass.base, sManifestPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 }
 
 
@@ -208,13 +216,12 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 	id							result = nil;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	
-	if (JSVAL_IS_STRING(name))	// let's convert it to a lowercase property
+	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
 	{
-		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
-		int			i,len;
 		//FIXME: there must be a better way of doing this.
+		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
+		int				i,len = kManifest_alienitems + 1;
 		
-		len = kManifest_alienitems + 1; // FIXME: waiting for proper solution.
 		for (i=0; i<len; i++)
 		{
 			if (strcmp(sManifestProperties[i].name, str) == 0) 
@@ -342,13 +349,12 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
 	
-	if (JSVAL_IS_STRING(name))	// let's convert it to a lowercase property
+	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
 	{
-
-		int			i,len;
 		//FIXME: there must be a better way of doing this.
 		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
-		len = kManifest_alienitems + 1; // FIXME: waiting for proper solution.
+		int				i,len = kManifest_alienitems + 1;
+		
 		for (i=0; i<len; i++) {
 			if (strcmp(sManifestProperties[i].name, str) == 0) 
 			{
