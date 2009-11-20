@@ -102,7 +102,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
 	{ "clearMissionScreen",		MissionClearMissionScreen,	0 },
-	{ "runScreen",				MissionRunScreen,			2 },
+	{ "runScreen",				MissionRunScreen,			0 },
 	{ 0 }
 };
 
@@ -388,24 +388,30 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	jsval				function = JSVAL_VOID;
-	jsval				value;
+	jsval				value = JSVAL_NULL;
 	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
-	JSObject			*params;
+	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);;
 	NSString			*str;
 	
-	if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]))
+	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
-		if (!JS_ValueToObject(context, argv[0], &this))
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	if (argc>0) {
+		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
 		{
 			OOReportJSBadArguments(context, nil, @"Mission.runScreen", 1, argv, @"Invalid argument", @"object");
 			*outResult = BOOLToJSVal(NO);
 			return YES;
 		}
+		
+		if (JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
 	}
 	
-	params=JSVAL_TO_OBJECT(argv[0]);
-	function = argv[1];
-	if (JSVAL_IS_VOID(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
+	function = (argc < 2) ? JSVAL_NULL : argv[1];
+	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
 		OOReportJSBadArguments(context, nil, @"Mission.runScreen", 1, argv + 1, @"Invalid argument", @"function");
 		*outResult = BOOLToJSVal(NO);
