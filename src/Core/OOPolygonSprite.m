@@ -102,7 +102,7 @@ static void SVGDumpAppendTriangle(TessPolygonData *data, NSPoint v0, NSPoint v1,
 #define SVGDumpEnd(data) do {} while (0)
 #define SVGDumpBeginGroup(data, name) do {} while (0)
 #define SVGDumpEndGroup(data) do {} while (0)
-#define SVGDumpAppendBaseContour(data. points) do {} while (0)
+#define SVGDumpAppendBaseContour(data, points) do {} while (0)
 #define SVGDumpBeginPrimitive(data) do {} while (0)
 #define SVGDumpEndPrimitive(data) do {} while (0)
 #define SVGDumpAppendTriangle(data, v0, v1, v2) do {} while (0)
