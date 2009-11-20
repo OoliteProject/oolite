@@ -332,7 +332,7 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = [@"textKey" javaScriptValueInContext:context];
-	MissionSetInstructions(context, this, argc, argv, outResult);
+	return MissionSetInstructions(context, this, argc, argv, outResult);
 }
 
 
