@@ -400,12 +400,12 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	}
 	
 	str=@"title";
-	if (JS_GetProperty(context, params, [str UTF8String], &value)&& !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
 	else
 	{
 		str=@"titleKey";
-		if (JS_GetProperty(context, params, [str UTF8String], &value))
+		if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		{
 			str = [[UNIVERSE missiontext] oo_stringForKey:JSValToNSString(context, value)];
 			str = ExpandDescriptionForCurrentSystem(str);

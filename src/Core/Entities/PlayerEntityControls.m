@@ -126,6 +126,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
+- (void) handleMissionCallback;
 
 @end
 
@@ -3081,23 +3082,9 @@ static BOOL toggling_music;
 					if (!spacePressed)
 					{
 						[self setStatus:STATUS_DOCKED];
-						[UNIVERSE removeDemoShips];
-						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
-						if (_missionWithCallback)
-						{
-							[self doMissionCallback];
-						}
-						// fix for launching from inside the callback.
-						if ([self status] == STATUS_DOCKED) 
-						{
-							[self setGuiToStatusScreen];	// enable feedback
-							[self endMissionScreenAndNoteOpportunity];
-						}
-						else
-						{
-							[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
-						}
+						
+						[self handleMissionCallback];
 						
 					}
 					spacePressed = YES;
@@ -3145,25 +3132,11 @@ static BOOL toggling_music;
 					if (!selectPressed)
 					{
 						[self setMissionChoice:[gui selectedRowKey]];
-						
-						[UNIVERSE removeDemoShips];
-						[gui clearBackground];
 						[[OOMusicController sharedController] stopMissionMusic];
 						[self playDismissedMissionScreen];
-						if (_missionWithCallback)
-						{
-							[self doMissionCallback];
-						}
-						// fix for launching from inside the callback
-						if ([self status] == STATUS_DOCKED) 
-						{
-							[self setGuiToStatusScreen];	// enable feedback
-							[self endMissionScreenAndNoteOpportunity];
-						}
-						else
-						{
-							[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
-						}
+						
+						[self handleMissionCallback];
+						
 						[self checkScript];
 					}
 					selectPressed = YES;
@@ -3178,6 +3151,33 @@ static BOOL toggling_music;
 			default:
 			break;
 	}
+}
+
+
+- (void) handleMissionCallback
+{
+	[UNIVERSE removeDemoShips];
+	[[UNIVERSE gui] clearBackground];
+	
+	[self setGuiToStatusScreen]; // need this to find out if we call a new mission screen inside callback.
+	if (_missionWithCallback)
+	{
+		[self doMissionCallback];
+	}
+	
+	if ([self status] != STATUS_DOCKED)	// did we launch inside callback?
+	{
+		[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];	// no opportunity events.
+	}
+	else
+	{
+		if (gui_screen != GUI_SCREEN_MISSION) // did we call a new mission screen inside callback?
+		{
+			[self setGuiToStatusScreen];	// if not, update status screen with callback changes, if any.
+			[self endMissionScreenAndNoteOpportunity];	// missionScreenEnded, plus opportunity events.
+		}
+	}
+
 }
 
 @end
