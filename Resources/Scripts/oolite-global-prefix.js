@@ -51,20 +51,13 @@ this.global = (function () { return this; } ).call();
 
 /**** Utilities, not intended to be retired ****/
 
+
 // Ship.spawnOne(): like spawn(role, 1), but returns the ship rather than an array.
 Ship.__proto__.spawnOne = function (role)
 {
 	var result = this.spawn(role, 1);
 	return result ? result[0] : null;
 };
-
-
-
-// mission.setInstructionsKey(): load mission text from mission.plist and use it as mission instructions.
-mission.setInstructionsKey = function(textKey, missionKey)
-{
-	mission.setInstructions((textKey ? expandMissionText(textKey) : null), missionKey);
-}
 
 
 // mission.addMessageTextKey(): load mission text from mission.plist and append to mission screen or info screen.

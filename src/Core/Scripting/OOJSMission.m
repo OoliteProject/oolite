@@ -45,6 +45,7 @@ static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uint
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -99,6 +100,7 @@ static JSFunctionSpec sMissionMethods[] =
 	{ "setMusic",				MissionSetMusic,			1 },
 	{ "setChoicesKey",			MissionSetChoicesKey,		1 },
 	{ "setInstructions",		MissionSetInstructions,		1 },
+	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
 	{ "clearMissionScreen",		MissionClearMissionScreen,	0 },
 	{ "runScreen",				MissionRunScreen,			2 },
 	{ 0 }
@@ -131,13 +133,14 @@ void MissionRunCallback()
 	// now reset the mission choice silently, before calling the callback script.
 	[player setMissionChoice:nil withEvent:NO];
 
-	[OOJSScript pushScript:callbackScript];
+	// windows DEP fix: use the underlying object!
+	[OOJSScript pushScript:[callbackScript weakRefUnderlyingObject]];
 	[engine callJSFunction:function
-				 forObject:JSVAL_TO_OBJECT([callbackScript javaScriptValueInContext:context])
+				 forObject:JSVAL_TO_OBJECT([[callbackScript weakRefUnderlyingObject] javaScriptValueInContext:context])
 					  argc:1
 					  argv:&argval
 					result:&rval];
-	[OOJSScript popScript:callbackScript];
+	[OOJSScript popScript:[callbackScript weakRefUnderlyingObject]];
 	[engine releaseContext:context];
 }
 
@@ -326,7 +329,13 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 }
 
 
-// setInstructionsKey is now a convenience alias inside oolite-global-prefix.js
+static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = [@"textKey" javaScriptValueInContext:context];
+	MissionSetInstructions(context, this, argc, argv, outResult);
+}
+
+
 // setInstructions(instructions: String [, missionKey : String])
 static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
@@ -348,13 +357,17 @@ static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN a
 	
 	if (text != nil)
 	{
-		[player setMissionInstructions:text forMission:missionKey];
+		if ([@"textKey" isEqualTo:JSValToNSString(context,*outResult)])
+			[player setMissionDescription:text forMission:missionKey];
+		else
+			[player setMissionInstructions:text forMission:missionKey];
 	}
 	else
 	{
 		[player clearMissionDescriptionForMission:missionKey];
 	}
 	
+	*outResult = JSVAL_VOID;	
 	return YES;
 }
 
