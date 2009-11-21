@@ -387,7 +387,7 @@ static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uint
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
-	jsval				function = JSVAL_VOID;
+	jsval				function = JSVAL_NULL;
 	jsval				value = JSVAL_NULL;
 	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
 	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);;
@@ -407,11 +407,11 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 			return YES;
 		}
 		
-		if (JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
+		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
 	}
 	
-	function = (argc < 2) ? JSVAL_NULL : argv[1];
-	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
+	if (argc > 1) function = argv[1];
+	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
 		OOReportJSBadArguments(context, nil, @"Mission.runScreen", 1, argv + 1, @"Invalid argument", @"function");
 		*outResult = BOOLToJSVal(NO);
