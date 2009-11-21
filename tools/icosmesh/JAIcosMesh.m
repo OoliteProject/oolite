@@ -15,10 +15,16 @@
 
 - (void) addOneVertex:(Vertex)v;
 
+@property (readwrite) JAVertexSet *vertexSet;
+@property (readwrite) NSUInteger maxIndex;
+
 @end
 
 
 @implementation JAIcosMesh
+
+@synthesize vertexSet = _vertexSet, maxIndex = _maxIndex;
+
 
 - (id) init
 {
@@ -28,7 +34,7 @@
 
 + (id) meshWithVertexSet:(JAVertexSet *)vertexSet
 {
-	return [[[self alloc] initWithVertexSet:vertexSet] autorelease];
+	return [[self alloc] initWithVertexSet:vertexSet];
 }
 
 
@@ -36,45 +42,20 @@
 {
 	if ((self = [super init]))
 	{
-		if (vertexSet == nil)  vertexSet = [[[JAVertexSet alloc] init] autorelease];
-		_vertexSet = [vertexSet retain];
+		if (vertexSet == nil)  vertexSet = [[JAVertexSet alloc] init];
+		self.vertexSet = vertexSet;
 		
-		_indices = [[NSMutableArray alloc] init];
-		if (_vertexSet == nil || _indices == nil)
-		{
-			[self release];
-			return nil;
-		}
+		_indices = [NSMutableArray array];
+		if (vertexSet == nil || _indices == nil)  return nil;
 	}
 	
 	return self;
 }
 
 
-- (void) dealloc
-{
-	[_vertexSet release];
-	[_indices release];
-	
-	[super dealloc];
-}
-
-
-- (JAVertexSet *)vertexSet
-{
-	return _vertexSet;
-}
-
-
 - (NSUInteger) faceCount
 {
 	return _indices.count / 3;
-}
-
-
-- (NSUInteger) maxIndex
-{
-	return _maxIndex;
 }
 
 
@@ -99,15 +80,15 @@
 
 - (NSArray *) indexArray
 {
-	return [[_indices copy] autorelease];
+	return [_indices copy];
 }
 
 
 - (void) addOneVertex:(Vertex)v
 {
-	NSUInteger index = [_vertexSet indexForVertex:v];
+	NSUInteger index = [self.vertexSet indexForVertex:v];
 	[_indices addObject:[NSNumber numberWithUnsignedInteger:index]];
-	if (_maxIndex < index)  _maxIndex = index;
+	if (self.maxIndex < index)  self.maxIndex = index;
 }
 
 @end

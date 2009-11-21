@@ -39,7 +39,7 @@ static NSString *VertexDescription(Vertex v)
 
 + (id) triangleWithVectorA:(Vector)a b:(Vector)b c:(Vector)c
 {
-	return [[[self alloc] initWithVectorA:a b:b c:c] autorelease];
+	return [[self alloc] initWithVectorA:a b:b c:c];
 }
 
 
@@ -110,9 +110,10 @@ static NSString *VertexDescription(Vertex v)
 	/*	Texture seam handling
 		At the back of the mesh, at the longitude = 180°/-180° meridian, the
 		texture wraps around. However, there isn't a convenient matching seam
-		in the geometry - there are no great circles on a subdivided
-		icosahedron - so we need to adjust texture coordinates and use the
-		GL_REPEAT texture wrapping mode to cover it over.
+		in the geometry - there are no great circles touching "poles" (source
+		vertices) on a subdivided icosahedron - so we need to adjust texture
+		coordinates and use the GL_REPEAT texture wrapping mode to cover it
+		over.
 		
 		The technique is to establish whether we have at least one vertex in
 		each of the (x, -z) and (-x, -z) quadrants, and if so, add 1 to the
@@ -132,7 +133,7 @@ static NSString *VertexDescription(Vertex v)
 	{
 		if (_vertices[i].v.z < 0)
 		{
-			if (_vertices[i].v.x <= 0)
+			if (_vertices[i].v.x < 0)
 			{
 				haveNXNZ = true;
 			}
@@ -149,9 +150,16 @@ static NSString *VertexDescription(Vertex v)
 		{
 			if (_vertices[i].v.z < 0 && _vertices[i].v.x >= 0)
 			{
-				printf("Remapping %g -> %g\n", _vertices[i].s, _vertices[i].s + 1.0);
+	//			printf("Remapping %g -> %g\n", _vertices[i].s, _vertices[i].s + 1.0);
 				_vertices[i].s += 1.0;
 			}
+		}
+		if (_vertices[0].v.y == -1.0)
+		{
+			/*	Special case: also need to wrap the polar coordinate of the
+				southernmost seam triangle.
+			 */
+			_vertices[0].s += 1.0;
 		}
 	}
 }

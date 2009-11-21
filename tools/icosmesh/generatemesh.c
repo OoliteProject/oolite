@@ -35,7 +35,7 @@ static void WriteDAT(unsigned level)
 	snprintf(name, 20, "level_%u.dat", level);
 	FILE *file = fopen(name, "w");
 	
-	fprintf(file, "NVERTS %u\nNFACES %u\n\nVERTEX\n", data->vertexCount, data->faceCount);
+	fprintf(file, "# Planet mesh export (level %u)\n\nNVERTS %u\nNFACES %u\n\nVERTEX\n", level, data->vertexCount, data->faceCount);
 	
 	unsigned i;
 	for (i = 0; i < data->vertexCount; i++)
@@ -55,7 +55,7 @@ static void WriteDAT(unsigned level)
 		Vector vc = GetVector(c);
 		Vector n = vector_normal(vector_add(va, vector_add(vb, vc)));
 		
-		fprintf(file, "1,0,0,   %g,%g,%g,   3, %u,%u,%u\n", n.x, n.y, n.z, a, b, c);
+		fprintf(file, "1,0,0,   %+.5f, %+.5f, %+.5f,   3, %u,%u,%u\n", n.x, n.y, n.z, a, b, c);
 	}
 	
 	fprintf(file, "\nTEXTURES\n");
@@ -65,7 +65,7 @@ static void WriteDAT(unsigned level)
 		GLuint b = data->indices[i * 3 + 1];
 		GLuint c = data->indices[i * 3 + 2];
 		
-		fprintf(file, "world.png   1 1   %g %g %g %g %g %g\n", kOOPlanetTexCoords[a * 2], kOOPlanetTexCoords[a * 2 + 1], kOOPlanetTexCoords[b * 2], kOOPlanetTexCoords[b * 2 + 1], kOOPlanetTexCoords[c * 2], kOOPlanetTexCoords[c * 2 + 1]);
+		fprintf(file, "world.png   1 1   %.5f %.5f   %.5f %.5f   %.5f %.5f\n", kOOPlanetTexCoords[a * 2], kOOPlanetTexCoords[a * 2 + 1], kOOPlanetTexCoords[b * 2], kOOPlanetTexCoords[b * 2 + 1], kOOPlanetTexCoords[c * 2], kOOPlanetTexCoords[c * 2 + 1]);
 	}
 	
 	fprintf(file, "\nEND\n");

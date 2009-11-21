@@ -71,8 +71,6 @@ static void WriteMesh(FILE *source, unsigned level, JAIcosMesh *mesh);
 
 int main (int argc, const char * argv[])
 {
-	NSAutoreleasePool *pool = [NSAutoreleasePool new];
-	
 	FILE *header = fopen(kFileName ".h", "w");
 	FILE *source = fopen(kFileName ".c", "w");
 	if (header == NULL || source == NULL)
@@ -100,7 +98,7 @@ int main (int argc, const char * argv[])
 	
 	unsigned faceCount[kLevels];
 	unsigned maxIndex[kLevels];
-	JAVertexSet *vertices = [[[JAVertexSet alloc] init] autorelease];
+	JAVertexSet *vertices = [[JAVertexSet alloc] init];
 	WriteMeshForTriangles(source, 0, baseTriangles, vertices, &faceCount[0], &maxIndex[0]);
 	NSArray *triangles = baseTriangles;
 	
@@ -123,7 +121,6 @@ int main (int argc, const char * argv[])
 	fclose(header);
 	fclose(source);
 	
-	[pool release];
 	return EXIT_SUCCESS;
 }
 

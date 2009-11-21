@@ -7,26 +7,13 @@
 {
 	if ((self = [super init]))
 	{
-		_indices = [[NSMutableDictionary alloc] init];
-		_vertices = [[NSMutableArray alloc] init];
+		_indices = [NSMutableDictionary dictionary];
+		_vertices = [NSMutableArray array];
 		
-		if (_indices == NULL || _vertices == NULL)
-		{
-			[self release];
-			return nil;
-		}
+		if (_indices == NULL || _vertices == NULL)  return nil;
 	}
 	
 	return self;
-}
-
-
-- (void) dealloc
-{
-	[_indices release];
-	[_vertices release];
-	
-	[super dealloc];
 }
 
 
