@@ -1539,7 +1539,6 @@
 		1A6B50370C8B42480035DFCC /* libjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjs.xcodeproj; path = xcode/libjs.xcodeproj; sourceTree = "<group>"; };
 		1A6DD1210C57B5BC00A892F4 /* OOPListSchemaVerifier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPListSchemaVerifier.h; sourceTree = "<group>"; };
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
-		1A6DD19E0C5924A300A892F4 /* plist verifier design.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "plist verifier design.txt"; sourceTree = "<group>"; };
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
 		1A71E6F30BCE340C00CD5C13 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1586,7 +1585,6 @@
 		1A7D3C480C4F818C008EDC33 /* OOCheckEquipmentPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckEquipmentPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D3D290C4F8D01008EDC33 /* OOTextureVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureVerifierStage.h; sourceTree = "<group>"; };
 		1A7D3D2A0C4F8D02008EDC33 /* OOTextureVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureVerifierStage.m; sourceTree = "<group>"; };
-		1A7D3EFD0C50F337008EDC33 /* OXP verifier design.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "OXP verifier design.txt"; sourceTree = "<group>"; };
 		1A7D41840C516B90008EDC33 /* OOModelVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOModelVerifierStage.m; sourceTree = "<group>"; };
 		1A7D41850C516B90008EDC33 /* OOModelVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOModelVerifierStage.h; sourceTree = "<group>"; };
 		1A7D41E00C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCheckShipDataPListVerifierStage.h; sourceTree = "<group>"; };
@@ -2795,8 +2793,6 @@
 		1AB2AAE70C4CDF890008CF4E /* OXP Verification */ = {
 			isa = PBXGroup;
 			children = (
-				1A7D3EFD0C50F337008EDC33 /* OXP verifier design.txt */,
-				1A6DD19E0C5924A300A892F4 /* plist verifier design.txt */,
 				1AB2AB120C4CE4070008CF4E /* verifyOXP.plist */,
 				1AB2AAF80C4CE0CC0008CF4E /* OOOXPVerifier.h */,
 				1AB2AAF90C4CE0CC0008CF4E /* OOOXPVerifier.m */,

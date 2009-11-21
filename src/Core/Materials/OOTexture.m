@@ -721,17 +721,15 @@ static BOOL		sRectangleTextureAvailable;
 
 id OOTextureSpecFromObject(id object, NSString *defaultName)
 {
-	NSMutableDictionary		*mutableResult = nil;
-	
 	if (object == nil)  return [[defaultName copy] autorelease];
 	if ([object isKindOfClass:[NSString class]])  return [[object copy] autorelease];
 	if (![object isKindOfClass:[NSDictionary class]])  return nil;
 	
 	// If we're here, it's a dictionary.
-	if (defaultName == nil || [mutableResult objectForKey:@"name"] != nil)  return object;
+	if (defaultName == nil || [object oo_stringForKey:@"name"] != nil)  return object;
 	
 	// If we get here, there's no "name" key and there is a default, so we fill it in:
-	mutableResult = [object mutableCopy];
+	NSMutableDictionary *mutableResult = [object mutableCopy];
 	[mutableResult setObject:defaultName forKey:@"name"];
 	return [mutableResult autorelease];
 }

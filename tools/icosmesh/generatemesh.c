@@ -3,13 +3,34 @@
 #import <stdio.h>
 #import <assert.h>
 
-#define kScale 500
+#define kScale		500
+#define	UNWRAP		0		// Generate flat "unwrapped" mesh, demonstrating texture map construction.
 
 
+#if !UNWRAP
 static Vector GetVector(GLuint idx)
 {
 	return make_vector(kOOPlanetVertices[idx * 3], kOOPlanetVertices[idx * 3 + 1], kOOPlanetVertices[idx * 3 + 2]);
 }
+
+static Vector GetNormal(GLuint a, GLuint b, GLuint c)
+{
+	Vector va = GetVector(a);
+	Vector vb = GetVector(b);
+	Vector vc = GetVector(c);
+	return vector_normal(vector_add(va, vector_add(vb, vc)));
+}
+#else
+static Vector GetVector(GLuint idx)
+{
+	return make_vector(1.0 - kOOPlanetTexCoords[idx * 2] * 2.0f, 0.5 - kOOPlanetTexCoords[idx * 2 + 1], 0);
+}
+
+static Vector GetNormal(GLuint a, GLuint b, GLuint c)
+{
+	return kBasisZVector;
+}
+#endif
 
 
 static void WriteDAT(unsigned i);
@@ -40,7 +61,8 @@ static void WriteDAT(unsigned level)
 	unsigned i;
 	for (i = 0; i < data->vertexCount; i++)
 	{
-		fprintf(file, "%g, %g, %g\n", kOOPlanetVertices[i * 3] * kScale, kOOPlanetVertices[i * 3 + 1] * kScale, kOOPlanetVertices[i * 3 + 2] * kScale);
+		Vector v = vector_multiply_scalar(GetVector(i), kScale);
+		fprintf(file, "%g, %g, %g\n", v.x, v.y, v.z);
 	}
 	
 	fprintf(file, "\nFACES\n");
@@ -50,10 +72,7 @@ static void WriteDAT(unsigned level)
 		GLuint b = data->indices[i * 3 + 1];
 		GLuint c = data->indices[i * 3 + 2];
 		
-		Vector va = GetVector(a);
-		Vector vb = GetVector(b);
-		Vector vc = GetVector(c);
-		Vector n = vector_normal(vector_add(va, vector_add(vb, vc)));
+		Vector n = GetNormal(a, b, c);
 		
 		fprintf(file, "1,0,0,   %+.5f, %+.5f, %+.5f,   3, %u,%u,%u\n", n.x, n.y, n.z, a, b, c);
 	}
