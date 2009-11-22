@@ -322,7 +322,8 @@ NSString *ExpandDescriptionsWithLocalsForSystemSeedName(NSString *text, Random_S
 		[all_descriptions setObject:[player commanderLegalStatus_string] forKey:@"commander_legal_status"];
 		[all_descriptions setObject:[NSString stringWithFormat:@"%@",[player commanderLegalStatus_number]] forKey:@"commander_bounty"];
 	}
-	if (pName == nil) pName=[UNIVERSE getSystemName:seed];
+	[all_descriptions setObject:OOStringFromDeciCredits([player deciCredits], YES, NO) forKey:@"credits_number"];
+	if (pName == nil)  pName = [UNIVERSE getSystemName:seed];
 
 	while ([partial rangeOfString:@"["].location != NSNotFound)
 	{

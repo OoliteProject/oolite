@@ -276,6 +276,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (OOCreditsQuantity) deciCredits
+{
+	return credits;
+}
+
+
 - (int) random_factor
 {
 	return market_rnd;

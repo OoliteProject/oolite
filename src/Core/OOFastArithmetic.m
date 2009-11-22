@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 
-#import "OOMaths.h"
+#include "OOMaths.h"
 
 
 #if OO_PPC

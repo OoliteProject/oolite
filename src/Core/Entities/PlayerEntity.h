@@ -526,6 +526,8 @@ waitingForStickCallback: 1;
 - (void) loadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest;
 - (NSMutableArray *) shipCommodityData;
 
+- (OOCreditsQuantity) deciCredits;
+
 - (int) random_factor;
 - (Random_Seed) galaxy_seed;
 - (NSPoint) galaxy_coordinates;
