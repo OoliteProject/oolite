@@ -39,6 +39,7 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sStationClass =
@@ -93,6 +94,7 @@ static JSFunctionSpec sStationMethods[] =
 {
 	// JS name					Function					min args
 	{ "dockPlayer",					StationDockPlayer,				0 },
+	{ "launchShipWithRole",				StationLaunchShipWithRole,			1 },
 	{ 0 }
 };
 
@@ -244,5 +246,23 @@ static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, 
 	[player safeAllMissiles];
 	[UNIVERSE setViewDirection:VIEW_FORWARD];
 	[player enterDock:stationForDockingPlayer];
+	return YES;
+}
+
+
+static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	NSString *shipRole = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(shipRole == nil))
+	{
+		OOReportJSBadArguments(context, @"Station", @"launchShipWithRole", argc, argv, nil, @"shipRole");
+		return NO;
+	}
+	
+	[station launchIndependentShip:shipRole];
+	
 	return YES;
 }
