@@ -1429,7 +1429,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) launchIndependentShip:(NSString*) role
+- (ShipEntity *) launchIndependentShip:(NSString*) role
 {
 	BOOL			trader = [role isEqualToString:@"trader"];
 	BOOL			sunskimmer = ([role isEqualToString:@"sunskim-trader"]);
@@ -1554,6 +1554,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[ship setPendingEscortCount:0];
 		[ship release];
 	}
+	return ship;
 }
 
 

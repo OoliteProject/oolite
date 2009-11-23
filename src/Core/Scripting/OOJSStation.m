@@ -253,6 +253,7 @@ static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, 
 static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	StationEntity *station = nil;
+	ShipEntity	*result = nil;
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
 	
 	NSString *shipRole = JSValToNSString(context, argv[0]);
@@ -262,7 +263,8 @@ static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uint
 		return NO;
 	}
 	
-	[station launchIndependentShip:shipRole];
+	result = [station launchIndependentShip:shipRole];
+	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
 }

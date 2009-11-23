@@ -156,7 +156,7 @@ typedef enum
 
 - (void) launchShip:(ShipEntity *) ship;
 
-- (void) launchIndependentShip:(NSString*) role;
+- (ShipEntity *) launchIndependentShip:(NSString*) role;
 
 - (void) launchIndependentShipWithRole:(NSString*) role;
 
