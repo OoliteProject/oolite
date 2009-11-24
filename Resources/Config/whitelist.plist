@@ -208,7 +208,7 @@
 		"launchEscort",
 		"launchPatrol",
 		"launchShipWithRole:",
-		"launchIndependentShip":,	// Don't use, use launchIndependentShipWithRole: instead
+		"launchIndependentShip:",	// Don't use, use launchIndependentShipWithRole: instead
 		"abortAllDockings",
 		"setPrimaryRole:",
 		

@@ -158,8 +158,6 @@ typedef enum
 
 - (ShipEntity *) launchIndependentShip:(NSString*) role;
 
-- (void) launchIndependentShipWithRole:(NSString*) role;
-
 - (void) noteDockedShip:(ShipEntity *) ship;
 
 - (BOOL)hasNPCTraffic;
@@ -180,7 +178,6 @@ typedef enum
 /**Lazygun** added the following line*/
 - (void) launchPirateShip;
 - (void) launchShuttle;
-- (void) launchTrader;
 - (void) launchEscort;
 - (BOOL) launchPatrol;
 

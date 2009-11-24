@@ -1159,7 +1159,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		{
 			if ([self hasNPCTraffic])
 			{
-				[self launchTrader];
+				[self launchIndependentShip:@"trader"];
 				docked_traders--;
 			}
 			last_trader_launch_time = unitime;
