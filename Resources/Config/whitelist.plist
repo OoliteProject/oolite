@@ -208,7 +208,7 @@
 		"launchEscort",
 		"launchPatrol",
 		"launchShipWithRole:",
-		"launchIndependentShipWithRole:",
+		"launchIndependentShip":,	// Don't use, use launchIndependentShipWithRole: instead
 		"abortAllDockings",
 		"setPrimaryRole:",
 		
@@ -399,5 +399,7 @@
 		"exitAI" = ("exitAIWithMessage:", "RESTARTED");
 		"throwSparks" = "ai_throwSparks";
 		"setStateMachine:" = "setAITo:";
+		"launchTrader" = ("launchIndependentShip:", "trader");
+		"launchIndependentShipWithRole:" = "launchIndependentShip:";
 	};
 }

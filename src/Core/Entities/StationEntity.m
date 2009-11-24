@@ -1429,6 +1429,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+// Exposed to AI
 - (ShipEntity *) launchIndependentShip:(NSString*) role
 {
 	BOOL			trader = [role isEqualToString:@"trader"];
@@ -1552,7 +1553,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		}
 		
 		[ship setPendingEscortCount:0];
-		[ship release];
+		[ship autorelease];
 	}
 	return ship;
 }
@@ -1836,17 +1837,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 }
 
-// Exposed to AI
-- (void) launchTrader
-{
-	[self launchIndependentShip:@"trader"];
-}
-
-// Exposed to AI
-- (void) launchIndependentShipWithRole:(NSString*) role
-{
-	[self launchIndependentShip:role];
-}
 
 // Exposed to AI
 - (void) launchEscort
