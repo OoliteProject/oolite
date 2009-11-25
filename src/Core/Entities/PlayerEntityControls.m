@@ -1579,7 +1579,6 @@ static NSTimeInterval	time_last_frame;
 			if(commanderFile)
 			{
 				[self loadPlayerFromFile:commanderFile];
-				//[self setGuiToStatusScreen]; //already called inside loadPlayerFromFile
 			}
 			break;
 		case GUI_SCREEN_SAVE:

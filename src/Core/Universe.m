@@ -475,6 +475,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[player setStatus:STATUS_DOCKED];
 	}
 	[player completeSetUp];
+	if(!showDemo) [player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
 	no_update = NO;
 }
 
