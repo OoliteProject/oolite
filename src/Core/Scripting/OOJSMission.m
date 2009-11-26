@@ -198,7 +198,8 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 			break;
 		
 		case kMission_3DModel:
-			// If value can't be converted to a string this will clear the entity (ship) model.
+			// If value can't be converted to a string this will clear the (entity/ship) model.
+			if([player status] == STATUS_IN_FLIGHT && JSVAL_IS_STRING(*value)) OOReportJSWarning(context, @"Mission.runScreen: model will not be displayed while in flight.");
 			[player showShipModel:JSValToNSString(context, *value)];
 			break;
 		
@@ -329,6 +330,7 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 }
 
 
+// setInstructionsKey(instructionsKey: String [, missionKey : String])
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = [@"textKey" javaScriptValueInContext:context];
@@ -390,7 +392,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	jsval				function = JSVAL_NULL;
 	jsval				value = JSVAL_NULL;
 	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
-	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);;
+	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);
 	NSString			*str;
 	
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
@@ -400,20 +402,22 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	}
 	
 	if (argc>0) {
-		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
+		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
 		{
-			OOReportJSBadArguments(context, @"Mission", @"runScreen", 1, argv, @"Invalid argument", @"object");
-			return NO;
+			OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+			*outResult = BOOLToJSVal(NO);
+			return YES;
 		}
 		
-		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
+		if (!JSVAL_IS_NULL(argv[0]) && JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
 	}
 	
 	if (argc > 1) function = argv[1];
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
-		OOReportJSBadArguments(context, @"Mission", @"runScreen", 1, argv + 1, @"Invalid argument", @"function");
-		return NO;
+		OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"function", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
+		*outResult = BOOLToJSVal(NO);
+		return YES;
 	}
 	
 	str=@"title";
@@ -436,7 +440,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		MissionSetMusic(context, this, 1, &value, &noWarning);
 	
 	str=@"foreground";
-	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+	if (JS_GetProperty(context, params, [str UTF8String], &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
 	
 	str=@"model";

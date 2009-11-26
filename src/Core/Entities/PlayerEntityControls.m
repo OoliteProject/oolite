@@ -127,6 +127,7 @@ static NSTimeInterval	time_last_frame;
 - (void) pollDockedControls:(double) delta_t;
 - (void) pollDemoControls:(double) delta_t;
 - (void) handleMissionCallback;
+- (void) switchToThisView:(OOViewID) viewDirection;
 
 @end
 
@@ -511,7 +512,56 @@ static NSTimeInterval	time_last_frame;
 	BOOL paused = [[gameView gameController] gameIsPaused];
 	double speed_delta = 5.0 * thrust;
 	
-	if (!paused)
+	if (!paused && gui_screen == GUI_SCREEN_MISSION)
+	{
+		OOViewID view = VIEW_NONE;
+		
+		NSPoint			virtualView = NSZeroPoint;
+		double			view_threshold = 0.5;
+		
+		if ([stickHandler getNumSticks])
+		{
+			virtualView = [stickHandler getViewAxis];
+			if (virtualView.y == STICK_AXISUNASSIGNED)
+				virtualView.y = 0.0;
+			if (virtualView.x == STICK_AXISUNASSIGNED)
+				virtualView.x = 0.0;
+			if (fabs(virtualView.y) >= fabs(virtualView.x))
+				virtualView.x = 0.0; // forward/aft takes precedence
+			else
+				virtualView.y = 0.0;
+		}
+	
+		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD])
+		{
+			view = VIEW_FORWARD;
+		}
+		if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2])||(virtualView.y > view_threshold)||joyButtonState[BUTTON_VIEWAFT])
+		{
+			view = VIEW_AFT;
+		}
+		if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3])||(virtualView.x < -view_threshold)||joyButtonState[BUTTON_VIEWPORT])
+		{
+			view = VIEW_PORT;
+		}
+		if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4])||(virtualView.x > view_threshold)||joyButtonState[BUTTON_VIEWSTARBOARD])
+		{
+			view = VIEW_STARBOARD;
+		}
+		if (view != VIEW_NONE)
+		{
+			[[UNIVERSE gui] clearBackground];
+			[self switchToThisView:view];
+			if (_missionWithCallback)
+			{
+				[self doMissionCallback];
+			}
+			// notify older scripts, but do not trigger missionScreenOpportunity.
+			[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+		}
+		[self pollDemoControls: delta_t];
+	}
+	else if (!paused)
 	{
 		// arrow keys
 		if ([UNIVERSE displayGUI])
@@ -2458,31 +2508,19 @@ static NSTimeInterval	time_last_frame;
 	//  view keys
 	if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD] || ((([gameView isDown:key_hyperspace] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART) || joyButtonState[BUTTON_HYPERDRIVE]) && [UNIVERSE displayGUI]))
 	{
-		if ([UNIVERSE displayGUI])
-			[self switchToMainView];
-		[UNIVERSE setViewDirection:VIEW_FORWARD];
-		currentWeaponFacing = VIEW_FORWARD;
+		[self switchToThisView:VIEW_FORWARD];
 	}
 	if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2])||(virtualView.y > view_threshold)||joyButtonState[BUTTON_VIEWAFT])
 	{
-		if ([UNIVERSE displayGUI])
-			[self switchToMainView];
-		[UNIVERSE setViewDirection:VIEW_AFT];
-		currentWeaponFacing = VIEW_AFT;
+		[self switchToThisView:VIEW_AFT];
 	}
 	if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3])||(virtualView.x < -view_threshold)||joyButtonState[BUTTON_VIEWPORT])
 	{
-		if ([UNIVERSE displayGUI])
-			[self switchToMainView];
-		[UNIVERSE setViewDirection:VIEW_PORT];
-		currentWeaponFacing = VIEW_PORT;
+		[self switchToThisView:VIEW_PORT];
 	}
 	if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4])||(virtualView.x > view_threshold)||joyButtonState[BUTTON_VIEWSTARBOARD])
 	{
-		if ([UNIVERSE displayGUI])
-			[self switchToMainView];
-		[UNIVERSE setViewDirection:VIEW_STARBOARD];
-		currentWeaponFacing = VIEW_STARBOARD;
+		[self switchToThisView:VIEW_STARBOARD];
 	}
 	
 	if ([gameView isDown:key_custom_view])
@@ -3159,12 +3197,15 @@ static BOOL toggling_music;
 	[[UNIVERSE gui] clearBackground];
 	
 	[self setGuiToStatusScreen]; // need this to find out if we call a new mission screen inside callback.
+	
+	if ([self status] != STATUS_DOCKED) [self switchToThisView:VIEW_FORWARD];
+	
 	if (_missionWithCallback)
 	{
 		[self doMissionCallback];
 	}
 	
-	if ([self status] != STATUS_DOCKED)	// did we launch inside callback?
+	if ([self status] != STATUS_DOCKED)	// did we launch inside callback? / are we in flight?
 	{
 		[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];	// no opportunity events.
 	}
@@ -3177,6 +3218,14 @@ static BOOL toggling_music;
 		}
 	}
 
+}
+
+
+- (void) switchToThisView:(OOViewID) viewDirection
+{
+	if ([UNIVERSE displayGUI]) [self switchToMainView];
+	[UNIVERSE setViewDirection:viewDirection];
+	currentWeaponFacing = viewDirection;
 }
 
 @end
