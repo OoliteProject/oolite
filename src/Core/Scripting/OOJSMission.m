@@ -402,9 +402,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (argc>0) {
 		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
 		{
-			OOReportJSBadArguments(context, nil, @"Mission.runScreen", 1, argv, @"Invalid argument", @"object");
-			*outResult = BOOLToJSVal(NO);
-			return YES;
+			OOReportJSBadArguments(context, @"Mission", @"runScreen", 1, argv, @"Invalid argument", @"object");
+			return NO;
 		}
 		
 		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_VOID(argv[0]) && JSVAL_IS_OBJECT(argv[0])) params = JSVAL_TO_OBJECT(argv[0]);
@@ -413,9 +412,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (argc > 1) function = argv[1];
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
-		OOReportJSBadArguments(context, nil, @"Mission.runScreen", 1, argv + 1, @"Invalid argument", @"function");
-		*outResult = BOOLToJSVal(NO);
-		return YES;
+		OOReportJSBadArguments(context, @"Mission", @"runScreen", 1, argv + 1, @"Invalid argument", @"function");
+		return NO;
 	}
 	
 	str=@"title";

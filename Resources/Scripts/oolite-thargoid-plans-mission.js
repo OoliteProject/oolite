@@ -49,7 +49,7 @@ this.missionOffers = function ()
 				player.score > 1280 &&
 				system.ID !== 83)
 			{
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief1"}, null);
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief1"});
 				missionVariables.thargplans = "PRELUDE";
 				mission.setInstructionsKey("thargoid_plans_info1");
 				mission.markSystem(83);
@@ -58,7 +58,7 @@ this.missionOffers = function ()
 				system.ID === 83)
 			{
 				mission.unmarkSystem(83);
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief2", model: "thargoid"}, null);
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_brief2", model: "thargoid"});
 				missionVariables.thargplans = "RUNNING";
 				mission.setInstructionsKey("thargoid_plans_info2");
 				mission.markSystem(36);
@@ -66,7 +66,7 @@ this.missionOffers = function ()
 			else if (missionVariables.thargplans === "RUNNING" &&
 					 system.ID === 36)
 			{
-				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_debrief", model: "thargoid"}, null);
+				mission.runScreen({titleKey:"thargoid_plans_title", messageKey:"thargoid_plans_debrief", model: "thargoid"});
 				player.score += 256; // ship kills
 				mission.setInstructions(null);  // reset the mission briefing
 				missionVariables.thargplans = "MISSION_COMPLETE";

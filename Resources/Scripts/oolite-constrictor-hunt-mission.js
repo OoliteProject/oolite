@@ -109,7 +109,7 @@ this.missionOffers = function ()
 		if (galaxyNumber < 2 && !missionVariables.conhunt && player.score > 255)
 		{
 			// there are no options to deal with, we don't need a callback function.
-			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_brief1", model: "constrictor"}, null);
+			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_brief1", model: "constrictor"});
 			if (galaxyNumber === 0)
 			{
 				mission.addMessageTextKey("constrictor_hunt_brief1a"); // galaxy = 0
@@ -124,7 +124,7 @@ this.missionOffers = function ()
 		}
 		if (missionVariables.conhunt === "CONSTRICTOR_DESTROYED")  // Variable is set by the ship script
 		{
-			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_debrief", model: "constrictor"}, null);
+			mission.runScreen({titleKey:"constrictor_hunt_title", messageKey:"constrictor_hunt_debrief", model: "constrictor"});
 			player.credits += 5000;
 			player.bounty = 0;	  // legal status
 			player.score += 256;  // ship kills
