@@ -2222,31 +2222,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 #ifndef NDEBUG
 
-@implementation StationEntity (mwDebug)
-- (NSArray *) dbgGetIdLocks
-{
-	// ?? Doesn't work? At least, not as expected..
-	return [NSArray arrayWithObjects:id_lock count:MAX_DOCKING_STAGES];
-}
-
-- (NSString *) dbgDumpIdLocks
-{
-	int i;
-	NSMutableString * ret = [[NSMutableString alloc] initWithString:@"Station ID Locks:\n"];
-	for (i = 1; i < MAX_DOCKING_STAGES; i++)
-	{
-		[ret appendString:[NSString stringWithFormat:@"   Stage %i contains: %@\n",
-			  i, [id_lock[i] weakRefUnderlyingObject] ? (id)id_lock[i] : (id)@"<empty>"]];
-	}
-	return ret;
-}
-
-- (NSArray *) dbgGetShipsOnApproach
-{
-	return [shipsOnApproach allKeys];
-}
-@end
-
 @implementation StationEntity (OOWireframeDockingBox)
 
 

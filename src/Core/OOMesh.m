@@ -1186,7 +1186,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 static float FaceArea(GLint *vertIndices, Vector *vertices)
 {
-	// calculate areas using Herons formula
+	// calculate areas using Heron's formula
 	// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
 	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
 	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
