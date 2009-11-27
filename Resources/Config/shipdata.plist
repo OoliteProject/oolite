@@ -295,7 +295,8 @@
 		has_fuel_injection = 0.5;
 		has_scoop = 0.99;
 		has_shield_booster = 0.5;
-		likely_cargo = 1;
+		likely_cargo = 0;
+		max_cargo = 0;
 		max_energy = 350;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
@@ -306,6 +307,7 @@
 		name = "Asp Mark II";
 		roles = "hunter pirate asp-pirate";
 		scoop_position = "0.0 -5.0 -15";
+		smooth = yes;
 		thrust = 50;
 		weapon_position_aft = "0.0 -5.0 -35.0";
 		weapon_position_forward = "0.0 0.0 22.5";
@@ -314,59 +316,27 @@
 	};
 	"asp-cloaked" =
 	{
-		aft_eject_position = "0.0 -8.0 -21.5";
-		ai_type = "pirateAI.plist";
+		like_ship = "asp";
+		auto_ai = no;
 		bounty = 150;
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 4;
-		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
-		forward_weapon_type = "WEAPON_BEAM_LASER";
-		fuel = 70;
+		has_ecm = no;
 		has_cloaking_device = yes;
+		has_fuel_injection = no;
 		has_scoop = yes;
-		max_energy = 320;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 400;
-		missile_launch_position = "0.0 -5.9 17.5";
-		missiles = 1;
-		model = "asp_redux.dat";
-		name = "Asp Mark II";
+		has_shield_booster = no;
 		roles = "asp-cloaked";
-		scoop_position = "0.0 -5.0 -15";
 		script = "oolite-cloaking-device-target-ship.js";
-		thrust = 50;
-		weapon_position_aft = "0.0 -5.0 -35.0";
-		weapon_position_forward = "0.0 0.0 22.5";
-		weapon_position_port = "-32.5 0.0 -7.0";
-		weapon_position_starboard = "32.5 0.0 -7.0";
 	};
 	"asp-player" =
 	{
-		aft_eject_position = "0.0 -8.0 -21.5";
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 4;
-		exhaust = ("0.0 0.0 -35.0 8.0 6.0 8.0");
+		like_ship = "asp";
 		forward_weapon_type = "WEAPON_PULSE_LASER";
-		max_energy = 350;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 400;
 		max_missiles = 1;
-		missile_launch_position = "0.0 -5.9 17.5";
-		model = "asp_redux.dat";
-		name = "Asp Mark II";
 		roles = "player";
-		scoop_position = "0.0 -5.0 -15";
-		thrust = 50;
 		view_position_aft = "0.0 5.0 -35.0";
 		view_position_forward = "0.0 5.31 17.5";
 		view_position_port = "-27.0 5.0 0.0";
 		view_position_starboard = "27.0 5.0 0.0";
-		weapon_position_aft = "0.0 -5.0 -35.0";
-		weapon_position_forward = "0.0 -2.0 22.5";
-		weapon_position_port = "-32.5 0.0 -7.0";
-		weapon_position_starboard = "32.5 0.0 -7.0";
 		custom_views =
 		(
 			{
