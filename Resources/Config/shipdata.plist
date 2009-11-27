@@ -855,64 +855,31 @@
 		thrust = 0;
 		unpiloted = yes;
 	};
-	"cobra3-alternate" =
+	"cobra3-trader" =
 	{
 		aft_eject_position = "0.0 15.5 -33.0";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 3;
+		energy_recharge_rate = 2;
 		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
 		fuel = 70;
-		has_ecm = 0.95;
+		has_ecm = 0.15;
 		has_escape_pod = 0.95;
 		has_scoop = 0.95;
 		likely_cargo = 3;
-		max_cargo = 35;
-		max_energy = 250;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 320;
-		missile_launch_position = "0.0 -4.5 16.5";
-		missiles = 3;
-		model = "cobra3_redux1.dat";
-		name = "Cobra Mark III";
-		roles = "hunter pirate trader hermit-ship sunskim-trader";
-		scoop_position = "0.0 -10.0 -10.0";
-		thrust = 32;
-		weapon_energy = 15;
-		weapon_position_aft = "0.0 0.0 -32.5";
-		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-40.0 2.17 -4.33";
-		weapon_position_starboard = "40.0 2.17 -4.33";
-	};
-	"cobra3-pirate" =
-	{
-		aft_eject_position = "0.0 15.5 -33.0";
-		ai_type = "pirateAI.plist";
-		auto_ai = yes;
-		bounty = 50;
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 3;
-		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
-		forward_weapon_type = "WEAPON_PULSE_LASER";
-		fuel = 70;
-		has_ecm = 0.1;
-		has_escape_pod = 0.85;
-		has_scoop = yes;
-		has_shield_booster = 0.25;
-		likely_cargo = 3;
-		max_cargo = 5;
-		max_energy = 250;
+		max_cargo = 20;
+		max_energy = 150;
 		max_flight_pitch = 1;
 		max_flight_roll = 2;
 		max_flight_speed = 300;
 		missile_launch_position = "0.0 -4.5 16.5";
-		missiles = 1;
+		missiles = 3;
 		model = "cobra3_redux.dat";
+		smooth = yes;
 		name = "Cobra Mark III";
-		roles = "pirate hunter";
+		roles = "trader scavenger sunskim-trader";
 		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 30;
 		weapon_position_aft = "0.0 0.0 -32.5";
@@ -920,35 +887,52 @@
 		weapon_position_port = "-40.0 2.17 -4.33";
 		weapon_position_starboard = "40.0 2.17 -4.33";
 	};
+	"cobra3-alternate" =
+	{
+		like_ship = "cobra3-trader";
+		energy_recharge_rate = 3;
+		has_ecm = 0.95;
+		max_cargo = 35;
+		max_energy = 250;
+		max_flight_speed = 320;
+		materials =
+		{
+			"cobra3_redux.png" = { diffuse_map = "cobra3_redux1.png"; };
+		};
+		roles = "hunter pirate trader hermit-ship sunskim-trader";
+		thrust = 32;
+		weapon_energy = 15;
+	};
+	"cobra3-pirate" =
+	{
+		like_ship = "cobra3-trader";
+		ai_type = "pirateAI.plist";
+		bounty = 50;
+		energy_recharge_rate = 3;
+		forward_weapon_type = "WEAPON_PULSE_LASER";
+		has_ecm = 0.1;
+		has_escape_pod = 0.85;
+		has_scoop = yes;
+		has_shield_booster = 0.25;
+		max_cargo = 5;
+		max_energy = 250;
+		missiles = 1;
+		roles = "pirate hunter";
+	};
 	"cobra3-player" =
 	{
-		aft_eject_position = "0.0 15.5 -33.0";
+		like_ship = "cobra3-trader";
 		energy_recharge_rate = 4;
-		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
-		hud = "hud.plist";
-		laser_color = "redColor";
-		max_cargo = 20;
 		max_energy = 256;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
 		max_flight_speed = 350;
 		max_missiles = 4;
-		missile_launch_position = "0.0 -4.5 16.5";
-		missiles = 3;
-		model = "cobra3_redux.dat";
-		name = "Cobra Mark III";
 		roles = "player";
-		scoop_position = "0.0 -10.0 -10.0";
 		thrust = 32;
 		view_position_aft = "0.0 7.5 -32.5";
 		view_position_forward = "0.0 7.25 16.25";
 		view_position_port = "-30.0 4.75 0.0";
 		view_position_starboard = "30.0 4.75 0.0";
-		weapon_position_aft = "0.0 0.0 -32.5";
-		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-40.0 2.17 -4.33";
-		weapon_position_starboard = "40.0 2.17 -4.33";
 		custom_views =
 		(
 			{
@@ -1013,37 +997,6 @@
 			}
 		);
 	};
-	"cobra3-trader" =
-	{
-		aft_eject_position = "0.0 15.5 -33.0";
-		ai_type = "route1traderAI.plist";
-		auto_ai = yes;
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 2;
-		exhaust = ("-19 0.0 -32.5 15.0 7.5 12.5", "19 0.0 -32.5 15.0 7.5 12.5");
-		forward_weapon_type = "WEAPON_BEAM_LASER";
-		fuel = 70;
-		has_ecm = 0.15;
-		has_escape_pod = 0.95;
-		has_scoop = 0.95;
-		likely_cargo = 3;
-		max_cargo = 20;
-		max_energy = 150;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 300;
-		missile_launch_position = "0.0 -4.5 16.5";
-		missiles = 3;
-		model = "cobra3_redux.dat";
-		name = "Cobra Mark III";
-		roles = "trader scavenger sunskim-trader";
-		scoop_position = "0.0 -10.0 -10.0";
-		thrust = 30;
-		weapon_position_aft = "0.0 0.0 -32.5";
-		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-40.0 2.17 -4.33";
-		weapon_position_starboard = "40.0 2.17 -4.33";
-	};
 	cobramk1 =
 	{
 		aft_eject_position = "0.0 7.5 -21.0";
@@ -1055,6 +1008,7 @@
 		forward_weapon_type = "WEAPON_PULSE_LASER";
 		fuel = 70;
 		has_scoop = 0.95;
+		scoop_position = "0.0 -5.0 -9";
 		likely_cargo = 2;
 		max_cargo = 10;
 		max_energy = 150;
@@ -1066,7 +1020,6 @@
 		model = "cobra1_redux.dat";
 		name = "Cobra Mark I";
 		roles = "pirate hunter scavenger trader hermit-ship";
-		scoop_position = "0.0 -5.0 -9";
 		thrust = 25;
 		weapon_position_aft = "0.0 0.0 -27.5";
 		weapon_position_forward = "0.0 0.0 27.5";
@@ -1075,92 +1028,43 @@
 	};
 	"cobramk1-alt" =
 	{
-		aft_eject_position = "0.0 7.5 -21.0";
+		like_ship = "cobramk1";
 		ai_type = "pirateAI.plist";
-		auto_ai = yes;
-		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3.75;
-		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
 		forward_weapon_type = "WEAPON_BEAM_LASER";
-		fuel = 70;
 		has_fuel_injection = 0.25;
-		has_scoop = 0.95;
 		has_shield_booster = 0.25;
-		likely_cargo = 2;
-		max_cargo = 10;
 		max_energy = 200;
-		max_flight_pitch = 1.2;
-		max_flight_roll = 2;
-		max_flight_speed = 260;
-		missile_launch_position = "0.0 -2.0 14.0";
-		missiles = 1;
-		model = "cobra1_redux1.dat";
-		name = "Cobra Mark I";
+		materials =
+		{
+			"cobra1_redux.png" = { diffuse_map = "cobra1_redux1.png"; };
+		};
 		roles = "pirate";
-		scoop_position = "0.0 -5.0 -9";
 		thrust = 30;
-		weapon_position_aft = "0.0 0.0 -27.5";
-		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-35.0 -1.0 0.5";
-		weapon_position_starboard = "35.0 -1.0 0.5";
 	};
 	"cobramk1-miner" =
 	{
+		like_ship = "cobramk1";
 		accuracy = 8;
-		aft_eject_position = "0.0 7.5 -21.0";
 		ai_type = "minerAI.plist";
-		auto_ai = yes;
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 2.5;
-		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
 		forward_weapon_type = "WEAPON_MINING_LASER";
-		fuel = 70;
 		has_scoop = yes;
-		max_cargo = 10;
-		max_energy = 150;
-		max_flight_pitch = 1.2;
-		max_flight_roll = 2;
-		max_flight_speed = 260;
-		missile_launch_position = "0.0 -2.0 14.0";
-		missiles = 1;
-		model = "cobra1_redux2.dat";
-		name = "Cobra Mark I";
+		materials =
+		{
+			"cobra1_redux.png" = { diffuse_map = "cobra1_redux2.png"; };
+		};
 		roles = "miner";
-		scoop_position = "0.0 -5.0 -9";
-		thrust = 25;
-		weapon_position_aft = "0.0 0.0 -27.5";
-		weapon_position_forward = "0.0 0.0 27.5";
-		weapon_position_port = "-35.0 -1.0 0.5";
-		weapon_position_starboard = "35.0 -1.0 0.5";
 	};
 	"cobramk1-player" =
 	{
-		aft_eject_position = "0.0 7.5 -21.0";
-		energy_recharge_rate = 2.5;
-		exhaust = ("8.2 0.0 -27.5 6.0 4.0 4.0", "-8.2 0.0 -27.5 6.0 4.0 4.0");
-		forward_weapon_type = "WEAPON_PULSE_LASER";
+		like_ship = "cobramk1";
 		hud = "hud-small.plist";
-		max_cargo = 10;
-		max_energy = 150;
-		max_flight_pitch = 1.2;
-		max_flight_roll = 2;
-		max_flight_speed = 260;
 		max_missiles = 1;
-		missile_launch_position = "0.0 -2.0 14.0";
-		missiles = 1;
-		model = "cobra1_redux.dat";
-		name = "Cobra Mark I";
 		roles = "player";
-		scoop_position = "0.0 -5.0 -9";
-		thrust = 25;
 		view_position_aft = "0.0 3.75 -27.5";
 		view_position_forward = "0.0 2.925 15.125";
 		view_position_port = "-13.0 3.75 0.0";
 		view_position_starboard = "13.0 3.75 0.0";
-		weapon_position_aft = "0.0 0.0 -27.5";
-		weapon_position_forward = "0.0 0.0 17.5";
-		weapon_position_port = "-25.0 -1.0 0.5";
-		weapon_position_starboard = "25.0 -1.0 0.5";
 		custom_views =
 		(
 			{
@@ -1247,6 +1151,10 @@
 		missile_launch_position = "0.0 -5.5 16.0";
 		missiles = 3;
 		model = "constrictor_redux.dat";
+		materials =
+		{
+			constrictor_redux.png = { shininess = 20; };
+		};
 		name = "Constrictor";
 		pilot = "constrictor-mission-thief";	// key to entry in characters.plist
 		roles = "constrictor";
@@ -1513,6 +1421,7 @@
 		missile_launch_position = "0.0 0.0 4.5";
 		missiles = 0;
 		model = "escpod_redux.dat";
+		smooth = yes;
 		name = "Escape capsule";
 		roles = "escape-capsule";
 		scan_class = "CLASS_CARGO";
@@ -1815,7 +1724,11 @@
 		max_flight_speed = 320;
 		missile_launch_position = "0.0 -3.5 3.5";
 		missiles = 0;
-		model = "mamba_redux1.dat";
+		model = "mamba_redux.dat";
+		materials =
+		{
+			"mamba_redux.png" = { diffuse_map = "mamba_redux1.png"; };
+		};
 		name = "Mamba Escort";
 		roles = "escort";
 		thrust = 32;
@@ -1985,7 +1898,11 @@
 		max_flight_speed = 300;
 		missile_launch_position = "0.0 -7.75 0.5";
 		missiles = 2;
-		model = "moray_redux1.dat";
+		model = "moray_redux.dat";
+		materials =
+		{
+			"moray_redux.png" = { diffuse_map = "moray_redux1.png"; };
+		};
 		name = "Moray Medical Boat";
 		roles = "trader sunskim-trader";
 		scoop_position = "0.0 -2.0 -10.5";
@@ -2010,7 +1927,11 @@
 		max_missiles = 2;
 		missile_launch_position = "0.0 -7.75 0.5";
 		missiles = 2;
-		model = "moray_redux1.dat";
+		model = "moray_redux.dat";
+		materials =
+		{
+			"moray_redux.png" = { diffuse_map = "moray_redux1.png"; };
+		};
 		name = "Moray Medical Boat";
 		roles = "player";
 		scoop_position = "0.0 -2.0 -10.5";
@@ -2160,9 +2081,13 @@
 		max_flight_speed = 200;
 		missile_launch_position = "0.0 -20.5 -18.0";
 		missiles = 2;
-		model = "python_redux2.dat";
+		model = "python_redux.dat";
+		materials =
+		{
+			"python_redux.png" = { diffuse_map = "python_redux2.png"; };
+		};
 		name = "Python";
-		roles = "pirate";
+		roles = "pirate blackdog";
 		scoop_position = "0.0 -15.0 -21.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 10 -65.0";
@@ -2283,7 +2208,11 @@
 		max_flight_speed = 200;
 		missile_launch_position = "0.0 -20.5 -18.0";
 		missiles = 2;
-		model = "python_redux1.dat";
+		model = "python_redux.dat";
+		materials =
+		{
+			"python_redux.png" = { diffuse_map = "python_redux1.png"; };
+		};
 		name = "Python";
 		roles = "trader";
 		scoop_position = "0.0 -15.0 -21.5";
@@ -2567,6 +2496,7 @@
 		model = "transporter_redux.dat";
 		name = "Transporter";
 		roles = "shuttle";
+		scoop_position = "0.0 -2.0 -10.5";
 		thrust = 20;
 		weapon_position_aft = "0.0 -1.0 -17.5";
 		weapon_position_forward = "0.0 -3.4 17.5";
@@ -2575,30 +2505,17 @@
 	};
 	"transporter-miner" =
 	{
+		like_ship = "transporter";
 		accuracy = 8;
-		aft_eject_position = "0.0 5.5 -18.0";
 		ai_type = "minerAI.plist";
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 3;
-		exhaust = ("6.125 -0.75 -17.5 3.0 3.0 4.0", "-6.125 -0.75 -17.5 3.0 3.0 4.0");
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
-		max_cargo = 12;
-		max_energy = 150;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 100;
-		missile_launch_position = "0.0 -5.5 0.5";
-		missiles = 0;
-		model = "transporter_redux1.dat";
+		materials =
+		{
+			"transporter_redux.png" = { diffuse_map = "transporter_redux1.png"; };
+		};
 		name = "Mining Transporter";
 		roles = "miner";
-		scoop_position = "0.0 -2.0 -10.5";
-		thrust = 20;
-		weapon_position_aft = "0.0 -1.0 -17.5";
-		weapon_position_forward = "0.0 -3.4 17.5";
-		weapon_position_port = "-14.25 -3.0 6.0";
-		weapon_position_starboard = "14.25 -3.0 6.0";
 	};
 	viper =
 	{
@@ -2663,6 +2580,7 @@
 		missile_launch_position = "0.0 -10.5 -9.0";
 		missiles = 3;
 		model = "viperi_redux.dat";
+		smooth = yes;
 		name = "GalCop Viper Interceptor";
 		roles = "interceptor wingman";
 		scan_class = "CLASS_POLICE";
@@ -2711,57 +2629,23 @@
 		weapon_position_port = "-12.5 0.0 0.0";
 		weapon_position_starboard = "12.5 0.0 0.0";
 	};
-	worm =
-	{
-		aft_eject_position = "0.0 5.0 -9.5";
-		ai_type = "nullAI.plist";
-		cargo_type = "CARGO_NOT_CARGO";
-		energy_recharge_rate = 2;
-		exhaust = ("0.0 0.0 -17.5 7.0 6.0 6.0");
-		forward_weapon_type = "WEAPON_NONE";
-		likely_cargo = 1;
-		max_cargo = 2;
-		max_energy = 75;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
-		max_flight_speed = 110;
-		missile_launch_position = "0.0 -6.5 13.0";
-		missiles = 0;
-		model = "worm_redux.dat";
-		name = "Worm";
-		roles = "shuttle";
-		thrust = 12;
-		weapon_position_aft = "0.0 -4.8 -17.5";
-		weapon_position_forward = "0.0 -4.4 15.5";
-		weapon_position_port = "-12.5 -3.0 -2.5";
-		weapon_position_starboard = "12.5 -3.0 -2.5";
-	};
 	"worm-miner" =
 	{
-		aft_eject_position = "0.0 5.0 -9.5";
+		like_ship = "worm";
 		ai_type = "minerAI.plist";
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 1.85;
 		exhaust = ("0.0 0.0 -17.5 6.0 5.0 5.0");
 		forward_weapon_type = "WEAPON_MINING_LASER";
 		has_scoop = yes;
-		likely_cargo = 1;
 		max_cargo = 5;
 		max_energy = 55;
-		max_flight_pitch = 1;
-		max_flight_roll = 2;
 		max_flight_speed = 100;
-		missile_launch_position = "0.0 -6.5 13.0";
-		missiles = 0;
-		model = "worm_redux1.dat";
-		name = "Worm";
+		materials =
+		{
+			"worm_redux.png" = { "worm_redux1.png"; };
+		};
 		roles = "miner";
-		scoop_position = "0.0 -2.0 -10.5";
-		thrust = 12;
-		weapon_position_aft = "0.0 -4.8 -17.5";
-		weapon_position_forward = "0.0 -4.4 15.5";
-		weapon_position_port = "-12.5 -3.0 -2.5";
-		weapon_position_starboard = "12.5 -3.0 -2.5";
 	};
 	// wreckage
 	"wreckage-component" =
@@ -2814,8 +2698,22 @@
 		ai_type = "nullAI.plist";
 		laser_color = magentaColor;
 		model = "oolite-ball-turret.dat";
+		smooth = "yes";
+		materials =
+		{
+			"back_metal.png" =
+			{
+				shininess = 15;
+				specular = (0.75, 0.75, 0.75, 1.0);
+			};
+			"oolite-ball-turret.png" =
+			{
+				shininess = 15;
+				specular = (0.75, 0.75, 0.75, 1.0);
+			};
+		};
 		name = "Ball Turret";
-		roles = ballturret;
+		roles = "ballturret";
 		setup_actions = ( initialiseTurret );
 		thrust = 1;
 		weapon_energy = 25;

@@ -952,7 +952,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (![scanner scanFloat:&nz])  failFlag = YES;
 					if (!failFlag)
 					{
-						_faces[j].normal = make_vector(nx, ny, nz);
+						_faces[j].normal = vector_normal(make_vector(nx, ny, nz));
 					}
 					else
 					{
