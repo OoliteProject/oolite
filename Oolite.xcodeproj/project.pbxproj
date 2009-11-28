@@ -194,32 +194,24 @@
 		1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B10B9D02A900EF0852 /* boulder1.dat */; };
 		1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B20B9D02A900EF0852 /* buoy.dat */; };
 		1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */; };
-		1A2318F30B9D02AA00EF0852 /* cobra1_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */; };
-		1A2318F40B9D02AA00EF0852 /* cobra1_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */; };
 		1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */; };
-		1A2318F60B9D02AA00EF0852 /* cobra3_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */; };
 		1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */; };
 		1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318B90B9D02A900EF0852 /* dock-flat.dat */; };
 		1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BA0B9D02A900EF0852 /* dock.dat */; };
 		1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */; };
-		1A2318FB0B9D02AA00EF0852 /* exhaust.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BC0B9D02A900EF0852 /* exhaust.dat */; };
 		1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */; };
 		1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */; };
 		1A2318FE0B9D02AA00EF0852 /* icosahedron.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318BF0B9D02A900EF0852 /* icosahedron.dat */; };
 		1A2318FF0B9D02AA00EF0852 /* icostextured.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C00B9D02A900EF0852 /* icostextured.dat */; };
 		1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C10B9D02A900EF0852 /* krait_redux.dat */; };
 		1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C20B9D02A900EF0852 /* mamba_redux.dat */; };
-		1A2319020B9D02AA00EF0852 /* mamba_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */; };
 		1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C40B9D02A900EF0852 /* missile.dat */; };
 		1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C50B9D02A900EF0852 /* moray_redux.dat */; };
-		1A2319050B9D02AA00EF0852 /* moray_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C60B9D02A900EF0852 /* moray_redux1.dat */; };
 		1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C70B9D02A900EF0852 /* new-dodo.dat */; };
 		1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C80B9D02A900EF0852 /* new-icos.dat */; };
 		1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318C90B9D02A900EF0852 /* new-rock.dat */; };
 		1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */; };
 		1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CB0B9D02A900EF0852 /* python_redux.dat */; };
-		1A23190B0B9D02AA00EF0852 /* python_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CC0B9D02A900EF0852 /* python_redux1.dat */; };
-		1A23190C0B9D02AA00EF0852 /* python_redux2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */; };
 		1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CE0B9D02AA00EF0852 /* qbomb.dat */; };
 		1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318CF0B9D02AA00EF0852 /* ring.dat */; };
 		1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D00B9D02AA00EF0852 /* rock-box.dat */; };
@@ -233,11 +225,9 @@
 		1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */; };
 		1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */; };
 		1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */; };
-		1A23191A0B9D02AA00EF0852 /* transporter_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */; };
 		1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */; };
 		1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */; };
 		1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */; };
-		1A23191E0B9D02AA00EF0852 /* worm_redux1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */; };
 		1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E00B9D02AA00EF0852 /* wreck1.dat */; };
 		1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E10B9D02AA00EF0852 /* wreck2.dat */; };
 		1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A2318E20B9D02AA00EF0852 /* wreck3.dat */; };
@@ -941,32 +931,24 @@
 				1A2318F00B9D02AA00EF0852 /* boulder1.dat in Copy Models */,
 				1A2318F10B9D02AA00EF0852 /* buoy.dat in Copy Models */,
 				1A2318F20B9D02AA00EF0852 /* cobra1_redux.dat in Copy Models */,
-				1A2318F30B9D02AA00EF0852 /* cobra1_redux1.dat in Copy Models */,
-				1A2318F40B9D02AA00EF0852 /* cobra1_redux2.dat in Copy Models */,
 				1A2318F50B9D02AA00EF0852 /* cobra3_redux.dat in Copy Models */,
-				1A2318F60B9D02AA00EF0852 /* cobra3_redux1.dat in Copy Models */,
 				1A2318F70B9D02AA00EF0852 /* constrictor_redux.dat in Copy Models */,
 				1A2318F80B9D02AA00EF0852 /* dock-flat.dat in Copy Models */,
 				1A2318F90B9D02AA00EF0852 /* dock.dat in Copy Models */,
 				1A2318FA0B9D02AA00EF0852 /* escpod_redux.dat in Copy Models */,
-				1A2318FB0B9D02AA00EF0852 /* exhaust.dat in Copy Models */,
 				1A2318FC0B9D02AA00EF0852 /* ferdelance_redux.dat in Copy Models */,
 				1A2318FD0B9D02AA00EF0852 /* gecko_redux.dat in Copy Models */,
 				1A2318FE0B9D02AA00EF0852 /* icosahedron.dat in Copy Models */,
 				1A2318FF0B9D02AA00EF0852 /* icostextured.dat in Copy Models */,
 				1A2319000B9D02AA00EF0852 /* krait_redux.dat in Copy Models */,
 				1A2319010B9D02AA00EF0852 /* mamba_redux.dat in Copy Models */,
-				1A2319020B9D02AA00EF0852 /* mamba_redux1.dat in Copy Models */,
 				1A2319030B9D02AA00EF0852 /* missile.dat in Copy Models */,
 				1A2319040B9D02AA00EF0852 /* moray_redux.dat in Copy Models */,
-				1A2319050B9D02AA00EF0852 /* moray_redux1.dat in Copy Models */,
 				1A2319060B9D02AA00EF0852 /* new-dodo.dat in Copy Models */,
 				1A2319070B9D02AA00EF0852 /* new-icos.dat in Copy Models */,
 				1A2319080B9D02AA00EF0852 /* new-rock.dat in Copy Models */,
 				1A2319090B9D02AA00EF0852 /* new_coriolis.dat in Copy Models */,
 				1A23190A0B9D02AA00EF0852 /* python_redux.dat in Copy Models */,
-				1A23190B0B9D02AA00EF0852 /* python_redux1.dat in Copy Models */,
-				1A23190C0B9D02AA00EF0852 /* python_redux2.dat in Copy Models */,
 				1A23190D0B9D02AA00EF0852 /* qbomb.dat in Copy Models */,
 				1A23190E0B9D02AA00EF0852 /* ring.dat in Copy Models */,
 				1A23190F0B9D02AA00EF0852 /* rock-box.dat in Copy Models */,
@@ -980,11 +962,9 @@
 				1A2319170B9D02AA00EF0852 /* thargoid_redux.dat in Copy Models */,
 				1A2319180B9D02AA00EF0852 /* thargon_redux.dat in Copy Models */,
 				1A2319190B9D02AA00EF0852 /* transporter_redux.dat in Copy Models */,
-				1A23191A0B9D02AA00EF0852 /* transporter_redux1.dat in Copy Models */,
 				1A23191B0B9D02AA00EF0852 /* viper_redux.dat in Copy Models */,
 				1A23191C0B9D02AA00EF0852 /* viperi_redux.dat in Copy Models */,
 				1A23191D0B9D02AA00EF0852 /* worm_redux.dat in Copy Models */,
-				1A23191E0B9D02AA00EF0852 /* worm_redux1.dat in Copy Models */,
 				1A23191F0B9D02AA00EF0852 /* wreck1.dat in Copy Models */,
 				1A2319200B9D02AA00EF0852 /* wreck2.dat in Copy Models */,
 				1A2319210B9D02AA00EF0852 /* wreck3.dat in Copy Models */,
@@ -1274,32 +1254,24 @@
 		1A2318B10B9D02A900EF0852 /* boulder1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = boulder1.dat; sourceTree = "<group>"; };
 		1A2318B20B9D02A900EF0852 /* buoy.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = buoy.dat; sourceTree = "<group>"; };
 		1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux.dat; sourceTree = "<group>"; };
-		1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
-		1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
 		1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux.dat; sourceTree = "<group>"; };
-		1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra3_redux1.dat; sourceTree = "<group>"; };
 		1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = constrictor_redux.dat; sourceTree = "<group>"; };
 		1A2318B90B9D02A900EF0852 /* dock-flat.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "dock-flat.dat"; sourceTree = "<group>"; };
 		1A2318BA0B9D02A900EF0852 /* dock.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = dock.dat; sourceTree = "<group>"; };
 		1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = escpod_redux.dat; sourceTree = "<group>"; };
-		1A2318BC0B9D02A900EF0852 /* exhaust.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = exhaust.dat; sourceTree = "<group>"; };
 		1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ferdelance_redux.dat; sourceTree = "<group>"; };
 		1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = gecko_redux.dat; sourceTree = "<group>"; };
 		1A2318BF0B9D02A900EF0852 /* icosahedron.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = icosahedron.dat; sourceTree = "<group>"; };
 		1A2318C00B9D02A900EF0852 /* icostextured.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = icostextured.dat; sourceTree = "<group>"; };
 		1A2318C10B9D02A900EF0852 /* krait_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = krait_redux.dat; sourceTree = "<group>"; };
 		1A2318C20B9D02A900EF0852 /* mamba_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux.dat; sourceTree = "<group>"; };
-		1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux1.dat; sourceTree = "<group>"; };
 		1A2318C40B9D02A900EF0852 /* missile.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = missile.dat; sourceTree = "<group>"; };
 		1A2318C50B9D02A900EF0852 /* moray_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux.dat; sourceTree = "<group>"; };
-		1A2318C60B9D02A900EF0852 /* moray_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux1.dat; sourceTree = "<group>"; };
 		1A2318C70B9D02A900EF0852 /* new-dodo.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-dodo.dat"; sourceTree = "<group>"; };
 		1A2318C80B9D02A900EF0852 /* new-icos.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-icos.dat"; sourceTree = "<group>"; };
 		1A2318C90B9D02A900EF0852 /* new-rock.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "new-rock.dat"; sourceTree = "<group>"; };
 		1A2318CA0B9D02A900EF0852 /* new_coriolis.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = new_coriolis.dat; sourceTree = "<group>"; };
 		1A2318CB0B9D02A900EF0852 /* python_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux.dat; sourceTree = "<group>"; };
-		1A2318CC0B9D02A900EF0852 /* python_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux1.dat; sourceTree = "<group>"; };
-		1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux2.dat; sourceTree = "<group>"; };
 		1A2318CE0B9D02AA00EF0852 /* qbomb.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = qbomb.dat; sourceTree = "<group>"; };
 		1A2318CF0B9D02AA00EF0852 /* ring.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ring.dat; sourceTree = "<group>"; };
 		1A2318D00B9D02AA00EF0852 /* rock-box.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "rock-box.dat"; sourceTree = "<group>"; };
@@ -1313,11 +1285,9 @@
 		1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = thargoid_redux.dat; sourceTree = "<group>"; };
 		1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = thargon_redux.dat; sourceTree = "<group>"; };
 		1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux.dat; sourceTree = "<group>"; };
-		1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux1.dat; sourceTree = "<group>"; };
 		1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = viper_redux.dat; sourceTree = "<group>"; };
 		1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = viperi_redux.dat; sourceTree = "<group>"; };
 		1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux.dat; sourceTree = "<group>"; };
-		1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux1.dat; sourceTree = "<group>"; };
 		1A2318E00B9D02AA00EF0852 /* wreck1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck1.dat; sourceTree = "<group>"; };
 		1A2318E10B9D02AA00EF0852 /* wreck2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck2.dat; sourceTree = "<group>"; };
 		1A2318E20B9D02AA00EF0852 /* wreck3.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wreck3.dat; sourceTree = "<group>"; };
@@ -2068,25 +2038,19 @@
 				1A2318B10B9D02A900EF0852 /* boulder1.dat */,
 				1A2318B20B9D02A900EF0852 /* buoy.dat */,
 				1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */,
-				1A2318B40B9D02A900EF0852 /* cobra1_redux1.dat */,
-				1A2318B50B9D02A900EF0852 /* cobra1_redux2.dat */,
 				1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */,
-				1A2318B70B9D02A900EF0852 /* cobra3_redux1.dat */,
 				1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */,
 				1A2318B90B9D02A900EF0852 /* dock-flat.dat */,
 				1A2318BA0B9D02A900EF0852 /* dock.dat */,
 				1A2318BB0B9D02A900EF0852 /* escpod_redux.dat */,
-				1A2318BC0B9D02A900EF0852 /* exhaust.dat */,
 				1A2318BD0B9D02A900EF0852 /* ferdelance_redux.dat */,
 				1A2318BE0B9D02A900EF0852 /* gecko_redux.dat */,
 				1A2318BF0B9D02A900EF0852 /* icosahedron.dat */,
 				1A2318C00B9D02A900EF0852 /* icostextured.dat */,
 				1A2318C10B9D02A900EF0852 /* krait_redux.dat */,
 				1A2318C20B9D02A900EF0852 /* mamba_redux.dat */,
-				1A2318C30B9D02A900EF0852 /* mamba_redux1.dat */,
 				1A2318C40B9D02A900EF0852 /* missile.dat */,
 				1A2318C50B9D02A900EF0852 /* moray_redux.dat */,
-				1A2318C60B9D02A900EF0852 /* moray_redux1.dat */,
 				1A2318C70B9D02A900EF0852 /* new-dodo.dat */,
 				1A2318C80B9D02A900EF0852 /* new-icos.dat */,
 				1A2318C90B9D02A900EF0852 /* new-rock.dat */,
@@ -2094,8 +2058,6 @@
 				1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */,
 				1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */,
 				1A2318CB0B9D02A900EF0852 /* python_redux.dat */,
-				1A2318CC0B9D02A900EF0852 /* python_redux1.dat */,
-				1A2318CD0B9D02AA00EF0852 /* python_redux2.dat */,
 				1A2318CE0B9D02AA00EF0852 /* qbomb.dat */,
 				1A2318CF0B9D02AA00EF0852 /* ring.dat */,
 				1A2318D00B9D02AA00EF0852 /* rock-box.dat */,
@@ -2109,11 +2071,9 @@
 				1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */,
 				1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */,
 				1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */,
-				1A2318DB0B9D02AA00EF0852 /* transporter_redux1.dat */,
 				1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */,
 				1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */,
 				1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */,
-				1A2318DF0B9D02AA00EF0852 /* worm_redux1.dat */,
 				1A2318E00B9D02AA00EF0852 /* wreck1.dat */,
 				1A2318E10B9D02AA00EF0852 /* wreck2.dat */,
 				1A2318E20B9D02AA00EF0852 /* wreck3.dat */,
