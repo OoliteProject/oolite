@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Oolite
+Comment=An OpenGL Elite-like space game
+Exec=oolite
+Icon=oolite-icon.png
+Terminal=false
+Type=Application
+Categories=Game;Simulation;

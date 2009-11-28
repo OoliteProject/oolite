@@ -1,0 +1,157 @@
+/*	JavaScript console configuration.
+	
+	This plist is merged and overrideable in the usual fashion. Additionally,
+	settings may be changed from within JavaScript using syntax such as:
+	
+		console.settings["font-face"] = "Palatino";
+		console.settings["command-background-color"] = [0.9, 0.9, 1];
+		console.settings["show-console-on-log"] = true;
+	
+	or using the predefined console macros fgColor and bgColor, like:
+	
+		:fgColor general "redColor"
+		:bgColor general "0.8 0.8 0.9"
+	
+	Settings like this are saved in Oolite's preferences and always override
+	settings in jsConsoleConfig.plist. An override can be removed in
+	JavaScript like this:
+	
+		delete console.settings["font-face"];
+*/
+
+{
+	/*	Settings for external TCP debug console support.
+		
+		Under Mac OS X, the integrated debug console will be used if
+		console-host is not specified. Set console-host to "127.0.0.1" to use
+		an external debug console running on the same machine.
+		
+		On other systems, not specifying console-host is equivalent to setting
+		it to 127.0.0.1.
+		
+		If console-port is not specified, 8563 will be used.
+		
+		NOTE: console-host and console-port overrides set in JavaScript will
+		be ignored. This is by design.
+	*/
+	// console-host = "127.0.0.1";
+	// console-port = 8563;
+	
+	
+	// Automatic showing of console for various types of message
+	show-console-on-warning				= yes;	// JavaScript warning
+	show-console-on-error				= yes;	// JavaScript error or exception
+	show-console-on-log					= no;	// log() called
+	
+	
+	// Macro definitions for the console macro system (implemented in oolite-debug-console.js).
+	// Note that these call simple functions in oolite-debug-console.js, not magic functions provided by Oolite.
+	macros =
+	{
+		// Manipulating macros
+		"setM"		= "setMacro(PARAM)";
+		"delM"		= "deleteMacro(PARAM)";
+		"showM"		= "showMacro(PARAM)";
+		"listM"		= "for (let prop in macros) { consoleMessage('macro-list', ':' + prop) }";
+		
+		// Reload macros from plist, removing any custom ones.
+		"resetM"	= "delete console.settings.macros; macros = console.settings.macros; undefined";
+		
+		// Examining (“dumping”) objects
+		"d"			= "dumpObjectLong(eval(PARAM))";
+		"ds"		= "dumpObjectShort(eval(PARAM))";
+		
+		// Clearing the console
+		"clr"		= "console.clearConsole()";
+		"clear"		= "console.clearConsole()";
+		
+		/*	For creating/testing colour sets. Syntax is flexible, as in plists,
+			for example:
+			:fgColor general "redColor"
+			:bgColor command { hue: 60, saturation: 0.1 }
+			:bgColor general [0, 0, 1, 1]
+			
+			rmFgColor/rmBgColor remove the specified setting from config
+			overrides, returning to whatever is set in the plist.
+		*/
+		"fgColor"	= "setColorFromString(PARAM, 'foreground')";
+		"bgColor"	= "setColorFromString(PARAM, 'background')";
+		"rmFgColor"	= "void delete console.settings[PARAM + '-foreground-color']";
+		"rmBgColor"	= "void delete console.settings[PARAM + '-background-color']";
+		
+		// ":nearest role" -- find nearest ship with specified role.
+		// ":tnearest role" -- target nearest ship with specified role.
+		"nearest"	= "this.result = system.shipsWithRole(PARAM, player.ship)[0]";
+		"tnearest"	= "player.ship.target = system.shipsWithRole(PARAM, player.ship)[0]";
+		
+		// ":find expr" -- find entities matching expr; for example, ":find entity.isShip" to find all ships.
+		// ":findS expr" -- find ships matching expr; for example, ":find ship.scanClass == 'CLASS_BUOY'".
+		// ":target expr" -- target closest ship matching expr.
+		"find"		= "this.result = system.filteredEntities(player.ship, function(entity) { return eval(PARAM); })";
+		"findS"		= "this.result = system.filteredEntities(player.ship, function(ship) { return ship.isShip && eval(PARAM); })";
+		"target"	= "player.ship.target = system.filteredEntities(player.ship, function(ship) { return ship.isShip && eval(PARAM); }, player.ship)[0]";
+		
+		// ":logOn className" -- enable logging for log message class className.
+		// ":logOff className" -- disable logging for log message class className.
+		"logOn"		= "console.setDisplayMessagesInClass(PARAM, true)";
+		"logOff"	= "console.setDisplayMessagesInClass(PARAM, false)";
+		
+		// ":spawn foo" -- create a ship with role "foo" near the station.
+		"spawn"		= "system.legacy_addShipsWithinRadius(PARAM, 1, 'abs', player.ship.position, 10000)";
+		
+		// ":qotd" -- quote of the day. Or the moment, anyway.
+		"qotd"		= "expandDescription('[thargoid_curses]')";
+		
+		// ":test" -- display a ship of the specified role, assuming you're docked.
+		"test"		= "mission.runScreen({model:PARAM})";
+		
+		// For calling old-school scripting methods (on player), as in ":: gui_screen_string", or ":: playSound: boop.ogg"
+		":"			= "performLegacyCommand(PARAM)";
+	};
+	
+	
+	/*	Colours for various types of console messages. These are standard
+		Oolite colour specifiers.
+		Each colour key comes in a pair, foo-foreground-color and
+		foo-background-color. A class of messages can be hidden by giving its
+		colour key a fully transparent colour (such as clearColor).
+	*/
+	general-foreground-color			= blackColor;
+	general-background-color			= whiteColor;
+	command-background-color			= { hue = 240; brightness = 1.0; saturation = 0.12; };	// Pale blue
+	warning-background-color			= { hue = 60; brightness = 1.0; saturation = 0.25; };	// Pale yellow
+	error-background-color				= { hue = 0; brightness = 1.0; saturation = 0.25; };	// Pale red
+	exception-background-color			= { hue = 320; brightness = 1.0; saturation = 0.25; };	// Pale magentaish
+	
+	// These colours are used by oolite-debug-console.js
+	command-result-background-color		= { hue = 120; brightness = 1.0; saturation = 0.2; };	// Pale green
+	command-error-background-color		= { hue = 0; brightness = 1.0; saturation = 0.12; };	// Very pale red
+	macro-expansion-background-color	= { hue = 240; brightness = 1.0; saturation = 0.06; };	// Very pale blue
+	macro-expansion-foreground-color	= darkGrayColor;
+	macro-warning-background-color		= { hue = 60; brightness = 1.0; saturation = 0.12; };	// Very pale yellow
+	unknown-macro-background-color		= { hue = 60; brightness = 1.0; saturation = 0.12; };	// Very pale yellow
+	macro-error-background-color		= { hue = 0; brightness = 1.0; saturation = 0.12; };	// Very pale red
+	macro-info-background-color			= { hue = 120; brightness = 1.0; saturation = 0.2; };	// Pale green
+	command-exception-background-color	= { hue = 320; brightness = 1.0; saturation = 0.25; };	// Pale magentaish
+	
+	// Alternative configuration for people who find black on white insufficiently l33t:
+/*
+	general-background-color			= blackColor;
+	general-foreground-color			= "0.8 0.8 0.8";
+	command-foreground-color			= cyanColor;
+	warning-foreground-color			= yellowColor;
+	error-foreground-color				= redColor;
+	exception-foreground-color			= orangeColor;
+	
+	command-result-foreground-color		= greenColor;
+	macro-expansion-foreground-color	= "0 0.8 0.8";
+	macro-warning-foreground-color		= "1 0.5 1";
+	unknown-macro-foreground-color		= "1 0.5 1";
+	macro-error-foreground-color		= "1 0.5 0.5";
+	macro-info-foreground-color			= greenColor;
+	command-exception-foreground-color	= "1 0.75 0.5";
+*/
+	
+	font-face							= "Courier";
+	font-size							= "12";
+}

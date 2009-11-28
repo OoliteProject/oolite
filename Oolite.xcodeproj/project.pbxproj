@@ -1688,7 +1688,7 @@
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
-		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = contributors.txt; sourceTree = "<group>"; };
+		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = contributors.txt; path = Doc/contributors.txt; sourceTree = "<group>"; };
 		2512833C09BA27C100F43D55 /* Octree.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Octree.m; sourceTree = "<group>"; };
 		2512833D09BA27C100F43D55 /* Octree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Octree.h; sourceTree = "<group>"; };
 		2512834009BA27EC00F43D55 /* Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Geometry.h; sourceTree = "<group>"; };
