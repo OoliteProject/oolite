@@ -39,17 +39,7 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
 
 
-#define LIM500  500.0*500.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
-#define LIM4K   4000.0*4000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
-#define LIM8K   8000.0*8000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
-#define LIM16K  16000.0*16000.0 * NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR
-
 #define FIXED_TEX_COORDS 0
-
-
-static double		corona_speed_factor;	// multiply delta_t by this before adding it to corona_stage
-static double		corona_stage;			// 0.0 -> 1.0
-static GLfloat		rvalue[729];			// stores random values for adjusting colors in the corona
 
 
 // straight c
@@ -63,7 +53,6 @@ static int triangle_start[MAX_SUBDIVIDE];
 static GLuint vertex_index_array[3*(20+80+320+1280+5120+20480)];
 
 static GLfloat	texture_uv_array[10400 * 2];
-static float corona_blending;
 
 
 @interface PlanetEntity (OOPrivate)
@@ -138,132 +127,12 @@ static float corona_blending;
 	amb_polar_sea[2] = 1.0;
 	amb_polar_sea[3] = 1.0;
 	
-	isPlanet = YES;
-	
 	root_planet = self;
 	
 	textureData = NULL;
 	
 	rotationAxis = kBasisYVector;
 	
-	return self;
-}
-
-
-- (BOOL) setSunColor:(OOColor*)sun_color
-{
-	if (sun_color == nil) return NO;
-	
-	OOCGFloat	hue, sat, bri, alf;
-	OOColor		*color;
-
-	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
-	hue /=360;
-
-	float hue_drift = 0.34f * abs(randf() - randf());
-
-	// set the lighting color for the sun
-	GLfloat		r,g,b,a;
-	[sun_color getGLRed:&r green:&g blue:&b alpha:&a];
-
-	GLfloat		sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// real ambient light inside gl_LightModel.ambient
-	sun_diffuse[0] = 0.5 * (1.0 + r);	// paler
-	sun_diffuse[1] = 0.5 * (1.0 + g);	// paler
-	sun_diffuse[2] = 0.5 * (1.0 + b);	// paler
-	sun_diffuse[3] = 1.0;
-	sun_specular[0] = r;
-	sun_specular[1] = g;
-	sun_specular[2] = b;
-	sun_specular[3] = 1.0;
-
-	OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
-	OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
-	OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
-
-	// main disc less saturation more brightness
-	color = [OOColor colorWithCalibratedHue: hue saturation: sat * 0.333 brightness: 1.0 alpha: alf];
-	amb_land[0] = [color redComponent];
-	amb_land[1] = [color greenComponent];
-	amb_land[2] = [color blueComponent];
-	amb_land[3] = 1.0;
-	
-	// nearest corona much more saturation
-	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithCalibratedHue:hue saturation: sat * 0.625 brightness:(bri + 2.0)/3.0 alpha:alf];
-	amb_polar_land[0] = [color redComponent];
-	amb_polar_land[1] = [color greenComponent];
-	amb_polar_land[2] = [color blueComponent];
-	amb_polar_land[3] = 1.0;
-	
-	// next corona slightly more saturation
-	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
-	color = [OOColor colorWithCalibratedHue:hue saturation:sat brightness:bri alpha:alf];
-	amb_sea[0] = [color redComponent];
-	amb_sea[1] = [color greenComponent];
-	amb_sea[2] = [color blueComponent];
-	amb_sea[3] = 1.0;
-	
-	// last corona, highest saturation, less bright
-	hue += hue_drift;
-	if (hue > 1.0)	hue -= 1.0;
-	// saturation = 1 would shift white to red
-	color = [OOColor colorWithCalibratedHue:hue saturation:OOClamp_0_1_f(sat*1.3) brightness:bri * 0.75 alpha:alf*0.6];
-	amb_polar_sea[0] = [color redComponent];
-	amb_polar_sea[1] = [color greenComponent];
-	amb_polar_sea[2] = [color blueComponent];
-	amb_polar_sea[3] = 1.0;
-
-	return YES;
-}
-
-
-- (id) initSunWithColor:(OOColor *)sun_color andDictionary:(NSDictionary *) dict
-{
-	int			i;
-	
-	self = [super init];
-	
-	isTextured = NO;
-#ifndef NO_SHADERS
-	isShadered = NO;
-#endif
-	
-	collision_radius = 100000.0; //  100km across
-	
-	scanClass = CLASS_NO_DRAW;
-	planet_type =   PLANET_TYPE_SUN;
-	shuttles_on_ground = 0;
-	last_launch_time = 0.0;
-	shuttle_launch_interval = 3600.0;
-	
-	for (i = 0; i < 5; i++)  displayListNames[i] = 0;	// empty for now!
-	
-	[self setSunColor:sun_color];
-	
-	corona_blending=OOClamp_0_1_f([dict oo_floatForKey:@"corona_hues" defaultValue:1.0f]);
-	corona_speed_factor=[dict oo_floatForKey:@"corona_shimmer" defaultValue:-1.0];
-	if(corona_speed_factor<0)
-	{
-		// from .22222 to 2
-		corona_speed_factor = 1.0 / (0.5 + 2.0 * (randf() + randf()));
-	}
-	else
-	{
-		//on average:  0 = .25 , 1 = 2.25  -  the same sun should give the same random component
-		corona_speed_factor=OOClamp_0_1_f(corona_speed_factor) * 2.0 + randf() * randf();
-	}
-	corona_stage = 0.0;
-	for (i = 0; i < 729; i++)
-		rvalue[i] = randf();
-	
-	// set up the radius properties
-	[self changeSunProperty:@"sun_radius" withDictionary:dict];
-	
-	isPlanet = YES;
-	root_planet = self;	
-	textureData = NULL;	
 	return self;
 }
 
@@ -437,8 +306,6 @@ static float corona_blending;
 	// set speed of rotation
 	rotational_velocity = [dict oo_floatForKey:@"atmosphere_rotational_velocity" defaultValue:0.01f + 0.02f * randf()]; // 0.01 .. 0.03 avr 0.02
 	
-	isPlanet = YES;
-	
 	root_planet = planet;
 	
 	rotationAxis = kBasisYVector;
@@ -556,8 +423,7 @@ static float corona_blending;
 		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
 		[atmosphere rescaleTo:1.0];
 		[atmosphere scaleVertices];
-
-		isPlanet = YES;
+		
 		root_planet = self;
 	}
 
@@ -802,8 +668,6 @@ static float corona_blending;
 	// set energy
 	energy = collision_radius * 1000.0;
 	
-	isPlanet = YES;
-	
 	root_planet = self;
 	
 	rotationAxis = kBasisYVector;
@@ -842,15 +706,14 @@ static float corona_blending;
 	{
 		case PLANET_TYPE_MINIATURE:
 			typeString = @"PLANET_TYPE_MINIATURE";	break;
-		case PLANET_TYPE_SUN:
-			typeString = @"PLANET_TYPE_SUN";	break;
 		case PLANET_TYPE_GREEN:
 			typeString = @"PLANET_TYPE_GREEN";	break;
 		case PLANET_TYPE_ATMOSPHERE:
 			typeString = @"PLANET_TYPE_ATMOSPHERE";	break;
 		case PLANET_TYPE_MOON:
 			typeString = @"PLANET_TYPE_MOON";	break;
-		default :
+		
+		default:
 			typeString = @"UNKNOWN";
 	}
 	return [NSString stringWithFormat:@"ID: %u position: %@ type: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), typeString, 0.001 * [self radius]];
@@ -960,71 +823,6 @@ static float corona_blending;
 			break;
 		
 		case PLANET_TYPE_SUN:
-			{
-				PlayerEntity	*player = [PlayerEntity sharedPlayer];
-				assert(player != nil);
-				rotMatrix = OOMatrixForBillboard(position, [player position]);
-				
-				if (throw_sparks&&(planet_type == PLANET_TYPE_SUN)&&(velocity.z > 0))	// going NOVA!
-				{
-					if (velocity.x >= 0.0)	// countdown
-					{
-						velocity.x -= delta_t;
-						if (corona_speed_factor < 5.0)
-							corona_speed_factor += 0.75 * delta_t;
-					}
-					else
-					{
-						if (velocity.y <= 60.0)	// expand for a minute
-						{
-							double sky_bri = 1.0 - 1.5 * velocity.y;
-							if (sky_bri < 0)
-							{
-								[UNIVERSE setSkyColorRed:0.0f		// back to black
-												   green:0.0f
-													blue:0.0f
-												   alpha:0.0f];
-							}
-							else
-							{
-								[UNIVERSE setSkyColorRed:sky_bri	// whiteout
-												   green:sky_bri
-													blue:sky_bri
-												   alpha:1.0f];
-							}
-							if (sky_bri == 1.0)
-								OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
-							amb_land[0] = 1.0;	amb_land[1] = 1.0;	amb_land[2] = 1.0;	amb_land[3] = 1.0;
-							velocity.y += delta_t;
-							[self setRadius: collision_radius + delta_t * velocity.z];
-						}
-						else
-						{
-							OOLog(@"sun.nova.end", @"DEBUG: NOVA final radius %.1f", collision_radius);
-							// reset at the new size
-							velocity = kZeroVector;
-							throw_sparks = YES;	// keep throw_sparks at YES to indicate the higher temperature
-						}
-					}
-				}
-				
-				// update corona
-				if (![UNIVERSE reducedDetail])
-				{
-					corona_stage += corona_speed_factor * delta_t;
-					if (corona_stage > 1.0)
-					{
-						 int i;
-						 corona_stage -= 1.0;
-						 for (i = 0; i < 360; i++)
-						 {
-							rvalue[i] = rvalue[360 + i];
-							rvalue[360 + i] = randf();
-						 }
-					}
-				}
-
-			}
 			break;
 	}
 }
@@ -1033,18 +831,7 @@ static float corona_blending;
 - (void) setPosition:(Vector)posn
 {
 	position = posn;
-	if (atmosphere)
-		[atmosphere setPosition:posn];
-}
-
-
-- (void) setPosition:(GLfloat) x:(GLfloat) y:(GLfloat) z
-{
-	position.x = x;
-	position.y = y;
-	position.z = z;
-	if (atmosphere)
-		[atmosphere setPosition:position];
+	[atmosphere setPosition:posn];
 }
 
 
@@ -1316,118 +1103,13 @@ static float corona_blending;
 			OOGL(glDisableClientState(GL_COLOR_ARRAY));
 			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 			break;
-
+			
 		case PLANET_TYPE_SUN:
-			if (!translucent)
-			{
-				int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
-
-				// far enough away to draw flat ?
-				if (ignoreDepthBuffer)
-				{
-					OOGL(glDisable(GL_DEPTH_TEST));
-				}
-
-				OOGL(glDisable(GL_TEXTURE_2D));
-				OOGL(glDisable(GL_LIGHTING));
-				OOGL(glColor4fv(amb_land));
-				
-				// FIXME: use vertex arrays
-				OOGLBEGIN(GL_TRIANGLE_FAN);
-					GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-				OOGLEND();
-
-				if (![UNIVERSE reducedDetail])
-				{
-					OOGL(glDisable(GL_DEPTH_TEST));
-					if (zero_distance < lim4k)
-					{
-						GLfloat col1[4] = { amb_polar_land[0], amb_polar_land[1], amb_polar_land[2], 0.75};
-						drawActiveCorona(collision_radius, collision_radius + cor4k, steps, sqrt_zero_distance, col1, 6);
-					}
-					if (zero_distance < lim8k)
-					{
-						GLfloat col1[4] = { amb_sea[0], amb_sea[1], amb_sea[2], 0.625};
-						drawActiveCorona(collision_radius, collision_radius + cor8k, steps, sqrt_zero_distance, col1, 3);
-					}
-					if (zero_distance < lim16k)
-					{
-						GLfloat col1[4] = { amb_polar_sea[0], amb_polar_sea[1], amb_polar_sea[2], 0.5};
-						drawActiveCorona(collision_radius, collision_radius + cor16k, steps, sqrt_zero_distance, col1, 0);
-					}
-				}
-
-			}
 			break;
 	}
 	glPopAttrib();
 	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
-}
-
-
-void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat *col4v1, int rv)
-{
-	if (EXPECT_NOT(inner_radius >= z_distance))  return;	// inside the sphere
-	
-	NSRange activity = { 0.34, 1.0 };
-	
-	GLfloat				si, ci;
-	GLfloat				s0, c0, s1, c1;
-	
-	GLfloat				r = inner_radius;
-	GLfloat				c = outer_radius;
-	GLfloat				z = z_distance;
-	GLfloat				x = sqrt(z * z - r * r);
-	
-	GLfloat				r1 = r * x / z;
-	GLfloat				z1 = r * r / z;
-	
-	GLfloat				r0 = c * x / z;
-	GLfloat				z0 = c * r / z;
-	
-	GLfloat				rv0, rv1, rv2;
-	GLfloat				pt0, pt1;
-	
-	unsigned short		i;
-	GLfloat				theta = 0.0f, delta;
-	
-	delta = step * M_PI / 180.0f;	// Convert step from degrees to radians
-	pt0=(1.0 - corona_stage) * corona_blending;
-	pt1=corona_stage * corona_blending;
-	
-	OOGL(glShadeModel(GL_SMOOTH));
-	OOGLBEGIN(GL_TRIANGLE_STRIP);
-		for (i = 0; i < 360; i += step)
-		{
-			si = sinf(theta);
-			ci = cosf(theta);
-			theta += delta;
-			
-			rv0 = pt0 * rvalue[i + rv] + pt1 * rvalue[i + rv + 360];
-			rv1 = pt0 * rvalue[i + rv + 1] + pt1 * rvalue[i + rv + 361];
-			rv2 = pt0 * rvalue[i + rv + 2] + pt1 * rvalue[i + rv + 362];
-
-			s1 = r1 * si;
-			c1 = r1 * ci;
-			glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
-			glVertex3f(s1, c1, -z1);
-
-			s0 = r0 * si;
-			c0 = r0 * ci;
-			glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
-			glVertex3f(s0, c0, -z0);
-		}
-	
-		rv0 = pt0 * rvalue[rv] + pt1 * rvalue[360 + rv];
-		rv1 = pt0 * rvalue[1 + rv] + pt1 * rvalue[361 + rv];
-		rv2 = pt0 * rvalue[2 + rv] + pt1 * rvalue[362 + rv];
-		
-		glColor4f(col4v1[0] * (activity.location + rv0*activity.length), col4v1[1] * (activity.location + rv1*activity.length), col4v1[2] * (activity.location + rv2*activity.length), col4v1[3]);
-		glVertex3f(0.0, r1, -z1);	//repeat the zero value to close
-		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0);
-		glVertex3f(0.0, r0, -z0);	//repeat the zero value to close
-	OOGLEND();
 }
 
 
@@ -1458,55 +1140,6 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 - (NSString *) textureFileName
 {
 	return textureFile;
-}
-
-
-- (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict
-{
-	id	object = [dict objectForKey:key];
-	static GLfloat oldRadius = 0.0;
-	if ([key isEqualToString:@"sun_radius"])
-	{
-		oldRadius =	[object doubleValue];	// clamp corona_flare in case planetinfo.plist / savegame contains the wrong value
-		[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-		collision_radius = oldRadius;								
-	}
-	else if ([key isEqualToString:@"corona_flare"])
-	{
-		double rad = collision_radius;
-		[self setRadius: rad + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([object floatValue]))];
-		collision_radius = rad;
-	}
-	else if ([key isEqualToString:@"corona_shimmer"])
-	{
-		corona_speed_factor=OOClamp_0_1_f([object floatValue]) * 2.0 + randf() * randf();
-	}
-	else if ([key isEqualToString:@"corona_hues"])
-	{
-		corona_blending=OOClamp_0_1_f([object floatValue]);
-	}
-	else if ([key isEqualToString:@"sun_gone_nova"])
-	{
-
-		if ([dict oo_boolForKey:key])
-		{
-			[self setGoingNova:YES inTime:0];
-		}
-		else
-		{
-			[self setGoingNova:NO inTime:0];
-			// oldRadius is always the radius we had before going nova...
-			[self setRadius: oldRadius + (0.66*MAX_CORONAFLARE * OOClamp_0_1_f([dict oo_floatForKey:@"corona_flare" defaultValue:0.0f]))];
-			collision_radius = oldRadius;
-
-		}
-	}
-	else
-	{
-		OOLogWARN(@"script.warning", @"Change to property '%@' not applied, will apply only after leaving this system.",key);
-		return NO;
-	}
-	return YES;
 }
 
 
@@ -1645,9 +1278,6 @@ void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, 
 - (void) setRadius:(double) rad
 {
 	collision_radius = rad;
-	cor4k =		rad * 4 / 100;				lim4k =		cor4k	* cor4k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	cor8k =		rad * 8 / 100;				lim8k =		cor8k	* cor8k	* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
-	cor16k =	rad * rad * 16/ 10000000;	lim16k =	cor16k	* cor16k* NO_DRAW_DISTANCE_FACTOR*NO_DRAW_DISTANCE_FACTOR;
 }
 
 
@@ -2066,29 +1696,9 @@ double longitudeFromVector(Vector v)
 }
 
 
-- (BOOL) willGoNova
+- (BOOL)isPlanet
 {
-	return throw_sparks;
-}
-
-
-- (BOOL) goneNova
-{
-	return throw_sparks && velocity.x <= 0;
-}
-
-
-- (void) setGoingNova:(BOOL) yesno inTime:(double)interval
-{
-	throw_sparks = yesno;
-	if (throw_sparks)
-	{
-		velocity.x = fmax(interval, 0.0);
-		OOLog(@"script.debug.setSunNovaIn", @"NOVA activated! time until Nova : %.1f s", velocity.x);
-	}
-	
-	velocity.y = 0;
-	velocity.z = 10000;
+	return YES;
 }
 
 @end

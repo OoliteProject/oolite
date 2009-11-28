@@ -27,10 +27,10 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 
-#import "PlanetEntity.h"
+#import "SunEntity.h"
 
 
-DEFINE_JS_OBJECT_GETTER(JSSunGetPlanetEntity, PlanetEntity)
+DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, SunEntity)
 
 
 static JSObject		*sSunPrototype;
@@ -99,20 +99,36 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 }
 
 
-void OOSunGetClassAndPrototype(JSClass **outClass, JSObject **outPrototype)
+@implementation SunEntity (OOJavaScriptExtensions)
+
+- (BOOL) isVisibleToScripts
+{
+	return YES;
+}
+
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
 	*outClass = &sSunClass.base;
 	*outPrototype = sSunPrototype;
 }
 
 
+- (NSString *)jsClassName
+{
+	return @"Sun";
+}
+
+@end
+
+
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	BOOL						OK = NO;
-	PlanetEntity				*sun = nil;
+	SunEntity					*sun = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
-	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
 	switch (JSVAL_TO_INT(name))
 	{
@@ -143,10 +159,10 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsv
 // goNova([delay : Number])
 static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlanetEntity				*sun = nil;
+	SunEntity					*sun = nil;
 	jsdouble					delay = 0;
 	
-	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	if (argc > 0 && EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &delay)))  return NO;
 	
 	[sun setGoingNova:YES inTime:delay];
@@ -157,9 +173,9 @@ static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *a
 // cancelNova()
 static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	PlanetEntity				*sun = nil;
+	SunEntity					*sun = nil;
 	
-	if (EXPECT_NOT(!JSSunGetPlanetEntity(context, this, &sun))) return NO;
+	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	
 	if ([sun willGoNova] && ![sun goneNova])
 	{

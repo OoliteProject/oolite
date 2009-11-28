@@ -31,6 +31,3 @@ MA 02110-1301, USA.
 
 
 void InitOOJSSun(JSContext *context, JSObject *global);
-
-
-void OOSunGetClassAndPrototype(JSClass **outClass, JSObject **outPrototype);

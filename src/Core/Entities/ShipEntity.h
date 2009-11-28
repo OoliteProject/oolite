@@ -26,8 +26,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOEntityWithDrawable.h"
+#import "PlanetEntity.h"
 
-@class	OOColor, StationEntity, ParticleEntity, PlanetEntity, WormholeEntity,
+@class	OOColor, StationEntity, ParticleEntity, WormholeEntity,
 		AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup, OOEquipmentType;
 
 #ifdef OO_BRAIN_AI
@@ -318,7 +319,7 @@ MA 02110-1301, USA.
 	NSMutableSet			*_equipment;
 	float					_heatInsulation;
 	
-	OOWeakReference			*_lastPlanet;				// remember last aegis planet
+	OOWeakReference			*_lastAegisLock;			// remember last aegis planet/sun
 	
 	OOShipGroup				*_group;
 	OOShipGroup				*_escortGroup;
@@ -564,7 +565,7 @@ MA 02110-1301, USA.
 
 - (void) transitionToAegisNone;
 - (PlanetEntity *) findNearestPlanet;
-- (PlanetEntity *) findNearestStellarBody;		// NOTE: includes sun.
+- (Entity<OOStellarBody> *) findNearestStellarBody;		// NOTE: includes sun.
 - (PlanetEntity *) findNearestPlanetExcludingMoons;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;

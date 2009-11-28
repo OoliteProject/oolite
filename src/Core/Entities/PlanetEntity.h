@@ -2,11 +2,10 @@
 
 PlanetEntity.h
 
-Entity subclass representing a planet. Or a sun. Or an atmosphere. Basically
-anything big and ball-shaped.
+Entity subclass representing a planet or an atmosphere.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2009 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -41,7 +40,6 @@ typedef enum
 
 
 #define ATMOSPHERE_DEPTH		500.0
-#define MAX_CORONAFLARE			600000.0	// nova flare
 #define PLANET_MINIATURE_FACTOR	0.00185
 
 #define MAX_SUBDIVIDE			6	// 0 -> 20 verts
@@ -56,6 +54,14 @@ typedef enum
 @class ShipEntity;
 
 
+@protocol OOStellarBody
+
+- (double) radius;
+- (OOPlanetType) planetType;
+
+@end
+
+
 typedef struct
 {
 	Vector					vertex_array[10400 + 2];
@@ -65,12 +71,9 @@ typedef struct
 	GLuint					index_array[MAX_TRI_INDICES];
 }	VertexData;
 
-@interface PlanetEntity: OOSelfDrawingEntity
+@interface PlanetEntity: OOSelfDrawingEntity <OOStellarBody>
 {
 @public
-	GLfloat					sun_diffuse[4];
-	GLfloat					sun_specular[4];
-	
 	int						lastSubdivideLevel;
 	
 @protected
@@ -115,14 +118,9 @@ typedef struct
 	// the index array can come from the vertex_index_array
 	VertexData				vertexdata;
 	
-	double					cor4k, lim4k;
-	double					cor8k, lim8k;
-	double					cor16k, lim16k;
-	
 	Vector					rotationAxis;
 }
 
-- (id) initSunWithColor:(OOColor*)sun_color andDictionary:(NSDictionary*) dict;
 - (id) initWithSeed:(Random_Seed) p_seed;
 - (void) miniaturize;
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
@@ -132,10 +130,6 @@ typedef struct
 - (id) initPlanetFromDictionary:(NSDictionary*) dict;
 - (id) initPlanetFromDictionary:(NSDictionary*) dict withAtmosphere: (BOOL) atmo andSeed:(Random_Seed) p_seed;
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
-- (BOOL) setSunColor:(OOColor*)sun_color;
-- (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict;
-
-void drawActiveCorona(GLfloat inner_radius, GLfloat outer_radius, GLfloat step, GLfloat z_distance, GLfloat* col4v1, int rv);
 
 - (int*) r_seed;
 - (int) planet_seed;
@@ -178,8 +172,15 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 double longitudeFromVector(Vector v);
 
+#if OLD_SUN
 - (BOOL) willGoNova;
 - (BOOL) goneNova;
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
+#endif
 
 @end
+
+
+#if OLD_SUN
+#define SunEntity PlanetEntity
+#endif

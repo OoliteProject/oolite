@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 
 #import "StationEntity.h"
+#import "SunEntity.h"
 #import "PlanetEntity.h"
 #import "WormholeEntity.h"
 #import "PlayerEntity.h"
@@ -970,11 +971,11 @@ MA 02110-1301, USA.
 {
 	Entity *hazard = [UNIVERSE hazardOnRouteFromEntity: self toDistance: desired_range fromPoint: destination];
 	
-	if (!hazard || (hazard->isShip && sqrtf(distance2(position, hazard->position)) > scannerRange) || (hazard->isPlanet && aegis_status == AEGIS_NONE)) 
+	if (hazard == nil || ([hazard isShip] && distance(position, [hazard position]) > scannerRange) || ([hazard isPlanet] && aegis_status == AEGIS_NONE)) 
 		[shipAI message:@"COURSE_OK"]; // Avoid going into a waypoint.plist for far away objects, it cripples the main AI a bit in its funtionality.
 	else
 	{
-		if ((hazard->isShip)&&(weapon_energy * 24.0 > [hazard energy]))
+		if ([hazard isShip] && (weapon_energy * 24.0 > [hazard energy]))
 			[shipAI reactToMessage:@"HAZARD_CAN_BE_DESTROYED"];
 		
 		destination = [UNIVERSE getSafeVectorFromEntity:self toDistance:desired_range fromPoint:destination];
@@ -993,16 +994,16 @@ MA 02110-1301, USA.
 			break;
 		case AEGIS_CLOSE_TO_ANY_PLANET:
 			{
-				PlanetEntity	*the_planet = [self findNearestStellarBody];
+				Entity<OOStellarBody> *nearest = [self findNearestStellarBody];
 				
-				if(the_planet == [UNIVERSE sun])
+				if([nearest isSun])
 				{
 					[shipAI message:@"CLOSE_TO_SUN"];
 				}
 				else
 				{
 					[shipAI message:@"CLOSE_TO_PLANET"];
-					if ([the_planet planetType] == PLANET_TYPE_MOON)
+					if ([nearest planetType] == PLANET_TYPE_MOON)
 					{
 						[shipAI message:@"CLOSE_TO_MOON"];
 					}
@@ -1051,7 +1052,7 @@ MA 02110-1301, USA.
 	NSDictionary		*systeminfo = [UNIVERSE currentSystemData];
 	float gov_factor =	0.4 * [(NSNumber *)[systeminfo objectForKey:KEY_GOVERNMENT] intValue]; // 0 .. 7 (0 anarchic .. 7 most stable) --> [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
 	//
-	if (![UNIVERSE sun])
+	if ([UNIVERSE sun] == nil)
 		gov_factor = 1.0;
 	//
 	found_target = NO_TARGET;
@@ -1621,8 +1622,7 @@ static WormholeEntity *whole = nil;
 - (void) setSunSkimExitCoordinates
 {
 	Entity *the_sun = [UNIVERSE sun];
-	if (!the_sun)
-		return;
+	if (the_sun == nil)  return;
 	Vector v1 = [UNIVERSE getSunSkimEndPositionForShip:self];
 	Vector vs = the_sun->position;
 	Vector vout = make_vector(v1.x - vs.x, v1.y - vs.y, v1.z - vs.z);

@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "Entity.h"
 #import "ShipEntity.h"
+#import "SunEntity.h"
 #import "PlanetEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
@@ -430,7 +431,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	}
 }
 
-BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
+static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, SunEntity* the_sun)
 {
 	// simple tests
 	if (e1 == e2)
@@ -439,8 +440,8 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	if (e2 == the_sun)
 		return NO;	// sun can't shade itself
 	//
-	if ((e2->isShip == NO)&&(e2->isPlanet == NO))
-		return NO;	// only ships and planets shade
+	if (![e2 isShip] && ![e2 isPlanet])
+		return NO;	// only ships and planets shade.
 	//
 	if (e2->collision_radius < e1->collision_radius)
 		return NO;	// smaller can't shade bigger
@@ -449,8 +450,8 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 		return NO;	// things already /in/ shade can't shade things more.
 	//
 	// check projected sizes of discs
-	GLfloat d2_sun = distance2( e1->position, the_sun->position);
-	GLfloat d2_e2sun = distance2( e2->position, the_sun->position);
+	GLfloat d2_sun = distance2(e1->position, the_sun->position);
+	GLfloat d2_e2sun = distance2(e2->position, the_sun->position);
 	if (d2_e2sun > d2_sun)
 		return NO;	// you are nearer the sun than the potential occluder, so it can't shade you
 	//
@@ -459,7 +460,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	GLfloat cr_e2 = e2->collision_radius;
 	if (e2->isShip)
 		cr_e2 *= 0.90f;	// 10% smaller shadow for ships
-	if (e2->isPlanet)
+	if ([e2 isPlanet])
 		cr_e2 = e2->collision_radius;	// use collision radius for planets
 	//
 	GLfloat cr2_sun_scaled = cr_sun * cr_sun * d2_e2 / d2_sun;
@@ -503,7 +504,7 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	
 	if ([UNIVERSE reducedDetail])  return;	// don't do this in reduced detail mode
 	
-	PlanetEntity* the_sun = [UNIVERSE sun];
+	SunEntity* the_sun = [UNIVERSE sun];
 	
 	if (!the_sun)
 		return;	// sun is required
@@ -515,9 +516,10 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 	Entity*		planets[ent_count];
 	int n_planets = 0;
 	for (i = 0; i < ent_count; i++)
-		if ((uni_entities[i]->isPlanet)&&(uni_entities[i] != the_sun))
+	{
+		if ([uni_entities[i] isPlanet])
 			planets[n_planets++] = uni_entities[i];		//	don't bother retaining - nothing will happen to them!
-	//
+	}
 	
 	// reject trivial cases
 	//
@@ -549,13 +551,13 @@ BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, PlanetEntity* the_sun)
 			if (occluder)
 				occluder_moved = occluder->hasMoved;
 		}
-		if (((e1->isShip)||(e1->isPlanet))&&((e1->hasMoved)||occluder_moved))
+		if (([e1 isShip] ||[e1 isPlanet]) && (e1->hasMoved || occluder_moved))
 		{
 			e1->isSunlit = YES;				// sunlit by default
 			e1->shadingEntityID = NO_TARGET;
 			//
 			// check demo mode here..
-			if ((e1->isPlayer)&&([(PlayerEntity*)e1 showDemoShips]))
+			if ([e1 isPlayer] && ([(PlayerEntity*)e1 showDemoShips]))
 				continue;	// don't check shading in demo mode
 			//
 			//	test planets

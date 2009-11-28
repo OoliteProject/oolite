@@ -60,6 +60,7 @@ MA 02110-1301, USA.
 #import "SkyEntity.h"
 #import "DustEntity.h"
 #import "PlanetEntity.h"
+#import "SunEntity.h"
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
@@ -789,7 +790,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	Entity				*thing;
 	ShipEntity			*nav_buoy;
 	StationEntity		*a_station;
-	PlanetEntity		*a_sun;
+	SunEntity			*a_sun;
 	PlanetEntity		*a_planet;
 	
 	Vector				stationPos;
@@ -916,7 +917,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	//dict_object=[systeminfo objectForKey: @"sun_texture"];
 	//if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"sun_texture"];
 	
-	a_sun = [[PlanetEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
+	a_sun = [[SunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
 	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos];
@@ -1112,10 +1113,12 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
-//
-GLfloat docked_light_ambient[4]	= { (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 0.4, (GLfloat) 1.0};	// bright-ish, but shaders still visible!
-GLfloat docked_light_diffuse[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 1.0};	// whitish
-GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4, (GLfloat) 1.0};	// yellow-white
+
+#define DOCKED_AMBIENT_LEVEL	0.4f	// Should be 0.05, temporarily 0.4 until lights are fixed
+#define DOCKED_ILLUM_LEVEL		0.7f
+GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
+GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
+GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL * 0.75f, (GLfloat) 1.0f };	// yellow-white
 
 // Weight of sun in ambient light calculation. 1.0 means only sun's diffuse is used for ambient, 0.0 means only sky colour is used.
 // TODO: considering the size of the sun and the number of background stars might be worthwhile. -- Ahruman 20080322
@@ -1133,9 +1136,9 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	
 	*/
 	
-	NSDictionary*	systeminfo = [self generateSystemData:system_seed];
-	PlanetEntity*	the_sun = [self sun];
-	SkyEntity*		the_sky = nil;
+	NSDictionary	*systeminfo = [self generateSystemData:system_seed];
+	SunEntity		*the_sun = [self sun];
+	SkyEntity		*the_sky = nil;
 	GLfloat			sun_pos[] = {4000000.0, 0.0, 0.0, 1.0};
 	int i;
 	for (i = n_entities - 1; i > 0; i--)
@@ -1144,14 +1147,8 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	if (the_sun)
 	{
 		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
-		sun_diffuse[0] = the_sun->sun_diffuse[0];
-		sun_diffuse[1] = the_sun->sun_diffuse[1];
-		sun_diffuse[2] = the_sun->sun_diffuse[2];
-		sun_diffuse[3] = the_sun->sun_diffuse[3];
-		sun_specular[0] = the_sun->sun_specular[0];
-		sun_specular[1] = the_sun->sun_specular[1];
-		sun_specular[2] = the_sun->sun_specular[2];
-		sun_specular[3] = the_sun->sun_specular[3];
+		[the_sun getDiffuseComponents:sun_diffuse];
+		[the_sun getSpecularComponents:sun_specular];
 		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
 		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
 		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
@@ -1920,7 +1917,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	if ([l_sys length] != 3)
 		return kZeroVector;
 	PlanetEntity* the_planet = [self planet];
-	PlanetEntity* the_sun = [self sun];
+	SunEntity* the_sun = [self sun];
 	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
 	{
 		if (my_scalar)  *my_scalar = 1.0;
@@ -2022,7 +2019,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 	if ([l_sys length] != 3)
 		return nil;
 	PlanetEntity* the_planet = [self planet];
-	PlanetEntity* the_sun = [self sun];
+	SunEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
 		return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, pos.x, pos.y, pos.z];
@@ -2092,7 +2089,7 @@ GLfloat docked_light_specular[4]	= { (GLfloat) 0.7, (GLfloat) 0.7, (GLfloat) 0.4
 		}
 		case 's':
 		{
-			PlanetEntity *sun = [self sun];
+			SunEntity *sun = [self sun];
 			scale = 1.0f / (sun ? [sun collisionRadius]: 100000);
 			break;
 		}
@@ -2737,7 +2734,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (PlanetEntity *) sun
+- (SunEntity *) sun
 {
 	if (cachedSun == nil)
 	{
@@ -3527,7 +3524,7 @@ static const OOMatrix	starboard_matrix =
 				// we check to see that we draw only the things that need to be drawn!
 				Entity *e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
 				double	zd2 = e->zero_distance;
-				if ((e->isSky)||(e->isPlanet))
+				if ([e isSky] || [e isStellarObject])
 				{
 					my_entities[draw_count++] = [e retain];	// planets and sky are always drawn!
 					continue;
@@ -3656,7 +3653,7 @@ static const OOMatrix	starboard_matrix =
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
 
 						// atmospheric fog
-						BOOL fogging = ((airResistanceFactor > 0.01)&&(!drawthing->isPlanet));
+						BOOL fogging = (airResistanceFactor > 0.01 && ![drawthing isStellarObject]);
 						
 						OOGL(glPushMatrix());
 						obj_position = [drawthing position];
@@ -7884,7 +7881,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
 		return kZeroVector;
 	}
-	PlanetEntity* the_sun = [self sun];
+	SunEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
@@ -7908,7 +7905,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship
 {
-	PlanetEntity* the_sun = [self sun];
+	SunEntity* the_sun = [self sun];
 	if (!ship)
 	{
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");

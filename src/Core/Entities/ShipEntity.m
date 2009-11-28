@@ -55,6 +55,7 @@ MA 02110-1301, USA.
 
 #import "ParticleEntity.h"
 #import "StationEntity.h"
+#import "SunEntity.h"
 #import "PlanetEntity.h"
 #import "PlayerEntity.h"
 #import "WormholeEntity.h"
@@ -103,8 +104,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (BOOL) setUpOneFlasher:(NSDictionary *) subentDict;
 - (BOOL) setUpOneStandardSubentity:(NSDictionary *) subentDict asTurret:(BOOL)asTurret;
 
-- (PlanetEntity *) lastPlanet;
-- (void) setLastPlanet:(PlanetEntity *)lastPlanet;
+- (Entity<OOStellarBody> *) lastAegisLock;
+- (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock;
 
 - (void) addSubEntity:(Entity *) subent;
 
@@ -584,7 +585,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	[_escortGroup removeShip:self];
 	[_escortGroup release];
 	
-	[_lastPlanet release];
+	[_lastAegisLock release];
 	
 	[super dealloc];
 }
@@ -1436,11 +1437,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// temperature factors
 	double external_temp = 0.0;
-	PlanetEntity *sun = [UNIVERSE sun];
+	SunEntity *sun = [UNIVERSE sun];
 	if (sun != nil)
 	{
 		// set the ambient temperature here
-		double  sun_zd = magnitude2(vector_between(position, sun->position));	// square of distance
+		double  sun_zd = magnitude2(vector_between(position, [sun position]));	// square of distance
 		double  sun_cr = sun->collision_radius;
 		double	alt1 = sun_cr * sun_cr / sun_zd;
 		external_temp = SUN_TEMPERATURE * alt1;
@@ -4165,12 +4166,12 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 {
 	if (!suppressAegisMessages && aegis_status != AEGIS_NONE)
 	{
-		PlanetEntity *lastPlanet = [self lastPlanet];
-		if (lastPlanet != nil)
+		Entity<OOStellarBody> *lastAegisLock = [self lastAegisLock];
+		if (lastAegisLock != nil)
 		{
-			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:lastPlanet];
+			[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:lastAegisLock];
 			
-			if (lastPlanet == [UNIVERSE sun])
+			if (lastAegisLock == [UNIVERSE sun])
 			{
 				[shipAI message:@"AWAY_FROM_SUN"];
 			}
@@ -4178,7 +4179,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 			{
 				[shipAI message:@"AWAY_FROM_PLANET"];
 			}
-			[self setLastPlanet:nil];
+			[self setLastAegisLock:nil];
 		}
 
 		if (aegis_status != AEGIS_CLOSE_TO_ANY_PLANET)
@@ -4190,11 +4191,31 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+static float SurfaceDistanceSqaredV(Vector reference, Entity<OOStellarBody> *stellar)
+{
+	float centerDistance = magnitude2(vector_subtract([stellar position], reference));
+	float r = [(PlanetEntity *)stellar radius];
+	
+	/*	1.35: empirical value used to help determine proximity when non-nested
+		planets are close to each other
+	*/
+	return centerDistance - 1.35 * r * r;
+}
+
+
+static float SurfaceDistanceSqared(Entity *reference, Entity<OOStellarBody> *stellar)
+{
+	return SurfaceDistanceSqaredV([reference position], stellar);
+}
+
+
 NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	Vector p = [(ShipEntity*) context position];
 	PlanetEntity* e1 = i1;
 	PlanetEntity* e2 = i2;
+	
+#if OBSOLETE
 	//fx: empirical value used to help determine proximity when non-nested planets are close to each other
 	float fx=1.35;
 	float r;
@@ -4205,6 +4226,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	p1 -= fx*r*r;
 	r = [e2 radius];
 	p2 -= fx*r*r;
+#else
+	float p1 = SurfaceDistanceSqaredV(p, e1);
+	float p2 = SurfaceDistanceSqaredV(p, e2);
+#endif
 	
 	if (p1 < p2) return NSOrderedAscending;
 	if (p1 > p2) return NSOrderedDescending;
@@ -4241,37 +4266,21 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (PlanetEntity *) findNearestStellarBody
+- (Entity<OOStellarBody> *) findNearestStellarBody
 {
-	PlanetEntity		*result = nil;
-	NSArray				*planets = nil;
-	PlanetEntity		*sun = nil;
+	Entity<OOStellarBody> *match = [self findNearestPlanet];
+	SunEntity *sun = [UNIVERSE sun];
 	
-	planets = [UNIVERSE planets];
-	sun = [UNIVERSE sun];
 	if (sun != nil)
 	{
-		planets = [planets arrayByAddingObject:sun];
-	}
-	if ([planets count] == 0)  return nil;
-	
-	planets = [planets sortedArrayUsingFunction:ComparePlanetsBySurfaceDistance context:self];
-	result = [planets objectAtIndex:0];
-	
-	// ignore miniature planets when determining nearest stellar body - Nikos 20090313
-	if ([result planetType] == PLANET_TYPE_MINIATURE)
-	{
-		if (sun)	// if we are not in witchspace give us the next in the list, else nothing
+		if (match == nil ||
+			SurfaceDistanceSqared(self, sun) < SurfaceDistanceSqared(self, match))
 		{
-			result = [planets objectAtIndex:1];
-		}
-		else
-		{
-			result = nil;
+			match = sun;
 		}
 	}
-
-	return result;
+	
+	return match;
 }
 
 
@@ -4304,10 +4313,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (OOAegisStatus) checkForAegis
 {
-	PlanetEntity	*the_planet = [self findNearestStellarBody];
-	BOOL			sunGoneNova = [[UNIVERSE sun] goneNova];
+	Entity<OOStellarBody>	*nearest = [self findNearestStellarBody];
+	BOOL					sunGoneNova = [[UNIVERSE sun] goneNova];
 	
-	if (the_planet == nil)
+	if (nearest == nil)
 	{
 		if (aegis_status != AEGIS_NONE)
 		{
@@ -4318,12 +4327,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	}
 
 	// check planet
-	float			cr = [the_planet collisionRadius];
+	float			cr = [nearest radius];
 	float			cr2 = cr * cr;
 	OOAegisStatus	result = AEGIS_NONE;
 	float			d2;
 	
-	d2 = magnitude2(vector_subtract([the_planet position], [self position]));
+	d2 = magnitude2(vector_subtract([nearest position], [self position]));
 	
 	// check if nearing surface
 	BOOL wasNearPlanetSurface = isNearPlanetSurface;
@@ -4332,12 +4341,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	{
 		if (!wasNearPlanetSurface && isNearPlanetSurface)
 		{
-			[self doScriptEvent:@"shipApproachingPlanetSurface" withArgument:the_planet];
+			[self doScriptEvent:@"shipApproachingPlanetSurface" withArgument:nearest];
 			[shipAI reactToMessage:@"APPROACHING_SURFACE"];
 		}
 		if (wasNearPlanetSurface && !isNearPlanetSurface)
 		{
-			[self doScriptEvent:@"shipLeavingPlanetSurface" withArgument:the_planet];
+			[self doScriptEvent:@"shipLeavingPlanetSurface" withArgument:nearest];
 			[shipAI reactToMessage:@"LEAVING_SURFACE"];
 		}
 	}
@@ -4383,11 +4392,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if(aegis_status == AEGIS_CLOSE_TO_ANY_PLANET)
 			{
-				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[self lastPlanet]];
+				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[self lastAegisLock]];
 				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
 			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-			[self setLastPlanet:[UNIVERSE planet]];
+			[self setLastAegisLock:[UNIVERSE planet]];
 			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
@@ -4399,16 +4408,16 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[self doScriptEvent:@"shipExitedPlanetaryVicinity" withArgument:[UNIVERSE planet]];
 				[shipAI message:@"AWAY_FROM_PLANET"];
 			}
-			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:the_planet];
-			[self setLastPlanet:the_planet];
-			if(the_planet == [UNIVERSE sun])
+			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:nearest];
+			[self setLastAegisLock:nearest];
+			if([nearest isSun])
 			{
 				[shipAI message:@"CLOSE_TO_SUN"];
 			}
 			else
 			{
 				[shipAI message:@"CLOSE_TO_PLANET"];
-				if ([the_planet planetType] == PLANET_TYPE_MOON)
+				if ([nearest planetType] == PLANET_TYPE_MOON)
 				{
 					[shipAI message:@"CLOSE_TO_MOON"];
 				}
@@ -4423,10 +4432,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			[self doScriptEvent:@"shipEnteredStationAegis" withArgument:the_station];
 			[shipAI message:@"AEGIS_IN_DOCKING_RANGE"];
 			
-			if([self lastPlanet] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
+			if([self lastAegisLock] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
 			{
 				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-				[self setLastPlanet:[UNIVERSE planet]];
+				[self setLastAegisLock:[UNIVERSE planet]];
 			}
 		}
 		// leaving..
@@ -4437,9 +4446,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		}
 		if ((aegis_status != AEGIS_NONE)&&(result == AEGIS_NONE))
 		{
-			if([self lastPlanet] == nil && !sunGoneNova)
+			if([self lastAegisLock] == nil && !sunGoneNova)
 			{
-				[self setLastPlanet:[UNIVERSE planet]];  // in case of a first launch.
+				[self setLastAegisLock:[UNIVERSE planet]];  // in case of a first launch.
 			}
 			[self transitionToAegisNone];
 		}
@@ -4456,23 +4465,23 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (PlanetEntity *) lastPlanet
+- (Entity<OOStellarBody> *) lastAegisLock
 {
-	PlanetEntity *planet = [_lastPlanet weakRefUnderlyingObject];
-	if (planet == nil)
+	Entity<OOStellarBody> *stellar = [_lastAegisLock weakRefUnderlyingObject];
+	if (stellar == nil)
 	{
-		[_lastPlanet release];
-		_lastPlanet = nil;
+		[_lastAegisLock release];
+		_lastAegisLock = nil;
 	}
 	
-	return planet;
+	return stellar;
 }
 
 
-- (void) setLastPlanet:(PlanetEntity *)lastPlanet
+- (void) setLastAegisLock:(Entity<OOStellarBody> *)lastAegisLock
 {
-	[_lastPlanet release];
-	_lastPlanet = [lastPlanet weakRetain];
+	[_lastAegisLock release];
+	_lastAegisLock = [lastAegisLock weakRetain];
 }
 
 
@@ -7437,17 +7446,17 @@ BOOL class_masslocks(int some_class)
 		[collidingEntities removeObjectAtIndex:0];
 		if (ent)
 		{
-			if (ent->isShip)
+			if ([ent isShip])
 			{
 				other_ship = (ShipEntity *)ent;
 				[self collideWithShip:other_ship];
 			}
-			if (ent->isPlanet)
+			else if ([ent isStellarObject])
 			{
-				[self getDestroyedBy:ent context:@"hit a planet"];
+				[self getDestroyedBy:ent context:[ent isSun] ? @"hit a sun" : @"hit a planet"];
 				if (self == [PlayerEntity sharedPlayer]) [self retain];
 			}
-			if (ent->isWormhole)
+			else if ([ent isWormhole])
 			{
 				WormholeEntity* whole = (WormholeEntity*)ent;
 				if (isPlayer)

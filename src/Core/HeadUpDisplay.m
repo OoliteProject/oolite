@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
+#import "SunEntity.h"
 #import "PlanetEntity.h"
 #import "StationEntity.h"
 #import "Universe.h"
@@ -649,14 +650,14 @@ static BOOL hostiles;
 			}
 			
 			// consider large bodies for mass_lock
-			if (drawthing->isPlanet)
+			if ([drawthing isStellarObject])
 			{
-				PlanetEntity* planet = (PlanetEntity *)drawthing;
-				if ([planet planetType] != PLANET_TYPE_MINIATURE)
+				Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)drawthing;
+				if ([stellar planetType] != PLANET_TYPE_MINIATURE)
 				{
-					double dist =   planet->zero_distance;
-					double rad =	planet->collision_radius;
-					double factor = ([planet planetType] == PLANET_TYPE_SUN) ? 2.0 : 4.0;
+					double dist =   stellar->zero_distance;
+					double rad =	stellar->collision_radius;
+					double factor = ([stellar isSun]) ? 2.0 : 4.0;
 					// mass lock when 25 km or less from the surface - dist is a square distance so needs to be compared to (rad+25000) * (rad+25000)!
 					if (dist< rad*rad +50000*rad+625000000 || dist < rad*rad*factor) 
 					{
@@ -941,7 +942,7 @@ static BOOL hostiles;
 	OOGLEND();
 	OOGL(glLineWidth(line_width));	// thinner
 	
-	PlanetEntity	*the_sun = [UNIVERSE sun];
+	SunEntity		*the_sun = [UNIVERSE sun];
 	PlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];

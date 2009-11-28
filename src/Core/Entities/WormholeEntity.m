@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 
 #import "ParticleEntity.h"
 #import "ShipEntity.h"
+#import "SunEntity.h"
 #import "PlanetEntity.h"
 #import "PlayerEntity.h"
 
@@ -162,9 +163,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 
 	if ((self = [self init]))
 	{
-		double now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
-		double distance;
-		PlanetEntity	*sun = [UNIVERSE sun];
+		double		now = [[PlayerEntity sharedPlayer] clockTimeAdjusted];
+		double		distance;
+		SunEntity	*sun = [UNIVERSE sun];
 
 		origin = [UNIVERSE systemSeed];
 		destination = s_seed;

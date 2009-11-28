@@ -151,14 +151,21 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL)isPlanet
 {
-	return isPlanet;
+	return NO;
 }
 
 
 - (BOOL)isSun
 {
-	return isPlanet && [(PlanetEntity *)self planetType] == PLANET_TYPE_SUN;
+	return NO;
 }
+
+
+- (BOOL) isStellarObject
+{
+	return [self isPlanet] || [self isSun];
+}
+
 
 - (BOOL)isSky
 {
@@ -871,7 +878,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (BOOL) checkCloseCollisionWith:(Entity *)other
 {
-	return YES;
+	return other != nil;
 }
 
 
@@ -938,7 +945,6 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	ADD_FLAG_IF_SET(isRing);
 	ADD_FLAG_IF_SET(isShip);
 	ADD_FLAG_IF_SET(isStation);
-	ADD_FLAG_IF_SET(isPlanet);
 	ADD_FLAG_IF_SET(isPlayer);
 	ADD_FLAG_IF_SET(isSky);
 	ADD_FLAG_IF_SET(isWormhole);

@@ -83,7 +83,6 @@ extern size_t gTotalEntityMemory;
 	unsigned				isRing: 1,
 							isShip: 1,
 							isStation: 1,
-							isPlanet: 1,
 							isPlayer: 1,
 							isSky: 1,
 							isWormhole: 1,
@@ -155,6 +154,7 @@ extern size_t gTotalEntityMemory;
 - (BOOL) isPlayer;
 - (BOOL) isPlanet;
 - (BOOL) isSun;
+- (BOOL) isStellarObject;
 - (BOOL) isSky;
 - (BOOL) isWormhole;
 

@@ -38,6 +38,7 @@ MA 02110-1301, USA.
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
+#import "OOEquipmentType.h"
 
 
 static JSObject		*sPlayerShipPrototype;
@@ -394,6 +395,9 @@ static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN
 	// berths & missile removal are not in hasEquipmentItem
 	OK = ![player hasEquipmentItem:key] || [key isEqualToString:@"EQ_MISSILE_REMOVAL"] ||
 			([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [player availableCargoSpace] >= 5);
+	
+	// Fail for unknown types.
+	if (OK && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)  OK = NO;
 	
 	if (OK)
 	{

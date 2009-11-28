@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 #import "OOJSPlanet.h"
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
-#import "OOJSSun.h"
 
 #import "PlanetEntity.h"
 
@@ -112,23 +111,15 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 - (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
 {
-	if ([self planetType] == PLANET_TYPE_SUN)
-	{
-		OOSunGetClassAndPrototype(outClass, outPrototype);
-	}
-	else
-	{
-		*outClass = &sPlanetClass.base;
-		*outPrototype = sPlanetPrototype;
-	}
+	*outClass = &sPlanetClass.base;
+	*outPrototype = sPlanetPrototype;
 }
 
 
 - (NSString *)jsClassName
 {
-	switch ([self planetType]) {
-		case PLANET_TYPE_SUN:
-			return @"Sun";
+	switch ([self planetType])
+	{
 		case PLANET_TYPE_GREEN:
 			return @"Planet";
 		case PLANET_TYPE_MOON:
