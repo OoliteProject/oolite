@@ -15,7 +15,6 @@
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
-				1AD267540C83052200B4BFD1 /* PBXTargetDependency */,
 			);
 			name = "Build All";
 			productName = "Build All";
@@ -594,7 +593,6 @@
 		1AD0C3300C463FCC0070BD23 /* autoAImap.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */; };
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
-		1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A0519390C7CCAC900BA5CCA /* Debug.oxp */; };
 		1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */; };
 		1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
@@ -677,11 +675,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */ = {
+		1A3042F310C16DA60056219D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
+			remoteGlobalIDString = 8D5B49B6048680CD000E48DA /* Debug.oxp */;
 			remoteInfo = DebugOXP;
 		};
 		1A4FB2370C8D6A7500DC8E1F /* PBXContainerItemProxy */ = {
@@ -718,13 +716,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 1A71E6F20BCE340C00CD5C13;
 			remoteInfo = "libpng-custom";
-		};
-		1AD267530C83052200B4BFD1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
-			remoteInfo = DebugOXP;
 		};
 		1AD267550C83052600B4BFD1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1068,7 +1059,6 @@
 			dstPath = AddOns;
 			dstSubfolderSpec = 16;
 			files = (
-				1AD267650C83058C00B4BFD1 /* Debug.oxp in Copy Debug OXP */,
 				1A7CBF6E10937DD6005B7797 /* OOPointMaths.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
@@ -1103,7 +1093,7 @@
 		1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProbabilitySet.h; sourceTree = "<group>"; };
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
-		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = "Mac-DebugOXP/DebugOXP.xcodeproj"; sourceTree = SOURCE_ROOT; };
+		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConvertSystemDescriptions.h; sourceTree = "<group>"; };
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
@@ -1823,14 +1813,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A0519350C7CCAC900BA5CCA /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				1A0519390C7CCAC900BA5CCA /* Debug.oxp */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		1A2314300B9C667F00EF0852 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2242,6 +2224,14 @@
 			);
 			path = Schemata;
 			sourceTree = SOURCE_ROOT;
+		};
+		1A3042F010C16DA60056219D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A3042F410C16DA60056219D /* Debug.oxp */,
+			);
+			name = Products;
+			sourceTree = "<group>";
 		};
 		1A34912C0BC25EBC00802DA7 /* Scripts */ = {
 			isa = PBXGroup;
@@ -3171,7 +3161,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 1A0519350C7CCAC900BA5CCA /* Products */;
+					ProductGroup = 1A3042F010C16DA60056219D /* Products */;
 					ProjectRef = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 				},
 				{
@@ -3193,11 +3183,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		1A0519390C7CCAC900BA5CCA /* Debug.oxp */ = {
+		1A3042F410C16DA60056219D /* Debug.oxp */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = Debug.oxp;
-			remoteRef = 1A0519380C7CCAC900BA5CCA /* PBXContainerItemProxy */;
+			remoteRef = 1A3042F310C16DA60056219D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		1A4FB2380C8D6A7500DC8E1F /* libjs.a */ = {
@@ -3487,11 +3477,6 @@
 			isa = PBXTargetDependency;
 			target = 1A71E6F20BCE340C00CD5C13 /* libpng-custom */;
 			targetProxy = 1A71E6F60BCE343400CD5C13 /* PBXContainerItemProxy */;
-		};
-		1AD267540C83052200B4BFD1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = DebugOXP;
-			targetProxy = 1AD267530C83052200B4BFD1 /* PBXContainerItemProxy */;
 		};
 		1AD267560C83052600B4BFD1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
