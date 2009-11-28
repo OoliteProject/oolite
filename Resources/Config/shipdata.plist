@@ -2643,7 +2643,7 @@
 		max_flight_speed = 100;
 		materials =
 		{
-			"worm_redux.png" = { "worm_redux1.png"; };
+			"worm_redux.png" = { diffuse_map = "worm_redux1.png"; };
 		};
 		roles = "miner";
 	};
