@@ -219,7 +219,7 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
 	{
 		//FIXME: there must be a better way of doing this.
-		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
+		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
 		int				i,len = kManifest_alienitems + 1;
 		
 		for (i=0; i<len; i++)
@@ -352,7 +352,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
 	{
 		//FIXME: there must be a better way of doing this.
-		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] cString];
+		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
 		int				i,len = kManifest_alienitems + 1;
 		
 		for (i=0; i<len; i++) {
