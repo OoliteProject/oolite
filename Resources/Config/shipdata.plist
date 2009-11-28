@@ -2629,6 +2629,31 @@
 		weapon_position_port = "-12.5 0.0 0.0";
 		weapon_position_starboard = "12.5 0.0 0.0";
 	};
+	worm =
+	{
+		aft_eject_position = "0.0 5.0 -9.5";
+		ai_type = "nullAI.plist";
+		cargo_type = "CARGO_NOT_CARGO";
+		energy_recharge_rate = 2;
+		exhaust = ("0.0 0.0 -17.5 7.0 6.0 6.0");
+		forward_weapon_type = "WEAPON_NONE";
+		likely_cargo = 1;
+		max_cargo = 2;
+		max_energy = 75;
+		max_flight_pitch = 1;
+		max_flight_roll = 2;
+		max_flight_speed = 110;
+		missile_launch_position = "0.0 -6.5 13.0";
+		missiles = 0;
+		model = "worm_redux.dat";
+		name = "Worm";
+		roles = "shuttle";
+		thrust = 12;
+		weapon_position_aft = "0.0 -4.8 -17.5";
+		weapon_position_forward = "0.0 -4.4 15.5";
+		weapon_position_port = "-12.5 -3.0 -2.5";
+		weapon_position_starboard = "12.5 -3.0 -2.5";
+	};
 	"worm-miner" =
 	{
 		like_ship = "worm";
