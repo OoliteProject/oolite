@@ -884,7 +884,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
 	DESTROY(hud);
 	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-	[hud setIsHidden:NO];
+	[hud setHidden:NO];
 	[hud setScannerZoom:1.0];
 	[hud resizeGuis:huddict];
 	scanner_zoom_rate = 0.0f;
@@ -1181,7 +1181,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// buggy oxp could override hud.plist with a non-dictionary.
 	if (huddict != nil)
 	{
-		[hud setIsHidden:NO];
+		[hud setHidden:NO];
 		[hud release];
 		hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
 		[hud setScannerZoom:1.0];

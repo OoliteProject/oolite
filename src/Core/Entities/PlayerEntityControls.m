@@ -1297,7 +1297,7 @@ static NSTimeInterval	time_last_frame;
 			if (!hide_hud_pressed)
 			{
 				HeadUpDisplay *theHUD = [self hud];
-				[theHUD setIsHidden:![theHUD isHidden]];
+				[theHUD setHidden:![theHUD isHidden]];
 			}
 			hide_hud_pressed = YES;
 		}

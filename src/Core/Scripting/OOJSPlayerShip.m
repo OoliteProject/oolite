@@ -355,7 +355,7 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 		case kPlayerShip_hudHidden:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
-				[[player hud] setIsHidden:bValue];
+				[[player hud] setHidden:bValue];
 				OK = YES;
 			}
 			break;

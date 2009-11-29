@@ -235,7 +235,7 @@ MA 02110-1301, USA.
 - (void) setReticleTargetSensitive:(BOOL) newReticleTargetSensitiveValue;
 
 - (BOOL) isHidden;
-- (void) setIsHidden:(BOOL)newValue;
+- (void) setHidden:(BOOL)newValue;
 
 - (void) addLegend:(NSDictionary *) info;
 - (void) addDial:(NSDictionary *) info;

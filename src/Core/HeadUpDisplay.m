@@ -345,7 +345,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (void) setIsHidden:(BOOL)newValue
+- (void) setHidden:(BOOL)newValue
 {
 	hudHidden = !!newValue;	// ensure YES or NO
 }
