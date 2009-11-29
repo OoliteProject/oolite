@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 @class OOMaterial;
 
 
-@interface OOPlanetDrawable: OODrawable
+@interface OOPlanetDrawable: OODrawable <NSCopying>
 {
 @private
 	OOMaterial				*_material;
@@ -45,6 +45,9 @@ MA 02110-1301, USA.
 + (id) atmosphereWithRadius:(float)radius eccentricity:(float)eccentricity;
 
 - (id) initAsAtmosphere;
+
+- (OOMaterial *) material;
+- (void) setMaterial:(OOMaterial *)material;
 
 - (NSString *) textureName;
 - (void) setTextureName:(NSString *)textureName;

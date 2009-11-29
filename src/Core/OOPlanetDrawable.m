@@ -104,6 +104,33 @@
 }
 
 
+- (id) copyWithZone:(NSZone *)zone
+{
+	OOPlanetDrawable *copy = [[[self class] allocWithZone:zone] init];
+	[copy setMaterial:[self material]];
+	copy->_isAtmosphere = _isAtmosphere;
+	copy->_radius = _radius;
+	copy->_eccentricity = _eccentricity;
+	copy->_transform = _transform;
+	copy->_lod = _lod;
+	
+	return copy;
+}
+
+
+- (OOMaterial *) material
+{
+	return _material;
+}
+
+
+- (void) setMaterial:(OOMaterial *)material
+{
+	[_material autorelease];
+	_material = [material retain];
+}
+
+
 - (NSString *) textureName
 {
 	return [_material name];

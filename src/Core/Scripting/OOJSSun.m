@@ -27,10 +27,10 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 
 
-DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, SunEntity)
+DEFINE_JS_OBJECT_GETTER(JSSunGetSunEntity, OOSunEntity)
 
 
 static JSObject		*sSunPrototype;
@@ -99,7 +99,7 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 }
 
 
-@implementation SunEntity (OOJavaScriptExtensions)
+@implementation OOSunEntity (OOJavaScriptExtensions)
 
 - (BOOL) isVisibleToScripts
 {
@@ -125,7 +125,7 @@ void InitOOJSSun(JSContext *context, JSObject *global)
 static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	BOOL						OK = NO;
-	SunEntity					*sun = nil;
+	OOSunEntity					*sun = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
@@ -159,7 +159,7 @@ static JSBool SunGetProperty(JSContext *context, JSObject *this, jsval name, jsv
 // goNova([delay : Number])
 static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	SunEntity					*sun = nil;
+	OOSunEntity					*sun = nil;
 	jsdouble					delay = 0;
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
@@ -173,7 +173,7 @@ static JSBool SunGoNova(JSContext *context, JSObject *this, uintN argc, jsval *a
 // cancelNova()
 static JSBool SunCancelNova(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	SunEntity					*sun = nil;
+	OOSunEntity					*sun = nil;
 	
 	if (EXPECT_NOT(!JSSunGetSunEntity(context, this, &sun))) return NO;
 	

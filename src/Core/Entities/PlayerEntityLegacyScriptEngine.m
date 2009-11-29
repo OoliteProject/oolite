@@ -40,7 +40,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOLoggingExtended.h"
 #import "OOSound.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "ParticleEntity.h"
 #import "StationEntity.h"

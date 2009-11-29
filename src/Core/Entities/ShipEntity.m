@@ -62,7 +62,7 @@ MA 02110-1301, USA.
 
 #import "ParticleEntity.h"
 #import "StationEntity.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "PlayerEntity.h"
 #import "WormholeEntity.h"
@@ -1490,7 +1490,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 	// temperature factors
 	double external_temp = 0.0;
-	SunEntity *sun = [UNIVERSE sun];
+	OOSunEntity *sun = [UNIVERSE sun];
 	if (sun != nil)
 	{
 		// set the ambient temperature here
@@ -4352,7 +4352,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 - (Entity<OOStellarBody> *) findNearestStellarBody
 {
 	Entity<OOStellarBody> *match = [self findNearestPlanet];
-	SunEntity *sun = [UNIVERSE sun];
+	OOSunEntity *sun = [UNIVERSE sun];
 	
 	if (sun != nil)
 	{

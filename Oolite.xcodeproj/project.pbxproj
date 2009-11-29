@@ -430,8 +430,6 @@
 		1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */; };
 		1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */; };
 		1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */; };
-		1A6AA36510C13B1D00383767 /* SunEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6AA36310C13B1D00383767 /* SunEntity.h */; };
-		1A6AA36610C13B1D00383767 /* SunEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6AA36410C13B1D00383767 /* SunEntity.m */; };
 		1A6B1EF00C9AA5C6000717CF /* OOScriptTimer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */; };
 		1A6B1EF10C9AA5C6000717CF /* OOScriptTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */; };
 		1A6B1F360C9AAA60000717CF /* OOPriorityQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */; };
@@ -544,6 +542,10 @@
 		1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */; };
 		1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */; };
 		1AA7FCD210C2BDDD0058FBED /* oolite-planet-temp.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */; };
+		1AA7FD1E10C2C3750058FBED /* OOPlanetEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FD1C10C2C3750058FBED /* OOPlanetEntity.h */; };
+		1AA7FD1F10C2C3750058FBED /* OOPlanetEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */; };
+		1AA7FDDC10C2DC800058FBED /* OOSunEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */; };
+		1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
@@ -1503,8 +1505,6 @@
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; };
 		1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIGraphViz.m; sourceTree = "<group>"; };
-		1A6AA36310C13B1D00383767 /* SunEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SunEntity.h; sourceTree = "<group>"; };
-		1A6AA36410C13B1D00383767 /* SunEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SunEntity.m; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
 		1A6B1F340C9AAA60000717CF /* OOPriorityQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPriorityQueue.m; sourceTree = "<group>"; };
@@ -1621,6 +1621,10 @@
 		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
 		1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetData.h; sourceTree = "<group>"; };
 		1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-planet-temp.png"; sourceTree = "<group>"; };
+		1AA7FD1C10C2C3750058FBED /* OOPlanetEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetEntity.h; sourceTree = "<group>"; };
+		1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetEntity.m; sourceTree = "<group>"; };
+		1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSunEntity.h; sourceTree = "<group>"; };
+		1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSunEntity.m; sourceTree = "<group>"; };
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
 		1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWorldScripts.m; sourceTree = "<group>"; };
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
@@ -2628,8 +2632,6 @@
 				1A26D1090BCFA8D40073F257 /* PlayerEntity */,
 				1A26D0930BCF9CF70073F257 /* SkyEntity.h */,
 				1A26D0920BCF9CF70073F257 /* SkyEntity.m */,
-				1A6AA36310C13B1D00383767 /* SunEntity.h */,
-				1A6AA36410C13B1D00383767 /* SunEntity.m */,
 				1A26D0950BCF9CF70073F257 /* RingEntity.h */,
 				1A26D0940BCF9CF70073F257 /* RingEntity.m */,
 				1A26D09A0BCF9CF70073F257 /* PlanetEntity.h */,
@@ -2642,6 +2644,10 @@
 				1A11273A105994D000DF9D12 /* OOExhaustPlumeEntity.m */,
 				1A00C7B810667D3100A8737D /* OOECMBlastEntity.h */,
 				1A00C7B910667D3100A8737D /* OOECMBlastEntity.m */,
+				1AA7FD1C10C2C3750058FBED /* OOPlanetEntity.h */,
+				1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */,
+				1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */,
+				1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */,
 				1A817DCA106D44D900AA2F97 /* Particles */,
 			);
 			path = Entities;
@@ -3101,9 +3107,10 @@
 				1A817DC3106D443B00AA2F97 /* OOFlashEffectEntity.h in Headers */,
 				2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */,
 				1AB9AE8B107F459B00B6F3CE /* OOPolygonSprite.h in Headers */,
-				1A6AA36510C13B1D00383767 /* SunEntity.h in Headers */,
 				1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */,
 				1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */,
+				1AA7FD1E10C2C3750058FBED /* OOPlanetEntity.h in Headers */,
+				1AA7FDDC10C2DC800058FBED /* OOSunEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3458,9 +3465,10 @@
 				2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */,
 				1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */,
 				1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */,
-				1A6AA36610C13B1D00383767 /* SunEntity.m in Sources */,
 				1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */,
 				1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */,
+				1AA7FD1F10C2C3750058FBED /* OOPlanetEntity.m in Sources */,
+				1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 #import "StationEntity.h"
 #import "ParticleEntity.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "WormholeEntity.h"
 
@@ -1391,7 +1391,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	double speed_delta = 5.0 * thrust;
 	
-	SunEntity	*sun = [UNIVERSE sun];
+	OOSunEntity	*sun = [UNIVERSE sun];
 	double		external_temp = 0;
 	GLfloat		air_friction = 0.0f;
 	air_friction = 0.5f * [UNIVERSE airResistanceFactor];

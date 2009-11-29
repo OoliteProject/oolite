@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 #endif
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
-		Entity, ShipEntity, StationEntity, PlanetEntity, SunEntity,
+		Entity, ShipEntity, StationEntity, PlanetEntity, OOSunEntity,
 		PlayerEntity, OORoleSet;
 
 
@@ -231,7 +231,7 @@ enum
 	
 	StationEntity			*cachedStation;
 	PlanetEntity			*cachedPlanet;
-	SunEntity				*cachedSun;
+	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
 	BOOL					strict;
@@ -328,7 +328,7 @@ enum
 
 - (StationEntity *) station;
 - (PlanetEntity *) planet;
-- (SunEntity *) sun;
+- (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
 
 // Turn main station into just another station, for blowUpStation.

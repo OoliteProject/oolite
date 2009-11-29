@@ -22,6 +22,10 @@ MA 02110-1301, USA.
 
 */
 
+
+#define NEW_PLANETS 0
+
+
 #import "OOOpenGL.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
@@ -60,7 +64,10 @@ MA 02110-1301, USA.
 #import "SkyEntity.h"
 #import "DustEntity.h"
 #import "PlanetEntity.h"
-#import "SunEntity.h"
+#if NEW_PLANETS
+#import "OOPlanetEntity.h"
+#endif
+#import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "RingEntity.h"
 #import "ParticleEntity.h"
@@ -754,6 +761,12 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 
 - (PlanetEntity	*) setUpPlanet
 {
+#if NEW_PLANETS
+	// set the system seed for random number generation
+	seed_for_planet_description(system_seed);
+	
+	PlanetEntity *a_planet = (PlanetEntity *)[[OOPlanetEntity alloc] initAsMainPlanet];
+#else
 	PlanetEntity		*a_planet;
 	
 	// set the system seed for random number generation
@@ -761,12 +774,14 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	/*- space planet -*/
 	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
+#endif
+	
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
 	
 	[a_planet setStatus:STATUS_ACTIVE];
-	[a_planet setPositionX:0 y:0 z:planet_zpos];
-	[a_planet setEnergy:  1000000.0];
+	[a_planet setPosition:(Vector){ 0, 0, planet_zpos }];
+	[a_planet setEnergy:1000000.0];
 	
 	if ([self planet])
 	{
@@ -790,7 +805,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	Entity				*thing;
 	ShipEntity			*nav_buoy;
 	StationEntity		*a_station;
-	SunEntity			*a_sun;
+	OOSunEntity			*a_sun;
 	PlanetEntity		*a_planet;
 	
 	Vector				stationPos;
@@ -917,7 +932,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	//dict_object=[systeminfo objectForKey: @"sun_texture"];
 	//if (dict_object!=nil) [sun_dict setObject:dict_object forKey:@"sun_texture"];
 	
-	a_sun = [[SunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
+	a_sun = [[OOSunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
 	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos];
@@ -1137,7 +1152,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	*/
 	
 	NSDictionary	*systeminfo = [self generateSystemData:system_seed];
-	SunEntity		*the_sun = [self sun];
+	OOSunEntity		*the_sun = [self sun];
 	SkyEntity		*the_sky = nil;
 	GLfloat			sun_pos[] = {4000000.0, 0.0, 0.0, 1.0};
 	int i;
@@ -1917,7 +1932,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if ([l_sys length] != 3)
 		return kZeroVector;
 	PlanetEntity* the_planet = [self planet];
-	SunEntity* the_sun = [self sun];
+	OOSunEntity* the_sun = [self sun];
 	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
 	{
 		if (my_scalar)  *my_scalar = 1.0;
@@ -2019,7 +2034,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if ([l_sys length] != 3)
 		return nil;
 	PlanetEntity* the_planet = [self planet];
-	SunEntity* the_sun = [self sun];
+	OOSunEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
 		return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, pos.x, pos.y, pos.z];
@@ -2089,7 +2104,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		case 's':
 		{
-			SunEntity *sun = [self sun];
+			OOSunEntity *sun = [self sun];
 			scale = 1.0f / (sun ? [sun collisionRadius]: 100000);
 			break;
 		}
@@ -2734,7 +2749,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (SunEntity *) sun
+- (OOSunEntity *) sun
 {
 	if (cachedSun == nil)
 	{
@@ -7881,7 +7896,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimStartPositionForShip:");
 		return kZeroVector;
 	}
-	SunEntity* the_sun = [self sun];
+	OOSunEntity* the_sun = [self sun];
 	// get vector from sun position to ship
 	if (!the_sun)
 	{
@@ -7905,7 +7920,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (Vector) getSunSkimEndPositionForShip:(ShipEntity*) ship
 {
-	SunEntity* the_sun = [self sun];
+	OOSunEntity* the_sun = [self sun];
 	if (!ship)
 	{
 		OOLog(kOOLogParameterError, @"***** No ship set in Universe getSunSkimEndPositionForShip:");

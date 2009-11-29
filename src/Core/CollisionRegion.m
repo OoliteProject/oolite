@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "Entity.h"
 #import "ShipEntity.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
@@ -431,7 +431,7 @@ NSArray* subregionsContainingPosition( Vector position, CollisionRegion* region)
 	}
 }
 
-static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, SunEntity* the_sun)
+static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, OOSunEntity* the_sun)
 {
 	// simple tests
 	if (e1 == e2)
@@ -504,7 +504,7 @@ static BOOL testEntityOccludedByEntity(Entity* e1, Entity* e2, SunEntity* the_su
 	
 	if ([UNIVERSE reducedDetail])  return;	// don't do this in reduced detail mode
 	
-	SunEntity* the_sun = [UNIVERSE sun];
+	OOSunEntity* the_sun = [UNIVERSE sun];
 	
 	if (!the_sun)
 		return;	// sun is required

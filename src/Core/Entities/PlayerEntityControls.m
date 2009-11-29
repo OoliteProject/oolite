@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #import "ShipEntityAI.h"
 #import "StationEntity.h"
 #import "Universe.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "GameController.h"
 #import "AI.h"

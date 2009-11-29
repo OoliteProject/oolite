@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 #import "HeadUpDisplay.h"
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "PlanetEntity.h"
 #import "StationEntity.h"
 #import "Universe.h"
@@ -942,7 +942,7 @@ static BOOL hostiles;
 	OOGLEND();
 	OOGL(glLineWidth(line_width));	// thinner
 	
-	SunEntity		*the_sun = [UNIVERSE sun];
+	OOSunEntity		*the_sun = [UNIVERSE sun];
 	PlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];

@@ -22,7 +22,7 @@ MA 02110-1301, USA.
 
 */
 
-#import "SunEntity.h"
+#import "OOSunEntity.h"
 #import "OOOpenGLExtensionManager.h"
 
 #import "Universe.h"
