@@ -126,7 +126,8 @@ OBJC_PROGRAM_NAME = oolite
 oolite_C_FILES = \
 	legacy_random.c \
 	strlcpy.c \
-	OOTCPStreamDecoder.c
+	OOTCPStreamDecoder.c \
+	OOPlanetData.c
 
 
 OOLITE_DEBUG_FILES = \
@@ -171,6 +172,7 @@ OOLITE_ENTITY_FILES = \
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \
+	OOPlanetDrawable.m \
 	OOMesh.m
 
 OOLITE_GRAPHICS_MATERIAL_FILES = \

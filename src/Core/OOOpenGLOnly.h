@@ -25,6 +25,12 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef OOLITE_SDL
+#if (!OOLITE_MAC_OS_X && GNUSTEP) && !defined(OOLITE_SDL_MAC)
+#define OOLITE_SDL	1
+#endif
+#endif
+
 #if OOLITE_MAC_OS_X
 
 // Apple OpenGL includes...
