@@ -270,6 +270,7 @@
 			"no_boulders",
 			"hyperspace_motor_spin_time",
 			"throw_sparks",
+			"max_missiles",
 			"cloak_passive"
 		);
 		knownStationKeys =
@@ -297,8 +298,7 @@
 			"view_position_aft",
 			"view_position_port",
 			"view_position_starboard",
-			"custom_views",
-			"max_missiles"
+			"custom_views"
 		);
 	};
 }

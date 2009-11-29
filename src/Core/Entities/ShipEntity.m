@@ -110,6 +110,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) addSubEntity:(Entity *) subent;
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
+- (OOEquipmentType *) newMissile;
 
 // equipment
 - (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged;
@@ -222,10 +223,20 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:25600.0];
-	max_missiles = missiles = [shipDict oo_intForKey:@"missiles"];
-	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = missiles = SHIPENTITY_MAX_MISSILES;
+	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
+	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
+	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
+	if (missiles > max_missiles) missiles = max_missiles;
 	missileRole = [shipDict oo_stringForKey:@"missile_role"];
-
+	
+	unsigned	i;
+	
+	for (i = 0; i < missiles; i++)
+	{
+		missile_list[i] = [self newMissile];
+		if (missile_list[i] == nil) i--;
+	}
+	
 	// upgrades:
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
@@ -1306,6 +1317,40 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (OOEquipmentType *) newMissile
+{
+	ShipEntity			*missile = nil;
+	OOEquipmentType		*missileType;
+	BOOL 				isMissileType = NO;
+	id 					value;
+	
+	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
+	if (missile == nil)	// no custom role
+	{
+		if (randf() < 0.90)	// choose a standard missile 90% of the time
+		{
+			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+		}
+		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
+		{
+			missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
+		}
+	}
+	
+	NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
+
+	while ((value = [enumerator nextObject])) {
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:(NSString *)value];
+		// ensure that we have a missile or mine
+		isMissileType = (missileType != nil && [missileType isMissileOrMine]);
+		if (isMissileType) break;
+	}
+	[missile release];
+
+	return (isMissileType ? missileType : nil);
+}
+
+
 - (BOOL) validForAddToUniverse
 {
 	if (shipinfoDictionary == nil)
@@ -1853,22 +1898,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	if ([_equipment containsObject:itemKey])  return YES;
 	
-	if (includeMissiles && missiles != 0)
+	if (includeMissiles && missiles > 0)
 	{
-		/*	Note: this is slightly misleading.
-			When an NPC ship doesn't specify a missile_role, the actual missile
-			to fire is chosen at random when a missile is fired. There is a
-			90 % chance "EQ_MISSILE" will be used, and a 10 % chance that
-			"missile" will be used. A ship for which hasEquipmentItem:@"EQ_MISSILE"
-			returns YES could fire missiles that are not of the EQ_MISSILE
-			role. This technicality is unlikely to matter most of the time,
-			but someone will probably come along with a need to differentiate
-			specific missiles at which point our reply will have to be "tough".
-			-- Ahruman 2009-06-21
-		*/
-		NSString *mRole = missileRole;
-		if (mRole == nil)  mRole = @"EQ_MISSILE";
-		if ([itemKey isEqual:mRole])  return YES;
+		unsigned i;
+		for (i = 0; i < missiles; i++)
+		{
+			if ([[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
+		}
 	}
 	
 	return NO;
@@ -1951,7 +1987,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
 	}
 	
-	// FIXME: deal with special handling of missiles and mines.
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"])
+	{
+		if (missiles >= max_missiles) return NO;
+	}
 	
 	if ([self hasEquipmentItem:equipmentKey])  return NO;
 	if (![self equipmentValidToAdd:equipmentKey])  return NO;
@@ -1983,26 +2022,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (NSArray *) missilesList
 {
-	/*
-	Note: this is slightly misleading.
-	When an NPC ship doesn't specify a missile_role, the actual missile
-	to fire is chosen at random when a missile is fired. There is a
-	90 % chance "EQ_MISSILE" will be used, and a 10 % chance that
-	"missile" will be used. A ship for which hasEquipmentItem:@"EQ_MISSILE"
-	returns YES could fire missiles that are not of the EQ_MISSILE
-	role. This technicality is unlikely to matter most of the time,
-	but someone will probably come along with a need to differentiate
-	specific missiles at which point our reply will have to be "tough".
-	-- ( Copied from the note inside hasOneEquipmentItem by Ahruman 2009-06-21 )
-	*/
 	NSMutableArray		*miss = [NSMutableArray arrayWithCapacity:missiles];
-	NSString 			*mRole = missileRole;
-	if (mRole == nil)	mRole = @"EQ_MISSILE";
-	unsigned			i = 0;
+	unsigned			i;
 
 	for (i = 0; i < missiles; i++)
 	{
-		[miss addObject:[OOEquipmentType equipmentTypeWithIdentifier:mRole]];
+		[miss addObject:missile_list[i]];
 	}
 	return [[miss copy] autorelease];
 }
@@ -2115,11 +2140,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"])
 	{
-		// FIXME: missile handling for NPCs needs to be better than this.
 		if (missiles >= max_missiles) return NO;
+		
+		//missile_list[missiles] = [self newMissile];
+		missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 		missiles++;
 		return YES;
 	}
+	
 	// we can theoretically add a damaged weapon, but not a working one.
 	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
 	{
@@ -2127,22 +2155,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// end special cases
-	
-	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
-	if (eqType == nil)  return NO;
-	
-	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
-	
-	// if we heve one of these with a different damage status - remove it first
+
+	// if we heve this equipment with a different damage status we get ready to remove it first
 	NSString				*alterKey = nil;
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
 		alterKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:alterKey];
 	}
 	else
 	{
 		alterKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	}
+	
+	// does this equipment actually exist?
+	if (eqType == nil)  return NO;
+	
+	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	[_equipment removeObject:alterKey];
 	
 	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
@@ -2207,13 +2237,15 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) removeExternalStore:(OOEquipmentType *)eqType
 {
-	NSString *identifier = [eqType identifier];
+	NSString	*identifier = [eqType identifier];
+	unsigned	i;
 	
-	// If we have missiles, and equipment identifier matches our missile role, decrement missile count.
-	if (missiles > 0)
+	for (i = 0; i < missiles; i++)
 	{
-		if ([missileRole isEqualToString:identifier] || (missileRole == nil && [identifier isEqualToString:@"EQ_MISSILE"]))
+		if ([[missile_list[i] identifier] isEqualTo:identifier])
 		{
+			// now 'delete' [i] by compacting the array
+			while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
 			missiles--;
 		}
 	}
@@ -7106,23 +7138,16 @@ BOOL class_masslocks(int some_class)
 		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning])  return NO;
 	}
 
-	// custom missiles
-	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
-	if (missile == nil)	// no custom role
-	{
-		if (randf() < 0.90)	// choose a standard missile 90% of the time
-		{
-			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
-		}
-		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-		{
-			missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
-		}
-	}
+	// use a random missile from the list
+	unsigned i = floor(randf()*(double)missiles);
+	
+	missile = [UNIVERSE newShipWithRole:[missile_list[i] identifier]];
+	
+	// now 'delete' [i] by compacting the array
+	while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
+	missiles--;
 
 	if (missile == nil) return NO;
-
-	missiles--;
 	
 	double mcr = missile->collision_radius;
 	

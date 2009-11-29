@@ -1124,7 +1124,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
-	missiles = (unsigned)[shipDict oo_doubleForKey:@"missiles"];
+	missiles = [shipDict oo_intForKey:@"missiles"  defaultValue:0];
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
 	if (missiles > max_missiles)  missiles = max_missiles;

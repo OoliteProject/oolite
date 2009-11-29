@@ -313,6 +313,7 @@ MA 02110-1301, USA.
 	NSDictionary			*scriptInfo;				// script_info dictionary from shipdata.plist, exposed to scripts.
 	
 	NSMutableArray			*subEntities;
+	OOEquipmentType			*missile_list[SHIPENTITY_MAX_MISSILES];
 	
 @private
 	OOWeakReference			*_subEntityTakingDamage;	//	frangible => subEntities can be damaged individually

@@ -1557,20 +1557,18 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 	hasOK = [thisEnt hasEquipmentItem:key];
 	hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
 	
-	// make sure 'key 'contains the equipment key we want to have.
-	if ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK) key = damagedKey;
-	
 	if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
 	{	
 		// addEquipmentItem removes the opposite status automagically.
 		if ([thisEnt isPlayer])
 		{
-			[(PlayerEntity*)thisEnt addEquipmentItem:key];
+			// these player methods are different to the ship ones.
+			[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
 			if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
 		}
 		else
 		{
-			[thisEnt addEquipmentItem:key];
+			[thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
 			if (hasOK) [thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
 		}
 	}
