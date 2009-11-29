@@ -214,5 +214,9 @@
 			height = 8;
 			width = 8;
 		}
-    );
+	);
+    
+	overall_alpha	= 0.75;
+	reticle_target_sensitive = no;
+	cloak_indicator_on_status_light = no;
 }
