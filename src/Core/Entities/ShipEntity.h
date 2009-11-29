@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 #define MAX_ESCORTS						16
 #define ESCORT_SPACING_FACTOR			3.0
 
-#define SHIPENTITY_MAX_MISSILES			16
+#define SHIPENTITY_MAX_MISSILES			32
 
 #define TURRET_SHOT_SPEED				2000.0f
 #define TURRET_SHOT_DURATION			3.0
@@ -203,6 +203,7 @@ MA 02110-1301, USA.
 	GLfloat					scannerRange;				// typically 25600
 	
 	unsigned				missiles;					// number of on-board missiles
+	unsigned				max_missiles;				// number of missile pylons
 	NSString				*missileRole;
 	
 #ifdef OO_BRAIN_AI
@@ -406,8 +407,8 @@ MA 02110-1301, USA.
 - (BOOL) hasAllEquipment:(id)equipmentKeys;				// Short for hasAllEquipment:foo includeWeapons:NO
 - (BOOL) canAddEquipment:(NSString *)equipmentKey;		// Test ability to add equipment, taking equipment-specific constriants into account. 
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
-- (void) addEquipmentItem:(NSString *)equipmentKey;
-- (void) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey;
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
 /*	NOTE: for legacy reasons, canAddEquipment: returns YES if given a missile
 	or mine type, but addEquipmentItem: does nothing in those cases. This
 	should probably be cleaned up by making addEquipmentItem: mount stores.
@@ -416,6 +417,7 @@ MA 02110-1301, USA.
 - (unsigned) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
+- (int) removeMissiles;
 
 // Internal, subject to change. Use the methods above instead.
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles;

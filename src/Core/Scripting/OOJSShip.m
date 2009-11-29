@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OOJSPlayer.h"
 #import "OOShipGroup.h"
 #import "PlayerEntityContracts.h"
+#import "OOEquipmentType.h"
 
 
 DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
@@ -69,6 +70,10 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -261,6 +266,10 @@ static JSFunctionSpec sShipMethods[] =
 	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ "addPassenger",			ShipAddPassenger,			0 },
 	{ "awardContract",			ShipAwardContract,			0 },
+	{ "awardEquipment",			ShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
+	{ "removeEquipment",		ShipRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
+	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
+	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ 0 }
 };
 
@@ -1198,7 +1207,11 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	JSBool						includeWeapons = YES;
 	BOOL						OK = YES;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -1244,11 +1257,16 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
+// abandonShip()
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
 	
 	BOOL hasPod = [thisEnt hasEscapePod];
 
@@ -1262,12 +1280,17 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
+// addPassenger(name: string, start: int, destination: int, eta: double, fee: double)
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = YES;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference or NPC, no-op.
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
 	
 	NSString			*name = nil;
 	
@@ -1277,10 +1300,12 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 		if (EXPECT_NOT(name == nil || JSVAL_IS_INT(argv[0])))
 		{
 			OOReportJSBadArguments(context, @"Ship", @"addPassenger", argc, argv, nil, @"name:string");
-			OK = NO;
+			return NO;
 		}
-		OK = OK && ValidateContracts(context, this, argc, argv, outResult, NO) ;
-		if ((OK && ![thisEnt isPlayer]) || (OK && [thisEnt passengerCount] >= [thisEnt passengerCapacity]) )
+		OK = ValidateContracts(context, this, argc, argv, outResult, NO);
+		if (!OK) return NO;
+		
+		if (![thisEnt isPlayer] || [thisEnt passengerCount] >= [thisEnt passengerCapacity])
 		{
 			OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"addPassenger", @"add passenger");
 			OK = NO;
@@ -1289,7 +1314,7 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 	else
 	{
 		OOReportJSBadArguments(context, @"Ship", @"addPassenger", argc, argv, nil, @"name, start, destination, eta, fee");
-		OK = NO;
+		return NO;
 	}
 	
 	if (OK)
@@ -1305,26 +1330,32 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
+// awardContract(quantity: int, commodity: string, start: int, destination: int, eta: double, fee: double)
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = JSVAL_IS_INT(argv[0]);
 	NSString 			*key = nil;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference or NPC, no-op.
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
 	
 	if (OK && argc == 6)
 	{
 		key = JSValToNSString(context, argv[1]);
-		if (EXPECT_NOT(key == nil || JSVAL_IS_INT(argv[1])))
+		if (EXPECT_NOT(key == nil || !JSVAL_IS_STRING(argv[1])))
 		{
 			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"commodity identifier:string");
-			OK = NO;
+			return NO;
 		}
-		OK = ValidateContracts(context, this, argc, argv, outResult, YES) && OK; // always go through validate contracts (cargo)
+		OK = ValidateContracts(context, this, argc, argv, outResult, YES); // always go through validate contracts (cargo)
+		if (!OK) return NO;
 		
 		unsigned qty = JSVAL_TO_INT(argv[0]);
-		if ((OK && ![thisEnt isPlayer]) || (OK && (qty > [thisEnt availableCargoSpace] || qty < 1)))
+		if (![thisEnt isPlayer] || (qty > [thisEnt availableCargoSpace] || qty < 1))
 		{
 			OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"awardContract", @"award contract");
 			OK = NO;
@@ -1336,7 +1367,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"quantity:int");
 		else
 			OOReportJSBadArguments(context, @"Ship", @"awardContract", argc, argv, nil, @"quantity, commodity, start, destination, eta, fee");
-		OK = NO;
+		return NO;
 	}
 	
 	if (OK)
@@ -1344,6 +1375,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 		jsdouble		eta,fee;
 		JS_ValueToNumber(context, argv[4], &eta);
 		JS_ValueToNumber(context, argv[5], &fee);
+		// commodity key is case insensitive.
 		OK = [(PlayerEntity*)thisEnt awardContract:JSVAL_TO_INT(argv[0]) commodity:key 
 									start:JSVAL_TO_INT(argv[2]) destination:JSVAL_TO_INT(argv[3]) eta:eta fee:fee];
 	}
@@ -1379,5 +1411,195 @@ static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, js
 		return NO;
 	}
 
+	return YES;
+}
+
+// awardEquipment(key : String)
+static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	BOOL						OK = YES;
+	BOOL						berth;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"awardEquipment", argc, argv, nil, @"equipment key");
+		return NO;
+	}
+	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
+	// don't add fuel, but add multiple berths if there's space - missiles are ignored in this check.
+	OK = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
+			(berth && [thisEnt availableCargoSpace] >= 5));
+			
+	
+	if (OK)
+	{
+		if ([thisEnt isPlayer])
+		{
+			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [(PlayerEntity*)thisEnt removeMissiles];
+			else if (berth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]) OK = [(PlayerEntity*)thisEnt changePassengerBerths:(berth ? +1 : -1)];
+			// unknown types and EQ_CARGO_BAY are dealt with inside awardEquipment
+			else OK = [(PlayerEntity*)thisEnt awardEquipment:key];
+		}
+		// check here for unknown types: 'EQ_TRUMBLE' is an unknown type, but valid for players. -kaks 20091129
+		else if([OOEquipmentType equipmentTypeWithIdentifier:key] != nil)
+		{
+			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [thisEnt removeMissiles];
+			// no passenger handling for NPCs. EQ_CARGO_BAY is dealt with inside addEquipmentItem
+			else if (!berth && ![key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
+							OK = [thisEnt addEquipmentItem:key];
+			else OK = NO;
+		}
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+}
+
+
+// removeEquipment(key : String)
+static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	BOOL						OK = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"removeEquipment", argc, argv, nil, @"equipment key");
+		return NO;
+	}
+	// berths are not in hasOneEquipmentItem
+	OK = [thisEnt hasOneEquipmentItem:key includeMissiles:YES] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0);
+	if (OK)
+	{
+		//exceptions
+		if ([key isEqualToString:@"EQ_PASSENGER_BERTH"] || [key isEqualToString:@"EQ_CARGO_BAY"])
+		{
+			if ([key isEqualToString:@"EQ_PASSENGER_BERTH"])
+			{
+				if ([thisEnt passengerCapacity] > [thisEnt passengerCount])
+				{
+					// must be the player's ship!
+					if ([thisEnt isPlayer]) [(PlayerEntity*)thisEnt changePassengerBerths:-1];
+				}
+				else OK = NO;
+			}
+			else	// EQ_CARGO_BAY
+			{
+				if ([thisEnt extraCargo] <= [thisEnt availableCargoSpace])
+				{
+					[thisEnt removeEquipmentItem:key];
+				}
+				else OK = NO;
+			}
+		}
+		else
+			[thisEnt removeEquipmentItem:key];
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+}
+
+
+// setEquipmentStatus(key : String, status : String)
+static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*key = JSValToNSString(context, argv[0]);
+	NSString				*damagedKey = [key stringByAppendingString:@"_DAMAGED"];
+	NSString				*status = JSValToNSString(context, argv[1]);
+	BOOL					hasOK = NO, hasDamaged = NO;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	if (EXPECT_NOT([UNIVERSE strict]))
+	{
+		// It's OK to have a hard error here since only built-in scripts run in strict mode.
+		OOReportJSError(context, @"Cannot set equipment status while in strict mode.");
+		return NO;
+	}
+	
+	if (EXPECT_NOT(key == nil || status == nil || [key hasSuffix:@"_DAMAGED"]))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment key and status");
+		return NO;
+	}
+	
+	if ([status isEqualToString:@"EQUIPMENT_OK"] || [status isEqualToString:@"EQUIPMENT_DAMAGED"])
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either 'EQUIPMENT_OK' or 'EQUIPMENT_DAMAGED'.");
+		return NO;
+	}
+	
+	hasOK = [thisEnt hasEquipmentItem:key];
+	hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
+	
+	// make sure 'key 'contains the equipment key we want to have.
+	if ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK) key = damagedKey;
+	
+	if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
+	{	
+		// addEquipmentItem removes the opposite status automagically.
+		if ([thisEnt isPlayer])
+		{
+			[(PlayerEntity*)thisEnt addEquipmentItem:key];
+			if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+		}
+		else
+		{
+			[thisEnt addEquipmentItem:key];
+			if (hasOK) [thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+		}
+	}
+	
+	*outResult = BOOLToJSVal(hasOK || hasDamaged);
+	return YES;
+}
+
+
+// equipmentStatus(key : String) : String
+static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
+	
+	ShipEntity				*thisEnt = nil;
+	NSString				*key = JSValToNSString(context, argv[0]);
+	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment key");
+		return NO;
+	}
+	
+	if([thisEnt hasEquipmentItem:key]) result = @"EQUIPMENT_OK";
+	else if([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]) result = @"EQUIPMENT_DAMAGED";
+	
+	*outResult = [result javaScriptValueInContext:context];
 	return YES;
 }

@@ -682,7 +682,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	missiles = [dict oo_unsignedIntForKey:@"missiles"];
 	// sanity check the number of missiles...
-	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
+	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
 	if (missiles > max_missiles)  missiles = max_missiles;
 	// end sanity check
 	
@@ -722,7 +722,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// set up missiles
 	[self setActiveMissile:0];
-	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
@@ -766,7 +766,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// Sanity check: ensure the missiles variable holds the correct missile count.
 	// FIXME: get rid of "missiles" and just count them when needed. -- Ahruman
 	missiles = 0;
-	for (i = 0; i != SHIPENTITY_MAX_MISSILES; i++)
+	for (i = 0; i != PLAYER_MAX_MISSILES; i++)
 	{
 		if (missile_entity[i] != nil)  missiles++;
 	}
@@ -837,7 +837,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	afterburnerSoundLooping = NO;
 	
 	int i;
-	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 		missile_entity[i] = nil;
 	[self setUp];
 	
@@ -992,7 +992,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// set up missiles
 	missiles				= PLAYER_STARTING_MISSILES;
-	max_missiles			= PLAYER_MAX_MISSILES;
+	max_missiles			= PLAYER_STARTING_MAX_MISSILES;
 	
 	[self setActiveMissile: 0];
 	for (i = 0; i < missiles; i++)
@@ -1126,7 +1126,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	missiles = (unsigned)[shipDict oo_doubleForKey:@"missiles"];
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
-	if (max_missiles > SHIPENTITY_MAX_MISSILES)  max_missiles = SHIPENTITY_MAX_MISSILES;
+	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
 	if (missiles > max_missiles)  missiles = max_missiles;
 	
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
@@ -1190,7 +1190,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// set up missiles
 	unsigned i;
-	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		[missile_entity[i] release];
 		missile_entity[i] = nil;
@@ -1295,7 +1295,7 @@ static PlayerEntity *sSharedPlayer = nil;
 #endif
 
 	int i;
-	for (i = 0; i < SHIPENTITY_MAX_MISSILES; i++)  [missile_entity[i] release];
+	for (i = 0; i < PLAYER_MAX_MISSILES; i++)  [missile_entity[i] release];
 
 	for (i = 0; i < PLAYER_MAX_TRUMBLES; i++)  [trumble[i] release];
 	
@@ -2833,7 +2833,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// the first missile is in the first pylon
 	int i;
 	int pylon=0;
-	for(i = 0; i < SHIPENTITY_MAX_MISSILES; i++)
+	for(i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
 		if(missile_entity[i])
 			{
@@ -2844,7 +2844,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	// missiles have been shoved up, now make sure the remainder
 	// of the pylons are cleaned up.
-	for(i = pylon; i < SHIPENTITY_MAX_MISSILES; i++)
+	for(i = pylon; i < PLAYER_MAX_MISSILES; i++)
 	{
 		missile_entity[i]=nil;
 	}
@@ -5990,12 +5990,14 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) changePassengerBerths:(int) addRemove
+- (BOOL) changePassengerBerths:(int) addRemove
 {
-	if (addRemove == 0) return;
+	if (addRemove == 0) return NO;
 	addRemove = (addRemove > 0) ? 1 : -1;	// change only by one berth at a time!
+	if ((max_passengers < 1 && addRemove == -1) || (max_cargo - current_cargo < 5 && addRemove == 1)) return NO;
 	max_passengers += addRemove;
 	max_cargo -= 5 * addRemove;
+	return YES;
 }
 
 
@@ -6003,7 +6005,7 @@ static NSString *last_outfitting_key=nil;
 {
 	[self safeAllMissiles];
 	[self sortMissiles];
-	int tradeIn =0;
+	int tradeIn = 0;
 	unsigned i;
 	for (i = 0; i < missiles; i++)
 	{
@@ -6365,7 +6367,7 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) addEquipmentItem:(NSString *)equipmentKey
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey
 {
 	// deal with trumbles..
 	if ([equipmentKey isEqualToString:@"EQ_TRUMBLE"])
@@ -6377,11 +6379,12 @@ static NSString *last_outfitting_key=nil;
 		 -- Ahruman 2008-12-04
 		 */
 		// the old trumbles will kill the new one if there are enough of them.
-		if ((trumbleCount < PLAYER_MAX_TRUMBLES / 4) || (trumbleCount < PLAYER_MAX_TRUMBLES / 2 && ranrot_rand() % 2 > 0))
+		if ((trumbleCount < PLAYER_MAX_TRUMBLES / 6) || (trumbleCount < PLAYER_MAX_TRUMBLES / 3 && ranrot_rand() % 2 > 0))
 		{
-			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// first/new one
+			[self addTrumble:trumble[ranrot_rand() % PLAYER_MAX_TRUMBLES]];	// randomise its looks.
+			return YES;
 		}
-		return;
+		return NO;
 	}
 	
 	if ([equipmentKey isEqual:@"EQ_ADVANCED_COMPASS"])
@@ -6389,7 +6392,7 @@ static NSString *last_outfitting_key=nil;
 		[self setCompassMode:COMPASS_MODE_PLANET];
 	}
 	
-	[super addEquipmentItem:equipmentKey];
+	return [super addEquipmentItem:equipmentKey];
 }
 
 
@@ -6536,12 +6539,6 @@ static NSString *last_outfitting_key=nil;
 - (unsigned) passengerCapacity
 {
 	return max_passengers;
-}
-
-
-- (unsigned) missileCapacity
-{
-	return max_missiles;
 }
 
 

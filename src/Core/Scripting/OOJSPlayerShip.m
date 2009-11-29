@@ -38,7 +38,6 @@ MA 02110-1301, USA.
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
-#import "OOEquipmentType.h"
 
 
 static JSObject		*sPlayerShipPrototype;
@@ -48,10 +47,6 @@ static JSObject		*sPlayerShipObject;
 static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -133,10 +128,6 @@ static JSPropertySpec sPlayerShipProperties[] =
 static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
-	{ "awardEquipment",				PlayerShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
-	{ "removeEquipment",			PlayerShipRemoveEquipment,			1 },	// Should be deprecated in favour of equipment object model
-	{ "equipmentStatus",			PlayerShipEquipmentStatus,			1 },
-	{ "setEquipmentStatus",			PlayerShipSetEquipmentStatus,		2 },
 	{ "launch",						PlayerShipLaunch,					0 },
 	{ "awardCargo",					PlayerShipAwardCargo,				1 },
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
@@ -378,167 +369,6 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 
 
 // *** Methods ***
-
-// awardEquipment(key : String)
-static JSBool PlayerShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	BOOL						OK = YES;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipment", argc, argv, nil, @"equipment key");
-		return NO;
-	}
-	// berths & missile removal are not in hasEquipmentItem
-	OK = ![player hasEquipmentItem:key] || [key isEqualToString:@"EQ_MISSILE_REMOVAL"] ||
-			([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [player availableCargoSpace] >= 5);
-	
-	// Fail for unknown types.
-	if (OK && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)  OK = NO;
-	
-	if (OK)
-	{
-		if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [player removeMissiles];
-		else if ([key isEqualToString:@"EQ_PASSENGER_BERTH"]) [player changePassengerBerths:+1];
-		// EQ_CARGO_BAY is already dealt with correctly inside [player awardEquipment]
-		else [player awardEquipment:key];
-	}
-	
-	*outResult = BOOLToJSVal(OK);
-	return YES;
-}
-
-
-// removeEquipment(key : String)
-static JSBool PlayerShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity				*player = OOPlayerForScripting();
-	NSString					*key = nil;
-	BOOL						OK = YES;
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"removeEquipment", argc, argv, nil, @"equipment key");
-		return NO;
-	}
-	// berths are not in hasEquipmentItem
-	OK = [player hasEquipmentItem:key] || ([key isEqualToString:@"EQ_PASSENGER_BERTH"] && [player passengerCapacity] > 0);
-	if (OK)
-	{
-		//exceptions
-		if ([key isEqualToString:@"EQ_PASSENGER_BERTH"] || [key isEqualToString:@"EQ_CARGO_BAY"])
-		{
-			if ([key isEqualToString:@"EQ_PASSENGER_BERTH"])
-			{
-				if ([player passengerCapacity] > [player passengerCount])
-				{
-					[player changePassengerBerths:-1];
-				}
-				else OK = NO;
-			}
-			else	// EQ_CARGO_BAY
-			{
-				if ([player extraCargo] <= [player availableCargoSpace])
-				{
-					[player removeEquipmentItem:key];
-				}
-				else OK = NO;
-			}
-		}
-		else
-			[player removeEquipmentItem:key];
-	}
-	
-	*outResult = BOOLToJSVal(OK);
-	return YES;
-}
-
-
-// setEquipmentStatus(key : String, status : String)
-static JSBool PlayerShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
-	
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*key = JSValToNSString(context, argv[0]);
-	NSString				*damagedKey = [key stringByAppendingString:@"_DAMAGED"];
-	NSString				*status = JSValToNSString(context, argv[1]);
-	BOOL					hasOK = NO, hasDamaged = NO;
-
-	if (EXPECT_NOT([UNIVERSE strict]))
-	{
-		// It's OK to have a hard error here since only built-in scripts run in strict mode.
-		OOReportJSError(context, @"Cannot set equipment status while in strict mode.");
-		return NO;
-	}
-	
-	if (EXPECT_NOT(key == nil || status == nil || [key hasSuffix:@"_DAMAGED"]))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, nil, @"equipment key and status");
-		return NO;
-	}
-	
-	hasOK = [player hasEquipmentItem:key];
-	hasDamaged = [player hasEquipmentItem:damagedKey];
-	
-	if ([status isEqualToString:@"EQUIPMENT_OK"])
-	{
-		if (hasDamaged)
-		{
-			[player removeEquipmentItem:damagedKey];
-			[player addEquipmentItem:key];
-		}
-	}
-	else if ([status isEqualToString:@"EQUIPMENT_DAMAGED"])
-	{
-		if (hasOK)
-		{
-
-			[player removeEquipmentItem:key];
-			if ([key isEqual:@"EQ_FUEL"])
-			{
-				return YES;
-			}
-			[player addEquipmentItem:damagedKey];
-			[player doScriptEvent:@"equipmentDamaged" withArgument:key];
-		}
-	}
-	else
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
-		return NO;
-	}
-	
-	*outResult = BOOLToJSVal(hasOK || hasDamaged);
-	return YES;
-}
-
-
-// equipmentStatus(key : String) : String
-static JSBool PlayerShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
-	
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*key = JSValToNSString(context, argv[0]);
-	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
-	
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"setEquipmentStatus", argc, argv, nil, @"equipment key");
-		return NO;
-	}
-	
-	if([player hasEquipmentItem:key]) result = @"EQUIPMENT_OK";
-	else if([player hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]) result = @"EQUIPMENT_DAMAGED";
-	
-	*outResult = [result javaScriptValueInContext:context];
-	return YES;
-}
 
 
 // launch()

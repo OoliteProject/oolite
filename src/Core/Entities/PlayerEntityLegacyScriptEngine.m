@@ -105,6 +105,7 @@ static NSString * const kOOLogSyntaxBadScriptCondition		= @"script.debug.syntax.
 static NSString * const kOOLogSyntaxSetPlanetInfo			= @"script.debug.syntax.setPlanetInfo";
 static NSString * const kOOLogSyntaxAwardCargo				= @"script.debug.syntax.awardCargo";
 static NSString * const kOOLogSyntaxAwardEquipment			= @"script.debug.syntax.awardEquipment";
+static NSString * const kOOLogSyntaxRemoveEquipment			= @"script.debug.syntax.removeEquipment";
 static NSString * const kOOLogSyntaxMessageShipAIs			= @"script.debug.syntax.messageShipAIs";
 	   NSString * const kOOLogSyntaxAddShips				= @"script.debug.syntax.addShips";
 static NSString * const kOOLogSyntaxSet						= @"script.debug.syntax.set";
@@ -1209,41 +1210,42 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
+- (BOOL) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
 {
-	if (scriptTarget != self)  return;
+	if (scriptTarget != self)  return NO;
 	
 	if ([equipString isEqual:@"EQ_FUEL"])
 	{
 		[self setFuel:[self fuelCapacity]];
-		return;
+		return YES;
 	}
 	
 	if ([equipString hasSuffix:@"MISSILE"]||[equipString hasSuffix:@"MINE"])
 	{
+		if ([self missileCount] >= [self missileCapacity]) return NO;
 		[self mountMissile:[[UNIVERSE newShipWithRole:equipString] autorelease]];
-		return;
+		return YES;
 	}
 	if([equipString hasPrefix:@"EQ_WEAPON"] && ![equipString hasSuffix:@"_DAMAGED"])
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
-		return;
+		return NO;
 	}
 	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length] - [@"_DAMAGED" length]]])
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
+		return NO;
 	}
 	else if (![self hasEquipmentItem:equipString])
 	{
-		[self addEquipmentItem:equipString];
+		return [self addEquipmentItem:equipString];
 	}
-
+	return NO;
 }
 
 
 - (void) removeEquipment:(NSString *)equipKey  //eg. EQ_NAVAL_ENERGY_UNIT
 {
-
 	if (scriptTarget != self)  return;
 
 	if ([equipKey isEqual:@"EQ_FUEL"])
@@ -1251,7 +1253,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		fuel = 0;
 		return;
 	}
-
+	
+	if ([equipKey isEqual:@"EQ_CARGO_BAY"] && [self hasEquipmentItem:equipKey]
+			&& ([self extraCargo] > [self availableCargoSpace]))
+	{
+		OOLog(kOOLogSyntaxRemoveEquipment, @"***** SCRIPT ERROR: in %@, CANNOT remove cargo bay. Too much cargo.", CurrentScriptDesc());
+		return;
+	}
 	if ([self hasEquipmentItem:equipKey] || [self hasEquipmentItem:[equipKey stringByAppendingString:@"_DAMAGED"]])
 	{
 		[self removeEquipmentItem:equipKey];

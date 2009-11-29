@@ -222,7 +222,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:25600.0];
-	missiles = [shipDict oo_intForKey:@"missiles"];
+	max_missiles = missiles = [shipDict oo_intForKey:@"missiles"];
+	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = missiles = SHIPENTITY_MAX_MISSILES;
 	missileRole = [shipDict oo_stringForKey:@"missile_role"];
 
 	// upgrades:
@@ -1892,6 +1893,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (BOOL) hasEquipmentItem:(id)equipmentKeys includeWeapons:(BOOL)includeWeapons
 {
+	// this function is also used internally to find out if an equipped item is undamaged.
 	NSEnumerator				*keyEnum = nil;
 	id							key = nil;
 	
@@ -2031,6 +2033,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
+	BOOL				isDamaged;
 	
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
@@ -2049,11 +2052,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		*/
 		// less comprehensive list, but consistent with the rest of the API - Kaks
-		if ([self hasEquipmentItem:[eqType identifier]])
-		{
-			[quip addObject:eqType];
-		}
-		else if (![UNIVERSE strict] && [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+		isDamaged = ![UNIVERSE strict] && [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
+		if ([self hasEquipmentItem:[eqType identifier]] || isDamaged)
 		{
 			[quip addObject:eqType];
 		}
@@ -2099,21 +2099,37 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) addEquipmentItem:(NSString *)equipmentKey
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey
 {
-	[self addEquipmentItem:equipmentKey withValidation:YES];
+	return [self addEquipmentItem:equipmentKey withValidation:YES];
 }
 
 
-- (void) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
+- (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
 {
 	OOEquipmentType			*eqType = nil;
 	
-	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return;
-	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
-	// FIXME: deal with special handling of missiles and mines.
-	if ([eqType isMissileOrMine])  return;
+	// special cases
+	
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"])
+	{
+		// FIXME: missile handling for NPCs needs to be better than this.
+		if (missiles >= max_missiles) return NO;
+		missiles++;
+		return YES;
+	}
+	// we can theoretically add a damaged weapon, but not a working one.
+	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		return NO;
+	}
+	
+	// end special cases
+	
+	eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	if (eqType == nil)  return NO;
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
@@ -2136,6 +2152,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// add the equipment
 	[_equipment addObject:equipmentKey];
+	return YES;
 }
 
 
@@ -2210,6 +2227,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (int) removeMissiles
+{
+	missiles = 0;
+	return 0;
+}
+
+
 - (unsigned) passengerCount
 {
 	return 0;
@@ -2230,8 +2254,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (unsigned) missileCapacity
 {
-	// for player.ship, this function returns max_missiles 
-	return missiles;
+	return max_missiles;
 }
 
 

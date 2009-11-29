@@ -148,7 +148,7 @@ typedef enum
 - (void) setLegalStatus:(NSString *)valueString;
 - (void) awardCredits:(NSString *)valueString;
 - (void) awardShipKills:(NSString *)valueString;
-- (void) awardEquipment:(NSString *)equipString;  //eg. EQ_NAVAL_ENERGY_UNIT
+- (BOOL) awardEquipment:(NSString *)equipString;  //eg. EQ_NAVAL_ENERGY_UNIT
 - (void) removeEquipment:(NSString *)equipString;  //eg. EQ_NAVAL_ENERGY_UNIT
 
 - (void) setPlanetinfo:(NSString *)key_valueString;	// uses key=value format

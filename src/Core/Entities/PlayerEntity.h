@@ -155,7 +155,8 @@ typedef enum
 
 #define PLAYER_MAX_WEAPON_TEMP			256.0f
 #define PLAYER_MAX_FUEL					70
-#define PLAYER_MAX_MISSILES				4
+#define PLAYER_MAX_MISSILES				16
+#define PLAYER_STARTING_MAX_MISSILES	4
 #define PLAYER_STARTING_MISSILES		3
 #define PLAYER_DIAL_MAX_ALTITUDE		40000.0
 #define PLAYER_SUPER_ALTITUDE2			10000000000.0
@@ -332,8 +333,7 @@ typedef enum
 	
 	NSMutableArray			*shipCommodityData;
 	
-	unsigned				max_missiles;		// no. of missile pylons
-	ShipEntity				*missile_entity[SHIPENTITY_MAX_MISSILES];	// holds the actual missile entities or equivalents
+	ShipEntity				*missile_entity[PLAYER_MAX_MISSILES];	// holds the actual missile entities or equivalents
 	
 	int						legalStatus;
 	int						market_rnd;
@@ -663,8 +663,7 @@ waitingForStickCallback: 1;
 - (void) highlightEquipShipScreenKey:(NSString *)key;
 - (void) showInformationForSelectedUpgrade;
 - (void) showInformationForSelectedUpgradeWithFormatString:(NSString *)extraString;
-- (void) changePassengerBerths:(int) addRemove;
-- (int) removeMissiles;
+- (BOOL) changePassengerBerths:(int) addRemove;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type;
 - (OOCargoQuantity) setCargoQuantityForType:(OOCommodityType)type amount:(OOCargoQuantity)amount;
 - (void) calculateCurrentCargo;
