@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 
 */
 
+#define BALL_WORLD 0
+
+
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
 #import "ShipEntityScriptMethods.h"
@@ -49,6 +52,10 @@ MA 02110-1301, USA.
 #endif
 
 #import "OOMesh.h"
+#if BALL_WORLD
+#import "OOPlanetDrawable.h"
+#endif
+
 #import "Geometry.h"
 #import "Octree.h"
 #import "OOColor.h"
@@ -1320,7 +1327,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (OOEquipmentType *) newMissile
 {
 	ShipEntity			*missile = nil;
-	OOEquipmentType		*missileType;
+	OOEquipmentType		*missileType = nil;
 	BOOL 				isMissileType = NO;
 	id 					value;
 	
@@ -3356,6 +3363,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+#if BALL_WORLD
+- (void)drawEntity2:(BOOL)immediate :(BOOL)translucent
+{
+	if (no_draw_distance < zero_distance)
+	{
+		// Don't draw.
+		return;
+	}
+	
+	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
+	
+	OOPlanetDrawable *ball = [OOPlanetDrawable planetWithTextureName:@"oolite-planet-temp.png" radius:[[self mesh] collisionRadius] eccentricity:0];
+	
+	if (translucent)  [ball renderTranslucentParts];
+	else  [ball renderOpaqueParts];
+	
+	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
+}
+#endif
+
+
 - (void)drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	NSEnumerator				*subEntityEnum = nil;
@@ -3369,7 +3397,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// Draw self.
+#if BALL_WORLD
+	[self drawEntity2:immediate :translucent];
+#else
 	[super drawEntity:immediate :translucent];
+#endif
 
 #ifndef NDEBUG
 	// Draw bounding boxes if we have to before going for the subentities.

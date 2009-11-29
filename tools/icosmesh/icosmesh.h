@@ -39,6 +39,17 @@ static inline double VectorDot(Vector u, Vector v)
 }
 
 
+static inline Vector VectorCross(Vector u, Vector v)
+{
+	return (Vector)
+	{
+		u.y * v.z - v.y * u.z,
+		u.z * v.x - v.z * u.x,
+		u.x * v.y - v.x * u.y
+	};
+}
+
+
 static inline double VectorMagnitude(Vector v)
 {
 	return sqrt(VectorDot(v, v));

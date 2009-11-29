@@ -50,6 +50,9 @@ OOINLINE OOMatrix OOMatrixFromOrientationAndPosition(Quaternion orientation, Vec
 OOINLINE OOMatrix OOMatrixFromBasisVectorsAndPosition(Vector i, Vector j, Vector k, Vector position) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixFromBasisVectors(Vector i, Vector j, Vector k) INLINE_CONST_FUNC;
 
+OOINLINE OOMatrix OOMatrixForScale(OOScalar sx, OOScalar sy, OOScalar sz) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixForScaleUniform(OOScalar s) INLINE_CONST_FUNC;
+
 OOINLINE OOMatrix OOMatrixForRotationX(OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixForRotationY(OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixForRotationZ(OOScalar angle) INLINE_CONST_FUNC;
@@ -65,6 +68,9 @@ OOMatrix OOMatrixForBillboard(Vector bbPos, Vector eyePos) CONST_FUNC;
 /* Matrix transformations */
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar dy, OOScalar dz) INLINE_CONST_FUNC;
+
+OOINLINE OOMatrix OOMatrixScale(OOMatrix m, OOScalar sx, OOScalar sy, OOScalar sz) INLINE_CONST_FUNC;
+OOINLINE OOMatrix OOMatrixScaleUniform(OOMatrix m, OOScalar s) INLINE_CONST_FUNC;
 
 OOINLINE OOMatrix OOMatrixRotateX(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
 OOINLINE OOMatrix OOMatrixRotateY(OOMatrix m, OOScalar angle) INLINE_CONST_FUNC;
@@ -231,6 +237,36 @@ OOINLINE OOMatrix OOMatrixTranslateComponents(OOMatrix m, OOScalar dx, OOScalar 
 OOINLINE OOMatrix OOMatrixTranslate(OOMatrix m, Vector offset)
 {
 	return OOMatrixTranslateComponents(m, offset.x, offset.y, offset.z);
+}
+
+
+OOINLINE OOMatrix OOMatrixForScale(OOScalar sx, OOScalar sy, OOScalar sz)
+{
+	return OOMatrixConstruct
+	(
+	   sx,  0,  0,  0,
+	    0, sy,  0,  0,
+	    0,  0, sz,  0,
+	    0,  0,  0,  1
+	);
+}
+
+
+OOINLINE OOMatrix OOMatrixForScaleUniform(OOScalar s)
+{
+	return OOMatrixForScale(s, s, s);
+}
+
+
+OOINLINE OOMatrix OOMatrixScale(OOMatrix m, OOScalar sx, OOScalar sy, OOScalar sz)
+{
+	return OOMatrixMultiply(m, OOMatrixForScale(sx, sy, sz));
+}
+
+
+OOINLINE OOMatrix OOMatrixScaleUniform(OOMatrix m, OOScalar s)
+{
+	return OOMatrixScale(m, s, s, s);
 }
 
 

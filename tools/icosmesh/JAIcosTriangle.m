@@ -19,6 +19,7 @@ static inline BOOL IsPolarVector(Vector v)
 
 - (void) rotate;	// a = b, b = c, c = a
 - (void) generateTextureCoordinates;	// Requires that any polar coordinate is in [0].
+- (void) fixUpWinding;
 
 @end
 
@@ -54,6 +55,9 @@ static NSString *VertexDescription(Vertex v)
 		// If one of our vertices is a pole, make it the first.
 		if (IsPolarVector(_vertices[2].v))  [self rotate];
 		if (IsPolarVector(_vertices[1].v))  [self rotate];
+		
+		// Ensure winding is consistent.
+		[self fixUpWinding];
 		
 		[self generateTextureCoordinates];
 	}
@@ -186,6 +190,28 @@ static NSString *VertexDescription(Vertex v)
 	subTris[2] = [JAIcosTriangle triangleWithVectorA:ca b:bc c:c];
 	
 	return [NSArray arrayWithObjects:subTris count:4];
+}
+
+
+- (void) fixUpWinding
+{
+	// Construct vectors from v0 to v1 and v0 to v2.
+	Vector ab = VectorSubtract(_vertices[1].v, _vertices[0].v);
+	Vector ac = VectorSubtract(_vertices[2].v, _vertices[0].v);
+	
+	// Take their cross product.
+	Vector cross = VectorCross(ab, ac);
+	
+	// For a correctly-wound triangle, this should point inwards.
+	// Since our corner vectors point generally outwards, the dot product of
+	// any of these with cross should be negative.
+	if (VectorDot(cross, _vertices[0].v) > 0)
+	{
+		// If not, we swap v1 and v2.
+		Vertex temp = _vertices[1];
+		_vertices[1] = _vertices[2];
+		_vertices[2] = temp;
+	}
 }
 
 @end

@@ -539,6 +539,11 @@
 		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
+		1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */; };
+		1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */; };
+		1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */; };
+		1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */; };
+		1AA7FCD210C2BDDD0058FBED /* oolite-planet-temp.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
@@ -680,7 +685,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D5B49AC048680CD000E48DA /* DebugOXP */;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
 			remoteInfo = DebugOXP;
 		};
 		1A3042F310C16DA60056219D /* PBXContainerItemProxy */ = {
@@ -1611,6 +1616,11 @@
 		1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = delayedReactToAttackAI.plist; sourceTree = "<group>"; };
 		1A9533890C02089E004EBB58 /* material-defaults.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "material-defaults.plist"; sourceTree = "<group>"; };
 		1A95338A0C02089E004EBB58 /* planetinfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = planetinfo.plist; sourceTree = "<group>"; };
+		1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetDrawable.h; sourceTree = "<group>"; };
+		1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetDrawable.m; sourceTree = "<group>"; };
+		1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = OOPlanetData.c; sourceTree = "<group>"; };
+		1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetData.h; sourceTree = "<group>"; };
+		1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-planet-temp.png"; sourceTree = "<group>"; };
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
 		1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWorldScripts.m; sourceTree = "<group>"; };
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
@@ -1987,6 +1997,7 @@
 				1A35916B0C1C375400E52220 /* oolite-nebula-3.png */,
 				1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */,
 				1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */,
+				1AA7FCD110C2BDDD0058FBED /* oolite-planet-temp.png */,
 				1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */,
 				1A35916A0C1C375400E52220 /* oolite-star-1.png */,
 				1A2318490B9D026D00EF0852 /* pod2_redux.png */,
@@ -2832,6 +2843,10 @@
 				1A2A1CA90BD2914F00152975 /* OOMesh.m */,
 				1A1504490C12C50D0032F3E8 /* OOSkyDrawable.h */,
 				1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */,
+				1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */,
+				1AA7FCAA10C2B9BA0058FBED /* OOPlanetDrawable.m */,
+				1AA7FCAE10C2BA3B0058FBED /* OOPlanetData.h */,
+				1AA7FCAD10C2BA3B0058FBED /* OOPlanetData.c */,
 			);
 			name = Drawables;
 			sourceTree = "<group>";
@@ -3087,6 +3102,8 @@
 				2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */,
 				1AB9AE8B107F459B00B6F3CE /* OOPolygonSprite.h in Headers */,
 				1A6AA36510C13B1D00383767 /* SunEntity.h in Headers */,
+				1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */,
+				1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3232,6 +3249,7 @@
 				1A2123291051892D00530CDE /* slow-gpus.plist in Resources */,
 				2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */,
 				2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */,
+				1AA7FCD210C2BDDD0058FBED /* oolite-planet-temp.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3441,6 +3459,8 @@
 				1AB9AE8C107F459B00B6F3CE /* OOPolygonSprite.m in Sources */,
 				1A6A963310AEEC5D0065D0F3 /* AIGraphViz.m in Sources */,
 				1A6AA36610C13B1D00383767 /* SunEntity.m in Sources */,
+				1AA7FCAC10C2B9BA0058FBED /* OOPlanetDrawable.m in Sources */,
+				1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

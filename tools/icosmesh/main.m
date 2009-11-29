@@ -67,6 +67,8 @@ static void WritePrelude(FILE *header, FILE *source);
 static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices);
 static void WriteMeshForTriangles(FILE *source, unsigned level, NSArray *triangles, JAVertexSet *vertices, unsigned *faceCount, unsigned *maxVertex);
 static void WriteMesh(FILE *source, unsigned level, JAIcosMesh *mesh);
+static const char *SizeEnumeratorForMaximum(unsigned maxValue);
+static const char *SizeTypeForMaximum(unsigned maxValue);
 
 
 int main (int argc, const char * argv[])
@@ -114,7 +116,7 @@ int main (int argc, const char * argv[])
 	for (i = 0; i < kLevels; i++)
 	{
 		if (i != 0)  fprintf(source, ",\n");
-		fprintf(source, "\t%u, %u, kFaceIndicesLevel%u", maxIndex[i], faceCount[i], i);
+		fprintf(source, "\t{ %u, %u, %s, kFaceIndicesLevel%u }", maxIndex[i], faceCount[i], SizeEnumeratorForMaximum(maxIndex[i]), i);
 	}
 	fprintf(source, "\n};\n");
 	
@@ -150,7 +152,7 @@ static void WritePrelude(FILE *header, FILE *source)
 			"\tThis data may be used freely.\n"
 			"*/\n"
 			"\n"
-			"#import \"OOOpenGL.h\"\n"
+			"#import \"OOOpenGLOnly.h\"\n"
 			"\n"
 			"\n"
 			"#define kOOPlanetDataLevels %u\n"
@@ -160,7 +162,8 @@ static void WritePrelude(FILE *header, FILE *source)
 			"{\n"
 			"\tunsigned        vertexCount;\n"
 			"\tunsigned        faceCount;\n"
-			"\tconst GLuint    *indices;   // faceCount * 3\n"
+			"\tGLenum          type;\n"
+			"\tconst void      *indices;   // faceCount * 3\n"
 			"} OOPlanetDataLevel;\n"
 			"\n"
 			"\n"
@@ -184,10 +187,11 @@ static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 {
 	unsigned i, count = vertices.count;
 	
-	fprintf(header, "\n\nextern const GLfloat kOOPlanetVertices[%u];\n", count * 3);
-	fprintf(header, "\nextern const GLfloat kOOPlanetTexCoords[%u];\n", count * 2);
+	fprintf(header, "\n\n#define kOOPlanetDataVertexCount %u\n\n", count);
+	fprintf(header, "extern const GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3];\n");
+	fprintf(header, "extern const GLfloat kOOPlanetTexCoords[kOOPlanetDataVertexCount * 2];\n");
 	
-	fprintf(source, "\n\n/*  Shared vertex array\n    %u vertices\n*/\nconst GLfloat kOOPlanetVertices[%u] =\n{\n", count, count * 3);
+	fprintf(source, "\n\n/*  Shared vertex array\n    %u vertices\n*/\nconst GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3] =\n{\n", count);
 	NSArray *data = [vertices positionArray];
 	for (i = 0; i < count; i++)
 	{
@@ -195,7 +199,7 @@ static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 		fprintf(source, "\t%+.8ff, %+.8ff, %+.8ff", [[data objectAtIndex:i * 3] doubleValue], [[data objectAtIndex:i * 3 + 1] doubleValue], [[data objectAtIndex:i * 3 + 2] doubleValue]);
 	}
 	
-	fprintf(source, "\n};\n\n/*  Shared texture coordinate array\n    %u pairs\n*/\nconst GLfloat kOOPlanetTexCoords[%u] =\n{\n", count, count * 2);
+	fprintf(source, "\n};\n\n/*  Shared texture coordinate array\n    %u pairs\n*/\nconst GLfloat kOOPlanetTexCoords[kOOPlanetDataVertexCount * 2] =\n{\n", count);
 	data = [vertices texCoordArray];
 	for (i = 0; i < count; i++)
 	{
@@ -223,7 +227,7 @@ static void WriteMesh(FILE *source, unsigned level, JAIcosMesh *mesh)
 	unsigned i, count = mesh.faceCount;
 	NSArray *indices = [mesh indexArray];
 	
-	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const GLuint kFaceIndicesLevel%u[%u] =\n{\n", level, count, level, count * 3);
+	fprintf(source, "\n\n/*  Level %u index array\n    %u faces\n*/\nstatic const %s kFaceIndicesLevel%u[%u] =\n{\n", level, count, SizeTypeForMaximum(mesh.maxIndex), level, count * 3);
 	for (i = 0; i < count; i++)
 	{
 		if (i != 0)  fprintf(source, ",\n");
@@ -283,4 +287,20 @@ void VectorToCoords0_1(Vector v, double *latitude, double *longitude)
 	VectorToCoordsRad(v, latitude, longitude);
 	if (latitude != NULL) *latitude = 1.0 - (*latitude / M_PI + 0.5);
 	if (longitude != NULL) *longitude = 1.0 - (*longitude / (M_PI * 2.0) + 0.5);
+}
+
+
+static const char *SizeEnumeratorForMaximum(unsigned maxValue)
+{
+	if (maxValue <= UCHAR_MAX)  return "GL_UNSIGNED_BYTE";
+	if (maxValue <= USHRT_MAX)  return "GL_UNSIGNED_SHORT";
+	return "GL_UNSIGNED_INT";
+}
+
+
+static const char *SizeTypeForMaximum(unsigned maxValue)
+{
+	if (maxValue <= UCHAR_MAX)  return "GLubyte";
+	if (maxValue <= USHRT_MAX)  return "GLushort";
+	return "GLuint";
 }

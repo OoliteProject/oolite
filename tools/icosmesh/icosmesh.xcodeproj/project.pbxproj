@@ -50,7 +50,7 @@
 		1A675F6110B466AF00786F5F /* generatemesh.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = generatemesh.c; sourceTree = "<group>"; };
 		1A675F6610B466CE00786F5F /* OOPlanetData.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = OOPlanetData.c; path = build/Debug/OOPlanetData.c; sourceTree = "<group>"; };
 		1A675F6710B466CE00786F5F /* OOPlanetData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOPlanetData.h; path = build/Debug/OOPlanetData.h; sourceTree = "<group>"; };
-		1A675F7610B4684900786F5F /* OOOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGL.h; sourceTree = "<group>"; };
+		1A675F7610B4684900786F5F /* OOOpenGLOnly.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLOnly.h; sourceTree = "<group>"; };
 		1A67605410B479D200786F5F /* JAIcosTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = JAIcosTriangle.h; sourceTree = "<group>"; };
 		1A67605510B479D200786F5F /* JAIcosTriangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JAIcosTriangle.m; sourceTree = "<group>"; };
 		1A67605710B479EA00786F5F /* icosmesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = icosmesh.h; sourceTree = "<group>"; };
@@ -109,7 +109,7 @@
 			children = (
 				08FB7796FE84155DC02AAC07 /* main.m */,
 				1A67605710B479EA00786F5F /* icosmesh.h */,
-				1A675F7610B4684900786F5F /* OOOpenGL.h */,
+				1A675F7610B4684900786F5F /* OOOpenGLOnly.h */,
 				1A67605410B479D200786F5F /* JAIcosTriangle.h */,
 				1A67605510B479D200786F5F /* JAIcosTriangle.m */,
 				1A67608E10B4897B00786F5F /* JAVertexSet.h */,
