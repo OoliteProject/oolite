@@ -189,8 +189,6 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 			*px++ = 255 * color.b * shade;
 			*px++ = 255;
 		}
-		
-		[pool release];
 	}
 	success = YES;
 	format = kOOTextureDataRGBA;

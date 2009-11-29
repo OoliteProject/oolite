@@ -253,7 +253,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (NSString*) descriptionComponents
 {
-	return [NSString stringWithFormat:@"position: %@ radius: %.3f m", [self universalID], VectorDescription([self position]), [self radius]];
+	return [NSString stringWithFormat:@"position: %@ radius: %g m", VectorDescription([self position]), [self radius]];
 }
 
 

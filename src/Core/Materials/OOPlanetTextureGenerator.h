@@ -39,10 +39,10 @@ typedef struct
 {
 @private
 	float					_landFraction;
-	OOColor					*_landColor;
-	OOColor					*_seaColor;
-	OOColor					*_polarLandColor;
-	OOColor					*_polarSeaColor;
+	FloatRGB				_landColor;
+	FloatRGB				_seaColor;
+	FloatRGB				_polarLandColor;
+	FloatRGB				_polarSeaColor;
 	unsigned				_width, _height;
 	RANROTSeed				_seed;
 }
