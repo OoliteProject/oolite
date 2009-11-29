@@ -28,6 +28,7 @@
 #import "OOOpenGL.h"
 #import "OOMacroOpenGL.h"
 #import "Universe.h"
+#import "MyOpenGLView.h"
 
 #ifndef NDEBUG
 #import "Entity.h"
@@ -35,7 +36,8 @@
 #endif
 
 
-#define LOD_GRANULARITY	((float)(kOOPlanetDataLevels - 1))
+#define LOD_GRANULARITY		((float)(kOOPlanetDataLevels - 1))
+#define LOD_FACTOR			(1.0 / 4.0)
 
 
 @interface OOPlanetDrawable (Private)
@@ -181,15 +183,24 @@
 
 - (void) setLevelOfDetail:(float)lod
 {
-	if (lod < 0.0f)  _lod = 0;
-	else  _lod = roundf(lod * LOD_GRANULARITY);
+	_lod = roundf(OOClamp_0_1_f(lod) * LOD_GRANULARITY);
 }
 
 
 - (void) calculateLevelOfDetailForViewDistance:(float)distance
 {
-	// FIXME
-	[self setLevelOfDetail:1.0f];
+	float	drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0f;
+	float	drawRatio2 = drawFactor * _radius / sqrtf(distance); // proportional to size on screen in pixels
+	
+	float lod = sqrt(drawRatio2 * LOD_FACTOR);
+	if ([UNIVERSE reducedDetail])
+	{
+		lod -= 0.5f / LOD_GRANULARITY;	// Make LOD transitions earlier.
+		lod = OOClamp_0_max_f(lod, (LOD_GRANULARITY - 1) / LOD_GRANULARITY);	// Don't use highest LOD.
+	}
+	OOLog(@"planet.lod", @"%g", lod);
+	
+	[self setLevelOfDetail:lod];
 }
 
 

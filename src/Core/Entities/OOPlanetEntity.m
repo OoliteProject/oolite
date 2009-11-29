@@ -114,6 +114,7 @@ MA 02110-1301, USA.
 	if (textureName == nil)
 	{
 		// TODO: procedural generation.
+		textureName = @"oolite-planet-temp.png";
 	}
 	_planetDrawable = [[OOPlanetDrawable planetWithTextureName:textureName radius:collision_radius eccentricity:0.0] retain];
 	
@@ -216,17 +217,17 @@ MA 02110-1301, USA.
 }
 
 
-- (void)drawEntity:(BOOL)immediate :(BOOL)translucent
+- (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
+	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
+	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	
-	if (!translucent)
-	{
-		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
-		
-		[_planetDrawable renderOpaqueParts];
-		[_atmosphereDrawable renderOpaqueParts];
-	}
+	[_planetDrawable calculateLevelOfDetailForViewDistance:zero_distance];
+	[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
+	
+	[_planetDrawable renderOpaqueParts];
+	[_atmosphereDrawable renderOpaqueParts];
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
 }
@@ -272,6 +273,12 @@ MA 02110-1301, USA.
 - (void) welcomeShuttle:(ShipEntity *)shuttle
 {
 	_shuttlesOnGround++;
+}
+
+
+- (BOOL) isPlanet
+{
+	return YES;
 }
 
 @end
