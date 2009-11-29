@@ -159,6 +159,7 @@ OOLITE_ENTITY_FILES = \
 	ShipEntityScriptMethods.m \
 	SkyEntity.m \
 	StationEntity.m \
+	OOPlanetEntity.m \
 	OOSunEntity.m \
 	WormholeEntity.m \
 	OOLightParticleEntity.m \
