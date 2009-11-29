@@ -52,9 +52,10 @@ SOFTWARE.
 */
 
 #import "OOTexture.h"
+#import "OOAsyncWorkManager.h"
 
 
-@interface OOTextureLoader: NSObject
+@interface OOTextureLoader: NSObject <OOAsyncWorkTask>
 {
 	NSString					*path;
 	
@@ -91,8 +92,8 @@ SOFTWARE.
 
 - (NSString *)path;
 
-/*	Load data, setting up data, width, and height, and rowBytes if it's not
-	width * 4.
+/*	Load data, setting up data, format, width, and height, and rowBytes if it's
+	not width * 4.
 	
 	Thread-safety concerns: this will be called in a worker thread, and there
 	may be several worker threads. The caller takes responsibility for

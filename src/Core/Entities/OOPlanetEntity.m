@@ -34,9 +34,13 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 
+#import "OOPlanetTextureGenerator.h"
+#import "OOSingleTextureMaterial.h"
+
 
 @interface OOPlanetEntity (Private)
 
+- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)planetInfo;
 
 @end
 
@@ -95,9 +99,27 @@ MA 02110-1301, USA.
 	gen_rnd_number();
 	RNG_Seed savedRndSeed = currentRandomSeed();
 	
+	_planetDrawable = [[OOPlanetDrawable alloc] init];
+	
+	// Load material parameters.
+	NSString *textureName = [dict oo_stringForKey:@"texture"];
+	if (textureName != nil)
+	{
+		[_planetDrawable setTextureName:textureName];
+	}
+	else
+	{
+		[self setUpColorParametersWithSourceInfo:dict targetInfo:planetInfo];
+		OOTexture *texture = [OOPlanetTextureGenerator planetTextureWithInfo:planetInfo];
+		OOSingleTextureMaterial *material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:texture configuration:nil];
+		[_planetDrawable setMaterial:material];
+		[material release];
+	}
+	
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// FIXME: do we want to do something more interesting here?
 	_rotationAxis = kBasisYVector;
+	[_planetDrawable setRadius:collision_radius];
 	
 	// set speed of rotation.
 	if ([dict objectForKey:@"rotational_velocity"])
@@ -109,15 +131,6 @@ MA 02110-1301, USA.
 		_rotationalVelocity = [planetInfo oo_floatForKey:@"rotation_speed" defaultValue:0.005 * randf()]; // 0.0 .. 0.005 avr 0.0025
 		_rotationalVelocity *= [planetInfo oo_floatForKey:@"rotation_speed_factor" defaultValue:1.0f];
 	}
-	
-	// Load material parameters.
-	NSString *textureName = [dict oo_stringForKey:@"texture"];
-	if (textureName == nil)
-	{
-		// TODO: procedural generation.
-		textureName = @"oolite-planet-temp.png";
-	}
-	_planetDrawable = [[OOPlanetDrawable planetWithTextureName:textureName radius:collision_radius eccentricity:0.0] retain];
 	
 	if (atmosphere)
 	{
@@ -132,6 +145,69 @@ MA 02110-1301, USA.
 	RANROTSetFullSeed(savedRanrotSeed);
 	
 	return self;
+}
+
+
+static Vector RandomHSBColor(void)
+{
+	return (Vector)
+	{
+		gen_rnd_number() / 256.0,
+		gen_rnd_number() / 256.0,
+		0.5 + gen_rnd_number() / 512.0
+	};
+}
+
+
+static Vector LighterHSBColor(Vector c)
+{
+	return (Vector)
+	{
+		c.x,
+		c.y * 0.25f,
+		1.0f - (c.z * 0.1f)
+	};
+}
+
+
+static OOColor *ColorWithHSBColor(Vector c)
+{
+	return [OOColor colorWithCalibratedHue:c.x saturation:c.y brightness:c.z alpha:1.0];
+}
+
+
+- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+{
+	// Stir the PRNG twelve times for backwards compatibility.
+	unsigned i;
+	for (i = 0; i < 12; i++)
+	{
+		gen_rnd_number();
+	}
+	
+//	float polarColorFactor = [sourceInfo oo_floatForKey:@"polar_color_factor" defaultValue:0.5];
+	
+	Vector landHSB, seaHSB, landPolarHSB, seaPolarHSB;
+	
+	landHSB = RandomHSBColor();
+	do
+	{
+		seaHSB = RandomHSBColor();
+	}
+	while (dot_product(landHSB, seaHSB) > .80); // make sure land and sea colors differ significantly
+	
+	// possibly get landHSB and seaHSB from planetinfo.plist entry
+	ScanVectorFromString([sourceInfo oo_stringForKey:@"land_hsb_color"], &landHSB);
+	ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
+	
+	// polar areas are brighter but have less color (closer to white)
+	landPolarHSB = LighterHSBColor(landHSB);
+	seaPolarHSB = LighterHSBColor(seaHSB);
+	
+	[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"land_color"];
+	[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];
+	[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_land_color"];
+	[targetInfo setObject:ColorWithHSBColor(seaPolarHSB) forKey:@"polar_sea_color"];
 }
 
 
@@ -172,6 +248,12 @@ MA 02110-1301, USA.
 	DESTROY(_atmosphereDrawable);
 	
 	[super dealloc];
+}
+
+
+- (NSString*) descriptionComponents
+{
+	return [NSString stringWithFormat:@"position: %@ radius: %.3f m", [self universalID], VectorDescription([self position]), [self radius]];
 }
 
 

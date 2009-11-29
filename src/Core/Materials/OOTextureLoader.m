@@ -53,7 +53,6 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOTextureScaling.h"
 #import <stdlib.h>
-#import "OOAsyncWorkManager.h"
 
 
 static unsigned				sGLMaxSize;
@@ -67,13 +66,9 @@ static BOOL					sHaveSetUp = NO;
 
 + (void)setUp;
 
-@end
-
-
-@interface OOTextureLoader (OOAsyncWorkTask) <OOAsyncWorkTask>
-
 - (void)applySettings;
 - (void)getDesiredWidth:(uint32_t *)outDesiredWidth andHeight:(uint32_t *)outDesiredHeight;
+
 
 @end
 
@@ -218,11 +213,6 @@ static BOOL					sHaveSetUp = NO;
 }
 
 
-@end
-
-
-@implementation OOTextureLoader (OOPrivate)
-
 + (void)setUp
 {
 	// Load two maximum sizes - graphics hardware limit and user-specified limit.
@@ -238,12 +228,8 @@ static BOOL					sHaveSetUp = NO;
 	sHaveSetUp = YES;
 }
 
-@end
-
 
 /*** Methods performed on the loader thread. ***/
-
-@implementation OOTextureLoader (OOAsyncWorkTask)
 
 - (void)performAsyncTask
 {

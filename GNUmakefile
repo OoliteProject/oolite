@@ -167,6 +167,7 @@ OOLITE_ENTITY_FILES = \
 	OOExhaustPlumeEntity.m \
 	OOSparkEntity.m \
 	OOECMBlastEntity.m \
+	OOPlanetEntity.m \
 	OOPlasmaShotEntity.m \
 	OOPlasmaBurstEntity.m \
 	OOFlashEffectEntity.m
@@ -180,6 +181,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOBasicMaterial.m \
 	OOMaterial.m \
 	OONullTexture.m \
+	OOPlanetTextureGenerator.m \
 	OOPNGTextureLoader.m \
 	OOShaderMaterial.m \
 	OOShaderProgram.m \
@@ -187,6 +189,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOShaderUniformMethodType.m \
 	OOSingleTextureMaterial.m \
 	OOTexture.m \
+	OOTextureGenerator.m \
 	OOTextureLoader.m \
 	OOTextureScaling.m
 

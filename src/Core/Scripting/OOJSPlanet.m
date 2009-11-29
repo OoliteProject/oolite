@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOJavaScriptEngine.h"
 
 #import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 
 
 DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, PlanetEntity)
@@ -102,6 +103,37 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 
 
 @implementation PlanetEntity (OOJavaScriptExtensions)
+
+- (BOOL) isVisibleToScripts
+{
+	return YES;
+}
+
+
+- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
+{
+	*outClass = &sPlanetClass.base;
+	*outPrototype = sPlanetPrototype;
+}
+
+
+- (NSString *)jsClassName
+{
+	switch ([self planetType])
+	{
+		case PLANET_TYPE_GREEN:
+			return @"Planet";
+		case PLANET_TYPE_MOON:
+			return @"Moon";
+		default:
+			return @"Unknown";
+	}
+}
+
+@end
+
+
+@implementation OOPlanetEntity (OOJavaScriptExtensions)
 
 - (BOOL) isVisibleToScripts
 {

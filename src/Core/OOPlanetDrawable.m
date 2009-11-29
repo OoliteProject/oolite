@@ -198,8 +198,6 @@
 		lod -= 0.5f / LOD_GRANULARITY;	// Make LOD transitions earlier.
 		lod = OOClamp_0_max_f(lod, (LOD_GRANULARITY - 1) / LOD_GRANULARITY);	// Don't use highest LOD.
 	}
-	OOLog(@"planet.lod", @"%g", lod);
-	
 	[self setLevelOfDetail:lod];
 }
 

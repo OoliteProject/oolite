@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
+#include <assert.h>
 #include "legacy_random.h"
 
 
@@ -104,9 +105,26 @@ unsigned Ranrot(void)
 }
 
 
+unsigned RanrotWithSeed(RANROTSeed *ioSeed)
+{
+	assert(ioSeed != NULL);
+	
+	ioSeed->high = (ioSeed->high << 16) + (ioSeed->high >> 16);
+	ioSeed->high += ioSeed->low;
+	ioSeed->low += ioSeed->high;
+	return ioSeed->high & 0x7FFFFFFF;
+}
+
+
 float randf (void)
 {
 	return (Ranrot() & 0xffff) * (1.0f / 65536.0f);
+}
+
+
+float randfWithSeed(RANROTSeed *ioSeed)
+{
+	return (RanrotWithSeed(ioSeed) & 0xffff) * (1.0f / 65536.0f);
 }
 
 

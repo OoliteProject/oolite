@@ -71,7 +71,6 @@ double cunningFee(double value);
 
 // an implementation of RANROT
 // pseudo random number generator
-//
 void ranrot_srand(unsigned int seed);
 unsigned Ranrot(void);
 #define ranrot_rand() ((int)Ranrot())	// Some uses perform arithmetic that does weird things if result is unsigned -- DustEntity.m, for instance.
@@ -80,6 +79,9 @@ float bellf(int n);
 
 RANROTSeed RANROTGetFullSeed(void);
 void RANROTSetFullSeed(RANROTSeed seed);
+
+unsigned RanrotWithSeed(RANROTSeed *ioSeed);
+float randfWithSeed(RANROTSeed *ioSeed);
 
 
 OOINLINE double distanceBetweenPlanetPositions(int x1, int y1, int x2, int y2) INLINE_CONST_FUNC;

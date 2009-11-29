@@ -1489,7 +1489,7 @@ static void Scribble(void *bytes, size_t size)
 	#if OOLITE_BIG_ENDIAN
 	enum { kScribble = 0xFEEDFACE };
 	#else
-	enum { kScribble = 0xCEFADEFE };
+	enum { kScribble = 0xCEFAEDFE };
 	#endif
 	
 	size /= sizeof (uint32_t);

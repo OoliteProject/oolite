@@ -48,6 +48,7 @@
 #import "OOTexture.h"
 #import "OONullTexture.h"
 #import "OOTextureLoader.h"
+#import "OOTextureGenerator.h"
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -55,6 +56,7 @@
 #import "OOMacroOpenGL.h"
 #import "OOCPUInfo.h"
 #import "OOCache.h"
+#import "OOAsyncWorkManager.h"
 
 
 /*	Texture caching:
@@ -157,7 +159,18 @@ static BOOL		sRectangleTextureAvailable;
 
 @interface OOTexture (OOPrivate)
 
-- (id)initWithPath:(NSString *)path key:(NSString *)key options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)lodBias;
+- (id) initWithLoader:(OOTextureLoader *)loader
+				  key:(NSString *)key
+			  options:(uint32_t)options
+		   anisotropy:(GLfloat)anisotropy
+			  lodBias:(GLfloat)lodBias;
+
+- (id)initWithPath:(NSString *)path
+			   key:(NSString *)key
+		   options:(uint32_t)options
+		anisotropy:(float)anisotropy
+		   lodBias:(GLfloat)lodBias;
+
 - (void)setUpTexture;
 - (void)uploadTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
@@ -234,7 +247,6 @@ static BOOL		sRectangleTextureAvailable;
 	result = (id)[[sInUseTextures objectForKey:key] pointerValue];
 	if (result == nil)
 	{
-		//	OOLog(@"texture.caching", @":::------::: key NOT found  in cache : '%@'.", key);
 		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
@@ -242,7 +254,7 @@ static BOOL		sRectangleTextureAvailable;
 			return nil;
 		}
 		
-		// No existing texture, load texture...
+		// No existing texture, load texture.
 		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
 		
 #ifndef OOTEXTURE_NO_CACHE
@@ -329,6 +341,24 @@ static BOOL		sRectangleTextureAvailable;
 }
 
 
++ (id) textureWithGenerator:(OOTextureGenerator *)generator
+{
+	if (generator == nil)  return nil;
+	if (![[OOAsyncWorkManager sharedAsyncWorkManager] addTask:generator priority:kOOAsyncPriorityMedium])
+	{
+		OOLog(@"temp", @"Failed to queue generator %@!", generator);
+		return nil;
+	}
+	OOLog(@"temp", @"Queued generator %@.", generator);
+	
+	return [[[self alloc] initWithLoader:generator
+									 key:[generator cacheKey]
+								 options:[generator textureOptions]
+							  anisotropy:[generator anisotropy]
+								 lodBias:[generator lodBias]] autorelease];
+}
+
+
 - (void)dealloc
 {
 	OOLog(@"texture.dealloc", @"Deallocating and uncaching texture %@", self);
@@ -336,9 +366,9 @@ static BOOL		sRectangleTextureAvailable;
 	if (_key != nil)
 	{
 		[sInUseTextures removeObjectForKey:_key];
-		//assert([sRecentTextures objectForKey:_key] != self); //miscount in autorelease
+		NSAssert([sRecentTextures objectForKey:_key] != self, @"Texture retain count error."); //miscount in autorelease
 		[sRecentTextures removeObjectForKey:_key]; // make sure there's no reference left inside sRecentTexture
-		[_key release];
+		DESTROY(_key);
 	}
 	
 	if (_loaded)
@@ -480,6 +510,7 @@ static BOOL		sRectangleTextureAvailable;
 
 @implementation OOTexture (OOPrivate)
 
+#if 0
 - (id)initWithPath:(NSString *)path key:(NSString *)inKey options:(uint32_t)options anisotropy:(float)anisotropy lodBias:(GLfloat)inLodBias
 {
 	self = [super init];
@@ -517,6 +548,75 @@ static BOOL		sRectangleTextureAvailable;
 	
 	return self;
 }
+#else
+- (id) initWithLoader:(OOTextureLoader *)loader
+				  key:(NSString *)key
+			  options:(uint32_t)options
+		   anisotropy:(GLfloat)anisotropy
+			  lodBias:(GLfloat)lodBias
+{
+#ifndef OOTEXTURE_NO_CACHE
+	if (key != nil)
+	{
+		OOTexture *existing = [sRecentTextures objectForKey:key];
+		if (existing != nil)  return existing;
+	}
+#endif
+	
+	if (loader == nil)
+	{
+		[self release];
+		return nil;
+	}
+	
+	self = [super init];
+	if (EXPECT_NOT(self == nil))  return nil;
+	
+	_loader = [loader retain];
+	_options = options;
+	
+#if GL_EXT_texture_filter_anisotropic
+	_anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
+#endif
+#if GL_EXT_texture_lod_bias
+	_lodBias = lodBias;
+#endif
+	
+	_key = [key copy];
+	
+#ifndef OOTEXTURE_NO_CACHE
+	// Add self to recent textures cache
+	if (EXPECT_NOT(sRecentTextures == nil))
+	{
+		sRecentTextures = [[OOCache alloc] init];
+		[sRecentTextures setName:@"recent textures"];
+		[sRecentTextures setAutoPrune:YES];
+		[sRecentTextures setPruneThreshold:kRecentTexturesCount];
+	}
+	[sRecentTextures setObject:self forKey:_key];
+#endif
+	
+	return self;
+}
+
+
+- (id)initWithPath:(NSString *)path
+			   key:(NSString *)key
+		   options:(uint32_t)options
+		anisotropy:(float)anisotropy
+		   lodBias:(GLfloat)lodBias
+{
+	OOTextureLoader *loader = [OOTextureLoader loaderWithPath:path options:options];
+	if (loader == nil)
+	{
+		[self release];
+		return nil;
+	}
+	
+	return [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias];
+}
+
+#endif
 
 
 - (void)setUpTexture

@@ -546,6 +546,10 @@
 		1AA7FD1F10C2C3750058FBED /* OOPlanetEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */; };
 		1AA7FDDC10C2DC800058FBED /* OOSunEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */; };
 		1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */; };
+		1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE2B10C2F2070058FBED /* OOTextureGenerator.h */; };
+		1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */; };
+		1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */; };
+		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
@@ -1625,6 +1629,10 @@
 		1AA7FD1D10C2C3750058FBED /* OOPlanetEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetEntity.m; sourceTree = "<group>"; };
 		1AA7FDDA10C2DC800058FBED /* OOSunEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSunEntity.h; sourceTree = "<group>"; };
 		1AA7FDDB10C2DC800058FBED /* OOSunEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSunEntity.m; sourceTree = "<group>"; };
+		1AA7FE2B10C2F2070058FBED /* OOTextureGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureGenerator.h; sourceTree = "<group>"; };
+		1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureGenerator.m; sourceTree = "<group>"; };
+		1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlanetTextureGenerator.h; sourceTree = "<group>"; };
+		1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlanetTextureGenerator.m; sourceTree = "<group>"; };
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
 		1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWorldScripts.m; sourceTree = "<group>"; };
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
@@ -2434,6 +2442,10 @@
 				1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */,
 				1A26D0E40BCF9D3B0073F257 /* OOPNGTextureLoader.h */,
 				1A26D0E20BCF9D3B0073F257 /* OOPNGTextureLoader.m */,
+				1AA7FE2B10C2F2070058FBED /* OOTextureGenerator.h */,
+				1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */,
+				1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */,
+				1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */,
 				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
 				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
 			);
@@ -3111,6 +3123,8 @@
 				1AA7FCB010C2BA3B0058FBED /* OOPlanetData.h in Headers */,
 				1AA7FD1E10C2C3750058FBED /* OOPlanetEntity.h in Headers */,
 				1AA7FDDC10C2DC800058FBED /* OOSunEntity.h in Headers */,
+				1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */,
+				1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3469,6 +3483,8 @@
 				1AA7FCAF10C2BA3B0058FBED /* OOPlanetData.c in Sources */,
 				1AA7FD1F10C2C3750058FBED /* OOPlanetEntity.m in Sources */,
 				1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */,
+				1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */,
+				1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

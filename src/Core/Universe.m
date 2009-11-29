@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 */
 
 
-#define NEW_PLANETS 0
+#define NEW_PLANETS 1
 
 
 #import "OOOpenGL.h"

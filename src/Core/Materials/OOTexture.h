@@ -53,7 +53,7 @@ SOFTWARE.
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
 
-@class OOTextureLoader;
+@class OOTextureLoader, OOTextureGenerator;
 
 
 enum
@@ -180,6 +180,10 @@ typedef enum
 	Applying the null texture is equivalent to calling [OOTexture applyNone].
 */
 + (id) nullTexture;
+
+/*	Load a texture from a generator.
+*/
++ (id) textureWithGenerator:(OOTextureGenerator *)generator;
 
 
 /*	Bind the texture to the current texture unit.
