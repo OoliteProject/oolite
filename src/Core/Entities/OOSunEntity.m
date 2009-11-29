@@ -1,6 +1,6 @@
 /*
 
-SunEntity.m
+OOSunEntity.m
 
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
@@ -39,7 +39,7 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.SunEntity"
 
 
-@interface SunEntity (Private)
+@interface OOSunEntity (Private)
 
 - (void) drawActiveCoronaWithInnerRadius:(float)inner_radius
 								   width:(float)width
@@ -51,7 +51,7 @@ MA 02110-1301, USA.
 @end
 
 
-@implementation SunEntity
+@implementation OOSunEntity
 
 #ifndef NDEBUG
 - (id) init

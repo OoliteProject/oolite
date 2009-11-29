@@ -1,6 +1,6 @@
 /*
 
-SunEntity.h
+OOSunEntity.h
 
 Entity subclass representing a sun.
 
@@ -27,8 +27,6 @@ MA 02110-1301, USA.
 
 #import "PlanetEntity.h"
 
-#if !OLD_SUN
-
 #import "OOSelfDrawingEntity.h"
 #import "legacy_random.h"
 #import "OOColor.h"
@@ -41,7 +39,7 @@ MA 02110-1301, USA.
 @class ShipEntity;
 
 
-@interface SunEntity: Entity <OOStellarBody>
+@interface OOSunEntity: Entity <OOStellarBody>
 {
 @private
 	GLfloat					sun_diffuse[4];
@@ -81,5 +79,3 @@ MA 02110-1301, USA.
 - (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
 
 @end
-
-#endif

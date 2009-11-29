@@ -73,10 +73,9 @@ typedef struct
 
 @interface PlanetEntity: OOSelfDrawingEntity <OOStellarBody>
 {
-@public
+@private
 	int						lastSubdivideLevel;
 	
-@protected
 	OOPlanetType			planet_type;
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
@@ -172,15 +171,4 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 double longitudeFromVector(Vector v);
 
-#if OLD_SUN
-- (BOOL) willGoNova;
-- (BOOL) goneNova;
-- (void) setGoingNova:(BOOL) yesno inTime:(double)interval;
-#endif
-
 @end
-
-
-#if OLD_SUN
-#define SunEntity PlanetEntity
-#endif
