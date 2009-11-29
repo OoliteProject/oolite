@@ -2134,6 +2134,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	OOEquipmentType			*eqType = nil;
 	
+	// canAddEquipment always checks if the undamaged version is equipped.
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
 	// special cases
@@ -2156,16 +2157,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// end special cases
 
-	// if we heve this equipment with a different damage status we get ready to remove it first
-	NSString				*alterKey = nil;
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
-		alterKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
-		eqType = [OOEquipmentType equipmentTypeWithIdentifier:alterKey];
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:[equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]]];
 	}
 	else
 	{
-		alterKey = [equipmentKey stringByAppendingString:@"_DAMAGED"];
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	}
 	
@@ -2173,7 +2170,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (eqType == nil)  return NO;
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
-	[_equipment removeObject:alterKey];
 	
 	if ([equipmentKey isEqual:@"EQ_CARGO_BAY"])
 	{

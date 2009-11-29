@@ -1548,7 +1548,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 		return NO;
 	}
 	
-	if ([status isEqualToString:@"EQUIPMENT_OK"] || [status isEqualToString:@"EQUIPMENT_DAMAGED"])
+	if (![status isEqualToString:@"EQUIPMENT_OK"] && ![status isEqualToString:@"EQUIPMENT_DAMAGED"])
 	{
 		OOReportJSErrorForCaller(context, @"Ship", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either 'EQUIPMENT_OK' or 'EQUIPMENT_DAMAGED'.");
 		return NO;
@@ -1558,8 +1558,9 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 	hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
 	
 	if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
-	{	
-		// addEquipmentItem removes the opposite status automagically.
+	{
+		// the implementation is identical between player and ship.
+		[thisEnt removeEquipmentItem:key];
 		if ([thisEnt isPlayer])
 		{
 			// these player methods are different to the ship ones.
