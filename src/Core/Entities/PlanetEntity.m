@@ -57,10 +57,30 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 @interface PlanetEntity (OOPrivate)
 
+- (double) sqrtZeroDistance;
+
+- (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide;
+
++ (void) resetBaseVertexArray;
+- (void) initialiseBaseVertexArray;
+
+
+- (void) initialiseBaseTerrainArray:(int) percent_land;
+- (void) paintVertex:(int) vi :(int) seed;
+- (void) scaleVertices;
+
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet;
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
 - (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
+
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
+
+- (GLuint) textureName;
+
 @end
+
+int baseVertexIndexForEdge(int va, int vb, BOOL textured);
+double longitudeFromVector(Vector v);
 
 
 @implementation PlanetEntity

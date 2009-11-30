@@ -48,10 +48,8 @@ MA 02110-1301, USA.
 @implementation OOPlanetEntity
 
 // this is exclusively called to initialise the main planet.
-- (id) initAsMainPlanet;
+- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed
 {
-	Random_Seed seed = [UNIVERSE systemSeed];
-	
 	NSMutableDictionary *planetInfo = [[UNIVERSE generateSystemData:seed] mutableCopy];
 	[planetInfo autorelease];
 	

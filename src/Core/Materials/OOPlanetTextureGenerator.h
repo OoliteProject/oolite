@@ -50,5 +50,6 @@ typedef struct
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
 
 + (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
+//+ (void) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture forShaderLevel:(OOShaderSetting)shaderLevel;
 
 @end

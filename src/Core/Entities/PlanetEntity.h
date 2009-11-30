@@ -29,6 +29,9 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 
 
+#define NEW_PLANETS 0
+
+
 typedef enum
 {
 	PLANET_TYPE_GREEN,
@@ -42,22 +45,26 @@ typedef enum
 #define ATMOSPHERE_DEPTH		500.0
 #define PLANET_MINIATURE_FACTOR	0.00185
 
-#define MAX_SUBDIVIDE			6	// 0 -> 20 verts
-									// 1 -> 80 verts
-									// 2 -> 320 verts
-									// 3 -> 1280 verts
-									// 4 -> 5120 verts
-									// 5 -> 20480 verts !!
+#define MAX_SUBDIVIDE			6
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
 
 
 @class ShipEntity;
 
 
-@protocol OOStellarBody
+@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
 
 - (double) radius;
 - (OOPlanetType) planetType;
+
+@end
+
+@protocol OOPlanet <OOStellarBody>	// Temporary, delete with PlanetEntity
+
+- (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
+- (NSString *) textureFileName;
+- (void) update:(OOTimeDelta) delta_t;
+- (Vector) position;
 
 @end
 
@@ -71,7 +78,7 @@ typedef struct
 	GLuint					index_array[MAX_TRI_INDICES];
 }	VertexData;
 
-@interface PlanetEntity: OOSelfDrawingEntity <OOStellarBody>
+@interface PlanetEntity: OOSelfDrawingEntity <OOPlanet>
 {
 @private
 	int						lastSubdivideLevel;
@@ -120,10 +127,11 @@ typedef struct
 	Vector					rotationAxis;
 }
 
+#if !NEW_PLANETS
 - (id) initWithSeed:(Random_Seed) p_seed;
+#endif
 - (void) miniaturize;
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
+//- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
 - (id) initMoonFromDictionary:(NSDictionary*) dict;
 - (id) initPlanetFromDictionary:(NSDictionary*) dict;
@@ -133,7 +141,6 @@ typedef struct
 - (int*) r_seed;
 - (int) planet_seed;
 - (BOOL) isTextured;
-- (GLuint) textureName;
 - (NSString *) textureFileName;
 
 - (double) polar_color_factor;
@@ -150,25 +157,10 @@ typedef struct
 - (void) setRadius:(double) rad;
 - (void) rescaleTo:(double) rad;
 
-- (double) sqrtZeroDistance;
-
 - (BOOL) hasAtmosphere;
-
-- (void) drawModelWithVertexArraysAndSubdivision: (int) subdivide;
 
 - (void) launchShuttle;
 
 - (void) welcomeShuttle:(ShipEntity *) shuttle;
-
-+ (void) resetBaseVertexArray;
-- (void) initialiseBaseVertexArray;
-
-int baseVertexIndexForEdge(int va, int vb, BOOL textured);
-
-- (void) initialiseBaseTerrainArray:(int) percent_land;
-- (void) paintVertex:(int) vi :(int) seed;
-- (void) scaleVertices;
-
-double longitudeFromVector(Vector v);
 
 @end

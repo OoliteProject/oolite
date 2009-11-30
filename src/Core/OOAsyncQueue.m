@@ -272,7 +272,13 @@ FAIL:
 	OOAsyncQueueElement		*element = NULL;
 	id						result;
 	
-	assert(_head != NULL);
+	if (_head == NULL)
+	{
+		// Can happen if you enter debugger.
+		return nil;
+	}
+	
+//	assert(_head != NULL);
 	
 	// Dequeue element.
 	element = _head;

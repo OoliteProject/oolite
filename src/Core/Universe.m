@@ -23,9 +23,6 @@ MA 02110-1301, USA.
 */
 
 
-#define NEW_PLANETS 0
-
-
 #import "OOOpenGL.h"
 #import "Universe.h"
 #import "MyOpenGLView.h"
@@ -765,7 +762,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
 	
-	PlanetEntity *a_planet = (PlanetEntity *)[[OOPlanetEntity alloc] initAsMainPlanet];
+	PlanetEntity *a_planet = (PlanetEntity *)[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:[UNIVERSE systemSeed]];
 #else
 	PlanetEntity		*a_planet;
 	
@@ -1996,11 +1993,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	switch (c_sys[2])
 	{
 		case 'p':
-			scale = ([self planet])? [self planet]->collision_radius: 5000;
+			scale = [self planet] ? [[self planet] radius]: 5000;
 			break;
 			
 		case 's':
-			scale = ([self sun])? [self sun]->collision_radius: 100000;
+			scale = [self sun] ? [[self planet] radius]: 100000;
 			break;
 			
 		case 'u':
@@ -2739,7 +2736,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (PlanetEntity *) planet
+- (id<OOPlanet>) planet
 {
 	if (cachedPlanet == nil && [allPlanets count] != 0)
 	{

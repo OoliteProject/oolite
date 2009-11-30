@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "OOTypes.h"
 #import "OOSound.h"
 
+
 #if OOLITE_ESPEAK
 #include <espeak/speak_lib.h>
 #endif
@@ -40,6 +41,8 @@ MA 02110-1301, USA.
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
 		Entity, ShipEntity, StationEntity, PlanetEntity, OOSunEntity,
 		PlayerEntity, OORoleSet;
+
+@protocol OOPlanet;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -327,7 +330,7 @@ enum
 - (void) selectIntro2Next;
 
 - (StationEntity *) station;
-- (PlanetEntity *) planet;
+- (id<OOPlanet>) planet;			// FIXME: can temporarily be either PlanetEntity or OOPlanetEntity.
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
 

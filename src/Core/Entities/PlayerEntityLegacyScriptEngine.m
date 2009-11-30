@@ -42,6 +42,7 @@ MA 02110-1301, USA.
 #import "OOSound.h"
 #import "OOSunEntity.h"
 #import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "ParticleEntity.h"
 #import "StationEntity.h"
 #import "Comparison.h"
@@ -2588,9 +2589,26 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	{
 		if ([i_info count] != 4)	// must be xxxxx-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
+		
+#if NEW_PLANETS
+		OOPlanetEntity *originalPlanet = nil;
+		if ([i_key isEqualToString:@"local-planet"])
+		{
+			originalPlanet = [UNIVERSE planet];
+		}
+		else
+		{
+			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed] autorelease];
+			OOLog(@"temp", @"Temp planet: %@", originalPlanet);
+		}
+		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
+		if (doppelganger == nil)  return NO;
+		OOLog(@"temp", @"Doppelganger: %@", doppelganger);
+
+#else
 		PlanetEntity* doppelganger=nil;
-		BOOL	procGen = NO;
 #if ALLOW_PROCEDURAL_PLANETS
+		BOOL	procGen = NO;
 		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
@@ -2606,21 +2624,26 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		}
 		if (!doppelganger)
 			return NO;
+#endif
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
+#if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
 		if (procGen)
 		{
 			model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
-		} 
+		}
+#endif
 		model_p0 = vector_add(model_p0, off);
 
 		OOLog(kOOLogDebugProcessSceneStringAddMiniPlanet, @"::::: adding %@ to scene:'%@'", i_key, doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
-		[UNIVERSE addEntity: doppelganger];
-
+		[UNIVERSE addEntity:doppelganger];
+		
+#if !NEW_PLANETS
 		[doppelganger autorelease];
+#endif
 		return YES;
 	}
 

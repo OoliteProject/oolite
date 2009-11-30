@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 @class OOPlanetDrawable, ShipEntity;
 
 
-@interface OOPlanetEntity: Entity <OOStellarBody>
+@interface OOPlanetEntity: Entity <OOPlanet>
 {
 @private
 	OOPlanetDrawable		*_planetDrawable;
@@ -51,7 +51,8 @@ MA 02110-1301, USA.
 	NSDictionary			*_materialParameters;
 }
 
-- (id) initAsMainPlanet;
+- (id) initAsMainPlanetForSystemSeed:(Random_Seed)seed;
+
 - (id) initFromDictionary:(NSDictionary *)dict withAtmosphere:(BOOL)atmosphere andSeed:(Random_Seed)seed;
 
 - (id) miniatureVersion;
