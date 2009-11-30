@@ -627,7 +627,19 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"\"%@\" %@", [self name], [super descriptionComponents]];
+	if (![self isSubEntity])
+	{
+		return [NSString stringWithFormat:@"\"%@\" %@", [self name], [super descriptionComponents]];
+	}
+	else
+	{
+		// ID, scanClass and status are of no interest for subentities.
+		NSString *subtype = nil;
+		if ([self behaviour] == BEHAVIOUR_TRACK_AS_TURRET)  subtype = @"(turret)";
+		else  subtype = @"(subentity)";
+		
+		return [NSString stringWithFormat:@"\"%@\" position: %@ %@", [self name], VectorDescription([self position]), subtype];
+	}
 }
 
 
