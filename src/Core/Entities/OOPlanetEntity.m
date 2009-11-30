@@ -282,14 +282,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 		
 		// FIXME: update atmosphere
 	}
-	else
-	{
-		// Miniature
-		quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
-		[self orientationChanged];
-		
-		// FIXME: update atmosphere
-	}
+
+	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
+	[self orientationChanged];
+	
+	// FIXME: update atmosphere
 }
 
 
