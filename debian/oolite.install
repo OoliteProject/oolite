@@ -2,6 +2,6 @@ oolite.app/oolite usr/lib/GNUstep/Applications/oolite.app
 oolite.app/Resources/Info-gnustep.plist usr/lib/GNUstep/Applications/oolite.app/Resources
 deps/Cross-platform-deps/DTDs usr/lib/GNUstep/Library
 debian/extra/games/oolite /usr/games
-FreeDesktop/oolite.desktop usr/share/applications
-FreeDesktop/oolite-icon.png usr/share/icons
+installers/FreeDesktop/oolite.desktop usr/share/applications
+installers/FreeDesktop/oolite-icon.png usr/share/icons
 debian/oolite-logo1.xpm usr/share/pixmaps

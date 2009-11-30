@@ -86,7 +86,7 @@ binary-arch: build install
 	dh_installman -a debian/oolite.6
 	dh_installmenu -a
 	dh_install -a
-	dh_desktop -a FreeDesktop/oolite.desktop
+	dh_desktop -a installers/FreeDesktop/oolite.desktop
 	rm -rf debian/oolite/usr/share/doc/oolite
 	find debian/oolite -name .svn | xargs -r rm -rf
 	dh_link -a
