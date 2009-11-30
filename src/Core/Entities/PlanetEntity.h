@@ -131,7 +131,7 @@ typedef struct
 - (id) initWithSeed:(Random_Seed) p_seed;
 #endif
 - (void) miniaturize;
-//- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
+- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
 
 - (id) initMoonFromDictionary:(NSDictionary*) dict;
 - (id) initPlanetFromDictionary:(NSDictionary*) dict;
