@@ -93,15 +93,15 @@ MA 02110-1301, USA.
 	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
 	
-	// Stir the rnd PRNG once for backwards compatibility, then save seed.
-	gen_rnd_number();
 	RNG_Seed savedRndSeed = currentRandomSeed();
 	
 	_planetDrawable = [[OOPlanetDrawable alloc] init];
 	
 	// Load material parameters.
+	RANROTSeed planetNoiseSeed = RANROTGetFullSeed();
+	[planetInfo setObject:[NSValue valueWithBytes:&planetNoiseSeed objCType:@encode(RANROTSeed)] forKey:@"noise_map_seed"];
 	[self setUpColorParametersWithSourceInfo:dict targetInfo:planetInfo];
-	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", nil]];
+	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", nil]];
 	[_materialParameters retain];
 	
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
@@ -169,9 +169,9 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
 {
-	// Stir the PRNG twelve times for backwards compatibility.
+	// Stir the PRNG fourteen times for backwards compatibility.
 	unsigned i;
-	for (i = 0; i < 12; i++)
+	for (i = 0; i < 14; i++)
 	{
 		gen_rnd_number();
 	}
@@ -221,6 +221,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	orientation = planet->orientation;
 	_rotationAxis = planet->_rotationAxis;
 	_rotationalVelocity = 0.04;
+	
+	_miniature = YES;
 	
 	_planetDrawable = [planet->_planetDrawable copy];
 	[_planetDrawable setRadius:collision_radius];

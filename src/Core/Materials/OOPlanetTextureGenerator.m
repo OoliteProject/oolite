@@ -58,7 +58,7 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 		_seaColor = FloatRGBFromDictColor(planetInfo, @"sea_color");
 		_polarLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
-		_seed = RANROTGetFullSeed();
+		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
 		_width = _height = 512;
 	}
