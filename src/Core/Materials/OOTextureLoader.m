@@ -237,7 +237,7 @@ static BOOL					sHaveSetUp = NO;
 		OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
 		
 		[self loadTexture];
-		if (data != NULL)  [self applySettings];
+n		if (data != NULL)  [self applySettings];
 		
 		OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");
 	NS_HANDLER

@@ -81,6 +81,12 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 }
 
 
+- (NSString *) descriptionComponents
+{
+	return [NSString stringWithFormat:@"seed: %u,%u", _seed.high, _seed.low];
+}
+
+
 - (uint32_t) textureOptions
 {
 	return [super textureOptions] | kOOTextureRepeatS | kOOTextureNoShrink;
@@ -107,18 +113,18 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 	if (![self isReady])
 	{
 		waiting = true;
-		OOLog(@"temp", @"Waiting for generator %@", self);
+		OOLog(@"planetTex.temp", @"Waiting for generator %@", self);
 	}
 	
 	BOOL result = [super getResult:outData format:outFormat width:outWidth height:outHeight];
 	
 	if (waiting)
 	{
-		OOLog(@"temp", @"%s generator %@", result ? "Dequeued" : "Failed to dequeue", self);
+		OOLog(@"planetTex.temp", @"%s generator %@", result ? "Dequeued" : "Failed to dequeue", self);
 	}
 	else
 	{
-		OOLog(@"temp", @"%s generator %@ without waiting.", result ? "Dequeued" : "Failed to dequeue", self);
+		OOLog(@"planetTex.temp", @"%s generator %@ without waiting.", result ? "Dequeued" : "Failed to dequeue", self);
 	}
 	
 	return result;
@@ -130,6 +136,8 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 
 - (void) loadTexture
 {
+	OOLog(@"planetTex.temp", @"Started generator %@", self);
+	
 	BOOL success = NO;
 	
 	uint8_t		*buffer = NULL, *px;
@@ -198,6 +206,8 @@ END:
 	free(randomBuffer);
 	if (success)  data = buffer;
 	else  free(buffer);
+	
+	OOLog(@"planetTex.temp", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
 }
 
 @end

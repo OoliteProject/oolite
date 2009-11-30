@@ -31,7 +31,17 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 
 
-DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, PlanetEntity)
+#if 0
+DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, OOPlanetEntity)
+#else
+OOINLINE BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *inObject, OOPlanetEntity **outObject)
+{
+	if (outObject == NULL)  return NO;
+	*outObject = JSObjectToObjectOfClass(context, inObject, [OOPlanetEntity class]);
+	if (*outObject == nil)  *outObject = JSObjectToObjectOfClass(context, inObject, [PlanetEntity class]);
+	return *outObject != nil;
+}
+#endif
 
 
 static JSObject		*sPlanetPrototype;
@@ -167,7 +177,7 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	BOOL						OK = NO;
-	PlanetEntity				*planet = nil;
+	OOPlanetEntity				*planet = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
@@ -175,7 +185,7 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 	switch (JSVAL_TO_INT(name))
 	{
 		case kPlanet_isMainPlanet:
-			*outValue = BOOLToJSVal(planet == [UNIVERSE planet]);
+			*outValue = BOOLToJSVal(planet == (id)[UNIVERSE planet]);
 			OK = YES;
 			break;
 			
@@ -202,13 +212,13 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
-	BOOL					OK = NO;
-	PlanetEntity			*planet = nil;
+	BOOL					OK = YES;
+	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	BOOL					procGen = NO;
 	
 	NSString				*pre = @"";
-	OOEntityStatus			playerStatus = [[PlayerEntity sharedPlayer] status];
+	OOEntityStatus			playerStatus;
 			
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
@@ -223,27 +233,33 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 			if (!procGen) pre=@"Detailed planets option not set. ";
 #endif
-			// if procGen == on we can retexture at any time, eg during huge surface explosions
-			if(!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
+			playerStatus = [[PlayerEntity sharedPlayer] status];
+			
+			if ([planet isKindOfClass:[PlanetEntity class]])
 			{
-				OK = NO;
-				OOReportJSError(context, @"%@Planet.%@ = 'foo' only possible from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre, @"texture");
+				// if procGen == on we can retexture at any time, eg during huge surface explosions
+				if (!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
+				{
+					OK = NO;
+					OOReportJSError(context, @"%@Planet.%@ = 'foo' only possible from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre, @"texture");
+				}
+				else if (sValue == nil)
+				{
+					OK = NO;
+					OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
+				}
 			}
-			else if (sValue != nil)
+			
+			if (OK)
 			{
 				OK = [planet setUpPlanetFromTexture:sValue];
 				if (!OK) OOReportJSWarning(context, @"Cannot find %@ '%@'. Value not set.", @"texture", sValue);
-			}
-			else
-			{
-				//[planet setUpPlanetFromTexture:sValue];
-				OK = NO;
-				OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
 			}
 			break;
 			
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
+			OK = NO;
 	}
 	
 	return OK;

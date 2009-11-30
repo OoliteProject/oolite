@@ -102,19 +102,12 @@ MA 02110-1301, USA.
 	_planetDrawable = [[OOPlanetDrawable alloc] init];
 	
 	// Load material parameters.
+	[self setUpColorParametersWithSourceInfo:dict targetInfo:planetInfo];
+	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", nil]];
+	[_materialParameters retain];
+	
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
-	if (textureName != nil)
-	{
-		[_planetDrawable setTextureName:textureName];
-	}
-	else
-	{
-		[self setUpColorParametersWithSourceInfo:dict targetInfo:planetInfo];
-		OOTexture *texture = [OOPlanetTextureGenerator planetTextureWithInfo:planetInfo];
-		OOSingleTextureMaterial *material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:texture configuration:nil];
-		[_planetDrawable setMaterial:material];
-		[material release];
-	}
+	[self setUpPlanetFromTexture:textureName];
 	
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// FIXME: do we want to do something more interesting here?
@@ -361,6 +354,43 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (BOOL) isPlanet
 {
+	return YES;
+}
+
+- (BOOL) hasAtmosphere
+{
+	return _atmosphereDrawable != nil;
+}
+
+
+// FIXME: need material model.
+- (NSString *) textureFileName
+{
+	return [_planetDrawable textureName];
+}
+
+
+- (void) setTextureFileName:(NSString *)textureName
+{
+	if (textureName != nil)
+	{
+		[_planetDrawable setTextureName:textureName];
+	}
+	else
+	{
+		OOTexture *texture = [OOPlanetTextureGenerator planetTextureWithInfo:_materialParameters];
+		OOSingleTextureMaterial *material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:texture configuration:nil];
+		[_planetDrawable setMaterial:material];
+		[material release];
+	}
+	
+
+}
+
+
+- (BOOL) setUpPlanetFromTexture:(NSString *)textureName
+{
+	[self setTextureFileName:textureName];
 	return YES;
 }
 

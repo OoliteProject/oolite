@@ -47,6 +47,8 @@ MA 02110-1301, USA.
 	unsigned				_shuttlesOnGround;
 	OOTimeDelta				_lastLaunchTime;
 	OOTimeDelta				_shuttleLaunchInterval;
+	
+	NSDictionary			*_materialParameters;
 }
 
 - (id) initAsMainPlanet;
@@ -56,5 +58,13 @@ MA 02110-1301, USA.
 
 - (void) launchShuttle;
 - (void) welcomeShuttle:(ShipEntity *)shuttle;
+
+- (BOOL) hasAtmosphere;
+
+// FIXME: need material model.
+- (NSString *) textureFileName;
+- (void) setTextureFileName:(NSString *)textureName;
+
+- (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 @end
