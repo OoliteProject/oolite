@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 
 #define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
-#define DISABLE_SPECULAR	(	0	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
+#define DISABLE_SPECULAR	(	1	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
 
 
 #import "OOPlanetTextureGenerator.h"
@@ -267,6 +267,8 @@ static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landC
 	float ih = 1.0 / (1.0 - hi);
 #define RECIP_COASTLINE_PORTION		(150.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
+#define BEACH_SPECULAR_FACTOR		(0.6f)	// Portion of specular transition that occurs in paleSeaColor/landColor transition (rest is in paleSeaColor/seaColor transition)
+#define SHALLOWS_SPECULAR_FACTOR	(1.0f - BEACH_SPECULAR_FACTOR)
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
 	FloatRGB result;
@@ -281,7 +283,7 @@ static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landC
 		{
 			// Coastal waters
 			result = Blend(-q * RECIP_COASTLINE_PORTION, seaColor, paleSeaColor);
-			specular = -(q * RECIP_COASTLINE_PORTION);
+			specular = -(q * RECIP_COASTLINE_PORTION) * SHALLOWS_SPECULAR_FACTOR + BEACH_SPECULAR_FACTOR;
 		}
 		else
 		{
@@ -298,6 +300,7 @@ static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landC
 	{
 		// Coastline
 		result = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
+		specular = (1.0f - (q * RECIP_COASTLINE_PORTION)) * BEACH_SPECULAR_FACTOR;
 	}
 	else if (q > hi)
 	{
