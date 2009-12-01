@@ -52,9 +52,9 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
 static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned octave, float scale, const float *noiseBuffer);
 
-float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float impress, float bias);
+float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias);
 
-static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
+static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
 
 
 @implementation OOPlanetTextureGenerator
@@ -148,13 +148,12 @@ static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landC
 	
 	BOOL success = NO;
 	
-	uint8_t		*buffer = NULL, *px;
+	uint8_t		*buffer = NULL, *px = NULL;
 	float		*accBuffer = NULL;
 	float		*randomBuffer = NULL;
 	
 	width = _width;
 	height = _height;
-	float seaBias = _landFraction - 1.0;
 	
 	buffer = malloc(4 * width * height);
 	if (buffer == NULL)  goto END;
@@ -177,25 +176,26 @@ static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landC
 		scale *= 0.5;
 	}
 	
-	float impress = 1.0f;
-	float poleValue = (impress + seaBias > 0.5f) ? 0.5f * (impress + seaBias) : 0.0f;
+	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
+	float seaBias = _landFraction - 1.0;
 	
 	unsigned x, y;
 	for (y = 0; y < height; y++)
 	{
 		for (x = 0; x < width; x++)
 		{
-			float q = QFactor(accBuffer, x, y, width, height, poleValue, impress, seaBias);
+			float q = QFactor(accBuffer, x, y, width, height, poleValue, seaBias);
 			
 			// FIXME: is it worth calculating this per point in a separate pass instead of calculating each value five times?
-			float yN = QFactor(accBuffer, x, y - 1, width, height, poleValue, impress, seaBias);
-			float yS = QFactor(accBuffer, x, y + 1, width, height, poleValue, impress, seaBias);
-			float yW = QFactor(accBuffer, x - 1, y, width, height, poleValue, impress, seaBias);
-			float yE = QFactor(accBuffer, x + 1, y, width, height, poleValue, impress, seaBias);
+			// Also, splitting the loop to handle the poleFactor = 0 case separately would greatly simplify QFactor in that case.
+			float yN = QFactor(accBuffer, x, y - 1, width, height, poleValue, seaBias);
+			float yS = QFactor(accBuffer, x, y + 1, width, height, poleValue, seaBias);
+			float yW = QFactor(accBuffer, x - 1, y, width, height, poleValue, seaBias);
+			float yE = QFactor(accBuffer, x + 1, y, width, height, poleValue, seaBias);
 			
 			Vector norm = vector_normal(make_vector(24.0f * (yW - yE), 24.0f * (yS - yN), 2.0f));
 			
-			FloatRGBA color = PlanetMix(q, impress, seaBias, _landColor, _seaColor, _polarLandColor, _polarSeaColor);
+			FloatRGBA color = PlanetMix(q, _landFraction, _landColor, _seaColor, _polarLandColor, _polarSeaColor);
 			
 			/*	Terrain shading
 				was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
@@ -258,11 +258,9 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 }
 
 
-static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
+static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
 {
-	float maxq = impress + seaBias;
-	
-	float hi = 0.66667 * maxq;
+	float hi = 0.66667 * maxQ;
 	float oh = 1.0 / hi;
 	float ih = 1.0 / (1.0 - hi);
 #define RECIP_COASTLINE_PORTION		(150.0f)
@@ -364,7 +362,7 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 			jy &= 127;
 			float rix = lerp( noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
 			float rjx = lerp( noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
-			float rfinal = scale * lerp( rix, rjx, qy);
+			float rfinal = scale * lerp(rix, rjx, qy);
 			
 			buffer[y * width + x] += rfinal;
 		}
@@ -372,15 +370,14 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 }
 
 
-float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float impress, float bias)
+float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias)
 {
 	x = (x + width) % width;
 	// FIXME: wrong wrapping mode for Y, should flip to other hemisphere.
 	y = (y + height) % height;
 	
 	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
-	
-	q = q * impress + bias;
+	q += bias;
 	
 	// Polar Y smooth. FIXME: float/int conversions.
 	float polar_y = (2.0f * y - width) / (float) width;
