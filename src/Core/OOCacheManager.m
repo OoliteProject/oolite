@@ -439,7 +439,7 @@ static OOCacheManager *sSingleton = nil;
 	pListRep = [self dictionaryOfCaches];
 	if (ooliteVersion == nil || endianTag == nil || formatVersion == nil || pListRep == nil)
 	{
-		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. (This is an internal error, please report it.)");
+		OOLog(@"dataCache.cantWrite", @"Failed to write data cache -- prerequisites not fulfilled. %@",@"This is an internal error, please report it.");
 		return;
 	}
 	

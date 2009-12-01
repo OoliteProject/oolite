@@ -649,7 +649,7 @@ static BOOL sRunningScript = NO;
 	}
 	
 	// What are we doing here?
-	OOLog(@"script.error.fallthrough", @"***** SCRIPT ERROR: in %@, unhandled condition '%@' (%@). This is an internal error, please report it.", CurrentScriptDesc(), [scriptCondition objectAtIndex:1], scriptCondition);
+	OOLog(@"script.error.fallthrough", @"***** SCRIPT ERROR: in %@, unhandled condition '%@' (%@). %@", CurrentScriptDesc(), [scriptCondition objectAtIndex:1], scriptCondition, @"This is an internal error, please report it.");
 	return NO;
 }
 

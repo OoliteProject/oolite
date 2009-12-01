@@ -542,6 +542,8 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	unsigned i,j;
 	
+	[[UNIVERSE gameView] resetTypedString];
+
 	// Required keys
 	if ([dict oo_stringForKey:@"ship_desc"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
@@ -594,12 +596,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	// Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
 	if ([dict oo_boolForKey:@"has_docking_computer"])		[self addEquipmentItem:@"EQ_DOCK_COMP"];
 	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[self addEquipmentItem:@"EQ_GAL_DRIVE"];
-	if ([dict oo_boolForKey:@"has_escape_pod"])			[self addEquipmentItem:@"EQ_ESCAPE_POD"];
+	if ([dict oo_boolForKey:@"has_escape_pod"])				[self addEquipmentItem:@"EQ_ESCAPE_POD"];
 	if ([dict oo_boolForKey:@"has_ecm"])					[self addEquipmentItem:@"EQ_ECM"];
 	if ([dict oo_boolForKey:@"has_scoop"])					[self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
 	if ([dict oo_boolForKey:@"has_energy_bomb"])			[self addEquipmentItem:@"EQ_ENERGY_BOMB"];
-	if ([dict oo_boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
-	
+	if (![UNIVERSE strict])
+	{
+		if ([dict oo_boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+	}
 	// Legacy energy unit type -> energy unit equipment item
 	if ([dict oo_boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
 	{
@@ -677,15 +681,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	port_weapon = [dict oo_intForKey:@"port_weapon"];
 	starboard_weapon = [dict oo_intForKey:@"starboard_weapon"];
 	
-	[self setWeaponDataFromType:forward_weapon]; 
-	scannerRange = (float)SCANNER_MAX_RANGE; 
-	
-	missiles = [dict oo_unsignedIntForKey:@"missiles"];
-	// sanity check the number of missiles...
-	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
-	if (missiles > max_missiles)  missiles = max_missiles;
-	// end sanity check
-	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
 	ship_kills = [dict oo_intForKey:@"ship_kills"];
@@ -749,7 +744,7 @@ static PlayerEntity *sSharedPlayer = nil;
 				else
 				{
 					j--;
-					OOLog(@"load.failed.missileNotFound", @"----- WARNING: couldn't find missile with role '%@' while trying [PlayerEntity setCommanderDataFromDictionary:], missile entry discarded. -----", missile_desc);
+					OOLogWARN(@"load.failed.missileNotFound", @"couldn't find missile with role '%@' in [PlayerEntity setCommanderDataFromDictionary:], missile entry discarded.", missile_desc);
 				}
 			}
 		}
@@ -758,18 +753,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		for (i = 0; i < missiles; i++)
 		{
-			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1 - should be okay as long as we keep a missile with this role
+			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
 		}
 	}
 	
 	// Sanity check: ensure the missiles variable holds the correct missile count.
-	// FIXME: get rid of "missiles" and just count them when needed. -- Ahruman
-	missiles = 0;
-	for (i = 0; i != PLAYER_MAX_MISSILES; i++)
-	{
-		if (missile_entity[i] != nil)  missiles++;
-	}
+	missiles = [self countMissiles];
 	
 	while (missiles > 0 && missile_entity[activeMissile] == nil)
 	{
@@ -813,9 +803,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	// trumble information
 	[self setUpTrumbles];
 	[self setTrumbleValueFrom:[dict objectForKey:@"trumbles"]];	// if it doesn't exist we'll check user-defaults
-	
-	// finally
-	missiles = [self countMissiles];
 	
 	return YES;
 }
@@ -897,6 +884,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[self setScriptTarget:nil];
 	[self resetMissionChoice];
+	[[UNIVERSE gameView] resetTypedString];
+	found_system_seed = kNilRandomSeed;
 	
 	[reputation release];
 	reputation = [[NSMutableDictionary alloc] initWithCapacity:6];
@@ -984,7 +973,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	ecm_in_operation = NO;
 	compassMode = COMPASS_MODE_BASIC;
 	ident_engaged = NO;
-	
 	
 	max_cargo				= 20; // will be reset later
 	
@@ -1080,93 +1068,22 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
-	// In order for default values to work and float values to not be junk,
-	// replace nil with empty dictionary. -- Ahruman 2008-05-01
-	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
+	if (![super setUpFromDictionary:shipDict]) return NO;
 	
-	[shipinfoDictionary release];
-	shipinfoDictionary = [shipDict copy];
-	
-	// set things from dictionary from here out
-	
-	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];
-	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll" defaultValue:2.0f];
-	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch" defaultValue:1.0f];
-	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
-	
+	// Player-only settings.
+	//
 	// set control factors..
 	roll_delta =		2.0f * max_flight_roll;
 	pitch_delta =		2.0f * max_flight_pitch;
 	yaw_delta =			2.0f * max_flight_yaw;
 	
-	thrust = [shipDict oo_floatForKey:@"thrust" defaultValue:thrust];
-	
-	if (![UNIVERSE strict])
-	{
-		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
-	}
-	else
-	{
-		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
-	}
-	
-	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:maxEnergy];
-	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:energy_recharge_rate];
 	energy = maxEnergy;
-	
-	// Each new ship should start in seemingly good operating condition, unless specifically told not to
-	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
-	
-	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
-	
-	forward_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	aft_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
-	[self setWeaponDataFromType:forward_weapon_type]; 
+	if (forward_weapon_type == WEAPON_NONE) [self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
-	
-	missiles = [shipDict oo_intForKey:@"missiles"  defaultValue:0];
-	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
-	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
-	if (missiles > max_missiles)  missiles = max_missiles;
-	
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_scoop"])  [self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_escape_pod"])  [self addEquipmentItem:@"EQ_ESCAPE_POD"];
-	
-	max_cargo = [shipDict oo_intForKey:@"max_cargo"];
-	extra_cargo = [shipDict oo_intForKey:@"extra_cargo" defaultValue:15];
-	
-	// Load the model (must be before subentities)
-	NSString *modelName = [shipDict oo_stringForKey:@"model"];
-	if (modelName != nil)
-	{
-		OOMesh *mesh = [OOMesh meshWithName:modelName
-						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
-						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
-									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-							   shaderMacros:DefaultShipShaderMacros()
-						shaderBindingTarget:self];
-		[self setMesh:mesh];
-	}
-	
-	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
-	if (octree)  
-	{
-		mass = (GLfloat)(density * 20.0 * [octree volume]);
-	}
-	[name autorelease];
-	name = [[shipDict oo_stringForKey:@"name" defaultValue:name] copy];
-	
-	[displayName autorelease];
-	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[roleSet release];
 	roleSet = nil;
 	[self setPrimaryRole:@"player"];
-	
-	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
-	if (color == nil)  color = [OOColor redColor];
-	[self setLaserColor:color];
 	
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
@@ -1187,8 +1104,13 @@ static PlayerEntity *sSharedPlayer = nil;
 		[hud setScannerZoom:1.0];
 		[hud resizeGuis: huddict];
 	}
-
+	
 	// set up missiles
+	// sanity check the number of missiles...
+	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
+	if (missiles > max_missiles)  missiles = max_missiles;
+	// end sanity check
+
 	unsigned i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
@@ -1201,7 +1123,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	[self setActiveMissile:0];
 	
-
 	// set view offsets
 	[self setDefaultViewOffsets];
 	
@@ -1220,30 +1141,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		_customViewIndex = 0;
 	}
 	
-	// set weapon offsets
-	[self setDefaultWeaponOffsets];
-	
-	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([shipDict oo_stringForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
-	
-	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = kZeroVector;
-	ScanVectorFromString([shipDict oo_stringForKey:@"scoop_position"], &tractor_position);
-	
-	[subEntities autorelease];
-	subEntities = nil;
-
-	// setUpSubEntities always returns YES - why the check? kaks 20090918
-	if (![self setUpSubEntities: shipDict])  return NO;
-
-	// rotating subentities
-	subentityRotationalVelocity = kIdentityQuaternion;
-	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
-	
-	// Load script
-	[script release];			
+	// Load js script
+	[script autorelease];			
 	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
 										 properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
 	[script retain];
@@ -4404,8 +4303,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// GUI stuff
 	{
 		GuiDisplayGen		*gui = [UNIVERSE gui];
-		NSDictionary		*ship_dict = nil;
-		NSString			*shipName = nil;
+		NSString			*shipName = displayName;
 		NSString			*legal_desc = nil, *rating_desc = nil,
 							*alert_desc = nil, *fuel_desc = nil,
 							*credits_desc = nil;
@@ -4415,9 +4313,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		tab_stops[1] = 160;
 		tab_stops[2] = 290;
 		[gui setTabStops:tab_stops];
-
-		ship_dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
-		shipName = [ship_dict oo_stringForKey:@"display_name" defaultValue:[ship_dict oo_stringForKey:KEY_NAME]];
 
 		NSString	*lightYearsDesc = DESC(@"status-light-years-desc");
 
@@ -7249,7 +7144,7 @@ static NSString *last_outfitting_key=nil;
 		if (dockedStation == nil)
 		{
 			//there are a number of possible current statuses, not just STATUS_DOCKED
-			OOLog(kOOLogInconsistentState, @"***** ERROR: status is %@, but dockedStation is nil; treating as not docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is nil; treating as not docked. %@", EntityStatusToString([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_IN_FLIGHT];
 			isDockedStatus = NO;
 		}
@@ -7258,7 +7153,7 @@ static NSString *last_outfitting_key=nil;
 	{
 		if (dockedStation != nil)
 		{
-			OOLog(kOOLogInconsistentState, @"***** ERROR: status is %@, not STATUS_DOCKED, but dockedStation is not nil; treating as docked. This is an internal error, please report it.", EntityStatusToString([self status]));
+			OOLogERR(kOOLogInconsistentState, @"status is %@, but dockedStation is not nil; treating as docked. %@", EntityStatusToString([self status]), @"This is an internal error, please report it.");
 			[self setStatus:STATUS_DOCKED];
 			isDockedStatus = YES;
 		}

@@ -255,7 +255,7 @@ static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, 
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -277,7 +277,7 @@ static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsv
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -300,7 +300,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -339,7 +339,7 @@ static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN ar
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	
@@ -388,7 +388,7 @@ static JSBool ConsoleClearConsole(JSContext *context, JSObject *this, uintN argc
 	monitor = JSObjectToObject(context, this);
 	if (![monitor isKindOfClass:[OODebugMonitor class]])
 	{
-		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. This is an internal error, please report it.", [monitor class], __PRETTY_FUNCTION__);
+		OOReportJSError(context, @"Expected OODebugMonitor, got %@ in %s. %@", [monitor class], __PRETTY_FUNCTION__, @"This is an internal error, please report it.");
 		return NO;
 	}
 	

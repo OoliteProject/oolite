@@ -391,7 +391,8 @@ MA 02110-1301, USA.
 - (void) setUpEscorts;
 
 - (id)initWithDictionary:(NSDictionary *) dict;
-- (BOOL)setUpShipFromDictionary:(NSDictionary *) dict;
+- (BOOL)setUpFromDictionary:(NSDictionary *) shipDict;
+- (BOOL)setUpShipFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpSubEntities:(NSDictionary *) shipDict;
 - (NSDictionary *)shipInfoDictionary;
 

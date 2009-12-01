@@ -343,6 +343,7 @@
 	{
 		// esc was pressed - get out of here
 		pollControls=YES;
+		[[UNIVERSE gameView] resetTypedString];
 		[self setGuiToStatusScreen];
 	}
 }
@@ -535,7 +536,6 @@
 	runResult = [sp runModalForDirectory:nil file:player_name];
 	
 	// if successful, save file under designated name
-	// TODO: break actual writing into a separate method to avoid redundancy. -- Ahruman
 	if (runResult == NSOKButton)
 	{
 		NSArray*	path_components = [[sp filename] pathComponents];
@@ -557,6 +557,7 @@
 	NSString		*errDesc = nil;
 	NSDictionary	*dict = nil;
 	BOOL			didSave = NO;
+	[[UNIVERSE gameView] resetTypedString];
 	
 	if (!path)
 	{

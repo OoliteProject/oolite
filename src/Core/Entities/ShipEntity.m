@@ -175,19 +175,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
-- (BOOL) setUpShipFromDictionary:(NSDictionary *) dict
+- (BOOL) setUpFromDictionary:(NSDictionary *) shipDict
 {
-	NSDictionary		*shipDict = dict;
-	
-	orientation = kIdentityQuaternion;
-	rotMatrix	= kIdentityMatrix;
-	v_forward	= kBasisZVector;
-	v_up		= kBasisYVector;
-	v_right		= kBasisXVector;
-	reference	= v_forward;  // reference vector for (* turrets *)
-	
-	isShip = YES;
-	
+	// Settings shared by players & NPCs.
+	//
 	// In order for default values to work and float values to not be junk,
 	// replace nil with empty dictionary. -- Ahruman 2008-04-28
 	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
@@ -195,14 +186,14 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// All like_ship references should have been resolved in -[Universe getDictionaryForShip:recursionLimit:]
 	if ([shipDict objectForKey:@"like_ship"] != nil)
 	{
-		OOLog(@"ship.setUp.like_ship", @"***** Error: like_ship found in ship dictionary in -[ShipEntity setUpShipFromDictionary:], when it should have been resolved already. This is an internal error, please report it.");
+		OOLogERR(@"ship.setUp.like_ship", @"like_ship found inside ship dictionary in -[ShipEntity setUpFromDictionary:], when it should have been resolved already. %@", @"This is an internal error, please report it.");
 		return NO;
 	}
 	
 	shipinfoDictionary = [shipDict copy];
 	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
 	
-	// set these flags  to NO explicitly, rather than leave them indetermined.
+	// set these flags explicitly.
 	haveExecutedSpawnAction = NO;
 	being_fined = NO;
 	isNearPlanetSurface = NO;
@@ -210,39 +201,33 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	isMissile = NO;
 	suppressExplosion = NO;
 	
-	// set things from dictionary from here out
-	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed"];
-	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll"];
-	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch"];
+	// set things from dictionary from here out - default values might require adjustment -- Kaks 20091130
+	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];
+	max_flight_roll = [shipDict oo_floatForKey:@"max_flight_roll" defaultValue:2.0f];
+	max_flight_pitch = [shipDict oo_floatForKey:@"max_flight_pitch" defaultValue:1.0f];
 	max_flight_yaw = [shipDict oo_floatForKey:@"max_flight_yaw" defaultValue:max_flight_pitch];	// Note by default yaw == pitch
-	cruiseSpeed = maxFlightSpeed*0.8;
+	cruiseSpeed = maxFlightSpeed*0.8f;
 	
-	max_thrust = [shipDict oo_floatForKey:@"thrust"];
+	max_thrust = [shipDict oo_floatForKey:@"thrust" defaultValue:15.0f];
 	thrust = max_thrust;
-
-	maxEnergy = [shipDict oo_floatForKey:@"max_energy"];
-	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate"];
+	maxEnergy = [shipDict oo_floatForKey:@"max_energy" defaultValue:200.0f];
+	energy_recharge_rate = [shipDict oo_floatForKey:@"energy_recharge_rate" defaultValue:1.0f];
+	
+	// Each new ship should start in seemingly good operating condition, unless specifically told not to - this does not affect the ship's energy levels
+	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
 	
 	forward_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"forward_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	aft_weapon_type = StringToWeaponType([shipDict oo_stringForKey:@"aft_weapon_type" defaultValue:@"WEAPON_NONE"]);
 	[self setWeaponDataFromType:forward_weapon_type];
-	// no front laser? It's probably a missile - no limits to weapon_energy.
-	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
-
-	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:25600.0];
+	
+	cloaking_device_active = NO;
+	military_jammer_active = NO;
+	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
+	
 	missiles = [shipDict oo_intForKey:@"missiles" defaultValue:0];
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
-	missileRole = [shipDict oo_stringForKey:@"missile_role"];
-	
-	unsigned	i;
-	
-	for (i = 0; i < missiles; i++)
-	{
-		missile_list[i] = [self newMissile];
-		if (missile_list[i] == nil) i--;
-	}
 	
 	// upgrades:
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
@@ -260,15 +245,91 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 #endif
 	}
 	
+	// can it be 'mined' for alloys?
 	canFragment = [shipDict oo_fuzzyBooleanForKey:@"fragment_chance" defaultValue:0.9];
+	// can subentities be destroyed separately?
+	isFrangible = [shipDict oo_boolForKey:@"frangible" defaultValue:YES];
 	
-	// Each new ship should start in seemingly good operating condition, unless specifically told not to
-	[self setThrowSparks:[shipDict oo_boolForKey:@"throw_sparks" defaultValue:NO]];
+	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
+	extra_cargo = [shipDict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
 	
-	cloaking_device_active = NO;
-	military_jammer_active = NO;
-	cloakPassive = [shipDict oo_boolForKey:@"cloak_passive" defaultValue:NO];
+	if (![UNIVERSE strict])
+	{
+		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
+	}
+	else
+	{
+		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
+	}
 	
+	[name autorelease];
+	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
+	
+	[displayName autorelease];
+	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
+	
+	// Load the model (must be before subentities)
+	NSString *modelName = [shipDict oo_stringForKey:@"model"];
+	if (modelName != nil)
+	{
+		OOMesh *mesh = [OOMesh meshWithName:modelName
+						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
+						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
+									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+							   shaderMacros:DefaultShipShaderMacros()
+						shaderBindingTarget:self];
+		if (mesh == nil)  return NO;
+		[self setMesh:mesh];
+	}
+	
+	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
+	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
+	
+	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
+	if (color == nil)  color = [OOColor redColor];
+	[self setLaserColor:color];
+	
+	[self clearSubEntities];
+	[self setUpSubEntities: shipDict];
+	
+	// rotating subentities
+	subentityRotationalVelocity = kIdentityQuaternion;
+	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
+
+	// set weapon offsets
+	[self setDefaultWeaponOffsets];
+	
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_port"], &portWeaponOffset);
+	ScanVectorFromString([shipDict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
+
+	// fuel scoop destination position (where cargo gets sucked into)
+	tractor_position = kZeroVector;
+	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
+	
+	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
+	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
+	
+	return YES;
+}
+
+
+- (BOOL) setUpShipFromDictionary:(NSDictionary *) shipDict
+{
+	if (![self setUpFromDictionary:shipDict]) return NO;
+	
+	// NPC-only settings.
+	//
+	orientation = kIdentityQuaternion;
+	rotMatrix	= kIdentityMatrix;
+	v_forward	= kBasisZVector;
+	v_up		= kBasisYVector;
+	v_right		= kBasisXVector;
+	reference	= v_forward;  // reference vector for (* turrets *)
+	
+	isShip = YES;
+
 	// FIXME: give NPCs shields instead.
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])
 	{
@@ -280,37 +341,34 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		energy_recharge_rate *= 1.5;
 	}
 	
-	// Moved here from above upgrade loading so that ships start with full energy banks. -- Ahruman
+	// Start with full energy banks.
 	energy = maxEnergy;
+	
+	// setWeaponDataFromType inside setUpFromDictionary should set weapon_energy from the front laser.
+	// no weapon_energy? It's a missile: set weapon_energy from shipdata!
+	if (weapon_energy == 0.0) weapon_energy = [shipDict oo_floatForKey:@"weapon_energy"];
+
+	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
+	
+	missileRole = [shipDict oo_stringForKey:@"missile_role"];
+	unsigned	i;
+	for (i = 0; i < missiles; i++)
+	{
+		missile_list[i] = [self newMissile];
+		if (missile_list[i] == nil) i--;
+	}
 	
 	fuel = [shipDict oo_unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
-	if (![UNIVERSE strict])
-	{
-		hyperspaceMotorSpinTime = [shipDict oo_floatForKey:@"hyperspace_motor_spin_time" defaultValue:DEFAULT_HYPERSPACE_SPIN_TIME];
-	}
-	else
-	{
-		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
-	}
-	
 	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];
-	
-	[name autorelease];
-	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
-	
-	[displayName autorelease];
-	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	[shipAI autorelease];
 	shipAI = [[AI alloc] init];
 	[shipAI setOwner:self];
 	[shipAI setStateMachine:[shipDict oo_stringForKey:@"ai_type" defaultValue:@"nullAI.plist"]];
 	
-	max_cargo = [shipDict oo_unsignedIntForKey:@"max_cargo"];
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
-	extra_cargo = [shipDict oo_unsignedIntForKey:@"extra_cargo" defaultValue:15];
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
 	
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
@@ -344,42 +402,13 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	}
 	
-	// Load the model (must be before subentities)
-	NSString *modelName = [shipDict oo_stringForKey:@"model"];
-	if (modelName != nil)
-	{
-		OOMesh *mesh = [OOMesh meshWithName:modelName
-						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
-						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
-									 smooth:[shipDict oo_boolForKey:@"smooth"]
-							   shaderMacros:DefaultShipShaderMacros()
-						shaderBindingTarget:self];
-		if (mesh == nil)  return NO;
-		[self setMesh:mesh];
-	}
-	
-	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0];
-	if (octree)  mass = density * 20.0 * [octree volume];
-	
 	[roleSet release];
 	roleSet = [[[OORoleSet roleSetWithString:[shipDict oo_stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
 	[primaryRole release];
 	primaryRole = nil;
 	
 	[self setOwner:self];
-	
 	[self setHulk:[shipDict oo_boolForKey:@"is_hulk"]];
-	
-	if (![self setUpSubEntities: shipDict]) 
-	{
-		return NO;
-	}
-	
-	isFrangible = [shipDict oo_boolForKey:@"frangible" defaultValue:YES];
-	
-	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
-	if (color == nil)  color = [OOColor redColor];
-	[self setLaserColor:color];
 	
 	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined
 	scanner_display_color1 = [[OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color1"]] retain];
@@ -421,28 +450,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		
 	//  escorts
 	_pendingEscortCount = _maxEscortCount = [shipDict oo_unsignedIntForKey:@"escorts"];
-
+	
 	// beacons
 	[self setBeaconCode:[shipDict oo_stringForKey:@"beacon"]];
 	
-	// rotating subentities
-	subentityRotationalVelocity = kIdentityQuaternion;
-	ScanQuaternionFromString([shipDict objectForKey:@"rotational_velocity"], &subentityRotationalVelocity);
-
 	// contact tracking entities
 	[self setTrackCloseContacts:[shipDict oo_boolForKey:@"track_contacts" defaultValue:NO]];
-
-	// set weapon offsets
-	[self setDefaultWeaponOffsets];
-	
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_forward"], &forwardWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_aft"], &aftWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_port"], &portWeaponOffset);
-	ScanVectorFromString([shipDict objectForKey:@"weapon_position_starboard"], &starboardWeaponOffset);
-
-	// fuel scoop destination position (where cargo gets sucked into)
-	tractor_position = kZeroVector;
-	ScanVectorFromString([shipDict objectForKey:@"scoop_position"], &tractor_position);
 	
 	// ship skin insulation factor (1.0 is normal)
 	[self setHeatInsulation:[shipDict oo_floatForKey:@"heat_insulation" defaultValue:[self hasHeatShield] ? 2.0 : 1.0]];
@@ -458,11 +471,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// unpiloted (like missiles asteroids etc.)
 	if ((isUnpiloted = [shipDict oo_fuzzyBooleanForKey:@"unpiloted"]))  [self setCrew:nil];
 	
-	// Get scriptInfo dictionary, containing arbitrary stuff scripts might be interested in.
-	scriptInfo = [[shipDict oo_dictionaryForKey:@"script_info" defaultValue:nil] retain];
-	
 	[self setShipScript:[shipDict oo_stringForKey:@"script"]];
-
+	
 	return YES;
 }
 
@@ -1346,7 +1356,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
 	if (missile == nil)	// no custom role
 	{
-		if (randf() < 0.90)	// choose a standard missile 90% of the time
+		if (randf() < 0.8f)	// choose a standard missile 80% of the time
 		{
 			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
 		}
@@ -5496,7 +5506,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	
 	if ([self hasSubEntity:sub])
 	{
-		OOLogERR(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity of %@ died while still in subentity list! This is bad. Leaking subentity list to avoid crash. This is an internal error, please report it.", self);
+		OOLogERR(@"shipEntity.bug.subEntityRetainUnderflow", @"Subentity of %@ died while still in subentity list! This is bad. Leaking subentity list to avoid crash. %@", self, @"This is an internal error, please report it.");
 		
 		// Leak subentity list.
 		subEntities = nil;
@@ -9254,7 +9264,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	// Sanity check; this should always be true.
 	if (![self hasSubEntity:(ShipEntity *)other])
 	{
-		OOLogERR(@"ship.subentity.sanityCheck.failed", @"%@ thinks it's a subentity of %@, but the supposed parent does not agree. This is an internal error, please report it.", [other shortDescription], [self shortDescription]);
+		OOLogERR(@"ship.subentity.sanityCheck.failed", @"%@ thinks it's a subentity of %@, but the supposed parent does not agree. %@", [other shortDescription], [self shortDescription], @"This is an internal error, please report it.");
 		[other setOwner:nil];
 		return NO;
 	}
