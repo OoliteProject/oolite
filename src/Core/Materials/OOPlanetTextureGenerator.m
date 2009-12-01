@@ -25,12 +25,17 @@ MA 02110-1301, USA.
 
 */
 
+
+#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
+#define DISABLE_SPECULAR	(	0	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
+
+
 #import "OOPlanetTextureGenerator.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOTexture.h"
 
-#ifndef NDEBUG
+#if DEBUG_DUMP
 #import "Universe.h"
 #import "MyOpenGLView.h"
 #endif
@@ -49,7 +54,7 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 
 float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float impress, float bias);
 
-static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
+static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
 
 
 @implementation OOPlanetTextureGenerator
@@ -137,9 +142,6 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 }
 
 
-static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB polarLandColor, FloatRGB polarSeaColor);
-
-
 - (void) loadTexture
 {
 	OOLog(@"planetTex.temp", @"Started generator %@", self);
@@ -193,15 +195,28 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 			
 			Vector norm = vector_normal(make_vector(24.0f * (yW - yE), 24.0f * (yS - yN), 2.0f));
 			
-			// FIXME: powf() is very expensive, can we use an approximation or change exponent to 3.0?
-			GLfloat shade = powf(norm.z, 3.2);
+			FloatRGBA color = PlanetMix(q, impress, seaBias, _landColor, _seaColor, _polarLandColor, _polarSeaColor);
 			
-			FloatRGB color = PlanetMix(q, impress, seaBias, _landColor, _seaColor, _polarLandColor, _polarSeaColor);
+			/*	Terrain shading
+				was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
+				little difference, other than being faster.
+			*/
+			GLfloat shade = norm.z * norm.z * norm.z;
+			
+			/*	We don't want terrain shading in the sea. The alpha channel
+				of color is a measure of "seaishness" for the specular map,
+				so we can recycle that to avoid branching.
+			*/
+			shade = color.a + (1.0f - color.a) * shade;
 			
 			*px++ = 255 * color.r * shade;
 			*px++ = 255 * color.g * shade;
 			*px++ = 255 * color.b * shade;
+#if DISABLE_SPECULAR
 			*px++ = 255;
+#else
+			*px++ = 255 * color.a;
+#endif
 		}
 	}
 	success = YES;
@@ -214,7 +229,8 @@ END:
 	else  free(buffer);
 	
 	OOLog(@"planetTex.temp", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
-#ifndef NDEBUG
+	
+#if DEBUG_DUMP
 	if (success)
 	{
 		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-new", _seed.high, _seed.low]
@@ -237,29 +253,62 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 	{
 		fraction * a.r + prime * b.r,
 		fraction * a.g + prime * b.g,
-		fraction * a.b + prime * b.b
+		fraction * a.b + prime * b.b,
 	};
 }
 
 
-static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
+static FloatRGBA PlanetMix(float q, float impress, float seaBias, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
 {
 	float maxq = impress + seaBias;
 	
 	float hi = 0.66667 * maxq;
 	float oh = 1.0 / hi;
 	float ih = 1.0 / (1.0 - hi);
+#define RECIP_COASTLINE_PORTION		(150.0f)
+#define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
+	FloatRGB result;
+	float specular = 0.0f;
 	
-	if (q <= 0.0f)  return seaColor;
-	if (q > 1.0)  return white;
+	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
+	q -= COASTLINE_PORTION;
 	
-	if (q < 0.01)  return Blend(q * 100.0f, landColor, paleSeaColor);	// Coastline
+	if (q <= 0.0f)
+	{
+		if (q > -COASTLINE_PORTION)
+		{
+			// Coastal waters
+			result = Blend(-q * RECIP_COASTLINE_PORTION, seaColor, paleSeaColor);
+			specular = -(q * RECIP_COASTLINE_PORTION);
+		}
+		else
+		{
+			// Open sea
+			result = seaColor;
+			specular = 1.0;
+		}
+	}
+	else if (q > 1.0)
+	{
+		result = white;
+	}
+	else if (q < COASTLINE_PORTION)
+	{
+		// Coastline
+		result = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
+	}
+	else if (q > hi)
+	{
+		result = Blend((q - hi) * ih, white, paleLandColor);	// Snow-capped peaks
+	}
+	else
+	{
+		result = Blend((hi - q) * oh, landColor, paleLandColor);
+	}
 	
-	if (q > hi)  return Blend((q - hi) * ih, white, paleLandColor);	// Snow-capped peaks
-	
-	return Blend((hi - q) * oh, landColor, paleLandColor);
+	return (FloatRGBA){ result.r, result.g, result.b, specular };
 }
 
 
@@ -334,8 +383,6 @@ float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, f
 	float polar_y = (2.0f * y - width) / (float) width;
 	polar_y *= polar_y;
 	q = q * (1.0 - polar_y) + polar_y * polar_y_value;
-	
-	q = OOClamp_0_1_f(q);
 	
 	return q;
 }

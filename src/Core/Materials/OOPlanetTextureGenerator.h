@@ -35,6 +35,12 @@ typedef struct
 } FloatRGB;
 
 
+typedef struct
+{
+	float			r, g, b, a;
+} FloatRGBA;
+
+
 @interface OOPlanetTextureGenerator: OOTextureGenerator
 {
 @private
