@@ -773,6 +773,38 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+#ifndef NDEBUG
+// General image-dumping method.
+- (void) dumpRGBAToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
+	
+	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bytes
+																	   pixelsWide:width
+																	   pixelsHigh:height
+																	bitsPerSample:8
+																  samplesPerPixel:4
+																		 hasAlpha:YES
+																		 isPlanar:NO
+																   colorSpaceName:NSCalibratedRGBColorSpace
+																	  bytesPerRow:rowBytes
+																	 bitsPerPixel:32];
+	
+	if (bitmap != nil)
+	{
+		[bitmap autorelease];
+		
+		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
+		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+	}
+}
+#endif
+
+
 /*	This method exists purely to suppress Clang static analyzer warnings that
 	these ivars are unused (but may be used by categories, which they are).
 	FIXME: there must be a feature macro we can use to avoid actually building

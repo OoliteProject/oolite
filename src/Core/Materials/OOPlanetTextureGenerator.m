@@ -30,6 +30,11 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 #import "OOTexture.h"
 
+#ifndef NDEBUG
+#import "Universe.h"
+#import "MyOpenGLView.h"
+#endif
+
 
 enum
 {
@@ -60,7 +65,8 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
-		_width = _height = 512;
+		_width = 512;
+		_height = 512;
 	}
 	
 	return self;
@@ -95,8 +101,8 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 
 - (NSString *) cacheKey
 {
-	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-base\n\n%u,%u/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
-			_width, _height, _seed.high, _seed.low,
+	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-base\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
+			_width, _height, _landFraction, _seed.high, _seed.low,
 			_landColor.r, _landColor.g, _landColor.b,
 			_seaColor.r, _seaColor.g, _seaColor.b,
 			_polarLandColor.r, _polarLandColor.g, _polarLandColor.b,
@@ -146,7 +152,7 @@ static FloatRGB PlanetMix(float q, float impress, float seaBias, FloatRGB landCo
 	
 	width = _width;
 	height = _height;
-	float seaBias = 1.0 - _landFraction;
+	float seaBias = _landFraction - 1.0;
 	
 	buffer = malloc(4 * width * height);
 	if (buffer == NULL)  goto END;
@@ -208,6 +214,16 @@ END:
 	else  free(buffer);
 	
 	OOLog(@"planetTex.temp", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
+#ifndef NDEBUG
+	if (success)
+	{
+		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-new", _seed.high, _seed.low]
+										   bytes:buffer
+										   width:width
+										  height:height
+										rowBytes:width * 4];
+	}
+#endif
 }
 
 @end
@@ -298,7 +314,7 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 			float rjx = lerp( noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
 			float rfinal = scale * lerp( rix, rjx, qy);
 			
-			buffer[ y * width + x ] += rfinal;
+			buffer[y * width + x] += rfinal;
 		}
 	}
 }
@@ -306,9 +322,9 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 
 float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float impress, float bias)
 {
-	x = (x + height) % height;
+	x = (x + width) % width;
 	// FIXME: wrong wrapping mode for Y, should flip to other hemisphere.
-	y = (y + width) % width;
+	y = (y + height) % height;
 	
 	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
 	

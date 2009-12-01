@@ -35,6 +35,11 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 
+#ifndef NDEBUG
+#import "Universe.h"
+#import "MyOpenGLView.h"
+#endif
+
 #define kOOLogUnconvertedNSLog @"unclassified.TextureStore"
 
 
@@ -291,9 +296,13 @@ void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int npl
 	}
 }
 
+
+static RANROTSeed sNoiseSeed;
 float ranNoiseBuffer[ 128 * 128];
 void fillRanNoiseBuffer()
 {
+	sNoiseSeed = RANROTGetFullSeed();
+	
 	int i;
 	for (i = 0; i < 16384; i++)
 		ranNoiseBuffer[i] = randf();
@@ -498,6 +507,16 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 		}
 	}
+#ifndef NDEBUG
+	if (nplanes == 4)
+	{
+		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low]
+										   bytes:imageBuffer
+										   width:width
+										  height:width
+										rowBytes:width * 4];
+	}
+#endif
 }
 
 void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor)

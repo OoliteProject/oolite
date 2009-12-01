@@ -1812,4 +1812,16 @@ keys[a] = NO; keys[b] = NO; \
 #endif
 }
 
+		
+#ifndef NDEBUG
+- (void) dumpRGBAToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	OOLog(@"dumpRGBA.unimplemented", @"If you had a Mac, you'd be getting some sort of debug image (\"%@\") dumped somewhere.", name);
+}
+#endif
+
 @end

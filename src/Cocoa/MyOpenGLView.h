@@ -161,4 +161,13 @@ extern int debug;
 // Check current state of shift key rather than relying on last event.
 - (BOOL)pollShiftKey;
 
+#ifndef NDEBUG
+// General image-dumping method.
+- (void) dumpRGBAToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes;
+#endif
+
 @end
