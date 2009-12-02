@@ -1027,7 +1027,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
-		[a_station setPlanet:[self planet]];
+		[a_station setPlanet:(PlanetEntity *)[self planet]];
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];
 	}
@@ -4132,13 +4132,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						double stationRoll = [systeminfo oo_doubleForKey:@"station_roll" defaultValue:0.4];
 						
 						[se setRoll: stationRoll];
-						[(StationEntity*)se setPlanet:[self planet]];
+						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];
 						[se setStatus:STATUS_ACTIVE];
 					}
 					else
 					{
 						[se setRoll: 0.0];
-						[(StationEntity*)se setPlanet:[self planet]];
+						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];
 						[se setStatus:STATUS_ACTIVE];
 					}
 				}
@@ -7645,6 +7645,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	OOCreditsQuantity	ship_main_weapons_value = 0;
 	OOCreditsQuantity	ship_other_weapons_value = 0;
 	
+	// FIXME: add the value for the actual missiles present on board.
 	OOCreditsQuantity	ship_missiles_value = ship_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
 	
 	// needs to be a signed value, we can then subtract from the base price, if less than standard equipment.

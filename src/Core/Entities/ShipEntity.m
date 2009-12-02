@@ -4501,7 +4501,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
 			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-			[self setLastAegisLock:[UNIVERSE planet]];
+			[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];
 			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
@@ -4540,7 +4540,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if([self lastAegisLock] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
 			{
 				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-				[self setLastAegisLock:[UNIVERSE planet]];
+				[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];
 			}
 		}
 		// leaving..
@@ -4553,7 +4553,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if([self lastAegisLock] == nil && !sunGoneNova)
 			{
-				[self setLastAegisLock:[UNIVERSE planet]];  // in case of a first launch.
+				[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];  // in case of a first launch.
 			}
 			[self transitionToAegisNone];
 		}

@@ -2594,7 +2594,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOPlanetEntity *originalPlanet = nil;
 		if ([i_key isEqualToString:@"local-planet"])
 		{
-			originalPlanet = [UNIVERSE planet];
+			originalPlanet = (OOPlanetEntity *)[UNIVERSE planet];
 		}
 		else
 		{

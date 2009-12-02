@@ -848,6 +848,12 @@ double longitudeFromVector(Vector v);
 }
 
 
+- (Vector) position
+{
+	return [super position];
+}
+
+
 - (void) setPosition:(Vector)posn
 {
 	position = posn;

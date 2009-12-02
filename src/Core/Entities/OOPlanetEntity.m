@@ -290,6 +290,12 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (Vector) position
+{
+	return [super position];
+}
+
+
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent
 {
 	if (translucent || [UNIVERSE breakPatternHide])   return; // DON'T DRAW
