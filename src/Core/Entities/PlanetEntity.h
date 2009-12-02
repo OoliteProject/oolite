@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 #import "OOColor.h"
 
 
-#define NEW_PLANETS 0
+#define NEW_PLANETS 1
 
 
 typedef enum

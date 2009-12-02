@@ -290,7 +290,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
-- (Vector) position
+- (Vector) position		// NEW_PLANETS temp compile fix
 {
 	return [super position];
 }

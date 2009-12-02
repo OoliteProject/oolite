@@ -1027,7 +1027,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
-		[a_station setPlanet:(PlanetEntity *)[self planet]];
+		[a_station setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];
 	}
@@ -4132,13 +4132,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						double stationRoll = [systeminfo oo_doubleForKey:@"station_roll" defaultValue:0.4];
 						
 						[se setRoll: stationRoll];
-						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];
+						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
 						[se setStatus:STATUS_ACTIVE];
 					}
 					else
 					{
 						[se setRoll: 0.0];
-						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];
+						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
 						[se setStatus:STATUS_ACTIVE];
 					}
 				}

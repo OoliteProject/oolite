@@ -848,7 +848,7 @@ double longitudeFromVector(Vector v);
 }
 
 
-- (Vector) position
+- (Vector) position		// NEW_PLANETS temp compile fix
 {
 	return [super position];
 }
