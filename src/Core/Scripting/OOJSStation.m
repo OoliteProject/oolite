@@ -40,6 +40,13 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 
 static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchDefenseShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchScavenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchMiner(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchPirateShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchShuttle(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchPatrol(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool StationLaunchPolice(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sStationClass =
@@ -74,6 +81,9 @@ enum
 #if DOCKING_CLEARANCE_ENABLED
 	kStation_requiresDockingClearance,
 #endif
+	kStation_dockedContractors, // miners and scavengers.
+	kStation_dockedPolice,
+	kStation_dockedDefenders,
 };
 
 
@@ -84,17 +94,27 @@ static JSPropertySpec sStationProperties[] =
 	{ "hasNPCTraffic",			kStation_hasNPCTraffic,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "alertCondition",			kStation_alertCondition,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 #if DOCKING_CLEARANCE_ENABLED
-	{ "requiresDockingClearance",		kStation_requiresDockingClearance,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "requiresDockingClearance",	kStation_requiresDockingClearance,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 #endif
+	{ "dockedContractors",		kStation_dockedContractors,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockedPolice",			kStation_dockedPolice,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockedDefenders",		kStation_dockedDefenders,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
 
 static JSFunctionSpec sStationMethods[] =
 {
-	// JS name					Function					min args
-	{ "dockPlayer",					StationDockPlayer,				0 },
-	{ "launchShipWithRole",				StationLaunchShipWithRole,			1 },
+	// JS name					Function						min args
+	{ "dockPlayer",				StationDockPlayer,				0 },
+	{ "launchShipWithRole",		StationLaunchShipWithRole,		1 },
+	{ "launchDefenseShip",		StationLaunchDefenseShip,		0 },
+	{ "launchScavenger",		StationLaunchScavenger,			0 },
+	{ "launchMiner",			StationLaunchMiner,				0 },
+	{ "launchPirateShip",		StationLaunchPirateShip,		0 },
+	{ "launchShuttle",			StationLaunchShuttle,			0 },
+	{ "launchPatrol",			StationLaunchPatrol,			0 },
+	{ "launchPolice",			StationLaunchPolice,			0 },
 	{ 0 }
 };
 
@@ -167,6 +187,18 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = BOOLToJSVal([entity requiresDockingClearance]);
 			break;
 #endif
+			
+		case kStation_dockedContractors:
+			*outValue = INT_TO_JSVAL([entity dockedContractors]);
+			break;
+			
+		case kStation_dockedPolice:
+			*outValue = INT_TO_JSVAL([entity dockedPolice]);
+			break;
+			
+		case kStation_dockedDefenders:
+			*outValue = INT_TO_JSVAL([entity dockedDefenders]);
+			break;
 			
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
@@ -264,6 +296,97 @@ static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uint
 	}
 	
 	result = [station launchIndependentShip:shipRole];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchDefenseShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+		
+	result = [station launchDefenseShip];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchScavenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchScavenger];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchMiner(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchMiner];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchPirateShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchPirateShip];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchShuttle(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchShuttle];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchPatrol(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	ShipEntity	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchPatrol];
+	*outResult = [result javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+static JSBool StationLaunchPolice(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	StationEntity *station = nil;
+	NSArray	*result = nil;
+	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	result = [station launchPolice];
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;

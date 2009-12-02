@@ -127,6 +127,10 @@ typedef enum
 
 - (PlanetEntity *) planet;
 
+- (unsigned) dockedContractors;
+- (unsigned) dockedPolice;
+- (unsigned) dockedDefenders;
+
 - (void) sanityCheckShipsOnApproach;
 
 - (void) autoDockShipsOnApproach;
@@ -171,15 +175,15 @@ typedef enum
 - (void) increaseAlertLevel;
 - (void) decreaseAlertLevel;
 
-- (void) launchPolice;
-- (void) launchDefenseShip;
-- (void) launchScavenger;
-- (void) launchMiner;
+- (NSArray *) launchPolice;
+- (ShipEntity *) launchDefenseShip;
+- (ShipEntity *) launchScavenger;
+- (ShipEntity *) launchMiner;
 /**Lazygun** added the following line*/
-- (void) launchPirateShip;
-- (void) launchShuttle;
+- (ShipEntity *) launchPirateShip;
+- (ShipEntity *) launchShuttle;
 - (void) launchEscort;
-- (BOOL) launchPatrol;
+- (ShipEntity *) launchPatrol;
 
 - (void) launchShipWithRole:(NSString*) role;
 

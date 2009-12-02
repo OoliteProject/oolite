@@ -207,6 +207,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
+- (unsigned) dockedContractors
+{
+	return max_scavengers > scavengers_launched ? max_scavengers - scavengers_launched : 0;
+}
+
+
+- (unsigned) dockedPolice
+{
+	return max_police > defenders_launched ? max_police - defenders_launched : 0;
+}
+
+
+- (unsigned) dockedDefenders
+{
+	return max_defense_ships > defenders_launched ? max_defense_ships - defenders_launched : 0;
+}
+
+
 - (void) sanityCheckShipsOnApproach
 {
 	unsigned i;
@@ -1169,7 +1187,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// testing patrols
 	if ((unitime > (last_patrol_report_time + patrol_launch_interval))&&(isMainStation))
 	{
-		if (![self hasNPCTraffic] || [self launchPatrol])
+		if (![self hasNPCTraffic] || [self launchPatrol] != nil)
 			last_patrol_report_time = unitime;
 	}
 }
@@ -1577,12 +1595,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 
 // Exposed to AI
-- (void) launchPolice
+- (NSArray *) launchPolice
 {
 	OOUniversalID	police_target = primaryTarget;
 	unsigned		i;
+	NSMutableArray	*result = nil;
 	OOTechLevelID	techlevel = [self equivalentTechLevel];
 	if (techlevel == NSNotFound)  techlevel = 6;
+	
+	result = [NSMutableArray arrayWithCapacity:4];
 	
 	for (i = 0; (i < 4)&&(defenders_launched < max_police) ; i++)
 	{
@@ -1590,7 +1611,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		if (![UNIVERSE entityForUniversalID:police_target])
 		{
 			[self noteLostTarget];
-			return;
+			return [NSArray array];
 		}
 		
 		if ((Ranrot() & 7) + 6 <= techlevel)
@@ -1618,17 +1639,19 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship setBounty:0];
 			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship];
-			[police_ship release];
+			[police_ship autorelease];
 			defenders_launched++;
+			[result addObject:police_ship];
 		}
 	}
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
+	return result;
 }
 
 
 // Exposed to AI
-- (void) launchDefenseShip
+- (ShipEntity *) launchDefenseShip
 {
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity	*defense_ship = nil;
@@ -1647,12 +1670,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		default_defense_ship_role	= @"police";
 	
 	if (defenders_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
-		return;
+		return nil;
 	
 	if (![UNIVERSE entityForUniversalID:defense_target])
 	{
 		[self noteLostTarget];
-		return;
+		return nil;
 	}
 	
 	defense_ship_key = [shipinfoDictionary oo_stringForKey:@"defense_ship"];
@@ -1669,7 +1692,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (!defense_ship && default_defense_ship_role != defense_ship_role)
 		defense_ship = [UNIVERSE newShipWithRole:default_defense_ship_role];
 	if (!defense_ship)
-		return;
+		return nil;
 	
 	[defense_ship setPrimaryRole:@"defense_ship"];
 	
@@ -1700,21 +1723,23 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[defense_ship setScanClass: scanClass];	// same as self
 	
 	[self addShipToLaunchQueue:defense_ship];
-	[defense_ship release];
+	[defense_ship autorelease];
 	no_docking_while_launching = YES;
 	[self abortAllDockings];
+	
+	return defense_ship;
 }
 
 
 // Exposed to AI
-- (void) launchScavenger
+- (ShipEntity *) launchScavenger
 {
 	ShipEntity  *scavenger_ship;
 	
 	unsigned scavs = [UNIVERSE countShipsWithRole:@"scavenger" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"scavenger"];
 	
-	if (scavs >= max_scavengers)  return;
-	if (scavengers_launched >= max_scavengers)  return;
+	if (scavs >= max_scavengers)  return nil;
+	if (scavengers_launched >= max_scavengers)  return nil;
 	
 	scavengers_launched++;
 		
@@ -1730,23 +1755,24 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship];
-		[scavenger_ship release];
+		[scavenger_ship autorelease];
 	}
+	return scavenger_ship;
 }
 
 
 // Exposed to AI
-- (void) launchMiner
+- (ShipEntity *) launchMiner
 {
 	ShipEntity  *miner_ship;
 	
 	int		n_miners = [UNIVERSE countShipsWithRole:@"miner" inRange:SCANNER_MAX_RANGE ofEntity:self] + [self countShipsInLaunchQueueWithPrimaryRole:@"miner"];
 	
 	if (n_miners >= 1)	// just the one
-		return;
+		return nil;
 	
 	// count miners as scavengers...
-	if (scavengers_launched >= max_scavengers)  return;
+	if (scavengers_launched >= max_scavengers)  return nil;
 	
 	miner_ship = [UNIVERSE newShipWithRole:@"miner"];   // retain count = 1
 	if (miner_ship)
@@ -1761,25 +1787,26 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
 		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship];
-		[miner_ship release];
+		[miner_ship autorelease];
 	}
+	return miner_ship;
 }
 
 /**Lazygun** added the following method. A complete rip-off of launchDefenseShip. 
  */
 // Exposed to AI
-- (void) launchPirateShip
+- (ShipEntity *) launchPirateShip
 {
 	//Pirate ships are launched from the same pool as defence ships.
 	OOUniversalID	defense_target = primaryTarget;
 	ShipEntity		*pirate_ship = nil;
 	
-	if (defenders_launched >= max_defense_ships)  return;   // shuttles are to rockhermits what police ships are to stations
+	if (defenders_launched >= max_defense_ships)  return nil;   // shuttles are to rockhermits what police ships are to stations
 	
 	if (![UNIVERSE entityForUniversalID:defense_target])
 	{
 		[self noteLostTarget];
-		return;
+		return nil;
 	}
 	
 	defenders_launched++;
@@ -1807,15 +1834,16 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[pirate_ship setBounty: 10 + floor(randf() * 20)];	// modified for variety
 
 		[self addShipToLaunchQueue:pirate_ship];
-		[pirate_ship release];
+		[pirate_ship autorelease];
 		no_docking_while_launching = YES;
 		[self abortAllDockings];
 	}
+	return pirate_ship;
 }
 
 
 // Exposed to AI
-- (void) launchShuttle
+- (ShipEntity *) launchShuttle
 {
 	ShipEntity  *shuttle_ship;
 		
@@ -1833,8 +1861,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
 		[self addShipToLaunchQueue:shuttle_ship];
 		
-		[shuttle_ship release];
+		[shuttle_ship autorelease];
 	}
+	return shuttle_ship;
 }
 
 
@@ -1863,7 +1892,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 
 // Exposed to AI
-- (BOOL) launchPatrol
+- (ShipEntity *) launchPatrol
 {
 	if (defenders_launched < max_police)
 	{
@@ -1895,11 +1924,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship];
 			[self acceptPatrolReportFrom:patrol_ship];
-			[patrol_ship release];
-			return YES;
+			[patrol_ship autorelease];
+			return patrol_ship;
 		}
 	}
-	return NO;
+	return nil;
 }
 
 

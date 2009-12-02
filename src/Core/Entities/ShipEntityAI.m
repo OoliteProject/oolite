@@ -2054,7 +2054,9 @@ static WormholeEntity *whole = nil;
 	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
 	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
 	// NPC ships getting stuck with a dockingAI while just outside the aegis - Nikos 20090630, as proposed by Eric
-	if (station != nil && distanceToStation2 < SCANNER_MAX_RANGE2 * 6.25)
+	// On very busy systems (> 50 docking ships) docking ships can be sent to a hold position outside the range, 
+	// so also test for presence of dockingInstructions. - Eric 20091130
+	if (station != nil && (distanceToStation2 < SCANNER_MAX_RANGE2 * 6.25 || dockingInstructions != nil))
 	{
 		// remember the instructions
 		[dockingInstructions release];
