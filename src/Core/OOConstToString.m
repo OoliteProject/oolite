@@ -297,8 +297,8 @@ NSString *WeaponTypeToEquipmentString(OOWeaponType weapon)
 		EQ_CASE(WEAPON_MILITARY_LASER);
 		EQ_CASE(WEAPON_THARGOID_LASER);
 		
-		// any other case
-		default:
+		case WEAPON_NONE:
+		case WEAPON_UNDEFINED:
 			break;
 	}
 	return nil;
@@ -474,7 +474,9 @@ NSString *EnergyUnitTypeToString(OOEnergyUnitType unit)
 		CASE(ENERGY_UNIT_NAVAL);
 		CASE(ENERGY_UNIT_NORMAL_DAMAGED);
 		CASE(ENERGY_UNIT_NAVAL_DAMAGED);
-		default:	// handle OLD_ENERGY_UNITs
+			
+		case OLD_ENERGY_UNIT_NORMAL:
+		case OLD_ENERGY_UNIT_NAVAL:
 			break;
 	}
 	
