@@ -1620,7 +1620,7 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 	{
 		result = [[thisEnt newMissile] identifier];
 		// if there's a badly defined missile, newMissile may be nil
-		if (result == nil) reault = @"EQ_MISSILE";
+		if (result == nil) result = @"EQ_MISSILE";
 	}
 	
 	*outResult = [result javaScriptValueInContext:context];
