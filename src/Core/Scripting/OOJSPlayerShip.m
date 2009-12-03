@@ -96,8 +96,9 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_galaxyCoordinates,				// galaxy coordinates, vector, read only
 	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
-	kPlayerShip_scriptedMisjump,					// next jump will miss if set to true, boolean, read/write
-	kPlayerShip_hudHidden					// hud visibility, boolean, read/write
+	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
+	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_hudHidden						// hud visibility, boolean, read/write
 };
 
 
@@ -120,7 +121,8 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "hudHidden",				kPlayerShip_hudHidden,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "compassTarget",				kPlayerShip_compassTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
+	{ "hudHidden",					kPlayerShip_hudHidden,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -260,6 +262,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_scriptedMisjump:
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
+			OK = YES;
+			break;
+			
+		case kPlayerShip_compassTarget:
+			result = [player compassTarget];
 			OK = YES;
 			break;
 			

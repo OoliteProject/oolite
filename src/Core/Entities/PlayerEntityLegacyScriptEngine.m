@@ -2076,7 +2076,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionTitle:(NSString *)value
 {
-	[missionTitle autorelease];
+	if (missionTitle != nil) [missionTitle autorelease];
 	missionTitle = nil;
 	if ([value length] != 0) missionTitle = [[NSString stringWithString: value] retain];
 }
@@ -2613,7 +2613,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
 			// can safely show retextured planets!
-			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
+			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:(PlanetEntity *)[UNIVERSE planet]];	// NEW_PLANETS temp compile fix
 		}
 		else
 #endif

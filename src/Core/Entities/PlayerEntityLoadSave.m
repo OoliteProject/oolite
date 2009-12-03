@@ -439,7 +439,7 @@
 	
 	if (loadedOK)
 	{
-		if (save_path)  [save_path autorelease];
+		if (save_path != nil) [save_path autorelease];
 		save_path = [fileToOpen retain];
 		
 		[[[UNIVERSE gameView] gameController] setPlayerFileToLoad:fileToOpen];
@@ -573,7 +573,7 @@
 		
 		[UNIVERSE clearPreviousMessage];	// allow this to be given time and again
 		[UNIVERSE addMessage:DESC(@"game-saved") forCount:2];
-		[save_path autorelease];
+		if (save_path != nil) [save_path autorelease];
 		save_path = [path copy];
 		[[UNIVERSE gameController] setPlayerFileToLoad:save_path];
 		[[UNIVERSE gameController] setPlayerFileDirectory:save_path];

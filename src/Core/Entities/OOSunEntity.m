@@ -235,7 +235,11 @@ MA 02110-1301, USA.
 									   alpha:1.0f];
 				}
 				if (sky_bri == 1.0)
+				{	
+					// This sun has now gone nova!
+					[UNIVERSE setSystemDataKey:@"sun_gone_nova" value:[NSNumber numberWithBool:YES]];
 					OOLog(@"sun.nova.start", @"DEBUG: NOVA original radius %.1f", collision_radius);
+				}
 				discColor[0] = 1.0;	discColor[1] = 1.0;	discColor[2] = 1.0;
 				velocity.y += delta_t;
 				[self setRadius: collision_radius + delta_t * velocity.z];

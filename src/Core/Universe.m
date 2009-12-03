@@ -8311,10 +8311,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
 	
-	[gui autorelease];
+	if (gui != nil) [gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
 	
-	[message_gui autorelease];
+	if (message_gui != nil)[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
 							  columns:1
@@ -8327,7 +8327,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
 	
-	[comm_log_gui autorelease];
+	if (comm_log_gui != nil) [comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(360, 120)
 							  columns:1
@@ -8347,34 +8347,34 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	universal_time = 0.0;
 	messageRepeatTime = 0.0;
 	
-	[commodityLists autorelease];
+	if (commodityLists != nil) [commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[commodityData autorelease];
+	if (commodityData != nil) [commodityData autorelease];
 	commodityData = [[NSArray arrayWithArray:[commodityLists oo_arrayForKey:@"default"]] retain];
 	
-	[illegal_goods autorelease];
+	if (illegal_goods != nil) [illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[descriptions autorelease];
+	if (descriptions != nil) [descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[characters autorelease];
+	if (characters != nil) [characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[customsounds autorelease];
+	if (customsounds != nil) [customsounds autorelease];
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[planetInfo autorelease];
+	if (planetInfo != nil) [planetInfo autorelease];
 	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
-	[pirateVictimRoles autorelease];
+	if (pirateVictimRoles != nil) [pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
 	//	[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
 	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
 	
-	[equipmentData autorelease];
+	if (equipmentData != nil) [equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
 	{

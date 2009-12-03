@@ -262,10 +262,10 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		hyperspaceMotorSpinTime = DEFAULT_HYPERSPACE_SPIN_TIME;
 	}
 	
-	[name autorelease];
+	if (name !=nil) [name autorelease];
 	name = [[shipDict oo_stringForKey:@"name" defaultValue:@"?"] copy];
 	
-	[displayName autorelease];
+	if (displayName !=nil) [displayName autorelease];
 	displayName = [[shipDict oo_stringForKey:@"display_name" defaultValue:name] copy];
 	
 	// Load the model (must be before subentities)
@@ -398,7 +398,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		cargo_type = StringToCargoType(cargoString);
 		
-		[cargo autorelease];
+		if (cargo != nil) [cargo autorelease];
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
 	}
 	
@@ -4614,7 +4614,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		return;
 	}
 	//do not set to hulk here when crew is nill (or 0).  Some things like missiles have no crew.
-	[crew autorelease];
+	if (crew != nil) [crew autorelease];
 	crew = [crewArray copy];
 }
 
@@ -7250,9 +7250,9 @@ BOOL class_masslocks(int some_class)
 
 	if ([missile scanClass] == CLASS_MISSILE)
 	{
+		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
 		[target_ship doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
-		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
 		[target_ship reactToAIMessage:@"INCOMING_MISSILE"];
 	}
 	

@@ -24,6 +24,7 @@ MA );-);, USA.
 
 #import "OOConstToString.h"
 #import "Entity.h"
+#import "PlayerEntity.h"
 #import "Universe.h"
 #import <jsapi.h>
 #import "OOCollectionExtractors.h"
@@ -475,11 +476,9 @@ NSString *EnergyUnitTypeToString(OOEnergyUnitType unit)
 		CASE(ENERGY_UNIT_NAVAL);
 		CASE(ENERGY_UNIT_NORMAL_DAMAGED);
 		CASE(ENERGY_UNIT_NAVAL_DAMAGED);
-	default:
-		return @"Unsupported energy unit";
 	}
 	
-	return @"Unknown energy unit";
+	return @"Unsupported energy unit";
 }
 
 
@@ -698,6 +697,35 @@ NSString *DisplayStringForMassUnitForCommodity(OOCargoType commodity)
 {
 	return DisplayStringForMassUnit([UNIVERSE unitsForCommodity:commodity]);
 }
+
+
+NSString *CompassModeToString(OOCompassMode mode)
+{
+	switch (mode)
+	{
+		CASE(COMPASS_MODE_BASIC);
+		CASE(COMPASS_MODE_PLANET);
+		CASE(COMPASS_MODE_STATION);
+		CASE(COMPASS_MODE_SUN);
+		CASE(COMPASS_MODE_TARGET);
+		CASE(COMPASS_MODE_BEACONS);
+	}
+	
+	return @"Unsupported";
+}
+
+OOCompassMode StringToCompassMode(NSString *string)
+{
+	REVERSE_CASE(COMPASS_MODE_BASIC);
+	REVERSE_CASE(COMPASS_MODE_PLANET);
+	REVERSE_CASE(COMPASS_MODE_STATION);
+	REVERSE_CASE(COMPASS_MODE_SUN);
+	REVERSE_CASE(COMPASS_MODE_TARGET);
+	REVERSE_CASE(COMPASS_MODE_BEACONS);
+	
+	return COMPASS_MODE_BASIC;
+}
+
 
 #if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus)

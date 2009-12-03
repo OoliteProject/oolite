@@ -837,8 +837,9 @@ if (!showSplashScreen) return;
 	if (w & 3)
 		w = w + 4 - (w & 3);
 
-	// save in the oolite-saves directory.
+	// backup the savegame directory name.
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
+	// use the snapshots directory.
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 
 	int imageNo = 0;
@@ -875,7 +876,8 @@ if (!showSplashScreen) return;
 	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
-
+	
+	// restore the savegame directory name.
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
 

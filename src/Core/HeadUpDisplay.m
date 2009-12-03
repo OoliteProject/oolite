@@ -1001,6 +1001,12 @@ static BOOL hostiles;
 			reference = the_planet;
 		}
 		
+		if (reference != [player compassTarget])
+		{
+			[player setCompassTarget:reference];
+			[player doScriptEvent:@"compassTargetChanged" withArguments:[NSArray arrayWithObjects:reference, CompassModeToString([player compassMode]), nil]];
+		}
+		
 		// translate and rotate the view
 		Vector relativePosition = vector_subtract([reference position], position);
 		relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);

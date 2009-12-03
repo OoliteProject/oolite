@@ -340,6 +340,7 @@ typedef enum
 	unsigned				ship_kills;
 	
 	OOCompassMode			compassMode;
+	Entity 					*compassTarget;
 	
 	GLfloat					fuel_leak_rate;
 	
@@ -480,7 +481,7 @@ typedef enum
 	
 							keyboardRollPitchOverride: 1,
 							keyboardYawOverride: 1,
-waitingForStickCallback: 1;
+							waitingForStickCallback: 1;
 #if OOLITE_ESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
@@ -603,6 +604,9 @@ waitingForStickCallback: 1;
 - (NSString *) dial_objinfo;
 
 - (NSMutableArray *) commLog;
+
+- (Entity *) compassTarget;
+- (void) setCompassTarget:(Entity *)value;
 
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;

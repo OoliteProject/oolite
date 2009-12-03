@@ -625,6 +625,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
+	compassTarget = nil;
 	
 	// speech
 	isSpeechOn = [dict oo_boolForKey:@"speech_on"];
@@ -1068,6 +1069,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL) setUpShipFromDictionary:(NSDictionary *)shipDict
 {
+	compassTarget = nil;
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
 	// Player-only settings.
@@ -1153,6 +1155,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) dealloc
 {
+	compassTarget = nil;
 	[ship_desc release];
 	[hud release];
 	[commLog release];
@@ -2559,6 +2562,18 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	
 	return commLog;
+}
+
+
+- (Entity *) compassTarget
+{
+	return compassTarget;
+}
+
+
+- (void) setCompassTarget:(Entity *)value
+{
+	compassTarget = value;
 }
 
 
