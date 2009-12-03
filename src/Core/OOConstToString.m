@@ -23,8 +23,6 @@ MA );-);, USA.
 */
 
 #import "OOConstToString.h"
-#import "Entity.h"
-#import "PlayerEntity.h"
 #import "Universe.h"
 #import <jsapi.h>
 #import "OOCollectionExtractors.h"

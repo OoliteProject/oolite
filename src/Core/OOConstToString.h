@@ -87,6 +87,7 @@ OOGalacticHyperspaceBehaviour StringToGalacticHyperspaceBehaviour(NSString *stri
 NSString *GalacticHyperspaceBehaviourToString(OOGalacticHyperspaceBehaviour behaviour) CONST_FUNC;
 
 NSString *CompassModeToString(OOCompassMode mode);
+OOCompassMode StringToCompassMode(NSString *string);
 
 #if DOCKING_CLEARANCE_ENABLED
 NSString *DockingClearanceStatusToString(OODockingClearanceStatus dockingClearanceStatus) PURE_FUNC;
