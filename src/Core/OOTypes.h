@@ -344,6 +344,18 @@ typedef enum
 } OOEnergyUnitType;
 
 
+typedef enum
+{
+	// Exposed to shaders.
+	COMPASS_MODE_BASIC,
+	COMPASS_MODE_PLANET,
+	COMPASS_MODE_STATION,
+	COMPASS_MODE_SUN,
+	COMPASS_MODE_TARGET,
+	COMPASS_MODE_BEACONS
+} OOCompassMode;
+
+
 #if DOCKING_CLEARANCE_ENABLED
 typedef enum
 {

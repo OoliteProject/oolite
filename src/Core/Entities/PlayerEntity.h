@@ -197,18 +197,6 @@ typedef enum
 #define PASSAGE_UNKNOWN_KEY				@"passage_unknown"
 
 
-typedef enum
-{
-	// Exposed to shaders.
-	COMPASS_MODE_BASIC,
-	COMPASS_MODE_PLANET,
-	COMPASS_MODE_STATION,
-	COMPASS_MODE_SUN,
-	COMPASS_MODE_TARGET,
-	COMPASS_MODE_BEACONS
-} OOCompassMode;
-
-
 #define SCANNER_ZOOM_RATE_UP			2.0
 #define SCANNER_ZOOM_RATE_DOWN			-8.0
 
