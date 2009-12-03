@@ -74,6 +74,7 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -270,6 +271,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
+	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ 0 }
 };
 
@@ -1588,7 +1590,11 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 	NSString				*key = JSValToNSString(context, argv[0]);
 	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
+	{
+		*outResult = [result javaScriptValueInContext:context];
+		return YES;
+	}
 	
 	if (EXPECT_NOT(key == nil))
 	{
@@ -1598,6 +1604,24 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 	
 	if([thisEnt hasEquipmentItem:key]) result = @"EQUIPMENT_OK";
 	else if([thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]]) result = @"EQUIPMENT_DAMAGED";
+	
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// selectNewMissile()
+static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*result = @"EQ_MISSILE";
+	
+	if (JSShipGetShipEntity(context, this, &thisEnt))	// valid ship.
+	{
+		result = [[thisEnt newMissile] identifier];
+		// if there's a badly defined missile, newMissile may be nil
+		if (result == nil) reault = @"EQ_MISSILE";
+	}
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;

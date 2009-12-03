@@ -117,7 +117,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) addSubEntity:(Entity *) subent;
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
-- (OOEquipmentType *) newMissile;
 
 // equipment
 - (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged;
@@ -1346,40 +1345,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) newMissile
-{
-	ShipEntity			*missile = nil;
-	OOEquipmentType		*missileType = nil;
-	BOOL 				isMissileType = NO;
-	id 					value;
-	
-	if (missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];
-	if (missile == nil)	// no custom role
-	{
-		if (randf() < 0.8f)	// choose a standard missile 80% of the time
-		{
-			missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
-		}
-		else				// otherwise choose any with the role 'missile' - which may include alternative weapons
-		{
-			missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
-		}
-	}
-	
-	NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
-
-	while ((value = [enumerator nextObject])) {
-		missileType = [OOEquipmentType equipmentTypeWithIdentifier:(NSString *)value];
-		// ensure that we have a missile or mine
-		isMissileType = (missileType != nil && [missileType isMissileOrMine]);
-		if (isMissileType) break;
-	}
-	[missile release];
-
-	return (isMissileType ? missileType : nil);
-}
-
-
 - (BOOL) validForAddToUniverse
 {
 	if (shipinfoDictionary == nil)
@@ -2274,6 +2239,38 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			missiles--;
 		}
 	}
+}
+
+
+- (OOEquipmentType *) newMissile
+{
+	ShipEntity			*missile = nil;
+	OOEquipmentType		*missileType = nil;
+	BOOL 				isMissileType = NO;
+	id 					value;
+	double				chance = randf();
+	
+	// random role 10% of the cases, if a missile role is defined.
+	if (chance < 0.9f && missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];	// retained
+	if (missile == nil)	// no actual role defined?
+	{
+		// random role 20% of the cases. (the 10% above is included here)
+		if (chance > 0.8f) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
+		// otherwise use the standard role.
+		else missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+	}
+	
+	NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
+
+	while ((value = [enumerator nextObject])) {
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:(NSString *)value];
+		// ensure that we have a missile or mine
+		isMissileType = (missileType != nil && [missileType isMissileOrMine]);
+		if (isMissileType) break;
+	}
+	[missile release];
+
+	return (isMissileType ? missileType : nil);
 }
 
 
