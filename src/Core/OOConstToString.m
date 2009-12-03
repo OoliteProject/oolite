@@ -474,6 +474,8 @@ NSString *EnergyUnitTypeToString(OOEnergyUnitType unit)
 		CASE(ENERGY_UNIT_NAVAL);
 		CASE(ENERGY_UNIT_NORMAL_DAMAGED);
 		CASE(ENERGY_UNIT_NAVAL_DAMAGED);
+		default:	// handle OLD_ENERGY_UNITs
+			break;
 	}
 	
 	return @"Unsupported energy unit";
