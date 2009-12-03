@@ -56,7 +56,7 @@ SOFTWARE.
 {
 	if ((self = [super init]))
 	{
-		_chunk = Mix_LoadWAV([path cString]);
+		_chunk = Mix_LoadWAV([path UTF8String]);
 		
 		if (_chunk != NULL)
 		{

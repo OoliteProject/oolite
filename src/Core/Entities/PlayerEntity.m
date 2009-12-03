@@ -1123,6 +1123,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
+	
+	primaryTarget = NO_TARGET;
+	[self safeAllMissiles];
 	[self setActiveMissile:0];
 	
 	// set view offsets

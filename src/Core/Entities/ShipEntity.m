@@ -349,14 +349,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
 	
-	missileRole = [shipDict oo_stringForKey:@"missile_role"];
-	unsigned	i;
-	for (i = 0; i < missiles; i++)
-	{
-		missile_list[i] = [self newMissile];
-		if (missile_list[i] == nil) i--;
-	}
-	
 	fuel = [shipDict oo_unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
 	fuel_accumulator = 1.0;
 	
@@ -422,7 +414,16 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	{
 		scanClass = StringToScanClass([shipDict oo_stringForKey:@"scanClass" defaultValue:@"CLASS_NOT_SET"]);
 	}
-
+	
+	// Populate the missiles here. Must come after scanClass.
+	missileRole = [shipDict oo_stringForKey:@"missile_role"];
+	unsigned	i;
+	for (i = 0; i < missiles; i++)
+	{
+		missile_list[i] = [self newMissile];
+		if (missile_list[i] == nil) i--;
+	}
+	
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
@@ -1981,7 +1982,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
 	}
 	
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"])
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && [equipmentKey isEqualToString:@"thargon"]))
 	{
 		if (missiles >= max_missiles) return NO;
 	}
@@ -2133,7 +2134,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// special cases
 	
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"])
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && [equipmentKey isEqualToString:@"thargon"]))
 	{
 		if (missiles >= max_missiles) return NO;
 		
@@ -2142,6 +2143,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		missiles++;
 		return YES;
 	}
+	
+	// don't add any thargons to non-thargoid ships.
+	if([equipmentKey isEqualToString:@"thargon"]) return NO;
 	
 	// we can theoretically add a damaged weapon, but not a working one.
 	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
@@ -2200,7 +2204,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentTypeCheckKey];
 	if (eqType == nil)  return;
 	
-	if ([eqType isMissileOrMine])
+	if ([eqType isMissileOrMine] || ([self isThargoid] && [equipmentTypeCheckKey isEqualToString:@"thargon"]))
 	{
 		[self removeExternalStore:eqType];
 	}
@@ -2249,6 +2253,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	BOOL 				isMissileType = NO;
 	id 					value;
 	double				chance = randf();
+	
+	if ([self isThargoid])
+	{
+		if (missileRole != nil)	missile = [UNIVERSE newShipWithRole:missileRole];	// retained
+		else missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:[missile primaryRole]];
+		return missileType;
+	}
 	
 	// random role 10% of the cases, if a missile role is defined.
 	if (chance < 0.9f && missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];	// retained

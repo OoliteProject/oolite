@@ -150,7 +150,7 @@ MA 02110-1301, USA.
 #endif
 
 	imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] cString]);
+	icon = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"WMicon.bmp"] UTF8String]);
 
 	if (icon != NULL)
 	{
@@ -516,7 +516,7 @@ if (!showSplashScreen) return;
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
   #endif
 
-	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] cString]);
+	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
 
 	if (image == NULL)
 	{
@@ -873,7 +873,7 @@ if (!showSplashScreen) return;
 	free(aux);
 
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
-	SDL_SaveBMP(tmpSurface, [pathToPic cString]);
+	SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]);
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	

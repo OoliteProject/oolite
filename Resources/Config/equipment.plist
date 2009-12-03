@@ -114,6 +114,12 @@
 		}
 	),
 	/* next items are new items, don't place new items before this mark */
+	/* Thargoid equipment, incompatible with non-thargoid ships. */
+	(
+		95, 1000, "Thargon",
+		"thargon",
+		"Alien drone ship."
+	),
 	( /* Passenger Compartment, like missiles this can be bought multiple times */
 		5, 8250, "Passenger Berth - takes up 5t of cargo space",
 		"EQ_PASSENGER_BERTH",

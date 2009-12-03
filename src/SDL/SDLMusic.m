@@ -77,7 +77,7 @@ void musicFinished()
 
 	[super init];
 
-	music = Mix_LoadMUS([filepath cString]);
+	music = Mix_LoadMUS([filepath UTF8String]);
 	if (!music)
 	{
 		NSLog(@"Mix_LoadMUS(\"%@\"): %s\n", filepath, Mix_GetError());

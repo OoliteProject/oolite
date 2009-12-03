@@ -739,11 +739,11 @@ static void OpenLogFile(NSString *name)
 		[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogPath()];
 #elif OOLITE_WINDOWS
 		// start wordpad (for historical reasons wordpad is called write from the command prompt)
-		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] cString]);
+		system([[NSString stringWithFormat:@"write \"Logs\\%@.log\"", name] UTF8String]);
 #elif  OOLITE_LINUX
 		// Nothing to do here, since we dump to stdout instead of to a file.
 		//OOLogOutputHandlerStopLoggingToStdout();
-		system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] cString]);
+		system([[NSString stringWithFormat:@"cat \"%@\"", OOLogHandlerGetLogPath()] UTF8String]);
 #else 
 		do {} while (0);
 #endif
