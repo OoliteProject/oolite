@@ -15,6 +15,7 @@
 	key_next_missile			= "y";
 	key_ecm						= "e";
 
+	key_target_incoming_missile		= "T";
 	key_target_missile			= "t";
 	key_untarget_missile		= "u";
 	key_ident_system			= "r";
