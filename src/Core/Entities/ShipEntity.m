@@ -227,6 +227,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	max_missiles = [shipDict oo_intForKey:@"max_missiles" defaultValue:missiles];
 	if (max_missiles > SHIPENTITY_MAX_MISSILES) max_missiles = SHIPENTITY_MAX_MISSILES;
 	if (missiles > max_missiles) missiles = max_missiles;
+	missile_load_time = [shipDict oo_floatForKey:@"missile_load_time" defaultValue:0];
+	missile_launch_time = [UNIVERSE getTime] + missile_load_time;
 	
 	// upgrades:
 	if ([shipDict oo_fuzzyBooleanForKey:@"has_ecm"])  [self addEquipmentItem:@"EQ_ECM"];
@@ -7175,6 +7177,8 @@ BOOL class_masslocks(int some_class)
 	Vector			start, v_eject;
 	Entity			*target = nil;
 	ShipEntity		*target_ship = nil;
+	
+	if ([UNIVERSE getTime] < missile_launch_time) return NO;
 
 	// default launching position
 	start.x = 0.0;						// in the middle
@@ -7252,6 +7256,7 @@ BOOL class_masslocks(int some_class)
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setIsMissileFlag:YES];
 	[missile resetShotTime];
+	missile_launch_time = [UNIVERSE getTime] + missile_load_time; // set minimum launchtime for the next missile.
 	
 	[UNIVERSE addEntity:missile];
 

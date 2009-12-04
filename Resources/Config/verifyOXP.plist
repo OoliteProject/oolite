@@ -271,7 +271,8 @@
 			"hyperspace_motor_spin_time",
 			"throw_sparks",
 			"max_missiles",
-			"cloak_passive"
+			"cloak_passive",
+			"missile_load_time"
 		);
 		knownStationKeys =
 		(
