@@ -98,6 +98,7 @@ enum
 	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_hudHidden						// hud visibility, boolean, read/write
 };
 
@@ -121,8 +122,9 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "compassTarget",				kPlayerShip_compassTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
-	{ "hudHidden",					kPlayerShip_hudHidden,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
+	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
+	{ "hudHidden",					kPlayerShip_hudHidden,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -267,6 +269,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
+			OK = YES;
+			break;
+			
+		case kPlayerShip_compassMode:
+			result = CompassModeToString([player compassMode]);
 			OK = YES;
 			break;
 			
