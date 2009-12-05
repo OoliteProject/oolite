@@ -114,6 +114,7 @@
 			valueType = "$customViewSpec";
 		};
 		max_missiles = "positiveInteger";
+		missile_load_time = "positiveFloat";
 		script = "$scriptFileName";
 		has_npc_traffic = "fuzzyBoolean";
 		script_info = "dictionary";

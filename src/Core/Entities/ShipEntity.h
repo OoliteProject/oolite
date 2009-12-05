@@ -205,8 +205,8 @@ MA 02110-1301, USA.
 	unsigned				missiles;					// number of on-board missiles
 	unsigned				max_missiles;				// number of missile pylons
 	NSString				*missileRole;
-	OOTimeAbsolute			missile_load_time;			// minimum time interval between missile launches
-	OOTimeAbsolute			missile_launch_time;		// time since last missile launch
+	OOTimeDelta				missile_load_time;			// minimum time interval between missile launches
+	OOTimeAbsolute			missile_launch_time;		// time of last missile launch
 	
 #ifdef OO_BRAIN_AI
 	OOBrain					*brain;						// brain controlling ship, could be a character brain or the autopilot

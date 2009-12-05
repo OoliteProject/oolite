@@ -231,6 +231,9 @@ static OOColor *ColorWithHSBColor(Vector c)
 	_atmosphereDrawable = [planet->_atmosphereDrawable copy];
 	[_atmosphereDrawable setRadius:collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR * 2.0]; //not to scale: invisible otherwise
 	
+	[_planetDrawable setLevelOfDetail:0.8f];
+	[_atmosphereDrawable setLevelOfDetail:0.8f];
+	
 	return self;
 }
 
@@ -302,15 +305,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	
-	if (_miniature)
-	{
-		[_planetDrawable setLevelOfDetail:0.8f];
-	}
-	else
+	if (!_miniature)
 	{
 		[_planetDrawable calculateLevelOfDetailForViewDistance:zero_distance];
+		[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	}
-	[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	
 	[_planetDrawable renderOpaqueParts];
 	[_atmosphereDrawable renderOpaqueParts];

@@ -72,7 +72,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
 		_width = 512;
-		_height = 512;
+		_height = _width;	// Ideally, aspect ratio would be 2:1, but current code only handles squares.
 	}
 	
 	return self;
@@ -214,6 +214,11 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 			/*	Terrain shading
 				was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
 				little difference, other than being faster.
+				
+				FIXME: need to work out a decent way to scale this with texture
+				size, so overall darkness is constant. As an experiment, I used
+				a size of 128 << k and shade = pow(norm.z, k + 1); this was
+				better, but still darker at smaller resolutions.
 			*/
 			GLfloat shade = norm.z * norm.z * norm.z;
 			
