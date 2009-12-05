@@ -1,6 +1,7 @@
 (
 	(
-		0, 2, "Fuel", "EQ_FUEL",
+		0, 2, "Fuel",
+		"EQ_FUEL",
 		"Fuel for the witchspace engines.",
 		{
 			"available_to_all" = true;
@@ -8,7 +9,8 @@
 		}
 	),
 	(
-		1, 300, "Missile", "EQ_MISSILE",
+		1, 300, "Missile",
+		"EQ_MISSILE",
 		"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.",
 		{
 			"available_to_all" = true;
