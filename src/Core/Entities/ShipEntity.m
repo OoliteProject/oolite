@@ -2140,7 +2140,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (missiles >= max_missiles) return NO;
 		
-		//missile_list[missiles] = [self newMissile];
 		missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 		missiles++;
 		return YES;
@@ -2231,7 +2230,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (void) removeExternalStore:(OOEquipmentType *)eqType
+- (BOOL) removeExternalStore:(OOEquipmentType *)eqType
 {
 	NSString	*identifier = [eqType identifier];
 	unsigned	i;
@@ -2242,9 +2241,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			// now 'delete' [i] by compacting the array
 			while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
+			
 			missiles--;
+			return YES;
 		}
 	}
+	return NO;
 }
 
 
@@ -4800,7 +4802,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		return [self maxCargo];
 	}	
 	
-	if ([self isPlayer]) // always use this to avoid inconsistencies  - Kaks 20091002
+	if ([self isPlayer]) // always use this method to avoid inconsistencies  - Kaks 20091002
 	{
 		/*
 	  	  The cargo array is nil when the player ship is docked, due to action in unloadCargopods. For
@@ -7169,100 +7171,128 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (BOOL) fireMissile
+- (ShipEntity *) fireMissile
+{
+	return [self fireMissileWithIdentifier:nil andTarget:[self primaryTarget]];
+}
+
+
+- (ShipEntity *) fireMissileWithIdentifier:(NSString *) identifier andTarget:(Entity *) target
 {
 	ShipEntity		*missile = nil;
+	ShipEntity		*target_ship = nil;
+	
 	Vector			vel;
 	Vector			origin = position;
 	Vector			start, v_eject;
-	Entity			*target = nil;
-	ShipEntity		*target_ship = nil;
 	
-	if ([UNIVERSE getTime] < missile_launch_time) return NO;
+	if ([UNIVERSE getTime] < missile_launch_time) return nil;
 
 	// default launching position
-	start.x = 0.0;						// in the middle
-	start.y = boundingBox.min.y - 4.0;	// 4m below bounding box
-	start.z = boundingBox.max.z + 1.0;	// 1m ahead of bounding box
+	start.x = 0.0f;						// in the middle
+	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
+	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
 	// custom launching position
 	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
 	
-	double  throw_speed = 250.0;
+	double  throw_speed = 250.0f;
 	Quaternion q1 = orientation;
-	target = [self primaryTarget];
+	if (isPlayer) q1.w = -q1.w;   // player view is reversed!
 	
 	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
-		return NO;
+		return nil;
 	
 	if ([target isShip])
 	{
 		target_ship = (ShipEntity*)target;
-		if ([target_ship isCloaked])  return NO;
-		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning])  return NO;
+		if ([target_ship isCloaked])  return nil;
+		if (![self hasMilitaryScannerFilter] && [target_ship isJammingScanning]) return nil;
 	}
-
-	// use a random missile from the list
-	unsigned i = floor(randf()*(double)missiles);
 	
-	missile = [UNIVERSE newShipWithRole:[missile_list[i] identifier]];
+	unsigned i;
+	if (identifier == nil)
+	{
+		// use a random missile from the list
+		i = floor(randf()*(double)missiles);
+		identifier = [missile_list[i] identifier];
+		missile = [UNIVERSE newShipWithRole:identifier];
+		if (missile == nil)	// invalid missile role.
+		{
+			// remove that invalid missile role from the missiles list.
+			while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
+			missiles--;
+		}
+	}
+	else
+		missile = [UNIVERSE newShipWithRole:identifier];
 	
-	// now 'delete' [i] by compacting the array
-	while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
-	missiles--;
-
-	if (missile == nil) return NO;
+	if (missile == nil)	return nil;
+	
+	// By definition, the player will always have the specified missile.
+	// What if the NPC didn't actually have the specified missile to begin with?
+	if (!isPlayer && ![self removeExternalStore:[OOEquipmentType equipmentTypeWithIdentifier:identifier]])
+	{
+		[missile release];
+		return nil;
+	}
 	
 	double mcr = missile->collision_radius;
-	
 	v_eject = vector_normal(start);
-	
 	vel = kZeroVector;	// starting velocity
 	
 	// check if start is within bounding box...
 	while (	(start.x > boundingBox.min.x - mcr)&&(start.x < boundingBox.max.x + mcr)&&
 			(start.y > boundingBox.min.y - mcr)&&(start.y < boundingBox.max.y + mcr)&&
-			(start.z > boundingBox.min.z - mcr)&&(start.z < boundingBox.max.z + mcr))
+			(start.z > boundingBox.min.z - mcr)&&(start.z < boundingBox.max.z + mcr) )
 	{
-		start.x += mcr * v_eject.x;	start.y += mcr * v_eject.y;	start.z += mcr * v_eject.z;
-		vel.x += 10.0f * mcr * v_eject.x;	vel.y += 10.0f * mcr * v_eject.y;	vel.z += 10.0f * mcr * v_eject.z;	// throw it outward a bit harder
+		start = vector_add(start, vector_multiply_scalar(v_eject, mcr));
+		
+		// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
+		if (!isPlayer) vel = vector_add(vel, vector_multiply_scalar(v_eject, 10.0f * mcr)); // throw it outward a bit harder
 	}
-
-	if (isPlayer)
-		q1.w = -q1.w;   // player view is reversed remember!
 	
-	vel.x += (flightSpeed + throw_speed) * v_forward.x;
-	vel.y += (flightSpeed + throw_speed) * v_forward.y;
-	vel.z += (flightSpeed + throw_speed) * v_forward.z;
+	// Kept different vel calculations for player & NPCs. Is there an acutal reason for that difference? - Kaks 20091204
+	if (isPlayer) vel = vector_multiply_scalar(v_forward, flightSpeed + throw_speed);
+	else vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
+	
 
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
 	
-	if (![self isMissileFlagSet])  [missile setOwner:self];
-	else  [missile setOwner:[self owner]];
+	if (isPlayer) [missile setScanClass: CLASS_MISSILE];
 	
-	[missile addTarget:target];
+// special cases
+	
 	//We don't want real missiles in a group. Missiles could become escorts when the group is also used as escortGroup.
 	if ([missile scanClass] == CLASS_THARGOID) 
 	{
 		if([self group] == nil) [self setGroup:[OOShipGroup groupWithName:@"thargoid group"]];
 		[missile setGroup:[self group]];
 	}
+	
+	// is this a submunition?
+	if (![self isMissileFlagSet])  [missile setOwner:self];
+	else  [missile setOwner:[self owner]];
+	
+// end special cases
+	
 	[missile setPosition:origin];
+	[missile addTarget:target];	
 	[missile setOrientation:q1];
-	[missile setVelocity:vel];
-	[missile setSpeed:150.0];
-	[missile setDistanceTravelled:0.0];
 	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setIsMissileFlag:YES];
+	[missile setVelocity:vel];
+	[missile setSpeed:150.0f];
+	[missile setDistanceTravelled:0.0f];
 	[missile resetShotTime];
 	missile_launch_time = [UNIVERSE getTime] + missile_load_time; // set minimum launchtime for the next missile.
 	
 	[UNIVERSE addEntity:missile];
-
 	[missile release]; //release
-
-	if ([missile scanClass] == CLASS_MISSILE)
+	
+	// missile lives on after UNIVERSE addEntity
+	if ([missile scanClass] == CLASS_MISSILE && [target isShip])
 	{
 		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:target_ship];
 		[target_ship setPrimaryAggressor:self];
@@ -7274,8 +7304,8 @@ BOOL class_masslocks(int some_class)
 	{
 		[self deactivateCloakingDevice];
 	}
-
-	return YES;
+	
+	return missile;
 }
 
 

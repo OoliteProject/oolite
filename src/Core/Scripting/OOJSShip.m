@@ -75,6 +75,7 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -272,6 +273,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
+	{ "fireMissile",			ShipFireMissile,			0 },
 	{ 0 }
 };
 
@@ -1622,6 +1624,28 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 		// if there's a badly defined missile, newMissile may be nil
 		if (result == nil) result = @"EQ_MISSILE";
 	}
+	
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// fireMissile()
+static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*key = nil;
+	id						result = nil;
+	
+	*outResult = [result javaScriptValueInContext:context];
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt) || [thisEnt isPlayer])	// stale reference, no-op, or player ship
+	{
+		return YES;
+	}
+	
+	if (argc > 0) result = [thisEnt fireMissileWithIdentifier:JSValToNSString(context, argv[0]) andTarget:[thisEnt primaryTarget]];
+	else result = [thisEnt fireMissile];
 	
 	*outResult = [result javaScriptValueInContext:context];
 	return YES;

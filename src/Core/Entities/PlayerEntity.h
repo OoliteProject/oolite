@@ -606,11 +606,11 @@ typedef enum
 - (BOOL) dialIdentEngaged;
 - (NSString *) specialCargo;
 - (NSString *) dialTargetName;
-- (ShipEntity *) missileForStation:(unsigned)value;
-- (void) sortMissiles;
+- (ShipEntity *) missileForPylon:(unsigned)value;
 - (void) safeAllMissiles;
 - (void) selectNextMissile;
 - (void) tidyMissilePylons;
+- (BOOL) removeFromPylon:(unsigned) pylon;
 
 - (void) clearAlertFlags;
 - (int) alertFlags;
@@ -623,7 +623,7 @@ typedef enum
 - (OOEnergyUnitType) energyUnitType;
 
 - (BOOL) fireEnergyBomb;
-- (BOOL) launchMine:(ShipEntity *)mine;
+- (ShipEntity *) launchMine:(ShipEntity *)mine;
 
 - (BOOL) fireMainWeapon;
 - (OOWeaponType) weaponForView:(OOViewID)view;

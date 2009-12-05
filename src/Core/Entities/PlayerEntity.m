@@ -540,7 +540,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict
 {
-	unsigned i,j;
+	unsigned i;
 	
 	[[UNIVERSE gameView] resetTypedString];
 
@@ -726,13 +726,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
 	if (missileRoles != nil)
 	{
+		/*
+		// The loop will clamp the equipped missiles to max_missiles, there's no need to clamp missileRoles
 		if (max_missiles < [missileRoles count])
 		{
 			missileRoles = [missileRoles subarrayWithRange:NSMakeRange(0, max_missiles)];
 		}
-		missiles = [missileRoles count];	// sanity check the number of missiles
+		*/
 		
-		for (i = 0, j = 0; i < max_missiles && i < [missileRoles count]; i++, j++)
+		for (i = 0, missiles = 0; i < [missileRoles count] && missiles < max_missiles; i++)
 		{
 			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
 			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
@@ -740,11 +742,12 @@ static PlayerEntity *sSharedPlayer = nil;
 				ShipEntity *amiss = [UNIVERSE newShipWithRole:missile_desc];
 				if (amiss)
 				{
-					missile_entity[j] = amiss;   // retain count = 1
+					missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:missile_desc];
+					missile_entity[missiles] = amiss;   // retain count = 1
+					missiles++;
 				}
 				else
 				{
-					j--;
 					OOLogWARN(@"load.failed.missileNotFound", @"couldn't find missile with role '%@' in [PlayerEntity setCommanderDataFromDictionary:], missile entry discarded.", missile_desc);
 				}
 			}
@@ -754,11 +757,16 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		for (i = 0; i < missiles; i++)
 		{
+			missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
 		}
 	}
 	
+	[self setActiveMissile:0];
+
+	/*
+	// The following isn't needed anymore - Kaks 20091204
 	// Sanity check: ensure the missiles variable holds the correct missile count.
 	missiles = [self countMissiles];
 	
@@ -766,6 +774,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		[self selectNextMissile];
 	}
+	*/
 	
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
@@ -1121,6 +1130,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	for (i = 0; i < missiles; i++)
 	{
+		missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 		missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];   // retain count = 1
 	}
 	
@@ -2697,36 +2707,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
-- (ShipEntity *) missileForStation: (unsigned) value
+- (ShipEntity *) missileForPylon: (unsigned) value
 {
 	if (value < max_missiles)  return missile_entity[value];
 	return nil;
 }
 
-
-- (void) sortMissiles
-{
-	//	puts all missiles into the first available slots
-	
-	unsigned i;
-	missiles = [self countMissiles];
-	for (i = 0; i < missiles; i++)
-	{
-		if (missile_entity[i] == nil)
-		{
-			unsigned j;
-			for (j = i + 1; j < max_missiles; j++)
-			{
-				if (missile_entity[j])
-				{
-					missile_entity[i] = missile_entity[j];
-					missile_entity[j] = nil;
-					j = max_missiles;
-				}
-			}
-		}
-	}
-}
 
 
 - (void) safeAllMissiles
@@ -2745,25 +2731,22 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) tidyMissilePylons
 {
-	// Shuffle missiles up so there's:
-	// no gaps between missiles
-	// the first missile is in the first pylon
-	int i;
-	int pylon=0;
+	// Make sure there's no gaps between missiles, synchronise missile_entity & missile_list.
+	int i, pylon = 0;
 	for(i = 0; i < PLAYER_MAX_MISSILES; i++)
 	{
-		if(missile_entity[i])
-			{
-			missile_entity[pylon]=missile_entity[i];
+		if(missile_entity[i] != nil)
+		{
+			missile_entity[pylon] = missile_entity[i];
+			missile_list[pylon] = [OOEquipmentType equipmentTypeWithIdentifier:[missile_entity[i] primaryRole]];
 			pylon++;
-			}
+		}
 	}
 
-	// missiles have been shoved up, now make sure the remainder
-	// of the pylons are cleaned up.
+	// Now clean up the remainder of the pylons.
 	for(i = pylon; i < PLAYER_MAX_MISSILES; i++)
 	{
-		missile_entity[i]=nil;
+		missile_entity[i] = nil;
 	}
 }
 
@@ -2801,8 +2784,16 @@ static PlayerEntity *sSharedPlayer = nil;
 					}
 					else if ([self primaryTargetID] != NO_TARGET)
 					{
-						[missile_entity[activeMissile] addTarget:[self primaryTarget]];
-						missile_status = MISSILE_STATUS_TARGET_LOCKED;
+						// never inherit target if we have EQ_MULTI_TARGET installed! [ Bug #16221 : Targeting enhancement regression ]
+						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"])
+						{
+							primaryTarget = NO_TARGET;
+						}
+						else
+						{
+							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
+							missile_status = MISSILE_STATUS_TARGET_LOCKED;
+						}
 					}
 				}
 			}
@@ -2930,121 +2921,56 @@ static PlayerEntity *sSharedPlayer = nil;
 		if (missile_entity[i] == nil)
 		{
 			missile_entity[i] = [missile retain];
-			missiles = [self countMissiles];
-			if (missiles == 1)  [self selectNextMissile];
+			missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:[missile primaryRole]];
+			missiles++;
+			if (missiles == 1) [self setActiveMissile:0];;	// auto select the first purchased missile
 			return YES;
 		}
 	}
-	missiles = [self countMissiles];
+	
 	return NO;
 }
 
 
-- (BOOL) fireMissile
+- (ShipEntity *) fireMissile
 {
-	ShipEntity *missile = missile_entity[activeMissile];	// retain count is 1
+	ShipEntity	*missile = missile_entity[activeMissile];	// retain count is 1
+	NSString	*identifier = [missile primaryRole];
+	ShipEntity	*firedMissile = nil;
 
-	if (missile == nil)
-		return NO;
-
-	double mcr = missile->collision_radius;
-
-	if ([missile isMine]&&(missile_status != MISSILE_STATUS_SAFE))
+	if (missile == nil) return nil;
+	
+	if ([missile isMine] && (missile_status != MISSILE_STATUS_SAFE))
 	{
-		BOOL launchedOK = [self launchMine:missile];
-		if (launchedOK)
+		firedMissile = [self launchMine:missile];
+		[self removeFromPylon:activeMissile];
+		if (firedMissile != nil) [self playMineLaunched];
+	}
+	else
+	{
+		if (missile_status != MISSILE_STATUS_TARGET_LOCKED) return nil;
+		//  release this before creating it anew in fireMissileWithIdentifier
+		firedMissile = [self fireMissileWithIdentifier:identifier andTarget:[missile primaryTarget]];
+		[self removeFromPylon:activeMissile];
+
+		if (firedMissile != nil)
 		{
-			[self playMineLaunched];
-			[missile release];	//  release
+			[self playMissileLaunched];
+			if (cloaking_device_active && cloakPassive)
+			{
+				[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+			}
 		}
-		missile_entity[activeMissile] = nil;
-		[self selectNextMissile];
-		missiles = [self countMissiles];
-		return launchedOK;
-	}
-
-	if (missile_status != MISSILE_STATUS_TARGET_LOCKED)
-		return NO;
-
-	Vector  vel;
-	Vector  origin = position;
-	Vector  start, v_eject;
-
-	// default launching position
-	start.x = 0.0f;						// in the middle
-	start.y = boundingBox.min.y - 4.0f;	// 4m below bounding box
-	start.z = boundingBox.max.z + 1.0f;	// 1m ahead of bounding box
-	// custom launching position
-	ScanVectorFromString([shipinfoDictionary objectForKey:@"missile_launch_position"], &start);
-	
-	float throw_speed = 250.0f;
-	Quaternion q1 = orientation;
-	q1.w = -q1.w;   // player view is reversed remember!
-
-	Entity  *target = [self primaryTarget];
-
-	// select a new active missile and decrease the missiles count
-	missile_entity[activeMissile] = nil;
-	[self selectNextMissile];
-	missiles = [self countMissiles];
-
-
-	v_eject = vector_normal(start);
-
-	// check if start is within bounding box...
-	while (	(start.x > boundingBox.min.x - mcr)&&(start.x < boundingBox.max.x + mcr)&&
-			(start.y > boundingBox.min.y - mcr)&&(start.y < boundingBox.max.y + mcr)&&
-			(start.z > boundingBox.min.z - mcr)&&(start.z < boundingBox.max.z + mcr))
-	{
-		start.x += (float)mcr * v_eject.x;	start.y += (float)mcr * v_eject.y;	start.z += (float)mcr * v_eject.z;
 	}
 	
-	vel = vector_multiply_scalar(v_forward, flightSpeed + throw_speed);
-	
-	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
-	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
-	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;
-
-	[missile setPosition:origin];
-	[missile setScanClass: CLASS_MISSILE];
-	[missile addTarget:target];
-	[missile setOrientation:q1];
-	[missile setStatus: STATUS_IN_FLIGHT];  // necessary to get it going!
-	[missile setIsMissileFlag:YES];
-	[missile setVelocity: vel];
-	[missile setSpeed:150.0];
-	[missile setOwner:self];
-	[missile setDistanceTravelled:0.0f];
-	[missile resetShotTime];
-	
-	[UNIVERSE addEntity:missile];
-	[missile release];
-	
-	if ([target isShip])
-	{	
-		ShipEntity *targetShip = (ShipEntity*)target;
-		[targetShip setPrimaryAggressor:self];
-		[targetShip doScriptEvent:@"shipAttackedWithMissile" withArgument:missile andArgument:self];
-		[self doScriptEvent:@"shipFiredMissile" withArgument:missile andArgument:targetShip];
-		[targetShip reactToAIMessage:@"INCOMING_MISSILE"];
-	}
-	
-	[self playMissileLaunched];
-	
-	if (cloaking_device_active && cloakPassive)
-	{
-		[self deactivateCloakingDevice];
-		[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
-	}
-
-	return YES;
+	return firedMissile;
 }
 
 
-- (BOOL) launchMine:(ShipEntity*) mine
+- (ShipEntity *) launchMine:(ShipEntity*) mine
 {
 	if (!mine)
-		return NO;
+		return nil;
 	float  mine_speed = 500.0f;
 	[self dumpItem: mine];
 	Vector mvel = [mine velocity];
@@ -3057,7 +2983,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[mine setBehaviour: BEHAVIOUR_IDLE];
 	[mine setOwner: self];
 	[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
-	return YES;
+	return mine;
 }
 
 
@@ -4478,19 +4404,8 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (NSArray *) missilesList
 {
-	NSMutableArray		*miss = [NSMutableArray arrayWithCapacity:missiles];
-	ShipEntity 			*missileMine;
-	unsigned			i = 0;
-	
-	for (i = 0; i < missiles; i++)
-	{
-		missileMine = missile_entity[i];
-		if (missileMine)
-		{
-			[miss addObject:[OOEquipmentType equipmentTypeWithIdentifier:[missileMine primaryRole]]];
-		}
-	}
-	return [[miss copy] autorelease];
+	[self tidyMissilePylons];	// just in case.
+	return [super missilesList];
 }
 
 
@@ -5864,7 +5779,7 @@ static NSString *last_outfitting_key=nil;
 		{
 			credits -= price;
 			[self safeAllMissiles];
-			[self sortMissiles];
+			[self tidyMissilePylons];
 			[self setActiveMissile:0];
 		}
 		return mounted_okay;
@@ -5917,21 +5832,22 @@ static NSString *last_outfitting_key=nil;
 - (int) removeMissiles
 {
 	[self safeAllMissiles];
-	[self sortMissiles];
 	int tradeIn = 0;
 	unsigned i;
 	for (i = 0; i < missiles; i++)
 	{
-		ShipEntity* weapon = missile_entity[i];
-		missile_entity[i] = nil;
-		if (weapon)
-		{
-			NSString* weapon_key = [weapon primaryRole];
-			int weapon_value = (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
-			tradeIn += weapon_value;
-			[weapon release];
-		}
+		NSString* weapon_key = [missile_list[i] identifier];
+		
+		if (weapon_key != nil)
+			tradeIn += (int)[UNIVERSE getEquipmentPriceForKey:weapon_key];
 	}
+	
+	for (i = 0; i < max_missiles; i++)
+	{
+		[missile_entity[i] release];
+		missile_entity[i] = nil;
+	}
+	
 	missiles = 0;
 	return tradeIn;
 }
@@ -6397,7 +6313,7 @@ static NSString *last_outfitting_key=nil;
 		unsigned i;
 		for (i = 0; i < max_missiles; i++)
 		{
-			if ([[self missileForStation:i] hasPrimaryRole:itemKey])  return YES;
+			if ([[self missileForPylon:i] hasPrimaryRole:itemKey])  return YES;
 		}
 	}
 	
@@ -6414,32 +6330,54 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) removeExternalStore:(OOEquipmentType *)eqType
+- (BOOL) removeExternalStore:(OOEquipmentType *)eqType
 {
-	NSString *identifier = [eqType identifier];
+	NSString	*identifier = [eqType identifier];
 	
 	// Look for matching missile.
 	unsigned i;
 	for (i = 0; i < max_missiles; i++)
 	{
-		if ([[self missileForStation:i] hasPrimaryRole:identifier])
+		if ([[self missileForPylon:i] hasPrimaryRole:identifier])
 		{
-			// Remove the missile.
-			[missile_entity[i] release];
-			missile_entity[i] = nil;
-			
-			// If it's the currently selected missile, deselect it.
-			if (i == [self activeMissile])
-			{
-				[self selectNextMissile];
-			}
+			[self removeFromPylon:i];
 			
 			// Just remove one at a time.
-			break;
+			return YES;
 		}
 	}
+	return NO;
+}
+
+
+- (BOOL) removeFromPylon:(unsigned) pylon
+{
+	if (pylon >= max_missiles) return NO;
 	
-	missiles = [self countMissiles];
+	if (missile_entity[pylon] != nil)
+	{
+		NSString	*identifier = [missile_entity[pylon] primaryRole];
+		// Remove the missile.
+		[missile_entity[pylon] release];
+		missile_entity[pylon] = nil;
+		
+		[super removeExternalStore:[OOEquipmentType equipmentTypeWithIdentifier:identifier]];
+		[self tidyMissilePylons];
+		
+		// This should be the currently selected missile, deselect it.
+		if (pylon >= activeMissile)
+		{
+			if (activeMissile == missiles) activeMissile--;
+			if (activeMissile > 0) activeMissile--;
+			else activeMissile = max_missiles - 1;
+			
+			[self selectNextMissile];
+		}
+		
+		return YES;
+	}
+
+	return NO;
 }
 
 
@@ -6929,6 +6867,7 @@ static NSString *last_outfitting_key=nil;
 - (void) printIdentLockedOnForMissile:(BOOL)missile
 {
 	NSString			*fmt = nil;
+	if ([self primaryTarget] == nil) return;
 	
 	if (missile)  fmt = DESC(@"missile-locked-onto-@");
 	else  fmt = DESC(@"ident-locked-onto-@");

@@ -7644,9 +7644,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	OOCreditsQuantity	ship_main_weapons_value = 0;
 	OOCreditsQuantity	ship_other_weapons_value = 0;
-	
-	// FIXME: add the value for the actual missiles present on board.
-	OOCreditsQuantity	ship_missiles_value = ship_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
+	OOCreditsQuantity	ship_missiles_value = 0;
+
+	// calculate the actual value for the missiles present on board.
+	NSArray *missileRoles = [dict oo_arrayForKey:@"missile_roles"];
+	if (missileRoles != nil)
+	{
+		unsigned i;
+		for (i = 0; i < ship_missiles; i++)
+		{
+			NSString *missile_desc = [missileRoles oo_stringAtIndex:i];
+			if (missile_desc != nil && ![missile_desc isEqualToString:@"NONE"])
+			{
+				ship_missiles_value += [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
+			}
+		}
+	}
+	else
+		ship_missiles_value = ship_missiles * [UNIVERSE getEquipmentPriceForKey:@"EQ_MISSILE"] / 10;
 	
 	// needs to be a signed value, we can then subtract from the base price, if less than standard equipment.
 	long long extra_equipment_value = ship_max_passengers * [UNIVERSE getEquipmentPriceForKey:@"EQ_PASSENGER_BERTH"]/10;
@@ -8311,10 +8326,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	sun_center_position[2] = 0.0;
 	sun_center_position[3] = 1.0;
 	
-	if (gui != nil) [gui autorelease];
+	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];
 	
-	if (message_gui != nil)[message_gui autorelease];
+	[message_gui autorelease];
 	message_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(480, 160)
 							  columns:1
@@ -8327,7 +8342,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[message_gui setDrawPosition: make_vector(0.0, -40.0, 640.0)];
 	[message_gui setAlpha:1.0];
 	
-	if (comm_log_gui != nil) [comm_log_gui autorelease];
+	[comm_log_gui autorelease];
 	comm_log_gui = [[GuiDisplayGen alloc]
 					initWithPixelSize:NSMakeSize(360, 120)
 							  columns:1
@@ -8347,34 +8362,36 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	universal_time = 0.0;
 	messageRepeatTime = 0.0;
 	
-	if (commodityLists != nil) [commodityLists autorelease];
+	[commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (commodityData != nil) [commodityData autorelease];
+	[commodityData autorelease];
 	commodityData = [[NSArray arrayWithArray:[commodityLists oo_arrayForKey:@"default"]] retain];
 	
-	if (illegal_goods != nil) [illegal_goods autorelease];
+	[illegal_goods autorelease];
 	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (descriptions != nil) [descriptions autorelease];
+	[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (characters != nil) [characters autorelease];
+	[characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (customsounds != nil) [customsounds autorelease];
+	[customsounds autorelease];
 	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	if (planetInfo != nil) [planetInfo autorelease];
+	[planetInfo autorelease];
 	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
-	if (pirateVictimRoles != nil) [pirateVictimRoles autorelease];
+	[pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
 	//	[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
+	//NSDictionary *tmpAIMap = autoAIMap;	// try & avoid crash & memleak - nope, it still crashes
 	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
+	//[tmpAIMap autorelease];				// try & avoid crash & memleak - nope, it still crashes
 	
-	if (equipmentData != nil) [equipmentData autorelease];
+	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
 	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
 	{

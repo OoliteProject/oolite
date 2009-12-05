@@ -1745,7 +1745,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		unsigned i;
 		for (i = 0; i < n_mis; i++)
 		{
-			ShipEntity *missile = [player missileForStation:i];
+			ShipEntity *missile = [player missileForPylon:i];
 			if (missile)
 			{
 #if !OLD_ICONS

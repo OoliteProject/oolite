@@ -427,7 +427,7 @@ MA 02110-1301, USA.
 // Internal, subject to change. Use the methods above instead.
 - (BOOL) hasOneEquipmentItem:(NSString *)itemKey includeMissiles:(BOOL)includeMissiles;
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType;
-- (void) removeExternalStore:(OOEquipmentType *)eqType;
+- (BOOL) removeExternalStore:(OOEquipmentType *)eqType;
 
 // Passengers - not supported for NPCs, but interface is here for genericity.
 - (unsigned) passengerCount;
@@ -737,7 +737,8 @@ BOOL	class_masslocks(int some_class);
 - (BOOL) fireDirectLaserShot;
 - (BOOL) fireLaserShotInDirection: (OOViewID) direction;
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color;
-- (BOOL) fireMissile;
+- (ShipEntity *) fireMissile;
+- (ShipEntity *) fireMissileWithIdentifier:(NSString *) identifier andTarget:(Entity *) target;
 - (BOOL) isMissileFlagSet;
 - (void) setIsMissileFlag:(BOOL)newValue;
 - (BOOL) fireECM;
