@@ -1822,7 +1822,13 @@ keys[a] = NO; keys[b] = NO; \
 					  height:(OOUInteger)height
 					rowBytes:(OOUInteger)rowBytes
 {
-	OOLog(@"dumpRGBA.unimplemented", @"If you had a Mac, you'd be getting some sort of debug image (\"%@\") dumped somewhere.", name);
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
+	
+	NSString *dumpFileName = [NSString stringWithFormat:@"%@.bmp", name];
+	
+	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
+	SDL_SaveBMP(tmpSurface, [dumpFileName UTF8String]);
+	SDL_FreeSurface(tmpSurface);
 }
 #endif
 
