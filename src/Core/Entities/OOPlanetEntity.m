@@ -302,7 +302,14 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	
-	[_planetDrawable calculateLevelOfDetailForViewDistance:zero_distance];
+	if (_miniature)
+	{
+		[_planetDrawable setLevelOfDetail:0.8f];
+	}
+	else
+	{
+		[_planetDrawable calculateLevelOfDetailForViewDistance:zero_distance];
+	}
 	[_atmosphereDrawable setLevelOfDetail:[_planetDrawable levelOfDetail]];
 	
 	[_planetDrawable renderOpaqueParts];

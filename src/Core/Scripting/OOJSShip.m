@@ -1634,8 +1634,7 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	NSString				*key = nil;
-	id						result = nil;
+	id					result = nil;
 	
 	*outResult = [result javaScriptValueInContext:context];
 	
