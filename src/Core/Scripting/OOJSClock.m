@@ -41,6 +41,7 @@ static JSBool ClockGetProperty(JSContext *context, JSObject *this, jsval name, j
 // Methods
 static JSBool JSClockToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sClockClass =
@@ -99,9 +100,10 @@ static JSPropertySpec sClockProperties[] =
 
 static JSFunctionSpec sClockMethods[] =
 {
-	// JS name					Function					min args
+	// JS name						Function						min args
 	{ "toString",				JSClockToString,			0 },
 	{ "clockStringForTime",		ClockClockStringForTime,	1 },
+	{ "addSeconds",				ClockAddSeconds,			1 },
 	{ 0 }
 };
 
@@ -202,5 +204,26 @@ static JSBool ClockClockStringForTime(JSContext *context, JSObject *this, uintN 
 	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return NO;
 	
 	*outResult = [ClockToString(time, NO) javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// clockAddSeconds(seconds : Number) : String
+static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	double						time;
+	
+	if (EXPECT_NOT(!JS_ValueToNumber(context, argv[0], &time)))  return YES;	// no-op
+	if (time > 2592000.0f || time < 1.0f)	// 30 * 24 * 3600
+	{
+		OOReportJSWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
+
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	[OOPlayerForScripting() AddToAdjustTime:time];
+	
+	*outResult = BOOLToJSVal(YES);
 	return YES;
 }

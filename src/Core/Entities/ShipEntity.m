@@ -7179,6 +7179,8 @@ BOOL class_masslocks(int some_class)
 
 - (ShipEntity *) fireMissileWithIdentifier:(NSString *) identifier andTarget:(Entity *) target
 {
+	// both players and NPCs!
+	//
 	ShipEntity		*missile = nil;
 	ShipEntity		*target_ship = nil;
 	

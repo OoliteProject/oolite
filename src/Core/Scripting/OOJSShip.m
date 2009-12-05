@@ -1192,13 +1192,16 @@ static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
+	BOOL					OK;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))  return YES;	// stale reference, no-op.
 	
-	if (![thisEnt fireECM])
+	OK = [thisEnt fireECM];
+	if (!OK)
 	{
 		OOReportJSWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
 	}
+	*outResult = BOOLToJSVal(OK);
 	return YES;
 }
 
@@ -1211,11 +1214,7 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	JSBool						includeWeapons = YES;
 	BOOL						OK = YES;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -1266,11 +1265,7 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 {
 	ShipEntity				*thisEnt = nil;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	BOOL hasPod = [thisEnt hasEscapePod];
 
@@ -1290,11 +1285,7 @@ static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, j
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = YES;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	NSString			*name = nil;
 	
@@ -1341,11 +1332,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 	BOOL				OK = JSVAL_IS_INT(argv[0]);
 	NSString 			*key = nil;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	if (OK && argc == 6)
 	{
@@ -1426,11 +1413,7 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 	BOOL						OK = YES;
 	BOOL						berth;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -1476,11 +1459,7 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 	NSString					*key = nil;
 	BOOL						OK = YES;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -1533,11 +1512,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 	NSString				*status = JSValToNSString(context, argv[1]);
 	BOOL					hasOK = NO, hasDamaged = NO;
 	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
 	if (EXPECT_NOT([UNIVERSE strict]))
 	{

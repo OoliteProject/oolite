@@ -2486,6 +2486,12 @@ static PlayerEntity *sSharedPlayer = nil;
 }
 
 
+- (void) AddToAdjustTime:(double) seconds ;
+{
+	ship_clock_adjust += seconds;
+}
+
+
 - (NSString*) dial_clock
 {
 	return ClockToString(ship_clock, ship_clock_adjust > 0);

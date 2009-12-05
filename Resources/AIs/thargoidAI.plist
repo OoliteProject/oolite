@@ -11,7 +11,32 @@
 		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
-		UPDATE = (scanForNonThargoid, "pauseAI: 15.0");
+		UPDATE = ("pauseAI: 15.0", "setStateTo: THARGON_COUNTDOWN1");
+	};
+	"THARGON_COUNTDOWN1" =
+	{
+		"ATTACKED" = (setTargetToPrimaryAggressor, performAttack, "setStateTo: THARGON_COUNTDOWN2");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: THARGON_COUNTDOWN2");
+		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
+		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
+		UPDATE = (scanForNonThargoid, "pauseAI: 15.0", "setStateTo: THARGON_COUNTDOWN2");
+	};
+	"THARGON_COUNTDOWN2" =
+	{
+		"ATTACKED" = (setTargetToPrimaryAggressor, performAttack, "setStateTo: THARGON_COUNTDOWN3");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, "setStateTo: THARGON_COUNTDOWN3");
+		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
+		"TARGET_FOUND" = (setTargetToFoundTarget, performAttack);
+		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
+		UPDATE = ("pauseAI: 15.0", "setStateTo: THARGON_COUNTDOWN3");
+	};
+	"THARGON_COUNTDOWN3" =
+	{
+		"ATTACKED" = (setTargetToPrimaryAggressor, fireMissile, "setStateTo: ATTACK_SHIP");
+		"INCOMING_MISSILE" = (fightOrFleeMissile, setTargetToPrimaryAggressor, fireMissile, "setStateTo: ATTACK_SHIP");
+		"TARGET_DESTROYED" = ("setStateTo: LOOK_FOR_TARGETS");
+		"TARGET_LOST" = ("setStateTo: LOOK_FOR_TARGETS");
+		UPDATE = (fireMissile, scanForNonThargoid, "pauseAI: 15.0", "setStateTo: ATTACK_SHIP");
 	};
 	"LOOK_FOR_TARGETS" =
 	 {
