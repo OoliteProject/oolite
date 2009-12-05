@@ -2923,7 +2923,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			missile_entity[i] = [missile retain];
 			missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:[missile primaryRole]];
 			missiles++;
-			if (missiles == 1) [self setActiveMissile:0];;	// auto select the first purchased missile
+			if (missiles == 1) [self setActiveMissile:0];	// auto select the first purchased missile
 			return YES;
 		}
 	}

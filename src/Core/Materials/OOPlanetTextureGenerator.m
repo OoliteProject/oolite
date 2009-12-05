@@ -54,6 +54,7 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 
 float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias);
 
+static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
 static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
 
 
@@ -179,6 +180,19 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
 	float seaBias = _landFraction - 1.0;
 	
+	
+	/*
+	The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
+	While most polar seas would be covoered in ice, and therefore white, paleSeaColour
+	doesn't seem take latitutde into account, resulting in all coastal areas to be white, 
+	or whatever defined as polar sea colours.
+	For now, I'm overriding paleSeaColour to be pale blend of sea and land, and widened the shallows.
+	TODO: investigate the use of polar land colour for the sea at higher latitudes.
+	*/
+	
+	FloatRGB tmpColor = _polarSeaColor;
+	_polarSeaColor = Blend(0.45, tmpColor, Blend(0.7, _seaColor, _landColor));
+	
 	unsigned x, y;
 	for (y = 0; y < height; y++)
 	{
@@ -219,6 +233,10 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 #endif
 		}
 	}
+	
+	// restore _polarSeaColor to its original value.
+	 _polarSeaColor = tmpColor;
+	 
 	success = YES;
 	format = kOOTextureDataRGBA;
 	
@@ -263,8 +281,11 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	float hi = 0.66667 * maxQ;
 	float oh = 1.0 / hi;
 	float ih = 1.0 / (1.0 - hi);
-#define RECIP_COASTLINE_PORTION		(150.0f)
+	
+#define RECIP_COASTLINE_PORTION		(160.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
+#define SHALLOWS					(1.6f * COASTLINE_PORTION)	// increased shallows area.
+#define RECIP_SHALLOWS				(1.0f / SHALLOWS)
 #define BEACH_SPECULAR_FACTOR		(0.6f)	// Portion of specular transition that occurs in paleSeaColor/landColor transition (rest is in paleSeaColor/seaColor transition)
 #define SHALLOWS_SPECULAR_FACTOR	(1.0f - BEACH_SPECULAR_FACTOR)
 	
@@ -277,11 +298,11 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	
 	if (q <= 0.0f)
 	{
-		if (q > -COASTLINE_PORTION)
+		if (q > -SHALLOWS)
 		{
 			// Coastal waters
-			result = Blend(-q * RECIP_COASTLINE_PORTION, seaColor, paleSeaColor);
-			specular = -(q * RECIP_COASTLINE_PORTION) * SHALLOWS_SPECULAR_FACTOR + BEACH_SPECULAR_FACTOR;
+			result = Blend(-q * RECIP_SHALLOWS, seaColor, paleSeaColor);
+			specular = -(q * RECIP_SHALLOWS) * SHALLOWS_SPECULAR_FACTOR + BEACH_SPECULAR_FACTOR;
 		}
 		else
 		{
