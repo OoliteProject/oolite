@@ -2474,6 +2474,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	return ship_clock;
 }
 
+
 - (double) clockTimeAdjusted
 {
 	return ship_clock + ship_clock_adjust;

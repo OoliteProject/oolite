@@ -1822,22 +1822,15 @@ keys[a] = NO; keys[b] = NO; \
 					  height:(OOUInteger)height
 					rowBytes:(OOUInteger)rowBytes
 {
-	// backup the original working directory.
-	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
-	// use the snapshots directory
-	[[NSFileManager defaultManager] chdirToSnapshotPath];
-
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
-	NSString *dumpFileName = [NSString stringWithFormat:@"%@.bmp", name];
+	// use the snapshots directory	
+	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	dumpFile = [dumpFileName stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
 	
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
-	SDL_SaveBMP(tmpSurface, [dumpFileName UTF8String]);
+	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
-
-	// restore the original working  directory name.
-	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
-
 }
 #endif
 

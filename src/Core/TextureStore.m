@@ -507,7 +507,7 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 		}
 	}
-#ifndef NDEBUG
+#if DEBUG_DUMP
 	if (nplanes == 4)
 	{
 		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
