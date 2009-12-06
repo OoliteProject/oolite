@@ -1826,7 +1826,7 @@ keys[a] = NO; keys[b] = NO; \
 	
 	// use the snapshots directory	
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
-	dumpFile = [dumpFileName stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
+	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
 	
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
