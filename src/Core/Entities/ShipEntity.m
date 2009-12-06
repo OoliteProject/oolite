@@ -1566,8 +1566,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	//scripting
 	if (!haveExecutedSpawnAction && script != nil && [self status] == STATUS_IN_FLIGHT)
 	{
-		[[PlayerEntity sharedPlayer] setScriptTarget:self];
+		PlayerEntity *player = [PlayerEntity sharedPlayer];
+		[player setScriptTarget:self];
 		[self doScriptEvent:@"shipSpawned"];
+		if ([self status] != STATUS_DEAD)  [player doScriptEvent:@"shipSpawned" withArgument:self];
 		haveExecutedSpawnAction = YES;
 	}
 
