@@ -78,7 +78,7 @@ remake: clean all
 # Here are our linux autopackager targets
 #
 pkg-autopackage:
-	makepackage -c -m
+	makepackage -c -m installers/autopackage/default.apspec
 
 # Here are our Debian packager targets
 #

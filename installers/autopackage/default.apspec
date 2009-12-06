@@ -18,10 +18,7 @@ URL: http://oolite.aegidian.org
 License: GNU GPL version 2
 SoftwareVersion: 1.74
 AutopackageTarget: 1.4
-# Uncomment the following line if 'uname -m' gives x86_64
-# CPUArchitectures: x86_64
-
-# Put the following line in comments if 'uname -m' is different than x86_64
+# Use 'CPUArchitectures: x86_64' if 'uname -m' gives x86_64
 CPUArchitectures: x86
 
 PackageFileName: $SHORTNAME-$SOFTWAREVERSION.$CPUARCHITECTURES.package
@@ -43,8 +40,8 @@ profession. Above all, reach the Elite rating.
 [BuildPrepare]
 make -f Makefile clean
 make -f Makefile release
-cp FreeDesktop/oolite.desktop $build_root
-cp FreeDesktop/oolite-icon.png $build_root
+cp installers/FreeDesktop/oolite.desktop $build_root
+cp installers/FreeDesktop/oolite-icon.png $build_root
 cp Doc/AdviceForNewCommanders.pdf $build_root
 cp Doc/OoliteReadMe.pdf $build_root
 cp Doc/OoliteRS.pdf $build_root
