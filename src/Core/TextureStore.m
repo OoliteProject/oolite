@@ -510,6 +510,8 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 #ifndef NDEBUG
 	if (nplanes == 4)
 	{
+		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
+		
 		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low]
 										   bytes:imageBuffer
 										   width:width

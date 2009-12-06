@@ -23,8 +23,8 @@ MA 02110-1301, USA.
 */
 
 #import <Foundation/Foundation.h>
-#include "SDL.h"
-#include "SDL_mixer.h"
+#include <SDL.h>
+#include <SDL_mixer.h>
 
 
 @interface OOMusic : NSObject

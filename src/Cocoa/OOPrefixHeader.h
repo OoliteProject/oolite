@@ -8,6 +8,6 @@
 		-- Ahruman 2009-09-03
 	*/
 	
-	#include "jstypes.h"
+	#include <jstypes.h>
 	#define _UINT64
 #endif

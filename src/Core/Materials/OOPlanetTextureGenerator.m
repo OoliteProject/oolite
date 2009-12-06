@@ -256,6 +256,8 @@ END:
 #if DEBUG_DUMP
 	if (success)
 	{
+		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-new.", _seed.high, _seed.low]);
+	
 		[[UNIVERSE gameView] dumpRGBAToFileNamed:[NSString stringWithFormat:@"planet-%u-%u-new", _seed.high, _seed.low]
 										   bytes:buffer
 										   width:width
@@ -289,7 +291,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	
 #define RECIP_COASTLINE_PORTION		(160.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
-#define SHALLOWS					(1.9f * COASTLINE_PORTION)	// increased shallows area.
+#define SHALLOWS					(2.0f * COASTLINE_PORTION)	// increased shallows area.
 #define RECIP_SHALLOWS				(1.0f / SHALLOWS)
 #define BEACH_SPECULAR_FACTOR		(0.6f)	// Portion of specular transition that occurs in paleSeaColor/landColor transition (rest is in paleSeaColor/seaColor transition)
 #define SHALLOWS_SPECULAR_FACTOR	(1.0f - BEACH_SPECULAR_FACTOR)

@@ -47,8 +47,8 @@ SOFTWARE.
 */
 
 #import "OOSDLSound.h"
-#import "SDL.h"
-#import "SDL_mixer.h"
+#import <SDL.h>
+#import <SDL_mixer.h>
 
 
 @interface OOSDLConcreteSound: OOSound

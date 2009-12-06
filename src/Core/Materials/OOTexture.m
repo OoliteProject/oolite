@@ -346,10 +346,10 @@ static BOOL		sRectangleTextureAvailable;
 	if (generator == nil)  return nil;
 	if (![[OOAsyncWorkManager sharedAsyncWorkManager] addTask:generator priority:kOOAsyncPriorityMedium])
 	{
-		OOLog(@"generator.temp", @"Failed to queue generator %@!", generator);
+		OOLog(@"planetTex.temp", @"Failed to queue generator %@!", generator);
 		return nil;
 	}
-	OOLog(@"generator.temp", @"Queued generator %@.", generator);
+	OOLog(@"planetTex.temp", @"Queued generator %@.", generator);
 	
 	return [[[self alloc] initWithLoader:generator
 									 key:[generator cacheKey]

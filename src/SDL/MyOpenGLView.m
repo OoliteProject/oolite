@@ -38,7 +38,7 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
-#include <ctype.h>
+#import <ctype.h>
 
 @interface MyOpenGLView (OOPrivate)
 
@@ -837,9 +837,9 @@ if (!showSplashScreen) return;
 	if (w & 3)
 		w = w + 4 - (w & 3);
 
-	// backup the savegame directory name.
+	// backup the savegame directory.
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
-	// use the snapshots directory.
+	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 
 	int imageNo = 0;
@@ -1822,6 +1822,11 @@ keys[a] = NO; keys[b] = NO; \
 					  height:(OOUInteger)height
 					rowBytes:(OOUInteger)rowBytes
 {
+	// backup the original working directory.
+	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
+	// use the snapshots directory
+	[[NSFileManager defaultManager] chdirToSnapshotPath];
+
 	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
 	
 	NSString *dumpFileName = [NSString stringWithFormat:@"%@.bmp", name];
@@ -1829,6 +1834,10 @@ keys[a] = NO; keys[b] = NO; \
 	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
 	SDL_SaveBMP(tmpSurface, [dumpFileName UTF8String]);
 	SDL_FreeSurface(tmpSurface);
+
+	// restore the original working  directory name.
+	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
+
 }
 #endif
 
