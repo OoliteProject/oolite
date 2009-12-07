@@ -89,6 +89,8 @@ typedef enum
 
 + (BOOL) writeDiagnosticData:(NSData *)data toFileNamed:(NSString *)name;
 
++ (NSDictionary *) materialDefaults;
+
 // Clear ResourceManager-internal caches (not those handled by OOCacheManager)
 + (void) clearCaches;
 

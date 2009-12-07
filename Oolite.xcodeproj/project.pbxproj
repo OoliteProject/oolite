@@ -606,6 +606,8 @@
 		1AD1F4FF0CD9E83700EAE520 /* NSThreadOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AD1F4C80CD9E42A00EAE520 /* NSThreadOOExtensions.m */; };
 		1AD1F5000CD9E83800EAE520 /* NSThreadOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA564710CD68D800E891B8 /* OOStellarBody.h */; };
+		1ADA576D10CDB1E700E891B8 /* oolite-default-planet.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */; };
+		1ADA576E10CDB1E700E891B8 /* oolite-default-planet.fragment in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */; };
 		1ADA8AB30F42DBA80001BEC9 /* OODeepCopy.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */; };
 		1ADA8AB40F42DBA80001BEC9 /* OODeepCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */; };
 		1ADBA5500BD0F173008FC99C /* OOBasicMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */; };
@@ -1066,6 +1068,8 @@
 			dstPath = Shaders;
 			dstSubfolderSpec = 7;
 			files = (
+				1ADA576D10CDB1E700E891B8 /* oolite-default-planet.vertex in Copy Shaders */,
+				1ADA576E10CDB1E700E891B8 /* oolite-default-planet.fragment in Copy Shaders */,
 				1A6515100CCC9E2E0054D01B /* oolite-standard-vertex.vertex in Copy Shaders */,
 				1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */,
 				1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */,
@@ -1697,6 +1701,8 @@
 		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
+		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.frag; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; };
+		1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.vert; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
 		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
 		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
@@ -2383,6 +2389,8 @@
 				1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */,
 				1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */,
 				1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */,
+				1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */,
+				1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */,
 			);
 			path = Shaders;
 			sourceTree = "<group>";

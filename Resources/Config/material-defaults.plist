@@ -8,19 +8,41 @@
 	// Macros prepended to shader source code for ship entities.
 	"ship-prefix-macros" =
 	{
-		"OO_USER_DEFINED_BINDINGS" = 1;
-		"OO_TANGENT_ATTR" = 1;
+		OO_USER_DEFINED_BINDINGS = 1;
+		OO_TANGENT_ATTR = 1;
 	};
 
 
 	// Material definition used for DAT files with no TEXTURES section (which specifies material names and texture co-ordinates).
 	"no-textures-material" =
 	{
-		"diffuse_map" = "";
-		"diffuse" = (0, 0, 0.4);
-		"ambient" = (0, 0, 0.4);
-		"emission" = (0.9, 0.9, 0.9);
-		"specular" = (1.0, 0.8, 0.8);
-		"shininess" = 1;
+		diffuse_map = "";
+		diffuse = (0, 0, 0.4);
+		ambient = (0, 0, 0.4);
+		emission = (0.9, 0.9, 0.9);
+		specular = (1.0, 0.8, 0.8);
+		shininess = 1;
+	};
+	
+	"planet-material" =
+	{
+		// Textures added dynamically.
+		vertex_shader = "oolite-default-planet.vertex";
+		fragment_shader = "oolite-default-planet.fragment";
+		uniforms =
+		{
+			uDiffuseMap = { type = texture; value = 0; };
+			uNormalMap = { type = texture; value = 1; };
+		};
+	};
+	"planet-synthetic-macros" =
+	{
+		OOSTD_DIFFUSE_AND_SPECULAR_MAP = 1;
+		OOSTD_CUBE_MAP = 0;
+	};
+	"planet-customized-macros" =
+	{
+		OOSTD_DIFFUSE_MAP = 1;
+		OOSTD_CUBE_MAP = 0;
 	};
 }

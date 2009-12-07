@@ -1,0 +1,36 @@
+attribute vec3			tangent;
+
+
+// No vNormal, because normal is always 0,0,1 in tangent space.
+varying vec3			vEyeVector;
+varying vec2			vTexCoords;
+varying vec3			vLight0Vector;
+varying vec3			vLight1Vector;
+varying vec3			vNormal;
+varying vec3			vCoords;
+
+
+void main(void)
+{
+	vCoords = gl_Vertex.xyz;
+	
+	// Build tangent basis
+	vec3 n = normalize(gl_NormalMatrix * gl_Normal);
+	vec3 t = normalize(gl_NormalMatrix * tangent);
+	vec3 b = cross(n, t);
+vNormal = n;
+	
+	mat3 TBN = mat3(t, b, n);
+	
+	vec3 eyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
+	vEyeVector = eyeVector * TBN;
+	
+	vec3 light0Vector = gl_LightSource[0].position.xyz + eyeVector;
+	vLight0Vector = light0Vector * TBN;
+	
+	vec3 light1Vector = /*gl_LightSource[1].position.xyz*/ vec3(30, 100, 50) + eyeVector;
+	vLight1Vector = light1Vector * TBN;
+	
+	vTexCoords = gl_MultiTexCoord0.st;
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}

@@ -9337,12 +9337,10 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 NSDictionary *DefaultShipShaderMacros(void)
 {
 	static NSDictionary		*macros = nil;
-	NSDictionary			*materialDefaults = nil;
 	
 	if (macros == nil)
 	{
-		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		macros = [[materialDefaults oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
+		macros = [[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]] retain];
 	}
 	
 	return macros;

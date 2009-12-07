@@ -101,7 +101,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 
 - (uint32_t) textureOptions
 {
-	return [super textureOptions] | kOOTextureRepeatS | kOOTextureNoShrink;
+	return kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink;
 }
 
 

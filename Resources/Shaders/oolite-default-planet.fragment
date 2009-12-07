@@ -1,0 +1,69 @@
+#define OO_LIGHT_0_FIX 0
+
+uniform sampler2D		uDiffuseMap;
+
+// No vNormal, because normal is always 0,0,1 in tangent space.
+varying vec3			vEyeVector;
+varying vec2			vTexCoords;
+varying vec3			vLight0Vector;
+varying vec3			vLight1Vector;
+varying vec3			vNormal;
+varying vec3			vCoords;
+
+
+vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
+{
+	float intensity = lightVector.z;
+	intensity = max(intensity, 0.0);
+	return lightColor * intensity;
+}
+
+
+#ifndef OO_REDUCED_COMPLEXITY
+/*	Approximation of atan(y/z) with quadrant rectification, scaled to -0.5..0.5 instead of -pi..pi.
+	It is assumed that the values are in range. You are not expected to understand this.
+*/
+float TexLongitude(float z, float y)
+{
+	const float	k2Pi = 6.283185307179586;
+	const float	kMagic = 0.2732395447351;	// (4 - pi) / pi
+	
+	float ratio = z / y;
+	
+	float r1 = 1.0 / ((ratio + kMagic / ratio) * k2Pi);	// Result when abs(y) >= abs(x).
+	float r2 = 0.25 * sign(ratio) - ratio / ((1.0 + kMagic * ratio * ratio) * k2Pi);  // Result when abs(y) <= abs(x).
+	
+	float result = (abs(ratio) > 1.0) ? r1 : r2;
+	
+	// Adjust for sector.
+	// Equivalent to (z < 0.0) ? ((y > 0.0) ? 0.75 : -0.25) : 0.25.
+	// Well, technically not equivalent for z < 0, y = 0, but you'll very rarely see that exact case.
+	return result + step(z, 0.0) * sign(y) * 0.5 + 0.25;
+}
+#endif
+
+
+void main()
+{
+	/*	Fun sphere facts: the normalized coordinates of a point on a sphere at the origin
+		is equal to the object-space normal of the surface at that point.
+		Furthermore, we can construct the binormal (a vector pointing westward along the
+		surface) as the cross product of the normal with the Y axis. (This produces
+		singularities at the pole, but there have to be singularities according to the
+		Hairy Ball Theorem.) The tangent (a vector north along the surface) is then the
+		inverse of the cross product of the normal and binormal.
+	*/
+	vec3 coords = normalize(vCoords);
+	#define normal coords
+	vec3 binormal = cross(normal, vec3(0, 1, 0));
+	vec3 tangent = -cross(normal, binormal);
+	
+#ifdef OO_REDUCED_COMPLEXITY
+	#define texCoords vTexCoords
+#else
+	vec2 texCoords = vec2(TexLongitude(coords.x, coords.z), vTexCoords.t);
+#endif
+	
+	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoords);
+	gl_FragColor = diffuseMapColor;
+}

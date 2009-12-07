@@ -140,8 +140,7 @@
 	if (![textureName isEqual:[self textureName]])
 	{
 		[_material release];
-		NSDictionary *spec = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:@"repeat_s"];
-		spec = [NSDictionary dictionaryWithObject:spec forKey:@"diffuse_map"];
+		NSDictionary *spec = [@"{diffuse_map={repeat_s=yes;};}" propertyList];
 		_material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:spec];
 	}
 }

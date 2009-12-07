@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2007-2009 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -65,7 +65,11 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 @interface OOShaderMaterial (OOPrivate)
 
-- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max;
+// Convert a "textures" array to an "_oo_texture_objects" array.
+- (NSArray *) loadTexturesFromArray:(NSArray *)textureSpecs unitCount:(GLuint)max;
+
+// Load up an array of texture objects.
+- (void) addTexturesFromArray:(NSArray *)textureObjects unitCount:(GLuint)max;
 
 @end
 
@@ -98,8 +102,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	 bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	BOOL					OK = YES;
-	NSDictionary			*uniformDefs = nil;
-	NSArray					*textureDefs = nil;
 	NSString				*macroString = nil;
 	NSString				*vertexShader = nil;
 	NSString				*fragmentShader = nil;
@@ -160,14 +162,23 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (OK)
 	{
-		// Load uniforms
-		uniformDefs = [configuration oo_dictionaryForKey:@"uniforms"];
-		textureDefs = [configuration oo_arrayForKey:@"textures"];
+		// Load uniforms and textures, which are a flavour of uniform for our purpose.
+		NSDictionary *uniformDefs = [configuration oo_dictionaryForKey:@"uniforms"];
 		
-		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureDefs count]];
+		// ..
+		NSArray *textureArray = [configuration oo_arrayForKey:@"_oo_texture_objects"];
+		if (textureArray == nil)
+		{
+			NSArray *textureSpecs = [configuration oo_arrayForKey:@"textures"];
+			if (textureSpecs != nil)
+			{
+				textureArray = [self loadTexturesFromArray:textureSpecs unitCount:textureUnits];
+			}
+		}
+		
+		uniforms = [[NSMutableDictionary alloc] initWithCapacity:[uniformDefs count] + [textureArray count]];
 		[self addUniformsFromDictionary:uniformDefs withBindingTarget:target];
-		// ...and textures, which are a flavour of uniform for our purpose.
-		[self addTexturesFromArray:textureDefs unitCount:textureUnits];
+		[self addTexturesFromArray:textureArray unitCount:textureUnits];
 	}
 	
 	if (!OK)
@@ -601,30 +612,43 @@ static NSString *MacrosToString(NSDictionary *macros);
 
 @implementation OOShaderMaterial (OOPrivate)
 
-- (void)addTexturesFromArray:(NSArray *)textureNames unitCount:(GLuint)max
+- (NSArray *) loadTexturesFromArray:(NSArray *)textureSpecs unitCount:(GLuint)max
 {
-	id						textureDef = nil;
-	unsigned				i = 0;
+	unsigned i, count = MIN([textureSpecs count], max);
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count];
 	
-	// Allocate space for texture object name array
-	texCount = MAX(MIN(max, [textureNames count]), 0U);
-	if (texCount == 0)  return;
+	for (i = 0; i < count; i++)
+	{
+		id textureSpec = [textureSpecs objectAtIndex:i];
+		OOTexture *texture = [OOTexture textureWithConfiguration:textureSpec];
+		if (texture == nil)  texture = [OOTexture nullTexture];
+		[result addObject:texture];
+	}
+	
+	return result;
+}
 
+
+- (void) addTexturesFromArray:(NSArray *)textureObjects unitCount:(GLuint)max
+{
+	// Allocate space for texture object name array
+	texCount = MIN(max, [textureObjects count]);
+	if (texCount == 0)  return;
+	
 	textures = malloc(texCount * sizeof *textures);
 	if (textures == NULL)
 	{
 		texCount = 0;
 		return;
 	}
-
+	
 	// Set up texture object names and appropriate uniforms
+	unsigned i;
 	for (i = 0; i != texCount; ++i)
 	{
 		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
 		
-		textureDef = [textureNames objectAtIndex:i];
-		textures[i] = [OOTexture textureWithConfiguration:textureDef];
-		if (textures[i] == nil)  textures[i] = [OOTexture nullTexture];
+		textures[i] = [textureObjects objectAtIndex:i];
 		[textures[i] retain];
 	}
 }

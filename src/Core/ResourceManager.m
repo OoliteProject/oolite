@@ -946,6 +946,12 @@ static NSMutableDictionary *sStringCache;
 }
 
 
++ (NSDictionary *) materialDefaults
+{
+	return [self dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
+}
+
+
 + (BOOL)directoryExists:(NSString *)inPath create:(BOOL)inCreate
 {
 	BOOL				exists, directory;

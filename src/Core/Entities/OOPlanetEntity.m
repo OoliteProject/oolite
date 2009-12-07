@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
+#define SHADY_PLANETS 0
+
 #import "OOPlanetDrawable.h"
 
 #import "AI.h"
@@ -34,11 +36,13 @@ MA 02110-1301, USA.
 #import "OOCharacter.h"
 
 #import "OOMaths.h"
+#import "ResourceManager.h"
 #import "OOStringParsing.h"
 #import "OOCollectionExtractors.h"
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOSingleTextureMaterial.h"
+#import "OOShaderMaterial.h"
 
 
 @interface OOPlanetEntity (Private)
@@ -388,6 +392,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 
 - (void) setTextureFileName:(NSString *)textureName
 {
+#if !SHADY_PLANETS
 	if (textureName != nil)
 	{
 		[_planetDrawable setTextureName:textureName];
@@ -399,8 +404,48 @@ static OOColor *ColorWithHSBColor(Vector c)
 		[_planetDrawable setMaterial:material];
 		[material release];
 	}
+#else
+	OOTexture *diffuseMap = nil;
+	NSDictionary *macros = nil;
+	NSDictionary *materialDefaults = [ResourceManager materialDefaults];
+#if !NO_SHADERS
+	OOShaderSetting shaderLevel = [UNIVERSE shaderEffectsLevel];
+	BOOL shadersOn = shaderLevel > SHADERS_OFF;
+#else
+	const BOOL shadersOn = NO;
+#endif
 	
-
+	if (textureName != nil)
+	{
+		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", nil];
+		diffuseMap = [OOTexture textureWithConfiguration:spec];
+		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:@"planet-customized-macros"];
+	}
+	else
+	{
+		diffuseMap = [OOPlanetTextureGenerator planetTextureWithInfo:_materialParameters];
+		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:@"planet-synthetic-macros"];
+		textureName = @"dynamic";
+	}
+	OOMaterial *material = nil;
+	
+#if !NO_SHADERS
+	if (shadersOn)
+	{
+		NSMutableDictionary *config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
+		[config setObject:[NSArray arrayWithObjects:diffuseMap, nil] forKey:@"_oo_texture_objects"];
+		material = [OOShaderMaterial shaderMaterialWithName:textureName
+											  configuration:config
+													 macros:macros
+											  bindingTarget:self];
+	}
+#endif
+	if (material == nil)
+	{
+		material = [[OOSingleTextureMaterial alloc] initWithName:textureName texture:diffuseMap configuration:nil];
+	}
+	[_planetDrawable setMaterial:material];
+#endif
 }
 
 

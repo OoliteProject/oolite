@@ -151,10 +151,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	if (placeholderMaterial == nil)
 	{
-		NSDictionary			*materialDefaults = nil;
-		
-		materialDefaults = [ResourceManager dictionaryFromFilesNamed:@"material-defaults.plist" inFolder:@"Config" andMerge:YES];
-		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[materialDefaults oo_dictionaryForKey:@"no-textures-material"]];
+		placeholderMaterial = [[OOBasicMaterial alloc] initWithName:@"/placeholder/" configuration:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"no-textures-material"]];
 	}
 	
 	return placeholderMaterial;
