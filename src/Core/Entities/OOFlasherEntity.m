@@ -113,7 +113,23 @@ MA 02110-1301, USA.
 	_time += delta_t;
 	if (_frequency != 0)
 	{
-		_colorComponents[3] = 0.5 * sin(_frequency * M_PI * (_time + _phase)) + 0.5;
+		float wave = sin(_frequency * M_PI * (_time + _phase));
+		unsigned count = [_colors count];
+		if (wave < 0 && count > 1) 
+		{
+			if (wave > _wave && !_justSwitched )
+			{
+				_justSwitched = YES;
+				_activeColor = ++_activeColor % count;
+				[self setColor:[_colors objectAtIndex:_activeColor]];
+			}
+		}
+		else
+			if (_justSwitched ) _justSwitched = NO;
+		
+		_colorComponents[3] = 0.5 * wave + 0.5;
+		
+		_wave = wave;
 	}
 	else
 	{

@@ -33,12 +33,14 @@ MA 02110-1301, USA.
 @private
 	float					_frequency;
 	float					_phase;
+	float					_wave;
 	NSArray					*_colors;
 	OOUInteger				_activeColor;
 	
 	OOTimeDelta				_time;
 	
 	BOOL					_active;
+	BOOL					_justSwitched;
 }
 
 + (id) flasherWithDictionary:(NSDictionary *)dictionary;
