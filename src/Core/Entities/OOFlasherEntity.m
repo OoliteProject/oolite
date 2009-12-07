@@ -115,9 +115,9 @@ MA 02110-1301, USA.
 	{
 		float wave = sin(_frequency * M_PI * (_time + _phase));
 		unsigned count = [_colors count];
-		if (wave < 0 && count > 1) 
+		if (count > 1 && wave < 0) 
 		{
-			if (wave > _wave && !_justSwitched )
+			if (!_justSwitched && wave >= _wave)
 			{
 				_justSwitched = YES;
 				_activeColor = ++_activeColor % count;
@@ -125,7 +125,7 @@ MA 02110-1301, USA.
 			}
 		}
 		else
-			if (_justSwitched ) _justSwitched = NO;
+			if (_justSwitched) _justSwitched = NO;
 		
 		_colorComponents[3] = 0.5 * wave + 0.5;
 		

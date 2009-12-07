@@ -169,6 +169,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) preloadSounds;
 - (void) initSettings;
 - (void) initPlayerSettings;
+- (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location;
 
 - (void) resetSystemDataCache;
 
@@ -1228,7 +1229,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos
 {
-	unsigned			i, r, escortsAdded;
+	unsigned			i, r, escortsWeight;
 	unsigned			totalRocks = 0;
 	BOOL				includeHermit;
 	unsigned			clusterSize;
@@ -1256,7 +1257,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
-	OOLog(kOOLogUniversePopulate, @"Populating a system with economy \"%@\" (%u), and government \"%@\" (%u).", EconomyToString(economy), economy, GovernmentToString(government), government);
+	OOLog(kOOLogUniversePopulate, @"Populating system with economy \"%@\" (%u), and government \"%@\" (%u).", EconomyToString(economy), economy, GovernmentToString(government), government);
 	OOLogIndentIf(kOOLogUniversePopulate);
 	
 	// traders
@@ -1268,11 +1269,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	while (trading_parties > 15)
 		trading_parties = 1 + (Ranrot() % trading_parties);   // reduce
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d trading vessels", trading_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", trading_parties, @"");
 	
 	unsigned skim_trading_parties = (Ranrot() & 3) + trading_parties * (Ranrot() & 31) / 120;	// about 12%
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d sun skimming vessels", skim_trading_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@trading vessels", skim_trading_parties, @"sun skim ");
 	
 	// pirates
 	int anarchy = (8 - government);
@@ -1281,11 +1282,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	while (raiding_parties > 25)
 		raiding_parties = 12 + (Ranrot() % raiding_parties);   // reduce
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d pirate vessels", raiding_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", raiding_parties, @"");
 	
 	unsigned skim_raiding_parties = ((randf() < 0.14 * economy)? 1:0) + raiding_parties * (Ranrot() & 31) / 120;	// about 12%
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim pirates", skim_raiding_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@pirate vessels", skim_raiding_parties, @"sun skim ");
 	
 	// bounty-hunters and the law
 	unsigned hunting_parties = (1 + government) * trading_parties / 8;
@@ -1298,11 +1299,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (hunting_parties < 1)
 		hunting_parties = 1;
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d law/bounty-hunter vessels", hunting_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", hunting_parties, @"");
 	
 	unsigned skim_hunting_parties = ((randf() < 0.14 * government)? 1:0) + hunting_parties * (Ranrot() & 31) / 160;	// about 10%
 	
-	OOLog(kOOLogUniversePopulate, @"... adding %d sun skim law/bounty hunter vessels", skim_hunting_parties);
+	OOLog(kOOLogUniversePopulate, @"... adding %d %@law/bounty-hunter vessels", skim_hunting_parties, @"sun skim ");
 	
 	unsigned thargoid_parties = 0;
 	while ((Ranrot() % 100) < thargoidChance && thargoid_parties < 16)
@@ -1437,69 +1438,23 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	for (i = 0; (i < hunting_parties)&&(!sunGoneNova); i++)
 	{
 		pool = [[NSAutoreleasePool alloc] init];
-		
+
 		ShipEntity  *hunter_ship;
-		launchPos = h1_pos;
 		// random position along route1
 		r = 2 + (Ranrot() % (total_clicks - 2));  // find an empty slot
-		double ship_location = d_route1 * r / total_clicks;
-		launchPos.x += ship_location * v_route1.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route1.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route1.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
 		
-		escortsAdded = 0;
+		hunter_ship = [self spawnPatrolShipAt:h1_pos alongRoute:v_route1 withOffset:d_route1 * r / total_clicks];	// add a patrol ship to the universe
 		
-		if ((Ranrot() & 7) < government)
+		if(hunter_ship)
 		{
-			if ((Ranrot() & 7) + 6 <= techlevel)
-				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
-			else
-				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
-			if (hunter_ship)
+			escortsWeight = [hunter_ship pendingEscortCount] / 2;
+			if (hunting_parties > escortsWeight)		// ensure we are not trying to assign a negative
 			{
-				if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"police"
-						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
-				
-				[hunter_ship setPrimaryRole:@"police"];
-				if (hunter_ship->scanClass == CLASS_NOT_SET)
-					[hunter_ship setScanClass: CLASS_POLICE];
-				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
-				{
-					[hunter_ship setPendingEscortCount:[hunter_ship pendingEscortCount] + 2];
-				}
-				escortsAdded = [hunter_ship pendingEscortCount];
+				hunting_parties -= escortsWeight;	// reduce the number needed so we don't get huge swarms!
 			}
-		}
-		else
-		{
-			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
-				[hunter_ship setScanClass: CLASS_NEUTRAL];
-			if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-					[OOCharacter randomCharacterWithRole:@"hunter"
-					andOriginalSystem: (randf() > 0.75)? systems[Ranrot() & 255]:system_seed]]];
-			
-		}
-		if (hunter_ship)
-		{
-			unsigned halfOfEscortsAdded = escortsAdded / 2;
-			if (hunting_parties > halfOfEscortsAdded)	// ensure we are not trying to assign a negative
-			{						// value to unsigned hunting_parties
-				hunting_parties -= halfOfEscortsAdded;	// reduce the number needed so we don't get huge swarms!
-			}
-			
-			[hunter_ship setPosition:launchPos];
-			[hunter_ship setStatus:STATUS_IN_FLIGHT];
-			[hunter_ship setBounty:0];
-			
-			[self addEntity:hunter_ship];
-			// [[hunter_ship getAI] setStateMachine:@"route1patrolAI.plist"];	// must happen after adding to the universe!
+
+			// [hunter_ship setAITo:@"route1patrolAI.plist"]; // standard AI, no need to set it again.
 			[[hunter_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
-			
-			[hunter_ship release];
 		}
 		
 		[pool release];
@@ -1676,66 +1631,28 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		pool = [[NSAutoreleasePool alloc] init];
 		
-		ShipEntity*	hunter_ship;
-		Vector		launchPos = p1_pos;
-		double		start = 4.0 * [[self planet] radius];
-		double		end = 3.0 * [[self sun] radius];
-		double		maxLength = d_route2 - (start + end);
-		double		ship_location = randf() * maxLength + start;
+		ShipEntity  *hunter_ship;
+		// random position along route2
+		start = 4.0 * [[self planet] radius];
+		end = 3.0 * [[self sun] radius];
+		maxLength = d_route2 - (start + end);
 		
-		launchPos.x += ship_location * v_route2.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.y += ship_location * v_route2.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
-		launchPos.z += ship_location * v_route2.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		hunter_ship = [self spawnPatrolShipAt:p1_pos alongRoute:v_route2 withOffset:randf() * maxLength + start]; 	// add a patrol ship to the universe
 		
-		if ((Ranrot() & 7) < government)
+		if(hunter_ship)
 		{
-			if ((Ranrot() & 7) + 6 <= techlevel)
-				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
-			else
-				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
-			if (hunter_ship)
+			escortsWeight = [hunter_ship pendingEscortCount] / 2;
+			if (hunting_parties > escortsWeight)		// ensure we are not trying to assign a negative
 			{
-				if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"police"
-						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
-				
-				[hunter_ship setPrimaryRole:@"police"];
-				if (hunter_ship->scanClass == CLASS_NOT_SET)
-					[hunter_ship setScanClass: CLASS_POLICE];
-				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
-				{
-					[hunter_ship setPendingEscortCount:[hunter_ship pendingEscortCount] + 2];
-				}
+				hunting_parties -= escortsWeight;	// reduce the number needed so we don't get huge swarms!
 			}
-		}
-		else
-		{
-			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
-				[hunter_ship setScanClass: CLASS_NEUTRAL];
-			if (![hunter_ship crew])
-					[hunter_ship setCrew:[NSArray arrayWithObject:
-						[OOCharacter randomCharacterWithRole:@"hunter"
-						andOriginalSystem: (randf() > 0.75)? systems[Ranrot() & 255]:system_seed]]];
-			
-		}
-		
-		if (hunter_ship)
-		{
-			[hunter_ship setPosition:launchPos];
-			[hunter_ship setStatus:STATUS_IN_FLIGHT];
-			[hunter_ship setBounty:0];
-			
-			[self addEntity:hunter_ship];
-			[[hunter_ship getAI] setStateMachine:@"route2patrolAI.plist"];	// this is not set by auto_ai!
+
+			[hunter_ship setAITo:@"route2patrolAI.plist"];	// this is not set by auto_ai!
 			
 			if (randf() > 0.50)	// 50% chance
 				[[hunter_ship getAI] setState:@"HEAD_FOR_PLANET"];
 			else
 				[[hunter_ship getAI] setState:@"HEAD_FOR_SUN"];
-			
-			[hunter_ship release];
 		}
 		
 		[pool release];
@@ -8409,6 +8326,66 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	[player setPosition:[[self station] position]];
 	[player setOrientation:kIdentityQuaternion];
+}
+
+
+- (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location
+{
+		ShipEntity			*hunter_ship = nil;
+		NSDictionary		*systeminfo = [self generateSystemData:system_seed];
+		OOTechLevelID		techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
+		OOGovernmentID		government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
+		
+		launchPos.x += ship_location * v_route.x + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.y += ship_location * v_route.y + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		launchPos.z += ship_location * v_route.z + SCANNER_MAX_RANGE*((Ranrot() & 255)/256.0 - 0.5);
+		
+		
+		if ((Ranrot() & 7) < government)
+		{
+			if ((Ranrot() & 7) + 6 <= techlevel)
+				hunter_ship = [self newShipWithRole:@"interceptor"];   // retain count = 1
+			else
+				hunter_ship = [self newShipWithRole:@"police"];   // retain count = 1
+			if (hunter_ship)
+			{
+				if (![hunter_ship crew])
+					[hunter_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole:@"police"
+						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
+				
+				[hunter_ship setPrimaryRole:@"police"];		// FIXME: do we  actually need to change the ship's primary role? - Kaks 20091207
+				if (hunter_ship->scanClass == CLASS_NOT_SET)
+					[hunter_ship setScanClass: CLASS_POLICE];
+				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
+				{
+					[hunter_ship setPendingEscortCount:[hunter_ship pendingEscortCount] + 2];
+				}
+			}
+		}
+		else
+		{
+			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
+			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
+				[hunter_ship setScanClass: CLASS_NEUTRAL];
+			if (![hunter_ship crew])
+					[hunter_ship setCrew:[NSArray arrayWithObject:
+						[OOCharacter randomCharacterWithRole:@"hunter"
+						andOriginalSystem: (randf() > 0.75)? systems[Ranrot() & 255]:system_seed]]];
+			
+		}
+		
+		if (hunter_ship)
+		{
+			[hunter_ship setPosition:launchPos];
+			[hunter_ship setStatus:STATUS_IN_FLIGHT];
+			[hunter_ship setBounty:0];
+			
+			[self addEntity:hunter_ship];
+			
+			[hunter_ship release];	// addEntity retains!
+		}
+		return hunter_ship;
 }
 
 
