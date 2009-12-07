@@ -518,7 +518,7 @@
 	};
 	"boa-mk2" =
 	{
-		aft_eject_position = "0.0 -15.75 -50.75";
+		aft_eject_position = "0.0 -18.75 -50.75";
 		aft_weapon_type = "WEAPON_BEAM_LASER";
 		ai_type = "route1traderAI.plist";
 		auto_ai = yes;
