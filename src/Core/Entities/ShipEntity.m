@@ -8019,9 +8019,11 @@ BOOL class_masslocks(int some_class)
 	being_mined = NO;
 	ShipEntity *hunter = nil;
 	
-	if ([other isShip] && [self owner] != other) // our owner could be the same entity as the one responsible for our taking damage in the case of submunitions
+	hunter = [other rootShipEntity];
+	if (hunter == nil && [other isShip]) hunter = (ShipEntity *)other;
+	
+	if (hunter !=nil && [self owner] != hunter) // our owner could be the same entity as the one responsible for our taking damage in the case of submunitions
 	{
-		hunter = (ShipEntity *)other;
 		if ([hunter isCloaked])
 		{
 			[self doScriptEvent:@"shipBeingAttackedByCloaked" andReactToAIMessage:@"ATTACKED_BY_CLOAKED"];
@@ -8031,6 +8033,8 @@ BOOL class_masslocks(int some_class)
 			hunter = nil;
 		}
 	}
+	else
+		hunter = nil;
 	
 	// if the other entity is a ship note it as an aggressor
 	if (hunter != nil)
@@ -8049,20 +8053,23 @@ BOOL class_masslocks(int some_class)
 		// tell ourselves we've been attacked
 		if (energy > 0)
 		{
-			[self respondToAttackFrom:ent becauseOf:other];
+			[self respondToAttackFrom:ent becauseOf:hunter];
 		}
 
-		// tell our group we've been attacked
+		// additionally, tell our group we've been attacked
 		OOShipGroup *group = [self group];
 		if (group != nil && group != [hunter group] && !(iAmTheLaw || uAreTheLaw))
 		{
 			if ([self isTrader] || [self isEscort])
 			{
 				ShipEntity *groupLeader = [group leader];
-				[groupLeader setFound_target:hunter];
-				[groupLeader setPrimaryAggressor:hunter];
-				[groupLeader respondToAttackFrom:ent becauseOf:hunter];
-				//unsetting group leader for carriers can break stuff
+				if (groupLeader != self)
+				{
+					[groupLeader setFound_target:hunter];
+					[groupLeader setPrimaryAggressor:hunter];
+					[groupLeader respondToAttackFrom:ent becauseOf:hunter];
+					//unsetting group leader for carriers can break stuff
+				}
 			}
 			if ([self isPirate])
 			{
@@ -8071,7 +8078,7 @@ BOOL class_masslocks(int some_class)
 				
 				for (groupEnum = [group objectEnumerator]; (otherPirate = [groupEnum nextObject]); )
 				{
-					if (randf() < 0.5)	// 50% chance they'll help
+					if (otherPirate != self && randf() < 0.5)	// 50% chance they'll help
 					{
 						[otherPirate setFound_target:hunter];
 						[otherPirate setPrimaryAggressor:hunter];
@@ -8086,9 +8093,12 @@ BOOL class_masslocks(int some_class)
 				
 				for (groupEnum = [group objectEnumerator]; (otherPolice = [groupEnum nextObject]); )
 				{
-					[otherPolice setFound_target:hunter];
-					[otherPolice setPrimaryAggressor:hunter];
-					[otherPolice respondToAttackFrom:ent becauseOf:hunter];
+					if (otherPolice != self)
+					{
+						[otherPolice setFound_target:hunter];
+						[otherPolice setPrimaryAggressor:hunter];
+						[otherPolice respondToAttackFrom:ent becauseOf:hunter];
+					}
 				}
 			}
 		}
@@ -8109,7 +8119,7 @@ BOOL class_masslocks(int some_class)
 			}
 		}
 
-		if ((other)&&(other->isShip))
+		if ((other)&&([other isShip]))
 			being_mined = [(ShipEntity *)other isMining];
 	}
 	// die if I'm out of energy

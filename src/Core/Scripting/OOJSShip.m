@@ -1093,7 +1093,7 @@ static JSBool ShipSpawn(JSContext *context, JSObject *this, uintN argc, jsval *a
 	if (argc > 1)  gotCount = JS_ValueToInt32(context, argv[1], &count);
 	if (EXPECT_NOT(role == nil || !gotCount || count < 1 || count > 64))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"spawn", argc, argv, nil, @"role and optional positive count no greater than 64");
+		OOReportJSBadArguments(context, @"Ship", @"spawn", argc, argv, nil, @"role and optional quantity (1 to 64)");
 		return NO;
 	}
 	
