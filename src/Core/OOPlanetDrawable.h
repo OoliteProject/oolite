@@ -36,13 +36,12 @@ MA 02110-1301, USA.
 	OOMaterial				*_material;
 	BOOL					_isAtmosphere;
 	float					_radius;
-	float					_eccentricity;
 	OOMatrix				_transform;
 	unsigned				_lod;
 }
 
-+ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius eccentricity:(float)eccentricity;
-+ (id) atmosphereWithRadius:(float)radius eccentricity:(float)eccentricity;
++ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius;
++ (id) atmosphereWithRadius:(float)radius;
 
 - (id) initAsAtmosphere;
 
@@ -55,10 +54,6 @@ MA 02110-1301, USA.
 // Radius, in game metres.
 - (float) radius;
 - (void) setRadius:(float)radius;
-
-// Eccentricity, [0..1).
-- (float) eccentricity;
-- (void) setEccentricity:(float)eccentricity;
 
 // Level of detail, [0..1]. Granularity is implementation-defined.
 - (float) levelOfDetail;

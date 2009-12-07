@@ -2,8 +2,7 @@
 
 OOJSSun.h
 
-JavaScript proxy for suns (currently PlanetEntities of type PLANET_TYPE_SUN,
-expected to become a separate entity class in future).
+JavaScript proxy for suns.
 
 
 Oolite

@@ -63,7 +63,7 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "StationEntity.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "PlayerEntity.h"
 #import "WormholeEntity.h"
 #import "OOFlasherEntity.h"
@@ -4314,7 +4314,7 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 static float SurfaceDistanceSqaredV(Vector reference, Entity<OOStellarBody> *stellar)
 {
 	float centerDistance = magnitude2(vector_subtract([stellar position], reference));
-	float r = [(PlanetEntity *)stellar radius];
+	float r = [(OOPlanetEntity *)stellar radius];
 	
 	/*	1.35: empirical value used to help determine proximity when non-nested
 		planets are close to each other
@@ -4332,8 +4332,8 @@ static float SurfaceDistanceSqared(Entity *reference, Entity<OOStellarBody> *ste
 NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	Vector p = [(ShipEntity*) context position];
-	PlanetEntity* e1 = i1;
-	PlanetEntity* e2 = i2;
+	OOPlanetEntity* e1 = i1;
+	OOPlanetEntity* e2 = i2;
 	
 #if OBSOLETE
 	//fx: empirical value used to help determine proximity when non-nested planets are close to each other
@@ -4358,9 +4358,9 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (PlanetEntity *) findNearestPlanet
+- (OOPlanetEntity *) findNearestPlanet
 {
-	PlanetEntity		*result = nil;
+	OOPlanetEntity		*result = nil;
 	NSArray				*planets = nil;
 	
 	planets = [UNIVERSE planets];
@@ -4370,7 +4370,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	result = [planets objectAtIndex:0];
 	
 	// ignore miniature planets when determining nearest planet - Nikos 20090313
-	if ([result planetType] == PLANET_TYPE_MINIATURE)
+	if ([result planetType] == STELLAR_TYPE_MINIATURE)
 	{
 		if ([UNIVERSE sun])	// if we are not in witchspace give us the next in the list, else nothing
 		{
@@ -4404,10 +4404,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
-- (PlanetEntity *) findNearestPlanetExcludingMoons
+- (OOPlanetEntity *) findNearestPlanetExcludingMoons
 {
-	PlanetEntity		*result = nil;
-	PlanetEntity		*planet = nil;
+	OOPlanetEntity		*result = nil;
+	OOPlanetEntity		*planet = nil;
 	NSArray				*bodies = nil;
 	NSArray				*planets = nil;
 	unsigned			i;
@@ -4418,7 +4418,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 	for (i=0; i < [bodies count]; i++)
 	{
 		planet = [bodies objectAtIndex:i];
-		if([planet planetType] == PLANET_TYPE_GREEN)
+		if([planet planetType] == STELLAR_TYPE_NORMAL_PLANET)
 					planets = [planets arrayByAddingObject:planet];
 	}
 	
@@ -4516,7 +4516,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[shipAI message:@"AWAY_FROM_PLANET"];        // fires for all planets and moons.
 			}
 			[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-			[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];		// NEW_PLANETS temp compile fix
+			[self setLastAegisLock:[UNIVERSE planet]];
 			[shipAI message:@"CLOSE_TO_PLANET"];             // fires for all planets and moons.
 			[shipAI message:@"AEGIS_CLOSE_TO_PLANET"];	     // fires only for main planets, keep for compatibility with pre-1.72 AI plists.
 			[shipAI message:@"AEGIS_CLOSE_TO_MAIN_PLANET"];  // fires only for main planet.
@@ -4537,7 +4537,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			else
 			{
 				[shipAI message:@"CLOSE_TO_PLANET"];
-				if ([nearest planetType] == PLANET_TYPE_MOON)
+				if ([nearest planetType] == STELLAR_TYPE_MOON)
 				{
 					[shipAI message:@"CLOSE_TO_MOON"];
 				}
@@ -4555,7 +4555,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 			if([self lastAegisLock] == nil && !sunGoneNova) // With small main planets the station aegis can come before planet aegis
 			{
 				[self doScriptEvent:@"shipEnteredPlanetaryVicinity" withArgument:[UNIVERSE planet]];
-				[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];	// NEW_PLANETS temp compile fix
+				[self setLastAegisLock:[UNIVERSE planet]];
 			}
 		}
 		// leaving..
@@ -4568,7 +4568,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 		{
 			if([self lastAegisLock] == nil && !sunGoneNova)
 			{
-				[self setLastAegisLock:(Entity<OOStellarBody> *)[UNIVERSE planet]];  // in case of a first launch.	// NEW_PLANETS temp compile fix
+				[self setLastAegisLock:[UNIVERSE planet]];  // in case of a first launch.
 			}
 			[self transitionToAegisNone];
 		}
@@ -8692,7 +8692,7 @@ int w_space_seed = 1234567;
 }
 
 
-- (void) landOnPlanet:(PlanetEntity *)planet
+- (void) landOnPlanet:(OOPlanetEntity *)planet
 {
 	if (planet)
 	{

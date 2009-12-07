@@ -29,7 +29,7 @@ MA 02110-1301, USA.
 
 #import "StationEntity.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "WormholeEntity.h"
 #import "PlayerEntity.h"
 #import "PlayerEntityLegacyScriptEngine.h"
@@ -835,7 +835,7 @@ MA 02110-1301, USA.
 - (void) setCourseToPlanet
 {
 	/*- selects the nearest planet it can find -*/
-	PlanetEntity	*the_planet =  [self findNearestPlanetExcludingMoons];
+	OOPlanetEntity	*the_planet =  [self findNearestPlanetExcludingMoons];
 	if (the_planet)
 	{
 		Vector p_pos = the_planet->position;
@@ -859,7 +859,7 @@ MA 02110-1301, USA.
 - (void) setTakeOffFromPlanet
 {
 	/*- selects the nearest planet it can find -*/
-	PlanetEntity	*the_planet =  [self findNearestPlanet];
+	OOPlanetEntity	*the_planet =  [self findNearestPlanet];
 	if (the_planet)
 	{
 		destination = vector_add([the_planet position], vector_multiply_scalar(
@@ -1003,7 +1003,7 @@ MA 02110-1301, USA.
 				else
 				{
 					[shipAI message:@"CLOSE_TO_PLANET"];
-					if ([nearest planetType] == PLANET_TYPE_MOON)
+					if ([nearest planetType] == STELLAR_TYPE_MOON)
 					{
 						[shipAI message:@"CLOSE_TO_MOON"];
 					}

@@ -24,6 +24,11 @@ MA 02110-1301, USA.
 
 */
 
+// TextureStore is only used for old planets.
+#import "OOStellarBody.h"
+#if !NEW_PLANETS
+
+
 #import <Foundation/Foundation.h>
 #import "OOOpenGL.h"
 
@@ -68,3 +73,5 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor);
 
 @end
+
+#endif	// !NEW_PLANETS

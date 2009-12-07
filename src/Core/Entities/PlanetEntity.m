@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 */
 
 #import "PlanetEntity.h"
+
+#if !NEW_PLANETS
+
 #import "OOOpenGLExtensionManager.h"
 
 #import "Universe.h"
@@ -104,7 +107,7 @@ double longitudeFromVector(Vector v);
 	orientation.y =  0.0;
 	orientation.z =  0.0;
 	
-	planet_type = PLANET_TYPE_GREEN;
+	planet_type = STELLAR_TYPE_NORMAL_PLANET;
 	
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
@@ -291,9 +294,9 @@ double longitudeFromVector(Vector v);
 	position = planet->position;
 	orientation = planet->orientation;
 	
-	if (planet->planet_type == PLANET_TYPE_GREEN)
+	if (planet->planet_type == STELLAR_TYPE_NORMAL_PLANET)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
-	if (planet->planet_type == PLANET_TYPE_MINIATURE)
+	if (planet->planet_type == STELLAR_TYPE_MINIATURE)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
 	
 	shuttles_on_ground = 0;
@@ -307,7 +310,7 @@ double longitudeFromVector(Vector v);
 	orientation.y =  0.0;
 	orientation.z =  0.0;
 	
-	planet_type =   PLANET_TYPE_ATMOSPHERE;
+	planet_type =   STELLAR_TYPE_ATMOSPHERE;
 	
 	planet_seed =	ranrot_rand();	// random set-up for vertex colours
 	
@@ -334,7 +337,7 @@ double longitudeFromVector(Vector v);
 }
 
 
-- (id) initWithSeed:(Random_Seed) p_seed
+- (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed
 {
 	// this is exclusively called to initialise the main planet
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
@@ -347,7 +350,7 @@ double longitudeFromVector(Vector v);
 	}
 
 	[planetInfo oo_setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
-	return [self initPlanetFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
+	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
 }
 
 
@@ -357,7 +360,7 @@ double longitudeFromVector(Vector v);
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0;
 	[self setStatus:STATUS_COCKPIT_DISPLAY];
-	planet_type = PLANET_TYPE_MINIATURE;
+	planet_type = STELLAR_TYPE_MINIATURE;
 	collision_radius = [self collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	[self rescaleTo:1.0];
 	[self scaleVertices];
@@ -401,14 +404,14 @@ double longitudeFromVector(Vector v);
 	
 	orientation = planet->orientation;
 	
-	if ([planet planetType] == PLANET_TYPE_ATMOSPHERE)
+	if ([planet planetType] == STELLAR_TYPE_ATMOSPHERE)
 	{
-		planet_type = PLANET_TYPE_ATMOSPHERE;
+		planet_type = STELLAR_TYPE_ATMOSPHERE;
 		rotational_velocity = 0.02;
 	}
 	else
 	{
-		planet_type = PLANET_TYPE_MINIATURE;
+		planet_type = STELLAR_TYPE_MINIATURE;
 		rotational_velocity = 0.04;
 	}
 	
@@ -452,13 +455,8 @@ double longitudeFromVector(Vector v);
 	return self;
 }
 
-- (id) initPlanetFromDictionary:(NSDictionary*) dict 
 
-{
-	return [self initPlanetFromDictionary:dict withAtmosphere:YES andSeed:[UNIVERSE systemSeed]];
-}
-
-- (id) initPlanetFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed
+- (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 {
 	int		i;
 	int		percent_land;
@@ -536,7 +534,7 @@ double longitudeFromVector(Vector v);
 	orientation.y =  0.0;
 	orientation.z =  0.0;
 	
-	planet_type =  atmo ? PLANET_TYPE_GREEN : PLANET_TYPE_MOON;
+	planet_type =  atmo ? STELLAR_TYPE_NORMAL_PLANET : STELLAR_TYPE_MOON;
 	
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
@@ -691,14 +689,9 @@ double longitudeFromVector(Vector v);
 	root_planet = self;
 	
 	rotationAxis = kBasisYVector;
+	[self setStatus:STATUS_ACTIVE];
 	
 	return self;
-}
-
-
-- (id) initMoonFromDictionary:(NSDictionary*) dict
-{
-	return [self initPlanetFromDictionary:dict withAtmosphere:NO andSeed:[UNIVERSE systemSeed]];
 }
 
 
@@ -724,14 +717,14 @@ double longitudeFromVector(Vector v);
 	NSString *typeString;
 	switch (planet_type)
 	{
-		case PLANET_TYPE_MINIATURE:
-			typeString = @"PLANET_TYPE_MINIATURE";	break;
-		case PLANET_TYPE_GREEN:
-			typeString = @"PLANET_TYPE_GREEN";	break;
-		case PLANET_TYPE_ATMOSPHERE:
-			typeString = @"PLANET_TYPE_ATMOSPHERE";	break;
-		case PLANET_TYPE_MOON:
-			typeString = @"PLANET_TYPE_MOON";	break;
+		case STELLAR_TYPE_MINIATURE:
+			typeString = @"STELLAR_TYPE_MINIATURE";	break;
+		case STELLAR_TYPE_NORMAL_PLANET:
+			typeString = @"STELLAR_TYPE_NORMAL_PLANET";	break;
+		case STELLAR_TYPE_ATMOSPHERE:
+			typeString = @"STELLAR_TYPE_ATMOSPHERE";	break;
+		case STELLAR_TYPE_MOON:
+			typeString = @"STELLAR_TYPE_MOON";	break;
 		
 		default:
 			typeString = @"UNKNOWN";
@@ -744,13 +737,13 @@ double longitudeFromVector(Vector v);
 {
 	switch (planet_type)
 	{
-		case PLANET_TYPE_MINIATURE:
-		case PLANET_TYPE_ATMOSPHERE:
+		case STELLAR_TYPE_MINIATURE:
+		case STELLAR_TYPE_ATMOSPHERE:
 			return NO;
 			break;
-		case PLANET_TYPE_MOON:
-		case PLANET_TYPE_GREEN:
-		case PLANET_TYPE_SUN:
+		case STELLAR_TYPE_MOON:
+		case STELLAR_TYPE_NORMAL_PLANET:
+		case STELLAR_TYPE_SUN:
 			return YES;
 			break;
 	}
@@ -795,8 +788,8 @@ double longitudeFromVector(Vector v);
 
 	switch (planet_type)
 	{
-		case PLANET_TYPE_MOON:
-		case PLANET_TYPE_GREEN:
+		case STELLAR_TYPE_MOON:
+		case STELLAR_TYPE_NORMAL_PLANET:
 			{
 				double ugt = [UNIVERSE getTime];
 
@@ -808,7 +801,7 @@ double longitudeFromVector(Vector v);
 				}
 			}
 		
-		case PLANET_TYPE_MINIATURE:
+		case STELLAR_TYPE_MINIATURE:
 			// normal planetary rotation
 			//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
 			quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
@@ -834,7 +827,7 @@ double longitudeFromVector(Vector v);
 			}
 			break;
 
-		case PLANET_TYPE_ATMOSPHERE:
+		case STELLAR_TYPE_ATMOSPHERE:
 			{
 				// atmospheric rotation
 				quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
@@ -842,15 +835,9 @@ double longitudeFromVector(Vector v);
 			}
 			break;
 		
-		case PLANET_TYPE_SUN:
+		case STELLAR_TYPE_SUN:
 			break;
 	}
-}
-
-
-- (Vector) position		// NEW_PLANETS temp compile fix
-{
-	return [super position];
 }
 
 
@@ -894,7 +881,7 @@ double longitudeFromVector(Vector v);
 			subdivideLevel = 4;
 	}
 	
-	if (planet_type == PLANET_TYPE_MINIATURE)
+	if (planet_type == STELLAR_TYPE_MINIATURE)
 		subdivideLevel = [UNIVERSE reducedDetail]? 3 : 4 ;		// max detail or less
 		
 	lastSubdivideLevel = subdivideLevel;	// record
@@ -912,22 +899,22 @@ double longitudeFromVector(Vector v);
 
 	*/
 	
-	BOOL ignoreDepthBuffer = (planet_type == PLANET_TYPE_ATMOSPHERE);
+	BOOL ignoreDepthBuffer = (planet_type == STELLAR_TYPE_ATMOSPHERE);
 	
 	if (zero_distance > collision_radius * collision_radius * 25) // is 'far away'
 		ignoreDepthBuffer |= YES;
 
 	switch (planet_type)
 	{
-		case PLANET_TYPE_ATMOSPHERE:
+		case STELLAR_TYPE_ATMOSPHERE:
 			if (root_planet)
 			{
 				subdivideLevel = root_planet->lastSubdivideLevel;	// copy it from the planet (stops jerky LOD and such)
 			}
 			GLMultOOMatrix(rotMatrix);	// rotate the clouds!
-		case PLANET_TYPE_MOON:
-		case PLANET_TYPE_GREEN:
-		case PLANET_TYPE_MINIATURE:
+		case STELLAR_TYPE_MOON:
+		case STELLAR_TYPE_NORMAL_PLANET:
+		case STELLAR_TYPE_MINIATURE:
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
 			if ([UNIVERSE wireframeGraphics])
 			{
@@ -1130,7 +1117,7 @@ double longitudeFromVector(Vector v);
 			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 			break;
 			
-		case PLANET_TYPE_SUN:
+		case STELLAR_TYPE_SUN:
 			break;
 	}
 	glPopAttrib();
@@ -1283,13 +1270,13 @@ double longitudeFromVector(Vector v);
 }
 
 
-- (OOPlanetType) planetType
+- (OOStellarBodyType) planetType
 {
 	return planet_type;
 }
 
 
-- (void) setPlanetType:(OOPlanetType) pt
+- (void) setPlanetType:(OOStellarBodyType) pt
 {
 	planet_type = pt;
 }
@@ -1657,7 +1644,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	paint_sea[0] = (1.0 - pole_blend)*amb_sea[0] + pole_blend*amb_polar_sea[0];
 	paint_sea[1] = (1.0 - pole_blend)*amb_sea[1] + pole_blend*amb_polar_sea[1];
 	paint_sea[2] = (1.0 - pole_blend)*amb_sea[2] + pole_blend*amb_polar_sea[2];
-	if (planet_type == PLANET_TYPE_ATMOSPHERE)	// do alphas
+	if (planet_type == STELLAR_TYPE_ATMOSPHERE)	// do alphas
 	{
 		paint_land[3] = (1.0 - pole_blend)*amb_land[3] + pole_blend*amb_polar_land[3];
 		paint_sea[3] = (1.0 - pole_blend)*amb_sea[3] + pole_blend*amb_polar_sea[3];
@@ -1674,7 +1661,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	
 	for (i = 0; i < 4; i++)
 	{
-		if (planet_type == PLANET_TYPE_ATMOSPHERE && isTextured)
+		if (planet_type == STELLAR_TYPE_ATMOSPHERE && isTextured)
 			paint_color[i] = 1.0;
 		else
 			paint_color[i] = (r * paint_sea[i])*0.01 + ((100 - r) * paint_land[i])*0.01;
@@ -1728,3 +1715,5 @@ double longitudeFromVector(Vector v)
 }
 
 @end
+
+#endif	// !NEW_PLANETS

@@ -24,49 +24,15 @@ MA 02110-1301, USA.
 
 */
 
+#import "OOStellarBody.h"
+
+#if !NEW_PLANETS
+
 #import "OOSelfDrawingEntity.h"
 #import "legacy_random.h"
 #import "OOColor.h"
 
-
-#define NEW_PLANETS 0
-
-
-typedef enum
-{
-	PLANET_TYPE_GREEN,
-	PLANET_TYPE_SUN,
-	PLANET_TYPE_ATMOSPHERE,
-	PLANET_TYPE_MOON,
-	PLANET_TYPE_MINIATURE
-} OOPlanetType;
-
-
-#define ATMOSPHERE_DEPTH		500.0
-#define PLANET_MINIATURE_FACTOR	0.00185
-
-#define MAX_SUBDIVIDE			6
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
-
-
-@class ShipEntity;
-
-
-@protocol OOStellarBody <NSObject, OOWeakReferenceSupport>
-
-- (double) radius;
-- (OOPlanetType) planetType;
-
-@end
-
-@protocol OOPlanet <OOStellarBody>	// Temporary, delete with PlanetEntity
-
-- (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
-- (NSString *) textureFileName;
-- (void) update:(OOTimeDelta) delta_t;
-- (Vector) position;
-
-@end
 
 
 typedef struct
@@ -76,14 +42,18 @@ typedef struct
 	GLfloat					uv_array[2*10400];
 	Vector					normal_array[10400];
 	GLuint					index_array[MAX_TRI_INDICES];
-}	VertexData;
+} VertexData;
 
-@interface PlanetEntity: OOSelfDrawingEntity <OOPlanet>
+
+#define PlanetEntity OOPlanetEntity
+
+
+@interface PlanetEntity: OOSelfDrawingEntity <OOStellarBody>
 {
 @private
 	int						lastSubdivideLevel;
 	
-	OOPlanetType			planet_type;
+	OOStellarBodyType			planet_type;
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
@@ -127,15 +97,11 @@ typedef struct
 	Vector					rotationAxis;
 }
 
-#if !NEW_PLANETS
-- (id) initWithSeed:(Random_Seed) p_seed;
-#endif
+- (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed;
 - (void) miniaturize;
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
+- (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 
-- (id) initMoonFromDictionary:(NSDictionary*) dict;
-- (id) initPlanetFromDictionary:(NSDictionary*) dict;
-- (id) initPlanetFromDictionary:(NSDictionary*) dict withAtmosphere: (BOOL) atmo andSeed:(Random_Seed) p_seed;
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 - (int*) r_seed;
@@ -149,8 +115,8 @@ typedef struct
 - (GLfloat *) amb_sea;
 - (GLfloat *) amb_polar_sea;
 
-- (OOPlanetType) planetType;
-- (void) setPlanetType:(OOPlanetType) pt;
+- (OOStellarBodyType) planetType;
+- (void) setPlanetType:(OOStellarBodyType) pt;
 
 
 - (double) radius;	// metres
@@ -164,3 +130,6 @@ typedef struct
 - (void) welcomeShuttle:(ShipEntity *) shuttle;
 
 @end
+
+
+#endif	// !NEW_PLANETS

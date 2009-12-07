@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 #import "OOSound.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "OOPlanetEntity.h"
 #import "ParticleEntity.h"
 #import "StationEntity.h"
@@ -2212,8 +2212,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 	/*- add planet -*/
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initPlanetFromDictionary: %@", dict);
-	PlanetEntity*	planet = [[[PlanetEntity alloc] initPlanetFromDictionary:dict] autorelease];
-	[planet setStatus:STATUS_ACTIVE];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:YES andSeed:[UNIVERSE systemSeed]] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2263,8 +2262,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
-	PlanetEntity*	planet = [[[PlanetEntity alloc] initMoonFromDictionary:dict] autorelease];
-	[planet setStatus:STATUS_ACTIVE];
+	OOPlanetEntity *planet = [[[OOPlanetEntity alloc] initFromDictionary:dict withAtmosphere:NO andSeed:[UNIVERSE systemSeed]] autorelease];
 	
 	Quaternion planetOrientation;
 	if (ScanQuaternionFromString([dict objectForKey:@"orientation"], &planetOrientation))
@@ -2594,7 +2592,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOPlanetEntity *originalPlanet = nil;
 		if ([i_key isEqualToString:@"local-planet"])
 		{
-			originalPlanet = (OOPlanetEntity *)[UNIVERSE planet];	// NEW_PLANETS temp compile fix
+			originalPlanet = [UNIVERSE planet];
 		}
 		else
 		{
@@ -2606,21 +2604,20 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(@"temp", @"Doppelganger: %@", doppelganger);
 
 #else
-		PlanetEntity* doppelganger=nil;
+		OOPlanetEntity* doppelganger=nil;
 #if ALLOW_PROCEDURAL_PLANETS
 		BOOL	procGen = NO;
 		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
 		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
 			// can safely show retextured planets!
-			doppelganger = [[PlanetEntity alloc] initMiniatureFromPlanet:(PlanetEntity *)[UNIVERSE planet]];	// NEW_PLANETS temp compile fix
+			doppelganger = [[OOPlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
 		}
 		else
 #endif
 		{
-			doppelganger = [[PlanetEntity alloc] initWithSeed:target_system_seed];
-			if (doppelganger)
-				[doppelganger miniaturize];
+			doppelganger = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed];
+			[doppelganger miniaturize];
 		}
 		if (!doppelganger)
 			return NO;

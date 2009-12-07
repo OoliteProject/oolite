@@ -24,16 +24,17 @@ MA 02110-1301, USA.
 
 */
 
-#import "Entity.h"
-
-// For some declarations that'll eventually migrate here
+#import "OOStellarBody.h"
+#if !NEW_PLANETS
 #import "PlanetEntity.h"
+#else
 
+#import "Entity.h"
 
 @class OOPlanetDrawable, ShipEntity;
 
 
-@interface OOPlanetEntity: Entity <OOPlanet>
+@interface OOPlanetEntity: Entity <OOStellarBody>
 {
 @private
 	OOPlanetDrawable		*_planetDrawable;
@@ -69,3 +70,5 @@ MA 02110-1301, USA.
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 @end
+
+#endif	// NEW_PLANETS

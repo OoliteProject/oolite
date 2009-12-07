@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 
-@class AI, Universe, PlanetEntity;
+@class AI, Universe, OOPlanetEntity;
 
 @interface ShipEntity (AI)
 

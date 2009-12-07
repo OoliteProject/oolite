@@ -32,7 +32,7 @@ MA 02110-1301, USA.
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "OOLegacyScriptWhitelist.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "ParticleEntity.h"
 #import "OOShipGroup.h"
 
@@ -192,7 +192,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (void) setPlanet:(PlanetEntity *)planet_entity
+- (void) setPlanet:(OOPlanetEntity *)planet_entity
 {
 	if (planet_entity)
 		planet = [planet_entity universalID];
@@ -201,7 +201,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (PlanetEntity *) planet
+- (OOPlanetEntity *) planet
 {
 	return [UNIVERSE entityForUniversalID:planet];
 }

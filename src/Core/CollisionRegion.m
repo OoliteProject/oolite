@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "Entity.h"
 #import "ShipEntity.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
 

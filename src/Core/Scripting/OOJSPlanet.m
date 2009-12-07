@@ -27,21 +27,10 @@ MA 02110-1301, USA.
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
 
-#import "PlanetEntity.h"
 #import "OOPlanetEntity.h"
 
 
-#if 0
 DEFINE_JS_OBJECT_GETTER(JSPlanetGetPlanetEntity, OOPlanetEntity)
-#else
-OOINLINE BOOL JSPlanetGetPlanetEntity(JSContext *context, JSObject *inObject, OOPlanetEntity **outObject)
-{
-	if (outObject == NULL)  return NO;
-	*outObject = JSObjectToObjectOfClass(context, inObject, [OOPlanetEntity class]);
-	if (*outObject == nil)  *outObject = JSObjectToObjectOfClass(context, inObject, [PlanetEntity class]);
-	return *outObject != nil;
-}
-#endif
 
 
 static JSObject		*sPlanetPrototype;
@@ -112,37 +101,6 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 }
 
 
-@implementation PlanetEntity (OOJavaScriptExtensions)
-
-- (BOOL) isVisibleToScripts
-{
-	return YES;
-}
-
-
-- (void)getJSClass:(JSClass **)outClass andPrototype:(JSObject **)outPrototype
-{
-	*outClass = &sPlanetClass.base;
-	*outPrototype = sPlanetPrototype;
-}
-
-
-- (NSString *)jsClassName
-{
-	switch ([self planetType])
-	{
-		case PLANET_TYPE_GREEN:
-			return @"Planet";
-		case PLANET_TYPE_MOON:
-			return @"Moon";
-		default:
-			return @"Unknown";
-	}
-}
-
-@end
-
-
 @implementation OOPlanetEntity (OOJavaScriptExtensions)
 
 - (BOOL) isVisibleToScripts
@@ -162,9 +120,9 @@ void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
 	switch ([self planetType])
 	{
-		case PLANET_TYPE_GREEN:
+		case STELLAR_TYPE_NORMAL_PLANET:
 			return @"Planet";
-		case PLANET_TYPE_MOON:
+		case STELLAR_TYPE_MOON:
 			return @"Moon";
 		default:
 			return @"Unknown";
@@ -235,7 +193,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 #endif
 			playerStatus = [[PlayerEntity sharedPlayer] status];
 			
-			if ([planet isKindOfClass:[PlanetEntity class]])
+			if ([planet isKindOfClass:[OOPlanetEntity class]])
 			{
 				// if procGen == on we can retexture at any time, eg during huge surface explosions
 				if (!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)

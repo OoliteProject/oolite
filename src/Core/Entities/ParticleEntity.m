@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 
 #import "ShipEntity.h"
 #import "PlayerEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 
 
 /*	Entities that can easily be migrated to OOLightParticleEntity:

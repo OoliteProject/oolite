@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "PlayerEntity.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "StationEntity.h"
 #import "Universe.h"
 #import "OOTrumble.h"
@@ -653,7 +653,7 @@ static BOOL hostiles;
 			if ([drawthing isStellarObject])
 			{
 				Entity<OOStellarBody> *stellar = (Entity<OOStellarBody> *)drawthing;
-				if ([stellar planetType] != PLANET_TYPE_MINIATURE)
+				if ([stellar planetType] != STELLAR_TYPE_MINIATURE)
 				{
 					double dist =   stellar->zero_distance;
 					double rad =	stellar->collision_radius;
@@ -943,7 +943,7 @@ static BOOL hostiles;
 	OOGL(glLineWidth(line_width));	// thinner
 	
 	OOSunEntity		*the_sun = [UNIVERSE sun];
-	PlanetEntity	*the_planet = [UNIVERSE planet];
+	OOPlanetEntity	*the_planet = [UNIVERSE planet];
 	StationEntity	*the_station = [UNIVERSE station];
 	Entity			*the_target = [player primaryTarget];
 	Entity			*the_next_beacon = [UNIVERSE entityForUniversalID:[player nextBeaconID]];

@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSStation.h"
 #import "StationEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 
 
 @implementation Entity (OOJavaScriptExtensions)

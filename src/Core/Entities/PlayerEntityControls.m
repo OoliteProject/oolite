@@ -34,7 +34,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "Universe.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "GameController.h"
 #import "AI.h"
 #import "MyOpenGLView.h"

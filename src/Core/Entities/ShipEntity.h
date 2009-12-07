@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOEntityWithDrawable.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 
 @class	OOColor, StationEntity, ParticleEntity, WormholeEntity,
 		AI, Octree, OOMesh, OOScript, OORoleSet, OOShipGroup, OOEquipmentType;
@@ -571,9 +571,9 @@ MA 02110-1301, USA.
 - (void) setReportAIMessages:(BOOL) yn;
 
 - (void) transitionToAegisNone;
-- (PlanetEntity *) findNearestPlanet;
+- (OOPlanetEntity *) findNearestPlanet;
 - (Entity<OOStellarBody> *) findNearestStellarBody;		// NOTE: includes sun.
-- (PlanetEntity *) findNearestPlanetExcludingMoons;
+- (OOPlanetEntity *) findNearestPlanetExcludingMoons;
 - (OOAegisStatus) checkForAegis;
 - (BOOL) withinStationAegis;
 
@@ -789,7 +789,7 @@ BOOL	class_masslocks(int some_class);
 - (void) setTargetToNearestStation;
 - (void) setTargetToSystemStation;
 
-- (void) landOnPlanet:(PlanetEntity *)planet;
+- (void) landOnPlanet:(OOPlanetEntity *)planet;
 
 - (void) abortDocking;
 

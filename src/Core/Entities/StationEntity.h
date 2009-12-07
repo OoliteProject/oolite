@@ -123,9 +123,9 @@ typedef enum
 
 - (float) equipmentPriceFactor;
 
-- (void) setPlanet:(PlanetEntity *)planet_entity;
+- (void) setPlanet:(OOPlanetEntity *)planet_entity;
 
-- (PlanetEntity *) planet;
+- (OOPlanetEntity *) planet;
 
 - (unsigned) dockedContractors;
 - (unsigned) dockedPolice;

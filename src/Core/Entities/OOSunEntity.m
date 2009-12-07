@@ -483,9 +483,9 @@ MA 02110-1301, USA.
 }
 
 
-- (OOPlanetType) planetType
+- (OOStellarBodyType) planetType
 {
-	return PLANET_TYPE_SUN;
+	return STELLAR_TYPE_SUN;
 }
 
 

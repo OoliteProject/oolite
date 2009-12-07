@@ -51,22 +51,20 @@
 
 @implementation OOPlanetDrawable
 
-+ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius eccentricity:(float)eccentricity
++ (id) planetWithTextureName:(NSString *)textureName radius:(float)radius
 {
 	OOPlanetDrawable *result = [[[self alloc] init] autorelease];
 	[result setTextureName:textureName];
 	[result setRadius:radius];
-	[result setEccentricity:eccentricity];
 	
 	return result;
 }
 
 
-+ (id) atmosphereWithRadius:(float)radius eccentricity:(float)eccentricity
++ (id) atmosphereWithRadius:(float)radius
 {
 	OOPlanetDrawable *result = [[[self alloc] initAsAtmosphere] autorelease];
 	[result setRadius:radius];
-	[result setEccentricity:eccentricity];
 	
 	return result;
 }
@@ -77,7 +75,6 @@
 	if ((self = [super init]))
 	{
 		_radius = 1.0f;
-		_eccentricity = 0.0f;
 		[self recalculateTransform];
 		[self setLevelOfDetail:0.5f];
 	}
@@ -112,7 +109,6 @@
 	[copy setMaterial:[self material]];
 	copy->_isAtmosphere = _isAtmosphere;
 	copy->_radius = _radius;
-	copy->_eccentricity = _eccentricity;
 	copy->_transform = _transform;
 	copy->_lod = _lod;
 	
@@ -144,7 +140,9 @@
 	if (![textureName isEqual:[self textureName]])
 	{
 		[_material release];
-		_material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:nil];
+		NSDictionary *spec = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:@"repeat_s"];
+		spec = [NSDictionary dictionaryWithObject:spec forKey:@"diffuse_map"];
+		_material = [[OOSingleTextureMaterial alloc] initWithName:textureName configuration:spec];
 	}
 }
 
@@ -158,19 +156,6 @@
 - (void) setRadius:(float)radius
 {
 	_radius = fabsf(radius);
-	[self recalculateTransform];
-}
-
-
-- (float) eccentricity
-{
-	return _eccentricity;
-}
-
-
-- (void) setEccentricity:(float)eccentricity
-{
-	_eccentricity = OOClamp_0_1_f(eccentricity);
 	[self recalculateTransform];
 }
 
@@ -253,6 +238,13 @@
 	
 	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));
 	
+#ifndef NDEBUG
+	if ([UNIVERSE wireframeGraphics])
+	{
+		OODebugDrawBasisAtOrigin(1.5);
+	}
+#endif
+	
 	glPopMatrix();
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
@@ -296,7 +288,6 @@
 
 - (BoundingBox) boundingBox
 {
-	// FIXME: take eccentricity into account for y.
 	return (BoundingBox){{ -_radius, -_radius, -_radius }, { _radius, _radius, _radius }};
 }
 
@@ -311,14 +302,12 @@
 {
 	[super dumpSelfState];
 	OOLog(@"dumpState.planetDrawable", @"radius: %g", [self radius]);
-	OOLog(@"dumpState.planetDrawable", @"eccentricity: %g", [self eccentricity]);
 	OOLog(@"dumpState.planetDrawable", @"LOD: %g", [self levelOfDetail]);
 }
 
 
 - (void) recalculateTransform
 {
-	// FIXME: teh eccentricities
 	_transform = OOMatrixForScaleUniform(_radius);
 }
 

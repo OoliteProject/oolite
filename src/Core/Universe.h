@@ -39,10 +39,8 @@ MA 02110-1301, USA.
 #endif
 
 @class	GameController, CollisionRegion, MyOpenGLView, GuiDisplayGen,
-		Entity, ShipEntity, StationEntity, PlanetEntity, OOSunEntity,
+		Entity, ShipEntity, StationEntity, OOPlanetEntity, OOSunEntity,
 		PlayerEntity, OORoleSet;
-
-@protocol OOPlanet;
 
 
 typedef BOOL (*EntityFilterPredicate)(Entity *entity, void *parameter);
@@ -233,7 +231,7 @@ enum
 	ShipEntity				*demo_ship;
 	
 	StationEntity			*cachedStation;
-	PlanetEntity			*cachedPlanet;
+	OOPlanetEntity			*cachedPlanet;
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
@@ -302,7 +300,7 @@ enum
 - (void) set_up_witchspace;
 - (void) setUpSpace;
 - (void) setLighting;
-- (PlanetEntity	*) setUpPlanet;
+- (OOPlanetEntity *) setUpPlanet;
 
 - (void) populateSpaceFromActiveWormholes;
 - (void) populateSpaceFromHyperPoint:(Vector) h1_pos toPlanetPosition:(Vector) p1_pos andSunPosition:(Vector) s1_pos;
@@ -330,7 +328,7 @@ enum
 - (void) selectIntro2Next;
 
 - (StationEntity *) station;
-- (id<OOPlanet>) planet;			// FIXME: can temporarily be either PlanetEntity or OOPlanetEntity.
+- (OOPlanetEntity *) planet;
 - (OOSunEntity *) sun;
 - (NSArray *) planets;	// Note: does not include sun.
 

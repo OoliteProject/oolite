@@ -60,10 +60,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "SkyEntity.h"
 #import "DustEntity.h"
-#import "PlanetEntity.h"
-#if NEW_PLANETS
 #import "OOPlanetEntity.h"
-#endif
 #import "OOSunEntity.h"
 #import "WormholeEntity.h"
 #import "RingEntity.h"
@@ -218,7 +215,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	DUMP_SIZE(OOSparkEntity);
 	DUMP_SIZE(OOECMBlastEntity);
 	DUMP_SIZE(SkyEntity);
-	DUMP_SIZE(PlanetEntity);
+	DUMP_SIZE(OOPlanetEntity);
 #endif
 	
 	if (gSharedUniverse != nil)
@@ -756,33 +753,21 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 }
 
 
-- (PlanetEntity	*) setUpPlanet
+- (OOPlanetEntity *) setUpPlanet
 {
-#if NEW_PLANETS
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
-	
-	PlanetEntity *a_planet = (PlanetEntity *)[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:[UNIVERSE systemSeed]];
-#else
-	PlanetEntity		*a_planet;
-	
-	// set the system seed for random number generation
-	seed_for_planet_description(system_seed);
-	
-	/*- space planet -*/
-	a_planet = [[PlanetEntity alloc] initWithSeed: system_seed];	// alloc retains!
-#endif
+	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:[UNIVERSE systemSeed]];
 	
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
 	
-	[a_planet setStatus:STATUS_ACTIVE];
 	[a_planet setPosition:(Vector){ 0, 0, planet_zpos }];
 	[a_planet setEnergy:1000000.0];
 	
 	if ([self planet])
 	{
-		PlanetEntity *tmp=[allPlanets objectAtIndex:0];
+		OOPlanetEntity *tmp=[allPlanets objectAtIndex:0];
 		[self addEntity:a_planet];
 		[allPlanets removeObject:a_planet];
 		cachedPlanet=a_planet;
@@ -803,7 +788,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	ShipEntity			*nav_buoy;
 	StationEntity		*a_station;
 	OOSunEntity			*a_sun;
-	PlanetEntity		*a_planet;
+	OOPlanetEntity		*a_planet;
 	
 	Vector				stationPos;
 	
@@ -1027,7 +1012,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
-		[a_station setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
+		[a_station setPlanet:[self planet]];
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];
 	}
@@ -1928,7 +1913,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
 		return kZeroVector;
-	PlanetEntity* the_planet = [self planet];
+	OOPlanetEntity* the_planet = [self planet];
 	OOSunEntity* the_sun = [self sun];
 	if (the_planet == nil || the_sun == nil || [l_sys isEqualToString:@"abs"])
 	{
@@ -2030,7 +2015,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSString* l_sys = [system lowercaseString];
 	if ([l_sys length] != 3)
 		return nil;
-	PlanetEntity* the_planet = [self planet];
+	OOPlanetEntity* the_planet = [self planet];
 	OOSunEntity* the_sun = [self sun];
 	if ((!the_planet)||(!the_sun))
 	{
@@ -2095,7 +2080,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		case 'p':
 		{
-			PlanetEntity *planet = [self planet];
+			OOPlanetEntity *planet = [self planet];
 			scale = 1.0f / (planet ? [planet collisionRadius]: 5000);
 			break;
 		}
@@ -2736,7 +2721,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (id<OOPlanet>) planet
+- (OOPlanetEntity *) planet
 {
 	if (cachedPlanet == nil && [allPlanets count] != 0)
 	{
@@ -4132,13 +4117,13 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						double stationRoll = [systeminfo oo_doubleForKey:@"station_roll" defaultValue:0.4];
 						
 						[se setRoll: stationRoll];
-						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
+						[(StationEntity *)se setPlanet:[self planet]];
 						[se setStatus:STATUS_ACTIVE];
 					}
 					else
 					{
 						[se setRoll: 0.0];
-						[(StationEntity*)se setPlanet:(PlanetEntity *)[self planet]];	// NEW_PLANETS temp compile fix
+						[(StationEntity *)se setPlanet:[self planet]];
 						[se setStatus:STATUS_ACTIVE];
 					}
 				}

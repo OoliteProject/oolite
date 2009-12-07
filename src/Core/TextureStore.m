@@ -22,13 +22,15 @@ MA 02110-1301, USA.
 
 */
 
+#import "TextureStore.h"
+#if !NEW_PLANETS
+
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 
 #import "ResourceManager.h"
 #import "legacy_random.h"
 
-#import "TextureStore.h"
 #import "OOColor.h"
 #import "OOMaths.h"
 #import "OOTextureScaling.h"
@@ -568,3 +570,5 @@ void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int n
 }
 
 @end
+
+#endif	// !NEW_PLANETS

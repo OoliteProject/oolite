@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOEntityFilterPredicate.h"
 #import "Entity.h"
 #import "ShipEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "OORoleSet.h"
 
 
@@ -134,8 +134,8 @@ BOOL IsStationPredicate(Entity *entity, void *parameter)
 BOOL IsPlanetPredicate(Entity *entity, void *parameter)
 {
 	if (![entity isPlanet])  return NO;
-	OOPlanetType type = [(PlanetEntity *)entity planetType];
-	return (type == PLANET_TYPE_GREEN || type == PLANET_TYPE_MOON);
+	OOStellarBodyType type = [(OOPlanetEntity *)entity planetType];
+	return (type == STELLAR_TYPE_NORMAL_PLANET || type == STELLAR_TYPE_MOON);
 }
 
 

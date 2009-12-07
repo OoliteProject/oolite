@@ -23,6 +23,9 @@ MA 02110-1301, USA.
 */
 
 #import "OOPlanetEntity.h"
+
+#if NEW_PLANETS
+
 #import "OOPlanetDrawable.h"
 
 #import "AI.h"
@@ -108,8 +111,12 @@ MA 02110-1301, USA.
 	[self setUpPlanetFromTexture:textureName];
 	
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
-	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// FIXME: do we want to do something more interesting here?
 	_rotationAxis = kBasisYVector;
+#if 0
+	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// FIXME: do we want to do something more interesting here?
+#else
+	[self setOrientation:kIdentityQuaternion];
+#endif
 	[_planetDrawable setRadius:collision_radius];
 	
 	// set speed of rotation.
@@ -134,6 +141,8 @@ MA 02110-1301, USA.
 	
 	setRandomSeed(savedRndSeed);
 	RANROTSetFullSeed(savedRanrotSeed);
+	
+	[self setStatus:STATUS_ACTIVE];
 	
 	return self;
 }
@@ -259,11 +268,11 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
-- (OOPlanetType) planetType
+- (OOStellarBodyType) planetType
 {
-	if (_miniature)  return PLANET_TYPE_MINIATURE;
-	if (_atmosphereDrawable != nil)  return PLANET_TYPE_ATMOSPHERE;
-	return PLANET_TYPE_GREEN;
+	if (_miniature)  return STELLAR_TYPE_MINIATURE;
+	if (_atmosphereDrawable != nil)  return STELLAR_TYPE_NORMAL_PLANET;
+	return STELLAR_TYPE_MOON;
 }
 
 
@@ -285,17 +294,15 @@ static OOColor *ColorWithHSBColor(Vector c)
 		
 		// FIXME: update atmosphere
 	}
-
+	
+#if 0
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
+#else
+	quaternion_rotate_about_y(&orientation, _rotationalVelocity * delta_t);
+#endif
 	[self orientationChanged];
 	
 	// FIXME: update atmosphere
-}
-
-
-- (Vector) position		// NEW_PLANETS temp compile fix
-{
-	return [super position];
 }
 
 
@@ -404,3 +411,5 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 @end
+
+#endif	// NEW_PLANETS

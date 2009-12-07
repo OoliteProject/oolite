@@ -25,7 +25,7 @@ MA 02110-1301, USA.
 */
 
 
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 
 #import "OOSelfDrawingEntity.h"
 #import "legacy_random.h"
@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 - (BOOL) setSunColor:(OOColor*)sun_color;
 - (BOOL) changeSunProperty:(NSString *)key withDictionary:(NSDictionary*) dict;
 
-- (OOPlanetType) planetType;
+- (OOStellarBodyType) planetType;
 
 - (void) getDiffuseComponents:(GLfloat[4])components;
 - (void) getSpecularComponents:(GLfloat[4])components;

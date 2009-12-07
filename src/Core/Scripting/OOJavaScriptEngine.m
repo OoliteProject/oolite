@@ -27,7 +27,7 @@ MA 02110-1301, USA.
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "NSStringOOExtensions.h"
 #import "OOWeakReference.h"
 #import "EntityOOJavaScriptExtensions.h"
@@ -1327,15 +1327,17 @@ BOOL JSEntityIsJavaScriptSearchablePredicate(Entity *entity, void *parameter)
 	}
 	else if ([entity isPlanet])
 	{
-		switch ([(PlanetEntity *)entity planetType])
+		switch ([(OOPlanetEntity *)entity planetType])
 		{
-			case PLANET_TYPE_MOON:
-			case PLANET_TYPE_GREEN:
-			case PLANET_TYPE_SUN:
+			case STELLAR_TYPE_MOON:
+			case STELLAR_TYPE_NORMAL_PLANET:
+			case STELLAR_TYPE_SUN:
 				return YES;
 				
-			case PLANET_TYPE_ATMOSPHERE:
-			case PLANET_TYPE_MINIATURE:
+#if !NEW_PLANETS
+			case STELLAR_TYPE_ATMOSPHERE:
+#endif
+			case STELLAR_TYPE_MINIATURE:
 				return NO;
 		}
 	}

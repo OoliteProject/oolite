@@ -30,7 +30,7 @@
 #import "OOJSEntity.h"
 #import "OOJSPlayer.h"
 #import "Universe.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "PlayerEntityScriptMethods.h"
 #import "OOJSSystemInfo.h"
 

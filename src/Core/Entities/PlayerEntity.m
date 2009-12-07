@@ -33,7 +33,7 @@ MA 02110-1301, USA.
 #import "StationEntity.h"
 #import "ParticleEntity.h"
 #import "OOSunEntity.h"
-#import "PlanetEntity.h"
+#import "OOPlanetEntity.h"
 #import "WormholeEntity.h"
 
 #import "OOMaths.h"
