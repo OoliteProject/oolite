@@ -2165,6 +2165,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	else
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+		// in case we have the damaged version!
+		[_equipment removeObject:[equipmentKey stringByAppendingString:@"_DAMAGED"]];
 	}
 	
 	// does this equipment actually exist?
@@ -3411,7 +3413,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOn();
 	
-	OOPlanetDrawable *ball = [OOPlanetDrawable planetWithTextureName:@"oolite-planet-temp.png" radius:[[self mesh] collisionRadius] eccentricity:0];
+	OOPlanetDrawable *ball = [OOPlanetDrawable planetWithTextureName:@"oolite-planet-temp.png" radius:[[self mesh] collisionRadius]];
 	
 	if (translucent)  [ball renderTranslucentParts];
 	else  [ball renderOpaqueParts];

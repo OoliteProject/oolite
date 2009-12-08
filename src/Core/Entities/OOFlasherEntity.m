@@ -117,7 +117,7 @@ MA 02110-1301, USA.
 		unsigned count = [_colors count];
 		if (count > 1 && wave < 0) 
 		{
-			if (!_justSwitched && wave >= _wave)
+			if (!_justSwitched && wave > _wave)	// don't test for wave >= _wave - could give wrong results with very low frequencies
 			{
 				_justSwitched = YES;
 				_activeColor = ++_activeColor % count;
