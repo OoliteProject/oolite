@@ -1324,6 +1324,7 @@ if (shift) { keys[a] = YES; keys[b] = NO; } else { keys[a] = NO; keys[b] = YES; 
 					
 					case SDLK_KP_MINUS: keys[45] = YES; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = YES; break; // numeric keypad + key
+					case SDLK_KP_ENTER: keys[13] = YES; break;
 					
 					case SDLK_KP1: keys[44] = YES; break; // equivalent to <
 					case SDLK_KP3: keys[46] = YES; break; // equivalent to >
@@ -1511,6 +1512,7 @@ keys[a] = NO; keys[b] = NO; \
 						
 					case SDLK_KP_MINUS: keys[45] = NO; break; // numeric keypad - key
 					case SDLK_KP_PLUS: keys[43] = NO; break; // numeric keypad + key
+					case SDLK_KP_ENTER: keys[13] = NO; break;
 						
 					case SDLK_KP1: keys[44] = NO; break; // equivalent to <
 					case SDLK_KP3: keys[46] = NO; break; // equivalent to >
