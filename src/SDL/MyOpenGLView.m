@@ -1830,7 +1830,8 @@ keys[a] = NO; keys[b] = NO; \
 	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
 	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
 	
-	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
+	// convert transparency to black before saving to bmp
+	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 32, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0xFF000000);
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
 }

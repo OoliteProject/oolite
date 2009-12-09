@@ -444,6 +444,19 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255 * rgba[3] * q;
 		}
 	}
+#ifndef NDEBUG
+	if (nplanes == 4)
+	{
+		NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-old", sNoiseSeed.high, sNoiseSeed.low];
+		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
+		
+		[[UNIVERSE gameView] dumpRGBAToFileNamed:name
+										   bytes:imageBuffer
+										   width:width
+										  height:width
+										rowBytes:width * 4];
+	}
+#endif
 }
 
 void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
@@ -509,7 +522,7 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 			imageBuffer[ 3 + 4 * (y * width + x) ] = 255;
 		}
 	}
-#if DEBUG_DUMP
+#ifndef NDEBUG
 	if (nplanes == 4)
 	{
 		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file planet-%u-%u-old.", sNoiseSeed.high, sNoiseSeed.low]);
