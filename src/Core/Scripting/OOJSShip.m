@@ -1331,6 +1331,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 	ShipEntity			*thisEnt = nil;
 	BOOL				OK = JSVAL_IS_INT(argv[0]);
 	NSString 			*key = nil;
+	int 				qty = 0;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
@@ -1345,8 +1346,9 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 		OK = ValidateContracts(context, this, argc, argv, outResult, YES); // always go through validate contracts (cargo)
 		if (!OK) return NO;
 		
-		unsigned qty = JSVAL_TO_INT(argv[0]);
-		if (![thisEnt isPlayer] || (qty > [thisEnt availableCargoSpace] || qty < 1))
+		qty = JSVAL_TO_INT(argv[0]);
+		
+		if (![thisEnt isPlayer] || qty < 1)
 		{
 			OOReportJSWarning(context, @"Ship.%@(): cannot %@.", @"awardContract", @"award contract");
 			OK = NO;
@@ -1367,7 +1369,7 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 		JS_ValueToNumber(context, argv[4], &eta);
 		JS_ValueToNumber(context, argv[5], &fee);
 		// commodity key is case insensitive.
-		OK = [(PlayerEntity*)thisEnt awardContract:JSVAL_TO_INT(argv[0]) commodity:key 
+		OK = [(PlayerEntity*)thisEnt awardContract:qty commodity:key 
 									start:JSVAL_TO_INT(argv[2]) destination:JSVAL_TO_INT(argv[3]) eta:eta fee:fee];
 	}
 	
