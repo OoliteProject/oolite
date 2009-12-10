@@ -685,6 +685,8 @@
 		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
+		2B6EB2DB10D03E08007EAC20 /* OOCloudTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B6EB2D910D03E08007EAC20 /* OOCloudTextureGenerator.h */; };
+		2B6EB2DC10D03E08007EAC20 /* OOCloudTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B6EB2DA10D03E08007EAC20 /* OOCloudTextureGenerator.m */; };
 		2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 /* End PBXBuildFile section */
@@ -1701,8 +1703,8 @@
 		1AD6B3280E3BB55E001C42D9 /* debug-exports-64.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports-64.exp"; sourceTree = "<group>"; };
 		1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-options.xcconfig"; path = "src/Cocoa/oolite-options.xcconfig"; sourceTree = "<group>"; };
 		1ADA564710CD68D800E891B8 /* OOStellarBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOStellarBody.h; sourceTree = "<group>"; };
-		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.frag; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; };
-		1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.vert; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
+		1ADA576710CDB1C300E891B8 /* oolite-default-planet.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.vertex"; sourceTree = "<group>"; };
+		1ADA576910CDB1C600E891B8 /* oolite-default-planet.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-planet.fragment"; sourceTree = "<group>"; };
 		1ADA8AB10F42DBA80001BEC9 /* OODeepCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODeepCopy.h; sourceTree = "<group>"; };
 		1ADA8AB20F42DBA80001BEC9 /* OODeepCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODeepCopy.m; sourceTree = "<group>"; };
 		1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOBasicMaterial.h; sourceTree = "<group>"; };
@@ -1789,6 +1791,8 @@
 		2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nova-system.png"; sourceTree = "<group>"; };
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
+		2B6EB2D910D03E08007EAC20 /* OOCloudTextureGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCloudTextureGenerator.h; sourceTree = "<group>"; };
+		2B6EB2DA10D03E08007EAC20 /* OOCloudTextureGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCloudTextureGenerator.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2444,6 +2448,8 @@
 		1A71E85D0BCE8A5500CD5C13 /* Textures */ = {
 			isa = PBXGroup;
 			children = (
+				2B6EB2D910D03E08007EAC20 /* OOCloudTextureGenerator.h */,
+				2B6EB2DA10D03E08007EAC20 /* OOCloudTextureGenerator.m */,
 				1A26D0E10BCF9D3B0073F257 /* OOTexture.h */,
 				1A26D0E00BCF9D3B0073F257 /* OOTexture.m */,
 				1A8BB8E80E8311F900122974 /* OONullTexture.h */,
@@ -3137,6 +3143,7 @@
 				1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */,
 				1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */,
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
+				2B6EB2DB10D03E08007EAC20 /* OOCloudTextureGenerator.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3497,6 +3504,7 @@
 				1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */,
 				1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */,
 				1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */,
+				2B6EB2DC10D03E08007EAC20 /* OOCloudTextureGenerator.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

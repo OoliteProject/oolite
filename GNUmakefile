@@ -181,6 +181,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOMaterial.m \
 	OONullTexture.m \
 	OOPlanetTextureGenerator.m \
+	OOCloudTextureGenerator.m \
 	OOPNGTextureLoader.m \
 	OOShaderMaterial.m \
 	OOShaderProgram.m \
