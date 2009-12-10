@@ -1,6 +1,6 @@
 /*
 
-OOPlanetTextureGenerator.h
+OOCloudTextureGenerator.h
 
 Generator for planet diffuse maps.
 
@@ -29,10 +29,10 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 
 
-@interface OOPlanetTextureGenerator: OOTextureGenerator
+@interface OOCloudTextureGenerator: OOTextureGenerator
 {
 @private
-	float					_landFraction;
+	float					_landFraction, _overallAlpha;
 	FloatRGB				_landColor;
 	FloatRGB				_seaColor;
 	FloatRGB				_polarLandColor;
@@ -43,7 +43,7 @@ MA 02110-1301, USA.
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
 
-+ (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
++ (OOTexture *) cloudTextureWithInfo:(NSDictionary *)planetInfo;
 //+ (void) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture forShaderLevel:(OOShaderSetting)shaderLevel;
 
 @end

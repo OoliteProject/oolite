@@ -1,6 +1,6 @@
 /*
 
-OOPlanetTextureGenerator.m
+OOCloudTextureGenerator.m
 
 Generator for planet diffuse maps.
 
@@ -30,7 +30,7 @@ MA 02110-1301, USA.
 #define DISABLE_SPECULAR	(	1	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
 
 
-#import "OOPlanetTextureGenerator.h"
+#import "OOCloudTextureGenerator.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOTexture.h"
@@ -55,11 +55,10 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
-//static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
-static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
+static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
 
 
-@implementation OOPlanetTextureGenerator
+@implementation OOCloudTextureGenerator
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo
 {
@@ -71,6 +70,8 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		_polarLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
+	
+		_overallAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
 		
 		_width = 512;
 		_height = _width;	// Ideally, aspect ratio would be 2:1, but current code only handles squares.
@@ -80,10 +81,10 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 }
 
 
-+ (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo
++ (OOTexture *) cloudTextureWithInfo:(NSDictionary *)planetInfo
 {
 	OOTexture *result = nil;
-	OOPlanetTextureGenerator *generator = [[self alloc] initWithPlanetInfo:planetInfo];
+	OOCloudTextureGenerator *generator = [[self alloc] initWithPlanetInfo:planetInfo];
 	if (generator != nil)
 	{
 		result = [OOTexture textureWithGenerator:generator];
@@ -108,7 +109,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 
 - (NSString *) cacheKey
 {
-	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-base\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
+	return [NSString stringWithFormat:@"OOCloudTextureGenerator-base\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
 			_width, _height, _landFraction, _seed.high, _seed.low,
 			_landColor.r, _landColor.g, _landColor.b,
 			_seaColor.r, _seaColor.g, _seaColor.b,
@@ -126,7 +127,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	if (![self isReady])
 	{
 		waiting = true;
-		OOLog(@"planetTex.temp", @"Waiting for generator %@", self);
+		OOLog(@"planetTex.temp", @"%s cloud generator %@", "Waiting for", self);
 	}
 	
 	BOOL result = [super getResult:outData format:outFormat width:outWidth height:outHeight];
@@ -178,66 +179,32 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		scale *= 0.5;
 	}
 	
-	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
-	float seaBias = _landFraction - 1.0;
-	
-	/*
-	The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
-	While most polar seas would be covoered in ice, and therefore white, paleSeaColour
-	doesn't seem  to take latitutde into account, resulting in all coastal areas to be white, 
-	or whatever defined as polar sea colours.
-	For now, I'm overriding paleSeaColour to be pale blend of sea and land, and widened the shallows.
-	TODO: investigate the use of polar land colour for the sea at higher latitudes.
-	*/
-	
-	FloatRGB paleSeaColor = Blend(0.45, _polarSeaColor, Blend(0.7, _seaColor, _landColor));
+	float seaBias = 1.0 - _landFraction;
+
+	float poleValue =(_landFraction * accBuffer[0] < seaBias) ? 0.0f : 1.0f;
+
 	
 	unsigned x, y;
-	FloatRGBA color;
-	Vector norm;
-	float q, yN, yS, yW, yE;
-	GLfloat shade;
+	FloatRGBA color = (FloatRGBA){_seaColor.r, _seaColor.g, _seaColor.b, 1.0f};
+	float q;
+
+	GLfloat shade = 1.0f;
+	if (NO) 
+				color = CloudMix(q, 0.5, _seaColor, _overallAlpha);
+
 	for (y = 0; y < height; y++)
 	{
 		for (x = 0; x < width; x++)
 		{
-			q = QFactor(accBuffer, x, y, width, height, poleValue, seaBias);
-			
-			// FIXME: is it worth calculating this per point in a separate pass instead of calculating each value five times?
-			// Also, splitting the loop to handle the poleFactor = 0 case separately would greatly simplify QFactor in that case.
-			yN = QFactor(accBuffer, x, y - 1, width, height, poleValue, seaBias);
-			yS = QFactor(accBuffer, x, y + 1, width, height, poleValue, seaBias);
-			yW = QFactor(accBuffer, x - 1, y, width, height, poleValue, seaBias);
-			yE = QFactor(accBuffer, x + 1, y, width, height, poleValue, seaBias);
-			
-			norm = vector_normal(make_vector(24.0f * (yW - yE), 24.0f * (yS - yN), 2.0f));
-			color = PlanetMix(q, _landFraction, _landColor, _seaColor, _polarLandColor, paleSeaColor);
-			
-			/*	Terrain shading
-				was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
-				little difference, other than being faster.
-				
-				FIXME: need to work out a decent way to scale this with texture
-				size, so overall darkness is constant. As an experiment, I used
-				a size of 128 << k and shade = pow(norm.z, k + 1); this was
-				better, but still darker at smaller resolutions.
-			*/
-			shade = norm.z * norm.z * norm.z;
-			
-			/*	We don't want terrain shading in the sea. The alpha channel
-				of color is a measure of "seaishness" for the specular map,
-				so we can recycle that to avoid branching.
-			*/
-			shade = color.a + (1.0f - color.a) * shade;
+			q = QFactor(accBuffer, x, y, width, height, poleValue, 0.0f);
+	
 			
 			*px++ = 255 * color.r * shade;
 			*px++ = 255 * color.g * shade;
 			*px++ = 255 * color.b * shade;
-#if DISABLE_SPECULAR
-			*px++ = 255;
-#else
-			*px++ = 255 * color.a;
-#endif
+			*px++ = 255 * q;
+			//*px++ = 255  * accBuffer[x*width+y] * _overallAlpha;
+
 		}
 	}
 	 
@@ -255,7 +222,7 @@ END:
 #if DEBUG_DUMP
 	if (success)
 	{
-		NSString *name = [NSString stringWithFormat:@"planet-%u-%u-new", _seed.high, _seed.low];
+		NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-new", _seed.high, _seed.low];
 		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
 	
 		[[UNIVERSE gameView] dumpRGBAToFileNamed:name
@@ -282,8 +249,8 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 	};
 }
 
-/*
-static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
+
+static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
 {
 		
 #define RECIP_CLOUD_PORTION		(20.0f)
@@ -314,64 +281,6 @@ static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
 
 
 	return (FloatRGBA){ result.r, result.g, result.b, alpha * (q )};
-}
-*/
-
-static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
-{
-	float hi = 0.66667f * maxQ;
-	float oh = 1.0f / hi;
-	float ih = 1.0f / (1.0f - hi);
-	
-#define RECIP_COASTLINE_PORTION		(160.0f)
-#define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
-#define SHALLOWS					(2.0f * COASTLINE_PORTION)	// increased shallows area.
-#define RECIP_SHALLOWS				(1.0f / SHALLOWS)
-#define BEACH_SPECULAR_FACTOR		(0.6f)	// Portion of specular transition that occurs in paleSeaColor/landColor transition (rest is in paleSeaColor/seaColor transition)
-#define SHALLOWS_SPECULAR_FACTOR	(1.0f - BEACH_SPECULAR_FACTOR)
-	
-	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
-	FloatRGB result;
-	float specular = 0.0f;
-	
-	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
-	q -= COASTLINE_PORTION;
-	
-	if (q <= 0.0f)
-	{
-		if (q > -SHALLOWS)
-		{
-			// Coastal waters
-			result = Blend(-q * RECIP_SHALLOWS, seaColor, paleSeaColor);
-			specular = -(q * RECIP_SHALLOWS) * SHALLOWS_SPECULAR_FACTOR + BEACH_SPECULAR_FACTOR;
-		}
-		else
-		{
-			// Open sea
-			result = seaColor;
-			specular = 1.0f;
-		}
-	}
-	else if (q > 1.0f)
-	{
-		result = white;
-	}
-	else if (q < COASTLINE_PORTION)
-	{
-		// Coastline
-		result = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
-		specular = (1.0f - (q * RECIP_COASTLINE_PORTION)) * BEACH_SPECULAR_FACTOR;
-	}
-	else if (q > hi)
-	{
-		result = Blend((q - hi) * ih, white, paleLandColor);	// Snow-capped peaks
-	}
-	else
-	{
-		result = Blend((hi - q) * oh, landColor, paleLandColor);
-	}
-	
-	return (FloatRGBA){ result.r, result.g, result.b, specular };
 }
 
 

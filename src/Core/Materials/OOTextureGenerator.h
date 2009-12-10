@@ -51,6 +51,18 @@ SOFTWARE.
 #import "OOTextureLoader.h"
 
 
+typedef struct
+	{
+		float			r, g, b;
+	} FloatRGB;
+
+
+typedef struct
+	{
+		float			r, g, b, a;
+	} FloatRGBA;
+
+
 @interface OOTextureGenerator: OOTextureLoader
 
 // Generators, unlike normal loaders, get to specify their own flags and other settings.

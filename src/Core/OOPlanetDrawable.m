@@ -232,7 +232,6 @@
 		glEnable(GL_RESCALE_NORMAL);
 		OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 		OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
-		
 	}
 	
 	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount * 3, data->type, data->indices));

@@ -41,13 +41,16 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 #import "OOPlanetTextureGenerator.h"
+#import "OOCloudTextureGenerator.h"
 #import "OOSingleTextureMaterial.h"
 #import "OOShaderMaterial.h"
 
 
 @interface OOPlanetEntity (Private)
 
-- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)planetInfo;
+- (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
+- (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo;
+- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo isAtmosphere:(BOOL)isAtmosphere;
 
 @end
 
@@ -107,7 +110,7 @@ MA 02110-1301, USA.
 	// Load material parameters.
 	RANROTSeed planetNoiseSeed = RANROTGetFullSeed();
 	[planetInfo setObject:[NSValue valueWithBytes:&planetNoiseSeed objCType:@encode(RANROTSeed)] forKey:@"noise_map_seed"];
-	[self setUpColorParametersWithSourceInfo:dict targetInfo:planetInfo];
+	[self setUpLandParametersWithSourceInfo:dict targetInfo:planetInfo];
 	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", nil]];
 	[_materialParameters retain];
 	
@@ -136,8 +139,26 @@ MA 02110-1301, USA.
 	
 	if (atmosphere)
 	{
-		// FIXME: atmospheres are not usable right now.
-	//	_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH eccentricity:0.0] retain];
+#if 1
+		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
+		
+		NSMutableDictionary 	*atmosphereInfo = [NSMutableDictionary dictionaryWithCapacity:6];
+		
+		// convert the atmosphere settings to generic 'material parameters'
+		percent_land = 100 - [dict oo_intForKey:@"percent_cloud" defaultValue:100 - (3 + (gen_rnd_number() & 31)+(gen_rnd_number() & 31))];
+		[atmosphereInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
+		[atmosphereInfo setObject:[planetInfo objectForKey:@"noise_map_seed"] forKey:@"noise_map_seed"];
+		[self setUpAtmosphereParametersWithSourceInfo:dict targetInfo:atmosphereInfo];
+		
+		_atmosphereParameters = [atmosphereInfo copy];
+		//[atmosphereInfo autorelease];
+		OOTexture *atmosphereTexture = [OOCloudTextureGenerator cloudTextureWithInfo:_atmosphereParameters];
+		
+		OOSingleTextureMaterial *material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphereTexture configuration:nil];
+		[_atmosphereDrawable setMaterial:material];
+		[material release];
+
+#endif
 	}
 	
 	// set energy
@@ -174,13 +195,38 @@ static Vector LighterHSBColor(Vector c)
 }
 
 
+static Vector HSBColorWithColor(OOColor *color)
+{
+	OOHSBAComponents c = [color hsbaComponents];
+	return (Vector){ c.h, c.s, c.b };
+}
+
+
 static OOColor *ColorWithHSBColor(Vector c)
 {
 	return [OOColor colorWithCalibratedHue:c.x saturation:c.y brightness:c.z alpha:1.0];
 }
 
 
-- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
+{
+	return [OOColor colorWithCalibratedHue:c.x saturation:c.y brightness:c.z alpha:a];
+}
+
+
+- (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+{
+	[self setUpColorParametersWithSourceInfo:sourceInfo targetInfo:targetInfo isAtmosphere:NO];
+}
+
+
+- (void) setUpAtmosphereParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
+{
+	[self setUpColorParametersWithSourceInfo:sourceInfo targetInfo:targetInfo isAtmosphere:YES];
+}
+
+
+- (void) setUpColorParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo isAtmosphere:(BOOL)isAtmosphere
 {
 	// Stir the PRNG fourteen times for backwards compatibility.
 	unsigned i;
@@ -191,7 +237,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	
 //	float polarColorFactor = [sourceInfo oo_floatForKey:@"polar_color_factor" defaultValue:0.5];
 	
-	Vector landHSB, seaHSB, landPolarHSB, seaPolarHSB;
+	Vector	landHSB, seaHSB, landPolarHSB, seaPolarHSB;
+	OOColor	*color;
 	
 	landHSB = RandomHSBColor();
 	do
@@ -200,18 +247,53 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	while (dot_product(landHSB, seaHSB) > .80); // make sure land and sea colors differ significantly
 	
-	// possibly get landHSB and seaHSB from planetinfo.plist entry
-	ScanVectorFromString([sourceInfo oo_stringForKey:@"land_hsb_color"], &landHSB);
-	ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
-	
-	// polar areas are brighter but have less color (closer to white)
-	landPolarHSB = LighterHSBColor(landHSB);
-	seaPolarHSB = LighterHSBColor(seaHSB);
-	
-	[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"land_color"];
-	[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];
-	[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_land_color"];
-	[targetInfo setObject:ColorWithHSBColor(seaPolarHSB) forKey:@"polar_sea_color"];
+	if (!isAtmosphere)
+	{
+		// possibly get landHSB and seaHSB from planetinfo.plist entry
+		ScanVectorFromString([sourceInfo oo_stringForKey:@"land_hsb_color"], &landHSB);
+		ScanVectorFromString([sourceInfo oo_stringForKey:@"sea_hsb_color"], &seaHSB);
+		
+		// polar areas are brighter but have less color (closer to white)
+		landPolarHSB = LighterHSBColor(landHSB);
+		seaPolarHSB = LighterHSBColor(seaHSB);
+		
+		// TODO: use all dictionary overrides
+		[targetInfo setObject:ColorWithHSBColor(landHSB) forKey:@"land_color"];
+		[targetInfo setObject:ColorWithHSBColor(seaHSB) forKey:@"sea_color"];
+		[targetInfo setObject:ColorWithHSBColor(landPolarHSB) forKey:@"polar_land_color"];
+		[targetInfo setObject:ColorWithHSBColor(seaPolarHSB) forKey:@"polar_sea_color"];
+		
+	}
+	else
+	{
+		float cloudAlpha = cloudAlpha = OOClamp_0_1_f([sourceInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f]);
+		[targetInfo setObject:[NSNumber numberWithFloat:cloudAlpha] forKey:@"cloud_alpha"];
+		
+#define CLEAR_SKY_ALPHA			0.05
+#define CLOUD_ALPHA				0.50
+#define POLAR_CLEAR_SKY_ALPHA	0.34
+#define POLAR_CLOUD_ALPHA		0.75
+		
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
+		if (color != nil) landHSB = HSBColorWithColor(color);
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"clear_sky_color"]];
+		if (color != nil) seaHSB = HSBColorWithColor(color);
+
+		// polar areas are brighter but have less color (closer to white)
+		landPolarHSB = LighterHSBColor(landHSB);
+		seaPolarHSB = LighterHSBColor(seaHSB);
+		
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_cloud_color"]];
+		if (color != nil) landPolarHSB = HSBColorWithColor(color);
+		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"polar_clear_sky_color"]];
+		if (color != nil) seaPolarHSB = HSBColorWithColor(color);
+		
+		//TODO: rename these keys to something sensible
+		[targetInfo setObject:ColorWithHSBColorAndAlpha(landHSB, CLEAR_SKY_ALPHA) forKey:@"land_color"];
+		[targetInfo setObject:ColorWithHSBColorAndAlpha(seaHSB, CLOUD_ALPHA) forKey:@"sea_color"];
+		[targetInfo setObject:ColorWithHSBColorAndAlpha(landPolarHSB, POLAR_CLEAR_SKY_ALPHA) forKey:@"polar_land_color"];
+		[targetInfo setObject:ColorWithHSBColorAndAlpha(seaPolarHSB, POLAR_CLOUD_ALPHA) forKey:@"polar_sea_color"];
+	}
 }
 
 
@@ -255,6 +337,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	DESTROY(_planetDrawable);
 	DESTROY(_atmosphereDrawable);
+	DESTROY(_materialParameters);
+	DESTROY(_atmosphereParameters);
 	
 	[super dealloc];
 }
