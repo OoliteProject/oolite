@@ -4427,7 +4427,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	for (cargoEnum = [list objectEnumerator]; (commodity = [cargoEnum nextObject]); )
 	{
-		NSString *desc = [commodity oo_stringForKey:@"commodityName"];
+		NSString *desc = [commodity oo_stringForKey:@"displayName"];
 		NSString *units = [commodity oo_stringForKey:@"unit"];
 		[manifest addObject:[NSString stringWithFormat:DESC(@"manifest-cargo-quantity-format"),
 							[commodity oo_intForKey:@"quantity"], units, desc]];
@@ -4465,7 +4465,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			// commodity, quantity - keep consistency between .manifest and .contracts
 			[commodity setObject:CommodityTypeToString(i) forKey:@"commodity"];
 			[commodity setObject:[NSNumber numberWithUnsignedInt:in_hold[i]] forKey:@"quantity"];
-			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"commodityName"]; 
+			[commodity setObject:CommodityDisplayNameForSymbolicName(symName) forKey:@"displayName"]; 
 			[commodity setObject:DisplayStringForMassUnitForCommodity(i)forKey:@"unit"]; 
 			[list addObject:commodity];
 		}
