@@ -180,31 +180,28 @@ static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
 	}
 	
 	float seaBias = 1.0 - _landFraction;
-
 	float poleValue =(_landFraction * accBuffer[0] < seaBias) ? 0.0f : 1.0f;
-
+	float q;
 	
 	unsigned x, y;
 	FloatRGBA color = (FloatRGBA){_seaColor.r, _seaColor.g, _seaColor.b, 1.0f};
-	float q;
-
+	
 	GLfloat shade = 1.0f;
-	if (NO) 
-				color = CloudMix(q, 0.5, _seaColor, _overallAlpha);
-
+	
 	for (y = 0; y < height; y++)
 	{
 		for (x = 0; x < width; x++)
 		{
 			q = QFactor(accBuffer, x, y, width, height, poleValue, 0.0f);
-	
+			
+			if (NO) color = CloudMix(q, 0.5, _seaColor, _overallAlpha);	// TODO: better values.
 			
 			*px++ = 255 * color.r * shade;
 			*px++ = 255 * color.g * shade;
 			*px++ = 255 * color.b * shade;
-			*px++ = 255 * q;
-			//*px++ = 255  * accBuffer[x*width+y] * _overallAlpha;
-
+			
+			*px++ = 255 * q * _overallAlpha;
+			//*px++ = 255 * color.a;
 		}
 	}
 	 
