@@ -270,7 +270,7 @@ void main(void)
 	vec3 light1Vector = normalize(vLight1Vector);
 	
 	// Get ambient colour
-	vec4 ambientLight = gl_FrontMaterial.ambient * gl_LightModel.ambient;
+	vec4 ambientLight = gl_LightModel.ambient;
 	
 	// Get emission colour
 #if OOSTD_EMISSION || OOSTD_EMISSION_MAP

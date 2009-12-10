@@ -1112,7 +1112,7 @@ BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
-#define DOCKED_AMBIENT_LEVEL	0.4f	// Should be 0.05, temporarily 0.4 until lights are fixed
+#define DOCKED_AMBIENT_LEVEL	0.2f	// Should be 0.05, temporarily 0.4 until lights are fixed
 #define DOCKED_ILLUM_LEVEL		0.7f
 GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
 GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
