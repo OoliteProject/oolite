@@ -57,6 +57,9 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
 static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
 
+#define PLANET_ASPECT_RATIO		1		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
+#define PLANET_HEIGHT 			512
+#define PLANET_WIDTH	 		(512 * PLANET_ASPECT_RATIO)
 
 @implementation OOCloudTextureGenerator
 
@@ -72,9 +75,9 @@ static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 	
 		_overallAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
-		
-		_width = 512;
-		_height = _width;	// Ideally, aspect ratio would be 2:1, but current code only handles squares.
+
+		_width = PLANET_WIDTH;
+		_height = PLANET_HEIGHT;
 	}
 	
 	return self;
@@ -170,7 +173,7 @@ static FloatRGBA CloudMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
 	FillNoiseBuffer(randomBuffer, _seed);
 	
 	// Generate basic Perlin noise.
-	unsigned octave = 8;
+	unsigned octave = 8 * PLANET_ASPECT_RATIO;
 	float scale = 0.5f;
 	while (octave < height)
 	{
@@ -311,7 +314,7 @@ static float lerp(float v0, float v1, float q)
 static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned octave, float scale, const float *noiseBuffer)
 {
 	unsigned x, y;
-	float r = (float)height / (float)octave;
+	float r = (float)width / (float)octave;
 	
 	for (y = 0; y < height; y++)
 	{
@@ -348,7 +351,7 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 	q += bias;
 	
 	// Polar Y smooth. FIXME: float/int conversions.
-	float polar_y = (2.0f * y - width) / (float) width;
+	float polar_y = (2.0f * y - height) / (float) height;
 	polar_y *= polar_y;
 	q = q * (1.0 - polar_y) + polar_y * polar_y_value;
 	

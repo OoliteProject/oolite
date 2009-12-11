@@ -58,6 +58,9 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
 //static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
 static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
 
+#define PLANET_ASPECT_RATIO		1		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
+#define PLANET_HEIGHT 			512
+#define PLANET_WIDTH	 		(512 * PLANET_ASPECT_RATIO)
 
 @implementation OOPlanetTextureGenerator
 
@@ -72,8 +75,8 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
-		_width = 512;
-		_height = _width;	// Ideally, aspect ratio would be 2:1, but current code only handles squares.
+		_width = PLANET_WIDTH;
+		_height = PLANET_HEIGHT;
 	}
 	
 	return self;
@@ -126,7 +129,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	if (![self isReady])
 	{
 		waiting = true;
-		OOLog(@"planetTex.temp", @"Waiting for generator %@", self);
+		OOLog(@"planetTex.temp", @"%s generator %@", "Waiting for", self);
 	}
 	
 	BOOL result = [super getResult:outData format:outFormat width:outWidth height:outHeight];
@@ -169,7 +172,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	FillNoiseBuffer(randomBuffer, _seed);
 	
 	// Generate basic Perlin noise.
-	unsigned octave = 8;
+	unsigned octave = 8 * PLANET_ASPECT_RATIO;
 	float scale = 0.5f;
 	while (octave < height)
 	{
@@ -282,40 +285,6 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 	};
 }
 
-/*
-static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha)
-{
-		
-#define RECIP_CLOUD_PORTION		(20.0f)
-#define CLOUD_PORTION			(1.0f / RECIP_CLOUD_PORTION)
-	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
-	//const FloatRGB black = { 0.0f, 0.0f, 0.0f };
-	FloatRGB result = cloudColor;
-
-	q -= CLOUD_PORTION;
-	
-	if (q <= 0.0f)
-	{
-		if (q >= -CLOUD_PORTION){
-			alpha *= -q * RECIP_CLOUD_PORTION;
-			result = Blend( -q * 0.5 * RECIP_CLOUD_PORTION + 0.5, result, white);
-		}
-		//else result=black;
-	}
-	else if (q >= CLOUD_PORTION)
-	{
-		result = Blend( q * 0.5 +0.5, white, result);
-	}
-	else if (q < CLOUD_PORTION)
-	{
-		alpha *= q * RECIP_CLOUD_PORTION;
-		result = Blend( q  * RECIP_CLOUD_PORTION , result, white);
-	}
-
-
-	return (FloatRGBA){ result.r, result.g, result.b, alpha * (q )};
-}
-*/
 
 static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
 {
@@ -405,7 +374,7 @@ static float lerp(float v0, float v1, float q)
 static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned octave, float scale, const float *noiseBuffer)
 {
 	unsigned x, y;
-	float r = (float)height / (float)octave;
+	float r = (float)width / (float)octave;
 	
 	for (y = 0; y < height; y++)
 	{
@@ -442,7 +411,7 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 	q += bias;
 	
 	// Polar Y smooth. FIXME: float/int conversions.
-	float polar_y = (2.0f * y - width) / (float) width;
+	float polar_y = (2.0f * y - height) / (float) height;
 	polar_y *= polar_y;
 	q = q * (1.0 - polar_y) + polar_y * polar_y_value;
 	
