@@ -60,7 +60,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 
 #define PLANET_ASPECT_RATIO		1		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
 #define PLANET_HEIGHT 			512
-#define PLANET_WIDTH	 		(512 * PLANET_ASPECT_RATIO)
+#define PLANET_WIDTH	 		(PLANET_HEIGHT * PLANET_ASPECT_RATIO)
 
 @implementation OOPlanetTextureGenerator
 
