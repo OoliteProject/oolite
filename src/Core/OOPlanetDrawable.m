@@ -88,7 +88,6 @@
 	if ((self = [self init]))
 	{
 		_isAtmosphere = YES;
-		[self setTextureName:@"oolite-temp-atmosphere.png"];
 	}
 	
 	return self;
