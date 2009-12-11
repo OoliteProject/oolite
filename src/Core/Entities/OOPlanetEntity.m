@@ -413,7 +413,7 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 		OOGL(glDisable(GL_DEPTH_TEST));
 		OOGL(glDepthMask(GL_FALSE));
 		[_atmosphereDrawable renderOpaqueParts];
-		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glEnable(GL_DEPTH_TEST));
 		OOGL(glDepthMask(GL_TRUE));
 	}
 	
