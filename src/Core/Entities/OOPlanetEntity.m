@@ -407,7 +407,15 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	}
 	
 	[_planetDrawable renderOpaqueParts];
-	[_atmosphereDrawable renderOpaqueParts];
+	if (_atmosphereDrawable != nil)
+	{
+		// Disable Z testing and writing to avoid Z-fighting
+		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glDepthMask(GL_FALSE));
+		[_atmosphereDrawable renderOpaqueParts];
+		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glDepthMask(GL_TRUE));
+	}
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
 }
