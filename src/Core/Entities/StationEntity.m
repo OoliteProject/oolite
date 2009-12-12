@@ -269,6 +269,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 {
 	unsigned i;
 	NSArray*	ships = [shipsOnApproach allKeys];
+	no_docking_while_launching = YES;
+
 	for (i = 0; i < [ships count]; i++)
 	{
 		int sid = [[ships objectAtIndex:i] intValue];
@@ -1647,7 +1649,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[result addObject:police_ship];
 		}
 	}
-	no_docking_while_launching = YES;
 	[self abortAllDockings];
 	return result;
 }
@@ -1671,6 +1672,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		default_defense_ship_role	= @"interceptor";
 	else
 		default_defense_ship_role	= @"police";
+		
+	if (scanClass == CLASS_ROCK)
+		default_defense_ship_role	= @"hermit-ship";
 	
 	if (defenders_launched >= max_defense_ships)   // shuttles are to rockhermits what police ships are to stations
 		return nil;
@@ -1697,6 +1701,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	if (!defense_ship)
 		return nil;
 	
+	if ([defense_ship isPolice] || [defense_ship hasPrimaryRole:@"hermit-ship"])
+	{
+		[defense_ship setStateMachine:defense_ship_ai];
+	}
+	
 	[defense_ship setPrimaryRole:@"defense_ship"];
 	
 	defenders_launched++;
@@ -1715,11 +1724,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	}
 	[defense_ship setGroup:[self stationGroup]];	// who's your Daddy
 	
-	if ([defense_ship isPolice])
-	{
-		[defense_ship setStateMachine:defense_ship_ai];
-	}
-	
 	[defense_ship addTarget:[UNIVERSE entityForUniversalID:defense_target]];
 
 	if ((scanClass != CLASS_ROCK)&&(scanClass != CLASS_STATION))
@@ -1727,7 +1731,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	[self addShipToLaunchQueue:defense_ship];
 	[defense_ship autorelease];
-	no_docking_while_launching = YES;
 	[self abortAllDockings];
 	
 	return defense_ship;
@@ -1838,7 +1841,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 		[self addShipToLaunchQueue:pirate_ship];
 		[pirate_ship autorelease];
-		no_docking_while_launching = YES;
 		[self abortAllDockings];
 	}
 	return pirate_ship;

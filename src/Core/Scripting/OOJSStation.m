@@ -294,11 +294,16 @@ static JSBool StationDockPlayer(JSContext *context, JSObject *this, uintN argc, 
 }
 
 
+// launchShipWithRole(role : String [, abortAllDockings : boolean]) : shipEntity
 static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	StationEntity *station = nil;
 	ShipEntity	*result = nil;
+	JSBool		abortAllDockings = NO;
+	
 	if (!JSStationGetStationEntity(context, this, &station))  return YES; // stale reference, no-op
+	
+	if (argc > 1)  JS_ValueToBoolean(context, argv[1], &abortAllDockings);
 	
 	NSString *shipRole = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(shipRole == nil))
@@ -308,6 +313,7 @@ static JSBool StationLaunchShipWithRole(JSContext *context, JSObject *this, uint
 	}
 	
 	result = [station launchIndependentShip:shipRole];
+	if (abortAllDockings) [station abortAllDockings];
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;

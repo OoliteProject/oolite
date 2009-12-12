@@ -6,7 +6,7 @@
 	"DEFENSE_MODE" =
 	{
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
-		"RED_ALERT" = (launchDefenseShip);
+		"RED_ALERT" = (launchDefenseShip, groupAttackTarget);
 		"YELLOW_ALERT" = ("setStateTo: IDLE");
 		"CONDITION_YELLOW" = ("setStateTo: IDLE");
 		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS");
