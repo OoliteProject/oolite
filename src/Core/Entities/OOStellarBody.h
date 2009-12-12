@@ -31,13 +31,15 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 
 
+#ifndef NEW_PLANETS
 #define NEW_PLANETS 0
+#endif
 
 
 typedef enum
 {
 	STELLAR_TYPE_SUN,
-	STELLAR_TYPE_NORMAL_PLANET,	// Rocky planet with atmosphere and oceans
+	STELLAR_TYPE_NORMAL_PLANET,	// Terrestrial planet with atmosphere and oceans
 #if !NEW_PLANETS
 	STELLAR_TYPE_ATMOSPHERE,
 #endif

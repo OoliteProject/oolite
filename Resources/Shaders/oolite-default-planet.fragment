@@ -1,25 +1,129 @@
-#define OO_LIGHT_0_FIX 0
+#ifndef IS_OOLITE
+#define IS_OOLITE 0
+#endif
+
+#if IS_OOLITE
+#define SPECULAR_LIGHT		(gl_LightSource[1].specular.rgb)
+#define DIFFUSE_LIGHT		(gl_LightSource[1].diffuse.rgb)
+#define AMBIENT_LIGHT		(gl_LightModel.ambient.rgb)
+#else
+#define OO_REDUCED_COMPLEXITY				0
+#define SPECULAR_LIGHT 						vec3(0.8)
+#define DIFFUSE_LIGHT 						vec3(0.8)
+#define AMBIENT_LIGHT						vec3(0.2)
+#define OOSTD_ILLUMINATION_MAP				1
+#define OOSTD_NORMAL_MAP					1
+#define OOSTD_SPECULAR_MAP					1
+#endif
+
+
+#ifndef OO_REDUCED_COMPLEXITY
+#define OO_REDUCED_COMPLEXITY 0
+#endif
+#ifndef OOSTD_ILLUMINATION_MAP
+#define OOSTD_ILLUMINATION_MAP 0
+#endif
+#ifndef OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#define OOSTD_DIFFUSE_AND_ILLUMINATION_MAP 0
+#endif
+#ifndef OOSTD_NORMAL_MAP
+#define OOSTD_NORMAL_MAP 0
+#endif
+#ifndef OOSTD_SPECULAR_MAP
+#define OOSTD_SPECULAR_MAP 0
+#endif
+#ifndef OOSTD_NORMAL_AND_SPECULAR_MAP
+#define OOSTD_NORMAL_AND_SPECULAR_MAP 0
+#endif
+#ifndef OOSTD_DIFFUSE_AND_SPECULAR_MAP
+#define OOSTD_DIFFUSE_AND_SPECULAR_MAP 0
+#endif
+
+
+// Illumination map parameters.
+#define USE_ILLUMINATION OOSTD_ILLUMINATION_MAP || OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#if OOSTD_ILLUMINATION_MAP
+uniform sampler2D		uIlluminationMap;
+#define ILLUMINATION_COLOR texture2D(uIlluminationMap, texCoords).rgb
+#elif OOSTD_DIFFUSE_AND_ILLUMINATION_MAP
+#define ILLUMINATION_COLOR (diffuseMapSample.a * vec3(0.8, 0.8, 0.4))
+#endif
+
+
+// Specular map parameters.
+// NOTE: OOSTD_DIFFUSE_AND_SPECULAR_MAP is a temporary arrangement for dynamic planets.
+// Separate OOSTD_SPECULAR_MAP is for testing in OpenGL Shader Builder, which doesn’t deal with alpha channels sensibly.
+#define USE_SPECULAR OOSTD_SPECULAR_MAP || OOSTD_NORMAL_AND_SPECULAR_MAP || OOSTD_DIFFUSE_AND_SPECULAR_MAP
+#if (OOSTD_SPECULAR_MAP)
+uniform sampler2D		uSpecularMap;
+#define SPECULAR_FACTOR (texture2D(uSpecularMap, texCoords).r)
+#elif OOSTD_NORMAL_AND_SPECULAR_MAP
+#define SPECULAR_FACTOR (normalMapSample.a)
+#elif OOSTD_DIFFUSE_AND_SPECULAR_MAP
+#define SPECULAR_FACTOR (diffuseMapSample.a)
+#endif
+
+
+// Texture coordinate calcuation.
+#if OO_REDUCED_COMPLEXITY
+#define TEXTURE_COORDS vTexCoords
+#else
+#define TEXTURE_COORDS vec2(TexLongitude(coords.x, coords.z), vTexCoords.t)
+#endif
+
+
 
 uniform sampler2D		uDiffuseMap;
 
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
 varying vec2			vTexCoords;
-varying vec3			vLight0Vector;
 varying vec3			vLight1Vector;
-varying vec3			vNormal;
 varying vec3			vCoords;
 
 
-vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
+vec3 CalcDiffuseIntensity(in vec3 lightVector, in vec3 normal)
 {
-	float intensity = lightVector.z;
-	intensity = max(intensity, 0.0);
+	float LdotN = lightVector.z;
+#if OO_REDUCED_COMPLEXITY
+	// Hardish terminator.
+	float rev = min(1.0 - LdotN, 1.0);
+	rev *= rev;
+	return vec3(1.0 - (rev * rev));
+#else
+	// Hard terminator with slight redish-orange tinge. Note: threshold values are cosines.
+	return smoothstep(vec3(0.0), vec3(0.1, 0.105, 0.12), vec3(LdotN));
+#endif
+}
+
+
+vec3 CalcSpecularLight(in vec3 lightVector, in vec3 eyeVector, in float exponent, in vec3 normal, in vec3 lightColor)
+{
+#if OOSTD_NORMAL_MAP
+	vec3 reflection = -reflect(lightVector, normal);
+	float NdotE = dot(normal, eyeVector);
+#else
+	/*	reflect(I, N) is defined as I - 2 * dot(N, I) * N
+		If N is (0,0,1), this becomes (I.x,I.y,-I.z).
+		Note that we want it negated as per above.
+	*/
+	vec3 reflection = vec3(-lightVector.x, -lightVector.y, lightVector.z);
+	float NdotE = eyeVector.z;
+#endif
+	float RdotE = max(dot(reflection, eyeVector), 0.0);
+	float intensity = pow(max(RdotE, 0.0), exponent);
+	
+	// Approximate Fresnel term.
+	float kRefract = 1.0/1.33;	// Index of refraction of water.
+	float F0 = ((kRefract - 1.0) * (kRefract - 1.0)) / ((kRefract + 1.0) * (kRefract + 1.0));
+	float Fa = F0 + pow((1.0 - NdotE), 4.0) * (1.0 - F0);
+	intensity *= 0.4 + Fa;
+	
 	return lightColor * intensity;
 }
 
 
-#ifndef OO_REDUCED_COMPLEXITY
+#if !OO_REDUCED_COMPLEXITY
 /*	Approximation of atan(y/z) with quadrant rectification, scaled to -0.5..0.5 instead of -pi..pi.
 	It is assumed that the values are in range. You are not expected to understand this.
 */
@@ -54,16 +158,40 @@ void main()
 		inverse of the cross product of the normal and binormal.
 	*/
 	vec3 coords = normalize(vCoords);
-	#define normal coords
+	vec3 normal = vec3(0, 0, 1);
 	vec3 binormal = cross(normal, vec3(0, 1, 0));
 	vec3 tangent = -cross(normal, binormal);
 	
-#ifdef OO_REDUCED_COMPLEXITY
-	#define texCoords vTexCoords
-#else
-	vec2 texCoords = vec2(TexLongitude(coords.x, coords.z), vTexCoords.t);
+	vec3 totalColor = vec3(0);
+	
+	vec2 texCoords = TEXTURE_COORDS;
+	
+	// Diffuse light
+	vec3 light1Vector = normalize(vLight1Vector);
+	vec3 diffuseIntensity = CalcDiffuseIntensity(light1Vector, normal);
+	vec3 diffuseLight = diffuseIntensity * DIFFUSE_LIGHT;
+	vec4 diffuseMapSample = texture2D(uDiffuseMap, texCoords);
+	vec3 diffuseColor = diffuseMapSample.rgb;
+	totalColor += diffuseColor * diffuseLight;
+	
+	// Ambient light, biased towards blue.
+	vec3 ambientColor = diffuseColor;
+#if !OO_REDUCED_COMPLEXITY
+	ambientColor *= vec3(0.8, 0.8, 1.0);
+#endif
+	totalColor += AMBIENT_LIGHT * ambientColor;
+	
+	// Specular light.
+#if USE_SPECULAR
+	float specularFactor = SPECULAR_FACTOR;
+	vec3 specularLight = CalcSpecularLight(light1Vector, normalize(vEyeVector), 30.0 * specularFactor, normal, SPECULAR_LIGHT);
+	totalColor += specularLight * 0.6 * specularFactor;
 #endif
 	
-	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoords);
-	gl_FragColor = diffuseMapColor;
+#if USE_ILLUMINATION
+	vec3 illuminationColor = ILLUMINATION_COLOR;
+	totalColor += (1.0 - diffuseIntensity.r) * illuminationColor;
+#endif
+	
+	gl_FragColor = vec4(totalColor, 1.0);
 }

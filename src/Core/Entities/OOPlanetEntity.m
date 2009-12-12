@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define SHADY_PLANETS 0
+#define SHADY_PLANETS 1
 
 #import "OOPlanetDrawable.h"
 

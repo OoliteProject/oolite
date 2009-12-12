@@ -8,6 +8,7 @@
 	// Macros prepended to shader source code for ship entities.
 	"ship-prefix-macros" =
 	{
+		IS_OOLITE = 1;
 		OO_USER_DEFINED_BINDINGS = 1;
 		OO_TANGENT_ATTR = 1;
 	};
@@ -37,11 +38,13 @@
 	};
 	"planet-synthetic-macros" =
 	{
+		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_AND_SPECULAR_MAP = 1;
 		OOSTD_CUBE_MAP = 0;
 	};
 	"planet-customized-macros" =
 	{
+		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
 		OOSTD_CUBE_MAP = 0;
 	};
