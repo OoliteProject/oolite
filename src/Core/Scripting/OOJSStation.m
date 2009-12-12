@@ -84,6 +84,7 @@ enum
 	kStation_dockedContractors, // miners and scavengers.
 	kStation_dockedPolice,
 	kStation_dockedDefenders,
+	kStation_equivalentTechLevel,
 	kStation_equipmentPriceFactor,
 };
 
@@ -100,6 +101,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "dockedContractors",		kStation_dockedContractors,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedPolice",			kStation_dockedPolice,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "dockedDefenders",		kStation_dockedDefenders,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "equivalentTechLevel",	kStation_equivalentTechLevel,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "equipmentPriceFactor",	kStation_equipmentPriceFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
@@ -200,6 +202,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			
 		case kStation_dockedDefenders:
 			*outValue = INT_TO_JSVAL([entity dockedDefenders]);
+			break;
+			
+		case kStation_equivalentTechLevel:
+			*outValue = INT_TO_JSVAL([entity equivalentTechLevel]);
 			break;
 			
 		case kStation_equipmentPriceFactor:

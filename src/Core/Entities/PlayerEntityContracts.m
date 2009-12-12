@@ -265,7 +265,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 					else
 					{
 						[result appendFormatLine:DESC(@"cargo-refused-short-%@"), contract_cargo_desc];
-						// FIXME: should we be removing here?
+						// The player has still time to buy the missing goods elsewhere and fulfil the contract.
 					}
 				}
 			}
@@ -273,9 +273,10 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			{
 				// but we're late!
 				[result appendFormatLine:DESC(@"cargo-delivered-late-@"), contract_cargo_desc];
+
+				[contracts removeObjectAtIndex:i--];
 				// repute--
 				[self decreaseContractReputation];
-				// FIXME: should we be removing here?
 			}
 		}
 		else
