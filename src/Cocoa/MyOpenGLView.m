@@ -802,6 +802,116 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
 	}
 }
+
+- (void) dumpRGBToFileNamed:(NSString *)name
+					  bytes:(uint8_t *)bytes
+					  width:(OOUInteger)width
+					 height:(OOUInteger)height
+				   rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)  return;
+	
+	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bytes
+																	   pixelsWide:width
+																	   pixelsHigh:height
+																	bitsPerSample:8
+																  samplesPerPixel:3
+																		 hasAlpha:NO
+																		 isPlanar:NO
+																   colorSpaceName:NSCalibratedRGBColorSpace
+																	  bytesPerRow:rowBytes
+																	 bitsPerPixel:24];
+	
+	if (bitmap != nil)
+	{
+		[bitmap autorelease];
+		
+		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
+		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+	}
+}
+
+
+- (void) dumpGrayToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width)  return;
+	
+	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bytes
+																	   pixelsWide:width
+																	   pixelsHigh:height
+																	bitsPerSample:8
+																  samplesPerPixel:1
+																		 hasAlpha:NO
+																		 isPlanar:NO
+																   colorSpaceName:NSCalibratedWhiteColorSpace
+																	  bytesPerRow:rowBytes
+																	 bitsPerPixel:8];
+	
+	if (bitmap != nil)
+	{
+		[bitmap autorelease];
+		
+		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
+		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+	}
+}
+
+
+- (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
+			   andGrayFileNamed:(NSString *)grayName
+						  bytes:(uint8_t *)bytes
+						  width:(OOUInteger)width
+						 height:(OOUInteger)height
+					   rowBytes:(OOUInteger)rowBytes
+{
+	if ((rgbName == nil && grayName == nil) || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
+	
+	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
+	OOUInteger			x, y;
+	
+	rgbPx = rgbBytes = malloc(width * height * 3);
+	if (rgbBytes == NULL)  return;
+	
+	grayPx = grayBytes = malloc(width * height);
+	if (grayBytes == NULL)
+	{
+		free(rgbBytes);
+		return;
+	}
+	
+	for (y = 0; y < height; y++)
+	{
+		srcPx = bytes + rowBytes * y;
+		
+		for (x = 0; x < width; x++)
+		{
+			*rgbPx++ = *srcPx++;
+			*rgbPx++ = *srcPx++;
+			*rgbPx++ = *srcPx++;
+			*grayPx++ = *srcPx++;
+		}
+	}
+	
+	[self dumpRGBToFileNamed:rgbName
+						bytes:rgbBytes
+						width:width
+					   height:height
+					 rowBytes:width * 3];
+	
+	[self dumpGrayToFileNamed:grayName
+						bytes:grayBytes
+						width:width
+					   height:height
+					 rowBytes:width];
+	
+	free(rgbBytes);
+	free(grayBytes);
+}
+
 #endif
 
 

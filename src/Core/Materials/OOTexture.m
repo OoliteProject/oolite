@@ -56,7 +56,6 @@
 #import "OOMacroOpenGL.h"
 #import "OOCPUInfo.h"
 #import "OOCache.h"
-#import "OOAsyncWorkManager.h"
 
 
 /*	Texture caching:
@@ -344,7 +343,7 @@ static BOOL		sRectangleTextureAvailable;
 + (id) textureWithGenerator:(OOTextureGenerator *)generator
 {
 	if (generator == nil)  return nil;
-	if (![[OOAsyncWorkManager sharedAsyncWorkManager] addTask:generator priority:kOOAsyncPriorityMedium])
+	if (![generator enqueue])
 	{
 		OOLog(@"planetTex.temp", @"Failed to queue generator %@!", generator);
 		return nil;

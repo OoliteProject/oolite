@@ -28,22 +28,25 @@ MA 02110-1301, USA.
 #import "OOTextureGenerator.h"
 #import "OOMaths.h"
 
+@class OOPlanetNormalMapGenerator;
+
 
 @interface OOPlanetTextureGenerator: OOTextureGenerator
 {
 @private
-	float					_landFraction;
-	FloatRGB				_landColor;
-	FloatRGB				_seaColor;
-	FloatRGB				_polarLandColor;
-	FloatRGB				_polarSeaColor;
-	unsigned				_width, _height;
-	RANROTSeed				_seed;
+	float						_landFraction;
+	FloatRGB					_landColor;
+	FloatRGB					_seaColor;
+	FloatRGB					_polarLandColor;
+	FloatRGB					_polarSeaColor;
+	RANROTSeed					_seed;
+	OOPlanetNormalMapGenerator	*_nMapGenerator;
+	OOUInteger					_planetScale;
 }
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
 
 + (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
-//+ (void) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture forShaderLevel:(OOShaderSetting)shaderLevel;
++ (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture withInfo:(NSDictionary *)planetInfo;
 
 @end

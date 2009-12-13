@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define SHADY_PLANETS 1
+#define SHADY_PLANETS !NO_SHADERS
 
 #import "OOPlanetDrawable.h"
 
@@ -407,14 +407,9 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	}
 	
 	[_planetDrawable renderOpaqueParts];
-	if (_atmosphereDrawable != nil)
+	if (0)//(_atmosphereDrawable != nil)
 	{
-		// Disable Z testing and writing to avoid Z-fighting
-		OOGL(glDisable(GL_DEPTH_TEST));
-		OOGL(glDepthMask(GL_FALSE));
 		[_atmosphereDrawable renderOpaqueParts];
-		OOGL(glEnable(GL_DEPTH_TEST));
-		OOGL(glDepthMask(GL_TRUE));
 	}
 	
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
@@ -498,6 +493,7 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	}
 #else
 	OOTexture *diffuseMap = nil;
+	OOTexture *normalMap = nil;
 	NSDictionary *macros = nil;
 	NSDictionary *materialDefaults = [ResourceManager materialDefaults];
 #if !NO_SHADERS
@@ -515,7 +511,9 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	}
 	else
 	{
-		diffuseMap = [OOPlanetTextureGenerator planetTextureWithInfo:_materialParameters];
+		[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
+									   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
+											   withInfo:_materialParameters];
 		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:@"planet-synthetic-macros"];
 		textureName = @"dynamic";
 	}
@@ -525,7 +523,7 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	if (shadersOn)
 	{
 		NSMutableDictionary *config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
-		[config setObject:[NSArray arrayWithObjects:diffuseMap, nil] forKey:@"_oo_texture_objects"];
+		[config setObject:[NSArray arrayWithObjects:diffuseMap, normalMap, nil] forKey:@"_oo_texture_objects"];
 		material = [OOShaderMaterial shaderMaterialWithName:textureName
 											  configuration:config
 													 macros:macros

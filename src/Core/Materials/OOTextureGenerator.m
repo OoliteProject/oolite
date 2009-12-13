@@ -47,6 +47,7 @@ SOFTWARE.
 */
 
 #import "OOTextureGenerator.h"
+#import "OOAsyncWorkManager.h"
 
 
 @implementation OOTextureGenerator
@@ -72,6 +73,12 @@ SOFTWARE.
 - (NSString *) cacheKey
 {
 	return nil;
+}
+
+
+- (BOOL) enqueue
+{
+	return [[OOAsyncWorkManager sharedAsyncWorkManager] addTask:self priority:kOOAsyncPriorityMedium];
 }
 
 @end

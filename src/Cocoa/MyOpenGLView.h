@@ -162,12 +162,32 @@ extern int debug;
 - (BOOL)pollShiftKey;
 
 #ifndef NDEBUG
-// General image-dumping method.
+// General image-dumping methods.
 - (void) dumpRGBAToFileNamed:(NSString *)name
 					   bytes:(uint8_t *)bytes
 					   width:(OOUInteger)width
 					  height:(OOUInteger)height
 					rowBytes:(OOUInteger)rowBytes;
+
+- (void) dumpRGBToFileNamed:(NSString *)name
+					  bytes:(uint8_t *)bytes
+					  width:(OOUInteger)width
+					 height:(OOUInteger)height
+				   rowBytes:(OOUInteger)rowBytes;
+
+- (void) dumpGrayToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes;
+
+// Split alpha into separate file.
+- (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
+			   andGrayFileNamed:(NSString *)grayName
+						  bytes:(uint8_t *)bytes
+						  width:(OOUInteger)width
+						 height:(OOUInteger)height
+					   rowBytes:(OOUInteger)rowBytes;
 #endif
 
 @end

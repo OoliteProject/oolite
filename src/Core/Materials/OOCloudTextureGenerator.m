@@ -223,7 +223,6 @@ END:
 	if (success)
 	{
 		NSString *name = [NSString stringWithFormat:@"atmosphere-%u-%u-new", _seed.high, _seed.low];
-		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
 	
 		[[UNIVERSE gameView] dumpRGBAToFileNamed:name
 										   bytes:buffer

@@ -194,12 +194,14 @@
 	const OOPlanetDataLevel *data = &kPlanetData[_lod];
 	OO_ENTER_OPENGL();
 	
-	OOGL(glPushAttrib(GL_ENABLE_BIT));
+	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT));
 	OOGL(glShadeModel(GL_SMOOTH));
 	
 	if (_isAtmosphere)
 	{
 		OOGL(glEnable(GL_BLEND));
+		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glDepthMask(GL_FALSE));
 	}
 	else
 	{

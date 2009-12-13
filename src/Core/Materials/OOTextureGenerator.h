@@ -73,4 +73,7 @@ typedef struct
 // Key for in-memory cache; nil for no cache.
 - (NSString *) cacheKey;
 
+// For use by OOTexture.
+- (BOOL) enqueue;
+
 @end

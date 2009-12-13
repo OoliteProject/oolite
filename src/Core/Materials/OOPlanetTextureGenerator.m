@@ -27,24 +27,54 @@ MA 02110-1301, USA.
 
 
 #define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
-#define DISABLE_SPECULAR	(	0	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
 
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOCollectionExtractors.h"
 #import "OOColor.h"
 #import "OOTexture.h"
+#import "Universe.h"
 
 #if DEBUG_DUMP
-#import "Universe.h"
 #import "MyOpenGLView.h"
 #endif
+
+
+#define PLANET_TEXTURE_OPTIONS	(kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink)
 
 
 enum
 {
 	kNoiseBufferSize		= 128
 };
+
+
+@interface OOPlanetTextureGenerator (Private)
+
+- (NSString *) cacheKeyForType:(NSString *)type;
+- (OOTextureGenerator *) normalMapGenerator;	// Must be called before generator is enqueued for rendering.
+
+@end
+
+
+
+/*	The planet generator actually generates two textures when shaders are
+	active, but the texture loader interface assumes we only load/generate
+	one texture per loader. Rather than complicate that, we use a mock
+	generator for the normal/light map.
+*/
+@interface OOPlanetNormalMapGenerator: OOTextureGenerator
+{
+@private
+	NSString				*_cacheKey;
+	RANROTSeed				_seed;
+}
+
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed;
+
+- (void) completeWithData:(void *)data width:(unsigned)width height:(unsigned)height;
+
+@end
 
 
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
@@ -58,9 +88,14 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
 //static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
 static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
 
-#define PLANET_ASPECT_RATIO		1		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
-#define PLANET_HEIGHT 			512
-#define PLANET_WIDTH	 		(PLANET_HEIGHT * PLANET_ASPECT_RATIO)
+
+enum
+{
+	kPlanetScale			= 3,
+	kPlanetAspectRatio		= 1,		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
+	kPlanetScaleOffset		= 8 - kPlanetAspectRatio
+};
+
 
 @implementation OOPlanetTextureGenerator
 
@@ -75,8 +110,15 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
-		_width = PLANET_WIDTH;
-		_height = PLANET_HEIGHT;
+		if ([UNIVERSE reducedDetail])
+		{
+			_planetScale = 2;	// 512x512
+		}
+		else
+		{
+			_planetScale = 3;	// 1024x1024
+		}
+
 	}
 	
 	return self;
@@ -97,6 +139,36 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 }
 
 
++ (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture withInfo:(NSDictionary *)planetInfo
+{
+	NSParameterAssert(texture != NULL);
+	
+	OOPlanetTextureGenerator *diffuseGen = [[[self alloc] initWithPlanetInfo:planetInfo] autorelease];
+	if (diffuseGen == nil)  return NO;
+	
+	if (secondaryTexture != NULL)
+	{
+		OOTextureGenerator *normalGen = [diffuseGen normalMapGenerator];
+		if (normalGen == nil)  return NO;
+		
+		*secondaryTexture = [OOTexture textureWithGenerator:normalGen];
+		if (*secondaryTexture == nil)  return NO;
+	}
+	
+	*texture = [OOTexture textureWithGenerator:diffuseGen];
+	
+	return *texture != nil;
+}
+
+
+- (void) dealloc
+{
+	DESTROY(_nMapGenerator);
+	
+	[super dealloc];
+}
+
+
 - (NSString *) descriptionComponents
 {
 	return [NSString stringWithFormat:@"seed: %u,%u", _seed.high, _seed.low];
@@ -105,18 +177,35 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 
 - (uint32_t) textureOptions
 {
-	return kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink;
+	return PLANET_TEXTURE_OPTIONS;
 }
 
 
 - (NSString *) cacheKey
 {
-	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-base\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
-			_width, _height, _landFraction, _seed.high, _seed.low,
+	return [self cacheKeyForType:(_nMapGenerator == nil) ? @"diffuse-baked" : @"diffuse-raw"];
+}
+
+
+- (NSString *) cacheKeyForType:(NSString *)type
+{
+	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-%@@%u\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
+			type, _planetScale,
+			width, height, _landFraction, _seed.high, _seed.low,
 			_landColor.r, _landColor.g, _landColor.b,
 			_seaColor.r, _seaColor.g, _seaColor.b,
 			_polarLandColor.r, _polarLandColor.g, _polarLandColor.b,
 			_polarSeaColor.r, _polarSeaColor.g, _polarSeaColor.b];
+}
+
+
+- (OOTextureGenerator *) normalMapGenerator
+{
+	if (_nMapGenerator == nil)
+	{
+		_nMapGenerator = [[OOPlanetNormalMapGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"normal"] seed:_seed];
+	}
+	return _nMapGenerator;
 }
 
 
@@ -152,17 +241,26 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	OOLog(@"planetTex.temp", @"Started generator %@", self);
 	
 	BOOL success = NO;
+	BOOL generateNormalMap = (_nMapGenerator != nil);
 	
 	uint8_t		*buffer = NULL, *px = NULL;
+	uint8_t		*nBuffer = NULL, *npx = NULL;
 	float		*accBuffer = NULL;
 	float		*randomBuffer = NULL;
 	
-	width = _width;
-	height = _height;
+	height = 1 << (_planetScale + kPlanetScaleOffset);
+	width = height * kPlanetAspectRatio;
 	
 	buffer = malloc(4 * width * height);
 	if (buffer == NULL)  goto END;
 	px = buffer;
+	
+	if (generateNormalMap)
+	{
+		nBuffer = malloc(4 * width * height);
+		if (nBuffer == NULL)  goto END;
+		npx = nBuffer;
+	}
 	
 	accBuffer = calloc(sizeof (float), width * height);
 	if (accBuffer == NULL)  goto END;
@@ -172,7 +270,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	FillNoiseBuffer(randomBuffer, _seed);
 	
 	// Generate basic Perlin noise.
-	unsigned octave = 8 * PLANET_ASPECT_RATIO;
+	unsigned octave = 8 * kPlanetAspectRatio;
 	float scale = 0.5f;
 	while (octave < height)
 	{
@@ -194,6 +292,8 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	*/
 	
 	FloatRGB paleSeaColor = Blend(0.45, _polarSeaColor, Blend(0.7, _seaColor, _landColor));
+	float normalScale = 1 << _planetScale;
+	if (!generateNormalMap)  normalScale *= 3.0f;
 	
 	unsigned x, y;
 	FloatRGBA color;
@@ -213,34 +313,47 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 			yW = QFactor(accBuffer, x - 1, y, width, height, poleValue, seaBias);
 			yE = QFactor(accBuffer, x + 1, y, width, height, poleValue, seaBias);
 			
-			norm = vector_normal(make_vector(24.0f * (yW - yE), 24.0f * (yS - yN), 2.0f));
 			color = PlanetMix(q, _landFraction, _landColor, _seaColor, _polarLandColor, paleSeaColor);
 			
-			/*	Terrain shading
-				was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
-				little difference, other than being faster.
+			norm = vector_normal(make_vector(normalScale * (yW - yE), normalScale * (yS - yN), 1.0f));
+			if (generateNormalMap)
+			{
+				shade = 1.0f;
 				
-				FIXME: need to work out a decent way to scale this with texture
-				size, so overall darkness is constant. As an experiment, I used
-				a size of 128 << k and shade = pow(norm.z, k + 1); this was
-				better, but still darker at smaller resolutions.
-			*/
-			shade = norm.z * norm.z * norm.z;
+				// Flatten in the sea.
+				norm = OOVectorInterpolate(norm, kBasisZVector, color.a);
+				
+				// Put norm in normal map, scaled from [-1..1] to [0..255].
+				*npx++ = 127.5f * (-norm.y + 1.0f);
+				*npx++ = 127.5f * (norm.x + 1.0f);
+				*npx++ = 127.5f * (norm.z + 1.0f);
+				
+				*npx++ = 255.0f * color.a;	// Specular channel.
+			}
+			else
+			{
+				/*	Terrain shading
+					was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
+					little difference, other than being faster.
+					
+					FIXME: need to work out a decent way to scale this with texture
+					size, so overall darkness is constant. Should probably be based
+					on normalScale.
+				*/
+				shade = norm.z * norm.z * norm.z;
+				
+				/*	We don't want terrain shading in the sea. The alpha channel
+					of color is a measure of "seaishness" for the specular map,
+					so we can recycle that to avoid branching.
+				*/
+				shade = color.a + (1.0f - color.a) * shade;
+			}
 			
-			/*	We don't want terrain shading in the sea. The alpha channel
-				of color is a measure of "seaishness" for the specular map,
-				so we can recycle that to avoid branching.
-			*/
-			shade = color.a + (1.0f - color.a) * shade;
+			*px++ = 255.0f * color.r * shade;
+			*px++ = 255.0f * color.g * shade;
+			*px++ = 255.0f * color.b * shade;
 			
-			*px++ = 255 * color.r * shade;
-			*px++ = 255 * color.g * shade;
-			*px++ = 255 * color.b * shade;
-#if DISABLE_SPECULAR
-			*px++ = 255;
-#else
-			*px++ = 255 * color.a;
-#endif
+			*px++ = 0;	// FIXME: light map goes here.
 		}
 	}
 	 
@@ -250,22 +363,32 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 END:
 	free(accBuffer);
 	free(randomBuffer);
-	if (success)  data = buffer;
-	else  free(buffer);
+	if (success)
+	{
+		data = buffer;
+		[_nMapGenerator completeWithData:nBuffer width:width height:height];
+	}
+	else
+	{
+		free(buffer);
+		free(nBuffer);
+	}
+	DESTROY(_nMapGenerator);
 	
 	OOLog(@"planetTex.temp", @"Completed generator %@ %@successfully", self, success ? @"" : @"un");
 	
 #if DEBUG_DUMP
 	if (success)
 	{
-		NSString *name = [NSString stringWithFormat:@"planet-%u-%u-new", _seed.high, _seed.low];
-		OOLog(@"planetTex.temp", [NSString stringWithFormat:@"Saving generated texture to file %@.", name]);
-	
-		[[UNIVERSE gameView] dumpRGBAToFileNamed:name
-										   bytes:buffer
-										   width:width
-										  height:height
-										rowBytes:width * 4];
+		NSString *diffuseName = [NSString stringWithFormat:@"planet-%u-%u-diffuse-new", _seed.high, _seed.low];
+		NSString *lightsName = [NSString stringWithFormat:@"planet-%u-%u-lights-new", _seed.high, _seed.low];
+		
+		[[UNIVERSE gameView] dumpRGBAToRGBFileNamed:diffuseName
+								   andGrayFileNamed:lightsName
+											  bytes:buffer
+											  width:width
+											 height:height
+										   rowBytes:width * 4];
 	}
 #endif
 }
@@ -281,7 +404,7 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 	{
 		fraction * a.r + prime * b.r,
 		fraction * a.g + prime * b.g,
-		fraction * a.b + prime * b.b,
+		fraction * a.b + prime * b.b
 	};
 }
 
@@ -296,11 +419,9 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
 #define SHALLOWS					(2.0f * COASTLINE_PORTION)	// increased shallows area.
 #define RECIP_SHALLOWS				(1.0f / SHALLOWS)
-#define BEACH_SPECULAR_FACTOR		(0.9f)	// Portion of specular transition that occurs in paleSeaColor/landColor transition (rest is in paleSeaColor/seaColor transition)
-#define SHALLOWS_SPECULAR_FACTOR	(1.0f - BEACH_SPECULAR_FACTOR)
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
-	FloatRGB result;
+	FloatRGB diffuse;
 	float specular = 0.0f;
 	
 	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
@@ -308,42 +429,42 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	
 	if (q <= 0.0f)
 	{
+		// Below datum - sea.
 		if (q > -SHALLOWS)
 		{
-			// Coastal waters
-			result = Blend(-q * RECIP_SHALLOWS, seaColor, paleSeaColor);
-		/*	specular = -(q * RECIP_SHALLOWS) * SHALLOWS_SPECULAR_FACTOR + BEACH_SPECULAR_FACTOR;
-			specular = specular * specular * specular;*/
-			specular = 1.0f;
+			// Coastal waters.
+			diffuse = Blend(-q * RECIP_SHALLOWS, seaColor, paleSeaColor);
 		}
 		else
 		{
-			// Open sea
-			result = seaColor;
-			specular = 1.0f;
+			// Open sea.
+			diffuse = seaColor;
 		}
-	}
-	else if (q > 1.0f)
-	{
-		result = white;
+		specular = 1.0f;
 	}
 	else if (q < COASTLINE_PORTION)
 	{
-		// Coastline
-		result = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
+		// Coastline.
+		diffuse = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
 		specular = (1.0f - (q * RECIP_COASTLINE_PORTION));
 		specular = specular * specular * specular;
 	}
+	else if (q > 1.0f)
+	{
+		// High up - snow-capped peaks.
+		diffuse = white;
+	}
 	else if (q > hi)
 	{
-		result = Blend((q - hi) * ih, white, paleLandColor);	// Snow-capped peaks
+		diffuse = Blend((q - hi) * ih, white, paleLandColor);	// Snowline.
 	}
 	else
 	{
-		result = Blend((hi - q) * oh, landColor, paleLandColor);
+		// Normal land.
+		diffuse = Blend((hi - q) * oh, landColor, paleLandColor);
 	}
 	
-	return (FloatRGBA){ result.r, result.g, result.b, specular };
+	return (FloatRGBA){ diffuse.r, diffuse.g, diffuse.b, specular };
 }
 
 
@@ -420,3 +541,79 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 	
 	return q;
 }
+
+
+@implementation OOPlanetNormalMapGenerator
+
+- (id) initWithCacheKey:(NSString *)cacheKey seed:(RANROTSeed)seed
+{
+	if ((self = [super init]))
+	{
+		_cacheKey = [cacheKey copy];
+		_seed = seed;
+	}
+	return self;
+}
+
+
+- (void) dealloc
+{
+	DESTROY(_cacheKey);
+	
+	[super dealloc];
+}
+
+
+- (NSString *) cacheKey
+{
+	return _cacheKey;
+}
+
+
+- (uint32_t) textureOptions
+{
+	return PLANET_TEXTURE_OPTIONS;
+}
+
+
+- (BOOL) enqueue
+{
+	/*	This generator doesn't do any work, so it doesn't need to be queued
+	 at the normal time.
+	 (The alternative would be for it to block a work thread waiting for
+	 the real generator to complete, which seemed silly.)
+	 */
+	return YES;
+}
+
+
+- (void) loadTexture
+{
+	// Do nothing.
+}
+
+
+- (void) completeWithData:(void *)data_ width:(unsigned)width_ height:(unsigned)height_
+{
+	data = data_;
+	width = width_;
+	height = height_;
+	format = kOOTextureDataRGBA;
+	
+	// Enqueue so superclass can apply texture options and so forth.
+	[super enqueue];
+	
+#if DEBUG_DUMP
+	NSString *normalName = [NSString stringWithFormat:@"planet-%u-%u-normal-new", _seed.high, _seed.low];
+	NSString *specularName = [NSString stringWithFormat:@"planet-%u-%u-specular-new", _seed.high, _seed.low];
+	
+	[[UNIVERSE gameView] dumpRGBAToRGBFileNamed:normalName
+							   andGrayFileNamed:specularName
+										  bytes:data
+										  width:width
+										 height:height
+									   rowBytes:width * 4];
+#endif
+}
+
+@end
