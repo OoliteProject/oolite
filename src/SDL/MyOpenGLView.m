@@ -1835,6 +1835,94 @@ keys[a] = NO; keys[b] = NO; \
 	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
 	SDL_FreeSurface(tmpSurface);
 }
+
+
+- (void) dumpRGBToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 3)  return;
+	
+	// use the snapshots directory	
+	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
+	
+	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 24, rowBytes, 0xFF, 0xFF00, 0xFF0000, 0x0);
+	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
+	SDL_FreeSurface(tmpSurface);
+}
+
+
+- (void) dumpGrayToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width)  return;
+	
+	// use the snapshots directory	
+	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
+	
+	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 8, rowBytes, 0xFF, 0xFF, 0xFF, 0x0);
+	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
+	SDL_FreeSurface(tmpSurface);
+}
+
+
+- (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
+			   andGrayFileNamed:(NSString *)grayName
+						  bytes:(uint8_t *)bytes
+						  width:(OOUInteger)width
+						 height:(OOUInteger)height
+					   rowBytes:(OOUInteger)rowBytes
+{
+	if ((rgbName == nil && grayName == nil) || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 4)  return;
+	
+	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
+	OOUInteger			x, y;
+	
+	rgbPx = rgbBytes = malloc(width * height * 3);
+	if (rgbBytes == NULL)  return;
+	
+	grayPx = grayBytes = malloc(width * height);
+	if (grayBytes == NULL)
+	{
+		free(rgbBytes);
+		return;
+	}
+	
+	for (y = 0; y < height; y++)
+	{
+		srcPx = bytes + rowBytes * y;
+		
+		for (x = 0; x < width; x++)
+		{
+			*rgbPx++ = *srcPx++;
+			*rgbPx++ = *srcPx++;
+			*rgbPx++ = *srcPx++;
+			*grayPx++ = *srcPx++;
+		}
+	}
+	
+	[self dumpRGBToFileNamed:rgbName
+						bytes:rgbBytes
+						width:width
+					   height:height
+					 rowBytes:width * 3];
+	
+	[self dumpGrayToFileNamed:grayName
+						bytes:grayBytes
+						width:width
+					   height:height
+					 rowBytes:width];
+	
+	free(rgbBytes);
+	free(grayBytes);
+}
 #endif
 
 @end
