@@ -217,6 +217,8 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	DUMP_SIZE(OOECMBlastEntity);
 	DUMP_SIZE(SkyEntity);
 	DUMP_SIZE(OOPlanetEntity);
+	DUMP_SIZE(OOSunEntity);
+	DUMP_SIZE(OOPlanetEntity);
 #endif
 	
 	if (gSharedUniverse != nil)
