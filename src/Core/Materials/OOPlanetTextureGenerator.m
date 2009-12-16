@@ -80,6 +80,8 @@ enum
 @end
 
 
+static int heightMask, widthMask;
+
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
@@ -123,7 +125,7 @@ enum
 			_planetScale = 3;	// 1024x1024
 		}
 #else
-		_planetScale = 5;
+		_planetScale = 5;		//4096x4096
 #endif
 	}
 	
@@ -256,6 +258,8 @@ enum
 	
 	height = 1 << (_planetScale + kPlanetScaleOffset);
 	width = height * kPlanetAspectRatio;
+	heightMask = height - 1;
+	widthMask = width - 1;
 	
 	buffer = malloc(4 * width * height);
 	if (buffer == NULL)  goto END;
@@ -541,14 +545,19 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias)
 {
-	x = (x + width) & (width - 1);
-	// FIXME: wrong wrapping mode for Y, should flip to other hemisphere.
-	y = (y + height) & (height - 1);
+	// Correct Y wrapping mode, unoptimised.
+	//if (y < 0) { y = -y; x += width / 2; }
+	//else if (y >= height) { y -= y + 1  - height; x += width / 2; }
+
+	// Correct Y wrapping mode, faster method. In the following lines of code, both
+	// width and height are assumed to be powers of 2: 512, 1024, 2048, etc...
+	if (y & height) { y = (y ^ heightMask) & heightMask; x += width >> 1; }
+	x &= widthMask;
 	
 	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
 	q += bias;
 	
-	// Polar Y smooth. FIXME: float/int conversions.
+	// Polar Y smooth.
 	float polar_y = (2.0f * y - height) * rHeight;
 	polar_y *= polar_y;
 	q = q * (1.0f - polar_y) + polar_y * polar_y_value;
