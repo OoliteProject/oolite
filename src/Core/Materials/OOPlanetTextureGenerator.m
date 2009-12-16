@@ -516,7 +516,7 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 	
 	for (fy = 0, y = 0; y < height; fy++, y++)
 	{
-		for (fx = 0, x = width; x < width; fy++, x++)
+		for (fx = 0, x = 0; x < width; fx++, x++)
 		{
 			// FIXME: do this with less float/int conversions.
 			int ix = fx * rr;
