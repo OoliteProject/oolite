@@ -45,11 +45,14 @@ SOFTWARE.
 
 */
 
+#ifndef OOCOLLECTIONEXTRACTORS_SIMPLE
 #import "OOCocoa.h"
+#import "OOStringParsing.h"
+#endif
+
 #import "OOCollectionExtractors.h"
 #import <limits.h>
 #import "OOMaths.h"
-#import "OOStringParsing.h"
 
 
 static NSSet *SetForObject(id object, NSSet *defaultValue);

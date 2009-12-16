@@ -549,7 +549,7 @@
 		1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE2B10C2F2070058FBED /* OOTextureGenerator.h */; };
 		1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */; };
 		1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */; };
-		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; };
+		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; settings = {COMPILER_FLAGS = "-O3 -ffast-math -funroll-loops"; }; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };

@@ -4706,13 +4706,14 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) setGuiToShortRangeChartScreen
 {
-	NSString*   targetSystemName;
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	double		estimatedTravelTime = distance * distance;
 
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
-		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
+	{
+		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	}
+	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 
 	// GUI stuff
 	{

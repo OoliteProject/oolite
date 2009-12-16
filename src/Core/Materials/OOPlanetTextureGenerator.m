@@ -1,29 +1,29 @@
 /*
-
-OOPlanetTextureGenerator.m
-
-Generator for planet diffuse maps.
-
-
-Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-MA 02110-1301, USA.
-
-*/
+ 
+ OOPlanetTextureGenerator.m
+ 
+ Generator for planet diffuse maps.
+ 
+ 
+ Oolite
+ Copyright (C) 2004-2009 Giles C Williams and contributors
+ 
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ MA 02110-1301, USA.
+ 
+ */
 
 
 #define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
@@ -31,9 +31,12 @@ MA 02110-1301, USA.
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOCollectionExtractors.h"
+
+#ifndef TEXGEN_TEST_RIG
 #import "OOColor.h"
 #import "OOTexture.h"
 #import "Universe.h"
+#endif
 
 #if DEBUG_DUMP
 #import "MyOpenGLView.h"
@@ -59,10 +62,10 @@ enum
 
 
 /*	The planet generator actually generates two textures when shaders are
-	active, but the texture loader interface assumes we only load/generate
-	one texture per loader. Rather than complicate that, we use a mock
-	generator for the normal/light map.
-*/
+ active, but the texture loader interface assumes we only load/generate
+ one texture per loader. Rather than complicate that, we use a mock
+ generator for the normal/light map.
+ */
 @interface OOPlanetNormalMapGenerator: OOTextureGenerator
 {
 @private
@@ -80,9 +83,9 @@ enum
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
-static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned octave, float scale, const float *noiseBuffer);
+static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer);
 
-static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias);
+static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
 //static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
@@ -110,6 +113,7 @@ enum
 		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
 		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
 		
+#ifndef TEXGEN_TEST_RIG
 		if ([UNIVERSE reducedDetail])
 		{
 			_planetScale = 2;	// 512x512
@@ -118,7 +122,9 @@ enum
 		{
 			_planetScale = 3;	// 1024x1024
 		}
-
+#else
+		_planetScale = 5;
+#endif
 	}
 	
 	return self;
@@ -270,26 +276,29 @@ enum
 	FillNoiseBuffer(randomBuffer, _seed);
 	
 	// Generate basic Perlin noise.
-	unsigned octave = 8 * kPlanetAspectRatio;
+	unsigned octaveMask = 8 * kPlanetAspectRatio;
+	float octave = octaveMask;
+	octaveMask -= 1;
 	float scale = 0.5f;
-	while (octave < height)
+	while ((octaveMask + 1) < height)
 	{
-		AddNoise(accBuffer, width, height, octave, scale, randomBuffer);
-		octave *= 2;
-		scale *= 0.5;
+		AddNoise(accBuffer, width, height, octave, octaveMask, scale, randomBuffer);
+		octave *= 2.0f;
+		octaveMask = (octaveMask << 1) | 1;
+		scale *= 0.5f;
 	}
 	
 	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
 	float seaBias = _landFraction - 1.0;
 	
 	/*
-	The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
-	While most polar seas would be covoered in ice, and therefore white, paleSeaColour
-	doesn't seem  to take latitutde into account, resulting in all coastal areas to be white, 
-	or whatever defined as polar sea colours.
-	For now, I'm overriding paleSeaColour to be pale blend of sea and land, and widened the shallows.
-	TODO: investigate the use of polar land colour for the sea at higher latitudes.
-	*/
+	 The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
+	 While most polar seas would be covoered in ice, and therefore white, paleSeaColour
+	 doesn't seem  to take latitutde into account, resulting in all coastal areas to be white, 
+	 or whatever defined as polar sea colours.
+	 For now, I'm overriding paleSeaColour to be pale blend of sea and land, and widened the shallows.
+	 TODO: investigate the use of polar land colour for the sea at higher latitudes.
+	 */
 	
 	FloatRGB paleSeaColor = Blend(0.45, _polarSeaColor, Blend(0.7, _seaColor, _landColor));
 	float normalScale = 1 << _planetScale;
@@ -300,18 +309,20 @@ enum
 	Vector norm;
 	float q, yN, yS, yW, yE;
 	GLfloat shade;
+	float rHeight = 1.0f / height;
+	
 	for (y = 0; y < height; y++)
 	{
 		for (x = 0; x < width; x++)
 		{
-			q = QFactor(accBuffer, x, y, width, height, poleValue, seaBias);
+			q = QFactor(accBuffer, x, y, width, height, rHeight, poleValue, seaBias);
 			
 			// FIXME: is it worth calculating this per point in a separate pass instead of calculating each value five times?
 			// Also, splitting the loop to handle the poleFactor = 0 case separately would greatly simplify QFactor in that case.
-			yN = QFactor(accBuffer, x, y - 1, width, height, poleValue, seaBias);
-			yS = QFactor(accBuffer, x, y + 1, width, height, poleValue, seaBias);
-			yW = QFactor(accBuffer, x - 1, y, width, height, poleValue, seaBias);
-			yE = QFactor(accBuffer, x + 1, y, width, height, poleValue, seaBias);
+			yN = QFactor(accBuffer, x, y - 1, width, height, rHeight, poleValue, seaBias);
+			yS = QFactor(accBuffer, x, y + 1, width, height, rHeight, poleValue, seaBias);
+			yW = QFactor(accBuffer, x - 1, y, width, height, rHeight, poleValue, seaBias);
+			yE = QFactor(accBuffer, x + 1, y, width, height, rHeight, poleValue, seaBias);
 			
 			color = PlanetMix(q, _landFraction, _landColor, _seaColor, _polarLandColor, paleSeaColor);
 			
@@ -333,19 +344,19 @@ enum
 			else
 			{
 				/*	Terrain shading
-					was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
-					little difference, other than being faster.
-					
-					FIXME: need to work out a decent way to scale this with texture
-					size, so overall darkness is constant. Should probably be based
-					on normalScale.
-				*/
+				 was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
+				 little difference, other than being faster.
+				 
+				 FIXME: need to work out a decent way to scale this with texture
+				 size, so overall darkness is constant. Should probably be based
+				 on normalScale.
+				 */
 				shade = norm.z * norm.z * norm.z;
 				
 				/*	We don't want terrain shading in the sea. The alpha channel
-					of color is a measure of "seaishness" for the specular map,
-					so we can recycle that to avoid branching.
-				*/
+				 of color is a measure of "seaishness" for the specular map,
+				 so we can recycle that to avoid branching.
+				 */
 				shade = color.a + (1.0f - color.a) * shade;
 			}
 			
@@ -356,7 +367,7 @@ enum
 			*px++ = 0;	// FIXME: light map goes here.
 		}
 	}
-	 
+	
 	success = YES;
 	format = kOOTextureDataRGBA;
 	
@@ -495,22 +506,25 @@ static float lerp(float v0, float v1, float q)
 }
 
 
-static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned octave, float scale, const float *noiseBuffer)
+static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer)
 {
 	unsigned x, y;
 	float r = (float)width / (float)octave;
+	float rr = 1.0f / r;
+	float *dst = buffer;
+	float fx, fy;
 	
-	for (y = 0; y < height; y++)
+	for (fy = 0, y = 0; y < height; fy++, y++)
 	{
-		for (x = 0; x < width; x++)
+		for (fx = 0, x = width; x < width; fy++, x++)
 		{
 			// FIXME: do this with less float/int conversions.
-			int ix = floor( (float)x / r);
-			int jx = (ix + 1) % octave;
-			int iy = floor( (float)y / r);
-			int jy = (iy + 1) % octave;
-			float qx = x / r - ix;
-			float qy = y / r - iy;
+			int ix = fx * rr;
+			int jx = (ix + 1) & octaveMask;
+			int iy = fy  * rr;
+			int jy = (iy + 1) & octaveMask;
+			float qx = fx * rr - ix;
+			float qy = fy * rr - iy;
 			ix &= 127;
 			iy &= 127;
 			jx &= 127;
@@ -519,25 +533,25 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, unsigned oc
 			float rjx = lerp( noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
 			float rfinal = scale * lerp(rix, rjx, qy);
 			
-			buffer[y * width + x] += rfinal;
+			*dst++ += rfinal;
 		}
 	}
 }
 
 
-static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float polar_y_value, float bias)
+static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias)
 {
-	x = (x + width) % width;
+	x = (x + width) & (width - 1);
 	// FIXME: wrong wrapping mode for Y, should flip to other hemisphere.
-	y = (y + height) % height;
+	y = (y + height) & (height - 1);
 	
 	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
 	q += bias;
 	
 	// Polar Y smooth. FIXME: float/int conversions.
-	float polar_y = (2.0f * y - height) / (float) height;
+	float polar_y = (2.0f * y - height) * rHeight;
 	polar_y *= polar_y;
-	q = q * (1.0 - polar_y) + polar_y * polar_y_value;
+	q = q * (1.0f - polar_y) + polar_y * polar_y_value;
 	
 	return q;
 }

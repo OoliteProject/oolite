@@ -111,7 +111,7 @@ MA 02110-1301, USA.
 	RANROTSeed planetNoiseSeed = RANROTGetFullSeed();
 	[planetInfo setObject:[NSValue valueWithBytes:&planetNoiseSeed objCType:@encode(RANROTSeed)] forKey:@"noise_map_seed"];
 	[self setUpLandParametersWithSourceInfo:dict targetInfo:planetInfo];
-	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", nil]];
+	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
 	[_materialParameters retain];
 	
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
@@ -502,19 +502,20 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 #else
 	const BOOL shadersOn = NO;
 #endif
+	BOOL isMoon = _atmosphereDrawable == nil;
 	
 	if (textureName != nil)
 	{
 		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", nil];
 		diffuseMap = [OOTexture textureWithConfiguration:spec];
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:@"planet-customized-macros"];
+		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
 	}
 	else
 	{
 		[OOPlanetTextureGenerator generatePlanetTexture:&diffuseMap
 									   secondaryTexture:(shaderLevel == SHADERS_FULL) ? &normalMap : NULL
 											   withInfo:_materialParameters];
-		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:@"planet-synthetic-macros"];
+		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
 		textureName = @"dynamic";
 	}
 	OOMaterial *material = nil;

@@ -52,15 +52,15 @@ SOFTWARE.
 
 
 typedef struct
-	{
-		float			r, g, b;
-	} FloatRGB;
+{
+	float			r, g, b;
+} FloatRGB;
 
 
 typedef struct
-	{
-		float			r, g, b, a;
-	} FloatRGBA;
+{
+	float			r, g, b, a;
+} FloatRGBA;
 
 
 @interface OOTextureGenerator: OOTextureLoader

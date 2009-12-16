@@ -377,6 +377,12 @@ MA 02110-1301, USA.
 }
 
 
+- (NSString *) descriptionComponents
+{
+	return [NSString stringWithFormat:@"%g, %g, %g, %g", rgba[0], rgba[1], rgba[2], rgba[3]];
+}
+
+
 // Get the red, green, or blue components.
 - (OOCGFloat)redComponent
 {

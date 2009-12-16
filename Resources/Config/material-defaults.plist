@@ -36,14 +36,14 @@
 			uNormalMap = { type = texture; value = 1; };
 		};
 	};
-	"planet-synthetic-macros" =
+	"planet-dynamic-macros" =
 	{
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
 		OOSTD_NORMAL_AND_SPECULAR_MAP = "!OO_REDUCED_COMPLEXITY";
 		OOSTD_CUBE_MAP = 0;
 	};
-	"moon-synthetic-macros" =
+	"moon-dynamic-macros" =
 	{
 		IS_OOLITE = 1;
 		OOSTD_DIFFUSE_MAP = 1;
