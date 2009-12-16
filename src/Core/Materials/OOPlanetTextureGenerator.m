@@ -1,32 +1,30 @@
 /*
- 
- OOPlanetTextureGenerator.m
- 
- Generator for planet diffuse maps.
- 
- 
- Oolite
- Copyright (C) 2004-2009 Giles C Williams and contributors
- 
- This program is free software; you can redistribute it and/or
- modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 2
- of the License, or (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License
- along with this program; if not, write to the Free Software
- Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
- MA 02110-1301, USA.
- 
- */
+	OOPlanetTextureGenerator.m
+	
+	Generator for planet diffuse maps.
+	
+	
+	Oolite
+	Copyright (C) 2004-2009 Giles C Williams and contributors
+	
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+	
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+	
+	You should have received a copy of the GNU General Public License
+	along with this program; if not, write to the Free Software
+	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+	MA 02110-1301, USA.
+*/
 
 
-#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
 
 
 #import "OOPlanetTextureGenerator.h"
@@ -62,10 +60,10 @@ enum
 
 
 /*	The planet generator actually generates two textures when shaders are
- active, but the texture loader interface assumes we only load/generate
- one texture per loader. Rather than complicate that, we use a mock
- generator for the normal/light map.
- */
+	active, but the texture loader interface assumes we only load/generate
+	one texture per loader. Rather than complicate that, we use a mock
+	generator for the normal/light map.
+*/
 @interface OOPlanetNormalMapGenerator: OOTextureGenerator
 {
 @private
@@ -286,23 +284,28 @@ enum
 	float scale = 0.5f;
 	while ((octaveMask + 1) < height)
 	{
+		// AddNoise() still accounts for about 50 % of rendering time.
 		AddNoise(accBuffer, width, height, octave, octaveMask, scale, randomBuffer);
 		octave *= 2.0f;
 		octaveMask = (octaveMask << 1) | 1;
 		scale *= 0.5f;
 	}
+	free(randomBuffer);
+	randomBuffer = NULL;
 	
 	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
 	float seaBias = _landFraction - 1.0;
 	
-	/*
-	 The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
-	 While most polar seas would be covoered in ice, and therefore white, paleSeaColour
-	 doesn't seem  to take latitutde into account, resulting in all coastal areas to be white, 
-	 or whatever defined as polar sea colours.
-	 For now, I'm overriding paleSeaColour to be pale blend of sea and land, and widened the shallows.
-	 TODO: investigate the use of polar land colour for the sea at higher latitudes.
-	 */
+	/*	The system key 'polar_sea_colour' is used here as 'paleSeaColour'.
+		While most polar seas would be covoered in ice, and therefore white,
+		paleSeaColour doesn't seem  to take latitutde into account, resulting
+		in all coastal areas to be white, or whatever defined as polar sea
+		colours.
+		For now, I'm overriding paleSeaColour to be pale blend of sea and land,
+		and widened the shallows.
+		TODO: investigate the use of polar land colour for the sea at higher latitudes.
+		-- Kaks
+	*/
 	
 	FloatRGB paleSeaColor = Blend(0.45, _polarSeaColor, Blend(0.7, _seaColor, _landColor));
 	float normalScale = 1 << _planetScale;
@@ -321,8 +324,13 @@ enum
 		{
 			q = QFactor(accBuffer, x, y, width, height, rHeight, poleValue, seaBias);
 			
-			// FIXME: is it worth calculating this per point in a separate pass instead of calculating each value five times?
-			// Also, splitting the loop to handle the poleFactor = 0 case separately would greatly simplify QFactor in that case.
+			/*	FIXME: is it worth calculating this per point in a separate
+				pass instead of calculating each value five times? (QFactor()
+				accounts for 25 % to 30 % of rendering time.)
+				Also, splitting the loop to handle the poleFactor = 0 case
+				separately would greatly simplify QFactor in that case.
+				-- Ahruman
+			 */
 			yN = QFactor(accBuffer, x, y - 1, width, height, rHeight, poleValue, seaBias);
 			yS = QFactor(accBuffer, x, y + 1, width, height, rHeight, poleValue, seaBias);
 			yW = QFactor(accBuffer, x - 1, y, width, height, rHeight, poleValue, seaBias);
@@ -348,19 +356,21 @@ enum
 			else
 			{
 				/*	Terrain shading
-				 was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
-				 little difference, other than being faster.
-				 
-				 FIXME: need to work out a decent way to scale this with texture
-				 size, so overall darkness is constant. Should probably be based
-				 on normalScale.
-				 */
+					was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
+					little difference, other than being faster.
+					
+					FIXME: need to work out a decent way to scale this with texture
+					size, so overall darkness is constant. Should probably be based
+					on normalScale.
+					-- Ahruman
+				*/
 				shade = norm.z * norm.z * norm.z;
 				
 				/*	We don't want terrain shading in the sea. The alpha channel
-				 of color is a measure of "seaishness" for the specular map,
-				 so we can recycle that to avoid branching.
-				 */
+					of color is a measure of "seaishness" for the specular map,
+					so we can recycle that to avoid branching.
+					-- Ahruman
+				*/
 				shade = color.a + (1.0f - color.a) * shade;
 			}
 			
@@ -492,6 +502,7 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
 }
 
 
+#if 1
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 {
 	NSCParameterAssert(noiseBuffer != NULL);
@@ -502,6 +513,28 @@ static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 		noiseBuffer[i] = randfWithSeed(&seed);
 	}
 }
+#else
+// Inlining RANROT has no appreciable performance effect; AddNoise dominates.
+static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
+{
+	NSCParameterAssert(noiseBuffer != NULL);
+	
+	unsigned i;
+	uint32_t high = seed.high, low = seed.low;
+	const float scale = 1.0f / 65536.0f;
+	
+	for (i = 0; i < kNoiseBufferSize * kNoiseBufferSize; i++)
+	{
+		// Inline RANROT
+		high = (high << 16) + (high >> 16);
+		high += low;
+		low += high;
+		float val = (high & 0xffff) * scale;
+		
+		noiseBuffer[i] = val;
+	}
+}
+#endif
 
 
 static float lerp(float v0, float v1, float q)
@@ -513,8 +546,7 @@ static float lerp(float v0, float v1, float q)
 static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer)
 {
 	unsigned x, y;
-	float r = (float)width / (float)octave;
-	float rr = 1.0f / r;
+	float rr = octave / width;
 	float *dst = buffer;
 	float fx, fy;
 	
@@ -523,18 +555,19 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 		for (fx = 0, x = 0; x < width; fx++, x++)
 		{
 			// FIXME: do this with less float/int conversions.
-			int ix = fx * rr;
+			int ix = fx * rr;	// FLOAT->INT
 			int jx = (ix + 1) & octaveMask;
-			int iy = fy  * rr;
+			int iy = fy  * rr;	// FLOAT->INT
 			int jy = (iy + 1) & octaveMask;
 			float qx = fx * rr - ix;
 			float qy = fy * rr - iy;
-			ix &= 127;
-			iy &= 127;
-			jx &= 127;
-			jy &= 127;
-			float rix = lerp( noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
-			float rjx = lerp( noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
+			ix &= (kNoiseBufferSize - 1);
+			iy &= (kNoiseBufferSize - 1);
+			jx &= (kNoiseBufferSize - 1);
+			jy &= (kNoiseBufferSize - 1);
+			
+			float rix = lerp(noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
+			float rjx = lerp(noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
 			float rfinal = scale * lerp(rix, rjx, qy);
 			
 			*dst++ += rfinal;
@@ -602,10 +635,10 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 - (BOOL) enqueue
 {
 	/*	This generator doesn't do any work, so it doesn't need to be queued
-	 at the normal time.
-	 (The alternative would be for it to block a work thread waiting for
-	 the real generator to complete, which seemed silly.)
-	 */
+		at the normal time.
+		(The alternative would be for it to block a work thread waiting for
+		the real generator to complete, which seemed silly.)
+	*/
 	return YES;
 }
 

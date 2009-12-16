@@ -205,7 +205,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 {	
 	PlayerEntity	*player = nil;
 	
-#if ! __OBJC2__
+#if !__OBJC2__ && 0
 #define DUMP_SIZE(cls)  do { Class c = NSClassFromString(@#cls); OOLog(@"size.dump", @"%@: %u bytes", c, class_getInstanceSize(c)); } while (0)
 	
 	DUMP_SIZE(Entity);
@@ -217,8 +217,8 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	DUMP_SIZE(OOECMBlastEntity);
 	DUMP_SIZE(SkyEntity);
 	DUMP_SIZE(OOPlanetEntity);
+	DUMP_SIZE(OOPlanetDrawable);
 	DUMP_SIZE(OOSunEntity);
-	DUMP_SIZE(OOPlanetEntity);
 #endif
 	
 	if (gSharedUniverse != nil)
