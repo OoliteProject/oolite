@@ -5707,20 +5707,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
 		cargo_flag = CARGO_FLAG_CANISTERS;
 	}
-	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL)
+	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
 	{
 		cargo_to_go = max_cargo / 10;
 		while (cargo_to_go > 15)
 			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO]];
-		cargo_chance = 100;
-	}
-	if (cargo_flag == CARGO_FLAG_FULL_SCARCE)
-	{
-		cargo_to_go = max_cargo / 10;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:NO]];
+		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:(cargo_flag == CARGO_FLAG_FULL_SCARCE)]];
 		cargo_chance = 100;
 	}
 	while ([cargo count] > 0)

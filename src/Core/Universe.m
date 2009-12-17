@@ -2465,7 +2465,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
 {
-	ShipEntity  *ship = [self newShipWithRole:role]; // is retained
+	OOGovernmentID		government = [[self currentSystemData] oo_unsignedCharForKey:KEY_GOVERNMENT];
+	ShipEntity  		*ship = [self newShipWithRole:role]; // is retained
 	if (ship)
 	{
 		if (radius == NSNotFound)
@@ -2495,6 +2496,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			} while (vector_equal(v_from_center, kZeroVector));
 			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
 			
+			radius *= randf();	// tandomise  distance from the central coordinates
 			pos = make_vector( pos.x + radius * v_from_center.x,
 								pos.y + radius * v_from_center.y,
 								pos.z + radius * v_from_center.z );
@@ -2513,11 +2515,48 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		quaternion_set_random(&qr);
 		[ship setOrientation:qr];
 		
-		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
+		if ([role isEqual:@"trader"])
+		{
+			// half of traders created anyywhere will now have cargo. 
+			if (randf() > 0.5f)
+				[ship setCargoFlag:(randf() < 0.66f ? CARGO_FLAG_FULL_PLENTIFUL : CARGO_FLAG_FULL_SCARCE)];	// most of them will carry the cargo produced in-system.
+			
+			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
+			{
+				int nx = [ship pendingEscortCount] - 2 * (1 + (Ranrot() & 3));	// remove 2,4,6, or 8 escorts
+				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
+			}
+		}
+		else if ([role isEqual:@"pirate"])
+		{
+			[ship setCargoFlag: CARGO_FLAG_PIRATE];
+			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) > government))	// remove escorts if we feel safe
+			{
+				int nx = [ship pendingEscortCount] - (1 + (Ranrot() & 3));	// remove 1 to 4 escorts
+				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
+			}
+		}
+		
+		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)	// nothing else to do
 			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
-		else
+		else	// witchpace incoming traders & pirates need extra settings.
+		{
+			if ([role isEqual:@"trader"])
+			{
+				[ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
+				if (randf() > 0.10)
+					[ship switchAITo:@"route1traderAI.plist"];
+				else
+					[ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+			}
+			else if ([role isEqual:@"pirate"])
+			{
+				[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
+			}
+			
 			[ship witchspaceLeavingEffects]; //includes addEntity: STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
-
+		}
+		
 		[ship release];
 	}
 	return ship;
