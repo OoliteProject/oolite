@@ -7426,7 +7426,7 @@ BOOL class_masslocks(int some_class)
 - (OOUniversalID)launchEscapeCapsule
 {
 	OOUniversalID		result = NO_TARGET;
-	ShipEntity			*mainPod = nil, *pod = nil;
+	ShipEntity			*mainPod = nil;
 	unsigned			n_pods, i;
 	
 	/*	BUG: player can't launch escape pod in interstellar space (because

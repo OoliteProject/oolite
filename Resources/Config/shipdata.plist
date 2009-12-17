@@ -825,7 +825,7 @@
 				frequency = 0.15;
 				phase = -1;
 				size = 150;
-				colors = ({hue = 60;},{ hue = 30;},{ hue = 30; saturation = 0; brightness = 0.85});
+				colors = ({ hue = 60; }, { hue = 30; }, { hue = 30; saturation = 0; brightness = 0.85; });
 			},
 			{
 				type = "flasher";
@@ -833,7 +833,7 @@
 				frequency = 0.15;
 				phase = 1;
 				size = 150;
-				colors = ({ hue = 30; saturation = 0; brightness = 0.85},{ hue = 60;},{hue = 30;});
+				colors = ({ hue = 30; saturation = 0; brightness = 0.85; }, { hue = 60; }, { hue = 30; });
 			},
 /*			Old flashers. Replaced by the multicolour ones above.
 			"*FLASHER* 0 0 60 60 0.15 1 150",	

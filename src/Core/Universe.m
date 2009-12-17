@@ -2570,23 +2570,23 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		point0 = [self getWitchspaceExitPosition];
 		entity = [self planet];
-		if (!entity) return;	
+		if (entity == nil)  return nil;
 	}
 	else if ([route isEqualTo:@"ws"] || [route isEqualTo:@"sw"])
 	{
 		point0 = [self getWitchspaceExitPosition];
 		entity = [self sun];
-		if (!entity) return;		
+		if (entity == nil)  return nil;
 	}
 	else if ([route isEqualTo:@"sp"] || [route isEqualTo:@"ps"])
 	{
 		entity = [self sun];
-		if (!entity) return;
+		if (entity == nil)  return nil;
 		point0 = [entity position];
 		double radius0 = [entity radius];
 		
 		entity = [self planet];
-		if (!entity) return;
+		if (entity == nil)  return nil;
 		point1 = [entity position];
 		
 		// shorten the route by scanner range & sun radius, otherwise ships could be created inside it.
