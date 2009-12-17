@@ -50,6 +50,14 @@
 		1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */; };
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
 		1A0729FF0EF5796500B0F925 /* OldSchoolPropertyListWriting.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */; };
+		1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */; };
+		1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */; };
+		1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */; };
+		1A0BF3DA10DAE30F0099984D /* moray_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3D910DAE30F0099984D /* moray_redux1.dat */; };
+		1A0BF3DD10DAE3490099984D /* python_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3DB10DAE3490099984D /* python_redux1.dat */; };
+		1A0BF3DE10DAE3490099984D /* python_redux2.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3DC10DAE3490099984D /* python_redux2.dat */; };
+		1A0BF3E010DAE3610099984D /* transporter_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */; };
+		1A0BF3E210DAE3760099984D /* worm_redux1.dat in Resources */ = {isa = PBXBuildFile; fileRef = 1A0BF3E110DAE3760099984D /* worm_redux1.dat */; };
 		1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */; };
 		1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */; };
 		1A11273B105994D000DF9D12 /* OOExhaustPlumeEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */; };
@@ -1124,6 +1132,14 @@
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
 		1A0729FD0EF5796500B0F925 /* OldSchoolPropertyListWriting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OldSchoolPropertyListWriting.m; sourceTree = "<group>"; };
+		1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux1.dat; sourceTree = "<group>"; };
+		1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cobra1_redux2.dat; sourceTree = "<group>"; };
+		1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = mamba_redux1.dat; sourceTree = "<group>"; };
+		1A0BF3D910DAE30F0099984D /* moray_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = moray_redux1.dat; sourceTree = "<group>"; };
+		1A0BF3DB10DAE3490099984D /* python_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux1.dat; sourceTree = "<group>"; };
+		1A0BF3DC10DAE3490099984D /* python_redux2.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = python_redux2.dat; sourceTree = "<group>"; };
+		1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transporter_redux1.dat; sourceTree = "<group>"; };
+		1A0BF3E110DAE3760099984D /* worm_redux1.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = worm_redux1.dat; sourceTree = "<group>"; };
 		1A0DA2EC0D71D280009B0970 /* OOJSSpecialFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSSpecialFunctions.h; sourceTree = "<group>"; };
 		1A0DA2ED0D71D280009B0970 /* OOJSSpecialFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSSpecialFunctions.m; sourceTree = "<group>"; };
 		1A112739105994D000DF9D12 /* OOExhaustPlumeEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOExhaustPlumeEntity.h; sourceTree = "<group>"; };
@@ -2067,6 +2083,8 @@
 				1A2318B10B9D02A900EF0852 /* boulder1.dat */,
 				1A2318B20B9D02A900EF0852 /* buoy.dat */,
 				1A2318B30B9D02A900EF0852 /* cobra1_redux.dat */,
+				1A0BF3D310DAE2B30099984D /* cobra1_redux1.dat */,
+				1A0BF3D410DAE2B30099984D /* cobra1_redux2.dat */,
 				1A2318B60B9D02A900EF0852 /* cobra3_redux.dat */,
 				1A2318B80B9D02A900EF0852 /* constrictor_redux.dat */,
 				1A2318B90B9D02A900EF0852 /* dock-flat.dat */,
@@ -2078,8 +2096,10 @@
 				1A2318C00B9D02A900EF0852 /* icostextured.dat */,
 				1A2318C10B9D02A900EF0852 /* krait_redux.dat */,
 				1A2318C20B9D02A900EF0852 /* mamba_redux.dat */,
+				1A0BF3D710DAE2EC0099984D /* mamba_redux1.dat */,
 				1A2318C40B9D02A900EF0852 /* missile.dat */,
 				1A2318C50B9D02A900EF0852 /* moray_redux.dat */,
+				1A0BF3D910DAE30F0099984D /* moray_redux1.dat */,
 				1A2318C70B9D02A900EF0852 /* new-dodo.dat */,
 				1A2318C80B9D02A900EF0852 /* new-icos.dat */,
 				1A2318C90B9D02A900EF0852 /* new-rock.dat */,
@@ -2087,6 +2107,8 @@
 				1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */,
 				1A1502F50C1201C30032F3E8 /* oolite-unknown-ship.dat */,
 				1A2318CB0B9D02A900EF0852 /* python_redux.dat */,
+				1A0BF3DB10DAE3490099984D /* python_redux1.dat */,
+				1A0BF3DC10DAE3490099984D /* python_redux2.dat */,
 				1A2318CE0B9D02AA00EF0852 /* qbomb.dat */,
 				1A2318CF0B9D02AA00EF0852 /* ring.dat */,
 				1A2318D00B9D02AA00EF0852 /* rock-box.dat */,
@@ -2100,9 +2122,11 @@
 				1A2318D80B9D02AA00EF0852 /* thargoid_redux.dat */,
 				1A2318D90B9D02AA00EF0852 /* thargon_redux.dat */,
 				1A2318DA0B9D02AA00EF0852 /* transporter_redux.dat */,
+				1A0BF3DF10DAE3610099984D /* transporter_redux1.dat */,
 				1A2318DC0B9D02AA00EF0852 /* viper_redux.dat */,
 				1A2318DD0B9D02AA00EF0852 /* viperi_redux.dat */,
 				1A2318DE0B9D02AA00EF0852 /* worm_redux.dat */,
+				1A0BF3E110DAE3760099984D /* worm_redux1.dat */,
 				1A2318E00B9D02AA00EF0852 /* wreck1.dat */,
 				1A2318E10B9D02AA00EF0852 /* wreck2.dat */,
 				1A2318E20B9D02AA00EF0852 /* wreck3.dat */,
@@ -3290,6 +3314,14 @@
 				2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */,
 				2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */,
 				1AA7FCD210C2BDDD0058FBED /* oolite-planet-temp.png in Resources */,
+				1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Resources */,
+				1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Resources */,
+				1A0BF3D810DAE2EC0099984D /* mamba_redux1.dat in Resources */,
+				1A0BF3DA10DAE30F0099984D /* moray_redux1.dat in Resources */,
+				1A0BF3DD10DAE3490099984D /* python_redux1.dat in Resources */,
+				1A0BF3DE10DAE3490099984D /* python_redux2.dat in Resources */,
+				1A0BF3E010DAE3610099984D /* transporter_redux1.dat in Resources */,
+				1A0BF3E210DAE3760099984D /* worm_redux1.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
