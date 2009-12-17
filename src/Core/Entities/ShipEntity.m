@@ -5949,7 +5949,17 @@ BOOL class_masslocks(int some_class)
 
 - (id) primaryTarget
 {
-	return [UNIVERSE entityForUniversalID:primaryTarget];
+	id result = [UNIVERSE entityForUniversalID:primaryTarget];
+	if (EXPECT_NOT(result == self))
+	{
+		/*	Added in response to a crash report showing recursion in
+			[PlayerEntity hasHostileTarget].
+			-- Ahruman 2009-12-17
+		*/
+		result = nil;
+		primaryTarget = NO_TARGET;
+	}
+	return result;
 }
 
 
