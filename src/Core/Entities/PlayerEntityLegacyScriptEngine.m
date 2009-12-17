@@ -2054,9 +2054,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[ship setScanClass:CLASS_NO_DRAW];
 		[ship setRoll:M_PI/5.0];
 		[ship setPitch:M_PI/10.0];
-		[[ship getAI] setStateMachine:@"nullAI.plist"];
+		[ship switchAITo:@"nullAI.plist"];
 		[ship setPendingEscortCount:0];
-		[UNIVERSE addEntity:ship];
+		[UNIVERSE addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		
 		[ship release];
@@ -2183,7 +2183,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 			{
 				AI*	se1AI = [se1 getAI];
 				[se1 setFuel:MAX(PLAYER_MAX_FUEL, [se1 fuelCapacity])];
-				[se1AI setStateMachine:@"exitingTraderAI.plist"];
+				[se1AI setStateMachine:@"exitingTraderAI.plist"];	// lets them return to their previous state after the jump
 				[se1AI setState:@"EXIT_SYSTEM"];
 				// The following should prevent all ships leaving at once (freezes oolite on slower machines)
 				[se1AI setNextThinkTime:[UNIVERSE getTime] + 3 + (ranrot_rand() & 15)];
@@ -2534,10 +2534,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
 		[ship setOrientation: model_q];
 		[ship setPosition: model_p0];
-		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setScanClass: CLASS_NO_DRAW];
-		[UNIVERSE addEntity: ship];
-		[[ship getAI] setStateMachine: @"nullAI.plist"];
+		[ship switchAITo: @"nullAI.plist"];
+		[UNIVERSE addEntity: ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[ship setStatus: STATUS_COCKPIT_DISPLAY];
 		[ship setRoll: 0.0];
 		[ship setPitch: 0.0];
 		[ship setVelocity: kZeroVector];
@@ -2568,10 +2568,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
-		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
 		[doppelganger setScanClass: CLASS_NO_DRAW];
+		[doppelganger switchAITo: @"nullAI.plist"];
 		[UNIVERSE addEntity: doppelganger];
-		[[doppelganger getAI] setStateMachine: @"nullAI.plist"];
+		[doppelganger setStatus: STATUS_COCKPIT_DISPLAY];
 		[doppelganger setRoll: 0.0];
 		[doppelganger setPitch: 0.0];
 		[doppelganger setVelocity: kZeroVector];
@@ -2666,11 +2666,10 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		[billboard setPosition:vector_add([billboard position], model_p0)];
 			
-		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
-		
 		OOLog(kOOLogDebugProcessSceneStringAddBillboard, @"::::: adding billboard:'%@' to scene.", billboard);
-
+		
 		[UNIVERSE addEntity: billboard];
+		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
 
 		[billboard release];
 		return YES;

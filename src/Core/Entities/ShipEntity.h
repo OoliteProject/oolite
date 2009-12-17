@@ -771,6 +771,7 @@ BOOL	class_masslocks(int some_class);
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing;
 - (void) enterWitchspace;
 - (void) leaveWitchspace;
+- (void) witchspaceLeavingEffects;
 
 - (void) markAsOffender:(int)offence_value;
 

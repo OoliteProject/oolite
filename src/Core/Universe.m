@@ -170,6 +170,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) initSettings;
 - (void) initPlayerSettings;
 - (ShipEntity *) spawnPatrolShipAt:(Vector)launchPos alongRoute:(Vector)v_route withOffset:(double)ship_location;
+- (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction;
 
 - (void) resetSystemDataCache;
 
@@ -733,10 +734,10 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[thargoid setOrientation:tharg_quaternion];
 			[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
-			[thargoid setStatus:STATUS_IN_FLIGHT];
+			//[thargoid setStatus:STATUS_IN_FLIGHT];
 			[thargoid setGroup:thargoidGroup];
 			
-			[self addEntity:thargoid];
+			[self addEntity:thargoid];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			
 			[thargoid release];
 		}
@@ -1010,14 +1011,14 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	if (a_station != nil)
 	{
-		[a_station setStatus:STATUS_ACTIVE];
+		//[a_station setStatus:STATUS_ACTIVE];
 		[a_station setOrientation: q_station];
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
 		[a_station setPlanet:[self planet]];
 		[a_station setEquivalentTechLevel:techlevel];
-		[self addEntity:a_station];
+		[self addEntity:a_station];	// STATUS_ACTIVE, AI state GLOBAL
 	}
 	
 	cachedSun = a_sun;
@@ -1040,24 +1041,23 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[nav_buoy setPitch:	0.15];
 			[nav_buoy setPosition:[a_station getBeaconPosition]];
 			[nav_buoy setScanClass: CLASS_BUOY];
-			[self addEntity:nav_buoy];
-			[nav_buoy setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			//[nav_buoy setStatus:STATUS_IN_FLIGHT];
 			[nav_buoy release];
 		}
 	}
 	/*--*/
 	
 	/*- nav beacon witchpoint -*/
-	Vector witchpoint = [self getWitchspaceExitPosition];	// witchpoint
 	nav_buoy = [self newShipWithRole:@"buoy-witchpoint"];	// retain count = 1
 	if (nav_buoy)
 	{
 		[nav_buoy setRoll:	0.10];
 		[nav_buoy setPitch:	0.15];
-		[nav_buoy setPosition:witchpoint];
+		[nav_buoy setPosition:[self getWitchspaceExitPosition]];
 		[nav_buoy setScanClass: CLASS_BUOY];
-		[self addEntity:nav_buoy];
-		[nav_buoy setStatus:STATUS_IN_FLIGHT];
+		[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[nav_buoy setStatus:STATUS_IN_FLIGHT];
 		[nav_buoy release];
 	}
 	/*--*/
@@ -1358,7 +1358,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-			[trader_ship setStatus:STATUS_IN_FLIGHT];
+			//[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -1366,9 +1366,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[trader_ship setPendingEscortCount:(nx > 0) ? nx : 0];
 			}
 			
-			[self addEntity:trader_ship];
+			[self addEntity:trader_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			// [[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
-			[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+			//[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 			[trader_ship release];
 		}
 		
@@ -1419,15 +1419,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				}
 				[pirate_ship setPosition:launchPos];
-				[pirate_ship setStatus:STATUS_IN_FLIGHT];
+				//[pirate_ship setStatus:STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				
-				[self addEntity:pirate_ship];
+				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 				
 				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+				//[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1456,7 +1456,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 
 			// [hunter_ship setAITo:@"route1patrolAI.plist"]; // standard AI, no need to set it again.
-			[[hunter_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+			//[[hunter_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 		}
 		
 		[pool release];
@@ -1480,9 +1480,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[thargoid_ship setScanClass: CLASS_THARGOID];
 			[thargoid_ship setPosition:launchPos];
 			[thargoid_ship setBounty:100];
-			[thargoid_ship setStatus:STATUS_IN_FLIGHT];
-			[self addEntity:thargoid_ship];
-			[[thargoid_ship getAI] setState:@"GLOBAL"];
+			//[thargoid_ship setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:thargoid_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			//[[thargoid_ship getAI] setState:@"GLOBAL"];
 			[thargoid_ship release];
 		}
 		
@@ -1552,7 +1552,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if([trader_ship heatInsulation] < 7) [trader_ship setHeatInsulation:7]; // With this value most ships will survive the sun trip.
-			[trader_ship setStatus:STATUS_IN_FLIGHT];
+			//[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -1560,9 +1560,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[trader_ship setPendingEscortCount:(nx > 0) ? nx : 0];
 			}
 			
-			[self addEntity:trader_ship];
+			[self addEntity:trader_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			// [[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
-			[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+			//[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 			
 			[trader_ship release];
 		}
@@ -1611,15 +1611,15 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				if (pirate_ship->scanClass == CLASS_NOT_SET)
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				[pirate_ship setPosition: launchPos];
-				[pirate_ship setStatus: STATUS_IN_FLIGHT];
+				//[pirate_ship setStatus: STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				
-				[self addEntity:pirate_ship];
+				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 				
 				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-				[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+				//[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1705,9 +1705,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[asteroid setScanClass: CLASS_ROCK];
 			[asteroid setPosition:launchPos];
 			[asteroid setVelocity:spawnVel];
-			[asteroid setStatus:STATUS_IN_FLIGHT];
-			[self addEntity:asteroid];
-			[[asteroid getAI] setState:@"GLOBAL"];
+			//[asteroid setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:asteroid];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			//[[asteroid getAI] setState:@"GLOBAL"];	// they're classed as ships internally so it's done inside addEntity.
 			[asteroid release];
 			rocks++;
 		}
@@ -1731,9 +1731,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[hermit setScanClass: CLASS_ROCK];
 			[hermit setPosition:launchPos];
 			[hermit setVelocity:spawnVel];
-			[hermit setStatus:STATUS_IN_FLIGHT];
-			[self addEntity:hermit];
-			[[hermit getAI] setState:@"GLOBAL"];
+			//[hermit setStatus:STATUS_IN_FLIGHT];
+			[self addEntity:hermit];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			//[[hermit getAI] setState:@"GLOBAL"]; //classed as ship
 			[hermit release];
 #if DEAD_STORE
 			clusterSize++;
@@ -1781,10 +1781,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
-		[self addEntity:ship];
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		
 		[ship release];
 	}
@@ -2079,9 +2078,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
-		[self addEntity:ship];
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		
 		[ship release];
 		return YES;
@@ -2171,9 +2170,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		quaternion_set_random(&qr);
 		[ship setOrientation:qr];
 		
-		[self addEntity:ship];
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		[ship release];
 		
 		ship_positions[i] = ship_pos;
@@ -2286,9 +2285,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (ship->scanClass == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
-		[self addEntity:ship];
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		
 		[ship release];
 		
@@ -2354,9 +2353,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 	}
 	
-	[self addEntity:ship];
-	[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
+	[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+	//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+	//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 	[ship release];
 	
 	return YES;
@@ -2389,9 +2388,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		{
 			[ship setCargoFlag: CARGO_FLAG_FULL_SCARCE];
 			if (randf() > 0.10)
-				[[ship getAI] setStateMachine:@"route1traderAI.plist"];
+				[ship switchAITo:@"route1traderAI.plist"];
 			else
-				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
+				[ship switchAITo:@"route2sunskimAI.plist"];	// route3 really, but the AI's the same
 			
 			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -2409,9 +2408,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
-		[ship leaveWitchspace];				// gets added to the universe here!
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
+		[ship leaveWitchspace];	// calls UNIVERSE addEntity: STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
 		
 		[ship release];
 	}
@@ -2454,13 +2453,171 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		[ship setPosition:spawn_pos];
 		[ship setOrientation:spawn_q];
-		[self addEntity:ship];
-		[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];
-		[ship autorelease];
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
+		//[ship setStatus:STATUS_IN_FLIGHT];
+		[ship release];
 	}
 	
 	return ship;
+}
+
+
+- (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius
+{
+	ShipEntity  *ship = [self newShipWithRole:role]; // is retained
+	if (ship)
+	{
+		if (radius == NSNotFound)
+		{
+			GLfloat scalar = 1.0;
+			[self coordinatesForPosition:pos withCoordinateSystem:@"abs" returningScalar:&scalar];
+			//	randomise
+			GLfloat rfactor = scalar;
+			if (rfactor > SCANNER_MAX_RANGE)
+				rfactor = SCANNER_MAX_RANGE;
+			if (rfactor < 1000)
+				rfactor = 1000;
+			pos.x += rfactor*(randf() - randf());
+			pos.y += rfactor*(randf() - randf());
+			pos.z += rfactor*(randf() - randf());
+		}
+		else // if (radius == 0.0f)   changed from bounding box, seems to give acceptable results
+		{
+			Vector	v_from_center = kZeroVector;
+			GLfloat	walk_factor = 2.0f;
+			
+			do
+			{
+				v_from_center.x += walk_factor * (randf() - 0.5);
+				v_from_center.y += walk_factor * (randf() - 0.5);
+				v_from_center.z += walk_factor * (randf() - 0.5);	// drunkards walk
+			} while (vector_equal(v_from_center, kZeroVector));
+			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
+			
+			pos = make_vector( pos.x + radius * v_from_center.x,
+								pos.y + radius * v_from_center.y,
+								pos.z + radius * v_from_center.z );
+		}
+		
+		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
+		if ([ship scanClass] == CLASS_NOT_SET) [ship setScanClass: CLASS_NEUTRAL];	
+
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
+			[ship setCrew:[NSArray arrayWithObject:
+				[OOCharacter randomCharacterWithRole: role
+				andOriginalSystem: systems[Ranrot() & 255]]]];
+		
+		[ship setPosition:pos];
+		Quaternion qr;
+		quaternion_set_random(&qr);
+		[ship setOrientation:qr];
+		
+		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)
+			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
+		else
+			[ship witchspaceLeavingEffects]; //includes addEntity: STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
+
+		[ship release];
+	}
+	return ship;
+}
+
+
+- (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup
+{
+	NSMutableArray		*ships = [NSMutableArray arrayWithCapacity:count];
+	ShipEntity			*ship = nil;
+	OOShipGroup			*group = nil;
+	
+	if (isGroup)
+	{
+		group = [OOShipGroup groupWithName:[NSString stringWithFormat:@"%@ group", role]];
+	}
+	
+	while (count--)
+	{
+		ship = [self addShipAt:pos withRole:role withinRadius:radius];
+		if (ship != nil)
+		{
+			// TODO: avoid collisions!!!
+			if (isGroup) [ship setGroup:group];
+			[ships addObject:ship];
+		}
+	}
+	
+	if ([ships count] == 0) return nil;
+	
+	return [[ships copy] autorelease];
+}
+
+- (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
+{
+	NSMutableArray			*ships = [NSMutableArray arrayWithCapacity:count];	//return [[(NSArray *)theShips copy] autorelease];
+	ShipEntity				*ship = nil;
+	Entity<OOStellarBody>	*entity = nil;
+	Vector					pos, direction, point0, point1;
+	
+	pos = direction = point0 = point1 = kZeroVector;
+	
+	if (routeFraction != NSNotFound && ([route isEqualTo:@"pw"] || [route isEqualTo:@"sw"] || [route isEqualTo:@"ps"]))
+	{
+		routeFraction = 1.0f - routeFraction; 
+	}
+	
+	// which route is it?
+	if ([route isEqualTo:@"wp"] || [route isEqualTo:@"pw"])
+	{
+		point0 = [self getWitchspaceExitPosition];
+		entity = [self planet];
+		if (!entity) return;	
+	}
+	else if ([route isEqualTo:@"ws"] || [route isEqualTo:@"sw"])
+	{
+		point0 = [self getWitchspaceExitPosition];
+		entity = [self sun];
+		if (!entity) return;		
+	}
+	else if ([route isEqualTo:@"sp"] || [route isEqualTo:@"ps"])
+	{
+		entity = [self sun];
+		if (!entity) return;
+		point0 = [entity position];
+		double radius0 = [entity radius];
+		
+		entity = [self planet];
+		if (!entity) return;
+		point1 = [entity position];
+		
+		// shorten the route by scanner range & sun radius, otherwise ships could be created inside it.
+		direction = vector_normal(vector_subtract(point0, point1));
+		point0 = vector_subtract(point0, vector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE));
+	}
+	else return nil;	// no route specifier? We shouldn't be here!
+	
+	point1 = [entity position];
+	// shorten the route by scanner range & stellar body radius,,  otherwise ships could be created inside it.
+	direction = vector_normal(vector_subtract(point1, point0));
+	point1 = vector_subtract(point1, vector_multiply_scalar(direction, [entity radius] + SCANNER_MAX_RANGE));
+	
+	pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
+	if(isGroup)
+	{	
+		return [self addShipsAt:pos withRole:role quantity:count withinRadius:SCANNER_MAX_RANGE asGroup:YES];
+	}
+	else
+	{
+		while (count--)
+		{
+			ship = [self addShipAt:pos withRole:role withinRadius:SCANNER_MAX_RANGE];
+			if (ship != nil) [ships addObject:ship];
+			if (count > 0) pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
+		}
+		
+		if ([ships count] == 0) return nil;
+	}
+	
+	return [[ships copy] autorelease];
 }
 
 
@@ -2583,10 +2740,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship setRoll:M_PI/5.0];
 		[ship setPitch:M_PI/10.0];
-		[[ship getAI] setStateMachine:@"nullAI.plist"];
+		[ship switchAITo:@"nullAI.plist"];
 		if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
-		[self addEntity:ship];
-		// set status here because addEntity may affect status
+		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		// now override status
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		demo_ship = ship;
 		if (justCobra==NO)
@@ -3977,6 +4134,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 {
 	if (entity)
 	{
+		ShipEntity* se = nil;
+		
 #ifndef NDEBUG
 		if (gDebugFlags & DEBUG_ENTITIES)
 			OOLog(@"universe.addEntity", @"Adding entity: %@", entity);
@@ -4019,9 +4178,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			entity_for_uid[next_universal_id] = entity;
 			if ([entity isShip])
 			{
-				ShipEntity* se = (ShipEntity *)entity;
-				[[se getAI] setOwner:se];
-				[[se getAI] setState:@"GLOBAL"];
+				se = (ShipEntity *)entity;
 				if ([se isBeacon])
 				{
 					[self setNextBeacon:se];
@@ -4036,16 +4193,15 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						double stationRoll = [systeminfo oo_doubleForKey:@"station_roll" defaultValue:0.4];
 						
 						[se setRoll: stationRoll];
-						[(StationEntity *)se setPlanet:[self planet]];
-						[se setStatus:STATUS_ACTIVE];
 					}
 					else
 					{
 						[se setRoll: 0.0];
-						[(StationEntity *)se setPlanet:[self planet]];
-						[se setStatus:STATUS_ACTIVE];
 					}
+					[(StationEntity *)se setPlanet:[self planet]];
+					[se setStatus:STATUS_ACTIVE];
 				}
+				else [se setStatus:STATUS_IN_FLIGHT];
 			}
 		}
 		else
@@ -4096,6 +4252,11 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		else if ([entity isPlanet] && ![entity isSun])
 		{
 			[allPlanets addObject:entity];
+		}
+		else if ([entity isShip])
+		{
+			[[se getAI] setOwner:se];
+			[[se getAI] setState:@"GLOBAL"];
 		}
 		
 		return YES;
@@ -5307,9 +5468,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								
 								if (demo_ship != nil)
 								{
-									[self addEntity:demo_ship];
-									[[demo_ship getAI] setStateMachine:@"nullAI.plist"];
+									[demo_ship switchAITo:@"nullAI.plist"];
 									[demo_ship setOrientation:q2];
+									[self addEntity:demo_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+									[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
 									demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
 									[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
 									[demo_ship setDestination: make_vector(0.0f, 0.0f, demo_start_z * 0.01f)];	// ideal position
@@ -5317,7 +5479,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 									[demo_ship setScanClass: CLASS_NO_DRAW];
 									[demo_ship setRoll:M_PI/5.0];
 									[demo_ship setPitch:M_PI/10.0];
-									[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
 									[gui setText:shipName != nil ? shipName : [demo_ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 
 									demo_stage = DEMO_FLY_IN;
@@ -8380,14 +8541,28 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		if (hunter_ship)
 		{
 			[hunter_ship setPosition:launchPos];
-			[hunter_ship setStatus:STATUS_IN_FLIGHT];
 			[hunter_ship setBounty:0];
-			
-			[self addEntity:hunter_ship];
+			[self addEntity:hunter_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 			
 			[hunter_ship release];	// addEntity retains!
 		}
 		return hunter_ship;
+}
+
+
+- (Vector) fractionalPositionFrom:(Vector)point0 to:(Vector)point1 withFraction:(double)routeFraction
+{
+	if (routeFraction == NSNotFound) routeFraction = randf();
+	
+	point1.x -= point0.x;		point1.y -= point0.y;		point1.z -= point0.z;
+	point1.x *= routeFraction;	point1.y *= routeFraction;	point1.z *= routeFraction;
+	point1.x += point0.x;		point1.y += point0.y;		point1.z += point0.z;
+	
+	point1.x += SCANNER_MAX_RANGE*(randf() - randf());	// TODO: coilt be done with just one randf()!
+	point1.y += SCANNER_MAX_RANGE*(randf() - randf());
+	point1.z += SCANNER_MAX_RANGE*(randf() - randf());
+	
+	return point1;
 }
 
 

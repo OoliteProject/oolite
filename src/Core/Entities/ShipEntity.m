@@ -117,6 +117,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 - (void) addSubEntity:(Entity *) subent;
 
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
+- (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
 // equipment
 - (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged;
@@ -1069,13 +1070,12 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
 		
 		[escorter setPosition:ex_pos];
-		[escorter setStatus:STATUS_IN_FLIGHT];
+		//[escorter setStatus:STATUS_IN_FLIGHT];
 		[escorter setPrimaryRole:defaultRole];	//for mothership
 		[escorter setScanClass:scanClass];		// you are the same as I
 		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers
 		
-		[UNIVERSE addEntity:escorter];
-		
+		// find the right outoAI.
 		escortShipDict = [escorter shipInfoDictionary];
 		autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
 		autoAI = [autoAIMap oo_stringForKey:defaultRole];
@@ -1083,16 +1083,17 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		{
 			autoAI = [autoAIMap oo_stringForKey:@"escort" defaultValue:@"nullAI.plist"];
 		}
-		if ((escortShipKey || escortRole) && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES]) //setAITo only once!
+
+		escortAI = [escorter getAI];
+		
+		// Let the populator decide which AI to use, unless we have a working alternative AI & we specify auto_ai = NO !
+		if ( ((escortShipKey || escortRole) && [escortShipDict oo_fuzzyBooleanForKey:@"auto_ai" defaultValue:YES])
+			|| ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"]) )
 		{
-			[escorter setAITo:autoAI];
+			[escorter switchAITo:autoAI];
 		}
 		
-		escortAI = [escorter getAI];
-		if ([[escortAI name] isEqualToString: @"nullAI.plist"] && ![autoAI isEqualToString:@"nullAI.plist"])
-		{
-			[escortAI setStateMachine:autoAI];   // must happen after adding to the UNIVERSE!
-		}
+		[UNIVERSE addEntity:escorter]; 	// STATUS_IN_FLIGHT, AI state GLOBAL
 		
 		[escorter setGroup:escortGroup];
 		[escorter setOwner:self];	// make self group leader
@@ -1345,6 +1346,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		_profileRadius = distance;
 	}
+}
+
+
+- (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew
+{
+	ShipEntity *pod = nil;
+	
+	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
+	if (pod)
+	{
+		[pod setOwner:self];
+		//[pod setScanClass: CLASS_CARGO];
+		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
+		[pod setCrew:podCrew];
+		[pod switchAITo:@"homeAI.plist"];
+		[self dumpItem:pod];	// includes UNIVERSE addEntity
+		//[[pod getAI] setState:@"GLOBAL"];
+		[pod release]; //release
+	}
+	
+	return pod;
 }
 
 
@@ -4609,6 +4631,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setStatus:(OOEntityStatus) stat
 {
+	if ([self status] == stat) return;
 	[super setStatus:stat];
 	if (stat == STATUS_LAUNCHING)
 	{
@@ -5291,19 +5314,15 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[container setVelocity:v];
 						quaternion_set_random(&q);
 						[container setOrientation:q];
-						[container setStatus:STATUS_IN_FLIGHT];
+						//[container setStatus:STATUS_IN_FLIGHT];
 						[container setScanClass: CLASS_CARGO];
-						[UNIVERSE addEntity:container];
+						[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
 						containerAI = [container getAI];
 						if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 						{
 							[containerAI exitStateMachineWithMessage:nil];
 							[container setThrust:[container maxThrust]]; // restore old value. Was set to zero on previous scooping.
 							[container setOwner:container];
-						}
-						else 
-						{
-							[containerAI setState:@"GLOBAL"];
 						}
 					}
 				}
@@ -5334,10 +5353,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
-							[rock setStatus:STATUS_IN_FLIGHT];
+							//[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_ROCK];
-							[UNIVERSE addEntity:rock];
-							[[rock getAI] setState:@"GLOBAL"];
+							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
+							//[[rock getAI] setState:@"GLOBAL"];
 							[rock release];
 						}
 					}
@@ -5372,10 +5391,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
-							[rock setStatus:STATUS_IN_FLIGHT];
+							//[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_CARGO];
-							[UNIVERSE addEntity:rock];
-							[[rock getAI] setState:@"GLOBAL"];
+							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
+							//[[rock getAI] setState:@"GLOBAL"];
 							[rock release];
 						}
 					}
@@ -5426,8 +5445,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
 						[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
 						
-						[wreck setStatus:STATUS_IN_FLIGHT];
-						[UNIVERSE addEntity:wreck];
+						//[wreck setStatus:STATUS_IN_FLIGHT];
+						[UNIVERSE addEntity:wreck];	// STATUS_IN_FLIGHT, AI state GLOBAL
 						[wreck performTumble];
 						[wreck rescaleBy: 1.0/scale_factor];
 						[wreck release];
@@ -5458,10 +5477,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					[plate setOrientation:q];
 					[plate setScanClass: CLASS_CARGO];
 					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
-					[UNIVERSE addEntity:plate];
-					[plate setStatus:STATUS_IN_FLIGHT];
+					[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
+					//[plate setStatus:STATUS_IN_FLIGHT];
 					[plate setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
-					[[plate getAI] setState:@"GLOBAL"];
+					//[[plate getAI] setState:@"GLOBAL"];
 					[plate release];
 				}
 			}
@@ -5717,9 +5736,9 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			rpos.z += (ranrot_rand() % 7) - 3;
 			[container setPosition:rpos];
 			[container setScanClass: CLASS_CARGO];
-			[UNIVERSE addEntity:container];
-			[[container getAI] setState:@"GLOBAL"];
-			[container setStatus:STATUS_IN_FLIGHT];
+			[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
+			//[[container getAI] setState:@"GLOBAL"];
+			//[container setStatus:STATUS_IN_FLIGHT];
 			[container release];
 			if (n_cargo > 0)
 				n_cargo--;  // count down extra cargo
@@ -7286,7 +7305,7 @@ BOOL class_masslocks(int some_class)
 	[missile setPosition:origin];
 	[missile addTarget:target];	
 	[missile setOrientation:q1];
-	[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
+	//[missile setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
 	[missile setIsMissileFlag:YES];
 	[missile setVelocity:vel];
 	[missile setSpeed:150.0f];
@@ -7294,7 +7313,7 @@ BOOL class_masslocks(int some_class)
 	[missile resetShotTime];
 	missile_launch_time = [UNIVERSE getTime] + missile_load_time; // set minimum launchtime for the next missile.
 	
-	[UNIVERSE addEntity:missile];
+	[UNIVERSE addEntity:missile];	// STATUS_IN_FLIGHT, AI state GLOBAL
 	[missile release]; //release
 	
 	// missile lives on after UNIVERSE addEntity
@@ -7386,12 +7405,12 @@ BOOL class_masslocks(int some_class)
 	[bomb setPitch:random_pitch];
 	[bomb setVelocity:vel];
 	[bomb setScanClass:CLASS_MINE];	// TODO should be CLASS_ENERGY_BOMB
-	[bomb setStatus:STATUS_IN_FLIGHT];
+	//[bomb setStatus:STATUS_IN_FLIGHT];
 	[bomb setEnergy:5.0];	// 5 second countdown
 	[bomb setBehaviour:BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
 	[bomb setOwner:self];
-	[UNIVERSE addEntity:bomb];
-	[[bomb getAI] setState:@"GLOBAL"];
+	[UNIVERSE addEntity:bomb];	// STATUS_IN_FLIGHT, AI state GLOBAL
+	//[[bomb getAI] setState:@"GLOBAL"];
 	[bomb release];
 	
 	if (self != [PlayerEntity sharedPlayer])	// get the heck out of here
@@ -7408,7 +7427,7 @@ BOOL class_masslocks(int some_class)
 {
 	OOUniversalID		result = NO_TARGET;
 	ShipEntity			*mainPod = nil, *pod = nil;
-	unsigned			n_pods;
+	unsigned			n_pods, i;
 	
 	/*	BUG: player can't launch escape pod in interstellar space (because
 		there is no standard place for ressurection), but NPCs can.
@@ -7420,53 +7439,31 @@ BOOL class_masslocks(int some_class)
 	// check number of pods aboard -- require at least one.
 	n_pods = [shipinfoDictionary oo_unsignedIntForKey:@"has_escape_pod"];
 	
-	pod = [UNIVERSE newShipWithRole:[shipinfoDictionary oo_stringForKey:@"escape_pod_model" defaultValue:@"escape-capsule"]];
-	mainPod = pod;
-	
-	if (pod)
+	if (crew)	// transfer crew
 	{
-		[pod setOwner:self];
-		[pod setScanClass: CLASS_CARGO];
-		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
-		if (crew)	// transfer crew
+		// make sure crew inherit any legalStatus
+		for (i = 0; i < [crew count]; i++)
 		{
-			// make sure crew inherit any legalStatus
-			unsigned i;
-			for (i = 0; i < [crew count]; i++)
-			{
-				OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
-				[ch setLegalStatus: [self legalStatus] | [ch legalStatus]];
-			}
-			[pod setCrew:crew];
+			OOCharacter *ch = (OOCharacter*)[crew objectAtIndex:i];
+			[ch setLegalStatus: [self legalStatus] | [ch legalStatus]];
+		}
+		mainPod = [self launchPodWithCrew:crew];
+		if (mainPod)
+		{
+			result = [mainPod universalID];
 			[self setCrew:nil];
 			[self setHulk:YES]; //CmdrJames experiment with fixing ejection behaviour
 		}
-		[[pod getAI] setStateMachine:@"homeAI.plist"];
-		[self dumpItem:pod];
-		[[pod getAI] setState:@"GLOBAL"];
-		[pod release]; //release
-		result = [pod universalID];
-	}
-	// launch other pods (passengers)
-	unsigned i;
-	for (i = 1; i < n_pods; i++)
-	{
-		pod = [UNIVERSE newShipWithRole:@"escape-capsule"];
-		if (pod)
-		{
-			Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
-			[pod setOwner:self];
-			[pod setScanClass: CLASS_CARGO];
-			[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
-			[pod setCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
-			[[pod getAI] setStateMachine:@"homeAI.plist"];
-			[self dumpItem:pod];
-			[[pod getAI] setState:@"GLOBAL"];
-			[pod release]; //release
-		}
 	}
 	
-	[self doScriptEvent:@"shipLaunchedEscapePod" withArgument:mainPod];
+	// launch other pods (passengers)
+	for (i = 1; i < n_pods; i++)
+	{
+		Random_Seed orig = [UNIVERSE systemSeedForSystemNumber:gen_rnd_number()];
+		[self launchPodWithCrew:[NSArray arrayWithObject:[OOCharacter randomCharacterWithRole:@"passenger" andOriginalSystem:orig]]];
+	}
+	
+	if (mainPod) [self doScriptEvent:@"shipLaunchedEscapePod" withArgument:mainPod];
 	
 	return result;
 }
@@ -7561,9 +7558,9 @@ BOOL class_masslocks(int some_class)
 	[jetto setPitch:random_pitch];
 	[jetto setVelocity:vel];
 	[jetto setScanClass: CLASS_CARGO];
-	[jetto setStatus: STATUS_IN_FLIGHT];
+	//[jetto setStatus: STATUS_IN_FLIGHT];
 	[jetto setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
-	[UNIVERSE addEntity:jetto];
+	[UNIVERSE addEntity:jetto];	// STATUS_IN_FLIGHT, AI state GLOBAL
 
 	jettoAI = [jetto getAI];
 	if ([jettoAI hasSuspendedStateMachines]) // check if this was previos scooped cargo.
@@ -7572,10 +7569,7 @@ BOOL class_masslocks(int some_class)
 		[jetto setOwner:jetto];
 		[jettoAI exitStateMachineWithMessage:nil]; // exit nullAI.
 	}
-	else 
-	{
-		[jettoAI setState:@"GLOBAL"];
-	}
+
 	cargo_dump_time = [UNIVERSE getTime];
 	return result;
 }
@@ -8165,14 +8159,14 @@ BOOL class_masslocks(int some_class)
 		{
 			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 			[shipAI setStateMachine:@"nullAI.plist"];
-			[shipAI setState:@"GLOBAL"];
+			//[shipAI setState:@"GLOBAL"];	// alreaday set inside setStateMachine
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
 			//maxFlightSpeed = 0.0;
-			[self setHulk:YES];
+			//[self setHulk:YES];	// already set inside launcEscapeCapsule
 
 			if ([self hasEscorts])
 			{
@@ -8289,8 +8283,8 @@ BOOL class_masslocks(int some_class)
 	[self setStatus:STATUS_LAUNCHING];
 	
 	[self doScriptEvent:@"shipWillLaunchFromStation" withArgument:station];
+	[UNIVERSE addEntity:self];	// STATUS_IN_FLIGHT, AI state GLOBAL
 	[shipAI message:@"LAUNCHED"];
-	[UNIVERSE addEntity:self];
 }
 
 
@@ -8337,31 +8331,36 @@ BOOL class_masslocks(int some_class)
 int w_space_seed = 1234567;
 - (void) leaveWitchspace
 {
-	Vector		pos = [UNIVERSE getWitchspaceExitPosition];
-	Quaternion  q_rtn = [UNIVERSE getWitchspaceExitRotation];
+	Quaternion	q1 = [UNIVERSE getWitchspaceExitRotation];
+	double		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	
 	// try to ensure healthy random numbers
 	//
 	ranrot_srand(w_space_seed);
 	w_space_seed = ranrot_rand();
 	
-	position = pos;
-	double		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	if (abs(d1) < 500.0)	// no closer than 500m
 		d1 += ((d1 > 0.0)? 500.0: -500.0);
-	Quaternion	q1 = q_rtn;
 	quaternion_set_random(&q1);
 	Vector		v1 = vector_forward_from_quaternion(q1);
+	position = [UNIVERSE getWitchspaceExitPosition];
 	position.x += v1.x * d1; // randomise exit position
 	position.y += v1.y * d1;
 	position.z += v1.z * d1;
-	orientation = q_rtn;
+	[self witchspaceLeavingEffects];
+}
+
+
+- (void) witchspaceLeavingEffects
+{
+	// all ships exiting witchspace will share the same orientation.
+	orientation = [UNIVERSE getWitchspaceExitRotation];
 	flightRoll = 0.0;
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.25;
+	[UNIVERSE addEntity:self];	// AI and status get initialised here
 	[self setStatus:STATUS_LAUNCHING];
 	[shipAI message:@"EXITED_WITCHSPACE"];
-	[UNIVERSE addEntity:self];
 
 	// witchspace exit effects here
 	ParticleEntity *ring1 = [[ParticleEntity alloc] initHyperringFromShip:self]; // retained
@@ -8569,7 +8568,7 @@ int w_space_seed = 1234567;
 	
 	deployCount = ranrot_rand() % escortCount + 1;
 	
-	// Deply deployCount idle escorts.
+	// Deploy deployCount idle escorts.
 	target = [self primaryTarget];
 	for (escortEnum = [idleEscorts objectEnumerator]; (escort = [escortEnum nextObject]); )
 	{

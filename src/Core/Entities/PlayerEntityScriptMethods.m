@@ -147,7 +147,7 @@ MA 02110-1301, USA.
 							ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
 							if (container)
 							{
-								// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
+								// the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
 								[container wasAddedToUniverse];
 								[container setScanClass: CLASS_CARGO];
 								[container setCommodity:type andAmount:smaller_quantity];
@@ -169,7 +169,7 @@ MA 02110-1301, USA.
 						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
 						if (container)
 						{
-							// Shouldn't there be a [UNIVERSE addEntity:] here? -- Ahruman
+							// the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
 							[container wasAddedToUniverse];
 							[container setScanClass: CLASS_CARGO];
 							[container setStatus:STATUS_IN_HOLD];

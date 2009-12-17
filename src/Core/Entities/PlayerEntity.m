@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Universe.h"
 #import "AI.h"
+#import "ShipEntityAI.h"
 #import "MyOpenGLView.h"
 #import "OOTrumble.h"
 #import "PlayerEntityLoadSave.h"
@@ -2978,18 +2979,18 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	if (!mine)
 		return nil;
+	[mine setOwner: self];
+	[mine setBehaviour: BEHAVIOUR_IDLE];
+	[self dumpItem: mine];	// includes UNIVERSE addEntity  - starts the timer !!!!
+	[mine setScanClass: CLASS_MINE];
+	
 	float  mine_speed = 500.0f;
-	[self dumpItem: mine];
 	Vector mvel = [mine velocity];
 	mvel.x -= mine_speed * v_forward.x;
 	mvel.y -= mine_speed * v_forward.y;
 	mvel.z -= mine_speed * v_forward.z;
 	[mine setVelocity: mvel];
-	[mine setScanClass: CLASS_MINE];
-	[mine setStatus: STATUS_IN_FLIGHT];
-	[mine setBehaviour: BEHAVIOUR_IDLE];
-	[mine setOwner: self];
-	[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
+	//[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
 	return mine;
 }
 
@@ -3428,15 +3429,12 @@ static PlayerEntity *sSharedPlayer = nil;
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
 		[doppelganger setDesiredSpeed:flightSpeed];
 		[doppelganger setOwner:self];
-		[doppelganger setStatus:STATUS_IN_FLIGHT];  // necessary to get it going!
+		//[doppelganger setStatus:STATUS_IN_FLIGHT]; 
 		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
-		
+		[doppelganger switchAITo:@"nullAI.plist"];  // fly straight on
 		[UNIVERSE addEntity:doppelganger];
-		
-		[[doppelganger getAI] setStateMachine:@"nullAI.plist"];  // fly straight on
-		
+
 		result = [doppelganger universalID];
-		
 		[doppelganger release]; //release
 	}
 	
@@ -4190,12 +4188,11 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) leaveWitchspace
 {
+	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
 	Vector		pos = [UNIVERSE getWitchspaceExitPosition];
-	Quaternion  q_rtn = [UNIVERSE getWitchspaceExitRotation];
 	Quaternion	q1;
 
 	quaternion_set_random(&q1);
-	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
 	if (abs((int)d1) < 750)	
 	{// no closer than 750m. Eric, was original 500m but that collides with some buoy variants.
 		d1 += ((d1 > 0.0)? 750.0f: -750.0f);
@@ -4206,7 +4203,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	pos.z += v1.z * d1;
 
 	position = pos;
-	orientation = q_rtn;
+	orientation = [UNIVERSE getWitchspaceExitRotation];
 	flightRoll = 0.0f;
 	flightPitch = 0.0f;
 	flightYaw = 0.0f;

@@ -819,8 +819,26 @@
 		name = "Witchpoint Beacon";
 		roles = "buoy-witchpoint";
 		subentities = (
-			"*FLASHER* 0 0 60 60 0.15 1 150",
+			{
+				type = "flasher";
+				position = (0, 0, 60);
+				frequency = 0.15;
+				phase = 1;
+				size = 150;
+				colors = ({hue = 60;},{ hue = 30;},{ hue = 30; saturation = 0; brightness = 0.9});
+			},
+			{
+				type = "flasher";
+				position = (0, 0, -60);
+				frequency = 0.15;
+				phase = -1;
+				size = 150;
+				colors = ({ hue = 30; saturation = 0; brightness = 0.9},{ hue = 60;},{hue = 30;});
+			},
+/*			Old flashers. Replaced by the multicolour ones above.
+			"*FLASHER* 0 0 60 60 0.15 1 150",	
 			"*FLASHER* 0 0 -60 30 0.15 0.0 150",
+*/
 			"*FLASHER* 0 0 60 5 2 0.0 25",
 			"*FLASHER* 0 0 -60 5 2 0.0 25"
 		);

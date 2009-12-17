@@ -318,6 +318,10 @@ enum
 - (void) witchspaceShipWithPrimaryRole:(NSString *)role;
 - (ShipEntity *) spawnShipWithRole:(NSString *) desc near:(Entity *) entity;
 
+- (ShipEntity *) addShipAt:(Vector)pos withRole:(NSString *)role withinRadius:(GLfloat)radius;
+- (NSArray *) addShipsAt:(Vector)pos withRole:(NSString *)role quantity:(unsigned)count withinRadius:(GLfloat)radius asGroup:(BOOL)isGroup;
+- (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup;
+
 - (BOOL) roleIsPirateVictim:(NSString *)role;
 
 - (void) set_up_break_pattern:(Vector) pos quaternion:(Quaternion) q forDocking:(BOOL) forDocking;

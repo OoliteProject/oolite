@@ -1493,13 +1493,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if (sunskimmer) 
 			{
-				[[ship getAI] setStateMachine:@"route2sunskimAI.plist"];
+				[ship switchAITo:@"route2sunskimAI.plist"];
 				if([ship heatInsulation] < 7) [ship setHeatInsulation:7]; 
 				// even with this value the slow sunskim-anaconda will burn in a big sun.
 			}
 			else
 			{
-				[[ship getAI] setStateMachine:@"exitingTraderAI.plist"];
+				[ship switchAITo:@"exitingTraderAI.plist"];
 				if([ship fuel] == 0) [ship setFuel:70];
 			}
 		}
@@ -1567,7 +1567,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 					[escort_ship setGroup:escortGroup];
 					[escort_ship setOwner:ship];
 					
-					[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+					[escort_ship switchAITo:@"escortAI.plist"];
 					[self addShipToLaunchQueue:escort_ship];
 					
 					[escort_ship release];
@@ -1642,7 +1642,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[police_ship addTarget:[UNIVERSE entityForUniversalID:police_target]];
 			[police_ship setScanClass:CLASS_POLICE];
 			[police_ship setBounty:0];
-			[[police_ship getAI] setStateMachine:@"policeInterceptAI.plist"];
+			[police_ship switchAITo:@"policeInterceptAI.plist"];
 			[self addShipToLaunchQueue:police_ship];
 			[police_ship autorelease];
 			defenders_launched++;
@@ -1703,7 +1703,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	
 	if ([defense_ship isPolice] || [defense_ship hasPrimaryRole:@"hermit-ship"])
 	{
-		[defense_ship setStateMachine:defense_ship_ai];
+		[defense_ship switchAITo:defense_ship_ai];
 	}
 	
 	[defense_ship setPrimaryRole:@"defense_ship"];
@@ -1759,7 +1759,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		[scavenger_ship setScanClass: CLASS_NEUTRAL];
 		[scavenger_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[[scavenger_ship getAI] setStateMachine:@"scavengerAI.plist"];
+		[scavenger_ship switchAITo:@"scavengerAI.plist"];
 		[self addShipToLaunchQueue:scavenger_ship];
 		[scavenger_ship autorelease];
 	}
@@ -1791,7 +1791,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		scavengers_launched++;
 		[miner_ship setScanClass:CLASS_NEUTRAL];
 		[miner_ship setGroup:[self stationGroup]];	// who's your Daddy -- FIXME: should we have a separate group for non-escort auxiliaires?
-		[[miner_ship getAI] setStateMachine:@"minerAI.plist"];
+		[miner_ship switchAITo:@"minerAI.plist"];
 		[self addShipToLaunchQueue:miner_ship];
 		[miner_ship autorelease];
 	}
@@ -1863,7 +1863,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-		[[shuttle_ship getAI] setStateMachine:@"fallingShuttleAI.plist"];
+		[shuttle_ship switchAITo:@"fallingShuttleAI.plist"];
 		[self addShipToLaunchQueue:shuttle_ship];
 		
 		[shuttle_ship autorelease];
@@ -1888,7 +1888,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 				
 		[escort_ship setScanClass: CLASS_NEUTRAL];
 		[escort_ship setCargoFlag: CARGO_FLAG_FULL_PLENTIFUL];
-		[[escort_ship getAI] setStateMachine:@"escortAI.plist"];
+		[escort_ship switchAITo:@"escortAI.plist"];
 		[self addShipToLaunchQueue:escort_ship];
 		
 		[escort_ship release];
@@ -1926,7 +1926,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 			[patrol_ship setPrimaryRole:@"police"];
 			[patrol_ship setBounty:0];
 			[patrol_ship setGroup:[self stationGroup]];	// who's your Daddy
-			[[patrol_ship getAI] setStateMachine:@"planetPatrolAI.plist"];
+			[patrol_ship switchAITo:@"planetPatrolAI.plist"];
 			[self addShipToLaunchQueue:patrol_ship];
 			[self acceptPatrolReportFrom:patrol_ship];
 			[patrol_ship autorelease];

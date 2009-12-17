@@ -33,6 +33,7 @@ MA 02110-1301, USA.
 #import "AI.h"
 #import "Universe.h"
 #import "ShipEntity.h"
+#import "ShipEntityAI.h"
 #import "OOCharacter.h"
 
 #import "OOMaths.h"
@@ -440,15 +441,13 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 		
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-		[shuttle_ship setStatus:STATUS_IN_FLIGHT];
-		
+		//[shuttle_ship setStatus:STATUS_IN_FLIGHT];
+		[shuttle_ship switchAITo:@"risingShuttleAI.plist"];
 		[UNIVERSE addEntity:shuttle_ship];
-		[[shuttle_ship getAI] setStateMachine:@"risingShuttleAI.plist"];	// must happen after adding to the universe!
-		
-		[shuttle_ship release];
-		
 		_shuttlesOnGround--;
 		_lastLaunchTime = [UNIVERSE getTime];
+		
+		[shuttle_ship release];
 	}
 }
 

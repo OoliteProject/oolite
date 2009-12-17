@@ -1420,16 +1420,15 @@ static NSMutableDictionary* currentShipyard = nil;
 	[ship setOrientation: q2];
 	
 	[ship setPositionX:1.2 * cr y:0.8 * cr z:6.4 * cr];
-	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	[ship setScanClass: CLASS_NO_DRAW];
 	[ship setRoll: M_PI/10.0];
 	[ship setPitch: M_PI/25.0];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0];
-	[UNIVERSE addEntity: ship];
 	[[ship getAI] setStateMachine: @"nullAI.plist"];
+	[UNIVERSE addEntity: ship];
+	[ship setStatus: STATUS_COCKPIT_DISPLAY];
 	
 	[ship release];
-	
 }
 
 

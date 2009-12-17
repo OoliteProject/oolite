@@ -39,10 +39,6 @@
 #import "OOEntityFilterPredicate.h"
 
 
-// system.addShips not yet implemented
-#define ADD_SHIPS			0
-
-
 static JSObject *sSystemPrototype;
 
 
@@ -51,7 +47,6 @@ static BOOL GetRelativeToAndRange(JSContext *context, uintN *ioArgc, jsval **ioA
 static NSArray *FindJSVisibleEntities(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSArray *FindShips(EntityFilterPredicate predicate, void *parameter, Entity *relativeTo, double range);
 static NSComparisonResult CompareEntitiesByDistance(id a, id b, void *relativeTo);
-
 
 static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool SystemSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
@@ -67,9 +62,10 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
-#if ADD_SHIPS
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-#endif
+static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -168,9 +164,10 @@ static JSFunctionSpec sSystemMethods[] =
 	{ "entitiesWithScanClass",	SystemEntitiesWithScanClass, 1 },
 	{ "filteredEntities",		SystemFilteredEntities,		2 },
 	
-#if ADD_SHIPS
 	{ "addShips",				SystemAddShips,				3 },
-#endif
+	{ "addGroup",				SystemAddGroup,				3 },
+	{ "addShipsToRoute",		SystemAddShipsToRoute,		2 },
+	{ "addGroupToRoute",		SystemAddGroupToRoute,		2 },
 	
 	{ "legacy_addShips",		SystemLegacyAddShips,		2 },
 	{ "legacy_addSystemShips",	SystemLegacyAddSystemShips,	3 },
@@ -186,7 +183,7 @@ static JSFunctionSpec sSystemStaticMethods[] =
 {
 	{ "systemNameForID",		SystemStaticSystemNameForID, 1 },
 	{ "systemIDForName",		SystemStaticSystemIDForName, 1 },
-	{ "infoForSystem",			SystemStaticInfoForSystem, 2 },
+	{ "infoForSystem",			SystemStaticInfoForSystem,	2 },
 	{ 0 }
 };
 
@@ -687,45 +684,152 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 }
 
 
-#define DEFAULT_RADIUS 500.0
-
-#if ADD_SHIPS
-// Forum thread: http://www.aegidian.org/bb/viewtopic.php?t=3371
+// addShips(role : String, count : Number,  position: Vector[, radius: Number])
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
-	int32				count;
+	int32				count = 0;
+	uintN				consumed = 0;
 	Vector				where;
-	double				radius = DEFAULT_RADIUS;
-	uintN				consumed;
+	double				radius = NSNotFound;	// a negative value means 
+	id					result = nil;
+	
+	BOOL				isGroup = [@"group" isEqualTo:JSValToNSString(context,*outResult)];
+	NSString			*func = isGroup ? @"addGroup" : @"addShips";
+	
+	*outResult = JSVAL_NULL;
 	
 	role = JSValToNSString(context, argv[0]);
-	if (scString == nil)
+	if (role == nil)
 	{
-		OOReportJSError(context, @"System.%@(): role not defined.", @"addShips");
+		OOReportJSError(context, @"System.%@(): role not defined.", func);
 		return NO;
 	}
 	if (!JS_ValueToInt32(context, argv[1], &count) || count < 1 || 64 < count)
 	{
-		OOReportJSError(context, @"System.%@(): expected positive count, got %@.", @"addShips", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
+		OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"positive count", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
 		return NO;
 	}
 	
-	if (!VectorFromArgumentList(context, @"System", @"addShips", argc - 2, argv + 2, &where, &consumed))  return YES;
-	argc += 2 + consumed;
-	argv += 2 + consumed;
-	
-	if (argc != 0 && JS_ValueToNumber(context, argv[0], &radius))
+	if (!VectorFromArgumentListNoError(context, argc - 2, argv + 2, &where, &consumed))
 	{
-		
+		OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"position", [NSString stringWithJavaScriptValue:argv[2] inContext:context]);
+		return NO;
 	}
 	
-	// Note: need a way to specify the use of witchspace-in effects (as in legacy_addShips).
-	OOReportJSError(context, @"System.addShips(): not implemented.");
+	if (argc > 2 + consumed)
+	{
+		if (!JSVAL_IS_NUMBER(argv[2 + consumed]))
+		{
+			OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"radius", [NSString stringWithJavaScriptValue:argv[2 + consumed] inContext:context]);
+			return NO;
+		}
+		JS_ValueToNumber(context, argv[2 + consumed], &radius);
+	}
+	
+	// Note: the use of witchspace-in effects (as in legacy_addShips). depends on proximity to the witchpoint.
+	//[UNIVERSE addShips:count withRole:role atPosition:where withCoordinateSystem:@"abs"];
+	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
+	
+	if (isGroup && result != nil)
+	{
+		if ([(NSArray *)result count] > 0) result = [(ShipEntity *)[(NSArray *)result objectAtIndex:0] group];
+		else result = nil;
+	}
+
+	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
 }
-#endif
+
+// addGroup(role : String, count : Number,  position: Vector)
+static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	jsval	result = [@"group" javaScriptValueInContext:context];
+
+	SystemAddShips(context, this, argc, argv, &result);
+	
+	*outResult = result;
+	
+	return YES;
+}
+
+
+// addShipsToRoute(role : String, count : Number,[ , position: Number]  [, route: String])
+static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSString			*role = nil;
+	NSString			*route = @"wp";
+	NSString			*routes = @" wp pw ws sw sp ps";
+	int32				count = 0;
+	double				where = NSNotFound;		// a negative value means random positioning!
+	id					result = nil;
+	
+	BOOL				isGroup = [@"group" isEqualTo:JSValToNSString(context,*outResult)];
+	NSString			*func = isGroup ? @"addGroup" : @"addShips";
+	
+	*outResult = JSVAL_NULL;
+	
+	role = JSValToNSString(context, argv[0]);
+	if (role == nil)
+	{
+		OOReportJSError(context, @"System.%@(): role not defined.", func);
+		return NO;
+	}
+	if (!JS_ValueToInt32(context, argv[1], &count) || count < 1 || 64 < count)
+	{
+		OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"positive count", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
+		return NO;
+	}
+	
+	if (argc > 2 && !JSVAL_IS_NULL(argv[2]))
+	{
+		JS_ValueToNumber(context, argv[2], &where);
+		if (!JSVAL_IS_NUMBER(argv[2]) || where < 0.0f || where > 1.0f)
+		{
+			OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"position along route", [NSString stringWithJavaScriptValue:argv[2] inContext:context]);
+			return NO;
+		}
+	}
+	
+	if (argc > 3 && !JSVAL_IS_NULL(argv[3]))
+	{
+		route = JSValToNSString(context, argv[3]);
+		if (!JSVAL_IS_STRING(argv[3]) || route == nil || [routes rangeOfString:[NSString stringWithFormat:@" %@",route] options:NSCaseInsensitiveSearch].length !=3)
+		{
+			OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"route string", [NSString stringWithJavaScriptValue:argv[3] inContext:context]);
+			return NO;
+		}
+		route = [route lowercaseString];
+	}
+
+	// Note: the use of witchspace-in effects (as in legacy_addShips). depends on proximity to the witchpoint.	
+	result = [UNIVERSE addShipsToRoute:route withRole:role quantity:count routeFraction:where asGroup:isGroup];
+	
+	if (isGroup && result != nil)
+	{
+		if ([(NSArray *)result count] > 0) result = [(ShipEntity *)[(NSArray *)result objectAtIndex:0] group];
+		else result = nil;
+	}
+	
+	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+
+// addGroupToRoute(role : String, count : Number,  position: Number[, route: String])
+static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	jsval	result = [@"group" javaScriptValueInContext:context];
+
+	SystemAddShipsToRoute(context, this, argc, argv, &result);
+	
+	*outResult = result;
+	
+	return YES;
+
+}
+
 
 // legacy_addShips(role : String, count : Number)
 static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
