@@ -2408,9 +2408,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
-		[ship leaveWitchspace];	// calls UNIVERSE addEntity: STATUS_IN_FLIGHT, AI state GLOBAL
+		[ship leaveWitchspace];	// calls UNIVERSE addEntity: STATUS_EXITING_WITCHSPACE, AI state GLOBAL
 		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not werk rite d'uh!
+		[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not work right!
 		
 		[ship release];
 	}

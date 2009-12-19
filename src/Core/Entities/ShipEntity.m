@@ -8361,7 +8361,7 @@ int w_space_seed = 1234567;
 	flightPitch = 0.0;
 	flightSpeed = maxFlightSpeed * 0.25;
 	[UNIVERSE addEntity:self];	// AI and status get initialised here
-	[self setStatus:STATUS_LAUNCHING];
+	[self setStatus:STATUS_EXITING_WITCHSPACE];
 	[shipAI message:@"EXITED_WITCHSPACE"];
 
 	// witchspace exit effects here
