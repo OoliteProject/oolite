@@ -4,9 +4,11 @@
 	Testing utility to monitor elapsed times at high precision.
 */
 
+#ifndef OOSTOPWATCH_STANDALONE
 #import "OOCocoa.h"
 #import "OOFunctionAttributes.h"
 #import "OOTypes.h"
+#endif
 
 
 /*	Platform-specific high-resolution timer:
