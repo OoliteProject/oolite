@@ -96,7 +96,7 @@
 
 - (void) dealloc
 {
-	[_material release];
+	DESTROY(_material);
 	
 	[super dealloc];
 }

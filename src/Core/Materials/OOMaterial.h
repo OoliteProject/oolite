@@ -83,6 +83,7 @@ SOFTWARE.
 	required before using a material directly.
 */
 - (void)ensureFinishedLoading;
+- (BOOL) isFinishedLoading;
 
 // Only used by shader material, but defined for all materials for convenience.
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target;

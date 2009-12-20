@@ -31,7 +31,7 @@ MA 02110-1301, USA.
 
 #import "Entity.h"
 
-@class OOPlanetDrawable, ShipEntity;
+@class OOPlanetDrawable, ShipEntity, OOMaterial;
 
 
 @interface OOPlanetEntity: Entity <OOStellarBody>
@@ -69,6 +69,9 @@ MA 02110-1301, USA.
 - (void) setTextureFileName:(NSString *)textureName;
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
+
+- (OOMaterial *) material;
+- (OOMaterial *) atmosphereMaterial;
 
 @end
 

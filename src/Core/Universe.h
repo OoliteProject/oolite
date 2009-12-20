@@ -254,11 +254,6 @@ enum
 	// check and maintain linked lists occasionally
 	BOOL					doLinkedListMaintenanceThisUpdate;
 	
-	// experimental proc-genned textures
-#if ALLOW_PROCEDURAL_PLANETS
-	BOOL					doProcedurallyTexturedPlanets;
-#endif
-	
 	NSMutableArray			*entitiesDeadThisUpdate;
 	int				framesDoneThisUpdate;
 	
@@ -270,6 +265,13 @@ enum
 	unsigned int			espeak_voice_count;
 #endif
 	NSArray					*speechArray;
+#endif
+	
+	NSMutableArray			*_preloadingPlanetMaterials;
+	
+	// experimental proc-genned textures
+#if ALLOW_PROCEDURAL_PLANETS
+	BOOL					doProcedurallyTexturedPlanets;
 #endif
 }
 
@@ -524,6 +526,8 @@ enum
 
 - (NSMutableDictionary *) localPlanetInfoOverrides;
 - (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;
+
+- (void) preloadPlanetTexturesForSystem:(Random_Seed)seed;
 
 - (NSDictionary *) planetInfo;
 

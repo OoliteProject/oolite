@@ -1788,6 +1788,23 @@ static PlayerEntity *sSharedPlayer = nil;
 	{
 		BOOL go = YES;
 		
+		if (!galactic_witchjump)
+		{
+			/*	Note: planet texture preloading is done twice for hyperspace jumps:
+				once when starting the countdown and once at the beginning of the
+				jump. The reason is that the preloading may have been skipped the
+				first time because of rate limiting (see notes at
+				-preloadPlanetTexturesForSystem:). There is no significant overhead
+				from doing it twice thanks to the texture cache.
+				-- Ahruman 2009-12-19
+			*/
+			[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+		}
+		else
+		{
+			// FIXME: how to preload target system for hyperspace jump?
+		}
+		
 		// check nearby masses
 		ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 		if (blocker)
@@ -4664,6 +4681,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 		target_system_seed =	[UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	targetSystemName =		[[UNIVERSE getSystemName:target_system_seed] retain];  // retained
+	
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 
 	// GUI stuff
 	{
@@ -4711,6 +4730,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	}
 	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
+	
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 
 	// GUI stuff
 	{

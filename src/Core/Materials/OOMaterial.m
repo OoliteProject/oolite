@@ -125,6 +125,12 @@ static OOMaterial *sActiveMaterial = nil;
 }
 
 
+- (BOOL) isFinishedLoading
+{
+	return YES;
+}
+
+
 - (void)setBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	

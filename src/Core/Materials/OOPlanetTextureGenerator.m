@@ -102,9 +102,17 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 
 enum
 {
-	kPlanetScale			= 3,
-	kPlanetAspectRatio		= 1,		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
-	kPlanetScaleOffset		= 8 - kPlanetAspectRatio
+	kPlanetAspectRatio			= 1,		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
+	kPlanetScaleOffset			= 8 - kPlanetAspectRatio,
+	
+	kPlanetScale256x256			= 1,
+	kPlanetScale512x512,
+	kPlanetScale1024x1024,
+	kPlanetScale2048x2048,
+	kPlanetScale4096x4096,
+	
+	kPlanetScaleReducedDetail	= kPlanetScale512x512,
+	kPlanetScaleFullDetail		= kPlanetScale1024x1024
 };
 
 
@@ -124,14 +132,14 @@ enum
 #ifndef TEXGEN_TEST_RIG
 		if ([UNIVERSE reducedDetail])
 		{
-			_planetScale = 2;	// 512x512
+			_planetScale = kPlanetScaleReducedDetail;
 		}
 		else
 		{
-			_planetScale = 3;	// 1024x1024
+			_planetScale = kPlanetScaleFullDetail;
 		}
 #else
-		_planetScale = 5;		//4096x4096
+		_planetScale = kPlanetScale4096x4096;
 #endif
 	}
 	
@@ -203,7 +211,7 @@ enum
 
 - (NSString *) cacheKeyForType:(NSString *)type
 {
-	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-%@@%u\n\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
+	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-%@@%u\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
 			type, _planetScale,
 			width, height, _landFraction, _seed.high, _seed.low,
 			_landColor.r, _landColor.g, _landColor.b,
@@ -578,7 +586,7 @@ static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 #endif
 
 
-static float Lerp(float v0, float v1, float q)
+OOINLINE float Lerp(float v0, float v1, float q)
 {
 	return v0 + q * (v1 - v0);
 }

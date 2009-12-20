@@ -545,6 +545,18 @@ static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
 	return YES;
 }
 
+
+- (OOMaterial *) material
+{
+	return [_planetDrawable material];
+}
+
+
+- (OOMaterial *) atmosphereMaterial
+{
+	return [_atmosphereDrawable material];
+}
+
 @end
 
 #endif	// NEW_PLANETS

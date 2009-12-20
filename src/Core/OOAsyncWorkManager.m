@@ -58,17 +58,13 @@ static OOAsyncWorkManager *sSingleton = nil;
 @private
 	OOAsyncQueue			*_readyQueue;
 	
-#if OO_DEBUG
 	NSMutableSet			*_pendingCompletableOperations;
 	NSLock					*_pendingOpsLock;
-#endif
 }
 
 - (void) queueResult:(id<OOAsyncWorkTask>)task;
 
-#if OO_DEBUG
 - (void) noteTaskQueued:(id<OOAsyncWorkTask>)task;
-#endif
 
 @end
 
@@ -208,6 +204,12 @@ static void InitAsyncWorkManager(void)
 }
 
 
+- (void) completePendingTasks
+{
+	OOLogGenericSubclassResponsibility();
+}
+
+
 - (void) waitForTaskToComplete:(id<OOAsyncWorkTask>)task
 {
 	OOLogGenericSubclassResponsibility();
@@ -232,19 +234,34 @@ static void InitAsyncWorkManager(void)
 			return nil;
 		}
 		
-#if OO_DEBUG
 		_pendingCompletableOperations = [[NSMutableSet alloc] init];
 		_pendingOpsLock = [[NSLock alloc] init];
 		
-		if (_pendingOpsLock == nil)
+		if (_pendingCompletableOperations == nil || _pendingOpsLock == nil)
 		{
 			[self release];
 			return nil;
 		}
-#endif
 	}
 	
 	return self;
+}
+
+
+- (void) completePendingTasks
+{
+	id next = nil;
+	
+	[_pendingOpsLock lock];
+	for (;;)
+	{
+		next = [_readyQueue tryDequeue];
+		if (next == nil)  break;
+		
+		[_pendingCompletableOperations removeObject:next];
+		[next completeAsyncTask];
+	}
+	[_pendingOpsLock unlock];
 }
 
 
@@ -255,17 +272,14 @@ static void InitAsyncWorkManager(void)
 #if OO_DEBUG
 	NSParameterAssert([(id)task respondsToSelector:@selector(completeAsyncTask)]);
 	NSAssert1(![NSThread respondsToSelector:@selector(isMainThread)] || [[NSThread self] isMainThread], @"%s can only be called from the main thread.", __FUNCTION__);
+#endif
 	
 	[_pendingOpsLock lock];
 	BOOL exists = [_pendingCompletableOperations containsObject:task];
 	if (exists)  [_pendingCompletableOperations removeObject:task];
 	[_pendingOpsLock unlock];
 	
-	if (!exists)
-	{
-		[NSException raise:NSInternalInconsistencyException format:@"%s: attempt to wait for a task that has not been queued.", __FUNCTION__];
-	}
-#endif
+	if (!exists)  return;
 	
 	id next = nil;
 	do
@@ -287,14 +301,12 @@ static void InitAsyncWorkManager(void)
 }
 
 
-#if OO_DEBUG
 - (void) noteTaskQueued:(id<OOAsyncWorkTask>)task
 {
 	[_pendingOpsLock lock];
 	[_pendingCompletableOperations addObject:task];
 	[_pendingOpsLock unlock];
 }
-#endif
 
 @end
 
@@ -348,9 +360,8 @@ enum
 {
 	if (EXPECT_NOT(task == nil))  return NO;
 	
-#if OO_DEBUG
 	[super noteTaskQueued:task];
-#endif
+	
 	// Priority is ignored.
 	return [_taskQueue enqueue:task];
 }
@@ -438,9 +449,7 @@ enum
 	[_operationQueue addOperation:operation];
 	[operation release];
 	
-#if OO_DEBUG
 	[super noteTaskQueued:task];
-#endif
 	return YES;
 }
 

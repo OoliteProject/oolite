@@ -111,6 +111,7 @@ typedef enum
 
 @interface OOTexture: OOWeakRefObject
 {
+@private
 	NSString				*_key;
 	uint8_t					_loaded: 1,
 							_uploaded: 1,
@@ -134,6 +135,10 @@ typedef enum
 #endif
 #if GL_EXT_texture_filter_anisotropic
 	float					_anisotropy;
+#endif
+	
+#ifndef NDEBUG
+	BOOL					_trace;
 #endif
 }
 
@@ -198,6 +203,12 @@ typedef enum
 */
 - (void)ensureFinishedLoading;
 
+/*	Check whether a texture has loaded. NOTE: this does not do the setup that
+	-ensureFinishedLoading does, so -ensureFinishedLoading is still required
+	before using the texture in a display list.
+*/
+- (BOOL) isFinishedLoading;
+
 /*	Dimensions in pixels.
 	This will block until loading is completed.
 */
@@ -240,6 +251,10 @@ typedef enum
 
 // Called by OOGraphicsResetManager as necessary.
 + (void)rebindAllTextures;
+
+#ifndef NDEBUG
+- (void) setTrace:(BOOL)trace;
+#endif
 
 @end
 

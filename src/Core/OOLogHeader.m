@@ -51,6 +51,7 @@ SOFTWARE.
 #import "OOLogging.h"
 #import "OOOXPVerifier.h"
 #import "Universe.h"
+#import "OOStellarBody.h"
 
 
 static NSString *AdditionalLogHeaderInfo(void);
@@ -105,7 +106,9 @@ void OOPrintLogHeader(void)
 		@"GLSL shaders",
 	#endif
 	
-	#if ALLOW_PROCEDURAL_PLANETS
+	#if NEW_PLANETS
+		@"new planets",
+	#elif ALLOW_PROCEDURAL_PLANETS
 		@"procedural planet textures",
 	#endif
 	

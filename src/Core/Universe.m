@@ -67,6 +67,7 @@ MA 02110-1301, USA.
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
 #import "OOMusicController.h"
+#import "OOAsyncWorkManager.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -183,6 +184,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) runLocalizationTools;
 #endif
 
+#if NEW_PLANETS
+- (void) prunePreloadingPlanetMaterials;
+#endif
 
 @end
 
@@ -5621,6 +5625,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		[my_ent autorelease];
 		[entitiesDeadThisUpdate removeObjectAtIndex:0];
 	}
+	
+#if NEW_PLANETS
+	[self prunePreloadingPlanetMaterials];
+#endif
 }
 
 
@@ -6865,6 +6873,44 @@ static NSDictionary	*sCachedSystemData = nil;
 			[value release];
 		}
 	}
+}
+
+
+/*
+	Planet texture preloading.
+	
+	In order to hide the cost of synthesizing textures, we want to start
+	rendering them asynchronously as soon as there's a hint they may be needed
+	soon: when a system is selected on one of the charts, and when beginning a
+	jump. However, it would be a Bad Idea™ to allow an arbitrary number of
+	planets to be queued, since you can click on lots of  systems quite
+	quickly on the long-range chart.
+	
+	To rate-limit this, we track the materials that are being preloaded and
+	only queue the ones for a new system if there are no more than two in the
+	queue. (Currently, each system will have at most two materials, the main
+	planet and the main planet's atmosphere, but it may be worth adding the
+	ability to declare planets in planetinfo.plist instead of using scripts so
+	that they can also benefit from preloading.)
+	
+	The preloading materials list is pruned before preloading, and also once
+	per frame so textures can fall out of the regular cache.
+	-- Ahruman 2009-12-19
+*/
+- (void) preloadPlanetTexturesForSystem:(Random_Seed)seed
+{
+#if NEW_PLANETS
+	[self prunePreloadingPlanetMaterials];
+	
+	if ([_preloadingPlanetMaterials count] < 3)
+	{
+		if (_preloadingPlanetMaterials == nil)  _preloadingPlanetMaterials = [[NSMutableArray alloc] initWithCapacity:4];
+		
+		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:seed];
+		[_preloadingPlanetMaterials addObject:[planet material]];
+		[_preloadingPlanetMaterials addObject:[planet atmosphereMaterial]];
+	}
+#endif
 }
 
 
@@ -8936,6 +8982,24 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	if (compileSysDesc)  CompileSystemDescriptions(xml);
 	if (exportSysDesc)  ExportSystemDescriptions(xml);
+}
+#endif
+
+
+#if NEW_PLANETS
+// See notes at preloadPlanetTexturesForSystem:.
+- (void) prunePreloadingPlanetMaterials
+{
+	[[OOAsyncWorkManager sharedAsyncWorkManager] completePendingTasks];
+	
+	unsigned i = [_preloadingPlanetMaterials count];
+	while (i--)
+	{
+		if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
+		{
+			[_preloadingPlanetMaterials removeObjectAtIndex:i];
+		}
+	}
 }
 #endif
 

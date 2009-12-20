@@ -159,80 +159,75 @@ static OOTexture *sBlobTexture = nil;
 	OOViewID viewDir = [UNIVERSE viewDirection];
 	if (viewDir != VIEW_GUI_DISPLAY)  GLMultOOMatrix([[PlayerEntity sharedPlayer] drawRotationMatrix]);
 	
-	/*	NOTE: these previously halved the size because they're half-size
-		offsets, but since we use a texture with a border for anti-aliasing
-		purposes, that scaling is no longer desired.
-		-- Ahruman 2009-09-25
+	/*	NOTE: nominal diameter is actual radius, because of the black border in the texture.
+		-- Ahruman 2009-12-20
 	*/
-	GLfloat	xx = _diameter;
-	GLfloat	yy = _diameter;
-	
 	OOGLBEGIN(GL_QUADS);
 	switch (viewDir)
 	{
 		case VIEW_FORWARD:
 		case VIEW_GUI_DISPLAY:
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
+			glVertex3f(-_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
+			glVertex3f(_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, -xx);
+			glVertex3f(_diameter, _diameter, -_diameter);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
+			glVertex3f(-_diameter, _diameter, -_diameter);
 			break;
 			
 		case VIEW_AFT:
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(xx, -yy, xx);
+			glVertex3f(_diameter, -_diameter, _diameter);
 			
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(-xx, -yy, xx);
+			glVertex3f(-_diameter, -_diameter, _diameter);
 			
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(-xx, yy, xx);
+			glVertex3f(-_diameter, _diameter, _diameter);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(xx, yy, xx);
+			glVertex3f(_diameter, _diameter, _diameter);
 			break;
 			
 		case VIEW_STARBOARD:
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, xx);
+			glVertex3f(-_diameter, -_diameter, _diameter);
 			
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
+			glVertex3f(-_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
+			glVertex3f(-_diameter, _diameter, -_diameter);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, xx);
+			glVertex3f(-_diameter, _diameter, _diameter);
 			break;
 			
 		case VIEW_PORT:
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
+			glVertex3f(_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, xx);
+			glVertex3f(_diameter, -_diameter, _diameter);
 			
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, xx);
+			glVertex3f(_diameter, _diameter, _diameter);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(xx, yy, -xx);
+			glVertex3f(_diameter, _diameter, -_diameter);
 			break;
 			
 		case VIEW_CUSTOM:
 			{
 				PlayerEntity *player = [PlayerEntity sharedPlayer];
-				Vector vi = [player customViewRightVector];		vi.x *= xx;	vi.y *= xx;	vi.z *= xx;
-				Vector vj = [player customViewUpVector];		vj.x *= yy;	vj.y *= yy;	vj.z *= yy;
-				Vector vk = [player customViewForwardVector];	vk.x *= xx;	vk.y *= xx;	vk.z *= xx;
+				Vector vi = [player customViewRightVector];		vi.x *= _diameter;	vi.y *= _diameter;	vi.z *= _diameter;
+				Vector vj = [player customViewUpVector];		vj.x *= _diameter;	vj.y *= _diameter;	vj.z *= _diameter;
+				Vector vk = [player customViewForwardVector];	vk.x *= _diameter;	vk.y *= _diameter;	vk.z *= _diameter;
 				glTexCoord2f(0.0, 1.0);
 				glVertex3f(-vi.x -vj.x -vk.x, -vi.y -vj.y -vk.y, -vi.z -vj.z -vk.z);
 				glTexCoord2f(1.0, 1.0);
@@ -246,16 +241,16 @@ static OOTexture *sBlobTexture = nil;
 			
 		default:
 			glTexCoord2f(0.0, 1.0);
-			glVertex3f(-xx, -yy, -xx);
+			glVertex3f(-_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 1.0);
-			glVertex3f(xx, -yy, -xx);
+			glVertex3f(_diameter, -_diameter, -_diameter);
 			
 			glTexCoord2f(1.0, 0.0);
-			glVertex3f(xx, yy, -xx);
+			glVertex3f(_diameter, _diameter, -_diameter);
 			
 			glTexCoord2f(0.0, 0.0);
-			glVertex3f(-xx, yy, -xx);
+			glVertex3f(-_diameter, _diameter, -_diameter);
 			break;
 	}
 	OOGLEND();

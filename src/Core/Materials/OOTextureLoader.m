@@ -80,8 +80,8 @@ static BOOL					sHaveSetUp = NO;
 	NSString				*extension = nil;
 	id						result = nil;
 	
-	if (inPath == nil) return nil;
-	if (!sHaveSetUp)  [self setUp];
+	if (EXPECT_NOT(inPath == nil)) return nil;
+	if (EXPECT_NOT(!sHaveSetUp))  [self setUp];
 	
 	// Get reduced detail setting (every time, in case it changes; we don't want to call through to Universe on the loading thread in case the implementation becomes non-trivial).
 	sReducedDetail = [UNIVERSE reducedDetail];
@@ -90,8 +90,7 @@ static BOOL					sHaveSetUp = NO;
 	extension = [[inPath pathExtension] lowercaseString];
 	if ([extension isEqualToString:@"png"])
 	{
-		result = [[OOPNGTextureLoader alloc] initWithPath:inPath options:options];
-		[result autorelease];
+		result = [[[OOPNGTextureLoader alloc] initWithPath:inPath options:options] autorelease];
 	}
 	else
 	{

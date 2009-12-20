@@ -129,4 +129,10 @@ SOFTWARE.
 	[_texture ensureFinishedLoading];
 }
 
+
+- (BOOL) isFinishedLoading
+{
+	return [_texture isFinishedLoading];
+}
+
 @end

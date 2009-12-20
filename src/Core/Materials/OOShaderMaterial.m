@@ -110,16 +110,16 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	if (configuration == nil)  OK = NO;
 	
-	OO_ENTER_OPENGL();
-	
 	self = [super initWithName:name configuration:configuration];
 	if (self == nil)  OK = NO;
+	
+	OO_ENTER_OPENGL();
 	
 	if (OK)
 	{
 		modifiedMacros = macros ? [macros mutableCopy] : [[NSMutableDictionary alloc] init];
 		
-		glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnits);
+		OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnits));
 		[modifiedMacros setObject:[NSNumber numberWithInt:textureUnits] forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
 		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)
@@ -569,6 +569,22 @@ static NSString *MacrosToString(NSDictionary *macros);
 			[textures[i] ensureFinishedLoading];
 		}
 	}
+}
+
+
+- (BOOL) isFinishedLoading
+{
+	uint32_t			i;
+	
+	if (textures != NULL)
+	{
+		for (i = 0; i != texCount; ++i)
+		{
+			if (![textures[i] isFinishedLoading])  return NO;
+		}
+	}
+	
+	return YES;
 }
 
 

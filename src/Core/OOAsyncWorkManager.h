@@ -49,6 +49,10 @@ typedef enum
 
 - (BOOL) addTask:(id<OOAsyncWorkTask>)task priority:(OOAsyncWorkPriority)priority;
 
+/*	Complete any tasks whose asynchronous portion is ready, but without waiting.
+*/
+- (void) completePendingTasks;
+
 /*	Wait for a task to complete.
 	
 	WARNING: if task is not an existing task, or does not implement
