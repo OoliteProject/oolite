@@ -893,7 +893,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			*rgbPx++ = *srcPx++;
 			*rgbPx++ = *srcPx++;
 			*rgbPx++ = *srcPx++;
-			trivalAlpha = trivalAlpha && (*srcPx == 0xFF);	// Look for any transparent pixels in alpha.
+			trivalAlpha = trivalAlpha && ((*srcPx == 0xFF) || (*srcPx == 0x00));	// Look for any "interesting" pixels in alpha.
 			*grayPx++ = *srcPx++;
 		}
 	}

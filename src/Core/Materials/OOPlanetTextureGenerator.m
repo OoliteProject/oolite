@@ -24,7 +24,11 @@
 */
 
 
-#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
+#define DEBUG_DUMP_RAW		(	0	&& DEBUG_DUMP)
+
+// Hermite interpolation provides continuous normals, at a cost of about 35 % slower rendering.
+#define HERMITE					1
 
 
 #import "OOPlanetTextureGenerator.h"
@@ -54,6 +58,10 @@ enum
 
 - (NSString *) cacheKeyForType:(NSString *)type;
 - (OOTextureGenerator *) normalMapGenerator;	// Must be called before generator is enqueued for rendering.
+
+#if DEBUG_DUMP_RAW
+- (void) dumpNoiseBuffer:(float *)noise;
+#endif
 
 @end
 
@@ -293,6 +301,10 @@ enum
 	free(randomBuffer);
 	randomBuffer = NULL;
 	
+#if DEBUG_DUMP_RAW
+	[self dumpNoiseBuffer:accBuffer];
+#endif
+	
 	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
 	float seaBias = _landFraction - 1.0;
 	
@@ -347,8 +359,8 @@ enum
 				norm = OOVectorInterpolate(norm, kBasisZVector, color.a);
 				
 				// Put norm in normal map, scaled from [-1..1] to [0..255].
-				*npx++ = 127.5f * (-norm.y + 1.0f);
-				*npx++ = 127.5f * (norm.x + 1.0f);
+				*npx++ = 127.5f * (norm.y + 1.0f);
+				*npx++ = 127.5f * (-norm.x + 1.0f);
 				*npx++ = 127.5f * (norm.z + 1.0f);
 				
 				*npx++ = 255.0f * color.a;	// Specular channel.
@@ -418,6 +430,33 @@ END:
 #endif
 }
 
+
+#if DEBUG_DUMP_RAW
+
+- (void) dumpNoiseBuffer:(float *)noise
+{
+	NSString *noiseName = [NSString stringWithFormat:@"planet-%u-%u-noise-new", _seed.high, _seed.low];
+	
+	uint8_t *noiseMap = malloc(width * height);
+	unsigned x, y;
+	for (y = 0; y < height; y++)
+	{
+		for (x = 0; x < width; x++)
+		{
+			noiseMap[y * width + x] = 255.0f * noise[y * width + x];
+		}
+	}
+	
+	[[UNIVERSE gameView] dumpGrayToFileNamed:noiseName
+									   bytes:noiseMap
+									   width:width
+									  height:height
+									rowBytes:width];
+	free(noiseMap);
+}
+
+#endif
+
 @end
 
 
@@ -449,8 +488,10 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	FloatRGB diffuse;
 	float specular = 0.0f;
 	
+#if !HERMITE
 	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
 	q -= COASTLINE_PORTION;
+#endif
 	
 	if (q <= 0.0f)
 	{
@@ -472,7 +513,7 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 		// Coastline.
 		diffuse = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
 		specular = (1.0f - (q * RECIP_COASTLINE_PORTION));
-		specular = specular * specular * specular;
+	//	specular = specular * specular * specular;
 	}
 	else if (q > 1.0f)
 	{
@@ -537,10 +578,18 @@ static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 #endif
 
 
-static float lerp(float v0, float v1, float q)
+static float Lerp(float v0, float v1, float q)
 {
 	return v0 + q * (v1 - v0);
 }
+
+
+#if HERMITE
+OOINLINE float Hermite(float q)
+{
+	return 3.0f * q * q - 2.0f * q * q * q;
+}
+#endif
 
 
 static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer)
@@ -566,9 +615,14 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 			jx &= (kNoiseBufferSize - 1);
 			jy &= (kNoiseBufferSize - 1);
 			
-			float rix = lerp(noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
-			float rjx = lerp(noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
-			float rfinal = scale * lerp(rix, rjx, qy);
+#if HERMITE
+			qx = Hermite(qx);
+			qy = Hermite(qy);
+#endif
+			
+			float rix = Lerp(noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
+			float rjx = Lerp(noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
+			float rfinal = scale * Lerp(rix, rjx, qy);
 			
 			*dst++ += rfinal;
 		}
