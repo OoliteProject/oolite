@@ -872,6 +872,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	uint8_t				*rgbBytes, *rgbPx, *grayBytes, *grayPx, *srcPx;
 	OOUInteger			x, y;
+	BOOL				trivalAlpha = YES;
 	
 	rgbPx = rgbBytes = malloc(width * height * 3);
 	if (rgbBytes == NULL)  return;
@@ -892,23 +893,26 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			*rgbPx++ = *srcPx++;
 			*rgbPx++ = *srcPx++;
 			*rgbPx++ = *srcPx++;
+			trivalAlpha = trivalAlpha && (*srcPx == 0xFF);	// Look for any transparent pixels in alpha.
 			*grayPx++ = *srcPx++;
 		}
 	}
 	
 	[self dumpRGBToFileNamed:rgbName
-						bytes:rgbBytes
-						width:width
-					   height:height
-					 rowBytes:width * 3];
-	
-	[self dumpGrayToFileNamed:grayName
-						bytes:grayBytes
-						width:width
-					   height:height
-					 rowBytes:width];
-	
+					   bytes:rgbBytes
+					   width:width
+					  height:height
+					rowBytes:width * 3];
 	free(rgbBytes);
+	
+	if (!trivalAlpha)
+	{
+		[self dumpGrayToFileNamed:grayName
+							bytes:grayBytes
+							width:width
+						   height:height
+						 rowBytes:width];
+	}
 	free(grayBytes);
 }
 
