@@ -2998,7 +2998,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		return nil;
 	[mine setOwner: self];
 	[mine setBehaviour: BEHAVIOUR_IDLE];
-	[self dumpItem: mine];	// includes UNIVERSE addEntity  - starts the timer !!!!
+	[self dumpItem: mine];	// includes UNIVERSE addEntity: CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL ( the last one starts the timer !)
 	[mine setScanClass: CLASS_MINE];
 	
 	float  mine_speed = 500.0f;
@@ -3007,7 +3007,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	mvel.y -= mine_speed * v_forward.y;
 	mvel.z -= mine_speed * v_forward.z;
 	[mine setVelocity: mvel];
-	//[[mine getAI] setState:@"GLOBAL"];	// start the timer !!!!
 	return mine;
 }
 

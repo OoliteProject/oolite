@@ -1362,7 +1362,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_SCARCE];
-			//[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -1371,8 +1370,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			
 			[self addEntity:trader_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			// [[trader_ship getAI] setStateMachine:@"route1traderAI.plist"];	// must happen after adding to the universe!
-			//[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 			[trader_ship release];
 		}
 		
@@ -1430,8 +1427,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				
 				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
 				
-				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-				//[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1458,9 +1453,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			{
 				hunting_parties -= escortsWeight;	// reduce the number needed so we don't get huge swarms!
 			}
-
-			// [hunter_ship setAITo:@"route1patrolAI.plist"]; // standard AI, no need to set it again.
-			//[[hunter_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
+			else hunting_parties = 0;
 		}
 		
 		[pool release];
@@ -1484,9 +1477,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[thargoid_ship setScanClass: CLASS_THARGOID];
 			[thargoid_ship setPosition:launchPos];
 			[thargoid_ship setBounty:100];
-			//[thargoid_ship setStatus:STATUS_IN_FLIGHT];
 			[self addEntity:thargoid_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			//[[thargoid_ship getAI] setState:@"GLOBAL"];
 			[thargoid_ship release];
 		}
 		
@@ -1565,9 +1556,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 			
 			[self addEntity:trader_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			// [[trader_ship getAI] setStateMachine:@"route2sunskimAI.plist"];	// must happen after adding to the universe!
-			//[[trader_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
-			
 			[trader_ship release];
 		}
 		
@@ -1615,15 +1603,11 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				if (pirate_ship->scanClass == CLASS_NOT_SET)
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				[pirate_ship setPosition: launchPos];
-				//[pirate_ship setStatus: STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				
 				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-				
-				// [[pirate_ship getAI] setStateMachine:@"pirateAI.plist"];	// must happen after adding to the universe!
-				//[[pirate_ship getAI] setState:@"GLOBAL"]; // must happen after adding to the universe to start the AI!
 				[pirate_ship release];
 			}
 			
@@ -1709,9 +1693,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[asteroid setScanClass: CLASS_ROCK];
 			[asteroid setPosition:launchPos];
 			[asteroid setVelocity:spawnVel];
-			//[asteroid setStatus:STATUS_IN_FLIGHT];
 			[self addEntity:asteroid];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			//[[asteroid getAI] setState:@"GLOBAL"];	// they're classed as ships internally so it's done inside addEntity.
 			[asteroid release];
 			rocks++;
 		}
@@ -1735,9 +1717,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[hermit setScanClass: CLASS_ROCK];
 			[hermit setPosition:launchPos];
 			[hermit setVelocity:spawnVel];
-			//[hermit setStatus:STATUS_IN_FLIGHT];
 			[self addEntity:hermit];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			//[[hermit getAI] setState:@"GLOBAL"]; //classed as ship
 			[hermit release];
 #if DEAD_STORE
 			clusterSize++;
@@ -1786,9 +1766,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-		
 		[ship release];
 	}
 	
@@ -2083,9 +2060,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-		
 		[ship release];
 		return YES;
 	}
@@ -2175,8 +2149,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ship setOrientation:qr];
 		
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 		[ship release];
 		
 		ship_positions[i] = ship_pos;
@@ -2290,9 +2262,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
-		
 		[ship release];
 		
 		return YES;	// success at last!
@@ -2358,8 +2327,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-	//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-	//[ship setStatus:STATUS_IN_FLIGHT];	// or ships that were 'demo' ships become invisible!
 	[ship release];
 	
 	return YES;
@@ -2411,11 +2378,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
-		
-		[ship leaveWitchspace];	// calls UNIVERSE addEntity: STATUS_EXITING_WITCHSPACE, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		[ship setStatus:STATUS_IN_FLIGHT];	// or ships may not work right!
-		
+		// calls UNIVERSE addEntity, all this is set inside leaveWitchspace: AI state GLOBAL,  status STATUS_EXITING_WITCHSPACE,  ai message: EXITED_WITCHSPACE, then at last STATUS_IN_FLIGHT
+		[ship leaveWitchspace];
 		[ship release];
 	}
 }
@@ -2458,8 +2422,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		[ship setPosition:spawn_pos];
 		[ship setOrientation:spawn_q];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[[ship getAI] setState:@"GLOBAL"];	// must happen after adding to the universe!
-		//[ship setStatus:STATUS_IN_FLIGHT];
 		[ship release];
 	}
 	
@@ -2558,7 +2520,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 			}
 			
-			[ship witchspaceLeavingEffects]; //includes addEntity: STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
+			// Status changes inside the following call: AI state GLOBAL, then STATUS_EXITING_WITCHSPACE, 
+			// with the EXITED_WITCHSPACE message sent to the AI. At last we set STATUS_IN_FLIGHT.
+			// Includes addEntity, so ship is retained globally.
+			[ship witchspaceLeavingEffects];
 		}
 		
 		[ship release];

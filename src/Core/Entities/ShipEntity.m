@@ -1357,12 +1357,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (pod)
 	{
 		[pod setOwner:self];
-		//[pod setScanClass: CLASS_CARGO];
 		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
 		[pod setCrew:podCrew];
 		[pod switchAITo:@"homeAI.plist"];
-		[self dumpItem:pod];	// includes UNIVERSE addEntity
-		//[[pod getAI] setState:@"GLOBAL"];
+		[self dumpItem:pod];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
 		[pod release]; //release
 	}
 	
@@ -5353,10 +5351,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
-							//[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_ROCK];
 							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
-							//[[rock getAI] setState:@"GLOBAL"];
 							[rock release];
 						}
 					}
@@ -5391,10 +5387,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
-							//[rock setStatus:STATUS_IN_FLIGHT];
 							[rock setScanClass: CLASS_CARGO];
 							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
-							//[[rock getAI] setState:@"GLOBAL"];
 							[rock release];
 						}
 					}
@@ -5445,7 +5439,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[wreck setHeatInsulation: 1.0e7];	// very large! so it won't cool down
 						[wreck setEnergy: 750.0 * randf() + 250.0 * i + 100.0];	// burn for 0.25s -> 1.25s
 						
-						//[wreck setStatus:STATUS_IN_FLIGHT];
 						[UNIVERSE addEntity:wreck];	// STATUS_IN_FLIGHT, AI state GLOBAL
 						[wreck performTumble];
 						[wreck rescaleBy: 1.0/scale_factor];
@@ -5478,9 +5471,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					[plate setScanClass: CLASS_CARGO];
 					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
 					[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
-					//[plate setStatus:STATUS_IN_FLIGHT];
 					[plate setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
-					//[[plate getAI] setState:@"GLOBAL"];
 					[plate release];
 				}
 			}
@@ -5729,8 +5720,6 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[container setPosition:rpos];
 			[container setScanClass: CLASS_CARGO];
 			[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			//[[container getAI] setState:@"GLOBAL"];
-			//[container setStatus:STATUS_IN_FLIGHT];
 			[container release];
 			if (n_cargo > 0)
 				n_cargo--;  // count down extra cargo
@@ -7406,13 +7395,11 @@ BOOL class_masslocks(int some_class)
 	[bomb setRoll:random_roll];
 	[bomb setPitch:random_pitch];
 	[bomb setVelocity:vel];
-	[bomb setScanClass:CLASS_MINE];	// TODO should be CLASS_ENERGY_BOMB
-	//[bomb setStatus:STATUS_IN_FLIGHT];
+	[bomb setScanClass:CLASS_MINE];	// TODO: should it be CLASS_ENERGY_BOMB?
 	[bomb setEnergy:5.0];	// 5 second countdown
 	[bomb setBehaviour:BEHAVIOUR_ENERGY_BOMB_COUNTDOWN];
 	[bomb setOwner:self];
 	[UNIVERSE addEntity:bomb];	// STATUS_IN_FLIGHT, AI state GLOBAL
-	//[[bomb getAI] setState:@"GLOBAL"];
 	[bomb release];
 	
 	if (self != [PlayerEntity sharedPlayer])	// get the heck out of here
@@ -7489,7 +7476,7 @@ BOOL class_masslocks(int some_class)
 		jetto = [[[cargo objectAtIndex:0] retain] autorelease];
 		if (jetto != nil)
 		{
-			[self dumpItem:jetto];
+			[self dumpItem:jetto];	// CLASS_CARGO, STATUS_IN_FLIGHT, AI state GLOBAL
 			[cargo removeObjectAtIndex:0];
 			[[UNIVERSE findShipsMatchingPredicate:YESPredicate
 									   parameter:nil
@@ -8161,13 +8148,11 @@ BOOL class_masslocks(int some_class)
 		{
 			[self removeEquipmentItem:@"EQ_ESCAPE_POD"];
 			[shipAI setStateMachine:@"nullAI.plist"];
-			//[shipAI setState:@"GLOBAL"];	// alreaday set inside setStateMachine
 			behaviour = BEHAVIOUR_IDLE;
 			frustration = 0.0;
 			[self setScanClass: CLASS_CARGO];			// we're unmanned now!
 			thrust = thrust * 0.5;
 			desired_speed = 0.0;
-			//maxFlightSpeed = 0.0;
 			//[self setHulk:YES];	// already set inside launcEscapeCapsule
 
 			if ([self hasEscorts])
@@ -8372,6 +8357,7 @@ int w_space_seed = 1234567;
 	[ring2 setSize:NSMakeSize([ring2 size].width * -2.5 ,[ring2 size].height * -2.0 )]; // shrinking!
 	[UNIVERSE addEntity:ring2];
 	[ring2 release];
+	[self setStatus:STATUS_IN_FLIGHT];
 }
 
 
