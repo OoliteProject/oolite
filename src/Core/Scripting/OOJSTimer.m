@@ -131,9 +131,19 @@ static JSClass sTimerClass;
 - (void) timerFired
 {
 	jsval					rval = JSVAL_VOID;
+	id						object = nil;
+	JSContext				*context = NULL;
+	NSString				*description = nil;
 	
-	// stop and remove this timer if it's out of scope.
-	if([_owningScript weakRefUnderlyingObject] == nil)
+	// stop and remove the timer if _jsThis (the first parameter in the constructor) goes out of scope.
+	object = JSObjectToObject(context, _jsThis);
+	if (object != nil)
+	{
+		description = [object javaScriptDescription];
+		if (description == nil)  description = [object description];
+	}
+	
+	if (description == nil)
 	{
 		[self unscheduleTimer];
 		[self autorelease];
