@@ -386,7 +386,8 @@ static NSString *sGlobalTraceContext = nil;
 	{
 		[sInUseTextures removeObjectForKey:_key];
 		NSAssert([sRecentTextures objectForKey:_key] != self, @"Texture retain count error."); //miscount in autorelease
-	//	[sRecentTextures removeObjectForKey:_key]; // make sure there's no reference left inside sRecentTexture
+		// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
+		[sRecentTextures removeObjectForKey:_key]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
 		DESTROY(_key);
 	}
 	
