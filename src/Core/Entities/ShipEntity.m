@@ -1070,7 +1070,6 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		ex_pos.z += dd * 6.0 * (randf() - 0.5);
 		
 		[escorter setPosition:ex_pos];
-		//[escorter setStatus:STATUS_IN_FLIGHT];
 		[escorter setPrimaryRole:defaultRole];	//for mothership
 		[escorter setScanClass:scanClass];		// you are the same as I
 		if ([self bounty] == 0)  [escorter setBounty:0];	// Avoid dirty escorts for clean mothers
@@ -1156,10 +1155,9 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 BOOL ship_canCollide (ShipEntity* ship)
 {
 	int		s_status =		[ship status];
-	int		s_scan_class =	ship->scanClass;
 	if ((s_status == STATUS_COCKPIT_DISPLAY)||(s_status == STATUS_DEAD)||(s_status == STATUS_BEING_SCOOPED))
 		return NO;
-	if ((s_scan_class == CLASS_MISSILE) && ([ship shotTime] < 0.25)) // not yet fused
+	if (([ship scanClass] == CLASS_MISSILE) && ([ship shotTime] < 0.25)) // not yet fused
 		return NO;
 	return YES;
 }
@@ -1407,7 +1405,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (bounty > 0)
 			bounty = 0;
 		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
-		if ((target)&&(target->scanClass == CLASS_POLICE))
+		if ((target)&&([target scanClass] == CLASS_POLICE))
 		{
 			[self noteLostTarget];
 		}
@@ -1584,12 +1582,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	aegis_status = [self checkForAegis];   // is a station or something nearby??
 
 	//scripting
-	if (!haveExecutedSpawnAction && script != nil && [self status] == STATUS_IN_FLIGHT)
+	if (!haveExecutedSpawnAction)
 	{
-		PlayerEntity *player = [PlayerEntity sharedPlayer];
-		[player setScriptTarget:self];
-		[self doScriptEvent:@"shipSpawned"];
-		if ([self status] != STATUS_DEAD)  [player doScriptEvent:@"shipSpawned" withArgument:self];
+		// we only want shipSpawned to be triggered if this is a ship (including carriers and cargo pods), not for a stationary err... station!
+		// FIXME: do we want shipSpawned to work for asteroids / rock hermits too ? if not:
+		//if (script != nil && [self scanClass] != CLASS_ROCK && [self status] == STATUS_IN_FLIGHT)
+		if (script != nil && [self status] == STATUS_IN_FLIGHT)
+		{
+			PlayerEntity *player = [PlayerEntity sharedPlayer];
+			[player setScriptTarget:self];
+			[self doScriptEvent:@"shipSpawned"];
+			if ([self status] != STATUS_DEAD)  [player doScriptEvent:@"shipSpawned" withArgument:self];
+		}
 		haveExecutedSpawnAction = YES;
 	}
 
@@ -7215,7 +7219,7 @@ BOOL class_masslocks(int some_class)
 	Quaternion q1 = orientation;
 	if (isPlayer) q1.w = -q1.w;   // player view is reversed!
 	
-	if	((missiles <= 0)||(target == nil)||(target->scanClass == CLASS_NO_DRAW))	// no missile lock!
+	if	((missiles <= 0)||(target == nil)||([target scanClass] == CLASS_NO_DRAW))	// no missile lock!
 		return nil;
 	
 	if ([target isShip])

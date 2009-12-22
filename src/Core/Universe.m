@@ -738,11 +738,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[thargoid setOrientation:tharg_quaternion];
 			[thargoid setScanClass: CLASS_THARGOID];
 			[thargoid setBounty:100];
-			//[thargoid setStatus:STATUS_IN_FLIGHT];
 			[thargoid setGroup:thargoidGroup];
 			
 			[self addEntity:thargoid];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			
 			[thargoid release];
 		}
 	}
@@ -1015,7 +1013,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	if (a_station != nil)
 	{
-		//[a_station setStatus:STATUS_ACTIVE];
 		[a_station setOrientation: q_station];
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
@@ -1046,7 +1043,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[nav_buoy setPosition:[a_station getBeaconPosition]];
 			[nav_buoy setScanClass: CLASS_BUOY];
 			[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			//[nav_buoy setStatus:STATUS_IN_FLIGHT];
 			[nav_buoy release];
 		}
 	}
@@ -1061,7 +1057,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[nav_buoy setPosition:[self getWitchspaceExitPosition]];
 		[nav_buoy setScanClass: CLASS_BUOY];
 		[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
-		//[nav_buoy setStatus:STATUS_IN_FLIGHT];
 		[nav_buoy release];
 	}
 	/*--*/
@@ -1357,7 +1352,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 					[OOCharacter randomCharacterWithRole:@"trader"
 					andOriginalSystem: systems[Ranrot() & 255]]]];
 			
-			if (trader_ship->scanClass == CLASS_NOT_SET)
+			if ([trader_ship scanClass] == CLASS_NOT_SET)
 				[trader_ship setScanClass:CLASS_NEUTRAL];
 			[trader_ship setPosition:launchPos];
 			[trader_ship setBounty:0];
@@ -1415,18 +1410,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 				}
 				
-				if (pirate_ship->scanClass == CLASS_NOT_SET)
+				if ([pirate_ship scanClass] == CLASS_NOT_SET)
 				{
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				}
 				[pirate_ship setPosition:launchPos];
-				//[pirate_ship setStatus:STATUS_IN_FLIGHT];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() & 7)];
 				[pirate_ship setCargoFlag: CARGO_FLAG_PIRATE];
 				[pirate_ship setGroup:wolfpackGroup];
 				
 				[self addEntity:pirate_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
-				
 				[pirate_ship release];
 			}
 			
@@ -1473,7 +1466,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		thargoid_ship = [self newShipWithRole:@"thargoid"];   // retain count = 1
 		if (thargoid_ship)
 		{
-			if (thargoid_ship->scanClass == CLASS_NOT_SET)
+			if ([thargoid_ship scanClass] == CLASS_NOT_SET)
 				[thargoid_ship setScanClass: CLASS_THARGOID];
 			[thargoid_ship setPosition:launchPos];
 			[thargoid_ship setBounty:100];
@@ -1547,7 +1540,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[trader_ship setBounty:0];
 			[trader_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
 			if([trader_ship heatInsulation] < 7) [trader_ship setHeatInsulation:7]; // With this value most ships will survive the sun trip.
-			//[trader_ship setStatus:STATUS_IN_FLIGHT];
 			
 			if (([trader_ship pendingEscortCount] > 0)&&((Ranrot() % 7) < government))	// remove escorts if we feel safe
 			{
@@ -1600,7 +1592,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 						[OOCharacter randomCharacterWithRole:@"pirate"
 						andOriginalSystem: (randf() > 0.25)? systems[Ranrot() & 255]:system_seed]]];
 				
-				if (pirate_ship->scanClass == CLASS_NOT_SET)
+				if ([pirate_ship scanClass] == CLASS_NOT_SET)
 					[pirate_ship setScanClass: CLASS_NEUTRAL];
 				[pirate_ship setPosition: launchPos];
 				[pirate_ship setBounty: 20 + government + wolfPackCounter + (Ranrot() % 7)];
@@ -1689,7 +1681,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		asteroid = [self newShipWithRole:@"asteroid"];   // retain count = 1
 		if (asteroid)
 		{
-			if (asteroid->scanClass == CLASS_NOT_SET)
+			if ([asteroid scanClass] == CLASS_NOT_SET)
 				[asteroid setScanClass: CLASS_ROCK];
 			[asteroid setPosition:launchPos];
 			[asteroid setVelocity:spawnVel];
@@ -1713,7 +1705,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		hermit = (StationEntity *)[self newShipWithRole:@"rockhermit"];   // retain count = 1
 		if (hermit)
 		{
-			if (hermit->scanClass == CLASS_NOT_SET)
+			if ([hermit scanClass] == CLASS_NOT_SET)
 				[hermit setScanClass: CLASS_ROCK];
 			[hermit setPosition:launchPos];
 			[hermit setVelocity:spawnVel];
@@ -1757,12 +1749,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (ship)
 	{
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
-		if (ship->scanClass == CLASS_NOT_SET)
+		if ([ship scanClass] == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -2051,12 +2043,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (ship)
 	{
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
-		if (ship->scanClass == CLASS_NOT_SET)
+		if ([ship scanClass] == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:launchPos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -2093,7 +2085,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[self fillCargopodWithRandomCargo:ship];
 		}
 		
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2140,7 +2132,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			
 		} while (!safe);
 		
-		if (ship->scanClass == CLASS_NOT_SET)
+		if ([ship scanClass] == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition:ship_pos];
 		
@@ -2253,12 +2245,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (ship)
 	{
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		
-		if (ship->scanClass == CLASS_NOT_SET)
+		if ([ship scanClass] == CLASS_NOT_SET)
 			[ship setScanClass: CLASS_NEUTRAL];
 		[ship setPosition: pos];
 		[self addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -2353,7 +2345,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (ship)
 	{
-		if ((ship->scanClass == CLASS_NO_DRAW)||(ship->scanClass == CLASS_NOT_SET))
+		if (([ship scanClass] == CLASS_NO_DRAW)||([ship scanClass] == CLASS_NOT_SET))
 			[ship setScanClass: CLASS_NEUTRAL];
 		if ([role isEqual:@"trader"])
 		{
@@ -2374,7 +2366,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setCargoFlag: CARGO_FLAG_PIRATE];
 			[ship setBounty: (Ranrot() & 7) + (Ranrot() & 7) + ((randf() < 0.05)? 63 : 23)];	// they already have a price on their heads
 		}
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
@@ -2408,14 +2400,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	if (ship != nil)
 	{
-		if (![ship crew] && ![ship isUnpiloted] && !(ship->scanClass == CLASS_CARGO || ship->scanClass == CLASS_ROCK))
+		if (![ship crew] && ![ship isUnpiloted] && !([ship scanClass] == CLASS_CARGO || [ship scanClass] == CLASS_ROCK))
 		{
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole: desc
 				andOriginalSystem: systems[Ranrot() & 255]]]];
 		}
 		
-		if (ship->scanClass == CLASS_NOT_SET)
+		if ([ship scanClass] == CLASS_NOT_SET)
 		{
 			[ship setScanClass: CLASS_NEUTRAL];
 		}
@@ -4207,7 +4199,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						[se setRoll: 0.0];
 					}
 					[(StationEntity *)se setPlanet:[self planet]];
-					[se setStatus:STATUS_ACTIVE];
+					// if this station is a carrier, we need the status to be STATUS_IN_FLIGHT, otherwise STATUS_ACTIVE is fine.
+					[se setStatus:[se maxFlightSpeed] > 0 ? STATUS_IN_FLIGHT : STATUS_ACTIVE];
 				}
 				else [se setStatus:STATUS_IN_FLIGHT];
 			}
@@ -8568,7 +8561,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
 				
 				[hunter_ship setPrimaryRole:@"police"];		// FIXME: do we  actually need to change the ship's primary role? - Kaks 20091207
-				if (hunter_ship->scanClass == CLASS_NOT_SET)
+				if ([hunter_ship scanClass] == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
 				{
@@ -8579,7 +8572,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		else
 		{
 			hunter_ship = [self newShipWithRole:@"hunter"];   // retain count = 1
-			if ((hunter_ship)&&(hunter_ship->scanClass == CLASS_NOT_SET))
+			if ((hunter_ship)&&([hunter_ship scanClass] == CLASS_NOT_SET))
 				[hunter_ship setScanClass: CLASS_NEUTRAL];
 			if (![hunter_ship crew])
 					[hunter_ship setCrew:[NSArray arrayWithObject:

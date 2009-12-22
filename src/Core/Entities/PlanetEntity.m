@@ -1351,7 +1351,6 @@ double longitudeFromVector(Vector v);
 
 		[shuttle_ship setScanClass: CLASS_NEUTRAL];
 		[shuttle_ship setCargoFlag:CARGO_FLAG_FULL_PLENTIFUL];
-		//[shuttle_ship setStatus:STATUS_IN_FLIGHT];
 		[shuttle_ship switchAITo:@"risingShuttleAI.plist"];
 		[UNIVERSE addEntity:shuttle_ship];
 

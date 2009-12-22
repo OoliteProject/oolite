@@ -3446,7 +3446,6 @@ static PlayerEntity *sSharedPlayer = nil;
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
 		[doppelganger setDesiredSpeed:flightSpeed];
 		[doppelganger setOwner:self];
-		//[doppelganger setStatus:STATUS_IN_FLIGHT]; 
 		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
 		[doppelganger switchAITo:@"nullAI.plist"];  // fly straight on
 		[UNIVERSE addEntity:doppelganger];
