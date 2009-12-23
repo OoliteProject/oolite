@@ -1019,7 +1019,8 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_station setScanClass: CLASS_STATION];
 		[a_station setPlanet:[self planet]];
 		[a_station setEquivalentTechLevel:techlevel];
-		[self addEntity:a_station];	// STATUS_ACTIVE, AI state GLOBAL
+		[self addEntity:a_station];		// STATUS_IN_FLIGHT, AI state GLOBAL
+		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.
 	}
 	
 	cachedSun = a_sun;
@@ -2370,7 +2371,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			[ship setCrew:[NSArray arrayWithObject:
 				[OOCharacter randomCharacterWithRole:role
 				andOriginalSystem: systems[Ranrot() & 255]]]];
-		// calls UNIVERSE addEntity, all this is set inside leaveWitchspace: AI state GLOBAL,  status STATUS_EXITING_WITCHSPACE,  ai message: EXITED_WITCHSPACE, then at last STATUS_IN_FLIGHT
+		// The following is set inside leaveWitchspace: AI state GLOBAL, STATUS_EXITING_WITCHSPACE, ai message: EXITED_WITCHSPACE, then STATUS_IN_FLIGHT
 		[ship leaveWitchspace];
 		[ship release];
 	}
@@ -4199,10 +4200,9 @@ static BOOL MaintainLinkedLists(Universe* uni)
 						[se setRoll: 0.0];
 					}
 					[(StationEntity *)se setPlanet:[self planet]];
-					// if this station is a carrier, we need the status to be STATUS_IN_FLIGHT, otherwise STATUS_ACTIVE is fine.
-					[se setStatus:[se maxFlightSpeed] > 0 ? STATUS_IN_FLIGHT : STATUS_ACTIVE];
 				}
-				else [se setStatus:STATUS_IN_FLIGHT];
+				// stations used to have STATUS_ACTIVE, they're all STATUS_IN_FLIGHT now.
+				[se setStatus:STATUS_IN_FLIGHT];
 			}
 		}
 		else
