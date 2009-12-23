@@ -143,14 +143,17 @@ enum
 	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
 	kShip_maxSpeed,				// maximum flight speed, double, read-only
 	kShip_script,				// script, Script, read-only
+	kShip_isCargo,				// contains cargo, boolean, read-only
+	kShip_isDerelict,			// is an abandoned ship, boolean, read-only
 	kShip_isPirate,				// is pirate, boolean, read-only
+	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
 	kShip_isPlayer,				// is player, boolean, read-only
 	kShip_isPolice,				// is police, boolean, read-only
-	kShip_isThargoid,			// is thargoid, boolean, read-only
-	kShip_isTrader,				// is trader, boolean, read-only
-	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
 	kShip_isMissile,			// is missile, boolean, read-only
 	kShip_isMine,				// is mine, boolean, read-only
+	kShip_isRock,				// is a rock (hermits included), boolean, read-only
+	kShip_isThargoid,			// is thargoid, boolean, read-only
+	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
 	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
 	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
@@ -190,16 +193,19 @@ static JSPropertySpec sShipProperties[] =
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isBeacon",				kShip_isBeacon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isCloaked",				kShip_isCloaked,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "isCargo",				kShip_isCargo,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isDerelict",				kShip_isDerelict,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isFrangible",			kShip_isFrangible,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isJamming",				kShip_isJamming,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirate",				kShip_isPirate,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPirateVictim",			kShip_isPirateVictim,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPlayer",				kShip_isPlayer,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isRock",					kShip_isRock,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isMissile",				kShip_isMissile,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isMine",					kShip_isMine,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoSpaceCapacity",		kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -517,6 +523,21 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_isWeapon:
 			*outValue = BOOLToJSVal([entity isWeapon]);
+			OK = YES;
+			break;
+			
+		case kShip_isRock:
+			*outValue = BOOLToJSVal([entity scanClass] == CLASS_ROCK);	// hermits and asteroids!
+			OK = YES;
+			break;
+			
+		case kShip_isCargo:
+			*outValue = BOOLToJSVal([entity scanClass] == CLASS_CARGO && [entity commodityAmount] > 0);
+			OK = YES;
+			break;
+			
+		case kShip_isDerelict:
+			*outValue = BOOLToJSVal([entity isHulk]);
 			OK = YES;
 			break;
 			

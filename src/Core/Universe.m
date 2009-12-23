@@ -526,11 +526,17 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 {
 	// deal with the machine going to sleep
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	if ((player)&&([player status] == STATUS_IN_FLIGHT))
+	if (!player) return;
+	
+	if ([player status] == STATUS_DOCKED)
 	{
-		[self displayMessage:@" Paused (press 'p') " forCount:1.0];
-		[[gameView gameController] pause_game];
+		[self addMessage:DESC(@"game-paused-docked") forCount:1.0];
+		[message_gui leaveLastLine];	// remove other messages.
 	}
+	else
+		[self addMessage:DESC(@"game-paused") forCount:1.0];
+	
+	[[gameView gameController] pause_game];
 }
 
 
@@ -1017,7 +1023,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_station setPosition: stationPos];
 		[a_station setPitch: 0.0];
 		[a_station setScanClass: CLASS_STATION];
-		[a_station setPlanet:[self planet]];
+		//[a_station setPlanet:[self planet]];	// done inside addEntity.
 		[a_station setEquivalentTechLevel:techlevel];
 		[self addEntity:a_station];		// STATUS_IN_FLIGHT, AI state GLOBAL
 		[a_station setStatus:STATUS_ACTIVE];	// For backward compatibility. Might not be needed.

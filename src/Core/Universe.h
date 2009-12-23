@@ -288,7 +288,6 @@ enum
 
 - (void) reinitAndShowDemo:(BOOL)showDemo;
 
-
 - (int) obj_count;
 #ifndef NDEBUG
 - (void) obj_dump;

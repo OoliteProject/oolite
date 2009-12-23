@@ -1352,9 +1352,6 @@ static NSTimeInterval	time_last_frame;
 					case GUI_SCREEN_SHORT_RANGE_CHART:
 						[self setGuiToShortRangeChartScreen];
 						break;
-					case GUI_SCREEN_LONG_RANGE_CHART:
-						[self setGuiToLongRangeChartScreen];
-						break;
 					case GUI_SCREEN_MANIFEST:
 						[self setGuiToManifestScreen];
 						break;
@@ -3019,12 +3016,45 @@ static BOOL toggling_music;
 - (void) pollDockedControls:(double)delta_t
 {
 	StationEntity			*station = nil;
-	MyOpenGLView			*gameView = nil;
+	MyOpenGLView			*gameView = [UNIVERSE gameView];
+	GameController			*gameController = [gameView gameController];
+
+	
+	// Pause game, 'p' key
+	if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
+			gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
+			gui_screen != GUI_SCREEN_SAVE) )
+	{
+		if (!pause_pressed)
+		{
+			if ([gameController gameIsPaused])
+			{
+				script_time = saved_script_time;
+				[gameView allowStringInput:NO];
+				[UNIVERSE setDisplayCursor:NO];
+				[UNIVERSE clearPreviousMessage];
+				[gameController unpause_game];
+			}
+			else
+			{
+				saved_script_time = script_time;
+				[UNIVERSE addMessage:DESC(@"game-paused-docked") forCount:1.0];
+				[[UNIVERSE message_gui] leaveLastLine];	// remove other messages.
+				[gameController pause_game];
+			}
+		}
+		pause_pressed = YES;
+	}
+	else
+	{
+		pause_pressed = NO;
+	}
+	
+	if ([gameController gameIsPaused]) return;
 	
 	if(pollControls)
 	{
-		gameView = [UNIVERSE gameView];
-		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1]))   // look for the f1 key
+		if ([gameView isDown:gvFunctionKey1] || [gameView isDown:gvNumberKey1])   // look for the f1 key
 		{
 			// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
 			[UNIVERSE setUpUniverseFromStation]; // player pre-launch
