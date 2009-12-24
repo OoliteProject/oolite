@@ -901,11 +901,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	if (alpha > 0.05f)
 	{
-
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
-
+		
 		glEnable(GL_LINE_SMOOTH);
-
+		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
+		
 		if (self == [UNIVERSE gui])
 		{
 			if ([player guiScreen] == GUI_SCREEN_SHORT_RANGE_CHART)
@@ -919,7 +919,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				[self drawEqptList:[player equipmentList] z:z ];
 			}
 		}
-		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		
 		if (fade_sign)
 		{

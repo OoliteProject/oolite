@@ -1,0 +1,39 @@
+{
+	short_range_chart	= "oolite-short-range-chart.png";
+	long_range_chart	= "oolite-long-range-chart.png";
+	
+/*	// This section is commented out, and not used by standard Oolite.
+	// Use the following settings to add custom images to Oolite's screens
+
+	intro				= "intro.png";				// background for the ships at game start
+	status				= "status.png";
+	status_docked		= "status-docked.png";		// if not defined, same as status
+	status_in_flight	= "status-in-flight.png"; 	// if not defined, same as  status
+	status_red_alert	= "status-red-alert.png"; 	// if not defined, same as  status
+	report				= "report.png";				// if not defined, same as status_docked
+	
+	manifest			= "manifest.png";
+	equip_ship			= "equip-ship.png";
+	mount_weapon		= "mount-weapon.png";		// if not defined, same as  equip_ship
+	shipyard			= "shipyard.png";
+	
+	long_range_chart1	= "long-range-chart1.png"; 	// if not defined, same as  long_range_chart
+	long_range_chart2	= "long-range-chart2.png";	// if not defined, same as  long_range_chart
+	long_range_chart3	= "long-range-chart3.png";	// if not defined, same as  long_range_chart
+	long_range_chart4	= "long-range-chart4.png";	// if not defined, same as  long_range_chart
+	long_range_chart5	= "long-range-chart5.png";	// if not defined, same as  long_range_chart
+	long_range_chart6	= "long-range-chart6.png";	// if not defined, same as  long_range_chart
+	long_range_chart7	= "long-range-chart7.png";	// if not defined, same as  long_range_chart
+	long_range_chart8	= "long-range-chart8.png";	// if not defined, same as  long_range_chart
+	
+	system_data			= "system-data.png";
+	system_data_nova	= "system-data-nova.png";
+	
+	market				= "market.png";
+	contracts			= "contracts.png";			// if not defined, same as market
+	
+	mission				= "mission.png";			// default background, overridden by mission's background parameter.
+	settings			= "settings.png";			// game options / settings
+	load_save			= "load-save.png";			// load / save game screens
+*/
+}

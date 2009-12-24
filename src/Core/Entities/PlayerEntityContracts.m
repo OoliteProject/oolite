@@ -1105,9 +1105,12 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		[gui setText:@"press-space-commander" forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
-		
 		[gui setShowTextCursor:NO];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"report"] inFolder:@"Images"]];
+		
+		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -1167,9 +1170,12 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
-		
 		[gui setShowTextCursor:NO];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"report"] inFolder:@"Images"]];
+		
+		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	/* ends */
 	

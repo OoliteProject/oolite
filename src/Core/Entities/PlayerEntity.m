@@ -4706,16 +4706,15 @@ static PlayerEntity *sSharedPlayer = nil;
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
-
+		
 		[gui clear];
-		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"),   galaxy_number+1]];
-		// FIXME: charts & backgrounds are not compatible yet.
-#if 0
-		OOTexture	*background = nil;
-		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"long_range_chart"] inFolder:@"Images"];
-		if (background == nil) background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"chart"] inFolder:@"Images"];
-		[[UNIVERSE gui] setBackgroundTexture:background];
-#endif
+		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"), galaxy_number+1]];
+		
+		NSString	*bgName = nil;
+		bgName = [UNIVERSE screenBackgroundNameForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"long_range_chart"];
+		[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		
 		[gui setText:targetSystemName	forRow:17];
 		
 		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
@@ -4761,19 +4760,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	// GUI stuff
 	{
 		GuiDisplayGen* gui = [UNIVERSE gui];
-
+		
 		if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
 			cursor_coordinates = galaxy_coordinates;	// home
-
+		
 		[gui clear];
 		[gui setTitle:DESC(@"short-range-chart-title")];
-		// FIXME: charts & backgrounds are not compatible yet.
-#if 0
-		OOTexture	*background = nil;
-		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"short_range_chart"] inFolder:@"Images"];
-		if (background == nil) background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"chart"] inFolder:@"Images"];
-		[[UNIVERSE gui] setBackgroundTexture:background];
-#endif
+		
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"short_range_chart"] inFolder:@"Images"]];
 		
 		[gui setText:targetSystemName	forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
@@ -5431,7 +5425,11 @@ static NSString *last_outfitting_key=nil;
 		}
 
 		[gui setShowTextCursor:NO];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:(eqKeyForSelectFacing != nil ? @"mount_weapon" : @"equip_ship")] inFolder:@"Images"]];
+		NSString *bgName = nil;
+		if (eqKeyForSelectFacing != nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"mount_weapon"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"equip_ship"];
+		
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	/* ends */
 
