@@ -689,6 +689,9 @@
 		25F46752099695D5009483BF /* OoliteApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F46750099695D5009483BF /* OoliteApp.h */; };
 		25F46753099695D5009483BF /* OoliteApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F46751099695D5009483BF /* OoliteApp.m */; };
 		25F4676509969672009483BF /* MyOpenGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 25F4676309969672009483BF /* MyOpenGLView.m */; };
+		2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B060ED410E42715001EFB22 /* screenbackgrounds.plist */; };
+		2B060ED810E42735001EFB22 /* oolite-short-range-chart.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B060ED610E42735001EFB22 /* oolite-short-range-chart.png */; };
+		2B060ED910E42735001EFB22 /* oolite-long-range-chart.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B060ED710E42735001EFB22 /* oolite-long-range-chart.png */; };
 		2B13C520105D342D00AF4A7B /* oolite-nova-system.png in Resources */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B13C521105D343900AF4A7B /* oolite-nova-system.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */; };
 		2B4CDFEC107B3D8400526C98 /* OOJSManifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */; };
@@ -1804,6 +1807,9 @@
 		29B97319FDCFA39411CA2CEA /* MainMenu.nib */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = MainMenu.nib; path = ../src/Cocoa/MainMenu.nib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		2B060ED410E42715001EFB22 /* screenbackgrounds.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = screenbackgrounds.plist; sourceTree = "<group>"; };
+		2B060ED610E42735001EFB22 /* oolite-short-range-chart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-short-range-chart.png"; sourceTree = "<group>"; };
+		2B060ED710E42735001EFB22 /* oolite-long-range-chart.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-long-range-chart.png"; sourceTree = "<group>"; };
 		2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nova-system.png"; sourceTree = "<group>"; };
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
@@ -1900,6 +1906,8 @@
 		1A23154D0B9C778400EF0852 /* Images */ = {
 			isa = PBXGroup;
 			children = (
+				2B060ED610E42735001EFB22 /* oolite-short-range-chart.png */,
+				2B060ED710E42735001EFB22 /* oolite-long-range-chart.png */,
 				2B13C51E105D342D00AF4A7B /* oolite-nova-system.png */,
 				1A23154E0B9C778400EF0852 /* solar.png */,
 				1A23154F0B9C778400EF0852 /* splash.png */,
@@ -1912,6 +1920,7 @@
 		1A2316DD0B9CFAD700EF0852 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				2B060ED410E42715001EFB22 /* screenbackgrounds.plist */,
 				2B9A1088105D526200EE2AE6 /* javascript-errors.plist */,
 				1ABC04260EF872B7003B740A /* crosshairs.plist */,
 				1AD0C32F0C463FCB0070BD23 /* autoAImap.plist */,
@@ -3322,6 +3331,9 @@
 				1A0BF3DE10DAE3490099984D /* python_redux2.dat in Resources */,
 				1A0BF3E010DAE3610099984D /* transporter_redux1.dat in Resources */,
 				1A0BF3E210DAE3760099984D /* worm_redux1.dat in Resources */,
+				2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Resources */,
+				2B060ED810E42735001EFB22 /* oolite-short-range-chart.png in Resources */,
+				2B060ED910E42735001EFB22 /* oolite-long-range-chart.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
