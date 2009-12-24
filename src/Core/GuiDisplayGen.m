@@ -754,7 +754,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void)setBackgroundTexture:(OOTexture *)backgroundTexture
+- (void) setBackgroundTexture:(OOTexture *)backgroundTexture
 {
 	[backgroundSprite release];
 	backgroundSprite = nil;
@@ -766,7 +766,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void)setForegroundTexture:(OOTexture *)foregroundTexture
+- (void) setForegroundTexture:(OOTexture *)foregroundTexture
 {
 	[foregroundSprite release];
 	foregroundSprite = nil;
@@ -778,7 +778,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void)clearBackground
+- (void) clearBackground
 {
 	[self setBackgroundTexture:nil];
 	[self setForegroundTexture:nil];
@@ -888,7 +888,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 	if (backgroundSprite!=nil)
 	{
-		[backgroundSprite blitCentredToX:x Y:y Z:z alpha:1.0f];
+		[backgroundSprite blitBackgroundCentredToX:x Y:y Z:z alpha:1.0f];
 	}
 }
 
@@ -1000,7 +1000,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	// dim background image fix
 	if (![[PlayerEntity sharedPlayer] showDemoShips] && backgroundSprite!=nil)
 	{
-		[backgroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
+		[backgroundSprite blitBackgroundCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
 	}
 	
 	if (foregroundSprite!=nil)

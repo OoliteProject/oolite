@@ -39,6 +39,7 @@
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOShipRegistry.h"
+#import "OOTexture.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
 
@@ -615,6 +616,7 @@
 	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
+	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
@@ -644,6 +646,7 @@
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
+	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[gameView setTypedString: cdrName];
 	[gameView supressKeysUntilKeyUp];
@@ -679,6 +682,7 @@
 	
 	[gui setSelectableRange: NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2)];
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
+	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];

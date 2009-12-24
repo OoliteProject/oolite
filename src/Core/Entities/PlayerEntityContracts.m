@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #import "NSStringOOExtensions.h"
 #import "OOShipRegistry.h"
 #import "OOEquipmentType.h"
+#import "OOTexture.h"
 
 
 static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showShipyardModel";
@@ -543,6 +544,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 {
 	unsigned		i;
 	NSMutableArray	*row_info = [NSMutableArray arrayWithCapacity:5];
+	NSString		*bgName = nil;
 	
 	// set up initial markets if there are none
 	StationEntity* the_station = [UNIVERSE station];
@@ -706,6 +708,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		
 		[gui setShowTextCursor:NO];
+		bgName = [UNIVERSE screenBackgroundNameForKey:@"contracts"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"market"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	
 	OOGUIScreenID oldScreen = gui_screen;
@@ -1049,6 +1054,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			}
 		}
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"manifest"] inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -1101,6 +1107,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"report"] inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -1162,6 +1169,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"report"] inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -1312,6 +1320,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		[self showTradeInInformationFooter];
 		
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"shipyard"] inFolder:@"Images"]];
 	}
 	
 	gui_screen = GUI_SCREEN_SHIPYARD;

@@ -207,11 +207,11 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) scrollUp:(int) how_much;
 
-- (void)setBackgroundTexture:(OOTexture *)backgroundTexture;
-- (void)setForegroundTexture:(OOTexture *)foregroundTexture;
-- (void)clearBackground;
+- (void) setBackgroundTexture:(OOTexture *)backgroundTexture;
+- (void) setForegroundTexture:(OOTexture *)foregroundTexture;
+- (void) clearBackground;
 
-- (void)leaveLastLine;
+- (void) leaveLastLine;
 
 - (int) drawGUI:(GLfloat) alpha drawCursor:(BOOL) drawCursor;
 - (void) drawGUIBackground;

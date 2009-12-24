@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "PlayerEntityStickMapper.h"
 #import "PlayerEntityControls.h"
 #import "JoystickHandler.h"
+#import "OOTexture.h"
 
 @implementation PlayerEntity (StickMapper)
 
@@ -59,7 +60,7 @@ MA 02110-1301, USA.
 	
 	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
-	
+	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"settings"] inFolder:@"Images"]];
 }
 
 - (void) stickMapperInputHandler: (GuiDisplayGen *)gui

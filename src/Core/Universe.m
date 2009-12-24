@@ -281,7 +281,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	     ++espeak_voice_count)
 		/**/;
 #endif
-	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
 #endif
 	
 	[[GameController sharedController] logProgress:DESC(@"loading-ships")];
@@ -349,14 +348,16 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[commodityLists release];
 	[commodityData release];
 	
-	[illegal_goods release];
+	[illegalGoods release];
 	[descriptions release];
 	[characters release];
-	[customsounds release];
+	[customSounds release];
 	[planetInfo release];
 	[missiontext release];
 	[equipmentData release];
 	[demo_ships release];
+	[autoAIMap release];
+	[screenBackgrounds release];
 	[gameView release];
 	
 	[localPlanetInfoOverrides release];
@@ -442,10 +443,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	[[gameView gameController] unpause_game];
 	
-#if OOLITE_SPEECH_SYNTH
-	[speechArray autorelease];
-	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
-#endif
+
 	
 	if(showDemo)
 	{
@@ -531,10 +529,11 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	if ([player status] == STATUS_DOCKED)
 	{
 		[self addMessage:DESC(@"game-paused-docked") forCount:1.0];
-		[message_gui leaveLastLine];	// remove other messages.
 	}
 	else
+	{
 		[self addMessage:DESC(@"game-paused") forCount:1.0];
+	}
 	
 	[[gameView gameController] pause_game];
 }
@@ -3116,7 +3115,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		commodity = [entry oo_stringAtIndex:MARKET_NAME];
 		amount = [entry oo_unsignedIntAtIndex:MARKET_QUANTITY];
 		
-		penaltyPerUnit = [illegal_goods oo_unsignedIntForKey:commodity defaultValue:0];
+		penaltyPerUnit = [illegalGoods oo_unsignedIntForKey:commodity defaultValue:0];
 		penalty += amount * penaltyPerUnit;
 	}
 	return penalty;
@@ -5167,11 +5166,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 }
 
 
-- (NSString *) soundNameForCustomSoundKey:(NSString *)key;
+- (NSString *) soundNameForCustomSoundKey:(NSString *)key
 {
 	NSString				*result = nil;
 	NSMutableSet			*seen = nil;
-	id object = [customsounds objectForKey:key];
+	id object = [customSounds objectForKey:key];
 	
 	if ([object isKindOfClass:[NSArray class]] && [object count] > 0)
 	{
@@ -5193,7 +5192,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			for (;;)
 			{
 				[seen addObject:result];
-				object = [customsounds objectForKey:result];
+				object = [customSounds objectForKey:result];
 				if( [object isKindOfClass:[NSArray class]] && [object count] > 0)
 				{
 					result = [object oo_stringAtIndex:Ranrot() % [object count]];
@@ -5226,6 +5225,20 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 		result = nil;
 	}
 	return result;
+}
+
+
+- (NSString *) screenBackgroundNameForKey:(NSString *)key
+{
+	NSString *value = [screenBackgrounds oo_stringForKey:key];
+	
+	if (value != nil)
+	{
+		if (![OOTexture textureWithName:value inFolder:@"Images"])	// it's cached now.
+			return nil;
+	}
+	
+	return value;
 }
 
 
@@ -8476,14 +8489,19 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	universal_time = 0.0;
 	messageRepeatTime = 0.0;
 	
+#if OOLITE_SPEECH_SYNTH
+	[speechArray autorelease];
+	speechArray = [[ResourceManager arrayFromFilesNamed:@"speech_pronunciation_guide.plist" inFolder:@"Config" andMerge:YES] retain];
+#endif
+	
 	[commodityLists autorelease];
 	commodityLists = [[ResourceManager dictionaryFromFilesNamed:@"commodities.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[commodityData autorelease];
 	commodityData = [[NSArray arrayWithArray:[commodityLists oo_arrayForKey:@"default"]] retain];
 	
-	[illegal_goods autorelease];
-	illegal_goods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
+	[illegalGoods autorelease];
+	illegalGoods = [[ResourceManager dictionaryFromFilesNamed:@"illegal_goods.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[descriptions autorelease];
 	descriptions = [[ResourceManager dictionaryFromFilesNamed:@"descriptions.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -8491,19 +8509,20 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	[characters autorelease];
 	characters = [[ResourceManager dictionaryFromFilesNamed:@"characters.plist" inFolder:@"Config" andMerge:YES] retain];
 	
-	[customsounds autorelease];
-	customsounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
+	[customSounds autorelease];
+	customSounds = [[ResourceManager dictionaryFromFilesNamed:@"customsounds.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[planetInfo autorelease];
 	planetInfo = [[ResourceManager dictionaryFromFilesNamed:@"planetinfo.plist" inFolder:@"Config" mergeMode:MERGE_SMART cache:YES] retain];
 	
+	[screenBackgrounds autorelease];
+	screenBackgrounds = [[ResourceManager dictionaryFromFilesNamed:@"screenbackgrounds.plist" inFolder:@"Config" andMerge:YES] retain];
+	
 	[pirateVictimRoles autorelease];
 	pirateVictimRoles = [[NSSet alloc] initWithArray:[ResourceManager arrayFromFilesNamed:@"pirate-victim-roles.plist" inFolder:@"Config" andMerge:YES]];
 	
-	//	[autoAIMap autorelease]; // Having this line in causes a crash when switching from normal to strict and then back to normal.
-	//NSDictionary *tmpAIMap = autoAIMap;	// try & avoid crash & memleak - nope, it still crashes
-	autoAIMap = [ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES];
-	//[tmpAIMap autorelease];				// try & avoid crash & memleak - nope, it still crashes
+	[autoAIMap autorelease];
+	autoAIMap = [[ResourceManager dictionaryFromFilesNamed:@"autoAImap.plist" inFolder:@"Config" andMerge:YES] retain];
 	
 	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
@@ -8726,7 +8745,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	NSString				*soundName = nil;
 	
 	// Preload sounds to avoid loading stutter.
-	for (soundEnum = [customsounds objectEnumerator]; (object = [soundEnum nextObject]); )
+	for (soundEnum = [customSounds objectEnumerator]; (object = [soundEnum nextObject]); )
 	{
 		if([object isKindOfClass:[NSString class]])
 		{

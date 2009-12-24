@@ -1731,6 +1731,7 @@ static PlayerEntity *sSharedPlayer = nil;
 #define VELOCITY_CLEANUP_FULL	5000.0f	// Speed at which full "power braking" factor is used.
 #define VELOCITY_CLEANUP_RATE	0.001f	// Factor for full "power braking".
 
+
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
 {
 	// do flight routines
@@ -4252,7 +4253,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	NSString		*systemName = nil;
 	NSString		*targetSystemName = nil;
 	NSString		*text = nil;
-
+	OOTexture		*background = nil;
+	
 	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 
@@ -4302,6 +4304,21 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setArray:[NSArray arrayWithObjects:DESC(@"status-rating"), rating_desc, nil]			forRow:7];
 		
 		[gui setText:DESC(@"status-equipment") forRow:9];
+		
+		NSString *bgName = nil;
+		if ([self status] == STATUS_DOCKED)
+		{
+			bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+		}
+		else
+		{
+			if (alertCondition == ALERT_CONDITION_RED) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_red_alert"];
+			else bgName = [UNIVERSE screenBackgroundNameForKey:@"status_in_flight"];
+		}
+		
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
+		background = [OOTexture textureWithName:bgName inFolder:@"Images"];
+		[gui setBackgroundTexture:background];
 		
 		[gui setShowTextCursor:NO];
 	}
@@ -4544,15 +4561,15 @@ static PlayerEntity *sSharedPlayer = nil;
 
 - (void) setGuiToSystemDataScreen
 {
-	NSDictionary*   targetSystemData;
-	NSString*		targetSystemName;
+	NSDictionary	*targetSystemData;
+	NSString		*targetSystemName;
+	OOTexture		*background = nil;
 	
-	targetSystemData =		[[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
-	targetSystemName =		[targetSystemData oo_stringForKey:KEY_NAME];
+	targetSystemData = [[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
+	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
 	
-	BOOL	sunGoneNova = NO;
-	if ([targetSystemData oo_boolForKey:@"sun_gone_nova"])
-		sunGoneNova = YES;
+	BOOL			sunGoneNova = NO;
+	if ([targetSystemData oo_boolForKey:@"sun_gone_nova"]) sunGoneNova = YES;
 	
 	// GUI stuff
 	{
@@ -4626,7 +4643,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	// if the system has gone nova, display the sun instead of the planet
 	if (sunGoneNova)
 	{
-		[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"]];
+		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"system_data_nova"] inFolder:@"Images"];
+		if (background == nil) background =[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"];
+		[[UNIVERSE gui] setBackgroundTexture:background];
 	}
 	else
 	{
@@ -4638,6 +4657,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 		}
+		[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"system_data"] inFolder:@"Images"]];
 	}
 	
 	[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -4689,7 +4709,13 @@ static PlayerEntity *sSharedPlayer = nil;
 
 		[gui clear];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"long-range-chart-title-d"),   galaxy_number+1]];
-		
+		// FIXME: charts & backgrounds are not compatible yet.
+#if 0
+		OOTexture	*background = nil;
+		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"long_range_chart"] inFolder:@"Images"];
+		if (background == nil) background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"chart"] inFolder:@"Images"];
+		[[UNIVERSE gui] setBackgroundTexture:background];
+#endif
 		[gui setText:targetSystemName	forRow:17];
 		
 		NSString *displaySearchString = planetSearchString ? [planetSearchString capitalizedString] : (NSString *)@"";
@@ -4723,7 +4749,7 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	double		estimatedTravelTime = distance * distance;
-
+	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
@@ -4741,12 +4767,18 @@ static PlayerEntity *sSharedPlayer = nil;
 
 		[gui clear];
 		[gui setTitle:DESC(@"short-range-chart-title")];
+		// FIXME: charts & backgrounds are not compatible yet.
+#if 0
+		OOTexture	*background = nil;
+		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"short_range_chart"] inFolder:@"Images"];
+		if (background == nil) background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"chart"] inFolder:@"Images"];
+		[[UNIVERSE gui] setBackgroundTexture:background];
+#endif
 		
 		[gui setText:targetSystemName	forRow:19];
 		[gui setText:[NSString stringWithFormat:DESC(@"short-range-chart-distance-f"), distance]   forRow:20];
 		[gui setText:(distance <= (fuel/10.0f) ? [NSString stringWithFormat:DESC(@"short-range-chart-est-travel-time-f"), estimatedTravelTime] : (id)@"") forRow:21];
 		
-
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */
@@ -4958,6 +4990,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setSelectedRow: first_sel_row];
 
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"settings"] inFolder:@"Images"]];
 	}
 	/* ends */
 
@@ -5049,6 +5082,8 @@ static PlayerEntity *sSharedPlayer = nil;
 		}
 		
 		[gui setShowTextCursor:NO];
+		// Graphically this screen is analogous to the various settings screens
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"settings"] inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -5081,7 +5116,7 @@ static NSString *last_outfitting_key=nil;
 	// based on the way setGuiToEquipShipScreen  'worked' on 20090913 - Kaks 
 	
 	// setGuiToEquipShipScreen doesn't take a page number, it takes an offset from the beginning
-	// of the  dicitonary, the first line will show the key at that offset... the last element should contain
+	// of the dictionary, the first line will show the key at that offset...
 	
 	// try the last page first - 10 pages max.
 	while (otherKey)
@@ -5329,22 +5364,22 @@ static NSString *last_outfitting_key=nil;
 						
 						case 1:
 							desc = FORWARD_FACING_STRING;
-							weaponMounted=forward_weapon > WEAPON_NONE;
+							weaponMounted = forward_weapon > WEAPON_NONE;
 							break;
 						
 						case 2:
 							desc = AFT_FACING_STRING;
-							weaponMounted=aft_weapon > WEAPON_NONE;
+							weaponMounted = aft_weapon > WEAPON_NONE;
 							break;
 						
 						case 3:
 							desc = PORT_FACING_STRING;
-							weaponMounted=port_weapon > WEAPON_NONE;
+							weaponMounted = port_weapon > WEAPON_NONE;
 							break;
 						
 						case 4:
 							desc = STARBOARD_FACING_STRING;
-							weaponMounted=starboard_weapon > WEAPON_NONE;
+							weaponMounted = starboard_weapon > WEAPON_NONE;
 							break;
 					}
 					
@@ -5396,6 +5431,7 @@ static NSString *last_outfitting_key=nil;
 		}
 
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:(eqKeyForSelectFacing != nil ? @"mount_weapon" : @"equip_ship")] inFolder:@"Images"]];
 	}
 	/* ends */
 
@@ -5452,9 +5488,11 @@ static NSString *last_outfitting_key=nil;
 
 - (void) setGuiToIntroFirstGo: (BOOL) justCobra
 {
-	NSString *text;
-	GuiDisplayGen* gui = [UNIVERSE gui];
-	int msgLine = 2;
+	NSString 		*text = nil;
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	int 			msgLine = 2;
+	OOTexture		*background = nil;
+
 	if(justCobra==YES)
 	{
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
@@ -5542,13 +5580,15 @@ static NSString *last_outfitting_key=nil;
 	
 	if (gui !=NULL)  
 	{
-			gui_screen = (justCobra==YES) ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
+		gui_screen = (justCobra==YES) ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
 	}
 	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
+	background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"intro"] inFolder:@"Images"];
+	[gui setBackgroundTexture:background];	// FIXME: luminosity / transparency of the background image varies from ship to ship.
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
@@ -6072,8 +6112,8 @@ static NSString *last_outfitting_key=nil;
 			[gui setNoSelectedRow];
 		}
 		
-
 		[gui setShowTextCursor:NO];
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"market"] inFolder:@"Images"]];
 	}
 	
 	[[UNIVERSE gameView] clearMouse];

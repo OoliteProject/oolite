@@ -66,7 +66,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void)blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+- (void) blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
 	a = OOClamp_0_1_f(a);
 	glEnable(GL_TEXTURE_2D);
@@ -93,11 +93,24 @@ MA 02110-1301, USA.
 	glDisable(GL_TEXTURE_2D);
 }
 
-- (void)blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+
+- (void) blitCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
 	float	xs = x - size.width / 2.0;
 	float	ys = y - size.height / 2.0;
 	[self blitToX:xs Y:ys Z:z alpha:a];
+}
+
+
+- (void) blitBackgroundCentredToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
+{
+	// Without distance, coriolis stations would be rendered behind the background image.
+	// Set an arbitrary value for distance, might not be sufficient for really huge ships.
+	float	distance = 512.0f;
+	
+	size.width *= distance; size.height *= distance;
+	[self blitCentredToX:x Y:y Z:z * distance alpha:a];
+	size.width /= distance; size.height /= distance;
 }
 
 @end

@@ -2352,19 +2352,24 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
-	GuiDisplayGen* gui = [UNIVERSE gui];
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	OOTexture		*background = nil;
 
 	// GUI stuff
 	{
 		[gui clear];
 		[gui setTitle: missionTitle ? missionTitle : DESC(@"mission-information")];
-		//
+		
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setKey:@"spacebar" forRow:21];
-		//
+		
 		[gui setSelectableRange:NSMakeRange(0,0)];
-		[gui setBackgroundTexture:missionBackgroundTexture];
+		
+		if (missionBackgroundTexture != nil) background = missionBackgroundTexture;
+		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"mission"] inFolder:@"Images"];
+		
+		[gui setBackgroundTexture:background];
 		[gui setForegroundTexture:missionForegroundTexture];
 
 		[gui setShowTextCursor:NO];
