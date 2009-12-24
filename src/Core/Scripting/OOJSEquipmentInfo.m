@@ -253,6 +253,14 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	{
 		case kEquipmentInfo_effectiveTechLevel:
 			if ([eqType techLevel] != kOOVariableTechLevel)  return YES;	// Only TL-99 items can be modified in this way
+			if (JSVAL_IS_NULL(*value)) 
+			{
+				// reset mission variable
+				[OOPlayerForScripting() setMissionVariable:nil
+													forKey:[@"mission_TL_FOR_" stringByAppendingString:[eqType identifier]]];
+				OK = YES;
+				break;
+			}
 			if (JS_ValueToInt32(context, *value, &iValue))
 			{
 				if (iValue < 0)  iValue = 0;

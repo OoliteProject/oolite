@@ -1461,6 +1461,8 @@ static WormholeEntity *whole = nil;
 	NSEnumerator		*shipEnum = nil;
 	ShipEntity			*target = nil, *ship = nil;
 	
+	if (primaryTarget == NO_TARGET) return;
+	
 	if ([self group] == nil)		// ship is alone!
 	{
 		found_target = primaryTarget;
