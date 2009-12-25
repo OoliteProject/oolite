@@ -994,13 +994,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glEnd();
 	}
 	
-	// show background images...
-	//
-	// dim background image fix
-	if (![[PlayerEntity sharedPlayer] showDemoShips] && backgroundSprite!=nil)
-	{
-		[backgroundSprite blitBackgroundCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
-	}
+	// show missions 'foreground' image...
 	
 	if (foregroundSprite!=nil)
 	{

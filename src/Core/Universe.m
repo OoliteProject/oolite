@@ -3660,10 +3660,6 @@ static const OOMatrix	starboard_matrix =
 			
 			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
 			
-			// needs to be here, otherwise it's drawn over the demo ship(s)
-			// dim background image fix
-			if (displayGUI && inGUIMode)	[gui drawGUIBackground];
-			
 			if (!displayGUI || inGUIMode)
 			{
 				// set up the light for demo ships
@@ -3774,9 +3770,8 @@ static const OOMatrix	starboard_matrix =
 							setSunLight(drawthing->isSunlit);
 							setDemoLight(NO, demo_light_origin);
 						}
-	
-						// draw the thing
 						
+						// draw the thing
 						[drawthing drawEntity:NO:NO];
 						
 						// atmospheric fog
@@ -3788,7 +3783,6 @@ static const OOMatrix	starboard_matrix =
 						OOGL(glPopMatrix());
 					}
 				}
-				
 				
 				//		DRAW ALL THE TRANSLUCENT entsInDrawOrder
 				
@@ -3855,6 +3849,7 @@ static const OOMatrix	starboard_matrix =
 			OOGL(glPopMatrix()); //restore saved flat viewpoint
 
 			OOGL(glDisable(GL_LIGHTING));			// disable lighting
+			if (displayGUI)	[gui drawGUIBackground];// dim background image was caused by the lighting
 			OOGL(glDisable(GL_DEPTH_TEST));			// disable depth test
 			OOGL(glDisable(GL_CULL_FACE));			// face culling
 			OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
@@ -3953,14 +3948,14 @@ static const OOMatrix	starboard_matrix =
 	OOGL(glDisable(GL_TEXTURE_2D));	// for background sheets
 	
 	float overallAlpha = [[[PlayerEntity sharedPlayer] hud] overallAlpha];
-	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];
-	[comm_log_gui drawGUI:[comm_log_gui alpha] * overallAlpha drawCursor:NO];
-	
 	if (displayGUI)
 	{
 		if (displayCursor)  cursor_row = [gui drawGUI:1.0 drawCursor:YES];
 		else  [gui drawGUI:1.0 drawCursor:NO];
 	}
+	
+	[message_gui drawGUI:[message_gui alpha] * overallAlpha drawCursor:NO];
+	[comm_log_gui drawGUI:[comm_log_gui alpha] * overallAlpha drawCursor:NO];
 }
 
 
