@@ -2460,7 +2460,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			} while (vector_equal(v_from_center, kZeroVector));
 			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
 			
-			radius *= randf();	// tandomise  distance from the central coordinates
+			radius *= randf();	// randomise  distance from the central coordinates
 			pos = make_vector( pos.x + radius * v_from_center.x,
 								pos.y + radius * v_from_center.y,
 								pos.z + radius * v_from_center.z );
@@ -2563,6 +2563,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	ShipEntity				*ship = nil;
 	Entity<OOStellarBody>	*entity = nil;
 	Vector					pos, direction, point0, point1;
+	double					radius = 0;
 	
 	pos = direction = point0 = point1 = kZeroVector;
 	
@@ -2577,12 +2578,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		point0 = [self getWitchspaceExitPosition];
 		entity = [self planet];
 		if (entity == nil)  return nil;
+		point1 = [entity position];
+		radius = [entity radius];
 	}
 	else if ([route isEqualTo:@"ws"] || [route isEqualTo:@"sw"])
 	{
 		point0 = [self getWitchspaceExitPosition];
 		entity = [self sun];
 		if (entity == nil)  return nil;
+		point1 = [entity position];
+		radius = [entity radius];
 	}
 	else if ([route isEqualTo:@"sp"] || [route isEqualTo:@"ps"])
 	{
@@ -2594,17 +2599,24 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		entity = [self planet];
 		if (entity == nil)  return nil;
 		point1 = [entity position];
+		radius = [entity radius];
 		
 		// shorten the route by scanner range & sun radius, otherwise ships could be created inside it.
 		direction = vector_normal(vector_subtract(point0, point1));
 		point0 = vector_subtract(point0, vector_multiply_scalar(direction, radius0 + SCANNER_MAX_RANGE));
 	}
+	else if ([route isEqualTo:@"st"])
+	{
+		point0 = [self getWitchspaceExitPosition];
+		if ([self station] == nil)  return nil;
+		point1 = [[self station] position];
+		radius = [[self station] collisionRadius];
+	}
 	else return nil;	// no route specifier? We shouldn't be here!
 	
-	point1 = [entity position];
 	// shorten the route by scanner range & stellar body radius,,  otherwise ships could be created inside it.
 	direction = vector_normal(vector_subtract(point1, point0));
-	point1 = vector_subtract(point1, vector_multiply_scalar(direction, [entity radius] + SCANNER_MAX_RANGE));
+	point1 = vector_subtract(point1, vector_multiply_scalar(direction, radius + SCANNER_MAX_RANGE));
 	
 	pos = [self fractionalPositionFrom:point0 to:point1 withFraction:routeFraction];
 	if(isGroup)

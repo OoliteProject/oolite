@@ -759,7 +759,7 @@ static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsv
 static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
-	NSString			*route = @"wp";
+	NSString			*route = @"st"; // default route witchpoint -> station. ("st" itself is not selectable by script)
 	NSString			*routes = @" wp pw ws sw sp ps";
 	int32				count = 0;
 	double				where = NSNotFound;		// a negative value means random positioning!

@@ -333,15 +333,8 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	isShip = YES;
 
 	// FIXME: give NPCs shields instead.
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])
-	{
-		maxEnergy += 256.0f;
-	}
-	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])
-	{
-		maxEnergy += 256.0f;
-		energy_recharge_rate *= 1.5;
-	}
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_booster"])  [self addEquipmentItem:@"EQ_SHIELD_BOOSTER"];
+	if ([shipDict oo_fuzzyBooleanForKey:@"has_shield_enhancer"])  [self addEquipmentItem:@"EQ_SHIELD_ENHANCER"];
 	
 	// Start with full energy banks.
 	energy = maxEnergy;
@@ -2203,6 +2196,18 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		max_cargo += extra_cargo;
 	}
 	
+	if (!isPlayer)
+	{
+		if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"]) 
+		{
+			maxEnergy += 256.0f;
+		}
+		if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
+		{
+			maxEnergy += 256.0f;
+			energy_recharge_rate *= 1.5;
+		}
+	}
 	// add the equipment
 	[_equipment addObject:equipmentKey];
 	return YES;
@@ -2253,6 +2258,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (isPlayer)
 		{
 			if([equipmentKey isEqualToString:@"EQ_ADVANCED_COMPASS"]) [(PlayerEntity*)self setCompassMode:COMPASS_MODE_BASIC];
+		}
+		else
+		{
+			if([equipmentKey isEqualToString:@"EQ_SHIELD_BOOSTER"])
+			{
+				maxEnergy -= 256.0f;
+				if (maxEnergy < energy) energy = maxEnergy;
+			}
+			if([equipmentKey isEqualToString:@"EQ_SHIELD_ENHANCER"]) 
+			{
+				maxEnergy -= 256.0f;
+				energy_recharge_rate /= 1.5;
+				if (maxEnergy < energy) energy = maxEnergy;
+			}
 		}
 	}
 }
