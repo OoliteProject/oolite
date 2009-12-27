@@ -4947,7 +4947,7 @@ static PlayerEntity *sSharedPlayer = nil;
 			[gui setText:DESC(@"gameoptions-wireframe-graphics-no") forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS) align:GUI_ALIGN_CENTER];
 		[gui setKey:GUI_KEY_OK forRow:GUI_ROW(GAME,WIREFRAMEGRAPHICS)];
 		
-#if ALLOW_PROCEDURAL_PLANETS
+#if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
 		if ([UNIVERSE doProcedurallyTexturedPlanets])
 			[gui setText:DESC(@"gameoptions-procedurally-textured-planets-yes") forRow:GUI_ROW(GAME,PROCEDURALLYTEXTUREDPLANETS) align:GUI_ALIGN_CENTER];
 		else

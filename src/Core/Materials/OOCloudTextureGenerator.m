@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 */
 
 
-#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
 #define DISABLE_SPECULAR	(	1	&& DEBUG_DUMP)	// No transparency in debug dump to make life easier.
 
 

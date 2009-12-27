@@ -51,7 +51,7 @@
 			"incompatible_with_equipment" = "EQ_NAVAL_ENERGY_UNIT";
 		}
 	),
-	/* next item has a TL too high to be available at all */
+	/* next item has too high initial TL to be available */
 	(
 		99, 500000, "Naval Energy Unit",
 		"EQ_NAVAL_ENERGY_UNIT",
@@ -105,7 +105,7 @@
 			"available_to_all" = true;
 		}
 	),
-	/* next item has a TL too high to be available at all */
+	/* next item has too high initial TL to be available */
 	(
 		99, 500000, "Cloaking Device",
 		"EQ_CLOAKING_DEVICE",
@@ -116,9 +116,8 @@
 		}
 	),
 	/* next items are new items, don't place new items before this mark */
-	/* Thargoid equipment, incompatible with non-thargoid ships. */
-	(
-		95, 1000, "Thargon",
+	( /* Thargoid equipment, incompatible with non-thargoid ships. Not buyable because of its TL. */
+		98, 1000, "Thargon",
 		"thargon",
 		"Alien drone ship."
 	),
@@ -198,6 +197,7 @@
 			"available_to_all" = true;
 		}
 	),
+	/* next item has a TL too high to be available */
 	(
 		99, 150000, "Thargoid Laser",
 		"EQ_WEAPON_THARGOID_LASER",
@@ -255,19 +255,19 @@
 			"available_to_all" = true;
 		}
 	),
-	/* next item has a TL too high to be available at all */
+	/* next item has a TL too high to be available */
 	(
 		99, 1500000, "Military Anti-Scanner Countermeasures (MASC'M)",
 		"EQ_MILITARY_JAMMER",
 		"Developed from experimental cloaking prototypes, this jamming device stops enemy ships from scanning your craft."
 	),
-	/* next item has a TL too high to be available at all */
+	/* next item has a TL too high to be available */
 	(
 		99, 250000, "Military Scanner Filtering",
 		"EQ_MILITARY_SCANNER_FILTER",
 		"Filters out the jamming signals from MASC'M devices."
 	),
-	/* next item is only available (and functional) to NPC ship. Can not made buyable by the player because of its TL.*/
+	/* NPC equipment, incompatible with player ship. Not buyable because of its TL.*/
 	(
 		98, 147500, "Shield Enhancers",
 		"EQ_SHIELD_ENHANCER",

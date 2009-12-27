@@ -2491,15 +2491,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
 			}
 		}
-		else if ([role isEqual:@"pirate"])
-		{
-			[ship setCargoFlag: CARGO_FLAG_PIRATE];
-			if (([ship pendingEscortCount] > 0)&&((Ranrot() % 7) > government))	// remove escorts if we feel safe
-			{
-				int nx = [ship pendingEscortCount] - (1 + (Ranrot() & 3));	// remove 1 to 4 escorts
-				[ship setPendingEscortCount:(nx > 0) ? nx : 0];
-			}
-		}
 		
 		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)	// nothing else to do
 			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
@@ -2614,7 +2605,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	else return nil;	// no route specifier? We shouldn't be here!
 	
-	// shorten the route by scanner range & stellar body radius,,  otherwise ships could be created inside it.
+	// shorten the route by scanner range & radius, otherwise ships could be created inside the route destination.
 	direction = vector_normal(vector_subtract(point1, point0));
 	point1 = vector_subtract(point1, vector_multiply_scalar(direction, radius + SCANNER_MAX_RANGE));
 	
@@ -3714,7 +3705,7 @@ static const OOMatrix	starboard_matrix =
 				viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW);
 				
 				// turn on lighting
-				OOGL(glEnable(GL_LIGHTING));
+				//OOGL(glEnable(GL_LIGHTING));	// enabled already
 				
 				int		furthest = draw_count - 1;
 				int		nearest = 0;
