@@ -973,8 +973,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	int i;
 	int ship_count = 0;
 	for (i = 0; i < ent_count; i++)
-		//on red alert, launch even if the player is trying block the corridor
-		if ([uni_entities[i] isShip] && (alertLevel < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]))
+		//on red alert, launch even if the player is trying block the corridor. Ignore cargopods or other small debris.
+		if ([uni_entities[i] isShip] && (alertLevel < STATION_ALERT_LEVEL_RED || ![uni_entities[i] isPlayer]) && [uni_entities[i] mass] > 1000)
 			my_entities[ship_count++] = [uni_entities[i] retain];		//	retained
 
 	for (i = 0; (i < ship_count)&&(isEmpty); i++)
@@ -1258,6 +1258,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	launchPos.z += port_position.x * v_right.z + port_position.y * v_up.z + port_position.z * v_forward.z;
 	[ship setPosition:launchPos];
 	if([ship pendingEscortCount] > 0) [ship setPendingEscortCount:0]; // Make sure no extra escorts are added after launch. (e.g. for miners etc.)
+	if ([ship hasEscorts]) no_docking_while_launching = YES;
 	// launch speed
 	launchVel = vector_add(launchVel, vector_multiply_scalar(launchVector, launchSpeed));
 	[ship setSpeed:sqrt(magnitude2(launchVel))];
@@ -1265,8 +1266,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// orientation
 	[ship setRoll:flightRoll];
 	[ship setPitch:0.0];
-	[ship setStatus: STATUS_LAUNCHING];
 	[UNIVERSE addEntity:ship];
+	[ship setStatus: STATUS_LAUNCHING];
 	last_launch_time = [UNIVERSE getTime];
 	[[ship getAI] setNextThinkTime:last_launch_time + 2]; // pause while launching
 	
