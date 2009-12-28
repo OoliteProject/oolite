@@ -94,18 +94,12 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
 static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer);
 
-static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias);
+static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y);
+static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
+static void SetMixConstants(float maxQ, float temperatureFraction);
 static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor, FloatRGB polarSeaColor, float nearPole);
-
-static void SetMixConstants(float maxQ, float temperatureFraction)
-{
-	mix_hi = 0.66667f * maxQ;
-	mix_oh = 1.0f / mix_hi;
-	mix_ih = 1.0f / (1.0f - mix_hi);
-	mix_polarCap = temperatureFraction * (0.28f + 0.24f * maxQ);	// landmasses make the polar cap proportionally bigger, but not too much bigger.
-}
 
 
 enum
@@ -276,6 +270,7 @@ enum
 	uint8_t		*buffer = NULL, *px = NULL;
 	uint8_t		*nBuffer = NULL, *npx = NULL;
 	float		*accBuffer = NULL;
+	float		*qBuffer = NULL;
 	float		*randomBuffer = NULL;
 	
 	height = 1 << (_planetScale + kPlanetScaleOffset);
@@ -296,6 +291,9 @@ enum
 	
 	accBuffer = calloc(sizeof (float), width * height);
 	if (accBuffer == NULL)  goto END;
+	
+	qBuffer = calloc(sizeof (float), width * height);
+	if (qBuffer == NULL)  goto END;
 	
 	randomBuffer = calloc(sizeof (float), kNoiseBufferSize * kNoiseBufferSize);
 	if (randomBuffer == NULL)  goto END;
@@ -335,7 +333,7 @@ enum
 		-- Kaks
 	*/
 	
-	FloatRGB paleSeaColor = Blend(0.45, _polarSeaColor, Blend(0.7, _seaColor, _landColor));
+	FloatRGB paleSeaColor = Blend(0.45f, _polarSeaColor, Blend(0.7f, _seaColor, _landColor));
 	float normalScale = 1 << _planetScale;
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
@@ -348,26 +346,31 @@ enum
 	// The second parameter is the temperature fraction. Most favourable: 1.0f,  little ice. Most unfavourable: 0.0f, frozen planet. TODO: make it dependent on ranrot / planetinfo key...
 	SetMixConstants(_landFraction, 0.95f);	// no need to recalculate them inside each loop!
 	
+	// first pass, calculate q.
 	for (y = 0; y < height; y++)
 	{
 		nearPole = ((float)(y << 1) - height) * rHeight;
 		nearPole *= nearPole;
-
+		
 		for (x = 0; x < width; x++)
 		{
-			q = QFactor(accBuffer, x, y, width, height, rHeight, poleValue, seaBias);
-			
-			/*	FIXME: is it worth calculating this per point in a separate
-				pass instead of calculating each value five times? (QFactor()
-				accounts for 25 % to 30 % of rendering time.)
-				Also, splitting the loop to handle the poleFactor = 0 case
-				separately would greatly simplify QFactor in that case.
-				-- Ahruman
-			 */
-			yN = QFactor(accBuffer, x, y - 1, width, height, rHeight, poleValue, seaBias);
-			yS = QFactor(accBuffer, x, y + 1, width, height, rHeight, poleValue, seaBias);
-			yW = QFactor(accBuffer, x - 1, y, width, height, rHeight, poleValue, seaBias);
-			yE = QFactor(accBuffer, x + 1, y, width, height, rHeight, poleValue, seaBias);
+			qBuffer[y * width + x] = QFactor(accBuffer, x, y, width, poleValue, seaBias, nearPole);
+		}
+	}
+	
+	// second pass, use q.
+	for (y = 0; y < height; y++)
+	{
+		nearPole = ((float)(y << 1) - height) * rHeight;
+		nearPole *= nearPole;
+		
+		for (x = 0; x < width; x++)
+		{
+			q = qBuffer[y * width + x];	// no need to use GetQ, here x and y will never be out of bounds.
+			yN = GetQ(qBuffer, x, y - 1, width, height);
+			yS = GetQ(qBuffer, x, y + 1, width, height);
+			yW = GetQ(qBuffer, x - 1, y, width, height);
+			yE = GetQ(qBuffer, x + 1, y, width, height);
 			
 			color = PlanetMix(q, _landColor, _seaColor, _polarLandColor, paleSeaColor, _polarSeaColor, nearPole);
 			
@@ -420,6 +423,7 @@ enum
 	
 END:
 	free(accBuffer);
+	free(qBuffer);
 	free(randomBuffer);
 	if (success)
 	{
@@ -505,7 +509,7 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
 	FloatRGB diffuse;
-	// 'fix': 0 results in pitch black continents when on the dark side, with 0.01 the planets look identical to the mac ones.
+	// windows specular 'fix': 0 was showing pitch black continents when on the dark side, 0.01 shows the same shading as on macs.
 	// TODO: a less hack-like fix.
 	float specular = 0.01f;
 	
@@ -556,7 +560,7 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 #if 1	// toggle polar caps on & off.
 
 		// thinner to thicker ice.
-		specular = q > phi + 0.02f ? 1.0f : 0.5f + (q - phi) * 25.0f;	// (q - phi) * 25 == ((q-phi) / 0.02) * 0.5
+		specular = q > phi + 0.02f ? 1.0f : 0.4f + (q - phi) * 30.0f;	// (q - phi) * 30 == ((q-phi) / 0.02) * 0.6
 		diffuse = Blend(specular, polarSeaColor, diffuse);
 		specular = specular * 0.5f; // softer contours under ice, but still contours.
 		
@@ -663,11 +667,23 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 }
 
 
-static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias)
+static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y)
+{
+	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
+	q += bias;
+	
+	// Polar Y smooth.
+	q = q * (1.0f - polar_y) + polar_y * polar_y_value;
+
+	return q;
+}
+
+static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height)
 {
 	// Correct Y wrapping mode, unoptimised.
 	//if (y < 0) { y = -y - 1; x += width / 2; }
-	//else if (y >= height) { y = height - (y - height)  + 1; x += width / 2; }
+	//else if (y >= height) { y = height - (y - height)  - 1; x += width / 2; }
+	// now let's wrap x.
 	//x = x % width;
 
 	// Correct Y wrapping mode, faster method. In the following lines of code, both
@@ -675,16 +691,15 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned he
 	if (y & height) { y = (y ^ heightMask) & heightMask; x += width >> 1; }
 	// x wrapping.
 	x &= widthMask;
-	
-	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
-	q += bias;
-	
-	// Polar Y smooth.
-	float polar_y = (2.0f * y - height) * rHeight;
-	polar_y *= polar_y;
-	q = q * (1.0f - polar_y) + polar_y * polar_y_value;
-	
-	return q;
+	return  qbuffer[y * width + x];
+}
+
+static void SetMixConstants(float maxQ, float temperatureFraction)
+{
+	mix_hi = 0.66667f * maxQ;
+	mix_oh = 1.0f / mix_hi;
+	mix_ih = 1.0f / (1.0f - mix_hi);
+	mix_polarCap = temperatureFraction * (0.28f + 0.24f * maxQ);	// landmasses make the polar cap proportionally bigger, but not too much bigger.
 }
 
 
