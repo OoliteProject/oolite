@@ -86,7 +86,8 @@ enum
 @end
 
 
-static int heightMask, widthMask;
+static	int heightMask, widthMask;
+static	float mix_hi, mix_oh, mix_ih, mix_polarCap;
 
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
@@ -96,8 +97,15 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
-//static FloatRGBA PolarMix(float q, float maxQ, FloatRGB cloudColor, float alpha);
-static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor);
+static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor, FloatRGB polarSeaColor, float nearPole);
+
+static void SetMixConstants(float maxQ, float temperatureFraction)
+{
+	mix_hi = 0.66667f * maxQ;
+	mix_oh = 1.0f / mix_hi;
+	mix_ih = 1.0f / (1.0f - mix_hi);
+	mix_polarCap = temperatureFraction * (0.28f + 0.24f * maxQ);	// landmasses make the polar cap proportionally bigger, but not too much bigger.
+}
 
 
 enum
@@ -334,12 +342,17 @@ enum
 	unsigned x, y;
 	FloatRGBA color;
 	Vector norm;
-	float q, yN, yS, yW, yE;
+	float q, yN, yS, yW, yE, nearPole;
 	GLfloat shade;
 	float rHeight = 1.0f / height;
+	// The second parameter is the temperature fraction. Most favourable: 1.0f,  little ice. Most unfavourable: 0.0f, frozen planet. TODO: make it dependent on ranrot / planetinfo key...
+	SetMixConstants(_landFraction, 0.95f);	// no need to recalculate them inside each loop!
 	
 	for (y = 0; y < height; y++)
 	{
+		nearPole = ((float)(y << 1) - height) * rHeight;
+		nearPole *= nearPole;
+
 		for (x = 0; x < width; x++)
 		{
 			q = QFactor(accBuffer, x, y, width, height, rHeight, poleValue, seaBias);
@@ -356,7 +369,7 @@ enum
 			yW = QFactor(accBuffer, x - 1, y, width, height, rHeight, poleValue, seaBias);
 			yE = QFactor(accBuffer, x + 1, y, width, height, rHeight, poleValue, seaBias);
 			
-			color = PlanetMix(q, _landFraction, _landColor, _seaColor, _polarLandColor, paleSeaColor);
+			color = PlanetMix(q, _landColor, _seaColor, _polarLandColor, paleSeaColor, _polarSeaColor, nearPole);
 			
 			norm = vector_normal(make_vector(normalScale * (yW - yE), normalScale * (yS - yN), 1.0f));
 			if (generateNormalMap)
@@ -391,7 +404,7 @@ enum
 					so we can recycle that to avoid branching.
 					-- Ahruman
 				*/
-				shade = color.a + (1.0f - color.a) * shade;
+				shade += color.a - color.a * shade;	// equivalent to, but slightly faster than previous calculation
 			}
 			
 			*px++ = 255.0f * color.r * shade;
@@ -481,11 +494,9 @@ static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 }
 
 
-static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor)
+static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor, FloatRGB polarSeaColor, float nearPole)
 {
-	float hi = 0.66667f * maxQ;
-	float oh = 1.0f / hi;
-	float ih = 1.0f / (1.0f - hi);
+	float phi = mix_polarCap + mix_polarCap - nearPole;	// (q > mix_polarCap + mix_polarCap - nearPole) ==  ((nearPole + q) / 2 > mix_polarCap)
 	
 #define RECIP_COASTLINE_PORTION		(160.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
@@ -494,7 +505,9 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	
 	const FloatRGB white = { 1.0f, 1.0f, 1.0f };
 	FloatRGB diffuse;
-	float specular = 0.0f;
+	// 'fix': 0 results in pitch black continents when on the dark side, with 0.01 the planets look identical to the mac ones.
+	// TODO: a less hack-like fix.
+	float specular = 0.01f;
 	
 #if !HERMITE
 	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
@@ -519,23 +532,35 @@ static FloatRGBA PlanetMix(float q, float maxQ, FloatRGB landColor, FloatRGB sea
 	else if (q < COASTLINE_PORTION)
 	{
 		// Coastline.
-		diffuse = Blend(q * RECIP_COASTLINE_PORTION, landColor, paleSeaColor);
-		specular = (1.0f - (q * RECIP_COASTLINE_PORTION));
-	//	specular = specular * specular * specular;
+		specular = q * RECIP_COASTLINE_PORTION;
+		diffuse = Blend(specular, landColor, paleSeaColor);
+		specular = 1.0f - specular;
 	}
 	else if (q > 1.0f)
 	{
-		// High up - snow-capped peaks.
+		// High up - snow-capped peaks. -- Question: does q ever get higher than 1.0 ? --Kaks 20091228
 		diffuse = white;
 	}
-	else if (q > hi)
+	else if (q > mix_hi)
 	{
-		diffuse = Blend((q - hi) * ih, white, paleLandColor);	// Snowline.
+		diffuse = Blend((q - mix_hi) * mix_ih, white, paleLandColor);	// Snowline.
 	}
 	else
 	{
 		// Normal land.
-		diffuse = Blend((hi - q) * oh, landColor, paleLandColor);
+		diffuse = Blend((mix_hi - q) * mix_oh, landColor, paleLandColor);
+	}
+	
+	if (q > phi)	 // (nearPole + q) / 2 > pole
+	{
+#if 1	// toggle polar caps on & off.
+
+		// thinner to thicker ice.
+		specular = q > phi + 0.02f ? 1.0f : 0.5f + (q - phi) * 25.0f;	// (q - phi) * 25 == ((q-phi) / 0.02) * 0.5
+		diffuse = Blend(specular, polarSeaColor, diffuse);
+		specular = specular * 0.5f; // softer contours under ice, but still contours.
+		
+#endif
 	}
 	
 	return (FloatRGBA){ diffuse.r, diffuse.g, diffuse.b, specular };
@@ -641,12 +666,14 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 static float QFactor(float *accbuffer, int x, int y, unsigned width, unsigned height, float rHeight, float polar_y_value, float bias)
 {
 	// Correct Y wrapping mode, unoptimised.
-	//if (y < 0) { y = -y; x += width / 2; }
-	//else if (y >= height) { y -= y + 1  - height; x += width / 2; }
+	//if (y < 0) { y = -y - 1; x += width / 2; }
+	//else if (y >= height) { y = height - (y - height)  + 1; x += width / 2; }
+	//x = x % width;
 
 	// Correct Y wrapping mode, faster method. In the following lines of code, both
 	// width and height are assumed to be powers of 2: 512, 1024, 2048, etc...
 	if (y & height) { y = (y ^ heightMask) & heightMask; x += width >> 1; }
+	// x wrapping.
 	x &= widthMask;
 	
 	float q = accbuffer[y * width + x];	// 0.0 -> 1.0
