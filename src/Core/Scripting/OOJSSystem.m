@@ -684,7 +684,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 }
 
 
-// addShips(role : String, count : Number,  position: Vector[, radius: Number])
+// addShips(role : String, count : Number[,  position: Vector][, radius: Number])
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
@@ -711,20 +711,28 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 		return NO;
 	}
 	
-	if (!VectorFromArgumentListNoError(context, argc - 2, argv + 2, &where, &consumed))
+	if (argc < 3)
 	{
-		OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"position", [NSString stringWithJavaScriptValue:argv[2] inContext:context]);
-		return NO;
+		where = kZeroVector;
+		radius = SCANNER_MAX_RANGE;
 	}
-	
-	if (argc > 2 + consumed)
+	else
 	{
-		if (!JSVAL_IS_NUMBER(argv[2 + consumed]))
+		if (!VectorFromArgumentListNoError(context, argc - 2, argv + 2, &where, &consumed))
 		{
-			OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"radius", [NSString stringWithJavaScriptValue:argv[2 + consumed] inContext:context]);
+			OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"position", [NSString stringWithJavaScriptValue:argv[2] inContext:context]);
 			return NO;
 		}
-		JS_ValueToNumber(context, argv[2 + consumed], &radius);
+		
+		if (argc > 2 + consumed)
+		{
+			if (!JSVAL_IS_NUMBER(argv[2 + consumed]))
+			{
+				OOReportJSError(context, @"System.%@(): expected %@, got '%@'.", func, @"radius", [NSString stringWithJavaScriptValue:argv[2 + consumed] inContext:context]);
+				return NO;
+			}
+			JS_ValueToNumber(context, argv[2 + consumed], &radius);
+		}
 	}
 	
 	// Note: the use of witchspace-in effects (as in legacy_addShips). depends on proximity to the witchpoint.
@@ -742,12 +750,14 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	return YES;
 }
 
-// addGroup(role : String, count : Number,  position: Vector)
+// addGroup(role : String, count : Number[,  position: Vector][, radius: Number])
 static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	jsval	result = [@"group" javaScriptValueInContext:context];
 
 	SystemAddShips(context, this, argc, argv, &result);
+	
+	if (!result) return NO;
 	
 	*outResult = result;
 	
@@ -824,6 +834,8 @@ static JSBool SystemAddGroupToRoute(JSContext *context, JSObject *this, uintN ar
 
 	SystemAddShipsToRoute(context, this, argc, argv, &result);
 	
+	if (!result) return NO;
+
 	*outResult = result;
 	
 	return YES;
