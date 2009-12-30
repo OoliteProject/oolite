@@ -206,12 +206,6 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
-static OOColor *ColorWithHSBColorAndAlpha(Vector c, float a)
-{
-	return [OOColor colorWithCalibratedHue:c.x saturation:c.y brightness:c.z alpha:a];
-}
-
-
 - (void) setUpLandParametersWithSourceInfo:(NSDictionary *)sourceInfo targetInfo:(NSMutableDictionary *)targetInfo
 {
 	[self setUpColorParametersWithSourceInfo:sourceInfo targetInfo:targetInfo isAtmosphere:NO];

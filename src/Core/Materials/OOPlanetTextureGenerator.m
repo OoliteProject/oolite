@@ -420,6 +420,7 @@ enum
 	[self dumpNoiseBuffer:accBuffer];
 #endif
 	
+	//TODO: sort out CloudMix
 	float polarClouds =(_cloudFraction * accBuffer[0] < 1.0f - _cloudFraction) ? 0.0f : 1.0f;
 	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
 	float seaBias = _landFraction - 1.0f;
@@ -519,11 +520,20 @@ enum
 			
 			if (generateAtmosphere)
 			{
-				//q = QFactor(accBuffer, x, y, width, polarClouds, _cloudFraction, nearPole);
-				q=accBuffer[y * width + x];
-				q *= q;
-				//color = CloudMix(q, _airColor, _cloudColor, _polarAirColor, _polarCloudColor, _cloudAlpha, nearPole);
-				color = cloudColor;
+				//				
+				
+				//TODO: sort out CloudMix
+				if (NO) 
+				{
+					q = QFactor(accBuffer, x, y, width, polarClouds, _cloudFraction, nearPole);
+					color = CloudMix(q, _airColor, _cloudColor, _polarAirColor, _polarCloudColor, _cloudAlpha, nearPole);
+				}
+				else
+				{
+					q=accBuffer[y * width + x];
+					q *= q;
+					color = cloudColor;
+				}
 				*apx++ = 255.0f * color.r;
 				*apx++ = 255.0f * color.g;
 				*apx++ = 255.0f * color.b;
