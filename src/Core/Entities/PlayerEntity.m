@@ -3834,7 +3834,7 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	if ([dockedStation localMarket] == nil)
 	{
-		[dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		[dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
 	}
 
 	NSString *escapepodReport = [self processEscapePods];
@@ -6014,7 +6014,7 @@ static NSString *last_outfitting_key=nil;
 	if ([self isDocked])  station = dockedStation;
 	else  station = [UNIVERSE station];
 	localMarket = [station localMarket];
-	if (localMarket == nil)  localMarket = [station initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+	if (localMarket == nil)  localMarket = [station initialiseLocalMarketWithRandomFactor:market_rnd];
 	
 	return localMarket;
 }

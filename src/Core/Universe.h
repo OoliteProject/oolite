@@ -506,6 +506,7 @@ enum
 - (void) setSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key value:(id)object;
 - (id) getSystemDataForGalaxy:(OOGalaxyID) gnum planet:(OOSystemID) pnum key:(NSString *)key;
 - (NSString *) getSystemName:(Random_Seed) s_seed;
+- (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed;
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed plural:(BOOL)plural;
 - (NSString *) generateSystemName:(Random_Seed) system_seed;
@@ -544,8 +545,8 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSString *) shortTimeDescription:(OOTimeDelta) interval;
 
 - (Random_Seed) marketSeed;
-- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
-- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time;
+- (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute) current_time;
+- (NSArray *) contractsForLocalSystemAtTime:(OOTimeAbsolute) current_time;
 - (NSArray *) shipsForSaleForSystem:(Random_Seed) s_seed withTL:(OOTechLevelID) specialTL atTime:(OOTimeAbsolute) current_time;
 
 /* Calculate base cost, before depreciation */

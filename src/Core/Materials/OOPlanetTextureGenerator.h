@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOTextureGenerator.h"
 #import "OOMaths.h"
 
-@class OOPlanetNormalMapGenerator;
+@class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
 
 
 @interface OOPlanetTextureGenerator: OOTextureGenerator
@@ -39,14 +39,25 @@ MA 02110-1301, USA.
 	FloatRGB					_seaColor;
 	FloatRGB					_polarLandColor;
 	FloatRGB					_polarSeaColor;
+	
+	float						_cloudAlpha;
+	float						_cloudFraction;
+	FloatRGB					_airColor;
+	FloatRGB					_cloudColor;
+	FloatRGB					_polarAirColor;
+	FloatRGB					_polarCloudColor;
+	
 	RANROTSeed					_seed;
 	OOPlanetNormalMapGenerator	*_nMapGenerator;
+	OOPlanetAtmosphereGenerator	*_atmoGenerator;
 	OOUInteger					_planetScale;
 }
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
 
 + (OOTexture *) planetTextureWithInfo:(NSDictionary *)planetInfo;
++ (BOOL) generatePlanetTexture:(OOTexture **)texture andAtmosphere:(OOTexture **)atmosphere withInfo:(NSDictionary *)planetInfo;
 + (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture withInfo:(NSDictionary *)planetInfo;
++ (BOOL) generatePlanetTexture:(OOTexture **)texture secondaryTexture:(OOTexture **)secondaryTexture andAtmosphere:(OOTexture **)atmosphere withInfo:(NSDictionary *)planetInfo;
 
 @end

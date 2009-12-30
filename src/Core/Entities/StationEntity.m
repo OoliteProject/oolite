@@ -163,7 +163,13 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (NSMutableArray *) initialiseLocalMarketWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
+- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor
+{
+	return [self initialiseMarketWithSeed:[[PlayerEntity sharedPlayer] system_seed] andRandomFactor:random_factor];
+}
+
+
+- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed) s_seed andRandomFactor:(int) random_factor
 {
 	int rf = (random_factor ^ universalID) & 0xff;
 	int economy = [[UNIVERSE generateSystemData:s_seed] oo_intForKey:KEY_ECONOMY];
@@ -171,24 +177,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		[localMarket release];
 	localMarket = [[NSMutableArray alloc] initWithArray:[UNIVERSE commodityDataForEconomy:economy andStation:self andRandomFactor:rf]];
 	return localMarket;
-}
-
-
-- (NSMutableArray *) initialiseLocalPassengersWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
-{
-	if (localPassengers)
-		[localPassengers release];
-	localPassengers = [[NSMutableArray alloc] initWithArray:[UNIVERSE passengersForSystem:s_seed atTime:[[[PlayerEntity sharedPlayer] clock_number] intValue]]];
-	return localPassengers;
-}
-
-
-- (NSMutableArray *) initialiseLocalContractsWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor
-{
-	if (localContracts)
-		[localContracts release];
-	localContracts = [[NSMutableArray alloc] initWithArray:[UNIVERSE contractsForSystem:s_seed atTime:[[[PlayerEntity sharedPlayer] clock_number] intValue]]];
-	return localContracts;
 }
 
 

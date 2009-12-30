@@ -108,9 +108,8 @@ typedef enum
 - (NSMutableArray *) localShipyard;
 - (void) setLocalShipyard:(NSArray *) some_market;
 
-- (NSMutableArray *) initialiseLocalMarketWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor;
-- (NSMutableArray *) initialiseLocalPassengersWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor;
-- (NSMutableArray *) initialiseLocalContractsWithSeed: (Random_Seed) s_seed andRandomFactor: (int) random_factor;
+- (NSMutableArray *) initialiseLocalMarketWithRandomFactor:(int) random_factor;
+- (NSMutableArray *) initialiseMarketWithSeed:(Random_Seed) s_seed andRandomFactor:(int) random_factor;
 
 - (OOTechLevelID) equivalentTechLevel;
 - (void) setEquivalentTechLevel:(OOTechLevelID) value;

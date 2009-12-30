@@ -549,9 +549,9 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	// set up initial markets if there are none
 	StationEntity* the_station = [UNIVERSE station];
 	if (![the_station localPassengers])
-		[the_station setLocalPassengers:[NSMutableArray arrayWithArray:[UNIVERSE passengersForSystem:system_seed atTime:ship_clock]]];
+		[the_station setLocalPassengers:[NSMutableArray arrayWithArray:[UNIVERSE passengersForLocalSystemAtTime:ship_clock]]];
 	if (![the_station localContracts])
-		[the_station setLocalContracts:[NSMutableArray arrayWithArray:[UNIVERSE contractsForSystem:system_seed atTime:ship_clock]]];
+		[the_station setLocalContracts:[NSMutableArray arrayWithArray:[UNIVERSE contractsForLocalSystemAtTime:ship_clock]]];
 		
 	NSMutableArray* passenger_market = [the_station localPassengers];
 	NSMutableArray* contract_market = [the_station localContracts];

@@ -485,7 +485,7 @@
 	{
 		NSArray *market = [fileDic oo_arrayForKey:@"localMarket"];
 		if (market != nil)  [dockedStation setLocalMarket:market];
-		else  [dockedStation initialiseLocalMarketWithSeed:system_seed andRandomFactor:market_rnd];
+		else  [dockedStation initialiseLocalMarketWithRandomFactor:market_rnd];
 	}
 	[self calculateCurrentCargo];
 	[UNIVERSE setGalaxy_seed: galaxy_seed andReinit:YES]; // set overridden planet names on long range map

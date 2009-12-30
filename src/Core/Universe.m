@@ -469,7 +469,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[self initPlayerSettings];
 	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
 	
-	[[self station] initialiseLocalMarketWithSeed:system_seed andRandomFactor:[player random_factor]];
+	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
 	
 	if(showDemo)
 	{
@@ -6274,7 +6274,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	{
 		if ([key isEqualToString:KEY_ECONOMY])
 		{	
-			if([self station]) [[self station] initialiseLocalMarketWithSeed:s_seed andRandomFactor:[[PlayerEntity sharedPlayer] random_factor]];
+			if([self station]) [[self station] initialiseLocalMarketWithRandomFactor:[[PlayerEntity sharedPlayer] random_factor]];
 		}
 		else if ([key isEqualToString:KEY_TECHLEVEL])
 		{	
@@ -6356,6 +6356,12 @@ static NSDictionary	*sCachedSystemData = nil;
 {
 	return [[self generateSystemData:s_seed] oo_stringForKey:KEY_NAME];
 }
+
+- (OOGovernmentID) getSystemGovernment:(Random_Seed)s_seed
+{
+	return [[self generateSystemData:s_seed] oo_unsignedCharForKey:KEY_GOVERNMENT];
+}
+
 
 
 - (NSString *) getSystemInhabitants:(Random_Seed) s_seed
@@ -6968,13 +6974,13 @@ double estimatedTimeForJourney(double distance, int hops)
 }
 
 
-- (NSArray *) passengersForSystem:(Random_Seed) s_seed atTime:(OOTimeAbsolute) current_time
+- (NSArray *) passengersForLocalSystemAtTime:(OOTimeAbsolute) current_time
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	int player_repute = [player passengerReputation];
 	
-	int start = [self findSystemNumberAtCoords:NSMakePoint(s_seed.d, s_seed.b) withGalaxySeed:galaxy_seed];
-	NSString* native_species = [self getSystemInhabitants:s_seed plural:NO];
+	int start = [self currentSystemID];
+	NSString* native_species = [self getSystemInhabitants:system_seed plural:NO];
 	
 	// passenger seed is calculated in a similar way to all other market seeds 
 	// but gives better results when done .a to .f instead of .f to .a...
@@ -6984,7 +6990,7 @@ double estimatedTimeForJourney(double distance, int hops)
 	long random_factor = current_time;
 	random_factor = (random_factor >> 24) &0xff;	
 	
-	Random_Seed passenger_seed = s_seed;
+	Random_Seed passenger_seed = system_seed;
 	passenger_seed.a ^= random_factor;		// XOR
 	passenger_seed.b ^= passenger_seed.a;	// XOR
 	passenger_seed.c ^= passenger_seed.b;	// XOR
@@ -6995,13 +7001,13 @@ double estimatedTimeForJourney(double distance, int hops)
 	// 'standardised' passenger seed - not as good as the traditional one.	
 	//Random_Seed passenger_seed = [self marketSeed];
 	
-	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:255];
+	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:256];
 	unsigned i = 0;
+	
+	long long reference_time = 0x1000000 * floor(current_time / 0x1000000);
 	
 	for (i = 0; i < 256; i++)
 	{
-		long long reference_time = 0x1000000 * floor(current_time / 0x1000000);
-		
 		long long passenger_time = passenger_seed.a * 0x10000 + passenger_seed.b * 0x100 + passenger_seed.c;
 		double passenger_departure_time = reference_time + passenger_time;
 		
@@ -7022,21 +7028,22 @@ double estimatedTimeForJourney(double distance, int hops)
 			BOOL lowercaseIgnore = [[self descriptions] oo_boolForKey:@"lowercase_ignore"]; // i18n.
 			// determine the passenger's species
 			int passenger_species = passenger_seed.f & 3;	// 0-1 native, 2 human colonial, 3 other
-			NSString* passenger_species_string = [NSString stringWithString:native_species];
-			if (passenger_species == 2)
-				passenger_species_string = DESC(@"human-colonial-description%0");
-			if (passenger_species == 3)
+			NSString* passenger_species_string = nil;
+			switch (passenger_species)
 			{
-				passenger_species_string = [self getSystemInhabitants:passenger_seed plural:NO];
+				case 2:
+					passenger_species_string = DESC(@"human-colonial-description%0");
+					break;
+				case 3:
+					passenger_species_string = [self getSystemInhabitants:passenger_seed plural:NO];
+					break;
+				default:
+					passenger_species_string = [NSString stringWithString:native_species];
+					break;
 			}
-			if(!lowercaseIgnore)
-			{
-				passenger_species_string = [[passenger_species_string lowercaseString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-			}
-			else
-			{
-				passenger_species_string = [passenger_species_string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-			}
+			
+			if (!lowercaseIgnore) passenger_species_string = [passenger_species_string lowercaseString];
+			passenger_species_string = [passenger_species_string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 			
 			// determine the passenger's name
 			seed_RNG_only_for_planet_description(passenger_seed);
@@ -7183,7 +7190,7 @@ double estimatedTimeForJourney(double distance, int hops)
 }
 
 
-- (NSArray *) contractsForSystem:(Random_Seed) s_seed atTime:(double) current_time
+- (NSArray *) contractsForLocalSystemAtTime:(double) current_time
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	
@@ -7194,21 +7201,21 @@ double estimatedTimeForJourney(double distance, int hops)
 	random_factor = (random_factor >> 24) &0xff;
 	Random_Seed contract_seed = [self marketSeed];
 	
-	int start = [self findSystemNumberAtCoords:NSMakePoint(s_seed.d, s_seed.b) withGalaxySeed:galaxy_seed];
+	int start = [self currentSystemID];
 	
-	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:255];
+	NSMutableArray*	resultArray = [NSMutableArray arrayWithCapacity:256];
 	int i = 0;
 	
 	NSArray* localMarket;
 	if ([[self station] localMarket])
 		localMarket = [[self station] localMarket];
 	else
-		localMarket = [[self station] initialiseLocalMarketWithSeed:s_seed andRandomFactor:random_factor];
+		localMarket = [[self station] initialiseLocalMarketWithRandomFactor:random_factor];
 	
+	long long reference_time = 0x1000000 * floor(current_time / 0x1000000);
+
 	for (i = 0; i < 256; i++)
 	{
-		long long reference_time = 0x1000000 * floor(current_time / 0x1000000);
-		
 		long long contract_time = contract_seed.a * 0x10000 + contract_seed.b * 0x100 + contract_seed.c;
 		double contract_departure_time = reference_time + contract_time;
 		
