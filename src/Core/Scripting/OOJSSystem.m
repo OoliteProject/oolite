@@ -713,7 +713,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	if (argc < 3)
 	{
-		where = kZeroVector;
+		where = [UNIVERSE getWitchspaceExitPosition];
 		radius = SCANNER_MAX_RANGE;
 	}
 	else
