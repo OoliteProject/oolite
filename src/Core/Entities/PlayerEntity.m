@@ -4563,7 +4563,6 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	NSDictionary	*targetSystemData;
 	NSString		*targetSystemName;
-	OOTexture		*background = nil;
 	
 	targetSystemData = [[UNIVERSE generateSystemData:target_system_seed] retain];  // retained
 	targetSystemName = [targetSystemData oo_stringForKey:KEY_NAME];
@@ -4643,9 +4642,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	// if the system has gone nova, display the sun instead of the planet
 	if (sunGoneNova)
 	{
-		background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"system_data_nova"] inFolder:@"Images"];
-		if (background == nil) background =[OOTexture textureWithName:@"oolite-nova-system.png" inFolder:@"Images"];
-		[[UNIVERSE gui] setBackgroundTexture:background];
+		[[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"system_data_nova"] inFolder:@"Images"]];
 	}
 	else
 	{

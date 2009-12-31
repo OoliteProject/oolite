@@ -1,6 +1,7 @@
 {
 	short_range_chart	= "oolite-short-range-chart.png";
 	long_range_chart	= "oolite-long-range-chart.png";
+	system_data_nova	= "oolite-nova-system.png";
 	
 /*	// This section is commented out, and not used by standard Oolite.
 	// Use the following settings to add custom images to Oolite's screens
@@ -27,7 +28,6 @@
 	long_range_chart8	= "long-range-chart8.png";	// if not defined, same as  long_range_chart
 	
 	system_data			= "system-data.png";
-	system_data_nova	= "system-data-nova.png";
 	
 	market				= "market.png";
 	contracts			= "contracts.png";			// if not defined, same as market

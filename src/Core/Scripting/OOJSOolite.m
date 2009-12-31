@@ -27,8 +27,9 @@ MA 02110-1301, USA.
 
 #import "OOJSOolite.h"
 #import "OOJavaScriptEngine.h"
-
 #import "OOStringParsing.h"
+#import "OOTexture.h"
+#import "GuiDisplayGen.h"
 
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -37,7 +38,8 @@ static NSString *VersionString(void);
 static NSArray *VersionComponents(void);
 
 static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
+static JSBool OoliteScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool OoliteScreenForeground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sOoliteClass =
@@ -63,7 +65,7 @@ enum
 	kOolite_versionString,		// version number as string, string, read-only
 	kOolite_jsVersion,			// JavaScript version, integer, read-only
 	kOolite_jsVersionString,	// JavaScript version as string, string, read-only
-	kOolite_gameSettings		// JavaScript version as string, string, read-only
+	kOolite_gameSettings,		// Various game settings, object, read-only
 };
 
 
@@ -81,8 +83,10 @@ static JSPropertySpec sOoliteProperties[] =
 
 static JSFunctionSpec sOoliteMethods[] =
 {
-	// JS name					Function					min args
+	// JS name						Function					min args
 	{ "compareVersion",			OoliteCompareVersion,		1 },
+	{ "setScreenBackground",	OoliteScreenBackground,		1 },
+	{ "setScreenForeground",	OoliteScreenForeground,		1 },
 	{ 0 }
 };
 
@@ -96,7 +100,7 @@ void InitOOJSOolite(JSContext *context, JSObject *global)
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
-	id							result = nil;
+	id						result = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -163,7 +167,7 @@ static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN arg
 	components = JSValueToObject(context, argv[0]);
 	if ([components isKindOfClass:[NSArray class]])
 	{
-		// Require that each element is a number
+		// Require each element to be a number
 		for (componentEnum = [components objectEnumerator]; (component = [componentEnum nextObject]); )
 		{
 			if (![component isKindOfClass:[NSNumber class]])
@@ -184,6 +188,32 @@ static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN arg
 		*outResult = INT_TO_JSVAL(CompareVersions(components, VersionComponents()));
 	}
 	// Else leave as JSVAL_VOID
+	
+	return YES;
+}
+
+
+static JSBool OoliteScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = JSVAL_FALSE;
+	
+	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
+	{
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:JSValToNSString(context, argv[0]) inFolder:@"Images"]]);
+	}
+	
+	return YES;
+}
+
+
+static JSBool OoliteScreenForeground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = JSVAL_FALSE;
+	
+	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
+	{
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:JSValToNSString(context, argv[0]) inFolder:@"Images"]]);
+	}
 	
 	return YES;
 }

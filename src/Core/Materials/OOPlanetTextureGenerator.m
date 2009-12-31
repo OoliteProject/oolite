@@ -107,7 +107,7 @@ static	float mix_hi, mix_oh, mix_ih, mix_polarCap;
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
 static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
-static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer);
+static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer, float *qxBuffer, int *ixBuffer);
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y);
 static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height);
@@ -390,31 +390,36 @@ enum
 		apx = aBuffer;
 	}
 	
-	accBuffer = calloc(sizeof (float), width * height);
+	accBuffer = calloc(width * height, sizeof (float));
 	if (accBuffer == NULL)  goto END;
 	
-	qBuffer = calloc(sizeof (float), width * height);
+	qBuffer = calloc(width * height, sizeof (float));
 	if (qBuffer == NULL)  goto END;
 	
-	randomBuffer = calloc(sizeof (float), kNoiseBufferSize * kNoiseBufferSize);
+	randomBuffer = calloc(kNoiseBufferSize * kNoiseBufferSize, sizeof (float));
 	if (randomBuffer == NULL)  goto END;
 	FillNoiseBuffer(randomBuffer, _seed);
 	
-	// Generate basic Perlin noise.
+	// Generate basic 'Perlin' noise.
 	unsigned octaveMask = 8 * kPlanetAspectRatio;
 	float octave = octaveMask;
 	octaveMask -= 1;
 	float scale = 0.5f;
+	// internal loop buffers...
+	float 	*qxBuffer = calloc(width, sizeof(float));
+	int		*ixBuffer = calloc(width, sizeof(int));
 	while ((octaveMask + 1) < height)
 	{
-		// AddNoise() still accounts for about 50 % of rendering time.
-		AddNoise(accBuffer, width, height, octave, octaveMask, scale, randomBuffer);
+		// AddNoise() still accounts for the biggest chunk of rendering time.
+		AddNoise(accBuffer, width, height, octave, octaveMask, scale, randomBuffer, qxBuffer, ixBuffer);
 		octave *= 2.0f;
 		octaveMask = (octaveMask << 1) | 1;
 		scale *= 0.5f;
 	}
 	free(randomBuffer);
 	randomBuffer = NULL;
+	free(qxBuffer);
+	free(ixBuffer);
 	
 #if DEBUG_DUMP_RAW
 	[self dumpNoiseBuffer:accBuffer];
@@ -795,8 +800,8 @@ static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 {
 	NSCParameterAssert(noiseBuffer != NULL);
 	
-	unsigned i;
-	for (i = 0; i < kNoiseBufferSize * kNoiseBufferSize; i++)
+	unsigned i, len = kNoiseBufferSize * kNoiseBufferSize;
+	for (i = 0; i < len; i++)
 	{
 		noiseBuffer[i] = randfWithSeed(&seed);
 	}
@@ -807,19 +812,18 @@ static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
 {
 	NSCParameterAssert(noiseBuffer != NULL);
 	
-	unsigned i;
+	unsigned i, len = kNoiseBufferSize * kNoiseBufferSize;
 	uint32_t high = seed.high, low = seed.low;
 	const float scale = 1.0f / 65536.0f;
 	
-	for (i = 0; i < kNoiseBufferSize * kNoiseBufferSize; i++)
+	for (i = 0; i < len; i++)
 	{
-		// Inline RANROT
+		// RANROT
 		high = (high << 16) + (high >> 16);
 		high += low;
 		low += high;
-		float val = (high & 0xffff) * scale;
 		
-		noiseBuffer[i] = val;
+		noiseBuffer[i] = (int)(high & 0xffff) * scale; 	// (int)uint -> float is faster than uint -> float.
 	}
 }
 #endif
@@ -839,20 +843,34 @@ OOINLINE float Hermite(float q)
 #endif
 
 
-static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer)
+#if __BIG_ENDIAN_
+#define iman_ 1
+#else
+#define iman_ 0
+#endif
+
+ //Works OK for -32728 to 32727.99999236688
+inline long fast_floor(double val)
+{
+   val += 68719476736.0 * 1.5;
+   return (((long*)&val)[iman_] >> 16);
+}
+
+
+static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer, float *qxBuffer, int *ixBuffer)
 {
 	unsigned x, y;
-	int ix, jx, iy, jy;
-	float rr = octave / width;
-	float *dst = buffer;
-	float fx, fy, qx, qy, rix, rjx, rfinal;
+	int 	ix, jx, iy, jy;
+	float 	rr = octave / width;
+	float 	*dst = buffer;
+	float 	fx, fy, qx, qy, rix, rjx, rfinal;
 	
 	for (fy = 0, y = 0; y < height; fy++, y++)
 	{
-		// FIXME: do this with less float/int conversions.
-		iy = fy  * rr;	// FLOAT->INT
+		qy = fy * rr;
+		iy = fast_floor(qy); // (same behaviour as, but faster than, FLOAT->INT)
 		jy = (iy + 1) & octaveMask;
-		qy = fy * rr - iy;
+		qy -= iy;
 		iy &= (kNoiseBufferSize - 1);
 		jy &= (kNoiseBufferSize - 1);
 #if HERMITE
@@ -861,15 +879,26 @@ static void AddNoise(float *buffer, unsigned width, unsigned height, float octav
 
 		for (fx = 0, x = 0; x < width; fx++, x++)
 		{
-			// FIXME: do this with less float/int conversions.
-			ix = fx * rr;	// FLOAT->INT
-			jx = (ix + 1) & octaveMask;
-			qx = fx * rr - ix;
-			ix &= (kNoiseBufferSize - 1);
-			jx &= (kNoiseBufferSize - 1);
+			if (y == 0)	// first pass. initialise buffers.
+			{
+				qx = fx * rr;
+				ix = fast_floor(qx); // (same behaviour as, but faster than, FLOAT->INT)
+				qx -= ix;
+				ix &= (kNoiseBufferSize - 1);
+				ixBuffer[x] = ix;
 #if HERMITE
-			qx = Hermite(qx);
+				qx = Hermite(qx);
 #endif
+				qxBuffer[x] = qx;
+			}
+			else	// later passes: grab the stored values.
+			{
+				ix = ixBuffer[x];
+				qx = qxBuffer[x];
+			}
+			
+			jx = (ix + 1) & octaveMask;
+			jx &= (kNoiseBufferSize - 1);
 			
 			rix = Lerp(noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
 			rjx = Lerp(noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);

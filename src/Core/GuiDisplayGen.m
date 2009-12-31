@@ -754,7 +754,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
-- (void) setBackgroundTexture:(OOTexture *)backgroundTexture
+- (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture
 {
 	[backgroundSprite release];
 	backgroundSprite = nil;
@@ -763,10 +763,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		backgroundSprite = [[OpenGLSprite alloc] initWithTexture:backgroundTexture];
 	}
+	return (backgroundSprite != nil);
 }
 
 
-- (void) setForegroundTexture:(OOTexture *)foregroundTexture
+- (BOOL) setForegroundTexture:(OOTexture *)foregroundTexture
 {
 	[foregroundSprite release];
 	foregroundSprite = nil;
@@ -775,6 +776,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		foregroundSprite = [[OpenGLSprite alloc] initWithTexture:foregroundTexture];
 	}
+	return (foregroundSprite != nil);
 }
 
 

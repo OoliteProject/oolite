@@ -6494,7 +6494,7 @@ static NSDictionary	*sCachedSystemData = nil;
 		[inhabitants appendString:[[inhabitantStrings oo_arrayAtIndex:plural ? 4 : 3] oo_stringAtIndex:inhab]];
 	}
 	
-	return inhabitants;
+	return [inhabitants stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];	
 }
 
 
