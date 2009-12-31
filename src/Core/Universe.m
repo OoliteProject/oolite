@@ -721,7 +721,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	int i;
 	
 	Vector		tharg_start_pos = [self getWitchspaceExitPosition];
-	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	OOLog(kOOLogUniversePopulateWitchspace, @"... adding %d Thargoid warships", n_thargs);
 	
@@ -869,7 +868,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	int			posIterator=0;
 	id			dict_object;
 	Quaternion  q_sun;
-	Vector		sunPos;
+	Vector		sunPos,witchPos;
 	
 	sunDistanceModifier = [systeminfo oo_nonNegativeDoubleForKey:@"sun_distance_modifier" defaultValue:20.0];
 	// Any smaller than 6, the main planet can end up inside the sun
@@ -1036,7 +1035,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	[self populateSpaceFromActiveWormholes];
 	
-	[self populateSpaceFromHyperPoint:[self getWitchspaceExitPosition] toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
+	witchPos = [self randomizeFromSeedAndGetWitchspaceExitPosition]; //we need to use this value a few times, without resetting PRNG
+	
+	[self populateSpaceFromHyperPoint:witchPos toPlanetPosition: a_planet->position andSunPosition: a_sun->position];
 	
 	if (a_station != nil)
 	{
@@ -1060,7 +1061,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	{
 		[nav_buoy setRoll:	0.10];
 		[nav_buoy setPitch:	0.15];
-		[nav_buoy setPosition:[self getWitchspaceExitPosition]];
+		[nav_buoy setPosition:witchPos];	// There should be no need to reset PRNG now.
 		[nav_buoy setScanClass: CLASS_BUOY];
 		[self addEntity:nav_buoy];	// STATUS_IN_FLIGHT, AI state GLOBAL
 		[nav_buoy release];
@@ -1093,7 +1094,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		for (i = 0; i < 3; i++)
 		{
 			[self scatterAsteroidsAt:planetPos withVelocity:kZeroVector includingRockHermit:NO];
-			[self scatterAsteroidsAt:kZeroVector withVelocity:kZeroVector includingRockHermit:NO];
+			[self scatterAsteroidsAt:witchPos withVelocity:kZeroVector includingRockHermit:NO];
 		}
 		
 	}
@@ -1817,7 +1818,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		if (my_scalar)  *my_scalar = 1.0;
 		return pos;
 	}
-	Vector  w_pos = [self getWitchspaceExitPosition];
+	Vector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
 	
@@ -1918,7 +1919,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		return [NSString stringWithFormat:@"%@ %.2f %.2f %.2f", system, pos.x, pos.y, pos.z];
 	}
-	Vector  w_pos = [self getWitchspaceExitPosition];
+	Vector  w_pos = [self getWitchspaceExitPosition];	// don't reset PRNG
 	Vector  p_pos = the_planet->position;
 	Vector  s_pos = the_sun->position;
 	
@@ -2492,7 +2493,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			}
 		}
 		
-		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)	// nothing else to do
+		if (distance([self getWitchspaceExitPosition], pos) > SCANNER_MAX_RANGE)	// nothing extra to do
 			[self addEntity:ship];		// STATUS_IN_FLIGHT, AI state GLOBAL - ship is retained globally
 		else	// witchpace incoming traders & pirates need extra settings.
 		{
@@ -2547,6 +2548,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	return [[ships copy] autorelease];
 }
+
 
 - (NSArray *) addShipsToRoute:(NSString *)route withRole:(NSString *)role quantity:(unsigned)count routeFraction:(double)routeFraction asGroup:(BOOL)isGroup
 {
@@ -7997,9 +7999,23 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (Vector) getWitchspaceExitPosition
 {
+	return [self getWitchspaceExitPositionResettingRandomSeed:NO];
+}
+
+- (Vector) randomizeFromSeedAndGetWitchspaceExitPosition
+{
+	return [self getWitchspaceExitPositionResettingRandomSeed:YES];
+}
+
+- (Vector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed
+{
 #if 0
 	Vector result;
-	seed_RNG_only_for_planet_description(system_seed);
+	
+	if (resetSeed)
+	{
+		seed_RNG_only_for_planet_description(system_seed);
+	}
 	
 	result.x = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);   // offset by a set amount, up to 12.8 km
 	result.y = SCANNER_MAX_RANGE*(gen_rnd_number()/256.0 - 0.5);
@@ -8007,11 +8023,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	return result;
 #else
-	// Generate three random numbers so that anything implicitly relying on PRNG state is unchanged...
-	seed_RNG_only_for_planet_description(system_seed);
-	gen_rnd_number();
-	gen_rnd_number();
-	gen_rnd_number();
+	if (resetSeed)
+	{
+		// Generate three random numbers so that anything implicitly relying on PRNG state is unchanged...
+		seed_RNG_only_for_planet_description(system_seed);
+		gen_rnd_number();
+		gen_rnd_number();
+		gen_rnd_number();
+	}
 	
 	return kZeroVector;
 #endif

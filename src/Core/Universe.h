@@ -555,6 +555,8 @@ double estimatedTimeForJourney(double distance, int hops);
 - (NSString*) brochureDescriptionWithDictionary:(NSDictionary*) dict standardEquipment:(NSArray*) extras optionalEquipment:(NSArray*) options;
 
 - (Vector) getWitchspaceExitPosition;
+- (Vector) randomizeFromSeedAndGetWitchspaceExitPosition;
+- (Vector) getWitchspaceExitPositionResettingRandomSeed:(BOOL)resetSeed;
 - (Quaternion) getWitchspaceExitRotation;
 
 - (Vector) getSunSkimStartPositionForShip:(ShipEntity*) ship;

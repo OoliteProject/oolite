@@ -8338,21 +8338,20 @@ BOOL class_masslocks(int some_class)
 	[UNIVERSE removeEntity:self];
 }
 
-int w_space_seed = 1234567;
+
 - (void) leaveWitchspace
 {
-	Quaternion	q1 = [UNIVERSE getWitchspaceExitRotation];
-	double		d1 = SCANNER_MAX_RANGE * (randf() - randf());
-	
-	// try to ensure healthy random numbers
-	//
-	ranrot_srand(w_space_seed);
-	w_space_seed = ranrot_rand();
-	
-	if (abs(d1) < 500.0)	// no closer than 500m
-		d1 += ((d1 > 0.0)? 500.0: -500.0);
+	Quaternion	q1;
 	quaternion_set_random(&q1);
 	Vector		v1 = vector_forward_from_quaternion(q1);
+	double		d1 = 0.0;
+	
+	// no closer than 500m - FIXME: shouldn't it be 750m now, same as the player?
+	while (abs(d1) < 500.0)
+	{
+		d1 = SCANNER_MAX_RANGE * (randf() - randf());
+	}
+	
 	position = [UNIVERSE getWitchspaceExitPosition];
 	position.x += v1.x * d1; // randomise exit position
 	position.y += v1.y * d1;

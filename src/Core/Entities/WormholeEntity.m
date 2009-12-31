@@ -248,7 +248,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			//if ( vector_equal(position, kZeroVector) )
 			{
 				hasExitPosition = YES;
-				position = [UNIVERSE getWitchspaceExitPosition];
+				position = [UNIVERSE getWitchspaceExitPosition];	// no need to reset PRNG.
 				Quaternion	q1;
 				quaternion_set_random(&q1);
 				double		d1 = SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5);

@@ -4206,7 +4206,7 @@ static PlayerEntity *sSharedPlayer = nil;
 - (void) leaveWitchspace
 {
 	float		d1 = (float)(SCANNER_MAX_RANGE*((ranrot_rand() % 256)/256.0 - 0.5));
-	Vector		pos = [UNIVERSE getWitchspaceExitPosition];
+	Vector		pos = [UNIVERSE getWitchspaceExitPosition];		// no need to reset the PRNG
 	Quaternion	q1;
 
 	quaternion_set_random(&q1);
