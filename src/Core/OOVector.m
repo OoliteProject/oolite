@@ -30,6 +30,10 @@ const Vector			kBasisXVector = { 1.0f, 0.0f, 0.0f };
 const Vector			kBasisYVector = { 0.0f, 1.0f, 0.0f };
 const Vector			kBasisZVector = { 0.0f, 0.0f, 1.0f };
 
+const Vector2D			kZeroVector2D = { 0.0f, 0.0f };
+const Vector2D			kBasisXVector2D = { 1.0f, 0.0f };
+const Vector2D			kBasisYVector2D = { 0.0f, 1.0f };
+
 #if !OOMATHS_STANDALONE
 const BoundingBox		kZeroBoundingBox = {{ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }};
 #endif

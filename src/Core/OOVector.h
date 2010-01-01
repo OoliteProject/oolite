@@ -38,14 +38,27 @@ typedef struct Vector
 } Vector;
 
 
+typedef struct Vector2D
+{
+	OOScalar x;
+	OOScalar y;
+} Vector2D;
+
+
 extern const Vector		kZeroVector,		/* 0, 0, 0 */
 						kBasisXVector,		/* 1, 0, 0 */
 						kBasisYVector,		/* 0, 1, 0 */
 						kBasisZVector;		/* 0, 0, 1 */
 
 
+extern const Vector2D	kZeroVector2D,		/* 0, 0 */
+						kBasisXVector2D,	/* 1, 0 */
+						kBasisYVector2D;	/* 0, 1 */
+
+
 /* Construct vector */
 OOINLINE Vector make_vector(OOScalar vx, OOScalar vy, OOScalar vz) INLINE_CONST_FUNC;
+OOINLINE Vector2D MakeVector2D(OOScalar vx, OOScalar vy) INLINE_CONST_FUNC;
 
 #if !OOMATHS_STANDALONE
 /* Generate random vectors. */
@@ -134,6 +147,15 @@ OOINLINE Vector make_vector (OOScalar vx, OOScalar vy, OOScalar vz)
 	result.x = vx;
 	result.y = vy;
 	result.z = vz;
+	return result;
+}
+
+
+OOINLINE Vector2D MakeVector2D(OOScalar vx, OOScalar vy)
+{
+	Vector2D result;
+	result.x = vx;
+	result.y = vy;
 	return result;
 }
 

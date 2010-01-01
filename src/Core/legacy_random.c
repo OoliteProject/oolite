@@ -222,33 +222,25 @@ void make_pseudo_random_seed (Random_Seed *seed_ptr)
 
 void rotate_seed (Random_Seed *seed_ptr)
 {
-	unsigned int x;
-	unsigned int y;
-
-	x = seed_ptr->a + seed_ptr->c;
-	y = seed_ptr->b + seed_ptr->d;
-
-
-	if (x > 0xFF)  y++;
-
-	x &= 0xFF;
-	y &= 0xFF;
-
+	uint_fast16_t x;
+	uint_fast16_t y;
+	
+	/*	Note: this is equivalent to adding three (little-endian) 16-bit values
+		together, rotating the three numbers and replacing one of them with
+		the sum. The byte-oriented approach is presumably because it was
+		reverse-engineered from eight-bit machine code. Switching to a plain
+		sixteen-bit representation is more trouble than it's worth since so
+		much code uses byte values from the seed struct directly.
+	*/
+	x = seed_ptr->a + seed_ptr->c + seed_ptr->e;
+	y = seed_ptr->b + seed_ptr->d + seed_ptr->f;
+	
 	seed_ptr->a = seed_ptr->c;
 	seed_ptr->b = seed_ptr->d;
+	
 	seed_ptr->c = seed_ptr->e;
 	seed_ptr->d = seed_ptr->f;
-
-	x += seed_ptr->c;
-	y += seed_ptr->d;
-
-
-	if (x > 0xFF)
-		y++;
-
-	x &= 0xFF;
-	y &= 0xFF;
-
+	
 	seed_ptr->e = x;
-	seed_ptr->f = y;
+	seed_ptr->f = y + (x >> 8);
 }

@@ -165,13 +165,31 @@ static JSFunctionSpec sScriptMethods[] =
 		}
 	}
 	
+	/*	Set initial name (in case of script error during initial run).
+		The "name" ivar is not set here, so the property can be fetched from JS
+		if we fail during setup. However, the "name" ivar is set later so that
+		the script object can't be renamed after the initial run. This could
+		probably also be achieved by fiddling with JS property attributes.
+	*/
+	[self setProperty:[self scriptNameFromPath:path] named:@"name"];
+	
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
 	if (!problem)
 	{
+		// Push self on stack of running scripts.
+		RunningStack stackElement =
+		{
+			.back = sRunningStack,
+			.current = self
+		};
+		sRunningStack = &stackElement;
+		
 		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
 		{
 			problem = @"could not run script";
 		}
+		
+		sRunningStack = stackElement.back;
 		
 		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
@@ -180,6 +198,7 @@ static JSFunctionSpec sScriptMethods[] =
 	if (!problem)
 	{
 		// Get display attributes from script
+		DESTROY(name);
 		name = [[[self propertyNamed:@"name"] description] copy];
 		if (name == nil)
 		{
@@ -261,6 +280,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (NSString *) name
 {
+	if (name == nil)  name = [[self propertyNamed:@"name"] copy];
 	return name;
 }
 
@@ -352,7 +372,6 @@ static JSFunctionSpec sScriptMethods[] =
 	JSFunction				*function;
 	uintN					i, argc;
 	jsval					*argv = NULL;
-	RunningStack			stackElement;
 	OOJavaScriptEngine		*engine = nil;
 	JSContext				*context = NULL;
 	
@@ -363,8 +382,11 @@ static JSFunctionSpec sScriptMethods[] =
 	if (function != NULL)
 	{
 		// Push self on stack of running scripts.
-		stackElement.back = sRunningStack;
-		stackElement.current = self;
+		RunningStack stackElement =
+		{
+			.back = sRunningStack,
+			.current = self
+		};
 		sRunningStack = &stackElement;
 		
 		// Convert arguments to JS values and make them temporarily un-garbage-collectable.
@@ -454,9 +476,9 @@ static JSFunctionSpec sScriptMethods[] =
 {
 	jsval						jsValue;
 	JSContext					*context = NULL;
+	BOOL						result = NO;
 	
 	if (value == nil || propName == nil)  return NO;
-	BOOL						result = NO;
 	
 	context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	jsValue = [value javaScriptValueInContext:context];
