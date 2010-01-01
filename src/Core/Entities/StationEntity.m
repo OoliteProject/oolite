@@ -1127,19 +1127,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
 		[self launchShip:se];
-#if 0
-		// This code is most likely causing many ships to leave the station with the wrong AI
-		// (route1PatrolAi.plist). Disabling it for now - Nikos
-		if([se groupID] == universalID)	//defender - might have lost its state machine while queueing...
-		{
-			if ([se hasPrimaryRole:@"pirate"])
-				[se setAITo:@"pirateAI.plist"];
-			else
-				[se setAITo:@"route1PatrolAI.plist"];
-		}
-#endif
 		[launchQueue removeObjectAtIndex:0];
-		[self doScriptEvent:@"stationLaunchedShip" withArgument:se];
+		// [self doScriptEvent:@"stationLaunchedShip" withArgument:se];
 	}
 	if (([launchQueue count] == 0)&&(no_docking_while_launching))
 		no_docking_while_launching = NO;	// launching complete
@@ -1260,6 +1249,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	[[ship getAI] setNextThinkTime:last_launch_time + 2]; // pause while launching
 	
 	[ship resetExhaustPlumes];	// resets stuff for tracking/exhausts
+	
+	[self doScriptEvent:@"stationLaunchedShip" withArgument:ship];
 }
 
 

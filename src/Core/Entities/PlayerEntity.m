@@ -1905,7 +1905,7 @@ static PlayerEntity *sSharedPlayer = nil;
 #endif
 		StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 		[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
-		if (stationLaunchedFrom) [stationLaunchedFrom doScriptEvent:@"stationLaunchedShip" withArgument:self]; // script might have removed it.
+		//if (stationLaunchedFrom) [stationLaunchedFrom doScriptEvent:@"stationLaunchedShip" withArgument:self]; // script might have removed it.
 	}
 }
 
@@ -3776,6 +3776,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
 	[self safeAllMissiles];
+	primaryTarget = NO_TARGET; // must happen before showing break_pattern to supress active reticule.
+	[self clearTargetMemory];
 
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
@@ -3819,10 +3821,10 @@ static PlayerEntity *sSharedPlayer = nil;
 
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;
-	[self safeAllMissiles];
+	// [self safeAllMissiles];
 
-	primaryTarget = NO_TARGET;
-	[self clearTargetMemory];
+	// primaryTarget = NO_TARGET;
+	// [self clearTargetMemory];
 	
 	forward_shield =	[self maxForwardShieldLevel];
 	aft_shield =		[self maxAftShieldLevel];

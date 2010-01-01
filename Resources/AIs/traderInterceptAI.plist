@@ -38,6 +38,7 @@
 		"ROLL_1" = ("setStateTo: ATTACK_SHIP");
 		"ROLL_2" = ("setDesiredRangeTo: 25600", performFlee);
 		"ROLL_3" = ("setDesiredRangeTo: 25600", performFlee);
+        "ESCORT_ATTACKED" = (setTargetToPrimaryAggressor, groupAttackTarget); // only player attacks escorts
 		"TARGET_LOST" = (performIdle, exitAI); 
 		"TARGET_DESTROYED" = (performIdle, exitAI); 
 		"ENERGY_LOW" = (setTargetToPrimaryAggressor, deployEscorts); 

@@ -11,7 +11,13 @@
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		"TARGET_FOUND" = (setTargetToFoundTarget, "setStateTo: COLLECT_STUFF");
 		"NOTHING_FOUND" = ("setStateTo: DOCK_WITH_STATION");
+		"LAUNCHED OKAY" = ("setStateTo: CLEAR_STATION");
 		UPDATE = (scanForRandomLoot, "pauseAI: 8.0");
+	};
+	"CLEAR_STATION" = {
+		ENTER = (getWitchspaceEntryCoordinates, setDestinationFromCoordinates, "setDesiredRangeTo: 100.0",
+			"setSpeedFactorTo: 0.75", performFlyToRangeFromDestination, "pauseAI: 10");
+		UPDATE = ("setStateTo: LOOK_FOR_STUFF");
 	};
 	"DOCK_WITH_STATION" =
 	{

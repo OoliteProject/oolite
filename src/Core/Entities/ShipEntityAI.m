@@ -1490,7 +1490,7 @@ static WormholeEntity *whole = nil;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity *ship = scanned_ships[i];
-		if ((ship != self) && (!ship->isPlayer) && (ship->scanClass == scanClass))	// look for alike
+		if ((ship != self) && (!ship->isPlayer) && (ship->scanClass == scanClass) && [ship primaryTarget] != self)	// look for alike
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
 			if ((d2 < found_d2) && [ship canAcceptEscort:self])

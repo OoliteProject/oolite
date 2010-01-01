@@ -26,6 +26,7 @@ MA 02110-1301, USA.
 #import "OOJSPlanet.h"
 #import "OOJSEntity.h"
 #import "OOJavaScriptEngine.h"
+#import "OOJSQuaternion.h"
 
 #import "OOPlanetEntity.h"
 
@@ -72,6 +73,7 @@ enum
 	kPlanet_hasAtmosphere,
 	kPlanet_radius,				// Radius of planet in metres, read-only
 	kPlanet_texture,			// Planet texture read / write
+	kPlanet_orientation,		// orientation, quaternion, read/write
 };
 
 
@@ -82,6 +84,7 @@ static JSPropertySpec sPlanetProperties[] =
 	{ "hasAtmosphere",			kPlanet_hasAtmosphere,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "radius",					kPlanet_radius,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "texture",				kPlanet_texture,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "orientation",			kPlanet_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -161,6 +164,10 @@ static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, 
 			OK = YES;
 			break;
 			
+		case kPlanet_orientation:
+			OK = QuaternionToJSValue(context, [planet normalOrientation], outValue);
+			break;
+		
 		default:
 			OOReportJSBadPropertySelector(context, @"Planet", JSVAL_TO_INT(name));
 	}
@@ -174,6 +181,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
 	BOOL					procGen = NO;
+	Quaternion				qValue;
 	
 	NSString				*pre = @"";
 	OOEntityStatus			playerStatus;
@@ -212,6 +220,15 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			{
 				OK = [planet setUpPlanetFromTexture:sValue];
 				if (!OK) OOReportJSWarning(context, @"Cannot find %@ '%@'. Value not set.", @"texture", sValue);
+			}
+			break;
+			
+		case kPlanet_orientation:
+			if (JSValueToQuaternion(context, *value, &qValue))
+			{
+				quaternion_normalize(&qValue);
+				[planet setOrientation:qValue];
+				OK = YES;
 			}
 			break;
 			

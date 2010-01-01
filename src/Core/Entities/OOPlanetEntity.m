@@ -141,10 +141,12 @@ MA 02110-1301, USA.
 	
 	collision_radius = radius_km * 10.0;	// Scale down by a factor of 100
 	_rotationAxis = kBasisYVector;
-#if 0
+#if 1
 	orientation = (Quaternion){ M_SQRT1_2, M_SQRT1_2, 0, 0 };	// FIXME: do we want to do something more interesting here?
+										// EW: NO, setting orientation should be handled by the code that adds the planet, not by planetEntity itself.
+										// just start with a default value.
 #else
-	[self setOrientation:kIdentityQuaternion];
+	[self setOrientation:kIdentityQuaternion]; // No need to do this, all planet adding code will override this this a new orientiation
 #endif
 	[_planetDrawable setRadius:collision_radius];
 	
@@ -334,6 +336,13 @@ static OOColor *ColorWithHSBColor(Vector c)
 }
 
 
+- (void) setOrientation:(Quaternion) quat
+{
+	[super setOrientation: quat];
+	_rotationAxis = vector_up_from_quaternion(quat);
+}
+
+
 - (double) radius
 {
 	return collision_radius;
@@ -367,7 +376,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 		// FIXME: update atmosphere
 	}
 	
-#if 0
+#if 1
 	quaternion_rotate_about_axis(&orientation, _rotationAxis, _rotationalVelocity * delta_t);
 #else
 	quaternion_rotate_about_y(&orientation, _rotationalVelocity * delta_t);
