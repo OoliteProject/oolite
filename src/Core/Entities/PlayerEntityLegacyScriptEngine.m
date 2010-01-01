@@ -2629,7 +2629,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #endif
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
-		Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 };
+		// Quaternion model_q = { 0.707, 0.707, 0.0, 0.0 }; // original value.
+		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
 #if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
 		if (procGen)
 		{
