@@ -5436,7 +5436,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			universal_time += delta_t;
 			
 			update_stage = @"demo management";
-			if (inGUIMode && [player guiScreen] == GUI_SCREEN_INTRO2){
+			if (inGUIMode && [player guiScreen] == GUI_SCREEN_INTRO2)
+			{
 				if (universal_time >= demo_stage_time)
 				{
 					if (ent_count > 1)
@@ -5517,12 +5518,20 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			}
 			
 			update_stage = @"update:entity";
+		NSMutableSet *zombies = nil;
+			
 			for (i = 0; i < ent_count; i++)
 			{
 				Entity *thing = my_entities[i];
 #ifndef NDEBUG
 				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
 #endif
+				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing]))
+				{
+					if (zombies == nil)  zombies = [NSMutableSet set];
+					[zombies addObject:thing];
+					continue;
+				}
 				
 				[thing update:delta_t];
 				
@@ -5555,6 +5564,18 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 							[theShipsAI think];
 						}
 					}
+				}
+			}
+			
+			if (zombies != nil)
+			{
+				update_stage = @"shootin' zombies";
+				NSEnumerator *zombieEnum = nil;
+				Entity *zombie = nil;
+				for (zombieEnum = [zombies objectEnumerator]; (zombie = [zombieEnum nextObject]); )
+				{
+					OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
+					[self removeEntity:zombie];
 				}
 			}
 			

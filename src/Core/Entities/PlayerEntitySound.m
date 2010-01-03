@@ -331,7 +331,7 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 
 //	time delay method for playing afterburner sounds
-// this overlaps two sounds each 2 seconds long, but with a .5s
+// this overlaps two sounds each 2 seconds long, but with a 0.75s
 // crossfade
 - (void) updateAfterburnerSound
 {

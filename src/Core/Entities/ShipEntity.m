@@ -5682,86 +5682,90 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if ([self status] == STATUS_DEAD)  return;
 	[self setStatus:STATUS_DEAD];
 	
-	//scripting
-	if (script != nil)
-	{
-		[[PlayerEntity sharedPlayer] setScriptTarget:self];
-		[self doScriptEvent:@"shipDied"];	// FIXME: params missing
-	}
-
-	// two parts to the explosion:
-	// 1. fast sparks
-	float how_many = factor;
-	while (how_many > 0.5f)
-	{
-		fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius fromPosition:xposition];
-		[UNIVERSE addEntity:fragment];
-		[fragment release];
-		how_many -= 1.0f;
-	}
-	// 2. slow clouds
-	how_many = factor;
-	while (how_many > 0.5f)
-	{
-		fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius fromPosition:xposition];
-		[UNIVERSE addEntity:fragment];
-		[fragment release];
-		how_many -= 1.0f;
-	}
-
-
-	// we need to throw out cargo at this point.
-	unsigned cargo_chance = 10;
-	if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
-	{
-		cargo_to_go = max_cargo * cargo_chance / 100;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
-		cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
-		cargo_flag = CARGO_FLAG_CANISTERS;
-	}
-	if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
-	{
-		cargo_to_go = max_cargo / 10;
-		while (cargo_to_go > 15)
-			cargo_to_go = ranrot_rand() % cargo_to_go;
-		[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:(cargo_flag == CARGO_FLAG_FULL_SCARCE)]];
-		cargo_chance = 100;
-	}
-	while ([cargo count] > 0)
-	{
-		if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
+	NS_DURING
+		//scripting
+		if (script != nil)
 		{
-			ShipEntity* container = [[cargo objectAtIndex:0] retain];
-			Vector  rpos = xposition;
-			Vector	rrand = randomPositionInBoundingBox(boundingBox);
-			rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
-			rpos.x += (ranrot_rand() % 7) - 3;
-			rpos.y += (ranrot_rand() % 7) - 3;
-			rpos.z += (ranrot_rand() % 7) - 3;
-			[container setPosition:rpos];
-			[container setScanClass: CLASS_CARGO];
-			[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
-			[container release];
-			if (n_cargo > 0)
-				n_cargo--;  // count down extra cargo
+			[[PlayerEntity sharedPlayer] setScriptTarget:self];
+			[self doScriptEvent:@"shipDied"];	// FIXME: params missing
 		}
-		[cargo removeObjectAtIndex:0];
-	}
-	
-	NSEnumerator	*subEnum = nil;
-	ShipEntity		*se = nil;
-	for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
-	{
-		[se setSuppressExplosion:suppressExplosion];
-		[se setPosition:[se absolutePositionForSubentity]];
-		[UNIVERSE addEntity:se];
-		[se becomeExplosion];
-	}
-	[self clearSubEntities];
-	
-	if (!isPlayer)  [UNIVERSE removeEntity:self];
+
+		// two parts to the explosion:
+		// 1. fast sparks
+		float how_many = factor;
+		while (how_many > 0.5f)
+		{
+			fragment = [[ParticleEntity alloc] initFragburstSize: collision_radius fromPosition:xposition];
+			[UNIVERSE addEntity:fragment];
+			[fragment release];
+			how_many -= 1.0f;
+		}
+		// 2. slow clouds
+		how_many = factor;
+		while (how_many > 0.5f)
+		{
+			fragment = [[ParticleEntity alloc] initBurst2Size: collision_radius fromPosition:xposition];
+			[UNIVERSE addEntity:fragment];
+			[fragment release];
+			how_many -= 1.0f;
+		}
+
+
+		// we need to throw out cargo at this point.
+		unsigned cargo_chance = 10;
+		if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)
+		{
+			cargo_to_go = max_cargo * cargo_chance / 100;
+			while (cargo_to_go > 15)
+				cargo_to_go = ranrot_rand() % cargo_to_go;
+			[self setCargo:[UNIVERSE getContainersOfDrugs:cargo_to_go]];
+			cargo_chance = 100;  //  chance of any given piece of cargo surviving decompression
+			cargo_flag = CARGO_FLAG_CANISTERS;
+		}
+		if (cargo_flag == CARGO_FLAG_FULL_PLENTIFUL || cargo_flag == CARGO_FLAG_FULL_SCARCE)
+		{
+			cargo_to_go = max_cargo / 10;
+			while (cargo_to_go > 15)
+				cargo_to_go = ranrot_rand() % cargo_to_go;
+			[self setCargo:[UNIVERSE getContainersOfGoods:cargo_to_go scarce:(cargo_flag == CARGO_FLAG_FULL_SCARCE)]];
+			cargo_chance = 100;
+		}
+		while ([cargo count] > 0)
+		{
+			if (Ranrot() % 100 < cargo_chance)  //  10% chance of any given piece of cargo surviving decompression
+			{
+				ShipEntity* container = [[cargo objectAtIndex:0] retain];
+				Vector  rpos = xposition;
+				Vector	rrand = randomPositionInBoundingBox(boundingBox);
+				rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
+				rpos.x += (ranrot_rand() % 7) - 3;
+				rpos.y += (ranrot_rand() % 7) - 3;
+				rpos.z += (ranrot_rand() % 7) - 3;
+				[container setPosition:rpos];
+				[container setScanClass: CLASS_CARGO];
+				[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
+				[container release];
+				if (n_cargo > 0)
+					n_cargo--;  // count down extra cargo
+			}
+			[cargo removeObjectAtIndex:0];
+		}
+		
+		NSEnumerator	*subEnum = nil;
+		ShipEntity		*se = nil;
+		for (subEnum = [self shipSubEntityEnumerator]; (se = [subEnum nextObject]); )
+		{
+			[se setSuppressExplosion:suppressExplosion];
+			[se setPosition:[se absolutePositionForSubentity]];
+			[UNIVERSE addEntity:se];
+			[se becomeExplosion];
+		}
+		[self clearSubEntities];
+		
+		if (!isPlayer)  [UNIVERSE removeEntity:self];
+	NS_HANDLER
+		if (!isPlayer)  [UNIVERSE removeEntity:self];
+	NS_ENDHANDLER
 }
 
 
