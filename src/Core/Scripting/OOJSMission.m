@@ -76,7 +76,7 @@ enum
 	kMission_title,				// title of mission screen, string.
 	kMission_foreground,		// missionforeground image, string.
 	kMission_background,		// mission background image, string.
-	kMission_3DModel,		// mission 3D model: role, string.
+	kMission_3DModel,			// mission 3D model: role, string.
 };
 
 
@@ -439,7 +439,11 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
 		MissionSetMusic(context, this, 1, &value, &noWarning);
 	
-	str=@"foreground";
+	// Make sure the overlay is not set! (could be set as legacy script's 'background')
+	value = JSVAL_NULL;
+	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
+	
+	str=@"overlay";
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
 	

@@ -176,6 +176,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (void) setTabStops:(OOGUITabSettings)stops;
 
 - (void) clear;
+- (void) clearAndKeepBackground:(BOOL)keepBackground;
 
 - (void) setKey:(NSString *)str forRow:(OOGUIRow)row;
 - (void) setText:(NSString *)str forRow:(OOGUIRow)row;

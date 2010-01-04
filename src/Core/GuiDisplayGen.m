@@ -493,6 +493,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 - (void) clear
 {
+	[self clearAndKeepBackground:NO];
+}
+
+
+- (void) clearAndKeepBackground:(BOOL)keepBackground
+{
 	unsigned i;
 	[self setTitle: nil];
 	for (i = 0; i < n_rows; i++)
@@ -506,7 +512,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	[self setShowTextCursor:NO];
 	[self setSelectableRange:NSMakeRange(0,0)];
-	[self clearBackground];
+	if (!keepBackground) [self clearBackground];
 }
 
 
@@ -996,9 +1002,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glEnd();
 	}
 	
-	// show missions 'foreground' image...
+	// show the 'foreground', aka overlay!
 	
-	if (foregroundSprite!=nil)
+	if (foregroundSprite != nil)
 	{
 		[foregroundSprite blitCentredToX:x + 0.5f * size_in_pixels.width Y:y + 0.5f * size_in_pixels.height Z:z alpha:alpha];
 	}

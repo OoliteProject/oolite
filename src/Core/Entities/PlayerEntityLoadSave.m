@@ -254,7 +254,7 @@
 		}
 	}
 	
-	if([gameView isDown: 27])
+	if([gameView isDown: 27]) // escape key
 	{
 		[self setGuiToStatusScreen];
 	}
@@ -290,15 +290,15 @@
 		  forRow: INPUTROW];
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	
-	// handle page <-- and page --> keys
-	if ([gameView isDown:gvArrowKeyLeft] && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
+	// handle page <-- and page --> keys, and on-screen buttons
+	if ((([gameView isDown:gvMouseDoubleClick] && [gui selectedRow] == BACKROW) || [gameView isDown:gvArrowKeyLeft]) && [[gui keyForRow:BACKROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage--;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
 		[gameView supressKeysUntilKeyUp];
 	}
 	//
-	if ([gameView isDown:gvArrowKeyRight] && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
+	if ((([gameView isDown:gvMouseDoubleClick] && [gui selectedRow] == MOREROW) || [gameView isDown:gvArrowKeyRight]) && [[gui keyForRow:MOREROW] isEqual: GUI_KEY_OK])
 	{
 		currentPage++;
 		[self lsCommanders: gui	directory: dir	pageNumber: currentPage  highlightName: nil];
@@ -325,7 +325,7 @@
 		}
 		else
 		{
-			pollControls=YES;
+			pollControls = YES;
 			if ([self existingNativeSave: commanderNameString])
 			{
 				[gameView supressKeysUntilKeyUp];
@@ -340,10 +340,10 @@
 		}
 	}
 	
-	if([gameView isDown: 27])
+	if([gameView isDown: 27]) // escape key
 	{
-		// esc was pressed - get out of here
-		pollControls=YES;
+		// get out of here
+		pollControls = YES;
 		[[UNIVERSE gameView] resetTypedString];
 		[self setGuiToStatusScreen];
 	}
@@ -357,7 +357,15 @@
 	
 	[self handleGUIUpDownArrowKeys];
 	
-	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown: 121]||[gameView isDown: 89])
+	// Translation issue: we can't confidently use raw Y and N ascii as shortcuts. It's better to use the load-previous-commander keys.
+	id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
+	id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
+	unsigned char cYes, cNo;
+	
+	cYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+	cNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+	
+	if (([gameView isDown:13] && ([gui selectedRow] == SAVE_OVERWRITE_YES_ROW))||[gameView isDown:cYes]||[gameView isDown:cYes - 32])
 	{
 		pollControls=YES;
 		[self nativeSavePlayer: commanderNameString];
@@ -366,7 +374,7 @@
 		[self setGuiToStatusScreen];
 	}
 	
-	if (([gameView isDown: 13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown: 27]||[gameView isDown: 110]||[gameView isDown: 78])
+	if (([gameView isDown:13] && ([gui selectedRow] == SAVE_OVERWRITE_NO_ROW))||[gameView isDown:27]||[gameView isDown:cNo]||[gameView isDown:cNo - 32])
 	{
 		// esc or NO was pressed - get out of here
 		pollControls=YES;
@@ -616,6 +624,9 @@
 	
 	currentPage = 0;
 	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
+	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
+	[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+
 	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
@@ -646,6 +657,9 @@
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
+	
+	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
+	[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[gameView setTypedString: cdrName];
@@ -682,6 +696,10 @@
 	
 	[gui setSelectableRange: NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2)];
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
+	
+	// We can only leave this screen by answering yes or no, or esc. Better not use overlays here, could be misleading.
+	//NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
+	//[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[self setShowDemoShips: NO];

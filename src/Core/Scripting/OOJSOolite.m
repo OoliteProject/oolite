@@ -30,6 +30,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOTexture.h"
 #import "GuiDisplayGen.h"
+#import "OOJSPlayer.h"
 
 
 static JSBool OoliteGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -39,7 +40,7 @@ static NSArray *VersionComponents(void);
 
 static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool OoliteScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool OoliteScreenForeground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool OoliteScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sOoliteClass =
@@ -86,7 +87,7 @@ static JSFunctionSpec sOoliteMethods[] =
 	// JS name						Function					min args
 	{ "compareVersion",			OoliteCompareVersion,		1 },
 	{ "setScreenBackground",	OoliteScreenBackground,		1 },
-	{ "setScreenForeground",	OoliteScreenForeground,		1 },
+	{ "setScreenOverlay",		OoliteScreenOverlay, 1 },
 	{ 0 }
 };
 
@@ -196,17 +197,21 @@ static JSBool OoliteCompareVersion(JSContext *context, JSObject *this, uintN arg
 static JSBool OoliteScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = JSVAL_FALSE;
+	NSString 		*value = JSValToNSString(context, argv[0]);
+	PlayerEntity	*player = OOPlayerForScripting();
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:JSValToNSString(context, argv[0]) inFolder:@"Images"]]);
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:value inFolder:@"Images"]]);
+		// add some permanence to the override if we're in the equip ship screen
+		if (*outResult == JSVAL_TRUE && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP) [player setTempBackground:value];
 	}
 	
 	return YES;
 }
 
 
-static JSBool OoliteScreenForeground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool OoliteScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = JSVAL_FALSE;
 	

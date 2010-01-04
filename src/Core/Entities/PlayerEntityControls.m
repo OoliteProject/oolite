@@ -46,6 +46,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOLoggingExtended.h"
 #import "OOMusicController.h"
+#import "OOTexture.h"
 
 #import "JoystickHandler.h"
 
@@ -123,6 +124,8 @@ static NSTimeInterval	time_last_frame;
 - (void) pollApplicationControls;
 - (void) pollViewControls;
 - (void) pollGuiScreenControls;
+- (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias;
+- (void) handleUndockControl;
 - (void) pollGameOverControls:(double) delta_t;
 - (void) pollAutopilotControls:(double) delta_t;
 - (void) pollDockedControls:(double) delta_t;
@@ -1228,7 +1231,9 @@ static NSTimeInterval	time_last_frame;
 		
 		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 		{
-			[[UNIVERSE message_gui] leaveLastLine];
+			BOOL hasOverlay = ([OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"paused_overlay"] inFolder:@"Images"] != nil);
+			if (hasOverlay) [[UNIVERSE message_gui] clear];
+			else [[UNIVERSE message_gui] leaveLastLine];
 			NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 			OOTimeDelta		time_delta;
 			if (![[GameController sharedController] gameIsPaused])
@@ -1340,11 +1345,11 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (paused)
 			{
-				int previousGuiScreen = gui_screen;
 				script_time = saved_script_time;
 				// Reset to correct GUI screen, if we are unpausing from one.
-				gui_screen = saved_gui_screen;
-				switch (gui_screen)
+				// Don't set gui_screen here, use setGuis - they also switch backgrounds.
+				// No gui switching events will be triggered while still paused.
+				switch (saved_gui_screen)
 				{
 					case GUI_SCREEN_STATUS:
 						[self setGuiToStatusScreen];
@@ -1359,18 +1364,20 @@ static NSTimeInterval	time_last_frame;
 						[self setGuiToMarketScreen];
 						break;
 					case GUI_SCREEN_SYSTEM_DATA:
-						// Do not reset planet rotation if we are already in
-						// the system info screen - looks kind of ugly.
-						if (previousGuiScreen != GUI_SCREEN_SYSTEM_DATA)
+						// Do not reset planet rotation if we are already in the system info screen!
+						if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 							[self setGuiToSystemDataScreen];
 						break;
 					default:
+						gui_screen = saved_gui_screen;	// make sure we're back to the right screen
 						break;
 				}
 				[gameView allowStringInput:NO];
 				[UNIVERSE setDisplayCursor:NO];
 				[UNIVERSE clearPreviousMessage];
 				[UNIVERSE setViewDirection:saved_view_direction];
+				NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"overlay"];
+				[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 				[[gameView gameController] unpause_game];
 			}
 			else
@@ -1378,8 +1385,7 @@ static NSTimeInterval	time_last_frame;
 				saved_view_direction = [UNIVERSE viewDirection];
 				saved_script_time = script_time;
 				saved_gui_screen = gui_screen;
-				[UNIVERSE addMessage:DESC(@"game-paused") forCount:1.0];
-				[[gameView gameController] pause_game];
+				[UNIVERSE sleepytime:nil];	// pause handler
 			}
 		}
 		pause_pressed = YES;
@@ -1632,7 +1638,13 @@ static NSTimeInterval	time_last_frame;
 			}
 			break;
 		case GUI_SCREEN_SAVE:
-			[self saveCommanderInputHandler];
+			[self pollGuiScreenControlsWithFKeyAlias:NO];
+			if ([gameView isDown:gvFunctionKey1])  [self handleUndockControl];
+			if (gui_screen == GUI_SCREEN_SAVE)
+			{
+				[self saveCommanderInputHandler];
+			}
+			else pollControls = YES;
 			break;
 			
 		case GUI_SCREEN_SAVE_OVERWRITE:
@@ -2808,7 +2820,13 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollGuiScreenControls
 {
-	if(!pollControls)
+	[self pollGuiScreenControlsWithFKeyAlias:YES];
+}
+
+
+- (void) pollGuiScreenControlsWithFKeyAlias:(BOOL)fKeyAlias
+{
+	if(!pollControls && fKeyAlias)	// Still OK to run, if we don't use number keys.
 		return;
 	
 	GuiDisplayGen	*gui = [UNIVERSE gui];
@@ -2816,7 +2834,7 @@ static NSTimeInterval	time_last_frame;
 	BOOL			docked_okay = ([self status] == STATUS_DOCKED);
 	
 	//  text displays
-	if (([gameView isDown:gvFunctionKey5])||([gameView isDown:gvNumberKey5]))
+	if (([gameView isDown:gvFunctionKey5])||(fKeyAlias && [gameView isDown:gvNumberKey5]))
 	{
 		if (!switching_status_screens)
 		{
@@ -2833,7 +2851,7 @@ static NSTimeInterval	time_last_frame;
 		switching_status_screens = NO;
 	}
 	
-	if (([gameView isDown:gvFunctionKey6])||([gameView isDown:gvNumberKey6]))
+	if (([gameView isDown:gvFunctionKey6])||(fKeyAlias && [gameView isDown:gvNumberKey6]))
 	{
 		if  (!switching_chart_screens)
 		{
@@ -2849,7 +2867,7 @@ static NSTimeInterval	time_last_frame;
 		switching_chart_screens = NO;
 	}
 	
-	if (([gameView isDown:gvFunctionKey7])||([gameView isDown:gvNumberKey7]))
+	if (([gameView isDown:gvFunctionKey7])||(fKeyAlias &&[gameView isDown:gvNumberKey7]))
 	{
 		if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
 		{
@@ -2860,13 +2878,13 @@ static NSTimeInterval	time_last_frame;
 	
 	if (docked_okay)
 	{	
-		if ((([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
+		if ((([gameView isDown:gvFunctionKey2])||(fKeyAlias && [gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
 		{
 			[gameView clearKeys];
 			[self setGuiToLoadSaveScreen];
 		}
 		
-		if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3]))
+		if (([gameView isDown:gvFunctionKey3])||(fKeyAlias && [gameView isDown:gvNumberKey3]))
 		{
 			if (!switching_equipship_screens)
 			{
@@ -2896,7 +2914,7 @@ static NSTimeInterval	time_last_frame;
 			switching_equipship_screens = NO;
 		}
 		
-		if (([gameView isDown:gvFunctionKey8])||([gameView isDown:gvNumberKey8]))
+		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
 			if (!switching_market_screens)
 			{
@@ -2922,7 +2940,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	else
 	{
-		if (([gameView isDown:gvFunctionKey8])||([gameView isDown:gvNumberKey8]))
+		if (([gameView isDown:gvFunctionKey8])||(fKeyAlias && [gameView isDown:gvNumberKey8]))
 		{
 			if (!switching_market_screens)
 			{
@@ -3015,10 +3033,8 @@ static BOOL toggling_music;
 
 - (void) pollDockedControls:(double)delta_t
 {
-	StationEntity			*station = nil;
 	MyOpenGLView			*gameView = [UNIVERSE gameView];
 	GameController			*gameController = [gameView gameController];
-
 	
 	// Pause game, 'p' key
 	if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
@@ -3027,20 +3043,25 @@ static BOOL toggling_music;
 	{
 		if (!pause_pressed)
 		{
+			NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_docked_overlay"];
 			if ([gameController gameIsPaused])
 			{
 				script_time = saved_script_time;
 				[gameView allowStringInput:NO];
 				[UNIVERSE setDisplayCursor:NO];
-				[UNIVERSE clearPreviousMessage];
+				if (![OOTexture textureWithName:fgName inFolder:@"Images"])
+					[UNIVERSE clearPreviousMessage];	// remove the 'paused' message if it was there.
+				fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];
+				[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 				[gameController unpause_game];
 			}
 			else
 			{
 				saved_script_time = script_time;
-				[UNIVERSE addMessage:DESC(@"game-paused-docked") forCount:1.0];
-				[[UNIVERSE message_gui] leaveLastLine];	// remove other messages.
-				[gameController pause_game];
+				if (![OOTexture textureWithName:fgName inFolder:@"Images"])
+					[[UNIVERSE message_gui] clear];		// remove all other messages if we're displaying the 'paused' message.
+				
+				[UNIVERSE sleepytime:nil];	// pause handler
 			}
 		}
 		pause_pressed = YES;
@@ -3056,15 +3077,7 @@ static BOOL toggling_music;
 	{
 		if ([gameView isDown:gvFunctionKey1] || [gameView isDown:gvNumberKey1])   // look for the f1 key
 		{
-			// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
-			[UNIVERSE setUpUniverseFromStation]; // player pre-launch
-			if (!dockedStation)  dockedStation = [UNIVERSE station];
-			station = dockedStation;	// leaveDock will clear dockedStation.
-			
-			if (station == [UNIVERSE station] && [UNIVERSE autoSaveNow] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova])) [self autosavePlayer];
-			// autosave at the second launch after load / restart
-			if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
-			[self leaveDock:dockedStation];
+			[self handleUndockControl];
 		}
 	}
 	
@@ -3078,6 +3091,17 @@ static BOOL toggling_music;
 	[self pollGuiArrowKeyControls:delta_t];
 }
 
+- (void) handleUndockControl
+{
+	// FIXME: should this not be in leaveDock:? (Note: leaveDock: is also called from script method launchFromStation and -[StationEntity becomeExplosion]) -- Ahruman 20080308
+	[UNIVERSE setUpUniverseFromStation]; // player pre-launch
+	if (!dockedStation)  dockedStation = [UNIVERSE station];
+	
+	if (dockedStation == [UNIVERSE station] && [UNIVERSE autoSaveNow] && !([[UNIVERSE sun] goneNova] || [[UNIVERSE sun] willGoNova])) [self autosavePlayer];
+	// autosave at the second launch after load / restart
+	if ([UNIVERSE autoSave]) [UNIVERSE setAutoSaveNow:YES];
+	[self leaveDock:dockedStation];
+}
 
 - (void) pollDemoControls:(double)delta_t
 {
@@ -3091,17 +3115,17 @@ static BOOL toggling_music;
 			
 			// In order to support multiple languages, the Y/N response cannot be hardcoded. We get the keys
 			// corresponding to Yes/No from descriptions.plist and if they are not found there, we set them
-			// by default to [yY] and [nN] respectively.
-			id valueYes = [[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"];
-			id valueNo = [[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"];
-			unsigned char loadPreviousCommanderYes, loadPreviousCommanderNo;
-
-			loadPreviousCommanderYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
-			loadPreviousCommanderNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+			// by default to [yY] and [nN] respectively. 
+			id valueYes = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-yes" defaultValue:@"y"] lowercaseString];
+			id valueNo = [[[UNIVERSE descriptions] oo_stringForKey:@"load-previous-commander-no" defaultValue:@"n"] lowercaseString];
+			unsigned char charYes, charNo;
+			
+			charYes = [valueYes characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
+			charNo = [valueNo characterAtIndex: 0] & 0x00ff;	// Use lower byte of unichar.
 			
 			if (!disc_operation_in_progress)
 			{
-				if (([gameView isDown:loadPreviousCommanderYes]) || ([gameView isDown:loadPreviousCommanderYes - 32]))
+				if (([gameView isDown:charYes]) || ([gameView isDown:charYes - 32]))
 				{
 					[[OOMusicController sharedController] stopThemeMusic];
 					disc_operation_in_progress = YES;
@@ -3114,7 +3138,7 @@ static BOOL toggling_music;
 					}
 				}
 			}
-			if (([gameView isDown:loadPreviousCommanderNo]) || ([gameView isDown:loadPreviousCommanderNo - 32]))
+			if (([gameView isDown:charNo]) || ([gameView isDown:charNo - 32]))
 			{
 				[self setGuiToIntroFirstGo:NO];
 			}

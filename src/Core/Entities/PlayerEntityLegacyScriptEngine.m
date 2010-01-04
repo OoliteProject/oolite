@@ -2095,6 +2095,19 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (void) setTempBackground:(NSString *)value
+{
+	[tempTexture release];
+	tempTexture = nil;
+	
+	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
+ 	{
+		tempTexture = [OOTexture textureWithName:value inFolder:@"Images"];
+		[tempTexture retain];
+ 	}
+}
+
+
 - (void) setMissionBackground:(NSString *)value
 {
 	[missionBackgroundTexture release];
@@ -2366,12 +2379,14 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
+		if (missionForegroundTexture != nil) background = missionForegroundTexture;
+		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"mission_overlay"] inFolder:@"Images"];
+		[gui setForegroundTexture:background];
+		
 		if (missionBackgroundTexture != nil) background = missionBackgroundTexture;
 		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"mission"] inFolder:@"Images"];
-		
 		[gui setBackgroundTexture:background];
-		[gui setForegroundTexture:missionForegroundTexture];
-
+		
 		[gui setShowTextCursor:NO];
 	}
 	/* ends */

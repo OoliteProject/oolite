@@ -230,23 +230,25 @@ system.__defineGetter__("goneNova", function ()
 	return this.sun.hasGoneNova;
 });
 
+
 Ship.__defineGetter__("availableCargoSpace", function ()
 {
 	special.jsWarning("ship.availableCargoSpace is deprecated, use ship.cargoSpaceAvailable instead.");
 	return this.cargoSpaceAvailable;
 });
 
+
 Ship.__defineGetter__("cargoCapacity", function ()
 {
 	special.jsWarning("ship.cargoCapacity is deprecated, use ship.cargoSpaceCapacity instead.");
-	return this.cargoSpaceAvailable;
+	return this.cargoSpaceCapacity;
 });
 
 
 mission.runMissionScreen = function (_messageKey, _backgroundImage, _choiceKey, _shipKey, _musicKey)
 {
 	special.jsWarning("Mission.runMissionScreen() is deprecated, use Mission.runScreen() instead.");
-	// pre-1.74 mission.setBackgroundImage did set the foreground (foremost background image (!)
-	mission.runScreen({music:_musicKey, model:_shipKey, choicesKey:_choiceKey, foreground:_backgroundImage, messageKey:_messageKey}, null);
+	// pre-1.74, trying to set mission backgrounds would create background overlays instead: that behaviour is retained here for backward compatibility
+	mission.runScreen({music:_musicKey, model:_shipKey, choicesKey:_choiceKey, overlay:_backgroundImage, messageKey:_messageKey});
 };
 

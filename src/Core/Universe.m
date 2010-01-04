@@ -522,17 +522,32 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 
 - (void) sleepytime: (id) thing
 {
-	// deal with the machine going to sleep
-	PlayerEntity *player = [PlayerEntity sharedPlayer];
+	// deal with the machine going to sleep, or player pressing 'p'.
+	PlayerEntity 	*player = [PlayerEntity sharedPlayer];
 	if (!player) return;
+	NSString 		*fgName = nil;
 	
 	if ([player status] == STATUS_DOCKED)
 	{
-		[self addMessage:DESC(@"game-paused-docked") forCount:1.0];
+		fgName = [self screenBackgroundNameForKey:@"paused_docked_overlay"];
+		if (fgName != nil)
+		{
+			[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+			[gui drawGUI:1.0 drawCursor:NO];
+		}
+		else
+			[self addMessage:DESC(@"game-paused-docked") forCount:1.0];
 	}
 	else
 	{
-		[self addMessage:DESC(@"game-paused") forCount:1.0];
+		fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_overlay"];
+		if ([player guiScreen] != GUI_SCREEN_MAIN && fgName != nil)
+		{
+			[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+			[gui drawGUI:1.0 drawCursor:NO];
+		}
+		else
+			[self addMessage:DESC(@"game-paused") forCount:1.0];
 	}
 	
 	[[gameView gameController] pause_game];

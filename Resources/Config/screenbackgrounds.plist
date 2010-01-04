@@ -32,8 +32,19 @@
 	market				= "market.png";
 	contracts			= "contracts.png";			// if not defined, same as market
 	
-	mission				= "mission.png";			// default background, overridden by mission's background parameter.
 	settings			= "settings.png";			// game options / settings
 	load_save			= "load-save.png";			// load / save game screens
+	
+	mission				= "mission.png";				// default mission background, overridden by mission's background parameter.
+	
+	// Use overlays to add extra info / graphic elements to the screen.
+	
+	mission_overlay			= "mission-overlay.png";	// default mission overlay, overridden by mission's overlay parameter.
+	
+	overlay					= "overlay.png";			// in-flight overlay
+	docked_overlay			= "docked-overlay.png";
+	paused_overlay			= "paused-overlay.png";		// in-flight and paused
+	paused_docked_overlay	= "paused-docked-overlay.png";
+	
 */
 }

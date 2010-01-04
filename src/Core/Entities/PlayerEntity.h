@@ -232,6 +232,7 @@ typedef enum
 	
 	OOTexture				*missionBackgroundTexture;
 	OOTexture				*missionForegroundTexture;
+	OOTexture				*tempTexture;
 	
 	BOOL					found_equipment;
 	

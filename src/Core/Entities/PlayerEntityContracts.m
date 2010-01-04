@@ -545,6 +545,11 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	unsigned		i;
 	NSMutableArray	*row_info = [NSMutableArray arrayWithCapacity:5];
 	NSString		*bgName = nil;
+	OOGUIScreenID	oldScreen = gui_screen;
+	
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	gui_screen = GUI_SCREEN_CONTRACTS;
+	BOOL			guiChanged = (oldScreen != gui_screen);
 	
 	// set up initial markets if there are none
 	StationEntity* the_station = [UNIVERSE station];
@@ -591,8 +596,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 	// GUI stuff
 	{
-		GuiDisplayGen *gui = [UNIVERSE gui];
-		
 		unsigned n_passengers = [passenger_market count];
 		if (n_passengers > 5)
 			n_passengers = 5;
@@ -600,7 +603,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		if (n_contracts > 5)
 			n_contracts = 5;
 		
-		[gui clear];
+		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"@-contracts-title"),[UNIVERSE getSystemName:system_seed]]];
 		
 		OOGUITabSettings tab_stops;
@@ -708,20 +711,23 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		}
 		
 		[gui setShowTextCursor:NO];
-		bgName = [UNIVERSE screenBackgroundNameForKey:@"contracts"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"market"];
-		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	
-	OOGUIScreenID oldScreen = gui_screen;
-	gui_screen = GUI_SCREEN_CONTRACTS;
-
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
-	[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	if (guiChanged)
+	{
+		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
+		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		
+		bgName = [UNIVERSE screenBackgroundNameForKey:@"contracts"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"market"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 
@@ -945,10 +951,15 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 
 - (void) setGuiToManifestScreen
-{	
+{
+	OOGUIScreenID	oldScreen = gui_screen;
+	
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	gui_screen = GUI_SCREEN_MANIFEST;
+	BOOL			guiChanged = (oldScreen != gui_screen);
+	
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
 		unsigned i = 0;
 		
 		unsigned	n_manifest_rows = 8;
@@ -976,7 +987,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		
 		current_cargo = [self cargoQuantityOnBoard];
 
-		[gui clear];
+		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"manifest-title")];
 		
 		[gui setText:[NSString stringWithFormat:DESC(@"manifest-cargo-d-d"), current_cargo, max_cargo]	forRow:cargo_row - 1];
@@ -1054,7 +1065,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 			}
 		}
 		[gui setShowTextCursor:NO];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"manifest"] inFolder:@"Images"]];
 	}
 	/* ends */
 	
@@ -1064,26 +1074,33 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		lastTextKey = nil;
 	}
 	
-	OOGUIScreenID oldScreen = gui_screen;
-	gui_screen = GUI_SCREEN_MANIFEST;
-
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
-	[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	if (guiChanged)
+	{
+		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
+		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"manifest"] inFolder:@"Images"]];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 
 - (void) setGuiToDeliveryReportScreenWithText:(NSString*) report
 {
-	GuiDisplayGen* gui = [UNIVERSE gui];
+	OOGUIScreenID	oldScreen = gui_screen;
 	
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	gui_screen = GUI_SCREEN_REPORT;
+	BOOL			guiChanged = (oldScreen != gui_screen);	
 	
 	// GUI stuff
 	{
-		[gui clear];
+		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
 		
 		// report might be a multi-line message
@@ -1106,44 +1123,51 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 		[gui setText:@"press-space-commander" forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setShowTextCursor:NO];
-		
-		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	/* ends */
 	
-
 	if (lastTextKey)
 	{
 		[lastTextKey release];
 		lastTextKey = nil;
 	}
 	
-	gui_screen = GUI_SCREEN_REPORT;
-
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	if (guiChanged)
+	{
+		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
+		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		
+		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 
 - (void) setGuiToDockingReportScreen
 {
-	GuiDisplayGen* gui = [UNIVERSE gui];
+	OOGUIScreenID	oldScreen = gui_screen;
 	
-	int text_row = 1;
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	gui_screen = GUI_SCREEN_REPORT;
+	BOOL			guiChanged = (oldScreen != gui_screen);	
+	
+	int				text_row = 1;
 	
 	[dockingReport setString:[dockingReport stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
 	
 	// GUI stuff
 	{
-		[gui clear];
+		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:ExpandDescriptionForCurrentSystem(@"[arrival-report-title]")];
 		
-
 		// dockingReport might be a multi-line message
 		
 		while (([dockingReport length] > 0)&&(text_row < 18))
@@ -1165,33 +1189,37 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 				[dockingReport setString:@""];
 			}
 		}
-
+		
 		[gui setText:[NSString stringWithFormat:DESC_PLURAL(@"contracts-cash-@-load-d-of-d-passengers-d-of-d-berths", max_passengers), OOCredits(credits), current_cargo, max_cargo, [passengers count], max_passengers]  forRow: GUI_ROW_MARKET_CASH];
 		
 		[gui setText:DESC(@"press-space-commander") forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
 		[gui setShowTextCursor:NO];
-		
-		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
-		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
 	}
 	/* ends */
 	
-
 	if (lastTextKey)
 	{
 		[lastTextKey release];
 		lastTextKey = nil;
 	}
 	
-	gui_screen = GUI_SCREEN_REPORT;
-
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	if (guiChanged)
+	{
+		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked! 
+		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		
+		NSString *bgName = [UNIVERSE screenBackgroundNameForKey:@"report"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status_docked"];
+		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
+		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 // ---------------------------------------------------------------------- 
@@ -1200,7 +1228,13 @@ static NSMutableDictionary* currentShipyard = nil;
 
 - (void) setGuiToShipyardScreen:(unsigned) skip
 {
-	unsigned i;
+	OOGUIScreenID	oldScreen = gui_screen;
+	
+	GuiDisplayGen	*gui = [UNIVERSE gui];
+	gui_screen = GUI_SCREEN_SHIPYARD;
+	BOOL			guiChanged = (oldScreen != gui_screen);	
+	
+	unsigned		i;
 	
 	// set up initial market if there is none
 	StationEntity	*the_station;
@@ -1247,9 +1281,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	// GUI stuff
 	{
-		GuiDisplayGen* gui = [UNIVERSE gui];
-		
-		[gui clear];
+		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:[NSString stringWithFormat:DESC(@"@-shipyard-title"),[UNIVERSE getSystemName:system_seed]]];
 		
 		OOGUITabSettings tab_stops;
@@ -1326,10 +1358,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		[self showTradeInInformationFooter];
 		
 		[gui setShowTextCursor:NO];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"shipyard"] inFolder:@"Images"]];
 	}
-	
-	gui_screen = GUI_SCREEN_SHIPYARD;
 	
 	// the following are necessary...
 
@@ -1337,6 +1366,15 @@ static NSMutableDictionary* currentShipyard = nil;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	
+	if (guiChanged)
+	{
+		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked! 
+		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		
+		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"shipyard"] inFolder:@"Images"]];
+		[self noteGuiChangeFrom:oldScreen to:gui_screen];
+	}
 }
 
 
