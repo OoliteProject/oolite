@@ -5533,7 +5533,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			}
 			
 			update_stage = @"update:entity";
-		NSMutableSet *zombies = nil;
+			NSMutableSet *zombies = nil;
 			
 			for (i = 0; i < ent_count; i++)
 			{
@@ -5541,6 +5541,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 #ifndef NDEBUG
 				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
 #endif
+				// Game Over code depends on regular delta_t updates to the dead player entity. Ignore the player entity, even when dead.
 				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing] && ![thing isPlayer]))
 				{
 					if (zombies == nil)  zombies = [NSMutableSet set];
@@ -5589,11 +5590,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				Entity *zombie = nil;
 				for (zombieEnum = [zombies objectEnumerator]; (zombie = [zombieEnum nextObject]); )
 				{
-					if (![zombie isPlayer])	// 'Press Space, Commmander'
-					{
-						OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
-						[self removeEntity:zombie];
-					}
+					OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
+					[self removeEntity:zombie];
 				}
 			}
 			

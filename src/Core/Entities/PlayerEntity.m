@@ -3719,9 +3719,14 @@ static PlayerEntity *sSharedPlayer = nil;
 	[self playGameOver];
 	
 	flightSpeed = 160.0f;
+	[[UNIVERSE message_gui] clear]; 	// No messages for the dead.
+	[self suppressTargetLost];			// No target lost messages when dead.
 	[self setStatus:STATUS_DEAD];
+	// Let event scripts check for specific equipment on board when the player dies.
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	// Then remove the equipment. This should avoid accidental scooping / equipment damage when dead.
+	[self removeAllEquipment];
 	[self loseTargetStatus];
 
 	[UNIVERSE displayMessage:DESC(@"gameoverscreen-game-over") forCount:30.0];
