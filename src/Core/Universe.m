@@ -5589,8 +5589,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				Entity *zombie = nil;
 				for (zombieEnum = [zombies objectEnumerator]; (zombie = [zombieEnum nextObject]); )
 				{
-					OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
-					[self removeEntity:zombie];
+					if (![zombie isPlayer])	// 'Press Space, Commmander'
+					{
+						OOLogERR(@"universe.zombie", @"Found dead entity %@ in active entity list, removing. This is an internal error, please report it.", zombie);
+						[self removeEntity:zombie];
+					}
 				}
 			}
 			
