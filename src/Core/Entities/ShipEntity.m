@@ -5678,7 +5678,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	ParticleEntity  *fragment;
 	OOCargoQuantity n_cargo = (ranrot_rand() % (likely_cargo + 1));
 	OOCargoQuantity cargo_to_go;
-
+	
 	if ([self status] == STATUS_DEAD)  return;
 	[self setStatus:STATUS_DEAD];
 	
@@ -5689,7 +5689,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[[PlayerEntity sharedPlayer] setScriptTarget:self];
 			[self doScriptEvent:@"shipDied"];	// FIXME: params missing
 		}
-
+		
 		// two parts to the explosion:
 		// 1. fast sparks
 		float how_many = factor;
@@ -5709,8 +5709,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 			[fragment release];
 			how_many -= 1.0f;
 		}
-
-
+		
 		// we need to throw out cargo at this point.
 		unsigned cargo_chance = 10;
 		if ([[name lowercaseString] rangeOfString:@"medical"].location != NSNotFound)

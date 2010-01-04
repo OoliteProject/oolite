@@ -4288,7 +4288,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 
 - (BOOL) removeEntity:(Entity *) entity
 {
-	if (entity)
+	if (entity != nil && ![entity isPlayer])
 	{
 		/*	Ensure entity won't actually be dealloced until the end of this
 			update (or the next update if none is in progress), because
@@ -5541,7 +5541,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 #ifndef NDEBUG
 				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
 #endif
-				if (![thing isPlayer] && EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing]))
+				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing] && ![thing isPlayer]))
 				{
 					if (zombies == nil)  zombies = [NSMutableSet set];
 					[zombies addObject:thing];
