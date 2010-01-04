@@ -5541,7 +5541,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 #ifndef NDEBUG
 				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
 #endif
-				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing]))
+				if (![thing isPlayer] && EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing]))
 				{
 					if (zombies == nil)  zombies = [NSMutableSet set];
 					[zombies addObject:thing];
