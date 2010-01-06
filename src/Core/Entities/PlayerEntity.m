@@ -4718,7 +4718,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	// I've just had a number of glitches with F6, putting this at the end of the method seems to solve them all --Kaks 20100106
+	//[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 	
 	// GUI stuff
 	{
@@ -4758,6 +4759,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
+	
+	// I've just had a number of glitches with F6, putting this at the end of the method seems to solve them all --Kaks 20100106
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 }
 
 
@@ -4777,7 +4781,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	}
 	NSString *targetSystemName = [[UNIVERSE getSystemName:target_system_seed] retain];  // retained
 	
-	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+	// I've just had a number of glitches with F6, putting this at the end of the method seems to solve them all --Kaks 20100106
+	//[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 
 	// GUI stuff
 	{
@@ -4812,6 +4817,9 @@ static PlayerEntity *sSharedPlayer = nil;
 		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"short_range_chart"] inFolder:@"Images"]];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
+	
+	// I've just had a number of glitches with F6, putting this at the end of the method seems to solve them all --Kaks 20100106
+	[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 }
 
 

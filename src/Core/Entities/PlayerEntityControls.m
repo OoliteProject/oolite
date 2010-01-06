@@ -552,7 +552,12 @@ static NSTimeInterval	time_last_frame;
 		{
 			view = VIEW_STARBOARD;
 		}
-		if (view != VIEW_NONE)
+		if (view == VIEW_NONE)
+		{
+			// still in mission screen, process the input.
+			[self pollDemoControls: delta_t];
+		}
+		else
 		{
 			[[UNIVERSE gui] clearBackground];
 			[self switchToThisView:view];
@@ -563,7 +568,6 @@ static NSTimeInterval	time_last_frame;
 			// notify older scripts, but do not trigger missionScreenOpportunity.
 			[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
 		}
-		[self pollDemoControls: delta_t];
 	}
 	else if (!paused)
 	{
