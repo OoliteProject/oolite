@@ -112,6 +112,7 @@ static int				saved_view_direction;
 static double			saved_script_time;
 static int				saved_gui_screen;
 static int 				pressedArrow = 0;
+static BOOL			mouse_x_axis_map_to_yaw = NO;
 static NSTimeInterval	time_last_frame;
 
 
@@ -478,6 +479,7 @@ static NSTimeInterval	time_last_frame;
 					 is reset */
 					keyboardRollPitchOverride = NO;
 					keyboardYawOverride = NO;
+					mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
 				}
 				else
 				{
@@ -2634,6 +2636,7 @@ static NSTimeInterval	time_last_frame;
 		double sensitivity = 2.0;
 		virtualStick.x *= sensitivity;
 		virtualStick.y *= sensitivity;
+		reqYaw = virtualStick.x;
 	}
 	else if(numSticks)
 	{
@@ -2672,7 +2675,8 @@ static NSTimeInterval	time_last_frame;
 	double yaw_dampner = YAW_DAMPING_FACTOR * delta_t;
 	
 	rolling = NO;
-	if (!mouse_control_on )
+	// if we have yaw on the mouse x-axis, then allow using the keyboard roll keys
+	if (!mouse_control_on || (mouse_control_on && mouse_x_axis_map_to_yaw))
 	{
 		if ([gameView isDown:key_roll_left])
 		{
@@ -2689,7 +2693,7 @@ static NSTimeInterval	time_last_frame;
 			rolling = YES;
 		}
 	}
-	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
+	if(((mouse_control_on && !mouse_x_axis_map_to_yaw) || numSticks) && !keyboardRollPitchOverride)
 	{
 		double stick_roll = max_flight_roll * virtualStick.x;
 		if (flightRoll < stick_roll)
@@ -2721,6 +2725,7 @@ static NSTimeInterval	time_last_frame;
 	}
 	
 	pitching = NO;
+	// we don't care about pitch keyboard overrides when mouse control is on, only when using joystick
 	if (!mouse_control_on)
 	{
 		if ([gameView isDown:key_pitch_back])
@@ -2738,7 +2743,7 @@ static NSTimeInterval	time_last_frame;
 			pitching = YES;
 		}
 	}
-	if((mouse_control_on || numSticks) && !keyboardRollPitchOverride)
+	if(mouse_control_on || (numSticks && !keyboardRollPitchOverride))
 	{
 		double stick_pitch = max_flight_pitch * virtualStick.y;
 		if (flightPitch < stick_pitch)
@@ -2772,21 +2777,25 @@ static NSTimeInterval	time_last_frame;
 	if (![UNIVERSE strict])
 	{
 		yawing = NO;
-		if ([gameView isDown:key_yaw_left])
+		// if we have roll on the mouse x-axis, then allow using the keyboard yaw keys
+		if (!mouse_control_on || (mouse_control_on && !mouse_x_axis_map_to_yaw))
 		{
-			keyboardYawOverride=YES;
-			if (flightYaw < 0.0)  flightYaw = 0.0;
-			[self increase_flight_yaw:delta_t*yaw_delta];
-			yawing = YES;
+			if ([gameView isDown:key_yaw_left])
+			{
+				keyboardYawOverride=YES;
+				if (flightYaw < 0.0)  flightYaw = 0.0;
+				[self increase_flight_yaw:delta_t*yaw_delta];
+				yawing = YES;
+			}
+			else if ([gameView isDown:key_yaw_right])
+			{
+				keyboardYawOverride=YES;
+				if (flightYaw > 0.0)  flightYaw = 0.0;
+				[self decrease_flight_yaw:delta_t*yaw_delta];
+				yawing = YES;
+			}
 		}
-		else if ([gameView isDown:key_yaw_right])
-		{
-			keyboardYawOverride=YES;
-			if (flightYaw > 0.0)  flightYaw = 0.0;
-			[self decrease_flight_yaw:delta_t*yaw_delta];
-			yawing = YES;
-		}
-		if(numSticks && !keyboardRollPitchOverride && !keyboardYawOverride)
+		if(((mouse_control_on && mouse_x_axis_map_to_yaw) || numSticks) && !keyboardYawOverride)
 		{
 			// I think yaw is handled backwards in the code,
 			// which is why the negative sign is here.
