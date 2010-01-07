@@ -38,4 +38,115 @@
 	
 	//hyperspace_tunnel_color_1 = (1.0, 0.0, 1.0, 0.5);		// default value, same as docking tunnel
 	//hyperspace_tunnel_color_2 = (0.0, 0.0, 1.0, 0.25);	// default value, same as docking tunnel
+	
+	
+	/*	Worlds with "pink oceans" or "vast oceans" according to system
+		description. "Unusual oceans" are ignored.
+		In theory, oceans could also be "ancient", "great", "funny", "weird",
+		"strange", or "peculiar", but only "pink", "vast" and "unusual" ones
+		seem to exist in the wild.
+	*/
+	"0 19" =
+	{
+		// Azaqu
+		sea_hsb_color = "0.96 0.25 1";
+	};
+	// 0 148 Riraes: naturally pink
+	"0 172" =
+	{
+		// Esveor
+		sea_hsb_color = "0.88 0.2 0.95";
+	};
+	// 0 164 Ribilebi: naturally vast
+	
+	"1 25" =
+	{
+		// Berien
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"1 137" =
+	{
+		// Lainor
+		sea_hsb_color = "0.0 0.25 1";
+	};
+	"1 160" =
+	{
+		// Geisan
+		sea_hsb_color = "0.01 0.27 1";
+	};
+	// 1 195 Cebior: naturally vast
+	// 1 200 Atgeaner: naturally vastish
+	"1 203" =
+	{
+		// Cemabe - vast oceans, prowled by vicious vicous wolfs.
+		percent_land = 25;	// Actually results in less than 5% land. Hmm.
+	};
+	
+	"2 59" =
+	{
+		// Ceteri
+		sea_hsb_color = "0.03 0.3 1";
+	};
+	"2 115" =
+	{
+		// Usraer
+		sea_hsb_color = "0.97 0.45 0.9";
+		land_hsb_color = "0.55 0.75 0.8";	// Blue continents - Usraer defaults to a clashing red.
+	};
+	"2 125" =
+	{
+		// Edcequor
+		sea_hsb_color = "0.93 0.21 1";
+	};
+	"2 193" =
+	{
+		// Anondi
+		sea_hsb_color = "0.02 0.31 0.85";
+	};
+	"2 206" =
+	{
+		// Atlaar
+		sea_hsb_color = "0.89 0.32 1";
+	};
+	"2 215" =
+	{
+		// Bibira
+		sea_hsb_color = "0 0.15 0.95";
+	};
+	
+	"3 16" =
+	{
+		// Onzaenve
+		percent_land = 15;
+	};
+	"3 130" =
+	{
+		// Cebitiza
+		percent_land = 35;
+	};
+	"3 148" =
+	{
+		// Teisen
+		percent_land = 30;
+	};
+	"3 192" =
+	{
+		// Laerzaes
+		percent_land = 20;
+	};
+	"3 216" =
+	{
+		// Edrari
+		sea_hsb_color = "0.88 0.2 0.95";
+	};
+	"3 224" =
+	{
+		// Orusdire
+		percent_land = 20;
+	};
+	"3 247" =
+	{
+		// Leisera - muddy pink, for the mud tennis.
+		sea_hsb_color = "0.02 0.31 0.85";
+	};
 }
