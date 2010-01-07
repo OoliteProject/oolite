@@ -1123,10 +1123,9 @@ static NSTimeInterval	time_last_frame;
 						// say it!
 						[UNIVERSE clearPreviousMessage];
 						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-						[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-						
 						[self doScriptEvent:@"playerStartedJumpCountdown"
 							  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+						[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
 					}
 				}
 				hyperspace_pressed = YES;

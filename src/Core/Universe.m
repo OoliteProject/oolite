@@ -6928,7 +6928,10 @@ static NSDictionary	*sCachedSystemData = nil;
 		
 		OOPlanetEntity *planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:seed];
 		[_preloadingPlanetMaterials addObject:[planet material]];
-		[_preloadingPlanetMaterials addObject:[planet atmosphereMaterial]];
+		
+		// In some instances (retextured planets atm), the main planet might not have an atmosphere defined.
+		// Trying to add nil to _preloadingPlanetMaterials  will prematurely terminate the calling function.(!) --Kaks 20100107
+		if ([planet atmosphereMaterial]) [_preloadingPlanetMaterials addObject:[planet atmosphereMaterial]];
 	}
 #endif
 }
@@ -9039,7 +9042,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	unsigned i = [_preloadingPlanetMaterials count];
 	while (i--)
 	{
-		if ([[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
+		if (![_preloadingPlanetMaterials objectAtIndex:i] || [[_preloadingPlanetMaterials objectAtIndex:i] isFinishedLoading])
 		{
 			[_preloadingPlanetMaterials removeObjectAtIndex:i];
 		}
