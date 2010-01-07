@@ -717,10 +717,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[self addEntity:thing];
 	[thing release];
 	
-	sun_center_position[0] = 0.0;
-	sun_center_position[1] = 0.0;
-	sun_center_position[2] = 0.0;
-	sun_center_position[3] = 1.0;
+	[self setSunCenterPosition:kZeroVector];
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
@@ -942,11 +939,8 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	a_sun = [[OOSunEntity alloc] initSunWithColor:pale_bgcolor andDictionary:sun_dict];	// alloc retains!
 	
 	[a_sun setStatus:STATUS_ACTIVE];
-	[a_sun setPosition:sunPos];
-	sun_center_position[0] = sunPos.x;
-	sun_center_position[1] = sunPos.y;
-	sun_center_position[2] = sunPos.z;
-	sun_center_position[3] = 1.0;
+	[a_sun setPosition:sunPos]; // sets also light origin
+	// [self setSunCenterPosition:sunPos];
 	[a_sun setEnergy:  1000000.0];
 	[self addEntity:a_sun];
 	
@@ -1093,15 +1087,12 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			v0.z *= 2.0;
 			planetPos = a_planet->position;
 			[a_planet setPosition:vector_add(planetPos, v0)];
-			[a_sun setPosition:vector_add(sunPos, v0)];
+			[a_sun setPosition:vector_add(sunPos, v0)];  // sets also light origin
 			sunPos = a_sun->position;
 			[a_station setPosition:vector_add(stationPos, v0)];
 			stationPos = a_station->position;
 		}
-		sun_center_position[0] = sunPos.x;
-		sun_center_position[1] = sunPos.y;
-		sun_center_position[2] = sunPos.z;
-		sun_center_position[3] = 1.0;
+		//[self setSunCenterPosition:sunPos];
 		
 		[self removeEntity:a_planet];	// and Poof! it's gone
 		cachedPlanet = nil;
@@ -1217,6 +1208,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	demo_light_on = NO;
 	OOGL(glDisable(GL_LIGHT1));
 	sun_light_on = NO;
+}
+
+- (void) setSunCenterPosition: (Vector) sunPos
+{
+	sun_center_position[0] = sunPos.x;
+	sun_center_position[1] = sunPos.y;
+	sun_center_position[2] = sunPos.z;
+	sun_center_position[3] = 1.0;
 }
 
 
@@ -8512,10 +8511,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	
-	sun_center_position[0] = 4000000.0;
-	sun_center_position[1] = 0.0;
-	sun_center_position[2] = 0.0;
-	sun_center_position[3] = 1.0;
+	[self setSunCenterPosition:(Vector){ 4000000.0, 0.0, 0.0 }];
 	
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];

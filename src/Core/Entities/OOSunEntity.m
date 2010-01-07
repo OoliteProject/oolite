@@ -518,6 +518,13 @@ MA 02110-1301, USA.
 }
 
 
+- (void) setPosition:(Vector) posn
+{
+	[super setPosition: posn];
+	[UNIVERSE setSunCenterPosition: posn];
+}
+
+
 - (BOOL) willGoNova
 {
 	return throw_sparks;
