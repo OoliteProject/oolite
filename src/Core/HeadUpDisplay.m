@@ -2059,9 +2059,11 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:FPSINFO_DISPLAY_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FPSINFO_DISPLAY_HEIGHT];
 	
-	NSString* positionInfo = [UNIVERSE expressPosition:player->position inCoordinateSystem:@"pwm"];
+	Vector playerPos = [player position];
+	NSString* positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
+	positionInfo = [NSString stringWithFormat:@"abs %.2f %.2f %.2f / %@", playerPos.x, playerPos.y, playerPos.z, positionInfo];
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
-	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: x%.2f", [UNIVERSE timeAccelerationFactor]];
+	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: \xC3\x97%.2f", [UNIVERSE timeAccelerationFactor]];
 	
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 
