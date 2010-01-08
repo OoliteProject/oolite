@@ -3491,6 +3491,11 @@ void setSunLight(BOOL yesno)
 		if (yesno)  OOGL(glEnable(GL_LIGHT1));
 		else  OOGL(glDisable(GL_LIGHT1));
 		sun_light_on = yesno;
+		if(sun_light_on) 
+		{
+			if ([UNIVERSE sun]) [UNIVERSE setSunCenterPosition: [[UNIVERSE sun] position]]; // test EW reset light1 to sun
+			else [UNIVERSE setSunCenterPosition: kZeroVector];
+		}
 	}
 }
 
@@ -3509,6 +3514,7 @@ void setDemoLight(BOOL yesno, Vector position)
 		if (yesno)  OOGL(glEnable(GL_LIGHT0));
 		else  OOGL(glDisable(GL_LIGHT0));
 		demo_light_on = yesno;
+		// if (demo_light_on) [UNIVERSE setSunCenterPosition:(Vector){ DEMO_LIGHT_POSITION }]; // can not set it here as this overwrites screen specific settings.
 	}
 }
 

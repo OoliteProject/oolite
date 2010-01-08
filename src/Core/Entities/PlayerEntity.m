@@ -82,6 +82,8 @@ MA 02110-1301, USA.
 
 #define PLAYER_DEFAULT_NAME				@"Jameson"
 
+#define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
+
 enum
 {
 	// If comm log is kCommLogTrimThreshold or more lines long, it will be cut to kCommLogTrimSize.
@@ -5117,6 +5119,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setSunCenterPosition:(Vector){ DEMO_LIGHT_POSITION }];
 }
 
 
@@ -5635,6 +5638,7 @@ static NSString *last_outfitting_key=nil;
 	background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"intro"] inFolder:@"Images"];
 	[gui setBackgroundTexture:background];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setSunCenterPosition:(Vector){ DEMO_LIGHT_POSITION }];
 }
 
 

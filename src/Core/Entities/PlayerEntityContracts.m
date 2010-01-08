@@ -1366,6 +1366,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
+	[UNIVERSE setSunCenterPosition:(Vector){ 5000.0f, 25000.0f, -10000.0f }]; // set light origine
 	
 	if (guiChanged)
 	{
