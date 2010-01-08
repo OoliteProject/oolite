@@ -1499,8 +1499,8 @@ static NSTimeInterval	time_last_frame;
 					if (gui_screen == GUI_SCREEN_SHORT_RANGE_CHART)
 					{
 						double		vadjust = 51;
-						double		hscale = 4.0 * MAIN_GUI_PIXEL_WIDTH / 256.0;
-						double		vscale = 4.0 * MAIN_GUI_PIXEL_HEIGHT / 512.0;
+						double		hscale = MAIN_GUI_PIXEL_WIDTH / 64.0;
+						double		vscale = MAIN_GUI_PIXEL_HEIGHT / 128.0;
 						cursor_coordinates.x = galaxy_coordinates.x + (maus.x * MAIN_GUI_PIXEL_WIDTH) / hscale;
 						cursor_coordinates.y = galaxy_coordinates.y + (maus.y * MAIN_GUI_PIXEL_HEIGHT + vadjust) / vscale;
 					}
@@ -1549,6 +1549,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					pressedArrow =  pressedArrow == gvArrowKeyLeft ? 0 : pressedArrow;
+				
 				if ([gameView isDown:gvArrowKeyRight])
 				{
 					if (nextSystem && pressedArrow != gvArrowKeyRight)
@@ -1566,7 +1567,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					pressedArrow =  pressedArrow == gvArrowKeyRight ? 0 : pressedArrow;
-
+				
 				if ([gameView isDown:gvArrowKeyDown])
 				{
 					if (nextSystem && pressedArrow != gvArrowKeyDown)
@@ -1584,7 +1585,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					pressedArrow =  pressedArrow == gvArrowKeyDown ? 0 : pressedArrow;
-
+				
 				if ([gameView isDown:gvArrowKeyUp])
 				{
 					if (nextSystem && pressedArrow != gvArrowKeyUp)
@@ -1602,7 +1603,7 @@ static NSTimeInterval	time_last_frame;
 				}
 				else
 					pressedArrow =  pressedArrow == gvArrowKeyUp ? 0 : pressedArrow;
-
+				
 				if ((cursor_moving)&&(!moving))
 				{
 					// if found with a search string, don't recalculate! Required for overlapping systems, like Divees & Tezabi in galaxy 5

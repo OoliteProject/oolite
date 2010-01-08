@@ -223,7 +223,7 @@ MA 02110-1301, USA.
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
 
-- (void) resizeGuis:(NSDictionary*) info;
+- (void) resizeGuis:(NSDictionary *) info;
 
 - (double) scanner_zoom;
 - (void) setScannerZoom:(double) value;
@@ -247,7 +247,7 @@ MA 02110-1301, USA.
 - (void) setLine_width:(GLfloat) value;
 - (GLfloat) line_width;
 
-- (void) drawWatermarkString:(NSString *)watermarkString;
+- (void) drawWatermarkString:(NSString *) watermarkString;
 
 @end
 
@@ -264,5 +264,6 @@ MA 02110-1301, USA.
 
 
 void OODrawString(NSString *text, double x, double y, double z, NSSize siz);
+void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize siz);
 void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, NSSize siz);
 NSRect OORectFromString(NSString *text, double x, double y, NSSize siz);

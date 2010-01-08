@@ -1161,8 +1161,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	Random_Seed g_seed;
 	double		hcenter = size_in_pixels.width/2.0;
 	double		vcenter = 160.0f;
-	double		hscale = 4.0 * size_in_pixels.width / 256.0;
-	double		vscale = -4.0 * size_in_pixels.height / 512.0;
+	double		hscale = size_in_pixels.width / 64.0;
+	double		vscale = -size_in_pixels.height / 128.0;
 	double		hoffset = hcenter - galaxy_coordinates.x*hscale;
 	double		voffset = size_in_pixels.height - pixel_title_size.height - 5 - vcenter - galaxy_coordinates.y*vscale;
 	int			i;
@@ -1266,20 +1266,38 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	}
 	
 	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
+	
+	Random_Seed target = [[PlayerEntity sharedPlayer] target_system_seed];
+	int targetIdx = -1;
+	struct saved_system *sys;
+	
 	for (i = 0; i < num_nearby_systems; i++)
 	{
-		struct saved_system* s = nearby_systems + i;
+		sys = nearby_systems + i;
 		
-		star.x = (float)(s->seed_d * hscale + hoffset);
-		star.y = (float)(s->seed_b * vscale + voffset);
+		star.x = (float)(sys->seed_d * hscale + hoffset);
+		star.y = (float)(sys->seed_b * vscale + voffset);
+		if (sys->seed_d == target.d && sys->seed_b == target.b) targetIdx = i;
+		
 		if (![player showInfoFlag])
 		{
-			OODrawString(s->p_name, x + star.x, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			OODrawString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
 		else
 		{
-			OODrawPlanetInfo(s->gov, s->eco, s->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
+			OODrawPlanetInfo(sys->gov, sys->eco, sys->tec, x + star.x + 2.0, y + star.y + 2.0, z, NSMakeSize(pixel_row_height,pixel_row_height));
 		}
+	}
+	
+	// highlight the name of the currently selected system
+	//
+	sys = nearby_systems + targetIdx;
+	star.x = (float)(sys->seed_d * hscale + hoffset);
+	star.y = (float)(sys->seed_b * vscale + voffset);
+	
+	if (![player showInfoFlag])
+	{
+		OODrawHilightedString(sys->p_name, x + star.x + 2.0, y + star.y, z, NSMakeSize(pixel_row_height,pixel_row_height));
 	}
 	
 	// draw cross-hairs over current location

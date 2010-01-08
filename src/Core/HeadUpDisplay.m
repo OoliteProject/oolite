@@ -227,7 +227,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 //------------------------------------------------------------------------------------//
 
 
-- (void) resizeGuis:(NSDictionary*) info
+- (void) resizeGuis:(NSDictionary *) info
 {
 	// check for entries in hud plist for comm_log_gui and message_gui
 	// resize and reposition them accordingly
@@ -2265,7 +2265,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawWatermarkString:(NSString *)watermarkString
+- (void) drawWatermarkString:(NSString *) watermarkString
 {
 	NSSize watermarkStringSize = OORectFromString(watermarkString, 0.0f, 0.0f, NSMakeSize(10, 10)).size;
 	
@@ -2718,6 +2718,62 @@ void OODrawString(NSString *text, double x, double y, double z, NSSize siz)
 	
 	[OOTexture applyNone];
 	OOGL(glDisable(GL_TEXTURE_2D));
+}
+
+
+void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize siz)
+{
+	float color[4];
+	
+	// get the physical dimensions of the string
+	NSSize strsize = OORectFromString(text, 0.0f, 0.0f, siz).size;
+	
+	glPushAttrib(GL_CURRENT_BIT);	// save the text colour
+	glGetFloatv(GL_CURRENT_COLOR, color);	// we need the original colour's alpha.
+	
+	// Rounded corners, fading 'shadow' version
+	glColor4f(0.0f, 0.0f, 0.0f, color[3] * 0.4f);	// dark translucent shadow
+	
+	OOGLBEGIN(GL_POLYGON);
+	// thin 'halo' around the 'solid' highlight
+	glVertex3f(x , y + strsize.height + 3.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 3.0f, z);
+	glVertex3f(x + strsize.width + 5.0f, y + strsize.height + 1.0f, z);
+	glVertex3f(x + strsize.width + 5.0f, y + 3.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + 1.0f, z);
+	glVertex3f(x, y + 1.0f, z);
+	glVertex3f(x - 1.0f, y + 3.0f, z);
+	glVertex3f(x - 1.0f, y + strsize.height + 1.0f, z);
+	OOGLEND();
+	
+	OOGLBEGIN(GL_POLYGON);
+	glVertex3f(x + 1.0f, y + strsize.height + 2.0f, z);
+	glVertex3f(x + strsize.width + 3.0f, y + strsize.height + 2.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 1.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + 3.0f, z);
+	glVertex3f(x + strsize.width + 3.0f, y + 2.0f, z);
+	glVertex3f(x + 1.0f, y + 2.0f, z);
+	glVertex3f(x, y + 3.0f, z);
+	glVertex3f(x, y + strsize.height + 1.0f, z);
+	OOGLEND();
+
+	/*
+	
+	// Original, square corners version,
+	glColor4f(0.0f, 0.0f, 1.0f, color[3] * 0.7f);	// blue highlihgt
+	
+	OOGLBEGIN(GL_QUADS);
+	glVertex3f(x, y + strsize.height + 2.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + strsize.height + 2.0f, z);
+	glVertex3f(x + strsize.width + 4.0f, y + 2.0f, z);
+	glVertex3f(x, y + 2.0f, z);
+	OOGLEND();
+	
+	*/
+	
+	glPopAttrib();	//restore the colour
+	
+	OODrawString(text, x, y, z, siz);
 }
 
 
