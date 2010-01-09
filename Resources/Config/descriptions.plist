@@ -411,6 +411,10 @@
 	// Currency format
 	"@-credits"						= "%@ ₢";
 	
+	// Fancy-schmancy symbols
+	"multiplication-sign"			= "×";
+	"division-sign"					= "÷";
+	
 	// *** Misc. messages ***
 	// Messages used when awarding bounties
 	"bounty-@-total-@"				= "Bounty: %@\nTotal: %@";

@@ -2063,7 +2063,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	NSString* positionInfo = [UNIVERSE expressPosition:playerPos inCoordinateSystem:@"pwm"];
 	positionInfo = [NSString stringWithFormat:@"abs %.2f %.2f %.2f / %@", playerPos.x, playerPos.y, playerPos.z, positionInfo];
 	NSString* collDebugInfo = [NSString stringWithFormat:@"%@ - %@", [player dial_objinfo], [UNIVERSE collisionDescription]];
-	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: \xC3\x97%.2f", [UNIVERSE timeAccelerationFactor]];
+	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: %@%.2f", DESC(@"multiplication-sign"), [UNIVERSE timeAccelerationFactor]];
 	
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
 
