@@ -310,7 +310,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	BOOL			result = NO;;
+	BOOL			result = NO;
 	BOOL			arrow_up = [gameView isDown:gvArrowKeyUp];
 	BOOL			arrow_down = [gameView isDown:gvArrowKeyDown];
 	BOOL			mouse_click = [gameView isDown:gvMouseLeftButton];
