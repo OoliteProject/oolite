@@ -319,9 +319,9 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
+			[self playMenuNavigationDown];
 			if ([gui setNextRow: +1])
 			{
-				[self playMenuNavigationDown];
 				result = YES;
 			}
 			else
@@ -336,9 +336,9 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
+			[self playMenuNavigationUp];
 			if ([gui setNextRow: -1])
 			{
-				[self playMenuNavigationUp];
 				result = YES;
 			}
 			else
