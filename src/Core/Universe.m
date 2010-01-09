@@ -3491,11 +3491,6 @@ void setSunLight(BOOL yesno)
 		if (yesno)  OOGL(glEnable(GL_LIGHT1));
 		else  OOGL(glDisable(GL_LIGHT1));
 		sun_light_on = yesno;
-		if(sun_light_on) 
-		{
-			if ([UNIVERSE sun]) [UNIVERSE setSunCenterPosition: [[UNIVERSE sun] position]]; // test EW reset light1 to sun
-			else [UNIVERSE setSunCenterPosition: kZeroVector];
-		}
 	}
 }
 
@@ -3617,10 +3612,15 @@ static const OOMatrix	starboard_matrix =
 			int				i, v_status;
 			Vector			position, obj_position, view_dir, view_up;
 			OOMatrix		view_matrix;
-			BOOL			inGUIMode = NO;
 			int				ent_count =	n_entities;
 			Entity			*my_entities[ent_count];
 			int				draw_count = 0;
+			PlayerEntity	*player = [PlayerEntity sharedPlayer];
+			Entity			*drawthing = nil;
+			OOCamera		*camera = [player currentCamera];
+			BOOL			inGUIMode = [player showDemoShips];;
+			
+			if (!inGUIMode && [UNIVERSE sun]) [UNIVERSE setSunCenterPosition: [[UNIVERSE sun] position]]; // reset light1 to sun's position
 			
 			// use a non-mutable copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
@@ -3639,14 +3639,6 @@ static const OOMatrix	starboard_matrix =
 				my_entities[draw_count++] = [e retain];		//	retained
 			}
 			
-			PlayerEntity	*player = [PlayerEntity sharedPlayer];
-			Entity			*drawthing = nil;
-			OOCamera		*camera = [player currentCamera];
-			camera = camera;
-			
-			position = kZeroVector;
-			
-			inGUIMode = [player showDemoShips];
 			position = [player viewpointPosition];
 			v_status = [player status];
 			

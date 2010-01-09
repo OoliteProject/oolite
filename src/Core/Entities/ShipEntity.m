@@ -2017,7 +2017,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
 	}
 	
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && [equipmentKey isEqualToString:@"thargon"]))
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
 	{
 		if (missiles >= max_missiles) return NO;
 	}
@@ -2179,7 +2179,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// special cases
 	
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && [equipmentKey isEqualToString:@"thargon"]))
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
 	{
 		if (missiles >= max_missiles) return NO;
 		
@@ -2189,7 +2189,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// don't add any thargons to non-thargoid ships.
-	if([equipmentKey isEqualToString:@"thargon"]) return NO;
+	if([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"]) return NO;
 	
 	// we can theoretically add a damaged weapon, but not a working one.
 	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
@@ -2262,7 +2262,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentTypeCheckKey];
 	if (eqType == nil)  return;
 	
-	if ([eqType isMissileOrMine] || ([self isThargoid] && [equipmentTypeCheckKey isEqualToString:@"thargon"]))
+	if ([eqType isMissileOrMine] || ([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
 	{
 		[self removeExternalStore:eqType];
 	}
