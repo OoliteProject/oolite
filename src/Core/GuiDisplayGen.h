@@ -163,6 +163,7 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 - (BOOL) setSelectedRow:(OOGUIRow)row;
 - (BOOL) setNextRow:(int) direction;
 - (BOOL) setFirstSelectableRow;
+- (BOOL) setLastSelectableRow;
 - (void) setNoSelectedRow;
 - (NSString *) selectedRowText;
 - (NSString *) selectedRowKey;

@@ -326,7 +326,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				[self playMenuNavigationNot];
+				[gui setFirstSelectableRow];
 			}
 			timeLastKeyPress = script_time;
 		}
@@ -343,7 +343,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			else
 			{
-				[self playMenuNavigationNot];
+				[gui setLastSelectableRow];
 			}
 			timeLastKeyPress = script_time;
 		}

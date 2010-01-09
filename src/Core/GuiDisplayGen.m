@@ -428,6 +428,23 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 }
 
 
+- (BOOL) setLastSelectableRow
+{
+	int row = selectableRange.location + selectableRange.length - 1;
+	while (RowInRange(row, selectableRange))
+	{
+		if (![[rowKey objectAtIndex:row] isEqual:GUI_KEY_SKIP])
+		{
+			selectedRow = row;
+			return YES;
+		}
+		row--;
+	}
+	selectedRow = -1;
+	return NO;
+}
+
+
 - (void) setNoSelectedRow
 {
 	selectedRow = -1;
