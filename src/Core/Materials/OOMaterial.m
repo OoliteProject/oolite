@@ -214,14 +214,30 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	// If there's a parallax map, it's always part of the one and only normal map
 	if (normalAndParallaxMap != nil)  normalMap = normalAndParallaxMap;
 	
-	// Shininess 0 or nil/black specular colour means no specular.
-	if (shininess == 0 || [specular isBlack])
+	if (specularMap != nil)
 	{
-		specular = nil;
+		// Sensible defaults for specular parameters if a specular map is used (as of 1.74).
+		if (shininess <= 0)  shininess = 128;
+		if (specular == nil)  specular = [OOColor whiteColor];
 	}
-	
-	// No specular means no specular map.
-	if (specular == nil)  specularMap = nil;
+	else
+	{
+		// Shininess 0 or nil/black specular colour means no specular.
+		if (shininess == 0 || [specular isBlack])
+		{
+			specular = nil;
+			specularMap = nil;
+		}
+		else
+		{
+			// Use same defaults as basic material.
+			if (shininess < 0)
+			{
+				shininess = 10;
+				if (specular == nil)  specular = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
+			}
+		}
+	}
 	
 	if ([emission isBlack])  emission = nil;
 	
@@ -243,11 +259,11 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		[modifiedMacros setObject:one forKey:@"OOSTD_EMISSION"];
 		[newConfig setObject:[emission normalizedArray] forKey:@"emission"];
 	}
-	if (shininess != 0)
+	if (shininess > 0)
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_SPECULAR"];
 		if (specular != nil)  [newConfig setObject:[specular normalizedArray] forKey:@"specular"];
-		if (shininess > 0)  [newConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:@"shininess"];
+		[newConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:@"shininess"];
 		if (specularMap != nil)
 		{
 			[modifiedMacros setObject:one forKey:@"OOSTD_SPECULAR_MAP"];
