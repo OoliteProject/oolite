@@ -1126,7 +1126,7 @@ BOOL	sun_light_on = NO;
 BOOL	demo_light_on = NO;
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
-#define DOCKED_AMBIENT_LEVEL	0.2f	// Should be 0.05, temporarily 0.2 until lights are fixed
+#define DOCKED_AMBIENT_LEVEL	0.2f	// Should be 0.05, temporarily 0.2 until lights are fixed. (Shader ambient lighting is still wrong.)
 #define DOCKED_ILLUM_LEVEL		0.7f
 GLfloat docked_light_ambient[4]	= { DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, DOCKED_AMBIENT_LEVEL, 1.0f };
 GLfloat docked_light_diffuse[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, 1.0f };	// white
@@ -3617,8 +3617,7 @@ static const OOMatrix	starboard_matrix =
 			int				draw_count = 0;
 			PlayerEntity	*player = [PlayerEntity sharedPlayer];
 			Entity			*drawthing = nil;
-			OOCamera		*camera = [player currentCamera];
-			BOOL			inGUIMode = [player showDemoShips];;
+			BOOL			inGUIMode = [player showDemoShips];
 			
 			if (!inGUIMode && [UNIVERSE sun]) [UNIVERSE setSunCenterPosition: [[UNIVERSE sun] position]]; // reset light1 to sun's position
 			
