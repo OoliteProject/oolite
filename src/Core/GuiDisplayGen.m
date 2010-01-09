@@ -872,6 +872,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[self setColor:[OOColor greenColor] forRow:first_row];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:first_row];
 		[self setKey:GUI_KEY_OK forRow:first_row];
+		[self setSelectableRange:NSMakeRange(first_row, 1)];
 		first_y -= 16; // start 1 row down!
 		if (statusPage == page_count) [self setSelectedRow:first_row];
 	}
@@ -880,6 +881,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		[self setColor:[OOColor greenColor] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setKey:GUI_KEY_OK forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		[self setSelectableRange:NSMakeRange(first_row + STATUS_EQUIPMENT_MAX_ROWS, 1)];
 		if (statusPage == 1) [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 	}
 

@@ -310,7 +310,7 @@ static NSTimeInterval	time_last_frame;
 {
 	MyOpenGLView	*gameView = [UNIVERSE gameView];
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	BOOL			result = NO;
+	BOOL			result = NO;;
 	BOOL			arrow_up = [gameView isDown:gvArrowKeyUp];
 	BOOL			arrow_down = [gameView isDown:gvArrowKeyDown];
 	BOOL			mouse_click = [gameView isDown:gvMouseLeftButton];
@@ -319,15 +319,18 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
-			[self playMenuNavigationDown];
 			if ([gui setNextRow: +1])
 			{
 				result = YES;
 			}
 			else
 			{
-				[gui setFirstSelectableRow];
+				if ([gui setFirstSelectableRow])  result = YES;
 			}
+			
+			if (result && [gui selectableRange].length > 1)  [self playMenuNavigationDown];
+			else  [self playMenuNavigationNot];
+			
 			timeLastKeyPress = script_time;
 		}
 	}
@@ -336,15 +339,18 @@ static NSTimeInterval	time_last_frame;
 	{
 		if ((!upDownKeyPressed) || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
-			[self playMenuNavigationUp];
 			if ([gui setNextRow: -1])
 			{
 				result = YES;
 			}
 			else
 			{
-				[gui setLastSelectableRow];
+				if ([gui setLastSelectableRow])  result = YES;
 			}
+			
+			if (result && [gui selectableRange].length > 1)  [self playMenuNavigationUp];
+			else  [self playMenuNavigationNot];
+
 			timeLastKeyPress = script_time;
 		}
 	}

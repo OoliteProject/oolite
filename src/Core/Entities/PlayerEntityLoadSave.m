@@ -821,7 +821,7 @@
 	if (firstIndex + NUMROWS >= [cdrDetailArray count])
 	{
 		lastIndex=[cdrDetailArray count];
-		[gui setSelectableRange: NSMakeRange(rangeStart, lastIndex)];
+		[gui setSelectableRange: NSMakeRange(rangeStart, rangeStart + NUMROWS)];
 	}
 	else
 	{
