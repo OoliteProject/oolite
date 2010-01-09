@@ -3074,7 +3074,7 @@ static BOOL toggling_music;
 				if (![OOTexture textureWithName:fgName inFolder:@"Images"])
 					[[UNIVERSE message_gui] clear];		// remove all other messages if we're displaying the 'paused' message.
 				
-				[UNIVERSE sleepytime:nil];	// pause handler
+				[UNIVERSE sleepytime:nil];	// 'paused' handler
 			}
 		}
 		pause_pressed = YES;

@@ -427,8 +427,11 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 		else
 		{
 			j = 0;
-			if (missile_list[i] == nil) missiles--;
-			missilesProblem = YES;
+			if (missile_list[i] == nil)
+			{
+				missiles--;
+				missilesProblem = YES;
+			}
 		}
 	}
 	

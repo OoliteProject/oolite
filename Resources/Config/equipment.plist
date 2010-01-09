@@ -117,7 +117,7 @@
 	),
 	/* next items are new items, don't place new items before this mark */
 	( /* Thargoid equipment, incompatible with non-thargoid ships. Not buyable because of its TL. */
-		98, 1000, "Thargon",
+		100, 1000, "Thargon",
 		"thargon",
 		"Alien drone ship."
 	),
@@ -269,7 +269,7 @@
 	),
 	/* NPC equipment, incompatible with player ship. Not buyable because of its TL.*/
 	(
-		98, 147500, "Shield Enhancers",
+		100, 147500, "Shield Enhancers",
 		"EQ_SHIELD_ENHANCER",
 		"Shield enhancing technology dramatically increases the capability of standard defensive shields."
 	)

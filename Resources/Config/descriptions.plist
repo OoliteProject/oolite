@@ -1232,8 +1232,8 @@
 	"cargo-failed-@"				= "You fail to deliver the %@ on time, and no-one will want to pay for it.";
 	
 	// background scenes for GUI screens
-	"gui-scene-show-planet"			= ( "target-planet   120 80 640" );
-	"gui-scene-show-local-planet"	= ( "local-planet   120 80 640" );
+	"gui-scene-show-planet"			= ( "target-planet   114 74 560" );
+	"gui-scene-show-local-planet"	= ( "local-planet   114 74 560" );
 	
 	// character descriptions
 	// basic short desc - “A $species from $homeworld”
