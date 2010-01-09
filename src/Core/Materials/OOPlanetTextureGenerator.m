@@ -24,7 +24,7 @@
 */
 
 
-#define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
+#define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
 #define DEBUG_DUMP_RAW		(	0	&& DEBUG_DUMP)
 
 // Hermite interpolation provides continuous normals, at a cost of about 35 % slower rendering.
@@ -275,7 +275,7 @@ enum
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"seed: %u,%u", _seed.high, _seed.low];
+	return [NSString stringWithFormat:@"seed: %u,%u land: %g", _seed.high, _seed.low, _landFraction];
 }
 
 
@@ -498,16 +498,8 @@ enum
 			}
 			else
 			{
-				/*	Terrain shading
-					was: _powf(norm.z, 3.2). Changing exponent to 3 makes very
-					little difference, other than being faster.
-					
-					FIXME: need to work out a decent way to scale this with texture
-					size, so overall darkness is constant. Should probably be based
-					on normalScale.
-					-- Ahruman
-				*/
-				shade = norm.z * norm.z * norm.z;
+				//	Terrain shading - lambertian lighting from straight above.
+				shade = norm.z;
 				
 				/*	We don't want terrain shading in the sea. The alpha channel
 					of color is a measure of "seaishness" for the specular map,
@@ -525,8 +517,6 @@ enum
 			
 			if (generateAtmosphere)
 			{
-				//				
-				
 				//TODO: sort out CloudMix
 				if (NO) 
 				{

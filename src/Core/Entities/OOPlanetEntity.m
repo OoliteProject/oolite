@@ -26,7 +26,6 @@ MA 02110-1301, USA.
 
 #if NEW_PLANETS
 
-#define SHADY_PLANETS !NO_SHADERS
 #define NEW_ATMOSPHERE 0
 
 #import "OOPlanetDrawable.h"
@@ -77,6 +76,8 @@ MA 02110-1301, USA.
 	self = [self init];
 	if (self == nil)  return nil;
 	
+	scanClass = CLASS_NO_DRAW;
+	
 	// Load random seed override.
 	NSString *seedStr = [dict oo_stringForKey:@"seed"];
 	if (seedStr != nil)
@@ -98,8 +99,6 @@ MA 02110-1301, USA.
 	_shuttlesOnGround = 1 + techLevel / 2;
 	_shuttleLaunchInterval = 3600.0 / (double)_shuttlesOnGround;	// All are launched in one hour.
 	_lastLaunchTime = 30.0 - _shuttleLaunchInterval;				// debug - launch 30s after player enters universe	 FIXME: is 0 the correct non-debug value?
-	
-	scanClass = CLASS_NO_DRAW;
 	
 	int percent_land = [planetInfo oo_intForKey:@"percent_land" defaultValue:24 + (gen_rnd_number() % 48)];
 	[planetInfo setObject:[NSNumber numberWithFloat:0.01 * percent_land] forKey:@"land_fraction"];
@@ -129,11 +128,13 @@ MA 02110-1301, USA.
 	else
 #else
 	// differentiate between normal planets and moons.
-	if (atmosphere) _atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
-#endif
+	if (atmosphere)
 	{
-		_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
+		_atmosphereDrawable = [[OOPlanetDrawable atmosphereWithRadius:collision_radius + ATMOSPHERE_DEPTH] retain];
 	}
+#endif
+	
+	_materialParameters = [planetInfo dictionaryWithValuesForKeys:[NSArray arrayWithObjects:@"land_fraction", @"land_color", @"sea_color", @"polar_land_color", @"polar_sea_color", @"noise_map_seed", @"economy", nil]];
 	[_materialParameters retain];
 	
 	NSString *textureName = [dict oo_stringForKey:@"texture"];
@@ -473,38 +474,6 @@ static OOColor *ColorWithHSBColor(Vector c)
 {
 	BOOL isMoon = _atmosphereDrawable == nil;
 	
-#if !SHADY_PLANETS
-	if (textureName != nil)
-	{
-		[_planetDrawable setTextureName:textureName];
-	}
-	else
-	{
-		OOTexture *texture = nil;
-		OOSingleTextureMaterial *material = nil
-		if (isMoon)
-		{
-			texture = [OOPlanetTextureGenerator planetTextureWithInfo:_materialParameters];
-			material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:texture configuration:nil];
-		}
-		else
-		{
-			OOTexture *atmosphere = nil;
-			
-			[OOPlanetTextureGenerator generatePlanetTexture:&texture
-											  andAtmosphere:&atmosphere
-												   withInfo:_materialParameters];
-			
-			material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:material];
-			[material release];
-			material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:texture configuration:nil];
-		}
-
-		[_planetDrawable setMaterial:material];
-		[material release];
-	}
-#else
 	OOTexture *diffuseMap = nil;
 	OOTexture *normalMap = nil;
 	NSDictionary *macros = nil;
@@ -563,7 +532,6 @@ static OOColor *ColorWithHSBColor(Vector c)
 		material = [[OOSingleTextureMaterial alloc] initWithName:textureName texture:diffuseMap configuration:nil];
 	}
 	[_planetDrawable setMaterial:material];
-#endif
 }
 
 
