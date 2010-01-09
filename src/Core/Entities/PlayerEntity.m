@@ -359,10 +359,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
-	[result oo_setInteger:forward_weapon	forKey:@"forward_weapon"];
-	[result oo_setInteger:aft_weapon		forKey:@"aft_weapon"];
-	[result oo_setInteger:port_weapon		forKey:@"port_weapon"];
-	[result oo_setInteger:starboard_weapon	forKey:@"starboard_weapon"];
+	[result oo_setInteger:forward_weapon_type	forKey:@"forward_weapon"];
+	[result oo_setInteger:aft_weapon_type		forKey:@"aft_weapon"];
+	[result oo_setInteger:port_weapon_type		forKey:@"port_weapon"];
+	[result oo_setInteger:starboard_weapon_type	forKey:@"starboard_weapon"];
 	
 	[result oo_setInteger:max_cargo + 5 * max_passengers	forKey:@"max_cargo"];
 	
@@ -680,10 +680,10 @@ static PlayerEntity *sSharedPlayer = nil;
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
 	
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
-	forward_weapon = [dict oo_intForKey:@"forward_weapon"];
-	aft_weapon = [dict oo_intForKey:@"aft_weapon"];
-	port_weapon = [dict oo_intForKey:@"port_weapon"];
-	starboard_weapon = [dict oo_intForKey:@"starboard_weapon"];
+	forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
+	aft_weapon_type = [dict oo_intForKey:@"aft_weapon"];
+	port_weapon_type = [dict oo_intForKey:@"port_weapon"];
+	starboard_weapon_type = [dict oo_intForKey:@"starboard_weapon"];
 	
 	legalStatus = [dict oo_intForKey:@"legal_status"];
 	market_rnd = [dict oo_intForKey:@"market_rnd"];
@@ -978,11 +978,11 @@ static PlayerEntity *sSharedPlayer = nil;
 	fuel_accumulator		= 0.0f;
 	
 	galaxy_number			= 0;
-	forward_weapon			= WEAPON_PULSE_LASER;
-	aft_weapon				= WEAPON_NONE;
-	port_weapon				= WEAPON_NONE;
-	starboard_weapon		= WEAPON_NONE;
-	[self setWeaponDataFromType:forward_weapon]; 
+	forward_weapon_type		= WEAPON_PULSE_LASER;
+	aft_weapon_type			= WEAPON_NONE;
+	port_weapon_type		= WEAPON_NONE;
+	starboard_weapon_type	= WEAPON_NONE;
+	[self setWeaponDataFromType:forward_weapon_type]; 
 	scannerRange = (float)SCANNER_MAX_RANGE; 
 	
 	ecm_in_operation = NO;
@@ -3200,13 +3200,13 @@ static PlayerEntity *sSharedPlayer = nil;
 	switch (view)
 	{
 		case VIEW_PORT :
-			return port_weapon;
+			return port_weapon_type;
 		case VIEW_STARBOARD :
-			return starboard_weapon;
+			return starboard_weapon_type;
 		case VIEW_AFT :
-			return aft_weapon;
+			return aft_weapon_type;
 		case VIEW_FORWARD :
-			return forward_weapon;
+			return forward_weapon_type;
 		default :
 			return WEAPON_NONE;
 	}
@@ -4378,24 +4378,24 @@ static PlayerEntity *sSharedPlayer = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 	
-	if (forward_weapon > WEAPON_NONE)
+	if (forward_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-fwd-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:forward_weapon_type]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (aft_weapon > WEAPON_NONE)
+	if (aft_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-aft-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:aft_weapon_type]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (port_weapon > WEAPON_NONE)
+	if (port_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-port-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:port_weapon_type]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
-	if (starboard_weapon > WEAPON_NONE)
+	if (starboard_weapon_type > WEAPON_NONE)
 	{
-		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon]];
+		desc = [NSString stringWithFormat:DESC(@"equipment-stb-weapon-@"),[UNIVERSE descriptionForArrayKey:@"weapon_name" index:starboard_weapon_type]];
 		[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:YES], nil]];
 	}
 
@@ -4433,16 +4433,16 @@ static PlayerEntity *sSharedPlayer = nil;
 	switch (facing)
 	{
 		case WEAPON_FACING_FORWARD:
-			weapon_type = forward_weapon;
+			weapon_type = forward_weapon_type;
 			break;
 		case WEAPON_FACING_AFT:
-			weapon_type = aft_weapon;
+			weapon_type = aft_weapon_type;
 			break;
 		case WEAPON_FACING_PORT:
-			weapon_type = port_weapon;
+			weapon_type = port_weapon_type;
 			break;
 		case WEAPON_FACING_STARBOARD:
-			weapon_type = starboard_weapon;
+			weapon_type = starboard_weapon_type;
 			break;
 		// any other value is not a facing
 		default:
@@ -5389,22 +5389,22 @@ static NSString *last_outfitting_key=nil;
 						
 						case 1:
 							desc = FORWARD_FACING_STRING;
-							weaponMounted = forward_weapon > WEAPON_NONE;
+							weaponMounted = forward_weapon_type > WEAPON_NONE;
 							break;
 						
 						case 2:
 							desc = AFT_FACING_STRING;
-							weaponMounted = aft_weapon > WEAPON_NONE;
+							weaponMounted = aft_weapon_type > WEAPON_NONE;
 							break;
 						
 						case 3:
 							desc = PORT_FACING_STRING;
-							weaponMounted = port_weapon > WEAPON_NONE;
+							weaponMounted = port_weapon_type > WEAPON_NONE;
 							break;
 						
 						case 4:
 							desc = STARBOARD_FACING_STRING;
-							weaponMounted = starboard_weapon > WEAPON_NONE;
+							weaponMounted = starboard_weapon_type > WEAPON_NONE;
 							break;
 					}
 					
@@ -5780,20 +5780,20 @@ static NSString *last_outfitting_key=nil;
 		switch (chosen_weapon_facing)
 		{
 			case WEAPON_FACING_FORWARD :
-				current_weapon = forward_weapon;
-				forward_weapon = chosen_weapon;
+				current_weapon = forward_weapon_type;
+				forward_weapon_type = chosen_weapon;
 				break;
 			case WEAPON_FACING_AFT :
-				current_weapon = aft_weapon;
-				aft_weapon = chosen_weapon;
+				current_weapon = aft_weapon_type;
+				aft_weapon_type = chosen_weapon;
 				break;
 			case WEAPON_FACING_PORT :
-				current_weapon = port_weapon;
-				port_weapon = chosen_weapon;
+				current_weapon = port_weapon_type;
+				port_weapon_type = chosen_weapon;
 				break;
 			case WEAPON_FACING_STARBOARD :
-				current_weapon = starboard_weapon;
-				starboard_weapon = chosen_weapon;
+				current_weapon = starboard_weapon_type;
+				starboard_weapon_type = chosen_weapon;
 				break;
 		}
 		
@@ -6445,8 +6445,8 @@ static NSString *last_outfitting_key=nil;
 
 - (BOOL) hasPrimaryWeapon:(OOWeaponType)weaponType
 {
-	if (forward_weapon == weaponType || aft_weapon == weaponType)  return YES;
-	if (port_weapon == weaponType || starboard_weapon == weaponType)  return YES;
+	if (forward_weapon_type == weaponType || aft_weapon_type == weaponType)  return YES;
+	if (port_weapon_type == weaponType || starboard_weapon_type == weaponType)  return YES;
 	
 	return [super hasPrimaryWeapon:weaponType];
 }
@@ -7368,7 +7368,7 @@ static NSString *last_outfitting_key=nil;
 	OOLog(@"dumpState.playerEntity", @"Script time check: %g", script_time_check);
 	OOLog(@"dumpState.playerEntity", @"Script time interval: %g", script_time_interval);
 	OOLog(@"dumpState.playerEntity", @"Roll/pitch/yaw delta: %g, %g, %g", roll_delta, pitch_delta, yaw_delta);
-	OOLog(@"dumpState.playerEntity", @"Shield: %g fore, %g aft", forward_weapon, aft_shield);
+	OOLog(@"dumpState.playerEntity", @"Shield: %g fore, %g aft", forward_shield, aft_shield);
 	OOLog(@"dumpState.playerEntity", @"Alert level: %u, flags: %#x", alertFlags, alertCondition);
 	OOLog(@"dumpState.playerEntity", @"Missile status: %i", missile_status);
 	OOLog(@"dumpState.playerEntity", @"Energy unit: %@", EnergyUnitTypeToString([self installedEnergyUnitType]));

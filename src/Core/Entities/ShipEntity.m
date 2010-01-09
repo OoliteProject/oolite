@@ -413,13 +413,27 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	
 	// Populate the missiles here. Must come after scanClass.
 	missileRole = [shipDict oo_stringForKey:@"missile_role"];
-	unsigned	i;
-	for (i = 0; i < missiles; i++)
+	unsigned	i, j;
+	BOOL missilesProblem = NO;
+	for (i = 0, j = 0; i < missiles; i++)
 	{
 		missile_list[i] = [self newMissile];
-		if (missile_list[i] == nil) i--;
+		// could loop forever (if missile_role is badly defined, newMissile might return nil in some cases) . Try 3 times, and if no luck, skip
+		if (missile_list[i] == nil && j < 3)
+		{
+			j++;
+			i--;
+		}
+		else
+		{
+			j = 0;
+			if (missile_list[i] == nil) missiles--;
+			missilesProblem = YES;
+		}
 	}
 	
+	if (missilesProblem) OOLogWARN(@"ship.setUp.missiles", @"problems initialising missiles for ship '%@', please verify missile_role definition.", [self name]);
+
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
 	if (accuracy >= -5.0f && accuracy <= 10.0f)
@@ -989,7 +1003,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	// escorts or the case of two ships specifying eachother as escorts) - Nikos 20090510
 	if ([self isEscort])
 	{
-		OOLogWARN(@"shipEntity.setupEscorts.escortShipCircularReference", 
+		OOLogWARN(@"ship.setUp.escortShipCircularReference", 
 				@"Ship %@ requested escorts, when it is an escort ship itself. Avoiding possible circular reference overflow by ignoring escort setup.", self);
 		return;
 	}
@@ -2023,6 +2037,16 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		case WEAPON_FACING_FORWARD:
 			weapon_type = forward_weapon_type;
+			// if no forward weapon, see if subentities have forward weapons, return the first one found.
+			if (weapon_type == WEAPON_NONE)
+			{
+				NSEnumerator	*subEntEnum = [self shipSubEntityEnumerator];
+				ShipEntity		*subEntity = nil;
+				while (weapon_type == WEAPON_NONE && (subEntity = [subEntEnum nextObject]))
+				{
+					weapon_type = subEntity->forward_weapon_type;
+				}
+			}
 			break;
 		case WEAPON_FACING_AFT:
 			weapon_type = aft_weapon_type;
@@ -2310,12 +2334,21 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (missileRole != nil)	missile = [UNIVERSE newShipWithRole:missileRole];	// retained
 		else missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
 		missileType = [OOEquipmentType equipmentTypeWithIdentifier:[missile primaryRole]];
-		return missileType;
+		if (missile == nil || (missile != nil && missileType == nil))
+		{
+			missileType = [OOEquipmentType equipmentTypeWithIdentifier:@"thargon"];
+			OOLogWARN(@"ship.setUp.thargoid", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry. Using 'thargon' instead.", missileRole, [self name], missileType == nil ? @"equipment" : @"shipdata" );
+			[missile release];
+			return missileType;
+		}
+		[missile release];
+		if ([missileRole hasPrefix:@"thargon"] || [missileRole hasSuffix:@"thargon"] || [missileType isMissileOrMine]) return missileType;
+		else return nil;
 	}
 	
 	// random role 10% of the cases, if a missile role is defined.
 	if (chance < 0.9f && missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];	// retained
-	if (missile == nil)	// no actual role defined?
+	if (missile == nil)	// no valid missile role defined?
 	{
 		// random role 20% of the cases. (the 10% above is included here)
 		if (chance > 0.8f) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained

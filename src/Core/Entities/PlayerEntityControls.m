@@ -1782,10 +1782,10 @@ static NSTimeInterval	time_last_frame;
 				NSString		*itemText = [gui selectedRowText];
 				OOWeaponType		weaponType = WEAPON_UNDEFINED;
 				
-				if ([itemText isEqual:FORWARD_FACING_STRING]) weaponType = forward_weapon;
-				if ([itemText isEqual:AFT_FACING_STRING]) weaponType = aft_weapon;
-				if ([itemText isEqual:PORT_FACING_STRING]) weaponType = port_weapon;
-				if ([itemText isEqual:STARBOARD_FACING_STRING]) weaponType = starboard_weapon;
+				if ([itemText isEqual:FORWARD_FACING_STRING]) weaponType = forward_weapon_type;
+				if ([itemText isEqual:AFT_FACING_STRING]) weaponType = aft_weapon_type;
+				if ([itemText isEqual:PORT_FACING_STRING]) weaponType = port_weapon_type;
+				if ([itemText isEqual:STARBOARD_FACING_STRING]) weaponType = starboard_weapon_type;
 				
 				if (weaponType != WEAPON_UNDEFINED)
 				{
