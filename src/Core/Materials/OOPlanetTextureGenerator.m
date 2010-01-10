@@ -404,6 +404,9 @@ enum
 	float normalScale = 1 << _planetScale;
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
+	// Deep sea colour: slightly darkened so the sea isn't just a uniform colour.
+	_info.deepSeaColor = Blend(0.80f, _info.seaColor, (FloatRGB){ 0, 0, 0 });
+	
 	unsigned x, y;
 	FloatRGBA color;
 	FloatRGBA cloudColor = (FloatRGBA){_info.cloudColor.r, _info.cloudColor.g, _info.cloudColor.b, 1.0f};
@@ -696,13 +699,14 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 		{
 			// Coastal waters.
 			diffuse = Blend(-q * RECIP_SHALLOWS, info->seaColor, info->paleSeaColor);
+			specular = 1.0f;
 		}
 		else
 		{
 			// Open sea.
-			diffuse = info->seaColor;
+			diffuse = Blend(-q, info->deepSeaColor, info->seaColor);
+			specular = Lerp(1.0f, 0.85f, -q);
 		}
-		specular = 1.0f;
 	}
 	else if (q < COASTLINE_PORTION)
 	{
