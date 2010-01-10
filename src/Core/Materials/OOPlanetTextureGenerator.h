@@ -31,27 +31,52 @@ MA 02110-1301, USA.
 @class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
 
 
+typedef struct OOPlanetTextureGeneratorInfo
+{
+	RANROTSeed						seed;
+	
+	unsigned						width;
+	unsigned						height;
+	
+	// Planet parameters.
+	float							landFraction;
+	FloatRGB						landColor;
+	FloatRGB						seaColor;
+	FloatRGB						paleLandColor;
+	FloatRGB						polarSeaColor;
+	FloatRGB						paleSeaColor;
+	
+	// Planet mixing coefficients.
+	float							mix_hi;
+	float							mix_oh;
+	float							mix_ih;
+	float							mix_polarCap;
+	
+	// Atmosphere parameters.
+	float							cloudAlpha;
+	float							cloudFraction;
+	FloatRGB						airColor;
+	FloatRGB						cloudColor;
+	FloatRGB						paleAirColor;
+	FloatRGB						paleCloudColor;
+	
+	// Noise generation stuff.
+	float							*fbmBuffer;
+	float							*qBuffer;
+} OOPlanetTextureGeneratorInfo;
+
+
+
 @interface OOPlanetTextureGenerator: OOTextureGenerator
 {
 @private
-	float						_landFraction;
-	FloatRGB					_landColor;
-	FloatRGB					_seaColor;
-	FloatRGB					_polarLandColor;
-	FloatRGB					_polarSeaColor;
+	OOPlanetTextureGeneratorInfo	_info;
+	unsigned						_planetScale;
 	
-	float						_cloudAlpha;
-	float						_cloudFraction;
-	FloatRGB					_airColor;
-	FloatRGB					_cloudColor;
-	FloatRGB					_polarAirColor;
-	FloatRGB					_polarCloudColor;
-	
-	RANROTSeed					_seed;
-	OOPlanetNormalMapGenerator	*_nMapGenerator;
-	OOPlanetAtmosphereGenerator	*_atmoGenerator;
-	OOUInteger					_planetScale;
+	OOPlanetNormalMapGenerator		*_nMapGenerator;
+	OOPlanetAtmosphereGenerator		*_atmoGenerator;
 }
+
 
 - (id) initWithPlanetInfo:(NSDictionary *)planetInfo;
 

@@ -27,9 +27,6 @@
 #define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
 #define DEBUG_DUMP_RAW		(	0	&& DEBUG_DUMP)
 
-// Hermite interpolation provides continuous normals, at a cost of about 35 % slower rendering.
-#define HERMITE					1
-
 
 #import "OOPlanetTextureGenerator.h"
 #import "OOCollectionExtractors.h"
@@ -45,12 +42,15 @@
 #endif
 
 
+#define FREE(x) do { if (0) { void *x__ = x; x__ = x__; } /* Preceeding is for type checking only. */ void **x_ = (void **)&(x); free(*x_); *x_ = NULL; } while (0)
+
+
 #define PLANET_TEXTURE_OPTIONS	(kOOTextureMinFilterLinear | kOOTextureMagFilterLinear | kOOTextureRepeatS | kOOTextureNoShrink)
 
 
 enum
 {
-	kNoiseBufferSize		= 128
+	kRandomBufferSize		= 128
 };
 
 
@@ -86,7 +86,7 @@ enum
 @end
 
 
-/*	Doing the same as above for the atmosphere.		*/
+//	Doing the same as above for the atmosphere.
 @interface OOPlanetAtmosphereGenerator: OOTextureGenerator
 {
 @private
@@ -101,22 +101,19 @@ enum
 @end
 
 
-static	int heightMask, widthMask;
-static	float mix_hi, mix_oh, mix_ih, mix_polarCap;
-
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
-static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed);
-static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer, float *qxBuffer, int *ixBuffer);
+static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info);
+static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed);
+static void AddNoise(OOPlanetTextureGeneratorInfo *info, float *randomBuffer, float octave, unsigned octaveMask, float scale, float *qxBuffer, int *ixBuffer);
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y);
-static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height);
+static float GetQ(float *qbuffer, unsigned x, unsigned y, unsigned width, unsigned height, unsigned widthMask, unsigned heightMask);
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b);
-static float fBlend(float fraction, float a, float b);
-static void SetMixConstants(float maxQ, float temperatureFraction);
-static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, FloatRGB paleAirColor, FloatRGB paleCloudColor, float alpha, float nearPole);
-static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor, FloatRGB polarSeaColor, float nearPole);
+static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatureFraction);
+static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole);
+static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole);
 
 
 enum
@@ -141,22 +138,22 @@ enum
 {
 	if ((self = [super init]))
 	{
-		_landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
-		_landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
-		_seaColor = FloatRGBFromDictColor(planetInfo, @"sea_color");
-		_polarLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
-		_polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
-		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_seed];
+		_info.landFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"land_fraction" defaultValue:0.3]);
+		_info.landColor = FloatRGBFromDictColor(planetInfo, @"land_color");
+		_info.seaColor = FloatRGBFromDictColor(planetInfo, @"sea_color");
+		_info.paleLandColor = FloatRGBFromDictColor(planetInfo, @"polar_land_color");
+		_info.polarSeaColor = FloatRGBFromDictColor(planetInfo, @"polar_sea_color");
+		[[planetInfo objectForKey:@"noise_map_seed"] getValue:&_info.seed];
 		
 		if ([planetInfo objectForKey:@"cloud_alpha"])
 		{
 			// we have an atmosphere:
-			_cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
-			_cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
-			_airColor = FloatRGBFromDictColor(planetInfo, @"air_color");
-			_cloudColor = FloatRGBFromDictColor(planetInfo, @"cloud_color");
-			_polarAirColor = FloatRGBFromDictColor(planetInfo, @"polar_air_color");
-			_polarCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
+			_info.cloudAlpha = [planetInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f];
+			_info.cloudFraction = OOClamp_0_1_f([planetInfo oo_floatForKey:@"cloud_fraction" defaultValue:0.3]);
+			_info.airColor = FloatRGBFromDictColor(planetInfo, @"air_color");
+			_info.cloudColor = FloatRGBFromDictColor(planetInfo, @"cloud_color");
+			_info.paleAirColor = FloatRGBFromDictColor(planetInfo, @"polar_air_color");
+			_info.paleCloudColor = FloatRGBFromDictColor(planetInfo, @"polar_cloud_color");
 		}
 		
 #ifndef TEXGEN_TEST_RIG
@@ -275,7 +272,7 @@ enum
 
 - (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"seed: %u,%u land: %g", _seed.high, _seed.low, _landFraction];
+	return [NSString stringWithFormat:@"seed: %u,%u land: %g", _info.seed.high, _info.seed.low, _info.landFraction];
 }
 
 
@@ -297,11 +294,11 @@ enum
 {
 	return [NSString stringWithFormat:@"OOPlanetTextureGenerator-%@@%u\n%u,%u/%g/%u,%u/%f,%f,%f/%f,%f,%f/%f,%f,%f/%f,%f,%f",
 			type, _planetScale,
-			width, height, _landFraction, _seed.high, _seed.low,
-			_landColor.r, _landColor.g, _landColor.b,
-			_seaColor.r, _seaColor.g, _seaColor.b,
-			_polarLandColor.r, _polarLandColor.g, _polarLandColor.b,
-			_polarSeaColor.r, _polarSeaColor.g, _polarSeaColor.b];
+			_info.width, _info.height, _info.landFraction, _info.seed.high, _info.seed.low,
+			_info.landColor.r, _info.landColor.g, _info.landColor.b,
+			_info.seaColor.r, _info.seaColor.g, _info.seaColor.b,
+			_info.paleLandColor.r, _info.paleLandColor.g, _info.paleLandColor.b,
+			_info.polarSeaColor.r, _info.polarSeaColor.g, _info.polarSeaColor.b];
 }
 
 
@@ -309,7 +306,7 @@ enum
 {
 	if (_nMapGenerator == nil)
 	{
-		_nMapGenerator = [[OOPlanetNormalMapGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"normal"] seed:_seed];
+		_nMapGenerator = [[OOPlanetNormalMapGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"normal"] seed:_info.seed];
 	}
 	return _nMapGenerator;
 }
@@ -319,7 +316,7 @@ enum
 {
 	if (_atmoGenerator == nil)
 	{
-		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_seed];
+		_atmoGenerator = [[OOPlanetAtmosphereGenerator alloc] initWithCacheKey:[self cacheKeyForType:@"atmo"] seed:_info.seed];
 	}
 	return _atmoGenerator;
 }
@@ -363,72 +360,38 @@ enum
 	uint8_t		*buffer = NULL, *px = NULL;
 	uint8_t		*nBuffer = NULL, *npx = NULL;
 	uint8_t		*aBuffer = NULL, *apx = NULL;
-	float		*accBuffer = NULL;
-	float		*qBuffer = NULL;
 	float		*randomBuffer = NULL;
 	
-	height = 1 << (_planetScale + kPlanetScaleOffset);
-	width = height * kPlanetAspectRatio;
-	heightMask = height - 1;
-	widthMask = width - 1;
+	height = _info.height = 1 << (_planetScale + kPlanetScaleOffset);
+	width = _info.width = height * kPlanetAspectRatio;
+	
+#define FAIL_IF(cond)  do { if (EXPECT_NOT(cond))  goto END; } while (0)
+#define FAIL_IF_NULL(x)  FAIL_IF((x) == NULL)
 	
 	buffer = malloc(4 * width * height);
-	if (buffer == NULL)  goto END;
+	FAIL_IF_NULL(buffer);
 	px = buffer;
 	
 	if (generateNormalMap)
 	{
 		nBuffer = malloc(4 * width * height);
-		if (nBuffer == NULL)  goto END;
+		FAIL_IF_NULL(nBuffer);
 		npx = nBuffer;
 	}
 	
 	if (generateAtmosphere)
 	{
 		aBuffer = malloc(4 * width * height);
-		if (aBuffer == NULL)  goto END;
+		FAIL_IF_NULL(aBuffer);
 		apx = aBuffer;
 	}
 	
-	accBuffer = calloc(width * height, sizeof (float));
-	if (accBuffer == NULL)  goto END;
-	
-	qBuffer = calloc(width * height, sizeof (float));
-	if (qBuffer == NULL)  goto END;
-	
-	randomBuffer = calloc(kNoiseBufferSize * kNoiseBufferSize, sizeof (float));
-	if (randomBuffer == NULL)  goto END;
-	FillNoiseBuffer(randomBuffer, _seed);
-	
-	// Generate basic 'Perlin' noise.
-	unsigned octaveMask = 8 * kPlanetAspectRatio;
-	float octave = octaveMask;
-	octaveMask -= 1;
-	float scale = 0.5f;
-	// internal loop buffers...
-	float 	*qxBuffer = calloc(width, sizeof(float));
-	int		*ixBuffer = calloc(width, sizeof(int));
-	while ((octaveMask + 1) < height)
-	{
-		// AddNoise() still accounts for the biggest chunk of rendering time.
-		AddNoise(accBuffer, width, height, octave, octaveMask, scale, randomBuffer, qxBuffer, ixBuffer);
-		octave *= 2.0f;
-		octaveMask = (octaveMask << 1) | 1;
-		scale *= 0.5f;
-	}
-	free(randomBuffer);
-	randomBuffer = NULL;
-	free(qxBuffer);
-	free(ixBuffer);
-	
-#if DEBUG_DUMP_RAW
-	[self dumpNoiseBuffer:accBuffer];
-#endif
+	FAIL_IF(!FillFBMBuffer(&_info));
 	
 	//TODO: sort out CloudMix
-	float polarClouds =(_cloudFraction * accBuffer[0] < 1.0f - _cloudFraction) ? 0.0f : 1.0f;
-	float poleValue = (_landFraction > 0.5f) ? 0.5f * _landFraction : 0.0f;
-	float seaBias = _landFraction - 1.0f;
+	float paleClouds = (_info.cloudFraction * _info.fbmBuffer[0] < 1.0f - _info.cloudFraction) ? 0.0f : 1.0f;
+	float poleValue = (_info.landFraction > 0.5f) ? 0.5f * _info.landFraction : 0.0f;
+	float seaBias = _info.landFraction - 1.0f;
 	
 	/*	The system key 'polar_sea_colour' was used as 'paleSeaColour'.
 		The generated texture had presumably iceberg covered shallows.
@@ -437,23 +400,25 @@ enum
 		widened from 1.73 to smooth out the coast / deep sea boundary.
 		-- Kaks
 	*/
-	
-	FloatRGB paleSeaColor = Blend(0.45f, _polarSeaColor, Blend(0.7f, _seaColor, _landColor));
+	_info.paleSeaColor = Blend(0.45f, _info.polarSeaColor, Blend(0.7f, _info.seaColor, _info.landColor));
 	float normalScale = 1 << _planetScale;
 	if (!generateNormalMap)  normalScale *= 3.0f;
 	
 	unsigned x, y;
 	FloatRGBA color;
-	FloatRGBA cloudColor = (FloatRGBA){_cloudColor.r, _cloudColor.g, _cloudColor.b, 1.0f};
+	FloatRGBA cloudColor = (FloatRGBA){_info.cloudColor.r, _info.cloudColor.g, _info.cloudColor.b, 1.0f};
 	Vector norm;
 	float q, yN, yS, yW, yE, nearPole;
 	GLfloat shade;
 	float rHeight = 1.0f / height;
 	float fy, fHeight = height;
 	// The second parameter is the temperature fraction. Most favourable: 1.0f,  little ice. Most unfavourable: 0.0f, frozen planet. TODO: make it dependent on ranrot / planetinfo key...
-	SetMixConstants(_landFraction, 0.95f);	// no need to recalculate them inside each loop!
+	SetMixConstants(&_info, 0.95f);	// no need to recalculate them inside each loop!
 	
 	// first pass, calculate q.
+	_info.qBuffer = malloc(width * height * sizeof (float));
+	FAIL_IF_NULL(_info.qBuffer);
+	
 	for (y = 0, fy = 0.0f; y < height; y++, fy++)
 	{
 		nearPole = (2.0f * fy - fHeight) * rHeight;
@@ -461,11 +426,16 @@ enum
 		
 		for (x = 0; x < width; x++)
 		{
-			qBuffer[y * width + x] = QFactor(accBuffer, x, y, width, poleValue, seaBias, nearPole);
+			_info.qBuffer[y * width + x] = QFactor(_info.fbmBuffer, x, y, width, poleValue, seaBias, nearPole);
 		}
 	}
 	
 	// second pass, use q.
+	float cloudAlpha = _info.cloudAlpha;
+	float cloudFraction = _info.cloudFraction;
+	unsigned widthMask = width - 1;
+	unsigned heightMask = height - 1;
+	
 	for (y = 0, fy = 0.0f; y < height; y++, fy++)
 	{
 		nearPole = (2.0f * fy - fHeight) * rHeight;
@@ -473,13 +443,13 @@ enum
 		
 		for (x = 0; x < width; x++)
 		{
-			q = qBuffer[y * width + x];	// no need to use GetQ, x and y are always within bounds.
-			yN = GetQ(qBuffer, x, y - 1, width, height);	// recalculates x & y if they go out of bounds.
-			yS = GetQ(qBuffer, x, y + 1, width, height);
-			yW = GetQ(qBuffer, x - 1, y, width, height);
-			yE = GetQ(qBuffer, x + 1, y, width, height);
+			q = _info.qBuffer[y * width + x];	// no need to use GetQ, x and y are always within bounds.
+			yN = GetQ(_info.qBuffer, x, y - 1, width, height, widthMask, heightMask);	// recalculates x & y if they go out of bounds.
+			yS = GetQ(_info.qBuffer, x, y + 1, width, height, widthMask, heightMask);
+			yW = GetQ(_info.qBuffer, x - 1, y, width, height, widthMask, heightMask);
+			yE = GetQ(_info.qBuffer, x + 1, y, width, height, widthMask, heightMask);
 			
-			color = PlanetMix(q, _landColor, _seaColor, _polarLandColor, paleSeaColor, _polarSeaColor, nearPole);
+			color = PlanetMix(&_info, q, nearPole);
 			
 			norm = vector_normal(make_vector(normalScale * (yW - yE), normalScale * (yS - yN), 1.0f));
 			if (generateNormalMap)
@@ -520,19 +490,19 @@ enum
 				//TODO: sort out CloudMix
 				if (NO) 
 				{
-					q = QFactor(accBuffer, x, y, width, polarClouds, _cloudFraction, nearPole);
-					color = CloudMix(q, _airColor, _cloudColor, _polarAirColor, _polarCloudColor, _cloudAlpha, nearPole);
+					q = QFactor(_info.fbmBuffer, x, y, width, paleClouds, cloudFraction, nearPole);
+					color = CloudMix(&_info, q, nearPole);
 				}
 				else
 				{
-					q=accBuffer[y * width + x];
+					q = _info.fbmBuffer[y * width + x];
 					q *= q;
 					color = cloudColor;
 				}
 				*apx++ = 255.0f * color.r;
 				*apx++ = 255.0f * color.g;
 				*apx++ = 255.0f * color.b;
-				*apx++ = 255.0f * _cloudAlpha * q;
+				*apx++ = 255.0f * cloudAlpha * q;
 			}
 		}
 	}
@@ -541,9 +511,9 @@ enum
 	format = kOOTextureDataRGBA;
 	
 END:
-	free(accBuffer);
-	free(qBuffer);
-	free(randomBuffer);
+	FREE(_info.fbmBuffer);
+	FREE(_info.qBuffer);
+	FREE(randomBuffer);
 	if (success)
 	{
 		data = buffer;
@@ -552,9 +522,9 @@ END:
 	}
 	else
 	{
-		free(buffer);
-		free(nBuffer);
-		free(aBuffer);
+		FREE(buffer);
+		FREE(nBuffer);
+		FREE(aBuffer);
 	}
 	DESTROY(_nMapGenerator);
 	DESTROY(_atmoGenerator);
@@ -564,8 +534,8 @@ END:
 #if DEBUG_DUMP
 	if (success)
 	{
-		NSString *diffuseName = [NSString stringWithFormat:@"planet-%u-%u-diffuse-new", _seed.high, _seed.low];
-		NSString *lightsName = [NSString stringWithFormat:@"planet-%u-%u-lights-new", _seed.high, _seed.low];
+		NSString *diffuseName = [NSString stringWithFormat:@"planet-%u-%u-diffuse-new", _info.seed.high, _info.seed.low];
+		NSString *lightsName = [NSString stringWithFormat:@"planet-%u-%u-lights-new", _info.seed.high, _info.seed.low];
 		
 		[[UNIVERSE gameView] dumpRGBAToRGBFileNamed:diffuseName
 								   andGrayFileNamed:lightsName
@@ -599,7 +569,7 @@ END:
 									   width:width
 									  height:height
 									rowBytes:width];
-	free(noiseMap);
+	FREE(noiseMap);
 }
 
 #endif
@@ -607,26 +577,25 @@ END:
 @end
 
 
-static float fBlend(float fraction, float a, float b)
+OOINLINE float Lerp(float v0, float v1, float fraction)
 {
-	return fraction * a + (1.0f - fraction) * b;
+	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
+	return v0 + fraction * (v1 - v0);
 }
 
 
 static FloatRGB Blend(float fraction, FloatRGB a, FloatRGB b)
 {
-	float prime = 1.0f - fraction;
-	
 	return (FloatRGB)
 	{
-		fraction * a.r + prime * b.r,
-		fraction * a.g + prime * b.g,
-		fraction * a.b + prime * b.b
+		Lerp(b.r, a.r, fraction),
+		Lerp(b.g, a.g, fraction),
+		Lerp(b.b, a.b, fraction)
 	};
 }
 
 
-static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, FloatRGB paleAirColor, FloatRGB paleCloudColor, float alpha, float nearPole)
+static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole)
 {
 #define AIR_ALPHA				(0.05f)
 #define CLOUD_ALPHA				(0.50f)
@@ -637,9 +606,10 @@ static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, Float
 #define RECIP_CLOUD_BOUNDARY	(200.0f)
 #define CLOUD_BOUNDARY			(1.0f / RECIP_CLOUD_BOUNDARY)
 
-	FloatRGB result = cloudColor;
+	FloatRGB result = info->cloudColor;
+	float alpha = info->cloudAlpha;
 	float portion = 0.0f;
-
+	
 	q -= CLOUD_BOUNDARY;
 	
 	if (nearPole > POLAR_BOUNDARY)
@@ -648,15 +618,15 @@ static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, Float
 		
 		if (q <= 0.0f)
 		{
-			alpha *=  fBlend(portion, CLOUD_ALPHA, POLAR_CLOUD_ALPHA);
+			alpha *= Lerp(POLAR_CLOUD_ALPHA, CLOUD_ALPHA, portion);
 			if (q >= -CLOUD_BOUNDARY)
 			{
 				portion = -q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f;
-				result = Blend(portion, paleCloudColor, paleAirColor);
+				result = Blend(portion, info->paleCloudColor, info->paleAirColor);
 			}
 			else
 			{
-				result = paleCloudColor;
+				result = info->paleCloudColor;
 			}
 		}
 		else 
@@ -664,11 +634,11 @@ static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, Float
 			alpha *= portion * POLAR_AIR_ALPHA;
 			if (q < CLOUD_BOUNDARY)
 			{
-				result = Blend(q * RECIP_CLOUD_BOUNDARY, paleAirColor, paleCloudColor);
+				result = Blend(q * RECIP_CLOUD_BOUNDARY, info->paleAirColor, info->paleCloudColor);
 			}
 			else
 			{
-				result = paleAirColor;
+				result = info->paleAirColor;
 			}
 		}
 	}
@@ -679,23 +649,23 @@ static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, Float
 			if (q >= -CLOUD_BOUNDARY){
 				portion = -q * 0.5f * RECIP_CLOUD_BOUNDARY + 0.5f;
 				alpha *=  portion * CLOUD_ALPHA;
-				result = Blend(portion, cloudColor, airColor);
+				result = Blend(portion, info->cloudColor, info->airColor);
 			}
 			else
 			{
-				result = cloudColor;
+				result = info->cloudColor;
 				alpha *= CLOUD_ALPHA;
 			}
 		}
 		else if (q < CLOUD_BOUNDARY)
 		{
 			alpha *= AIR_ALPHA;
-			result = Blend(q * RECIP_CLOUD_BOUNDARY, airColor, cloudColor);
+			result = Blend(q * RECIP_CLOUD_BOUNDARY, info->airColor, info->cloudColor);
 		}
 		else if (q >= CLOUD_BOUNDARY)
 		{
 			alpha *= AIR_ALPHA;
-			result = airColor;
+			result = info->airColor;
 		}
 	}
 
@@ -703,9 +673,10 @@ static FloatRGBA CloudMix(float q, FloatRGB airColor, FloatRGB cloudColor, Float
 }
 
 
-static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, FloatRGB paleLandColor, FloatRGB paleSeaColor, FloatRGB polarSeaColor, float nearPole)
+static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole)
 {
-	float phi = mix_polarCap + mix_polarCap - nearPole;	// (q > mix_polarCap + mix_polarCap - nearPole) ==  ((nearPole + q) / 2 > mix_polarCap)
+	// (q > mix_polarCap + mix_polarCap - nearPole) ==  ((nearPole + q) / 2 > mix_polarCap)
+	float phi = info->mix_polarCap + info->mix_polarCap - nearPole;
 	
 #define RECIP_COASTLINE_PORTION		(160.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
@@ -718,23 +689,18 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 	// TODO: a less hack-like fix.
 	float specular = 0.01f;
 	
-#if !HERMITE
-	// Offset to reduce coastline-lowering effect of r2823 coastline smoothing improvement.
-	q -= COASTLINE_PORTION;
-#endif
-	
 	if (q <= 0.0f)
 	{
 		// Below datum - sea.
 		if (q > -SHALLOWS)
 		{
 			// Coastal waters.
-			diffuse = Blend(-q * RECIP_SHALLOWS, seaColor, paleSeaColor);
+			diffuse = Blend(-q * RECIP_SHALLOWS, info->seaColor, info->paleSeaColor);
 		}
 		else
 		{
 			// Open sea.
-			diffuse = seaColor;
+			diffuse = info->seaColor;
 		}
 		specular = 1.0f;
 	}
@@ -742,7 +708,7 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 	{
 		// Coastline.
 		specular = q * RECIP_COASTLINE_PORTION;
-		diffuse = Blend(specular, landColor, paleSeaColor);
+		diffuse = Blend(specular, info->landColor, info->paleSeaColor);
 		specular = 1.0f - specular;
 	}
 	else if (q > 1.0f)
@@ -750,14 +716,14 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 		// High up - snow-capped peaks. -- Question: does q ever get higher than 1.0 ? --Kaks 20091228
 		diffuse = white;
 	}
-	else if (q > mix_hi)
+	else if (q > info->mix_hi)
 	{
-		diffuse = Blend((q - mix_hi) * mix_ih, white, paleLandColor);	// Snowline.
+		diffuse = Blend((q - info->mix_hi) * info->mix_ih, white, info->paleLandColor);	// Snowline.
 	}
 	else
 	{
 		// Normal land.
-		diffuse = Blend((mix_hi - q) * mix_oh, landColor, paleLandColor);
+		diffuse = Blend((info->mix_hi - q) * info->mix_oh, info->landColor, info->paleLandColor);
 	}
 	
 	if (q > phi)	 // (nearPole + q) / 2 > pole
@@ -766,7 +732,7 @@ static FloatRGBA PlanetMix(float q, FloatRGB landColor, FloatRGB seaColor, Float
 
 		// thinner to thicker ice.
 		specular = q > phi + 0.02f ? 1.0f : 0.4f + (q - phi) * 30.0f;	// (q - phi) * 30 == ((q-phi) / 0.02) * 0.6
-		diffuse = Blend(specular, polarSeaColor, diffuse);
+		diffuse = Blend(specular, info->polarSeaColor, diffuse);
 		specular = specular * 0.5f; // softer contours under ice, but still contours.
 		
 #endif
@@ -785,52 +751,20 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
 }
 
 
-#if 1
-static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
+static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed)
 {
-	NSCParameterAssert(noiseBuffer != NULL);
-	
-	unsigned i, len = kNoiseBufferSize * kNoiseBufferSize;
+	unsigned i, len = kRandomBufferSize * kRandomBufferSize;
 	for (i = 0; i < len; i++)
 	{
-		noiseBuffer[i] = randfWithSeed(&seed);
+		randomBuffer[i] = randfWithSeed(&seed);
 	}
 }
-#else
-// Inlining RANROT has no appreciable performance effect; AddNoise dominates.
-static void FillNoiseBuffer(float *noiseBuffer, RANROTSeed seed)
-{
-	NSCParameterAssert(noiseBuffer != NULL);
-	
-	unsigned i, len = kNoiseBufferSize * kNoiseBufferSize;
-	uint32_t high = seed.high, low = seed.low;
-	const float scale = 1.0f / 65536.0f;
-	
-	for (i = 0; i < len; i++)
-	{
-		// RANROT
-		high = (high << 16) + (high >> 16);
-		high += low;
-		low += high;
-		
-		noiseBuffer[i] = (int)(high & 0xffff) * scale; 	// (int)uint -> float is faster than uint -> float.
-	}
-}
-#endif
 
 
-OOINLINE float Lerp(float v0, float v1, float q)
-{
-	return v0 + q * (v1 - v0);
-}
-
-
-#if HERMITE
 OOINLINE float Hermite(float q)
 {
 	return 3.0f * q * q - 2.0f * q * q * q;
 }
-#endif
 
 
 #if __BIG_ENDIAN_
@@ -839,6 +773,7 @@ OOINLINE float Hermite(float q)
 #define iman_ 0
 #endif
 
+ // (same behaviour as, but faster than, FLOAT->INT)
  //Works OK for -32728 to 32727.99999236688
 inline long fast_floor(double val)
 {
@@ -847,56 +782,103 @@ inline long fast_floor(double val)
 }
 
 
-static void AddNoise(float *buffer, unsigned width, unsigned height, float octave, unsigned octaveMask, float scale, const float *noiseBuffer, float *qxBuffer, int *ixBuffer)
+static void AddNoise(OOPlanetTextureGeneratorInfo *info, float *randomBuffer, float octave, unsigned octaveMask, float scale, float *qxBuffer, int *ixBuffer)
 {
-	unsigned x, y;
-	int 	ix, jx, iy, jy;
-	float 	rr = octave / width;
-	float 	*dst = buffer;
-	float 	fx, fy, qx, qy, rix, rjx, rfinal;
+	unsigned	x, y;
+	unsigned	width = info->width, height = info->height;
+	int			ix, jx, iy, jy;
+	float		rr = octave / width;
+	float		fx, fy, qx, qy, rix, rjx, rfinal;
+	float		*dst = info->fbmBuffer;
 	
 	for (fy = 0, y = 0; y < height; fy++, y++)
 	{
 		qy = fy * rr;
-		iy = fast_floor(qy); // (same behaviour as, but faster than, FLOAT->INT)
+		iy = fast_floor(qy);
 		jy = (iy + 1) & octaveMask;
-		qy -= iy;
-		iy &= (kNoiseBufferSize - 1);
-		jy &= (kNoiseBufferSize - 1);
-#if HERMITE
-		qy = Hermite(qy);
-#endif
-
+		qy = Hermite(qy - iy);
+		iy &= (kRandomBufferSize - 1);
+		jy &= (kRandomBufferSize - 1);
+		
 		for (fx = 0, x = 0; x < width; fx++, x++)
 		{
-			if (y == 0)	// first pass. initialise buffers.
+			if (y == 0)
 			{
+				// first pass: initialise buffers.
 				qx = fx * rr;
-				ix = fast_floor(qx); // (same behaviour as, but faster than, FLOAT->INT)
+				ix = fast_floor(qx);
 				qx -= ix;
-				ix &= (kNoiseBufferSize - 1);
+				ix &= (kRandomBufferSize - 1);
 				ixBuffer[x] = ix;
-#if HERMITE
-				qx = Hermite(qx);
-#endif
-				qxBuffer[x] = qx;
+				qxBuffer[x] = Hermite(qx);
 			}
-			else	// later passes: grab the stored values.
+			else
 			{
+				// later passes: grab the stored values.
 				ix = ixBuffer[x];
 				qx = qxBuffer[x];
 			}
 			
 			jx = (ix + 1) & octaveMask;
-			jx &= (kNoiseBufferSize - 1);
+			jx &= (kRandomBufferSize - 1);
 			
-			rix = Lerp(noiseBuffer[iy * kNoiseBufferSize + ix], noiseBuffer[iy * kNoiseBufferSize + jx], qx);
-			rjx = Lerp(noiseBuffer[jy * kNoiseBufferSize + ix], noiseBuffer[jy * kNoiseBufferSize + jx], qx);
-			rfinal = scale * Lerp(rix, rjx, qy);
+			rix = Lerp(randomBuffer[iy * kRandomBufferSize + ix], randomBuffer[iy * kRandomBufferSize + jx], qx);
+			rjx = Lerp(randomBuffer[jy * kRandomBufferSize + ix], randomBuffer[jy * kRandomBufferSize + jx], qx);
+			rfinal = Lerp(rix, rjx, qy);
 			
-			*dst++ += rfinal;
+			*dst++ += scale * rfinal;
 		}
 	}
+}
+
+
+static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
+{
+	NSCParameterAssert(info != NULL);
+	
+	BOOL OK = NO;
+	
+	// Allocate result buffer.
+	info->fbmBuffer = calloc(info->width * info->height, sizeof (float));
+	FAIL_IF_NULL(info->fbmBuffer);
+	
+	// Allocate the temporary buffers we need in one fell swoop, to avoid administrative overhead.
+	size_t randomBufferSize = kRandomBufferSize * kRandomBufferSize * sizeof (float);
+	size_t qxBufferSize = info->width * sizeof (float);
+	size_t ixBufferSize = info->width * sizeof (int);
+	char *sharedBuffer = malloc(randomBufferSize + qxBufferSize + ixBufferSize);
+	FAIL_IF_NULL(sharedBuffer);
+	
+	float *randomBuffer = (float *)sharedBuffer;
+	float *qxBuffer = (float *)(sharedBuffer + randomBufferSize);
+	int *ixBuffer = (int *)(sharedBuffer + randomBufferSize + qxBufferSize);
+	
+	// Get us some value noise.
+	FillRandomBuffer(randomBuffer, info->seed);
+	
+	// Generate basic fBM noise.
+	unsigned height = info->height;
+	unsigned octaveMask = 8 * kPlanetAspectRatio;
+	float octave = octaveMask;
+	octaveMask -= 1;
+	float scale = 0.5f;
+	
+	while ((octaveMask + 1) < height)
+	{
+		AddNoise(info, randomBuffer, octave, octaveMask, scale, qxBuffer, ixBuffer);
+		octave *= 2.0f;
+		octaveMask = (octaveMask << 1) | 1;
+		scale *= 0.5f;
+	}
+	
+#if DEBUG_DUMP_RAW
+	[self dumpNoiseBuffer:info->fbmBuffer];
+#endif
+	
+	OK = YES;
+END:
+	FREE(sharedBuffer);
+	return OK;
 }
 
 
@@ -911,7 +893,8 @@ static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar
 	return q;
 }
 
-static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height)
+
+static float GetQ(float *qbuffer, unsigned x, unsigned y, unsigned width, unsigned height, unsigned widthMask, unsigned heightMask)
 {
 	// Correct Y wrapping mode, unoptimised.
 	//if (y < 0) { y = -y - 1; x += width / 2; }
@@ -927,12 +910,13 @@ static float GetQ(float *qbuffer, int x, int y, unsigned width, unsigned height)
 	return  qbuffer[y * width + x];
 }
 
-static void SetMixConstants(float maxQ, float temperatureFraction)
+
+static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatureFraction)
 {
-	mix_hi = 0.66667f * maxQ;
-	mix_oh = 1.0f / mix_hi;
-	mix_ih = 1.0f / (1.0f - mix_hi);
-	mix_polarCap = temperatureFraction * (0.28f + 0.24f * maxQ);	// landmasses make the polar cap proportionally bigger, but not too much bigger.
+	info->mix_hi = 0.66667f * info->landFraction;
+	info->mix_oh = 1.0f / info->mix_hi;
+	info->mix_ih = 1.0f / (1.0f - info->mix_hi);
+	info->mix_polarCap = temperatureFraction * (0.28f + 0.24f * info->landFraction);	// landmasses make the polar cap proportionally bigger, but not too much bigger.
 }
 
 
@@ -1068,13 +1052,15 @@ static void SetMixConstants(float maxQ, float temperatureFraction)
 	[super enqueue];
 	
 #if DEBUG_DUMP
-	NSString *name = [NSString stringWithFormat:@"planet-%u-%u-atmosphere-new", _seed.high, _seed.low];
+	NSString *rgbName = [NSString stringWithFormat:@"planet-%u-%u-atmosphere-rgb-new", _seed.high, _seed.low];
+	NSString *alphaName = [NSString stringWithFormat:@"planet-%u-%u-atmosphere-alpha-new", _seed.high, _seed.low];
 	
-	[[UNIVERSE gameView] dumpRGBAToFileNamed:name
-									   bytes:data
-									   width:width
-									  height:height
-									rowBytes:width * 4];
+	[[UNIVERSE gameView] dumpRGBAToRGBFileNamed:rgbName
+							   andGrayFileNamed:alphaName
+										  bytes:data
+										  width:width
+										 height:height
+									   rowBytes:width * 4];
 #endif
 }
 
