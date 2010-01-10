@@ -25,7 +25,10 @@
 
 
 #define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
-#define DEBUG_DUMP_RAW		(	0	&& DEBUG_DUMP)
+#define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
+
+#define POLAR_CAPS			0
+#define ALBEDO_FACTOR		0.7f	// Overall darkening of everything, allowing better contrast for snow and specular highlights.
 
 
 #import "OOPlanetTextureGenerator.h"
@@ -104,8 +107,6 @@ enum
 static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key);
 
 static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info);
-static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed);
-static void AddNoise(OOPlanetTextureGeneratorInfo *info, float *randomBuffer, float octave, unsigned octaveMask, float scale, float *qxBuffer, int *ixBuffer);
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y);
 static float GetQ(float *qbuffer, unsigned x, unsigned y, unsigned width, unsigned height, unsigned widthMask, unsigned heightMask);
@@ -118,7 +119,11 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 
 enum
 {
+#if PERLIN_3D && !TEXGEN_TEST_RIG
+	kPlanetAspectRatio			= 2,
+#else
 	kPlanetAspectRatio			= 1,		// Ideally, aspect ratio would be 2:1 - keeping it as 1:1 for now - Kaks 20091211
+#endif
 	kPlanetScaleOffset			= 8 - kPlanetAspectRatio,
 	
 	kPlanetScale256x256			= 1,
@@ -387,6 +392,9 @@ enum
 	}
 	
 	FAIL_IF(!FillFBMBuffer(&_info));
+#if DEBUG_DUMP_RAW
+	[self dumpNoiseBuffer:_info.fbmBuffer];
+#endif
 	
 	//TODO: sort out CloudMix
 	float paleClouds = (_info.cloudFraction * _info.fbmBuffer[0] < 1.0f - _info.cloudFraction) ? 0.0f : 1.0f;
@@ -555,24 +563,24 @@ END:
 
 - (void) dumpNoiseBuffer:(float *)noise
 {
-	NSString *noiseName = [NSString stringWithFormat:@"planet-%u-%u-noise-new", _seed.high, _seed.low];
+	NSString *noiseName = [NSString stringWithFormat:@"planet-%u-%u-noise-new", _info.seed.high, _info.seed.low];
 	
-	uint8_t *noiseMap = malloc(width * height);
+	uint8_t *noisePx = malloc(width * height);
 	unsigned x, y;
 	for (y = 0; y < height; y++)
 	{
 		for (x = 0; x < width; x++)
 		{
-			noiseMap[y * width + x] = 255.0f * noise[y * width + x];
+			noisePx[y * width + x] = 255.0f * noise[y * width + x];
 		}
 	}
 	
 	[[UNIVERSE gameView] dumpGrayToFileNamed:noiseName
-									   bytes:noiseMap
+									   bytes:noisePx
 									   width:width
 									  height:height
 									rowBytes:width];
-	FREE(noiseMap);
+	FREE(noisePx);
 }
 
 #endif
@@ -672,15 +680,12 @@ static FloatRGBA CloudMix(OOPlanetTextureGeneratorInfo *info, float q, float nea
 		}
 	}
 
-	return (FloatRGBA){ result.r, result.g, result.b, alpha};
+	return (FloatRGBA){ result.r, result.g, result.b, alpha };
 }
 
 
 static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float nearPole)
 {
-	// (q > mix_polarCap + mix_polarCap - nearPole) ==  ((nearPole + q) / 2 > mix_polarCap)
-	float phi = info->mix_polarCap + info->mix_polarCap - nearPole;
-	
 #define RECIP_COASTLINE_PORTION		(160.0f)
 #define COASTLINE_PORTION			(1.0f / RECIP_COASTLINE_PORTION)
 #define SHALLOWS					(2.0f * COASTLINE_PORTION)	// increased shallows area.
@@ -730,17 +735,17 @@ static FloatRGBA PlanetMix(OOPlanetTextureGeneratorInfo *info, float q, float ne
 		diffuse = Blend((info->mix_hi - q) * info->mix_oh, info->landColor, info->paleLandColor);
 	}
 	
+#if POLAR_CAPS
+	// (q > mix_polarCap + mix_polarCap - nearPole) ==  ((nearPole + q) / 2 > mix_polarCap)
+	float phi = info->mix_polarCap + info->mix_polarCap - nearPole;
 	if (q > phi)	 // (nearPole + q) / 2 > pole
 	{
-#if 1	// toggle polar caps on & off.
-
 		// thinner to thicker ice.
 		specular = q > phi + 0.02f ? 1.0f : 0.4f + (q - phi) * 30.0f;	// (q - phi) * 30 == ((q-phi) / 0.02) * 0.6
 		diffuse = Blend(specular, info->polarSeaColor, diffuse);
 		specular = specular * 0.5f; // softer contours under ice, but still contours.
-		
-#endif
 	}
+#endif
 	
 	return (FloatRGBA){ diffuse.r, diffuse.g, diffuse.b, specular };
 }
@@ -751,17 +756,7 @@ static FloatRGB FloatRGBFromDictColor(NSDictionary *dictionary, NSString *key)
 	OOColor *color = [dictionary objectForKey:key];
 	NSCAssert1([color isKindOfClass:[OOColor class]], @"Expected OOColor, got %@", [color class]);
 	
-	return (FloatRGB){ [color redComponent], [color greenComponent], [color blueComponent] };
-}
-
-
-static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed)
-{
-	unsigned i, len = kRandomBufferSize * kRandomBufferSize;
-	for (i = 0; i < len; i++)
-	{
-		randomBuffer[i] = randfWithSeed(&seed);
-	}
+	return (FloatRGB){ [color redComponent] * ALBEDO_FACTOR, [color greenComponent] * ALBEDO_FACTOR, [color blueComponent] * ALBEDO_FACTOR };
 }
 
 
@@ -779,10 +774,285 @@ OOINLINE float Hermite(float q)
 
  // (same behaviour as, but faster than, FLOAT->INT)
  //Works OK for -32728 to 32727.99999236688
-inline long fast_floor(double val)
+OOINLINE long fast_floor(double val)
 {
    val += 68719476736.0 * 1.5;
    return (((long*)&val)[iman_] >> 16);
+}
+
+
+static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info);
+
+
+static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
+{
+	NSCParameterAssert(info != NULL);
+	
+	// Allocate result buffer.
+	info->fbmBuffer = calloc(info->width * info->height, sizeof (float));
+	if (info->fbmBuffer != NULL)
+	{
+		GenerateFBMNoise(info);
+	
+		return YES;
+	}
+	return NO;
+}
+
+
+#if PERLIN_3D
+
+enum
+{
+	//	Size of permutation buffer used to map integer coordinates to gradients. Must be power of two.
+	kPermutationCount		= 1 << 10,
+	kPermutationMask		= kPermutationCount - 1,
+	
+	// Number of different gradient vectors used. The most important thing is that the gradients are evenly distributed and sum to 0.
+	kGradientCount			= 12
+};
+
+
+#define LUT_DOT	1
+
+
+#if !LUT_DOT
+static const Vector kGradients[kGradientCount] =
+{
+	{  1,  1,  0 },
+	{ -1,  1,  0 },
+	{  1, -1,  0 },
+	{ -1, -1,  0 },
+	{  1,  0,  1 },
+	{ -1,  0,  1 },
+	{  1,  0, -1 },
+	{ -1,  0, -1 },
+	{  0,  1,  1 },
+	{  0, -1,  1 },
+	{  0,  1, -1 },
+	{  0, -1, -1 }
+};
+#else
+static const uint8_t kGradients[kGradientCount][3] =
+{
+	{  2,  2,  1 },
+	{  0,  2,  1 },
+	{  2,  0,  1 },
+	{  0,  0,  1 },
+	{  2,  1,  2 },
+	{  0,  1,  2 },
+	{  2,  1,  0 },
+	{  0,  1,  0 },
+	{  1,  2,  2 },
+	{  1,  0,  2 },
+	{  1,  2,  0 },
+	{  1,  0,  0 }
+};
+
+
+/*	Attempted speedup that didn't pan out, but might inspire something better.
+	Since our gradient vectors' components are all -1, 0 or 1, we should be
+	able to calculate the dot product without any multiplication at all, by
+	simply summing the right combination of (x, y, z), (0, 0, 0) and (-x, -y, -z).
+	
+	This turns out to be slightly slower than using multiplication, even if
+	the negations are precalculated.
+*/
+OOINLINE float TDot3(const uint8_t grad[3], float x, float y, float z)
+{
+	float xt[3] = { -x, 0.0f, x };
+	float yt[3] = { -y, 0.0f, y };
+	float zt[3] = { -z, 0.0f, z };
+	
+	return xt[grad[0]] + yt[grad[1]] + zt[grad[2]];
+}
+#endif
+
+
+// Sample 3D noise function defined by kGradients and permutation table at point p.
+static float SampleNoise3D(OOPlanetTextureGeneratorInfo *info, Vector p)
+{
+	uint16_t	*permutations = info->permutations;
+	
+	// Split coordinates into integer and fractional parts.
+	float		fx = floorf(p.x);
+	float		fy = floorf(p.y);
+	float		fz = floorf(p.z);
+	int			X = fx;
+	int			Y = fy;
+	int			Z = fz;
+	float		x = p.x - fx;
+	float		y = p.y - fy;
+	float		z = p.z - fz;
+	
+	// Select gradient for each corner.
+#define PERM(v) permutations[(v) & kPermutationMask]
+	
+	unsigned PZ0 = PERM(Z);
+	unsigned PZ1 = PERM(Z + 1);
+	
+	unsigned PY0Z0 = PERM(Y + PZ0);
+	unsigned PY1Z0 = PERM(Y + 1 + PZ0);
+	unsigned PY0Z1 = PERM(Y + PZ1);
+	unsigned PY1Z1 = PERM(Y + 1 + PZ1);
+	
+	unsigned gi000 = PERM(X     + PY0Z0);
+	unsigned gi010 = PERM(X     + PY1Z0);
+	unsigned gi100 = PERM(X + 1 + PY0Z0);
+	unsigned gi110 = PERM(X + 1 + PY1Z0);
+	unsigned gi001 = PERM(X     + PY0Z1);
+	unsigned gi011 = PERM(X     + PY1Z1);
+	unsigned gi101 = PERM(X + 1 + PY0Z1);
+	unsigned gi111 = PERM(X + 1 + PY1Z1);
+	
+#undef PERM
+	
+	//	Calculate noise contributions from each of the eight corners.
+#if !LUT_DOT
+#define DOT3(idx, x_, y_, z_)  dot_product(kGradients[(idx) % kGradientCount], (Vector){ (x_), (y_), (z_) })
+#else
+#define DOT3(idx, x_, y_, z_)  TDot3(kGradients[(idx) % kGradientCount], (x_), (y_), (z_))
+#endif
+	
+	float x1 = x - 1.0f;
+	float y1 = y - 1.0f;
+	float z1 = z - 1.0f;
+	float n000 = DOT3(gi000, x , y , z );
+	float n010 = DOT3(gi010, x , y1, z );
+	float n100 = DOT3(gi100, x1, y , z );
+	float n110 = DOT3(gi110, x1, y1, z );
+	float n001 = DOT3(gi001, x , y , z1);
+	float n011 = DOT3(gi011, x , y1, z1);
+	float n101 = DOT3(gi101, x1, y , z1);
+	float n111 = DOT3(gi111, x1, y1, z1);
+	
+#undef DOT3
+	
+	// Compute the fade curve value for each of x, y, z
+	float u = Hermite(x);
+	float v = Hermite(y);
+	float w = Hermite(z);
+	
+	// Interpolate along the contributions from each of the corners.
+	float nx00 = Lerp(n000, n100, u);
+	float nx01 = Lerp(n001, n101, u);
+	float nx10 = Lerp(n010, n110, u);
+	float nx11 = Lerp(n011, n111, u);
+	
+	float nxy0 = Lerp(nx00, nx10, v);
+	float nxy1 = Lerp(nx01, nx11, v);
+	
+	float nxyz = Lerp(nxy0, nxy1, w);
+	
+	return nxyz;
+}
+
+
+/*	Generate shuffled permutation order - each value from 0 to
+	kPermutationCount - 1 occurs exactly once. This shuffling provides all the
+	randomness in the resulting noise. Don't worry, though - for
+	kPermutationCount = 1024 this allows for 4e2567 different noise maps,
+	which is a lot more than RanRot will actually give us.
+*/
+static BOOL MakePermutationTable(OOPlanetTextureGeneratorInfo *info)
+{
+	uint16_t *perms = malloc(sizeof *info->permutations * kPermutationCount);
+	if (EXPECT_NOT(perms == NULL))  return NO;
+	
+	/*	Fisher-Yates/Durstenfeld/Knuth shuffle, "inside-out" variant.
+		Based on pseudocode from http://en.wikipedia.org/wiki/Fisher-Yates_shuffle
+		
+		When comparing to the pseudocode, note that it generates a one-based
+		series, but this version generates a zero-based series.
+	*/
+	perms[0] = 0;
+	uint16_t *curr = perms;
+	uint16_t n;
+	for (n = 1; n < kPermutationCount; n++)
+	{
+		uint16_t j = RanrotWithSeed(&info->seed) & kPermutationMask;
+		*++curr = perms[j];
+		perms[j] = n - 1;
+	}
+	
+	info->permutations = perms;
+	return YES;
+}
+
+
+static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
+{
+	BOOL OK = NO;
+	
+	FAIL_IF(!MakePermutationTable(info));
+	
+	unsigned x, y, width = info->width, height = info->height;
+	float lon, lat;	// Longitude and latitude in radians.
+	float dlon = 2.0f * M_PI / width;
+	float dlat = M_PI / height;
+	float *px = info->fbmBuffer;
+	
+	for (y = 0, lat = -M_PI_2; y < height; y++, lat += dlat)
+	{
+		float las = sinf(lat);
+		float lac = cosf(lat);
+		
+		for (x = 0, lon = -M_PI; x < width; x++, lon += dlon)
+		{
+			// FIXME: in real life, we really don't want sin and cos per pixel.
+			// Convert spherical coordinates to vector.
+			float los = sinf(lon);
+			float loc = cosf(lon);
+			
+			Vector p =
+			{
+				los * lac,
+				las,
+				loc * lac
+			};
+			
+#if 1
+			// fBM
+			unsigned octaveMask = 4;
+			float octave = octaveMask;
+			octaveMask -= 1;
+			float scale = 0.4f;
+			float sum = 0;
+			
+			while ((octaveMask + 1) < height)
+			{
+				Vector ps = vector_multiply_scalar(p, octave);
+				sum += scale * SampleNoise3D(info, ps);
+				
+				octave *= 2.0f;
+				octaveMask = (octaveMask << 1) | 1;
+				scale *= 0.5f;
+			}
+#else
+			// Single octave
+			p = vector_multiply_scalar(p, 4.0f);
+			float sum = 0.5f * SampleNoise3D(info, p);
+#endif
+			
+			*px++ = sum + 0.5f;
+		}
+	}
+	
+END:
+	FREE(info->permutations);
+	return OK;
+}
+
+#else
+// Old 2D value noise.
+
+static void FillRandomBuffer(float *randomBuffer, RANROTSeed seed)
+{
+	unsigned i, len = kRandomBufferSize * kRandomBufferSize;
+	for (i = 0; i < len; i++)
+	{
+		randomBuffer[i] = randfWithSeed(&seed);
+	}
 }
 
 
@@ -836,22 +1106,14 @@ static void AddNoise(OOPlanetTextureGeneratorInfo *info, float *randomBuffer, fl
 }
 
 
-static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
+static BOOL GenerateFBMNoise(OOPlanetTextureGeneratorInfo *info)
 {
-	NSCParameterAssert(info != NULL);
-	
-	BOOL OK = NO;
-	
-	// Allocate result buffer.
-	info->fbmBuffer = calloc(info->width * info->height, sizeof (float));
-	FAIL_IF_NULL(info->fbmBuffer);
-	
 	// Allocate the temporary buffers we need in one fell swoop, to avoid administrative overhead.
 	size_t randomBufferSize = kRandomBufferSize * kRandomBufferSize * sizeof (float);
 	size_t qxBufferSize = info->width * sizeof (float);
 	size_t ixBufferSize = info->width * sizeof (int);
 	char *sharedBuffer = malloc(randomBufferSize + qxBufferSize + ixBufferSize);
-	FAIL_IF_NULL(sharedBuffer);
+	if (sharedBuffer == NULL)  return NO;
 	
 	float *randomBuffer = (float *)sharedBuffer;
 	float *qxBuffer = (float *)(sharedBuffer + randomBufferSize);
@@ -875,15 +1137,11 @@ static BOOL FillFBMBuffer(OOPlanetTextureGeneratorInfo *info)
 		scale *= 0.5f;
 	}
 	
-#if DEBUG_DUMP_RAW
-	[self dumpNoiseBuffer:info->fbmBuffer];
-#endif
-	
-	OK = YES;
-END:
 	FREE(sharedBuffer);
-	return OK;
+	return YES;
 }
+
+#endif
 
 
 static float QFactor(float *accbuffer, int x, int y, unsigned width, float polar_y_value, float bias, float polar_y)

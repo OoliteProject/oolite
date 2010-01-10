@@ -185,6 +185,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 - (void) prunePreloadingPlanetMaterials;
 #endif
 
+- (void) filterOutNonStrictEquipment;
+
 @end
 
 
@@ -8588,13 +8590,31 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	[equipmentData autorelease];
 	equipmentData = [[ResourceManager arrayFromFilesNamed:@"equipment.plist" inFolder:@"Config" andMerge:YES] retain];
-	if (strict && ([equipmentData count] > NUMBER_OF_STRICT_EQUIPMENT_ITEMS))
-	{
-		NSArray* strict_equipment = [equipmentData subarrayWithRange:NSMakeRange(0, NUMBER_OF_STRICT_EQUIPMENT_ITEMS)];	// alloc retains
-		[equipmentData autorelease];
-		equipmentData = [strict_equipment retain];
-	}
+	if (strict)  [self filterOutNonStrictEquipment];
+	
 	[OOEquipmentType loadEquipment];
+}
+
+
+- (void) filterOutNonStrictEquipment
+{
+	unsigned i, count = [equipmentData count];
+	NSMutableArray *filteredEq = [NSMutableArray arrayWithCapacity:count];
+	for (i = 0; i < count; i++)
+	{
+		BOOL compatible = NO;
+		NSArray *eqDef = [equipmentData objectAtIndex:i];
+		if ([eqDef count] > EQUIPMENT_EXTRA_INFO_INDEX)
+		{
+			NSDictionary *extra = [eqDef oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
+			compatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:[extra oo_boolForKey:@"strict_mode_only" defaultValue:NO]];
+		}
+		
+		if (compatible)  [filteredEq addObject:eqDef];
+	}
+	
+	[equipmentData release];
+	equipmentData = [filteredEq copy];
 }
 
 

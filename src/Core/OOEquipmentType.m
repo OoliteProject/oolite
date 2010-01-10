@@ -169,6 +169,12 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 		extra = [info oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
 		if (extra != nil)
 		{
+			// Note: currently strict_mode_compatible is already handled by Universe, but at some point we want to get rid of Universe's equipmentData.
+			BOOL strictModeOnly = [extra oo_boolForKey:@"strict_mode_only" defaultValue:NO];
+			BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:strictModeOnly];
+			BOOL strict = [UNIVERSE strict];
+			if ((strict && !strictModeCompatible) || (!strict && strictModeOnly))  OK = NO;
+			
 			_isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
 			_requiresEmptyPylon = [extra oo_boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
 			_requiresMountedPylon = [extra oo_boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];

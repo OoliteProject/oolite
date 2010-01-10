@@ -28,6 +28,8 @@ MA 02110-1301, USA.
 #import "OOTextureGenerator.h"
 #import "OOMaths.h"
 
+#define PERLIN_3D			1
+
 @class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
 
 
@@ -64,6 +66,10 @@ typedef struct OOPlanetTextureGeneratorInfo
 	// Noise generation stuff.
 	float							*fbmBuffer;
 	float							*qBuffer;
+	
+#if PERLIN_3D
+	uint16_t						*permutations;
+#endif
 } OOPlanetTextureGeneratorInfo;
 
 

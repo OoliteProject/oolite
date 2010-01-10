@@ -117,8 +117,6 @@ enum
 
 #define MAX_ENTITY_UID						1000
 
-#define	NUMBER_OF_STRICT_EQUIPMENT_ITEMS	16
-
 #define	UNIVERSE_MAX_ENTITIES				2048
 
 #define OOLITE_EXCEPTION_LOOPING			@"OoliteLoopingException"

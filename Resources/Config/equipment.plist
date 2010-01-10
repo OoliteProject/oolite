@@ -4,8 +4,9 @@
 		"EQ_FUEL",
 		"Fuel for the witchspace engines.",
 		{
-			"available_to_all" = true;
-			"requires_non_full_fuel" = true;
+			available_to_all = true;
+			requires_non_full_fuel = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
@@ -13,49 +14,69 @@
 		"EQ_MISSILE",
 		"Faulcon de Lacy HM3 homing missile, fast and accurate when used in conjunction with standard targeting scanners.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
-			"requires_empty_pylon" = true;
+			requires_empty_pylon = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
 		1, 4000, "Large Cargo Bay",
 		"EQ_CARGO_BAY",
-		"Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity."
+		"Retro-fitted hull extensions permit the enclosure of a few extra tons of cargo capacity.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	(
 		2, 6000, "E.C.M. System",
 		"EQ_ECM",
-		"High power disruptor circuits capable of remotely detonating inbound missiles."
+		"High power disruptor circuits capable of remotely detonating inbound missiles.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	(
 		5, 5250, "Fuel Scoops",
 		"EQ_FUEL_SCOOPS",
-		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris."
+		"Wide cargo entrance and magnetic scoops enable in-flight capture of mined materials, fuel gasses from the solar corona, and salvage of space debris.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	(
 		6, 10000, "Escape Pod",
 		"EQ_ESCAPE_POD",
-		"A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems."
+		"A simple emergency capsule with a life-support system, purchase includes comprehensive insurance for your ship and systems.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	(
 		7, 9000, "Energy Bomb",
 		"EQ_ENERGY_BOMB",
-		"A one-shot super-weapon capable of destroying all small craft within range."
+		"A one-shot super-weapon capable of destroying all small craft within range.",
+		{
+			strict_mode_only = true;
+		}
 	),
 	(
 		8, 15000, "Extra Energy Unit",
 		"EQ_ENERGY_UNIT",
 		"An improved efficiency energy recharge unit.",
 		{
-			"incompatible_with_equipment" = "EQ_NAVAL_ENERGY_UNIT";
+			incompatible_with_equipment = "EQ_NAVAL_ENERGY_UNIT";
+			strict_mode_compatible = true;
 		}
 	),
 	/* next item has too high initial TL to be available */
 	(
 		99, 500000, "Naval Energy Unit",
 		"EQ_NAVAL_ENERGY_UNIT",
-		"A special improved efficiency energy recharge unit, as supplied to Navy vessels."
+		"A special improved efficiency energy recharge unit, as supplied to Navy vessels.",
+		{
+			strict_mode_compatible = true;
+		}
 		/* Special case: this eq MUST STAY COMPATIBLE with EQ_ENERGY_UNIT - It's all handled properly in code.
 		Full details at http://developer.berlios.de/bugs/?func=detailbug&bug_id=13507&group_id=3577
 		Original fix made in rev 1544 and broken in rev 1686. Fixed once again in rev 2599. Kaks 20090925 */
@@ -63,14 +84,18 @@
 	(
 		9, 15000, "Docking Computers",
 		"EQ_DOCK_COMP",
-		"A simple autopilot and in-system communication system interlocking with local station systems."
+		"A simple autopilot and in-system communication system interlocking with local station systems.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	(
 		10, 50000, "Galactic Hyperdrive",
 		"EQ_GAL_DRIVE",
 		"A one-shot overcharge for the witchspace engines, enabling inter-galactic travel.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
@@ -78,7 +103,8 @@
 		"EQ_WEAPON_PULSE_LASER",
 		"High powered pulse laser, a basic defense configuration.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
@@ -86,7 +112,8 @@
 		"EQ_WEAPON_BEAM_LASER",
 		"Rapid cycle laser, delivers more energy in less time for more effective results.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
@@ -94,7 +121,8 @@
 		"EQ_WEAPON_MINING_LASER",
 		"High power, slow recharge. Ideal for mineral extraction from large asteroids.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
 	(
@@ -102,7 +130,8 @@
 		"EQ_WEAPON_MILITARY_LASER",
 		"Increased power beam laser, developed for Naval use.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
 	/* next item has too high initial TL to be available */
@@ -111,23 +140,26 @@
 		"EQ_CLOAKING_DEVICE",
 		"Experimental Naval cloaking device.",
 		{
-			"portable_between_ships" = true;
-			"available_to_all" = true;
+			portable_between_ships = true;
+			available_to_all = true;
+			strict_mode_compatible = true;
 		}
 	),
-	/* next items are new items, don't place new items before this mark */
-	( /* Thargoid equipment, incompatible with non-thargoid ships. Not buyable because of its TL. */
+	(	/* Thargoid equipment, incompatible with non-thargoid ships. Not buyable because of its TL. */
 		100, 1000, "Thargon",
 		"thargon",
-		"Alien drone ship."
+		"Alien drone ship.",
+		{
+			strict_mode_compatible = true;
+		}
 	),
 	( /* Passenger Compartment, like missiles this can be bought multiple times */
 		5, 8250, "Passenger Berth - takes up 5t of cargo space",
 		"EQ_PASSENGER_BERTH",
 		"Provides life support, entertainment and comfort for a single passenger.",
 		{
-			"available_to_all" = true;
-			"requires_cargo_space" = 5;
+			available_to_all = true;
+			requires_cargo_space = 5;
 		}
 	),
 	( /* Passenger Compartment Removal */
@@ -135,8 +167,8 @@
 		"EQ_PASSENGER_BERTH_REMOVAL",
 		"Removes a passenger berth.",
 		{
-			"available_to_all" = true;
-			"requires_free_passenger_berth" = true;
+			available_to_all = true;
+			requires_free_passenger_berth = true;
 		}
 	),
 	( /* Missile Removal */
@@ -144,8 +176,8 @@
 		"EQ_MISSILE_REMOVAL",
 		"Unmounts, safes, and re-sells at full market value all missiles and mines currently mounted on your craft.",
 		{
-			"available_to_all" = true;
-			"requires_mounted_pylon" = true;
+			available_to_all = true;
+			requires_mounted_pylon = true;
 		}
 	),
 	( /* ecm hardened missile */
@@ -153,9 +185,9 @@
 		"EQ_HARDENED_MISSILE",
 		"Faulcon de Lacy HMX5 homing missile - hardened against ECM.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
-			"requires_empty_pylon" = true;
+			requires_empty_pylon = true;
 		}
 	),
 	(
@@ -178,7 +210,7 @@
 		"EQ_ADVANCED_COMPASS",
 		"A Tyley-Feynman GW-99 astro-navigation compass with user-selectable target modes.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	(
@@ -186,7 +218,7 @@
 		"EQ_ADVANCED_NAVIGATIONAL_ARRAY",
 		"Navigation Computer software upgrade, improving the functionality of the Galactic Chart and enabling efficient route planning.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	(
@@ -194,7 +226,7 @@
 		"EQ_TARGET_MEMORY",
 		"A sixteen core target memory matrix. Allows selection of previous target locks.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	/* next item has a TL too high to be available */
@@ -208,9 +240,9 @@
 		"EQ_QC_MINE",
 		"Tyley-Feynman Quirium cascade mine. Mounts in place of a missile, but deploys to the rear of your craft. Capable of massive destruction and triggering chain reactions in the witchdrives of ships caught in its blast range.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 			/* NOTE: for reasons of backwards compatibility, this defaults to true for equipment whose key ends with MISSILE or MINE. */
-			"requires_empty_pylon" = true;
+			requires_empty_pylon = true;
 		}
 	),
 	(
@@ -235,7 +267,7 @@
 		"EQ_HEAT_SHIELD",
 		"Additional ceramid-fibre blanketing and tiles, no armour value but provides extra solar insulation.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	(
@@ -243,7 +275,7 @@
 		"EQ_WORMHOLE_SCANNER",
 		"The Mössbauer-Krantz Works wormhole scanner integrates into your existing targeting system. It analyzes the residual energy of a wormhole and, in combination with your Galactic Map software, calculates the most likely target system.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	/* renovation price is a dummy value, actually 10% of the ship's value which will vary by ship */
@@ -252,7 +284,7 @@
 		"EQ_RENOVATION",
 		"Covers dry docking fees, cleaning and replating of damaged hull sections, shield and scoop system de-ionization, systems tune-up, repainting and detailed valeting.",
 		{
-			"available_to_all" = true;
+			available_to_all = true;
 		}
 	),
 	/* next item has a TL too high to be available */
