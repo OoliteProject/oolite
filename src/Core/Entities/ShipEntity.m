@@ -5392,9 +5392,10 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				{
 					int n_rocks = 2 + (Ranrot() % (likely_cargo + 1));
 					
+					NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"boulder"];
 					for (i = 0; i < n_rocks; i++)
 					{
-						ShipEntity* rock = [UNIVERSE newShipWithRole:@"boulder"];   // retain count = 1
+						ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
 						if (rock)
 						{
 							Vector  rpos = xposition;
@@ -5425,10 +5426,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				if ((being_mined)||(ranrot_rand() % 100 < 20))
 				{
 					int n_rocks = 2 + (ranrot_rand() % 5);
-					//
+					
+					NSString *debrisRole = [[self shipInfoDictionary] oo_stringForKey:@"debris_role" defaultValue:@"splinter"];
 					for (i = 0; i < n_rocks; i++)
 					{
-						ShipEntity* rock = [UNIVERSE newShipWithRole:@"splinter"];   // retain count = 1
+						ShipEntity* rock = [UNIVERSE newShipWithRole:debrisRole];   // retain count = 1
 						if (rock)
 						{
 							Vector  rpos = xposition;

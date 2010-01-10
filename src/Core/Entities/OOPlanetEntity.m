@@ -489,6 +489,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	{
 		NSDictionary *spec = [NSDictionary dictionaryWithObjectsAndKeys:textureName, @"name", @"yes", @"repeat_s", @"linear", @"min_filter", nil];
 		diffuseMap = [OOTexture textureWithConfiguration:spec];
+		if (diffuseMap == nil)  return;		// OOTexture will have logged a file-not-found warning.
 		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-customized-macros" : @"planet-customized-macros"];
 	}
 	else

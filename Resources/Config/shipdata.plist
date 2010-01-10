@@ -434,6 +434,7 @@
 			};
 		};
 		likely_cargo = 4;
+		debris_role = "boulder";
 	};
 	"asteroid-alternative" =
 	{
@@ -766,6 +767,7 @@
 				specular = (0.1, 0.1, 0.1, 1.0);
 			};
 		};
+		debris_role = "splinter";
 	};
 	"boulder-alternative" =
 	{
