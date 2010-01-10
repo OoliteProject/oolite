@@ -2193,7 +2193,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
 	// special cases
-	
+	// FIXME: Is there a good reason no to use [eqType isMissileOrMine]? -- Ahruman 2010-01-10
 	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
 	{
 		if (missiles >= max_missiles) return NO;

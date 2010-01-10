@@ -550,8 +550,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	if ([dict oo_stringForKey:@"galaxy_seed"] == nil)  return NO;
 	if ([dict oo_stringForKey:@"galaxy_coordinates"] == nil)  return NO;
 	
-	// TODO: use CollectionExtractors for type-safety. -- Ahruman
-	[UNIVERSE setStrict:[dict oo_boolForKey:@"strict" defaultValue:NO] fromSaveGame:YES];
+	BOOL strict = [dict oo_boolForKey:@"strict" defaultValue:NO];
+	[UNIVERSE setStrict:strict fromSaveGame:YES];
 	
 	//base ship description
 	[ship_desc release];
@@ -592,19 +592,20 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	// extra equipment flags
 	[self removeAllEquipment];
-	[self addEquipmentFromCollection:[dict objectForKey:@"extra_equipment"]];
+	NSMutableDictionary *equipment = [NSMutableDictionary dictionaryWithDictionary:[dict oo_dictionaryForKey:@"extra_equipment"]];
 	
 	// Equipment flags	(deprecated in favour of equipment dictionary, keep for compatibility)
-	if ([dict oo_boolForKey:@"has_docking_computer"])		[self addEquipmentItem:@"EQ_DOCK_COMP"];
-	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[self addEquipmentItem:@"EQ_GAL_DRIVE"];
-	if ([dict oo_boolForKey:@"has_escape_pod"])				[self addEquipmentItem:@"EQ_ESCAPE_POD"];
-	if ([dict oo_boolForKey:@"has_ecm"])					[self addEquipmentItem:@"EQ_ECM"];
-	if ([dict oo_boolForKey:@"has_scoop"])					[self addEquipmentItem:@"EQ_FUEL_SCOOPS"];
-	if ([dict oo_boolForKey:@"has_energy_bomb"])			[self addEquipmentItem:@"EQ_ENERGY_BOMB"];
-	if (![UNIVERSE strict])
+	if ([dict oo_boolForKey:@"has_docking_computer"])		[equipment oo_setBool:YES forKey:@"EQ_DOCK_COMP"];
+	if ([dict oo_boolForKey:@"has_galactic_hyperdrive"])	[equipment oo_setBool:YES forKey:@"EQ_GAL_DRIVE"];
+	if ([dict oo_boolForKey:@"has_escape_pod"])				[equipment oo_setBool:YES forKey:@"EQ_ESCAPE_POD"];
+	if ([dict oo_boolForKey:@"has_ecm"])					[equipment oo_setBool:YES forKey:@"EQ_ECM"];
+	if ([dict oo_boolForKey:@"has_scoop"])					[equipment oo_setBool:YES forKey:@"EQ_FUEL_SCOOPS"];
+	if ([dict oo_boolForKey:@"has_energy_bomb"])			[equipment oo_setBool:YES forKey:@"EQ_ENERGY_BOMB"];
+	if (!strict)
 	{
-		if ([dict oo_boolForKey:@"has_fuel_injection"])		[self addEquipmentItem:@"EQ_FUEL_INJECTION"];
+		if ([dict oo_boolForKey:@"has_fuel_injection"])		[equipment oo_setBool:YES forKey:@"EQ_FUEL_INJECTION"];
 	}
+	
 	// Legacy energy unit type -> energy unit equipment item
 	if ([dict oo_boolForKey:@"has_energy_unit"] && [self installedEnergyUnitType] == ENERGY_UNIT_NONE)
 	{
@@ -612,17 +613,30 @@ static PlayerEntity *sSharedPlayer = nil;
 		switch (eType)
 		{
 			case OLD_ENERGY_UNIT_NORMAL:
-				[self addEquipmentItem:@"EQ_ENERGY_UNIT"];
+				[equipment oo_setBool:YES forKey:@"EQ_ENERGY_UNIT"];
 				break;
 				
 			case OLD_ENERGY_UNIT_NAVAL:
-				[self addEquipmentItem:@"EQ_NAVAL_ENERGY_UNIT"];
+				[equipment oo_setBool:YES forKey:@"EQ_NAVAL_ENERGY_UNIT"];
 				break;
 
 			default:
 				break;
 		}
 	}
+	
+	/*	Energy bombs are no longer supported in non-strict mode. As compensation,
+		we'll award either a Q-mine or some cash. We can't determine what to
+		award until we've handled missiles later on, though.
+	*/
+	BOOL energyBombCompensation = NO;
+	if (!strict && [equipment oo_boolForKey:@"EQ_ENERGY_BOMB"])
+	{
+		energyBombCompensation = YES;
+		[equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
+	}
+	
+	[self addEquipmentFromCollection:equipment];
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
 	else  compassMode = COMPASS_MODE_BASIC;
@@ -761,6 +775,19 @@ static PlayerEntity *sSharedPlayer = nil;
 			missile_list[i] = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			missile_entity[i] = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retain count = 1 - should be okay as long as we keep a missile with this role
 																			// in the base package.
+		}
+	}
+	
+	if (energyBombCompensation)
+	{
+		if ([self awardEquipment:@"EQ_QC_MINE"])
+		{
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"Replaced legacy energy bomb with Quirium cascade mine.");
+		}
+		else
+		{
+			credits += 9000;
+			OOLog(@"load.upgrade.replacedEnergyBomb", @"Compensated legacy energy bomb with 900 credits.");
 		}
 	}
 	

@@ -27,7 +27,7 @@
 #define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
 #define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
 
-#define POLAR_CAPS			0
+#define POLAR_CAPS			1
 #define ALBEDO_FACTOR		0.7f	// Overall darkening of everything, allowing better contrast for snow and specular highlights.
 
 

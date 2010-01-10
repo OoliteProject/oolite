@@ -28,7 +28,7 @@ MA 02110-1301, USA.
 #import "OOTextureGenerator.h"
 #import "OOMaths.h"
 
-#define PERLIN_3D			1
+#define PERLIN_3D			0
 
 @class OOPlanetNormalMapGenerator, OOPlanetAtmosphereGenerator;
 
