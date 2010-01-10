@@ -866,23 +866,34 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		start=0;
 	}
 	
-	[self setSelectableRange:NSMakeRange(first_row, first_row + STATUS_EQUIPMENT_MAX_ROWS)];
 	if (statusPage > 1)
 	{
 		[self setColor:[OOColor greenColor] forRow:first_row];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-back"),  @"", @" <-- ",nil] forRow:first_row];
 		[self setKey:GUI_KEY_OK forRow:first_row];
-		[self setSelectableRange:NSMakeRange(first_row, 1)];
 		first_y -= 16; // start 1 row down!
-		if (statusPage == page_count) [self setSelectedRow:first_row];
+		if (statusPage == page_count)
+		{
+			[self setSelectableRange:NSMakeRange(first_row, 1)];
+			[self setSelectedRow:first_row];
+		}
 	}
 	if (statusPage < page_count)
 	{
 		[self setColor:[OOColor greenColor] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setArray:[NSArray arrayWithObjects:DESC(@"gui-more"),  @"", @" --> ",nil] forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 		[self setKey:GUI_KEY_OK forRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
-		[self setSelectableRange:NSMakeRange(first_row + STATUS_EQUIPMENT_MAX_ROWS, 1)];
-		if (statusPage == 1) [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		if (statusPage == 1)
+		{
+			[self setSelectableRange:NSMakeRange(first_row + STATUS_EQUIPMENT_MAX_ROWS, 1)];
+			[self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
+		}
+	}
+	if (statusPage > 1 && statusPage < page_count)
+	{
+		[self setSelectableRange:NSMakeRange(first_row, first_row + STATUS_EQUIPMENT_MAX_ROWS)];
+		// default selected row to 'More -->' if we are looking at one of the middle pages
+		if ([self selectedRow] == -1)  [self setSelectedRow:first_row + STATUS_EQUIPMENT_MAX_ROWS];
 	}
 
 	if (statusPage == 1 || statusPage == page_count) items_per_column++;
