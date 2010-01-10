@@ -108,6 +108,24 @@ static void PerformDistanceMapping(GrayMap *source, GrayMap *dmap, GrayMap *amap
 static bool ReadPx(GrayMap *source, uint32_t x, uint32_t y, int16_t dx, int16_t dy);
 
 
+static inline int32_t Max(int32_t a, int32_t b)
+{
+	return (a > b) ? a : b;
+}
+
+
+static inline int32_t Min(int32_t a, int32_t b)
+{
+	return (a < b) ? a : b;
+}
+
+
+static inline int32_t Abs(int32_t a)
+{
+	return (a >= 0) ? a : -a;
+}
+
+
 static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, uint32_t x, uint32_t y)
 {
 	int32_t					dx, dy;
@@ -115,7 +133,7 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, u
 	uint32_t				distanceSq, bestDistanceSq = UINT32_MAX;
 	uint32_t				bestDistance;
 	float					bestAngle;
-	uint32_t				currDistance, maxDistance = MAX(source->width, source->height);
+	uint32_t				currDistance, maxDistance = Max(source->width, source->height);
 	int8_t					ddx = 1, ddy = 0, ddt;
 	uint8_t					countdown = 3;
 	uint32_t				i, length = 2;
@@ -123,7 +141,7 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, u
 	
 	dx = 0;
 	dy = -1;
-	if (amap == NULL)  maxDistance = MIN(maxDistance, 128);
+	if (amap == NULL)  maxDistance = Min(maxDistance, 128);
 	target = !ReadPx(source, x, y, 0, 0);
 	
 	for (;;)
@@ -154,7 +172,7 @@ static void DistanceMapOnePixel(GrayMap *source, GrayMap *dmap, GrayMap *amap, u
 		}
 		while (--countdown);
 		
-		currDistance = MAX(ABS(dx), ABS(dy));
+		currDistance = Max(Abs(dx), Abs(dy));
 		if ((currDistance * currDistance) > bestDistanceSq || currDistance > maxDistance)  break;
 		
 		countdown = 2;

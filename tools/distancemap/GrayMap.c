@@ -136,7 +136,7 @@ GrayMap *ReadGrayMapFile(FILE *file, const char *name)
 	
 	if (!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth, &colorType, NULL, NULL, NULL))
 	{
-		fprintf(stderr, "Failed to get metadata from PNG %@", name);
+		fprintf(stderr, "Failed to get metadata from PNG %s", name);
 		return NULL;
 	}
 	

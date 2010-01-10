@@ -32,7 +32,7 @@
 		1AE75AC20F5AB051009DAA51 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AE75A670F5AAF74009DAA51 /* libpng.a */; };
 		1AE75AE20F5AB43C009DAA51 /* GrayMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE75AE00F5AB43C009DAA51 /* GrayMap.h */; };
 		1AE75AE30F5AB43C009DAA51 /* GrayMap.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE75AE10F5AB43C009DAA51 /* GrayMap.c */; };
-		8DD76F9A0486AA7600D96B5E /* distancemap.m in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* distancemap.m */; settings = {ATTRIBUTES = (); }; };
+		8DD76F9A0486AA7600D96B5E /* distancemap.c in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* distancemap.c */; settings = {ATTRIBUTES = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,7 +58,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		08FB7796FE84155DC02AAC07 /* distancemap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = distancemap.m; sourceTree = "<group>"; };
+		08FB7796FE84155DC02AAC07 /* distancemap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = distancemap.c; sourceTree = "<group>"; };
 		1AE75A5C0F5AAF19009DAA51 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		1AE75A670F5AAF74009DAA51 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1AE75A930F5AAFCD009DAA51 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = pngpread.c; path = "../../deps/Cross-platform-deps/libpng/pngpread.c"; sourceTree = SOURCE_ROOT; };
@@ -123,7 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				32A70AAB03705E1F00C91783 /* distancemap_Prefix.pch */,
-				08FB7796FE84155DC02AAC07 /* distancemap.m */,
+				08FB7796FE84155DC02AAC07 /* distancemap.c */,
 				1AE75AE00F5AB43C009DAA51 /* GrayMap.h */,
 				1AE75AE10F5AB43C009DAA51 /* GrayMap.c */,
 			);
@@ -269,7 +269,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8DD76F9A0486AA7600D96B5E /* distancemap.m in Sources */,
+				8DD76F9A0486AA7600D96B5E /* distancemap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,7 +303,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
-				SDKROOT = macosx10.4;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -325,7 +325,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = png;
-				SDKROOT = macosx10.4;
+				SDKROOT = "";
 				ZERO_LINK = NO;
 			};
 			name = Release;
@@ -339,10 +339,11 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				HEADER_SEARCH_PATHS = "../../deps/Cross-platform-deps/libpng/";
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = distancemap;
-				SDKROOT = macosx10.4;
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -354,9 +355,10 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = distancemap_Prefix.pch;
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
 				INSTALL_PATH = /usr/local/bin;
 				PRODUCT_NAME = distancemap;
-				SDKROOT = macosx10.4;
+				SDKROOT = "";
 			};
 			name = Release;
 		};
