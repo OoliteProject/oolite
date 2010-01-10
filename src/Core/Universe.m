@@ -1199,7 +1199,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
 	OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
 	OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
-	
+	OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));	
 	OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 }
 
@@ -7369,7 +7369,7 @@ double estimatedTimeForJourney(double distance, int hops)
 						// what the contract pays
 						float fee = profit_for_trip * contract_share / 100;
 						
-						fee = cunningFee(fee);
+						fee = round(cunningFee(fee));
 						
 						// premium = local price
 						float premium = round(local_cargo_value);

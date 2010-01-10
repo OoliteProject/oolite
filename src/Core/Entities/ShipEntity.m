@@ -5411,7 +5411,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						if (rock)
 						{
 							Vector  rpos = xposition;
-							int  r_speed = 20.0 * [rock maxFlightSpeed];
+							int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 10;
 							int cr = 3 * rock->collision_radius;
 							rpos.x += (ranrot_rand() % cr) - cr/2;
 							rpos.y += (ranrot_rand() % cr) - cr/2;
@@ -5446,7 +5446,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						if (rock)
 						{
 							Vector  rpos = xposition;
-							int  r_speed = 20.0 * [rock maxFlightSpeed];
+							int  r_speed = [rock maxFlightSpeed] > 0 ? 20.0 * [rock maxFlightSpeed] : 20;
 							int cr = 3 * rock->collision_radius;
 							rpos.x += (ranrot_rand() % cr) - cr/2;
 							rpos.y += (ranrot_rand() % cr) - cr/2;
