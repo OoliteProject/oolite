@@ -104,9 +104,6 @@ typedef OOUInteger NSSpeechBoundary;
 #define MAX_NUMBER_OF_SOLAR_SYSTEM_ENTITIES 20
 
 
-#define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
-
-
 static NSString * const kOOLogUniversePopulate				= @"universe.populate";
 static NSString * const kOOLogUniversePopulateWitchspace	= @"universe.populate.witchspace";
 extern NSString * const kOOLogEntityVerificationError;
@@ -717,7 +714,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[self addEntity:thing];
 	[thing release];
 	
-	[self setSunCenterPosition:kZeroVector];
+	[self setLight1Position:kZeroVector];
 	
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
@@ -940,7 +937,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	[a_sun setStatus:STATUS_ACTIVE];
 	[a_sun setPosition:sunPos]; // sets also light origin
-	// [self setSunCenterPosition:sunPos];
 	[a_sun setEnergy:  1000000.0];
 	[self addEntity:a_sun];
 	
@@ -1092,7 +1088,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[a_station setPosition:vector_add(stationPos, v0)];
 			stationPos = a_station->position;
 		}
-		//[self setSunCenterPosition:sunPos];
+		//[self setLight1Position:sunPos];
 		
 		[self removeEntity:a_planet];	// and Poof! it's gone
 		cachedPlanet = nil;
@@ -1145,6 +1141,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	GL_LIGHT0 is the light for inside the station and needs to have its position reset
 	relative to the player whenever demo ships or background scenes are to be shown
+	
+	Contrary to what it says above, at the moment we are using light1 for both. TODO: code in what it says above. -- kaks 20100110
 	
 	*/
 	
@@ -1203,14 +1201,16 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
 	
 	OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
-	
-	OOGL(glDisable(GL_LIGHT0));
-	demo_light_on = NO;
-	OOGL(glDisable(GL_LIGHT1));
-	sun_light_on = NO;
 }
 
-- (void) setSunCenterPosition: (Vector) sunPos
+
+- (BOOL) sunlightOn
+{
+	return (sun_light_on || demo_light_on);		// at the moment both demo and sunlight use light1
+}
+
+
+- (void) setLight1Position: (Vector) sunPos
 {
 	sun_center_position[0] = sunPos.x;
 	sun_center_position[1] = sunPos.y;
@@ -3509,7 +3509,7 @@ void setDemoLight(BOOL yesno, Vector position)
 		if (yesno)  OOGL(glEnable(GL_LIGHT0));
 		else  OOGL(glDisable(GL_LIGHT0));
 		demo_light_on = yesno;
-		// if (demo_light_on) [UNIVERSE setSunCenterPosition:(Vector){ DEMO_LIGHT_POSITION }]; // can not set it here as this overwrites screen specific settings.
+		// if (demo_light_on) [UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // can not set it here as this overwrites screen specific settings.
 	}
 }
 
@@ -3619,7 +3619,12 @@ static const OOMatrix	starboard_matrix =
 			Entity			*drawthing = nil;
 			BOOL			inGUIMode = [player showDemoShips];
 			
-			if (!inGUIMode && [UNIVERSE sun]) [UNIVERSE setSunCenterPosition: [[UNIVERSE sun] position]]; // reset light1 to sun's position
+			if (!displayGUI && wasDisplayGUI)
+			{
+				if (cachedSun) [UNIVERSE setLight1Position:[cachedSun position]]; // reset light1 to sun's position
+				else [UNIVERSE setLight1Position:kZeroVector];
+			}
+			wasDisplayGUI = displayGUI;
 			
 			// use a non-mutable copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
@@ -8508,7 +8513,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	
-	[self setSunCenterPosition:(Vector){ 4000000.0, 0.0, 0.0 }];
+	[self setLight1Position:kZeroVector];
 	
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];

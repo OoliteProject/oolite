@@ -131,6 +131,8 @@ enum
 #define TIME_ACCELERATION_FACTOR_DEFAULT	1.0f
 #define TIME_ACCELERATION_FACTOR_MAX		16.0f
 
+#define DEMO_LIGHT_POSITION 5000.0f, 25000.0f, -10000.0f
+
 
 #ifndef OO_LOCALIZATION_TOOLS
 #define OO_LOCALIZATION_TOOLS	1
@@ -181,6 +183,7 @@ enum
 	GuiDisplayGen			*comm_log_gui;
 	
 	BOOL					displayGUI;
+	BOOL					wasDisplayGUI;
 	BOOL					displayCursor;
 	
 	BOOL					autoSaveNow;
@@ -256,7 +259,7 @@ enum
 	BOOL					doLinkedListMaintenanceThisUpdate;
 	
 	NSMutableArray			*entitiesDeadThisUpdate;
-	int				framesDoneThisUpdate;
+	int						framesDoneThisUpdate;
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -270,7 +273,6 @@ enum
 	
 	NSMutableArray			*_preloadingPlanetMaterials;
 	
-	// experimental proc-genned textures
 #if ALLOW_PROCEDURAL_PLANETS
 	BOOL					doProcedurallyTexturedPlanets;
 #endif
@@ -294,7 +296,7 @@ enum
 - (void) obj_dump;
 #endif
 
-- (void) sleepytime: (id) thing;
+- (void) sleepytime:(id) thing;
 
 - (void) setUpUniverseFromStation;
 - (void) set_up_universe_from_witchspace;
@@ -302,7 +304,8 @@ enum
 - (void) set_up_witchspace;
 - (void) setUpSpace;
 - (void) setLighting;
-- (void) setSunCenterPosition: (Vector) sunPos;
+- (void) setLight1Position: (Vector) sunPos;
+- (BOOL) sunlightOn;
 - (OOPlanetEntity *) setUpPlanet;
 
 - (void) populateSpaceFromActiveWormholes;

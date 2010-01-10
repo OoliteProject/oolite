@@ -2407,7 +2407,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	// the following are necessary...
 	[UNIVERSE setDisplayText:YES];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
-	[UNIVERSE setSunCenterPosition:(Vector){ 5000.0f, 25000.0f, -10000.0f }]; // EW test
+	[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // EW test
 	_missionWithCallback = callback;
 }
 
@@ -2555,7 +2555,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", ship);
 		[ship setOrientation: model_q];
 		[ship setPosition: model_p0];
-		[UNIVERSE setSunCenterPosition:(Vector){ 5000.0f, 25000.0f, -10000.0f }]; // set light origine
+		[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // set light origine
 		[ship setScanClass: CLASS_NO_DRAW];
 		[ship switchAITo: @"nullAI.plist"];
 		[UNIVERSE addEntity: ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -2590,7 +2590,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddModel, @"::::: adding model to scene:'%@'", doppelganger);
 		[doppelganger setOrientation: model_q];
 		[doppelganger setPosition: model_p0];
-		[UNIVERSE setSunCenterPosition:(Vector){ 5000.0f, 25000.0f, -10000.0f }]; // set light origine
+		[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // set light origine
 		[doppelganger setScanClass: CLASS_NO_DRAW];
 		[doppelganger switchAITo: @"nullAI.plist"];
 		[UNIVERSE addEntity: doppelganger];
@@ -2648,7 +2648,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
 		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
-		[UNIVERSE setSunCenterPosition:(Vector){ -12000.0, -5000.0, -10000.0 }]; // set light origine for pole
+		[UNIVERSE setLight1Position:(Vector){ -12000.0, -5000.0, -10000.0 }]; // set light origine for pole
 #if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
 		if (procGen)
 		{
@@ -2693,7 +2693,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		OOLog(kOOLogDebugProcessSceneStringAddBillboard, @"::::: adding billboard:'%@' to scene.", billboard);
 		
 		[UNIVERSE addEntity: billboard];
-		[UNIVERSE setSunCenterPosition:(Vector){ 5000.0f, 25000.0f, -10000.0f }]; // set light origine
+		[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // set light origine
 		[billboard setStatus: STATUS_COCKPIT_DISPLAY];
 
 		[billboard release];

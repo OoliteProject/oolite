@@ -81,6 +81,7 @@
 		"setGalacticHyperspaceBehaviourTo:",
 		"setGalacticHyperspaceFixedCoordsTo:",
 	);
+	
 	ai_methods =
 	(
 		// Implicitly includes ai_and_action_methods
@@ -286,8 +287,51 @@
 		"fuelLeakRate_number"		
 	);
 	
+	hud_methods =
+	(
+		// accepted keys
+		"crosshairs",
+		"crosshair_scale",
+		"crosshair_width",
+		"crosshair_color",
+		"legends",
+		"overall_alpha",
+		"reticle_target_sensitive",
+		"cloak_indicator_on_status_light",
+		"dials",
+		
+		// possible dials
+		"drawTrumbles:",
+		"drawTargetReticle:",
+		"drawScanner:",
+		"drawScannerZoomIndicator:",
+		"drawStickSensitivityIndicator:",
+		"drawCompass:",
+		"drawAegis:",
+		"drawScoopStatus:",
+		"drawSpeedBar:",
+		"drawRollBar:",
+		"drawPitchBar:",
+		"drawYawBar:",
+		"drawEnergyGauge:",
+		"drawSpeedBar:",
+		"drawForwardShieldBar:",
+		"drawAftShieldBar:",
+		"drawYellowSurround:",
+		"drawGreenSurround:",
+		"drawFuelBar:",
+		"drawCabinTempBar:",
+		"drawWeaponTempBar:",
+		"drawAltitudeBar:",
+		"drawMissileDisplay:",
+		"drawStatusLight:",
+		"drawClock:",
+		"drawFPSInfoCounter:"
+	);
+	
 	shader_entity_binding_methods =
 	(
+		"sunlightOn",
 		"position",
 		"orientation",
 		"relativePosition",

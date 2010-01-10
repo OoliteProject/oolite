@@ -983,4 +983,10 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	return [UNIVERSE getTime] - spawnTime;
 }
 
+
+- (GLfloat)sunlightOn
+{
+	return [UNIVERSE sunlightOn] ? 1.0f : 0.0f;
+}
+
 @end
