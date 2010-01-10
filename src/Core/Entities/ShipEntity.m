@@ -990,6 +990,18 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 }
 
 
+- (void) setIsBoulder:(BOOL)flag
+{
+	isBoulder = flag;
+}
+
+
+- (BOOL) isBoulder
+{
+	return isBoulder;
+}
+
+
 - (void) setUpEscorts
 {
 	NSString		*defaultRole = @"escort";
@@ -5411,7 +5423,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
-							[rock setScanClass: CLASS_ROCK];
+							[rock setScanClass:CLASS_ROCK];
+							[rock setIsBoulder:YES];
 							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
 							[rock release];
 						}
@@ -5420,8 +5433,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 				[UNIVERSE removeEntity:self];
 				return; // don't do anything more
 			}
-
-			if ([self hasRole:@"boulder"])
+			else if ([self isBoulder])
 			{
 				if ((being_mined)||(ranrot_rand() % 100 < 20))
 				{

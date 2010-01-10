@@ -172,12 +172,13 @@ MA 02110-1301, USA.
 							isNearPlanetSurface: 1,		// check for landing on planet
 							isFrangible: 1,				// frangible => subEntities can be damaged individually
 							cloaking_device_active: 1,	// cloaking_device
-							cloakPassive: 1,		// cloak deactivates when main weapons or missiles are fired
+							cloakPassive: 1,			// cloak deactivates when main weapons or missiles are fired
 							canFragment: 1,				// Can it break into wreckage?
 							suppressExplosion: 1,		// Avoid exploding on death (script hook)
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
-							isUnpiloted: 1,			// Is meant to not have crew
+							isUnpiloted: 1,				// Is meant to not have crew
+							isBoulder: 1,				// Created as debris from asteroid, regardless of role.
 	
 	// scripting
 							haveExecutedSpawnAction: 1,
@@ -389,6 +390,9 @@ MA 02110-1301, USA.
 - (char)beaconChar;
 - (int)nextBeaconID;
 - (void)setNextBeacon:(ShipEntity*) beaconShip;
+
+- (void) setIsBoulder:(BOOL)flag;
+- (BOOL) isBoulder;
 
 - (void) setUpEscorts;
 

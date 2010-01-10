@@ -272,7 +272,8 @@
 			"throw_sparks",
 			"max_missiles",
 			"cloak_passive",
-			"missile_load_time"
+			"missile_load_time",
+			"debris_role"
 		);
 		knownStationKeys =
 		(

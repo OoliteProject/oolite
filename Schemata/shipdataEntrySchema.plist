@@ -124,6 +124,7 @@
 		no_boulders = "fuzzyBoolean";
 		hyperspace_motor_spin_time = "positiveFloat";
 		requires_docking_clearance = "boolean";
+		debris_role = "$shipRole";
 	};
 	$definitions =
 	{
