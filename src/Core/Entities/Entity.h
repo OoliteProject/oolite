@@ -257,6 +257,5 @@ extern size_t gTotalEntityMemory;
 - (GLfloat) universalTime;
 - (GLfloat) spawnTime;
 - (GLfloat) timeElapsedSinceSpawn;
-- (GLfloat) sunlightOn;		// TODO: demo light on!
 
 @end

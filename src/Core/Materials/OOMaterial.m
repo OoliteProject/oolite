@@ -309,8 +309,6 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		[uniforms setObject:@"timeElapsedSinceSpawn" forKey:@"uTime"];
 	}
 	
-	[uniforms setObject:@"sunlightOn" forKey:@"uLight1"];
-	
 	if ([textures count] != 0)  [newConfig setObject:textures forKey:@"textures"];
 	if ([uniforms count] != 0)  [newConfig setObject:uniforms forKey:@"uniforms"];
 	

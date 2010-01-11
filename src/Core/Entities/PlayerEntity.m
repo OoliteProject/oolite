@@ -4356,7 +4356,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[[UNIVERSE gameView] clearMouse];
 		
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -4672,7 +4671,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[targetSystemData release];
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -4768,7 +4766,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[targetSystemName release];
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -4827,7 +4824,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	[targetSystemName release]; // released
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -5043,7 +5039,6 @@ static PlayerEntity *sSharedPlayer = nil;
 	gui_screen = GUI_SCREEN_GAMEOPTIONS;
 
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
@@ -5141,10 +5136,8 @@ static PlayerEntity *sSharedPlayer = nil;
 	gui_screen = GUI_SCREEN_OPTIONS;
 
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-	[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }];
 }
 
 
@@ -5513,7 +5506,6 @@ static NSString *last_outfitting_key=nil;
 	gui_screen = GUI_SCREEN_EQUIP_SHIP;
 
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
@@ -5658,12 +5650,10 @@ static NSString *last_outfitting_key=nil;
 	[[OOMusicController sharedController] playThemeMusic];
 	
 	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"intro"] inFolder:@"Images"];
 	[gui setBackgroundTexture:background];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-	[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }];
 }
 
 
@@ -6197,7 +6187,6 @@ static NSString *last_outfitting_key=nil;
 	[[UNIVERSE gameView] clearMouse];
 	
 	[self setShowDemoShips:NO];
-	[UNIVERSE setDisplayText:YES];
 	[UNIVERSE setDisplayCursor:[self status] == STATUS_DOCKED];
 	[UNIVERSE setViewDirection:VIEW_GUI_DISPLAY];
 	

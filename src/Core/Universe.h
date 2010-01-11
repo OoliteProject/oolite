@@ -202,7 +202,7 @@ enum
 	int						demo_ship_index;
 	NSArray					*demo_ships;
 	
-	GLfloat					sun_center_position[4];
+	GLfloat					main_light_position[4];
 	
 	BOOL					dumpCollisionInfo;
 	
@@ -302,8 +302,7 @@ enum
 - (void) set_up_witchspace;
 - (void) setUpSpace;
 - (void) setLighting;
-- (void) setLight1Position: (Vector) sunPos;
-- (BOOL) sunlightOn;
+- (void) setMainLightPosition: (Vector) sunPos;
 - (OOPlanetEntity *) setUpPlanet;
 
 - (void) populateSpaceFromActiveWormholes;

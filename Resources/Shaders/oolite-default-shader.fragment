@@ -162,7 +162,6 @@ uniform float			uParallaxScale;
 uniform float			uParallaxBias;
 #endif
 
-uniform float			uLight1;
 
 vec4 CalcDiffuseLight(in vec3 lightVector, in vec3 normal, in vec4 lightColor)
 {
@@ -268,7 +267,7 @@ void main(void)
 #if OO_LIGHT_0_FIX
 	vec3 light0Vector = normalize(vLight0Vector);
 #endif
-	vec3 light1Vector = uLight1 * normalize(vLight1Vector);
+	vec3 light1Vector = normalize(vLight1Vector);
 	
 	// Get ambient colour
 	vec4 ambientLight = gl_LightModel.ambient;

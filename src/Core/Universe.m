@@ -716,11 +716,8 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[self addEntity:thing];
 	[thing release];
 	
-	[self setLight1Position:kZeroVector];
-	
+	[self setLighting];	// also sets initial lights positions.
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
-	
-	[self setLighting];
 	
 	OOLog(kOOLogUniversePopulateWitchspace, @"Populating witchspace ...");
 	OOLogIndentIf(kOOLogUniversePopulateWitchspace);
@@ -1090,7 +1087,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 			[a_station setPosition:vector_add(stationPos, v0)];
 			stationPos = a_station->position;
 		}
-		//[self setLight1Position:sunPos];
 		
 		[self removeEntity:a_planet];	// and Poof! it's gone
 		cachedPlanet = nil;
@@ -1120,8 +1116,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 
 
 // track the position and status of the lights
-BOOL	sun_light_on = NO;
+BOOL	object_light_on = NO;
 BOOL	demo_light_on = NO;
+static GLfloat sun_off[4] = {0.0, 0.0, 0.0, 1.0};
 GLfloat	demo_light_position[4] = { DEMO_LIGHT_POSITION, 1.0 };
 
 #define DOCKED_AMBIENT_LEVEL	0.2f	// Should be 0.05, temporarily 0.2 until lights are fixed. (Shader ambient lighting is still wrong.)
@@ -1141,24 +1138,30 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	GL_LIGHT1 is the sun and is active while a sun exists in space
 	where there is no sun (witch/interstellar space) this is placed at the origin
 	
+	Shaders: this light is also used inside the station and needs to have its position reset
+	relative to the player whenever demo ships or background scenes are to be shown -- 20100111
+	
+	
 	GL_LIGHT0 is the light for inside the station and needs to have its position reset
 	relative to the player whenever demo ships or background scenes are to be shown
 	
-	Contrary to what it says above, at the moment we are using light1 for both. TODO: code in what it says above. -- kaks 20100110
+	Shaders: this light is not used.  -- 20100111
 	
 	*/
 	
 	NSDictionary	*systeminfo = [self generateSystemData:system_seed];
 	OOSunEntity		*the_sun = [self sun];
 	SkyEntity		*the_sky = nil;
-	GLfloat			sun_pos[] = {4000000.0, 0.0, 0.0, 1.0};
+	GLfloat			sun_pos[] = {0.0, 0.0, 0.0, 1.0};	// equivalent to kZeroVector - for interstellar space.
+	GLfloat			sun_ambient[] = {0.0, 0.0, 0.0, 1.0};	// overridden later in code
 	int i;
+	
 	for (i = n_entities - 1; i > 0; i--)
 		if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[SkyEntity class]]))
 			the_sky = (SkyEntity*)sortedEntities[i];
+	
 	if (the_sun)
 	{
-		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light about 5%
 		[the_sun getDiffuseComponents:sun_diffuse];
 		[the_sun getSpecularComponents:sun_specular];
 		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient));
@@ -1171,7 +1174,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	else
 	{
 		// witchspace
-		GLfloat	sun_ambient[] = { 0.0, 0.0, 0.0, 1.0};	// ambient light nil
 		stars_ambient[0] = 0.05;	stars_ambient[1] = 0.20;	stars_ambient[2] = 0.05;	stars_ambient[3] = 1.0;
 		sun_diffuse[0] = 0.85;	sun_diffuse[1] = 1.0;	sun_diffuse[2] = 0.85;	sun_diffuse[3] = 1.0;
 		sun_specular[0] = 0.95;	sun_specular[1] = 1.0;	sun_specular[2] = 0.95;	sun_specular[3] = 1.0;
@@ -1206,18 +1208,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 }
 
 
-- (BOOL) sunlightOn
+- (void) setMainLightPosition: (Vector) sunPos
 {
-	return (sun_light_on || demo_light_on);		// at the moment both demo and sunlight use light1
-}
-
-
-- (void) setLight1Position: (Vector) sunPos
-{
-	sun_center_position[0] = sunPos.x;
-	sun_center_position[1] = sunPos.y;
-	sun_center_position[2] = sunPos.z;
-	sun_center_position[3] = 1.0;
+	main_light_position[0] = sunPos.x;
+	main_light_position[1] = sunPos.y;
+	main_light_position[2] = sunPos.z;
+	main_light_position[3] = 1.0;
 }
 
 
@@ -2782,13 +2778,12 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	}
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
-	displayGUI = YES;
+	//displayGUI = YES;	// already set
 	if (justCobra==NO)
 	{
 		demo_stage = DEMO_SHOW_THING;
 		demo_stage_time = universal_time + 3.0;
 	}
-	
 }
 
 
@@ -3486,32 +3481,66 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-void setSunLight(BOOL yesno)
+- (void) useGUILightSource:(BOOL)GUILight
 {
-	if (yesno != sun_light_on)
+	if (GUILight != demo_light_on)
 	{
-		if (yesno)  OOGL(glEnable(GL_LIGHT1));
-		else  OOGL(glDisable(GL_LIGHT1));
-		sun_light_on = yesno;
+		if (![self useShaders])
+		{
+			if (GUILight) 
+			{
+				OOGL(glEnable(GL_LIGHT0));
+				OOGL(glDisable(GL_LIGHT1));
+			}
+			else
+			{
+				OOGL(glEnable(GL_LIGHT1));
+				OOGL(glDisable(GL_LIGHT0));
+			}
+		}
+		//nothing to do for shaders, they use the same light source in flight & in gui mode.
+		
+		demo_light_on = GUILight;
 	}
 }
 
 
-void setDemoLight(BOOL yesno, Vector position)
+- (void) lightForEntity:(BOOL)isLit
 {
-	if (yesno != demo_light_on)
+	if (isLit != object_light_on)
 	{
-		if ((demo_light_position[0] != position.x)||(demo_light_position[1] != position.y)||(demo_light_position[2] != position.z))
+		if ([self useShaders])
 		{
-			demo_light_position[0] = position.x;
-			demo_light_position[1] = position.y;
-			demo_light_position[2] = position.z;
-			OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));
+			if (isLit)
+			{
+				OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse));
+				OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
+			}
+			else
+			{			
+				OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_off));
+				OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_off));
+			}
 		}
-		if (yesno)  OOGL(glEnable(GL_LIGHT0));
-		else  OOGL(glDisable(GL_LIGHT0));
-		demo_light_on = yesno;
-		// if (demo_light_on) [UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // can not set it here as this overwrites screen specific settings.
+		else
+		{
+			if (!demo_light_on)
+			{
+				if (isLit) OOGL(glEnable(GL_LIGHT1));
+				else OOGL(glDisable(GL_LIGHT1));
+			}
+			else
+			{
+				// if we're in demo /GUI mode we should always have a lit object,
+				 OOGL(glEnable(GL_LIGHT0));
+				
+				// Redundant, see above.
+				//if (isLit)  OOGL(glEnable(GL_LIGHT0));
+				//else  OOGL(glDisable(GL_LIGHT0));
+			}
+		}
+		
+		object_light_on = isLit;
 	}
 }
 
@@ -3612,19 +3641,20 @@ static const OOMatrix	starboard_matrix =
 			no_update = YES;	// block other attempts to draw
 			
 			int				i, v_status;
-			Vector			position, obj_position, view_dir, view_up;
+			Vector			position, view_dir, view_up;
 			OOMatrix		view_matrix;
 			int				ent_count =	n_entities;
 			Entity			*my_entities[ent_count];
 			int				draw_count = 0;
 			PlayerEntity	*player = [PlayerEntity sharedPlayer];
 			Entity			*drawthing = nil;
-			BOOL			inGUIMode = [player showDemoShips];
+			BOOL			demoShipMode = [player showDemoShips];
 			
 			if (!displayGUI && wasDisplayGUI)
 			{
-				if (cachedSun) [UNIVERSE setLight1Position:[cachedSun position]]; // reset light1 to sun's position
-				else [UNIVERSE setLight1Position:kZeroVector];
+				// reset light1 position for the shaders
+				if (cachedSun) [UNIVERSE setMainLightPosition:[cachedSun position]]; // the main light is the sun.
+				else [UNIVERSE setMainLightPosition:kZeroVector];
 			}
 			wasDisplayGUI = displayGUI;
 			
@@ -3683,53 +3713,40 @@ static const OOMatrix	starboard_matrix =
 			
 			OOGL(gluLookAt(view_dir.x, view_dir.y, view_dir.z, 0.0, 0.0, 0.0, view_up.x, view_up.y, view_up.z));
 			
-			if (!displayGUI || inGUIMode)
+			if (EXPECT(!displayGUI || demoShipMode))
 			{
-				// set up the light for demo ships
-				Vector demo_light_origin = { DEMO_LIGHT_POSITION };
-				
-				if (!inGUIMode)
+				if (EXPECT(!demoShipMode))	// we're in flight
 				{
 					// rotate the view
 					GLMultOOMatrix([player rotationMatrix]);
 					// translate the view
 					GLTranslateOOVector(vector_flip(position));
-				}
-				
-				// position the sun and docked lights correctly
-				OOGL(glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position));	// this is necessary or the sun will move with the player
-				
-				if (inGUIMode)
-				{
-					// light for demo ships display.. 
-					OOGL(glLightfv(GL_LIGHT0, GL_AMBIENT, docked_light_ambient));
-					OOGL(glLightfv(GL_LIGHT0, GL_DIFFUSE, docked_light_diffuse));
-					OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
-					
-					demo_light_on = NO;	// be contrary - force enabling of the light
-					setDemoLight(YES, demo_light_origin);
-					sun_light_on = YES;	// be contrary - force disabling of the light
-					setSunLight(NO);
-					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
+					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 				}
 				else
 				{
-					demo_light_on = YES;	// be contrary - force disabling of the light
-					setDemoLight(NO, demo_light_origin);
-					sun_light_on = NO;	// be contrary - force enabling of the light
-					setSunLight(YES);
-					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, docked_light_ambient));
+					// main_light_position no shaders, docked/GUI.
+					OOGL(glLightfv(GL_LIGHT0, GL_POSITION, main_light_position));
 				}
+				
+				// main light position, no shaders, in-flight / shaders, in-flight and docked.
+				OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
+				
+				[self useGUILightSource:demoShipMode];
 				
 				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
 				viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW);
 				
-				// turn on lighting
-				//OOGL(glEnable(GL_LIGHTING));	// enabled already
-				
-				int		furthest = draw_count - 1;
-				int		nearest = 0;
-				BOOL	bpHide = [self breakPatternHide];
+				int			furthest = draw_count - 1;
+				int			nearest = 0;
+				BOOL		fogging, bpHide = [self breakPatternHide];
+				BOOL		inAtmosphere = airResistanceFactor > 0.01;
+				GLfloat		fogFactor = 0.5 / airResistanceFactor;
+				double 		fog_scale, half_scale;
+				GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
+				GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
+				OOSunEntity *the_sun = [self sun];				
 				
 				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
@@ -3741,24 +3758,17 @@ static const OOMatrix	starboard_matrix =
 					
 					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 					
-					GLfloat flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
-					GLfloat mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
-					
-					if ((d_status == STATUS_COCKPIT_DISPLAY && inGUIMode) || (d_status != STATUS_COCKPIT_DISPLAY && !inGUIMode))
+					if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either demo ship mode or in flight
 					{
 						// reset material properties
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, flat_ambdiff));
 						OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_no));
-
-						// atmospheric fog
-						BOOL fogging = (airResistanceFactor > 0.01 && ![drawthing isStellarObject]);
 						
 						OOGL(glPushMatrix());
-						obj_position = [drawthing position];
-						if (drawthing != player)
+						if (EXPECT(drawthing != player))
 						{
 							//translate the object
-							GLTranslateOOVector(obj_position);
+							GLTranslateOOVector([drawthing position]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
@@ -3769,12 +3779,14 @@ static const OOMatrix	starboard_matrix =
 							//translate the object  from the viewpoint
 							GLTranslateOOVector(vector_flip(viewOffset));
 						}
-
+						
 						// atmospheric fog
+						fogging = (inAtmosphere && ![drawthing isStellarObject]);
+						
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
-							double half_scale = fog_scale * 0.50;
+							fog_scale = BILLBOARD_DEPTH * fogFactor;
+							half_scale = fog_scale * 0.50;
 							OOGL(glEnable(GL_FOG));
 							OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
 							OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
@@ -3782,17 +3794,7 @@ static const OOMatrix	starboard_matrix =
 							OOGL(glFogf(GL_FOG_END, fog_scale));
 						}
 						
-						// lighting
-						if (inGUIMode)
-						{
-							setDemoLight(YES, demo_light_origin);
-							setSunLight(NO);
-						}
-						else
-						{
-							setSunLight(drawthing->isSunlit);
-							setDemoLight(NO, demo_light_origin);
-						}
+						[self lightForEntity:demoShipMode || drawthing->isSunlit];
 						
 						// draw the thing
 						[drawthing drawEntity:NO:NO];
@@ -3819,17 +3821,14 @@ static const OOMatrix	starboard_matrix =
 					
 					if (bpHide && !drawthing->isImmuneToBreakPatternHide)  continue;
 					
-					if ((d_status == STATUS_COCKPIT_DISPLAY && inGUIMode) || (d_status != STATUS_COCKPIT_DISPLAY && !inGUIMode))
+					if (!((d_status == STATUS_COCKPIT_DISPLAY) ^ demoShipMode)) // either in flight or in demo ship mode
 					{
-						// experimental - atmospheric fog
-						BOOL fogging = (airResistanceFactor > 0.01);
 						
 						OOGL(glPushMatrix());
-						obj_position = [drawthing position];
-						if (drawthing != player)
+						if (EXPECT(drawthing != player))
 						{
 							//translate the object
-							GLTranslateOOVector(obj_position);
+							GLTranslateOOVector([drawthing position]);
 							//rotate the object
 							GLMultOOMatrix([drawthing drawRotationMatrix]);
 						}
@@ -3841,11 +3840,13 @@ static const OOMatrix	starboard_matrix =
 							GLTranslateOOVector(vector_flip(viewOffset));
 						}
 						
-						// atmospheric fog
+						// experimental - atmospheric fog
+						fogging = inAtmosphere;
+						
 						if (fogging)
 						{
-							double fog_scale = 0.50 * BILLBOARD_DEPTH / airResistanceFactor;
-							double half_scale = fog_scale * 0.50;
+							fog_scale = BILLBOARD_DEPTH * fogFactor;
+							half_scale = fog_scale * 0.50;
 							OOGL(glEnable(GL_FOG));
 							OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
 							OOGL(glFogfv(GL_FOG_COLOR, skyClearColor));
@@ -5157,6 +5158,13 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			displayGUI = NO;   // switch off any text displays
 			break;
 			
+		case VIEW_GUI_DISPLAY:
+			[self setDisplayText:YES];
+			[self setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }]; // EW test
+			mouseDelta = NO;
+
+			break;
+			
 		default:
 			mouseDelta = NO;
 			break;
@@ -5439,7 +5447,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			PlayerEntity*	player = [PlayerEntity sharedPlayer];
 			int				ent_count = n_entities;
 			Entity*			my_entities[ent_count];
-			BOOL			inGUIMode = [player showDemoShips];
 			
 			skyClearColor[0] = 0.0;
 			skyClearColor[1] = 0.0;
@@ -5454,7 +5461,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			universal_time += delta_t;
 			
 			update_stage = @"demo management";
-			if (inGUIMode && [player guiScreen] == GUI_SCREEN_INTRO2)
+			if ([player showDemoShips] && [player guiScreen] == GUI_SCREEN_INTRO2)
 			{
 				if (universal_time >= demo_stage_time)
 				{
@@ -6314,6 +6321,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	// Apply changes that can be effective immediately, issue warning if they can't be changed just now
 	if (sameSystem)
 	{
+		OOSunEntity* the_sun = [self sun];
 		if ([key isEqualToString:KEY_ECONOMY])
 		{	
 			if([self station]) [[self station] initialiseLocalMarketWithRandomFactor:[[PlayerEntity sharedPlayer] random_factor]];
@@ -6343,16 +6351,21 @@ static NSDictionary	*sCachedSystemData = nil;
 				if ([key isEqualToString:@"sun_color"])
 				{
 					OOColor *color=[[the_sky skyColor] blendedColorWithFraction:0.5 ofColor:[OOColor whiteColor]];
-					if ([self sun]) [[self sun] setSunColor:color];
+					if (the_sun != nil)
+					{
+						[the_sun setSunColor:color];
+						[the_sun getDiffuseComponents:sun_diffuse];
+						[the_sun getSpecularComponents:sun_specular];
+					}
 					for (i = n_entities - 1; i > 0; i--)
 						if ((sortedEntities[i]) && ([sortedEntities[i] isKindOfClass:[DustEntity class]]))
 							[(DustEntity*)sortedEntities[i] setDustColor:color];
 				}
 			}
 		}
-		else if ([self sun] && ([key hasPrefix:@"sun_"] || [key hasPrefix:@"corona_"]))
+		else if (the_sun != nil && ([key hasPrefix:@"sun_"] || [key hasPrefix:@"corona_"]))
 		{
-			[[self sun] changeSunProperty:key withDictionary:sysInfo];
+			[the_sun changeSunProperty:key withDictionary:sysInfo];
 		}
 		else if ([key isEqualToString:@"texture"])
 		{
@@ -8515,7 +8528,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	for (i = 0; i < MAX_ENTITY_UID; i++)
 		entity_for_uid[i] = nil;
 	
-	[self setLight1Position:kZeroVector];
+	[self setMainLightPosition:kZeroVector];
 	
 	[gui autorelease];
 	gui = [[GuiDisplayGen alloc] init];

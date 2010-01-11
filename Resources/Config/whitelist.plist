@@ -331,7 +331,6 @@
 	
 	shader_entity_binding_methods =
 	(
-		"sunlightOn",
 		"position",
 		"orientation",
 		"relativePosition",

@@ -714,7 +714,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -1075,7 +1074,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -1133,7 +1131,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -1205,7 +1202,6 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 	}
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
@@ -1363,10 +1359,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	// the following are necessary...
 
 	[self setShowDemoShips: (n_ships > 0)];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
-	[UNIVERSE setLight1Position:(Vector){ DEMO_LIGHT_POSITION }]; // set light origine
 	
 	if (guiChanged)
 	{

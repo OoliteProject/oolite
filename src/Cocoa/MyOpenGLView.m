@@ -217,7 +217,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	GLfloat	sun_ambient[] =	{0.0, 0.0, 0.0, 1.0};
 	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
 	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
-	GLfloat	sun_center_position[] = {4000000.0, 0.0, 0.0, 1.0};
+	GLfloat	sun_center_position[] = {0.0, 0.0, 0.0, 1.0};
 	GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
 
 	viewSize = v_size;

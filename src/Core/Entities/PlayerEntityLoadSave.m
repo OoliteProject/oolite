@@ -632,7 +632,6 @@
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
 	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
@@ -666,7 +665,6 @@
 	[gameView supressKeysUntilKeyUp];
 	
 	[self setShowDemoShips: YES];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: YES];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
@@ -703,7 +701,6 @@
 	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
 	
 	[self setShowDemoShips: NO];
-	[UNIVERSE setDisplayText: YES];
 	[UNIVERSE setDisplayCursor: NO];
 	[gameView setStringInput: gvStringInputNo];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];

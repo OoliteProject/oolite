@@ -521,7 +521,7 @@ MA 02110-1301, USA.
 - (void) setPosition:(Vector) posn
 {
 	[super setPosition: posn];
-	[UNIVERSE setLight1Position: posn];
+	[UNIVERSE setMainLightPosition: posn];
 }
 
 
