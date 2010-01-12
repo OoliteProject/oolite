@@ -3036,15 +3036,14 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	if (shipDict == nil)  return nil;
 	
 	BOOL		isStation = NO;
-	id			isCarrier;
+	BOOL		isCarrier = NO;
 	NSString	*shipRoles = [shipDict oo_stringForKey:@"roles"];
 	if (shipRoles != nil)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
 	
-	isCarrier = [shipDict objectForKey:@"is_carrier"];
-	if (isCarrier)
-		isStation = [shipDict oo_boolForKey:@"is_carrier"];
-	else
-		isStation = [shipDict oo_boolForKey:@"isCarrier" defaultValue:isStation];
+	isCarrier = [shipDict oo_boolForKey:@"is_carrier"];
+	if (!isCarrier)
+		isCarrier = [shipDict oo_boolForKey:@"isCarrier"];
+	isStation |= isCarrier;
 	
 	volatile Class shipClass;
 	if (!isStation)  shipClass = [ShipEntity class];
@@ -3746,7 +3745,8 @@ static const OOMatrix	starboard_matrix =
 				double 		fog_scale, half_scale;
 				GLfloat 	flat_ambdiff[4]	= {1.0, 1.0, 1.0, 1.0};   // for alpha
 				GLfloat 	mat_no[4]		= {0.0, 0.0, 0.0, 1.0};   // nothing
-				OOSunEntity *the_sun = [self sun];				
+				OOSunEntity *the_sun;
+				the_sun = [self sun];				
 				
 				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
@@ -4209,7 +4209,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 					[self setNextBeacon:se];
 				}
 				if ([se isStation])
-				{					
+				{
 					// check if it is a proper rotating station (ie. roles contains the word "station")
 					if ([(StationEntity*)se isRotatingStation])
 					{
