@@ -1717,7 +1717,7 @@ static WormholeEntity *whole = nil;
 	for (i = 0; i < n_scanned_ships; i++)
 	{
 		ShipEntity *thing = scanned_ships[i];
-		if ([thing hasRole:@"boulder"])
+		if ([thing isBoulder])
 		{
 			GLfloat d2 = distance2_scanned_ships[i];
 			if (d2 < found_d2)

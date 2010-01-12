@@ -152,6 +152,7 @@ enum
 	kShip_isMissile,			// is missile, boolean, read-only
 	kShip_isMine,				// is mine, boolean, read-only
 	kShip_isRock,				// is a rock (hermits included), boolean, read-only
+	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
@@ -204,6 +205,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "isPlayer",				kShip_isPlayer,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPolice",				kShip_isPolice,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isRock",					kShip_isRock,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isBoulder",				kShip_isBoulder,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "isThargoid",				kShip_isThargoid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -531,6 +533,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = YES;
 			break;
 			
+		case kShip_isBoulder:
+			*outValue = BOOLToJSVal([entity isBoulder]);
+			OK = YES;
+			break;
+			
 		case kShip_isCargo:
 			*outValue = BOOLToJSVal([entity scanClass] == CLASS_CARGO && [entity commodityAmount] > 0);
 			OK = YES;
@@ -798,6 +805,14 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			}
 			break;
 		
+		case kShip_isBoulder:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setIsBoulder:bValue];
+				OK = YES;
+			}
+			break;
+			
 		case kShip_desiredSpeed:
 			if ([entity isPlayer])
 			{
