@@ -3497,7 +3497,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 				OOGL(glDisable(GL_LIGHT0));
 			}
 		}
-		//nothing to do for shaders, they use the same light source in flight & in gui mode.
+		// There should be nothing to do for shaders, they use the same (always on) light source
+		// both in flight & in gui mode. According to the standard, shaders should treat lights as
+		// always enabled. At least one non-standard shader implementation (windows' GMA950 driver)
+		// does _not_ use glDisabled lights, making the following line necessary.
+		
+		else OOGL(glEnable(GL_LIGHT1)); // make sure we have a light, even with shaders (!)
 		
 		demo_light_on = GUILight;
 	}
@@ -3516,7 +3521,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 				OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular));
 			}
 			else
-			{			
+			{
 				OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_off));
 				OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, sun_off));
 			}
@@ -3530,8 +3535,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 			}
 			else
 			{
-				// if we're in demo /GUI mode we should always have a lit object,
-				 OOGL(glEnable(GL_LIGHT0));
+				// If we're in demo/GUI mode we should always have a lit object.
+				OOGL(glEnable(GL_LIGHT0));
 				
 				// Redundant, see above.
 				//if (isLit)  OOGL(glEnable(GL_LIGHT0));
