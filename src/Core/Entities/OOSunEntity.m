@@ -499,7 +499,7 @@ MA 02110-1301, USA.
 - (void) getSpecularComponents:(GLfloat[4])components
 {
 	NSParameterAssert(components != NULL);
-	memcpy(components, sun_specular, sizeof sun_diffuse);
+	memcpy(components, sun_specular, sizeof sun_specular);
 }
 
 

@@ -806,7 +806,7 @@ if (!showSplashScreen) return;
 		GLfloat	sun_ambient[] 		= {0.1, 0.1, 0.1, 1.0};	
 		GLfloat	sun_specular[] 		= {1.0, 1.0, 1.0, 1.0};
 		GLfloat	sun_diffuse[] 		= {1.0, 1.0, 1.0, 1.0};
-		GLfloat	sun_position[] 		= {4000000.0, 0.0, 0.0, 1.0};
+		GLfloat	sun_position[] 		= {0.0, 0.0, 0.0, 1.0};
 		GLfloat	stars_ambient[] 	= {0.25, 0.2, 0.25, 1.0};
 		
 		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
