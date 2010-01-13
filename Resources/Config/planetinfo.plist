@@ -149,4 +149,149 @@
 		// Leisera - muddy pink, for the mud tennis.
 		sea_hsb_color = "0.02 0.31 0.85";
 	};
+	
+	
+	// TODO: double check, and - if needed - tweak pink & vastness factors for the following planets
+	
+	
+	"4 62" =
+	{
+		// Arriti - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"4 65" =
+	{
+		// Xele - muddy pink
+		sea_hsb_color = "0.02 0.31 0.85";
+	};
+	"4 71" =
+	{
+		// Usorbela - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"4 93" =
+	{
+		// Isvequre - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"4 211" =
+	{
+		// Maeser - vast
+		percent_land = 20;
+	};
+	"4 255" =
+	{
+		// Cetiisqu - vast
+		percent_land = 20;
+	};
+	"5 26" =
+	{
+		// Arvelele - vast
+		percent_land = 20;
+	};
+	"5 34" =
+	{
+		// Maatis - vast
+		percent_land = 20;
+	};
+	"5 72" =
+	{
+		// Ervedira - vast
+		percent_land = 20;
+	};
+	"5 90" =
+	{
+		// Lainisri - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"5 153" =
+	{
+		// Reriarti - vast
+		percent_land = 20;
+	};
+	"5 168" =
+	{
+		// Ceoreded - vast
+		percent_land = 20;
+	};
+	"5 182" =
+	{
+		// Gearge - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"5 212" =
+	{
+		// Reinbixe - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"5 243" =
+	{
+		// Leera - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"5 247" =
+	{
+		// Soinisat - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"6 61" =
+	{
+		// Isanesle - vast
+		percent_land = 20;
+	};
+	"6 139" =
+	{
+		// Tizaon - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"6 165" =
+	{
+		// Qureaed - vast
+		percent_land = 20;
+	};
+	"6 195" =
+	{
+		// Teabi - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"6 213" =
+	{
+		// Enatzaus - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"7 60" =
+	{
+		// Onisain - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	};
+	"7 87" =
+	{
+		// Teteus - vast
+		percent_land = 20;
+	};
+	"7 94" =
+	{
+		// Edtetiin - pink
+		sea_hsb_color = "0.9 0.2 0.9";
+	}; 
+	"7 139" =
+	{
+		// Rete - vast
+		percent_land = 20;
+	};
+	"7 149" =
+	{
+		// Arenxeon - vast
+		percent_land = 20;
+	};
+	"7 199" =
+	{
+		// Mageesti - vast
+		percent_land = 20;
+	};
+	"7 221" =
+	{
+		// Dienve - vast
+		percent_land = 20;
+	};
 }
