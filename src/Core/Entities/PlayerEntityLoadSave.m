@@ -40,12 +40,11 @@
 #import "OOConstToString.h"
 #import "OOShipRegistry.h"
 #import "OOTexture.h"
-
-#define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLoadSave"
+#import "NSStringOOExtensions.h"
 
 
 // Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
-#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
+#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		1
 
 #if USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG && OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
 #undef OOLITE_USE_APPKIT_LOAD_SAVE
@@ -54,10 +53,13 @@
 
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
 #if OOLITE_MAC_OS_X
-#define COMMAND_MODIFIER_KEY		"command"
+#define COMMAND_MODIFIER_KEY		"Command"
 #else
 #define COMMAND_MODIFIER_KEY		"Ctrl"
 #endif
+
+
+static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 
 
 @interface MyOpenGLView (OOLoadSaveExtensions)
@@ -488,6 +490,8 @@
 	flightPitch = 0.0;
 	flightYaw = 0.0;
 	flightSpeed = 0.0;
+	
+	[self setEntityPersonalityInt:PersonalityForCommanderDict(fileDic)];
 	
 	if (![dockedStation localMarket])
 	{
@@ -925,17 +929,18 @@
 	NSString			*shipName = nil;
 	NSDictionary		*shipDict = nil;
 	NSString			*rating = nil;
+	uint16_t			personality = PersonalityForCommanderDict(cdr);
 	
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 	if(shipDict != nil)
 	{
-		[self showShipyardModel:shipDict];
+		[self showShipyardModel:shipDict withPersonality:personality];
 		shipName = [shipDict oo_stringForKey:@"display_name"];
 		if (shipName == nil) shipName = [shipDict oo_stringForKey:KEY_NAME];
 	}
 	else
 	{
-		[self showShipyardModel:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"]];
+		[self showShipyardModel:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"] withPersonality:personality];
 		shipName = [cdr oo_stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}
@@ -1030,3 +1035,17 @@
 }
 
 @end
+
+
+static uint16_t PersonalityForCommanderDict(NSDictionary *dict)
+{
+	uint16_t personality = [dict oo_unsignedShortForKey:@"entity_personality" defaultValue:ENTITY_PERSONALITY_INVALID];
+	
+	if (personality == ENTITY_PERSONALITY_INVALID)
+	{
+		// For pre-1.74 saved games, generate a default personality based on some hashes.
+		personality = [[dict oo_stringForKey:@"ship_desc"] oo_hash] * [[dict oo_stringForKey:@"player_name"] oo_hash];
+	}
+	
+	return personality & ENTITY_PERSONALITY_MAX;
+}

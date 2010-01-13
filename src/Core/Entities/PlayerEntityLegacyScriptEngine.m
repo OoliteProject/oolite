@@ -2618,11 +2618,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		else
 		{
 			originalPlanet = [[[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed] autorelease];
-			OOLog(@"temp", @"Temp planet: %@", originalPlanet);
 		}
 		OOPlanetEntity *doppelganger = [originalPlanet miniatureVersion];
 		if (doppelganger == nil)  return NO;
-		OOLog(@"temp", @"Doppelganger: %@", doppelganger);
 
 #else
 		OOPlanetEntity* doppelganger=nil;

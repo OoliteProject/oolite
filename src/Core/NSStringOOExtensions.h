@@ -52,6 +52,13 @@ MA 02110-1301, USA.
 */
 - (NSData *)utf16DataWithBOM:(BOOL)includeByteOrderMark;
 
+/*	- oo_hash
+	Hash function for when we want consistency across platforms and versions.
+	It implements modified djb2 (with xor rather than addition) in terms of
+	UTF-16 code elements.
+*/
+- (uint32_t) oo_hash;
+
 @end
 
 

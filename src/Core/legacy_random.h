@@ -71,7 +71,7 @@ double cunningFee(double value);
 
 // an implementation of RANROT
 // pseudo random number generator
-void ranrot_srand(unsigned int seed);
+void ranrot_srand(unsigned seed);
 unsigned Ranrot(void);
 #define ranrot_rand() ((int)Ranrot())	// Some uses perform arithmetic that does weird things if result is unsigned -- DustEntity.m, for instance.
 float randf(void);
@@ -79,6 +79,10 @@ float bellf(int n);
 
 RANROTSeed RANROTGetFullSeed(void);
 void RANROTSetFullSeed(RANROTSeed seed);
+
+RANROTSeed MakeRanrotSeed(unsigned seed);
+RANROTSeed RanrotSeedFromRNGSeed(RNG_Seed seed);
+RANROTSeed RanrotSeedFromRandomSeed(Random_Seed seed);
 
 unsigned RanrotWithSeed(RANROTSeed *ioSeed);
 float randfWithSeed(RANROTSeed *ioSeed);

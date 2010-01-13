@@ -88,14 +88,6 @@ double cunningFee(double value)
 static RANROTSeed		sRANROT;
 
 
-void ranrot_srand(unsigned int seed)
-{
-	sRANROT.low = seed;
-	sRANROT.high = ~seed;
-	Ranrot();	Ranrot();	Ranrot();  // mix it up a bit
-}
-
-
 unsigned Ranrot(void)
 {
 	sRANROT.high = (sRANROT.high << 16) + (sRANROT.high >> 16);
@@ -113,6 +105,49 @@ unsigned RanrotWithSeed(RANROTSeed *ioSeed)
 	ioSeed->high += ioSeed->low;
 	ioSeed->low += ioSeed->high;
 	return ioSeed->high & 0x7FFFFFFF;
+}
+
+
+RANROTSeed MakeRanrotSeed(unsigned seed)
+{
+	RANROTSeed result =
+	{
+		.low = seed,
+		.high = ~seed
+	};
+	
+	// Mix it up a bit.
+	RanrotWithSeed(&result);
+	RanrotWithSeed(&result);
+	RanrotWithSeed(&result);
+	
+	return result;
+}
+
+
+RANROTSeed RanrotSeedFromRNGSeed(RNG_Seed seed)
+{
+	return MakeRanrotSeed(rnd_seed.a * 0x1000000 + rnd_seed.b * 0x10000 + rnd_seed.c * 0x100 + rnd_seed.d);
+}
+
+
+RANROTSeed RanrotSeedFromRandomSeed(Random_Seed seed)
+{
+	// Same pattern as seed_for_planet_description().
+	RNG_Seed s =
+	{
+		.a = seed.c,
+		.b = seed.d,
+		.c = seed.e,
+		.d = seed.f
+	};
+	return RanrotSeedFromRNGSeed(s);
+}
+
+
+void ranrot_srand(unsigned int seed)
+{
+	sRANROT = MakeRanrotSeed(seed);
 }
 
 
@@ -157,23 +192,19 @@ void RANROTSetFullSeed(RANROTSeed seed)
 }
 
 
-void seed_for_planet_description (Random_Seed s_seed)
-{
-	rnd_seed.a = s_seed.c;
-	rnd_seed.b = s_seed.d;
-	rnd_seed.c = s_seed.e;
-	rnd_seed.d = s_seed.f;
-		
-	ranrot_srand(rnd_seed.a * 0x1000000 + rnd_seed.b * 0x10000 + rnd_seed.c * 0x100 + rnd_seed.d);
-}
-
-
 void seed_RNG_only_for_planet_description (Random_Seed s_seed)
 {
 	rnd_seed.a = s_seed.c;
 	rnd_seed.b = s_seed.d;
 	rnd_seed.c = s_seed.e;
 	rnd_seed.d = s_seed.f;
+}
+
+
+void seed_for_planet_description (Random_Seed s_seed)
+{
+	seed_RNG_only_for_planet_description(s_seed);
+	sRANROT = RanrotSeedFromRNGSeed(rnd_seed);
 }
 
 

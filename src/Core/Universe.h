@@ -111,6 +111,7 @@ enum
 #define SHIPYARD_KEY_SHIPDATA_KEY			@"shipdata_key"
 #define SHIPYARD_KEY_SHIP					@"ship"
 #define SHIPYARD_KEY_PRICE					@"price"
+#define SHIPYARD_KEY_PERSONALITY			@"personality"
 #define SHIPYARD_KEY_DESCRIPTION			@"description"
 
 #define PLANETINFO_UNIVERSAL_KEY			@"universal"

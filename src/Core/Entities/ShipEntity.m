@@ -151,7 +151,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	self = [super init];
 	
 	isShip = YES;
-	entity_personality = ranrot_rand() & 0x7FFF;
+	entity_personality = Ranrot() & ENTITY_PERSONALITY_MAX;
 	[self setStatus:STATUS_IN_FLIGHT];
 	
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
@@ -5845,13 +5845,22 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 
 - (GLfloat)entityPersonality
 {
-	return entity_personality / (float)0x7FFF;
+	return entity_personality / (float)ENTITY_PERSONALITY_MAX;
 }
 
 
 - (GLint)entityPersonalityInt
 {
 	return entity_personality;
+}
+
+
+- (void) setEntityPersonalityInt:(uint16_t)value
+{
+	if (value <= ENTITY_PERSONALITY_MAX)
+	{
+		entity_personality = value;
+	}
 }
 
 

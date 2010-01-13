@@ -1429,7 +1429,7 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		
 		// now display the ship
-		[self showShipyardModel:shipDict];
+		[self showShipyardModel:shipDict withPersonality:[info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	}
 	else
 	{
@@ -1451,7 +1451,7 @@ static NSMutableDictionary* currentShipyard = nil;
 }
 
 
-- (void) showShipyardModel: (NSDictionary *)shipDict
+- (void) showShipyardModel:(NSDictionary *)shipDict withPersonality:(uint16_t)personality
 {
 	ShipEntity		*ship;
 		
@@ -1461,6 +1461,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
 	
 	ship = [[ShipEntity alloc] initWithDictionary:shipDict];
+	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
 	[ship wasAddedToUniverse];
 	
 	GLfloat cr = [ship collisionRadius];
@@ -1648,6 +1649,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	if (![self setCommanderDataFromDictionary:cmdr_dict])  return NO;
 
 	[self setStatus:STATUS_DOCKED];
+	[self setEntityPersonalityInt:[ship_info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	
 	// adjust the clock forward by an hour
 	ship_clock_adjust += 3600.0;

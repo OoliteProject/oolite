@@ -48,7 +48,6 @@ MA 02110-1301, USA.
 
 #define AFTERBURNER_BURNRATE			0.25f
 #define AFTERBURNER_NPC_BURNRATE		1.0f
-#define AFTERBURNER_TIME_PER_FUEL		4.0f
 
 #define CLOAKING_DEVICE_ENERGY_RATE		12.8f
 #define CLOAKING_DEVICE_MIN_ENERGY		128
@@ -97,6 +96,9 @@ MA 02110-1301, USA.
 #define BASELINE_SHIELD_LEVEL			128.0f			// Max shield level with no boosters.
 
 #define	MIN_FUEL						0				// minimum fuel required for afterburner use
+
+#define ENTITY_PERSONALITY_MAX			0x7FFFU
+#define ENTITY_PERSONALITY_INVALID		0xFFFFU
 
 #define WEAPON_FACING_NONE				0
 #define WEAPON_FACING_FORWARD			1
@@ -674,6 +676,7 @@ ShipEntity *doOctreesCollide(ShipEntity *prime, ShipEntity *other);
 - (GLfloat)hullHeatLevel;
 - (GLfloat)entityPersonality;
 - (GLint)entityPersonalityInt;
+- (void) setEntityPersonalityInt:(uint16_t)value;
 
 - (void)setSuppressExplosion:(BOOL)suppress;
 

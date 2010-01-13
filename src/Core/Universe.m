@@ -7474,10 +7474,11 @@ double estimatedTimeForJourney(double distance, int hops)
 	
 	NSMutableDictionary		*resultDictionary = [NSMutableDictionary dictionary];
 	
-	float			tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
-	unsigned		i;
-	PlayerEntity	*player = [PlayerEntity sharedPlayer];
-	OOShipRegistry	*registry = [OOShipRegistry sharedRegistry];
+	float					tech_price_boost = (ship_seed.a + ship_seed.b) / 256.0;
+	unsigned				i;
+	PlayerEntity			*player = [PlayerEntity sharedPlayer];
+	OOShipRegistry			*registry = [OOShipRegistry sharedRegistry];
+	RANROTSeed				personalitySeed = RanrotSeedFromRandomSeed(ship_seed);
 	
 	for (i = 0; i < 256; i++)
 	{
@@ -7731,6 +7732,8 @@ double estimatedTimeForJourney(double distance, int hops)
 			
 			NSString* ship_id = [NSString stringWithFormat:@"%06x-%06x", super_rand1, super_rand2];
 			
+			uint16_t personality = RanrotWithSeed(&personalitySeed) & ENTITY_PERSONALITY_MAX;
+			
 			NSDictionary* ship_info_dictionary = [NSDictionary dictionaryWithObjectsAndKeys:
 				ship_id,						SHIPYARD_KEY_ID,
 				ship_key,						SHIPYARD_KEY_SHIPDATA_KEY,
@@ -7739,6 +7742,7 @@ double estimatedTimeForJourney(double distance, int hops)
 				short_description,				KEY_SHORT_DESCRIPTION,
 				[NSNumber numberWithInt:price],	SHIPYARD_KEY_PRICE,
 				extras,							KEY_EQUIPMENT_EXTRAS,
+				[NSNumber numberWithUnsignedShort:personality], SHIPYARD_KEY_PERSONALITY,								  
 				NULL];
 			
 			[resultDictionary setObject:ship_info_dictionary forKey:ship_id];	// should order them fairly randomly

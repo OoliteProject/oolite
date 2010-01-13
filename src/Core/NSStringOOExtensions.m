@@ -23,6 +23,7 @@ MA 02110-1301, USA.
 */
 
 #import "NSStringOOExtensions.h"
+#import "OOCocoa.h"
 
 
 @implementation NSString (OOExtensions)
@@ -133,6 +134,18 @@ MA 02110-1301, USA.
 	
 	// NSData takes ownership of the buffer.
 	return [NSData dataWithBytesNoCopy:buffer length:lengthInBytes freeWhenDone:YES];
+}
+
+
+- (uint32_t) oo_hash
+{
+	OOUInteger i, length = [self length];
+	uint32_t hash = 5381;
+	for (i = 0; i < length; i++)
+	{
+		hash = ((hash << 5) + hash) /* 33 * hash */ ^ [self characterAtIndex:i];
+	}
+	return hash;
 }
 
 @end
