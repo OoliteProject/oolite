@@ -235,8 +235,7 @@
 		OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
 	}
 	
-	// - 3: a possible fix to planet rendering crashes? -- kaks 20091231
-	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount*3 - 3, data->type, data->indices));
+	OOGL(glDrawElements(GL_TRIANGLES, data->faceCount*3, data->type, data->indices));
 	
 #ifndef NDEBUG
 	if ([UNIVERSE wireframeGraphics])
