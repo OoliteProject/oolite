@@ -384,104 +384,104 @@ MA 02110-1301, USA.
 	NSMutableArray *funcList=[[NSMutableArray alloc] init];
 	
 	[funcList addObject: 
-	 [self makeStickGuiDict: @"Roll" 
+	 [self makeStickGuiDict: DESC(@"stickmapper-roll")
 				  allowable: HW_AXIS
 					 axisfn: AXIS_ROLL
 					  butfn: STICK_NOFUNCTION]];
 	[funcList addObject: 
-	 [self makeStickGuiDict: @"Pitch"
+	 [self makeStickGuiDict: DESC(@"stickmapper-pitch")
 				  allowable: HW_AXIS
 					 axisfn: AXIS_PITCH
 					  butfn: STICK_NOFUNCTION]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Yaw"
+	 [self makeStickGuiDict: DESC(@"stickmapper-yaw")
 				  allowable: HW_AXIS
 					 axisfn: AXIS_YAW
 					  butfn: STICK_NOFUNCTION]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Increase thrust"
+	 [self makeStickGuiDict: DESC(@"stickmapper-increase-thrust")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_THRUST
 					  butfn: BUTTON_INCTHRUST]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Decrease thrust"
+	 [self makeStickGuiDict: DESC(@"stickmapper-decrease-thrust")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_THRUST
 					  butfn: BUTTON_DECTHRUST]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Primary weapon"
+	 [self makeStickGuiDict: DESC(@"stickmapper-primary-weapon")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_FIRE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Secondary weapon"
+	 [self makeStickGuiDict: DESC(@"stickmapper-secondary-weapon")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_LAUNCHMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Arm secondary"
+	 [self makeStickGuiDict: DESC(@"stickmapper-arm-secondary")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_ARMMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Disarm secondary"
+	 [self makeStickGuiDict: DESC(@"stickmapper-disarm-secondary")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_UNARM]];
 #if TARGET_INCOMING_MISSILES
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Target nearest incoming missile"
+	 [self makeStickGuiDict: DESC(@"stickmapper-target-nearest-incoming-missile")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_TARGETINCOMINGMISSILE]];
 #endif
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Cycle secondary"
+	 [self makeStickGuiDict: DESC(@"stickmapper-cycle-secondary")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_CYCLEMISSILE]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"ECM"
+	 [self makeStickGuiDict: DESC(@"stickmapper-ECM")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_ECM]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Toggle ID"
+	 [self makeStickGuiDict: DESC(@"stickmapper-toggle-ID")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_ID]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Fuel Injection"
+	 [self makeStickGuiDict: DESC(@"stickmapper-fuel-injection")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_FUELINJECT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Hyperspeed"
+	 [self makeStickGuiDict: DESC(@"stickmapper-hyperspeed")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_HYPERSPEED]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"Roll/pitch precision toggle"
+	 [self makeStickGuiDict: DESC(@"stickmapper-roll/pitch-precision-toggle")
 				  allowable: HW_BUTTON
 					 axisfn: STICK_NOFUNCTION
 					  butfn: BUTTON_PRECISION]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"View Forward"
+	 [self makeStickGuiDict: DESC(@"stickmapper-view-forward")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_VIEWY
 					  butfn: BUTTON_VIEWFORWARD]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"View Aft"
+	 [self makeStickGuiDict: DESC(@"stickmapper-view-aft")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_VIEWY
 					  butfn: BUTTON_VIEWAFT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"View Port"
+	 [self makeStickGuiDict: DESC(@"stickmapper-view-port")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_VIEWX
 					  butfn: BUTTON_VIEWPORT]];
 	[funcList addObject:
-	 [self makeStickGuiDict: @"View Starboard"
+	 [self makeStickGuiDict: DESC(@"stickmapper-view-starboard")
 				  allowable: HW_AXIS|HW_BUTTON
 					 axisfn: AXIS_VIEWX
 					  butfn: BUTTON_VIEWSTARBOARD]];
@@ -494,6 +494,7 @@ MA 02110-1301, USA.
 							 butfn: (int)butfn
 {
 	NSMutableDictionary *guiDict=[[NSMutableDictionary alloc] init];
+	if ([what length] > 30)  what = [[what substringToIndex:28] stringByAppendingString:@"..."];
 	[guiDict setObject: what  forKey: KEY_GUIDESC];
 	[guiDict setObject: [NSNumber numberWithInt: allowable]  
 				forKey: KEY_ALLOWABLE];
