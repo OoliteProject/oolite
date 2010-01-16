@@ -2643,6 +2643,9 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #endif
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
+		// miniature radii are roughly between 60 and 120. Place miniatures with a radius bigger than 60 a bit futher away.
+		model_p0 = vector_multiply_scalar(model_p0, 1 - 0.5 * ((60 - [doppelganger radius]) / 60));
+
 		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
 		[UNIVERSE setMainLightPosition:(Vector){ -12000.0, -5000.0, -10000.0 }]; // set light origin for pole
 #if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
