@@ -20,8 +20,8 @@
 		diffuse_map = "";
 		diffuse = (0, 0, 0.4);
 		ambient = (0, 0, 0.4);
-		emission = (0.9, 0.9, 0.9);
-		specular = (1.0, 0.8, 0.8);
+		emission = (0.4, 0.1, 0.1);
+		specular = (0.1, 1.0, 0.1);
 		shininess = 1;
 	};
 	

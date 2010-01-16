@@ -747,42 +747,6 @@
 		-1,  0,
 		-2,  0
 	);
-	//	The following is a test of a complex, multi-contour polygon sprite
-	//	with non-overlapping contours. It also happens to generate a mix of
-	//	triangle strips and individual triangles. (The default icon generates
-	//	a single triangle fan.)
-	//	-- Ahruman 2009-10-10
-/*	(
-		(
-			-1, 2,
-			1, 2,
-			1, -2,
-			-1, -2
-		),
-		(
-			-3, 3,
-			3, 3,
-			3, -3,
-			-3, -3
-		)
-	);*/
-	//	The following is a test of a complex, multi-contour polygon sprite
-	//	which self-intersects.
-	//	-- Ahruman 2009-10-10
-	/*(
-		(
-			-1, 3,
-			1, 3,
-			1, -2,
-			-1, -2
-		),
-		(
-			-3, 1,
-			3, 1,
-			3, -3,
-			-3, -3
-		)
-	);*/
 	
 	"oolite-default-mine-icon" =
 	(

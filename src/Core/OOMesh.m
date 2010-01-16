@@ -16,7 +16,7 @@ present.
 
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1115,8 +1115,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		calculatedNormal = normal_to_surface(v2, v1, v0);
 		if (vector_equal(norm, kZeroVector))
 		{
-			_faces[i].normal = normal_to_surface(v0, v1, v2);
-			norm = normal_to_surface (v0, v1, v2);
+			norm = vector_flip(calculatedNormal);
+			_faces[i].normal = norm;
 		}
 		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
 		{
@@ -1176,7 +1176,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 		
 		Vector tangent = vector_subtract(vector_multiply_scalar(vProjAB, dsAC), vector_multiply_scalar(vProjAC, dsAB));
-		face->tangent = cross_product(face->normal, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
+		face->tangent = cross_product(nA, tangent);	// Rotate 90 degrees. Done this way because I'm too lazy to grok the code above.
 	}
 }
 

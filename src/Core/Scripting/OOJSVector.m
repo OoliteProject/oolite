@@ -3,7 +3,7 @@
 OOJSVector.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -517,7 +517,7 @@ static JSBool VectorSubtract(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
-// distanceTo(v : vectorExpression) : Vector3D
+// distanceTo(v : vectorExpression) : Number
 static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv;
@@ -532,7 +532,7 @@ static JSBool VectorDistanceTo(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
-// squaredDistanceTo(v : vectorExpression) : Vector3D
+// squaredDistanceTo(v : vectorExpression) : Number
 static JSBool VectorSquaredDistanceTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	Vector					thisv, thatv;
