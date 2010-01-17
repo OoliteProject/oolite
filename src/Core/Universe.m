@@ -128,7 +128,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	double _cost, _distance, _time;
 }
 
-+ elementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
++ newElementWithLocation:(OOSystemID) location parent:(OOSystemID)parent cost:(double) cost distance:(double) distance time:(double) time;
 - (OOSystemID) getParent;
 - (OOSystemID) getLocation;
 - (double) getCost;
@@ -139,7 +139,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 
 @implementation RouteElement
 
-+ elementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
++ newElementWithLocation:(OOSystemID) location parent:(OOSystemID) parent cost:(double) cost distance:(double) distance time:(double) time
 {
 	RouteElement *r = [[RouteElement alloc] init];
 	
@@ -6798,7 +6798,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	double maxCost = optimizeBy == OPTIMIZED_BY_TIME ? 256 * (7 * 7) : 256 * (7 * 256 + 7);
 	
 	NSMutableArray *curr = [NSMutableArray arrayWithCapacity:256];
-	[curr addObject:cheapest[start] = [RouteElement elementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
+	[curr addObject:cheapest[start] = [RouteElement newElementWithLocation:start parent:-1 cost:0 distance:0 time:0]];
 	
 	NSMutableArray *next = [NSMutableArray arrayWithCapacity:256];
 	while ([curr count] != 0)
@@ -6819,7 +6819,7 @@ static NSDictionary	*sCachedSystemData = nil;
 				double cost = [ce getCost] + (optimizeBy == OPTIMIZED_BY_TIME ? lastTime : 7 * 256 + lastDistance);
 				
 				if (cost < maxCost && (cheapest[n] == nil || [cheapest[n] getCost] > cost)) {
-					RouteElement *e = [RouteElement elementWithLocation:n parent:c cost:cost distance:distance time:time];
+					RouteElement *e = [RouteElement newElementWithLocation:n parent:c cost:cost distance:distance time:time];
 					cheapest[n] = e;
 					[next addObject:e];
 					

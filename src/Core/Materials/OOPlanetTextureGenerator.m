@@ -256,7 +256,9 @@ enum
 	*atmosphere = [OOTexture textureWithGenerator:atmoGen];
 	if (*atmosphere == nil)
 	{
-		*secondaryTexture = nil;
+		if (secondaryTexture != NULL) {
+			*secondaryTexture = nil;
+		}
 		return NO;
 	}
 	

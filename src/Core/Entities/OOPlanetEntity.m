@@ -260,7 +260,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	else
 	{
-		float cloudAlpha = cloudAlpha = OOClamp_0_1_f([sourceInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f]);
+		float cloudAlpha = OOClamp_0_1_f([sourceInfo oo_floatForKey:@"cloud_alpha" defaultValue:1.0f]);
 		[targetInfo setObject:[NSNumber numberWithFloat:cloudAlpha] forKey:@"cloud_alpha"];
 		
 		color = [OOColor colorWithDescription:[sourceInfo objectForKey:@"cloud_color"]];
@@ -508,9 +508,9 @@ static OOColor *ColorWithHSBColor(Vector c)
 											  andAtmosphere:&atmosphere
 												   withInfo:_materialParameters];
 			
-			OOSingleTextureMaterial *material = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
-			[_atmosphereDrawable setMaterial:material];
-			[material release];
+			OOSingleTextureMaterial *dynamicMaterial = [[OOSingleTextureMaterial alloc] initWithName:@"dynamic" texture:atmosphere configuration:nil];
+			[_atmosphereDrawable setMaterial:dynamicMaterial];
+			[dynamicMaterial release];
 		}
 		if (shadersOn)  macros = [materialDefaults oo_dictionaryForKey:isMoon ? @"moon-dynamic-macros" : @"planet-dynamic-macros"];
 		textureName = @"dynamic";
@@ -531,6 +531,7 @@ static OOColor *ColorWithHSBColor(Vector c)
 	if (material == nil)
 	{
 		material = [[OOSingleTextureMaterial alloc] initWithName:textureName texture:diffuseMap configuration:nil];
+		[material autorelease];
 	}
 	[_planetDrawable setMaterial:material];
 }
