@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 #import "Comparison.h"
 #import "OOLegacyScriptWhitelist.h"
 #import "OOJavaScriptEngine.h"
+#import "OOEquipmentType.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlayerEntityLegacyScriptEngine"
 
@@ -1221,7 +1222,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		return YES;
 	}
 	// Compatibility: magically transform energy bombs into q-mines.
-	if ([equipString isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
+	if ([equipString isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:equipString] == nil)
 	{
 		equipString = @"EQ_QC_MINE";
 	}
