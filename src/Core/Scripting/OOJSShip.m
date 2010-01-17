@@ -3,7 +3,7 @@
 OOJSShip.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -117,7 +117,7 @@ enum
 	kShip_fuel,					// fuel, float, read/write
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
-	kShip_hasSuspendedAI,		// AI has suspended staes, boolean, read-only
+	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
 	kShip_target,				// target, Ship, read/write
 	kShip_escorts,				// deployed escorts, array of Ship, read-only
 	kShip_group,				// group, ShipGroup, read/write
@@ -1467,6 +1467,12 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 	
 	if (OK)
 	{
+		// Compatibility: magically transform energy bombs into q-mines.
+		if ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
+		{
+			key = @"EQ_QC_MINE";
+		}
+		
 		if ([thisEnt isPlayer])
 		{
 			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [(PlayerEntity*)thisEnt removeMissiles];

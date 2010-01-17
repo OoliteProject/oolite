@@ -3,7 +3,7 @@
 PlayerEntityLegacyScriptEngine.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -627,8 +627,8 @@ static BOOL sRunningScript = NO;
 	}
 	else if (opType == OP_BOOL)
 	{
-		lhsFlag = [[self performSelector:selector] isEqual:@"YES"];
-		rhsFlag = [expandedRHS isEqual:@"YES"];
+		lhsFlag = [[self performSelector:selector] isEqualToString:@"YES"];
+		rhsFlag = [expandedRHS isEqualToString:@"YES"];
 		
 		switch (comparator)
 		{
@@ -1215,10 +1215,15 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (scriptTarget != self)  return NO;
 	
-	if ([equipString isEqual:@"EQ_FUEL"])
+	if ([equipString isEqualToString:@"EQ_FUEL"])
 	{
 		[self setFuel:[self fuelCapacity]];
 		return YES;
+	}
+	// Compatibility: magically transform energy bombs into q-mines.
+	if ([equipString isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
+	{
+		equipString = @"EQ_QC_MINE";
 	}
 	
 	if ([equipString hasSuffix:@"MISSILE"]||[equipString hasSuffix:@"MINE"])
@@ -1249,13 +1254,13 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 {
 	if (scriptTarget != self)  return;
 
-	if ([equipKey isEqual:@"EQ_FUEL"])
+	if ([equipKey isEqualToString:@"EQ_FUEL"])
 	{
 		fuel = 0;
 		return;
 	}
 	
-	if ([equipKey isEqual:@"EQ_CARGO_BAY"] && [self hasEquipmentItem:equipKey]
+	if ([equipKey isEqualToString:@"EQ_CARGO_BAY"] && [self hasEquipmentItem:equipKey]
 			&& ([self extraCargo] > [self availableCargoSpace]))
 	{
 		OOLog(kOOLogSyntaxRemoveEquipment, @"***** SCRIPT ERROR: in %@, CANNOT remove cargo bay. Too much cargo.", CurrentScriptDesc());
@@ -1876,7 +1881,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	NSString			*text = nil;
 	NSArray				*paras = nil;
 	
-	if ([textKey isEqual:lastTextKey])  return; // don't repeatedly add the same text
+	if ([textKey isEqualToString:lastTextKey])  return; // don't repeatedly add the same text
 	[lastTextKey release];
 	lastTextKey = [textKey copy];
 	
@@ -2066,7 +2071,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionMusic:(NSString *)value
 {
-	if ([value length] == 0 || [[value lowercaseString] isEqual:@"none"])
+	if ([value length] == 0 || [[value lowercaseString] isEqualToString:@"none"])
 	{
 		value = nil;
 	}
@@ -2087,7 +2092,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[missionForegroundTexture release];
 	missionForegroundTexture = nil;
 	
-	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
+	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
 		missionForegroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionForegroundTexture retain];
@@ -2100,7 +2105,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[tempTexture release];
 	tempTexture = nil;
 	
-	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
+	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
 		tempTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[tempTexture retain];
@@ -2113,7 +2118,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[missionBackgroundTexture release];
 	missionBackgroundTexture = nil;
 	
-	if ([value length] != 0 && ![[value lowercaseString] isEqual:@"none"])
+	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
 		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
 		[missionBackgroundTexture retain];
@@ -2503,7 +2508,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	// recursively add further scenes:
 	//
-	if ([i_key isEqual:@"scene"])
+	if ([i_key isEqualToString:@"scene"])
 	{
 		if ([i_info count] != 5)	// must be scene_key_x_y_z
 			return NO;				//		   0.... 1.. 2 3 4
@@ -2525,7 +2530,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	// Add ship models:
 	//
-	if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"]||[i_key isEqual:@"role"])
+	if ([i_key isEqualToString:@"ship"]||[i_key isEqualToString:@"model"]||[i_key isEqualToString:@"role"])
 	{
 		if ([i_info count] != 10)	// must be item_name_x_y_z_W_X_Y_Z_align
 		{
@@ -2534,11 +2539,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		ShipEntity* ship = nil;
 		
-		if ([i_key isEqual:@"ship"]||[i_key isEqual:@"model"])
+		if ([i_key isEqualToString:@"ship"]||[i_key isEqualToString:@"model"])
 		{
 			ship = [UNIVERSE newShipWithName:[i_info oo_stringAtIndex: 1]];
 		}
-		else if ([i_key isEqual:@"role"])
+		else if ([i_key isEqualToString:@"role"])
 		{
 			ship = [UNIVERSE newShipWithRole:[i_info oo_stringAtIndex: 1]];
 		}
@@ -2569,7 +2574,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	// Add player ship model:
 	//
-	if ([i_key isEqual:@"player"])
+	if ([i_key isEqualToString:@"player"])
 	{
 		if ([i_info count] != 9)	// must be player_x_y_z_W_X_Y_Z_align
 			return NO;				//		   0..... 1 2 3 4 5 6 7 8....
@@ -2604,7 +2609,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	// Add  planet model: selected via gui-scene-show-planet/-local-planet
 	//
-	if ([i_key isEqual:@"local-planet"] || [i_key isEqual:@"target-planet"])
+	if ([i_key isEqualToString:@"local-planet"] || [i_key isEqualToString:@"target-planet"])
 	{
 		if ([i_info count] != 4)	// must be xxxxx-planet_x_y_z
 			return NO;				//		   0........... 1 2 3
@@ -2627,7 +2632,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 #if ALLOW_PROCEDURAL_PLANETS
 		BOOL	procGen = NO;
 		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-		if ([i_key isEqual:@"local-planet"] && procGen && [UNIVERSE sun])
+		if ([i_key isEqualToString:@"local-planet"] && procGen && [UNIVERSE sun])
 		{
 			// can safely show retextured planets!
 			doppelganger = [[OOPlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
@@ -2670,7 +2675,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	//
 	// Add billboard model:
 	//
-	if ([i_key isEqual:@"billboard"])
+	if ([i_key isEqualToString:@"billboard"])
 	{
 #if SUPPORT_BILLBOARD
 		if ([i_info count] != 6)	// must be billboard_imagefile_x_y_w_h
