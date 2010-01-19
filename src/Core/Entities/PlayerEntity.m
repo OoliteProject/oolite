@@ -183,14 +183,13 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 		if (ship != nil)
 		{
 			NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
-			const size_t count = [playerships count];
-			int i;
+			OOUInteger i, count = [playerships count];
 
 			for (i = 0; i < count; ++i)
 			{
 				ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
-				GLfloat rate = calcFuelChargeRate (calc, ship);
-				printf ("%32s: %6.2f\n", [[playerships objectAtIndex:i] cString], rate);
+				GLfloat rate = calcFuelChargeRate(calc, ship);
+				OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
 				[calc release];
 			}
 			[ship release];
@@ -678,7 +677,7 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 		award until we've handled missiles later on, though.
 	*/
 	BOOL energyBombCompensation = NO;
-	if (!strict && [equipment oo_boolForKey:@"EQ_ENERGY_BOMB"])
+	if ([equipment oo_boolForKey:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil)
 	{
 		energyBombCompensation = YES;
 		[equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
@@ -905,8 +904,12 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one PlayerEntity to exist at a time.", __FUNCTION__];
 	}
 	
-	self = [super init];
+	/*	NOTE: this is bad form, in that it assumes super init... will return
+		self, but necessary in order to have a valid "shared player" if
+		anything happens that requires the scripting engine to be set up.
+	*/
 	sSharedPlayer = self;
+	[super initWithDictionary:[NSDictionary dictionary]];
 	
 	compassMode = COMPASS_MODE_BASIC;
 	

@@ -141,7 +141,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 // Designated initializer
 - (id) initWithDictionary:(NSDictionary *) dict
 {
-	if (dict == nil && ![self isKindOfClass:[PlayerEntity class]])
+	if (dict == nil)
 	{
 		// Is there any reason we should allow nil dictionary here? I think not. --Ahruman 2008-04-27
 		// Yes, the player ship uses -init. Any others? --Ahruman 2008-04-28
