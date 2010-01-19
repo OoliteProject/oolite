@@ -849,8 +849,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[thing release];
 	/*--*/
 	
-	[self setLighting];
-	
 	/*- the dust particle system -*/
 	thing = [[DustEntity alloc] init];	// alloc retains!
 	[thing setScanClass: CLASS_NO_DRAW];
@@ -858,7 +856,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	[(DustEntity *)thing setDustColor:pale_bgcolor]; 
 	[thing release];
 	/*--*/
-	
 	
 	// actual entities next...
 	
@@ -945,6 +942,9 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 		[a_sun setThrowSparks:YES];
 		[a_sun setVelocity: kZeroVector];
 	}
+	
+	// set the lighting only after we know which sun we have.
+	[self setLighting];
 	
 	/*- space station -*/
 	stationPos = [a_planet position];
