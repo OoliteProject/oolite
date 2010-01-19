@@ -115,6 +115,7 @@ enum
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_fuel,					// fuel, float, read/write
+	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read/write
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
@@ -189,6 +190,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "group",					kShip_group,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "escortGroup",			kShip_escortGroup,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "fuel",					kShip_fuel,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "fuelChargeRate",			kShip_fuelChargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasHostileTarget",		kShip_hasHostileTarget,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hasSuspendedAI",			kShip_hasSuspendedAI,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "heatInsulation",			kShip_heatInsulation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -349,6 +351,10 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = JS_NewDoubleValue(context, [entity fuel] * 0.1, outValue);
 			break;
 		
+		case kShip_fuelChargeRate:
+			OK = JS_NewDoubleValue(context, [entity fuelChargeRate], outValue);
+			break;
+
 		case kShip_bounty:
 			*outValue = INT_TO_JSVAL([entity bounty]);
 			OK = YES;

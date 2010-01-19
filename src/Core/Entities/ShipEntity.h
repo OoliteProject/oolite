@@ -188,6 +188,7 @@ MA 02110-1301, USA.
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
+	GLfloat					fuel_charge_rate;
 	
 	OOCargoQuantity			likely_cargo;				// likely amount of cargo (for merchantmen, this is what is spilled as loot)
 	OOCargoQuantity			max_cargo;					// capacity of cargo hold
@@ -590,6 +591,8 @@ MA 02110-1301, USA.
 - (OOFuelQuantity) fuel;
 - (void) setFuel:(OOFuelQuantity) amount;
 - (OOFuelQuantity) fuelCapacity;
+
+- (GLfloat) fuelChargeRate;
 
 - (void) setRoll:(double) amount;
 - (void) setPitch:(double) amount;

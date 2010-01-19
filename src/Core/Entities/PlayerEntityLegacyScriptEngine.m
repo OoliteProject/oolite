@@ -1437,7 +1437,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) awardFuel:(NSString *)valueString	// add to fuel up to 7.0 LY
 {
-	int delta  = 10 * [valueString floatValue];
+	int delta  = 10 * [valueString floatValue] * [scriptTarget fuelChargeRate];
 	OOFuelQuantity scriptTargetFuelBeforeAward = [scriptTarget fuel];
 
 	if (delta < 0 && scriptTargetFuelBeforeAward < (unsigned)-delta)  [scriptTarget setFuel:0];

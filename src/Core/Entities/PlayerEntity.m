@@ -130,6 +130,30 @@ static PlayerEntity *sSharedPlayer = nil;
 
 @end
 
+static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
+{
+	GLfloat base_mass = [base mass];
+	GLfloat my_mass = [player mass];
+
+	static const GLfloat a = 0;
+	static const GLfloat n = 1;
+	static const GLfloat b = 1;
+	static const GLfloat c = 0;
+
+	// default if either mass is 0
+	if (my_mass == 0.0)   return -1;
+	if (base_mass == 0.0) return 0;
+
+	GLfloat x = my_mass / base_mass;
+
+	// axⁿ+bx+c, where x is mass(player)/mass(base)
+	// result is normalised so that player==base gives 1.0
+	// base is normally the default player ship
+	GLfloat result = (a * powf (x, n) + b * x + c) / (a + b + c);
+
+	return roundf ((float) (result * 100.0)) / 100.0;
+}
+
 
 @implementation PlayerEntity
 
@@ -149,6 +173,29 @@ static PlayerEntity *sSharedPlayer = nil;
 {
 	dockedStation = [UNIVERSE station];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil];
+
+// ## For testing purposes only...
+	static int reported = 0;
+	if (!reported)
+	{
+		reported = 1;
+		ShipEntity *ship = [UNIVERSE newShipWithName:PLAYER_SHIP_DESC];
+		if (ship != nil)
+		{
+			NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
+			const size_t count = [playerships count];
+			int i;
+
+			for (i = 0; i < count; ++i)
+			{
+				ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
+				GLfloat rate = calcFuelChargeRate (calc, ship);
+				printf ("%32s: %6.2f\n", [[playerships objectAtIndex:i] cString], rate);
+				[calc release];
+			}
+			[ship release];
+		}
+	}
 }
 
 
@@ -354,6 +401,7 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	[result oo_setUnsignedLongLong:credits	forKey:@"credits"];
 	[result oo_setUnsignedInteger:fuel		forKey:@"fuel"];
+	[result oo_setFloat:fuel_charge_rate	forKey:@"fuel_charge_rate"]; // ## fuel charge testing
 	
 	[result oo_setInteger:galaxy_number	forKey:@"galaxy_number"];
 	
@@ -690,6 +738,9 @@ static PlayerEntity *sSharedPlayer = nil;
 	
 	credits = [dict oo_unsignedLongLongForKey:@"credits" defaultValue:credits];
 	fuel = [dict oo_unsignedIntForKey:@"fuel" defaultValue:fuel];
+	fuel_charge_rate = [UNIVERSE strict]
+					 ? 1.0
+					 : [dict oo_floatForKey:@"fuel_charge_rate" defaultValue:fuel_charge_rate]; // ## fuel charge testing
 	
 	galaxy_number = [dict oo_intForKey:@"galaxy_number"];
 	forward_weapon_type = [dict oo_intForKey:@"forward_weapon"];
@@ -1145,7 +1196,24 @@ static PlayerEntity *sSharedPlayer = nil;
 		[hud setScannerZoom:1.0];
 		[hud resizeGuis: huddict];
 	}
-	
+
+	// set up fuel scooping & charging
+	fuel_charge_rate = [UNIVERSE strict]
+					 ? 1.0
+					 : [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:0.0];
+	if (fuel_charge_rate <= 0.0) // guaranteed non-strict if this is true :-)
+	{
+		fuel_charge_rate = 1.0; // default value, suitable for a Cobra mk3
+
+		ShipEntity *ship = [UNIVERSE newShipWithName:PLAYER_SHIP_DESC];
+		if (ship != nil)
+		{
+			GLfloat rate = calcFuelChargeRate (self, ship);
+			if (rate > 0) fuel_charge_rate = rate;
+			[ship release];
+		}
+	}
+
 	// set up missiles
 	// sanity check the number of missiles...
 	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
@@ -1453,7 +1521,7 @@ static PlayerEntity *sSharedPlayer = nil;
 		// do Revised sun-skimming check here...
 		if ([self hasScoop] && alt1 > 0.75 && [self fuel] < [self fuelCapacity])
 		{
-			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010);
+			fuel_accumulator += (float)(delta_t * flightSpeed * 0.010 / fuel_charge_rate);
 			scoopsActive = YES;
 			while (fuel_accumulator > 1.0)
 			{
@@ -5373,7 +5441,7 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKey isEqual:@"EQ_FUEL"])
 				{
-					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit;
+					price = (PLAYER_MAX_FUEL - fuel) * pricePerUnit * fuel_charge_rate;
 				}
 				else if ([eqKey isEqual:@"EQ_RENOVATION"])
 				{

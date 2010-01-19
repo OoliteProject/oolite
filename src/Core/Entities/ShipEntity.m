@@ -346,6 +346,15 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
 	
 	fuel = [shipDict oo_unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
+	if ([UNIVERSE strict])
+	{
+		fuel_charge_rate = 1.0;
+	}
+	else
+	{
+		fuel_charge_rate = [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:fuel_charge_rate];
+		if (fuel_charge_rate <= 0.0) fuel_charge_rate = 1.0; // default value, suitable for a Cobra mk3 */
+	}
 	fuel_accumulator = 1.0;
 	
 	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];
@@ -4805,6 +4814,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	// FIXME: shipdata.plist can allow greater fuel quantities (without extending hyperspace range). Need some consistency here.
 	return PLAYER_MAX_FUEL;
+}
+
+
+- (GLfloat) fuelChargeRate
+{
+	return fuel_charge_rate;
 }
 
 
