@@ -2058,11 +2058,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[ship setOrientation: q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * cr];
 		[ship setScanClass:CLASS_NO_DRAW];
-		[ship setRoll:M_PI/5.0];
-		[ship setPitch:M_PI/10.0];
 		[ship switchAITo:@"nullAI.plist"];
 		[ship setPendingEscortCount:0];
 		[UNIVERSE addEntity:ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+		[ship setRoll:M_PI/5.0];  // roll must be set after addEntity or stations will not roll in demo.
+		[ship setPitch:M_PI/10.0];
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		
 		[ship release];

@@ -3171,6 +3171,7 @@ static BOOL toggling_music;
 				[UNIVERSE removeDemoShips];
 				[gui clearBackground];
 				[[OOMusicController sharedController] stopThemeMusic];
+				[[UNIVERSE gameView] supressKeysUntilKeyUp]; // to prevent a missionscreen on the first page from reacting on this keypress.
 				[self setGuiToStatusScreen];
 				[self doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];	// trigger missionScreenOpportunity immediately after (re)start
 			}
