@@ -3,7 +3,7 @@
 Universe.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -3499,8 +3499,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		}
 		// There should be nothing to do for shaders, they use the same (always on) light source
 		// both in flight & in gui mode. According to the standard, shaders should treat lights as
-		// always enabled. At least one non-standard shader implementation (windows' GMA950 driver)
-		// does _not_ use glDisabled lights, making the following line necessary.
+		// always enabled. At least one non-standard shader implementation (windows' X3100 Intel
+		// core with GM965 chipset and version 6.14.10.4990 driver) does _not_ use glDisabled lights,
+		// making the following line necessary.
 		
 		else OOGL(glEnable(GL_LIGHT1)); // make sure we have a light, even with shaders (!)
 		

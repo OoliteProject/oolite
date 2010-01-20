@@ -3,7 +3,7 @@
 PlayerEntity.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -6574,7 +6574,7 @@ static NSString *last_outfitting_key=nil;
 		// This should be the currently selected missile, deselect it.
 		if (pylon >= activeMissile)
 		{
-			if (activeMissile == missiles) activeMissile--;
+			if (activeMissile == missiles && missiles > 0) activeMissile--;
 			if (activeMissile > 0) activeMissile--;
 			else activeMissile = max_missiles - 1;
 			
