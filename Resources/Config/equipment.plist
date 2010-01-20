@@ -57,7 +57,7 @@
 		"EQ_ENERGY_BOMB",
 		"A one-shot super-weapon capable of destroying all small craft within range.",
 		{
-			strict_mode_only = true;
+			strict_mode_only = false;
 		}
 	),
 	(
