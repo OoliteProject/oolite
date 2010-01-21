@@ -94,6 +94,38 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
 
+static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
+{
+#if NEW_FUEL_PRICES
+	
+	// if anything is wrong, default to cobra3 value.
+	if (my_mass == 0.0 || base_mass == 0.0) return 1.0;
+	
+	GLfloat x = my_mass / base_mass;
+	
+/*
+	static const GLfloat a = 0.0;
+	static const GLfloat n = 1.0;
+	static const GLfloat b = 1.0;
+	static const GLfloat c = 0.0;
+	
+	// axⁿ+bx+c, where x is mass(player)/mass(base)
+	// result is normalised so that player==base gives 1.0
+	// base is normally the default player ship
+	
+	GLfloat result = (a * powf (x, n) + b * x + c) / (a + b + c);
+*/
+	// given the const values above, we can use a simpler alternative to get the same result:
+	GLfloat result = x;
+	
+	// tweaked result, not directly proportional to the ship's mass any more,
+	return 0.4 + (roundf ((float) (result * 60.0)) / 100.0);
+#else
+	return 1.0;
+#endif
+}
+
+
 @interface ShipEntity (Private)
 
 - (void) drawSubEntity:(BOOL) immediate :(BOOL) translucent;
@@ -287,6 +319,34 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	float density = [shipDict oo_floatForKey:@"density" defaultValue:1.0f];
 	if (octree)  mass = (GLfloat)(density * 20.0 * [octree volume]);
 	
+#if NEW_FUEL_PRICES
+	// set up fuel scooping & charging
+	if ([UNIVERSE strict])
+	{
+		fuel_charge_rate = 1.0;
+	}
+	else
+	{
+		GLfloat rate = 1.0;
+		if ([PlayerEntity sharedPlayer] != nil)
+		{
+			rate = calcFuelChargeRate (mass, [[PlayerEntity sharedPlayer] baseMass]);
+		}
+		fuel_charge_rate = (rate > 0.0) ? rate : 1.0;
+		
+		rate = [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:fuel_charge_rate];
+		if (rate != fuel_charge_rate)
+		{
+			// clamp the charge rate at no more than three times, and no less than about a third of the calculated value.
+			if (rate < 0.33 * fuel_charge_rate) fuel_charge_rate *= 0.33;
+			else if (rate > 3 * fuel_charge_rate) fuel_charge_rate *= 3;
+			else fuel_charge_rate = rate;
+		}
+	}
+#else
+	fuel_charge_rate = 1.0;
+#endif
+	
 	OOColor *color = [OOColor brightColorWithDescription:[shipDict objectForKey:@"laser_color"]];
 	if (color == nil)  color = [OOColor redColor];
 	[self setLaserColor:color];
@@ -346,15 +406,7 @@ static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.change
 	scannerRange = [shipDict oo_floatForKey:@"scanner_range" defaultValue:(float)SCANNER_MAX_RANGE];
 	
 	fuel = [shipDict oo_unsignedShortForKey:@"fuel"];	// Does it make sense that this defaults to 0? Should it not be 70? -- Ahruman
-	if ([UNIVERSE strict])
-	{
-		fuel_charge_rate = 1.0;
-	}
-	else
-	{
-		fuel_charge_rate = [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:fuel_charge_rate];
-		if (fuel_charge_rate <= 0.0) fuel_charge_rate = 1.0; // default value, suitable for a Cobra mk3 */
-	}
+	
 	fuel_accumulator = 1.0;
 	
 	bounty = [shipDict oo_unsignedIntForKey:@"bounty"];

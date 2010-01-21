@@ -115,7 +115,7 @@ enum
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
 	kShip_fuel,					// fuel, float, read/write
-	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read/write
+	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
 	kShip_bounty,				// bounty, unsigned int, read/write
 	kShip_subEntities,			// subentities, array of Ship, read-only
 	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only

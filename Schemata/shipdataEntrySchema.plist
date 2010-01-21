@@ -21,6 +21,7 @@
 		aft_weapon_type = "$weaponType";
 		weapon_energy = "positiveFloat";
 		scanner_range = "positiveFloat";
+		fuel_charge_rate = "positiveFloat";
 		missiles = "positiveInteger";
 		has_ecm = "fuzzyBoolean";
 		has_scoop = "fuzzyBoolean";

@@ -557,6 +557,7 @@ typedef enum
 
 - (GLfloat) forwardShieldLevel;
 - (GLfloat) aftShieldLevel;
+- (GLfloat) baseMass;
 
 - (void) setForwardShieldLevel:(GLfloat)level;
 - (void) setAftShieldLevel:(GLfloat)level;

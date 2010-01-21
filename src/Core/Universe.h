@@ -137,6 +137,10 @@ enum
 #define OO_LOCALIZATION_TOOLS	1
 #endif
 
+#ifndef NEW_FUEL_PRICES
+#define NEW_FUEL_PRICES	0
+#endif
+
 
 @interface Universe: OOWeakRefObject
 {

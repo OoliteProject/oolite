@@ -94,6 +94,7 @@ static NSString * const kOOLogBuyMountedOK			= @"equip.buy.mounted";
 static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 
 static PlayerEntity *sSharedPlayer = nil;
+static GLfloat sBaseMass = 0.0;
 
 
 @interface PlayerEntity (OOPrivate)
@@ -130,30 +131,6 @@ static PlayerEntity *sSharedPlayer = nil;
 
 @end
 
-static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
-{
-	GLfloat base_mass = [base mass];
-	GLfloat my_mass = [player mass];
-
-	static const GLfloat a = 0;
-	static const GLfloat n = 1;
-	static const GLfloat b = 1;
-	static const GLfloat c = 0;
-
-	// default if either mass is 0
-	if (my_mass == 0.0)   return -1;
-	if (base_mass == 0.0) return 0;
-
-	GLfloat x = my_mass / base_mass;
-
-	// axⁿ+bx+c, where x is mass(player)/mass(base)
-	// result is normalised so that player==base gives 1.0
-	// base is normally the default player ship
-	GLfloat result = (a * powf (x, n) + b * x + c) / (a + b + c);
-
-	return roundf ((float) (result * 100.0)) / 100.0;
-}
-
 
 @implementation PlayerEntity
 
@@ -169,32 +146,36 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 }
 
 
+- (GLfloat) baseMass
+{
+	return sBaseMass;
+}
+
+
 - (void)completeSetUp
 {
 	dockedStation = [UNIVERSE station];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil];
 
-// ## For testing purposes only...
-	static int reported = 0;
+#if NEW_FUEL_PRICES && !defined(NDEBUG)
+	// For testing purposes only...
+	static BOOL reported = NO;
 	if (!reported)
 	{
-		reported = 1;
-		ShipEntity *ship = [UNIVERSE newShipWithName:PLAYER_SHIP_DESC];
-		if (ship != nil)
+		reported = YES;
+		
+		NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
+		OOUInteger i, count = [playerships count];
+		
+		for (i = 0; i < count; ++i)
 		{
-			NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
-			OOUInteger i, count = [playerships count];
-
-			for (i = 0; i < count; ++i)
-			{
-				ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
-				GLfloat rate = calcFuelChargeRate(calc, ship);
-				OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
-				[calc release];
-			}
-			[ship release];
+			ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
+			GLfloat rate = [calc fuelChargeRate];
+			OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
+			[calc release];
 		}
 	}
+#endif
 }
 
 
@@ -1165,6 +1146,12 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 	compassTarget = nil;
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
+	// boostrap base mass!
+	if (sBaseMass == 0.0 && [ship_desc isEqualTo:PLAYER_SHIP_DESC])
+	{
+		sBaseMass = [self mass];
+	}
+	
 	// Player-only settings.
 	//
 	// set control factors..
@@ -1199,24 +1186,9 @@ static GLfloat calcFuelChargeRate (ShipEntity *player, ShipEntity *base)
 		[hud setScannerZoom:1.0];
 		[hud resizeGuis: huddict];
 	}
-
-	// set up fuel scooping & charging
-	fuel_charge_rate = [UNIVERSE strict]
-					 ? 1.0
-					 : [shipDict oo_floatForKey:@"fuel_charge_rate" defaultValue:0.0];
-	if (fuel_charge_rate <= 0.0) // guaranteed non-strict if this is true :-)
-	{
-		fuel_charge_rate = 1.0; // default value, suitable for a Cobra mk3
-
-		ShipEntity *ship = [UNIVERSE newShipWithName:PLAYER_SHIP_DESC];
-		if (ship != nil)
-		{
-			GLfloat rate = calcFuelChargeRate (self, ship);
-			if (rate > 0) fuel_charge_rate = rate;
-			[ship release];
-		}
-	}
-
+	
+	// fuel_charge_rate is calculated inside the shipEntity method.
+	
 	// set up missiles
 	// sanity check the number of missiles...
 	if (max_missiles > PLAYER_MAX_MISSILES)  max_missiles = PLAYER_MAX_MISSILES;
