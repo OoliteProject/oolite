@@ -94,10 +94,9 @@ extern NSString * const kOOLogSyntaxAddShips;
 static NSString * const kOOLogEntityBehaviourChanged	= @"entity.behaviour.changed";
 
 
-static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
-{
 #if NEW_FUEL_PRICES
-	
+static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
+{	
 	// if anything is wrong, default to cobra3 value.
 	if (my_mass == 0.0 || base_mass == 0.0) return 1.0;
 	
@@ -122,10 +121,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	// round the result to the second decimal digit.
 	return (roundf ((float) (result * 100.0)) / 100.0);
-#else
-	return 1.0;
-#endif
 }
+#endif
 
 
 @interface ShipEntity (Private)
