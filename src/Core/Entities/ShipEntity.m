@@ -103,11 +103,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	GLfloat x = my_mass / base_mass;
 	
+	static const GLfloat b = 0.6;
+	static const GLfloat c = 0.4;
+	
 /*
 	static const GLfloat a = 0.0;
 	static const GLfloat n = 1.0;
-	static const GLfloat b = 1.0;
-	static const GLfloat c = 0.0;
 	
 	// axⁿ+bx+c, where x is mass(player)/mass(base)
 	// result is normalised so that player==base gives 1.0
@@ -115,11 +116,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	GLfloat result = (a * powf (x, n) + b * x + c) / (a + b + c);
 */
-	// given the const values above, we can use a simpler alternative to get the same result:
-	GLfloat result = x;
 	
-	// tweaked result, not directly proportional to the ship's mass any more,
-	return 0.4 + (roundf ((float) (result * 60.0)) / 100.0);
+	// given the const values above, we can use a simpler alternative to get the same result:
+	GLfloat result = b * x + c;
+	
+	// round the result to the second decimal digit.
+	return (roundf ((float) (result * 100.0)) / 100.0);
 #else
 	return 1.0;
 #endif
