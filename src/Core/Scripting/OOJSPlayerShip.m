@@ -96,6 +96,7 @@ enum
 	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_galaxyCoordinates,				// galaxy coordinates, vector, read only
 	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
+	kPlayerShip_targetSystem,					// target system id, int, read-only
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
@@ -120,6 +121,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "forwardShieldRechargeRate",	kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "aftShieldRechargeRate",		kPlayerShip_aftShieldRechargeRate,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "targetSystem",				kPlayerShip_targetSystem,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
@@ -262,6 +264,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			OK = NSPointToVectorJSValue(context, [player cursor_coordinates], outValue);
 			break;
 			
+		case kPlayerShip_targetSystem:
+			*outValue = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
+			OK = YES;//(*outValue != NSNotFound);
+			break;
+
 		case kPlayerShip_scriptedMisjump:
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
 			OK = YES;
