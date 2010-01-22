@@ -834,6 +834,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	if (!using_preloaded)
 	{
+		NSCharacterSet	*whitespaceCharSet = [NSCharacterSet whitespaceCharacterSet];
+		NSCharacterSet	*whitespaceAndNewlineCharSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+#if OOLITE_LEOPARD
+		NSCharacterSet	*newlineCharSet = [NSCharacterSet newlineCharacterSet];
+#else
+		NSMutableCharacterSet *newlineCharSet = [[whitespaceAndNewlineCharSet mutableCopy] autorelease];
+		[newlineCharSet formIntersectionWithCharacterSet:[whitespaceCharSet invertedSet]];
+#endif
+		
 		texFileName2Idx = [NSMutableDictionary dictionary];
 		
 		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
@@ -1036,8 +1045,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				{
 					// materialKey
 					//
-					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
-					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:&materialKey])
+					[scanner scanCharactersFromSet:whitespaceAndNewlineCharSet intoString:NULL];
+					if (![scanner scanUpToCharactersFromSet:whitespaceCharSet intoString:&materialKey])
 					{
 						failFlag = YES;
 						failString = [NSString stringWithFormat:@"%@Failed to read texture filename for face[%d] in TEXTURES\n", failString, j];
@@ -1120,8 +1129,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				for (j = 0; j < count; j++)
 				{
 					NSString *name = nil;
-					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
-					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:&name])
+					[scanner scanCharactersFromSet:whitespaceAndNewlineCharSet intoString:NULL];
+					if (![scanner scanUpToCharactersFromSet:newlineCharSet intoString:&name])
 					{
 						failFlag = YES;
 						failString = [failString stringByAppendingString:@"Expected file name\n"];
