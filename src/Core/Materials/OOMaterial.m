@@ -56,6 +56,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "OOCacheManager.h"
+#import "OOTexture.h"
 
 
 static OOMaterial *sActiveMaterial = nil;
@@ -449,6 +450,14 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	if (configuration == nil)
 	{
 		configuration = [materialDict oo_dictionaryForKey:name];
+	}
+	
+	if (configuration == nil)
+	{
+		// Use fallback material for non-existent simple texture.
+		// Texture caching means this won't be wasted in the general case.
+		OOTexture *texture = [OOTexture textureWithName:name inFolder:@"Textures"];
+		if (texture == nil)  return nil;
 	}
 	
 	return [self materialWithName:name

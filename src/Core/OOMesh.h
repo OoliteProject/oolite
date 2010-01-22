@@ -86,7 +86,7 @@ typedef struct
 @interface OOMesh: OODrawable <NSCopying>
 {
 @private
-	uint8_t					isSmoothShaded: 1,
+	uint8_t					_normalMode: 2,
 							brokenInRender: 1,
 							listsReady: 1;
 	

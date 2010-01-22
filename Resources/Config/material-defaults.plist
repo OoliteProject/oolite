@@ -22,7 +22,7 @@
 		ambient = (0, 0, 0.4);
 		emission = (0.4, 0.1, 0.1);
 		specular = (0.1, 1.0, 0.1);
-		shininess = 1;
+		shininess = 4;
 	};
 	
 	"planet-material" =

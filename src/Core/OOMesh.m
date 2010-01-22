@@ -67,6 +67,33 @@ enum
 };
 
 
+typedef enum
+{
+	k_normalModePerFace,
+	k_normalModeSmooth,
+	k_normalModeExplicit
+} OOMesh_normalMode;
+
+
+static BOOL NormalsArePerVertex(OOMesh_normalMode mode)
+{
+	switch (mode)
+	{
+		case k_normalModePerFace:
+			return NO;
+			
+		case k_normalModeSmooth:
+		case k_normalModeExplicit:
+			return YES;
+	}
+	
+#ifndef NDEBUG
+	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
+#endif
+	return NO;
+}
+
+
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
 static NSString * const kOOLogMeshTooManyVertices			= @"mesh.load.failed.tooManyVertices";
 static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFaces";
@@ -90,7 +117,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (BOOL) loadData:(NSString *)filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) generateFaceTangents;
-- (void) calculateVertexNormals;
+- (void) calculateVertexNormalsAndTangents;
+- (void) calculateVertexTangents;
 
 - (NSDictionary*) modelData;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
@@ -115,6 +143,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count;
 - (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count;
 - (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count;
+
+- (void) renameTexturesFrom:(NSString *)from to:(NSString *)to;
 
 @end
 
@@ -173,28 +203,41 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	unsigned				i;
 	
-	[baseFile release];
-	[octree autorelease];
+	DESTROY(baseFile);
+	DESTROY(octree);
 	
 	[self resetGraphicsState];
 	
 	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
-		[materials[i] release];
-		[materialKeys[i] release];
+		DESTROY(materials[i]);
+		DESTROY(materialKeys[i]);
 	}
 	
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
-	[_retainedObjects release];
+	DESTROY(_retainedObjects);
 	
 	[super dealloc];
 }
 
 
-- (NSString *)description
+static NSString *_normalModeDescription(OOMesh_normalMode mode)
 {
-	return [NSString stringWithFormat:@"<%@ %p>{\"%@\", %u vertices, %u faces, radius: %g m smooth: %s}", [self class], self, [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], isSmoothShaded ? "YES" : "NO"];
+	switch (mode)
+	{
+		case k_normalModePerFace:  return @"per-face";
+		case k_normalModeSmooth:  return @"smooth";
+		case k_normalModeExplicit:  return @"explicit";
+	}
+	
+	return @"unknown";
+}
+
+
+- (NSString *)descriptionComponents
+{
+	return [NSString stringWithFormat:@"\"%@\", %u vertices, %u faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], _normalModeDescription(_normalMode)];
 }
 
 
@@ -237,8 +280,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	
-	if (isSmoothShaded)  OOGL(glShadeModel(GL_SMOOTH));
-	else  OOGL(glShadeModel(GL_FLAT));
+	OOGL(glShadeModel(GL_SMOOTH));
 	
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	OOGL(glDisableClientState(GL_INDEX_ARRAY));
@@ -505,19 +547,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 #ifndef NDEBUG
 - (void)dumpSelfState
 {
-	NSMutableArray		*flags = nil;
-	NSString			*flagsString = nil;
-	
 	[super dumpSelfState];
 	
 	if (baseFile != nil)  OOLog(@"dumpState.mesh", @"Model file: %@", baseFile);
 	OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
-	
-	flags = [NSMutableArray array];
-	#define ADD_FLAG_IF_SET(x)		if (x) { [flags addObject:@#x]; }
-	ADD_FLAG_IF_SET(isSmoothShaded);
-	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
-	OOLog(@"dumpState.mesh", @"Flags: %@", flagsString);
+	OOLog(@"dumpState.mesh", @"Normals: %@", _normalModeDescription(_normalMode));
 }
 #endif
 
@@ -548,7 +582,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (self == nil)  return nil;
 	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	isSmoothShaded = smooth != NO;
+	_normalMode = smooth ? k_normalModeSmooth : k_normalModePerFace;
 	
 	if ([self loadData:name])
 	{
@@ -589,7 +623,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 									  shadersDictionary:shadersDict
 												 macros:macros
 										  bindingTarget:target
-										forSmoothedMesh:isSmoothShaded];
+										forSmoothedMesh:NormalsArePerVertex(_normalMode)];
 			}
 			else
 			{
@@ -659,7 +693,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						*tanData = nil,
 						*faceData = nil;
 	NSArray				*mtlKeys = nil;
-	NSNumber			*smooth = nil;
+	NSNumber			*normMode = nil;
 	
 	// Prepare cache data elements.
 	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
@@ -685,7 +719,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		mtlKeys = [NSArray array];
 	}
-	smooth = [NSNumber numberWithBool:isSmoothShaded];
+	normMode = [NSNumber numberWithUnsignedChar:_normalMode];
 	
 	// Ensure we have all the required data elements.
 	if (vertCnt == nil ||
@@ -695,7 +729,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		tanData == nil ||
 		faceData == nil ||
 		mtlKeys == nil ||
-		smooth == nil)
+		normMode == nil)
 	{
 		return nil;
 	}
@@ -709,7 +743,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						faceCnt, @"face count",
 						faceData, @"face data",
 						mtlKeys, @"material keys",
-						smooth, @"smooth",
+						normMode, @"normal mode",
 						nil];
 }
 
@@ -738,7 +772,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	faceData = [dict oo_dataForKey:@"face data"];
 	
 	mtlKeys = [dict oo_arrayForKey:@"material keys"];
-	isSmoothShaded = [dict oo_boolForKey:@"smooth"];
+	_normalMode = [dict oo_unsignedCharForKey:@"normal mode"];
 	
 	// Ensure we have all the required data elements.
 	if (vertData == nil ||
@@ -902,13 +936,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					if (![scanner scanFloat:&z])  failFlag = YES;
 					if (!failFlag)
 					{
-						_vertices[j].x = x;
-						_vertices[j].y = y;
-						_vertices[j].z = z;
+						_vertices[j] = make_vector(x, y, z);
 					}
 					else
 					{
-						failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in VERTEX\n", failString, j];
+						failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"VERTEX"];
 					}
 				}
 			}
@@ -992,8 +1024,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			failString = [NSString stringWithFormat:@"%@Failed to find FACES data\n",failString];
 		}
 
-		// get textures data
-		//
+		// Get textures data.
 		if ([scanner scanString:@"TEXTURES" intoString:NULL])
 		{
 			for (j = 0; j < faceCount; j++)
@@ -1066,7 +1097,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		else
 		{
 			failFlag = YES;
-			failString = [NSString stringWithFormat:@"%@Failed to find TEXTURES data (will use placeholder material)\n",failString];
+			failString = [failString stringByAppendingString:@"Failed to find TEXTURES data (will use placeholder material)\n"];
 			materialKeys[0] = @"_oo_placeholder_material";
 			materialCount = 1;
 			
@@ -1076,19 +1107,99 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			}
 		}
 		
+		if ([scanner scanString:@"NAMES" intoString:NULL])
+		{
+			unsigned int count;
+			if (![scanner scanInt:(int *)&count])
+			{	
+				failFlag = YES;
+				failString = [failString stringByAppendingString:@"Expected count after NAMES\n"];
+			}
+			else
+			{
+				for (j = 0; j < count; j++)
+				{
+					NSString *name = nil;
+					[scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
+					if (![scanner scanUpToCharactersFromSet:[NSCharacterSet newlineCharacterSet] intoString:&name])
+					{
+						failFlag = YES;
+						failString = [failString stringByAppendingString:@"Expected file name\n"];
+					}
+					else
+					{
+						[self renameTexturesFrom:[NSString stringWithFormat:@"%u", j] to:name];
+					}
+				}
+			}
+		}
+		
+		BOOL explicitTangents = NO;
+		
+		// Get explicit normals.
+		if ([scanner scanString:@"NORMALS" intoString:NULL])
+		{
+			_normalMode = k_normalModeExplicit;
+			
+			for (j = 0; j < vertexCount; j++)
+			{
+				float x, y, z;
+				if (!failFlag)
+				{
+					if (![scanner scanFloat:&x])  failFlag = YES;
+					if (![scanner scanFloat:&y])  failFlag = YES;
+					if (![scanner scanFloat:&z])  failFlag = YES;
+					if (!failFlag)
+					{
+						_normals[j] = vector_normal(make_vector(x, y, z));
+					}
+					else
+					{
+						failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"NORMALS"];
+					}
+				}
+			}
+			
+			// Get explicit tangents (only together with vertices).
+			if ([scanner scanString:@"TANGENTS" intoString:NULL])
+			{
+				_normalMode = k_normalModeExplicit;
+				
+				for (j = 0; j < vertexCount; j++)
+				{
+					float x, y, z;
+					if (!failFlag)
+					{
+						if (![scanner scanFloat:&x])  failFlag = YES;
+						if (![scanner scanFloat:&y])  failFlag = YES;
+						if (![scanner scanFloat:&z])  failFlag = YES;
+						if (!failFlag)
+						{
+							_tangents[j] = vector_normal(make_vector(x, y, z));
+						}
+						else
+						{
+							failString = [NSString stringWithFormat:@"%@Failed to read a value for vertex[%d] in %@\n", failString, j, @"TANGENTS"];
+						}
+					}
+				}
+			}
+		}
+		
 		[self checkNormalsAndAdjustWinding];
-		[self generateFaceTangents];
+		if (!explicitTangents)  [self generateFaceTangents];
+		
+		// check for smooth shading and recalculate normals
+		if (_normalMode == k_normalModeSmooth)  [self calculateVertexNormalsAndTangents];
+		else if (NormalsArePerVertex(_normalMode) && !explicitTangents)  [self calculateVertexTangents];
+		
+		// save the resulting data for possible reuse
+		[OOCacheManager setMeshData:[self modelData] forName:filename];
 		
 		if (failFlag)
 		{
 			OOLog(@"mesh.error", @"%@ ..... from %@ %@", failString, filename, (using_preloaded)? @"(from preloaded data)" :@"(from file)");
 		}
-
-		// check for smooth shading and recalculate normals
-		if (isSmoothShaded)  [self calculateVertexNormals];
-		
-		// save the resulting data for possible reuse
-		[OOCacheManager setMeshData:[self modelData] forName:filename];
 	}
 	
 	[self calculateBoundingVolumes];
@@ -1111,7 +1222,24 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		v0 = _vertices[_faces[i].vertex[0]];
 		v1 = _vertices[_faces[i].vertex[1]];
 		v2 = _vertices[_faces[i].vertex[2]];
-		norm = _faces[i].normal;
+		
+		if (_normalMode != k_normalModeExplicit)
+		{
+			norm = _faces[i].normal;
+		}
+		else
+		{
+			/*	Face normal may not exist and is irrelevant anyway; use sum of
+				vertex normals. NB: does not need to be normalized since we're
+				only doing sign checks.
+			*/
+			norm = kZeroVector;
+			for (j = 0; j < _faces[i].n_verts; j++)
+			{
+				norm = vector_add(norm, _normals[_faces[i].vertex[j]]);
+			}
+		}
+
 		calculatedNormal = normal_to_surface(v2, v1, v0);
 		if (vector_equal(norm, kZeroVector))
 		{
@@ -1192,7 +1320,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 }
 
 
-- (void) calculateVertexNormals
+- (void) calculateVertexNormalsAndTangents
 {
 	int i,j;
 	float	triangle_area[faceCount];
@@ -1220,6 +1348,35 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
 		
 		_normals[i] = normal_sum;
+		_tangents[i] = tangent_sum;
+	}
+}
+
+
+- (void) calculateVertexTangents
+{
+	int i,j;
+	float	triangle_area[faceCount];
+	for (i = 0 ; i < faceCount; i++)
+	{
+		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
+	}
+	for (i = 0; i < vertexCount; i++)
+	{
+		Vector tangent_sum = kZeroVector;
+		
+		for (j = 0; j < faceCount; j++)
+		{
+			BOOL is_shared = ((_faces[j].vertex[0] == i)||(_faces[j].vertex[1] == i)||(_faces[j].vertex[2] == i));
+			if (is_shared)
+			{
+				float t = triangle_area[j]; // weight sum by area
+				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, t));
+			}
+		}
+		
+		tangent_sum = vector_normal_or_fallback(tangent_sum, kBasisXVector);
+		
 		_tangents[i] = tangent_sum;
 	}
 }
@@ -1256,7 +1413,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 	
 	if (![self allocateVertexArrayBuffersWithCount:faceCount])  return NO;
 	
-	// if isSmoothShaded find any vertices that are between faces of different
+	// if smoothed, find any vertices that are between faces of different
 	// smoothing groups and mark them as being on an edge and therefore NOT
 	// smooth shaded
 	BOOL is_edge_vertex[vertexCount];
@@ -1266,7 +1423,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		is_edge_vertex[vi] = NO;
 		smoothGroup[vi] = -1;
 	}
-	if (isSmoothShaded)
+	if (_normalMode == k_normalModeSmooth)
 	{
 		for (fi = 0; fi < faceCount; fi++)
 		{
@@ -1303,7 +1460,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 				for (vi = 0; vi < 3; vi++)
 				{
 					int v = _faces[fi].vertex[vi];
-					if (isSmoothShaded)
+					if (NormalsArePerVertex(_normalMode))
 					{
 						if (is_edge_vertex[v])
 						{
@@ -1542,6 +1699,23 @@ static void Scribble(void *bytes, size_t size)
 			_displayLists.vertexArray != NULL &&
 			_displayLists.normalArray != NULL &&
 			_displayLists.tangentArray != NULL;
+}
+
+
+- (void) renameTexturesFrom:(NSString *)from to:(NSString *)to
+{
+	/*	IMPORTANT: this has to be called before setUpMaterials..., so it can
+		only be used during loading.
+	*/
+	OOMeshMaterialCount i;
+	for (i = 0; i != materialCount; i++)
+	{
+		if ([materialKeys[i] isEqualToString:from])
+		{
+			[materialKeys[i] release];
+			materialKeys[i] = [to copy];
+		}
+	}
 }
 
 @end
