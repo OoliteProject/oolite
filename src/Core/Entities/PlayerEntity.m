@@ -508,8 +508,8 @@ static GLfloat sBaseMass = 0.0;
 #endif
 
 	//base ship description
-	[result setObject:ship_desc forKey:@"ship_desc"];
-	[result setObject:[[[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc] oo_stringForKey:KEY_NAME] forKey:@"ship_name"];
+	[result setObject:[self shipDataKey] forKey:@"ship_desc"];
+	[result setObject:[[self shipInfoDictionary] oo_stringForKey:KEY_NAME] forKey:@"ship_name"];
 
 	//custom view no.
 	[result oo_setUnsignedInteger:_customViewIndex forKey:@"custom_view_index"];
@@ -558,7 +558,7 @@ static GLfloat sBaseMass = 0.0;
 	if (equipment != nil)
 		munge_checksum([[equipment description] length]);
 	
-	int final_checksum = munge_checksum([[ship_desc description] length]);
+	int final_checksum = munge_checksum([[self shipDataKey] length]);
 
 	//set checksum
 	[result oo_setInteger:final_checksum forKey:@"checksum"];
@@ -582,10 +582,9 @@ static GLfloat sBaseMass = 0.0;
 	[UNIVERSE setStrict:strict fromSaveGame:YES];
 	
 	//base ship description
-	[ship_desc release];
-	ship_desc = [[dict oo_stringForKey:@"ship_desc"] copy];
+	[self setShipDataKey:[dict oo_stringForKey:@"ship_desc"]];
 	
-	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:ship_desc];
+	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
 	if (shipDict == nil)  return NO;
 	if (![self setUpShipFromDictionary:shipDict])  return NO;
 	
@@ -711,7 +710,7 @@ static GLfloat sBaseMass = 0.0;
 	if (shipyard_record == nil)  shipyard_record = [[NSMutableDictionary alloc] init];
 
 	// Normalize cargo capacity
-	unsigned original_hold_size = [UNIVERSE maxCargoForShip:ship_desc];
+	unsigned original_hold_size = [UNIVERSE maxCargoForShip:[self shipDataKey]];
 	max_cargo = [dict oo_intForKey:@"max_cargo" defaultValue:max_cargo];
 	if (max_cargo > original_hold_size)  [self addEquipmentItem:@"EQ_CARGO_BAY"];
 	max_cargo = original_hold_size + ([self hasExpandedCargoBay] ? extra_cargo : 0) - max_passengers * 5;
@@ -890,7 +889,7 @@ static GLfloat sBaseMass = 0.0;
 		anything happens that requires the scripting engine to be set up.
 	*/
 	sSharedPlayer = self;
-	[super initWithDictionary:[NSDictionary dictionary]];
+	[super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]];
 	
 	compassMode = COMPASS_MODE_BASIC;
 	
@@ -937,8 +936,7 @@ static GLfloat sBaseMass = 0.0;
 		[self removeAllCargo:YES];		// force removal of cargo
 	}
 	
-	[ship_desc release];
-	ship_desc = PLAYER_SHIP_DESC;
+	[self setShipDataKey:PLAYER_SHIP_DESC];
 	ship_trade_in_factor = 95;
 	
 	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
@@ -1147,7 +1145,7 @@ static GLfloat sBaseMass = 0.0;
 	if (![super setUpFromDictionary:shipDict]) return NO;
 	
 	// boostrap base mass!
-	if (sBaseMass == 0.0 && [ship_desc isEqualTo:PLAYER_SHIP_DESC])
+	if (sBaseMass == 0.0 && [[self shipDataKey] isEqualTo:PLAYER_SHIP_DESC])
 	{
 		sBaseMass = [self mass];
 	}
@@ -1242,7 +1240,6 @@ static GLfloat sBaseMass = 0.0;
 - (void) dealloc
 {
 	compassTarget = nil;
-	[ship_desc release];
 	[hud release];
 	[commLog release];
 
@@ -1535,7 +1532,7 @@ static GLfloat sBaseMass = 0.0;
 		if ([self primaryTarget])
 		{
 			// restore player ship
-			ShipEntity *player_ship = [UNIVERSE newShipWithName:ship_desc];	// retained
+			ShipEntity *player_ship = [UNIVERSE newShipWithName:[self shipDataKey]];	// retained
 			if (player_ship)
 			{
 				// FIXME: this should use OOShipType, which should exist. -- Ahruman
@@ -2362,11 +2359,6 @@ static GLfloat sBaseMass = 0.0;
 
 
 //			dial routines = all return 0.0 .. 1.0 or -1.0 .. 1.0
-
-- (NSString *) ship_desc
-{
-	return ship_desc;
-}
 
 - (void) setDockedAtMainStation
 {
@@ -3508,7 +3500,7 @@ static GLfloat sBaseMass = 0.0;
 	flightSpeed = OOMax_f(flightSpeed, 50.0f);
 	vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
-	doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
+	doppelganger = [UNIVERSE newShipWithName:[self shipDataKey]];   // retain count = 1
 	if (doppelganger)
 	{
 		[doppelganger setPosition:origin];						// directly below
@@ -5272,11 +5264,11 @@ static NSString *last_outfitting_key=nil;
 	
 	// find options that agree with this ship
 	OOShipRegistry		*registry = [OOShipRegistry sharedRegistry];
-	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:ship_desc];
+	NSDictionary		*shipyardInfo = [registry shipyardInfoForKey:[self shipDataKey]];
 	NSMutableSet		*options = [NSMutableSet setWithArray:[shipyardInfo oo_arrayForKey:KEY_OPTIONAL_EQUIPMENT]];
 	
 	// add standard items too!
-	[options addObjectsFromArray:[[[registry shipyardInfoForKey:ship_desc] oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
+	[options addObjectsFromArray:[[shipyardInfo oo_dictionaryForKey:KEY_STANDARD_EQUIPMENT] oo_arrayForKey:KEY_EQUIPMENT_EXTRAS]];
 	
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
@@ -7420,7 +7412,6 @@ static NSString *last_outfitting_key=nil;
 	
 	[super dumpSelfState];
 	
-	OOLog(@"dumpState.playerEntity", @"Ship: %@", ship_desc);
 	OOLog(@"dumpState.playerEntity", @"Script time: %g", script_time);
 	OOLog(@"dumpState.playerEntity", @"Script time check: %g", script_time_check);
 	OOLog(@"dumpState.playerEntity", @"Script time interval: %g", script_time_interval);

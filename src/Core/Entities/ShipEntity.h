@@ -6,7 +6,7 @@ Entity subclass representing a ship, or various other flying things like cargo
 pods and stations (a subclass).
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -324,6 +324,8 @@ MA 02110-1301, USA.
 @private
 	OOWeakReference			*_subEntityTakingDamage;	//	frangible => subEntities can be damaged individually
 	
+	NSString				*_shipKey;
+	
 	NSMutableSet			*_equipment;
 	float					_heatInsulation;
 	
@@ -399,10 +401,14 @@ MA 02110-1301, USA.
 
 - (void) setUpEscorts;
 
-- (id)initWithDictionary:(NSDictionary *) dict;
+- (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict;
 - (BOOL)setUpFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpShipFromDictionary:(NSDictionary *) shipDict;
 - (BOOL)setUpSubEntities:(NSDictionary *) shipDict;
+
+- (NSString *) shipDataKey;
+- (void)setShipDataKey:(NSString *)key;
+
 - (NSDictionary *)shipInfoDictionary;
 
 - (void) setDefaultWeaponOffsets;
@@ -420,10 +426,7 @@ MA 02110-1301, USA.
 - (BOOL) equipmentValidToAdd:(NSString *)equipmentKey;	// Actual test if equipment satisfies validation criteria.
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey;
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition;
-/*	NOTE: for legacy reasons, canAddEquipment: returns YES if given a missile
-	or mine type, but addEquipmentItem: does nothing in those cases. This
-	should probably be cleaned up by making addEquipmentItem: mount stores.
-*/
+
 - (NSEnumerator *) equipmentEnumerator;
 - (unsigned) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
@@ -512,9 +515,6 @@ MA 02110-1301, USA.
 
 - (double) messageTime;
 - (void) setMessageTime:(double) value;
-
-//- (int) groupID;
-//- (void) setGroupID:(int) value;
 
 - (OOShipGroup *) group;
 - (void) setGroup:(OOShipGroup *)group;

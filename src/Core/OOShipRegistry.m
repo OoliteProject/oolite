@@ -63,6 +63,9 @@ SOFTWARE.
 #define PRELOAD 0
 
 
+static void DumpStringAddrs(NSDictionary *dict, NSString *context);
+
+
 static OOShipRegistry	*sSingleton = nil;
 
 static NSString * const	kShipRegistryCacheName = @"ship registry";
@@ -289,6 +292,8 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 											   mergeMode:MERGE_BASIC
 												   cache:NO] mutableCopy] autorelease];
 	if (result == nil)  return;
+	
+	DumpStringAddrs(result, @"shipdata.plist");
 	
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
 	if (![self makeShipEntriesMutable:result])  return;
@@ -1359,3 +1364,81 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 }
 
 @end
+
+
+static void GatherStringAddrsDict(NSDictionary *dict, NSMutableSet *strings, NSString *context);
+static void GatherStringAddrsArray(NSArray *array, NSMutableSet *strings, NSString *context);
+static void GatherStringAddrs(id object, NSMutableSet *strings, NSString *context);
+
+
+static void DumpStringAddrs(NSDictionary *dict, NSString *context)
+{
+	return;
+	static FILE *dump = NULL;
+	if (dump == NULL)  dump = fopen("strings.txt", "w");
+	if (dump == NULL)  return;
+	
+	NSAutoreleasePool *pool = [NSAutoreleasePool new];
+	NSMutableSet *strings = [NSMutableSet set];
+	GatherStringAddrs(dict, strings, context);
+	
+	NSEnumerator *entryEnum = nil;
+	NSDictionary *entry = nil;
+	for (entryEnum = [strings objectEnumerator]; (entry = [entryEnum nextObject]); )
+	{
+		NSString *string = [entry objectForKey:@"string"];
+		NSString *context = [entry objectForKey:@"context"];
+		void *pointer = [[entry objectForKey:@"address"] pointerValue];
+		
+		string = [NSString stringWithFormat:@"%p\t%@:  \"%@\"", pointer, context, string];
+		
+		fprintf(dump, "%s\n", [string UTF8String]);
+	}
+	
+	fprintf(dump, "\n");
+	fflush(dump);
+	[pool release];
+}
+
+
+static void GatherStringAddrsDict(NSDictionary *dict, NSMutableSet *strings, NSString *context)
+{
+	NSEnumerator *keyEnum = nil;
+	id key = nil;
+	NSString *keyContext = [context stringByAppendingString:@" key"];
+	for (keyEnum = [dict keyEnumerator]; (key = [keyEnum nextObject]); )
+	{
+		GatherStringAddrs(key, strings, keyContext);
+		GatherStringAddrs([dict objectForKey:key], strings, [context stringByAppendingFormat:@".%@", key]);
+	}
+}
+
+
+static void GatherStringAddrsArray(NSArray *array, NSMutableSet *strings, NSString *context)
+{
+	NSEnumerator *vEnum = nil;
+	NSString *v = nil;
+	unsigned i = 0;
+	for (vEnum = [array objectEnumerator]; (v = [vEnum nextObject]); )
+	{
+		GatherStringAddrs(v, strings, [context stringByAppendingFormat:@"[%u]", i++]);
+	}
+}
+
+
+static void GatherStringAddrs(id object, NSMutableSet *strings, NSString *context)
+{
+	if ([object isKindOfClass:[NSString class]])
+	{
+		NSDictionary *entry = [NSDictionary dictionaryWithObjectsAndKeys:object, @"string", [NSValue valueWithPointer:object], @"address", context, @"context", nil];
+		[strings addObject:entry];
+	}
+	else if ([object isKindOfClass:[NSArray class]])
+	{
+		GatherStringAddrsArray(object, strings, context);
+	}
+	else if ([object isKindOfClass:[NSDictionary class]])
+	{
+		GatherStringAddrsDict(object, strings, context);
+	}
+}

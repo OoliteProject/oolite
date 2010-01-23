@@ -919,7 +919,7 @@
 		{
 			"cobra3_redux.png" = { diffuse_map = "cobra3_redux1.png"; };
 		};
-		roles = "hunter pirate trader hermit-ship sunskim-trader";
+		roles = "hunter pirate trader hermit-ship sunskim-trader cobra3-alternate";
 		thrust = 32;
 		weapon_energy = 15;
 	};

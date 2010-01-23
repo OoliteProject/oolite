@@ -214,7 +214,6 @@ typedef enum
 @protected
 	
 	Random_Seed				found_system_seed;
-	NSString				*ship_desc;
 	int						ship_trade_in_factor;
 	
 	NSDictionary			*worldScripts;
@@ -539,8 +538,6 @@ typedef enum
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;
 - (Vector) velocityVector;
-
-- (NSString *) ship_desc;
 
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;

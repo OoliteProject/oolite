@@ -84,6 +84,7 @@ static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooMan
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
 
 - (id)initWithName:(NSString *)name
+		  cacheKey:(NSString *)cacheKey
 materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
@@ -92,6 +93,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
 							shadersDictionary:(NSDictionary *)shadersDict
+									 cacheKey:(NSString *)cacheKey
 								 shaderMacros:(NSDictionary *)macros
 						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target;
 
@@ -184,6 +186,7 @@ static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
 @implementation OOMesh
 
 + (id)meshWithName:(NSString *)name
+		  cacheKey:(NSString *)cacheKey
 materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
@@ -191,6 +194,7 @@ materialDictionary:(NSDictionary *)materialDict
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 {
 	return [[[self alloc] initWithName:name
+							  cacheKey:cacheKey
 					materialDictionary:materialDict
 					 shadersDictionary:shadersDict
 								smooth:smooth
@@ -596,6 +600,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 @implementation OOMesh (Private)
 
 - (id)initWithName:(NSString *)name
+		  cacheKey:(NSString *)cacheKey
 materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth
@@ -612,7 +617,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		[self calculateBoundingVolumes];
 		baseFile = [name copy];
-		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros shaderBindingTarget:target];
+		[self setUpMaterialsWithMaterialsDictionary:materialDict
+								  shadersDictionary:shadersDict
+										   cacheKey:cacheKey
+									   shaderMacros:macros
+								shaderBindingTarget:target];
 		[[OOGraphicsResetManager sharedManager] registerClient:self];
 	}
 	else
@@ -628,6 +637,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
 							shadersDictionary:(NSDictionary *)shadersDict
+									 cacheKey:(NSString *)cacheKey
 								 shaderMacros:(NSDictionary *)macros
 						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
@@ -641,7 +651,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"])
 			{
 				material = [OOMaterial materialWithName:materialKeys[i]
-										  forModelNamed:baseFile
+											   cacheKey:cacheKey
 									 materialDictionary:materialDict
 									  shadersDictionary:shadersDict
 												 macros:macros

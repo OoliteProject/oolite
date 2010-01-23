@@ -205,6 +205,11 @@ void OOPrintLogHeader(void)
 #define CPUFAMILY_ARM_9			0xe73283ae
 #define CPUFAMILY_ARM_11		0x8ff620d8
 #endif
+#ifndef CPUFAMILY_ARM_XSCALE
+// From 10.6 SDK
+#define CPUFAMILY_ARM_XSCALE 0x53b005f5
+#define CPUFAMILY_ARM_13     0x0cc90e64
+#endif
 
 
 static NSString *GetSysCtlString(const char *name);
@@ -236,10 +241,10 @@ static NSString *GetCPUDescription(void)
 	sysCPUCount = GetSysCtlInt("hw.logicalcpu");
 	
 	/*	Note: CPU_TYPE_STRING tells us the build architecture. This gets the
-	 physical CPU type. They may differ, for instance, when running under
-	 Rosetta. The code is written for flexibility, although ruling out
-	 x86 code running on PPC would be entirely reasonable.
-	 */
+		physical CPU type. They may differ, for instance, when running under
+		Rosetta. The code is written for flexibility, although ruling out
+		x86 code running on PPC would be entirely reasonable.
+	*/
 	switch (sysCPUType)
 	{
 		case CPU_TYPE_POWERPC:
@@ -318,6 +323,14 @@ static NSString *GetCPUDescription(void)
 						
 					case CPUFAMILY_ARM_11:
 						subTypeStr = @"11";	// No space
+						break;
+						
+					case CPUFAMILY_ARM_XSCALE:
+						subTypeStr = @" XScale";
+						break;
+						
+					case CPUFAMILY_ARM_13:
+						subTypeStr = @"13";	// No such thing?
 						break;
 					
 					default:

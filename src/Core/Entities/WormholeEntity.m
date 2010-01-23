@@ -3,7 +3,7 @@
 WormholeEntity.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "PlayerEntity.h"
+#import "ShipEntityLoadRestore.h"
 
 #import "Universe.h"
 #import "AI.h"
@@ -95,62 +96,39 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		// saving/restoring wormholes from dictionaries should know this!
 		expiry_time = [dict oo_doubleForKey:@"expiry_time"];
 		arrival_time = [dict oo_doubleForKey:@"arrival_time"];
-		NSDictionary * posDict = [dict objectForKey:@"position"];
-		position.x = [posDict oo_floatForKey:@"x"];
-		position.y = [posDict oo_floatForKey:@"y"];
-		position.z = [posDict oo_floatForKey:@"z"];
+		position = [dict oo_vectorForKey:@"position"];
 
 		// Setup shipsInTransit
 		NSArray * shipDictsArray = [dict oo_arrayForKey:@"ships"];
-		NSEnumerator * shipDicts = [shipDictsArray objectEnumerator];
-		NSDictionary * currShipDict;
+		NSEnumerator *shipDicts = [shipDictsArray objectEnumerator];
+ 		NSDictionary *currShipDict = nil;
 		[shipsInTransit removeAllObjects];
+		NSMutableDictionary *restoreContext = [NSMutableDictionary dictionary];
+		
 		while ((currShipDict = [shipDicts nextObject]) != nil)
 		{
-			double time = [currShipDict oo_doubleForKey:@"time_delta"];
-			NSDictionary * myShipDict = [currShipDict objectForKey:@"ship"];
-			ShipEntity * ship = [ShipEntity alloc];
-			ship = [ship initWithDictionary:myShipDict];
-			// MKW 20090815 - Check to make sure the ship loaded ok - if not, let's try to load
-			//                a compatible alternative.
-			if( !ship )
+			NSDictionary *shipInfo = [currShipDict oo_dictionaryForKey:@"ship_info"];
+			if (shipInfo != nil)
 			{
-				OOLog(@"wormhole.load.warning", @"Ship '%@' failed to initialize - missing OXP?  Attempting to replace with random ship using roles '%@'.",
-						[myShipDict oo_stringForKey:@"name"], [myShipDict oo_stringForKey:@"roles"]);
-				OORoleSet * roleSet = [OORoleSet roleSetWithString:[myShipDict oo_stringForKey:@"roles"]];
-				NSString * shipRole = [roleSet anyRole];
-				NSString * shipKey = [[OOShipRegistry sharedRegistry] randomShipKeyForRole:shipRole];
-				if( shipKey )
+#if 1
+				ShipEntity *ship = [ShipEntity shipRestoredFromDictionary:shipInfo
+															  useFallback:YES
+																  context:restoreContext];
+#else
+				ShipEntity *ship = [restoreContext objectForKey:@"no-such-object"];
+#endif
+				if (ship != nil)
 				{
-					ship = [ShipEntity alloc];
-					myShipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-					ship = [ship initWithDictionary:myShipDict];
-				}
-				if( ship )
-				{
-					OOLog(@"wormhole.load.warning", @"Loaded alternative ship '%@' with role '%@'.", 
-							[ship name], shipRole);
+					[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
+											   ship, @"ship",
+											   [currShipDict objectForKey:@"time_delta"], @"time",
+											   nil]];
 				}
 				else
 				{
-					OOLog(@"wormhole.load.warning", @"Failed to load alternative ship - skipping Wormhole ship.");
+					OOLog(@"wormhole.load.warning", @"Wormhole ship \"%@\" failed to initialize - missing OXP or old-style saved wormhole data.", [shipInfo oo_stringForKey:@"ship_key"]);
 				}
 			}
-
-			if( ship )
-			{
-				[shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-					ship, @"ship",
-					[NSNumber numberWithDouble:time], @"time",
-					nil]];
-				[ship release];
-			}
-			/*
-			   [shipsInTransit addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-			   [NSNumber numberWithDouble:[currShipDict oo_doubleForKey:@"time_delta"]], @"time",
-			   [[ShipEntity alloc] initWithDictionary:[currShipDict objectForKey:@"ship"]], @"ship",
-			   nil]];
-			   */
 		}
 		[pool release];
 	}
@@ -534,28 +512,19 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	// modified its time to shipClock time
 	[myDict oo_setFloat:(expiry_time) forKey:@"expiry_time"];
 	[myDict oo_setFloat:(arrival_time) forKey:@"arrival_time"];
-	[myDict setObject:[NSDictionary dictionaryWithObjectsAndKeys:
-		[NSNumber numberWithFloat:position.x], @"x", 
-		[NSNumber numberWithFloat:position.y], @"y",
-		[NSNumber numberWithFloat:position.z], @"z",
-		nil] forKey:@"position"];
-
+	[myDict oo_setVector:position forKey:@"position"];
+	
 	NSMutableArray * shipArray = [NSMutableArray arrayWithCapacity:[shipsInTransit count]];
 	NSEnumerator * ships = [shipsInTransit objectEnumerator];
 	NSDictionary * currShipDict = nil;
+	NSMutableDictionary *context = [NSMutableDictionary dictionary];
 	while ((currShipDict = [ships nextObject]) != nil)
 	{
-		/*
-		NSMutableDictionary * myShipDict = [NSMutableDictionary dictionary];
-		[myShipDict oo_setFloat:([currShipDict oo_doubleForKey:@"time"]) forKey:@"time_delta"];
-		ShipEntity * currShip = (ShipEntity*)[currShipDict objectForKey:@"ship"];
-		[myShipDict setObject:[currShip shipInfoDictionary] forKey:@"ship"];
-		[shipArray addObject:myShipDict];
-		*/
+		id ship = [currShipDict objectForKey:@"ship"];
 		[shipArray addObject:[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithDouble:[currShipDict oo_doubleForKey:@"time"]], @"time_delta",
-			[[currShipDict objectForKey:@"ship"] shipInfoDictionary], @"ship",
-			nil]];
+							  [NSNumber numberWithDouble:[currShipDict oo_doubleForKey:@"time"]], @"time_delta",
+							  [ship savedShipDictionaryWithContext:context], @"ship_info",
+							  nil]];
 	}
 	[myDict setObject:shipArray forKey:@"ships"];
 

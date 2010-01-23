@@ -5,7 +5,7 @@ Universe.h
 Manages a lot of stuff that isn't managed somewhere else.
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -361,6 +361,8 @@ enum
 
 - (ShipEntity *) newShipWithRole:(NSString *)role;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey;	// Does not apply auto_ai or respect conditions
+
+- (Class) shipClassForShipDictionary:(NSDictionary *)dict;
 
 - (NSString *)defaultAIForRole:(NSString *)role;		// autoAImap.plist lookup
 

@@ -35,6 +35,8 @@
 		1A00C7BB10667D3100A8737D /* OOECMBlastEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C7B910667D3100A8737D /* OOECMBlastEntity.m */; };
 		1A00C7DF1066814C00A8737D /* OOAsyncWorkManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A00C7DD1066814C00A8737D /* OOAsyncWorkManager.h */; };
 		1A00C7E01066814C00A8737D /* OOAsyncWorkManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A00C7DE1066814C00A8737D /* OOAsyncWorkManager.m */; };
+		1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */; };
+		1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */; };
 		1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */; };
 		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
@@ -1118,6 +1120,8 @@
 		1A00C7B910667D3100A8737D /* OOECMBlastEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOECMBlastEntity.m; sourceTree = "<group>"; };
 		1A00C7DD1066814C00A8737D /* OOAsyncWorkManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncWorkManager.h; sourceTree = "<group>"; };
 		1A00C7DE1066814C00A8737D /* OOAsyncWorkManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncWorkManager.m; sourceTree = "<group>"; };
+		1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityLoadRestore.h; sourceTree = "<group>"; };
+		1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityLoadRestore.m; sourceTree = "<group>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
@@ -2682,6 +2686,8 @@
 				1A26D0890BCF9CF70073F257 /* ShipEntityAI.m */,
 				1A7BA80B0D84231A003C6CA3 /* ShipEntityScriptMethods.h */,
 				1A7BA80C0D84231A003C6CA3 /* ShipEntityScriptMethods.m */,
+				1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */,
+				1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */,
 				1A26D0A30BCF9CF70073F257 /* StationEntity.h */,
 				1A26D0A20BCF9CF70073F257 /* StationEntity.m */,
 				1A26D1090BCFA8D40073F257 /* PlayerEntity */,
@@ -3170,6 +3176,7 @@
 				1AA7FE2D10C2F2070058FBED /* OOTextureGenerator.h in Headers */,
 				1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */,
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
+				1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3541,6 +3548,7 @@
 				1AA7FDDD10C2DC800058FBED /* OOSunEntity.m in Sources */,
 				1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */,
 				1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */,
+				1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

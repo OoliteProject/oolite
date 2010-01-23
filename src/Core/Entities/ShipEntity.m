@@ -4,7 +4,7 @@ ShipEntity.m
 
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -165,12 +165,12 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		no ships are ever used which are not -setUpShipFromDictionary: (which
 		is as it should be), so these different defaults were meaningless.
 	*/
-	return [self initWithDictionary:nil];
+	return [self initWithKey:@"" definition:nil];
 }
 
 
 // Designated initializer
-- (id) initWithDictionary:(NSDictionary *) dict
+- (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
 {
 	if (dict == nil)
 	{
@@ -180,6 +180,9 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	}
 	
 	self = [super init];
+	if (self == nil)  return nil;
+	
+	_shipKey = [key retain];
 	
 	isShip = YES;
 	entity_personality = Ranrot() & ENTITY_PERSONALITY_MAX;
@@ -214,15 +217,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	// replace nil with empty dictionary. -- Ahruman 2008-04-28
 	if (shipDict == nil)  shipDict = [NSDictionary dictionary];
 	
-	// All like_ship references should have been resolved in -[Universe getDictionaryForShip:recursionLimit:]
-	if ([shipDict objectForKey:@"like_ship"] != nil)
-	{
-		OOLogERR(@"ship.setUp.like_ship", @"like_ship found inside ship dictionary in -[ShipEntity setUpFromDictionary:], when it should have been resolved already. %@", @"This is an internal error, please report it.");
-		return NO;
-	}
-	
 	shipinfoDictionary = [shipDict copy];
-	shipDict = shipinfoDictionary;	// TEMP: ensure no mutation
+	shipDict = shipinfoDictionary;	// Ensure no mutation.
 	
 	// set these flags explicitly.
 	haveExecutedSpawnAction = NO;
@@ -306,6 +302,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	if (modelName != nil)
 	{
 		OOMesh *mesh = [OOMesh meshWithName:modelName
+								   cacheKey:_shipKey
 						 materialDictionary:[shipDict oo_dictionaryForKey:@"materials"]
 						  shadersDictionary:[shipDict oo_dictionaryForKey:@"shaders"]
 									 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
@@ -651,43 +648,33 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	[[self parentEntity] subEntityReallyDied:self];	// Will do nothing if we're not really a subentity
 	[self clearSubEntities];
 	
-	[shipinfoDictionary release];
-	[shipAI release];
-	[cargo release];
-	[name release];
-	[displayName release];
-	[roleSet release];
-	[primaryRole release];
-	[laser_color release];
-	[scanner_display_color1 release];
-	scanner_display_color1 = nil;
-	[scanner_display_color2 release];
-	scanner_display_color2 = nil;
-	if (script != nil) 
-	{
-		[script release];
-		script = nil;
-	}
-	
-	[previousCondition release];
-	
-	[dockingInstructions release];
-	
-	[crew release];
-	
-	[lastRadioMessage autorelease];
-	
-	[octree autorelease];
+	DESTROY(_shipKey);
+	DESTROY(shipinfoDictionary);
+	DESTROY(shipAI);
+	DESTROY(cargo);
+	DESTROY(name);
+	DESTROY(displayName);
+	DESTROY(roleSet);
+	DESTROY(primaryRole);
+	DESTROY(laser_color);
+	DESTROY(scanner_display_color1);
+	DESTROY(scanner_display_color2);
+	DESTROY(script);
+	DESTROY(previousCondition);
+	DESTROY(dockingInstructions);
+	DESTROY(crew);
+	DESTROY(lastRadioMessage);
+	DESTROY(octree);
 	
 	[self setSubEntityTakingDamage:nil];
 	[self removeAllEquipment];
 	
 	[_group removeShip:self];
-	[_group release];
+	DESTROY(_group);
 	[_escortGroup removeShip:self];
-	[_escortGroup release];
+	DESTROY(_escortGroup);
 	
-	[_lastAegisLock release];
+	DESTROY(_lastAegisLock);
 	
 	[super dealloc];
 }
@@ -1200,6 +1187,19 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		[escorter release];
 		_pendingEscortCount--;
 	}
+}
+
+
+- (NSString *)shipDataKey
+{
+	return _shipKey;
+}
+
+
+- (void)setShipDataKey:(NSString *)key
+{
+	DESTROY(_shipKey);
+	_shipKey = [key copy];
 }
 
 
@@ -2253,7 +2253,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
 	// special cases
-	// FIXME: Is there a good reason no to use [eqType isMissileOrMine]? -- Ahruman 2010-01-10
+	// FIXME: Is there a good reason not to use [eqType isMissileOrMine]? -- Ahruman 2010-01-10
 	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
 	{
 		if (missiles >= max_missiles) return NO;
@@ -9262,6 +9262,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	[super dumpSelfState];
 	
+	OOLog(@"dumpState.shipEntity", @"Type: %@", [self shipDataKey]);
 	OOLog(@"dumpState.shipEntity", @"Name: %@", name);
 	OOLog(@"dumpState.shipEntity", @"Display Name: %@", displayName);
 	OOLog(@"dumpState.shipEntity", @"Roles: %@", [self roleSet]);

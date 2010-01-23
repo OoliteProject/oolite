@@ -2582,7 +2582,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if ([i_info count] != 9)	// must be player_x_y_z_W_X_Y_Z_align
 			return NO;				//		   0..... 1 2 3 4 5 6 7 8....
 
-		ShipEntity* doppelganger = [UNIVERSE newShipWithName: ship_desc];   // retain count = 1
+		ShipEntity* doppelganger = [UNIVERSE newShipWithName:[self shipDataKey]];   // retain count = 1
 		if (!doppelganger)
 			return NO;
 		

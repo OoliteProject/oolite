@@ -169,7 +169,8 @@ OOLITE_ENTITY_FILES = \
 	OOPlanetEntity.m \
 	OOPlasmaShotEntity.m \
 	OOPlasmaBurstEntity.m \
-	OOFlashEffectEntity.m
+	OOFlashEffectEntity.m \
+	ShipEntityLoadRestore.m
 
 OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OODrawable.m \

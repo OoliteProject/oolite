@@ -3,7 +3,7 @@
  PlayerEntityLoadSave.m
  
  Oolite
- Copyright (C) 2004-2008 Giles C Williams and contributors
+ Copyright (C) 2004-2010 Giles C Williams and contributors
  
  This program is free software; you can redistribute it and/or
  modify it under the terms of the GNU General Public License
@@ -934,13 +934,13 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipDesc];
 	if(shipDict != nil)
 	{
-		[self showShipyardModel:shipDict withPersonality:personality];
+		[self showShipyardModel:shipDesc shipData:shipDict personality:personality];
 		shipName = [shipDict oo_stringForKey:@"display_name"];
 		if (shipName == nil) shipName = [shipDict oo_stringForKey:KEY_NAME];
 	}
 	else
 	{
-		[self showShipyardModel:[[OOShipRegistry sharedRegistry] shipInfoForKey:@"oolite-unknown-ship"] withPersonality:personality];
+		[self showShipyardModel:@"oolite-unknown-ship" shipData:nil personality:personality];
 		shipName = [cdr oo_stringForKey:@"ship_name" defaultValue:@"unknown"];
 		shipName = [shipName stringByAppendingString:@" - OXP not installed"];
 	}

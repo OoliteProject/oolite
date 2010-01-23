@@ -3032,25 +3032,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	ShipEntity		*ship = nil;
 	
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
-	
 	if (shipDict == nil)  return nil;
 	
-	BOOL		isStation = NO;
-	BOOL		isCarrier = NO;
-	NSString	*shipRoles = [shipDict oo_stringForKey:@"roles"];
-	if (shipRoles != nil)  isStation = ([shipRoles rangeOfString:@"station"].location != NSNotFound)||([shipRoles rangeOfString:@"carrier"].location != NSNotFound);
-	
-	isCarrier = [shipDict oo_boolForKey:@"is_carrier"];
-	if (!isCarrier)
-		isCarrier = [shipDict oo_boolForKey:@"isCarrier"];
-	isStation |= isCarrier;
-	
-	volatile Class shipClass;
-	if (!isStation)  shipClass = [ShipEntity class];
-	else  shipClass = [StationEntity class];
+	volatile Class shipClass = [self shipClassForShipDictionary:shipDict];
 	
 	NS_DURING
-		ship =[[shipClass alloc] initWithDictionary:shipDict];
+		ship =[[shipClass alloc] initWithKey:shipKey definition:shipDict];
 	NS_HANDLER
 		[ship release];
 		ship = nil;
@@ -3071,6 +3058,27 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
+- (Class) shipClassForShipDictionary:(NSDictionary *)dict
+{
+	if (dict == nil)  return Nil;
+	
+	BOOL		isStation = NO;
+	NSString	*shipRoles = [dict oo_stringForKey:@"roles"];
+	
+	if (shipRoles != nil)
+	{
+		isStation = [shipRoles rangeOfString:@"station"].location != NSNotFound ||
+		[shipRoles rangeOfString:@"carrier"].location != NSNotFound;
+	}
+	
+	// Note priority here: is_carrier overrides isCarrier which overrides roles.
+	isStation = [dict oo_boolForKey:@"isCarrier" defaultValue:isStation];
+	isStation = [dict oo_boolForKey:@"is_carrier" defaultValue:isStation];
+	
+	return isStation ? [StationEntity class] : [ShipEntity class];
+}
+
+
 - (NSString *)defaultAIForRole:(NSString *)role
 {
 	return [autoAIMap oo_stringForKey:role];
@@ -3079,15 +3087,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (OOCargoQuantity) maxCargoForShip:(NSString *) desc
 {
-	NSDictionary			*dict = nil;
-	
-	dict = [[OOShipRegistry sharedRegistry] shipInfoForKey:desc];
-	
-	if (dict)
-	{
-		return [dict oo_unsignedIntForKey:@"max_cargo" defaultValue:0];
-	}
-	else  return 0;
+	return [[[OOShipRegistry sharedRegistry] shipInfoForKey:desc] oo_unsignedIntForKey:@"max_cargo" defaultValue:0];
 }
 
 /*
@@ -5509,7 +5509,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 								if (shipDict != nil)
 								{
 									// Failure means we don't change demo_stage, so we'll automatically try again.
-									demo_ship = [[ShipEntity alloc] initWithDictionary:shipDict];
+									demo_ship = [[ShipEntity alloc] initWithKey:shipDesc definition:shipDict];
 								}
 								else
 								{
@@ -8644,7 +8644,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (void) initPlayerSettings
 {
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player ship_desc]]];	// ship desc is the standard cobra at this point
+	[player setUpShipFromDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[player shipDataKey]]];	// the standard cobra at this point
 	
 	if (activeWormholes) [activeWormholes autorelease];
 	activeWormholes = [[NSMutableArray arrayWithCapacity:16] retain];

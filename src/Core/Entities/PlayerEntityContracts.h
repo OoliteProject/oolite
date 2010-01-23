@@ -5,7 +5,7 @@ PlayerEntityContracts.h
 Methods relating to passenger and cargo contract handling.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -96,7 +96,7 @@ MA 02110-1301, USA.
 
 - (void) showTradeInInformationFooter;
 
-- (void) showShipyardModel:(NSDictionary *)shipDict withPersonality:(uint16_t)personality;
+- (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipDict personality:(uint16_t)personality;
 
 - (BOOL) buySelectedShip;
 

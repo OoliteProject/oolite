@@ -3,7 +3,7 @@
 PlayerEntityContracts.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -1429,7 +1429,9 @@ static NSMutableDictionary* currentShipyard = nil;
 		}
 		
 		// now display the ship
-		[self showShipyardModel:shipDict withPersonality:[info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
+		[self showShipyardModel:[info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY]
+					   shipData:shipDict
+					personality:[info oo_unsignedShortForKey:SHIPYARD_KEY_PERSONALITY]];
 	}
 	else
 	{
@@ -1451,16 +1453,17 @@ static NSMutableDictionary* currentShipyard = nil;
 }
 
 
-- (void) showShipyardModel:(NSDictionary *)shipDict withPersonality:(uint16_t)personality
+- (void) showShipyardModel:(NSString *)shipKey shipData:(NSDictionary *)shipData personality:(uint16_t)personality
 {
 	ShipEntity		*ship;
 		
-	if (!dockedStation)
-		return;
+	if (shipKey == nil || dockedStation == nil)  return;
+	if (shipData == nil)  shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+	if (shipData == nil)  return;
 	
 	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
 	
-	ship = [[ShipEntity alloc] initWithDictionary:shipDict];
+	ship = [[ShipEntity alloc] initWithKey:shipKey definition:shipData];
 	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
 	[ship wasAddedToUniverse];
 	
@@ -1565,13 +1568,8 @@ static NSMutableDictionary* currentShipyard = nil;
 	// pay over the mazoolah
 	credits -= 10 * price - trade_in;
 	
-	// change ship_desc
-	if (ship_desc)
-	{
-		[self clearSubEntities];
-		[ship_desc release];
-	}
-	ship_desc = [[ship_info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY] copy];
+	[self clearSubEntities];
+	[self setShipDataKey:[ship_info oo_stringForKey:SHIPYARD_KEY_SHIPDATA_KEY]];
 	NSDictionary *shipDict = [ship_info oo_dictionaryForKey:SHIPYARD_KEY_SHIP];
 	
 	// get a full tank for free
@@ -1587,7 +1585,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	forward_weapon_type = EquipmentStringToWeaponTypeSloppy([shipDict oo_stringForKey:@"forward_weapon_type"]);
 	
 	// get basic max_cargo
-	max_cargo = [UNIVERSE maxCargoForShip:ship_desc];
+	max_cargo = [UNIVERSE maxCargoForShip:[self shipDataKey]];
 	
 	// ensure all missiles are tidied up and start at pylon 0
 	[self tidyMissilePylons];
@@ -1639,7 +1637,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	}
 	
 	// add bought ship to shipyard_record
-	[shipyard_record setObject:ship_desc forKey:[ship_info objectForKey:SHIPYARD_KEY_ID]];
+	[shipyard_record setObject:[self shipDataKey] forKey:[ship_info objectForKey:SHIPYARD_KEY_ID]];
 	
 	// remove the ship from the localShipyard
 	[[dockedStation localShipyard] removeObjectAtIndex:sel_row - GUI_ROW_SHIPYARD_START];

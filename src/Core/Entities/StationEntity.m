@@ -699,15 +699,17 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 //////////////////////////////////////////////// from superclass
 
-- (id) initWithDictionary:(NSDictionary *) dict
+- (id)initWithKey:(NSString *)key definition:(NSDictionary *)dict
 {
-	isStation = YES;
-	
-	shipsOnApproach = [[NSMutableDictionary alloc] init];
-	shipsOnHold = [[NSMutableDictionary alloc] init];
-	launchQueue = [[NSMutableArray alloc] init];
-	
-	self = [super initWithDictionary:dict];
+	self = [super initWithKey:key definition:dict];
+	if (self != nil)
+	{
+		isStation = YES;
+		
+		shipsOnApproach = [[NSMutableDictionary alloc] init];
+		shipsOnHold = [[NSMutableDictionary alloc] init];
+		launchQueue = [[NSMutableArray alloc] init];
+	}
 	
 	return self;
 }
@@ -715,15 +717,15 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (void) dealloc
 {
-	[shipsOnApproach release];
-	[shipsOnHold release];
-	[launchQueue release];
+	DESTROY(shipsOnApproach);
+	DESTROY(shipsOnHold);
+	DESTROY(launchQueue);
 	[self clearIdLocks:nil];
 	
-	[localMarket release];
-	[localPassengers release];
-	[localContracts release];
-	[localShipyard release];
+	DESTROY(localMarket);
+	DESTROY(localPassengers);
+	DESTROY(localContracts);
+	DESTROY(localShipyard);
 	
 	[super dealloc];
 }
@@ -735,8 +737,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	{
 		if (ship == nil || ship == [id_lock[i] weakRefUnderlyingObject])
 		{
-			[id_lock[i] release];
-			id_lock[i] = nil;
+			DESTROY(id_lock[i]);
 		}
 	}
 }

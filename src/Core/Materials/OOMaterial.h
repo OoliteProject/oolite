@@ -12,7 +12,7 @@ also be replaced with an OOMaterial subclass.
 
  
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -95,11 +95,11 @@ SOFTWARE.
 
 /*	Get a material based on configuration. The result will be an
 	OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-	only if shaders are available). modelName is used for caching of synthesized
+	only if shaders are available). cacheKey is used for caching of synthesized
 	shader materials; nil may be passed for no caching.
 */
 + (id)materialWithName:(NSString *)name
-		 forModelNamed:(NSString *)modelName
+			  cacheKey:(NSString *)cacheKey
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
@@ -110,7 +110,7 @@ SOFTWARE.
 	+materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
 */
 + (id)materialWithName:(NSString *)name
-		 forModelNamed:(NSString *)modelName
+			  cacheKey:(NSString *)cacheKey
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros

@@ -119,6 +119,7 @@ typedef struct
 }
 
 + (id)meshWithName:(NSString *)name
+		  cacheKey:(NSString *)cacheKey
 materialDictionary:(NSDictionary *)materialDict
  shadersDictionary:(NSDictionary *)shadersDict
 			smooth:(BOOL)smooth

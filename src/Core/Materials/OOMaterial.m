@@ -4,7 +4,7 @@ OOMaterial.m
 
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -162,7 +162,6 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 @implementation OOMaterial (OOConvenienceCreators)
 
 + (NSDictionary *)synthesizeMaterialDictionaryWithName:(NSString *)name
-										 forModelNamed:(NSString *)modelName
 										 configuration:(NSDictionary *)configuration
 												macros:(NSDictionary *)macros
 {
@@ -319,13 +318,12 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 
 
 + (OOMaterial *)defaultShaderMaterialWithName:(NSString *)name
-								forModelNamed:(NSString *)modelName
+									 cacheKey:(NSString *)cacheKey
 								configuration:(NSDictionary *)configuration
 									   macros:(NSDictionary *)macros
 								bindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	OOCacheManager			*cache = nil;
-	NSString				*cacheKey = nil;
 	NSDictionary			*synthesizedConfig = nil;
 	OOMaterial				*result = nil;
 	
@@ -336,20 +334,19 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		return nil;
 	}
 	
-	if (modelName != nil)
+	if (cacheKey != nil)
 	{
 		cache = [OOCacheManager sharedCache];
-		cacheKey = [NSString stringWithFormat:@"%@/%@", modelName, name];
+		cacheKey = [NSString stringWithFormat:@"%@/%@", cacheKey, name];
 		synthesizedConfig = [cache objectForKey:cacheKey inCache:@"synthesized shader materials"];
 	}
 	
 	if (synthesizedConfig == nil)
 	{
 		synthesizedConfig = [self synthesizeMaterialDictionaryWithName:name
-														 forModelNamed:modelName
 														 configuration:configuration
 																macros:macros];
-		if (synthesizedConfig != nil && modelName != nil)
+		if (synthesizedConfig != nil && cacheKey != nil)
 		{
 			[cache setObject:synthesizedConfig
 					  forKey:cacheKey
@@ -360,7 +357,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	if (synthesizedConfig != nil)
 	{
 		result =  [self materialWithName:name
-						   forModelNamed:modelName
+								cacheKey:cacheKey
 						   configuration:synthesizedConfig
 								  macros:[synthesizedConfig objectForKey:@"_oo_synthesized_material_macros"]
 						   bindingTarget:target
@@ -372,7 +369,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 
 
 + (id)materialWithName:(NSString *)name
-		 forModelNamed:(NSString *)modelName
+			  cacheKey:(NSString *)cacheKey
 		 configuration:(NSDictionary *)configuration
 				macros:(NSDictionary *)macros
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
@@ -402,7 +399,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 				 ))
 		{
 			result = [self defaultShaderMaterialWithName:name
-										   forModelNamed:modelName
+												cacheKey:cacheKey
 										   configuration:configuration
 												  macros:macros
 										   bindingTarget:(id<OOWeakReferenceSupport>)object];
@@ -431,7 +428,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 
 
 + (id)materialWithName:(NSString *)name
-		 forModelNamed:(NSString *)modelName
+			  cacheKey:(NSString *)cacheKey
 	materialDictionary:(NSDictionary *)materialDict
 	 shadersDictionary:(NSDictionary *)shadersDict
 				macros:(NSDictionary *)macros
@@ -461,7 +458,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	}
 	
 	return [self materialWithName:name
-					forModelNamed:modelName
+						 cacheKey:cacheKey
 					configuration:configuration
 						   macros:macros
 					bindingTarget:object
