@@ -1892,7 +1892,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			break;
 			
 		case 's':
-			scale = [self sun] ? [[self planet] radius]: 100000;
+			scale = [self sun] ? [[self sun] radius]: 100000;
 			break;
 			
 		case 'u':

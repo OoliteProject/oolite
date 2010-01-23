@@ -7703,7 +7703,7 @@ BOOL class_masslocks(int some_class)
 	[UNIVERSE addEntity:jetto];	// STATUS_IN_FLIGHT, AI state GLOBAL
 
 	jettoAI = [jetto getAI];
-	if ([jettoAI hasSuspendedStateMachines]) // check if this was previos scooped cargo.
+	if ([jettoAI hasSuspendedStateMachines]) // check if this was previous scooped cargo.
 	{
 		[jetto setThrust:[jetto maxThrust]]; // restore old thrust.
 		[jetto setOwner:jetto];
