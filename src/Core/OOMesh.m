@@ -69,29 +69,10 @@ enum
 
 typedef enum
 {
-	k_normalModePerFace,
-	k_normalModeSmooth,
-	k_normalModeExplicit
-} OOMesh_normalMode;
-
-
-static BOOL NormalsArePerVertex(OOMesh_normalMode mode)
-{
-	switch (mode)
-	{
-		case k_normalModePerFace:
-			return NO;
-			
-		case k_normalModeSmooth:
-		case k_normalModeExplicit:
-			return YES;
-	}
-	
-#ifndef NDEBUG
-	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
-#endif
-	return NO;
-}
+	kNormalModePerFace,
+	kNormalModeSmooth,
+	kNormalModeExplicit
+} OOMeshNormalMode;
 
 
 static NSString * const kOOLogMeshDataNotFound				= @"mesh.load.failed.fileNotFound";
@@ -155,6 +136,49 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 + (void)setMeshData:(NSDictionary *)inData forName:(NSString *)inShipName;
 
 @end
+
+
+static BOOL IsLegacyNormalMode(OOMeshNormalMode mode)
+{
+	/*	True for modes that predate the "normal mode" concept, i.e. per-face
+		and smooth. These modes require automatic winding correction.
+	*/
+	switch (mode)
+	{
+		case kNormalModePerFace:
+		case kNormalModeSmooth:
+			return YES;
+			
+		case kNormalModeExplicit:
+			return NO;
+	}
+	
+#ifndef NDEBUG
+	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
+#endif
+	return NO;	
+}
+
+
+static BOOL IsPerVertexNormalMode(OOMeshNormalMode mode)
+{
+	/*	True for modes that have per-vertex normals, i.e. not per-face mode.
+	*/
+	switch (mode)
+	{
+		case kNormalModePerFace:
+			return NO;
+			
+		case kNormalModeSmooth:
+		case kNormalModeExplicit:
+			return YES;
+	}
+	
+#ifndef NDEBUG
+	[NSException raise:NSInvalidArgumentException format:@"Unexpected normal mode in %s", __FUNCTION__];
+#endif
+	return NO;
+}
 
 
 @implementation OOMesh
@@ -222,13 +246,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 }
 
 
-static NSString *_normalModeDescription(OOMesh_normalMode mode)
+static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	switch (mode)
 	{
-		case k_normalModePerFace:  return @"per-face";
-		case k_normalModeSmooth:  return @"smooth";
-		case k_normalModeExplicit:  return @"explicit";
+		case kNormalModePerFace:  return @"per-face";
+		case kNormalModeSmooth:  return @"smooth";
+		case kNormalModeExplicit:  return @"explicit";
 	}
 	
 	return @"unknown";
@@ -237,7 +261,7 @@ static NSString *_normalModeDescription(OOMesh_normalMode mode)
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"\"%@\", %u vertices, %u faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], _normalModeDescription(_normalMode)];
+	return [NSString stringWithFormat:@"\"%@\", %u vertices, %u faces, radius: %g m normals: %@", [self modelName], [self vertexCount], [self faceCount], [self collisionRadius], NormalModeDescription(_normalMode)];
 }
 
 
@@ -551,7 +575,7 @@ static NSString *_normalModeDescription(OOMesh_normalMode mode)
 	
 	if (baseFile != nil)  OOLog(@"dumpState.mesh", @"Model file: %@", baseFile);
 	OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
-	OOLog(@"dumpState.mesh", @"Normals: %@", _normalModeDescription(_normalMode));
+	OOLog(@"dumpState.mesh", @"Normals: %@", NormalModeDescription(_normalMode));
 }
 #endif
 
@@ -582,11 +606,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (self == nil)  return nil;
 	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	_normalMode = smooth ? k_normalModeSmooth : k_normalModePerFace;
+	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
 	
 	if ([self loadData:name])
 	{
-		[self checkNormalsAndAdjustWinding];
 		[self calculateBoundingVolumes];
 		baseFile = [name copy];
 		[self setUpMaterialsWithMaterialsDictionary:materialDict shadersDictionary:shadersDict shaderMacros:macros shaderBindingTarget:target];
@@ -623,7 +646,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 									  shadersDictionary:shadersDict
 												 macros:macros
 										  bindingTarget:target
-										forSmoothedMesh:NormalsArePerVertex(_normalMode)];
+										forSmoothedMesh:IsPerVertexNormalMode(_normalMode)];
 			}
 			else
 			{
@@ -1148,7 +1171,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		// Get explicit normals.
 		if ([scanner scanString:@"NORMALS" intoString:NULL])
 		{
-			_normalMode = k_normalModeExplicit;
+			_normalMode = kNormalModeExplicit;
 			
 			for (j = 0; j < vertexCount; j++)
 			{
@@ -1172,7 +1195,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			// Get explicit tangents (only together with vertices).
 			if ([scanner scanString:@"TANGENTS" intoString:NULL])
 			{
-				_normalMode = k_normalModeExplicit;
+				_normalMode = kNormalModeExplicit;
 				
 				for (j = 0; j < vertexCount; j++)
 				{
@@ -1195,12 +1218,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			}
 		}
 		
-		[self checkNormalsAndAdjustWinding];
+		if (IsLegacyNormalMode(_normalMode))  [self checkNormalsAndAdjustWinding];
 		if (!explicitTangents)  [self generateFaceTangents];
 		
 		// check for smooth shading and recalculate normals
-		if (_normalMode == k_normalModeSmooth)  [self calculateVertexNormalsAndTangents];
-		else if (NormalsArePerVertex(_normalMode) && !explicitTangents)  [self calculateVertexTangents];
+		if (_normalMode == kNormalModeSmooth)  [self calculateVertexNormalsAndTangents];
+		else if (IsPerVertexNormalMode(_normalMode) && !explicitTangents)  [self calculateVertexTangents];
 		
 		// save the resulting data for possible reuse
 		[OOCacheManager setMeshData:[self modelData] forName:filename];
@@ -1220,7 +1243,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-// FIXME: this isn't working, we're getting smoothed models with inside-out winding. --Ahruman
 - (void) checkNormalsAndAdjustWinding
 {
 	Vector		calculatedNormal;
@@ -1232,7 +1254,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		v1 = _vertices[_faces[i].vertex[1]];
 		v2 = _vertices[_faces[i].vertex[2]];
 		
-		if (_normalMode != k_normalModeExplicit)
+		if (_normalMode != kNormalModeExplicit)
 		{
 			norm = _faces[i].normal;
 		}
@@ -1255,6 +1277,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			norm = vector_flip(calculatedNormal);
 			_faces[i].normal = norm;
 		}
+		
+		/*	FIXME: for 2.0, either require explicit normals for every model
+			or change to: if (dot_product(norm, calculatedNormal) < 0.0f)
+			-- Ahruman 2010-01-23
+		*/
 		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
 		{
 			// normal lies in the WRONG direction!
@@ -1432,7 +1459,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 		is_edge_vertex[vi] = NO;
 		smoothGroup[vi] = -1;
 	}
-	if (_normalMode == k_normalModeSmooth)
+	if (_normalMode == kNormalModeSmooth)
 	{
 		for (fi = 0; fi < faceCount; fi++)
 		{
@@ -1469,7 +1496,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 				for (vi = 0; vi < 3; vi++)
 				{
 					int v = _faces[fi].vertex[vi];
-					if (NormalsArePerVertex(_normalMode))
+					if (IsPerVertexNormalMode(_normalMode))
 					{
 						if (is_edge_vertex[v])
 						{

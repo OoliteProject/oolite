@@ -232,18 +232,14 @@ FAIL:
 
 static void PNGError(png_structp png, png_const_charp message)
 {
-	OOPNGTextureLoader		*loader = nil;
-	
-	loader = png->error_ptr;
+	OOPNGTextureLoader *loader = png_get_io_ptr(png);
 	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred for %@: %s", [loader path], message);
 }
 
 
 static void PNGWarning(png_structp png, png_const_charp message)
 {
-	OOPNGTextureLoader		*loader = nil;
-	
-	loader = png->error_ptr;
+	OOPNGTextureLoader *loader = png_get_io_ptr(png);
 	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred for %@: %s", [loader path], message);
 }
 
