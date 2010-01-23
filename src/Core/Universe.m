@@ -1259,9 +1259,6 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSAutoreleasePool	*pool = nil;
 	NSDictionary		*systeminfo = nil;
 	BOOL				sunGoneNova;
-	OOTechLevelID		techlevel;
-	OOGovernmentID		government;
-	OOEconomyID			economy;
 	unsigned			thargoidChance;
 	Vector				lastPiratePosition = kZeroVector;
 	unsigned			wolfPackCounter = 0;
@@ -1269,9 +1266,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	systeminfo = [self generateSystemData:system_seed];
 	sunGoneNova = [systeminfo oo_boolForKey:@"sun_gone_nova"];
 	
-	techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
-	government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
-	economy = [systeminfo  oo_unsignedCharForKey:KEY_ECONOMY];			// 0 .. 7 (0 richest .. 7 poorest)
+//	OOTechLevelID techlevel = [systeminfo  oo_unsignedCharForKey:KEY_TECHLEVEL];		// 0 .. 13
+	OOGovernmentID government = [systeminfo  oo_unsignedCharForKey:KEY_GOVERNMENT];	// 0 .. 7 (0 anarchic .. 7 most stable)
+	OOEconomyID economy = [systeminfo  oo_unsignedCharForKey:KEY_ECONOMY];			// 0 .. 7 (0 richest .. 7 poorest)
 	
 	thargoidChance = (system_seed.e < 127) ? 10 : 3; // if Human Colonials live here, there's a greater % chance the Thargoids will attack!
 	
@@ -2567,12 +2564,10 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	NSMutableArray			*ships = [NSMutableArray arrayWithCapacity:count];	//return [[(NSArray *)theShips copy] autorelease];
 	ShipEntity				*ship = nil;
 	Entity<OOStellarBody>	*entity = nil;
-	Vector					pos, direction, point0, point1;
+	Vector					pos = kZeroVector, direction = kZeroVector, point0 = kZeroVector, point1 = kZeroVector;
 	double					radius = 0;
 	
-	pos = direction = point0 = point1 = kZeroVector;
-	
-	if (routeFraction != NSNotFound && ([route isEqualTo:@"pw"] || [route isEqualTo:@"sw"] || [route isEqualTo:@"ps"]))
+	if (routeFraction != NSNotFound && ([route isEqualToString:@"pw"] || [route isEqualToString:@"sw"] || [route isEqualToString:@"ps"]))
 	{
 		routeFraction = 1.0f - routeFraction; 
 	}
@@ -8521,6 +8516,13 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	return NO;
 }
 #endif
+
+
+
+- (void *) suppressClangStuff
+{
+	return _preloadingPlanetMaterials;
+}
 
 @end
 

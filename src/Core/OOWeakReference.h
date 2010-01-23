@@ -91,13 +91,14 @@ This code is hereby placed in the public domain.
 */
 
 #import <Foundation/Foundation.h>
+#import "OOFunctionAttributes.h"
 
 @class OOWeakReference;
 
 
 @protocol OOWeakReferenceSupport <NSObject>
 
-- (id)weakRetain;		// Returns a retained OOWeakReference, which should be released when finished with.
+- (id)weakRetain OO_RETURNS_RETAINED;		// Returns a retained OOWeakReference, which should be released when finished with.
 - (void)weakRefDied:(OOWeakReference *)weakRef;
 
 @end

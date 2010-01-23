@@ -431,7 +431,7 @@ MA 02110-1301, USA.
 - (unsigned) equipmentCount;
 - (void) removeEquipmentItem:(NSString *)equipmentKey;
 - (void) removeAllEquipment;
-- (OOEquipmentType *) newMissile;
+- (OOEquipmentType *) selectMissile;
 - (int) removeMissiles;
 
 // Internal, subject to change. Use the methods above instead.

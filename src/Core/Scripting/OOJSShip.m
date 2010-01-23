@@ -1645,8 +1645,8 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 	
 	if (JSShipGetShipEntity(context, this, &thisEnt))	// valid ship.
 	{
-		result = [[thisEnt newMissile] identifier];
-		// if there's a badly defined missile, newMissile may be nil
+		result = [[thisEnt selectMissile] identifier];
+		// if there's a badly defined missile, selectMissile may return nil
 		if (result == nil) result = @"EQ_MISSILE";
 	}
 	

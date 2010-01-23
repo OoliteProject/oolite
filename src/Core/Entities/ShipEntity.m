@@ -474,8 +474,8 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	BOOL missilesProblem = NO;
 	for (i = 0, j = 0; i < missiles; i++)
 	{
-		missile_list[i] = [self newMissile];
-		// could loop forever (if missile_role is badly defined, newMissile might return nil in some cases) . Try 3 times, and if no luck, skip
+		missile_list[i] = [self selectMissile];
+		// could loop forever (if missile_role is badly defined, selectMissile might return nil in some cases) . Try 3 times, and if no luck, skip
 		if (missile_list[i] == nil && j < 3)
 		{
 			j++;
@@ -2396,7 +2396,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) newMissile
+- (OOEquipmentType *) selectMissile
 {
 	ShipEntity			*missile = nil;
 	OOEquipmentType		*missileType = nil;
