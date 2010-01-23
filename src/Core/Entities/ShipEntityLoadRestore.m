@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 #import "OOConstToString.h"
 #import "OOShipGroup.h"
+#import "OOEquipmentType.h"
 
 
 #define KEY_SHIP_KEY				@"ship_key"
@@ -170,10 +171,10 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 	else
 	{
 		// Unknown ship; fall back on role if desired and possible.
-		NSString *primaryRole = [dict oo_stringForKey:KEY_PRIMARY_ROLE];
-		if (!fallback || primaryRole == nil)  return nil;
+		NSString *shipPrimaryRole = [dict oo_stringForKey:KEY_PRIMARY_ROLE];
+		if (!fallback || shipPrimaryRole == nil)  return nil;
 		
-		ship = [[UNIVERSE newShipWithRole:primaryRole] autorelease];
+		ship = [[UNIVERSE newShipWithRole:shipPrimaryRole] autorelease];
 		if (ship == nil)  return nil;
 	}
 	
