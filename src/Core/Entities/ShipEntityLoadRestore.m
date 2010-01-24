@@ -52,15 +52,16 @@ MA 02110-1301, USA.
 // AI is a complete pickled AI state.
 #define KEY_AI						@"AI"
 
-// Escort IDs are numbers synchronised through the context object.
+// Group IDs are numbers synchronised through the context object.
 #define KEY_GROUP_ID				@"group"
+#define KEY_GROUP_NAME				@"group_name"
 #define	KEY_IS_GROUP_LEADER			@"is_group_leader"
 #define	KEY_ESCORT_GROUP_ID			@"escort_group"
-#define	KEY_IS_ESCORT_GROUP_LEADER	@"is_escort_group_leader"
 
 
 static void StripIgnoredKeys(NSMutableDictionary *dict);
-static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context);
+static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context);
+static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *context);
 
 
 @interface ShipEntity (LoadRestoreInternal)
@@ -128,11 +129,15 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 	{
 		[result oo_setUnsignedInteger:GroupIDForGroup(_group, context) forKey:KEY_GROUP_ID];
 		if ([_group leader] == self)  [result oo_setBool:YES forKey:KEY_IS_GROUP_LEADER];
+		NSString *groupName = [_group name];
+		if (groupName != nil)
+		{
+			[result setObject:groupName forKey:KEY_GROUP_NAME];
+		}
 	}
 	if (_escortGroup != nil)
 	{
 		[result oo_setUnsignedInteger:GroupIDForGroup(_escortGroup, context) forKey:KEY_ESCORT_GROUP_ID];
-		if ([_escortGroup leader] == self)  [result oo_setBool:YES forKey:KEY_IS_ESCORT_GROUP_LEADER];
 	}
 	
 	// FIXME: AI.
@@ -162,6 +167,7 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 		if (deletes != nil)  [mergedData removeObjectsForKeys:deletes];
 		[mergedData addEntriesFromDictionary:[dict oo_dictionaryForKey:KEY_SHIPDATA_OVERRIDES]];
 		[mergedData oo_setBool:NO forKey:@"auto_ai"];
+		[mergedData oo_setUnsignedInteger:0 forKey:@"escorts"];
 		
 		Class shipClass = [UNIVERSE shipClassForShipDictionary:mergedData];
 		ship = [[[shipClass alloc] initWithKey:shipKey definition:mergedData] autorelease];
@@ -199,7 +205,25 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 		[ship addEquipmentItem:eqKey];
 	}
 	
-	// FIXME: groups.
+	// Groups.
+	OOUInteger groupID = [dict oo_integerForKey:KEY_GROUP_ID defaultValue:NSNotFound];
+	if (groupID != NSNotFound)
+	{
+		OOShipGroup *group = GroupForGroupID(groupID, context);
+		[ship setGroup:group];	// Handles adding to group
+		if ([dict oo_boolForKey:KEY_IS_GROUP_LEADER])  [group setLeader:self];
+		NSString *groupName = [dict oo_stringForKey:KEY_GROUP_NAME];
+		if (groupName != nil)  [group setName:groupName];
+	}
+	
+	groupID = [dict oo_integerForKey:KEY_ESCORT_GROUP_ID defaultValue:NSNotFound];
+	if (groupID != NSNotFound)
+	{
+		OOShipGroup *group = GroupForGroupID(groupID, context);
+		[group setLeader:self];
+		[group setName:@"escort group"];
+		[ship setEscortGroup:group];
+	}
 	
 	return ship;
 }
@@ -249,7 +273,7 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 static void StripIgnoredKeys(NSMutableDictionary *dict)
 {
 	static NSArray *ignoredKeys = nil;
-	if (ignoredKeys == nil)  ignoredKeys = [NSArray arrayWithObjects:@"ai_type", @"has_ecm", @"has_scoop", @"has_escape_pod", @"has_energy_bomb", @"has_fuel_injection", @"has_cloaking_device", @"has_military_jammer", @"has_military_scanner_filter", @"has_shield_booster", @"has_shield_enhancer", @"escort_role", @"escort-ship", @"conditions", @"missiles", @"auto_ai", nil];
+	if (ignoredKeys == nil)  ignoredKeys = [[NSArray alloc] initWithObjects:@"ai_type", @"has_ecm", @"has_scoop", @"has_escape_pod", @"has_energy_bomb", @"has_fuel_injection", @"has_cloaking_device", @"has_military_jammer", @"has_military_scanner_filter", @"has_shield_booster", @"has_shield_enhancer", @"escorts", @"escort_role", @"escort-ship", @"conditions", @"missiles", @"auto_ai", nil];
 	
 	NSEnumerator *keyEnum = nil;
 	NSString *key = nil;
@@ -260,7 +284,7 @@ static void StripIgnoredKeys(NSMutableDictionary *dict)
 }
 
 
-static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context)
+static OOUInteger GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context)
 {
 	NSMutableDictionary *groupIDs = [context objectForKey:@"groupIDs"];
 	if (groupIDs == nil)
@@ -301,4 +325,26 @@ static unsigned GroupIDForGroup(OOShipGroup *group, NSMutableDictionary *context
 
 	
 	return groupID;
+}
+
+
+static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *context)
+{
+	NSNumber *key = [NSNumber numberWithUnsignedInt:groupID];
+	
+	NSMutableDictionary *groups = [context objectForKey:@"groupsByID"];
+	if (groups == nil)
+	{
+		groups = [NSMutableDictionary dictionary];
+		[context setObject:groups forKey:@"groupsByID"];
+	}
+	
+	OOShipGroup *group = [groups objectForKey:key];
+	if (group == nil)
+	{
+		group = [[[OOShipGroup alloc] init] autorelease];
+		[groups setObject:group forKey:key];
+	}
+	
+	return group;
 }

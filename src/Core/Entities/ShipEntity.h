@@ -520,6 +520,8 @@ MA 02110-1301, USA.
 - (void) setGroup:(OOShipGroup *)group;
 
 - (OOShipGroup *) escortGroup;
+- (void) setEscortGroup:(OOShipGroup *)group;	// Only for use in unconventional set-up situations.
+
 - (OOShipGroup *) stationGroup; // should probably be defined in stationEntity.m
 
 - (BOOL) hasEscorts;

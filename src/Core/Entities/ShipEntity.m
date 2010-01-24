@@ -4060,6 +4060,17 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
+- (void) setEscortGroup:(OOShipGroup *)group
+{
+	if (group != _escortGroup)
+	{
+		[_escortGroup release];
+		_escortGroup = [group retain];
+		[group setLeader:self];	// A ship is always leader of its own escort group.
+	}
+}
+
+
 #ifndef NDEBUG
 - (OOShipGroup *) rawEscortGroup
 {
