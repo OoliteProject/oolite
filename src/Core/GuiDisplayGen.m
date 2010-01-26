@@ -3,7 +3,7 @@
 GuiDisplayGen.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -650,6 +650,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		rowFadeTime[row] = text_fade;
 		if (currentRow < (OOGUIRow)n_rows - 1)
 			currentRow++;
+		if (text_array)
+			[text_array addObject:str];
 	}
 	else
 	{
