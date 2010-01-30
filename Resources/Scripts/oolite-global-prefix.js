@@ -16,7 +16,7 @@ applicable, the debug console.
 
 
 Oolite
-Copyright © 2004-2009 Giles C Williams and contributors
+Copyright © 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -95,7 +95,7 @@ SystemInfo.systemsInRange = function(range)
 	var thisSystem = system.info;
 	return SystemInfo.filteredSystems(this, function(other)
 	{
-		return (other !== thisSystem) && (thisSystem.distanceToSystem(other) <= range);
+		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
 	});
 }
 
