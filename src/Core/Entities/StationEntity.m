@@ -403,8 +403,8 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		Vector portPos = [self getPortPosition];
 		Vector portDir = vector_forward_from_quaternion(port_orientation);		
 		BOOL isOffCentre = (fabs(portPos.x) + fabs(portPos.y) > 0.0f)|(fabs(portDir.x) + fabs(portDir.y) > 0.0f);
-		BOOL isRotatingStation = [shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO];
-		if ((!isRotatingStation)&&(isOffCentre))
+		// BOOL isRotatingStation = [shipinfoDictionary oo_boolForKey:@"rotating" defaultValue:NO];
+		if ((![self isRotatingStation])&&(isOffCentre))
 		{
 			if (![shipsOnHold objectForKey:shipID])
 				[self sendExpandedMessage: @"[station-acknowledges-hold-position]" toShip: ship];

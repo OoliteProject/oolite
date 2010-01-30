@@ -332,7 +332,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 					NSPoint coords = [info coordinates];
 					// Convert from internal scale to light years.
 					coords.x *= 0.4;
-					coords.y *= 0.4;
+					coords.y *= 0.2; // y-axis had a different scale than x-axis
 					OK = NSPointToVectorJSValue(context, coords, outValue);
 				}
 				else
@@ -409,6 +409,11 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval na
 // distanceToSystem(sys : SystemInfo) : Number
 static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	if (EXPECT_NOT(JSValToNSString(context, argv[0]) == nil))  // FIXME : should test for object, not string but JSVAL_TO_OBJECT crashes on a nil value
+	{
+		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, argv, nil, @"SystemInfo");
+		return NO;
+	}
 	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
 	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(argv[0]), [OOSystemInfo class]);
 	if (thisInfo == nil || otherInfo == nil)
