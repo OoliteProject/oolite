@@ -3,7 +3,7 @@
 OOJSSystemInfo.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -409,7 +409,7 @@ static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval na
 // distanceToSystem(sys : SystemInfo) : Number
 static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	if (EXPECT_NOT(JSValToNSString(context, argv[0]) == nil))  // FIXME : should test for object, not string but JSVAL_TO_OBJECT crashes on a nil value
+	if(!JSVAL_IS_OBJECT(argv[0]))
 	{
 		OOReportJSBadArguments(context, @"SystemInfo", @"distanceToSystem", argc, argv, nil, @"SystemInfo");
 		return NO;
