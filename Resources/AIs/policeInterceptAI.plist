@@ -13,13 +13,31 @@
 	};
 	"DOCK_WITH_STATION" =
 	{
-		ENTER = (switchLightsOff, setTargetToStation, "setDesiredRangeTo: 5000.0", performIntercept);
+		ENTER = 
+		(
+			switchLightsOff,
+			setTargetToStation,
+			"setDesiredRangeTo: 5000.0",
+			setDestinationToTarget,
+			checkCourseToDestination
+		);
+		"COURSE_OK" = ("setSpeedFactorTo: 0.35", performFlyToRangeFromDestination);
+		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "sendTargetCommsMessage: [police-attack-warning]", 
+								"markTargetForOffence: 7", "setAITo: interceptAI.plist");
 		ATTACKED = (switchLightsOn, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
-		RESTARTED = ("setStateTo: DOCK_WITH_STATION");
+		UPDATE = 
+		(
+			setTargetToStation,
+			"setDesiredRangeTo: 5000.0",
+			setDestinationToTarget,
+			checkCourseToDestination,
+			"pauseAI: 10.0"
+		);
 	};
 	FLEE =
 	{
