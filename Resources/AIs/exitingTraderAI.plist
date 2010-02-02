@@ -14,9 +14,9 @@
 	"EXIT_SYSTEM" =
 	{
 		"WITCHSPACE OKAY" = (wormholeEscorts);
-		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 10000.0", performFlyToRangeFromDestination);
+		"WITCHSPACE BLOCKED" = (setTargetToFoundTarget, setDestinationWithinTarget, "setDesiredRangeTo: 30000.0", performFlyToRangeFromDestination);
 		"WITCHSPACE UNAVAILABLE" = ("setAITo: route1traderAI.plist");
-		UPDATE = (performHyperSpaceExit);
+		UPDATE = (performHyperSpaceExit, "pauseAI: 5.0");
 	};
 	FLEE =
 	{

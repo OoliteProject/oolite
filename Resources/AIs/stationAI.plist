@@ -5,9 +5,7 @@
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel);
 		"RED_ALERT" = (launchDefenseShip);
 		"YELLOW_ALERT" = ("setStateTo: IDLE");
-		"GREEN_ALERT" = ("setStateTo: CHECK_FOR_DEBRIS");  // message added in 1.72
-		"CONDITION_YELLOW" = ("setStateTo: IDLE");
-		"CONDITION_GREEN" = ("setStateTo: CHECK_FOR_DEBRIS"); // message removed in 1.72
+		"GREEN_ALERT" = ("setStateTo: CHECK_FOR_DEBRIS");
 		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
 		"TARGET_OFFENDER" = (increaseAlertLevel);
 		"TARGET_FUGITIVE" = (increaseAlertLevel);
@@ -20,6 +18,7 @@
 	"CHECK_FOR_DEBRIS" =
 	{
 		ATTACKED = (setTargetToPrimaryAggressor, increaseAlertLevel, "setStateTo: DEFENSE_MODE");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 15", launchDefenseShip, increaseAlertLevel);
 		"INCOMING_MISSILE" = (fireECM, increaseAlertLevel);
 		"TARGET_FOUND" = (launchScavenger, "setStateTo: IDLE");
 		"NOTHING_FOUND" = ("setStateTo: IDLE", "pauseAI: 20.0");

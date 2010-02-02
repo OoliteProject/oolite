@@ -21,6 +21,7 @@
 	{
 		ENTER = (performIdle, "setSpeedTo: 0.0", "pauseAI: 10.0");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		UPDATE = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
 	};
@@ -31,6 +32,7 @@
 		"DOCKING_ABORTED" = ("setStateTo: ABORT");
 		"COLLISION" = ("setStateTo: ABORT");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		"RESTART_DOCKING" = ("setStateTo: GLOBAL");
 	};
@@ -40,6 +42,7 @@
 		"FACING_DESTINATION" =  ("setSpeedFactorTo: 1.0", "setDesiredRangeTo: 500.0", performFlyToRangeFromDestination);
 		"DESIRED_RANGE_ACHIEVED" = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		"DOCKING_ABORTED" = ("setStateTo: ABORT");
 		"COLLISION" = ("setStateTo: ABORT");
@@ -51,6 +54,7 @@
 		"FRUSTRATED" = (performFaceDestination);
 		"FACING_DESTINATION" = (recallDockingInstructions, performFlyToRangeFromDestination);
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = (requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
 		"DOCKING_ABORTED" = ("setStateTo: ABORT");
@@ -66,6 +70,7 @@
 		"REACHED_SAFETY" = (performIdle, "setStateTo: GLOBAL");
 		"DESIRED_RANGE_ACHIEVED" = (performIdle, "setStateTo: GLOBAL");
 		ATTACKED = ("setStateTo: ATTACK_SHIP");
+		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "markTargetForOffence: 7", "setStateTo: ATTACK_SHIP");
 		"GROUP_ATTACK_TARGET" = ("setStateTo: ATTACK_SHIP");
 	};
 	"ATTACK_SHIP" =
