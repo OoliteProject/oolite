@@ -507,6 +507,21 @@ static NSTimeInterval	time_last_frame;
 			[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
 		}
 	}
+	
+	// HUD toggle
+	if ([gameView isDown:'o'] && [[gameView gameController] gameIsPaused])// 'o' key while paused
+	{
+		if (!hide_hud_pressed)
+		{
+			HeadUpDisplay *theHUD = [self hud];
+			[theHUD setHidden:![theHUD isHidden]];
+		}
+		hide_hud_pressed = YES;
+	}
+	else
+	{
+		hide_hud_pressed = NO;
+	}
 }
 
 
@@ -1309,18 +1324,6 @@ static NSTimeInterval	time_last_frame;
 			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
 			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
 		}
-		
-		if ([gameView isDown:'o'])// look for the 'o' key
-		{
-			if (!hide_hud_pressed)
-			{
-				HeadUpDisplay *theHUD = [self hud];
-				[theHUD setHidden:![theHUD isHidden]];
-			}
-			hide_hud_pressed = YES;
-		}
-		else
-			hide_hud_pressed = NO;
 
 		if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
 		{
