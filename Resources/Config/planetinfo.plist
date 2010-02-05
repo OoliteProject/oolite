@@ -30,7 +30,7 @@
 						//"BEHAVIOUR_ALL_SYSTEMS_REACHABLE";
 						//"BEHAVIOUR_FIXED_COORDINATES";
 						
-	// When using the GALACTIC_HYPERSPACE_BEHAVIOUR_FIXED_COORDINATES, the key below is used to specify the
+	// When using BEHAVIOUR_FIXED_COORDINATES, the key below is used to specify the
 	// actual fixed coordinates for the intergalactic jump.
 	"galactic_hyperspace_fixed_coords" = 	"96 96";
 	
