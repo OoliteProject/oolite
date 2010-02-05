@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "OOJSVector.h"
 #import "OOIsNumberLiteral.h"
+#import "OOConstToString.h"
 
 
 static JSObject *sSystemInfoPrototype;
@@ -41,6 +42,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 static void SystemInfoFinalize(JSContext *context, JSObject *this);
 static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
@@ -91,6 +93,7 @@ static JSFunctionSpec sSystemInfoMethods[] =
 	// JS name					Function					min args
 	{ "toString",				JSObjectWrapperToString,	0 },
 	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
+	{ "routeToSystem",		SystemInfoRouteToSystem,	2 },
 	{ 0 }
 };
 
@@ -422,10 +425,61 @@ static JSBool SystemInfoDistanceToSystem(JSContext *context, JSObject *this, uin
 		return NO;
 	}
 	
+	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
+	if (!sameGalaxy)
+	{
+		OOReportJSError(context, @"Cannot calculate distance for systems in other galaxies.");
+		return NO;
+	}
+	
 	NSPoint thisCoord = [thisInfo coordinates];
 	NSPoint otherCoord = [otherInfo coordinates];
 	
 	return JS_NewDoubleValue(context, distanceBetweenPlanetPositions(thisCoord.x, thisCoord.y, otherCoord.x, otherCoord.y), outResult);
+}
+
+
+// routeToSystem(sys : SystemInfo [, optimizedBy : String]) : Dictionary
+static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	NSDictionary *result = nil;
+	OORouteType routeType = OPTIMIZED_BY_JUMPS;
+	
+	if(!JSVAL_IS_OBJECT(argv[0]))
+	{
+		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, argv, nil, @"SystemInfo");
+		return NO;
+	}
+	OOSystemInfo *thisInfo = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
+	OOSystemInfo *otherInfo  = JSObjectToObjectOfClass(context, JSVAL_TO_OBJECT(argv[0]), [OOSystemInfo class]);
+	if (thisInfo == nil || otherInfo == nil)
+	{
+		OOReportJSBadArguments(context, @"SystemInfo", @"routeToSystem", argc, argv, nil, @"SystemInfo");
+		return NO;
+	}
+	
+	BOOL sameGalaxy = ([thisInfo galaxy] == [otherInfo galaxy]);
+	if (!sameGalaxy)
+	{
+		OOReportJSError(context, @"Cannot calculate route for destinations in other galaxies.");
+		return NO;
+	}
+	
+	if (argc == 2)
+	{
+		routeType = StringToRouteType(JSValToNSString(context, argv[1]));
+	}
+	
+	result = [UNIVERSE routeFromSystem:[thisInfo system] toSystem:[otherInfo system] optimizedBy:routeType];
+	if (result != nil)
+	{
+		*outResult = [result javaScriptValueInContext:context];
+		return YES;
+	}
+	else
+	{
+		return NO;
+	}
 }
 
 

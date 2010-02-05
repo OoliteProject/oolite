@@ -203,6 +203,19 @@ NSString *BehaviourToString(OOBehaviour behaviour)
 }
 
 
+NSString *RouteTypeToString(OORouteType routeType)
+{
+	switch (routeType)
+	{
+		CASE(OPTIMIZED_BY_NONE);
+		CASE(OPTIMIZED_BY_JUMPS);
+		CASE(OPTIMIZED_BY_TIME);
+	}
+	
+	return @"** ROUTE TYPE UNKNOWN **";
+}
+
+
 NSString *GovernmentToString(OOGovernmentID government)
 {
 	NSArray		*strings = nil;
@@ -726,6 +739,16 @@ OOCompassMode StringToCompassMode(NSString *string)
 	REVERSE_CASE(COMPASS_MODE_BEACONS);
 	
 	return COMPASS_MODE_BASIC;
+}
+
+
+OORouteType StringToRouteType(NSString *string)
+{
+	REVERSE_CASE(OPTIMIZED_BY_NONE);
+	REVERSE_CASE(OPTIMIZED_BY_JUMPS);
+	REVERSE_CASE(OPTIMIZED_BY_TIME);
+	
+	return OPTIMIZED_BY_JUMPS;
 }
 
 
