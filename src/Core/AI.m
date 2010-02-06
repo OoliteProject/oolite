@@ -777,7 +777,9 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 		NS_ENDHANDLER
 		
 		OOLogPopIndent();
+		[newSM retain];
 		[pool release];
+		[newSM autorelease];
 	}
 	
 	return newSM;
