@@ -80,7 +80,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	
 	[result setObject:_shipKey forKey:KEY_SHIP_KEY];
 	
-	NSMutableDictionary *updatedShipInfo = [[shipinfoDictionary mutableCopy] autorelease];
+	NSMutableDictionary *updatedShipInfo = [NSMutableDictionary dictionaryWithDictionary:shipinfoDictionary];
 	
 	[updatedShipInfo setObject:[[self roleSet] roleString] forKey:KEY_ROLES];
 	[updatedShipInfo oo_setUnsignedInteger:fuel forKey:KEY_FUEL];
@@ -235,8 +235,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	*deletes = nil;
 	
 	// Get original ship data.
-	NSDictionary *shipData = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
-	NSMutableDictionary *referenceData = [[shipData mutableCopy] autorelease];
+	NSMutableDictionary *referenceData = [NSMutableDictionary dictionaryWithDictionary:[[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]]];
 	
 	// Discard stuff that we handle separately.
 	StripIgnoredKeys(referenceData);
@@ -262,7 +261,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 		id myVal = [data objectForKey:key];
 		if ([referenceVal isEqual:myVal])
 		{
-			[data removeObjectForKey:key];
+		//	[data removeObjectForKey:key];
 		}
 	}
 }

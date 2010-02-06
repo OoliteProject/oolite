@@ -1,5 +1,5 @@
+# Conveniently, this here xcconfig file declares the version in a make-compatible format.
 OOLITE_VERSION_FILE = ../src/Cocoa/oolite-version.xcconfig
-
 include $(OOLITE_VERSION_FILE)
 
 TARGET = Basic-debug.oxp
@@ -16,7 +16,8 @@ $(TARGET): Resources/debugConfig.plist Resources/DebugOXPLocatorBeacon.magic Res
 	cp requires.plist $(TARGET)/
 	
 requires.plist: $(OOLITE_VERSION_FILE)
-	echo "{ version = \"$(OOLITE_VERSION)\"; max_version = \"$(OOLITE_VERSION).99\"; }" > requires.plist
+	echo "{ version = \"$(OOLITE_VERSION)\"; max_version = \"$(OOLITE_VERSION).99\"; }" > $@
 
 clean:
 	rm -rf $(TARGET)
+	rm -rf requires.plist
