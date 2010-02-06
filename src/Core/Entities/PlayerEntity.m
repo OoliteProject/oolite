@@ -3489,6 +3489,8 @@ static GLfloat sBaseMass = 0.0;
 	int				result = NO;
 	Quaternion		q1 = orientation;
 	
+	if ([self status] == STATUS_DEAD) return NO;
+	
 	[self setStatus:STATUS_ESCAPE_SEQUENCE];	// firstly
 	ship_clock_adjust += 43200 + 5400 * (ranrot_rand() & 127);	// add up to 8 days until rescue!
 #if DOCKING_CLEARANCE_ENABLED
@@ -3787,6 +3789,7 @@ static GLfloat sBaseMass = 0.0;
 	// Let event scripts check for specific equipment on board when the player dies.
 	if (whom == nil)  whom = (id)[NSNull null];
 	[self doScriptEvent:@"shipDied" withArguments:[NSArray arrayWithObjects:whom, why, nil]];
+	[self setStatus:STATUS_DEAD]; // set dead again in case a script managed to revive the player.
 	// Then remove the equipment. This should avoid accidental scooping / equipment damage when dead.
 	[self removeAllEquipment];
 	[self loseTargetStatus];
