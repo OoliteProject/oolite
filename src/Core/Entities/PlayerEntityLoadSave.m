@@ -44,7 +44,7 @@
 
 
 // Set to 1 to use custom load/save dialogs in windowed mode on Macs in debug builds. No effect on other platforms.
-#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		1
+#define USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG		0
 
 #if USE_CUSTOM_LOAD_SAVE_ON_MAC_DEBUG && OO_DEBUG && defined(OOLITE_USE_APPKIT_LOAD_SAVE)
 #undef OOLITE_USE_APPKIT_LOAD_SAVE
@@ -150,7 +150,11 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[player_name autorelease];
 	player_name = [saveName copy];
 	
-	[self writePlayerToPath:savePath];
+	NS_DURING
+		[self writePlayerToPath:savePath];
+	NS_HANDLER
+		// Suppress exceptions silently. Warning the user about failed autosaves would be pretty unhelpful.
+	NS_ENDHANDLER
 	
 	if (tmp_path != nil)
 	{
