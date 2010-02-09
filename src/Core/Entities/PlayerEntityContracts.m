@@ -57,7 +57,7 @@ static NSString * const kOOLogNoteShowShipyardModel = @"script.debug.note.showSh
 
 - (NSString *) processEscapePods // removes pods from cargo bay and treats categories of characters carried
 {
-	if ([UNIVERSE strict])  return [NSString string];	// return a blank string
+	if ([UNIVERSE strict])  return @"";
 	
 	unsigned		i;
 	BOOL added_entry = NO; // to prevent empty lines for slaves and the rare empty report.

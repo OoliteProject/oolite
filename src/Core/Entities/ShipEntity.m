@@ -227,6 +227,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	suppressAegisMessages = NO;
 	isMissile = NO;
 	suppressExplosion = NO;
+	_lightsActive = YES;
 	
 	// set things from dictionary from here out - default values might require adjustment -- Kaks 20091130
 	maxFlightSpeed = [shipDict oo_floatForKey:@"max_flight_speed" defaultValue:160.0f];

@@ -465,7 +465,7 @@ static JSBool SystemInfoRouteToSystem(JSContext *context, JSObject *this, uintN 
 		return NO;
 	}
 	
-	if (argc == 2)
+	if (argc >= 2)
 	{
 		routeType = StringToRouteType(JSValToNSString(context, argv[1]));
 	}
