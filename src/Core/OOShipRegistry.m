@@ -1230,7 +1230,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	frequency = [declaration oo_floatForKey:@"frequency" defaultValue:2.0];
 	phase = [declaration oo_floatForKey:@"phase" defaultValue:0.0];
 	
-	initiallyOn = [declaration oo_boolForKey:@"initially_on" defaultValue:NO];
+	initiallyOn = [declaration oo_boolForKey:@"initially_on" defaultValue:YES];
 	
 	result = [NSMutableDictionary dictionaryWithCapacity:7];
 	[result setObject:@"flasher" forKey:@"type"];
@@ -1239,7 +1239,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	[result setObject:[NSNumber numberWithFloat:size] forKey:@"size"];
 	[result setObject:[NSNumber numberWithFloat:frequency] forKey:@"frequency"];
 	if (phase != 0)  [result setObject:[NSNumber numberWithFloat:phase] forKey:@"phase"];
-	if (initiallyOn)  [result setObject:[NSNumber numberWithBool:YES] forKey:@"initially_on"];
+	[result setObject:[NSNumber numberWithBool:initiallyOn] forKey:@"initially_on"];
 	
 	return [[result copy] autorelease];
 }
