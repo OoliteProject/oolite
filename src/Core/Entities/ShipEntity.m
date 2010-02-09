@@ -8535,6 +8535,8 @@ BOOL class_masslocks(int some_class)
 	OOFlasherEntity	*se = nil;
 	ShipEntity		*sub = nil;
 	
+	_lightsActive = YES;
+	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se setActive:YES];
@@ -8552,6 +8554,8 @@ BOOL class_masslocks(int some_class)
 	OOFlasherEntity	*se = nil;
 	ShipEntity		*sub = nil;
 	
+	_lightsActive = NO;
+	
 	for (subEnum = [self flasherEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se setActive:NO];
@@ -8560,6 +8564,12 @@ BOOL class_masslocks(int some_class)
 	{
 		[sub switchLightsOff];
 	}
+}
+
+
+- (BOOL) lightsActive
+{
+	return _lightsActive;
 }
 
 

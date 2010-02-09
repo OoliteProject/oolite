@@ -184,7 +184,8 @@ MA 02110-1301, USA.
 	
 	// scripting
 							haveExecutedSpawnAction: 1,
-							noRocks: 1;
+							noRocks: 1,
+							_lightsActive: 1;
 	
 	OOFuelQuantity			fuel;						// witch-space fuel
 	GLfloat					fuel_accumulator;
@@ -789,6 +790,7 @@ BOOL	class_masslocks(int some_class);
 
 - (void) switchLightsOn;
 - (void) switchLightsOff;
+- (BOOL) lightsActive;
 
 - (void) setDestination:(Vector) dest;
 - (void) setEscortDestination:(Vector) dest;

@@ -175,6 +175,7 @@ enum
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_maxThrust,			// maximum thrust, double, read-only
 	kShip_thrust,				// the ship's thrust, double, read/write
+	kShip_lightsActive			// flasher/shader light flag, boolean, read/write
 };
 
 
@@ -250,6 +251,7 @@ static JSPropertySpec sShipProperties[] =
 	{ "scannerDisplayColor2",	kShip_scannerDisplayColor2,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "lightsActive",			kShip_lightsActive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -633,6 +635,11 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = JS_NewDoubleValue(context, [entity thrust], outValue);
 			break;
 			
+		case kShip_lightsActive:
+			*outValue = BOOLToJSVal([entity lightsActive]);
+			OK = YES;
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
@@ -872,6 +879,15 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 					[entity setThrust:OOClamp_0_max_f(fValue, [entity maxThrust])];
 					OK = YES;
 				}
+			}
+			break;
+			
+		case kShip_lightsActive:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				if (bValue)  [entity switchLightsOn];
+				else  [entity switchLightsOff];
+				OK = YES;
 			}
 			break;
 		

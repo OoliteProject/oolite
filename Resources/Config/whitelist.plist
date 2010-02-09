@@ -375,7 +375,8 @@
 		"rangeToDestination",
 		"rangeToPrimaryTarget",
 		"laserColor",
-		"isHulk"
+		"isHulk",
+		"lightsActive"
 	);
 	
 	shader_player_ship_binding_methods =
