@@ -254,6 +254,8 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	}
 	if ([foundDeletes count] != 0)  *deletes = foundDeletes;
 	
+	// after rev3010 this loop was using cycles without doing anything - commenting this whole loop out for now. -- kaks 20100207
+/*
 	// Discard anything that hasn't changed.
 	for (enumerator = [data keyEnumerator]; (key = [enumerator nextObject]); )
 	{
@@ -264,6 +266,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 		//	[data removeObjectForKey:key];
 		}
 	}
+*/
 }
 
 @end
