@@ -6116,18 +6116,17 @@ BOOL class_masslocks(int some_class)
 
 - (void) noteLostTarget
 {
+	id target = nil;
 	if (primaryTarget != NO_TARGET)
 	{
-		ShipEntity* target = [UNIVERSE entityForUniversalID:primaryTarget];
+		ShipEntity* ship = [UNIVERSE entityForUniversalID:primaryTarget];
+		target = (ship && ship->isShip) ? (id)ship : nil;
 		primaryTarget = NO_TARGET;
-		[self doScriptEvent:@"shipLostTarget" withArgument:(target && target->isShip) ? (id)target : nil];
-		[shipAI reactToMessage:@"TARGET_LOST"];
 	}
-	else
-	{
-		[self doScriptEvent:@"shipLostTarget" withArgument:nil];
-		[shipAI message:@"TARGET_LOST"]; // this often triggers on witchspace jumps, so make it a message.
-	}
+	// always do target lost
+	[self doScriptEvent:@"shipLostTarget" withArgument:target];	// old style
+	[self doScriptEvent:@"shipTargetLost" withArgument:target];	// new style
+	[shipAI message:@"TARGET_LOST"]; // this often triggers on witchspace jumps, so make it a message.
 }
 
 

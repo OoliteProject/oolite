@@ -2052,6 +2052,7 @@ static GLfloat sBaseMass = 0.0;
 			{
 				[UNIVERSE addMessage:DESC(@"target-lost") forCount:3.0];
 				[self playTargetLost];
+				[self noteLostTarget];
 			}
 			else
 			{
@@ -2076,6 +2077,7 @@ static GLfloat sBaseMass = 0.0;
 				[missile_entity[i] removeTarget:nil];
 				if (i == activeMissile)
 				{
+					[self noteLostTarget];
 					primaryTarget = NO_TARGET;
 					missile_status = MISSILE_STATUS_ARMED;
 				}
