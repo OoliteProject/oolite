@@ -467,9 +467,7 @@
 		1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7100BCE34CF00CD5C13 /* pngset.c */; };
 		1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7110BCE34CF00CD5C13 /* pngwrite.c */; };
 		1A71E7260BCE34CF00CD5C13 /* pngget.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7120BCE34CF00CD5C13 /* pngget.c */; };
-		1A71E7270BCE34CF00CD5C13 /* pnggccrd.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7130BCE34CF00CD5C13 /* pnggccrd.c */; };
 		1A71E7280BCE34CF00CD5C13 /* pngrio.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7140BCE34CF00CD5C13 /* pngrio.c */; };
-		1A71E7290BCE34CF00CD5C13 /* pngvcrd.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */; };
 		1A71E72A0BCE34CF00CD5C13 /* pngpread.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A71E7160BCE34CF00CD5C13 /* pngpread.c */; };
 		1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E8780BCE8EB100CD5C13 /* libz.dylib */; };
 		1A71EA8C0BCF8C6B00CD5C13 /* OOXMLExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161102099544380037C2E1 /* OOXMLExtensions.m */; };
@@ -1567,9 +1565,7 @@
 		1A71E7100BCE34CF00CD5C13 /* pngset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngset.c; sourceTree = "<group>"; };
 		1A71E7110BCE34CF00CD5C13 /* pngwrite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwrite.c; sourceTree = "<group>"; };
 		1A71E7120BCE34CF00CD5C13 /* pngget.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngget.c; sourceTree = "<group>"; };
-		1A71E7130BCE34CF00CD5C13 /* pnggccrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pnggccrd.c; sourceTree = "<group>"; };
 		1A71E7140BCE34CF00CD5C13 /* pngrio.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngrio.c; sourceTree = "<group>"; };
-		1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngvcrd.c; sourceTree = "<group>"; };
 		1A71E7160BCE34CF00CD5C13 /* pngpread.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngpread.c; sourceTree = "<group>"; };
 		1A71E8780BCE8EB100CD5C13 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		1A736BD10C61E9370097AC37 /* OOJSPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlayer.h; sourceTree = "<group>"; };
@@ -2469,9 +2465,7 @@
 				1A71E7100BCE34CF00CD5C13 /* pngset.c */,
 				1A71E7110BCE34CF00CD5C13 /* pngwrite.c */,
 				1A71E7120BCE34CF00CD5C13 /* pngget.c */,
-				1A71E7130BCE34CF00CD5C13 /* pnggccrd.c */,
 				1A71E7140BCE34CF00CD5C13 /* pngrio.c */,
-				1A71E7150BCE34CF00CD5C13 /* pngvcrd.c */,
 				1A71E7160BCE34CF00CD5C13 /* pngpread.c */,
 			);
 			name = libpng;
@@ -3569,9 +3563,7 @@
 				1A71E7240BCE34CF00CD5C13 /* pngset.c in Sources */,
 				1A71E7250BCE34CF00CD5C13 /* pngwrite.c in Sources */,
 				1A71E7260BCE34CF00CD5C13 /* pngget.c in Sources */,
-				1A71E7270BCE34CF00CD5C13 /* pnggccrd.c in Sources */,
 				1A71E7280BCE34CF00CD5C13 /* pngrio.c in Sources */,
-				1A71E7290BCE34CF00CD5C13 /* pngvcrd.c in Sources */,
 				1A71E72A0BCE34CF00CD5C13 /* pngpread.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
