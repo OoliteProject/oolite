@@ -6136,7 +6136,8 @@ BOOL class_masslocks(int some_class)
 	if ([self primaryTarget] == target)
 	{
 		[self removeTarget:target];
-		[self doScriptEvent:@"shipDestroyedTarget" withArgument:target];
+		[self doScriptEvent:@"shipDestroyedTarget" withArgument:target];	// old style
+		[self doScriptEvent:@"shipTargetDestroyed" withArgument:target];	// new style
 		[shipAI message:@"TARGET_DESTROYED"];
 	}
 }
