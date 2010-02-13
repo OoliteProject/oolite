@@ -2757,7 +2757,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		missile_status = MISSILE_STATUS_TARGET_LOCKED;
 		[self addTarget:ent];
 	}
-	[self doScriptEvent:@"playerTargetedMissile" withArgument:ent];
+	// The handler below is no longer necessary, since addTarget: already raises the shipAcquiredTarget handler - Nikos 20100213
+	//[self doScriptEvent:@"playerTargetedMissile" withArgument:ent];
 }
 #endif
 
