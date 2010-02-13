@@ -6077,7 +6077,7 @@ BOOL class_masslocks(int some_class)
 	if (targetEntity != nil)  primaryTarget = [targetEntity universalID];
 	
 	[[self shipSubEntityEnumerator] makeObjectsPerformSelector:@selector(addTarget:) withObject:targetEntity];
-	if (![self isSubEntity])  [self doScriptEvent:@"shipAcquiredTarget" withArgument:targetEntity];
+	if (![self isSubEntity])  [self doScriptEvent:@"shipTargetAcquired" withArgument:targetEntity];
 }
 
 
