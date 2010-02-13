@@ -188,6 +188,7 @@
 		(
 			"like_ship",
 			"is_template",
+			"is_external_dependency",
 			"max_flight_speed",
 			"max_flight_roll",
 			"max_flight_pitch",
@@ -259,6 +260,7 @@
 			"escort-ship",
 			"cargo_carried",
 			"missile_launch_position",
+			"missile_load_time",
 			"missile_role",
 			"escape_pod_model",
 			"aft_eject_position",
@@ -274,7 +276,6 @@
 			"throw_sparks",
 			"max_missiles",
 			"cloak_passive",
-			"missile_load_time",
 			"debris_role"
 		);
 		knownStationKeys =
@@ -292,7 +293,8 @@
 			"max_defense_ships",
 			"max_police",
 			"equipment_price_factor",
-			"requires_docking_clearance"
+			"requires_docking_clearance",
+			"docking_pattern_model"
 		);
 		knownPlayerKeys =
 		(

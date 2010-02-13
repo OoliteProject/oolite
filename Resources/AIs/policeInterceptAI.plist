@@ -26,8 +26,8 @@
 		"ACCEPT_DISTRESS_CALL" = (setTargetToFoundTarget, "setAITo: interceptAI.plist");
 		"OFFENCE_COMMITTED" = (setTargetToFoundTarget, "sendTargetCommsMessage: [police-attack-warning]", 
 								"markTargetForOffence: 7", "setAITo: interceptAI.plist");
-		ATTACKED = (switchLightsOn, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
-		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToPrimaryAggressor, "setStateTo: ATTACK_SHIP");
+		ATTACKED = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
+		"GROUP_ATTACK_TARGET" = (switchLightsOn, setTargetToFoundTarget, "setStateTo: ATTACK_SHIP");
 		"DESIRED_RANGE_ACHIEVED" = ("setAITo: dockingAI.plist");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		UPDATE = 

@@ -20,7 +20,7 @@
 		ENTER = (setTargetToStation, "setDesiredRangeTo: 5000.0", setDestinationToTarget, checkCourseToDestination);
 		"WAYPOINT_SET" = ("setAITo: gotoWaypointAI.plist");
 		"COURSE_OK" = ("setSpeedFactorTo: 1.0", performFlyToRangeFromDestination);
-		"DESIRED_RANGE_ACHIEVED" = (setTargetToSystemStation, "setAITo: dockingAI.plist");
+		"DESIRED_RANGE_ACHIEVED" = (setTargetToStation, "setAITo: dockingAI.plist");
 		ATTACKED = (setTargetToPrimaryAggressor, broadcastDistressMessage, "setStateTo: FLEE");
 		"INCOMING_MISSILE" = (fightOrFleeMissile, "setStateTo: FLEE");
 		UPDATE = (setTargetToStation, "setDesiredRangeTo: 5000.0",
