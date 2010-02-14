@@ -6126,7 +6126,8 @@ BOOL class_masslocks(int some_class)
 	// always do target lost
 	[self doScriptEvent:@"shipLostTarget" withArgument:target];	// old style
 	[self doScriptEvent:@"shipTargetLost" withArgument:target];	// new style
-	[shipAI message:@"TARGET_LOST"]; // this often triggers on witchspace jumps, so make it a message.
+	if (target == nil) [shipAI message:@"TARGET_LOST"];	// stale target? no major urgency.
+	else [shipAI reactToMessage:@"TARGET_LOST"];	// execute immediately otherwise.
 }
 
 
