@@ -48,7 +48,7 @@ MA 02110-1301, USA.
 // straight c
 static Vector base_vertex_array[10400];
 static int base_terrain_array[10400];
-static int next_free_vertex;
+static OOUInteger next_free_vertex;
 NSMutableDictionary*	edge_to_vertex = nil;
 
 static int n_triangles[MAX_SUBDIVIDE];
@@ -168,7 +168,6 @@ double longitudeFromVector(Vector v);
 
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict
 {
-	int		i;
 	int		percent_land;
 	
 #if ALLOW_PROCEDURAL_PLANETS
@@ -314,6 +313,7 @@ double longitudeFromVector(Vector v);
 	
 	planet_seed =	ranrot_rand();	// random set-up for vertex colours
 	
+	OOUInteger i;
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
@@ -458,7 +458,6 @@ double longitudeFromVector(Vector v);
 
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 {
-	int		i;
 	int		percent_land;
 	BOOL	procGen = NO;
 #if ALLOW_PROCEDURAL_PLANETS
@@ -536,6 +535,7 @@ double longitudeFromVector(Vector v);
 	
 	planet_type =  atmo ? STELLAR_TYPE_NORMAL_PLANET : STELLAR_TYPE_MOON;
 	
+	OOUInteger i;
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
@@ -662,7 +662,7 @@ double longitudeFromVector(Vector v);
 	
 	[self initialiseBaseTerrainArray:percent_land];
 	
-	for (i =  0; i < next_free_vertex; i++)
+	for (i = 0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
 	
 	[self scaleVertices];
@@ -1187,7 +1187,6 @@ double longitudeFromVector(Vector v);
 {
 	GLuint tName=[TextureStore getTextureNameFor:fileName];
 	if (tName == 0) return NO;
-	int		i;
 	BOOL wasTextured=isTextured;
 	//if(!!textureFile) [textureFile release];
 	textureFile=[[NSString stringWithString:fileName] retain];
@@ -1202,6 +1201,7 @@ double longitudeFromVector(Vector v);
 	//if (![UNIVERSE doProcedurallyTexturedPlanets])
 #endif
 	{
+		OOUInteger i;
 		[self setModelName:@"icostextured.dat" ];
 		[self rescaleTo:1.0];
 		for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
@@ -1302,8 +1302,7 @@ double longitudeFromVector(Vector v);
 
 - (void) rescaleTo:(double) rad
 {
-	int i;
-	
+	OOMeshVertexCount i;
 	for (i = 0; i < vertexCount; i++)
 	{
 		vertices[i] = vector_multiply_scalar(vector_normal(vertices[i]), rad);
@@ -1412,7 +1411,6 @@ static BOOL last_one_was_textured;
 
 - (void) initialiseBaseVertexArray
 {
-	int i;
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// use our own pool since this routine is quite hard on memory
 
 	if (last_one_was_textured != isTextured)
@@ -1425,11 +1423,10 @@ static BOOL last_one_was_textured;
 	{
 		edge_to_vertex = [[NSMutableDictionary dictionaryWithCapacity:7680] retain];	// make a new one
 
-		int vi,fi;
 		next_free_vertex = 0;
 		
 		// set first 12 or 14 vertices
-		
+		OOMeshVertexCount vi;
 		for (vi = 0; vi < vertexCount; vi++)
 			base_vertex_array[next_free_vertex++] =  vertices[vi];
 		
@@ -1437,6 +1434,7 @@ static BOOL last_one_was_textured;
 		
 		triangle_start[0] = 0;
 		n_triangles[0] = faceCount;
+		OOMeshFaceCount fi;
 		for (fi = 0; fi < faceCount; fi++)
 		{
 			vertex_index_array[fi * 3 + 0] = faces[fi].vertex[0];
@@ -1460,8 +1458,7 @@ static BOOL last_one_was_textured;
 		}
 		
 		// for the next levels of subdivision simply build up from the level below!...
-		
-		int sublevel;
+		unsigned sublevel;
 		for (sublevel = 0; sublevel < MAX_SUBDIVIDE - 1; sublevel++)
 		{
 			int newlevel = sublevel + 1;
@@ -1500,6 +1497,7 @@ static BOOL last_one_was_textured;
 	}
 	
 	// all done - copy the indices to the instance
+	unsigned i;
 	for (i = 0; i < MAX_TRI_INDICES; i++)
 		vertexdata.index_array[i] = vertex_index_array[i];
 
@@ -1555,10 +1553,10 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 
 - (void) initialiseBaseTerrainArray:(int) percent_land
 {
-	int vi;
 	// set first 12 or 14 vertices
 	if (percent_land >= 0)
 	{
+		OOMeshVertexCount vi;
 		for (vi = 0; vi < vertexCount; vi++)
 		{
 			if (gen_rnd_number() < 256 * percent_land / 100)
@@ -1669,7 +1667,7 @@ int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 
 - (void) scaleVertices
 {
-	int vi;
+	OOUInteger vi;
 	for (vi = 0; vi < next_free_vertex; vi++)
 	{
 		Vector	v = base_vertex_array[vi];

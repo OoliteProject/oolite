@@ -49,6 +49,7 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OOShaderMaterial.h"
 #import "OOMacroOpenGL.h"
+#import "OOProfilingStopwatch.h"
 
 
 // If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
@@ -81,6 +82,19 @@ static NSString * const kOOLogMeshTooManyFaces				= @"mesh.load.failed.tooManyFa
 static NSString * const kOOLogMeshTooManyMaterials			= @"mesh.load.failed.tooManyMaterials";
 
 
+#if OOMESH_PROFILE
+#define PROFILE(tag)  do { _stopwatchLastTime = Profile(tag, _stopwatch, _stopwatchLastTime); } while (0)
+static OOTimeDelta Profile(NSString *tag, OOProfilingStopwatch *stopwatch, OOTimeDelta lastTime)
+{
+	OOTimeDelta now = [stopwatch currentTime];
+	OOLog(@"mesh.profile", @"Mesh profile: stage %@, %g seconds (delta %g)", tag, now, now - lastTime);
+	return now;
+}
+#else
+#define PROFILE(tag)  do {} while (0)
+#endif
+
+
 @interface OOMesh (Private) <NSMutableCopying, OOGraphicsResetClient>
 
 - (id)initWithName:(NSString *)name
@@ -106,7 +120,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (NSDictionary*) modelData;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
 
-- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
+- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
 - (BOOL) setUpVertexArrays;
 
@@ -245,6 +259,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
 	DESTROY(_retainedObjects);
+	
+#if OOMESH_PROFILE
+	DESTROY(_stopwatch);
+#endif
 	
 	[super dealloc];
 }
@@ -417,7 +435,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 - (Geometry *)geometry
 {
 	Geometry *result = [[Geometry alloc] initWithCapacity:faceCount];
-	int i;
+	OOMeshFaceCount i;
 	for (i = 0; i < faceCount; i++)
 	{
 		Triangle tri;
@@ -487,7 +505,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	BoundingBox	result;
 	Vector		pv, rv;
-	int			i;
 	
 	// FIXME: rewrite with matrices
 	Vector rpos = vector_subtract(position, opv);	// model origin relative to opv
@@ -510,6 +527,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		rv.z = dot_product(rk, pv);	// _vertices[0] position rel to opv in ijk
 		bounding_box_reset_to_vector(&result, rv);
 	}
+	
+	OOMeshVertexCount i;
 	for (i = 1; i < vertexCount; i++)
 	{
 		pv.x = rpos.x + si.x * _vertices[i].x + sj.x * _vertices[i].y + sk.x * _vertices[i].z;
@@ -530,11 +549,11 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	// HACK! Should work out what the various bounding box things do and make it neat and consistent.
 	BoundingBox		result;
 	Vector			v;
-	int				i;
 	
 	v = vector_add(position, OOVectorMultiplyMatrix(_vertices[0], rotMatrix));
 	bounding_box_reset_to_vector(&result,v);
 	
+	OOMeshVertexCount i;
 	for (i = 1; i < vertexCount; i++)
 	{
 		v = vector_add(position, OOVectorMultiplyMatrix(_vertices[i], rotMatrix));
@@ -613,15 +632,23 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
 	
+#if OOMESH_PROFILE
+	_stopwatch = [[OOProfilingStopwatch alloc] init];
+#endif
+	
 	if ([self loadData:name])
 	{
 		[self calculateBoundingVolumes];
+		PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
+		
 		baseFile = [name copy];
 		[self setUpMaterialsWithMaterialsDictionary:materialDict
 								  shadersDictionary:shadersDict
 										   cacheKey:cacheKey
 									   shaderMacros:macros
 								shaderBindingTarget:target];
+		PROFILE(@"finished material setup");
+		
 		[[OOGraphicsResetManager sharedManager] registerClient:self];
 	}
 	else
@@ -629,6 +656,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		[self release];
 		self = nil;
 	}
+#if OOMESH_PROFILE
+	DESTROY(_stopwatch);
+#endif
 	
 	[pool release];
 	return self;
@@ -846,12 +876,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
+
 - (BOOL)loadData:(NSString *)filename
 {
 	NSScanner			*scanner;
 	NSDictionary		*cacheData = nil;
-	NSString			*data = nil;
-	NSMutableArray		*lines;
 	BOOL				failFlag = NO;
 	NSString			*failString = @"***** ";
 	unsigned			i, j;
@@ -863,6 +892,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (cacheData != nil)
 	{
 		if ([self setModelFromModelData:cacheData]) using_preloaded = YES;
+		PROFILE(@"loaded from cache");
 	}
 	
 	if (!using_preloaded)
@@ -872,44 +902,57 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 #if OOLITE_LEOPARD
 		NSCharacterSet	*newlineCharSet = [NSCharacterSet newlineCharacterSet];
 #else
-		NSMutableCharacterSet *newlineCharSet = [[whitespaceAndNewlineCharSet mutableCopy] autorelease];
-		[newlineCharSet formIntersectionWithCharacterSet:[whitespaceCharSet invertedSet]];
+		static NSCharacterSet *newlineCharSet = nil;
+		if (newlineCharSet == nil)
+		{
+			NSMutableCharacterSet *temp = [[whitespaceAndNewlineCharSet mutableCopy] autorelease];
+			[temp formIntersectionWithCharacterSet:[whitespaceCharSet invertedSet]];
+			newlineCharSet = [temp copy];
+		}
 #endif
 		
 		texFileName2Idx = [NSMutableDictionary dictionary];
 		
-		data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
-		if (data == nil)
 		{
-			// Model not found
-			OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
-			return NO;
+			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+			NSString *data = [ResourceManager stringFromFilesNamed:filename inFolder:@"Models" cache:NO];
+			if (data == nil)
+			{
+				// Model not found
+				OOLog(kOOLogMeshDataNotFound, @"***** ERROR: could not find %@", filename);
+				return NO;
+			}
+			
+			// strip out comments and commas between values
+			NSMutableArray *lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
+			for (i = 0; i < [lines count]; i++)
+			{
+				NSString *line = [lines objectAtIndex:i];
+				NSArray *parts;
+				//
+				// comments
+				//
+				parts = [line componentsSeparatedByString:@"#"];
+				line = [parts objectAtIndex:0];
+				parts = [line componentsSeparatedByString:@"//"];
+				line = [parts objectAtIndex:0];
+				//
+				// commas
+				//
+				line = [[line componentsSeparatedByString:@","] componentsJoinedByString:@" "];
+				//
+				[lines replaceObjectAtIndex:i withObject:line];
+			}
+			
+			data = [lines componentsJoinedByString:@"\n"];
+			scanner = [NSScanner scannerWithString:data];
+			
+			[scanner retain];
+			[pool release];
+			[scanner autorelease];
 		}
-
-		// strip out comments and commas between values
-		//
-		lines = [NSMutableArray arrayWithArray:[data componentsSeparatedByString:@"\n"]];
-		for (i = 0; i < [lines count]; i++)
-		{
-			NSString *line = [lines objectAtIndex:i];
-			NSArray *parts;
-			//
-			// comments
-			//
-			parts = [line componentsSeparatedByString:@"#"];
-			line = [parts objectAtIndex:0];
-			parts = [line componentsSeparatedByString:@"//"];
-			line = [parts objectAtIndex:0];
-			//
-			// commas
-			//
-			line = [[line componentsSeparatedByString:@","] componentsJoinedByString:@" "];
-			//
-			[lines replaceObjectAtIndex:i withObject:line];
-		}
-		data = [lines componentsJoinedByString:@"\n"];
-
-		scanner = [NSScanner scannerWithString:data];
+		
+		PROFILE(@"finished preprocessing");
 
 		// get number of vertices
 		//
@@ -1228,15 +1271,35 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			}
 		}
 		
-		if (IsLegacyNormalMode(_normalMode))  [self checkNormalsAndAdjustWinding];
-		if (!explicitTangents)  [self generateFaceTangents];
+		PROFILE(@"finished parsing");
+		
+		if (IsLegacyNormalMode(_normalMode))
+		{
+			[self checkNormalsAndAdjustWinding];
+			PROFILE(@"finished checkNormalsAndAdjustWinding");
+		}
+		if (!explicitTangents)
+		{
+			[self generateFaceTangents];
+			PROFILE(@"finished generateFaceTangents");
+		}
 		
 		// check for smooth shading and recalculate normals
-		if (_normalMode == kNormalModeSmooth)  [self calculateVertexNormalsAndTangents];
-		else if (IsPerVertexNormalMode(_normalMode) && !explicitTangents)  [self calculateVertexTangents];
+		if (_normalMode == kNormalModeSmooth)
+		{
+			[self calculateVertexNormalsAndTangents];	// SLOW
+			PROFILE(@"finished calculateVertexNormalsAndTangents");
+			
+		}
+		else if (IsPerVertexNormalMode(_normalMode) && !explicitTangents)
+		{
+			[self calculateVertexTangents];
+			PROFILE(@"finished calculateVertexTangents");
+		}
 		
 		// save the resulting data for possible reuse
 		[OOCacheManager setMeshData:[self modelData] forName:filename];
+		PROFILE(@"saved to cache");
 		
 		if (failFlag)
 		{
@@ -1245,9 +1308,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	}
 	
 	[self calculateBoundingVolumes];
+	PROFILE(@"finished calculateBoundingVolumes");
 	
 	// set up vertex arrays for drawing
-	if (![self setUpVertexArrays])  return NO;
+	if (![self setUpVertexArrays])  return NO;	// VERY SLOW
+	PROFILE(@"finished setUpVertexArrays");
 	
 	return YES;
 }
@@ -1255,8 +1320,10 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void) checkNormalsAndAdjustWinding
 {
-	Vector		calculatedNormal;
-	int			i, j;
+	Vector				calculatedNormal;
+	OOMeshFaceCount		i;
+	OOMeshVertexCount	j;
+	
 	for (i = 0; i < faceCount; i++)
 	{
 		Vector v0, v1, v2, norm;
@@ -1319,7 +1386,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 
 - (void) generateFaceTangents
 {
-	int i;
+	OOMeshFaceCount	i;
 	for (i = 0; i < faceCount; i++)
 	{
 		OOMeshFace *face = _faces + i;
@@ -1355,7 +1422,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-static float FaceArea(GLint *vertIndices, Vector *vertices)
+static float FaceArea(GLuint *vertIndices, Vector *vertices)
 {
 	// calculate areas using Heron's formula
 	// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
@@ -1368,8 +1435,9 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 
 - (void) calculateVertexNormalsAndTangents
 {
-	int i,j;
-	float	triangle_area[faceCount];
+	OOUInteger	i,j;
+	float		triangle_area[faceCount];
+	
 	for (i = 0 ; i < faceCount; i++)
 	{
 		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
@@ -1401,7 +1469,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 
 - (void) calculateVertexTangents
 {
-	int i,j;
+	OOUInteger	i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
@@ -1428,11 +1496,11 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 }
 
 
-- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(int) v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
+- (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup
 {
 	assert(outNormal != NULL && outTangent != NULL);
 	
-	int j;
+	OOUInteger j;
 	Vector normal_sum = kZeroVector;
 	Vector tangent_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
@@ -1455,7 +1523,7 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 
 - (BOOL) setUpVertexArrays
 {
-	int fi, vi, mi;
+	OOUInteger	fi, vi, mi;
 	
 	if (![self allocateVertexArrayBuffersWithCount:faceCount])  return NO;
 	
@@ -1544,9 +1612,9 @@ static float FaceArea(GLint *vertIndices, Vector *vertices)
 
 - (void) calculateBoundingVolumes
 {
-	int i;
-	double d_squared, length_longest_axis, length_shortest_axis;
-	GLfloat result;
+	OOMeshVertexCount	i;
+	double				d_squared, length_longest_axis, length_shortest_axis;
+	GLfloat				result;
 	
 	result = 0.0f;
 	if (vertexCount)  bounding_box_reset_to_vector(&boundingBox, _vertices[0]);

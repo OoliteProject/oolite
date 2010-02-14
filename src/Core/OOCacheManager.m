@@ -418,8 +418,7 @@ static OOCacheManager *sSingleton = nil;
 	if (_scheduledWrite != nil)  return;
 	
 #if PROFILE_WRITES
-	OOProfilingStopwatch *stopwatch = [[[OOProfilingStopwatch alloc] init] autorelease];
-	[stopwatch start];
+	OOProfilingStopwatch *stopwatch = [OOProfilingStopwatch stopwatch];
 #endif
 	
 #if WRITE_ASYNC
@@ -568,8 +567,7 @@ static OOCacheManager *sSingleton = nil;
 	if (path == nil) return NO;	
 	
 #if PROFILE_WRITES
-	OOProfilingStopwatch *stopwatch = [[[OOProfilingStopwatch alloc] init] autorelease];
-	[stopwatch start];
+	OOProfilingStopwatch *stopwatch = [OOProfilingStopwatch stopwatch];
 #endif
 	
 	plist = [NSPropertyListSerialization dataFromPropertyList:inDict format:CACHE_PLIST_FORMAT errorDescription:&errorDesc];

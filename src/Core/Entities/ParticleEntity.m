@@ -688,8 +688,7 @@ FAIL:
 
 - (void) updateFragburst:(double) delta_t
 {
-	int i;
-	
+	OOMeshVertexCount i;
 	for (i = 0 ; i < vertexCount; i++)
 	{
 		GLfloat du = 0.5 + 0.03125 * (32 - i);
@@ -710,10 +709,10 @@ FAIL:
 
 - (void) updateBurst2:(double) delta_t
 {
-	int i;
 	size.width = (1.0 + time_counter) * size.height;	// current size vs starting size
 	
 	GLfloat di = 1.0 / (vertexCount - 1);
+	OOMeshVertexCount i;
 	for (i = 0 ; i < vertexCount; i++)
 	{
 		GLfloat du = duration * (0.5 + di * i);
@@ -865,8 +864,6 @@ FAIL:
 
 - (void) drawFragburst
 {
-	int i;
-
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
 	OOGL(glPushMatrix());
@@ -874,6 +871,7 @@ FAIL:
 	BeginAdditiveBlending(GL_ONE_YES);
 
 	OOGLBEGIN(GL_QUADS);
+	OOMeshVertexCount i;
 	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);
@@ -889,8 +887,6 @@ FAIL:
 
 - (void) drawBurst2
 {
-	int i;
-
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
 	OOGL(glPushMatrix());
@@ -898,6 +894,7 @@ FAIL:
 	BeginAdditiveBlending(GL_ONE_YES);
 
 	OOGLBEGIN(GL_QUADS);
+	OOMeshVertexCount i;
 	for (i = 0; i < vertexCount; i++)
 	{
 		glColor4f(faces[i].red, faces[i].green, faces[i].blue, faces[i].normal.z);

@@ -144,7 +144,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 - (Geometry*) geometry
 {
 	Geometry* result = [(Geometry *)[Geometry alloc] initWithCapacity: faceCount];
-	int i;
+	OOMeshFaceCount i;
 	for (i = 0; i < faceCount; i++)
 	{
 		Triangle tri;
@@ -247,7 +247,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 		Vector* vbytes = (Vector*)[vdata bytes];
 		Vector* nbytes = (Vector*)[ndata bytes];
 		Face* fbytes = (Face*)[fdata bytes];
-		int i;
+		OOUInteger i;
 		for (i = 0; i < vertexCount; i++)
 		{
 			vertices[i] = vbytes[i];
@@ -680,7 +680,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (Vector) normalForVertex:(int) v_index withSharedRedValue:(GLfloat) red_value
 {
-	int j;
+	OOMeshFaceCount j;
 	Vector normal_sum = kZeroVector;
 	for (j = 0; j < faceCount; j++)
 	{
@@ -798,7 +798,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 
 - (double) findCollisionRadius
 {
-	int i;
+	OOMeshVertexCount i;
 	double d_squared, result, length_longest_axis, length_shortest_axis;
 
 	result = 0.0;

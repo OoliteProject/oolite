@@ -8,6 +8,8 @@
 	if ((self = [super init]))
 	{
 		_start = OOGetHighResTime();
+		_end = OOCopyHighResTime(_start);
+		_running = YES;
 	}
 	return self;
 }
@@ -50,7 +52,7 @@
 {
 	if (_running)
 	{
-		OOHighResTimeValue temp = _start;
+		OOHighResTimeValue temp = _end;
 		_end = OOGetHighResTime();
 		OODisposeHighResTime(temp);
 	}

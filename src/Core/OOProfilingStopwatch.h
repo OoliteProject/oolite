@@ -70,7 +70,7 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 	BOOL				_running;
 }
 
-+ (id) stopwatch;
++ (id) stopwatch;				// New stopwatch is initially started.
 
 - (void) start;
 - (void) stop;

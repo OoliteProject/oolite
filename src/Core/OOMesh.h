@@ -41,6 +41,12 @@ MA 02110-1301, USA.
 @class OOMaterial, Octree;
 
 
+#define OOMESH_PROFILE	0
+#if OOMESH_PROFILE
+@class OOProfilingStopwatch;
+#endif
+
+
 enum
 {
 	kOOMeshMaxMaterials			= 8,
@@ -50,10 +56,10 @@ enum
 };
 
 
-typedef uint8_t				OOMeshSmoothGroup;
+typedef uint16_t			OOMeshSmoothGroup;
 typedef uint8_t				OOMeshMaterialIndex, OOMeshMaterialCount;
-typedef uint16_t			OOMeshVertexCount;
-typedef uint16_t			OOMeshFaceCount;
+typedef uint32_t			OOMeshVertexCount;
+typedef uint32_t			OOMeshFaceCount;
 typedef uint8_t				OOMeshFaceVertexCount;
 
 
@@ -62,7 +68,7 @@ typedef struct
 	OOMeshSmoothGroup		smoothGroup;
 	OOMeshMaterialIndex		materialIndex;
 	OOMeshFaceVertexCount	n_verts;
-	GLint					vertex[kOOMeshMaxVertsPerFace];
+	GLuint					vertex[kOOMeshMaxVertsPerFace];
 	
 	Vector					normal;
 	Vector					tangent;
@@ -116,6 +122,11 @@ typedef struct
 	Octree					*octree;
 	
 	NSMutableDictionary		*_retainedObjects;
+	
+#if OOMESH_PROFILE
+	OOProfilingStopwatch	*_stopwatch;
+	double					_stopwatchLastTime;
+#endif
 }
 
 + (id)meshWithName:(NSString *)name
