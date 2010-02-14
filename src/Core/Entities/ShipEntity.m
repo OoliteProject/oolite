@@ -7518,6 +7518,7 @@ BOOL class_masslocks(int some_class)
 	if (![self hasCloakingDevice])  return NO;
 	
 	if (!cloaking_device_active)  cloaking_device_active = (energy > CLOAKING_DEVICE_START_ENERGY * maxEnergy);
+	if (cloaking_device_active)  [self doScriptEvent:@"shipCloakActivated"];
 	return cloaking_device_active;
 }
 
@@ -7525,6 +7526,7 @@ BOOL class_masslocks(int some_class)
 - (void) deactivateCloakingDevice
 {
 	cloaking_device_active = NO;
+	[self doScriptEvent:@"shipCloakDeactivated"];
 }
 
 
