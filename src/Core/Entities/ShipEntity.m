@@ -1669,8 +1669,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		// we only want shipSpawned to be triggered if this is a ship (including carriers and cargo pods), not for a stationary err... station!
 		// FIXME: do we want shipSpawned to work for asteroids / rock hermits too ? if not:
-		//if (script != nil && [self scanClass] != CLASS_ROCK && [self status] == STATUS_IN_FLIGHT)
-		if (script != nil && [self status] == STATUS_IN_FLIGHT)
+		//if (script != nil && [self scanClass] != CLASS_ROCK && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING))
+		if (script != nil && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING))
 		{
 			PlayerEntity *player = [PlayerEntity sharedPlayer];
 			[player setScriptTarget:self];
