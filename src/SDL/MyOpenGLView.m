@@ -606,7 +606,7 @@ if (!showSplashScreen) return;
 	glTexCoord2i( 1, 0 );
 	glVertex2i( dest.w, 0 );
 	glTexCoord2i( 1, 1 );
-	glVertex2i( dest.h, dest.h );
+	glVertex2i( dest.w, dest.h );
 	glTexCoord2i( 0, 1 );
 	glVertex2i( 0, dest.h );
 	
