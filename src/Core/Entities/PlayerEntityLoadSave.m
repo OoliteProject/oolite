@@ -420,7 +420,23 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 			loadedOK = NO;
 		}
 	}
-	
+
+	if (loadedOK)
+	{
+		NSString		*shipKey = nil;
+		NSDictionary	*shipDict = nil;
+		
+		shipKey = [fileDic oo_stringForKey:@"ship_desc"];
+		shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
+		
+		if (shipDict == nil && [UNIVERSE strict] && shipKey != nil)
+		{
+			fail_reason = [NSString stringWithFormat:DESC(@"loadfailed-could-not-use-ship-type-@-please-switch-to-unrestricted"), shipKey];
+			loadedOK = NO;
+		}
+	}	
+		
+
 	if (loadedOK)
 	{
 		// Check that player ship exists

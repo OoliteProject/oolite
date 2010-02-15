@@ -1159,6 +1159,8 @@
 	"loadfailed-saved-game-failed-to-load"	= "Failed to restore saved game.";
 	"loadfailed-no-file-specified"		= "No file specified.";
 	"loadfailed-could-not-load-file"	= "Could not load file.";
+	"loadfailed-could-not-use-ship-type-@-please-switch-to-unrestricted"
+						= "Unable to use ship type “%@” in strict mode - please switch to unrestricted mode first.";
 	"loadfailed-could-not-find-ship-type-@-please-reinstall-the-appropriate-OXP"
 						= "Could not find ship type “%@” - please reinstall the appropriate OXP.";
 	"loadfailed-invalid-saved-game-no-ship-specified"
