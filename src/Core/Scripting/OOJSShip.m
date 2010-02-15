@@ -70,6 +70,7 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -280,6 +281,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ "addPassenger",			ShipAddPassenger,			0 },
 	{ "awardContract",			ShipAwardContract,			0 },
+	{ "canAwardEquipment",		ShipCanAwardEquipment,		1 },	// Should be deprecated in favour of equipment object model?
 	{ "awardEquipment",			ShipAwardEquipment,			1 },	// Should be deprecated in favour of equipment object model
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },	// Should be deprecated in favour of equipment object model
 	{ "equipmentStatus",		ShipEquipmentStatus,		1 },
@@ -1464,6 +1466,44 @@ static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, js
 
 	return YES;
 }
+
+
+// canAwardEquipment(key : String)
+static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	BOOL						OK = YES;
+	BOOL						berth;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
+	
+	key = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment key");
+		return NO;
+	}
+	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
+	// can't add fuel as equipment, can add multiple berths if there's space.
+	OK = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
+			(berth && [thisEnt availableCargoSpace] >= 5));
+	if (OK)
+	{
+		if ( ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
+			|| (![thisEnt isPlayer] && (berth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]))
+			|| ([key isEqualToString:@"EQ_MISSILE_REMOVAL"] && [thisEnt missileCount] == 0) )
+		{
+			OK = NO;
+		}
+		else
+			OK = [thisEnt canAddEquipment:key];
+	}
+	
+	*outResult = BOOLToJSVal(OK);
+	return YES;
+}
+
 
 // awardEquipment(key : String)
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

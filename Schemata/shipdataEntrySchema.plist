@@ -7,8 +7,9 @@
 	requiredKeys = ( "model", "name", "roles" );
 	schema =
 	{
-		is_template = "boolean";
 		like_ship = "$shipRole";
+		is_template = "boolean";
+		is_external_dependency = "boolean",
 		max_flight_speed = "positiveFloat";
 		max_flight_roll = "positiveFloat";
 		max_flight_pitch = "positiveFloat";
@@ -48,6 +49,7 @@
 		smooth = "boolean";
 		density = "positiveFloat";
 		name = "string";
+		display_name = "string";
 		roles = "$roles";
 		exhaust =
 		{
@@ -62,8 +64,8 @@
 		};
 		frangible = "boolean";
 		laser_color = "$colorSpecifier";
-		scanClass = "$scanClass";
 		scan_class = "$scanClass";
+		scanClass = "$scanClass";
 		launch_actions = "$scriptActions";
 		script_actions = "$scriptActions";
 		death_actions = "$scriptActions";
@@ -81,21 +83,35 @@
 		heat_insulation = "positiveFloat";
 		pilot = "$characterKey";
 		unpiloted = "fuzzyBoolean";
-		escort-role = "$shipRole";
 		escort_role = "$shipRole";
-		escort-ship = "$shipKey";
+		escort-role = "$shipRole";
 		escort_ship = "$shipKey";
+		escort-ship = "$shipKey";
 		missile_launch_position = "vector";
+		missile_load_time = "positiveFloat";
 		missile_role = "$shipRole";
 		escape_pod_model = "$shipRole";
 		aft_eject_position = "vector";
 		auto_ai = "boolean";
+		script = "$scriptFileName";
+		conditions = "$scriptConditionList";
+		script_info = "dictionary";
+		is_submunition = "boolean";
+		is_carrier = "boolean";
+		isCarrier = "boolean";
+		no_boulders = "fuzzyBoolean";
+		hyperspace_motor_spin_time = "positiveFloat";
+		throw_sparks = "boolean";
+		max_missiles = "positiveInteger";
+		cloak_passive = "boolean";
+		debris_role = "$shipRole";
+		
 		rotating = "boolean";
 		defense_ship = "$shipKey";
 		defense_ship_role = "$shipRole";
-		hasShipyard = "$hasShipyard";
+		has_npc_traffic = "fuzzyBoolean";
 		has_shipyard = "$hasShipyard";
-		conditions = "$scriptConditionList";
+		hasShipyard = "$hasShipyard";
 		port_radius = "positiveFloat";
 		port_dimensions = "$portDimensions";
 		equivalent_tech_level = "integer";
@@ -103,6 +119,9 @@
 		max_defense_ships = "positiveInteger";
 		max_police = "positiveInteger";
 		equipment_price_factor = "positiveFloat";
+		requires_docking_clearance = "boolean";
+		docking_pattern_model = "$modelName";
+		
 		extra_equipment = "$extraEquipmentDictionary";
 		hud = "$hudFileName";
 		view_position_forward = "vector";
@@ -114,18 +133,6 @@
 			type = "array";
 			valueType = "$customViewSpec";
 		};
-		max_missiles = "positiveInteger";
-		missile_load_time = "positiveFloat";
-		script = "$scriptFileName";
-		has_npc_traffic = "fuzzyBoolean";
-		script_info = "dictionary";
-		is_submunition = "boolean";
-		isCarrier = "boolean";
-		is_carrier = "boolean";
-		no_boulders = "fuzzyBoolean";
-		hyperspace_motor_spin_time = "positiveFloat";
-		requires_docking_clearance = "boolean";
-		debris_role = "$shipRole";
 	};
 	$definitions =
 	{
