@@ -30,6 +30,8 @@ MA 02110-1301, USA.
 #else
 
 
+#ifndef OOMATHS_EXTERNAL_VECTOR_TYPES
+
 typedef struct Vector
 {
 	OOScalar x;
@@ -43,6 +45,8 @@ typedef struct Vector2D
 	OOScalar x;
 	OOScalar y;
 } Vector2D;
+
+#endif
 
 
 extern const Vector		kZeroVector,		/* 0, 0, 0 */

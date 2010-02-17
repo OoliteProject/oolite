@@ -2441,8 +2441,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (isMissileType) break;
 	}
 	[missile release];
-
-	return (isMissileType ? missileType : nil);
+	
+	if (!isMissileType)  missileType = nil;
+	return missileType;
 }
 
 

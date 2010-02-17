@@ -1447,7 +1447,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if (!routeInfo)  routeExists = NO;
 
-		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? routeInfo : nil) optimizedBy:advancedNavArrayMode];
+		[self drawAdvancedNavArrayAtX:x y:y z:z alpha:alpha usingRoute: (planetNumber != destNumber ? (id)routeInfo : nil) optimizedBy:advancedNavArrayMode];
 		if (routeExists)
 		{
 			distance = [routeInfo oo_doubleForKey:@"distance"];
@@ -1464,8 +1464,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (routeExists)
 	{
 		[self setText:[NSString stringWithFormat:DESC(@"long-range-chart-distance-f"), distance] forRow:18];
-		[self setText:(advancedNavArrayMode != OPTIMIZED_BY_NONE ?
-				[NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time] : @"") forRow:19];
+		NSString *travelTimeLine = @"";
+		if (advancedNavArrayMode != OPTIMIZED_BY_NONE)
+		{
+			travelTimeLine = [NSString stringWithFormat:DESC(@"long-range-chart-est-travel-time-f"), time];
+		}
+		[self setText:travelTimeLine forRow:19];
 	}
 	else
 	{

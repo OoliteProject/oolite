@@ -784,9 +784,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	requiresDockingClearance = [dict oo_boolForKey:@"requires_docking_clearance" defaultValue:
 		universalInfo != nil ?	[universalInfo oo_boolForKey:@"stations_require_docking_clearance" defaultValue:NO] : NO];
 #endif
-
-	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:
-		universalInfo != nil ? [universalInfo oo_stringForKey:@"default_breakpattern_model" defaultValue:@"ring.dat"] : @"ring.dat"];
+	
+	NSString *defaultBreakPattern = [universalInfo oo_stringForKey:@"default_breakpattern_model"];
+	if (defaultBreakPattern == nil)  defaultBreakPattern = @"ring.dat";
+	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:defaultBreakPattern];
 	
 	double unitime = [UNIVERSE getTime];
 
