@@ -5934,6 +5934,12 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 }
 
 
+- (unsigned) randomSeedForShaders
+{
+	return entity_personality * 0x00010001;
+}
+
+
 - (void) setEntityPersonalityInt:(uint16_t)value
 {
 	if (value <= ENTITY_PERSONALITY_MAX)

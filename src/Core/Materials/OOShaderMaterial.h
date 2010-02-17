@@ -164,6 +164,10 @@ typedef uint16_t OOUniformConvertOptions;
 /*	Add constant uniforms. Same format as uniforms dictionary of configuration
 	parameter to -initWithConfiguration:macros:. The target parameter is used
 	for bindings.
+	
+	Additionally, the target may implement the following method, used to seed
+	any random bindings:
+		- (unsigned) randomSeedForShaders;
 */
 -(void)addUniformsFromDictionary:(NSDictionary *)uniformDefs withBindingTarget:(id<OOWeakReferenceSupport>)target;
 
@@ -197,5 +201,13 @@ enum
 	Client code is responsible for implementing this.
 */
 BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget);
+
+
+@interface NSObject (OOShaderMaterialTargetOptional)
+
+- (unsigned) randomSeedForShaders;
+
+@end
+
 
 #endif // NO_SHADERS

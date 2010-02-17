@@ -376,6 +376,19 @@ static NSString *MacrosToString(NSDictionary *macros);
 	OOUniformConvertOptions	convertOptions;
 	BOOL					quatAsMatrix = YES;
 	GLfloat					scale = 1.0;
+	unsigned				randomSeed;
+	RANROTSeed				savedSeed;
+	
+	if ([target respondsToSelector:@selector(randomSeedForShaders)])
+	{
+		randomSeed = [(id)target randomSeedForShaders];
+	}
+	else
+	{
+		randomSeed = (unsigned)self;
+	}
+	savedSeed = RANROTGetFullSeed();
+	ranrot_srand(randomSeed);
 	
 	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
 	{
@@ -521,6 +534,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 			OOLog(@"shader.uniform.badDescription", @"----- Warning: could not bind uniform \"%@\" for target %@ -- could not interpret definition:\n%@", name, target, definition);
 		}
 	}
+	
+	RANROTSetFullSeed(savedSeed);
 }
 
 
