@@ -123,6 +123,12 @@ typedef struct
 	
 	NSMutableDictionary		*_retainedObjects;
 	
+	NSDictionary			*_materialDict;
+	NSDictionary			*_shadersDict;
+	NSString				*_cacheKey;
+	NSDictionary			*_shaderMacros;
+	id						_shaderBindingTarget;
+	
 #if OOMESH_PROFILE
 	OOProfilingStopwatch	*_stopwatch;
 	double					_stopwatchLastTime;
@@ -140,6 +146,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 + (OOMaterial *)placeholderMaterial;
 
 - (NSString *) modelName;
+
+- (void) rebindMaterials;
 
 - (size_t)vertexCount;
 - (size_t)faceCount;

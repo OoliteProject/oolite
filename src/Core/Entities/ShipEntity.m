@@ -5945,6 +5945,7 @@ Vector positionOffsetForShipInRotationToAlignment(ShipEntity* ship, Quaternion q
 	if (value <= ENTITY_PERSONALITY_MAX)
 	{
 		entity_personality = value;
+		[[self mesh] rebindMaterials];
 	}
 }
 

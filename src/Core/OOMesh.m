@@ -105,17 +105,13 @@ materialDictionary:(NSDictionary *)materialDict
 	  shaderMacros:(NSDictionary *)macros
 shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
-- (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
-							shadersDictionary:(NSDictionary *)shadersDict
-									 cacheKey:(NSString *)cacheKey
-								 shaderMacros:(NSDictionary *)macros
-						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target;
-
 - (BOOL) loadData:(NSString *)filename;
 - (void) checkNormalsAndAdjustWinding;
 - (void) generateFaceTangents;
 - (void) calculateVertexNormalsAndTangents;
 - (void) calculateVertexTangents;
+
+- (void) deleteDisplayLists;
 
 - (NSDictionary*) modelData;
 - (BOOL) setModelFromModelData:(NSDictionary*) dict;
@@ -248,7 +244,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	DESTROY(baseFile);
 	DESTROY(octree);
 	
-	[self resetGraphicsState];
+	[self deleteDisplayLists];
 	
 	for (i = 0; i != kOOMeshMaxMaterials; ++i)
 	{
@@ -259,6 +255,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
 	DESTROY(_retainedObjects);
+	
+	DESTROY(_materialDict);
+	DESTROY(_shadersDict);
+	DESTROY(_cacheKey);
+	DESTROY(_shaderMacros);
+	DESTROY(_shaderBindingTarget);
 	
 #if OOMESH_PROFILE
 	DESTROY(_stopwatch);
@@ -412,6 +414,45 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #endif
 	
 	OOGL(glPopAttrib());
+}
+
+
+- (void) rebindMaterials
+{
+	OOMeshMaterialCount		i;
+	OOMaterial				*material = nil;
+	
+	if (materialCount != 0)
+	{
+		for (i = 0; i != materialCount; ++i)
+		{
+			DESTROY(materials[i]);
+			
+			if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"])
+			{
+				material = [OOMaterial materialWithName:materialKeys[i]
+											   cacheKey:_cacheKey
+									 materialDictionary:_materialDict
+									  shadersDictionary:_shadersDict
+												 macros:_shaderMacros
+										  bindingTarget:_shaderBindingTarget
+										forSmoothedMesh:IsPerVertexNormalMode(_normalMode)];
+			}
+			else
+			{
+				material = nil;
+			}
+			
+			if (material != nil)
+			{
+				materials[i] = [material retain];
+			}
+			else
+			{
+				materials[i] = [[OOMesh placeholderMaterial] retain];
+			}
+		}
+	}
 }
 
 
@@ -642,11 +683,18 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		PROFILE(@"finished calculateBoundingVolumes (again\?\?)");
 		
 		baseFile = [name copy];
-		[self setUpMaterialsWithMaterialsDictionary:materialDict
-								  shadersDictionary:shadersDict
-										   cacheKey:cacheKey
-									   shaderMacros:macros
-								shaderBindingTarget:target];
+		
+		/*	New in r3033: save the material-defining parameters here so we
+			can rebind the materials at any time.
+			-- Ahruman 2010-02-17
+		*/
+		_materialDict = [materialDict copy];
+		_shadersDict = [shadersDict copy];
+		_cacheKey = [cacheKey copy];
+		_shaderMacros = [macros copy];
+		_shaderBindingTarget = [target weakRetain];
+		
+		[self rebindMaterials];
 		PROFILE(@"finished material setup");
 		
 		[[OOGraphicsResetManager sharedManager] registerClient:self];
@@ -662,47 +710,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	[pool release];
 	return self;
-}
-
-
-- (void)setUpMaterialsWithMaterialsDictionary:(NSDictionary *)materialDict
-							shadersDictionary:(NSDictionary *)shadersDict
-									 cacheKey:(NSString *)cacheKey
-								 shaderMacros:(NSDictionary *)macros
-						  shaderBindingTarget:(id<OOWeakReferenceSupport>)target
-{
-	OOMeshMaterialCount		i;
-	OOMaterial				*material = nil;
-	
-	if (materialCount != 0)
-	{
-		for (i = 0; i != materialCount; ++i)
-		{
-			if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"])
-			{
-				material = [OOMaterial materialWithName:materialKeys[i]
-											   cacheKey:cacheKey
-									 materialDictionary:materialDict
-									  shadersDictionary:shadersDict
-												 macros:macros
-										  bindingTarget:target
-										forSmoothedMesh:IsPerVertexNormalMode(_normalMode)];
-			}
-			else
-			{
-				material = nil;
-			}
-			
-			if (material != nil)
-			{
-				materials[i] = [material retain];
-			}
-			else
-			{
-				materials[i] = [[OOMesh placeholderMaterial] retain];
-			}
-		}
-	}
 }
 
 
@@ -735,7 +742,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-- (void) resetGraphicsState
+- (void) deleteDisplayLists
 {
 	if (listsReady)
 	{
@@ -744,6 +751,13 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		OOGL(glDeleteLists(displayList0, materialCount));
 		listsReady = NO;
 	}
+}
+
+
+- (void) resetGraphicsState
+{
+	[self deleteDisplayLists];
+	[self rebindMaterials];
 }
 
 
