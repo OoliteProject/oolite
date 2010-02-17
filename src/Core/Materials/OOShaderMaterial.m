@@ -378,6 +378,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	GLfloat					scale = 1.0;
 	unsigned				randomSeed;
 	RANROTSeed				savedSeed;
+	NSArray					*keys = nil;
 	
 	if ([target respondsToSelector:@selector(randomSeedForShaders)])
 	{
@@ -390,7 +391,8 @@ static NSString *MacrosToString(NSDictionary *macros);
 	savedSeed = RANROTGetFullSeed();
 	ranrot_srand(randomSeed);
 	
-	for (uniformEnum = [uniformDefs keyEnumerator]; (name = [uniformEnum nextObject]); )
+	keys = [[uniformDefs allKeys] sortedArrayUsingSelector:@selector(compare:)];
+	for (uniformEnum = [keys objectEnumerator]; (name = [uniformEnum nextObject]); )
 	{
 		gotValue = NO;
 		uniform = nil;
