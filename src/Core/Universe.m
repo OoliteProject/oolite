@@ -3434,28 +3434,9 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	[result setObject:[NSNumber numberWithBool:doProcedurallyTexturedPlanets] forKey:@"procedurallyTexturedPlanets"];
 #endif
 	
-	NSString *desc = nil;
-	switch ([self shaderEffectsLevel])
-	{
-		case SHADERS_OFF:
-			desc = @"SHADERS_OFF";
-			break;
-			
-		case SHADERS_SIMPLE:
-			desc = @"SHADERS_SIMPLE";
-			break;
-			
-		case SHADERS_FULL:
-			desc = @"SHADERS_FULL";
-			break;
-			
-		case SHADERS_NOT_SUPPORTED:
-		default:
-			desc = @"SHADERS_NOT_SUPPORTED";
-			break;
-	}
-	[result setObject:desc forKey:@"shaderEffectsLevel"];
+	[result setObject:ShaderSettingToString([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];
 	
+	NSString *desc = @"UNDEFINED";
 	switch ([[OOMusicController sharedController] mode])
 	{
 		case kOOMusicOff:		desc = @"MUSIC_OFF"; break;
@@ -8360,6 +8341,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		shaderEffectsLevel = value;
 		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-effects-level"];
+		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
 }
 

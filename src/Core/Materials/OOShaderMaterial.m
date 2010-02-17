@@ -385,7 +385,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	}
 	else
 	{
-		randomSeed = (unsigned)self;
+		randomSeed = (unsigned int)(uintptr_t)self;
 	}
 	savedSeed = RANROTGetFullSeed();
 	ranrot_srand(randomSeed);

@@ -682,6 +682,31 @@ NSString *ShaderSettingToDisplayString(OOShaderSetting setting)
 }
 
 
+NSString *ShaderSettingToString(OOShaderSetting setting)
+{
+	switch (setting)
+	{
+		CASE(SHADERS_OFF);
+		CASE(SHADERS_SIMPLE);
+		CASE(SHADERS_FULL);
+		CASE(SHADERS_NOT_SUPPORTED);
+	}
+	
+	return @"UNDEFINED";
+}
+
+
+OOShaderSetting StringToShaderSetting(NSString *string)
+{
+	REVERSE_CASE(SHADERS_OFF);
+	REVERSE_CASE(SHADERS_SIMPLE);
+	REVERSE_CASE(SHADERS_FULL);
+	REVERSE_CASE(SHADERS_NOT_SUPPORTED);
+	
+	return SHADERS_NOT_SUPPORTED;
+}
+
+
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName)
 {
 	NSString *ret = [UNIVERSE descriptionForKey:[@"commodity-name " stringByAppendingString:[symbolicName lowercaseString]]];

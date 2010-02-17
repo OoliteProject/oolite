@@ -75,7 +75,12 @@ NSString *KillCountToRatingAndKillString(unsigned kills) CONST_FUNC;
 NSString *LegalStatusToString(int legalStatus) CONST_FUNC;
 NSString *AlertConditionToString(OOAlertCondition alertCondition) CONST_FUNC;
 
+// Localized shader mode strings.
 NSString *ShaderSettingToDisplayString(OOShaderSetting setting) CONST_FUNC;
+
+// Programmer-readable shader mode strings.
+NSString *ShaderSettingToString(OOShaderSetting setting) CONST_FUNC;
+OOShaderSetting StringToShaderSetting(NSString *string) PURE_FUNC;
 
 NSString *CommodityDisplayNameForSymbolicName(NSString *symbolicName);
 NSString *CommodityDisplayNameForCommodityArray(NSArray *commodityDefinition);

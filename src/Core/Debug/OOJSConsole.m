@@ -39,6 +39,7 @@ SOFTWARE.
 #import "OOJSEntity.h"
 #import "OOJSCall.h"
 #import "OOLoggingExtended.h"
+#import "OOConstToString.h"
 
 
 @interface Entity (OODebugInspector)
@@ -92,7 +93,8 @@ static JSClass sConsoleClass =
 enum
 {
 	// Property IDs
-	kConsole_debugFlags			// debug flags, integer, read/write
+	kConsole_debugFlags,		// debug flags, integer, read/write
+	kConsole_shaderMode
 };
 
 
@@ -100,6 +102,7 @@ static JSPropertySpec sConsoleProperties[] =
 {
 	// JS name					ID							flags
 	{ "debugFlags",				kConsole_debugFlags,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "shaderMode",				kConsole_shaderMode,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -201,7 +204,12 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 		case kConsole_debugFlags:
 			*outValue = INT_TO_JSVAL(gDebugFlags);
 			break;
-#endif			
+#endif		
+			
+		case kConsole_shaderMode:
+			*outValue = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) javaScriptValueInContext:context];
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
@@ -214,6 +222,7 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
 	int32						iValue;
+	NSString					*sValue = nil;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -226,7 +235,16 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 				gDebugFlags = iValue;
 			}
 			break;
-#endif			
+#endif		
+		case kConsole_shaderMode:
+			sValue = JSValToNSString(context, *value);
+			if (sValue != nil)
+			{
+				OOShaderSetting setting = StringToShaderSetting(sValue);
+				[UNIVERSE setShaderEffectsLevel:setting];
+			}
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;

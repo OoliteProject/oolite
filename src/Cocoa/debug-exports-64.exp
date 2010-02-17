@@ -60,6 +60,7 @@ _QuaternionDescription
 _VectorDescription
 _BehaviourToString
 _kOOLogUnconvertedNSLog
+_ShaderSettingToString
 
 # Debug value formatter support
 _JSValueToStrDbg
