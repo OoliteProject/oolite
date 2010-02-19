@@ -176,6 +176,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			if ((strict && !strictModeCompatible) || (!strict && strictModeOnly))  OK = NO;
 			
 			_isAvailableToAll = [extra oo_boolForKey:@"available_to_all" defaultValue:_isAvailableToAll];
+			_isMissileOrMine = [extra oo_boolForKey:@"is_external_store" defaultValue:_isMissileOrMine];
 			_requiresEmptyPylon = [extra oo_boolForKey:@"requires_empty_pylon" defaultValue:_requiresEmptyPylon];
 			_requiresMountedPylon = [extra oo_boolForKey:@"requires_mounted_pylon" defaultValue:_requiresMountedPylon];
 			_requiresClean = [extra oo_boolForKey:@"requires_clean" defaultValue:_requiresClean];
