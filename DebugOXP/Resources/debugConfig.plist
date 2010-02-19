@@ -52,7 +52,7 @@
 		"setM"		= "setMacro(PARAM)";
 		"delM"		= "deleteMacro(PARAM)";
 		"showM"		= "showMacro(PARAM)";
-		"listM"		= "for (let prop in macros) { consoleMessage('macro-list', ':' + prop) }";
+		"listM"		= "for (var prop in macros) { consoleMessage('macro-list', ':' + prop) }";
 		
 		// Reload macros from plist, removing any custom ones.
 		"resetM"	= "delete console.settings.macros; macros = console.settings.macros; undefined";

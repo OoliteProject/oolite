@@ -147,6 +147,16 @@ static JSFunctionSpec sScriptMethods[] =
 		}
 	}
 	
+	// Push self on stack of running scripts.
+	RunningStack stackElement =
+	{
+		.back = sRunningStack,
+		.current = self
+	};
+	sRunningStack = &stackElement;
+	
+	filePath = [path retain];
+	
 	if (!problem)
 	{
 		script = LoadScriptWithName(context, path, _jsSelf, &problem);
@@ -176,24 +186,16 @@ static JSFunctionSpec sScriptMethods[] =
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
 	if (!problem)
 	{
-		// Push self on stack of running scripts.
-		RunningStack stackElement =
-		{
-			.back = sRunningStack,
-			.current = self
-		};
-		sRunningStack = &stackElement;
-		
 		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
 		{
 			problem = @"could not run script";
 		}
 		
-		sRunningStack = stackElement.back;
-		
 		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
 	}
+	
+	sRunningStack = stackElement.back;
 	
 	if (!problem)
 	{
@@ -211,6 +213,8 @@ static JSFunctionSpec sScriptMethods[] =
 		
 		OOLog(@"script.javaScript.load.success", @"Loaded JavaScript OXP: %@ -- %@", [self displayName], description ? description : (NSString *)@"(no description)");
 	}
+	
+	DESTROY(filePath);	// Only used for error reporting during startup.
 	
 	if (problem)
 	{
@@ -230,6 +234,7 @@ static JSFunctionSpec sScriptMethods[] =
 	[name release];
 	[description release];
 	[version release];
+	DESTROY(filePath);
 	
 	JSContext *context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 	JSObjectWrapperFinalize(context, _jsSelf);	// Release weakref to self
@@ -281,6 +286,7 @@ static JSFunctionSpec sScriptMethods[] =
 - (NSString *) name
 {
 	if (name == nil)  name = [[self propertyNamed:@"name"] copy];
+	if (name == nil)  return [self scriptNameFromPath:filePath];	// Special case for parse errors during load.
 	return name;
 }
 

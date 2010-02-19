@@ -3669,6 +3669,7 @@ static GLfloat sBaseMass = 0.0;
 		BOOL killIsCargo = ((killClass == CLASS_CARGO) && ([other commodityAmount] > 0));
 		if ((killIsCargo) || (killClass == CLASS_BUOY) || (killClass == CLASS_ROCK))
 		{
+			// EMMSTRAN: no killaward (but full bounty) for tharglets?
 			if (![other hasRole:@"tharglet"])	// okay, we'll count tharglets as proper kills
 			{
 				score /= 10;	// reduce bounty awarded

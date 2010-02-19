@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 	NSString			*name;
 	NSString			*description;
 	NSString			*version;
+	NSString			*filePath;
 	
 	OOWeakReference		*weakSelf;
 }

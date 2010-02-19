@@ -16,29 +16,7 @@ The following properties are predefined for the script object:
 
 The console object has the following properties and methods:
 
-function consoleMessage(colorCode : String, message : String)
-	Similar to Log(), but takes a colour code which is looked up in
-	debugConfig.plist. null is equivalent to "general".
-
-function clearConsole()
-	Clear the console.
-
-function inspectEntity(entity : Entity)
-	Show inspector palette for entity (Mac OS X only).
-
-function __callObjCMethod()
-	Implements call() for entities.
-
-function displayMessagesInClass(class : String) : Boolean
-	Returns true if the specified log message class is enabled, false otherwise.
-
-function setDisplayMessagesInClass(class : String, flag : Boolean)
-	Enable or disable logging of the specified log message class. For example,
-	the equivalent of the legacy command debugOn is:
-		debugConsole.setDisplayMessagesInClass("$scriptDebugOn", true);
-	Metaclasses and inheritance work as in logcontrol.plist.
-
-debugFlags
+debugFlags : Number (integer, read/write)
 	An integer bit mask specifying various debug options. The flags vary
 	between builds, but at the time of writing they are:
 		DEBUG_LINKED_LISTS:		0x1
@@ -62,7 +40,42 @@ debugFlags
 	the ^= operator (XOR assign) can be thought of as a “toggle option”
 	command.
 
-isExecutableJavaScript(code : String) : Boolean
+shaderMode : String (read/write)
+	A string specifying the current shader mode. One of the following:
+		"SHADERS_NOT_SUPPORTED"
+		"SHADERS_OFF"
+		"SHADERS_SIMPLE"
+		"SHADERS_FULL"
+	If it is SHADERS_NOT_SUPPORTED, it cannot be set to any other value. If it
+	is not SHADERS_NOT_SUPPORTED, it can be set to SHADERS_OFF, SHADERS_SIMPLE
+	or SHADERS_FULL. As of Oolite 1.74, these changes take effect immediately.
+	
+	NOTE: this is equivalent to oolite.gameSettings.shaderEffectsLevel, which
+	is available even when the debug console is not active, but is read-only.
+	
+function consoleMessage(colorCode : String, message : String)
+	Similar to Log(), but takes a colour code which is looked up in
+	debugConfig.plist. null is equivalent to "general".
+
+function clearConsole()
+	Clear the console.
+
+function inspectEntity(entity : Entity)
+	Show inspector palette for entity (Mac OS X only).
+
+function __callObjCMethod()
+	Implements call() for entities.
+
+function displayMessagesInClass(class : String) : Boolean
+	Returns true if the specified log message class is enabled, false otherwise.
+
+function setDisplayMessagesInClass(class : String, flag : Boolean)
+	Enable or disable logging of the specified log message class. For example,
+	the equivalent of the legacy command debugOn is:
+		debugConsole.setDisplayMessagesInClass("$scriptDebugOn", true);
+	Metaclasses and inheritance work as in logcontrol.plist.
+	
+function isExecutableJavaScript(code : String) : Boolean
 	Used to test whether code is runnable as-is. Returns false if the code has
 	unbalanced braces or parentheses. (Used in consolePerformJSCommand() below.)
 
@@ -73,7 +86,7 @@ $
 
 Oolite Debug OXP
 
-Copyright © 2007-2009 Jens Ayton
+Copyright © 2007-2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -123,7 +136,7 @@ this.macros =
 this.dumpObjectShort = function (x)
 {
 	consoleMessage("dumpObject", x.toString() + ":");
-	for (let prop in x)
+	for (var prop in x)
 	{
 		if (prop.hasOwnProperty(name))
 		{
@@ -135,7 +148,7 @@ this.dumpObjectShort = function (x)
 
 this.performLegacyCommand = function (x)
 {
-	let [command, params] = x.getOneToken();
+	var [command, params] = x.getOneToken();
 	return player.ship.call(command, params);
 }
 
@@ -144,7 +157,7 @@ this.performLegacyCommand = function (x)
 this.dumpObjectLong = function (x)
 {
 	consoleMessage("dumpObject", x.toString() + ":");
-	for (let prop in x)
+	for (var prop in x)
 	{
 		if (prop.hasOwnProperty(name))
 		{
@@ -157,10 +170,10 @@ this.dumpObjectLong = function (x)
 // Print the objects in a list on lines.
 this.printList = function (l)
 {
-	let length = l.length;
+	var length = l.length;
 	
 	consoleMessage("printList", length.toString() + " items:");
-	for (let i = 0; i != length; i++)
+	for (var i = 0; i != length; i++)
 	{
 		consoleMessage("printList", "  " + l[i].toString());
 	}
@@ -170,14 +183,14 @@ this.printList = function (l)
 this.setColorFromString = function (string, typeName)
 { 
 	// Slice of the first component, where components are separated by one or more spaces.
-	let [key, value] = string.getOneToken();
-	let fullKey = key + "-" + typeName + "-color";
+	var [key, value] = string.getOneToken();
+	var fullKey = key + "-" + typeName + "-color";
 	
-	/*	Set the colour. The "let c" stuff is so that JS property lists (like
+	/*	Set the colour. The "var c" stuff is so that JS property lists (like
 		{ hue: 240, saturation: 0.12 } will work -- this syntax is only valid
 		in assignments.
 	*/
-	debugConsole.settings[fullKey] = eval("let c=" + value + ";c");
+	debugConsole.settings[fullKey] = eval("var c=" + value + ";c");
 	
 	consoleMessage("command-result", "Set " + typeName + " colour “" + key + "” to " + value + ".");
 }
@@ -187,7 +200,7 @@ this.setColorFromString = function (string, typeName)
 
 this.consolePerformJSCommand = function (command)
 {
-	let originalCommand = command;
+	var originalCommand = command;
 	while (command.charAt(0) == " ")
 	{
 		command = command.substring(1);
@@ -230,7 +243,7 @@ this.consolePerformJSCommand = function (command)
 
 this.evaluate = function (command, type, PARAM)
 {
-	let result = eval(command);
+	var result = eval(command);
 	if (result !== undefined)
 	{
 		if (result === null)  result = "null";
@@ -247,7 +260,7 @@ this.setMacro = function (parameters)
 	if (!parameters)  return;
 	
 	// Split at first series of spaces
-	let [name, body] = parameters.getOneToken();
+	var [name, body] = parameters.getOneToken();
 	
 	if (body)
 	{
@@ -267,7 +280,7 @@ this.deleteMacro = function (parameters)
 {
 	if (!parameters)  return;
 	
-	let [name, ] = parameters.getOneToken();
+	var [name, ] = parameters.getOneToken();
 	
 	if (name.charAt(0) == ":" && name != ":")  name = name.substring(1);
 	
@@ -289,7 +302,7 @@ this.showMacro = function (parameters)
 {
 	if (!parameters)  return;
 	
-	let [name, ] = parameters.getOneToken();
+	var [name, ] = parameters.getOneToken();
 	
 	if (name.charAt(0) == ":" && name != ":")  name = name.substring(1);
 	
@@ -312,15 +325,15 @@ this.performMacro = function (command)
 	command = command.substring(1);
 	
 	// Split at first series of spaces
-	let [macroName, parameters] = command.getOneToken();
+	var [macroName, parameters] = command.getOneToken();
 	if (macros[macroName] !== undefined)
 	{
-		let expansion = macros[macroName];
+		var expansion = macros[macroName];
 		
 		if (expansion)
 		{
 			// Show macro expansion.
-			let displayExpansion = expansion;
+			var displayExpansion = expansion;
 			if (parameters)
 			{
 				// Substitute parameter string into display expansion, going from 'foo(PARAM)' to 'foo("parameters")'.
@@ -357,14 +370,14 @@ this.performMacro = function (command)
  */
 String.prototype.getOneToken = function ()
 {
-	let matcher = /\s+/g;		// Regular expression to match one or more spaces.
+	var matcher = /\s+/g;		// Regular expression to match one or more spaces.
 	matcher.lastIndex = 0;
-	let match = matcher.exec(this);
+	var match = matcher.exec(this);
 	
 	if (match)
 	{
-		let token = this.substring(0, match.index);		// Text before spaces
-		let tail = this.substring(matcher.lastIndex);	// Text after spaces
+		var token = this.substring(0, match.index);		// Text before spaces
+		var tail = this.substring(matcher.lastIndex);	// Text after spaces
 		
 		if (token.length != 0)  return [token, tail];
 		else  return tail.getOneToken();	// Handle leading spaces case. This won't recurse more than once.
@@ -385,7 +398,7 @@ String.prototype.getOneToken = function ()
  */
 String.prototype.substituteEscapeCodes = function ()
 {
-	let string = this.replace(/\\/g, "\\\\");	// Convert \ to \\ -- must be first since we’ll be introducing new \s below.
+	var string = this.replace(/\\/g, "\\\\");	// Convert \ to \\ -- must be first since we’ll be introducing new \s below.
 	
 	string = string.replace(/\x08/g, "\\b");	// Backspace to \b
 	string = string.replace(/\f/g, "\\f");		// Form feed to \f
