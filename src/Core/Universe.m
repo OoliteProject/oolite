@@ -2491,7 +2491,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		
 		if ([role isEqual:@"trader"])
 		{
-			// half of traders created anyywhere will now have cargo. 
+			// half of traders created anywhere will now have cargo. 
 			if (randf() > 0.5f)
 				[ship setCargoFlag:(randf() < 0.66f ? CARGO_FLAG_FULL_PLENTIFUL : CARGO_FLAG_FULL_SCARCE)];	// most of them will carry the cargo produced in-system.
 			
