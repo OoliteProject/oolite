@@ -1629,7 +1629,7 @@ static NSTimeInterval	time_last_frame;
 			}
 			
 		case GUI_SCREEN_SYSTEM_DATA:
-			if ([self status] == STATUS_DOCKED && [gameView isDown:key_contract_info])  // '?' toggle between maps/info and contract screen
+			if ([self status] == STATUS_DOCKED && [gameView isDown:key_contract_info] && ![UNIVERSE strict])  // '?' toggle between maps/info and contract screen
 			{
 				if (!queryPressed)
 				{

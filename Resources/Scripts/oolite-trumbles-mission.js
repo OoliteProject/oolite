@@ -87,7 +87,7 @@ this.missionScreenOpportunity = function ()
 
 this.trumbleOffered = function(choice)
 {
-	if (choice == "OOLITE_TRUMBLE_YES")
+	if (choice === "OOLITE_TRUMBLE_YES")
 	{
 		missionVariables.trumbles = "TRUMBLE_BOUGHT";
 		player.credits -= 30;

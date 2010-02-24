@@ -6604,13 +6604,9 @@ static NSString *last_outfitting_key=nil;
 	}
 	
 	// one of the fined-@-credits strings includes expansion tokens
-	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOStringFromDeciCredits(fine, YES, NO)];
-	[UNIVERSE addCommsMessage:fined_message forCount:8 andShowComms:NO logOnly:NO];
+	NSString* fined_message = [NSString stringWithFormat:ExpandDescriptionForCurrentSystem(DESC(@"fined-@-credits")), OOCredits(fine)];
+	[self addMessageToReport:fined_message];
 	ship_clock_adjust = 24 * 3600;	// take up a day
-	if (gui_screen != GUI_SCREEN_STATUS)
-	{
-		[self setGuiToStatusScreen];
-	}
 }
 
 
@@ -7344,7 +7340,7 @@ static NSString *last_outfitting_key=nil;
 		
 	amountToPay = MIN(maximumFine, calculatedFine);
 	credits -= amountToPay;
-	[UNIVERSE addCommsMessage:[NSString stringWithFormat:DESC(@"station-docking-clearance-fined-@-cr"), OOCredits(amountToPay)] forCount:8 andShowComms:NO logOnly:NO];
+	[self addMessageToReport:[NSString stringWithFormat:DESC(@"station-docking-clearance-fined-@-cr"), OOCredits(amountToPay)]];
 }
 
 #endif

@@ -622,10 +622,9 @@
 	// /station
 	"fined-@-credits" =
 	(
-		"You have been fined %@ credits.",
-		"You have been fined %@ credits, and made to pick up litter in the main hangar deck.",
-		"You have been fined %@ credits, and are forced to clean up after the [6]oids.",
-		"You have been fined %@ credits, and sent for “attitude adjustment”."
+		"You have been fined %@, and made to pick up litter in the main hangar deck.",
+		"You have been fined %@, and are forced to clean up after the [6]oids.",
+		"You have been fined %@, and sent for “attitude adjustment”."
 	);
 
 	// Space station docking clearance
@@ -653,7 +652,7 @@
 		"Please wait until launching ships have cleared the docking corridor. Your queue position is %d.",
 		"We have outbound traffic, Commander. Please stand by.",
 		"Clearance cannot be granted at this moment, due to prioritized outgoing traffic. Please hold station.",
-		"There are ships in the launching queue. Your queue position is %d - please hold.",
+		"There are ships in the launching queue. Your queue position is %d - please hold."
 	);
 	"station-docking-clearance-holding-d-ships-departing" =
 	(
@@ -663,13 +662,13 @@
 		"Please wait until queued ships have launched. Your queue position is %d.",
 		"We have outbound traffic, commander. Please stand by. You are number %d in the queue.",
 		"We cannot clear you for docking due to prioritized outbound traffic. Your queue position is %d.",
-		"We have launching ships pending. Please hold for clearance.",
+		"We have launching ships pending. Please hold for clearance."
 	);
 	"station-docking-clearance-not-required" =
 	(
 		"We do not require docking clearance, Commander. Feel free to dock at any time.",
 		"Docking clearance not required.",
-		"Come on in, Commander!",
+		"Come on in, Commander!"
 	);
 	"station-docking-clearance-H-clearance-refused" =
 	(
@@ -687,29 +686,31 @@
 	);
 	"station-docking-clearance-extended-until-@" =
 	(
-		"Your docking clearance extension has been approved, you now have until %@",
+		"Your docking clearance extension has been approved, you now have until %@"
 	);
 	"station-docking-clearance-about-to-expire" =
 	(
 		"You have 30 seconds left to dock.",
 		"Your docking window is about to close.  Hurry up!",
-		"Warning! Your docking clearance is about to expire.",
+		"Warning! Your docking clearance is about to expire."
 	);
 	"station-docking-clearance-expired" =
 	(
-		"Your docking clearance has expired.  Please clear the docking corridor.",
+		"Your docking clearance has expired.  Please clear the docking corridor."
 	);
 	"station-docking-clearance-cancelled" =
 	(
-		"Docking clearance cancelled, Commander. Please leave the docking area.",
+		"Docking clearance cancelled, Commander. Please leave the docking area."
 	);
 	"station-docking-clearance-abort-cancelled" =
 	(
-		"Due to an emergency your docking clearance has been revoked.  Please clear the station approach immediately.",
+		"Due to an emergency your docking clearance has been revoked.  Please clear the station approach immediately."
 	);
 	"station-docking-clearance-fined-@-cr" =
 	(
-		"You have been fined %@ for unauthorized docking.",
+		"You have been fined %@ for unauthorized docking. Docking without asking for clearance is not allowed here.",
+		"You have been fined %@ for violating the station's docking protocol. Docking without clearance is not allowed here.",
+		"You docked without any clearance. For violating the station's docking protocol you have been fined %@."
 	);
 		
 	// system description after a nova
