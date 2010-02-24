@@ -7534,8 +7534,11 @@ BOOL class_masslocks(int some_class)
 
 - (void) deactivateCloakingDevice
 {
-	cloaking_device_active = NO;
-	[self doScriptEvent:@"shipCloakDeactivated"];
+	if ([self hasCloakingDevice] && cloaking_device_active)
+	{
+		cloaking_device_active = NO;
+		[self doScriptEvent:@"shipCloakDeactivated"];
+	}
 }
 
 
