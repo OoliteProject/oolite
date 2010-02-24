@@ -1,5 +1,6 @@
 #include "oolite-version.xcconfig"
 #include "oolite-targets.xcconfig"
+#include "oolite-snapshot.xcconfig"
 
 
 ALLOW_PROCEDURAL_PLANETS			= 0

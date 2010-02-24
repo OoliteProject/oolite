@@ -1,0 +1,5 @@
+// Hacktackular: Universe.m has $SNAPSHOT_MACROS in its "Additional Compiler Flags"
+// setting. The Mac nightly script overrides this file to set up the SNAPSHOT_BUILD
+// and OOLITE_SNAPSHOT_VERSION macros.
+
+SNAPSHOT_MACROS = ""

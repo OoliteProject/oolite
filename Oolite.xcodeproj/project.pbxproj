@@ -673,7 +673,7 @@
 		2516117E099544390037C2E1 /* HeadUpDisplay.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516112C099544390037C2E1 /* HeadUpDisplay.h */; };
 		2516118B099544390037C2E1 /* ResourceManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161139099544390037C2E1 /* ResourceManager.m */; };
 		2516118C099544390037C2E1 /* ResourceManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 2516113A099544390037C2E1 /* ResourceManager.h */; };
-		25161195099544390037C2E1 /* Universe.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161143099544390037C2E1 /* Universe.m */; };
+		25161195099544390037C2E1 /* Universe.m in Sources */ = {isa = PBXBuildFile; fileRef = 25161143099544390037C2E1 /* Universe.m */; settings = {COMPILER_FLAGS = $SNAPSHOT_MACROS; }; };
 		25161196099544390037C2E1 /* Universe.h in Headers */ = {isa = PBXBuildFile; fileRef = 25161144099544390037C2E1 /* Universe.h */; };
 		2576E7B309B4F418007410F7 /* MyOpenGLView.h in Headers */ = {isa = PBXBuildFile; fileRef = 2576E7B209B4F418007410F7 /* MyOpenGLView.h */; };
 		25F3E6310994F033002F25FD /* legacy_random.h in Headers */ = {isa = PBXBuildFile; fileRef = 25F3E6300994F033002F25FD /* legacy_random.h */; };
@@ -1534,6 +1534,7 @@
 		1A644E211052A9FD00833636 /* traderInterceptAI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = traderInterceptAI.plist; sourceTree = "<group>"; };
 		1A65150D0CCC9E220054D01B /* oolite-standard-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-standard-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A65150E0CCC9E220054D01B /* oolite-default-shader.fragment */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-default-shader.fragment"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
+		1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-snapshot.xcconfig"; path = "src/Cocoa/oolite-snapshot.xcconfig"; sourceTree = "<group>"; };
 		1A6A963210AEEC5D0065D0F3 /* AIGraphViz.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIGraphViz.m; sourceTree = "<group>"; };
 		1A6B1EEE0C9AA5C6000717CF /* OOScriptTimer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOScriptTimer.h; sourceTree = "<group>"; };
 		1A6B1EEF0C9AA5C6000717CF /* OOScriptTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOScriptTimer.m; sourceTree = "<group>"; };
@@ -2936,6 +2937,7 @@
 				1A45BCC9104AB46900A89324 /* oolite-targets.xcconfig */,
 				1AD88FAF103F29D300AA36F4 /* oolite-options.xcconfig */,
 				1ABFEE2110507987005AA752 /* oolite-nonshared.xcconfig */,
+				1A6A3A7E1135E0F200697AF8 /* oolite-snapshot.xcconfig */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
 				1A5BF2710916D45B00BF238F /* MDImporter */,
 				1A8071D70C0480AC00BA1935 /* Debug OXP */,
