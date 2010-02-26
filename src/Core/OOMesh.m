@@ -725,6 +725,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		[result->baseFile retain];
 		[result->octree retain];
 		[result->_retainedObjects retain];
+		[result->_materialDict retain];
+		[result->_shadersDict retain];
+		[result->_cacheKey retain];
+		[result->_shaderMacros retain];
+		[result->_shaderBindingTarget retain];
 		
 		for (i = 0; i != kOOMeshMaxMaterials; ++i)
 		{
