@@ -2218,17 +2218,17 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (void) addPlanet: (NSString *)planetKey
+- (OOPlanetEntity *) addPlanet: (NSString *)planetKey
 {
 	OOLog(kOOLogNoteAddPlanet, @"addPlanet: %@", planetKey);
 
 	if (!UNIVERSE)
-		return;
+		return nil;
 	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:planetKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", planetKey);
-		return;
+		return nil;
 	}
 
 	/*- add planet -*/
@@ -2244,7 +2244,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (![dict objectForKey:@"position"])
 	{
 		OOLog(@"script.error.addPlanet.noPosition", @"***** ERROR: you must specify a position for scripted planet '%@' before it can be created", planetKey);
-		return;
+		return nil;
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
@@ -2266,20 +2266,21 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[planet setPosition: posn];
 	
 	[UNIVERSE addEntity:planet];
+	return planet;
 }
 
 
-- (void) addMoon: (NSString *)moonKey
+- (OOPlanetEntity *) addMoon: (NSString *)moonKey
 {
 	OOLog(kOOLogNoteAddPlanet, @"DEBUG: addMoon '%@'", moonKey);
 
 	if (!UNIVERSE)
-		return;
+		return nil;
 	NSDictionary* dict = [[UNIVERSE planetInfo] oo_dictionaryForKey:moonKey];
 	if (!dict)
 	{
 		OOLog(@"script.error.addPlanet.keyNotFound", @"***** ERROR: could not find an entry in planetinfo.plist for '%@'", moonKey);
-		return;
+		return nil;
 	}
 
 	OOLog(kOOLogDebugAddPlanet, @"DEBUG: initMoonFromDictionary: %@", dict);
@@ -2294,7 +2295,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	if (![dict objectForKey:@"position"])
 	{
 		OOLog(@"script.error.addPlanet.noPosition", @"***** ERROR: you must specify a position for scripted moon '%@' before it can be created", moonKey);
-		return;
+		return nil;
 	}
 	
 	NSString *positionString = [dict objectForKey:@"position"];
@@ -2315,6 +2316,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	[planet setPosition: posn];
 	
 	[UNIVERSE addEntity:planet];
+	return planet;
 }
 
 

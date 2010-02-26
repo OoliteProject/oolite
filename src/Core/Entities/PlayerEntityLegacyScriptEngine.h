@@ -224,8 +224,8 @@ typedef enum
 - (void) blowUpStation;
 - (void) sendAllShipsAway;
 
-- (void) addPlanet: (NSString *)planetKey;
-- (void) addMoon: (NSString *)moonKey;
+- (OOPlanetEntity *) addPlanet: (NSString *)planetKey;
+- (OOPlanetEntity *) addMoon: (NSString *)moonKey;
 
 - (void) debugOn;
 - (void) debugOff;

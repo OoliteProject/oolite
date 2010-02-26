@@ -441,11 +441,12 @@ static JSBool SystemToString(JSContext *context, JSObject *this, uintN argc, jsv
 }
 
 
-// addPlanet(key : String)
+// addPlanet(key : String) : Planet
 static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
+	OOPlanetEntity		*planet = nil;
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -454,16 +455,19 @@ static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, js
 		return NO;
 	}
 	
-	[player addPlanet:key];
+	planet = [player addPlanet:key];
+	*outResult = planet ? [planet javaScriptValueInContext:context] : JSVAL_NULL;
+	
 	return YES;
 }
 
 
-// addMoon(key : String)
+// addMoon(key : String) : Planet
 static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
+	OOPlanetEntity		*planet = nil;
 	
 	key = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
@@ -472,7 +476,9 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 		return NO;
 	}
 	
-	[player addMoon:key];
+	planet = [player addMoon:key];
+	*outResult = planet ? [planet javaScriptValueInContext:context] : JSVAL_NULL;
+	
 	return YES;
 }
 

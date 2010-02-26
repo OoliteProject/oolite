@@ -345,7 +345,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 
 // *** Methods ***
 
-// function consoleMessage(message : String) : void
+// function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number]) : void
 static JSBool ConsoleConsoleMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	id					monitor = nil;

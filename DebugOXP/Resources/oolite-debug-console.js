@@ -53,9 +53,10 @@ shaderMode : String (read/write)
 	NOTE: this is equivalent to oolite.gameSettings.shaderEffectsLevel, which
 	is available even when the debug console is not active, but is read-only.
 	
-function consoleMessage(colorCode : String, message : String)
-	Similar to Log(), but takes a colour code which is looked up in
-	debugConfig.plist. null is equivalent to "general".
+function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number])
+	Similar to log(), but takes a colour code which is looked up in
+	debugConfig.plist. null is equivalent to "general". It can also optionally
+	take a range of characters that should be emphasised.
 
 function clearConsole()
 	Clear the console.
@@ -110,7 +111,7 @@ SOFTWARE.
 
 this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
-this.copyright		= "© 2007-2008 the Oolite team.";
+this.copyright		= "© 2007-2010 the Oolite team.";
 this.description	= "Debug console script.";
 this.version		= "1.74";
 
