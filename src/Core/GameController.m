@@ -346,7 +346,11 @@ static GameController *sSharedController = nil;
 	{   
 		NSTimeInterval ti = 0.01;
 		timer = [[NSTimer timerWithTimeInterval:ti target:self selector:@selector(performGameTick:) userInfo:nil repeats:YES] retain];
+		
 		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSDefaultRunLoopMode];
+#if OOLITE_HAVE_APPKIT
+		[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSEventTrackingRunLoopMode];
+#endif
 	}
 }
 
