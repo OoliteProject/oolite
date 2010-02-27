@@ -3663,7 +3663,6 @@ static const OOMatrix	starboard_matrix =
 			
 			CheckOpenGLErrors(@"Universe before doing anything");
 			
-			OOGL(glEnable(GL_LIGHTING));
 			OOGL(glEnable(GL_DEPTH_TEST));
 			OOGL(glEnable(GL_CULL_FACE));			// face culling
 			OOGL(glDepthMask(GL_TRUE));	// restore write to depth buffer
@@ -3685,6 +3684,11 @@ static const OOMatrix	starboard_matrix =
 			// HACK BUSTED
 			OOGL(glScalef(-1.0, 1.0, 1.0));   // flip left and right
 			OOGL(glPushMatrix()); // save this flat viewpoint
+			
+			// If set, display background GUI image. Must be done before enabling lights to avoid dim backgrounds
+			if (displayGUI)  [gui drawGUIBackground];
+			
+			OOGL(glEnable(GL_LIGHTING));
 			
 			// Set up view transformation matrix
 			OOMatrix flipMatrix = kIdentityMatrix;
@@ -3855,7 +3859,6 @@ static const OOMatrix	starboard_matrix =
 			OOGL(glPopMatrix()); //restore saved flat viewpoint
 
 			OOGL(glDisable(GL_LIGHTING));			// disable lighting
-			if (displayGUI)	[gui drawGUIBackground];// dim background image was caused by the lighting
 			OOGL(glDisable(GL_DEPTH_TEST));			// disable depth test
 			OOGL(glDisable(GL_CULL_FACE));			// face culling
 			OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
