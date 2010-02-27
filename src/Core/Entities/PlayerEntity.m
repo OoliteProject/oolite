@@ -4165,7 +4165,6 @@ static GLfloat sBaseMass = 0.0;
 		compassMode = COMPASS_MODE_BASIC;
 
 	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 
 	[hud setScannerZoom:1.0];
 	scanner_zoom_rate = 0.0f;
@@ -4173,6 +4172,9 @@ static GLfloat sBaseMass = 0.0;
 	[UNIVERSE setDisplayText:NO];
 
 	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
+
+	// clock must be set after "playerWillEnterWitchspace", or not all escorts will follow their mother correctly. 
+	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	[UNIVERSE setSystemTo:target_system_seed];
