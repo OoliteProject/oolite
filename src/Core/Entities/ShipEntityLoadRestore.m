@@ -220,7 +220,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	if (groupID != NSNotFound)
 	{
 		OOShipGroup *group = GroupForGroupID(groupID, context);
-		[group setLeader:self];
+		[group setLeader:ship];
 		[group setName:@"escort group"];
 		[ship setEscortGroup:group];
 	}

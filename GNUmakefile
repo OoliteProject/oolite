@@ -74,7 +74,7 @@ ifeq ($(TARGET_INCOMING_MISSILES),yes)
 	ADDITIONAL_OBJCFLAGS += -DTARGET_INCOMING_MISSILES=1
 endif
 
-# DEPLOYMENT_RELEASE_CONGIGURATION value is passed from Makefile. Note that the deployment release settings
+# DEPLOYMENT_RELEASE_CONFIGURATION value is passed from Makefile. Note that the deployment release settings
 # are forced, while test release settings are adjustable.
 ifeq ($(DEPLOYMENT_RELEASE_CONFIGURATION),yes)
 	ADDITIONAL_CFLAGS += -DNDEBUG
