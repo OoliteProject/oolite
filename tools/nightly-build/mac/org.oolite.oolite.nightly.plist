@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<plist version="1.0">
+<dict>
+	<!-- Configuration: specify user and paths here. -->
+	<key>UserName</key>
+	<string>jayton</string>
+	<key>WorkingDirectory</key>
+	<string>/Users/jayton/Programming/Projects/Oolite/nightly/</string>
+	<key>Program</key>
+	<string>/Users/jayton/Programming/Projects/Oolite/nightly/build</string>
+	<key>StandardOutPath</key>
+	<string>/Users/jayton/Programming/Projects/Oolite/nightly/build/stdout.txt</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/jayton/Programming/Projects/Oolite/nightly/build/stderr.txt</string>
+	
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Hour</key>
+		<integer>4</integer>
+		<key>Minute</key>
+		<integer>30</integer>
+	</dict>
+	<!-- End of configuration -->
+	
+	<key>Label</key>
+	<string>org.oolite.oolite.nightly</string>
+	<key>LowPriorityIO</key>
+	<true/>
+	<key>Nice</key>
+	<integer>1</integer>
+</dict>
+</plist>
