@@ -267,32 +267,39 @@ static NSTimeInterval	time_last_frame;
 - (void) pollControls:(double)delta_t
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
+	NSString * volatile	exceptionContext = @"setup";
 	
 	NS_DURING
 		if (gameView)
 		{
 			// poll the gameView keyboard things
+			exceptionContext = @"pollApplicationControls";
 			[self pollApplicationControls]; // quit command-f etc.
 			switch ([self status])
 			{
 				case STATUS_WITCHSPACE_COUNTDOWN:
 				case STATUS_IN_FLIGHT:
+					exceptionContext = @"pollFlightControls";
 					[self pollFlightControls:delta_t];
 					break;
 					
 				case STATUS_DEAD:
+					exceptionContext = @"pollGameOverControls";
 					[self pollGameOverControls:delta_t];
 					break;
 					
 				case STATUS_AUTOPILOT_ENGAGED:
+					exceptionContext = @"pollAutopilotControls";
 					[self pollAutopilotControls:delta_t];
 					break;
 					
 				case STATUS_DOCKED:
+					exceptionContext = @"pollDockedControls";
 					[self pollDockedControls:delta_t];
 					break;
 					
 				case STATUS_START_GAME:
+					exceptionContext = @"pollDemoControls";
 					[self pollDemoControls:delta_t];
 					break;
 					
@@ -301,7 +308,8 @@ static NSTimeInterval	time_last_frame;
 			}
 		}
 	NS_HANDLER
-		OOLog(kOOLogException, @"***** Exception checking controls: %@ : %@", [localException name], [localException reason]);
+		// TEMP extra exception checking
+		OOLog(kOOLogException, @"***** Exception checking controls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
 	NS_ENDHANDLER
 }
 
@@ -394,1020 +402,1070 @@ static NSTimeInterval	time_last_frame;
 
 - (void) pollApplicationControls
 {
-	if(!pollControls)
-		return;
+	if (!pollControls) return;
+	
+	NSString * volatile	exceptionContext = @"setup";
 	
 	// does fullscreen / quit / snapshot
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
 	
-	//  command-key controls
-	if ([[gameView gameController] inFullScreenMode])
-	{
-		if ([gameView isCommandFDown])
+	NS_DURING
+		//  command-key controls
+		if ([[gameView gameController] inFullScreenMode])
 		{
-			[[gameView gameController] exitFullScreenMode];
-			if (mouse_control_on)
+			exceptionContext = @"command key controls";
+			if ([gameView isCommandFDown])
 			{
-				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-				mouse_control_on = NO;
+				[[gameView gameController] exitFullScreenMode];
+				if (mouse_control_on)
+				{
+					[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+					mouse_control_on = NO;
+				}
+			}
+			
+			if ([gameView isCommandQDown])
+			{
+				[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
 			}
 		}
 		
-		if ([gameView isCommandQDown])
+	#if OOLITE_WINDOWS
+		if ( ([gameView isDown:'Q']) )
 		{
-			[[gameView gameController] pauseFullScreenModeToPerform:@selector(exitApp) onTarget:[gameView gameController]];
-		}
-	}
-	
-#if OOLITE_WINDOWS
-	if ( ([gameView isDown:'Q']) )
-	{
-		[[gameView gameController] exitApp];
-		exit(0); // Force it
-	}
-#endif
-	
-	// handle pressing Q or [esc] in error-handling mode
-	if ([self status] == STATUS_HANDLING_ERROR)
-	{
-		if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
-		{
+			exceptionContext = @"windows - Q";
 			[[gameView gameController] exitApp];
+			exit(0); // Force it
 		}
-	}
-	
-	//  snapshot
-	if ([gameView isDown:key_snapshot])   //  '*' key
-	{
-		if (!taking_snapshot)
+	#endif
+		
+		// handle pressing Q or [esc] in error-handling mode
+		if ([self status] == STATUS_HANDLING_ERROR)
 		{
-			taking_snapshot = YES;
-			[gameView snapShot];
-		}
-	}
-	else
-	{
-		taking_snapshot = NO;
-	}
-	
-	// FPS display
-	if ([gameView isDown:key_show_fps])   //  'F' key
-	{
-		if (!f_key_pressed)  [UNIVERSE setDisplayFPS:![UNIVERSE displayFPS]];
-		f_key_pressed = YES;
-	}
-	else
-	{
-		f_key_pressed = NO;
-	}
-	
-	// Mouse control
-	BOOL allowMouseControl;
-#if OO_DEBUG
-	allowMouseControl = YES;
-#else
-	allowMouseControl = [[gameView gameController] inFullScreenMode] ||
-			    [[NSUserDefaults standardUserDefaults] boolForKey:@"mouse-control-in-windowed-mode"];
-#endif
-	
-	if (allowMouseControl)
-	{
-		if ([gameView isDown:key_mouse_control])   //  'M' key
-		{
-			if (!m_key_pressed)
+			exceptionContext = @"error handling mode";
+			if ([gameView isDown:113]||[gameView isDown:81]||[gameView isDown:27])   // 'q' | 'Q' | esc
 			{
-				mouse_control_on = !mouse_control_on;
-				if (mouse_control_on)
-				{
-					[UNIVERSE addMessage:DESC(@"mouse-on") forCount:3.0];
-					/*	Ensure the keyboard pitch override (intended to lock
-					 out the joystick if the player runs to the keyboard)
-					 is reset */
-					keyboardRollPitchOverride = NO;
-					keyboardYawOverride = NO;
-					mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
-				}
-				else
-				{
-					[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
-				}
+				[[gameView gameController] exitApp];
 			}
-			m_key_pressed = YES;
+		}
+		
+		//  snapshot
+		if ([gameView isDown:key_snapshot])   //  '*' key
+		{
+			exceptionContext = @"snapshot";
+			if (!taking_snapshot)
+			{
+				taking_snapshot = YES;
+				[gameView snapShot];
+			}
 		}
 		else
 		{
-			m_key_pressed = NO;
+			taking_snapshot = NO;
 		}
-	}
-	else
-	{
-		if (mouse_control_on)
+		
+		// FPS display
+		if ([gameView isDown:key_show_fps])   //  'F' key
 		{
-			mouse_control_on = NO;
-			[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+			exceptionContext = @"toggle FPS";
+			if (!f_key_pressed)  [UNIVERSE setDisplayFPS:![UNIVERSE displayFPS]];
+			f_key_pressed = YES;
 		}
-	}
-	
-	// HUD toggle
-	if ([gameView isDown:'o'] && [[gameView gameController] gameIsPaused])// 'o' key while paused
-	{
-		if (!hide_hud_pressed)
+		else
 		{
-			HeadUpDisplay *theHUD = [self hud];
-			[theHUD setHidden:![theHUD isHidden]];
+			f_key_pressed = NO;
 		}
-		hide_hud_pressed = YES;
-	}
-	else
-	{
-		hide_hud_pressed = NO;
-	}
+		
+		// Mouse control
+		BOOL allowMouseControl;
+	#if OO_DEBUG
+		allowMouseControl = YES;
+	#else
+		allowMouseControl = [[gameView gameController] inFullScreenMode] ||
+					[[NSUserDefaults standardUserDefaults] boolForKey:@"mouse-control-in-windowed-mode"];
+	#endif
+		
+		if (allowMouseControl)
+		{
+			exceptionContext = @"mouse control";
+			if ([gameView isDown:key_mouse_control])   //  'M' key
+			{
+				if (!m_key_pressed)
+				{
+					mouse_control_on = !mouse_control_on;
+					if (mouse_control_on)
+					{
+						[UNIVERSE addMessage:DESC(@"mouse-on") forCount:3.0];
+						/*	Ensure the keyboard pitch override (intended to lock
+						 out the joystick if the player runs to the keyboard)
+						 is reset */
+						keyboardRollPitchOverride = NO;
+						keyboardYawOverride = NO;
+						mouse_x_axis_map_to_yaw = [gameView isCtrlDown];
+					}
+					else
+					{
+						[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+					}
+				}
+				m_key_pressed = YES;
+			}
+			else
+			{
+				m_key_pressed = NO;
+			}
+		}
+		else
+		{
+			if (mouse_control_on)
+			{
+				mouse_control_on = NO;
+				[UNIVERSE addMessage:DESC(@"mouse-off") forCount:3.0];
+			}
+		}
+		
+		// HUD toggle
+		if ([gameView isDown:'o'] && [[gameView gameController] gameIsPaused])// 'o' key while paused
+		{
+			exceptionContext = @"toggle HUD";
+			if (!hide_hud_pressed)
+			{
+				HeadUpDisplay *theHUD = [self hud];
+				[theHUD setHidden:![theHUD isHidden]];
+			}
+			hide_hud_pressed = YES;
+		}
+		else
+		{
+			hide_hud_pressed = NO;
+		}
+	NS_HANDLER
+		// TEMP extra exception checking
+		OOLog(kOOLogException, @"***** Exception in pollApplicationControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
+	NS_ENDHANDLER
 }
 
 
 - (void) pollFlightControls:(double)delta_t
 {
 	MyOpenGLView  *gameView = [UNIVERSE gameView];
+	NSString * volatile	exceptionContext = @"setup";
 	
-	// DJS: TODO: Sort where SDL keeps its stuff.
-	if(!stickHandler)
-	{
-		stickHandler=[gameView getStickHandler];
-	}
-	const BOOL *joyButtonState = [stickHandler getAllButtonStates];
-	
-	BOOL paused = [[gameView gameController] gameIsPaused];
-	double speed_delta = 5.0 * thrust;
-	
-	if (!paused && gui_screen == GUI_SCREEN_MISSION)
-	{
-		OOViewID view = VIEW_NONE;
+	NS_DURING
+		exceptionContext = @"joystick handling";
+		// DJS: TODO: Sort where SDL keeps its stuff.
+		if(!stickHandler)
+		{
+			stickHandler=[gameView getStickHandler];
+		}
+		const BOOL *joyButtonState = [stickHandler getAllButtonStates];
 		
-		NSPoint			virtualView = NSZeroPoint;
-		double			view_threshold = 0.5;
+		BOOL paused = [[gameView gameController] gameIsPaused];
+		double speed_delta = 5.0 * thrust;
 		
-		if ([stickHandler getNumSticks])
+		if (!paused && gui_screen == GUI_SCREEN_MISSION)
 		{
-			virtualView = [stickHandler getViewAxis];
-			if (virtualView.y == STICK_AXISUNASSIGNED)
-				virtualView.y = 0.0;
-			if (virtualView.x == STICK_AXISUNASSIGNED)
-				virtualView.x = 0.0;
-			if (fabs(virtualView.y) >= fabs(virtualView.x))
-				virtualView.x = 0.0; // forward/aft takes precedence
-			else
-				virtualView.y = 0.0;
-		}
-	
-		if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD])
-		{
-			view = VIEW_FORWARD;
-		}
-		if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2])||(virtualView.y > view_threshold)||joyButtonState[BUTTON_VIEWAFT])
-		{
-			view = VIEW_AFT;
-		}
-		if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3])||(virtualView.x < -view_threshold)||joyButtonState[BUTTON_VIEWPORT])
-		{
-			view = VIEW_PORT;
-		}
-		if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4])||(virtualView.x > view_threshold)||joyButtonState[BUTTON_VIEWSTARBOARD])
-		{
-			view = VIEW_STARBOARD;
-		}
-		if (view == VIEW_NONE)
-		{
-			// still in mission screen, process the input.
-			[self pollDemoControls: delta_t];
-		}
-		else
-		{
-			[[UNIVERSE gui] clearBackground];
-			[self switchToThisView:view];
-			if (_missionWithCallback)
+			exceptionContext = @"mission screen";
+			OOViewID view = VIEW_NONE;
+			
+			NSPoint			virtualView = NSZeroPoint;
+			double			view_threshold = 0.5;
+			
+			if ([stickHandler getNumSticks])
 			{
-				[self doMissionCallback];
+				virtualView = [stickHandler getViewAxis];
+				if (virtualView.y == STICK_AXISUNASSIGNED)
+					virtualView.y = 0.0;
+				if (virtualView.x == STICK_AXISUNASSIGNED)
+					virtualView.x = 0.0;
+				if (fabs(virtualView.y) >= fabs(virtualView.x))
+					virtualView.x = 0.0; // forward/aft takes precedence
+				else
+					virtualView.y = 0.0;
 			}
-			// notify older scripts, but do not trigger missionScreenOpportunity.
-			[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
-		}
-	}
-	else if (!paused)
-	{
-		// arrow keys
-		if ([UNIVERSE displayGUI])
-			[self pollGuiArrowKeyControls:delta_t];
-		else
-			[self pollFlightArrowKeyControls:delta_t];
 		
-		//  view keys
-		[self pollViewControls];
-		
-		if (![UNIVERSE displayCursor])
-		{
-			if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
-				[self hasFuelInjection] &&
-				!hyperspeed_engaged)
+			if (([gameView isDown:gvFunctionKey1])||([gameView isDown:gvNumberKey1])||(virtualView.y < -view_threshold)||joyButtonState[BUTTON_VIEWFORWARD])
 			{
-				if (fuel > 0 && !afterburner_engaged)
+				view = VIEW_FORWARD;
+			}
+			if (([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2])||(virtualView.y > view_threshold)||joyButtonState[BUTTON_VIEWAFT])
+			{
+				view = VIEW_AFT;
+			}
+			if (([gameView isDown:gvFunctionKey3])||([gameView isDown:gvNumberKey3])||(virtualView.x < -view_threshold)||joyButtonState[BUTTON_VIEWPORT])
+			{
+				view = VIEW_PORT;
+			}
+			if (([gameView isDown:gvFunctionKey4])||([gameView isDown:gvNumberKey4])||(virtualView.x > view_threshold)||joyButtonState[BUTTON_VIEWSTARBOARD])
+			{
+				view = VIEW_STARBOARD;
+			}
+			if (view == VIEW_NONE)
+			{
+				// still in mission screen, process the input.
+				[self pollDemoControls: delta_t];
+			}
+			else
+			{
+				[[UNIVERSE gui] clearBackground];
+				[self switchToThisView:view];
+				if (_missionWithCallback)
 				{
-					[UNIVERSE addMessage:DESC(@"fuel-inject-on") forCount:1.5];
-					afterburner_engaged = YES;
-					[self startAfterburnerSound];
+					[self doMissionCallback];
+				}
+				// notify older scripts, but do not trigger missionScreenOpportunity.
+				[self doWorldEventUntilMissionScreen:@"missionScreenEnded"];
+			}
+		}
+		else if (!paused)
+		{
+			exceptionContext = @"arrow keys";
+			// arrow keys
+			if ([UNIVERSE displayGUI])
+				[self pollGuiArrowKeyControls:delta_t];
+			else
+				[self pollFlightArrowKeyControls:delta_t];
+			
+			//  view keys
+			[self pollViewControls];
+			
+			if (![UNIVERSE displayCursor])
+			{
+				exceptionContext = @"afterburner";
+				if ((joyButtonState[BUTTON_FUELINJECT] || [gameView isDown:key_inject_fuel]) &&
+					[self hasFuelInjection] &&
+					!hyperspeed_engaged)
+				{
+					if (fuel > 0 && !afterburner_engaged)
+					{
+						[UNIVERSE addMessage:DESC(@"fuel-inject-on") forCount:1.5];
+						afterburner_engaged = YES;
+						[self startAfterburnerSound];
+					}
+					else
+					{
+						if (fuel <= 0.0)
+							[UNIVERSE addMessage:DESC(@"fuel-out") forCount:1.5];
+					}
+					afterburner_engaged = (fuel > 0);
 				}
 				else
+					afterburner_engaged = NO;
+				
+				if ((!afterburner_engaged)&&(afterburnerSoundLooping))
+					[self stopAfterburnerSound];
+				
+			exceptionContext = @"thrust";
+	#if OOLITE_HAVE_JOYSTICK
+				// DJS: Thrust can be an axis or a button. Axis takes precidence.
+				double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
+				if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
 				{
-					if (fuel <= 0.0)
-						[UNIVERSE addMessage:DESC(@"fuel-out") forCount:1.5];
-				}
-				afterburner_engaged = (fuel > 0);
-			}
-			else
-				afterburner_engaged = NO;
-			
-			if ((!afterburner_engaged)&&(afterburnerSoundLooping))
-				[self stopAfterburnerSound];
-			
-#if OOLITE_HAVE_JOYSTICK
-			// DJS: Thrust can be an axis or a button. Axis takes precidence.
-			double reqSpeed=[stickHandler getAxisState: AXIS_THRUST];
-			if(reqSpeed == STICK_AXISUNASSIGNED || [stickHandler getNumSticks] == 0)
-			{
-				// DJS: original keyboard code
-				if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
+					// DJS: original keyboard code
+					if (([gameView isDown:key_increase_speed] || joyButtonState[BUTTON_INCTHRUST])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
+					{
+						flightSpeed += speed_delta * delta_t;
+					}
+					
+					// ** tgape ** - decrease obviously means no hyperspeed
+					if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
+					{
+						flightSpeed -= speed_delta * delta_t;
+						
+						// ** tgape ** - decrease obviously means no hyperspeed
+						hyperspeed_engaged = NO;
+					}
+				} // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
+				else
+				{
+					if (flightSpeed < maxFlightSpeed * reqSpeed)
+					{
+						flightSpeed += speed_delta * delta_t;
+					}
+					if (flightSpeed > maxFlightSpeed * reqSpeed)
+					{
+						flightSpeed -= speed_delta * delta_t;
+					}
+				} // DJS: end joystick thrust axis
+	#else
+				if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
 				{
 					flightSpeed += speed_delta * delta_t;
 				}
 				
-				// ** tgape ** - decrease obviously means no hyperspeed
-				if (([gameView isDown:key_decrease_speed] || joyButtonState[BUTTON_DECTHRUST])&&(!afterburner_engaged))
+				if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
 				{
 					flightSpeed -= speed_delta * delta_t;
-					
 					// ** tgape ** - decrease obviously means no hyperspeed
 					hyperspeed_engaged = NO;
 				}
-			} // DJS: STICK_NOFUNCTION else...a joystick axis is assigned to thrust.
-			else
-			{
-				if (flightSpeed < maxFlightSpeed * reqSpeed)
+	#endif
+				if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged)
 				{
-					flightSpeed += speed_delta * delta_t;
+					flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
 				}
-				if (flightSpeed > maxFlightSpeed * reqSpeed)
-				{
-					flightSpeed -= speed_delta * delta_t;
-				}
-			} // DJS: end joystick thrust axis
-#else
-			if (([gameView isDown:key_increase_speed])&&(flightSpeed < maxFlightSpeed)&&(!afterburner_engaged))
-			{
-				flightSpeed += speed_delta * delta_t;
-			}
-			
-			if (([gameView isDown:key_decrease_speed])&&(!afterburner_engaged))
-			{
-				flightSpeed -= speed_delta * delta_t;
-				// ** tgape ** - decrease obviously means no hyperspeed
-				hyperspeed_engaged = NO;
-			}
-#endif
-			if (!afterburner_engaged && ![self atHyperspeed] && !hyperspeed_engaged)
-			{
-				flightSpeed = OOClamp_0_max_f(flightSpeed, maxFlightSpeed);
-			}
-			
-			//  hyperspeed controls
-			if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
-			{
-				if (!jump_pressed)
-				{
-					if (!hyperspeed_engaged)
-					{
-						hyperspeed_locked = [self massLocked];
-						hyperspeed_engaged = !hyperspeed_locked;
-						if (hyperspeed_locked)
-						{
-							[self playJumpMassLocked];
-							[UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:1.5];
-						}
-					}
-					else
-					{
-						hyperspeed_engaged = NO;
-					}
-				}
-				jump_pressed = YES;
-			}
-			else
-			{
-				jump_pressed = NO;
-			}
-			
-			//  shoot 'a'
-			if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
 				
-			{
-				if ([self fireMainWeapon])
+				exceptionContext = @"hyperspeed";
+				//  hyperspeed controls
+				if ([gameView isDown:key_jumpdrive] || joyButtonState[BUTTON_HYPERSPEED])		// 'j'
 				{
-					[self playLaserHit:target_laser_hit != NO_TARGET];
-				}
-			}
-			
-			//  shoot 'm'   // launch missile
-			if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
-			{
-				// launch here
-				if (!fire_missile_pressed)
-				{
-					[self fireMissile];
-					fire_missile_pressed = YES;
-				}
-			}
-			else  fire_missile_pressed = NO;
-			
-			//  shoot 'y'   // next missile
-			if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
-			{
-				if ((!ident_engaged)&&(!next_missile_pressed))
-				{
-					[self playNextMissileSelected];
-					[self selectNextMissile];
-				}
-				next_missile_pressed = YES;
-			}
-			else  next_missile_pressed = NO;
-			
-			//	'+' // next target
-			if ([gameView isDown:key_next_target])
-			{
-				if ((!next_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
-				{
-					[self moveTargetMemoryBy:+1];
-				}
-				next_target_pressed = YES;
-			}
-			else  next_target_pressed = NO;
-			
-			//	'-' // previous target
-			if ([gameView isDown:key_previous_target])
-			{
-				if ((!previous_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
-				{
-					[self moveTargetMemoryBy:-1];
-				}
-				previous_target_pressed = YES;
-			}
-			else  previous_target_pressed = NO;
-			
-			//  shoot 'r'   // switch on ident system
-			if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
-			{
-				// ident 'on' here
-				if (!ident_pressed)
-				{
-					// Clear current target if we're already in Ident mode
-					if (ident_engaged)
+					if (!jump_pressed)
 					{
-						primaryTarget = NO_TARGET;
-					}
-					[self safeAllMissiles];
-					ident_engaged = YES;
-					if ([self primaryTargetID] == NO_TARGET)
-					{
-						[self playIdentOn];
-						[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
-					}
-					else
-					{
-						[self playIdentLockedOn];
-						[self printIdentLockedOnForMissile:NO];
-					}
-				}
-				ident_pressed = YES;
-			}
-			else  ident_pressed = NO;
-#if TARGET_INCOMING_MISSILES
-			// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
-			if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
-			{
-				if (!target_incoming_missile_pressed)
-				{
-					[self targetNearestIncomingMissile];
-				}
-				target_incoming_missile_pressed = YES;
-			}
-			else  target_incoming_missile_pressed = NO;
-#endif
-			
-			//  shoot 't'   // switch on missile targeting
-			if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
-			{
-				// targeting 'on' here
-				if (!target_missile_pressed)
-				{
-					// Clear current target if we're already in Missile Targeting mode
-					if (missile_status != MISSILE_STATUS_SAFE)
-					{
-						primaryTarget = NO_TARGET;
-					}
-
-					// Arm missile and check for missile lock
-					missile_status = MISSILE_STATUS_ARMED;
-					if ([missile_entity[activeMissile] isMissile])
-					{
-						if ([[self primaryTarget] isShip])
+						if (!hyperspeed_engaged)
 						{
-							missile_status = MISSILE_STATUS_TARGET_LOCKED;
-							[missile_entity[activeMissile] addTarget:[self primaryTarget]];
-							[self printIdentLockedOnForMissile:YES];
-							[self playMissileLockedOn];
+							hyperspeed_locked = [self massLocked];
+							hyperspeed_engaged = !hyperspeed_locked;
+							if (hyperspeed_locked)
+							{
+								[self playJumpMassLocked];
+								[UNIVERSE addMessage:DESC(@"jump-mass-locked") forCount:1.5];
+							}
 						}
 						else
 						{
-							[self removeTarget:nil];
-							[missile_entity[activeMissile] removeTarget:nil];
-							//[UNIVERSE addMessage:DESC(@"missile-armed") forCount:4.5];
-							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
-							[self playMissileArmed];
+							hyperspeed_engaged = NO;
 						}
 					}
-					else if ([missile_entity[activeMissile] isMine])
-					{
-						//[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
-						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
-						[self playMineArmed];
-					}
-					ident_engaged = NO;
+					jump_pressed = YES;
 				}
-				target_missile_pressed = YES;
-			}
-			else  target_missile_pressed = NO;
-			
-			//  shoot 'u'   // disarm missile targeting
-			if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
-			{
-				if (!safety_pressed)
+				else
 				{
-					//targeting off in both cases!
-					primaryTarget = NO_TARGET;
-					[self safeAllMissiles];
-					if (!ident_engaged)
-					{
-						[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
-						[self playMissileSafe];
-					}
-					else
-					{
-						[UNIVERSE addMessage:DESC(@"ident-off") forCount:2.0];
-						[self playIdentOff];
-					}
-					ident_engaged = NO;
+					jump_pressed = NO;
 				}
-				safety_pressed = YES;
-			}
-			else  safety_pressed = NO;
-			
-			//  shoot 'e'   // ECM
-			if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM])
-			{
-				if (!ecm_in_operation)
-				{
-					if ([self fireECM])
-					{
-						[self playFiredECMSound];
-						[UNIVERSE addMessage:DESC(@"ecm-on") forCount:3.0];
-					}
-				}
-			}
-			
-			//  shoot 'tab'   // Energy bomb
-			if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB]) && [self hasEnergyBomb])
-			{
-				// original energy bomb routine
-				[self fireEnergyBomb];
-				[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
-			}
-			
-			//  shoot 'escape'   // Escape pod launch
-			if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod] && [UNIVERSE station] != nil)
 				
-			{
-				found_target = [self launchEscapeCapsule];
-			}
-			
-			//  shoot 'd'   // Dump Cargo
-			if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON]) && [cargo count] > 0)
-			{
-				[self dumpCargo];
-			}
-			
-			//  shoot 'R'   // Rotate Cargo
-			if ([gameView isDown:key_rotate_cargo])
-			{
-				if ((!rotateCargo_pressed)&&([cargo count] > 0))
-					[self rotateCargo];
-				rotateCargo_pressed = YES;
-			}
-			else
-				rotateCargo_pressed = NO;
-			
-			// autopilot 'c'
-			if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
-			{
-				if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
-				{
-					BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
-					BOOL isOkayToUseAutopilot = YES;
+				exceptionContext = @"shoot";
+				//  shoot 'a'
+				if ((([gameView isDown:key_fire_lasers])||((mouse_control_on)&&([gameView isDown:gvMouseLeftButton]))||joyButtonState[BUTTON_FIRE])&&(shot_time > weapon_reload_time))
 					
-					if (isUsingDockingAI)
+				{
+					if ([self fireMainWeapon])
 					{
-						if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
+						[self playLaserHit:target_laser_hit != NO_TARGET];
+					}
+				}
+				
+				exceptionContext = @"missile fire";
+				//  shoot 'm'   // launch missile
+				if ([gameView isDown:key_launch_missile] || joyButtonState[BUTTON_LAUNCHMISSILE])
+				{
+					// launch here
+					if (!fire_missile_pressed)
+					{
+						[self fireMissile];
+						fire_missile_pressed = YES;
+					}
+				}
+				else  fire_missile_pressed = NO;
+				
+				exceptionContext = @"next missile";
+				//  shoot 'y'   // next missile
+				if ([gameView isDown:key_next_missile] || joyButtonState[BUTTON_CYCLEMISSILE])
+				{
+					if ((!ident_engaged)&&(!next_missile_pressed))
+					{
+						[self playNextMissileSelected];
+						[self selectNextMissile];
+					}
+					next_missile_pressed = YES;
+				}
+				else  next_missile_pressed = NO;
+				
+				exceptionContext = @"next target";
+				//	'+' // next target
+				if ([gameView isDown:key_next_target])
+				{
+					if ((!next_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
+					{
+						[self moveTargetMemoryBy:+1];
+					}
+					next_target_pressed = YES;
+				}
+				else  next_target_pressed = NO;
+				
+				exceptionContext = @"previous target";
+				//	'-' // previous target
+				if ([gameView isDown:key_previous_target])
+				{
+					if ((!previous_target_pressed)&&([self hasEquipmentItem:@"EQ_TARGET_MEMORY"]))
+					{
+						[self moveTargetMemoryBy:-1];
+					}
+					previous_target_pressed = YES;
+				}
+				else  previous_target_pressed = NO;
+				
+				exceptionContext = @"ident R";
+				//  shoot 'r'   // switch on ident system
+				if ([gameView isDown:key_ident_system] || joyButtonState[BUTTON_ID])
+				{
+					// ident 'on' here
+					if (!ident_pressed)
+					{
+						// Clear current target if we're already in Ident mode
+						if (ident_engaged)
 						{
-							isOkayToUseAutopilot = NO;
+							primaryTarget = NO_TARGET;
+						}
+						[self safeAllMissiles];
+						ident_engaged = YES;
+						if ([self primaryTargetID] == NO_TARGET)
+						{
+							[self playIdentOn];
+							[UNIVERSE addMessage:DESC(@"ident-on") forCount:2.0];
+						}
+						else
+						{
+							[self playIdentLockedOn];
+							[self printIdentLockedOnForMissile:NO];
+						}
+					}
+					ident_pressed = YES;
+				}
+				else  ident_pressed = NO;
+	#if TARGET_INCOMING_MISSILES
+				// target nearest incoming missile 'T' - useful for quickly giving a missile target to turrets
+				if ([gameView isDown:key_target_incoming_missile] || joyButtonState[BUTTON_TARGETINCOMINGMISSILE])
+				{
+					if (!target_incoming_missile_pressed)
+					{
+						[self targetNearestIncomingMissile];
+					}
+					target_incoming_missile_pressed = YES;
+				}
+				else  target_incoming_missile_pressed = NO;
+	#endif
+				
+				exceptionContext = @"missile T";
+				//  shoot 't'   // switch on missile targeting
+				if (([gameView isDown:key_target_missile] || joyButtonState[BUTTON_ARMMISSILE])&&(missile_entity[activeMissile]))
+				{
+					// targeting 'on' here
+					if (!target_missile_pressed)
+					{
+						// Clear current target if we're already in Missile Targeting mode
+						if (missile_status != MISSILE_STATUS_SAFE)
+						{
+							primaryTarget = NO_TARGET;
+						}
+
+						// Arm missile and check for missile lock
+						missile_status = MISSILE_STATUS_ARMED;
+						if ([missile_entity[activeMissile] isMissile])
+						{
+							if ([[self primaryTarget] isShip])
+							{
+								missile_status = MISSILE_STATUS_TARGET_LOCKED;
+								[missile_entity[activeMissile] addTarget:[self primaryTarget]];
+								[self printIdentLockedOnForMissile:YES];
+								[self playMissileLockedOn];
+							}
+							else
+							{
+								[self removeTarget:nil];
+								[missile_entity[activeMissile] removeTarget:nil];
+								//[UNIVERSE addMessage:DESC(@"missile-armed") forCount:4.5];
+								[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+								[self playMissileArmed];
+							}
+						}
+						else if ([missile_entity[activeMissile] isMine])
+						{
+							//[UNIVERSE addMessage:DESC(@"mine-armed") forCount:4.5];
+							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-armed"), [missile_entity[activeMissile] name]] forCount:2.0];
+							[self playMineArmed];
+						}
+						ident_engaged = NO;
+					}
+					target_missile_pressed = YES;
+				}
+				else  target_missile_pressed = NO;
+				
+				exceptionContext = @"missile U";
+				//  shoot 'u'   // disarm missile targeting
+				if ([gameView isDown:key_untarget_missile] || joyButtonState[BUTTON_UNARM])
+				{
+					if (!safety_pressed)
+					{
+						//targeting off in both cases!
+						primaryTarget = NO_TARGET;
+						[self safeAllMissiles];
+						if (!ident_engaged)
+						{
+							[UNIVERSE addMessage:DESC(@"missile-safe") forCount:2.0];
+							[self playMissileSafe];
+						}
+						else
+						{
+							[UNIVERSE addMessage:DESC(@"ident-off") forCount:2.0];
+							[self playIdentOff];
+						}
+						ident_engaged = NO;
+					}
+					safety_pressed = YES;
+				}
+				else  safety_pressed = NO;
+				
+				exceptionContext = @"ECM";
+				//  shoot 'e'   // ECM
+				if (([gameView isDown:key_ecm] || joyButtonState[BUTTON_ECM]) && [self hasECM])
+				{
+					if (!ecm_in_operation)
+					{
+						if ([self fireECM])
+						{
+							[self playFiredECMSound];
+							[UNIVERSE addMessage:DESC(@"ecm-on") forCount:3.0];
+						}
+					}
+				}
+				
+				exceptionContext = @"energy bomb";
+				//  shoot 'tab'   // Energy bomb
+				if (([gameView isDown:key_energy_bomb] || joyButtonState[BUTTON_ENERGYBOMB]) && [self hasEnergyBomb])
+				{
+					// original energy bomb routine
+					[self fireEnergyBomb];
+					[self removeEquipmentItem:@"EQ_ENERGY_BOMB"];
+				}
+				
+				exceptionContext = @"escape pod";
+				//  shoot 'escape'   // Escape pod launch
+				if (([gameView isDown:key_launch_escapepod] || joyButtonState[BUTTON_ESCAPE]) && [self hasEscapePod] && [UNIVERSE station] != nil)
+					
+				{
+					found_target = [self launchEscapeCapsule];
+				}
+				
+				exceptionContext = @"dump cargo";
+				//  shoot 'd'   // Dump Cargo
+				if (([gameView isDown:key_dump_cargo] || joyButtonState[BUTTON_JETTISON]) && [cargo count] > 0)
+				{
+					[self dumpCargo];
+				}
+				
+				exceptionContext = @"rotate cargo";
+				//  shoot 'R'   // Rotate Cargo
+				if ([gameView isDown:key_rotate_cargo])
+				{
+					if ((!rotateCargo_pressed)&&([cargo count] > 0))
+						[self rotateCargo];
+					rotateCargo_pressed = YES;
+				}
+				else
+					rotateCargo_pressed = NO;
+				
+				exceptionContext = @"autopilot C";
+				// autopilot 'c'
+				if ([gameView isDown:key_autopilot] || joyButtonState[BUTTON_DOCKCPU])   // look for the 'c' key
+				{
+					if ([self hasDockingComputer] && !autopilot_key_pressed)   // look for the 'c' key
+					{
+						BOOL isUsingDockingAI = [[shipAI name] isEqual: PLAYER_DOCKING_AI_NAME];
+						BOOL isOkayToUseAutopilot = YES;
+						
+						if (isUsingDockingAI)
+						{
+							if ([self checkForAegis] != AEGIS_IN_DOCKING_RANGE)
+							{
+								isOkayToUseAutopilot = NO;
+								[self playAutopilotOutOfRange];
+								[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
+							}
+						}
+						
+						if (isOkayToUseAutopilot)
+						{
+							primaryTarget = NO_TARGET;
+							targetStation = [[UNIVERSE station] universalID];
+							autopilot_engaged = YES;
+							ident_engaged = NO;
+							[self safeAllMissiles];
+							velocity = kZeroVector;
+							[self setStatus:STATUS_AUTOPILOT_ENGAGED];
+							[shipAI setState:@"GLOBAL"];	// reboot the AI
+							[self playAutopilotOn];
+	#if DOCKING_CLEARANCE_ENABLED
+							[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+	#endif
+							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
+							[self doScriptEvent:@"playerStartedAutoPilot"];
+							
+							[[OOMusicController sharedController] playDockingMusic];
+							
+							if (afterburner_engaged)
+							{
+								afterburner_engaged = NO;
+								if (afterburnerSoundLooping)
+									[self stopAfterburnerSound];
+							}
+						}
+					}
+					autopilot_key_pressed = YES;
+				}
+				else
+					autopilot_key_pressed = NO;
+				
+				exceptionContext = @"autopilot shift-C";
+				// autopilot 'C' - dock with target
+				if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
+				{
+					if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
+					{
+						Entity* primeTarget = [self primaryTarget];
+						BOOL primeTargetIsHostile = [self hasHostileTarget];
+						if ((primeTarget) && (primeTarget->isStation) && 
+							[primeTarget isKindOfClass:[StationEntity class]] &&
+							!primeTargetIsHostile)
+						{
+							targetStation = primaryTarget;
+							primaryTarget = NO_TARGET;
+							autopilot_engaged = YES;
+							ident_engaged = NO;
+							[self safeAllMissiles];
+							velocity = kZeroVector;
+							[self setStatus:STATUS_AUTOPILOT_ENGAGED];
+							[shipAI setState:@"GLOBAL"];	// restart the AI
+							[self playAutopilotOn];
+	#if DOCKING_CLEARANCE_ENABLED
+							[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+	#endif
+							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
+							[self doScriptEvent:@"playerStartedAutoPilot"];
+							
+							[[OOMusicController sharedController] playDockingMusic];
+							
+							if (afterburner_engaged)
+							{
+								afterburner_engaged = NO;
+								if (afterburnerSoundLooping)
+									[self stopAfterburnerSound];
+							}
+						}
+						else
+						{
+							[self playAutopilotCannotDockWithTarget];
+							if (primeTargetIsHostile && [primeTarget isStation])
+							{
+								[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
+							}
+							else
+							{
+								[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
+							}
+						}
+					}
+					target_autopilot_key_pressed = YES;
+				}
+				else
+					target_autopilot_key_pressed = NO;
+				
+				exceptionContext = @"autopilot shift-D";
+				// autopilot 'D'
+				if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
+				{
+					if ([self hasDockingComputer] && (!fast_autopilot_key_pressed))   // look for the 'D' key
+					{
+						if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
+						{
+							StationEntity *the_station = [UNIVERSE station];
+							if (the_station)
+							{
+								if (legalStatus > 50)
+								{
+									[self setStatus:STATUS_AUTOPILOT_ENGAGED];
+									[self interpretAIMessage:@"DOCKING_REFUSED"];
+								}
+								else
+								{
+									if (legalStatus > 0)
+									{
+										// there's a slight chance you'll be fined for your past offences when autodocking
+										int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
+										int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];	// 1..8
+										if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
+										fine_chance /= government;
+										if (fine_chance < legalStatus)
+										{
+											[self markForFines];
+										}
+									}
+	#if DOCKING_CLEARANCE_ENABLED
+									[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+	#endif
+									ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
+									ident_engaged = NO;
+									[self safeAllMissiles];
+									[UNIVERSE setViewDirection:VIEW_FORWARD];
+									[self enterDock:the_station];
+								}
+							}
+						}
+						else
+						{
 							[self playAutopilotOutOfRange];
 							[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
 						}
 					}
-					
-					if (isOkayToUseAutopilot)
-					{
-						primaryTarget = NO_TARGET;
-						targetStation = [[UNIVERSE station] universalID];
-						autopilot_engaged = YES;
-						ident_engaged = NO;
-						[self safeAllMissiles];
-						velocity = kZeroVector;
-						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-						[shipAI setState:@"GLOBAL"];	// reboot the AI
-						[self playAutopilotOn];
-#if DOCKING_CLEARANCE_ENABLED
-						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif
-						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
-						[self doScriptEvent:@"playerStartedAutoPilot"];
-						
-						[[OOMusicController sharedController] playDockingMusic];
-						
-						if (afterburner_engaged)
-						{
-							afterburner_engaged = NO;
-							if (afterburnerSoundLooping)
-								[self stopAfterburnerSound];
-						}
-					}
+					fast_autopilot_key_pressed = YES;
 				}
-				autopilot_key_pressed = YES;
-			}
-			else
-				autopilot_key_pressed = NO;
-			
-			// autopilot 'C' - dock with target
-			if ([gameView isDown:key_autopilot_target])   // look for the 'C' key
-			{
-				if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
+				else
+					fast_autopilot_key_pressed = NO;
+				
+	#if DOCKING_CLEARANCE_ENABLED
+				exceptionContext = @"docking clearance request";
+				// docking clearance request 'L', not available in strict mode
+				if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
 				{
-					Entity* primeTarget = [self primaryTarget];
-					BOOL primeTargetIsHostile = [self hasHostileTarget];
-					if ((primeTarget) && (primeTarget->isStation) && 
-						[primeTarget isKindOfClass:[StationEntity class]] &&
-						!primeTargetIsHostile)
+					if (!docking_clearance_request_key_pressed)
 					{
-						targetStation = primaryTarget;
-						primaryTarget = NO_TARGET;
-						autopilot_engaged = YES;
-						ident_engaged = NO;
-						[self safeAllMissiles];
-						velocity = kZeroVector;
-						[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-						[shipAI setState:@"GLOBAL"];	// restart the AI
-						[self playAutopilotOn];
-#if DOCKING_CLEARANCE_ENABLED
-						[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif
-						[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
-						[self doScriptEvent:@"playerStartedAutoPilot"];
-						
-						[[OOMusicController sharedController] playDockingMusic];
-						
-						if (afterburner_engaged)
+						Entity *primeTarget = [self primaryTarget];
+						if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
 						{
-							afterburner_engaged = NO;
-							if (afterburnerSoundLooping)
-								[self stopAfterburnerSound];
-						}
-					}
-					else
-					{
-						[self playAutopilotCannotDockWithTarget];
-						if (primeTargetIsHostile && [primeTarget isStation])
-						{
-							[UNIVERSE addMessage:DESC(@"autopilot-target-docking-instructions-denied") forCount:4.5];
-						}
-						else
-						{
-							[UNIVERSE addMessage:DESC(@"autopilot-cannot-dock-with-target") forCount:4.5];
-						}
-					}
-				}
-				target_autopilot_key_pressed = YES;
-			}
-			else
-				target_autopilot_key_pressed = NO;
-			
-			// autopilot 'D'
-			if ([gameView isDown:key_autodock] || joyButtonState[BUTTON_DOCKCPUFAST])   // look for the 'D' key
-			{
-				if ([self hasDockingComputer] && (!fast_autopilot_key_pressed))   // look for the 'D' key
-				{
-					if ([self checkForAegis] == AEGIS_IN_DOCKING_RANGE)
-					{
-						StationEntity *the_station = [UNIVERSE station];
-						if (the_station)
-						{
-							if (legalStatus > 50)
+							NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
+							if (stationDockingClearanceStatus != nil)
 							{
-								[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-								[self interpretAIMessage:@"DOCKING_REFUSED"];
+								[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:stationDockingClearanceStatus];
+							}
+						}
+					}
+					docking_clearance_request_key_pressed = YES;
+				}
+				else
+					docking_clearance_request_key_pressed = NO;
+	#endif
+				
+				exceptionContext = @"hyperspace";
+				// hyperspace 'h'
+				if (([gameView isDown:key_hyperspace]) || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
+				{
+					if (!hyperspace_pressed)
+					{
+						float			dx = target_system_seed.d - galaxy_coordinates.x;
+						float			dy = target_system_seed.b - galaxy_coordinates.y;
+						double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+						BOOL		jumpOK = YES;
+						
+						if ((dx == 0) && (dy == 0) && equal_seeds(target_system_seed, system_seed))
+						{
+							[self playHyperspaceNoTarget];
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:DESC(@"witch-no-target") forCount:3.0];
+							jumpOK = NO;
+						}
+						
+						if (distance > 7)
+						{
+							[self playHyperspaceNoFuel];
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:DESC(@"witch-too-far") forCount:3.0];
+							jumpOK = NO;
+						}
+						else if ((10.0 * distance > fuel)||(fuel == 0))
+						{
+							[self playHyperspaceNoFuel];
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount:3.0];
+							jumpOK = NO;
+						}
+						
+						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+						{
+							// abort!
+							jumpOK = NO;
+							galactic_witchjump = NO;
+							[self setStatus:STATUS_IN_FLIGHT];
+							[self playHyperspaceAborted];
+							// say it!
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+							
+							[self doScriptEvent:@"playerCancelledJumpCountdown"];
+						}
+						
+						if (jumpOK)
+						{
+							galactic_witchjump = NO;
+							witchspaceCountdown = hyperspaceMotorSpinTime;
+							[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
+							[self playStandardHyperspace];
+							// say it!
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+							[self doScriptEvent:@"playerStartedJumpCountdown"
+								  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+							[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
+						}
+					}
+					hyperspace_pressed = YES;
+				}
+				else
+					hyperspace_pressed = NO;
+				
+				exceptionContext = @"galactic hyperspace";
+				// Galactic hyperspace 'g'
+				if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
+					([self hasEquipmentItem:@"EQ_GAL_DRIVE"]))// look for the 'g' key
+				{
+					if (!galhyperspace_pressed)
+					{
+						BOOL	jumpOK = YES;
+						
+						if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
+						{
+							// abort!
+							jumpOK = NO;
+							galactic_witchjump = NO;
+							[self setStatus:STATUS_IN_FLIGHT];
+							[self playHyperspaceAborted];
+							// say it!
+							[UNIVERSE clearPreviousMessage];
+							[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
+							
+							[self doScriptEvent:@"playerCancelledJumpCountdown"];
+						}
+						
+						if (jumpOK)
+						{
+							galactic_witchjump = YES;
+							witchspaceCountdown = hyperspaceMotorSpinTime;
+							[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
+							[self playGalacticHyperspace];
+							// say it!
+							[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
+							// FIXME: how to preload target system for hyperspace jump?
+							
+							[self doScriptEvent:@"playerStartedJumpCountdown"
+								  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
+						}
+					}
+					galhyperspace_pressed = YES;
+				}
+				else
+					galhyperspace_pressed = NO;
+				
+				exceptionContext = @"cloaking device";
+				//  shoot '0'   // Cloaking Device
+				if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && [self hasCloakingDevice])
+				{
+					if (!cloak_pressed)
+					{
+						if (!cloaking_device_active)
+						{
+							if ([self activateCloakingDevice])
+							{
+								[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
+								[self playCloakingDeviceOn];
 							}
 							else
 							{
-								if (legalStatus > 0)
-								{
-									// there's a slight chance you'll be fined for your past offences when autodocking
-									int fine_chance = ranrot_rand() & 0x03ff;	//	0..1023
-									int government = 1 + [[UNIVERSE currentSystemData] oo_intForKey:KEY_GOVERNMENT];	// 1..8
-									if ([UNIVERSE inInterstellarSpace])  government = 2;	// equivalent to Feudal. I'm assuming any station in interstellar space is military. -- Ahruman 2008-05-29
-									fine_chance /= government;
-									if (fine_chance < legalStatus)
-									{
-										[self markForFines];
-									}
-								}
-#if DOCKING_CLEARANCE_ENABLED
-								[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif
-								ship_clock_adjust = 1200.0;			// 20 minutes penalty to enter dock
-								ident_engaged = NO;
-								[self safeAllMissiles];
-								[UNIVERSE setViewDirection:VIEW_FORWARD];
-								[self enterDock:the_station];
+								[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
+								[self playCloakingDeviceInsufficientEnergy];
 							}
-						}
-					}
-					else
-					{
-						[self playAutopilotOutOfRange];
-						[UNIVERSE addMessage:DESC(@"autopilot-out-of-range") forCount:4.5];
-					}
-				}
-				fast_autopilot_key_pressed = YES;
-			}
-			else
-				fast_autopilot_key_pressed = NO;
-			
-#if DOCKING_CLEARANCE_ENABLED	
-			// docking clearance request 'L', not available in strict mode
-			if ([gameView isDown:key_docking_clearance_request] && ![UNIVERSE strict])
-			{
-				if (!docking_clearance_request_key_pressed)
-				{
-					Entity *primeTarget = [self primaryTarget];
-					if ((primeTarget)&&(primeTarget->isStation)&&[primeTarget isKindOfClass:[StationEntity class]])
-					{
-						NSString *stationDockingClearanceStatus = [(StationEntity*)primeTarget acceptDockingClearanceRequestFrom:self];
-						if (stationDockingClearanceStatus != nil)
-						{
-							[self doScriptEvent:@"playerRequestedDockingClearance" withArgument:stationDockingClearanceStatus];
-						}
-					}
-				}
-				docking_clearance_request_key_pressed = YES;
-			}
-			else
-				docking_clearance_request_key_pressed = NO;
-#endif
-			
-			// hyperspace 'h'
-			if (([gameView isDown:key_hyperspace]) || joyButtonState[BUTTON_HYPERDRIVE])   // look for the 'h' key
-			{
-				if (!hyperspace_pressed)
-				{
-					float			dx = target_system_seed.d - galaxy_coordinates.x;
-					float			dy = target_system_seed.b - galaxy_coordinates.y;
-					double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-					BOOL		jumpOK = YES;
-					
-					if ((dx == 0) && (dy == 0) && equal_seeds(target_system_seed, system_seed))
-					{
-						[self playHyperspaceNoTarget];
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:DESC(@"witch-no-target") forCount:3.0];
-						jumpOK = NO;
-					}
-					
-					if (distance > 7)
-					{
-						[self playHyperspaceNoFuel];
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:DESC(@"witch-too-far") forCount:3.0];
-						jumpOK = NO;
-					}
-					else if ((10.0 * distance > fuel)||(fuel == 0))
-					{
-						[self playHyperspaceNoFuel];
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:DESC(@"witch-no-fuel") forCount:3.0];
-						jumpOK = NO;
-					}
-					
-					if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
-					{
-						// abort!
-						jumpOK = NO;
-						galactic_witchjump = NO;
-						[self setStatus:STATUS_IN_FLIGHT];
-						[self playHyperspaceAborted];
-						// say it!
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
-						
-						[self doScriptEvent:@"playerCancelledJumpCountdown"];
-					}
-					
-					if (jumpOK)
-					{
-						galactic_witchjump = NO;
-						witchspaceCountdown = hyperspaceMotorSpinTime;
-						[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
-						[self playStandardHyperspace];
-						// say it!
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
-						[self doScriptEvent:@"playerStartedJumpCountdown"
-							  withArguments:[NSArray arrayWithObjects:@"standard", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-						[UNIVERSE preloadPlanetTexturesForSystem:target_system_seed];
-					}
-				}
-				hyperspace_pressed = YES;
-			}
-			else
-				hyperspace_pressed = NO;
-			
-			// Galactic hyperspace 'g'
-			if (([gameView isDown:key_galactic_hyperspace] || joyButtonState[BUTTON_GALACTICDRIVE]) &&
-				([self hasEquipmentItem:@"EQ_GAL_DRIVE"]))// look for the 'g' key
-			{
-				if (!galhyperspace_pressed)
-				{
-					BOOL	jumpOK = YES;
-					
-					if ([self status] == STATUS_WITCHSPACE_COUNTDOWN)
-					{
-						// abort!
-						jumpOK = NO;
-						galactic_witchjump = NO;
-						[self setStatus:STATUS_IN_FLIGHT];
-						[self playHyperspaceAborted];
-						// say it!
-						[UNIVERSE clearPreviousMessage];
-						[UNIVERSE addMessage:DESC(@"witch-user-abort") forCount:3.0];
-						
-						[self doScriptEvent:@"playerCancelledJumpCountdown"];
-					}
-					
-					if (jumpOK)
-					{
-						galactic_witchjump = YES;
-						witchspaceCountdown = hyperspaceMotorSpinTime;
-						[self setStatus:STATUS_WITCHSPACE_COUNTDOWN];
-						[self playGalacticHyperspace];
-						// say it!
-						[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
-						// FIXME: how to preload target system for hyperspace jump?
-						
-						[self doScriptEvent:@"playerStartedJumpCountdown"
-							  withArguments:[NSArray arrayWithObjects:@"galactic", [NSNumber numberWithFloat:witchspaceCountdown], nil]];
-					}
-				}
-				galhyperspace_pressed = YES;
-			}
-			else
-				galhyperspace_pressed = NO;
-			
-			//  shoot '0'   // Cloaking Device
-			if (([gameView isDown:key_cloaking_device] || joyButtonState[BUTTON_CLOAK]) && [self hasCloakingDevice])
-			{
-				if (!cloak_pressed)
-				{
-					if (!cloaking_device_active)
-					{
-						if ([self activateCloakingDevice])
-						{
-							[UNIVERSE addMessage:DESC(@"cloak-on") forCount:2];
-							[self playCloakingDeviceOn];
 						}
 						else
 						{
-							[UNIVERSE addMessage:DESC(@"cloak-low-juice") forCount:3];
-							[self playCloakingDeviceInsufficientEnergy];
+							[self deactivateCloakingDevice];
+							[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
+							[self playCloakingDeviceOff];
 						}
 					}
-					else
-					{
-						[self deactivateCloakingDevice];
-						[UNIVERSE addMessage:DESC(@"cloak-off") forCount:2];
-						[self playCloakingDeviceOff];
-					}
+					cloak_pressed = YES;
+				}
+				else
+					cloak_pressed = NO;
+				
+			}
+			
+	#ifndef NDEBUG
+			exceptionContext = @"dump target state";
+			if ([gameView isDown:key_dump_target_state])
+			{
+				if (!dump_target_state_pressed)
+				{
+					dump_target_state_pressed = YES;
+					id target = [self primaryTarget];
+					if (target == nil)	target = self;
+					[target dumpState];
+				}
+			}
+			else  dump_target_state_pressed = NO;
+	#endif
+			
+			//  text displays
+			exceptionContext = @"pollGuiScreenControls";
+			[self pollGuiScreenControls];
+		}
+		else
+		{
+			// game is paused
+			
+			// check options menu request
+			exceptionContext = @"options menu";
+			if ((([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
+			{
+				[gameView clearKeys];
+				[self setGuiToLoadSaveScreen];
+			}
+			
+			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
+			{
+				BOOL hasOverlay = ([OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"paused_overlay"] inFolder:@"Images"] != nil);
+				if (hasOverlay) [[UNIVERSE message_gui] clear];
+				else [[UNIVERSE message_gui] leaveLastLine];
+				NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
+				OOTimeDelta		time_delta;
+				if (![[GameController sharedController] gameIsPaused])
+				{
+					time_delta = time_this_frame - time_last_frame;
+					time_last_frame = time_this_frame;
+					time_delta = OOClamp_0_max_d(time_delta, MINIMUM_GAME_TICK);
+				}
+				else
+				{
+					time_delta = 0.0;
+				}
+				
+				script_time += time_delta;
+				[self pollGuiArrowKeyControls:time_delta];
+			}
+			
+			exceptionContext = @"debug keys";
+	#ifndef NDEBUG
+			// look for debugging keys
+			if ([gameView isDown:48])// look for the '0' key
+			{
+				if (!cloak_pressed)
+				{
+					[UNIVERSE obj_dump];	// dump objects
+					gDebugFlags = 0;
+					[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
 				}
 				cloak_pressed = YES;
 			}
 			else
 				cloak_pressed = NO;
 			
-		}
-		
-#ifndef NDEBUG
-		if ([gameView isDown:key_dump_target_state])
-		{
-			if (!dump_target_state_pressed)
+			// look for debugging keys
+			if ([gameView isDown:'d'])// look for the 'd' key
 			{
-				dump_target_state_pressed = YES;
-				id target = [self primaryTarget];
-				if (target == nil)	target = self;
-				[target dumpState];
-			}
-		}
-		else  dump_target_state_pressed = NO;
-#endif
-		
-		//  text displays
-		[self pollGuiScreenControls];
-	}
-	else
-	{
-		// game is paused
-		
-		// check options menu request
-		if ((([gameView isDown:gvFunctionKey2])||([gameView isDown:gvNumberKey2]))&&(gui_screen != GUI_SCREEN_OPTIONS))
-		{
-			[gameView clearKeys];
-			[self setGuiToLoadSaveScreen];
-		}
-		
-		if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
-		{
-			BOOL hasOverlay = ([OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"paused_overlay"] inFolder:@"Images"] != nil);
-			if (hasOverlay) [[UNIVERSE message_gui] clear];
-			else [[UNIVERSE message_gui] leaveLastLine];
-			NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
-			OOTimeDelta		time_delta;
-			if (![[GameController sharedController] gameIsPaused])
-			{
-				time_delta = time_this_frame - time_last_frame;
-				time_last_frame = time_this_frame;
-				time_delta = OOClamp_0_max_d(time_delta, MINIMUM_GAME_TICK);
-			}
-			else
-			{
-				time_delta = 0.0;
+				gDebugFlags = DEBUG_ALL;
+				[UNIVERSE addMessage:@"Full debug ON" forCount:3];
 			}
 			
-			script_time += time_delta;
-			[self pollGuiArrowKeyControls:time_delta];
-		}
-		
-#ifndef NDEBUG
-		// look for debugging keys
-		if ([gameView isDown:48])// look for the '0' key
-		{
-			if (!cloak_pressed)
+			if ([gameView isDown:'b'])// look for the 'b' key
 			{
-				[UNIVERSE obj_dump];	// dump objects
-				gDebugFlags = 0;
-				[UNIVERSE addMessage:@"Entity List dumped. Debugging OFF" forCount:3];
+				gDebugFlags |= DEBUG_COLLISIONS;
+				[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
 			}
-			cloak_pressed = YES;
-		}
-		else
-			cloak_pressed = NO;
-		
-		// look for debugging keys
-		if ([gameView isDown:'d'])// look for the 'd' key
-		{
-			gDebugFlags = DEBUG_ALL;
-			[UNIVERSE addMessage:@"Full debug ON" forCount:3];
-		}
-		
-		if ([gameView isDown:'b'])// look for the 'b' key
-		{
-			gDebugFlags |= DEBUG_COLLISIONS;
-			[UNIVERSE addMessage:@"Collision debug ON" forCount:3];
-		}
-		
-		if ([gameView isDown:'x'])// look for the 'x' key
-		{
-			gDebugFlags |= DEBUG_BOUNDING_BOXES;
-			[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
-		}
-		
-		if ([gameView isDown:'c'])// look for the 'c' key
-		{
-			gDebugFlags |= DEBUG_OCTREE;
-			[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
-		}
-		
-#endif
-		
-		if ([gameView isDown:'s'])// look for the 's' key
-		{
-			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
-			[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
-		}
+			
+			if ([gameView isDown:'x'])// look for the 'x' key
+			{
+				gDebugFlags |= DEBUG_BOUNDING_BOXES;
+				[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
+			}
+			
+			if ([gameView isDown:'c'])// look for the 'c' key
+			{
+				gDebugFlags |= DEBUG_OCTREE;
+				[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
+			}
+			
+	#endif
+			
+			if ([gameView isDown:'s'])// look for the 's' key
+			{
+				OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", YES);
+				[UNIVERSE addMessage:@"Shader debug ON" forCount:3];
+			}
 
-		if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
-		{
-			if (!leftRightKeyPressed)
+			if (([gameView isDown:gvArrowKeyLeft] || [gameView isDown:gvArrowKeyRight]) && gui_screen != GUI_SCREEN_GAMEOPTIONS)
 			{
-				float newTimeAccelerationFactor = [gameView isDown:gvArrowKeyLeft] ? 
-						OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
-						OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
-				[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
-			}
-			leftRightKeyPressed = YES;
-		}
-		else
-			leftRightKeyPressed = NO;
-				
-		
-		if ([gameView isDown:'n'])// look for the 'n' key
-		{
-#ifndef NDEBUG
-			gDebugFlags = 0;
-			[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
-#else
-			[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
-#endif	// NDEBUG
-			OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
-		}
-	}
-	
-	// Pause game 'p'
-	if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)// look for the 'p' key
-	{
-		if (!pause_pressed)
-		{
-			if (paused)
-			{
-				script_time = saved_script_time;
-				// Reset to correct GUI screen, if we are unpausing from one.
-				// Don't set gui_screen here, use setGuis - they also switch backgrounds.
-				// No gui switching events will be triggered while still paused.
-				switch (saved_gui_screen)
+				if (!leftRightKeyPressed)
 				{
-					case GUI_SCREEN_STATUS:
-						[self setGuiToStatusScreen];
-						break;
-					case GUI_SCREEN_SHORT_RANGE_CHART:
-						[self setGuiToShortRangeChartScreen];
-						break;
-					case GUI_SCREEN_MANIFEST:
-						[self setGuiToManifestScreen];
-						break;
-					case GUI_SCREEN_MARKET:
-						[self setGuiToMarketScreen];
-						break;
-					case GUI_SCREEN_SYSTEM_DATA:
-						// Do not reset planet rotation if we are already in the system info screen!
-						if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
-							[self setGuiToSystemDataScreen];
-						break;
-					default:
-						gui_screen = saved_gui_screen;	// make sure we're back to the right screen
-						break;
+					float newTimeAccelerationFactor = [gameView isDown:gvArrowKeyLeft] ? 
+							OOMax_f([UNIVERSE timeAccelerationFactor] / 2.0f, TIME_ACCELERATION_FACTOR_MIN) :
+							OOMin_f([UNIVERSE timeAccelerationFactor] * 2.0f, TIME_ACCELERATION_FACTOR_MAX);
+					[UNIVERSE setTimeAccelerationFactor:newTimeAccelerationFactor];
 				}
-				[gameView allowStringInput:NO];
-				[UNIVERSE setDisplayCursor:NO];
-				[UNIVERSE clearPreviousMessage];
-				[UNIVERSE setViewDirection:saved_view_direction];
-				NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"overlay"];
-				[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-				[[gameView gameController] unpause_game];
+				leftRightKeyPressed = YES;
 			}
 			else
+				leftRightKeyPressed = NO;
+					
+			
+			if ([gameView isDown:'n'])// look for the 'n' key
 			{
-				saved_view_direction = [UNIVERSE viewDirection];
-				saved_script_time = script_time;
-				saved_gui_screen = gui_screen;
-				[UNIVERSE sleepytime:nil];	// pause handler
+	#ifndef NDEBUG
+				gDebugFlags = 0;
+				[UNIVERSE addMessage:@"All debug flags OFF" forCount:3];
+	#else
+				[UNIVERSE addMessage:@"Shader debug OFF" forCount:3];
+	#endif	// NDEBUG
+				OOLogSetDisplayMessagesInClass(@"$shaderDebugOn", NO);
 			}
 		}
-		pause_pressed = YES;
-	}
-	else
-	{
-		pause_pressed = NO;
-	}
+		
+		exceptionContext = @"pause";
+		// Pause game 'p'
+		if ([gameView isDown:key_pausebutton] && gui_screen != GUI_SCREEN_LONG_RANGE_CHART)// look for the 'p' key
+		{
+			if (!pause_pressed)
+			{
+				if (paused)
+				{
+					script_time = saved_script_time;
+					// Reset to correct GUI screen, if we are unpausing from one.
+					// Don't set gui_screen here, use setGuis - they also switch backgrounds.
+					// No gui switching events will be triggered while still paused.
+					switch (saved_gui_screen)
+					{
+						case GUI_SCREEN_STATUS:
+							[self setGuiToStatusScreen];
+							break;
+						case GUI_SCREEN_SHORT_RANGE_CHART:
+							[self setGuiToShortRangeChartScreen];
+							break;
+						case GUI_SCREEN_MANIFEST:
+							[self setGuiToManifestScreen];
+							break;
+						case GUI_SCREEN_MARKET:
+							[self setGuiToMarketScreen];
+							break;
+						case GUI_SCREEN_SYSTEM_DATA:
+							// Do not reset planet rotation if we are already in the system info screen!
+							if (gui_screen != GUI_SCREEN_SYSTEM_DATA)
+								[self setGuiToSystemDataScreen];
+							break;
+						default:
+							gui_screen = saved_gui_screen;	// make sure we're back to the right screen
+							break;
+					}
+					[gameView allowStringInput:NO];
+					[UNIVERSE setDisplayCursor:NO];
+					[UNIVERSE clearPreviousMessage];
+					[UNIVERSE setViewDirection:saved_view_direction];
+					NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"overlay"];
+					[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+					[[gameView gameController] unpause_game];
+				}
+				else
+				{
+					saved_view_direction = [UNIVERSE viewDirection];
+					saved_script_time = script_time;
+					saved_gui_screen = gui_screen;
+					[UNIVERSE sleepytime:nil];	// pause handler
+				}
+			}
+			pause_pressed = YES;
+		}
+		else
+		{
+			pause_pressed = NO;
+		}
+	NS_HANDLER
+		// TEMP extra exception checking
+		OOLog(kOOLogException, @"***** Exception in pollFlightControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
+	NS_ENDHANDLER
 }
 
 
@@ -3057,60 +3115,69 @@ static BOOL toggling_music;
 {
 	MyOpenGLView			*gameView = [UNIVERSE gameView];
 	GameController			*gameController = [gameView gameController];
+	NSString * volatile		exceptionContext = @"setup";
 	
-	// Pause game, 'p' key
-	if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
-			gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
-			gui_screen != GUI_SCREEN_SAVE) )
-	{
-		if (!pause_pressed)
+	NS_DURING
+		// Pause game, 'p' key
+		exceptionContext = @"pause key";
+		if ([gameView isDown:key_pausebutton] && (gui_screen != GUI_SCREEN_LONG_RANGE_CHART &&
+				gui_screen != GUI_SCREEN_MISSION && gui_screen != GUI_SCREEN_REPORT &&
+				gui_screen != GUI_SCREEN_SAVE) )
 		{
-			NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_docked_overlay"];
-			if ([gameController gameIsPaused])
+			if (!pause_pressed)
 			{
-				script_time = saved_script_time;
-				[gameView allowStringInput:NO];
-				[UNIVERSE setDisplayCursor:NO];
-				if (![OOTexture textureWithName:fgName inFolder:@"Images"])
-					[UNIVERSE clearPreviousMessage];	// remove the 'paused' message if it was there.
-				fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];
-				[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-				[gameController unpause_game];
+				NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_docked_overlay"];
+				if ([gameController gameIsPaused])
+				{
+					script_time = saved_script_time;
+					[gameView allowStringInput:NO];
+					[UNIVERSE setDisplayCursor:NO];
+					if (![OOTexture textureWithName:fgName inFolder:@"Images"])
+						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message if it was there.
+					fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];
+					[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+					[gameController unpause_game];
+				}
+				else
+				{
+					saved_script_time = script_time;
+					if (![OOTexture textureWithName:fgName inFolder:@"Images"])
+						[[UNIVERSE message_gui] clear];		// remove all other messages if we're displaying the 'paused' message.
+					
+					[UNIVERSE sleepytime:nil];	// 'paused' handler
+				}
 			}
-			else
+			pause_pressed = YES;
+		}
+		else
+		{
+			pause_pressed = NO;
+		}
+		
+		if ([gameController gameIsPaused]) NS_VOIDRETURN; //return;	// TEMP
+		
+		if(pollControls)
+		{
+			exceptionContext = @"undock";
+			if ([gameView isDown:gvFunctionKey1] || [gameView isDown:gvNumberKey1])   // look for the f1 key
 			{
-				saved_script_time = script_time;
-				if (![OOTexture textureWithName:fgName inFolder:@"Images"])
-					[[UNIVERSE message_gui] clear];		// remove all other messages if we're displaying the 'paused' message.
-				
-				[UNIVERSE sleepytime:nil];	// 'paused' handler
+				[self handleUndockControl];
 			}
 		}
-		pause_pressed = YES;
-	}
-	else
-	{
-		pause_pressed = NO;
-	}
-	
-	if ([gameController gameIsPaused]) return;
-	
-	if(pollControls)
-	{
-		if ([gameView isDown:gvFunctionKey1] || [gameView isDown:gvNumberKey1])   // look for the f1 key
-		{
-			[self handleUndockControl];
-		}
-	}
-	
-	//  text displays
-	// mission screens
-	if (gui_screen == GUI_SCREEN_MISSION)
-		[self pollDemoControls: delta_t];
-	else
-		[self pollGuiScreenControls];	// don't switch away from mission screens
-	
-	[self pollGuiArrowKeyControls:delta_t];
+		
+		//  text displays
+		// mission screens
+		exceptionContext = @"GUI keys";
+		if (gui_screen == GUI_SCREEN_MISSION)
+			[self pollDemoControls: delta_t];
+		else
+			[self pollGuiScreenControls];	// don't switch away from mission screens
+		
+		[self pollGuiArrowKeyControls:delta_t];
+	NS_HANDLER
+		// TEMP extra exception checking
+		OOLog(kOOLogException, @"***** Exception in pollDockedControls [%@]: %@ : %@", exceptionContext, [localException name], [localException reason]);
+	NS_ENDHANDLER
 }
 
 - (void) handleUndockControl
