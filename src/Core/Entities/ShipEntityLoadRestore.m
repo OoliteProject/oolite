@@ -211,7 +211,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	{
 		OOShipGroup *group = GroupForGroupID(groupID, context);
 		[ship setGroup:group];	// Handles adding to group
-		if ([dict oo_boolForKey:KEY_IS_GROUP_LEADER])  [group setLeader:self];
+		if ([dict oo_boolForKey:KEY_IS_GROUP_LEADER])  [group setLeader:ship];
 		NSString *groupName = [dict oo_stringForKey:KEY_GROUP_NAME];
 		if (groupName != nil)  [group setName:groupName];
 	}
