@@ -52,11 +52,11 @@ MA 02110-1301, USA.
 - (float) fuelLeakRate;
 - (void) setFuelLeakRate:(float)value;
 
-// Default: FALSE
+// Default: NO
 - (BOOL) massLocked;
 - (void) setMassLocked:(BOOL)value;
 
-// Default: FALSE
+// Default: NO
 - (BOOL) atHyperspeed;
 - (void) setAtHyperspeed:(BOOL)value;
 
@@ -80,7 +80,7 @@ MA 02110-1301, USA.
 - (OOCompassMode) compassMode;
 - (void) setCompassMode:(OOCompassMode)value;
 
-// Default: FALSE
+// Default: NO
 - (BOOL) dialIdentEngaged;
 - (void) setDialIdentEngaged:(BOOL)value;
 
@@ -91,5 +91,13 @@ MA 02110-1301, USA.
 // Default: 0
 - (OOUInteger) trumbleCount;
 - (void) setTrumbleCount:(OOUInteger)value;
+
+@end
+
+
+@interface Entity (ProxyPlayer)
+
+// True for PlayerEntity or ProxyPlayerEntity.
+- (BOOL) isPlayerLikeShip;
 
 @end

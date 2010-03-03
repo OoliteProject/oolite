@@ -3481,7 +3481,7 @@ static GLfloat sBaseMass = 0.0;
 
 - (ProxyPlayerEntity *) createDoppelganger
 {
-	ProxyPlayerEntity *result = [[UNIVERSE newShipWithName:[self shipDataKey] class:[ProxyPlayerEntity class]] autorelease];
+	ProxyPlayerEntity *result = [[UNIVERSE newShipWithName:[self shipDataKey] usePlayerProxy:YES] autorelease];
 	
 	if (result != nil)
 	{
@@ -5606,14 +5606,14 @@ static NSString *last_outfitting_key=nil;
 	int 			msgLine = 2;
 	OOTexture		*background = nil;
 
-	if(justCobra==YES)
+	if (justCobra)
 	{
 		[[OOCacheManager sharedCache] flush];	// At first startup, a lot of stuff is cached
 	}
 	[gui clear];
 	[gui setTitle:@"Oolite"];
 	
-	if(justCobra==YES)
+	if (justCobra)
 	{
 		text = DESC(@"game-copyright");
 		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
@@ -5691,9 +5691,9 @@ static NSString *last_outfitting_key=nil;
 	
 	[UNIVERSE setupIntroFirstGo: justCobra];
 	
-	if (gui !=NULL)  
+	if (gui != nil)  
 	{
-		gui_screen = (justCobra==YES) ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
+		gui_screen = justCobra ? GUI_SCREEN_INTRO1 : GUI_SCREEN_INTRO2;
 	}
 	[[OOMusicController sharedController] playThemeMusic];
 	

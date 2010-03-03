@@ -66,6 +66,8 @@ MA 02110-1301, USA.
 #import "RingEntity.h"
 #import "ParticleEntity.h"
 #import "ShipEntityAI.h"
+#import "ProxyPlayerEntity.h"
+
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
 
@@ -2727,7 +2729,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	quaternion_rotate_about_y(&q2,M_PI);
 	
 	// in status demo draw ships and display text
-	if (justCobra==NO)
+	if (!justCobra)
 	{
 		[self removeDemoShips];
 	}
@@ -2735,7 +2737,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	[player setShowDemoShips: YES];
 	displayGUI = YES;
 	
-	if (justCobra==YES)
+	if (justCobra)
 	{
 		/*- cobra -*/
 		ship = [self newShipWithName:PLAYER_SHIP_DESC];   // retain count = 1   // shows the cobra-player ship
@@ -2744,14 +2746,14 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	{
 		/*- demo ships -*/
 		demo_ship_index = 0;
-		ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0]];   // retain count = 1
+		ship = [self newShipWithName:[demo_ships oo_stringAtIndex:0] usePlayerProxy:YES];   // retain count = 1
 	}
 	
 	if (ship)
 	{
 		[ship setOrientation:q2];
 		[ship setPositionX:0.0f y:0.0f z:3.6f * ship->collision_radius];
-		if (justCobra==NO)
+		if (!justCobra)
 		{
 			[ship setDestination: ship->position];	// ideal position
 		}
@@ -2764,7 +2766,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		// now override status
 		[ship setStatus:STATUS_COCKPIT_DISPLAY];
 		demo_ship = ship;
-		if (justCobra==NO)
+		if (!justCobra)
 		{
 			[gui setText:[ship displayName] forRow:19 align:GUI_ALIGN_CENTER];
 			[gui setColor:[OOColor whiteColor] forRow:19];
@@ -2774,7 +2776,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	//displayGUI = YES;	// already set
-	if (justCobra==NO)
+	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;
 		demo_stage_time = universal_time + 3.0;
@@ -3021,7 +3023,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) newShipWithName:(NSString *)shipKey class:(Class)class
+- (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy
 {
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
@@ -3029,8 +3031,11 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipDict == nil)  return nil;
 	
-	volatile Class shipClass = class;
-	if (shipClass == Nil)  shipClass = [self shipClassForShipDictionary:shipDict];
+	volatile Class shipClass = [self shipClassForShipDictionary:shipDict];
+	if (usePlayerProxy && shipClass == [ShipEntity class])
+	{
+		shipClass = [ProxyPlayerEntity class];
+	}
 	
 	NS_DURING
 		ship =[[shipClass alloc] initWithKey:shipKey definition:shipDict];
@@ -3056,7 +3061,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (ShipEntity *) newShipWithName:(NSString *)shipKey
 {
-	return [self newShipWithName:shipKey class:Nil];
+	return [self newShipWithName:shipKey usePlayerProxy:NO];
 }
 
 

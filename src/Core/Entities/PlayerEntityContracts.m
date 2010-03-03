@@ -26,6 +26,8 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntityContracts.h"
 #import "PlayerEntityControls.h"
+#import "ProxyPlayerEntity.h"
+
 #import "Universe.h"
 #import "AI.h"
 #import "OOColor.h"
@@ -1463,7 +1465,7 @@ static NSMutableDictionary* currentShipyard = nil;
 	
 	Quaternion		q2 = { (GLfloat)0.707f, (GLfloat)0.707f, (GLfloat)0.0f, (GLfloat)0.0f };
 	
-	ship = [[ShipEntity alloc] initWithKey:shipKey definition:shipData];
+	ship = [[ProxyPlayerEntity alloc] initWithKey:shipKey definition:shipData];
 	if (personality != ENTITY_PERSONALITY_INVALID)  [ship setEntityPersonalityInt:personality];
 	[ship wasAddedToUniverse];
 	

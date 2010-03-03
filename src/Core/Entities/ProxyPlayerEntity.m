@@ -61,6 +61,12 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL) isPlayerLikeShip
+{
+	return YES;
+}
+
+
 - (float) fuelLeakRate
 {
 	return _fuelLeakRate;
@@ -184,5 +190,25 @@ MA 02110-1301, USA.
 
 
 // If you're here to add more properties, don't forget to update -copyValuesFromPlayer:.
+
+@end
+
+
+@implementation Entity (ProxyPlayer)
+
+- (BOOL) isPlayerLikeShip
+{
+	return NO;
+}
+
+@end
+
+
+@implementation PlayerEntity (ProxyPlayer)
+
+- (BOOL) isPlayerLikeShip
+{
+	return YES;
+}
 
 @end

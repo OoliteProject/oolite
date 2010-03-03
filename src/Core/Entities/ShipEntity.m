@@ -72,6 +72,7 @@ MA 02110-1301, USA.
 #import "OOECMBlastEntity.h"
 #import "OOPlasmaShotEntity.h"
 #import "OOFlashEffectEntity.h"
+#import "ProxyPlayerEntity.h"
 
 #import "PlayerEntityLegacyScriptEngine.h"
 #import "PlayerEntitySound.h"
@@ -9557,14 +9558,14 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget)
 	if ([bindingTarget isKindOfClass:[Entity class]])
 	{
 		if ([entityWhitelist containsObject:propertyName])  return YES;
-	}
-	if ([bindingTarget isKindOfClass:[ShipEntity class]])
-	{
-		if ([shipWhitelist containsObject:propertyName])  return YES;
-	}
-	if ([bindingTarget isKindOfClass:[PlayerEntity class]])
-	{
-		if ([playerShipWhitelist containsObject:propertyName])  return YES;
+		if ([bindingTarget isShip])
+		{
+			if ([shipWhitelist containsObject:propertyName])  return YES;
+		}
+		if ([bindingTarget isPlayerLikeShip])
+		{
+			if ([playerShipWhitelist containsObject:propertyName])  return YES;
+		}
 	}
 	
 	return NO;
