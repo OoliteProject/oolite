@@ -134,6 +134,7 @@ OOScanClass StringToScanClass(NSString *string)
 }
 
 
+#ifdef OO_BRAIN_AI
 NSString *InstinctToString(OOInstinctID instinct)
 {
 	switch (instinct)
@@ -162,6 +163,7 @@ OOInstinctID StringToInstinct(NSString *string)
 	
 	return INSTINCT_NULL;
 }
+#endif
 
 
 NSString *BehaviourToString(OOBehaviour behaviour)

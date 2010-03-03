@@ -3021,7 +3021,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-- (ShipEntity *) newShipWithName:(NSString *)shipKey
+- (ShipEntity *) newShipWithName:(NSString *)shipKey class:(Class)class
 {
 	NSDictionary	*shipDict = nil;
 	ShipEntity		*ship = nil;
@@ -3029,7 +3029,8 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:shipKey];
 	if (shipDict == nil)  return nil;
 	
-	volatile Class shipClass = [self shipClassForShipDictionary:shipDict];
+	volatile Class shipClass = class;
+	if (shipClass == Nil)  shipClass = [self shipClassForShipDictionary:shipDict];
 	
 	NS_DURING
 		ship =[[shipClass alloc] initWithKey:shipKey definition:shipDict];
@@ -3050,6 +3051,12 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	
 	// MKW 20090327 - retain count is actually 2!
 	return ship;   // retain count = 1
+}
+
+
+- (ShipEntity *) newShipWithName:(NSString *)shipKey
+{
+	return [self newShipWithName:shipKey class:Nil];
 }
 
 

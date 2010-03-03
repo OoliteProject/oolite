@@ -2728,13 +2728,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			{
 				switch ([(PlayerEntity*)hauler dialFuelScoopStatus])
 				{
-					case SCOOP_STATUS_NOT_INSTALLED :
-					case SCOOP_STATUS_FULL_HOLD :
+					case SCOOP_STATUS_NOT_INSTALLED:
+					case SCOOP_STATUS_FULL_HOLD:
 						lost_contact = YES;	// don't draw
+						break;
+						
+					case SCOOP_STATUS_OKAY:
+					case SCOOP_STATUS_ACTIVE:
 						break;
 				}
 			}
-			//
+			
 			if (lost_contact)	// 250m range for tractor beam
 			{
 				// escaped tractor beam

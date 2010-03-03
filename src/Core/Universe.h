@@ -361,6 +361,7 @@ enum
 
 - (ShipEntity *) newShipWithRole:(NSString *)role;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey;	// Does not apply auto_ai or respect conditions
+- (ShipEntity *) newShipWithName:(NSString *)shipKey class:(Class)class;
 
 - (Class) shipClassForShipDictionary:(NSDictionary *)dict;
 

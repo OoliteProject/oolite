@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOSunEntity.h"
 #import "OOPlanetEntity.h"
 #import "WormholeEntity.h"
+#import "ProxyPlayerEntity.h"
 
 #import "OOMaths.h"
 #import "GameController.h"
@@ -3478,14 +3479,33 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
+- (ProxyPlayerEntity *) createDoppelganger
+{
+	ProxyPlayerEntity *result = [[UNIVERSE newShipWithName:[self shipDataKey] class:[ProxyPlayerEntity class]] autorelease];
+	
+	if (result != nil)
+	{
+		[result setPosition:[self position]];
+		[result setScanClass:CLASS_NEUTRAL];
+		[result setOrientation:[self normalOrientation]];
+		[result setVelocity:[self velocity]];
+		[result setSpeed:[self flightSpeed]];
+		[result setDesiredSpeed:[self flightSpeed]];
+		[result setRoll:flightRoll];
+		[result setBehaviour:BEHAVIOUR_IDLE];
+		[result switchAITo:@"nullAI.plist"];  // fly straight on
+		[result copyValuesFromPlayer:self];
+	}
+	
+	return result;
+}
+
+
 - (OOUniversalID)launchEscapeCapsule
 {
 	ShipEntity		*doppelganger = nil;
 	ShipEntity		*escapePod = nil;
-	Vector			vel;
-	Vector			origin = position;
-	int				result = NO;
-	Quaternion		q1 = orientation;
+	OOUniversalID	result = NO_TARGET;
 	
 	if ([self status] == STATUS_DEAD) return NO;
 	
@@ -3495,28 +3515,17 @@ static GLfloat sBaseMass = 0.0;
 	dockingClearanceStatus = DOCKING_CLEARANCE_STATUS_NOT_REQUIRED;
 #endif
 	
-	q1.w = -q1.w;   // player view is reversed remember!
-	
 	flightSpeed = OOMax_f(flightSpeed, 50.0f);
-	vel = vector_multiply_scalar(v_forward, flightSpeed);
 	
-	doppelganger = [UNIVERSE newShipWithName:[self shipDataKey]];   // retain count = 1
+	doppelganger = [self createDoppelganger];
 	if (doppelganger)
 	{
-		[doppelganger setPosition:origin];						// directly below
-		[doppelganger setScanClass:CLASS_NEUTRAL];
-		[doppelganger setOrientation:q1];
-		[doppelganger setVelocity:vel];
-		[doppelganger setSpeed:flightSpeed];
+		[doppelganger setVelocity:vector_multiply_scalar(v_forward, flightSpeed)];
 		[doppelganger setRoll:0.2 * (randf() - 0.5)];
-		[doppelganger setDesiredSpeed:flightSpeed];
 		[doppelganger setOwner:self];
-		[doppelganger setBehaviour:BEHAVIOUR_IDLE];
-		[doppelganger switchAITo:@"nullAI.plist"];  // fly straight on
 		[UNIVERSE addEntity:doppelganger];
-
+		
 		result = [doppelganger universalID];
-		[doppelganger release]; //release
 	}
 	
 	// set up you

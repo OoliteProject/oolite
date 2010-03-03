@@ -38,8 +38,10 @@ OOEntityStatus StringToEntityStatus(NSString *string) PURE_FUNC;
 NSString *ScanClassToString(OOScanClass scanClass) CONST_FUNC;
 OOScanClass StringToScanClass(NSString *string) PURE_FUNC;
 
+#ifdef OO_BRAIN_AI
 NSString *InstinctToString(OOInstinctID instinct) CONST_FUNC;
 OOInstinctID StringToInstinct(NSString *string) PURE_FUNC;
+#endif
 
 NSString *BehaviourToString(OOBehaviour behaviour) CONST_FUNC;
 
