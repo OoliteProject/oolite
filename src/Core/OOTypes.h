@@ -131,6 +131,7 @@ typedef enum
 
 typedef enum
 {
+	// NOTE: numerical values are available to scripts.
 	SHADERS_NOT_SUPPORTED,
 	SHADERS_OFF,
 	SHADERS_SIMPLE,
@@ -141,6 +142,7 @@ typedef enum
 #define SHADERS_MAX SHADERS_FULL
 
 
+#ifdef OO_BRAIN_AI
 typedef enum
 {
 	INSTINCT_NULL					= 0U,
@@ -159,6 +161,7 @@ typedef enum
 	// advanced AI instincts
 	INSTINCT_FOLLOW_AI				= 201
 } OOInstinctID;
+#endif
 
 
 typedef enum
@@ -346,7 +349,7 @@ typedef enum
 
 typedef enum
 {
-	// Exposed to shaders.
+	// NOTE: numerical values are available to scripts and shaders.
 	COMPASS_MODE_BASIC,
 	COMPASS_MODE_PLANET,
 	COMPASS_MODE_STATION,

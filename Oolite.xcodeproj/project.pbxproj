@@ -2202,8 +2202,6 @@
 				1A26D0A50BCF9CF70073F257 /* PlayerEntitySound.m */,
 				1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */,
 				1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */,
-				1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */,
-				1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */,
 			);
 			name = PlayerEntity;
 			sourceTree = "<group>";
@@ -2684,6 +2682,8 @@
 				1A2A1B060BD276A900152975 /* OOEntityWithDrawable.m */,
 				1A2A1B280BD277D800152975 /* OOSelfDrawingEntity.h */,
 				1A2A1B290BD277D800152975 /* OOSelfDrawingEntity.m */,
+				1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */,
+				1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */,
 				1A26D0900BCF9CF70073F257 /* ShipEntity.h */,
 				1A26D08F0BCF9CF70073F257 /* ShipEntity.m */,
 				1A26D08A0BCF9CF70073F257 /* ShipEntityAI.h */,

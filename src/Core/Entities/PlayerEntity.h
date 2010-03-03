@@ -112,14 +112,14 @@ enum
 #endif
 
 
-enum
+typedef enum
 {
 	// Exposed to shaders.
 	SCOOP_STATUS_NOT_INSTALLED			= 0,
 	SCOOP_STATUS_FULL_HOLD,
 	SCOOP_STATUS_OKAY,
 	SCOOP_STATUS_ACTIVE
-};
+} OOFuelScoopStatus;
 
 
 enum
@@ -580,7 +580,9 @@ typedef enum
 - (unsigned) countMissiles;
 - (OOMissileStatus) dialMissileStatus;
 
-- (int) dialFuelScoopStatus;
+- (OOFuelScoopStatus) dialFuelScoopStatus;
+
+- (float)fuelLeakRate;
 
 - (double) clockTime;		// Note that this is not an OOTimeAbsolute
 - (double) clockTimeAdjusted;	// Note that this is not an OOTimeAbsolute

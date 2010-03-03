@@ -2623,7 +2623,7 @@ static GLfloat sBaseMass = 0.0;
 	return [super canScoop:other];
 }
 
-- (int) dialFuelScoopStatus
+- (OOFuelScoopStatus) dialFuelScoopStatus
 {
 	if ([self hasScoop])
 	{
@@ -2635,6 +2635,12 @@ static GLfloat sBaseMass = 0.0;
 	}
 	else
 		return SCOOP_STATUS_NOT_INSTALLED;
+}
+
+
+- (float)fuelLeakRate
+{
+	return fuel_leak_rate;
 }
 
 

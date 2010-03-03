@@ -391,7 +391,11 @@
 		// Renamed, previously player-only properties for 1.74
 		"legalStatus",			// Was commanderLegalStatus_number
 		"fuel",					// Was fuelLevel_number
-		"velocity"				// Was velocityVector
+		"velocity",				// Was velocityVector
+		"missileCapacity",		// Was dialMaxMissiles
+		
+		// New in 1.74
+		"missileCount"
 	);
 	
 	shader_player_ship_binding_methods =
@@ -404,8 +408,6 @@
 		"dialMissileStatus",
 		"dialFuelScoopStatus",
 		"compassMode",
-		"activeMissile",
-		"dialMaxMissiles",
 		"dialIdentEngaged",
 		"alertCondition",
 		"trumbleCount"
