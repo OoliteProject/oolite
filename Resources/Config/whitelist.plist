@@ -342,7 +342,17 @@
 		"universalTime",
 		"spawnTime",
 		"timeElapsedSinceSpawn",
-		"throwingSparks"
+		"throwingSparks",
+		
+		// Renamed, previously player-only properties for 1.74
+		"clock",				// Was clock_number or clock_secs_number; supersedes clock_mins_number, clock_hours_number, clock_days_number
+		"pseudoFixedD100",		// Was pseudoFixedD100_number
+		"pseudoFixedD256",		// Was pseudoFixedD256_number
+		"systemGovernment",		// Was systemGovernment_number
+		"systemEconomy",		// Was systemEconomy_number
+		"systemTechLevel",		// Was systemTechLevel_number
+		"systemPopulation",		// Was systemPopulation_number
+		"systemProductivity"	// Was systemProductivity_number
 	);
 	
 	shader_ship_binding_methods =
@@ -376,14 +386,19 @@
 		"rangeToPrimaryTarget",
 		"laserColor",
 		"isHulk",
-		"lightsActive"
+		"lightsActive",
+		
+		// Renamed, previously player-only properties for 1.74
+		"legalStatus",			// Was commanderLegalStatus_number
+		"fuel",					// Was fuelLevel_number
+		"velocity"				// Was velocityVector
 	);
 	
 	shader_player_ship_binding_methods =
-	(	
+	(
+		"fuelLeakRate",			// Was fuelLeakRate_number
 		"massLocked",
 		"atHyperspeed",
-		"velocityVector",
 		"dialForwardShield",
 		"dialAftShield",
 		"dialMissileStatus",
@@ -393,32 +408,7 @@
 		"dialMaxMissiles",
 		"dialIdentEngaged",
 		"alertCondition",
-		"trumbleCount",
-		
-		// PlayerShipLegacyScriptEngine.m
-		"galaxy_number",
-		"planet_number",
-		"score_number",
-		"credits_number",
-		"scriptTimer_number",
-		"shipsFound_number",
-		"legalStatus_number",
-		"commanderLegalStatus_number",
-		"pseudoFixedD100_number",
-		"pseudoFixedD256_number",
-		"clock_number",
-		"clock_secs_number",
-		"clock_mins_number",
-		"clock_hours_number",
-		"clock_days_number",
-		"fuelLevel_number",
-		"dockedTechLevel_number",
-		"systemGovernment_number",
-		"systemEconomy_number",
-		"systemTechLevel_number",
-		"systemPopulation_number",
-		"systemProductivity_number",
-		"fuelLeakRate_number"
+		"trumbleCount"
 	);
 	
 	action_method_aliases =

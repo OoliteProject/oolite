@@ -2350,16 +2350,6 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (Vector) velocityVector
-{
-	Vector result = v_forward;
-	result.x *= flightSpeed;
-	result.y *= flightSpeed;
-	result.z *= flightSpeed;
-	return result;
-}
-
-
 //			dial routines = all return 0.0 .. 1.0 or -1.0 .. 1.0
 
 - (void) setDockedAtMainStation

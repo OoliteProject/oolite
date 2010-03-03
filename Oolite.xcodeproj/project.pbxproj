@@ -499,6 +499,9 @@
 		1A7D41E30C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */; };
 		1A7D833A0C40147800E4A5F5 /* OOAsyncQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */; };
 		1A7D833B0C40147800E4A5F5 /* OOAsyncQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */; };
+		1A7E317C113ED37C009AAB6D /* EntityShaderBindings.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */; };
+		1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */; };
+		1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */; };
 		1A817C17106D123F00AA2F97 /* oolite-particle-blur.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */; };
 		1A817CFC106D232100AA2F97 /* OOPlasmaShotEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */; };
 		1A817CFD106D232100AA2F97 /* OOPlasmaShotEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */; };
@@ -1597,6 +1600,9 @@
 		1A7D41E10C516E9E008EDC33 /* OOCheckShipDataPListVerifierStage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCheckShipDataPListVerifierStage.m; sourceTree = "<group>"; };
 		1A7D83380C40147700E4A5F5 /* OOAsyncQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOAsyncQueue.h; sourceTree = "<group>"; };
 		1A7D83390C40147700E4A5F5 /* OOAsyncQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOAsyncQueue.m; sourceTree = "<group>"; };
+		1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntityShaderBindings.m; sourceTree = "<group>"; };
+		1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ProxyPlayerEntity.h; sourceTree = "<group>"; };
+		1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ProxyPlayerEntity.m; sourceTree = "<group>"; };
 		1A817C16106D123F00AA2F97 /* oolite-particle-blur.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-particle-blur.png"; sourceTree = "<group>"; };
 		1A817CFA106D232100AA2F97 /* OOPlasmaShotEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPlasmaShotEntity.h; sourceTree = "<group>"; };
 		1A817CFB106D232100AA2F97 /* OOPlasmaShotEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPlasmaShotEntity.m; sourceTree = "<group>"; };
@@ -2196,6 +2202,8 @@
 				1A26D0A50BCF9CF70073F257 /* PlayerEntitySound.m */,
 				1A26D09F0BCF9CF70073F257 /* PlayerEntityStickMapper.h */,
 				1A26D09E0BCF9CF70073F257 /* PlayerEntityStickMapper.m */,
+				1A7E3187113ED496009AAB6D /* ProxyPlayerEntity.h */,
+				1A7E3188113ED496009AAB6D /* ProxyPlayerEntity.m */,
 			);
 			name = PlayerEntity;
 			sourceTree = "<group>";
@@ -2671,6 +2679,7 @@
 			children = (
 				1A26D09D0BCF9CF70073F257 /* Entity.h */,
 				1A26D0A80BCF9CF70073F257 /* Entity.m */,
+				1A7E317B113ED37C009AAB6D /* EntityShaderBindings.m */,
 				1A2A1B050BD276A900152975 /* OOEntityWithDrawable.h */,
 				1A2A1B060BD276A900152975 /* OOEntityWithDrawable.m */,
 				1A2A1B280BD277D800152975 /* OOSelfDrawingEntity.h */,
@@ -3173,6 +3182,7 @@
 				1AA7FE3410C2F26A0058FBED /* OOPlanetTextureGenerator.h in Headers */,
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
 				1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */,
+				1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3545,6 +3555,8 @@
 				1AA7FE2E10C2F2070058FBED /* OOTextureGenerator.m in Sources */,
 				1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */,
 				1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */,
+				1A7E317C113ED37C009AAB6D /* EntityShaderBindings.m in Sources */,
+				1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

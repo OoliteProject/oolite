@@ -176,7 +176,9 @@ enum
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_maxThrust,			// maximum thrust, double, read-only
 	kShip_thrust,				// the ship's thrust, double, read/write
-	kShip_lightsActive			// flasher/shader light flag, boolean, read/write
+	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
+	kShip_velocity,				// velocity, vector, read/write
+	kShip_thrustVector,			// thrust-related component of velocity, vector, read-only
 };
 
 
@@ -253,6 +255,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "maxThrust",				kShip_maxThrust,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "thrust",					kShip_thrust,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "lightsActive",			kShip_lightsActive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "velocity",				kShip_velocity,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "thrustVector",			kShip_thrustVector,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -642,6 +646,14 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = YES;
 			break;
 			
+		case kShip_velocity:
+			OK = VectorToJSValue(context, [entity velocity], outValue);
+			break;
+			
+		case kShip_thrustVector:
+			OK = VectorToJSValue(context, [entity thrustVector], outValue);
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Ship", JSVAL_TO_INT(name));
 	}
@@ -889,6 +901,21 @@ static JSBool ShipSetProperty(JSContext *context, JSObject *this, jsval name, js
 			{
 				if (bValue)  [entity switchLightsOn];
 				else  [entity switchLightsOff];
+				OK = YES;
+			}
+			break;
+			
+		case kShip_velocity:
+			if (JSValueToVector(context, *value, &vValue))
+			{
+				/*	Silliness: the ship's velocity vector is the sum of the
+					thrust vector and a base velocity. Here we find the
+					thrust vector (and any other weird vectors that may be
+					added into the mix) and alter the base velocity to get
+					the requested total velocity.
+					-- Ahruman 2010-03-03
+				*/
+				[entity setTotalVelocity:vValue];
 				OK = YES;
 			}
 			break;

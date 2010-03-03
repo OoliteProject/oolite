@@ -7935,9 +7935,21 @@ BOOL class_masslocks(int some_class)
 }
 
 
-- (Vector) velocity	// overrides Entity velocity
+- (Vector) thrustVector
 {
-	return vector_add(velocity, vector_multiply_scalar(v_forward, flightSpeed));
+	return vector_multiply_scalar(v_forward, flightSpeed);
+}
+
+
+- (Vector) velocity
+{
+	return vector_add([super velocity], [self thrustVector]);
+}
+
+
+- (void) setTotalVelocity:(Vector)vel
+{
+	[self setVelocity:vector_subtract(vel, [self thrustVector])];
 }
 
 

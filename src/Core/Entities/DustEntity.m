@@ -149,7 +149,7 @@ MA 02110-1301, USA.
 	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
 
 	BOOL	warp_stars = [player atHyperspeed];
-	Vector  warp_vector = vector_multiply_scalar([player velocityVector], 1.0f / HYPERSPEED_FACTOR);
+	Vector  warp_vector = vector_multiply_scalar([player velocity], 1.0f / HYPERSPEED_FACTOR);
 		
 	if (translucent)
 	{

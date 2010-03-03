@@ -537,7 +537,6 @@ typedef enum
 
 - (BOOL) massLocked;
 - (BOOL) atHyperspeed;
-- (Vector) velocityVector;
 
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;

@@ -632,6 +632,9 @@ MA 02110-1301, USA.
 - (double) desiredSpeed;
 - (void) setDesiredSpeed:(double) amount;
 
+- (Vector) thrustVector;
+- (void) setTotalVelocity:(Vector)vel;	// Set velocity to vel - thrustVector, effectively setting the instanteneous velocity to vel.
+
 - (void) increase_flight_speed:(double) delta;
 - (void) decrease_flight_speed:(double) delta;
 - (void) increase_flight_roll:(double) delta;

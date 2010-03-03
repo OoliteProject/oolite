@@ -82,6 +82,12 @@ This code is hereby placed in the public domain.
 
 // *** Proxy evilness beyond this point.
 
+- (Class) class
+{
+	return [_object class];
+}
+
+
 - (void)forwardInvocation:(NSInvocation *)invocation
 {
 	// Does the right thing even with nil _object.
