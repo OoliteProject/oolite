@@ -480,11 +480,17 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	}
 	else
 	{
-		[player setGuiToStatusScreen];
-		[player setStatus:STATUS_DOCKED];
+		[player setDockedAtMainStation];
 	}
+	
 	[player completeSetUp];
-	if(!showDemo) [player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+	
+	if(!showDemo)
+	{
+		[player setGuiToStatusScreen];
+		[player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+	}
+		
 	no_update = NO;
 }
 
@@ -2715,8 +2721,8 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) game_over
 {
-	if ([[gameView gameController] playerFileToLoad]) [[gameView gameController] loadPlayerIfRequired];
-	else [self reinitAndShowDemo:NO];
+	if ([[gameView gameController] playerFileToLoad])  [[gameView gameController] loadPlayerIfRequired];
+	else  [self reinitAndShowDemo:NO];
 }
 
 
