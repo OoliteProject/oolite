@@ -2745,9 +2745,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				// escaped tractor beam
 				[self setStatus:STATUS_IN_FLIGHT];
 				behaviour = BEHAVIOUR_IDLE;
+				[self setThrust:[self maxThrust]]; // restore old thrust.
 				frustration = 0.0;
 				[self setOwner:self];
 				[shipAI exitStateMachineWithMessage:nil];	// exit nullAI.plist
+				return;
 			}
 			else if ([hauler isPlayer])
 			{
