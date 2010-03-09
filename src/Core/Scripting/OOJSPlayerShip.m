@@ -52,6 +52,7 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerShipSwitchHudTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -139,6 +140,7 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
+	{ "switchHudTo",			PlayerShipSwitchHudTo,				1 },
 	{ 0 }
 };
 
@@ -508,5 +510,28 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	}
 	
 	[player useSpecialCargo:JSValToNSString(context, argv[0])];
+	return YES;
+}
+
+
+// switchHudTo(fileName: String)
+static JSBool PlayerShipSwitchHudTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString			*fileName = nil;
+	
+	fileName = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(fileName == nil))
+	{
+		OOReportJSBadArguments(context, @"PlayerShip", @"switchHudTo", argc, argv, nil, @"HUD file name");
+		return NO;
+	}
+	
+	if (![player switchHudTo:JSValToNSString(context, argv[0])])
+	{
+		OOReportJSErrorForCaller(context, @"PlayerShip", @"switchHudTo", @"Failed to switch HUD to %@", fileName);
+		return NO;
+	}
+	
 	return YES;
 }

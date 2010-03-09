@@ -2382,6 +2382,32 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
+- (BOOL) switchHudTo:(NSString *)hudFileName
+{
+	NSDictionary *hudDict = nil;
+	HeadUpDisplay *theHud = [self hud];
+	if (!theHud || !hudFileName)  return NO;
+	
+	hudDict = [ResourceManager dictionaryFromFilesNamed:hudFileName inFolder:@"Config" andMerge:YES];
+	if (hudDict == nil)
+	{
+		OOLog(@"PlayerEntity.switchHudTo.failed", @"HUD dictionary file %@ to switch to not found or invalid.", hudFileName);
+		return NO;
+	}
+	
+	BOOL theHudIsHidden = [theHud isHidden];
+	
+	[theHud setHidden:NO];
+	[theHud release];
+	theHud = [[HeadUpDisplay alloc] initWithDictionary:hudDict];
+	[theHud setScannerZoom:1.0];
+	[theHud resizeGuis: hudDict];
+	[theHud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
+	
+	return YES;
+}
+
+
 - (void) setShowDemoShips:(BOOL) value
 {
 	showDemoShips = value;
