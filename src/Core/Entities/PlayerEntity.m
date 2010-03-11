@@ -2385,8 +2385,7 @@ static GLfloat sBaseMass = 0.0;
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
 	NSDictionary *hudDict = nil;
-	HeadUpDisplay *theHud = [self hud];
-	if (!theHud || !hudFileName)  return NO;
+	if (!hudFileName)  return NO;
 	
 	hudDict = [ResourceManager dictionaryFromFilesNamed:hudFileName inFolder:@"Config" andMerge:YES];
 	if (hudDict == nil)
@@ -2395,14 +2394,14 @@ static GLfloat sBaseMass = 0.0;
 		return NO;
 	}
 	
-	BOOL theHudIsHidden = [theHud isHidden];
+	BOOL theHudIsHidden = [hud isHidden];
 	
-	[theHud setHidden:NO];
-	[theHud release];
-	theHud = [[HeadUpDisplay alloc] initWithDictionary:hudDict];
-	[theHud setScannerZoom:1.0];
-	[theHud resizeGuis: hudDict];
-	[theHud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
+	[hud setHidden:NO];
+	[hud release];
+	hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict];
+	[hud setScannerZoom:1.0];
+	[hud resizeGuis: hudDict];
+	[hud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
 	
 	return YES;
 }
