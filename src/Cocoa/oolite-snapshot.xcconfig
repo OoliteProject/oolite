@@ -1,5 +1,7 @@
 // Hacktackular: Universe.m has $SNAPSHOT_MACROS in its "Additional Compiler Flags"
 // setting. The Mac nightly script overrides this file to set up the SNAPSHOT_BUILD
 // and OOLITE_SNAPSHOT_VERSION macros.
+// OO_UNUSED_MACRO is, as the name suggests, unused; putting an empty string here
+// leads to build problems.
 
-SNAPSHOT_MACROS = ""
+SNAPSHOT_MACROS = "-DOO_UNUSED_MACRO"
