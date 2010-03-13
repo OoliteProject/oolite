@@ -4739,6 +4739,11 @@ static GLfloat sBaseMass = 0.0;
 	// if the system has gone nova, there's no planet to display
 	if (!sunGoneNova)
 	{
+		// The next code is generating the miniature planets.
+		// When normal planets are displayed, the PRNG is reset. This happens not with procedural planet display.
+		RANROTSeed ranrotSavedSeed = RANROTGetFullSeed();
+		RNG_Seed saved_seed = currentRandomSeed();
+		
 		if ([targetSystemName isEqual: [UNIVERSE getSystemName:system_seed]])
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-local-planet"];
@@ -4747,6 +4752,9 @@ static GLfloat sBaseMass = 0.0;
 		{
 			[self setBackgroundFromDescriptionsKey:@"gui-scene-show-planet"];
 		}
+		
+		setRandomSeed(saved_seed);
+		RANROTSetFullSeed(ranrotSavedSeed);
 	}
 	
 	if (guiChanged)
