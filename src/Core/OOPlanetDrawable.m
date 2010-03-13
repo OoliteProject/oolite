@@ -238,7 +238,7 @@
 	if (!shaders)
 	{
 		// FIXME: instead of GL_RESCALE_NORMAL, consider copying and transforming the vertex array for each planet.
-		glEnable(GL_RESCALE_NORMAL);
+		OOGL(glEnable(GL_RESCALE_NORMAL));
 		OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 		OOGL(glNormalPointer(GL_FLOAT, 0, kOOPlanetVertices));
 	}
