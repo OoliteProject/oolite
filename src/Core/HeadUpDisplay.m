@@ -160,7 +160,13 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 }
 
 
-- (id) initWithDictionary:(NSDictionary *) hudinfo
+- (id) initWithDictionary:(NSDictionary *)hudinfo
+{
+	return [self initWithDictionary:hudinfo inFile:nil];
+}
+
+
+- (id) initWithDictionary:(NSDictionary *)hudinfo inFile:(NSString *)hudFileName
 {
 	unsigned		i;
 	BOOL			areTrumblesToBeDrawn = NO;
@@ -204,6 +210,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
 	
+	if (hudFileName != nil)  hudName = [[NSString stringWithString:hudFileName] retain];
+	
 	last_transmitter = NO_TARGET;
 	
 	_crosshairOverrides = [[hudinfo oo_dictionaryForKey:@"crosshairs"] retain];
@@ -220,6 +228,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	[legendArray release];
 	[dialArray release];
+	[hudName release];
 
 	[super dealloc];
 }
@@ -301,6 +310,22 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 	
 	
+}
+
+
+- (NSString *) hudName
+{
+	return hudName;
+}
+	
+	
+- (void) setHudName:(NSString *)newHudName
+{
+	if (newHudName != nil)
+	{
+		[hudName release];
+		hudName = [[NSString stringWithString:newHudName] retain];
+	}
 }
 
 

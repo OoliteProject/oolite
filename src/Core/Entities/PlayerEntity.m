@@ -939,13 +939,8 @@ static GLfloat sBaseMass = 0.0;
 	
 	[self setShipDataKey:PLAYER_SHIP_DESC];
 	ship_trade_in_factor = 95;
-	
-	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
-	DESTROY(hud);
-	hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-	[hud setHidden:NO];
-	[hud setScannerZoom:1.0];
-	[hud resizeGuis:huddict];
+
+	[self switchHudTo:@"hud.plist"];	
 	scanner_zoom_rate = 0.0f;
 	
 	[mission_variables release];
@@ -1169,22 +1164,9 @@ static GLfloat sBaseMass = 0.0;
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
 	
+	// set up HUD
 	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
-	NSDictionary *huddict = [ResourceManager dictionaryFromFilesNamed:hud_desc inFolder:@"Config" andMerge:YES];
-	// hud defined, but buggy?
-	if (huddict == nil)
-	{
-		huddict = [ResourceManager dictionaryFromFilesNamed:@"hud.plist" inFolder:@"Config" andMerge:YES];
-	}
-	// buggy oxp could override hud.plist with a non-dictionary.
-	if (huddict != nil)
-	{
-		[hud setHidden:NO];
-		[hud release];
-		hud = [[HeadUpDisplay alloc] initWithDictionary:huddict];
-		[hud setScannerZoom:1.0];
-		[hud resizeGuis: huddict];
-	}
+	if (![self switchHudTo:hud_desc])  [self switchHudTo:@"hud.plist"];	// ensure we have a HUD to fall back to
 	
 	// fuel_charge_rate is calculated inside the shipEntity method.
 	
@@ -2385,23 +2367,30 @@ static GLfloat sBaseMass = 0.0;
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
 	NSDictionary *hudDict = nil;
+	BOOL theHudIsHidden = NO;
+	
 	if (!hudFileName)  return NO;
 	
 	hudDict = [ResourceManager dictionaryFromFilesNamed:hudFileName inFolder:@"Config" andMerge:YES];
+	// hud defined, but buggy?
 	if (hudDict == nil)
 	{
 		OOLog(@"PlayerEntity.switchHudTo.failed", @"HUD dictionary file %@ to switch to not found or invalid.", hudFileName);
 		return NO;
 	}
 	
-	BOOL theHudIsHidden = [hud isHidden];
+	if (hud != nil)  theHudIsHidden = [hud isHidden];
 	
-	[hud setHidden:NO];
-	[hud release];
-	hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict];
-	[hud setScannerZoom:1.0];
-	[hud resizeGuis: hudDict];
-	[hud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
+	// buggy oxp could override hud.plist with a non-dictionary.
+	if (hudDict != nil)
+	{
+		[hud setHidden:NO];
+		DESTROY(hud);
+		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
+		[hud setScannerZoom:1.0];
+		[hud resizeGuis: hudDict];
+		[hud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
+	}
 	
 	return YES;
 }

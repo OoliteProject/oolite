@@ -52,7 +52,6 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipSwitchHudTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -101,6 +100,7 @@ enum
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
+	kPlayerShip_hud,						// hud name identifier, string, read/write
 	kPlayerShip_hudHidden						// hud visibility, boolean, read/write
 };
 
@@ -125,8 +125,9 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "targetSystem",				kPlayerShip_targetSystem,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
-	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY},
+	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "hud",					kPlayerShip_hud,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "hudHidden",					kPlayerShip_hudHidden,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
@@ -140,7 +141,6 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
-	{ "switchHudTo",			PlayerShipSwitchHudTo,				1 },
 	{ 0 }
 };
 
@@ -286,6 +286,11 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			OK = YES;
 			break;
 			
+		case kPlayerShip_hud:
+			result = [[player hud] hudName];
+			OK = YES;
+			break;
+			
 		case kPlayerShip_hudHidden:
 			*outValue = BOOLToJSVal([[player hud] isHidden]);
 			OK = YES;
@@ -372,6 +377,22 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			{
 				[player setScriptedMisjump:bValue];
 				OK = YES;
+			}
+			break;
+			
+		case kPlayerShip_hud:
+			sValue = JSValToNSString(context, *value);
+			if (sValue != nil)
+			{
+				if ([player switchHudTo:sValue])
+				{
+					OK = YES;
+				}
+				else
+				{
+					OOReportJSError(context, @"%@hud could not be changed to %@",@"PlayerShip.", sValue);
+					OK = NO;
+				}
 			}
 			break;
 			
@@ -513,25 +534,3 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	return YES;
 }
 
-
-// switchHudTo(fileName: String)
-static JSBool PlayerShipSwitchHudTo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString			*fileName = nil;
-	
-	fileName = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(fileName == nil))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"switchHudTo", argc, argv, nil, @"HUD file name");
-		return NO;
-	}
-	
-	if (![player switchHudTo:JSValToNSString(context, argv[0])])
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"switchHudTo", @"Failed to switch HUD to %@", fileName);
-		return NO;
-	}
-	
-	return YES;
-}

@@ -201,6 +201,8 @@ MA 02110-1301, USA.
 	GLfloat				z1;
 	GLfloat				line_width;
 	
+	NSString		*hudName;
+	
 	GLfloat				overallAlpha;
 	
 	BOOL				reticleTargetSensitive;
@@ -222,8 +224,12 @@ MA 02110-1301, USA.
 }
 
 - (id) initWithDictionary:(NSDictionary *) hudinfo;
+- (id) initWithDictionary:(NSDictionary *)hudinfo inFile:(NSString *)hudFileName;
 
 - (void) resizeGuis:(NSDictionary *) info;
+
+- (NSString *) hudName;
+- (void) setHudName:(NSString *)newHudName;
 
 - (double) scanner_zoom;
 - (void) setScannerZoom:(double) value;
