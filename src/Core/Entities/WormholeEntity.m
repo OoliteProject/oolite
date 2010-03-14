@@ -223,9 +223,7 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		{
 			// Only calculate exit position once so that all ships arrive from the same point
 			if (!hasExitPosition)
-			//if ( vector_equal(position, kZeroVector) )
 			{
-				hasExitPosition = YES;
 				position = [UNIVERSE getWitchspaceExitPosition];	// no need to reset PRNG.
 				Quaternion	q1;
 				quaternion_set_random(&q1);
@@ -253,7 +251,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 			[ship doScriptEvent:@"shipExitedWormhole" andReactToAIMessage:@"EXITED WITCHSPACE"];
 		
 			// update the ships's position
-			[ship update: time_passed];
+			if (!hasExitPosition)
+			{
+				hasExitPosition = YES;
+				[ship update: time_passed]; // do this only for one ship or the next ships might appear at very different locations.
+				position = [ship position]; // e.g. when the player fist docks before following, time_passed is already > 10 minutes.
+			}
+			else
+			{
+				// only update the time delay to the lead ship. Sign is not correct but updating gives a small spacial distribution.
+				[ship update: (ship_arrival_time - arrival_time)];
+			}
 		}
 	}
 	[shipsInTransit release];
