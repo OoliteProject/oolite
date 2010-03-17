@@ -66,6 +66,23 @@
 }
 
 
+#if OUTPUT_BINORMALS
+- (NSArray *) binormalArray
+{
+	unsigned i, count = self.count;
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:count * 3];
+	for (i = 0; i < count; i++)
+	{
+		Vertex v = [self vertexAtIndex:i];
+		[result addObject:[NSNumber numberWithDouble:v.binormal.x]];
+		[result addObject:[NSNumber numberWithDouble:v.binormal.y]];
+		[result addObject:[NSNumber numberWithDouble:v.binormal.z]];
+	}
+	return result;
+}
+#endif
+
+
 - (NSArray *) texCoordArray
 {
 	unsigned i, count = self.count;

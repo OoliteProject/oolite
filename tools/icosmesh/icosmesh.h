@@ -2,6 +2,9 @@
 #import <math.h>
 
 
+#define OUTPUT_BINORMALS	0
+
+
 typedef struct
 {
 	double				x, y, z;
@@ -11,6 +14,9 @@ typedef struct
 typedef struct
 {
 	Vector				v;
+#if OUTPUT_BINORMALS
+	Vector				binormal;
+#endif
 	double				s, t;	// Lat/long texture coordinates
 } Vertex;
 

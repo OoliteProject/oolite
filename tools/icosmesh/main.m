@@ -189,6 +189,9 @@ static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 	
 	fprintf(header, "\n\n#define kOOPlanetDataVertexCount %u\n\n", count);
 	fprintf(header, "extern const GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3];\n");
+#if OUTPUT_BINORMALS
+	fprintf(header, "extern const GLfloat kOOPlanetBinormals[kOOPlanetDataVertexCount * 3];\n");
+#endif
 	fprintf(header, "extern const GLfloat kOOPlanetTexCoords[kOOPlanetDataVertexCount * 2];\n");
 	
 	fprintf(source, "\n\n/*  Shared vertex array\n    %u vertices\n*/\nconst GLfloat kOOPlanetVertices[kOOPlanetDataVertexCount * 3] =\n{\n", count);
@@ -198,6 +201,16 @@ static void WriteVertices(FILE *header, FILE *source, JAVertexSet *vertices)
 		if (i != 0)  fprintf(source, ",\n");
 		fprintf(source, "\t%+.8ff, %+.8ff, %+.8ff", [[data objectAtIndex:i * 3] doubleValue], [[data objectAtIndex:i * 3 + 1] doubleValue], [[data objectAtIndex:i * 3 + 2] doubleValue]);
 	}
+	
+#if OUTPUT_BINORMALS
+	fprintf(source, "\n};\n\n/*  Shared binormal array\n    %u vectors\n*/\nconst GLfloat kOOPlanetBinormals[kOOPlanetDataVertexCount * 3] =\n{\n", count);
+	data = [vertices binormalArray];
+	for (i = 0; i < count; i++)
+	{
+		if (i != 0)  fprintf(source, ",\n");
+		fprintf(source, "\t%+.8ff, %+.8ff, %+.8ff", [[data objectAtIndex:i * 3] doubleValue], [[data objectAtIndex:i * 3 + 1] doubleValue], [[data objectAtIndex:i * 3 + 2] doubleValue]);
+	}
+#endif
 	
 	fprintf(source, "\n};\n\n/*  Shared texture coordinate array\n    %u pairs\n*/\nconst GLfloat kOOPlanetTexCoords[kOOPlanetDataVertexCount * 2] =\n{\n", count);
 	data = [vertices texCoordArray];

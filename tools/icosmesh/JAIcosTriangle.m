@@ -18,7 +18,7 @@ static inline BOOL IsPolarVector(Vector v)
 @interface JAIcosTriangle ()
 
 - (void) rotate;	// a = b, b = c, c = a
-- (void) generateTextureCoordinates;	// Requires that any polar coordinate is in [0].
+- (void) generateTextureCoordinatesAndBinormals;	// Requires that any polar coordinate is in [0].
 - (void) fixUpWinding;
 
 @end
@@ -59,7 +59,7 @@ static NSString *VertexDescription(Vertex v)
 		// Ensure winding is consistent.
 		[self fixUpWinding];
 		
-		[self generateTextureCoordinates];
+		[self generateTextureCoordinatesAndBinormals];
 	}
 	
 	return self;
@@ -99,7 +99,13 @@ static NSString *VertexDescription(Vertex v)
 }
 
 
-- (void) generateTextureCoordinates
+static inline Vector BinormalFromNormal(Vector v)
+{
+	return VectorNormal(VectorCross(v, (Vector){0, 1.0, 0.0}));
+}
+
+
+- (void) generateTextureCoordinatesAndBinormals
 {
 	VectorToCoords0_1(_vertices[1].v, &_vertices[1].t, &_vertices[1].s);
 	VectorToCoords0_1(_vertices[2].v, &_vertices[2].t, &_vertices[2].s);
@@ -166,6 +172,26 @@ static NSString *VertexDescription(Vertex v)
 			_vertices[0].s += 1.0;
 		}
 	}
+	
+#if OUTPUT_BINORMALS
+	/*	Binormals
+		For non-polar points, the binormal is the cross product of the normal
+		(equal to the vertex, for a unit sphere) and the Y axis. At the poles,
+		this is a singularity and we use the average of the other two binormals
+		instead.
+		
+		Note: for non-polar vertices, it makes sense to calculate this in the
+		shaders instead. It may be better to use texture coordinates to handle
+		polar coordinates instead of using an attribute.
+	 */
+	_vertices[1].binormal = BinormalFromNormal(_vertices[1].v);
+	_vertices[2].binormal = BinormalFromNormal(_vertices[2].v);
+	if (!IsPolarVector(_vertices[0].v))  _vertices[0].binormal = BinormalFromNormal(_vertices[0].v);
+	else
+	{
+		_vertices[0].binormal = VectorNormal(VectorAdd(_vertices[1].binormal, _vertices[2].binormal));
+	}
+#endif
 }
 
 
