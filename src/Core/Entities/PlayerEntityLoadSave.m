@@ -53,7 +53,7 @@
 
 // Name of modifier key used to issue commands. See also -isCommandModifierKeyDown.
 #if OOLITE_MAC_OS_X
-#define COMMAND_MODIFIER_KEY		"Command"
+#define COMMAND_MODIFIER_KEY		"Ctrl" // was "Command"
 #else
 #define COMMAND_MODIFIER_KEY		"Ctrl"
 #endif
@@ -1048,7 +1048,8 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 - (BOOL)isCommandModifierKeyDown
 {
 #if OOLITE_MAC_OS_X
-	return [self isCommandDown];
+	//return [self isCommandDown];
+	return [self isCtrlDown];
 #else
 	return [self isCtrlDown];
 #endif

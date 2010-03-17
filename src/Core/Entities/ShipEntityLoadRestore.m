@@ -48,6 +48,7 @@ MA 02110-1301, USA.
 #define KEY_MISSILES				@"missiles"
 #define KEY_FORWARD_WEAPON			@"forward_weapon_type"
 #define KEY_AFT_WEAPON				@"aft_weapon_type"
+#define KEY_SCAN_CLASS				@"scan_class"
 
 // AI is a complete pickled AI state.
 #define KEY_AI						@"AI"
@@ -87,6 +88,7 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	[updatedShipInfo oo_setUnsignedInteger:bounty forKey:KEY_BOUNTY];
 	[updatedShipInfo setObject:WeaponTypeToString(forward_weapon_type) forKey:KEY_FORWARD_WEAPON];
 	[updatedShipInfo setObject:WeaponTypeToString(aft_weapon_type) forKey:KEY_AFT_WEAPON];
+	[updatedShipInfo setObject:ScanClassToString(scanClass) forKey:KEY_SCAN_CLASS];
 	
 	NSArray *deletes = nil;
 	[self simplifyShipdata:updatedShipInfo andGetDeletes:&deletes];
@@ -139,8 +141,19 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 	{
 		[result oo_setUnsignedInteger:GroupIDForGroup(_escortGroup, context) forKey:KEY_ESCORT_GROUP_ID];
 	}
+	/*	Eric: 
+		The escortGroup property is removed from the lead ship, on entering witchspace.
+		But it is needed in the save file to correctly restore an escorted group.
+	*/
+	else if (_group != nil && [_group leader] == self)
+	{
+		[result oo_setUnsignedInteger:GroupIDForGroup(_group, context) forKey:KEY_ESCORT_GROUP_ID];
+	}
 	
 	// FIXME: AI.
+	// Eric: I think storing the AI name should be enough. On entering a wormhole, the stack is cleared so there are no preserved AI states.
+	// Also the AI restarts itself with the GLOBAL state, so no need to store any old state. 
+	[result setObject:[[self getAI] name] forKey:KEY_AI];
 	
 	return result;
 }
@@ -173,6 +186,10 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 		ship = [[[shipClass alloc] initWithKey:shipKey definition:mergedData] autorelease];
 		
 		// FIXME: restore AI.
+		[[ship getAI] setStateMachine:[dict oo_stringForKey:KEY_AI defaultValue:@"nullAI.plist"]];
+		
+		[ship setPrimaryRole:[dict oo_stringForKey:KEY_PRIMARY_ROLE]];
+	
 	}
 	else
 	{
@@ -214,6 +231,10 @@ static OOShipGroup *GroupForGroupID(OOUInteger groupID, NSMutableDictionary *con
 		if ([dict oo_boolForKey:KEY_IS_GROUP_LEADER])  [group setLeader:ship];
 		NSString *groupName = [dict oo_stringForKey:KEY_GROUP_NAME];
 		if (groupName != nil)  [group setName:groupName];
+		if ([ship hasPrimaryRole:@"escort"] && ship != [group leader])
+		{
+			[ship setOwner:[group leader]];
+		}
 	}
 	
 	groupID = [dict oo_integerForKey:KEY_ESCORT_GROUP_ID defaultValue:NSNotFound];
