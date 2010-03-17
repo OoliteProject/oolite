@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "OOConstToString.h"
 #import "OOShipGroup.h"
 #import "OOEquipmentType.h"
+#import "AI.h"
 
 
 #define KEY_SHIP_KEY				@"ship_key"
