@@ -394,6 +394,11 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 					OK = NO;
 				}
 			}
+			else
+			{
+				[player resetHud];
+				OK = YES;
+			}
 			break;
 			
 		case kPlayerShip_hudHidden:

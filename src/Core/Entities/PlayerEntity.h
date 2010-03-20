@@ -548,6 +548,7 @@ typedef enum
 
 - (HeadUpDisplay *) hud;
 - (BOOL) switchHudTo:(NSString *)hudFileName;
+- (void) resetHud;
 
 - (void) setShowDemoShips:(BOOL) value;
 - (BOOL) showDemoShips;

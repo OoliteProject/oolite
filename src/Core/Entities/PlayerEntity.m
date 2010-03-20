@@ -2363,6 +2363,13 @@ static GLfloat sBaseMass = 0.0;
 	return hud;
 }
 
+- (void) resetHud
+{
+	// set up defauld HUD for the ship
+	NSDictionary *shipDict = [[OOShipRegistry sharedRegistry] shipInfoForKey:[self shipDataKey]];
+	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
+	if (![self switchHudTo:hud_desc])  [self switchHudTo:@"hud.plist"];	// ensure we have a HUD to fall back to
+}
 
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
