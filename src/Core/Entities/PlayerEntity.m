@@ -1779,6 +1779,61 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
+- (void) engageAutopilotToStation:(OOUniversalID)stationForDocking
+{
+	if (!autopilot_engaged)
+	{	
+		if (stationForDocking == NO_TARGET || ![[UNIVERSE entityForUniversalID:stationForDocking] isStation])
+		{
+			OOLog(@"PlayerEntity.engageAutopilotToStation.failed", 
+				@"Entity %@ requested for autopilot docking is either invalid or not a station.", [UNIVERSE entityForUniversalID:stationForDocking]);
+			return;
+		}
+		
+		targetStation = stationForDocking;
+		primaryTarget = NO_TARGET;
+		autopilot_engaged = YES;
+		ident_engaged = NO;
+		[self safeAllMissiles];
+		velocity = kZeroVector;
+		[self setStatus:STATUS_AUTOPILOT_ENGAGED];
+		[shipAI setState:@"GLOBAL"];	// reboot the AI
+		[self playAutopilotOn];
+#if DOCKING_CLEARANCE_ENABLED
+		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+#endif	
+		[[OOMusicController sharedController] playDockingMusic];
+		
+		if (afterburner_engaged)
+		{
+			afterburner_engaged = NO;
+			if (afterburnerSoundLooping)
+			[self stopAfterburnerSound];
+		}
+	}
+}
+
+
+- (void) disengageAutopilot
+{
+	if (autopilot_engaged)
+	{
+		[self abortDocking];			// let the station know that you are no longer on approach
+		behaviour = BEHAVIOUR_IDLE;
+		frustration = 0.0;
+		autopilot_engaged = NO;
+		primaryTarget = NO_TARGET;
+		targetStation = NO_TARGET;
+		[self setStatus:STATUS_IN_FLIGHT];
+		[self playAutopilotOff];
+#if DOCKING_CLEARANCE_ENABLED
+		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
+#endif	
+		[[OOMusicController sharedController] stopDockingMusic];
+	}
+}
+
+
 #define VELOCITY_CLEANUP_MIN	2000.0f	// Minimum speed for "power braking".
 #define VELOCITY_CLEANUP_FULL	5000.0f	// Speed at which full "power braking" factor is used.
 #define VELOCITY_CLEANUP_RATE	0.001f	// Factor for full "power braking".
@@ -3782,6 +3837,11 @@ static GLfloat sBaseMass = 0.0;
 				[UNIVERSE addMessage:[NSString stringWithFormat:DESC(@"@-destroyed"), system_name] forCount:4.5];
 			}
 		}
+		// if Docking Computers have been selected to take damage and they happen to be on, switch them off
+		if ([system_key isEqualToString:@"EQ_DOCK_COMP"] && autopilot_engaged)  
+		{
+			[self disengageAutopilot];
+		}
 		return;
 	}
 	//cosmetic damage
@@ -3872,6 +3932,7 @@ static GLfloat sBaseMass = 0.0;
 
 	ident_engaged = NO;
 	afterburner_engaged = NO;
+	autopilot_engaged = NO;
 
 	cloaking_device_active = NO;
 	hyperspeed_engaged = NO;

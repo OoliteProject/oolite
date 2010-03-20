@@ -975,29 +975,9 @@ static NSTimeInterval	time_last_frame;
 						
 						if (isOkayToUseAutopilot)
 						{
-							primaryTarget = NO_TARGET;
-							targetStation = [[UNIVERSE station] universalID];
-							autopilot_engaged = YES;
-							ident_engaged = NO;
-							[self safeAllMissiles];
-							velocity = kZeroVector;
-							[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-							[shipAI setState:@"GLOBAL"];	// reboot the AI
-							[self playAutopilotOn];
-	#if DOCKING_CLEARANCE_ENABLED
-							[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-	#endif
+							[self engageAutopilotToStation:[[UNIVERSE station] universalID]];
 							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 							[self doScriptEvent:@"playerStartedAutoPilot"];
-							
-							[[OOMusicController sharedController] playDockingMusic];
-							
-							if (afterburner_engaged)
-							{
-								afterburner_engaged = NO;
-								if (afterburnerSoundLooping)
-									[self stopAfterburnerSound];
-							}
 						}
 					}
 					autopilot_key_pressed = YES;
@@ -1017,29 +997,9 @@ static NSTimeInterval	time_last_frame;
 							[primeTarget isKindOfClass:[StationEntity class]] &&
 							!primeTargetIsHostile)
 						{
-							targetStation = primaryTarget;
-							primaryTarget = NO_TARGET;
-							autopilot_engaged = YES;
-							ident_engaged = NO;
-							[self safeAllMissiles];
-							velocity = kZeroVector;
-							[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-							[shipAI setState:@"GLOBAL"];	// restart the AI
-							[self playAutopilotOn];
-	#if DOCKING_CLEARANCE_ENABLED
-							[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-	#endif
+							[self engageAutopilotToStation:primaryTarget];
 							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 							[self doScriptEvent:@"playerStartedAutoPilot"];
-							
-							[[OOMusicController sharedController] playDockingMusic];
-							
-							if (afterburner_engaged)
-							{
-								afterburner_engaged = NO;
-								if (afterburnerSoundLooping)
-									[self stopAfterburnerSound];
-							}
 						}
 						else
 						{
@@ -3073,23 +3033,12 @@ static BOOL toggling_music;
 	
 	if ([gameView isDown:key_autopilot])   // look for the 'c' key
 	{
-		if (([self hasDockingComputer] || [self status] == STATUS_AUTOPILOT_ENGAGED) && (!autopilot_key_pressed))   // look for the 'c' key
+		// do we really need the commented out part below? Nikos 20100320 
+		if (([self hasDockingComputer] /*|| [self status] == STATUS_AUTOPILOT_ENGAGED*/) && (!autopilot_key_pressed))   // look for the 'c' key
 		{
-			[self abortDocking];			// let the station know that you are no longer on approach
-			behaviour = BEHAVIOUR_IDLE;
-			frustration = 0.0;
-			autopilot_engaged = NO;
-			primaryTarget = NO_TARGET;
-			targetStation = NO_TARGET;
-			[self setStatus:STATUS_IN_FLIGHT];
-			[self playAutopilotOff];
+			[self disengageAutopilot];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
-#if DOCKING_CLEARANCE_ENABLED
-			[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
-#endif
 			[self doScriptEvent:@"playerCancelledAutoPilot"];
-			
-			[[OOMusicController sharedController] stopDockingMusic];
 		}
 		autopilot_key_pressed = YES;
 	}

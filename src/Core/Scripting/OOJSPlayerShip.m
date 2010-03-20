@@ -52,6 +52,8 @@ static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN arg
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 
@@ -141,6 +143,8 @@ static JSFunctionSpec sPlayerShipMethods[] =
 	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
+	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,		1 },
+	{ "disengageAutopilot",			PlayerShipDisengageAutopilot,			0 },
 	{ 0 }
 };
 
@@ -539,3 +543,36 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 	return YES;
 }
 
+
+// engageAutopilotToStation(stationForDocking : StationEntity)
+static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	id				stationForDocking = nil;
+	
+	if (argc != 1)
+	{
+		OOReportJSBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, argv, nil, @"station for docking");
+		return NO;
+	}
+	
+	stationForDocking = JSValueToObject(context, argv[0]);
+	if (![stationForDocking isKindOfClass:[StationEntity class]])
+	{
+		OOReportJSErrorForCaller(context, @"PlayerShip", @"engageAutopilot", @"Entity %@ selected to dock to is not a station", stationForDocking);
+		return NO;
+	}
+	
+	[player engageAutopilotToStation:[stationForDocking universalID]];
+	return YES;
+}
+
+
+// disengageAutopilot()
+static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	
+	[player disengageAutopilot];
+	return YES;
+}
