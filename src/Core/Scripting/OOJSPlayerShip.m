@@ -558,14 +558,8 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *t
 	}
 	
 	stationForDocking = JSValueToObject(context, argv[0]);
-	if (![stationForDocking isKindOfClass:[StationEntity class]])
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"engageAutopilot", @"Entity %@ selected to dock to is not a station", stationForDocking);
-		return NO;
-	}
 	
-	[player engageAutopilotToStation:[stationForDocking universalID]];
-	return YES;
+	return [player engageAutopilotToStation:[stationForDocking universalID]];
 }
 
 
