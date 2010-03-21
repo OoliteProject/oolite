@@ -1779,39 +1779,44 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (void) engageAutopilotToStation:(OOUniversalID)stationForDocking
+- (BOOL) engageAutopilotToStation:(OOUniversalID)stationForDocking
 {
-	if (!autopilot_engaged)
+	if (autopilot_engaged)
 	{	
-		if (stationForDocking == NO_TARGET || ![[UNIVERSE entityForUniversalID:stationForDocking] isStation])
-		{
-			OOLog(@"PlayerEntity.engageAutopilotToStation.failed", 
-				@"Entity %@ requested for autopilot docking is either invalid or not a station.", [UNIVERSE entityForUniversalID:stationForDocking]);
-			return;
-		}
-		
-		targetStation = stationForDocking;
-		primaryTarget = NO_TARGET;
-		autopilot_engaged = YES;
-		ident_engaged = NO;
-		[self safeAllMissiles];
-		velocity = kZeroVector;
-		[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-		[shipAI setState:@"GLOBAL"];	// reboot the AI
-		[self playAutopilotOn];
-#if DOCKING_CLEARANCE_ENABLED
-		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
-#endif	
-		[[OOMusicController sharedController] playDockingMusic];
-		
-		if (afterburner_engaged)
-		{
-			afterburner_engaged = NO;
-			if (afterburnerSoundLooping)
-			[self stopAfterburnerSound];
-		}
+		return YES;
 	}
+	if (stationForDocking == NO_TARGET || ![[UNIVERSE entityForUniversalID:stationForDocking] isStation])
+	{
+		OOLog(@"PlayerEntity.engageAutopilotToStation.failed", 
+			@"Entity %@ requested for autopilot docking is either invalid or not a station.", [UNIVERSE entityForUniversalID:stationForDocking]);
+		return NO;
+	}
+		
+	targetStation = stationForDocking;
+	primaryTarget = NO_TARGET;
+	autopilot_engaged = YES;
+	ident_engaged = NO;
+	[self safeAllMissiles];
+	velocity = kZeroVector;
+	[self setStatus:STATUS_AUTOPILOT_ENGAGED];
+	[shipAI setState:@"GLOBAL"];	// reboot the AI
+	[self playAutopilotOn];
+	[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
+	[self doScriptEvent:@"playerStartedAutoPilot"];
+#if DOCKING_CLEARANCE_ENABLED
+	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
+#endif	
+	[[OOMusicController sharedController] playDockingMusic];
+		
+	if (afterburner_engaged)
+	{
+		afterburner_engaged = NO;
+		if (afterburnerSoundLooping)
+		[self stopAfterburnerSound];
+	}
+	return YES;
 }
+
 
 
 - (void) disengageAutopilot
@@ -5454,7 +5459,7 @@ static NSString *last_outfitting_key=nil;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		unsigned		facing_count = 0;
+		BOOL			guns_already_set = 0;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
 
@@ -5535,43 +5540,63 @@ static NSString *last_outfitting_key=nil;
 
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 				
-				if ([eqKeyForSelectFacing isEqualToString:eqKey])
+				if ([eqKeyForSelectFacing isEqualToString:eqKey] && !guns_already_set)
 				{
-					switch (facing_count)
+					guns_already_set= TRUE;
+					priceString = @"";
+					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
+					if (available_facings & WEAPON_FACING_FORWARD)
 					{
-						case 0:
-							priceString = @"";
-							break;
 						
-						case 1:
-							desc = FORWARD_FACING_STRING;
-							weaponMounted = forward_weapon_type > WEAPON_NONE;
-							break;
-						
-						case 2:
-							desc = AFT_FACING_STRING;
-							weaponMounted = aft_weapon_type > WEAPON_NONE;
-							break;
-						
-						case 3:
-							desc = PORT_FACING_STRING;
-							weaponMounted = port_weapon_type > WEAPON_NONE;
-							break;
-						
-						case 4:
-							desc = STARBOARD_FACING_STRING;
-							weaponMounted = starboard_weapon_type > WEAPON_NONE;
-							break;
+						desc = FORWARD_FACING_STRING;
+						weaponMounted = forward_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
 					}
-					
-					facing_count++;
-					if(weaponMounted)
+					if (available_facings & WEAPON_FACING_AFT)
 					{
-						[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						desc = AFT_FACING_STRING;
+						weaponMounted = aft_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
 					}
-					else
+					if (available_facings & WEAPON_FACING_PORT)
 					{
-						[gui setColor:[OOColor greenColor] forRow:row];
+						desc = PORT_FACING_STRING;
+						weaponMounted = port_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
+					}
+					if (available_facings & WEAPON_FACING_STARBOARD)
+					{
+						desc = STARBOARD_FACING_STRING;
+						weaponMounted = starboard_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
 					}
 				}
 				[gui setKey:eqKey forRow:row];

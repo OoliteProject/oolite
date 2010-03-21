@@ -541,7 +541,7 @@ typedef enum
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
 
-- (void) engageAutopilotToStation:(OOUniversalID)stationForDocking;
+- (BOOL) engageAutopilotToStation:(OOUniversalID)stationForDocking;
 - (void) disengageAutopilot;
 
 #if DOCKING_CLEARANCE_ENABLED
