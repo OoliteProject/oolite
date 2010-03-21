@@ -976,6 +976,7 @@ static NSTimeInterval	time_last_frame;
 						if (isOkayToUseAutopilot)
 						{
 							[self engageAutopilotToStation:[[UNIVERSE station] universalID]];
+							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						}
 					}
 					autopilot_key_pressed = YES;
@@ -996,6 +997,7 @@ static NSTimeInterval	time_last_frame;
 							!primeTargetIsHostile)
 						{
 							[self engageAutopilotToStation:primaryTarget];
+							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						}
 						else
 						{
@@ -3034,7 +3036,6 @@ static BOOL toggling_music;
 		{
 			[self disengageAutopilot];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
-			[self doScriptEvent:@"playerCancelledAutoPilot"];
 		}
 		autopilot_key_pressed = YES;
 	}

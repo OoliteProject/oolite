@@ -1801,8 +1801,7 @@ static GLfloat sBaseMass = 0.0;
 	[self setStatus:STATUS_AUTOPILOT_ENGAGED];
 	[shipAI setState:@"GLOBAL"];	// reboot the AI
 	[self playAutopilotOn];
-	[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
-	[self doScriptEvent:@"playerStartedAutoPilot"];
+	[self doScriptEvent:@"playerStartedAutoPilot" withArgument:[UNIVERSE entityForUniversalID:stationForDocking]];
 #if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif	
@@ -1811,8 +1810,7 @@ static GLfloat sBaseMass = 0.0;
 	if (afterburner_engaged)
 	{
 		afterburner_engaged = NO;
-		if (afterburnerSoundLooping)
-		[self stopAfterburnerSound];
+		if (afterburnerSoundLooping)  [self stopAfterburnerSound];
 	}
 	return YES;
 }
@@ -1835,6 +1833,7 @@ static GLfloat sBaseMass = 0.0;
 		[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_NONE];
 #endif	
 		[[OOMusicController sharedController] stopDockingMusic];
+		[self doScriptEvent:@"playerCancelledAutoPilot"];
 	}
 }
 
