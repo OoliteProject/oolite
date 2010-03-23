@@ -5458,7 +5458,7 @@ static NSString *last_outfitting_key=nil;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		BOOL			guns_already_set = 0;
+		BOOL			guns_already_set = NO;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
 
@@ -5541,7 +5541,7 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey] && !guns_already_set)
 				{
-					guns_already_set = true;
+					guns_already_set = YES;
 					priceString = @"";
 					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
 					if (available_facings & WEAPON_FACING_FORWARD)
