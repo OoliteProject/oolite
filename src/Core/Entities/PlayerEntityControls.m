@@ -2932,6 +2932,7 @@ static NSTimeInterval	time_last_frame;
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
+					[self noteGuiChangeFrom:oldScreen to:GUI_SCREEN_SHIPYARD]; //Changes by PhantorGorth 22-02-2010 
 					[self setGuiToShipyardScreen:0];
 					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
@@ -2939,11 +2940,12 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
+					[self noteGuiChangeFrom:oldScreen to:GUI_SCREEN_EQUIP_SHIP]; //Changes by PhantorGorth 22-02-2010 
 					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 				
-				[self noteGuiChangeFrom:oldScreen to:gui_screen];
+				//[self noteGuiChangeFrom:oldScreen to:gui_screen]; //Changes by PhantorGorth 22-02-2010 
 			}
 			switching_equipship_screens = YES;
 		}
