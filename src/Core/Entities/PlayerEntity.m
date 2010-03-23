@@ -5541,7 +5541,7 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey] && !guns_already_set)
 				{
-					guns_already_set= GL_TRUE;
+					guns_already_set = true;
 					priceString = @"";
 					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
 					if (available_facings & WEAPON_FACING_FORWARD)
