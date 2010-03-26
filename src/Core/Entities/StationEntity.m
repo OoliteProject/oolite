@@ -1130,7 +1130,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		ShipEntity *se=(ShipEntity *)[launchQueue objectAtIndex:0];
 		[self launchShip:se];
 		[launchQueue removeObjectAtIndex:0];
-		// [self doScriptEvent:@"stationLaunchedShip" withArgument:se];
 	}
 	if (([launchQueue count] == 0)&&(no_docking_while_launching))
 		no_docking_while_launching = NO;	// launching complete
@@ -1283,7 +1282,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	// clear any previously owned docking stages
 	[self clearIdLocks:ship];
 	
-	[script doEvent:@"otherShipDocked" withArgument:ship];
+	[self doScriptEvent:@"otherShipDocked" withArgument:ship];
 	
 #if DOCKING_CLEARANCE_ENABLED
 	PlayerEntity *player = [PlayerEntity sharedPlayer];

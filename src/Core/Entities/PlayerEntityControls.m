@@ -2878,7 +2878,10 @@ static NSTimeInterval	time_last_frame;
 		{
 			switching_status_screens = YES;
 			if ((gui_screen == GUI_SCREEN_STATUS)&&(![UNIVERSE strict]))
+			{
+				[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MANIFEST) andArgument:GUIScreenIDToString(gui_screen)];
 				[self setGuiToManifestScreen];
+			}
 			else
 				[self setGuiToStatusScreen];
 			[self checkScript];
@@ -2932,7 +2935,7 @@ static NSTimeInterval	time_last_frame;
 				if ((gui_screen == GUI_SCREEN_EQUIP_SHIP)&&[dockedStation hasShipyard])
 				{
 					[gameView clearKeys];
-					[self noteGuiChangeFrom:oldScreen to:GUI_SCREEN_SHIPYARD]; //Changes by PhantorGorth 22-02-2010 
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_SHIPYARD) andArgument:GUIScreenIDToString(oldScreen)];
 					[self setGuiToShipyardScreen:0];
 					[gui setSelectedRow:GUI_ROW_SHIPYARD_START];
 					[self showShipyardInfoForSelection];
@@ -2940,12 +2943,12 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
-					[self noteGuiChangeFrom:oldScreen to:GUI_SCREEN_EQUIP_SHIP]; //Changes by PhantorGorth 22-02-2010 
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_EQUIP_SHIP) andArgument:GUIScreenIDToString(oldScreen)];
 					[self setGuiToEquipShipScreen:0];
 					[gui setSelectedRow:GUI_ROW_EQUIPMENT_START];
 				}
 				
-				//[self noteGuiChangeFrom:oldScreen to:gui_screen]; //Changes by PhantorGorth 22-02-2010 
+				[self noteGuiChangeFrom:oldScreen to:gui_screen]; 
 			}
 			switching_equipship_screens = YES;
 		}
@@ -2967,6 +2970,7 @@ static NSTimeInterval	time_last_frame;
 				else
 				{
 					[gameView clearKeys];
+					[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MARKET) andArgument:GUIScreenIDToString(gui_screen)];
 					[self setGuiToMarketScreen];
 					[gui setSelectedRow:GUI_ROW_MARKET_START];
 				}
@@ -2984,6 +2988,7 @@ static NSTimeInterval	time_last_frame;
 		{
 			if (!switching_market_screens)
 			{
+				[self doScriptEvent:@"guiScreenWillChange" withArgument:GUIScreenIDToString(GUI_SCREEN_MARKET) andArgument:GUIScreenIDToString(gui_screen)];
 				[self setGuiToMarketScreen];
 				[gui setSelectedRow:GUI_ROW_MARKET_START];
 			}
@@ -3033,8 +3038,7 @@ static BOOL toggling_music;
 	
 	if ([gameView isDown:key_autopilot])   // look for the 'c' key
 	{
-		// do we really need the commented out part below? Nikos 20100320 
-		if (([self hasDockingComputer] /*|| [self status] == STATUS_AUTOPILOT_ENGAGED*/) && (!autopilot_key_pressed))   // look for the 'c' key
+		if (([self hasDockingComputer]) && (!autopilot_key_pressed))   // look for the 'c' key
 		{
 			[self disengageAutopilot];
 			[UNIVERSE addMessage:DESC(@"autopilot-off") forCount:4.5];
