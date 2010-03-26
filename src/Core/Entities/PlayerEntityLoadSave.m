@@ -478,7 +478,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	}
 	else
 	{
-		OOLog(@"load.failed", @"***** FILE LOADING ERROR!! *****");
+		OOLog(@"load.failed", @"***** Failed to load saved game \"%@\": %@", [fileToOpen lastPathComponent], fail_reason ? fail_reason : (NSString *)@"unknown error");
 		[[UNIVERSE gameController] setPlayerFileToLoad:nil];
 		[UNIVERSE game_over];
 		[UNIVERSE clearPreviousMessage];

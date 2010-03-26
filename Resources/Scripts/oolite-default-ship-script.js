@@ -36,7 +36,7 @@ this.description	= "Standard script for ships.";
 this.version		= "1.74";
 
 
-// launch_actions handled on didSpawn().
+// launch_actions handled on shipSpawned().
 if (this.legacy_launchActions !== undefined)
 {
 	this.shipSpawned = function ()
@@ -48,7 +48,7 @@ if (this.legacy_launchActions !== undefined)
 		this.ship.runLegacyScriptActions(this.ship, this.legacy_launchActions);
 		
 		// These can only be used once; keeping them around after that is pointless.
-		delete this.didSpawn;
+		delete this.shipSpawned;
 		delete this.legacy_launchActions;
 	};
 }
@@ -68,7 +68,7 @@ if (this.legacy_deathActions !== undefined)
 }
 
 
-// script_actions handled on shipDidDock() and wasScooped().
+// script_actions handled on otherShipDocked() and shipWasScooped().
 if (this.legacy_scriptActions !== undefined)
 {
 	/*	legacy script_actions should be called for stations when the player
