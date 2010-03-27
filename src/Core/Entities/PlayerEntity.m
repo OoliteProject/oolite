@@ -251,17 +251,21 @@ static GLfloat sBaseMass = 0.0;
 	NSMutableArray*	commodityInfo = [[NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]] retain];  // retain
 	OOCargoQuantity	quantity = [[commodityInfo objectAtIndex:MARKET_QUANTITY] intValue];
 	OOMassUnit		units =	[UNIVERSE unitsForCommodity:type];
-	if (quantity > 0 && units == UNITS_TONS)
+	
+	if (quantity > 0)
 	{
+		OOCargoQuantity podsRequiredForQuantity = (units == UNITS_TONS) ? quantity : (units == UNITS_KILOGRAMS) ? quantity / 1000 : quantity / 1000000;
+		
 		// put each ton in a separate container
-		for (j = 0; j < quantity; j++)
+		for (j = 0; j < podsRequiredForQuantity; j++)
 		{
 			ShipEntity *container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 			if (container)
 			{
+				OOCargoQuantity amountToLoadInCargopod = (units == UNITS_TONS) ? 1 : (units == UNITS_KILOGRAMS) ? 1000 : 1000000;
 				[container setScanClass: CLASS_CARGO];
 				[container setStatus:STATUS_IN_HOLD];
-				[container setCommodity:type andAmount:1];
+				[container setCommodity:type andAmount:amountToLoadInCargopod];
 				[cargo addObject:container];
 				[container release];
 			}
@@ -273,8 +277,9 @@ static GLfloat sBaseMass = 0.0;
 					format:@"[PlayerEntity loadCargoPods] failed to create a container for cargo with role 'cargopod'"];
 			}
 		}
-		// zero this commodity
-		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:0]];
+		// adjust manifest for this commodity
+		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:(units == UNITS_TONS) ? 0 : (units == UNITS_KILOGRAMS) ?
+															quantity % 1000 : quantity % 1000000]];
 		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 	}
 	[commodityInfo release]; // release, done
@@ -4413,7 +4418,7 @@ static GLfloat sBaseMass = 0.0;
 - (void) setGuiToStatusScreen
 {
 	// intercept any docking messages
-	if ([dockingReport length] > 0 && [self isDocked])
+	if ([dockingReport length] > 0 && [self isDocked] && ![dockedStation suppressArrivalReports])
 	{
 		[self setGuiToDockingReportScreen];	// go here instead!
 		return;
@@ -6158,9 +6163,8 @@ static NSString *last_outfitting_key=nil;
 - (OOCargoQuantity) cargoQuantityForType:(OOCommodityType)type
 {
 	OOCargoQuantity 	amount = [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
-	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
 	
-	if  (unit == UNITS_TONS && [self status] != STATUS_DOCKED)
+	if  ([self status] != STATUS_DOCKED)
 	{
 		int 			i;
 		OOCommodityType co_type;

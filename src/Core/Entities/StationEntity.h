@@ -91,6 +91,9 @@ typedef enum
 	
 	double					last_patrol_report_time;
 	double					patrol_launch_interval;
+	
+	BOOL				suppress_arrival_reports;			
+	
 #if DOCKING_CLEARANCE_ENABLED
 	BOOL 				requiresDockingClearance;	
 #endif
@@ -197,5 +200,8 @@ typedef enum
 - (NSString *) dockingPatternModelFileName;
 - (BOOL) isRotatingStation;
 - (BOOL) hasShipyard;
+
+- (BOOL) suppressArrivalReports;
+- (void) setSuppressArrivalReports:(BOOL)newValue;
 
 @end

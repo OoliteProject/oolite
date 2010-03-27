@@ -86,6 +86,7 @@ enum
 	kStation_dockedDefenders,
 	kStation_equivalentTechLevel,
 	kStation_equipmentPriceFactor,
+	kStation_suppressArrivalReports,
 };
 
 
@@ -103,6 +104,7 @@ static JSPropertySpec sStationProperties[] =
 	{ "dockedDefenders",		kStation_dockedDefenders,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "equivalentTechLevel",	kStation_equivalentTechLevel,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "equipmentPriceFactor",	kStation_equipmentPriceFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "suppressArrivalReports",	kStation_suppressArrivalReports,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
@@ -212,6 +214,10 @@ static JSBool StationGetProperty(JSContext *context, JSObject *this, jsval name,
 			JS_NewDoubleValue(context, [entity equipmentPriceFactor], outValue);
 			break;
 			
+		case kStation_suppressArrivalReports:
+			*outValue = BOOLToJSVal([entity suppressArrivalReports]);
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
 			return NO;
@@ -258,6 +264,14 @@ static JSBool StationSetProperty(JSContext *context, JSObject *this, jsval name,
 			}
 			break;
 #endif
+
+		case kStation_suppressArrivalReports:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[entity setSuppressArrivalReports:bValue];
+				OK = YES;
+			}
+			break;
 		
 		default:
 			OOReportJSBadPropertySelector(context, @"Station", JSVAL_TO_INT(name));
