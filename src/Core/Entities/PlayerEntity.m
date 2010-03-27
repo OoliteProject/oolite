@@ -5463,7 +5463,7 @@ static NSString *last_outfitting_key=nil;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		BOOL			guns_already_set = NO;
+		unsigned        facing_count = 0;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
 
@@ -5544,63 +5544,43 @@ static NSString *last_outfitting_key=nil;
 
 				NSString *priceString = [NSString stringWithFormat:@" %@ ", OOCredits(price)];
 				
-				if ([eqKeyForSelectFacing isEqualToString:eqKey] && !guns_already_set)
+				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
-					guns_already_set = YES;
-					priceString = @"";
-					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
-					if (available_facings & WEAPON_FACING_FORWARD)
+					switch (facing_count)
 					{
-						
-						desc = FORWARD_FACING_STRING;
-						weaponMounted = forward_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
+						case 0:
+							priceString = @"";
+							break;
+							
+						case 1:
+							desc = FORWARD_FACING_STRING;
+							weaponMounted = forward_weapon_type > WEAPON_NONE;
+							break;
+							
+						case 2:
+							desc = AFT_FACING_STRING;
+							weaponMounted = aft_weapon_type > WEAPON_NONE;
+							break;
+							
+						case 3:
+							desc = PORT_FACING_STRING;
+							weaponMounted = port_weapon_type > WEAPON_NONE;
+							break;
+							
+						case 4:
+							desc = STARBOARD_FACING_STRING;
+							weaponMounted = starboard_weapon_type > WEAPON_NONE;
+							break;
 					}
-					if (available_facings & WEAPON_FACING_AFT)
+					
+					facing_count++;
+					if(weaponMounted)
 					{
-						desc = AFT_FACING_STRING;
-						weaponMounted = aft_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
+						[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
 					}
-					if (available_facings & WEAPON_FACING_PORT)
+					else
 					{
-						desc = PORT_FACING_STRING;
-						weaponMounted = port_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
-					}
-					if (available_facings & WEAPON_FACING_STARBOARD)
-					{
-						desc = STARBOARD_FACING_STRING;
-						weaponMounted = starboard_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
+						[gui setColor:[OOColor greenColor] forRow:row];
 					}
 				}
 				[gui setKey:eqKey forRow:row];
