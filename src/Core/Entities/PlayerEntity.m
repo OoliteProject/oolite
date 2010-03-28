@@ -6172,7 +6172,7 @@ static NSString *last_outfitting_key=nil;
 	
 	OOCargoQuantity 	oldAmount = [self  cargoQuantityForType:type];
 	OOCargoQuantity		available = [self availableCargoSpace];
-	BOOL				inPods = (unit == UNITS_TONS && [self status] != STATUS_DOCKED);
+	BOOL				inPods = ([self status] != STATUS_DOCKED);
 	
 	// check it against the max amount.
 	if (unit == UNITS_TONS && (available + oldAmount) < amount)
