@@ -3263,7 +3263,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (void) fillCargopodWithRandomCargo:(ShipEntity *)cargopod
 {
-	if (cargopod == nil || ![cargopod hasRole:@"cargopod"])  return;
+	if (cargopod == nil || ![cargopod hasRole:@"cargopod"] || [cargopod cargoType] == CARGO_SCRIPTED_ITEM)  return;
 	
 	if ([cargopod commodityType] == CARGO_UNDEFINED || ![cargopod commodityAmount])
 	{
@@ -5163,7 +5163,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			
 		case VIEW_GUI_DISPLAY:
 			[self setDisplayText:YES];
-			[self setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }]; // EW test
+			[self setMainLightPosition:(Vector){ DEMO_LIGHT_POSITION }];
 			mouseDelta = NO;
 
 			break;
@@ -6995,7 +6995,7 @@ static NSDictionary	*sCachedSystemData = nil;
 	unsigned		i;
 	
 	stationRole = [[self currentSystemData] oo_stringForKey:@"market"];
-	if (stationRole == nil) stationRole = [some_station primaryRole];
+	if (stationRole == nil) stationRole = [some_station marketName];
 	if ([commodityLists oo_arrayForKey:stationRole] == nil)  stationRole = @"default";
 	
 	ourEconomy = [NSMutableArray arrayWithArray:[commodityLists oo_arrayForKey:stationRole]];

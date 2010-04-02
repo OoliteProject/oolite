@@ -69,7 +69,9 @@ typedef enum
 	Vector  				port_dimensions;
 	ShipEntity				*port_model;
 	
-	NSString			*dockingPatternModelFileName;
+	NSString				*dockingPatternModelFileName;
+	
+	NSString				*local_market;
 	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;
@@ -198,6 +200,7 @@ typedef enum
 #endif
 
 - (NSString *) dockingPatternModelFileName;
+- (NSString *) marketName;
 - (BOOL) isRotatingStation;
 - (BOOL) hasShipyard;
 

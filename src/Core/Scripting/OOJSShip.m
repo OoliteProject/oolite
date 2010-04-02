@@ -77,6 +77,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -292,6 +293,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
+	{ "setCargo",				ShipSetCargo,				1 },
 	{ 0 }
 };
 
@@ -1757,5 +1759,30 @@ static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, js
 	else result = [thisEnt fireMissile];
 	
 	*outResult = [result javaScriptValueInContext:context];
+	return YES;
+}
+
+// setCargo(cargoType : String [, number : count])
+static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*cargoType = nil;
+	OOCargoType				commodity = CARGO_UNDEFINED;
+	int32					count = 1;
+	BOOL					gotCount = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	cargoType = JSValToNSString(context, argv[0]);
+	if (argc > 1)  gotCount = JS_ValueToInt32(context, argv[1], &count);
+	if (EXPECT_NOT(cargoType == nil || !gotCount || count < 1))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setCargo", argc, argv, nil, @"cargo name and optional positive quantity");
+		return NO;
+	}
+	
+	commodity = [UNIVERSE commodityForName: cargoType];
+	if (commodity != CARGO_UNDEFINED)  [thisEnt setCommodityForPod:commodity andAmount:count];
+	
+	*outResult = BOOLToJSVal(commodity != CARGO_UNDEFINED);
 	return YES;
 }

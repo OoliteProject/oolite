@@ -2104,28 +2104,37 @@ static WormholeEntity *whole = nil;
 - (void) enterTargetWormhole
 {
 	WormholeEntity *whole = nil;
-
-	// locate nearest wormhole
-	int				ent_count =		UNIVERSE->n_entities;
-	Entity**		uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
-	WormholeEntity*	wormholes[ent_count];
-	int i;
-	int wh_count = 0;
-	for (i = 0; i < ent_count; i++)
-		if (uni_entities[i]->isWormhole)
-			wormholes[wh_count++] = [uni_entities[i] retain];		//	retained
-	//
+	ShipEntity		*targEnt = [self primaryTarget];
 	double found_d2 = scannerRange * scannerRange;
-	for (i = 0; i < wh_count ; i++)
+
+	if (targEnt && targEnt->isWormhole && distance2(position, targEnt->position) < found_d2)
 	{
-		WormholeEntity *wh = wormholes[i];
-		double d2 = distance2(position, wh->position);
-		if (d2 < found_d2)
+		whole = (WormholeEntity*)targEnt;
+	}
+	else
+	{
+		// locate nearest wormhole
+		int				ent_count =		UNIVERSE->n_entities;
+		Entity**		uni_entities =	UNIVERSE->sortedEntities;	// grab the public sorted list
+		WormholeEntity*	wormholes[ent_count];
+		int i;
+		int wh_count = 0;
+		for (i = 0; i < ent_count; i++)
+			if (uni_entities[i]->isWormhole)
+				wormholes[wh_count++] = [uni_entities[i] retain];		//	retained
+		//
+		//double found_d2 = scannerRange * scannerRange;
+		for (i = 0; i < wh_count ; i++)
 		{
-			whole = wh;
-			found_d2 = d2;
+			WormholeEntity *wh = wormholes[i];
+			double d2 = distance2(position, wh->position);
+			if (d2 < found_d2)
+			{
+				whole = wh;
+				found_d2 = d2;
+			}
+			[wh release];	//		released
 		}
-		[wh release];	//		released
 	}
 	
 	if (!whole)

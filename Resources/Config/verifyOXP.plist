@@ -275,7 +275,8 @@
 			"throw_sparks",
 			"max_missiles",
 			"cloak_passive",
-			"debris_role"
+			"debris_role",
+			"has_scoop_message"
 		);
 		knownStationKeys =
 		(
@@ -293,7 +294,8 @@
 			"max_police",
 			"equipment_price_factor",
 			"requires_docking_clearance",
-			"docking_pattern_model"
+			"docking_pattern_model",
+			"market"
 		);
 		knownPlayerKeys =
 		(

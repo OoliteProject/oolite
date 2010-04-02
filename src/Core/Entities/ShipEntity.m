@@ -416,6 +416,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
+	commodity_type = CARGO_UNDEFINED;
 	
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
@@ -429,14 +430,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		{
 			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
 			c_commodity = [UNIVERSE commodityForName: [[scanner string] substringFromIndex:[scanner scanLocation]]];
+			if (c_commodity != CARGO_UNDEFINED)  [self setCommodityForPod:c_commodity andAmount:c_amount];
 		}
 		else
 		{
 			c_amount = 1;
 			c_commodity = [UNIVERSE commodityForName: [shipDict oo_stringForKey:@"cargo_carried"]];
+			if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
 		}
 
-		if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
 	}
 	
 	cargoString = [shipDict oo_stringForKey:@"cargo_type"];
@@ -446,7 +448,15 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		
 		if (cargo != nil) [cargo autorelease];
 		cargo = [[NSMutableArray alloc] initWithCapacity:max_cargo]; // alloc retains;
+		if (cargo_type == CARGO_SCRIPTED_ITEM)
+		{
+			commodity_amount = 1; // value > 0 is needed to be recognised as cargo by scripts;
+			commodity_type = CARGO_UNDEFINED;
+		}
 	}
+	
+	hasScoopMessage = [shipDict oo_boolForKey:@"has_scoop_message" defaultValue:YES];
+
 	
 	[roleSet release];
 	roleSet = [[[OORoleSet roleSetWithString:[shipDict oo_stringForKey:@"roles"]] roleSetWithRemovedRole:@"player"] retain];
@@ -1112,7 +1122,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	while (_pendingEscortCount > 0)
 	{
-		Vector ex_pos = [self coordinatesForEscortPosition:_pendingEscortCount - 1];
+		Vector ex_pos = [self coordinatesForEscortPosition:[escortGroup count] - 1]; // this adds ship 1 on position 1 etc. 
 		
 		ShipEntity *escorter = nil;
 		
@@ -4950,6 +4960,22 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) setCommodityForPod:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount
+{
+	if (co_type != CARGO_UNDEFINED)
+	{
+		// pod content should never be greater than 1 ton or this will give cargo counting problems elsewhere in the code.
+		// so do first a mass check for cargo added by script/plist.
+		OOMassUnit	unit = [UNIVERSE unitsForCommodity:co_type];
+		if (unit == UNITS_TONS) co_amount = 1;
+		else if (unit == UNITS_KILOGRAMS && co_amount > 1000) co_amount = 1000;
+		else if (unit == UNITS_GRAMS && co_amount > 1000000) co_amount = 1000000;
+		commodity_type = co_type;
+		commodity_amount = co_amount;
+	}
+}
+
+
 - (OOCargoType) commodityType
 {
 	return commodity_type;
@@ -5038,6 +5064,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 {
 	[cargo removeAllObjects];
 	[cargo addObjectsFromArray:some_cargo];
+}
+
+- (BOOL) showScoopMessage
+{
+	return hasScoopMessage;
 }
 
 
@@ -8078,13 +8109,25 @@ BOOL class_masslocks(int some_class)
 				[other doScriptEvent:@"shipWasScooped" withArgument:self];
 				[self doScriptEvent:@"shipScoopedOther" withArgument:other];
 				
-				if (isPlayer)
+				if ([other commodityType] != CARGO_UNDEFINED)
 				{
-					NSString* scoopedMS = [NSString stringWithFormat:DESC(@"@-scooped"), [other displayName]];
-					[UNIVERSE clearPreviousMessage];
-					[UNIVERSE addMessage:scoopedMS forCount:4];
+					co_type = [other commodityType];
+					co_amount = [other commodityAmount];
+					// don't show scoop message now, wil happen later.
 				}
+				else
+				{
+					if (isPlayer && [other showScoopMessage])
+					{
+						NSString* scoopedMS = [NSString stringWithFormat:DESC(@"@-scooped"), [other displayName]];
+						[UNIVERSE clearPreviousMessage];
+						[UNIVERSE addMessage:scoopedMS forCount:4];
+					}
+					co_amount = 0;
+				}
+				
 			}
+			break;
 		
 		default :
 			co_amount = 0;
@@ -8137,7 +8180,7 @@ BOOL class_masslocks(int some_class)
 			}
 			else
 			{
-				[UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
+				if ([other showScoopMessage]) [UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
 			}
 		}
 		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
@@ -8520,8 +8563,8 @@ BOOL class_masslocks(int some_class)
 	Vector		v1 = vector_forward_from_quaternion(q1);
 	double		d1 = 0.0;
 	
-	// no closer than 500m - FIXME: shouldn't it be 750m now, same as the player?
-	while (abs(d1) < 500.0)
+	// no closer than 750m, same as the player.
+	while (abs(d1) < 750.0)
 	{
 		d1 = SCANNER_MAX_RANGE * (randf() - randf());
 	}

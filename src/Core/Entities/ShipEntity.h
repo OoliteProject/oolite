@@ -181,6 +181,7 @@ MA 02110-1301, USA.
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
 							isUnpiloted: 1,				// Is meant to not have crew
 							isBoulder: 1,				// Created as debris from asteroid, regardless of role.
+							hasScoopMessage: 1,			// suppress scoop messages when false.
 	
 	// scripting
 							haveExecutedSpawnAction: 1,
@@ -609,6 +610,7 @@ MA 02110-1301, USA.
 - (int) legalStatus;
 
 - (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;
+- (void) setCommodityForPod:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount;
 - (OOCargoType) commodityType;
 - (OOCargoQuantity) commodityAmount;
 
@@ -618,6 +620,7 @@ MA 02110-1301, USA.
 - (OOCargoType) cargoType;
 - (NSMutableArray *) cargo;
 - (void) setCargo:(NSArray *) some_cargo;
+- (BOOL) showScoopMessage;
 
 - (NSArray *) passengerListForScripting;
 - (NSArray *) contractListForScripting;
