@@ -1,0 +1,55 @@
+Modifications to external libraries' source code for running Oolite
+-------------------------------------------------------------------
+
+The various ports of Oolite are using a number of external libraries for graphics, sound, input and event handling. Throughout development, certain changes to the source code of these libraries have been deemed necessary, either to enable Oolite to run in a more efficient and independent manner, or simply to fix issues that occurred as a result of these external libraries themselves. Of these libraries, the ones that have to be rebuilt specifically for Oolite, together with the main reasons/areas changed for this reason are:
+
+1. gnustep-base v1.15.3 (Windows) - bug in NSInteger definition, DTD checking not wanted, a couple of build warnings with MinGW GCC 3.4.2.
+2. SDL v1.2.13 - (Windows) window resizing issues.
+3. SpiderMonkey v1.7 (all platforms) - certain JS macro definitions required by Oolite not guaranteed or non-existent in standard library.
+
+The changes made in the source code of each of these libraries is as follows:
+
+1. gnustep-base v1.15.3 (Windows)
+
+- GSSocketStream.m:57: Inserted the lines
+const char *inet_ntop(int af, const void *src, char *dst, size_t size);
+int inet_pton(int af, const char *src, void *dst);
+to remove implicit function declaration warnings with GCC 3.4.2.
+
+- NSPropertyList.m:2612: Changed line
+[parser doValidityChecking: YES];
+to
+[parser doValidityChecking: NO];
+to disable plist DTD checking (clogs the logfile, not required for Oolite).
+
+- GSConfig.h:134 (build generated file): Changed line
+typedef	gsuaddr gsaddr;
+to
+typedef	gssaddr gsaddr;
+to fix incorrect definition of NSInteger.
+
+
+
+2. SDL v1.2.13 (Windows)
+
+- SDL_resize.c:57: Added the lines
+#ifdef __WIN32__
+	SDL_VideoSurface->w = w;
+	SDL_VideoSurface->h = h;
+#endif
+to enable window resizing without side effects like texture corruption in the Windows port of Oolite. The entire source of the modified SDL library is included in the source distribution of the game under <source code installation folder>/deps/Cross-platform-deps/SDL/SDL-1.2.13.zip
+
+
+
+3. SpiderMonkey v1.7 (all platforms)
+
+- Specific build settings for Oolite are required. Library rebuilt with the following macros defined as shown below:
+	JS_STRINGS_ARE_UTF8 defined
+	JS_THREADSAFE not defined
+	MOZILLA_1_8_BRANCH not defined.
+	
+The entire source code of the library with the modifications included can be found in Oolite's source code distribution, under <source code installation folder>/deps/Cross-platform-deps/SpiderMonkey.
+
+
+
+Certain other Oolite dependencies are built with specific project settings on the Mac platform, without further changes to their source code. These libraries are libpng (uses also a custom pngusr.h header for the Mac version) and libogg/libvorbis. Also, the Mac debug support uses a modified version of RBSplitView, mostly to enable it to build on 64-bit Mac OS X.
