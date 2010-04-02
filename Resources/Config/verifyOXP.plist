@@ -234,6 +234,8 @@
 			"is_hulk",
 			"subentities",
 			"frangible",
+			"scanner_display_color1",
+			"scanner_display_color2",
 			"laser_color",
 			"scan_class",
 			"scanClass",

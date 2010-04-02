@@ -63,6 +63,8 @@
 			valueType = "$subEntitySpecifier";
 		};
 		frangible = "boolean";
+		scanner_display_color1 = "$colorSpecifier";
+		scanner_display_color2 = "$colorSpecifier";
 		laser_color = "$colorSpecifier";
 		scan_class = "$scanClass";
 		scanClass = "$scanClass";
@@ -105,6 +107,7 @@
 		max_missiles = "positiveInteger";
 		cloak_passive = "boolean";
 		debris_role = "$shipRole";
+		has_scoop_message = "boolean";
 		
 		rotating = "boolean";
 		defense_ship = "$shipKey";
@@ -121,6 +124,7 @@
 		equipment_price_factor = "positiveFloat";
 		requires_docking_clearance = "boolean";
 		docking_pattern_model = "$modelName";
+		market = "string";
 		
 		extra_equipment = "$extraEquipmentDictionary";
 		hud = "$hudFileName";
