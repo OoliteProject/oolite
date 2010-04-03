@@ -1078,7 +1078,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					{
 						failString = [NSString stringWithFormat:@"%@Failed to read a color for face[%d] in FACES\n", failString, j];
 					}
-
+					
 					// normal
 					if (![scanner scanFloat:&nx])  failFlag = YES;
 					if (![scanner scanFloat:&ny])  failFlag = YES;
@@ -1091,10 +1091,15 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					{
 						failString = [NSString stringWithFormat:@"%@Failed to read a normal for face[%d] in FACES\n", failString, j];
 					}
-
+					
 					// vertices
 					if ([scanner scanInt:&n_v])
 					{
+						if (n_v > kOOMeshMaxVertsPerFace)
+						{
+							failFlag = YES;
+							failString = [NSString stringWithFormat:@"%@Face[%u] has %u vertices, but Oolite only supports %u vertices per face.\n", failString, j, n_v, kOOMeshMaxVertsPerFace];
+						}
 						_faces[j].n_verts = n_v;
 					}
 					else
@@ -1102,7 +1107,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 						failFlag = YES;
 						failString = [NSString stringWithFormat:@"%@Failed to read number of vertices for face[%d] in FACES\n", failString, j];
 					}
-					//
+					
 					if (!failFlag)
 					{
 						int vi;
