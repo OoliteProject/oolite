@@ -186,6 +186,9 @@ static BOOL		sRectangleTextureAvailable;
 - (void) releaseInContext:(NSString *)context;
 - (id) autoreleaseInContext:(NSString *)context;
 
+@end
+
+
 static NSString *sGlobalTraceContext = nil;
 
 #define SET_TRACE_CONTEXT(str) do { sGlobalTraceContext = (str); } while (0)
@@ -193,8 +196,6 @@ static NSString *sGlobalTraceContext = nil;
 #define SET_TRACE_CONTEXT(str) do { } while (0)
 #endif
 #define CLEAR_TRACE_CONTEXT() SET_TRACE_CONTEXT(nil)
-
-@end
 
 
 @implementation OOTexture

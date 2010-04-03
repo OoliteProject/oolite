@@ -608,12 +608,12 @@ static NSString * const kEscapedQuotationMark = @"\\\"";
 
 static NSString *EscapedString(NSString *string)
 {
-	const NSString			*srcStrings[] =
+	NSString				*srcStrings[] =
 	{
 		//Note: backslash must be first.
 		@"\\", @"\"", @"\'", @"\r", @"\n", @"\t", nil
 	};
-	const NSString			*subStrings[] =
+	NSString				*subStrings[] =
 	{
 		//Note: must be same order.
 		@"\\\\", @"\\\"", @"\\\'", @"\\r", @"\\n", @"\\t", nil

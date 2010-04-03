@@ -359,7 +359,7 @@ static void APIENTRY ErrorCallback(GLenum error, void *polygonData);
 	SVGDumpBeginGroup(&polygonData, @"Outline");
 	
 	outlineWidth *= 0.5f; // Half the width in, half the width out.
-	contourCount = [dataArray count], contourIndex;
+	contourCount = [dataArray count];
 	for (contourIndex = 0; contourIndex < contourCount && polygonData.OK; contourIndex++)
 	{
 		NSArray *contour = [dataArray oo_arrayAtIndex:contourIndex];

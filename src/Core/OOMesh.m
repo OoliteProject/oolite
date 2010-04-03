@@ -52,8 +52,11 @@ MA 02110-1301, USA.
 #import "OOProfilingStopwatch.h"
 
 
-// If set, collision octree depth varies depending on the size of the mesh. This seems to cause collision handling glitches at present.
+// If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH		1
+
+// If set, cachable memory is scribbled with DEADBEEF to identify junk in cache.
+#define SCRIBBLE					0
 
 
 enum
@@ -777,21 +780,19 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSArray				*mtlKeys = nil;
 	NSNumber			*normMode = nil;
 	
+	BOOL includeNormals = IsPerVertexNormalMode(_normalMode);
+	
 	// Prepare cache data elements.
 	vertCnt = [NSNumber numberWithUnsignedInt:vertexCount];
 	faceCnt = [NSNumber numberWithUnsignedInt:faceCount];
 	
-#if 0
-	vertData = [NSData dataWithBytes:_vertices length:sizeof *_vertices * vertexCount];
-	normData = [NSData dataWithBytes:_normals length:sizeof *_normals * vertexCount];
-	tanData = [NSData dataWithBytes:_tangents length:sizeof *_tangents * vertexCount];
-	faceData = [NSData dataWithBytes:_faces length:sizeof *_faces * faceCount];
-#else
 	vertData = [_retainedObjects objectForKey:@"vertices"];
-	normData = [_retainedObjects objectForKey:@"normals"];
-	tanData = [_retainedObjects objectForKey:@"tangents"];
 	faceData = [_retainedObjects objectForKey:@"faces"];
-#endif
+	if (includeNormals)
+	{
+		normData = [_retainedObjects objectForKey:@"normals"];
+		tanData = [_retainedObjects objectForKey:@"tangents"];
+	}
 	
 	if (materialCount != 0)
 	{
@@ -807,8 +808,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (vertCnt == nil ||
 		faceCnt == nil ||
 		vertData == nil ||
-		normData == nil ||
-		tanData == nil ||
 		faceData == nil ||
 		mtlKeys == nil ||
 		normMode == nil)
@@ -816,16 +815,25 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		return nil;
 	}
 	
+	if (includeNormals)
+	{
+		if (normData == nil || tanData == nil)  return nil;
+	}
+	
 	// All OK; stick 'em in a dictionary.
 	return [NSDictionary dictionaryWithObjectsAndKeys:
 						vertCnt, @"vertex count",
 						vertData, @"vertex data",
-						normData, @"normal data",
-						tanData, @"tangent data",
 						faceCnt, @"face count",
 						faceData, @"face data",
 						mtlKeys, @"material keys",
 						normMode, @"normal mode",
+						/*	NOTE: order matters. Since normData and tanData
+							are last, if they're nil the dictionary will be
+							built without them, which is desired behaviour.
+						*/
+						normData, @"normal data",
+						tanData, @"tangent data",
 						nil];
 }
 
@@ -849,12 +857,17 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	// Read data elements from dictionary.
 	vertData = [dict oo_dataForKey:@"vertex data"];
-	normData = [dict oo_dataForKey:@"normal data"];
-	tanData = [dict oo_dataForKey:@"tangent data"];
 	faceData = [dict oo_dataForKey:@"face data"];
 	
 	mtlKeys = [dict oo_arrayForKey:@"material keys"];
 	_normalMode = [dict oo_unsignedCharForKey:@"normal mode"];
+	BOOL includeNormals = IsPerVertexNormalMode(_normalMode);
+	
+	if (includeNormals)
+	{
+		normData = [dict oo_dataForKey:@"normal data"];
+		tanData = [dict oo_dataForKey:@"tangent data"];
+	}
 	
 	// Ensure we have all the required data elements.
 	if (vertData == nil ||
@@ -868,19 +881,30 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	
 	// Ensure data objects are of correct size.
 	if ([vertData length] != sizeof *_vertices * vertexCount)  return NO;
-	if ([normData length] != sizeof *_normals * vertexCount)  return NO;
-	if ([tanData length] != sizeof *_tangents * vertexCount)  return NO;
 	if ([faceData length] != sizeof *_faces * faceCount)  return NO;
+	if (includeNormals)
+	{
+		if ([normData length] != sizeof *_normals * vertexCount)  return NO;
+		if ([tanData length] != sizeof *_tangents * vertexCount)  return NO;
+	}
 	
 	// Retain data.
 	_vertices = (Vector *)[vertData bytes];
 	[self setRetainedObject:vertData forKey:@"vertices"];
-	_normals = (Vector *)[normData bytes];
-	[self setRetainedObject:normData forKey:@"normals"];
-	_tangents = (Vector *)[tanData bytes];
-	[self setRetainedObject:tanData forKey:@"tangents"];
 	_faces = (OOMeshFace *)[faceData bytes];
 	[self setRetainedObject:faceData forKey:@"faces"];
+	if (includeNormals)
+	{
+		_normals = (Vector *)[normData bytes];
+		[self setRetainedObject:normData forKey:@"normals"];
+		_tangents = (Vector *)[tanData bytes];
+		[self setRetainedObject:tanData forKey:@"tangents"];
+	}
+	else
+	{
+		_normals = NULL;
+		_tangents = NULL;
+	}
 	
 	// Copy material keys.
 	materialCount = [mtlKeys count];
@@ -1776,6 +1800,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 }
 
 
+#if SCRIBBLE
 static void Scribble(void *bytes, size_t size)
 {
 	#if OOLITE_BIG_ENDIAN
@@ -1788,6 +1813,9 @@ static void Scribble(void *bytes, size_t size)
 	uint32_t *mem = bytes;
 	while (size--)  *mem++ = kScribble;
 }
+#else
+#define Scribble(bytes, size) do {} while (0)
+#endif
 
 
 - (void *) allocateBytesWithSize:(size_t)size count:(OOUInteger)count key:(NSString *)key
@@ -1806,13 +1834,19 @@ static void Scribble(void *bytes, size_t size)
 
 - (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count
 {
-	_vertices = [self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
-	_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
-	_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
+	BOOL includeNormals = IsPerVertexNormalMode(_normalMode);
 	
-	return	_vertices != NULL &&
-			_normals != NULL &&
-			_tangents != NULL;
+	_vertices = [self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
+	if (_vertices == NULL)  return NO;
+	
+	if (includeNormals)
+	{
+		_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
+		_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
+		if (_normals == NULL || _tangents == NULL)  return NO;
+	}
+	
+	return YES;
 }
 
 
