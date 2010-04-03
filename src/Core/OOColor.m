@@ -209,7 +209,7 @@ MA 02110-1301, USA.
 	OOColor *color = [OOColor colorWithDescription:description];
 	if (color == nil || 0.5f <= [color brightnessComponent])  return color;
 	
-	return [OOColor colorWithCalibratedHue:[color hueComponent] saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
+	return [OOColor colorWithCalibratedHue:[color hueComponent] / 360.0f saturation:[color saturationComponent] brightness:0.5f alpha:1.0f];
 }
 
 
