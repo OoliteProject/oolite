@@ -334,32 +334,36 @@ enum
 - (void) playiTunesPlaylist:(NSString *)playlistName
 {
 	NSString *ootunesScriptString =
-	[NSString stringWithFormat:
-	 @"tell application \"iTunes\"\n"
-	 "  if playlist \"%@\" exists then\n"
-	 "    set song repeat of playlist \"%@\" to all\nset shuffle of playlist \"%@\" to true\n"
-	 "    play some track of playlist \"%@\"\n"
-	 "  end if\n"
-	 "end tell",
-	 playlistName, playlistName, playlistName, playlistName];
+		[NSString stringWithFormat:
+		@"with timeout of 1 second\n"
+		 "    tell application \"iTunes\"\n"
+		 "        copy playlist \"%@\" to thePlaylist\n"
+		 "        if thePlaylist exists then\n"
+		 "            set song repeat of thePlaylist to all\n"
+		 "            set shuffle of thePlaylist to true\n"
+		 "            play some track of thePlaylist\n"
+		 "        end if\n"
+		 "    end tell\n"
+		 "end timeout",
+		 playlistName];
 	
 	NSAppleScript *ootunesScript = [[[NSAppleScript alloc] initWithSource:ootunesScriptString] autorelease];
 	NSDictionary *errDict = nil;
 	
 	[ootunesScript executeAndReturnError:&errDict];
 	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
+		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", errDict);
 }
 
 
 - (void) pauseiTunes
 {
-	NSString *ootunesScriptString = [NSString stringWithFormat:@"tell application \"iTunes\" to pause"];
+	NSString *ootunesScriptString = [NSString stringWithFormat:@"try\nignoring application responses\ntell application \"iTunes\" to pause\nend ignoring"];
 	NSAppleScript *ootunesScript = [[NSAppleScript alloc] initWithSource:ootunesScriptString];
 	NSDictionary *errDict = nil;
 	[ootunesScript executeAndReturnError:&errDict];
 	if (errDict)
-		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", [errDict description]);
+		OOLog(@"iTunesIntegration.failed", @"ootunes returned :%@", errDict);
 	[ootunesScript release]; 
 }
 #else
