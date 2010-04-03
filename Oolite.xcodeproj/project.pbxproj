@@ -599,6 +599,7 @@
 		1AC545060D4D228400C90E5B /* OOEncodingConverter.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC545040D4D228400C90E5B /* OOEncodingConverter.h */; };
 		1AC545070D4D228400C90E5B /* OOEncodingConverter.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC545050D4D228400C90E5B /* OOEncodingConverter.m */; };
 		1AC5452D0D4D298E00C90E5B /* oolite-font.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC5452C0D4D298E00C90E5B /* oolite-font.plist */; };
+		1AC610F811679B8A008C253B /* blur256.png in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A2318260B9D026D00EF0852 /* blur256.png */; };
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
 		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
@@ -1103,6 +1104,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
+				1AC610F811679B8A008C253B /* blur256.png in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3656,11 +3658,6 @@
 				INFOPLIST_EXPAND_BUILD_SETTINGS = YES;
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\\\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\\\"";
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DLOADSAVEGUIXX";
@@ -3723,11 +3720,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\\\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\\\"";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_LDFLAGS = (
 					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_1)",
@@ -3756,8 +3749,6 @@
 				COPY_PHASE_STRIP = NO;
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = macosx10.4;
@@ -3774,8 +3765,6 @@
 				);
 				HEADER_SEARCH_PATHS = "$(HEADER_SEARCH_PATHS_QUOTED_1)";
 				HEADER_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
-				LIBRARY_SEARCH_PATHS = "$(LIBRARY_SEARCH_PATHS_QUOTED_1)";
-				LIBRARY_SEARCH_PATHS_QUOTED_1 = "\"$(SRCROOT)/Cocoa-deps/Ogg Vorbis\"";
 				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "-DLOADSAVEGUI";
 				SDKROOT = macosx10.4;
@@ -3840,11 +3829,7 @@
 				HEADER_SEARCH_PATHS_QUOTED_6 = "\"$(SRCROOT)/deps/Cross-platform-deps/SpiderMonkey/js/xcode\"";
 				INFOPLIST_FILE = "src/Cocoa/Info-Oolite.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1)",
-				);
-				LIBRARY_SEARCH_PATHS_QUOTED_FOR_TARGET_1 = "\\\"$(SRCROOT)/deps/Cocoa-deps/SCRDynamicShim/bin\\\"";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OGGVORBISROOT = "$(SRCROOT)/deps/Cocoa-deps/Ogg\\ Vorbis";
 				OTHER_LDFLAGS = (
 					"$(OTHER_LDFLAGS_QUOTED_FOR_TARGET_1)",
