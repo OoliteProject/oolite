@@ -8124,8 +8124,8 @@ BOOL class_masslocks(int some_class)
 						[UNIVERSE addMessage:scoopedMS forCount:4];
 					}
 					co_amount = 0;
+					co_type = 0;
 				}
-				
 			}
 			break;
 		
