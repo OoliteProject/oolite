@@ -55,7 +55,7 @@ MA 02110-1301, USA.
 // If set, collision octree depth varies depending on the size of the mesh.
 #define ADAPTIVE_OCTREE_DEPTH		1
 
-// If set, cachable memory is scribbled with DEADBEEF to identify junk in cache.
+// If set, cachable memory is scribbled with FEEDFACE to identify junk in cache.
 #define SCRIBBLE					0
 
 
