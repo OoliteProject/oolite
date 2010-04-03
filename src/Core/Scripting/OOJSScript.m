@@ -226,6 +226,7 @@ static JSFunctionSpec sScriptMethods[] =
 	[engine releaseContext:context];
 
 	return self;
+	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 
 

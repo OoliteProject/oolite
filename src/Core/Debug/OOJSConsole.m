@@ -191,6 +191,7 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 	}
 	
 	return object;
+	// Analyzer: object leaked. (x2) [Expected, objects are retained by JS object.]
 }
 
 

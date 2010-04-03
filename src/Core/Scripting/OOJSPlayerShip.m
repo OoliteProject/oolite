@@ -159,6 +159,7 @@ void InitOOJSPlayerShip(JSContext *context, JSObject *global)
 	sPlayerShipObject = JS_DefineObject(context, JSPlayerObject(), "ship", &sPlayerShipClass.base, sPlayerShipPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	JS_SetPrivate(context, sPlayerShipObject, [[PlayerEntity sharedPlayer] weakRetain]);
 	[[PlayerEntity sharedPlayer] setJSSelf:sPlayerShipObject context:context];
+	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 
 

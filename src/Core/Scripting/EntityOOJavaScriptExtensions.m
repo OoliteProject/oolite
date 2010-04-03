@@ -68,6 +68,7 @@ MA 02110-1301, USA.
 	if (jsSelf != NULL)  result = OBJECT_TO_JSVAL(jsSelf);
 	
 	return result;
+	// Analyzer: object leaked. [Expected, object is retained by JS object.]
 }
 
 
