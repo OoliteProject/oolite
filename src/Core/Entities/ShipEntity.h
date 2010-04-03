@@ -180,7 +180,6 @@ MA 02110-1301, USA.
 							suppressAegisMessages: 1,	// No script/AI messages sent by -checkForAegis,
 							isMissile: 1,				// Whether this was launched by fireMissile (used to track submunitions).
 							isUnpiloted: 1,				// Is meant to not have crew
-							isBoulder: 1,				// Created as debris from asteroid, regardless of role.
 							hasScoopMessage: 1,			// suppress scoop messages when false.
 	
 	// scripting
@@ -547,6 +546,10 @@ MA 02110-1301, USA.
 
 - (BOOL) hasRole:(NSString *)role;
 - (OORoleSet *)roleSet;
+
+- (void) addRole:(NSString *)role;
+- (void) addRole:(NSString *)role withProbability:(float)probability;
+- (void) removeRole:(NSString *)role;
 
 - (NSString *)primaryRole;
 - (void)setPrimaryRole:(NSString *)role;

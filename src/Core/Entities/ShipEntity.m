@@ -1049,15 +1049,18 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 }
 
 
+#define kBoulderRole (@"boulder")
+
 - (void) setIsBoulder:(BOOL)flag
 {
-	isBoulder = flag;
+	if (flag)  [self addRole:kBoulderRole];
+	else  [self removeRole:kBoulderRole];
 }
 
 
 - (BOOL) isBoulder
 {
-	return isBoulder;
+	return [roleSet hasRole:kBoulderRole];
 }
 
 
@@ -4245,6 +4248,42 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 {
 	if (roleSet == nil)  roleSet = [[OORoleSet alloc] initWithRoleString:primaryRole];
 	return [roleSet roleSetWithAddedRoleIfNotSet:primaryRole probability:1.0];
+}
+
+
+- (void) addRole:(NSString *)role
+{
+	[self addRole:role withProbability:0.0f];
+}
+
+
+- (void) addRole:(NSString *)role withProbability:(float)probability
+{
+	if (![self hasRole:role])
+	{
+		OORoleSet *newRoles = nil;
+		if (roleSet != nil)  newRoles = [roleSet roleSetWithAddedRole:role probability:probability];
+		else  newRoles = [OORoleSet roleSetWithRole:role probability:probability];
+		if (newRoles != nil)
+		{
+			[roleSet release];
+			roleSet = [newRoles retain];
+		}
+	}
+}
+
+
+- (void) removeRole:(NSString *)role
+{
+	if ([self hasRole:role])
+	{
+		OORoleSet *newRoles = [roleSet roleSetWithRemovedRole:role];
+		if (newRoles != nil)
+		{
+			[roleSet release];
+			roleSet = [newRoles retain];
+		}
+	}
 }
 
 
