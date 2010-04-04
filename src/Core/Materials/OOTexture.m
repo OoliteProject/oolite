@@ -181,6 +181,11 @@ static BOOL		sCubeMapAvailable;
 - (void)setUpTexture;
 - (void)uploadTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
+#if GL_ARB_texture_cube_map
+- (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
+#endif
+
+- (GLenum) glTextureTarget;
 
 - (void) addToCaches;
 + (OOTexture *) existingTextureForKey:(NSString *)key;
@@ -251,7 +256,15 @@ static NSString *sGlobalTraceContext = nil;
 		{
 			options &= ~kOOTextureAllowRectTexture;
 		}
-#endif	// Else, options &= kOOTextureDefinedFlags below will clear the flag
+#else
+		options &= ~kOOTextureAllowRectTexture;
+#endif
+	}
+	
+	if (options & kOOTextureAllowCubeMap)
+	{
+		// Apply cube map restrictions (regardless of whether rectangle textures are available, for consistency)
+		options &= kOOTextureFlagsAllowedForCubeMap;
 	}
 	
 	options &= kOOTextureDefinedFlags;
@@ -338,6 +351,7 @@ static NSString *sGlobalTraceContext = nil;
 		if ([configuration oo_boolForKey:@"no_shrink" defaultValue:NO])  options |= kOOTextureNoShrink;
 		if ([configuration oo_boolForKey:@"repeat_s" defaultValue:NO])  options |= kOOTextureRepeatS;
 		if ([configuration oo_boolForKey:@"repeat_t" defaultValue:NO])  options |= kOOTextureRepeatT;
+		if ([configuration oo_boolForKey:@"cube_map" defaultValue:NO])  options |= kOOTextureAllowCubeMap;
 		anisotropy = [configuration oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
 		lodBias = [configuration oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
 	}
@@ -444,7 +458,7 @@ static NSString *sGlobalTraceContext = nil;
 	
 	if (EXPECT_NOT(!_loaded))  [self setUpTexture];
 	else if (EXPECT_NOT(!_uploaded))  [self uploadTexture];
-	else  OOGL(glBindTexture(GL_TEXTURE_2D, _textureName));
+	else  OOGL(glBindTexture([self glTextureTarget], _textureName));
 	
 #if GL_EXT_texture_lod_bias
 	if (sTextureLODBiasAvailable)  OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias));
@@ -456,6 +470,9 @@ static NSString *sGlobalTraceContext = nil;
 {
 	OO_ENTER_OPENGL();
 	OOGL(glBindTexture(GL_TEXTURE_2D, 0));
+#if GL_ARB_texture_cube_map
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+#endif
 }
 
 
@@ -645,6 +662,12 @@ static NSString *sGlobalTraceContext = nil;
 	// This will block until loading is completed, if necessary.
 	if ([_loader getResult:&_bytes format:&_format width:&_width height:&_height])
 	{
+#if GL_ARB_texture_cube_map
+		if (_options & kOOTextureAllowCubeMap && _height == _width * 6)
+		{
+			_isCubeMap = YES;
+		}
+#endif
 		[self uploadTexture];
 	}
 	else
@@ -661,7 +684,7 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
-- (void)uploadTexture
+- (void) uploadTexture
 {
 	GLint					clampMode;
 	GLint					filter;
@@ -671,13 +694,24 @@ static NSString *sGlobalTraceContext = nil;
 	
 	if (!_uploaded)
 	{
+		GLenum texTarget = [self glTextureTarget];
+		
 		_textureName = GLAllocateTextureName();
-		OOGL(glBindTexture(GL_TEXTURE_2D, _textureName));
+		OOGL(glBindTexture(texTarget, _textureName));
 		
 		// Select wrap mode
 		clampMode = sClampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-		OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
-		OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
+#if GL_ARB_texture_cube_map
+		if (texTarget == GL_TEXTURE_CUBE_MAP)
+		{
+			// Repeat flags should have been filtered out earlier.
+			NSAssert(!(_options & (kOOTextureRepeatS | kOOTextureRepeatT)), @"Wrapping does not make sense for cube map textures.");
+			
+			OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_R, clampMode));
+		}
+#endif
 		
 		// Select min filter
 		filter = _options & kOOTextureMinFilterMask;
@@ -688,12 +722,12 @@ static NSString *sGlobalTraceContext = nil;
 			filter = GL_LINEAR_MIPMAP_LINEAR;
 		}
 		else  filter = GL_LINEAR;
-		OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter));
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_MIN_FILTER, filter));
 		
 #if GL_EXT_texture_filter_anisotropic
 		if (sAnisotropyAvailable && mipMap && 1.0 < _anisotropy)
 		{
-			OOGL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy));
+			OOGL(glTexParameterf(texTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy));
 		}
 #endif
 		
@@ -701,16 +735,62 @@ static NSString *sGlobalTraceContext = nil;
 		filter = _options & kOOTextureMagFilterMask;
 		if (filter == kOOTextureMagFilterNearest)  filter = GL_NEAREST;
 		else  filter = GL_LINEAR;
-		OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter));
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_MAG_FILTER, filter));
 		
 		if (sClientStorageAvialable)  EnableClientStorage();
 		
-		[self uploadTextureDataWithMipMap:mipMap format:_format];
-		
-		OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
+		if (texTarget == GL_TEXTURE_2D)
+		{
+			[self uploadTextureDataWithMipMap:mipMap format:_format];
+			OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
+		}
+#if GL_ARB_texture_cube_map
+		else if (texTarget == GL_TEXTURE_CUBE_MAP)
+		{
+			[self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
+			OOLog(@"texture.upload", @"Uploaded cube map texture %u (%ux%ux6 pixels, %@)", _textureName, _width, _width, _key);
+		}
+#endif
+		else
+		{
+			[NSException raise:NSInternalInconsistencyException format:@"Unhandled texture target 0x%X.", texTarget];
+		}
 		
 		_valid = YES;
 		_uploaded = YES;
+	}
+}
+
+
+static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLint *outFormat, GLint *outInternalFormat, GLint *outType)
+{
+	NSCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
+	
+	switch (format)
+	{
+		case kOOTextureDataRGBA:
+			*outFormat = GL_RGBA;
+			*outInternalFormat = GL_RGBA;
+			*outType = RGBA_IMAGE_TYPE;
+			return YES;
+			
+		case kOOTextureDataGrayscale:
+			if (options & kOOTextureAlphaMask)
+			{
+				*outFormat = GL_ALPHA8;
+				*outInternalFormat = GL_ALPHA;
+			}
+			else
+			{
+				*outFormat = GL_LUMINANCE8;
+				*outInternalFormat = GL_LUMINANCE;
+			}
+			*outType = GL_UNSIGNED_BYTE;
+			return YES;
+			
+		default:
+			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
+			return NO;
 	}
 }
 
@@ -719,41 +799,16 @@ static NSString *sGlobalTraceContext = nil;
 {
 	GLint					glFormat, internalFormat, type;
 	unsigned				w = _width,
-	h = _height,
-	level = 0;
+							h = _height,
+							level = 0;
 	char					*bytes = _bytes;
 	uint8_t					planes = OOTexturePlanesForFormat(format);
 	
 	OO_ENTER_OPENGL();
 	
-	switch (format)
-	{
-		case kOOTextureDataRGBA:
-			glFormat = GL_RGBA;
-			internalFormat = GL_RGBA;
-			type = RGBA_IMAGE_TYPE;
-			break;
-			
-		case kOOTextureDataGrayscale:
-			if (_options & kOOTextureAlphaMask)
-			{
-				glFormat = GL_ALPHA8;
-				internalFormat = GL_ALPHA;
-			}
-			else
-			{
-				glFormat = GL_LUMINANCE8;
-				internalFormat = GL_LUMINANCE;
-			}
-			type = GL_UNSIGNED_BYTE;
-			break;
-			
-		default:
-			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
-			return;
-	}
+	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
 	
-	while (1 < w && 1 < h)
+	while (0 < w && 0 < h)
 	{
 		OOGL(glTexImage2D(GL_TEXTURE_2D, level++, glFormat, w, h, 0, internalFormat, type, bytes));
 		if (!mipMap)  return;
@@ -766,6 +821,66 @@ static NSString *sGlobalTraceContext = nil;
 	
 	// FIXME: GL_TEXTURE_MAX_LEVEL requires OpenGL 1.2. This should be fixed by generating all mip-maps for non-square textures so we don't need to use it.
 	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels));
+}
+
+
+#if GL_ARB_texture_cube_map
+- (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
+{
+	OO_ENTER_OPENGL();
+	
+	GLint glFormat, internalFormat, type;
+	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
+	uint8_t planes = OOTexturePlanesForFormat(format);
+	
+	// Calculate stride between cube map sides.
+	size_t sideSize = _width * _width * planes;
+	if (mipMap)
+	{
+		sideSize = sideSize * 4 / 3;
+		sideSize = (sideSize + 15) & ~15;
+	}
+	
+	const GLenum cubeSides[6] =
+	{
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	};
+	
+	unsigned side;
+	for (side = 0; side < 6; side++)
+	{
+		char *bytes = _bytes;
+		bytes += side * sideSize;
+		
+		unsigned w = _width, level = 0;
+		
+		while (0 < w)
+		{
+			OOGL(glTexImage2D(cubeSides[side], level++, glFormat, w, w, 0, internalFormat, type, bytes));
+			if (!mipMap)  break;
+			bytes += w * w * planes;
+			w >>= 1;
+		}
+	}
+}
+#endif
+
+
+- (GLenum) glTextureTarget
+{
+	GLenum texTarget = GL_TEXTURE_2D;
+#if GL_ARB_texture_cube_map
+	if (_isCubeMap)
+	{
+		texTarget = GL_TEXTURE_CUBE_MAP;
+	}
+#endif
+	return texTarget;
 }
 
 

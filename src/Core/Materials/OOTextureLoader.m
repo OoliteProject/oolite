@@ -121,6 +121,9 @@ static BOOL					sHaveSetUp = NO;
 	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
+#if GL_ARB_texture_cube_map
+	allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
+#endif
 	
 	return self;
 }
@@ -252,6 +255,39 @@ static BOOL					sHaveSetUp = NO;
 }
 
 
+- (void) generateMipMapsForCubeMap
+{
+	// Generate mip maps for each cube face.
+	NSParameterAssert(data != NULL);
+	
+	uint8_t planes = OOTexturePlanesForFormat(format);
+	size_t srcSideSize = width * width * planes;	// Space for one side without mip-maps.
+	size_t newSideSize = srcSideSize * 4 / 3;		// Space for one side with mip-maps.
+	newSideSize = (newSideSize + 15) & ~15;			// Round up to multiple of 16 bytes.
+	size_t newSize = newSideSize * 6;				// Space for all six sides.
+	
+	void *newData = malloc(newSize);
+	if (EXPECT_NOT(newData == NULL))
+	{
+		free(data);
+		data = NULL;
+	}
+	
+	unsigned i;
+	for (i = 0; i < 6; i++)
+	{
+		void *srcBytes = ((uint8_t *)data) + srcSideSize * i;
+		void *dstBytes = ((uint8_t *)newData) + newSideSize * i;
+		
+		memcpy(dstBytes, srcBytes, srcSideSize);
+		OOGenerateMipMaps(dstBytes, width, width, planes);
+	}
+	
+	free(data);
+	data = newData;
+}
+
+
 - (void)applySettings
 {
 	uint32_t			desiredWidth, desiredHeight;
@@ -269,12 +305,28 @@ static BOOL					sHaveSetUp = NO;
 	rescale = (width != desiredWidth || height != desiredHeight);
 	if (rescale)
 	{
-		data = OOScalePixMap(data, width, height, planes, rowBytes, desiredWidth, desiredHeight, generateMipMaps);
+		BOOL leaveSpaceForMipMaps = generateMipMaps;
+#if GL_ARB_texture_cube_map
+		if (isCubeMap)  leaveSpaceForMipMaps = NO;
+#endif
+		
+		data = OOScalePixMap(data, width, height, planes, rowBytes, desiredWidth, desiredHeight, leaveSpaceForMipMaps);
 		if (EXPECT_NOT(data == NULL))  return;
 		
 		width = desiredWidth;
 		height = desiredHeight;
 	}
+	
+#if GL_ARB_texture_cube_map
+	if (isCubeMap)
+	{
+		if (generateMipMaps)
+		{
+			[self generateMipMapsForCubeMap];
+		}
+		return;
+	}
+#endif
 	
 	// Generate mip maps if needed.
 	if (generateMipMaps && !rescale)
@@ -302,39 +354,60 @@ static BOOL					sHaveSetUp = NO;
 	// Work out appropriate final size for textures.
 	if (!noScalingWhatsoever)
 	{
-		if (!sHaveNPOTTextures)
+#if GL_ARB_texture_cube_map
+		// Cube maps are six times as high as they are wide, and we need to preserve that.
+		// FIXME: should convert cube maps to lat/long maps here if cube map support not available!
+		if (allowCubeMap && height == width * 6)
 		{
-			// Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
-			desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
-			desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
-		}
-		else
-		{
-			desiredWidth = width;
-			desiredHeight = height;
-		}
-		
-		desiredWidth = MIN(desiredWidth, sGLMaxSize);
-		desiredHeight = MIN(desiredHeight, sGLMaxSize);
-		
-		if (!avoidShrinking)
-		{
-			desiredWidth = MIN(desiredWidth, sUserMaxSize);
-			desiredHeight = MIN(desiredHeight, sUserMaxSize);
+			isCubeMap = YES;
 			
+			desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
+			desiredWidth = MIN(desiredWidth, sGLMaxSize / 8);
 			if (sReducedDetail)
 			{
-				if (512 < desiredWidth)  desiredWidth /= 2;
-				if (512 < desiredHeight)  desiredHeight /= 2;
+				if (256 < desiredWidth)  desiredWidth /= 2;
 			}
+			desiredWidth = MIN(desiredWidth, sUserMaxSize / 4);
+			
+			desiredHeight = desiredWidth * 6;
 		}
 		else
+#endif
 		{
-			if (sReducedDetail || sUserMaxSize < desiredWidth || sUserMaxSize < desiredWidth)
+			if (!sHaveNPOTTextures)
 			{
-				// Permit a bit of shrinking for large textures
-				if (512 < desiredWidth)  desiredWidth /= 2;
-				if (512 < desiredHeight)  desiredHeight /= 2;
+				// Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
+				desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
+				desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
+			}
+			else
+			{
+				desiredWidth = width;
+				desiredHeight = height;
+			}
+			
+			desiredWidth = MIN(desiredWidth, sGLMaxSize);
+			desiredHeight = MIN(desiredHeight, sGLMaxSize);
+			
+			if (!avoidShrinking)
+			{
+				desiredWidth = MIN(desiredWidth, sUserMaxSize);
+				desiredHeight = MIN(desiredHeight, sUserMaxSize);
+				
+				if (sReducedDetail)
+				{
+					if (512 < desiredWidth)  desiredWidth /= 2;
+					if (512 < desiredHeight)  desiredHeight /= 2;
+				}
+			}
+			else
+			{
+				if (sReducedDetail || sUserMaxSize < desiredWidth || sUserMaxSize < desiredWidth)
+				{
+					// Permit a bit of shrinking for large textures
+					if (512 < desiredWidth)  desiredWidth /= 2;
+					if (512 < desiredHeight)  desiredHeight /= 2;
+				}
 			}
 		}
 	}

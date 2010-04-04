@@ -63,6 +63,10 @@ SOFTWARE.
 								scaleAsNormalMap: 1,
 								avoidShrinking: 1,
 								noScalingWhatsoever: 1,
+#if GL_ARB_texture_cube_map
+								allowCubeMap: 1,
+								isCubeMap: 1,
+#endif
 								ready: 1;
 	OOTextureDataFormat			format;
 	

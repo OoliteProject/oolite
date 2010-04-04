@@ -83,9 +83,8 @@ enum
 	
 	kOOTextureDefinedFlags			= kOOTextureMinFilterMask | kOOTextureMagFilterMask
 									| kOOTextureNoShrink
-#if GL_EXT_texture_rectangle
 									| kOOTextureAllowRectTexture
-#endif
+									| kOOTextureAllowCubeMap
 									| kOOTextureRepeatS
 									| kOOTextureRepeatT
 									| kOOTextureNoFNFMessage
@@ -93,6 +92,8 @@ enum
 									| kOOTextureAlphaMask,
 	
 	kOOTextureFlagsAllowedForRectangleTexture =
+									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT),
+	kOOTextureFlagsAllowedForCubeMap =
 									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT)
 };
 
@@ -155,7 +156,7 @@ typedef enum
 	appropriate. 
 */
 + (id) textureWithName:(NSString *)name
-			 inFolder:(NSString*)directory
+			 inFolder:(NSString *)directory
 			  options:(uint32_t)options
 		   anisotropy:(GLfloat)anisotropy
 			  lodBias:(GLfloat)lodBias;
@@ -180,6 +181,7 @@ typedef enum
 		noShrink			(boolean)
 		repeat_s			(boolean)
 		repeat_t			(boolean)
+		cube_map			(boolean)
 		anisotropy			(real)
 		texture_LOD_bias	(real)
 */
