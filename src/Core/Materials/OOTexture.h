@@ -73,6 +73,7 @@ enum
 	kOOTextureNoFNFMessage			= 0x0100UL,	// Don't log file not found error
 	kOOTextureNeverScale			= 0x0200UL,	// Don't rescale texture, even if rect textures are not available. This *must not* be used for regular textures, but may be passed to OOTextureLoader when being used for other purposes.
 	kOOTextureAlphaMask				= 0x0400UL,	// Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
+	kOOTextureAllowCubeMap			= 0x0800UL,
 	
 	kOOTextureMinFilterMask			= 0x0003UL,
 	kOOTextureMagFilterMask			= 0x0004UL,
@@ -118,6 +119,9 @@ typedef enum
 #if GL_EXT_texture_rectangle
 							_isRectTexture: 1,
 #endif
+#if GL_ARB_texture_cube_map
+							_isCubeMap: 1,
+#endif
 							_valid: 1;
 	uint8_t					_mipLevels;
 	
@@ -150,7 +154,7 @@ typedef enum
 	This method may change; +textureWithConfiguration is generally more
 	appropriate. 
 */
-+ (id)textureWithName:(NSString *)name
++ (id) textureWithName:(NSString *)name
 			 inFolder:(NSString*)directory
 			  options:(uint32_t)options
 		   anisotropy:(GLfloat)anisotropy
@@ -162,7 +166,7 @@ typedef enum
 					   anisotropy:kOOTextureDefaultAnisotropy
 						  lodBias:kOOTextureDefaultLODBias
 */
-+ (id)textureWithName:(NSString *)name
++ (id) textureWithName:(NSString *)name
 			 inFolder:(NSString*)directory;
 
 /*	Load a texure, looking in Textures directories, using configuration
@@ -179,7 +183,7 @@ typedef enum
 		anisotropy			(real)
 		texture_LOD_bias	(real)
 */
-+ (id)textureWithConfiguration:(id)configuration;
++ (id) textureWithConfiguration:(id)configuration;
 
 /*	Return the "null texture", a texture object representing an empty texture.
 	Applying the null texture is equivalent to calling [OOTexture applyNone].
@@ -194,14 +198,14 @@ typedef enum
 /*	Bind the texture to the current texture unit.
 	This will block until loading is completed.
 */
-- (void)apply;
+- (void) apply;
 
-+ (void)applyNone;
++ (void) applyNone;
 
 /*	Ensure texture is loaded. This is required because setting up textures
 	inside display lists isn't allowed.
 */
-- (void)ensureFinishedLoading;
+- (void) ensureFinishedLoading;
 
 /*	Check whether a texture has loaded. NOTE: this does not do the setup that
 	-ensureFinishedLoading does, so -ensureFinishedLoading is still required
@@ -212,7 +216,12 @@ typedef enum
 /*	Dimensions in pixels.
 	This will block until loading is completed.
 */
-- (NSSize)dimensions;
+- (NSSize) dimensions;
+
+/*	Identify special texture types.
+*/
+- (BOOL) isRectangleTexture;
+- (BOOL) isCubeMap;
 
 
 /*	Dimensions in texture coordinates.
@@ -239,18 +248,18 @@ typedef enum
 	support this in future, but this shouldn’t affect the interface, only
 	avoid the scaling-to-power-of-two stage.
 */
-- (NSSize)texCoordsScale;
+- (NSSize) texCoordsScale;
 
 /*	OpenGL texture name.
 	Not reccomended, but required for legacy TextureStore.
 */
-- (GLint)glTextureName;
+- (GLint) glTextureName;
 
 //	Forget all cached textures so new texture objects will reload.
-+ (void)clearCache;
++ (void) clearCache;
 
 // Called by OOGraphicsResetManager as necessary.
-+ (void)rebindAllTextures;
++ (void) rebindAllTextures;
 
 #ifndef NDEBUG
 - (void) setTrace:(BOOL)trace;
@@ -261,12 +270,12 @@ typedef enum
 
 @interface NSDictionary (OOTextureConveniences)
 // Returns either a dictionary or a string.
-- (id)textureSpecifierForKey:(id)key defaultName:(NSString *)name;
+- (id) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name;
 @end
 
 @interface NSArray (OOTextureConveniences)
 // Returns either a dictionary or a string.
-- (id)textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name;
+- (id) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name;
 @end
 
 id OOTextureSpecFromObject(id object, NSString *defaultName);

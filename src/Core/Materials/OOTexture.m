@@ -156,6 +156,14 @@ static BOOL		sRectangleTextureAvailable;
 #endif
 
 
+#if GL_ARB_texture_cube_map
+static BOOL		sCubeMapAvailable;
+#else
+#define sCubeMapAvailable			(NO)
+#warning GL_ARB_texture_cube_map not defined - cube maps not supported.
+#endif
+
+
 @interface OOTexture (OOPrivate)
 
 - (id) initWithLoader:(OOTextureLoader *)loader
@@ -185,10 +193,12 @@ static BOOL		sRectangleTextureAvailable;
 - (id) retainInContext:(NSString *)context;
 - (void) releaseInContext:(NSString *)context;
 - (id) autoreleaseInContext:(NSString *)context;
+#endif
 
 @end
 
 
+#ifndef NDEBUG
 static NSString *sGlobalTraceContext = nil;
 
 #define SET_TRACE_CONTEXT(str) do { sGlobalTraceContext = (str); } while (0)
@@ -466,6 +476,26 @@ static NSString *sGlobalTraceContext = nil;
 	[self ensureFinishedLoading];
 	
 	return NSMakeSize(_width, _height);
+}
+
+
+- (BOOL) isRectangleTexture
+{
+#if GL_EXT_texture_rectangle
+	return _isRectTexture;
+#else
+	return NO;
+#endif
+}
+
+
+- (BOOL) isCubeMap
+{
+#if GL_ARB_texture_cube_map
+	return _isCubeMap;
+#else
+	return NO;
+#endif
 }
 
 
@@ -827,6 +857,10 @@ static NSString *sGlobalTraceContext = nil;
 #if GL_EXT_texture_rectangle
 	sRectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
 #endif
+	
+#if GL_ARB_texture_cube_map
+	sCubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+#endif
 }
 
 
@@ -890,7 +924,7 @@ static NSString *sGlobalTraceContext = nil;
 
 @implementation NSDictionary (OOTextureConveniences)
 
-- (id)textureSpecifierForKey:(id)key defaultName:(NSString *)name
+- (id) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name
 {
 	return OOTextureSpecFromObject([self objectForKey:key], name);
 }
@@ -899,7 +933,7 @@ static NSString *sGlobalTraceContext = nil;
 
 @implementation NSArray (OOTextureConveniences)
 
-- (id)textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name
+- (id) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name
 {
 	return OOTextureSpecFromObject([self objectAtIndex:index], name);
 }

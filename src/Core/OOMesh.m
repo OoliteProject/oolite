@@ -1106,12 +1106,16 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					// vertices
 					if ([scanner scanInt:&n_v])
 					{
-						if (n_v > kOOMeshMaxVertsPerFace)
+						if (n_v < 3)
 						{
 							failFlag = YES;
-							failString = [NSString stringWithFormat:@"%@Face[%u] has %u vertices, but Oolite only supports %u vertices per face.\n", failString, j, n_v, kOOMeshMaxVertsPerFace];
+							failString = [NSString stringWithFormat:@"%@Face[%u] has fewer than three vertices.\n", failString];
 						}
-						_faces[j].n_verts = n_v;
+						else if (n_v > 3)
+						{
+							OOLogWARN(@"mesh.load.warning.nonTriangular", @"Face[%u] of %@ has %u vertices specified. Only the first three will be used.", baseFile, n_v);
+							n_v = 3;
+						}
 					}
 					else
 					{
@@ -1198,7 +1202,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 					//
 					if (!failFlag)
 					{
-						for (i = 0; i < _faces[j].n_verts; i++)
+						for (i = 0; i < 3; i++)
 						{
 							if (![scanner scanFloat:&s])  failFlag = YES;
 							if (![scanner scanFloat:&t])  failFlag = YES;
@@ -1385,7 +1389,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 				only doing sign checks.
 			*/
 			norm = kZeroVector;
-			for (j = 0; j < _faces[i].n_verts; j++)
+			for (j = 0; j < 3; j++)
 			{
 				norm = vector_add(norm, _normals[_faces[i].vertex[j]]);
 			}
@@ -1402,26 +1406,21 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			or change to: if (dot_product(norm, calculatedNormal) < 0.0f)
 			-- Ahruman 2010-01-23
 		*/
-		if (norm.x*calculatedNormal.x < 0 || norm.y*calculatedNormal.y < 0 || norm.z*calculatedNormal.z < 0)
+		if (norm.x * calculatedNormal.x < 0 || norm.y * calculatedNormal.y < 0 || norm.z * calculatedNormal.z < 0)
 		{
 			// normal lies in the WRONG direction!
 			// reverse the winding
-			int			v[_faces[i].n_verts];
-			GLfloat		s[_faces[i].n_verts];
-			GLfloat		t[_faces[i].n_verts];
+			int v0 = _faces[i].vertex[0];
+			_faces[i].vertex[0] = _faces[i].vertex[2];
+			_faces[i].vertex[2] = v0;
 			
-			for (j = 0; j < _faces[i].n_verts; j++)
-			{
-				v[j] = _faces[i].vertex[_faces[i].n_verts - 1 - j];
-				s[j] = _faces[i].s[_faces[i].n_verts - 1 - j];
-				t[j] = _faces[i].t[_faces[i].n_verts - 1 - j];
-			}
-			for (j = 0; j < _faces[i].n_verts; j++)
-			{
-				_faces[i].vertex[j] = v[j];
-				_faces[i].s[j] = s[j];
-				_faces[i].t[j] = t[j];
-			}
+			GLfloat f0 = _faces[i].s[0];
+			_faces[i].s[0] = _faces[i].s[2];
+			_faces[i].s[2] = f0;
+			
+			f0 = _faces[i].t[0];
+			_faces[i].t[0] = _faces[i].t[2];
+			_faces[i].t[2] = f0;
 		}
 	}
 }

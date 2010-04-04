@@ -49,8 +49,7 @@ MA 02110-1301, USA.
 
 enum
 {
-	kOOMeshMaxMaterials			= 8,
-	kOOMeshMaxVertsPerFace		= 3
+	kOOMeshMaxMaterials			= 8
 };
 
 
@@ -65,13 +64,12 @@ typedef struct
 {
 	OOMeshSmoothGroup		smoothGroup;
 	OOMeshMaterialIndex		materialIndex;
-	OOMeshFaceVertexCount	n_verts;
-	GLuint					vertex[kOOMeshMaxVertsPerFace];
+	GLuint					vertex[3];
 	
 	Vector					normal;
 	Vector					tangent;
-	GLfloat					s[kOOMeshMaxVertsPerFace];
-	GLfloat					t[kOOMeshMaxVertsPerFace];
+	GLfloat					s[3];
+	GLfloat					t[3];
 } OOMeshFace;
 
 

@@ -59,7 +59,7 @@ SOFTWARE.
 	
 	if (configuration != nil)
 	{
-		texSpec = [configuration textureSpecifierForKey:@"diffuse_map" defaultName:name];
+		texSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
 	}
 	else
 	{
