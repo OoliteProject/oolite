@@ -338,7 +338,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
 	OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
-	OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
 		OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
@@ -346,7 +345,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	}
 	
 	OOGL(glDisable(GL_BLEND));
-	OOGL(glEnable(GL_TEXTURE_2D));
+	
+	BOOL usingNormalsAsTexCoords = NO;
 	
 	NS_DURING
 		if (!listsReady)
@@ -362,6 +362,24 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		
 		for (ti = 0; ti < materialCount; ti++)
 		{
+			BOOL wantsNormalsAsTextureCoordinates = [materials[ti] wantsNormalsAsTextureCoordinates];
+			if (ti == 0 || wantsNormalsAsTextureCoordinates != usingNormalsAsTexCoords)
+			{
+				if (!wantsNormalsAsTextureCoordinates)
+				{
+					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+					OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
+					OOGL(glEnable(GL_TEXTURE_2D));
+				}
+				else
+				{
+					OOGL(glDisable(GL_TEXTURE_2D));
+					OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.normalArray));
+					OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+				}
+				usingNormalsAsTexCoords = wantsNormalsAsTextureCoordinates;
+			}
+			
 			[materials[ti] apply];
 #if 0
 			if (listsReady)

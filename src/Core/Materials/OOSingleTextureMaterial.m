@@ -135,4 +135,10 @@ SOFTWARE.
 	return [_texture isFinishedLoading];
 }
 
+
+- (BOOL) wantsNormalsAsTextureCoordinates
+{
+	return [_texture isCubeMap];
+}
+
 @end

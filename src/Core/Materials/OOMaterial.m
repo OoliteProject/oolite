@@ -137,6 +137,12 @@ static OOMaterial *sActiveMaterial = nil;
 	
 }
 
+
+- (BOOL) wantsNormalsAsTextureCoordinates
+{
+	return NO;
+}
+
 @end
 
 
@@ -170,13 +176,13 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 							*specular = nil,
 							*emission = nil;
 	int						shininess = 0;
-	NSString				*diffuseMap = nil,
-							*specularMap = nil,
-							*emissionMap = nil,
-							*emissionAndIlluminationMap = nil,
-							*illuminationMap = nil,
-							*normalMap = nil,
-							*normalAndParallaxMap = nil;
+	id						diffuseMap = nil,
+							specularMap = nil,
+							emissionMap = nil,
+							emissionAndIlluminationMap = nil,
+							illuminationMap = nil,
+							normalMap = nil,
+							normalAndParallaxMap = nil;
 	float					parallaxScale,
 							parallaxBias;
 	NSMutableDictionary		*modifiedMacros = nil;
@@ -191,13 +197,13 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	specular = [OOColor colorWithDescription:[configuration objectForKey:@"specular"]];
 	emission = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
 	shininess = [configuration oo_intForKey:@"shininess" defaultValue:-1];
-	diffuseMap = [configuration oo_stringForKey:@"diffuse_map"];
-	specularMap = [configuration oo_stringForKey:@"specular_map"];
-	emissionMap = [configuration oo_stringForKey:@"emission_map"];
-	emissionAndIlluminationMap = [configuration oo_stringForKey:@"emission_and_illumination_map"];
-	illuminationMap = [configuration oo_stringForKey:@"illumination_map"];
-	normalMap = [configuration oo_stringForKey:@"normal_map"];
-	normalAndParallaxMap = [configuration oo_stringForKey:@"normal_and_parallax_map"];
+	diffuseMap = [configuration objectForKey:@"diffuse_map"];
+	specularMap = [configuration objectForKey:@"specular_map"];
+	emissionMap = [configuration objectForKey:@"emission_map"];
+	emissionAndIlluminationMap = [configuration objectForKey:@"emission_and_illumination_map"];
+	illuminationMap = [configuration objectForKey:@"illumination_map"];
+	normalMap = [configuration objectForKey:@"normal_map"];
+	normalAndParallaxMap = [configuration objectForKey:@"normal_and_parallax_map"];
 	parallaxScale = [configuration oo_floatForKey:@"parallax_scale" defaultValue:0.01];
 	parallaxBias = [configuration oo_floatForKey:@"parallax_bias" defaultValue:0.00];
 	
@@ -271,7 +277,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		}
 	}
 	[newConfig setObject:diffuseMap forKey:@"diffuse_map"];
-	if (![diffuseMap isEqualToString:@""])	// empty string, not nil, means no diffuse map
+	if (![diffuseMap isEqual:@""])	// empty string, not nil, means no diffuse map
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_DIFFUSE_MAP"];
 		AddTexture(uniforms, textures, @"uDiffuseMap", diffuseMap);
