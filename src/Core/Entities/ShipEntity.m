@@ -5390,6 +5390,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (void) debugGrow
+{
+	[self rescaleBy:2.0];
+}
+
+
 - (void) becomeExplosion
 {
 	OOCargoQuantity cargo_to_go;

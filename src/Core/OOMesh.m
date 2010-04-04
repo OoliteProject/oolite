@@ -125,7 +125,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void) calculateBoundingVolumes;
 
-- (void)rescaleByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ;
+- (void) rescaleByFactor:(GLfloat)factor;
 
 #ifndef NDEBUG
 - (void)debugDrawNormals;
@@ -320,12 +320,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 
 - (void)renderOpaqueParts
 {
-	if (EXPECT_NOT(baseFile == nil))
-	{
-		OOLog(kOOLogFileNotLoaded, @"***** ERROR: no baseFile for entity %@", self);
-		return;
-	}
-	
 	OO_ENTER_OPENGL();
 	
 	int			ti;
@@ -611,16 +605,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 
 - (OOMesh *)meshRescaledBy:(GLfloat)scaleFactor
 {
-	return [self meshRescaledByX:scaleFactor y:scaleFactor z:scaleFactor];
-}
-
-
-- (OOMesh *)meshRescaledByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ
-{
-	id					result = nil;
-		
-	result = [self mutableCopy];
-	[result rescaleByX:scaleX y:scaleY z:scaleZ];
+	OOMesh *result = [self mutableCopy];
+	[result rescaleByFactor:scaleFactor];
 	return [result autorelease];
 }
 
@@ -1707,42 +1693,28 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 }
 
 
-- (void)rescaleByX:(GLfloat)scaleX y:(GLfloat)scaleY z:(GLfloat)scaleZ
+- (void) rescaleByFactor:(GLfloat)factor
 {
-	
+	// Rescale base vertices used for geometry calculations.
 	OOMeshVertexCount	i;
-	Vector				*vertex = NULL, *normal = NULL;
+	Vector				*vertex = NULL;
 	
 	for (i = 0; i != vertexCount; ++i)
 	{
 		vertex = &_vertices[i];
-		
-		vertex->x *= scaleX;
-		vertex->y *= scaleY;
-		vertex->z *= scaleZ;
+		*vertex = vector_multiply_scalar(*vertex, factor);
 	}
 	
-	/*	If anisotropic scaling and we have per-vertex normals, rescale them.
-		FIXME: aren't these normals unused at this point? Actually, the
-		vertices too?
-		-- Ahruman 2010-04-04
-	*/
-	if (_normals != NULL && (scaleX != scaleY || scaleY != scaleZ))
+	// Rescale actual display vertices.
+	for (i = 0; i != _displayLists.count; i++)
 	{
-		for (i = 0; i != vertexCount; ++i)
-		{
-			normal = &_normals[i];
-			// For efficiency freaks: let's assume some sort of adaptive branch prediction.
-			normal->x *= scaleX;
-			normal->y *= scaleY;
-			normal->z *= scaleZ;
-			*normal = vector_normal(*normal);
-		}
+		vertex = &_displayLists.vertexArray[i];
+		*vertex = vector_multiply_scalar(*vertex, factor);
 	}
 	
 	[self calculateBoundingVolumes];
-	[octree release];
-	octree = nil;
+	DESTROY(octree);
+	DESTROY(baseFile);	// Avoid octree cache.
 }
 
 
@@ -1937,6 +1909,8 @@ static NSString * const kOOCacheOctrees = @"octrees";
 {
 	NSDictionary		*dict = nil;
 	Octree				*result = nil;
+	
+	if (inKey == nil)  return nil;
 	
 	dict = [[self sharedCache] objectForKey:inKey inCache:kOOCacheOctrees];
 	if (dict != nil)
