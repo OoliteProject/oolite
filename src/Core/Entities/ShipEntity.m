@@ -416,7 +416,6 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	
 	likely_cargo = [shipDict oo_unsignedIntForKey:@"likely_cargo"];
 	noRocks = [shipDict oo_fuzzyBooleanForKey:@"no_boulders"];
-	commodity_type = CARGO_UNDEFINED;
 	
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
@@ -438,7 +437,6 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 			c_commodity = [UNIVERSE commodityForName: [shipDict oo_stringForKey:@"cargo_carried"]];
 			if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
 		}
-
 	}
 	
 	cargoString = [shipDict oo_stringForKey:@"cargo_type"];
@@ -8195,31 +8193,38 @@ BOOL class_masslocks(int some_class)
 		
 		if (isPlayer)
 		{
-			[UNIVERSE clearPreviousMessage];
 			if ([other crew])
 			{
-				unsigned i;
-				for (i = 0; i < [[other crew] count]; i++)
+				if ([other showScoopMessage])
 				{
-					OOCharacter *rescuee = [[other crew] objectAtIndex:i];
-					if ([rescuee legalStatus])
+					[UNIVERSE clearPreviousMessage];
+					unsigned i;
+					for (i = 0; i < [[other crew] count]; i++)
 					{
-						[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-captured-@"), [rescuee name]] forCount: 4.5];
+						OOCharacter *rescuee = [[other crew] objectAtIndex:i];
+						if ([rescuee legalStatus])
+						{
+							[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-captured-@"), [rescuee name]] forCount: 4.5];
+						}
+						else if ([rescuee insuranceCredits])
+						{
+							[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-rescued-@"), [rescuee name]] forCount: 4.5];
+						}
+						else
+						{
+							[UNIVERSE addMessage: DESC(@"scoop-got-slave") forCount: 4.5];
+						}
 					}
-					else if ([rescuee insuranceCredits])
-					{
-						[UNIVERSE addMessage: [NSString stringWithFormat:DESC(@"scoop-rescued-@"), [rescuee name]] forCount: 4.5];
-					}
-					else
-					{
-						[UNIVERSE addMessage: DESC(@"scoop-got-slave") forCount: 4.5];
-					}
-					[(PlayerEntity *)self playEscapePodScooped];
 				}
+				[(PlayerEntity *)self playEscapePodScooped];
 			}
 			else
 			{
-				if ([other showScoopMessage]) [UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
+				if ([other showScoopMessage])
+				{
+					[UNIVERSE clearPreviousMessage];
+					[UNIVERSE addMessage:[UNIVERSE describeCommodity:co_type amount:co_amount] forCount:4.5];
+				}
 			}
 		}
 		[cargo insertObject: other atIndex: 0];	// places most recently scooped object at eject position
