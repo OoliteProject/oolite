@@ -137,6 +137,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 // Allocate all per-vertex/per-face buffers.
 - (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count;
+- (BOOL) allocateNormalBuffersWithCount:(OOUInteger)count;
 - (BOOL) allocateFaceBuffersWithCount:(OOUInteger)count;
 - (BOOL) allocateVertexArrayBuffersWithCount:(OOUInteger)count;
 
@@ -1273,6 +1274,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		if ([scanner scanString:@"NORMALS" intoString:NULL])
 		{
 			_normalMode = kNormalModeExplicit;
+			if (![self allocateNormalBuffersWithCount:vertexCount])
+			{
+				OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+				return NO;
+			}
 			
 			for (j = 0; j < vertexCount; j++)
 			{
@@ -1296,8 +1302,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 			// Get explicit tangents (only together with vertices).
 			if ([scanner scanString:@"TANGENTS" intoString:NULL])
 			{
-				_normalMode = kNormalModeExplicit;
-				
 				for (j = 0; j < vertexCount; j++)
 				{
 					float x, y, z;
@@ -1335,6 +1339,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		// check for smooth shading and recalculate normals
 		if (_normalMode == kNormalModeSmooth)
 		{
+			if (![self allocateNormalBuffersWithCount:vertexCount])
+			{
+				OOLog(kOOLogAllocationFailure, @"***** ERROR: failed to allocate memory for model %@ (%u vertices).", filename, vertexCount);
+				return NO;
+			}
 			[self calculateVertexNormalsAndTangents];	// SLOW
 			PROFILE(@"finished calculateVertexNormalsAndTangents");
 			
@@ -1486,6 +1495,8 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 	OOUInteger	i,j;
 	float		triangle_area[faceCount];
 	
+	NSAssert1(_normals != NULL && _tangents != NULL, @"Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
+	
 	for (i = 0 ; i < faceCount; i++)
 	{
 		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
@@ -1630,6 +1641,8 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 						}
 						else
 						{
+							NSAssert1(_normals != NULL && _tangents != NULL, @"Normal/tangent buffers not allocated in %s", __PRETTY_FUNCTION__);
+							
 							normal = _normals[v];
 							tangent = _tangents[v];
 						}
@@ -1698,10 +1711,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 {
 	
 	OOMeshVertexCount	i;
-	BOOL				isotropic;
 	Vector				*vertex = NULL, *normal = NULL;
-	
-	isotropic = (scaleX == scaleY && scaleY == scaleZ);
 	
 	for (i = 0; i != vertexCount; ++i)
 	{
@@ -1710,8 +1720,16 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 		vertex->x *= scaleX;
 		vertex->y *= scaleY;
 		vertex->z *= scaleZ;
-		
-		if (!isotropic)
+	}
+	
+	/*	If anisotropic scaling and we have per-vertex normals, rescale them.
+		FIXME: aren't these normals unused at this point? Actually, the
+		vertices too?
+		-- Ahruman 2010-04-04
+	*/
+	if (_normals != NULL && (scaleX != scaleY || scaleY != scaleZ))
+	{
+		for (i = 0; i != vertexCount; ++i)
 		{
 			normal = &_normals[i];
 			// For efficiency freaks: let's assume some sort of adaptive branch prediction.
@@ -1834,19 +1852,16 @@ static void Scribble(void *bytes, size_t size)
 
 - (BOOL) allocateVertexBuffersWithCount:(OOUInteger)count
 {
-	BOOL includeNormals = IsPerVertexNormalMode(_normalMode);
-	
 	_vertices = [self allocateBytesWithSize:sizeof *_vertices count:vertexCount key:@"vertices"];
-	if (_vertices == NULL)  return NO;
-	
-	if (includeNormals)
-	{
-		_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
-		_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
-		if (_normals == NULL || _tangents == NULL)  return NO;
-	}
-	
-	return YES;
+	return _vertices != NULL;
+}
+
+
+- (BOOL) allocateNormalBuffersWithCount:(OOUInteger)count
+{
+	_normals = [self allocateBytesWithSize:sizeof *_normals count:vertexCount key:@"normals"];
+	_tangents = [self allocateBytesWithSize:sizeof *_tangents count:vertexCount key:@"tangents"];
+	return _normals != NULL && _tangents != NULL;
 }
 
 
