@@ -463,16 +463,16 @@ static OOCacheManager *sSingleton = nil;
 #if PROFILE_WRITES
 	OOTimeDelta endT = [stopwatch reset];
 #if WRITE_ASYNC_DEEP_COPY
-	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds; time to deep copy and set up async writer, %g seconds.", prepareT, endT);
+	OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds; time to deep copy and set up async writer, %g seconds.", prepareT, endT);
 #else
-	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", endT);
+	OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds.", endT);
 #endif
 #endif
 	
 	[[OOAsyncWorkManager sharedAsyncWorkManager] addTask:_scheduledWrite priority:kOOAsyncPriorityLow];
 #else
 #if PROFILE_WRITES
-	OOLog(@"cache.profile", @"Time to prepare cache data: %g seconds.", prepareT);
+	OOLog(@"dataCache.profile", @"Time to prepare cache data: %g seconds.", prepareT);
 #endif
 	
 	if ([self writeDict:newCache])
@@ -589,7 +589,7 @@ static OOCacheManager *sSingleton = nil;
 #if PROFILE_WRITES
 	OOTimeDelta writeT = [stopwatch reset];
 	
-	OOLog(@"cache.profile", @"Time to serialize cache: %g seconds. Time to write data: %g seconds.", serializeT, writeT);
+	OOLog(@"dataCache.profile", @"Time to serialize cache: %g seconds. Time to write data: %g seconds.", serializeT, writeT);
 #endif
 	
 #if WRITE_ASYNC

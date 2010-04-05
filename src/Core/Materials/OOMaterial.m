@@ -281,6 +281,11 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_DIFFUSE_MAP"];
 		AddTexture(uniforms, textures, @"uDiffuseMap", diffuseMap);
+		
+		if ([diffuseMap isKindOfClass:[NSDictionary class]] && [diffuseMap oo_boolForKey:@"cube_map"])
+		{
+			[modifiedMacros setObject:one forKey:@"OOSTD_DIFFUSE_MAP_IS_CUBE_MAP"];
+		}
 	}
 	if (emissionMap != nil)
 	{

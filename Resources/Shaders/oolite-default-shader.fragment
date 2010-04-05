@@ -60,6 +60,11 @@
 #define OOSTD_DIFFUSE_MAP 0
 #endif
 
+
+#ifndef OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+#define OOSTD_DIFFUSE_MAP_IS_CUBE_MAP 0
+#endif
+
 #ifndef OOSTD_SPECULAR
 #define OOSTD_SPECULAR 0
 #undef OOSTD_SPECULAR_MAP
@@ -137,8 +142,13 @@ varying vec3			vLight0Vector;
 varying vec3			vLight1Vector;
 
 
-#if OOSTD_DIFFUSE_MAP
+#if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 uniform sampler2D		uDiffuseMap;
+#define sampleDiffuseMap() texture2D(uDiffuseMap, texCoord)
+#elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+uniform samplerCube		uDiffuseMap;
+varying vec3			vRawNormal;
+#define sampleDiffuseMap() textureCube(uDiffuseMap, vRawNormal)
 #endif
 
 #if OOSTD_SPECULAR_MAP
@@ -341,7 +351,7 @@ void main(void)
 #endif
 	
 #if OOSTD_DIFFUSE_MAP
-	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoord);
+	vec4 diffuseMapColor = sampleDiffuseMap();
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
