@@ -737,7 +737,7 @@ static NSString *sGlobalTraceContext = nil;
 		else  filter = GL_LINEAR;
 		OOGL(glTexParameteri(texTarget, GL_TEXTURE_MAG_FILTER, filter));
 		
-		if (sClientStorageAvialable)  EnableClientStorage();
+	//	if (sClientStorageAvialable)  EnableClientStorage();
 		
 		if (texTarget == GL_TEXTURE_2D)
 		{
