@@ -9,7 +9,7 @@
 	{
 		like_ship = "$shipRole";
 		is_template = "boolean";
-		is_external_dependency = "boolean",
+		is_external_dependency = "boolean";
 		max_flight_speed = "positiveFloat";
 		max_flight_roll = "positiveFloat";
 		max_flight_pitch = "positiveFloat";
