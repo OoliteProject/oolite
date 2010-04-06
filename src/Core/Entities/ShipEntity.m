@@ -3064,6 +3064,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink.z = 1000.0;
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
+				double max_depart_speed = (scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) / thrust;
+				if (max_depart_speed < max_available_speed) max_available_speed = max_depart_speed;
 				desired_speed = max_available_speed;
 			}
 			else
@@ -3146,6 +3148,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
+	
 	if (primaryTarget == NO_TARGET)
 	{
 		behaviour = BEHAVIOUR_IDLE;
