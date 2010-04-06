@@ -894,7 +894,8 @@ static BOOL hostiles;
 	int				x;
 	int				y;
 	NSSize			siz;
-	GLfloat			zoom_color[] = { 1.0f, 0.1f, 0.0f, 1.0f };
+	GLfloat			alpha;
+	GLfloat			zoom_color[4] = { 1.0f, 0.1f, 0.0f, 1.0f };
 	
 	x = [info oo_intForKey:X_KEY defaultValue:ZOOM_INDICATOR_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -904,7 +905,10 @@ static BOOL hostiles;
 		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:ZOOM_INDICATOR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ZOOM_INDICATOR_HEIGHT];
+	
 	GetRGBAArrayFromInfo(info, zoom_color);
+	zoom_color[3] *= overallAlpha;
+	alpha = zoom_color[3];
 	
 	GLfloat cx = x - 0.3 * siz.width;
 	GLfloat cy = y - 0.75 * siz.height;
@@ -913,7 +917,7 @@ static BOOL hostiles;
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
 	if (zl == 1) zoom_color[3] *= 0.75;
-	GLColorWithOverallAlpha(zoom_color, overallAlpha);
+	GLColorWithOverallAlpha(zoom_color, alpha);
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
 	
@@ -934,6 +938,7 @@ static BOOL hostiles;
 	int				y;
 	NSSize			siz;
 	GLfloat			alpha;
+	GLfloat			compass_color[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
 	
 	x = [info oo_intForKey:X_KEY defaultValue:COMPASS_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -943,7 +948,10 @@ static BOOL hostiles;
 		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:COMPASS_HALF_SIZE];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:COMPASS_HALF_SIZE];
-	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0] * overallAlpha;
+	
+	GetRGBAArrayFromInfo(info, compass_color);
+	compass_color[3] *= overallAlpha;
+	alpha = compass_color[3];
 	
 	// draw the compass
 	OOMatrix		rotMatrix;
@@ -957,9 +965,9 @@ static BOOL hostiles;
 	GLfloat w1 = siz.width * 0.125;
 	GLfloat w3 = siz.width * 0.375;
 	OOGL(glLineWidth(2.0 * line_width));	// thicker
-	OOGL(glColor4f(0.0f, 0.0f, 1.0f, alpha));
+	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], alpha));
 	GLDrawOval(x, y, z1, siz, 12);	
-	OOGL(glColor4f(0.0f, 0.0f, 1.0f, 0.5f * alpha));
+	OOGL(glColor4f(compass_color[0], compass_color[1], compass_color[2], 0.5f * alpha));
 	OOGLBEGIN(GL_LINES);
 		glVertex3f(x - w1, y, z1);	glVertex3f(x - w3, y, z1);
 		glVertex3f(x + w1, y, z1);	glVertex3f(x + w3, y, z1);
@@ -3023,7 +3031,7 @@ static void GetRGBAArrayFromInfo(NSDictionary *info, GLfloat ioColor[4])
 	
 	// First, look for general colour specifier.
 	colorDesc = [info objectForKey:RGB_COLOR_KEY];
-	if (colorDesc != nil)
+	if (colorDesc != nil && ![info objectForKey:ALPHA_KEY])
 	{
 		color = [OOColor colorWithDescription:colorDesc];
 		if (color != nil)

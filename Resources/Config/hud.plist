@@ -9,7 +9,7 @@
 			selector		= "drawTargetReticle:";
 		},
 		{	// scanner
-			alpha		= 0.75;
+			alpha		= 1.0;
 			selector	= "drawScanner:";
 			x		= 0;
 			y		= 60;
@@ -39,6 +39,7 @@
 			x		= 132;
 			y		= 24;
 			y_origin	= -1;
+			rgb_color	= (0.0, 0.0, 1.0);
 		},
 		{	// station aegis
 			alpha		= 1.0;
