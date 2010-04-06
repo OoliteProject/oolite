@@ -2721,8 +2721,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 
 - (void) game_over
 {
-	if ([[gameView gameController] playerFileToLoad])  [[gameView gameController] loadPlayerIfRequired];
-	else  [self reinitAndShowDemo:NO];
+	// In unrestricted mode, reload last save game, if any. In strict mode, always restart as a fresh Jameson.
+	if (![self strict] && [[gameView gameController] playerFileToLoad]) [[gameView gameController] loadPlayerIfRequired];
+	else [self reinitAndShowDemo:NO];
 }
 
 

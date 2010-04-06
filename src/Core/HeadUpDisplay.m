@@ -172,11 +172,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	BOOL			areTrumblesToBeDrawn = NO;
 	
 	self = [super init];
-		
+	
 	line_width = 1.0;
 	
 	if (sFontTexture == nil)  InitTextEngine();
-			
+	
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
@@ -229,7 +229,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	[legendArray release];
 	[dialArray release];
 	[hudName release];
-
 	[super dealloc];
 }
 
@@ -317,8 +316,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 {
 	return hudName;
 }
-	
-	
+
+
 - (void) setHudName:(NSString *)newHudName
 {
 	if (newHudName != nil)
@@ -550,7 +549,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	y = [info oo_floatForKey:Y_KEY] + [[UNIVERSE gameView] y_offset] *
 		[info oo_floatForKey:Y_ORIGIN_KEY defaultValue:0.0];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	legendSprite = [info objectForKey:SPRITE_KEY];
 	if (legendSprite != nil)
 	{
@@ -618,9 +617,9 @@ static BOOL hostiles;
 	int				scanner_cx = x;
 	int				scanner_cy = y;
 	double			mass_lock_range2 = 25600.0*25600.0;
-
+	
 	int				scanner_scale = SCANNER_MAX_RANGE * 2.5 / siz.width;
-
+	
 	double			max_zoomed_range2 = SCANNER_SCALE*SCANNER_SCALE*10000.0/(scanner_zoom*scanner_zoom);
 	
 	GLfloat			max_zoomed_range = sqrtf(max_zoomed_range2);
@@ -632,7 +631,7 @@ static BOOL hostiles;
 	Vector			relativePosition;
 	OOMatrix		rotMatrix;
 	int				flash = ((int)([UNIVERSE getTime] * 4))&1;
-
+	
 	Universe		*uni			= UNIVERSE;
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	if (player == nil)  return;
@@ -657,7 +656,7 @@ static BOOL hostiles;
 	drawScannerGrid(x, y, z1, siz, [UNIVERSE viewDirection], line_width, scanner_zoom);
 	
 	OOEntityStatus p_status = [player status];
-
+	
 	if ((p_status == STATUS_IN_FLIGHT)||(p_status == STATUS_AUTOPILOT_ENGAGED)||(p_status == STATUS_LAUNCHING)||(p_status == STATUS_WITCHSPACE_COUNTDOWN))
 	{
 		double upscale = scanner_zoom*1.25/scanner_scale;
@@ -696,7 +695,7 @@ static BOOL hostiles;
 			{
 				GLfloat x1,y1,y2;
 				float	ms_blip = 0.0;
-
+				
 				if (drawthing->zero_distance <= mass_lock_range2)
 				{
 					switch (drawClass)
@@ -746,7 +745,7 @@ static BOOL hostiles;
 				
 				if (act_dist > max_zoomed_range)
 					scale_vector(&relativePosition, max_zoomed_range / act_dist);
-
+				
 				// rotate the view
 				relativePosition = OOVectorMultiplyMatrix(relativePosition, rotMatrix);
 				// scale the view
@@ -793,7 +792,7 @@ static BOOL hostiles;
 							foundHostiles = YES;
 						break;
 				}
-
+				
 				if ([drawthing isShip])
 				{
 					ShipEntity* ship = (ShipEntity*)drawthing;
@@ -828,8 +827,7 @@ static BOOL hostiles;
 						OOGLEND();
 					}
 				}
-
-
+				
 				if (ms_blip > 0.0)
 				{
 					DrawSpecialOval(x1 - 0.5, y2 + 1.5, z1, NSMakeSize(16.0 * (1.0 - ms_blip), 8.0 * (1.0 - ms_blip)), 30, col);
@@ -861,7 +859,7 @@ static BOOL hostiles;
 		}
 		
 		[player setAlertFlag:ALERT_FLAG_HOSTILES to:foundHostiles];
-			
+		
 		if ((foundHostiles)&&(!hostiles))
 		{
 			hostiles = YES;
@@ -874,7 +872,6 @@ static BOOL hostiles;
 	
 	for (i = 0; i < ent_count; i++)
 		[my_entities[i] release];	//	released
-
 }
 
 
@@ -912,7 +909,7 @@ static BOOL hostiles;
 	
 	GLfloat cx = x - 0.3 * siz.width;
 	GLfloat cy = y - 0.75 * siz.height;
-
+	
 	int zl = scanner_zoom;
 	if (zl < 1) zl = 1;
 	if (zl > SCANNER_ZOOM_LEVELS) zl = SCANNER_ZOOM_LEVELS;
@@ -1007,7 +1004,7 @@ static BOOL hostiles;
 					reference = the_planet;
 				}
 				break;
-			
+				
 			case COMPASS_MODE_PLANET:
 				reference = the_planet;
 				break;
@@ -1050,7 +1047,7 @@ static BOOL hostiles;
 		relativePosition.y *= siz.height * 0.4;
 		relativePosition.x += x;
 		relativePosition.y += y;
-
+		
 		NSSize sz = siz;
 		sz.width *= 0.2;
 		sz.height *= 0.2;
@@ -1060,7 +1057,6 @@ static BOOL hostiles;
 			case COMPASS_MODE_BASIC:
 				[self drawCompassPlanetBlipAt:relativePosition Size:NSMakeSize(6, 6) Alpha:alpha];
 				break;
-			
 			case COMPASS_MODE_PLANET:
 				[self drawCompassPlanetBlipAt:relativePosition Size:sz Alpha:alpha];
 				break;
@@ -1222,7 +1218,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AEGIS_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f] * overallAlpha;
-
+	
 	// draw the aegis indicator
 	//
 	GLfloat	w = siz.width / 16.0;
@@ -1278,7 +1274,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
 	double ds = [player dialSpeed];
-
+	
 	GLColorWithOverallAlpha(green_color, alpha);
 	if (draw_surround)
 	{
@@ -1286,10 +1282,11 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
 	// draw speed bar
-	if (ds > .25)
-		GLColorWithOverallAlpha(yellow_color, alpha);
 	if (ds > .80)
 		GLColorWithOverallAlpha(red_color, alpha);
+	else if (ds > .25)
+		GLColorWithOverallAlpha(yellow_color, alpha);
+
 	hudDrawBarAt(x, y, z1, siz, ds);
 	
 }
@@ -1314,7 +1311,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:ROLL_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:ROLL_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	if (draw_surround)
 	{
 		// draw ROLL surround
@@ -1346,7 +1343,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:PITCH_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:PITCH_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	if (draw_surround)
 	{
 		// draw PITCH surround
@@ -1426,7 +1423,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 		GLColorWithOverallAlpha(yellow_color, alpha);
 		hudDrawSurroundAt(x, y, z1, siz);
 	}
-
+	
 	// draw energy banks
 	{
 		int qy = siz.height / n_bars;
@@ -1451,7 +1448,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 			cy += qy;
 		}
 	}
-
+	
 }
 
 
@@ -1474,7 +1471,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:FORWARD_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:FORWARD_SHIELD_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	double shield = [player dialForwardShield];
 	if (draw_surround)
 	{
@@ -1511,7 +1508,7 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:AFT_SHIELD_BAR_HEIGHT];
 	draw_surround = [info oo_boolForKey:DRAW_SURROUND_KEY defaultValue:AFT_SHIELD_BAR_DRAW_SURROUND];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	double shield = [player dialAftShield];
 	if (draw_surround)
 	{
@@ -1585,14 +1582,22 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	double temp = [player hullHeatLevel];
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
-	// draw ship_temperature bar
-	GLColorWithOverallAlpha(green_color, alpha);
-	if (temp > .25)
-		GLColorWithOverallAlpha(yellow_color, alpha);
+	// draw ship_temperature bar (only need to call GLColor() once!)
 	if (temp > .80)
-		GLColorWithOverallAlpha(red_color, alpha);
-	if ((flash)&&(temp > .90))
-		GLColorWithOverallAlpha(redplus_color, alpha);
+	{
+		if (temp > .90 && flash)
+			GLColorWithOverallAlpha(redplus_color, alpha);
+		else
+			GLColorWithOverallAlpha(red_color, alpha);
+	}
+	else
+	{
+		if (temp > .25)
+			GLColorWithOverallAlpha(yellow_color, alpha);
+		else
+			GLColorWithOverallAlpha(green_color, alpha);
+	}
+
 	[player setAlertFlag:ALERT_FLAG_TEMP to:((temp > .90)&&([player status] == STATUS_IN_FLIGHT))];
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
@@ -1615,14 +1620,15 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:WEAPON_TEMP_BAR_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:WEAPON_TEMP_BAR_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	double temp = [player laserHeatLevel];
-	// draw weapon_temp bar
-	GLColorWithOverallAlpha(green_color, alpha);
-	if (temp > .25)
-		GLColorWithOverallAlpha(yellow_color, alpha);
+	// draw weapon_temp bar (only need to call GLColor() once!)
 	if (temp > .80)
 		GLColorWithOverallAlpha(red_color, alpha);
+	else if (temp > .25)
+		GLColorWithOverallAlpha(yellow_color, alpha);
+	else
+		GLColorWithOverallAlpha(green_color, alpha);
 	hudDrawBarAt(x, y, z1, siz, temp);
 }
 
@@ -1649,12 +1655,22 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 	int flash = (int)([UNIVERSE getTime] * 4);
 	flash &= 1;
 	
-	// draw altitude bar
-	if ((flash)&&(alt < .10)) GLColorWithOverallAlpha(redplus_color, alpha);
-	else if (alt < .25) GLColorWithOverallAlpha(red_color, alpha);
-	else if (alt < .75) GLColorWithOverallAlpha(yellow_color, alpha);
-	else GLColorWithOverallAlpha(green_color, alpha);
-
+	// draw altitude bar (evaluating the least amount of ifs per go)
+	if (alt < .25)
+	{
+		if (alt < .10 && flash)
+			GLColorWithOverallAlpha(redplus_color, alpha);
+		else
+			GLColorWithOverallAlpha(red_color, alpha);
+	}
+	else
+	{
+		if (alt < .75)
+			GLColorWithOverallAlpha(yellow_color, alpha);
+		else
+			GLColorWithOverallAlpha(green_color, alpha);
+	}
+	
 	hudDrawBarAt(x, y, z1, siz, alt);
 	
 	[player setAlertFlag:ALERT_FLAG_ALT to:((alt < .10)&&([player status] == STATUS_IN_FLIGHT))];
@@ -2022,7 +2038,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
 	if (equipment != nil && ![player hasEquipmentItem:equipment])
 		return;
-		
+	
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
 	if ([UNIVERSE displayGUI])
@@ -2112,7 +2128,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 - (void) drawFPSInfoCounter:(NSDictionary *) info
 {
 	if (![UNIVERSE displayFPS])  return;
-
+	
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	int				x;
 	int				y;
@@ -2134,7 +2150,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	NSString* timeAccelerationFactorInfo = [NSString stringWithFormat:@"TAF: %@%.2f", DESC(@"multiplication-sign"), [UNIVERSE timeAccelerationFactor]];
 	
 	NSSize siz08 = NSMakeSize(0.8 * siz.width, 0.8 * siz.width);
-
+	
 	// We would normally set a variable alpha value here, but in this case we don't.
 	// We prefer the FPS counter to be always visible - Nikos 20100405
 	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
@@ -2163,7 +2179,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:SCOOPSTATUS_WIDTH];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:SCOOPSTATUS_HEIGHT];
 	alpha = [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:0.75f];
-
+	
 	const GLfloat* s0_color = red_color;
 	GLfloat	s1c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLfloat	s2c[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -2173,7 +2189,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	GLfloat a1 = alpha * 0.5f * (1.0f + sin(t * 8.0f));
 	GLfloat a2 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 1.0f));
 	GLfloat a3 = alpha * 0.5f * (1.0f + sin(t * 8.0f - 2.0f));
-		
+	
 	switch (scoop_status)
 	{
 		case SCOOP_STATUS_NOT_INSTALLED :
@@ -2246,7 +2262,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	BOOL			mouse;
 	JoystickHandler	*stick;
 	GLfloat			alpha = overallAlpha;
-
+	
 	mouse = [[PlayerEntity sharedPlayer] isMouseControlOn];
 	x = [info oo_intForKey:X_KEY defaultValue:STATUS_LIGHT_CENTRE_X] +
 		[[UNIVERSE gameView] x_offset] *
@@ -2257,27 +2273,27 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	siz.width = [info oo_nonNegativeFloatForKey:WIDTH_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	siz.height = [info oo_nonNegativeFloatForKey:HEIGHT_KEY defaultValue:STATUS_LIGHT_HEIGHT];
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
-
+	
 	stick = [[UNIVERSE gameView] getStickHandler];
 	GLfloat div = [stick getSensitivity];
-
+	
 	GLColorWithOverallAlpha(black_color, alpha / 4);
 	GLDrawFilledOval(x, y, z1, siz, 10);
-
+	
 	GLColorWithOverallAlpha((div < 1.0 || mouse) ? lightgray_color : green_color, alpha);
 	OOGL(glLineWidth(_crosshairWidth * line_width));
-
+	
 	if (div >= 1.0)
 	{
 		if (!mouse)
 		{
 			NSSize siz8th = { siz.width / 8, siz.height / 8 };
 			GLDrawFilledOval(x, y, z1, siz8th, 30);
-
+			
 			if (div == 1.0) // normal mode
 				GLColorWithOverallAlpha(lightgray_color, alpha);
 		}
-
+		
 		if ([stick getNumSticks])
 		{
 			siz.width -= _crosshairWidth * line_width / 2;
@@ -2348,7 +2364,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOGL(glColor4f(0.0, 1.0, 0.0, 1.0));
 	// position the watermark string on the top right hand corner of the game window and right-align it
 	OODrawString(watermarkString, MAIN_GUI_PIXEL_WIDTH / 2 - watermarkStringSize.width + 80,
-				      MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
+						MAIN_GUI_PIXEL_HEIGHT / 2 - watermarkStringSize.height, z1, NSMakeSize(10,10));
 }
 
 //---------------------------------------------------------------------//
@@ -2440,7 +2456,7 @@ static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz)
 {
 	GLfloat dial_ox = x - siz.width/2;
 	GLfloat dial_oy = y - siz.height/2;
-
+	
 	OOGLBEGIN(GL_LINE_LOOP);
 		glVertex3f(dial_ox-2, dial_oy-2, z);
 		glVertex3f(dial_ox+siz.width+2, dial_oy-2, z);
@@ -2643,13 +2659,13 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 	OOGLBEGIN(GL_LINES);
 		glVertex2f(rs0,rs2);	glVertex2f(rs0,rs0);
 		glVertex2f(rs0,rs0);	glVertex2f(rs2,rs0);
-
+		
 		glVertex2f(rs0,-rs2);	glVertex2f(rs0,-rs0);
 		glVertex2f(rs0,-rs0);	glVertex2f(rs2,-rs0);
-
+		
 		glVertex2f(-rs0,rs2);	glVertex2f(-rs0,rs0);
 		glVertex2f(-rs0,rs0);	glVertex2f(-rs2,rs0);
-
+		
 		glVertex2f(-rs0,-rs2);	glVertex2f(-rs0,-rs0);
 		glVertex2f(-rs0,-rs0);	glVertex2f(-rs2,-rs0);
 	OOGLEND();
@@ -2685,7 +2701,7 @@ static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloa
 				double timeForCollapsing = [(WormholeEntity *)target expiryTime] - [player1 clockTimeAdjusted];
 				int minutesToCollapse = floor (timeForCollapsing / 60.0);
 				int secondsToCollapse = (int)timeForCollapsing % 60;
-		
+				
 				NSString *wormholeExpiringIn = [NSString stringWithFormat:DESC(@"wormhole-collapsing-in-mm:ss"), minutesToCollapse, secondsToCollapse];
 				OODrawString(wormholeExpiringIn, rs0, 0.5 * rs2 - 2 * line_height, 0, textsize);
 			}
@@ -2832,7 +2848,7 @@ void OODrawHilightedString(NSString *text, double x, double y, double z, NSSize 
 	glVertex3f(x, y + 3.0f, z);
 	glVertex3f(x, y + strsize.height + 1.0f, z);
 	OOGLEND();
-
+	
 	/*
 	
 	// Original, square corners version,
@@ -2863,14 +2879,14 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 							0.1, 0.5, 1.0,
 							0.7, 0.7, 0.7,
 							0.7, 1.0, 1.0};
-
+	
 	double cx = x;
 	int tl = tec + 1;
 	GLfloat ce1 = 1.0 - 0.125 * eco;
 	
 	OOGL(glEnable(GL_TEXTURE_2D));
 	[sFontTexture apply];
-
+	
 	OOGLBEGIN(GL_QUADS);
 		glColor4f(ce1, 1.0, 0.0, 1.0);
 		cx += drawCharacterQuad(23 - eco, cx, y, z, siz);	// characters 16..23 are economy symbols
@@ -2888,7 +2904,7 @@ void OODrawPlanetInfo(int gov, int eco, int tec, double x, double y, double z, N
 	
 	[OOTexture applyNone];
 	OOGL(glDisable(GL_TEXTURE_2D));
-		
+	
 }
 
 
@@ -2897,10 +2913,10 @@ static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir,
 	GLfloat w1, h1;
 	GLfloat ww = 0.5 * siz.width;
 	GLfloat hh = 0.5 * siz.height;
-
+	
 	GLfloat w2 = 0.250 * siz.width;
 	GLfloat h2 = 0.250 * siz.height;
-
+	
 	GLfloat km_scan = 0.001 * SCANNER_MAX_RANGE / zoom;	// calculate kilometer divisions
 	GLfloat hdiv = 0.5 * siz.height / km_scan;
 	GLfloat wdiv = 0.25 * siz.width / km_scan;
