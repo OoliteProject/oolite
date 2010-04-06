@@ -797,7 +797,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
-	GLint					glFormat, internalFormat, type;
+	GLint					glFormat = 0, internalFormat = 0, type = 0;
 	unsigned				w = _width,
 							h = _height,
 							level = 0;
@@ -829,7 +829,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 {
 	OO_ENTER_OPENGL();
 	
-	GLint glFormat, internalFormat, type;
+	GLint glFormat = 0, internalFormat = 0, type = 0;
 	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
 	uint8_t planes = OOTexturePlanesForFormat(format);
 	

@@ -23,6 +23,10 @@
 	MA 02110-1301, USA.
 */
 
+#import "OOStellarBody.h"
+
+#if NEW_PLANETS
+
 
 #define DEBUG_DUMP			(	1	&& !defined(NDEBUG))
 #define DEBUG_DUMP_RAW		(	1	&& DEBUG_DUMP)
@@ -1329,3 +1333,5 @@ static void SetMixConstants(OOPlanetTextureGeneratorInfo *info, float temperatur
 }
 
 @end
+
+#endif	// NEW_PLANETS
