@@ -2885,8 +2885,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	desired_speed = max_available_speed;
 	if (range < 0.035 * weaponRange)
+	{
+		double max_depart_speed = sqrt ((scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) * thrust) * max_flight_pitch * 1.5;
+		if (max_depart_speed < max_available_speed) desired_speed = max_depart_speed;
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
+	}
 	else
+	{
 		if (universalID & 1)	// 50% of ships are smart S.M.R.T. smart!
 		{
 			if (randf() < 0.75)
@@ -2898,6 +2903,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			behaviour = BEHAVIOUR_ATTACK_FLY_TO_TARGET;
 		}
+	}
 	frustration = 0.0;	// behaviour changed, so reset frustration
 	[self applyRoll:delta_t*flightRoll andClimb:delta_t*flightPitch];
 	[self applyThrust:delta_t];
@@ -3064,9 +3070,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink.z = 1000.0;
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
-				double max_depart_speed = (scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) / thrust;
+				double max_depart_speed = sqrt ((scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) * thrust) * max_flight_pitch * 1.5;
 				if (max_depart_speed < max_available_speed) max_available_speed = max_depart_speed;
-				desired_speed = max_available_speed;
+				// desired_speed = max_available_speed;
+				
+				// 2010-04-06 Eric: setting desired_speed here is useless, it is always overwritten a bit lower in control speed.
+				// Putting a return here would keep the setting but also removes some randomness in reaction out of fights, so leave it for now.
+				// maybe returning here with a randomised desired_speed in future?
 			}
 			else
 			{
@@ -3074,7 +3084,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector;
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
-				desired_speed = maxFlightSpeed;
+				// desired_speed = maxFlightSpeed; // Setting desired_speed here is useless.
 			}
 		}
 		else
