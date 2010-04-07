@@ -139,17 +139,16 @@ varying vec2			vTexCoord;
 #if OO_LIGHT_0_FIX
 varying vec3			vLight0Vector;
 #endif
-varying vec3			vLight1Vector;
 
+varying vec3			vLight1Vector;
 
 #if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 uniform sampler2D		uDiffuseMap;
-#define sampleDiffuseMap() texture2D(uDiffuseMap, texCoord)
 #elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 uniform samplerCube		uDiffuseMap;
 varying vec3			vRawNormal;
-#define sampleDiffuseMap() textureCube(uDiffuseMap, vRawNormal)
 #endif
+
 
 #if OOSTD_SPECULAR_MAP
 uniform sampler2D		uSpecularMap;
@@ -349,9 +348,13 @@ void main(void)
 #if OOSTD_SPECULAR_MAP
 	specularColor *= specularMapColor;
 #endif
-	
+
+#if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoord);
+#elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
+	vec4 diffuseMapColor = textureCube(uDiffuseMap, vRawNormal);
+#endif
 #if OOSTD_DIFFUSE_MAP
-	vec4 diffuseMapColor = sampleDiffuseMap();
 	diffuseMapColor.a = 1.0;
 	diffuseColor *= diffuseMapColor;
 	ambientColor *= diffuseMapColor;
