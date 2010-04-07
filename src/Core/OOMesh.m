@@ -451,7 +451,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 									 materialDictionary:_materialDict
 									  shadersDictionary:_shadersDict
 												 macros:_shaderMacros
-										  bindingTarget:_shaderBindingTarget
+										  bindingTarget:[_shaderBindingTarget weakRefUnderlyingObject]	// Windows DEP fix.
 										forSmoothedMesh:IsPerVertexNormalMode(_normalMode)];
 			}
 			else
