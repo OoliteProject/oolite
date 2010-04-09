@@ -119,9 +119,12 @@ static inline uint8_t OOTexturePlanesForFormat(OOTextureDataFormat format)
 	{
 		case kOOTextureDataRGBA:
 			return 4;
-		
+			
 		case kOOTextureDataGrayscale:
 			return 1;
+			
+		case kOOTextureDataGrayscaleAlpha:
+			return 2;
 		
 		case kOOTextureDataInvalid:
 			break;

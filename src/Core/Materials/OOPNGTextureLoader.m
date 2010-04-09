@@ -158,8 +158,11 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	}
 	if (colorType == PNG_COLOR_TYPE_GRAY)
 	{
-		// TODO: what about PNG_COLOR_TYPE_GRAY_ALPHA ?
 		format = kOOTextureDataGrayscale;
+	}
+	else if (colorType == PNG_COLOR_TYPE_GRAY_ALPHA)
+	{
+		format = kOOTextureDataGrayscaleAlpha;
 	}
 	else
 	{

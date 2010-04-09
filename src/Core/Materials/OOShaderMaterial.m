@@ -679,8 +679,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 	unsigned i;
 	for (i = 0; i != texCount; ++i)
 	{
-		[self setUniform:[NSString stringWithFormat:@"tex%u", i] intValue:i];
-		
 		textures[i] = [textureObjects objectAtIndex:i];
 		[textures[i] retain];
 	}

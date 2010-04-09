@@ -788,6 +788,12 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 			*outType = GL_UNSIGNED_BYTE;
 			return YES;
 			
+		case kOOTextureDataGrayscaleAlpha:
+			*outFormat = GL_LUMINANCE_ALPHA;
+			*outInternalFormat = GL_LUMINANCE8_ALPHA8;
+			*outType = GL_UNSIGNED_SHORT;
+			return YES;
+			
 		default:
 			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
 			return NO;
