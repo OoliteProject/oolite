@@ -419,6 +419,7 @@
 		1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */; };
 		1A5A798E105044DD00A8F4B5 /* OOPrefixHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5A798D105044DD00A8F4B5 /* OOPrefixHeader.h */; };
 		1A5AA3230C0098AF0029C78A /* OOOpenGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5AA3220C0098AF0029C78A /* OOOpenGL.m */; };
+		1A5BBBFF116F971E0014EE37 /* NSThreadOOExtensions.h in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1AD1F4C70CD9E42A00EAE520 /* NSThreadOOExtensions.h */; };
 		1A5DB1EA0BBD8F0000D57389 /* OOConstToString.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DB1E80BBD8F0000D57389 /* OOConstToString.h */; };
 		1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5DB1E90BBD8F0000D57389 /* OOConstToString.m */; };
 		1A5DBAA60BC000DC00D57389 /* OOJavaScriptEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5DBA9A0BC000DC00D57389 /* OOJavaScriptEngine.h */; };
@@ -1105,6 +1106,7 @@
 			files = (
 				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
 				1AC610F811679B8A008C253B /* blur256.png in Copy Debug OXP */,
+				1A5BBBFF116F971E0014EE37 /* NSThreadOOExtensions.h in Copy Debug OXP */,
 			);
 			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;

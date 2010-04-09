@@ -54,7 +54,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 
 
-// #define DUMP_MIP_MAPS 1
+#define DUMP_MIP_MAPS 0
 
 
 // Structure used to track buffers in OOScalePixMap() and its helpers.
@@ -71,8 +71,9 @@ typedef struct
 	
 	NOTE: the function definitions are grouped together for best code cache
 	coherence rather than the order listed here.
-*/
+ */
 static BOOL GenerateMipMaps1(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
+static BOOL GenerateMipMaps2(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
 static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height) NONNULL_FUNC;
 
 
@@ -86,13 +87,16 @@ static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTex
 	It is safe and meaningful for srcBytes == dstBytes.
 */
 static void ScaleToHalf_1_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
+static void ScaleToHalf_2_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 static void ScaleToHalf_4_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 
 #if OOLITE_NATIVE_64_BIT
 	static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
+//	static void ScaleToHalf_2_x4(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 	static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 #else
 	static void ScaleToHalf_1_x4(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
+//	static void ScaleToHalf_2_x2(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight) NONNULL_FUNC;
 #endif
 
 
@@ -151,7 +155,7 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 volatile int32_t sPreviousDumpID		= 0;
 int32_t	OSAtomicAdd32(int32_t __theAmount, volatile int32_t *__theValue);
 
-#define	DUMP_CHANNELS		5		// Bitmap of channel counts - 5 for both 4-chan and 1-chan dumps
+#define	DUMP_CHANNELS		-1		// Bitmap of channel counts - -1 for all dumps
 
 #define DUMP_MIP_MAP_PREPARE(pl)		uint32_t dumpPlanes = pl; \
 										uint32_t dumpLevel = 0; \
@@ -286,8 +290,12 @@ BOOL OOGenerateMipMaps(void *textureBytes, OOTextureDimension width, OOTextureDi
 		return NO;
 	}
 	
-	if (planes == 4)  return GenerateMipMaps4(textureBytes, width, height);
-	if (planes == 1)  return GenerateMipMaps1(textureBytes, width, height);
+	switch (planes)
+	{
+		case 4:  return GenerateMipMaps4(textureBytes, width, height);
+		case 2:  return GenerateMipMaps2(textureBytes, width, height);
+		case 1:  return GenerateMipMaps1(textureBytes, width, height);
+	}
 	
 	OOLog(kOOLogParameterError, @"%s(): bad plane count (%u, should be 1 or 4) - ignoring, data will be junk.", __FUNCTION__, planes);
 	return NO;
@@ -516,6 +524,103 @@ static void ScaleToHalf_1_x8(void *srcBytes, void *dstBytes, OOTextureDimension 
 #endif
 
 
+static BOOL GenerateMipMaps2(void *textureBytes, OOTextureDimension width, OOTextureDimension height)
+{
+	OOTextureDimension		w = width, h = height;
+	uint16_t				*curr, *next;
+	
+	DUMP_MIP_MAP_PREPARE(2);
+	curr = textureBytes;
+	
+	// TODO: multiple pixel two-plane scalers.
+#if 0
+#if OOLITE_NATIVE_64_BIT
+	while (4 < w && 1 < h)
+	{
+		DUMP_MIP_MAP_DUMP(curr, w, h);
+		
+		next = curr + w * h;
+		ScaleToHalf_2_x4(curr, next, w, h);
+		
+		w >>= 1;
+		h >>= 1;
+		curr = next;
+	}
+#else
+	while (2 < w && 1 < h)
+	{
+		DUMP_MIP_MAP_DUMP(curr, w, h);
+		
+		next = curr + w * h;
+		ScaleToHalf_2_x2(curr, next, w, h);
+		
+		w >>= 1;
+		h >>= 1;
+		curr = next;
+	}
+#endif
+#endif
+	
+	while (1 < w && 1 < h)
+	{
+		DUMP_MIP_MAP_DUMP(curr, w, h);
+		
+		next = curr + w * h;
+		ScaleToHalf_2_x1(curr, next, w, h);
+		
+		w >>= 1;
+		h >>= 1;
+		curr = next;
+	}
+	
+	DUMP_MIP_MAP_DUMP(curr, w, h);
+	
+	// TODO: handle residual 1xN/Nx1 mips. For now, we just limit maximum mip level for non-square textures.
+	return YES;
+}
+
+
+static void ScaleToHalf_2_x1(void *srcBytes, void *dstBytes, OOTextureDimension srcWidth, OOTextureDimension srcHeight)
+{
+	OOTextureDimension		x, y;
+	uint16_t				*src0, *src1, *dst;
+	uint_fast16_t			px00, px01, px10, px11;
+	uint_fast32_t			sumHi, sumLo;
+	
+	src0 = srcBytes;
+	src1 = src0 + srcWidth;
+	dst = dstBytes;
+	
+	y = srcHeight >> 1;
+	do
+	{
+		x = srcWidth >> 1;
+		do
+		{
+			// Read four pixels in a square...
+			px00 = *src0++;
+			px01 = *src0++;
+			px10 = *src1++;
+			px11 = *src1++;
+			
+			// ...add them together...
+			sumHi = (px00 & 0xFF00) + (px01 & 0xFF00) + (px10 & 0xFF00) + (px11 & 0xFF00);
+			sumLo = (px00 & 0x00FF) + (px01 & 0x00FF) + (px10 & 0x00FF) + (px11 & 0x00FF);
+			
+			// ...merge and shift the sum into place...
+			sumLo = ((sumHi & 0x3FC00) | sumLo) >> 2;
+			
+			// ...and write output pixel.
+			*dst++ = sumLo;
+		} while (--x);
+		
+		// Skip a row for each source row
+		src0 = src1;
+		src1 += srcWidth;
+	} while (--y);
+}
+
+
 static BOOL GenerateMipMaps4(void *textureBytes, OOTextureDimension width, OOTextureDimension height)
 {
 	OOTextureDimension		w = width, h = height;
@@ -721,6 +826,14 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 								 rowBytes:width];
 			break;
 			
+		case 2:
+			[gameView dumpGrayAlphaToFileNamed:dumpName
+										 bytes:data
+										 width:width
+										height:height
+									  rowBytes:width * 2];
+			break;
+			
 		case 3:
 			[gameView dumpRGBAToFileNamed:dumpName
 									bytes:data
@@ -739,19 +852,6 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 			break;
 	}
 }
-
-
-#if 0
-static void ByteSwapData(void *data, unsigned count)
-{
-	uint32_t *words = (uint32_t *)data;
-	while (count--)
-	{
-		*words = OSSwapInt32(*words);
-		++words;
-	}
-}
-#endif
 
 #endif
 

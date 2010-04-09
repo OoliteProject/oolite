@@ -777,13 +777,13 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		case kOOTextureDataGrayscale:
 			if (options & kOOTextureAlphaMask)
 			{
-				*outFormat = GL_ALPHA8;
-				*outInternalFormat = GL_ALPHA;
+				*outFormat = GL_ALPHA;
+				*outInternalFormat = GL_ALPHA8;
 			}
 			else
 			{
-				*outFormat = GL_LUMINANCE8;
-				*outInternalFormat = GL_LUMINANCE;
+				*outFormat = GL_LUMINANCE;
+				*outInternalFormat = GL_LUMINANCE8;
 			}
 			*outType = GL_UNSIGNED_BYTE;
 			return YES;
@@ -791,7 +791,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		case kOOTextureDataGrayscaleAlpha:
 			*outFormat = GL_LUMINANCE_ALPHA;
 			*outInternalFormat = GL_LUMINANCE8_ALPHA8;
-			*outType = GL_UNSIGNED_SHORT;
+			*outType = GL_UNSIGNED_BYTE;
 			return YES;
 			
 		default:
@@ -816,7 +816,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	
 	while (0 < w && 0 < h)
 	{
-		OOGL(glTexImage2D(GL_TEXTURE_2D, level++, glFormat, w, h, 0, internalFormat, type, bytes));
+		OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat, type, bytes));
 		if (!mipMap)  return;
 		bytes += w * planes * h;
 		w >>= 1;
@@ -867,7 +867,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		
 		while (0 < w)
 		{
-			OOGL(glTexImage2D(cubeSides[side], level++, glFormat, w, w, 0, internalFormat, type, bytes));
+			OOGL(glTexImage2D(cubeSides[side], level++, internalFormat, w, w, 0, glFormat, type, bytes));
 			if (!mipMap)  break;
 			bytes += w * w * planes;
 			w >>= 1;

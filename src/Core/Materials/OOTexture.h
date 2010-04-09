@@ -106,9 +106,9 @@ typedef enum
 {
 	kOOTextureDataInvalid,
 	
-	kOOTextureDataRGBA,				// GL_RGBA, GL_UNSIGNED_INT_8_8_8_8 little-endian/GL_UNSIGNED_INT_8_8_8_8_REV big-endian.
-	kOOTextureDataGrayscale,		// GL_LUMINANCE/GL_LUMINANCE8 (or GL_ALPHA/GL_ALPHA8 with kOOTextureAlphaMask), GL_UNSIGNED_BYTE.
-	kOOTextureDataGrayscaleAlpha	// GL_LUMINANCE_ALPHA/GL_LUMINANCE8_ALPHA8, GL_UNSIGNED_BYTE.
+	kOOTextureDataRGBA,				// GL_RGBA
+	kOOTextureDataGrayscale,		// GL_LUMINANCE (or GL_ALPHA/GL_ALPHA8 with kOOTextureAlphaMask)
+	kOOTextureDataGrayscaleAlpha	// GL_LUMINANCE_ALPHA
 } OOTextureDataFormat;
 
 

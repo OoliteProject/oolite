@@ -861,6 +861,35 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 }
 
 
+- (void) dumpGrayAlphaToFileNamed:(NSString *)name
+							bytes:(uint8_t *)bytes
+							width:(OOUInteger)width
+						   height:(OOUInteger)height
+						 rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)  return;
+	
+	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&bytes
+																	   pixelsWide:width
+																	   pixelsHigh:height
+																	bitsPerSample:8
+																  samplesPerPixel:2
+																		 hasAlpha:YES
+																		 isPlanar:NO
+																   colorSpaceName:NSCalibratedWhiteColorSpace
+																	  bytesPerRow:rowBytes
+																	 bitsPerPixel:16];
+	
+	if (bitmap != nil)
+	{
+		[bitmap autorelease];
+		
+		NSString *filepath = [[[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:name] stringByAppendingPathExtension:@"png"];
+		[[bitmap representationUsingType:NSPNGFileType properties:nil] writeToFile:filepath atomically:YES];
+	}
+}
+
+
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
 						  bytes:(uint8_t *)bytes

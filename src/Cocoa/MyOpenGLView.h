@@ -181,6 +181,12 @@ extern int debug;
 					  height:(OOUInteger)height
 					rowBytes:(OOUInteger)rowBytes;
 
+- (void) dumpGrayAlphaToFileNamed:(NSString *)name
+							bytes:(uint8_t *)bytes
+							width:(OOUInteger)width
+						   height:(OOUInteger)height
+						 rowBytes:(OOUInteger)rowBytes;
+
 // Split alpha into separate file.
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
