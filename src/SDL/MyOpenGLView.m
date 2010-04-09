@@ -1873,6 +1873,24 @@ keys[a] = NO; keys[b] = NO; \
 }
 
 
+- (void) dumpGrayAlphaToFileNamed:(NSString *)name
+					   bytes:(uint8_t *)bytes
+					   width:(OOUInteger)width
+					  height:(OOUInteger)height
+					rowBytes:(OOUInteger)rowBytes
+{
+	if (name == nil || bytes == NULL || width == 0 || height == 0 || rowBytes < width * 2)  return;
+	
+	// use the snapshots directory	
+	NSString *dumpFile = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+	dumpFile = [dumpFile stringByAppendingPathComponent: [NSString stringWithFormat:@"%@.bmp", name]];
+	
+	SDL_Surface* tmpSurface = SDL_CreateRGBSurfaceFrom(bytes, width, height, 16, rowBytes, 0xFF, 0xFF, 0xFF, 0xFF);
+	SDL_SaveBMP(tmpSurface, [dumpFile UTF8String]);
+	SDL_FreeSurface(tmpSurface);
+}
+
+
 - (void) dumpRGBAToRGBFileNamed:(NSString *)rgbName
 			   andGrayFileNamed:(NSString *)grayName
 						  bytes:(uint8_t *)bytes

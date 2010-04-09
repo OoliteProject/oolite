@@ -150,7 +150,7 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 #endif
 
 
-#ifdef DUMP_MIP_MAPS
+#if DUMP_MIP_MAPS
 // NOTE: currently only works on OS X because of OSAtomicAdd32() (used to increment ID counter in thread-safe way). A simple increment would be sufficient if limited to a single thread (in OOTextureLoader).
 volatile int32_t sPreviousDumpID		= 0;
 int32_t	OSAtomicAdd32(int32_t __theAmount, volatile int32_t *__theValue);
@@ -805,7 +805,7 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 #endif
 
 
-#ifdef DUMP_MIP_MAPS
+#if DUMP_MIP_MAPS
 
 #import "Universe.h"
 #import "MyOpenGLView.h"
