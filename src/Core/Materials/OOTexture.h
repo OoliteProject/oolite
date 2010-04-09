@@ -107,7 +107,7 @@ typedef enum
 	kOOTextureDataInvalid,
 	
 	kOOTextureDataRGBA,				// GL_RGBA
-	kOOTextureDataGrayscale,		// GL_LUMINANCE (or GL_ALPHA/GL_ALPHA8 with kOOTextureAlphaMask)
+	kOOTextureDataGrayscale,		// GL_LUMINANCE (or GL_ALPHA with kOOTextureAlphaMask)
 	kOOTextureDataGrayscaleAlpha	// GL_LUMINANCE_ALPHA
 } OOTextureDataFormat;
 

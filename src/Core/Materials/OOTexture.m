@@ -89,7 +89,7 @@ static BOOL		sCheckedExtensions = NO;
 #if OOLITE_BIG_ENDIAN
 #define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
 #elif OOLITE_LITTLE_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE //GL_UNSIGNED_INT_8_8_8_8_REV
+#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE
 #else
 #error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
 #endif
@@ -289,7 +289,7 @@ static NSString *sGlobalTraceContext = nil;
 		path = [ResourceManager pathForFileNamed:name inFolder:directory];
 		if (path == nil)
 		{
-			if (!noFNF)  OOLog(kOOLogFileNotFound, @"----- WARNING: Could not find texture file \"%@\". Used default no textures material instead.", name);
+			if (!noFNF)  OOLog(kOOLogFileNotFound, @"----- WARNING: Could not find texture file \"%@\".", name);
 			return nil;
 		}
 		

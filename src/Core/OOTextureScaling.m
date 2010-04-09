@@ -54,7 +54,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 
 
-#define DUMP_MIP_MAPS 0
+// #define DUMP_MIP_MAPS 1
 
 
 // Structure used to track buffers in OOScalePixMap() and its helpers.

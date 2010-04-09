@@ -90,7 +90,7 @@ static JSPropertySpec sGlobalProperties[] =
 	// JS name					ID							flags
 	{ "galaxyNumber",			kGlobal_galaxyNumber,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "guiScreen",				kGlobal_guiScreen,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "timeAccelerationFactor",		kGlobal_timeAccelerationFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "timeAccelerationFactor",	kGlobal_timeAccelerationFactor,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
 
