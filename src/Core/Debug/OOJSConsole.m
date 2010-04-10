@@ -68,6 +68,7 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -125,6 +126,7 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "isExecutableJavaScript",	ConsoleIsExecutableJavaScript, 2 },
 	{ "displayMessagesInClass", ConsoleDisplayMessagesInClass, 1 },
 	{ "setDisplayMessagesInClass", ConsoleSetDisplayMessagesInClass, 2 },
+	{ "writeLogMarker",			ConsoleWriteLogMarker,		0 },
 	{ 0 }
 };
 
@@ -527,6 +529,14 @@ static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *thi
 		OOLogSetDisplayMessagesInClass(messageClass, flag);
 	}
 	
+	return YES;
+}
+
+
+// function writeLogMarker() : void
+static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOLogInsertMarker();
 	return YES;
 }
 
