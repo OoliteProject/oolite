@@ -340,7 +340,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	JSContext					*context = NULL;
 	BOOL						result;
 	
-	NSAssert(JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
+	NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
 	
 	context = [self acquireContext];
 	result = JS_CallFunctionValue(context, jsThis, function, argc, argv, outResult);

@@ -50,8 +50,9 @@ static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uint
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 //  Mission screen  callback varibables
-static jsval		callbackFunction;
-static OOJSScript	*callbackScript;
+static jsval			callbackFunction = JSVAL_NULL;
+static jsval			callbackThis = JSVAL_NULL;
+static OOJSScript		*callbackScript = nil;
 
 static JSClass sMissionClass =
 {
@@ -111,37 +112,45 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 {
 	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, NULL, 0, sMissionProperties, sMissionMethods, NULL, NULL);
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	
+	// Ensure JS objects are rooted.
+	JS_AddRoot(context, &callbackFunction);
+	JS_AddRoot(context, &callbackThis);
 }
 
 void MissionRunCallback()
 {
-	// don't do anything if we don't have a function, or script.
-	if(JSVAL_IS_NULL(callbackFunction) || [callbackScript weakRefUnderlyingObject] == nil)
-	{
-		return;
-	}
+	// don't do anything if we don't have a function.
+	if(JSVAL_IS_NULL(callbackFunction))  return;
+	
 	jsval				argval = JSVAL_VOID;
 	jsval				rval = JSVAL_VOID;
 	jsval				function = callbackFunction;
+	JSObject			*cbThis = NULL;
 	PlayerEntity		*player = OOPlayerForScripting();
 	OOJavaScriptEngine	*engine  = [OOJavaScriptEngine sharedEngine];
 	JSContext			*context = [engine acquireContext];
 	
+	JS_ValueToObject(context, callbackThis, &cbThis);
+	
 	// don't run the same callback function more than once.
-	callbackFunction = JSVAL_NULL;
+	callbackFunction = JSVAL_VOID;
+	callbackThis = JSVAL_VOID;
+	
 	argval = [[player missionChoice_string] javaScriptValueInContext:context];
 	// now reset the mission choice silently, before calling the callback script.
 	[player setMissionChoice:nil withEvent:NO];
 
-	// windows DEP fix: use the underlying object!
-	[OOJSScript pushScript:[callbackScript weakRefUnderlyingObject]];
+	[OOJSScript pushScript:callbackScript];
 	[engine callJSFunction:function
-				 forObject:JSVAL_TO_OBJECT([[callbackScript weakRefUnderlyingObject] javaScriptValueInContext:context])
+				 forObject:cbThis
 					  argc:1
 					  argv:&argval
 					result:&rval];
-	[OOJSScript popScript:[callbackScript weakRefUnderlyingObject]];
+	[OOJSScript popScript:callbackScript];
+	
 	[engine releaseContext:context];
+	DESTROY(callbackScript);
 }
 
 
@@ -393,7 +402,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	jsval				value = JSVAL_NULL;
 	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
 	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSString			*str;
+	NSString			*str = nil;
 	
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
@@ -418,6 +427,19 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"function", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
 		*outResult = BOOLToJSVal(NO);
 		return YES;
+	}
+	
+	if (function != JSVAL_NULL)
+	{
+		callbackScript = [[OOJSScript currentlyRunningScript] retain];
+		if (argc > 2)
+		{
+			callbackThis = argv[2];
+		}
+		else
+		{
+			callbackThis = [callbackScript javaScriptValueInContext:context];
+		}
 	}
 	
 	str=@"title";
@@ -456,11 +478,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
 	
 	callbackFunction = function;
-	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(function)]; 
-	if (!JSVAL_IS_NULL(function))
-	{
-		callbackScript = [[OOJSScript currentlyRunningScript] weakRetain];
-	}
+	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(callbackFunction)];
 		
 	str=@"message";
 	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
