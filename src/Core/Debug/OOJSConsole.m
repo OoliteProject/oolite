@@ -51,6 +51,9 @@ SOFTWARE.
 @end
 
 
+NSString *OOPlatformDescription(void);
+
+
 static JSObject *sConsolePrototype = NULL;
 static JSObject *sConsoleSettingsPrototype = NULL;
 
@@ -99,7 +102,8 @@ enum
 	kConsole_shaderMode,		// shader mode, symbolic string, read/write
 	kConsole_displayFPS,		// display FPS (and related info), boolean, read/write
 	kConsole_glVendorString,	// OpenGL GL_VENDOR string, string, read-only
-	kConsole_glRendererString	// OpenGL GL_RENDERER string, string, read-only
+	kConsole_glRendererString,	// OpenGL GL_RENDERER string, string, read-only
+	kConsole_platformDescription, // Information about system we're running on in unspecified format, string, read-only
 };
 
 
@@ -111,6 +115,7 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "displayFPS",				kConsole_displayFPS,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "glVendorString",			kConsole_glVendorString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glRendererString",		kConsole_glRendererString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "platformDescription",	kConsole_platformDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -230,6 +235,10 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			
 		case kConsole_glRendererString:
 			*outValue = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
+			break;
+			
+		case kConsole_platformDescription:
+			*outValue = [OOPlatformDescription() javaScriptValueInContext:context];
 			break;
 			
 		default:

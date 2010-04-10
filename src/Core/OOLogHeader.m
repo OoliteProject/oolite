@@ -56,6 +56,8 @@ SOFTWARE.
 
 static NSString *AdditionalLogHeaderInfo(void);
 
+NSString *OOPlatformDescription(void);
+
 
 void OOPrintLogHeader(void)
 {
@@ -172,6 +174,18 @@ void OOPrintLogHeader(void)
 	[miscString appendString:@"\nNote that the contents of the log file can be adjusted by editing logcontrol.plist."];
 	
 	OOLog(@"log.header", @"%@\n", miscString);
+}
+
+
+NSString *OOPlatformDescription(void)
+{
+	#if OOLITE_MAC_OS_X
+		NSString *systemString = [NSString stringWithFormat:@OS_TYPE_STRING " %@", [[NSProcessInfo processInfo] operatingSystemVersionString]];
+	#else
+		#define systemString @OS_TYPE_STRING
+	#endif
+	
+	return [NSString stringWithFormat:@"%@ ("CPU_TYPE_STRING RELEASE_VARIANT_STRING")", systemString];
 }
 
 
