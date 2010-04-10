@@ -52,6 +52,10 @@ shaderMode : String (read/write)
 	
 	NOTE: this is equivalent to oolite.gameSettings.shaderEffectsLevel, which
 	is available even when the debug console is not active, but is read-only.
+
+displayFPS : Boolean (read/write)
+	Boolean specifying whether FPS (and associated information) should be
+	displayed.
 	
 function consoleMessage(colorCode : String, message : String [, emphasisStart : Number, emphasisLength : Number])
 	Similar to log(), but takes a colour code which is looked up in

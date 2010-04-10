@@ -126,6 +126,9 @@ SOFTWARE.
 - (unsigned)releaseVersionNumber;
 - (void)getVersionMajor:(unsigned *)outMajor minor:(unsigned *)outMinor release:(unsigned *)outRelease;
 
+- (NSString *) vendorString;
+- (NSString *) rendererString;
+
 @end
 
 

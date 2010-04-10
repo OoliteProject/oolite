@@ -2084,9 +2084,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionTitle:(NSString *)value
 {
-	[missionTitle autorelease];
-	missionTitle = nil;
-	if ([value length] != 0) missionTitle = [[NSString stringWithString: value] retain];
+	if (missionTitle != value)
+	{
+		[missionTitle release];
+		missionTitle = [value copy];
+	}
 }
 
 

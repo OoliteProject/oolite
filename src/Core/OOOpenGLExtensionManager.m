@@ -272,6 +272,17 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 	if (outRelease != NULL)  *outRelease = release;
 }
 
+- (NSString *) vendorString
+{
+	return vendor;
+}
+
+
+- (NSString *) rendererString
+{
+	return renderer;
+}
+
 @end
 
 

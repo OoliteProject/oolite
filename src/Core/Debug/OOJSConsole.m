@@ -40,6 +40,7 @@ SOFTWARE.
 #import "OOJSCall.h"
 #import "OOLoggingExtended.h"
 #import "OOConstToString.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 @interface Entity (OODebugInspector)
@@ -94,7 +95,10 @@ enum
 {
 	// Property IDs
 	kConsole_debugFlags,		// debug flags, integer, read/write
-	kConsole_shaderMode
+	kConsole_shaderMode,		// shader mode, symbolic string, read/write
+	kConsole_displayFPS,		// display FPS (and related info), boolean, read/write
+	kConsole_glVendorString,	// OpenGL GL_VENDOR string, string, read-only
+	kConsole_glRendererString	// OpenGL GL_RENDERER string, string, read-only
 };
 
 
@@ -103,6 +107,9 @@ static JSPropertySpec sConsoleProperties[] =
 	// JS name					ID							flags
 	{ "debugFlags",				kConsole_debugFlags,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "shaderMode",				kConsole_shaderMode,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "displayFPS",				kConsole_displayFPS,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "glVendorString",			kConsole_glVendorString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "glRendererString",		kConsole_glRendererString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -211,6 +218,18 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = [ShaderSettingToString([UNIVERSE shaderEffectsLevel]) javaScriptValueInContext:context];
 			break;
 			
+		case kConsole_displayFPS:
+			*outValue = BOOLToJSVal([UNIVERSE displayFPS]);
+			break;
+			
+		case kConsole_glVendorString:
+			*outValue = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
+			break;
+			
+		case kConsole_glRendererString:
+			*outValue = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
@@ -224,6 +243,7 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 {
 	int32						iValue;
 	NSString					*sValue = nil;
+	JSBool						bValue = NO;
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	
@@ -243,6 +263,13 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 			{
 				OOShaderSetting setting = StringToShaderSetting(sValue);
 				[UNIVERSE setShaderEffectsLevel:setting];
+			}
+			break;
+			
+		case kConsole_displayFPS:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[UNIVERSE setDisplayFPS:bValue];
 			}
 			break;
 			
