@@ -19,23 +19,24 @@ The console object has the following properties and methods:
 debugFlags : Number (integer, read/write)
 	An integer bit mask specifying various debug options. The flags vary
 	between builds, but at the time of writing they are:
-		DEBUG_LINKED_LISTS:		0x1
-		DEBUG_ENTITIES:			0x2
-		DEBUG_COLLISIONS:		0x4
-		DEBUG_DOCKING:			0x8
-		DEBUG_OCTREE:			0x10
-		DEBUG_OCTREE_TEXT:		0x20
-		DEBUG_BOUNDING_BOXES:	0x40
-		DEBUG_OCTREE_DRAW:		0x80
-		DEBUG_DRAW_NORMALS:		0x100
-		DEBUG_NO_DUST:			0x200
+		console.DEBUG_LINKED_LISTS
+		console.DEBUG_ENTITIES
+		console.DEBUG_COLLISIONS
+		console.DEBUG_DOCKING
+		console.DEBUG_OCTREE
+		console.DEBUG_OCTREE_TEXT
+		console.DEBUG_BOUNDING_BOXES
+		console.DEBUG_OCTREE_DRAW
+		console.DEBUG_DRAW_NORMALS
+		console.DEBUG_NO_DUST
+		console.DEBUG_NO_SHADER_FALLBACK
 		The current flags can be seen in Entity.h in the Oolite source code,
 		for instance at:
 		http://svn.berlios.de/svnroot/repos/oolite-linux/trunk/src/Core/Entities/Entity.h
 	For example, to enable rendering of bounding boxes and surface normals,
 	you might use:
-		console.debugFlags ^= 0x40
-		console.debugFlags ^= 0x100
+		console.debugFlags ^= console.DEBUG_BOUNDING_BOXES
+		console.debugFlags ^= console.DEBUG_DRAW_NORMALS
 	Explaining bitwise operations is beyond the scope of this comment, but
 	the ^= operator (XOR assign) can be thought of as a “toggle option”
 	command.

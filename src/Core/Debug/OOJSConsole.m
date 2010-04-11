@@ -104,6 +104,21 @@ enum
 	kConsole_glVendorString,	// OpenGL GL_VENDOR string, string, read-only
 	kConsole_glRendererString,	// OpenGL GL_RENDERER string, string, read-only
 	kConsole_platformDescription, // Information about system we're running on in unspecified format, string, read-only
+	
+	// Symbolic constants for debug flags:
+	kConsole_DEBUG_LINKED_LISTS,
+	kConsole_DEBUG_ENTITIES,
+	kConsole_DEBUG_COLLISIONS,
+	kConsole_DEBUG_DOCKING,
+	kConsole_DEBUG_OCTREE,
+	kConsole_DEBUG_OCTREE_TEXT,
+	kConsole_DEBUG_BOUNDING_BOXES,
+	kConsole_DEBUG_OCTREE_DRAW,
+	kConsole_DEBUG_DRAW_NORMALS,
+	kConsole_DEBUG_NO_DUST,
+	kConsole_DEBUG_NO_SHADER_FALLBACK,
+	
+	kConsole_DEBUG_MISC
 };
 
 
@@ -116,6 +131,23 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "glVendorString",			kConsole_glVendorString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glRendererString",		kConsole_glRendererString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "platformDescription",	kConsole_platformDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	
+#define DEBUG_FLAG_DECL(x) { #x, kConsole_##x, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY }
+	DEBUG_FLAG_DECL(DEBUG_LINKED_LISTS),
+	DEBUG_FLAG_DECL(DEBUG_ENTITIES),
+	DEBUG_FLAG_DECL(DEBUG_COLLISIONS),
+	DEBUG_FLAG_DECL(DEBUG_DOCKING),
+	DEBUG_FLAG_DECL(DEBUG_OCTREE),
+	DEBUG_FLAG_DECL(DEBUG_OCTREE_TEXT),
+	DEBUG_FLAG_DECL(DEBUG_BOUNDING_BOXES),
+	DEBUG_FLAG_DECL(DEBUG_OCTREE_DRAW),
+	DEBUG_FLAG_DECL(DEBUG_DRAW_NORMALS),
+	DEBUG_FLAG_DECL(DEBUG_NO_DUST),
+	DEBUG_FLAG_DECL(DEBUG_NO_SHADER_FALLBACK),
+	
+	DEBUG_FLAG_DECL(DEBUG_MISC),
+#undef DEBUG_FLAG_DECL
+	
 	{ 0 }
 };
 
@@ -241,6 +273,22 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = [OOPlatformDescription() javaScriptValueInContext:context];
 			break;
 			
+#define DEBUG_FLAG_CASE(x) case kConsole_##x: *outValue = INT_TO_JSVAL(x); break;
+		DEBUG_FLAG_CASE(DEBUG_LINKED_LISTS);
+		DEBUG_FLAG_CASE(DEBUG_ENTITIES);
+		DEBUG_FLAG_CASE(DEBUG_COLLISIONS);
+		DEBUG_FLAG_CASE(DEBUG_DOCKING);
+		DEBUG_FLAG_CASE(DEBUG_OCTREE);
+		DEBUG_FLAG_CASE(DEBUG_OCTREE_TEXT);
+		DEBUG_FLAG_CASE(DEBUG_BOUNDING_BOXES);
+		DEBUG_FLAG_CASE(DEBUG_OCTREE_DRAW);
+		DEBUG_FLAG_CASE(DEBUG_DRAW_NORMALS);
+		DEBUG_FLAG_CASE(DEBUG_NO_DUST);
+		DEBUG_FLAG_CASE(DEBUG_NO_SHADER_FALLBACK);
+		
+		DEBUG_FLAG_CASE(DEBUG_MISC);
+#undef DEBUG_FLAG_CASE
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"Console", JSVAL_TO_INT(name));
 			return NO;
@@ -290,6 +338,39 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 	}
 	
 	return YES;
+}
+
+
+static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)  GCC_ATTR((unused));
+static BOOL DoWeDefineAllDebugFlags(enum OODebugFlags flags)
+{
+	/*	This function doesn't do anything, but will generate a warning
+		(Enumeration value 'DEBUG_FOO' not handled in switch) if a debug flag
+		is added without updating it. The point is that if you get such a
+		warning, you should first add a JS symbolic constant for the flag,
+		then add it to the switch to supress the warning.
+		NOTE: don't add a default: to this switch, or I will have to hurt you.
+		-- Ahruman 2010-04-11
+	*/
+	switch (flags)
+	{
+		case DEBUG_LINKED_LISTS:
+		case DEBUG_ENTITIES:
+		case DEBUG_COLLISIONS:
+		case DEBUG_DOCKING:
+		case DEBUG_OCTREE:
+		case DEBUG_OCTREE_TEXT:
+		case DEBUG_BOUNDING_BOXES:
+		case DEBUG_OCTREE_DRAW:
+		case DEBUG_DRAW_NORMALS:
+		case DEBUG_NO_DUST:
+		case DEBUG_NO_SHADER_FALLBACK:
+		
+		case DEBUG_MISC:
+			return YES;
+	}
+	
+	return NO;
 }
 
 
