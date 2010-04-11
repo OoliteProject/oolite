@@ -354,6 +354,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glEnableVertexAttribArrayARB	=	(PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
 	glVertexAttribPointerARB	=	(PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
 	glDisableVertexAttribArrayARB	=	(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
+	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 	
 	shadersAvailable = YES;
