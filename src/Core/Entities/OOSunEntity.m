@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "PlayerEntity.h"
 #import "OOCollectionExtractors.h"
+#import "OODebugFlags.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.SunEntity"
 

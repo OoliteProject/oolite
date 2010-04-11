@@ -41,6 +41,7 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 #import "OODebugGLDrawing.h"
+#import "OODebugFlags.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.StationEntity"
 

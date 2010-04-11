@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOPlanetEntity.h"
 #import "StationEntity.h"
 #import "PlayerEntity.h"
+#import "OODebugFlags.h"
 
 
 @implementation CollisionRegion

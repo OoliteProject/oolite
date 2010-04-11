@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
+#import "OODebugFlags.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"

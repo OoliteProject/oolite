@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "MyOpenGLView.h"
 #import "OOGraphicsResetManager.h"
+#import "OODebugFlags.h"
 
 #import "PlayerEntity.h"
 

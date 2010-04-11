@@ -514,6 +514,7 @@
 		1A817DC4106D443B00AA2F97 /* OOFlashEffectEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A817DC2106D443B00AA2F97 /* OOFlashEffectEntity.m */; };
 		1A81F7090A7BAC4D006580AD /* OOCAMusic.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A81F7070A7BAC4D006580AD /* OOCAMusic.m */; };
 		1A81F70A0A7BAC4D006580AD /* OOCAMusic.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A81F7080A7BAC4D006580AD /* OOCAMusic.h */; };
+		1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A87063D1172029F003FDD2A /* OODebugFlags.h */; };
 		1A8A37560B960337007D20B8 /* NSMutableDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */; };
 		1A8A37570B960337007D20B8 /* NSMutableDictionaryOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */; };
 		1A8A394E0B96229C007D20B8 /* NSFileManagerOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */; };
@@ -1624,6 +1625,7 @@
 		1A81F7070A7BAC4D006580AD /* OOCAMusic.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCAMusic.m; sourceTree = "<group>"; };
 		1A81F7080A7BAC4D006580AD /* OOCAMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCAMusic.h; sourceTree = "<group>"; };
 		1A846BA90D79F9570081280D /* oolite-version.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = "oolite-version.xcconfig"; path = "src/Cocoa/oolite-version.xcconfig"; sourceTree = "<group>"; };
+		1A87063D1172029F003FDD2A /* OODebugFlags.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugFlags.h; sourceTree = "<group>"; };
 		1A8A37540B960337007D20B8 /* NSMutableDictionaryOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSMutableDictionaryOOExtensions.m; sourceTree = "<group>"; };
 		1A8A37550B960337007D20B8 /* NSMutableDictionaryOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSMutableDictionaryOOExtensions.h; sourceTree = "<group>"; };
 		1A8A394C0B96229C007D20B8 /* NSFileManagerOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSFileManagerOOExtensions.m; sourceTree = "<group>"; };
@@ -2287,6 +2289,7 @@
 			isa = PBXGroup;
 			children = (
 				1A2DA3ED0CB4E84900DE6823 /* OODebugSupport.h */,
+				1A87063D1172029F003FDD2A /* OODebugFlags.h */,
 				1A2DA3EC0CB4E84900DE6823 /* OODebugSupport.m */,
 				1A2DA3540CB4D10800DE6823 /* OODebuggerInterface.h */,
 				1A2DA34A0CB4D0D800DE6823 /* OODebugMonitor.h */,
@@ -3194,6 +3197,7 @@
 				1ADA564810CD68D800E891B8 /* OOStellarBody.h in Headers */,
 				1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */,
 				1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */,
+				1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

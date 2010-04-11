@@ -82,6 +82,7 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 
 #import "OODebugGLDrawing.h"
+#import "OODebugFlags.h"
 
 #import "OOScript.h"
 

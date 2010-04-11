@@ -50,6 +50,7 @@ MA 02110-1301, USA.
 #import "OOShaderMaterial.h"
 #import "OOMacroOpenGL.h"
 #import "OOProfilingStopwatch.h"
+#import "OODebugFlags.h"
 
 
 // If set, collision octree depth varies depending on the size of the mesh.

@@ -28,6 +28,7 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 #import "OODebugGLDrawing.h"
 #import "OOMacroOpenGL.h"
+#import "OODebugFlags.h"
 
 
 #ifndef NDEBUG

@@ -22,6 +22,10 @@
  
  */
 
+#import "OOStellarBody.h"
+#if NEW_PLANETS
+
+
 #import "OOPlanetDrawable.h"
 #import "OOPlanetData.h"
 #import "OOSingleTextureMaterial.h"
@@ -33,6 +37,7 @@
 #ifndef NDEBUG
 #import "Entity.h"
 #import "OODebugGLDrawing.h"
+#import "OODebugFlags.h"
 #endif
 
 
@@ -372,3 +377,5 @@
 #endif
 
 @end
+
+#endif	/* NEW_PLANETS */

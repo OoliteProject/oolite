@@ -58,6 +58,7 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOIsNumberLiteral.h"
 #import "OOLogging.h"
+#import "OODebugFlags.h"
 
 
 static NSString *MacrosToString(NSDictionary *macros);
@@ -118,6 +119,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	if (OK)
 	{
 		modifiedMacros = macros ? [macros mutableCopy] : [[NSMutableDictionary alloc] init];
+		[modifiedMacros autorelease];
 		
 		OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnits));
 		[modifiedMacros setObject:[NSNumber numberWithInt:textureUnits] forKey:@"OO_TEXTURE_UNIT_COUNT"];
@@ -128,7 +130,6 @@ static NSString *MacrosToString(NSDictionary *macros);
 		}
 		
 		macroString = MacrosToString(modifiedMacros);
-		[modifiedMacros release];
 	}
 	
 	if (OK)
@@ -150,6 +151,24 @@ static NSString *MacrosToString(NSDictionary *macros);
 															fragmentShaderName:fragmentShader
 																		prefix:macroString
 															 attributeBindings:attributeBindings];
+			
+			if (shaderProgram == nil)
+			{
+				BOOL canFallBack = ![modifiedMacros oo_boolForKey:@"OO_REDUCED_COMPLEXITY"];
+#ifndef NDEBUG
+				if (gDebugFlags & DEBUG_NO_SHADER_FALLBACK)  canFallBack = NO;
+#endif
+				if (canFallBack)
+				{
+					[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
+					macroString = MacrosToString(modifiedMacros);
+					
+					shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
+																	fragmentShaderName:fragmentShader
+																				prefix:macroString
+																	 attributeBindings:attributeBindings];
+				}
+			}
 		}
 		else
 		{

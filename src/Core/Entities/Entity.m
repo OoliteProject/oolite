@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "CollisionRegion.h"
 
 #import "NSScannerOOExtensions.h"
+#import "OODebugFlags.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.Entity"
 
