@@ -431,7 +431,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (function != JSVAL_NULL)
 	{
-		callbackScript = [[OOJSScript currentlyRunningScript] retain];
+		callbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
 		if (argc > 2)
 		{
 			callbackThis = argv[2];
