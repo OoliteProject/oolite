@@ -147,10 +147,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 				[attributeBindings retain];
 			}
 			
+			OOLogIndent();
 			shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
 															fragmentShaderName:fragmentShader
 																		prefix:macroString
 															 attributeBindings:attributeBindings];
+			OOLogOutdent();
 			
 			if (shaderProgram == nil)
 			{
@@ -160,14 +162,28 @@ static NSString *MacrosToString(NSDictionary *macros);
 #endif
 				if (canFallBack)
 				{
+					OOLogWARN(@"shader.load.fullModeFailed", @"Could not build shader %@/%@ in full complexity mode, trying simple mode.", vertexShader, fragmentShader);
+					
 					[modifiedMacros setObject:[NSNumber numberWithInt:1] forKey:@"OO_REDUCED_COMPLEXITY"];
 					macroString = MacrosToString(modifiedMacros);
 					
+					OOLogIndent();
 					shaderProgram = [OOShaderProgram shaderProgramWithVertexShaderName:vertexShader
 																	fragmentShaderName:fragmentShader
 																				prefix:macroString
 																	 attributeBindings:attributeBindings];
+					OOLogOutdent();
+					
+					if (shaderProgram != nil)
+					{
+						OOLog(@"shader.load.fallbackSuccess", @"Simple mode fallback successful.");
+					}
 				}
+			}
+			
+			if (shaderProgram == nil)
+			{
+				OOLogERR(@"shader.load.failed", @"Could not build shader %@/%@.", vertexShader, fragmentShader);
 			}
 		}
 		else
