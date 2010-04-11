@@ -47,10 +47,17 @@
 attribute vec3			tangent;
 
 
+#ifndef OO_LIGHT_0_FIX
+#define OO_LIGHT_0_FIX 0
+#endif
+
+
 // No vNormal, because normal is always 0,0,1 in tangent space.
 varying vec3			vEyeVector;
 varying vec2			vTexCoord;
+#if OO_LIGHT_0_FIX
 varying vec3			vLight0Vector;
+#endif
 varying vec3			vLight1Vector;
 
 #ifndef OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
@@ -74,8 +81,10 @@ void main(void)
 	vec3 eyeVector = -vec3(gl_ModelViewMatrix * gl_Vertex);
 	vEyeVector = eyeVector * TBN;
 	
+#if OO_LIGHT_0_FIX
 	vec3 light0Vector = gl_LightSource[0].position.xyz + eyeVector;
 	vLight0Vector = light0Vector * TBN;
+#endif
 	
 	vec3 light1Vector = gl_LightSource[1].position.xyz + eyeVector;
 	vLight1Vector = light1Vector * TBN;

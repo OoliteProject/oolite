@@ -1323,12 +1323,6 @@ static NSTimeInterval	time_last_frame;
 				[UNIVERSE addMessage:@"Bounding box debug ON" forCount:3];
 			}
 			
-			if ([gameView isDown:'c'])// look for the 'c' key
-			{
-				gDebugFlags |= DEBUG_OCTREE;
-				[UNIVERSE addMessage:@"Octree debug ON" forCount:3];
-			}
-			
 	#endif
 			
 			if ([gameView isDown:'s'])// look for the 's' key

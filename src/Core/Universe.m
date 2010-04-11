@@ -4166,11 +4166,6 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	{
 		ShipEntity* se = nil;
 		
-#ifndef NDEBUG
-		if (gDebugFlags & DEBUG_ENTITIES)
-			OOLog(@"universe.addEntity", @"Adding entity: %@", entity);
-#endif
-		
 		if (![entity validForAddToUniverse])  return NO;
 		
 		// don't add things twice!

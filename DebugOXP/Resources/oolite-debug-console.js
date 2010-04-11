@@ -20,16 +20,15 @@ debugFlags : Number (integer, read/write)
 	An integer bit mask specifying various debug options. The flags vary
 	between builds, but at the time of writing they are:
 		console.DEBUG_LINKED_LISTS
-		console.DEBUG_ENTITIES
 		console.DEBUG_COLLISIONS
 		console.DEBUG_DOCKING
-		console.DEBUG_OCTREE
-		console.DEBUG_OCTREE_TEXT
+		console.DEBUG_OCTREE_LOGGING
 		console.DEBUG_BOUNDING_BOXES
 		console.DEBUG_OCTREE_DRAW
 		console.DEBUG_DRAW_NORMALS
 		console.DEBUG_NO_DUST
 		console.DEBUG_NO_SHADER_FALLBACK
+		console.DEBUG_SHADER_VALIDATION
 		
 	The current flags can be seen in OODebugFlags.h in the Oolite source code,
 	for instance at:

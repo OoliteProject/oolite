@@ -54,6 +54,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OOMacroOpenGL.h"
 #import "OOCollectionExtractors.h"
+#import "OODebugFlags.h"
 
 
 static NSMutableDictionary		*sShaderCache = nil;
@@ -182,6 +183,77 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 @end
 
 
+static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
+{
+	GLint		type, subtype = 0, status;
+	GLenum		statusType;
+	NSString	*subtypeString = nil;
+	NSString	*actionString = nil;
+	
+	OO_ENTER_OPENGL();
+	
+	OOGL(glGetObjectParameterivARB(object, GL_OBJECT_TYPE_ARB, &type));
+	BOOL linking = type == GL_PROGRAM_OBJECT_ARB;
+	
+	if (linking)
+	{
+		subtypeString = @"shader program";
+		actionString = @"linking";
+		statusType = GL_OBJECT_LINK_STATUS_ARB;
+	}
+	else
+	{
+		// FIXME
+		OOGL(glGetObjectParameterivARB(object, GL_OBJECT_SUBTYPE_ARB, &subtype));
+		switch (subtype)
+		{
+			case GL_VERTEX_SHADER_ARB:
+				subtypeString = @"vertex shader";
+				break;
+				
+			case GL_FRAGMENT_SHADER_ARB:
+				subtypeString = @"fragment shader";
+				break;
+				
+#if GL_EXT_geometry_shader4
+			case GL_GEOMETRY_SHADER_EXT:
+				subtypeString = @"geometry shader";
+				break;
+#endif
+				
+			default:
+				subtypeString = [NSString stringWithFormat:@"<unknown shader type 0x%.4X>", subtype];
+		}
+		actionString = @"compilation";
+		statusType = GL_OBJECT_COMPILE_STATUS_ARB;
+	}
+	
+	OOGL(glGetObjectParameterivARB(object, statusType, &status));
+	if (status == GL_FALSE)
+	{
+		NSString *msgClass = [NSString stringWithFormat:@"shader.%.failure", linking ? @"link" : @"compile"];
+		OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, GetGLSLInfoLog(object));
+		return NO;
+	}
+	
+#ifndef NDEBUG
+	if (gDebugFlags & DEBUG_SHADER_VALIDATION)
+	{
+		OOGL(glValidateProgramARB(object));
+		OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));
+		if (status == GL_FALSE)
+		{
+			NSString *msgClass = [NSString stringWithFormat:@"shader.%.validationFailure", linking ? @"link" : @"compile"];
+			OOLogWARN(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, @"validation", name, GetGLSLInfoLog(object));
+			return NO;
+		}
+	}
+#endif
+	
+	return YES;
+}
+
+
 @implementation OOShaderProgram (OOPrivate)
 
 - (id)initWithVertexShaderSource:(NSString *)vertexSource
@@ -194,7 +266,6 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 {
 	BOOL					OK = YES;
 	const GLcharARB			*sourceStrings[2] = { "", NULL };
-	GLint					compileStatus;
 	GLhandleARB				vertexShader = NULL_SHADER;
 	GLhandleARB				fragmentShader = NULL_SHADER;
 	
@@ -220,12 +291,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			OOGL(glShaderSourceARB(vertexShader, 2, sourceStrings, NULL));
 			OOGL(glCompileShaderARB(vertexShader));
 			
-			OOGL(glGetObjectParameterivARB(vertexShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus));
-			if (compileStatus != GL_TRUE)
-			{
-				OOLog(@"shader.compile.vertex.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "vertex", vertexName, GetGLSLInfoLog(vertexShader));
-				OK = NO;
-			}
+			OK = ValidateShaderObject(vertexShader, vertexName);
 		}
 		else  OK = NO;
 	}
@@ -240,12 +306,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			OOGL(glShaderSourceARB(fragmentShader, 2, sourceStrings, NULL));
 			OOGL(glCompileShaderARB(fragmentShader));
 			
-			OOGL(glGetObjectParameterivARB(fragmentShader, GL_OBJECT_COMPILE_STATUS_ARB, &compileStatus));
-			if (compileStatus != GL_TRUE)
-			{
-				OOLog(@"shader.compile.fragment.failure", @"***** GLSL %s shader compilation failed for %@:\n>>>>> GLSL log:\n%@\n", "fragment", fragmentName, GetGLSLInfoLog(fragmentShader));
-				OK = NO;
-			}
+			OK = ValidateShaderObject(fragmentShader, fragmentName);
 		}
 		else  OK = NO;
 	}
@@ -261,12 +322,7 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject);
 			[self bindAttributes:attributeBindings];
 			OOGL(glLinkProgramARB(program));
 			
-			OOGL(glGetObjectParameterivARB(program, GL_OBJECT_LINK_STATUS_ARB, &compileStatus));
-			if (compileStatus != GL_TRUE)
-			{
-				OOLog(@"shader.link.failure", @"***** GLSL shader linking failed:\n>>>>> GLSL log:\n%@\n", GetGLSLInfoLog(program));
-				OK = NO;
-			}
+			OK = ValidateShaderObject(vertexShader, [NSString stringWithFormat:@"%@/%@", vertexName, fragmentName]);
 		}
 		else  OK = NO;
 	}

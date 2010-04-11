@@ -32,10 +32,9 @@ MA 02110-1301, USA.
 
 
 #ifndef NDEBUG
-#define OctreeDebugLogVerbose(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_TEXT))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
-#define OctreeDebugLog(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
+#define OctreeDebugLog(format, ...) do { if (EXPECT_NOT(gDebugFlags & DEBUG_OCTREE_LOGGING))  OOLog(@"octree.debug", format, ## __VA_ARGS__); } while (0)
 #else
-#define OctreeDebugLogVerbose(...) do {} while (0)
+#define OctreeDebugLog(...) do {} while (0)
 #define OctreeDebugLog(...) do {} while (0)
 #endif
 
@@ -400,18 +399,18 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 	Vector u0 = make_vector( v0.x + off.x, v0.y + off.y, v0.z + off.z);
 	Vector u1 = make_vector( v1.x + off.x, v1.y + off.y, v1.z + off.z);
 	
-	OctreeDebugLogVerbose(@"DEBUG octant: [%d] radius: %.2f vs. line: ( %.2f, %.2f, %.2f) - ( %.2f, %.2f, %.2f)", 
+	OctreeDebugLog(@"DEBUG octant: [%d] radius: %.2f vs. line: ( %.2f, %.2f, %.2f) - ( %.2f, %.2f, %.2f)", 
 		level, rad, u0.x, u0.y, u0.z, u1.x, u1.y, u1.z);
 
 	if (octbuffer[level] == 0)
 	{
-		OctreeDebugLogVerbose(@"DEBUG Hit an empty octant: [%d]", level);
+		OctreeDebugLog(@"DEBUG Hit an empty octant: [%d]", level);
 		return NO;
 	}
 	
 	if (octbuffer[level] == -1)
 	{
-		OctreeDebugLogVerbose(@"DEBUG Hit a solid octant: [%d]", level);
+		OctreeDebugLog(@"DEBUG Hit a solid octant: [%d]", level);
 		collbuffer[level] = 2;	// green
 		hit_dist = sqrt( u0.x * u0.x + u0.y * u0.y + u0.z * u0.z);
 		return YES;
@@ -423,7 +422,7 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 
 	if (faces == 0)
 	{
-		OctreeDebugLogVerbose(@"----> Line misses octant: [%d].", level);
+		OctreeDebugLog(@"----> Line misses octant: [%d].", level);
 		return NO;
 	}
 	
@@ -448,19 +447,19 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 		if (CUBE_FACE_BOTTOM & faces)
 			octantIntersected = ((vi.x < 0.0)? 0: 4) + ((vi.z < 0.0)? 0: 1);
 
-		OctreeDebugLogVerbose(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
+		OctreeDebugLog(@"----> found intersection with face 0x%2x of cube of radius %.2f at ( %.2f, %.2f, %.2f) octant:%d",
 				faces, rad, vi.x, vi.y, vi.z, octantIntersected);
 	}
 	else
 	{	
-		OctreeDebugLogVerbose(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
+		OctreeDebugLog(@"----> inside cube of radius %.2f octant:%d", rad, octantIntersected);
 	}
 	
 	hasCollided = YES;
 	
 	collbuffer[level] = 1;	// red
 	
-	OctreeDebugLogVerbose(@"----> testing octants...");
+	OctreeDebugLog(@"----> testing octants...");
 	
 	int nextLevel = level + octbuffer[level];
 		
@@ -473,12 +472,12 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 	oct2 = oct0 ^ 0x02;	// adjacent y
 	oct3 = oct0 ^ 0x04;	// adjacent z
 	
-	OctreeDebugLogVerbose(@"----> testing first octant hit [+%d]", oct0);
+	OctreeDebugLog(@"----> testing first octant hit [+%d]", oct0);
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))  return YES;	// first octant
 		
 	// test the three adjacent octants
 
-	OctreeDebugLogVerbose(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
+	OctreeDebugLog(@"----> testing next three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))  return YES;	// second octant
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))  return YES;	// third octant
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))  return YES;	// fourth octant
@@ -487,13 +486,13 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 	
 	oct0 ^= 0x07;	oct1 ^= 0x07;	oct2 ^= 0x07;	oct3 ^= 0x07;
 	
-	OctreeDebugLogVerbose(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
+	OctreeDebugLog(@"----> testing back three octants [+%d] [+%d] [+%d]", oct1, oct2, oct3);
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct1))  return YES;	// fifth octant
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct2))  return YES;	// sixth octant
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct3))  return YES;	// seventh octant
 	
 	// and check the last octant
-	OctreeDebugLogVerbose(@"----> testing final octant [+%d]", oct0);
+	OctreeDebugLog(@"----> testing final octant [+%d]", oct0);
 	if (isHitByLineSub(octbuffer, collbuffer, nextLevel, rad, rd2, u0, u1, oct0))  return YES;	// last octant
 	
 	return NO;
@@ -507,13 +506,13 @@ static BOOL isHitByLine(int* octbuffer, unsigned char* collbuffer, int level, GL
 	
 	if (isHitByLine(octree, octree_collision, 0, radius, v0, v1, kZeroVector, 0))
 	{
-		OctreeDebugLogVerbose(@"DEBUG Hit at distance %.2f", hit_dist);
+		OctreeDebugLog(@"DEBUG Hit at distance %.2f", hit_dist);
 		hasCollision = hasCollided;
 		return hit_dist;
 	}
 	else
 	{
-		OctreeDebugLogVerbose(@"DEBUG Missed!", hit_dist);
+		OctreeDebugLog(@"DEBUG Missed!", hit_dist);
 		hasCollision = hasCollided;
 		return 0.0;
 	}
@@ -529,19 +528,19 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 
 	if (axialBuffer[0] == 0)
 	{
-		OctreeDebugLogVerbose(@"DEBUG Axial octree is empty.");
+		OctreeDebugLog(@"DEBUG Axial octree is empty.");
 		return NO;
 	}
 	
 	if (!otherBuffer)
 	{
-		OctreeDebugLogVerbose(@"DEBUG Other octree is undefined.");
+		OctreeDebugLog(@"DEBUG Other octree is undefined.");
 		return NO;
 	}
 	
 	if (otherBuffer[0] == 0)
 	{
-		OctreeDebugLogVerbose(@"DEBUG Other octree is empty.");
+		OctreeDebugLog(@"DEBUG Other octree is empty.");
 		return NO;
 	}
 	
@@ -555,7 +554,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			(otherPosition.y + otherRadius < -axialRadius)||(otherPosition.y - otherRadius > axialRadius)||
 			(otherPosition.z + otherRadius < -axialRadius)||(otherPosition.z - otherRadius > axialRadius))
 		{
-			OctreeDebugLogVerbose(@"----> Other sphere does not intersect axial cube");
+			OctreeDebugLog(@"----> Other sphere does not intersect axial cube");
 			return NO;
 		}
 	}
@@ -567,7 +566,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 			(axialPosition.y + axialRadius < -otherRadius)||(axialPosition.y - axialRadius > otherRadius)||
 			(axialPosition.z + axialRadius < -otherRadius)||(axialPosition.z - axialRadius > otherRadius))
 		{
-			OctreeDebugLogVerbose(@"----> Axial sphere does not intersect other cube");
+			OctreeDebugLog(@"----> Axial sphere does not intersect other cube");
 			return NO;
 		}
 	}
@@ -593,7 +592,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 		// if any of them collides with this octant
 		// then we have a solid collision
 		
-		OctreeDebugLogVerbose(@"----> testing other octants...");
+		OctreeDebugLog(@"----> testing other octants...");
 		
 		// work out the nearest octant to the axial octree
 		int	nearest_oct = ((otherPosition.x > 0.0)? 0:4)|((otherPosition.y > 0.0)? 0:2)|((otherPosition.z > 0.0)? 0:1);
@@ -629,7 +628,7 @@ BOOL	isHitByOctree(	Octree_details axialDetails,
 	// the other octree, if any of them collide
 	// we have a solid collision
 	
-	OctreeDebugLogVerbose(@"----> testing axial octants...");
+	OctreeDebugLog(@"----> testing axial octants...");
 	
 	// work out the nearest octant to the other octree
 	int	nearest_oct = ((otherPosition.x > 0.0)? 4:0)|((otherPosition.y > 0.0)? 2:0)|((otherPosition.z > 0.0)? 1:0);

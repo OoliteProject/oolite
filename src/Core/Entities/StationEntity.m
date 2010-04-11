@@ -871,7 +871,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	hh *= 0.5;
 	
 #ifndef NDEBUG
-	if ((ship->isPlayer)&&(gDebugFlags & DEBUG_DOCKING))
+	if ([ship isPlayer] && (gDebugFlags & DEBUG_DOCKING))
 	{
 		BOOL			inLane;
 		float			range;
