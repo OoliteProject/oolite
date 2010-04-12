@@ -104,12 +104,15 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 
 static void StretchVerticallyN_x1(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTexturePlaneCount planes);
 
-static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
 static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+static void SqueezeVertically2(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
+static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeight);
 static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx);
+static void StretchHorizontally2(OOScalerPixMap srcPx, OOScalerPixMap dstPx);
 static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx);
-static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWidth);
 static void SqueezeHorizontally1(OOScalerPixMap srcPx, OOTextureDimension dstWidth);
+static void SqueezeHorizontally2(OOScalerPixMap srcPx, OOTextureDimension dstWidth);
+static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWidth);
 
 
 static BOOL EnsureCorrectDataSize(OOScalerPixMap *pixMap, BOOL leaveSpaceForMipMaps) NONNULL_FUNC;
@@ -175,7 +178,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 	BOOL				OK = YES;
 	
 	//	Sanity check.
-	if (EXPECT_NOT(srcPixels == NULL || (planes != 4 && planes != 1) || (srcRowBytes < srcWidth * planes)))
+	if (EXPECT_NOT(srcPixels == NULL || (planes != 4 && planes != 2 && planes != 1) || (srcRowBytes < srcWidth * planes)))
 	{
 		OOLogGenericParameterError();
 		free(srcPixels);
@@ -208,7 +211,12 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 	{
 		// Squeeze vertically. This can be done in-place.
 		if (planes == 4)  SqueezeVertically4(srcPx, dstHeight);
-		else /* planes == 1 */  SqueezeVertically1(srcPx, dstHeight);
+		else if (planes == 1)  SqueezeVertically1(srcPx, dstHeight);
+		else
+		{
+			assert(planes == 2);
+			SqueezeVertically2(srcPx, dstHeight);
+		}
 		srcPx.height = dstHeight;
 	}
 	
@@ -234,13 +242,23 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		}
 		
 		if (planes == 4)  StretchHorizontally4(srcPx, dstPx);
-		else /* planes == 1 */  StretchHorizontally1(srcPx, dstPx);
+		else if (planes == 1)  StretchHorizontally1(srcPx, dstPx);
+		else
+		{
+			assert(planes == 2);
+			StretchHorizontally2(srcPx, dstPx);
+		}
 	}
 	else if (dstWidth < srcWidth)
 	{
 		// Squeeze horizontally. This can be done in-place.
-		if (planes == 4)  SqueezeHorizontally4(srcPx, dstWidth);
-		else /* planes == 1 */  SqueezeHorizontally1(srcPx, dstWidth);
+		if (planes == 4)  SqueezeHorizontally4(srcPx, dstHeight);
+		else if (planes == 1)  SqueezeHorizontally1(srcPx, dstHeight);
+		else
+		{
+			assert(planes == 2);
+			SqueezeHorizontally2(srcPx, dstHeight);
+		}
 		
 		dstPx = srcPx;
 		dstPx.width = dstWidth;
@@ -1059,6 +1077,69 @@ static void StretchHorizontally1(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 }
 
 
+static void StretchHorizontally2(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
+{
+	uint16_t			*src, *srcStart, *dst;
+	uint16_t			px0, px1;
+	uint_fast32_t		hi, lo;
+	uint_fast32_t		x, y, xCount, srcRowBytes;
+	uint_fast16_t		weight0, weight1;
+	uint_fast32_t		fractX, deltaX;	// X coordinate, fixed-point (20.12), allowing widths up to 1 mebipixel
+	
+	srcStart = srcPx.pixels;
+	srcRowBytes = srcPx.rowBytes;
+	xCount = dstPx.width;
+	dst = dstPx.pixels;	// Assumes no row padding
+	
+	deltaX = (srcPx.width << 12) / dstPx.width;
+	px1 = *srcStart;
+	
+	for (y = 0; y < dstPx.height - 1; ++y)
+	{
+		fractX = 0;
+		
+		for (x = 0; x!= xCount; ++x)
+		{
+			fractX += deltaX;
+			
+			weight1 = (fractX >> 4) & 0xFF;
+			weight0 = 0x100 - weight1;
+			
+			px0 = px1;
+			src = srcStart + (fractX >> 12);
+			px1 = *src;
+			
+			hi = (px0 & 0xFF00) * weight0 + (px1 & 0xFF00) * weight1;
+			lo = (px0 & 0x00FF) * weight0 + (px1 & 0x00FF) * weight1;
+			
+			*dst++ = ((hi & 0xFF0000) | (lo & 0x00FF00)) >> 8;
+		}
+		
+		srcStart = (uint16_t *)((char *)srcStart + srcRowBytes);
+		px1 = *srcStart;
+	}
+	
+	// Copy last row without reading off end of buffer
+	fractX = 0;
+	for (x = 0; x!= xCount; ++x)
+	{
+		fractX += deltaX;
+		
+		weight1 = (fractX >> 4) & 0xFF;
+		weight0 = 0x100 - weight1;
+		
+		px0 = px1;
+		src = srcStart + (fractX >> 12);
+		px1 = *src;
+		
+		hi = (px0 & 0xFF00) * weight0 + (px1 & 0xFF00) * weight1;
+		lo = (px0 & 0x00FF) * weight0 + (px1 & 0x00FF) * weight1;
+		
+		*dst++ = ((hi & 0xFF0000) | (lo & 0x00FF00)) >> 8;
+	}
+}
+
+
 static void StretchHorizontally4(OOScalerPixMap srcPx, OOScalerPixMap dstPx)
 {
 	uint32_t			*src, *srcStart, *dst;
@@ -1243,8 +1324,157 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 }
 
 
-// Macros to manage 4-channel accumulators in 4-channel squeeze scalers.
-#define ACCUM(PX, WT) do {							\
+/*	Macros to manage 2-channel accumulators in 2-channel squeeze scalers.
+	accumHi is the sum of weighted high-channel pixels, shifted left 8 bits.
+	accumLo is the sum of weighted low-channel pixels.
+	weight is the sum of all pixel weights.
+*/
+#define ACCUM2(PX, WT) do {							\
+			uint16_t px = PX;						\
+			uint_fast32_t wt = WT;					\
+			accumHi += (px & 0xFF00) * wt;			\
+			accumLo += (px & 0x00FF) * wt;			\
+			weight += wt;							\
+		} while (0)
+
+#define CLEAR_ACCUM2() do {							\
+			accumHi = 0;							\
+			accumLo = 0;							\
+			weight = 0;								\
+		} while (0)
+
+#define ACCUM2TOPX()	(							\
+			((accumHi / weight) & 0xFF00) |			\
+			((accumLo / weight) & 0x00FF)			\
+		)
+
+
+static void SqueezeHorizontally2(OOScalerPixMap srcPx, OOTextureDimension dstWidth)
+{
+	uint16_t			*src, *srcStart, *dst;
+	uint16_t			borderPx;
+	uint_fast32_t		x, y, xCount, endX, srcRowBytes;
+	uint_fast32_t		endFractX, deltaX;
+	uint_fast32_t		accumHi, accumLo, weight;
+	uint_fast8_t		borderWeight;
+	
+	srcStart = srcPx.pixels;
+	dst = srcStart;	// Output is placed in same buffer, without line padding.
+	srcRowBytes = srcPx.rowBytes;
+	
+	deltaX = (srcPx.width << 12) / dstWidth;
+	
+	for (y = 0; y != srcPx.height; ++y)
+	{
+		borderPx = *srcStart;
+		endFractX = 0;
+		borderWeight = 0;
+		
+		src = srcStart;
+		
+		x = 0;
+		xCount = dstWidth;
+		while (xCount--)
+		{
+			endFractX += deltaX;
+			endX = endFractX >> 12;
+			
+			CLEAR_ACCUM2();
+			
+			borderWeight = 0xFF - borderWeight;
+			ACCUM2(borderPx, borderWeight);
+			
+			borderWeight = (endFractX >> 4) & 0xFF;
+			
+			for (;;)
+			{
+				++x;
+				if (EXPECT(x == endX))
+				{
+					if (EXPECT(xCount))  borderPx = *++src;
+					ACCUM2(borderPx, borderWeight);
+					break;
+				}
+				else
+				{
+					ACCUM2(*++src, 0xFF);
+				}
+			}
+			
+			*dst++ = ACCUM2TOPX();
+		}
+		
+		srcStart = (uint16_t *)((char *)srcStart + srcRowBytes);
+	}
+}
+
+
+static void SqueezeVertically2(OOScalerPixMap srcPx, OOTextureDimension dstHeight)
+{
+	uint16_t			*src, *srcStart, *dst;
+	uint_fast32_t		x, y, xCount, startY, endY, srcRowBytes, lastRow;
+	uint_fast32_t		endFractY, deltaY;
+	uint_fast32_t		accumHi, accumLo, weight;
+	uint_fast8_t		startWeight, endWeight;
+	
+	dst = srcPx.pixels;	// Output is placed in same buffer, without line padding.
+	srcRowBytes = srcPx.rowBytes;
+	xCount = srcPx.width;
+	
+	deltaY = (srcPx.height << 12) / dstHeight;
+	endFractY = 0;
+	
+	endWeight = 0;
+	endY = 0;
+	
+	lastRow = srcPx.height - 1;
+	
+	while (endY < lastRow)
+	{
+		endFractY += deltaY;
+		startY = endY;
+		endY = endFractY >> 12;
+		
+		startWeight = 0xFF - endWeight;
+		endWeight = (endFractY >> 4) & 0xFF;
+		
+		srcStart = (uint16_t *)((char *)srcPx.pixels + srcRowBytes * startY);
+		
+		for (x = 0; x != xCount; ++x)
+		{
+			src = srcStart++;
+			
+			CLEAR_ACCUM2();
+			ACCUM2(*src, startWeight);
+			
+			y = startY;
+			for (;;)
+			{
+				++y;
+				src = (uint16_t *)((char *)src + srcRowBytes);
+				if (EXPECT_NOT(y == endY))
+				{
+					if (EXPECT(endY <= lastRow))  ACCUM2(*src, endWeight);
+					break;
+				}
+				else
+				{
+					ACCUM2(*src, 0xFF);
+				}
+			}
+			
+			*dst++ = ACCUM2TOPX();
+		}
+	}
+}
+
+
+/*	Macros to manage 4-channel accumulators in 4-channel squeeze scalers.
+	The approach is similar to the ACCUM2 family above, except that the wt
+	multiplication works on two channels at a time before splitting into four
+	accumulators, all of which are shifted to the low end of the value.
+*/
+#define ACCUM4(PX, WT) do {							\
 			uint32_t px = PX;						\
 			uint_fast32_t wt = WT;					\
 			ag = ((px & 0xFF00FF00) >> 8) * wt;		\
@@ -1256,7 +1486,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 			weight += wt;							\
 		} while (0)
 
-#define CLEAR_ACCUM() do {							\
+#define CLEAR_ACCUM4() do {							\
 			accum1 = 0;								\
 			accum2 = 0;								\
 			accum3 = 0;								\
@@ -1270,7 +1500,7 @@ static void SqueezeVertically1(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 	a quality hit. Given that scaling doesn't happen very often,
 	I think I'll leave it this way. -- Ahruman
 */
-#define ACCUM2PX()	(								\
+#define ACCUM4TOPX()	(							\
 			(((accum1 / weight) & 0xFF) << 24) |	\
 			(((accum3 / weight) & 0xFF) << 8) |		\
 			(((accum2 / weight) & 0xFF) << 16) |	\
@@ -1308,29 +1538,29 @@ static void SqueezeHorizontally4(OOScalerPixMap srcPx, OOTextureDimension dstWid
 			endFractX += deltaX;
 			endX = endFractX >> 12;
 			
-			CLEAR_ACCUM();
+			CLEAR_ACCUM4();
 			
 			borderWeight = 0xFF - borderWeight;
-			ACCUM(borderPx, borderWeight);
+			ACCUM4(borderPx, borderWeight);
 			
 			borderWeight = (endFractX >> 4) & 0xFF;
 			
 			for (;;)
 			{
 				++x;
-				if (x == endX)
+				if (EXPECT(x == endX))
 				{
-					if (xCount)  borderPx = *++src;
-					ACCUM(borderPx, borderWeight);
+					if (EXPECT(xCount))  borderPx = *++src;
+					ACCUM4(borderPx, borderWeight);
 					break;
 				}
 				else
 				{
-					ACCUM(*++src, 0xFF);
+					ACCUM4(*++src, 0xFF);
 				}
 			}
 			
-			*dst++ = ACCUM2PX();
+			*dst++ = ACCUM4TOPX();
 		}
 		
 		srcStart = (uint32_t *)((char *)srcStart + srcRowBytes);
@@ -1374,8 +1604,8 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 		{
 			src = srcStart++;
 			
-			CLEAR_ACCUM();
-			ACCUM(*src, startWeight);
+			CLEAR_ACCUM4();
+			ACCUM4(*src, startWeight);
 			
 			y = startY;
 			for (;;)
@@ -1384,18 +1614,18 @@ static void SqueezeVertically4(OOScalerPixMap srcPx, OOTextureDimension dstHeigh
 				src = (uint32_t *)((char *)src + srcRowBytes);
 				if (EXPECT_NOT(y == endY))
 				{
-					if (EXPECT(endY <= lastRow))  ACCUM(*src, endWeight);
+					if (EXPECT(endY <= lastRow))  ACCUM4(*src, endWeight);
 					break;
 				}
 				else
 				{
-					ACCUM(*src, 0xFF);
+					ACCUM4(*src, 0xFF);
 				}
 			}
 			
-			*dst++ = ACCUM2PX();
+			*dst++ = ACCUM4TOPX();
 		}
-	}	
+	}
 }
 
 
