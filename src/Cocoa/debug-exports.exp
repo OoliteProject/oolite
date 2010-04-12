@@ -13,6 +13,7 @@
 .objc_class_name_ShipEntity
 .objc_class_name_OOEntityWithDrawable
 .objc_class_name_OOOpenGLExtensionManager
+
 _OOLogWithFunctionFileAndLine
 _OOLogInsertMarker
 _OOLogSetDisplayMessagesInClass
