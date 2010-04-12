@@ -301,6 +301,8 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 				(smooth ||
 				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
 				 [configuration objectForKey:@"specular_map"] != nil ||
+				 [configuration objectForKey:@"normal_map"] != nil ||
+				 [configuration objectForKey:@"normal_and_parallax_map"] != nil ||
 				 [configuration objectForKey:@"emission_map"] != nil ||
 				 [configuration objectForKey:@"illumination_map"] != nil ||
 				 [configuration objectForKey:@"emission_and_illumination_map"] != nil

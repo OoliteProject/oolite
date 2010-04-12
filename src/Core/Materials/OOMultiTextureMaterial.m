@@ -83,8 +83,6 @@ SOFTWARE.
 			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec] retain];
 			if (_emissionMap != nil)  _unitsUsed++;
 		}
-		
-		OOLog(@"multitex.temp", @"I has a multi-texture material: %@", self);
 	}
 	
 	return self;
