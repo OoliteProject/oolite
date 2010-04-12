@@ -52,7 +52,8 @@ SOFTWARE.
 #import "OOMaths.h"
 
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
+
 
 @class OOShaderProgram, OOTexture;
 
@@ -210,4 +211,4 @@ BOOL OOUniformBindingPermitted(NSString *propertyName, id bindingTarget);
 @end
 
 
-#endif // NO_SHADERS
+#endif // OO_SHADERS

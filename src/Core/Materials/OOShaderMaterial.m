@@ -45,9 +45,12 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
-#import "ResourceManager.h"
+
 #import "OOShaderMaterial.h"
+
+#if OO_SHADERS
+
+#import "ResourceManager.h"
 #import "OOShaderUniform.h"
 #import "OOFunctionAttributes.h"
 #import "OOCollectionExtractors.h"
@@ -661,7 +664,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		for (i = 0; i != count; ++i)
 		{
 			glActiveTextureARB(GL_TEXTURE0_ARB + i);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			[OOTexture applyNone];
 		}
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 	}
@@ -744,4 +747,4 @@ static NSString *MacrosToString(NSDictionary *macros)
 	return result;
 }
 
-#endif	// NO_SHADERS
+#endif

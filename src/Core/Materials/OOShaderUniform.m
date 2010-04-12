@@ -45,9 +45,11 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
 
 #import "OOShaderUniform.h"
+
+#if OO_SHADERS
+
 #import "OOShaderProgram.h"
 #import "OOFunctionAttributes.h"
 #import <string.h>
@@ -645,4 +647,4 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 
 @end
 
-#endif // NO_SHADERS
+#endif // OO_SHADERS

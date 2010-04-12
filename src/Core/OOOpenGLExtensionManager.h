@@ -56,30 +56,39 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 
 
-#ifndef NO_SHADERS
+#ifndef OO_SHADERS
+#ifdef NO_SHADERS
+#define	OO_SHADERS		0
+#else
+#define	OO_SHADERS		1
+#endif
+#endif
+
+
+#if OO_SHADERS
 
 // Certain extensions are required for shader support.
 #ifndef GL_ARB_multitexture
-#warning NO_SHADERS not defined and GL_ARB_multitexture not defined.
+#warning NO_SHADERS not defined and GL_ARB_multitexture not defined; if possible, use a newer version of glext.h.
 #endif
 
 #ifndef GL_ARB_shader_objects
-#warning NO_SHADERS not defined and GL_ARB_shader_objects not defined.
+#warning NO_SHADERS not defined and GL_ARB_shader_objects not defined; if possible, use a newer version of glext.h.
 #endif
 
 #ifndef GL_ARB_shading_language_100
-#warning NO_SHADERS not defined and GL_ARB_shading_language_100 not defined.
+#warning NO_SHADERS not defined and GL_ARB_shading_language_100 not defined; if possible, use a newer version of glext.h.
 #endif
 
 #ifndef GL_ARB_fragment_shader
-#warning NO_SHADERS not defined and GL_ARB_fragment_shader not defined.
+#warning NO_SHADERS not defined and GL_ARB_fragment_shader not defined; if possible, use a newer version of glext.h.
 #endif
 
 #ifndef GL_ARB_vertex_shader
-#warning NO_SHADERS not defined and GL_ARB_vertex_shader not defined.
+#warning NO_SHADERS not defined and GL_ARB_vertex_shader not defined; if possible, use a newer version of glext.h.
 #endif
 
-#endif //NO_SHADERS
+#endif //OO_SHADERS
 
 
 #if GL_ARB_vertex_buffer_object
@@ -88,6 +97,20 @@ SOFTWARE.
 #define OO_USE_VBO		0
 #warning Building without vertex buffer object support, are your OpenGL headers up to date?
 #endif
+
+
+/*	Multitexturing requires GL_ARB_multitexture, but we only have use for it
+	if GL_ARB_texture_env_combine is available, and GL_ARB_texture_env_combine
+	requires GL_ARB_multitexture. Both GL_ARB_multitexture and
+	GL_ARB_texture_env_combine were promoted to core in OpenGL 1.3.
+*/
+#if GL_ARB_texture_env_combine
+#define OO_MULTITEXTURE	1
+#else
+#warning GL_ARB_texture_env_combine is not defined; if possible, use a newer version of glext.h.
+#define OO_MULTITEXTURE	0
+#endif
+
 
 
 #define OOOPENGLEXTMGR_LOCK_SET_ACCESS		(!OOLITE_MAC_OS_X)
@@ -106,11 +129,15 @@ SOFTWARE.
 	
 	unsigned				major, minor, release;
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
 	BOOL					shadersAvailable;
 #endif
 #if OO_USE_VBO
 	BOOL					vboSupported;
+#endif
+#if OO_MULTITEXTURE
+	BOOL					textureCombinersSupported;
+	GLint					textureUnitCount;
 #endif
 }
 
@@ -119,11 +146,13 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
-- (BOOL)vboSupported;		// Vertex buffer objects
+- (BOOL)vboSupported;			// Vertex buffer objects
+- (BOOL)textureCombinersSupported;
+- (OOUInteger)textureUnitCount;	// Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 
-- (unsigned)majorVersionNumber;
-- (unsigned)minorVersionNumber;
-- (unsigned)releaseVersionNumber;
+- (OOUInteger)majorVersionNumber;
+- (OOUInteger)minorVersionNumber;
+- (OOUInteger)releaseVersionNumber;
 - (void)getVersionMajor:(unsigned *)outMajor minor:(unsigned *)outMinor release:(unsigned *)outRelease;
 
 - (NSString *) vendorString;
@@ -144,10 +173,9 @@ OOINLINE BOOL OOShadersSupported(void)
 	(required for Windows only).
 */
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
 // Shader functions
 PFNGLUSEPROGRAMOBJECTARBPROC			glUseProgramObjectARB;
-PFNGLACTIVETEXTUREARBPROC				glActiveTextureARB;
 PFNGLGETUNIFORMLOCATIONARBPROC			glGetUniformLocationARB;
 PFNGLUNIFORM1IARBPROC					glUniform1iARB;
 PFNGLUNIFORM1FARBPROC					glUniform1fARB;
@@ -167,8 +195,17 @@ PFNGLBINDATTRIBLOCATIONARBPROC			glBindAttribLocationARB;
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC		glEnableVertexAttribArrayARB;
 PFNGLVERTEXATTRIBPOINTERARBPROC			glVertexAttribPointerARB;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB;
-PFNGLVALIDATEPROGRAMARBPROC		glValidateProgramARB;
-#endif	// !defined(NO_SHADERS)
+PFNGLVALIDATEPROGRAMARBPROC				glValidateProgramARB;
+#endif	// OO_SHADERS
+
+
+#if OO_SHADERS || OO_MULTITEXTURE
+PFNGLACTIVETEXTUREARBPROC				glActiveTextureARB;
+#endif
+
+#if OO_MULTITEXTURE
+PFNGLCLIENTACTIVETEXTUREARBPROC			glClientActiveTextureARB;
+#endif
 
 #if OO_USE_VBO
 PFNGLGENBUFFERSARBPROC					glGenBuffersARB;

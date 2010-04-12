@@ -63,7 +63,8 @@ typedef struct
 	NSString				*textureFile;
 	unsigned char			*textureData;
 	
-#ifndef NO_SHADERS
+#if OO_SHADERS
+
 	BOOL					isShadered;
 	GLhandleARB				shader_program;
 #endif

@@ -37,6 +37,7 @@ MA 02110-1301, USA.
 #import "OODrawable.h"
 #import "OOOpenGL.h"
 #import "OOWeakReference.h"
+#import "OOOpenGLExtensionManager.h"
 
 @class OOMaterial, Octree;
 
@@ -124,6 +125,10 @@ typedef struct
 	NSString				*_cacheKey;
 	NSDictionary			*_shaderMacros;
 	id						_shaderBindingTarget;
+	
+#if OO_MULTITEXTURE
+	OOUInteger				_textureUnitCount;
+#endif
 	
 #if OOMESH_PROFILE
 	OOProfilingStopwatch	*_stopwatch;

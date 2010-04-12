@@ -48,9 +48,9 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
+#import "OOOpenGLExtensionManager.h"
 
-#import "OOCocoa.h"
+#if OO_SHADERS
 
 
 typedef enum
@@ -79,4 +79,4 @@ typedef enum
 
 OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *signature);
 
-#endif	// NO_SHADERS
+#endif	// OO_SHADERS

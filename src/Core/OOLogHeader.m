@@ -104,7 +104,8 @@ void OOPrintLogHeader(void)
 	
 	NSArray *featureStrings = [NSArray arrayWithObjects:
 	// User features
-	#ifndef NO_SHADERS
+	#if OO_SHADERS
+
 		@"GLSL shaders",
 	#endif
 	

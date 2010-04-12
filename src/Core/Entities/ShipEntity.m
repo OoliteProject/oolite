@@ -7190,18 +7190,15 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) fireDirectLaserShot
 {
+	Entity			*my_target = [self primaryTarget];
+	if (my_target == nil)  return NO;
+	
 	GLfloat			hit_at_range;
-	Entity*	my_target = [self primaryTarget];
-	if (!my_target)
-		return NO;
-	ParticleEntity*	shot;
+	ParticleEntity	*shot = nil;
 	double			range_limit2 = weaponRange*weaponRange;
-	Vector			r_pos = my_target->position;
-	r_pos.x -= position.x;	r_pos.y -= position.y;	r_pos.z -= position.z;
-	if (r_pos.x||r_pos.y||r_pos.z)
-		r_pos = vector_normal(r_pos);
-	else
-		r_pos.z = 1.0;
+	Vector			r_pos;
+	
+	r_pos = vector_normal_or_zbasis(vector_subtract(my_target->position, position));
 
 	Quaternion		q_laser = quaternion_rotation_between(r_pos, make_vector(0.0f,0.0f,1.0f));
 	q_laser.x += 0.01 * (randf() - 0.5);	// randomise aim a little (+/- 0.005)
@@ -7214,8 +7211,8 @@ BOOL class_masslocks(int some_class)
 	target_laser_hit = [UNIVERSE getFirstEntityHitByLaserFromEntity:self inView:VIEW_FORWARD offset: make_vector(0,0,0) rangeFound: &hit_at_range];
 	orientation = q_save;			// restore rotation
 
-	Vector  vel = make_vector(v_forward.x * flightSpeed, v_forward.y * flightSpeed, v_forward.z * flightSpeed);
-
+	Vector  vel = vector_multiply_scalar(v_forward, flightSpeed);
+	
 	// do special effects laser line
 	shot = [[ParticleEntity alloc] initLaserFromShip:self view:VIEW_FORWARD offset:kZeroVector];
 	[shot setColor:laser_color];
@@ -7251,13 +7248,13 @@ BOOL class_masslocks(int some_class)
 	[shot release];
 	
 	[self resetShotTime];
-
+	
 	// random laser over-heating for AI ships
 	if ((!isPlayer)&&((ranrot_rand() & 255) < weapon_energy)&&(![self isMining]))
 	{
 		shot_time -= (randf() * weapon_energy);
 	}
-
+	
 	return YES;
 }
 
@@ -7267,12 +7264,10 @@ BOOL class_masslocks(int some_class)
 	ParticleEntity  *shot;
 	double			range_limit2 = weaponRange*weaponRange;
 	GLfloat			hit_at_range;
-	Vector  vel;
+	Vector			vel;
 	target_laser_hit = NO_TARGET;
 
-	vel.x = v_forward.x * flightSpeed;
-	vel.y = v_forward.y * flightSpeed;
-	vel.z = v_forward.z * flightSpeed;
+	vel = vector_multiply_scalar(v_forward, flightSpeed);
 
 	Vector	laserPortOffset;
 

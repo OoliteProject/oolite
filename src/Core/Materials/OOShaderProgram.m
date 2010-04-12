@@ -45,7 +45,9 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
+#import "OOOpenGLExtensionManager.h"
+
+#if OO_SHADERS
 
 #import "OOShaderProgram.h"
 #import "OOFunctionAttributes.h"
@@ -438,4 +440,4 @@ static NSString *GetGLSLInfoLog(GLhandleARB shaderObject)
 	return result;
 }
 
-#endif // NO_SHADERS
+#endif // OO_SHADERS

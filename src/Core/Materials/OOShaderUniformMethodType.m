@@ -65,9 +65,11 @@ SOFTWARE.
 	supports binding to methods with no parameters, so this is not a problem.
 */
 
-#ifndef NO_SHADERS
-
 #import "OOShaderUniformMethodType.h"
+
+#if OO_SHADERS
+
+
 #import "OOMaths.h"
 
 static BOOL				sInited = NO;
@@ -255,4 +257,4 @@ static const char *CopyTemplateForSelector(SEL selector)
 
 @end
 
-#endif	// NO_SHADERS
+#endif	// OO_SHADERS

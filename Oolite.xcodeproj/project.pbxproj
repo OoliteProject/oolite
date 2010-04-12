@@ -380,6 +380,10 @@
 		1A3BA259106555D100C5C6F3 /* NSNumberOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BA257106555D100C5C6F3 /* NSNumberOOExtensions.h */; };
 		1A3BA25A106555D100C5C6F3 /* NSNumberOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */; };
 		1A3C67FB0F1C910E0000D45B /* OOLegacyScriptWhitelist.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */; };
+		1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3D03131173536C005BF5E6 /* OOMultiTextureMaterial.h */; };
+		1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D03141173536C005BF5E6 /* OOMultiTextureMaterial.m */; };
+		1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */; };
+		1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */; };
 		1A43234E0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */; };
 		1A43234F0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */; };
 		1A43A0CC0CB91D2C00D0E239 /* OOJSPlanet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */; };
@@ -1489,6 +1493,10 @@
 		1A3BA258106555D100C5C6F3 /* NSNumberOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSNumberOOExtensions.m; sourceTree = "<group>"; };
 		1A3C67F30F1C90BF0000D45B /* OOLegacyScriptWhitelist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLegacyScriptWhitelist.h; sourceTree = "<group>"; };
 		1A3C67F40F1C90BF0000D45B /* OOLegacyScriptWhitelist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLegacyScriptWhitelist.m; sourceTree = "<group>"; };
+		1A3D03131173536C005BF5E6 /* OOMultiTextureMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMultiTextureMaterial.h; sourceTree = "<group>"; };
+		1A3D03141173536C005BF5E6 /* OOMultiTextureMaterial.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMultiTextureMaterial.m; sourceTree = "<group>"; };
+		1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOMaterialConvenienceCreators.h; sourceTree = "<group>"; };
+		1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOMaterialConvenienceCreators.m; sourceTree = "<group>"; };
 		1A43234A0BCFC9BB00F65914 /* OOOpenGLExtensionManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOOpenGLExtensionManager.h; sourceTree = "<group>"; };
 		1A43234B0BCFC9BB00F65914 /* OOOpenGLExtensionManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOOpenGLExtensionManager.m; sourceTree = "<group>"; };
 		1A43A0CA0CB91D2C00D0E239 /* OOJSPlanet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSPlanet.h; sourceTree = "<group>"; };
@@ -2454,12 +2462,16 @@
 			children = (
 				1A26D0D30BCF9D0D0073F257 /* OOMaterial.h */,
 				1A26D0D20BCF9D0D0073F257 /* OOMaterial.m */,
+				1A3D034811736EDA005BF5E6 /* OOMaterialConvenienceCreators.h */,
+				1A3D034911736EDA005BF5E6 /* OOMaterialConvenienceCreators.m */,
 				1ADBA54E0BD0F173008FC99C /* OOBasicMaterial.h */,
 				1ADBA54F0BD0F173008FC99C /* OOBasicMaterial.m */,
 				1A26D0D00BCF9D0D0073F257 /* OOShaderMaterial.h */,
 				1A26D0D10BCF9D0D0073F257 /* OOShaderMaterial.m */,
 				1A2A16670BD10B1200152975 /* OOSingleTextureMaterial.h */,
 				1A2A16660BD10B1200152975 /* OOSingleTextureMaterial.m */,
+				1A3D03131173536C005BF5E6 /* OOMultiTextureMaterial.h */,
+				1A3D03141173536C005BF5E6 /* OOMultiTextureMaterial.m */,
 				1A71E8610BCE8A6E00CD5C13 /* Shaders */,
 				1A71E85D0BCE8A5500CD5C13 /* Textures */,
 			);
@@ -3198,6 +3210,8 @@
 				1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */,
 				1A7E3189113ED496009AAB6D /* ProxyPlayerEntity.h in Headers */,
 				1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */,
+				1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */,
+				1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3563,6 +3577,8 @@
 				1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */,
 				1A7E317C113ED37C009AAB6D /* EntityShaderBindings.m in Sources */,
 				1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */,
+				1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */,
+				1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -428,7 +428,7 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
-- (NSString *)description
+- (NSString *) descriptionComponents
 {
 	NSString				*stateDesc = nil;
 	
@@ -448,7 +448,13 @@ static NSString *sGlobalTraceContext = nil;
 		stateDesc = @"loading";
 	}
 	
-	return [NSString stringWithFormat:@"<%@ %p [%u]>{%@, %@}", [self className], self, [self retainCount], _key, stateDesc];
+	return [NSString stringWithFormat:@"<{%@, %@}", _key, stateDesc];
+}
+
+
+- (NSString *) shortDescriptionComponents
+{
+	return _key;
 }
 
 
@@ -1072,6 +1078,6 @@ id OOTextureSpecFromObject(id object, NSString *defaultName)
 	
 	// If we get here, there's no "name" key and there is a default, so we fill it in:
 	NSMutableDictionary *mutableResult = [object mutableCopy];
-	[mutableResult setObject:defaultName forKey:@"name"];
+	[mutableResult setObject:[[defaultName copy] autorelease] forKey:@"name"];
 	return [mutableResult autorelease];
 }

@@ -41,7 +41,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "Entity.h"		// for NO_DRAW_DISTANCE_FACTOR.
 #import "Octree.h"
-#import "OOMaterial.h"
+#import "OOMaterialConvenienceCreators.h"
 #import "OOBasicMaterial.h"
 #import "OOCollectionExtractors.h"
 #import "OOOpenGLExtensionManager.h"
@@ -237,6 +237,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object
 	if (self == nil)  return nil;
 	
 	baseFile = @"No Model";
+#if OO_MULTITEXTURE
+	_textureUnitCount = NSNotFound;
+#endif
 	
 	return self;
 }
@@ -323,8 +326,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 {
 	OO_ENTER_OPENGL();
 	
-	int			ti;
-	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	
 	OOGL(glShadeModel(GL_SMOOTH));
@@ -335,19 +336,50 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));
 	OOGL(glEnableClientState(GL_NORMAL_ARRAY));
-	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	
 	OOGL(glVertexPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
 	OOGL(glNormalPointer(GL_FLOAT, 0, _displayLists.normalArray));
+	
+#if OO_SHADERS
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
 		OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
 		OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 3, GL_FLOAT, GL_FALSE, 0, _displayLists.tangentArray));
 	}
+#endif
 	
 	OOGL(glDisable(GL_BLEND));
 	
 	BOOL usingNormalsAsTexCoords = NO;
+	OOMeshMaterialIndex ti;
+	
+	/*	FIXME: really, really horrible hack to set up texture coordinates for
+		each texture unit. Very messy and still fails to handle some possibly-
+		basic stuff, like switching usingNormalsAsTexCoords per texture unit.
+		The right way to do this is probably to move attribute setup into the
+		material model.
+		-- Ahruman 2010-04-12
+	*/
+#if OO_MULTITEXTURE
+	if (_textureUnitCount == NSNotFound)
+	{
+		_textureUnitCount = 0;
+		for (ti = 0; ti < materialCount; ti++)
+		{
+			OOUInteger count = [materials[ti] countOfTextureUnitsWithBaseCoordinates];
+			if (_textureUnitCount < count)  _textureUnitCount = count;
+		}
+	}
+	
+	OOUInteger unit;
+	for (unit = 0; unit < _textureUnitCount; unit++)
+	{
+		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+		OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	}
+#else
+	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+#endif
 	
 	NS_DURING
 		if (!listsReady)
@@ -366,18 +398,27 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 			BOOL wantsNormalsAsTextureCoordinates = [materials[ti] wantsNormalsAsTextureCoordinates];
 			if (ti == 0 || wantsNormalsAsTextureCoordinates != usingNormalsAsTexCoords)
 			{
-				if (!wantsNormalsAsTextureCoordinates)
+#if OO_MULTITEXTURE
+				for (unit = 0; unit < _textureUnitCount; unit++)
 				{
-					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
-					OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
-					OOGL(glEnable(GL_TEXTURE_2D));
+					OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+					OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + unit));
+#endif
+					if (!wantsNormalsAsTextureCoordinates)
+					{
+						OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
+						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, _displayLists.textureUVArray));
+						OOGL(glEnable(GL_TEXTURE_2D));
+					}
+					else
+					{
+						OOGL(glDisable(GL_TEXTURE_2D));
+						OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.normalArray));
+						OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+					}
+#if OO_MULTITEXTURE
 				}
-				else
-				{
-					OOGL(glDisable(GL_TEXTURE_2D));
-					OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.normalArray));
-					OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
-				}
+#endif
 				usingNormalsAsTexCoords = wantsNormalsAsTextureCoordinates;
 			}
 			
@@ -414,20 +455,33 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	
-#ifndef NDEBUG
-	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
-#endif
-	
+#if OO_SHADERS
 	if ([[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
 		OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
 	}
+#endif
 	
 	[OOMaterial applyNone];
 	CheckOpenGLErrors(@"OOMesh after drawing %@", self);
 	
 #ifndef NDEBUG
+	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 	if (gDebugFlags & DEBUG_OCTREE_DRAW)  [[self octree] drawOctree];
+#endif
+	
+#if OO_MULTITEXTURE
+	for (unit = 0; unit < _textureUnitCount; unit++)
+	{
+		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+		OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+	}
+	
+	if (_textureUnitCount > 1)
+	{
+		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
+		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+	}
 #endif
 	
 	OOGL(glPopAttrib());
@@ -716,6 +770,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 #if OOMESH_PROFILE
 	DESTROY(_stopwatch);
 #endif
+#if OO_MULTITEXTURE
+	_textureUnitCount = NSNotFound;
+#endif
 	
 	[pool release];
 	return self;
@@ -772,6 +829,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	[self deleteDisplayLists];
 	[self rebindMaterials];
+	_textureUnitCount = NSNotFound;
 }
 
 

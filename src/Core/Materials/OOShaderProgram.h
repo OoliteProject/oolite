@@ -50,10 +50,12 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
 
 #import <Foundation/Foundation.h>
 #import "OOOpenGL.h"
+#import "OOOpenGLExtensionManager.h"
+
+#if OO_SHADERS
 
 
 @interface OOShaderProgram: NSObject
@@ -75,4 +77,4 @@ SOFTWARE.
 
 @end
 
-#endif // NO_SHADERS
+#endif // OO_SHADERS

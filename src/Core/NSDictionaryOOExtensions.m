@@ -56,7 +56,7 @@ SOFTWARE.
 	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
 	if (object == nil || key == nil)  return [[self copy] autorelease];
 	
-	NSMutableDictionary *temp = [self mutableCopy];
+	NSMutableDictionary *temp = [[NSMutableDictionary alloc] initWithDictionary:self];
 	[temp setObject:object forKey:key];
 	NSDictionary *result = [[temp copy] autorelease];
 	[temp release];
@@ -70,7 +70,7 @@ SOFTWARE.
 	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
 	if (key == nil)  return [[self copy] autorelease];
 	
-	NSMutableDictionary *temp = [self mutableCopy];
+	NSMutableDictionary *temp = [[NSMutableDictionary alloc] initWithDictionary:self];
 	[temp removeObjectForKey:key];
 	NSDictionary *result = [[temp copy] autorelease];
 	[temp release];
@@ -84,7 +84,7 @@ SOFTWARE.
 	// Note: object lifetime issues aside, we need to copy and autorelease so that the right thing happens for mutable dictionaries.
 	if (dictionary == nil)  return [[self copy] autorelease];
 	
-	NSMutableDictionary *temp = [self mutableCopy];
+	NSMutableDictionary *temp = [[NSMutableDictionary alloc] initWithDictionary:self];
 	[temp addEntriesFromDictionary:dictionary];
 	NSDictionary *result = [[temp copy] autorelease];
 	[temp release];

@@ -279,7 +279,7 @@ double longitudeFromVector(Vector v);
 		textureName = 0;
 		isTextured = NO;
 	}
-#ifndef NO_SHADERS
+#if OO_SHADERS
 	isShadered = NO;
 	shader_program = NULL_SHADER;
 #endif
@@ -630,7 +630,7 @@ double longitudeFromVector(Vector v);
 		fillRanNoiseBuffer();
 		textureName = [TextureStore getPlanetTextureNameFor: planetInfo intoData: &textureData];
 		isTextured = (textureName != 0);
-#ifndef NO_SHADERS
+#if OO_SHADERS
 		isShadered = NO;
 #if OLD_SHADERS
 		if (UNIVERSE)
@@ -652,7 +652,7 @@ double longitudeFromVector(Vector v);
 	else
 #endif
 	{
-#ifndef NO_SHADERS
+#if OO_SHADERS
 		isShadered = NO;
 		shader_program = NULL_SHADER;
 #endif
@@ -986,7 +986,7 @@ double longitudeFromVector(Vector v);
 					OOGL(glDisableClientState(GL_INDEX_ARRAY));
 					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 					
-#ifndef NO_SHADERS
+#if OO_SHADERS
 					if (isShadered)
 					{
 						GLint locator;
@@ -1052,7 +1052,7 @@ double longitudeFromVector(Vector v);
 					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
-#ifndef NO_SHADERS
+#if OO_SHADERS
 					if (isShadered)
 					{
 						OOGL(glColor4fv(mat1));

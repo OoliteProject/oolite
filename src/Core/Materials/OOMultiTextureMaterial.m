@@ -1,0 +1,188 @@
+/*
+
+OOMultiTextureMaterial.m
+
+ 
+Oolite
+Copyright (C) 2004-2010 Giles C Williams and contributors
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA.
+
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2010 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+#import "OOMultiTextureMaterial.h"
+#import "OOOpenGLExtensionManager.h"
+#import "OOTexture.h"
+#import "OOMacroOpenGL.h"
+#import "NSDictionaryOOExtensions.h"
+
+#if OO_MULTITEXTURE
+
+
+@implementation OOMultiTextureMaterial
+
+- (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
+{
+	OOColor *emissionColor = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
+	if (emissionColor != nil)
+	{
+		OOLogWARN(@"material.multiTexture.emissionUnsupported", @"Materials with both emission and emission_map are currently not supported in non-shader mode. The emission value will be ignored.");
+		configuration = [configuration dictionaryByRemovingObjectForKey:@"emission"];
+	}
+	
+	if ((self = [super initWithName:name configuration:configuration]))
+	{
+		OOUInteger maxUnits = [[OOOpenGLExtensionManager sharedManager] textureUnitCount];
+		
+		id diffuseSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
+		id emissionSpec = [configuration oo_textureSpecifierForKey:@"emission_map" defaultName:name];
+		
+		if (diffuseSpec != nil && ![diffuseSpec isEqual:nil] && _unitsUsed < maxUnits)
+		{
+			_diffuseMap = [[OOTexture textureWithConfiguration:diffuseSpec] retain];
+			if (_diffuseMap != nil)  _unitsUsed++;
+		}
+		if (emissionSpec != nil && _unitsUsed < maxUnits)
+		{
+			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec] retain];
+			if (_emissionMap != nil)  _unitsUsed++;
+		}
+		
+		OOLog(@"multitex.temp", @"I has a multi-texture material: %@", self);
+	}
+	
+	return self;
+}
+
+
+- (void) dealloc
+{
+	[self willDealloc];
+	
+	DESTROY(_diffuseMap);
+	DESTROY(_emissionMap);
+	
+	[super dealloc];
+}
+
+
+- (NSString *) descriptionComponents
+{
+	NSMutableArray *bits = [NSMutableArray array];
+	if (_diffuseMap)  [bits addObject:[NSString stringWithFormat:@"diffuse map: %@", [_diffuseMap shortDescription]]];
+	if (_emissionMap)  [bits addObject:[NSString stringWithFormat:@"emission map: %@", [_emissionMap shortDescription]]];
+	
+	NSString *result = [super descriptionComponents];
+	if ([bits count] > 0)  result = [result stringByAppendingFormat:@" - %@", [bits componentsJoinedByString:@","]];
+	return result;
+}
+
+
+- (OOUInteger) textureUnitCount
+{
+	return _unitsUsed;
+}
+
+
+- (OOUInteger) countOfTextureUnitsWithBaseCoordinates
+{
+	return _unitsUsed;
+}
+
+
+- (void) ensureFinishedLoading
+{
+	[_diffuseMap ensureFinishedLoading];
+	[_emissionMap ensureFinishedLoading];
+}
+
+
+- (void) apply
+{
+	OO_ENTER_OPENGL();
+	
+	[super apply];
+	
+	GLenum textureUnit = GL_TEXTURE0_ARB;
+	
+	if (_diffuseMap != nil)
+	{
+		OOGL(glActiveTextureARB(textureUnit++));
+		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
+		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_MODULATE));
+		[_diffuseMap apply];
+	}
+	
+	if (_emissionMap != nil)
+	{
+		OOGL(glActiveTextureARB(textureUnit++));
+		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB));
+		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB, GL_ADD));
+		[_emissionMap apply];
+	}
+	
+	NSAssert2(textureUnit - GL_TEXTURE0_ARB == _unitsUsed, @"OOMultiTextureMaterial texture unit count invalid (expected %u, actually using %u)", _unitsUsed, textureUnit - GL_TEXTURE0_ARB);
+	
+	if (textureUnit > GL_TEXTURE1_ARB)
+	{
+		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+	}
+}
+
+
+- (void) unapplyWithNext:(OOMaterial *)next
+{
+	OO_ENTER_OPENGL();
+	
+	[super unapplyWithNext:next];
+	
+	OOUInteger i;
+	i = [next isKindOfClass:[OOMultiTextureMaterial class]] ? [(OOMultiTextureMaterial *)next textureUnitCount] : 0;
+	for (; i != _unitsUsed; ++i)
+	{
+		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
+		[OOTexture applyNone];
+		OOGL(glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE));
+	}
+	OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+}
+
+@end
+
+#endif	/* OO_MULTITEXTURE */

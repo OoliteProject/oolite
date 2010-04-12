@@ -47,9 +47,11 @@ SOFTWARE.
 
 */
 
-#ifndef NO_SHADERS
-
 #import "OOShaderMaterial.h"
+
+#if OO_SHADERS
+
+
 #import "OOMaths.h"
 
 @class OOColor;
@@ -106,4 +108,4 @@ SOFTWARE.
 
 @end
 
-#endif // NO_SHADERS
+#endif // OO_SHADERS

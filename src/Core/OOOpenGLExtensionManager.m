@@ -52,16 +52,27 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 
 
-#if OOLITE_WINDOWS && !defined(NO_SHADERS)
+/*	OpenGL versino requiredment, currently 1.1 or later (basic stuff like
+	glBindTexture(), glDrawArrays()). We probably have implicit requirements
+	for later versions, but I don't feel like auditing.
+	-- Ahruman
+*/
+enum
+{
+	kMinMajorVersion				= 1,
+	kMinMinorVersion				= 1
+};
+
+
+#if OOLITE_WINDOWS
 /*	Define the function pointers for the OpenGL extensions used in the game
 	(required for Windows only).
 */
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
 static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
 
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
-PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;				
 PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB		= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORM1IARBPROC				glUniform1iARB				= (PFNGLUNIFORM1IARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLUNIFORM1FARBPROC				glUniform1fARB				= (PFNGLUNIFORM1FARBPROC)&OOBadOpenGLExtensionUsed;
@@ -81,6 +92,14 @@ PFNGLBINDATTRIBLOCATIONARBPROC		glBindAttribLocationARB		= (PFNGLBINDATTRIBLOCAT
 PFNGLENABLEVERTEXATTRIBARRAYARBPROC	glEnableVertexAttribArrayARB	= (PFNGLENABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLVERTEXATTRIBPOINTERARBPROC		glVertexAttribPointerARB	= (PFNGLVERTEXATTRIBPOINTERARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLDISABLEVERTEXATTRIBARRAYARBPROC	glDisableVertexAttribArrayARB	= (PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)&OOBadOpenGLExtensionUsed;
+#endif
+
+#if OO_SHADERS || OO_MULTITEXTURE
+PFNGLACTIVETEXTUREARBPROC			glActiveTextureARB			= (PFNGLACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
+#endif
+
+#if OO_MULTITEXTURE
+PFNGLCLIENTACTIVETEXTUREARBPROC		glClientActiveTextureARB	= (PFNGLCLIENTACTIVETEXTUREARBPROC)&OOBadOpenGLExtensionUsed;
 #endif
 
 #if OO_USE_VBO
@@ -104,12 +123,16 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 @interface OOOpenGLExtensionManager (OOPrivate)
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
 - (void)checkShadersSupported;
-#endif	// NO_SHADERS
+#endif
 
 #if OO_USE_VBO
 - (void)checkVBOSupported;
+#endif
+
+#if GL_ARB_texture_env_combine
+- (void)checkTextureCombinersSupported;
 #endif
 
 @end
@@ -163,24 +186,21 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
 		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], extensionString);
 		
-		if (major <= 1 && minor < 1)
+		if (major <= kMinMajorVersion && minor < kMinMinorVersion)
 		{
-			/*	Ensure we have OpenGL 1.1 or later (basic stuff like
-				glBindTexture(), glDrawArrays()).
-				We probably have implicit requirements for later versions, but
-				I don't feel like auditing.
-				-- Ahruman
-			*/
 			OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version 1.1 or later.");
 			[NSException raise:@"OoliteOpenGLTooOldException"
-						format:@"Oolite requires at least OpenGL 1.1. You have %u.%u (\"%s\").", major, minor, versionString];
+						format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
 		}
 		
-#ifndef NO_SHADERS
+#if OO_SHADERS
 		[self checkShadersSupported];
 #endif
 #if OO_USE_VBO
 		[self checkVBOSupported];
+#endif
+#if GL_ARB_texture_env_combine
+		[self checkTextureCombinersSupported];
 #endif
 	}
 	return self;
@@ -229,7 +249,7 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 
 - (BOOL)shadersSupported
 {
-#ifndef NO_SHADERS
+#if OO_SHADERS
 	return shadersAvailable;
 #else
 	return NO;
@@ -247,19 +267,39 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 }
 
 
-- (unsigned)majorVersionNumber
+- (BOOL)textureCombinersSupported
+{
+#if OO_MULTITEXTURE
+	return textureCombinersSupported;
+#else
+	return NO;
+#endif
+}
+
+
+- (OOUInteger)textureUnitCount
+{
+#if OO_MULTITEXTURE
+	return textureUnitCount;
+#else
+	return 0;
+#endif
+}
+
+
+- (OOUInteger)majorVersionNumber
 {
 	return major;
 }
 
 
-- (unsigned)minorVersionNumber
+- (OOUInteger)minorVersionNumber
 {
 	return minor;
 }
 
 
-- (unsigned)releaseVersionNumber
+- (OOUInteger)releaseVersionNumber
 {
 	return release;
 }
@@ -306,7 +346,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 @implementation OOOpenGLExtensionManager (OOPrivate)
 
 
-#ifndef NO_SHADERS
+#if OO_SHADERS
 
 - (void)checkShadersSupported
 {
@@ -351,9 +391,9 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glUniform4fvARB				=	(PFNGLUNIFORM4FVARBPROC)wglGetProcAddress("glUniform4fvARB");
 	glUniform2fvARB				=	(PFNGLUNIFORM2FVARBPROC)wglGetProcAddress("glUniform2fvARB");
 	glBindAttribLocationARB		=	(PFNGLBINDATTRIBLOCATIONARBPROC)wglGetProcAddress("glBindAttribLocationARB");
-	glEnableVertexAttribArrayARB	=	(PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
+	glEnableVertexAttribArrayARB =	(PFNGLENABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glEnableVertexAttribArrayARB");
 	glVertexAttribPointerARB	=	(PFNGLVERTEXATTRIBPOINTERARBPROC)wglGetProcAddress("glVertexAttribPointerARB");
-	glDisableVertexAttribArrayARB	=	(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
+	glDisableVertexAttribArrayARB =	(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
 	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 	
@@ -385,6 +425,31 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 		glBufferDataARB = (PFNGLBUFFERDATAARBPROC)wglGetProcAddress("glBufferDataARB");
 	}
 #endif
+}
+#endif
+
+
+#if OO_MULTITEXTURE
+- (void)checkTextureCombinersSupported
+{
+	textureCombinersSupported = [self haveExtension:@"GL_ARB_texture_env_combine"];
+	
+	if (textureCombinersSupported)
+	{
+		OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnitCount));
+		
+#if OOLITE_WINDOWS
+		// Duplicated in checkShadersSupported. but that's not really a problem.
+		glActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC)wglGetProcAddress("glActiveTextureARB");
+		
+		glClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC)wglGetProcAddress("glClientActiveTextureARB");
+#endif
+	}
+	else
+	{
+		textureUnitCount = 1;
+	}
+
 }
 #endif
 
@@ -441,9 +506,9 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 @end
 
 
-#if OOLITE_WINDOWS && !defined(NO_SHADERS)
+#if OOLITE_WINDOWS
 
-static void OOBadOpenGLExtensionUsed(void)
+static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((used))
 {
 	OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
 	exit(EXIT_FAILURE);

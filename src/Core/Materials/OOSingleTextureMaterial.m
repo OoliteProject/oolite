@@ -102,9 +102,9 @@ SOFTWARE.
 }
 
 
-- (NSString *)description
+- (NSString *) descriptionComponents
 {
-	return [NSString stringWithFormat:@"<%@ %p>{%@}", [self class], self, _texture];
+	return [_texture description];
 }
 
 

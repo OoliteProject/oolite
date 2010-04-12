@@ -471,7 +471,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	OOTexture *normalMap = nil;
 	NSDictionary *macros = nil;
 	NSDictionary *materialDefaults = [ResourceManager materialDefaults];
-#if !NO_SHADERS
+	
+#if OO_SHADERS
 	OOShaderSetting shaderLevel = [UNIVERSE shaderEffectsLevel];
 	BOOL shadersOn = shaderLevel > SHADERS_OFF;
 #else
@@ -510,7 +511,8 @@ static OOColor *ColorWithHSBColor(Vector c)
 	}
 	OOMaterial *material = nil;
 	
-#if !NO_SHADERS
+#if OO_SHADERS
+
 	if (shadersOn)
 	{
 		NSMutableDictionary *config = [[[materialDefaults oo_dictionaryForKey:@"planet-material"] mutableCopy] autorelease];
