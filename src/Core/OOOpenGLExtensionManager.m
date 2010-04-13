@@ -52,7 +52,7 @@ SOFTWARE.
 #import "NSThreadOOExtensions.h"
 
 
-/*	OpenGL versino requiredment, currently 1.1 or later (basic stuff like
+/*	OpenGL version required, currently 1.1 or later (basic stuff like
 	glBindTexture(), glDrawArrays()). We probably have implicit requirements
 	for later versions, but I don't feel like auditing.
 	-- Ahruman
@@ -68,9 +68,9 @@ enum
 /*	Define the function pointers for the OpenGL extensions used in the game
 	(required for Windows only).
 */
+static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn, used));
 
 #if OO_SHADERS
-static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn, used));
 
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB		= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
