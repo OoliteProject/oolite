@@ -70,7 +70,7 @@ enum
 */
 
 #if OO_SHADERS
-static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn));
+static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((noreturn, used));
 
 PFNGLUSEPROGRAMOBJECTARBPROC		glUseProgramObjectARB		= (PFNGLUSEPROGRAMOBJECTARBPROC)&OOBadOpenGLExtensionUsed;
 PFNGLGETUNIFORMLOCATIONARBPROC		glGetUniformLocationARB		= (PFNGLGETUNIFORMLOCATIONARBPROC)&OOBadOpenGLExtensionUsed;
@@ -508,7 +508,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 
 #if OOLITE_WINDOWS
 
-static void OOBadOpenGLExtensionUsed(void) GCC_ATTR((used))
+static void OOBadOpenGLExtensionUsed(void)
 {
 	OOLog(@"rendering.opengl.badExtension", @"***** An uninitialized OpenGL extension function has been called, terminating. This is a serious error, please report it. *****");
 	exit(EXIT_FAILURE);
