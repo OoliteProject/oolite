@@ -54,7 +54,8 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 
 
-// #define DUMP_MIP_MAPS 1
+#define DUMP_MIP_MAPS	0
+#define DUMP_SCALE		0
 
 
 // Structure used to track buffers in OOScalePixMap() and its helpers.
@@ -153,11 +154,16 @@ OOINLINE void StretchVertically(OOScalerPixMap srcPx, OOScalerPixMap dstPx, OOTe
 #endif
 
 
-#if DUMP_MIP_MAPS
+#if DUMP_MIP_MAPS || DUMP_SCALE
 // NOTE: currently only works on OS X because of OSAtomicAdd32() (used to increment ID counter in thread-safe way). A simple increment would be sufficient if limited to a single thread (in OOTextureLoader).
 volatile int32_t sPreviousDumpID		= 0;
 int32_t	OSAtomicAdd32(int32_t __theAmount, volatile int32_t *__theValue);
 
+
+static void DumpPixMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, size_t rowBytes, NSString *name);
+#endif
+
+#if DUMP_MIP_MAPS
 #define	DUMP_CHANNELS		-1		// Bitmap of channel counts - -1 for all dumps
 
 #define DUMP_MIP_MAP_PREPARE(pl)		uint32_t dumpPlanes = pl; \
@@ -169,6 +175,14 @@ static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension 
 #else
 #define DUMP_MIP_MAP_PREPARE(pl)		do { (void)pl; } while (0)
 #define DUMP_MIP_MAP_DUMP(px, w, h)		do { (void)px; (void)w; (void)h; } while (0)
+#endif
+
+#if DUMP_SCALE
+#define DUMP_SCALE_PREPARE()			SInt32 dumpID = OSAtomicAdd32(1, &sPreviousDumpID), dumpCount = 0;
+#define DUMP_SCALE_DUMP(PM, stage)		do { OOScalerPixMap *pm = &(PM); DumpPixMap(pm->pixels, pm->width, pm->height, planes, pm->rowBytes, [NSString stringWithFormat:@"scaling dump ID %u stage %u-%@ %ux%u", dumpID, dumpCount++, stage, pm->width, pm->height]); } while (0)
+#else
+#define DUMP_SCALE_PREPARE()
+#define DUMP_SCALE_DUMP(PM, stage)		do {} while (0)
 #endif
 
 
@@ -185,11 +199,14 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		return NULL;
 	}
 	
+	DUMP_SCALE_PREPARE();
+	
 	srcPx.pixels = srcPixels;
 	srcPx.width = srcWidth;
 	srcPx.height = srcHeight;
 	srcPx.rowBytes = srcRowBytes;
 	srcPx.dataSize = srcRowBytes * srcHeight;
+	DUMP_SCALE_DUMP(srcPx, @"initial");
 		
 	if (srcHeight < dstHeight)
 	{
@@ -203,6 +220,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 		if (EXPECT_NOT(dstPx.pixels == NULL))  goto FAIL;
 		
 		StretchVertically(srcPx, dstPx, planes);
+		DUMP_SCALE_DUMP(dstPx, @"stretched vertically");
 		
 		sparePx = srcPx;
 		srcPx = dstPx;
@@ -218,6 +236,7 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 			SqueezeVertically2(srcPx, dstHeight);
 		}
 		srcPx.height = dstHeight;
+		DUMP_SCALE_DUMP(srcPx, @"squeezed vertically");
 	}
 	
 	if (srcWidth < dstWidth)
@@ -248,21 +267,23 @@ void *OOScalePixMap(void *srcPixels, OOTextureDimension srcWidth, OOTextureDimen
 			assert(planes == 2);
 			StretchHorizontally2(srcPx, dstPx);
 		}
+		DUMP_SCALE_DUMP(dstPx, @"stretched horizontally");
 	}
 	else if (dstWidth < srcWidth)
 	{
 		// Squeeze horizontally. This can be done in-place.
-		if (planes == 4)  SqueezeHorizontally4(srcPx, dstHeight);
-		else if (planes == 1)  SqueezeHorizontally1(srcPx, dstHeight);
+		if (planes == 4)  SqueezeHorizontally4(srcPx, dstWidth);
+		else if (planes == 1)  SqueezeHorizontally1(srcPx, dstWidth);
 		else
 		{
 			assert(planes == 2);
-			SqueezeHorizontally2(srcPx, dstHeight);
+			SqueezeHorizontally2(srcPx, dstWidth);
 		}
 		
 		dstPx = srcPx;
 		dstPx.width = dstWidth;
 		dstPx.rowBytes = dstPx.width * planes;
+		DUMP_SCALE_DUMP(dstPx, @"squeezed horizontally");
 	}
 	else
 	{
@@ -823,50 +844,57 @@ static void ScaleToHalf_4_x2(void *srcBytes, void *dstBytes, OOTextureDimension 
 #endif
 
 
-#if DUMP_MIP_MAPS
+#if DUMP_MIP_MAPS || DUMP_SCALE
 
 #import "Universe.h"
 #import "MyOpenGLView.h"
 
 
+#if DUMP_MIP_MAPS
 static void DumpMipMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, SInt32 ID, uint32_t level)
 {
-	NSString *dumpName = [NSString stringWithFormat:@"texture dump ID %u lv%u %uch %ux%u", ID, level, planes, width, height];
+	DumpPixMap(data, width, height, planes, planes * width, [NSString stringWithFormat:@"mipmap dump ID %u lv%u %uch %ux%u", ID, level, planes, width, height]);
+}
+#endif
+
+
+static void DumpPixMap(void *data, OOTextureDimension width, OOTextureDimension height, OOTexturePlaneCount planes, size_t rowBytes, NSString *name)
+{
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	
 	switch (planes)
 	{
 		case 1:
-			[gameView dumpGrayToFileNamed:dumpName
+			[gameView dumpGrayToFileNamed:name
 									bytes:data
 									width:width
 								   height:height
-								 rowBytes:width];
+								 rowBytes:rowBytes];
 			break;
 			
 		case 2:
-			[gameView dumpGrayAlphaToFileNamed:dumpName
+			[gameView dumpGrayAlphaToFileNamed:name
 										 bytes:data
 										 width:width
 										height:height
-									  rowBytes:width * 2];
+									  rowBytes:rowBytes];
 			break;
 			
 		case 3:
-			[gameView dumpRGBAToFileNamed:dumpName
+			[gameView dumpRGBAToFileNamed:name
 									bytes:data
 									width:width
 								   height:height
-								 rowBytes:width * 3];
+								 rowBytes:rowBytes];
 			break;
 			
 		case 4:
-			[gameView dumpRGBAToRGBFileNamed:[dumpName stringByAppendingString:@" rgb"]
-							andGrayFileNamed:[dumpName stringByAppendingString:@" alpha"]
+			[gameView dumpRGBAToRGBFileNamed:[name stringByAppendingString:@" rgb"]
+							andGrayFileNamed:[name stringByAppendingString:@" alpha"]
 									   bytes:data
 									   width:width
 									  height:height
-									rowBytes:width * 4];
+									rowBytes:rowBytes];
 			break;
 	}
 }
