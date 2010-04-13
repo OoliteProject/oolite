@@ -192,7 +192,9 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOTexture.m \
 	OOTextureGenerator.m \
 	OOTextureLoader.m \
-	OOTextureScaling.m
+	OOTextureScaling.m \
+	OOMultiTextureMaterial.m \
+	OOMaterialConvenienceCreators.m
 
 OOLITE_GRAPHICS_MISC_FILES = \
 	OOCamera.m \
