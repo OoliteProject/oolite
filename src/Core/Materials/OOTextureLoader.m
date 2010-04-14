@@ -239,6 +239,15 @@ static BOOL					sHaveSetUp = NO;
 		OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
 		
 		[self loadTexture];
+		
+		// Catch an error I've seen but not diagnosed yet.
+		if (data != NULL && OOTexturePlanesForFormat(format) == 0)
+		{
+			OOLog(@"textureLoader.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", path, format);
+			free(data);
+			data = NULL;
+		}
+		
 		if (data != NULL)  [self applySettings];
 		
 		OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");

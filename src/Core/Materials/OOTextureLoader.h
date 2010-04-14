@@ -103,8 +103,6 @@ SOFTWARE.
 	may be several worker threads. The caller takes responsibility for
 	autorelease pools and exception safety.
 	
-	Data must be little-endian ARGB (FIXME: is this correct?)
-	
 	Superclass will handle scaling and mip-map generation. Data must be
 	allocated with malloc() family.
 */

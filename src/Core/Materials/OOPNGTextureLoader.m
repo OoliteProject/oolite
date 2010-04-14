@@ -156,7 +156,8 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	{
 		png_set_expand(png);		// Paletted -> RGB, greyscale -> 8 bpc
 	}
-	else if (colorType == PNG_COLOR_TYPE_GRAY)
+	
+	if (colorType == PNG_COLOR_TYPE_GRAY)
 	{
 		format = kOOTextureDataGrayscale;
 	}

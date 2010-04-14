@@ -233,7 +233,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 	OOGL(glGetObjectParameterivARB(object, statusType, &status));
 	if (status == GL_FALSE)
 	{
-		NSString *msgClass = [NSString stringWithFormat:@"shader.%.failure", linking ? @"link" : @"compile"];
+		NSString *msgClass = [NSString stringWithFormat:@"shader.%@.failure", linking ? @"link" : @"compile"];
 		OOLogERR(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, actionString, name, GetGLSLInfoLog(object));
 		return NO;
 	}
@@ -245,7 +245,7 @@ static BOOL ValidateShaderObject(GLhandleARB object, NSString *name)
 		OOGL(glGetObjectParameterivARB(object, GL_OBJECT_VALIDATE_STATUS_ARB, &status));
 		if (status == GL_FALSE)
 		{
-			NSString *msgClass = [NSString stringWithFormat:@"shader.%.validationFailure", linking ? @"link" : @"compile"];
+			NSString *msgClass = [NSString stringWithFormat:@"shader.%@.validationFailure", linking ? @"link" : @"compile"];
 			OOLogWARN(msgClass, @"GLSL %@ %@ failed for %@:\n>>>>> GLSL log:\n%@\n", subtypeString, @"validation", name, GetGLSLInfoLog(object));
 			return NO;
 		}

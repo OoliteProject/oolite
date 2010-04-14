@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
 
+#ifndef NDEBUG
+#import <Foundation/NSDebug.h>
+#endif
+
 
 static NSString * kOOLogKeyCodeOutOfRange	= @"input.keyMapping.codeOutOfRange";
 static NSString * kOOLogKeyUp				= @"input.keyMapping.keyPress.keyUp";
@@ -51,12 +55,17 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (id) initWithFrame:(NSRect)frameRect
 {
+#ifndef NDEBUG
+	if (NSZombieEnabled)
+	{
+		OOLog(@"debug.zombieEnabled", @"*** ZOMBIES WILL EAT YOUR BRAIN ***");
+	}
+#endif
+	
 	// Pixel Format Attributes for the View-based (non-FullScreen) NSOpenGLContext
 	NSOpenGLPixelFormatAttribute attrs[] =
 	{
-//		// Specify that we want a full-screen OpenGL context.
-//		NSOpenGLPFAFullScreen,
-		// and that we want a windowed OpenGL context.
+//		// Specify that we want a windowed OpenGL context.
 		NSOpenGLPFAWindow,
 		
 		// We may be on a multi-display system (and each screen may be driven by a different renderer), so we need to specify which screen we want to take over.
