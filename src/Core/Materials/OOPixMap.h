@@ -1,10 +1,8 @@
 /*
 
-OOTextureScaling.h
+OOPixMap.h
 
-Functions used to rescale texture maps.
-These are bottlenecks! They should be optimized or, better, replaced with use
-of an optimized library.
+Types for low-level pixel map manipulation.
 
 
 Oolite
@@ -28,7 +26,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -50,26 +48,56 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#import "OOMaths.h"
 
 
-/*	Assumes 8 bits per sample, interleaved.
-	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
-	is generated).
-	
-	IMPORTANT: this will free() srcPixMap's pixels.
-*/
-OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
+typedef uint_fast32_t		OOPixMapDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
+typedef uint_fast8_t		OOPixMapComponentCount;	// Currently supported values are 1, 2 and 4.
 
-OOINLINE void *OOScalePixMapRaw(void *srcData, OOPixMapDimension srcWidth, OOPixMapDimension srcHeight, OOPixMapComponentCount components, size_t srcRowBytes, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps)
+
+typedef struct
 {
-	OOPixMap src = OOMakePixMap(srcData, srcWidth, srcHeight, components, srcRowBytes, 0);
-	OOPixMap dst = OOScalePixMap(src, dstWidth, dstHeight, leaveSpaceForMipMaps);
-	return dst.pixels;
-}
+	void					*pixels;
+	OOPixMapDimension		width, height;
+	OOPixMapComponentCount	components;
+	size_t					rowBytes;
+	size_t					bufferSize;
+} OOPixMap;
 
 
-/*	Assumes 8 bits per sample, interleaved.
-	Buffer must have space for (4 * width * height) / 3 pixels.
+extern const OOPixMap kOONullPixMap;
+
+
+OOINLINE BOOL OOIsNullPixMap(OOPixMap pixMap)  { return pixMap.pixels == NULL; }
+BOOL OOIsValidPixMap(OOPixMap pixMap);
+
+
+/*	OOMakePixMap()
+	Stuff an OOPixMap struct. Returns kOONullPixMap if the result would be
+	invalid. If rowBytes or bufferSize are zero, minimum valid values will be
+	used.
 */
-BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount planes);
+OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize);
+
+/*	OOAllocatePixMap()
+	Create an OOPixMap, allocating storage. If rowBytes or bufferSize are zero,
+	minimum valid values will be used.
+*/
+OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize);
+
+
+/*	OOCompactPixMap()
+	Remove any trailing space in a pixmap's buffer, if possible.
+*/
+void OOCompactPixMap(OOPixMap *ioPixMap);
+
+
+/*	OOExpandPixMap()
+	Expand pixmap to at least desiredSize bytes. Returns false on failure.
+*/
+BOOL OOExpandPixMap(OOPixMap *ioPixMap, size_t desiredSize);
+
+
+#ifndef NDEBUG
+void OODumpPixMap(OOPixMap pixMap, NSString *name);
+#endif

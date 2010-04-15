@@ -354,6 +354,19 @@ static NSString *sGlobalTraceContext = nil;
 		if ([configuration oo_boolForKey:@"cube_map" defaultValue:NO])  options |= kOOTextureAllowCubeMap;
 		anisotropy = [configuration oo_floatForKey:@"anisotropy" defaultValue:kOOTextureDefaultAnisotropy];
 		lodBias = [configuration oo_floatForKey:@"texture_LOD_bias" defaultValue:kOOTextureDefaultLODBias];
+		
+		NSString *extractChannel = [configuration oo_stringForKey:@"extract_channel"];
+		if (extractChannel != nil)
+		{
+			if ([extractChannel isEqualToString:@"r"])  options |= kOOTextureExtractChannelR;
+			else if ([extractChannel isEqualToString:@"g"])  options |= kOOTextureExtractChannelG;
+			else if ([extractChannel isEqualToString:@"b"])  options |= kOOTextureExtractChannelB;
+			else if ([extractChannel isEqualToString:@"a"])  options |= kOOTextureExtractChannelA;
+			else
+			{
+				OOLogWARN(@"texture.load.extractChannel.invalid", @"Unknown value \"%@\" for extract_channel (should be \"r\", \"g\", \"b\" or \"a\").", extractChannel);
+			}
+		}
 	}
 	else
 	{

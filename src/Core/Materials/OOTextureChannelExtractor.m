@@ -1,10 +1,6 @@
 /*
 
-OOTextureScaling.h
-
-Functions used to rescale texture maps.
-These are bottlenecks! They should be optimized or, better, replaced with use
-of an optimized library.
+OOTextureChannelExtractor.m
 
 
 Oolite
@@ -50,26 +46,68 @@ SOFTWARE.
 
 */
 
-#import "OOPixMap.h"
+#include "OOTextureChannelExtractor.h"
+#import "OOCPUInfo.h"
 
 
-/*	Assumes 8 bits per sample, interleaved.
-	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
-	is generated).
-	
-	IMPORTANT: this will free() srcPixMap's pixels.
-*/
-OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
+static void ExtractChannel_4(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex);
 
-OOINLINE void *OOScalePixMapRaw(void *srcData, OOPixMapDimension srcWidth, OOPixMapDimension srcHeight, OOPixMapComponentCount components, size_t srcRowBytes, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps)
+
+BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex, BOOL compactWhenDone)
 {
-	OOPixMap src = OOMakePixMap(srcData, srcWidth, srcHeight, components, srcRowBytes, 0);
-	OOPixMap dst = OOScalePixMap(src, dstWidth, dstHeight, leaveSpaceForMipMaps);
-	return dst.pixels;
+	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) || ioPixMap->components != 4 || channelIndex > 3))
+	{
+		return NO;
+	}
+	
+	OODumpPixMap(*ioPixMap, @"pre-extraction");
+	
+	ExtractChannel_4(ioPixMap, channelIndex);
+	
+	ioPixMap->components = 1;
+	ioPixMap->rowBytes = ioPixMap->width;
+	
+	if (compactWhenDone)
+	{
+		OOCompactPixMap(ioPixMap);
+	}
+	
+	OODumpPixMap(*ioPixMap, @"extracted");
+	
+	return YES;
 }
 
 
-/*	Assumes 8 bits per sample, interleaved.
-	Buffer must have space for (4 * width * height) / 3 pixels.
-*/
-BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount planes);
+static void ExtractChannel_4(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex)
+{
+	uint32_t			*src;
+	uint8_t				*dst;
+	uint_fast8_t		shift;
+	uint_fast32_t		xCount, y;
+	
+	NSCParameterAssert(ioPixMap != NULL);
+	
+	dst = ioPixMap->pixels;
+	
+#if OOLITE_BIG_ENDIAN
+	// FIXME: Not flipping here gives right result. Either we're doing something wrong somewhere, or I'm confused.
+//	shift = 24 - 8 * channelIndex;
+	shift = 8 * channelIndex;
+#elif OOLITE_LITTLE_ENDIAN
+	shift = 8 * channelIndex;
+#else
+#error Unknown byte order.
+#endif
+	
+	for (y = 0; y < ioPixMap->height; y++)
+	{
+		src = (uint32_t *)((char *)ioPixMap->pixels + y * ioPixMap->rowBytes);
+		xCount = ioPixMap->width;
+		
+		do
+		{
+			*dst++ = (*src++ >> shift) & 0xFF;
+		}
+		while (--xCount);
+	}
+}

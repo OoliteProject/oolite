@@ -52,6 +52,7 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "OOTextureScaling.h"
+#import "OOTextureChannelExtractor.h"
 #import <stdlib.h>
 
 
@@ -124,6 +125,33 @@ static BOOL					sHaveSetUp = NO;
 #if GL_ARB_texture_cube_map
 	allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
 #endif
+	
+	if (options & kOOTextureExtractChannelMask)
+	{
+		extractChannel = YES;
+		switch (options & kOOTextureExtractChannelMask)
+		{
+			case kOOTextureExtractChannelR:
+				extractChannelIndex = 0;
+				break;
+				
+			case kOOTextureExtractChannelG:
+				extractChannelIndex = 1;
+				break;
+				
+			case kOOTextureExtractChannelB:
+				extractChannelIndex = 2;
+				break;
+				
+			case kOOTextureExtractChannelA:
+				extractChannelIndex = 3;
+				break;
+				
+			default:
+				OOLogERR(@"textureLoader.unknownExtractChannelMask", @"Unknown texture extract channel mask (0x%.4X). This is an internal error, please report it.", options & kOOTextureExtractChannelMask);
+				extractChannel =  NO;
+		}
+	}
 	
 	return self;
 }
@@ -301,13 +329,27 @@ static BOOL					sHaveSetUp = NO;
 {
 	uint32_t			desiredWidth, desiredHeight;
 	BOOL				rescale;
-	void				*newData = NULL;
 	size_t				newSize;
-	uint8_t				planes;
+	uint8_t				components;
+	OOPixMap			pixMap;
 	
-	planes = OOTexturePlanesForFormat(format);
+	components = OOTexturePlanesForFormat(format);
+	pixMap = OOMakePixMap(data, width, height, components, rowBytes, 0);
 	
-	if (rowBytes == 0)  rowBytes = width * planes;
+	if (extractChannel)
+	{
+		if (OOExtractPixMapChannel(&pixMap, extractChannelIndex, NO))
+		{
+			format = kOOTextureDataGrayscale;
+			components = 1;
+		}
+		else
+		{
+			OOLogWARN(@"texture.load.extractChannel.invalid", @"Cannot extract channel from texture \"%@\"", [path lastPathComponent]);
+		}
+	}
+	
+	if (rowBytes == 0)  rowBytes = width * components;
 	[self getDesiredWidth:&desiredWidth andHeight:&desiredHeight];
 	
 	// Rescale if needed.
@@ -319,11 +361,13 @@ static BOOL					sHaveSetUp = NO;
 		if (isCubeMap)  leaveSpaceForMipMaps = NO;
 #endif
 		
-		data = OOScalePixMap(data, width, height, planes, rowBytes, desiredWidth, desiredHeight, leaveSpaceForMipMaps);
-		if (EXPECT_NOT(data == NULL))  return;
+		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, YES);
+		if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return;
 		
-		width = desiredWidth;
-		height = desiredHeight;
+		data = pixMap.pixels;
+		width = pixMap.width;
+		height = pixMap.height;
+		rowBytes = pixMap.rowBytes;
 	}
 	
 #if GL_ARB_texture_cube_map
@@ -338,18 +382,21 @@ static BOOL					sHaveSetUp = NO;
 #endif
 	
 	// Generate mip maps if needed.
-	if (generateMipMaps && !rescale)
+	if (generateMipMaps)
 	{
-		// Make space...
-		newSize = desiredWidth * planes * desiredHeight;
+		// Make space if needed.
+		newSize = desiredWidth * components * desiredHeight;
 		newSize = (newSize * 4) / 3;
-		newData = realloc(data, newSize);
-		if (newData != nil)  data = newData;
-		else  generateMipMaps = NO;
+		generateMipMaps = OOExpandPixMap(&pixMap, newSize);
+		
+		data = pixMap.pixels;
+		width = pixMap.width;
+		height = pixMap.height;
+		rowBytes = pixMap.rowBytes;
 	}
 	if (generateMipMaps)
 	{
-		OOGenerateMipMaps(data, width, height, planes);
+		OOGenerateMipMaps(data, width, height, components);
 	}
 	
 	// All done.

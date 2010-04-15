@@ -393,7 +393,7 @@
 		1A43F28B105170A8003FDE8B /* OONSOperation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A43F28A105170A8003FDE8B /* OONSOperation.h */; };
 		1A4501E20DBF699A00815C04 /* descriptions.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A4501E10DBF699A00815C04 /* descriptions.plist */; };
 		1A451D8D0BB1BD2A004CD72F /* OOMaths.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9404920BAF4582005F6CF3 /* OOMaths.h */; };
-		1A45BCE4104ABB2100A89324 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng.a */; };
+		1A45BCE4104ABB2100A89324 /* libpng_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */; };
 		1A472917096B5454000E78D8 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472916096B5454000E78D8 /* CoreAudio.framework */; };
 		1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A47291F096B5468000E78D8 /* AudioToolbox.framework */; };
 		1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A472920096B5468000E78D8 /* AudioUnit.framework */; };
@@ -636,6 +636,10 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
+		1AECE9DC11779526003986A8 /* OOTextureChannelExtractor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */; };
+		1AECE9DD11779526003986A8 /* OOTextureChannelExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */; };
+		1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DF1177959F003986A8 /* OOPixMap.h */; };
+		1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9EE11779910003986A8 /* OOPixMap.m */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
 		1AED2D0D0C04586C004A1118 /* OOGraphicsResetManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */; };
 		2512833E09BA27C100F43D55 /* Octree.m in Sources */ = {isa = PBXBuildFile; fileRef = 2512833C09BA27C100F43D55 /* Octree.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
@@ -1571,7 +1575,7 @@
 		1A6DD1220C57B5BC00A892F4 /* OOPListSchemaVerifier.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPListSchemaVerifier.m; sourceTree = "<group>"; };
 		1A71D8A80E5F17410088C456 /* OOSoundSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOSoundSource.m; sourceTree = "<group>"; };
 		1A71D8A90E5F17410088C456 /* OOSoundSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOSoundSource.h; sourceTree = "<group>"; };
-		1A71E6F30BCE340C00CD5C13 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng_for_oolite.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A71E7030BCE34CF00CD5C13 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
 		1A71E7040BCE34CF00CD5C13 /* pngmem.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngmem.c; sourceTree = "<group>"; };
 		1A71E7050BCE34CF00CD5C13 /* pngwutil.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pngwutil.c; sourceTree = "<group>"; };
@@ -1760,6 +1764,10 @@
 		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
+		1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureChannelExtractor.h; sourceTree = "<group>"; };
+		1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureChannelExtractor.m; sourceTree = "<group>"; };
+		1AECE9DF1177959F003986A8 /* OOPixMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMap.h; sourceTree = "<group>"; };
+		1AECE9EE11779910003986A8 /* OOPixMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMap.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
 		1AED2D0B0C04586C004A1118 /* OOGraphicsResetManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOGraphicsResetManager.m; sourceTree = "<group>"; };
 		1AF8E33A0CC169F500CA6001 /* contributors.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = contributors.txt; path = Doc/contributors.txt; sourceTree = "<group>"; };
@@ -1854,7 +1862,7 @@
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
 				1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */,
-				1A45BCE4104ABB2100A89324 /* libpng.a in Frameworks */,
+				1A45BCE4104ABB2100A89324 /* libpng_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1895,7 +1903,7 @@
 			isa = PBXGroup;
 			children = (
 				0865432206B8447D000CA0AB /* Oolite.app */,
-				1A71E6F30BCE340C00CD5C13 /* libpng.a */,
+				1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2520,8 +2528,12 @@
 				1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */,
 				1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */,
 				1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */,
+				1AECE9DF1177959F003986A8 /* OOPixMap.h */,
+				1AECE9EE11779910003986A8 /* OOPixMap.m */,
 				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
 				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
+				1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */,
+				1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */,
 			);
 			name = Textures;
 			sourceTree = "<group>";
@@ -3212,6 +3224,8 @@
 				1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */,
 				1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */,
 				1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */,
+				1AECE9DC11779526003986A8 /* OOTextureChannelExtractor.h in Headers */,
+				1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3275,7 +3289,7 @@
 			);
 			name = "libpng-custom";
 			productName = "libpng-custom";
-			productReference = 1A71E6F30BCE340C00CD5C13 /* libpng.a */;
+			productReference = 1A71E6F30BCE340C00CD5C13 /* libpng_for_oolite.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -3579,6 +3593,8 @@
 				1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */,
 				1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */,
 				1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */,
+				1AECE9DD11779526003986A8 /* OOTextureChannelExtractor.m in Sources */,
+				1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3899,7 +3915,7 @@
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/src/Core/Materials/\"";
 				INSTALL_PATH = /usr/local/lib;
 				PREBINDING = NO;
-				PRODUCT_NAME = png;
+				PRODUCT_NAME = png_for_oolite;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Debug;

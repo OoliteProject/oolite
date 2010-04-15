@@ -1,10 +1,8 @@
 /*
 
-OOTextureScaling.h
+OOTextureChannelExtractor.h
 
-Functions used to rescale texture maps.
-These are bottlenecks! They should be optimized or, better, replaced with use
-of an optimized library.
+Utility to convert one channel of an RGBA texture into a greyscale texture.
 
 
 Oolite
@@ -53,23 +51,14 @@ SOFTWARE.
 #import "OOPixMap.h"
 
 
-/*	Assumes 8 bits per sample, interleaved.
-	dstPixels must have space for dstWidth * dstHeight pixels (no row padding
-	is generated).
-	
-	IMPORTANT: this will free() srcPixMap's pixels.
+/*	OOExtractPixMapChannel()
+	Given a 4-channel pixmap, extract one channel, producing a single-channel
+	pixmap. This is done in place, destroying the original data.
+	ChannelIndex specifies which component to extract. This is a per-pixel
+	byte index: 0 means bytes bytes 0, 4, 8 etc. will be used, 2 means bytes
+	2, 6, 10 etc. will be used.
+	Returns false (without modifying the pixmap) if passed NULL, an invalid
+	pixmap, a pixmap whose channel count is not 4, or a channel index greater
+	than 3.
 */
-OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
-
-OOINLINE void *OOScalePixMapRaw(void *srcData, OOPixMapDimension srcWidth, OOPixMapDimension srcHeight, OOPixMapComponentCount components, size_t srcRowBytes, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps)
-{
-	OOPixMap src = OOMakePixMap(srcData, srcWidth, srcHeight, components, srcRowBytes, 0);
-	OOPixMap dst = OOScalePixMap(src, dstWidth, dstHeight, leaveSpaceForMipMaps);
-	return dst.pixels;
-}
-
-
-/*	Assumes 8 bits per sample, interleaved.
-	Buffer must have space for (4 * width * height) / 3 pixels.
-*/
-BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount planes);
+BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex, BOOL compactWhenDone);

@@ -75,6 +75,13 @@ enum
 	kOOTextureAlphaMask				= 0x0400UL,	// Single-channel texture should be GL_ALPHA, not GL_LUMINANCE. No effect for multi-channel textures.
 	kOOTextureAllowCubeMap			= 0x0800UL,
 	
+	kOOTextureExtractChannelMask	= 0x7000UL,
+	kOOTextureExtractChannelNone	= 0x0000UL,
+	kOOTextureExtractChannelR		= 0x1000UL,	// 001
+	kOOTextureExtractChannelG		= 0x3000UL,	// 011
+	kOOTextureExtractChannelB		= 0x5000UL,	// 101
+	kOOTextureExtractChannelA		= 0x7000UL,	// 111
+	
 	kOOTextureMinFilterMask			= 0x0003UL,
 	kOOTextureMagFilterMask			= 0x0004UL,
 	kOOTextureFlagsMask				= ~(kOOTextureMinFilterMask | kOOTextureMagFilterMask),
@@ -89,7 +96,8 @@ enum
 									| kOOTextureRepeatT
 									| kOOTextureNoFNFMessage
 									| kOOTextureNeverScale
-									| kOOTextureAlphaMask,
+									| kOOTextureAlphaMask
+									| kOOTextureExtractChannelMask,
 	
 	kOOTextureFlagsAllowedForRectangleTexture =
 									kOOTextureDefinedFlags & ~(kOOTextureRepeatS | kOOTextureRepeatT),
@@ -185,6 +193,7 @@ typedef enum
 		cube_map			(boolean)
 		anisotropy			(real)
 		texture_LOD_bias	(real)
+		extract_channel		(string, one of "r", "g", "b", "a")
 */
 + (id) textureWithConfiguration:(id)configuration;
 
