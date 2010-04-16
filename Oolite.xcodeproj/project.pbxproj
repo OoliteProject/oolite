@@ -710,6 +710,7 @@
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A1089105D526200EE2AE6 /* javascript-errors.plist in Resources */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
+		2B9C82F411784AAB000A79F7 /* tunnel.dat in Resources */ = {isa = PBXBuildFile; fileRef = 2B9C82F311784AAB000A79F7 /* tunnel.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1847,6 +1848,7 @@
 		2B4CDFEA107B3D8400526C98 /* OOJSManifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSManifest.h; sourceTree = "<group>"; };
 		2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSManifest.m; sourceTree = "<group>"; };
 		2B9A1088105D526200EE2AE6 /* javascript-errors.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "javascript-errors.plist"; sourceTree = "<group>"; };
+		2B9C82F311784AAB000A79F7 /* tunnel.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = tunnel.dat; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2109,6 +2111,7 @@
 		1A2318A50B9D02A900EF0852 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				2B9C82F311784AAB000A79F7 /* tunnel.dat */,
 				1A2318A60B9D02A900EF0852 /* adder_redux.dat */,
 				1A2318A70B9D02A900EF0852 /* alloy.dat */,
 				1A2318A80B9D02A900EF0852 /* anaconda_redux.dat */,
@@ -3374,6 +3377,7 @@
 				2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Resources */,
 				2B060ED810E42735001EFB22 /* oolite-short-range-chart.png in Resources */,
 				2B060ED910E42735001EFB22 /* oolite-long-range-chart.png in Resources */,
+				2B9C82F411784AAB000A79F7 /* tunnel.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
