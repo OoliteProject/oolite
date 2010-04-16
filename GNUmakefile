@@ -195,7 +195,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOTextureScaling.m \
 	OOPixMap.m \
 	OOTextureScaling.m \
-	OOTextureChannelExtractor.h \
+	OOTextureChannelExtractor.m \
 	OOMultiTextureMaterial.m \
 	OOMaterialConvenienceCreators.m
 
