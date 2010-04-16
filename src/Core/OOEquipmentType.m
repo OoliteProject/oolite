@@ -81,8 +81,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	[sEquipmentTypes release];
 	sEquipmentTypes = nil;
 	equipmentTypes = [NSMutableArray arrayWithCapacity:[equipmentData count]];
-	[sEquipmentTypesByIdentifier release];
-	sEquipmentTypesByIdentifier = nil;
+	DESTROY(sEquipmentTypesByIdentifier);
 	equipmentTypesByIdentifier = [NSMutableDictionary dictionaryWithCapacity:[equipmentData count]];
 	
 	for (itemEnum = [equipmentData objectEnumerator]; (itemInfo = [itemEnum nextObject]); )
@@ -96,7 +95,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	}
 	
 	sEquipmentTypes = [equipmentTypes copy];
-	sEquipmentTypesByIdentifier = [equipmentTypesByIdentifier copy];
+	sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 }
 
 

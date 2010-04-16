@@ -60,8 +60,6 @@ BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIn
 		return NO;
 	}
 	
-	OODumpPixMap(*ioPixMap, @"pre-extraction");
-	
 	ExtractChannel_4(ioPixMap, channelIndex);
 	
 	ioPixMap->components = 1;
@@ -71,8 +69,6 @@ BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIn
 	{
 		OOCompactPixMap(ioPixMap);
 	}
-	
-	OODumpPixMap(*ioPixMap, @"extracted");
 	
 	return YES;
 }
