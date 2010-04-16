@@ -97,6 +97,8 @@ static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 static PlayerEntity *sSharedPlayer = nil;
 static GLfloat sBaseMass = 0.0;
 
+static GLfloat launchRoll;
+
 
 @interface PlayerEntity (OOPrivate)
 
@@ -2008,9 +2010,12 @@ static GLfloat sBaseMass = 0.0;
 
 - (void) performLaunchingUpdates:(OOTimeDelta)delta_t
 {
+	// synchronise player's & launching station's spins.
+	if (![UNIVERSE breakPatternHide])  flightRoll = launchRoll;
+	
 	if ([UNIVERSE breakPatternOver])
 	{
-		// time to check the script!
+		// time to check the legacy scripts!
 		[self checkScript];
 		// next check in 10s
 		
@@ -4118,7 +4123,8 @@ static GLfloat sBaseMass = 0.0;
 	
 	[station launchShip:self];
 	orientation.w = -orientation.w;   // need this as a fix...
-	flightRoll = -flightRoll;
+	launchRoll = -flightRoll; // save the station's spin.
+	flightRoll = 0; // don't spin when showing the break pattern.
 	[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:YES];
 
 	dockedStation = nil;
