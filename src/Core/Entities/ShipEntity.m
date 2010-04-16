@@ -2885,10 +2885,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	[self activateCloakingDevice];
 	
 	desired_speed = max_available_speed;
-	if (range < 0.035 * weaponRange)
+	if (range < COMBAT_IN_RANGE_FACTOR * weaponRange)
 	{
-		double max_depart_speed = sqrt ((scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) * thrust) * max_flight_pitch * 1.5;
-		if (max_depart_speed < max_available_speed) desired_speed = max_depart_speed;
 		behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 	}
 	else
@@ -3071,13 +3069,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink.z = 1000.0;
 				behaviour = BEHAVIOUR_ATTACK_FLY_FROM_TARGET;
 				frustration = 0.0;
-				double max_depart_speed = sqrt ((scannerRange - COMBAT_OUT_RANGE_FACTOR * weaponRange) * thrust) * max_flight_pitch * 1.5;
-				if (max_depart_speed < max_available_speed) max_available_speed = max_depart_speed;
-				// desired_speed = max_available_speed;
-				
-				// 2010-04-06 Eric: setting desired_speed here is useless, it is always overwritten a bit lower in control speed.
-				// Putting a return here would keep the setting but also removes some randomness in reaction out of fights, so leave it for now.
-				// maybe returning here with a randomised desired_speed in future?
 			}
 			else
 			{
@@ -3085,7 +3076,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				jink = kZeroVector;
 				behaviour = BEHAVIOUR_RUNNING_DEFENSE;
 				frustration = 0.0;
-				// desired_speed = maxFlightSpeed; // Setting desired_speed here is useless.
 			}
 		}
 		else
@@ -3159,6 +3149,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (void) behaviour_attack_fly_from_target:(double) delta_t
 {
 	double  range = [self rangeToPrimaryTarget];
+	double last_success_factor = success_factor;
+	success_factor = range;
 	
 	if (primaryTarget == NO_TARGET)
 	{
@@ -3167,7 +3159,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		[self noteLostTarget];
 		return;
 	}
-	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x)
+	if (last_success_factor > success_factor) // our target is closing in.
+	{
+		frustration += delta_t;
+		if (frustration > 10.0)
+		{
+			if (randf() < 0.3) desired_speed = maxFlightSpeed * (([self hasFuelInjection] && (fuel > MIN_FUEL)) ? [self afterburnerFactor] : 1);
+			else if (range > COMBAT_IN_RANGE_FACTOR * weaponRange && randf() < 0.3) behaviour = BEHAVIOUR_ATTACK_TARGET;
+			frustration = 0.0;
+		}
+	}
+	if (range > COMBAT_OUT_RANGE_FACTOR * weaponRange + 15.0 * jink.x || flightSpeed > (scannerRange - range) * max_flight_pitch / 6.28)
 	{
 		jink.x = 0.0;
 		jink.y = 0.0;

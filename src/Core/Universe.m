@@ -3184,7 +3184,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		OOCargoType co_type = [container commodityType];
 		OOCargoQuantity co_amount = [container commodityAmount];
 		
-		if ((co_type == CARGO_UNDEFINED)||(co_amount == 0))
+		if (((co_type == CARGO_UNDEFINED)||(co_amount == 0)) && [container cargoType] != CARGO_SCRIPTED_ITEM)
 		{
 			// choose a random filling
 			// select a random point in the histogram
@@ -3213,7 +3213,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		if (container != nil)
 		{
 			[container setScanClass: CLASS_CARGO];
-			[container setCommodity:co_type andAmount:co_amount];
+			if ([container cargoType] != CARGO_SCRIPTED_ITEM) [container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
 			[container release];	// released
 		}
@@ -3249,7 +3249,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		if (container)
 		{
 			[container setScanClass: CLASS_CARGO];
-			[container setCommodity:commodity_type andAmount:amount];
+			if ([container cargoType] != CARGO_SCRIPTED_ITEM) [container setCommodity:commodity_type andAmount:amount];
 			[accumulator addObject:container];
 			[container release];
 		}
@@ -3325,7 +3325,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 	for (i = 0; i < count; i++)
 	{
 		/*	Bug: NSNotFound being returned for valid names.
-			Analysis: Looking for name in commodityData rather than ith element.
+			Analysis: Looking for name in commodityData rather than its element.
 			Fix: look in [commodityData objectAtIndex:i].
 			-- Ahruman 20070714
 		*/
