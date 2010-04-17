@@ -763,9 +763,6 @@ if (!showSplashScreen) return;
 		y_offset = 320.0 * bounds.size.height/bounds.size.width;
 	}
 
-	float	ratio = 0.5;
-	float   aspect = bounds.size.height/bounds.size.width;
-
 	if (surface != 0)  SDL_FreeSurface(surface);
 
 	[self autoShowMouse];
