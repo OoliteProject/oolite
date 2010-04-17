@@ -1798,9 +1798,7 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	jsval					value = JSVAL_NULL;
 	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSString				*str;
 	BOOL					withShaders = NO;
 	NSMutableDictionary		*materials = [[NSMutableDictionary alloc] init];
 	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
@@ -1866,9 +1864,7 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	jsval					value = JSVAL_NULL;
 	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSString				*str;
 	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
