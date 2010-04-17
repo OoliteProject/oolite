@@ -38,6 +38,8 @@ MA 02110-1301, USA.
 #import "OOShipGroup.h"
 #import "PlayerEntityContracts.h"
 #import "OOEquipmentType.h"
+#import "ResourceManager.h"
+#import "OOCollectionExtractors.h"
 
 
 DEFINE_JS_OBJECT_GETTER(JSShipGetShipEntity, ShipEntity)
@@ -78,6 +80,8 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -294,6 +298,8 @@ static JSFunctionSpec sShipMethods[] =
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
 	{ "fireMissile",			ShipFireMissile,			0 },
 	{ "setCargo",				ShipSetCargo,				1 },
+	{ "setMaterials",			ShipSetMaterials,			1 },
+	{ "setShaders",				ShipSetShaders,				1 },
 	{ 0 }
 };
 
@@ -1745,7 +1751,7 @@ static JSBool ShipSelectNewMissile(JSContext *context, JSObject *this, uintN arg
 // fireMissile()
 static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	ShipEntity				*thisEnt = nil;
+	ShipEntity			*thisEnt = nil;
 	id					result = nil;
 	
 	*outResult = [result javaScriptValueInContext:context];
@@ -1784,5 +1790,122 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 	if (commodity != CARGO_UNDEFINED)  [thisEnt setCommodityForPod:commodity andAmount:count];
 	
 	*outResult = BOOLToJSVal(commodity != CARGO_UNDEFINED);
+	return YES;
+}
+
+
+// setMaterials(params: dict,[shaders:dict])  // sets matersals dictionary. Optional parameter sets the shaders dictionary too.
+static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	jsval					value = JSVAL_NULL;
+	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
+	NSString				*str;
+	BOOL					withShaders = NO;
+	NSMutableDictionary		*materials = [[NSMutableDictionary alloc] init];
+	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	
+	if (JSVAL_IS_NULL(argv[0]) || (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0])))
+	{
+		OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setMaterials", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	if (argc > 1)
+	{
+		withShaders = YES;
+		if (JSVAL_IS_NULL(argv[1]) || (!JSVAL_IS_NULL(argv[1]) && !JSVAL_IS_OBJECT(argv[1])))
+		{
+			OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.",  @"setMaterials", @"object as second parameter", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
+			withShaders = NO;
+		}
+	}
+	
+	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
+	
+	params = JSVAL_TO_OBJECT(argv[0]);
+	materials = JSObjectToObject(context, params);
+	if (withShaders)
+	{
+		params = JSVAL_TO_OBJECT(argv[1]);
+		shaders = JSObjectToObject(context, params);
+	}
+		
+	OOMesh *mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
+							   cacheKey:[thisEnt shipDataKey]
+					 materialDictionary:materials
+					  shadersDictionary:(withShaders ? shaders : [[thisEnt mesh] shaders])
+								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]]
+					shaderBindingTarget:thisEnt];
+					
+	[materials release];
+	if (withShaders) [shaders release];
+	
+	if (mesh == nil)
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	[thisEnt setMesh:mesh];
+	
+	*outResult = BOOLToJSVal(YES);
+	return YES;
+}
+
+
+// setShaders(params: dict) 
+static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	jsval					value = JSVAL_NULL;
+	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
+	NSString				*str;
+	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
+	
+	if (JSVAL_IS_NULL(argv[0]) || (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0])))
+	{
+		OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setShaders", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	
+	params = JSVAL_TO_OBJECT(argv[0]);
+	shaders = JSObjectToObject(context, params);
+	
+	OOMesh *mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
+							   cacheKey:[thisEnt shipDataKey]
+					 materialDictionary:[[thisEnt mesh] materials]
+					  shadersDictionary:shaders
+								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
+						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]]
+					shaderBindingTarget:thisEnt];
+					
+	[shaders release];
+	
+	if (mesh == nil)
+	{
+		*outResult = BOOLToJSVal(NO);
+		return YES;
+	}
+	[thisEnt setMesh:mesh];
+
+	*outResult = BOOLToJSVal(YES);
 	return YES;
 }

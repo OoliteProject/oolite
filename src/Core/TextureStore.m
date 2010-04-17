@@ -159,9 +159,12 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	OOColor* polar_land_color = (OOColor*)[planetInfo objectForKey:@"polar_land_color"];
 	OOColor* polar_sea_color = (OOColor*)[planetInfo objectForKey:@"polar_sea_color"];
 
+	// Pale sea colour gives a better transition between land and sea., Backported from the new planets code.
+	OOColor* pale_sea_color = [polar_sea_color blendedColorWithFraction:0.45 ofColor:[sea_color blendedColorWithFraction:0.7 ofColor:land_color]];
+	
 	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
 		sea_color,
-		polar_sea_color,
+		pale_sea_color,
 		land_color,
 		polar_land_color);
 

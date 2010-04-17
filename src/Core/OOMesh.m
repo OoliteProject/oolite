@@ -527,6 +527,18 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 }
 
 
+- (NSDictionary *) materials
+{
+	return _materialDict;
+}
+
+
+- (NSDictionary *) shaders
+{
+	return _shadersDict;
+}
+
+
 - (BOOL)hasOpaqueParts
 {
 	return YES;

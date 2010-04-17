@@ -150,6 +150,9 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 
 - (void) rebindMaterials;
 
+- (NSDictionary *) materials;
+- (NSDictionary *) shaders;
+
 - (size_t)vertexCount;
 - (size_t)faceCount;
 
