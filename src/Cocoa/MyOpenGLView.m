@@ -223,12 +223,6 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 
 - (void) initialiseGLWithSize:(NSSize) v_size
 {
-	GLfloat	sun_ambient[] =	{0.0, 0.0, 0.0, 1.0};
-	GLfloat	sun_diffuse[] =	{1.0, 1.0, 1.0, 1.0};
-	GLfloat	sun_specular[] = 	{1.0, 1.0, 1.0, 1.0};
-	GLfloat	sun_center_position[] = {0.0, 0.0, 0.0, 1.0};
-	GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
-
 	viewSize = v_size;
 	if (viewSize.width/viewSize.height > 4.0/3.0) {
 		display_z = 480.0 * viewSize.width/viewSize.height;
@@ -240,59 +234,10 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		y_offset = 320.0 * viewSize.height/viewSize.width;
 	}
 	
-	float	ratio = 0.5;
-	float   aspect = viewSize.height/viewSize.width;
-	
-	glShadeModel(GL_FLAT);
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	[self openGLContext];
+	[[self gameController] setUpBasicOpenGLStateWithSize:viewSize];
 	[[self openGLContext] flushBuffer];
 	
-	glClearDepth(MAX_CLEAR_DEPTH);
-	glViewport( 0, 0, viewSize.width, viewSize.height);
-	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();	// reset matrix
-	glFrustum( -ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
-
-	glMatrixMode( GL_MODELVIEW);
-	
-	glEnable( GL_DEPTH_TEST);		// depth buffer
-	glDepthFunc( GL_LESS);			// depth buffer
-	
-	glFrontFace( GL_CCW);			// face culling - front faces are AntiClockwise!
-	glCullFace( GL_BACK);			// face culling
-	glEnable( GL_CULL_FACE);		// face culling
-	
-	glEnable( GL_BLEND);								// alpha blending
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
-	
-	if (UNIVERSE)
-	{
-		[UNIVERSE setLighting];
-	}
-	else
-	{	
-		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-		glLightfv(GL_LIGHT1, GL_POSITION, sun_center_position);
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-		
-		glEnable(GL_LIGHT1);		// lighting
-
-	}
-	glEnable(GL_LIGHTING);		// lighting
-	
-	
-	// world's simplest OpenGL optimisations...
-#if GL_APPLE_transform_hint
-	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
-#endif
-	
-	glDisable(GL_NORMALIZE);
-	glDisable(GL_RESCALE_NORMAL);
-		
 	m_glContextInitialized = YES;
 }
 

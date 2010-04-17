@@ -1046,6 +1046,72 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	#endif
 }
 
+
+- (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
+{
+	float	ratio = 0.5;
+	float   aspect = viewSize.height/viewSize.width;
+	
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glShadeModel(GL_FLAT);
+	
+	glClearDepth(MAX_CLEAR_DEPTH);
+	glViewport(0, 0, viewSize.width, viewSize.height);
+	
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();	// reset matrix
+	glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
+	
+	glMatrixMode(GL_MODELVIEW);
+	
+	glEnable(GL_DEPTH_TEST);		// depth buffer
+	glDepthFunc(GL_LESS);			// depth buffer
+	
+	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
+	glCullFace(GL_BACK);			// face culling
+	glEnable(GL_CULL_FACE);			// face culling
+	
+	glEnable(GL_BLEND);									// alpha blending
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
+	
+	if (UNIVERSE)
+	{
+		[UNIVERSE setLighting];
+	}
+	else
+	{
+		GLfloat black[4] =	{0.0, 0.0, 0.0, 1.0};
+		GLfloat	white[] =	{1.0, 1.0, 1.0, 1.0};
+		GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
+		
+		glLightfv(GL_LIGHT1, GL_AMBIENT, black);
+		glLightfv(GL_LIGHT1, GL_SPECULAR, white);
+		glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
+		glLightfv(GL_LIGHT1, GL_POSITION, black);
+		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+		
+		glEnable(GL_LIGHT1);		// lighting
+		
+	}
+	glEnable(GL_LIGHTING);		// lighting
+	
+	
+	// world's simplest OpenGL optimisations...
+#if GL_APPLE_transform_hint
+	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
+#endif
+	
+	glDisable(GL_NORMALIZE);
+	glDisable(GL_RESCALE_NORMAL);
+	
+#if GL_VERSION_1_2
+	// For OpenGL 1.2 or later, we want GL_SEPARATE_SPECULAR_COLOR all the time.
+	if ([[OOOpenGLExtensionManager sharedManager] majorVersionNumber] > 1 || [[OOOpenGLExtensionManager sharedManager] minorVersionNumber] >= 2)
+	{
+		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+	}
+#endif
+}
+
 @end
-
-

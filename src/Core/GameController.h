@@ -162,5 +162,6 @@ MA 02110-1301, USA.
 
 - (void)windowDidResize:(NSNotification *)aNotification;
 
-@end
+- (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize;
 
+@end

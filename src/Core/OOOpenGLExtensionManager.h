@@ -8,6 +8,7 @@ This is thread safe, except for initialization; that is, +sharedManager should
 be called from the main thread at an early point. The OpenGL context must be
 set up by then.
 
+
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors
 

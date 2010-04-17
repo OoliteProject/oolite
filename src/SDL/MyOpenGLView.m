@@ -766,64 +766,14 @@ if (!showSplashScreen) return;
 	float	ratio = 0.5;
 	float   aspect = bounds.size.height/bounds.size.width;
 
-	if (surface != 0)
-		SDL_FreeSurface(surface);
+	if (surface != 0)  SDL_FreeSurface(surface);
 
 	[self autoShowMouse];
-
-	glShadeModel(GL_FLAT);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	
+	[[self gameController] setUpBasicOpenGLStateWithSize:viewSize];
 	SDL_GL_SwapBuffers();
-
-	glClearDepth(MAX_CLEAR_DEPTH);
-	glViewport( 0, 0, bounds.size.width, bounds.size.height);
-
 	squareX = 0.0f;
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();	// reset matrix
-	glFrustum( -ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
-
-	glMatrixMode( GL_MODELVIEW);
-
-	glEnable( GL_DEPTH_TEST);		// depth buffer
-	glDepthFunc( GL_LESS);			// depth buffer
-
-	glFrontFace( GL_CCW);			// face culling - front faces are AntiClockwise!
-	glCullFace( GL_BACK);			// face culling
-	glEnable( GL_CULL_FACE);		// face culling
-
-	glEnable( GL_BLEND);								// alpha blending
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
-
-	if (UNIVERSE)
-	{
-		[UNIVERSE setLighting];
-	}
-	else
-	{
-		// At startup only...
-		GLfloat	sun_ambient[] 		= {0.1, 0.1, 0.1, 1.0};	
-		GLfloat	sun_specular[] 		= {1.0, 1.0, 1.0, 1.0};
-		GLfloat	sun_diffuse[] 		= {1.0, 1.0, 1.0, 1.0};
-		GLfloat	sun_position[] 		= {0.0, 0.0, 0.0, 1.0};
-		GLfloat	stars_ambient[] 	= {0.25, 0.2, 0.25, 1.0};
-		
-		glLightfv(GL_LIGHT1, GL_AMBIENT, sun_ambient);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, sun_specular);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, sun_diffuse);
-		glLightfv(GL_LIGHT1, GL_POSITION, sun_position);
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
-
-		glEnable(GL_LIGHT1);		// lighting
-	}
-	glEnable(GL_LIGHTING);		// lighting
-
-	// world's simplest OpenGL optimisations...
-	//glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
-	glDisable(GL_NORMALIZE);
-	glDisable(GL_RESCALE_NORMAL);
-
+	
 	m_glContextInitialized = YES;
 }
 
