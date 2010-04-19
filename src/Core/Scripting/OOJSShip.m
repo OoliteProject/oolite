@@ -1874,8 +1874,6 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSMutableDictionary		*shaders;
 	
 	*outResult = BOOLToJSVal(NO);
 	
@@ -1883,7 +1881,7 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 	{
 		return YES;
 	}
-		
+	
 	if (JSVAL_IS_NULL(argv[0]) || (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0])))
 	{
 		OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setShaders", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
