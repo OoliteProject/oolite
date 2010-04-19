@@ -1799,21 +1799,21 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 {
 	ShipEntity				*thisEnt = nil;
 	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
+	NSDictionary			*materials;
+	NSDictionary			*shaders;
 	BOOL					withShaders = NO;
-	NSMutableDictionary		*materials = [[NSMutableDictionary alloc] init];
-	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
+	BOOL 					fromShaders = [@"setShaders" isEqualTo:JSValToNSString(context,*outResult)];
+	
+	*outResult = BOOLToJSVal(NO);
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
 	{
-		*outResult = BOOLToJSVal(NO);
 		return YES;
 	}
-	
 	
 	if (JSVAL_IS_NULL(argv[0]) || (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0])))
 	{
 		OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setMaterials", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
-		*outResult = BOOLToJSVal(NO);
 		return YES;
 	}
 	
@@ -1827,32 +1827,42 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 		}
 	}
 	
-	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
+	if (fromShaders)
+	{
+		materials = [[thisEnt mesh] materials];
+	}
+	else
+	{
+		params = JSVAL_TO_OBJECT(argv[0]);
+		materials = JSObjectToObject(context, params);
+	}
 	
-	params = JSVAL_TO_OBJECT(argv[0]);
-	materials = JSObjectToObject(context, params);
 	if (withShaders)
 	{
 		params = JSVAL_TO_OBJECT(argv[1]);
 		shaders = JSObjectToObject(context, params);
 	}
-		
+	else
+	{
+		shaders = [[thisEnt mesh] shaders];
+	}
+	
+	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
+
+	// First we test to see if we can create the mesh.
 	OOMesh *mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
-							   cacheKey:[thisEnt shipDataKey]
+							   cacheKey:nil
 					 materialDictionary:materials
-					  shadersDictionary:(withShaders ? shaders : [[thisEnt mesh] shaders])
+					  shadersDictionary:shaders
 								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
 						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]]
 					shaderBindingTarget:thisEnt];
-					
-	[materials release];
-	if (withShaders) [shaders release];
 	
 	if (mesh == nil)
 	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
+		return YES;	// failed. Don't change the material.
 	}
+	
 	[thisEnt setMesh:mesh];
 	
 	*outResult = BOOLToJSVal(YES);
@@ -1865,43 +1875,23 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 {
 	ShipEntity				*thisEnt = nil;
 	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSMutableDictionary		*shaders = [[NSMutableDictionary alloc] init];
+	NSMutableDictionary		*shaders;
+	
+	*outResult = BOOLToJSVal(NO);
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
 	{
-		*outResult = BOOLToJSVal(NO);
 		return YES;
 	}
-	
-	NSDictionary 			*shipDict = [thisEnt shipInfoDictionary];
-	
+		
 	if (JSVAL_IS_NULL(argv[0]) || (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0])))
 	{
 		OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"setShaders", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
-		*outResult = BOOLToJSVal(NO);
 		return YES;
 	}
 	
-	params = JSVAL_TO_OBJECT(argv[0]);
-	shaders = JSObjectToObject(context, params);
-	
-	OOMesh *mesh = [OOMesh meshWithName:[shipDict oo_stringForKey:@"model"]
-							   cacheKey:[thisEnt shipDataKey]
-					 materialDictionary:[[thisEnt mesh] materials]
-					  shadersDictionary:shaders
-								 smooth:[shipDict oo_boolForKey:@"smooth" defaultValue:NO]
-						   shaderMacros:[[ResourceManager materialDefaults] oo_dictionaryForKey:@"ship-prefix-macros" defaultValue:[NSDictionary dictionary]]
-					shaderBindingTarget:thisEnt];
-					
-	[shaders release];
-	
-	if (mesh == nil)
-	{
-		*outResult = BOOLToJSVal(NO);
-		return YES;
-	}
-	[thisEnt setMesh:mesh];
-
-	*outResult = BOOLToJSVal(YES);
-	return YES;
+	// Now let's call setMaterials() with the appropriate parameters.
+	argv[1] = argv[0];
+	*outResult = [@"setShaders" javaScriptValueInContext:context];
+	return ShipSetMaterials(context, this, 2, argv, outResult);
 }
