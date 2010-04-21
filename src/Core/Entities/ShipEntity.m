@@ -421,22 +421,33 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	NSString *cargoString = [shipDict oo_stringForKey:@"cargo_carried"];
 	if (cargoString != nil)
 	{
-		cargo_flag = CARGO_FLAG_FULL_UNIFORM;
-
-		OOCargoType		c_commodity = CARGO_UNDEFINED;
-		int				c_amount = 1;
-		NSScanner		*scanner = [NSScanner scannerWithString:cargoString];
-		if ([scanner scanInt:&c_amount])
+		if ([cargoString isEqualToString:@"SCARCE_GOODS"])
 		{
-			[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
-			c_commodity = [UNIVERSE commodityForName: [[scanner string] substringFromIndex:[scanner scanLocation]]];
-			if (c_commodity != CARGO_UNDEFINED)  [self setCommodityForPod:c_commodity andAmount:c_amount];
+			cargo_flag = CARGO_FLAG_FULL_SCARCE;
+		}
+		else if ([cargoString isEqualToString:@"PLENTIFUL_GOODS"])
+		{
+			cargo_flag = CARGO_FLAG_FULL_PLENTIFUL;
 		}
 		else
 		{
-			c_amount = 1;
-			c_commodity = [UNIVERSE commodityForName: [shipDict oo_stringForKey:@"cargo_carried"]];
-			if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
+			cargo_flag = CARGO_FLAG_FULL_UNIFORM;
+
+			OOCargoType		c_commodity = CARGO_UNDEFINED;
+			int				c_amount = 1;
+			NSScanner		*scanner = [NSScanner scannerWithString:cargoString];
+			if ([scanner scanInt:&c_amount])
+			{
+				[scanner ooliteScanCharactersFromSet:[NSCharacterSet whitespaceCharacterSet] intoString:NULL];	// skip whitespace
+				c_commodity = [UNIVERSE commodityForName: [[scanner string] substringFromIndex:[scanner scanLocation]]];
+				if (c_commodity != CARGO_UNDEFINED)  [self setCommodityForPod:c_commodity andAmount:c_amount];
+			}
+			else
+			{
+				c_amount = 1;
+				c_commodity = [UNIVERSE commodityForName: [shipDict oo_stringForKey:@"cargo_carried"]];
+				if (c_commodity != CARGO_UNDEFINED)  [self setCommodity:c_commodity andAmount:c_amount];
+			}
 		}
 	}
 	

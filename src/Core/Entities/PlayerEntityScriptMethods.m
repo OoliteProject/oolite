@@ -144,12 +144,13 @@ MA 02110-1301, USA.
 						int smaller_quantity = 1 + ((amount - 1) % amount_per_container);
 						if ([cargo count] < max_cargo)
 						{
-							ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
+							ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 							if (container)
 							{
 								// the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
-								[container wasAddedToUniverse];
+								// [container wasAddedToUniverse]; // seems to be not needed anymore for pods
 								[container setScanClass: CLASS_CARGO];
+								[container setStatus:STATUS_IN_HOLD];
 								[container setCommodity:type andAmount:smaller_quantity];
 								[cargo addObject:container];
 								[container release];
@@ -166,11 +167,11 @@ MA 02110-1301, USA.
 				{
 					if ([cargo count] < max_cargo)
 					{
-						ShipEntity* container = [UNIVERSE newShipWithRole:@"cargopod"];
+						ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
 						if (container)
 						{
 							// the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
-							[container wasAddedToUniverse];
+							// [container wasAddedToUniverse]; // seems to be not needed anymore for pods
 							[container setScanClass: CLASS_CARGO];
 							[container setStatus:STATUS_IN_HOLD];
 							[container setCommodity:type andAmount:1];
