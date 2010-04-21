@@ -143,7 +143,7 @@
 			"metal.png" =
 			{
 				shininess = 20;
-				specular = (0.75, 0.75, 0.8, 1.0);
+				specular_color = (0.75, 0.75, 0.8, 1.0);
 			};
 		};
 	};
@@ -430,7 +430,7 @@
 			"asteroid.png" =
 			{
 				shininess = 2;
-				specular = (0.1, 0.1, 0.1, 1.0);
+				specular_color = (0.1, 0.1, 0.1, 1.0);
 			};
 		};
 		likely_cargo = 4;
@@ -454,12 +454,12 @@
 			"barrel_metal.png" =
 			{
 				shininess = 10;
-				specular = ( 0.3, 0.3, 0.33, 1.0 );
+				specular_color = ( 0.3, 0.3, 0.33, 1.0 );
 			};
 			"left_metal.png" =
 			{
 				shininess = 10;
-				specular = ( 0.3, 0.3, 0.33, 1.0 );
+				specular_color = ( 0.3, 0.3, 0.33, 1.0 );
 			};
 		};
 		shaders =
@@ -468,7 +468,7 @@
 			{
 				specular_map = "oolite-barrel-specular.png";
 				shininess = 60;
-				specular = whiteColor;
+				specular_color = whiteColor;
 			};
 		};
 		max_energy = 1;
@@ -764,7 +764,7 @@
 			"asteroid.png" =
 			{
 				shininess = 2;
-				specular = (0.1, 0.1, 0.1, 1.0);
+				specular_color = (0.1, 0.1, 0.1, 1.0);
 			};
 		};
 		debris_role = "splinter";
@@ -799,9 +799,9 @@
 			"target_metal.png" =
 			{
 				shininess = 20;
-				specular = (0.8, 0.83, 0.85, 1.0);
-				diffuse = (0.8, 0.8, 0.8);
-				ambient = (0.75, 0.75, 0.75);
+				specular_color = (0.8, 0.83, 0.85, 1.0);
+				diffuse_color = (0.8, 0.8, 0.8);
+				ambient_color = (0.75, 0.75, 0.75);
 			};
 		};
 	};
@@ -852,7 +852,7 @@
 			"target_metal.png" =
 			{
 				shininess = 15;
-				specular = (0.55, 0.58, 0.6, 1.0);
+				specular_color = (0.55, 0.58, 0.6, 1.0);
 			};
 		};
 	};
@@ -2035,11 +2035,11 @@
 		{
 			"qmrk" =
 			{
-				diffuse = "42 40 40";
+				diffuse_color = "42 40 40";
 				diffuse_map = "";
-				emission = "200 175 25";
+				emission_color = "200 175 25";
 				shininess = 16;
-				specular = "20 40 115";
+				specular_color = "20 40 115";
 			};
 		};
 		model = "oolite-unknown-ship.dat";
@@ -2297,7 +2297,7 @@
 			"asteroid.png" =
 			{
 				shininess = 0;
-				specular = (0.0, 0.0, 0.0, 1.0);
+				specular_color = (0.0, 0.0, 0.0, 1.0);
 			};
 		};
 	};
@@ -2313,13 +2313,13 @@
 			"scarred_metal.png" =
 			{
 				shininess = 20;
-				specular = (0.75, 0.75, 0.8, 1.0);
+				specular_color = (0.75, 0.75, 0.8, 1.0);
 				specular_map = "oolite-scarred-metal-specular.png";
 			};
 			"metal.png" =
 			{
 				shininess = 20;
-				specular = (0.75, 0.75, 0.8, 1.0);
+				specular_color = (0.75, 0.75, 0.8, 1.0);
 			};
 		};
 	};
@@ -2428,7 +2428,7 @@
 			"asteroid.png" =
 			{
 				shininess = 2;
-				specular = (0.1, 0.1, 0.1, 1.0);
+				specular_color = (0.1, 0.1, 0.1, 1.0);
 			};
 		};
 	};
@@ -2750,12 +2750,12 @@
 			"back_metal.png" =
 			{
 				shininess = 15;
-				specular = (0.75, 0.75, 0.75, 1.0);
+				specular_color = (0.75, 0.75, 0.75, 1.0);
 			};
 			"oolite-ball-turret.png" =
 			{
 				shininess = 15;
-				specular = (0.75, 0.75, 0.75, 1.0);
+				specular_color = (0.75, 0.75, 0.75, 1.0);
 			};
 		};
 		name = "Ball Turret";
