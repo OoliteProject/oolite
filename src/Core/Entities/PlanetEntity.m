@@ -341,11 +341,11 @@ double longitudeFromVector(Vector v);
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
 #if ALLOW_PROCEDURAL_PLANETS
 	if (![UNIVERSE doProcedurallyTexturedPlanets])
-#endif
 	{
 		//only allow .png textures with procedural textures
 		[planetInfo removeObjectForKey:@"texture"];
 	}
+#endif
 
 	[planetInfo oo_setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
 	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];

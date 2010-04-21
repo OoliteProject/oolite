@@ -491,7 +491,7 @@ static NSString *sGlobalTraceContext = nil;
 	OO_ENTER_OPENGL();
 	OOGL(glBindTexture(GL_TEXTURE_2D, 0));
 #if GL_ARB_texture_cube_map
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, 0));
 #endif
 }
 
@@ -734,10 +734,11 @@ static NSString *sGlobalTraceContext = nil;
 		
 		// Select wrap mode
 		clampMode = sClampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
+		
 		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
 		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
 #if GL_ARB_texture_cube_map
-		if (texTarget == GL_TEXTURE_CUBE_MAP)
+		if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
 		{
 			// Repeat flags should have been filtered out earlier.
 			NSAssert(!(_options & (kOOTextureRepeatS | kOOTextureRepeatT)), @"Wrapping does not make sense for cube map textures.");
@@ -778,7 +779,7 @@ static NSString *sGlobalTraceContext = nil;
 			OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
 		}
 #if GL_ARB_texture_cube_map
-		else if (texTarget == GL_TEXTURE_CUBE_MAP)
+		else if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
 		{
 			[self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
 			OOLog(@"texture.upload", @"Uploaded cube map texture %u (%ux%ux6 pixels, %@)", _textureName, _width, _width, _key);
@@ -882,12 +883,12 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	
 	const GLenum cubeSides[6] =
 	{
-		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+		GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB,
+		GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB,
+		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB
 	};
 	
 	unsigned side;
@@ -916,7 +917,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 #if GL_ARB_texture_cube_map
 	if (_isCubeMap)
 	{
-		texTarget = GL_TEXTURE_CUBE_MAP;
+		texTarget = GL_TEXTURE_CUBE_MAP_ARB;
 	}
 #endif
 	return texTarget;
