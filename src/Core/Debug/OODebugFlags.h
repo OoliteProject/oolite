@@ -1,7 +1,5 @@
 #import <stdint.h>
 
-#ifndef NDEBUG
-
 enum OODebugFlags
 {
 	DEBUG_LINKED_LISTS			= 0x00000001,
@@ -23,8 +21,14 @@ enum OODebugFlags
 #define DEBUG_ALL					0xffffffff
 
 
+#ifndef NDEBUG
+
 extern uint32_t gDebugFlags;
 extern uint32_t gLiveEntityCount;
 extern size_t gTotalEntityMemory;
+
+#else
+
+#define gDebugFlags (0)
 
 #endif

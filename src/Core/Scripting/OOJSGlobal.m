@@ -209,39 +209,50 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 }
 
 
-// expandDescription(description : String) : String
+// expandDescription(description : String [, locals : object (dictionary)]) : String
 static JSBool GlobalExpandDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*string = nil;
+	NSDictionary		*locals = nil;
 	
-	string = JSValToNSString(context,argv[0]);
+	string = JSValToNSString(context, argv[0]);
 	if (string == nil)
 	{
 		OOReportJSBadArguments(context, @"System", @"expandDescription", argc, argv, nil, @"string");
 		return NO;
 	}
-	string = ExpandDescriptionForCurrentSystem(string);
+	if (argc > 1)
+	{
+		locals = JSValueToObjectOfClass(context, argv[1], [NSDictionary class]);
+	}
+	
+	string = ExpandDescriptionsWithLocalsForSystemSeed(string, [[PlayerEntity sharedPlayer] system_seed], locals);
 	*outResult = [string javaScriptValueInContext:context];
 	
 	return YES;
 }
 
 
-// expandMissionText(textKey : string)
+// expandMissionText(textKey : String [, locals : object (dictionary)]) : String
 static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*string = nil;
 	NSMutableString		*mString = nil;
+	NSDictionary		*locals = nil;
 	
-	string = JSValToNSString(context,argv[0]);
+	string = JSValToNSString(context, argv[0]);
 	if (string == nil)
 	{
 		OOReportJSBadArguments(context, @"System", @"expandMissionText", argc, argv, nil, @"string");
 		return NO;
 	}
+	if (argc > 1)
+	{
+		locals = JSValueToObjectOfClass(context, argv[1], [NSDictionary class]);
+	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
-	mString = [ExpandDescriptionForCurrentSystem(string) mutableCopy];
+	mString = [ExpandDescriptionsWithLocalsForSystemSeed(string, [[PlayerEntity sharedPlayer] system_seed], locals) mutableCopy];
 	[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
 	*outResult = [mString javaScriptValueInContext:context];
 	[mString release];

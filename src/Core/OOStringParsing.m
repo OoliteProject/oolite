@@ -530,7 +530,7 @@ NSString *ReplaceVariables(NSString *string, Entity *target, NSDictionary *local
 	for (tokenEnum = [tokens objectEnumerator]; (token = [tokenEnum nextObject]); )
 	{
 		replacement = [player missionVariableForKey:token];
-		if (replacement == nil)  replacement = [localVariables objectForKey:token];
+		if (replacement == nil)  replacement = [[localVariables objectForKey:token] description];
 		if (replacement == nil)
 		{
 			if ([token hasSuffix:@"_number"] || [token hasSuffix:@"_bool"] || [token hasSuffix:@"_string"])
