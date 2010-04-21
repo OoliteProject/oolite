@@ -65,7 +65,7 @@ varying vec3			vLight1Vector;
 #endif
 
 #if OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
-varying vec3			vRawNormal;
+varying vec3			vCubeTexCoords;
 #endif
 
 
@@ -92,7 +92,7 @@ void main(void)
 	vTexCoord = gl_MultiTexCoord0.st;
 	
 #if OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
-	vRawNormal = gl_Normal;
+	vCubeTexCoords = gl_Vertex.xyz;
 #endif
 	
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;

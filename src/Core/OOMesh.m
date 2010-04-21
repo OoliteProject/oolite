@@ -413,7 +413,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 					else
 					{
 						OOGL(glDisable(GL_TEXTURE_2D));
-						OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.normalArray));
+						OOGL(glTexCoordPointer(3, GL_FLOAT, 0, _displayLists.vertexArray));
 						OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
 					}
 #if OO_MULTITEXTURE

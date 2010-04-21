@@ -146,7 +146,7 @@ varying vec3			vLight1Vector;
 uniform sampler2D		uDiffuseMap;
 #elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 uniform samplerCube		uDiffuseMap;
-varying vec3			vRawNormal;
+varying vec3			vCubeTexCoords;
 #endif
 
 
@@ -356,7 +356,7 @@ void main(void)
 #if OOSTD_DIFFUSE_MAP && !OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
 	vec4 diffuseMapColor = texture2D(uDiffuseMap, texCoord);
 #elif OOSTD_DIFFUSE_MAP && OOSTD_DIFFUSE_MAP_IS_CUBE_MAP
-	vec4 diffuseMapColor = textureCube(uDiffuseMap, vRawNormal);
+	vec4 diffuseMapColor = textureCube(uDiffuseMap, vCubeTexCoords);
 #endif
 #if OOSTD_DIFFUSE_MAP
 	diffuseMapColor.a = 1.0;
