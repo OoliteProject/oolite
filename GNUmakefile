@@ -179,6 +179,7 @@ OOLITE_GRAPHICS_DRAWABLE_FILES = \
 	OOMesh.m
 
 OOLITE_GRAPHICS_MATERIAL_FILES = \
+	OOMaterialSpecifier.m \
 	OOBasicMaterial.m \
 	OOMaterial.m \
 	OONullTexture.m \
@@ -196,7 +197,8 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOTextureScaling.m \
 	OOTextureChannelExtractor.m \
 	OOMultiTextureMaterial.m \
-	OOMaterialConvenienceCreators.m
+	OOMaterialConvenienceCreators.m \
+	OOCombinedEmissionMapGenerator.m
 
 OOLITE_GRAPHICS_MISC_FILES = \
 	OOCamera.m \

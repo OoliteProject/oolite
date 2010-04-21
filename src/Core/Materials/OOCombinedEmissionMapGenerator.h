@@ -1,10 +1,12 @@
 /*
 
-OOMaterialConvenienceCreators.h
+OOCombinedEmissionMapGenerator.h
 
-Methods for easy creation of materials.
+Generator which renders a single RGB emission map from some combination of
+emission_map, emission, illumination_map, illumination_color and
+emission_and_illumination_map parameters.
 
- 
+
 Oolite
 Copyright (C) 2004-2010 Giles C Williams and contributors
 
@@ -26,7 +28,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,35 +50,34 @@ SOFTWARE.
 
 */
 
-#import "OOMaterial.h"
+
+#import "OOTextureGenerator.h"
 
 @class OOColor;
 
 
-@interface OOMaterial (OOConvenienceCreators)
+@interface OOCombinedEmissionMapGenerator: OOTextureGenerator
+{
+@private
+	OOTexture					*_emissionMap;
+	OOTexture					*_diffuseMap;
+	OOTexture					*_illuminationMap;
+	OOColor						*_emissionColor;
+	OOColor						*_illuminationColor;
+	BOOL						_isCombinedMap;
+}
 
-/*	Get a material based on configuration. The result will be an
-	OOBasicMaterial, OOSingleTextureMaterial or OOShaderMaterial (the latter
-	only if shaders are available). cacheKey is used for caching of synthesized
-	shader materials; nil may be passed for no caching.
-*/
-+ (id) materialWithName:(NSString *)name
-			   cacheKey:(NSString *)cacheKey
-		  configuration:(NSDictionary *)configuration
-				 macros:(NSDictionary *)macros
-		  bindingTarget:(id<OOWeakReferenceSupport>)object
-		forSmoothedMesh:(BOOL)smooth;
+- (id) initWithEmissionMap:(OOTexture *)emissionMap
+			 emissionColor:(OOColor *)emissionColor
+				diffuseMap:(OOTexture *)diffuseMap
+			  diffuseColor:(OOColor *)diffuseColor
+		   illuminationMap:(OOTexture *)illuminationMap
+		 illuminationColor:(OOColor *)illuminationColor;
 
-/*	Select an appropriate material description (based on availability of
-	shaders and content of dictionaries, which may be nil) and call
-	+materialWithName:forModelNamed:configuration:macros:bindTarget:forSmoothedMesh:.
-*/
-+ (id) materialWithName:(NSString *)name
-			   cacheKey:(NSString *)cacheKey
-	 materialDictionary:(NSDictionary *)materialDict
-	  shadersDictionary:(NSDictionary *)shadersDict
-				 macros:(NSDictionary *)macros
-		  bindingTarget:(id<OOWeakReferenceSupport>)object
-		forSmoothedMesh:(BOOL)smooth;
+- (id) initWithEmissionAndIlluminationMap:(OOTexture *)emissionAndIlluminationMap
+							   diffuseMap:(OOTexture *)diffuseMap
+							 diffuseColor:(OOColor *)diffuseColor
+							emissionColor:(OOColor *)emissionColor
+						illuminationColor:(OOColor *)illuminationColor;
 
 @end

@@ -47,6 +47,7 @@ SOFTWARE.
 */
 
 #import "OOMaterialConvenienceCreators.h"
+#import "OOMaterialSpecifier.h"
 
 #import "OOOpenGLExtensionManager.h"
 #import "OOShaderMaterial.h"
@@ -60,7 +61,7 @@ SOFTWARE.
 
 static void SetUniform(NSMutableDictionary *uniforms, NSString *key, NSString *type, id value);
 static void SetUniformFloat(NSMutableDictionary *uniforms, NSString *key, float value);
-static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, NSString *key, NSString *fileName);
+static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, NSString *key, NSDictionary *specifier);
 
 
 @implementation OOMaterial (OOConvenienceCreators)
@@ -69,18 +70,19 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 										 configuration:(NSDictionary *)configuration
 												macros:(NSDictionary *)macros
 {
-	OOColor					*ambient = nil,
-							*diffuse = nil,
-							*specular = nil,
-							*emission = nil;
+	OOColor					*ambientColor = nil,
+							*diffuseColor = nil,
+							*specularColor = nil,
+							*emissionColor = nil,
+							*illuminationColor = nil;
 	int						shininess = 0;
-	id						diffuseMap = nil,
-							specularMap = nil,
-							emissionMap = nil,
-							emissionAndIlluminationMap = nil,
-							illuminationMap = nil,
-							normalMap = nil,
-							normalAndParallaxMap = nil;
+	NSDictionary			*diffuseMap = nil,
+							*specularMap = nil,
+							*emissionMap = nil,
+							*emissionAndIlluminationMap = nil,
+							*illuminationMap = nil,
+							*normalMap = nil,
+							*normalAndParallaxMap = nil;
 	float					parallaxScale,
 							parallaxBias;
 	NSMutableDictionary		*modifiedMacros = nil;
@@ -88,60 +90,24 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	NSMutableDictionary		*newConfig = nil;
 	NSMutableDictionary		*uniforms = nil;
 	NSNumber				*one = [NSNumber numberWithInt:1];
+	BOOL					haveIllumination = NO;
 	
-	if (configuration == nil)  configuration = [NSDictionary dictionary];	// If it's nil, lookups will always give 0/nil results regardless of defaultValue:.
-	ambient = [OOColor colorWithDescription:[configuration objectForKey:@"ambient"]];
-	diffuse = [OOColor colorWithDescription:[configuration objectForKey:@"diffuse"]];
-	specular = [OOColor colorWithDescription:[configuration objectForKey:@"specular"]];
-	emission = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
-	shininess = [configuration oo_intForKey:@"shininess" defaultValue:-1];
-	diffuseMap = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
-	specularMap = [configuration oo_textureSpecifierForKey:@"specular_map" defaultName:nil];
-	emissionMap = [configuration oo_textureSpecifierForKey:@"emission_map" defaultName:nil];
-	emissionAndIlluminationMap = [configuration oo_textureSpecifierForKey:@"emission_and_illumination_map" defaultName:nil];
-	illuminationMap = [configuration oo_textureSpecifierForKey:@"illumination_map" defaultName:nil];
-	normalMap = [configuration oo_textureSpecifierForKey:@"normal_map" defaultName:nil];
-	normalAndParallaxMap = [configuration oo_textureSpecifierForKey:@"normal_and_parallax_map" defaultName:nil];
-	parallaxScale = [configuration oo_floatForKey:@"parallax_scale" defaultValue:0.01];
-	parallaxBias = [configuration oo_floatForKey:@"parallax_bias" defaultValue:0.00];
-	
-	if (diffuse == nil)  diffuse = [OOColor whiteColor];
-	if (emissionAndIlluminationMap != nil && illuminationMap != nil)
-	{
-		// Can't have both emissionAndIlluminationMap and illuminationMap
-		if (emissionMap == nil)  emissionMap = emissionAndIlluminationMap;
-		emissionAndIlluminationMap = nil;
-	}
-	
-	// If there's a parallax map, it's always part of the one and only normal map
-	if (normalAndParallaxMap != nil)  normalMap = normalAndParallaxMap;
-	
-	if (specularMap != nil)
-	{
-		// Sensible defaults for specular parameters if a specular map is used (as of 1.74).
-		if (shininess <= 0)  shininess = 128;
-		if (specular == nil)  specular = [OOColor whiteColor];
-	}
-	else
-	{
-		// Shininess 0 or nil/black specular colour means no specular.
-		if (shininess == 0 || [specular isBlack])
-		{
-			specular = nil;
-			specularMap = nil;
-		}
-		else
-		{
-			// Use same defaults as basic material.
-			if (shininess < 0)
-			{
-				shininess = 10;
-				if (specular == nil)  specular = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
-			}
-		}
-	}
-	
-	if ([emission isBlack])  emission = nil;
+	if (configuration == nil)  configuration = [NSDictionary dictionary];	// Needs to be non-nil for defaults to work.
+	ambientColor = [configuration oo_ambientColor];
+	diffuseColor = [configuration oo_diffuseColor];
+	specularColor = [configuration oo_specularColor];
+	emissionColor = [configuration oo_emissionColor];
+	illuminationColor = [configuration oo_illuminationColor];
+	shininess = [configuration oo_shininess];
+	diffuseMap = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
+	specularMap = [configuration oo_specularMapSpecifier];
+	emissionMap = [configuration oo_emissionMapSpecifier];
+	emissionAndIlluminationMap = [configuration oo_emissionAndIlluminationMapSpecifier];
+	illuminationMap = [configuration oo_illuminationMapSpecifier];
+	normalMap = [configuration oo_normalMapSpecifier];
+	normalAndParallaxMap = [configuration oo_normalAndParallaxMapSpecifier];
+	parallaxScale = [configuration oo_parallaxScale];
+	parallaxBias = [configuration oo_parallaxBias];
 	
 	modifiedMacros = macros ? [[macros mutableCopy] autorelease] : [NSMutableDictionary dictionaryWithCapacity:8];
 	
@@ -150,38 +116,42 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	newConfig = [NSMutableDictionary dictionaryWithCapacity:16];
 	uniforms = [NSMutableDictionary dictionaryWithCapacity:6];
 	
-	[newConfig setObject:[NSNumber numberWithBool:YES] forKey:@"_oo_is_synthesized_config"];
+	[newConfig setObject:one forKey:@"_oo_is_synthesized_config"];
 	[newConfig setObject:@"oolite-tangent-space-vertex.vertex" forKey:@"vertex_shader"];
 	[newConfig setObject:@"oolite-default-shader.fragment" forKey:@"fragment_shader"];
 	
-	if (ambient != nil)  [newConfig setObject:[ambient normalizedArray] forKey:@"ambient"];
-	if (diffuse != nil)  [newConfig setObject:[diffuse normalizedArray] forKey:@"diffuse"];
-	if (emission != nil)
+	if (ambientColor != nil)  [newConfig setObject:[ambientColor normalizedArray] forKey:kOOMaterialAmbientColorName];
+	if (diffuseColor != nil)  [newConfig setObject:[diffuseColor normalizedArray] forKey:kOOMaterialDiffuseColorName];
+	if (emissionColor != nil)
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_EMISSION"];
-		[newConfig setObject:[emission normalizedArray] forKey:@"emission"];
+		[newConfig setObject:[emissionColor normalizedArray] forKey:kOOMaterialEmissionColorName];
 	}
 	if (shininess > 0)
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_SPECULAR"];
-		if (specular != nil)  [newConfig setObject:[specular normalizedArray] forKey:@"specular"];
-		[newConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:@"shininess"];
+		if (specularColor != nil)  [newConfig setObject:[specularColor normalizedArray] forKey:kOOMaterialSpecularColorName];
+		[newConfig setObject:[NSNumber numberWithUnsignedInt:shininess] forKey:kOOMaterialShininess];
 		if (specularMap != nil)
 		{
 			[modifiedMacros setObject:one forKey:@"OOSTD_SPECULAR_MAP"];
 			AddTexture(uniforms, textures, @"uSpecularMap", specularMap);
 		}
 	}
-	[newConfig setObject:diffuseMap forKey:@"diffuse_map"];
-	if (![diffuseMap isEqual:@""])	// empty string, not nil, means no diffuse map
+	if (diffuseMap != nil)
 	{
+		[newConfig setObject:diffuseMap forKey:kOOMaterialDiffuseMapName];
 		[modifiedMacros setObject:one forKey:@"OOSTD_DIFFUSE_MAP"];
 		AddTexture(uniforms, textures, @"uDiffuseMap", diffuseMap);
 		
-		if ([diffuseMap isKindOfClass:[NSDictionary class]] && [diffuseMap oo_boolForKey:@"cube_map"])
+		if ([diffuseMap oo_boolForKey:@"cube_map"])
 		{
 			[modifiedMacros setObject:one forKey:@"OOSTD_DIFFUSE_MAP_IS_CUBE_MAP"];
 		}
+	}
+	else
+	{
+		[newConfig setObject:@"" forKey:kOOMaterialDiffuseMapName];
 	}
 	if (emissionMap != nil)
 	{
@@ -192,11 +162,18 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_EMISSION_AND_ILLUMINATION_MAP"];
 		AddTexture(uniforms, textures, @"uEmissionMap", emissionAndIlluminationMap);
+		haveIllumination = YES;
 	}
 	if (illuminationMap != nil)
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_ILLUMINATION_MAP"];
 		AddTexture(uniforms, textures, @"uIlluminationMap", illuminationMap);
+		haveIllumination = YES;
+	}
+	if (haveIllumination)
+	{
+		NSString *illumMacro = [NSString stringWithFormat:@"vec4(%g, %g, %g, %g)", [illuminationColor redComponent], [illuminationColor greenComponent], [illuminationColor blueComponent], [illuminationColor alphaComponent]];
+		[modifiedMacros setObject:illumMacro forKey:@"OOSTD_ILLUMINATION_COLOR"];
 	}
 	if (normalMap != nil)
 	{
@@ -300,12 +277,12 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		if (result == nil &&
 				(smooth ||
 				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
-				 [configuration objectForKey:@"specular_map"] != nil ||
-				 [configuration objectForKey:@"normal_map"] != nil ||
-				 [configuration objectForKey:@"normal_and_parallax_map"] != nil ||
-				 [configuration objectForKey:@"emission_map"] != nil ||
-				 [configuration objectForKey:@"illumination_map"] != nil ||
-				 [configuration objectForKey:@"emission_and_illumination_map"] != nil
+				 [configuration oo_specularMapSpecifier] != nil ||
+				 [configuration oo_normalMapSpecifier] != nil ||
+				 [configuration oo_normalAndParallaxMapSpecifier] != nil ||
+				 [configuration oo_emissionMapSpecifier] != nil ||
+				 [configuration oo_illuminationMapSpecifier] != nil ||
+				 [configuration oo_emissionAndIlluminationMapSpecifier] != nil
 				 ))
 		{
 			result = [self defaultShaderMaterialWithName:name
@@ -320,7 +297,9 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 #if OO_MULTITEXTURE
 	if (result == nil && ![UNIVERSE reducedDetail])
 	{
-		if ([configuration objectForKey:@"emission_map"] != nil)
+		if ([configuration oo_emissionMapSpecifier] != nil ||
+			[configuration oo_illuminationMapSpecifier] ||
+			[configuration oo_emissionAndIlluminationMapSpecifier] != nil)
 		{
 			result = [[OOMultiTextureMaterial alloc] initWithName:name configuration:configuration];
 		}
@@ -329,7 +308,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	
 	if (result == nil)
 	{
-		if ([[configuration objectForKey:@"diffuse_map"] isEqual:@""])
+		if ([[[configuration oo_diffuseMapSpecifierWithDefaultName:name] oo_stringForKey:@"name"] isEqual:@""])
 		{
 			result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
 		}
@@ -401,8 +380,8 @@ static void SetUniformFloat(NSMutableDictionary *uniforms, NSString *key, float 
 }
 
 
-static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, NSString *key, NSString *fileName)
+static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, NSString *key, NSDictionary *specifier)
 {
 	SetUniform(uniforms, key, @"texture", [NSNumber numberWithInt:[textures count]]);
-	[textures addObject:fileName];
+	[textures addObject:specifier];
 }

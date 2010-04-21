@@ -304,6 +304,10 @@ void main(void)
 #elif OOSTD_ILLUMINATION_MAP
 	vec4 illuminationMapLight = texture2D(uIlluminationMap, texCoord);
 #endif
+#ifdef OOSTD_ILLUMINATION_COLOR
+	// OOSTD_ILLUMINATION_COLOR, if defined, is a vec4() declaration.
+	illuminationMapLight *= OOSTD_ILLUMINATION_COLOR;
+#endif
 	
 	vec4 diffuseLight = vec4(0);
 #if OO_LIGHT_0_FIX

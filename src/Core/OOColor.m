@@ -433,6 +433,12 @@ MA 02110-1301, USA.
 }
 
 
+- (BOOL)isWhite
+{
+	return rgba[0] == 1.0f && rgba[1] == 1.0f && rgba[2] == 1.0f;
+}
+
+
 // Get the components as hue, saturation, or brightness.
 - (OOCGFloat)hueComponent
 {
@@ -545,6 +551,18 @@ MA 02110-1301, USA.
 		[NSNumber numberWithDouble:b],
 		[NSNumber numberWithDouble:a],
 		nil];
+}
+
+
+- (NSString *)rgbaDescription
+{
+	return OORGBAComponentsDescription([self rgbaComponents]);
+}
+
+
+- (NSString *)hsbaDescription
+{
+	return OOHSBAComponentsDescription([self hsbaComponents]);
 }
 
 @end

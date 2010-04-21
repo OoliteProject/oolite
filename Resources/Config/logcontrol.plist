@@ -380,6 +380,9 @@
 	texture.planet.generate					= $textureDebug;
 	texture.upload							= $textureDebug;
 	
+	texture.generator.queue					= $textureDebug;
+	texture.generator.queue.failed			= $error;
+	
 	textureCache							= $textureDebug;
 	
 	textureLoader.asyncLoad					= $textureDebug;

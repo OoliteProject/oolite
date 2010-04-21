@@ -47,10 +47,12 @@ SOFTWARE.
 */
 
 #import "OOMultiTextureMaterial.h"
+#import "OOCombinedEmissionMapGenerator.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OOTexture.h"
 #import "OOMacroOpenGL.h"
 #import "NSDictionaryOOExtensions.h"
+#import "OOMaterialSpecifier.h"
 
 #if OO_MULTITEXTURE
 
@@ -59,28 +61,66 @@ SOFTWARE.
 
 - (id)initWithName:(NSString *)name configuration:(NSDictionary *)configuration
 {
-	OOColor *emissionColor = [OOColor colorWithDescription:[configuration objectForKey:@"emission"]];
-	if (emissionColor != nil)
+	NSDictionary *diffuseSpec = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
+	NSDictionary *emissionSpec = [configuration oo_emissionMapSpecifier];
+	NSDictionary *illuminationSpec = [configuration oo_illuminationMapSpecifier];
+	NSDictionary *emissionAndIlluminationSpec = [configuration oo_emissionAndIlluminationMapSpecifier];
+	OOColor *diffuseColor = [configuration oo_diffuseColor];
+	OOColor *emissionColor = [configuration oo_emissionColor];
+	OOColor *illuminationColor = [configuration oo_illuminationColor];
+	
+	NSMutableDictionary *mutableConfiguration = [NSMutableDictionary dictionaryWithDictionary:configuration];
+	
+	/*	If an emission map and an emission colour are both specified, we want
+		to bake the emission colour into the emission map rather than let the
+		superclass (OOBasicMaterial) apply the emission colour.
+	*/
+	if ((emissionSpec != nil || emissionAndIlluminationSpec != nil) && emissionColor != nil)
 	{
-		OOLogWARN(@"material.multiTexture.emissionUnsupported", @"Materials with both emission and emission_map are currently not supported in non-shader mode. The emission value will be ignored.");
-		configuration = [configuration dictionaryByRemovingObjectForKey:@"emission"];
+		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorName];
+		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorLegacyName];
 	}
 	
-	if ((self = [super initWithName:name configuration:configuration]))
+	if ((self = [super initWithName:name configuration:mutableConfiguration]))
 	{
-		OOUInteger maxUnits = [[OOOpenGLExtensionManager sharedManager] textureUnitCount];
-		
-		id diffuseSpec = [configuration oo_textureSpecifierForKey:@"diffuse_map" defaultName:name];
-		id emissionSpec = [configuration oo_textureSpecifierForKey:@"emission_map" defaultName:name];
-		
-		if (diffuseSpec != nil && ![diffuseSpec isEqual:nil] && _unitsUsed < maxUnits)
+		if (diffuseSpec != nil)
 		{
 			_diffuseMap = [[OOTexture textureWithConfiguration:diffuseSpec] retain];
 			if (_diffuseMap != nil)  _unitsUsed++;
 		}
-		if (emissionSpec != nil && _unitsUsed < maxUnits)
+		
+		// Check for simplest cases, where we don't need to bake a derived emission map.
+		if (emissionSpec != nil && illuminationSpec == nil && emissionAndIlluminationSpec == nil && emissionColor == nil)
 		{
 			_emissionMap = [[OOTexture textureWithConfiguration:emissionSpec] retain];
+			if (_emissionMap != nil)  _unitsUsed++;
+		}
+		else
+		{
+			OOCombinedEmissionMapGenerator *generator = nil;
+			
+			if (emissionAndIlluminationSpec != nil)
+			{
+				OOTexture *emissionAndIlluminationMap = [OOTexture textureWithConfiguration:emissionAndIlluminationSpec];
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMap:emissionAndIlluminationMap
+																							diffuseMap:_diffuseMap
+																						  diffuseColor:diffuseColor
+																						 emissionColor:emissionColor
+																					 illuminationColor:illuminationColor];
+			}
+			else
+			{
+				OOTexture *emissionMap = [OOTexture textureWithConfiguration:emissionSpec];
+				OOTexture *illuminationMap = [OOTexture textureWithConfiguration:illuminationSpec];
+				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMap:emissionMap
+																		  emissionColor:emissionColor
+																			 diffuseMap:_diffuseMap
+																		   diffuseColor:diffuseColor
+																		illuminationMap:illuminationMap
+																	  illuminationColor:illuminationColor];
+			}
+			
+			_emissionMap = [OOTexture textureWithGenerator:[generator autorelease]];
 			if (_emissionMap != nil)  _unitsUsed++;
 		}
 	}

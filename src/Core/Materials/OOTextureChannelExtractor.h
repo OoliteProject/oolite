@@ -26,7 +26,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007-2010 Jens Ayton
+Copyright (C) 2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -62,3 +62,37 @@ SOFTWARE.
 	than 3.
 */
 BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex, BOOL compactWhenDone);
+
+
+/*	OOPixMapToRGBA()
+	Convert a pixmap to RGBA format. If it has one component, it is assumed to
+	be greyscale. If it has two components, it is assumed to be greyscale+alpha.
+	If it has four components, it is left as-is.
+	NOTE: if successful, this will free() the original buffer and replace it.
+*/
+BOOL OOPixMapToRGBA(OOPixMap *ioPixMap);
+
+
+/*	OOPixMapModulateUniform()
+	Multiply all pixels by specified per-component factors. Pixmap must have
+	four components. The effect of using factors outside the range [0..1] is
+	undefined.
+	OOPixMapToRGBA() is called on ioPixMap.
+*/
+BOOL OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, float f3);
+
+
+/*	OOPixMapModulatePixMap()
+	Multiply each pixel of ioDstPixMap by the corresponding pixel of otherPixMap,
+	writing the result to ioDstPixMap.
+	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must have four components.
+*/
+BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
+
+
+/*	OOPixMapAddPixMap()
+	Add each pixel of otherPixMap to the corresponding pixel of ioDstPixMap,
+	writing the result to ioDstPixMap.
+	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must have four components.
+*/
+BOOL OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);

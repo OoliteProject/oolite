@@ -101,6 +101,7 @@ typedef struct
 - (OORGBAComponents)rgbaComponents;
 
 - (BOOL)isBlack;
+- (BOOL)isWhite;
 
 /*	Get the components of NSCalibratedRGB or NSDeviceRGB colors as hue, saturation, or brightness.
 	
@@ -127,6 +128,9 @@ typedef struct
 
 // r,g,b,a array in 0..1 range.
 - (NSArray *)normalizedArray;
+
+- (NSString *)rgbaDescription;
+- (NSString *)hsbaDescription;
 
 @end
 

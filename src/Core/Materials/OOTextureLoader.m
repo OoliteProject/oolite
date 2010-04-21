@@ -269,7 +269,7 @@ static BOOL					sHaveSetUp = NO;
 		[self loadTexture];
 		
 		// Catch an error I've seen but not diagnosed yet.
-		if (data != NULL && OOTexturePlanesForFormat(format) == 0)
+		if (data != NULL && OOTextureComponentsForFormat(format) == 0)
 		{
 			OOLog(@"textureLoader.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", path, format);
 			free(data);
@@ -297,11 +297,11 @@ static BOOL					sHaveSetUp = NO;
 	// Generate mip maps for each cube face.
 	NSParameterAssert(data != NULL);
 	
-	uint8_t planes = OOTexturePlanesForFormat(format);
-	size_t srcSideSize = width * width * planes;	// Space for one side without mip-maps.
-	size_t newSideSize = srcSideSize * 4 / 3;		// Space for one side with mip-maps.
-	newSideSize = (newSideSize + 15) & ~15;			// Round up to multiple of 16 bytes.
-	size_t newSize = newSideSize * 6;				// Space for all six sides.
+	uint8_t components = OOTextureComponentsForFormat(format);
+	size_t srcSideSize = width * width * components;	// Space for one side without mip-maps.
+	size_t newSideSize = srcSideSize * 4 / 3;			// Space for one side with mip-maps.
+	newSideSize = (newSideSize + 15) & ~15;				// Round up to multiple of 16 bytes.
+	size_t newSize = newSideSize * 6;					// Space for all six sides.
 	
 	void *newData = malloc(newSize);
 	if (EXPECT_NOT(newData == NULL))
@@ -317,7 +317,7 @@ static BOOL					sHaveSetUp = NO;
 		void *dstBytes = ((uint8_t *)newData) + newSideSize * i;
 		
 		memcpy(dstBytes, srcBytes, srcSideSize);
-		OOGenerateMipMaps(dstBytes, width, width, planes);
+		OOGenerateMipMaps(dstBytes, width, width, components);
 	}
 	
 	free(data);
@@ -333,7 +333,7 @@ static BOOL					sHaveSetUp = NO;
 	uint8_t				components;
 	OOPixMap			pixMap;
 	
-	components = OOTexturePlanesForFormat(format);
+	components = OOTextureComponentsForFormat(format);
 	pixMap = OOMakePixMap(data, width, height, components, rowBytes, 0);
 	
 	if (extractChannel)

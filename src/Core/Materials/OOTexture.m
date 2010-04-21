@@ -56,6 +56,7 @@
 #import "OOMacroOpenGL.h"
 #import "OOCPUInfo.h"
 #import "OOCache.h"
+#import "OOPixMap.h"
 
 
 /*	Texture caching:
@@ -396,10 +397,10 @@ static NSString *sGlobalTraceContext = nil;
 	
 	if (![generator enqueue])
 	{
-		OOLog(@"planetTex.temp", @"Failed to queue generator %@!", generator);
+		OOLogERR(@"texture.generator.queue.failed", @"Failed to queue generator %@", generator);
 		return nil;
 	}
-	OOLog(@"planetTex.temp", @"Queued generator %@.", generator);
+	OOLog(@"texture.generator.queue", @"Queued texture generator %@", generator);
 	
 	OOTexture *result = [[[self alloc] initWithLoader:generator
 												  key:[generator cacheKey]
@@ -507,11 +508,24 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
+- (NSString *) cacheKey
+{
+	return [[_key retain] autorelease];
+}
+
+
 - (NSSize)dimensions
 {
 	[self ensureFinishedLoading];
 	
 	return NSMakeSize(_width, _height);
+}
+
+
+- (struct OOPixMap) copyPixMapRepresentation
+{
+	OOPixMap px = OOMakePixMap(_bytes, _width, _height, OOTextureComponentsForFormat(_format), 0, 0);
+	return OODuplicatePixMap(px, 0);
 }
 
 
@@ -827,7 +841,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 							h = _height,
 							level = 0;
 	char					*bytes = _bytes;
-	uint8_t					planes = OOTexturePlanesForFormat(format);
+	uint8_t					components = OOTextureComponentsForFormat(format);
 	
 	OO_ENTER_OPENGL();
 	
@@ -837,7 +851,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	{
 		OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat, type, bytes));
 		if (!mipMap)  return;
-		bytes += w * planes * h;
+		bytes += w * components * h;
 		w >>= 1;
 		h >>= 1;
 	}
@@ -856,10 +870,10 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	
 	GLint glFormat = 0, internalFormat = 0, type = 0;
 	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
-	uint8_t planes = OOTexturePlanesForFormat(format);
+	uint8_t components = OOTextureComponentsForFormat(format);
 	
 	// Calculate stride between cube map sides.
-	size_t sideSize = _width * _width * planes;
+	size_t sideSize = _width * _width * components;
 	if (mipMap)
 	{
 		sideSize = sideSize * 4 / 3;
@@ -888,7 +902,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		{
 			OOGL(glTexImage2D(cubeSides[side], level++, internalFormat, w, w, 0, glFormat, type, bytes));
 			if (!mipMap)  break;
-			bytes += w * w * planes;
+			bytes += w * w * components;
 			w >>= 1;
 		}
 	}
@@ -1064,7 +1078,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 
 @implementation NSDictionary (OOTextureConveniences)
 
-- (id) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name
+- (NSDictionary *) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name
 {
 	return OOTextureSpecFromObject([self objectForKey:key], name);
 }
@@ -1073,24 +1087,49 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 
 @implementation NSArray (OOTextureConveniences)
 
-- (id) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name
+- (NSDictionary *) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name
 {
 	return OOTextureSpecFromObject([self objectAtIndex:index], name);
 }
 
 @end
 
-id OOTextureSpecFromObject(id object, NSString *defaultName)
+NSDictionary *OOTextureSpecFromObject(id object, NSString *defaultName)
 {
-	if (object == nil)  return [[defaultName copy] autorelease];
-	if ([object isKindOfClass:[NSString class]])  return [[object copy] autorelease];
+	if (object == nil)  object = defaultName;
+	if ([object isKindOfClass:[NSString class]])
+	{
+		if ([object isEqualToString:@""])  return nil;
+		return [NSDictionary dictionaryWithObject:object forKey:@"name"];
+	}
 	if (![object isKindOfClass:[NSDictionary class]])  return nil;
 	
 	// If we're here, it's a dictionary.
 	if (defaultName == nil || [object oo_stringForKey:@"name"] != nil)  return object;
 	
 	// If we get here, there's no "name" key and there is a default, so we fill it in:
-	NSMutableDictionary *mutableResult = [object mutableCopy];
+	NSMutableDictionary *mutableResult = [NSMutableDictionary dictionaryWithDictionary:object];
 	[mutableResult setObject:[[defaultName copy] autorelease] forKey:@"name"];
-	return [mutableResult autorelease];
+	return mutableResult;
+}
+
+
+uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
+{
+	switch (format)
+	{
+		case kOOTextureDataRGBA:
+			return 4;
+			
+		case kOOTextureDataGrayscale:
+			return 1;
+			
+		case kOOTextureDataGrayscaleAlpha:
+			return 2;
+			
+		case kOOTextureDataInvalid:
+			break;
+	}
+	
+	return 0;
 }

@@ -104,27 +104,35 @@ OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOP
 }
 
 
-void OOCompactPixMap(OOPixMap *ioPixMap)
+void OOFreePixMap(OOPixMap *ioPixMap)
 {
-	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))  return;
+	if (EXPECT_NOT(ioPixMap == NULL))  return;
 	
-	size_t compactSize = ioPixMap->rowBytes * ioPixMap->height;
-	if (ioPixMap->bufferSize > compactSize)
-	{
-		void *newPixels = realloc(ioPixMap->pixels, compactSize);
-		if (newPixels != NULL)
-		{
-			ioPixMap->pixels = newPixels;
-			ioPixMap->bufferSize = compactSize;
-		}
-	}
+	free(ioPixMap->pixels);
+	*ioPixMap = kOONullPixMap;
 }
 
 
-BOOL OOExpandPixMap(OOPixMap *ioPixMap, size_t desiredSize)
+OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize)
+{
+	if (EXPECT_NOT(!OOIsValidPixMap(srcPixMap)))  return kOONullPixMap;
+	
+	size_t minSize = OOMinimumPixMapBufferSize(srcPixMap);
+	if (desiredSize < minSize)  desiredSize = minSize;
+	
+	OOPixMap result = OOAllocatePixMap(srcPixMap.width, srcPixMap.width, srcPixMap.components, srcPixMap.rowBytes, desiredSize);
+	if (EXPECT_NOT(!OOIsValidPixMap(result)))  return kOONullPixMap;
+	
+	memcpy(result.pixels, srcPixMap.pixels, minSize);
+	return result;
+}
+
+
+BOOL OOResizePixMap(OOPixMap *ioPixMap, size_t desiredSize)
 {
 	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))  return NO;
-	if (desiredSize <= ioPixMap->bufferSize)  return YES;
+	if (desiredSize == ioPixMap->bufferSize)  return YES;
+	if (desiredSize < OOMinimumPixMapBufferSize(*ioPixMap))  return NO;
 	
 	void *newPixels = realloc(ioPixMap->pixels, desiredSize);
 	if (newPixels != NULL)
@@ -137,7 +145,15 @@ BOOL OOExpandPixMap(OOPixMap *ioPixMap, size_t desiredSize)
 	{
 		return NO;
 	}
+}
 
+
+BOOL OOExpandPixMap(OOPixMap *ioPixMap, size_t desiredSize)
+{
+	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))  return NO;
+	if (desiredSize <= ioPixMap->bufferSize)  return YES;
+	
+	return OOResizePixMap(ioPixMap, desiredSize);
 }
 
 

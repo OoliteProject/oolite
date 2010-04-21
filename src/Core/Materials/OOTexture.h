@@ -225,10 +225,17 @@ typedef enum
 */
 - (BOOL) isFinishedLoading;
 
+- (NSString *) cacheKey;
+
 /*	Dimensions in pixels.
 	This will block until loading is completed.
 */
 - (NSSize) dimensions;
+
+/*	Create a new pixmap with a copy of the texture data. The caller is
+	responsible for free()ing the resulting buffer.
+*/
+- (struct OOPixMap) copyPixMapRepresentation;
 
 /*	Identify special texture types.
 */
@@ -281,13 +288,14 @@ typedef enum
 
 
 @interface NSDictionary (OOTextureConveniences)
-// Returns either a dictionary or a string.
-- (id) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name;
+- (NSDictionary *) oo_textureSpecifierForKey:(id)key defaultName:(NSString *)name;
 @end
 
 @interface NSArray (OOTextureConveniences)
-// Returns either a dictionary or a string.
-- (id) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name;
+- (NSDictionary *) oo_textureSpecifierAtIndex:(unsigned)index defaultName:(NSString *)name;
 @end
 
-id OOTextureSpecFromObject(id object, NSString *defaultName);
+NSDictionary *OOTextureSpecFromObject(id object, NSString *defaultName);
+
+
+uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);

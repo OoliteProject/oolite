@@ -3,7 +3,7 @@
 OOBasicMaterial.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@ MA 02110-1301, USA.
 
 This file may also be distributed under the MIT/X11 license:
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2007-2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,7 @@ SOFTWARE.
 #import "OOCollectionExtractors.h"
 #import "OOFunctionAttributes.h"
 #import "Universe.h"
+#import "OOMaterialSpecifier.h"
 
 
 static OOBasicMaterial *sDefaultMaterial = nil;
@@ -85,25 +86,20 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	
 	if (configuration == nil)  configuration = [NSDictionary dictionary];
 	
-	colorDesc = [configuration objectForKey:@"diffuse"];
+	colorDesc = [configuration oo_diffuseColor];
 	if (colorDesc != nil)  [self setDiffuseColor:[OOColor colorWithDescription:colorDesc]];
 	
-	colorDesc = [configuration objectForKey:@"ambient"];
+	colorDesc = [configuration oo_ambientColor];
 	if (colorDesc != nil)  [self setAmbientColor:[OOColor colorWithDescription:colorDesc]];
 	else  [self setAmbientColor:[self diffuseColor]];
 	
-	colorDesc = [configuration objectForKey:@"emission"];
+	colorDesc = [configuration oo_emissionColor];
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
-	shininessVal = [configuration oo_intForKey:@"shininess" defaultValue:-1];
+	shininessVal = [configuration oo_shininess];
 	if (shininessVal != 0 && ![UNIVERSE reducedDetail])
 	{
-		colorDesc = [configuration objectForKey:@"specular"];
-		if (shininessVal < 0)
-		{
-			shininessVal = 10;
-			if (colorDesc == nil)  colorDesc = @"0.2 0.2 0.2 1.0";
-		}
+		colorDesc = [configuration oo_specularColor];
 		[self setShininess:shininessVal];
 		if (colorDesc != nil)  [self setSpecularColor:[OOColor colorWithDescription:colorDesc]];
 	}

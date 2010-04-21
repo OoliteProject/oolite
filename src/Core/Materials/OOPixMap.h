@@ -55,7 +55,7 @@ typedef uint_fast32_t		OOPixMapDimension;		// Note: dimensions are assumed to be
 typedef uint_fast8_t		OOPixMapComponentCount;	// Currently supported values are 1, 2 and 4.
 
 
-typedef struct
+typedef struct OOPixMap
 {
 	void					*pixels;
 	OOPixMapDimension		width, height;
@@ -70,6 +70,7 @@ extern const OOPixMap kOONullPixMap;
 
 OOINLINE BOOL OOIsNullPixMap(OOPixMap pixMap)  { return pixMap.pixels == NULL; }
 BOOL OOIsValidPixMap(OOPixMap pixMap);
+OOINLINE size_t OOMinimumPixMapBufferSize(OOPixMap pixMap)  { return pixMap.rowBytes * pixMap.height; }
 
 
 /*	OOMakePixMap()
@@ -86,10 +87,31 @@ OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension h
 OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize);
 
 
+/*	OOFreePixMap()
+	Deallocate a pixmap's buffer (with free()), and clear out the struct.
+*/
+void OOFreePixMap(OOPixMap *ioPixMap);
+
+
+/*	OODuplicatePixMap()
+	Create a pixmap with the same pixel contents as a source pixmap, and
+	optional padding. If desiredSize is less than the required space for the
+	pixmap, it will be ignored. The contents of padding bytes are unspecified.
+*/
+OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize);
+
+
+/*	OOResizePixMap()
+	Set the size of a pixmap's buffer. Fails if specified size is smaller than
+	required to fit the current pixels.
+*/
+BOOL OOResizePixMap(OOPixMap *ioPixMap, size_t desiredSize);
+
+
 /*	OOCompactPixMap()
 	Remove any trailing space in a pixmap's buffer, if possible.
 */
-void OOCompactPixMap(OOPixMap *ioPixMap);
+OOINLINE void OOCompactPixMap(OOPixMap *ioPixMap)  { OOResizePixMap(ioPixMap, OOMinimumPixMapBufferSize(*ioPixMap)); }
 
 
 /*	OOExpandPixMap()
@@ -100,4 +122,6 @@ BOOL OOExpandPixMap(OOPixMap *ioPixMap, size_t desiredSize);
 
 #ifndef NDEBUG
 void OODumpPixMap(OOPixMap pixMap, NSString *name);
+#else
+#define OODumpPixMap(p, n)  do {} while (0)
 #endif

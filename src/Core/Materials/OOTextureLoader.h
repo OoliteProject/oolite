@@ -111,24 +111,3 @@ SOFTWARE.
 - (void)loadTexture;
 
 @end
-
-
-static inline uint8_t OOTexturePlanesForFormat(OOTextureDataFormat format)
-{
-	switch (format)
-	{
-		case kOOTextureDataRGBA:
-			return 4;
-			
-		case kOOTextureDataGrayscale:
-			return 1;
-			
-		case kOOTextureDataGrayscaleAlpha:
-			return 2;
-		
-		case kOOTextureDataInvalid:
-			break;
-	}
-	
-	return 0;
-}
