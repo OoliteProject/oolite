@@ -52,7 +52,7 @@ SOFTWARE.
 #import "OOMaths.h"
 #import "Universe.h"
 #import "OOTextureScaling.h"
-#import "OOTextureChannelExtractor.h"
+#import "OOPixMapChannelOperations.h"
 #import <stdlib.h>
 
 

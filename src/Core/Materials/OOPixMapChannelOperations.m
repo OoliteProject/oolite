@@ -1,6 +1,6 @@
 /*
 
-OOTextureChannelExtractor.m
+OOPixMapChannelOperations.m
 
 
 Oolite
@@ -46,7 +46,7 @@ SOFTWARE.
 
 */
 
-#include "OOTextureChannelExtractor.h"
+#include "OOPixMapChannelOperations.h"
 #import "OOCPUInfo.h"
 
 

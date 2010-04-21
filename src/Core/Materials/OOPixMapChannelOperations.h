@@ -1,6 +1,6 @@
 /*
 
-OOTextureChannelExtractor.h
+OOPixMapChannelOperations.h
 
 Utility to convert one channel of an RGBA texture into a greyscale texture.
 

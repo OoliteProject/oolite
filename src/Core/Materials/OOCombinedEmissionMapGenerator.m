@@ -49,7 +49,7 @@ SOFTWARE.
 #import "OOCombinedEmissionMapGenerator.h"
 
 #import "OOColor.h"
-#import "OOTextureChannelExtractor.h"
+#import "OOPixMapChannelOperations.h"
 #import "OOTextureScaling.h"
 #import "OOMaterialSpecifier.h"
 

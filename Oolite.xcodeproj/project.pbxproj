@@ -72,6 +72,8 @@
 		1A15049F0C12CA070032F3E8 /* OOProbabilisticTextureManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */; };
 		1A1616620D7DCFDC0094AE5B /* OOFilteringEnumerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */; };
 		1A1616630D7DCFDC0094AE5B /* OOFilteringEnumerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */; };
+		1A19783E117F81B10060DB56 /* OOPixMapChannelOperations.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */; };
+		1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */; };
 		1A1D212E0D2BD4C100F4DEC2 /* bsd_string.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */; };
 		1A1E99B60EF04837008B48E2 /* OOProgressBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A1E99B40EF04837008B48E2 /* OOProgressBar.h */; };
 		1A1E99B70EF04837008B48E2 /* OOProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A1E99B50EF04837008B48E2 /* OOProgressBar.m */; };
@@ -638,8 +640,6 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
-		1AECE9DC11779526003986A8 /* OOTextureChannelExtractor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */; };
-		1AECE9DD11779526003986A8 /* OOTextureChannelExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */; };
 		1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DF1177959F003986A8 /* OOPixMap.h */; };
 		1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9EE11779910003986A8 /* OOPixMap.m */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
@@ -1178,6 +1178,8 @@
 		1A15049D0C12CA070032F3E8 /* OOProbabilisticTextureManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilisticTextureManager.m; sourceTree = "<group>"; };
 		1A1616600D7DCFDC0094AE5B /* OOFilteringEnumerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOFilteringEnumerator.h; sourceTree = "<group>"; };
 		1A1616610D7DCFDC0094AE5B /* OOFilteringEnumerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOFilteringEnumerator.m; sourceTree = "<group>"; };
+		1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMapChannelOperations.h; sourceTree = "<group>"; };
+		1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapChannelOperations.m; sourceTree = "<group>"; };
 		1A1D212D0D2BD4C100F4DEC2 /* bsd_string.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bsd_string.h; path = src/BSDCompat/bsd_string.h; sourceTree = SOURCE_ROOT; };
 		1A1E99B40EF04837008B48E2 /* OOProgressBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOProgressBar.h; sourceTree = "<group>"; };
 		1A1E99B50EF04837008B48E2 /* OOProgressBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProgressBar.m; sourceTree = "<group>"; };
@@ -1769,8 +1771,6 @@
 		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
-		1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureChannelExtractor.h; sourceTree = "<group>"; };
-		1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTextureChannelExtractor.m; sourceTree = "<group>"; };
 		1AECE9DF1177959F003986A8 /* OOPixMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMap.h; sourceTree = "<group>"; };
 		1AECE9EE11779910003986A8 /* OOPixMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMap.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
@@ -2541,10 +2541,10 @@
 				1A8C97E5117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.m */,
 				1AECE9DF1177959F003986A8 /* OOPixMap.h */,
 				1AECE9EE11779910003986A8 /* OOPixMap.m */,
+				1A19783C117F81B10060DB56 /* OOPixMapChannelOperations.h */,
+				1A19783D117F81B10060DB56 /* OOPixMapChannelOperations.m */,
 				1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */,
 				1AB01ABD0BB15AED00F1B949 /* OOTextureScaling.m */,
-				1AECE9DA11779526003986A8 /* OOTextureChannelExtractor.h */,
-				1AECE9DB11779526003986A8 /* OOTextureChannelExtractor.m */,
 			);
 			name = Textures;
 			sourceTree = "<group>";
@@ -3235,10 +3235,10 @@
 				1A87063E1172029F003FDD2A /* OODebugFlags.h in Headers */,
 				1A3D03151173536C005BF5E6 /* OOMultiTextureMaterial.h in Headers */,
 				1A3D034A11736EDA005BF5E6 /* OOMaterialConvenienceCreators.h in Headers */,
-				1AECE9DC11779526003986A8 /* OOTextureChannelExtractor.h in Headers */,
 				1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */,
 				1A8C981E117A380800D8AB7E /* OOCombinedEmissionMapGenerator.h in Headers */,
 				1A1F7DB7117B5D8200332757 /* OOMaterialSpecifier.h in Headers */,
+				1A19783E117F81B10060DB56 /* OOPixMapChannelOperations.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3607,10 +3607,10 @@
 				1A7E318A113ED496009AAB6D /* ProxyPlayerEntity.m in Sources */,
 				1A3D03161173536C005BF5E6 /* OOMultiTextureMaterial.m in Sources */,
 				1A3D034B11736EDA005BF5E6 /* OOMaterialConvenienceCreators.m in Sources */,
-				1AECE9DD11779526003986A8 /* OOTextureChannelExtractor.m in Sources */,
 				1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */,
 				1A8C981D117A380800D8AB7E /* OOCombinedEmissionMapGenerator.m in Sources */,
 				1A1F7DB6117B5D8100332757 /* OOMaterialSpecifier.m in Sources */,
+				1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
