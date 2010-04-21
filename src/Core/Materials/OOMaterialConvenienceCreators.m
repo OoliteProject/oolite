@@ -57,6 +57,7 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOCacheManager.h"
 #import "OOTexture.h"
+#import "OODebugFlags.h"
 
 
 static void SetUniform(NSMutableDictionary *uniforms, NSString *key, NSString *type, id value);
@@ -273,9 +274,10 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 												bindingTarget:object];
 		}
 		
-		// Use default shader if smoothing is on, or shader detail is full, or material uses an effect map.
+		// Use default shader if smoothing is on, or shader detail is full, DEBUG_NO_SHADER_FALLBACK is set, or material uses an effect map.
 		if (result == nil &&
 				(smooth ||
+				 gDebugFlags & DEBUG_NO_SHADER_FALLBACK ||
 				 [UNIVERSE shaderEffectsLevel] == SHADERS_FULL ||
 				 [configuration oo_specularMapSpecifier] != nil ||
 				 [configuration oo_normalMapSpecifier] != nil ||
