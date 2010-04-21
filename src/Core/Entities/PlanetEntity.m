@@ -279,10 +279,7 @@ double longitudeFromVector(Vector v);
 		textureName = 0;
 		isTextured = NO;
 	}
-#if OO_SHADERS
-	isShadered = NO;
-	shader_program = NULL_SHADER;
-#endif
+	
 	if (!planet)
 	{
 		OOLogERR(@"planet.atmosphere.init.noPlanet", @"planet entity initAsAtmosphereForPlanet: no planet found.");
@@ -480,7 +477,7 @@ double longitudeFromVector(Vector v);
 	if ([dict objectForKey:@"texture"])
 	{
 		textureFile = [[dict oo_stringForKey:@"texture"] retain];
-		textureName = [TextureStore getTextureNameFor:textureFile];
+		textureName = [TextureStore getTextureNameFor:textureFile cubeMapped:&isCubeMapped];
 		isTextureImage = isTextured = (textureName != 0);
 	}
 	else
@@ -492,7 +489,7 @@ double longitudeFromVector(Vector v);
 		}
 		else
 		{
-			textureName = atmo ? 0: [TextureStore getTextureNameFor:@"metal.png"];
+			textureName = atmo ? 0: [TextureStore getTextureNameFor:@"metal.png" cubeMapped:&isCubeMapped];
 			isTextured = (textureName != 0);
 		}
 	}
@@ -627,36 +624,12 @@ double longitudeFromVector(Vector v);
 	{
 		if (!isTextured)
 		{
-		fillRanNoiseBuffer();
-		textureName = [TextureStore getPlanetTextureNameFor: planetInfo intoData: &textureData];
-		isTextured = (textureName != 0);
-#if OO_SHADERS
-		isShadered = NO;
-#if OLD_SHADERS
-		if (UNIVERSE)
-		{
-			NSDictionary* shader_info = [[UNIVERSE descriptions] objectForKey:@"planet-surface-shader"];
-			if (shader_info)
-			{
-				NSLog(@"TESTING: creating planet shader from:\n%@", shader_info);
-				shader_program = [TextureStore shaderProgramFromDictionary:shader_info];
-				isShadered = (shader_program != NULL_SHADER);
-				normalMapTextureName = [TextureStore getPlanetNormalMapNameFor: planetInfo intoData: &normalMapTextureData];
-				NSLog(@"TESTING: planet-surface-shader: %d normalMapTextureName: %d", (int)shader_program, (int)normalMapTextureName);
-			}
-		}
-#endif
-#endif
+			fillRanNoiseBuffer();
+			textureName = [TextureStore getPlanetTextureNameFor:planetInfo intoData:&textureData];
+			isTextured = (textureName != 0);
 		}
 	}
-	else
 #endif
-	{
-#if OO_SHADERS
-		isShadered = NO;
-		shader_program = NULL_SHADER;
-#endif
-	}
 	
 	
 	[self initialiseBaseVertexArray];
@@ -933,9 +906,21 @@ double longitudeFromVector(Vector v);
 					OOGL(glDisable(GL_TEXTURE_2D));	// stop any problems from this being left on!
 				else
 				{
-					OOGL(glEnable(GL_TEXTURE_2D));
-					OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
-					OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+					if (!isCubeMapped)
+					{
+						OOGL(glEnable(GL_TEXTURE_2D));
+						OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
+						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+					}
+					else
+					{
+#if GL_ARB_texture_cube_map
+						OOGL(glDisable(GL_TEXTURE_2D));
+						OOGL(glEnable(GL_TEXTURE_CUBE_MAP_ARB));
+						OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
+#endif
+					}
+
 				}
 
 				OOGL(glShadeModel(GL_SMOOTH));
@@ -962,9 +947,19 @@ double longitudeFromVector(Vector v);
 						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 						
 						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
-						OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
-						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+						if (!isCubeMapped)
+						{
+							OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
+							OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
+							OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
+						}
+						else
+						{
+#if GL_ARB_texture_cube_map
+							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, textureName));
+#endif
+						}
 					}
 					else
 					{
@@ -985,66 +980,32 @@ double longitudeFromVector(Vector v);
 				{
 					OOGL(glDisableClientState(GL_INDEX_ARRAY));
 					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-					
-#if OO_SHADERS
-					if (isShadered)
+					if (isTextured)
 					{
-						GLint locator;
-						OOGL(glUseProgramObjectARB(shader_program));	// shader ON!
-						OOGL(glEnableClientState(GL_COLOR_ARRAY));
+						OOGL(glEnableClientState(GL_COLOR_ARRAY));		// test shading
 						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 						
 						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
-						
-						OOGL(glActiveTextureARB(GL_TEXTURE1_ARB));
-						OOGL(glBindTexture(GL_TEXTURE_2D, normalMapTextureName));
-						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
-						OOGL(locator = glGetUniformLocationARB(shader_program, "tex1"));
-						if (locator == -1)
+						if (!isCubeMapped)
 						{
-								OOLogERR(@"planet.shaders.noUniform", @"GLSL couldn't find location of tex0 in shader_program %d", shader_program);
-						}
-						else
-						{
-							OOGL(glUniform1iARB(locator, 1));	// associate texture unit number i with texture 1
-							
-						}
-						
-						OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
-						OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
-						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
-						OOGL(locator = glGetUniformLocationARB(shader_program, "tex0"));
-						if (locator == -1)
-						{
-							OOLogERR(@"planet.shaders.noUniform", @"GLSL couldn't find location of tex0 in shader_program %d", shader_program);
-						}
-						else
-						{
-							OOGL(glUniform1iARB(locator, 0));// associate texture unit number i with texture 0
-							
-						}
-					}
-					else
-#endif
-					{
-						if (isTextured)
-						{
-							OOGL(glEnableClientState(GL_COLOR_ARRAY));		// test shading
-							OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
-							
-							OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 							OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
 							OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
 							OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 						}
 						else
 						{
-							OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-							
-							OOGL(glEnableClientState(GL_COLOR_ARRAY));
-							OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
+#if GL_ARB_texture_cube_map
+							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, textureName));
+#endif
 						}
+					}
+					else
+					{
+						OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+						
+						OOGL(glEnableClientState(GL_COLOR_ARRAY));
+						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
 					}
 					
 					OOGL(glEnableClientState(GL_VERTEX_ARRAY));
@@ -1052,9 +1013,11 @@ double longitudeFromVector(Vector v);
 					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
 					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
-#if OO_SHADERS
-					if (isShadered)
+					OOGL(displayListNames[subdivideLevel] = glGenLists(1));
+					if (displayListNames[subdivideLevel] != 0)	// sanity check
 					{
+						OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE));
+						
 						OOGL(glColor4fv(mat1));
 						OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 						OOGL(glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
@@ -1063,33 +1026,20 @@ double longitudeFromVector(Vector v);
 						[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
 						
 						OOGL(glDisable(GL_COLOR_MATERIAL));
-						OOGL(glUseProgramObjectARB(NULL_SHADER));	// shader OFF
-					}
-					else
-#endif
-					{
-						OOGL(displayListNames[subdivideLevel] = glGenLists(1));
-						if (displayListNames[subdivideLevel] != 0)	// sanity check
-						{
-							OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE));
-							
-							OOGL(glColor4fv(mat1));
-							OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
-							OOGL(glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
-							OOGL(glEnable(GL_COLOR_MATERIAL));
-							
-							[self drawModelWithVertexArraysAndSubdivision:subdivideLevel];
-							
-							OOGL(glDisable(GL_COLOR_MATERIAL));
-							OOGL(glEndList());
-						}
+						OOGL(glEndList());
 					}
 					
 				}
 				OOGL(glFrontFace(GL_CW));
 				
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
-
+				
+#if GL_ARB_texture_cube_map
+				if (isCubeMapped)
+				{
+					OOGL(glDisable(GL_TEXTURE_CUBE_MAP_ARB));
+				}
+#endif
 
 				if (atmosphere)
 				{
@@ -1186,7 +1136,7 @@ double longitudeFromVector(Vector v);
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName
 {
-	GLuint tName=[TextureStore getTextureNameFor:fileName];
+	GLuint tName=[TextureStore getTextureNameFor:fileName cubeMapped:&isCubeMapped];
 	if (tName == 0) return NO;
 	BOOL wasTextured=isTextured;
 	//if(!!textureFile) [textureFile release];

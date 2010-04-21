@@ -28,8 +28,6 @@ MA 02110-1301, USA.
 #import "OOOpenGL.h"
 
 
-#define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
-
 @class OOSound, OOMusic;
 
 

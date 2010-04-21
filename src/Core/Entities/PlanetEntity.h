@@ -53,7 +53,7 @@ typedef struct
 @private
 	int						lastSubdivideLevel;
 	
-	OOStellarBodyType			planet_type;
+	OOStellarBodyType		planet_type;
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
@@ -63,11 +63,7 @@ typedef struct
 	NSString				*textureFile;
 	unsigned char			*textureData;
 	
-#if OO_SHADERS
-
-	BOOL					isShadered;
-	GLhandleARB				shader_program;
-#endif
+	BOOL					isCubeMapped;
 
 	GLuint					normalMapTextureName;
 	unsigned char			*normalMapTextureData;

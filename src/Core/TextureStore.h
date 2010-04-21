@@ -1,11 +1,15 @@
 /*
 
-TextureStore.m
+TextureStore.h
 
 Singleton responsible for loading, binding and caching textures.
 
+Legacy class, used only by PlanetEntity. Use OOTexture or OOMaterial for any
+new development.
+
+
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -28,50 +32,25 @@ MA 02110-1301, USA.
 #import "OOStellarBody.h"
 #if !NEW_PLANETS
 
-
-#import <Foundation/Foundation.h>
+#import "OOCocoa.h"
 #import "OOOpenGL.h"
-
-#define OOLITE_EXCEPTION_TEXTURE_NOT_FOUND		@"OoliteTextureNotFoundException"
-#define OOLITE_EXCEPTION_TEXTURE_NOT_UNDERSTOOD	@"OoliteTextureNotUnderstoodException"
-#define OOLITE_EXCEPTION_FATAL					@"OoliteFatalException"
 
 
 @class OOColor;
 
-@interface TextureStore : NSObject
-{
-}
 
-+ (GLuint) maxTextureDimension;
+@interface TextureStore: NSObject
 
-+ (GLuint) getTextureNameFor:(NSString *)filename;
-+ (GLuint) getImageNameFor:(NSString *)filename;
-+ (GLuint) getTextureNameFor:(NSString *)filename inFolder:(NSString*) foldername;
-+ (NSString*) getNameOfTextureWithGLuint:(GLuint) value;
-+ (NSSize) getSizeOfTexture:(NSString *)filename;
-
++ (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped;
 
 // routines to create textures...
-
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
-+ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
 + (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
+
+@end
+
 
 void fillRanNoiseBuffer();
 
-void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes);
-
-void addNoise(float * buffer, int p, int n, float scale);
-void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes);
-void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
-void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
-	OOColor* seaColor,
-	OOColor* paleSeaColor,
-	OOColor* landColor,
-	OOColor* paleLandColor);
-void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor);
-
-@end
 
 #endif	// !NEW_PLANETS

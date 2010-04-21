@@ -3,7 +3,7 @@
 TextureStore.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -42,6 +42,8 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #endif
 
+#import "OOCollectionExtractors.h"
+
 #define DEBUG_DUMP			(	0	&& !defined(NDEBUG))
 
 #define kOOLogUnconvertedNSLog @"unclassified.TextureStore"
@@ -50,41 +52,45 @@ MA 02110-1301, USA.
 static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 
 
+@interface TextureStore (OOPrivate)
+
++ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString *)folderName cubeMapped:(BOOL *)cubeMapped;
+
+@end
+
+
+static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
+static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, OOColor* seaColor, OOColor* paleSeaColor, OOColor* landColor, OOColor* paleLandColor);
+
+
 @implementation TextureStore
 
 NSMutableDictionary	*textureUniversalDictionary = nil;
-NSMutableDictionary	*shaderUniversalDictionary = nil;
 
-BOOL	done_maxsize_test = NO;
-GLuint	max_texture_dimension = 512;	// conservative start
-+ (GLuint) maxTextureDimension
+
++ (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped
 {
-	if (done_maxsize_test)
-		return max_texture_dimension;
-	GLint result;
-	glGetIntegerv( GL_MAX_TEXTURE_SIZE, &result);
-	max_texture_dimension = result;
-	done_maxsize_test = YES;
-	return max_texture_dimension;
-}
-
-
-+ (GLuint) getTextureNameFor:(NSString *)filename
-{
-	if ([textureUniversalDictionary objectForKey:filename])
-		return [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	return [TextureStore getTextureNameFor: filename inFolder: @"Textures"];
+	NSParameterAssert(cubeMapped != NULL);
+	
+	NSDictionary *cached = [textureUniversalDictionary oo_dictionaryForKey:filename];
+	if (cached != nil)
+	{
+		*cubeMapped = [cached oo_boolForKey:@"cubeMap"];
+		return [cached oo_intForKey:@"texName"];
+	}
+	return [TextureStore getTextureNameFor:filename inFolder:@"Textures" cubeMapped:cubeMapped];
 }
 
 + (GLuint) getImageNameFor:(NSString *)filename
 {
+	BOOL cubeMapped;
 	if ([textureUniversalDictionary objectForKey:filename])
 		return [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	return [TextureStore getTextureNameFor: filename inFolder: @"Images"];
+	return [TextureStore getTextureNameFor: filename inFolder: @"Images" cubeMapped:&cubeMapped];
 }
 
 
-+ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString*)folderName
++ (GLuint) getTextureNameFor:(NSString *)fileName inFolder:(NSString *)folderName cubeMapped:(BOOL *)cubeMapped
 {
 	OOTexture				*texture = nil;
 	NSDictionary			*texProps = nil;
@@ -92,18 +98,24 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	NSSize					dimensions;
 	NSNumber				*texNameObj = nil;
 	
-	texture = [OOTexture textureWithName:fileName inFolder:folderName];
+	texture = [OOTexture textureWithName:fileName
+								inFolder:folderName
+								 options:kOOTextureDefaultOptions | kOOTextureAllowCubeMap
+							  anisotropy:kOOTextureDefaultAnisotropy
+								 lodBias:kOOTextureDefaultLODBias];
 	texName = [texture glTextureName];
 	if (texName != 0)
 	{
 		dimensions = [texture dimensions];
 		texNameObj = [NSNumber numberWithInt:texName];
+		*cubeMapped = [texture isCubeMap];
 		
 		texProps = [NSDictionary dictionaryWithObjectsAndKeys:
 						texNameObj, @"texName",
 						[NSNumber numberWithInt:dimensions.width], @"width",
 						[NSNumber numberWithInt:dimensions.height], @"height",
 						texture, @"OOTexture",
+						[NSNumber numberWithBool:*cubeMapped], @"cubeMap",
 						nil];
 		
 		if (textureUniversalDictionary == nil)  textureUniversalDictionary = [[NSMutableDictionary alloc] init];
@@ -184,46 +196,6 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	return texName;
 }
 
-+ (GLuint) getPlanetNormalMapNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData
-{
-	GLuint				texName;
-
-	int					texsize = 512;
-
-	unsigned char		*texBytes;
-
-	int					texture_h = texsize;
-	int					texture_w = texsize;
-
-	int					tex_bytes = texture_w * texture_h * 4;
-
-	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (imageBuffer)
-		(*textureData) = imageBuffer;
-
-	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
-	float sea_bias = land_fraction - 1.0;
-	
-	OOLog(@"textureStore.genNormalMap", @"genning normal map for land_fraction %.5f", land_fraction);
-	
-//	fillRanNoiseBuffer();
-	fillSquareImageWithPlanetNMap( imageBuffer, texture_w, 4, 1.0, sea_bias, 24.0);
-
-	texBytes = imageBuffer;
-
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	texName = GLAllocateTextureName();
-	glBindTexture(GL_TEXTURE_2D, texName);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
-
-	return texName;
-}
 
 + (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData
 {
@@ -260,52 +232,12 @@ GLuint	max_texture_dimension = 512;	// conservative start
 	return texName;
 }
 
-void fillSquareImageDataWithBlur(unsigned char * imageBuffer, int width, int nplanes)
-{
-	OOLog(@"texture.generatingBlur", @"Genrating blur - %u pixels wide, %u planes.", width, nplanes);
-	
-	int x, y;
-	int r = width / 2;
-	float r1 = 1.0 / r;
-	float i_error = 0;
-	for (y = 0; y < r; y++) for (x = 0; x < r; x++)
-	{
-		int x1 = r - x - 1;
-		int x2 = r + x;
-		int y1 = r - y - 1;
-		int y2 = r + y;
-		float d = sqrt(x*x + y*y);
-		if (d > r)
-			d = r;
-		float fi = 255.0 - 255.0 * d * r1;
-		unsigned char i = (unsigned char)fi;
-
-		i_error += fi - i;	// accumulate the error between i and fi
-
-		if ((i_error > 1.0)&&(i < 255))
-		{
-			i_error -= 1.0;
-			i++;
-		}
-
-		int p;
-		for (p = 0; p < nplanes - 1; p++)
-		{
-			imageBuffer[ p + nplanes * (y1 * width + x1) ] = 128 | (ranrot_rand() & 127);
-			imageBuffer[ p + nplanes * (y1 * width + x2) ] = 128 | (ranrot_rand() & 127);
-			imageBuffer[ p + nplanes * (y2 * width + x1) ] = 128 | (ranrot_rand() & 127);
-			imageBuffer[ p + nplanes * (y2 * width + x2) ] = 128 | (ranrot_rand() & 127);
-		}
-		imageBuffer[ p + nplanes * (y1 * width + x1) ] = i;	// hoping RGBA last plane is alpha
-		imageBuffer[ p + nplanes * (y1 * width + x2) ] = i;
-		imageBuffer[ p + nplanes * (y2 * width + x1) ] = i;
-		imageBuffer[ p + nplanes * (y2 * width + x2) ] = i;
-	}
-}
+@end
 
 
 static RANROTSeed sNoiseSeed;
 float ranNoiseBuffer[ 128 * 128];
+
 void fillRanNoiseBuffer()
 {
 	sNoiseSeed = RANROTGetFullSeed();
@@ -315,14 +247,15 @@ void fillRanNoiseBuffer()
 		ranNoiseBuffer[i] = randf();
 }
 
-float my_lerp( float v0, float v1, float q)
+
+static float my_lerp( float v0, float v1, float q)
 {
 	//float q1 = 0.5 * (1.0 + cosf((q + 1.0) * M_PI));
 	//return  v0 * (1.0 - q1) + v1 * q1;
 	return (v0 + q * (v1 - v0));
 }
 
-void addNoise(float * buffer, int p, int n, float scale)
+static void addNoise(float * buffer, int p, int n, float scale)
 {
 	int x, y;
 	
@@ -347,35 +280,8 @@ void addNoise(float * buffer, int p, int n, float scale)
 	}
 }
 
-void fillSquareImageDataWithSmoothNoise(unsigned char * imageBuffer, int width, int nplanes)
-{
-	float accbuffer[width * width];
-	int x, y;
-	for (y = 0; y < width; y++) for (x = 0; x < width; x++) accbuffer[ y * width + x] = 0.0f;
 
-	int octave = 4;
-	float scale = 0.5;
-	while (octave < width)
-	{
-		addNoise( accbuffer, width, octave, scale);
-		octave *= 2;
-		scale *= 0.5;
-	}
-	
-	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
-	{
-		int p;
-		float q = accbuffer[ y * width + x];
-		q = 2.0f * ( q - 0.5f);
-		if (q < 0.0f)
-			q = 0.0f;
-		for (p = 0; p < nplanes - 1; p++)
-			imageBuffer[ p + nplanes * (y * width + x) ] = 255 * q;
-		imageBuffer[ p + nplanes * (y * width + x) ] = 255;
-	}
-}
-
-float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_smooth, float polar_y_value, BOOL polar_x_smooth, float polar_x_value, float impress, float bias)
+static float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_smooth, float polar_y_value, BOOL polar_x_smooth, float polar_x_value, float impress, float bias)
 {
 	while ( x < 0 ) x+= width;
 	while ( y < 0 ) y+= width;
@@ -405,7 +311,7 @@ float q_factor(float* accbuffer, int x, int y, int width, BOOL polar_y_smooth, f
 }
 
 
-void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias)
+static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias)
 {
 	float accbuffer[width * width];
 	int x, y;
@@ -464,7 +370,7 @@ void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width,
 #endif
 }
 
-void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
+static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias,
 	OOColor* seaColor,
 	OOColor* paleSeaColor,
 	OOColor* landColor,
@@ -540,53 +446,5 @@ void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int np
 	}
 #endif
 }
-
-void fillSquareImageWithPlanetNMap(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, float factor)
-{
-	if (nplanes != 4)
-	{
-		OOLog(@"textureStore.planetMap.failed", @"***** ERROR: fillSquareImageWithPlanetNMap() can only create textures with 4 planes.");
-		return;
-	}
-	
-	float accbuffer[width * width];
-	int x, y;
-	y = width * width;
-	for (x = 0; x < y; x++) accbuffer[x] = 0.0f;
-
-	int octave = 8;
-	float scale = 0.5;
-	while (octave < width)
-	{
-		addNoise( accbuffer, width, octave, scale);
-		octave *= 2;
-		scale *= 0.5;
-	}
-	
-	float pole_value = (impress + bias > 0.5)? 0.5 * (impress + bias) : 0.0;
-	
-	for (y = 0; y < width; y++) for (x = 0; x < width; x++)
-	{
-		float yN = q_factor( accbuffer, x, y - 1, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yS = q_factor( accbuffer, x, y + 1, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yW = q_factor( accbuffer, x - 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
-		float yE = q_factor( accbuffer, x + 1, y, width, YES, pole_value, NO, 0.0, impress, bias);
-
-		Vector norm = make_vector( factor * (yW - yE), factor * (yS - yN), 2.0);
-		
-		norm = vector_normal(norm);
-		
-		norm.x = 0.5 * (norm.x + 1.0);
-		norm.y = 0.5 * (norm.y + 1.0);
-		norm.z = 0.5 * (norm.z + 1.0);
-		
-		imageBuffer[ 0 + 4 * (y * width + x) ] = 255 * norm.x;
-		imageBuffer[ 1 + 4 * (y * width + x) ] = 255 * norm.y;
-		imageBuffer[ 2 + 4 * (y * width + x) ] = 255 * norm.z;
-		imageBuffer[ 3 + 4 * (y * width + x) ] = 255;// * q;				// alpha is heightmap
-	}
-}
-
-@end
 
 #endif	// !NEW_PLANETS
