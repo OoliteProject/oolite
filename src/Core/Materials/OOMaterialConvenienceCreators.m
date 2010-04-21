@@ -113,7 +113,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	modifiedMacros = macros ? [[macros mutableCopy] autorelease] : [NSMutableDictionary dictionaryWithCapacity:8];
 	
 	// Create a synthetic configuration dictionary.
-	textures = [NSMutableArray arrayWithCapacity:4];
+	textures = [NSMutableArray arrayWithCapacity:5];
 	newConfig = [NSMutableDictionary dictionaryWithCapacity:16];
 	uniforms = [NSMutableDictionary dictionaryWithCapacity:6];
 	
@@ -171,7 +171,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		AddTexture(uniforms, textures, @"uIlluminationMap", illuminationMap);
 		haveIllumination = YES;
 	}
-	if (haveIllumination)
+	if (haveIllumination && illuminationColor != nil)
 	{
 		NSString *illumMacro = [NSString stringWithFormat:@"vec4(%g, %g, %g, %g)", [illuminationColor redComponent], [illuminationColor greenComponent], [illuminationColor blueComponent], [illuminationColor alphaComponent]];
 		[modifiedMacros setObject:illumMacro forKey:@"OOSTD_ILLUMINATION_COLOR"];
@@ -180,12 +180,14 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	{
 		[modifiedMacros setObject:one forKey:@"OOSTD_NORMAL_MAP"];
 		AddTexture(uniforms, textures, @"uNormalMap", normalMap);
-		if (normalAndParallaxMap != nil)
-		{
-			[modifiedMacros setObject:one forKey:@"OOSTD_NORMAL_AND_PARALLAX_MAP"];
-			SetUniformFloat(uniforms, @"uParallaxScale", parallaxScale);
-			SetUniformFloat(uniforms, @"uParallaxBias", parallaxBias);
-		}
+	}
+	else if (normalAndParallaxMap != nil)
+	{
+		AddTexture(uniforms, textures, @"uNormalMap", normalAndParallaxMap);
+		[modifiedMacros setObject:one forKey:@"OOSTD_NORMAL_MAP"];
+		[modifiedMacros setObject:one forKey:@"OOSTD_NORMAL_AND_PARALLAX_MAP"];
+		SetUniformFloat(uniforms, @"uParallaxScale", parallaxScale);
+		SetUniformFloat(uniforms, @"uParallaxBias", parallaxBias);
 	}
 	if ([UNIVERSE shaderEffectsLevel] == SHADERS_FULL)
 	{
