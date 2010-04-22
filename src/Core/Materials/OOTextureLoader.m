@@ -249,11 +249,14 @@ static BOOL					sHaveSetUp = NO;
 	GLint maxSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
 	sGLMaxSize = MAX(maxSize, 64);
+	OOLog(@"texture.load.rescale.maxSize", @"GL maximum texture size: %u", sGLMaxSize);
 	
 	// Why 0x80000000? Because it's the biggest number OORoundUpToPowerOf2() can handle.
 	sUserMaxSize = [[NSUserDefaults standardUserDefaults] oo_unsignedIntForKey:@"max-texture-size" defaultValue:0x80000000];
+	if (sUserMaxSize < 0x80000000)  OOLog(@"texture.load.rescale.maxSize", @"User maximum texture size: %u", sUserMaxSize);
 	sUserMaxSize = OORoundUpToPowerOf2(sUserMaxSize);
 	sUserMaxSize = MAX(sUserMaxSize, 64U);
+	
 	
 	sHaveSetUp = YES;
 }

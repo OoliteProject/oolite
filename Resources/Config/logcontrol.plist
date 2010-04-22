@@ -391,6 +391,7 @@
 	texture.load.noName						= $error;
 	texture.load.queueTask.inconsistency	= $error;
 	texture.load.rescale					= $textureDebug;
+	texture.load.rescale.maxSize			= inherit;
 	texture.load.unknownType				= $error;
 	
 	
