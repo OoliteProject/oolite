@@ -95,7 +95,7 @@ static BOOL					sHaveSetUp = NO;
 	}
 	else
 	{
-		OOLog(@"textureLoader.unknownType", @"Can't use %@ as a texture - extension \"%@\" does not identify a known type.", inPath, extension);
+		OOLog(@"texture.load.unknownType", @"Can't use %@ as a texture - extension \"%@\" does not identify a known type.", inPath, extension);
 	}
 	
 	if (result != nil)
@@ -148,7 +148,7 @@ static BOOL					sHaveSetUp = NO;
 				break;
 				
 			default:
-				OOLogERR(@"textureLoader.unknownExtractChannelMask", @"Unknown texture extract channel mask (0x%.4X). This is an internal error, please report it.", options & kOOTextureExtractChannelMask);
+				OOLogERR(@"texture.load.unknownExtractChannelMask", @"Unknown texture extract channel mask (0x%.4X). This is an internal error, please report it.", options & kOOTextureExtractChannelMask);
 				extractChannel =  NO;
 		}
 	}
@@ -264,23 +264,23 @@ static BOOL					sHaveSetUp = NO;
 - (void)performAsyncTask
 {
 	NS_DURING
-		OOLog(@"textureLoader.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
+		OOLog(@"texture.load.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
 		
 		[self loadTexture];
 		
 		// Catch an error I've seen but not diagnosed yet.
 		if (data != NULL && OOTextureComponentsForFormat(format) == 0)
 		{
-			OOLog(@"textureLoader.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", path, format);
+			OOLog(@"texture.load.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", path, format);
 			free(data);
 			data = NULL;
 		}
 		
 		if (data != NULL)  [self applySettings];
 		
-		OOLog(@"textureLoader.asyncLoad.done", @"Loading complete.");
+		OOLog(@"texture.load.asyncLoad.done", @"Loading complete.");
 	NS_HANDLER
-		OOLog(@"textureLoader.asyncLoad.exception", @"***** Exception loading texture %@: %@ (%@).", path, [localException name], [localException reason]);
+		OOLog(@"texture.load.asyncLoad.exception", @"***** Exception loading texture %@: %@ (%@).", path, [localException name], [localException reason]);
 		
 		// Be sure to signal load failure
 		if (data != NULL)
@@ -360,6 +360,8 @@ static BOOL					sHaveSetUp = NO;
 #if GL_ARB_texture_cube_map
 		if (isCubeMap)  leaveSpaceForMipMaps = NO;
 #endif
+		
+		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %u x %u to %u x %u.", [path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
 		
 		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, YES);
 		if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return;

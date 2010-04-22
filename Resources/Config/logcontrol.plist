@@ -375,7 +375,6 @@
 	
 	
 	$textureDebug							= no;
-	texture.load.noName						= $error;
 	texture.dealloc							= $textureDebug;
 	texture.planet.generate					= $textureDebug;
 	texture.upload							= $textureDebug;
@@ -385,14 +384,14 @@
 	
 	textureCache							= $textureDebug;
 	
-	textureLoader.asyncLoad					= $textureDebug;
-	textureLoader.asyncLoad.done			= inherit;
-	textureLoader.asyncLoad.exception		= $error;
-	textureLoader.block						= $textureDebug;
-	textureLoader.block.done				= inherit;
-	textureLoader.detachThreads.failed		= $error;
-	textureLoader.queueTask.inconsistency	= $error;
-	textureLoader.unknownType				= $error;
+	texture.load.asyncLoad					= $textureDebug;
+	texture.load.asyncLoad.done				= inherit;
+	texture.load.asyncLoad.exception		= $error;
+	texture.load.detachThreads.failed		= $error;
+	texture.load.noName						= $error;
+	texture.load.queueTask.inconsistency	= $error;
+	texture.load.rescale					= $textureDebug;
+	texture.load.unknownType				= $error;
 	
 	
 	universe.populate						= no;				// “Populating a system with…” message when generating a star system
