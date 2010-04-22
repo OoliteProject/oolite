@@ -1692,9 +1692,10 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (!haveExecutedSpawnAction)
 	{
 		// we only want shipSpawned to be triggered if this is a ship (including carriers and cargo pods), not for a stationary err... station!
+		// When crashing into a boulder, STATUS_LAUNCHING is sometimes skipped on scooping the resulting splinters.
 		// FIXME: do we want shipSpawned to work for asteroids / rock hermits too ? if not:
 		//if (script != nil && [self scanClass] != CLASS_ROCK && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING))
-		if (script != nil && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING))
+		if (script != nil && ([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_LAUNCHING|| [self status] == STATUS_BEING_SCOOPED))
 		{
 			PlayerEntity *player = [PlayerEntity sharedPlayer];
 			[player setScriptTarget:self];
