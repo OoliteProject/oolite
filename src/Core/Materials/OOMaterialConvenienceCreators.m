@@ -262,7 +262,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		 bindingTarget:(id<OOWeakReferenceSupport>)object
 	   forSmoothedMesh:(BOOL)smooth
 {
-	id						result = nil;
+	id result = nil;
 	
 #if OO_SHADERS
 
@@ -306,6 +306,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 			[configuration oo_emissionAndIlluminationMapSpecifier] != nil)
 		{
 			result = [[OOMultiTextureMaterial alloc] initWithName:name configuration:configuration];
+			[result autorelease];
 		}
 	}
 #endif
