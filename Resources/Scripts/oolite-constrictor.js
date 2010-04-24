@@ -42,6 +42,9 @@ this.shipSpawned = function ()
 {
 	this.legalPoints = this.ship.bounty;
 	this.ship.bounty = 0;
+	if (player.score > 512) this.ship.awardEquipment("EQ_SHIELD_BOOSTER"); // Player is Dangerous
+	if (player.score > 2560) this.ship.awardEquipment("EQ_SHIELD_ENHANCER"); // Player is Deadly
+	this.ship.energy = this.ship.maxEnergy; // start with all energy banks full.
 };
 
 

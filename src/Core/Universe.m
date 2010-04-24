@@ -4687,11 +4687,18 @@ static BOOL MaintainLinkedLists(Universe* uni)
 			&&(v_off.x < cr)&&(v_off.x > -cr)&&(v_off.y < cr)&&(v_off.y > -cr)		// AND not off to one side or another
 			&&(v_off.x*v_off.x + v_off.y*v_off.y < cr*cr))							// AND not off to both sides
 		{
+			
+			/*
+			//  EW 23-4-2002: Below used to be a test for: e2->actual_radius with Oolite 1.65. 
+			//  With e2->collision_radius it is now just duplicating the test above.
+			//  Remove the code or use something smaller to check (if possible).
+			
 			//  within the bounding sphere - do further tests
 			GLfloat ar = e2->collision_radius;
 			if ((v_off.z > 0.0)&&(v_off.z < nearest + ar)								// ahead AND within range
 				&&(v_off.x < ar)&&(v_off.x > -ar)&&(v_off.y < ar)&&(v_off.y > -ar)		// AND not off to one side or another
 				&&(v_off.x*v_off.x + v_off.y*v_off.y < ar*ar))							// AND not off to both sides
+			*/
 			{
 				ShipEntity* entHit = (ShipEntity*)nil;
 				GLfloat hit = [(ShipEntity*)e2 doesHitLine:p0:p1:&entHit];	// octree detection
@@ -4714,7 +4721,8 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	if (hit_entity)
 	{
 		result = [hit_entity universalID];
-		if (hit_subentity)  [hit_entity setSubEntityTakingDamage:hit_subentity];
+		// I think the above code does not guarantee that the closest hit_subentity belongs to the closest hit_entity.
+		if (hit_subentity && [hit_subentity owner] == hit_entity)  [hit_entity setSubEntityTakingDamage:hit_subentity];
 		
 		if (range_ptr != NULL)
 		{
