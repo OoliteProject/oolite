@@ -191,7 +191,11 @@ static BOOL		sCubeMapAvailable;
 - (void) addToCaches;
 + (OOTexture *) existingTextureForKey:(NSString *)key;
 
-- (void)forceRebind;
+- (void) forceRebind;
+
+#if OOTEXTURE_RELOADABLE
+- (BOOL) isReloadable;
+#endif
 
 + (void)checkExtensions;
 
@@ -421,6 +425,10 @@ static NSString *sGlobalTraceContext = nil;
 	OOLog(_trace ? @"texture.allocTrace.dealloc" : @"texture.dealloc", @"Deallocating and uncaching texture %p", self);
 #endif
 	
+#if OOTEXTURE_RELOADABLE
+	DESTROY(_path);
+#endif
+	
 	if (_key != nil)
 	{
 		[sInUseTextures removeObjectForKey:_key];
@@ -436,7 +444,7 @@ static NSString *sGlobalTraceContext = nil;
 		free(_bytes);
 	}
 	
-	[_loader release];
+	DESTROY(_loader);
 	
 	[super dealloc];
 }
@@ -462,7 +470,7 @@ static NSString *sGlobalTraceContext = nil;
 		stateDesc = @"loading";
 	}
 	
-	return [NSString stringWithFormat:@"<{%@, %@}", _key, stateDesc];
+	return [NSString stringWithFormat:@"%@, %@", _key, stateDesc];
 }
 
 
@@ -686,6 +694,10 @@ static NSString *sGlobalTraceContext = nil;
 		return nil;
 	}
 	
+#if OOTEXTURE_RELOADABLE
+	_path = [path retain];
+#endif
+	
 	return [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias];
 }
 
@@ -701,6 +713,19 @@ static NSString *sGlobalTraceContext = nil;
 			_isCubeMap = YES;
 		}
 #endif
+		
+#if !defined(NDEBUG) && OOTEXTURE_RELOADABLE
+		if (_trace)
+		{
+			static unsigned dumpID = 0;
+			uint8_t components = OOTextureComponentsForFormat(_format);
+			OOPixMap pm = OOMakePixMap(_bytes, _width, _height, components, 0, 0);
+			NSString *name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID, _path ? [_path lastPathComponent] : [[_key componentsSeparatedByString:@"/"] objectAtIndex:1]];
+			OOLog(@"texture.trace.dump", @"Dumped traced texture %@ to \'%@.png\'", self, name);
+			OODumpPixMap(pm, name);
+		}
+#endif
+		
 		[self uploadTexture];
 	}
 	else
@@ -712,8 +737,7 @@ static NSString *sGlobalTraceContext = nil;
 	
 	_loaded = YES;
 	
-	[_loader release];
-	_loader = nil;
+	DESTROY(_loader);
 }
 
 
@@ -792,6 +816,14 @@ static NSString *sGlobalTraceContext = nil;
 		
 		_valid = YES;
 		_uploaded = YES;
+		
+#if OOTEXTURE_RELOADABLE
+		if ([self isReloadable])
+		{
+			free(_bytes);
+			_bytes = NULL;
+		}
+#endif
 	}
 }
 
@@ -924,15 +956,40 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 }
 
 
-- (void)forceRebind
+- (void) forceRebind
 {
 	if (_loaded && _uploaded && _valid)
 	{
 		_uploaded = NO;
 		GLRecycleTextureName(_textureName, _mipLevels);
 		_textureName = 0;
+		
+#if OOTEXTURE_RELOADABLE
+		if ([self isReloadable])
+		{
+			OOLog(@"texture.reload", @"Reloading texture %@", self);
+			
+			free(_bytes);
+			_bytes = NULL;
+			_loaded = NO;
+			_uploaded = NO;
+			_valid = NO;
+			
+			_loader = [[OOTextureLoader loaderWithPath:_path options:_options] retain];
+		}
+#endif
 	}
 }
+
+
+#if OOTEXTURE_RELOADABLE
+
+- (BOOL) isReloadable
+{
+	return _path != nil;
+}
+
+#endif
 
 
 - (void) addToCaches

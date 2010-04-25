@@ -394,6 +394,8 @@
 	texture.load.rescale.maxSize			= inherit;
 	texture.load.unknownType				= $error;
 	
+	texture.reload							= $textureDebug;
+	
 	
 	universe.populate						= no;				// “Populating a system with…” message when generating a star system
 	universe.populate.witchspace			= inherit;

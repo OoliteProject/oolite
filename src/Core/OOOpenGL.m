@@ -27,6 +27,7 @@ MA 02110-1301, USA.
 #import "OOMaths.h"
 #import "OOMacroOpenGL.h"
 #import "OOFunctionAttributes.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 static NSString * const kOOLogOpenGLStateDump				= @"rendering.opengl.stateDump";
@@ -372,6 +373,18 @@ static void GLDumpMaterialState(void)
 	OOGL(glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, &texMode));
 	OOLog(kOOLogOpenGLStateDump, @"Texture env mode: %@", GLEnumToString(texMode));
 	
+#if OO_MULTITEXTURE
+	if ([[OOOpenGLExtensionManager sharedManager] textureUnitCount] > 1)
+	{
+		GLint textureUnit;
+		OOGL(glGetIntegerv(GL_ACTIVE_TEXTURE_ARB, &textureUnit));
+		OOLog(kOOLogOpenGLStateDump, @"Active texture unit: %@", GLEnumToString(textureUnit));
+		
+		OOGL(glGetIntegerv(GL_CLIENT_ACTIVE_TEXTURE_ARB, &textureUnit));
+		OOLog(kOOLogOpenGLStateDump, @"Active client texture unit: %@", GLEnumToString(textureUnit));
+	}
+#endif
+	
 	OOLogOutdent();
 }
 
@@ -500,6 +513,31 @@ static NSString *GLEnumToString(GLenum value)
 		CASE(GL_LINEAR);
 		CASE(GL_EXP);
 		CASE(GL_EXP2);
+		
+#if OO_MULTITEXTURE
+		// Texture units
+#ifdef GL_TEXTURE0
+#define TEXCASE CASE
+#else
+#define TEXCASE(x) CASE(x##_ARB)
+#endif
+		TEXCASE(GL_TEXTURE0);
+		TEXCASE(GL_TEXTURE1);
+		TEXCASE(GL_TEXTURE2);
+		TEXCASE(GL_TEXTURE3);
+		TEXCASE(GL_TEXTURE4);
+		TEXCASE(GL_TEXTURE5);
+		TEXCASE(GL_TEXTURE6);
+		TEXCASE(GL_TEXTURE7);
+		TEXCASE(GL_TEXTURE8);
+		TEXCASE(GL_TEXTURE9);
+		TEXCASE(GL_TEXTURE10);
+		TEXCASE(GL_TEXTURE11);
+		TEXCASE(GL_TEXTURE12);
+		TEXCASE(GL_TEXTURE13);
+		TEXCASE(GL_TEXTURE14);
+		TEXCASE(GL_TEXTURE15);
+#endif
 		
 		default: return [NSString stringWithFormat:@"unknown: %u", value];
 	}

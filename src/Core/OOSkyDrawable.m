@@ -230,7 +230,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		// Set up display list
 		[self ensureTexturesLoaded];
 		_displayListName = glGenLists(1);
-		OOGL(glNewList(_displayListName, GL_COMPILE));
+		OOGL(glNewList(_displayListName, GL_COMPILE_AND_EXECUTE));
 		
 		OOGL(glEnable(GL_TEXTURE_2D));
 		OOGL(glBlendFunc(GL_ONE, GL_ONE));	// Pure additive blending, ignoring alpha
@@ -362,7 +362,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			vi = vector_right_from_quaternion(q);
 			vj = vector_up_from_quaternion(q);
 			
-			#if 1
 			// Scale the "side" vectors.
 			vj = vector_multiply_scalar(vj, size);
 			vi = vector_multiply_scalar(vi, size);
@@ -372,15 +371,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			currQuad->corners[1] = vector_add(currQuad->corners[0], vj);
 			currQuad->corners[2] = vector_add(currQuad->corners[1], vi);
 			currQuad->corners[3] = vector_add(currQuad->corners[0], vi);
-			#else
-			// Set up corners.
-			vj = vector_multiply_scalar(vj, size);
-			Vector vi2 = vector_multiply_scalar(vi, size);
-			currQuad->corners[0] = vector_subtract(middle, offset);
-			currQuad->corners[1] = vector_add(currQuad->corners[0], vj);
-			currQuad->corners[2] = vector_add(currQuad->corners[1], vi2);
-			currQuad->corners[3] = vector_add(currQuad->corners[0], vi2);
-			#endif
 			
 			// Shuffle direction quat around a bit to spread the cluster out.
 			size = NEBULA_SHUFFLE_FACTOR / (nebulaScale * SKY_ELEMENT_SCALE_FACTOR);

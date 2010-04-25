@@ -56,6 +56,9 @@ SOFTWARE.
 @class OOTextureLoader, OOTextureGenerator;
 
 
+#define OOTEXTURE_RELOADABLE		0
+
+
 enum
 {
 	kOOTextureMinFilterDefault		= 0x0000UL,
@@ -123,6 +126,9 @@ typedef enum
 @interface OOTexture: OOWeakRefObject
 {
 @private
+#if OOTEXTURE_RELOADABLE
+	NSString				*_path;
+#endif
 	NSString				*_key;
 	uint8_t					_loaded: 1,
 							_uploaded: 1,

@@ -92,7 +92,9 @@ static OOGraphicsResetManager *sSingleton = nil;
 	NSEnumerator			*clientEnum = nil;
 	id						client = nil;
 	
+	glFlush();
 	[OOTexture rebindAllTextures];
+	glFinish();
 	
 	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
 	{

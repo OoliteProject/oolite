@@ -105,13 +105,13 @@ MA 02110-1301, USA.
 	if ([UNIVERSE reducedDetail]) starCount /= 2; // Halve the number of stars in the reduced detail setting.
 	
 	skyDrawable = [[OOSkyDrawable alloc]
-						initWithColor1:col1
-								Color2:col2
-							 starCount:starCount
-						   nebulaCount:nebulaCount
-						 clusterFactor:clusterChance
-								 alpha:alpha
-								 scale:scale];
+				   initWithColor1:col1
+				   Color2:col2
+				   starCount:starCount
+				   nebulaCount:nebulaCount
+				   clusterFactor:clusterChance
+				   alpha:alpha
+				   scale:scale];
 	[self setDrawable:skyDrawable];
 	[skyDrawable release];
 	
