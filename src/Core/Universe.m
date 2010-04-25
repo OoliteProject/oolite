@@ -3201,11 +3201,14 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 			
 			co_amount = [self getRandomAmountOfCommodity:co_type];
 			
-			ShipEntity* special_container = [self newShipWithRole: [self symbolicNameForCommodity:co_type]];
-			if (special_container)
+			if (randf() < 0.5) // only half of the time to prevent an oxp from monopolising a pod for a commodity.
 			{
-				[container release];
-				container = special_container;
+				ShipEntity* special_container = [self newShipWithRole: [self symbolicNameForCommodity:co_type]];
+				if (special_container)
+				{
+					[container release];
+					container = special_container;
+				}
 			}
 		}
 		
@@ -3213,7 +3216,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		if (container != nil)
 		{
 			[container setScanClass: CLASS_CARGO];
-			if ([container cargoType] != CARGO_SCRIPTED_ITEM) [container setCommodity:co_type andAmount:co_amount];
+			[container setCommodity:co_type andAmount:co_amount];
 			[accumulator addObject:container];
 			[container release];	// released
 		}
@@ -3249,7 +3252,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 		if (container)
 		{
 			[container setScanClass: CLASS_CARGO];
-			if ([container cargoType] != CARGO_SCRIPTED_ITEM) [container setCommodity:commodity_type andAmount:amount];
+			[container setCommodity:commodity_type andAmount:amount];
 			[accumulator addObject:container];
 			[container release];
 		}
@@ -4689,7 +4692,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 		{
 			
 			/*
-			//  EW 23-4-2002: Below used to be a test for: e2->actual_radius with Oolite 1.65. 
+			//  EW 23-4-2010: Below used to be a test for: e2->actual_radius with Oolite 1.65. 
 			//  With e2->collision_radius it is now just duplicating the test above.
 			//  Remove the code or use something smaller to check (if possible).
 			

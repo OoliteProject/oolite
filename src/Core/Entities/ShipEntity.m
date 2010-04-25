@@ -5017,7 +5017,7 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 
 - (void) setCommodity:(OOCargoType)co_type andAmount:(OOCargoQuantity)co_amount
 {
-	if (co_type != CARGO_UNDEFINED)
+	if (co_type != CARGO_UNDEFINED && cargo_type != CARGO_SCRIPTED_ITEM)
 	{
 		commodity_type = co_type;
 		commodity_amount = co_amount;
