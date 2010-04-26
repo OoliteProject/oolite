@@ -397,6 +397,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 	
+	OOLog(kOOLogOpenGLShaderSupport, @"Shaders are supported.");
 	shadersAvailable = YES;
 }
 #endif

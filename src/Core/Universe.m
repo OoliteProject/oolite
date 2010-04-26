@@ -8366,8 +8366,9 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) setShaderEffectsLevel:(OOShaderSetting)value
 {
-	if (SHADERS_MIN <= value && value <= SHADERS_MAX)
+	if (SHADERS_MIN <= value && value <= SHADERS_MAX && [[OOOpenGLExtensionManager sharedManager] shadersSupported])
 	{
+		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
 		shaderEffectsLevel = value;
 		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-effects-level"];
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
