@@ -189,6 +189,10 @@
 	rendering.opengl.shader.support			= inherit;				// Messages about factors influencing availability of OpenGL shaders
 	rendering.opengl.shader.uniform			= $shaderDebugOn;
 	
+	rendering.reset							= yes;
+	rendering.reset.start					= inherit;
+	rendering.reset.end						= no;
+	
 	
 	resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
 	
@@ -383,7 +387,7 @@
 	texture.generator.queue					= $textureDebug;
 	texture.generator.queue.failed			= $error;
 	
-	textureCache							= $textureDebug;
+	textureNameCache						= $textureDebug;
 	
 	texture.load.asyncLoad					= $textureDebug;
 	texture.load.asyncLoad.done				= inherit;

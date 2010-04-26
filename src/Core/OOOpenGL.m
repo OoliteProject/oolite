@@ -69,7 +69,9 @@ BOOL CheckOpenGLErrors(NSString *format, ...)
 #if OO_CHECK_GL_HEAVY
 	if (errorOccurred)
 	{
+		OOLogIndent();
 		LogOpenGLState();
+		OOLogOutdent();
 		while (glGetError() != 0) {}	// Suppress any errors caused by LogOpenGLState().
 	}
 #endif
@@ -175,17 +177,27 @@ enum
 
 static GLuint		sTextureNameCache[kTextureNameCacheMaxSize];
 static unsigned		sTextureNameCacheSize = 0;
+static BOOL			sTextureNameCacheEnabled = YES;
 
 
 GLuint GLAllocateTextureName(void)
 {
-	OOLog(@"textureCache.allocate", @"Request for texture name while cache size is %u.", sTextureNameCacheSize);
+	OO_ENTER_OPENGL();
+	
+	if (!sTextureNameCacheEnabled)
+	{
+		OOLog(@"textureNameCache.allocate.uncached", @"Request for texture name while cache disabled.");
+		
+		GLuint result;
+		OOGL(glGenTextures(1, &result));
+		return result;
+	}
+	
+	OOLog(@"textureNameCache.allocate", @"Request for texture name while cache size is %u.", sTextureNameCacheSize);
 	
 	if (sTextureNameCacheSize == 0)
 	{
-		OO_ENTER_OPENGL();
-		
-		OOLog(@"textureCache.fill", @"Adding %u elements to texture names cache.", kTextureNameCacheMaxSize);
+		OOLog(@"textureNameCache.fill", @"Adding %u elements to texture names cache.", kTextureNameCacheMaxSize);
 		// Allocate a block of names.
 		OOGL(glGenTextures(kTextureNameCacheMaxSize, sTextureNameCache));
 		sTextureNameCacheSize = kTextureNameCacheMaxSize;
@@ -199,15 +211,15 @@ GLuint GLAllocateTextureName(void)
 
 void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 {
-	if (name == 0)  return;
+	if (name == 0 || !sTextureNameCacheEnabled)  return;
 	
-	OOLog(@"textureCache.recycle", @"Recycling texture name while cache size is %u.", sTextureNameCacheSize);
+	OOLog(@"textureNameCache.recycle", @"Recycling texture name while cache size is %u.", sTextureNameCacheSize);
 	
 	OO_ENTER_OPENGL();
 	
 	if (sTextureNameCacheSize == kTextureNameCacheMaxSize)
 	{
-		OOLog(@"textureCache.flush", @"Deleting %u elements from texture names cache.", kTextureNameCacheFlushCount);
+		OOLog(@"textureNameCache.flush", @"Deleting %u elements from texture names cache.", kTextureNameCacheFlushCount);
 		// No more space; delete several elements (to avoid a series of individual deletes)
 		sTextureNameCacheSize -= kTextureNameCacheFlushCount;
 		OOGL(glDeleteTextures(kTextureNameCacheFlushCount, &sTextureNameCache[sTextureNameCacheSize]));
@@ -225,6 +237,23 @@ void GLRecycleTextureName(GLuint name, GLuint mipLevels)
 	}
 	
 	sTextureNameCache[sTextureNameCacheSize++] = name;
+}
+
+
+void GLDropCachedTextureNames(void)
+{
+	OOLog(@"textureNameCache.reset", @"Dropping texture cache.");
+	sTextureNameCacheSize = 0;
+}
+
+
+void GLSetTextureNameCacheEnabled(BOOL enabled)
+{
+	if (enabled != sTextureNameCacheEnabled)
+	{
+		sTextureNameCacheEnabled = enabled;
+		OOLog(@"textureNameCache.toggle", @"%@ texture cache.", enabled ? @"Enabled" : @"Disabled");
+	}
 }
 
 

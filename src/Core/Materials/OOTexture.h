@@ -56,7 +56,7 @@ SOFTWARE.
 @class OOTextureLoader, OOTextureGenerator;
 
 
-#define OOTEXTURE_RELOADABLE		0
+#define OOTEXTURE_RELOADABLE		1
 
 
 enum

@@ -80,6 +80,9 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 GLuint GLAllocateTextureName(void);
 void GLRecycleTextureName(GLuint name, GLuint mipLevels);
 
+void GLDropCachedTextureNames(void);
+void GLSetTextureNameCacheEnabled(BOOL enabled);
+
 
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 	

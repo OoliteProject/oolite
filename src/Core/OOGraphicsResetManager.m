@@ -92,14 +92,29 @@ static OOGraphicsResetManager *sSingleton = nil;
 	NSEnumerator			*clientEnum = nil;
 	id						client = nil;
 	
-	glFlush();
-	[OOTexture rebindAllTextures];
 	glFinish();
+	
+	OOLog(@"rendering.reset.start", @"Resetting graphics state.");
+	OOLogIndentIf(@"rendering.reset.start");
+	
+	GLDropCachedTextureNames();
+	GLSetTextureNameCacheEnabled(NO);
+	
+	[OOTexture rebindAllTextures];
 	
 	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
 	{
-		[client resetGraphicsState];
+		NS_DURING
+			[client resetGraphicsState];
+		NS_HANDLER
+			OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [localException name], [localException reason]);
+		NS_ENDHANDLER
 	}
+	
+	GLSetTextureNameCacheEnabled(YES);
+	
+	OOLogOutdentIf(@"rendering.reset.start");
+	OOLog(@"rendering.reset.end", @"End of graphics state reset.");
 }
 
 @end

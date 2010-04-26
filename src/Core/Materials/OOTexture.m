@@ -122,7 +122,7 @@ static BOOL		sClampToEdgeAvailable;
 
 
 // Client storage: reduce copying by requiring the app to keep data around
-#if GL_APPLE_client_storage
+#if defined(GL_APPLE_client_storage) && !OOTEXTURE_RELOADABLE
 
 #define OO_GL_CLIENT_STORAGE	(1)
 static inline void EnableClientStorage(void)
@@ -1051,7 +1051,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	sClampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
 #endif
 	
-#if GL_APPLE_client_storage
+#if OO_GL_CLIENT_STORAGE
 	sClientStorageAvialable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
 #endif
 	
