@@ -2457,7 +2457,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 
-	BOOL 				isMissileType = NO;
 	role = [missile primaryRole];
 	if ([role isEqualToString:@"missile"])
 	{
