@@ -8643,7 +8643,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 		if ([eqDef count] > EQUIPMENT_EXTRA_INFO_INDEX)
 		{
 			NSDictionary *extra = [eqDef oo_dictionaryAtIndex:EQUIPMENT_EXTRA_INFO_INDEX];
-			compatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:[extra oo_boolForKey:@"strict_mode_only" defaultValue:NO]];
+			compatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:([extra objectForKey:@"strict_mode_only"] != nil)];
 		}
 		
 		if (compatible)  [filteredEq addObject:eqDef];

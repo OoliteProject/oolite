@@ -175,32 +175,30 @@ MA 02110-1301, USA.
 	[self loadFullscreenSettings];
 	[self loadWindowSize];
 	
-	//set up the surface dimensions
-
-	// changing the flags can trigger texture bugs
+	// Changing these flags can trigger texture bugs.
 	int videoModeFlags = SDL_HWSURFACE | SDL_OPENGL | SDL_RESIZABLE;
+	// Set up the drawing surface's dimensions.
 	firstScreen= (fullScreen) ? [self modeAsSize: currentSize] : currentWindowSize;
 	viewSize = firstScreen;	// viewSize must be set prior to splash screen initialization
 
 	if (showSplashScreen)
 	{
 	  #if OOLITE_WINDOWS
-		//pre setVideoMode adjustments
+		// Pre setVideoMode adjustments.
 		NSSize tmp = currentWindowSize;
 		updateContext = NO;	//don't update the window!
 		ShowWindow(SDL_Window,SW_HIDE);
+		MoveWindow(SDL_Window,GetSystemMetrics(SM_CXSCREEN)/2,GetSystemMetrics(SM_CYSCREEN)/2,1,1,TRUE);
 		ShowWindow(SDL_Window,SW_MINIMIZE);
-		// new SDL.dll  decouples mouse boundaries, snapshots & planet roundness from SetVideoMode.
+		
+		// Initialise the SDL surface. (need custom SDL.dll)
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
-
-		//post setVideoMode adjustments
+		
+		// Post setVideoMode adjustments.
 		currentWindowSize=tmp;
 	  #else
-	 
-	  	// SDL_NOFRAME here triggers the same texture bug
-		// as  multiple setVideoMode in windows.
+		// Changing the flags can trigger texture bugs.
 		surface = SDL_SetVideoMode(8, 8, 32, videoModeFlags );
-
 	  #endif
 	}
 	else
@@ -211,7 +209,6 @@ MA 02110-1301, USA.
 		surface = SDL_SetVideoMode(firstScreen.width, firstScreen.height, 32, videoModeFlags);
 		// blank the surface / go to fullscreen
 		[self initialiseGLWithSize: firstScreen];
-		
 	}
 
     if (!surface)
@@ -504,18 +501,14 @@ MA 02110-1301, USA.
 
 - (void) initSplashScreen
 {
-if (!showSplashScreen) return;
+	if (!showSplashScreen) return;
 
 	//too early for OOTexture!
 	SDL_Surface     	*image=NULL;
 	SDL_Rect			dest;
 	
-  #if OOLITE_WINDOWS
-	NSString		*imagesDir = @"Resources/Images";
-  #else
 	NSString		*imagesDir = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"];
-  #endif
-
+	
 	image = SDL_LoadBMP([[imagesDir stringByAppendingPathComponent:@"splash.bmp"] UTF8String]);
 
 	if (image == NULL)
@@ -619,7 +612,6 @@ if (!showSplashScreen) return;
 		SDL_FreeSurface( image );
 	}
 	glDeleteTextures(1, &texture);
-
 }
 
 - (void) initialiseGLWithSize:(NSSize) v_size

@@ -152,8 +152,10 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 - (void) addSubentityToCollisionRadius:(Entity*) subent;
 - (ShipEntity *) launchPodWithCrew:(NSArray *)podCrew;
 
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction;
+
 // equipment
-- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged;
+- (OOEquipmentType *) generateEquipmentTypeFrom:(NSString *)role;
 
 @end
 
@@ -514,7 +516,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 		}
 	}
 	
-	if (missilesProblem) OOLogWARN(@"ship.setUp.missiles", @"problems initialising missiles for ship '%@', please verify missile_role definition.", [self name]);
+	//if (missilesProblem) OOLogWARN(@"ship.setUp.missiles", @"problems initialising missiles for ship '%@', please verify missile_role definition.", [self name]);
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default
@@ -2186,10 +2188,22 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (NSDictionary *) eqDictionaryWithType:(OOEquipmentType *) type isDamaged:(BOOL) isDamaged
+- (OOEquipmentType *) generateEquipmentTypeFrom:(NSString *)role;
 {
-	return [NSDictionary dictionaryWithObjects:[NSArray arrayWithObjects:type, [NSNumber numberWithBool:isDamaged], nil]
-									   forKeys:[NSArray arrayWithObjects:@"type", @"isDamaged", nil]];
+	/* 	The generated equipment type provides for backward compatibility with pre-1.74 OXPs  missile_roles
+		and follows thiis template:
+		
+		//NPC equipment, incompatible with player ship. Not buyable because of its TL.
+		(
+			100, 147500, "Shield Enhancers",
+			"EQ_SHIELD_ENHANCER",
+			"Shield enhancing technology dramatically increases the capability of standard defensive shields."
+		)
+	*/
+	NSArray  *itemInfo = [NSArray arrayWithObjects:@"100",@"100000",@"Missile",role,@"Unknown Missile Type", nil];
+
+	[OOEquipmentType addEquipmentWithInfo:itemInfo];
+	return [OOEquipmentType equipmentTypeWithIdentifier:role];
 }
 
 
@@ -2203,21 +2217,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
-		/*
-		// comprehensive list, but at odds with the rest of the api - Kaks
-		if ([self hasEquipmentItem:[eqType identifier]])
-		{
-			[quip addObject:[self eqDictionaryWithType:eqType isDamaged:NO]];
-		}
-		else if (![UNIVERSE strict]) // Check for damaged version
-		{
-			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
-			{
-				[quip addObject:[self eqDictionaryWithType:eqType isDamaged:YES]];
-			}
-		}
-		*/
-		// less comprehensive list, but consistent with the rest of the API - Kaks
+		// Equipment list,  consistent with the rest of the API - Kaks
 		isDamaged = ![UNIVERSE strict] && [self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]];
 		if ([self hasEquipmentItem:[eqType identifier]] || isDamaged)
 		{
@@ -2225,7 +2225,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 	}
 	
-	// Passengers - not supported for NPCs, but it's here for genericity.
+	// Passengers - not supported yet for NPCs, but it's here for genericity.
 	if ([self passengerCapacity] > 0)
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_PASSENGER_BERTH"];
@@ -2278,28 +2278,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	// canAddEquipment always checks if the undamaged version is equipped.
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
-	// special cases
-	// FIXME: Is there a good reason not to use [eqType isMissileOrMine]? -- Ahruman 2010-01-10
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
-	{
-		if (missiles >= max_missiles) return NO;
-		
-		missile_list[missiles] = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
-		missiles++;
-		return YES;
-	}
-	
-	// don't add any thargons to non-thargoid ships.
-	if([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"]) return NO;
-	
-	// we can theoretically add a damaged weapon, but not a working one.
-	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
-	{
-		return NO;
-	}
-	
-	// end special cases
-
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
 	{
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:[equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]]];
@@ -2313,6 +2291,27 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	// does this equipment actually exist?
 	if (eqType == nil)  return NO;
+	
+	// special cases
+	if ([eqType isMissileOrMine] || ([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
+	{
+		if (missiles >= max_missiles) return NO;
+		
+		missile_list[missiles] = eqType;
+		missiles++;
+		return YES;
+	}
+	
+	// don't add any thargons to non-thargoid ships.
+	if([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"]) return NO;
+	
+	// we can theoretically add a damaged weapon, but not a working one.
+	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		return NO;
+	}
+	// end special cases
+	
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
@@ -2426,49 +2425,73 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 {
 	ShipEntity			*missile = nil;
 	OOEquipmentType		*missileType = nil;
-	BOOL 				isMissileType = NO;
-	id 					value;
+	NSString			*role = nil;
 	double				chance = randf();
 	
 	if ([self isThargoid])
 	{
 		if (missileRole != nil)	missile = [UNIVERSE newShipWithRole:missileRole];	// retained
-		else missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
-		missileType = [OOEquipmentType equipmentTypeWithIdentifier:[missile primaryRole]];
-		if (missile == nil || (missile != nil && missileType == nil))
+		if (missile == nil)
 		{
-			missileType = [OOEquipmentType equipmentTypeWithIdentifier:@"thargon"];
-			OOLogWARN(@"ship.setUp.thargoid", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry. Using 'thargon' instead.", missileRole, [self name], missileType == nil ? @"equipment" : @"shipdata" );
-			[missile release];
-			return missileType;
+			if (missileRole != nil)
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using 'thargoid' instead.");
+			missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
 		}
-		[missile release];
-		if ([missileRole hasPrefix:@"thargon"] || [missileRole hasSuffix:@"thargon"] || [missileType isMissileOrMine]) return missileType;
-		else return nil;
 	}
-	
-	// random role 10% of the cases, if a missile role is defined.
-	if (chance < 0.9f && missileRole != nil)  missile = [UNIVERSE newShipWithRole:missileRole];	// retained
-	if (missile == nil)	// no valid missile role defined?
+	else
 	{
-		// random role 20% of the cases. (the 10% above is included here)
-		if (chance > 0.8f) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
-		// otherwise use the standard role.
-		else missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+		// All other ships: random role 10% of the cases, if a missile role is defined.
+		if (chance < 0.9f && missileRole != nil) 
+		{
+			missile = [UNIVERSE newShipWithRole:missileRole];	// retained
+		}
+		
+		if (missile == nil)	// no valid missile role defined?
+		{
+			if (chance < 0.9f && missileRole != nil)
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using defaults instead.");
+			// random role 20% of the cases. (the 10% above is included here)
+			if (chance > 0.8f) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
+			// otherwise use the standard role.
+			else missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+		}
+	}
+
+	BOOL 				isMissileType = NO;
+	role = [missile primaryRole];
+	if ([role isEqualToString:@"missile"])
+	{
+		id 					value;
+		NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
+
+		while ((value = [enumerator nextObject]))
+		{
+			role = (NSString *)value;
+			missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
+			// ensure that we have a missile or mine
+			if ([missileType isMissileOrMine]) break;
+		}
+	}
+	else
+	{
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
 	}
 	
-	NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
-
-	while ((value = [enumerator nextObject])) {
-		missileType = [OOEquipmentType equipmentTypeWithIdentifier:(NSString *)value];
-		// ensure that we have a missile or mine
-		isMissileType = (missileType != nil && [missileType isMissileOrMine]);
-		if (isMissileType) break;
+	if (missileType == nil)
+	{
+		OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
+		missileType = [self generateEquipmentTypeFrom:role];
 	}
 	[missile release];
-	
-	if (!isMissileType)  missileType = nil;
-	return missileType;
+	if ([missileType isMissileOrMine] || ([self isThargoid] && ([role hasPrefix:@"thargon"] || [role hasSuffix:@"thargon"])))
+	{
+		return missileType;
+	}
+	else
+	{
+		OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' is not a valid missile or mine type.%@", missileType, [self name],@" No missile selected.");
+		return nil;
+	}
 }
 
 
@@ -7024,7 +7047,6 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) fireAftWeapon:(double) range
 {
-	BOOL result = YES;
 	//
 	// save the existing weapon values
 	//
@@ -7043,27 +7065,28 @@ BOOL class_masslocks(int some_class)
 	if (range > randf() * weaponRange)
 		return NO;
 
-	if (result)
+	BOOL fired = YES;
+	switch (aft_weapon_type)
 	{
-		switch (aft_weapon_type)
-		{
-			case WEAPON_PULSE_LASER :
-			case WEAPON_BEAM_LASER :
-			case WEAPON_MINING_LASER :
-			case WEAPON_MILITARY_LASER :
-				[self fireLaserShotInDirection:VIEW_AFT];
-				break;
-			case WEAPON_THARGOID_LASER :
-				[self fireDirectLaserShot];
-				return YES;
-				break;
-			
-			case WEAPON_PLASMA_CANNON:	// FIXME: NPCs can't have rear plasma cannons, for no obvious reason.
-			case WEAPON_UNDEFINED:
-			case WEAPON_NONE:
-				// do nothing
-				break;
-		}
+		case WEAPON_PLASMA_CANNON :
+			[self firePlasmaShotAtOffset:0.0 speed:NPC_PLASMA_SPEED color:[OOColor yellowColor] direction:VIEW_AFT];
+			break;
+
+		case WEAPON_PULSE_LASER :
+		case WEAPON_BEAM_LASER :
+		case WEAPON_MINING_LASER :
+		case WEAPON_MILITARY_LASER :
+			[self fireLaserShotInDirection:VIEW_AFT];
+			break;
+		case WEAPON_THARGOID_LASER :
+			[self fireDirectLaserShot];
+			break;
+		
+		case WEAPON_UNDEFINED:
+		case WEAPON_NONE:
+			// do nothing
+			fired = NO;
+			break;
 	}
 	
 	// restore previous values
@@ -7071,7 +7094,13 @@ BOOL class_masslocks(int some_class)
 	weapon_recharge_rate = weapon_recharge_rate1;
 	weaponRange = weapon_range1;
 	//
-	return result;
+	
+	if (fired && cloaking_device_active && cloakPassive)
+	{
+		[self deactivateCloakingDevice];
+	}
+
+	return fired;
 }
 
 
@@ -7401,6 +7430,12 @@ BOOL class_masslocks(int some_class)
 
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color
 {
+	return [self firePlasmaShotAtOffset:offset speed:speed color:color direction:VIEW_FORWARD];
+}
+
+
+- (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction
+{
 	Vector  vel, rt;
 	Vector  origin = position;
 	double  start = collision_radius + 0.5;
@@ -7432,6 +7467,14 @@ BOOL class_masslocks(int some_class)
 			
 			default:
 				break;
+		}
+	}
+	else
+	{
+		if (direction == VIEW_AFT)
+		{
+			vel = vector_flip(v_forward);
+			rt = vector_flip(v_right);
 		}
 	}
 	

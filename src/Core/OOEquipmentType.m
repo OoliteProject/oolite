@@ -98,6 +98,24 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 }
 
++ (void) addEquipmentWithInfo:(NSArray *)itemInfo
+{
+	NSMutableArray		*equipmentTypes = [NSMutableArray arrayWithArray:sEquipmentTypes];
+	NSMutableDictionary	*equipmentTypesByIdentifier = [[NSMutableDictionary alloc] initWithDictionary:sEquipmentTypesByIdentifier];
+	OOEquipmentType		*item = [[[OOEquipmentType alloc] initWithInfo:itemInfo] autorelease];
+	if (item != nil)
+	{
+		[equipmentTypes addObject:item];
+		[equipmentTypesByIdentifier setObject:item forKey:[item identifier]];
+		
+		[sEquipmentTypes release];
+		sEquipmentTypes = nil;
+		DESTROY(sEquipmentTypesByIdentifier);
+		sEquipmentTypes = [equipmentTypes copy];
+		sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
+	}
+	DESTROY(equipmentTypesByIdentifier);
+}
 
 + (NSArray *) allEquipmentTypes
 {
@@ -170,7 +188,8 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 		{
 			// Note: currently strict_mode_compatible is already handled by Universe, but at some point we want to get rid of Universe's equipmentData.
 			BOOL strictModeOnly = [extra oo_boolForKey:@"strict_mode_only" defaultValue:NO];
-			BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:strictModeOnly];
+			//BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:strictModeOnly]; // Wrong! Interprets explicitly set strict_mode_only = false as strict_mode_ompatible = false
+			BOOL strictModeCompatible = [extra oo_boolForKey:@"strict_mode_compatible" defaultValue:([extra objectForKey:@"strict_mode_only"] != nil)]; // if strict_mode_only is explicitely set, it's compatible with strict mode!
 			BOOL strict = [UNIVERSE strict];
 			if ((strict && !strictModeCompatible) || (!strict && strictModeOnly))  OK = NO;
 			

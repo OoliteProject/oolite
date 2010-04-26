@@ -80,6 +80,7 @@ SOFTWARE.
 }
 
 + (void) loadEquipment;			// Load equipment data; called on loading and when changing to/from strict mode.
++ (void) addEquipmentWithInfo:(NSArray *)itemInfo;	// Used to generate equipment from missile_role entries.
 
 + (NSArray *) allEquipmentTypes;
 + (NSEnumerator *) equipmentEnumerator;
