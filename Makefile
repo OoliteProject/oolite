@@ -20,8 +20,12 @@ pkg-debsnapshot: DEB_REV := $(shell echo "~svn${SVNREVISION}${DEB_REV}")
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
+	LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
+	HAS_ESPEAK=libespeak=no # No eSpeak for Windows yet
+else
+	HAS_ESPEAK=libespeak=yes # Build with eSpeak for non-Windows
 endif
+
 ifeq ($(GNUSTEP_HOST_OS),linux-gnu)
    # OBSOLETE - GNUstep environment should be setup in the environment/shell 
    #            you use to build oolite and not hardcoded here.
@@ -50,20 +54,27 @@ endif
 #
 .PHONY: release
 release: $(DEPS)
-	make -f GNUmakefile debug=no libespeak=yes
+	make -f GNUmakefile debug=no $(HAS_ESPEAK)
+
+.PHONY: distro-release
+distro-release: $(DEPS)
+	make -f GNUmakefile use_distro_deps=yes debug=no $(HAS_ESPEAK)
 	
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	make -f GNUmakefile getafix=yes DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no libespeak=yes
+	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no $(HAS_ESPEAK)
 	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	make -f GNUmakefile getafix=yes SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no libespeak=yes
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no $(HAS_ESPEAK)
 
 .PHONY: debug
 debug: $(DEPS)
-	make -f GNUmakefile debug=yes
+	make -f GNUmakefile debug=yes $(HAS_ESPEAK)
 
+.PHONY: distro-debug
+distro-debug: $(DEPS)
+	make -f GNUmakefile use_distro_deps=yes debug=yes libespeak=yes
 $(LIBJS):
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
@@ -147,19 +158,22 @@ pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
 .PHONY: help
 help:
 	@echo "Use this Makefile to build Oolite:"
+	@echo
+	@echo "NOTE: The following targets use the dependencies distributed with Oolite."
+	@echo
+	@echo "  debug   - builds a debug executable in oolite.app/oolite.dbg"
 	@echo "  release - builds a release executable in oolite.app/oolite"
 	@echo "  release-deployment - builds a release executable in oolite.app/oolite"
 	@echo "  release-snapshot - builds a snapshot release in oolite.app/oolite"
-	@echo "  debug   - builds a debug executable in oolite.app/oolite.dbg"
 	@echo "  all     - builds the above two targets"
 	@echo "  clean   - removes all generated files"
+	@echo
+	@echo "  pkg-autopackage - builds a Linux autopackage"
 	@echo
 	@echo "  pkg-deb - builds a release Debian package"
 	@echo "  pkg-debtest - builds a test release Debian package"
 	@echo "  pkg-debsnapshot - builds a snapshot release Debian package"
 	@echo "  pkg-debclean - cleans up after a Debian package build"
-	@echo
-	@echo "  pkg-autopackage - builds a Linux autopackage"
 	@echo
 	@echo "  pkg-win - builds a release version Windows installer package (test release)"
 	@echo "  pkg-win-deployment - builds a release version Windows installer package (deployment release)"

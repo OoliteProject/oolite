@@ -36,13 +36,14 @@ else
 	ADDITIONAL_CFLAGS = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/X11R6/lib/
-endif
-ifeq ($(getafix),yes)
-	ADDITIONAL_OBJC_LIBS += -lpng14
-	ADDITIONAL_INCLUDE_DIRS += -Ideps/Linux-deps/include
-	oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/import -Ldeps/Linux-deps/$(HOST_ARCH)/lib
-else
-	ADDITIONAL_OBJC_LIBS += -lpng
+
+	ifeq ($(use_distro_deps),yes)
+		ADDITIONAL_OBJC_LIBS += -lpng
+	else
+		ADDITIONAL_OBJC_LIBS += -lpng14
+		ADDITIONAL_INCLUDE_DIRS += -Ideps/Linux-deps/include
+		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/import -Ldeps/Linux-deps/$(HOST_ARCH)/lib
+	endif
 endif
 ifeq ($(libespeak),yes)
 	ADDITIONAL_OBJC_LIBS += -lespeak

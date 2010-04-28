@@ -38,7 +38,7 @@ build-stamp:
 	dh_testdir
 	$(MAKE) -C $(JS_SRC)/fdlibm -f Makefile.ref BUILD_OPT=1
 	$(MAKE) -C $(JS_SRC) -f Makefile.ref BUILD_OPT=1
-	$(GSMAKE) libespeak=yes
+	$(GSMAKE) use_distro_deps=yes libespeak=yes
 	touch $@
 
 clean: clean-stamp unpatch
