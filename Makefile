@@ -54,11 +54,11 @@ release: $(DEPS)
 	
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no libespeak=yes
+	make -f GNUmakefile getafix=yes DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no libespeak=yes
 	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no libespeak=yes
+	make -f GNUmakefile getafix=yes SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no libespeak=yes
 
 .PHONY: debug
 debug: $(DEPS)
