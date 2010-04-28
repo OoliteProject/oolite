@@ -15,7 +15,7 @@
 
 OS=`uname`
 CPU=`uname -m`
-VERSION=`grep SoftwareVersion autopackage/default.apspec|cut -d ' ' -f 2`
+VERSION=`grep SoftwareVersion installers/autopackage/default.x86.apspec|cut -d ' ' -f 2`
 DESTINATION=$1
 TREEROOT=`pwd`
 

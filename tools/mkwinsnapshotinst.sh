@@ -5,7 +5,7 @@ svn up
 
 export SRC="/c/Program Files/Oolite"
 export DST=$GNUSTEP_LOCAL_ROOT/oolite/tmp
-export VER=`awk -- '/SoftwareVersion/ { print $2 }' autopackage/default.apspec`
+export VER=`awk -- '/SoftwareVersion/ { print $2 }' installers/autopackage/default.x86.apspec`
 export SVNREV=`svn info . | awk -- '/Revision:/ { print $2 }'`
 echo building: $VER from svn revision $SVNREV
 

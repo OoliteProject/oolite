@@ -23,29 +23,42 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
 endif
 ifeq ($(GNUSTEP_HOST_OS),linux-gnu)
-# Set up GNU make environment
-GNUSTEP_MAKEFILES=/usr/share/GNUstep/Makefiles
-# These are the paths for our custom-built Javascript library
-LIBJS_INC_DIR=$(LIBJS_SRC_DIR)
-LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
-LIBJS=$(LIBJS_BIN_DIR)/libjs.a
+   # OBSOLETE - GNUstep environment should be setup in the environment/shell 
+   #            you use to build oolite and not hardcoded here.
+   #
+   # Set up GNU make environment
+   # GNUSTEP_MAKEFILES=/usr/share/GNUstep/Makefiles
+   # 
+
+   # These are the paths for our custom-built Javascript library
+   LIBJS_INC_DIR=$(LIBJS_SRC_DIR)
+   LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
+   LIBJS=$(LIBJS_BIN_DIR)/libjs.a
 endif
 
 DEPS=$(LIBJS)
+
+# define autopackage .apspec file according to the CPU architecture
+HOST_ARCH := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/i386/ -e s/amd64/x86_64/ )
+ifeq ($(HOST_ARCH),x86_64)
+   APSPEC_FILE=installers/autopackage/default.x86_64.apspec
+else
+   APSPEC_FILE=installers/autopackage/default.x86.apspec
+endif
 
 # Here are our default targets
 #
 .PHONY: release
 release: $(DEPS)
-	make -f GNUmakefile debug=no
+	make -f GNUmakefile debug=no libespeak=yes
 	
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
+	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no libespeak=yes
 	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no libespeak=yes
 
 .PHONY: debug
 debug: $(DEPS)
@@ -78,7 +91,7 @@ remake: clean all
 # Here are our linux autopackager targets
 #
 pkg-autopackage:
-	makepackage -c -m installers/autopackage/default.apspec
+	makepackage -c -m $(APSPEC_FILE)
 
 # Here are our Debian packager targets
 #
@@ -135,6 +148,8 @@ pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
 help:
 	@echo "Use this Makefile to build Oolite:"
 	@echo "  release - builds a release executable in oolite.app/oolite"
+	@echo "  release-deployment - builds a release executable in oolite.app/oolite"
+	@echo "  release-snapshot - builds a snapshot release in oolite.app/oolite"
 	@echo "  debug   - builds a debug executable in oolite.app/oolite.dbg"
 	@echo "  all     - builds the above two targets"
 	@echo "  clean   - removes all generated files"

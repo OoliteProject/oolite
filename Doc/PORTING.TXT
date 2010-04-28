@@ -43,7 +43,7 @@ oolite-deps
       lib      Shared libraries that support the game
 
 If your platform does not yet have this dependencies directory, you can
-model yours on the Linux-x86-deps directory. Most things will be the
+model yours on the Linux-deps directory. Most things will be the
 same. (The reason PLAYING.TXT is here is that it may vary slightly from
 platform to platform).
 

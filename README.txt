@@ -26,7 +26,7 @@ debian            Files to enable automatic setup under Linux using dpkg
                   (Debian package manager) tools
 deps              Dependencies for all plaforms:
    Cocoa-deps     Dependencies for Mac OS X (macppc and macintel platforms)
-   Linux-x86-deps Dependencies for Linux on x86 processors
+   Linux-deps     Dependencies for Linux on x86 and x86_64 processors
    scripts        Scripts and script fragments for tarball/autopackage
 Doc               Documentation (including user guides)
 FreeDesktop       Files for GNOME/KDE desktop launchers
