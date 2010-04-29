@@ -257,7 +257,7 @@ OOINLINE OOScalar fast_magnitude(Vector vec)
 OOINLINE Vector vector_normal_or_fallback(Vector vec, Vector fallback)
 {
 	OOScalar mag2 = magnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0))  return fallback;
+	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
 	return vector_multiply_scalar(vec, OOInvSqrtf(mag2));
 }
 
@@ -289,7 +289,7 @@ OOINLINE Vector vector_normal(Vector vec)
 OOINLINE Vector fast_vector_normal_or_fallback(Vector vec, Vector fallback)
 {
 	OOScalar mag2 = magnitude2(vec);
-	if (EXPECT_NOT(mag2 == 0))  return fallback;
+	if (EXPECT_NOT(mag2 == 0.0f))  return fallback;
 	return vector_multiply_scalar(vec, OOFastInvSqrtf(mag2));
 }
 

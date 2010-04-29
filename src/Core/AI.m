@@ -740,7 +740,12 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			if (newSM == nil)
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
-				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@ from %@:%@ to \"%@\" - could not load file.", [[self owner] shortDescription], [self name], [self state], smName);
+				NSString *fromString = @"";
+				if ([self name] != nil || [self state] != nil)
+				{
+					fromString = [NSString stringWithFormat:@" from %@:%@", [self name], [self state]];
+				}
+				OOLog(@"ai.load.failed.unknownAI", @"Can't switch AI for %@%@ to \"%@\" - could not load file.", [[self owner] shortDescription], fromString, smName);
 				NS_VALUERETURN(nil, NSDictionary *);
 			}
 			

@@ -3925,9 +3925,8 @@ static const OOMatrix	starboard_matrix =
 				[my_entities[i] release];		//	released
 			
 			no_update = NO;	// allow other attempts to draw
-
+			
 #if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
-
 			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
 #endif
 			

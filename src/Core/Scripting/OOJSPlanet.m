@@ -207,7 +207,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 				if (!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
 				{
 					OK = NO;
-					OOReportJSError(context, @"%@Planet.%@ = 'foo' only possible from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre, @"texture");
+					OOReportJSError(context, @"%@Planet.%@ may only be modified from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre);
 				}
 				else if (sValue == nil)
 				{
@@ -219,7 +219,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			if (OK)
 			{
 				OK = [planet setUpPlanetFromTexture:sValue];
-				if (!OK) OOReportJSWarning(context, @"Cannot find %@ '%@'. Value not set.", @"texture", sValue);
+				if (!OK) OOReportJSWarning(context, @"Cannot find texture \"%@\". Value not set.", sValue);
 			}
 			break;
 			
@@ -242,6 +242,6 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 
 static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	OOReportJSWarning(context, @"The function Planet.setTexture() is deprecated and will be removed in a future version of Oolite. Use planet.texture = 'foo' instead.");
+	OOReportJSWarning(context, @"The function Planet.setTexture() is deprecated and will be removed in a future version of Oolite. Use planet.texture = \"%@\" instead.", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
 	return PlanetSetProperty(context, this, INT_TO_JSVAL(kPlanet_texture), argv);
 }

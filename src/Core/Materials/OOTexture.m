@@ -3,7 +3,7 @@
 	OOTexture.m
 	
 	Oolite
-	Copyright (C) 2004-2009 Giles C Williams and contributors
+	Copyright (C) 2004-2010 Giles C Williams and contributors
 	
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 	
 	This file may also be distributed under the MIT/X11 license:
 	
-	Copyright (C) 2007-2009 Jens Ayton
+	Copyright (C) 2007-2010 Jens Ayton
 	
 	Permission is hereby granted, free of charge, to any person obtaining a copy
 	of this software and associated documentation files (the "Software"), to deal

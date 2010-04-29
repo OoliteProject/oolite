@@ -161,10 +161,15 @@ void OOPrintLogHeader(void)
 		#define systemString @OS_TYPE_STRING
 	#endif
 	
-	NSString *versionString = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"];
+	NSString *versionString = nil;
+	#if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
+		versionString = @"development version " OOLITE_SNAPSHOT_VERSION;
+	#else
+		versionString = [NSString stringWithFormat:@"version %@", [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"]];
+	#endif
 	if (versionString == nil)  versionString = @"<unknown version>";
 	
-	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite version %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, systemString, [NSDate date]];
+	NSMutableString *miscString = [NSMutableString stringWithFormat:@"Opening log for Oolite %@ (" CPU_TYPE_STRING RELEASE_VARIANT_STRING ") under %@ at %@.\n", versionString, systemString, [NSDate date]];
 	
 	[miscString appendString:AdditionalLogHeaderInfo()];
 	
