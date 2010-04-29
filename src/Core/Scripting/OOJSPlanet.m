@@ -207,7 +207,7 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 				if (!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
 				{
 					OK = NO;
-					OOReportJSError(context, @"%@Planet.%@ may only be modified from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre);
+					OOReportJSError(context, @"%@Planet.texture may only be modified from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre);
 				}
 				else if (sValue == nil)
 				{
