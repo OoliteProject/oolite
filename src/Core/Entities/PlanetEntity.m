@@ -1016,7 +1016,7 @@ double longitudeFromVector(Vector v);
 					OOGL(displayListNames[subdivideLevel] = glGenLists(1));
 					if (displayListNames[subdivideLevel] != 0)	// sanity check
 					{
-						OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE));
+						OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE_AND_EXECUTE));
 						
 						OOGL(glColor4fv(mat1));
 						OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));

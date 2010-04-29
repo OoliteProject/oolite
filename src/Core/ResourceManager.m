@@ -213,7 +213,7 @@ static NSMutableDictionary *sStringCache;
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
 	
-	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n%@", sSearchPaths);
+	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n%@", [sSearchPaths componentsJoinedByString:@", "]);
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
 	return sSearchPaths;
