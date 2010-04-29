@@ -728,7 +728,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 				{
 					remove = YES;
 				}
-				else
+				else if (subentityDict != nil)
 				{
 					[okSubentities addObject:subentityDict];
 					
