@@ -53,7 +53,11 @@ SOFTWARE.
 #import "Universe.h"
 #import "OOTextureScaling.h"
 #import "OOPixMapChannelOperations.h"
+#import "OOConvertCubeMapToLatLong.h"
 #import <stdlib.h>
+
+
+#define DUMP_CONVERTED_CUBE_MAPS	0
 
 
 static unsigned				sGLMaxSize;
@@ -355,6 +359,23 @@ static BOOL					sHaveSetUp = NO;
 	if (rowBytes == 0)  rowBytes = width * components;
 	[self getDesiredWidth:&desiredWidth andHeight:&desiredHeight];
 	
+	if (isCubeMap && !OOCubeMapsAvailable())
+	{
+		OOPixMapToRGBA(&pixMap);
+		desiredHeight = MIN(desiredWidth * 2, 512U);
+		if (sReducedDetail && desiredHeight > 256)  desiredHeight /= 2;
+		desiredWidth = desiredHeight * 2;
+		
+		OOPixMap converted = OOConvertCubeMapToLatLong(pixMap, desiredHeight, generateMipMaps);
+		OOFreePixMap(&pixMap);
+		pixMap = converted;
+		isCubeMap = NO;
+		
+#if DUMP_CONVERTED_CUBE_MAPS
+		OODumpPixMap(pixMap, [NSString stringWithFormat:@"converted cube map %@", [[path lastPathComponent] stringByDeletingPathExtension]]);
+#endif
+	}
+	
 	// Rescale if needed.
 	rescale = (width != desiredWidth || height != desiredHeight);
 	if (rescale)
@@ -415,9 +436,7 @@ static BOOL					sHaveSetUp = NO;
 	// Work out appropriate final size for textures.
 	if (!noScalingWhatsoever)
 	{
-#if GL_ARB_texture_cube_map
 		// Cube maps are six times as high as they are wide, and we need to preserve that.
-		// FIXME: should convert cube maps to lat/long maps here if cube map support not available!
 		if (allowCubeMap && height == width * 6)
 		{
 			isCubeMap = YES;
@@ -433,7 +452,6 @@ static BOOL					sHaveSetUp = NO;
 			desiredHeight = desiredWidth * 6;
 		}
 		else
-#endif
 		{
 			if (!sHaveNPOTTextures)
 			{

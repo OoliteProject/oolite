@@ -305,3 +305,6 @@ NSDictionary *OOTextureSpecFromObject(id object, NSString *defaultName);
 
 
 uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
+
+
+BOOL OOCubeMapsAvailable(void);

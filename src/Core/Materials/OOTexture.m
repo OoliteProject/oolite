@@ -708,7 +708,7 @@ static NSString *sGlobalTraceContext = nil;
 	if ([_loader getResult:&_bytes format:&_format width:&_width height:&_height])
 	{
 #if GL_ARB_texture_cube_map
-		if (_options & kOOTextureAllowCubeMap && _height == _width * 6)
+		if (_options & kOOTextureAllowCubeMap && _height == _width * 6 && sCubeMapAvailable)
 		{
 			_isCubeMap = YES;
 		}
@@ -1071,7 +1071,15 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 #endif
 	
 #if GL_ARB_texture_cube_map
-	sCubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-cube-maps"])
+	{
+		sCubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+	}
+	else
+	{
+		sCubeMapAvailable = NO;
+	}
+
 #endif
 }
 
@@ -1190,4 +1198,10 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
 	}
 	
 	return 0;
+}
+
+
+BOOL OOCubeMapsAvailable(void)
+{
+	return sCubeMapAvailable;
 }
