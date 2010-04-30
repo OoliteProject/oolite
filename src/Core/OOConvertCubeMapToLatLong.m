@@ -1,0 +1,158 @@
+/*
+
+OOConvertCubeMapToLatLong.m
+
+Convert a cube map texture to a lat/long texture.
+
+
+This file may also be distributed under the MIT/X11 license:
+
+Copyright (C) 2010 Jens Ayton
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/
+
+#import "OOConvertCubeMapToLatLong.h"
+#import "OOTextureScaling.h"
+
+
+#define kPiF			(3.14159265358979323846264338327950288f)
+
+
+OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, BOOL leaveSpaceForMipMaps)
+{
+	if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.components != 4 || sourcePixMap.height != sourcePixMap.width * 6)
+	{
+		return kOONullPixMap;
+	}
+	
+	height *= 2;
+	OOPixMapDimension width = height * 2;
+	OOPixMap outPixMap = OOAllocatePixMap(width, height, 4, 0, 0);
+	if (!OOIsValidPixMap(outPixMap))  return kOONullPixMap;
+	
+	OOPixMapDimension x, y;
+	uint32_t *pixel = outPixMap.pixels;
+	float fheight = height;
+	float rheight = 1.0f / fheight;
+	
+	float halfSize = (sourcePixMap.width - 1) * 0.5f;
+	uint8_t *srcBytes = sourcePixMap.pixels;
+	
+	// Build tables of sin/cos of longitude.
+	float sinTable[width];
+	float cosTable[width];
+	for (x = 0; x < width; x++)
+	{
+		float lon = ((float)x * rheight) * kPiF;
+		sinTable[x] = sinf(lon);
+		cosTable[x] = cosf(lon);
+	}
+	
+	for (y = 0; y != height; y++)
+	{
+		// Calcuate sin/cos of latitude.
+		float cy = -sinTable[width * 3 / 4 - y];
+		float lac = -cosTable[width * 3 / 4 - y];
+		float ay = fabsf(cy);
+		
+		for (x = 0; x != width; x++)
+		{
+			float los = sinTable[x];
+			float loc = cosTable[x];
+			
+			float cx = los * lac;
+			float cz = loc * lac;
+			
+			float ax = fabsf(cx);
+			float az = fabsf(cz);
+			
+			// Y offset of start of this face in image.
+			OOPixMapDimension yOffset;
+			
+			// Coordinates within selected face.
+			float x, y, r;
+			
+			// Select source face.
+			if (ax >= ay && ax >= az)
+			{
+				x = cz;
+				y = -cy;
+				r = ax;
+				if (0.0f < cx)
+				{
+					yOffset = 0;
+				}
+				else
+				{
+					x = -x;
+					yOffset = 1;
+				}
+			}
+			else if (ay >= ax && ay >= az)
+			{
+				x = cx;
+				y = cz;
+				r = ay;
+				if (0.0f < cy)
+				{
+					y = -y;
+					yOffset = 2;
+				}
+				else
+				{
+					yOffset = 3;
+				}
+			}
+			else
+			{
+				x = cx;
+				y = -cy;
+				r = az;
+				if (0.0f < cz)
+				{
+					x = -x;
+					yOffset = 5;
+				}
+				else
+				{
+					yOffset = 4;
+				}		
+			}
+			
+			// Scale coordinates.
+			r = OOReciprocalEstimate(r);
+			OOPixMapDimension ix = (x * r + 1.0f) * halfSize;
+			OOPixMapDimension iy = (y * r + 1.0f) * halfSize;
+			
+#ifndef NDEBUG
+			assert(ix < sourcePixMap.width && iy < sourcePixMap.width);
+#endif
+			
+			// Look up pixel.
+			iy += sourcePixMap.width * yOffset;
+			
+			uint32_t *row = (uint32_t *)(srcBytes + iy * sourcePixMap.rowBytes);
+			*pixel++ = row[ix];
+		}
+	}
+	
+	return OOScalePixMap(outPixMap, width / 2, height / 2, leaveSpaceForMipMaps);
+}
