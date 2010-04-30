@@ -182,7 +182,7 @@ static GLfloat launchRoll;
 }
 
 
-- (void) unloadCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
+- (void) unloadAllCargoPodsForType:(OOCommodityType)type fromArray:(NSMutableArray *) manifest
 {
 	int 			n_cargo = [cargo count];
 	if (n_cargo == 0)  return;
@@ -215,6 +215,62 @@ static GLfloat launchRoll;
 }
 
 
+- (void) unloadCargoPodsForType:(OOCommodityType)type amount:(OOCargoQuantity)quantity
+{
+	int 			n_cargo = [cargo count];
+	if (n_cargo == 0)  return;
+	
+	ShipEntity		*cargoItem = nil;
+	int				co_type, amount, i;
+	int				cargoToGo = quantity;
+
+	// step through the cargo pods removing pods or quantities	
+	for (i =  n_cargo - 1; (i >= 0 && cargoToGo > 0) ; i--)
+	{
+		cargoItem = [cargo objectAtIndex:i];
+		co_type = [cargoItem commodityType];
+		if (co_type == CARGO_UNDEFINED || co_type == type)
+		{
+			if (co_type == type)
+			{
+				amount =  [cargoItem commodityAmount];
+				if (amount <= cargoToGo)
+				{
+					[cargo removeObjectAtIndex:i];
+					cargoToGo -= amount;
+				}
+				else
+				{
+					// we only need to remove a part of the cargo to meet our target
+					[cargoItem setCommodity:co_type andAmount:(amount - cargoToGo)];
+					cargoToGo = 0;
+					
+				}
+			}
+			else	// undefined
+			{
+				OOLog(@"player.badCargoPod", @"Cargo pod %@ has bad commodity type (CARGO_UNDEFINED), rejecting.", cargoItem);
+				continue;
+			}
+		}
+	}
+	
+	// now check if we are ready. When not, proceed with quantities in the manifest.
+	if (cargoToGo > 0)
+	{
+		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
+		NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
+		amount = [commodityInfo oo_intAtIndex:MARKET_QUANTITY] - cargoToGo;
+		if (amount < 0) amount = 0; // should never happen.
+		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
+		[manifest replaceObjectAtIndex:type withObject:commodityInfo];
+		
+		[shipCommodityData release];
+		shipCommodityData = manifest;
+	}
+}
+
+
 - (void) unloadCargoPods
 {
 	/* loads commodities from the cargo pods onto the ship's manifest */
@@ -233,13 +289,13 @@ static GLfloat launchRoll;
 		amount = [shipCommInfo oo_intAtIndex:MARKET_QUANTITY];
 		[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
 		[manifest replaceObjectAtIndex:i withObject:commodityInfo];
-		[self unloadCargoPodsForType:i fromArray:manifest];
+		[self unloadAllCargoPodsForType:i fromArray:manifest];
 	}
 	
 	[shipCommodityData release];
 	shipCommodityData = manifest;
 	
-	//[cargo removeAllObjects];   // empty the hold - not needed, done individually inside unloadCargoPodsForType
+	//[cargo removeAllObjects];   // empty the hold - not needed, done individually inside unloadAllCargoPodsForType
 	
 	[self calculateCurrentCargo];	// work out the correct value for current_cargo
 }
@@ -285,6 +341,74 @@ static GLfloat launchRoll;
 		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:commodityInfo]];
 	}
 	[commodityInfo release]; // release, done
+}
+
+
+- (void) loadCargoPodsForType:(OOCargoType)type amount:(OOCargoQuantity)quantity
+{
+	OOMassUnit unit = [UNIVERSE unitsForCommodity:type];
+	
+	while (quantity)
+	{
+		if (unit != UNITS_TONS)
+		{
+			int amount_per_container = (unit == UNITS_KILOGRAMS)? 1000 : 1000000;
+			while (quantity > 0)
+			{
+				int smaller_quantity = 1 + ((quantity - 1) % amount_per_container);
+				if ([cargo count] < max_cargo)
+				{
+					ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+					if (container)
+					{
+						// the cargopod ship is just being set up. If ejected,  will call UNIVERSE addEntity
+						[container setStatus:STATUS_IN_HOLD];
+						[container setScanClass: CLASS_CARGO];
+						[container setCommodity:type andAmount:smaller_quantity];
+						[cargo addObject:container];
+						[container release];
+					}
+				}
+				else
+				{
+					// try to squeeze any surplus, up to half a ton, in the manifest.
+					int amount;		
+					NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
+					NSMutableArray	*commodityInfo = [NSMutableArray arrayWithArray:[manifest objectAtIndex:type]];	
+					amount = [commodityInfo oo_intAtIndex:MARKET_QUANTITY] + smaller_quantity;
+					if (amount >= 499 && unit == UNITS_KILOGRAMS) amount = 499;
+					if (amount >= 499999 && unit == UNITS_GRAMS) amount = 499999;
+					[commodityInfo replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]]; // enter the adjusted amount
+					[manifest replaceObjectAtIndex:type withObject:commodityInfo];
+					
+					[shipCommodityData release];
+					shipCommodityData = manifest;
+				}
+				quantity -= smaller_quantity;
+			}
+		}
+		else
+		{
+			// put each ton in a separate container
+			while (quantity)
+			{
+				if ([cargo count] < max_cargo)
+				{
+					ShipEntity* container = [UNIVERSE newShipWithRole:@"1t-cargopod"];
+					if (container)
+					{
+						// the cargopod ship is just being set up. If ejected, will call UNIVERSE addEntity
+						[container setScanClass: CLASS_CARGO];
+						[container setStatus:STATUS_IN_HOLD];
+						[container setCommodity:type andAmount:1];
+						[cargo addObject:container];
+						[container release];
+					}
+				}
+				quantity--;
+			}
+		}
+	}
 }
 
 
@@ -6202,17 +6326,27 @@ static NSString *last_outfitting_key=nil;
 		if (amount < oldAmount) amount = oldAmount;
 	}
 	
-	
-
+	if (inPods)
+	{
+		if (oldAmount < amount) // increase
+		{
+			[self loadCargoPodsForType:type amount:(amount - oldAmount)];
+		}
+		else
+		{
+			[self unloadCargoPodsForType:type amount:(oldAmount- amount)];
+		}
+	}
+	else
+	{
 		NSMutableArray* manifest = [[NSMutableArray arrayWithArray:shipCommodityData] retain];
-		if (inPods) [self unloadCargoPodsForType:type fromArray:manifest];
 		NSMutableArray* manifest_commodity = [NSMutableArray arrayWithArray:(NSArray *)[manifest objectAtIndex:type]];
 		[manifest_commodity replaceObjectAtIndex:MARKET_QUANTITY withObject:[NSNumber numberWithInt:amount]];
 		[manifest replaceObjectAtIndex:type withObject:[NSArray arrayWithArray:manifest_commodity]];
-		if (inPods) [self loadCargoPodsForType:type fromArray:manifest];
 		[shipCommodityData release];
 		shipCommodityData = [[NSArray arrayWithArray:manifest] retain];
 		[manifest release];
+	}
 
 	[self cargoQuantityOnBoard];
 	return [[shipCommodityData oo_arrayAtIndex:type] oo_intAtIndex:MARKET_QUANTITY];
