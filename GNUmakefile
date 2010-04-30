@@ -221,7 +221,8 @@ OOLITE_GRAPHICS_MISC_FILES = \
 	OOProbabilisticTextureManager.m \
 	OOSkyDrawable.m \
 	OpenGLSprite.m \
-	OOPolygonSprite.m
+	OOPolygonSprite.m \
+	OOConvertCubeMapToLatLong.m
 
 OOLITE_MATHS_FILES = \
 	CollisionRegion.m \
