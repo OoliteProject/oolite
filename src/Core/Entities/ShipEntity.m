@@ -155,7 +155,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 - (BOOL) firePlasmaShotAtOffset:(double)offset speed:(double)speed color:(OOColor *)color direction:(OOViewID)direction;
 
 // equipment
-- (OOEquipmentType *) generateEquipmentTypeFrom:(NSString *)role;
+- (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 
 @end
 
@@ -2188,20 +2188,24 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
-- (OOEquipmentType *) generateEquipmentTypeFrom:(NSString *)role;
+- (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 {
-	/* 	The generated equipment type provides for backward compatibility with pre-1.74 OXPs  missile_roles
+	/* 	The generated missile equipment type provides for backward compatibility with pre-1.74 OXPs  missile_roles
 		and follows thiis template:
 		
 		//NPC equipment, incompatible with player ship. Not buyable because of its TL.
 		(
-			100, 147500, "Shield Enhancers",
-			"EQ_SHIELD_ENHANCER",
-			"Shield enhancing technology dramatically increases the capability of standard defensive shields."
+			100, 100000, "Missile",
+			"EQ_X_MISSILE",
+			"Unidentified Missile Type.",
+			{
+				is_external_store = true;
+			}
 		)
 	*/
-	NSArray  *itemInfo = [NSArray arrayWithObjects:@"100",@"100000",@"Missile",role,@"Unknown Missile Type", nil];
-
+	NSArray  *itemInfo = [NSArray arrayWithObjects:@"100", @"100000", @"Missile", role, @"Unidentified Missile Type.",
+							[NSDictionary dictionaryWithObjectsAndKeys: @"true", @"is_external_store", nil], nil];
+	
 	[OOEquipmentType addEquipmentWithInfo:itemInfo];
 	return [OOEquipmentType equipmentTypeWithIdentifier:role];
 }
@@ -2311,7 +2315,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		return NO;
 	}
 	// end special cases
-	
 	
 	if (_equipment == nil)  _equipment = [[NSMutableSet alloc] init];
 	
@@ -2478,8 +2481,20 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	
 	if (missileType == nil)
 	{
-		OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
-		missileType = [self generateEquipmentTypeFrom:role];
+		if ([role isEqualToString:@"missile"]) // no recognised eq_type found, let's use a unique identifier instead of the generic role 'missile'!
+		{
+			role = [missile name];
+			missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
+			if (missileType == nil)
+			{
+				OOLogWARN(@"ship.setUp.missiles", @"Missile '%@': no role with valid %@.plist entry found in shipdata.plist. Enabling compatibility mode using '%@' as its fallback equipment identifier.", role, @"equipment", role);
+			}
+		}
+		else
+		{
+			OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
+		}
+		if (missileType == nil) missileType = [self generateMissileEquipmentTypeFrom:role];
 	}
 	[missile release];
 	if ([missileType isMissileOrMine] || ([self isThargoid] && ([role hasPrefix:@"thargon"] || [role hasSuffix:@"thargon"])))

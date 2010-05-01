@@ -8703,7 +8703,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 						[OOCharacter randomCharacterWithRole:@"police"
 						andOriginalSystem: (randf() > 0.05)? systems[Ranrot() & 255]:system_seed]]];
 				
-				[hunter_ship setPrimaryRole:@"police"];		// FIXME: do we  actually need to change the ship's primary role? - Kaks 20091207
+				[hunter_ship setPrimaryRole:@"police"];		// make sure interceptors are police...
 				if ([hunter_ship scanClass] == CLASS_NOT_SET)
 					[hunter_ship setScanClass: CLASS_POLICE];
 				while (((Ranrot() & 7) + 2 < government)&&([hunter_ship pendingEscortCount] < 6))
