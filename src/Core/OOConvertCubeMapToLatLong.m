@@ -75,11 +75,8 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 		
 		for (x = 0; x != width; x++)
 		{
-			float los = sinTable[x];
-			float loc = cosTable[x];
-			
-			float cx = los * lac;
-			float cz = loc * lac;
+			float cx = sinTable[x] * lac;
+			float cz = cosTable[x] * lac;
 			
 			float ax = fabsf(cx);
 			float az = fabsf(cz);
@@ -154,5 +151,6 @@ OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension heig
 		}
 	}
 	
+	// Scale to half size for supersamplingness.
 	return OOScalePixMap(outPixMap, width / 2, height / 2, leaveSpaceForMipMaps);
 }

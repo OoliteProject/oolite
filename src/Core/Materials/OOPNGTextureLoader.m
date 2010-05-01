@@ -234,17 +234,28 @@ FAIL:
 @end
 
 
+/*	Minor detail: libpng 1.4.0 removed trailing .s from error and warning
+	messages. It's also binary-incompatible with 1.2 and earlier, so it's
+	reasonable to make this test at build time.
+*/
+#if PNG_LIBPNG_VER >= 10400
+#define MSG_TERMINATOR "."
+#else
+#define MSG_TERMINATOR ""
+#endif
+
+
 static void PNGError(png_structp png, png_const_charp message)
 {
 	OOPNGTextureLoader *loader = png_get_io_ptr(png);
-	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred for %@: %s", [loader path], message);
+	OOLog(@"texture.load.png.error", @"***** A PNG loading error occurred for %@: %s" MSG_TERMINATOR, [loader path], message);
 }
 
 
 static void PNGWarning(png_structp png, png_const_charp message)
 {
 	OOPNGTextureLoader *loader = png_get_io_ptr(png);
-	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred for %@: %s", [loader path], message);
+	OOLog(@"texture.load.png.warning", @"***** A PNG loading warning occurred for %@: %s" MSG_TERMINATOR, [loader path], message);
 }
 
 

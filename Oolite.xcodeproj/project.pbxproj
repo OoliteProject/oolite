@@ -552,7 +552,6 @@
 		1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406820BAF66D6005F6CF3 /* OOVoxel.h */; };
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
-		1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94D5AC0D65A6960072C805 /* OOLight.m */; };
 		1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5AD0D65A6960072C805 /* OOLight.h */; };
 		1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5B30D65A6B40072C805 /* OOCamera.h */; };
@@ -1677,7 +1676,6 @@
 		1A9406820BAF66D6005F6CF3 /* OOVoxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOVoxel.h; sourceTree = "<group>"; };
 		1A9406830BAF66D6005F6CF3 /* OOVoxel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOVoxel.m; sourceTree = "<group>"; };
 		1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTriangle.h; sourceTree = "<group>"; };
-		1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOTriangle.m; sourceTree = "<group>"; };
 		1A9407BF0BAF7032005F6CF3 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
 		1A94D5AC0D65A6960072C805 /* OOLight.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLight.m; sourceTree = "<group>"; };
 		1A94D5AD0D65A6960072C805 /* OOLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOLight.h; sourceTree = "<group>"; };
@@ -2846,7 +2844,6 @@
 				1A9406820BAF66D6005F6CF3 /* OOVoxel.h */,
 				1A9406830BAF66D6005F6CF3 /* OOVoxel.m */,
 				1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */,
-				1A9406B30BAF67BF005F6CF3 /* OOTriangle.m */,
 				1AB01BB90BB16A8A00F1B949 /* OOFastArithmetic.h */,
 				1AB01BBA0BB16A8A00F1B949 /* OOFastArithmetic.m */,
 				25F3E6300994F033002F25FD /* legacy_random.h */,
@@ -3465,7 +3462,6 @@
 				1A9405390BAF4FA6005F6CF3 /* OOMatrix.m in Sources */,
 				1A9405800BAF52AD005F6CF3 /* OOQuaternion.m in Sources */,
 				1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */,
-				1A9406B50BAF67BF005F6CF3 /* OOTriangle.m in Sources */,
 				1AB01B5F0BB1639600F1B949 /* OOTextureScaling.m in Sources */,
 				1AB01BBC0BB16A8A00F1B949 /* OOFastArithmetic.m in Sources */,
 				1A5DB1EB0BBD8F0000D57389 /* OOConstToString.m in Sources */,

@@ -2931,7 +2931,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 }
 
 
-#define PROFILE_SHIP_SELECTION 1
+#define PROFILE_SHIP_SELECTION 0
 
 
 - (BOOL) canInstantiateShip:(NSString *)shipKey

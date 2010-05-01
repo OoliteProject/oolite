@@ -231,7 +231,6 @@ OOLITE_MATHS_FILES = \
 	OOFastArithmetic.m \
 	OOMatrix.m \
 	OOQuaternion.m \
-	OOTriangle.m \
 	OOVector.m \
 	OOVoxel.m
 

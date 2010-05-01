@@ -37,13 +37,13 @@ typedef struct
 
 
 /* Calculate normal for triangle, storing it in v[3] */
-Vector calculateNormalForTriangle(Triangle *ioTriangle) NONNULL_FUNC;
+OOINLINE Vector calculateNormalForTriangle(Triangle *ioTriangle) NONNULL_FUNC;
 
 /* Generate a triangle from three vertices. Also calculates normal. */
 OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2) CONST_FUNC;
 
 /* resolve vector in arbitrary ijk vectors */
-Vector resolveVectorInIJK(Vector v0, Triangle ijk);
+OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk);
 
 
 /*** Only inline definitions beyond this point ***/
@@ -55,6 +55,25 @@ OOINLINE Triangle make_triangle(Vector v0, Vector v1, Vector v2)
 	result.v[1] = v1;
 	result.v[2] = v2;
 	calculateNormalForTriangle(&result);
+	return result;
+}
+
+
+OOINLINE Vector calculateNormalForTriangle(Triangle *tri)
+{
+	Vector v01 = vector_subtract(tri->v[1], tri->v[0]);
+	Vector v12 = vector_subtract(tri->v[2], tri->v[1]);
+	tri->v[3] = cross_product(v01, v12);
+	return tri->v[3];
+}
+
+
+OOINLINE Vector resolveVectorInIJK(Vector v0, Triangle ijk)
+{
+	Vector result;
+	result.x = dot_product(v0, ijk.v[0]);
+	result.y = dot_product(v0, ijk.v[1]);
+	result.z = dot_product(v0, ijk.v[2]);
 	return result;
 }
 

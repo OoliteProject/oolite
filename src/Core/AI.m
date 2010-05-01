@@ -741,7 +741,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 			{
 				[cacheMgr setObject:@"nil" forKey:smName inCache:@"AIs"];
 				NSString *fromString = @"";
-				if ([self name] != nil || [self state] != nil)
+				if ([self state] != nil)
 				{
 					fromString = [NSString stringWithFormat:@" from %@:%@", [self name], [self state]];
 				}
