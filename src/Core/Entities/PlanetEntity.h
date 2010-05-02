@@ -79,7 +79,7 @@ typedef struct
 	GLfloat					amb_polar_sea[4];
 	
 	PlanetEntity			*atmosphere;			// secondary sphere used to show atmospheric details
-	PlanetEntity			*root_planet;			// link back to owning planet
+	PlanetEntity			*root_planet;			// link back to owning planet (not retained)
 	
 	int						shuttles_on_ground;			// starting number of shuttles
 	double					last_launch_time;			// space launches out by about 15 minutes
@@ -96,7 +96,9 @@ typedef struct
 
 - (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed;
 - (void) miniaturize;
+#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
+#endif
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;

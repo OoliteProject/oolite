@@ -42,6 +42,9 @@ MA 02110-1301, USA.
 
 #define kOOLogUnconvertedNSLog @"unclassified.PlanetEntity"
 
+#define kTexturedPlanetModel	@"icostextured.dat"
+#define kUntexturedPlanetModel	@"icosahedron.dat"
+
 
 #define FIXED_TEX_COORDS 0
 
@@ -77,7 +80,9 @@ static GLfloat	texture_uv_array[10400 * 2];
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
 - (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
 
+#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
+#endif
 
 - (GLuint) textureName;
 
@@ -117,7 +122,7 @@ double longitudeFromVector(Vector v);
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
-	[self setModelName:@"icosahedron.dat"];
+	[self setModelName:kUntexturedPlanetModel];
 	
 	[self rescaleTo:1.0];
 	
@@ -288,8 +293,8 @@ double longitudeFromVector(Vector v);
 	
 	[self setOwner: planet];
 	
-	position = planet->position;
-	orientation = planet->orientation;
+	position = [planet position];
+	orientation = [planet orientation];
 	
 	if (planet->planet_type == STELLAR_TYPE_NORMAL_PLANET)
 		collision_radius = planet->collision_radius + ATMOSPHERE_DEPTH; //  atmosphere is 500m deep only
@@ -315,7 +320,7 @@ double longitudeFromVector(Vector v);
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
-	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:kTexturedPlanetModel];
 	[self rescaleTo:1.0];
 	[self initialiseBaseVertexArray];
 	[self initialiseBaseTerrainArray:percent_land];
@@ -362,7 +367,7 @@ double longitudeFromVector(Vector v);
 	collision_radius = [self collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	[self rescaleTo:1.0];
 	[self scaleVertices];
-	if (!!atmosphere)
+	if (atmosphere != nil)
 	{
 		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
 		[atmosphere rescaleTo:1.0];
@@ -373,6 +378,7 @@ double longitudeFromVector(Vector v);
 }
 
 
+#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet
 {
 	return [self initMiniatureFromPlanet:planet withAlpha:1.0f];
@@ -416,7 +422,7 @@ double longitudeFromVector(Vector v);
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
-	[self setModelName:(isTextured)? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(isTextured)? kTexturedPlanetModel : kUntexturedPlanetModel];
 	
 	[self rescaleTo:1.0];
 	
@@ -452,6 +458,7 @@ double longitudeFromVector(Vector v);
 	
 	return self;
 }
+#endif
 
 
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
@@ -537,7 +544,7 @@ double longitudeFromVector(Vector v);
 	for (i = 0; i < 5; i++)
 		displayListNames[i] = 0;	// empty for now!
 	
-	[self setModelName:(procGen || isTextured) ? @"icostextured.dat" : @"icosahedron.dat"];
+	[self setModelName:(procGen || isTextured) ? kTexturedPlanetModel : kUntexturedPlanetModel];
 	
 	[self rescaleTo:1.0];
 	
@@ -652,7 +659,7 @@ double longitudeFromVector(Vector v);
 	}
 
 	// do atmosphere
-	atmosphere = atmo ? [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:dict] : nil;
+	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:dict];
 	
 	setRandomSeed(saved_seed);
 	RANROTSetFullSeed(ranrotSavedSeed);
@@ -671,7 +678,7 @@ double longitudeFromVector(Vector v);
 
 - (void) dealloc
 {
-	[atmosphere release];
+	DESTROY(atmosphere);
 	if (textureData)  
 	{
 		free(textureData);
@@ -682,6 +689,8 @@ double longitudeFromVector(Vector v);
 		free(normalMapTextureData);
 		normalMapTextureData = NULL;
 	}
+	DESTROY(textureFile);
+	
 	[super dealloc];
 }
 
@@ -1153,7 +1162,7 @@ double longitudeFromVector(Vector v);
 #endif
 	{
 		OOUInteger i;
-		[self setModelName:@"icostextured.dat" ];
+		[self setModelName:kTexturedPlanetModel ];
 		[self rescaleTo:1.0];
 		for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
 		// recolour main planet according to "texture_hsb_color"
