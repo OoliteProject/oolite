@@ -6300,7 +6300,7 @@ static NSString *last_outfitting_key=nil;
 	OOMassUnit			unit = [UNIVERSE unitsForCommodity:type];
 	if([self specialCargo] && unit == UNITS_TONS) return 0;	// don't do anything if we've got a special cargo...
 	
-	OOCargoQuantity 	oldAmount = [self  cargoQuantityForType:type];
+	OOCargoQuantity 	oldAmount = [self cargoQuantityForType:type];
 	OOCargoQuantity		available = [self availableCargoSpace];
 	BOOL				inPods = ([self status] != STATUS_DOCKED);
 	
@@ -6313,28 +6313,23 @@ static NSString *last_outfitting_key=nil;
 	// eg: with maxCargo 2 & gold 1499kg, you can still add 1 ton alloy. 
 	else if (unit == UNITS_KILOGRAMS && amount > oldAmount)
 	{
-		available += oldAmount / 1000;
-		if (oldAmount % 1000 >= 500) available++;
-		if (available * 1000 < amount) amount = available * 1000;
-		if (amount < oldAmount) amount = oldAmount;
+		// Allow up to 0.5 ton of kg goods above the cargo capacity but respect existing quantities.
+		if (available * 1000 + 499 < amount) amount = (available * 1000 + 499 < oldAmount) ? oldAmount : (available * 1000 + 499);
 	}
 	else if (unit == UNITS_GRAMS && amount > oldAmount)
 	{
-		available += oldAmount / 1000000;
-		if (oldAmount % 1000000 >= 500000) available++;
-		if (available * 1000000 < amount) amount = available * 1000000;
-		if (amount < oldAmount) amount = oldAmount;
+		if (available * 1000000 + 499999 < amount) amount = (available * 1000000 + 499999 < oldAmount) ? oldAmount : (available * 1000000 + 499999);
 	}
 	
 	if (inPods)
 	{
-		if (oldAmount < amount) // increase
+		if (amount > oldAmount) // increase
 		{
 			[self loadCargoPodsForType:type amount:(amount - oldAmount)];
 		}
 		else
 		{
-			[self unloadCargoPodsForType:type amount:(oldAmount- amount)];
+			[self unloadCargoPodsForType:type amount:(oldAmount - amount)];
 		}
 	}
 	else
