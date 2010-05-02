@@ -76,7 +76,21 @@ VIProductVersion "${VER}"
 !define MUI_UNICON oolite.ico
 
 !insertmacro MUI_PAGE_DIRECTORY
-!insertmacro MUI_PAGE_INSTFILES  
+!insertmacro MUI_PAGE_INSTFILES
+
+; NSIS first runs the finishpage_run macro, then finishpage_showreadme one.
+; By completely redefining the meaning of the macros, the installer now runs oolite after showing the readme(!)
+  !define MUI_FINISHPAGE_RUN_NOTCHECKED 
+  !define MUI_FINISHPAGE_RUN_TEXT "Show Readme"
+  !define MUI_FINISHPAGE_RUN
+  !define MUI_FINISHPAGE_RUN_FUNCTION readMe ; ExecWait!
+  
+  !define MUI_FINISHPAGE_SHOWREADME_CHECKED
+  !define MUI_FINISHPAGE_SHOWREADME_TEXT "Run Oolite"
+  !define MUI_FINISHPAGE_SHOWREADME 
+  !define MUI_FINISHPAGE_SHOWREADME_FUNCTION firstRun
+!insertmacro MUI_PAGE_FINISH
+
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
@@ -94,8 +108,11 @@ Function .onInit
  StrCmp $R0 0 +3
    MessageBox MB_OK|MB_ICONEXCLAMATION "Another instance of the Oolite installer is already running."
    Abort
-
-  ; 3. Checks for already-installed versions of Oolite and offers to uninstall
+   
+  ;3a. Skip checks, don't uninstall previous versions. Comment out the following line to re-enable 3b.
+  Goto done
+  
+  ; 3b. Checks for previous versions of Oolite and offers to uninstall
   ReadRegStr $R0 HKLM \
   "Software\Microsoft\Windows\CurrentVersion\Uninstall\Oolite" \
   "UninstallString"
@@ -121,6 +138,15 @@ uninst:
 done:
 FunctionEnd
 
+Function readMe
+  ; don't do a thing until the user finishes reading the readme!
+  ExecWait "notepad.exe $INSTDIR\Oolite_Readme.txt"
+FunctionEnd
+
+Function firstRun
+  Exec "$INSTDIR\oolite.app\oolite.exe"
+FunctionEnd
+
 Function RegSetup
 FunctionEnd
 
@@ -134,6 +160,9 @@ SetOutPath $INSTDIR
 
 ; Package files
 CreateDirectory "$INSTDIR\AddOns"
+CreateDirectory "$INSTDIR\oolite.app\Logs"
+CreateDirectory "$INSTDIR\oolite.app\oolite-saves"
+CreateDirectory "$INSTDIR\oolite.app\oolite-saves\snapshots"
 
 File "Oolite.ico"
 File "Oolite_Readme.txt"
@@ -159,14 +188,17 @@ CreateShortCut "$SMPROGRAMS\Oolite\Oolite.lnk" "$INSTDIR\oolite.app\oolite.exe" 
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite ReadMe.lnk" "$INSTDIR\OoliteReadMe.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Reference Sheet.lnk" "$INSTDIR\OoliteRS.pdf"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite - Advice for New Commanders.lnk" "$INSTDIR\AdviceForNewCommanders.pdf"
-CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Uninstall.lnk" "$INSTDIR\UninstOolite.exe"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/" "" "$INSTDIR\Oolite.ico"
+
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Logs.lnk" "$INSTDIR\oolite.app\Logs"
+CreateShortCut "$SMPROGRAMS\Oolite\Oolite Screenshots.lnk" "$INSTDIR\oolite.app\oolite-saves\snapshots"
+CreateShortCut "$SMPROGRAMS\Oolite\Installed OXPs.lnk" "$INSTDIR\AddOns"
 
 Call RegSetup
 
-Exec "notepad.exe $INSTDIR\Oolite_Readme.txt"
-
 SectionEnd
+
 
 ;------------------------------------------------------------
 ; Uninstaller Section
