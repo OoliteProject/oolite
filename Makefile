@@ -19,11 +19,13 @@ pkg-debsnapshot: DEB_REV := $(shell echo "~svn${SVNREVISION}${DEB_REV}")
 
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
+
+# We are building with eSpeak support on Windows and Linux. Change the line below
+# to HAS_ESPEAK=libespeak=no to disable speech synthesis.
+HAS_ESPEAK=libespeak=yes
+
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
-	HAS_ESPEAK=libespeak=no # No eSpeak for Windows yet
-else
-	HAS_ESPEAK=libespeak=yes # Build with eSpeak for non-Windows
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),linux-gnu)

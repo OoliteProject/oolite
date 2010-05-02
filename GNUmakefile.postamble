@@ -20,6 +20,7 @@ after-all::
 	$(MKDIRS) $(PROGDIR)/Resources
 	$(CP) -r -u -f Resources $(PROGDIR)
 	$(CP) -r -u -f Schemata $(PROGDIR)/Resources
+	$(CP) -r -u -f deps/Cross-platform-deps/espeak-data $(PROGDIR)/Resources
 	$(CP) -u -f src/Cocoa/Info-Oolite.plist $(PROGDIR)/Resources/Info-gnustep.plist
 	$(CP) -u -f $(GNUSTEP_OBJ_DIR_NAME)/$(SRC_BIN) $(PROGDIR)/$(DEST_BIN)
 ifeq ($(debug),no)

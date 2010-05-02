@@ -50,12 +50,12 @@ tar zcf $build_root/oolite.app.tar oolite.app --exclude .svn
 
 cd deps/Cross-platform-deps/
 tar zcf $build_root/dtds.tar DTDs --exclude .svn
+tar zcf $build_root/espeak-data.tar espeak-data --exclude .svn
 cd ../Linux-deps/
 cp oolite.src $build_root
 cp oolite-update.src $build_root
 cp PLAYING.TXT $build_root
 cp README.TXT $build_root
-tar zcf $build_root/espeak-data.tar espeak-data --exclude .svn
 cd x86_64
 tar zcf $build_root/oolite.deps.tar lib --exclude .svn
 echo $SOFTWAREVERSION >$build_root/release.txt
