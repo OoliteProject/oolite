@@ -210,7 +210,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 		// Set up display list
 		[self ensureTexturesLoaded];
 		_displayListName = glGenLists(1);
-		OOGL(glNewList(_displayListName, GL_COMPILE_AND_EXECUTE));
+		OOGL(glNewList(_displayListName, GL_COMPILE));
 		
 		OOGL(glEnable(GL_TEXTURE_2D));
 		OOGL(glBlendFunc(GL_ONE, GL_ONE));	// Pure additive blending, ignoring alpha
