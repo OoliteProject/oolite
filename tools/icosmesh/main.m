@@ -152,7 +152,7 @@ static void WritePrelude(FILE *header, FILE *source)
 			"\tThis data may be used freely.\n"
 			"*/\n"
 			"\n"
-			"#import \"OOOpenGLOnly.h\"\n"
+			"#include \"OOOpenGLOnly.h\"\n"
 			"\n"
 			"\n"
 			"#define kOOPlanetDataLevels %u\n"

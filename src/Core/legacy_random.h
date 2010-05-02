@@ -28,8 +28,8 @@ MA 02110-1301, USA.
 #ifndef LEGACY_RANDOM_H
 #define LEGACY_RANDOM_H
 
-#import "OOFunctionAttributes.h"
-#import <math.h>
+#include "OOFunctionAttributes.h"
+#include <math.h>
 
 
 typedef struct Random_Seed

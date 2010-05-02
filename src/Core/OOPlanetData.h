@@ -7,7 +7,7 @@
 	This data may be used freely.
 */
 
-#import "OOOpenGLOnly.h"
+#include "OOOpenGLOnly.h"
 
 
 #define kOOPlanetDataLevels 6

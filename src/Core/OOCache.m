@@ -422,9 +422,9 @@ static NSString *CacheNodeGetDescription(OOCacheNode *node);
 
 static OOCacheNode *TreeSplay(OOCacheNode **root, id<OOCacheComparable> key);
 static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id value);
-static unsigned TreeCountNodes(OOCacheNode *node);
 
 #if OOCACHE_PERFORM_INTEGRITY_CHECKS
+static unsigned TreeCountNodes(OOCacheNode *node);
 static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OOCacheNode *expectedParent, NSString *context);
 #endif
 
@@ -795,6 +795,7 @@ static OOCacheNode *TreeInsert(OOCacheImpl *cache, id<OOCacheComparable> key, id
 }
 
 
+#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 static unsigned TreeCountNodes(OOCacheNode *node)
 {
 	if (node == NULL) return 0;
@@ -802,7 +803,6 @@ static unsigned TreeCountNodes(OOCacheNode *node)
 }
 
 
-#if OOCACHE_PERFORM_INTEGRITY_CHECKS
 // TreeCheckIntegrity(): verify the links and contents of a (sub-)tree. If successful, returns the root of the subtree (which could theoretically be changed), otherwise returns NULL.
 static OOCacheNode *TreeCheckIntegrity(OOCacheImpl *cache, OOCacheNode *node, OOCacheNode *expectedParent, NSString *context)
 {
