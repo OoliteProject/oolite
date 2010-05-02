@@ -1275,4 +1275,6 @@
 
 	// Locale-specific defaults
 	"espeak-default-voice"	= "default";
+	
+	"speech-synthesis-incoming-message"	= "Incoming message.";
 }
