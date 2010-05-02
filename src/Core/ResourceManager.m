@@ -169,29 +169,41 @@ static NSMutableDictionary *sStringCache;
 	
 	NSFileManager			*fmgr = [NSFileManager defaultManager];
 	NSArray					*rootPaths = nil;
+	NSMutableArray			*existingRootPaths = nil;
 	NSEnumerator			*pathEnum = nil;
 	NSString				*root = nil;
 	NSDirectoryEnumerator	*dirEnum = nil;
 	NSString				*subPath = nil;
 	NSString				*path = nil;
 	BOOL					isDirectory;
+	NSMutableArray			*displayPaths = nil;
 	
+	// Copy those root paths that actually exist to search paths.
 	rootPaths = [self rootPaths];
-	sSearchPaths = [rootPaths mutableCopy];
-	
-	// Iterate over root paths
+	existingRootPaths = [NSMutableArray arrayWithCapacity:[rootPaths count]];
 	for (pathEnum = [rootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
 	{
-		// Iterate over each root path's contents
+		if ([fmgr fileExistsAtPath:root isDirectory:&isDirectory] && isDirectory)
+		{
+			[existingRootPaths addObject:root];
+		}
+	}
+	
+	sSearchPaths = [existingRootPaths mutableCopy];
+	
+	// Iterate over root paths.
+	for (pathEnum = [existingRootPaths objectEnumerator]; (root = [pathEnum nextObject]); )
+	{
+		// Iterate over each root path's contents.
 		if ([fmgr fileExistsAtPath:root isDirectory:&isDirectory] && isDirectory)
 		{
 			for (dirEnum = [fmgr enumeratorAtPath:root]; (subPath = [dirEnum nextObject]); )
 			{
-				// Check if it's a directory
+				// Check if it's a directory.
 				path = [root stringByAppendingPathComponent:subPath];
 				if ([fmgr fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory)
 				{
-					// If it is, is it an OXP?
+					// If it is, is it an OXP?.
 					if ([[[path pathExtension] lowercaseString] isEqualToString:@"oxp"])
 					{
 						[self checkPotentialPath:path :sSearchPaths];
@@ -199,7 +211,7 @@ static NSMutableDictionary *sStringCache;
 					}
 					else
 					{
-						// If not, don't search subdirectories
+						// If not, don't search subdirectories.
 						[dirEnum skipDescendents];
 					}
 				}
@@ -213,7 +225,14 @@ static NSMutableDictionary *sStringCache;
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
 	
-	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n%@", [sSearchPaths componentsJoinedByString:@", "]);
+	// Prettify paths for logging.
+	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
+	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+	{
+		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
+	}
+	
+	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
 	return sSearchPaths;
