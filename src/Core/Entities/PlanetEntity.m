@@ -80,9 +80,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
 - (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
 
-#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
-#endif
 
 - (GLuint) textureName;
 
@@ -344,13 +342,6 @@ double longitudeFromVector(Vector v);
 {
 	// this is exclusively called to initialise the main planet
 	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-#if ALLOW_PROCEDURAL_PLANETS
-	if (![UNIVERSE doProcedurallyTexturedPlanets])
-	{
-		//only allow .png textures with procedural textures
-		[planetInfo removeObjectForKey:@"texture"];
-	}
-#endif
 
 	[planetInfo oo_setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
 	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
@@ -378,7 +369,6 @@ double longitudeFromVector(Vector v);
 }
 
 
-#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet
 {
 	return [self initMiniatureFromPlanet:planet withAlpha:1.0f];
@@ -407,22 +397,21 @@ double longitudeFromVector(Vector v);
 	[self setStatus:STATUS_COCKPIT_DISPLAY];
 	
 	orientation = planet->orientation;
+	for (i = 0; i < 5; i++)
+		displayListNames[i] = 0;	// empty for now!
 	
 	if ([planet planetType] == STELLAR_TYPE_ATMOSPHERE)
 	{
 		planet_type = STELLAR_TYPE_ATMOSPHERE;
 		rotational_velocity = 0.02;
+		[self setModelName:kTexturedPlanetModel];
 	}
 	else
 	{
 		planet_type = STELLAR_TYPE_MINIATURE;
 		rotational_velocity = 0.04;
+		[self setModelName:(isTextured)? kTexturedPlanetModel : kUntexturedPlanetModel];
 	}
-	
-	for (i = 0; i < 5; i++)
-		displayListNames[i] = 0;	// empty for now!
-	
-	[self setModelName:(isTextured)? kTexturedPlanetModel : kUntexturedPlanetModel];
 	
 	[self rescaleTo:1.0];
 	
@@ -458,7 +447,6 @@ double longitudeFromVector(Vector v);
 	
 	return self;
 }
-#endif
 
 
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
@@ -638,7 +626,6 @@ double longitudeFromVector(Vector v);
 	}
 #endif
 	
-	
 	[self initialiseBaseVertexArray];
 	
 	[self initialiseBaseTerrainArray:percent_land];
@@ -659,7 +646,8 @@ double longitudeFromVector(Vector v);
 	}
 
 	// do atmosphere
-	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:dict];
+	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:
+								(isTextured ? [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil] : dict)];
 	
 	setRandomSeed(saved_seed);
 	RANROTSetFullSeed(ranrotSavedSeed);
@@ -1190,8 +1178,7 @@ double longitudeFromVector(Vector v);
 	}
 	[self scaleVertices];
 
-	NSMutableDictionary *atmo_dictionary = [NSMutableDictionary dictionary];
-	[atmo_dictionary setObject:[NSNumber numberWithInt:0] forKey:@"percent_cloud"];
+	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil];
 	[atmosphere autorelease];
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
 

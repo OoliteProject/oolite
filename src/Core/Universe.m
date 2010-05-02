@@ -6368,12 +6368,7 @@ static NSDictionary	*sCachedSystemData = nil;
 		}
 		else if ([key isEqualToString:@"texture"])
 		{
-			BOOL procGen=NO;
-#if ALLOW_PROCEDURAL_PLANETS
-			procGen = doProcedurallyTexturedPlanets;
-#endif
-			if (procGen)
-				[[self planet] setUpPlanetFromTexture:(NSString *)object];
+			[[self planet] setUpPlanetFromTexture:(NSString *)object];
 		}
 		else if ([key isEqualToString:@"texture_hsb_color"])
 		{

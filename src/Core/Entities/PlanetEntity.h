@@ -96,9 +96,7 @@ typedef struct
 
 - (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed;
 - (void) miniaturize;
-#if ALLOW_PROCEDURAL_PLANETS
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
-#endif
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;

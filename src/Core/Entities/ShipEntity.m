@@ -2191,7 +2191,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (OOEquipmentType *) generateMissileEquipmentTypeFrom:(NSString *)role;
 {
 	/* 	The generated missile equipment type provides for backward compatibility with pre-1.74 OXPs  missile_roles
-		and follows thiis template:
+		and follows this template:
 		
 		//NPC equipment, incompatible with player ship. Not buyable because of its TL.
 		(

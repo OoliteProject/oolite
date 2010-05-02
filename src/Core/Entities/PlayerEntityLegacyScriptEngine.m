@@ -2636,16 +2636,12 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 #else
 		OOPlanetEntity* doppelganger=nil;
-#if ALLOW_PROCEDURAL_PLANETS
-		BOOL	procGen = NO;
-		procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-		if ([i_key isEqualToString:@"local-planet"] && procGen && [UNIVERSE sun])
+		if ([i_key isEqualToString:@"local-planet"] && [UNIVERSE sun])
 		{
-			// can safely show retextured planets!
+			// use a clone of the current system planet, to include temporary js retexturing!
 			doppelganger = [[OOPlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
 		}
 		else
-#endif
 		{
 			doppelganger = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed];
 			[doppelganger miniaturize];
@@ -2660,8 +2656,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
 		[UNIVERSE setMainLightPosition:(Vector){ -12000.0, -5000.0, -10000.0 }]; // set light origin for pole
-#if ALLOW_PROCEDURAL_PLANETS && !NEW_PLANETS
-		if (procGen)
+#if !NEW_PLANETS
+		if ([doppelganger isTextured])
 		{
 			model_q = make_quaternion( 0.707, 0.314, 0.707, 0.0 );
 		}

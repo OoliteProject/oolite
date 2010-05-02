@@ -180,12 +180,8 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	BOOL					OK = YES;
 	OOPlanetEntity			*planet = nil;
 	NSString				*sValue = nil;
-	BOOL					procGen = NO;
 	Quaternion				qValue;
 	
-	NSString				*pre = @"";
-	OOEntityStatus			playerStatus;
-			
 	if (!JSVAL_IS_INT(name))  return YES;
 	if (!JSPlanetGetPlanetEntity(context, this, &planet)) return NO;
 	
@@ -195,25 +191,18 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 			// all error messages are self contained
 
 			sValue = JSValToNSString(context, *value);
-#if ALLOW_PROCEDURAL_PLANETS
-			procGen = [UNIVERSE doProcedurallyTexturedPlanets];
-			if (!procGen) pre=@"Detailed planets option not set. ";
-#endif
-			playerStatus = [[PlayerEntity sharedPlayer] status];
 			
 			if ([planet isKindOfClass:[OOPlanetEntity class]])
 			{
-				// if procGen == on we can retexture at any time, eg during huge surface explosions
-				if (!procGen && playerStatus != STATUS_LAUNCHING && playerStatus != STATUS_EXITING_WITCHSPACE)
+				if (sValue == nil)
 				{
 					OK = NO;
-					OOReportJSError(context, @"%@Planet.texture may only be modified from shipWillLaunchFromStation and shipWillExitWitchspace. Value not set.", pre);
+					OOReportJSWarning(context, @"Expected texture string. Value not set.");
 				}
-				else if (sValue == nil)
-				{
-					OK = NO;
-					OOReportJSWarning(context, @"Invalid value type for this property. Value not set.");
-				}
+			}
+			else
+			{
+				OK = NO;
 			}
 			
 			if (OK)
