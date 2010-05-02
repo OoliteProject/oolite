@@ -1010,7 +1010,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (BOOL) isVisible
 {
 	if ([self isSky] || [self isStellarObject])  return YES;
-	if (zero_distance > ABSOLUTE_NO_DRAW_DISTANCE2 || zero_distance > no_draw_distance)  return NO;
+	if (zero_distance > ABSOLUTE_NO_DRAW_DISTANCE2 || (isShip && zero_distance > no_draw_distance))  return NO;
 	return YES;
 }
 
