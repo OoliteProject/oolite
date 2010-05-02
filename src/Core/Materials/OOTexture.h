@@ -5,6 +5,9 @@ OOTexture.h
 Load, track and manage textures. In general, this should be used through an
 OOMaterial.
 
+Note: OOTexture is abstract. The factory methods return instances of
+OOConcreteTexture, but special-case implementations are possible.
+
 
 Copyright (C) 2007-2010 Jens Ayton and contributors
 
@@ -34,9 +37,6 @@ SOFTWARE.
 #import "OOWeakReference.h"
 
 @class OOTextureLoader, OOTextureGenerator;
-
-
-#define OOTEXTURE_RELOADABLE		1
 
 
 enum
@@ -105,40 +105,9 @@ typedef enum
 
 @interface OOTexture: OOWeakRefObject
 {
-@private
-#if OOTEXTURE_RELOADABLE
-	NSString				*_path;
-#endif
-	NSString				*_key;
-	uint8_t					_loaded: 1,
-							_uploaded: 1,
-#if GL_EXT_texture_rectangle
-							_isRectTexture: 1,
-#endif
-#if GL_ARB_texture_cube_map
-							_isCubeMap: 1,
-#endif
-							_valid: 1;
-	uint8_t					_mipLevels;
-	
-	OOTextureLoader			*_loader;
-	
-	void					*_bytes;
-	GLuint					_textureName;
-	uint32_t				_width,
-							_height;
-	
-	OOTextureDataFormat		_format;
-	uint32_t				_options;
-#if GL_EXT_texture_lod_bias
-	GLfloat					_lodBias;
-#endif
-#if GL_EXT_texture_filter_anisotropic
-	float					_anisotropy;
-#endif
-	
+@protected
 #ifndef NDEBUG
-	BOOL					_trace;
+	BOOL						_trace;
 #endif
 }
 

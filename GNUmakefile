@@ -201,6 +201,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOShaderUniformMethodType.m \
 	OOSingleTextureMaterial.m \
 	OOTexture.m \
+	OOConcreteTexture.m \
 	OOTextureGenerator.m \
 	OOTextureLoader.m \
 	OOPixMap.m \

@@ -25,9 +25,13 @@
 */
 
 #import "OOTexture.h"
+#import "OOTextureInternal.h"
+#import "OOConcreteTexture.h"
 #import "OONullTexture.h"
+
 #import "OOTextureLoader.h"
 #import "OOTextureGenerator.h"
+
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
 #import "ResourceManager.h"
@@ -59,104 +63,15 @@ enum
 	kRecentTexturesCount		= 50
 };
 
-static NSMutableDictionary	*sInUseTextures = nil;
-static OOCache				*sRecentTextures = nil;
+static NSMutableDictionary	*sInUseTextures;
+static OOCache				*sRecentTextures;
 
 
-static BOOL		sCheckedExtensions = NO;
-
-
-#if OOLITE_BIG_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
-#elif OOLITE_LITTLE_ENDIAN
-#define RGBA_IMAGE_TYPE GL_UNSIGNED_BYTE
-#else
-#error Neither OOLITE_BIG_ENDIAN nor OOLITE_LITTLE_ENDIAN is defined as nonzero!
-#endif
-
-
-// Anisotropic filtering
-#if GL_EXT_texture_filter_anisotropic
-static BOOL		sAnisotropyAvailable;
-static float	sAnisotropyScale;	// Scale of anisotropy values
-#else
-#define sAnisotropyAvailable		(NO)
-#define sAnisotropyScale			(0)
-#warning GL_EXT_texture_filter_anisotropic unavailble -- are you using an up-to-date glext.h?
-#endif
-
-
-// CLAMP_TO_EDGE (OK, requiring OpenGL 1.2 wouln't be _that_ big a deal...)
-#if !defined(GL_CLAMP_TO_EDGE) && GL_SGIS_texture_edge_clamp
-#define GL_CLAMP_TO_EDGE GL_CLAMP_TO_EDGE_SGIS
-#endif
-
-#ifdef GL_CLAMP_TO_EDGE
-static BOOL		sClampToEdgeAvailable;
-#else
-#warning GL_CLAMP_TO_EDGE (OpenGL 1.2) and GL_SGIS_texture_edge_clamp are unavailable -- are you using an up-to-date gl.h?
-#define sClampToEdgeAvailable	(NO)
-#define GL_CLAMP_TO_EDGE		GL_CLAMP
-#endif
-
-
-// Client storage: reduce copying by requiring the app to keep data around
-#if defined(GL_APPLE_client_storage) && !OOTEXTURE_RELOADABLE
-
-#define OO_GL_CLIENT_STORAGE	(1)
-static inline void EnableClientStorage(void)
-{
-	OO_ENTER_OPENGL();
-	OOGL(glPixelStorei(GL_UNPACK_CLIENT_STORAGE_APPLE, GL_TRUE));
-}
-// #elif in any equivalents on other platforms here
-#else
-#define OO_GL_CLIENT_STORAGE	(0)
-#define EnableClientStorage()	do {} while (0)
-#endif
-
-#if OO_GL_CLIENT_STORAGE
-static BOOL		sClientStorageAvialable;
-#else
-#define sClientStorageAvialable		(NO)
-#endif
-
-
-#if GL_EXT_texture_lod_bias
-static BOOL		sTextureLODBiasAvailable;
-#else
-#define sTextureLODBiasAvailable	(NO)
-#endif
-
-
-#if GL_EXT_texture_rectangle
-static BOOL		sRectangleTextureAvailable;
-#else
-#define sRectangleTextureAvailable	(NO)
-#endif
-
-
-#if GL_ARB_texture_cube_map
-static BOOL		sCubeMapAvailable;
-#else
-#define sCubeMapAvailable			(NO)
-#warning GL_ARB_texture_cube_map not defined - cube maps not supported.
-#endif
+static BOOL					sCheckedExtensions;
+OOTextureInfo				gOOTextureInfo;
 
 
 @interface OOTexture (OOPrivate)
-
-- (id) initWithLoader:(OOTextureLoader *)loader
-				  key:(NSString *)key
-			  options:(uint32_t)options
-		   anisotropy:(GLfloat)anisotropy
-			  lodBias:(GLfloat)lodBias;
-
-- (id)initWithPath:(NSString *)path
-			   key:(NSString *)key
-		   options:(uint32_t)options
-		anisotropy:(float)anisotropy
-		   lodBias:(GLfloat)lodBias;
 
 - (void)setUpTexture;
 - (void)uploadTexture;
@@ -236,7 +151,7 @@ static NSString *sGlobalTraceContext = nil;
 		}
 		
 #if GL_EXT_texture_rectangle
-		if (!sRectangleTextureAvailable)
+		if (!gOOTextureInfo.rectangleTextureAvailable)
 		{
 			options &= ~kOOTextureAllowRectTexture;
 		}
@@ -253,11 +168,11 @@ static NSString *sGlobalTraceContext = nil;
 	
 	options &= kOOTextureDefinedFlags;
 	
-	if (!sAnisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
 	{
 		anisotropy = 0.0f;
 	}
-	if (!sTextureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
+	if (!gOOTextureInfo.textureLODBiasAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
 	{
 		lodBias = 0.0f;
 	}
@@ -278,7 +193,7 @@ static NSString *sGlobalTraceContext = nil;
 		}
 		
 		// No existing texture, load texture.
-		result = [[[OOTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
+		result = [[[OOConcreteTexture alloc] initWithPath:path key:key options:options anisotropy:anisotropy lodBias:lodBias] autorelease];
 	}
 	
 	
@@ -385,91 +300,19 @@ static NSString *sGlobalTraceContext = nil;
 	}
 	OOLog(@"texture.generator.queue", @"Queued texture generator %@", generator);
 	
-	OOTexture *result = [[[self alloc] initWithLoader:generator
-												  key:[generator cacheKey]
-											  options:[generator textureOptions]
-										   anisotropy:[generator anisotropy]
-											  lodBias:[generator lodBias]] autorelease];
-#ifndef NDEBUG
-	// [result setTrace:YES];
-#endif
+	OOTexture *result = [[[OOConcreteTexture alloc] initWithLoader:generator
+															   key:[generator cacheKey]
+														   options:[generator textureOptions]
+														anisotropy:[generator anisotropy]
+														   lodBias:[generator lodBias]] autorelease];
 	
 	return result;
 }
 
 
-- (void)dealloc
-{
-#ifndef NDEBUG
-	OOLog(_trace ? @"texture.allocTrace.dealloc" : @"texture.dealloc", @"Deallocating and uncaching texture %p", self);
-#endif
-	
-#if OOTEXTURE_RELOADABLE
-	DESTROY(_path);
-#endif
-	
-	if (_key != nil)
-	{
-		[sInUseTextures removeObjectForKey:_key];
-		NSAssert([sRecentTextures objectForKey:_key] != self, @"Texture retain count error."); //miscount in autorelease
-		// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
-		[sRecentTextures removeObjectForKey:_key]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
-		DESTROY(_key);
-	}
-	
-	if (_loaded)
-	{
-		if (_textureName != 0)  GLRecycleTextureName(_textureName, _mipLevels);
-		free(_bytes);
-	}
-	
-	DESTROY(_loader);
-	
-	[super dealloc];
-}
-
-
-- (NSString *) descriptionComponents
-{
-	NSString				*stateDesc = nil;
-	
-	if (_loaded)
-	{
-		if (_valid)
-		{
-			stateDesc = [NSString stringWithFormat:@"%u x %u", _width, _height];
-		}
-		else
-		{
-			stateDesc = @"LOAD ERROR";
-		}
-	}
-	else
-	{
-		stateDesc = @"loading";
-	}
-	
-	return [NSString stringWithFormat:@"%@, %@", _key, stateDesc];
-}
-
-
-- (NSString *) shortDescriptionComponents
-{
-	return _key;
-}
-
-
 - (void)apply
 {
-	OO_ENTER_OPENGL();
-	
-	if (EXPECT_NOT(!_loaded))  [self setUpTexture];
-	else if (EXPECT_NOT(!_uploaded))  [self uploadTexture];
-	else  OOGL(glBindTexture([self glTextureTarget], _textureName));
-	
-#if GL_EXT_texture_lod_bias
-	if (sTextureLODBiasAvailable)  OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, _lodBias));
-#endif
+	OOLogGenericSubclassResponsibility();
 }
 
 
@@ -485,96 +328,56 @@ static NSString *sGlobalTraceContext = nil;
 
 - (void)ensureFinishedLoading
 {
-	if (!_loaded)  [self setUpTexture];
 }
 
 
 - (BOOL) isFinishedLoading
 {
-	return _loaded || [_loader isReady];
+	return YES;
 }
 
 
 - (NSString *) cacheKey
 {
-	return [[_key retain] autorelease];
+	return nil;
 }
 
 
-- (NSSize)dimensions
+- (NSSize) dimensions
 {
-	[self ensureFinishedLoading];
-	
-	return NSMakeSize(_width, _height);
+	OOLogGenericSubclassResponsibility();
+	return NSZeroSize;
 }
 
 
 - (struct OOPixMap) copyPixMapRepresentation
 {
-	OOPixMap px = OOMakePixMap(_bytes, _width, _height, OOTextureComponentsForFormat(_format), 0, 0);
-	return OODuplicatePixMap(px, 0);
+	return kOONullPixMap;
 }
 
 
 - (BOOL) isRectangleTexture
 {
-#if GL_EXT_texture_rectangle
-	return _isRectTexture;
-#else
 	return NO;
-#endif
 }
 
 
 - (BOOL) isCubeMap
 {
-#if GL_ARB_texture_cube_map
-	return _isCubeMap;
-#else
 	return NO;
-#endif
 }
 
 
 - (NSSize)texCoordsScale
 {
-#if GL_EXT_texture_rectangle
-	if (_loaded)
-	{
-		if (!_isRectTexture)
-		{
-			return NSMakeSize(1.0f, 1.0f);
-		}
-		else
-		{
-			return NSMakeSize(_width, _height);
-		}
-	}
-	else
-	{
-		// Not loaded
-		if (!_options & kOOTextureAllowRectTexture)
-		{
-			return NSMakeSize(1.0f, 1.0f);
-		}
-		else
-		{
-			// Finishing may clear the rectangle texture flag (if the texture turns out to be POT)
-			[self ensureFinishedLoading];
-			return [self texCoordsScale];
-		}
-	}
-#else
 	return NSMakeSize(1.0f, 1.0f);
-#endif
 }
 
 
 - (GLint)glTextureName
 {
-	[self ensureFinishedLoading];
-	
-	return _textureName;
+	OOLogGenericSubclassResponsibility();
+	return 0;
 }
 
 
@@ -614,371 +417,23 @@ static NSString *sGlobalTraceContext = nil;
 }
 #endif
 
-@end
-
-
-@implementation OOTexture (OOPrivate)
-
-- (id) initWithLoader:(OOTextureLoader *)loader
-				  key:(NSString *)key
-			  options:(uint32_t)options
-		   anisotropy:(GLfloat)anisotropy
-			  lodBias:(GLfloat)lodBias
-{
-#ifndef OOTEXTURE_NO_CACHE
-	if (key != nil)
-	{
-		OOTexture *existing = [OOTexture existingTextureForKey:key];
-		if (existing != nil)  return [[existing retain] autorelease];
-	}
-#endif
-	
-	if (loader == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	self = [super init];
-	if (EXPECT_NOT(self == nil))  return nil;
-	
-	_loader = [loader retain];
-	_options = options;
-	
-#if GL_EXT_texture_filter_anisotropic
-	_anisotropy = OOClamp_0_1_f(anisotropy) * sAnisotropyScale;
-#endif
-#if GL_EXT_texture_lod_bias
-	_lodBias = lodBias;
-#endif
-	
-	_key = [key copy];
-	
-	[self addToCaches];
-	
-	return self;
-}
-
-
-- (id)initWithPath:(NSString *)path
-			   key:(NSString *)key
-		   options:(uint32_t)options
-		anisotropy:(float)anisotropy
-		   lodBias:(GLfloat)lodBias
-{
-	OOTextureLoader *loader = [OOTextureLoader loaderWithPath:path options:options];
-	if (loader == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-#if OOTEXTURE_RELOADABLE
-	_path = [path retain];
-#endif
-	
-	return [self initWithLoader:loader key:key options:options anisotropy:anisotropy lodBias:lodBias];
-}
-
-
-- (void)setUpTexture
-{
-	// This will block until loading is completed, if necessary.
-	if ([_loader getResult:&_bytes format:&_format width:&_width height:&_height])
-	{
-#if GL_ARB_texture_cube_map
-		if (_options & kOOTextureAllowCubeMap && _height == _width * 6 && sCubeMapAvailable)
-		{
-			_isCubeMap = YES;
-		}
-#endif
-		
-#if !defined(NDEBUG) && OOTEXTURE_RELOADABLE
-		if (_trace)
-		{
-			static unsigned dumpID = 0;
-			uint8_t components = OOTextureComponentsForFormat(_format);
-			OOPixMap pm = OOMakePixMap(_bytes, _width, _height, components, 0, 0);
-			NSString *name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID, _path ? [_path lastPathComponent] : [[_key componentsSeparatedByString:@"/"] objectAtIndex:1]];
-			OOLog(@"texture.trace.dump", @"Dumped traced texture %@ to \'%@.png\'", self, name);
-			OODumpPixMap(pm, name);
-		}
-#endif
-		
-		[self uploadTexture];
-	}
-	else
-	{
-		_textureName = 0;
-		_valid = NO;
-		_uploaded = YES;
-	}
-	
-	_loaded = YES;
-	
-	DESTROY(_loader);
-}
-
-
-- (void) uploadTexture
-{
-	GLint					clampMode;
-	GLint					filter;
-	BOOL					mipMap = NO;
-	
-	OO_ENTER_OPENGL();
-	
-	if (!_uploaded)
-	{
-		GLenum texTarget = [self glTextureTarget];
-		
-		_textureName = GLAllocateTextureName();
-		OOGL(glBindTexture(texTarget, _textureName));
-		
-		// Select wrap mode
-		clampMode = sClampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
-		
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
-#if GL_ARB_texture_cube_map
-		if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
-		{
-			// Repeat flags should have been filtered out earlier.
-			NSAssert(!(_options & (kOOTextureRepeatS | kOOTextureRepeatT)), @"Wrapping does not make sense for cube map textures.");
-			
-			OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_R, clampMode));
-		}
-#endif
-		
-		// Select min filter
-		filter = _options & kOOTextureMinFilterMask;
-		if (filter == kOOTextureMinFilterNearest)  filter = GL_NEAREST;
-		else if (filter == kOOTextureMinFilterMipMap)
-		{
-			mipMap = YES;
-			filter = GL_LINEAR_MIPMAP_LINEAR;
-		}
-		else  filter = GL_LINEAR;
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_MIN_FILTER, filter));
-		
-#if GL_EXT_texture_filter_anisotropic
-		if (sAnisotropyAvailable && mipMap && 1.0 < _anisotropy)
-		{
-			OOGL(glTexParameterf(texTarget, GL_TEXTURE_MAX_ANISOTROPY_EXT, _anisotropy));
-		}
-#endif
-		
-		// Select mag filter
-		filter = _options & kOOTextureMagFilterMask;
-		if (filter == kOOTextureMagFilterNearest)  filter = GL_NEAREST;
-		else  filter = GL_LINEAR;
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_MAG_FILTER, filter));
-		
-	//	if (sClientStorageAvialable)  EnableClientStorage();
-		
-		if (texTarget == GL_TEXTURE_2D)
-		{
-			[self uploadTextureDataWithMipMap:mipMap format:_format];
-			OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
-		}
-#if GL_ARB_texture_cube_map
-		else if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
-		{
-			[self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
-			OOLog(@"texture.upload", @"Uploaded cube map texture %u (%ux%ux6 pixels, %@)", _textureName, _width, _width, _key);
-		}
-#endif
-		else
-		{
-			[NSException raise:NSInternalInconsistencyException format:@"Unhandled texture target 0x%X.", texTarget];
-		}
-		
-		_valid = YES;
-		_uploaded = YES;
-		
-#if OOTEXTURE_RELOADABLE
-		if ([self isReloadable])
-		{
-			free(_bytes);
-			_bytes = NULL;
-		}
-#endif
-	}
-}
-
-
-static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLint *outFormat, GLint *outInternalFormat, GLint *outType)
-{
-	NSCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
-	
-	switch (format)
-	{
-		case kOOTextureDataRGBA:
-			*outFormat = GL_RGBA;
-			*outInternalFormat = GL_RGBA;
-			*outType = RGBA_IMAGE_TYPE;
-			return YES;
-			
-		case kOOTextureDataGrayscale:
-			if (options & kOOTextureAlphaMask)
-			{
-				*outFormat = GL_ALPHA;
-				*outInternalFormat = GL_ALPHA8;
-			}
-			else
-			{
-				*outFormat = GL_LUMINANCE;
-				*outInternalFormat = GL_LUMINANCE8;
-			}
-			*outType = GL_UNSIGNED_BYTE;
-			return YES;
-			
-		case kOOTextureDataGrayscaleAlpha:
-			*outFormat = GL_LUMINANCE_ALPHA;
-			*outInternalFormat = GL_LUMINANCE8_ALPHA8;
-			*outType = GL_UNSIGNED_BYTE;
-			return YES;
-			
-		default:
-			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
-			return NO;
-	}
-}
-
-
-- (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
-{
-	GLint					glFormat = 0, internalFormat = 0, type = 0;
-	unsigned				w = _width,
-							h = _height,
-							level = 0;
-	char					*bytes = _bytes;
-	uint8_t					components = OOTextureComponentsForFormat(format);
-	
-	OO_ENTER_OPENGL();
-	
-	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
-	
-	while (0 < w && 0 < h)
-	{
-		OOGL(glTexImage2D(GL_TEXTURE_2D, level++, internalFormat, w, h, 0, glFormat, type, bytes));
-		if (!mipMap)  return;
-		bytes += w * components * h;
-		w >>= 1;
-		h >>= 1;
-	}
-	
-	_mipLevels = level - 1;
-	
-	// FIXME: GL_TEXTURE_MAX_LEVEL requires OpenGL 1.2. This should be fixed by generating all mip-maps for non-square textures so we don't need to use it.
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels));
-}
-
-
-#if GL_ARB_texture_cube_map
-- (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
-{
-	OO_ENTER_OPENGL();
-	
-	GLint glFormat = 0, internalFormat = 0, type = 0;
-	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
-	uint8_t components = OOTextureComponentsForFormat(format);
-	
-	// Calculate stride between cube map sides.
-	size_t sideSize = _width * _width * components;
-	if (mipMap)
-	{
-		sideSize = sideSize * 4 / 3;
-		sideSize = (sideSize + 15) & ~15;
-	}
-	
-	const GLenum cubeSides[6] =
-	{
-		GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB
-	};
-	
-	unsigned side;
-	for (side = 0; side < 6; side++)
-	{
-		char *bytes = _bytes;
-		bytes += side * sideSize;
-		
-		unsigned w = _width, level = 0;
-		
-		while (0 < w)
-		{
-			OOGL(glTexImage2D(cubeSides[side], level++, internalFormat, w, w, 0, glFormat, type, bytes));
-			if (!mipMap)  break;
-			bytes += w * w * components;
-			w >>= 1;
-		}
-	}
-}
-#endif
-
-
-- (GLenum) glTextureTarget
-{
-	GLenum texTarget = GL_TEXTURE_2D;
-#if GL_ARB_texture_cube_map
-	if (_isCubeMap)
-	{
-		texTarget = GL_TEXTURE_CUBE_MAP_ARB;
-	}
-#endif
-	return texTarget;
-}
-
 
 - (void) forceRebind
 {
-	if (_loaded && _uploaded && _valid)
-	{
-		_uploaded = NO;
-		GLRecycleTextureName(_textureName, _mipLevels);
-		_textureName = 0;
-		
-#if OOTEXTURE_RELOADABLE
-		if ([self isReloadable])
-		{
-			OOLog(@"texture.reload", @"Reloading texture %@", self);
-			
-			free(_bytes);
-			_bytes = NULL;
-			_loaded = NO;
-			_uploaded = NO;
-			_valid = NO;
-			
-			_loader = [[OOTextureLoader loaderWithPath:_path options:_options] retain];
-		}
-#endif
-	}
 }
-
-
-#if OOTEXTURE_RELOADABLE
-
-- (BOOL) isReloadable
-{
-	return _path != nil;
-}
-
-#endif
 
 
 - (void) addToCaches
 {
 #ifndef OOTEXTURE_NO_CACHE
+	NSString *cacheKey = [self cacheKey];
+	if (cacheKey == nil)  return;
+	
 	// Add self to in-use textures cache, wrapped in an NSValue so the texture isn't retained by the cache.
 	if (EXPECT_NOT(sInUseTextures == nil))  sInUseTextures = [[NSMutableDictionary alloc] init];
 	
 	SET_TRACE_CONTEXT(@"in-use textures cache - SHOULD NOT RETAIN");
-	[sInUseTextures setObject:[NSValue valueWithPointer:self] forKey:_key];
+	[sInUseTextures setObject:[NSValue valueWithPointer:self] forKey:cacheKey];
 	CLEAR_TRACE_CONTEXT();
 	
 	// Add self to recent textures cache.
@@ -991,8 +446,22 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	}
 	
 	SET_TRACE_CONTEXT(@"adding to recent textures cache");
-	[sRecentTextures setObject:self forKey:_key];
+	[sRecentTextures setObject:self forKey:cacheKey];
 	CLEAR_TRACE_CONTEXT();
+#endif
+}
+
+
+- (void) removeFromCaches
+{
+#ifndef OOTEXTURE_NO_CACHE
+	NSString *cacheKey = [self cacheKey];
+	if (cacheKey == nil)  return;
+	
+	[sInUseTextures removeObjectForKey:cacheKey];
+	NSAssert([sRecentTextures objectForKey:cacheKey] != self, @"Texture retain count error."); //miscount in autorelease
+	// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
+	[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
 #endif
 }
 
@@ -1020,43 +489,43 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
 	
 #if GL_EXT_texture_filter_anisotropic
-	sAnisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
-	OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &sAnisotropyScale));
-	sAnisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
+	gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
+	OOGL(glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &gOOTextureInfo.anisotropyScale));
+	gOOTextureInfo.anisotropyScale *= OOClamp_0_1_f([[NSUserDefaults standardUserDefaults] oo_floatForKey:@"texture-anisotropy-scale" defaultValue:0.5]);
 #endif
 	
 #ifdef GL_CLAMP_TO_EDGE
 	// GL_CLAMP_TO_EDGE requires OpenGL 1.2 or later. Oolite probably does too...
-	sClampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
+	gOOTextureInfo.clampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
 #endif
 	
 #if OO_GL_CLIENT_STORAGE
-	sClientStorageAvialable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
+	gOOTextureInfo.clientStorageAvailable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
 #endif
 	
 #if GL_EXT_texture_lod_bias
 	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"use-texture-lod-bias" defaultValue:YES])
 	{
-		sTextureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
+		gOOTextureInfo.textureLODBiasAvailable = [extMgr haveExtension:@"GL_EXT_texture_lod_bias"];
 	}
 	else
 	{
-		sTextureLODBiasAvailable = NO;
+		gOOTextureInfo.textureLODBiasAvailable = NO;
 	}
 #endif
 	
 #if GL_EXT_texture_rectangle
-	sRectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
+	gOOTextureInfo.rectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
 #endif
 	
 #if GL_ARB_texture_cube_map
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-cube-maps"])
 	{
-		sCubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+		gOOTextureInfo.cubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
 	}
 	else
 	{
-		sCubeMapAvailable = NO;
+		gOOTextureInfo.cubeMapAvailable = NO;
 	}
 
 #endif
@@ -1182,5 +651,5 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format)
 
 BOOL OOCubeMapsAvailable(void)
 {
-	return sCubeMapAvailable;
+	return gOOTextureInfo.cubeMapAvailable;
 }

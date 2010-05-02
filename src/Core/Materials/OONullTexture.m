@@ -27,6 +27,7 @@ SOFTWARE.
 
 #import "OONullTexture.h"
 #import "OOCocoa.h"
+#import "OOTextureInternal.h"
 
 
 static OONullTexture *sSingleton = nil;
@@ -49,6 +50,18 @@ static OONullTexture *sSingleton = nil;
 - (void) apply
 {
 	[OOTexture applyNone];
+}
+
+
+- (NSSize) dimensions
+{
+	return NSZeroSize;
+}
+
+
+- (void) forceRebind
+{
+	
 }
 
 @end
