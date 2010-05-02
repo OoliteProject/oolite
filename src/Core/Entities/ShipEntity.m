@@ -9658,6 +9658,20 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 }
 
+
+#ifndef NDEBUG
+- (NSString *) descriptionForObjDump
+{
+	NSString *desc = [super descriptionForObjDump];
+	desc = [NSString stringWithFormat:@"%@ mass %g", desc, [self mass]];
+	if (![self isPlayer])
+	{
+		desc = [NSString stringWithFormat:@"%@ AI: %@", desc, [[self getAI] shortDescriptionComponents]];
+	}
+	return desc;
+}
+#endif
+
 @end
 
 

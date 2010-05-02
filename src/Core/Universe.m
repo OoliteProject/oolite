@@ -515,8 +515,7 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	OOLogIndent();
 	for (i = 0; i < show_count; i++)
 	{
-		ShipEntity* se = (sortedEntities[i]->isShip)? (id)sortedEntities[i]: nil;
-		OOLog(@"universe.objectDump", @"-> Ent:%d\t\t%@ mass %.2f %@", i, sortedEntities[i], [sortedEntities[i] mass], [[se getAI] shortDescription]);
+		OOLog(@"universe.objectDump", @"Ent:%4u  %@", i, [sortedEntities[i] descriptionForObjDump]);
 	}
 	OOLogOutdent();
 	
@@ -3665,18 +3664,11 @@ static const OOMatrix	starboard_matrix =
 			// use a non-mutable copy so this can't be changed under us.
 			for (i = 0; i < ent_count; i++)
 			{
-				// we check to see that we draw only the things that need to be drawn!
 				Entity *e = sortedEntities[i]; // ordered NEAREST -> FURTHEST AWAY
-				double	zd2 = e->zero_distance;
-				if ([e isSky] || [e isStellarObject])
+				if ([e isVisible])
 				{
-					my_entities[draw_count++] = [e retain];	// planets and sky are always drawn!
-					continue;
+					my_entities[draw_count++] = [[e retain] autorelease];
 				}
-				if ((zd2 > ABSOLUTE_NO_DRAW_DISTANCE2)||((e->isShip)&&(zd2 > e->no_draw_distance)))
-					continue;
-				// it passed all drawing tests - and it's not a planet or the sky - we can add it to the list
-				my_entities[draw_count++] = [e retain];		//	retained
 			}
 			
 			position = [player viewpointPosition];
@@ -3920,9 +3912,6 @@ static const OOMatrix	starboard_matrix =
 			
 			// clear errors - and announce them
 			CheckOpenGLErrors(@"Universe after all entity drawing is done.");
-			
-			for (i = 0; i < draw_count; i++)
-				[my_entities[i] release];		//	released
 			
 			no_update = NO;	// allow other attempts to draw
 			

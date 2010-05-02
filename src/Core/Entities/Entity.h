@@ -238,10 +238,16 @@ extern size_t gTotalEntityMemory;
 - (double) findCollisionRadius;
 - (Geometry*) geometry;
 - (void) drawEntity:(BOOL)immediate :(BOOL)translucent;
+- (BOOL) isVisible;
 
 // For shader bindings.
 - (GLfloat) universalTime;
 - (GLfloat) spawnTime;
 - (GLfloat) timeElapsedSinceSpawn;
+
+#ifndef NDEBUG
+- (NSString *) descriptionForObjDumpBasic;
+- (NSString *) descriptionForObjDump;
+#endif
 
 @end

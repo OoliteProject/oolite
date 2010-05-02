@@ -122,7 +122,7 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 
 - (NSString *)descriptionComponents
 {
-	return [NSString stringWithFormat:@"ID: %u position: %@ scanClass: %@ status: %@", [self universalID], VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
+	return [NSString stringWithFormat:@"position: %@ scanClass: %@ status: %@", VectorDescription([self position]), ScanClassToString([self scanClass]), EntityStatusToString([self status])];
 }
 
 
@@ -982,6 +982,36 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 - (GLfloat)timeElapsedSinceSpawn
 {
 	return [UNIVERSE getTime] - spawnTime;
+}
+
+
+#ifndef NDEBUG
+- (NSString *) descriptionForObjDumpBasic
+{
+	NSString *result = [self descriptionComponents];
+	if (result != nil)  result = [NSString stringWithFormat:@"%@ %@", NSStringFromClass([self class]), result];
+	else  result = [self description];
+	
+	return result;
+}
+
+
+- (NSString *) descriptionForObjDump
+{
+	NSString *result = [self descriptionForObjDumpBasic];
+	
+	result = [result stringByAppendingFormat:@" range: %g (visible: %@)", distance([self position], [[PlayerEntity sharedPlayer] position]), [self isVisible] ? @"yes" : @"no"];
+	
+	return result;
+}
+#endif
+
+
+- (BOOL) isVisible
+{
+	if ([self isSky] || [self isStellarObject])  return YES;
+	if (zero_distance > ABSOLUTE_NO_DRAW_DISTANCE2 || zero_distance > no_draw_distance)  return NO;
+	return YES;
 }
 
 @end

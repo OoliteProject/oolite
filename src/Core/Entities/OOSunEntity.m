@@ -175,7 +175,17 @@ MA 02110-1301, USA.
 
 - (NSString*) descriptionComponents
 {
-	return [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), 0.001 * [self radius]];
+	NSString *result = [NSString stringWithFormat:@"ID: %u position: %@ radius: %.3fkm", [self universalID], VectorDescription([self position]), 0.001 * [self radius]];
+	if ([self goneNova])
+	{
+		result = [result stringByAppendingString:@" (gone nova)"];
+	}
+	else if ([self willGoNova])
+	{
+		result = [result stringByAppendingString:@" (will go nova)"];
+	}
+	
+	return result;
 }
 
 

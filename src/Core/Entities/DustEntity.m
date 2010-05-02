@@ -208,4 +208,13 @@ MA 02110-1301, USA.
 	}
 }
 
+
+#ifndef NDEBUG
+- (NSString *) descriptionForObjDump
+{
+	// Don't include range and visibility flag as they're irrelevant.
+	return [self descriptionForObjDumpBasic];
+}
+#endif
+
 @end
