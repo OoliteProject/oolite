@@ -552,10 +552,8 @@
 		1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406820BAF66D6005F6CF3 /* OOVoxel.h */; };
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
-		1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94D5AC0D65A6960072C805 /* OOLight.m */; };
 		1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5AD0D65A6960072C805 /* OOLight.h */; };
 		1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5B30D65A6B40072C805 /* OOCamera.h */; };
-		1A94D5B60D65A6B40072C805 /* OOCamera.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A94D5B40D65A6B40072C805 /* OOCamera.m */; };
 		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
@@ -3554,8 +3552,6 @@
 				1A28AA170D55438200BC0CE4 /* OOJSSound.m in Sources */,
 				1AB784FA0D554F7B00517983 /* OOJSSoundSource.m in Sources */,
 				1A60AFB80D56093B0070510D /* OOMusicController.m in Sources */,
-				1A94D5AE0D65A6960072C805 /* OOLight.m in Sources */,
-				1A94D5B60D65A6B40072C805 /* OOCamera.m in Sources */,
 				1AB4AEB90D688AD9003076D6 /* OOLogHeader.m in Sources */,
 				1A0DA2EF0D71D280009B0970 /* OOJSSpecialFunctions.m in Sources */,
 				1A5218DE0D72ECE5000865E9 /* OOSpatialReference.m in Sources */,

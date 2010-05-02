@@ -730,7 +730,9 @@ typedef enum
 - (Vector) viewpointPosition;
 - (Vector) viewpointOffset;
 
+#if 0
 - (OOCamera *) currentCamera;
+#endif
 
 - (NSArray *) worldScriptNames;
 - (NSDictionary *) worldScriptsByName;

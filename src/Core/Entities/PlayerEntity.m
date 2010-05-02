@@ -2456,6 +2456,7 @@ static GLfloat launchRoll;
 }
 
 
+#if 0
 /*	Return the current player-centric camera.
 	FIXME: this should store a set of cameras and return the current one.
 	Currently, it synthesizes a camera based on the various legacy things.
@@ -2494,6 +2495,7 @@ static GLfloat launchRoll;
 	
 	return camera;
 }
+#endif
 
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent

@@ -211,11 +211,9 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOCombinedEmissionMapGenerator.m
 
 OOLITE_GRAPHICS_MISC_FILES = \
-	OOCamera.m \
 	OOCrosshairs.m \
 	OODebugGLDrawing.m \
 	OOGraphicsResetManager.m \
-	OOLight.m \
 	OOOpenGL.m \
 	OOOpenGLExtensionManager.m \
 	OOProbabilisticTextureManager.m \

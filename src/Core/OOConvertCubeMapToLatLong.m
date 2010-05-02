@@ -5,8 +5,6 @@ OOConvertCubeMapToLatLong.m
 Convert a cube map texture to a lat/long texture.
 
 
-This file may also be distributed under the MIT/X11 license:
-
 Copyright (C) 2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
