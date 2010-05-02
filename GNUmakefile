@@ -9,6 +9,7 @@ DOCKING_CLEARANCE = yes
 PROCEDURAL_PLANETS = yes
 WORMHOLE_SCANNER = yes
 TARGET_INCOMING_MISSILES = yes
+ESPEAK = yes
 OO_CHECK_GL_HEAVY = no
 OO_EXCLUDE_DEBUG_SUPPORT = no
 OO_OXP_VERIFIER_ENABLED = yes
@@ -45,7 +46,7 @@ else
 		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/import -Ldeps/Linux-deps/$(HOST_ARCH)/lib
 	endif
 endif
-ifeq ($(libespeak),yes)
+ifeq ($(ESPEAK),yes)
 	ADDITIONAL_OBJC_LIBS += -lespeak
 	ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
 	GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk

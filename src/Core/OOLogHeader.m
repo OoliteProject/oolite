@@ -106,6 +106,10 @@ void OOPrintLogHeader(void)
 		@"target incoming missiles",
 	#endif
 	
+	#if OOLITE_MAC_OS_X || defined(HAVE_LIBESPEAK)
+		@"spoken messages",
+	#endif
+	
 	// Debug features
 	#if OO_CHECK_GL_HEAVY
 		@"heavy OpenGL error checking",
