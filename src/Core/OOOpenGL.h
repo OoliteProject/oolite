@@ -71,19 +71,6 @@ void GLDrawOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step);
 
 
-/*	Texture name cache.
-	
-	glGenTextures() and glDeleteTextures() are expensive operations -- each
-	requres a complete flush of the rendering pipeline. We work around this by
-	caching texture objects.
-*/
-GLuint GLAllocateTextureName(void);
-void GLRecycleTextureName(GLuint name, GLuint mipLevels);
-
-void GLDropCachedTextureNames(void);
-void GLSetTextureNameCacheEnabled(BOOL enabled);
-
-
 /*	OO_CHECK_GL_HEAVY and error-checking stuff
 	
 	If OO_CHECK_GL_HEAVY is non-zero, the following error-checking facilities

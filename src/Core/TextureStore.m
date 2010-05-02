@@ -59,8 +59,12 @@ static NSString * const kOOLogPlanetTextureGen			= @"texture.planet.generate";
 @end
 
 
+#if ALLOW_PROCEDURAL_PLANETS
+
 static void fillSquareImageDataWithCloudTexture(unsigned char * imageBuffer, int width, int nplanes, OOColor* cloudcolor, float impress, float bias);
 static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width, int nplanes, float impress, float bias, OOColor* seaColor, OOColor* paleSeaColor, OOColor* landColor, OOColor* paleLandColor);
+
+#endif
 
 
 @implementation TextureStore
@@ -144,6 +148,8 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 }
 
 
+#if ALLOW_PROCEDURAL_PLANETS
+
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData
 {
 	GLuint				texName;
@@ -182,16 +188,16 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 
 	texBytes = imageBuffer;
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	texName = GLAllocateTextureName();
-	glBindTexture(GL_TEXTURE_2D, texName);
+	OOGL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+	OOGL(glGenTextures(1, &texName));
+	OOGL(glBindTexture(GL_TEXTURE_2D, texName));
 	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+	OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes));
 
 	return texName;
 }
@@ -218,22 +224,26 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 
 	texBytes = imageBuffer;
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	texName = GLAllocateTextureName();
-	glBindTexture(GL_TEXTURE_2D, texName);
+	OOGL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+	OOGL(glGenTextures(1, &texName));
+	OOGL(glBindTexture(GL_TEXTURE_2D, texName));
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	// adjust this
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);	// adjust this
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));	// adjust this
+	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));	// adjust this
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes);
+	OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes));
 
 	return texName;
 }
 
+#endif
+
 @end
 
+
+#if ALLOW_PROCEDURAL_PLANETS
 
 static RANROTSeed sNoiseSeed;
 float ranNoiseBuffer[ 128 * 128];
@@ -446,5 +456,7 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 	}
 #endif
 }
+
+#endif
 
 #endif	// !NEW_PLANETS

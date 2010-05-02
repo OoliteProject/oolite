@@ -76,9 +76,6 @@ static OOGraphicsResetManager *sSingleton = nil;
 	OOLog(@"rendering.reset.start", @"Resetting graphics state.");
 	OOLogIndentIf(@"rendering.reset.start");
 	
-	GLDropCachedTextureNames();
-	GLSetTextureNameCacheEnabled(NO);
-	
 	[OOTexture rebindAllTextures];
 	
 	for (clientEnum = [clients objectEnumerator]; (client = [[clientEnum nextObject] pointerValue]); )
@@ -89,8 +86,6 @@ static OOGraphicsResetManager *sSingleton = nil;
 			OOLog(kOOLogException, @"***** EXCEPTION -- %@ : %@ -- ignored during graphics reset.", [localException name], [localException reason]);
 		NS_ENDHANDLER
 	}
-	
-	GLSetTextureNameCacheEnabled(YES);
 	
 	OOLogOutdentIf(@"rendering.reset.start");
 	OOLog(@"rendering.reset.end", @"End of graphics state reset.");

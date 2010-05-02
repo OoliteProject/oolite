@@ -552,8 +552,6 @@
 		1A9406840BAF66D6005F6CF3 /* OOVoxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406820BAF66D6005F6CF3 /* OOVoxel.h */; };
 		1A9406850BAF66D6005F6CF3 /* OOVoxel.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9406830BAF66D6005F6CF3 /* OOVoxel.m */; settings = {COMPILER_FLAGS = "-O3 -falign-loops=32 -falign-loops-max-skip=31 -falign-functions=32"; }; };
 		1A9406B40BAF67BF005F6CF3 /* OOTriangle.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A9406B20BAF67BF005F6CF3 /* OOTriangle.h */; };
-		1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5AD0D65A6960072C805 /* OOLight.h */; };
-		1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A94D5B30D65A6B40072C805 /* OOCamera.h */; };
 		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
@@ -613,11 +611,11 @@
 		1AC775E20C2DD4E900ECFF3B /* OODebugGLDrawing.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */; };
 		1AC775E30C2DD4E900ECFF3B /* OODebugGLDrawing.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */; };
 		1AC973FA0C9847850010C42B /* pirate-victim-roles.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AC973F90C9847850010C42B /* pirate-victim-roles.plist */; };
-		1ACB1CF1118DBC65007B9A1F /* OOEnvironmentCubeRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeRenderer.h */; };
-		1ACB1CF2118DBC65007B9A1F /* OOEnvironmentCubeRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeRenderer.m */; };
 		1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D16118DCBC0007B9A1F /* OOConcreteTexture.h */; };
 		1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1D17118DCBC0007B9A1F /* OOConcreteTexture.m */; };
 		1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D1B118DCE5A007B9A1F /* OOTextureInternal.h */; };
+		1ACB1E2C118E0C82007B9A1F /* OOEnvironmentCubeMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeMap.m */; };
+		1ACB1E2D118E0C83007B9A1F /* OOEnvironmentCubeMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeMap.h */; };
 		1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */; };
 		1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */; };
 		1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */; };
@@ -1748,8 +1746,8 @@
 		1AC775E00C2DD4E900ECFF3B /* OODebugGLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OODebugGLDrawing.h; sourceTree = "<group>"; };
 		1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OODebugGLDrawing.m; sourceTree = "<group>"; };
 		1AC973F90C9847850010C42B /* pirate-victim-roles.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "pirate-victim-roles.plist"; sourceTree = "<group>"; };
-		1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEnvironmentCubeRenderer.h; sourceTree = "<group>"; };
-		1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEnvironmentCubeRenderer.m; sourceTree = "<group>"; };
+		1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOEnvironmentCubeMap.h; sourceTree = "<group>"; };
+		1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOEnvironmentCubeMap.m; sourceTree = "<group>"; };
 		1ACB1D16118DCBC0007B9A1F /* OOConcreteTexture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConcreteTexture.h; sourceTree = "<group>"; };
 		1ACB1D17118DCBC0007B9A1F /* OOConcreteTexture.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConcreteTexture.m; sourceTree = "<group>"; };
 		1ACB1D1B118DCE5A007B9A1F /* OOTextureInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOTextureInternal.h; sourceTree = "<group>"; };
@@ -2316,8 +2314,8 @@
 				1AC775E10C2DD4E900ECFF3B /* OODebugGLDrawing.m */,
 				1ABC03EB0EF86110003B740A /* OOCrosshairs.h */,
 				1ABC03EC0EF86110003B740A /* OOCrosshairs.m */,
-				1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeRenderer.h */,
-				1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeRenderer.m */,
+				1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeMap.h */,
+				1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeMap.m */,
 			);
 			name = Graphics;
 			sourceTree = "<group>";
@@ -3193,8 +3191,6 @@
 				1A28AA160D55438200BC0CE4 /* OOJSSound.h in Headers */,
 				1AB784F90D554F7B00517983 /* OOJSSoundSource.h in Headers */,
 				1A60AFB70D56093B0070510D /* OOMusicController.h in Headers */,
-				1A94D5AF0D65A6960072C805 /* OOLight.h in Headers */,
-				1A94D5B50D65A6B40072C805 /* OOCamera.h in Headers */,
 				1AB4AEB80D688AD9003076D6 /* OOLogHeader.h in Headers */,
 				1A0DA2EE0D71D280009B0970 /* OOJSSpecialFunctions.h in Headers */,
 				1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */,
@@ -3258,9 +3254,9 @@
 				1A1F7DB7117B5D8200332757 /* OOMaterialSpecifier.h in Headers */,
 				1A19783E117F81B10060DB56 /* OOPixMapChannelOperations.h in Headers */,
 				1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */,
-				1ACB1CF1118DBC65007B9A1F /* OOEnvironmentCubeRenderer.h in Headers */,
 				1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */,
 				1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */,
+				1ACB1E2D118E0C83007B9A1F /* OOEnvironmentCubeMap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3631,8 +3627,8 @@
 				1A1F7DB6117B5D8100332757 /* OOMaterialSpecifier.m in Sources */,
 				1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */,
 				1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */,
-				1ACB1CF2118DBC65007B9A1F /* OOEnvironmentCubeRenderer.m in Sources */,
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
+				1ACB1E2C118E0C82007B9A1F /* OOEnvironmentCubeMap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

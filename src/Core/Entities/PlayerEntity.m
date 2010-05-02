@@ -64,6 +64,10 @@ MA 02110-1301, USA.
 #import "OOEquipmentType.h"
 #import "OOCamera.h"
 
+#import "OOEnvironmentCubeMap.h"
+#import "OOPixMap.h"
+#import "OOProfilingStopwatch.h"
+
 #import "OOScript.h"
 #import "OOScriptTimer.h"
 
@@ -7698,6 +7702,29 @@ static NSString *last_outfitting_key=nil;
 	ADD_FLAG_IF_SET(waitingForStickCallback);
 	flagsString = [flags count] ? [flags componentsJoinedByString:@", "] : (NSString *)@"none";
 	OOLog(@"dumpState.playerEntity", @"Flags: %@", flagsString);
+}
+#endif
+
+
+#ifndef NDEBUG
+/*	Temporary function for testing OOEnvironmentCubeMap. Call from JS console:
+		PS.call("debugDumpEnvironmentProbe")
+*/
+- (void) debugDumpEnvironmentProbe
+{
+	static unsigned dumpID = 0;
+	OOEnvironmentCubeMap *env = [[OOEnvironmentCubeMap alloc] initWithSideLength:1024];
+	OOProfilingStopwatch *stopwatch = [OOProfilingStopwatch new];
+	[env render];
+	OOLog(@"envmap.render", @"Rendered environment in %g seconds.", [stopwatch reset]);
+	OOPixMap pm = [env copyPixMapRepresentation];
+	OOLog(@"envmap.render", @"Read back in %g seconds.", [stopwatch reset]);
+	OODumpPixMap(pm, [NSString stringWithFormat:@"environment cube map %u", ++dumpID]);
+	OOLog(@"envmap.render", @"Wrote environment dump %u in %g seconds.", dumpID, [stopwatch reset]);
+	
+	[stopwatch release];
+	OOFreePixMap(&pm);
+	[env release];
 }
 #endif
 

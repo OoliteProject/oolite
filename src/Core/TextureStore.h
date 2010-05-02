@@ -43,9 +43,11 @@ MA 02110-1301, USA.
 
 + (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped;
 
+#if ALLOW_PROCEDURAL_PLANETS
 // routines to create textures...
 + (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
 + (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
+#endif
 
 @end
 

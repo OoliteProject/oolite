@@ -148,7 +148,12 @@
 	
 	if (_loaded)
 	{
-		if (_textureName != 0)  GLRecycleTextureName(_textureName, _mipLevels);
+		if (_textureName != 0)
+		{
+			OO_ENTER_OPENGL();
+			OOGL(glDeleteTextures(1, &_textureName));
+			_textureName = 0;
+		}
 		free(_bytes);
 		_bytes = NULL;
 	}
@@ -368,7 +373,7 @@
 	{
 		GLenum texTarget = [self glTextureTarget];
 		
-		_textureName = GLAllocateTextureName();
+		OOGL(glGenTextures(1, &_textureName));
 		OOGL(glBindTexture(texTarget, _textureName));
 		
 		// Select wrap mode
@@ -575,8 +580,10 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 {
 	if (_loaded && _uploaded && _valid)
 	{
+		OO_ENTER_OPENGL();
+		
 		_uploaded = NO;
-		GLRecycleTextureName(_textureName, _mipLevels);
+		OOGL(glDeleteTextures(1, &_textureName));
 		_textureName = 0;
 		
 #if OOTEXTURE_RELOADABLE

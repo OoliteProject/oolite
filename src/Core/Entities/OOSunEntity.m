@@ -287,13 +287,17 @@ MA 02110-1301, USA.
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
+	if (![UNIVERSE breakPatternHide] && !translucent)  [self drawUnconditionally];
+}
+
+
+- (void) drawUnconditionally
+{
 	int subdivideLevel = 2;		// 4 is probably the maximum!
 	
 	float sqrt_zero_distance = sqrtf(zero_distance);
 	float drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	float drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-	
-	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
 	
 	if (zero_distance > 0.0)
 	{
@@ -303,70 +307,69 @@ MA 02110-1301, USA.
 	}
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
-	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
-
+//	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
+	OOGL(glDisable(GL_CULL_FACE));
+	
 	/*
-
+	 
 	The depth test gets disabled in parts of this and instead
 	we rely on the painters algorithm instead.
-
+	 
 	The depth buffer isn't granular enough to cope with huge objects at vast
 	distances.
-
+	 
 	*/
 	BOOL ignoreDepthBuffer = zero_distance > collision_radius * collision_radius * 25;
 	
-	if (!translucent)
+	int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
+	
+	// far enough away to draw flat ?
+	if (ignoreDepthBuffer)
 	{
-		int steps = 2 * (MAX_SUBDIVIDE - subdivideLevel);
-		
-		// far enough away to draw flat ?
-		if (ignoreDepthBuffer)
+		OOGL(glDisable(GL_DEPTH_TEST));
+	}
+	
+	OOGL(glDisable(GL_TEXTURE_2D));
+	OOGL(glDisable(GL_LIGHTING));
+	OOGL(glColor3fv(discColor));
+	
+	// FIXME: use vertex arrays
+	OOGLBEGIN(GL_TRIANGLE_FAN);
+		GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
+	OOGLEND();
+	
+	if (![UNIVERSE reducedDetail])
+	{
+		OOGL(glDisable(GL_DEPTH_TEST));
+		if (zero_distance < lim4k)
 		{
-			OOGL(glDisable(GL_DEPTH_TEST));
+			[self drawActiveCoronaWithInnerRadius:collision_radius
+											width:cor4k
+											 step:steps
+										zDistance:sqrt_zero_distance
+											color:innerCoronaColor
+											   rv:6];
 		}
-		
-		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glDisable(GL_LIGHTING));
-		OOGL(glColor3fv(discColor));
-		
-		// FIXME: use vertex arrays
-		OOGLBEGIN(GL_TRIANGLE_FAN);
-			GLDrawBallBillboard(collision_radius, steps, sqrt_zero_distance);
-		OOGLEND();
-		
-		if (![UNIVERSE reducedDetail])
+		if (zero_distance < lim8k)
 		{
-			OOGL(glDisable(GL_DEPTH_TEST));
-			if (zero_distance < lim4k)
-			{
-				[self drawActiveCoronaWithInnerRadius:collision_radius
-												width:cor4k
-												 step:steps
-											zDistance:sqrt_zero_distance
-												color:innerCoronaColor
-												   rv:6];
-			}
-			if (zero_distance < lim8k)
-			{
-				[self drawActiveCoronaWithInnerRadius:collision_radius
-												width:cor8k
-												 step:steps
-											zDistance:sqrt_zero_distance
-												color:middleCoronaColor
-												   rv:3];
-			}
-			if (zero_distance < lim16k)
-			{
-				[self drawActiveCoronaWithInnerRadius:collision_radius
-												width:cor16k
-												 step:steps
-											zDistance:sqrt_zero_distance
-												color:outerCoronaColor
-												   rv:0];
-			}
+			[self drawActiveCoronaWithInnerRadius:collision_radius
+											width:cor8k
+											 step:steps
+										zDistance:sqrt_zero_distance
+											color:middleCoronaColor
+											   rv:3];
+		}
+		if (zero_distance < lim16k)
+		{
+			[self drawActiveCoronaWithInnerRadius:collision_radius
+											width:cor16k
+											 step:steps
+										zDistance:sqrt_zero_distance
+											color:outerCoronaColor
+											   rv:0];
 		}
 	}
+	
 	glPopAttrib();
 	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"SunEntity after drawing %@", self);

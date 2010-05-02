@@ -126,6 +126,8 @@ typedef struct
 
 - (void) welcomeShuttle:(ShipEntity *) shuttle;
 
+- (void) drawUnconditionally;
+
 @end
 
 

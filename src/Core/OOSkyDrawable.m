@@ -38,6 +38,7 @@ SOFTWARE.
 
 #define SKY_ELEMENT_SCALE_FACTOR		(BILLBOARD_DEPTH / 500.0f)
 #define NEBULA_SHUFFLE_FACTOR			0.005f
+#define DEBUG_COLORS					0	// If set, rgb = xyz (offset to range from 0.1 to 1.0).
 
 BOOL		gSkyWireframe = NO;
 
@@ -242,6 +243,15 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 @end
 
 
+#if DEBUG_COLORS
+static OOColor *DebugColor(Vector orientation)
+{
+	Vector color = vector_add(make_vector(0.55, 0.55, 0.55), vector_multiply_scalar(vector_normal(orientation), 0.45));
+	return [OOColor colorWithCalibratedRed:color.x green:color.y blue:color.z alpha:1.0];
+}
+#endif
+
+
 @implementation OOSkyDrawable (OOPrivate)
 
 - (void)setUpStarsWithColor1:(OOColor *)color1 color2:(OOColor *)color2
@@ -261,13 +271,17 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	currQuad = quads;
 	for (i = 0; i != _starCount; ++i)
 	{
-		// Select colour and texture.
-		currQuad->color = [color1 blendedColorWithFraction:randf() ofColor:color2];
-		currQuad->texture = [sStarTextures selectTexture];	// Not retained, since sStarTextures is never released.
-		
 		// Select a direction and rotation.
 		q = OORandomQuaternion();
 		basis_vectors_from_quaternion(q, &vi, &vj, &vk);
+		
+		// Select colour and texture.
+#if DEBUG_COLORS
+		currQuad->color = DebugColor(vk);
+#else
+		currQuad->color = [color1 blendedColorWithFraction:randf() ofColor:color2];
+#endif
+		currQuad->texture = [sStarTextures selectTexture];	// Not retained, since sStarTextures is never released.
 		
 		// Select scale; calculate centre position and offset to first corner.
 		size = (1 + (ranrot_rand() % 6)) * SKY_ELEMENT_SCALE_FACTOR;
@@ -327,12 +341,17 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 			r1 = 1 + (ranrot_rand() & 15);
 			size = nebulaScale * r1 * SKY_ELEMENT_SCALE_FACTOR;
 			
-			// Select colour and texture. Smaller nebula quads are dimmer.
-			currQuad->color = [color colorWithBrightnessFactor:nebulaAlpha * (0.5f + (float)r1 / 32.0f)];
-			currQuad->texture = [sNebulaTextures selectTexture];	// Not retained, since sStarTextures is never released.
-			
 			// Calculate centre position and offset to first corner.
 			basis_vectors_from_quaternion(q, &vi, &vj, &vk);
+			
+			// Select colour and texture. Smaller nebula quads are dimmer.
+#if DEBUG_COLORS
+			currQuad->color = DebugColor(vk);
+#else
+			currQuad->color = [color colorWithBrightnessFactor:nebulaAlpha * (0.5f + (float)r1 / 32.0f)];
+#endif
+			currQuad->texture = [sNebulaTextures selectTexture];	// Not retained, since sStarTextures is never released.
+			
 			middle = vector_multiply_scalar(vk, BILLBOARD_DEPTH);
 			offset = vector_multiply_scalar(vector_add(vi, vj), 0.5f * size);
 			

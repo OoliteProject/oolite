@@ -838,13 +838,18 @@ double longitudeFromVector(Vector v);
 // TODO: some translucent stuff is drawn in the opaque pass, which is Naughty.
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent;
 {
+	if ([UNIVERSE breakPatternHide] || translucent || immediate)   return; // DON'T DRAW
+	[self drawUnconditionally];
+}
+
+
+- (void) drawUnconditionally
+{
 	int		subdivideLevel =	2;		// 4 is probably the maximum!
 	
 	double  drawFactor = [[UNIVERSE gameView] viewSize].width / 100.0;
 	double  drawRatio2 = drawFactor * collision_radius / sqrt_zero_distance; // equivalent to size on screen in pixels
-
-	if ([UNIVERSE breakPatternHide])   return; // DON'T DRAW
-
+	
 	if (zero_distance > 0.0)
 	{
 		subdivideLevel = 2 + floor(drawRatio2);
@@ -895,7 +900,6 @@ double longitudeFromVector(Vector v);
 				GLDebugWireframeModeOn();
 			}
 			
-			if (!translucent)
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
 
@@ -1048,7 +1052,7 @@ double longitudeFromVector(Vector v);
 					// rotate
 					GLMultOOMatrix([atmosphere rotationMatrix]);
 					// draw atmosphere entity
-					[atmosphere drawEntity:immediate :translucent];
+					[atmosphere drawEntity:NO :NO];
 				}
 
 			}

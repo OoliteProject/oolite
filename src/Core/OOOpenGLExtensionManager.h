@@ -79,6 +79,14 @@ SOFTWARE.
 #endif
 
 
+#if GL_EXT_framebuffer_object
+#define OO_USE_FBO		1
+#else
+#define OO_USE_VBO		0
+#warning Building without frame buffer object support, are your OpenGL headers up to date?
+#endif
+
+
 /*	Multitexturing requires GL_ARB_multitexture, but we only have use for it
 	if GL_ARB_texture_env_combine is available, and GL_ARB_texture_env_combine
 	requires GL_ARB_multitexture. Both GL_ARB_multitexture and
@@ -115,6 +123,9 @@ SOFTWARE.
 #if OO_USE_VBO
 	BOOL					vboSupported;
 #endif
+#if OO_USE_FBO
+	BOOL					fboSupported;
+#endif
 #if OO_MULTITEXTURE
 	BOOL					textureCombinersSupported;
 	GLint					textureUnitCount;
@@ -127,6 +138,7 @@ SOFTWARE.
 
 - (BOOL)shadersSupported;
 - (BOOL)vboSupported;			// Vertex buffer objects
+- (BOOL)fboSupported;			// Frame buffer objects
 - (BOOL)textureCombinersSupported;
 - (OOUInteger)textureUnitCount;	// Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 
@@ -192,6 +204,19 @@ PFNGLGENBUFFERSARBPROC					glGenBuffersARB;
 PFNGLDELETEBUFFERSARBPROC				glDeleteBuffersARB;
 PFNGLBINDBUFFERARBPROC					glBindBufferARB;
 PFNGLBUFFERDATAARBPROC					glBufferDataARB;
+#endif
+
+#if OO_USE_FBO
+PFNGLGENFRAMEBUFFERSEXTPROC				glGenFramebuffersEXT;
+PFNGLBINDFRAMEBUFFEREXTPROC				glBindFramebufferEXT;
+PFNGLGENRENDERBUFFERSEXTPROC			glGenRenderbuffersEXT;
+PFNGLBINDRENDERBUFFERSEXTPROC			glBindRenderbufferEXT;
+PFNGLRENDERBUFFERSTORAGEEXTPROC			glRenderbufferStorageEXT;
+PFNGLFRAMEBUFFERRENDERBUFFEREXTPROC		glFramebufferRenderbufferEXT;
+PFNGLFRAMEBUFFERTEXTURE2DEXTPROC		glFramebufferTexture2DEXT;
+PFNGLCHECKFRAMEBUFFERSTATUSEXTPROC		glCheckFramebufferStatusEXT;
+PFNGLDELETEFRAMEBUFFERSEXTPROC			glDeleteFramebuffersEXT;
+PFNGLDELETERENDERBUFFERSEXTPROC			glDeleteRenderbuffersEXT;
 #endif
 
 #endif	// OOLITE_WINDOWS
