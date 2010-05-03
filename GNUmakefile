@@ -47,7 +47,7 @@ else
 	endif
 endif
 ifeq ($(ESPEAK),yes)
-	ADDITIONAL_OBJC_LIBS += -lespeak
+	ADDITIONAL_OBJC_LIBS += -lespeak.dll
 	ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
 	GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 endif

@@ -19,11 +19,6 @@ pkg-debsnapshot: DEB_REV := $(shell echo "~svn${SVNREVISION}${DEB_REV}")
 
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
-
-# We are building with eSpeak support on Windows and Linux. Change the line below
-# to HAS_ESPEAK=libespeak=no to disable speech synthesis.
-HAS_ESPEAK=libespeak=yes
-
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	LIBJS=deps/Windows-x86-deps/DLLs/js32.dll
 endif
@@ -56,27 +51,27 @@ endif
 #
 .PHONY: release
 release: $(DEPS)
-	make -f GNUmakefile debug=no $(HAS_ESPEAK)
+	make -f GNUmakefile debug=no
 
 .PHONY: distro-release
 distro-release: $(DEPS)
-	make -f GNUmakefile use_distro_deps=yes debug=no $(HAS_ESPEAK)
+	make -f GNUmakefile use_distro_deps=yes debug=no
 	
 .PHONY: release-deployment
 release-deployment: $(DEPS)
-	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no $(HAS_ESPEAK)
+	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
 	
 .PHONY: release-snapshot
 release-snapshot: $(DEPS)
-	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no $(HAS_ESPEAK)
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
 
 .PHONY: debug
 debug: $(DEPS)
-	make -f GNUmakefile debug=yes $(HAS_ESPEAK)
+	make -f GNUmakefile debug=yes
 
 .PHONY: distro-debug
 distro-debug: $(DEPS)
-	make -f GNUmakefile use_distro_deps=yes debug=yes libespeak=yes
+	make -f GNUmakefile use_distro_deps=yes debug=yes
 $(LIBJS):
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
