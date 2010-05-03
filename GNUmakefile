@@ -46,11 +46,6 @@ else
 		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/import -Ldeps/Linux-deps/$(HOST_ARCH)/lib
 	endif
 endif
-ifeq ($(ESPEAK),yes)
-	ADDITIONAL_OBJC_LIBS += -lespeak.dll
-	ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
-	GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
-endif
 ifeq ($(profile),yes)
 	ADDITIONAL_CFLAGS += -g -pg
 	ADDITIONAL_OBJCFLAGS += -g -pg
@@ -83,6 +78,11 @@ endif
 ifeq ($(TARGET_INCOMING_MISSILES),yes)
 	ADDITIONAL_CFLAGS += -DTARGET_INCOMING_MISSILES=1
 	ADDITIONAL_OBJCFLAGS += -DTARGET_INCOMING_MISSILES=1
+endif
+ifeq ($(ESPEAK),yes)
+	ADDITIONAL_OBJC_LIBS += -lespeak.dll
+	ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
+	GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 endif
 
 # DEPLOYMENT_RELEASE_CONFIGURATION value is passed from Makefile. Note that the deployment release settings
