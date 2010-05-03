@@ -29,21 +29,36 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
 	ADDITIONAL_OBJCFLAGS = -DLOADSAVEGUI -DWIN32 -DXP_WIN -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/local/lib -L$(GNUSTEP_LOCAL_ROOT)/lib -Ldeps/Windows-x86-deps/lib
+	ifeq ($(ESPEAK),yes)
+		ADDITIONAL_OBJC_LIBS += -lespeak.dll
+		ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
+		GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
+	endif
 else
 	LIBJS_SRC_DIR = deps/Cross-platform-deps/SpiderMonkey/js/src
 	LIBJS_BIN_DIR = $(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
 	ADDITIONAL_INCLUDE_DIRS = -I$(LIBJS_SRC_DIR)  -I$(LIBJS_BIN_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
-	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/libjs.a -lGLU -lGL -lSDL -lSDL_mixer -lgnustep-base
+	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/libjs.a -lGLU -lGL
 	ADDITIONAL_CFLAGS = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags`
 	ADDITIONAL_OBJCFLAGS = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/X11R6/lib/
 
 	ifeq ($(use_distro_deps),yes)
-		ADDITIONAL_OBJC_LIBS += -lpng
+		ADDITIONAL_OBJC_LIBS += -lpng -lSDL -lSDL_mixer -lgnustep-base
+		ifeq ($(ESPEAK),yes)
+			ADDITIONAL_OBJC_LIBS += -lespeak
+			ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
+			GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
+		endif
 	else
-		ADDITIONAL_OBJC_LIBS += -lpng14
+		ifeq ($(ESPEAK),yes)
+			ADDITIONAL_OBJC_LIBS += -lpulse -lespeak
+			ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
+			GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
+		endif
+		ADDITIONAL_OBJC_LIBS += -lpng14 -lSDL_mixer -lSDL -lgnustep-base
 		ADDITIONAL_INCLUDE_DIRS += -Ideps/Linux-deps/include
-		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/import -Ldeps/Linux-deps/$(HOST_ARCH)/lib
+		oolite_LIB_DIRS += -Ldeps/Linux-deps/$(HOST_ARCH)/lib_linker
 	endif
 endif
 ifeq ($(profile),yes)
@@ -78,11 +93,6 @@ endif
 ifeq ($(TARGET_INCOMING_MISSILES),yes)
 	ADDITIONAL_CFLAGS += -DTARGET_INCOMING_MISSILES=1
 	ADDITIONAL_OBJCFLAGS += -DTARGET_INCOMING_MISSILES=1
-endif
-ifeq ($(ESPEAK),yes)
-	ADDITIONAL_OBJC_LIBS += -lespeak.dll
-	ADDITIONAL_OBJCFLAGS+=-DHAVE_LIBESPEAK=1
-	GNUSTEP_OBJ_DIR_NAME := $(GNUSTEP_OBJ_DIR_NAME).spk
 endif
 
 # DEPLOYMENT_RELEASE_CONFIGURATION value is passed from Makefile. Note that the deployment release settings

@@ -50,7 +50,6 @@ tar zcf $build_root/oolite.app.tar oolite.app --exclude .svn
 
 cd deps/Cross-platform-deps/
 tar zcf $build_root/dtds.tar DTDs --exclude .svn
-tar zcf $build_root/espeak-data.tar espeak-data --exclude .svn
 cd ../Linux-deps/
 cp oolite.src $build_root
 cp oolite-update.src $build_root
@@ -76,7 +75,6 @@ README.TXT
 dtds.tar
 oolite.app.tar
 oolite.deps.tar
-espeak-data.tar
 oolite.desktop
 oolite-icon.png
 release.txt
@@ -101,8 +99,6 @@ tar zxf oolite.deps.tar
 copyFiles lib $PREFIX/lib/Oolite/oolite-deps
 tar zxf dtds.tar
 copyFiles DTDs $PREFIX/lib/Oolite/oolite-deps/
-tar zxf espeak-data.tar 
-copyFiles espeak-data $PREFIX/lib/Oolite/oolite-deps/
 
 outputStatus "Installing documentation"
 mkdirs $PREFIX/lib/Oolite/doc
