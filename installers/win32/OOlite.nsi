@@ -72,6 +72,7 @@ VIProductVersion "${VER}"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
 !define MUI_HEADERIMAGE_UNBITMAP ".\OoliteInstallerHeaderBitmap_ModernUI.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP ".\OoliteInstallerFinishpageBitmap.bmp"
 !define MUI_ICON oolite.ico
 !define MUI_UNICON oolite.ico
 
