@@ -256,7 +256,7 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	unsigned char   *green = (unsigned char *) malloc( nPixels);
 	unsigned char   *blue = (unsigned char *) malloc( nPixels);
 	
-	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent];
+	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent]; // also in gameController showSnapshotsAction
 	int imageNo = 0;
 	NSString	*pathToPic = nil;
 		

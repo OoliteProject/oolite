@@ -34,6 +34,7 @@ MA 02110-1301, USA.
 #import "OOOXPVerifier.h"
 #import "OOLoggingExtended.h"
 #import "NSFileManagerOOExtensions.h"
+#import "OOLogOutputHandler.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -781,6 +782,25 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		}
 		
 	}
+}
+
+
+- (IBAction) showLogAction:sender
+{
+	[[NSWorkspace sharedWorkspace] openFile:[OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"]];
+}
+
+
+- (IBAction) showSnapshotsAction:sender
+{
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath: [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent]]]; // also in myOpenGLView snapShot
+}
+
+
+- (IBAction) showAddOnsAction:sender
+{
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath: [[[[NSBundle mainBundle] bundlePath] 
+																	 stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"]]];
 }
 
 

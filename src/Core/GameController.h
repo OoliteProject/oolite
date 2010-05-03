@@ -127,6 +127,9 @@ MA 02110-1301, USA.
 
 #if OOLITE_HAVE_APPKIT
 - (IBAction) goFullscreen:(id)sender;
+- (IBAction) showLogAction:(id)sender;
+- (IBAction) showSnapshotsAction:(id)sender;
+- (IBAction) showAddOnsAction:(id)sender;
 #elif OOLITE_SDL
 - (void) setFullScreenMode:(BOOL)fsm;
 #endif
