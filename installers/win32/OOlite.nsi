@@ -194,7 +194,7 @@ CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/" "" "
 
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Logs.lnk" "$INSTDIR\oolite.app\Logs"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Screenshots.lnk" "$INSTDIR\oolite.app\oolite-saves\snapshots"
-CreateShortCut "$SMPROGRAMS\Oolite\Extension Packs.lnk" "$INSTDIR\AddOns"
+CreateShortCut "$SMPROGRAMS\Oolite\Expansion Packs.lnk" "$INSTDIR\AddOns"
 
 Call RegSetup
 
