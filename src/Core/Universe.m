@@ -6563,13 +6563,16 @@ static NSDictionary	*sCachedSystemData = nil;
 {
 	Random_Seed here = [self systemSeed];
 	int i;
+	double dist;
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
 	
-	// make list of connected systems
+	if (range > 7.0) range = 7.0;	// limit to systems within 7LY
+	
+	// make list of connected systems - TODO: needs optimisation!
 	for (i = 0; i < 256; i++)
 	{
-		double dist = distanceBetweenPlanetPositions(here.d, here.b, systems[i].d, systems[i].b);
-		if ((dist > 0) && (dist <= range) && (dist <= 7.0))	// limit to systems within 7LY
+		dist = distanceBetweenPlanetPositions(here.d, here.b, systems[i].d, systems[i].b);
+		if (dist > 0 && dist <= range)
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
 				StringFromRandomSeed(systems[i]), @"system_seed",

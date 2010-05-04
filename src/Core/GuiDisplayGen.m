@@ -1299,7 +1299,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
 	
-	Random_Seed target = [[PlayerEntity sharedPlayer] target_system_seed];
+	Random_Seed target = [[PlayerEntity sharedPlayer] target_system_seed];	
+	NSString *targetName = [UNIVERSE getSystemName:target];
+	
 	int targetIdx = -1;
 	struct saved_system *sys;
 	
@@ -1309,7 +1311,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		star.x = (float)(sys->seed_d * hscale + hoffset);
 		star.y = (float)(sys->seed_b * vscale + voffset);
-		if (sys->seed_d == target.d && sys->seed_b == target.b) targetIdx = i;
+		if (sys->seed_d == target.d && sys->seed_b == target.b)
+			if ([sys->p_name isEqualToString:targetName]) targetIdx = i; // Distinguish between overlapping systems! (e.g. Divees & Tezabi in galaxy 5)
 		
 		if (![player showInfoFlag])
 		{

@@ -805,6 +805,7 @@ static NSTimeInterval	time_last_frame;
 						// Clear current target if we're already in Ident mode
 						if (ident_engaged)
 						{
+							if (primaryTarget != NO_TARGET) [self noteLostTarget];
 							primaryTarget = NO_TARGET;
 						}
 						[self safeAllMissiles];
@@ -888,6 +889,7 @@ static NSTimeInterval	time_last_frame;
 					if (!safety_pressed)
 					{
 						//targeting off in both cases!
+						if (primaryTarget != NO_TARGET) [self noteLostTarget];
 						primaryTarget = NO_TARGET;
 						[self safeAllMissiles];
 						if (!ident_engaged)

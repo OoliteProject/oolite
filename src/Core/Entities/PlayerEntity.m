@@ -136,6 +136,9 @@ static GLfloat launchRoll;
 // Cargo & passenger contracts
 - (NSArray*) contractsListForScriptingFromArray:(NSArray *) contracts_array forCargo:(BOOL)forCargo;
 
+- (void) witchStart;
+- (void) witchEnd;
+
 @end
 
 
@@ -3097,6 +3100,7 @@ static GLfloat launchRoll;
 						// never inherit target if we have EQ_MULTI_TARGET installed! [ Bug #16221 : Targeting enhancement regression ]
 						if([self hasEquipmentItem:@"EQ_MULTI_TARGET"])
 						{
+							[self noteLostTarget];
 							primaryTarget = NO_TARGET;
 						}
 						else
@@ -4283,24 +4287,53 @@ static GLfloat launchRoll;
 }
 
 
+- (void) witchStart
+{
+	[self transitionToAegisNone];
+	suppressAegisMessages=YES;
+	hyperspeed_engaged = NO;
+	
+	if (primaryTarget != NO_TARGET)
+	{
+		[self noteLostTarget];	// losing target? Fire lost target event!
+		primaryTarget = NO_TARGET;
+	}
+	
+	[hud setScannerZoom:1.0];
+	scanner_zoom_rate = 0.0f;
+	[UNIVERSE setDisplayText:NO];
+	
+	//reset the compass
+	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
+		compassMode = COMPASS_MODE_PLANET;
+	else
+		compassMode = COMPASS_MODE_BASIC;
+	
+	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
+	
+	// set the new market seed now!
+	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
+}
+
+
+- (void) witchEnd
+{
+	[UNIVERSE setSystemTo:system_seed];
+	galaxy_coordinates.x = system_seed.d;
+	galaxy_coordinates.y = system_seed.b;
+	[UNIVERSE set_up_universe_from_witchspace];
+	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
+	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+}
+
+
 - (void) enterGalacticWitchspace
 {
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"galactic jump"];
-	[self transitionToAegisNone];
-	suppressAegisMessages=YES;
 	
-	if (primaryTarget != NO_TARGET)
-		primaryTarget = NO_TARGET;
-	
-	hyperspeed_engaged = NO;
-	
-	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0f;
-	
-	[UNIVERSE setDisplayText:NO];
-
-	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
+	[self witchStart];
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	
@@ -4358,16 +4391,11 @@ static GLfloat launchRoll;
 			system_seed = [UNIVERSE findConnectedSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
 			break;
 	}
-
 	target_system_seed = system_seed;
-
-	[UNIVERSE setSystemTo:system_seed];
-	galaxy_coordinates.x = system_seed.d;
-	galaxy_coordinates.y = system_seed.b;
-	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
-	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
+	
 	legalStatus = 0;
-	[UNIVERSE set_up_universe_from_witchspace];
+	
+	[self witchEnd];
 	
 	[self doScriptEvent:@"playerEnteredNewGalaxy" withArgument:[NSNumber numberWithUnsignedInt:galaxy_number]];
 }
@@ -4375,53 +4403,22 @@ static GLfloat launchRoll;
 
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
-	// Before anything, store player's target system, it may not be the same as the wormhole destination
-	Random_Seed playersOriginalDestination = target_system_seed ;
-	
-	target_system_seed = [w_hole destination];
+	// don't do anything with the player's target
+	system_seed = [w_hole destination];
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"wormhole"];
-	[self transitionToAegisNone];
-	suppressAegisMessages=YES;
-
-	hyperspeed_engaged = NO;
-
-	if (primaryTarget != NO_TARGET)
-		primaryTarget = NO_TARGET;
 	
-	//	reset the compass
-	
-	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
-		compassMode = COMPASS_MODE_PLANET;
-	else
-		compassMode = COMPASS_MODE_BASIC;
+	[self witchStart];
 
-	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-
-	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0f;
-
-	[UNIVERSE setDisplayText:NO];
-
-	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
-
-	// clock must be set after "playerWillEnterWitchspace", or not all escorts will follow their mother correctly. 
+	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
+	double		distance = distanceBetweenPlanetPositions(system_seed.d,system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	[UNIVERSE setSystemTo:target_system_seed];
-
-	system_seed = target_system_seed;
-	galaxy_coordinates.x = system_seed.d;
-	galaxy_coordinates.y = system_seed.b;
-	target_system_seed = playersOriginalDestination; // restore the player's target system now
-	legalStatus /= 2;										// 'another day, another system'
-	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
-	market_rnd = ranrot_rand() & 255;						// random factor for market values is reset
 	
-	[UNIVERSE set_up_universe_from_witchspace];
-	[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
-	[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
+	legalStatus /= 2;	// 'another day, another system'
+	
+	[self witchEnd];
 }
 
 
@@ -4431,34 +4428,12 @@ static GLfloat launchRoll;
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
-	[self transitionToAegisNone];
-	suppressAegisMessages=YES;
-
-	hyperspeed_engaged = NO;
-
-	if (primaryTarget != NO_TARGET)
-		primaryTarget = NO_TARGET;
-
-	[hud setScannerZoom:1.0];
-	scanner_zoom_rate = 0.0f;
-
-	[UNIVERSE setDisplayText:NO];
-
-	//	reset the compass
 	
-	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])
-		compassMode = COMPASS_MODE_PLANET;
-	else
-		compassMode = COMPASS_MODE_BASIC;
-		
-	//[UNIVERSE set_up_break_pattern:position quaternion:orientation forDocking:NO];
-
-	[UNIVERSE allShipsDoScriptEvent:@"playerWillEnterWitchspace" andReactToAIMessage:@"PLAYER WITCHSPACE"];
-
+	[self witchStart];
+	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
 	
 	//  perform any check here for forced witchspace encounters
-	
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
 		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
@@ -4471,12 +4446,12 @@ static GLfloat launchRoll;
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 	if (!misjump)
 	{
-		[UNIVERSE setSystemTo:target_system_seed];
 		system_seed = target_system_seed;
-		galaxy_coordinates.x = system_seed.d;
-		galaxy_coordinates.y = system_seed.b;
+		
 		legalStatus /= 2;								// 'another day, another system'
-		market_rnd = ranrot_rand() & 255;				// random factor for market values is reset
+		
+		[self witchEnd];
+		
 		if (market_rnd < 8)
 			[self erodeReputation];						// every 32 systems or so, drop back towards 'unknown'
 		
@@ -4485,9 +4460,6 @@ static GLfloat launchRoll;
 		if (ship_trade_in_factor < 75)
 			ship_trade_in_factor = 75;						// lower limit for trade in value is 75%
 		
-		[UNIVERSE set_up_universe_from_witchspace];
-		[[UNIVERSE planet] update: 2.34375 * market_rnd];	// from 0..10 minutes
-		[[UNIVERSE station] update: 2.34375 * market_rnd];	// from 0..10 minutes
 		if (malfunc)
 		{
 			if (randf() > 0.5)

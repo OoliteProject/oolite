@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 - (void) scanForHostiles;
 - (void) performTumble;
 - (void) performStop;
+- (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID;
 #if TARGET_INCOMING_MISSILES
 - (void) scanForNearestIncomingMissile;
 #endif

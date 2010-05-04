@@ -82,6 +82,7 @@ static JSBool ShipFireMissile(JSContext *context, JSObject *this, uintN argc, js
 static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode);
 static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo);
@@ -300,6 +301,7 @@ static JSFunctionSpec sShipMethods[] =
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setMaterials",			ShipSetMaterials,			1 },
 	{ "setShaders",				ShipSetShaders,				1 },
+	{ "exitSystem",				ShipExitSystem,				0 },
 	{ 0 }
 };
 
@@ -1892,4 +1894,35 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 	argv[1] = argv[0];
 	*outResult = [@"setShaders" javaScriptValueInContext:context];
 	return ShipSetMaterials(context, this, 2, argv, outResult);
+}
+
+
+// exitSystem([int systemID])
+static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity			*thisEnt = nil;
+	int32				systemID = -1;
+	BOOL				OK = NO;
+	
+	*outResult = BOOLToJSVal(OK);
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt) || [thisEnt isPlayer])	// stale reference, no-op, or player ship
+	{
+		return YES;
+	}
+	
+	if (argc > 0)
+	{
+		if (!JS_ValueToInt32(context, argv[0], &systemID) || systemID < 0 || 255 < systemID)
+		{
+			OOReportJSWarning(context, @"Ship.%@: expected %@ instead of '%@'.", @"exitSystem", @"system ID",[NSString stringWithJavaScriptValue:argv[0] inContext:context]);
+			return NO;
+		}
+	}
+	
+	OK = [thisEnt performHyperSpaceToSpecificSystem:systemID]; 	// -1 == random destination system
+	
+	*outResult = BOOLToJSVal(OK);
+
+	return YES;
 }

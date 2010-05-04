@@ -79,7 +79,7 @@ VIProductVersion "${VER}"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
-; NSIS first runs the finishpage_run macro, then finishpage_showreadme one.
+; NSIS first runs the finishpage_run macro, then finishpage_showreadme.
 ; By completely redefining the meaning of the macros, the installer now runs oolite after showing the readme(!)
   !define MUI_FINISHPAGE_RUN_NOTCHECKED 
   !define MUI_FINISHPAGE_RUN_TEXT "Show Readme"
@@ -194,7 +194,7 @@ CreateShortCut "$SMPROGRAMS\Oolite\Oolite Website.lnk" "http://oolite.org/" "" "
 
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Logs.lnk" "$INSTDIR\oolite.app\Logs"
 CreateShortCut "$SMPROGRAMS\Oolite\Oolite Screenshots.lnk" "$INSTDIR\oolite.app\oolite-saves\snapshots"
-CreateShortCut "$SMPROGRAMS\Oolite\Installed OXPs.lnk" "$INSTDIR\AddOns"
+CreateShortCut "$SMPROGRAMS\Oolite\Extension Packs.lnk" "$INSTDIR\AddOns"
 
 Call RegSetup
 

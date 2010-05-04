@@ -46,7 +46,8 @@ MA 02110-1301, USA.
 
 @interface ShipEntity (OOAIPrivate)
 
-- (void)performHyperSpaceExitReplace:(BOOL)replace;
+- (BOOL)performHyperSpaceExitReplace:(BOOL)replace;
+- (BOOL)performHyperSpaceExitReplace:(BOOL)replace toSystem:(OOSystemID)systemID;
 
 - (void)scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
 - (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter;
@@ -293,19 +294,6 @@ MA 02110-1301, USA.
 }
 
 
-#if TARGET_INCOMING_MISSILES
-- (void) scanForNearestIncomingMissile
-{
-	BinaryOperationPredicateParameter param =
-	{
-		HasScanClassPredicate, [NSNumber numberWithInt:CLASS_MISSILE],
-		IsHostileAgainstTargetPredicate, self
-	};
-	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
-}
-#endif
-
-
 - (void) performTumble
 {
 	flightRoll = max_flight_roll*2.0*(randf() - 0.5);
@@ -321,6 +309,25 @@ MA 02110-1301, USA.
 	desired_speed = 0.0;
 	frustration = 0.0;
 }
+
+
+- (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID
+{
+	return [self performHyperSpaceExitReplace:YES toSystem:systemID];
+}
+
+
+#if TARGET_INCOMING_MISSILES
+- (void) scanForNearestIncomingMissile
+{
+	BinaryOperationPredicateParameter param =
+	{
+		HasScanClassPredicate, [NSNumber numberWithInt:CLASS_MISSILE],
+		IsHostileAgainstTargetPredicate, self
+	};
+	[self scanForNearestShipWithPredicate:ANDPredicate parameter:&param];
+}
+#endif
 
 @end
 
@@ -2306,22 +2313,26 @@ static WormholeEntity *whole = nil;
 
 @implementation ShipEntity (OOAIPrivate)
 
-- (void)performHyperSpaceExitReplace:(BOOL)replace
+- (BOOL) performHyperSpaceExitReplace:(BOOL)replace
+{
+	return [self performHyperSpaceExitReplace:replace toSystem:-1];
+}
+
+
+- (BOOL) performHyperSpaceExitReplace:(BOOL)replace toSystem:(OOSystemID)systemID;
 {
 	// The [UNIVERSE nearbyDestinationsWithinRange:] method is very expensive, so cache
 	// its results.
-	static NSArray *sDests = nil;
+	static NSArray	*sDests = nil;
+	Random_Seed		targetSystem;
+	int 			i = 0;
 	
 	whole = nil;
 	
 	// get a list of destinations within range
-	if (sDests == nil)
-	{
-		sDests = [[UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel] copy];
-	}
+	sDests = [[UNIVERSE nearbyDestinationsWithinRange: 0.1 * fuel] copy];
 	
 	int n_dests = [sDests count];
-	
 	
 	// if none available report to the AI and exit
 	if (!n_dests)
@@ -2332,8 +2343,7 @@ static WormholeEntity *whole = nil;
 		// the nearby destinations array anymore.
 		[sDests release];
 		sDests = nil;
-		
-		return;
+		return NO;
 	}
 	
 	// check if we're clear of nearby masses
@@ -2342,16 +2352,35 @@ static WormholeEntity *whole = nil;
 	{
 		found_target = [blocker universalID];
 		[shipAI reactToMessage:@"WITCHSPACE BLOCKED"];
-		return;
+		[sDests release];
+		sDests = nil;
+		return NO;
 	}
 	
-	// select one at random
-	int i = 0;
-	if (n_dests > 1)
-		i = ranrot_rand() % n_dests;
-	
-	NSString* systemSeedKey = [(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"system_seed"];
-	Random_Seed targetSystem = RandomSeedFromString(systemSeedKey);
+	if (systemID == -1)
+	{
+		// select one at random
+		if (n_dests > 1)
+			i = ranrot_rand() % n_dests;
+		
+		NSString* systemSeedKey = [(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"system_seed"];
+		targetSystem = RandomSeedFromString(systemSeedKey);
+	}
+	else
+	{
+		targetSystem = [UNIVERSE systemSeedForSystemNumber:systemID];
+		NSString* targetName = [UNIVERSE getSystemName:targetSystem];
+		
+		for (i = 0; i < n_dests; i++)
+			if ([targetName isEqualToString:[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"name"]]) break;
+		
+		if (i == n_dests)	// no match found
+		{
+			[sDests release];
+			sDests = nil;
+			return NO;
+		}
+	}
 	fuel -= 10 * [[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
 	
 	// create wormhole
@@ -2369,10 +2398,11 @@ static WormholeEntity *whole = nil;
 	// the destinations array is therefore no longer required and can be released.
 	[sDests release];
 	sDests = nil;
+	return YES;
 }
 
 
-- (void)scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
+- (void) scanForNearestShipWithPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
 {
 	// Locates all the ships in range for which predicate returns YES, and chooses the nearest.
 	unsigned		i;
@@ -2400,7 +2430,7 @@ static WormholeEntity *whole = nil;
 }
 
 
-- (void)scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
+- (void) scanForNearestShipWithNegatedPredicate:(EntityFilterPredicate)predicate parameter:(void *)parameter
 {
 	ChainedEntityPredicateParameter param = { predicate, parameter };
 	[self scanForNearestShipWithPredicate:NOTPredicate parameter:&param];
