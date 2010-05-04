@@ -3,7 +3,7 @@
 OOJSManifest.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -348,6 +348,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	BOOL						OK = NO;
 	PlayerEntity				*entity = OOPlayerForScripting();
 	int32						iValue;
+	int							commodity;
 	
 	if (JSVAL_IS_STRING(name))	// Is it a case insensitive commodity identifier?
 	{
@@ -366,13 +367,15 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	
 	if (!JSVAL_IS_INT(name))  return YES;
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
-	if ([entity specialCargo])
+	
+	commodity = JSVAL_TO_INT(name);
+	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
 	{
 		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo when Special Cargo is in use.");
 		return YES;
 	}
 	
-	switch (JSVAL_TO_INT(name))
+	switch (commodity)
 	{
 		case kManifest_food:
 			if (JS_ValueToInt32(context, *value, &iValue))
