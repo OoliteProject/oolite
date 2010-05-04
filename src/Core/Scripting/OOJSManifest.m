@@ -369,7 +369,7 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	
 	commodity = JSVAL_TO_INT(name);
-	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
+	if ([entity specialCargo] && !(commodity >= kManifest_gold && commodity <= kManifest_gemstones) && commodity != kManifest_gem_stones && commodity != kManifest_gemStones)
 	{
 		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo when Special Cargo is in use.");
 		return YES;
