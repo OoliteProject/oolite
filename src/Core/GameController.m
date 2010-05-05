@@ -3,7 +3,7 @@
 GameController.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -793,14 +793,40 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (IBAction) showSnapshotsAction:sender
 {
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath: [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent]]]; // also in myOpenGLView snapShot
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR]]]; // also in myOpenGLView snapShot
 }
 
 
 - (IBAction) showAddOnsAction:sender
 {
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath: [[[[NSBundle mainBundle] bundlePath] 
-																	 stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"AddOns"]]];
+	// show the preferred AddOns folder (index 0 is Resources)
+	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:(NSString *)[[ResourceManager paths] objectAtIndex:1]]];
+}
+
+
+- (BOOL)validateMenuItem:(id <NSMenuItem>)menuItem
+{
+	if ([menuItem action] == @selector(showLogAction:))
+	{
+		// the first path is always Resources
+		return ([[NSFileManager defaultManager] fileExistsAtPath:[OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"]]);
+	}
+	
+	if ([menuItem action] == @selector(showAddOnsAction:))
+	{
+		// the first path is Resources, only enable item if we've got a second path.
+		return ([[ResourceManager paths] count] > 1);
+	}
+	
+	if ([menuItem action] == @selector(showSnapshotsAction:))
+	{
+		BOOL	pathIsDirectory;
+		if(![[NSFileManager defaultManager] fileExistsAtPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR] isDirectory:&pathIsDirectory]) return NO;
+		return pathIsDirectory;
+	}
+	
+	// default
+	return YES;
 }
 
 

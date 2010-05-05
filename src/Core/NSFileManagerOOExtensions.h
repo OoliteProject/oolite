@@ -1,13 +1,13 @@
 /*
 
-NSFileManagerOOExtensions.m
+NSFileManagerOOExtensions.h
 
 This extends NSFileManager and adds some methods to insulate the
 main oolite code from the gory details of creating/chdiring to the
 commander save directory.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -29,7 +29,13 @@ MA 02110-1301, USA.
 #import <Foundation/Foundation.h>
 
 #define SAVEDIR "oolite-saves"
-#define SNAPSHOTDIR "snapshots"
+
+#if OOLITE_MAC_OS_X
+ #define SNAPSHOTDIR "Desktop/Oolite Screen Shots"
+#else
+ #define SNAPSHOTDIR "snapshots"
+#endif
+
 
 @interface NSFileManager (OOExtensions)
 

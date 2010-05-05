@@ -3,7 +3,7 @@
 MyOpenGLView.m
 
 Oolite
-Copyright (C) 2004-2009 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -772,30 +772,30 @@ MA 02110-1301, USA.
 	SDL_Surface* tmpSurface;
 	int w = viewSize.width;
 	int h = viewSize.height;
-
+	
 	if (w & 3)
 		w = w + 4 - (w & 3);
-
-	// backup the savegame directory.
+	
+	// backup the previous directory
 	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
 	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
-
+	
 	int imageNo = 0;
-
 	NSString	*pathToPic = nil;
+	
 	do
 	{
 		imageNo++;
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
 	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
-
+	
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
-
+	
 	unsigned char *pixls = malloc(surface->w * surface->h * 3);
 //	SDL_Surface *screen;
 	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,pixls);
-
+	
 	int pitch = surface->w * 3;
 	unsigned char *aux = malloc( pitch );
 	short h2=surface->h/2;
@@ -810,13 +810,13 @@ MA 02110-1301, USA.
 		p2-=pitch;
 	}
 	free(aux);
-
+	
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
 	SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]);
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	
-	// restore the savegame directory name.
+	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
 

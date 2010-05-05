@@ -84,18 +84,18 @@ enum
 	kManifest_firearms,			// commodity quantity, integer, read/write
 	kManifest_furs,				// commodity quantity, integer, read/write
 	kManifest_minerals,			// commodity quantity, integer, read/write
+	kManifest_alienitems,		// commodity quantity, integer, read/write
 	kManifest_gold,				// commodity quantity, integer, read/write
 	kManifest_platinum,			// commodity quantity, integer, read/write
 	kManifest_gemstones,		// commodity quantity, integer, read/write
-	kManifest_alienitems,		// commodity quantity, integer, read/write
 	
-// Up to kManifest_alienitems, these properties are case insensitive.
+// Up to kManifest_gemstones, these properties are case insensitive.
 // FIXME: there must be a better way of doing this.
 	
-	kManifest_liquor_wines,		// standardised identifier commodity quantity, integer, read/write
-	kManifest_liquorWines,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_gem_stones,		// standardised identifier commodity quantity, integer, read/write
 	kManifest_gemStones,		// js style alias to previous commodity quantity, integer, read/write
+	kManifest_liquor_wines,		// standardised identifier commodity quantity, integer, read/write
+	kManifest_liquorWines,		// js style alias to previous commodity quantity, integer, read/write
 	kManifest_alien_items,		// standardised identifier commodity quantity, integer, read/write
 	kManifest_alienItems,		// js style alias to previous commodity quantity, integer, read/write
 	
@@ -119,19 +119,19 @@ static JSPropertySpec sManifestProperties[] =
 	{ "firearms",			kManifest_firearms,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "furs",				kManifest_furs,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "minerals",			kManifest_minerals,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "alien items",		kManifest_alienitems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gold",				kManifest_gold,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platinum",			kManifest_platinum,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "gem-stones",			kManifest_gemstones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "alien items",		kManifest_alienitems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 
 // There are 3 possible ways of accessing two-words commodities at the moment.
 // We can either use the case insensitive original names - as above,
-// or use one of the case insensitive variants below.
+// or use one of the case sensitive variants below.
 
-	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
-	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
 	{ "gem_stones",			kManifest_gem_stones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
 	{ "gemStones",			kManifest_gemStones,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
+	{ "liquor_wines",		kManifest_liquor_wines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
+	{ "liquorWines",		kManifest_liquorWines,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
 	{ "alien_items",		kManifest_alien_items,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// normalised
 	{ "alienItems",			kManifest_alienItems,		JSPROP_PERMANENT | JSPROP_ENUMERATE },	// camelCase
 	
@@ -369,9 +369,10 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	//if (EXPECT_NOT(!JSShipGetShipEntity(context, this, &entity))) return NO;
 	
 	commodity = JSVAL_TO_INT(name);
-	if ([entity specialCargo] && !(commodity >= kManifest_gold && commodity <= kManifest_gemstones) && commodity != kManifest_gem_stones && commodity != kManifest_gemStones)
+	// we can always change gold, platinum & gem-stones quantities, even with special cargo
+	if ([entity specialCargo] && (commodity < kManifest_gold || commodity > kManifest_gemStones))
 	{
-		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo when Special Cargo is in use.");
+		OOReportJSWarning(context, @"PlayerShip.manifest['foo'] - cannot modify cargo tonnage when Special Cargo is in use.");
 		return YES;
 	}
 	

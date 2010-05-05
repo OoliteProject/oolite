@@ -7,7 +7,7 @@ main oolite code from the gory details of creating/chdiring to the
 commander save directory.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -116,10 +116,15 @@ MA 02110-1301, USA.
 }
 
 
-- (BOOL)chdirToSnapshotPath
+- (BOOL) chdirToSnapshotPath
 {
-	// default path for snapshots is oolite.app/oolite-saves/snapshots
+#if OOLITE_MAC_OS_X
+	// Macs: the default path for snapshots is ~/Desktop/Oolite Snap Shots
+	NSString *savedir = [NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR];
+#else
+	// SDL: the default path for snapshots is oolite.app/oolite-saves/snapshots
 	NSString *savedir = [[NSHomeDirectory() stringByAppendingPathComponent:@SAVEDIR] stringByAppendingPathComponent:@SNAPSHOTDIR];
+#endif
 	if (![self changeCurrentDirectoryPath: savedir])
 	{
 	   // it probably doesn't exist.

@@ -3,7 +3,7 @@
 ResourceManager.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -114,33 +114,33 @@ static NSMutableDictionary *sStringCache;
 	
 	if (sRootPaths == nil)
 	{
+		// the paths are now in order of preference as per yesterday's talk. -- Kaks 2010-05-05
+		
+		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath],
+
 #if OOLITE_MAC_OS_X
-		NSString	*app_addon_path = [[[[NSBundle mainBundle] bundlePath]
-									stringByDeletingLastPathComponent]
-									stringByAppendingPathComponent:@"AddOns"];
-		NSString	*appsupport_path = [[[[NSHomeDirectory()
-										stringByAppendingPathComponent:@"Library"]
-										stringByAppendingPathComponent:@"Application Support"]
-										stringByAppendingPathComponent:@"Oolite"]
-										stringByAppendingPathComponent:@"AddOns"];
+	/* 1st mac path */		[[[[NSHomeDirectory() stringByAppendingPathComponent:@"Library"]
+								stringByAppendingPathComponent:@"Application Support"]
+								stringByAppendingPathComponent:@"Oolite"]
+								stringByAppendingPathComponent:@"AddOns"],
+	/* 2nd mac path */		[[[[NSBundle mainBundle] bundlePath]
+								stringByDeletingLastPathComponent]
+								stringByAppendingPathComponent:@"AddOns"],
+
 #elif OOLITE_WINDOWS
-		NSString	*app_addon_path = @"../AddOns";
-		NSString	*appsupport_path = nil;
-#else
-		NSString	*app_addon_path = @"AddOns";
-		NSString	*appsupport_path = nil;
+	/* windows path */		@"../AddOns",
+#else	
+	/* 1st *nix path */		@"AddOns",
 #endif
-		NSString	*nix_path = nil;
+
 #if !OOLITE_WINDOWS
-		/*	Enabling this path in Windows causes a log message, and it's not
-			actually useful.
-		*/
-		nix_path = [[NSHomeDirectory()
-					stringByAppendingPathComponent:@".Oolite"]
-					stringByAppendingPathComponent:@"AddOns"];
+	/*	2nd *nix path, 3rd mac path */
+							[[NSHomeDirectory()
+								stringByAppendingPathComponent:@".Oolite"]
+								stringByAppendingPathComponent:@"AddOns"],
 #endif
 		
-		sRootPaths = [[NSArray alloc] initWithObjects:[self builtInPath], app_addon_path, nix_path, appsupport_path, nil];
+						nil];
 	}
 	
 	return sRootPaths;

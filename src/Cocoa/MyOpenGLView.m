@@ -3,7 +3,7 @@
 MyOpenGLView.m
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 #import "GuiDisplayGen.h"
 #import <Carbon/Carbon.h>
 #import "JoystickHandler.h"
+#import "NSFileManagerOOExtensions.h"
 
 #ifndef NDEBUG
 #import <Foundation/NSDebug.h>
@@ -251,21 +252,25 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 		w = w + 4 - (w & 3);
 	
 	long nPixels = w * h + 1;	
-
+	
 	unsigned char   *red = (unsigned char *) malloc( nPixels);
 	unsigned char   *green = (unsigned char *) malloc( nPixels);
 	unsigned char   *blue = (unsigned char *) malloc( nPixels);
 	
-	NSString	*filepath = [[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent]; // also in gameController showSnapshotsAction
+	// backup the previous directory
+	NSString* originalDirectory = [[NSFileManager defaultManager] currentDirectoryPath];
+	// use the snapshots directory
+	[[NSFileManager defaultManager] chdirToSnapshotPath];
+	
 	int imageNo = 0;
 	NSString	*pathToPic = nil;
-		
+	
 	do 
 	{
 		imageNo++;
-		pathToPic = [filepath stringByAppendingPathComponent:[NSString stringWithFormat:@"oolite-%03d.png",imageNo]];
+		pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
 	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
-			
+	
 	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
 	
 	NSBitmapImageRep* bitmapRep = 
@@ -281,13 +286,13 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 			bytesPerRow:		3*w			// can no longer let the class figure it out
 			bitsPerPixel:		24			// can no longer let the class figure it out
 		];
-
+	
 	unsigned char *pixels = [bitmapRep bitmapData];
 		
 	glReadPixels(0,0, w,h, GL_RED,   GL_UNSIGNED_BYTE, red);
 	glReadPixels(0,0, w,h, GL_GREEN, GL_UNSIGNED_BYTE, green);
 	glReadPixels(0,0, w,h, GL_BLUE,  GL_UNSIGNED_BYTE, blue);
-
+	
 	int x,y;
 	for (y = 0; y < h; y++)
 	{
@@ -309,6 +314,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	free(green);
 	free(blue);
 	
+	// return to the previous directory
+	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
 
 
