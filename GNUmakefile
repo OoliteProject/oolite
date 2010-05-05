@@ -220,8 +220,7 @@ OOLITE_GRAPHICS_MATERIAL_FILES = \
 	OOPixMapChannelOperations.m \
 	OOMultiTextureMaterial.m \
 	OOMaterialConvenienceCreators.m \
-	OOCombinedEmissionMapGenerator.m \
-	OOEnvironmentCubeMap.m
+	OOCombinedEmissionMapGenerator.m
 
 OOLITE_GRAPHICS_MISC_FILES = \
 	OOCrosshairs.m \

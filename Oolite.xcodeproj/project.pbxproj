@@ -11,6 +11,7 @@
 			isa = PBXAggregateTarget;
 			buildConfigurationList = 1AD267680C8305A200B4BFD1 /* Build configuration list for PBXAggregateTarget "Build All" */;
 			buildPhases = (
+				1AD267610C83057F00B4BFD1 /* Copy Debug OXP */,
 			);
 			dependencies = (
 				1AD267560C83052600B4BFD1 /* PBXTargetDependency */,
@@ -319,6 +320,7 @@
 		1A26D0EB0BCF9D3B0073F257 /* OOTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A26D0E50BCF9D3B0073F257 /* OOTextureLoader.m */; };
 		1A26D0F50BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
 		1A26D0F60BCF9D8D0073F257 /* pngusr.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A26D0F40BCF9D8D0073F257 /* pngusr.h */; };
+		1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A3042F410C16DA60056219D /* Debug.oxp */; };
 		1A27DB3B0C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB380C4E349F00CB4CE8 /* OOOXPVerifierStageInternal.h */; };
 		1A27DB3C0C4E349F00CB4CE8 /* OOOXPVerifierStage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A27DB390C4E349F00CB4CE8 /* OOOXPVerifierStage.h */; };
 		1A27DB3D0C4E349F00CB4CE8 /* OOOXPVerifierStage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A27DB3A0C4E349F00CB4CE8 /* OOOXPVerifierStage.m */; };
@@ -553,6 +555,7 @@
 		1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A94E4FB0F348D4300F1B5D9 /* delayedReactToAttackAI.plist */; };
 		1A95338B0C02089E004EBB58 /* material-defaults.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A9533890C02089E004EBB58 /* material-defaults.plist */; };
 		1A95338C0C02089E004EBB58 /* planetinfo.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A95338A0C02089E004EBB58 /* planetinfo.plist */; };
+		1A95BDD5118A2192002EE302 /* ferdelance_redux.png in Copy Debug OXP */ = {isa = PBXBuildFile; fileRef = 1A2318360B9D026D00EF0852 /* ferdelance_redux.png */; };
 		1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A95C03E118A450E002EE302 /* OOConvertCubeMapToLatLong.h */; };
 		1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A95C03F118A450E002EE302 /* OOConvertCubeMapToLatLong.m */; settings = {COMPILER_FLAGS = "-O3 -ftree-vectorize"; }; };
 		1AA7FCAB10C2B9BA0058FBED /* OOPlanetDrawable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AA7FCA910C2B9BA0058FBED /* OOPlanetDrawable.h */; };
@@ -611,8 +614,6 @@
 		1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D16118DCBC0007B9A1F /* OOConcreteTexture.h */; };
 		1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1D17118DCBC0007B9A1F /* OOConcreteTexture.m */; };
 		1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1D1B118DCE5A007B9A1F /* OOTextureInternal.h */; };
-		1ACB1E2C118E0C82007B9A1F /* OOEnvironmentCubeMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACB1CF0118DBC65007B9A1F /* OOEnvironmentCubeMap.m */; };
-		1ACB1E2D118E0C83007B9A1F /* OOEnvironmentCubeMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACB1CEF118DBC65007B9A1F /* OOEnvironmentCubeMap.h */; };
 		1ACBF0AD0D82F79600CC005F /* OOSoundSourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACBF06F0D82DF9B00CC005F /* OOSoundSourcePool.h */; };
 		1ACBF0AE0D82F79800CC005F /* OOSoundSourcePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACBF0700D82DF9B00CC005F /* OOSoundSourcePool.m */; };
 		1ACE208F0D805F78009F6957 /* oolite-scarred-metal-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1ACE208E0D805F78009F6957 /* oolite-scarred-metal-specular.png */; };
@@ -1108,6 +1109,18 @@
 				1A6515110CCC9E2E0054D01B /* oolite-default-shader.fragment in Copy Shaders */,
 			);
 			name = "Copy Shaders";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AD267610C83057F00B4BFD1 /* Copy Debug OXP */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = AddOns;
+			dstSubfolderSpec = 16;
+			files = (
+				1A274D2910C1EE61004CDDF5 /* Debug.oxp in Copy Debug OXP */,
+				1A95BDD5118A2192002EE302 /* ferdelance_redux.png in Copy Debug OXP */,
+			);
+			name = "Copy Debug OXP";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -3241,7 +3254,6 @@
 				1A95C040118A450E002EE302 /* OOConvertCubeMapToLatLong.h in Headers */,
 				1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */,
 				1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */,
-				1ACB1E2D118E0C83007B9A1F /* OOEnvironmentCubeMap.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3613,7 +3625,6 @@
 				1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */,
 				1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */,
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
-				1ACB1E2C118E0C82007B9A1F /* OOEnvironmentCubeMap.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
