@@ -192,7 +192,7 @@ JSObject *JSPlayerShipObject(void)
 - (void)setJSSelf:(JSObject *)val context:(JSContext *)context
 {
 	jsSelf = val;
-	JS_AddNamedRoot(context, &jsSelf, "Player jsSelf");
+	OO_AddJSGCRoot(context, &jsSelf, "Player jsSelf");
 }
 
 @end

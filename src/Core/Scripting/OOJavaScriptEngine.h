@@ -294,6 +294,22 @@ id JSBasicPrivateObjectConverter(JSContext *context, JSObject *object);
 void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback converter);
 
 
+/*	JS root handling
+	
+	The name parameter to JS_AddNamedRoot is assigned with no overhead, not
+	copied, but the strings serve no purpose in a release build so we may as
+	well strip them out.
+	
+	In debug builds, this will deliberately cause an error if name is not a
+	string literal.
+*/
+#ifdef NDEBUG
+#define OO_AddJSGCRoot(context, root, name)  JS_AddRoot((context), (root))
+#else
+#define OO_AddJSGCRoot(context, root, name)  JS_AddNamedRoot((context), (root), "" name)
+#endif
+
+
 #if OOJSENGINE_MONITOR_SUPPORT
 
 /*	Protocol for debugging "monitor" object.

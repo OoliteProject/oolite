@@ -141,7 +141,7 @@ static JSFunctionSpec sScriptMethods[] =
 	
 	if (!problem)
 	{
-		if (![engine addGCRoot:&_jsSelf named:"Script object"])
+		if (!OO_AddJSGCRoot(context, &_jsSelf, "Script object"))
 		{
 			problem = @"could not add JavaScript root object";
 		}
@@ -406,7 +406,7 @@ static JSFunctionSpec sScriptMethods[] =
 				for (i = 0; i != argc; ++i)
 				{
 					argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
-					if (JSVAL_IS_GCTHING(argv[i]))  JS_AddNamedRoot(context, &argv[i], "JSScript event parameter");
+					OO_AddJSGCRoot(context, &argv[i], "JSScript event parameter");
 				}
 			}
 			else  argc = 0;
@@ -420,7 +420,7 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			for (i = 0; i != argc; ++i)
 			{
-				if (JSVAL_IS_GCTHING(argv[i]))  JS_RemoveRoot(context, &argv[i]);
+				JS_RemoveRoot(context, &argv[i]);
 			}
 			free(argv);
 		}

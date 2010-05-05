@@ -30,14 +30,14 @@ static JSObject		*sSpecialFunctionsObject;
 
 
 static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool SpecialJsWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool SpecialJSWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSFunctionSpec sSpecialFunctionsMethods[] =
 {
 	// JS name					Function					min args
 	{ "toString",				SpecialToString,			0 },
-	{ "jsWarning",				SpecialJsWarning,			1 },
+	{ "jsWarning",				SpecialJSWarning,			1 },
 	{ 0 }
 };
 
@@ -45,7 +45,7 @@ static JSFunctionSpec sSpecialFunctionsMethods[] =
 void InitOOJSSpecialFunctions(JSContext *context, JSObject *global)
 {
 	sSpecialFunctionsObject = JS_NewObject(context, NULL, NULL, NULL);
-	JS_AddNamedRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
+	OO_AddJSGCRoot(context, &sSpecialFunctionsObject, "OOJSSpecialFunctions");
 	JS_DefineFunctions(context, sSpecialFunctionsObject, sSpecialFunctionsMethods);
 	JS_SealObject(context, sSpecialFunctionsObject, NO);
 }
@@ -70,7 +70,7 @@ static JSBool SpecialToString(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
-static JSBool SpecialJsWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+static JSBool SpecialJSWarning(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOSetJSWarningOrErrorStackSkip(1);
 	OOReportJSWarning(context, @"%@", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
