@@ -7223,6 +7223,7 @@ static NSString *last_outfitting_key=nil;
 				{
 					if( [missile_entity[activeMissile] isMissile])
 					{
+						[missile_entity[activeMissile] addTarget:potential_target];
 						missile_status = MISSILE_STATUS_TARGET_LOCKED;
 						[self printIdentLockedOnForMissile:YES];
 					}
