@@ -3261,10 +3261,10 @@ static GLfloat launchRoll;
 		if (missile_status != MISSILE_STATUS_TARGET_LOCKED) return nil;
 		//  release this before creating it anew in fireMissileWithIdentifier
 		firedMissile = [self fireMissileWithIdentifier:identifier andTarget:[missile primaryTarget]];
-		[self removeFromPylon:activeMissile];
 
 		if (firedMissile != nil)
 		{
+			[self removeFromPylon:activeMissile];
 			[self playMissileLaunched];
 			if (cloaking_device_active && cloakPassive)
 			{
