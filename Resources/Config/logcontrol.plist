@@ -206,6 +206,9 @@
 	setup.ship.badEntry.subentities			= inherit;
 	
 	
+	screenshot								= inherit;
+	
+	
 	script.addShips.failed					= $scriptError;
 	script.missionDescription				= $scriptError;
 	script.missionDescription.noMissionText	= inherit;

@@ -781,8 +781,8 @@ MA 02110-1301, USA.
 	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 	
-	int imageNo = 0;
-	NSString	*pathToPic = nil;
+	static unsigned		imageNo = 0;
+	NSString			*pathToPic = nil;
 	
 	do
 	{
@@ -790,10 +790,9 @@ MA 02110-1301, USA.
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
 	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 	
-	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file chosen = %@", w, h, pathToPic);
+	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
 	
 	unsigned char *pixls = malloc(surface->w * surface->h * 3);
-//	SDL_Surface *screen;
 	glReadPixels(0,0,surface->w,surface->h,GL_RGB,GL_UNSIGNED_BYTE,pixls);
 	
 	int pitch = surface->w * 3;

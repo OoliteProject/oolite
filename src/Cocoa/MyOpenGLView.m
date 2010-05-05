@@ -262,16 +262,16 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	// use the snapshots directory
 	[[NSFileManager defaultManager] chdirToSnapshotPath];
 	
-	int imageNo = 0;
-	NSString	*pathToPic = nil;
+	static unsigned		imageNo = 0;
+	NSString			*pathToPic = nil;
 	
-	do 
+	do
 	{
 		imageNo++;
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
 	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 	
-	OOLog(@"snapshot", @">>>>> Snapshot %d x %d file path chosen = %@", w, h, pathToPic);
+	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
 	
 	NSBitmapImageRep* bitmapRep = 
 		[[NSBitmapImageRep alloc]
