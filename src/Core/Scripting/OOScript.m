@@ -250,8 +250,8 @@ static NSString * const kOOLogLoadScriptNone				= @"script.load.none";
 	NSString *name = [self name];
 	NSString *version = [self version];
 	
-	if (version != NULL) return [NSString stringWithFormat:@"\"%@\" %@", name, version];
-	else if (name != NULL)  return [NSString stringWithFormat:@"\"%@\"", name];
+	if (version != NULL) return [NSString stringWithFormat:@"%@ %@", name, version];
+	else if (name != NULL)  return [NSString stringWithFormat:@"%@", name];
 	else  return NULL;
 }
 

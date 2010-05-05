@@ -59,7 +59,7 @@ MA 02110-1301, USA.
 - (NSString *)name;
 - (NSString *)scriptDescription;
 - (NSString *)version;
-- (NSString *)displayName;	// '"name" version' if version is defined, otherwise just '"name"'.
+- (NSString *)displayName;	// "name version" if version is defined, otherwise just "name".
 
 - (void)runWithTarget:(Entity *)target;
 

@@ -245,6 +245,8 @@ static GameController *sSharedController = nil;
 		exit(EXIT_FAILURE);
 	NS_ENDHANDLER
 	
+	OOLog(@"loading.complete", @"========== Loading complete. ==========");
+	
 	// Release anything allocated above that is not required.
 	[pool release];
 #if OOLITE_HAVE_APPKIT
@@ -780,7 +782,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		{
 			[pauseTarget performSelector:pauseSelector];
 		}
-		
 	}
 }
 

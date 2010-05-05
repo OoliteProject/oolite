@@ -51,7 +51,7 @@
 	
 	
 	/*** Old-style logging calls ***/
-	unclassified							= inherit;
+	unclassified							= yes;
 	
 	
 	/*** Module-specific message classes ***/
@@ -163,6 +163,9 @@
 	joystickHandler.init					= yes;
 	
 	
+	loading.complete						= yes;
+	
+	
 	mesh.load.error							= $error;
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
@@ -194,7 +197,7 @@
 	rendering.reset.end						= no;
 	
 	
-	resourceManager.foundFile				= off;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
+	resourceManager.foundFile				= no;					// Tells you where all assets (models, textures, sounds) are found. Very verbose!
 	
 	
 	save.failed								= yes;
@@ -206,7 +209,7 @@
 	setup.ship.badEntry.subentities			= inherit;
 	
 	
-	screenshot								= inherit;
+	screenshot								= yes;
 	
 	
 	script.addShips.failed					= $scriptError;

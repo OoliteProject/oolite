@@ -939,8 +939,8 @@ static NSMutableDictionary *sStringCache;
 				[displayNames addObject:[script displayName]];
 			}
 			
-			displayString = [[displayNames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-			OOLog(@"script.load.world.listAll", @"Loaded %u world scripts: %@", count, displayString);
+			displayString = [[displayNames sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@"\n    "];
+			OOLog(@"script.load.world.listAll", @"Loaded %u world scripts:\n    %@", count, displayString);
 		}
 		else
 		{
