@@ -416,6 +416,10 @@
 	"division-sign"					= "÷";
 	
 	// *** Misc. messages ***
+	
+	// OXP containing messages that are echoed to Latest.log
+	"oxp-containing-messages-found"		= "OXP(s) containing messages found: ";
+	
 	// Messages used when awarding bounties
 	"bounty-@-total-@"				= "Bounty: %@\nTotal: %@";
 	"right-on-commander"			= "Right On, Commander!";

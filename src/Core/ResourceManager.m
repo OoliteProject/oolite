@@ -323,7 +323,7 @@ static NSMutableDictionary *sStringCache;
 			}
 		}
 		if (sOXPsWithMessagesFound == nil)  sOXPsWithMessagesFound = [[NSMutableArray alloc] init];
-		[sOXPsWithMessagesFound addObject:path];
+		[sOXPsWithMessagesFound addObject:[path lastPathComponent]];
 	}
 }
 
