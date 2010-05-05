@@ -50,9 +50,9 @@ static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uint
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 //  Mission screen  callback varibables
-static jsval			callbackFunction = JSVAL_NULL;
-static jsval			callbackThis = JSVAL_NULL;
-static OOJSScript		*callbackScript = nil;
+static jsval			sCallbackFunction = JSVAL_NULL;
+static jsval			sCallbackThis = JSVAL_NULL;
+static OOJSScript		*sCallbackScript = nil;
 
 static JSClass sMissionClass =
 {
@@ -114,43 +114,62 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.
-	JS_AddRoot(context, &callbackFunction);
-	JS_AddRoot(context, &callbackThis);
+	JS_AddNamedRoot(context, &sCallbackFunction, "Pending mission callback function");
+	JS_AddNamedRoot(context, &sCallbackThis, "Pending mission callback this");
 }
 
 void MissionRunCallback()
 {
 	// don't do anything if we don't have a function.
-	if(JSVAL_IS_NULL(callbackFunction))  return;
+	if(JSVAL_IS_NULL(sCallbackFunction))  return;
 	
 	jsval				argval = JSVAL_VOID;
 	jsval				rval = JSVAL_VOID;
-	jsval				function = callbackFunction;
-	JSObject			*cbThis = NULL;
 	PlayerEntity		*player = OOPlayerForScripting();
 	OOJavaScriptEngine	*engine  = [OOJavaScriptEngine sharedEngine];
 	JSContext			*context = [engine acquireContext];
 	
-	JS_ValueToObject(context, callbackThis, &cbThis);
+	/*	Create temporarily-rooted local copies of sCallbackFunction and
+		sCallbackThis, then clear the statics. This must be done in advance
+		since the callback might call runScreen() and clobber the statics.
+	*/
+	jsval				cbFunction = JSVAL_VOID;
+	JSObject			*cbThis = NULL;
+	OOJSScript			*cbScript = sCallbackScript;
 	
-	// don't run the same callback function more than once.
-	callbackFunction = JSVAL_VOID;
-	callbackThis = JSVAL_VOID;
+	JS_AddNamedRoot(context, &cbFunction, "Mission callback function");
+	JS_AddNamedRoot(context, &cbThis, "Mission callback this");
+	cbFunction = sCallbackFunction;
+	cbScript = sCallbackScript;
+	JS_ValueToObject(context, sCallbackThis, &cbThis);
+	
+	sCallbackScript = nil;
+	sCallbackFunction = JSVAL_VOID;
+	sCallbackThis = JSVAL_VOID;
 	
 	argval = [[player missionChoice_string] javaScriptValueInContext:context];
 	// now reset the mission choice silently, before calling the callback script.
 	[player setMissionChoice:nil withEvent:NO];
-
-	[OOJSScript pushScript:callbackScript];
-	[engine callJSFunction:function
-				 forObject:cbThis
-					  argc:1
-					  argv:&argval
-					result:&rval];
-	[OOJSScript popScript:callbackScript];
 	
+	// Call the callback.
+	NS_DURING
+		[OOJSScript pushScript:cbScript];
+		[engine callJSFunction:cbFunction
+					 forObject:cbThis
+						  argc:1
+						  argv:&argval
+						result:&rval];
+	NS_HANDLER
+		// Squash any exception, allow cleanup to happen and so forth.
+		OOLog(kOOLogException, @"Ignoring exception %@:%@ during handling of mission screen completion callback.", [localException name], [localException reason]);
+	NS_ENDHANDLER
+	[OOJSScript popScript:cbScript];
+	
+	// Manage that memory.
 	[engine releaseContext:context];
-	DESTROY(callbackScript);
+	[cbScript release];
+	JS_RemoveRoot(context, &cbFunction);
+	JS_RemoveRoot(context, &cbThis);
 }
 
 
@@ -431,14 +450,14 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (function != JSVAL_NULL)
 	{
-		callbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
+		sCallbackScript = [[[OOJSScript currentlyRunningScript] weakRefUnderlyingObject] retain];
 		if (argc > 2)
 		{
-			callbackThis = argv[2];
+			sCallbackThis = argv[2];
 		}
 		else
 		{
-			callbackThis = [callbackScript javaScriptValueInContext:context];
+			sCallbackThis = [sCallbackScript javaScriptValueInContext:context];
 		}
 	}
 	
@@ -479,8 +498,8 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (JS_GetProperty(context, params, [str UTF8String], &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
 	
-	callbackFunction = function;
-	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(callbackFunction)];
+	sCallbackFunction = function;
+	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
 		
 	str=@"message";
 	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
