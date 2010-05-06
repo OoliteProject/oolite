@@ -162,7 +162,7 @@ static NSMutableDictionary *sStringCache;
 
 + (NSArray *)pathsWithAddOns
 {
-	if (sSearchPaths != nil)  return sSearchPaths;
+	if ([sSearchPaths count] > 0)  return sSearchPaths;
 	
 	[sErrors release];
 	sErrors = nil;
@@ -229,10 +229,11 @@ static NSMutableDictionary *sStringCache;
 	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
 	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
 	{
-		[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
+		if (![path isEqualToString:[self builtInPath]])
+			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
 	}
 	
-	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
+	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths found:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
 	[self checkCacheUpToDateForPaths:sSearchPaths];
 	
 	return sSearchPaths;
@@ -241,6 +242,11 @@ static NSMutableDictionary *sStringCache;
 
 + (NSArray *)paths
 {
+	if (!sUseAddOns && sSearchPaths == nil)
+	{
+		OOLog(@"searchPaths.none", @"---> Strict Mode: OXP search paths ignored.");
+		sSearchPaths = [[NSMutableArray alloc] init];
+	}
 	return sUseAddOns ? [self pathsWithAddOns] : (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
 }
 

@@ -275,31 +275,40 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	DumpStringAddrs(result, @"shipdata.plist");
 	
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
+	OOLog(@"shipData.load.debug", @"Initial cleanup...");
 	if (![self makeShipEntriesMutable:result])  return;
 	
 	// Apply patches.
+	OOLog(@"shipData.load.debug", @"Applying patches...");
 	if (![self loadAndApplyShipDataOverrides:result])  return;
 	
 	// Strip private keys (anything starting with _oo_).
+	OOLog(@"shipData.load.debug", @"Stripping private keys...");
 	if (![self stripPrivateKeys:result])  return;
 	
 	// Resolve like_ship entries.
+	OOLog(@"shipData.load.debug", @"Resolving like_ships...");
 	if (![self applyLikeShips:result])  return;
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
+	OOLog(@"shipData.load.debug", @"Cleaning up subentities...");
 	if (![self canonicalizeAndTagSubentities:result])  return;
 	
 	// Clean out templates and invalid entries.
+	OOLog(@"shipData.load.debug", @"Removing invalid entries...");
 	if (![self removeUnusableEntries:result])  return;
 	
 	// Add shipyard entries into shipdata entries.
+	OOLog(@"shipData.load.debug", @"Adding shipyard entries...");
 	if (![self loadAndMergeShipyard:result])  return;
 	
 	// Sanitize conditions.
-	if (![self sanitizeConditions:result])  return;
+	OOLog(@"shipData.load.debug", @"Validating data...");
+	if (![self sanitizeConditions:result])  return;	// FIXME: in strict mode sanitizeConditions seems to always return false. --Kaks 2010-05-06
 	
 #if PRELOAD
 	// Preload and cache meshes.
+	OOLog(@"shipData.load.debug", @"Loading meshes...");
 	if (![self preloadShipMeshes:result])  return;
 #endif
 	

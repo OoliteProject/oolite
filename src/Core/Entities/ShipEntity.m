@@ -2453,8 +2453,9 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		{
 			if (chance < 0.9f && missileRole != nil)
 				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using defaults instead.");
-			// random role 20% of the cases. (the 10% above is included here)
-			if (chance > 0.8f) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
+			// In unrestricted mode, random role 20% of the time (the 10% excluded from the check above is overridden here)
+			// In strict mode, use the standard missile role 100% of the time! 
+			if (chance > 0.8f && ![UNIVERSE strict]) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
 			// otherwise use the standard role.
 			else missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
 		}
@@ -2492,7 +2493,17 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		else
 		{
-			OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
+
+			if ([UNIVERSE strict])
+			{
+				// In restricted mode, only thargons and EQ_MISSILEs are permitted. If we're here, something's wrong....
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' cannot be used in restricted mode. Using 'EQ_MISSILE' instead.", role, [self name]);
+				missileType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
+			}
+			else
+			{
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
+			}
 		}
 		if (missileType == nil) missileType = [self generateMissileEquipmentTypeFrom:role];
 	}
