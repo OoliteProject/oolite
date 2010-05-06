@@ -800,8 +800,27 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (IBAction) showAddOnsAction:sender
 {
-	// show the preferred AddOns folder (index 0 is Resources)
-	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:(NSString *)[[ResourceManager paths] objectAtIndex:1]]];
+	if ([[ResourceManager paths] count] > 1)
+	{
+		// Show the first populated AddOns folder (paths are in order of preference, path[0] is always Resources).
+		[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:(NSString *)[[ResourceManager paths] objectAtIndex:1]]];
+	}
+	else
+	{
+		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
+		BOOL		pathIsDirectory;
+		NSString	*path;
+		uint		i = 1;
+		
+		while (i < [[ResourceManager rootPaths] count])
+		{
+			path = (NSString *)[[ResourceManager rootPaths] objectAtIndex:i];
+			if ([[NSFileManager defaultManager] fileExistsAtPath:path isDirectory:&pathIsDirectory] && pathIsDirectory) break;
+			// else
+			i++;
+		} 
+		if (i < [[ResourceManager rootPaths] count]) [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:path]];
+	}
 }
 
 
@@ -815,8 +834,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	
 	if ([menuItem action] == @selector(showAddOnsAction:))
 	{
-		// the first path is Resources, only enable item if we've got a second path.
-		return ([[ResourceManager paths] count] > 1);
+		// Always enabled in unrestricted mode, to allow users to add OXPs more easily.
+		return [ResourceManager useAddOns];
 	}
 	
 	if ([menuItem action] == @selector(showSnapshotsAction:))
