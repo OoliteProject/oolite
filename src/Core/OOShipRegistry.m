@@ -275,41 +275,41 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	DumpStringAddrs(result, @"shipdata.plist");
 	
 	// Make each entry mutable to simplify later stages. Also removes any entries that aren't dictionaries.
-	OOLog(@"shipData.load.debug", @"Initial cleanup...");
 	if (![self makeShipEntriesMutable:result])  return;
+	OOLog(@"shipData.load.done", @"Finished initial cleanup...");
 	
 	// Apply patches.
-	OOLog(@"shipData.load.debug", @"Applying patches...");
 	if (![self loadAndApplyShipDataOverrides:result])  return;
+	OOLog(@"shipData.load.done", @"Finished applying patches...");
 	
 	// Strip private keys (anything starting with _oo_).
-	OOLog(@"shipData.load.debug", @"Stripping private keys...");
 	if (![self stripPrivateKeys:result])  return;
+	OOLog(@"shipData.load.done", @"Finished stripping private keys...");
 	
 	// Resolve like_ship entries.
-	OOLog(@"shipData.load.debug", @"Resolving like_ships...");
 	if (![self applyLikeShips:result])  return;
+	OOLog(@"shipData.load.done", @"Finished resolving like_ships...");
 	
 	// Clean up subentity declarations and tag subentities so they won't be pruned.
-	OOLog(@"shipData.load.debug", @"Cleaning up subentities...");
 	if (![self canonicalizeAndTagSubentities:result])  return;
+	OOLog(@"shipData.load.done", @"Finished cleaning up subentities...");
 	
 	// Clean out templates and invalid entries.
-	OOLog(@"shipData.load.debug", @"Removing invalid entries...");
 	if (![self removeUnusableEntries:result])  return;
+	OOLog(@"shipData.load.done", @"Finished removing invalid entries...");
 	
 	// Add shipyard entries into shipdata entries.
-	OOLog(@"shipData.load.debug", @"Adding shipyard entries...");
 	if (![self loadAndMergeShipyard:result])  return;
+	OOLog(@"shipData.load.done", @"Finished adding shipyard entries...");
 	
 	// Sanitize conditions.
-	OOLog(@"shipData.load.debug", @"Validating data...");
-	if (![self sanitizeConditions:result])  return;	// FIXME: in strict mode sanitizeConditions seems to always return false. --Kaks 2010-05-06
+	if (![self sanitizeConditions:result])  return;
+	OOLog(@"shipData.load.done", @"Finished validating data...");
 	
 #if PRELOAD
 	// Preload and cache meshes.
-	OOLog(@"shipData.load.debug", @"Loading meshes...");
 	if (![self preloadShipMeshes:result])  return;
+	OOLog(@"shipData.load.done", @"Finished loading meshes...");
 #endif
 	
 	_shipData = OODeepCopy(result);

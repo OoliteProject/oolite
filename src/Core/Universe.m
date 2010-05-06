@@ -442,7 +442,6 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	//       be aware of cache flushes so it can automatically
 	//       reinitialize itself - mwerle 20081107.
 	[OOShipRegistry reload];
-	
 	[[gameView gameController] unpause_game];
 	
 
