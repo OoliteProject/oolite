@@ -45,8 +45,14 @@ MA 02110-1301, USA.
 
 #if ALLOW_PROCEDURAL_PLANETS
 // routines to create textures...
-+ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData;
-+ (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData;
++ (BOOL) getPlanetTextureNameFor:(NSDictionary *)planetInfo
+						intoData:(unsigned char **)textureData
+						   width:(GLuint *)textureWidth
+						  height:(GLuint *)textureHeight;
++ (BOOL) getCloudTextureNameFor:(OOColor *)color :(GLfloat)impress :(GLfloat)bias
+					   intoData:(unsigned char **)textureData
+						  width:(GLuint *)textureWidth
+						 height:(GLuint *)textureHeight;
 #endif
 
 @end

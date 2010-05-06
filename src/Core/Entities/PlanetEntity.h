@@ -57,16 +57,15 @@ typedef struct
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
+	uint8_t					textureMode;
+	BOOL					isCubeMapped;
 	BOOL					isTextured;
 	BOOL					isTextureImage; //is the texture a png image?
 	GLuint					textureName;
 	NSString				*textureFile;
 	unsigned char			*textureData;
-	
-	BOOL					isCubeMapped;
-
-	GLuint					normalMapTextureName;
-	unsigned char			*normalMapTextureData;
+	GLuint					texWidth;
+	GLuint					texHeight;
 	
 	int						planet_seed;
 	double					polar_color_factor;

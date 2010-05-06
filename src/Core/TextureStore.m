@@ -36,6 +36,7 @@ MA 02110-1301, USA.
 #import "OOTextureScaling.h"
 #import "OOStringParsing.h"
 #import "OOTexture.h"
+#import "OOGraphicsResetManager.h"
 
 #ifndef NDEBUG
 #import "Universe.h"
@@ -67,9 +68,17 @@ static void fillSquareImageWithPlanetTex(unsigned char * imageBuffer, int width,
 #endif
 
 
+static NSMutableDictionary	*textureUniversalDictionary = nil;
+
+
 @implementation TextureStore
 
-NSMutableDictionary	*textureUniversalDictionary = nil;
+
++ (void)resetGraphicsState
+{
+	// The underlying OOTextures will take care of releasing themselves.
+	[textureUniversalDictionary removeAllObjects];
+}
 
 
 + (GLuint) getTextureNameFor:(NSString *)filename cubeMapped:(BOOL *)cubeMapped
@@ -83,14 +92,6 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 		return [cached oo_intForKey:@"texName"];
 	}
 	return [TextureStore getTextureNameFor:filename inFolder:@"Textures" cubeMapped:cubeMapped];
-}
-
-+ (GLuint) getImageNameFor:(NSString *)filename
-{
-	BOOL cubeMapped;
-	if ([textureUniversalDictionary objectForKey:filename])
-		return [[(NSDictionary *)[textureUniversalDictionary objectForKey:filename] objectForKey:@"texName"] intValue];
-	return [TextureStore getTextureNameFor: filename inFolder: @"Images" cubeMapped:&cubeMapped];
 }
 
 
@@ -122,7 +123,11 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 						[NSNumber numberWithBool:*cubeMapped], @"cubeMap",
 						nil];
 		
-		if (textureUniversalDictionary == nil)  textureUniversalDictionary = [[NSMutableDictionary alloc] init];
+		if (textureUniversalDictionary == nil)
+		{
+			textureUniversalDictionary = [[NSMutableDictionary alloc] init];
+			[[OOGraphicsResetManager sharedManager] registerClient:(id <OOGraphicsResetClient>)self];
+		}
 		
 		[textureUniversalDictionary setObject:texProps forKey:fileName];
 		[textureUniversalDictionary setObject:fileName forKey:texNameObj];
@@ -135,6 +140,7 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 {
 	return (NSString*)[textureUniversalDictionary objectForKey:[NSNumber numberWithInt:value]];
 }
+
 
 + (NSSize) getSizeOfTexture:(NSString *)filename
 {
@@ -150,22 +156,24 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 
 #if ALLOW_PROCEDURAL_PLANETS
 
-+ (GLuint) getPlanetTextureNameFor:(NSDictionary*)planetInfo intoData:(unsigned char **)textureData
+
+#define PROC_TEXTURE_SIZE	512
+
++ (BOOL) getPlanetTextureNameFor:(NSDictionary *)planetInfo intoData:(unsigned char **)textureData width:(GLuint *)textureWidth height:(GLuint *)textureHeight
 {
-	GLuint				texName;
-
-	int					texsize = 512;
-
-	unsigned char		*texBytes;
-
-	int					texture_h = texsize;
-	int					texture_w = texsize;
+	int					texture_h = PROC_TEXTURE_SIZE;
+	int					texture_w = PROC_TEXTURE_SIZE;
 
 	int					tex_bytes = texture_w * texture_h * 4;
-
-	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (imageBuffer)
-		(*textureData) = imageBuffer;
+	
+	NSParameterAssert(textureData != NULL && textureWidth != NULL && textureHeight != NULL);
+	
+	unsigned char *imageBuffer = malloc(tex_bytes);
+	if (imageBuffer == NULL)  return NO;
+	
+	*textureData = imageBuffer;
+	*textureWidth = texture_w;
+	*textureHeight = texture_h;
 
 	float land_fraction = [[planetInfo objectForKey:@"land_fraction"] floatValue];
 	float sea_bias = land_fraction - 1.0;
@@ -180,62 +188,36 @@ NSMutableDictionary	*textureUniversalDictionary = nil;
 	// Pale sea colour gives a better transition between land and sea., Backported from the new planets code.
 	OOColor* pale_sea_color = [polar_sea_color blendedColorWithFraction:0.45 ofColor:[sea_color blendedColorWithFraction:0.7 ofColor:land_color]];
 	
-	fillSquareImageWithPlanetTex( imageBuffer, texture_w, 4, 1.0, sea_bias,
+	fillSquareImageWithPlanetTex(imageBuffer, texture_w, 4, 1.0, sea_bias,
 		sea_color,
 		pale_sea_color,
 		land_color,
 		polar_land_color);
-
-	texBytes = imageBuffer;
-
-	OOGL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-	OOGL(glGenTextures(1, &texName));
-	OOGL(glBindTexture(GL_TEXTURE_2D, texName));
 	
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-
-	OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes));
-
-	return texName;
+	return YES;
 }
 
 
-+ (GLuint) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData
++ (BOOL) getCloudTextureNameFor:(OOColor*) color: (GLfloat) impress: (GLfloat) bias intoData:(unsigned char **)textureData width:(GLuint *)textureWidth height:(GLuint *)textureHeight
 {
-	GLuint				texName;
-
-	unsigned char		*texBytes;
-
-	int					texture_h = 512;
-	int					texture_w = 512;
+	int					texture_h = PROC_TEXTURE_SIZE;
+	int					texture_w = PROC_TEXTURE_SIZE;
 	int					tex_bytes;
-
+	
 	tex_bytes = texture_w * texture_h * 4;
-
-	unsigned char* imageBuffer = malloc( tex_bytes);
-	if (imageBuffer)
-		(*textureData) = imageBuffer;
-
-//	fillRanNoiseBuffer();
+	
+	NSParameterAssert(textureData != NULL && textureWidth != NULL && textureHeight != NULL);
+	
+	unsigned char *imageBuffer = malloc(tex_bytes);
+	if (imageBuffer == NULL)  return NO;
+	
+	*textureData = imageBuffer;
+	*textureWidth = texture_w;
+	*textureHeight = texture_h;
+	
 	fillSquareImageDataWithCloudTexture( imageBuffer, texture_w, 4, color, impress, bias);
-
-	texBytes = imageBuffer;
-
-	OOGL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-	OOGL(glGenTextures(1, &texName));
-	OOGL(glBindTexture(GL_TEXTURE_2D, texName));
-
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));	// adjust this
-	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));	// adjust this
-
-	OOGL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture_w, texture_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBytes));
-
-	return texName;
+	
+	return YES;
 }
 
 #endif
