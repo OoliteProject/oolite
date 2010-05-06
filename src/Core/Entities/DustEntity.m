@@ -33,6 +33,10 @@ MA 02110-1301, USA.
 #import "PlayerEntity.h"
 
 
+#define FAR_PLANE		(DUST_SCALE * 0.50f)
+#define NEAR_PLANE		(DUST_SCALE * 0.25f)
+
+
 // Declare protocol conformance
 @interface DustEntity (OOGraphicsResetClient) <OOGraphicsResetClient>
 @end
@@ -67,9 +71,13 @@ MA 02110-1301, USA.
 
 - (void) dealloc
 {
-	[dust_color release];
+	DESTROY(dust_color);
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	OOGL(glDeleteLists(displayListName, 1));
+	
+#if OO_SHADERS
+	DESTROY(shader);
+#endif
 	
 	[super dealloc];
 }
@@ -83,7 +91,7 @@ MA 02110-1301, USA.
 }
 
 
-- (OOColor *) dust_color
+- (OOColor *) dustColor
 {
 	return dust_color;
 }
@@ -102,7 +110,7 @@ MA 02110-1301, USA.
 	
 	zero_distance = 0.0;
 			
-	Vector offset = player->position;
+	Vector offset = [player position];
 	GLfloat  half_scale = DUST_SCALE * 0.50;
 	int vi;
 	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
@@ -122,8 +130,29 @@ MA 02110-1301, USA.
 		while (vertices[vi].z - offset.z > half_scale)
 			vertices[vi].z -= DUST_SCALE;
 	}
-						
 }
+
+
+#if OO_SHADERS
+- (OOShaderProgram *) shader
+{
+	if (shader == nil)
+	{
+		NSString *prefix = [NSString stringWithFormat:
+						   @"#define OODUST_SCALE_MAX    (float(%g))\n"
+							"#define OODUST_SCALE_FACTOR (float(%g))\n",
+							FAR_PLANE / NEAR_PLANE,
+							1.0f / (FAR_PLANE - NEAR_PLANE)];
+		
+		shader = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-dust.vertex"
+												  fragmentShaderName:@"oolite-dust.fragment"
+															  prefix:prefix
+												   attributeBindings:nil] retain];
+	}
+	
+	return shader;
+}
+#endif
 
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
@@ -138,28 +167,37 @@ MA 02110-1301, USA.
 	int vi;
 
 	GLfloat *fogcolor = [UNIVERSE skyClearColor];
-	int  dust_size = floor([[UNIVERSE gameView] viewSize].width / 480.0);
-	if (dust_size < 1.0)
-		dust_size = 1.0;
+	int  dust_size = [[UNIVERSE gameView] viewSize].width / 480.0;
+	if (dust_size < 1)  dust_size = 1;
 	int  line_size = dust_size / 2;
-	if (line_size < 1.0)
-		line_size = 1.0;
-	GLfloat  half_scale = DUST_SCALE * 0.50;
-	GLfloat  quarter_scale = DUST_SCALE * 0.25;
+	if (line_size < 1) line_size = 1;
 	
-	if ([UNIVERSE breakPatternHide])	return;	// DON'T DRAW
-
+	if ([UNIVERSE breakPatternHide])  return;	// DON'T DRAW
+	
 	BOOL	warp_stars = [player atHyperspeed];
 	Vector  warp_vector = vector_multiply_scalar([player velocity], 1.0f / HYPERSPEED_FACTOR);
-		
+#if OO_SHADERS
+	BOOL	useShader = [UNIVERSE shaderEffectsLevel] > SHADERS_OFF;
+#endif
+	
 	if (translucent)
 	{
-		OOGL(glEnable(GL_FOG));
-		OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-		OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
-		OOGL(glHint(GL_FOG_HINT, GL_NICEST));
-		OOGL(glFogf(GL_FOG_START, quarter_scale));
-		OOGL(glFogf(GL_FOG_END, half_scale));
+#if OO_SHADERS
+		if (useShader)
+		{
+			[[self shader] apply];
+			OOGL(glEnable(GL_BLEND));
+		}
+		else
+#endif
+		{
+			OOGL(glEnable(GL_FOG));
+			OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
+			OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
+			OOGL(glHint(GL_FOG_HINT, GL_NICEST));
+			OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
+			OOGL(glFogf(GL_FOG_END, FAR_PLANE));
+		}
 		
 		// disapply lighting and texture
 		OOGL(glDisable(GL_TEXTURE_2D));
@@ -192,7 +230,16 @@ MA 02110-1301, USA.
 		OOGLEND();
 		
 		// reapply normal conditions
-		OOGL(glDisable(GL_FOG));
+#if OO_SHADERS
+		if (useShader)
+		{
+			[OOShaderProgram applyNone];
+		}
+		else
+#endif
+		{
+			OOGL(glDisable(GL_FOG));
+		}
 	}
 	
 	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
@@ -206,6 +253,10 @@ MA 02110-1301, USA.
 		OOGL(glDeleteLists(displayListName, 1));
 		displayListName = 0;
 	}
+	
+#if OO_SHADERS
+	DESTROY(shader);
+#endif
 }
 
 

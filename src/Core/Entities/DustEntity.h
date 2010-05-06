@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
+#import "OOShaderProgram.h"
 
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
@@ -33,13 +34,17 @@ MA 02110-1301, USA.
 
 @interface DustEntity: Entity
 {
-	OOColor			*dust_color;
-	Vector			vertices[DUST_N_PARTICLES];
-	GLfloat			color_fv[4];
-	GLuint			displayListName;
+	OOColor				*dust_color;
+	Vector				vertices[DUST_N_PARTICLES];
+	GLfloat				color_fv[4];
+	GLuint				displayListName;
+	
+#if OO_SHADERS
+	OOShaderProgram		*shader;
+#endif
 }
 
 - (void) setDustColor:(OOColor *) color;
-- (OOColor *) dust_color;
+- (OOColor *) dustColor;
 
 @end
