@@ -809,7 +809,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	{
 		// No AddOns at all. Show the first existing AddOns folder (paths are in order of preference, etc...).
 		BOOL		pathIsDirectory;
-		NSString	*path;
+		NSString	*path = nil;
 		uint		i = 1;
 		
 		while (i < [[ResourceManager rootPaths] count])
@@ -824,7 +824,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
-- (BOOL)validateMenuItem:(id <NSMenuItem>)menuItem
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
 	if ([menuItem action] == @selector(showLogAction:))
 	{
