@@ -826,19 +826,21 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (BOOL)validateMenuItem:(NSMenuItem *)menuItem
 {
-	if ([menuItem action] == @selector(showLogAction:))
+	SEL action = [menuItem action];
+	
+	if (action == @selector(showLogAction:))
 	{
 		// the first path is always Resources
 		return ([[NSFileManager defaultManager] fileExistsAtPath:[OOLogHandlerGetLogBasePath() stringByAppendingPathComponent:@"Previous.log"]]);
 	}
 	
-	if ([menuItem action] == @selector(showAddOnsAction:))
+	if (action == @selector(showAddOnsAction:))
 	{
 		// Always enabled in unrestricted mode, to allow users to add OXPs more easily.
 		return [ResourceManager useAddOns];
 	}
 	
-	if ([menuItem action] == @selector(showSnapshotsAction:))
+	if (action == @selector(showSnapshotsAction:))
 	{
 		BOOL	pathIsDirectory;
 		if(![[NSFileManager defaultManager] fileExistsAtPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR] isDirectory:&pathIsDirectory]) return NO;

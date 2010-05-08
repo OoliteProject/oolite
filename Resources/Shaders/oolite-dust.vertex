@@ -46,7 +46,7 @@ void main(void)
 		then clamp to [0..1].
 	*/
 	float alpha = clamp(OODUST_SCALE_MAX - distance * OODUST_SCALE_FACTOR, 0.0, 1.0);
-	vColor = vec4(gl_Color.rgb, alpha);
+	vColor = vec4(gl_Color.rgb, alpha * gl_Color.a);
 	
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 }

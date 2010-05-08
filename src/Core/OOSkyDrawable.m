@@ -414,7 +414,7 @@ static OOColor *DebugColor(Vector orientation)
 							initWithPListName:@"startextures.plist"
 									  options:kOOTextureMinFilterMipMap | kOOTextureMagFilterLinear
 								   anisotropy:0.0f
-									  lodBias:-0.6f];
+									  lodBias:-0.0f];
 		if (sStarTextures == nil)
 		{
 			[NSException raise:OOLITE_EXCEPTION_DATA_NOT_FOUND format:@"No star textures could be loaded."];

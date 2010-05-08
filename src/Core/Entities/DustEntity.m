@@ -157,89 +157,95 @@ MA 02110-1301, USA.
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
 {
+	if ([UNIVERSE breakPatternHide] || !translucent)  return;	// DON'T DRAW
+	
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_NO_DUST)  return;
 #endif
-	
-	int vi;
 
-	GLfloat *fogcolor = [UNIVERSE skyClearColor];
-	int  dust_size = [[UNIVERSE gameView] viewSize].width / 480.0;
-	if (dust_size < 1)  dust_size = 1;
-	int  line_size = dust_size / 2;
-	if (line_size < 1) line_size = 1;
+	GLfloat	*fogcolor = [UNIVERSE skyClearColor];
+	float	idealDustSize = [[UNIVERSE gameView] viewSize].width / 1200.0f;
 	
-	if ([UNIVERSE breakPatternHide])  return;	// DON'T DRAW
+	float dustPointSize = ceilf(idealDustSize);
+	if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
+	
+	float idealLineSize = idealDustSize * 0.5f;
+	float dustLineSize = ceilf(idealLineSize);
+	if (dustLineSize < 1.0f) dustLineSize = 1.0f;
 	
 	BOOL	warp_stars = [player atHyperspeed];
 	Vector  warp_vector = vector_multiply_scalar([player velocity], 1.0f / HYPERSPEED_FACTOR);
+	GLenum	dustMode;
+	float	dustIntensity;
 #if OO_SHADERS
 	BOOL	useShader = [UNIVERSE shaderEffectsLevel] > SHADERS_OFF;
 #endif
 	
-	if (translucent)
+	if (!warp_stars)
 	{
+		// Draw points.
+		OOGL(glEnable(GL_POINT_SMOOTH));
+		OOGL(glPointSize(dustPointSize));
+		dustMode = GL_POINTS;
+		dustIntensity = OOClamp_0_1_f(idealDustSize / dustPointSize);
+	}
+	else
+	{
+		// Draw lines.
+		OOGL(glEnable(GL_LINE_SMOOTH));
+		OOGL(glLineWidth(dustLineSize));
+		dustMode = GL_LINES;
+		dustIntensity = OOClamp_0_1_f(idealLineSize / dustLineSize);
+	}
+	
+	float	*color = NULL;
+	if (player->isSunlit)  color = color_fv;
+	else  color = UNIVERSE->stars_ambient;
+	
 #if OO_SHADERS
-		if (useShader)
-		{
-			[[self shader] apply];
-			OOGL(glEnable(GL_BLEND));
-		}
-		else
+	if (useShader)
+	{
+		[[self shader] apply];
+		OOGL(glEnable(GL_BLEND));
+		OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
+	}
+	else
 #endif
-		{
-			OOGL(glEnable(GL_FOG));
-			OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
-			OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
-			OOGL(glHint(GL_FOG_HINT, GL_NICEST));
-			OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
-			OOGL(glFogf(GL_FOG_END, FAR_PLANE));
-		}
-		
-		// disapply lighting and texture
-		OOGL(glDisable(GL_TEXTURE_2D));
-		
-		if (player->isSunlit)  OOGL(glColor4fv(color_fv));
-		else  OOGL(glColor4fv(UNIVERSE->stars_ambient));
-		
-		GLenum dustMode;
-		
-		if (!warp_stars)
-		{
-			OOGL(glEnable(GL_POINT_SMOOTH));
-			OOGL(glPointSize(dust_size));
-			dustMode = GL_POINTS;
-		}
-		else
-		{
-			OOGL(glEnable(GL_LINE_SMOOTH));
-			OOGL(glLineWidth(line_size));
-			dustMode = GL_LINES;
-		}
-		
-		OOGLBEGIN(dustMode);
-		
-		for (vi = 0; vi < DUST_N_PARTICLES; vi++)
-		{
-			GLVertexOOVector(vertices[vi]);
-			if (warp_stars)  GLVertexOOVector(vector_subtract(vertices[vi], warp_vector));
-		}
-		OOGLEND();
-		
-		// reapply normal conditions
+	{
+		OOGL(glEnable(GL_FOG));
+		OOGL(glFogi(GL_FOG_MODE, GL_LINEAR));
+		OOGL(glFogfv(GL_FOG_COLOR, fogcolor));
+		OOGL(glHint(GL_FOG_HINT, GL_NICEST));
+		OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
+		OOGL(glFogf(GL_FOG_END, FAR_PLANE));
+		OOGL(glColor4f(color[0] * dustIntensity, color[1] * dustIntensity, color[2] * dustIntensity, 1.0));
+	}
+	
+	OOGL(glDisable(GL_TEXTURE_2D));
+	
+	OOGLBEGIN(dustMode);
+	
+	unsigned vi;
+	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
+	{
+		GLVertexOOVector(vertices[vi]);
+		if (warp_stars)  GLVertexOOVector(vector_subtract(vertices[vi], warp_vector));
+	}
+	OOGLEND();
+	
+	// reapply normal conditions
 #if OO_SHADERS
-		if (useShader)
-		{
-			[OOShaderProgram applyNone];
-		}
-		else
+	if (useShader)
+	{
+		[OOShaderProgram applyNone];
+	}
+	else
 #endif
-		{
-			OOGL(glDisable(GL_FOG));
-		}
+	{
+		OOGL(glDisable(GL_FOG));
 	}
 	
 	CheckOpenGLErrors(@"DustEntity after drawing %@", self);
