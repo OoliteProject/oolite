@@ -152,6 +152,7 @@ fi
 
 echo "Updated from revision $LAST_REVISION to $CURRENT_REVISION, building..."
 
+
 # Delete existing build products so no old files are left lying around.
 if [ -e $OOLITE_APP_PKG ]
 then
@@ -161,6 +162,7 @@ if [ -e $DEBUG_OXP_PKG ]
 then
 	rm -rf $DEBUG_OXP_PKG
 fi
+
 
 # Nastytacular: overwrite the oolite-snapshot.xcconfig file to generate the nightly watermark macros.
 # The backslash jungle builds a string like -DOOLITE_SNAPSHOT_VERSION="\"1.74-3040\"".
@@ -174,19 +176,19 @@ xcodebuild -project Oolite.xcodeproj -target "Build All" -configuration $CONFIGU
 grep "^[^\ ]" $STDOUT_FILE > $STATUS_FILE
 grep -e "warning:" -e "error:" $STDOUT_FILE | grep -v -e "-mlong-branch" > $DIAGNOSTICS_FILE
 
-# ERROR_COUNT=`grep "error:" $STDOUT_FILE | wc -l | tr -d " "`
-# Count all diagnostics since we build with -Werror (and I don't want to
-# disable that for nightlies).
-ERROR_COUNT=`cat $DIAGNOSTICS_FILE | wc -l | tr -d " "`
 
 # Set last revision regardless of success or failure, on the basis that a
 # failed build isn't likely to suddenly work if you just retry it a day later.
 echo $CURRENT_REVISION > $LAST_REVISION_FILE
 
 
-if [ $ERROR_COUNT -ne 0 ]
+# Check for failure.
+grep -e "^\*\* BUILD FAILED \*\*$" $STDERR_FILE
+if [ $? -ne 1 ]
 then
-	fail "Build failed with $ERROR_COUNT errors."
+	ERROR_COUNT=`grep "error:" $STDOUT_FILE | wc -l | tr -d " "`
+	WARNING_COUNT=`grep "warning:" $STDOUT_FILE | wc -l | tr -d " "`
+	fail "Build failed with $ERROR_COUNT errors and $WARNING_COUNT warnings."
 fi
 
 
@@ -201,12 +203,14 @@ fi
 mv $SUCCESS_REVISION_FILE $PREVIOUS_SUCCESS_REVISION_FILE
 echo $CURRENT_REVISION > $SUCCESS_REVISION_FILE
 
+
 # Keep logs of latest successful build.
 if [ -e $LOG_SUCCESS ]
 then
 	rm -rf $LOG_SUCCESS
 fi
 cp -R $LOG $LOG_SUCCESS
+
 
 # Pack up a zip file.
 FULLVERSION=$OOLITE_VERSION.0.$CURRENT_REVISION-dev
@@ -231,6 +235,7 @@ then
 fi
 rm -rf $PACKAGE_NAME
 popd > /dev/null
+
 
 # Record date of this momentous event.
 date > $LAST_UPDATED_FILE
