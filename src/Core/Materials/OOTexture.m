@@ -399,6 +399,9 @@ static NSString *sGlobalTraceContext = nil;
 	NSEnumerator			*textureEnum = nil;
 	id						texture = nil;
 	
+	// Keeping around unused, cached textures is unhelpful at this point.
+	DESTROY(sRecentTextures);
+	
 	for (textureEnum = [sInUseTextures objectEnumerator]; (texture = [[textureEnum nextObject] pointerValue]); )
 	{
 		[texture forceRebind];
