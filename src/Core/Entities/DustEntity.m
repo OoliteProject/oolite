@@ -162,12 +162,10 @@ MA 02110-1301, USA.
 		NSString *prefix = [NSString stringWithFormat:
 						   @"#define OODUST_SCALE_MAX    (float(%g))\n"
 							"#define OODUST_SCALE_FACTOR (float(%g))\n"
-							"#define OODUST_SIZE         (float(%g))\n"
-							"#define OODUST_HALF_SIZE    (float(%g))\n",
+							"#define OODUST_SIZE         (float(%g))\n",
 							FAR_PLANE / NEAR_PLANE,
 							1.0f / (FAR_PLANE - NEAR_PLANE),
-							(float)DUST_SCALE,
-							(float)DUST_SCALE * 0.5f];
+							(float)DUST_SCALE];
 		
 		// Reuse tangent attribute ID for "warpiness", as we don't need a tangent.
 		NSDictionary *attributes = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kTangentAttributeIndex]
@@ -184,18 +182,24 @@ MA 02110-1301, USA.
 														 boundToObject:self
 															  property:@selector(warpVector)
 														convertOptions:0];
-		OOShaderUniform *uPlayerPosition = [[OOShaderUniform alloc] initWithName:@"uPlayerPosition"
+		OOShaderUniform *uOffsetPlayerPosition = [[OOShaderUniform alloc] initWithName:@"uOffsetPlayerPosition"
 																   shaderProgram:shader
-																   boundToObject:[PlayerEntity sharedPlayer]
-																		property:@selector(position)
+																   boundToObject:self
+																		property:@selector(offsetPlayerPosition)
 																  convertOptions:0];
 		
-		uniforms = [[NSArray alloc] initWithObjects:uWarp, uPlayerPosition, nil];
+		uniforms = [[NSArray alloc] initWithObjects:uWarp, uOffsetPlayerPosition, nil];
 		[uWarp release];
-		[uPlayerPosition release];
+		[uOffsetPlayerPosition release];
 	}
 	
 	return shader;
+}
+
+
+- (Vector) offsetPlayerPosition
+{
+	return vector_subtract([[PlayerEntity sharedPlayer] position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
 #endif
 

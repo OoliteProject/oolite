@@ -27,8 +27,7 @@
 
 #define OODUST_SCALE_MAX    (float(2))
 #define OODUST_SCALE_FACTOR (float(0.002))
-#define OODUST_SIZE         (float(2000))
-#define OODUST_HALF_SIZE    (float(1000))
+#define OODUST_SIZE			(float(2000))
 */
 
 
@@ -38,7 +37,9 @@
 */
 attribute float	aWarpiness;
 uniform vec4	uWarp;
-uniform vec4	uPlayerPosition;
+
+//	Dust, offset by -OODUST_SIZE/2 on each coordinate.
+uniform vec4	uOffsetPlayerPosition;
 
 varying vec4	vColor;
 
@@ -50,11 +51,10 @@ void main(void)
 		each particle to be somewhere in a cube of the same size around the
 		player, creating an infinite repeating pattern.
 	*/
-	vec4 position = mod(gl_Vertex - uPlayerPosition + OODUST_HALF_SIZE, OODUST_SIZE) - OODUST_HALF_SIZE + uPlayerPosition;
+	vec4 position = mod(gl_Vertex -  + uOffsetPlayerPosition, OODUST_SIZE) + uOffsetPlayerPosition;
 	position = position - uWarp * aWarpiness;
 	
-	/*	Project the dust, and find its distance from the camera.
-	*/
+	//	Project the dust, and find its distance from the camera.
 	position.w = 1.0;
 	position = gl_ModelViewProjectionMatrix * position;
 	gl_Position = position;
