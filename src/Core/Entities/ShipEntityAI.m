@@ -2058,7 +2058,7 @@ static WormholeEntity *whole = nil;
 												relativeToEntity:self];
 	}
 	
-	distanceToStation2 = distance2( [station position], [self position] );
+	distanceToStation2 = distance2([station position], [self position]);
 	
 	// Player check for being inside the aegis already exists in PlayerEntityControls. We just
 	// check here that distance to station is less than 2.5 times scanner range to avoid problems with
@@ -2070,15 +2070,23 @@ static WormholeEntity *whole = nil;
 		// remember the instructions
 		[dockingInstructions release];
 		dockingInstructions = [[station dockingInstructionsForShip:self] retain];
-		
-		[self recallDockingInstructions];
-		
-		message = [dockingInstructions objectForKey:@"ai_message"];
-		if (message != nil)  [shipAI message:message];
-		message = [dockingInstructions objectForKey:@"comms_message"];
-		if (message != nil)  [station sendExpandedMessage:message toShip:self];
+		if (dockingInstructions != nil)
+		{
+			[self recallDockingInstructions];
+			
+			message = [dockingInstructions objectForKey:@"ai_message"];
+			if (message != nil)  [shipAI message:message];
+			message = [dockingInstructions objectForKey:@"comms_message"];
+			if (message != nil)  [station sendExpandedMessage:message toShip:self];
+		}
+
 	}
 	else
+	{
+		DESTROY(dockingInstructions);
+	}
+	
+	if (dockingInstructions == nil)
 	{
 		[shipAI message:@"NO_STATION_FOUND"];
 	}

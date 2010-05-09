@@ -494,7 +494,12 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		// reached the current coordinates okay..
 	
 		// get the NEXT coordinates
-		nextCoords = (NSMutableDictionary *)[coordinatesStack objectAtIndex:1];
+		nextCoords = (NSMutableDictionary *)[coordinatesStack oo_dictionaryAtIndex:1];
+		if (nextCoords == nil)
+		{
+			return nil;
+		}
+		
 		docking_stage = [nextCoords oo_intForKey:@"docking_stage"];
 		speedAdvised = [nextCoords oo_floatForKey:@"speed"];
 		rangeAdvised = [nextCoords oo_floatForKey:@"range"];
@@ -502,7 +507,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		NSString *comms_message = [nextCoords oo_stringForKey:@"comms_message"];
 		
 		if (comms_message)
+		{
 			[self sendExpandedMessage: comms_message toShip: ship];
+		}
 				
 		// calculate world coordinates from relative coordinates
 		rel_coords.x = [(NSNumber *)[nextCoords objectForKey:@"rx"] floatValue];
