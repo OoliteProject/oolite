@@ -43,9 +43,6 @@ MA 02110-1301, USA.
 #import "JoystickHandler.h"
 
 
-#define OLD_ICONS 0
-
-
 #define kOOLogUnconvertedNSLog @"unclassified.HeadUpDisplay"
 
 
@@ -63,10 +60,6 @@ static void hudDrawMarkerAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double 
 static void hudDrawBarAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz, double amount);
 static void hudDrawSurroundAt(GLfloat x, GLfloat y, GLfloat z, NSSize siz);
 static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize siz);
-#if OLD_ICONS
-static void hudDrawMineIconAt(int x, int y, int z, NSSize siz);
-static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz);
-#endif
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz);
 static void hudDrawReticleOnTarget(Entity* target, PlayerEntity* player1, GLfloat z1, GLfloat alpha, BOOL reticleTargetSensitive);
 static void drawScannerGrid(double x, double y, double z, NSSize siz, int v_dir, GLfloat thickness, double zoom);
@@ -1677,8 +1670,6 @@ OOINLINE void SetCompassBlipColor(GLfloat relativeZ, GLfloat alpha)
 }
 
 
-#if !OLD_ICONS
-
 static NSString * const kDefaultMissileIconKey = @"oolite-default-missile-icon";
 static NSString * const kDefaultMineIconKey = @"oolite-default-mine-icon";
 static const GLfloat kOutlineWidth = 0.5f; 
@@ -1788,8 +1779,6 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	OOGL(glPopMatrix());
 }
 
-#endif
-
 
 - (void) drawMissileDisplay:(NSDictionary *) info
 {
@@ -1813,9 +1802,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if (![player dialIdentEngaged])
 	{
-#if !OLD_ICONS
 		OOMissileStatus status = [player dialMissileStatus];
-#endif
 		unsigned n_mis = [player dialMaxMissiles];
 		unsigned i;
 		for (i = 0; i < n_mis; i++)
@@ -1823,110 +1810,17 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 			ShipEntity *missile = [player missileForPylon:i];
 			if (missile)
 			{
-#if !OLD_ICONS
 				[self drawIconForMissile:missile
 								selected:i == [player activeMissile]
 								  status:status
 									   x:x + (int)i * sp + 2 y:y
 								   width:siz.width *0.25f height:siz.height *0.25f
 								   alpha:alpha];
-#else
-				// TODO: copy icon data into missile object instead of looking it up each time. Possibly make weapon stores a ShipEntity subclass?
-				NSString	*miss_roles = [missile primaryRole];
-				NSArray		*miss_icon = [[UNIVERSE descriptions] oo_arrayForKey:miss_roles];
-				if (i == [player activeMissile])
-				{
-					GLColorWithOverallAlpha(yellow_color, alpha);
-					OOGLBEGIN(GL_POLYGON);
-						if (miss_icon)
-						{
-							hudDrawSpecialIconAt(miss_icon, x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
-						}
-						else
-						{
-							if ([miss_roles hasSuffix:@"MISSILE"])
-								hudDrawMissileIconAt(x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
-							if ([miss_roles hasSuffix:@"MINE"])
-								hudDrawMineIconAt(x + i * sp + 2, y + 1, z1, NSMakeSize(siz.width + 4, siz.height + 4));
-						}
-					OOGLEND();
-					
-					// Draw black backing, so outline colour isn’t blended into missile colour.
-					GLColorWithOverallAlpha(black_color, alpha);
-					OOGLBEGIN(GL_POLYGON);
-						if (miss_icon)
-						{
-							hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
-						}
-						else
-						{
-							if ([miss_roles hasSuffix:@"MISSILE"])
-								hudDrawMissileIconAt(x + i * sp, y, z1, siz);
-							if ([miss_roles hasSuffix:@"MINE"])
-								hudDrawMineIconAt(x + i * sp, y, z1, siz);
-						}
-					OOGLEND();
-					
-					switch ([player dialMissileStatus])
-					{
-						case MISSILE_STATUS_SAFE :
-							GLColorWithOverallAlpha(green_color, alpha);		break;
-						case MISSILE_STATUS_ARMED :
-							GLColorWithOverallAlpha(yellow_color, alpha);	break;
-						case MISSILE_STATUS_TARGET_LOCKED :
-							GLColorWithOverallAlpha(red_color, alpha);		break;
-					}
-				}
-				else
-				{
-					if ([missile primaryTarget])
-						GLColorWithOverallAlpha(red_color, alpha);
-					else
-						GLColorWithOverallAlpha(green_color, alpha);
-				}
-				OOGLBEGIN(GL_POLYGON);
-					if (miss_icon)
-					{
-						hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
-					}
-					else
-					{
-						if ([miss_roles hasSuffix:@"MISSILE"])
-							hudDrawMissileIconAt(x + i * sp, y, z1, siz);
-						if ([miss_roles hasSuffix:@"MINE"])
-							hudDrawMineIconAt(x + i * sp, y, z1, siz);
-					}
-				OOGLEND();
-				if (i != [player activeMissile])
-				{
-					GLColorWithOverallAlpha(green_color, alpha);
-					OOGLBEGIN(GL_LINE_LOOP);
-						if (miss_icon)
-						{
-							hudDrawSpecialIconAt(miss_icon, x + i * sp, y, z1, siz);
-						}
-						else
-						{
-							if ([miss_roles hasSuffix:@"MISSILE"])
-								hudDrawMissileIconAt(x + i * sp, y, z1, siz);
-							if ([miss_roles hasSuffix:@"MINE"])
-								hudDrawMineIconAt(x + i * sp, y, z1, siz);
-						}
-					OOGLEND();
-				}
-#endif
 			}
 			else
 			{
-#if !OLD_ICONS
 				[self drawIconForEmptyPylonAtX:x + (int)i * sp + 2 y:y
 									width:siz.width *0.25f height:siz.height *0.25f alpha:alpha];
-#else
-				GLColorWithOverallAlpha(lightgray_color, alpha);
-				OOGLBEGIN(GL_LINE_LOOP);
-				hudDrawMissileIconAt(x + i * sp, y, z1, siz);
-				OOGLEND();
-#endif
 			}
 		}
 	}
@@ -2483,41 +2377,6 @@ static void hudDrawSpecialIconAt(NSArray* ptsArray, int x, int y, int z, NSSize 
 		glVertex3i(ox + x * w, oy + y * h, z);
 	}
 }
-
-
-#if OLD_ICONS
-static void hudDrawMissileIconAt(int x, int y, int z, NSSize siz)
-{
-	int ox = x - siz.width / 2.0;
-	int oy = y - siz.height / 2.0;
-	int w = siz.width / 4.0;
-	int h = siz.height / 4.0; 
-
-	glVertex3i(ox + 0 * w, oy + 3 * h, z);
-	glVertex3i(ox + 2 * w, oy + 0 * h, z);
-	glVertex3i(ox + 1 * w, oy + 0 * h, z);
-	glVertex3i(ox + 1 * w, oy - 2 * h, z);
-	glVertex3i(ox - 1 * w, oy - 2 * h, z);
-	glVertex3i(ox - 1 * w, oy + 0 * h, z);
-	glVertex3i(ox - 2 * w, oy + 0 * h, z);
-}
-
-
-static void hudDrawMineIconAt(int x, int y, int z, NSSize siz)
-{
-	int ox = x - siz.width / 2.0;
-	int oy = y - siz.height / 2.0;
-	int w = siz.width / 4.0;
-	int h = siz.height / 4.0; 
-
-	glVertex3i(ox + 0 * w, oy + 2 * h, z);
-	glVertex3i(ox + 1 * w, oy + 1 * h, z);
-	glVertex3i(ox + 1 * w, oy - 1 * h, z);
-	glVertex3i(ox + 0 * w, oy - 2 * h, z);
-	glVertex3i(ox - 1 * w, oy - 1 * h, z);
-	glVertex3i(ox - 1 * w, oy + 1 * h, z);
-}
-#endif
 
 
 static void hudDrawStatusIconAt(int x, int y, int z, NSSize siz)
