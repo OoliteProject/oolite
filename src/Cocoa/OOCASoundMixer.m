@@ -2,10 +2,6 @@
 
 OOCASoundMixer.m
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
-
 
 OOCASound - Core Audio sound implementation for Oolite.
 Copyright (C) 2005-2008 Jens Ayton
@@ -33,6 +29,7 @@ SOFTWARE.
 #import "OOCASoundInternal.h"
 #import "OOCASoundChannel.h"
 #import "NSThreadOOExtensions.h"
+#import "OOCASoundDebugMonitor.h"
 
 
 static NSString * const kOOLogSoundInspetorNotLoaded			= @"sound.mixer.inspector.loadFailed";
@@ -50,6 +47,21 @@ static NSString * const kOOLogSoundMixerFailedToConnectChannel	= @"sound.mixer.f
 
 
 static OOSoundMixer *sSingleton = nil;
+
+
+#ifndef NDEBUG
+id <OOCASoundDebugMonitor> gOOCASoundDebugMonitor = nil;
+
+void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor)
+{
+	if (monitor != gOOCASoundDebugMonitor)
+	{
+		gOOCASoundDebugMonitor = monitor;
+		[monitor soundDebugMonitorNoteChannelMaxCount:kMixerGeneralChannels];
+	}
+}
+#endif
+
 
 @implementation OOSoundMixer
 
@@ -141,13 +153,6 @@ static OOSoundMixer *sSingleton = nil;
 			[super release];
 			self = nil;
 		}
-		
-		#if SUPPORT_SOUND_INSPECTOR
-		if (![NSBundle loadNibNamed:@"SoundInspector" owner:self])
-		{
-			OOLog(kOOLogSoundInspetorNotLoaded, @"Failed to load sound inspector panel.");
-		}
-		#endif
 	}
 	sSingleton = self;
 	
@@ -195,6 +200,21 @@ static OOSoundMixer *sSingleton = nil;
 
 - (void)update
 {
+#ifndef NDEBUG
+	if (gOOCASoundDebugMonitor != nil)
+	{
+		[gOOCASoundDebugMonitor soundDebugMonitorNoteActiveChannelCount:_activeChannels];
+		[gOOCASoundDebugMonitor soundDebugMonitorNoteChannelUseMask:_playMask];
+		
+		Float32 load;
+		if (!AUGraphGetCPULoad(_graph, &load))
+		{
+			[gOOCASoundDebugMonitor soundDebugMonitorNoteAUGraphLoad:load];
+		}
+	}
+#endif
+	
+	
 #if SUPPORT_SOUND_INSPECTOR
 	uint32_t					i;
 	Float32						load;
@@ -218,22 +238,6 @@ static OOSoundMixer *sSingleton = nil;
 	}
 #endif
 }
-
-
-#if SUPPORT_SOUND_INSPECTOR
-- (void)awakeFromNib
-{
-	uint32_t					i;
-	
-	if (nil != checkBoxes)
-	{
-		for (i = 0; i != kMixerGeneralChannels; ++i)
-		{
-			[[checkBoxes cellWithTag:i] setIntValue:0];
-		}
-	}
-}
-#endif
 
 
 - (void)setMasterVolume:(float)inVolume

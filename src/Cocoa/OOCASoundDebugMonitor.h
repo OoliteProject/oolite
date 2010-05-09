@@ -1,14 +1,12 @@
 /*
 
-OOCASoundMixer.h
+OOCASoundDebugMonitor.h
 
-Class responsible for managing and mixing sound channels. This class is an
-implementation detail. Do not use it directly; use an OOSoundSource to play an
-OOSound.
+Protocol for debugging information for sound system.
 
 
 OOCASound - Core Audio sound implementation for Oolite.
-Copyright (C) 2005-2008 Jens Ayton
+Copyright (C) 2005-2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,42 +28,22 @@ SOFTWARE.
 
 */
 
-#import <Foundation/Foundation.h>
-#import <mach/port.h>
-#import <AudioToolbox/AudioToolbox.h>
-
-@class OOMusic, OOSoundChannel, OOSoundSource;
+#import "OOCASoundInternal.h"
 
 
-enum
-{
-	kMixerGeneralChannels		= 32
-};
+#ifndef NDEBUG
 
+@protocol OOCASoundDebugMonitor
 
-@interface OOSoundMixer: NSObject
-{
-	OOSoundChannel				*_channels[kMixerGeneralChannels];
-	OOSoundChannel				*_freeList;
-	NSLock						*_listLock;
-	
-	AUGraph						_graph;
-	AUNode						_mixerNode;
-	AUNode						_outputNode;
-	AudioUnit					_mixerUnit;
-	
-	uint32_t					_activeChannels;
-	uint32_t					_playMask;
-}
+- (void) soundDebugMonitorNoteChannelMaxCount:(OOUInteger)maxChannels;
+- (void) soundDebugMonitorNoteActiveChannelCount:(OOUInteger)usedChannels;
+- (void) soundDebugMonitorNoteChannelUseMask:(uintmax_t)channelMask;	// Bit mask for used channels; if usedChannels & (1 << 0), channel 0 is in use etc.
 
-// Singleton accessor
-+ (id) sharedMixer;
-
-- (void) update;
-
-- (void) setMasterVolume:(float)inVolume;
-
-- (OOSoundChannel *) popChannel;
-- (void) pushChannel:(OOSoundChannel *)inChannel;
+- (void) soundDebugMonitorNoteAUGraphLoad:(float)load;
 
 @end
+
+
+extern void OOSoundRegisterDebugMonitor(id <OOCASoundDebugMonitor> monitor);
+
+#endif

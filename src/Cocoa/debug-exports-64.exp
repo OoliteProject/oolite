@@ -62,6 +62,7 @@ _VectorDescription
 _BehaviourToString
 _kOOLogUnconvertedNSLog
 _ShaderSettingToString
+_OOSoundRegisterDebugMonitor
 
 # Debug value formatter support
 _JSValueToStrDbg
