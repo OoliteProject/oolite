@@ -161,7 +161,7 @@ enum
 	GLfloat					sun_diffuse[4];
 	GLfloat					sun_specular[4];
 
-	OOViewID				viewDirection;	// read only
+	OOViewID				viewDirection;
 	
 	OOMatrix				viewMatrix;
 	

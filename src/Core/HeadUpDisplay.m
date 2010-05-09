@@ -1921,27 +1921,24 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 }
 
 
-- (void) drawDirectionCue:(NSDictionary *) info
+- (void) drawDirectionCue:(NSDictionary *)info
 {
 	PlayerEntity	*player = [PlayerEntity sharedPlayer];
 	NSString		*equipment = nil;
-	GLfloat		alpha = overallAlpha;
+	GLfloat			alpha = overallAlpha;
 	
  	// the direction cue is an advanced option
 	// so we need to check for its extra equipment flag first
 	equipment = [info oo_stringForKey:EQUIPMENT_REQUIRED_KEY];
-	if (equipment != nil && ![player hasEquipmentItem:equipment])
-		return;
+	if (equipment != nil && ![player hasEquipmentItem:equipment])  return;
 	
 	alpha *= [info oo_nonNegativeFloatForKey:ALPHA_KEY defaultValue:1.0f];
 	
-	if ([UNIVERSE displayGUI])
-		return;
+	if ([UNIVERSE displayGUI])  return;
 	
-	GLfloat		clear_color[4] = {0.0, 1.0, 0.0, 0.0};
+	GLfloat		clear_color[4] = {0.0f, 1.0f, 0.0f, 0.0f};
 	Entity		*target = [player primaryTarget];
-	if (!target)
-		return;
+	if (target == nil)  return;
 	
 	// draw the direction cue
 	OOMatrix	rotMatrix;
@@ -1951,45 +1948,57 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 	
 	if ([UNIVERSE viewDirection] != VIEW_GUI_DISPLAY)
 	{
-		GLfloat siz1 = CROSSHAIR_SIZE * (1.0 - ONE_EIGHTH);
-		GLfloat siz0 = CROSSHAIR_SIZE * ONE_EIGHTH;
-		GLfloat siz2 = CROSSHAIR_SIZE * (1.0 + ONE_EIGHTH);
+		const GLfloat innerSize = CROSSHAIR_SIZE;
+		const GLfloat width = CROSSHAIR_SIZE * ONE_EIGHTH;
+		const GLfloat outerSize = CROSSHAIR_SIZE * (1.0f + ONE_EIGHTH + ONE_EIGHTH);
+		const float visMin = 0.994521895368273f;	// cos(6 degrees)
+		const float visMax = 0.984807753012208f;	// cos(10 degrees)
 		
 		// Transform the view
 		Vector rpn = vector_subtract([target position], position);
 		rpn = OOVectorMultiplyMatrix(rpn, rotMatrix);
+		Vector drawPos = rpn;
+		Vector forward = kZeroVector;
 		
 		switch ([UNIVERSE viewDirection])
 		{
+			case VIEW_FORWARD:
+				forward = kBasisZVector;
+				break;
 			case VIEW_AFT:
-				rpn.x = - rpn.x;
+				drawPos.x = - drawPos.x;
+				forward = vector_flip(kBasisZVector);
 				break;
 			case VIEW_PORT:
-				rpn.x = rpn.z;
+				drawPos.x = drawPos.z;
+				forward = vector_flip(kBasisXVector);
 				break;
 			case VIEW_STARBOARD:
-				rpn.x = -rpn.z;
+				drawPos.x = -drawPos.z;
+				forward = kBasisXVector;
 				break;
 			case VIEW_CUSTOM:
-				rpn = OOVectorMultiplyMatrix(rpn, [player customViewMatrix]);
-				break;
+				return;
 			
 			default:
 				break;
 		}
-		rpn.z = 0;	// flatten vector
-		if (rpn.x||rpn.y)
+		
+		float cosAngle = dot_product(vector_normal(rpn), forward);
+		float visibility = 1.0f - ((visMax - cosAngle) * 1.0f / (visMax - visMin));
+		alpha *= OOClamp_0_1_f(visibility);
+		
+		if (alpha > 0.0f)
 		{
-			rpn = vector_normal(rpn);
-			OOGLBEGIN(GL_LINES);
+			drawPos.z = 0.0f;	// flatten vector
+			drawPos = vector_normal(drawPos);
+			OOGLBEGIN(GL_LINE_STRIP);
 				glColor4fv(clear_color);
-				glVertex3f(rpn.x * siz1 - rpn.y * siz0, rpn.y * siz1 + rpn.x * siz0, z1);
+				glVertex3f(drawPos.x * innerSize - drawPos.y * width, drawPos.y * innerSize + drawPos.x * width, z1);
 				GLColorWithOverallAlpha(green_color, alpha);
-				glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
+				glVertex3f(drawPos.x * outerSize, drawPos.y * outerSize, z1);
 				glColor4fv(clear_color);
-				glVertex3f(rpn.x * siz1 + rpn.y * siz0, rpn.y * siz1 - rpn.x * siz0, z1);
-				GLColorWithOverallAlpha(green_color, alpha);
-				glVertex3f(rpn.x * siz2, rpn.y * siz2, z1);
+				glVertex3f(drawPos.x * innerSize + drawPos.y * width, drawPos.y * innerSize - drawPos.x * width, z1);
 			OOGLEND();
 		}
 	}
