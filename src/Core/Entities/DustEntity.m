@@ -70,6 +70,7 @@ MA 02110-1301, USA.
 		indices[vi * 2 + 1] = vi + DUST_N_PARTICLES;
 		
 #if OO_SHADERS
+		vertices[vi + DUST_N_PARTICLES] = vertices[vi];
 		warpinessAttr[vi] = 0.0f;
 		warpinessAttr[vi + DUST_N_PARTICLES] = 1.0f;
 #endif
@@ -91,7 +92,7 @@ MA 02110-1301, USA.
 	
 #if OO_SHADERS
 	DESTROY(shader);
-	DESTROY(warpUniform);
+	DESTROY(uniforms);
 #endif
 	
 	[super dealloc];
@@ -120,6 +121,11 @@ MA 02110-1301, USA.
 
 - (void) update:(OOTimeDelta) delta_t
 {
+#if OO_SHADERS
+	// Shader takes care of repositioning.
+	if ([UNIVERSE shaderEffectsLevel] > SHADERS_OFF)  return;
+#endif
+	
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
 	assert(player != nil);
 	
@@ -155,9 +161,13 @@ MA 02110-1301, USA.
 	{
 		NSString *prefix = [NSString stringWithFormat:
 						   @"#define OODUST_SCALE_MAX    (float(%g))\n"
-							"#define OODUST_SCALE_FACTOR (float(%g))\n",
+							"#define OODUST_SCALE_FACTOR (float(%g))\n"
+							"#define OODUST_SIZE         (float(%g))\n"
+							"#define OODUST_HALF_SIZE    (float(%g))\n",
 							FAR_PLANE / NEAR_PLANE,
-							1.0f / (FAR_PLANE - NEAR_PLANE)];
+							1.0f / (FAR_PLANE - NEAR_PLANE),
+							(float)DUST_SCALE,
+							(float)DUST_SCALE * 0.5f];
 		
 		// Reuse tangent attribute ID for "warpiness", as we don't need a tangent.
 		NSDictionary *attributes = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kTangentAttributeIndex]
@@ -168,12 +178,21 @@ MA 02110-1301, USA.
 															  prefix:prefix
 												   attributeBindings:attributes] retain];
 		
-		DESTROY(warpUniform);
-		warpUniform = [[OOShaderUniform alloc] initWithName:@"uWarp"
-											  shaderProgram:shader
-											  boundToObject:self
-												   property:@selector(warpVector)
-											 convertOptions:0];
+		DESTROY(uniforms);
+		OOShaderUniform *uWarp = [[OOShaderUniform alloc] initWithName:@"uWarp"
+														 shaderProgram:shader
+														 boundToObject:self
+															  property:@selector(warpVector)
+														convertOptions:0];
+		OOShaderUniform *uPlayerPosition = [[OOShaderUniform alloc] initWithName:@"uPlayerPosition"
+																   shaderProgram:shader
+																   boundToObject:[PlayerEntity sharedPlayer]
+																		property:@selector(position)
+																  convertOptions:0];
+		
+		uniforms = [[NSArray alloc] initWithObjects:uWarp, uPlayerPosition, nil];
+		[uWarp release];
+		[uPlayerPosition release];
 	}
 	
 	return shader;
@@ -243,7 +262,7 @@ MA 02110-1301, USA.
 	if (useShader)
 	{
 		[[self shader] apply];
-		[warpUniform apply];
+		[uniforms makeObjectsPerformSelector:@selector(apply)];
 	}
 	else
 #endif
@@ -264,10 +283,8 @@ MA 02110-1301, USA.
 #if OO_SHADERS
 		if (useShader)
 		{
-			// Duplicate vertices.
 			OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
 			OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 1, GL_FLOAT, GL_FALSE, 0, warpinessAttr));
-			memcpy(vertices + DUST_N_PARTICLES, vertices, sizeof *vertices * DUST_N_PARTICLES);
 		}
 		else
 #endif
@@ -317,6 +334,12 @@ MA 02110-1301, USA.
 {
 #if OO_SHADERS
 	DESTROY(shader);
+	DESTROY(uniforms);
+	
+	/*	Duplicate vertex data. This is only required if we're switching from
+		non-shader mode to a shader mode, but let's KISS.
+	*/
+	memcpy(vertices + DUST_N_PARTICLES, vertices, sizeof *vertices * DUST_N_PARTICLES);
 #endif
 }
 

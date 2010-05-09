@@ -22,28 +22,44 @@
 	MA 02110-1301, USA.
 */
 
+/*	The following macros are provided by Oolite, to ensure that they stay in
+	sync with the values used in non-shader mode.
+
+#define OODUST_SCALE_MAX    (float(2))
+#define OODUST_SCALE_FACTOR (float(0.002))
+#define OODUST_SIZE         (float(2000))
+#define OODUST_HALF_SIZE    (float(1000))
+*/
+
 
 /*	“Warpiness”: 0 for dots when not warping and the near end of lines when
 	warping, 1 for the far end of lines when warping. (Note that both “ends”
 	have the same input coordinates, and the shader applies the warp effect.)
 */
 attribute float	aWarpiness;
-varying vec4	vColor;
 uniform vec4	uWarp;
+uniform vec4	uPlayerPosition;
 
-/*	The following macros are provided by Oolite, to ensure that they stay in
-	sync with the values used in non-shader mode.
-
-#define OODUST_SCALE_MAX    (float(2))
-#define OODUST_SCALE_FACTOR (float(0.002))
-*/
+varying vec4	vColor;
 
 
 void main(void)
 {
-	vec4 position = gl_Vertex - uWarp * aWarpiness;
+	/*	Dust particles are arranged in a cube of 2000×2000×2000 metres
+		(OO_DUST_SIZE) around the universe origin. The following code offsets
+		each particle to be somewhere in a cube of the same size around the
+		player, creating an infinite repeating pattern.
+	*/
+	vec4 position = mod(gl_Vertex - uPlayerPosition + OODUST_HALF_SIZE, OODUST_SIZE) - OODUST_HALF_SIZE + uPlayerPosition;
+	position = position - uWarp * aWarpiness;
+	
+	/*	Project the dust, and find its distance from the camera.
+	*/
 	position.w = 1.0;
-	float distance = length(gl_ModelViewMatrix * position);
+	position = gl_ModelViewProjectionMatrix * position;
+	gl_Position = position;
+	
+	float distance = length(position);
 	
 	/*	The original non-shader code fades to black using linear fog, with a
 		near plane of 500 and a far plane of 1000.
@@ -55,6 +71,4 @@ void main(void)
 	*/
 	float alpha = clamp(OODUST_SCALE_MAX - distance * OODUST_SCALE_FACTOR, 0.0, 1.0);
 	vColor = vec4(gl_Color.rgb, alpha * gl_Color.a);
-	
-	gl_Position = gl_ModelViewProjectionMatrix * position;
 }

@@ -22,6 +22,7 @@
 	"Troubleshooting Dumps",	$troubleShootingDump,
 	"Entity State",				$entityState,
 	"Data Cache Debug",			$dataCacheDebug,
+	"Rendering Errors",			"rendering.opengl.error",
 	"Texture Debug",			$textureDebug,
 	"Sound Debug",				$soundDebug
 )

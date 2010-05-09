@@ -1985,7 +1985,7 @@ static OOPolygonSprite *IconForMissileRole(NSString *role)
 		}
 		
 		float cosAngle = dot_product(vector_normal(rpn), forward);
-		float visibility = 1.0f - ((visMax - cosAngle) * 1.0f / (visMax - visMin));
+		float visibility = 1.0f - ((visMax - cosAngle) * (1.0f / (visMax - visMin)));
 		alpha *= OOClamp_0_1_f(visibility);
 		
 		if (alpha > 0.0f)
