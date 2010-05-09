@@ -98,8 +98,8 @@
 		"performHold",
 		"setTargetToPrimaryAggressor",
 		"performAttack",
-		"scanForNearestMerchantmen",
-		"scanForRandomMerchantmen",
+		"scanForNearestMerchantman",
+		"scanForRandomMerchantman",
 		"scanForLoot",
 		"scanForRandomLoot",
 		"setTargetToFoundTarget",
@@ -438,5 +438,7 @@
 		"setStateMachine:" = "setAITo:";
 		"launchTrader" = ("launchIndependentShip:", "trader");
 		"launchIndependentShipWithRole:" = "launchIndependentShip:";
+		"scanForNearestMerchantmen" = "scanForNearestMerchantman";
+		"scanForRandomMerchantmen" = "scanForRandomMerchantman";
 	};
 }

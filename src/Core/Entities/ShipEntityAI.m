@@ -100,8 +100,8 @@ MA 02110-1301, USA.
 
 - (void) performAttack;
 
-- (void) scanForNearestMerchantmen;
-- (void) scanForRandomMerchantmen;
+- (void) scanForNearestMerchantman;
+- (void) scanForRandomMerchantman;
 
 - (void) scanForLoot;
 
@@ -486,7 +486,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) scanForNearestMerchantmen
+- (void) scanForNearestMerchantman
 {
 	float				d2, found_d2;
 	unsigned			i;
@@ -521,7 +521,7 @@ MA 02110-1301, USA.
 }
 
 
-- (void) scanForRandomMerchantmen
+- (void) scanForRandomMerchantman
 {
 	unsigned			n_found, i;
 	

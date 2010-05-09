@@ -162,7 +162,7 @@
         "ODDS_GOOD" = (groupAttackTarget); 
         "CARGO_SCOOPED" = ("setStateTo: CHECK_CARGO"); 
         RESTARTED = ("setStateTo: LURK"); 
-        UPDATE = (scanForRandomMerchantmen, "pauseAI: 10.0"); 
+        UPDATE = (scanForRandomMerchantman, "pauseAI: 10.0"); 
     }; 
     LURK = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
@@ -177,7 +177,7 @@
         "ODDS_LEVEL" = (groupAttackTarget); 
         "GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 
 		"ENTER WORMHOLE" = ("setStateTo: ENTER_WORMHOLE");
-        UPDATE = (scanForRandomMerchantmen, "pauseAI: 5.0"); 
+        UPDATE = (scanForRandomMerchantman, "pauseAI: 5.0"); 
     }; 
     "SCAN_FOR_LOOT" = {
         ENTER = ("setSpeedTo: 0.0", performIdle); 
@@ -197,7 +197,7 @@
 			"setSpeedFactorTo: 0.75", 
 			performFlyToRangeFromDestination
 		);
-		"DESIRED_RANGE_ACHIEVED" = (scanForRandomMerchantmen);
+		"DESIRED_RANGE_ACHIEVED" = (scanForRandomMerchantman);
 		"NOTHING_FOUND" = ("setStateTo: TRAVEL_TO_LURK_AREA"); 
 		"TARGET_FOUND" = (groupAttackTarget); 
 		"GROUP_ATTACK_TARGET" = (setTargetToFoundTarget, "setStateTo: ATTACK_SHIP"); 

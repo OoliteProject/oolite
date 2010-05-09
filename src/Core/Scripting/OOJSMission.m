@@ -118,6 +118,7 @@ void InitOOJSMission(JSContext *context, JSObject *global)
 	OO_AddJSGCRoot(context, &sCallbackThis, "Pending mission callback this");
 }
 
+
 void MissionRunCallback()
 {
 	// don't do anything if we don't have a function.

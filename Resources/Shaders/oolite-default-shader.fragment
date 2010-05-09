@@ -78,10 +78,6 @@
 #define OOSTD_EMISSION_AND_ILLUMINATION_MAP 0
 #endif
 
-#ifndef OO_LIGHT_0_FIX
-#define OO_LIGHT_0_FIX 0
-#endif
-
 
 #if OOSTD_EMISSION_AND_ILLUMINATION_MAP && !OOSTD_EMISSION_MAP
 #undef OOSTD_EMISSION_MAP
@@ -115,10 +111,6 @@ varying vec3			vEyeVector;
 #endif
 
 varying vec2			vTexCoord;
-
-#if OO_LIGHT_0_FIX
-varying vec3			vLight0Vector;
-#endif
 
 varying vec3			vLight1Vector;
 
@@ -253,10 +245,7 @@ void main(void)
 #endif
 	
 	// Get light vectors
-#if OO_LIGHT_0_FIX
-	vec3 light0Vector = normalize(vLight0Vector);
-#endif
-	vec3 light1Vector = normalize(vLight1Vector);
+	vec3 lightVector = normalize(vLight1Vector);
 	
 	// Get ambient colour
 	vec4 ambientLight = gl_LightModel.ambient;
@@ -290,10 +279,7 @@ void main(void)
 #endif
 	
 	vec4 diffuseLight = vec4(0);
-#if OO_LIGHT_0_FIX
-	diffuseLight += CalcDiffuseLight(light0Vector, normal, gl_LightSource[0].diffuse);
-#endif
-	diffuseLight += CalcDiffuseLight(light1Vector, normal, gl_LightSource[1].diffuse);
+	diffuseLight += CalcDiffuseLight(lightVector, normal, gl_LightSource[1].diffuse);
 	
 #if HAVE_ILLUMINATION
 	diffuseLight += illuminationMapLight;
@@ -310,17 +296,11 @@ void main(void)
 #endif
 	
 	// Calculate specular light
-#if OOSTD_SPECULAR && OO_LIGHT_0_FIX
-	#define SPECULAR_LIGHT_0 specularLight += CalcSpecularLight(light0Vector, eyeVector, exponent, normal, gl_LightSource[0].specular)
-#else
-	#define SPECULAR_LIGHT_0
-#endif
 #if OOSTD_SPECULAR
 	vec4 specularLight = vec4(0);
 	float exponent = gl_FrontMaterial.shininess;
 	APPLY_MAPPED_EXPONENT;
-	SPECULAR_LIGHT_0;
-	specularLight += CalcSpecularLight(light1Vector, eyeVector, exponent, normal, gl_LightSource[1].specular);
+	specularLight += CalcSpecularLight(lightVector, eyeVector, exponent, normal, gl_LightSource[1].specular);
 	specularLight.a = 1.0;
 #endif
 	
