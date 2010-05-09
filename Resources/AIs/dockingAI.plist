@@ -1,7 +1,13 @@
 {
 	GLOBAL =
 	{
-		ENTER = ("setSpeedTo: 0.0", requestDockingCoordinates, "setStateTo: AWAIT_COORDS");
+		ENTER =
+		(
+			"dropMessages: DOCKING_ABORTED,FACING_DESTINATION",
+			"setSpeedTo: 0.0",
+			requestDockingCoordinates,
+			"setStateTo: AWAIT_COORDS"
+		);
 	};
 	"AWAIT_COORDS" = 
 	{

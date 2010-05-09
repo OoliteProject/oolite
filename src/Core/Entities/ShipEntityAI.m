@@ -1134,6 +1134,12 @@ static WormholeEntity *whole = nil;
 }
 
 
+- (void) disengageAutopilot
+{
+	OOLogERR(@"ai.invalid.notPlayer", @"Error in %@:%@, AI method endAutoPilot is only applicable to the player.", [shipAI name], [shipAI state]);
+}
+
+
 // FIXME: resolve this stuff.
 - (void) wormholeEscorts
 {

@@ -1030,12 +1030,12 @@ static GLfloat launchRoll;
 	
 	afterburnerSoundLooping = NO;
 	
+	isPlayer = YES;
+	
 	int i;
 	for (i = 0; i < PLAYER_MAX_MISSILES; i++)
 		missile_entity[i] = nil;
 	[self setUp];
-	
-	isPlayer = YES;
 	
 	save_path = nil;
 	
@@ -1195,7 +1195,7 @@ static GLfloat launchRoll;
 	
 	[self clearSubEntities];
 	
-	legalStatus			= 0;
+	legalStatus				= 0;
 	
 	market_rnd				= 0;
 	ship_kills				= 0;
@@ -1251,7 +1251,7 @@ static GLfloat launchRoll;
 	
 	[shipAI release];
 	shipAI = [[AI alloc] initWithStateMachine:PLAYER_DOCKING_AI_NAME andState:@"GLOBAL"];
-	[shipAI setOwner:self];
+	[self resetAutopilotAI];
 	
 	lastScriptAlertCondition = [self alertCondition];
 	
@@ -1933,7 +1933,8 @@ static GLfloat launchRoll;
 	[self safeAllMissiles];
 	velocity = kZeroVector;
 	[self setStatus:STATUS_AUTOPILOT_ENGAGED];
-	[shipAI setState:@"GLOBAL"];	// reboot the AI
+	[self resetAutopilotAI];
+	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
 	[self playAutopilotOn];
 	[self doScriptEvent:@"playerStartedAutoPilot" withArgument:[UNIVERSE entityForUniversalID:stationForDocking]];
 #if DOCKING_CLEARANCE_ENABLED
@@ -1968,7 +1969,23 @@ static GLfloat launchRoll;
 #endif	
 		[[OOMusicController sharedController] stopDockingMusic];
 		[self doScriptEvent:@"playerCancelledAutoPilot"];
+		
+		[self resetAutopilotAI];
 	}
+}
+
+
+- (void) resetAutopilotAI
+{
+	AI *myAI = [self getAI];
+	if (![[myAI name] isEqualToString:PLAYER_DOCKING_AI_NAME])
+	{
+		[myAI setStateMachine:PLAYER_DOCKING_AI_NAME];
+	}
+	[myAI clearAllData];
+	[myAI setState:@"GLOBAL"];
+	[myAI setNextThinkTime:[UNIVERSE getTime] + 60];
+	[myAI setOwner:self];
 }
 
 
@@ -3194,6 +3211,7 @@ static GLfloat launchRoll;
 		[self playDockingDenied];
 		[UNIVERSE addMessage:DESC(@"autopilot-denied") forCount:4.5];
 		autopilot_engaged = NO;
+		[self resetAutopilotAI];
 		primaryTarget = NO_TARGET;
 		[self setStatus:STATUS_IN_FLIGHT];
 		[[OOMusicController sharedController] stopDockingMusic];
@@ -4077,7 +4095,8 @@ static GLfloat launchRoll;
 	ident_engaged = NO;
 	afterburner_engaged = NO;
 	autopilot_engaged = NO;
-
+	[self resetAutopilotAI];
+	
 	cloaking_device_active = NO;
 	hyperspeed_engaged = NO;
 	hyperspeed_locked = NO;

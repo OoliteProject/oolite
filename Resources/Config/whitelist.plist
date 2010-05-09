@@ -186,15 +186,16 @@
 		"targetNextBeaconWithCode:",
 		"setRacepointsFromTarget",
 		"performFlyRacepoints",
-		"debugDumpMessages",
+		"debugDumpPendingMessages",
 		"dropMessages:",
 		"exitAIWithMessage:",
-		"ai_throwSparks",	// Don't use, use throwSparks instead
+		"ai_throwSparks",			// Don't use, use throwSparks instead
 		"checkAegis",
 		"checkEnergy",
 		"setThrustFactorTo:",
 		"setStateTo:",
 		"debugMessage:",
+		"disengageAutopilot",		// Only useful for player root AI
 				
 		// StationEntity.m/stubs in ShipEntityAI.m
 		"increaseAlertLevel",

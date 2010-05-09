@@ -625,7 +625,6 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	[pendingMessages removeAllObjects];
 	
 	nextThinkTime += 36000.0;	// should dealloc in under ten hours!
-	thinkTimeInterval = 36000.0;
 }
 
 
@@ -703,7 +702,11 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 {
 	ShipEntity *owner = [self owner];
 	[ownerDesc release];
-	if (owner != nil)
+	if ([owner isPlayer])
+	{
+		ownerDesc = @"player autopilot";
+	}
+	else if (owner != nil)
 	{
 		ownerDesc = [[NSString alloc] initWithFormat:@"%@ %d", [owner name], [owner universalID]];
 	}

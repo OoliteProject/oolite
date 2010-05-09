@@ -49,6 +49,7 @@
 		1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */; };
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
 		1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */; };
+		1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
 		1A0729DA0EF56D1200B0F925 /* OOConvertSystemDescriptions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */; };
 		1A0729FE0EF5796500B0F925 /* OldSchoolPropertyListWriting.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */; };
@@ -837,6 +838,7 @@
 			dstPath = AIs;
 			dstSubfolderSpec = 7;
 			files = (
+				1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */,
 				1A644E221052AA0100833636 /* traderInterceptAI.plist in Copy AIs */,
 				1A94E4FC0F348D5700F1B5D9 /* delayedReactToAttackAI.plist in Copy AIs */,
 				1A572FE50D84B6A3003D4A26 /* oolite-constrictor-AI.plist in Copy AIs */,
@@ -1162,6 +1164,7 @@
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
+		1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-player-AI.plist"; sourceTree = "<group>"; };
 		1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConvertSystemDescriptions.h; sourceTree = "<group>"; };
 		1A0729D80EF56D1200B0F925 /* OOConvertSystemDescriptions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOConvertSystemDescriptions.m; sourceTree = "<group>"; };
 		1A0729FC0EF5796500B0F925 /* OldSchoolPropertyListWriting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OldSchoolPropertyListWriting.h; sourceTree = "<group>"; };
@@ -2009,6 +2012,7 @@
 		1A2317900B9D022400EF0852 /* AIs */ = {
 			isa = PBXGroup;
 			children = (
+				1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */,
 				1A572FE40D84B6A3003D4A26 /* oolite-constrictor-AI.plist */,
 				1A2317910B9D022400EF0852 /* buoyAI.plist */,
 				1A2317920B9D022500EF0852 /* collectLootAI.plist */,

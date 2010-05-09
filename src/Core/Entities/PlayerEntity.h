@@ -202,7 +202,7 @@ typedef enum
 
 #define PLAYER_INTERNAL_DAMAGE_FACTOR	31
 
-#define PLAYER_DOCKING_AI_NAME			@"dockingAI.plist"
+#define PLAYER_DOCKING_AI_NAME			@"oolite-player-AI.plist"
 
 @interface PlayerEntity: ShipEntity
 {
@@ -545,6 +545,8 @@ typedef enum
 
 - (BOOL) engageAutopilotToStation:(OOUniversalID)stationForDocking;
 - (void) disengageAutopilot;
+
+- (void) resetAutopilotAI;
 
 #if DOCKING_CLEARANCE_ENABLED
 - (void) setTargetDockStationTo:(StationEntity *) value;
