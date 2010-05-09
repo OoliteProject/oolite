@@ -23,7 +23,13 @@
 */
 
 
+/*	“Warpiness”: 0 for dots when not warping and the near end of lines when
+	warping, 1 for the far end of lines when warping. (Note that both “ends”
+	have the same input coordinates, and the shader applies the warp effect.)
+*/
+attribute float	aWarpiness;
 varying vec4	vColor;
+uniform vec4	uWarp;
 
 /*	The following macros are provided by Oolite, to ensure that they stay in
 	sync with the values used in non-shader mode.
@@ -35,7 +41,9 @@ varying vec4	vColor;
 
 void main(void)
 {
-	float distance = length(gl_ModelViewMatrix * gl_Vertex);
+	vec4 position = gl_Vertex - uWarp * aWarpiness;
+	position.w = 1.0;
+	float distance = length(gl_ModelViewMatrix * position);
 	
 	/*	The original non-shader code fades to black using linear fog, with a
 		near plane of 500 and a far plane of 1000.
@@ -48,5 +56,5 @@ void main(void)
 	float alpha = clamp(OODUST_SCALE_MAX - distance * OODUST_SCALE_FACTOR, 0.0, 1.0);
 	vColor = vec4(gl_Color.rgb, alpha * gl_Color.a);
 	
-	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_Position = gl_ModelViewProjectionMatrix * position;
 }

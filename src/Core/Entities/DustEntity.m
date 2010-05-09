@@ -29,6 +29,13 @@ MA 02110-1301, USA.
 #import "MyOpenGLView.h"
 #import "OOGraphicsResetManager.h"
 #import "OODebugFlags.h"
+#import "OOMacroOpenGL.h"
+
+#if OO_SHADERS
+#import "OOMaterial.h"		// For kTangentAttributeIndex
+#import "OOShaderProgram.h"
+#import "OOShaderUniform.h"
+#endif
 
 #import "PlayerEntity.h"
 
@@ -57,10 +64,18 @@ MA 02110-1301, USA.
 		vertices[vi].x = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 		vertices[vi].y = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
 		vertices[vi].z = (ranrot_rand() % DUST_SCALE) - DUST_SCALE / 2;
+		
+		// Set up element index array for warp mode.
+		indices[vi * 2] = vi;
+		indices[vi * 2 + 1] = vi + DUST_N_PARTICLES;
+		
+#if OO_SHADERS
+		warpinessAttr[vi] = 0.0f;
+		warpinessAttr[vi + DUST_N_PARTICLES] = 1.0f;
+#endif
 	}
 	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
-	displayListName = 0;
 	[self setStatus:STATUS_ACTIVE];
 	
 	[[OOGraphicsResetManager sharedManager] registerClient:self];
@@ -73,10 +88,10 @@ MA 02110-1301, USA.
 {
 	DESTROY(dust_color);
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
-	OOGL(glDeleteLists(displayListName, 1));
 	
 #if OO_SHADERS
 	DESTROY(shader);
+	DESTROY(warpUniform);
 #endif
 	
 	[super dealloc];
@@ -144,15 +159,32 @@ MA 02110-1301, USA.
 							FAR_PLANE / NEAR_PLANE,
 							1.0f / (FAR_PLANE - NEAR_PLANE)];
 		
+		// Reuse tangent attribute ID for "warpiness", as we don't need a tangent.
+		NSDictionary *attributes = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kTangentAttributeIndex]
+															   forKey:@"aWarpiness"];
+		
 		shader = [[OOShaderProgram shaderProgramWithVertexShaderName:@"oolite-dust.vertex"
 												  fragmentShaderName:@"oolite-dust.fragment"
 															  prefix:prefix
-												   attributeBindings:nil] retain];
+												   attributeBindings:attributes] retain];
+		
+		DESTROY(warpUniform);
+		warpUniform = [[OOShaderUniform alloc] initWithName:@"uWarp"
+											  shaderProgram:shader
+											  boundToObject:self
+												   property:@selector(warpVector)
+											 convertOptions:0];
 	}
 	
 	return shader;
 }
 #endif
+
+
+- (Vector) warpVector
+{
+	return vector_multiply_scalar([[PlayerEntity sharedPlayer] velocity], 1.0f / HYPERSPEED_FACTOR);
+}
 
 
 - (void) drawEntity:(BOOL) immediate :(BOOL) translucent
@@ -165,19 +197,13 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_NO_DUST)  return;
 #endif
+	
+	OO_ENTER_OPENGL();
 
 	GLfloat	*fogcolor = [UNIVERSE skyClearColor];
-	float	idealDustSize = [[UNIVERSE gameView] viewSize].width / 1200.0f;
-	
-	float dustPointSize = ceilf(idealDustSize);
-	if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
-	
-	float idealLineSize = idealDustSize * 0.5f;
-	float dustLineSize = ceilf(idealLineSize);
-	if (dustLineSize < 1.0f) dustLineSize = 1.0f;
+	float	idealDustSize = [[UNIVERSE gameView] viewSize].width / 800.0f;
 	
 	BOOL	warp_stars = [player atHyperspeed];
-	Vector  warp_vector = vector_multiply_scalar([player velocity], 1.0f / HYPERSPEED_FACTOR);
 	GLenum	dustMode;
 	float	dustIntensity;
 #if OO_SHADERS
@@ -188,29 +214,36 @@ MA 02110-1301, USA.
 	{
 		// Draw points.
 		OOGL(glEnable(GL_POINT_SMOOTH));
-		OOGL(glPointSize(dustPointSize));
 		dustMode = GL_POINTS;
+		
+		float dustPointSize = ceilf(idealDustSize);
+		if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
+		OOGL(glPointSize(dustPointSize));
 		dustIntensity = OOClamp_0_1_f(idealDustSize / dustPointSize);
 	}
 	else
 	{
 		// Draw lines.
 		OOGL(glEnable(GL_LINE_SMOOTH));
-		OOGL(glLineWidth(dustLineSize));
 		dustMode = GL_LINES;
+		
+		float idealLineSize = idealDustSize * 0.5f;
+		float dustLineSize = ceilf(idealLineSize);
+		if (dustLineSize < 1.0f)  dustLineSize = 1.0f;
+		OOGL(glLineWidth(dustLineSize));
 		dustIntensity = OOClamp_0_1_f(idealLineSize / dustLineSize);
 	}
 	
 	float	*color = NULL;
 	if (player->isSunlit)  color = color_fv;
 	else  color = UNIVERSE->stars_ambient;
+	OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
 	
 #if OO_SHADERS
 	if (useShader)
 	{
 		[[self shader] apply];
-		OOGL(glEnable(GL_BLEND));
-		OOGL(glColor4f(color[0], color[1], color[2], dustIntensity));
+		[warpUniform apply];
 	}
 	else
 #endif
@@ -221,20 +254,48 @@ MA 02110-1301, USA.
 		OOGL(glHint(GL_FOG_HINT, GL_NICEST));
 		OOGL(glFogf(GL_FOG_START, NEAR_PLANE));
 		OOGL(glFogf(GL_FOG_END, FAR_PLANE));
-		OOGL(glColor4f(color[0] * dustIntensity, color[1] * dustIntensity, color[2] * dustIntensity, 1.0));
 	}
 	
 	OOGL(glDisable(GL_TEXTURE_2D));
+	OOGL(glEnable(GL_BLEND));
 	
-	OOGLBEGIN(dustMode);
-	
-	unsigned vi;
-	for (vi = 0; vi < DUST_N_PARTICLES; vi++)
+	if (warp_stars)
 	{
-		GLVertexOOVector(vertices[vi]);
-		if (warp_stars)  GLVertexOOVector(vector_subtract(vertices[vi], warp_vector));
+#if OO_SHADERS
+		if (useShader)
+		{
+			// Duplicate vertices.
+			OOGL(glEnableVertexAttribArrayARB(kTangentAttributeIndex));
+			OOGL(glVertexAttribPointerARB(kTangentAttributeIndex, 1, GL_FLOAT, GL_FALSE, 0, warpinessAttr));
+			memcpy(vertices + DUST_N_PARTICLES, vertices, sizeof *vertices * DUST_N_PARTICLES);
+		}
+		else
+#endif
+		{
+			Vector  warpVector = [self warpVector];
+			unsigned vi;
+			for (vi = 0; vi < DUST_N_PARTICLES; vi++)
+			{
+				vertices[vi + DUST_N_PARTICLES] = vector_subtract(vertices[vi], warpVector);
+			}
+		}
+		
+		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
+		OOGL(glDrawElements(GL_LINES, DUST_N_PARTICLES * 2, GL_UNSIGNED_SHORT, indices));
+		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+		
+#if OO_SHADERS
+		OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
+#endif
 	}
-	OOGLEND();
+	else
+	{
+		OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+		OOGL(glVertexPointer(3, GL_FLOAT, 0, vertices));
+		OOGL(glDrawArrays(GL_POINTS, 0, DUST_N_PARTICLES));
+		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
+	}
 	
 	// reapply normal conditions
 #if OO_SHADERS
@@ -254,12 +315,6 @@ MA 02110-1301, USA.
 
 - (void)resetGraphicsState
 {
-	if (displayListName != 0)
-	{
-		OOGL(glDeleteLists(displayListName, 1));
-		displayListName = 0;
-	}
-	
 #if OO_SHADERS
 	DESTROY(shader);
 #endif

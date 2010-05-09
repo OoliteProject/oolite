@@ -25,22 +25,25 @@ MA 02110-1301, USA.
 */
 
 #import "Entity.h"
-#import "OOShaderProgram.h"
+#import "OOOpenGLExtensionManager.h"
 
 #define DUST_SCALE			2000
 #define DUST_N_PARTICLES	600
 
-@class OOColor;
+@class OOColor, OOShaderProgram, OOShaderUniform;
+
 
 @interface DustEntity: Entity
 {
 	OOColor				*dust_color;
-	Vector				vertices[DUST_N_PARTICLES];
+	Vector				vertices[DUST_N_PARTICLES * 2];
+	GLushort			indices[DUST_N_PARTICLES * 2];
 	GLfloat				color_fv[4];
-	GLuint				displayListName;
 	
 #if OO_SHADERS
+	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
 	OOShaderProgram		*shader;
+	OOShaderUniform		*warpUniform;
 #endif
 }
 
