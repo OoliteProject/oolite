@@ -4014,6 +4014,7 @@ static GLfloat launchRoll;
 
 - (void) getDestroyedBy:(Entity *)whom context:(NSString *)why
 {
+	if ([self isDocked])  return;	// Can't die while docked. (Doing so would cause breakage elsewhere.)
 	
 	OOLog(@"player.ship.damage",  @"Player destroyed by %@ due to %@", whom, why);	
 	NSString *scoreMS = [NSString stringWithFormat:DESC(@"gameoverscreen-score-@-f"),

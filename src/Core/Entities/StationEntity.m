@@ -302,7 +302,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSArray*	ships = [shipsOnApproach allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
-		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		int sid = [ships oo_intAtIndex:i];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
 	}
@@ -311,7 +311,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	ships = [shipsOnHold allKeys];
 	for (i = 0; i < [ships count]; i++)
 	{
-		int sid = [(NSString *)[ships objectAtIndex:i] intValue];
+		int sid = [ships oo_intAtIndex:i];
 		if ([UNIVERSE entityForUniversalID:sid])
 			[[UNIVERSE entityForUniversalID:sid] enterDock:self];
 	}
@@ -853,10 +853,10 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 }
 
 
-- (BOOL) shipIsInDockingCorridor:(ShipEntity*) ship
+- (BOOL) shipIsInDockingCorridor:(ShipEntity *)ship
 {
-	if ((!ship)||(!ship->isShip))
-		return NO;
+	if (!ship || ![ship isShip])  return NO;
+	if ([ship isPlayer] && [ship status] == STATUS_DEAD)  return NO;
 	
 	Quaternion q0 = quaternion_multiply(port_orientation, orientation);
 	Vector vi = vector_right_from_quaternion(q0);
