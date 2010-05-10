@@ -38,6 +38,8 @@ MA 02110-1301, USA.
 #define NUM_KEYS			320
 #define MOUSE_DOUBLE_CLICK_INTERVAL	0.40
 
+#define SNAPSHOTS_PNG_FORMAT		1
+
 @class Entity, GameController, OpenGLSprite;
 @class JoystickHandler;
 
@@ -175,6 +177,9 @@ extern int debug;
 - (void) display;
 
 - (void) snapShot;
+#if SNAPSHOTS_PNG_FORMAT
+- (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf;
+#endif
 
 - (NSRect) bounds;
 + (NSMutableDictionary *) getNativeSize;

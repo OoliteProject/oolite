@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
 #import <ctype.h>
+#import "png.h"
 
 @interface MyOpenGLView (OOPrivate)
 
@@ -787,7 +788,11 @@ MA 02110-1301, USA.
 	do
 	{
 		imageNo++;
+#if SNAPSHOTS_PNG_FORMAT
+		pathToPic = [NSString stringWithFormat:@"oolite-%03d.png",imageNo];
+#else
 		pathToPic = [NSString stringWithFormat:@"oolite-%03d.bmp",imageNo];
+#endif
 	} while ([[NSFileManager defaultManager] fileExistsAtPath:pathToPic]);
 	
 	OOLog(@"screenshot", @"Saved screen shot \"%@\" (%u x %u pixels).", pathToPic, w, h);
@@ -811,13 +816,94 @@ MA 02110-1301, USA.
 	free(aux);
 	
 	tmpSurface=SDL_CreateRGBSurfaceFrom(pixls,surface->w,surface->h,24,surface->w*3,0xFF,0xFF00,0xFF0000,0x0);
+#if SNAPSHOTS_PNG_FORMAT
+	if(![self pngSaveSurface:pathToPic withSurface:tmpSurface])
+	{
+		OOLog(@"screenshotPNG", @"Failed to save %@", pathToPic);
+	}
+#else
 	SDL_SaveBMP(tmpSurface, [pathToPic UTF8String]);
+#endif
 	SDL_FreeSurface(tmpSurface);
 	free(pixls);
 	
 	// return to the previous directory
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:originalDirectory];
 }
+
+
+#if SNAPSHOTS_PNG_FORMAT
+// This method is heavily based on 'Mars, Land of No Mercy' SDL examples, by Angelo "Encelo" Theodorou, see http://encelo.netsons.org/programming/sdl
+- (BOOL) pngSaveSurface:(NSString *)fileName withSurface:(SDL_Surface *)surf
+{
+	FILE *fp;
+	png_structp pngPtr;
+	png_infop infoPtr;
+	int i, colorType;
+	png_bytep *rowPointers;
+
+	fp = fopen([fileName UTF8String], "wb");
+	if (fp == NULL)
+	{
+		OOLog(@"pngSaveSurface.fileCreate.failed", @"Failed to create output screenshot file %@", fileName);
+		return NO;
+	}
+
+	// initialize png structures (no callbacks)
+	pngPtr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+	if (pngPtr == NULL)
+	{
+		return NO;
+	}
+
+	infoPtr = png_create_info_struct(pngPtr);
+	if (infoPtr == NULL) {
+		png_destroy_write_struct(&pngPtr, (png_infopp)NULL);
+		OOLog(@"pngSaveSurface.info_struct.failed", @"png_create_info_struct error");
+		exit(-1);
+	}
+
+	if (setjmp(png_jmpbuf(pngPtr)))
+	{
+		png_destroy_write_struct(&pngPtr, &infoPtr);
+		fclose(fp);
+		exit(-1);
+	}
+
+	png_init_io(pngPtr, fp);
+
+	colorType = PNG_COLOR_MASK_COLOR; /* grayscale not supported */
+	if (surf->format->palette)
+	{
+		colorType |= PNG_COLOR_MASK_PALETTE;
+	}
+	else if (surf->format->Amask)
+	{
+		colorType |= PNG_COLOR_MASK_ALPHA;
+	}
+
+	png_set_IHDR(pngPtr, infoPtr, surf->w, surf->h, 8, colorType,	PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+
+	// write the image
+	png_write_info(pngPtr, infoPtr);
+	png_set_packing(pngPtr);
+
+	rowPointers = (png_bytep*) malloc(sizeof(png_bytep)*surf->h);
+	for (i = 0; i < surf->h; i++)
+	{
+		rowPointers[i] = (png_bytep)(Uint8 *)surf->pixels + i*surf->pitch;
+	}
+	png_write_image(pngPtr, rowPointers);
+	png_write_end(pngPtr, infoPtr);
+
+	free(rowPointers);
+	png_destroy_write_struct(&pngPtr, &infoPtr);
+	fclose(fp);
+
+	return YES;
+}
+#endif	// SNAPSHOTS_PNG_FORMAT
+
 
 /*     Turn the Cocoa ArrowKeys into our arrow key constants. */
 - (int) translateKeyCode: (int) input
