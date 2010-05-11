@@ -1213,8 +1213,14 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 {
 	ShipEntity				*thisEnt = nil;
 	JSBool					removeDeathActions = NO;
-	if (!JSShipGetShipEntity(context, this, &thisEnt) ) return YES;	// stale reference, no-op.
-	if ([thisEnt isPlayer]) return NO;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))  return YES;	// stale reference, no-op.
+	
+	if ([thisEnt isPlayer])
+	{
+		OOReportJSError(context, @"Cannot remove() player's ship.");
+		return NO;
+	}
 	
 	if ( argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &removeDeathActions)))
 	{
@@ -1341,7 +1347,17 @@ static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, 
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
 	
-	if (!explode && [thisEnt isPlayer])  return YES;	// Silently fail on player.ship.remove()
+	if ([thisEnt isPlayer])
+	{
+		PlayerEntity *player = (PlayerEntity *)thisEnt;
+		assert(explode);	// Handled by caller.
+		
+		if ([player isDocked])
+		{
+			OOReportJSError(context, @"Cannot explode() player's ship while docked.");
+			return NO;
+		}
+	}
 	
 	if (thisEnt == (ShipEntity *)[UNIVERSE station])
 	{
