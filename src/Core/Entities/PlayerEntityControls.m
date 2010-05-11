@@ -3173,12 +3173,14 @@ static BOOL toggling_music;
 					if (![self loadPlayer])
 					{
 						[self setGuiToIntroFirstGo:NO];
+						[UNIVERSE selectIntro2Next];
 					}
 				}
 			}
 			if (([gameView isDown:charNo]) || ([gameView isDown:charNo - 32]))
 			{
 				[self setGuiToIntroFirstGo:NO];
+				[UNIVERSE selectIntro2Next];
 			}
 			
 			break;

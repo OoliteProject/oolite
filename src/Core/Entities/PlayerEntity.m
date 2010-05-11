@@ -66,6 +66,7 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
+#import "NSFileManagerOOExtensions.h"
 
 #if OOLITE_MAC_OS_X
 #import "Groolite.h"
@@ -5838,17 +5839,33 @@ static NSString *last_outfitting_key=nil;
 	
 	if (justCobra)
 	{
-		text = DESC(@"game-copyright");
-		[gui setText:text forRow:17 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor whiteColor] forRow:17];
+		unsigned copyRow = 17;
 		
-		text = DESC(@"theme-music-credit");
-		[gui setText:text forRow:19 align:GUI_ALIGN_CENTER];
-		[gui setColor:[OOColor grayColor] forRow:19];
+		// in non-strict mode, ask to load previous commander only if we have at least one save file.
+		// in strict mode, always ask to load previous commander.
+		NSFileManager *saveFileManager = [NSFileManager defaultManager];
+		NSArray *cdrArray = [saveFileManager commanderContentsOfPath: [[UNIVERSE gameController] playerFileDirectory]];
 		
-		text = DESC(@"load-previous-commander");
+		if ([UNIVERSE strict] || [cdrArray count] > 0)
+		{
+			text = DESC(@"load-previous-commander");
+		}
+		else
+		{
+			text = DESC(@"press-space-commander");
+			copyRow = 15;
+			justCobra = NO;
+		}
 		[gui setText:text forRow:21 align:GUI_ALIGN_CENTER];
 		[gui setColor:[OOColor yellowColor] forRow:21];
+		
+		text = DESC(@"game-copyright");
+		[gui setText:text forRow:copyRow align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor whiteColor] forRow:copyRow];
+		
+		text = DESC(@"theme-music-credit");
+		[gui setText:text forRow:copyRow + 2 align:GUI_ALIGN_CENTER];
+		[gui setColor:[OOColor grayColor] forRow:copyRow + 2];
 		
 		// check for error messages from Resource Manager
 		[ResourceManager paths];

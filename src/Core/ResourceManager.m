@@ -55,11 +55,12 @@ extern NSDictionary* ParseOOSScripts(NSString* script);
 @interface ResourceManager (OOPrivate)
 
 + (void) checkOXPMessagesInPath:(NSString *)path;
-+ (void)checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
-+ (BOOL)areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
++ (void) checkPotentialPath:(NSString *)path :(NSMutableArray *)searchPaths;
++ (BOOL) areRequirementsFulfilled:(NSDictionary*)requirements forOXP:(NSString *)path;
 + (void) addErrorWithKey:(NSString *)descriptionKey param1:(id)param1 param2:(id)param2;
-+ (void)checkCacheUpToDateForPaths:(NSArray *)searchPaths;
++ (void) checkCacheUpToDateForPaths:(NSArray *)searchPaths;
 + (NSString *) diagnosticFileLocation;
++ (void) logPaths;
 
 @end
 
@@ -176,7 +177,6 @@ static NSMutableDictionary *sStringCache;
 	NSString				*subPath = nil;
 	NSString				*path = nil;
 	BOOL					isDirectory;
-	NSMutableArray			*displayPaths = nil;
 	
 	// Copy those root paths that actually exist to search paths.
 	rootPaths = [self rootPaths];
@@ -224,29 +224,21 @@ static NSMutableDictionary *sStringCache;
 		[self checkPotentialPath:path :sSearchPaths];
 		if ([sSearchPaths containsObject:path])  [self checkOXPMessagesInPath:path];
 	}
-	
-	// Prettify paths for logging.
-	displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
-	for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
-	{
-		if (![path isEqualToString:[self builtInPath]])
-			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
-	}
-	
-	OOLog(@"searchPaths.dumpAll", @"---> OXP search paths found:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
 	[self checkCacheUpToDateForPaths:sSearchPaths];
-	
+	[self logPaths];
+
 	return sSearchPaths;
 }
 
 
 + (NSArray *)paths
 {
-	if (!sUseAddOns && sSearchPaths == nil)
-	{
-		OOLog(@"searchPaths.none", @"---> Strict Mode: OXP search paths ignored.");
-		sSearchPaths = [[NSMutableArray alloc] init];
-	}
+	if (EXPECT_NOT(sSearchPaths == nil))
+		if (!sUseAddOns)
+		{
+			sSearchPaths = [[NSMutableArray alloc] init];
+			[self logPaths];
+		}
 	return sUseAddOns ? [self pathsWithAddOns] : (NSArray *)[NSArray arrayWithObject:[self builtInPath]];
 }
 
@@ -278,6 +270,7 @@ static NSMutableDictionary *sStringCache;
 		}
 		
 		[self checkCacheUpToDateForPaths:[self paths]];
+		[self logPaths];
 	}
 }
 
@@ -1006,6 +999,31 @@ static NSMutableDictionary *sStringCache;
 + (NSString *) diagnosticFileLocation
 {
 	return OOLogHandlerGetLogBasePath();
+}
+
+
++ (void) logPaths
+{
+	NSMutableArray			*displayPaths = nil;
+	NSEnumerator			*pathEnum = nil;
+	NSString				*path = nil;
+
+	if (sUseAddOns)
+	{
+		// Prettify paths for logging.
+		displayPaths = [NSMutableArray arrayWithCapacity:[sSearchPaths count]];
+		for (pathEnum = [sSearchPaths objectEnumerator]; (path = [pathEnum nextObject]); )
+		{
+			[displayPaths addObject:[[path stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]];
+		}
+		
+		OOLog(@"searchPaths.dumpAll", @"Unrestricted Mode - Resources paths:\n    %@", [displayPaths componentsJoinedByString:@"\n    "]);
+	}
+	else
+	{
+		OOLog(@"searchPaths.dumpAll", @"Strict Mode - Resources path:\n    %@",
+			[[[self builtInPath] stringByStandardizingPath] stringByAbbreviatingWithTildeInPath]);
+	}
 }
 
 

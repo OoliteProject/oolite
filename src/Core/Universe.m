@@ -189,6 +189,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #endif
 
 - (void) filterOutNonStrictEquipment;
+- (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged;
 
 @end
 
@@ -420,78 +421,13 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 	
 	strict = !!value;
 	[[NSUserDefaults standardUserDefaults] setBool:strict forKey:@"strict-gameplay"];
-	[self reinitAndShowDemo:!saveGame];
+	[self reinitAndShowDemo:!saveGame strictChanged:YES];
 }
 
 
 - (void) reinitAndShowDemo:(BOOL) showDemo
 {
-	no_update = YES;
-	PlayerEntity* player = [PlayerEntity sharedPlayer];
-	assert(player != nil);
-	
-	[self removeAllEntitiesExceptPlayer:NO];
-	[OOTexture clearCache];
-	[self resetSystemDataCache];
-	
-	[ResourceManager setUseAddOns:!strict];
-	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
-	
-	// NOTE: Anything in the sharedCache is now trashed and must be
-	//       reloaded. Ideally anything using the sharedCache should
-	//       be aware of cache flushes so it can automatically
-	//       reinitialize itself - mwerle 20081107.
-	[OOShipRegistry reload];
-	[[gameView gameController] unpause_game];
-	
-
-	
-	if(showDemo)
-	{
-		[demo_ships release];
-		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
-		demo_ship_index = 0;
-	}
-	
-	breakPatternCounter = 0;
-	
-	cachedSun = nil;
-	cachedPlanet = nil;
-	cachedStation = nil;
-	
-	[self initSettings];
-	
-	[player setUp];
-	
-	[self addEntity:player];
-	demo_ship = nil;
-	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
-	
-	[self initPlayerSettings];
-	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
-	
-	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
-	
-	if(showDemo)
-	{
-		[player setGuiToIntroFirstGo:NO];
-		[gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
-		[player setStatus:STATUS_START_GAME];
-	}
-	else
-	{
-		[player setDockedAtMainStation];
-	}
-	
-	[player completeSetUp];
-	
-	if(!showDemo)
-	{
-		[player setGuiToStatusScreen];
-		[player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
-	}
-		
-	no_update = NO;
+	[self reinitAndShowDemo:showDemo strictChanged:NO];
 }
 
 
@@ -2785,7 +2721,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	if (!justCobra)
 	{
 		demo_stage = DEMO_SHOW_THING;
-		demo_stage_time = universal_time + 3.0;
+		demo_stage_time = universal_time + 6.0;
 	}
 }
 
@@ -5536,7 +5472,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				}
 				else if (demo_stage == DEMO_FLY_IN)
 				{
-					[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z + ([demo_ship destination].z - demo_start_z) *(universal_time -demo_start_time) / DEMO2_FLY_IN_STAGE_TIME ];
+					GLfloat delta = (universal_time - demo_start_time) / DEMO2_FLY_IN_STAGE_TIME;
+					[demo_ship setPositionX:0.0f y:[demo_ship destination].y * delta z:demo_start_z + ([demo_ship destination].z - demo_start_z) * delta ];
 				}
 			}
 			
@@ -8637,6 +8574,75 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	[equipmentData release];
 	equipmentData = [filteredEq copy];
+}
+
+
+- (void) reinitAndShowDemo:(BOOL) showDemo strictChanged:(BOOL) strictChanged
+{
+	no_update = YES;
+	PlayerEntity* player = [PlayerEntity sharedPlayer];
+	assert(player != nil);
+	
+	[self removeAllEntitiesExceptPlayer:NO];
+	[OOTexture clearCache];
+	[self resetSystemDataCache];
+	
+	[ResourceManager setUseAddOns:!strict];
+	//[ResourceManager loadScripts]; // initialised inside [player setUp]!
+	
+	// NOTE: Anything in the sharedCache is now trashed and must be
+	//       reloaded. Ideally anything using the sharedCache should
+	//       be aware of cache flushes so it can automatically
+	//       reinitialize itself - mwerle 20081107.
+	[OOShipRegistry reload];
+	[[gameView gameController] unpause_game];
+	
+	if(showDemo)
+	{
+		[demo_ships release];
+		demo_ships = [[OOShipRegistry sharedRegistry] demoShipKeys];
+		demo_ship_index = 0;
+	}
+	
+	breakPatternCounter = 0;
+	
+	cachedSun = nil;
+	cachedPlanet = nil;
+	cachedStation = nil;
+	
+	[self initSettings];
+	
+	[player setUp];
+	
+	[self addEntity:player];
+	demo_ship = nil;
+	[[gameView gameController] setPlayerFileToLoad:nil];		// reset Quicksave
+	
+	[self initPlayerSettings];
+	autoSaveNow = NO;	// don't autosave immediately after loading / restarting game!
+	
+	[[self station] initialiseLocalMarketWithRandomFactor:[player random_factor]];
+	
+	if(showDemo)
+	{
+		[player setGuiToIntroFirstGo:NO];
+		if (strictChanged) [gui setText:(strict)? DESC(@"strict-play-enabled"):DESC(@"unrestricted-play-enabled") forRow:1 align:GUI_ALIGN_CENTER];
+		[player setStatus:STATUS_START_GAME];
+	}
+	else
+	{
+		[player setDockedAtMainStation];
+	}
+	
+	[player completeSetUp];
+	
+	if(!showDemo)
+	{
+		[player setGuiToStatusScreen];
+		[player doWorldEventUntilMissionScreen:@"missionScreenOpportunity"];
+	}
+		
+	no_update = NO;
 }
 
 
