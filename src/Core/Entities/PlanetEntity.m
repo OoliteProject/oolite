@@ -1187,6 +1187,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	DESTROY(textureFile);
 	textureFile = [fileName copy];
 	textureMode = kPlanetTexModeNamedTexture;
+	textureName = 0;
 	[self reifyTexture];
 	
 	OOUInteger i;

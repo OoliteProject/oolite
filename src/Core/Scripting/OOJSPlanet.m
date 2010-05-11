@@ -40,8 +40,6 @@ static JSObject		*sPlanetPrototype;
 static JSBool PlanetGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
 
 static JSExtendedClass sPlanetClass =
 {
@@ -89,17 +87,9 @@ static JSPropertySpec sPlanetProperties[] =
 };
 
 
-static JSFunctionSpec sPlanetMethods[] =
-{
-	// JS name					Function					min args
-	{ "setTexture",				PlanetSetTexture,				1 },
-	{ 0 }
-};
-
-
 void InitOOJSPlanet(JSContext *context, JSObject *global)
 {
-	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, sPlanetMethods, NULL, NULL);
+	sPlanetPrototype = JS_InitClass(context, global, JSEntityPrototype(), &sPlanetClass.base, NULL, 0, sPlanetProperties, NULL, NULL, NULL);
 	JSRegisterObjectConverter(&sPlanetClass.base, JSBasicPrivateObjectConverter);
 }
 
@@ -227,10 +217,4 @@ static JSBool PlanetSetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
-}
-
-static JSBool PlanetSetTexture(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	OOReportJSWarning(context, @"The function Planet.setTexture() is deprecated and will be removed in a future version of Oolite. Use planet.texture = \"%@\" instead.", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
-	return PlanetSetProperty(context, this, INT_TO_JSVAL(kPlanet_texture), argv);
 }

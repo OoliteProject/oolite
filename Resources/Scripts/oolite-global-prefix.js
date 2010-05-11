@@ -214,6 +214,13 @@ Entity.__proto__.setOrientation = function ()
 	this.orientation = Quaternion.apply(Quaternion, arguments);
 };
 
+
+Planet.__proto__.setTexture = function (texture)
+{
+	special.jsWarning("Planet.setTexture() is deprecated, use planet.texture = \"foo\" instead.");
+	this.texture = texture;
+};
+
 // Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity
 
 
