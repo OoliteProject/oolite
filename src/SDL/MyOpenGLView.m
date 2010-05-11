@@ -22,6 +22,7 @@ MA 02110-1301, USA.
 
 */
 
+#import "png.h"
 #import "MyOpenGLView.h"
 
 #import "GameController.h"
@@ -39,7 +40,6 @@ MA 02110-1301, USA.
 #define kOOLogUnconvertedNSLog @"unclassified.MyOpenGLView"
 
 #import <ctype.h>
-#import "png.h"
 
 @interface MyOpenGLView (OOPrivate)
 
