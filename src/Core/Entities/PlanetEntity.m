@@ -530,7 +530,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 			//generate the texture later
 			isTextured = NO;
 		}
-		else
+		else if (!atmo)
 		{
 			textureFile = @"metal.png";
 			textureMode = kPlanetTexModeNamedTexture;
