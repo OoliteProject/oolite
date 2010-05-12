@@ -126,10 +126,10 @@ copyFile oolite-update $PREFIX/lib/Oolite/oolite.app/oolite-update
 chmod +x $PREFIX/lib/Oolite/oolite.app/oolite-update
 
 echo "#!/bin/sh" > oolite
-echo "$PREFIX/lib/Oolite/oolite.app/oolite-wrapper $@" >> oolite
+echo "$PREFIX/lib/Oolite/oolite.app/oolite-wrapper \$@" >> oolite
 echo "exit" >> oolite
 echo "#!/bin/sh" > oolite-update
-echo "$PREFIX/lib/Oolite/oolite.app/oolite-update $@" >> oolite-update
+echo "$PREFIX/lib/Oolite/oolite.app/oolite-update \$@" >> oolite-update
 echo "exit" >> oolite-update
 installExe oolite oolite-update
 installIcon oolite-icon.png
