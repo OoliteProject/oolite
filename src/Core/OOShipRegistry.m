@@ -520,6 +520,20 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if ([child oo_stringForKey:@"display_name"] == nil)  [result removeObjectForKey:@"display_name"];
 	if ([child oo_stringForKey:@"is_template"] == nil)  [result removeObjectForKey:@"is_template"];
 	
+	// Since both 'scanClass' and 'scan_class' are accepted as valid keys for the scanClass property,
+	// we may end up with conflicting scanClass and scan_class keys from like_ship relationships getting
+	// merged in the result dictionary. We want to always have the child overriding the parent setting
+	// and we do that by determining which of the two keys belongs to the child dictionary and removing
+	// the other one from the result - Nikos 20100512
+	if ([result oo_stringForKey:@"scan_class"] != nil && [child oo_stringForKey:@"scanClass"] != nil)
+	{
+		[result removeObjectForKey:@"scan_class"];
+	}
+	if ([result oo_stringForKey:@"scanClass"] != nil && [child oo_stringForKey:@"scan_class"] != nil)
+	{
+		[result removeObjectForKey:@"scanClass"];
+	}
+	
 	return result;
 }
 
