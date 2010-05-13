@@ -35,6 +35,7 @@ MA 02110-1301, USA.
 #import "OOLoggingExtended.h"
 #import "NSFileManagerOOExtensions.h"
 #import "OOLogOutputHandler.h"
+#import "OODebugFlags.h"
 
 #define kOOLogUnconvertedNSLog @"unclassified.GameController"
 
@@ -250,7 +251,7 @@ static GameController *sSharedController = nil;
 	// Release anything allocated above that is not required.
 	[pool release];
 #if OOLITE_HAVE_APPKIT
-	if (fullscreen) [self goFullscreen:(id)YES];
+	if (fullscreen) [self goFullscreen:nil];
 #else
 	[[NSRunLoop currentRunLoop] run];
 #endif
@@ -553,6 +554,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	pauseTarget = sender;
 	
 	my_mouse_x = my_mouse_y = 0;
+	
+	gDebugFlags |= DEBUG_MISC;
 	
 	while (pauseTarget)
 	{

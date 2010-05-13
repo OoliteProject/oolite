@@ -926,6 +926,12 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	if (EXPECT_NOT(textureName == 0))  [self reifyTexture];
 	
+	if (gDebugFlags & DEBUG_MISC)
+	{
+		LogOpenGLState();
+		gDebugFlags &= ~DEBUG_MISC;
+	}
+	
 	switch (planet_type)
 	{
 		case STELLAR_TYPE_ATMOSPHERE:

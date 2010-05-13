@@ -355,7 +355,7 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	}
 	
 	function = argv[1];
-	if (!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
+	if (JS_ValueToFunction(context, function) == NULL)
 	{
 		OOReportJSBadArguments(context, nil, @"Timer", 1, argv + 1, @"Invalid argument in constructor", @"function");
 		return NO;
