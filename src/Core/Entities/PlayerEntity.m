@@ -1442,110 +1442,121 @@ static GLfloat launchRoll;
 }
 
 
+#ifndef NDEBUG
+#define STAGE_TRACKING_BEGIN	{ \
+									NSString * volatile updateStage = @"initialisation"; \
+									NS_DURING
+#define STAGE_TRACKING_END			NS_HANDLER \
+										OOLog(kOOLogException, @"***** Exception during [%@] in %s : %@ : %@ *****", updateStage, __PRETTY_FUNCTION__, [localException name], [localException reason]); \
+										[localException raise]; \
+									NS_ENDHANDLER \
+								}
+#define UPDATE_STAGE(x) do { updateStage = (x); } while (0)
+#define ST_VALUERETURN			NS_VALUERETURN
+#define ST_VOIDRETURN			NS_VOIDRETURN
+#else
+#define STAGE_TRACKING_BEGIN	{
+#define STAGE_TRACKING_END		}
+#define UPDATE_STAGE(x) do { (void) (x); } while (0);
+#define ST_VALUERETURN(v,t)		return (v)
+#define ST_VOIDRETURN			return
+#endif
+
+
 - (void) update:(OOTimeDelta)delta_t
 {
-#ifndef NDEBUG
-	NSString * volatile updateStage = @"initialisation";
-#define UPDATE_STAGE(x) do { updateStage = (x); } while (0);
-#else
-#define UPDATE_STAGE(x) do { (void) (x); } while (0);
+	STAGE_TRACKING_BEGIN
+	
+	UPDATE_STAGE(@"updateMovementFlags");
+	[self updateMovementFlags];
+	UPDATE_STAGE(@"updateAlertCondition");
+	[self updateAlertCondition];
+	UPDATE_STAGE(@"updateFuelScoops:");
+	[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
+	
+	UPDATE_STAGE(@"updateClocks:");
+	[self updateClocks:delta_t];
+	
+	// scripting
+	UPDATE_STAGE(@"updateTimers");
+	[OOScriptTimer updateTimers];
+	UPDATE_STAGE(@"checkScriptsIfAppropriate");
+	[self checkScriptsIfAppropriate];
+
+	// deal with collisions
+	UPDATE_STAGE(@"manageCollisions");
+	[self manageCollisions];
+	
+	UPDATE_STAGE(@"pollControls:");
+	[self pollControls:delta_t];
+	
+	UPDATE_STAGE(@"updateTrumbles:");
+	[self updateTrumbles:delta_t];
+	
+	OOEntityStatus status = [self status];
+	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
+	{
+		UPDATE_STAGE(@"setGuiToIntroFirstGo:");
+		[self setGuiToIntroFirstGo:YES];	//set up demo mode
+	}
+	
+	if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
+	{
+		UPDATE_STAGE(@"performAutopilotUpdates:");
+		[self performAutopilotUpdates:delta_t];
+	}
+	else  if (![self isDocked])
+	{
+		UPDATE_STAGE(@"performInFlightUpdates:");
+		[self performInFlightUpdates:delta_t];
+	}
+	
+	/*	NOTE: status-contingent updates are not a switch since they can
+		cascade when status changes.
+	*/
+	if (status == STATUS_IN_FLIGHT)
+	{
+		UPDATE_STAGE(@"doBookkeeping:");
+		[self doBookkeeping:delta_t];
+	}
+	if (status == STATUS_WITCHSPACE_COUNTDOWN)
+	{
+		UPDATE_STAGE(@"performWitchspaceCountdownUpdates:");
+		[self performWitchspaceCountdownUpdates:delta_t];
+	}
+	if (status == STATUS_EXITING_WITCHSPACE)
+	{
+		UPDATE_STAGE(@"performWitchspaceExitUpdates:");
+		[self performWitchspaceExitUpdates:delta_t];
+	}
+	if (status == STATUS_LAUNCHING)
+	{
+		UPDATE_STAGE(@"performLaunchingUpdates:");
+		[self performLaunchingUpdates:delta_t];
+	}
+	if (status == STATUS_DOCKING)
+	{
+		UPDATE_STAGE(@"performDockingUpdates:");
+		[self performDockingUpdates:delta_t];
+	}
+	if (status == STATUS_DEAD)
+	{
+		UPDATE_STAGE(@"performDeadUpdates:");
+		[self performDeadUpdates:delta_t];
+	}
+	
+#if WORMHOLE_SCANNER
+	UPDATE_STAGE(@"updateWormholes");
+	[self updateWormholes];
 #endif
 	
-	NS_DURING
-		UPDATE_STAGE(@"updateMovementFlags");
-		[self updateMovementFlags];
-		UPDATE_STAGE(@"updateAlertCondition");
-		[self updateAlertCondition];
-		UPDATE_STAGE(@"updateFuelScoops:");
-		[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
-		
-		UPDATE_STAGE(@"updateClocks:");
-		[self updateClocks:delta_t];
-		
-		// scripting
-		UPDATE_STAGE(@"updateTimers");
-		[OOScriptTimer updateTimers];
-		UPDATE_STAGE(@"checkScriptsIfAppropriate");
-		[self checkScriptsIfAppropriate];
-
-		// deal with collisions
-		UPDATE_STAGE(@"manageCollisions");
-		[self manageCollisions];
-		
-		UPDATE_STAGE(@"pollControls:");
-		[self pollControls:delta_t];
-		
-		UPDATE_STAGE(@"updateTrumbles:");
-		[self updateTrumbles:delta_t];
-		
-		OOEntityStatus status = [self status];
-		if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
-		{
-			UPDATE_STAGE(@"setGuiToIntroFirstGo:");
-			[self setGuiToIntroFirstGo:YES];	//set up demo mode
-		}
-		
-		if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
-		{
-			UPDATE_STAGE(@"performAutopilotUpdates:");
-			[self performAutopilotUpdates:delta_t];
-		}
-		else  if (![self isDocked])
-		{
-			UPDATE_STAGE(@"performInFlightUpdates:");
-			[self performInFlightUpdates:delta_t];
-		}
-		
-		/*	NOTE: status-contingent updates are not a switch since they can
-			cascade when status changes.
-		*/
-		if (status == STATUS_IN_FLIGHT)
-		{
-			UPDATE_STAGE(@"doBookkeeping:");
-			[self doBookkeeping:delta_t];
-		}
-		if (status == STATUS_WITCHSPACE_COUNTDOWN)
-		{
-			UPDATE_STAGE(@"performWitchspaceCountdownUpdates:");
-			[self performWitchspaceCountdownUpdates:delta_t];
-		}
-		if (status == STATUS_EXITING_WITCHSPACE)
-		{
-			UPDATE_STAGE(@"performWitchspaceExitUpdates:");
-			[self performWitchspaceExitUpdates:delta_t];
-		}
-		if (status == STATUS_LAUNCHING)
-		{
-			UPDATE_STAGE(@"performLaunchingUpdates:");
-			[self performLaunchingUpdates:delta_t];
-		}
-		if (status == STATUS_DOCKING)
-		{
-			UPDATE_STAGE(@"performDockingUpdates:");
-			[self performDockingUpdates:delta_t];
-		}
-		if (status == STATUS_DEAD)
-		{
-			UPDATE_STAGE(@"performDeadUpdates:");
-			[self performDeadUpdates:delta_t];
-		}
-		
-	#if WORMHOLE_SCANNER
-		UPDATE_STAGE(@"updateWormholes");
-		[self updateWormholes];
-	#endif
-	NS_HANDLER
-#ifndef NDEBUG
-		OOLog(kOOLogException, @"***** Exception during [%@] in [PlayerEntity update:] : %@ : %@ *****", updateStage, [localException name], [localException reason]);
-#endif
-		[localException raise];
-	NS_ENDHANDLER
+	STAGE_TRACKING_END
 }
 
 
 - (void) doBookkeeping:(double) delta_t
 {
-	// Bookeeping;
+	STAGE_TRACKING_BEGIN
 	
 	double speed_delta = 5.0 * thrust;
 	
@@ -1553,7 +1564,8 @@ static GLfloat launchRoll;
 	double		external_temp = 0;
 	GLfloat		air_friction = 0.0f;
 	air_friction = 0.5f * [UNIVERSE airResistanceFactor];
-
+	
+	UPDATE_STAGE(@"updating weapon temperatures");
 	// cool all weapons
 	forward_weapon_temp = fmaxf(forward_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
 	aft_weapon_temp = fmaxf(aft_weapon_temp - (float)(WEAPON_COOLING_FACTOR * delta_t), 0.0f);
@@ -1582,6 +1594,7 @@ static GLfloat launchRoll;
 	}
 
 	// cloaking device
+	UPDATE_STAGE(@"updating cloaking device");
 	if ([self hasCloakingDevice] && cloaking_device_active)
 	{
 		energy -= (float)delta_t * CLOAKING_DEVICE_ENERGY_RATE;
@@ -1590,6 +1603,7 @@ static GLfloat launchRoll;
 	}
 
 	// military_jammer
+	UPDATE_STAGE(@"updating military jammer");
 	if ([self hasMilitaryJammer])
 	{
 		if (military_jammer_active)
@@ -1604,7 +1618,8 @@ static GLfloat launchRoll;
 				military_jammer_active = YES;
 		}
 	}
-
+	
+	UPDATE_STAGE(@"updating energy and shield charges");
 	if (energy < maxEnergy)
 	{
 		double energy_multiplier = 1.0 + 0.1 * [self installedEnergyUnitType]; // 1.8x recharge with normal energy unit, 2.6x with naval!
@@ -1634,6 +1649,7 @@ static GLfloat launchRoll;
 	forward_shield = OOClamp_0_max_f(forward_shield, fwdMax);
 	aft_shield = OOClamp_0_max_f(aft_shield, aftMax);
 	
+	UPDATE_STAGE(@"updating ECM");
 	if (ecm_in_operation)
 	{
 		if (energy > 0.0)
@@ -1651,6 +1667,8 @@ static GLfloat launchRoll;
 
 	if (sun)
 	{
+		UPDATE_STAGE(@"updating sun effects");
+		
 		// set the ambient temperature here
 		double  sun_zd = sun->zero_distance;	// square of distance
 		double  sun_cr = sun->collision_radius;
@@ -1675,11 +1693,13 @@ static GLfloat launchRoll;
 			[UNIVERSE displayCountdownMessage:DESC(@"fuel-scoop-active") forCount:1.0];
 		}
 	}
-
+	
 	//Bug #11692 CmdrJames added Status entering witchspace
 	OOEntityStatus status = [self status];
 	if ((status != STATUS_AUTOPILOT_ENGAGED)&&(status != STATUS_ESCAPE_SEQUENCE) && (status != STATUS_ENTERING_WITCHSPACE))
 	{
+		UPDATE_STAGE(@"updating cabin temperature");
+		
 		// work on the cabin temperature
 		float deltaInsulation = delta_t/[self heatInsulation];
 		float heatThreshold = [self heatInsulation] * 100.0f;
@@ -1696,9 +1716,11 @@ static GLfloat launchRoll;
 		if (ship_temperature > SHIP_MAX_CABIN_TEMP)
 			[self takeHeatDamage: delta_t * ship_temperature];
 	}
-
+	
 	if ((status == STATUS_ESCAPE_SEQUENCE)&&(shot_time > ESCAPE_SEQUENCE_TIME))
 	{
+		UPDATE_STAGE(@"resetting after escape");
+		
 		[[UNIVERSE entityForUniversalID:found_target] becomeExplosion];	// blow up the doppelganger
 		[self setTargetToNearestStation];
 		if ([self primaryTarget])
@@ -1721,6 +1743,8 @@ static GLfloat launchRoll;
 	travelling_at_hyperspeed = (flightSpeed > maxFlightSpeed);
 	if (hyperspeed_engaged)
 	{
+		UPDATE_STAGE(@"updating hyperspeed");
+		
 		// increase speed up to maximum hyperspeed
 		if (flightSpeed < maxFlightSpeed * HYPERSPEED_FACTOR)
 			flightSpeed += (float)(speed_delta * delta_t * HYPERSPEED_FACTOR);
@@ -1743,6 +1767,8 @@ static GLfloat launchRoll;
 	{
 		if (afterburner_engaged)
 		{
+			UPDATE_STAGE(@"updating afterburner");
+			
 			float abFactor = [self afterburnerFactor];
 			if (flightSpeed < maxFlightSpeed * abFactor)
 				flightSpeed += (float)(speed_delta * delta_t * abFactor);
@@ -1758,6 +1784,8 @@ static GLfloat launchRoll;
 		}
 		else
 		{
+			UPDATE_STAGE(@"slowing from hyperspeed");
+			
 			// slow back down...
 			if (travelling_at_hyperspeed)
 			{
@@ -1770,8 +1798,9 @@ static GLfloat launchRoll;
 	}
 	
 	
-
+	
 	// fuel leakage
+	UPDATE_STAGE(@"updating fuel leakage");
 	
 	if ((fuel_leak_rate > 0.0)&&(fuel > 0))
 	{
@@ -1784,8 +1813,9 @@ static GLfloat launchRoll;
 		if (fuel == 0)
 			fuel_leak_rate = 0;
 	}
-
+	
 	// smart_zoom
+	UPDATE_STAGE(@"updating scanner zoom");
 	if (scanner_zoom_rate)
 	{
 		double z = [hud scanner_zoom];
@@ -1810,12 +1840,15 @@ static GLfloat launchRoll;
 	}
 
 	// update subentities
+	UPDATE_STAGE(@"updating subentities");
 	NSEnumerator	*subEnum = nil;
 	ShipEntity		*se = nil;
 	for (subEnum = [self subEntityEnumerator]; (se = [subEnum nextObject]); )
 	{
 		[se update:delta_t];
 	}
+	
+	STAGE_TRACKING_END
 }
 
 
@@ -2051,16 +2084,21 @@ static GLfloat launchRoll;
 
 - (void) performInFlightUpdates:(OOTimeDelta)delta_t
 {
+	STAGE_TRACKING_BEGIN
+	
 	// do flight routines
 	//// velocity stuff
+	UPDATE_STAGE(@"applying newtonian drift");
 	assert(VELOCITY_CLEANUP_FULL > VELOCITY_CLEANUP_MIN);
 	
 	position = vector_add(position, vector_multiply_scalar(velocity, (float)delta_t));
 	
 	GLfloat velmag = magnitude(velocity);
+	GLfloat velmag2 = velmag - (float)delta_t * thrust;
 	if (velmag > 0)
 	{
-		GLfloat velmag2 = velmag - (float)delta_t * thrust;
+		UPDATE_STAGE(@"applying power braking");
+		
 		if (velmag > VELOCITY_CLEANUP_MIN)
 		{
 			GLfloat rate;
@@ -2072,40 +2110,57 @@ static GLfloat launchRoll;
 		if (velmag2 < 0.0f)  velocity = kZeroVector;
 		else  velocity = vector_multiply_scalar(velocity, velmag2 / velmag);
 		
-		if ([UNIVERSE strict])
+	}
+	if ([UNIVERSE strict])
+	{
+		if (velmag2 < OG_ELITE_FORWARD_DRIFT)
 		{
-			if (velmag2 < OG_ELITE_FORWARD_DRIFT)
-			{
-				// add acceleration
-				velocity = vector_add(velocity, vector_multiply_scalar(v_forward, (float)delta_t * OG_ELITE_FORWARD_DRIFT * 20.0f));
-			}
+			// add acceleration
+			velocity = vector_add(velocity, vector_multiply_scalar(v_forward, (float)delta_t * OG_ELITE_FORWARD_DRIFT * 20.0f));
 		}
 	}
 	
+	UPDATE_STAGE(@"updating joystick");
 	[self applyRoll:(float)delta_t*flightRoll andClimb:(float)delta_t*flightPitch];
 	if (flightYaw != 0.0)
 	{
 		[self applyYaw:(float)delta_t*flightYaw];
 	}
+	
+	UPDATE_STAGE(@"applying para-newtonian thrust");
 	[self moveForward:delta_t*flightSpeed];
 	
+	UPDATE_STAGE(@"updating targeting");
 	[self updateTargeting];
+	
+	STAGE_TRACKING_END
 }
 
 
 - (void) performWitchspaceCountdownUpdates:(OOTimeDelta)delta_t
 {
+	STAGE_TRACKING_BEGIN
+	
+	UPDATE_STAGE(@"doing bookkeeping");
 	[self doBookkeeping:delta_t];
+	
+	UPDATE_STAGE(@"updating countdown timer");
 	witchspaceCountdown -= delta_t;
 	if (witchspaceCountdown < 0.0f)  witchspaceCountdown = 0.0f;
 	if (galactic_witchjump)
+	{
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-galactic-in-f-seconds"), witchspaceCountdown] forCount:1.0];
+	}
 	else
+	{
 		[UNIVERSE displayCountdownMessage:[NSString stringWithFormat:DESC(@"witch-to-@-in-f-seconds"), [UNIVERSE getSystemName:target_system_seed], witchspaceCountdown] forCount:1.0];
+	}
+	
 	if (witchspaceCountdown == 0.0f)
 	{
 		BOOL go = YES;
 		
+		UPDATE_STAGE(@"preloading planet textures");
 		if (!galactic_witchjump)
 		{
 			/*	Note: planet texture preloading is done twice for hyperspace jumps:
@@ -2124,6 +2179,7 @@ static GLfloat launchRoll;
 		}
 		
 		// check nearby masses
+		UPDATE_STAGE(@"checking for mass blockage");
 		ShipEntity* blocker = [UNIVERSE entityForUniversalID:[self checkShipsInVicinityForWitchJumpExit]];
 		if (blocker)
 		{
@@ -2136,6 +2192,7 @@ static GLfloat launchRoll;
 		}
 		
 		// check max distance permitted
+		UPDATE_STAGE(@"checking jump range");
 		double jump_distance = 0.0;
 		if (!galactic_witchjump)
 		{
@@ -2152,6 +2209,7 @@ static GLfloat launchRoll;
 		}
 		
 		// check fuel level
+		UPDATE_STAGE(@"checking fuel requirements");
 		double		fuel_required = 10.0 * jump_distance;
 		if (galactic_witchjump)
 			fuel_required = 0.0;
@@ -2167,15 +2225,16 @@ static GLfloat launchRoll;
 		
 		if (go)
 		{
+			UPDATE_STAGE(@"JUMP!");
 			[self safeAllMissiles];
 			[UNIVERSE setViewDirection:VIEW_FORWARD];
 			currentWeaponFacing = VIEW_FORWARD;
-			if (galactic_witchjump)
-				[self enterGalacticWitchspace];
-			else
-				[self enterWitchspace];
+			if (galactic_witchjump)  [self enterGalacticWitchspace];
+			else  [self enterWitchspace];
 		}
 	}
+	
+	STAGE_TRACKING_END
 }
 
 
@@ -2294,7 +2353,10 @@ static GLfloat launchRoll;
 // information
 - (void) updateTargeting
 {
+	STAGE_TRACKING_BEGIN
+	
 	// check for lost ident target and ensure the ident system is actually scanning
+	UPDATE_STAGE(@"checking ident target");
 	if (ident_engaged && [self primaryTargetID] != NO_TARGET)
 	{
 		if (![self isValidTarget:[self primaryTarget]])
@@ -2315,6 +2377,7 @@ static GLfloat launchRoll;
 	}
 
 	// check each unlaunched missile's target still exists and is in-range
+	UPDATE_STAGE(@"checking missile targets");
 	if (missile_status != MISSILE_STATUS_SAFE)
 	{
 		unsigned i;
@@ -2338,6 +2401,7 @@ static GLfloat launchRoll;
 
 	// if we don't have a primary target, and we're scanning, then check for a new
 	// target to lock on to
+	UPDATE_STAGE(@"looking for new target");
 	if ([self primaryTargetID] == NO_TARGET && 
 			(ident_engaged || missile_status != MISSILE_STATUS_SAFE) &&
 			([self status] == STATUS_IN_FLIGHT || [self status] == STATUS_WITCHSPACE_COUNTDOWN))
@@ -2352,6 +2416,7 @@ static GLfloat launchRoll;
 #if WORMHOLE_SCANNER
 	// If our primary target is a wormhole, check to see if we have additional
 	// information
+	UPDATE_STAGE(@"checking for additional wormhole information");
 	if ([[self primaryTarget] isWormhole])
 	{
 		WormholeEntity *wh = [self primaryTarget];
@@ -2399,6 +2464,8 @@ static GLfloat launchRoll;
 		}
 	}
 #endif
+	
+	STAGE_TRACKING_END
 }
 
 
