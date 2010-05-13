@@ -15,6 +15,3 @@ On release:
 http://www.oolite.org/download (current version six times, previous version for Windows updater once)
 Topic of #oolite
 latest news at berlios.de 
-
-Not really necessary:
-tools/simpleDebugConsole/Basic-debug.oxp/requires.plist (will be updated by next Xcode build)
