@@ -574,7 +574,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_scriptInfo:
 			result = [entity scriptInfo];
-			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than NULL
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than undefined
 			break;
 			
 		case kShip_trackCloseContacts:

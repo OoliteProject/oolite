@@ -230,6 +230,7 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			
 		case kEquipmentInfo_scriptInfo:
 			result = [eqType scriptInfo];
+			if (result == nil)  result = [NSDictionary dictionary];	// empty rather than undefined
 			break;
 			
 		default:
