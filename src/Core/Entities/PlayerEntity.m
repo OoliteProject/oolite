@@ -1444,48 +1444,102 @@ static GLfloat launchRoll;
 
 - (void) update:(OOTimeDelta)delta_t
 {
-	[self updateMovementFlags];
-	[self updateAlertCondition];
-	[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
-	
-	[self updateClocks:delta_t];
-	
-	// scripting
-	[OOScriptTimer updateTimers];
-	[self checkScriptsIfAppropriate];
-
-	// deal with collisions
-	[self manageCollisions];
-	
-	[self pollControls:delta_t];
-	
-	[self updateTrumbles:delta_t];
-	
-	OOEntityStatus status = [self status];
-	if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
-	{
-		[self setGuiToIntroFirstGo:YES];	//set up demo mode
-	}
-	
-	if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
-	{
-		[self performAutopilotUpdates:delta_t];
-	}
-	else  if (![self isDocked])  [self performInFlightUpdates:delta_t];
-	
-	if (status == STATUS_IN_FLIGHT)  [self doBookkeeping:delta_t];
-	if (status == STATUS_WITCHSPACE_COUNTDOWN)  [self performWitchspaceCountdownUpdates:delta_t];
-	if (status == STATUS_EXITING_WITCHSPACE)  [self performWitchspaceExitUpdates:delta_t];
-	if (status == STATUS_LAUNCHING)  [self performLaunchingUpdates:delta_t];
-	if (status == STATUS_DOCKING)  [self performDockingUpdates:delta_t];
-	if (status == STATUS_DEAD)  [self performDeadUpdates:delta_t];
-	
-	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
-	// Moved to performInFlightUpdates. -- Micha 20090403
-	//[self updateTargeting];
-#if WORMHOLE_SCANNER
-	[self updateWormholes];
+#ifndef NDEBUG
+	NSString * volatile updateStage = @"initialisation";
+#define UPDATE_STAGE(x) do { updateStage = (x); } while (0);
+#else
+#define UPDATE_STAGE(x) do { (void) (x); } while (0);
 #endif
+	
+	NS_DURING
+		UPDATE_STAGE(@"updateMovementFlags");
+		[self updateMovementFlags];
+		UPDATE_STAGE(@"updateAlertCondition");
+		[self updateAlertCondition];
+		UPDATE_STAGE(@"updateFuelScoops:");
+		[self updateFuelScoops:delta_t];	// TODO: this should probably be called from performInFlightUpdates: instead. -- Ahruman 20080322
+		
+		UPDATE_STAGE(@"updateClocks:");
+		[self updateClocks:delta_t];
+		
+		// scripting
+		UPDATE_STAGE(@"updateTimers");
+		[OOScriptTimer updateTimers];
+		UPDATE_STAGE(@"checkScriptsIfAppropriate");
+		[self checkScriptsIfAppropriate];
+
+		// deal with collisions
+		UPDATE_STAGE(@"manageCollisions");
+		[self manageCollisions];
+		
+		UPDATE_STAGE(@"pollControls:");
+		[self pollControls:delta_t];
+		
+		UPDATE_STAGE(@"updateTrumbles:");
+		[self updateTrumbles:delta_t];
+		
+		OOEntityStatus status = [self status];
+		if (status == STATUS_START_GAME && gui_screen != GUI_SCREEN_INTRO1 && gui_screen != GUI_SCREEN_INTRO2)
+		{
+			UPDATE_STAGE(@"setGuiToIntroFirstGo:");
+			[self setGuiToIntroFirstGo:YES];	//set up demo mode
+		}
+		
+		if (status == STATUS_AUTOPILOT_ENGAGED || status == STATUS_ESCAPE_SEQUENCE)
+		{
+			UPDATE_STAGE(@"performAutopilotUpdates:");
+			[self performAutopilotUpdates:delta_t];
+		}
+		else  if (![self isDocked])
+		{
+			UPDATE_STAGE(@"performInFlightUpdates:");
+			[self performInFlightUpdates:delta_t];
+		}
+		
+		/*	NOTE: status-contingent updates are not a switch since they can
+			cascade when status changes.
+		*/
+		if (status == STATUS_IN_FLIGHT)
+		{
+			UPDATE_STAGE(@"doBookkeeping:");
+			[self doBookkeeping:delta_t];
+		}
+		if (status == STATUS_WITCHSPACE_COUNTDOWN)
+		{
+			UPDATE_STAGE(@"performWitchspaceCountdownUpdates:");
+			[self performWitchspaceCountdownUpdates:delta_t];
+		}
+		if (status == STATUS_EXITING_WITCHSPACE)
+		{
+			UPDATE_STAGE(@"performWitchspaceExitUpdates:");
+			[self performWitchspaceExitUpdates:delta_t];
+		}
+		if (status == STATUS_LAUNCHING)
+		{
+			UPDATE_STAGE(@"performLaunchingUpdates:");
+			[self performLaunchingUpdates:delta_t];
+		}
+		if (status == STATUS_DOCKING)
+		{
+			UPDATE_STAGE(@"performDockingUpdates:");
+			[self performDockingUpdates:delta_t];
+		}
+		if (status == STATUS_DEAD)
+		{
+			UPDATE_STAGE(@"performDeadUpdates:");
+			[self performDeadUpdates:delta_t];
+		}
+		
+	#if WORMHOLE_SCANNER
+		UPDATE_STAGE(@"updateWormholes");
+		[self updateWormholes];
+	#endif
+	NS_HANDLER
+#ifndef NDEBUG
+		OOLog(kOOLogException, @"***** Exception during [%@] in [PlayerEntity update:] : %@ : %@ *****", updateStage, [localException name], [localException reason]);
+#endif
+		[localException raise];
+	NS_ENDHANDLER
 }
 
 
@@ -1777,8 +1831,8 @@ static GLfloat launchRoll;
 - (void) updateAlertCondition
 {
 	/*	TODO: update alert condition once per frame. Tried this before, but
-	 there turned out to be complications. See mailing list archive.
-	 -- Ahruman 20070802
+		there turned out to be complications. See mailing list archive.
+		-- Ahruman 20070802
 	 */
 	OOAlertCondition cond = [self alertCondition];
 	if (cond != lastScriptAlertCondition)

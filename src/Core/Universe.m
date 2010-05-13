@@ -5484,7 +5484,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			{
 				Entity *thing = my_entities[i];
 #ifndef NDEBUG
-				update_stage = [NSString stringWithFormat:@"update:entity[%@]", [thing shortDescription]];
+				update_stage = [NSString stringWithFormat:@"update:entity [%@]", [thing shortDescription]];
 #endif
 				// Game Over code depends on regular delta_t updates to the dead player entity. Ignore the player entity, even when dead.
 				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing] && ![thing isPlayer]))
@@ -5495,6 +5495,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				}
 				
 				[thing update:delta_t];
+				
+#ifndef NDEBUG
+				update_stage = [NSString stringWithFormat:@"update:list maintenance [%@]", [thing shortDescription]];
+#endif
 				
 				// maintain distance-from-player list
 				double z_distance = thing->zero_distance;
@@ -5512,15 +5516,15 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				// update deterministic AI
 				if ([thing isShip])
 				{
+#ifndef NDEBUG
+					update_stage = [NSString stringWithFormat:@"update:think [%@]", [thing shortDescription]];
+#endif
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
 					if (theShipsAI)
 					{
 						double thinkTime = [theShipsAI nextThinkTime];
 						if ((universal_time > thinkTime)||(thinkTime == 0.0))
 						{
-#ifndef NDEBUG
-							update_stage = [NSString stringWithFormat:@"update:think[%@]", [thing shortDescription]];
-#endif
 							[theShipsAI setNextThinkTime:universal_time + [theShipsAI thinkTimeInterval]];
 							[theShipsAI think];
 						}
