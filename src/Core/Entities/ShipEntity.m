@@ -2376,6 +2376,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			max_cargo -= extra_cargo;
 		}
 		
+		if ([equipmentKey isEqualToString:@"EQ_CLOAKING_DEVICE"] && [_equipment containsObject:equipmentKey])
+		{
+			if ([self isCloaked])  [self setCloaked:NO];
+		}
+		
 		[_equipment removeObject:equipmentKey];
 		if (![equipmentKey hasSuffix:@"_DAMAGED"])
 		{
