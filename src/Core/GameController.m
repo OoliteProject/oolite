@@ -555,8 +555,6 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	
 	my_mouse_x = my_mouse_y = 0;
 	
-	gDebugFlags |= DEBUG_MISC;
-	
 	while (pauseTarget)
 	{
 		CGPoint centerOfScreen = CGPointMake(width/2.0F,height/2.0F);

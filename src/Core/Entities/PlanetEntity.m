@@ -908,7 +908,13 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
 	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
-
+	
+	OOGL(glEnable(GL_LIGHTING));
+	OOGL(glEnable(GL_LIGHT1));
+	GLfloat specular[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+	
 	/*
 
 	The depth test gets disabled in parts of this and instead
@@ -925,12 +931,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		ignoreDepthBuffer |= YES;
 	
 	if (EXPECT_NOT(textureName == 0))  [self reifyTexture];
-	
-	if (gDebugFlags & DEBUG_MISC)
-	{
-		LogOpenGLState();
-		gDebugFlags &= ~DEBUG_MISC;
-	}
 	
 	switch (planet_type)
 	{
