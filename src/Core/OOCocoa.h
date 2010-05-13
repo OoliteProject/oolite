@@ -6,7 +6,7 @@ Import OpenStep main headers and define some Macisms and other compatibility
 stuff.
 
 Oolite
-Copyright (C) 2004-2008 Giles C Williams and contributors
+Copyright (C) 2004-2010 Giles C Williams and contributors
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -30,6 +30,10 @@ MA 02110-1301, USA.
 
 #ifdef GNUSTEP
 	#define OOLITE_GNUSTEP			1
+	
+	#if (GNUSTEP_BASE_MAJOR_VERSION == 1 && GNUSTEP_BASE_MINOR_VERSION >= 20) || (GNUSTEP_BASE_MAJOR_VERSION > 1)
+		#define OOLITE_GNUSTEP_1_20	1
+	#endif
 #else
 	#import <AppKit/AppKit.h>
 	
@@ -56,10 +60,17 @@ MA 02110-1301, USA.
 		SDK used for 64-bit builds.
 	*/
 	#if defined MAC_OS_X_VERSION_10_5 && MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_5
-	#define OOLITE_LEOPARD			1
-	#else
-	#define OOLITE_LEOPARD			0
+		#define OOLITE_LEOPARD		1
 	#endif
+#endif
+
+
+#ifndef OOLITE_GNUSTEP_1_20
+	#define OOLITE_GNUSTEP_1_20		0
+#endif
+
+#ifndef OOLITE_LEOPARD
+	#define OOLITE_LEOPARD			0
 #endif
 
 

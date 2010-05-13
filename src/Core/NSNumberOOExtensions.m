@@ -73,7 +73,7 @@ SOFTWARE.
 @end
 
 
-#ifdef GNUSTEP
+#if OOLITE_GNUSTEP && OOLITE_GNUSTEP_1_20
 
 /*	As an optimization, we override the implementation on NSBoolNumber to
 	always return YES. In practical terms, we could always return NO in

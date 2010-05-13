@@ -77,6 +77,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 }
 
+
 + (void) addEquipmentWithInfo:(NSArray *)itemInfo
 {
 	NSMutableArray		*equipmentTypes = [NSMutableArray arrayWithArray:sEquipmentTypes];
@@ -95,6 +96,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 	}
 	DESTROY(equipmentTypesByIdentifier);
 }
+
 
 + (NSArray *) allEquipmentTypes
 {

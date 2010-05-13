@@ -44,12 +44,13 @@ MA 02110-1301, USA.
 #ifndef NDEBUG
 uint32_t gLiveEntityCount = 0;
 size_t gTotalEntityMemory = 0;
-#if __OBJC2__
+#if __OBJC2__ || OOLITE_GNUSTEP_1_20
 #import <objc/runtime.h>
 #else
 #if OOLITE_MAC_OS_X
 #import <objc/objc-class.h>
 #endif
+
 OOINLINE size_t class_getInstanceSize(Class cls)
 {
 	return cls->instance_size;
