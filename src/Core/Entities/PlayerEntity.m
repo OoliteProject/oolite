@@ -3205,7 +3205,7 @@ static GLfloat launchRoll;
 		[UNIVERSE addMessage:DESC(@"energy-low") forCount:6.0];
 	}
 
-	if ([ms isEqual:@"ECM"])  [self playHitByECMSound];
+	if ([ms isEqual:@"ECM"] && ![self isDocked])  [self playHitByECMSound];
 
 	if ([ms isEqual:@"DOCKING_REFUSED"] && [self status] == STATUS_AUTOPILOT_ENGAGED)
 	{
