@@ -32,6 +32,7 @@ MA 02110-1301, USA.
 // Sizes of sound source pools
 enum
 {
+	kBuySellSourcePoolSize	= 4,
 	kWarningPoolSize		= 6,
 	kWeaponPoolSize			= 3,
 	kDamagePoolSize			= 4,
@@ -47,7 +48,7 @@ static OOSoundSource		*sHyperspaceSoundSource;
 static OOSoundSource		*sInterfaceBeepSource;
 static OOSoundSource		*sEcmSource;
 static OOSoundSource		*sBreakPatternSource;
-static OOSoundSource		*sBuySellSource;
+static OOSoundSourcePool	*sBuySellSourcePool;
 static OOSoundSource		*sAfterburnerSources[2];
 
 
@@ -63,8 +64,8 @@ static OOSoundSource		*sAfterburnerSources[2];
 	sBreakPatternSource = [[OOSoundSource alloc] init];
 	sEcmSource = [[OOSoundSource alloc] init];
 	sHyperspaceSoundSource = [[OOSoundSource alloc] init];
-	sBuySellSource = [[OOSoundSource alloc] init];
 	
+	sBuySellSourcePool = [[OOSoundSourcePool alloc] initWithCount:kBuySellSourcePoolSize minRepeatTime:0.0];
 	sWarningSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWarningPoolSize minRepeatTime:0.0];
 	sWeaponSoundPool = [[OOSoundSourcePool alloc] initWithCount:kWeaponPoolSize minRepeatTime:0.0];
 	sDamageSoundPool = [[OOSoundSourcePool alloc] initWithCount:kDamagePoolSize minRepeatTime:0.1];	// Repeat time limit is to avoid playing a scrape sound every frame on glancing scrapes. This does limit the number of laser hits that can be played in a furrball, though; maybe lasers and scrapes should use different pools.
@@ -79,26 +80,17 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) destroySound
 {
-	[refPoint release];
-	refPoint = nil;
+	DESTROY(refPoint);
 	
-	[sInterfaceBeepSource release];
-	sInterfaceBeepSource = nil;
-	[sBreakPatternSource release];
-	sBreakPatternSource = nil;
-	[sEcmSource release];
-	sEcmSource = nil;
-	[sHyperspaceSoundSource release];
-	sHyperspaceSoundSource = nil;
-	[sBuySellSource release];
-	sBuySellSource = nil;
+	DESTROY(sInterfaceBeepSource);
+	DESTROY(sBreakPatternSource);
+	DESTROY(sEcmSource);
+	DESTROY(sHyperspaceSoundSource);
 	
-	[sWarningSoundPool release];
-	sWarningSoundPool = nil;
-	[sWeaponSoundPool release];
-	sWeaponSoundPool = nil;
-	[sDamageSoundPool release];
-	sDamageSoundPool = nil;
+	DESTROY(sBuySellSourcePool);
+	DESTROY(sWarningSoundPool);
+	DESTROY(sWeaponSoundPool);
+	DESTROY(sDamageSoundPool);
 }
 
 
@@ -378,37 +370,37 @@ static OOSoundSource		*sAfterburnerSources[2];
 
 - (void) playBuyCommodity
 {
-	[sBuySellSource playCustomSoundWithKey:@"[buy-commodity]"];
+	[sBuySellSourcePool playSoundWithKey:@"[buy-commodity]"];
 }
 
 
 - (void) playBuyShip
 {
-	[sBuySellSource playCustomSoundWithKey:@"[buy-ship]"];
+	[sBuySellSourcePool playSoundWithKey:@"[buy-ship]"];
 }
 
 
 - (void) playSellCommodity
 {
-	[sBuySellSource playCustomSoundWithKey:@"[sell-commodity]"];
+	[sBuySellSourcePool playSoundWithKey:@"[sell-commodity]"];
 }
 
 
 - (void) playCantBuyCommodity
 {
-	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-commodity]"];
+	[sBuySellSourcePool playSoundWithKey:@"[could-not-buy-commodity]"];
 }
 
 
 - (void) playCantSellCommodity
 {
-	[sBuySellSource playCustomSoundWithKey:@"[could-not-sell-commodity]"];
+	[sBuySellSourcePool playSoundWithKey:@"[could-not-sell-commodity]"];
 }
 
 
 - (void) playCantBuyShip
 {
-	[sBuySellSource playCustomSoundWithKey:@"[could-not-buy-ship]"];
+	[sBuySellSourcePool playSoundWithKey:@"[could-not-buy-ship]"];
 }
 
 
