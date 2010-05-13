@@ -61,7 +61,8 @@ enum
 	kEquipmentInfo_requiredCargoSpace,
 	kEquipmentInfo_requiresEquipment,
 	kEquipmentInfo_requiresAnyEquipment,
-	kEquipmentInfo_incompatibleEquipment
+	kEquipmentInfo_incompatibleEquipment,
+	kEquipmentInfo_scriptInfo					// arbitrary data for scripts, dictionary, read-only
 };
 
 
@@ -88,6 +89,7 @@ static JSPropertySpec sEquipmentInfoProperties[] =
 	{ "requiresEquipment",				kEquipmentInfo_requiresEquipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 
@@ -226,6 +228,10 @@ static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval
 			result = [[eqType incompatibleEquipment] allObjects];
 			break;
 			
+		case kEquipmentInfo_scriptInfo:
+			result = [eqType scriptInfo];
+			break;
+			
 		default:
 			OOReportJSBadPropertySelector(context, @"EquipmentInfo", JSVAL_TO_INT(name));
 			return NO;
@@ -294,6 +300,12 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	}
 	
 	return OBJECT_TO_JSVAL(_jsSelf);
+}
+
+
+- (NSString *) jsClassName
+{
+	return @"EquipmentInfo";
 }
 
 @end

@@ -2,10 +2,11 @@
 
 OOEquipmentType.h
 
-Manage the set of installed ships.
+Class representing a type of ship equipment. Exposed to JavaScript as
+EquipmentInfo.
 
 
-Copyright (C) 2008 Jens Ayton and contributors
+Copyright (C) 2008-2010 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +55,7 @@ SOFTWARE.
 	NSSet					*_requiresAnyEquipment;
 	NSSet					*_incompatibleEquipment;
 	NSArray					*_conditions;
+	NSDictionary			*_scriptInfo;
 	
 	struct JSObject			*_jsSelf;
 }
@@ -92,6 +94,8 @@ SOFTWARE.
 
 // FIXME: should have general mechanism to handle scripts or legacy conditions.
 - (NSArray *) conditions;
+
+- (NSDictionary *) scriptInfo;
 
 @end
 

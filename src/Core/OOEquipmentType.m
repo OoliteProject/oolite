@@ -2,10 +2,8 @@
 
 OOEquipmentType.m
 
-Manage the set of installed ships.
 
-
-Copyright (C) 2008 Jens Ayton and contributors
+Copyright (C) 2008-2010 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -223,6 +221,8 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 				_conditions = OOSanitizeLegacyScriptConditions(conditions, [NSString stringWithFormat:@"<equipment type \"%@\">", _name]);
 				[_conditions retain];
 			}
+			
+			_scriptInfo = [extra oo_dictionaryForKey:@"script_info"];
 		}
 	}
 	
@@ -237,13 +237,14 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 
 - (void) dealloc
 {
-	[_name release];
-	[_identifier release];
-	[_description release];
-	[_requiresEquipment release];
-	[_requiresAnyEquipment release];
-	[_incompatibleEquipment release];
-	[_conditions release];
+	DESTROY(_name);
+	DESTROY(_identifier);
+	DESTROY(_description);
+	DESTROY(_requiresEquipment);
+	DESTROY(_requiresAnyEquipment);
+	DESTROY(_incompatibleEquipment);
+	DESTROY(_conditions);
+	DESTROY(_scriptInfo);
 	
 	[super dealloc];
 }
@@ -394,8 +395,14 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 }
 
 
+- (NSDictionary *) scriptInfo
+{
+	return _scriptInfo;
+}
+
+
 /*	This method exists purely to suppress Clang static analyzer warnings that
-	this ivar is unused (but may be used by categories, which they are).
+	this ivar is unused (but may be used by categories, which it is).
 	FIXME: there must be a feature macro we can use to avoid actually building
 	this into the app, but I can't find it in docs.
 */
