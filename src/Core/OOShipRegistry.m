@@ -525,15 +525,42 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	// merged in the result dictionary. We want to always have the child overriding the parent setting
 	// and we do that by determining which of the two keys belongs to the child dictionary and removing
 	// the other one from the result - Nikos 20100512
-	if ([result oo_stringForKey:@"scan_class"] != nil && [child oo_stringForKey:@"scanClass"] != nil)
+	if ([result oo_stringForKey:@"scan_class"] != nil && [result oo_stringForKey:@"scanClass"] != nil)
 	{
-		[result removeObjectForKey:@"scan_class"];
+		if ([child oo_stringForKey:@"scanClass"] != nil)
+			[result removeObjectForKey:@"scan_class"];
+		else
+			[result removeObjectForKey:@"scanClass"];
 	}
-	if ([result oo_stringForKey:@"scanClass"] != nil && [child oo_stringForKey:@"scan_class"] != nil)
+	// TODO: all normalised/non-normalised value name pairs need to be catered for. - Kaks 2010-05-13
+	if ([result oo_stringForKey:@"escort_role"] != nil && [result oo_stringForKey:@"escort-role"] != nil)
 	{
-		[result removeObjectForKey:@"scanClass"];
+		if ([child oo_stringForKey:@"escort-role"] != nil)
+			[result removeObjectForKey:@"escort_role"];
+		else
+			[result removeObjectForKey:@"escort-role"];
 	}
-	
+	if ([result oo_stringForKey:@"escort_ship"] != nil && [result oo_stringForKey:@"escort-ship"] != nil)
+	{
+		if ([child oo_stringForKey:@"escort-ship"] != nil)
+			[result removeObjectForKey:@"escort_ship"];
+		else
+			[result removeObjectForKey:@"escort-ship"];
+	}
+	if ([result oo_stringForKey:@"is_carrier"] != nil && [result oo_stringForKey:@"isCarrier"] != nil)
+	{
+		if ([child oo_stringForKey:@"isCarrier"] != nil)
+			[result removeObjectForKey:@"is_carrier"];
+		else
+			[result removeObjectForKey:@"isCarrier"];
+	}
+	if ([result oo_stringForKey:@"has_shipyard"] != nil && [result oo_stringForKey:@"hasShipyard"] != nil)
+	{
+		if ([child oo_stringForKey:@"hasShipyard"] != nil)
+			[result removeObjectForKey:@"has_shipyard"];
+		else
+			[result removeObjectForKey:@"hasShipyard"];
+	}	
 	return result;
 }
 
