@@ -2469,13 +2469,10 @@ static NSTimeInterval	time_last_frame;
 		if (!shaderSelectKeyPressed || (script_time > timeLastKeyPress + KEY_REPEAT_INTERVAL))
 		{
 			int direction = ([gameView isDown:gvArrowKeyRight]) ? 1 : -1;
-			int shaderEffects = [UNIVERSE shaderEffectsLevel];
-			shaderEffects = shaderEffects + direction;
-			if (shaderEffects < SHADERS_MIN)
-				shaderEffects = SHADERS_MIN;
-			if (shaderEffects > SHADERS_MAX)
-				shaderEffects = SHADERS_MAX;
+			OOShaderSetting shaderEffects = [UNIVERSE shaderEffectsLevel] + direction;
 			[UNIVERSE setShaderEffectsLevel:shaderEffects];
+			shaderEffects = [UNIVERSE shaderEffectsLevel];
+			
 			[gui setText:[NSString stringWithFormat:DESC(@"gameoptions-shaderfx-@"), ShaderSettingToDisplayString(shaderEffects)]
 				  forRow:GUI_ROW(GAME,SHADEREFFECTS)
 				   align:GUI_ALIGN_CENTER];

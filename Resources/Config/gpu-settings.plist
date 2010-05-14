@@ -1,26 +1,47 @@
-/*	Recognition patterns for OpenGL renderers known to have low shader
-	performance, for which simple shader mode should be the default.
+/*
+	Per-GPU type settings.
+	
+	Supported settings:
+		default_shader_level	Shader level used if user hasn't made a choice.
+								Default: "SHADERS_FULL". Possible values:
+								"SHADERS_OFF", "SHADERS_SIMPLE", "SHADERS_FULL".
+		maximum_shader_level	Maximum permitted shader level. SAme values as
+								above. Default: "SHADERS_FULL". If set to
+								"SHADERS_OFF", shaders are treated as not
+								available.
+		smooth_points			Enable or disable use of point smoothing.
+								Default: on.
+		smooth_lines			Enable or disable use of line smoothing.
+								Default: on.
+	
+	Matching dictionaries:
+		"match" dictionaries contain regular expressions tested against any of
+		"vendor", "renderer", "version" and "extensions". These are displayed
+		near the top of the log by default. Note that "version" here refers to
+		the full version string (shown in parentheses). The "extension" string
+		used for matches is space-separated (no commas as in the log). Multiple
+		regexps may be specified as an array, in which case all must match.
+		Any backslashes in regexps must be escaped (i.e., doubled); see the
+		"renderer" test for Intel GMA 9xx for an example.
 */
-
 (
 	{
-		// NVIDIA GeForce FX 5200
-		vendor = ( "NVIDIA" );
-		renderer = ( "GeForce", "5200" );
+		name = "NVIDIA GeForce FX 5200";
+		match =
+		{
+			vendor = "NVIDIA";
+			renderer = "GeForce.*5200|NV34MAP"; // "GeForce<anything>5200" or "NV34MAP".
+		};
+		default_shader_level = "SHADERS_SIMPLE";
 	},
 	{
-		// Also NVIDIA GeForce FX 5200
-		vendor = ( "NVIDIA" );
-		renderer = ( "NV34MAP" );
-	},
-	{
-		// Intel GMA 900
-		vendor = ( "Intel" );
-		renderer = ( "GMA",  "900" );
-	},
-	{
-		// Intel GMA 950
-		vendor = ( "Intel" );
-		renderer = ( "GMA",  "950" );
+		name = "Intel GMA 9xx";
+		match =
+		{
+			vendor = "Intel";
+			renderer = "GMA.*9\\d\\d(?!\\d)";		// GMA<anything>9##, but not 9###.
+		};
+		maximum_shader_level = "SHADERS_SIMPLE";
+		smooth_points = "off";						// Point smoothing is not supported in hardware.
 	}
 )

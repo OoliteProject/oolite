@@ -3,7 +3,7 @@
 OOJSScript.h
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor and Jens Ayton.
+Copyright (C) 2007-2010 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -46,7 +46,12 @@ MA 02110-1301, USA.
 + (OOJSScript *)currentlyRunningScript;
 + (NSArray *)scriptStack;
 
-+ (void)pushScript:(OOJSScript *)script;	// Used, for instance, by timers. Failing to balance these will crash!
+/*	External manipulation of acrtive script stack. Used, for instance, by
+	timers. Failing to balance these will crash!
+	Passing a nil script is valid for cases where JS is used which is not
+	attached to a specific script.
+*/
++ (void)pushScript:(OOJSScript *)script;
 + (void)popScript:(OOJSScript *)script;
 
 @end

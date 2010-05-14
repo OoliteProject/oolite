@@ -4,7 +4,7 @@ OOJSFunction.m
  
 
 JavaScript support for Oolite
-Copyright (C) 2007-2009 David Taylor and Jens Ayton.
+Copyright (C) 2007-2010 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 */
 
 #import "OOJSFunction.h"
+#import "OOJSScript.h"
 
 
 @implementation OOJSFunction
@@ -95,8 +96,7 @@ MA 02110-1301, USA.
 	}
 	else
 	{
-		[self release];
-		self = nil;
+		DESTROY(self);
 	}
 	
 	if (releaseContext)  [[OOJavaScriptEngine sharedEngine] releaseContext:context];
@@ -131,6 +131,82 @@ MA 02110-1301, USA.
 - (JSFunction *) function
 {
 	return _function;
+}
+
+
+- (BOOL) evaluateWithContext:(JSContext *)context
+					   scope:(JSObject *)jsThis
+						argc:(uintN)argc
+						argv:(jsval *)argv
+					  result:(jsval *)result
+{
+	[OOJSScript pushScript:nil];
+	BOOL OK = JS_CallFunction(context, jsThis, _function, argc, argv, result);
+	[OOJSScript popScript:nil];
+	return OK;
+}
+
+// Semi-raw evaluation shared by convenience methods below.
+- (BOOL) evaluateWithContext:(JSContext *)context
+					   scope:(id)jsThis
+				   arguments:(NSArray *)arguments
+					  result:(jsval *)result
+{
+	OOUInteger i, argc = [arguments count];
+	jsval argv[argc];
+	
+	for (i = 0; i < argc; i++)
+	{
+		OO_AddJSGCRoot(context, &argv[i], "OOJSFunction argv");
+		argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
+	}
+	
+	JSObject *scopeObj = NULL;
+	BOOL OK = YES;
+	if (jsThis != nil)  OK = JS_ValueToObject(context, [jsThis javaScriptValueInContext:context], &scopeObj);
+	if (OK)  OK = [self evaluateWithContext:context
+									  scope:scopeObj
+									   argc:argc
+									   argv:argv
+									 result:result];
+	
+	for (i = 0; i < argc; i++)
+	{
+		JS_RemoveRoot(context, &argv[i]);
+	}
+	
+	return OK;
+}
+
+
+- (id) evaluateWithContext:(JSContext *)context
+					 scope:(id)jsThis
+				 arguments:(NSArray *)arguments
+{
+	jsval result;
+	BOOL OK = [self evaluateWithContext:context
+								  scope:jsThis
+							  arguments:arguments
+								 result:&result];
+	if (!OK)  return nil;
+	
+	return JSValueToObject(context, result);
+}
+			   
+
+- (BOOL) evaluatePredicateWithContext:(JSContext *)context
+								scope:(id)jsThis
+							arguments:(NSArray *)arguments
+{
+	jsval result;
+	BOOL OK = [self evaluateWithContext:context
+								  scope:jsThis
+							  arguments:arguments
+								 result:&result];
+	JSBool retval = NO;
+	if (OK)  OK = JS_ValueToBoolean(context, result, &retval);
+	
+	return OK && retval;
 }
 
 @end

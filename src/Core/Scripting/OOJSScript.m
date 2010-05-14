@@ -3,7 +3,7 @@
 OOJSScript.m
 
 JavaScript support for Oolite
-Copyright (C) 2007 David Taylor and Jens Ayton.
+Copyright (C) 2007-2010 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -508,8 +508,6 @@ static JSFunctionSpec sScriptMethods[] =
 {
 	RunningStack			*element = NULL;
 	
-	if (script == nil)  return;
-	
 	element = malloc(sizeof *element);
 	if (element == NULL)  exit(EXIT_FAILURE);
 	
@@ -523,7 +521,6 @@ static JSFunctionSpec sScriptMethods[] =
 {
 	RunningStack			*element = NULL;
 	
-	if (script == nil)  return;
 	assert(sRunningStack->current == script);
 	
 	element = sRunningStack;

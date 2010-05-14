@@ -71,6 +71,7 @@ MA 02110-1301, USA.
 #import "OOMusicController.h"
 #import "OOAsyncWorkManager.h"
 #import "OODebugFlags.h"
+#import "OOLoggingExtended.h"
 
 #if OO_LOCALIZATION_TOOLS
 #import "OOConvertSystemDescriptions.h"
@@ -269,7 +270,11 @@ OOINLINE size_t class_getInstanceSize(Class cls)
 #if ALLOW_PROCEDURAL_PLANETS
 	doProcedurallyTexturedPlanets = [prefs oo_boolForKey:@"procedurally-textured-planets" defaultValue:YES];
 #endif
-	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:SHADERS_SIMPLE]];
+	
+	BOOL logResets = OOLogWillDisplayMessagesInClass(@"rendering.reset.start");
+	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", NO);
+	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
+	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", logResets);
 	
 #if OOLITE_SPEECH_SYNTH
 #if OOLITE_MAC_OS_X
@@ -8292,7 +8297,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) setShaderEffectsLevel:(OOShaderSetting)value
 {
-	if (SHADERS_MIN <= value && value <= SHADERS_MAX && [[OOOpenGLExtensionManager sharedManager] shadersSupported])
+	OOShaderSetting max = [[OOOpenGLExtensionManager sharedManager] maximumShaderSetting];
+	
+	if (value < SHADERS_MIN)  value = SHADERS_MIN;
+	if (max < value)  value = max;
+	
+	if (value != shaderEffectsLevel)
 	{
 		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
 		shaderEffectsLevel = value;

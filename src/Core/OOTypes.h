@@ -129,19 +129,6 @@ typedef enum
 } OOGUIScreenID;
 
 
-typedef enum
-{
-	// NOTE: numerical values are available to scripts.
-	SHADERS_NOT_SUPPORTED,
-	SHADERS_OFF,
-	SHADERS_SIMPLE,
-	SHADERS_FULL
-} OOShaderSetting;
-
-#define SHADERS_MIN SHADERS_OFF
-#define SHADERS_MAX SHADERS_FULL
-
-
 #ifdef OO_BRAIN_AI
 typedef enum
 {
@@ -162,6 +149,18 @@ typedef enum
 	INSTINCT_FOLLOW_AI				= 201
 } OOInstinctID;
 #endif
+
+
+typedef enum
+{
+	// NOTE: numerical values are available to scripts.
+	SHADERS_NOT_SUPPORTED,
+	SHADERS_OFF,
+	SHADERS_SIMPLE,
+	SHADERS_FULL
+} OOShaderSetting;
+
+#define SHADERS_MIN SHADERS_OFF
 
 
 typedef enum

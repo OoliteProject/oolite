@@ -642,8 +642,9 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
-		1AEB48D2119D51BD007BD514 /* gpu-settings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
+		1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */; };
+		1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */; };
 		1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DF1177959F003986A8 /* OOPixMap.h */; };
 		1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9EE11779910003986A8 /* OOPixMap.m */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
@@ -1792,6 +1793,8 @@
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
 		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
+		1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OORegExpMatcher.h; sourceTree = "<group>"; };
+		1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OORegExpMatcher.m; sourceTree = "<group>"; };
 		1AECE9DF1177959F003986A8 /* OOPixMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMap.h; sourceTree = "<group>"; };
 		1AECE9EE11779910003986A8 /* OOPixMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMap.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
@@ -2746,6 +2749,8 @@
 				1A43F28A105170A8003FDE8B /* OONSOperation.h */,
 				1A00C65310663D3700A8737D /* OOProfilingStopwatch.h */,
 				1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */,
+				1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */,
+				1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -3278,6 +3283,7 @@
 				1ACB1D18118DCBC0007B9A1F /* OOConcreteTexture.h in Headers */,
 				1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */,
 				1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */,
+				1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3418,7 +3424,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
-				1AEB48D2119D51BD007BD514 /* gpu-settings.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3644,6 +3649,7 @@
 				1A19783F117F81B10060DB56 /* OOPixMapChannelOperations.m in Sources */,
 				1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */,
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
+				1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

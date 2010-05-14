@@ -6,12 +6,9 @@ Object encapsulating a runnable JavaScript function. This is mostly a holder
 for a JSFunction *; NSValue can't be used for this purpose because a GC root
 is needed.
 
-Could easily be extended with obvious things like -evaluateWithArguments:, but
-we don't need that at the moment.
-
 
 JavaScript support for Oolite
-Copyright (C) 2007-2009 David Taylor and Jens Ayton.
+Copyright (C) 2007-2010 David Taylor and Jens Ayton.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -52,5 +49,22 @@ MA 02110-1301, USA.
 
 - (NSString *) name;
 - (JSFunction *) function;
+
+// Raw evaluation. Context may not be NULL.
+- (BOOL) evaluateWithContext:(JSContext *)context
+					   scope:(JSObject *)jsThis
+						argc:(uintN)argc
+						argv:(jsval *)argv
+					  result:(jsval *)result;
+
+// Object-wrapper evaluation.
+- (id) evaluateWithContext:(JSContext *)context
+					 scope:(id)jsThis
+				 arguments:(NSArray *)arguments;
+
+// As above, but converts result to a boolean.
+- (BOOL) evaluatePredicateWithContext:(JSContext *)context
+								scope:(id)jsThis
+							arguments:(NSArray *)arguments;
 
 @end

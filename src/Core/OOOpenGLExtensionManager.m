@@ -31,6 +31,11 @@ SOFTWARE.
 #import <stdlib.h>
 #import "NSThreadOOExtensions.h"
 
+#import "ResourceManager.h"
+#import "OOCollectionExtractors.h"
+#import "OORegExpMatcher.h"
+#import "OOConstToString.h"
+
 
 /*	OpenGL version required, currently 1.1 or later (basic stuff like
 	glBindTexture(), glDrawArrays()). We probably have implicit requirements
@@ -132,12 +137,13 @@ static unsigned IntegerFromString(const GLubyte **ioString);
 - (void)checkTextureCombinersSupported;
 #endif
 
+- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)version extensionsString:(NSString *)extensionsStr;
+
 @end
 
 
-static NSArray *ArrayOfExtensions(void)
+static NSArray *ArrayOfExtensions(NSString *extensionString)
 {
-	NSString *extensionString = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
 	NSArray *components = [extensionString componentsSeparatedByString:@" "];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[components count]];
 	NSEnumerator *extEnum = nil;
@@ -164,7 +170,8 @@ static NSArray *ArrayOfExtensions(void)
 		[lock ooSetName:@"OOOpenGLExtensionManager extension set lock"];
 #endif
 		
-		extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions()];
+		NSString *extensionsStr = [NSString stringWithUTF8String:(char *)glGetString(GL_EXTENSIONS)];
+		extensions = [[NSSet alloc] initWithArray:ArrayOfExtensions(extensionsStr)];
 		
 		vendor = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_VENDOR)];
 		renderer = [[NSString alloc] initWithUTF8String:(const char *)glGetString(GL_RENDERER)];
@@ -189,6 +196,13 @@ static NSArray *ArrayOfExtensions(void)
 				release = IntegerFromString(&curr);
 			}
 		}
+		NSString *versionStr = [[NSString alloc] initWithUTF8String:(const char *)versionString];
+		
+		/*	For aesthetic reasons, cause the ResourceManager to initialize its
+			search paths here. If we don't, the search path dump ends up in
+			the middle of the OpenGL stuff.
+		*/
+		[ResourceManager paths];
 		
 		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
 		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
@@ -200,9 +214,40 @@ static NSArray *ArrayOfExtensions(void)
 						format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
 		}
 		
+		NSDictionary *gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
+		
 #if OO_SHADERS
 		[self checkShadersSupported];
+		
+		if (shadersAvailable)
+		{
+			defaultShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"default_shader_level"
+																	   defaultValue:@"SHADERS_FULL"]);
+			maximumShaderSetting = StringToShaderSetting([gpuConfig oo_stringForKey:@"maximum_shader_level"
+																	   defaultValue:@"SHADERS_FULL"]);
+			if (maximumShaderSetting <= SHADERS_OFF)
+			{
+				shadersAvailable = NO;
+				maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+				OOLog(kOOLogOpenGLShaderSupport, @"Shaders will not be used (disallowed for GPU type \"%@\").", [gpuConfig oo_stringForKey:@"name" defaultValue:renderer]);
+			}
+			if (maximumShaderSetting < defaultShaderSetting)
+			{
+				defaultShaderSetting = maximumShaderSetting;
+			}
+			
+			if (shadersAvailable)
+			{
+				OOLog(kOOLogOpenGLShaderSupport, @"Shaders are supported.");
+			}
+		}
+		else
+		{
+			defaultShaderSetting = SHADERS_NOT_SUPPORTED;
+			maximumShaderSetting = SHADERS_NOT_SUPPORTED;
+		}
 #endif
+		
 #if OO_USE_VBO
 		[self checkVBOSupported];
 #endif
@@ -213,8 +258,8 @@ static NSArray *ArrayOfExtensions(void)
 		[self checkTextureCombinersSupported];
 #endif
 		
-		usePointSmoothing = YES;
-		useLineSmoothing = YES;
+		usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
+		useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
 	}
 	return self;
 }
@@ -266,6 +311,26 @@ static NSArray *ArrayOfExtensions(void)
 	return shadersAvailable;
 #else
 	return NO;
+#endif
+}
+
+
+- (OOShaderSetting)defaultShaderSetting
+{
+#if OO_SHADERS
+	return defaultShaderSetting;
+#else
+	return SHADERS_NOT_SUPPORTED;
+#endif
+}
+
+
+- (OOShaderSetting)maximumShaderSetting
+{
+#if OO_SHADERS
+	return maximumShaderSetting;
+#else
+	return SHADERS_NOT_SUPPORTED;
 #endif
 }
 
@@ -432,7 +497,6 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
 	
-	OOLog(kOOLogOpenGLShaderSupport, @"Shaders are supported.");
 	shadersAvailable = YES;
 }
 #endif
@@ -517,6 +581,72 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 
 }
 #endif
+
+
+// regexps may be a single string or an array of strings (in which case results are ANDed).
+static BOOL CheckRegExps(NSString *string, id regexps)
+{
+	if (regexps == nil)  return YES;	// No restriction == match.
+	if ([regexps isKindOfClass:[NSString class]])
+	{
+		return [string oo_matchesRegularExpression:regexps];
+	}
+	if ([regexps isKindOfClass:[NSArray class]])
+	{
+		NSEnumerator *regexpEnum = nil;
+		NSString *regexp = nil;
+		
+		for (regexpEnum = [regexps objectEnumerator]; (regexp = [regexpEnum nextObject]); )
+		{
+			if (EXPECT_NOT(![regexp isKindOfClass:[NSString class]]))
+			{
+				// Invalid type -- match fails.
+				return NO;
+			}
+			
+			if (![string oo_matchesRegularExpression:regexp])  return NO;
+		}
+		return YES;
+	}
+	
+	// Invalid type -- match fails.
+	return NO;
+}
+
+
+- (NSDictionary *) lookUpPerGPUSettingsWithVersionString:(NSString *)versionStr extensionsString:(NSString *)extensionsStr;
+{
+	NSArray *configurations = [ResourceManager arrayFromFilesNamed:@"gpu-settings.plist"
+														  inFolder:@"Config"
+														  andMerge:YES];
+	NSEnumerator *configEnum = nil;
+	NSDictionary *config = nil;
+	
+	for (configEnum = [configurations objectEnumerator]; (config = [configEnum nextObject]); )
+	{
+		if (EXPECT_NOT(![config isKindOfClass:[NSDictionary class]]))  continue;
+		
+		NSDictionary *match = [config oo_dictionaryForKey:@"match"];
+		NSString *expr = nil;
+		
+		expr = [match objectForKey:@"vendor"];
+		if (!CheckRegExps(vendor, expr))  continue;
+		
+		expr = [match oo_stringForKey:@"renderer"];
+		if (!CheckRegExps(renderer, expr))  continue;
+		
+		expr = [match oo_stringForKey:@"version"];
+		if (!CheckRegExps(versionStr, expr))  continue;
+		
+		expr = [match oo_stringForKey:@"extensions"];
+		if (!CheckRegExps(extensionsStr, expr))  continue;
+		
+		OOLog(@"rendering.opengl.gpuSpecific", @"Matched GPU configuration \"%@\".", [config oo_stringForKey:@"name"]);
+		return config;
+	}
+	
+	return [NSDictionary dictionary];
+}
 
 @end
 

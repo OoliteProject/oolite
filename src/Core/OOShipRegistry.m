@@ -257,7 +257,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 {
 	NSMutableDictionary		*result = nil;
 	
-	OOLog(@"shipData.load.begin", @"Loading ship data...");
+	OOLog(@"shipData.load.begin", @"Loading ship data.");
 	OOLogIndentIf(@"shipData.load.begin");
 	
 	[_shipData release];

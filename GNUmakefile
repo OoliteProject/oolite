@@ -345,7 +345,8 @@ OO_UTILITY_FILES = \
 	OOStringParsing.m \
 	OOWeakReference.m \
 	OOXMLExtensions.m \
-	OODeepCopy.m
+	OODeepCopy.m \
+	OORegExpMatcher.m
 
 OOLITE_MISC_FILES = \
 	AI.m \

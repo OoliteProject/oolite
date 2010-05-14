@@ -34,6 +34,7 @@ SOFTWARE.
 #import "OOCocoa.h"
 #import "OOOpenGL.h"
 #import "OOFunctionAttributes.h"
+#import "OOTypes.h"
 
 
 #ifndef OO_SHADERS
@@ -122,6 +123,8 @@ SOFTWARE.
 	
 #if OO_SHADERS
 	BOOL					shadersAvailable;
+	OOShaderSetting			defaultShaderSetting;
+	OOShaderSetting			maximumShaderSetting;
 #endif
 #if OO_USE_VBO
 	BOOL					vboSupported;
@@ -140,6 +143,9 @@ SOFTWARE.
 - (BOOL)haveExtension:(NSString *)extension;
 
 - (BOOL)shadersSupported;
+- (OOShaderSetting)defaultShaderSetting;
+- (OOShaderSetting)maximumShaderSetting;
+
 - (BOOL)vboSupported;			// Vertex buffer objects
 - (BOOL)fboSupported;			// Frame buffer objects
 - (BOOL)textureCombinersSupported;
