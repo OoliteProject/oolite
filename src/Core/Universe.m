@@ -244,7 +244,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	BOOL logResets = OOLogWillDisplayMessagesInClass(@"rendering.reset.start");
 	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", NO);
-	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-effects-level" defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
+	[self setShaderEffectsLevel:[prefs oo_intForKey:@"shader-mode" defaultValue:[[OOOpenGLExtensionManager sharedManager] defaultShaderSetting]]];
 	OOLogSetDisplayMessagesInClass(@"rendering.reset.start", logResets);
 	
 #if OOLITE_SPEECH_SYNTH
@@ -8277,7 +8277,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
 		shaderEffectsLevel = value;
-		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-effects-level"];
+		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
 }
