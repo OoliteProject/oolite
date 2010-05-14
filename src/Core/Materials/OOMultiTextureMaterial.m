@@ -99,7 +99,7 @@ SOFTWARE.
 																	  illuminationColor:illuminationColor];
 			}
 			
-			_emissionMap = [OOTexture textureWithGenerator:[generator autorelease]];
+			_emissionMap = [[OOTexture textureWithGenerator:[generator autorelease]] retain];
 			if (_emissionMap != nil)  _unitsUsed++;
 		}
 	}

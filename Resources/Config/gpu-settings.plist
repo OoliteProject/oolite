@@ -43,7 +43,7 @@
 			vendor = "Intel";
 			renderer = "GMA.*9\\d\\d(?!\\d)";		// GMA<anything>9##, but not 9###.
 		};
-//		maximum_shader_level = "SHADERS_SIMPLE";
+		maximum_shader_level = "SHADERS_SIMPLE";
 		smooth_points = "off";						// Point smoothing is not supported in hardware.
 	}
 )

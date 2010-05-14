@@ -31,7 +31,7 @@ SOFTWARE.
 #import "OOTexture.h"
 
 
-#define OOTEXTURE_RELOADABLE		1
+#define OOTEXTURE_RELOADABLE		0
 
 
 @interface OOConcreteTexture: OOTexture
