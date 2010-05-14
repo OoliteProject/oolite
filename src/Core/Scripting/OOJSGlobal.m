@@ -252,10 +252,18 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 	}
 	
 	string = [[UNIVERSE missiontext] oo_stringForKey:string];
-	mString = [ExpandDescriptionsWithLocalsForSystemSeed(string, [[PlayerEntity sharedPlayer] system_seed], locals) mutableCopy];
-	[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
-	*outResult = [mString javaScriptValueInContext:context];
-	[mString release];
+	if (string != nil)
+	{
+		mString = [ExpandDescriptionsWithLocalsForSystemSeed(string, [[PlayerEntity sharedPlayer] system_seed], locals) mutableCopy];
+		[mString replaceOccurrencesOfString:@"\\n" withString:@"\n" options:0 range:(NSRange){ 0, [mString length] }];
+		*outResult = [mString javaScriptValueInContext:context];
+		[mString release];
+	}
+	else
+	{
+		*outResult = JSVAL_NULL;
+	}
+
 	
 	return YES;
 }
