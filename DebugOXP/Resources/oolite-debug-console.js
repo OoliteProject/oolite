@@ -51,10 +51,18 @@ shaderMode : String (read/write)
 		"SHADERS_FULL"
 	If it is SHADERS_NOT_SUPPORTED, it cannot be set to any other value. If it
 	is not SHADERS_NOT_SUPPORTED, it can be set to SHADERS_OFF, SHADERS_SIMPLE
-	or SHADERS_FULL. As of Oolite 1.74, these changes take effect immediately.
+	or SHADERS_FULL, unless maximumShaderMode (see below) is SHADERS_SIMPLE,
+	in which case SHADERS_FULL is not allowed. As of Oolite 1.74, these
+	changes take effect immediately.
 	
 	NOTE: this is equivalent to oolite.gameSettings.shaderEffectsLevel, which
 	is available even when the debug console is not active, but is read-only.
+
+maximumShaderMode: String (read-only)
+	A string specifying the fanciest available shader mode. One of the following:
+		"SHADERS_NOT_SUPPORTED"
+		"SHADERS_SIMPLE"
+		"SHADERS_FULL"
 
 displayFPS : Boolean (read/write)
 	Boolean specifying whether FPS (and associated information) should be

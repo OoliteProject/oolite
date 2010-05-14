@@ -5,7 +5,7 @@
 		default_shader_level	Shader level used if user hasn't made a choice.
 								Default: "SHADERS_FULL". Possible values:
 								"SHADERS_OFF", "SHADERS_SIMPLE", "SHADERS_FULL".
-		maximum_shader_level	Maximum permitted shader level. SAme values as
+		maximum_shader_level	Maximum permitted shader level. Same values as
 								above. Default: "SHADERS_FULL". If set to
 								"SHADERS_OFF", shaders are treated as not
 								available.
@@ -19,8 +19,10 @@
 		"vendor", "renderer", "version" and "extensions". These are displayed
 		near the top of the log by default. Note that "version" here refers to
 		the full version string (shown in parentheses). The "extension" string
-		used for matches is space-separated (no commas as in the log). Multiple
-		regexps may be specified as an array, in which case all must match.
+		used for matches is space-separated (no commas as in the log), and
+		extension strings may occur in any order.
+		Multiple regexps may be specified as an array, in which case all must
+		match.
 		Any backslashes in regexps must be escaped (i.e., doubled); see the
 		"renderer" test for Intel GMA 9xx for an example.
 */
@@ -30,7 +32,7 @@
 		match =
 		{
 			vendor = "NVIDIA";
-			renderer = "GeForce.*5200|NV34MAP"; // "GeForce<anything>5200" or "NV34MAP".
+			renderer = "GeForce.*5200|NV34MAP";		// "GeForce<anything>5200" or "NV34MAP".
 		};
 		default_shader_level = "SHADERS_SIMPLE";
 	},
@@ -41,7 +43,7 @@
 			vendor = "Intel";
 			renderer = "GMA.*9\\d\\d(?!\\d)";		// GMA<anything>9##, but not 9###.
 		};
-		maximum_shader_level = "SHADERS_SIMPLE";
+//		maximum_shader_level = "SHADERS_SIMPLE";
 		smooth_points = "off";						// Point smoothing is not supported in hardware.
 	}
 )
