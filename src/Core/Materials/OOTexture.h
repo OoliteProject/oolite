@@ -257,3 +257,11 @@ uint8_t OOTextureComponentsForFormat(OOTextureDataFormat format);
 
 
 BOOL OOCubeMapsAvailable(void);
+
+
+/*	OOInterpretTextureSpecifier()
+	
+	Interpret a texture specifier (string or dictionary). All out parameters
+	may be NULL.
+*/
+BOOL OOInterpretTextureSpecifier(id specifier, NSString **outName, uint32_t *outOptions, float *outAnisotropy, float *outLODBias);

@@ -32,6 +32,7 @@ SOFTWARE.
 */
 
 #import "OOTexture.h"
+#import "OOPixMap.h"
 #import "OOAsyncWorkManager.h"
 
 
@@ -58,15 +59,22 @@ SOFTWARE.
 
 + (id)loaderWithPath:(NSString *)path options:(uint32_t)options;
 
+/*	Convenience method to load images not destined for normal texture use.
+	Specifier is a string or a dictionary as with textures. ExtraOptions is
+	ored into the option flags interpreted from the specifier. Folder is the
+	directory to look in, typically Textures or Images. Options in the
+	specifier which are applied at the OOTexture level will be ignored.
+*/
++ (id)loaderWithTextureSpecifier:(id)specifier extraOptions:(uint32_t)extraOptions folder:(NSString *)folder;
+
 - (BOOL)isReady;
 
 /*	Return value indicates success. This may only be called once (subsequent
 	attempts will return failure), and only on the main thread.
 */
-- (BOOL)getResult:(void **)outData
-		   format:(OOTextureDataFormat *)outFormat
-			width:(uint32_t *)outWidth
-		   height:(uint32_t *)outHeight;
+- (BOOL) getResult:(OOPixMap *)result
+			format:(OOTextureDataFormat *)outFormat;
+
 
 
 /*** Subclass interface; do not use on pain of pain. Unless you're subclassing. ***/

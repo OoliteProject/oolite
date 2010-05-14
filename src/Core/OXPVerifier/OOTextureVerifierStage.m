@@ -133,9 +133,10 @@ static NSString * const kStageName	= @"Testing textures and images";
 	NSString					*path = nil;
 	OOFileScannerVerifierStage	*fileScanner = nil;
 	NSString					*displayName = nil;
-	void						*data = nil;
-	uint32_t					width, height, rWidth, rHeight;
+	uint32_t					rWidth, rHeight;
 	BOOL						success;
+	OOPixMap					pixmap;
+	OOTextureDataFormat			format;
 	
 	fileScanner = [[self verifier] fileScannerStage];
 	path = [fileScanner pathForFile:name
@@ -159,21 +160,22 @@ static NSString * const kStageName	= @"Testing textures and images";
 	}
 	else
 	{
-		success = [loader getResult:&data format:NULL width:&width height:&height];
-		if (data != NULL)  free(data);
+		success = [loader getResult:&pixmap format:&format];
 		
 		if (success)
 		{
-			rWidth = OORoundUpToPowerOf2((2 * width) / 3);
-			rHeight = OORoundUpToPowerOf2((2 * height) / 3);
-			if (width != rWidth || height != rHeight)
+			rWidth = OORoundUpToPowerOf2((2 * pixmap.width) / 3);
+			rHeight = OORoundUpToPowerOf2((2 * pixmap.height) / 3);
+			if (pixmap.width != rWidth || pixmap.height != rHeight)
 			{
-				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, width, height, rWidth, rHeight);
+				OOLog(@"verifyOXP.texture.notPOT", @"----- WARNING: image %@ has non-power-of-two dimensions; it will have to be rescaled (from %ux%u pixels to %ux%u pixels) at runtime.", displayName, pixmap.width, pixmap.height, rWidth, rHeight);
 			}
 			else
 			{
-				OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%ux%u px) OK.", displayName, width, height);
+				OOLog(@"verifyOXP.verbose.texture.OK", @"- %@ (%ux%u px) OK.", displayName, pixmap.width, pixmap.height);
 			}
+			
+			OOFreePixMap(&pixmap);
 		}
 		else
 		{

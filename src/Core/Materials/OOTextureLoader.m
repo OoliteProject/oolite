@@ -35,6 +35,7 @@ SOFTWARE.
 #import "OOPixMapChannelOperations.h"
 #import "OOConvertCubeMapToLatLong.h"
 #import <stdlib.h>
+#import "ResourceManager.h"
 
 
 #define DUMP_CONVERTED_CUBE_MAPS	0
@@ -88,6 +89,28 @@ static BOOL					sHaveSetUp = NO;
 	}
 	
 	return result;
+}
+
+
++ (id)loaderWithTextureSpecifier:(id)specifier extraOptions:(uint32_t)extraOptions folder:(NSString *)folder
+{
+	NSString		*name = nil;
+	NSString		*path = nil;
+	uint32_t		options = 0;
+	
+	if (!OOInterpretTextureSpecifier(specifier, &name, &options, NULL, NULL))  return nil;
+	options |= extraOptions;
+	path = [ResourceManager pathForFileNamed:name inFolder:folder];
+	if (path == nil)
+	{
+		if (!(options & kOOTextureNoFNFMessage))
+		{
+			OOLogWARN(kOOLogFileNotFound, @"Could not find texture file \"%@\".", name);
+		}
+		return nil;
+	}
+	
+	return [self loaderWithPath:path options:options];
 }
 
 
@@ -189,35 +212,33 @@ static BOOL					sHaveSetUp = NO;
 }
 
 
-- (BOOL)getResult:(void **)outData
-		   format:(OOTextureDataFormat *)outFormat
-			width:(uint32_t *)outWidth
-		   height:(uint32_t *)outHeight
+- (BOOL) getResult:(OOPixMap *)result
+			format:(OOTextureDataFormat *)outFormat
 {
+	NSParameterAssert(result != NULL && outFormat != NULL);
+	
+	BOOL		OK = YES;
+	
 	if (!ready)
 	{
 		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:self];
 	}
+	if (data == NULL)  OK = NO;
 	
-	if (data != NULL)
+	if (OK)
 	{
-		if (outData != NULL)  *outData = data;
-		if (outFormat != NULL)  *outFormat = format;
-		if (outWidth != NULL)  *outWidth = width;
-		if (outHeight != NULL)  *outHeight = height;
-		
-		data = NULL;
-		return YES;
+		*result = OOMakePixMap(data, width, height, OOTextureComponentsForFormat(format), 0, 0);
+		*outFormat = format;
+		OK = OOIsValidPixMap(*result);
 	}
-	else
+	
+	if (!OK)
 	{
-		if (outData != NULL)  *outData = NULL;
-		if (outFormat != NULL)  *outFormat = kOOTextureDataInvalid;
-		if (outWidth != NULL)  *outWidth = 0;
-		if (outHeight != NULL)  *outHeight = 0;
-		
-		return NO;
+		*result = kOONullPixMap;
+		*outFormat = kOOTextureDataInvalid;
 	}
+	
+	return OK;
 }
 
 

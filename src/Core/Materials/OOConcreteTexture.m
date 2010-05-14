@@ -325,7 +325,9 @@
 - (void)setUpTexture
 {
 	// This will block until loading is completed, if necessary.
-	if ([_loader getResult:&_bytes format:&_format width:&_width height:&_height])
+	OOPixMap		pm;
+	
+	if ([_loader getResult:&pm format:&_format])
 	{
 #if GL_ARB_texture_cube_map
 		if (_options & kOOTextureAllowCubeMap && _height == _width * 6 && gOOTextureInfo.cubeMapAvailable)
@@ -338,13 +340,15 @@
 		if (_trace)
 		{
 			static unsigned dumpID = 0;
-			uint8_t components = OOTextureComponentsForFormat(_format);
-			OOPixMap pm = OOMakePixMap(_bytes, _width, _height, components, 0, 0);
 			NSString *name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID, _path ? [_path lastPathComponent] : [[_key componentsSeparatedByString:@"/"] objectAtIndex:1]];
 			OOLog(@"texture.trace.dump", @"Dumped traced texture %@ to \'%@.png\'", self, name);
 			OODumpPixMap(pm, name);
 		}
 #endif
+		
+		_bytes = pm.pixels;
+		_width = pm.width;
+		_height = pm.height;
 		
 		[self uploadTexture];
 	}
