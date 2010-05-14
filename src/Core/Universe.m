@@ -195,40 +195,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 @end
 
 
-#if __OBJC2__
-#import <objc/runtime.h>
-#else
-#if OOLITE_MAC_OS_X
-#import <objc/objc-class.h>
-#endif
-OOINLINE size_t class_getInstanceSize(Class cls)
-{
-	return cls->instance_size;
-}
-#endif
-
-
 @implementation Universe
 
 - (id) initWithGameView:(MyOpenGLView *)inGameView
 {	
 	PlayerEntity	*player = nil;
-	
-#if !__OBJC2__ && 0
-#define DUMP_SIZE(cls)  do { Class c = NSClassFromString(@#cls); OOLog(@"size.dump", @"%@: %u bytes", c, class_getInstanceSize(c)); } while (0)
-	
-	DUMP_SIZE(Entity);
-	DUMP_SIZE(ShipEntity);
-	DUMP_SIZE(ParticleEntity);
-	DUMP_SIZE(OOExhaustPlumeEntity);
-	DUMP_SIZE(OOFlasherEntity);
-	DUMP_SIZE(OOSparkEntity);
-	DUMP_SIZE(OOECMBlastEntity);
-	DUMP_SIZE(SkyEntity);
-	DUMP_SIZE(OOPlanetEntity);
-	DUMP_SIZE(OOPlanetDrawable);
-	DUMP_SIZE(OOSunEntity);
-#endif
 	
 	if (gSharedUniverse != nil)
 	{
