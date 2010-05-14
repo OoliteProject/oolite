@@ -38,7 +38,7 @@ static OORegExpMatcher *sActiveInstance;
 + (id) regExpMatcher
 {
 #if OOLITE_LEOPARD || OOLITE_GNUSTEP
-	NSAssert([NSThread isMainThread], @"OORegExpMatcher may only be used on the main thread.");
+	NSAssert([[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
 #endif
 	
 	if (sActiveInstance == nil)
@@ -98,7 +98,7 @@ static OORegExpMatcher *sActiveInstance;
 - (BOOL) string:(NSString *)string matchesExpression:(NSString *)regExp flags:(OOUInteger)flags
 {
 #if OOLITE_LEOPARD || OOLITE_GNUSTEP
-	NSAssert([NSThread isMainThread], @"OORegExpMatcher may only be used on the main thread.");
+	NSAssert([[NSThread currentThread] isMainThread], @"OORegExpMatcher may only be used on the main thread.");
 #endif
 	
 	size_t expLength = [regExp length];
@@ -121,6 +121,8 @@ static OORegExpMatcher *sActiveInstance;
 		JSObject *regExpObj = JS_NewUCRegExpObject(context, buffer, expLength, flags);
 		_cachedRegExpObject = [[OOJSValue alloc] initWithJSObject:regExpObj inContext:context];
 		_cachedFlags = flags;
+		
+		free(buffer);
 	}
 	
 	BOOL result = [_tester evaluatePredicateWithContext:context
