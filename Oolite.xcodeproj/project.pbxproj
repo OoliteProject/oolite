@@ -90,7 +90,6 @@
 		1A21149B0DEA980800444CEB /* oolite-ball-turret.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */; };
 		1A21149E0DEA98D100444CEB /* oolite-ball-turret.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */; };
 		1A2123271051892500530CDE /* shipdata-overrides.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2123261051892500530CDE /* shipdata-overrides.plist */; };
-		1A2123291051892D00530CDE /* slow-gpus.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A2123281051892D00530CDE /* slow-gpus.plist */; };
 		1A2315520B9C778400EF0852 /* solar.png in Copy Images */ = {isa = PBXBuildFile; fileRef = 1A23154E0B9C778400EF0852 /* solar.png */; };
 		1A2315530B9C778400EF0852 /* splash.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A23154F0B9C778400EF0852 /* splash.png */; };
 		1A2315540B9C778400EF0852 /* splashback.png in Resources */ = {isa = PBXBuildFile; fileRef = 1A2315500B9C778400EF0852 /* splashback.png */; };
@@ -643,6 +642,8 @@
 		1AE24374105439B500EAA7F2 /* OOLightParticleEntity.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */; };
 		1AE546310C19A2E2005B89F3 /* JoystickHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE546300C19A2E2005B89F3 /* JoystickHandler.m */; };
 		1AE834CA0D9598C10097CB8A /* oolite-barrel-specular.png in Copy Textures */ = {isa = PBXBuildFile; fileRef = 1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */; };
+		1AEB48D2119D51BD007BD514 /* gpu-settings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
+		1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AEB48D1119D51BD007BD514 /* gpu-settings.plist */; };
 		1AECE9E01177959F003986A8 /* OOPixMap.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AECE9DF1177959F003986A8 /* OOPixMap.h */; };
 		1AECE9EF11779910003986A8 /* OOPixMap.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AECE9EE11779910003986A8 /* OOPixMap.m */; };
 		1AED2D0C0C04586C004A1118 /* OOGraphicsResetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */; };
@@ -797,7 +798,7 @@
 			dstPath = Config;
 			dstSubfolderSpec = 7;
 			files = (
-				1A2123291051892D00530CDE /* slow-gpus.plist in Copy Config */,
+				1AEB48E6119D51D2007BD514 /* gpu-settings.plist in Copy Config */,
 				2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */,
 				1A2123271051892500530CDE /* shipdata-overrides.plist in Copy Config */,
 				2B060ED510E42715001EFB22 /* screenbackgrounds.plist in Copy Config */,
@@ -1206,7 +1207,6 @@
 		1A21149A0DEA980800444CEB /* oolite-ball-turret.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-ball-turret.dat"; sourceTree = "<group>"; };
 		1A21149D0DEA98D100444CEB /* oolite-ball-turret.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-ball-turret.png"; sourceTree = "<group>"; };
 		1A2123261051892500530CDE /* shipdata-overrides.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "shipdata-overrides.plist"; sourceTree = "<group>"; };
-		1A2123281051892D00530CDE /* slow-gpus.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "slow-gpus.plist"; sourceTree = "<group>"; };
 		1A23154E0B9C778400EF0852 /* solar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = solar.png; sourceTree = "<group>"; };
 		1A23154F0B9C778400EF0852 /* splash.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splash.png; sourceTree = "<group>"; };
 		1A2315500B9C778400EF0852 /* splashback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = splashback.png; sourceTree = "<group>"; };
@@ -1791,6 +1791,7 @@
 		1AE24372105439B500EAA7F2 /* OOLightParticleEntity.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOLightParticleEntity.m; sourceTree = "<group>"; };
 		1AE546300C19A2E2005B89F3 /* JoystickHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = JoystickHandler.m; sourceTree = "<group>"; };
 		1AE834C90D9598C10097CB8A /* oolite-barrel-specular.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-barrel-specular.png"; sourceTree = "<group>"; };
+		1AEB48D1119D51BD007BD514 /* gpu-settings.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "gpu-settings.plist"; sourceTree = "<group>"; };
 		1AECE9DF1177959F003986A8 /* OOPixMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMap.h; sourceTree = "<group>"; };
 		1AECE9EE11779910003986A8 /* OOPixMap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMap.m; sourceTree = "<group>"; };
 		1AED2D0A0C04586C004A1118 /* OOGraphicsResetManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOGraphicsResetManager.h; sourceTree = "<group>"; };
@@ -1986,6 +1987,7 @@
 				1A2316E10B9CFAD700EF0852 /* demoships.plist */,
 				1A4501E10DBF699A00815C04 /* descriptions.plist */,
 				1A2316E30B9CFAD700EF0852 /* equipment.plist */,
+				1AEB48D1119D51BD007BD514 /* gpu-settings.plist */,
 				1A2316E40B9CFAD700EF0852 /* hud-small.plist */,
 				1A2316E50B9CFAD700EF0852 /* hud.plist */,
 				1A2316E60B9CFAD700EF0852 /* illegal_goods.plist */,
@@ -2000,7 +2002,6 @@
 				1A2316EB0B9CFAD700EF0852 /* shipdata.plist */,
 				1A2123261051892500530CDE /* shipdata-overrides.plist */,
 				1A2316EC0B9CFAD700EF0852 /* shipyard.plist */,
-				1A2123281051892D00530CDE /* slow-gpus.plist */,
 				1A2316ED0B9CFAD700EF0852 /* speech_pronunciation_guide.plist */,
 				1A3591820C1C382700E52220 /* startextures.plist */,
 				1A3491290BC25EAA00802DA7 /* world-scripts.plist */,
@@ -3417,6 +3418,7 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
+				1AEB48D2119D51BD007BD514 /* gpu-settings.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

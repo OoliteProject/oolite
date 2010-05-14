@@ -212,6 +212,9 @@ static NSArray *ArrayOfExtensions(void)
 #if GL_ARB_texture_env_combine
 		[self checkTextureCombinersSupported];
 #endif
+		
+		usePointSmoothing = YES;
+		useLineSmoothing = YES;
 	}
 	return self;
 }
@@ -341,6 +344,18 @@ static NSArray *ArrayOfExtensions(void)
 - (NSString *) rendererString
 {
 	return renderer;
+}
+
+
+- (BOOL) usePointSmoothing
+{
+	return usePointSmoothing;
+}
+
+
+- (BOOL) useLineSmoothing
+{
+	return useLineSmoothing;
 }
 
 @end

@@ -1118,31 +1118,33 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 
 - (void)setUpBasicOpenGLStateWithSize:(NSSize)viewSize
 {
+	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
+	
 	float	ratio = 0.5;
 	float   aspect = viewSize.height/viewSize.width;
 	
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glShadeModel(GL_FLAT);
+	OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+	OOGL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+	OOGL(glShadeModel(GL_FLAT));
 	
-	glClearDepth(MAX_CLEAR_DEPTH);
-	glViewport(0, 0, viewSize.width, viewSize.height);
+	OOGL(glClearDepth(MAX_CLEAR_DEPTH));
+	OOGL(glViewport(0, 0, viewSize.width, viewSize.height));
 	
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();	// reset matrix
-	glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH);	// set projection matrix
+	OOGL(glMatrixMode(GL_PROJECTION));
+	OOGL(glLoadIdentity());	// reset matrix
+	OOGL(glFrustum(-ratio, ratio, -aspect*ratio, aspect*ratio, 1.0, MAX_CLEAR_DEPTH));	// set projection matrix
 	
-	glMatrixMode(GL_MODELVIEW);
+	OOGL(glMatrixMode(GL_MODELVIEW));
 	
-	glEnable(GL_DEPTH_TEST);		// depth buffer
-	glDepthFunc(GL_LESS);			// depth buffer
+	OOGL(glEnable(GL_DEPTH_TEST));		// depth buffer
+	OOGL(glDepthFunc(GL_LESS));			// depth buffer
 	
-	glFrontFace(GL_CCW);			// face culling - front faces are AntiClockwise!
-	glCullFace(GL_BACK);			// face culling
-	glEnable(GL_CULL_FACE);			// face culling
+	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
+	OOGL(glCullFace(GL_BACK));			// face culling
+	OOGL(glEnable(GL_CULL_FACE));			// face culling
 	
-	glEnable(GL_BLEND);									// alpha blending
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	// alpha blending
+	OOGL(glEnable(GL_BLEND));									// alpha blending
+	OOGL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));	// alpha blending
 	
 	if (UNIVERSE)
 	{
@@ -1154,31 +1156,33 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		GLfloat	white[] =	{1.0, 1.0, 1.0, 1.0};
 		GLfloat	stars_ambient[] =	{0.25, 0.2, 0.25, 1.0};
 		
-		glLightfv(GL_LIGHT1, GL_AMBIENT, black);
-		glLightfv(GL_LIGHT1, GL_SPECULAR, white);
-		glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
-		glLightfv(GL_LIGHT1, GL_POSITION, black);
-		glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient);
+		OOGL(glLightfv(GL_LIGHT1, GL_AMBIENT, black));
+		OOGL(glLightfv(GL_LIGHT1, GL_SPECULAR, white));
+		OOGL(glLightfv(GL_LIGHT1, GL_DIFFUSE, white));
+		OOGL(glLightfv(GL_LIGHT1, GL_POSITION, black));
+		OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 		
-		glEnable(GL_LIGHT1);		// lighting
+		OOGL(glEnable(GL_LIGHT1));		// lighting
 		
 	}
-	glEnable(GL_LIGHTING);		// lighting
+	OOGL(glEnable(GL_LIGHTING));		// lighting
 	
+	if ([extMgr usePointSmoothing])  OOGL(glEnable(GL_POINT_SMOOTH));
+	if ([extMgr useLineSmoothing])  OOGL(glEnable(GL_LINE_SMOOTH));
 	
 	// world's simplest OpenGL optimisations...
 #if GL_APPLE_transform_hint
-	glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST);
+	OOGL(glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST));
 #endif
 	
-	glDisable(GL_NORMALIZE);
-	glDisable(GL_RESCALE_NORMAL);
+	OOGL(glDisable(GL_NORMALIZE));
+	OOGL(glDisable(GL_RESCALE_NORMAL));
 	
 #if GL_VERSION_1_2
 	// For OpenGL 1.2 or later, we want GL_SEPARATE_SPECULAR_COLOR all the time.
-	if ([[OOOpenGLExtensionManager sharedManager] majorVersionNumber] > 1 || [[OOOpenGLExtensionManager sharedManager] minorVersionNumber] >= 2)
+	if ([extMgr majorVersionNumber] > 1 || [extMgr minorVersionNumber] >= 2)
 	{
-		glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR);
+		OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
 	}
 #endif
 }

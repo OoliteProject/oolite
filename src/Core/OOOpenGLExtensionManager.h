@@ -116,7 +116,10 @@ SOFTWARE.
 	NSString				*renderer;
 	
 	unsigned				major, minor, release;
-
+	
+	BOOL					usePointSmoothing;
+	BOOL					useLineSmoothing;
+	
 #if OO_SHADERS
 	BOOL					shadersAvailable;
 #endif
@@ -149,6 +152,10 @@ SOFTWARE.
 
 - (NSString *) vendorString;
 - (NSString *) rendererString;
+
+//	GL_POINT_SMOOTH is slow or non-functional on some GPUs.
+- (BOOL) usePointSmoothing;
+- (BOOL) useLineSmoothing;
 
 @end
 

@@ -66,7 +66,6 @@
 		OOGL(glPushAttrib(GL_ENABLE_BIT));
 		OOGL(glDisable(GL_LIGHTING));
 		OOGL(glDisable(GL_TEXTURE_2D));
-		OOGL(glEnable(GL_LINE_SMOOTH));
 		OOGL(glPushMatrix());
 		OOGL(glTranslatef(0, 0, [[UNIVERSE gameView] display_z]));
 		

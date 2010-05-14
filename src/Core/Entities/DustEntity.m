@@ -236,7 +236,6 @@ MA 02110-1301, USA.
 	if (!warp_stars)
 	{
 		// Draw points.
-		OOGL(glEnable(GL_POINT_SMOOTH));
 		dustMode = GL_POINTS;
 		
 		float dustPointSize = ceilf(idealDustSize);
@@ -247,7 +246,6 @@ MA 02110-1301, USA.
 	else
 	{
 		// Draw lines.
-		OOGL(glEnable(GL_LINE_SMOOTH));
 		dustMode = GL_LINES;
 		
 		float idealLineSize = idealDustSize * 0.5f;

@@ -943,7 +943,6 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	{
 		PlayerEntity* player = [PlayerEntity sharedPlayer];
 		
-		glEnable(GL_LINE_SMOOTH);
 		[self drawGLDisplay:x - 0.5f * size_in_pixels.width :y - 0.5f * size_in_pixels.height :z :alpha];
 		
 		if (self == [UNIVERSE gui])

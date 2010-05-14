@@ -2860,7 +2860,6 @@ static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat
 	
 	delta = step * M_PI / 180.0f;
 	
-	OOGL(glEnable(GL_LINE_SMOOTH));
 	OOGLBEGIN(GL_LINE_LOOP);
 		for (theta = 0.0f; theta < (2.0f * M_PI); theta += delta)
 		{
