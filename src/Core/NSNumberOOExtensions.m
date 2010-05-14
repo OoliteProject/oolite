@@ -71,30 +71,3 @@ SOFTWARE.
 }
 
 @end
-
-
-#if OOLITE_GNUSTEP && OOLITE_GNUSTEP_1_20
-
-/*	As an optimization, we override the implementation on NSBoolNumber to
-	always return YES. In practical terms, we could always return NO in
-	NSNumber's implementation, but I don't want to introduce a dependency on
-	private classes staying the same. In fact, if this somehow turns out to
-	be a hot spot, I'd rather introduce categories on the other commonly-used
-	internal classes to return NO instead.
-*/
-
-@interface NSBoolNumber: NSNumber
-// Ignoring ivars here; we're not accessing them or subclassing.
-@end
-
-
-@implementation NSBoolNumber (OOExtensions)
-
-- (BOOL) oo_isBoolean
-{
-	return YES;
-}
-
-@end
-
-#endif
