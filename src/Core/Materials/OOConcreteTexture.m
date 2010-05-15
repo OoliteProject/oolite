@@ -140,12 +140,6 @@
 	DESTROY(_path);
 #endif
 	
-#ifndef OOTEXTURE_NO_CACHE
-	[self removeFromCaches];
-	[_key autorelease];
-	_key = nil;
-#endif
-	
 	if (_loaded)
 	{
 		if (_textureName != 0)
@@ -157,6 +151,12 @@
 		free(_bytes);
 		_bytes = NULL;
 	}
+	
+#ifndef OOTEXTURE_NO_CACHE
+	[self removeFromCaches];
+	[_key autorelease];
+	_key = nil;
+#endif
 	
 	DESTROY(_loader);
 	

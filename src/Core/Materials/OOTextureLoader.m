@@ -228,6 +228,7 @@ static BOOL					sHaveSetUp = NO;
 	if (OK)
 	{
 		*result = OOMakePixMap(data, width, height, OOTextureComponentsForFormat(format), 0, 0);
+		data = NULL;
 		*outFormat = format;
 		OK = OOIsValidPixMap(*result);
 	}
