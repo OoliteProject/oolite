@@ -80,7 +80,9 @@ SOFTWARE.
 			
 			if (emissionAndIlluminationSpec != nil)
 			{
-				OOTexture *emissionAndIlluminationMap = [OOTexture textureWithConfiguration:emissionAndIlluminationSpec];
+				OOTextureLoader *emissionAndIlluminationMap = [OOTextureLoader loaderWithTextureSpecifier:emissionAndIlluminationSpec
+																							 extraOptions:0
+																								   folder:@"Textures"];
 				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionAndIlluminationMap:emissionAndIlluminationMap
 																							diffuseMap:_diffuseMap
 																						  diffuseColor:diffuseColor
@@ -89,8 +91,12 @@ SOFTWARE.
 			}
 			else
 			{
-				OOTexture *emissionMap = [OOTexture textureWithConfiguration:emissionSpec];
-				OOTexture *illuminationMap = [OOTexture textureWithConfiguration:illuminationSpec];
+				OOTextureLoader *emissionMap = [OOTextureLoader loaderWithTextureSpecifier:emissionSpec
+																			  extraOptions:0
+																					folder:@"Textures"];
+				OOTextureLoader *illuminationMap = [OOTextureLoader loaderWithTextureSpecifier:illuminationSpec
+																				  extraOptions:0
+																						folder:@"Textures"];
 				generator = [[OOCombinedEmissionMapGenerator alloc] initWithEmissionMap:emissionMap
 																		  emissionColor:emissionColor
 																			 diffuseMap:_diffuseMap

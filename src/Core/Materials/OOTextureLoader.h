@@ -40,6 +40,7 @@ SOFTWARE.
 {
 	NSString					*_path;
 	
+	uint32_t					_options;
 	uint8_t						_generateMipMaps: 1,
 								_scaleAsNormalMap: 1,
 								_avoidShrinking: 1,
@@ -74,6 +75,11 @@ SOFTWARE.
 */
 - (BOOL) getResult:(OOPixMap *)result
 			format:(OOTextureDataFormat *)outFormat;
+
+/*	Hopefully-unique string for texture loader; analagous, but not identical,
+	to corresponding texture cacheKey.
+*/
+- (NSString *) cacheKey;
 
 
 

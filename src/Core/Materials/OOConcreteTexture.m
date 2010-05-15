@@ -66,6 +66,9 @@
 @end
 
 
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *outFormat, GLenum *outInternalFormat, GLenum *outType);
+
+
 @implementation OOConcreteTexture
 
 - (id) initWithLoader:(OOTextureLoader *)loader
@@ -250,9 +253,53 @@
 
 - (struct OOPixMap) copyPixMapRepresentation
 {
-	// N.b.: OOMakePixMap will return kOONullPixMap if _bytes is NULL (through OOTEXTURE_RELOADABLEity).
-	OOPixMap px = OOMakePixMap(_bytes, _width, _height, OOTextureComponentsForFormat(_format), 0, 0);
-	return OODuplicatePixMap(px, 0);
+	[self ensureFinishedLoading];
+	
+	OOPixMap				px = kOONullPixMap;
+	OOPixMapComponentCount	components = OOTextureComponentsForFormat(_format);
+	
+	if (_bytes != NULL)
+	{
+		// If possible, just copy our existing buffer.
+		px = OOMakePixMap(_bytes, _width, _height, components, 0, 0);
+		px = OODuplicatePixMap(px, 0);
+	}
+#if OOTEXTURE_RELOADABLE
+	else
+	{
+		// Otherwise, read it back from OpenGL.
+		OO_ENTER_OPENGL();
+		
+		GLenum format, internalFormat, type;
+		DecodeFormat(_format, _options, &format, &internalFormat, &type);
+		
+		if (![self isCubeMap])
+		{
+			
+			px = OOAllocatePixMap(_width, _height, components, 0, 0);
+			if (!OOIsValidPixMap(px))  return kOONullPixMap;
+			
+			glGetTexImage(GL_TEXTURE_2D, 0, format, type, px.pixels);
+		}
+#if OO_TEXTURE_CUBE_MAP
+		else
+		{
+			px = OOAllocatePixMap(_width, _width * 6, components, 0, 0);
+			if (!OOIsValidPixMap(px))  return kOONullPixMap;
+			uint8_t *pixels = px.pixels;
+			
+			unsigned i;
+			for (i = 0; i < 6; i++)
+			{
+				glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, type, pixels);
+				pixels += components * _width * _width;
+			}
+		}
+#endif
+	}
+#endif
+	
+	return px;
 }
 
 
@@ -324,9 +371,9 @@
 
 - (void)setUpTexture
 {
-	// This will block until loading is completed, if necessary.
 	OOPixMap		pm;
 	
+	// This will block until loading is completed, if necessary.
 	if ([_loader getResult:&pm format:&_format])
 	{
 		_bytes = pm.pixels;
@@ -452,48 +499,9 @@
 }
 
 
-static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLint *outFormat, GLint *outInternalFormat, GLint *outType)
-{
-	NSCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
-	
-	switch (format)
-	{
-		case kOOTextureDataRGBA:
-			*outFormat = GL_RGBA;
-			*outInternalFormat = GL_RGBA;
-			*outType = RGBA_IMAGE_TYPE;
-			return YES;
-			
-		case kOOTextureDataGrayscale:
-			if (options & kOOTextureAlphaMask)
-			{
-				*outFormat = GL_ALPHA;
-				*outInternalFormat = GL_ALPHA8;
-			}
-			else
-			{
-				*outFormat = GL_LUMINANCE;
-				*outInternalFormat = GL_LUMINANCE8;
-			}
-			*outType = GL_UNSIGNED_BYTE;
-			return YES;
-			
-		case kOOTextureDataGrayscaleAlpha:
-			*outFormat = GL_LUMINANCE_ALPHA;
-			*outInternalFormat = GL_LUMINANCE8_ALPHA8;
-			*outType = GL_UNSIGNED_BYTE;
-			return YES;
-			
-		default:
-			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
-			return NO;
-	}
-}
-
-
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
-	GLint					glFormat = 0, internalFormat = 0, type = 0;
+	GLenum					glFormat = 0, internalFormat = 0, type = 0;
 	unsigned				w = _width,
 							h = _height,
 							level = 0;
@@ -524,7 +532,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 {
 	OO_ENTER_OPENGL();
 	
-	GLint glFormat = 0, internalFormat = 0, type = 0;
+	GLenum glFormat = 0, internalFormat = 0, type = 0;
 	if (!DecodeFormat(format, _options, &glFormat, &internalFormat, &type))  return;
 	uint8_t components = OOTextureComponentsForFormat(format);
 	
@@ -607,3 +615,42 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 #endif
 
 @end
+
+
+static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *outFormat, GLenum *outInternalFormat, GLenum *outType)
+{
+	NSCParameterAssert(outFormat != NULL && outInternalFormat != NULL && outType != NULL);
+	
+	switch (format)
+	{
+		case kOOTextureDataRGBA:
+			*outFormat = GL_RGBA;
+			*outInternalFormat = GL_RGBA;
+			*outType = RGBA_IMAGE_TYPE;
+			return YES;
+			
+		case kOOTextureDataGrayscale:
+			if (options & kOOTextureAlphaMask)
+			{
+				*outFormat = GL_ALPHA;
+				*outInternalFormat = GL_ALPHA8;
+			}
+			else
+			{
+				*outFormat = GL_LUMINANCE;
+				*outInternalFormat = GL_LUMINANCE8;
+			}
+			*outType = GL_UNSIGNED_BYTE;
+			return YES;
+			
+		case kOOTextureDataGrayscaleAlpha:
+			*outFormat = GL_LUMINANCE_ALPHA;
+			*outInternalFormat = GL_LUMINANCE8_ALPHA8;
+			*outType = GL_UNSIGNED_BYTE;
+			return YES;
+			
+		default:
+			OOLog(kOOLogParameterError, @"Unexpected texture format %u.", format);
+			return NO;
+	}
+}

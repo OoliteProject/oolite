@@ -126,6 +126,8 @@ static BOOL					sHaveSetUp = NO;
 		return nil;
 	}
 	
+	_options = options;
+	
 	_generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	_avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	_noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
@@ -242,6 +244,12 @@ static BOOL					sHaveSetUp = NO;
 	}
 	
 	return OK;
+}
+
+
+- (NSString *) cacheKey
+{
+	return [NSString stringWithFormat:@"%@:0x%.4X", [[self path] lastPathComponent], _options];
 }
 
 

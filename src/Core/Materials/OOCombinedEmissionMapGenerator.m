@@ -35,13 +35,6 @@ SOFTWARE.
 
 #define DUMP_COMBINER	0
 
-/*	FIXME: the "correct" way for OOCombinedEmissionMapGenerator to work is to
-	run asynchronously after the source textures are loaded. However,
-	OOAsyncWorkManager doesn't currently support asynchronous operation, so we
-	currently need to wait for completion in the initializer.
-*/
-#define FAKE_ASYNCHRONY	1
-
 
 static OOColor *ModulateColor(OOColor *a, OOColor *b);
 static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
@@ -49,11 +42,11 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 
 @interface OOCombinedEmissionMapGenerator (Private)
 
-- (id) initWithEmissionMap:(OOTexture *)emissionMap
+- (id) initWithEmissionMap:(OOTextureLoader *)emissionMapLoader
 			 emissionColor:(OOColor *)emissionColor
 				diffuseMap:(OOTexture *)diffuseMap
 			  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMap:(OOTexture *)illuminationMap
+		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
 			 isCombinedMap:(BOOL)isCombinedMap;
 
@@ -62,30 +55,30 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 
 @implementation OOCombinedEmissionMapGenerator
 
-- (id) initWithEmissionMap:(OOTexture *)emissionMap
+- (id) initWithEmissionMap:(OOTextureLoader *)emissionMapLoader
 			 emissionColor:(OOColor *)emissionColor
 				diffuseMap:(OOTexture *)diffuseMap
 			  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMap:(OOTexture *)illuminationMap
+		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
 {
-	return [self initWithEmissionMap:emissionMap
+	return [self initWithEmissionMap:emissionMapLoader
 					   emissionColor:emissionColor
 						  diffuseMap:diffuseMap
 						diffuseColor:diffuseColor
-					 illuminationMap:illuminationMap
+					 illuminationMap:illuminationMapLoader
 				   illuminationColor:illuminationColor
 					   isCombinedMap:NO];
 }
 
 
-- (id) initWithEmissionAndIlluminationMap:(OOTexture *)emissionAndIlluminationMap
+- (id) initWithEmissionAndIlluminationMap:(OOTextureLoader *)emissionAndIlluminationMapLoader
 							   diffuseMap:(OOTexture *)diffuseMap
 							 diffuseColor:(OOColor *)diffuseColor
 							emissionColor:(OOColor *)emissionColor
 						illuminationColor:(OOColor *)illuminationColor
 {
-	return [self initWithEmissionMap:emissionAndIlluminationMap
+	return [self initWithEmissionMap:emissionAndIlluminationMapLoader
 					   emissionColor:emissionColor
 						  diffuseMap:diffuseMap
 						diffuseColor:diffuseColor
@@ -95,21 +88,21 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 }
 
 
-- (id) initWithEmissionMap:(OOTexture *)emissionMap
+- (id) initWithEmissionMap:(OOTextureLoader *)emissionMapLoader
 			 emissionColor:(OOColor *)emissionColor
 				diffuseMap:(OOTexture *)diffuseMap
 			  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMap:(OOTexture *)illuminationMap
+		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor
 			 isCombinedMap:(BOOL)isCombinedMap
 {
-	if (emissionMap == nil && illuminationMap == nil)
+	if (emissionMapLoader == nil && illuminationMapLoader == nil)
 	{
 		[self release];
 		return nil;
 	}
 	
-	NSParameterAssert(illuminationMap == nil || !isCombinedMap);
+	NSParameterAssert(illuminationMapLoader == nil || !isCombinedMap);
 	
 	if ((self = [super init]))
 	{
@@ -122,20 +115,52 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 										  
 		if ([emissionColor isWhite])  emissionColor = nil;
 		if ([illuminationColor isWhite])  illuminationColor = nil;
-		if (!isCombinedMap && illuminationMap == nil)  diffuseMap = nil;	// Diffuse map is only used with illumination
+		if (!isCombinedMap && illuminationMapLoader == nil)  diffuseMap = nil;	// Diffuse map is only used with illumination
 		
-		_emissionMap = [emissionMap retain];
-		_illuminationMap = [illuminationMap retain];
+		
+		_cacheKey = [[NSString stringWithFormat:@"Combined emission map\nSingle source: %@\nemission:%@ * %@, illumination: %@ * %@ * %@",
+					  _isCombinedMap ? @"yes" : @"no",
+					  [emissionMapLoader cacheKey],
+					  [emissionColor rgbaDescription],
+					  [illuminationMapLoader cacheKey],
+					  [diffuseMap cacheKey],
+					  [illuminationColor rgbaDescription]] copy];
+		
 		_emissionColor = [emissionColor retain];
 		_illuminationColor = [illuminationColor retain];
-		_diffuseMap = [diffuseMap retain];
 		_isCombinedMap = isCombinedMap;
 		
-#if FAKE_ASYNCHRONY
-		[_emissionMap ensureFinishedLoading];
-		[_illuminationMap ensureFinishedLoading];
-		[_diffuseMap ensureFinishedLoading];
+		/*	Extract pixmap from diffuse map. This must be done in the main
+			thread even if scheduling is fixed, because it might involve
+			reading back pixels from OpenGL.
+		*/
+		if (diffuseMap != nil)
+		{
+			_diffusePx = [diffuseMap copyPixMapRepresentation];
+#ifndef NDEBUG
+			_diffuseDesc = [[diffuseMap shortDescription] copy];
 #endif
+		}
+		
+		/*	Extract emission and illumination pixmaps from loaders. Ideally,
+			this would be done asynchronously, but that requires dependency
+			management in OOAsyncWorkManager.
+		*/
+		OOTextureDataFormat format;
+		if (emissionMapLoader != nil)
+		{
+			[emissionMapLoader getResult:&_emissionPx format:&format];
+#ifndef NDEBUG
+			_emissionDesc = [[emissionMapLoader shortDescription] copy];
+#endif
+		}
+		if (illuminationMapLoader != nil)
+		{
+			[illuminationMapLoader getResult:&_illuminationPx format:&format];
+#ifndef NDEBUG
+			_illuminationDesc = [[illuminationMapLoader shortDescription] copy];
+#endif
+		}
 	}
 	
 	return self;
@@ -144,24 +169,31 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 
 - (void) dealloc
 {
-	DESTROY(_emissionMap);
-	DESTROY(_illuminationMap);
-	DESTROY(_diffuseMap);
+	OOFreePixMap(&_emissionPx);
+	OOFreePixMap(&_illuminationPx);
+	OOFreePixMap(&_diffusePx);
 	DESTROY(_emissionColor);
 	DESTROY(_illuminationColor);
+	
+#ifndef NDEBUG
+	DESTROY(_diffuseDesc);
+	DESTROY(_emissionDesc);
+	DESTROY(_illuminationDesc);
+#endif
 	
 	[super dealloc];
 }
 
 
+#ifndef NDEBUG
 - (NSString *) descriptionComponents
 {
 	NSMutableString *result = [NSMutableString string];
 	BOOL haveIllumination = NO;
 	
-	if (_emissionMap != nil)
+	if (_emissionDesc != nil)
 	{
-		[result appendFormat:@"emission map: %@", [_emissionMap shortDescription]];
+		[result appendFormat:@"emission map: %@", _emissionDesc];
 		if (_isCombinedMap)
 		{
 			[result appendString:@".rgb"];
@@ -173,23 +205,23 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		
 		if (_isCombinedMap)
 		{
-			[result appendFormat:@", illumination map: %@.a", [_emissionMap shortDescription]];
+			[result appendFormat:@", illumination map: %@.a", _emissionDesc];
 			haveIllumination = YES;
 		}
 	}
 	
-	if (_illuminationMap != nil)
+	if (_illuminationDesc != nil)
 	{
-		if (_emissionMap != nil)  [result appendString:@", "];
-		[result appendFormat:@"illumination map: %@", [_illuminationMap shortDescription]];
+		if (_emissionDesc != nil)  [result appendString:@", "];
+		[result appendFormat:@"illumination map: %@", _illuminationDesc];
 		haveIllumination = YES;
 	}
 	
 	if (haveIllumination)
 	{
-		if (_diffuseMap != nil)
+		if (_diffuseDesc != nil)
 		{
-			[result appendFormat:@" * %@", [_diffuseMap shortDescription]];
+			[result appendFormat:@" * %@", _diffuseDesc];
 		}
 		if (_illuminationColor != nil)
 		{
@@ -199,17 +231,18 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	
 	return result;
 }
+#endif
 
 
 - (NSString *) cacheKey
 {
-	return [NSString stringWithFormat:@"Combined emission map\nSingle source: %@\nemission:%@ * %@, illumination: %@ * %@ * %@", _isCombinedMap ? @"yes" : @"no", [_emissionMap cacheKey], [_emissionColor rgbaDescription],[_illuminationMap cacheKey], [_diffuseMap cacheKey], [_illuminationColor rgbaDescription]];
+	return _cacheKey;
 }
 
 
 - (void) loadTexture
 {
-	OOPixMap emissionPx = kOONullPixMap, diffusePx = kOONullPixMap, illuminationPx = kOONullPixMap;
+	OOPixMap illuminationPx = kOONullPixMap;
 	BOOL haveEmission = NO, haveIllumination = NO, haveDiffuse = NO;
 	
 #if DUMP_COMBINER
@@ -221,49 +254,37 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 #define DUMP(pm, label) do {} while (0)
 #endif
 	
-	// Load emission map.
-	if (_emissionMap != nil)
-	{
-#if !FAKE_ASYNCHRONY
-		[_emissionMap ensureFinishedLoading];
-#endif
-		emissionPx = [_emissionMap copyPixMapRepresentation];
-		DESTROY(_emissionMap);
-		haveEmission = !OOIsNullPixMap(emissionPx);
-		DUMP(emissionPx, @"source emission map");
-	}
+	haveEmission = !OOIsNullPixMap(_emissionPx);
+	if (haveEmission)  DUMP(_emissionPx, @"source emission map");
 	
 	// Extract illumination component if emission_and_illumination_map.
-	if (haveEmission && _isCombinedMap && emissionPx.components > 1)
+	if (haveEmission && _isCombinedMap && _emissionPx.components > 1)
 	{
-		OOPixMapToRGBA(&emissionPx);
-		illuminationPx = OODuplicatePixMap(emissionPx, 0);
+		OOPixMapToRGBA(&_emissionPx);
+		illuminationPx = OODuplicatePixMap(_emissionPx, 0);
 		OOExtractPixMapChannel(&illuminationPx, 3, YES);
 		haveIllumination = YES;
 		DUMP(illuminationPx, @"extracted illumination map");
 	}
 	
-	// Tint if necessary.
+	// Tint emission map if necessary.
 	if (haveEmission && _emissionColor != nil)
 	{
-		OOPixMapModulateUniform(&emissionPx, [_emissionColor redComponent], [_emissionColor greenComponent], [_emissionColor blueComponent], 1.0);
-		DUMP(emissionPx, @"modulated emission map");
+		OOPixMapModulateUniform(&_emissionPx, [_emissionColor redComponent], [_emissionColor greenComponent], [_emissionColor blueComponent], 1.0);
+		DUMP(_emissionPx, @"modulated emission map");
 	}
 	
-	// Load and tint illumination map.
-	if (_illuminationMap != nil)
+	if (!OOIsNullPixMap(_illuminationPx))
 	{
 		NSAssert(!_isCombinedMap, @"OOCombinedEmissionMapGenerator configured with both illumination map and combined emission/illumination map.");
 		
-#if !FAKE_ASYNCHRONY
-		[_illuminationMap ensureFinishedLoading];
-#endif
-		illuminationPx = [_illuminationMap copyPixMapRepresentation];
-		DESTROY(_illuminationMap);
-		haveIllumination = !OOIsNullPixMap(illuminationPx);	// This will be true for both separate and combined illumination maps.
+		illuminationPx = _illuminationPx;
+		_illuminationPx.pixels = NULL;
+		haveIllumination = YES;
 		DUMP(illuminationPx, @"source illumination map");
 	}
 	
+	// Tint illumination map if necessary.
 	if (haveIllumination && _illuminationColor != nil)
 	{
 		OOPixMapModulateUniform(&illuminationPx, [_illuminationColor redComponent], [_illuminationColor greenComponent], [_illuminationColor blueComponent], 1.0);
@@ -271,49 +292,47 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	}
 	
 	// Load diffuse map and combine with illumination map.
-	if (_diffuseMap != nil)
-	{
-#if !FAKE_ASYNCHRONY
-		[_diffuseMap ensureFinishedLoading];
-#endif
-		diffusePx = [_diffuseMap copyPixMapRepresentation];
-		DESTROY(_diffuseMap);
-		haveDiffuse = !OOIsNullPixMap(diffusePx);
-		DUMP(diffusePx, @"source diffuse map");
-	}
+	haveDiffuse = !OOIsNullPixMap(_diffusePx);
+	if (haveDiffuse)  DUMP(_diffusePx, @"source diffuse map");
 	
 	if (haveIllumination && haveDiffuse)
 	{
 		// Modulate illumination with diffuse map.
-		ScaleToMatch(&diffusePx, &illuminationPx);
-		OOPixMapToRGBA(&diffusePx);
-		OOPixMapModulatePixMap(&illuminationPx, diffusePx);
+		ScaleToMatch(&_diffusePx, &illuminationPx);
+		OOPixMapToRGBA(&_diffusePx);
+		OOPixMapModulatePixMap(&illuminationPx, _diffusePx);
 		DUMP(illuminationPx, @"combined diffuse and illumination map");
 	}
-	OOFreePixMap(&diffusePx);
+	OOFreePixMap(&_diffusePx);
 	
-	if (haveIllumination && haveEmission)
+	if (haveIllumination)
 	{
-		OOPixMapToRGBA(&illuminationPx);
-		OOPixMapAddPixMap(&emissionPx, illuminationPx);
-		OOFreePixMap(&illuminationPx);
-		DUMP(emissionPx, @"combined emission and illumination map");
-	}
-	else if (haveIllumination)
-	{
-		emissionPx = illuminationPx;
-		illuminationPx.pixels = NULL;
+		if (haveEmission)
+		{
+			OOPixMapToRGBA(&illuminationPx);
+			OOPixMapAddPixMap(&_emissionPx, illuminationPx);
+			OOFreePixMap(&illuminationPx);
+			DUMP(_emissionPx, @"combined emission and illumination map");
+		}
+		else if (haveIllumination)
+		{
+			// No explicit emission map -> modulated illumination map is our only emission map.
+			_emissionPx = illuminationPx;
+			haveEmission = YES;
+			illuminationPx.pixels = NULL;
+		}
+		haveIllumination = NO;	// Either way, illumination is now baked into emission.
 	}
 	
 	// Done: emissionPx now contains combined emission map.
-	OOCompactPixMap(&emissionPx);
-	if (OOIsValidPixMap(emissionPx))
+	OOCompactPixMap(&_emissionPx);
+	if (OOIsValidPixMap(_emissionPx))
 	{
-		_data = emissionPx.pixels;
-		_width = emissionPx.width;
-		_height = emissionPx.height;
-		_rowBytes = emissionPx.rowBytes;
-		switch (emissionPx.components)
+		_data = _emissionPx.pixels;
+		_width = _emissionPx.width;
+		_height = _emissionPx.height;
+		_rowBytes = _emissionPx.rowBytes;
+		switch (_emissionPx.components)
 		{
 			case 1:
 				_format = kOOTextureDataGrayscale;
@@ -328,9 +347,10 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 				break;
 				
 			default:
-				OOLogERR(@"texture.combinedEmissionMap.error", @"Unexepected component count %u for %@", emissionPx.components, self);
+				OOLogERR(@"texture.combinedEmissionMap.error", @"Unexepected component count %u for %@", _emissionPx.components, self);
 				_data = NULL;
 		}
+		_emissionPx.pixels = NULL;	// So it won't be freed by -dealloc.
 	}
 	if (_data == NULL)
 	{

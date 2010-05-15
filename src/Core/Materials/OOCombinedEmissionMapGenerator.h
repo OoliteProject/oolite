@@ -38,22 +38,31 @@ SOFTWARE.
 @interface OOCombinedEmissionMapGenerator: OOTextureGenerator
 {
 @private
-	OOTexture					*_emissionMap;
-	OOTexture					*_diffuseMap;
-	OOTexture					*_illuminationMap;
+	NSString					*_cacheKey;
+	
+	OOPixMap					_emissionPx;
+	OOPixMap					_diffusePx;
+	OOPixMap					_illuminationPx;
 	OOColor						*_emissionColor;
 	OOColor						*_illuminationColor;
 	BOOL						_isCombinedMap;
+	
+#ifndef NDEBUG
+	NSString					*_emissionDesc;
+	NSString					*_illuminationDesc;
+	NSString					*_diffuseDesc;
+#endif
 }
 
-- (id) initWithEmissionMap:(OOTexture *)emissionMap
+// Note: these take ownership of diffuseMap's pixels.
+- (id) initWithEmissionMap:(OOTextureLoader *)emissionMapLoader
 			 emissionColor:(OOColor *)emissionColor
 				diffuseMap:(OOTexture *)diffuseMap
 			  diffuseColor:(OOColor *)diffuseColor
-		   illuminationMap:(OOTexture *)illuminationMap
+		   illuminationMap:(OOTextureLoader *)illuminationMapLoader
 		 illuminationColor:(OOColor *)illuminationColor;
 
-- (id) initWithEmissionAndIlluminationMap:(OOTexture *)emissionAndIlluminationMap
+- (id) initWithEmissionAndIlluminationMap:(OOTextureLoader *)emissionAndIlluminationMapLoader
 							   diffuseMap:(OOTexture *)diffuseMap
 							 diffuseColor:(OOColor *)diffuseColor
 							emissionColor:(OOColor *)emissionColor
