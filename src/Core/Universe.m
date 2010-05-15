@@ -3662,6 +3662,7 @@ static const OOMatrix	starboard_matrix =
 				
 				OOGL(glHint(GL_FOG_HINT, [self reducedDetail] ? GL_FASTEST : GL_NICEST));
 				
+				CheckOpenGLErrors(@"Universe after setting up for opaque pass");
 				//		DRAW ALL THE OPAQUE ENTITIES
 				for (i = furthest; i >= nearest; i--)
 				{
@@ -3726,6 +3727,7 @@ static const OOMatrix	starboard_matrix =
 				OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
 				OOGL(glDisable(GL_LIGHTING));
 				
+				CheckOpenGLErrors(@"Universe after setting up for translucent pass");
 				for (i = furthest; i >= nearest; i--)
 				{
 					drawthing = my_entities[i];
@@ -3788,6 +3790,8 @@ static const OOMatrix	starboard_matrix =
 			OOGL(glDisable(GL_DEPTH_TEST));			// disable depth test
 			OOGL(glDisable(GL_CULL_FACE));			// face culling
 			OOGL(glDepthMask(GL_FALSE));			// don't write to depth buffer
+			
+			CheckOpenGLErrors(@"Universe after drawing entities");
 
 			GLfloat	line_width = [gameView viewSize].width / 1024.0; // restore line size
 			if (line_width < 1.0)  line_width = 1.0;
@@ -3819,10 +3823,9 @@ static const OOMatrix	starboard_matrix =
 				[theHUD renderHUD];
 			}
 			
-			OOGL(glFlush());	// don't wait around for drawing to complete
+			CheckOpenGLErrors(@"Universe after drawing HUD");
 			
-			// clear errors - and announce them
-			CheckOpenGLErrors(@"Universe after all entity drawing is done.");
+			OOGL(glFlush());	// don't wait around for drawing to complete
 			
 			no_update = NO;	// allow other attempts to draw
 			

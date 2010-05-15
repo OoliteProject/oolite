@@ -320,7 +320,7 @@
 @end
 
 
-@implementation OOConcreteTexture (OOPrivate)
+@implementation OOConcreteTexture (Private)
 
 - (void)setUpTexture
 {
@@ -329,6 +329,10 @@
 	
 	if ([_loader getResult:&pm format:&_format])
 	{
+		_bytes = pm.pixels;
+		_width = pm.width;
+		_height = pm.height;
+		
 #if GL_ARB_texture_cube_map
 		if (_options & kOOTextureAllowCubeMap && _height == _width * 6 && gOOTextureInfo.cubeMapAvailable)
 		{
@@ -345,10 +349,6 @@
 			OODumpPixMap(pm, name);
 		}
 #endif
-		
-		_bytes = pm.pixels;
-		_width = pm.width;
-		_height = pm.height;
 		
 		[self uploadTexture];
 	}
@@ -537,16 +537,6 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		sideSize = (sideSize + 15) & ~15;
 	}
 	
-	const GLenum cubeSides[6] =
-	{
-		GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_X_ARB,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Y_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y_ARB,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Z_ARB,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z_ARB
-	};
-	
 	unsigned side;
 	for (side = 0; side < 6; side++)
 	{
@@ -557,7 +547,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		
 		while (0 < w)
 		{
-			OOGL(glTexImage2D(cubeSides[side], level++, internalFormat, w, w, 0, glFormat, type, bytes));
+			OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + side, level++, internalFormat, w, w, 0, glFormat, type, bytes));
 			if (!mipMap)  break;
 			bytes += w * w * components;
 			w >>= 1;
