@@ -71,7 +71,7 @@ static OOGraphicsResetManager *sSingleton = nil;
 	NSEnumerator			*clientEnum = nil;
 	id						client = nil;
 	
-	glFinish();
+	OOGL(glFinish());
 	
 	OOLog(@"rendering.reset.start", @"Resetting graphics state.");
 	OOLogIndentIf(@"rendering.reset.start");

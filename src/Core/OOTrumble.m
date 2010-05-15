@@ -379,45 +379,43 @@ static void PlayTrumbleSqueal(void);
 	*/
 	GLfloat wd = 96 * size;
 	GLfloat ht = 96 * size;
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_TEXTURE_2D);
+	OOGL(glShadeModel(GL_SMOOTH));
+	OOGL(glEnable(GL_TEXTURE_2D));
 	[texture apply];
-	//
-	glPushMatrix();
-	//
-	glTranslatef( position.x, position.y, z);
-	glRotatef( rotation, 0.0, 0.0, 1.0);
+	
+	OOGL(glPushMatrix());
+	
+	OOGL(glTranslatef( position.x, position.y, z));
+	OOGL(glRotatef( rotation, 0.0, 0.0, 1.0));
 
 	//
 	// Body..
 	//
-	glBegin(GL_TRIANGLE_FAN);
-	//
-	glColor4fv(pointColor[3]);
-	glTexCoord2f( 0.25, 0.5);
-	glVertex2f(	0.0,		-0.5 * ht);
-	//
-	glColor4fv(pointColor[0]);
-	glTexCoord2f( 0.0, 0.5);
-	glVertex2f(	-0.5 * wd,	-0.5 * ht);
-	//
-	glColor4fv(pointColor[1]);
-	glTexCoord2f( 0.0, 0.0);
-	glVertex2f(	-0.5 * wd,	0.5 * ht);
-	//
-	glColor4fv(pointColor[2]);
-	glTexCoord2f( 0.25, 0.0);
-	glVertex2f(	0.0,		0.5 * ht);
-	//
-	glColor4fv(pointColor[4]);
-	glTexCoord2f( 0.5, 0.0);
-	glVertex2f(	0.5 * wd,	0.5 * ht);
-	//
-	glColor4fv(pointColor[5]);
-	glTexCoord2f( 0.5, 0.5);
-	glVertex2f(	0.5 * wd,	-0.5 * ht);
-	//
-	glEnd();
+	OOGLBEGIN(GL_TRIANGLE_FAN);
+		glColor4fv(pointColor[3]);
+		glTexCoord2f( 0.25, 0.5);
+		glVertex2f(	0.0,		-0.5 * ht);
+		
+		glColor4fv(pointColor[0]);
+		glTexCoord2f( 0.0, 0.5);
+		glVertex2f(	-0.5 * wd,	-0.5 * ht);
+		
+		glColor4fv(pointColor[1]);
+		glTexCoord2f( 0.0, 0.0);
+		glVertex2f(	-0.5 * wd,	0.5 * ht);
+		
+		glColor4fv(pointColor[2]);
+		glTexCoord2f( 0.25, 0.0);
+		glVertex2f(	0.0,		0.5 * ht);
+		
+		glColor4fv(pointColor[4]);
+		glTexCoord2f( 0.5, 0.0);
+		glVertex2f(	0.5 * wd,	0.5 * ht);
+		
+		glColor4fv(pointColor[5]);
+		glTexCoord2f( 0.5, 0.5);
+		glVertex2f(	0.5 * wd,	-0.5 * ht);
+	OOGLEND();
 	
 	//
 	// Eyes
@@ -433,26 +431,23 @@ static void PlayTrumbleSqueal(void);
 		case TRUMBLE_EYES_WIDE :
 			eyeTextureOffset = 0.5;	break;
 	}
-	//
-	glTranslatef( eye_position.x * wd, eye_position.y * ht, 0.0);
-	//
-	glBegin(GL_QUADS);
-	//
-	glColor4fv(colorEyes);
-	//
-	glTexCoord2f( 0.5, eyeTextureOffset);
-	glVertex2f(	-0.5 * wd,	0.20 * ht);
-	//
-	glTexCoord2f( 1.0, eyeTextureOffset);
-	glVertex2f(	0.5 * wd,	0.20 * ht);
-	//
-	glTexCoord2f( 1.0, eyeTextureOffset + 0.25);
-	glVertex2f(	0.5 * wd,	-0.30 * ht);
-	//
-	glTexCoord2f( 0.5, eyeTextureOffset + 0.25);
-	glVertex2f(	-0.5 * wd,	-0.30 * ht);
-	//
-	glEnd();
+	
+	OOGL(glTranslatef( eye_position.x * wd, eye_position.y * ht, 0.0));
+	
+	OOGL(glColor4fv(colorEyes));
+	OOGLBEGIN(GL_QUADS);
+		glTexCoord2f( 0.5, eyeTextureOffset);
+		glVertex2f(	-0.5 * wd,	0.20 * ht);
+		
+		glTexCoord2f( 1.0, eyeTextureOffset);
+		glVertex2f(	0.5 * wd,	0.20 * ht);
+		
+		glTexCoord2f( 1.0, eyeTextureOffset + 0.25);
+		glVertex2f(	0.5 * wd,	-0.30 * ht);
+		
+		glTexCoord2f( 0.5, eyeTextureOffset + 0.25);
+		glVertex2f(	-0.5 * wd,	-0.30 * ht);
+	OOGLEND();
 	
 	//
 	// Mouth
@@ -470,30 +465,27 @@ static void PlayTrumbleSqueal(void);
 		case TRUMBLE_MOUTH_SNARL:
 			mouthTextureOffset = 0.875;	break;
 	}
-	//
-	glTranslatef( mouth_position.x * wd, mouth_position.y * ht, 0.0);
-	//
-	glBegin(GL_QUADS);
-	//
-	glColor4fv(colorBase);
-	//
-	glTexCoord2f( 0.0, mouthTextureOffset);
-	glVertex2f(	-0.25 * wd,	-0.10 * ht);
-	//
-	glTexCoord2f( 0.25, mouthTextureOffset);
-	glVertex2f(	0.25 * wd,	-0.10 * ht);
-	//
-	glTexCoord2f( 0.25, mouthTextureOffset + 0.125);
-	glVertex2f(	0.25 * wd,	-0.35 * ht);
-	//
-	glTexCoord2f( 0.0, mouthTextureOffset + 0.125);
-	glVertex2f(	-0.25 * wd,	-0.35 * ht);
-	//
-	glEnd();	
+	
+	OOGL(glTranslatef( mouth_position.x * wd, mouth_position.y * ht, 0.0));
+	
+	OOGL(glColor4fv(colorBase));
+	OOGLBEGIN(GL_QUADS);
+		glTexCoord2f( 0.0, mouthTextureOffset);
+		glVertex2f(	-0.25 * wd,	-0.10 * ht);
+		
+		glTexCoord2f( 0.25, mouthTextureOffset);
+		glVertex2f(	0.25 * wd,	-0.10 * ht);
+		
+		glTexCoord2f( 0.25, mouthTextureOffset + 0.125);
+		glVertex2f(	0.25 * wd,	-0.35 * ht);
+		
+		glTexCoord2f( 0.0, mouthTextureOffset + 0.125);
+		glVertex2f(	-0.25 * wd,	-0.35 * ht);
+	OOGLEND();	
 	
 	// finally..
-	glPopMatrix();
-	glDisable(GL_TEXTURE_2D);
+	OOGL(glPopMatrix());
+	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 - (void) updateTrumble:(double) delta_t

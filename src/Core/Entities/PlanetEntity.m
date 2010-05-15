@@ -912,8 +912,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_LIGHT1));
 	GLfloat specular[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
-	glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0);
+	OOGL(glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular));
+	OOGL(glMateriali(GL_FRONT_AND_BACK, GL_SHININESS, 0));
 	
 	/*
 
@@ -1124,7 +1124,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		case STELLAR_TYPE_SUN:
 			break;
 	}
-	glPopAttrib();
+	OOGL(glPopAttrib());
 	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }
@@ -1668,7 +1668,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 {
 	if (textureName != 0)
 	{
-		glDeleteTextures(1, &textureName);
+		OOGL(glDeleteTextures(1, &textureName));
 		textureName = 0;
 	}
 }

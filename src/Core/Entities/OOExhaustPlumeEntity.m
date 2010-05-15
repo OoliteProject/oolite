@@ -315,7 +315,7 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
 	
-	glPopAttrib();
+	OOGL(glPopAttrib());
 }
 
 

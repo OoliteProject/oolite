@@ -2282,7 +2282,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		
 		OOMatrix matrix;
 		matrix = OOMatrixForQuaternionRotation(port_orientation);
-		glPushMatrix();
+		OOGL(glPushMatrix());
 		GLMultOOMatrix(matrix);
 		
 		halfDimensions = vector_multiply_scalar(port_dimensions, 0.5f);
@@ -2292,7 +2292,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 		OODebugDrawColoredBoundingBoxBetween(vector_subtract(adjustedPosition, halfDimensions), vector_add(adjustedPosition, halfDimensions), [OOColor redColor]);
 		OODebugDrawBasisAtOrigin(30.0f);
 		
-		glPopMatrix();
+		OOGL(glPopMatrix());
 	}
 }
 

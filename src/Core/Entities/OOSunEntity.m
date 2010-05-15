@@ -370,7 +370,7 @@ MA 02110-1301, USA.
 		}
 	}
 	
-	glPopAttrib();
+	OOGL(glPopAttrib());
 	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"SunEntity after drawing %@", self);
 }

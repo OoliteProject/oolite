@@ -427,19 +427,17 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 		
 		GLfloat	color_fv[4] = { 0.0, 0.0, 1.0, 0.25};
 		
-		glDisable(GL_CULL_FACE);			// face culling
-		glDisable(GL_TEXTURE_2D);
+		OOGL(glDisable(GL_CULL_FACE));			// face culling
+		OOGL(glDisable(GL_TEXTURE_2D));
 		
-		glColor4fv(color_fv);
-		glBegin(GL_TRIANGLE_FAN);
-		//
-		GLDrawBallBillboard(collision_radius, 4, srzd);
-		//
-		glEnd();
+		OOGL(glColor4fv(color_fv));
+		OOGLBEGIN(GL_TRIANGLE_FAN);
+			GLDrawBallBillboard(collision_radius, 4, srzd);
+		OOGLEND();
 				
 		DrawWormholeCorona(0.67 * collision_radius, collision_radius, 4, srzd, color_fv);
 					
-		glEnable(GL_CULL_FACE);			// face culling
+		OOGL(glEnable(GL_CULL_FACE));			// face culling
 	}
 	CheckOpenGLErrors(@"WormholeEntity after drawing %@", self);
 }
@@ -467,44 +465,43 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	halfStep = 0.5f * delta;
 	theta = 0.0f;
 		
-	glBegin(GL_TRIANGLE_STRIP);
-	for (i = 0; i < 360; i += step )
-	{
-		theta += delta;
-		
+	OOGLBEGIN(GL_TRIANGLE_STRIP);
+		for (i = 0; i < 360; i += step )
+		{
+			theta += delta;
+			
+			rv0 = randf();
+			rv1 = randf();
+			
+			q = activity.location + rv0 * activity.length;
+			
+			s0 = r0 * sinf(theta);
+			c0 = r0 * cosf(theta);
+			glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
+			glVertex3f(s0, c0, 0.0);
+
+			s1 = r1 * sinf(theta - halfStep) * 0.5 * (1.0 + rv1);
+			c1 = r1 * cosf(theta - halfStep) * 0.5 * (1.0 + rv1);
+			glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
+			glVertex3f(s1, c1, 0.0);
+			
+		}
+		// repeat last values to close
 		rv0 = randf();
 		rv1 = randf();
-		
+			
 		q = activity.location + rv0 * activity.length;
 		
-		s0 = r0 * sinf(theta);
-		c0 = r0 * cosf(theta);
+		s0 = 0.0f;	// r0 * sinf(0);
+		c0 = r0;	// r0 * cosf(0);
 		glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
 		glVertex3f(s0, c0, 0.0);
 
-		s1 = r1 * sinf(theta - halfStep) * 0.5 * (1.0 + rv1);
-		c1 = r1 * cosf(theta - halfStep) * 0.5 * (1.0 + rv1);
+		s1 = r1 * sinf(halfStep) * 0.5 * (1.0 + rv1);
+		c1 = r1 * cosf(halfStep) * 0.5 * (1.0 + rv1);
 		glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
 		glVertex3f(s1, c1, 0.0);
-		
-	}
-	// repeat last values to close
-	rv0 = randf();
-	rv1 = randf();
-		
-	q = activity.location + rv0 * activity.length;
-	
-	s0 = 0.0f;	// r0 * sinf(0);
-	c0 = r0;	// r0 * cosf(0);
-	glColor4f(col4v1[0] * q, col4v1[1] * q, col4v1[2] * q, col4v1[3] * rv0);
-	glVertex3f(s0, c0, 0.0);
-
-	s1 = r1 * sinf(halfStep) * 0.5 * (1.0 + rv1);
-	c1 = r1 * cosf(halfStep) * 0.5 * (1.0 + rv1);
-	glColor4f(col4v1[0], col4v1[1], col4v1[2], 0.0);
-	glVertex3f(s1, c1, 0.0);
-	
-	glEnd();
+	OOGLEND();
 }
 
 - (NSDictionary *) getDict
@@ -568,8 +565,9 @@ static void DrawWormholeCorona(GLfloat inner_radius, GLfloat outer_radius, int s
 	unsigned i;
 	for (i = 0; i < [shipsInTransit count]; ++i)
 	{
-		ShipEntity* ship = (ShipEntity*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"ship"];
-		double	ship_arrival_time = arrival_time + [(NSNumber*)[(NSDictionary*)[shipsInTransit objectAtIndex:i] objectForKey:@"time"] doubleValue];
+		NSDictionary *shipDict = [shipsInTransit oo_dictionaryAtIndex:i];
+		ShipEntity* ship = (ShipEntity*)[shipDict objectForKey:@"ship"];
+		double	ship_arrival_time = arrival_time + [shipDict oo_doubleForKey:@"time"];
 		OOLog(@"dumpState.wormholeEntity.ships", @"Ship %d: %@  mass %.2f  arrival time %@", i+1, ship, [ship mass], ClockToString(ship_arrival_time, false));
 	}
 }

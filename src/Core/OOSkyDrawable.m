@@ -204,7 +204,7 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	
 	if (_displayListName != 0)
 	{
-		glCallList(_displayListName);
+		OOGL(glCallList(_displayListName));
 	}
 	else
 	{

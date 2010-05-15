@@ -95,11 +95,11 @@ void GLDrawFilledOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step)
 #if OO_CHECK_GL_HEAVY
 
 NSString *OOLogAbbreviatedFileName(const char *inName);
-#define OOGL_PERFORM_CHECK(label)  CheckOpenGLErrors(@"%s %@:%u (%s)", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__)
-#define OOGL(statement)  do { OOGL_PERFORM_CHECK("PRE"); statement; OOGL_PERFORM_CHECK("POST"); } while (0)
+#define OOGL_PERFORM_CHECK(label, code)  CheckOpenGLErrors(@"%s %@:%u (%s)%s", label, OOLogAbbreviatedFileName(__FILE__), __LINE__, __PRETTY_FUNCTION__, code)
+#define OOGL(statement)  do { OOGL_PERFORM_CHECK("PRE", " -- " #statement); statement; OOGL_PERFORM_CHECK("POST", " -- " #statement); } while (0)
 #define CheckOpenGLErrorsHeavy CheckOpenGLErrors
-#define OOGLBEGIN(mode) do { OOGL_PERFORM_CHECK("PRE-BEGIN"); glBegin(mode); } while (0)
-#define OOGLEND() do { glEnd(); OOGL_PERFORM_CHECK("POST-END"); } while (0)
+#define OOGLBEGIN(mode) do { OOGL_PERFORM_CHECK("PRE-BEGIN", " -- " #mode); glBegin(mode); } while (0)
+#define OOGLEND() do { glEnd(); OOGL_PERFORM_CHECK("POST-END", ""); } while (0)
 
 #else
 

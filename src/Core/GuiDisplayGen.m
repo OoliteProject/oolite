@@ -991,20 +991,20 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		GLfloat h1 = 3.0f;
 		GLfloat h3 = 9.0f;
-		glColor4f(0.2f, 0.2f, 1.0f, 0.5f);
-		glLineWidth(2.0f);
+		OOGL(glColor4f(0.2f, 0.2f, 1.0f, 0.5f));
+		OOGL(glLineWidth(2.0f));
 		
 		cursor_x += x;
 		cursor_y += y;
 		[[UNIVERSE gameView] setVirtualJoystick:cursor_x/size_in_pixels.width :-cursor_y/size_in_pixels.height];
 
-		glBegin(GL_LINES);
+		OOGLBEGIN(GL_LINES);
 			glVertex3f((float)cursor_x - h1, (float)cursor_y, z);	glVertex3f((float)cursor_x - h3, (float)cursor_y, z);
 			glVertex3f((float)cursor_x + h1, (float)cursor_y, z);	glVertex3f((float)cursor_x + h3, (float)cursor_y, z);
 			glVertex3f((float)cursor_x, (float)cursor_y - h1, z);	glVertex3f((float)cursor_x, (float)cursor_y - h3, z);
 			glVertex3f((float)cursor_x, (float)cursor_y + h1, z);	glVertex3f((float)cursor_x, (float)cursor_y + h3, z);
-		glEnd();
-		glLineWidth(1.0f);
+		OOGLEND();
+		OOGL(glLineWidth(1.0f));
 		
 	}
 	
@@ -1024,13 +1024,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	//
 	if (backgroundColor)
 	{
-		glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]);
-		glBegin(GL_QUADS);
+		OOGL(glColor4f([backgroundColor redComponent], [backgroundColor greenComponent], [backgroundColor blueComponent], alpha * [backgroundColor alphaComponent]));
+		OOGLBEGIN(GL_QUADS);
 			glVertex3f(x + 0.0f,					y + 0.0f,					z);
 			glVertex3f(x + size_in_pixels.width,	y + 0.0f,					z);
 			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height,	z);
 			glVertex3f(x + 0.0f,					y + size_in_pixels.height,	z);
-		glEnd();
+		OOGLEND();
 	}
 	
 	// show the 'foreground', aka overlay!
@@ -1052,18 +1052,18 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		// draw the title
 		//
 		strsize = OORectFromString(title, 0.0f, 0.0f, titleCharacterSize).size;
-		glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
+		OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	// red
 		OODrawString(title, x + pixel_row_center - strsize.width/2.0, y + size_in_pixels.height - pixel_title_size.height, z, titleCharacterSize);
 		
 		// draw a horizontal divider
 		//
-		glColor4f(0.75f, 0.75f, 0.75f, alpha);	// 75% gray
-		glBegin(GL_QUADS);
+		OOGL(glColor4f(0.75f, 0.75f, 0.75f, alpha));	// 75% gray
+		OOGLBEGIN(GL_QUADS);
 			glVertex3f(x + 0,					y + size_in_pixels.height - pixel_title_size.height + 4,	z);
 			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 4,	z);
 			glVertex3f(x + size_in_pixels.width,	y + size_in_pixels.height - pixel_title_size.height + 2,		z);
 			glVertex3f(x + 0,					y + size_in_pixels.height - pixel_title_size.height + 2,		z);
-		glEnd();
+		OOGLEND();
 	}
 	
 	// draw each row of text
@@ -1106,14 +1106,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 				if (i == (unsigned)selectedRow)
 				{
 					NSRect block = OORectFromString(text, x + rowPosition[i].x + 2, y + rowPosition[i].y + 2, characterSize);
-					glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
-					glBegin(GL_QUADS);
+					OOGL(glColor4f(1.0f, 0.0f, 0.0f, row_alpha));	// red
+					OOGLBEGIN(GL_QUADS);
 						glVertex3f(block.origin.x,						block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 						glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 						glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
-					glEnd();
-					glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
+					OOGLEND();
+					OOGL(glColor4f(0.0f, 0.0f, 0.0f, row_alpha));	// black
 				}
 				OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				
@@ -1126,13 +1126,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					tr.origin = cu;
 					tr.size.width = 0.5f * characterSize.width;
 					GLfloat g_alpha = 0.5f * (1.0f + (float)sin(6 * [UNIVERSE getTime]));
-					glColor4f(1.0f, 0.0f, 0.0f, row_alpha * g_alpha);	// red
-					glBegin(GL_QUADS);
+					OOGL(glColor4f(1.0f, 0.0f, 0.0f, row_alpha * g_alpha));	// red
+					OOGLBEGIN(GL_QUADS);
 						glVertex3f(tr.origin.x,					tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y,					z);
 						glVertex3f(tr.origin.x + tr.size.width,	tr.origin.y + tr.size.height,	z);
 						glVertex3f(tr.origin.x,					tr.origin.y + tr.size.height,	z);
-					glEnd();
+					OOGLEND();
 				}
 			}
 		}
@@ -1159,14 +1159,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 					}					
 					if (i == (unsigned)selectedRow)
 					{
-						glColor4f(1.0f, 0.0f, 0.0f, row_alpha);	// red
-						glBegin(GL_QUADS);
+						OOGL(glColor4f(1.0f, 0.0f, 0.0f, row_alpha));	// red
+						OOGLBEGIN(GL_QUADS);
 							glVertex3f(block.origin.x,						block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y,						z);
 							glVertex3f(block.origin.x + block.size.width,	block.origin.y + block.size.height,	z);
 							glVertex3f(block.origin.x,						block.origin.y + block.size.height,	z);
-						glEnd();
-						glColor4f(0.0f, 0.0f, 0.0f, row_alpha);	// black
+						OOGLEND();
+						OOGL(glColor4f(0.0f, 0.0f, 0.0f, row_alpha));	// black
 					}
 					OODrawString(text, x + rowPosition[i].x, y + rowPosition[i].y, z, characterSize);
 				}
@@ -1207,15 +1207,15 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 
 	// draw fuel range circle
 	//
-	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
-	glLineWidth(2.0f);
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+	OOGL(glLineWidth(2.0f));
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
 	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 		
 	// draw marks and stars
 	//
-	glLineWidth(1.5f);
-	glColor4f(1.0f, 1.0f, 0.75f, alpha);	// pale yellow
+	OOGL(glLineWidth(1.5f));
+	OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 
 	for (i = 0; i < 256; i++)
 	{
@@ -1235,14 +1235,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			if ([markedDestinations oo_boolAtIndex:i])	// is marked
 			{
 				GLfloat mark_size = 0.5f * blob_size + 2.5f;
-				glColor4f(1.0f, 0.0f, 0.0f, alpha);	// red
-				glBegin(GL_LINES);
+				OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	// red
+				OOGLBEGIN(GL_LINES);
 					glVertex3f(x + star.x - mark_size,	y + star.y - mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x - mark_size,	y + star.y + mark_size,	z);
 					glVertex3f(x + star.x + mark_size,	y + star.y - mark_size,	z);
-				glEnd();
-				glColor4f(1.0f, 1.0f, 0.75f, alpha);	// pale yellow
+				OOGLEND();
+				OOGL(glColor4f(1.0f, 1.0f, 0.75f, alpha));	// pale yellow
 			}
 			GLDrawFilledOval(x + star.x, y + star.y, z, NSMakeSize(blob_size,blob_size), 15);
 		}
@@ -1296,7 +1296,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		saved_galaxy_coordinates = galaxy_coordinates;
 	}
 	
-	glColor4f(1.0f, 1.0f, 0.0f, alpha);	// yellow
+	OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha));	// yellow
 	
 	Random_Seed target = [[PlayerEntity sharedPlayer] target_system_seed];	
 	NSString *targetName = [UNIVERSE getSystemName:target];
@@ -1336,8 +1336,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw cross-hairs over current location
 	//
-	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
-	glBegin(GL_QUADS);
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+	OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
@@ -1346,13 +1346,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
 		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
 		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
-	glEnd();
+	OOGLEND();
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f(1.0f, 0.0f, 0.0f, alpha);	//	red
+	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
@@ -1361,7 +1361,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
 		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
 		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
-	glEnd();
+	OOGLEND();
 }
 
 
@@ -1422,9 +1422,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	double fuel = 35.0 * [player dialFuel];
 
 	// get a list of systems marked as contract destinations
-	NSArray* markedDestinations = [player markedDestinations];
+	NSArray		*markedDestinations = [player markedDestinations];
 	
-	BOOL* systems_found = [UNIVERSE systems_found];
+	BOOL		*systems_found = [UNIVERSE systems_found];
 	
 	NSPoint		star, cu;
 	
@@ -1480,14 +1480,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw fuel range circle
 	//
-	glColor4f(0.0f, 1.0f, 0.0f, alpha);	//	green
-	glLineWidth(2.0f);
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));	//	green
+	OOGL(glLineWidth(2.0f));
 	cu = NSMakePoint((float)(hscale*galaxy_coordinates.x+hoffset),(float)(vscale*galaxy_coordinates.y+voffset));
 	GLDrawOval(x + cu.x, y + cu.y, z, NSMakeSize((float)(fuel*hscale), 2*(float)(fuel*vscale)), 5);
 	
 	// draw cross-hairs over current location
 	//
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 14,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 14,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y + 14,	z);
@@ -1496,13 +1496,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glVertex3f(x + cu.x + 14,	y + cu.y - 1,	z);
 		glVertex3f(x + cu.x + 14,	y + cu.y + 1,	z);
 		glVertex3f(x + cu.x - 14,	y + cu.y + 1,	z);
-	glEnd();
+	OOGLEND();
 	
 	// draw cross hairs over cursor
 	//
-	glColor4f(1.0f, 0.0f, 0.0f, alpha);	//	red
+	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));	//	red
 	cu = NSMakePoint((float)(hscale*cursor_coordinates.x+hoffset),(float)(vscale*cursor_coordinates.y+voffset));
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + cu.x - 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y - 7,	z);
 		glVertex3f(x + cu.x + 1,	y + cu.y + 7,	z);
@@ -1511,33 +1511,33 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glVertex3f(x + cu.x + 7,	y + cu.y - 1,	z);
 		glVertex3f(x + cu.x + 7,	y + cu.y + 1,	z);
 		glVertex3f(x + cu.x - 7,	y + cu.y + 1,	z);
-	glEnd();
+	OOGLEND();
 	
 	// draw marks
 	//
-	glLineWidth(1.5f);
-	glColor4f(1.0f, 0.0f, 0.0f, alpha);
+	OOGL(glLineWidth(1.5f));
+	OOGL(glColor4f(1.0f, 0.0f, 0.0f, alpha));
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
-		BOOL mark = [(NSNumber*)[markedDestinations objectAtIndex:i] boolValue];
+		BOOL mark = [markedDestinations oo_boolAtIndex:i];
 		if (mark)
 		{
 			star.x = (float)(g_seed.d * hscale + hoffset);
 			star.y = (float)(g_seed.b * vscale + voffset);
-			glBegin(GL_LINES);
+			OOGLBEGIN(GL_LINES);
 				glVertex3f(x + star.x - 2.5f,	y + star.y - 2.5f,	z);
 				glVertex3f(x + star.x + 2.5f,	y + star.y + 2.5f,	z);
 				glVertex3f(x + star.x - 2.5f,	y + star.y + 2.5f,	z);
 				glVertex3f(x + star.x + 2.5f,	y + star.y - 2.5f,	z);
-			glEnd();
+			OOGLEND();
 		}
 	}
 	
 	// draw stars
 	//
-	glColor4f(1.0f, 1.0f, 1.0f, alpha);
-	glBegin(GL_QUADS);
+	OOGL(glColor4f(1.0f, 1.0f, 1.0f, alpha));
+	OOGLBEGIN(GL_QUADS);
 	for (i = 0; i < 256; i++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1552,12 +1552,12 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		glVertex3f(x + star.x, y + star.y - sz, z);
 		glVertex3f(x + star.x - sz,	y + star.y, z);
 	}
-	glEnd();
+	OOGLEND();
 		
 	// draw found stars and captions
 	//
-	glLineWidth(1.5f);
-	glColor4f(0.0f, 1.0f, 0.0f, alpha);
+	OOGL(glLineWidth(1.5f));
+	OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 	int n_matches = 0, foundIndex = -1;
 	
 	for (i = 0; i < 256; i++) if (systems_found[i])
@@ -1581,18 +1581,18 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			{
 				star.x = (float)(g_seed.d * hscale + hoffset);
 				star.y = (float)(g_seed.b * vscale + voffset);
-				glBegin(GL_LINE_LOOP);
+				OOGLBEGIN(GL_LINE_LOOP);
 					glVertex3f(x + star.x - 2.0f,	y + star.y - 2.0f,	z);
 					glVertex3f(x + star.x + 2.0f,	y + star.y - 2.0f,	z);
 					glVertex3f(x + star.x + 2.0f,	y + star.y + 2.0f,	z);
 					glVertex3f(x + star.x - 2.0f,	y + star.y + 2.0f,	z);
-				glEnd();
+				OOGLEND();
 				if (i == foundIndex || n_matches == 1)
 				{
 					if (n_matches == 1) foundSystem = 0;
-					glColor4f(0.0f, 1.0f, 1.0f, alpha);
+					OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha));
 					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
-					glColor4f(0.0f, 1.0f, 0.0f, alpha);
+					OOGL(glColor4f(0.0f, 1.0f, 0.0f, alpha));
 				}
 				else if (drawNames)
 					OODrawString([UNIVERSE systemNameIndex:i] , x + star.x + 2.0, y + star.y - 10.0f, z, NSMakeSize(10,10));
@@ -1602,13 +1602,13 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	
 	// draw bottom horizontal divider
 	//
-	glColor4f(0.75f, 0.75f, 0.75f, alpha);	// 75% gray
-	glBegin(GL_QUADS);
+	OOGL(glColor4f(0.75f, 0.75f, 0.75f, alpha));	// 75% gray
+	OOGLBEGIN(GL_QUADS);
 		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale + 0),	z);
 		glVertex3f(x + size_in_pixels.width, y + (float)(voffset + 260.0f*vscale + 0), z);
 		glVertex3f(x + size_in_pixels.width, (float)(y + voffset + 260.0f*vscale - 2), z);
 		glVertex3f(x + 0, (float)(y + voffset + 260.0f*vscale - 2), z);
-	glEnd();
+	OOGLEND();
 
 }
 
@@ -1625,9 +1625,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	double			voffset = size_in_pixels.height - pixel_title_size.height - 5;
 	NSPoint			star, star2 = NSZeroPoint;
 	
-	glColor4f(0.25f, 0.25f, 0.25f, alpha);
+	OOGL(glColor4f(0.25f, 0.25f, 0.25f, alpha));
 	
-	glBegin(GL_LINES );
+	OOGLBEGIN(GL_LINES);
 	for (i = 0; i < 256; i++) for (j = i + 1; j < 256; j++)
 	{
 		g_seed = [UNIVERSE systemSeedForSystemNumber:i];
@@ -1645,7 +1645,7 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			glVertex3f(x+star2.x, y+star2.y, z);
 		}
 	}
-	glEnd();
+	OOGLEND();
 	
 	if (routeInfo)
 	{
@@ -1653,11 +1653,11 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 		
 		if (optimizeBy == OPTIMIZED_BY_JUMPS)
 		{
-			glColor4f (1.0f, 1.0f, 0.0f, alpha); // Yellow for plotting routes optimized for distance.
+			OOGL(glColor4f(1.0f, 1.0f, 0.0f, alpha)); // Yellow for plotting routes optimized for distance.
 		}
 		else
 		{
-			glColor4f (0.0f, 1.0f, 1.0f, alpha); // Cyan for plotting routes optimized for time.
+			OOGL(glColor4f(0.0f, 1.0f, 1.0f, alpha)); // Cyan for plotting routes optimized for time.
 		}
 		int loc;
 		for (i = 0; i < route_hops; i++)
@@ -1671,10 +1671,10 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			star2.x = (float)(g_seed2.d * hscale + hoffset);
 			star2.y = (float)(g_seed2.b * vscale + voffset);
 			
-			glBegin (GL_LINES);
-			glVertex3f (x+star.x, y+star.y, z);
-			glVertex3f (x+star2.x, y+star2.y, z);
-			glEnd();
+			OOGLBEGIN(GL_LINES);
+				glVertex3f(x+star.x, y+star.y, z);
+				glVertex3f(x+star2.x, y+star2.y, z);
+			OOGLEND();
 			
 			// Label the route.
 			OODrawString([UNIVERSE systemNameIndex:loc], x + star.x + 2.0, y + star.y - 8.0, z, NSMakeSize(8,8));

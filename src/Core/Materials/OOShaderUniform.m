@@ -467,15 +467,15 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	switch (type)
 	{
 		case kOOShaderUniformTypeInt:
-			glUniform1iARB(location, value.constInt);
+			OOGL(glUniform1iARB(location, value.constInt));
 			break;
 		
 		case kOOShaderUniformTypeFloat:
-			glUniform1fARB(location, value.constFloat);
+			OOGL(glUniform1fARB(location, value.constFloat));
 			break;
 		
 		case kOOShaderUniformTypeVector:
-			glUniform4fvARB(location, 1, value.constVector);
+			OOGL(glUniform4fvARB(location, 1, value.constVector));
 			break;
 		
 		case kOOShaderUniformTypeMatrix:
@@ -603,21 +603,21 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	if (isFloat)
 	{
 		if (convertClamp)  fVal = OOClamp_0_1_f(fVal);
-		glUniform1fARB(location, fVal);
+		OOGL(glUniform1fARB(location, fVal));
 	}
 	else if (isInt)
 	{
 		if (convertClamp)  iVal = iVal ? 1 : 0;
-		glUniform1iARB(location, iVal);
+		OOGL(glUniform1iARB(location, iVal));
 	}
 	else if (isPoint)
 	{
 		GLfloat v2[2] = { pVal.x, pVal.y };
-		glUniform2fvARB(location, 1, v2);
+		OOGL(glUniform2fvARB(location, 1, v2));
 	}
 	else if (isVector)
 	{
-		glUniform4fvARB(location, 1, expVVal);
+		OOGL(glUniform4fvARB(location, 1, expVVal));
 	}
 	else if (isMatrix)
 	{

@@ -572,10 +572,10 @@ static NSString *MacrosToString(NSDictionary *macros);
 	
 	for (i = 0; i != texCount; ++i)
 	{
-		glActiveTextureARB(GL_TEXTURE0_ARB + i);
+		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
 		[textures[i] apply];
 	}
-	glActiveTextureARB(GL_TEXTURE0_ARB);
+	if (texCount > 1)  OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 	
 	NS_DURING
 		for (uniformEnum = [uniforms objectEnumerator]; (uniform = [uniformEnum nextObject]); )
@@ -643,10 +643,10 @@ static NSString *MacrosToString(NSDictionary *macros);
 		count = texCount ? texCount : 1;
 		for (i = 0; i != count; ++i)
 		{
-			glActiveTextureARB(GL_TEXTURE0_ARB + i);
+			OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + i));
 			[OOTexture applyNone];
 		}
-		glActiveTextureARB(GL_TEXTURE0_ARB);
+		if (count != 1)  OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 	}
 }
 

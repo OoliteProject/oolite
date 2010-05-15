@@ -69,13 +69,13 @@ MA 02110-1301, USA.
 - (void) blitToX:(float)x Y:(float)y Z:(float)z alpha:(float)a
 {
 	a = OOClamp_0_1_f(a);
-	glEnable(GL_TEXTURE_2D);
-	glColor4f(1.0, 1.0, 1.0, a);
+	OOGL(glEnable(GL_TEXTURE_2D));
+	OOGL(glColor4f(1.0, 1.0, 1.0, a));
 	
 	// Note that the textured Quad is drawn ACW from the Top Left
 	
 	[texture apply];
-	glBegin(GL_QUADS);
+	OOGLBEGIN(GL_QUADS);
 	
 	glTexCoord2f(0.0, 0.0);
 	glVertex3f(x, y+size.height, z);
@@ -89,8 +89,8 @@ MA 02110-1301, USA.
 	glTexCoord2f(1.0, 0.0);
 	glVertex3f(x+size.width, y+size.height, z);
 	
-	glEnd();
-	glDisable(GL_TEXTURE_2D);
+	OOGLEND();
+	OOGL(glDisable(GL_TEXTURE_2D));
 }
 
 

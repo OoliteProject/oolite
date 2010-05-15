@@ -3629,9 +3629,9 @@ static const OOMatrix	starboard_matrix =
 				if (EXPECT(!demoShipMode))	// we're in flight
 				{
 					// rotate the view
-					GLMultOOMatrix([player rotationMatrix]);
+					OOGL(GLMultOOMatrix([player rotationMatrix]));
 					// translate the view
-					GLTranslateOOVector(vector_flip(position));
+					OOGL(GLTranslateOOVector(vector_flip(position)));
 					OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
 				}
 				else
@@ -3644,10 +3644,10 @@ static const OOMatrix	starboard_matrix =
 				// main light position, no shaders, in-flight / shaders, in-flight and docked.
 				OOGL(glLightfv(GL_LIGHT1, GL_POSITION, main_light_position));
 				
-				[self useGUILightSource:demoShipMode];
+				OOGL([self useGUILightSource:demoShipMode]);
 				
 				// HACK: store view matrix for absolute drawing of active subentities (i.e., turrets).
-				viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW);
+				OOGL(viewMatrix = OOMatrixLoadGLMatrix(GL_MODELVIEW));
 				
 				int			furthest = draw_count - 1;
 				int			nearest = 0;

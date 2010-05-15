@@ -214,8 +214,8 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	else
 	{
 		// not set up yet, draw a black screen
-		glClearColor(0.0, 0.0, 0.0, 0.0);
-		glClear(GL_COLOR_BUFFER_BIT);
+		OOGL(glClearColor(0.0, 0.0, 0.0, 0.0));
+		OOGL(glClear(GL_COLOR_BUFFER_BIT));
 	}
 	
 	[[self openGLContext] flushBuffer];
@@ -289,9 +289,9 @@ static NSString * kOOLogKeyDown				= @"input.keyMapping.keyPress.keyDown";
 	
 	unsigned char *pixels = [bitmapRep bitmapData];
 		
-	glReadPixels(0,0, w,h, GL_RED,   GL_UNSIGNED_BYTE, red);
-	glReadPixels(0,0, w,h, GL_GREEN, GL_UNSIGNED_BYTE, green);
-	glReadPixels(0,0, w,h, GL_BLUE,  GL_UNSIGNED_BYTE, blue);
+	OOGL(glReadPixels(0,0, w,h, GL_RED,   GL_UNSIGNED_BYTE, red));
+	OOGL(glReadPixels(0,0, w,h, GL_GREEN, GL_UNSIGNED_BYTE, green));
+	OOGL(glReadPixels(0,0, w,h, GL_BLUE,  GL_UNSIGNED_BYTE, blue));
 	
 	int x,y;
 	for (y = 0; y < h; y++)

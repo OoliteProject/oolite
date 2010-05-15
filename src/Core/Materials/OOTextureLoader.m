@@ -255,7 +255,7 @@ static BOOL					sHaveSetUp = NO;
 {
 	// Load two maximum sizes - graphics hardware limit and user-specified limit.
 	GLint maxSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+	OOGL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize));
 	sGLMaxSize = MAX(maxSize, 64);
 	OOLog(@"texture.load.rescale.maxSize", @"GL maximum texture size: %u", sGLMaxSize);
 	

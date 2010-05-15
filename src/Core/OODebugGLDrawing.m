@@ -40,7 +40,7 @@ OOINLINE void ApplyColor(OOColor *color)
 	
 	if (EXPECT_NOT(color == nil))  color = [OOColor lightGrayColor];
 	[color getGLRed:&r green:&g blue:&b alpha:&a];
-	glColor4f(r, g, b, a);
+	OOGL(glColor4f(r, g, b, a));
 }
 
 
@@ -50,7 +50,7 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
-	glBegin(GL_LINE_LOOP);
+	OOGLBEGIN(GL_LINE_LOOP);
 		glVertex3f(min.x, min.y, min.z);
 		glVertex3f(max.x, min.y, min.z);
 		glVertex3f(max.x, max.y, min.z);
@@ -59,8 +59,8 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color
 		glVertex3f(max.x, max.y, max.z);
 		glVertex3f(max.x, min.y, max.z);
 		glVertex3f(min.x, min.y, max.z);
-	glEnd();
-	glBegin(GL_LINES);
+	OOGLEND();
+	OOGLBEGIN(GL_LINES);
 		glVertex3f(max.x, min.y, min.z);
 		glVertex3f(max.x, min.y, max.z);
 		glVertex3f(max.x, max.y, min.z);
@@ -69,7 +69,7 @@ void OODebugDrawColoredBoundingBoxBetween(Vector min, Vector max, OOColor *color
 		glVertex3f(min.x, max.y, min.z);
 		glVertex3f(min.x, min.y, max.z);
 		glVertex3f(min.x, max.y, max.z);
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 }
@@ -82,10 +82,10 @@ void OODebugDrawColoredLine(Vector start, Vector end, OOColor *color)
 	
 	ApplyColor(color);
 	
-	glBegin(GL_LINES);
+	OOGLBEGIN(GL_LINES);
 		glVertex3f(start.x, start.y, start.z);
 		glVertex3f(end.x, end.y, end.z);
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 }
@@ -96,7 +96,7 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
 	OODebugWFState state = OODebugBeginWireframe(YES);
 	OO_ENTER_OPENGL();
 	
-	glBegin(GL_LINES);
+	OOGLBEGIN(GL_LINES);
 		glColor4f(1.0f, 0.0f, 0.0f, 1.0f);
 		glVertex3f(position.x, position.y, position.z);
 		glVertex3f(position.x + scale, position.y, position.z);
@@ -108,7 +108,7 @@ void OODebugDrawBasis(Vector position, GLfloat scale)
 		glColor4f(0.0f, 0.0f, 1.0f, 1.0f);
 		glVertex3f(position.x, position.y, position.z);
 		glVertex3f(position.x, position.y, position.z + scale);
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 }
@@ -120,11 +120,11 @@ void OODebugDrawPoint(Vector position, OOColor *color)
 	OO_ENTER_OPENGL();
 	
 	ApplyColor(color);
-	glPointSize(10);
+	OOGL(glPointSize(10));
 	
-	glBegin(GL_POINTS);
+	OOGLBEGIN(GL_POINTS);
 		glVertex3f(position.x, position.y, position.z);
-	glEnd();
+	OOGLEND();
 	
 	OODebugEndWireframe(state);
 }
@@ -137,23 +137,23 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 	OODebugWFState state = { .material = [OOMaterial current] };
 	[OOMaterial applyNone];
 	
-	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT);
+	OOGL(glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_LINE_BIT | GL_POINT_BIT | GL_CURRENT_BIT));
 	
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_FOG);
+	OOGL(glDisable(GL_LIGHTING));
+	OOGL(glDisable(GL_TEXTURE_2D));
+	OOGL(glDisable(GL_FOG));
 	if (ignoreZ)
 	{
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
+		OOGL(glDisable(GL_DEPTH_TEST));
+		OOGL(glDepthMask(GL_FALSE));
 	}
 	else
 	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(GL_TRUE);
+		OOGL(glEnable(GL_DEPTH_TEST));
+		OOGL(glDepthMask(GL_TRUE));
 	}
 	
-	glLineWidth(1.0f);
+	OOGL(glLineWidth(1.0f));
 	
 	return state;
 }
@@ -162,7 +162,7 @@ OODebugWFState OODebugBeginWireframe(BOOL ignoreZ)
 void OODebugEndWireframe(OODebugWFState state)
 {
 	OO_ENTER_OPENGL();
-	glPopAttrib();
+	OOGL(glPopAttrib());
 	[state.material apply];
 }
 

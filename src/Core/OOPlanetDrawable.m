@@ -216,7 +216,7 @@
 	[_material apply];
 	
 	// Scale the ball.
-	glPushMatrix();
+	OOGL(glPushMatrix());
 	GLMultOOMatrix(_transform);
 	
 	OOGL(glEnable(GL_LIGHTING));
@@ -257,7 +257,7 @@
 	}
 #endif
 	
-	glPopMatrix();
+	OOGL(glPopMatrix());
 #ifndef NDEBUG
 	if (gDebugFlags & DEBUG_DRAW_NORMALS)  [self debugDrawNormals];
 #endif

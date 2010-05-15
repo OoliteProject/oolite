@@ -742,10 +742,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		
 		// Clear the front and back framebuffers before switching out of FullScreen mode.
 		// (This is not strictly necessary, but avoids an untidy flash of garbage.)
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		OOGL(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+		OOGL(glClear(GL_COLOR_BUFFER_BIT));
 		[fullScreenContext flushBuffer];
-		glClear(GL_COLOR_BUFFER_BIT);
+		OOGL(glClear(GL_COLOR_BUFFER_BIT));
 		[fullScreenContext flushBuffer];
 
 		// Restore the previously set swap interval.
@@ -1172,7 +1172,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	
 	// world's simplest OpenGL optimisations...
 #if GL_APPLE_transform_hint
-	OOGL(glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST));
+	if ([extMgr haveExtension:@"GL_APPLE_transform_hint"])
+	{
+		OOGL(glHint(GL_TRANSFORM_HINT_APPLE, GL_FASTEST));
+	}
 #endif
 	
 	OOGL(glDisable(GL_NORMALIZE));

@@ -105,11 +105,11 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 
 - (BOOL)doApply
 {
-	glMaterialfv(FACE, GL_DIFFUSE, diffuse);
-	glMaterialfv(FACE, GL_SPECULAR, specular);
-	glMaterialfv(FACE, GL_AMBIENT, ambient);
-	glMaterialfv(FACE, GL_EMISSION, emission);
-	glMateriali(FACE, GL_SHININESS, shininess);
+	OOGL(glMaterialfv(FACE, GL_DIFFUSE, diffuse));
+	OOGL(glMaterialfv(FACE, GL_SPECULAR, specular));
+	OOGL(glMaterialfv(FACE, GL_AMBIENT, ambient));
+	OOGL(glMaterialfv(FACE, GL_EMISSION, emission));
+	OOGL(glMateriali(FACE, GL_SHININESS, shininess));
 	
 	return YES;
 }
