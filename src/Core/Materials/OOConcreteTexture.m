@@ -250,8 +250,6 @@
 
 - (struct OOPixMap) copyPixMapRepresentation
 {
-	[self ensureFinishedLoading];
-	
 	// N.b.: OOMakePixMap will return kOONullPixMap if _bytes is NULL (through OOTEXTURE_RELOADABLEity).
 	OOPixMap px = OOMakePixMap(_bytes, _width, _height, OOTextureComponentsForFormat(_format), 0, 0);
 	return OODuplicatePixMap(px, 0);
