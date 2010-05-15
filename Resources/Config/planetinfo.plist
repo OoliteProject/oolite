@@ -24,7 +24,7 @@
 		default_breakpattern_model = "ring.dat";
 		
 		// Default break pattern model for use in launch/dock sequences. Overrides default_breakpattern_model.
-		default_dockpattern_model = "tunnel.dat";
+		default_dockpattern_model = "oolite-tunnel.dat";
 	};
 	
 	// Uncomment the desired behaviour for galactic hyperspace exit. Fixed coordinates will put the arrival

@@ -2279,6 +2279,7 @@
 		port_radius = 250;
 		requires_docking_clearance = no;
 		roles = "rockhermit station";
+		docking_pattern_model = "oolite-rocktunnel.dat";
 		smooth = yes;
 		subentities = (
 			"hermit-docking-slit 0 0 0 1 0 0 0",

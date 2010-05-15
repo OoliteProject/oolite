@@ -797,7 +797,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 #endif
 	
 	NSString *defaultBreakPattern = [universalInfo oo_stringForKey:@"default_dockpattern_model" defaultValue:[universalInfo oo_stringForKey:@"default_breakpattern_model"]];
-	if (defaultBreakPattern == nil)  defaultBreakPattern = @"tunnel.dat";
+	if (defaultBreakPattern == nil)  defaultBreakPattern = @"oolite-tunnel.dat";
 	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:defaultBreakPattern];
 	local_market = [dict oo_stringForKey:@"market" defaultValue:primaryRole];
 	

@@ -2603,15 +2603,21 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	// default, if no such shipdata key exists). If this is no docking break pattern, then check the 'universal' section
 	// in planetinfo.plist for a key named 'default_breakpattern_model'. If not found, use ring.dat as the default -
 	// Nikos 20091020
-	if (forDocking)
+	// In strict mode, we'll use ring.dat at all times -- Kaks 2010-05-15
+	
+	if (!strict)
 	{
-		StationEntity *station = [[PlayerEntity sharedPlayer] dockedStation];
-		breakPatternModelFileName = [station dockingPatternModelFileName];
+		if (forDocking)
+		{
+			StationEntity *station = [[PlayerEntity sharedPlayer] dockedStation];
+			breakPatternModelFileName = [station dockingPatternModelFileName];
+		}
+		else
+		{
+			breakPatternModelFileName = [[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] oo_stringForKey:@"default_breakpattern_model"];
+		}
 	}
-	else
-	{
-		breakPatternModelFileName = [[[self planetInfo] oo_dictionaryForKey:PLANETINFO_UNIVERSAL_KEY] oo_stringForKey:@"default_breakpattern_model"];
-	}
+	
 	if (!breakPatternModelFileName)  breakPatternModelFileName = @"ring.dat";	// be sure there is a model to use
 	
 	for (i = 1; i < 11; i++)

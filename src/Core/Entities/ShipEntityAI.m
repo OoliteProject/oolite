@@ -313,7 +313,7 @@ MA 02110-1301, USA.
 
 - (BOOL) performHyperSpaceToSpecificSystem:(OOSystemID)systemID
 {
-	return [self performHyperSpaceExitReplace:YES toSystem:systemID];
+	return [self performHyperSpaceExitReplace:NO toSystem:systemID];
 }
 
 
