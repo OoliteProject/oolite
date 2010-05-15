@@ -119,44 +119,44 @@ static BOOL					sHaveSetUp = NO;
 	self = [super init];
 	if (self == nil)  return nil;
 	
-	path = [inPath copy];
-	if (EXPECT_NOT(path == nil))
+	_path = [inPath copy];
+	if (EXPECT_NOT(_path == nil))
 	{
 		[self release];
 		return nil;
 	}
 	
-	generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
-	avoidShrinking = (options & kOOTextureNoShrink) != 0;
-	noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
+	_generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
+	_avoidShrinking = (options & kOOTextureNoShrink) != 0;
+	_noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
 #if GL_ARB_texture_cube_map
-	allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
+	_allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
 #endif
 	
 	if (options & kOOTextureExtractChannelMask)
 	{
-		extractChannel = YES;
+		_extractChannel = YES;
 		switch (options & kOOTextureExtractChannelMask)
 		{
 			case kOOTextureExtractChannelR:
-				extractChannelIndex = 0;
+				_extractChannelIndex = 0;
 				break;
 				
 			case kOOTextureExtractChannelG:
-				extractChannelIndex = 1;
+				_extractChannelIndex = 1;
 				break;
 				
 			case kOOTextureExtractChannelB:
-				extractChannelIndex = 2;
+				_extractChannelIndex = 2;
 				break;
 				
 			case kOOTextureExtractChannelA:
-				extractChannelIndex = 3;
+				_extractChannelIndex = 3;
 				break;
 				
 			default:
 				OOLogERR(@"texture.load.unknownExtractChannelMask", @"Unknown texture extract channel mask (0x%.4X). This is an internal error, please report it.", options & kOOTextureExtractChannelMask);
-				extractChannel =  NO;
+				_extractChannel =  NO;
 		}
 	}
 	
@@ -166,8 +166,10 @@ static BOOL					sHaveSetUp = NO;
 
 - (void)dealloc
 {
-	[path autorelease];
-	if (data != NULL)  free(data);
+	[_path autorelease];
+	_path = NULL;
+	free(_data);
+	_data = NULL;
 	
 	[super dealloc];
 }
@@ -177,9 +179,9 @@ static BOOL					sHaveSetUp = NO;
 {
 	NSString			*state = nil;
 	
-	if (ready)
+	if (_ready)
 	{
-		if (data != NULL)  state = @"ready";
+		if (_data != NULL)  state = @"ready";
 		else  state = @"failed";
 	}
 	else
@@ -190,25 +192,25 @@ static BOOL					sHaveSetUp = NO;
 #endif
 	}
 	
-	return [NSString stringWithFormat:@"{%@ -- %@}", path, state];
+	return [NSString stringWithFormat:@"{%@ -- %@}", _path, state];
 }
 
 
 - (NSString *)shortDescriptionComponents
 {
-	return [path lastPathComponent];
+	return [_path lastPathComponent];
 }
 
 
 - (NSString *)path
 {
-	return path;
+	return _path;
 }
 
 
 - (BOOL)isReady
 {
-	return ready;
+	return _ready;
 }
 
 
@@ -219,17 +221,17 @@ static BOOL					sHaveSetUp = NO;
 	
 	BOOL		OK = YES;
 	
-	if (!ready)
+	if (!_ready)
 	{
 		[[OOAsyncWorkManager sharedAsyncWorkManager] waitForTaskToComplete:self];
 	}
-	if (data == NULL)  OK = NO;
+	if (_data == NULL)  OK = NO;
 	
 	if (OK)
 	{
-		*result = OOMakePixMap(data, width, height, OOTextureComponentsForFormat(format), 0, 0);
-		data = NULL;
-		*outFormat = format;
+		*result = OOMakePixMap(_data, _width, _height, OOTextureComponentsForFormat(_format), 0, 0);
+		_data = NULL;
+		*outFormat = _format;
 		OK = OOIsValidPixMap(*result);
 	}
 	
@@ -273,29 +275,29 @@ static BOOL					sHaveSetUp = NO;
 - (void)performAsyncTask
 {
 	NS_DURING
-		OOLog(@"texture.load.asyncLoad", @"Loading texture %@", [path lastPathComponent]);
+		OOLog(@"texture.load.asyncLoad", @"Loading texture %@", [_path lastPathComponent]);
 		
 		[self loadTexture];
 		
 		// Catch an error I've seen but not diagnosed yet.
-		if (data != NULL && OOTextureComponentsForFormat(format) == 0)
+		if (_data != NULL && OOTextureComponentsForFormat(_format) == 0)
 		{
-			OOLog(@"texture.load.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", path, format);
-			free(data);
-			data = NULL;
+			OOLog(@"texture.load.failed.internalError", @"Texture loader internal error for %@: data is non-null but data format is invalid (%u).", _path, _format);
+			free(_data);
+			_data = NULL;
 		}
 		
-		if (data != NULL)  [self applySettings];
+		if (_data != NULL)  [self applySettings];
 		
 		OOLog(@"texture.load.asyncLoad.done", @"Loading complete.");
 	NS_HANDLER
-		OOLog(@"texture.load.asyncLoad.exception", @"***** Exception loading texture %@: %@ (%@).", path, [localException name], [localException reason]);
+		OOLog(@"texture.load.asyncLoad.exception", @"***** Exception loading texture %@: %@ (%@).", _path, [localException name], [localException reason]);
 		
 		// Be sure to signal load failure
-		if (data != NULL)
+		if (_data != NULL)
 		{
-			free(data);
-			data = NULL;
+			free(_data);
+			_data = NULL;
 		}
 	NS_ENDHANDLER
 }
@@ -304,10 +306,10 @@ static BOOL					sHaveSetUp = NO;
 - (void) generateMipMapsForCubeMap
 {
 	// Generate mip maps for each cube face.
-	NSParameterAssert(data != NULL);
+	NSParameterAssert(_data != NULL);
 	
-	uint8_t components = OOTextureComponentsForFormat(format);
-	size_t srcSideSize = width * width * components;	// Space for one side without mip-maps.
+	uint8_t components = OOTextureComponentsForFormat(_format);
+	size_t srcSideSize = _width * _width * components;	// Space for one side without mip-maps.
 	size_t newSideSize = srcSideSize * 4 / 3;			// Space for one side with mip-maps.
 	newSideSize = (newSideSize + 15) & ~15;				// Round up to multiple of 16 bytes.
 	size_t newSize = newSideSize * 6;					// Space for all six sides.
@@ -315,22 +317,22 @@ static BOOL					sHaveSetUp = NO;
 	void *newData = malloc(newSize);
 	if (EXPECT_NOT(newData == NULL))
 	{
-		free(data);
-		data = NULL;
+		free(_data);
+		_data = NULL;
 	}
 	
 	unsigned i;
 	for (i = 0; i < 6; i++)
 	{
-		void *srcBytes = ((uint8_t *)data) + srcSideSize * i;
+		void *srcBytes = ((uint8_t *)_data) + srcSideSize * i;
 		void *dstBytes = ((uint8_t *)newData) + newSideSize * i;
 		
 		memcpy(dstBytes, srcBytes, srcSideSize);
-		OOGenerateMipMaps(dstBytes, width, width, components);
+		OOGenerateMipMaps(dstBytes, _width, _width, components);
 	}
 	
-	free(data);
-	data = newData;
+	free(_data);
+	_data = newData;
 }
 
 
@@ -342,66 +344,66 @@ static BOOL					sHaveSetUp = NO;
 	uint8_t				components;
 	OOPixMap			pixMap;
 	
-	components = OOTextureComponentsForFormat(format);
-	pixMap = OOMakePixMap(data, width, height, components, rowBytes, 0);
+	components = OOTextureComponentsForFormat(_format);
+	pixMap = OOMakePixMap(_data, _width, _height, components, _rowBytes, 0);
 	
-	if (extractChannel)
+	if (_extractChannel)
 	{
-		if (OOExtractPixMapChannel(&pixMap, extractChannelIndex, NO))
+		if (OOExtractPixMapChannel(&pixMap, _extractChannelIndex, NO))
 		{
-			format = kOOTextureDataGrayscale;
+			_format = kOOTextureDataGrayscale;
 			components = 1;
 		}
 		else
 		{
-			OOLogWARN(@"texture.load.extractChannel.invalid", @"Cannot extract channel from texture \"%@\"", [path lastPathComponent]);
+			OOLogWARN(@"texture.load.extractChannel.invalid", @"Cannot extract channel from texture \"%@\"", [_path lastPathComponent]);
 		}
 	}
 	
-	if (rowBytes == 0)  rowBytes = width * components;
+	if (_rowBytes == 0)  _rowBytes = _width * components;
 	[self getDesiredWidth:&desiredWidth andHeight:&desiredHeight];
 	
-	if (isCubeMap && !OOCubeMapsAvailable())
+	if (_isCubeMap && !OOCubeMapsAvailable())
 	{
 		OOPixMapToRGBA(&pixMap);
 		desiredHeight = MIN(desiredWidth * 2, 512U);
 		if (sReducedDetail && desiredHeight > 256)  desiredHeight /= 2;
 		desiredWidth = desiredHeight * 2;
 		
-		OOPixMap converted = OOConvertCubeMapToLatLong(pixMap, desiredHeight, generateMipMaps);
+		OOPixMap converted = OOConvertCubeMapToLatLong(pixMap, desiredHeight, _generateMipMaps);
 		OOFreePixMap(&pixMap);
 		pixMap = converted;
-		isCubeMap = NO;
+		_isCubeMap = NO;
 		
 #if DUMP_CONVERTED_CUBE_MAPS
-		OODumpPixMap(pixMap, [NSString stringWithFormat:@"converted cube map %@", [[path lastPathComponent] stringByDeletingPathExtension]]);
+		OODumpPixMap(pixMap, [NSString stringWithFormat:@"converted cube map %@", [[_path lastPathComponent] stringByDeletingPathExtension]]);
 #endif
 	}
 	
 	// Rescale if needed.
-	rescale = (width != desiredWidth || height != desiredHeight);
+	rescale = (_width != desiredWidth || _height != desiredHeight);
 	if (rescale)
 	{
-		BOOL leaveSpaceForMipMaps = generateMipMaps;
+		BOOL leaveSpaceForMipMaps = _generateMipMaps;
 #if GL_ARB_texture_cube_map
-		if (isCubeMap)  leaveSpaceForMipMaps = NO;
+		if (_isCubeMap)  leaveSpaceForMipMaps = NO;
 #endif
 		
-		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %u x %u to %u x %u.", [path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
+		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %u x %u to %u x %u.", [_path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
 		
 		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, YES);
 		if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return;
 		
-		data = pixMap.pixels;
-		width = pixMap.width;
-		height = pixMap.height;
-		rowBytes = pixMap.rowBytes;
+		_data = pixMap.pixels;
+		_width = pixMap.width;
+		_height = pixMap.height;
+		_rowBytes = pixMap.rowBytes;
 	}
 	
 #if GL_ARB_texture_cube_map
-	if (isCubeMap)
+	if (_isCubeMap)
 	{
-		if (generateMipMaps)
+		if (_generateMipMaps)
 		{
 			[self generateMipMapsForCubeMap];
 		}
@@ -410,21 +412,21 @@ static BOOL					sHaveSetUp = NO;
 #endif
 	
 	// Generate mip maps if needed.
-	if (generateMipMaps)
+	if (_generateMipMaps)
 	{
 		// Make space if needed.
 		newSize = desiredWidth * components * desiredHeight;
 		newSize = (newSize * 4) / 3;
-		generateMipMaps = OOExpandPixMap(&pixMap, newSize);
+		_generateMipMaps = OOExpandPixMap(&pixMap, newSize);
 		
-		data = pixMap.pixels;
-		width = pixMap.width;
-		height = pixMap.height;
-		rowBytes = pixMap.rowBytes;
+		_data = pixMap.pixels;
+		_width = pixMap.width;
+		_height = pixMap.height;
+		_rowBytes = pixMap.rowBytes;
 	}
-	if (generateMipMaps)
+	if (_generateMipMaps)
 	{
-		OOGenerateMipMaps(data, width, height, components);
+		OOGenerateMipMaps(_data, _width, _height, components);
 	}
 	
 	// All done.
@@ -436,14 +438,14 @@ static BOOL					sHaveSetUp = NO;
 	uint32_t			desiredWidth, desiredHeight;
 	
 	// Work out appropriate final size for textures.
-	if (!noScalingWhatsoever)
+	if (!_noScalingWhatsoever)
 	{
 		// Cube maps are six times as high as they are wide, and we need to preserve that.
-		if (allowCubeMap && height == width * 6)
+		if (_allowCubeMap && _height == _width * 6)
 		{
-			isCubeMap = YES;
+			_isCubeMap = YES;
 			
-			desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
+			desiredWidth = OORoundUpToPowerOf2((2 * _width) / 3);
 			desiredWidth = MIN(desiredWidth, sGLMaxSize / 8);
 			if (sReducedDetail)
 			{
@@ -458,19 +460,19 @@ static BOOL					sHaveSetUp = NO;
 			if (!sHaveNPOTTextures)
 			{
 				// Round to nearest power of two. NOTE: this is duplicated in OOTextureVerifierStage.m.
-				desiredWidth = OORoundUpToPowerOf2((2 * width) / 3);
-				desiredHeight = OORoundUpToPowerOf2((2 * height) / 3);
+				desiredWidth = OORoundUpToPowerOf2((2 * _width) / 3);
+				desiredHeight = OORoundUpToPowerOf2((2 * _height) / 3);
 			}
 			else
 			{
-				desiredWidth = width;
-				desiredHeight = height;
+				desiredWidth = _width;
+				desiredHeight = _height;
 			}
 			
 			desiredWidth = MIN(desiredWidth, sGLMaxSize);
 			desiredHeight = MIN(desiredHeight, sGLMaxSize);
 			
-			if (!avoidShrinking)
+			if (!_avoidShrinking)
 			{
 				desiredWidth = MIN(desiredWidth, sUserMaxSize);
 				desiredHeight = MIN(desiredHeight, sUserMaxSize);
@@ -494,8 +496,8 @@ static BOOL					sHaveSetUp = NO;
 	}
 	else
 	{
-		desiredWidth = width;
-		desiredHeight = height;
+		desiredWidth = _width;
+		desiredHeight = _height;
 	}
 	
 	if (outDesiredWidth != NULL)  *outDesiredWidth = desiredWidth;
@@ -505,7 +507,7 @@ static BOOL					sHaveSetUp = NO;
 
 - (void) completeAsyncTask
 {
-	ready = YES;
+	_ready = YES;
 }
 
 @end

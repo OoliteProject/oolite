@@ -38,23 +38,23 @@ SOFTWARE.
 
 @interface OOTextureLoader: NSObject <OOAsyncWorkTask>
 {
-	NSString					*path;
+	NSString					*_path;
 	
-	uint8_t						generateMipMaps: 1,
-								scaleAsNormalMap: 1,
-								avoidShrinking: 1,
-								noScalingWhatsoever: 1,
-								extractChannel: 1,
-								allowCubeMap: 1,
-								isCubeMap: 1,
-								ready: 1;
-	uint8_t						extractChannelIndex;
-	OOTextureDataFormat			format;
+	uint8_t						_generateMipMaps: 1,
+								_scaleAsNormalMap: 1,
+								_avoidShrinking: 1,
+								_noScalingWhatsoever: 1,
+								_extractChannel: 1,
+								_allowCubeMap: 1,
+								_isCubeMap: 1,
+								_ready: 1;
+	uint8_t						_extractChannelIndex;
+	OOTextureDataFormat			_format;
 	
-	void						*data;
-	uint32_t					width,
-								height,
-								rowBytes;
+	void						*_data;
+	uint32_t					_width,
+								_height,
+								_rowBytes;
 }
 
 + (id)loaderWithPath:(NSString *)path options:(uint32_t)options;

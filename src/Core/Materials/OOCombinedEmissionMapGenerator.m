@@ -309,30 +309,30 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	OOCompactPixMap(&emissionPx);
 	if (OOIsValidPixMap(emissionPx))
 	{
-		data = emissionPx.pixels;
-		width = emissionPx.width;
-		height = emissionPx.height;
-		rowBytes = emissionPx.rowBytes;
+		_data = emissionPx.pixels;
+		_width = emissionPx.width;
+		_height = emissionPx.height;
+		_rowBytes = emissionPx.rowBytes;
 		switch (emissionPx.components)
 		{
 			case 1:
-				format = kOOTextureDataGrayscale;
+				_format = kOOTextureDataGrayscale;
 				break;
 				
 			case 2:
-				format = kOOTextureDataGrayscaleAlpha;
+				_format = kOOTextureDataGrayscaleAlpha;
 				break;
 				
 			case 4:
-				format = kOOTextureDataRGBA;
+				_format = kOOTextureDataRGBA;
 				break;
 				
 			default:
 				OOLogERR(@"texture.combinedEmissionMap.error", @"Unexepected component count %u for %@", emissionPx.components, self);
-				data = NULL;
+				_data = NULL;
 		}
 	}
-	if (data == NULL)
+	if (_data == NULL)
 	{
 		OOLogERR(@"texture.combinedEmissionMap.error", @"Unknown error loading %@", self);
 	}

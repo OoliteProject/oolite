@@ -53,7 +53,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 - (void)loadTexture
 {
 	// Get data from file
-	fileData = [[NSData alloc] initWithContentsOfMappedFile:path];
+	fileData = [[NSData alloc] initWithContentsOfMappedFile:_path];
 	if (fileData == nil)  return;
 	length = [fileData length];
 	
@@ -91,33 +91,21 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	
 	// Set up PNG decoding
 	png = png_create_read_struct(PNG_LIBPNG_VER_STRING, self, PNGError, PNGWarning);
-	if (png == NULL)
+	if (png != NULL)  pngInfo = png_create_info_struct(png);
+	if (pngInfo != NULL)  pngEndInfo = png_create_info_struct(png);
+	if (pngEndInfo == NULL)
 	{
-		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
-		goto FAIL;
-	}
-	
-	pngInfo = png_create_info_struct(png);
-	if (pngInfo == NULL)
-	{
-		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
-		goto FAIL;
-	}
-	
-	pngEndInfo = png_create_info_struct(png);
-	if (pngInfo == NULL)
-	{
-		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", path);
+		OOLog(@"texture.load.png.setup.failed", @"***** Error preparing to read %@.", _path);
 		goto FAIL;
 	}
 	
 	if (EXPECT_NOT(setjmp(png_jmpbuf(png))))
 	{
 		// libpng will jump here on error.
-		if (data)
+		if (_data)
 		{
-			free(data);
-			data = NULL;
+			free(_data);
+			_data = NULL;
 		}
 		goto FAIL;
 	}
@@ -128,7 +116,7 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	// Read header, get format info and check that it meets our expectations.
 	if (EXPECT_NOT(!png_get_IHDR(png, pngInfo, &pngWidth, &pngHeight, &depth, &colorType, NULL, NULL, NULL)))
 	{
-		OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", path);
+		OOLog(@"texture.load.png.failed", @"Failed to get metadata from PNG %@", _path);
 		goto FAIL;
 	}
 	png_set_strip_16(png);			// 16 bits per channel -> 8 bpc
@@ -139,15 +127,15 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	
 	if (colorType == PNG_COLOR_TYPE_GRAY)
 	{
-		format = kOOTextureDataGrayscale;
+		_format = kOOTextureDataGrayscale;
 	}
 	else if (colorType == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
-		format = kOOTextureDataGrayscaleAlpha;
+		_format = kOOTextureDataGrayscaleAlpha;
 	}
 	else
 	{
-		format = kOOTextureDataRGBA;
+		_format = kOOTextureDataRGBA;
 		
 #if OOLITE_BIG_ENDIAN
 		png_set_bgr(png);
@@ -163,28 +151,28 @@ static void PNGRead(png_structp png, png_bytep bytes, png_size_t size);
 	png_read_update_info(png, pngInfo);
 	
 	// Metadata is acceptable; load data.
-	width = pngWidth;
-	height = pngHeight;
-	rowBytes = png_get_rowbytes(png, pngInfo);
+	_width = pngWidth;
+	_height = pngHeight;
+	_rowBytes = png_get_rowbytes(png, pngInfo);
 	
 	// png_read_png
-	rows = malloc(sizeof *rows * height);
-	data = malloc(rowBytes * height);
-	if (EXPECT_NOT(rows == NULL || data == NULL))
+	rows = malloc(sizeof *rows * _height);
+	_data = malloc(_rowBytes * _height);
+	if (EXPECT_NOT(rows == NULL || _data == NULL))
 	{
 		if (rows != NULL)  free(rows);
-		if (data != NULL)
+		if (_data != NULL)
 		{
-			free(data);
-			data = NULL;
+			free(_data);
+			_data = NULL;
 		}
-		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%u bytes) for texture %@", rowBytes * height, path);
+		OOLog(kOOLogAllocationFailure, @"Failed to allocate space (%u bytes) for texture %@", _rowBytes * _height, _path);
 		goto FAIL;
 	}
 	
-	for (i = 0; i != height; ++i)
+	for (i = 0; i != _height; ++i)
 	{
-		rows[i] = ((png_bytep)data) + i * rowBytes;
+		rows[i] = ((png_bytep)_data) + i * _rowBytes;
 	}
 	png_read_image(png, rows);
 	png_read_end(png, pngEndInfo);
@@ -200,7 +188,7 @@ FAIL:
 	// Check that we're within the file's bounds
 	if (EXPECT_NOT(length - offset < count))
 	{
-		NSString *message = [NSString stringWithFormat:@"attempt to read beyond end of file (%@), file may be truncated.", path];
+		NSString *message = [NSString stringWithFormat:@"attempt to read beyond end of file (%@), file may be truncated.", _path];
 		png_error(png, [message UTF8String]);	// Will not return
 	}
 	
