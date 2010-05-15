@@ -30,7 +30,7 @@ SOFTWARE.
 
 #import "OOOpenGLExtensionManager.h"
 
-#if OO_USE_FBO && GL_ARB_texture_cube_map
+#if OO_USE_FBO && OO_TEXTURE_CUBE_MAP
 
 #import "OOTexture.h"
 

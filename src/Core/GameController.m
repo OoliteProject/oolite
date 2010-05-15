@@ -1183,7 +1183,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 	
 #if GL_VERSION_1_2
 	// For OpenGL 1.2 or later, we want GL_SEPARATE_SPECULAR_COLOR all the time.
-	if ([extMgr majorVersionNumber] > 1 || [extMgr minorVersionNumber] >= 2)
+	if ([extMgr versionIsAtLeastMajor:1 minor:2])
 	{
 		OOGL(glLightModeli(GL_LIGHT_MODEL_COLOR_CONTROL, GL_SEPARATE_SPECULAR_COLOR));
 	}

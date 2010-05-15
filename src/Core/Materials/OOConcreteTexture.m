@@ -53,7 +53,7 @@
 - (void)setUpTexture;
 - (void)uploadTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 - (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
 #endif
 
@@ -212,8 +212,8 @@
 {
 	OO_ENTER_OPENGL();
 	OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-#if GL_ARB_texture_cube_map
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, 0));
+#if OO_TEXTURE_CUBE_MAP
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 #endif
 	
 #if GL_EXT_texture_lod_bias
@@ -268,7 +268,7 @@
 
 - (BOOL) isCubeMap
 {
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 	return _isCubeMap;
 #else
 	return NO;
@@ -333,7 +333,7 @@
 		_width = pm.width;
 		_height = pm.height;
 		
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 		if (_options & kOOTextureAllowCubeMap && _height == _width * 6 && gOOTextureInfo.cubeMapAvailable)
 		{
 			_isCubeMap = YES;
@@ -385,8 +385,8 @@
 		
 		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
 		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
-#if GL_ARB_texture_cube_map
-		if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
+#if OO_TEXTURE_CUBE_MAP
+		if (texTarget == GL_TEXTURE_CUBE_MAP)
 		{
 			// Repeat flags should have been filtered out earlier.
 			NSAssert(!(_options & (kOOTextureRepeatS | kOOTextureRepeatT)), @"Wrapping does not make sense for cube map textures.");
@@ -426,8 +426,8 @@
 			[self uploadTextureDataWithMipMap:mipMap format:_format];
 			OOLog(@"texture.upload", @"Uploaded texture %u (%ux%u pixels, %@)", _textureName, _width, _height, _key);
 		}
-#if GL_ARB_texture_cube_map
-		else if (texTarget == GL_TEXTURE_CUBE_MAP_ARB)
+#if OO_TEXTURE_CUBE_MAP
+		else if (texTarget == GL_TEXTURE_CUBE_MAP)
 		{
 			[self uploadTextureCubeMapDataWithMipMap:mipMap format:_format];
 			OOLog(@"texture.upload", @"Uploaded cube map texture %u (%ux%ux6 pixels, %@)", _textureName, _width, _width, _key);
@@ -513,14 +513,13 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		h >>= 1;
 	}
 	
+	// Note: we only reach here if (mipMap).
 	_mipLevels = level - 1;
-	
-	// FIXME: GL_TEXTURE_MAX_LEVEL requires OpenGL 1.2. This should be fixed by generating all mip-maps for non-square textures so we don't need to use it.
 	OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, _mipLevels));
 }
 
 
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 - (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format
 {
 	OO_ENTER_OPENGL();
@@ -547,7 +546,7 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 		
 		while (0 < w)
 		{
-			OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + side, level++, internalFormat, w, w, 0, glFormat, type, bytes));
+			OOGL(glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, level++, internalFormat, w, w, 0, glFormat, type, bytes));
 			if (!mipMap)  break;
 			bytes += w * w * components;
 			w >>= 1;
@@ -560,10 +559,10 @@ static inline BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GL
 - (GLenum) glTextureTarget
 {
 	GLenum texTarget = GL_TEXTURE_2D;
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 	if (_isCubeMap)
 	{
-		texTarget = GL_TEXTURE_CUBE_MAP_ARB;
+		texTarget = GL_TEXTURE_CUBE_MAP;
 	}
 #endif
 	return texTarget;

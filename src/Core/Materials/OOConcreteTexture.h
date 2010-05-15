@@ -46,7 +46,7 @@ SOFTWARE.
 #if GL_EXT_texture_rectangle
 							_isRectTexture: 1,
 #endif
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 							_isCubeMap: 1,
 #endif
 							_valid: 1;

@@ -73,17 +73,17 @@ SOFTWARE.
 
 
 #if GL_ARB_vertex_buffer_object
-#define OO_USE_VBO		0	// Disabled due to crashes on certain systems (and limited VBO use)
+#define OO_USE_VBO				0	// Disabled due to crashes on certain systems (and limited VBO use)
 #else
-#define OO_USE_VBO		0
+#define OO_USE_VBO				0
 #warning Building without vertex buffer object support, are your OpenGL headers up to date?
 #endif
 
 
 #if GL_EXT_framebuffer_object
-#define OO_USE_FBO		1
+#define OO_USE_FBO				1
 #else
-#define OO_USE_VBO		0
+#define OO_USE_VBO				0
 #warning Building without frame buffer object support, are your OpenGL headers up to date?
 #endif
 
@@ -94,10 +94,17 @@ SOFTWARE.
 	GL_ARB_texture_env_combine were promoted to core in OpenGL 1.3.
 */
 #if GL_ARB_texture_env_combine
-#define OO_MULTITEXTURE	1
+#define OO_MULTITEXTURE			1
 #else
-#warning GL_ARB_texture_env_combine is not defined; if possible, use a newer version of glext.h.
-#define OO_MULTITEXTURE	0
+#warning Building without texture combiner support, are your OpenGL headers up to date?
+#define OO_MULTITEXTURE			0
+#endif
+
+#if defined(GL_ARB_texture_cube_map) || defined(GL_VERSION_1_3)
+#define OO_TEXTURE_CUBE_MAP		1
+#else
+#warning Building without cube map support, are your OpenGL headers up to date?
+#define OO_TEXTURE_CUBE_MAP		0
 #endif
 
 
@@ -155,6 +162,7 @@ SOFTWARE.
 - (OOUInteger)minorVersionNumber;
 - (OOUInteger)releaseVersionNumber;
 - (void)getVersionMajor:(unsigned *)outMajor minor:(unsigned *)outMinor release:(unsigned *)outRelease;
+- (BOOL) versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min;
 
 - (NSString *) vendorString;
 - (NSString *) rendererString;

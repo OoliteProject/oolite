@@ -41,7 +41,7 @@ SOFTWARE.
 #import "OOEntityFilterPredicate.h"
 
 
-#if OO_USE_FBO && GL_ARB_texture_cube_map
+#if OO_USE_FBO && OO_TEXTURE_CUBE_MAP
 
 @interface OOEnvironmentCubeMap (Private)
 
@@ -187,12 +187,12 @@ SOFTWARE.
 	_planets = [UNIVERSE reducedDetail];
 	
 	OOGL(glGenTextures(1, &_textureName));
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, _textureName));
-	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
-	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, _textureName));
+	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
+	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	OOGL(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 	
 	OOGL(glGenFramebuffersEXT(6, _fbos));
 	OOGL(glGenRenderbuffersEXT(6, _depthBuffers));
@@ -200,7 +200,7 @@ SOFTWARE.
 	unsigned i;
 	for (i = 0; i < 6; i++)
 	{
-		GLenum textarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB + i;
+		GLenum textarget = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
 		
 		OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, _fbos[i]));
 		
@@ -223,7 +223,7 @@ SOFTWARE.
 	
 	CheckOpenGLErrors(@"after setting up environment cube map FBO");
 #endif
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, 0));
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 	OOGL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0));
 	OOGL(glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0));
 }
@@ -234,7 +234,7 @@ SOFTWARE.
 - (void) apply
 {
 	OO_ENTER_OPENGL();
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, _textureName));
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, _textureName));
 }
 
 

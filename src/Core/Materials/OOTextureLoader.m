@@ -129,7 +129,7 @@ static BOOL					sHaveSetUp = NO;
 	_generateMipMaps = (options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap;
 	_avoidShrinking = (options & kOOTextureNoShrink) != 0;
 	_noScalingWhatsoever = (options & kOOTextureNeverScale) != 0;
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 	_allowCubeMap = (options & kOOTextureAllowCubeMap) != 0;
 #endif
 	
@@ -385,13 +385,13 @@ static BOOL					sHaveSetUp = NO;
 	if (rescale)
 	{
 		BOOL leaveSpaceForMipMaps = _generateMipMaps;
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 		if (_isCubeMap)  leaveSpaceForMipMaps = NO;
 #endif
 		
 		OOLog(@"texture.load.rescale", @"Rescaling texture \"%@\" from %u x %u to %u x %u.", [_path lastPathComponent], pixMap.width, pixMap.height, desiredWidth, desiredHeight);
 		
-		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, YES);
+		pixMap = OOScalePixMap(pixMap, desiredWidth, desiredHeight, leaveSpaceForMipMaps);
 		if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return;
 		
 		_data = pixMap.pixels;
@@ -400,7 +400,7 @@ static BOOL					sHaveSetUp = NO;
 		_rowBytes = pixMap.rowBytes;
 	}
 	
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 	if (_isCubeMap)
 	{
 		if (_generateMipMaps)

@@ -967,9 +967,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 					}
 					else
 					{
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 						OOGL(glDisable(GL_TEXTURE_2D));
-						OOGL(glEnable(GL_TEXTURE_CUBE_MAP_ARB));
+						OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
 						OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
 #endif
 					}
@@ -1008,9 +1008,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 						}
 						else
 						{
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, textureName));
+							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, textureName));
 #endif
 						}
 					}
@@ -1047,9 +1047,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 						}
 						else
 						{
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, textureName));
+							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, textureName));
 #endif
 						}
 					}
@@ -1087,10 +1087,10 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 				
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 				
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 				if (isCubeMapped)
 				{
-					OOGL(glDisable(GL_TEXTURE_CUBE_MAP_ARB));
+					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
 				}
 #endif
 

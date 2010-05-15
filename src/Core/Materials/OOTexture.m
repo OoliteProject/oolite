@@ -76,7 +76,7 @@ OOTextureInfo				gOOTextureInfo;
 - (void)setUpTexture;
 - (void)uploadTexture;
 - (void)uploadTextureDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 - (void) uploadTextureCubeMapDataWithMipMap:(BOOL)mipMap format:(OOTextureDataFormat)format;
 #endif
 
@@ -138,6 +138,19 @@ static NSString *sGlobalTraceContext = nil;
 		else
 		{
 			options |= kOOTextureMinFilterMipMap;
+		}
+	}
+	
+	if (!gOOTextureInfo.textureMaxLevelAvailable)
+	{
+		/*	In the unlikely case of an OpenGL system without GL_SGIS_texture_lod,
+			disable mip-mapping completely. Strictly this is only needed for
+			non-square textures, but extra logic for such a rare case isn't
+			worth it.
+		*/
+		if ((options & kOOTextureMinFilterMask) == kOOTextureMinFilterMipMap)
+		{
+			options ^= kOOTextureMinFilterMipMap ^ kOOTextureMinFilterLinear;
 		}
 	}
 	
@@ -267,8 +280,8 @@ static NSString *sGlobalTraceContext = nil;
 {
 	OO_ENTER_OPENGL();
 	OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-#if GL_ARB_texture_cube_map
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP_ARB, 0));
+#if OO_TEXTURE_CUBE_MAP
+	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
 #endif
 }
 
@@ -437,6 +450,11 @@ static NSString *sGlobalTraceContext = nil;
 	sCheckedExtensions = YES;
 	
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
+	BOOL						ver120 = [extMgr versionIsAtLeastMajor:1 minor:2];
+	BOOL						ver130 = [extMgr versionIsAtLeastMajor:1 minor:3];
+	BOOL						ver140 = [extMgr versionIsAtLeastMajor:1 minor:4];
+	BOOL						ver150 = [extMgr versionIsAtLeastMajor:1 minor:5];
+	(void)(ver150+ver140);
 	
 #if GL_EXT_texture_filter_anisotropic
 	gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
@@ -445,13 +463,14 @@ static NSString *sGlobalTraceContext = nil;
 #endif
 	
 #ifdef GL_CLAMP_TO_EDGE
-	// GL_CLAMP_TO_EDGE requires OpenGL 1.2 or later. Oolite probably does too...
-	gOOTextureInfo.clampToEdgeAvailable = (2 < [extMgr minorVersionNumber]) || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
+	gOOTextureInfo.clampToEdgeAvailable = ver120 || [extMgr haveExtension:@"GL_SGIS_texture_edge_clamp"];
 #endif
 	
 #if OO_GL_CLIENT_STORAGE
 	gOOTextureInfo.clientStorageAvailable = [extMgr haveExtension:@"GL_APPLE_client_storage"];
 #endif
+	
+	gOOTextureInfo.textureMaxLevelAvailable = ver120 || [extMgr haveExtension:@"GL_SGIS_texture_lod"];
 	
 #if GL_EXT_texture_lod_bias
 	if ([[NSUserDefaults standardUserDefaults] oo_boolForKey:@"use-texture-lod-bias" defaultValue:YES])
@@ -468,10 +487,10 @@ static NSString *sGlobalTraceContext = nil;
 	gOOTextureInfo.rectangleTextureAvailable = [extMgr haveExtension:@"GL_EXT_texture_rectangle"];
 #endif
 	
-#if GL_ARB_texture_cube_map
+#if OO_TEXTURE_CUBE_MAP
 	if (![[NSUserDefaults standardUserDefaults] boolForKey:@"disable-cube-maps"])
 	{
-		gOOTextureInfo.cubeMapAvailable = [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
+		gOOTextureInfo.cubeMapAvailable = ver130 || [extMgr haveExtension:@"GL_ARB_texture_cube_map"];
 	}
 	else
 	{

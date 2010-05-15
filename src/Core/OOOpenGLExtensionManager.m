@@ -207,9 +207,9 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 		OOLog(@"rendering.opengl.version", @"OpenGL renderer version: %u.%u.%u (\"%s\")\nVendor: %@\nRenderer: %@", major, minor, release, versionString, vendor, renderer);
 		OOLog(@"rendering.opengl.extensions", @"OpenGL extensions (%u):\n%@", [extensions count], [[extensions allObjects] componentsJoinedByString:@", "]);
 		
-		if (major <= kMinMajorVersion && minor < kMinMinorVersion)
+		if (![self versionIsAtLeastMajor:kMinMajorVersion minor:kMinMinorVersion])
 		{
-			OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version 1.1 or later.");
+			OOLog(@"rendering.opengl.version.insufficient", @"***** Oolite requires OpenGL version %u.%u or later.", kMinMajorVersion, kMinMinorVersion);
 			[NSException raise:@"OoliteOpenGLTooOldException"
 						format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
 		}
@@ -400,6 +400,13 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	if (outRelease != NULL)  *outRelease = release;
 }
 
+
+- (BOOL) versionIsAtLeastMajor:(unsigned)maj minor:(unsigned)min
+{
+	return major > maj || (major == maj && minor >= min);
+}
+
+
 - (NSString *) vendorString
 {
 	return vendor;
@@ -507,11 +514,7 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 {
 	vboSupported = NO;
 	
-	if ([self majorVersionNumber] > 1 || [self minorVersionNumber] >= 5)
-	{
-		vboSupported = YES;
-	}
-	else if ([self haveExtension:@"GL_ARB_vertex_buffer_object"])
+	if ([self versionIsAtLeastMajor:1 minor:5] || [self haveExtension:@"GL_ARB_vertex_buffer_object"])
 	{
 		vboSupported = YES;
 	}

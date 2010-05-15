@@ -73,7 +73,8 @@ typedef struct OOTextureInfo
 							clientStorageAvailable: 1,
 							textureLODBiasAvailable: 1,
 							rectangleTextureAvailable: 1,
-							cubeMapAvailable: 1;
+							cubeMapAvailable: 1,
+							textureMaxLevelAvailable: 1;
 } OOTextureInfo;
 
 extern OOTextureInfo gOOTextureInfo;
@@ -100,6 +101,20 @@ extern OOTextureInfo gOOTextureInfo;
 #define EnableClientStorage()	do {} while (0)
 #endif
 
-#ifndef GL_ARB_texture_cube_map
-#warning GL_ARB_texture_cube_map not defined - cube maps not supported.
+
+#ifndef GL_TEXTURE_MAX_LEVEL
+#ifdef GL_TEXTURE_MAX_LEVEL_SGIS
+#define GL_TEXTURE_MAX_LEVEL	GL_TEXTURE_MAX_LEVEL_SGIS
+#else
+#define GL_TEXTURE_MAX_LEVEL	0x813D
 #endif
+#endif
+
+
+#if OO_TEXTURE_CUBE_MAP
+#ifndef GL_TEXTURE_CUBE_MAP
+#define GL_TEXTURE_CUBE_MAP				GL_TEXTURE_CUBE_MAP_ARB
+#define GL_TEXTURE_CUBE_MAP_POSITIVE_X	GL_TEXTURE_CUBE_MAP_POSITIVE_X_ARB
+#endif
+#endif
+
