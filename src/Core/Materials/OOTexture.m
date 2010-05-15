@@ -452,9 +452,6 @@ static NSString *sGlobalTraceContext = nil;
 	OOOpenGLExtensionManager	*extMgr = [OOOpenGLExtensionManager sharedManager];
 	BOOL						ver120 = [extMgr versionIsAtLeastMajor:1 minor:2];
 	BOOL						ver130 = [extMgr versionIsAtLeastMajor:1 minor:3];
-	BOOL						ver140 = [extMgr versionIsAtLeastMajor:1 minor:4];
-	BOOL						ver150 = [extMgr versionIsAtLeastMajor:1 minor:5];
-	(void)(ver150+ver140);
 	
 #if GL_EXT_texture_filter_anisotropic
 	gOOTextureInfo.anisotropyAvailable = [extMgr haveExtension:@"GL_EXT_texture_filter_anisotropic"];
