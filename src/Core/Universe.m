@@ -280,7 +280,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[self initSettings];
 	
-	player = [[PlayerEntity alloc] init];	// alloc retains!
+	player = [PlayerEntity sharedPlayer];
+	[player deferredInit];
 	[self addEntity:player];
 	
 	[player setStatus:STATUS_START_GAME];
@@ -299,7 +300,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[[GameController sharedController] logProgress:DESC(@"running-scripts")];
 	
 	[player completeSetUp];
-	[player release];
 	
 #if OO_LOCALIZATION_TOOLS
 	[self runLocalizationTools];

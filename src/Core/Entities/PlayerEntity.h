@@ -502,12 +502,14 @@ typedef enum
 }
 
 + (PlayerEntity *)sharedPlayer;
+- (void) deferredInit;
+
+- (void) setUp;
+- (void)completeSetUp;
 
 - (NSString *) captainName;
 
 - (BOOL) isDocked;
-
-- (void)completeSetUp;
 
 - (void) warnAboutHostiles;
 
@@ -532,8 +534,6 @@ typedef enum
 
 - (NSDictionary *) commanderDataDictionary;
 - (BOOL)setCommanderDataFromDictionary:(NSDictionary *) dict;
-
-- (void) setUp;
 
 - (void) doBookkeeping:(double) delta_t;
 

@@ -143,6 +143,7 @@ static GLfloat launchRoll;
 
 + (PlayerEntity *)sharedPlayer
 {
+	if (EXPECT_NOT(sSharedPlayer == nil))  [[PlayerEntity alloc] init];
 	return sSharedPlayer;
 }
 
@@ -156,33 +157,6 @@ static GLfloat launchRoll;
 - (GLfloat) baseMass
 {
 	return sBaseMass;
-}
-
-
-- (void)completeSetUp
-{
-	dockedStation = [UNIVERSE station];
-	[self doWorldScriptEvent:@"startUp" withArguments:nil];
-
-#if NEW_FUEL_PRICES && !defined(NDEBUG)
-	// For testing purposes only...
-	static BOOL reported = NO;
-	if (!reported)
-	{
-		reported = YES;
-		
-		NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
-		OOUInteger i, count = [playerships count];
-		
-		for (i = 0; i < count; ++i)
-		{
-			ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
-			GLfloat rate = [calc fuelChargeRate];
-			OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
-			[calc release];
-		}
-	}
-#endif
 }
 
 
@@ -1013,19 +987,31 @@ static GLfloat launchRoll;
 
 /////////////////////////////////////////////////////////
 
+
+/*	Nasty initialization mechanism:
+	PlayerEntity is alloced and inited on demand by +sharedPlayer. This
+	initialization doesn't actually set anything up -- apart from the
+	assertion, it's like doing a bare alloc. -deferredInit does the work
+	that -init "should" be doing. It assumes that -[ShipEntity initWithKey:
+	definition:] will not return an object other than self.
+	This is necessary because we need a pointer to the PlayerEntity early in
+	startup, when ship data hasn't been loaded yet. In particular, we need
+	a pointer to the player to set up the JavaScript environment, we need the
+	JavaScript environment to set up OpenGL, and we need OpenGL set up to load
+	ships.
+*/
 - (id) init
 {
-	if (sSharedPlayer != nil)
-	{
-		[NSException raise:NSInternalInconsistencyException format:@"%s: expected only one PlayerEntity to exist at a time.", __FUNCTION__];
-	}
-	
-	/*	NOTE: this is bad form, in that it assumes super init... will return
-		self, but necessary in order to have a valid "shared player" if
-		anything happens that requires the scripting engine to be set up.
-	*/
+	NSAssert(sSharedPlayer == nil, @"Expected only one PlayerEntity to exist at a time.");
 	sSharedPlayer = self;
-	[super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]];
+	return sSharedPlayer;
+}
+
+
+- (void) deferredInit
+{
+	NSAssert(sSharedPlayer == self, @"Expected only one PlayerEntity to exist at a time.");
+	NSAssert([super initWithKey:PLAYER_SHIP_DESC definition:[NSDictionary dictionary]] == self, @"PlayerEntity requires -[ShipEntity initWithKey:definition:] to return unmodified self.");
 	
 	compassMode = COMPASS_MODE_BASIC;
 	
@@ -1049,8 +1035,6 @@ static GLfloat launchRoll;
 	dockingReport = [[NSMutableString alloc] init];
 
 	[self initControls];
-	
-	return self;
 }
 
 
@@ -1267,6 +1251,33 @@ static GLfloat launchRoll;
 	
 	[[OOMusicController sharedController] stop];
 	[OOScriptTimer noteGameReset];
+}
+
+
+- (void)completeSetUp
+{
+	dockedStation = [UNIVERSE station];
+	[self doWorldScriptEvent:@"startUp" withArguments:nil];
+	
+#if NEW_FUEL_PRICES && !defined(NDEBUG)
+	// For testing purposes only...
+	static BOOL reported = NO;
+	if (!reported)
+	{
+		reported = YES;
+		
+		NSArray *playerships = [[OOShipRegistry sharedRegistry] playerShipKeys];
+		OOUInteger i, count = [playerships count];
+		
+		for (i = 0; i < count; ++i)
+		{
+			ShipEntity *calc = [UNIVERSE newShipWithName:[playerships objectAtIndex:i]];
+			GLfloat rate = [calc fuelChargeRate];
+			OOLog(@"temp.calcFuelChargeRate", @"%32s: %6.2f", [[playerships objectAtIndex:i] UTF8String], rate);
+			[calc release];
+		}
+	}
+#endif
 }
 
 
