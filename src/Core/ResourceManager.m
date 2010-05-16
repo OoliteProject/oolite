@@ -449,7 +449,7 @@ static NSMutableDictionary *sStringCache;
 		upToDate = NO;
 	}
 	
-	if (upToDate && [[UNIVERSE gameView] pollShiftKey])
+	if (upToDate && [MyOpenGLView pollShiftKey])
 	{
 		OOLog(kOOLogCacheExplicitFlush, @"Cache explicitly flushed with shift key. Rebuilding from scratch.");
 		upToDate = NO;

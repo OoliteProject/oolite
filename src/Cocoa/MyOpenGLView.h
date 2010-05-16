@@ -159,7 +159,7 @@ extern int debug;
 - (void) clearCommandF;
 
 // Check current state of shift key rather than relying on last event.
-- (BOOL)pollShiftKey;
++ (BOOL)pollShiftKey;
 
 #ifndef NDEBUG
 // General image-dumping methods.

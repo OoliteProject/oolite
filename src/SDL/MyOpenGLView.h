@@ -228,7 +228,7 @@ extern int debug;
 - (void) setMouseInDeltaMode: (BOOL) inDelta;
 
 // Check current state of shift key rather than relying on last event.
-- (BOOL)pollShiftKey;
++ (BOOL)pollShiftKey;
 
 #ifndef NDEBUG
 // General image-dumping method.

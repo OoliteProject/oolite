@@ -1826,7 +1826,7 @@ keys[a] = NO; keys[b] = NO; \
 }
 
 
-- (BOOL)pollShiftKey
++ (BOOL)pollShiftKey
 {
 #if OOLITE_WINDOWS
 	// SDL_GetModState() does not seem to do exactly what is intended under Windows. For this reason,
