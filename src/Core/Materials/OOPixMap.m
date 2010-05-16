@@ -33,7 +33,7 @@ const OOPixMap kOONullPixMap =
 	.pixels = NULL,
 	.width = 0,
 	.height = 0,
-	.components = 0,
+	.format = kOOPixMapInvalidFormat,
 	.rowBytes = 0,
 	.bufferSize = 0
 };
@@ -44,15 +44,15 @@ BOOL OOIsValidPixMap(OOPixMap pixMap)
 	return	pixMap.pixels != NULL &&
 			pixMap.width > 0 &&
 			pixMap.height > 0 &&
-		   (pixMap.components == 1 || pixMap.components == 2 || pixMap.components == 4) &&
-			pixMap.rowBytes >= pixMap.width * pixMap.components &&
+			OOIsValidPixMapFormat(pixMap.format) &&
+			pixMap.rowBytes >= pixMap.width * OOPixMapBytesPerPixelForFormat(pixMap.format) &&
 			pixMap.bufferSize >= pixMap.rowBytes * pixMap.height;
 }
 
 
-OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize)
+OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize)
 {
-	if (rowBytes == 0)  rowBytes = width * components;
+	if (rowBytes == 0)  rowBytes = width * OOPixMapBytesPerPixelForFormat(format);
 	if (bufferSize == 0)  bufferSize = rowBytes * height;
 	
 	OOPixMap result =
@@ -60,7 +60,7 @@ OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension h
 		.pixels = pixels,
 		.width = width,
 		.height = height,
-		.components = components,
+		.format = format,
 		.rowBytes = rowBytes,
 		.bufferSize = bufferSize
 	};
@@ -70,10 +70,10 @@ OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension h
 }
 
 
-OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize)
+OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize)
 {
 	// Create pixmap struct with dummy pixel pointer to test validity.
-	OOPixMap pixMap = OOMakePixMap((void *)-1, width, height, components, rowBytes, bufferSize);
+	OOPixMap pixMap = OOMakePixMap((void *)-1, width, height, format, rowBytes, bufferSize);
 	if (EXPECT_NOT(!OOIsValidPixMap(pixMap)))  return kOONullPixMap;
 	
 	pixMap.pixels = malloc(pixMap.bufferSize);
@@ -99,7 +99,7 @@ OOPixMap OODuplicatePixMap(OOPixMap srcPixMap, size_t desiredSize)
 	size_t minSize = OOMinimumPixMapBufferSize(srcPixMap);
 	if (desiredSize < minSize)  desiredSize = minSize;
 	
-	OOPixMap result = OOAllocatePixMap(srcPixMap.width, srcPixMap.width, srcPixMap.components, srcPixMap.rowBytes, desiredSize);
+	OOPixMap result = OOAllocatePixMap(srcPixMap.width, srcPixMap.width, srcPixMap.format, srcPixMap.rowBytes, desiredSize);
 	if (EXPECT_NOT(!OOIsValidPixMap(result)))  return kOONullPixMap;
 	
 	memcpy(result.pixels, srcPixMap.pixels, minSize);
@@ -148,9 +148,13 @@ void OODumpPixMap(OOPixMap pixMap, NSString *name)
 	
 	MyOpenGLView *gameView = [UNIVERSE gameView];
 	
-	switch (pixMap.components)
+	switch (pixMap.format)
 	{
-		case 1:
+			
+		case kOOPixMapInvalidFormat:
+			break;
+			
+		case kOOPixMapGrayscale:
 			[gameView dumpGrayToFileNamed:name
 									bytes:pixMap.pixels
 									width:pixMap.width
@@ -158,7 +162,7 @@ void OODumpPixMap(OOPixMap pixMap, NSString *name)
 								 rowBytes:pixMap.rowBytes];
 			break;
 			
-		case 2:
+		case kOOPixMapGrayscaleAlpha:
 			[gameView dumpGrayAlphaToFileNamed:name
 										 bytes:pixMap.pixels
 										 width:pixMap.width
@@ -166,15 +170,7 @@ void OODumpPixMap(OOPixMap pixMap, NSString *name)
 									  rowBytes:pixMap.rowBytes];
 			break;
 			
-		case 3:
-			[gameView dumpRGBAToFileNamed:name
-									bytes:pixMap.pixels
-									width:pixMap.width
-								   height:pixMap.height
-								 rowBytes:pixMap.rowBytes];
-			break;
-			
-		case 4:
+		case kOOPixMapRGBA:
 			[gameView dumpRGBAToRGBFileNamed:[name stringByAppendingString:@" rgb"]
 							andGrayFileNamed:[name stringByAppendingString:@" alpha"]
 									   bytes:pixMap.pixels
@@ -184,5 +180,64 @@ void OODumpPixMap(OOPixMap pixMap, NSString *name)
 			break;
 	}
 }
-
 #endif
+
+
+BOOL OOIsValidPixMapFormat(OOPixMapFormat format)
+{
+	switch (format)
+	{
+		case kOOPixMapInvalidFormat: return NO;
+		case kOOPixMapGrayscale:
+		case kOOPixMapGrayscaleAlpha:
+		case kOOPixMapRGBA:
+			return YES;
+	}
+	
+	return NO;
+}
+
+
+#ifndef NDEBUG
+size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
+{
+	switch (format)
+	{
+		case kOOPixMapInvalidFormat: return 0;
+		case kOOPixMapGrayscale: return 1;
+		case kOOPixMapGrayscaleAlpha: return 2;
+		case kOOPixMapRGBA: return 4;
+	}
+	
+	return -1;
+}
+#endif
+
+
+NSString *OOPixMapFormatName(OOPixMapFormat format)
+{
+	switch (format)
+	{
+		case kOOPixMapInvalidFormat: return @"invalid";
+		case kOOPixMapGrayscale: return @"grayscale";
+		case kOOPixMapGrayscaleAlpha: return @"grayscale+alpha";
+		case kOOPixMapRGBA: return @"RGBA";
+	}
+	
+	return [NSString stringWithFormat:@"invalid<%i>", (int)format];
+}
+
+
+
+BOOL OOPixMapFormatHasAlpha(OOPixMapFormat format)
+{
+	switch (format)
+	{
+		case kOOPixMapInvalidFormat: return NO;
+		case kOOPixMapGrayscale: return NO;
+		case kOOPixMapGrayscaleAlpha: return YES;
+		case kOOPixMapRGBA: return YES;
+	}
+	
+	return NO;
+}

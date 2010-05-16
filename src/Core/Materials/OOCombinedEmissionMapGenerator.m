@@ -258,7 +258,7 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 	if (haveEmission)  DUMP(_emissionPx, @"source emission map");
 	
 	// Extract illumination component if emission_and_illumination_map.
-	if (haveEmission && _isCombinedMap && _emissionPx.components > 1)
+	if (haveEmission && _isCombinedMap && OOPixMapFormatHasAlpha(_emissionPx.format))
 	{
 		OOPixMapToRGBA(&_emissionPx);
 		illuminationPx = OODuplicatePixMap(_emissionPx, 0);
@@ -332,24 +332,8 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB);
 		_width = _emissionPx.width;
 		_height = _emissionPx.height;
 		_rowBytes = _emissionPx.rowBytes;
-		switch (_emissionPx.components)
-		{
-			case 1:
-				_format = kOOTextureDataGrayscale;
-				break;
-				
-			case 2:
-				_format = kOOTextureDataGrayscaleAlpha;
-				break;
-				
-			case 4:
-				_format = kOOTextureDataRGBA;
-				break;
-				
-			default:
-				OOLogERR(@"texture.combinedEmissionMap.error", @"Unexepected component count %u for %@", _emissionPx.components, self);
-				_data = NULL;
-		}
+		_format = _emissionPx.format;
+		
 		_emissionPx.pixels = NULL;	// So it won't be freed by -dealloc.
 	}
 	if (_data == NULL)

@@ -40,21 +40,19 @@ SOFTWARE.
 	pixmap, a pixmap whose channel count is not 4, or a channel index greater
 	than 3.
 */
-BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex, BOOL compactWhenDone);
+BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, uint8_t channelIndex, BOOL compactWhenDone);
 
 
 /*	OOPixMapToRGBA()
-	Convert a pixmap to RGBA format. If it has one component, it is assumed to
-	be greyscale. If it has two components, it is assumed to be greyscale+alpha.
-	If it has four components, it is left as-is.
+	Convert a pixmap to RGBA format.
 	NOTE: if successful, this will free() the original buffer and replace it.
 */
 BOOL OOPixMapToRGBA(OOPixMap *ioPixMap);
 
 
 /*	OOPixMapModulateUniform()
-	Multiply all pixels by specified per-component factors. Pixmap must have
-	four components. The effect of using factors outside the range [0..1] is
+	Multiply all pixels by specified per-component factors. Pixmap must be in
+	RGBA format. The effect of using factors outside the range [0..1] is
 	undefined.
 	OOPixMapToRGBA() is called on ioPixMap.
 */
@@ -64,7 +62,7 @@ BOOL OOPixMapModulateUniform(OOPixMap *ioPixMap, float f0, float f1, float f2, f
 /*	OOPixMapModulatePixMap()
 	Multiply each pixel of ioDstPixMap by the corresponding pixel of otherPixMap,
 	writing the result to ioDstPixMap.
-	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must have four components.
+	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must be RGBA.
 */
 BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
 
@@ -72,6 +70,6 @@ BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);
 /*	OOPixMapAddPixMap()
 	Add each pixel of otherPixMap to the corresponding pixel of ioDstPixMap,
 	writing the result to ioDstPixMap.
-	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must have four components.
+	OOPixMapToRGBA() is called on ioDstPixMap; otherPixMap must be RGBA.
 */
 BOOL OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap);

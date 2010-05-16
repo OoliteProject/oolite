@@ -336,7 +336,7 @@ static BOOL					sHaveSetUp = NO;
 		void *dstBytes = ((uint8_t *)newData) + newSideSize * i;
 		
 		memcpy(dstBytes, srcBytes, srcSideSize);
-		OOGenerateMipMaps(dstBytes, _width, _width, components);
+		OOGenerateMipMaps(dstBytes, _width, _width, _format);
 	}
 	
 	free(_data);
@@ -434,7 +434,7 @@ static BOOL					sHaveSetUp = NO;
 	}
 	if (_generateMipMaps)
 	{
-		OOGenerateMipMaps(_data, _width, _height, components);
+		OOGenerateMipMaps(_data, _width, _height, _format);
 	}
 	
 	// All done.

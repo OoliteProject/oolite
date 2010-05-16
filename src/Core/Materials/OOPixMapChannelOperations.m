@@ -29,7 +29,7 @@ SOFTWARE.
 #import "OOCPUInfo.h"
 
 
-static void ExtractChannel_4(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex);
+static void ExtractChannel_4(OOPixMap *ioPixMap, uint8_t channelIndex);
 static void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx);
 static void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx);
 static void ModulateUniform_4(OOPixMap pixMap, uint16_t f0, uint16_t f1, uint16_t f2, uint16_t f3);
@@ -37,16 +37,16 @@ static void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx);
 static void AddPixMap_4(OOPixMap mainPx, OOPixMap otherPx);
 
 
-BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex, BOOL compactWhenDone)
+BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, uint8_t channelIndex, BOOL compactWhenDone)
 {
-	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) || ioPixMap->components != 4 || channelIndex > 3))
+	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap) || ioPixMap->format != kOOPixMapRGBA || channelIndex > 3))
 	{
 		return NO;
 	}
 	
 	ExtractChannel_4(ioPixMap, channelIndex);
 	
-	ioPixMap->components = 1;
+	ioPixMap->format = kOOPixMapGrayscale;
 	ioPixMap->rowBytes = ioPixMap->width;
 	
 	if (compactWhenDone)
@@ -58,7 +58,7 @@ BOOL OOExtractPixMapChannel(OOPixMap *ioPixMap, OOPixMapComponentCount channelIn
 }
 
 
-static void ExtractChannel_4(OOPixMap *ioPixMap, OOPixMapComponentCount channelIndex)
+static void ExtractChannel_4(OOPixMap *ioPixMap, uint8_t channelIndex)
 {
 	NSCParameterAssert(ioPixMap != NULL);
 	
@@ -96,25 +96,46 @@ static void ExtractChannel_4(OOPixMap *ioPixMap, OOPixMapComponentCount channelI
 BOOL OOPixMapToRGBA(OOPixMap *ioPixMap)
 {
 	if (EXPECT_NOT(ioPixMap == NULL || !OOIsValidPixMap(*ioPixMap)))  return NO;
-	
-	if (ioPixMap->components == 4)  return YES;
-	if (EXPECT_NOT(ioPixMap->components != 1 && ioPixMap->components != 2))  return NO;
+	if (ioPixMap->format == kOOPixMapRGBA)  return YES;
 	
 	OOPixMap temp = OOAllocatePixMap(ioPixMap->width, ioPixMap->height, 4, 0, 0);
 	if (EXPECT_NOT(OOIsNullPixMap(temp)))  return NO;
 	
-	if (ioPixMap->components == 1)  ToRGBA_1(*ioPixMap, temp);
-	else if (ioPixMap->components == 2)  ToRGBA_2(*ioPixMap, temp);
+	BOOL OK = NO;
+	switch (ioPixMap->format)
+	{
+		case kOOPixMapGrayscale:
+			ToRGBA_1(*ioPixMap, temp);
+			break;
+			
+		case kOOPixMapGrayscaleAlpha:
+			ToRGBA_2(*ioPixMap, temp);
+			break;
+			
+		case kOOPixMapRGBA:
+		case kOOPixMapInvalidFormat:
+			OK = NO;
+			break;
+			// No default, because -Wswitch-enum is our friend.
+	}
 	
-	free(ioPixMap->pixels);
-	*ioPixMap = temp;
-	return YES;
+	if (OK)
+	{
+		free(ioPixMap->pixels);
+		*ioPixMap = temp;
+	}
+	else
+	{
+		free(temp.pixels);
+	}
+
+	return OK;
 }
 
 
 static void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
 {
-	NSCParameterAssert(srcPx.components == 1 && dstPx.components == 4 && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+	NSCParameterAssert(OOPixMapBytesPerPixel(srcPx) == 1 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 	
 	uint8_t				*src;
 	uint32_t			*dst;
@@ -145,7 +166,7 @@ static void ToRGBA_1(OOPixMap srcPx, OOPixMap dstPx)
 
 static void ToRGBA_2(OOPixMap srcPx, OOPixMap dstPx)
 {
-	NSCParameterAssert(srcPx.components == 2 && dstPx.components == 4 && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
+	NSCParameterAssert(OOPixMapBytesPerPixel(srcPx) == 2 && dstPx.format == kOOPixMapRGBA && srcPx.width == dstPx.width && srcPx.height == dstPx.height);
 	
 	uint16_t			*src;
 	uint_fast32_t		px;
@@ -196,7 +217,7 @@ static void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_
 #error Unknown byte order.
 #endif
 {
-	NSCParameterAssert(pixMap.components == 4);
+	NSCParameterAssert(OOPixMapBytesPerPixel(pixMap) == 4);
 	
 	uint32_t			*curr;
 	uint_fast32_t		px;
@@ -243,7 +264,7 @@ static void ModulateUniform_4(OOPixMap pixMap, uint16_t f3, uint16_t f2, uint16_
 BOOL OOPixMapModulatePixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap)
 {
 	if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))  return NO;
-	if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.components != 4))  return NO;
+	if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.format != kOOPixMapRGBA))  return NO;
 	if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap)))  return NO;
 	if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width || ioDstPixMap->height != otherPixMap.height))  return NO;
 	
@@ -302,7 +323,7 @@ static void ModulatePixMap_4(OOPixMap mainPx, OOPixMap otherPx)
 BOOL OOPixMapAddPixMap(OOPixMap *ioDstPixMap, OOPixMap otherPixMap)
 {
 	if (EXPECT_NOT(ioDstPixMap == NULL || !OOIsValidPixMap(*ioDstPixMap)))  return NO;
-	if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.components != 4))  return NO;
+	if (EXPECT_NOT(!OOIsValidPixMap(otherPixMap) || otherPixMap.format != kOOPixMapRGBA))  return NO;
 	if (EXPECT_NOT(!OOPixMapToRGBA(ioDstPixMap)))  return NO;
 	if (EXPECT_NOT(ioDstPixMap->width != otherPixMap.width || ioDstPixMap->height != otherPixMap.height))  return NO;
 	

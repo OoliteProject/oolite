@@ -31,14 +31,23 @@ SOFTWARE.
 
 
 typedef uint_fast32_t		OOPixMapDimension;		// Note: dimensions are assumed to be less than 1048576 (2^20) pixels.
-typedef uint_fast8_t		OOPixMapComponentCount;	// Currently supported values are 1, 2 and 4.
+//typedef uint_fast8_t		OOPixMapComponentCount;	// Currently supported values are 1, 2 and 4.
+
+
+typedef enum
+{
+	kOOPixMapInvalidFormat		= 0,
+	kOOPixMapGrayscale			= 1,
+	kOOPixMapGrayscaleAlpha		= 2,
+	kOOPixMapRGBA				= 4
+} OOPixMapFormat;
 
 
 typedef struct OOPixMap
 {
 	void					*pixels;
 	OOPixMapDimension		width, height;
-	OOPixMapComponentCount	components;
+	OOPixMapFormat			format;
 	size_t					rowBytes;
 	size_t					bufferSize;
 } OOPixMap;
@@ -57,13 +66,13 @@ OOINLINE size_t OOMinimumPixMapBufferSize(OOPixMap pixMap)  { return pixMap.rowB
 	invalid. If rowBytes or bufferSize are zero, minimum valid values will be
 	used.
 */
-OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize);
+OOPixMap OOMakePixMap(void *pixels, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize);
 
 /*	OOAllocatePixMap()
 	Create an OOPixMap, allocating storage. If rowBytes or bufferSize are zero,
 	minimum valid values will be used.
 */
-OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount components, size_t rowBytes, size_t bufferSize);
+OOPixMap OOAllocatePixMap(OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format, size_t rowBytes, size_t bufferSize);
 
 
 /*	OOFreePixMap()
@@ -104,3 +113,26 @@ void OODumpPixMap(OOPixMap pixMap, NSString *name);
 #else
 #define OODumpPixMap(p, n)  do {} while (0)
 #endif
+
+
+BOOL OOIsValidPixMapFormat(OOPixMapFormat format);
+
+
+#ifndef NDEBUG
+size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format) PURE_FUNC;
+#else
+OOINLINE size_t OOPixMapBytesPerPixelForFormat(OOPixMapFormat format)
+{
+	// Currently, format values are component counts. This is subject to change.
+	return format;
+}
+#endif
+
+OOINLINE size_t OOPixMapBytesPerPixel(OOPixMap pixMap)
+{
+	return OOPixMapBytesPerPixelForFormat(pixMap.format);
+}
+
+NSString *OOPixMapFormatName(OOPixMapFormat format) PURE_FUNC;
+
+BOOL OOPixMapFormatHasAlpha(OOPixMapFormat format) PURE_FUNC;

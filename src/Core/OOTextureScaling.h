@@ -40,15 +40,8 @@ SOFTWARE.
 */
 OOPixMap OOScalePixMap(OOPixMap srcPixMap, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps);
 
-OOINLINE void *OOScalePixMapRaw(void *srcData, OOPixMapDimension srcWidth, OOPixMapDimension srcHeight, OOPixMapComponentCount components, size_t srcRowBytes, OOPixMapDimension dstWidth, OOPixMapDimension dstHeight, BOOL leaveSpaceForMipMaps)
-{
-	OOPixMap src = OOMakePixMap(srcData, srcWidth, srcHeight, components, srcRowBytes, 0);
-	OOPixMap dst = OOScalePixMap(src, dstWidth, dstHeight, leaveSpaceForMipMaps);
-	return dst.pixels;
-}
-
 
 /*	Assumes 8 bits per sample, interleaved.
 	Buffer must have space for (4 * width * height) / 3 pixels.
 */
-BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapComponentCount planes);
+BOOL OOGenerateMipMaps(void *textureBytes, OOPixMapDimension width, OOPixMapDimension height, OOPixMapFormat format);

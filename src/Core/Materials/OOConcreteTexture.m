@@ -256,12 +256,11 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	[self ensureFinishedLoading];
 	
 	OOPixMap				px = kOONullPixMap;
-	OOPixMapComponentCount	components = OOTextureComponentsForFormat(_format);
 	
 	if (_bytes != NULL)
 	{
 		// If possible, just copy our existing buffer.
-		px = OOMakePixMap(_bytes, _width, _height, components, 0, 0);
+		px = OOMakePixMap(_bytes, _width, _height, _format, 0, 0);
 		px = OODuplicatePixMap(px, 0);
 	}
 #if OOTEXTURE_RELOADABLE
@@ -276,7 +275,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		if (![self isCubeMap])
 		{
 			
-			px = OOAllocatePixMap(_width, _height, components, 0, 0);
+			px = OOAllocatePixMap(_width, _height, _format, 0, 0);
 			if (!OOIsValidPixMap(px))  return kOONullPixMap;
 			
 			glGetTexImage(GL_TEXTURE_2D, 0, format, type, px.pixels);
@@ -284,7 +283,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 #if OO_TEXTURE_CUBE_MAP
 		else
 		{
-			px = OOAllocatePixMap(_width, _width * 6, components, 0, 0);
+			px = OOAllocatePixMap(_width, _width * 6, _format, 0, 0);
 			if (!OOIsValidPixMap(px))  return kOONullPixMap;
 			uint8_t *pixels = px.pixels;
 			
@@ -292,7 +291,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 			for (i = 0; i < 6; i++)
 			{
 				glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, type, pixels);
-				pixels += components * _width * _width;
+				pixels += OOPixMapBytesPerPixelForFormat(_format) * _width * _width;
 			}
 		}
 #endif

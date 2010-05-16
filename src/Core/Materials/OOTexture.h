@@ -34,6 +34,7 @@ SOFTWARE.
 #import <Foundation/Foundation.h>
 
 #import "OOOpenGL.h"
+#import "OOPixMap.h"
 #import "OOWeakReference.h"
 
 @class OOTextureLoader, OOTextureGenerator;
@@ -95,11 +96,11 @@ enum
 
 typedef enum
 {
-	kOOTextureDataInvalid,
+	kOOTextureDataInvalid			= kOOPixMapInvalidFormat,
 	
-	kOOTextureDataRGBA,				// GL_RGBA
-	kOOTextureDataGrayscale,		// GL_LUMINANCE (or GL_ALPHA with kOOTextureAlphaMask)
-	kOOTextureDataGrayscaleAlpha	// GL_LUMINANCE_ALPHA
+	kOOTextureDataRGBA				= kOOPixMapRGBA,			// GL_RGBA
+	kOOTextureDataGrayscale			= kOOPixMapGrayscale,		// GL_LUMINANCE (or GL_ALPHA with kOOTextureAlphaMask)
+	kOOTextureDataGrayscaleAlpha	= kOOPixMapGrayscaleAlpha	// GL_LUMINANCE_ALPHA
 } OOTextureDataFormat;
 
 
@@ -190,7 +191,7 @@ typedef enum
 /*	Create a new pixmap with a copy of the texture data. The caller is
 	responsible for free()ing the resulting buffer.
 */
-- (struct OOPixMap) copyPixMapRepresentation;
+- (OOPixMap) copyPixMapRepresentation;
 
 /*	Identify special texture types.
 */

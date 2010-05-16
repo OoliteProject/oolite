@@ -36,7 +36,7 @@ SOFTWARE.
 
 OOPixMap OOConvertCubeMapToLatLong(OOPixMap sourcePixMap, OOPixMapDimension height, BOOL leaveSpaceForMipMaps)
 {
-	if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.components != 4 || sourcePixMap.height != sourcePixMap.width * 6)
+	if (!OOIsValidPixMap(sourcePixMap) || sourcePixMap.format != kOOPixMapRGBA || sourcePixMap.height != sourcePixMap.width * 6)
 	{
 		return kOONullPixMap;
 	}
