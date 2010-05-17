@@ -305,7 +305,10 @@ MA 02110-1301, USA.
 		OOGL(glDisableClientState(GL_VERTEX_ARRAY));
 		
 #if OO_SHADERS
-		OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
+		if (useShader)
+		{
+			OOGL(glDisableVertexAttribArrayARB(kTangentAttributeIndex));
+		}
 #endif
 	}
 	else
