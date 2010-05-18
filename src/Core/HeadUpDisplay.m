@@ -170,6 +170,8 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	
 	if (sFontTexture == nil)  InitTextEngine();
 	
+	hudName = [hudFileName copy];
+	
 	// init arrays
 	dialArray = [[NSMutableArray alloc] initWithCapacity:16];   // alloc retains
 	legendArray = [[NSMutableArray alloc] initWithCapacity:16]; // alloc retains
@@ -202,8 +204,6 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	reticleTargetSensitive = [hudinfo oo_boolForKey:@"reticle_target_sensitive" defaultValue:NO];
 	
 	cloakIndicatorOnStatusLight = [hudinfo oo_boolForKey:@"cloak_indicator_on_status_light" defaultValue:YES];
-	
-	if (hudFileName != nil)  hudName = [[NSString stringWithString:hudFileName] retain];
 	
 	last_transmitter = NO_TARGET;
 	
@@ -407,11 +407,29 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) addDial:(NSDictionary *) info
 {
-	if ([info oo_stringForKey:SELECTOR_KEY] != nil)
+	static NSSet *allowedSelectors = nil;
+	if (allowedSelectors == nil)
 	{
-		SEL _selector = NSSelectorFromString([info oo_stringForKey:SELECTOR_KEY]);
-		if ([self respondsToSelector:_selector])  [dialArray addObject:info];
+		NSDictionary *whitelist = [ResourceManager whitelistDictionary];
+		allowedSelectors = [[NSSet alloc] initWithArray:[whitelist oo_arrayForKey:@"hud_dial_methods"]];
 	}
+	
+	NSString *dialSelector = [info oo_stringForKey:SELECTOR_KEY];
+	if (dialSelector == nil)
+	{
+		OOLogERR(@"hud.dial.noSelector", @"HUD dial in %@ is missing selector.", hudName);
+		return;
+	}
+	
+	if (![allowedSelectors containsObject:dialSelector])
+	{
+		OOLogERR(@"hud.dial.invalidSelector", @"HUD dial in %@ uses selector \"%@\" which is not in whitelist, and will be ignored.", hudName, dialSelector);
+		return;
+	}
+	
+	NSAssert2([self respondsToSelector:NSSelectorFromString(dialSelector)], @"HUD dial in %@ uses selector \"%@\" which is in whitelist, but not implemented.", hudName, dialSelector);
+	
+	[dialArray addObject:info];
 }
 
 

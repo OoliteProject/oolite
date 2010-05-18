@@ -201,7 +201,7 @@ MA 02110-1301, USA.
 	GLfloat				z1;
 	GLfloat				line_width;
 	
-	NSString		*hudName;
+	NSString			*hudName;
 	
 	GLfloat				overallAlpha;
 	

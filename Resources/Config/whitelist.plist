@@ -288,20 +288,8 @@
 		"fuelLeakRate_number"		
 	);
 	
-	hud_methods =
+	hud_dial_methods =
 	(
-		// accepted keys
-		"crosshairs",
-		"crosshair_scale",
-		"crosshair_width",
-		"crosshair_color",
-		"legends",
-		"overall_alpha",
-		"reticle_target_sensitive",
-		"cloak_indicator_on_status_light",
-		"dials",
-		
-		// possible dials
 		"drawTrumbles:",
 		"drawTargetReticle:",
 		"drawScanner:",
