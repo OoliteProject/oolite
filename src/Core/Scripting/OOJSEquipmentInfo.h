@@ -26,6 +26,17 @@ MA 02110-1301, USA.
 */
 
 #import <jsapi.h>
+#import "OOCocoa.h"
+
+@class OOEquipmentType;
 
 
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global);
+
+/*	Given a jsval representing a string (equipment key) or a JS EquipmentInfo,
+	return the corresponding EquipmentType or key. Note that
+	JSValueToEquipmentKey() will not return arbitrary strings, only valid
+	equipment keys.
+ */
+OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value);
+NSString *JSValueToEquipmentKey(JSContext *context, jsval value);

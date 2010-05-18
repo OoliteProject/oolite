@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "OOJSShip.h"
 #import "OOJSEntity.h"
 #import "OOJSVector.h"
+#import "OOJSEquipmentInfo.h"
 #import "OOJavaScriptEngine.h"
 #import "ShipEntity.h"
 #import "ShipEntityAI.h"
@@ -68,11 +69,11 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 static JSBool ShipRunLegacyScriptActions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCommsMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -1309,38 +1310,6 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 }
 
 
-// hasEquipment(key : String [, includeWeapons : Boolean]) : Boolean
-static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	ShipEntity					*thisEnt = nil;
-	NSString					*key = nil;
-	JSBool						includeWeapons = YES;
-	BOOL						OK = YES;
-	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
-	
-	key = JSValToNSString(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment key");
-		return NO;
-	}
-	
-	if (argc > 1)
-	{
-		if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[1], &includeWeapons)))
-		{
-			OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc - 1, argv + 1, nil, @"boolean");
-			return NO;
-		}
-	}
-	OK = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
-	
-	*outResult = BOOLToJSVal( OK || [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
-	return YES;
-}
-
-
 static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode)
 {
 	ShipEntity				*thisEnt = nil;
@@ -1521,7 +1490,7 @@ static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
-// canAwardEquipment(key : String)
+// canAwardEquipment(type : equipmentInfoExpression)
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity					*thisEnt = nil;
@@ -1531,10 +1500,10 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValToNSString(context, argv[0]);
+	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment key");
+		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
 	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
@@ -1558,7 +1527,39 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 }
 
 
-// awardEquipment(key : String)
+// hasEquipment(type : equipmentInfoExpression [, includeWeapons : Boolean]) : Boolean
+static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity					*thisEnt = nil;
+	NSString					*key = nil;
+	JSBool						includeWeapons = YES;
+	BOOL						OK = YES;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
+	
+	key = JSValueToEquipmentKey(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment type");
+		return NO;
+	}
+	
+	if (argc > 1)
+	{
+		if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[1], &includeWeapons)))
+		{
+			OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc - 1, argv + 1, nil, @"boolean");
+			return NO;
+		}
+	}
+	OK = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
+	
+	*outResult = BOOLToJSVal( OK || [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
+	return YES;
+}
+
+
+// awardEquipment(type : equipmentInfoExpression)
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity					*thisEnt = nil;
@@ -1568,10 +1569,10 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValToNSString(context, argv[0]);
+	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"awardEquipment", argc, argv, nil, @"equipment key");
+		OOReportJSBadArguments(context, @"Ship", @"awardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
 	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
@@ -1611,7 +1612,7 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 }
 
 
-// removeEquipment(key : String)
+// removeEquipment(type : equipmentInfoExpression)
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity					*thisEnt = nil;
@@ -1620,10 +1621,10 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValToNSString(context, argv[0]);
+	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"removeEquipment", argc, argv, nil, @"equipment key");
+		OOReportJSBadArguments(context, @"Ship", @"removeEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
 	// berths are not in hasOneEquipmentItem
@@ -1660,15 +1661,15 @@ static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc
 }
 
 
-// setEquipmentStatus(key : String, status : String)
+// setEquipmentStatus(type : equipmentInfoExpression, status : String)
 static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
 	
 	ShipEntity				*thisEnt = nil;
-	NSString				*key = JSValToNSString(context, argv[0]);
-	NSString				*damagedKey = [key stringByAppendingString:@"_DAMAGED"];
-	NSString				*status = JSValToNSString(context, argv[1]);
+	NSString				*key = nil;
+	NSString				*damagedKey = nil;
+	NSString				*status = nil;
 	BOOL					hasOK = NO, hasDamaged = NO;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
@@ -1680,18 +1681,27 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 		return NO;
 	}
 	
-	if (EXPECT_NOT(key == nil || status == nil || [key hasSuffix:@"_DAMAGED"]))
+	key = JSValueToEquipmentKey(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment key and status");
+		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment type");
+		return NO;
+	}
+	
+	status = JSValToNSString(context, argv[1]);
+	if (EXPECT_NOT(status == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc - 1, argv + 1, nil, @"equipment status");
 		return NO;
 	}
 	
 	if (![status isEqualToString:@"EQUIPMENT_OK"] && ![status isEqualToString:@"EQUIPMENT_DAMAGED"])
 	{
-		OOReportJSErrorForCaller(context, @"Ship", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either 'EQUIPMENT_OK' or 'EQUIPMENT_DAMAGED'.");
+		OOReportJSErrorForCaller(context, @"Ship", @"setEquipmentStatus", @"Second parameter for setEquipmentStatus must be either \"EQUIPMENT_OK\" or \"EQUIPMENT_DAMAGED\".");
 		return NO;
 	}
 	
+	damagedKey = [key stringByAppendingString:@"_DAMAGED"];
 	hasOK = [thisEnt hasEquipmentItem:key];
 	hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
 	
@@ -1719,13 +1729,13 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 }
 
 
-// equipmentStatus(key : String) : String
+// equipmentStatus(type : equipmentInfoExpression) : String
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	// values returned: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED", @"EQUIPMENT_UNAVAILABLE"
 	
 	ShipEntity				*thisEnt = nil;
-	NSString				*key = JSValToNSString(context, argv[0]);
+	NSString				*key = nil;
 	NSString				*result = @"EQUIPMENT_UNAVAILABLE";
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op.
@@ -1734,9 +1744,10 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 		return YES;
 	}
 	
+	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment key");
+		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment type");
 		return NO;
 	}
 	

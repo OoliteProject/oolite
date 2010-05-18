@@ -135,6 +135,21 @@ void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 }
 
 
+OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value)
+{
+	id objValue = JSValueToObject(context, value);
+	if ([objValue isKindOfClass:[OOEquipmentType class]])  return objValue;
+	if ([objValue isKindOfClass:[NSString class]])  return [OOEquipmentType equipmentTypeWithIdentifier:objValue];
+	return nil;
+}
+
+
+NSString *JSValueToEquipmentKey(JSContext *context, jsval value)
+{
+	return [JSValueToEquipmentType(context, value) identifier];
+}
+
+
 // *** Implementation stuff ***
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
