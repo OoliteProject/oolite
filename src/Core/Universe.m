@@ -2376,23 +2376,9 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 			pos.y += rfactor*(randf() - randf());
 			pos.z += rfactor*(randf() - randf());
 		}
-		else // if (radius == 0.0f)   changed from bounding box, seems to give acceptable results
+		else
 		{
-			Vector	v_from_center = kZeroVector;
-			GLfloat	walk_factor = 2.0f;
-			
-			do
-			{
-				v_from_center.x += walk_factor * (randf() - 0.5);
-				v_from_center.y += walk_factor * (randf() - 0.5);
-				v_from_center.z += walk_factor * (randf() - 0.5);	// drunkards walk
-			} while (vector_equal(v_from_center, kZeroVector));
-			v_from_center = vector_normal(v_from_center);	// guaranteed non-zero
-			
-			radius *= randf();	// randomise  distance from the central coordinates
-			pos = make_vector( pos.x + radius * v_from_center.x,
-								pos.y + radius * v_from_center.y,
-								pos.z + radius * v_from_center.z );
+			pos = OOVectorRandomSpatial(radius);
 		}
 		
 		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];

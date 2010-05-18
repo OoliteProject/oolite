@@ -690,8 +690,8 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 }
 
 
-// addShips(role : String, count : Number[,  position: Vector][, radius: Number])
-static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+// Shared implementation of addShips() and addGroup().
+static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isGroup)
 {
 	NSString			*role = nil;
 	int32				count = 0;
@@ -700,7 +700,6 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 	double				radius = NSNotFound;	// a negative value means 
 	id					result = nil;
 	
-	BOOL				isGroup = [@"group" isEqualTo:JSValToNSString(context,*outResult)];
 	NSString			*func = isGroup ? @"addGroup" : @"addShips";
 	
 	*outResult = JSVAL_NULL;
@@ -741,8 +740,7 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 		}
 	}
 	
-	// Note: the use of witchspace-in effects (as in legacy_addShips). depends on proximity to the witchpoint.
-	//[UNIVERSE addShips:count withRole:role atPosition:where withCoordinateSystem:@"abs"];
+	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
 	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
 	
 	if (isGroup && result != nil)
@@ -750,24 +748,24 @@ static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsv
 		if ([(NSArray *)result count] > 0) result = [(ShipEntity *)[(NSArray *)result objectAtIndex:0] group];
 		else result = nil;
 	}
-
+	
 	*outResult = [result javaScriptValueInContext:context];
 	
 	return YES;
 }
 
+
+// addShips(role : String, count : Number[,  position: Vector][, radius: Number])
+static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	return AddShipsOrGroup(context, this, argc, argv, outResult, NO);
+}
+
+
 // addGroup(role : String, count : Number[,  position: Vector][, radius: Number])
 static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
-	jsval	result = [@"group" javaScriptValueInContext:context];
-
-	SystemAddShips(context, this, argc, argv, &result);
-	
-	if (!result) return NO;
-	
-	*outResult = result;
-	
-	return YES;
+	return AddShipsOrGroup(context, this, argc, argv, outResult, YES);
 }
 
 

@@ -158,6 +158,7 @@ MA 02110-1301, USA.
 {	
 	// save random seeds for restoration later
 	RNG_Seed saved_seed = currentRandomSeed();
+	RANROTSeed saved_ranrot = RANROTGetFullSeed();
 	// set RNG to character seed
 	seed_for_planet_description(genSeed);
 
@@ -233,6 +234,7 @@ MA 02110-1301, USA.
 	
 	// restore random seed
 	setRandomSeed( saved_seed);
+	RANROTSetFullSeed(saved_ranrot);
 }
 
 
