@@ -385,10 +385,8 @@ static NSArray *SanitizeActionStatement(NSString *statement, SanStackElement *st
 	selectorString = SanitizeActionMethod(rawSelectorString, allowAIMethods);
 	if (selectorString == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), statement, rawSelectorString);
-		
-	//	return nil;
-		selectorString = rawSelectorString;
+		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@ (\"%@\"), method \"%@\" not allowed.", StringFromStack(stack), statement, rawSelectorString);
+		return nil;
 	}
 	
 	if ([selectorString isEqualToString:@"doNothing"])
@@ -428,8 +426,6 @@ static OOOperationType ClassifyLHSConditionSelector(NSString *selectorString, NS
 	*outSanitizedSelector = SanitizeQueryMethod(selectorString);
 	if (*outSanitizedSelector == nil)
 	{
-		OOLog(@"script.unpermittedMethod", @"***** SCRIPT ERROR: in %@, method \"%@\" not allowed. In a future version of Oolite, this method will be removed from the handler. If you believe the handler should allow this method, please report it to bugs@oolite.org.", StringFromStack(stack), selectorString);
-		
 		return OP_INVALID;
 	}
 	

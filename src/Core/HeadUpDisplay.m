@@ -476,6 +476,7 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	}
 }
 
+
 - (void) drawCrosshairs
 {
 	PlayerEntity				*player = [PlayerEntity sharedPlayer];
