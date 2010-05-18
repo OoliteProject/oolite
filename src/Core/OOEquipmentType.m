@@ -223,6 +223,7 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 			}
 			
 			_scriptInfo = [extra oo_dictionaryForKey:@"script_info"];
+			[_scriptInfo retain];
 		}
 	}
 	
