@@ -550,12 +550,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		[pool release];
 		[gameView clearKeys];
 	}
-		
-	pauseTarget = sender;
 	
 	my_mouse_x = my_mouse_y = 0;
 	
-	while (pauseTarget)
+	for (;;)
 	{
 		CGPoint centerOfScreen = CGPointMake(width/2.0F,height/2.0F);
 
@@ -782,6 +780,10 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		if (pauseTarget)
 		{
 			[pauseTarget performSelector:pauseSelector];
+		}
+		else
+		{
+			break;
 		}
 	}
 }
