@@ -411,7 +411,7 @@
 		1A4FB2410C8D6ABA00DC8E1F /* jstypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB2400C8D6ABA00DC8E1F /* jstypes.h */; };
 		1A4FB3350C8DC86800DC8E1F /* OOJSOolite.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4FB3330C8DC86800DC8E1F /* OOJSOolite.h */; };
 		1A4FB3360C8DC86800DC8E1F /* OOJSOolite.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A4FB3340C8DC86800DC8E1F /* OOJSOolite.m */; };
-		1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A4FB2380C8D6A7500DC8E1F /* libjs.a */; };
+		1A4FB4BA0C8E11D800DC8E1F /* libmozjs_for_oolite.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A4FB2380C8D6A7500DC8E1F /* libmozjs_for_oolite.a */; };
 		1A5218DA0D72EC21000865E9 /* OOSpatialReference.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A5218D80D72EC21000865E9 /* OOSpatialReference.h */; };
 		1A5218DE0D72ECE5000865E9 /* OOSpatialReference.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A5218DD0D72ECE5000865E9 /* OOSpatialReference.m */; };
 		1A54AB530E3E17A1001EB817 /* OOJSPlayerShip.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A54AB510E3E17A0001EB817 /* OOJSPlayerShip.h */; };
@@ -1892,7 +1892,7 @@
 				1A472921096B5468000E78D8 /* AudioToolbox.framework in Frameworks */,
 				1A472922096B5468000E78D8 /* AudioUnit.framework in Frameworks */,
 				1A71E8790BCE8EB100CD5C13 /* libz.dylib in Frameworks */,
-				1A4FB4BA0C8E11D800DC8E1F /* libjs.a in Frameworks */,
+				1A4FB4BA0C8E11D800DC8E1F /* libmozjs_for_oolite.a in Frameworks */,
 				1A0B00471178559A0095EF13 /* libpng_for_oolite.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2421,7 +2421,7 @@
 		1A4FB2340C8D6A7500DC8E1F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1A4FB2380C8D6A7500DC8E1F /* libjs.a */,
+				1A4FB2380C8D6A7500DC8E1F /* libmozjs_for_oolite.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3398,10 +3398,10 @@
 			remoteRef = 1A3042F310C16DA60056219D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		1A4FB2380C8D6A7500DC8E1F /* libjs.a */ = {
+		1A4FB2380C8D6A7500DC8E1F /* libmozjs_for_oolite.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libjs.a;
+			path = libmozjs_for_oolite.a;
 			remoteRef = 1A4FB2370C8D6A7500DC8E1F /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};

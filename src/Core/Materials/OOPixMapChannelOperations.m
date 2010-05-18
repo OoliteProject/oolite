@@ -106,10 +106,12 @@ BOOL OOPixMapToRGBA(OOPixMap *ioPixMap)
 	{
 		case kOOPixMapGrayscale:
 			ToRGBA_1(*ioPixMap, temp);
+			OK = YES;
 			break;
 			
 		case kOOPixMapGrayscaleAlpha:
 			ToRGBA_2(*ioPixMap, temp);
+			OK = YES;
 			break;
 			
 		case kOOPixMapRGBA:

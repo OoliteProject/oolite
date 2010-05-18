@@ -2333,7 +2333,7 @@ static WormholeEntity *whole = nil;
 }
 
 
-- (BOOL) performHyperSpaceExitReplace:(BOOL)replace toSystem:(OOSystemID)systemID;
+- (BOOL) performHyperSpaceExitReplace:(BOOL)replace toSystem:(OOSystemID)systemID
 {
 	// The [UNIVERSE nearbyDestinationsWithinRange:] method is very expensive, so cache
 	// its results.

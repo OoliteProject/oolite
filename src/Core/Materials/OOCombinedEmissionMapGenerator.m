@@ -33,7 +33,7 @@ SOFTWARE.
 #import "OOMaterialSpecifier.h"
 
 
-#define DUMP_COMBINER	0
+#define DUMP_COMBINER	1
 
 
 static OOColor *ModulateColor(OOColor *a, OOColor *b);
@@ -372,10 +372,10 @@ static void ScaleToMatch(OOPixMap *pmA, OOPixMap *pmB)
 	
 	if (pmA->width != minWidth || pmA->height != minHeight)
 	{
-		OOScalePixMap(*pmA, minWidth, minHeight, NO);
+		*pmA = OOScalePixMap(*pmA, minWidth, minHeight, NO);
 	}
 	if (pmB->width != minWidth || pmB->height != minHeight)
 	{
-		OOScalePixMap(*pmB, minWidth, minHeight, NO);
+		*pmB = OOScalePixMap(*pmB, minWidth, minHeight, NO);
 	}
 }
