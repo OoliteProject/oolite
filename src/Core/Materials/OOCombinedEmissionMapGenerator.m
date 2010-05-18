@@ -33,7 +33,7 @@ SOFTWARE.
 #import "OOMaterialSpecifier.h"
 
 
-#define DUMP_COMBINER	1
+#define DUMP_COMBINER	0
 
 
 static OOColor *ModulateColor(OOColor *a, OOColor *b);
