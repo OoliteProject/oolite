@@ -5436,6 +5436,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 									[demo_ship switchAITo:@"nullAI.plist"];
 									[demo_ship setOrientation:q2];
 									[self addEntity:demo_ship];	// STATUS_IN_FLIGHT, AI state GLOBAL
+									[demo_ship release];		// We now own a reference through the entity list.
 									[demo_ship setStatus:STATUS_COCKPIT_DISPLAY];
 									demo_start_z=DEMO2_VANISHING_DISTANCE * demo_ship->collision_radius;
 									[demo_ship setPositionX:0.0f y:0.0f z:demo_start_z];
