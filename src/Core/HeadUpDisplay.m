@@ -417,13 +417,17 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 
 - (void) renderHUD
 {
-	//glShadeModel(GL_FLAT);
+	if (_crosshairWidth * line_width > 0)
+	{
+		OOGL(glLineWidth(_crosshairWidth * line_width));
+		[self drawCrosshairs];
+	}
 	
-	OOGL(glLineWidth(_crosshairWidth * line_width));
-	[self drawCrosshairs];
-	
-	OOGL(glLineWidth(line_width));
-	[self drawLegends];
+	if (line_width > 0)
+	{
+		OOGL(glLineWidth(line_width));
+		[self drawLegends];
+	}
 	
 	[self drawDials];
 	CheckOpenGLErrors(@"After drawing HUD");
