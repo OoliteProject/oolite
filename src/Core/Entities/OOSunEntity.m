@@ -73,7 +73,7 @@ MA 02110-1301, USA.
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	hue /= 360;
 	
-/%
+/*
 	// FIXME: do away with hue_drift altogether?
 	// The following two lines are functionally identical to 1.73:
 	randf();randf();	// avoid ranrot dirft!
