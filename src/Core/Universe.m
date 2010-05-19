@@ -2378,7 +2378,7 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 		}
 		else
 		{
-			pos = OOVectorRandomSpatial(radius);
+			pos = vector_add(pos, OOVectorRandomSpatial(radius));
 		}
 		
 		if ([ship hasRole:@"cargopod"]) [self fillCargopodWithRandomCargo:ship];
