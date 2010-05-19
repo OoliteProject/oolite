@@ -37,6 +37,10 @@ void InitOOJSEquipmentInfo(JSContext *context, JSObject *global);
 	return the corresponding EquipmentType or key. Note that
 	JSValueToEquipmentKey() will not return arbitrary strings, only valid
 	equipment keys.
+	JSValueToEquipmentKeyRelaxed() will return any string that does not end
+	with _DAMAGED.
  */
 OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value);
 NSString *JSValueToEquipmentKey(JSContext *context, jsval value);
+
+NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists);

@@ -150,6 +150,32 @@ NSString *JSValueToEquipmentKey(JSContext *context, jsval value)
 }
 
 
+NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists)
+{
+	NSString *result = nil;
+	BOOL exists = NO;
+	id objValue = JSValueToObject(context, value);
+	
+	if ([objValue isKindOfClass:[OOEquipmentType class]])
+	{
+		result = [objValue identifier];
+		exists = YES;
+	}
+	else if ([objValue isKindOfClass:[NSString class]])
+	{
+		// To enforce deliberate backwards incompatibility, reject strings ending with _DAMAGED unless someone actually named an equip that way.
+		exists = [OOEquipmentType equipmentTypeWithIdentifier:objValue] != nil;
+		if (exists || ![objValue hasSuffix:@"_DAMAGED"])
+		{
+			result = objValue;
+		}
+	}
+	
+	if (outExists != NULL)  *outExists = exists;
+	return result;
+}
+
+
 // *** Implementation stuff ***
 
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)

@@ -1495,34 +1495,47 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 {
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
-	BOOL						OK = YES;
-	BOOL						berth;
+	BOOL						result;
+	BOOL						isBerth;
+	BOOL						exists;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValueToEquipmentKey(context, argv[0]);
+	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
-	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
-	// can't add fuel as equipment, can add multiple berths if there's space.
-	OK = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
-			(berth && [thisEnt availableCargoSpace] >= 5));
-	if (OK)
-	{
-		if ( ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
-			|| (![thisEnt isPlayer] && (berth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]))
-			|| ([key isEqualToString:@"EQ_MISSILE_REMOVAL"] && [thisEnt missileCount] == 0) )
-		{
-			OK = NO;
-		}
-		else
-			OK = [thisEnt canAddEquipment:key];
-	}
 	
-	*outResult = BOOLToJSVal(OK);
+	if (exists)
+	{
+		isBerth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
+		// can't add fuel as equipment, can add multiple berths if there's space.
+		result = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
+				(isBerth && [thisEnt availableCargoSpace] >= 5));
+		if (result)
+		{
+			if ( ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
+				|| (![thisEnt isPlayer] && (isBerth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]))
+				|| ([key isEqualToString:@"EQ_MISSILE_REMOVAL"] && [thisEnt missileCount] == 0) )
+			{
+				result = NO;
+			}
+			else
+			{
+				result = [thisEnt canAddEquipment:key];
+			}
+		}
+	}
+	else
+	{
+		// Unknown type.
+		result = NO;
+	}
+
+	
+	*outResult = BOOLToJSVal(result);
 	return YES;
 }
 
@@ -1533,11 +1546,12 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	ShipEntity					*thisEnt = nil;
 	NSString					*key = nil;
 	JSBool						includeWeapons = YES;
-	BOOL						OK = YES;
+	BOOL						result = NO;
+	BOOL						exists;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValueToEquipmentKey(context, argv[0]);
+	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment type");
@@ -1552,9 +1566,14 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 			return NO;
 		}
 	}
-	OK = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
 	
-	*outResult = BOOLToJSVal( OK || [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons]);
+	if (exists)
+	{
+		result = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
+		if (!result)  result = [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons];
+	}
+	
+	*outResult = BOOLToJSVal(result);
 	return YES;
 }
 
