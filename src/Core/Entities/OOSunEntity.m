@@ -73,7 +73,15 @@ MA 02110-1301, USA.
 	[sun_color getHue:&hue saturation:&sat brightness:&bri alpha:&alf];
 	hue /= 360;
 	
-	float hue_drift = 0.34f * fabsf(randf() - randf());
+/%
+	// FIXME: do away with hue_drift altogether?
+	// The following two lines are functionally identical to 1.73:
+	randf();randf();	// avoid ranrot dirft!
+	float hue_drift = 0.0f;
+*/
+
+	// anything more than a minimal hue drift will wipe out the original colour.
+	float hue_drift = 0.038f * fabsf(randf() - randf());
 	
 	// set the lighting color for the sun
 	GLfloat		r,g,b,a;
@@ -126,7 +134,7 @@ MA 02110-1301, USA.
 	outerCoronaColor[0] = [color redComponent];
 	outerCoronaColor[1] = [color greenComponent];
 	outerCoronaColor[2] = [color blueComponent];
-	outerCoronaColor[3] = 0.5f;
+	outerCoronaColor[3] = 0.45f;
 
 	return YES;
 }
