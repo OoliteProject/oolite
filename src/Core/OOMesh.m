@@ -361,6 +361,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		-- Ahruman 2010-04-12
 	*/
 #if OO_MULTITEXTURE
+	BOOL useTextureCombiners = [[OOOpenGLExtensionManager sharedManager] textureCombinersSupported];
+	
 	if (_textureUnitCount == NSNotFound)
 	{
 		_textureUnitCount = 0;
@@ -374,7 +376,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOUInteger unit;
 	for (unit = 0; unit < _textureUnitCount; unit++)
 	{
-		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+		if (useTextureCombiners)  OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
 		OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 	}
 #else
@@ -401,8 +403,11 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #if OO_MULTITEXTURE
 				for (unit = 0; unit < _textureUnitCount; unit++)
 				{
-					OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
-					OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + unit));
+					if (useTextureCombiners)
+					{
+						OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+						OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + unit));
+					}
 #endif
 					if (!wantsNormalsAsTextureCoordinates)
 					{
@@ -473,14 +478,17 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #if OO_MULTITEXTURE
 	for (unit = 0; unit < _textureUnitCount; unit++)
 	{
-		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+		if (useTextureCombiners)  OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
 		OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	}
 	
 	if (_textureUnitCount > 1)
 	{
-		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
-		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+		if (useTextureCombiners)
+		{
+			OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
+			OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+		}
 	}
 #endif
 	
