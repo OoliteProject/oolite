@@ -56,6 +56,13 @@ void OOInitDebugSupport(void)
 	NSString				*consoleHost = nil;
 	unsigned short			consolePort = 0;
 	id<OODebuggerInterface>	debugger = nil;
+	BOOL					activateDebugConsole = NO;
+	
+	// Load debug settings.
+	debugSettings = [ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
+													 inFolder:@"Config"
+													mergeMode:MERGE_BASIC
+														cache:NO];
 	
 	// Check that the debug OXP is installed. If not, we don't enable debug support.
 	debugOXPPath = [ResourceManager pathForFileNamed:@"DebugOXPLocatorBeacon.magic" inFolder:@"nil"];
@@ -63,12 +70,6 @@ void OOInitDebugSupport(void)
 	{
 		// Load plug-in debugging code on platforms where this is supported.
 		plugInController = LoadDebugPlugIn(debugOXPPath);
-		
-		// Load debug settings.
-		debugSettings = [ResourceManager dictionaryFromFilesNamed:@"debugConfig.plist"
-														 inFolder:@"Config"
-														mergeMode:MERGE_BASIC
-															cache:NO];
 		
 		consoleHost = [debugSettings oo_stringForKey:@"console-host"];
 		consolePort = [debugSettings oo_unsignedShortForKey:@"console-port"];
@@ -87,11 +88,18 @@ void OOInitDebugSupport(void)
 			[debugger autorelease];
 		}
 		
+		activateDebugConsole = (debugger != nil);
+	}
+	else
+	{
+		activateDebugConsole = [debugSettings oo_boolForKey:@"always-load-debug-console"];
+	}
+
+	
+	if (activateDebugConsole)
+	{
 		// Set up monitor and register debugger, if any.
-		if (debugger != nil)
-		{
-			[[OODebugMonitor sharedDebugMonitor] setDebugger:debugger];
-		}
+		[[OODebugMonitor sharedDebugMonitor] setDebugger:debugger];
 	}
 }
 
