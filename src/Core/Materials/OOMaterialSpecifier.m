@@ -29,6 +29,7 @@ SOFTWARE.
 #import "OOColor.h"
 #import "OOCollectionExtractors.h"
 #import "OOTexture.h"
+#import "Universe.h"
 
 
 NSString * const kOOMaterialDiffuseColorName				= @"diffuse_color";
@@ -36,10 +37,12 @@ NSString * const kOOMaterialDiffuseColorLegacyName			= @"diffuse";
 NSString * const kOOMaterialAmbientColorName				= @"ambient_color";
 NSString * const kOOMaterialAmbientColorLegacyName			= @"ambient";
 NSString * const kOOMaterialSpecularColorName				= @"specular_color";
+NSString * const kOOMaterialSpecularModulateColorName		= @"specular_modulate_color";
 NSString * const kOOMaterialSpecularColorLegacyName			= @"specular";
 NSString * const kOOMaterialEmissionColorName				= @"emission_color";
 NSString * const kOOMaterialEmissionColorLegacyName			= @"emission";
-NSString * const kOOMaterialIlluminationColorName			= @"illumination_color";
+NSString * const kOOMaterialEmissionModulateColorName		= @"emission_modulate_color";
+NSString * const kOOMaterialIlluminationModulateColorName	= @"illumination_modulate_color";
 
 NSString * const kOOMaterialDiffuseMapName					= @"diffuse_map";
 NSString * const kOOMaterialSpecularMapName					= @"specular_map";
@@ -82,19 +85,18 @@ NSString * const kOOMaterialShininess						= @"shininess";
 	{
 		if ([self oo_floatForKey:kOOMaterialShininess] != 0)
 		{
-			if ([self oo_specularMapSpecifier] == nil)
-			{
-				// No specular map, non-zero shininess: dark specular highlight by default.
-				result = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
-			}
-			else
-			{
-				// Specular map, non-zero shininess: white by default to use unmodified specular map colour.
-				result = [OOColor whiteColor];
-			}
+			result = [OOColor colorWithCalibratedWhite:0.2 alpha:1.0];
 		}
 		// else, zero shininess -> no specular anything.
 	}
+	return result;
+}
+
+
+- (OOColor *) oo_specularModulateColor
+{
+	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularModulateColorName]];
+	if (result == nil)  result = [OOColor whiteColor];
 	return result;
 }
 
@@ -108,9 +110,17 @@ NSString * const kOOMaterialShininess						= @"shininess";
 }
 
 
-- (OOColor *) oo_illuminationColor
+- (OOColor *) oo_emissionModulateColor
 {
-	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationColorName]];
+	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionModulateColorName]];
+	if (result == nil)  result = [OOColor whiteColor];
+	return result;
+}
+
+
+- (OOColor *) oo_illuminationModulateColor
+{
+	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationModulateColorName]];
 	if ([result isWhite])  result = nil;
 	return result;
 }
@@ -179,7 +189,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 	int result = [self oo_intForKey:kOOMaterialShininess defaultValue:-1];
 	if (result < 0)
 	{
-		if ([self oo_specularMapSpecifier] != nil)
+		if ([UNIVERSE useShaders] && [self oo_specularMapSpecifier] != nil)
 		{
 			result = 128;
 		}

@@ -53,8 +53,7 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	OOColor					*ambientColor = nil,
 							*diffuseColor = nil,
 							*specularColor = nil,
-							*emissionColor = nil,
-							*illuminationColor = nil;
+							*emissionColor = nil;
 	int						shininess = 0;
 	NSDictionary			*diffuseMap = nil,
 							*specularMap = nil,
@@ -73,11 +72,6 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	BOOL					haveIllumination = NO;
 	
 	if (configuration == nil)  configuration = [NSDictionary dictionary];	// Needs to be non-nil for defaults to work.
-	ambientColor = [configuration oo_ambientColor];
-	diffuseColor = [configuration oo_diffuseColor];
-	specularColor = [configuration oo_specularColor];
-	emissionColor = [configuration oo_emissionColor];
-	illuminationColor = [configuration oo_illuminationColor];
 	shininess = [configuration oo_shininess];
 	diffuseMap = [configuration oo_diffuseMapSpecifierWithDefaultName:name];
 	specularMap = [configuration oo_specularMapSpecifier];
@@ -88,6 +82,24 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 	normalAndParallaxMap = [configuration oo_normalAndParallaxMapSpecifier];
 	parallaxScale = [configuration oo_parallaxScale];
 	parallaxBias = [configuration oo_parallaxBias];
+	ambientColor = [configuration oo_ambientColor];
+	diffuseColor = [configuration oo_diffuseColor];
+	if (specularMap == nil)
+	{
+		specularColor = [configuration oo_specularColor];
+	}
+	else
+	{
+		specularColor = [configuration oo_specularModulateColor];
+	}
+	if (emissionMap == nil && emissionAndIlluminationMap == nil)
+	{
+		emissionColor = [configuration oo_emissionColor];
+	}
+	else
+	{
+		emissionColor = [configuration oo_emissionModulateColor];
+	}
 	
 	modifiedMacros = macros ? [[macros mutableCopy] autorelease] : [NSMutableDictionary dictionaryWithCapacity:8];
 	
@@ -150,10 +162,14 @@ static void AddTexture(NSMutableDictionary *uniforms, NSMutableArray *textures, 
 		AddTexture(uniforms, textures, @"uIlluminationMap", illuminationMap);
 		haveIllumination = YES;
 	}
-	if (haveIllumination && illuminationColor != nil)
+	if (haveIllumination)
 	{
-		NSString *illumMacro = [NSString stringWithFormat:@"vec4(%g, %g, %g, %g)", [illuminationColor redComponent], [illuminationColor greenComponent], [illuminationColor blueComponent], [illuminationColor alphaComponent]];
-		[modifiedMacros setObject:illumMacro forKey:@"OOSTD_ILLUMINATION_COLOR"];
+		OOColor *illuminationModulateColor = [configuration oo_illuminationModulateColor];
+		if (illuminationModulateColor != nil)
+		{
+			NSString *illumMacro = [NSString stringWithFormat:@"vec4(%g, %g, %g, %g)", [illuminationModulateColor redComponent], [illuminationModulateColor greenComponent], [illuminationModulateColor blueComponent], [illuminationModulateColor alphaComponent]];
+			[modifiedMacros setObject:illumMacro forKey:@"OOSTD_ILLUMINATION_COLOR"];
+		}
 	}
 	if (normalMap != nil)
 	{

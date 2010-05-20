@@ -45,17 +45,18 @@ SOFTWARE.
 	NSDictionary *illuminationSpec = [configuration oo_illuminationMapSpecifier];
 	NSDictionary *emissionAndIlluminationSpec = [configuration oo_emissionAndIlluminationMapSpecifier];
 	OOColor *diffuseColor = [configuration oo_diffuseColor];
-	OOColor *emissionColor = [configuration oo_emissionColor];
-	OOColor *illuminationColor = [configuration oo_illuminationColor];
+	OOColor *emissionColor = nil;
+	OOColor *illuminationColor = [configuration oo_illuminationModulateColor];
 	
 	NSMutableDictionary *mutableConfiguration = [NSMutableDictionary dictionaryWithDictionary:configuration];
 	
-	/*	If an emission map and an emission colour are both specified, we want
-		to bake the emission colour into the emission map rather than let the
-		superclass (OOBasicMaterial) apply the emission colour.
-	*/
-	if ((emissionSpec != nil || emissionAndIlluminationSpec != nil) && emissionColor != nil)
+	if (emissionSpec != nil || emissionAndIlluminationSpec != nil)
 	{
+		emissionColor = [configuration oo_emissionModulateColor];
+		
+		/*	If an emission map and an emission colour are both specified, stop
+			the superclass (OOBasicMaterial) from applying the emission colour.
+		*/
 		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorName];
 		[mutableConfiguration removeObjectForKey:kOOMaterialEmissionColorLegacyName];
 	}

@@ -160,16 +160,25 @@
 			type = "dictionary";
 			schema =
 			{
-				ambient = "$colorSpecifier";
-				diffuse = "$colorSpecifier";
+				ambient = "$colorSpecifier";		// Deprecated but permitted alias for ambient_color
+				ambient_color = "$colorSpecifier";
+				diffuse = "$colorSpecifier";		// Deprecated but permitted alias for diffuse_color
+				diffuse_color = "$colorSpecifier";
 				diffuse_map = "$textureSpecifier";
-				emission = "$colorSpecifier";
+				emission = "$colorSpecifier";		// Deprecated but permitted alias for emission_color
+				emission_color = "$colorSpecifier";
+				emission_map = "$textureSpecifier";
+				emission_modulate_color = "$colorSpecifier";
+				specular = "$colorSpecifier";
+				specular_color = "$colorSpecifier";	// Deprecated but permitted alias for emission_color
+				specular_map = "$textureSpecifier";
+				specular_modulate_color = "$colorSpecifier";
+				
 				shininess =
 				{
 					type = "positiveInteger";
 					maximum = "128";
 				};
-				specular = "$colorSpecifier";
 				fragment_shader = "$shaderFileName";
 				textures =
 				{
@@ -467,7 +476,7 @@
 			baseType = "string";
 			key = "shipKey";
 		};
-		$roles =
+		$roles =	
 		{
 			type = "delegatedType";
 			baseType = "string";

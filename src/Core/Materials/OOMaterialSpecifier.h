@@ -38,8 +38,10 @@ SOFTWARE.
 - (OOColor *) oo_diffuseColor;
 - (OOColor *) oo_ambientColor;
 - (OOColor *) oo_specularColor;
+- (OOColor *) oo_specularModulateColor;
 - (OOColor *) oo_emissionColor;
-- (OOColor *) oo_illuminationColor;
+- (OOColor *) oo_emissionModulateColor;
+- (OOColor *) oo_illuminationModulateColor;
 
 - (NSDictionary *) oo_diffuseMapSpecifierWithDefaultName:(NSString *)name;
 - (NSDictionary *) oo_specularMapSpecifier;
@@ -63,9 +65,11 @@ extern NSString * const kOOMaterialAmbientColorName;
 extern NSString * const kOOMaterialAmbientColorLegacyName;
 extern NSString * const kOOMaterialSpecularColorName;
 extern NSString * const kOOMaterialSpecularColorLegacyName;
+extern NSString * const kOOMaterialSpecularModulateColorName;
 extern NSString * const kOOMaterialEmissionColorName;
 extern NSString * const kOOMaterialEmissionColorLegacyName;
-extern NSString * const kOOMaterialIlluminationColorName;
+extern NSString * const kOOMaterialEmissionModulateColorName;
+extern NSString * const kOOMaterialIlluminationModulateColorName;
 
 extern NSString * const kOOMaterialDiffuseMapName;
 extern NSString * const kOOMaterialSpecularMapName;
