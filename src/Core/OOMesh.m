@@ -361,8 +361,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 		-- Ahruman 2010-04-12
 	*/
 #if OO_MULTITEXTURE
-	BOOL useTextureCombiners = [[OOOpenGLExtensionManager sharedManager] textureCombinersSupported];
-	
 	if (_textureUnitCount == NSNotFound)
 	{
 		_textureUnitCount = 0;
@@ -374,10 +372,22 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	}
 	
 	OOUInteger unit;
-	for (unit = 0; unit < _textureUnitCount; unit++)
+	if (_textureUnitCount <= 1)
 	{
-		if (useTextureCombiners)  OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
 		OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+	}
+	else
+	{
+		/*	It should not be possible to have multiple texture units if
+			texture combiners are not available.
+		*/
+		NSAssert2([[OOOpenGLExtensionManager sharedManager] textureCombinersSupported], @"Mesh %@ uses %u texture units, but multitexturing is not available.", [self shortDescription], _textureUnitCount);
+		
+		for (unit = 0; unit < _textureUnitCount; unit++)
+		{
+			OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+			OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+		}
 	}
 #else
 	OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -403,7 +413,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #if OO_MULTITEXTURE
 				for (unit = 0; unit < _textureUnitCount; unit++)
 				{
-					if (useTextureCombiners)
+					if (_textureUnitCount > 1)
 					{
 						OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
 						OOGL(glActiveTextureARB(GL_TEXTURE0_ARB + unit));
@@ -476,20 +486,23 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 #endif
 	
 #if OO_MULTITEXTURE
-	for (unit = 0; unit < _textureUnitCount; unit++)
+	if (_textureUnitCount <= 1)
 	{
-		if (useTextureCombiners)  OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
 		OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	}
-	
-	if (_textureUnitCount > 1)
+	else
 	{
-		if (useTextureCombiners)
+		for (unit = 0; unit < _textureUnitCount; unit++)
 		{
-			OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
-			OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
+			OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB + unit));
+			OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 		}
+		
+		OOGL(glClientActiveTextureARB(GL_TEXTURE0_ARB));
+		OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 	}
+#else
+	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 #endif
 	
 	OOGL(glPopAttrib());
