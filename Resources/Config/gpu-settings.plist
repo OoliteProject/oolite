@@ -63,12 +63,38 @@
 		smooth_points = "off";	// Point smoothing is not supported in hardware.
 	},
 	{
-		name = "ATI R300 family";
+		name = "ATI R300 family (fglrx)";
 		match =
 		{
-			vendor = "AT[Ii]|Tungsten|X\\.org";
-			renderer = "/\\bRV?3\\d\\d(?!\\d)/";
+			vendor = "AT[Ii]";
+			renderer = "/\\bR[VSC]?[34]\\d\\d(?!\\d)/";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
+	},
+	{
+		name = "ATI R300 family (X/Mesa)";
+		match =
+		{
+			vendor = "DRI R300 Project";
+			renderer = "Mesa DRI R300 \\(R[VSC]?[34]";
+		};
+		maximum_shader_level = "SHADERS_SIMPLE";
+		// Anti-aliased lines are done in software.
+		// Assuming same for anti-aliased points.
+		smooth_points = "off"; 
+		smooth_lines = "off";
+	},
+	{
+		name = "ATI R300 family (X/Gallium3D)";
+		match =
+		{
+			vendor = "X\\.Org R300 Project";
+			renderer = "Gallium .* on R[VSC]?[34]";
+		};
+		maximum_shader_level = "SHADERS_SIMPLE";
+		// Anti-aliased lines & points are not implemented.
+		// (Correct as of commit df3590f.)
+		smooth_points = "off"; 
+		smooth_lines = "off";
 	}
 )
