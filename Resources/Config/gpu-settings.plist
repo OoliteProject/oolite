@@ -35,27 +35,40 @@
 		extension strings may occur in any order.
 		Multiple regexps may be specified as an array, in which case all must
 		match.
-		Any backslashes in regexps must be escaped (i.e., doubled); see the
-		"renderer" test for Intel GMA 9xx for an example.
+		Any backslashes in regexps must be escaped (i.e., doubled).
 */
 (
 	{
-		name = "NVIDIA GeForce FX 5200";
+		name = "NVIDIA GeForce FX family";
 		match =
 		{
 			vendor = "NVIDIA";
-			renderer = "GeForce.*5200|NV34MAP";		// "GeForce<anything>5200" or "NV34MAP".
+			//	"GeForce 5###" or "NV3#MAP".
+			renderer = "GeForce.*5\\d{3}(?!\\d)|NV3\\dMAP";
 		};
 		default_shader_level = "SHADERS_SIMPLE";
 	},
 	{
-		name = "Intel GMA 9xx";
+		name = "Intel GMA 900/950 family";
 		match =
 		{
-			vendor = "Intel";
-			renderer = "GMA.*9\\d\\d(?!\\d)";		// GMA<anything>9##, but not 9###.
+			vendor = "Tungsten|Intel";
+			/*	"GMA<anything>9##" (or 8##) but not 9###. N.b. the Tunsgten
+				Mesa drivers use the chipset number (which may start with 8)
+				rather than the graphics engine number.
+			*/
+			renderer = "(Intel|GMA).*[89]\\d\\d{2}(?!\\d)";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
-		smooth_points = "off";						// Point smoothing is not supported in hardware.
+		smooth_points = "off";	// Point smoothing is not supported in hardware.
+	},
+	{
+		name = "ATI R300 family";
+		match =
+		{
+			vendor = "AT[Ii]|Tungsten|X\\.org";
+			renderer = "/\\bRV?3\\d\\d(?!\\d)/";
+		};
+		maximum_shader_level = "SHADERS_SIMPLE";
 	}
 )
