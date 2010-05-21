@@ -13,6 +13,18 @@
 								Default: on.
 		smooth_lines			Enable or disable use of line smoothing.
 								Default: on.
+		texture_units			Number of texture units available to fixed-
+								function multitexturing. Default (and maximum):
+								defined by OpenGL implementation. Can be
+								queried in debug console as:
+								console.glFixedFunctionTextureUnitCount
+								Oolite currently won't use more than two
+								texture units.
+		texture_image_units		Number of texture samplers usable in fragment
+								shaders. Default (and maximum): defined by
+								OpenGL implementation. Can be
+								queried in debug console as:
+								console.glFragmentShaderTextureUnitCount
 	
 	Matching dictionaries:
 		"match" dictionaries contain regular expressions tested against any of

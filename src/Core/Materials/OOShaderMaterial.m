@@ -97,15 +97,13 @@ static NSString *MacrosToString(NSDictionary *macros);
 	self = [super initWithName:name configuration:configuration];
 	if (self == nil)  OK = NO;
 	
-	OO_ENTER_OPENGL();
-	
 	if (OK)
 	{
 		modifiedMacros = macros ? [macros mutableCopy] : [[NSMutableDictionary alloc] init];
 		[modifiedMacros autorelease];
 		
-		OOGL(glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &textureUnits));
-		[modifiedMacros setObject:[NSNumber numberWithInt:textureUnits] forKey:@"OO_TEXTURE_UNIT_COUNT"];
+		[modifiedMacros setObject:[NSNumber numberWithUnsignedInt:[[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]]
+						   forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
 		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)
 		{

@@ -435,7 +435,7 @@ MA 02110-1301, USA.
 
 - (BOOL)isWhite
 {
-	return rgba[0] == 1.0f && rgba[1] == 1.0f && rgba[2] == 1.0f;
+	return rgba[0] == 1.0f && rgba[1] == 1.0f && rgba[2] == 1.0f && rgba[3] == 1.0f;
 }
 
 

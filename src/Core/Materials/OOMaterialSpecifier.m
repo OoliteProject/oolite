@@ -64,7 +64,8 @@ NSString * const kOOMaterialShininess						= @"shininess";
 {
 	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialDiffuseColorLegacyName]];
-	if (result == nil)  result = [OOColor whiteColor];
+	
+	if ([result isWhite])  result = nil;
 	return result;
 }
 
@@ -97,6 +98,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 {
 	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialSpecularModulateColorName]];
 	if (result == nil)  result = [OOColor whiteColor];
+	
 	return result;
 }
 
@@ -105,6 +107,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 {
 	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorName]];
 	if (result == nil)  result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionColorLegacyName]];
+	
 	if ([result isBlack])  result = nil;
 	return result;
 }
@@ -113,7 +116,8 @@ NSString * const kOOMaterialShininess						= @"shininess";
 - (OOColor *) oo_emissionModulateColor
 {
 	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialEmissionModulateColorName]];
-	if (result == nil)  result = [OOColor whiteColor];
+	
+	if ([result isWhite])  result = nil;
 	return result;
 }
 
@@ -121,6 +125,7 @@ NSString * const kOOMaterialShininess						= @"shininess";
 - (OOColor *) oo_illuminationModulateColor
 {
 	OOColor * result = [OOColor colorWithDescription:[self objectForKey:kOOMaterialIlluminationModulateColorName]];
+	
 	if ([result isWhite])  result = nil;
 	return result;
 }

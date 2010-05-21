@@ -247,6 +247,9 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 			defaultShaderSetting = SHADERS_NOT_SUPPORTED;
 			maximumShaderSetting = SHADERS_NOT_SUPPORTED;
 		}
+		
+		GLint texImageUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_image_units" defaultValue:textureImageUnitCount];
+		if (texImageUnitOverride < textureImageUnitCount)  textureImageUnitCount = texImageUnitOverride;
 #endif
 		
 #if OO_USE_VBO
@@ -255,8 +258,10 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 #if OO_USE_FBO
 		[self checkFBOSupported];
 #endif
-#if GL_ARB_texture_env_combine
+#if OO_MULTITEXTURE
 		[self checkTextureCombinersSupported];
+		GLint texUnitOverride = [gpuConfig oo_unsignedIntegerForKey:@"texture_units" defaultValue:textureUnitCount];
+		if (texUnitOverride < textureUnitCount)  textureUnitCount = texUnitOverride;
 #endif
 		
 		usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
