@@ -99,13 +99,16 @@ static JSClass sConsoleClass =
 enum
 {
 	// Property IDs
-	kConsole_debugFlags,		// debug flags, integer, read/write
-	kConsole_shaderMode,		// shader mode, symbolic string, read/write
-	kConsole_maximumShaderMode,	// highest supported shader mode, symbolic string, read-only
-	kConsole_displayFPS,		// display FPS (and related info), boolean, read/write
-	kConsole_glVendorString,	// OpenGL GL_VENDOR string, string, read-only
-	kConsole_glRendererString,	// OpenGL GL_RENDERER string, string, read-only
-	kConsole_platformDescription, // Information about system we're running on in unspecified format, string, read-only
+	kConsole_debugFlags,						// debug flags, integer, read/write
+	kConsole_shaderMode,						// shader mode, symbolic string, read/write
+	kConsole_maximumShaderMode,					// highest supported shader mode, symbolic string, read-only
+	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
+	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
+	
+	kConsole_glVendorString,					// OpenGL GL_VENDOR string, string, read-only
+	kConsole_glRendererString,					// OpenGL GL_RENDERER string, string, read-only
+	kConsole_glFixedFunctionTextureUnitCount,	// GL_MAX_TEXTURE_UNITS_ARB, integer, read-only
+	kConsole_glFragmentShaderTextureUnitCount,	// GL_MAX_TEXTURE_IMAGE_UNITS_ARB, integer, read-only
 	
 	// Symbolic constants for debug flags:
 	kConsole_DEBUG_LINKED_LISTS,
@@ -125,14 +128,16 @@ enum
 
 static JSPropertySpec sConsoleProperties[] =
 {
-	// JS name					ID							flags
-	{ "debugFlags",				kConsole_debugFlags,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "shaderMode",				kConsole_shaderMode,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "maximumShaderMode",		kConsole_maximumShaderMode,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "displayFPS",				kConsole_displayFPS,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "glVendorString",			kConsole_glVendorString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "glRendererString",		kConsole_glRendererString,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "platformDescription",	kConsole_platformDescription, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	// JS name								ID											flags
+	{ "debugFlags",							kConsole_debugFlags,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "shaderMode",							kConsole_shaderMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "maximumShaderMode",					kConsole_maximumShaderMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "glRendererString",					kConsole_glRendererString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "glFixedFunctionTextureUnitCount",	kConsole_glFixedFunctionTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "glFragmentShaderTextureUnitCount",	kConsole_glFragmentShaderTextureUnitCount,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	
 #define DEBUG_FLAG_DECL(x) { #x, kConsole_##x, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY }
 	DEBUG_FLAG_DECL(DEBUG_LINKED_LISTS),
@@ -266,6 +271,10 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = BOOLToJSVal([UNIVERSE displayFPS]);
 			break;
 			
+		case kConsole_platformDescription:
+			*outValue = [OOPlatformDescription() javaScriptValueInContext:context];
+			break;
+			
 		case kConsole_glVendorString:
 			*outValue = [[[OOOpenGLExtensionManager sharedManager] vendorString] javaScriptValueInContext:context];
 			break;
@@ -274,8 +283,12 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = [[[OOOpenGLExtensionManager sharedManager] rendererString] javaScriptValueInContext:context];
 			break;
 			
-		case kConsole_platformDescription:
-			*outValue = [OOPlatformDescription() javaScriptValueInContext:context];
+		case kConsole_glFixedFunctionTextureUnitCount:
+			*outValue = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureUnitCount]);
+			break;
+			
+		case kConsole_glFragmentShaderTextureUnitCount:
+			*outValue = INT_TO_JSVAL([[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]);
 			break;
 			
 #define DEBUG_FLAG_CASE(x) case kConsole_##x: *outValue = INT_TO_JSVAL(x); break;

@@ -54,7 +54,9 @@ MA 02110-1301, USA.
 	
 	/*	Useful macro copied from GNUstep.
 	*/
-	#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
+	#ifndef DESTROY
+		#define DESTROY(x) do { id x_ = x; x = nil; [x_ release]; } while (0)
+	#endif
 	
 	/*	Lots of stuff changed between 10.3.9 SDK used for 32-bit builds and 10.5
 		SDK used for 64-bit builds.

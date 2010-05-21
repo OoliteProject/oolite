@@ -132,6 +132,7 @@ SOFTWARE.
 	BOOL					shadersAvailable;
 	OOShaderSetting			defaultShaderSetting;
 	OOShaderSetting			maximumShaderSetting;
+	GLint					textureImageUnitCount;
 #endif
 #if OO_USE_VBO
 	BOOL					vboSupported;
@@ -152,11 +153,12 @@ SOFTWARE.
 - (BOOL)shadersSupported;
 - (OOShaderSetting)defaultShaderSetting;
 - (OOShaderSetting)maximumShaderSetting;
+- (OOUInteger)textureImageUnitCount;	// Fragment shader sampler count limit. Does not apply to fixed function multitexturing. (GL_MAX_TEXTURE_IMAGE_UNITS_ARB)
 
-- (BOOL)vboSupported;			// Vertex buffer objects
-- (BOOL)fboSupported;			// Frame buffer objects
+- (BOOL)vboSupported;					// Vertex buffer objects
+- (BOOL)fboSupported;					// Frame buffer objects
 - (BOOL)textureCombinersSupported;
-- (OOUInteger)textureUnitCount;	// Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
+- (OOUInteger)textureUnitCount;			// Fixed function multitexture limit, does not apply to shaders. (GL_MAX_TEXTURE_UNITS_ARB)
 
 - (OOUInteger)majorVersionNumber;
 - (OOUInteger)minorVersionNumber;

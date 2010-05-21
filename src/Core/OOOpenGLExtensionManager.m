@@ -262,6 +262,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 		usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
 		useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
 	}
+	
 	return self;
 }
 
@@ -332,6 +333,16 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 	return maximumShaderSetting;
 #else
 	return SHADERS_NOT_SUPPORTED;
+#endif
+}
+
+
+- (OOUInteger)textureImageUnitCount
+{
+#if OO_SHADERS
+	return textureImageUnitCount;
+#else
+	return 0;
 #endif
 }
 
@@ -504,6 +515,8 @@ static unsigned IntegerFromString(const GLubyte **ioString)
 	glDisableVertexAttribArrayARB =	(PFNGLDISABLEVERTEXATTRIBARRAYARBPROC)wglGetProcAddress("glDisableVertexAttribArrayARB");
 	glValidateProgramARB		=	(PFNGLVALIDATEPROGRAMARBPROC)wglGetProcAddress("glValidateProgramARB");
 #endif
+	
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &textureImageUnitCount);
 	
 	shadersAvailable = YES;
 }
