@@ -89,7 +89,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 	NSString				*macroString = nil;
 	NSString				*vertexShader = nil;
 	NSString				*fragmentShader = nil;
-	GLint					textureUnits;
+	GLint					textureUnits = [[OOOpenGLExtensionManager sharedManager] textureImageUnitCount];
 	NSMutableDictionary		*modifiedMacros = nil;
 	
 	if (configuration == nil)  OK = NO;
@@ -102,7 +102,7 @@ static NSString *MacrosToString(NSDictionary *macros);
 		modifiedMacros = macros ? [macros mutableCopy] : [[NSMutableDictionary alloc] init];
 		[modifiedMacros autorelease];
 		
-		[modifiedMacros setObject:[NSNumber numberWithUnsignedInt:[[OOOpenGLExtensionManager sharedManager] textureImageUnitCount]]
+		[modifiedMacros setObject:[NSNumber numberWithUnsignedInt:textureUnits]
 						   forKey:@"OO_TEXTURE_UNIT_COUNT"];
 		
 		if ([UNIVERSE shaderEffectsLevel] == SHADERS_SIMPLE)

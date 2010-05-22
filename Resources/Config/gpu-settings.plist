@@ -63,7 +63,7 @@
 		smooth_points = "off";	// Point smoothing is not supported in hardware.
 	},
 	{
-		name = "ATI R300 family (fglrx)";
+		name = "ATI R300 family";
 		match =
 		{
 			vendor = "AT[Ii]";
