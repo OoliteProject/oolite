@@ -1631,6 +1631,19 @@ static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
 
 - (void) calculateVertexTangents
 {
+	/*	This is conceptually broken.
+		At the moment, it's calculating one tangent per "input" vertex. It should
+		be calculating one tangent per "real" vertex, where a "real" vertex is
+		defined as a combination of position, normal, material and texture
+		coordinates.
+		Currently, we don't have a format with unique "real" vertices.
+		This basically means explicit-normal models without explicit tangents
+		can't usefully be normal mapped.
+		I don't intend to do anything about this pre-MSNR, although it might be
+		possible to fix it by moving tangent generation to the same stage as
+		smooth-grouped normal generation.
+		-- Ahruman 2010-05-22
+	*/
 	OOUInteger	i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
