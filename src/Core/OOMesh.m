@@ -1479,7 +1479,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 {
 	Vector				calculatedNormal;
 	OOMeshFaceCount		i;
-	OOMeshVertexCount	j;
+	
+	NSParameterAssert(_normalMode != kNormalModeExplicit);
 	
 	for (i = 0; i < faceCount; i++)
 	{
@@ -1487,24 +1488,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		v0 = _vertices[_faces[i].vertex[0]];
 		v1 = _vertices[_faces[i].vertex[1]];
 		v2 = _vertices[_faces[i].vertex[2]];
+		norm = _faces[i].normal;
 		
-		if (_normalMode != kNormalModeExplicit)
-		{
-			norm = _faces[i].normal;
-		}
-		else
-		{
-			/*	Face normal may not exist and is irrelevant anyway; use sum of
-				vertex normals. NB: does not need to be normalized since we're
-				only doing sign checks.
-			*/
-			norm = kZeroVector;
-			for (j = 0; j < 3; j++)
-			{
-				norm = vector_add(norm, _normals[_faces[i].vertex[j]]);
-			}
-		}
-
 		calculatedNormal = normal_to_surface(v2, v1, v0);
 		if (vector_equal(norm, kZeroVector))
 		{
@@ -1574,10 +1559,17 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-static float FaceArea(GLuint *vertIndices, Vector *vertices)
+static float FaceAreaBroken(GLuint *vertIndices, Vector *vertices)
 {
-	// calculate areas using Heron's formula
-	// in the form Area = sqrt(2*(a2*b2+b2*c2+c2*a2)-(a4+b4+c4))/4
+	/*	This is supposed to calculate areas using Heron's formula, but doesn't.
+		(The *0.25 is supposed to be outside the sqrt.) This bug was introduced
+		somewhere between version 1.40 and 1.55, so we can't really fix it at
+		this point.
+		Current plan: replace DAT files with a better format post-MNSR. The
+		format converter will be responsible for any smoothing and can do it
+		right.
+		-- Ahruman 2010-05-22
+	*/
 	float	a2 = distance2(vertices[vertIndices[0]], vertices[vertIndices[1]]);
 	float	b2 = distance2(vertices[vertIndices[1]], vertices[vertIndices[2]]);
 	float	c2 = distance2(vertices[vertIndices[2]], vertices[vertIndices[0]]);
@@ -1594,7 +1586,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 	
 	for (i = 0 ; i < faceCount; i++)
 	{
-		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
+		triangle_area[i] = FaceAreaBroken(_faces[i].vertex, _vertices);
 	}
 	for (i = 0; i < vertexCount; i++)
 	{
@@ -1621,13 +1613,29 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 }
 
 
+static float FaceAreaCorrect(GLuint *vertIndices, Vector *vertices)
+{
+	/*	Calculate area of triangle.
+		The magnitude of the cross product of two vectors is the area of
+		the parallelogram they span. The area of a triangle is half the
+		area of a parallelogram sharing two of its sides.
+		Since we only use the area of the triangle as a weight factor,
+		constant terms are irrelevant, so we don't bother halving the
+		value.
+	*/
+	Vector AB = vector_subtract(vertices[vertIndices[1]], vertices[vertIndices[0]]);
+	Vector AC = vector_subtract(vertices[vertIndices[2]], vertices[vertIndices[0]]);
+	return magnitude(true_cross_product(AB, AC));
+}
+
+
 - (void) calculateVertexTangents
 {
 	OOUInteger	i,j;
 	float	triangle_area[faceCount];
 	for (i = 0 ; i < faceCount; i++)
 	{
-		triangle_area[i] = FaceArea(_faces[i].vertex, _vertices);
+		triangle_area[i] = FaceAreaCorrect(_faces[i].vertex, _vertices);
 	}
 	for (i = 0; i < vertexCount; i++)
 	{
@@ -1663,7 +1671,7 @@ static float FaceArea(GLuint *vertIndices, Vector *vertices)
 		{
 			if ((_faces[j].vertex[0] == v_index)||(_faces[j].vertex[1] == v_index)||(_faces[j].vertex[2] == v_index))
 			{
-				float area = FaceArea(_faces[j].vertex, _vertices);
+				float area = FaceAreaBroken(_faces[j].vertex, _vertices);
 				normal_sum = vector_add(normal_sum, vector_multiply_scalar(_faces[j].normal, area));
 				tangent_sum = vector_add(tangent_sum, vector_multiply_scalar(_faces[j].tangent, area));
 			}
