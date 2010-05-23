@@ -44,7 +44,7 @@
 		{
 			vendor = "NVIDIA";
 			//	"GeForce 5###" or "NV3#MAP".
-			renderer = "GeForce.*5\\d{3}(?!\\d)|NV3\\dMAP";
+			renderer = "GeForce.*\\b5\\d{3}(?!\\d)|NV3\\dMAP";
 		};
 		default_shader_level = "SHADERS_SIMPLE";
 	},
