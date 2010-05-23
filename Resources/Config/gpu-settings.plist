@@ -57,7 +57,7 @@
 				Mesa drivers use the chipset number (which may start with 8)
 				rather than the graphics engine number.
 			*/
-			renderer = "(Intel|GMA).*\b[89]\\d{2}(?!\\d)";
+			renderer = "(Intel|GMA).*\\b[89]\\d{2}(?!\\d)";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 		smooth_points = "off";	// Point smoothing is not supported in hardware.
