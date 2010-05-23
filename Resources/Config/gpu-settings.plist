@@ -67,7 +67,7 @@
 		match =
 		{
 			vendor = "AT[Ii]";
-			renderer = "/\\bR[VSC]?[34]\\d\\d(?!\\d)/";
+			renderer = "/\\bR(V?3|[CSV]4)\\d\\d(?!\\d)/";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 	},
@@ -76,7 +76,7 @@
 		match =
 		{
 			vendor = "DRI R300 Project";
-			renderer = "Mesa DRI R300 \\(R[VSC]?[34]";
+			renderer = "Mesa DRI R300 \\(R(V?3|[CSV]4)";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 		// Anti-aliased lines are done in software.
@@ -89,7 +89,7 @@
 		match =
 		{
 			vendor = "X\\.Org R300 Project";
-			renderer = "Gallium .* on R[VSC]?[34]";
+			renderer = "Gallium .* on R(V?3|[CSV]4)";
 		};
 		maximum_shader_level = "SHADERS_SIMPLE";
 		// Anti-aliased lines & points are not implemented.
