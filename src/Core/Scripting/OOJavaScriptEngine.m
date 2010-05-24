@@ -1186,18 +1186,18 @@ const char *JSValueTypeDbg(jsval val)
 	BOOL					isFloat = NO;
 	long long				longLongValue;
 	
-	if (self == [NSNumber numberWithBool:YES])
+#if 1
+	/*	Under GNUstep, it is not possible to distinguish between boolean
+		NSNumbers and integer NSNumbers - there is no such distinction.
+		It is better to convert booleans to integers than vice versa.
+	*/
+	if ([self oo_isBoolean])
 	{
-		/*	Under OS X, at least, numberWithBool: returns one of two singletons.
-			There is no other way to reliably identify a boolean NSNumber.
-			Fun, eh? */
-		result = JSVAL_TRUE;
-	}
-	else if (self == [NSNumber numberWithBool:NO])
-	{
-		result = JSVAL_FALSE;
+		if ([self boolValue])  result = JSVAL_TRUE;
+		else  result = JSVAL_FALSE;
 	}
 	else
+#endif
 	{
 		isFloat = [self oo_isFloatingPointNumber];
 		if (!isFloat)
