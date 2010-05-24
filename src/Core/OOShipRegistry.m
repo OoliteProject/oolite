@@ -497,7 +497,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			if ([reportedBadShips count] != 0)
 			{
 				[reportedBadShips sortUsingSelector:@selector(caseInsensitiveCompare:)];
-				OOLog(@"shipData.merge.failed", @"***** ERROR: one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", [reportedBadShips componentsJoinedByString:@", "]);
+				OOLogERR(@"shipData.merge.failed", @"one or more shipdata.plist entries have like_ship references that cannot be resolved: %@", [reportedBadShips componentsJoinedByString:@", "]);
 			}
 			break;
 		}
@@ -576,7 +576,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		shipEntry = [ioData objectForKey:shipKey];
 		if (![shipEntry isKindOfClass:[NSDictionary class]])
 		{
-			OOLog(@"shipData.load.badEntry", @"***** ERROR: the shipdata.plist entry \"%@\" is not a dictionary.", shipKey);
+			OOLogERR(@"shipData.load.badEntry", @"the shipdata.plist entry \"%@\" is not a dictionary.", shipKey);
 			[ioData removeObjectForKey:shipKey];
 		}
 		else
@@ -613,7 +613,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			overridesEntry = [overrides objectForKey:shipKey];
 			if (![overridesEntry isKindOfClass:[NSDictionary class]])
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata-overrides.plist entry \"%@\" is not a dictionary.", shipKey);
+				OOLogERR(@"shipData.load.error", @"the shipdata-overrides.plist entry \"%@\" is not a dictionary.", shipKey);
 			}
 			else
 			{
@@ -706,7 +706,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		}
 		else
 		{
-			OOLog(@"shipData.load.shipyard.unknown", @"----- WARNING: the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
+			OOLogWARN(@"shipData.load.shipyard.unknown", @"the shipyard.plist entry \"%@\" does not have a corresponding shipdata.plist entry, ignoring.", shipKey);
 		}
 	}
 	
@@ -796,7 +796,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 				if (![shipEntry oo_boolForKey:@"is_external_dependency"])
 				{
 					badSubentitiesList = [[[badSubentities allObjects] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)] componentsJoinedByString:@", "];
-					OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
+					OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" has unresolved subentit%@ %@.", shipKey, ([badSubentities count] == 1) ? @"y" : @"ies", badSubentitiesList);
 				}
 				remove = YES;
 			}
@@ -830,7 +830,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		if ([shipEntry oo_boolForKey:@"is_template"] || [shipEntry oo_boolForKey:@"_oo_deferred_remove"])  remove = YES;
 		else if ([[shipEntry oo_stringForKey:@"roles"] length] == 0 && ![shipEntry oo_boolForKey:@"_oo_is_subentity"])
 		{
-			OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
+			OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"roles");
 			remove = YES;
 		}
 		else
@@ -838,12 +838,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			modelName = [shipEntry oo_stringForKey:@"model"];
 			if ([modelName length] == 0)
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
+				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies no %@.", shipKey, @"model");
 				remove = YES;
 			}
 			else if ([ResourceManager pathForFileNamed:modelName inFolder:@"Models"] == nil)
 			{
-				OOLog(@"shipData.load.error", @"***** ERROR: the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName, @"model");
+				OOLogERR(@"shipData.load.error", @"the shipdata.plist entry \"%@\" specifies non-existent model \"%@\".", shipKey, modelName, @"model");
 				remove = YES;
 			}
 		}
@@ -890,7 +890,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			}
 			else
 			{
-				OOLog(@"shipdata.load.warning", @"----- WARNING: conditions for shipdata.plist entry \"%@\" are not an array, ignoring.", shipKey);
+				OOLogWARN(@"shipdata.load.warning", @"conditions for shipdata.plist entry \"%@\" are not an array, ignoring.", shipKey);
 				conditions = nil;
 			}
 			
@@ -929,7 +929,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 			}
 			else
 			{
-				OOLog(@"shipdata.load.warning", @"----- WARNING: conditions for shipyard.plist entry \"%@\" are not an array, ignoring.", shipKey);
+				OOLogWARN(@"shipdata.load.warning", @"conditions for shipyard.plist entry \"%@\" are not an array, ignoring.", shipKey);
 				shipyardConditions = nil;
 			}
 			
@@ -987,7 +987,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		if (mesh == nil)
 		{
 			// FIXME: what if it's a subentity? Need to rearrange things.
-			OOLog(@"shipData.load.error", @"***** ERROR: model \"%@\" could not be loaded for ship \"%@\", removing.", modelName, shipKey);
+			OOLogERR(@"shipData.load.error", @"model \"%@\" could not be loaded for ship \"%@\", removing.", modelName, shipKey);
 			[ioData removeObjectForKey:shipKey];
 		}
 	}
@@ -1062,7 +1062,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	else
 	{
-		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ should be string or dictionary, found %@.", shipKey, [declaration class]);
+		OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ should be string or dictionary, found %@.", shipKey, [declaration class]);
 		*outFatalError = YES;
 	}
 	
@@ -1092,12 +1092,12 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	{
 		if (!isFlasher)
 		{
-			OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subentityKey, [tokens count]);
+			OOLogERR(@"shipData.load.error.badSubentity", @"the shipdata.plist entry \"%@\" has a broken subentity definition \"%@\" (should have 8 tokens, has %u).", shipKey, subentityKey, [tokens count]);
 			*outFatalError = YES;
 		}
 		else
 		{
-			OOLog(@"shipData.load.warning.badFlasher", @"----- WARNING: the shipdata.plist entry \"%@\" has a broken flasher definition \"%@\" (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, subentityKey, [tokens count]);
+			OOLogWARN(@"shipData.load.warning.badFlasher", @"the shipdata.plist entry \"%@\" has a broken flasher definition (should have 8 tokens, has %u). This flasher will be ignored.", shipKey, [tokens count]);
 		}
 		return nil;
 	}
@@ -1180,7 +1180,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	if(orientation.w == 0 && orientation.x == 0 && orientation.y == 0 && orientation.z == 0) 
 	{
 		orientation.w = 1; // avoid dividing by zero.
-		OOLog(@"shipData.load.error", @"***** ERROR: The ship %@ has an undefined orientation for its %@ subentity. Setting it now at (1,0,0,0)", shipKey, subentityKey);
+		OOLogWARN(@"shipData.load.error", @"The ship %@ has an undefined orientation for its %@ subentity. Setting it now at (1,0,0,0)", shipKey, subentityKey);
 	}
 	
 	quaternion_normalize(&orientation);
@@ -1222,7 +1222,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	}
 	else
 	{
-		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ does not declare a valid type (must be standard, flasher or ball_turret).", shipKey);
+		OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ does not declare a valid type (must be standard, flasher or ball_turret).", shipKey);
 		*outFatalError = YES;
 		return nil;
 	}
@@ -1255,7 +1255,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	
 	if (size <= 0)
 	{
-		OOLog(@"shipData.load.warning.flasher.badSize", @"----- WARNING: skipping flasher of invalid size %g for ship %@.", size, shipKey);
+		OOLogWARN(@"shipData.load.warning.flasher.badSize", @"skipping flasher of invalid size %g for ship %@.", size, shipKey);
 		return nil;
 	}
 	
@@ -1292,7 +1292,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 	subentityKey = [declaration objectForKey:@"subentity_key"];
 	if (subentityKey == nil)
 	{
-		OOLog(@"shipData.load.error.badSubentity", @"***** ERROR: subentity declaration for ship %@ specifies no subentity_key.", shipKey);
+		OOLogERR(@"shipData.load.error.badSubentity", @"subentity declaration for ship %@ specifies no subentity_key.", shipKey);
 		*outFatalError = YES;
 		return nil;
 	}
@@ -1303,7 +1303,7 @@ static NSString * const	kDefaultDemoShip = @"coriolis-station";
 		fireRate = [declaration oo_floatForKey:@"fire_rate" defaultValue:0.5f];
 		if (fireRate < 0.25f)
 		{
-			OOLog(@"shipData.load.warning.turret.badFireRate", @"----- WARNING: ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
+			OOLogWARN(@"shipData.load.warning.turret.badFireRate", @"ball turret fire rate of %g for subenitity of ship %@ is invalid, using 0.25.", fireRate, shipKey);
 			fireRate = 0.25f;
 		}
 	}
