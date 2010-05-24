@@ -27,7 +27,7 @@ SOFTWARE.
 
 */
 
-#import "OOCocoa.h"
+#import <Foundation/Foundation.h>
 
 
 @interface NSNumber (OOExtensions)
