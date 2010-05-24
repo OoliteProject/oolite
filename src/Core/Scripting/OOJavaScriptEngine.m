@@ -1186,7 +1186,7 @@ const char *JSValueTypeDbg(jsval val)
 	BOOL					isFloat = NO;
 	long long				longLongValue;
 	
-#if 1
+#if 0
 	/*	Under GNUstep, it is not possible to distinguish between boolean
 		NSNumbers and integer NSNumbers - there is no such distinction.
 		It is better to convert booleans to integers than vice versa.
