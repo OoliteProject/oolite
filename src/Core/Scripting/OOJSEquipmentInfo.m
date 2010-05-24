@@ -150,7 +150,11 @@ NSString *JSValueToEquipmentKey(JSContext *context, jsval value)
 }
 
 
+#if OOJSEQ_DEPRECATED_DAMAGED
+NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists, BOOL *outDamaged, NSString *scriptClass, NSString *function, uintN argc, jsval *argv)
+#else
 NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists)
+#endif
 {
 	NSString *result = nil;
 	BOOL exists = NO;
@@ -163,12 +167,25 @@ NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *ou
 	}
 	else if ([objValue isKindOfClass:[NSString class]])
 	{
-		// To enforce deliberate backwards incompatibility, reject strings ending with _DAMAGED unless someone actually named an equip that way.
+		/*	To enforce deliberate backwards incompatibility, reject strings
+			ending with _DAMAGED unless someone actually named an equip that
+			way.
+		 */
 		exists = [OOEquipmentType equipmentTypeWithIdentifier:objValue] != nil;
 		if (exists || ![objValue hasSuffix:@"_DAMAGED"])
 		{
 			result = objValue;
 		}
+#if OOJSEQ_DEPRECATED_DAMAGED
+		else
+		{
+			result = objValue;
+			NSString *baseKey = [result substringToIndex:[result length] - [@"_DAMAGED" length]];
+			exists = [OOEquipmentType equipmentTypeWithIdentifier:baseKey] != nil;
+			
+			OOReportJSWarningForCaller(context, scriptClass, function, @"The use of _DAMAGED equipment keys in JavaScript is deprecated and will be disabled in an upcoming version of Oolite. Equipment items should only be referred to using the base equipment key or the corresponding EquipmentInfo object. To query or manipulate equipment damage, use eqipment.equipmentStatus() and equipment.setEquipmentStatus().");
+		}
+#endif
 	}
 	
 	if (outExists != NULL)  *outExists = exists;

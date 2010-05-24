@@ -1501,12 +1501,23 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
+#if OOJSEQ_DEPRECATED_DAMAGED
+	BOOL damaged;
+	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists, &damaged, @"Ship", @"canAwardEquipment", argc, argv);
+	if (key == nil)  return NO;
+	if (damaged)
+	{
+		*outResult = JSVAL_FALSE;
+		return YES;
+	}
+#else
 	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
+#endif
 	
 	if (exists)
 	{
@@ -1551,12 +1562,23 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
+#if OOJSEQ_DEPRECATED_DAMAGED
+	BOOL damaged;
+	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists, &damaged, @"Ship", @"hasEquipment", argc, argv);
+	if (key == nil)  return NO;
+	if (damaged)
+	{
+		*outResult = JSVAL_FALSE;
+		return YES;
+	}
+#else
 	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
+#endif
 	
 	if (argc > 1)
 	{
@@ -1571,7 +1593,16 @@ static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, j
 	{
 		result = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
 		if (!result)  result = [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons];
+		if (!result)  result = [thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]
+										  includeWeapons:includeWeapons];
 	}
+	
+#if 0// OOJSEQ_DEPRECATED_DAMAGED
+	if (damaged && result)
+	{
+		result = [thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]];
+	}
+#endif
 	
 	*outResult = BOOLToJSVal(result);
 	return YES;

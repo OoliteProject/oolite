@@ -39,8 +39,25 @@ void InitOOJSEquipmentInfo(JSContext *context, JSObject *global);
 	equipment keys.
 	JSValueToEquipmentKeyRelaxed() will return any string that does not end
 	with _DAMAGED.
+	
+	TEMP DEPRECATED: in order to issue deprecation warnings for the use of
+	_DAMAGED, JSValueToEquipmentKeyRelaxed takes error locus parameters and
+	returns a flag indicating the existence of _DAMAGED by reference. This
+	stuff will be removed later. Until then, callers of
+	JSValueToEquipmentKeyRelaxed() should not report errors, just return NO
+	on failure.
  */
 OOEquipmentType *JSValueToEquipmentType(JSContext *context, jsval value);
 NSString *JSValueToEquipmentKey(JSContext *context, jsval value);
 
+#define OOJSEQ_DEPRECATED_DAMAGED 1
+
+#if OOJSEQ_DEPRECATED_DAMAGED
+
+NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists, BOOL *outDamaged, NSString *scriptClass, NSString *function, uintN argc, jsval *argv);
+
+#else
+
 NSString *JSValueToEquipmentKeyRelaxed(JSContext *context, jsval value, BOOL *outExists);
+
+#endif
