@@ -329,6 +329,8 @@
 	ship.escort.accept						= inherit;
 	ship.escort.reject						= inherit;
 	
+	ship.setUp.missiles.compatibilityFallback = no;					// Warning when generating a synthetic equipment.plist entry for missiles. Disabled because lots of OXPs predating the issue trigger it.
+	
 	shipData.load.shipyard.unknown			= yes;					// Warning for when shipyard.plist entries do not have matching shipdata.plist entry.
 	shipData.load.begin						= yes;
 	shipData.load.done						= no;

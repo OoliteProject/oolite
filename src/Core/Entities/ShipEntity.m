@@ -2442,7 +2442,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (missile == nil)
 		{
 			if (missileRole != nil)
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using 'thargoid' instead.");
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using 'thargoid' instead.");
 			missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
 		}
 	}
@@ -2457,7 +2457,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		if (missile == nil)	// no valid missile role defined?
 		{
 			if (chance < 0.9f && missileRole != nil)
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using defaults instead.");
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using defaults instead.");
 			// In unrestricted mode, random role 20% of the time (the 10% excluded from the check above is overridden here)
 			// In strict mode, use the standard missile role 100% of the time! 
 			if (chance > 0.8f && ![UNIVERSE strict]) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
@@ -2493,7 +2493,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
 			if (missileType == nil)
 			{
-				OOLogWARN(@"ship.setUp.missiles", @"Missile '%@': no role with valid %@.plist entry found in shipdata.plist. Enabling compatibility mode using '%@' as its fallback equipment identifier.", role, @"equipment", role);
+				OOLogWARN(@"ship.setUp.missiles.compatibilityFallback", @"Missile \"%@\": no role with valid %@.plist entry found in shipdata.plist. Enabling compatibility mode using \"%@\" as its fallback equipment identifier.", role, @"equipment", role);
 			}
 		}
 		else
@@ -2502,12 +2502,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			if ([UNIVERSE strict])
 			{
 				// In restricted mode, only thargons and EQ_MISSILEs are permitted. If we're here, something's wrong....
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' cannot be used in restricted mode. Using 'EQ_MISSILE' instead.", role, [self name]);
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" cannot be used in restricted mode. Using 'EQ_MISSILE' instead.", role, [self name]);
 				missileType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
 			}
 			else
 			{
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
+				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
 			}
 		}
 		if (missileType == nil) missileType = [self generateMissileEquipmentTypeFrom:role];
@@ -2519,7 +2519,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		OOLogWARN(@"ship.setUp.missiles", @"missile_role '%@' used in ship '%@' is not a valid missile or mine type.%@", missileType, [self name],@" No missile selected.");
+		OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" is not a valid missile or mine type.%@", missileType, [self name],@" No missile selected.");
 		return nil;
 	}
 }
@@ -9329,7 +9329,7 @@ static BOOL AuthorityPredicate(Entity *entity, void *parameter)
 	
 	if ([tokens count] != 2)
 	{
-		OOLog(kOOLogSyntaxAddShips, @"***** Could not spawn: '%@' (must be two tokens, role and number)",roles_number);
+		OOLog(kOOLogSyntaxAddShips, @"***** Could not spawn: \"%@\" (must be two tokens, role and number)",roles_number);
 		return;
 	}
 	
