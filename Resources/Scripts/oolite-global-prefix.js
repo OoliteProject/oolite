@@ -221,6 +221,24 @@ Planet.__proto__.setTexture = function (texture)
 	this.texture = texture;
 };
 
+
+Ship.__proto__.hasEquipment = function (eqKey)
+{
+	var actualKey = eqKey;
+	var expectedStatus = "EQUIPMENT_OK";
+	
+	// Handle _DAMAGED keys.
+	if (/.*_DAMAGED$/.test(eqKey) && EquipmentInfo.infoForKey(eqKey) == null)
+	{
+		expectedStatus = "EQUIPMENT_DAMAGED";
+		actualKey = eqKey.slice(0, -8);
+	}
+	
+	special.jsWarning("Ship.hasEquipment(\"" + eqKey + "\") is deprecated, use ship.equipmentStatus(\"" + actualKey + "\") == \"" + expectedStatus + "\" instead.");
+	
+	return this.equipmentStatus(actualKey) == expectedStatus;
+}
+
 // Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity
 
 

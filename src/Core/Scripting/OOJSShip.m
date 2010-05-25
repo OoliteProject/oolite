@@ -73,7 +73,6 @@ static JSBool ShipAbandonShip(JSContext *context, JSObject *this, uintN argc, js
 static JSBool ShipAddPassenger(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipRemoveEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -288,7 +287,6 @@ static JSFunctionSpec sShipMethods[] =
 	{ "remove",					ShipRemove,					0 },
 	{ "commsMessage",			ShipCommsMessage,			1 },
 	{ "fireECM",				ShipFireECM,				0 },
-	{ "hasEquipment",			ShipHasEquipment,			1 },
 	{ "abandonShip",			ShipAbandonShip,			0 },
 	{ "addPassenger",			ShipAddPassenger,			0 },
 	{ "awardContract",			ShipAwardContract,			0 },
@@ -1501,23 +1499,12 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-#if OOJSEQ_DEPRECATED_DAMAGED
-	BOOL damaged;
-	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists, &damaged, @"Ship", @"canAwardEquipment", argc, argv);
-	if (key == nil)  return NO;
-	if (damaged)
-	{
-		*outResult = JSVAL_FALSE;
-		return YES;
-	}
-#else
 	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"canAwardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
-#endif
 	
 	if (exists)
 	{
@@ -1545,64 +1532,6 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 		result = NO;
 	}
 
-	
-	*outResult = BOOLToJSVal(result);
-	return YES;
-}
-
-
-// hasEquipment(type : equipmentInfoExpression [, includeWeapons : Boolean]) : Boolean
-static JSBool ShipHasEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	ShipEntity					*thisEnt = nil;
-	NSString					*key = nil;
-	JSBool						includeWeapons = YES;
-	BOOL						result = NO;
-	BOOL						exists;
-	
-	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
-	
-#if OOJSEQ_DEPRECATED_DAMAGED
-	BOOL damaged;
-	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists, &damaged, @"Ship", @"hasEquipment", argc, argv);
-	if (key == nil)  return NO;
-	if (damaged)
-	{
-		*outResult = JSVAL_FALSE;
-		return YES;
-	}
-#else
-	key = JSValueToEquipmentKeyRelaxed(context, argv[0], &exists);
-	if (EXPECT_NOT(key == nil))
-	{
-		OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc, argv, nil, @"equipment type");
-		return NO;
-	}
-#endif
-	
-	if (argc > 1)
-	{
-		if (EXPECT_NOT(!JS_ValueToBoolean(context, argv[1], &includeWeapons)))
-		{
-			OOReportJSBadArguments(context, @"Ship", @"hasEquipment", argc - 1, argv + 1, nil, @"boolean");
-			return NO;
-		}
-	}
-	
-	if (exists)
-	{
-		result = [key isEqualToString:@"EQ_PASSENGER_BERTH"] && [thisEnt passengerCapacity] > 0;
-		if (!result)  result = [thisEnt hasEquipmentItem:key includeWeapons:includeWeapons];
-		if (!result)  result = [thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]
-										  includeWeapons:includeWeapons];
-	}
-	
-#if 0// OOJSEQ_DEPRECATED_DAMAGED
-	if (damaged && result)
-	{
-		result = [thisEnt hasEquipmentItem:[key stringByAppendingString:@"_DAMAGED"]];
-	}
-#endif
 	
 	*outResult = BOOLToJSVal(result);
 	return YES;

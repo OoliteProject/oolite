@@ -2197,13 +2197,13 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		(
 			100, 100000, "Missile",
 			"EQ_X_MISSILE",
-			"Unidentified Missile Type.",
+			"Unidentified missile type.",
 			{
 				is_external_store = true;
 			}
 		)
 	*/
-	NSArray  *itemInfo = [NSArray arrayWithObjects:@"100", @"100000", @"Missile", role, @"Unidentified Missile Type.",
+	NSArray  *itemInfo = [NSArray arrayWithObjects:@"100", @"100000", @"Missile", role, @"Unidentified missile type.",
 							[NSDictionary dictionaryWithObjectsAndKeys: @"true", @"is_external_store", nil], nil];
 	
 	[OOEquipmentType addEquipmentWithInfo:itemInfo];
