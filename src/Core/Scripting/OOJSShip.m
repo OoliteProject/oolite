@@ -170,14 +170,14 @@ enum
 	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
 	kShip_missileCapacity,		// max missiles capacity, integer, read-only
 	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
-	kShip_equipment,			// the ship's equipment, array of type:equpmentType, isDamaged:bool, read only
+	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
 	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read only
 	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read only
 	kShip_portWeapon,			// the ship's port weapon, equipmentType, read only
 	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
 	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
-	kShip_contracts,				// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
 	kShip_maxThrust,			// maximum thrust, double, read-only
@@ -1207,11 +1207,11 @@ static JSBool ShipExplode(JSContext *context, JSObject *this, uintN argc, jsval 
 }
 
 
-// remove()
+// remove([suppressDeathEvent : Boolean = false])
 static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	JSBool					removeDeathActions = NO;
+	JSBool					suppressDeathEvent = NO;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))  return YES;	// stale reference, no-op.
 	
@@ -1221,17 +1221,16 @@ static JSBool ShipRemove(JSContext *context, JSObject *this, uintN argc, jsval *
 		return NO;
 	}
 	
-	if ( argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &removeDeathActions)))
+	if ( argc > 0 && EXPECT_NOT(!JS_ValueToBoolean(context, argv[0], &suppressDeathEvent)))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"remove", argc, argv, nil, @"boolean");
 		return NO;
 	}
 
-	[thisEnt doScriptEvent:@"shipRemoved" withArgument:[NSNumber numberWithBool:removeDeathActions]];
+	[thisEnt doScriptEvent:@"shipRemoved" withArgument:[NSNumber numberWithBool:suppressDeathEvent]];
 
-	if (removeDeathActions)
+	if (suppressDeathEvent)
 	{
-		//OOReportJSWarning(context, @"Ship.remove(): all death actions will now be removed from %@", thisEnt);
 		[thisEnt removeScript];
 	}
 	return RemoveOrExplodeShip(context, this, argc, argv, outResult, NO);
@@ -1304,38 +1303,6 @@ static JSBool ShipFireECM(JSContext *context, JSObject *this, uintN argc, jsval 
 		OOReportJSWarning(context, @"Ship %@ was requested to fire ECM burst but does not carry ECM equipment.", thisEnt);
 	}
 	*outResult = BOOLToJSVal(OK);
-	return YES;
-}
-
-
-static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode)
-{
-	ShipEntity				*thisEnt = nil;
-	
-	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
-	
-	if ([thisEnt isPlayer])
-	{
-		PlayerEntity *player = (PlayerEntity *)thisEnt;
-		assert(explode);	// Handled by caller.
-		
-		if ([player isDocked])
-		{
-			OOReportJSError(context, @"Cannot explode() player's ship while docked.");
-			return NO;
-		}
-	}
-	
-	if (thisEnt == (ShipEntity *)[UNIVERSE station])
-	{
-		// Allow exploding of main station (e.g. nova mission)
-		[UNIVERSE unMagicMainStation];
-	}
-	
-	[thisEnt setSuppressExplosion:!explode];
-	[thisEnt setEnergy:1];
-	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
-	
 	return YES;
 }
 
@@ -1454,36 +1421,6 @@ static JSBool ShipAwardContract(JSContext *context, JSObject *this, uintN argc, 
 	}
 	
 	*outResult = BOOLToJSVal(OK);
-	return YES;
-}
-
-static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo)
-{
-	unsigned		offset = isCargo ? 2 : 1;
-	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
-	jsdouble		fValue;
-	
-	if (!JSVAL_IS_INT(argv[offset]) || JSVAL_TO_INT(argv[offset]) > 255 || JSVAL_TO_INT(argv[offset]) < 0)
-	{
-		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"start:system ID");
-		return NO;
-	}
-	if (!JSVAL_IS_INT(argv[offset + 1]) || JSVAL_TO_INT(argv[offset +1]) > 255 || JSVAL_TO_INT(argv[offset +1]) < 0)
-	{
-		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"destination:system ID");
-		return NO;
-	}
-	if(!JS_ValueToNumber(context, argv[offset + 2], &fValue) || fValue <= [[PlayerEntity sharedPlayer] clockTime])
-	{
-		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"eta:future time");
-		return NO;
-	}
-	if (!JS_ValueToNumber(context, argv[offset + 3], &fValue) || fValue <= 0.0)
-	{
-		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"fee:credits");
-		return NO;
-	}
-
 	return YES;
 }
 
@@ -1930,5 +1867,68 @@ static JSBool ShipExitSystem(JSContext *context, JSObject *this, uintN argc, jsv
 	
 	*outResult = BOOLToJSVal(OK);
 
+	return YES;
+}
+
+
+static BOOL RemoveOrExplodeShip(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL explode)
+{
+	ShipEntity				*thisEnt = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	
+	if ([thisEnt isPlayer])
+	{
+		PlayerEntity *player = (PlayerEntity *)thisEnt;
+		assert(explode);	// Handled by caller.
+		
+		if ([player isDocked])
+		{
+			OOReportJSError(context, @"Cannot explode() player's ship while docked.");
+			return NO;
+		}
+	}
+	
+	if (thisEnt == (ShipEntity *)[UNIVERSE station])
+	{
+		// Allow exploding of main station (e.g. nova mission)
+		[UNIVERSE unMagicMainStation];
+	}
+	
+	[thisEnt setSuppressExplosion:!explode];
+	[thisEnt setEnergy:1];
+	[thisEnt takeEnergyDamage:500000000.0 from:nil becauseOf:nil];
+	
+	return YES;
+}
+
+
+static BOOL ValidateContracts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult, BOOL isCargo)
+{
+	unsigned		offset = isCargo ? 2 : 1;
+	NSString		*functionName = isCargo ? @"awardContract" : @"addPassenger";
+	jsdouble		fValue;
+	
+	if (!JSVAL_IS_INT(argv[offset]) || JSVAL_TO_INT(argv[offset]) > 255 || JSVAL_TO_INT(argv[offset]) < 0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"start:system ID");
+		return NO;
+	}
+	if (!JSVAL_IS_INT(argv[offset + 1]) || JSVAL_TO_INT(argv[offset +1]) > 255 || JSVAL_TO_INT(argv[offset +1]) < 0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"destination:system ID");
+		return NO;
+	}
+	if(!JS_ValueToNumber(context, argv[offset + 2], &fValue) || fValue <= [[PlayerEntity sharedPlayer] clockTime])
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"eta:future time");
+		return NO;
+	}
+	if (!JS_ValueToNumber(context, argv[offset + 3], &fValue) || fValue <= 0.0)
+	{
+		OOReportJSBadArguments(context, @"Ship", functionName, argc, argv, nil, @"fee:credits");
+		return NO;
+	}
+	
 	return YES;
 }

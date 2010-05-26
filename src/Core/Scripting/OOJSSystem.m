@@ -755,21 +755,21 @@ static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, js
 }
 
 
-// addShips(role : String, count : Number[,  position: Vector][, radius: Number])
+// addShips(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
 static JSBool SystemAddShips(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	return AddShipsOrGroup(context, this, argc, argv, outResult, NO);
 }
 
 
-// addGroup(role : String, count : Number[,  position: Vector][, radius: Number])
+// addGroup(role : String, count : Number [, position: Vector [, radius: Number]]) : Array
 static JSBool SystemAddGroup(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	return AddShipsOrGroup(context, this, argc, argv, outResult, YES);
 }
 
 
-// addShipsToRoute(role : String, count : Number,[ , position: Number]  [, route: String])
+// addShipsToRoute(role : String, count : Number [, position: Number [, route: String]])
 static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	NSString			*role = nil;
@@ -817,7 +817,7 @@ static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN ar
 		route = [route lowercaseString];
 	}
 
-	// Note: the use of witchspace-in effects (as in legacy_addShips). depends on proximity to the witchpoint.	
+	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.	
 	result = [UNIVERSE addShipsToRoute:route withRole:role quantity:count routeFraction:where asGroup:isGroup];
 	
 	if (isGroup && result != nil)

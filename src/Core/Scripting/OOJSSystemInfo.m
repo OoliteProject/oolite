@@ -93,7 +93,7 @@ static JSFunctionSpec sSystemInfoMethods[] =
 	// JS name					Function					min args
 	{ "toString",				JSObjectWrapperToString,	0 },
 	{ "distanceToSystem",		SystemInfoDistanceToSystem,	1 },
-	{ "routeToSystem",		SystemInfoRouteToSystem,	1 },
+	{ "routeToSystem",			SystemInfoRouteToSystem,	1 },
 	{ 0 }
 };
 
