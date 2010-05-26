@@ -31,6 +31,8 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "OOConstToString.h"
 #import "OOCollectionExtractors.h"
+#import "OOTexture.h"
+#import "GuiDisplayGen.h"
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
@@ -58,6 +60,8 @@ static JSBool GlobalExpandMissionText(JSContext *context, JSObject *this, uintN 
 static JSBool GlobalDisplayNameForCommodity(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomName(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSClass sGlobalClass =
@@ -104,6 +108,8 @@ static JSFunctionSpec sGlobalMethods[] =
 	{ "displayNameForCommodity", GlobalDisplayNameForCommodity,	1 },
 	{ "randomName",				GlobalRandomName,				0 },
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
+	{ "setScreenBackground",	GlobalSetScreenBackground,			1 },
+	{ "setScreenOverlay",		GlobalSetScreenOverlay,			1 },
 	{ 0 }
 };
 
@@ -311,6 +317,38 @@ static JSBool GlobalRandomInhabitantsDescription(JSContext *context, JSObject *t
 	make_pseudo_random_seed(&aSeed);
 	string = [UNIVERSE generateSystemInhabitants:aSeed plural:isPlural];
 	*outResult = [string javaScriptValueInContext:context];
+	
+	return YES;
+}
+
+
+// setScreenBackground(name : String) : Boolean
+static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = JSVAL_FALSE;
+	NSString 		*value = JSValToNSString(context, argv[0]);
+	PlayerEntity	*player = OOPlayerForScripting();
+	
+	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
+	{
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:value inFolder:@"Images"]]);
+		// add some permanence to the override if we're in the equip ship screen
+		if (*outResult == JSVAL_TRUE && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP) [player setTempBackground:value];
+	}
+	
+	return YES;
+}
+
+
+// setScreenOverlay(name : String) : Boolean
+static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	*outResult = JSVAL_FALSE;
+	
+	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
+	{
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:JSValToNSString(context, argv[0]) inFolder:@"Images"]]);
+	}
 	
 	return YES;
 }
