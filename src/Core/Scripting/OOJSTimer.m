@@ -60,7 +60,7 @@ static JSClass sTimerClass;
 	{
 		context = [[OOJavaScriptEngine sharedEngine] acquireContext];
 		
-		NSAssert(JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
+		NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to init OOJSTimer with a function that isn't.");
 		
 		_jsThis = jsThis;
 		OO_AddJSGCRoot(context, &_jsThis, "OOJSTimer this");
@@ -135,7 +135,7 @@ static JSClass sTimerClass;
 	JSContext				*context = NULL;
 	NSString				*description = nil;
 	
-	// stop and remove the timer if _jsThis (the first parameter in the constructor) goes out of scope.
+	// stop and remove the timer if _jsThis (the first parameter in the constructor) dies.
 	object = JSObjectToObject(context, _jsThis);
 	if (object != nil)
 	{

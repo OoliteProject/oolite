@@ -422,7 +422,6 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	jsval				value = JSVAL_NULL;
 	jsval				noWarning = [@"noWarning" javaScriptValueInContext:context];
 	JSObject			*params = JS_NewObject(context, NULL, NULL, NULL);
-	NSString			*str = nil;
 	
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
@@ -462,58 +461,49 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		}
 	}
 	
-	str=@"title";
-	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+	if (JS_GetProperty(context, params, "title", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 	{
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
 	}
 	else
 	{
-		str=@"titleKey";
-		if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+		if (JS_GetProperty(context, params, "titleKey", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		{
-			str = [[UNIVERSE missiontext] oo_stringForKey:JSValToNSString(context, value)];
-			str = ExpandDescriptionForCurrentSystem(str);
-			str = [player replaceVariablesInString:str];
-			[player setMissionTitle:str];
+			NSString *titleKey = [[UNIVERSE missiontext] oo_stringForKey:JSValToNSString(context, value)];
+			titleKey = ExpandDescriptionForCurrentSystem(titleKey);
+			titleKey = [player replaceVariablesInString:titleKey];
+			[player setMissionTitle:titleKey];
 		}
 	}
 	
-	str=@"music";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, "music", &value))
 		MissionSetMusic(context, this, 1, &value, &noWarning);
 	
 	// Make sure the overlay is not set! (could be set as legacy script's 'background')
 	value = JSVAL_NULL;
 	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
 	
-	str=@"overlay";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, "overlay", &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_foreground), &value);
 	
-	str=@"model";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, "model", &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_3DModel), &value);
 	
-	str=@"background";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, "background", &value))
 		MissionSetProperty(context, this, INT_TO_JSVAL(kMission_background), &value);
 	
 	sCallbackFunction = function;
 	[player setGuiToMissionScreenWithCallback:!JSVAL_IS_NULL(sCallbackFunction)];
 		
-	str=@"message";
-	if (JS_GetProperty(context, params, [str UTF8String], &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
+	if (JS_GetProperty(context, params, "message", &value) && !JSVAL_IS_NULL(value) && !JSVAL_IS_VOID(value))
 		[player addLiteralMissionText: JSValToNSString(context, value)];
 	else
 	{
-		str=@"messageKey";
-		if (JS_GetProperty(context, params, [str UTF8String], &value))
+		if (JS_GetProperty(context, params, "messageKey", &value))
 			[player addMissionText: JSValToNSString(context, value)];
 	}
 	
-	str=@"choicesKey";
-	if (JS_GetProperty(context, params, [str UTF8String], &value))
+	if (JS_GetProperty(context, params, "choicesKey", &value))
 		MissionSetChoicesKey(context, this, 1, &value, &noWarning);
 	
 	// now clean up!

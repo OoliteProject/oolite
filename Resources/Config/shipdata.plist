@@ -155,7 +155,7 @@
 		auto_ai = yes;
 		cargo_type = "CARGO_NOT_CARGO";
 		energy_recharge_rate = 3;
-		escort-ship = "cobramk1";
+		escort_ship = "cobramk1";
 		escorts = 6;
 		exhaust = ("-9.8 5.6 -78.5 10.0 10.0 8.0", "9.8 5.6 -78.5 10.0 10.0 8.0");
 		forward_weapon_type = "WEAPON_PULSE_LASER";
