@@ -2295,7 +2295,6 @@ static GLfloat launchRoll;
 #endif
 		StationEntity *stationLaunchedFrom = [UNIVERSE nearestEntityMatchingPredicate:IsStationPredicate parameter:NULL relativeToEntity:self];
 		[self doScriptEvent:@"shipLaunchedFromStation" withArgument:stationLaunchedFrom];
-		//if (stationLaunchedFrom) [stationLaunchedFrom doScriptEvent:@"stationLaunchedShip" withArgument:self]; // script might have removed it.
 	}
 }
 
