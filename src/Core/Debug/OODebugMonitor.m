@@ -114,7 +114,7 @@ static OODebugMonitor *sSingleton = nil;
 		if (_script == nil)
 		{
 			JSObject *global = [jsEng globalObject];
-			JS_DefineProperty(context, global, "debugConsole", OBJECT_TO_JSVAL(global), NULL, NULL, JSPROP_ENUMERATE);
+			JS_DefineProperty(context, global, "debugConsole", OBJECT_TO_JSVAL([self javaScriptValueInContext:context]), NULL, NULL, JSPROP_ENUMERATE);
 		}
 		
 		[jsEng releaseContext:context];
