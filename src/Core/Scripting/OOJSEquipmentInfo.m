@@ -35,6 +35,9 @@ static JSObject *sEquipmentInfoPrototype;
 static JSBool EquipmentInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 
+static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue);
+
+
 // Methods
 static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
@@ -56,13 +59,15 @@ enum
 	kEquipmentInfo_requiresFreePassengerBerth,
 	kEquipmentInfo_requiresFullFuel,
 	kEquipmentInfo_requiresNonFullFuel,
-	kEquipmentInfo_isExternalStore,		// is missile or mine
+	kEquipmentInfo_isExternalStore,				// is missile or mine
 	kEquipmentInfo_isPortableBetweenShips,
 	kEquipmentInfo_requiredCargoSpace,
 	kEquipmentInfo_requiresEquipment,
 	kEquipmentInfo_requiresAnyEquipment,
 	kEquipmentInfo_incompatibleEquipment,
-	kEquipmentInfo_scriptInfo					// arbitrary data for scripts, dictionary, read-only
+	kEquipmentInfo_scriptInfo,					// arbitrary data for scripts, dictionary, read-only
+	
+	kEquipmentInfo_static_allEquipment			// Array of all EquipmentInfo objects.
 };
 
 
@@ -131,6 +136,8 @@ static JSExtendedClass sEquipmentInfoClass =
 void InitOOJSEquipmentInfo(JSContext *context, JSObject *global)
 {
 	sEquipmentInfoPrototype = JS_InitClass(context, global, NULL, &sEquipmentInfoClass.base, NULL, 0, sEquipmentInfoProperties, NULL, NULL, sEquipmentInfoStaticMethods);
+	JS_DefineProperty(context, sEquipmentInfoPrototype, "allEquipment", JSVAL_NULL, EquipmentInfoGetAllEqipment, NULL, JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY);
+	
 	JSRegisterObjectConverter(&sEquipmentInfoClass.base, JSBasicPrivateObjectConverter);
 }
 
@@ -328,8 +335,14 @@ static JSBool EquipmentInfoSetProperty(JSContext *context, JSObject *this, jsval
 	
 	return OK;
 }
-	
 
+
+static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, jsval name, jsval *outValue)
+{
+	*outValue = [[OOEquipmentType allEquipmentTypes] javaScriptValueInContext:context];
+	return YES;
+}
+	
 
 @implementation OOEquipmentType (OOJavaScriptExtensions)
 
