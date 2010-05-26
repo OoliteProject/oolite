@@ -6288,8 +6288,7 @@ BOOL class_masslocks(int some_class)
 		primaryTarget = NO_TARGET;
 	}
 	// always do target lost
-	[self doScriptEvent:@"shipLostTarget" withArgument:target];	// old style
-	[self doScriptEvent:@"shipTargetLost" withArgument:target];	// new style
+	[self doScriptEvent:@"shipTargetLost" withArgument:target];
 	if (target == nil) [shipAI message:@"TARGET_LOST"];	// stale target? no major urgency.
 	else [shipAI reactToMessage:@"TARGET_LOST"];	// execute immediately otherwise.
 }
@@ -6301,8 +6300,7 @@ BOOL class_masslocks(int some_class)
 	if ([self primaryTarget] == target)
 	{
 		[self removeTarget:target];
-		[self doScriptEvent:@"shipDestroyedTarget" withArgument:target];	// old style
-		[self doScriptEvent:@"shipTargetDestroyed" withArgument:target];	// new style
+		[self doScriptEvent:@"shipTargetDestroyed" withArgument:target];
 		[shipAI message:@"TARGET_DESTROYED"];
 	}
 }
