@@ -623,6 +623,7 @@ typedef enum
 - (void) selectNextMissile;
 - (void) tidyMissilePylons;
 - (BOOL) removeFromPylon:(unsigned) pylon;
+- (BOOL) assignToActivePylon:(NSString *)identifierKey;
 
 - (void) clearAlertFlags;
 - (int) alertFlags;

@@ -39,6 +39,8 @@ MA 02110-1301, USA.
 
 #import "OOConstToString.h"
 #import "OOFunctionAttributes.h"
+#import "OOEquipmentType.h"
+#import "OOJSEquipmentInfo.h"
 
 
 static JSObject		*sPlayerShipPrototype;
@@ -55,7 +57,7 @@ static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 
 static JSExtendedClass sPlayerShipClass =
@@ -103,7 +105,7 @@ enum
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
-	kPlayerShip_hud,						// hud name identifier, string, read/write
+	kPlayerShip_hud,							// hud name identifier, string, read/write
 	kPlayerShip_hudHidden						// hud visibility, boolean, read/write
 };
 
@@ -130,7 +132,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hud",					kPlayerShip_hud,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "hud",						kPlayerShip_hud,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "hudHidden",					kPlayerShip_hudHidden,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ 0 }
 };
@@ -139,13 +141,14 @@ static JSPropertySpec sPlayerShipProperties[] =
 static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
-	{ "launch",						PlayerShipLaunch,					0 },
-	{ "awardCargo",					PlayerShipAwardCargo,				1 },
-	{ "canAwardCargo",				PlayerShipCanAwardCargo,			1 },
-	{ "removeAllCargo",				PlayerShipRemoveAllCargo,			0 },
-	{ "useSpecialCargo",			PlayerShipUseSpecialCargo,			1 },
-	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,		1 },
-	{ "disengageAutopilot",			PlayerShipDisengageAutopilot,			0 },
+	{ "launch",							PlayerShipLaunch,					0 },
+	{ "awardCargo",						PlayerShipAwardCargo,				1 },
+	{ "canAwardCargo",					PlayerShipCanAwardCargo,			1 },
+	{ "removeAllCargo",					PlayerShipRemoveAllCargo,			0 },
+	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,			1 },
+	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,	1 },
+	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,		0 },
+	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,	1 },
 	{ 0 }
 };
 
@@ -550,7 +553,7 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity			*player = OOPlayerForScripting();
-	id				stationForDocking = nil;
+	id						stationForDocking = nil;
 	
 	if (argc != 1)
 	{
@@ -571,4 +574,32 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 	
 	[player disengageAutopilot];
 	return YES;
+}
+
+
+// awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression)
+static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	PlayerEntity			*player = OOPlayerForScripting();
+	NSString				*key = nil;
+	OOEquipmentType			*eqType = nil;
+	BOOL					OK = NO;
+	
+	key = JSValueToEquipmentKey(context, argv[0]);
+	if (EXPECT_NOT(key == nil))
+	{
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"equipment type");
+		return OK;
+	}
+	
+	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
+	if (EXPECT_NOT(![eqType isMissileOrMine]))
+	{
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"External store");
+		return OK;
+	}
+	
+	OK = [player assignToActivePylon:key];
+	//if (!OK) OOReportJSWarning(context, @"PlayerShip.awardEquipmentToCurrentPylon() could not award the specified equipment.");
+	return OK;
 }

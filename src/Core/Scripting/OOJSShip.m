@@ -1739,7 +1739,7 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 }
 
 
-// setMaterials(params: dict,[shaders:dict])  // sets matersals dictionary. Optional parameter sets the shaders dictionary too.
+// setMaterials(params: dict,[shaders:dict])  // sets materials dictionary. Optional parameter sets the shaders dictionary too.
 static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;

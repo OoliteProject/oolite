@@ -7613,7 +7613,6 @@ BOOL class_masslocks(int some_class)
 	if (isPlayer) vel = vector_multiply_scalar(v_forward, flightSpeed + throw_speed);
 	else vel = vector_add(vel, vector_multiply_scalar(v_forward, flightSpeed + throw_speed));
 	
-
 	origin.x = position.x + v_right.x * start.x + v_up.x * start.y + v_forward.x * start.z;
 	origin.y = position.y + v_right.y * start.x + v_up.y * start.y + v_forward.y * start.z;
 	origin.z = position.z + v_right.z * start.x + v_up.z * start.y + v_forward.z * start.z;

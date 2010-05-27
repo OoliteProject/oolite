@@ -99,6 +99,8 @@ static PlayerEntity *sSharedPlayer = nil;
 static GLfloat sBaseMass = 0.0;
 
 static GLfloat launchRoll;
+static BOOL launchingMissile = NO;
+static BOOL replacingMissile = NO;
 
 
 @interface PlayerEntity (OOPrivate)
@@ -3400,10 +3402,13 @@ static GLfloat launchRoll;
 
 	if (missile == nil) return nil;
 	
+	launchingMissile = YES;
+	replacingMissile = NO;
+
 	if ([missile isMine] && (missile_status != MISSILE_STATUS_SAFE))
 	{
 		firedMissile = [self launchMine:missile];
-		[self removeFromPylon:activeMissile];
+		if (!replacingMissile) [self removeFromPylon:activeMissile];
 		if (firedMissile != nil) [self playMineLaunched];
 	}
 	else
@@ -3414,7 +3419,7 @@ static GLfloat launchRoll;
 
 		if (firedMissile != nil)
 		{
-			[self removeFromPylon:activeMissile];
+			if (!replacingMissile) [self removeFromPylon:activeMissile];
 			[self playMissileLaunched];
 			if (cloaking_device_active && cloakPassive)
 			{
@@ -3422,6 +3427,9 @@ static GLfloat launchRoll;
 			}
 		}
 	}
+	
+	replacingMissile = NO;
+	launchingMissile = NO;
 	
 	return firedMissile;
 }
@@ -3443,6 +3451,47 @@ static GLfloat launchRoll;
 	mvel.z -= mine_speed * v_forward.z;
 	[mine setVelocity: mvel];
 	return mine;
+}
+
+
+- (BOOL) assignToActivePylon:(NSString *)equipmentKey
+{
+	if (!launchingMissile) return NO;
+	
+	OOEquipmentType			*eqType = nil;
+	
+	if ([equipmentKey hasSuffix:@"_DAMAGED"])
+	{
+		return NO;
+	}
+	else
+	{
+		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
+	}
+	
+	// missiles with techlevel 99 (kOOVariableTechLevel) and 100 are not available to the player
+	if (![eqType isMissileOrMine] || [eqType effectiveTechLevel] < kOOVariableTechLevel)
+	{
+		return NO;
+	}
+
+	ShipEntity *amiss = [UNIVERSE newShipWithRole:equipmentKey];
+	
+	if (!amiss) return NO;
+
+	// replace the missile now.
+	[missile_entity[activeMissile] release];
+	missile_entity[activeMissile] = amiss;
+	missile_list[activeMissile] = eqType;
+	
+	// make sure the new missile is properly activated.
+	if (activeMissile > 0) activeMissile--;
+	else activeMissile = max_missiles - 1;
+	[self selectNextMissile];
+	
+	replacingMissile = YES;
+	
+	return YES;
 }
 
 
