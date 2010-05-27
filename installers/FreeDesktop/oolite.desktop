@@ -6,4 +6,4 @@ Exec=oolite
 Icon=oolite-icon.png
 Terminal=false
 Type=Application
-Categories=Game;Simulation;
+Categories=Game;Games;Simulation;
