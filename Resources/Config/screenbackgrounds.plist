@@ -9,23 +9,23 @@
 	intro				= "intro.png";				// background for the ships at game start
 	status				= "status.png";
 	status_docked		= "status-docked.png";		// if not defined, same as status
-	status_in_flight	= "status-in-flight.png"; 	// if not defined, same as  status
-	status_red_alert	= "status-red-alert.png"; 	// if not defined, same as  status
+	status_in_flight	= "status-in-flight.png"; 	// if not defined, same as status
+	status_red_alert	= "status-red-alert.png"; 	// if not defined, same as status
 	report				= "report.png";				// if not defined, same as status_docked
 	
 	manifest			= "manifest.png";
 	equip_ship			= "equip-ship.png";
-	mount_weapon		= "mount-weapon.png";		// if not defined, same as  equip_ship
+	mount_weapon		= "mount-weapon.png";		// if not defined, same as equip_ship
 	shipyard			= "shipyard.png";
 	
-	long_range_chart1	= "long-range-chart1.png"; 	// if not defined, same as  long_range_chart
-	long_range_chart2	= "long-range-chart2.png";	// if not defined, same as  long_range_chart
-	long_range_chart3	= "long-range-chart3.png";	// if not defined, same as  long_range_chart
-	long_range_chart4	= "long-range-chart4.png";	// if not defined, same as  long_range_chart
-	long_range_chart5	= "long-range-chart5.png";	// if not defined, same as  long_range_chart
-	long_range_chart6	= "long-range-chart6.png";	// if not defined, same as  long_range_chart
-	long_range_chart7	= "long-range-chart7.png";	// if not defined, same as  long_range_chart
-	long_range_chart8	= "long-range-chart8.png";	// if not defined, same as  long_range_chart
+	long_range_chart1	= "long-range-chart1.png"; 	// if not defined, same as long_range_chart
+	long_range_chart2	= "long-range-chart2.png";	// if not defined, same as long_range_chart
+	long_range_chart3	= "long-range-chart3.png";	// if not defined, same as long_range_chart
+	long_range_chart4	= "long-range-chart4.png";	// if not defined, same as long_range_chart
+	long_range_chart5	= "long-range-chart5.png";	// if not defined, same as long_range_chart
+	long_range_chart6	= "long-range-chart6.png";	// if not defined, same as long_range_chart
+	long_range_chart7	= "long-range-chart7.png";	// if not defined, same as long_range_chart
+	long_range_chart8	= "long-range-chart8.png";	// if not defined, same as long_range_chart
 	
 	system_data			= "system-data.png";
 	
@@ -35,16 +35,17 @@
 	settings			= "settings.png";			// game options / settings
 	load_save			= "load-save.png";			// load / save game screens
 	
-	mission				= "mission.png";				// default mission background, overridden by mission's background parameter.
+	mission				= "mission.png";			// default mission background, overridden by mission's background parameter.
 	
 	// Use overlays to add extra info / graphic elements to the screen.
 	
-	mission_overlay			= "mission-overlay.png";	// default mission overlay, overridden by mission's overlay parameter.
+	mission_overlay_with_title	= "mission-overlay1.png";	// generic mission overlay, used when there is a mission tile. Overridden by mission's overlay parameter.
+	mission_overlay_no_title	= "mission-overlay2.png";	// overlay used when mission title is a blank string. Overridden by mission's overlay parameter.
 	
-	overlay					= "overlay.png";			// in-flight overlay
-	docked_overlay			= "docked-overlay.png";
-	paused_overlay			= "paused-overlay.png";		// in-flight and paused
-	paused_docked_overlay	= "paused-docked-overlay.png";
+	overlay						= "overlay.png";			// in-flight overlay
+	docked_overlay				= "docked-overlay.png";
+	paused_overlay				= "paused-overlay.png";		// in-flight and paused
+	paused_docked_overlay		= "paused-docked-overlay.png";
 	
 */
 }

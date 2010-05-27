@@ -2392,7 +2392,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
 		if (missionForegroundTexture != nil) background = missionForegroundTexture;
-		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"mission_overlay"] inFolder:@"Images"];
+		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:
+													([missionTitle isEqualToString:@""] ? @"mission_overlay_no_title" : @"mission_overlay_with_title")] inFolder:@"Images"];
 		[gui setForegroundTexture:background];
 		
 		if (missionBackgroundTexture != nil) background = missionBackgroundTexture;
