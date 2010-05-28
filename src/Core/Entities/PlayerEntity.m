@@ -4739,10 +4739,11 @@ static BOOL replacingMissile = NO;
 	gui_screen = GUI_SCREEN_STATUS;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
-	system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
+	// the following two lines are unnecessary at best, and at worst - with overlapping planets - can cause Oolite to refer to the wrong system.
+	//system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
+	//target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 
-	systemName = [UNIVERSE getSystemName:system_seed];
+	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
 	if ([self isDocked] && dockedStation != [UNIVERSE station])
 	{
 		systemName = [NSString stringWithFormat:@"%@ : %@", systemName, [dockedStation displayName]];
