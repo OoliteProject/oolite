@@ -77,7 +77,7 @@ extern NSString * const kOOLogNoteAddShips;
 		spawned = [UNIVERSE spawnShipWithRole:role near:self];
 		if (spawned != nil)
 		{
-			[spawned setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
+			[spawned setTemperature:[self randomEjectaTemperature]];
 			if ([self isMissileFlagSet] && [[spawned shipInfoDictionary] oo_boolForKey:@"is_submunition"])
 			{
 				[spawned setOwner:[self owner]];

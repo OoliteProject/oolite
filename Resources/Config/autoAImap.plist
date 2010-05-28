@@ -1,7 +1,8 @@
-/*	autoAImap.plist
+/*
+	autoAImap.plist
 	
 	This file specifies the AIs to use for certain roles for ships with the
-	auto_AI property. It is possible to expand this in OXPsto handle custom
+	auto_AI property. It is possible to expand this in OXPs to handle custom
 	roles, but don't forget to prefix your custom roles with a unique
 	identifier (such as your name), like all global symbols and file names.
 	

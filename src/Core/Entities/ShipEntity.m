@@ -195,7 +195,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	zero_distance = SCANNER_MAX_RANGE2 * 2.0;
 	weapon_recharge_rate = 6.0;
 	shot_time = 100000.0;
-	ship_temperature = 60.0;
+	ship_temperature = SHIP_MIN_CABIN_TEMP;
 	
 	if (![self setUpShipFromDictionary:dict])
 	{
@@ -1464,6 +1464,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (pod)
 	{
 		[pod setOwner:self];
+		[pod setTemperature:[self randomEjectaTemperatureWithMaxFactor:0.9]];
 		[pod setCommodity:[UNIVERSE commodityForName:@"Slaves"] andAmount:1];
 		[pod setCrew:podCrew];
 		[pod switchAITo:@"homeAI.plist"];
@@ -5347,6 +5348,27 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 }
 
 
+- (float) randomEjectaTemperature
+{
+	return [self randomEjectaTemperatureWithMaxFactor:0.99f];
+}
+
+
+- (float) randomEjectaTemperatureWithMaxFactor:(float)factor
+{
+	const float kRange = 0.02f;
+	factor -= kRange;
+	
+	float parentTemp = [self temperature];
+	float adjusted = parentTemp * (bellf(5) * (kRange * 2.0f) - kRange + factor);
+	
+	// Interpolate so that result == parentTemp when parentTemp is SHIP_MIN_CABIN_TEMP
+	float interp = OOClamp_0_1_f((parentTemp - SHIP_MIN_CABIN_TEMP) / (SHIP_MAX_CABIN_TEMP - SHIP_MIN_CABIN_TEMP));
+	
+	return OOLerp(SHIP_MIN_CABIN_TEMP, adjusted, interp);
+}
+
+
 - (GLfloat) heatInsulation
 {
 	return _heatInsulation;
@@ -5604,7 +5626,6 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					if (Ranrot() % 100 < cargo_chance)  //  chance of any given piece of cargo surviving decompression
 					{
 						ShipEntity* container = [jetsam objectAtIndex:i];
-						AI *containerAI = nil;
 						Vector  rpos = xposition;
 						Vector	rrand = randomPositionInBoundingBox(boundingBox);
 						rpos.x += rrand.x;	rpos.y += rrand.y;	rpos.z += rrand.z;
@@ -5618,10 +5639,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 						[container setVelocity:v];
 						quaternion_set_random(&q);
 						[container setOrientation:q];
-						//[container setStatus:STATUS_IN_FLIGHT];
+						
+						[container setTemperature:[self randomEjectaTemperature]];
 						[container setScanClass: CLASS_CARGO];
 						[UNIVERSE addEntity:container];	// STATUS_IN_FLIGHT, AI state GLOBAL
-						containerAI = [container getAI];
+						AI *containerAI = [container getAI];
 						if ([containerAI hasSuspendedStateMachines]) // check if new or recycled cargo.
 						{
 							[containerAI exitStateMachineWithMessage:nil];
@@ -5658,6 +5680,8 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
 							[rock setOrientation:q];
+							
+							[rock setTemperature:[self randomEjectaTemperature]];
 							[rock setScanClass:CLASS_ROCK];
 							[rock setIsBoulder:YES];
 							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -5690,10 +5714,12 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 							v.x = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
 							v.y = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
 							v.z = 0.1 *((ranrot_rand() % r_speed) - r_speed / 2);
-							[rock setBounty: 0];
-							[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
 							[rock setVelocity:v];
 							quaternion_set_random(&q);
+							
+							[rock setTemperature:[self randomEjectaTemperature]];
+							[rock setBounty: 0];
+							[rock setCommodity:[UNIVERSE commodityForName:@"Minerals"] andAmount: 1];
 							[rock setOrientation:q];
 							[rock setScanClass: CLASS_CARGO];
 							[UNIVERSE addEntity:rock];	// STATUS_IN_FLIGHT, AI state GLOBAL
@@ -5776,10 +5802,11 @@ NSComparisonResult ComparePlanetsBySurfaceDistance(id i1, id i2, void* context)
 					[plate setVelocity:v];
 					quaternion_set_random(&q);
 					[plate setOrientation:q];
+					
+					[plate setTemperature:[self randomEjectaTemperature]];
 					[plate setScanClass: CLASS_CARGO];
 					[plate setCommodity:[UNIVERSE commodityForName:@"Alloys"] andAmount:1];
 					[UNIVERSE addEntity:plate];	// STATUS_IN_FLIGHT, AI state GLOBAL
-					[plate setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
 					[plate release];
 				}
 			}
@@ -7894,7 +7921,7 @@ BOOL class_masslocks(int some_class)
 	[jetto setVelocity:vel];
 	[jetto setScanClass: CLASS_CARGO];
 	//[jetto setStatus: STATUS_IN_FLIGHT];
-	[jetto setTemperature:[self temperature] * EJECTA_TEMP_FACTOR];
+	[jetto setTemperature:[self randomEjectaTemperature]];
 	[UNIVERSE addEntity:jetto];	// STATUS_IN_FLIGHT, AI state GLOBAL
 
 	jettoAI = [jetto getAI];

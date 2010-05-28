@@ -76,6 +76,9 @@ OOINLINE double OOClamp_0_1_d(double value) INLINE_CONST_FUNC;
 OOINLINE float OOClamp_0_max_f(float value, float max) INLINE_CONST_FUNC;
 OOINLINE double OOClamp_0_max_d(double value, double max) INLINE_CONST_FUNC;
 
+/* Linear interpolation. */
+OOINLINE float OOLerp(float v0, float v1, float fraction) INLINE_CONST_FUNC;
+
 
 #if OO_PPC
 	#ifdef __MWERKS__
@@ -293,6 +296,13 @@ OOINLINE float OOFastInvSqrtf(float x)
 		return fmax(0.0, fmin(value, max));
 	}
 #endif
+
+
+OOINLINE float OOLerp(float v0, float v1, float fraction)
+{
+	// Linear interpolation - equivalent to v0 * (1.0f - fraction) + v1 * fraction.
+	return v0 + fraction * (v1 - v0);
+}
 
 
 #endif	/* INCLUDED_OOMATHS_h */

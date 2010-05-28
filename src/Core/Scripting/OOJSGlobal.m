@@ -101,15 +101,15 @@ static JSPropertySpec sGlobalProperties[] =
 
 static JSFunctionSpec sGlobalMethods[] =
 {
-	// JS name					Function						min args
-	{ "log",					GlobalLog,						1 },
-	{ "expandDescription",		GlobalExpandDescription,		1 },
-	{ "expandMissionText",		GlobalExpandMissionText,		1 },
-	{ "displayNameForCommodity", GlobalDisplayNameForCommodity,	1 },
-	{ "randomName",				GlobalRandomName,				0 },
+	// JS name							Function								min args
+	{ "log",							GlobalLog,							1 },
+	{ "expandDescription",				GlobalExpandDescription,			1 },
+	{ "expandMissionText",				GlobalExpandMissionText,			1 },
+	{ "displayNameForCommodity",		GlobalDisplayNameForCommodity,		1 },
+	{ "randomName",						GlobalRandomName,					0 },
 	{ "randomInhabitantsDescription",	GlobalRandomInhabitantsDescription,	1 },
-	{ "setScreenBackground",	GlobalSetScreenBackground,			1 },
-	{ "setScreenOverlay",		GlobalSetScreenOverlay,			1 },
+	{ "setScreenBackground",			GlobalSetScreenBackground,			1 },
+	{ "setScreenOverlay",				GlobalSetScreenOverlay,				1 },
 	{ 0 }
 };
 

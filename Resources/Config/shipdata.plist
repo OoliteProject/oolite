@@ -128,6 +128,7 @@
 		cargo_type = "CARGO_ALLOY";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
+		heat_insulation = 0.2;
 		max_energy = 1;
 		max_flight_pitch = 0.5;
 		max_flight_roll = 0.5;
@@ -449,6 +450,7 @@
 		cargo_type = "CARGO_RANDOM";
 		energy_recharge_rate = 0;
 		forward_weapon_type = "WEAPON_NONE";
+		heat_insulation = 0.3;
 		materials =
 		{
 			"barrel_metal.png" =
@@ -763,8 +765,8 @@
 		{
 			"asteroid.png" =
 			{
-				shininess = 2;
-				specular_color = (0.1, 0.1, 0.1, 1.0);
+				shininess = 0;
+				specular_color = (0.0, 0.0, 0.0, 1.0);
 			};
 		};
 		debris_role = "splinter";

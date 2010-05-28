@@ -64,7 +64,7 @@ MA 02110-1301, USA.
 #define SHIP_INSULATION_FACTOR			0.00175f
 #define SHIP_MAX_CABIN_TEMP				256.0f
 #define SHIP_MIN_CABIN_TEMP				60.0f
-#define EJECTA_TEMP_FACTOR				0.85f		// Ejected items have 85% of parent's temperature
+#define EJECTA_TEMP_FACTOR				0.85f
 #define DEFAULT_HYPERSPACE_SPIN_TIME	15.0f
 
 #define SUN_TEMPERATURE					1250.0f
@@ -662,6 +662,9 @@ MA 02110-1301, USA.
 - (GLfloat) heatInsulation;
 - (void) setHeatInsulation:(GLfloat) value;
 
+- (float) randomEjectaTemperature;
+- (float) randomEjectaTemperatureWithMaxFactor:(float)factor;
+
 // the percentage of damage taken (100 is destroyed, 0 is fine)
 - (int) damage;
 
@@ -892,3 +895,6 @@ BOOL ship_canCollide (ShipEntity* ship);
 
 
 NSDictionary *DefaultShipShaderMacros(void);
+
+
+float RandomEjectaTemperature(float parentTemp);
