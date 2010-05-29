@@ -8251,8 +8251,14 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) setReducedDetail:(BOOL) value
 {
+	[self setReducedDetail:value transiently:NO];
+}
+
+
+- (void) setReducedDetail:(BOOL) value transiently:(BOOL)transiently
+{
 	reducedDetail = !!value;
-	[[NSUserDefaults standardUserDefaults] setBool:reducedDetail forKey:@"reduced-detail-graphics"];
+	if (!transiently)  [[NSUserDefaults standardUserDefaults] setBool:reducedDetail forKey:@"reduced-detail-graphics"];
 }
 
 
@@ -8264,6 +8270,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 
 - (void) setShaderEffectsLevel:(OOShaderSetting)value
 {
+	[self setShaderEffectsLevel:value transiently:NO];
+}
+
+
+- (void) setShaderEffectsLevel:(OOShaderSetting)value transiently:(BOOL)transiently
+{
 	OOShaderSetting max = [[OOOpenGLExtensionManager sharedManager] maximumShaderSetting];
 	
 	if (value < SHADERS_MIN)  value = SHADERS_MIN;
@@ -8273,7 +8285,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	{
 		OOLog(@"rendering.opengl.shader.mode", @"Shader mode set to %@.", ShaderSettingToString(value));
 		shaderEffectsLevel = value;
-		[[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
+		if (!transiently)  [[NSUserDefaults standardUserDefaults] setInteger:shaderEffectsLevel forKey:@"shader-mode"];
 		[[OOGraphicsResetManager sharedManager] resetGraphicsState];
 	}
 }

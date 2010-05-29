@@ -603,9 +603,11 @@ double estimatedTimeForJourney(double distance, int hops);
 - (BOOL) wireframeGraphics;
 
 - (void) setReducedDetail:(BOOL) value;
+- (void) setReducedDetail:(BOOL) value transiently:(BOOL)transiently;
 - (BOOL) reducedDetail;
 
 - (void) setShaderEffectsLevel:(OOShaderSetting)value;
+- (void) setShaderEffectsLevel:(OOShaderSetting)value transiently:(BOOL)transiently;
 - (OOShaderSetting) shaderEffectsLevel;
 - (BOOL) useShaders;
 

@@ -64,6 +64,10 @@ maximumShaderMode: String (read-only)
 		"SHADERS_SIMPLE"
 		"SHADERS_FULL"
 
+reducedDetailMode: Boolean (read/write)
+	Whether reduced detail mode is in effect (simplifies graphics in various
+	different ways).
+
 displayFPS : Boolean (read/write)
 	Boolean specifying whether FPS (and associated information) should be
 	displayed.

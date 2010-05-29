@@ -102,6 +102,7 @@ enum
 	kConsole_debugFlags,						// debug flags, integer, read/write
 	kConsole_shaderMode,						// shader mode, symbolic string, read/write
 	kConsole_maximumShaderMode,					// highest supported shader mode, symbolic string, read-only
+	kConsole_reducedDetailMode,					// reduced detail mode, boolean, read/write
 	kConsole_displayFPS,						// display FPS (and related info), boolean, read/write
 	kConsole_platformDescription,				// Information about system we're running on in unspecified format, string, read-only
 	
@@ -132,6 +133,7 @@ static JSPropertySpec sConsoleProperties[] =
 	{ "debugFlags",							kConsole_debugFlags,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "shaderMode",							kConsole_shaderMode,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "maximumShaderMode",					kConsole_maximumShaderMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "reducedDetailMode",					kConsole_reducedDetailMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "displayFPS",							kConsole_displayFPS,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "platformDescription",				kConsole_platformDescription,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "glVendorString",						kConsole_glVendorString,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -267,6 +269,10 @@ static JSBool ConsoleGetProperty(JSContext *context, JSObject *this, jsval name,
 			*outValue = [ShaderSettingToString([[OOOpenGLExtensionManager sharedManager] maximumShaderSetting]) javaScriptValueInContext:context];
 			break;
 			
+		case kConsole_reducedDetailMode:
+			*outValue = BOOLToJSVal([UNIVERSE reducedDetail]);
+			break;
+			
 		case kConsole_displayFPS:
 			*outValue = BOOLToJSVal([UNIVERSE displayFPS]);
 			break;
@@ -338,7 +344,14 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 			if (sValue != nil)
 			{
 				OOShaderSetting setting = StringToShaderSetting(sValue);
-				[UNIVERSE setShaderEffectsLevel:setting];
+				[UNIVERSE setShaderEffectsLevel:setting transiently:YES];
+			}
+			break;
+			
+		case kConsole_reducedDetailMode:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[UNIVERSE setReducedDetail:bValue transiently:YES];
 			}
 			break;
 			
