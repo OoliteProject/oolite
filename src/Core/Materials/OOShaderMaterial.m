@@ -656,6 +656,12 @@ static NSString *MacrosToString(NSDictionary *macros);
 	bindingTarget = [target weakRetain];
 }
 
+
+- (BOOL) permitSpecular
+{
+	return YES;
+}
+
 @end
 
 

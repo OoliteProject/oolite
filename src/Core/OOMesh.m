@@ -791,11 +791,6 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		_shaderMacros = [macros copy];
 		_shaderBindingTarget = [target weakRetain];
 		
-		
-		if ([name isEqualToString:@"new_coriolis.dat"])
-		{
-			OOLog(@"temp", @"Caught a coriolis");
-		}
 		[self rebindMaterials];
 		PROFILE(@"finished material setup");
 		

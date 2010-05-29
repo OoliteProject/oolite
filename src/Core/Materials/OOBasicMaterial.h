@@ -98,4 +98,10 @@ SOFTWARE.
 - (uint8_t)shininess;
 - (void)setShininess:(uint8_t)value;	// Clamped to [0, 128]
 
+
+/*	For subclasses: return true to permit specular settings, false to deny
+	them. By default, this is ![UNIVERSE reducedDetail].
+*/
+- (BOOL) permitSpecular;
+
 @end

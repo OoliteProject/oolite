@@ -78,7 +78,7 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	if (colorDesc != nil)  [self setEmissionColor:[OOColor colorWithDescription:colorDesc]];
 	
 	shininessVal = [configuration oo_shininess];
-	if (shininessVal != 0 && ![UNIVERSE reducedDetail])
+	if (shininessVal != 0 && [self permitSpecular])
 	{
 		colorDesc = [configuration oo_specularColor];
 		[self setShininess:shininessVal];
@@ -329,6 +329,12 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 - (void)setShininess:(uint8_t)value
 {
 	shininess = MIN(value, 128);
+}
+
+
+- (BOOL) permitSpecular
+{
+	return ![UNIVERSE reducedDetail];
 }
 
 @end

@@ -89,6 +89,11 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 		.uniforms = [NSMutableDictionary dictionary]
 	};
 	
+	if ([UNIVERSE reducedDetail])
+	{
+		context.maxTextures = 3;
+	}
+	
 	//	Basic stuff.
 	
 	/*	Set up the various material attributes.
