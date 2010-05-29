@@ -1225,6 +1225,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 			}
 		}
 	}
+	
+	[OOTexture applyNone];
 }
 
 

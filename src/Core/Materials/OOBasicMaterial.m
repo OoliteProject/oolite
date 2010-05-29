@@ -30,6 +30,7 @@ SOFTWARE.
 #import "OOFunctionAttributes.h"
 #import "Universe.h"
 #import "OOMaterialSpecifier.h"
+#import "OOTexture.h"
 
 
 static OOBasicMaterial *sDefaultMaterial = nil;
@@ -110,6 +111,10 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	OOGL(glMaterialfv(FACE, GL_AMBIENT, ambient));
 	OOGL(glMaterialfv(FACE, GL_EMISSION, emission));
 	OOGL(glMateriali(FACE, GL_SHININESS, shininess));
+	if ([self isMemberOfClass:[OOBasicMaterial class]])
+	{
+		[OOTexture applyNone];
+	}
 	
 	return YES;
 }

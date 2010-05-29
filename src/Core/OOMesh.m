@@ -410,6 +410,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 			BOOL wantsNormalsAsTextureCoordinates = [materials[ti] wantsNormalsAsTextureCoordinates];
 			if (ti == 0 || wantsNormalsAsTextureCoordinates != usingNormalsAsTexCoords)
 			{
+					// FIXME: enabling/disabling texturing should be handled by the material.
 #if OO_MULTITEXTURE
 				for (unit = 0; unit < _textureUnitCount; unit++)
 				{
@@ -790,6 +791,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		_shaderMacros = [macros copy];
 		_shaderBindingTarget = [target weakRetain];
 		
+		
+		if ([name isEqualToString:@"new_coriolis.dat"])
+		{
+			OOLog(@"temp", @"Caught a coriolis");
+		}
 		[self rebindMaterials];
 		PROFILE(@"finished material setup");
 		

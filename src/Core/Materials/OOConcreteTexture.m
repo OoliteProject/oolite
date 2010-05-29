@@ -211,20 +211,6 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 }
 
 
-+ (void)applyNone
-{
-	OO_ENTER_OPENGL();
-	OOGL(glBindTexture(GL_TEXTURE_2D, 0));
-#if OO_TEXTURE_CUBE_MAP
-	OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, 0));
-#endif
-	
-#if GL_EXT_texture_lod_bias
-	if (gOOTextureInfo.textureLODBiasAvailable)  OOGL(glTexEnvf(GL_TEXTURE_FILTER_CONTROL_EXT, GL_TEXTURE_LOD_BIAS_EXT, 0));
-#endif
-}
-
-
 - (void)ensureFinishedLoading
 {
 	if (!_loaded)  [self setUpTexture];

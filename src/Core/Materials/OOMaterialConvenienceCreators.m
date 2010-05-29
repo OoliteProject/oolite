@@ -230,7 +230,7 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 	
 	if (result == nil)
 	{
-		if ([[[configuration oo_diffuseMapSpecifierWithDefaultName:name] oo_stringForKey:@"name"] isEqual:@""])
+		if ([configuration oo_diffuseMapSpecifierWithDefaultName:name] == nil)
 		{
 			result = [[OOBasicMaterial alloc] initWithName:name configuration:configuration];
 		}
@@ -277,6 +277,8 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 		// Texture caching means this won't be wasted in the general case.
 		OOTexture *texture = [OOTexture textureWithName:name inFolder:@"Textures"];
 		if (texture == nil)  return nil;
+		
+		configuration = [NSDictionary dictionary];
 	}
 	
 	return [self materialWithName:name
