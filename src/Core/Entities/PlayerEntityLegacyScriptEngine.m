@@ -2098,8 +2098,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		missionBackgroundTexture = [value copy];
- 	}
+		missionForegroundTexture = [value copy];
+	}
 }
 
 
@@ -2109,8 +2109,7 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		tempTexture = [OOTexture textureWithName:value inFolder:@"Images"];
-		[tempTexture retain];
+		tempTexture = [value copy];
  	}
 }
 

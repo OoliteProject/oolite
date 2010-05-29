@@ -3076,7 +3076,7 @@ static BOOL toggling_music;
 					[UNIVERSE setDisplayCursor:NO];
 					if ([UNIVERSE pauseMessageVisible])
 					{
-						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message if it was there.
+						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message.
 						[UNIVERSE setPauseMessageVisible:NO];
 					}
 					[[UNIVERSE gui] setForegroundTextureKey:@"docked_overlay"];

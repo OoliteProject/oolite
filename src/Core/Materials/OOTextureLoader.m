@@ -485,10 +485,10 @@ static BOOL					sHaveSetUp = NO;
 				desiredWidth = MIN(desiredWidth, sUserMaxSize);
 				desiredHeight = MIN(desiredHeight, sUserMaxSize);
 				
-				if (sReducedDetail)
+				if (sReducedDetail && (512 < desiredWidth || 512 < desiredHeight )) // Rescale texture, keeping its proportions.
 				{
-					if (512 < desiredWidth)  desiredWidth /= 2;
-					if (512 < desiredHeight)  desiredHeight /= 2;
+					desiredWidth /= 2;
+					desiredHeight /= 2;
 				}
 			}
 		}

@@ -5925,14 +5925,13 @@ static NSString *last_outfitting_key=nil;
 			
 			[tempTexture release];
 			tempTexture = [[UNIVERSE screenBackgroundNameForKey:@"equip_ship"] copy];
-			[tempTexture retain];
+			//[tempTexture retain];	// unnecessary
 			[gui setBackgroundTextureName:tempTexture];
 		}
 		else if (eqKeyForSelectFacing != nil) // weapon purchase
 		{
 			bgName = [UNIVERSE screenBackgroundNameForKey:@"mount_weapon"];
-			if (bgName == nil)  bgName = tempTexture;
-			else  [gui setBackgroundTextureName:bgName];
+			if (bgName != nil)[gui setBackgroundTextureName:bgName];
 		}
 		else // Returning from a weapon purchase. (Also called, redundantly, when paging)
 		{

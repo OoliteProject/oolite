@@ -47,5 +47,7 @@
 	paused_overlay				= "paused-overlay.png";		// in-flight and paused
 	paused_docked_overlay		= "paused-docked-overlay.png";
 	
+	overwrite_overlay			= "overwrite-overlay.png";	// overlay used in the 'overwrite saved game?' screen
+
 */
 }

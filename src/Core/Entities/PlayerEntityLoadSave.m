@@ -717,7 +717,9 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setSelectableRange: NSMakeRange(SAVE_OVERWRITE_YES_ROW, 2)];
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
 	
-	// We can only leave this screen by answering yes or no, or esc. Better not use overlays here, could be misleading.
+	// We can only leave this screen by answering yes or no, or esc. Therefore
+	// use a specific overlay, to allow visual reminders of the available options.
+	[gui setForegroundTextureKey:@"overwrite_overlay"];
 	[gui setBackgroundTextureKey:@"load_save"];
 	
 	[self setShowDemoShips: NO];

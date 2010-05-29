@@ -445,7 +445,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	if ([player status] == STATUS_DOCKED)
 	{
-		if ([gui setForegroundTextureName:@"paused_docked_overlay"])
+		if ([gui setForegroundTextureKey:@"paused_docked_overlay"])
 		{
 			[gui drawGUI:1.0 drawCursor:NO];
 		}
@@ -457,8 +457,10 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	else
 	{
-		if ([gui setForegroundTextureName:@"paused_overlay"])
+		NSString 		*fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_overlay"];
+		if ([player guiScreen] != GUI_SCREEN_MAIN && fgName != nil)
 		{
+			[gui setForegroundTextureName:fgName];
 			[gui drawGUI:1.0 drawCursor:NO];
 		}
 		else

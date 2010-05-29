@@ -805,9 +805,8 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (foregroundTexture != nil)
 	{
 		foregroundSprite = [[OpenGLSprite alloc] initWithTexture:foregroundTexture];
-		return (foregroundSprite != nil);
 	}
-	return YES;
+	return (foregroundSprite != nil);
 }
 
 
@@ -851,16 +850,14 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 - (BOOL) setBackgroundTextureKey:(NSString *)key
 {
 	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
-	if (name == nil)  return NO;
-	return [self setBackgroundTextureName:name];
+	return [self setBackgroundTextureName:name];	// if the name is nil, we want the background cleared
 }
 
 
 - (BOOL) setForegroundTextureKey:(NSString *)key
 {
 	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
-	if (name == nil)  return NO;
-	return [self setForegroundTextureName:name];
+	return [self setForegroundTextureName:name];	// if the name is nil, we want the foreground cleared
 }
 
 
