@@ -279,6 +279,8 @@ enum
 #if ALLOW_PROCEDURAL_PLANETS
 	BOOL					doProcedurallyTexturedPlanets;
 #endif
+	
+	BOOL					_pauseMessage;
 }
 
 - (id)initWithGameView:(MyOpenGLView *)gameView;
@@ -635,6 +637,10 @@ double estimatedTimeForJourney(double distance, int hops);
 
 - (int) framesDoneThisUpdate;
 - (void) resetFramesDoneThisUpdate;
+
+// True if textual pause message (as opposed to overlay) is being shown.
+- (BOOL) pauseMessageVisible;
+- (void) setPauseMessageVisible:(BOOL)value;
 
 @end
 

@@ -4807,15 +4807,6 @@ static BOOL replacingMissile = NO;
 	[UNIVERSE setDisplayCursor: NO];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 	
-#if 0
-// DEBUG SCENE TEST ROUTINES
-	[UNIVERSE removeDemoShips];
-	[self debugOn];
-	[self setBackgroundFromDescriptionsKey:@"test-scene"];
-	[self debugOff];
-	[self setShowDemoShips: YES];
-// END TEST
-#endif
 	if (guiChanged)
 	{
 		NSString *fgName = nil, *bgName = nil;
@@ -4831,10 +4822,10 @@ static BOOL replacingMissile = NO;
 			else bgName = [UNIVERSE screenBackgroundNameForKey:@"status_in_flight"];
 		}
 		
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		[gui setForegroundTextureName:fgName];
 		
 		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"status"];
-		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		[gui setBackgroundTextureName:bgName];
 		
 		[gui setStatusPage:0];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -5146,10 +5137,9 @@ static BOOL replacingMissile = NO;
 	if (guiChanged)
 	{
 		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		[gui setForegroundTextureName:fgName];
 		
-		[gui setBackgroundTexture:[OOTexture textureWithName:
-							[UNIVERSE screenBackgroundNameForKey: sunGoneNova ? @"system_data_nova" : @"system_data"] inFolder:@"Images"]];
+		[gui setBackgroundTextureKey:sunGoneNova ? @"system_data_nova" : @"system_data"];
 		
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 		[self checkScript];	// Still needed by some OXPs?
@@ -5230,10 +5220,9 @@ static BOOL replacingMissile = NO;
 		NSString	*bgName = nil;
 		bgName = [UNIVERSE screenBackgroundNameForKey:[NSString stringWithFormat:@"long_range_chart%d", galaxy_number+1]];
 		if (bgName == nil) bgName = [UNIVERSE screenBackgroundNameForKey:@"long_range_chart"];
-		[gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+		[gui setBackgroundTextureName:bgName];
 		
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
 		[UNIVERSE findSystemCoordinatesWithPrefix:[[UNIVERSE getSystemName:found_system_seed] lowercaseString] exactMatch:YES];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
@@ -5285,10 +5274,9 @@ static BOOL replacingMissile = NO;
 	
 	if (guiChanged)
 	{
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
 		
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"short_range_chart"] inFolder:@"Images"]];
+		[gui setBackgroundTextureKey:@"short_range_chart"];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
 }
@@ -5485,9 +5473,8 @@ static BOOL replacingMissile = NO;
 		[gui setSelectedRow: first_sel_row];
 
 		[gui setShowTextCursor:NO];
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"settings"] inFolder:@"Images"]];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
 
@@ -5579,10 +5566,9 @@ static BOOL replacingMissile = NO;
 		
 		[gui setShowTextCursor:NO];
 		
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 		// Graphically, this screen is analogous to the various settings screens
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"settings"] inFolder:@"Images"]];
+		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
 	
@@ -5935,24 +5921,22 @@ static NSString *last_outfitting_key=nil;
 		// TODO: split the mount_weapon sub-screen into a separate screen, and use it for pylon mounted wepons as well?
 		if (guiChanged)
 		{
-			NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
-			[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+			[gui setForegroundTextureKey:@"docked_overlay"];
 			
-			bgName = [UNIVERSE screenBackgroundNameForKey:@"equip_ship"];
 			[tempTexture release];
-			tempTexture = [OOTexture textureWithName:bgName inFolder:@"Images"];
+			tempTexture = [[UNIVERSE screenBackgroundNameForKey:@"equip_ship"] copy];
 			[tempTexture retain];
-			[gui setBackgroundTexture:tempTexture];
+			[gui setBackgroundTextureName:tempTexture];
 		}
 		else if (eqKeyForSelectFacing != nil) // weapon purchase
 		{
 			bgName = [UNIVERSE screenBackgroundNameForKey:@"mount_weapon"];
-			if (bgName == nil) [gui setBackgroundTexture:tempTexture];
-			else [gui setBackgroundTexture:[OOTexture textureWithName:bgName inFolder:@"Images"]];
+			if (bgName == nil)  bgName = tempTexture;
+			else  [gui setBackgroundTextureName:bgName];
 		}
 		else // Returning from a weapon purchase. (Also called, redundantly, when paging)
 		{
-			[gui setBackgroundTexture:tempTexture];
+			[gui setBackgroundTextureName:tempTexture];
 		}
 	}
 	/* ends */
@@ -6012,7 +5996,6 @@ static NSString *last_outfitting_key=nil;
 	NSString 		*text = nil;
 	GuiDisplayGen	*gui = [UNIVERSE gui];
 	int 			msgLine = 2;
-	OOTexture		*background = nil;
 
 	if (justCobra)
 	{
@@ -6123,8 +6106,7 @@ static NSString *last_outfitting_key=nil;
 	
 	[self setShowDemoShips: YES];
 	[UNIVERSE setDisplayCursor: NO];
-	background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"intro"] inFolder:@"Images"];
-	[gui setBackgroundTexture:background];
+	[gui setBackgroundTextureKey:@"intro"];
 	[UNIVERSE setViewDirection: VIEW_GUI_DISPLAY];
 }
 
@@ -6668,10 +6650,8 @@ static NSString *last_outfitting_key=nil;
 	
 	if (guiChanged)
 	{
-		NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
-		[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-		
-		[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"market"] inFolder:@"Images"]];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"overlay"];
+		[gui setBackgroundTextureKey:@"market"];
 		[self noteGuiChangeFrom:oldScreen to:gui_screen];
 	}
 }

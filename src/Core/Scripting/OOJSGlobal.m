@@ -331,7 +331,7 @@ static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uint
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTexture:[OOTexture textureWithName:value inFolder:@"Images"]]);
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setBackgroundTextureName:value]);
 		// add some permanence to the override if we're in the equip ship screen
 		if (*outResult == JSVAL_TRUE && [player guiScreen] == GUI_SCREEN_EQUIP_SHIP) [player setTempBackground:value];
 	}
@@ -344,10 +344,11 @@ static JSBool GlobalSetScreenBackground(JSContext *context, JSObject *this, uint
 static JSBool GlobalSetScreenOverlay(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	*outResult = JSVAL_FALSE;
+	NSString 		*value = JSValToNSString(context, argv[0]);
 	
 	if ([UNIVERSE viewDirection] == VIEW_GUI_DISPLAY)
 	{
-		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:JSValToNSString(context, argv[0]) inFolder:@"Images"]]);
+		*outResult = BOOLEAN_TO_JSVAL([[UNIVERSE gui] setForegroundTextureName:value]);
 	}
 	
 	return YES;

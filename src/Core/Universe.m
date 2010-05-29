@@ -438,34 +438,34 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 #endif
 
 
-- (void) sleepytime: (id) thing
+- (void) sleepytime:(id)sender
 {
 	// deal with the machine going to sleep, or player pressing 'p'.
 	PlayerEntity 	*player = [PlayerEntity sharedPlayer];
-	if (!player) return;
-	NSString 		*fgName = nil;
 	
 	if ([player status] == STATUS_DOCKED)
 	{
-		fgName = [self screenBackgroundNameForKey:@"paused_docked_overlay"];
-		if (fgName != nil)
+		if ([gui setForegroundTextureName:@"paused_docked_overlay"])
 		{
-			[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 			[gui drawGUI:1.0 drawCursor:NO];
 		}
 		else
+		{
+			[self setPauseMessageVisible:YES];
 			[self addMessage:DESC(@"game-paused-docked") forCount:1.0];
+		}
 	}
 	else
 	{
-		fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_overlay"];
-		if ([player guiScreen] != GUI_SCREEN_MAIN && fgName != nil)
+		if ([gui setForegroundTextureName:@"paused_overlay"])
 		{
-			[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
 			[gui drawGUI:1.0 drawCursor:NO];
 		}
 		else
+		{
+			[self setPauseMessageVisible:YES];
 			[self addMessage:DESC(@"game-paused") forCount:1.0];
+		}
 	}
 	
 	[[gameView gameController] pause_game];
@@ -8432,6 +8432,17 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 }
 #endif
 
+
+- (BOOL) pauseMessageVisible
+{
+	return _pauseMessage;
+}
+
+
+- (void) setPauseMessageVisible:(BOOL)value
+{
+	_pauseMessage = value;
+}
 
 
 - (void *) suppressClangStuff

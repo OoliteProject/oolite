@@ -491,15 +491,6 @@ static BOOL					sHaveSetUp = NO;
 					if (512 < desiredHeight)  desiredHeight /= 2;
 				}
 			}
-			else
-			{
-				if (sReducedDetail || sUserMaxSize < desiredWidth || sUserMaxSize < desiredWidth)
-				{
-					// Permit a bit of shrinking for large textures
-					if (512 < desiredWidth)  desiredWidth /= 2;
-					if (512 < desiredHeight)  desiredHeight /= 2;
-				}
-			}
 		}
 	}
 	else

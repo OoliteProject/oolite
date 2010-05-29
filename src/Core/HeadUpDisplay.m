@@ -379,7 +379,11 @@ OOINLINE void GLColorWithOverallAlpha(const GLfloat *color, GLfloat alpha)
 	imageName = [info oo_stringForKey:IMAGE_KEY];
 	if (imageName != nil)
 	{
-		texture = [OOTexture textureWithName:imageName inFolder:@"Images"];
+		texture = [OOTexture textureWithName:imageName
+									inFolder:@"Images"
+									 options:kOOTextureDefaultOptions | kOOTextureNoShrink
+								  anisotropy:kOOTextureDefaultAnisotropy
+									 lodBias:kOOTextureDefaultLODBias];
 		if (texture == nil)
 		{
 			OOLog(kOOLogFileNotFound, @"***** ERROR: HeadUpDisplay couldn't get an image texture name for %@", imageName);

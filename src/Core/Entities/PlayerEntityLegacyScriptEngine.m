@@ -2094,21 +2094,18 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionImage:(NSString *)value
 {
-	[missionForegroundTexture release];
-	missionForegroundTexture = nil;
+	DESTROY(missionForegroundTexture);
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		missionForegroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
-		[missionForegroundTexture retain];
+		missionBackgroundTexture = [value copy];
  	}
 }
 
 
 - (void) setTempBackground:(NSString *)value
 {
-	[tempTexture release];
-	tempTexture = nil;
+	DESTROY(tempTexture);
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
@@ -2120,13 +2117,11 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 
 - (void) setMissionBackground:(NSString *)value
 {
-	[missionBackgroundTexture release];
-	missionBackgroundTexture = nil;
+	DESTROY(missionBackgroundTexture);
 	
 	if ([value length] != 0 && ![[value lowercaseString] isEqualToString:@"none"])
  	{
-		missionBackgroundTexture = [OOTexture textureWithName:value inFolder:@"Images"];
-		[missionBackgroundTexture retain];
+		missionBackgroundTexture = [value copy];
  	}
 }
 
@@ -2375,10 +2370,24 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
+- (NSString *) missionForegroundTextureName
+{
+	if (missionForegroundTexture != nil)  return missionForegroundTexture;
+	if ([missionTitle isEqualToString:@""])  return [UNIVERSE screenBackgroundNameForKey:@"mission_overlay_no_title"];
+	return [UNIVERSE screenBackgroundNameForKey:@"mission_overlay_with_title"];
+}
+
+
+- (NSString *) missionBackgroundTextureName
+{
+	if (missionBackgroundTexture != nil)  return missionBackgroundTexture;
+	return [UNIVERSE screenBackgroundNameForKey:@"mission"];
+}
+
+
 - (void) setGuiToMissionScreenWithCallback:(BOOL) callback
 {
 	GuiDisplayGen	*gui = [UNIVERSE gui];
-	OOTexture		*background = nil;
 
 	// GUI stuff
 	{
@@ -2391,14 +2400,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		
 		[gui setSelectableRange:NSMakeRange(0,0)];
 		
-		if (missionForegroundTexture != nil) background = missionForegroundTexture;
-		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:
-													([missionTitle isEqualToString:@""] ? @"mission_overlay_no_title" : @"mission_overlay_with_title")] inFolder:@"Images"];
-		[gui setForegroundTexture:background];
-		
-		if (missionBackgroundTexture != nil) background = missionBackgroundTexture;
-		else background = [OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"mission"] inFolder:@"Images"];
-		[gui setBackgroundTexture:background];
+		[gui setForegroundTextureName:[self missionForegroundTextureName]];
+		[gui setBackgroundTextureName:[self missionBackgroundTextureName]];
 		
 		[gui setShowTextCursor:NO];
 	}

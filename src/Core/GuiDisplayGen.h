@@ -209,8 +209,13 @@ typedef OOGUITabStop OOGUITabSettings[GUI_MAX_COLUMNS];
 
 - (void) scrollUp:(int) how_much;
 
-- (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture;
-- (BOOL) setForegroundTexture:(OOTexture *)foregroundTexture;
+/*- (BOOL) setBackgroundTexture:(OOTexture *)backgroundTexture;
+- (BOOL) setForegroundTexture:(OOTexture *)foregroundTexture;*/
+- (BOOL) setBackgroundTextureName:(NSString *)name;
+- (BOOL) setForegroundTextureName:(NSString *)name;
+- (BOOL) setBackgroundTextureKey:(NSString *)key;
+- (BOOL) setForegroundTextureKey:(NSString *)key;
+
 - (void) clearBackground;
 
 - (void) leaveLastLine;

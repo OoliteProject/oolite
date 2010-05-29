@@ -1397,8 +1397,7 @@ static NSTimeInterval	time_last_frame;
 					[UNIVERSE setDisplayCursor:NO];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE setViewDirection:saved_view_direction];
-					NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"overlay"];
-					[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+					[[UNIVERSE gui] setForegroundTextureKey:@"overlay"];
 					[[gameView gameController] unpause_game];
 				}
 				else
@@ -3070,23 +3069,23 @@ static BOOL toggling_music;
 		{
 			if (!pause_pressed)
 			{
-				NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_docked_overlay"];
 				if ([gameController gameIsPaused])
 				{
 					script_time = saved_script_time;
 					[gameView allowStringInput:NO];
 					[UNIVERSE setDisplayCursor:NO];
-					if (![OOTexture textureWithName:fgName inFolder:@"Images"])
+					if ([UNIVERSE pauseMessageVisible])
+					{
 						[UNIVERSE clearPreviousMessage];	// remove the 'paused' message if it was there.
-					fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];
-					[[UNIVERSE gui] setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
+						[UNIVERSE setPauseMessageVisible:NO];
+					}
+					[[UNIVERSE gui] setForegroundTextureKey:@"docked_overlay"];
 					[gameController unpause_game];
 				}
 				else
 				{
 					saved_script_time = script_time;
-					if (![OOTexture textureWithName:fgName inFolder:@"Images"])
-						[[UNIVERSE message_gui] clear];		// remove all other messages if we're displaying the 'paused' message.
+					[[UNIVERSE message_gui] clear];
 					
 					[UNIVERSE sleepytime:nil];	// 'paused' handler
 				}

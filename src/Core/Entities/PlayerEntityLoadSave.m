@@ -647,11 +647,10 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setTitle:DESC(@"loadscreen-title")];
 	
 	currentPage = 0;
-	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
-	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
-	[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-
-	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
+	[self lsCommanders:gui directory:dir pageNumber: currentPage highlightName:nil];
+	
+	[gui setForegroundTextureKey:@"docked_overlay"];
+	[gui setBackgroundTextureKey:@"load_save"];
 	
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
 	
@@ -674,16 +673,15 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setTitle:[NSString stringWithFormat:DESC(@"savescreen-title")]];
 	
 	currentPage = 0;
-	[self lsCommanders:gui	directory:dir	pageNumber: currentPage	highlightName:nil];
+	[self lsCommanders:gui directory:dir pageNumber: currentPage highlightName:nil];
 	
 	[gui setText:DESC(@"savescreen-commander-name") forRow: INPUTROW];
 	[gui setColor:[OOColor cyanColor] forRow:INPUTROW];
 	[gui setShowTextCursor: YES];
 	[gui setCurrentRow: INPUTROW];
 	
-	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
-	[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
+	[gui setForegroundTextureKey:@"docked_overlay"];
+	[gui setBackgroundTextureKey:@"load_save"];
 	
 	[gameView setTypedString: cdrName];
 	[gameView supressKeysUntilKeyUp];
@@ -720,9 +718,7 @@ static uint16_t PersonalityForCommanderDict(NSDictionary *dict);
 	[gui setSelectedRow: SAVE_OVERWRITE_NO_ROW];
 	
 	// We can only leave this screen by answering yes or no, or esc. Better not use overlays here, could be misleading.
-	//NSString *fgName = [UNIVERSE screenBackgroundNameForKey:@"docked_overlay"];	// has to be docked to get here! 
-	//[gui setForegroundTexture:[OOTexture textureWithName:fgName inFolder:@"Images"]];
-	[gui setBackgroundTexture:[OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"load_save"] inFolder:@"Images"]];
+	[gui setBackgroundTextureKey:@"load_save"];
 	
 	[self setShowDemoShips: NO];
 	[UNIVERSE setDisplayCursor: NO];

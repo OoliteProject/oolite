@@ -31,6 +31,7 @@ MA 02110-1301, USA.
 #import "OOStringParsing.h"
 #import "HeadUpDisplay.h"
 #import "OOCollectionExtractors.h"
+#import "OOTexture.h"
 
 
 OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
@@ -804,8 +805,9 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 	if (foregroundTexture != nil)
 	{
 		foregroundSprite = [[OpenGLSprite alloc] initWithTexture:foregroundTexture];
+		return (foregroundSprite != nil);
 	}
-	return (foregroundSprite != nil);
+	return YES;
 }
 
 
@@ -813,6 +815,52 @@ OOINLINE BOOL RowInRange(OOGUIRow row, NSRange range)
 {
 	[self setBackgroundTexture:nil];
 	[self setForegroundTexture:nil];
+}
+
+
+- (BOOL) setBackgroundTextureName:(NSString *)name
+{
+	OOTexture *texture =  nil;
+	if (name != nil)
+	{
+		texture = [OOTexture textureWithName:name
+									inFolder:@"Images"
+									 options:kOOTextureDefaultOptions | kOOTextureNoShrink
+								  anisotropy:kOOTextureDefaultAnisotropy
+									 lodBias:kOOTextureDefaultLODBias];
+	}
+	return [self setBackgroundTexture:texture];
+}
+
+
+- (BOOL) setForegroundTextureName:(NSString *)name
+{
+	OOTexture *texture =  nil;
+	if (name != nil)
+	{
+		texture = [OOTexture textureWithName:name
+									inFolder:@"Images"
+									 options:kOOTextureDefaultOptions | kOOTextureNoShrink
+								  anisotropy:kOOTextureDefaultAnisotropy
+									 lodBias:kOOTextureDefaultLODBias];
+	}
+	return [self setForegroundTexture:texture];
+}
+
+
+- (BOOL) setBackgroundTextureKey:(NSString *)key
+{
+	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
+	if (name == nil)  return NO;
+	return [self setBackgroundTextureName:name];
+}
+
+
+- (BOOL) setForegroundTextureKey:(NSString *)key
+{
+	NSString *name = [UNIVERSE screenBackgroundNameForKey:key];
+	if (name == nil)  return NO;
+	return [self setForegroundTextureName:name];
 }
 
 
