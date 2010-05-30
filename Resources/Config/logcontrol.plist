@@ -172,6 +172,7 @@
 	mesh.load.octree.size					= no;
 	
 	mesh.load.error							= $error;
+	mesh.load.error.badCacheData			= inherit;
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
 	mesh.load.error.tooManyFaces			= inherit;

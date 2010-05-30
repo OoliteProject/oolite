@@ -119,7 +119,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)object;
 - (void) deleteDisplayLists;
 
 - (NSDictionary*) modelData;
-- (BOOL) setModelFromModelData:(NSDictionary*) dict;
+- (BOOL) setModelFromModelData:(NSDictionary*) dict name:(NSString *)fileName;
 
 - (void) getNormal:(Vector *)outNormal andTangent:(Vector *)outTangent forVertex:(OOMeshVertexCount)v_index inSmoothGroup:(OOMeshSmoothGroup)smoothGroup;
 
@@ -973,7 +973,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 }
 
 
-- (BOOL)setModelFromModelData:(NSDictionary *)dict
+- (BOOL)setModelFromModelData:(NSDictionary *)dict name:(NSString *)fileName
 {
 	NSData				*vertData = nil,
 						*normData = nil,
@@ -1003,6 +1003,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		faceData == nil ||
 		mtlKeys == nil)
 	{
+		OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", fileName);
 		return NO;
 	}
 	
@@ -1012,6 +1013,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		tanData = [dict oo_dataForKey:@"tangent data"];
 		if (normData == nil || tanData == nil)
 		{
+			OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad normal/tangent cache data for mesh \"%@\".", fileName);
 			return NO;
 		}
 	}
@@ -1048,8 +1050,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	for (i = 0; i != materialCount; ++i)
 	{
 		key = [mtlKeys oo_stringAtIndex:i];
-		if (key != nil)  materialKeys[i] = [key retain];
-		else  return NO;
+		if (key != nil)  materialKeys[i] = [key copy];
+		else
+		{
+			OOLog(@"mesh.load.error.badCacheData", @"Ignoring bad cache data for mesh \"%@\".", fileName);
+			return NO;
+		}
 	}
 	
 	return YES;
@@ -1071,20 +1077,18 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	cacheData = [OOCacheManager meshDataForName:filename];
 	if (cacheData != nil)
 	{
-		if ([self setModelFromModelData:cacheData])
+		if ([self setModelFromModelData:cacheData name:filename])
 		{
 			using_preloaded = YES;
 			PROFILE(@"loaded from cache");
 			OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
 		}
 	}
-	else
-	{
-		OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", filename);
-	}
 	
 	if (!using_preloaded)
 	{
+		OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", filename);
+		
 		NSCharacterSet	*whitespaceCharSet = [NSCharacterSet whitespaceCharacterSet];
 		NSCharacterSet	*whitespaceAndNewlineCharSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
 #if OOLITE_LEOPARD
