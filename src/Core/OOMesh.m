@@ -998,20 +998,22 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	_normalMode = [dict oo_unsignedCharForKey:@"normal mode"];
 	BOOL includeNormals = IsPerVertexNormalMode(_normalMode);
 	
-	if (includeNormals)
-	{
-		normData = [dict oo_dataForKey:@"normal data"];
-		tanData = [dict oo_dataForKey:@"tangent data"];
-	}
-	
 	// Ensure we have all the required data elements.
 	if (vertData == nil ||
-		normData == nil ||
-		tanData == nil ||
 		faceData == nil ||
 		mtlKeys == nil)
 	{
 		return NO;
+	}
+	
+	if (includeNormals)
+	{
+		normData = [dict oo_dataForKey:@"normal data"];
+		tanData = [dict oo_dataForKey:@"tangent data"];
+		if (normData == nil || tanData == nil)
+		{
+			return NO;
+		}
 	}
 	
 	// Ensure data objects are of correct size.
@@ -1069,9 +1071,12 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	cacheData = [OOCacheManager meshDataForName:filename];
 	if (cacheData != nil)
 	{
-		if ([self setModelFromModelData:cacheData]) using_preloaded = YES;
-		PROFILE(@"loaded from cache");
-		OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
+		if ([self setModelFromModelData:cacheData])
+		{
+			using_preloaded = YES;
+			PROFILE(@"loaded from cache");
+			OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
+		}
 	}
 	else
 	{
