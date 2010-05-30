@@ -1663,7 +1663,7 @@ static JSBool ShipEquipmentStatus(JSContext *context, JSObject *this, uintN argc
 	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment type");
+		OOReportJSBadArguments(context, @"Ship", @"equipmentStatus", argc, argv, nil, @"equipment type");
 		return NO;
 	}
 	
