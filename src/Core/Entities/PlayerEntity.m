@@ -3469,8 +3469,8 @@ static BOOL replacingMissile = NO;
 		eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentKey];
 	}
 	
-	// missiles with techlevel 99 (kOOVariableTechLevel) and 100 are not available to the player
-	if (![eqType isMissileOrMine] || [eqType effectiveTechLevel] < kOOVariableTechLevel)
+	// missiles with techlevel above 99 (kOOVariableTechLevel) are never available to the player
+	if (![eqType isMissileOrMine] || [eqType effectiveTechLevel] > kOOVariableTechLevel)
 	{
 		return NO;
 	}
