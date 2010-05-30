@@ -337,4 +337,12 @@ static OOBasicMaterial *sDefaultMaterial = nil;
 	return ![UNIVERSE reducedDetail];
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [NSSet set];
+}
+#endif
+
 @end

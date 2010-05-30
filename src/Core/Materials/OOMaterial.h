@@ -76,6 +76,10 @@ SOFTWARE.
 - (OOUInteger) countOfTextureUnitsWithBaseCoordinates;
 #endif
 
+#ifndef NDEBUG
+- (NSSet *) allTextures;
+#endif
+
 @end
 
 

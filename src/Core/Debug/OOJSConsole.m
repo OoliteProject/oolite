@@ -42,6 +42,7 @@ SOFTWARE.
 #import "OOConstToString.h"
 #import "OOOpenGLExtensionManager.h"
 #import "OODebugFlags.h"
+#import "OODebugMonitor.h"
 
 
 @interface Entity (OODebugInspector)
@@ -73,6 +74,7 @@ static JSBool ConsoleIsExecutableJavaScript(JSContext *context, JSObject *this, 
 static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
@@ -84,14 +86,14 @@ static JSClass sConsoleClass =
 	"Console",
 	JSCLASS_HAS_PRIVATE | JSCLASS_IS_ANONYMOUS,
 	
-	JS_PropertyStub,		// addProperty
-	JS_PropertyStub,		// delProperty
-	ConsoleGetProperty,		// getProperty
-	ConsoleSetProperty,		// setProperty
-	JS_EnumerateStub,		// enumerate
-	JS_ResolveStub,			// resolve
-	JS_ConvertStub,			// convert
-	ConsoleFinalize,		// finalize
+	JS_PropertyStub,				// addProperty
+	JS_PropertyStub,				// delProperty
+	ConsoleGetProperty,				// getProperty
+	ConsoleSetProperty,				// setProperty
+	JS_EnumerateStub,				// enumerate
+	JS_ResolveStub,					// resolve
+	JS_ConvertStub,					// convert
+	ConsoleFinalize,				// finalize
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -162,16 +164,17 @@ static JSPropertySpec sConsoleProperties[] =
 
 static JSFunctionSpec sConsoleMethods[] =
 {
-	// JS name					Function					min args
-	{ "consoleMessage",			ConsoleConsoleMessage,		2 },
-	{ "clearConsole",			ConsoleClearConsole,		0 },
-	{ "scriptStack",			ConsoleScriptStack,			0 },
-	{ "inspectEntity",			ConsoleInspectEntity,		1 },
-	{ "__callObjCMethod",		ConsoleCallObjCMethod,		1 },
-	{ "isExecutableJavaScript",	ConsoleIsExecutableJavaScript, 2 },
-	{ "displayMessagesInClass", ConsoleDisplayMessagesInClass, 1 },
-	{ "setDisplayMessagesInClass", ConsoleSetDisplayMessagesInClass, 2 },
-	{ "writeLogMarker",			ConsoleWriteLogMarker,		0 },
+	// JS name							Function							min args
+	{ "consoleMessage",					ConsoleConsoleMessage,				2 },
+	{ "clearConsole",					ConsoleClearConsole,				0 },
+	{ "scriptStack",					ConsoleScriptStack,					0 },
+	{ "inspectEntity",					ConsoleInspectEntity,				1 },
+	{ "__callObjCMethod",				ConsoleCallObjCMethod,				1 },
+	{ "isExecutableJavaScript",			ConsoleIsExecutableJavaScript,		2 },
+	{ "displayMessagesInClass",			ConsoleDisplayMessagesInClass,		1 },
+	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
+	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
+	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
 	{ 0 }
 };
 
@@ -181,14 +184,14 @@ static JSClass sConsoleSettingsClass =
 	"ConsoleSettings",
 	JSCLASS_HAS_PRIVATE,
 	
-	JS_PropertyStub,		// addProperty
-	ConsoleSettingsDeleteProperty, // delProperty
-	ConsoleSettingsGetProperty, // getProperty
-	ConsoleSettingsSetProperty, // setProperty
-	JS_EnumerateStub,		// enumerate. FIXME: this should work.
-	JS_ResolveStub,			// resolve
-	JS_ConvertStub,			// convert
-	ConsoleFinalize,		// finalize (same as Console)
+	JS_PropertyStub,				// addProperty
+	ConsoleSettingsDeleteProperty,	// delProperty
+	ConsoleSettingsGetProperty,		// getProperty
+	ConsoleSettingsSetProperty,		// setProperty
+	JS_EnumerateStub,				// enumerate. FIXME: this should work.
+	JS_ResolveStub,					// resolve
+	JS_ConvertStub,					// convert
+	ConsoleFinalize,				// finalize (same as Console)
 	JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
@@ -656,6 +659,14 @@ static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *thi
 static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	OOLogInsertMarker();
+	return YES;
+}
+
+
+// function writeMemoryStats() : void
+static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
 	return YES;
 }
 

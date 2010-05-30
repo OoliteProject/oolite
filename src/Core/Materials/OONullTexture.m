@@ -59,10 +59,24 @@ static OONullTexture *sSingleton = nil;
 }
 
 
+- (BOOL) isMipMapped
+{
+	return NO;
+}
+
+
 - (void) forceRebind
 {
 	
 }
+
+
+#ifndef NDEBUG
+- (NSString *) name
+{
+	return @"<null texture>";
+}
+#endif
 
 @end
 

@@ -122,6 +122,14 @@ static OOMaterial *sActiveMaterial = nil;
 }
 #endif
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return nil;
+}
+#endif
+
 @end
 
 

@@ -346,7 +346,8 @@ OO_UTILITY_FILES = \
 	OOWeakReference.m \
 	OOXMLExtensions.m \
 	OODeepCopy.m \
-	OORegExpMatcher.m
+	OORegExpMatcher.m \
+	NSObjectOOExtensions.m
 
 OOLITE_MISC_FILES = \
 	AI.m \

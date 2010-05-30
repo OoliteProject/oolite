@@ -248,6 +248,8 @@ extern size_t gTotalEntityMemory;
 #ifndef NDEBUG
 - (NSString *) descriptionForObjDumpBasic;
 - (NSString *) descriptionForObjDump;
+
+- (NSSet *) allTextures;
 #endif
 
 @end

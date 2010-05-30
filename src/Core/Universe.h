@@ -299,6 +299,7 @@ enum
 - (int) obj_count;
 #ifndef NDEBUG
 - (void) obj_dump;
+- (NSArray *) entityList;
 #endif
 
 - (void) sleepytime:(id) thing;

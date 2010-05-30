@@ -1005,6 +1005,12 @@ static NSString * const kOOLogEntityUpdateError				= @"entity.linkedList.update.
 	
 	return result;
 }
+
+
+- (NSSet *) allTextures
+{
+	return nil;
+}
 #endif
 
 

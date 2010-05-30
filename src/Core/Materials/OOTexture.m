@@ -314,6 +314,13 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
+- (BOOL) isMipMapped
+{
+	OOLogGenericSubclassResponsibility();
+	return NO;
+}
+
+
 - (struct OOPixMap) copyPixMapRepresentation
 {
 	return kOONullPixMap;
@@ -382,11 +389,50 @@ static NSString *sGlobalTraceContext = nil;
 	}
 	_trace = trace;
 }
+
+
++ (NSArray *) cachedTexturesByAge
+{
+	return [sRecentTextures objectsByAge];
+}
+
+
++ (NSArray *) inUseTextures
+{
+	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[sInUseTextures count]];
+	NSValue *box = nil;
+	NSEnumerator *texEnum = nil;
+	for (texEnum = [sInUseTextures objectEnumerator]; (box = [texEnum nextObject]); )
+	{
+		[result addObject:[box pointerValue]];
+	}
+	
+	return result;
+}
+
+
+- (size_t) dataSize
+{
+	NSSize dimensions = [self dimensions];
+	size_t size = dimensions.width * dimensions.height;
+	if ([self isCubeMap])  size *= 6;
+	if ([self isMipMapped])  size = size * 4 / 3;
+	
+	return size;
+}
+
+
+- (NSString *) name
+{
+	OOLogGenericSubclassResponsibility();
+	return nil;
+}
 #endif
 
 
 - (void) forceRebind
 {
+	OOLogGenericSubclassResponsibility();
 }
 
 

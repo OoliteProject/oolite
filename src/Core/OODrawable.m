@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #import "OODrawable.h"
+#import "NSObjectOOExtensions.h"
 
 
 @implementation OODrawable
@@ -88,5 +89,19 @@ SOFTWARE.
 {
 	
 }
+
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return nil;
+}
+
+
+- (size_t) totalSize
+{
+	return [self oo_objectSize];
+}
+#endif
 
 @end

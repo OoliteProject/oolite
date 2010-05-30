@@ -662,6 +662,14 @@ static NSString *MacrosToString(NSDictionary *macros);
 	return YES;
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [NSSet setWithObjects:textures count:texCount];
+}
+#endif
+
 @end
 
 

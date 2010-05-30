@@ -29,6 +29,7 @@ MA 02110-1301, USA.
 #import "OODebugGLDrawing.h"
 #import "OOMacroOpenGL.h"
 #import "OODebugFlags.h"
+#import "NSObjectOOExtensions.h"
 
 
 #ifndef NDEBUG
@@ -767,5 +768,13 @@ Vector randomFullNodeFrom( Octree_details details, Vector offset)
 	}
 	return offset;
 }
+
+
+#ifndef NDEBUG
+- (size_t) totalSize
+{
+	return [self oo_objectSize] + leafs * (sizeof *octree + sizeof *octree_collision);
+}
+#endif
 
 @end

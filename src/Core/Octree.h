@@ -91,4 +91,9 @@ GLfloat volumeOfOctree(Octree_details octree_details);
 
 Vector randomFullNodeFrom( Octree_details details, Vector offset);
 
+
+#ifndef NDEBUG
+- (size_t) totalSize;
+#endif
+
 @end

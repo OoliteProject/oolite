@@ -34,6 +34,7 @@ SOFTWARE.
 #import "OOGraphicsResetManager.h"
 #import "Universe.h"
 #import "OOMacroOpenGL.h"
+#import "NSObjectOOExtensions.h"
 
 
 #define SKY_ELEMENT_SCALE_FACTOR		(BILLBOARD_DEPTH / 500.0f)
@@ -87,6 +88,11 @@ enum
 - (id)initWithQuadsWithTexture:(OOTexture *)texture inArray:(OOSkyQuadDesc *)array count:(unsigned)totalCount;
 
 - (void)render;
+
+#ifndef NDEBUG
+- (size_t) totalSize;
+- (OOTexture *) texture;
+#endif
 
 @end
 
@@ -239,6 +245,37 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 {
 	return INFINITY;
 }
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	NSMutableSet *result = [NSMutableSet setWithCapacity:[_quadSets count]];
+	
+	NSEnumerator *quadSetEnum = nil;
+	OOSkyQuadSet *quadSet = nil;
+	for (quadSetEnum = [_quadSets objectEnumerator]; (quadSet = [quadSetEnum nextObject]); )
+	{
+		[result addObject:[quadSet texture]];
+	}
+	
+	return result;
+}
+
+
+- (size_t) totalSize
+{
+	size_t result = [super totalSize];
+	
+	NSEnumerator *quadSetEnum = nil;
+	OOSkyQuadSet *quadSet = nil;
+	for (quadSetEnum = [_quadSets objectEnumerator]; (quadSet = [quadSetEnum nextObject]); )
+	{
+		result += [quadSet totalSize];
+	}
+	
+	return result;
+}
+#endif
 
 @end
 
@@ -630,6 +667,20 @@ static OOColor *DebugColor(Vector orientation)
 	
 	OOGL(glDrawArrays(GL_QUADS, 0, 4 * _count));
 }
+
+
+#ifndef NDEBUG
+- (size_t) totalSize
+{
+	return [self oo_objectSize] + _count * 4 * (sizeof *_positions + sizeof *_texCoords + sizeof *_colors);
+}
+
+
+- (OOTexture *) texture
+{
+	return _texture;
+}
+#endif
 
 @end
 

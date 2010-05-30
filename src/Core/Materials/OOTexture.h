@@ -188,6 +188,11 @@ typedef enum
 */
 - (NSSize) dimensions;
 
+/*	Check whether texture is mip-mapped.
+	This will block until loading is completed.
+*/
+- (BOOL) isMipMapped;
+
 /*	Create a new pixmap with a copy of the texture data. The caller is
 	responsible for free()ing the resulting buffer.
 */
@@ -238,6 +243,13 @@ typedef enum
 
 #ifndef NDEBUG
 - (void) setTrace:(BOOL)trace;
+
++ (NSArray *) cachedTexturesByAge;
++ (NSArray *) inUseTextures;
+
+- (size_t) dataSize;
+
+- (NSString *) name;
 #endif
 
 @end

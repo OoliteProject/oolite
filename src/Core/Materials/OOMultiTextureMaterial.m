@@ -207,6 +207,15 @@ SOFTWARE.
 	OOGL(glActiveTextureARB(GL_TEXTURE0_ARB));
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	if (_diffuseMap == nil)  return [NSSet setWithObject:_emissionMap];
+	return [NSSet setWithObjects:_diffuseMap, _emissionMap, nil];
+}
+#endif
+
 @end
 
 #endif	/* OO_MULTITEXTURE */

@@ -374,6 +374,12 @@
 	OODebugEndWireframe(state);
 }
 
+
+- (NSSet *) allTextures
+{
+	return [[self material] allTextures];
+}
+
 #endif
 
 @end

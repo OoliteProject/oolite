@@ -67,6 +67,10 @@ SOFTWARE.
 #if GL_EXT_texture_filter_anisotropic
 	float					_anisotropy;
 #endif
+	
+#ifndef NDEBUG
+	NSString				*_name;
+#endif
 }
 
 - (id) initWithLoader:(OOTextureLoader *)loader

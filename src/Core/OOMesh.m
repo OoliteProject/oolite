@@ -51,6 +51,7 @@ MA 02110-1301, USA.
 #import "OOMacroOpenGL.h"
 #import "OOProfilingStopwatch.h"
 #import "OODebugFlags.h"
+#import "NSObjectOOExtensions.h"
 
 
 // If set, collision octree depth varies depending on the size of the mesh.
@@ -737,6 +738,42 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	if (baseFile != nil)  OOLog(@"dumpState.mesh", @"Model file: %@", baseFile);
 	OOLog(@"dumpState.mesh", @"Vertex count: %u, face count: %u", vertexCount, faceCount);
 	OOLog(@"dumpState.mesh", @"Normals: %@", NormalModeDescription(_normalMode));
+}
+#endif
+
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	NSMutableSet *result = [NSMutableSet set];
+	OOMeshMaterialCount i;
+	for (i = 0; i != materialCount; i++)
+	{
+		[result unionSet:[materials[i] allTextures]];
+	}
+	
+	return result;
+}
+
+
+- (size_t) totalSize
+{
+	size_t result = [super totalSize];
+	if (_vertices != NULL)  result += sizeof *_vertices * vertexCount;
+	if (_normals != NULL)  result += sizeof *_normals * vertexCount;
+	if (_tangents != NULL)  result += sizeof *_tangents * vertexCount;
+	if (_faces != NULL)  result += sizeof *_faces * faceCount;
+	
+	result += _displayLists.count * (sizeof (GLint) + sizeof (GLfloat) + sizeof (Vector) * 3);
+	
+	OOMeshMaterialCount i;
+	for (i = 0; i != materialCount; i++)
+	{
+		result += [materials[i] oo_objectSize];
+	}
+	
+	result += [octree totalSize];
+	return result;
 }
 #endif
 

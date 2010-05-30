@@ -38,6 +38,10 @@
 #import "OOCache.h"
 #import "OOPixMap.h"
 
+#ifndef NDEBUG
+#import "OOTextureGenerator.h"
+#endif
+
 
 #if OOLITE_BIG_ENDIAN
 #define RGBA_IMAGE_TYPE GL_UNSIGNED_INT_8_8_8_8_REV
@@ -104,6 +108,13 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	_lodBias = lodBias;
 #endif
 	
+#ifndef NDEBUG
+	if ([loader isKindOfClass:[OOTextureGenerator class]])
+	{
+		_name = [[NSString alloc] initWithFormat:@"<%@>", [loader class]];
+	}
+#endif
+	
 	_key = [key copy];
 	
 	[self addToCaches];
@@ -163,6 +174,10 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	
 	DESTROY(_loader);
 	
+#ifndef NDEBUG
+	DESTROY(_name);
+#endif
+	
 	[super dealloc];
 }
 
@@ -195,6 +210,44 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 {
 	return _key;
 }
+
+
+#ifndef NDEBUG
+- (NSString *) name
+{
+	if (_name != nil)  return _name;
+	
+#if OOTEXTURE_RELOADABLE
+	NSString *name = [_path lastPathComponent];
+#else
+	name = [[[self cacheKey] substringToIndex:@":"] lastPathComponent];
+#endif
+	
+	NSString *channelSuffix = nil;
+	switch (_options & kOOTextureExtractChannelMask)
+	{
+		case kOOTextureExtractChannelR:
+			channelSuffix = @":r";
+			break;
+			
+		case kOOTextureExtractChannelG:
+			channelSuffix = @":g";
+			break;
+			
+		case kOOTextureExtractChannelB:
+			channelSuffix = @":b";
+			break;
+			
+		case kOOTextureExtractChannelA:
+			channelSuffix = @":a";
+			break;
+	}
+	
+	if (channelSuffix != nil)  name = [name stringByAppendingString:channelSuffix];
+	
+	return name;
+}
+#endif
 
 
 - (void)apply
@@ -234,6 +287,14 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 	[self ensureFinishedLoading];
 	
 	return NSMakeSize(_width, _height);
+}
+
+
+- (BOOL) isMipMapped
+{
+	[self ensureFinishedLoading];
+	
+	return _mipLevels != 0;
 }
 
 

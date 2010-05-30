@@ -297,6 +297,14 @@ static OOTexture *sBlobTexture = nil;
 	return YES;
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [NSSet setWithObject:[self texture]];
+}
+#endif
+
 @end
 
 

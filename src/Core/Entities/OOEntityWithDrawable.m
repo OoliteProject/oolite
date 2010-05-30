@@ -88,4 +88,12 @@ MA 02110-1301, USA.
 	if ([UNIVERSE wireframeGraphics])  GLDebugWireframeModeOff();
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [[self drawable] allTextures];
+}
+#endif
+
 @end

@@ -435,6 +435,12 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		OOLog(@"universe.objectDump", @"entities = %@", [entities description]);
 	}
 }
+
+
+- (NSArray *) entityList
+{
+	return [NSArray arrayWithArray:entities];
+}
 #endif
 
 

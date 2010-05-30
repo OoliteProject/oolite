@@ -146,6 +146,7 @@ static BOOL CacheRemove(OOCacheImpl *cache, id key);
 static BOOL CacheRemoveOldest(OOCacheImpl *cache, NSString *logKey);
 static id CacheRetrieve(OOCacheImpl *cache, id key);
 static unsigned CacheGetCount(OOCacheImpl *cache);
+static NSArray *CacheArrayOfContentsByAge(OOCacheImpl *cache);
 static NSArray *CacheArrayOfNodesByAge(OOCacheImpl *cache);
 static NSString *CacheGetName(OOCacheImpl *cache);
 static void CacheSetName(OOCacheImpl *cache, NSString *name);
@@ -352,6 +353,12 @@ static void CacheSetName(OOCacheImpl *cache, NSString *name);
 	CacheSetName(cache, name);
 }
 
+
+- (NSArray *) objectsByAge
+{
+	return CacheArrayOfContentsByAge(cache);
+}
+
 @end
 
 
@@ -521,6 +528,23 @@ static id CacheRetrieve(OOCacheImpl *cache, id key)
 	{
 		result = CacheNodeGetValue(node);
 		AgeListMakeYoungest(cache, node);
+	}
+	return result;
+}
+
+
+static NSArray *CacheArrayOfContentsByAge(OOCacheImpl *cache)
+{
+	OOCacheNode			*node = NULL;
+	NSMutableArray		*result = nil;
+	
+	if (cache == NULL || cache->count == 0) return nil;
+	
+	result = [NSMutableArray arrayWithCapacity:cache->count];
+	
+	for (node = cache->youngest; node != NULL; node = node->older)
+	{
+		[result addObject:node->value];
 	}
 	return result;
 }

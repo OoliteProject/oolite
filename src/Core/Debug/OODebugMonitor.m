@@ -3,7 +3,7 @@
 OODebugMonitor.m
 
 
-Oolite Debug OXP
+Oolite debug support
 
 Copyright (C) 2007-2010 Jens Ayton
 
@@ -41,6 +41,10 @@ SOFTWARE.
 #import "OOJSScript.h"
 #import "OOJavaScriptEngine.h"
 #import "OOJSSpecialFunctions.h"
+
+#import "NSObjectOOExtensions.h"
+#import "OOTexture.h"
+#import "OOConcreteTexture.h"
 
 
 static OODebugMonitor *sSingleton = nil;
@@ -329,6 +333,237 @@ static OODebugMonitor *sSingleton = nil;
 - (BOOL) debuggerConnected
 {
 	return _debugger != nil;
+}
+
+
+- (void) writeMemStat:(NSString *)format, ...
+{
+	va_list args;
+	va_start(args, format);
+	NSString *message = [[NSString alloc] initWithFormat:format arguments:args];
+	va_end(args);
+	
+	OOLog(@"debug.memStats", @"%@", message);
+	[self appendJSConsoleLine:message colorKey:@"command-result"];
+	
+	[message release];
+}
+
+
+static NSString *SizeString(size_t size)
+{
+	enum
+	{
+		kThreshold = 2	// 2 KiB, 2 MiB etc.
+	};
+	
+	unsigned magnitude = 0;
+	NSString *suffix = @"";
+	
+	if (size < kThreshold << 10)
+	{
+		return [NSString stringWithFormat:@"%zu bytes", size];
+	}
+	if (size < kThreshold << 20)
+	{
+		magnitude = 1;
+		suffix = @"KiB";
+	}
+	else if (size < (size_t)(kThreshold << 30))
+	{
+		magnitude = 2;
+		suffix = @"MiB";
+	}
+	else
+	{
+		magnitude = 3;
+		suffix = @"GiB";
+	}
+	
+	float unit = 1 << (magnitude * 10);
+	float sizef = (float)size / unit;
+	sizef = roundf(sizef * 100.0f) / 100.f;
+	
+	return [NSString stringWithFormat:@"%.2f %@", sizef, suffix];
+}
+
+
+typedef struct
+{
+	NSMutableSet		*entityTextures;
+	NSMutableSet		*visibleEntityTextures;
+	unsigned			seenCount;
+	size_t				totalEntityObjSize;
+	size_t				totalDrawableSize;
+} EntityDumpState;
+
+
+- (void) dumpEntity:(id)entity withState:(EntityDumpState *)state parentVisible:(BOOL)parentVisible
+{
+	state->seenCount++;
+	
+	size_t entitySize = [entity oo_objectSize];
+	size_t drawableSize = 0;
+	if ([entity isKindOfClass:[OOEntityWithDrawable class]])
+	{
+		OODrawable *drawable = [entity drawable];
+		drawableSize = [drawable totalSize];
+	}
+	
+	BOOL visible = parentVisible && [entity isVisible];
+	
+	NSSet *textures = [entity allTextures];
+	if (textures != nil)
+	{
+		[state->entityTextures unionSet:textures];
+		if (visible)  [state->visibleEntityTextures unionSet:textures];
+	}
+	
+	NSString *extra = @"";
+	if (visible)
+	{
+		extra = [extra stringByAppendingString:@", visible"];
+	}
+	
+	if (drawableSize != 0)
+	{
+		extra = [extra stringByAppendingFormat:@", drawable: %@", SizeString(drawableSize)];
+	}
+	
+	[self writeMemStat:@"%@: %@%@", [entity shortDescription], SizeString(entitySize), extra];
+	
+	state->totalEntityObjSize += entitySize;
+	state->totalDrawableSize += drawableSize;
+	
+	if ([entity isShip])
+	{
+		OOLogIndent();
+		
+		NSEnumerator *subEnum = nil;
+		id subentity;
+		for (subEnum = [entity subEntityEnumerator]; (subentity = [subEnum nextObject]); )
+		{
+			[self dumpEntity:subentity withState:state parentVisible:visible];
+		}
+		
+		OOLogOutdent();
+	}
+}
+
+
+- (void) dumpMemoryStatistics
+{
+	OOLog(@"debug.memStats", @"Memory statistics:");
+	OOLogIndent();
+	
+	//	Get texture retain counts before the entity dumper starts messing with them.
+	NSArray *inUseTextures = [OOTexture inUseTextures];
+	NSMutableDictionary *textureRefCounts = [NSMutableDictionary dictionaryWithCapacity:[inUseTextures count]];
+	
+	OOTexture *tex = nil;
+	NSEnumerator *texEnum = nil;
+	for (texEnum = [inUseTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	{
+		// We subtract one because the inUseTextures array retains the textures.
+		[textureRefCounts setObject:[NSNumber numberWithUnsignedInt:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
+	}
+	
+	
+	[self writeMemStat:@"Entitites:"];
+	OOLogIndent();
+	
+	NSArray *entities = [UNIVERSE entityList];
+	EntityDumpState entityDumpState =
+	{
+		.entityTextures = [NSMutableSet set],
+		.visibleEntityTextures = [NSMutableSet set]
+	};
+	
+	id entity = nil;
+	NSEnumerator *entityEnum = nil;
+	for (entityEnum = [entities objectEnumerator]; (entity = [entityEnum nextObject]); )
+	{
+		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
+	}
+	
+	OOLogOutdent();
+	[self writeMemStat:@"Total entity size (excluding %u entities not accounted for): %@ (%@ entity objects, %@ drawables)",
+	 gLiveEntityCount - entityDumpState.seenCount,
+	 SizeString(entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize),
+	 SizeString(entityDumpState.totalEntityObjSize),
+	 SizeString(entityDumpState.totalDrawableSize)];
+	
+	NSMutableArray *textures = [[[OOTexture cachedTexturesByAge] mutableCopy] autorelease];
+	
+	/*	inUseTextures contains all the cached textures by definition. However,
+		we use this merging approach so that textures that cached textures are
+		listed by age (freshest first) followed by any live textures not in
+		the cache.
+	*/
+	for (texEnum = [inUseTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	{
+		if ([textures indexOfObject:tex] == NSNotFound)
+		{
+			[textures addObject:tex];
+		}
+	}
+	
+	size_t totalTextureObjSize = 0;
+	size_t totalTextureDataSize = 0;
+	size_t visibleTextureDataSize = 0;
+	
+	[self writeMemStat:@"Textures:"];
+	OOLogIndent();
+	
+	for (texEnum = [textures objectEnumerator]; (tex = [texEnum nextObject]); )
+	{
+		size_t objSize = [tex oo_objectSize];
+		size_t dataSize = [tex dataSize];
+		
+#if OOTEXTURE_RELOADABLE
+		NSString *byteCountSuffix = @"";
+#else
+		NSString *byteCountSuffix = @" (* 2)";
+#endif
+		
+		NSString *usage = @"";
+		if ([entityDumpState.visibleEntityTextures containsObject:tex])
+		{
+			visibleTextureDataSize += dataSize;	// NOT doubled if !OOTEXTURE_RELOADABLE, because we're interested in what the GPU sees.
+			usage = @", visible";
+		}
+		else if ([entityDumpState.entityTextures containsObject:tex])
+		{
+			usage = @", active";
+		}
+		
+		unsigned refCount = [textureRefCounts oo_unsignedIntForKey:[NSValue valueWithNonretainedObject:tex]];
+		
+		[self writeMemStat:@"%@: [%u refs%@] %@%@",
+		 [tex name],
+		 refCount,
+		 usage,
+		 SizeString(objSize + dataSize),
+		 byteCountSuffix];
+		
+		totalTextureDataSize += dataSize;
+		totalTextureObjSize += objSize;
+	}
+	
+	OOLogOutdent();
+	
+#if !OOTEXTURE_RELOADABLE
+	totalTextureDataSize *= 2;
+#endif
+	[self writeMemStat:@"Total texture size: %@ (%@ object overhead, %@ data, %@ visible texture data)",
+	 SizeString(totalTextureObjSize + totalTextureDataSize),
+	 SizeString(totalTextureObjSize),
+	 SizeString(totalTextureDataSize),
+	 SizeString(visibleTextureDataSize)];
+	
+	[self writeMemStat:@"Total entity + texture size: %@", SizeString(totalTextureObjSize + totalTextureDataSize + entityDumpState.totalEntityObjSize + entityDumpState.totalDrawableSize)];
+	
+	OOLogOutdent();
 }
 
 

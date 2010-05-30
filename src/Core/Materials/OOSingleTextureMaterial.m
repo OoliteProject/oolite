@@ -121,4 +121,12 @@ SOFTWARE.
 	return [_texture isCubeMap];
 }
 
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [NSSet setWithObject:_texture];
+}
+#endif
+
 @end

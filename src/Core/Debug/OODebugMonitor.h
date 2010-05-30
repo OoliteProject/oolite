@@ -11,9 +11,9 @@ itself (as in the Mac Debug OXP), or provide communications with an external
 debugger (for instance, over Distributed Objects or TCP/IP).
 
 
-Oolite Debug OXP
+Oolite debug support
 
-Copyright (C) 2007 Jens Ayton
+Copyright (C) 2007-2010 Jens Ayton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -99,6 +99,8 @@ SOFTWARE.
 - (NSArray *)configurationKeys;
 
 - (BOOL) debuggerConnected;
+
+- (void) dumpMemoryStatistics;
 
 @end
 

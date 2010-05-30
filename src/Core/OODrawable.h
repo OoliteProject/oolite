@@ -53,4 +53,9 @@ SOFTWARE.
 
 - (void)dumpSelfState;
 
+#ifndef NDEBUG
+- (NSSet *) allTextures;
+- (size_t) totalSize;	// Size including dynamic data, not counting textures.
+#endif
+
 @end

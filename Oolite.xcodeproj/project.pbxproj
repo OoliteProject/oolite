@@ -48,6 +48,8 @@
 		1A047A460DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047A440DCA0F4F00EE1CD0 /* NSDictionaryOOExtensions.m */; };
 		1A047B7E0DCB3D7500EE1CD0 /* OOProbabilitySet.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A047B7C0DCB3D7500EE1CD0 /* OOProbabilitySet.h */; };
 		1A047B7F0DCB3D7500EE1CD0 /* OOProbabilitySet.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */; };
+		1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */; };
+		1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */; };
 		1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */; };
 		1A06F3151196FB6F00AFA5B4 /* oolite-player-AI.plist in Copy AIs */ = {isa = PBXBuildFile; fileRef = 1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */; };
 		1A0729D90EF56D1200B0F925 /* OOConvertSystemDescriptions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */; };
@@ -1166,6 +1168,8 @@
 		1A047B7D0DCB3D7500EE1CD0 /* OOProbabilitySet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOProbabilitySet.m; sourceTree = "<group>"; };
 		1A0517D10C7B376700BA5CCA /* debug-exports.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; path = "debug-exports.exp"; sourceTree = "<group>"; };
 		1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DebugOXP.xcodeproj; path = DebugOXP/DebugOXP.xcodeproj; sourceTree = SOURCE_ROOT; };
+		1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSObjectOOExtensions.h; sourceTree = "<group>"; };
+		1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSObjectOOExtensions.m; sourceTree = "<group>"; };
 		1A06F2851196E5B100AFA5B4 /* OOCASoundDebugMonitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOCASoundDebugMonitor.h; sourceTree = "<group>"; };
 		1A06F3141196FB6F00AFA5B4 /* oolite-player-AI.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = "oolite-player-AI.plist"; sourceTree = "<group>"; };
 		1A0729D70EF56D1200B0F925 /* OOConvertSystemDescriptions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOConvertSystemDescriptions.h; sourceTree = "<group>"; };
@@ -2754,6 +2758,8 @@
 				1A00C65410663D3700A8737D /* OOProfilingStopwatch.m */,
 				1AEB4918119D5AAA007BD514 /* OORegExpMatcher.h */,
 				1AEB4919119D5AAA007BD514 /* OORegExpMatcher.m */,
+				1A062C8711B28D8A00727C1D /* NSObjectOOExtensions.h */,
+				1A062C8811B28D8A00727C1D /* NSObjectOOExtensions.m */,
 			);
 			name = Utilities;
 			sourceTree = "<group>";
@@ -3287,6 +3293,7 @@
 				1ACB1D1C118DCE5A007B9A1F /* OOTextureInternal.h in Headers */,
 				1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */,
 				1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */,
+				1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3654,6 +3661,7 @@
 				1A95C041118A450E002EE302 /* OOConvertCubeMapToLatLong.m in Sources */,
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
 				1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */,
+				1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

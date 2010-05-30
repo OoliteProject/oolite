@@ -79,4 +79,6 @@ MA 02110-1301, USA.
 - (NSString *)name;
 - (void)setName:(NSString *)name;
 
+- (NSArray *) objectsByAge;
+
 @end
