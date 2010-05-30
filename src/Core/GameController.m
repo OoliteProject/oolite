@@ -533,7 +533,7 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
-- (IBAction) goFullscreen:(id) sender
+- (IBAction) goFullscreen:(id)sender
 {
 	CGLContextObj	cglContext;
 	CGDisplayErr	err;
@@ -669,6 +669,8 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		fullscreen = YES;
 		[gameView clearCommandF];	// Avoid immediately switching back to windowed mode.
 		[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"fullscreen"];
+		
+		[UNIVERSE forceLightSwitch];	// Avoid lighting glitch when switching to full screen.
 						
 		BOOL past_first_mouse_delta = NO;
 		

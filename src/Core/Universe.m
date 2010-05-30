@@ -463,10 +463,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	else
 	{
-		NSString 		*fgName = [UNIVERSE screenBackgroundNameForKey:@"paused_overlay"];
-		if ([player guiScreen] != GUI_SCREEN_MAIN && fgName != nil)
+		if ([player guiScreen] != GUI_SCREEN_MAIN && [gui setForegroundTextureName:@"paused_overlay"])
 		{
-			[gui setForegroundTextureName:fgName];
 			[gui drawGUI:1.0 drawCursor:NO];
 		}
 		else
@@ -1132,6 +1130,13 @@ GLfloat docked_light_specular[4]	= { DOCKED_ILLUM_LEVEL, DOCKED_ILLUM_LEVEL, DOC
 	OOGL(glLightfv(GL_LIGHT0, GL_SPECULAR, docked_light_specular));
 	OOGL(glLightfv(GL_LIGHT0, GL_POSITION, demo_light_position));	
 	OOGL(glLightModelfv(GL_LIGHT_MODEL_AMBIENT, stars_ambient));
+}
+
+
+// Call this method to avoid lighting glich after windowed/fullscreen transition on macs.
+- (void) forceLightSwitch
+{
+	demo_light_on = !demo_light_on;
 }
 
 

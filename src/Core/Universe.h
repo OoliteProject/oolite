@@ -310,6 +310,7 @@ enum
 - (void) set_up_witchspace;
 - (void) setUpSpace;
 - (void) setLighting;
+- (void) forceLightSwitch;
 - (void) setMainLightPosition: (Vector) sunPos;
 - (OOPlanetEntity *) setUpPlanet;
 
