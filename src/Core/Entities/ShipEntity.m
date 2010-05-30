@@ -495,7 +495,6 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	// Populate the missiles here. Must come after scanClass.
 	missileRole = [shipDict oo_stringForKey:@"missile_role"];
 	unsigned	i, j;
-	BOOL missilesProblem = NO;
 	for (i = 0, j = 0; i < missiles; i++)
 	{
 		missile_list[i] = [self selectMissile];
@@ -511,12 +510,9 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 			if (missile_list[i] == nil)
 			{
 				missiles--;
-				missilesProblem = YES;
 			}
 		}
 	}
-	
-	//if (missilesProblem) OOLogWARN(@"ship.setUp.missiles", @"problems initialising missiles for ship '%@', please verify missile_role definition.", [self name]);
 
 	// accuracy. Must come after scanClass, because we are using scanClass to determine if this is a missile.
 	accuracy = [shipDict oo_floatForKey:@"accuracy" defaultValue:-100.0f];	// Out-of-range default

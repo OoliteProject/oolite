@@ -1743,7 +1743,7 @@ static JSBool ShipSetCargo(JSContext *context, JSObject *this, uintN argc, jsval
 static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity				*thisEnt = nil;
-	JSObject				*params = JS_NewObject(context, NULL, NULL, NULL);
+	JSObject				*params = NULL;
 	NSDictionary			*materials;
 	NSDictionary			*shaders;
 	BOOL					withShaders = NO;

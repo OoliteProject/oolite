@@ -147,6 +147,7 @@ static BOOL replacingMissile = NO;
 {
 	if (EXPECT_NOT(sSharedPlayer == nil))  [[PlayerEntity alloc] init];
 	return sSharedPlayer;
+	// Analyzer: object leaked. [Expected.]
 }
 
 

@@ -81,14 +81,6 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		   anisotropy:(GLfloat)anisotropy
 			  lodBias:(GLfloat)lodBias
 {
-#ifndef OOTEXTURE_NO_CACHE
-	if (key != nil)
-	{
-		OOTexture *existing = [OOTexture existingTextureForKey:key];
-		if (existing != nil)  return [[existing retain] autorelease];
-	}
-#endif
-	
 	if (loader == nil)
 	{
 		[self release];

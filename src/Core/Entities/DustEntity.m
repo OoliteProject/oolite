@@ -227,7 +227,6 @@ MA 02110-1301, USA.
 	float	idealDustSize = [[UNIVERSE gameView] viewSize].width / 800.0f;
 	
 	BOOL	warp_stars = [player atHyperspeed];
-	GLenum	dustMode;
 	float	dustIntensity;
 #if OO_SHADERS
 	BOOL	useShader = [UNIVERSE shaderEffectsLevel] > SHADERS_OFF;
@@ -236,8 +235,6 @@ MA 02110-1301, USA.
 	if (!warp_stars)
 	{
 		// Draw points.
-		dustMode = GL_POINTS;
-		
 		float dustPointSize = ceilf(idealDustSize);
 		if (dustPointSize < 1.0f)  dustPointSize = 1.0f;
 		OOGL(glPointSize(dustPointSize));
@@ -246,8 +243,6 @@ MA 02110-1301, USA.
 	else
 	{
 		// Draw lines.
-		dustMode = GL_LINES;
-		
 		float idealLineSize = idealDustSize * 0.5f;
 		float dustLineSize = ceilf(idealLineSize);
 		if (dustLineSize < 1.0f)  dustLineSize = 1.0f;

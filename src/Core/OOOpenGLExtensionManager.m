@@ -197,7 +197,6 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 				release = IntegerFromString(&curr);
 			}
 		}
-		NSString *versionStr = [[NSString alloc] initWithUTF8String:(const char *)versionString];
 		
 		/*	For aesthetic reasons, cause the ResourceManager to initialize its
 			search paths here. If we don't, the search path dump ends up in
@@ -215,6 +214,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 						format:@"Oolite requires at least OpenGL %u.1%u. You have %u.%u (\"%s\").", kMinMajorVersion, kMinMinorVersion, major, minor, versionString];
 		}
 		
+		NSString *versionStr = [[[NSString alloc] initWithUTF8String:(const char *)versionString] autorelease];
 		NSDictionary *gpuConfig = [self lookUpPerGPUSettingsWithVersionString:versionStr extensionsString:extensionsStr];
 		
 #if OO_SHADERS
