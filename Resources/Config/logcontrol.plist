@@ -166,11 +166,15 @@
 	loading.complete						= yes;
 	
 	
+	mesh.load								= no;
+	mesh.load.cached						= inherit;
+	mesh.load.uncached						= inherit;
+	mesh.load.octree.size					= no;
+	
 	mesh.load.error							= $error;
 	mesh.load.error.fileNotFound			= inherit;
 	mesh.load.error.tooManyVertices			= inherit;
 	mesh.load.error.tooManyFaces			= inherit;
-	mesh.load.octree.size					= no;
 	
 	
 	oxp.versionMismatch						= $error;

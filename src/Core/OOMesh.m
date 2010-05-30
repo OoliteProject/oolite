@@ -1071,6 +1071,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	{
 		if ([self setModelFromModelData:cacheData]) using_preloaded = YES;
 		PROFILE(@"loaded from cache");
+		OOLog(@"mesh.load.cached", @"Retrieved mesh \"%@\" from cache.", filename);
+	}
+	else
+	{
+		OOLog(@"mesh.load.uncached", @"Mesh \"%@\" is not in cache, loading.", filename);
 	}
 	
 	if (!using_preloaded)
