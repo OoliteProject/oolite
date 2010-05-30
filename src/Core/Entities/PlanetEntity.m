@@ -1130,6 +1130,14 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 }
 
 
+#ifndef NDEBUG
+- (PlanetEntity *) atmosphere
+{
+	return atmosphere;
+}
+#endif
+
+
 - (int*) r_seed
 {
 	return r_seed;

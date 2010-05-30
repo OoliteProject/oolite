@@ -127,6 +127,10 @@ typedef struct
 
 - (void) drawUnconditionally;
 
+#ifndef NDEBUG
+- (PlanetEntity *) atmosphere;
+#endif
+
 @end
 
 

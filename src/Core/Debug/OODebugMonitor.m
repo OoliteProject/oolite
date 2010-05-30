@@ -435,10 +435,9 @@ typedef struct
 	state->totalEntityObjSize += entitySize;
 	state->totalDrawableSize += drawableSize;
 	
+	OOLogIndent();
 	if ([entity isShip])
 	{
-		OOLogIndent();
-		
 		NSEnumerator *subEnum = nil;
 		id subentity;
 		for (subEnum = [entity subEntityEnumerator]; (subentity = [subEnum nextObject]); )
@@ -446,8 +445,25 @@ typedef struct
 			[self dumpEntity:subentity withState:state parentVisible:visible];
 		}
 		
-		OOLogOutdent();
+		if ([entity isPlayer])
+		{
+			unsigned i, count = [entity dialMaxMissiles];
+			for (i = 0; i < count; i++)
+			{
+				subentity = [entity missileForPylon:i];
+				if (subentity != nil)  [self dumpEntity:subentity withState:state parentVisible:NO];
+			}
+		}
 	}
+	if ([entity isPlanet])
+	{
+		PlanetEntity *atmosphere = [entity atmosphere];
+		if (atmosphere != nil)
+		{
+			[self dumpEntity:atmosphere withState:state parentVisible:visible];
+		}
+	}
+	OOLogOutdent();
 }
 
 
