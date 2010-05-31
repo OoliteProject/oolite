@@ -130,6 +130,7 @@ MA 02110-1301, USA.
 - (IBAction) showLogAction:(id)sender;
 - (IBAction) showSnapshotsAction:(id)sender;
 - (IBAction) showAddOnsAction:(id)sender;
+- (void) changeFullScreenResolution;
 #elif OOLITE_SDL
 - (void) setFullScreenMode:(BOOL)fsm;
 #endif

@@ -288,10 +288,17 @@ static GameController *sSharedController = nil;
 
 
 #if OOLITE_HAVE_APPKIT
+static BOOL _switchRez = NO, _switchRezDeferred = NO;
+
 
 - (void) performGameTick:(id)userInfo
 {
-	[self doPerformGameTick];
+	if (EXPECT_NOT(_switchRezDeferred)) 
+	{
+		_switchRezDeferred = NO;
+		[self goFullscreen:nil];
+	}
+	else [self doPerformGameTick];
 }
 
 #else
@@ -304,13 +311,12 @@ static GameController *sSharedController = nil;
 	[self doPerformGameTick];
 	
 	[pool release];
-	
 }
 
 #endif
 
 
-- (void)doPerformGameTick
+- (void) doPerformGameTick
 {
 	NS_DURING
 		if (gameIsPaused)
@@ -641,13 +647,13 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)fullscreenDisplayMode);
 		if (err != CGDisplayNoErr)
 		{
-			OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
+			OOLog(@"display.mode.switch.failed", @"***** Unable to change display for fullscreen mode.");
 			return;
 		}
 		
 		// Hide the cursor
 		CGDisplayMoveCursorToPoint(kCGDirectMainDisplay,centerOfScreen);
-		CGDisplayHideCursor(kCGDirectMainDisplay);
+		if (CGCursorIsVisible()) CGDisplayHideCursor(kCGDirectMainDisplay);
 		
 		// Enter FullScreen mode and make our FullScreen context the active context for OpenGL commands.
 		[fullScreenContext setFullScreen];
@@ -747,35 +753,38 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		[fullScreenContext flushBuffer];
 		OOGL(glClear(GL_COLOR_BUFFER_BIT));
 		[fullScreenContext flushBuffer];
-
+		
 		// Restore the previously set swap interval.
 		CGLSetParameter(cglContext, kCGLCPSwapInterval, &oldSwapInterval);
-
+		
 		// Exit fullscreen mode and release our FullScreen NSOpenGLContext.
 		[NSOpenGLContext clearCurrentContext];
 		[fullScreenContext clearDrawable];
 		[fullScreenContext release];
 		fullScreenContext = nil;
 
-		// switch resolution back!
-		err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)originalDisplayMode);
-		if (err != CGDisplayNoErr)
+		if (!_switchRez)
 		{
-			OOLog(@"display.mode.switch.failed", @"***** Unable to change display mode.");
-			return;
+			// set screen resolution back to the original one (windowed mode).
+			err = CGDisplaySwitchToMode(kCGDirectMainDisplay, (CFDictionaryRef)originalDisplayMode);
+			if (err != CGDisplayNoErr)
+			{
+				OOLog(@"display.mode.switch.failed", @"***** Unable to change display for windowed mode.");
+				return;
+			}
+			
+			// show the cursor
+			CGDisplayShowCursor(kCGDirectMainDisplay);
+			
+			// Release control of the displays.
+			CGReleaseAllDisplays();
 		}
 		
-		// show the cursor
-		CGDisplayShowCursor(kCGDirectMainDisplay);
-		
-		// Release control of the displays.
-		CGReleaseAllDisplays();
-		
 		fullscreen = NO;
-				
+		
 		// Resume animation timer firings.
 		[self startAnimationTimer];
-
+		
 		// Mark our view as needing drawing.  (The animation has advanced while we were in FullScreen mode, so its current contents are stale.)
 		[gameView setNeedsDisplay:YES];
 		
@@ -787,6 +796,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 		{
 			break;
 		}
+	}
+	
+	if(_switchRez)
+	{
+		_switchRez = NO;
+		_switchRezDeferred = YES;
 	}
 }
 
@@ -829,7 +844,14 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
-- (BOOL)validateMenuItem:(NSMenuItem *)menuItem
+- (void) changeFullScreenResolution
+{
+	_switchRez = YES;
+	stayInFullScreenMode = NO;	// Close the present fullScreenContext before creating the new one.
+}
+
+
+- (BOOL) validateMenuItem:(NSMenuItem *)menuItem
 {
 	SEL action = [menuItem action];
 	

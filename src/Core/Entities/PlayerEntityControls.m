@@ -2225,12 +2225,12 @@ static NSTimeInterval	time_last_frame;
 		[gui setText:displayModeString	forRow:GUI_ROW(GAME,DISPLAY)  align:GUI_ALIGN_CENTER];
 		switching_resolution = YES;
 #if OOLITE_HAVE_APPKIT
-		if ([controller inFullScreenMode]) [controller goFullscreen:nil]; // changes fullscreen mode immediately
+		if ([controller inFullScreenMode]) [controller changeFullScreenResolution]; // changes fullscreen mode immediately
 #elif OOLITE_SDL
 		/*	TODO: The gameView for the SDL game currently holds and
 		 sets the actual screen resolution (controller just stores
 		 it). This probably ought to change. */
-		[gameView setScreenSize: displayModeIndex]; // also changes fullscreen mode immediately
+		[gameView setScreenSize: displayModeIndex]; // changes fullscreen mode immediately
 #endif
 	}
 	if (switching_resolution && ![gameView isDown:gvArrowKeyRight] && ![gameView isDown:gvArrowKeyLeft] && !selectKeyPress)
