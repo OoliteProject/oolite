@@ -1419,9 +1419,13 @@ static NSMutableDictionary* currentShipyard = nil;
 		[row_info replaceObjectAtIndex:2 withObject:[NSString stringWithFormat:DESC(@"shipyard-cargo-d-tc"), cargo_rating]];
 		[row_info replaceObjectAtIndex:3 withObject:[NSString stringWithFormat:DESC(@"shipyard-speed-f-ls"), speed_rating]];
 		
-		if ([gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT] < GUI_ROW_MARKET_CASH - 1)
+		// Show footer first. It'll be overwritten by the sales_pitch if that text is longer than usual.
+		[self showTradeInInformationFooter];
+		i = [gui addLongText:sales_pitch startingAtRow:GUI_ROW_SHIPYARD_INFO_START align:GUI_ALIGN_LEFT];
+		if (i - 1 >= GUI_ROW_MARKET_CASH - 1)
 		{
-			[self showTradeInInformationFooter];
+			[gui setColor:[OOColor greenColor] forRow:i - 1];
+			[gui setColor:[OOColor greenColor] forRow:GUI_ROW_MARKET_CASH - 1];
 		}
 		
 		// now display the ship
@@ -1444,6 +1448,8 @@ static NSMutableDictionary* currentShipyard = nil;
 {
 	GuiDisplayGen *gui = [UNIVERSE gui];
 	OOCreditsQuantity tradeIn = [self tradeInValue];
+	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH - 1];
+	[gui setColor:[OOColor yellowColor] forRow:GUI_ROW_MARKET_CASH];
 	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-your-@-trade-in-value-@"), [self displayName], OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH - 1];
 	[gui setText:[NSString stringWithFormat:DESC(@"shipyard-total-available-%@-%@-plus-%@-trade"), OOCredits(credits + tradeIn), OOCredits(credits), OOCredits(tradeIn)]  forRow: GUI_ROW_MARKET_CASH];
 }

@@ -752,12 +752,13 @@ static BOOL replacingMissile = NO;
 		OOEnergyUnitType eType = [dict oo_intForKey:@"energy_unit" defaultValue:ENERGY_UNIT_NORMAL];
 		switch (eType)
 		{
-			case OLD_ENERGY_UNIT_NORMAL:
-				[equipment oo_setBool:YES forKey:@"EQ_ENERGY_UNIT"];
-				break;
-				
+			// look for NEU first!
 			case OLD_ENERGY_UNIT_NAVAL:
 				[equipment oo_setBool:YES forKey:@"EQ_NAVAL_ENERGY_UNIT"];
+				break;
+			
+			case OLD_ENERGY_UNIT_NORMAL:
+				[equipment oo_setBool:YES forKey:@"EQ_ENERGY_UNIT"];
 				break;
 
 			default:

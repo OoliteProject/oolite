@@ -7535,6 +7535,18 @@ double estimatedTimeForJourney(double distance, int hops)
 						}
 					}
 					
+					// Special case, NEU has to be compatible with EEU inside equipment.plist
+					// but we can only have either one or the other on board.
+					if ([equipmentKey isEqualTo:@"EQ_NAVAL_ENERGY_UNIT"])
+					{
+							if ([extras containsObject:@"EQ_ENERGY_UNIT"])
+							{
+								[options removeObject:equipmentKey];
+								eqPrice = 0;
+								break;
+							}
+					}
+					
 					if (eqPrice > 0)
 					{
 						if ([equipmentKey hasPrefix:@"EQ_WEAPON"])
