@@ -984,7 +984,14 @@ static void DrawQuadForView(GLfloat x, GLfloat y, GLfloat z, GLfloat xx, GLfloat
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
-	return [NSSet setWithObject:texture];
+	if (texture)
+	{
+		return [NSSet setWithObject:texture];
+	}
+	else
+	{
+		return nil;
+	}
 }
 #endif
 
