@@ -8391,10 +8391,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 - (void) startSpeakingString:(NSString *) text
 {
 	size_t length = [text length];
-	char *ctext = malloc (length + 2);
-	sprintf (ctext, "%s%c", [text UTF8String], 0); // extra NUL; working around an apparent misrendering bug...
-	espeak_Synth(ctext, length + 2 /* inc. NULs */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
-	free (ctext);
+	espeak_Synth([text UTF8String], length + 1 /* inc. NULL */, 0, POS_CHARACTER, length, espeakCHARS_UTF8 | espeakPHONEMES | espeakENDPAUSE, NULL, NULL);
 }
 
 - (void) stopSpeaking
