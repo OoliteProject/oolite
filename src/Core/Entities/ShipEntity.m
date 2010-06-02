@@ -2488,7 +2488,6 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 				role = shipKey;	// unique identifier to use in lieu of a valid equipment type if none are defined inside the generic missile roleset.
 			}
 		}
-		[missile release];
 		
 		missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
 		
@@ -2499,6 +2498,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		}
 		
 		[OOEquipmentType setMissileRegistryRole:role forShip:shipKey];
+		[missile release];
 	}
 	else
 	{
