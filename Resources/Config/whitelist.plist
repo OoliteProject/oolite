@@ -224,7 +224,8 @@
 		"setTargetToNearestStation",
 		"setTargetToSystemStation",
 		"setUpEscorts",
-		"fireMissile"
+		"fireMissile",
+		"setPrimaryRole:"
 	);
 	
 	ai_and_action_methods =

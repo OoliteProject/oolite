@@ -39,7 +39,7 @@ profession. Above all, reach the Elite rating.
 # why we are using tar files :/
 [BuildPrepare]
 make -f Makefile clean
-make -f Makefile release-snapshot
+make -f Makefile deps-release-snapshot
 cp installers/FreeDesktop/oolite.desktop $build_root
 cp installers/FreeDesktop/oolite-icon.png $build_root
 cp Doc/AdviceForNewCommanders.pdf $build_root

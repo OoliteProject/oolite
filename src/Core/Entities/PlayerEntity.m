@@ -1716,8 +1716,9 @@ static BOOL replacingMissile = NO;
 		UPDATE_STAGE(@"updating cabin temperature");
 		
 		// work on the cabin temperature
-		float deltaInsulation = delta_t/[self heatInsulation];
-		float heatThreshold = [self heatInsulation] * 100.0f;
+		float heatInsulation = [self heatInsulation]; // Optimisation, suggested by EricW
+		float deltaInsulation = delta_t/heatInsulation;
+		float heatThreshold = heatInsulation * 100.0f;
 		ship_temperature += (float)( flightSpeed * air_friction * deltaInsulation);	// wind_speed
 		
 		if (external_temp > heatThreshold && external_temp > ship_temperature)

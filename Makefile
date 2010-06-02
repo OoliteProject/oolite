@@ -13,9 +13,15 @@ DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}")
 else
 DEB_VER     := $(shell echo "${VER_MAJ}.${VER_MIN}.${VER_REV}")
 endif
-DEB_REV  := -$(shell cat debian/revision)
-pkg-debtest: DEB_REV := $(shell echo "~test${DEB_REV}")
-pkg-debsnapshot: DEB_REV := $(shell echo "~svn${SVNREVISION}${DEB_REV}")
+DEB_REV  := $(shell cat debian/revision)
+# Ubuntu versions are: <upstream version>-<deb ver>ubuntu<build ver>
+# eg: oolite1.74.4.2755-0ubuntu1
+# Oolite versions are: MAJ.min.rev.svn
+# eg. 1.74.0.3275
+# Our .deb versions are: MAJ.min.rev.svn-<pkg rev>[~<type>]
+# eg. 1.74.0.3275-0, 1.74.0.3275-0~test
+pkg-debtest: DEB_REV := $(shell echo "0~test${DEB_REV}")
+pkg-debsnapshot: DEB_REV := $(shell echo "0~trunk${DEB_REV}")
 
 LIBJS_SRC_DIR=deps/Cross-platform-deps/SpiderMonkey/js/src
 
@@ -49,14 +55,14 @@ endif
 
 # Here are our default targets
 #
+.PHONY: debug
+debug: $(DEPS)
+	make -f GNUmakefile debug=yes
+
 .PHONY: release
 release: $(DEPS)
 	make -f GNUmakefile debug=no
 
-.PHONY: distro-release
-distro-release: $(DEPS)
-	make -f GNUmakefile use_distro_deps=yes debug=no
-	
 .PHONY: release-deployment
 release-deployment: $(DEPS)
 	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no
@@ -65,13 +71,23 @@ release-deployment: $(DEPS)
 release-snapshot: $(DEPS)
 	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no
 
-.PHONY: debug
-debug: $(DEPS)
-	make -f GNUmakefile debug=yes
+# Here are targets using the provided dependencies
+.PHONY: deps-debug
+deps-debug: $(DEPS)
+	make -f GNUmakefile debug=yes use_deps=yes
 
-.PHONY: distro-debug
-distro-debug: $(DEPS)
-	make -f GNUmakefile use_distro_deps=yes debug=yes
+.PHONY: deps-release
+deps-release: $(DEPS)
+	make -f GNUmakefile debug=no use_deps=yes
+	
+.PHONY: deps-release-deployment
+deps-release-deployment: $(DEPS)
+	make -f GNUmakefile DEPLOYMENT_RELEASE_CONFIGURATION=yes debug=no use_deps=yes
+	
+.PHONY: deps-release-snapshot
+deps-release-snapshot: $(DEPS)
+	make -f GNUmakefile SNAPSHOT_BUILD=yes VERSION_STRING=$(VER) debug=no use_deps=yes
+
 $(LIBJS):
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "ERROR - this Makefile can't (yet) build the Javascript DLL"
@@ -96,6 +112,12 @@ all: release release-deployment release-snapshot debug
 .PHONY: remake
 remake: clean all
 
+.PHONY: deps-all
+deps-all: deps-release deps-release-deployment deps-release-snapshot deps-debug
+
+.PHONY: deps-remake
+deps-remake: clean deps-all
+
 # Here are our linux autopackager targets
 #
 pkg-autopackage:
@@ -105,7 +127,7 @@ pkg-autopackage:
 #
 .PHONY: debian/changelog
 debian/changelog:
-	cat debian/changelog.in | sed -e "s/@@VERSION@@/${DEB_VER}/g" -e "s/@@REVISION@@/${DEB_REV}/g" -e "s/@@TIMESTAMP@@/${DEB_BUILDTIME}/g" > debian/changelog
+	cat debian/changelog.in | sed -e "s/@@VERSION@@/${VER}/g" -e "s/@@REVISION@@/${DEB_REV}/g" -e "s/@@TIMESTAMP@@/${DEB_BUILDTIME}/g" > debian/changelog
 
 .PHONY: pkg-deb pkg-debtest pkg-debsnapshot
 pkg-deb: debian/changelog
@@ -115,7 +137,7 @@ pkg-debtest: debian/changelog
 	debuild binary
 
 pkg-debsnapshot: debian/changelog
-	debuild binary
+	debuild -e SNAPSHOT_BUILD=yes -e VERSION_STRING=$(VER) binary
 
 .PHONY: pkg-debclean
 pkg-debclean:
@@ -154,24 +176,30 @@ pkg-win-snapshot: release-snapshot ${NSISVERSIONS}
 
 .PHONY: help
 help:
-	@echo "Use this Makefile to build Oolite:"
+	@echo "This is a helper-Makefile to make compiling Oolite easier."
 	@echo
-	@echo "NOTE: The following targets use the dependencies distributed with Oolite."
+	@echo "NOTE (Linux): To build with the dependency libraries provided with Oolite"
+	@echo "              source, use 'deps-' prefix with debug, release, release-snapshot"
+	@echo "              and release-deployment build options."
 	@echo
-	@echo "  debug   - builds a debug executable in oolite.app/oolite.dbg"
-	@echo "  release - builds a release executable in oolite.app/oolite"
-	@echo "  release-deployment - builds a release executable in oolite.app/oolite"
-	@echo "  release-snapshot - builds a snapshot release in oolite.app/oolite"
-	@echo "  all     - builds the above two targets"
-	@echo "  clean   - removes all generated files"
+	@echo "Development Targets:"
+	@echo "  debug               - builds a debug executable in oolite.app/oolite.dbg"
+	@echo "  release             - builds a release executable in oolite.app/oolite"
+	@echo "  release-deployment  - builds a release executable in oolite.app/oolite"
+	@echo "  release-snapshot    - builds a snapshot release in oolite.app/oolite"
+	@echo "  all                 - builds the above targets"
+	@echo "  clean               - removes all generated files"
 	@echo
-	@echo "  pkg-autopackage - builds a Linux autopackage"
+	@echo "Packaging Targets:"
+	@echo " Linux:"
+	@echo "  pkg-autopackage     - builds a Linux autopackage"
 	@echo
-	@echo "  pkg-deb - builds a release Debian package"
-	@echo "  pkg-debtest - builds a test release Debian package"
-	@echo "  pkg-debsnapshot - builds a snapshot release Debian package"
-	@echo "  pkg-debclean - cleans up after a Debian package build"
+	@echo "  pkg-deb             - builds a release Debian package"
+	@echo "  pkg-debtest         - builds a test release Debian package"
+	@echo "  pkg-debsnapshot     - builds a snapshot release Debian package"
+	@echo "  pkg-debclean        - cleans up after a Debian package build"
 	@echo
-	@echo "  pkg-win - builds a release version Windows installer package (test release)"
-	@echo "  pkg-win-deployment - builds a release version Windows installer package (deployment release)"
-	@echo "  pkg-win-snapshot - builds a snapshot version Windows installer package"
+	@echo " Windows Installer:"
+	@echo "  pkg-win             - builds a test-release version"
+	@echo "  pkg-win-deployment  - builds a release version"
+	@echo "  pkg-win-snapshot    - builds a snapshot version"

@@ -15,6 +15,7 @@ OO_EXCLUDE_DEBUG_SUPPORT = no
 OO_OXP_VERIFIER_ENABLED = yes
 OO_LOCALIZATION_TOOLS = yes
 DEBUG_GRAPHVIZ = yes
+use_deps = no
 
 vpath %.m src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
 vpath %.h src/SDL:src/Core:src/Core/Entities:src/Core/Materials:src/Core/Scripting:src/Core/OXPVerifier:src/Core/Debug
@@ -43,7 +44,7 @@ else
 	ADDITIONAL_OBJCFLAGS = -Wall -std=c99 -DLOADSAVEGUI -DLINUX -DXP_UNIX -Wno-import `sdl-config --cflags`
 	oolite_LIB_DIRS += -L/usr/X11R6/lib/
 
-	ifeq ($(use_distro_deps),yes)
+	ifeq ($(use_deps),no)
 		ADDITIONAL_OBJC_LIBS += -lpng -lSDL -lSDL_mixer -lgnustep-base
 		ifeq ($(ESPEAK),yes)
 			ADDITIONAL_OBJC_LIBS += -lespeak
