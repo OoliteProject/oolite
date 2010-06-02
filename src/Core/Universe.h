@@ -363,6 +363,7 @@ enum
 - (BOOL) breakPatternOver;
 - (BOOL) breakPatternHide;
 
+- (NSString *) randomShipKeyForRoleRespectingConditions:(NSString *)role;
 - (ShipEntity *) newShipWithRole:(NSString *)role;		// Selects ship using role weights, applies auto_ai, respects conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey;	// Does not apply auto_ai or respect conditions
 - (ShipEntity *) newShipWithName:(NSString *)shipKey usePlayerProxy:(BOOL)usePlayerProxy;	// If usePlayerProxy, non-carriers are instantiated as ProxyPlayerEntity.

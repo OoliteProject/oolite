@@ -33,6 +33,7 @@ SOFTWARE.
 
 static NSArray			*sEquipmentTypes = nil;
 static NSDictionary		*sEquipmentTypesByIdentifier = nil;
+static NSDictionary		*sMissilesRegistry = nil;
 
 
 @interface OOEquipmentType (Private)
@@ -93,6 +94,25 @@ static NSDictionary		*sEquipmentTypesByIdentifier = nil;
 		sEquipmentTypesByIdentifier = [[NSDictionary alloc] initWithDictionary:equipmentTypesByIdentifier];
 	}
 	DESTROY(equipmentTypesByIdentifier);
+}
+
+
++ (NSString *) getMissileRegistryRoleForShip:(NSString *)shipKey
+{
+	return [sMissilesRegistry oo_stringForKey:shipKey];
+}
+
+
++ (void) setMissileRegistryRole:(NSString *)role forShip:(NSString *)shipKey
+{
+	NSMutableDictionary	*missilesRegistry = [[NSMutableDictionary alloc] initWithDictionary:sMissilesRegistry];
+	if (role != nil && shipKey != nil && ![shipKey isEqualToString:@""])
+	{
+		[missilesRegistry setValue:role forKey:shipKey];
+		DESTROY(sMissilesRegistry);
+		sMissilesRegistry = [[NSDictionary alloc] initWithDictionary:missilesRegistry];
+	}
+	DESTROY(missilesRegistry);
 }
 
 

@@ -63,6 +63,9 @@ SOFTWARE.
 + (void) loadEquipment;			// Load equipment data; called on loading and when changing to/from strict mode.
 + (void) addEquipmentWithInfo:(NSArray *)itemInfo;	// Used to generate equipment from missile_role entries.
 
++ (NSString *) getMissileRegistryRoleForShip:(NSString *)shipKey;
++ (void) setMissileRegistryRole:(NSString *)roles forShip:(NSString *)shipKey;
+
 + (NSArray *) allEquipmentTypes;
 + (NSEnumerator *) equipmentEnumerator;
 

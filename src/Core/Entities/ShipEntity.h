@@ -209,7 +209,7 @@ MA 02110-1301, USA.
 	
 	unsigned				missiles;					// number of on-board missiles
 	unsigned				max_missiles;				// number of missile pylons
-	NSString				*missileRole;
+	NSString				*_missileRole;
 	OOTimeDelta				missile_load_time;			// minimum time interval between missile launches
 	OOTimeAbsolute			missile_launch_time;		// time of last missile launch
 	

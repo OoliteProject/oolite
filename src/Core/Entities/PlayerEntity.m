@@ -1314,9 +1314,8 @@ static BOOL replacingMissile = NO;
 	[self removeAllEquipment];
 	[self addEquipmentFromCollection:[shipDict objectForKey:@"extra_equipment"]];
 	
-	// set up HUD
-	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
-	if (![self switchHudTo:hud_desc])  [self switchHudTo:@"hud.plist"];	// ensure we have a HUD to fall back to
+	[self resetHud];
+	[hud setHidden:NO];
 	
 	// fuel_charge_rate is calculated inside the shipEntity method.
 	
@@ -2704,6 +2703,7 @@ static BOOL replacingMissile = NO;
 	targetDockStation = value;
 }
 
+
 - (StationEntity *) getTargetDockStation
 {
 	return targetDockStation;
@@ -2715,6 +2715,7 @@ static BOOL replacingMissile = NO;
 	return hud;
 }
 
+
 - (void) resetHud
 {
 	// set up defauld HUD for the ship
@@ -2722,6 +2723,7 @@ static BOOL replacingMissile = NO;
 	NSString *hud_desc = [shipDict oo_stringForKey:@"hud" defaultValue:@"hud.plist"];
 	if (![self switchHudTo:hud_desc])  [self switchHudTo:@"hud.plist"];	// ensure we have a HUD to fall back to
 }
+
 
 - (BOOL) switchHudTo:(NSString *)hudFileName
 {
@@ -2748,7 +2750,7 @@ static BOOL replacingMissile = NO;
 		hud = [[HeadUpDisplay alloc] initWithDictionary:hudDict inFile:hudFileName];
 		[hud setScannerZoom:1.0];
 		[hud resizeGuis: hudDict];
-		[hud setHidden:theHudIsHidden]; // reset hidenness to what it originally was
+		[hud setHidden:theHudIsHidden]; // reset hidden status to what it was originally.
 	}
 	
 	return YES;

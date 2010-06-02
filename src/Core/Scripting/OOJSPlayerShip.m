@@ -595,7 +595,7 @@ static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObjec
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 	if (EXPECT_NOT(![eqType isMissileOrMine]))
 	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"External store");
+		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"external store");
 		return OK;
 	}
 	

@@ -493,7 +493,7 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	}
 	
 	// Populate the missiles here. Must come after scanClass.
-	missileRole = [shipDict oo_stringForKey:@"missile_role"];
+	_missileRole = [shipDict oo_stringForKey:@"missile_role"];
 	unsigned	i, j;
 	for (i = 0, j = 0; i < missiles; i++)
 	{
@@ -2117,7 +2117,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		equipmentKey = [equipmentKey substringToIndex:[equipmentKey length] - [@"_DAMAGED" length]];
 	}
 	
-	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
+	NSString * lcEquipmentKey = [equipmentKey lowercaseString];
+	if ([equipmentKey hasSuffix:@"MISSILE"]||[equipmentKey hasSuffix:@"MINE"]||([self isThargoid] && ([lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"])))
 	{
 		if (missiles >= max_missiles) return NO;
 	}
@@ -2275,6 +2276,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 - (BOOL) addEquipmentItem:(NSString *)equipmentKey withValidation:(BOOL)validateAddition
 {
 	OOEquipmentType			*eqType = nil;
+	NSString				*lcEquipmentKey = [equipmentKey lowercaseString];
+	BOOL					isEqThargon = [lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"];
 	
 	// canAddEquipment always checks if the undamaged version is equipped.
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
@@ -2294,7 +2297,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (eqType == nil)  return NO;
 	
 	// special cases
-	if ([eqType isMissileOrMine] || ([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
+	if ([eqType isMissileOrMine] || ([self isThargoid] && isEqThargon))
 	{
 		if (missiles >= max_missiles) return NO;
 		
@@ -2304,7 +2307,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	
 	// don't add any thargons to non-thargoid ships.
-	if([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"]) return NO;
+	if(isEqThargon) return NO;
 	
 	// we can theoretically add a damaged weapon, but not a working one.
 	if([equipmentKey hasPrefix:@"EQ_WEAPON"] && ![equipmentKey hasSuffix:@"_DAMAGED"])
@@ -2352,7 +2355,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (void) removeEquipmentItem:(NSString *)equipmentKey
 {
-	NSString *equipmentTypeCheckKey = equipmentKey;
+	NSString		*equipmentTypeCheckKey = equipmentKey;
+	NSString		*lcEquipmentKey = [equipmentKey lowercaseString];
 	
 	// determine the equipment type and make sure it works also in the case of damaged equipment
 	if ([equipmentKey hasSuffix:@"_DAMAGED"])
@@ -2362,7 +2366,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipmentTypeCheckKey];
 	if (eqType == nil)  return;
 	
-	if ([eqType isMissileOrMine] || ([self isThargoid] && ([equipmentKey hasPrefix:@"thargon"] || [equipmentKey hasSuffix:@"thargon"])))
+	if ([eqType isMissileOrMine] || ([self isThargoid] && ([lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"])))
 	{
 		[self removeExternalStore:eqType];
 	}
@@ -2426,97 +2430,137 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (OOEquipmentType *) verifiedMissileTypeFromRole:(NSString *)role
+{
+	NSString			*eqRole = nil;
+	NSString			*shipKey = nil;
+	ShipEntity			*missile = nil;
+	OOEquipmentType		*missileType = nil;
+	BOOL				isRandomMissile = [role isEqualToString:@"missile"];
+	
+	if (isRandomMissile)
+	{
+		while (!shipKey)
+		{
+			shipKey = [UNIVERSE randomShipKeyForRoleRespectingConditions:role];
+			if (!shipKey) 
+			{
+				OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"random missile", role, [self name], @"shipdata",  @"Trying another missile.");
+			}
+		}
+	}
+	else
+	{
+		shipKey = [UNIVERSE randomShipKeyForRoleRespectingConditions:role];
+		if (!shipKey) 
+		{
+			OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"missile_role", role, [self name], @"shipdata", @" Using defaults instead.");
+			return nil;
+		}
+	}
+	
+	eqRole = [OOEquipmentType getMissileRegistryRoleForShip:shipKey];	// eqRole != role for generic missiles.
+	
+	if (eqRole == nil)
+	{
+		missile = [UNIVERSE newShipWithName:shipKey];
+		if (!missile)
+		{
+			[OOEquipmentType setMissileRegistryRole:@"" forShip:shipKey];	// no valid role for this shipKey
+			return nil;
+		}
+		
+		if(isRandomMissile)
+		{
+			id 				value;
+			NSEnumerator	*enumerator = [[[missile roleSet] roles] objectEnumerator];
+			
+			while ((value = [enumerator nextObject]))
+			{
+				role = (NSString *)value;
+				missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
+				// ensure that we have a missile or mine
+				if ([missileType isMissileOrMine]) break;
+			}
+		
+			if (![missileType isMissileOrMine])
+			{
+				role = shipKey;	// unique identifier to use in lieu of a valid equipment type if none are defined inside the generic missile roleset.
+			}
+		}
+		[missile release];
+		
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
+		
+		if (!missileType)
+		{
+			OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", (isRandomMissile ? @"random missile" : @"missile_role"), role, [self name], @"equipment", @" Enabling compatibility mode.");
+			missileType = [self generateMissileEquipmentTypeFrom:role];
+		}
+		
+		[OOEquipmentType setMissileRegistryRole:role forShip:shipKey];
+	}
+	else
+	{
+		if ([eqRole isEqualToString:@""]) return nil;	// wrong ship definition, already written to the log in a previous call.
+		missileType = [OOEquipmentType equipmentTypeWithIdentifier:eqRole];
+	}
+
+	return missileType;
+}
+
+
 - (OOEquipmentType *) selectMissile
 {
-	ShipEntity			*missile = nil;
 	OOEquipmentType		*missileType = nil;
 	NSString			*role = nil;
 	double				chance = randf();
+	BOOL				thargoidMissile = NO;
 	
 	if ([self isThargoid])
 	{
-		if (missileRole != nil)	missile = [UNIVERSE newShipWithRole:missileRole];	// retained
-		if (missile == nil)
-		{
-			if (missileRole != nil)
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using 'thargoid' instead.");
-			missile =  [UNIVERSE newShipWithRole:@"thargon"];	// retained
+		if (_missileRole != nil) missileType = [self verifiedMissileTypeFromRole:_missileRole];
+		if (missileType == nil) {
+			_missileRole = @"thargon";	// no valid missile_role defined, use thargoid fallback from now on.
+			missileType = [self verifiedMissileTypeFromRole:_missileRole];
 		}
 	}
 	else
 	{
-		// All other ships: random role 10% of the cases, if a missile role is defined.
-		if (chance < 0.9f && missileRole != nil) 
+		// All other ships: random role 10% of the cases, if a missile_role is defined.
+		if (chance < 0.9f && _missileRole != nil) 
 		{
-			missile = [UNIVERSE newShipWithRole:missileRole];	// retained
+			missileType = [self verifiedMissileTypeFromRole:_missileRole];
 		}
 		
-		if (missile == nil)	// no valid missile role defined?
+		if (missileType == nil)	// the random 10% , or no valid missile_role defined
 		{
-			if (chance < 0.9f && missileRole != nil)
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", missileRole, [self name], @"shipdata", @" Using defaults instead.");
-			// In unrestricted mode, random role 20% of the time (the 10% excluded from the check above is overridden here)
-			// In strict mode, use the standard missile role 100% of the time! 
-			if (chance > 0.8f && ![UNIVERSE strict]) missile = [UNIVERSE newShipWithRole:@"missile"];	// retained
-			// otherwise use the standard role.
-			else missile = [UNIVERSE newShipWithRole:@"EQ_MISSILE"];	// retained
+			if (chance < 0.9f && _missileRole != nil)	// no valid missile_role defined?
+			{
+				_missileRole = nil;	// use generic ship fallback from now on.
+			}
+			
+			// In unrestricted mode, assign random missiles 20% of the time without missile_role (or 10% with valid missile_role)
+			if (chance > 0.8f && ![UNIVERSE strict]) role = @"missile";
+			// otherwise use the standard role (100% of the time in restricted mode).
+			else role = @"EQ_MISSILE";
+			
+			missileType = [self verifiedMissileTypeFromRole:role];
 		}
-	}
-
-	role = [missile primaryRole];
-	if ([role isEqualToString:@"missile"])
-	{
-		id 					value;
-		NSEnumerator *enumerator = [[[missile roleSet] roles] objectEnumerator];
-
-		while ((value = [enumerator nextObject]))
-		{
-			role = (NSString *)value;
-			missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
-			// ensure that we have a missile or mine
-			if ([missileType isMissileOrMine]) break;
-		}
-	}
-	else
-	{
-		missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
 	}
 	
-	if (missileType == nil)
-	{
-		if ([role isEqualToString:@"missile"]) // no recognised eq_type found, let's use a unique identifier instead of the generic role 'missile'!
-		{
-			role = [missile name];
-			missileType = [OOEquipmentType equipmentTypeWithIdentifier:role];
-			if (missileType == nil)
-			{
-				OOLogWARN(@"ship.setUp.missiles.compatibilityFallback", @"Missile \"%@\": no role with valid %@.plist entry found in shipdata.plist. Enabling compatibility mode using \"%@\" as its fallback equipment identifier.", role, @"equipment", role);
-			}
-		}
-		else
-		{
+	if (missileType == nil) OOLogERR(@"ship.setUp.missiles", @"could not resolve missile / mine type for ship \"%@\". Original missile role:\"%@\".", [self name],_missileRole);
+	
+	role = [[missileType identifier] lowercaseString];
+	thargoidMissile = [self isThargoid] && ([role hasPrefix:@"thargon"] || [role hasSuffix:@"thargon"]);
 
-			if ([UNIVERSE strict])
-			{
-				// In restricted mode, only thargons and EQ_MISSILEs are permitted. If we're here, something's wrong....
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" cannot be used in restricted mode. Using 'EQ_MISSILE' instead.", role, [self name]);
-				missileType = [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_MISSILE"];
-			}
-			else
-			{
-				OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", role, [self name], @"equipment", @" Enabling compatibility mode.");
-			}
-		}
-		if (missileType == nil) missileType = [self generateMissileEquipmentTypeFrom:role];
-	}
-	[missile release];
-	if ([missileType isMissileOrMine] || ([self isThargoid] && ([role hasPrefix:@"thargon"] || [role hasSuffix:@"thargon"])))
+	if ( thargoidMissile || (!thargoidMissile && [missileType isMissileOrMine]))
 	{
 		return missileType;
 	}
 	else
 	{
-		OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" used in ship \"%@\" is not a valid missile or mine type.%@", missileType, [self name],@" No missile selected.");
+		OOLogWARN(@"ship.setUp.missiles", @"missile_role \"%@\" is not a valid missile / mine type for ship \"%@\".%@", [missileType identifier] , [self name],@" No missile selected.");
 		return nil;
 	}
 }
