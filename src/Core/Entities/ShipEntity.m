@@ -2508,7 +2508,12 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	}
 	else
 	{
-		if ([eqRole isEqualToString:@""]) return nil;	// wrong ship definition, already written to the log in a previous call.
+		if ([eqRole isEqualToString:@""])
+		{
+			// wrong ship definition, already written to the log in a previous call.
+			if (isRandomMissile) return [self verifiedMissileTypeFromRole:role];	// try and find a valid missile with role 'missile'.
+			return nil;
+		}
 		missileType = [OOEquipmentType equipmentTypeWithIdentifier:eqRole];
 	}
 
