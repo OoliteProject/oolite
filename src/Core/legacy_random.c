@@ -2,8 +2,6 @@
 
 legacy_random.c
 
-Class handling interface elements, primarily text, that are not part of the 3D
-game world, together with GuiDisplayGen.
 
 Oolite
 Copyright (C) 2004-2008 Giles C Williams and contributors

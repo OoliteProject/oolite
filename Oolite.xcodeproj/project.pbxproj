@@ -3890,7 +3890,6 @@
 				LLVM_LTO = YES;
 				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
-				RUN_CLANG_STATIC_ANALYZER = YES;
 				ZERO_LINK = NO;
 			};
 			name = TestRelease;
@@ -3983,7 +3982,6 @@
 				INSTALL_PATH = /usr/local/lib;
 				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
-				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Debug;
 		};
@@ -4001,7 +3999,6 @@
 				INSTALL_PATH = /usr/local/lib;
 				PREBINDING = NO;
 				PRODUCT_NAME = png_for_oolite;
-				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT_i386 = "$(DEVELOPER_SDK_DIR)/MacOSX10.4u.sdk";
 				ZERO_LINK = NO;
 			};

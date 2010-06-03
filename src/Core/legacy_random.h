@@ -5,6 +5,7 @@ legacy_random.h
 Pseudo-random number generator designed to produce identical results to that
 used in BBC Elite (for dynamic world generation), and related functions.
 
+
 Oolite
 Copyright (C) 2004-2010 Giles C Williams and contributors
 

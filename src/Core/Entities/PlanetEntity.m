@@ -716,6 +716,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) dealloc
 {
+	[self resetGraphicsState];
+	
 	DESTROY(atmosphere);
 	free(textureData);
 	textureData = NULL;
@@ -1678,6 +1680,16 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	{
 		OOGL(glDeleteTextures(1, &textureName));
 		textureName = 0;
+	}
+	
+	unsigned i;
+	for (i = 0; i < MAX_SUBDIVIDE; i++)
+	{
+		if (displayListNames[i] != 0)
+		{
+			glDeleteLists(displayListNames[i], 1);
+			displayListNames[i] = 0;
+		}
 	}
 }
 
