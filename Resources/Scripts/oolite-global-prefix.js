@@ -236,7 +236,7 @@ Ship.__proto__.hasEquipment = function (eqKey)
 	
 	special.jsWarning("Ship.hasEquipment(\"" + eqKey + "\") is deprecated, use ship.equipmentStatus(\"" + actualKey + "\") == \"" + expectedStatus + "\" instead.");
 	
-	return this.equipmentStatus(actualKey) == expectedStatus;
+	return EquipmentInfo.infoForKey(actualKey) != null && this.equipmentStatus(actualKey) == expectedStatus;
 }
 
 // Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity
