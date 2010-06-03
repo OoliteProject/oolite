@@ -292,7 +292,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	[self initPlayerSettings];
 	
 	universeRegion = [[CollisionRegion alloc] initAsUniverse];
-	entitiesDeadThisUpdate = [[NSMutableArray alloc] init];
+	entitiesDeadThisUpdate = [[NSMutableSet alloc] init];
 	framesDoneThisUpdate = 0;
 	
 	OOInitDebugSupport();
@@ -5360,6 +5360,10 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	if (!no_update)
 	{
 		NSString * volatile update_stage = @"initialisation";
+#ifndef NDEBUG
+		id volatile update_stage_param = nil;
+#endif
+		
 		NS_DURING
 			int i;
 			PlayerEntity*	player = [PlayerEntity sharedPlayer];
@@ -5469,7 +5473,8 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 			{
 				Entity *thing = my_entities[i];
 #ifndef NDEBUG
-				update_stage = [NSString stringWithFormat:@"update:entity [%@]", [thing shortDescription]];
+				update_stage_param = thing;
+				update_stage = @"update:entity [%@]";
 #endif
 				// Game Over code depends on regular delta_t updates to the dead player entity. Ignore the player entity, even when dead.
 				if (EXPECT_NOT([thing status] == STATUS_DEAD && ![entitiesDeadThisUpdate containsObject:thing] && ![thing isPlayer]))
@@ -5482,11 +5487,11 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				[thing update:delta_t];
 				
 #ifndef NDEBUG
-				update_stage = [NSString stringWithFormat:@"update:list maintenance [%@]", [thing shortDescription]];
+				update_stage = @"update:list maintenance [%@]";
 #endif
 				
 				// maintain distance-from-player list
-				double z_distance = thing->zero_distance;
+				GLfloat z_distance = thing->zero_distance;
 				
 				int index = thing->zero_index;
 				while (index > 0 && z_distance < sortedEntities[index - 1]->zero_distance)
@@ -5502,7 +5507,7 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				if ([thing isShip])
 				{
 #ifndef NDEBUG
-					update_stage = [NSString stringWithFormat:@"update:think [%@]", [thing shortDescription]];
+					update_stage = @"update:think [%@]";
 #endif
 					AI* theShipsAI = [(ShipEntity *)thing getAI];
 					if (theShipsAI)
@@ -5516,6 +5521,9 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 					}
 				}
 			}
+#ifndef NDEBUG
+		update_stage_param = nil;
+#endif
 			
 			if (zombies != nil)
 			{
@@ -5561,18 +5569,18 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 				[self handleOoliteException:localException];
 			else
 			{
+#ifndef NDEBUG
+				if (update_stage_param != nil)  update_stage = [NSString stringWithFormat:update_stage, update_stage_param];
+#endif
 				OOLog(kOOLogException, @"***** Exception during [%@] in [Universe update:] : %@ : %@ *****", update_stage, [localException name], [localException reason]);
 				[localException raise];
 			}
 		NS_ENDHANDLER
 	}
-	Entity* my_ent;
-	while ([entitiesDeadThisUpdate count] >0)
-	{
-		my_ent=[[entitiesDeadThisUpdate objectAtIndex:0] retain];
-		[my_ent autorelease];
-		[entitiesDeadThisUpdate removeObjectAtIndex:0];
-	}
+	
+	[entitiesDeadThisUpdate autorelease];
+	entitiesDeadThisUpdate = nil;
+	entitiesDeadThisUpdate = [[NSMutableSet alloc] initWithCapacity:n_entities];
 	
 #if NEW_PLANETS
 	[self prunePreloadingPlanetMaterials];

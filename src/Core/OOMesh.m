@@ -694,6 +694,8 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 - (BoundingBox)findSubentityBoundingBoxWithPosition:(Vector)position rotMatrix:(OOMatrix)rotMatrix
 {
 	// HACK! Should work out what the various bounding box things do and make it neat and consistent.
+	// FIXME: this is a bottleneck.
+	
 	BoundingBox		result;
 	Vector			v;
 	

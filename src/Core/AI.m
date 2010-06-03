@@ -105,7 +105,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 	aiStack = [[NSMutableArray alloc] init];
 	pendingMessages = [[NSMutableSet alloc] init];
 	
-	nextThinkTime = [[NSDate distantFuture] timeIntervalSinceNow];	// don't think for a while
+	nextThinkTime = INFINITY;	// don't think for a while
 	thinkTimeInterval = AI_THINK_INTERVAL;
 	
 	stateMachineName = [[NSString stringWithString:@"<no AI>"] retain];	// no initial brain
@@ -595,7 +595,7 @@ extern void GenerateGraphVizForAIStateMachine(NSDictionary *stateMachine, NSStri
 - (OOTimeAbsolute) nextThinkTime
 {
 	if (!stateMachine)
-		return [[NSDate distantFuture] timeIntervalSinceNow];
+		return INFINITY;
 
 	return nextThinkTime;
 }

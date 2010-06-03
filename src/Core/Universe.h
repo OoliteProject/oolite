@@ -261,7 +261,7 @@ enum
 	// check and maintain linked lists occasionally
 	BOOL					doLinkedListMaintenanceThisUpdate;
 	
-	NSMutableArray			*entitiesDeadThisUpdate;
+	NSMutableSet			*entitiesDeadThisUpdate;
 	int						framesDoneThisUpdate;
 	
 #if OOLITE_SPEECH_SYNTH
