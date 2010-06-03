@@ -6053,7 +6053,8 @@ static NSString *last_outfitting_key=nil;
 		NSArray *OXPsWithMessages = [ResourceManager OXPsWithMessagesFound];
 		if ([OXPsWithMessages count] > 0)
 		{
-			NSString *messageToDisplay = DESC(@"oxp-containing-messages-found");
+			NSString *messageToDisplay = @"";
+			
 			// Show which OXPs were found with messages, but don't spam the screen if more than
 			// a certain number of them exist
 			if ([OXPsWithMessages count] < 5)
@@ -6061,9 +6062,13 @@ static NSString *last_outfitting_key=nil;
 				unsigned i;
 				for (i = 0; i < [OXPsWithMessages count]; i++)
 				{
-					messageToDisplay = [messageToDisplay stringByAppendingString:[NSString stringWithFormat:@" %@", [OXPsWithMessages oo_stringAtIndex:i]]];
+					messageToDisplay = [messageToDisplay stringByAppendingString:
+															[NSString stringWithFormat:([messageToDisplay isEqualToString:@""] ? @"%@" : @", %@"),
+															[OXPsWithMessages oo_stringAtIndex:i]]];
 				}
+				messageToDisplay = [NSString stringWithFormat:DESC(@"oxp-containing-messages-list-@"), messageToDisplay];
 			}
+			messageToDisplay = [NSString stringWithFormat:@"%@%@",DESC(@"oxp-containing-messages-found"), messageToDisplay];
 			int ms_start = msgLine;
 			int i = msgLine = [gui addLongText:messageToDisplay startingAtRow:ms_start align:GUI_ALIGN_LEFT];
 			for (i-- ; i >= ms_start ; i--) [gui setColor:[OOColor orangeColor] forRow:i];

@@ -463,7 +463,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	}
 	else
 	{
-		if ([player guiScreen] != GUI_SCREEN_MAIN && [gui setForegroundTextureName:@"paused_overlay"])
+		if ([player guiScreen] != GUI_SCREEN_MAIN && [gui setForegroundTextureKey:@"paused_overlay"])
 		{
 			[gui drawGUI:1.0 drawCursor:NO];
 		}

@@ -418,7 +418,8 @@
 	// *** Misc. messages ***
 	
 	// OXP containing messages that are echoed to Latest.log
-	"oxp-containing-messages-found"		= "OXP(s) containing messages found: ";
+	"oxp-containing-messages-found"		= "OXP message(s) written to the log";
+	"oxp-containing-messages-list-@"	= " from: %@";
 	
 	// Messages used when awarding bounties
 	"bounty-@-total-@"				= "Bounty: %@\nTotal: %@";

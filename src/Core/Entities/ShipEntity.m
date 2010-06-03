@@ -2445,7 +2445,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 			shipKey = [UNIVERSE randomShipKeyForRoleRespectingConditions:role];
 			if (!shipKey) 
 			{
-				OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"random missile", role, [self name], @"shipdata",  @"Trying another missile.");
+				OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"random missile", shipKey, [self name], @"shipdata",  @"Trying another missile.");
 			}
 		}
 	}
@@ -2466,8 +2466,14 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 		missile = [UNIVERSE newShipWithName:shipKey];
 		if (!missile)
 		{
+			if (isRandomMissile)
+				OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"random missile", shipKey, [self name], @"shipdata",  @"Trying another missile.");
+			else
+				OOLogWARN(@"ship.setUp.missiles", @"%@ \"%@\" used in ship \"%@\" needs a valid %@.plist entry.%@", @"missile_role", role, [self name], @"shipdata", @" Using defaults instead.");
+				
 			[OOEquipmentType setMissileRegistryRole:@"" forShip:shipKey];	// no valid role for this shipKey
-			return nil;
+			if (isRandomMissile) return [self verifiedMissileTypeFromRole:role];
+			else return nil;
 		}
 		
 		if(isRandomMissile)

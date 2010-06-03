@@ -1268,9 +1268,8 @@ static NSTimeInterval	time_last_frame;
 			
 			if (gui_screen == GUI_SCREEN_OPTIONS || gui_screen == GUI_SCREEN_GAMEOPTIONS || gui_screen == GUI_SCREEN_STICKMAPPER)
 			{
-				BOOL hasOverlay = ([OOTexture textureWithName:[UNIVERSE screenBackgroundNameForKey:@"paused_overlay"] inFolder:@"Images"] != nil);
-				if (hasOverlay) [[UNIVERSE message_gui] clear];
-				else [[UNIVERSE message_gui] leaveLastLine];
+				if ([UNIVERSE pauseMessageVisible]) [[UNIVERSE message_gui] leaveLastLine];
+				else [[UNIVERSE message_gui] clear];
 				NSTimeInterval	time_this_frame = [NSDate timeIntervalSinceReferenceDate];
 				OOTimeDelta		time_delta;
 				if (![[GameController sharedController] gameIsPaused])
