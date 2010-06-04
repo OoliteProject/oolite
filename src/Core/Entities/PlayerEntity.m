@@ -7829,6 +7829,12 @@ static NSString *last_outfitting_key=nil;
 	[scannedWormholes release];
 	scannedWormholes = savedWormholes;
 }
+
+
+- (NSArray *) scannedWormholes
+{
+	return [NSArray arrayWithArray:scannedWormholes];
+}
 #endif
 
 #ifndef NDEBUG

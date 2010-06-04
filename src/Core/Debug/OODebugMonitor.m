@@ -392,6 +392,7 @@ typedef struct
 {
 	NSMutableSet		*entityTextures;
 	NSMutableSet		*visibleEntityTextures;
+	NSMutableSet		*seenEntities;
 	unsigned			seenCount;
 	size_t				totalEntityObjSize;
 	size_t				totalDrawableSize;
@@ -400,6 +401,9 @@ typedef struct
 
 - (void) dumpEntity:(id)entity withState:(EntityDumpState *)state parentVisible:(BOOL)parentVisible
 {
+	if ([state->seenEntities containsObject:entity] || entity == nil)  return;
+	[state->seenEntities addObject:entity];
+	
 	state->seenCount++;
 	
 	size_t entitySize = [entity oo_objectSize];
@@ -439,7 +443,7 @@ typedef struct
 	if ([entity isShip])
 	{
 		NSEnumerator *subEnum = nil;
-		id subentity;
+		id subentity = nil;
 		for (subEnum = [entity subEntityEnumerator]; (subentity = [subEnum nextObject]); )
 		{
 			[self dumpEntity:subentity withState:state parentVisible:visible];
@@ -461,6 +465,16 @@ typedef struct
 		if (atmosphere != nil)
 		{
 			[self dumpEntity:atmosphere withState:state parentVisible:visible];
+		}
+	}
+	if ([entity isWormhole])
+	{
+		NSEnumerator *shipEnum = nil;
+		NSDictionary *shipInfo = nil;
+		for (shipEnum = [[entity shipsInTransit] objectEnumerator]; (shipInfo = [shipEnum nextObject]); )
+		{
+			ShipEntity *ship = [shipInfo objectForKey:@"ship"];
+			[self dumpEntity:ship withState:state parentVisible:NO];
 		}
 	}
 	OOLogOutdent();
@@ -492,7 +506,8 @@ typedef struct
 	EntityDumpState entityDumpState =
 	{
 		.entityTextures = [NSMutableSet set],
-		.visibleEntityTextures = [NSMutableSet set]
+		.visibleEntityTextures = [NSMutableSet set],
+		.seenEntities = [NSMutableSet set]
 	};
 	
 	id entity = nil;
@@ -501,6 +516,12 @@ typedef struct
 	{
 		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
 	}
+#if WORMHOLE_SCANNER
+	for (entityEnum = [[[PlayerEntity sharedPlayer] scannedWormholes] objectEnumerator]; (entity = [entityEnum nextObject]); )
+	{
+		[self dumpEntity:entity withState:&entityDumpState parentVisible:YES];
+	}
+#endif
 	
 	OOLogOutdent();
 	[self writeMemStat:@"Total entity size (excluding %u entities not accounted for): %@ (%@ entity objects, %@ drawables)",

@@ -761,4 +761,8 @@ typedef enum
 - (void) penaltyForUnauthorizedDocking;
 #endif
 
+#if WORMHOLE_SCANNER
+- (NSArray *) scannedWormholes;
+#endif
+
 @end
