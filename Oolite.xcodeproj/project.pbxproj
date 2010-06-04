@@ -576,6 +576,8 @@
 		1AA7FE3510C2F26A0058FBED /* OOPlanetTextureGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */; settings = {COMPILER_FLAGS = "-ffast-math -funroll-loops"; }; };
 		1AA82C8A0CC10E700023B797 /* OOJSWorldScripts.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */; };
 		1AAB9A980D779F4500A9F424 /* OOCocoa.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAB9A960D779F3C00A9F424 /* OOCocoa.m */; };
+		1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */; };
+		1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */; };
 		1AAF56170F1A198400A2F2E6 /* Comparison.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAF56160F1A198400A2F2E6 /* Comparison.h */; };
 		1AAF565A0F1A27EA00A2F2E6 /* whitelist.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1AAF56590F1A27D900A2F2E6 /* whitelist.plist */; };
 		1AB01ABE0BB15AED00F1B949 /* OOTextureScaling.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */; };
@@ -1719,6 +1721,8 @@
 		1AA82C810CC10E3D0023B797 /* OOJSWorldScripts.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOJSWorldScripts.h; sourceTree = "<group>"; };
 		1AA82C820CC10E3D0023B797 /* OOJSWorldScripts.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOJSWorldScripts.m; sourceTree = "<group>"; };
 		1AAB9A960D779F3C00A9F424 /* OOCocoa.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOCocoa.m; sourceTree = "<group>"; };
+		1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OOPixMapTextureLoader.h; sourceTree = "<group>"; };
+		1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OOPixMapTextureLoader.m; sourceTree = "<group>"; };
 		1AAF56160F1A198400A2F2E6 /* Comparison.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Comparison.h; sourceTree = "<group>"; };
 		1AAF56590F1A27D900A2F2E6 /* whitelist.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = whitelist.plist; sourceTree = "<group>"; };
 		1AB01ABC0BB15AED00F1B949 /* OOTextureScaling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OOTextureScaling.h; path = ../OOTextureScaling.h; sourceTree = "<group>"; };
@@ -2572,6 +2576,8 @@
 				1A26D0E20BCF9D3B0073F257 /* OOPNGTextureLoader.m */,
 				1AA7FE2B10C2F2070058FBED /* OOTextureGenerator.h */,
 				1AA7FE2C10C2F2070058FBED /* OOTextureGenerator.m */,
+				1AABA83C11B941D1003487D5 /* OOPixMapTextureLoader.h */,
+				1AABA83D11B941D1003487D5 /* OOPixMapTextureLoader.m */,
 				1AA7FE3210C2F26A0058FBED /* OOPlanetTextureGenerator.h */,
 				1AA7FE3310C2F26A0058FBED /* OOPlanetTextureGenerator.m */,
 				1A8C97E4117A1A2F00D8AB7E /* OOCombinedEmissionMapGenerator.h */,
@@ -3294,6 +3300,7 @@
 				1A06F2861196E5B100AFA5B4 /* OOCASoundDebugMonitor.h in Headers */,
 				1AEB491A119D5AAA007BD514 /* OORegExpMatcher.h in Headers */,
 				1A062C8911B28D8A00727C1D /* NSObjectOOExtensions.h in Headers */,
+				1AABA83E11B941D1003487D5 /* OOPixMapTextureLoader.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3662,6 +3669,7 @@
 				1ACB1D19118DCBC0007B9A1F /* OOConcreteTexture.m in Sources */,
 				1AEB491B119D5AAA007BD514 /* OORegExpMatcher.m in Sources */,
 				1A062C8A11B28D8A00727C1D /* NSObjectOOExtensions.m in Sources */,
+				1AABA83F11B941D1003487D5 /* OOPixMapTextureLoader.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

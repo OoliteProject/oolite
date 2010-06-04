@@ -31,6 +31,11 @@ MA 02110-1301, USA.
 #import "Universe.h"
 #import "AI.h"
 #import "TextureStore.h"
+#if !OLD_PLANET_TEXTURE
+#import "OOTexture.h"
+#import "OOTextureInternal.h"	// For GL_TEXTURE_CUBE_MAP -- need to clean this up.
+#import "OOPixMapTextureLoader.h"
+#endif
 #import "MyOpenGLView.h"
 #import "ShipEntityAI.h"
 #import "OOColor.h"
@@ -50,12 +55,14 @@ MA 02110-1301, USA.
 #define FIXED_TEX_COORDS 0
 
 
+#if OLD_PLANET_TEXTURE
 typedef enum
 {
 	kPlanetTexNone,
 	kPlanetTex2DWithData,
 	kPlanetTexModeNamedTexture
 } OOPlanetTextureMode;
+#endif
 
 
 // straight c
@@ -85,15 +92,21 @@ static GLfloat	texture_uv_array[10400 * 2];
 - (void) paintVertex:(int) vi :(int) seed;
 - (void) scaleVertices;
 
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet;
 - (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet dictionary:(NSDictionary *)dict;
 - (void) setTextureColorForPlanet:(BOOL)isMain inSystem:(BOOL)isLocal;
 
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
 
+#if OLD_PLANET_TEXTURE
 - (GLuint) textureName;
 - (void) reifyTexture;
-- (void) deleteDisplayLists;
+#else
+- (OOTexture *) texture;
+
+- (void) loadTexture:(NSDictionary *)configuration;
+- (OOTexture *) planetTextureWithInfo:(NSDictionary *)info;
+- (OOTexture *) cloudTextureWithCloudColor:(OOColor *)cloudColor cloudImpress:(GLfloat)cloud_impress cloudBias:(GLfloat)cloud_bias;
+#endif
 
 @end
 
@@ -111,9 +124,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	self = [super init];
 	
-	isTextured = NO;
-	textureFile = nil;
-	
 	collision_radius = 25000.0; //  25km across
 	
 	scanClass = CLASS_NO_DRAW;
@@ -128,9 +138,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0;
-	
-	for (i = 0; i < 5; i++)
-		displayListNames[i] = 0;	// empty for now!
 	
 	[self setModelName:kUntexturedPlanetModel];
 	
@@ -168,17 +175,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	root_planet = self;
 	
-	textureData = NULL;
-	
 	rotationAxis = kBasisYVector;
 	
 	return self;
-}
-
-
-- (id) initAsAtmosphereForPlanet:(PlanetEntity *)planet
-{
-	return [self initAsAtmosphereForPlanet:planet dictionary:nil];
 }
 
 
@@ -281,11 +280,16 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		float cloud_bias = -0.01 * (float)percent_land;
 		float cloud_impress = 1.0 - cloud_bias;
 		
+#if OLD_PLANET_TEXTURE
 		isTextured = [TextureStore getCloudTextureNameFor:cloudColor :cloud_impress :cloud_bias
 												 intoData:&textureData
 													width:&texWidth
 												   height:&texHeight];
 		textureMode = kPlanetTex2DWithData;
+#else
+		_texture = [self cloudTextureWithCloudColor:cloudColor cloudImpress:cloud_impress cloudBias:cloud_bias];
+		[_texture retain];
+#endif
 		
 		setRandomSeed(saved_seed);
 		RANROTSetFullSeed(ranrotSavedSeed);
@@ -293,9 +297,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	else
 #endif
 	{
+#if OLD_PLANET_TEXTURE
 		textureName = 0;
 		isTextured = NO;
 		textureMode = kPlanetTexNone;
+#endif
 	}
 	
 	if (!planet)
@@ -329,14 +335,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	planet_seed =	ranrot_rand();	// random set-up for vertex colours
 	
-	OOUInteger i;
-	for (i = 0; i < 5; i++)
-		displayListNames[i] = 0;	// empty for now!
-	
 	[self setModelName:kTexturedPlanetModel];
 	[self rescaleTo:1.0];
 	[self initialiseBaseVertexArray];
 	[self initialiseBaseTerrainArray:percent_land];
+	unsigned i;
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
 	
@@ -402,8 +405,12 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		return nil;
 	}
 	
-	self = [super init];
+	if (!(self = [super init]))  return nil;
 	
+#if !OLD_PLANET_TEXTURE
+	_texture = [[planet texture] retain];
+	_textureFileName = [[planet textureFileName] copy];
+#else
 	isTextured = [planet isTextured];
 	if (isTextured)
 	{
@@ -433,6 +440,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		}
 		[self reifyTexture];
 	}
+#endif
 	
 	planet_seed = [planet planet_seed];
 	shuttles_on_ground = 0;
@@ -458,7 +466,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	{
 		planet_type = STELLAR_TYPE_MINIATURE;
 		rotational_velocity = 0.04;
+#if OLD_PLANET_TEXTURE
 		[self setModelName:(isTextured)? kTexturedPlanetModel : kUntexturedPlanetModel];
+#else
+		[self setModelName:(_texture != nil) ? kTexturedPlanetModel : kUntexturedPlanetModel];
+#endif
 	}
 	
 	[self rescaleTo:1.0];
@@ -483,7 +495,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	if (planet->atmosphere)
 	{
 		// copy clouds but make fainter if isTextureImage
-		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:planet->isTextureImage ? 0.6f : 1.0f ];
+		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:planet->isTextureImage ? 0.6f : 1.0f];
 		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
 		[atmosphere rescaleTo:1.0];
 		[atmosphere scaleVertices];
@@ -518,26 +530,31 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	else
 		planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	
+#if OLD_PLANET_TEXTURE
 	if ([dict objectForKey:@"texture"])
 	{
 		textureFile = [[dict oo_stringForKey:@"texture"] copy];
 		textureMode = kPlanetTexModeNamedTexture;
 		[self reifyTexture];
 	}
-	else
+	else if (!procGen && !atmo)
 	{
-		if (procGen)
-		{
-			//generate the texture later
-			isTextured = NO;
-		}
-		else if (!atmo)
-		{
-			textureFile = @"metal.png";
-			textureMode = kPlanetTexModeNamedTexture;
-			[self reifyTexture];
-		}
+		textureFile = @"metal.png";
+		textureMode = kPlanetTexModeNamedTexture;
+		[self reifyTexture];
 	}
+#else
+	NSDictionary *textureSpec = [dict oo_textureSpecifierForKey:@"texture" defaultName:nil];
+	if (textureSpec == nil && !procGen && !atmo)
+	{
+		// Moons use metal.png by default.
+		textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
+	}
+	if (textureSpec != nil)
+	{
+		[self loadTexture:textureSpec];
+	}
+#endif
 	
 	NSString *seedStr = [dict oo_stringForKey:@"seed"];
 	if (seedStr != nil)
@@ -576,11 +593,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	orientation.y =  0.0;
 	orientation.z =  0.0;
 	
-	OOUInteger i;
-	for (i = 0; i < 5; i++)
-		displayListNames[i] = 0;	// empty for now!
-	
+#if OLD_PLANET_TEXTURE
 	[self setModelName:(procGen || isTextured) ? kTexturedPlanetModel : kUntexturedPlanetModel];
+#else
+	[self setModelName:(procGen || _texture != nil) ? kTexturedPlanetModel : kUntexturedPlanetModel];
+#endif
 	
 	[self rescaleTo:1.0];
 	
@@ -590,6 +607,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	// save the current random number generator seed
 	RNG_Seed saved_seed = currentRandomSeed();
 	
+	unsigned i;
 	for (i = 0; i < vertexCount; i++)
 	{
 		if (gen_rnd_number() < 256 * percent_land / 100)
@@ -604,7 +622,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	Vector land_hsb, sea_hsb, land_polar_hsb, sea_polar_hsb;
 	
+#if OLD_PLANET_TEXTURE
 	if (!isTextured)
+#else
+	if (_texture == nil)
+#endif
 	{
 		land_hsb.x = gen_rnd_number() / 256.0;  land_hsb.y = gen_rnd_number() / 256.0;  land_hsb.z = 0.5 + gen_rnd_number() / 512.0;
 		sea_hsb.x = gen_rnd_number() / 256.0;  sea_hsb.y = gen_rnd_number() / 256.0;  sea_hsb.z = 0.5 + gen_rnd_number() / 512.0;
@@ -663,6 +685,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	}
 
 #if ALLOW_PROCEDURAL_PLANETS
+#if OLD_PLANET_TEXTURE
 	if (procGen)
 	{
 		if (!isTextured)
@@ -673,6 +696,13 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 			[self reifyTexture];
 		}
 	}
+#else
+	if (procGen && _texture == nil)
+	{
+		_texture = [self planetTextureWithInfo:planetInfo];
+		[_texture retain];
+	}
+#endif
 #endif
 	
 	[self initialiseBaseVertexArray];
@@ -695,8 +725,13 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	}
 
 	// do atmosphere
+#if OLD_PLANET_TEXTURE
 	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:
 								(isTextured ? [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil] : dict)];
+#else
+	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:
+							 ((_texture != nil) ? [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil] : dict)];
+#endif
 	
 	setRandomSeed(saved_seed);
 	RANROTSetFullSeed(ranrotSavedSeed);
@@ -720,9 +755,14 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	[self deleteDisplayLists];
 	
 	DESTROY(atmosphere);
+#if !OLD_PLANET_TEXTURE
+	DESTROY(_texture);
+	DESTROY(_textureFileName);
+#else
 	free(textureData);
 	textureData = NULL;
 	DESTROY(textureFile);
+#endif
 	
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
 	
@@ -933,7 +973,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	if (zero_distance > collision_radius * collision_radius * 25) // is 'far away'
 		ignoreDepthBuffer |= YES;
 	
+#if OLD_PLANET_TEXTURE
 	if (EXPECT_NOT(textureName == 0))  [self reifyTexture];
+#else
+	[_texture ensureFinishedLoading];
+#endif
 	
 	switch (planet_type)
 	{
@@ -958,6 +1002,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 			{
 				GLfloat mat1[]		= { 1.0, 1.0, 1.0, 1.0 };	// opaque white
 
+#if OLD_PLANET_TEXTURE
 				if (!isTextured)
 					OOGL(glDisable(GL_TEXTURE_2D));	// stop any problems from this being left on!
 				else
@@ -965,7 +1010,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 					if (!isCubeMapped)
 					{
 						OOGL(glEnable(GL_TEXTURE_2D));
-						OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
 						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 					}
 					else
@@ -973,11 +1017,33 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 #if OO_TEXTURE_CUBE_MAP
 						OOGL(glDisable(GL_TEXTURE_2D));
 						OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
-						OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
 #endif
 					}
-
+					OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
 				}
+#else
+				if (_texture != nil)
+				{
+					if ([_texture isCubeMap])
+					{
+#if OO_TEXTURE_CUBE_MAP
+						OOGL(glDisable(GL_TEXTURE_2D));
+						OOGL(glEnable(GL_TEXTURE_CUBE_MAP));
+#endif
+					}
+					else
+					{
+						OOGL(glEnable(GL_TEXTURE_2D));
+					}
+					OOGL(glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, mat1));
+					[_texture apply];
+				}
+				else
+				{
+					OOGL(glDisable(GL_TEXTURE_2D));
+					[OOTexture applyNone];
+				}
+#endif
 
 				OOGL(glShadeModel(GL_SMOOTH));
 				
@@ -991,91 +1057,68 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 
 				OOGL(glFrontFace(GL_CCW));
-				if (displayListNames[subdivideLevel] != 0)
+				OOGL(glDisableClientState(GL_INDEX_ARRAY));
+				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
+				OOGL(glEnableClientState(GL_COLOR_ARRAY));
+				OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
+				OOGL(glEnableClientState(GL_VERTEX_ARRAY));
+				OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+				OOGL(glEnableClientState(GL_NORMAL_ARRAY));
+				OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
+				
+#if OLD_PLANET_TEXTURE
+				if (isTextured)
 				{
-					
-					OOGL(glDisableClientState(GL_INDEX_ARRAY));
-					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-					
-					if (isTextured)
+					OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+					if (!isCubeMapped)
 					{
-						OOGL(glEnableClientState(GL_COLOR_ARRAY));
-						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
-						
-						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-						if (!isCubeMapped)
-						{
-							OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
-							OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
-							OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
-						}
-						else
-						{
-#if OO_TEXTURE_CUBE_MAP
-							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, textureName));
-#endif
-						}
+						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
+						OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
+						OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
 					}
 					else
 					{
-						OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-						
-						OOGL(glEnableClientState(GL_COLOR_ARRAY));
-						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
+						OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+#if OO_TEXTURE_CUBE_MAP
+						OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, textureName));
+#endif
 					}
-					
-					OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-					OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
-					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
-					
+				}
+				else
+				{
+					OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+				}
+#else
+				if (_texture != nil)
+				{
+					OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+					if ([_texture isCubeMap])
+					{
+						OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
+					}
+					else
+					{
+						OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
+					}
+				}
+				else
+				{
+					OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+				}
+#endif
+				
+				if (displayListNames[subdivideLevel] != 0)
+				{
 					OOGL(glCallList(displayListNames[subdivideLevel]));
 				}
 				else
 				{
-					OOGL(glDisableClientState(GL_INDEX_ARRAY));
-					OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
-					if (isTextured)
-					{
-						OOGL(glEnableClientState(GL_COLOR_ARRAY));		// test shading
-						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
-						
-						OOGL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-						if (!isCubeMapped)
-						{
-							OOGL(glTexCoordPointer(2, GL_FLOAT, 0, vertexdata.uv_array));
-							OOGL(glBindTexture(GL_TEXTURE_2D, textureName));
-							OOGL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));	//wrap around horizontally
-						}
-						else
-						{
-#if OO_TEXTURE_CUBE_MAP
-							OOGL(glTexCoordPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-							OOGL(glBindTexture(GL_TEXTURE_CUBE_MAP, textureName));
-#endif
-						}
-					}
-					else
-					{
-						OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
-						
-						OOGL(glEnableClientState(GL_COLOR_ARRAY));
-						OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
-					}
-					
-					OOGL(glEnableClientState(GL_VERTEX_ARRAY));
-					OOGL(glVertexPointer(3, GL_FLOAT, 0, vertexdata.vertex_array));
-					OOGL(glEnableClientState(GL_NORMAL_ARRAY));
-					OOGL(glNormalPointer(GL_FLOAT, 0, vertexdata.normal_array));
 					
 					OOGL(displayListNames[subdivideLevel] = glGenLists(1));
 					if (displayListNames[subdivideLevel] != 0)	// sanity check
 					{
 						OOGL(glNewList(displayListNames[subdivideLevel], GL_COMPILE_AND_EXECUTE));
 						
-						OOGL(glColor4fv(mat1));
-						OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 						OOGL(glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE));
 						OOGL(glEnable(GL_COLOR_MATERIAL));
 						
@@ -1091,7 +1134,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 				
 #if OO_TEXTURE_CUBE_MAP
+#if OLD_PLANET_TEXTURE
 				if (isCubeMapped)
+#else
+				if ([_texture isCubeMap])
+#endif
 				{
 					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
 				}
@@ -1155,19 +1202,29 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (BOOL) isTextured
 {
+#if OLD_PLANET_TEXTURE
 	return isTextured;
+#else
+	return _texture != nil;
+#endif
 }
 
 
+#if OLD_PLANET_TEXTURE
 - (GLuint) textureName
 {
 	return textureName;
 }
+#endif
 
 
 - (NSString *) textureFileName
 {
+#if OLD_PLANET_TEXTURE
 	return textureFile;
+#else
+	return _textureFileName;
+#endif
 }
 
 
@@ -1201,16 +1258,21 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName
 {
 	if (fileName == nil)  return NO;
+	
+#if OLD_PLANET_TEXTURE
 	DESTROY(textureFile);
 	textureFile = [fileName copy];
 	textureMode = kPlanetTexModeNamedTexture;
 	textureName = 0;
 	[self reifyTexture];
+#else
+	[self loadTexture:OOTextureSpecFromObject(fileName, nil)];
+#endif
 	
 	OOUInteger i;
 	[self setModelName:kTexturedPlanetModel];
 	[self rescaleTo:1.0];
-	for (i = 0; i < vertexCount; i++) r_seed[i] = 0;  // land
+	memset(r_seed, 0, sizeof *r_seed * vertexCount);
 	// recolour main planet according to "texture_hsb_color"
 	// this function is only called for local systems!
 	[self setTextureColorForPlanet:([UNIVERSE planet] == self) inSystem:YES];
@@ -1220,8 +1282,10 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	for (i =  0; i < next_free_vertex; i++)
 		[self paintVertex:i :planet_seed];
 	
+#if OLD_PLANET_TEXTURE
 	free(textureData);
 	textureData = NULL;
+#endif
 	
 	[self scaleVertices];
 	
@@ -1231,7 +1295,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	rotationAxis = kBasisYVector;
 	
-	return isTextured;
+	return [self isTextured];
 }
 
 
@@ -1402,12 +1466,16 @@ static void CalculateTexCoord(Vector unitVector, GLfloat *outS, GLfloat *outT)
 #endif
 
 
-static BOOL last_one_was_textured;
 
 - (void) initialiseBaseVertexArray
 {
 	NSAutoreleasePool* mypool = [[NSAutoreleasePool alloc] init];	// use our own pool since this routine is quite hard on memory
-
+	
+#if !OLD_PLANET_TEXTURE
+	BOOL isTextured = [self isTextured];
+#endif
+	static BOOL last_one_was_textured;
+	
 	if (last_one_was_textured != isTextured)
 	{
 		[PlanetEntity resetBaseVertexArray];
@@ -1563,6 +1631,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	}
 	
 	// for the next levels of subdivision simply build up from the level below!...
+#if !OLD_PLANET_TEXTURE
+	BOOL isTextured = [self isTextured];
+#endif
 	
 	int sublevel;
 	for (sublevel = 0; sublevel < MAX_SUBDIVIDE - 1; sublevel++)
@@ -1617,11 +1688,15 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 
 - (void) paintVertex:(int) vi :(int) seed
 {
+#if !OLD_PLANET_TEXTURE
+	BOOL isTextured = _texture != nil;
+#endif
+	
 	GLfloat paint_land[4] = { 0.2, 0.9, 0.0, 1.0};
 	GLfloat paint_sea[4] = { 0.0, 0.2, 0.9, 1.0};
 	GLfloat paint_color[4];
 	Vector	v = base_vertex_array[vi];
-	int		r = (isTextured)? 0 : base_terrain_array[vi];	// use land color (0) for textured planets
+	int		r = isTextured ? 0 : base_terrain_array[vi];	// use land color (0) for textured planets
 	int i;
 	double pole_blend = v.z * v.z * polar_color_factor;
 	if (pole_blend < 0.0)	pole_blend = 0.0;
@@ -1677,6 +1752,15 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 
 - (void) deleteDisplayLists
 {
+#if OLD_PLANET_TEXTURE
+	if (textureName != 0)
+	{
+		OOGL(glDeleteTextures(1, &textureName));
+		textureName = 0;
+	}
+	// Else textures are handled automatically.
+#endif
+	
 	unsigned i;
 	for (i = 0; i < MAX_SUBDIVIDE; i++)
 	{
@@ -1689,16 +1773,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 }
 
 
-- (void)resetGraphicsState
-{
-	if (textureName != 0)
-	{
-		OOGL(glDeleteTextures(1, &textureName));
-		textureName = 0;
-	}
-}
-
-
+#if OLD_PLANET_TEXTURE
 - (void) reifyTexture
 {
 	if (textureName != 0)  return;
@@ -1732,6 +1807,84 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	}
 	if (!isTextured)  textureMode = kPlanetTexNone;
 }
+#else
+- (OOTexture *) texture
+{
+	return _texture;
+}
+
+
+- (void) loadTexture:(NSDictionary *)configuration
+{
+	[_texture release];
+	_texture = [OOTexture textureWithConfiguration:configuration extraOptions:kOOTextureAllowCubeMap | kOOTextureRepeatS];
+	[_texture retain];
+	
+	[_textureFileName release];
+	_textureFileName = [[configuration oo_stringForKey:@"name"] copy];
+}
+
+
+/*	Ideally, these would use OOPlanetTextureGenerator. However, it isn't
+	designed to use separate invocations for diffuse and cloud generation,
+	while old-style PlanetEntity calls these from different places for
+	different objects.
+	-- Ahruman 2010-06-04
+*/
+- (OOTexture *) planetTextureWithInfo:(NSDictionary *)info
+{
+	unsigned char *data;
+	GLuint width, height;
+	
+	fillRanNoiseBuffer();
+	if (![TextureStore getPlanetTextureNameFor:info
+									  intoData:&data
+										 width:&width
+										height:&height])
+	{
+		return nil;
+	}
+	
+	OOPixMap pm = OOMakePixMap(data, width, height, kOOPixMapRGBA, 0, 0);
+	OOTextureGenerator *loader = [[OOPixMapTextureLoader alloc] initWithPixMap:pm
+																textureOptions:kOOTextureDefaultOptions | kOOTextureRepeatS
+																  freeWhenDone:YES];
+	
+	return [OOTexture textureWithGenerator:loader];
+}
+
+
+- (OOTexture *) cloudTextureWithCloudColor:(OOColor *)cloudColor cloudImpress:(GLfloat)cloud_impress cloudBias:(GLfloat)cloud_bias
+{
+	unsigned char *data;
+	GLuint width, height;
+	
+	if (![TextureStore getCloudTextureNameFor:cloudColor
+											 :cloud_impress
+											 :cloud_bias
+									 intoData:&data
+										width:&width
+									   height:&height])
+	{
+		return nil;
+	}
+	
+	OOPixMap pm = OOMakePixMap(data, width, height, kOOPixMapRGBA, 0, 0);
+	OOTextureGenerator *loader = [[OOPixMapTextureLoader alloc] initWithPixMap:pm
+																textureOptions:kOOTextureDefaultOptions | kOOTextureRepeatS
+																  freeWhenDone:YES];
+	
+	return [OOTexture textureWithGenerator:loader];
+}
+
+
+#ifndef NDEBUG
+- (NSSet *) allTextures
+{
+	return [NSSet setWithObject:_texture];
+}
+#endif
+#endif
 
 
 - (BOOL)isPlanet

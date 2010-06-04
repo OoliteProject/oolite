@@ -32,7 +32,12 @@ MA 02110-1301, USA.
 #import "legacy_random.h"
 #import "OOColor.h"
 
+@class OOTexture;
+
+
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
+
+#define OLD_PLANET_TEXTURE 0
 
 
 typedef struct
@@ -57,15 +62,20 @@ typedef struct
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
+	BOOL					isTextureImage; // is the texture a png image (as opposed to synthesized)?
+#if OLD_PLANET_TEXTURE
 	uint8_t					textureMode;
 	BOOL					isCubeMapped;
 	BOOL					isTextured;
-	BOOL					isTextureImage; //is the texture a png image?
 	GLuint					textureName;
 	NSString				*textureFile;
 	unsigned char			*textureData;
 	GLuint					texWidth;
 	GLuint					texHeight;
+#else
+	NSString				*_textureFileName;
+	OOTexture				*_texture;
+#endif
 	
 	int						planet_seed;
 	double					polar_color_factor;

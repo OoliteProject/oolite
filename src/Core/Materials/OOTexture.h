@@ -150,8 +150,9 @@ typedef enum
 		anisotropy			(real)
 		texture_LOD_bias	(real)
 		extract_channel		(string, one of "r", "g", "b", "a")
-*/
+ */
 + (id) textureWithConfiguration:(id)configuration;
++ (id) textureWithConfiguration:(id)configuration extraOptions:(uint32_t)extraOptions;
 
 /*	Return the "null texture", a texture object representing an empty texture.
 	Applying the null texture is equivalent to calling [OOTexture applyNone].

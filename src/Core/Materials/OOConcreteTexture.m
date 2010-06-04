@@ -452,7 +452,6 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 
 - (void) uploadTexture
 {
-	GLint					clampMode;
 	GLint					filter;
 	BOOL					mipMap = NO;
 	
@@ -466,19 +465,20 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		OOGL(glBindTexture(texTarget, _textureName));
 		
 		// Select wrap mode
-		clampMode = gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
+		GLint clampMode = gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
+		GLint wrapS = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
+		GLint wrapT = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
 		
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode));
-		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode));
 #if OO_TEXTURE_CUBE_MAP
 		if (texTarget == GL_TEXTURE_CUBE_MAP)
 		{
-			// Repeat flags should have been filtered out earlier.
-			NSAssert(!(_options & (kOOTextureRepeatS | kOOTextureRepeatT)), @"Wrapping does not make sense for cube map textures.");
-			
+			wrapS = wrapT = clampMode;
 			OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_R, clampMode));
 		}
 #endif
+		
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_S, wrapS));
+		OOGL(glTexParameteri(texTarget, GL_TEXTURE_WRAP_T, wrapT));
 		
 		// Select min filter
 		filter = _options & kOOTextureMinFilterMask;

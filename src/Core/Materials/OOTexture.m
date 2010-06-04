@@ -173,12 +173,6 @@ static NSString *sGlobalTraceContext = nil;
 #endif
 	}
 	
-	if (options & kOOTextureAllowCubeMap)
-	{
-		// Apply cube map restrictions (regardless of whether rectangle textures are available, for consistency)
-		options &= kOOTextureFlagsAllowedForCubeMap;
-	}
-	
 	options &= kOOTextureDefinedFlags;
 	
 	if (!gOOTextureInfo.anisotropyAvailable || (options & kOOTextureMinFilterMask) != kOOTextureMinFilterMipMap)
@@ -227,6 +221,12 @@ static NSString *sGlobalTraceContext = nil;
 
 + (id)textureWithConfiguration:(id)configuration
 {
+	return [self textureWithConfiguration:configuration extraOptions:0];
+}
+
+
++ (id) textureWithConfiguration:(id)configuration extraOptions:(uint32_t)extraOptions
+{
 	NSString				*name = nil;
 	uint32_t				options = 0;
 	GLfloat					anisotropy = 0.0f;
@@ -234,7 +234,7 @@ static NSString *sGlobalTraceContext = nil;
 	
 	if (!OOInterpretTextureSpecifier(configuration, &name, &options, &anisotropy, &lodBias))  return nil;
 	
-	return [self textureWithName:name inFolder:@"Textures" options:options anisotropy:anisotropy lodBias:lodBias];
+	return [self textureWithName:name inFolder:@"Textures" options:options | extraOptions anisotropy:anisotropy lodBias:lodBias];
 }
 
 

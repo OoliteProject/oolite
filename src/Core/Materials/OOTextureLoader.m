@@ -36,6 +36,7 @@ SOFTWARE.
 #import "OOConvertCubeMapToLatLong.h"
 #import <stdlib.h>
 #import "ResourceManager.h"
+#import "OOOpenGLExtensionManager.h"
 
 
 #define DUMP_CONVERTED_CUBE_MAPS	0
