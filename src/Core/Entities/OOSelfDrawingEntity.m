@@ -85,7 +85,7 @@ static NSString * const kOOLogEntityTooManyFaces			= @"entity.loadMesh.failed.to
 {
 	[basefile release];
 	[[OOGraphicsResetManager sharedManager] unregisterClient:self];
-	OOGL(glDeleteLists(displayListName, 1));
+	if (displayListName != 0)  OOGL(glDeleteLists(displayListName, 1));
 	
 	[super dealloc];
 }

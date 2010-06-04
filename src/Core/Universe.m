@@ -721,7 +721,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	{
 		[self addEntity:a_planet];
 	}
-	return a_planet;
+	return [a_planet autorelease];
 }
 
 
@@ -1026,7 +1026,6 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	
 	[a_sun release];
 	[a_station release];
-	[a_planet release];
 	
 	// systeminfo might have a 'script_actions' resource we want to activate now...
 	NSArray *script_actions = [systeminfo oo_arrayForKey:@"script_actions"];
