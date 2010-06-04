@@ -524,6 +524,14 @@ typedef struct
 		}
 	}
 	
+	/*	It is possible for textures to be active, but not in the "in use" list
+		- specifically, if they don't have cache keys. Most notably, this
+		applies to synthesized planet textures.
+	*/
+	NSMutableSet *uncachedTextures = [NSMutableSet setWithSet:entityDumpState.entityTextures];
+	[uncachedTextures minusSet:[NSSet setWithArray:inUseTextures]];
+	if ([uncachedTextures count] != 0)  [textures addObjectsFromArray:[uncachedTextures allObjects]];
+	
 	size_t totalTextureObjSize = 0;
 	size_t totalTextureDataSize = 0;
 	size_t visibleTextureDataSize = 0;

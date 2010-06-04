@@ -108,6 +108,8 @@ static GLfloat	texture_uv_array[10400 * 2];
 - (OOTexture *) cloudTextureWithCloudColor:(OOColor *)cloudColor cloudImpress:(GLfloat)cloud_impress cloudBias:(GLfloat)cloud_bias;
 #endif
 
+- (void) deleteDisplayLists;
+
 @end
 
 static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
