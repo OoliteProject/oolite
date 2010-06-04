@@ -411,6 +411,7 @@ typedef enum
 	
 	// position of viewports
 	Vector					forwardViewOffset, aftViewOffset, portViewOffset, starboardViewOffset;
+	Vector					_sysInfoLight;
 	
 	// trumbles
 	OOUInteger				trumbleCount;

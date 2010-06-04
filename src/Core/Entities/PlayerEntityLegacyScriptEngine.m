@@ -2658,7 +2658,8 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		model_p0 = vector_multiply_scalar(model_p0, 1 - 0.5 * ((60 - [doppelganger radius]) / 60));
 
 		Quaternion model_q = { 0.912871, 0.365148, 0.182574, 0.0 }; // pole at top right.
-		[UNIVERSE setMainLightPosition:(Vector){ -12000.0, -5000.0, -10000.0 }]; // set light origin for pole
+		_sysInfoLight = (Vector){ -12000.0, -5000.0, -10000.0 };	// TODO: sysinfo light coming from different places, depending on planet shown.
+		[UNIVERSE setMainLightPosition:_sysInfoLight]; // set light origin for pole
 #if !NEW_PLANETS
 		if ([doppelganger isTextured])
 		{

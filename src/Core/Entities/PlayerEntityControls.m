@@ -1396,6 +1396,8 @@ static NSTimeInterval	time_last_frame;
 					[UNIVERSE setDisplayCursor:NO];
 					[UNIVERSE clearPreviousMessage];
 					[UNIVERSE setViewDirection:saved_view_direction];
+					// make sure the light comes from the right direction after resuming from pause!
+					if (saved_gui_screen == GUI_SCREEN_SYSTEM_DATA) [UNIVERSE setMainLightPosition:_sysInfoLight];
 					[[UNIVERSE gui] setForegroundTextureKey:@"overlay"];
 					[[gameView gameController] unpause_game];
 				}
