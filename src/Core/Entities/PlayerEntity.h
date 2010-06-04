@@ -645,8 +645,6 @@ typedef enum
 
 - (void) enterGalacticWitchspace;
 
-- (void) interpretAIMessage:(NSString *)ms;
-
 - (void) takeInternalDamage;
 
 - (void) loseTargetStatus;

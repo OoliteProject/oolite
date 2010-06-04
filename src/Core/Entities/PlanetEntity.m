@@ -93,6 +93,7 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (GLuint) textureName;
 - (void) reifyTexture;
+- (void) deleteDisplayLists;
 
 @end
 
@@ -716,7 +717,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) dealloc
 {
-	[self resetGraphicsState];
+	[self deleteDisplayLists];
 	
 	DESTROY(atmosphere);
 	free(textureData);
@@ -1674,14 +1675,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 }
 
 
-- (void)resetGraphicsState
+- (void) deleteDisplayLists
 {
-	if (textureName != 0)
-	{
-		OOGL(glDeleteTextures(1, &textureName));
-		textureName = 0;
-	}
-	
 	unsigned i;
 	for (i = 0; i < MAX_SUBDIVIDE; i++)
 	{
@@ -1690,6 +1685,16 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 			glDeleteLists(displayListNames[i], 1);
 			displayListNames[i] = 0;
 		}
+	}
+}
+
+
+- (void)resetGraphicsState
+{
+	if (textureName != 0)
+	{
+		OOGL(glDeleteTextures(1, &textureName));
+		textureName = 0;
 	}
 }
 

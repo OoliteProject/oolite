@@ -4,6 +4,10 @@
 		UPDATE =
 		(
 			"disengageAutopilot",
+			/*	The AI messaging mechanism is used for things that are handled
+				internally by Oolite, so we need a short think time even though
+				this AI apparently doesn't do anything.
+			*/
 			"pauseAI: 2"
 		);
 	};
