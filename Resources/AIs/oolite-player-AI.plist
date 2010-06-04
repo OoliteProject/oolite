@@ -1,10 +1,15 @@
 {
+	GLOBAL =
+	{
+		UPDATE =
+		(
+			"disengageAutopilot",
+			"pauseAI: 2"
+		);
+	};
 	BEGIN_DOCKING =
 	{
-		ENTER =
-		(
-			"setAITo: dockingAI.plist"
-		);
+		ENTER = ("setAITo: dockingAI.plist");
 		RESTARTED =
 		(
 			/*	We get here if docking failed (for instance, if the station
@@ -12,15 +17,8 @@
 			*/
 			"dropMessages: DOCKING_ABORTED",
 			"setSpeedFactorTo: 0",
-			"disengageAutopilot"
-		);
-	};
-	GLOBAL =
-	{
-		UPDATE =
-		(
 			"disengageAutopilot",
-			"pauseAI: 60"
+			"setStateTo: GLOBAL"
 		);
 	};
 }

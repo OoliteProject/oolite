@@ -2087,7 +2087,7 @@ static BOOL replacingMissile = NO;
 	}
 	[myAI clearAllData];
 	[myAI setState:@"GLOBAL"];
-	[myAI setNextThinkTime:[UNIVERSE getTime] + 60];
+	[myAI setNextThinkTime:[UNIVERSE getTime] + 2];
 	[myAI setOwner:self];
 }
 
