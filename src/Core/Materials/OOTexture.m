@@ -43,27 +43,35 @@
 
 
 /*	Texture caching:
-	two parallel caching mechanisms are used. sInUseTextures tracks all live
-	texture objects, without retaining them (using NSValues to refer to the
-	objects). sRecentTextures tracks up to kRecentTexturesCount textures which
+	two and a half parallel caching mechanisms are used. sLiveTextureCache
+	tracks all live texture objects with cache keys, without retaining them
+	(using NSValues to refer to the objects).
+	
+	sAllLiveTextures tracks all textures, including ones without cache keys,
+	so that they can be notified of graphics resets. This also uses NSValues
+	to avoid retaining the textures.
+	
+	sRecentTextures tracks up to kRecentTexturesCount textures which
 	have been used recently, and retains them.
 	
 	This means that the number of live texture objects will never fall below
 	80% of kRecentTexturesCount (80% comes from the behaviour of OOCache), but
 	old textures will eventually be released. If the number of active textures
 	exceeds kRecentTexturesCount, all of them will be reusable through
-	sInUseTextures, but only a most-recently-fetched subset will be kept
+	sLiveTextureCache, but only a most-recently-fetched subset will be kept
 	around by the cache when the number drops.
 	
-	Note that any texture in sRecentTextures will also be in sInUseTextures,
-	but not necessarily vice versa.
+	Note the textures in sRecentTextures are a superset of the textures in
+	sLiveTextureCache, and the textures in sLiveTextureCache are a superset
+	of sLiveTextureCache.
 */
 enum
 {
 	kRecentTexturesCount		= 50
 };
 
-static NSMutableDictionary	*sInUseTextures;
+static NSMutableDictionary	*sLiveTextureCache;
+static NSMutableSet			*sAllLiveTextures;
 static OOCache				*sRecentTextures;
 
 
@@ -270,6 +278,26 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
+- (id) init
+{
+	if ((self = [super init]))
+	{
+		if (EXPECT_NOT(sAllLiveTextures == nil))  sAllLiveTextures = [[NSMutableSet alloc] init];
+		[sAllLiveTextures addObject:[NSValue valueWithPointer:self]];
+	}
+	
+	return self;
+}
+
+
+- (void) dealloc
+{
+	[sAllLiveTextures removeObject:[NSValue valueWithPointer:self]];
+	
+	[super dealloc];
+}
+
+
 - (void)apply
 {
 	OOLogGenericSubclassResponsibility();
@@ -354,11 +382,14 @@ static NSString *sGlobalTraceContext = nil;
 
 + (void)clearCache
 {
-	SET_TRACE_CONTEXT(@"clearing in-use textures cache");
-	[sInUseTextures autorelease];
-	sInUseTextures = nil;
+	/*	Does not clear sAllLiveTextures - that really must refer to all
+		live texture objects.
+	*/
+	SET_TRACE_CONTEXT(@"clearing sLiveTextureCache");
+	[sLiveTextureCache autorelease];
+	sLiveTextureCache = nil;
 	
-	SET_TRACE_CONTEXT(@"clearing recent textures cache");
+	SET_TRACE_CONTEXT(@"clearing sRecentTextures");
 	[sRecentTextures autorelease];
 	sRecentTextures = nil;
 	CLEAR_TRACE_CONTEXT();
@@ -373,7 +404,7 @@ static NSString *sGlobalTraceContext = nil;
 	// Keeping around unused, cached textures is unhelpful at this point.
 	DESTROY(sRecentTextures);
 	
-	for (textureEnum = [sInUseTextures objectEnumerator]; (texture = [[textureEnum nextObject] pointerValue]); )
+	for (textureEnum = [sAllLiveTextures objectEnumerator]; (texture = [[textureEnum nextObject] pointerValue]); )
 	{
 		[texture forceRebind];
 	}
@@ -397,12 +428,12 @@ static NSString *sGlobalTraceContext = nil;
 }
 
 
-+ (NSArray *) inUseTextures
++ (NSSet *) allTextures
 {
-	NSMutableArray *result = [NSMutableArray arrayWithCapacity:[sInUseTextures count]];
+	NSMutableSet *result = [NSMutableSet setWithCapacity:[sAllLiveTextures count]];
 	NSValue *box = nil;
 	NSEnumerator *texEnum = nil;
-	for (texEnum = [sInUseTextures objectEnumerator]; (box = [texEnum nextObject]); )
+	for (texEnum = [sAllLiveTextures objectEnumerator]; (box = [texEnum nextObject]); )
 	{
 		[result addObject:[box pointerValue]];
 	}
@@ -443,10 +474,10 @@ static NSString *sGlobalTraceContext = nil;
 	if (cacheKey == nil)  return;
 	
 	// Add self to in-use textures cache, wrapped in an NSValue so the texture isn't retained by the cache.
-	if (EXPECT_NOT(sInUseTextures == nil))  sInUseTextures = [[NSMutableDictionary alloc] init];
+	if (EXPECT_NOT(sLiveTextureCache == nil))  sLiveTextureCache = [[NSMutableDictionary alloc] init];
 	
 	SET_TRACE_CONTEXT(@"in-use textures cache - SHOULD NOT RETAIN");
-	[sInUseTextures setObject:[NSValue valueWithPointer:self] forKey:cacheKey];
+	[sLiveTextureCache setObject:[NSValue valueWithPointer:self] forKey:cacheKey];
 	CLEAR_TRACE_CONTEXT();
 	
 	// Add self to recent textures cache.
@@ -471,7 +502,7 @@ static NSString *sGlobalTraceContext = nil;
 	NSString *cacheKey = [self cacheKey];
 	if (cacheKey == nil)  return;
 	
-	[sInUseTextures removeObjectForKey:cacheKey];
+	[sLiveTextureCache removeObjectForKey:cacheKey];
 	NSAssert([sRecentTextures objectForKey:cacheKey] != self, @"Texture retain count error."); //miscount in autorelease
 	// The following line is needed in order to avoid crashes when there's a 'texture retain count error'. Please do not delete. -- Kaks 20091221
 	[sRecentTextures removeObjectForKey:cacheKey]; // make sure there's no reference left inside sRecentTexture ( was a show stopper for 1.73)
@@ -484,7 +515,7 @@ static NSString *sGlobalTraceContext = nil;
 #ifndef OOTEXTURE_NO_CACHE
 	if (key != nil)
 	{
-		return (OOTexture *)[[sInUseTextures objectForKey:key] pointerValue];
+		return (OOTexture *)[[sLiveTextureCache objectForKey:key] pointerValue];
 	}
 	return nil;
 #else

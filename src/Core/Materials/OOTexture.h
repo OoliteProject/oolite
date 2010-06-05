@@ -246,7 +246,7 @@ typedef enum
 - (void) setTrace:(BOOL)trace;
 
 + (NSArray *) cachedTexturesByAge;
-+ (NSArray *) inUseTextures;
++ (NSSet *) allTextures;
 
 - (size_t) dataSize;
 

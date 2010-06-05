@@ -487,14 +487,14 @@ typedef struct
 	OOLogIndent();
 	
 	//	Get texture retain counts before the entity dumper starts messing with them.
-	NSArray *inUseTextures = [OOTexture inUseTextures];
-	NSMutableDictionary *textureRefCounts = [NSMutableDictionary dictionaryWithCapacity:[inUseTextures count]];
+	NSSet *allTextures = [OOTexture allTextures];
+	NSMutableDictionary *textureRefCounts = [NSMutableDictionary dictionaryWithCapacity:[allTextures count]];
 	
 	OOTexture *tex = nil;
 	NSEnumerator *texEnum = nil;
-	for (texEnum = [inUseTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	for (texEnum = [allTextures objectEnumerator]; (tex = [texEnum nextObject]); )
 	{
-		// We subtract one because the inUseTextures array retains the textures.
+		// We subtract one because allTextures retains the textures.
 		[textureRefCounts setObject:[NSNumber numberWithUnsignedInt:[tex retainCount] - 1] forKey:[NSValue valueWithNonretainedObject:tex]];
 	}
 	
@@ -530,28 +530,18 @@ typedef struct
 	 SizeString(entityDumpState.totalEntityObjSize),
 	 SizeString(entityDumpState.totalDrawableSize)];
 	
+	/*	Sort textures so that textures in the "recent cache" come first by age,
+		followed by others.
+	*/
 	NSMutableArray *textures = [[[OOTexture cachedTexturesByAge] mutableCopy] autorelease];
 	
-	/*	inUseTextures contains all the cached textures by definition. However,
-		we use this merging approach so that textures that cached textures are
-		listed by age (freshest first) followed by any live textures not in
-		the cache.
-	*/
-	for (texEnum = [inUseTextures objectEnumerator]; (tex = [texEnum nextObject]); )
+	for (texEnum = [allTextures objectEnumerator]; (tex = [texEnum nextObject]); )
 	{
 		if ([textures indexOfObject:tex] == NSNotFound)
 		{
 			[textures addObject:tex];
 		}
 	}
-	
-	/*	It is possible for textures to be active, but not in the "in use" list
-		- specifically, if they don't have cache keys. Most notably, this
-		applies to synthesized planet textures.
-	*/
-	NSMutableSet *uncachedTextures = [NSMutableSet setWithSet:entityDumpState.entityTextures];
-	[uncachedTextures minusSet:[NSSet setWithArray:inUseTextures]];
-	if ([uncachedTextures count] != 0)  [textures addObjectsFromArray:[uncachedTextures allObjects]];
 	
 	size_t totalTextureObjSize = 0;
 	size_t totalTextureDataSize = 0;
