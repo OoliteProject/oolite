@@ -98,7 +98,7 @@ SystemInfo.systemsInRange = function(range)
 	// If called using System.infoForSystem(galaxyNumber, systemNumber), use that system instead.
 	if (this !== SystemInfo)
 	{
-		if (this.systemID !== undefined && thisSystem.distanceToSystem !== undefined)
+		if (this.systemID !== undefined && this.distanceToSystem !== undefined)
 		{
 			thisSystem = this;
 		}
