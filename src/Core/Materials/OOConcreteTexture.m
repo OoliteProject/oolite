@@ -212,7 +212,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 #if OOTEXTURE_RELOADABLE
 	NSString *name = [_path lastPathComponent];
 #else
-	name = [[[self cacheKey] substringToIndex:@":"] lastPathComponent];
+	NSString *name = [[[[self cacheKey] componentsSeparatedByString:@":"] objectAtIndex:0] lastPathComponent];
 #endif
 	
 	NSString *channelSuffix = nil;
