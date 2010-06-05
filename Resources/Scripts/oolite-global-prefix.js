@@ -92,23 +92,7 @@ SystemInfo.systemsInRange = function(range)
 		range = 7;
 	}
 	
-	// Default to using the current system.
 	var thisSystem = system.info;
-	
-	// If called using System.infoForSystem(galaxyNumber, systemNumber), use that system instead.
-	if (this !== SystemInfo)
-	{
-		if (this.systemID !== undefined && this.distanceToSystem !== undefined)
-		{
-			thisSystem = this;
-		}
-		else
-		{
-			special.jsWarning("systemsInRange() called from the wrong context. Returning empty array.");
-			return [];
-		}
-	}
-
 	return SystemInfo.filteredSystems(this, function(other)
 	{
 		return (other.systemID !== thisSystem.systemID) && (thisSystem.distanceToSystem(other) <= range);
