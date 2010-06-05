@@ -520,7 +520,7 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	{
 		for (i = 0; i != materialCount; ++i)
 		{
-			DESTROY(materials[i]);
+			OOMaterial *oldMaterial = materials[i];
 			
 			if (![materialKeys[i] isEqualToString:@"_oo_placeholder_material"])
 			{
@@ -545,6 +545,11 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 			{
 				materials[i] = [[OOMesh placeholderMaterial] retain];
 			}
+			
+			/*	Release is deferred to here to ensure we don't end up releasing
+				a texture that's not in the recent-cache and then reloading it.
+			*/
+			[oldMaterial release];
 		}
 	}
 }
