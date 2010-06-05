@@ -467,7 +467,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		// Select wrap mode
 		GLint clampMode = gOOTextureInfo.clampToEdgeAvailable ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 		GLint wrapS = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
-		GLint wrapT = (_options & kOOTextureRepeatS) ? GL_REPEAT : clampMode;
+		GLint wrapT = (_options & kOOTextureRepeatT) ? GL_REPEAT : clampMode;
 		
 #if OO_TEXTURE_CUBE_MAP
 		if (texTarget == GL_TEXTURE_CUBE_MAP)
