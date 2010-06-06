@@ -49,7 +49,7 @@ MA 02110-1301, USA.
 #define ONE_SIXTEENTH			0.0625
 #define ONE_SIXTYFOURTH			0.015625
 #define DEFAULT_OVERALL_ALPHA	0.75
-
+#define IDENTIFY_SCANNER_LOLLIPOPS	(	0	&& !defined(NDEBUG))
 
 static void DrawSpecialOval(GLfloat x, GLfloat y, GLfloat z, NSSize siz, GLfloat step, GLfloat* color4v);
 
@@ -867,6 +867,14 @@ static BOOL hostiles;
 				}
 				else
 				{
+
+#if IDENTIFY_SCANNER_LOLLIPOPS
+					if ([drawthing isShip])
+					{
+						glColor4f(1.0, 1.0, 0.5, alpha);
+						OODrawString([(ShipEntity *)drawthing displayName], x1 + 2, y2 + 2, z1, NSMakeSize(8, 8));
+					}
+#endif
 					OOGLBEGIN(GL_QUADS);
 						glColor4fv(col);
 						glVertex3f(x1-3, y2, z1);	glVertex3f(x1+2, y2, z1);	glVertex3f(x1+2, y2+3, z1);	glVertex3f(x1-3, y2+3, z1);	
