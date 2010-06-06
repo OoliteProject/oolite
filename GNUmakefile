@@ -37,7 +37,11 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	endif
 else
 	LIBJS_SRC_DIR = deps/Cross-platform-deps/SpiderMonkey/js/src
-	LIBJS_BIN_DIR = $(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
+    ifeq ($(JS_OPT),no)
+		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_DBG.OBJ
+    else
+		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
+    endif
 	ADDITIONAL_INCLUDE_DIRS = -I$(LIBJS_SRC_DIR)  -I$(LIBJS_BIN_DIR) -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
 	ADDITIONAL_OBJC_LIBS = $(LIBJS_BIN_DIR)/libjs.a -lGLU -lGL
 	ADDITIONAL_CFLAGS = -Wall -DLINUX -DNEED_STRLCPY `sdl-config --cflags`

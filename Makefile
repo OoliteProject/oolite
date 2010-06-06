@@ -30,17 +30,16 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 endif
 
 ifeq ($(GNUSTEP_HOST_OS),linux-gnu)
-   # OBSOLETE - GNUstep environment should be setup in the environment/shell 
-   #            you use to build oolite and not hardcoded here.
-   #
-   # Set up GNU make environment
-   # GNUSTEP_MAKEFILES=/usr/share/GNUstep/Makefiles
-   # 
-
    # These are the paths for our custom-built Javascript library
    LIBJS_INC_DIR=$(LIBJS_SRC_DIR)
-   LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
-   LIBJS=$(LIBJS_BIN_DIR)/libjs.a
+   ifeq ($(JS_OPT),no)
+		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_DBG.OBJ
+		LIBJS_BUILD_FLAGS=
+   else
+		LIBJS_BIN_DIR=$(LIBJS_SRC_DIR)/Linux_All_OPT.OBJ
+		LIBJS_BUILD_FLAGS=BUILD_OPT=1
+   endif
+	LIBJS=$(LIBJS_BIN_DIR)/libjs.a
 endif
 
 DEPS=$(LIBJS)
@@ -94,7 +93,8 @@ ifeq ($(GNUSTEP_HOST_OS),mingw32)
 	@echo "        Please build it yourself and copy it to $(LIBJS)."
 	false
 endif
-	make -C $(LIBJS_SRC_DIR) -f Makefile.ref BUILD_OPT=1
+	#make -C $(LIBJS_SRC_DIR) -f Makefile.ref BUILD_OPT=1
+	make -C $(LIBJS_SRC_DIR) -f Makefile.ref $(LIBJS_BUILD_FLAGS)
 
 .PHONY: clean
 clean:
