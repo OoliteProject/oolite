@@ -201,6 +201,7 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (id) valueForKey:(NSString *)key
 {
+	if ([UNIVERSE inInterstellarSpace] && sCachedSystem == -1) return [[UNIVERSE currentSystemData] objectForKey:key];
 	return [UNIVERSE getSystemDataForGalaxy:_galaxy	planet:_system key:key];
 }
 
