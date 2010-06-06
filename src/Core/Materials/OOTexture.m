@@ -63,7 +63,7 @@
 	
 	Note the textures in sRecentTextures are a superset of the textures in
 	sLiveTextureCache, and the textures in sLiveTextureCache are a superset
-	of sLiveTextureCache.
+	of sRecentTextures.
 */
 enum
 {

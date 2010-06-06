@@ -177,7 +177,6 @@
 		"checkForNormalSpace",
 		"requestDockingCoordinates",
 		"recallDockingInstructions",
-		"addFuel:",
 		"enterTargetWormhole",
 		"scriptActionOnTarget:",
 		"safeScriptActionOnTarget:",
@@ -236,6 +235,7 @@
 		"switchLightsOff",
 		"doNothing",
 		"spawn:",
+		"addFuel:",
 		
 		// ShipEntityAI.m
 		"setAITo:",
