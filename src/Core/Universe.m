@@ -449,6 +449,8 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	// deal with the machine going to sleep, or player pressing 'p'.
 	PlayerEntity 	*player = [PlayerEntity sharedPlayer];
 	
+	[self setPauseMessageVisible:NO];
+	
 	if ([player status] == STATUS_DOCKED)
 	{
 		if ([gui setForegroundTextureKey:@"paused_docked_overlay"])

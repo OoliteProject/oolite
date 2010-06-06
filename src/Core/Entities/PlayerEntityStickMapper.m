@@ -60,7 +60,7 @@ MA 02110-1301, USA.
 	
 	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
-	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
+	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : ([UNIVERSE pauseMessageVisible] ? @"" : @"paused_overlay")];
 	[gui setForegroundTextureName:fgName];
 	[gui setBackgroundTextureKey:@"settings"];
 }
