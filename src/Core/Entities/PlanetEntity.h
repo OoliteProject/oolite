@@ -37,8 +37,6 @@ MA 02110-1301, USA.
 
 #define MAX_TRI_INDICES			3*(20+80+320+1280+5120+20480)
 
-#define OLD_PLANET_TEXTURE 0
-
 
 typedef struct
 {
@@ -63,19 +61,8 @@ typedef struct
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
 	BOOL					isTextureImage; // is the texture a png image (as opposed to synthesized)?
-#if OLD_PLANET_TEXTURE
-	uint8_t					textureMode;
-	BOOL					isCubeMapped;
-	BOOL					isTextured;
-	GLuint					textureName;
-	NSString				*textureFile;
-	unsigned char			*textureData;
-	GLuint					texWidth;
-	GLuint					texHeight;
-#else
 	NSString				*_textureFileName;
 	OOTexture				*_texture;
-#endif
 	
 	int						planet_seed;
 	double					polar_color_factor;
@@ -105,7 +92,7 @@ typedef struct
 
 - (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed;
 - (void) miniaturize;
-- (id) initMiniatureFromPlanet:(PlanetEntity*) planet;
+- (id) initMiniatureFromPlanet:(PlanetEntity *)planet;
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;

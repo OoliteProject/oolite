@@ -640,7 +640,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if ([message length] > 0)
 	{
-		OOLog(@"debugTCP.disconnect", @"Debug console disconnected with message %@", message);
+		OOLog(@"debugTCP.disconnect", @"Debug console disconnected with message \"%@\"", message);
 	}
 	else
 	{
