@@ -213,6 +213,7 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 	JSObject				*settingsObject = NULL;
 	jsval					value;
 	
+	NSCAssert(JS_EnterLocalRootScope(context), @"Failed to create JS GC root scope");
 	engine = [OOJavaScriptEngine sharedEngine];
 	
 	if (sConsolePrototype == NULL)
@@ -246,6 +247,8 @@ JSObject *DebugMonitorToJSConsole(JSContext *context, OODebugMonitor *monitor)
 
 		if (settingsObject == NULL)  object = NULL;
 	}
+	
+	JS_LeaveLocalRootScope(context);
 	
 	return object;
 	// Analyzer: object leaked. (x2) [Expected, objects are retained by JS object.]

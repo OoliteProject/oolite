@@ -29,8 +29,10 @@ MA 02110-1301, USA.
 
 @implementation OOJSFunction
 
-- (id) initWithFunction:(JSFunction *)function
+- (id) initWithFunction:(JSFunction *)function context:(JSContext *)context
 {
+	NSParameterAssert(context != NULL);
+	
 	if (function == NULL)
 	{
 		[self release];
@@ -40,7 +42,7 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		_function = function;
-		[[OOJavaScriptEngine sharedEngine] addGCRoot:&function named:"OOJSFunction._function"];
+		OO_AddJSGCRoot(context, _function, "OOJSFunction._function");
 	}
 	
 	return self;
@@ -92,7 +94,7 @@ MA 02110-1301, USA.
 	
 	if (OK)
 	{
-		self = [self initWithFunction:function];
+		self = [self initWithFunction:function context:context];
 	}
 	else
 	{
@@ -157,8 +159,8 @@ MA 02110-1301, USA.
 	
 	for (i = 0; i < argc; i++)
 	{
-		OO_AddJSGCRoot(context, &argv[i], "OOJSFunction argv");
 		argv[i] = [[arguments objectAtIndex:i] javaScriptValueInContext:context];
+		OO_AddJSGCRoot(context, &argv[i], "OOJSFunction argv");
 	}
 	
 	JSObject *scopeObj = NULL;

@@ -41,7 +41,8 @@ static JSClass sTimerClass;
 - (id) initWithDelay:(OOTimeAbsolute)delay
 			interval:(OOTimeDelta)interval
 			function:(jsval)function
-				this:(JSObject *)jsThis;
+				this:(JSObject *)jsThis
+			  jsSelf:(JSObject *)jsSelf;
 
 @end
 
@@ -52,6 +53,7 @@ static JSClass sTimerClass;
 			interval:(OOTimeDelta)interval
 			function:(jsval)function
 				this:(JSObject *)jsThis
+			  jsSelf:(JSObject *)jsSelf
 {
 	JSContext				*context = NULL;
 	
@@ -68,7 +70,7 @@ static JSClass sTimerClass;
 		_function = function;
 		OO_AddJSGCRoot(context, &_function, "OOJSTimer function");
 		
-		_jsSelf = JS_NewObject(context, &sTimerClass, sTimerPrototype, NULL);
+		_jsSelf = jsSelf;
 		if (_jsSelf != NULL)
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;
@@ -76,7 +78,7 @@ static JSClass sTimerClass;
 		if (_jsSelf == NULL)
 		{
 			[self release];
-			self = nil;
+			return nil;
 		}
 		
 		_owningScript = [[OOJSScript currentlyRunningScript] weakRetain];
@@ -339,6 +341,12 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	double					interval = -1.0;
 	OOJSTimer				*timer = nil;
 	
+    if (!JS_IsConstructing(context))
+	{
+		OOReportJSError(context, @"Timer() cannot be called as a function, it must be used as a constructor (as in new Timer(...)).");
+		return NO;
+	}
+	
 	if (argc < 3)
 	{
 		OOReportJSBadArguments(context, nil, @"Timer", argc, argv, @"Invalid arguments in constructor", @"(object, function, number [, number])");
@@ -376,13 +384,21 @@ static JSBool TimerConstruct(JSContext *context, JSObject *inThis, uintN argc, j
 	timer = [[OOJSTimer alloc] initWithDelay:delay
 									interval:interval
 									function:function
-										this:this];
-	*outResult = [timer javaScriptValueInContext:context];
-	if (delay >= 0)	// Leave in stopped state if delay is negative
+										this:this
+									  jsSelf:JSVAL_TO_OBJECT(*outResult)];
+	if (timer != nil)
 	{
-		[timer scheduleTimer];
+		if (delay >= 0)	// Leave in stopped state if delay is negative
+		{
+			[timer scheduleTimer];
+		}
+		[timer release];	// The JS object retains the ObjC object.
 	}
-	[timer release];	// The JS object retains the ObjC object.
+	else
+	{
+		*outResult = JSVAL_NULL;
+	}
+
 	
 	return YES;
 }

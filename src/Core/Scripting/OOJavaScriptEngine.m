@@ -413,19 +413,6 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 }
 
 
-- (BOOL) addGCRoot:(void *)rootPtr
-			 named:(const char *)name
-{
-	BOOL					result;
-	JSContext				*context = NULL;
-	
-	context = [self acquireContext];
-	result = JS_AddNamedRoot(context, rootPtr, name);
-	[self releaseContext:context];
-	return result;
-}
-
-
 - (void) removeGCRoot:(void *)rootPtr
 {
 	JSContext				*context = NULL;

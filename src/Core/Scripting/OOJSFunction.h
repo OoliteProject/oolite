@@ -37,7 +37,7 @@ MA 02110-1301, USA.
 	JSFunction					*_function;
 }
 
-- (id) initWithFunction:(JSFunction *)function;
+- (id) initWithFunction:(JSFunction *)function context:(JSContext *)context;
 - (id) initWithName:(NSString *)name
 			  scope:(JSObject *)scope		// may be NULL, in which case global object is used.
 			   code:(NSString *)code		// full JS code for function, including function declaration.

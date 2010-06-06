@@ -79,8 +79,6 @@ enum
 - (JSContext *)acquireContext;
 - (void)releaseContext:(JSContext *)context;
 
-- (BOOL) addGCRoot:(void *)rootPtr
-			 named:(const char *)name;
 - (void) removeGCRoot:(void *)rootPtr;
 
 @end
