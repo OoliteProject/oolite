@@ -1261,6 +1261,7 @@ static BOOL replacingMissile = NO;
 - (void)completeSetUp
 {
 	dockedStation = [UNIVERSE station];
+	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
 	[self doWorldScriptEvent:@"startUp" withArguments:nil];
 	
 #if NEW_FUEL_PRICES && !defined(NDEBUG)
@@ -4744,12 +4745,7 @@ static BOOL replacingMissile = NO;
 	gui_screen = GUI_SCREEN_STATUS;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
-	// the following line is unnecessary, and - with overlapping planets - can cause Oolite to refer to the wrong system.
-	//system_seed = [UNIVERSE findSystemAtCoords:galaxy_coordinates withGalaxySeed:galaxy_seed];
-	if (is_nil_seed(target_system_seed))
-	{
-		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	}
+	// Both system_seed & target_system_seed are != nil at all times when this function is called.
 	
 	systemName = [UNIVERSE inInterstellarSpace] ? DESC(@"interstellar-space") : [UNIVERSE getSystemName:system_seed];
 	if ([self isDocked] && dockedStation != [UNIVERSE station])
