@@ -8181,6 +8181,7 @@ BOOL class_masslocks(int some_class)
 	[[other collisionArray] removeObject:self];
 	
 	[self doScriptEvent:@"shipCollided" withArgument:other andReactToAIMessage:@"COLLISION"];
+	[other doScriptEvent:@"shipCollided" withArgument:self andReactToAIMessage:@"COLLISION"];
 	
 	return YES;
 }
@@ -8637,6 +8638,7 @@ BOOL class_masslocks(int some_class)
 	else
 	{
 		OOLog(@"ShipEntity.abandonShip.notPossible", @"Ship %@ cannot be abandoned at this time.", self);
+		// e.g. in interstellar space or in a system without station.
 	}
 }
 
