@@ -5474,7 +5474,7 @@ static BOOL replacingMissile = NO;
 		[gui setSelectedRow: first_sel_row];
 
 		[gui setShowTextCursor:NO];
-		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : ([UNIVERSE pauseMessageVisible] ? @"" : @"paused_overlay")];
+		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 		[gui setBackgroundTextureKey:@"settings"];
 	}
 	/* ends */
@@ -5567,7 +5567,8 @@ static BOOL replacingMissile = NO;
 		
 		[gui setShowTextCursor:NO];
 		
-		[gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : ([UNIVERSE pauseMessageVisible] ? @"" : @"paused_overlay")];
+		if ([gui setForegroundTextureKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"] && [UNIVERSE pauseMessageVisible])
+					[[UNIVERSE message_gui] clear];
 		// Graphically, this screen is analogous to the various settings screens
 		[gui setBackgroundTextureKey:@"settings"];
 	}

@@ -201,7 +201,11 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (id) valueForKey:(NSString *)key
 {
-	if ([UNIVERSE inInterstellarSpace] && sCachedSystem == -1) return [[UNIVERSE currentSystemData] objectForKey:key];
+	
+	if ([UNIVERSE inInterstellarSpace] && _system == -1) 
+	{
+		return [[UNIVERSE currentSystemData] objectForKey:key];
+	}
 	return [UNIVERSE getSystemDataForGalaxy:_galaxy	planet:_system key:key];
 }
 
@@ -233,6 +237,10 @@ static JSFunctionSpec sSystemInfoStaticMethods[] =
 
 - (NSPoint) coordinates
 {
+	if ([UNIVERSE inInterstellarSpace] && _system == -1) 
+	{
+		return [[PlayerEntity sharedPlayer] galaxy_coordinates];
+	}
 	return [UNIVERSE coordinatesForSystem:[self systemSeed]];
 }
 
@@ -322,16 +330,19 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval
 static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
 	OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
+	// What if we're trying to access a saved witchspace systemInfo object?
+	BOOL savedInterstellarInfo = ![UNIVERSE inInterstellarSpace] && [info system] == -1;
+	BOOL sameGalaxy = [[PlayerEntity sharedPlayer] currentGalaxyID] == [info galaxy];
+	
 	
 	if (JSVAL_IS_INT(name))
 	{
 		BOOL OK = NO;
-		BOOL sameGalaxy = [[PlayerEntity sharedPlayer] currentGalaxyID] == [info galaxy];
 		
 		switch (JSVAL_TO_INT(name))
 		{
 			case kSystemInfo_coordinates:
-				if (sameGalaxy)
+				if (sameGalaxy && !savedInterstellarInfo)
 				{
 					NSPoint coords = [info coordinates];
 					// Convert from internal scale to light years.
@@ -341,7 +352,7 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 				}
 				else
 				{
-					OOReportJSError(context, @"Cannot read systemInfo values for other galaxies.");
+					OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ? @"invalid interstellar space reference" : @"other galaxies");
 					*outValue = JSVAL_VOID;
 					// OK remains NO
 				}
@@ -368,13 +379,14 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 		NSString		*key = [NSString stringWithJavaScriptValue:name inContext:context];
 		id				value = nil;
 		
-		value = [info valueForKey:key];
-		if ([@"_OTHER_GALAXY_" isEqualToString:(NSString *)value])
+		if (!sameGalaxy || savedInterstellarInfo)
 		{
-			OOReportJSError(context, @"Cannot read systemInfo values for other galaxies.");
+			OOReportJSError(context, @"Cannot read systemInfo values for %@.", savedInterstellarInfo ?  @"invalid interstellar space reference" : @"other galaxies");
 			*outValue = JSVAL_VOID;
 			return NO;
 		}
+		
+		value = [info valueForKey:key];
 		
 		if (value != nil)
 		{

@@ -60,10 +60,11 @@ MA 02110-1301, USA.
 	
 	[gui setSelectedRow: selFunctionIdx + GUI_ROW_FUNCSTART];
 	[[UNIVERSE gameView] supressKeysUntilKeyUp];
-	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : ([UNIVERSE pauseMessageVisible] ? @"" : @"paused_overlay")];
+	NSString *fgName = [UNIVERSE screenBackgroundNameForKey:[self status] == STATUS_DOCKED ? @"docked_overlay" : @"paused_overlay"];
 	[gui setForegroundTextureName:fgName];
 	[gui setBackgroundTextureKey:@"settings"];
 }
+
 
 - (void) stickMapperInputHandler: (GuiDisplayGen *)gui
 							view: (MyOpenGLView *)gameView
@@ -137,6 +138,7 @@ MA 02110-1301, USA.
 	}
 }
 
+
 // Callback function, called by JoystickHandler when the callback
 // is set. The dictionary contains the thing that was pressed/moved.
 - (void) updateFunction: (NSDictionary *)hwDict
@@ -195,6 +197,7 @@ MA 02110-1301, USA.
 	[self setGuiToStickMapperScreen: skip];
 }
 
+
 - (void) removeFunction: (int)idx
 {
 	selFunctionIdx=idx;
@@ -221,6 +224,7 @@ MA 02110-1301, USA.
 		skip = ((selFunctionIdx - 1) / (MAX_ROWS_FUNCTIONS - 2)) * (MAX_ROWS_FUNCTIONS - 2) + 1;
 	[self setGuiToStickMapperScreen: skip];
 }
+
 
 - (void) displayFunctionList: (GuiDisplayGen *)gui
 						skip: (unsigned) skip
@@ -329,6 +333,7 @@ MA 02110-1301, USA.
 	
 }
 
+
 - (NSString *) describeStickDict: (NSDictionary *)stickDict
 {
 	NSString *desc=nil;
@@ -360,6 +365,7 @@ MA 02110-1301, USA.
 	return desc;
 }
 
+
 - (NSString *)hwToString: (int)hwFlags
 {
 	NSString *hwString;
@@ -376,6 +382,7 @@ MA 02110-1301, USA.
 	}
 	return hwString;   
 }
+
 
 // TODO: This data could be put into a plist (i18n or just modifiable by
 // the user). It is otherwise an ugly method, but it'll do for testing.
@@ -487,6 +494,7 @@ MA 02110-1301, USA.
 					  butfn: BUTTON_VIEWSTARBOARD]];
 	return funcList;
 }
+
 
 - (NSDictionary *)makeStickGuiDict: (NSString *)what
 						 allowable: (int)allowable
