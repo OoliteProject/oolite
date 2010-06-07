@@ -42,7 +42,7 @@ MA 02110-1301, USA.
 	if ((self = [super init]))
 	{
 		_function = function;
-		OO_AddJSGCRoot(context, _function, "OOJSFunction._function");
+		OO_AddJSGCRoot(context, &_function, "OOJSFunction._function");
 	}
 	
 	return self;
