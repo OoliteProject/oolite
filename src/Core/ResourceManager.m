@@ -25,6 +25,7 @@ MA 02110-1301, USA.
 #import "ResourceManager.h"
 #import "NSScannerOOExtensions.h"
 #import "NSMutableDictionaryOOExtensions.h"
+#import "NSStringOOExtensions.h"
 #import "OOSound.h"
 #import "OOCacheManager.h"
 #import "Universe.h"
@@ -872,14 +873,33 @@ static NSMutableDictionary *sStringCache;
 }
 
 
-+ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache;
++ (NSString *) stringFromFilesNamed:(NSString *)fileName inFolder:(NSString *)folderName cache:(BOOL)useCache
 {
-	return [self retrieveFileNamed:fileName
-						  inFolder:folderName
-							 cache:useCache ? &sStringCache : NULL
-							   key:nil
-							 class:[NSString class]
-					  usePathCache:useCache];
+	id				result = nil;
+	NSString		*path = nil;
+	NSString		*key = nil;
+	
+	if (useCache)
+	{
+		key = [NSString stringWithFormat:@"%@:%@", folderName, fileName];
+		if (sStringCache != nil)
+		{
+			// return the cached object, if any
+			result = [sStringCache objectForKey:key];
+			if (result)  return result;
+		}
+	}
+	
+	path = [self pathForFileNamed:fileName inFolder:folderName cache:useCache];
+	if (path != nil)  result = [NSString stringWithContentsOfUnicodeFile:path];
+	
+	if (result != nil && useCache)
+	{
+		if (sStringCache == nil)  sStringCache = [[NSMutableDictionary alloc] init];
+		[sStringCache setObject:result forKey:key];
+	}
+	
+	return result;
 }
 
 
