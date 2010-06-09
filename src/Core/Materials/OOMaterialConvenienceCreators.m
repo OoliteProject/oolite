@@ -78,9 +78,10 @@ static void SynthSpecular(OOMaterialSynthContext *context);
 										 configuration:(NSDictionary *)configuration
 												macros:(NSDictionary *)macros
 {
+	if (configuration == nil)  configuration = [NSDictionary dictionary];
 	OOMaterialSynthContext context =
 	{
-		.inConfig = (configuration != nil) ? configuration : [NSDictionary dictionary],
+		.inConfig = configuration,
 		.outConfig = [NSMutableDictionary dictionary],
 		.maxTextures = [[OOOpenGLExtensionManager sharedManager] textureImageUnitCount],
 		

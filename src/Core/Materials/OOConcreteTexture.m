@@ -429,7 +429,7 @@ static BOOL DecodeFormat(OOTextureDataFormat format, uint32_t options, GLenum *o
 		if (_trace)
 		{
 			static unsigned dumpID = 0;
-			NSString *name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID, _path ? [_path lastPathComponent] : [[_key componentsSeparatedByString:@"/"] objectAtIndex:1]];
+			NSString *name = [NSString stringWithFormat:@"tex dump %u \"%@\"", ++dumpID,[self name]];
 			OOLog(@"texture.trace.dump", @"Dumped traced texture %@ to \'%@.png\'", self, name);
 			OODumpPixMap(pm, name);
 		}

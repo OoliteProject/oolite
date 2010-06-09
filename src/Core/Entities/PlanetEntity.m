@@ -557,8 +557,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	}
 
 	// do atmosphere
-	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:
-							 ((_texture != nil) ? [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil] : dict)];
+	NSDictionary *atmoDict = dict;
+	if (_texture != nil)  atmoDict = [NSDictionary dictionaryWithObject:@"0" forKey:@"percent_cloud"];
+	if (atmo)  atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmoDict];
 	
 	setRandomSeed(saved_seed);
 	RANROTSetFullSeed(ranrotSavedSeed);
@@ -1030,7 +1031,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	
 	[self scaleVertices];
 	
-	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObjectsAndKeys: @"0", @"percent_cloud", nil];
+	NSDictionary *atmo_dictionary = [NSDictionary dictionaryWithObject:@"0" forKey:@"percent_cloud"];
 	[atmosphere autorelease];
 	atmosphere = [[PlanetEntity alloc] initAsAtmosphereForPlanet:self dictionary:atmo_dictionary];
 	
