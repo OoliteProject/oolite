@@ -1518,7 +1518,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 #ifndef NDEBUG
 - (NSSet *) allTextures
 {
-	return [NSSet setWithObject:_texture];
+	if (_texture != nil)  return [NSSet setWithObject:_texture];
+	else  return nil;
 }
 #endif
 
