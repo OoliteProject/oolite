@@ -720,7 +720,7 @@
 		2B4CDFED107B3D8400526C98 /* OOJSManifest.m in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CDFEB107B3D8400526C98 /* OOJSManifest.m */; };
 		2B9A108A105D527C00EE2AE6 /* javascript-errors.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 2B9A1088105D526200EE2AE6 /* javascript-errors.plist */; };
 		2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2B9C82F311784AAB000A79F7 /* oolite-tunnel.dat */; };
-		2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Resources */ = {isa = PBXBuildFile; fileRef = 2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */; };
+		2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */ = {isa = PBXBuildFile; fileRef = 2BC3CA13119F6279000DD54F /* oolite-rocktunnel.dat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -970,6 +970,7 @@
 			dstPath = Models;
 			dstSubfolderSpec = 7;
 			files = (
+				2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Copy Models */,
 				2B9C82F411784AAB000A79F7 /* oolite-tunnel.dat in Copy Models */,
 				1A0BF3D510DAE2B30099984D /* cobra1_redux1.dat in Copy Models */,
 				1A0BF3D610DAE2B30099984D /* cobra1_redux2.dat in Copy Models */,
@@ -3441,7 +3442,6 @@
 				25F3E8A90994FE65002F25FD /* oolite-icon.icns in Resources */,
 				25F3E8B40994FE9B002F25FD /* InfoPlist.strings in Resources */,
 				1A358CE20C1AB80D00E52220 /* ReadMe.rtfd in Resources */,
-				2BC3CA14119F6279000DD54F /* oolite-rocktunnel.dat in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
