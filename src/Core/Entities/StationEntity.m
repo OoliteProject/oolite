@@ -1333,7 +1333,9 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (BOOL) collideWithShip:(ShipEntity *)other
 {
-	[self abortAllDockings];
+	// 2010.06.10 - Micha. Commented out as there doesn't appear to be a good
+	//				reason for it and it interferes with docking clearance.
+	//[self abortAllDockings];
 	return [super collideWithShip:other];
 }
 
