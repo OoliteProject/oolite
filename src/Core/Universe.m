@@ -7622,7 +7622,7 @@ double estimatedTimeForJourney(double distance, int hops)
 							{
 								price += eqPrice;
 								[extras addObject:equipmentKey];
-								[description appendFormat:DESC(@"extra-@-@"), eqShortDesc, [eqLongDesc lowercaseString]];
+								[description appendFormat:DESC(@"extra-@-@-(long-description)"), eqShortDesc, [eqLongDesc lowercaseString]];
 								[short_description appendFormat:short_extras_string, eqShortDesc];
 								short_extras_string = @" %@.";
 								customised = YES;
@@ -7639,8 +7639,9 @@ double estimatedTimeForJourney(double distance, int hops)
 			{
 				NSString* npb = (passenger_berths > 1)? [NSString stringWithFormat:@"%d ", passenger_berths] : (id)@"";
 				NSString* ppb = DESC_PLURAL(@"passenger-berth", passenger_berths);
-				[description appendFormat:@"Extra %@%@ (%@)", npb, ppb, passengerBerthLongDesc];
-				[short_description appendFormat:@"Extra %@%@.", npb, ppb];
+				NSString* extraPassengerBerthsDescription = [NSString stringWithFormat:DESC(@"extra-@-@-(passenger-berths)"), npb, ppb];
+				[description appendFormat:DESC(@"extra-@-@-@-(passenger-berth-long-description)"), npb, ppb, passengerBerthLongDesc];
+				[short_description appendFormat:short_extras_string, extraPassengerBerthsDescription];
 			}
 			
 			if (!customised)

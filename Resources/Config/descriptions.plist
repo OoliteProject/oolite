@@ -1140,8 +1140,10 @@
 	"shipyard-total-available-%@-%@-plus-%@-trade" = "Total available: %@. (%@ Cash + %@ Trade.)";
 	"passenger-berth%0"				= "Passenger Berth";
 	"passenger-berth%1"				= "Passenger Berths";
-	"extra-@-@"						= " Extra %@ (%@)";
-	"plus-@"						= " Plus %@.";
+	"extra-@-@-(long-description)"			= " Extra %@ (%@)";
+	"extra-@-@-(passenger-berths)"			= " Extra %@ %@";
+	"extra-@-@-@-(passenger-berth-long-description)" =	"Extra %@%@ (%@)";
+	"plus-@"					= " Plus %@.";
 	"shipyard-standard-customer-model" = " Standard customer model.";
 	"shipyard-forward-weapon-has-been-upgraded-to-a-@" = " Forward weapon has been upgraded to a %@.";
 	"shipyard-forward-weapon-upgraded-to-@" = " Forward weapon upgraded to %@.";
