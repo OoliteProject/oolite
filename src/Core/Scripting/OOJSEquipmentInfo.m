@@ -366,6 +366,12 @@ static JSBool EquipmentInfoGetAllEqipment(JSContext *context, JSObject *this, js
 	return @"EquipmentInfo";
 }
 
+
+- (void) oo_clearJSSelf:(JSObject *)selfVal
+{
+	if (_jsSelf == selfVal)  _jsSelf = NULL;
+}
+
 @end
 
 

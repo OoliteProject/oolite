@@ -243,13 +243,17 @@ static JSBool ShipGroupConstruct(JSContext *context, JSObject *inThis, uintN arg
 		{
 			if (!JS_SetPrivate(context, _jsSelf, [self retain]))  _jsSelf = NULL;
 		}
-		
-		if (_jsSelf != NULL)  OO_AddJSGCRoot(context, &_jsSelf, "OOShipGroup");
 	}
 	
 	if (_jsSelf != NULL)  result = OBJECT_TO_JSVAL(_jsSelf);
 	
 	return result;
+}
+
+
+- (void) oo_clearJSSelf:(JSObject *)selfVal
+{
+	if (_jsSelf == selfVal)  _jsSelf = NULL;
 }
 
 @end

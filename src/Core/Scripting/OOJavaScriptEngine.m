@@ -859,6 +859,12 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 	return description;
 }
 
+
+- (void) oo_clearJSSelf:(JSObject *)selfVal
+{
+	
+}
+
 @end
 
 
@@ -1252,8 +1258,13 @@ JSBool JSObjectWrapperToString(JSContext *context, JSObject *this, uintN argc, j
 
 void JSObjectWrapperFinalize(JSContext *context, JSObject *this)
 {
-	[(id)JS_GetPrivate(context, this) release];
-	JS_SetPrivate(context, this, nil);
+	id object = JS_GetPrivate(context, this);
+	if (object != nil)
+	{
+		[[object weakRefUnderlyingObject] oo_clearJSSelf:this];
+		[object release];
+		JS_SetPrivate(context, this, nil);
+	}
 }
 
 

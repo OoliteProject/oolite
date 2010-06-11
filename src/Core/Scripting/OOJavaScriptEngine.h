@@ -46,7 +46,7 @@ enum
 };
 
 
-@interface OOJavaScriptEngine : NSObject
+@interface OOJavaScriptEngine: NSObject
 {
 	JSRuntime						*runtime;
 	JSContext						*mainContext;
@@ -145,7 +145,7 @@ BOOL JSSetNSProperty(JSContext *context, JSObject *object, NSString *name, jsval
 BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, jsval value, JSPropertyOp getter, JSPropertyOp setter, uintN attrs);
 
 
-@interface NSObject (OOJavaScriptConversion)
+@interface NSObject (OOJavaScript)
 
 /*	-javaScriptValueInContext:
 	
@@ -164,6 +164,12 @@ BOOL JSDefineNSProperty(JSContext *context, JSObject *object, NSString *name, js
 - (NSString *)javaScriptDescription;
 - (NSString *)javaScriptDescriptionWithClassName:(NSString *)className;
 - (NSString *)jsClassName;
+
+/*	oo_clearJSSelf:
+	This is called by JSObjectWrapperFinalize() when a JS object wrapper is
+	collected. The default implementation does nothing.
+*/
+- (void) oo_clearJSSelf:(JSObject *)selfVal;
 
 @end
 

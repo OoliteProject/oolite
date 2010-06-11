@@ -129,14 +129,8 @@ static JSFunctionSpec sScriptMethods[] =
 	// Set up JS object
 	if (!problem)
 	{
-		// Do we actually want parent to be the global object here?
-		_jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL /*JS_GetGlobalObject(context)*/);
+		_jsSelf = JS_NewObject(context, &sScriptClass, sScriptPrototype, NULL);
 		if (_jsSelf == NULL) problem = @"allocation failure";
-	}
-	
-	if (!problem)
-	{
-		if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
 	}
 	
 	if (!problem)
@@ -145,6 +139,11 @@ static JSFunctionSpec sScriptMethods[] =
 		{
 			problem = @"could not add JavaScript root object";
 		}
+	}
+	
+	if (!problem)
+	{
+		if (!JS_SetPrivate(context, _jsSelf, [self weakRetain]))  problem = @"could not set private backreference";
 	}
 	
 	// Push self on stack of running scripts.
@@ -356,7 +355,7 @@ static JSFunctionSpec sScriptMethods[] =
 					if (![notedChanges containsObject:key])
 					{
 						[notedChanges addObject:key];
-						OOReportJSWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite!", oldName, eventName, self->name);
+						OOReportJSWarning(context, @"The event handler %@ has been renamed to %@. The script %@ must be updated. The old form will not be supported in future versions of Oolite.", oldName, eventName, self->name);
 					}
 				}
 			}
@@ -375,8 +374,8 @@ static JSFunctionSpec sScriptMethods[] =
 - (BOOL)doEvent:(NSString *)eventName withArguments:(NSArray *)arguments
 {
 	BOOL					OK = YES;
-	jsval					value;
-	JSFunction				*function;
+	jsval					value = JSVAL_VOID;
+	JSFunction				*function = NULL;
 	uintN					i, argc;
 	jsval					*argv = NULL;
 	OOJavaScriptEngine		*engine = nil;
