@@ -814,6 +814,8 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
 	
+	if (cacheKey != nil && smooth)  cacheKey = [cacheKey stringByAppendingString:@":smooth"];
+	
 #if OOMESH_PROFILE
 	_stopwatch = [[OOProfilingStopwatch alloc] init];
 #endif

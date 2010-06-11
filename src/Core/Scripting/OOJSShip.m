@@ -1805,6 +1805,7 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (mesh == nil)
 	{
+		*outResult = BOOLToJSVal(NO);
 		return YES;	// failed. Don't change the material.
 	}
 	
