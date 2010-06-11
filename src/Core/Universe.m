@@ -3829,15 +3829,15 @@ static const OOMatrix	starboard_matrix =
 				[theHUD renderHUD];
 			}
 			
+#if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
+			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
+#endif
+			
 			CheckOpenGLErrors(@"Universe after drawing HUD");
 			
 			OOGL(glFlush());	// don't wait around for drawing to complete
 			
 			no_update = NO;	// allow other attempts to draw
-			
-#if (defined (SNAPSHOT_BUILD) && defined (OOLITE_SNAPSHOT_VERSION))
-			[theHUD drawWatermarkString:@"Development version " @OOLITE_SNAPSHOT_VERSION];
-#endif
 			
 			// frame complete, when it is time to update the fps_counter, updateClocks:delta_t
 			// in PlayerEntity.m will take care of resetting the processed frames number to 0.
