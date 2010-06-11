@@ -736,6 +736,7 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	DESTROY(localPassengers);
 	DESTROY(localContracts);
 	DESTROY(localShipyard);
+	DESTROY(local_market);
 	
 	[super dealloc];
 }
@@ -799,7 +800,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	NSString *defaultBreakPattern = [universalInfo oo_stringForKey:@"default_dockpattern_model" defaultValue:[universalInfo oo_stringForKey:@"default_breakpattern_model"]];
 	if (defaultBreakPattern == nil)  defaultBreakPattern = @"oolite-tunnel.dat";
 	dockingPatternModelFileName = [dict oo_stringForKey:@"docking_pattern_model" defaultValue:defaultBreakPattern];
-	local_market = [dict oo_stringForKey:@"market" defaultValue:primaryRole];
 	
 	double unitime = [UNIVERSE getTime];
 
@@ -2135,6 +2135,11 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 
 - (NSString *) marketName
 {
+	if( local_market == nil )
+	{
+		local_market = [shipinfoDictionary oo_stringForKey:@"market" defaultValue:[self primaryRole]];
+		[local_market retain];
+	}
 	return local_market;
 }
 
