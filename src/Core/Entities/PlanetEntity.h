@@ -60,7 +60,7 @@ typedef struct
 	int						r_seed[MAX_VERTICES_PER_ENTITY];
 	GLuint					displayListNames[MAX_SUBDIVIDE];
 	
-	BOOL					isTextureImage; // is the texture a png image (as opposed to synthesized)?
+	BOOL					isTextureImage;			// is the texture explicitly specified (as opposed to synthesized)?
 	NSString				*_textureFileName;
 	OOTexture				*_texture;
 	

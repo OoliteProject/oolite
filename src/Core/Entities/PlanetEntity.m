@@ -205,6 +205,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		
 		_texture = [self cloudTextureWithCloudColor:cloudColor cloudImpress:cloud_impress cloudBias:cloud_bias];
 		[_texture retain];
+		isTextureImage = NO;
 		
 		setRandomSeed(saved_seed);
 		RANROTSetFullSeed(ranrotSavedSeed);
@@ -533,6 +534,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	if (procGen && _texture == nil)
 	{
 		_texture = [self planetTextureWithInfo:planetInfo];
+		isTextureImage = NO;
 		[_texture retain];
 	}
 #endif
@@ -1460,6 +1462,8 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 	
 	[_textureFileName release];
 	_textureFileName = [[configuration oo_stringForKey:@"name"] copy];
+	
+	isTextureImage = YES;
 }
 
 
