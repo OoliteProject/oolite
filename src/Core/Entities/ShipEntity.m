@@ -478,9 +478,9 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 	[self setOwner:self];
 	[self setHulk:[shipDict oo_boolForKey:@"is_hulk"]];
 	
-	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined
-	scanner_display_color1 = [[OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color1"]] retain];
-	scanner_display_color2 = [[OOColor colorWithDescription:[shipDict objectForKey:@"scanner_display_color2"]] retain];
+	// these are the colors used for the "lollipop" of the ship. Any of the two (or both, for flash effect) can be defined. nil means use default from shipData.
+	[self setScannerDisplayColor1:nil];
+	[self setScannerDisplayColor2:nil];
 
 	// scan class settings. 'scanClass' is in common usage, but we could also have a more standard 'scan_class' key with higher precedence. Kaks 20090810 
 	// let's see if scan_class is set... 
@@ -3955,25 +3955,21 @@ static GLfloat scripted_color[4] = 	{ 0.0, 0.0, 0.0, 0.0};	// to be defined by s
 }
 
 
-- (void)setScannerDisplayColor1:(OOColor *)color1
+- (void)setScannerDisplayColor1:(OOColor *)color
 {
-	[scanner_display_color1 release];
-	scanner_display_color1 = nil;
-	if (color1)
-	{
-		scanner_display_color1 = [color1 retain];
-	}
+	DESTROY(scanner_display_color1);
+	
+	if (color == nil)  color = [OOColor colorWithDescription:[[self shipInfoDictionary] objectForKey:@"scanner_display_color1"]];
+	scanner_display_color1 = [color retain];
 }
 
 
-- (void)setScannerDisplayColor2:(OOColor *)color2
+- (void)setScannerDisplayColor2:(OOColor *)color
 {
-	[scanner_display_color2 release];
-	scanner_display_color2 = nil;
-	if (color2)
-	{
-		scanner_display_color2 = [color2 retain];
-	}
+	DESTROY(scanner_display_color2);
+	
+	if (color == nil)  color = [OOColor colorWithDescription:[[self shipInfoDictionary] objectForKey:@"scanner_display_color2"]];
+	scanner_display_color2 = [color retain];
 }
 
 
