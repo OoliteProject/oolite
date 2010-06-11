@@ -2638,19 +2638,27 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		if (doppelganger == nil)  return NO;
 
 #else
-		OOPlanetEntity* doppelganger=nil;
+		OOPlanetEntity* doppelganger = nil;
+		NSMutableDictionary *planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:target_system_seed]];
+		
 		if ([i_key isEqualToString:@"local-planet"] && [UNIVERSE sun])
 		{
-			// use a clone of the current system planet, to include temporary js retexturing!
-			doppelganger = [[OOPlanetEntity alloc] initMiniatureFromPlanet:[UNIVERSE planet]];
+			OOPlanetEntity *mainPlanet = [UNIVERSE planet];
+			OOTexture *texture = [mainPlanet texture];
+			if (texture != nil)
+			{
+				[planetInfo setObject:texture forKey:@"_oo_textureObject"];
+				[planetInfo oo_setBool:[mainPlanet isExplicitlyTextured] forKey:@"_oo_isExplicitlyTextured"];
+				[planetInfo oo_setBool:YES forKey:@"mainForLocalSystem"];
+				[planetInfo oo_setQuaternion:[mainPlanet orientation] forKey:@"orientation"];
+			}
 		}
-		else
-		{
-			doppelganger = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:target_system_seed];
-			[doppelganger miniaturize];
-		}
-		if (!doppelganger)
-			return NO;
+		
+		doppelganger = [[OOPlanetEntity alloc] initFromDictionary:planetInfo withAtmosphere:YES andSeed:target_system_seed];
+		[doppelganger miniaturize];
+		[doppelganger autorelease];
+		
+		if (doppelganger == nil)  return NO;
 #endif
 		
 		ScanVectorFromString([[i_info subarrayWithRange:NSMakeRange(1, 3)] componentsJoinedByString:@" "], &model_p0);
@@ -2673,9 +2681,6 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 		[doppelganger setPosition: model_p0];
 		[UNIVERSE addEntity:doppelganger];
 		
-#if !NEW_PLANETS
-		[doppelganger autorelease];
-#endif
 		return YES;
 	}
 

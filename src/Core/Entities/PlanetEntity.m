@@ -81,8 +81,6 @@ static GLfloat	texture_uv_array[10400 * 2];
 
 - (id) initMiniatureFromPlanet:(PlanetEntity*) planet withAlpha:(float) alpha;
 
-- (OOTexture *) texture;
-
 - (void) loadTexture:(NSDictionary *)configuration;
 - (OOTexture *) planetTextureWithInfo:(NSDictionary *)info;
 - (OOTexture *) cloudTextureWithCloudColor:(OOColor *)cloudColor cloudImpress:(GLfloat)cloud_impress cloudBias:(GLfloat)cloud_bias;
@@ -231,7 +229,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0;
-
+	
 	scanClass = CLASS_NO_DRAW;
 	
 	orientation.w =  M_SQRT1_2;
@@ -266,16 +264,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 }
 
 
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed
-{
-	// this is exclusively called to initialise the main planet
-	NSMutableDictionary*   planetInfo = [NSMutableDictionary dictionaryWithDictionary:[UNIVERSE generateSystemData:p_seed]];
-
-	[planetInfo oo_setBool:equal_seeds(p_seed, [UNIVERSE systemSeed]) forKey:@"mainForLocalSystem"];
-	return [self initFromDictionary:planetInfo withAtmosphere:YES andSeed:p_seed];
-}
-
-
 - (void) miniaturize
 {
 	shuttles_on_ground = 0;
@@ -294,90 +282,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	}
 	rotational_velocity = 0.04;
 	rotationAxis = kBasisYVector;
-}
-
-
-- (id) initMiniatureFromPlanet:(PlanetEntity *)planet
-{
-	return [self initMiniatureFromPlanet:planet withAlpha:1.0f];
-}
-
-
-- (id) initMiniatureFromPlanet:(PlanetEntity *)planet withAlpha:(float)alpha
-{
-	int		i;
-	
-	if (planet == nil)
-	{
-		[self release];
-		return nil;
-	}
-	
-	if (!(self = [super init]))  return nil;
-	
-	_texture = [[planet texture] retain];
-	_textureFileName = [[planet textureFileName] copy];
-	
-	planet_seed = [planet planet_seed];
-	shuttles_on_ground = 0;
-	last_launch_time = 0.0;
-	shuttle_launch_interval = 3600.0;
-	
-	collision_radius = [planet collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
-	
-	scanClass = CLASS_NO_DRAW;
-	[self setStatus:STATUS_COCKPIT_DISPLAY];
-	
-	orientation = planet->orientation;
-	
-	if ([planet planetType] == STELLAR_TYPE_ATMOSPHERE)
-	{
-		planet_type = STELLAR_TYPE_ATMOSPHERE;
-		rotational_velocity = 0.02;
-		[self setModelName:kTexturedPlanetModel];
-	}
-	else
-	{
-		planet_type = STELLAR_TYPE_MINIATURE;
-		rotational_velocity = 0.04;
-		[self setModelName:(_texture != nil) ? kTexturedPlanetModel : kUntexturedPlanetModel];
-	}
-	
-	[self rescaleTo:1.0];
-	
-	for (i = 0; i < 3; i++)
-	{
-		amb_land[i] =		[planet amb_land][i];
-		amb_sea[i] =		[planet amb_sea][i];
-		amb_polar_land[i] =	[planet amb_polar_land][i];
-		amb_polar_sea[i] =	[planet amb_polar_sea][i];
-	}
-	//alpha channel
-	amb_land[i] =		[planet amb_land][i] * alpha;
-	amb_sea[i] =		[planet amb_sea][i] * alpha;
-	amb_polar_land[i] =	[planet amb_polar_land][i] * alpha;
-	amb_polar_sea[i] =	[planet amb_polar_sea][i] * alpha;
-
-	
-	vertexdata = planet->vertexdata;
-	[self scaleVertices];
-	
-	if (planet->atmosphere)
-	{
-		// copy clouds but make fainter if isTextureImage
-		atmosphere = [[PlanetEntity alloc] initMiniatureFromPlanet:planet->atmosphere withAlpha:planet->isTextureImage ? 0.6f : 1.0f];
-		atmosphere->collision_radius = collision_radius + ATMOSPHERE_DEPTH * PLANET_MINIATURE_FACTOR*2.0; //not to scale: invisible otherwise
-		[atmosphere rescaleTo:1.0];
-		[atmosphere scaleVertices];
-		
-		atmosphere->root_planet = self;
-	}
-
-	rotationAxis = kBasisYVector;
-	
-	[[OOGraphicsResetManager sharedManager] registerClient:self];
-	
-	return self;
 }
 
 
@@ -400,28 +304,37 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	else
 		planet_seed = p_seed.a * 7 + p_seed.c * 11 + p_seed.e * 13;	// pseudo-random set-up for vertex colours
 	
-	NSDictionary *textureSpec = [dict oo_textureSpecifierForKey:@"texture" defaultName:nil];
-	if (textureSpec == nil && !procGen && !atmo)
+	OOTexture *texture = [dict oo_objectOfClass:[OOTexture class] forKey:@"_oo_textureObject"];
+	if (texture != nil)
 	{
-		// Moons use metal.png by default.
-		textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
+		_texture = [texture retain];
+		isTextureImage = [dict oo_boolForKey:@"_oo_isExplicitlyTextured"];
 	}
-	if (textureSpec != nil)
+	else
 	{
-		[self loadTexture:textureSpec];
-	}
-	
-	NSString *seedStr = [dict oo_stringForKey:@"seed"];
-	if (seedStr != nil)
-	{
-		Random_Seed seed = RandomSeedFromString(seedStr);
-		if (!is_nil_seed(seed))
+		NSDictionary *textureSpec = [dict oo_textureSpecifierForKey:@"texture" defaultName:nil];
+		if (textureSpec == nil && !procGen && !atmo)
 		{
-			p_seed = seed;
+			// Moons use metal.png by default.
+			textureSpec = OOTextureSpecFromObject(@"metal.png", nil);
 		}
-		else
+		if (textureSpec != nil)
 		{
-			OOLogERR(@"planet.fromDict", @"could not interpret \"%@\" as planet seed, using default.", seedStr);
+			[self loadTexture:textureSpec];
+		}
+		
+		NSString *seedStr = [dict oo_stringForKey:@"seed"];
+		if (seedStr != nil)
+		{
+			Random_Seed seed = RandomSeedFromString(seedStr);
+			if (!is_nil_seed(seed))
+			{
+				p_seed = seed;
+			}
+			else
+			{
+				OOLogERR(@"planet.fromDict", @"could not interpret \"%@\" as planet seed, using default.", seedStr);
+			}
 		}
 	}
 	
@@ -1445,6 +1358,12 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured)
 			displayListNames[i] = 0;
 		}
 	}
+}
+
+
+- (BOOL) isExplicitlyTextured
+{
+	return isTextureImage;
 }
 
 

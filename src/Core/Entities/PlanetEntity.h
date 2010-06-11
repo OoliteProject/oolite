@@ -90,16 +90,16 @@ typedef struct
 	Vector					rotationAxis;
 }
 
-- (id) initAsMainPlanetForSystemSeed:(Random_Seed) p_seed;
-- (void) miniaturize;
-- (id) initMiniatureFromPlanet:(PlanetEntity *)planet;
 - (id) initFromDictionary:(NSDictionary*)dict withAtmosphere:(BOOL)atmo andSeed:(Random_Seed)p_seed;
+- (void) miniaturize;
 
 - (BOOL) setUpPlanetFromTexture:(NSString *)fileName;
 
 - (int*) r_seed;
 - (int) planet_seed;
 - (BOOL) isTextured;
+- (BOOL) isExplicitlyTextured;		// Specified texture, not synthesized.
+- (OOTexture *) texture;
 - (NSString *) textureFileName;
 
 - (double) polar_color_factor;

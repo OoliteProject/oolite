@@ -702,7 +702,11 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 {
 	// set the system seed for random number generation
 	seed_for_planet_description(system_seed);
-	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initAsMainPlanetForSystemSeed:[UNIVERSE systemSeed]];
+	
+	Random_Seed systemSeed = [self systemSeed];
+	NSMutableDictionary *planetDict = [NSMutableDictionary dictionaryWithDictionary:[self generateSystemData:systemSeed]];
+	[planetDict oo_setBool:YES forKey:@"mainForLocalSystem"];
+	OOPlanetEntity *a_planet = [[OOPlanetEntity alloc] initFromDictionary:planetDict withAtmosphere:YES andSeed:systemSeed];
 	
 	double planet_radius = [a_planet radius];
 	double planet_zpos = (12.0 + (Ranrot() & 3) - (Ranrot() & 3) ) * planet_radius; // 9..15 pr (planet radii) ahead
