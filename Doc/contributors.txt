@@ -41,6 +41,7 @@ libpng: Glenn Randers-Pehrson, Andreas Dilger, Guy Eric Schalnat
         and contributors.
 SDL - Simple DirectMedia Layer: Sam Lantinga and contributors.
 SpiderMonkey: Brendan Eich et al, Mozilla Foundation.
+LibOgg/LibVorbis: Xiph.Org Foundation.
 
 
 Mac OS X-specific libraries:
