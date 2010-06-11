@@ -329,6 +329,12 @@ static JSBool SystemInfoDeleteProperty(JSContext *context, JSObject *this, jsval
 
 static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
 {
+	if (this == sSystemInfoPrototype)
+	{
+		// Let SpiderMonkey handle access to the prototype object (where info will be nil).
+		return YES;
+	}
+	
 	OOSystemInfo	*info = JSObjectToObjectOfClass(context, this, [OOSystemInfo class]);
 	// What if we're trying to access a saved witchspace systemInfo object?
 	BOOL savedInterstellarInfo = ![UNIVERSE inInterstellarSpace] && [info system] == -1;
@@ -411,6 +417,12 @@ static JSBool SystemInfoGetProperty(JSContext *context, JSObject *this, jsval na
 
 static JSBool SystemInfoSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
+	if (this == sSystemInfoPrototype)
+	{
+		// Let SpiderMonkey handle access to the prototype object (where info will be nil).
+		return YES;
+	}
+	
 	if (JSVAL_IS_STRING(name))
 	{
 		NSString		*key = [NSString stringWithJavaScriptValue:name inContext:context];
