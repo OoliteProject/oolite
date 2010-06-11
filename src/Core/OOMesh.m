@@ -812,9 +812,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	if (self == nil)  return nil;
 	
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
-	
-	if (cacheKey != nil && smooth)  cacheKey = [cacheKey stringByAppendingString:@":smooth"];
+ 	_normalMode = smooth ? kNormalModeSmooth : kNormalModePerFace;
 	
 #if OOMESH_PROFILE
 	_stopwatch = [[OOProfilingStopwatch alloc] init];
@@ -1080,10 +1078,11 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 	NSString			*failString = @"***** ";
 	unsigned			i, j;
 	NSMutableDictionary	*texFileName2Idx = nil;
+	NSString			*cacheKey = nil;
+	BOOL				using_preloaded = NO;
 	
-	BOOL using_preloaded = NO;
-	
-	cacheData = [OOCacheManager meshDataForName:filename];
+	cacheKey = [NSString stringWithFormat:@"%@:%u", filename, _normalMode];
+	cacheData = [OOCacheManager meshDataForName:cacheKey];
 	if (cacheData != nil)
 	{
 		if ([self setModelFromModelData:cacheData name:filename])
@@ -1516,7 +1515,7 @@ shaderBindingTarget:(id<OOWeakReferenceSupport>)target
 		}
 		
 		// save the resulting data for possible reuse
-		[OOCacheManager setMeshData:[self modelData] forName:filename];
+		[OOCacheManager setMeshData:[self modelData] forName:cacheKey];
 		PROFILE(@"saved to cache");
 		
 		if (failFlag)
