@@ -1749,7 +1749,7 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 	BOOL					withShaders = NO;
 	BOOL 					fromShaders = [@"setShaders" isEqualTo:JSValToNSString(context,*outResult)];
 	
-	*outResult = BOOLToJSVal(NO);
+	*outResult = JSVAL_FALSE;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
 	{
@@ -1805,13 +1805,12 @@ static JSBool ShipSetMaterials(JSContext *context, JSObject *this, uintN argc, j
 	
 	if (mesh == nil)
 	{
-		*outResult = BOOLToJSVal(NO);
 		return YES;	// failed. Don't change the material.
 	}
 	
 	[thisEnt setMesh:mesh];
 	
-	*outResult = BOOLToJSVal(YES);
+	*outResult = JSVAL_TRUE;
 	return YES;
 }
 
@@ -1821,7 +1820,7 @@ static JSBool ShipSetShaders(JSContext *context, JSObject *this, uintN argc, jsv
 {
 	ShipEntity				*thisEnt = nil;
 	
-	*outResult = BOOLToJSVal(NO);
+	*outResult = JSVAL_FALSE;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	// stale reference, no-op, or player ship
 	{

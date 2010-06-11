@@ -425,7 +425,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	
 	if ([player guiScreen] == GUI_SCREEN_INTRO1 || [player guiScreen] == GUI_SCREEN_INTRO2)
 	{
-		*outResult = BOOLToJSVal(NO);
+		*outResult = JSVAL_FALSE;
 		return YES;
 	}
 	
@@ -433,7 +433,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 		if (!JSVAL_IS_NULL(argv[0]) && !JSVAL_IS_OBJECT(argv[0]))
 		{
 			OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"object", [NSString stringWithJavaScriptValue:argv[0] inContext:context]);
-			*outResult = BOOLToJSVal(NO);
+			*outResult = JSVAL_FALSE;
 			return YES;
 		}
 		
@@ -444,7 +444,7 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	if (!JSVAL_IS_OBJECT(function) || (!JSVAL_IS_NULL(function) && !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function))))
 	{
 		OOReportJSWarning(context, @"Mission.runScreen: expected %@ instead of '%@'.", @"function", [NSString stringWithJavaScriptValue:argv[1] inContext:context]);
-		*outResult = BOOLToJSVal(NO);
+		*outResult = JSVAL_FALSE;
 		return YES;
 	}
 	
@@ -513,6 +513,6 @@ static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, j
 	MissionSetProperty(context, this, INT_TO_JSVAL(kMission_title), &value);
 	MissionSetMusic(context, this, 1, &value, &noWarning);
 	
-	*outResult = BOOLToJSVal(YES);
+	*outResult = JSVAL_TRUE;
 	return YES;
 }

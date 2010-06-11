@@ -218,12 +218,12 @@ static JSBool ClockAddSeconds(JSContext *context, JSObject *this, uintN argc, js
 	{
 		OOReportJSWarning(context, @"Clock.addSeconds: use a value between 1 and 2592000 (30 days).");
 
-		*outResult = BOOLToJSVal(NO);
+		*outResult = JSVAL_FALSE;
 		return YES;
 	}
 	
 	[OOPlayerForScripting() AddToAdjustTime:time];
 	
-	*outResult = BOOLToJSVal(YES);
+	*outResult = JSVAL_TRUE;
 	return YES;
 }
