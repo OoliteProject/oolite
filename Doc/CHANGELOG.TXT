@@ -73,6 +73,9 @@ Known bugs
   weapon.  (Bug #17240, old)
 * Scanner markers appear in the wrong place for one frame when summoning an
   NPC ship.  (Bug #17215, old)
+* When overriding a market system-wide ("market" entry in planetinfo.plist),
+  the specified market is applied to all stations in the system, not just the
+  main station as was most likely intended. (Bug #17247, old)
 * [Mac] Occasional bursts of very loud noise, causing the system to compensate
   by lowering effective volume.  (Bug #17214, old)
 
