@@ -266,11 +266,11 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 - (void) miniaturize
 {
+	planet_type = STELLAR_TYPE_MINIATURE;
 	shuttles_on_ground = 0;
 	last_launch_time = 0.0;
 	shuttle_launch_interval = 3600.0;
 	[self setStatus:STATUS_COCKPIT_DISPLAY];
-	planet_type = STELLAR_TYPE_MINIATURE;
 	collision_radius = [self collisionRadius] * PLANET_MINIATURE_FACTOR; // teeny tiny
 	[self rescaleTo:1.0];
 	[self scaleVertices];
@@ -321,6 +321,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 		if (textureSpec != nil)
 		{
 			[self loadTexture:textureSpec];
+			isTextureImage = YES;
 		}
 		
 		NSString *seedStr = [dict oo_stringForKey:@"seed"];
@@ -583,28 +584,9 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 	switch (planet_type)
 	{
-		case STELLAR_TYPE_MOON:
 		case STELLAR_TYPE_NORMAL_PLANET:
+			// we have atmosphere in any case.
 			{
-				double ugt = [UNIVERSE getTime];
-
-				if ((shuttles_on_ground > 0)&&(ugt > last_launch_time + shuttle_launch_interval))
-				{
-					[self launchShuttle];
-					shuttles_on_ground--;
-					last_launch_time = ugt;
-				}
-			}
-		
-		case STELLAR_TYPE_MINIATURE:
-			// normal planetary rotation
-			//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
-			quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
-			[self orientationChanged];
-			
-			if (atmosphere)
-			{
-				[atmosphere update:delta_t];
 				double alt = sqrt_zero_distance - collision_radius;
 				double atmo = 10.0 * (atmosphere->collision_radius - collision_radius);	// effect starts at 10x the height of the clouds
 
@@ -620,6 +602,24 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 									   alpha:aleph];
 				}
 			}
+		case STELLAR_TYPE_MOON:
+			{
+				double ugt = [UNIVERSE getTime];
+
+				if ((shuttles_on_ground > 0)&&(ugt > last_launch_time + shuttle_launch_interval))
+				{
+					[self launchShuttle];
+					shuttles_on_ground--;
+					last_launch_time = ugt;
+				}
+			}
+		
+		case STELLAR_TYPE_MINIATURE:
+			// normal planetary rotation
+			//quaternion_rotate_about_y(&orientation, rotational_velocity * delta_t);
+			if (atmosphere) [atmosphere update:delta_t];
+			quaternion_rotate_about_axis(&orientation, rotationAxis, rotational_velocity * delta_t);
+			[self orientationChanged];
 			break;
 
 		case STELLAR_TYPE_ATMOSPHERE:
