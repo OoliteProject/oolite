@@ -692,20 +692,25 @@ static JSObject *JSArrayFromNSArray(JSContext *context, NSArray *array)
 	unsigned				i;
 	unsigned				count;
 	jsval					value;
-	BOOL					OK = YES;
 	
 	if (array == nil)  return NULL;
 	
 	NS_DURING
 		result = JS_NewArrayObject(context, 0, NULL);
-		if (result == NULL)  NS_VALUERETURN(NULL, JSObject *);
-		
-		count = [array count];
-		for (i = 0; i != count; ++i)
+		if (result != NULL)
 		{
-			value = [[array objectAtIndex:i] javaScriptValueInContext:context];
-			OK = JS_SetElement(context, result, i, &value);
-			if (!OK)  NS_VALUERETURN(NULL, JSObject *);
+			count = [array count];
+			for (i = 0; i != count; ++i)
+			{
+				value = [[array objectAtIndex:i] javaScriptValueInContext:context];
+				BOOL OK = JS_SetElement(context, result, i, &value);
+				
+				if (EXPECT_NOT(!OK))
+				{
+					result = NULL;
+					break;
+				}
+			}
 		}
 	NS_HANDLER
 		result = NULL;
@@ -736,7 +741,7 @@ static BOOL JSNewNSArrayValue(JSContext *context, NSArray *array, jsval *value)
 		*value = OBJECT_TO_JSVAL(object);
 	}
 	
-	JS_LeaveLocalRootScope(context);
+	JS_LeaveLocalRootScopeWithResult(context, *value);
 	return OK;
 }
 
@@ -758,36 +763,44 @@ static JSObject *JSObjectFromNSDictionary(JSContext *context, NSDictionary *dict
 	
 	NS_DURING
 		result = JS_NewObject(context, NULL, NULL, NULL);	// create object of class Object
-		if (result == NULL)  NS_VALUERETURN(NULL, JSObject *);
-		
-		for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
+		if (result != NULL)
 		{
-			if ([key isKindOfClass:[NSString class]] && [key length] != 0)
+			for (keyEnum = [dictionary keyEnumerator]; (key = [keyEnum nextObject]); )
 			{
-				value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
-				if (value != JSVAL_VOID)
-				{
-					OK = JSSetNSProperty(context, result, key, &value);
-					if (!OK)  NS_VALUERETURN(NULL, JSObject *);
-				}
-			}
-			else if ([key isKindOfClass:[NSNumber class]])
-			{
-				index = [key intValue];
-				if (0 < index)
+				if ([key isKindOfClass:[NSString class]] && [key length] != 0)
 				{
 					value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
 					if (value != JSVAL_VOID)
 					{
-						OK = JS_SetElement(context, (JSObject *)result, index, &value);
-						if (!OK)  NS_VALUERETURN(NULL, JSObject *);
+						OK = JSSetNSProperty(context, result, key, &value);
+						if (EXPECT_NOT(!OK))  break;
 					}
 				}
+				else if ([key isKindOfClass:[NSNumber class]])
+				{
+					index = [key intValue];
+					if (0 < index)
+					{
+						value = [[dictionary objectForKey:key] javaScriptValueInContext:context];
+						if (value != JSVAL_VOID)
+						{
+							OK = JS_SetElement(context, (JSObject *)result, index, &value);
+							if (EXPECT_NOT(!OK))  break;
+						}
+					}
+				}
+				
+				if (EXPECT_NOT(!OK))  break;
 			}
 		}
 	NS_HANDLER
-		result = NULL;
+		OK = NO;
 	NS_ENDHANDLER
+	
+	if (EXPECT_NOT(!OK))
+	{
+		result = NULL;
+	}
 	
 	return (JSObject *)result;
 }
@@ -814,7 +827,7 @@ static BOOL JSNewNSDictionaryValue(JSContext *context, NSDictionary *dictionary,
 		*value = OBJECT_TO_JSVAL(object);
 	}
 	
-	JS_LeaveLocalRootScope(context);
+	JS_LeaveLocalRootScopeWithResult(context, *value);
 	return OK;
 }
 

@@ -305,12 +305,7 @@ static JSFunctionSpec sScriptMethods[] =
 
 - (void)runWithTarget:(Entity *)target
 {
-	OOLog(@"script.trace.js.run", @"Runing script \"%@\"", [self name]);
-	OOLogIndentIf(@"script.trace.js.run");
-	
 	[self doEvent:@"tickle" withArguments:[NSArray arrayWithObject:[[PlayerEntity sharedPlayer] status_string]]];
-	
-	OOLogOutdentIf(@"script.trace.js.run");
 }
 
 
@@ -387,6 +382,9 @@ static JSFunctionSpec sScriptMethods[] =
 	function = [self functionNamed:eventName context:context];
 	if (function != NULL)
 	{
+		OOLog(@"script.trace.javaScript.event", @"Calling [%@].%@()", [self name], eventName);
+		OOLogIndentIf(@"script.trace.javaScript.event");
+		
 		// Push self on stack of running scripts.
 		RunningStack stackElement =
 		{
@@ -428,6 +426,8 @@ static JSFunctionSpec sScriptMethods[] =
 		sRunningStack = stackElement.back;
 		
 		JS_ClearNewbornRoots(context);
+		
+		OOLogOutdentIf(@"script.trace.javaScript.event");
 	}
 	else
 	{

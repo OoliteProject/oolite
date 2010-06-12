@@ -299,6 +299,7 @@
 	script.trace.runWorld					= inherit;
 	script.trace.plist.run					= inherit;
 	script.trace.javaScript.call			= inherit;				// Prints selector and parameter string on Player.call()
+	script.trace.javaScript.event			= inherit;				// Log event handler calls.
 	
 	script.deprecated.scriptActionOnTarget	= $scriptError;			// Warning not to use scriptActionOnTarget:
 	
