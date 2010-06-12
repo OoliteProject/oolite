@@ -5241,6 +5241,10 @@ static BOOL replacingMissile = NO;
 	gui_screen = GUI_SCREEN_SHORT_RANGE_CHART;
 	BOOL			guiChanged = (oldScreen != gui_screen);
 	
+	// don't target planets outside the immediate vicinity.
+	if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
+			cursor_coordinates = galaxy_coordinates;	// home
+	
 	if ((target_system_seed.d != cursor_coordinates.x)||(target_system_seed.b != cursor_coordinates.y))
 	{
 		target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
@@ -5251,9 +5255,6 @@ static BOOL replacingMissile = NO;
 
 	// GUI stuff
 	{
-		if ((abs(cursor_coordinates.x-galaxy_coordinates.x)>=20)||(abs(cursor_coordinates.y-galaxy_coordinates.y)>=38))
-			cursor_coordinates = galaxy_coordinates;	// home
-		
 		[gui clearAndKeepBackground:!guiChanged];
 		[gui setTitle:DESC(@"short-range-chart-title")];
 		
