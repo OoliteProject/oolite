@@ -223,7 +223,6 @@
 	OOGL(glEnable(GL_TEXTURE_2D));
 	
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	OOGL(glDisableClientState(GL_INDEX_ARRAY));
 	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));

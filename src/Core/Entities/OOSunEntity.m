@@ -315,7 +315,6 @@ MA 02110-1301, USA.
 	}
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
-//	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
 	OOGL(glDisable(GL_CULL_FACE));
 	
 	/*
@@ -379,7 +378,6 @@ MA 02110-1301, USA.
 	}
 	
 	OOGL(glPopAttrib());
-	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"SunEntity after drawing %@", self);
 }
 

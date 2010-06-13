@@ -332,7 +332,6 @@ static NSString *NormalModeDescription(OOMeshNormalMode mode)
 	OOGL(glShadeModel(GL_SMOOTH));
 	
 	OOGL(glDisableClientState(GL_COLOR_ARRAY));
-	OOGL(glDisableClientState(GL_INDEX_ARRAY));
 	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));

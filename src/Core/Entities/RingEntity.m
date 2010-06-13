@@ -146,7 +146,6 @@ Ringdata	ringentity;
 				// pointer to quadruplet
 
 				OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-				OOGL(glDisableClientState(GL_INDEX_ARRAY));
 				OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 

@@ -201,7 +201,6 @@ static OOColor *SaturatedColorInRange(OOColor *color1, OOColor *color2);
 	OOGL(glDisable(GL_CULL_FACE));
 	OOGL(glDisable(GL_FOG));
 	
-	OOGL(glDisableClientState(GL_INDEX_ARRAY));
 	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
 	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	OOGL(glEnableClientState(GL_VERTEX_ARRAY));

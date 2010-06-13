@@ -687,7 +687,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 	lastSubdivideLevel = subdivideLevel;	// record
 	
 	OOGL(glPushAttrib(GL_ENABLE_BIT));
-	OOGL(glFrontFace(GL_CW));		// face culling - front faces are AntiClockwise!
 	
 	OOGL(glEnable(GL_LIGHTING));
 	OOGL(glEnable(GL_LIGHT1));
@@ -767,9 +766,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 
 				OOGL(glColor4fv(mat1));
 				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
-
-				OOGL(glFrontFace(GL_CCW));
-				OOGL(glDisableClientState(GL_INDEX_ARRAY));
+				
 				OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 				OOGL(glEnableClientState(GL_COLOR_ARRAY));
 				OOGL(glColorPointer(4, GL_FLOAT, 0, vertexdata.color_array));
@@ -815,11 +812,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 						OOGL(glDisable(GL_COLOR_MATERIAL));
 						OOGL(glEndList());
 					}
-					
 				}
-				OOGL(glFrontFace(GL_CW));
-				
-				OOGL(glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, mat1));
 				
 #if OO_TEXTURE_CUBE_MAP
 				if ([_texture isCubeMap])
@@ -827,7 +820,7 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 					OOGL(glDisable(GL_TEXTURE_CUBE_MAP));
 				}
 #endif
-
+				
 				if (atmosphere)
 				{
 					OOGL(glDisable(GL_DEPTH_TEST));
@@ -840,7 +833,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 					// draw atmosphere entity
 					[atmosphere drawEntity:NO :NO];
 				}
-
 			}
 			
 			//if ((gDebugFlags & DEBUG_WIREFRAME_GRAPHICS)
@@ -859,7 +851,6 @@ static int baseVertexIndexForEdge(int va, int vb, BOOL textured);
 			break;
 	}
 	OOGL(glPopAttrib());
-	OOGL(glFrontFace(GL_CCW));			// face culling - front faces are AntiClockwise!
 	CheckOpenGLErrors(@"PlanetEntity after drawing %@", self);
 }
 

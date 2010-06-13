@@ -302,7 +302,6 @@ GLuint tfan2[10] =    {	33,	25,	26,	27,	28,	29,	30,	31,	32,	25 };	// final fan 6
 	OOGL(glEnableClientState(GL_COLOR_ARRAY));
 	OOGL(glColorPointer(4, GL_FLOAT, 0, _exhaustBaseColors));
 	OOGL(glDisableClientState(GL_NORMAL_ARRAY));
-	OOGL(glDisableClientState(GL_INDEX_ARRAY));
 	OOGL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 	OOGL(glDisableClientState(GL_EDGE_FLAG_ARRAY));
 	
