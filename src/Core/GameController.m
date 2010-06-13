@@ -379,7 +379,6 @@ static BOOL _switchRez = NO, _switchRezDeferred = NO;
 #if OOLITE_MAC_OS_X && !OOLITE_SDL
 static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 {
-   // TODO: If fullscreen mode is practical in GNUstep
 	NSDictionary *mode1 = (NSDictionary *)arg1;
 	NSDictionary *mode2 = (NSDictionary *)arg2;
 	int size1, size2;
@@ -812,6 +811,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 }
 
 
+- (IBAction) showLogFolderAction:sender
+{
+	[[NSWorkspace sharedWorkspace] openFile:OOLogHandlerGetLogBasePath()];
+}
+
+
 - (IBAction) showSnapshotsAction:sender
 {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:[NSHomeDirectory() stringByAppendingPathComponent:@SNAPSHOTDIR]]]; // also in myOpenGLView snapShot
@@ -882,6 +887,12 @@ static NSComparisonResult CompareDisplayModes(id arg1, id arg2, void *context)
 - (BOOL) inFullScreenMode
 {
 	return fullscreen;
+}
+
+
+- (NSMenu *)applicationDockMenu:(NSApplication *)sender
+{
+	return dockMenu;
 }
 
 #elif OOLITE_SDL

@@ -590,7 +590,7 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 	
 	if (elapsed < sLimiterTimeLimit)  return YES;
 	
-	OOLogERR(@"script.javaScript.timeLimit", @"Script %@ ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
 	
 	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
 	

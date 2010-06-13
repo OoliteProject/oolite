@@ -38,6 +38,7 @@
 		1A01574311034A86008EE36A /* ShipEntityLoadRestore.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */; };
 		1A01574411034A86008EE36A /* ShipEntityLoadRestore.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */; };
 		1A01BC7011C5515B0011197F /* oolite-default-player-script.js in Copy Scripts */ = {isa = PBXBuildFile; fileRef = 1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */; };
+		1A01BCF611C56AAE0011197F /* Oolite.docktileplugin in Copy Plug-Ins */ = {isa = PBXBuildFile; fileRef = 1A01BCE711C569DF0011197F /* Oolite.docktileplugin */; };
 		1A020E0B0D020AFB00C3F51E /* changedScriptHandlers.plist in Copy Config */ = {isa = PBXBuildFile; fileRef = 1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */; };
 		1A02FD460EE0490B008F9B09 /* oolite-tangent-space-vertex.vertex in Copy Shaders */ = {isa = PBXBuildFile; fileRef = 1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */; };
 		1A0365890D7CA05000B5F46F /* OOSkyDrawable.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A15044A0C12C50D0032F3E8 /* OOSkyDrawable.m */; };
@@ -725,6 +726,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1A01BCE611C569DF0011197F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8D5B49B6048680CD000E48DA;
+			remoteInfo = "Oolite-docktile";
+		};
+		1A01BCE811C569F80011197F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8D5B49AC048680CD000E48DA;
+			remoteInfo = "Oolite-docktile";
+		};
 		1A274D2410C1EE02004CDDF5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0519340C7CCAC900BA5CCA /* DebugOXP.xcodeproj */;
@@ -784,6 +799,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		1A01BCF911C56AB40011197F /* Copy Plug-Ins */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1A01BCF611C56AAE0011197F /* Oolite.docktileplugin in Copy Plug-Ins */,
+			);
+			name = "Copy Plug-Ins";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		1A23153A0B9C773B00EF0852 /* Copy Images */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1163,6 +1189,7 @@
 		1A01574111034A86008EE36A /* ShipEntityLoadRestore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShipEntityLoadRestore.h; sourceTree = "<group>"; };
 		1A01574211034A86008EE36A /* ShipEntityLoadRestore.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShipEntityLoadRestore.m; sourceTree = "<group>"; };
 		1A01BC6F11C5515B0011197F /* oolite-default-player-script.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "oolite-default-player-script.js"; sourceTree = "<group>"; };
+		1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Oolite-docktile.xcodeproj"; path = "Mac-specific/Oolite-docktile/Oolite-docktile.xcodeproj"; sourceTree = "<group>"; };
 		1A020E0A0D020AFB00C3F51E /* changedScriptHandlers.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = changedScriptHandlers.plist; sourceTree = "<group>"; };
 		1A02FD340EE048E8008F9B09 /* oolite-tangent-space-vertex.vertex */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "oolite-tangent-space-vertex.vertex"; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		1A0365990D7CA0EE00B5F46F /* oolite-nebula-4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "oolite-nebula-4.png"; sourceTree = "<group>"; };
@@ -1951,6 +1978,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		1A01BCE011C569DF0011197F /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A01BCE711C569DF0011197F /* Oolite.docktileplugin */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		1A2314300B9C667F00EF0852 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -2439,12 +2474,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		1A5BF2710916D45B00BF238F /* MDImporter */ = {
+		1A5BF2710916D45B00BF238F /* Extras */ = {
 			isa = PBXGroup;
 			children = (
+				1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */,
 				1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */,
 			);
-			name = MDImporter;
+			name = Extras;
 			sourceTree = "<group>";
 		};
 		1A5BF2730916D47300BF238F /* Products */ = {
@@ -3059,7 +3095,7 @@
 				1AF8E33A0CC169F500CA6001 /* contributors.txt */,
 				1A37D1ED1049B2E400BC8976 /* CHANGELOG.TXT */,
 				1A8A3BE90B963F02007D20B8 /* Source */,
-				1A5BF2710916D45B00BF238F /* MDImporter */,
+				1A5BF2710916D45B00BF238F /* Extras */,
 				1A8071D70C0480AC00BA1935 /* Debug OXP */,
 				1A2314300B9C667F00EF0852 /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -3341,6 +3377,7 @@
 				1A3491320BC25ED400802DA7 /* Copy Scripts */,
 				1A6514FE0CCC9D7A0054D01B /* Copy Shaders */,
 				1AA2E7471191E4B400DFBA23 /* Copy Schemata */,
+				1A01BCF911C56AB40011197F /* Copy Plug-Ins */,
 			);
 			buildRules = (
 			);
@@ -3348,6 +3385,7 @@
 				1A5BF3080916D8F700BF238F /* PBXTargetDependency */,
 				1A71E6F70BCE343400CD5C13 /* PBXTargetDependency */,
 				1A4FB4D00C8E130E00DC8E1F /* PBXTargetDependency */,
+				1A01BCE911C569F80011197F /* PBXTargetDependency */,
 			);
 			name = Oolite;
 			productInstallPath = "$(HOME)/Applications";
@@ -3396,6 +3434,10 @@
 					ProjectRef = 1A6B50370C8B42480035DFCC /* libjs.xcodeproj */;
 				},
 				{
+					ProductGroup = 1A01BCE011C569DF0011197F /* Products */;
+					ProjectRef = 1A01BCDF11C569DF0011197F /* Oolite-docktile.xcodeproj */;
+				},
+				{
 					ProductGroup = 1A5BF2730916D47300BF238F /* Products */;
 					ProjectRef = 1A5BF2720916D47300BF238F /* Oolite-importer.xcodeproj */;
 				},
@@ -3410,6 +3452,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		1A01BCE711C569DF0011197F /* Oolite.docktileplugin */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = Oolite.docktileplugin;
+			remoteRef = 1A01BCE611C569DF0011197F /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		1A3042F410C16DA60056219D /* Debug.oxp */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -3702,6 +3751,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A01BCE911C569F80011197F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Oolite-docktile";
+			targetProxy = 1A01BCE811C569F80011197F /* PBXContainerItemProxy */;
+		};
 		1A274D2510C1EE02004CDDF5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = DebugOXP;

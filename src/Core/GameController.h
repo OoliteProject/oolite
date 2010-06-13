@@ -75,6 +75,7 @@ MA 02110-1301, USA.
 	IBOutlet NSWindow		*gameWindow;
 	IBOutlet NSTextView		*helpView;
 	IBOutlet OOProgressBar	*progressBar;
+	IBOutlet NSMenu			*dockMenu;
 #endif
 
 #if OOLITE_SDL
@@ -128,6 +129,7 @@ MA 02110-1301, USA.
 #if OOLITE_HAVE_APPKIT
 - (IBAction) goFullscreen:(id)sender;
 - (IBAction) showLogAction:(id)sender;
+- (IBAction) showLogFolderAction:(id)sender;
 - (IBAction) showSnapshotsAction:(id)sender;
 - (IBAction) showAddOnsAction:(id)sender;
 - (void) changeFullScreenResolution;

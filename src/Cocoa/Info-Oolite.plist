@@ -65,6 +65,8 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>OoliteApp</string>
+	<key>NSDockTilePlugIn</key>
+	<string>Oolite.docktileplugin</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
