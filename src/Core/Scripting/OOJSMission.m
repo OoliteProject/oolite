@@ -33,20 +33,14 @@ MA 02110-1301, USA.
 #import "OOCollectionExtractors.h"
 
 
-static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-static JSBool MissionShowMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionShowShipModel(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionMarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionUnmarkSystem(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionSetInstructionsKey(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool MissionRunScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 //  Mission screen  callback varibables
@@ -61,7 +55,7 @@ static JSClass sMissionClass =
 	
 	JS_PropertyStub,
 	JS_PropertyStub,
-	MissionGetProperty,
+	JS_PropertyStub,
 	MissionSetProperty,
 	JS_EnumerateStub,
 	JS_ResolveStub,
@@ -73,7 +67,6 @@ static JSClass sMissionClass =
 enum
 {
 	// Property IDs
-	kMission_choice,			// selected option, string, read/write.
 	kMission_title,				// title of mission screen, string.
 	kMission_foreground,		// missionforeground image, string.
 	kMission_background,		// mission background image, string.
@@ -81,28 +74,14 @@ enum
 };
 
 
-static JSPropertySpec sMissionProperties[] =
-{
-	// JS name					ID							flags
-	{ "choice",					kMission_choice,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ 0 }	
-};
-
-
 static JSFunctionSpec sMissionMethods[] =
 {
 	// JS name					Function					min args
-	{ "showMissionScreen",		MissionShowMissionScreen,	0 },
-	{ "showShipModel",			MissionShowShipModel,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
 	{ "addMessageText",			MissionAddMessageText,		1 },
-	{ "setBackgroundImage",		MissionSetBackgroundImage,	1 },
-	{ "setMusic",				MissionSetMusic,			1 },
-	{ "setChoicesKey",			MissionSetChoicesKey,		1 },
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
-	{ "clearMissionScreen",		MissionClearMissionScreen,	0 },
 	{ "runScreen",				MissionRunScreen,			0 },
 	{ 0 }
 };
@@ -110,7 +89,7 @@ static JSFunctionSpec sMissionMethods[] =
 
 void InitOOJSMission(JSContext *context, JSObject *global)
 {
-	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, NULL, 0, sMissionProperties, sMissionMethods, NULL, NULL);
+	JSObject *missionPrototype = JS_InitClass(context, global, NULL, &sMissionClass, NULL, 0, NULL, sMissionMethods, NULL, NULL);
 	JS_DefineObject(context, global, "mission", &sMissionClass, missionPrototype, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 	
 	// Ensure JS objects are rooted.
@@ -174,33 +153,6 @@ void MissionRunCallback()
 }
 
 
-static JSBool MissionGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue)
-{
-	id							result = nil;
-	PlayerEntity				*player = nil;
-	
-	if (!JSVAL_IS_INT(name))  return YES;
-	
-	player = OOPlayerForScripting();
-	
-	switch (JSVAL_TO_INT(name))
-	{
-		case kMission_choice:
-			OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"choice");
-			result = [player missionChoice_string];
-			if (result == nil)  result = [NSNull null];
-			break;
-		
-		default:
-			OOReportJSBadPropertySelector(context, @"Mission", JSVAL_TO_INT(name));
-			return NO;
-	}
-	
-	if (result != nil) *outValue = [result javaScriptValueInContext:context];
-	return YES;
-}
-
-
 static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value)
 {
 	PlayerEntity				*player = nil;
@@ -211,12 +163,6 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kMission_choice:
-			OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"choice");
-			if (*value == JSVAL_VOID || *value == JSVAL_NULL)  [player resetMissionChoice];
-			else  [player setMissionChoice:[NSString stringWithJavaScriptValue:*value inContext:context]];
-			break;
-		
 		case kMission_title:
 			[player setMissionTitle:JSValToNSString(context,*value)];
 			break;
@@ -247,31 +193,6 @@ static JSBool MissionSetProperty(JSContext *context, JSObject *this, jsval name,
 
 
 // *** Methods ***
-
-// showMissionScreen()
-static JSBool MissionShowMissionScreen(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	
-	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"showMissionScreen");
-	[player setGuiToMissionScreen];
-	
-	return YES;
-}
-
-
-// showShipModel(modelName : String)
-static JSBool MissionShowShipModel(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	
-	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"showShipModel");
-	// If argv[0] can't be converted to a string -- e.g., null or undefined -- this will clear the ship model.
-	[player showShipModel:JSValToNSString(context,argv[0])];
-	
-	return YES;
-}
-
 
 // markSystem(systemCoords : String)
 static JSBool MissionMarkSystem(JSContext *context, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
@@ -312,29 +233,11 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 }
 
 
-// setBackgroundImage(imageName : String)
-static JSBool MissionSetBackgroundImage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	NSString			*key = nil;
-	
-	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"setBackgroundImage");
-	// set the foremost background image - backward compatible.
-	if (argc >= 1)  key = JSValToNSString(context,argv[0]);
-	[player setMissionImage:key];
-	
-	return YES;
-}
-
-
 // setMusic(musicName : String)
 static JSBool MissionSetMusic(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
-	
-	if (![@"noWarning" isEqualTo:JSValToNSString(context,*outResult)])
-		OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"setMusic");
 	
 	key =  JSValToNSString(context,argv[0]);
 	[player setMissionMusic:key];
@@ -348,9 +251,6 @@ static JSBool MissionSetChoicesKey(JSContext *context, JSObject *this, uintN arg
 {
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*key = nil;
-	
-	if (![@"noWarning" isEqualTo:JSValToNSString(context,*outResult)])
-		OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"setChoicesKey");
 	
 	key = JSValToNSString(context,argv[0]);
 	[player setMissionChoices:key];
@@ -399,17 +299,6 @@ static JSBool MissionSetInstructions(JSContext *context, JSObject *this, uintN a
 	}
 	
 	*outResult = JSVAL_VOID;	
-	return YES;
-}
-
-
-// clearMissionScreen()
-static JSBool MissionClearMissionScreen(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity		*player = OOPlayerForScripting();
-	
-	OOReportJSWarning(context, @"Mission.%@ is deprecated and will be removed in a future version of Oolite.", @"clearMissionScreen");
-	[player clearMissionScreen];
 	return YES;
 }
 

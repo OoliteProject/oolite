@@ -72,14 +72,29 @@ mission.addMessageTextKey = function(textKey)
 	http://blog.stevenlevithan.com/archives/faster-trim-javascript
 	Note: as of ECMAScript 5th Edition, this will be a core language method.
 */
-String.prototype.trim = function ()
+if (typeof String.prototype.trim !== "function")
 {
-	var	str = this.replace(/^\s\s*/, ''),
-			  ws = /\s/,
-			  i = str.length;
-	while (ws.test(str.charAt(--i))){}
-	return str.slice(0, i + 1);
-};
+	String.prototype.trim = function ()
+	{
+		var	str = this.replace(/^\s\s*/, ''),
+				  ws = /\s/,
+				  i = str.length;
+		while (ws.test(str.charAt(--i))){}
+		return str.slice(0, i + 1);
+	};
+}
+
+
+/*	Object.getPrototypeOf(): ECMAScript 5th Edition eqivalent to __proto__
+	extension.
+*/
+if (typeof Object.getPrototypeOf !== "function")
+{
+	Object.getPrototypeOf = function (object)
+	{
+		return object.__proto__;
+	}
+}
 
 
 /*	SystemInfo.systemsInRange(): return SystemInfos for all systems within a
@@ -136,7 +151,7 @@ this.defineCompatibilityGetter = function (constructorName, oldName, newName)
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
 		return this[newName];
 	};
-	global[constructorName].__proto__.__defineGetter__(oldName, getter);
+	Object.getPrototypeOf(global[constructorName]).__defineGetter__(oldName, getter);
 };
 
 // Define a write-only property that is an alias for another property.
@@ -147,7 +162,7 @@ this.defineCompatibilitySetter = function (constructorName, oldName, newName)
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + newName + " instead.");
 		this[newName] = value;
 	};
-	global[constructorName].__proto__.__defineSetter__(oldName, setter);
+	Object.getPrototypeOf(global[constructorName]).__defineSetter__(oldName, setter);
 };
 
 // Define a read/write property that is an alias for another property.
@@ -170,8 +185,8 @@ this.defineCompatibilityWriteOnly = function (constructorName, oldName, funcName
 		special.jsWarning(constructorName + "." + oldName + " is deprecated, use " + constructorName + "." + funcName + "() instead.");
 		this[funcName](value);
 	};
-	global[constructorName].__proto__.__defineGetter__(oldName, getter);
-	global[constructorName].__proto__.__defineSetter__(oldName, setter);
+	Object.getPrototypeOf(global[constructorName]).__defineGetter__(oldName, getter);
+	Object.getPrototypeOf(global[constructorName]).__defineSetter__(oldName, setter);
 };
 
 // Define a compatibility getter for a property that's moved to another property.
@@ -214,82 +229,3 @@ this.defineCompatibilitySubMethod = function (singletonName, subName, methodName
 		return sub[methodName].apply(sub, arguments);
 	};
 };
-
-
-/**** To be removed after 1.74 ****/
-Entity.__proto__.setPosition = function ()
-{
-	special.jsWarning("Entity.setPosition() is deprecated, use entity.position = foo instead.");
-	this.position = Vector3D.apply(Vector3D, arguments);
-};
-
-
-Entity.__proto__.setOrientation = function ()
-{
-	special.jsWarning("Entity.setOrientation() is deprecated, use entity.orientation = foo instead.");
-	this.orientation = Quaternion.apply(Quaternion, arguments);
-};
-
-
-Planet.__proto__.setTexture = function (texture)
-{
-	special.jsWarning("Planet.setTexture() is deprecated, use planet.texture = \"foo\" instead.");
-	this.texture = texture;
-};
-
-
-Ship.__proto__.hasEquipment = function (eqKey)
-{
-	var actualKey = eqKey;
-	var expectedStatus = "EQUIPMENT_OK";
-	
-	// Handle _DAMAGED keys.
-	if (/.*_DAMAGED$/.test(eqKey) && EquipmentInfo.infoForKey(eqKey) == null)
-	{
-		expectedStatus = "EQUIPMENT_DAMAGED";
-		actualKey = eqKey.slice(0, -8);
-	}
-	
-	special.jsWarning("Ship.hasEquipment(\"" + eqKey + "\") is deprecated, use ship.equipmentStatus(\"" + actualKey + "\") == \"" + expectedStatus + "\" instead.");
-	
-	return EquipmentInfo.infoForKey(actualKey) != null && this.equipmentStatus(actualKey) == expectedStatus;
-}
-
-// Entity.ID, Entity.entityWithID(), ability to pass an ID instead of an entity
-
-
-system.__defineGetter__("goingNova", function ()
-{
-	special.jsWarning("system.goingNova is deprecated, use system.sun.isGoingNova instead.");
-	return this.sun.isGoingNova;
-});
-
-
-system.__defineGetter__("goneNova", function ()
-{
-	special.jsWarning("system.goneNova is deprecated, use system.sun.hasGoneNova instead.");
-	return this.sun.hasGoneNova;
-});
-
-
-Ship.__defineGetter__("availableCargoSpace", function ()
-{
-	special.jsWarning("ship.availableCargoSpace is deprecated, use ship.cargoSpaceAvailable instead.");
-	return this.cargoSpaceAvailable;
-});
-
-
-Ship.__defineGetter__("cargoCapacity", function ()
-{
-	special.jsWarning("ship.cargoCapacity is deprecated, use ship.cargoSpaceCapacity instead.");
-	return this.cargoSpaceCapacity;
-});
-
-
-mission.runMissionScreen = function (_messageKey, _backgroundImage, _choiceKey, _shipKey, _musicKey)
-{
-	special.jsWarning("Mission.runMissionScreen() is deprecated, use Mission.runScreen() instead.");
-	// pre-1.74, trying to set mission backgrounds would create background overlays instead: that behaviour is retained here for backward compatibility
-	mission.runScreen({music:_musicKey, model:_shipKey, choicesKey:_choiceKey, overlay:_backgroundImage, messageKey:_messageKey});
-};
-

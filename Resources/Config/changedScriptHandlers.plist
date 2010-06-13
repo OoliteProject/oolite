@@ -9,6 +9,4 @@
 */
 
 {
-	"shipTargetDestroyed" = "shipDestroyedTarget";
-	"shipTargetLost" = "shipLostTarget";
 }

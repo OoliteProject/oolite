@@ -40,9 +40,6 @@ static JSObject		*sEntityPrototype;
 static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
-// Static methods
-static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-
 
 static JSExtendedClass sEntityClass =
 {
@@ -70,7 +67,6 @@ static JSExtendedClass sEntityClass =
 enum
 {
 	// Property IDs
-	kEntity_ID,					// universalID, int, read-only
 	kEntity_position,			// position in system space, Vector, read/write
 	kEntity_orientation,		// orientation, quaternion, read/write
 	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
@@ -95,7 +91,6 @@ enum
 static JSPropertySpec sEntityProperties[] =
 {
 	// JS name					ID							flags
-	{ "ID",						kEntity_ID,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "position",				kEntity_position,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
@@ -126,40 +121,18 @@ static JSFunctionSpec sEntityMethods[] =
 };
 
 
-static JSFunctionSpec sEntityStaticMethods[] =
-{
-	// JS name					Function					min args
-	{ "entityWithID",			EntityStaticEntityWithID,	1 },
-	{ 0 }
-};
-
-
 void InitOOJSEntity(JSContext *context, JSObject *global)
 {
-	sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, sEntityStaticMethods);
+	sEntityPrototype = JS_InitClass(context, global, NULL, &sEntityClass.base, NULL, 0, sEntityProperties, sEntityMethods, NULL, NULL);
 	JSRegisterObjectConverter(&sEntityClass.base, JSBasicPrivateObjectConverter);
 }
 
 
 BOOL JSValueToEntity(JSContext *context, jsval value, Entity **outEntity)
 {
-	Entity		*entity = nil;
-	
-	if (outEntity == NULL) return NO;
-	
 	if (JSVAL_IS_OBJECT(value))
 	{
 		return JSEntityGetEntity(context, JSVAL_TO_OBJECT(value), outEntity);
-	}
-	else if (JSVAL_IS_INT(value))	// Should we accept general numbers? (Currently, UniversalIDs are clamped to [100, 1000].)
-	{
-		OOReportJSWarning(context, @"The ability to pass an entity ID instead of an entity is deprecated and will be removed in a future version of Oolite.");
-		entity = [UNIVERSE entityForUniversalID:JSVAL_TO_INT(value)];
-		if (entity && [entity isVisibleToScripts])
-		{
-			*outEntity = [[entity retain] autorelease];
-			return YES;
-		}
 	}
 	
 	return NO;
@@ -223,12 +196,6 @@ static JSBool EntityGetProperty(JSContext *context, JSObject *this, jsval name, 
 	
 	switch (JSVAL_TO_INT(name))
 	{
-		case kEntity_ID:
-			OOReportJSWarning(context, @"The property Entity.ID is deprecated and will be removed in a future version of Oolite.");
-			*outValue = INT_TO_JSVAL([entity universalID]);
-			OK = YES;
-			break;
-		
 		case kEntity_position:
 			OK = VectorToJSValue(context, [entity position], outValue);
 			break;
@@ -366,27 +333,4 @@ static JSBool EntitySetProperty(JSContext *context, JSObject *this, jsval name, 
 	}
 	
 	return OK;
-}
-
-
-// *** Static methods ***
-
-// entityWithID(ID : Number) : Entity
-static JSBool EntityStaticEntityWithID(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	Entity					*result = nil;
-	int32					ID;
-	
-	OOReportJSWarning(context, @"The function Entity.entityWithID() is deprecated and will be removed in a future version of Oolite.");
-	
-	if (EXPECT_NOT(!JS_ValueToInt32(context, *argv, &ID)))
-	{
-		OOReportJSBadArguments(context, @"Entity", @"entityWithID", argc, argv, @"Invalid entity ID", @"integer");
-		return NO;
-	}
-	
-	result = [UNIVERSE entityForUniversalID:ID];
-	if (result != nil)  *outResult = [result javaScriptValueInContext:context];
-	else  *outResult = JSVAL_NULL;
-	return YES;
 }

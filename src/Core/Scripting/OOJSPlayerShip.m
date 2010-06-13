@@ -51,7 +51,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -142,7 +141,6 @@ static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
 	{ "launch",							PlayerShipLaunch,					0 },
-	{ "awardCargo",						PlayerShipAwardCargo,				1 },
 	{ "canAwardCargo",					PlayerShipCanAwardCargo,			1 },
 	{ "removeAllCargo",					PlayerShipRemoveAllCargo,			0 },
 	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,			1 },
@@ -433,47 +431,6 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	[OOPlayerForScripting() launchFromStation];
-	return YES;
-}
-
-
-// awardCargo(type : String [, quantity : Number])
-static JSBool PlayerShipAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*typeString = nil;
-	OOCargoType				type;
-	int32					amount = 1;
-	BOOL					gotAmount = YES;
-	
-	typeString = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
-	if (EXPECT_NOT(typeString == nil || !gotAmount))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"awardCargo", argc, argv, nil, @"type and optional quantity");
-		return NO;
-	}
-	
-	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == CARGO_UNDEFINED))
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"awardCargo", @"Unknown cargo type \"%@\".", typeString);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(amount < 0))
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"awardCargo", @"Cargo quantity (%i) is negative.", amount);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(![player canAwardCargoType:type amount:amount]))
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"awardCargo", @"Cannot award %u units of cargo \"%@\" at this time (use canAwardCargo() to avoid this error).", amount, typeString);
-		return NO;
-	}
-	OOReportJSWarning(context, @"PlayerShip.awardCargo('foo',bar) is deprecated and will be removed in a future version of Oolite. Use manifest['foo'] = bar; instead.");
-	[player awardCargoType:type amount:amount];
 	return YES;
 }
 
