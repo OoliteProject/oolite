@@ -20,10 +20,10 @@ Gameplay
 Graphics
 * The default shader mode is now Full except on first-generation shader-
   capable systems. Full shader mode will be disabled on some or all of those
-   systems in future, but is currently enabled for testing purposes.
+  systems in future, but is currently enabled for testing purposes.
 * [Mac] Enabled "Detailed Planets" option.
 * Flashers and particle effects look better. Very large flashers no longer pop
-   into view at unexpectedly close range.
+  into view at unexpectedly close range.
 * Reduced aliasing artefacts ("twinkling") in star field and distant flashers/
   particles.
 * Many of the built-in ships have been edited to fix minor lighting issues.
@@ -47,6 +47,7 @@ Bug fixes
 * Hot ships now dump hot cargo (and escape pods).
 * Ships can no longer be sold with both types of energy unit (the regular one
   is removed).
+* Cargo bay extensions now work again as expected.
 * [Mac] Full screen mode is once again restored when relaunching as
   appropriate.
 * [Mac] No longer freezes indefinitely while waiting for iTunes to respond if,
