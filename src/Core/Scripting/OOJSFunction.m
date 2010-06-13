@@ -143,8 +143,11 @@ MA 02110-1301, USA.
 					  result:(jsval *)result
 {
 	[OOJSScript pushScript:nil];
+	OOJSStartTimeLimiter();
 	BOOL OK = JS_CallFunction(context, jsThis, _function, argc, argv, result);
+	OOJSStopTimeLimiter();
 	[OOJSScript popScript:nil];
+	
 	return OK;
 }
 

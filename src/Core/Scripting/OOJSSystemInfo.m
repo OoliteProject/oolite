@@ -523,6 +523,8 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSMutableArray *result = [NSMutableArray arrayWithCapacity:256];
 	
+	OOJSPauseTimeLimiter();
+	
 	// Iterate over systems.
 	BOOL OK = YES;
 	OOGalaxyID galaxy = [[PlayerEntity sharedPlayer] currentGalaxyID];
@@ -534,7 +536,9 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this
 		jsval args[1] = { [info javaScriptValueInContext:context] };
 		
 		jsval rval = JSVAL_VOID;
+		OOJSResumeTimeLimiter();
 		OK = JS_CallFunctionValue(context, jsThis, predicate, 1, args, &rval);
+		OOJSPauseTimeLimiter();
 		
 		if (OK)
 		{
@@ -563,5 +567,6 @@ static JSBool SystemInfoStaticFilteredSystems(JSContext *context, JSObject *this
 	}
 	[pool release];
 	
+	OOJSResumeTimeLimiter();
 	return OK;
 }

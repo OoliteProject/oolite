@@ -284,6 +284,7 @@
 	script.javaScript.warning				= $scriptError;
 	script.javaScript.badParameter			= $scriptError;
 	script.javaScript.context.create		= no;
+	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;

@@ -59,6 +59,8 @@ MA 02110-1301, USA.
 #import "OOJSEquipmentInfo.h"
 #import "OOJSShipGroup.h"
 
+#import "OOProfilingStopwatch.h"
+
 #import <stdlib.h>
 
 
@@ -69,6 +71,9 @@ MA 02110-1301, USA.
 #define OOJSENGINE_JSVERSION		JSVERSION_1_7
 #define OOJSENGINE_CONTEXT_OPTIONS	JSOPTION_VAROBJFIX | JSOPTION_STRICT | JSOPTION_NATIVE_BRANCH_CALLBACK
 #endif
+
+
+#define OOJS_STACK_SIZE			8192
 
 
 #ifdef MOZILLA_1_8_BRANCH
@@ -106,6 +111,9 @@ static void RegisterStandardObjectConverters(JSContext *context);
 
 static id JSArrayConverter(JSContext *context, JSObject *object);
 static id JSGenericObjectConverter(JSContext *context, JSObject *object);
+
+static JSBool ContextCallback(JSContext *context, uintN contextOp);
+static JSBool BranchCallback(JSContext *context, JSScript *script);
 
 
 static void ReportJSError(JSContext *context, const char *message, JSErrorReport *report)
@@ -234,9 +242,11 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		OOLog(@"script.javaScript.init.error", @"***** FATAL ERROR: failed to create JavaScript %@.", @"runtime");
 		exit(1);
 	}
+	
+	JS_SetContextCallback(runtime, ContextCallback);
 
 	// create a context and associate it with the JS run time
-	mainContext = JS_NewContext(runtime, 8192);
+	mainContext = JS_NewContext(runtime, OOJS_STACK_SIZE);
 	
 	// if context creation failed, end the program here
 	if (mainContext == NULL)
@@ -343,7 +353,11 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSAssert(JSVAL_IS_OBJECT(function) && JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)), @"Attempt to call a JavaScript value that isn't a function.");
 	
 	context = [self acquireContext];
+	
+	OOJSStartTimeLimiter();
 	result = JS_CallFunctionValue(context, jsThis, function, argc, argv, outResult);
+	OOJSStopTimeLimiter();
+	
 	JS_ReportPendingException(context);
 	[self releaseContext:context];
 	
@@ -374,7 +388,7 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	{
 		OOLog(@"script.javaScript.context.create", @"Creating JS context.");
 		
-		context = JS_NewContext(runtime, 8192);
+		context = JS_NewContext(runtime, OOJS_STACK_SIZE);
 		// if context creation failed, end the program here
 		if (context == NULL)
 		{
@@ -464,6 +478,134 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 @end
 
 #endif
+
+
+
+#if 1 // OO_DEBUG
+#define OOJS_DEBUG_LIMITER	1
+#else
+#define OOJS_DEBUG_LIMITER	0
+#endif
+
+
+static unsigned sLimiterStartDepth;
+static int sLimiterPauseDepth;
+static OOHighResTimeValue sLimiterStart;
+static OOHighResTimeValue sLimiterPauseStart;
+static double sLimiterTimeLimit;
+static unsigned long sBranchCount;
+enum
+{
+	/*	Inverse proportion of BranchCallback calls on which we test the time
+	 limit. Must be a power of two!
+	 */
+#if OOJS_DEBUG_LIMITER
+	kMaxBranchCount = (1 << 10)	// 1024
+#else
+	kMaxBranchCount = (1 << 18)	// 262144
+#endif
+};
+
+#if OOJS_DEBUG_LIMITER
+#define OOJS_TIME_LIMIT		(0.05)	// seconds
+#else
+#define OOJS_TIME_LIMIT		(0.25)	// seconds
+#endif
+
+
+void OOJSStartTimeLimiter(void)
+{
+	if (sLimiterStartDepth++ == 0)
+	{
+		sLimiterTimeLimit = OOJS_TIME_LIMIT;
+		sLimiterPauseDepth = 0;
+		OODisposeHighResTime(sLimiterStart);
+		
+		sLimiterStart = OOGetHighResTime();
+	}
+}
+
+
+void OOJSStopTimeLimiter(void)
+{
+#ifndef NDEBUG
+	if (sLimiterStartDepth == 0)
+	{
+		OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
+		return;
+	}
+#endif
+	
+	if (--sLimiterStartDepth == 0)  sLimiterTimeLimit = 0.0;
+}
+
+
+void OOJSPauseTimeLimiter(void)
+{
+	if (sLimiterPauseDepth++ == 0)
+	{
+		OODisposeHighResTime(sLimiterPauseStart);
+		sLimiterPauseStart = OOGetHighResTime();
+	}
+}
+
+
+void OOJSResumeTimeLimiter(void)
+{
+	if (--sLimiterPauseDepth == 0)
+		
+	{
+		OOHighResTimeValue now = OOGetHighResTime();
+		OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterPauseStart, now);
+		OODisposeHighResTime(now);
+		
+		sLimiterTimeLimit += elapsed;
+	}
+}
+
+
+static JSBool BranchCallback(JSContext *context, JSScript *script)
+{
+	// This will be called a _lot_. Efficiency is important.
+	if (EXPECT(sBranchCount++ & (kMaxBranchCount - 1)))
+	{
+		return YES;
+	}
+	
+	// One in kMaxBranchCount calls, check if the timer has overflowed.
+	sBranchCount = 0;
+	
+#ifndef NDEBUG
+	if (sLimiterStartDepth == 0)
+	{
+		OOLog(@"bug.javaScript.limiterInactive", @"JavaScript branch callback hit while time limiter inactive. This is an internal error, please report it. bugs@oolite.org");
+	}
+#endif
+	
+	if (sLimiterPauseDepth > 0)  return YES;
+	
+	OOHighResTimeValue now = OOGetHighResTime();
+	OOTimeDelta elapsed = OOHighResTimeDeltaInSeconds(sLimiterStart, now);
+	OODisposeHighResTime(now);
+	
+	if (elapsed < sLimiterTimeLimit)  return YES;
+	
+	OOLogERR(@"script.javaScript.timeLimit", @"Script %@ ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+	
+	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
+	
+	return NO;
+}
+
+
+static JSBool ContextCallback(JSContext *context, uintN contextOp)
+{
+	if (contextOp == JSCONTEXT_NEW)
+	{
+		JS_SetBranchCallback(context, BranchCallback);
+	}
+	return YES;
+}
 
 
 static NSString *CallerPrefix(NSString *scriptClass, NSString *function)
@@ -1303,7 +1445,12 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	if (param->errorFlag)  return NO;
 	
 	args[0] = [entity javaScriptValueInContext:param->context];
-	if (JS_CallFunctionValue(param->context, param->jsThis, param->function, 1, args, &rval))
+	
+	OOJSStartTimeLimiter();
+	BOOL success = JS_CallFunctionValue(param->context, param->jsThis, param->function, 1, args, &rval);
+	OOJSStopTimeLimiter();
+	
+	if (success)
 	{
 		if (!JS_ValueToBoolean(param->context, rval, &result))  result = NO;
 		if (JS_IsExceptionPending(param->context))

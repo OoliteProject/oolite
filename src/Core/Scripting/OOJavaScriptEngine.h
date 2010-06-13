@@ -314,6 +314,16 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 #endif
 
 
+/*	Time limiter
+	
+	
+ */
+void OOJSStartTimeLimiter(void);
+void OOJSStopTimeLimiter(void);
+void OOJSPauseTimeLimiter(void);
+void OOJSResumeTimeLimiter(void);
+
+
 #if OOJSENGINE_MONITOR_SUPPORT
 
 /*	Protocol for debugging "monitor" object.

@@ -185,10 +185,12 @@ static JSFunctionSpec sScriptMethods[] =
 	// Run the script (allowing it to set up the properties we need, as well as setting up those event handlers)
 	if (!problem)
 	{
+		OOJSStartTimeLimiter();
 		if (!JS_ExecuteScript(context, _jsSelf, script, &returnValue))
 		{
 			problem = @"could not run script";
 		}
+		OOJSStopTimeLimiter();
 		
 		// We don't need the script any more - the event handlers hang around as long as the JS object exists.
 		JS_DestroyScript(context, script);
@@ -410,7 +412,9 @@ static JSFunctionSpec sScriptMethods[] =
 		}
 		
 		// Actually call the function.
+		OOJSStartTimeLimiter();
 		OK = JS_CallFunction(context, _jsSelf, function, argc, argv, &value);
+		OOJSStopTimeLimiter();
 		
 		// Re-garbage-collectibalize the arguments and free the array.
 		if (argv != NULL)

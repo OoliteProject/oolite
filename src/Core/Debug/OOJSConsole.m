@@ -349,15 +349,19 @@ static JSBool ConsoleSetProperty(JSContext *context, JSObject *this, jsval name,
 			sValue = JSValToNSString(context, *value);
 			if (sValue != nil)
 			{
+				OOJSPauseTimeLimiter();
 				OOShaderSetting setting = StringToShaderSetting(sValue);
 				[UNIVERSE setShaderEffectsLevel:setting transiently:YES];
+				OOJSResumeTimeLimiter();
 			}
 			break;
 			
 		case kConsole_reducedDetailMode:
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
+				OOJSPauseTimeLimiter();
 				[UNIVERSE setReducedDetail:bValue transiently:YES];
+				OOJSResumeTimeLimiter();
 			}
 			break;
 			
@@ -590,7 +594,9 @@ static JSBool ConsoleInspectEntity(JSContext *context, JSObject *this, uintN arg
 	{
 		if ([entity respondsToSelector:@selector(inspect)])
 		{
+			OOJSPauseTimeLimiter();
 			[entity inspect];
+			OOJSResumeTimeLimiter();
 		}
 	}
 	
@@ -610,7 +616,11 @@ static JSBool ConsoleCallObjCMethod(JSContext *context, JSObject *this, uintN ar
 		return NO;
 	}
 	
-	return OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, argv, outResult);
+	OOJSPauseTimeLimiter();
+	BOOL result = OOJSCallObjCObjectMethod(context, object, [object jsClassName], argc, argv, outResult);
+	OOJSResumeTimeLimiter();
+	
+	return result;
 }
 
 
@@ -669,7 +679,10 @@ static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN ar
 // function writeMemoryStats() : void
 static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
+	OOJSPauseTimeLimiter();
 	[[OODebugMonitor sharedDebugMonitor] dumpMemoryStatistics];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
 }
 
