@@ -5,6 +5,7 @@ Doc/ReadMe.rtfd
 
 Minor versions:
 installers/autopackage/default.x86.apspec
+installers/autopackage/default.x86_64.apspec
 debian/changelog.in
 src/Cocoa/Info-Oolite.plist
 src/Cocoa/oolite-version.plist

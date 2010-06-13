@@ -33,7 +33,7 @@ this.name			= "oolite-default-ship-script";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007–2009 the Oolite team.";
 this.description	= "Standard script for ships.";
-this.version		= "1.74";
+this.version		= "1.75";
 
 
 // launch_actions handled on shipSpawned().
