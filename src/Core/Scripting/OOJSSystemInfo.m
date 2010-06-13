@@ -273,8 +273,11 @@ void InitOOJSSystemInfo(JSContext *context, JSObject *global)
 
 BOOL GetJSSystemInfoForCurrentSystem(JSContext *context, jsval *outInfo)
 {
+	OOJSPauseTimeLimiter();
 	PlayerEntity *player = [PlayerEntity sharedPlayer];
-	return GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID], outInfo);
+	BOOL result = GetJSSystemInfoForSystem(context, [player currentGalaxyID], [player currentSystemID], outInfo);
+	OOJSResumeTimeLimiter();
+	return result;
 }
 
 
@@ -290,14 +293,17 @@ BOOL GetJSSystemInfoForSystem(JSContext *context, OOGalaxyID galaxy, OOSystemID 
 	}
 	
 	// If not, create a new one.
+	OOJSPauseTimeLimiter();
 	OOSystemInfo *info = [[[OOSystemInfo alloc] initWithGalaxy:galaxy system:system] autorelease];
+	*outInfo = [info javaScriptValueInContext:context];
+	OOJSResumeTimeLimiter();
+	
 	if (info == nil)
 	{
 		OOReportJSError(context, @"Could not create system info object for galaxy %u, system %i.", galaxy, system);
 		return NO;
 	}
 	
-	*outInfo = [info javaScriptValueInContext:context];
 	if (JSVAL_IS_OBJECT(*outInfo) && !JSVAL_IS_NULL(*outInfo))
 	{
 		// Cache is not a root; we clear it in finalize if necessary.

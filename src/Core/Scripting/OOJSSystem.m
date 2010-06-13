@@ -293,7 +293,9 @@ static JSBool SystemGetProperty(JSContext *context, JSObject *this, jsval name, 
 			break;
 			
 		case kSystem_allShips:
+			OOJSPauseTimeLimiter();
 			result = [UNIVERSE findShipsMatchingPredicate:NULL parameter:NULL inRange:-1 ofEntity:nil];
+			OOJSResumeTimeLimiter();
 			break;
 			
 		case kSystem_info:
@@ -455,7 +457,9 @@ static JSBool SystemAddPlanet(JSContext *context, JSObject *this, uintN argc, js
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	planet = [player addPlanet:key];
+	OOJSResumeTimeLimiter();
 	*outResult = planet ? [planet javaScriptValueInContext:context] : JSVAL_NULL;
 	
 	return YES;
@@ -476,7 +480,9 @@ static JSBool SystemAddMoon(JSContext *context, JSObject *this, uintN argc, jsva
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	planet = [player addMoon:key];
+	OOJSResumeTimeLimiter();
 	*outResult = planet ? [planet javaScriptValueInContext:context] : JSVAL_NULL;
 	
 	return YES;
@@ -512,7 +518,10 @@ static JSBool SystemCountShipsWithPrimaryRole(JSContext *context, JSObject *this
 	argv++;
 	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
 	
+	OOJSPauseTimeLimiter();
 	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithPrimaryRole:role inRange:range ofEntity:relativeTo]);
+	OOJSResumeTimeLimiter();
+	
 	return YES;
 }
 
@@ -536,7 +545,10 @@ static JSBool SystemCountShipsWithRole(JSContext *context, JSObject *this, uintN
 	argv++;
 	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
 	
+	OOJSPauseTimeLimiter();
 	*outResult = INT_TO_JSVAL([UNIVERSE countShipsWithRole:role inRange:range ofEntity:relativeTo]);
+	OOJSResumeTimeLimiter();
+	
 	return YES;
 }
 
@@ -562,7 +574,10 @@ static JSBool SystemShipsWithPrimaryRole(JSContext *context, JSObject *this, uin
 	if (!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range))  return NO;
 	
 	// Search for entities
+	OOJSPauseTimeLimiter();
 	result = FindShips(HasPrimaryRolePredicate, role, relativeTo, range);
+	OOJSResumeTimeLimiter();
+	
 	if (result != nil)
 	{
 		*outResult = [result javaScriptValueInContext:context];
@@ -596,7 +611,10 @@ static JSBool SystemShipsWithRole(JSContext *context, JSObject *this, uintN argc
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
+	OOJSPauseTimeLimiter();
 	result = FindShips(HasRolePredicate, role, relativeTo, range);
+	OOJSResumeTimeLimiter();
+	
 	if (result != nil)
 	{
 		*outResult = [result javaScriptValueInContext:context];
@@ -638,7 +656,10 @@ static JSBool SystemEntitiesWithScanClass(JSContext *context, JSObject *this, ui
 	if (EXPECT_NOT(!GetRelativeToAndRange(context, &argc, &argv, &relativeTo, &range)))  return NO;
 	
 	// Search for entities
+	OOJSPauseTimeLimiter();
 	result = FindJSVisibleEntities(HasScanClassPredicate, [NSNumber numberWithInt:scanClass], relativeTo, range);
+	OOJSResumeTimeLimiter();
+	
 	if (result != nil)
 	{
 		*outResult = [result javaScriptValueInContext:context];
@@ -675,7 +696,10 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	
 	// Search for entities
 	JSFunctionPredicateParameter param = { context, function, jsThis, NO };
+	OOJSPauseTimeLimiter();
 	result = FindJSVisibleEntities(JSFunctionPredicate, &param, relativeTo, range);
+	OOJSResumeTimeLimiter();
+	
 	if (EXPECT_NOT(param.errorFlag))  return NO;
 	
 	if (result != nil)
@@ -740,8 +764,10 @@ static JSBool AddShipsOrGroup(JSContext *context, JSObject *this, uintN argc, js
 		}
 	}
 	
+	OOJSPauseTimeLimiter();
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.
 	result = [UNIVERSE addShipsAt:where withRole:role quantity:count withinRadius:radius asGroup:isGroup];
+	OOJSResumeTimeLimiter();
 	
 	if (isGroup && result != nil)
 	{
@@ -816,9 +842,11 @@ static JSBool SystemAddShipsToRoute(JSContext *context, JSObject *this, uintN ar
 		}
 		route = [route lowercaseString];
 	}
-
+	
+	OOJSPauseTimeLimiter();
 	// Note: the use of witchspace-in effects (as in legacy_addShips) depends on proximity to the witchpoint.	
 	result = [UNIVERSE addShipsToRoute:route withRole:role quantity:count routeFraction:where asGroup:isGroup];
+	OOJSPauseTimeLimiter();
 	
 	if (isGroup && result != nil)
 	{
@@ -863,7 +891,9 @@ static JSBool SystemLegacyAddShips(JSContext *context, JSObject *this, uintN arg
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	while (count--)  [UNIVERSE witchspaceShipWithPrimaryRole:role];
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -887,7 +917,9 @@ static JSBool SystemLegacyAddSystemShips(JSContext *context, JSObject *this, uin
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	while (count--)  [UNIVERSE addShipWithRole:role nearRouteOneAt:position];
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -916,8 +948,10 @@ static JSBool SystemLegacyAddShipsAt(JSContext *context, JSObject *this, uintN a
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, where.x, where.y, where.z];
 	[player addShipsAt:arg];
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -946,8 +980,10 @@ static JSBool SystemLegacyAddShipsAtPrecisely(JSContext *context, JSObject *this
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f", role, count, coordScheme, where.x, where.y, where.z];
 	[player addShipsAtPrecisely:arg];
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -979,8 +1015,10 @@ static JSBool SystemLegacyAddShipsWithinRadius(JSContext *context, JSObject *thi
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	arg = [NSString stringWithFormat:@"%@ %d %@ %f %f %f %f", role, count, coordScheme, where.x, where.y, where.z, radius];
 	[player addShipsWithinRadius:arg];
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -999,7 +1037,10 @@ static JSBool SystemLegacySpawnShip(JSContext *context, JSObject *this, uintN ar
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	[UNIVERSE spawnShip:key];
+	OOJSResumeTimeLimiter();
+	
 	return YES;
 }
 
@@ -1034,7 +1075,10 @@ static JSBool SystemStaticSystemIDForName(JSContext *context, JSObject *this, ui
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	*outResult = INT_TO_JSVAL([UNIVERSE systemIDForSystemSeed:[UNIVERSE systemSeedForSystemName:name]]);
+	OOJSResumeTimeLimiter();
+	
 	return YES;
 }
 
@@ -1063,7 +1107,11 @@ static JSBool SystemStaticInfoForSystem(JSContext *context, JSObject *this, uint
 		return NO;
 	}
 	
-	return GetJSSystemInfoForSystem(context, galaxyID, systemID, outResult);
+	OOJSPauseTimeLimiter();
+	BOOL result = GetJSSystemInfoForSystem(context, galaxyID, systemID, outResult);
+	OOJSResumeTimeLimiter();
+	
+	return result;
 }
 
 

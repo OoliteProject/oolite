@@ -316,7 +316,16 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 
 /*	Time limiter
 	
+	The time limiter stops scripts from running an arbitrarily long time.
 	
+	The time limiter must be started before calling into JavaScript code. Calls
+	to OOJSStartTimeLimiter() and OOJSStopTimeLimiter() must be balanced, and
+	may be nested.
+	
+	The time limiter can be paused and resumed for native operations that are
+	known to be slow. OOJSPauseTimeLimiter() and OOJSResumeTimeLimiter() must
+	be balanced and can be nested, but the nest count may be negative - it is
+	valid to call OOJSResumeTimeLimiter() followed by OOJSPauseTimeLimiter().
  */
 void OOJSStartTimeLimiter(void);
 void OOJSStopTimeLimiter(void);

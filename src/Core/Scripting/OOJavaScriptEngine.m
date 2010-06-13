@@ -500,7 +500,7 @@ enum
 	 limit. Must be a power of two!
 	 */
 #if OOJS_DEBUG_LIMITER
-	kMaxBranchCount = (1 << 10)	// 1024
+	kMaxBranchCount = (1 << 8)	// 256
 #else
 	kMaxBranchCount = (1 << 18)	// 262144
 #endif
@@ -1446,8 +1446,10 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	
 	args[0] = [entity javaScriptValueInContext:param->context];
 	
-	OOJSStartTimeLimiter();
+	OOJSResumeTimeLimiter();
+	OOJSResumeTimeLimiter();
 	BOOL success = JS_CallFunctionValue(param->context, param->jsThis, param->function, 1, args, &rval);
+	OOJSPauseTimeLimiter();
 	OOJSStopTimeLimiter();
 	
 	if (success)
