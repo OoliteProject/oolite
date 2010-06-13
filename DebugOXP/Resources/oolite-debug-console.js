@@ -52,8 +52,7 @@ shaderMode : String (read/write)
 	If it is SHADERS_NOT_SUPPORTED, it cannot be set to any other value. If it
 	is not SHADERS_NOT_SUPPORTED, it can be set to SHADERS_OFF, SHADERS_SIMPLE
 	or SHADERS_FULL, unless maximumShaderMode (see below) is SHADERS_SIMPLE,
-	in which case SHADERS_FULL is not allowed. As of Oolite 1.74, these
-	changes take effect immediately.
+	in which case SHADERS_FULL is not allowed.
 	
 	NOTE: this is equivalent to oolite.gameSettings.shaderEffectsLevel, which
 	is available even when the debug console is not active, but is read-only.
@@ -151,7 +150,7 @@ this.name			= "oolite-debug-console";
 this.author			= "Jens Ayton";
 this.copyright		= "© 2007-2010 the Oolite team.";
 this.description	= "Debug console script.";
-this.version		= "1.74";
+this.version		= "1.75";
 
 
 this.inputBuffer	= "";
@@ -481,11 +480,11 @@ function consoleMessage()
 
 
 // Add inspect() method to all entities, to show inspector palette (Mac OS X only; no effect on other platforms).
-Entity.__proto__.inspect = function ()
+Object.getPrototypeOf(Entity).inspect = function ()
 {
 	debugConsole.inspectEntity(this);
 }
 
 
 // Add call() method to all entities (calls an Objective-C method directly), now only available with debug OXP to avoid abuse.
-Entity.__proto__.call = debugConsole.__callObjCMethod;
+Object.getPrototypeOf(Entity).call = debugConsole.__callObjCMethod;

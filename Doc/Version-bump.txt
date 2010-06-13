@@ -2,6 +2,7 @@ Major versions:
 Doc/OoliteReadMe.doc
 Doc/OoliteReadMe.pdf
 Doc/ReadMe.rtfd
+DebugOXP/Resources/oolite-debug-console.js
 
 Minor versions:
 installers/autopackage/default.x86.apspec
