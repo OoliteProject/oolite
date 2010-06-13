@@ -1512,7 +1512,6 @@ static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc,
 			// unknown types and EQ_CARGO_BAY are dealt with inside awardEquipment
 			else OK = [(PlayerEntity*)thisEnt awardEquipment:key];
 		}
-		// check here for unknown types: 'EQ_TRUMBLE' is an unknown type, but valid for players. -kaks 20091129
 		else if([OOEquipmentType equipmentTypeWithIdentifier:key] != nil)
 		{
 			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [thisEnt removeMissiles];

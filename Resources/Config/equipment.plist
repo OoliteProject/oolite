@@ -153,6 +153,15 @@
 			strict_mode_compatible = true;
 		}
 	),
+	(
+		/* Cute, fluffy pet. Not buyable through usual channels, you'll have to find a specialist merchant. */
+		100, 300, "Trumble",
+		"EQ_TRUMBLE",
+		"A cute alien pet.",
+		{
+			strict_mode_compatible = true;
+		}
+	),
 	( /* Passenger Compartment, like missiles this can be bought multiple times */
 		5, 8250, "Passenger Berth - takes up 5t of cargo space",
 		"EQ_PASSENGER_BERTH",
