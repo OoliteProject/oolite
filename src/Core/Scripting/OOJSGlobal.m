@@ -206,9 +206,11 @@ static JSBool GlobalLog(JSContext *context, JSObject *this, uintN argc, jsval *a
 	OOLog(messageClass, @"%@", message);
 	
 #if OOJSENGINE_MONITOR_SUPPORT
+	OOJSPauseTimeLimiter();
 	[[OOJavaScriptEngine sharedEngine] sendMonitorLogMessage:message
 											withMessageClass:nil
 												   inContext:context];
+	OOJSResumeTimeLimiter();
 #endif
 	
 	return YES;

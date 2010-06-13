@@ -125,6 +125,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 	NSString		*highlight = @"*****";
 	NSString		*activeScript = nil;
 	
+	OOJSPauseTimeLimiter();
+	
 	jschar empty[1] = { 0 };
 	JSErrorReport blankReport =
 	{
@@ -191,6 +193,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 											  inContext:context];
 	JS_RestoreExceptionState(context, exState);
 #endif
+	
+	OOJSResumeTimeLimiter();
 }
 
 
