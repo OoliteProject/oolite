@@ -70,8 +70,8 @@ this.missionOffers = function ()
 				player.score += 256; // ship kills
 				mission.setInstructions(null);  // reset the mission briefing
 				missionVariables.thargplans = "MISSION_COMPLETE";
-				// for backward compatibility, hasEquipment doesn't check the damaged version.
-				if (player.ship.hasEquipment("EQ_ENERGY_UNIT") || player.ship.hasEquipment("EQ_ENERGY_UNIT_DAMAGED"))
+				// for backward compatibility, remove energy_unit.
+				if (player.ship.equipmentStatus("EQ_ENERGY_UNIT") !== "EQUIPMENT_UNAVAILABLE")
 				{
 					// remove the specified equipment, either working or damaged version.
 					player.ship.removeEquipment("EQ_ENERGY_UNIT");
