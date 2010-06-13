@@ -1361,9 +1361,16 @@ static BOOL replacingMissile = NO;
 	}
 	
 	// Load js script
-	[script autorelease];			
+	[script autorelease];
+	NSDictionary *scriptProperties = [NSDictionary dictionaryWithObject:self forKey:@"ship"];
 	script = [OOScript nonLegacyScriptFromFileNamed:[shipDict oo_stringForKey:@"script"] 
-										 properties:[NSDictionary dictionaryWithObject:self forKey:@"ship"]];
+										 properties:scriptProperties];
+	if (script == nil)
+	{
+		// Do not switch to using a default value above; we want to use the default script if loading fails.
+		script = [OOScript nonLegacyScriptFromFileNamed:@"oolite-default-player-script.js"
+											 properties:scriptProperties];
+	}
 	[script retain];
 	
 	return YES;
