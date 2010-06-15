@@ -124,8 +124,6 @@ There are now several outcomes:
 	You are our hero!
   
   You should have 100 g of gemstones (and nothing else) in your cargo hold.
-  [BUG: 'reference to undefined property "Gem-Stones"'. I had my original
-  cargo, despite the call to player.ship.removeAllCargo().]
   missionVariables.nova should now be "NOVA_HERO".
   
 * The dawdler: having jumped to any system, wait around for two game hours
@@ -139,7 +137,3 @@ There are now several outcomes:
 After testing each non-lethal path, return to the nova system. The sun should
 be overlarge, there should be no ships except you, some asteroids and a
 witchbuoy, and you should be overheating.
-
-[BUG: on entering the system, you'll get a message saying "Witchspace engine
-malfunction!", because the game assumes a system without a planet is a failed
-witchjump.]
