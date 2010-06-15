@@ -87,11 +87,11 @@ There are now several outcomes:
   Select [No, sorry.] You will get a comms message saying "Coward! You chose
   not to help the refugees!" (FIXME: this appears behind the station UI.
   Should it be removed, or deferred until launching?)
-  Immediately leave the station. The station should explode behind you. [BUG:
-  it doesn't.] Initiate galactic hyperspace jump with alacrity. The sun should
-  go nova nine seconds after you selected [No, sorry]. (This is visible as a
-  rising cabin temperature, not to mention a growing sun. In full shader mode,
-  your ship should be glowing pink by the time you jump.)
+  Immediately leave the station. The station should explode behind you.
+  Initiate galactic hyperspace jump with alacrity. The sun should go nova nine
+  seconds after you selected [No, sorry]. (This is visible as a rising cabin
+  temperature, not to mention a growing sun. In full shader mode, your ship
+  should be glowing pink by the time you jump.)
   
   Verify that missionVariables.nova is "NOVA_ESCAPE_COWARD", then dock. You
   should get the following message (with solar.png as a background):
@@ -106,8 +106,7 @@ There are now several outcomes:
   
 * The hero: same as above, but select [Okay, I'll help]. You will be launched
   from the station with 30 seconds to nova (and no fuel, unless you added
-  some). The station should explode behind you. [BUG: it doesn't.] Get out of
-  there.
+  some). The station should explode behind you. Get out of there.
   missionVariables.nova should be "NOVA_ESCAPED_SYSTEM". Your Manifest screen
   should have the message "Get the refugees to safety."
   

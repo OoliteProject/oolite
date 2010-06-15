@@ -1450,7 +1450,7 @@ BOOL JSFunctionPredicate(Entity *entity, void *parameter)
 	
 	args[0] = [entity javaScriptValueInContext:param->context];
 	
-	OOJSResumeTimeLimiter();
+	OOJSStartTimeLimiter();
 	OOJSResumeTimeLimiter();
 	BOOL success = JS_CallFunctionValue(param->context, param->jsThis, param->function, 1, args, &rval);
 	OOJSPauseTimeLimiter();
