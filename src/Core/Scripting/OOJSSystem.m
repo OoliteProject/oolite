@@ -683,7 +683,7 @@ static JSBool SystemFilteredEntities(JSContext *context, JSObject *this, uintN a
 	
 	// Get this and predicate arguments
 	function = argv[1];
-	if (!JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)) || !JS_ValueToObject(context, argv[0], &jsThis))
+	if (!JSVAL_IS_OBJECT(function) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)) || !JS_ValueToObject(context, argv[0], &jsThis))
 	{
 		OOReportJSBadArguments(context, @"System", @"filteredEntities", argc, argv, nil, @"this, predicate function, and optional reference entity and range");
 		return NO;
