@@ -24,6 +24,7 @@ MA 02110-1301, USA.
 
 #import "OOJavaScriptEngine.h"
 #import "OOJSScript.h"
+#import "jsdbgapi.h"
 
 #import "OOCollectionExtractors.h"
 #import "Universe.h"
@@ -186,6 +187,8 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 			OOLog(messageClass, @"      %s, line %d.", report->filename, report->lineno);
 		}
 	}
+	
+	OOJSDumpStack([NSString stringWithFormat:@"script.javaScript.stackTrace.%@", severity], context);
 	
 #if OOJSENGINE_MONITOR_SUPPORT
 	JSExceptionState *exState = JS_SaveExceptionState(context);
@@ -485,6 +488,72 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 #endif
 
 
+#ifndef NDEBUG
+
+void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
+{
+	if (!OOLogWillDisplayMessagesInClass(logMessageClass))  return;
+	
+	JSStackFrame *frame = NULL;
+	unsigned idx = 0;
+	while (JS_FrameIterator(context, &frame) != NULL)
+	{
+		JSScript *script = JS_GetFrameScript(context, frame);
+		NSString *desc = nil;
+		
+		if (script != NULL)
+		{
+			const char *fileName = JS_GetScriptFilename(context, script);
+			jsbytecode *PC = JS_GetFramePC(context, frame);
+			unsigned lineNo = JS_PCToLineNumber(context, script, PC);
+			
+			desc = [NSString stringWithUTF8String:fileName];
+			if (desc == nil)  desc = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
+			
+			NSString *funcDesc = nil;
+			JSFunction *function = JS_GetFrameFunction(context, frame);
+			if (function != NULL)
+			{
+				JSString *funcName = JS_GetFunctionId(function);
+				if (funcName != NULL)
+				{
+					funcDesc = [NSString stringWithJavaScriptString:funcName];
+					if (!JS_IsConstructorFrame(context, frame))
+					{
+						funcDesc = [funcDesc stringByAppendingString:@"()"];
+					}
+					else
+					{
+						funcDesc = [NSString stringWithFormat:@"new %@()", funcDesc];
+					}
+					
+				}
+				else
+				{
+					funcDesc = @"<anonymous function>";
+				}
+			}
+			else
+			{
+				funcDesc = @"<not a function frame>";
+			}
+			
+			desc = [NSString stringWithFormat:@"%@:%u %@", [desc lastPathComponent], lineNo, funcDesc];
+		}
+		else if (JS_IsNativeFrame(context, frame))
+		{
+			desc = @"<Oolite native>";
+		}
+		
+		OOLog(@"js.stackFrame", @"%4u %@", idx, desc);
+		
+		idx++;
+	}
+}
+
+#endif
+
+
 
 #if 1 // OO_DEBUG
 #define OOJS_DEBUG_LIMITER	1
@@ -512,7 +581,7 @@ enum
 };
 
 #if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.10)	// seconds
+#define OOJS_TIME_LIMIT		(0.05)	// seconds
 #else
 #define OOJS_TIME_LIMIT		(0.25)	// seconds
 #endif
@@ -620,6 +689,7 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
 #endif
 
 
+
 static JSBool BranchCallback(JSContext *context, JSScript *script)
 {
 	// This will be called a _lot_. Efficiency is important.
@@ -647,6 +717,7 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 	if (elapsed < sLimiterTimeLimit)  return YES;
 	
 	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+	OOJSDumpStack(@"script.javaScript.stackTrace.timeLimit", context);
 	
 	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
 	

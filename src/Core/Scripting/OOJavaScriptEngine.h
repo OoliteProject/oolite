@@ -404,4 +404,15 @@ void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
 
 @end
 
+
+/*	OOJSDumpStack()
+	
+	Write JavaScript stack to log.
+*/
+#ifndef NDEBUG
+void OOJSDumpStack(NSString *logMessageClass, JSContext *context);
+#else
+#define OOJSDumpStack(lmc, cx)  do {} while (0)
+#endif
+
 #endif

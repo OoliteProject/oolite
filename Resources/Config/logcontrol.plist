@@ -285,6 +285,11 @@
 	script.javaScript.badParameter			= $scriptError;
 	script.javaScript.context.create		= no;
 	script.javaScript.timeLimit				= yes;					// Script ran for too long and has been killed.
+	script.javaScript.stackTrace			= $scriptDebugOn;		// Log script call hierarchy
+	script.javaScript.stackTrace.error		= inherit;				// ...for errors
+	script.javaScript.stackTrace.exception	= inherit;				// ...for exceptions
+	script.javaScript.stackTrace.timeLimit	= yes;					// ...for time limiter
+	script.javaScript.stackTrace.warning	= inherit;				// ...for warnings
 	
 	script.load								= no;
 	script.load.badName						= $scriptError;
