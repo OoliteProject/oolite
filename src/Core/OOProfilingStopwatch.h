@@ -37,6 +37,9 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 #define OO_PROFILING_STOPWATCH_WINDOWS 1
 typedef DWORD OOHighResTimeValue;	// Rolls over once every 50 days, but we can live with that.
 
+// Note: timeGetTime returns time in milliseconds. This results in lower time resolution in Windows, but at this stage I
+// don't think we need to do something about it. If we really need microseond precision, we might consider an implementation
+// based on the Win32 API QueryPerformanceCounter function - Nikos 20100615.
 #define OOGetHighResTime timeGetTime
 #define OODisposeHighResTime(time)  do { (void)time; } while (0)
 #define OOCopyHighResTime(time) ((OOHighResTimeValue)time)

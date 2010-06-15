@@ -104,7 +104,7 @@ OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResT
 #elif OO_PROFILING_STOPWATCH_WINDOWS
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime)
 {
-	return 1e-6 * (double)(endTime - startTime);
+	return 1e-3 * (double)(endTime - startTime);
 }
 #elif OO_PROFILING_STOPWATCH_GETTIMEOFDAY
 OOTimeDelta OOHighResTimeDeltaInSeconds(OOHighResTimeValue startTime, OOHighResTimeValue endTime)
