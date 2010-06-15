@@ -66,6 +66,7 @@ MA 02110-1301, USA.
 
 #import "OOScript.h"
 #import "OOScriptTimer.h"
+#import "OOJavaScriptEngine.h"
 #import "NSFileManagerOOExtensions.h"
 
 #if OOLITE_MAC_OS_X
@@ -1263,7 +1264,7 @@ static BOOL replacingMissile = NO;
 {
 	dockedStation = [UNIVERSE station];
 	target_system_seed = [UNIVERSE findSystemAtCoords:cursor_coordinates withGalaxySeed:galaxy_seed];
-	[self doWorldScriptEvent:@"startUp" withArguments:nil];
+	[self doWorldScriptEvent:@"startUp" withArguments:nil timeLimit:kOOJSLongTimeLimit];
 	
 #if NEW_FUEL_PRICES && !defined(NDEBUG)
 	// For testing purposes only...
@@ -7634,7 +7635,7 @@ static NSString *last_outfitting_key=nil;
 - (void) doScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
 {
 	[super doScriptEvent:message withArguments:arguments];
-	[self doWorldScriptEvent:message withArguments:arguments];
+	[self doWorldScriptEvent:message withArguments:arguments timeLimit:0.0];
 }
 
 
@@ -7659,14 +7660,16 @@ static NSString *last_outfitting_key=nil;
 }
 
 
-- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments
+- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit
 {
 	NSEnumerator	*scriptEnum;
 	OOScript		*theScript;
 	
 	for (scriptEnum = [worldScripts objectEnumerator]; (theScript = [scriptEnum nextObject]); )
 	{
+		OOJSStartTimeLimiterWithTimeLimit(limit);
 		[theScript doEvent:message withArguments:arguments];
+		OOJSStopTimeLimiter();
 	}
 }
 

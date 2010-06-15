@@ -743,7 +743,7 @@ typedef enum
 // *** World script events.
 // In general, script events should be sent through doScriptEvent:..., which
 // will forward to the world scripts.
-- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments;
+- (void) doWorldScriptEvent:(NSString *)message withArguments:(NSArray *)arguments timeLimit:(OOTimeDelta)limit;
 - (BOOL) doWorldEventUntilMissionScreen:(NSString *)message;
 
 - (BOOL)showInfoFlag;

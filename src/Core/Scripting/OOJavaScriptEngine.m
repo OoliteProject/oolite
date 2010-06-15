@@ -507,8 +507,10 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 			jsbytecode *PC = JS_GetFramePC(context, frame);
 			unsigned lineNo = JS_PCToLineNumber(context, script, PC);
 			
-			desc = [NSString stringWithUTF8String:fileName];
-			if (desc == nil)  desc = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
+			NSString *fileNameObj = [NSString stringWithUTF8String:fileName];
+			if (fileNameObj == nil)  fileNameObj = [NSString stringWithCString:fileName encoding:NSISOLatin1StringEncoding];
+			NSString *shortFileName = [fileNameObj lastPathComponent];
+			if (![[shortFileName lowercaseString] isEqualToString:@"script.js"])  fileNameObj = shortFileName;
 			
 			NSString *funcDesc = nil;
 			JSFunction *function = JS_GetFrameFunction(context, frame);
@@ -538,7 +540,7 @@ void OOJSDumpStack(NSString *logMessageClass, JSContext *context)
 				funcDesc = @"<not a function frame>";
 			}
 			
-			desc = [NSString stringWithFormat:@"%@:%u %@", [desc lastPathComponent], lineNo, funcDesc];
+			desc = [NSString stringWithFormat:@"%@:%u %@", fileNameObj, lineNo, funcDesc];
 		}
 		else if (JS_IsNativeFrame(context, frame))
 		{

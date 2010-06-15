@@ -349,6 +349,10 @@ void OOJSStopTimeLimiter(void);
 void OOJSPauseTimeLimiter(void);
 void OOJSResumeTimeLimiter(void);
 
+
+#define kOOJSLongTimeLimit (2.0)
+
+
 #ifndef NDEBUG
 /*	Profiling support. Should not be used for anything else.
 	
