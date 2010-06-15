@@ -2274,7 +2274,7 @@ static BOOL replacingMissile = NO;
 		if ([UNIVERSE planet])
 			[UNIVERSE addMessage:[NSString stringWithFormat:@" %@. ",[UNIVERSE getSystemName:system_seed]] forCount:3.0];
 		else
-			[UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0];
+			if ([UNIVERSE inInterstellarSpace])  [UNIVERSE addMessage:DESC(@"witch-engine-malfunction") forCount:3.0]; // if sun gone nova, print nothing
 		
 		[self setStatus:STATUS_IN_FLIGHT];
 		

@@ -58,7 +58,7 @@ this.missionOffers = function ()
 			{
 				player.ship.removeAllCargo();
 				mission.runScreen({titleKey:"oolite_nova_title", messageKey:"oolite_nova_hero", background:"solar.png"});
-				player.ship.manifest["Gem-Stones"] += 100;
+				player.ship.manifest["gem-stones"] += 100;
 				this.endTheMission();
 			}
 			else if (missionVariables.nova === "NOVA_ESCAPE_POD")
