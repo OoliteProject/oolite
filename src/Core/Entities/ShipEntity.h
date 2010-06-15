@@ -471,6 +471,7 @@ MA 02110-1301, USA.
 - (float) maxAftShieldLevel;
 - (float) shieldRechargeRate;
 
+- (float) maxHyperspaceDistance;
 - (float) afterburnerFactor;
 - (float) maxThrust;
 - (float) thrust;

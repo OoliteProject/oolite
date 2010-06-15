@@ -492,7 +492,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 		// jump to the nearest system
 		Random_Seed s_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:[player galaxy_seed]];
 		[player setSystem_seed:s_seed];
-		
+		closeSystems = nil;
 		// I think we need to do this too!
 		[self setSystemTo: s_seed];
 		
@@ -965,7 +965,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 	cachedSun = a_sun;
 	cachedPlanet = a_planet;
 	cachedStation = a_station;
-	
+	closeSystems = nil;
 	ranrot_srand([[NSDate date] timeIntervalSince1970]);   // reset randomiser with current time
 	
 	[self populateSpaceFromActiveWormholes];
@@ -1042,6 +1042,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context);
 												 withContextName:@"<system script_actions>"
 													   forTarget:nil];
 	}
+	
 }
 
 
@@ -4264,6 +4265,7 @@ static BOOL MaintainLinkedLists(Universe* uni)
 	cachedSun = nil;
 	cachedPlanet = nil;
 	cachedStation = nil;
+	closeSystems = nil;
 	firstBeacon = NO_TARGET;
 	lastBeacon = NO_TARGET;
 	
@@ -5949,7 +5951,6 @@ OOINLINE BOOL EntityInRange(Vector p1, Entity *e2, float range)
 	return -1;
 }
 
-
 - (OOSystemID) currentSystemID
 {
 	return [self systemIDForSystemSeed:[self systemSeed]];
@@ -6496,33 +6497,41 @@ static NSDictionary	*sCachedSystemData = nil;
 	return systems[[self findSystemNumberAtCoords:coords withGalaxySeed:gal_seed]];
 }
 
-
 - (NSArray*) nearbyDestinationsWithinRange:(double) range
 {
-	Random_Seed here = [self systemSeed];
-	int i;
 	double dist;
 	NSMutableArray* result = [NSMutableArray arrayWithCapacity:16];
-	
-	if (range > 7.0) range = 7.0;	// limit to systems within 7LY
-	
-	// make list of connected systems - TODO: needs optimisation!
-	for (i = 0; i < 256; i++)
+	if (range < 0.0) 
 	{
-		dist = distanceBetweenPlanetPositions(here.d, here.b, systems[i].d, systems[i].b);
-		if (dist > 0 && dist <= range)
+		OOLogWARN(@"universe.findsystems", @"DEBUG: Universe nearbyDestinationsWithinRange: looking for systems a negative distance (%d) away", range);
+		return result;
+	}
+	if (range > 7.0) range = 7.0; // limit to systems within 7LY
+		Random_Seed here = [self systemSeed];
+	
+	// make list of connected systems
+	NSArray *systemsToCheck = nil;
+
+	systemsToCheck = [[self neighboursToRandomSeed: here]copy];
+
+	unsigned short int i;
+	for (i = 0; i < [systemsToCheck count]; i++)
+	{
+		Random_Seed system = systems[[[systemsToCheck objectAtIndex:i] intValue]];
+		dist = distanceBetweenPlanetPositions(here.d, here.b, system.d, system.b);
+		if (dist <= range)	
 		{
 			[result addObject: [NSDictionary dictionaryWithObjectsAndKeys:
-				StringFromRandomSeed(systems[i]), @"system_seed",
-				[NSNumber numberWithDouble:dist], @"distance",
-				[self getSystemName:systems[i]], @"name",
-				nil]];
+								StringFromRandomSeed(system), @"system_seed",
+								[NSNumber numberWithDouble:dist], @"distance",
+								[self getSystemName:system], @"name",
+								nil]];
 		}
 	}
-	
+	[systemsToCheck release];
+	systemsToCheck = nil;
 	return result;
 }
-
 
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed
 {
@@ -6791,20 +6800,41 @@ static NSDictionary	*sCachedSystemData = nil;
 }
 
 
-- (NSArray *) neighboursToSystem: (OOSystemID) system_number
+- (NSArray *) neighboursToRandomSeed: (Random_Seed) seed
 {
+	if (equal_seeds(system_seed, seed) && closeSystems != nil) 
+	{
+		return closeSystems;
+	}
 	NSMutableArray *neighbours = [NSMutableArray arrayWithCapacity:32];
 	double distance;
 	OOSystemID i;
 	for (i = 0; i < 256; i++)
 	{
-		distance = distanceBetweenPlanetPositions(systems[system_number].d, systems[system_number].b, systems[i].d, systems[i].b);
-		if ((distance <= 7.0)&&(i != system_number))
-		{
+		distance = distanceBetweenPlanetPositions(seed.d, seed.b, systems[i].d, systems[i].b);
+		if ((distance <= 7.0) && !(equal_seeds(seed, systems[i])))
+		{		
+			if (distance < 0)
+			{
+				OOLogWARN(@"universe.findsystems", @"DEBUG: Universe neighboursToRandomSeed: found a system (%d) a negative distance (%d) away from %d", distance, seed, systems[i]);
+				//i guess its still in range, but skip as it makes no sense
+				continue;
+			}
 			[neighbours addObject:[NSNumber numberWithInt:i]];
 		}
 	}
+	if (equal_seeds(system_seed, seed))
+	{
+		[closeSystems release];
+		closeSystems = [neighbours copy];
+		return closeSystems;
+	}
 	return neighbours;
+}
+
+- (NSArray *) neighboursToSystem: (OOSystemID) system_number
+{
+	return [self neighboursToRandomSeed: systems[system_number]];
 }
 
 
@@ -8712,7 +8742,7 @@ static OOComparisonResult comparePrice(id dict1, id dict2, void * context)
 	
 	[self setGalaxy_seed: [player galaxy_seed] andReinit:YES];
 	system_seed = [self findSystemAtCoords:[player galaxy_coordinates] withGalaxySeed:galaxy_seed];
-	
+	closeSystems = nil;
 	[self setUpSpace];
 	[self setViewDirection:VIEW_GUI_DISPLAY];
 	

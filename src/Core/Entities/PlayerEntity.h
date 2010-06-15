@@ -439,6 +439,7 @@ typedef enum
 	unsigned				suppressTargetLost: 1,		// smart target lst reports
 							scoopsActive: 1,			// smart fuelscoops
 	
+							scoopOverride: 1, //scripted to just be on, ignoring normal rules
 							game_over: 1,
 							finished: 1,
 							bomb_detonated: 1,
@@ -754,6 +755,9 @@ typedef enum
 
 - (BOOL) scriptedMisjump;
 - (void) setScriptedMisjump:(BOOL)newValue;
+
+- (BOOL) scoopOverride;
+- (void) setScoopOverride:(BOOL)newValue;
 
 #if DOCKING_CLEARANCE_ENABLED
 - (BOOL) clearedToDock;

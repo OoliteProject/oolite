@@ -2741,6 +2741,11 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 }
 
 
+- (float) maxHyperspaceDistance
+{
+	return 7.0f;
+}
+
 - (float) afterburnerFactor
 {
 	return 7.0f;

@@ -2371,6 +2371,7 @@ static WormholeEntity *whole = nil;
 		return NO;
 	}
 	
+
 	if (systemID == -1)
 	{
 		// select one at random
@@ -2395,7 +2396,12 @@ static WormholeEntity *whole = nil;
 			return NO;
 		}
 	}
-	fuel -= 10 * [[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	double dist = [[(NSDictionary*)[sDests objectAtIndex:i] objectForKey:@"distance"] doubleValue];
+	if (dist > [self maxHyperspaceDistance] || dist > fuel/10) 
+	{
+		OOLogWARN(@"script.debug", @"DEBUG: %@ Jumping %d which is further than allowed.  I have %d fuel", self, dist, fuel);
+	}
+	fuel -= 10 * dist;
 	
 	// create wormhole
 	whole = [[[WormholeEntity alloc] initWormholeTo: targetSystem fromShip: self] autorelease];

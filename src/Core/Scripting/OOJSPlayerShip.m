@@ -102,6 +102,7 @@ enum
 	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
 	kPlayerShip_targetSystem,					// target system id, int, read-only
 	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
+	kPlayerShip_scoopOverride,					// Scooping
 	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
 	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
@@ -129,6 +130,7 @@ static JSPropertySpec sPlayerShipProperties[] =
 	{ "targetSystem",				kPlayerShip_targetSystem,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scoopOverride",				kPlayerShip_scoopOverride,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "hud",						kPlayerShip_hud,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -282,7 +284,10 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			*outValue = BOOLToJSVal([player scriptedMisjump]);
 			OK = YES;
 			break;
-			
+		case kPlayerShip_scoopOverride:
+			*outValue = BOOLToJSVal([player scoopOverride]);
+			OK = YES;
+			break;
 		case kPlayerShip_compassTarget:
 			result = [player compassTarget];
 			OK = YES;
@@ -383,6 +388,13 @@ static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval na
 			if (JS_ValueToBoolean(context, *value, &bValue))
 			{
 				[player setScriptedMisjump:bValue];
+				OK = YES;
+			}
+			break;
+		case kPlayerShip_scoopOverride:
+			if (JS_ValueToBoolean(context, *value, &bValue))
+			{
+				[player setScoopOverride:bValue];
 				OK = YES;
 			}
 			break;
@@ -532,7 +544,6 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 	[player disengageAutopilot];
 	return YES;
 }
-
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression)
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

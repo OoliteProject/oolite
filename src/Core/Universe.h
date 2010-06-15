@@ -242,6 +242,8 @@ enum
 	OOSunEntity				*cachedSun;
 	NSMutableArray			*allPlanets;
 	
+	NSArray				*closeSystems;
+	
 	BOOL					strict;
 	
 	BOOL					no_update;
@@ -529,7 +531,11 @@ enum
 - (NSPoint) coordinatesForSystem:(Random_Seed)s_seed;
 - (Random_Seed) findSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 
+/**
+ * Finds systems within range.  If range is greater than 7.0LY then only look within 7.0LY.
+ */
 - (NSArray*) nearbyDestinationsWithinRange:(double) range;
+
 - (Random_Seed) findNeighbouringSystemToCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (Random_Seed) findConnectedSystemAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
 - (int) findSystemNumberAtCoords:(NSPoint) coords withGalaxySeed:(Random_Seed) gal_seed;
@@ -539,6 +545,7 @@ enum
 - (NSString*) systemNameIndex:(OOSystemID) index;
 - (NSDictionary *) routeFromSystem:(OOSystemID) start toSystem:(OOSystemID) goal optimizedBy:(OORouteType) optimizeBy;
 - (NSArray *) neighboursToSystem:(OOSystemID) system_number;
+- (NSArray *) neighboursToRandomSeed:(Random_Seed) seed;
 
 - (NSMutableDictionary *) localPlanetInfoOverrides;
 - (void) setLocalPlanetInfoOverrides:(NSDictionary*) dict;

@@ -1191,6 +1191,7 @@ static BOOL replacingMissile = NO;
 	cursor_coordinates		= galaxy_coordinates;
 	
 	scripted_misjump		= NO;
+	scoopOverride			= NO;
 	
 	forward_shield			= [self maxForwardShieldLevel];
 	aft_shield				= [self maxAftShieldLevel];
@@ -1906,6 +1907,7 @@ static BOOL replacingMissile = NO;
 	if (scoopsActive)
 	{
 		[self updateFuelScoopSoundWithInterval:delta_t];
+		if (![self scoopOverride])
 		scoopsActive = NO;
 	}
 }
@@ -2220,7 +2222,7 @@ static BOOL replacingMissile = NO;
 		if (!galactic_witchjump)
 		{
 			jump_distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
-			if (jump_distance > 7.0)
+			if (jump_distance > [self maxHyperspaceDistance])
 			{
 				[UNIVERSE clearPreviousMessage];
 				[UNIVERSE addMessage:DESC(@"witch-too-far") forCount: 4.5];
@@ -4611,6 +4613,7 @@ static BOOL replacingMissile = NO;
 }
 
 
+//it is impossible to have a misjump here
 - (void) enterWormhole:(WormholeEntity *) w_hole replacing:(BOOL)replacing
 {
 	// don't do anything with the player's target
@@ -4621,7 +4624,7 @@ static BOOL replacingMissile = NO;
 	[self witchStart];
 
 	// set clock after "playerWillEnterWitchspace" and before  removeAllEntitiesExceptPlayer, to allow escorts time to follow their mother. 
-	double		distance = distanceBetweenPlanetPositions(system_seed.d,system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	double distance = distanceBetweenPlanetPositions(system_seed.d,system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
 
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
@@ -4634,7 +4637,6 @@ static BOOL replacingMissile = NO;
 
 - (void) enterWitchspace
 {
-	double		distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
 
 	[self setStatus:STATUS_ENTERING_WITCHSPACE];
 	[self doScriptEvent:@"shipWillEnterWitchspace" withArgument:@"standard jump"];
@@ -4642,18 +4644,39 @@ static BOOL replacingMissile = NO;
 	[self witchStart];
 	
 	[UNIVERSE removeAllEntitiesExceptPlayer:NO];
-	
+
 	//  perform any check here for forced witchspace encounters
 	unsigned malfunc_chance = 253;
 	if (ship_trade_in_factor < 80)
 		malfunc_chance -= (1 + ranrot_rand() % (81-ship_trade_in_factor)) / 2;	// increase chance of misjump in worn-out craft
-	ranrot_srand((unsigned int)[[NSDate date] timeIntervalSince1970]);	// seed randomiser by time
+
 	BOOL malfunc = ((ranrot_rand() & 0xff) > malfunc_chance);
 	// 75% of the time a malfunction means a misjump
 	BOOL misjump = [self scriptedMisjump] || ((flightPitch == max_flight_pitch) || (malfunc && (randf() > 0.75)));
-
-	fuel -= 10.0 * distance;								// fuel cost to target system
-	ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs
+	
+	//wear and tear on all jumps (inc misjumps and failures)
+	if (2 * market_rnd < ship_trade_in_factor)			// every eight jumps or so
+		ship_trade_in_factor -= 1 + (market_rnd & 3);	// drop the price down towards 75%
+	if (ship_trade_in_factor < 75)
+		ship_trade_in_factor = 75;						// lower limit for trade in value is 75%
+	
+	if (malfunc)
+	{
+		if (randf() > 0.5)
+		{
+			[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
+		}
+		else
+		{
+			[self playWitchjumpFailure];
+			[self takeInternalDamage];
+			return;
+		}
+	}
+	double distance = distanceBetweenPlanetPositions(target_system_seed.d,target_system_seed.b,galaxy_coordinates.x,galaxy_coordinates.y);
+	//burn full fuel to create wormhole, but only take time for distance traveled
+	fuel -= 10.0 * distance; // fuel cost to target system
+	
 	if (!misjump)
 	{
 		system_seed = target_system_seed;
@@ -4664,35 +4687,23 @@ static BOOL replacingMissile = NO;
 		
 		if (market_rnd < 8)
 			[self erodeReputation];						// every 32 systems or so, drop back towards 'unknown'
-		
-		if (2 * market_rnd < ship_trade_in_factor)			// every eight jumps or so
-			ship_trade_in_factor -= 1 + (market_rnd & 3);	// drop the price down towards 75%
-		if (ship_trade_in_factor < 75)
-			ship_trade_in_factor = 75;						// lower limit for trade in value is 75%
-		
-		if (malfunc)
-		{
-			if (randf() > 0.5)
-			{
-				[self setFuelLeak:[NSString stringWithFormat:@"%f", (randf() + randf()) * 5.0]];
-			}
-			else
-			{
-				[self playWitchjumpFailure];
-				[self takeInternalDamage];
-			}
-		}
+		ship_clock_adjust = distance * distance * 3600.0;		// LY * LY hrs.	
 	}
 	else
 	{
+		//misjumps do not erode your reputation (perhaps for passenger contracts they should...)
+		//nor do they change legal status
+
 		// move sort of halfway there...
 		galaxy_coordinates.x += target_system_seed.d;
 		galaxy_coordinates.y += target_system_seed.b;
 		galaxy_coordinates.x /= 2;
 		galaxy_coordinates.y /= 2;
+		ship_clock_adjust = (distance * distance * 3600.0) * 3/4; // misjumps take 3/4 time of the full jump, this is not the same as a jump of half the length	
 		[self playWitchjumpMisjump];
 		[UNIVERSE set_up_universe_from_misjump];
-	}
+	}							
+
 }
 
 
@@ -5768,7 +5779,7 @@ static NSString *last_outfitting_key=nil;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		unsigned        facing_count = 0;
+		BOOL			guns_already_set = NO;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
 
@@ -5851,46 +5862,85 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
-					switch (facing_count)
+					if  (!guns_already_set)
 					{
-						case 0:
-							priceString = @"";
-							break;
-							
-						case 1:
-							desc = FORWARD_FACING_STRING;
-							weaponMounted = forward_weapon_type > WEAPON_NONE;
-							break;
-							
-						case 2:
-							desc = AFT_FACING_STRING;
-							weaponMounted = aft_weapon_type > WEAPON_NONE;
-							break;
-							
-						case 3:
-							desc = PORT_FACING_STRING;
-							weaponMounted = port_weapon_type > WEAPON_NONE;
-							break;
-							
-						case 4:
-							desc = STARBOARD_FACING_STRING;
-							weaponMounted = starboard_weapon_type > WEAPON_NONE;
-							break;
-					}
-					
-					facing_count++;
-					if(weaponMounted)
+					guns_already_set = YES;
+					priceString = @"";
+					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
+					if (available_facings & WEAPON_FACING_FORWARD)
 					{
-						[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						
+						desc = FORWARD_FACING_STRING;
+						weaponMounted = forward_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
+						[gui setKey:eqKey forRow:row];
+						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+						row++;
 					}
-					else
+					if (available_facings & WEAPON_FACING_AFT)
 					{
-						[gui setColor:[OOColor greenColor] forRow:row];
+						desc = AFT_FACING_STRING;
+						weaponMounted = aft_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
+						[gui setKey:eqKey forRow:row];
+						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+						row++;
 					}
+					if (available_facings & WEAPON_FACING_PORT)
+					{
+						desc = PORT_FACING_STRING;
+						weaponMounted = port_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
+						[gui setKey:eqKey forRow:row];
+						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+						row++;
+					}
+					if (available_facings & WEAPON_FACING_STARBOARD)
+					{
+						desc = STARBOARD_FACING_STRING;
+						weaponMounted = starboard_weapon_type > WEAPON_NONE;
+						if(weaponMounted)
+						{
+							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
+						}
+						else
+						{
+							[gui setColor:[OOColor greenColor] forRow:row];
+						}
+						[gui setKey:eqKey forRow:row];
+						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+						row++;
+					}
+					}
+				} 
+				else 
+				{
+					//lasers alredy added.  if it was somthing else, add it here
+					[gui setKey:eqKey forRow:row];
+					[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
+					row++;
 				}
-				[gui setKey:eqKey forRow:row];
-				[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
-				row++;
 			}
 			if (i < count)
 			{
@@ -7331,6 +7381,7 @@ static NSString *last_outfitting_key=nil;
 	scoopsActive = YES;
 }
 
+
 // override shipentity addTarget to implement target_memory
 - (void) addTarget:(Entity *) targetEntity
 {
@@ -7659,6 +7710,17 @@ static NSString *last_outfitting_key=nil;
 	scripted_misjump = !!newValue;
 }
 
+- (BOOL) scoopOverride
+{
+	return scoopOverride;
+}
+
+
+- (void) setScoopOverride:(BOOL)newValue
+{
+	scoopOverride = !!newValue;
+	[self setScoopsActive];
+}
 
 - (NSString *) captainName
 {
