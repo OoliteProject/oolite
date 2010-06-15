@@ -60,6 +60,7 @@ MA 02110-1301, USA.
 #import "OOJSShipGroup.h"
 
 #import "OOProfilingStopwatch.h"
+#import "OOLoggingExtended.h"
 
 #import <stdlib.h>
 
@@ -511,33 +512,57 @@ enum
 };
 
 #if OOJS_DEBUG_LIMITER
-#define OOJS_TIME_LIMIT		(0.05)	// seconds
+#define OOJS_TIME_LIMIT		(0.10)	// seconds
 #else
 #define OOJS_TIME_LIMIT		(0.25)	// seconds
 #endif
 
+#ifndef NDEBUG
+static const char *sLastStartedFile;
+static unsigned sLastStartedLine;
+static const char *sLastStoppedFile;
+static unsigned sLastStoppedLine;
+#endif
 
-void OOJSStartTimeLimiter(void)
+
+#ifndef NDEBUG
+void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line)
+#else
+void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit)
+#endif
 {
 	if (sLimiterStartDepth++ == 0)
 	{
-		sLimiterTimeLimit = OOJS_TIME_LIMIT;
+		if (limit <= 0.0)  limit = OOJS_TIME_LIMIT;
+		sLimiterTimeLimit = limit;
 		sLimiterPauseDepth = 0;
-		OODisposeHighResTime(sLimiterStart);
 		
+		OODisposeHighResTime(sLimiterStart);
 		sLimiterStart = OOGetHighResTime();
 	}
+	
+#ifndef NDEBUG
+	sLastStartedFile = file;
+	sLastStartedLine = line;
+#endif
 }
 
 
+#ifndef NDEBUG
+void OOJSStopTimeLimiter_(const char *file, unsigned line)
+#else
 void OOJSStopTimeLimiter(void)
+#endif
 {
 #ifndef NDEBUG
 	if (sLimiterStartDepth == 0)
 	{
-		OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it.");
+		OOLog(@"bug.javaScript.limiterDepth", @"Attempt to stop JavaScript time limiter while it is already fully stopped. This is an internal bug, please report it. (Last start: %@:%u, last valid stop: %@:%u, this stop attempt: %@:%u.)", OOLogAbbreviatedFileName(sLastStartedFile), sLastStartedLine, OOLogAbbreviatedFileName(sLastStoppedFile), sLastStoppedLine, OOLogAbbreviatedFileName(file), line);
 		return;
 	}
+	
+	sLastStoppedFile = file;
+	sLastStoppedLine = line;
 #endif
 	
 	if (--sLimiterStartDepth == 0)  sLimiterTimeLimit = 0.0;
@@ -566,6 +591,33 @@ void OOJSResumeTimeLimiter(void)
 		sLimiterTimeLimit += elapsed;
 	}
 }
+
+
+#ifndef NDEBUG
+OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void)
+{
+	return sLimiterStart;
+}
+
+
+void OOJSResetTimeLimiter(void)
+{
+	OODisposeHighResTime(sLimiterStart);
+	sLimiterStart = OOGetHighResTime();	
+}
+
+
+OOTimeDelta OOJSGetTimeLimiterLimit(void)
+{
+	return sLimiterTimeLimit;
+}
+
+
+void OOJSSetTimeLimiterLimit(OOTimeDelta limit)
+{
+	sLimiterTimeLimit = limit;
+}
+#endif
 
 
 static JSBool BranchCallback(JSContext *context, JSScript *script)

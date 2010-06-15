@@ -43,6 +43,7 @@ SOFTWARE.
 #import "OOOpenGLExtensionManager.h"
 #import "OODebugFlags.h"
 #import "OODebugMonitor.h"
+#import "OOProfilingStopwatch.h"
 
 
 @interface Entity (OODebugInspector)
@@ -75,10 +76,14 @@ static JSBool ConsoleDisplayMessagesInClass(JSContext *context, JSObject *this, 
 static JSBool ConsoleSetDisplayMessagesInClass(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleWriteLogMarker(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 
 static JSBool ConsoleSettingsDeleteProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsGetProperty(JSContext *context, JSObject *this, jsval name, jsval *outValue);
 static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
+
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime);
 
 
 static JSClass sConsoleClass =
@@ -175,6 +180,8 @@ static JSFunctionSpec sConsoleMethods[] =
 	{ "setDisplayMessagesInClass",		ConsoleSetDisplayMessagesInClass,	2 },
 	{ "writeLogMarker",					ConsoleWriteLogMarker,				0 },
 	{ "writeMemoryStats",				ConsoleWriteMemoryStats,			0 },
+	{ "profile",						ConsoleProfile,						1 },
+	{ "getProfile",						ConsoleGetProfile,					1 },
 	{ 0 }
 };
 
@@ -481,6 +488,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 		return NO;
 	}
 	
+	OOJSPauseTimeLimiter();
 	if (JSVAL_IS_NULL(*inValue) || JSVAL_IS_VOID(*inValue))
 	{
 		[monitor setConfigurationValue:nil forKey:key];
@@ -497,6 +505,7 @@ static JSBool ConsoleSettingsSetProperty(JSContext *context, JSObject *this, jsv
 			OOReportJSWarning(context, @"debugConsole.settings: could not convert %@ to native object.", [NSString stringWithJavaScriptValue:*inValue inContext:context]);
 		}
 	}
+	OOJSResumeTimeLimiter();
 	
 	return YES;
 }
@@ -684,6 +693,114 @@ static JSBool ConsoleWriteMemoryStats(JSContext *context, JSObject *this, uintN 
 	OOJSResumeTimeLimiter();
 	
 	return YES;
+}
+
+
+// function profile(func : function [, Object this = debugConsole.script]) : String
+static JSBool ConsoleProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOTimeDelta totalTime, jsTime, extensionTime;
+	
+	JSBool result = PerformProfiling(context, @"profile", argc, argv, &totalTime, &jsTime, &extensionTime);
+	if (result)
+	{
+		NSString *profileDesc = [NSString stringWithFormat:@"%g seconds (%g seconds JavaScript, %g seconds extension time)", totalTime, jsTime, extensionTime];
+		*outResult = [profileDesc javaScriptValueInContext:context];
+	}
+	
+	return result;
+}
+
+
+// function getProfile(func : function [, Object this = debugConsole.script]) : Object { totalTime : Number, jsTime : Number, extensionTime : Number }
+static JSBool ConsoleGetProfile(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	OOTimeDelta totalTime, jsTime, extensionTime;
+	
+	JSBool result = PerformProfiling(context, @"getProfile", argc, argv, &totalTime, &jsTime, &extensionTime);
+	if (result)
+	{
+		JSObject *profilingResult = JS_NewObject(context, NULL, NULL, NULL);
+		if (profilingResult != NULL)
+		{
+			*outResult = OBJECT_TO_JSVAL(profilingResult);
+			
+			jsval value;
+			if (JS_NewDoubleValue(context, totalTime, &value))
+			{
+				JS_SetProperty(context, profilingResult, "totalTime", &value);
+			}
+			if (JS_NewDoubleValue(context, jsTime, &value))
+			{
+				JS_SetProperty(context, profilingResult, "jsTime", &value);
+			}
+			if (JS_NewDoubleValue(context, extensionTime, &value))
+			{
+				JS_SetProperty(context, profilingResult, "extensionTime", &value);
+			}
+		}
+	}
+	
+	return result;
+}
+
+
+static JSBool PerformProfiling(JSContext *context, NSString *nominalFunction, uintN argc, jsval *argv, OOTimeDelta *totalTime, OOTimeDelta *jsTime, OOTimeDelta *extensionTime)
+{
+	assert(totalTime != NULL && jsTime != NULL && extensionTime != NULL);
+	
+	// Get function.
+	jsval function = argv[0];
+	if (!JSVAL_IS_OBJECT(function) || !JS_ObjectIsFunction(context, JSVAL_TO_OBJECT(function)))
+	{
+		OOReportJSBadArguments(context, @"Console", nominalFunction, 1, argv, nil, @"function");
+		return NO;
+	}
+	
+	// Get "this" object.
+	jsval this;
+	if (argc > 1)  this = argv[1];
+	else
+	{
+		jsval debugConsole = [[OODebugMonitor sharedDebugMonitor] javaScriptValueInContext:context];
+		assert(JSVAL_IS_OBJECT(debugConsole));
+		JS_GetProperty(context, JSVAL_TO_OBJECT(debugConsole), "script", &this);
+	}
+	
+	JSObject *thisObj;
+	if (!JS_ValueToObject(context, this, &thisObj))  thisObj = NULL;
+	
+	// Fiddle with time limiter.
+	// We want to save the current limit, reset the limiter, set the time limit to a long time, and record the current time.
+#define LONG_TIME (1e7)	// A long time - 115.7 days - but, crucually, finite.
+	OOTimeDelta originalLimit = OOJSGetTimeLimiterLimit();
+	OOJSSetTimeLimiterLimit(LONG_TIME);
+	OOJSResetTimeLimiter();
+	OOHighResTimeValue startTime = OOJSCopyTimeLimiterNominalStartTime();
+	
+	// Call the function.
+	jsval ignored;
+	BOOL result = JS_CallFunctionValue(context, thisObj, function, 0, NULL, &ignored);
+	
+	// Record the time.
+	OOHighResTimeValue endTime = OOGetHighResTime();
+	
+	// Calculate results.
+	*totalTime = OOHighResTimeDeltaInSeconds(startTime, endTime);
+	*extensionTime = OOJSGetTimeLimiterLimit() - LONG_TIME;
+	*jsTime = *totalTime - *extensionTime;
+	
+	// Restore original timer state.
+	OOJSSetTimeLimiterLimit(originalLimit);
+	OOJSResetTimeLimiter();
+	
+	// Clean up.
+	OODisposeHighResTime(startTime);
+	OODisposeHighResTime(endTime);
+	
+	JS_ReportPendingException(context);
+	
+	return result;
 }
 
 #endif /* OO_EXCLUDE_DEBUG_SUPPORT */

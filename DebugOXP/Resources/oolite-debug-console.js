@@ -107,6 +107,17 @@ function isExecutableJavaScript(code : String) : Boolean
 	Used to test whether code is runnable as-is. Returns false if the code has
 	unbalanced braces or parentheses. (Used in consolePerformJSCommand() below.)
 
+function profile(func : function [, this : Object]) : String
+	Time the specified function, and note the portion of the time spent in
+	JavaScript and the portion spent in "extension time", i.e. Oolite-native
+	code that doesn't count towards the safety time limit.
+	NOTE: while profile() is running, the time limiter is effectively disabled
+	(specifically, it's set to ten million seconds).
+
+function getProfile(func : function [, this : Object]) : Object
+	Like profile(), but returns an object with numeric properties "totalTime",
+	"jsTime" and "extensionTime".
+
 function writeLogMarker()
 	Writes a separator to the log.
 

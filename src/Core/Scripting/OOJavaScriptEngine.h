@@ -29,6 +29,10 @@ MA 02110-1301, USA.
 #import "PlayerEntityLegacyScriptEngine.h"
 #import <jsapi.h>
 
+#ifndef NDEBUG
+#import "OOProfilingStopwatch.h"
+#endif
+
 #define OOJSENGINE_MONITOR_SUPPORT	(!defined(NDEBUG))
 
 
@@ -321,16 +325,51 @@ void JSRegisterObjectConverter(JSClass *theClass, JSClassConverterCallback conve
 	The time limiter must be started before calling into JavaScript code. Calls
 	to OOJSStartTimeLimiter() and OOJSStopTimeLimiter() must be balanced, and
 	may be nested.
+	OOJSStartTimeLimiterWithTimeLimit() is like OOJSStartTimeLimiter(), but
+	specifies a custom time limit. This limit is only used if the limiter is
+	actually stopped.
 	
 	The time limiter can be paused and resumed for native operations that are
 	known to be slow. OOJSPauseTimeLimiter() and OOJSResumeTimeLimiter() must
 	be balanced and can be nested, but the nest count may be negative - it is
 	valid to call OOJSResumeTimeLimiter() followed by OOJSPauseTimeLimiter().
- */
-void OOJSStartTimeLimiter(void);
+*/
+#define OOJSStartTimeLimiter()  OOJSStartTimeLimiterWithTimeLimit(0.0)
+
+#ifndef NDEBUG
+#define OOJSStartTimeLimiterWithTimeLimit(limit)  OOJSStartTimeLimiterWithTimeLimit_(limit, OOLOG_FILE_NAME, __LINE__)
+#define OOJSStopTimeLimiter()  OOJSStopTimeLimiter_(OOLOG_FILE_NAME, __LINE__)
+void OOJSStartTimeLimiterWithTimeLimit_(OOTimeDelta limit, const char *file, unsigned line);
+void OOJSStopTimeLimiter_(const char *file, unsigned line);
+#else
+void OOJSStartTimeLimiterWithTimeLimit(OOTimeDelta limit);
 void OOJSStopTimeLimiter(void);
+#endif
+
 void OOJSPauseTimeLimiter(void);
 void OOJSResumeTimeLimiter(void);
+
+#ifndef NDEBUG
+/*	Profiling support. Should not be used for anything else.
+	
+	OOJSCopyTimeLimiterNominalStartTime()
+	Copy the nominal start time for the time limiter. This is the actual time
+	with any time extensions (paused periods) added in.
+	
+	OOJSResetTimeLimiter()
+	Set the time limiter start time to now.
+	
+	OOJSGetTimeLimiterLimit()
+	OOJSSetTimeLimiterLimit()
+	Manipulate the timeout.
+*/
+OOHighResTimeValue OOJSCopyTimeLimiterNominalStartTime(void);
+
+void OOJSResetTimeLimiter(void);
+OOTimeDelta OOJSGetTimeLimiterLimit(void);
+void OOJSSetTimeLimiterLimit(OOTimeDelta limit);
+
+#endif
 
 
 #if OOJSENGINE_MONITOR_SUPPORT
