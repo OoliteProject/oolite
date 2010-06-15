@@ -17,7 +17,7 @@
 	"constrictor_hunt_brief1b" = "It went missing from Xeer Shipyards five months ago and is believed to have jumped to this galaxy. Your mission should you decide to accept it, is to seek and destroy this ship. You are cautioned that only Military Lasers will get through the new shields and that the Constrictor is fitted with an E.C.M. System.\n\nGood Luck, Commander.\n\n---MESSAGE ENDS.";
 	"constrictor_hunt_info1a" = "Hunt for the Constrictor stolen from %J150.";
 	"constrictor_hunt_info1b" = "Hunt for the Constrictor stolen from Xeer Shipyards.";
-	"constrictor_hunt_debrief" = "---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty’s Space Navy.\n\nAnd maybe sooner than you think...\n\n---MESSAGE ENDS.";
+	"constrictor_hunt_debrief" = "---INCOMING MESSAGE\n\nCongratulations Commander!\n\nThere will always be a place for you in Her Imperial Majesty’s Space Navy.\n\nAnd maybe sooner than you think…\n\n---MESSAGE ENDS.";
 	"constrictor_hunt_thief_captured" = "You captured the thief who stole the constrictor! Her Imperial Navy awards you a bonus of 1000 credits!\n";
 	
 	
@@ -35,9 +35,9 @@
 	"oolite_nova_title" = "Rescue Mission";
 	"oolite_nova_brief" = "You’ve arrived at an unfortunate time, Commander.\n\nOur sun has become unstable and is due to go nova at any moment. All our ships are evacuating the system, the last few refugees have come here to find a ship to take them to safety.\n\nPlease, please help us to escape!";
 	"oolite_nova_info" = "Get the refugees to safety.";
-	"oolite_nova_hero" = "Commander, we thank you.\n\nYou’ve brought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude... and what few valuable possessions we can spare.\n\nYou are our hero!";
+	"oolite_nova_hero" = "Commander, we thank you.\n\nYou’ve brought us all to safety but we have no money with which we can reward you\n- our last credits were taken by those who took us to the space station.\n\nInstead we offer you undying gratitude… and what few valuable possessions we can spare.\n\nYou are our hero!";
 	"oolite_nova_disappointed" = "Commander, you should be ashamed.\nThose people you left behind had placed all their hopes on you and you just left them to their fate.\n\nSuch cowardly behaviour hasn’t gone unnoticed."; 
-	"oolite_nova_ignored" = "Commander,\n you were the last hope for survivival for the remaining refugees. If you hadn’t\nignored the emergency, they could have escaped the nova explosion.\n\nHow could you abandon them to their fate..."; 
+	"oolite_nova_ignored" = "Commander,\n you were the last hope for survivival for the remaining refugees. If you hadn’t\nignored the emergency, they could have escaped the nova explosion.\n\nHow could you abandon them to their fate…"; 
 	"oolite_nova_yesno" =
 	{
 		NO = "No, sorry.";

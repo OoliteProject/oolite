@@ -1,0 +1,146 @@
+Testing checklist
+=================
+These tests should be run before each release (on every platform), and also
+before checking in major changes, or whenever you're really bored. This is a
+work in progress; feel free to add more tests.
+
+Support files are found in tests/Checklist-files/.
+
+Unless otherwise noted, the tests should be run with no OXPs installed except
+Debug.oxp.
+
+
+Galaxies
+--------
+This test validates the system and galaxy PRNGs.
+
+Starting at Lave, manually make eight galactic hyperspace jumps. (Don't use
+saved games, as the saved random seeds may mask problems.) Tip: use the Time
+Acceleration Factor and the console: PS.awardEquipment("EQ_GAL_DRIVE"). Also
+use PS.awardEquipment("EQ_ADVANCED_NAVIGATIONAL_ARRAY") so you can check the
+star chart grid easily.
+
+The system names should be:
+Lave-Inoran-Divera-Cebitza-Zaxeed-Oratedge-Tiared-Soladiar-Quator
+(Quator is 7.2 LY north of Lave; the sequence of jumps causes some drift.)
+
+Checklist-files/Galaxies contains three or four screen shots for each system.
+The first is immediately after exiting witchspace, with textured planets
+enabled. The second uses untextured planets. Where necessary, a third includes
+the sun. The last is of the galactic chart.
+
+Check the planet in both modes and the sun. Check the background stars
+(colours, density, pattern). Check that the player ship and space dust are
+appropriately lighted (for instance, a distinct blue tint in Inoran system).
+
+Repeat the process in Strict mode. Note that you can still use the JS console
+to get galactic hyperdrives, as long as the game was launched in unrestricted
+mode. However, you can't get an advanced nav array, so don't bother checking
+the long-range chart again.
+
+
+Missions
+--------
+Nova:
+Jump to any system. When you arrive, you should get a fuel leak, followed by
+a distress message from the witchpoint beacon. (There are four possible
+distress call texts, see "oolite-nova-distress-call" in descriptions.plist.)
+
+Wait half a minute, then query S.allShips in the console. There should only
+be the player, the main station, the witchpoint and nav beacons, possibly
+asteroids and possibly ships launched by the station (e.g. a patrol Viper).
+
+NOTE: normally, you are expected to leave the nova system using a galactic
+jump. However, you'll want to go back to the system for testing purposes, so
+award yourself some fule (PS.fuel = 7) when you arrive and use a normal jump.
+
+There are now several outcomes:
+* The coward: Leave the system with a galactic jump, or by giving youself fuel
+  through the console. (It's also possible to get this outcome by following
+  another ship through a wormhole - you're likely to come across some if you
+  hyperspeed straight towards the station - or by using OXP equipment to get
+  fuel.)
+  
+  Confirm that missionVariables.nova is "NOVA_ESCAPE_OTHER". Dock at the main
+  station, and you should get the following message (with solar.png as a
+  background):
+    Commander,
+    you were the last hope for survivival for the remaining refugees. If you
+    hadn't ignored the emergency, they could have escaped the nova explosion.
+    
+    How could you abandon them to their fate...
+  
+  missionVariables.nova should now be "NOVA_HERO". (This indicates the end of
+  the nova mission, regardless of actual heroism.)
+  
+* The bastard: dock with the main station and get the following message (with
+  solar.png as a background):
+    You've arrived at an unfortunate time, Commander.
+	
+	Our sun has become unstable and is due to go nova at any moment. All our
+	ships are evacuating the system, the last few refugees have come here to
+	find a ship to take them to safety.
+    
+    Please, please help us to escape!
+      [No, sorry.]
+	  [Okay, I'll help]
+  Select [No, sorry.] You will get a comms message saying "Coward! You chose
+  not to help the refugees!" (FIXME: this appears behind the station UI.
+  Should it be removed, or deferred until launching?)
+  Immediately leave the station. The station should explode behind you. [BUG:
+  it doesn't.] Initiate galactic hyperspace jump with alacrity. The sun should
+  go nova nine seconds after you selected [No, sorry]. (This is visible as a
+  rising cabin temperature, not to mention a growing sun. In full shader mode,
+  your ship should be glowing pink by the time you jump.)
+  
+  Verify that missionVariables.nova is "NOVA_ESCAPE_COWARD", then dock. You
+  should get the following message (with solar.png as a background):
+  
+    Commander, you should be ashamed.
+	Those people you left behind had placed all their hopes on you and you
+	just left them to their fate.
+	
+	Such cowardly behaviour hasn't gone unnoticed.
+  
+  missionVariables.nova should now be "NOVA_HERO".
+  
+* The hero: same as above, but select [Okay, I'll help]. You will be launched
+  from the station with 30 seconds to nova (and no fuel, unless you added
+  some). The station should explode behind you. [BUG: it doesn't.] Get out of
+  there.
+  missionVariables.nova should be "NOVA_ESCAPED_SYSTEM". Your Manifest screen
+  should have the message "Get the refugees to safety."
+  
+  Dock at any (other) main station, and get the following message:
+  
+    Commander, we thank you.
+	
+	You've brought us all to safety but we have no money with which we can
+	reward you - our last credits were taken by those who took us to the space
+	station.
+	
+	Instead we offer you undying gratitude... and what few valuable
+	possessions we can spare.
+	
+	You are our hero!
+  
+  You should have 100 g of gemstones (and nothing else) in your cargo hold.
+  [BUG: 'reference to undefined property "Gem-Stones"'. I had my original
+  cargo, despite the call to player.ship.removeAllCargo().]
+  missionVariables.nova should now be "NOVA_HERO".
+  
+* The dawdler: having jumped to any system, wait around for two game hours
+  (7.5 minutes at full TAF). The sun should then go nova. (If you escape the
+  system while it's going nova, you're back on the coward's path.)
+  
+  While you're hanging around, the sun's corona shoud periodically expand and
+  contract, and the witchbuoy will send its distress call every 30 seconds
+  (which also causes NPC ships to jump out).
+
+After testing each non-lethal path, return to the nova system. The sun should
+be overlarge, there should be no ships except you, some asteroids and a
+witchbuoy, and you should be overheating.
+
+[BUG: on entering the system, you'll get a message saying "Witchspace engine
+malfunction!", because the game assumes a system without a planet is a failed
+witchjump.]
