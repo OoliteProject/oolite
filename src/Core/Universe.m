@@ -6957,19 +6957,36 @@ static NSDictionary	*sCachedSystemData = nil;
 	NSMutableArray	*ourEconomy = nil;
 	unsigned		i;
 	
-	if( some_station && some_station == [UNIVERSE  station] )
+	// 2010.06.16 - Micha
+	// There can be manual market overrides for the system and/or for the 
+	// station.  If there are no overrides, or they can't be loaded, we fall
+	// back to the stations' primary role and, failing that, use the default 
+	// market.
+	// "some_station" is nil when we set up space immediately after a witch
+	// jump or when loading a game.  This probably needs refactoring.
+	
+	if( (some_station == nil || some_station == [UNIVERSE  station]) )
 	{
 		marketName = [[self currentSystemData] oo_stringForKey:@"market"];
 	}
-	if (marketName == nil) marketName = [some_station marketName];
-
-	market = [commodityLists oo_arrayForKey:marketName];
-	if( market == nil)
+	if( marketName == nil )
+		marketName = [some_station marketOverrideName];
+	if( marketName != nil )
 	{
-		OOLogWARN(@"universe.setup.badMarket", @"System or station specified undefined market '%@'.", marketName);
+		market = [commodityLists oo_arrayForKey:marketName];
+		if( market == nil )
+		{
+			OOLogWARN(@"universe.setup.badMarket", @"System or station specified undefined market '%@'.", marketName);
+		}
+	}
+	if( market == nil && some_station != nil )
+	{
 		market = [commodityLists oo_arrayForKey:[some_station primaryRole]];
 	}
-	if( market == nil) market = [commodityLists oo_arrayForKey:@"default"];
+	if( market == nil)
+	{
+		market = [commodityLists oo_arrayForKey:@"default"];
+	}
 
 	ourEconomy = [NSMutableArray arrayWithArray:market];
 	

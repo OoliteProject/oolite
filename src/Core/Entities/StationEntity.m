@@ -736,7 +736,6 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	DESTROY(localPassengers);
 	DESTROY(localContracts);
 	DESTROY(localShipyard);
-	DESTROY(local_market);
 	
 	[super dealloc];
 }
@@ -2133,14 +2132,14 @@ static NSDictionary* instructions(int station_id, Vector coords, float speed, fl
 	return dockingPatternModelFileName;
 }
 
-- (NSString *) marketName
+- (NSString *) marketOverrideName
 {
-	if( local_market == nil )
-	{
-		local_market = [shipinfoDictionary oo_stringForKey:@"market" defaultValue:[self primaryRole]];
-		[local_market retain];
-	}
-	return local_market;
+	// 2010.06.14 - Micha - we can't default to the primary role as otherwise the logic
+	//				generating the market in [Universe commodityDataForEconomy:] doesn't
+	//				work properly with the various overrides.  The primary role will get
+	//				used if either there is no market override, or the market wasn't
+	//				defined.
+	return [shipinfoDictionary oo_stringForKey:@"market"];
 }
 
 

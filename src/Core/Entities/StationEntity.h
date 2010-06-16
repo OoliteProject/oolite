@@ -71,8 +71,6 @@ typedef enum
 	
 	NSString				*dockingPatternModelFileName;
 	
-	NSString				*local_market;
-	
 	unsigned				no_docking_while_launching: 1,
 							hasNPCTraffic: 1;
 	
@@ -200,7 +198,7 @@ typedef enum
 #endif
 
 - (NSString *) dockingPatternModelFileName;
-- (NSString *) marketName;
+- (NSString *) marketOverrideName;
 - (BOOL) isRotatingStation;
 - (BOOL) hasShipyard;
 
