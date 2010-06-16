@@ -24,7 +24,7 @@ GNUSTEP_INSTALLATION_DIR = $(GNUSTEP_USER_ROOT)
 GNUSTEP_OBJ_DIR_BASENAME := $(GNUSTEP_OBJ_DIR_NAME)
 HOST_ARCH := $(shell echo $(GNUSTEP_HOST_CPU) | sed -e s/i.86/x86/ -e s/amd64/x86_64/ )
 ifeq ($(GNUSTEP_HOST_OS),mingw32)
-	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
+	ADDITIONAL_INCLUDE_DIRS = -Ideps/Windows-x86-deps/include -Ideps/Cross-platform-deps/SpiderMonkey/js/src -Isrc/SDL -Isrc/Core -Isrc/BSDCompat -Isrc/Core/Scripting -Isrc/Core/Materials -Isrc/Core/Entities -Isrc/Core/OXPVerifier -Isrc/Core/Debug
 	ADDITIONAL_OBJC_LIBS = -lglu32 -lopengl32 -lpng14.dll -lmingw32 -lSDLmain -lSDL -lSDL_mixer -lgnustep-base -ljs32 -lwinmm -mwindows
 	ADDITIONAL_CFLAGS = -DWIN32 -DNEED_STRLCPY `sdl-config --cflags`
 # note the vpath stuff above isn't working for me, so adding src/SDL and src/Core explicitly
