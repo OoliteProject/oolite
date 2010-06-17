@@ -240,13 +240,6 @@ void fillRanNoiseBuffer()
 }
 
 
-static float my_lerp( float v0, float v1, float q)
-{
-	//float q1 = 0.5 * (1.0 + cosf((q + 1.0) * M_PI));
-	//return  v0 * (1.0 - q1) + v1 * q1;
-	return (v0 + q * (v1 - v0));
-}
-
 static void addNoise(float * buffer, int p, int n, float scale)
 {
 	int x, y;
@@ -264,9 +257,9 @@ static void addNoise(float * buffer, int p, int n, float scale)
 		iy &= 127;
 		jx &= 127;
 		jy &= 127;
-		float rix = my_lerp( ranNoiseBuffer[iy * 128 + ix], ranNoiseBuffer[iy * 128 + jx], qx);
-		float rjx = my_lerp( ranNoiseBuffer[jy * 128 + ix], ranNoiseBuffer[jy * 128 + jx], qx);
-		float rfinal = scale * my_lerp( rix, rjx, qy);
+		float rix = OOLerp(ranNoiseBuffer[iy * 128 + ix], ranNoiseBuffer[iy * 128 + jx], qx);
+		float rjx = OOLerp(ranNoiseBuffer[jy * 128 + ix], ranNoiseBuffer[jy * 128 + jx], qx);
+		float rfinal = scale * OOLerp(rix, rjx, qy);
 
 		buffer[ y * p + x ] += rfinal;
 	}

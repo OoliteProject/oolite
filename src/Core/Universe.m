@@ -2767,7 +2767,7 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSArray *) planets
 {
-	return [[allPlanets copy] autorelease];
+	return allPlanets;
 }
 
 

@@ -793,25 +793,25 @@ static GLfloat calcFuelChargeRate (GLfloat my_mass, GLfloat base_mass)
 
 - (NSEnumerator *)subEntityEnumerator
 {
-	return [[self subEntities] objectEnumerator];
+	return [subEntities objectEnumerator];
 }
 
 
 - (NSEnumerator *)shipSubEntityEnumerator
 {
-	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isShip)];
+	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isShip)];
 }
 
 
 - (NSEnumerator *)flasherEnumerator
 {
-	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isFlasher)];
+	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isFlasher)];
 }
 
 
 - (NSEnumerator *)exhaustEnumerator
 {
-	return [[self subEntities] objectEnumeratorFilteredWithSelector:@selector(isExhaust)];
+	return [subEntities objectEnumeratorFilteredWithSelector:@selector(isExhaust)];
 }
 
 
