@@ -5702,18 +5702,16 @@ static NSString *last_outfitting_key=nil;
 	unsigned			i = 0;
 	NSEnumerator		*eqEnum = nil;
 	OOEquipmentType		*eqType = nil;
+	unsigned		available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
+
 	
-	if (eqKeyForSelectFacing != nil)
+	if (eqKeyForSelectFacing != nil) // Weapons purchase subscreen.
 	{
 		skip = 1;	// show the back button
-		// the lines below are needed by the present GUI. TODO:create a sane GUI. Kaks - 20090915
-		[equipmentAllowed addObject:eqKeyForSelectFacing]; // needed by the GUI ?
-		[equipmentAllowed addObject:eqKeyForSelectFacing]; // needed by the GUI !
-		unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
-		if (available_facings & WEAPON_FACING_FORWARD)  [equipmentAllowed addObject:eqKeyForSelectFacing];
-		if (available_facings & WEAPON_FACING_AFT)  [equipmentAllowed addObject:eqKeyForSelectFacing];
-		if (available_facings & WEAPON_FACING_PORT)  [equipmentAllowed addObject:eqKeyForSelectFacing];
-		if (available_facings & WEAPON_FACING_STARBOARD)  [equipmentAllowed addObject:eqKeyForSelectFacing];
+		// The 3 lines below are needed by the present GUI. TODO:create a sane GUI. Kaks - 20090915 & 201005
+		[equipmentAllowed addObject:eqKeyForSelectFacing];
+		[equipmentAllowed addObject:eqKeyForSelectFacing];
+		[equipmentAllowed addObject:eqKeyForSelectFacing];
 	}
 	else for (eqEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqEnum nextObject]); i++)
 	{
@@ -5752,8 +5750,9 @@ static NSString *last_outfitting_key=nil;
 
 		if (isOK)
 		{
-			if (techlevel < minTechLevel)  isOK = NO;
-			if (![self canAddEquipment:eqKey])  isOK = NO;
+			if (techlevel < minTechLevel) isOK = NO;
+			if (![self canAddEquipment:eqKey]) isOK = NO;
+			if (available_facings == 0 && [eqType isPrimaryWeapon]) isOK = NO;
 			if (isOK)  [equipmentAllowed addObject:eqKey];
 		}
 		
@@ -5780,7 +5779,8 @@ static NSString *last_outfitting_key=nil;
 		GuiDisplayGen	*gui = [UNIVERSE gui];
 		OOGUIRow		start_row = GUI_ROW_EQUIPMENT_START;
 		OOGUIRow		row = start_row;
-		BOOL			guns_already_set = NO;
+		unsigned        facing_count = 0;
+		BOOL			displayRow = YES;
 		BOOL			weaponMounted = NO;
 		BOOL			guiChanged = (gui_screen != GUI_SCREEN_EQUIP_SHIP);
 
@@ -5863,16 +5863,39 @@ static NSString *last_outfitting_key=nil;
 				
 				if ([eqKeyForSelectFacing isEqualToString:eqKey])
 				{
-					if  (!guns_already_set)
+					// Weapons purchase subscreen.
+					while (facing_count < 5)
 					{
-					guns_already_set = YES;
-					priceString = @"";
-					unsigned available_facings = [shipyardInfo oo_unsignedIntForKey:KEY_WEAPON_FACINGS];
-					if (available_facings & WEAPON_FACING_FORWARD)
-					{
+						switch (facing_count)
+						{
+							case 0:
+								break;
+								
+							case 1:
+								displayRow = available_facings & WEAPON_FACING_FORWARD;
+								desc = FORWARD_FACING_STRING;
+								weaponMounted = forward_weapon_type > WEAPON_NONE;
+								break;
+								
+							case 2:
+								displayRow = available_facings & WEAPON_FACING_AFT;
+								desc = AFT_FACING_STRING;
+								weaponMounted = aft_weapon_type > WEAPON_NONE;
+								break;
+								
+							case 3:
+								displayRow = available_facings & WEAPON_FACING_PORT;
+								desc = PORT_FACING_STRING;
+								weaponMounted = port_weapon_type > WEAPON_NONE;
+								break;
+								
+							case 4:
+								displayRow = available_facings & WEAPON_FACING_STARBOARD;
+								desc = STARBOARD_FACING_STRING;
+								weaponMounted = starboard_weapon_type > WEAPON_NONE;
+								break;
+						}
 						
-						desc = FORWARD_FACING_STRING;
-						weaponMounted = forward_weapon_type > WEAPON_NONE;
 						if(weaponMounted)
 						{
 							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
@@ -5881,68 +5904,24 @@ static NSString *last_outfitting_key=nil;
 						{
 							[gui setColor:[OOColor greenColor] forRow:row];
 						}
-						[gui setKey:eqKey forRow:row];
-						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
-						row++;
+						if (displayRow)	// Always true for the first pass. The first pass is used to display the name of the weapon being purchased.
+						{
+							[gui setKey:eqKey forRow:row];
+							[gui setArray:[NSArray arrayWithObjects:desc, (facing_count > 0 ? priceString : @""), nil] forRow:row];
+							row++;
+						}
+						facing_count++;
 					}
-					if (available_facings & WEAPON_FACING_AFT)
-					{
-						desc = AFT_FACING_STRING;
-						weaponMounted = aft_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
-						[gui setKey:eqKey forRow:row];
-						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
-						row++;
-					}
-					if (available_facings & WEAPON_FACING_PORT)
-					{
-						desc = PORT_FACING_STRING;
-						weaponMounted = port_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
-						[gui setKey:eqKey forRow:row];
-						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
-						row++;
-					}
-					if (available_facings & WEAPON_FACING_STARBOARD)
-					{
-						desc = STARBOARD_FACING_STRING;
-						weaponMounted = starboard_weapon_type > WEAPON_NONE;
-						if(weaponMounted)
-						{
-							[gui setColor:[OOColor colorWithCalibratedRed:0.0f green:0.6f blue:0.0f alpha:1.0f] forRow:row];
-						}
-						else
-						{
-							[gui setColor:[OOColor greenColor] forRow:row];
-						}
-						[gui setKey:eqKey forRow:row];
-						[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
-						row++;
-					}
-					}
-				} 
-				else 
+				}
+				else
 				{
-					//lasers alredy added.  if it was somthing else, add it here
+					// Normal equipment list.
 					[gui setKey:eqKey forRow:row];
 					[gui setArray:[NSArray arrayWithObjects:desc, priceString, nil] forRow:row];
 					row++;
 				}
 			}
+
 			if (i < count)
 			{
 				// just overwrite the last item :-)
@@ -6300,7 +6279,7 @@ static NSString *last_outfitting_key=nil;
 		return NO;
 	}
 	
-	if ([eqType isPrimaryWeapon] )
+	if ([eqType isPrimaryWeapon])
 	{
 		if (chosen_weapon_facing == WEAPON_FACING_NONE)
 		{
@@ -6333,19 +6312,12 @@ static NSString *last_outfitting_key=nil;
 		
 		credits -= price;
 		
-		// refund here for current_weapon
-		/*	BUG: equipment_priceFactor does not affect trade-ins. This means
-			that an equipment_priceFactor less than one can be exploited.
-			Analysis: price factor simply not being applied here.
-			Fix: trivial.
-			Acknowledgment: bug and fix both reported by Cmdr James on forum.
-			-- Ahruman 20070724
-		*/
+		// Refund current_weapon
 		if (current_weapon != WEAPON_NONE)
 				tradeIn = [UNIVERSE getEquipmentPriceForKey:WeaponTypeToEquipmentString(current_weapon)];
 		
 		[self doTradeIn:tradeIn forPriceFactor:priceFactor];
-		//if equipped, remove damaged weapon after repairs.
+		// If equipped, remove damaged weapon after repairs. -- But there's no way we should get a damaged weapon. Ever.
 		[self removeEquipmentItem:eqKeyDamaged];
 		return YES;
 	}
