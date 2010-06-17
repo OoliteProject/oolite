@@ -5576,7 +5576,7 @@ static BOOL replacingMissile = NO;
 
 		[gui setSelectableRange:NSMakeRange(first_sel_row, GUI_ROW_OPTIONS_END_OF_LIST)];
 
-		if ([[UNIVERSE gameController] gameIsPaused])
+		if ([[UNIVERSE gameController] gameIsPaused] || (!canLoadOrSave && [self status] == STATUS_DOCKED))
 		{
 			[gui setSelectedRow: GUI_ROW(,GAMEOPTIONS)];
 		}
