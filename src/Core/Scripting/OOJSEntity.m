@@ -67,48 +67,48 @@ static JSExtendedClass sEntityClass =
 enum
 {
 	// Property IDs
-	kEntity_position,			// position in system space, Vector, read/write
-	kEntity_orientation,		// orientation, quaternion, read/write
-	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
-	kEntity_status,				// entity status, string, read-only
-	kEntity_scanClass,			// scan class, string, read-only
-	kEntity_mass,				// mass, double, read-only
-	kEntity_owner,				// owner, Entity, read-only. (Parent ship for subentities, station for defense ships, launching ship for missiles etc)
+	kEntity_distanceTravelled,	// distance travelled, double, read-only.
 	kEntity_energy,				// energy, double, read-write.
+	kEntity_heading,			// heading, vector, read-only (like orientation but ignoring twist angle)
+	kEntity_mass,				// mass, double, read-only
 	kEntity_maxEnergy,			// maxEnergy, double, read-only.
-	kEntity_isValid,			// is not stale, boolean, read-only.
+	kEntity_orientation,		// orientation, quaternion, read/write
+	kEntity_owner,				// owner, Entity, read-only. (Parent ship for subentities, station for defense ships, launching ship for missiles etc)
+	kEntity_position,			// position in system space, Vector, read/write
+	kEntity_scanClass,			// scan class, string, read-only
+	kEntity_spawnTime,			// spawn time, double, read-only.
+	kEntity_status,				// entity status, string, read-only
+	kEntity_isPlanet,			// is planet, boolean, read-only.
+	kEntity_isPlayer,			// is player, boolean, read-only.
 	kEntity_isShip,				// is ship, boolean, read-only.
 	kEntity_isStation,			// is station, boolean, read-only.
 	kEntity_isSubEntity,		// is subentity, boolean, read-only.
-	kEntity_isPlayer,			// is player, boolean, read-only.
-	kEntity_isPlanet,			// is planet, boolean, read-only.
 	kEntity_isSun,				// is sun, boolean, read-only.
-	kEntity_distanceTravelled,	// distance travelled, double, read-only.
-	kEntity_spawnTime,			// spawn time, double, read-only.
+	kEntity_isValid,			// is not stale, boolean, read-only.
 };
 
 
 static JSPropertySpec sEntityProperties[] =
 {
 	// JS name					ID							flags
-	{ "position",				kEntity_position,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "status",					kEntity_status,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "scanClass",				kEntity_scanClass,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "mass",					kEntity_mass,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "owner",					kEntity_owner,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "distanceTravelled",		kEntity_distanceTravelled,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "energy",					kEntity_energy,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "heading",				kEntity_heading,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "mass",					kEntity_mass,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxEnergy",				kEntity_maxEnergy,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isValid",				kEntity_isValid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "orientation",			kEntity_orientation,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "owner",					kEntity_owner,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "position",				kEntity_position,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scanClass",				kEntity_scanClass,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "spawnTime",				kEntity_spawnTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "status",					kEntity_status,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPlanet",				kEntity_isPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isPlayer",				kEntity_isPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isShip",					kEntity_isShip,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isStation",				kEntity_isStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isSubEntity",			kEntity_isSubEntity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isPlayer",				kEntity_isPlayer,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "isPlanet",				kEntity_isPlanet,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isSun",					kEntity_isSun,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "distanceTravelled",		kEntity_distanceTravelled,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "spawnTime",				kEntity_spawnTime,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "isValid",				kEntity_isValid,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 

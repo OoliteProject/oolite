@@ -45,56 +45,54 @@ static JSBool EquipmentInfoStaticInfoForKey(JSContext *context, JSObject *this, 
 enum
 {
 	// Property IDs
-	kEquipmentInfo_equipmentKey,
-	kEquipmentInfo_name,
 	kEquipmentInfo_description,
-	kEquipmentInfo_techLevel,
 	kEquipmentInfo_effectiveTechLevel,
-	kEquipmentInfo_price,
+	kEquipmentInfo_equipmentKey,
+	kEquipmentInfo_incompatibleEquipment,
 	kEquipmentInfo_isAvailableToAll,
-	kEquipmentInfo_requiresEmptyPylon,
-	kEquipmentInfo_requiresMountedPylon,
-	kEquipmentInfo_requiresCleanLegalRecord,
-	kEquipmentInfo_requiresNonCleanLegalRecord,
-	kEquipmentInfo_requiresFreePassengerBerth,
-	kEquipmentInfo_requiresFullFuel,
-	kEquipmentInfo_requiresNonFullFuel,
 	kEquipmentInfo_isExternalStore,				// is missile or mine
 	kEquipmentInfo_isPortableBetweenShips,
+	kEquipmentInfo_name,
+	kEquipmentInfo_price,
 	kEquipmentInfo_requiredCargoSpace,
-	kEquipmentInfo_requiresEquipment,
 	kEquipmentInfo_requiresAnyEquipment,
-	kEquipmentInfo_incompatibleEquipment,
+	kEquipmentInfo_requiresCleanLegalRecord,
+	kEquipmentInfo_requiresEmptyPylon,
+	kEquipmentInfo_requiresEquipment,
+	kEquipmentInfo_requiresFreePassengerBerth,
+	kEquipmentInfo_requiresFullFuel,
+	kEquipmentInfo_requiresMountedPylon,
+	kEquipmentInfo_requiresNonCleanLegalRecord,
+	kEquipmentInfo_requiresNonFullFuel,
 	kEquipmentInfo_scriptInfo,					// arbitrary data for scripts, dictionary, read-only
-	
-	kEquipmentInfo_static_allEquipment			// Array of all EquipmentInfo objects.
+	kEquipmentInfo_techLevel,
 };
 
 
 static JSPropertySpec sEquipmentInfoProperties[] =
 {
 	// JS name							ID											flags
-	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "name",							kEquipmentInfo_name,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "description",					kEquipmentInfo_description,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "techLevel",						kEquipmentInfo_techLevel,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "effectiveTechLevel",				kEquipmentInfo_effectiveTechLevel,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "price",							kEquipmentInfo_price,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "equipmentKey",					kEquipmentInfo_equipmentKey,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isAvailableToAll",				kEquipmentInfo_isAvailableToAll,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresEmptyPylon",				kEquipmentInfo_requiresEmptyPylon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresMountedPylon",			kEquipmentInfo_requiresMountedPylon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresNonCleanLegalRecord",	kEquipmentInfo_requiresNonCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresFreePassengerBerth",		kEquipmentInfo_requiresFreePassengerBerth,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresFullFuel",				kEquipmentInfo_requiresFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresNonFullFuel",			kEquipmentInfo_requiresNonFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isExternalStore",				kEquipmentInfo_isExternalStore,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isPortableBetweenShips",			kEquipmentInfo_isPortableBetweenShips,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "name",							kEquipmentInfo_name,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "price",							kEquipmentInfo_price,						JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiredCargoSpace",				kEquipmentInfo_requiredCargoSpace,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "requiresEquipment",				kEquipmentInfo_requiresEquipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "requiresAnyEquipment",			kEquipmentInfo_requiresAnyEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "incompatibleEquipment",			kEquipmentInfo_incompatibleEquipment,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresCleanLegalRecord",		kEquipmentInfo_requiresCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresEmptyPylon",				kEquipmentInfo_requiresEmptyPylon,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresEquipment",				kEquipmentInfo_requiresEquipment,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresFreePassengerBerth",		kEquipmentInfo_requiresFreePassengerBerth,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresFullFuel",				kEquipmentInfo_requiresFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresMountedPylon",			kEquipmentInfo_requiresMountedPylon,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresNonCleanLegalRecord",	kEquipmentInfo_requiresNonCleanLegalRecord,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "requiresNonFullFuel",			kEquipmentInfo_requiresNonFullFuel,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "scriptInfo",						kEquipmentInfo_scriptInfo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "techLevel",						kEquipmentInfo_techLevel,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ 0 }
 };
 

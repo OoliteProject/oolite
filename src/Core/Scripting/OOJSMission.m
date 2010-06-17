@@ -67,9 +67,9 @@ static JSClass sMissionClass =
 enum
 {
 	// Property IDs
-	kMission_title,				// title of mission screen, string.
-	kMission_foreground,		// missionforeground image, string.
 	kMission_background,		// mission background image, string.
+	kMission_foreground,		// missionforeground image, string.
+	kMission_title,				// title of mission screen, string.
 	kMission_3DModel,			// mission 3D model: role, string.
 };
 
@@ -77,12 +77,12 @@ enum
 static JSFunctionSpec sMissionMethods[] =
 {
 	// JS name					Function					min args
+	{ "addMessageText",			MissionAddMessageText,		1 },
 	{ "markSystem",				MissionMarkSystem,			1 },
 	{ "unmarkSystem",			MissionUnmarkSystem,		1 },
-	{ "addMessageText",			MissionAddMessageText,		1 },
+	{ "runScreen",				MissionRunScreen,			0 },
 	{ "setInstructions",		MissionSetInstructions,		1 },
 	{ "setInstructionsKey",		MissionSetInstructionsKey,	1 },
-	{ "runScreen",				MissionRunScreen,			0 },
 	{ 0 }
 };
 
@@ -226,6 +226,7 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
 	
+	// FIXME: warning if no mission screen running.
 	text = JSValToNSString(context,argv[0]);
 	[player addLiteralMissionText:text];
 	

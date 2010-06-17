@@ -188,7 +188,9 @@ static void ReportJSError(JSContext *context, const char *message, JSErrorReport
 		}
 	}
 	
+#ifndef NDEBUG
 	OOJSDumpStack([NSString stringWithFormat:@"script.javaScript.stackTrace.%@", severity], context);
+#endif
 	
 #if OOJSENGINE_MONITOR_SUPPORT
 	JSExceptionState *exState = JS_SaveExceptionState(context);
@@ -719,7 +721,9 @@ static JSBool BranchCallback(JSContext *context, JSScript *script)
 	if (elapsed < sLimiterTimeLimit)  return YES;
 	
 	OOLogERR(@"script.javaScript.timeLimit", @"Script \"%@\" ran for %g seconds and has been terminated.", [[OOJSScript currentlyRunningScript] name], elapsed);
+#ifndef NDEBUG
 	OOJSDumpStack(@"script.javaScript.stackTrace.timeLimit", context);
+#endif
 	
 	// FIXME: we really should put something in the JS log here, but since that's implemented in JS there are complications.
 	
