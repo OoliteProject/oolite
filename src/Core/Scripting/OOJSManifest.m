@@ -140,6 +140,9 @@ static JSPropertySpec sManifestProperties[] =
 };
 
 
+static int sManifestCaseInsensitiveLimit = kManifest_gemstones + 1;
+
+
 static JSFunctionSpec sManifestMethods[] =
 {
 	// JS name					Function					min args
@@ -220,9 +223,9 @@ static JSBool ManifestGetProperty(JSContext *context, JSObject *this, jsval name
 	{
 		//FIXME: there must be a better way of doing this.
 		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
-		int				i,len = kManifest_alienitems + 1;
+		int				i;
 		
-		for (i=0; i<len; i++)
+		for (i=0; i<sManifestCaseInsensitiveLimit; i++)
 		{
 			if (strcmp(sManifestProperties[i].name, str) == 0) 
 			{
@@ -354,9 +357,10 @@ static JSBool ManifestSetProperty(JSContext *context, JSObject *this, jsval name
 	{
 		//FIXME: there must be a better way of doing this.
 		const char		*str = [[[NSString stringWithJavaScriptValue:name inContext:context] lowercaseString] UTF8String];
-		int				i,len = kManifest_alienitems + 1;
+		int				i;
 		
-		for (i=0; i<len; i++) {
+		for (i=0; i<sManifestCaseInsensitiveLimit; i++)
+		{
 			if (strcmp(sManifestProperties[i].name, str) == 0) 
 			{
 				name = INT_TO_JSVAL(sManifestProperties[i].tinyid);
