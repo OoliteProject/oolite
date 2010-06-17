@@ -121,7 +121,7 @@ OOINLINE void SetIndentLevel(unsigned level);
 
 
 #ifndef OOLOG_NO_FILE_NAME
-static NSMutableDictionary		*sFileNamesCache = nil;
+static NSMapTable				*sFileNamesCache = NULL;
 #endif
 
 
@@ -564,6 +564,10 @@ void OOLoggingInit(void)
 	[sLock ooSetName:@"OOLogging lock"];
 	if (sLock == nil) exit(EXIT_FAILURE);
 	
+#ifndef OOLOG_NO_FILE_NAME
+	sFileNamesCache = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks, NSObjectMapValueCallBacks, 100);
+#endif
+	
 	sInited = YES;	// Must be before OOLogOutputHandlerInit().
 	OOLogOutputHandlerInit();
 	
@@ -791,19 +795,16 @@ static void LoadExplicitSettingsFromDictionary(NSDictionary *inDict)
 */
 NSString *OOLogAbbreviatedFileName(const char *inName)
 {
-	NSValue				*key = nil;
 	NSString			*name = nil;
 	
-	if (inName == NULL)  return @"unspecified file";
+	if (EXPECT_NOT(inName == NULL))  return @"unspecified file";
 	
 	[sLock lock];
-	key = [NSValue valueWithPointer:inName];
-	name = [sFileNamesCache objectForKey:key];
-	if (name == nil)
+	name = NSMapGet(sFileNamesCache, inName);
+	if (EXPECT_NOT(name == nil))
 	{
 		name = [[NSString stringWithUTF8String:inName] lastPathComponent];
-		if (sFileNamesCache == nil) sFileNamesCache = [[NSMutableDictionary alloc] init];
-		[sFileNamesCache setObject:name forKey:key];
+		NSMapInsertKnownAbsent(sFileNamesCache, inName, name);
 	}
 	[sLock unlock];
 	
