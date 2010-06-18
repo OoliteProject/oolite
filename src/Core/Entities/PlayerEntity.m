@@ -99,10 +99,6 @@ static NSString * const kOOLogBuyMountedFailed		= @"equip.buy.mounted.failed";
 static PlayerEntity *sSharedPlayer = nil;
 static GLfloat sBaseMass = 0.0;
 
-static GLfloat launchRoll;
-static BOOL launchingMissile = NO;
-static BOOL replacingMissile = NO;
-
 
 @interface PlayerEntity (OOPrivate)
 
@@ -1909,7 +1905,9 @@ static BOOL replacingMissile = NO;
 	{
 		[self updateFuelScoopSoundWithInterval:delta_t];
 		if (![self scoopOverride])
-		scoopsActive = NO;
+		{
+			scoopsActive = NO;
+		}
 	}
 }
 
@@ -2027,20 +2025,17 @@ static BOOL replacingMissile = NO;
 }
 
 
-- (BOOL) engageAutopilotToStation:(OOUniversalID)stationForDocking
+- (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking
 {
-	if (autopilot_engaged)
+	if (stationForDocking == nil)   return NO;
+	if ([self isDocked])  return NO;
+	
+	if (autopilot_engaged && targetStation == [stationForDocking universalID])
 	{	
 		return YES;
 	}
-	if (stationForDocking == NO_TARGET || ![[UNIVERSE entityForUniversalID:stationForDocking] isStation])
-	{
-		OOLog(@"PlayerEntity.engageAutopilotToStation.failed", 
-			@"Entity %@ requested for autopilot docking is either invalid or not a station.", [UNIVERSE entityForUniversalID:stationForDocking]);
-		return NO;
-	}
 		
-	targetStation = stationForDocking;
+	targetStation = [stationForDocking universalID];
 	primaryTarget = NO_TARGET;
 	autopilot_engaged = YES;
 	ident_engaged = NO;
@@ -2050,7 +2045,7 @@ static BOOL replacingMissile = NO;
 	[self resetAutopilotAI];
 	[shipAI setState:@"BEGIN_DOCKING"];	// reboot the AI
 	[self playAutopilotOn];
-	[self doScriptEvent:@"playerStartedAutoPilot" withArgument:[UNIVERSE entityForUniversalID:stationForDocking]];
+	[self doScriptEvent:@"playerStartedAutoPilot" withArgument:stationForDocking];
 #if DOCKING_CLEARANCE_ENABLED
 	[self setDockingClearanceStatus:DOCKING_CLEARANCE_STATUS_GRANTED];
 #endif	

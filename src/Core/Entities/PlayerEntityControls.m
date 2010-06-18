@@ -976,7 +976,7 @@ static NSTimeInterval	time_last_frame;
 						
 						if (isOkayToUseAutopilot)
 						{
-							[self engageAutopilotToStation:[[UNIVERSE station] universalID]];
+							[self engageAutopilotToStation:[UNIVERSE station]];
 							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						}
 					}
@@ -991,13 +991,12 @@ static NSTimeInterval	time_last_frame;
 				{
 					if ([self hasDockingComputer] && (!target_autopilot_key_pressed))
 					{
-						Entity* primeTarget = [self primaryTarget];
+						StationEntity* primeTarget = [self primaryTarget];
 						BOOL primeTargetIsHostile = [self hasHostileTarget];
-						if ((primeTarget) && (primeTarget->isStation) && 
-							[primeTarget isKindOfClass:[StationEntity class]] &&
+						if (primeTarget != nil && [primeTarget isStation] && 
 							!primeTargetIsHostile)
 						{
-							[self engageAutopilotToStation:primaryTarget];
+							[self engageAutopilotToStation:primeTarget];
 							[UNIVERSE addMessage:DESC(@"autopilot-on") forCount:4.5];
 						}
 						else

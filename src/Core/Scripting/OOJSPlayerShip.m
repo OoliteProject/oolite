@@ -51,7 +51,6 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 static JSBool PlayerShipSetProperty(JSContext *context, JSObject *this, jsval name, jsval *value);
 
 static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
-static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -85,70 +84,70 @@ static JSExtendedClass sPlayerShipClass =
 enum
 {
 	// Property IDs
-	kPlayerShip_fuelLeakRate,					// fuel leak rate, float, read/write
+	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
+	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
+	kPlayerShip_compassMode,					// compass mode, string, read-only
+	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
+	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
 	kPlayerShip_docked,							// docked, boolean, read-only
 	kPlayerShip_dockedStation,					// docked station, entity, read-only
-	kPlayerShip_specialCargo,					// special cargo, string, read-only
-	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
+	kPlayerShip_forwardShield,					// forward shield charge level, nonnegative float, read/write
+	kPlayerShip_forwardShieldRechargeRate,		// forward shield recharge rate, positive float, read-only
+	kPlayerShip_fuelLeakRate,					// fuel leak rate, float, read/write
 	kPlayerShip_galacticHyperspaceBehaviour,	// can be standard, all systems reachable or fixed coordinates, integer, read-only
 	kPlayerShip_galacticHyperspaceFixedCoords,	// used when fixed coords behaviour is selected, vector, read-only
-	kPlayerShip_forwardShield,					// forward shield charge level, nonnegative float, read/write
-	kPlayerShip_aftShield,						// aft shield charge level, nonnegative float, read/write
-	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
-	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
-	kPlayerShip_forwardShieldRechargeRate,		// forward shield recharge rate, positive float, read-only
-	kPlayerShip_aftShieldRechargeRate,			// aft shield recharge rate, positive float, read-only
 	kPlayerShip_galaxyCoordinates,				// galaxy coordinates, vector, read only
-	kPlayerShip_cursorCoordinates,				// cursor coordinates, vector, read only
-	kPlayerShip_targetSystem,					// target system id, int, read-only
-	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
-	kPlayerShip_scoopOverride,					// Scooping
-	kPlayerShip_compassTarget,					// object targeted by the compass, entity, read-only
-	kPlayerShip_compassMode,					// compass mode, string, read-only
 	kPlayerShip_hud,							// hud name identifier, string, read/write
-	kPlayerShip_hudHidden						// hud visibility, boolean, read/write
+	kPlayerShip_hudHidden,						// hud visibility, boolean, read/write
+	kPlayerShip_maxAftShield,					// maximum aft shield charge level, positive float, read-only
+	kPlayerShip_maxForwardShield,				// maximum forward shield charge level, positive float, read-only
+	kPlayerShip_reticleTargetSensitive,			// target box changes color when primary target in crosshairs, boolean, read/write
+	kPlayerShip_scoopOverride,					// Scooping
+	kPlayerShip_scriptedMisjump,				// next jump will miss if set to true, boolean, read/write
+	kPlayerShip_specialCargo,					// special cargo, string, read-only
+	kPlayerShip_targetSystem,					// target system id, int, read-only
 };
 
 
 static JSPropertySpec sPlayerShipProperties[] =
 {
 	// JS name						ID									flags
-	{ "fuelLeakRate",				kPlayerShip_fuelLeakRate,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "docked",						kPlayerShip_docked,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "dockedStation",				kPlayerShip_dockedStation,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "specialCargo",				kPlayerShip_specialCargo,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "reticleTargetSensitive",		kPlayerShip_reticleTargetSensitive,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "aftShield",						kPlayerShip_aftShield,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "aftShieldRechargeRate",			kPlayerShip_aftShieldRechargeRate,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "compassMode",					kPlayerShip_compassMode,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "compassTarget",					kPlayerShip_compassTarget,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cursorCoordinates",				kPlayerShip_cursorCoordinates,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "docked",							kPlayerShip_docked,							JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "dockedStation",					kPlayerShip_dockedStation,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "forwardShield",					kPlayerShip_forwardShield,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "forwardShieldRechargeRate",		kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "fuelLeakRate",					kPlayerShip_fuelLeakRate,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "galacticHyperspaceBehaviour",	kPlayerShip_galacticHyperspaceBehaviour,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
 	{ "galacticHyperspaceFixedCoords",	kPlayerShip_galacticHyperspaceFixedCoords,	JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "forwardShield",				kPlayerShip_forwardShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "aftShield",					kPlayerShip_aftShield,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "maxForwardShield",			kPlayerShip_maxForwardShield,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "maxAftShield",				kPlayerShip_maxAftShield,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "forwardShieldRechargeRate",	kPlayerShip_forwardShieldRechargeRate,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "aftShieldRechargeRate",		kPlayerShip_aftShieldRechargeRate,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "galaxyCoordinates",			kPlayerShip_galaxyCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "targetSystem",				kPlayerShip_targetSystem,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cursorCoordinates",			kPlayerShip_cursorCoordinates,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "scriptedMisjump",			kPlayerShip_scriptedMisjump,		JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "scoopOverride",				kPlayerShip_scoopOverride,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "compassTarget",				kPlayerShip_compassTarget,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "compassMode",				kPlayerShip_compassMode,			JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "hud",						kPlayerShip_hud,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ "hudHidden",					kPlayerShip_hudHidden,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
-	{ 0 }
+	{ "galaxyCoordinates",				kPlayerShip_galaxyCoordinates,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "hud",							kPlayerShip_hud,							JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "hudHidden",						kPlayerShip_hudHidden,						JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	// manifest defined in OOJSManifest.m
+	{ "maxAftShield",					kPlayerShip_maxAftShield,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "maxForwardShield",				kPlayerShip_maxForwardShield,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "reticleTargetSensitive",			kPlayerShip_reticleTargetSensitive,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scoopOverride",					kPlayerShip_scoopOverride,					JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "scriptedMisjump",				kPlayerShip_scriptedMisjump,				JSPROP_PERMANENT | JSPROP_ENUMERATE },
+	{ "specialCargo",					kPlayerShip_specialCargo,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "targetSystem",					kPlayerShip_targetSystem,					JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ 0 }			
 };
 
 
 static JSFunctionSpec sPlayerShipMethods[] =
 {
 	// JS name						Function							min args
-	{ "launch",							PlayerShipLaunch,					0 },
-	{ "canAwardCargo",					PlayerShipCanAwardCargo,			1 },
-	{ "removeAllCargo",					PlayerShipRemoveAllCargo,			0 },
-	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,			1 },
-	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,	1 },
-	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,		0 },
-	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,	1 },
+	{ "awardEquipmentToCurrentPylon",	PlayerShipAwardEquipmentToCurrentPylon,		1 },
+	{ "disengageAutopilot",				PlayerShipDisengageAutopilot,				0 },
+	{ "engageAutopilotToStation",		PlayerShipEngageAutopilotToStation,			1 },
+	{ "launch",							PlayerShipLaunch,							0 },
+	{ "removeAllCargo",					PlayerShipRemoveAllCargo,					0 },
+	{ "useSpecialCargo",				PlayerShipUseSpecialCargo,					1 },
 	{ 0 }
 };
 
@@ -277,7 +276,7 @@ static JSBool PlayerShipGetProperty(JSContext *context, JSObject *this, jsval na
 			
 		case kPlayerShip_targetSystem:
 			*outValue = INT_TO_JSVAL([UNIVERSE findSystemNumberAtCoords:[player cursor_coordinates] withGalaxySeed:[player galaxy_seed]]);
-			OK = YES;//(*outValue != NSNotFound);
+			OK = YES;
 			break;
 
 		case kPlayerShip_scriptedMisjump:
@@ -447,41 +446,6 @@ static JSBool PlayerShipLaunch(JSContext *context, JSObject *this, uintN argc, j
 }
 
 
-// canAwardCargo(type : String [, quantity : Number]) : Boolean
-static JSBool PlayerShipCanAwardCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
-{
-	PlayerEntity			*player = OOPlayerForScripting();
-	NSString				*typeString = nil;
-	OOCargoType				type;
-	int32					amount = 1;
-	BOOL					gotAmount = YES;
-	
-	typeString = JSValToNSString(context, argv[0]);
-	if (argc > 1)  gotAmount = JS_ValueToInt32(context, argv[1], &amount);
-	if (EXPECT_NOT(typeString == nil || !gotAmount))
-	{
-		OOReportJSBadArguments(context, @"PlayerShip", @"canAwardCargo", argc, argv, nil, @"type and optional quantity");
-		return NO;
-	}
-	
-	type = [UNIVERSE commodityForName:typeString];
-	if (EXPECT_NOT(type == CARGO_UNDEFINED))
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"canAwardCargo", @"Unknown cargo type \"%@\".", typeString);
-		return NO;
-	}
-	
-	if (EXPECT_NOT(amount < 0))
-	{
-		OOReportJSErrorForCaller(context, @"PlayerShip", @"canAwardCargo", @"Cargo quantity (%i) is negative.", amount);
-		return NO;
-	}
-	OOReportJSWarning(context, @"PlayerShip.canAwardCargo() is deprecated and will be removed in a future version of Oolite.");
-	*outResult = BOOLToJSVal([player canAwardCargoType:type amount:amount]);
-	return YES;
-}
-
-
 // removeAllCargo()
 static JSBool PlayerShipRemoveAllCargo(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
@@ -518,21 +482,20 @@ static JSBool PlayerShipUseSpecialCargo(JSContext *context, JSObject *this, uint
 }
 
 
-// engageAutopilotToStation(stationForDocking : StationEntity)
+// engageAutopilotToStation(stationForDocking : Station) : Boolean
 static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity			*player = OOPlayerForScripting();
-	id						stationForDocking = nil;
+	StationEntity			*stationForDocking = nil;
 	
-	if (argc != 1)
+	stationForDocking = JSValueToObjectOfClass(context, argv[0], [StationEntity class]);
+	if (stationForDocking == nil)
 	{
 		OOReportJSBadArguments(context, @"PlayerShip", @"engageAutopilot", argc, argv, nil, @"station for docking");
 		return NO;
 	}
 	
-	stationForDocking = JSValueToObject(context, argv[0]);
-	
-	BOOL OK = [player engageAutopilotToStation:[stationForDocking universalID]];
+	BOOL OK = [player engageAutopilotToStation:stationForDocking];
 	*outResult = OK ? JSVAL_TRUE : JSVAL_FALSE;
 	
 	return YES;
@@ -547,6 +510,7 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 	[player disengageAutopilot];
 	return YES;
 }
+
 
 // awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)

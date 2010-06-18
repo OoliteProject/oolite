@@ -3368,14 +3368,16 @@ static BOOL IsCandidateMainStationPredicate(Entity *entity, void *parameter)
 
 - (NSDictionary *) gameSettings
 {
-	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:5];
+	NSMutableDictionary *result = [NSMutableDictionary dictionaryWithCapacity:8];
 	
-	[result setObject:[NSNumber numberWithBool:reducedDetail] forKey:@"reducedDetailGraphics"];
-	[result setObject:[NSNumber numberWithBool:[[PlayerEntity sharedPlayer] isSpeechOn]] forKey:@"speechOn"];
-	[result setObject:[NSNumber numberWithBool:autoSave] forKey:@"autosave"];
-	[result setObject:[NSNumber numberWithBool:wireframeGraphics] forKey:@"wireframeGraphics"];
+	[result oo_setBool:reducedDetail forKey:@"reducedDetailGraphics"];
+	[result oo_setBool:[[PlayerEntity sharedPlayer] isSpeechOn] forKey:@"speechOn"];
+	[result oo_setBool:autoSave forKey:@"autosave"];
+	[result oo_setBool:wireframeGraphics forKey:@"wireframeGraphics"];
 #if ALLOW_PROCEDURAL_PLANETS
-	[result setObject:[NSNumber numberWithBool:doProcedurallyTexturedPlanets] forKey:@"procedurallyTexturedPlanets"];
+	[result oo_setBool:doProcedurallyTexturedPlanets forKey:@"procedurallyTexturedPlanets"];
+#else
+	[result oo_setBool:NO forKey:@"procedurallyTexturedPlanets"];
 #endif
 	
 	[result setObject:ShaderSettingToString([self shaderEffectsLevel]) forKey:@"shaderEffectsLevel"];

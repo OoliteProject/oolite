@@ -282,6 +282,7 @@ typedef enum
 	HeadUpDisplay			*hud;
 	
 	GLfloat					roll_delta, pitch_delta, yaw_delta;
+	GLfloat					launchRoll;
 	
 	GLfloat					forward_shield, aft_shield;
 	GLfloat					weapon_temp;
@@ -473,7 +474,10 @@ typedef enum
 	
 							keyboardRollPitchOverride: 1,
 							keyboardYawOverride: 1,
-							waitingForStickCallback: 1;
+							waitingForStickCallback: 1,
+							
+							launchingMissile: 1,
+							replacingMissile: 1;
 #if OOLITE_ESPEAK
 	unsigned int			voice_no;
 	BOOL					voice_gender_m;
@@ -545,7 +549,7 @@ typedef enum
 - (void) setDockedAtMainStation;
 - (StationEntity *) dockedStation;
 
-- (BOOL) engageAutopilotToStation:(OOUniversalID)stationForDocking;
+- (BOOL) engageAutopilotToStation:(StationEntity *)stationForDocking;
 - (void) disengageAutopilot;
 
 - (void) resetAutopilotAI;
