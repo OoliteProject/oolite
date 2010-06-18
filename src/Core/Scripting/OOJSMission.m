@@ -226,7 +226,8 @@ static JSBool MissionAddMessageText(JSContext *context, JSObject *this, uintN ar
 	PlayerEntity		*player = OOPlayerForScripting();
 	NSString			*text = nil;
 	
-	// FIXME: warning if no mission screen running.
+	// Found "FIXME: warning if no mission screen running.",,,
+	// However: used routinely by the Constrictor mission in F7, without mission screens.
 	text = JSValToNSString(context,argv[0]);
 	[player addLiteralMissionText:text];
 	

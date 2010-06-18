@@ -153,6 +153,14 @@
 			strict_mode_compatible = true;
 		}
 	),
+	(	/* Thargoid equipment, standardised name. Incompatible with non-thargoid ships. Not buyable because of its TL. */
+		100, 1000, "Thargon",
+		"EQ_THARGON",
+		"Alien drone ship.",
+		{
+			strict_mode_compatible = true;
+		}
+	),
 	(
 		/* Cute, fluffy pet. Not buyable through usual channels, you'll have to find a specialist merchant. */
 		100, 300, "Trumble",
@@ -238,7 +246,7 @@
 			available_to_all = true;
 		}
 	),
-	/* next item has a TL too high to be available */
+	/* next item has a TL too high to be available - FIXME: shall we move it to TL 100? */
 	(
 		99, 150000, "Thargoid Laser",
 		"EQ_WEAPON_THARGOID_LASER",

@@ -2464,7 +2464,7 @@
 		missiles = 0;
 		model = "thargon_redux.dat";
 		name = "Thargoid Robot Fighter";
-		roles = "tharglet thargon";
+		roles = "tharglet thargon EQ_THARGON";
 		scan_class = "CLASS_THARGOID";
 		scanner_range = 50000;
 		thrust = 40;
@@ -2491,7 +2491,7 @@
 		max_flight_roll = 2;
 		max_flight_speed = 500;
 		missile_launch_position = "0.0 0.0 -20.5";
-		missile_role = "thargon";
+		missile_role = "EQ_THARGON";
 		missile_load_time = 15;
 		missiles = 5;
 		model = "thargoid_redux.dat";

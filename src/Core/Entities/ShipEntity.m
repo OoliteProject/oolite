@@ -2031,6 +2031,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	if (includeMissiles && missiles > 0)
 	{
 		unsigned i;
+		if ([itemKey isEqualToString:@"thargon"]) itemKey = @"EQ_THARGON";
 		for (i = 0; i < missiles; i++)
 		{
 			if ([[missile_list[i] identifier] isEqualTo:itemKey])  return YES;
@@ -2279,6 +2280,8 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSString				*lcEquipmentKey = [equipmentKey lowercaseString];
 	BOOL					isEqThargon = [lcEquipmentKey hasPrefix:@"thargon"] || [lcEquipmentKey hasSuffix:@"thargon"];
 	
+	if([lcEquipmentKey isEqualToString:@"thargon"]) equipmentKey = @"EQ_THARGON";
+	
 	// canAddEquipment always checks if the undamaged version is equipped.
 	if (validateAddition == YES && ![self canAddEquipment:equipmentKey])  return NO;
 	
@@ -2415,6 +2418,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	NSString	*identifier = [eqType identifier];
 	unsigned	i;
 	
+	if ([identifier isEqualToString:@"thargon"]) identifier = @"EQ_THARGON";
 	for (i = 0; i < missiles; i++)
 	{
 		if ([[missile_list[i] identifier] isEqualTo:identifier])
@@ -2532,7 +2536,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 	{
 		if (_missileRole != nil) missileType = [self verifiedMissileTypeFromRole:_missileRole];
 		if (missileType == nil) {
-			_missileRole = @"thargon";	// no valid missile_role defined, use thargoid fallback from now on.
+			_missileRole = @"EQ_THARGON";	// no valid missile_role defined, use thargoid fallback from now on.
 			missileType = [self verifiedMissileTypeFromRole:_missileRole];
 		}
 	}
@@ -7658,7 +7662,7 @@ BOOL class_masslocks(int some_class)
 		i = floor(randf()*(double)missiles);
 		identifier = [missile_list[i] identifier];
 		missile = [UNIVERSE newShipWithRole:identifier];
-		if (missile == nil)	// invalid missile role.
+		if (EXPECT_NOT(missile == nil))	// invalid missile role.
 		{
 			// remove that invalid missile role from the missiles list.
 			while ( ++i < missiles ) missile_list[i - 1] = missile_list[i];
@@ -7668,7 +7672,7 @@ BOOL class_masslocks(int some_class)
 	else
 		missile = [UNIVERSE newShipWithRole:identifier];
 	
-	if (missile == nil)	return nil;
+	if (EXPECT_NOT(missile == nil))	return nil;
 	
 	// By definition, the player will always have the specified missile.
 	// What if the NPC didn't actually have the specified missile to begin with?

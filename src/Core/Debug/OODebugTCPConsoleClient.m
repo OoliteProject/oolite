@@ -5,7 +5,7 @@ OODebugTCPConsoleClient.m
 
 Oolite Debug OXP
 
-Copyright (C) 2009 Jens Ayton
+Copyright (C) 2009-2010 Jens Ayton and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -168,7 +168,7 @@ OOINLINE BOOL StatusIsSendable(OOTCPClientConnectionStatus status)
 		
 		if (!OK)
 		{
-			OOLog(@"debugTCP.connect.failed", @"Failed to connect to debug console at %@:%i.", address, port);
+			OOLog(@"debugTCP.connect.failed", @"Failed to connect to debug console at address %@:%i.", address, port);
 			[self release];
 			self = nil;
 		}
@@ -372,7 +372,7 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if (data == nil)
 	{
-		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc ? errorDesc : (NSString *)@"unknown error.");
+		OOLog(@"debugTCP.conversionFailure", @"Could not convert dictionary to data for transmission to debug console: %@", errorDesc ? errorDesc : @"unknown error.");
 #if OOLITE_RELEASE_PLIST_ERROR_STRINGS
 		[errorDesc autorelease];
 #endif
@@ -492,7 +492,7 @@ noteChangedConfigrationValue:(in id)newValue
 		_status = kOOTCPClientConnected;
 		
 		// Build "Connected..." message with two optional parts, console identity and host name.
-		connectedMessage = [NSMutableString stringWithString:@"Connected to external debug console"];
+		connectedMessage = [NSMutableString stringWithString:@"Connected to debug console"];
 		
 		consoleIdentity = [packet oo_stringForKey:kOOTCPConsoleIdentity];
 		if (consoleIdentity != nil)  [connectedMessage appendFormat:@" \"%@\"", consoleIdentity];
@@ -640,11 +640,11 @@ noteChangedConfigrationValue:(in id)newValue
 	
 	if ([message length] > 0)
 	{
-		OOLog(@"debugTCP.disconnect", @"Debug console disconnected with message \"%@\"", message);
+		OOLog(@"debugTCP.disconnect", @"No connection to debug console: \"%@\"", message);
 	}
 	else
 	{
-		OOLog(@"debugTCP.disconnect", @"Debug console disconnected.");	
+		OOLog(@"debugTCP.disconnect", @"Debug console not connected.");	
 	}
 	
 #if 0
@@ -665,8 +665,8 @@ noteChangedConfigrationValue:(in id)newValue
 	if (errorDesc == nil)  errorDesc = [error description];
 	if (errorDesc == nil)  errorDesc = @"unknown error.";
 	[self breakConnectionWithMessage:[NSString stringWithFormat:
-	   @"Lost connection to remote debug console. outStream status: %i, inStream status: %i. Stream error: %@",
-		[_outStream streamStatus], [_inStream streamStatus], errorDesc]];
+	   @"Connection to debug console failed: '%@' (outStream status: %i, inStream status: %i).",
+		errorDesc, [_outStream streamStatus], [_inStream streamStatus]]];
 }
 
 @end
