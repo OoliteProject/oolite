@@ -545,29 +545,29 @@ static JSBool PlayerShipDisengageAutopilot(JSContext *context, JSObject *this, u
 	return YES;
 }
 
-// awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression)
+// awardEquipmentToCurrentPylon(externalTank: equipmentInfoExpression) : Boolean
 static JSBool PlayerShipAwardEquipmentToCurrentPylon(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	PlayerEntity			*player = OOPlayerForScripting();
 	NSString				*key = nil;
 	OOEquipmentType			*eqType = nil;
-	BOOL					OK = NO;
 	
 	key = JSValueToEquipmentKey(context, argv[0]);
 	if (EXPECT_NOT(key == nil))
 	{
 		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"equipment type");
-		return OK;
+		return NO;
 	}
 	
 	eqType = [OOEquipmentType equipmentTypeWithIdentifier:key];
 	if (EXPECT_NOT(![eqType isMissileOrMine]))
 	{
 		OOReportJSBadArguments(context, @"PlayerShip", @"awardEquipmentToCurrentPylon", argc, argv, nil, @"external store");
-		return OK;
+		return NO;
 	}
 	
-	OK = [player assignToActivePylon:key];
-	//if (!OK) OOReportJSWarning(context, @"PlayerShip.awardEquipmentToCurrentPylon() could not award the specified equipment.");
-	return OK;
+	BOOL OK = [player assignToActivePylon:key];
+	*outResult = OK ? JSVAL_TRUE : JSVAL_FALSE;
+	
+	return YES;
 }
