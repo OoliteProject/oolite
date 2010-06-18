@@ -532,7 +532,10 @@ static JSBool PlayerShipEngageAutopilotToStation(JSContext *context, JSObject *t
 	
 	stationForDocking = JSValueToObject(context, argv[0]);
 	
-	return [player engageAutopilotToStation:[stationForDocking universalID]];
+	BOOL OK = [player engageAutopilotToStation:[stationForDocking universalID]];
+	*outResult = OK ? JSVAL_TRUE : JSVAL_FALSE;
+	
+	return YES;
 }
 
 
