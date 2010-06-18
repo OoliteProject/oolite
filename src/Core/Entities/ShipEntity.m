@@ -2164,14 +2164,7 @@ ShipEntity* doOctreesCollide(ShipEntity* prime, ShipEntity* other)
 
 - (NSArray *) missilesList
 {
-	NSMutableArray		*miss = [NSMutableArray arrayWithCapacity:missiles];
-	unsigned			i;
-
-	for (i = 0; i < missiles; i++)
-	{
-		[miss addObject:missile_list[i]];
-	}
-	return [[miss copy] autorelease];
+	return [NSArray arrayWithObjects:missile_list count:missiles];
 }
 
 

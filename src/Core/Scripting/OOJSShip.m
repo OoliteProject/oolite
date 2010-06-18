@@ -114,77 +114,77 @@ static JSExtendedClass sShipClass =
 enum
 {
 	// Property IDs
-	kShip_name,					// name, string, read-only
-	kShip_displayName,			// name displayed on screen, string, read-only
-	kShip_roles,				// roles, array, read-only
-	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
-	kShip_primaryRole,			// Primary role, string, read/write
+	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read only
 	kShip_AI,					// AI state machine name, string, read/write
 	kShip_AIState,				// AI state machine state, string, read/write
+	kShip_beaconCode,			// beacon code, string, read-only (should probably be read/write, but the beacon list needs to be maintained.)
+	kShip_bounty,				// bounty, unsigned int, read/write
+	kShip_cargoSpaceAvailable,	// free cargo space, integer, read-only
+	kShip_cargoSpaceCapacity,	// maximum cargo, integer, read-only
+	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
+	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
+	kShip_displayName,			// name displayed on screen, string, read-only
+	kShip_entityPersonality,	// per-ship random number, int, read-only
+	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
+	kShip_escortGroup,			// group, ShipGroup, read-only
+	kShip_escorts,				// deployed escorts, array of Ship, read-only
+	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read only
 	kShip_fuel,					// fuel, float, read/write
 	kShip_fuelChargeRate,		// fuel scoop rate & charge multiplier, float, read-only
-	kShip_bounty,				// bounty, unsigned int, read/write
-	kShip_subEntities,			// subentities, array of Ship, read-only
-	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
-	kShip_target,				// target, Ship, read/write
-	kShip_escorts,				// deployed escorts, array of Ship, read-only
 	kShip_group,				// group, ShipGroup, read/write
-	kShip_escortGroup,			// group, ShipGroup, read-only
-	kShip_temperature,			// hull temperature, double, read/write
-	kShip_heatInsulation,		// hull heat insulation, double, read/write
-	kShip_entityPersonality,	// per-ship random number, int, read-only
-	kShip_isBeacon,				// is beacon, boolean, read-only
-	kShip_beaconCode,			// beacon code, string, read-only (should probably be read/write, but the beacon list needs to be maintained.)
-	kShip_isFrangible,			// frangible, boolean, read-only
-	kShip_isCloaked,			// cloaked, boolean, read/write (if cloaking device installed)
-	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
-	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
 	kShip_hasHostileTarget,		// has hostile target, boolean, read-only
-	kShip_weaponRange,			// weapon range, double, read-only
-	kShip_scannerRange,			// scanner range, double, read-only
-	kShip_reportAIMessages,		// report AI messages, boolean, read/write
-	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
-	kShip_cargoCapacity,		// maximum cargo, integer, read-only
-	kShip_cargoSpaceUsed,		// cargo on board, integer, read-only
-	kShip_availableCargoSpace,	// free cargo space, integer, read-only
-	kShip_speed,				// current flight speed, double, read-only
-	kShip_desiredSpeed,			// AI desired flight speed, double, read/write
-	kShip_maxSpeed,				// maximum flight speed, double, read-only
-	kShip_script,				// script, Script, read-only
+	kShip_hasSuspendedAI,		// AI has suspended states, boolean, read-only
+	kShip_heatInsulation,		// hull heat insulation, double, read/write
+	kShip_isBeacon,				// is beacon, boolean, read-only
+	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isCargo,				// contains cargo, boolean, read-only
+	kShip_isCloaked,			// cloaked, boolean, read/write (if cloaking device installed)
 	kShip_isDerelict,			// is an abandoned ship, boolean, read-only
+	kShip_isFrangible,			// frangible, boolean, read-only
+	kShip_isJamming,			// jamming scanners, boolean, read/write (if jammer installed)
+	kShip_isMine,				// is mine, boolean, read-only
+	kShip_isMissile,			// is missile, boolean, read-only
 	kShip_isPirate,				// is pirate, boolean, read-only
 	kShip_isPirateVictim,		// is pirate victim, boolean, read-only
 	kShip_isPlayer,				// is player, boolean, read-only
 	kShip_isPolice,				// is police, boolean, read-only
-	kShip_isMissile,			// is missile, boolean, read-only
-	kShip_isMine,				// is mine, boolean, read-only
 	kShip_isRock,				// is a rock (hermits included), boolean, read-only
-	kShip_isBoulder,			// is a boulder (generates splinters), boolean, read/write
 	kShip_isThargoid,			// is thargoid, boolean, read-only
 	kShip_isTrader,				// is trader, boolean, read-only
 	kShip_isWeapon,				// is missile or mine, boolean, read-only
-	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
-	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
-	kShip_passengerCount,		// number of passengers on ship, integer, read-only
-	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
+	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
+	kShip_maxSpeed,				// maximum flight speed, double, read-only
+	kShip_maxThrust,			// maximum thrust, double, read-only
 	kShip_missileCapacity,		// max missiles capacity, integer, read-only
-	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
-	kShip_equipment,			// the ship's equipment, array of EquipmentInfo, read only
-	kShip_forwardWeapon,		// the ship's forward weapon, equipmentType, read only
-	kShip_aftWeapon,			// the ship's aft weapon, equipmentType, read only
-	kShip_portWeapon,			// the ship's port weapon, equipmentType, read only
-	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
 	kShip_missiles,				// the ship's missiles / external storage, array of equipmentTypes, read only
+	kShip_name,					// name, string, read-only
+	kShip_passengerCapacity,	// amount of passenger space on ship, integer, read-only
+	kShip_passengerCount,		// number of passengers on ship, integer, read-only
 	kShip_passengers,			// passengers contracts, array - strings & whatnot, read only
-	kShip_contracts,			// cargo contracts contracts, array - strings & whatnot, read only
+	kShip_portWeapon,			// the ship's port weapon, equipmentType, read only
+	kShip_potentialCollider,	// "proximity alert" ship, Entity, read-only
+	kShip_primaryRole,			// Primary role, string, read/write
+	kShip_reportAIMessages,		// report AI messages, boolean, read/write
+	kShip_roles,				// roles, array, read-only
+	kShip_roleProbabilities,	// roles and probabilities, dictionary, read-only
+	kShip_savedCoordinates,		// coordinates in system space for AI use, Vector, read/write
+	kShip_scannerRange,			// scanner range, double, read-only
 	kShip_scannerDisplayColor1,	// color of lollipop shown on scanner, array, read/write
 	kShip_scannerDisplayColor2,	// color of lollipop shown on scanner when flashing, array, read/write
-	kShip_maxThrust,			// maximum thrust, double, read-only
+	kShip_script,				// script, Script, read-only
+	kShip_scriptInfo,			// arbitrary data for scripts, dictionary, read-only
+	kShip_speed,				// current flight speed, double, read-only
+	kShip_starboardWeapon,		// the ship's starboard weapon, equipmentType, read only
+	kShip_subEntities,			// subentities, array of Ship, read-only
+	kShip_target,				// target, Ship, read/write
+	kShip_temperature,			// hull temperature, double, read/write
 	kShip_thrust,				// the ship's thrust, double, read/write
-	kShip_lightsActive,			// flasher/shader light flag, boolean, read/write
-	kShip_velocity,				// velocity, vector, read/write
 	kShip_thrustVector,			// thrust-related component of velocity, vector, read-only
+	kShip_trackCloseContacts,	// generate close contact events, boolean, read/write
+	kShip_velocity,				// velocity, vector, read/write
+	kShip_weaponRange,			// weapon range, double, read-only
+	kShip_withinStationAegis,	// within main station aegis, boolean, read/write
 };
 
 
@@ -222,8 +222,8 @@ static JSPropertySpec sShipProperties[] =
 	{ "isTrader",				kShip_isTrader,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "isWeapon",				kShip_isWeapon,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "cargoSpaceUsed",			kShip_cargoSpaceUsed,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceCapacity",		kShip_cargoCapacity,		JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
-	{ "cargoSpaceAvailable",	kShip_availableCargoSpace,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cargoSpaceCapacity",		kShip_cargoSpaceCapacity,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
+	{ "cargoSpaceAvailable",	kShip_cargoSpaceAvailable,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "maxSpeed",				kShip_maxSpeed,				JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "potentialCollider",		kShip_potentialCollider,	JSPROP_PERMANENT | JSPROP_ENUMERATE | JSPROP_READONLY },
 	{ "primaryRole",			kShip_primaryRole,			JSPROP_PERMANENT | JSPROP_ENUMERATE },
@@ -474,7 +474,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = YES;
 			break;
 			
-		case kShip_cargoCapacity:
+		case kShip_cargoSpaceCapacity:
 			*outValue = INT_TO_JSVAL([entity maxCargo]);
 			OK = YES;
 			break;
@@ -484,7 +484,7 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			OK = YES;
 			break;
 			
-		case kShip_availableCargoSpace:
+		case kShip_cargoSpaceAvailable:
 			*outValue = INT_TO_JSVAL([entity availableCargoSpace]);
 			OK = YES;
 			break;
@@ -606,18 +606,22 @@ static JSBool ShipGetProperty(JSContext *context, JSObject *this, jsval name, js
 			
 		case kShip_forwardWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_FORWARD];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_aftWeapon:
 			result = [entity weaponTypeForFacing:WEAPON_FACING_AFT];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_portWeapon:		// for future expansion
 			result = [entity weaponTypeForFacing:WEAPON_FACING_PORT];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_starboardWeapon: // for future expansion
 			result = [entity weaponTypeForFacing:WEAPON_FACING_STARBOARD];
+			if (result == nil)  result = [NSNull null];
 			break;
 		
 		case kShip_missiles:
