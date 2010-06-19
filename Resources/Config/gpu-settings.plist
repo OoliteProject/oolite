@@ -105,5 +105,15 @@
 		// (Correct as of commit df3590f.)
 		smooth_points = false; 
 		smooth_lines = false;
+	},
+	{
+		name = "VirtualBox";
+		match =
+		{
+			vendor = "Humper";
+			renderer = "Chromium";
+			version = "Chromium 1\\.9$";
+		};
+		maximum_shader_level = "SHADERS_OFF";
 	}
 )
