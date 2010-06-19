@@ -49,7 +49,8 @@ SOFTWARE.
 							_requiresFreePassengerBerth: 1,
 							_requiresFullFuel: 1,
 							_requiresNonFullFuel: 1,
-							_isMissileOrMine: 1;
+							_isMissileOrMine: 1,
+							_isVisible: 1;
 	OOCargoQuantity			_requiredCargoSpace;
 	NSSet					*_requiresEquipment;
 	NSSet					*_requiresAnyEquipment;
@@ -92,6 +93,7 @@ SOFTWARE.
 
 - (BOOL) canAwardMultiple;
 - (BOOL) canBeDamaged;
+- (BOOL) isVisible;				// Visible in UI?
 
 - (OOCargoQuantity) requiredCargoSpace;
 - (NSSet *) requiresEquipment;		// Set of equipment identifiers; all items required

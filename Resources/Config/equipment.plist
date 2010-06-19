@@ -168,6 +168,7 @@
 		"A cute alien pet.",
 		{
 			strict_mode_compatible = true;
+			visible = false;	// Hidden on status screen.
 		}
 	),
 	( /* Passenger Compartment, like missiles this can be bought multiple times */

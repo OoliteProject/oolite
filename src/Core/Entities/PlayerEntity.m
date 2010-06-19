@@ -4815,25 +4815,27 @@ static GLfloat sBaseMass = 0.0;
 
 - (NSArray *) equipmentList
 {
-	NSArray				*eqTypes = [OOEquipmentType allEquipmentTypes];
-	NSMutableArray		*quip = [NSMutableArray arrayWithCapacity:[eqTypes count]];
+	NSMutableArray		*quip = [NSMutableArray array];
 	NSEnumerator		*eqTypeEnum = nil;
 	OOEquipmentType		*eqType = nil;
 	NSString			*desc = nil;
 
-	for (eqTypeEnum = [eqTypes objectEnumerator]; (eqType = [eqTypeEnum nextObject]); )
+	for (eqTypeEnum = [OOEquipmentType equipmentEnumerator]; (eqType = [eqTypeEnum nextObject]); )
 	{
-		if ([self hasEquipmentItem:[eqType identifier]])
+		if ([eqType isVisible])
 		{
-			[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
-		}
-		else if (![UNIVERSE strict])
-		{
-			// Check for damaged version
-			if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+			if ([self hasEquipmentItem:[eqType identifier]])
 			{
-				desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
-				[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+				[quip addObject:[NSArray arrayWithObjects:[eqType name], [NSNumber numberWithBool:YES], nil]];
+			}
+			else if (![UNIVERSE strict])
+			{
+				// Check for damaged version
+				if ([self hasEquipmentItem:[[eqType identifier] stringByAppendingString:@"_DAMAGED"]])
+				{
+					desc = [NSString stringWithFormat:DESC(@"equipment-@-not-available"), [eqType name]];
+					[quip addObject:[NSArray arrayWithObjects:desc, [NSNumber numberWithBool:NO], nil]];
+				}
 			}
 		}
 	}

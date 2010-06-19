@@ -177,6 +177,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 		{
 			_requiresNonFullFuel = YES;
 		}
+		_isVisible = YES;
 	}
 	
 	if (OK && [info count] > EQUIPMENT_EXTRA_INFO_INDEX)
@@ -202,6 +203,7 @@ static NSDictionary		*sMissilesRegistry = nil;
 			_requiresFreePassengerBerth = [extra oo_boolForKey:@"requires_free_passenger_berth" defaultValue:_requiresFreePassengerBerth];
 			_requiresFullFuel = [extra oo_boolForKey:@"requires_full_fuel" defaultValue:_requiresFullFuel];
 			_requiresNonFullFuel = [extra oo_boolForKey:@"requires_non_full_fuel" defaultValue:_requiresNonFullFuel];
+			_isVisible = [extra oo_boolForKey:@"visible" defaultValue:_isVisible];
 			
 			_requiredCargoSpace = [extra oo_unsignedIntForKey:@"requires_cargo_space" defaultValue:_requiredCargoSpace];
 			
@@ -386,35 +388,11 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
-- (OOCargoQuantity) requiredCargoSpace
-{
-	return _requiredCargoSpace;
-}
-
-
-- (NSSet *) requiresEquipment
-{
-	return _requiresEquipment;
-}
-
-
-- (NSSet *) requiresAnyEquipment
-{
-	return _requiresAnyEquipment;
-}
-
-
-- (NSSet *) incompatibleEquipment
-{
-	return _incompatibleEquipment;
-}
-
-
 - (BOOL) canAwardMultiple
 {
 	/*	Hard-coded for now. What would be the ramifications of making this
-		a plist attribute?
-	*/
+	 a plist attribute?
+	 */
 	if ([self isMissileOrMine])  return YES;
 	
 	if ([_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
@@ -439,6 +417,36 @@ static NSDictionary		*sMissilesRegistry = nil;
 	}
 	
 	return YES;
+}
+
+
+- (BOOL) isVisible
+{
+	return _isVisible;
+}
+
+
+- (OOCargoQuantity) requiredCargoSpace
+{
+	return _requiredCargoSpace;
+}
+
+
+- (NSSet *) requiresEquipment
+{
+	return _requiresEquipment;
+}
+
+
+- (NSSet *) requiresAnyEquipment
+{
+	return _requiresAnyEquipment;
+}
+
+
+- (NSSet *) incompatibleEquipment
+{
+	return _incompatibleEquipment;
 }
 
 
