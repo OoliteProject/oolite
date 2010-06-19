@@ -38,18 +38,6 @@ SOFTWARE.
 #import "OOShaderUniformMethodType.h"
 
 
-typedef char (*CharReturnMsgSend)(id, SEL);
-typedef short (*ShortReturnMsgSend)(id, SEL);
-typedef int (*IntReturnMsgSend)(id, SEL);
-typedef long (*LongReturnMsgSend)(id, SEL);
-typedef float (*FloatReturnMsgSend)(id, SEL);
-typedef double (*DoubleReturnMsgSend)(id, SEL);
-typedef Vector (*VectorReturnMsgSend)(id, SEL);
-typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
-typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
-typedef NSPoint (*PointReturnMsgSend)(id, SEL);
-
-
 OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 {
 	return kOOShaderUniformTypeInt <= type && type <= kOOShaderUniformTypeDouble;
@@ -513,35 +501,19 @@ OOINLINE BOOL ValidBindingType(OOShaderUniformType type)
 	{
 		case kOOShaderUniformTypeChar:
 		case kOOShaderUniformTypeUnsignedChar:
-			iVal = ((CharReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			isInt = YES;
-			break;
-		
 		case kOOShaderUniformTypeShort:
 		case kOOShaderUniformTypeUnsignedShort:
-			iVal = ((ShortReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			isInt = YES;
-			break;
-		
 		case kOOShaderUniformTypeInt:
 		case kOOShaderUniformTypeUnsignedInt:
-			iVal = ((IntReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			isInt = YES;
-			break;
-		
 		case kOOShaderUniformTypeLong:
 		case kOOShaderUniformTypeUnsignedLong:
-			iVal = ((LongReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			iVal = OOCallIntegerMethod(object, value.binding.selector, value.binding.method, type);
 			isInt = YES;
 			break;
 		
 		case kOOShaderUniformTypeFloat:
-			fVal = ((FloatReturnMsgSend)value.binding.method)(object, value.binding.selector);
-			isFloat = YES;
-			break;
-		
 		case kOOShaderUniformTypeDouble:
-			fVal = ((DoubleReturnMsgSend)value.binding.method)(object, value.binding.selector);
+			fVal = OOCallFloatMethod(object, value.binding.selector, value.binding.method, type);
 			isFloat = YES;
 			break;
 		

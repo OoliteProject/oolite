@@ -47,7 +47,7 @@ SOFTWARE.
 
 #import "OOShaderUniformMethodType.h"
 
-#if OO_SHADERS
+#if OO_SHADERS || !defined(NDEBUG)
 
 
 #import "OOMaths.h"
@@ -236,5 +236,61 @@ static const char *CopyTemplateForSelector(SEL selector)
 }
 
 @end
+
+
+long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type)
+{
+	switch (type)
+	{
+		case kOOShaderUniformTypeChar:
+			return ((CharReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeUnsignedChar:
+			return ((UnsignedCharReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeShort:
+			return ((ShortReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeUnsignedShort:
+			return ((UnsignedShortReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeInt:
+			return ((IntReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeUnsignedInt:
+			return ((UnsignedIntReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeLong:
+			return ((LongReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeUnsignedLong:
+			return ((UnsignedLongReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeLongLong:
+			return ((LongLongReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeUnsignedLongLong:
+			return ((UnsignedLongLongReturnMsgSend)method)(object, selector);
+			
+		default:
+			return 0;
+	}
+}
+
+
+double OOCallFloatMethod(id object, SEL selector, IMP method, OOShaderUniformType type)
+{
+	switch (type)
+	{
+		case kOOShaderUniformTypeFloat:
+			return ((FloatReturnMsgSend)method)(object, selector);
+			
+		case kOOShaderUniformTypeDouble:
+			return ((DoubleReturnMsgSend)method)(object, selector);
+			
+		default:
+			return 0;
+	}
+}
 
 #endif	// OO_SHADERS

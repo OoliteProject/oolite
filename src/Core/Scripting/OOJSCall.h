@@ -24,6 +24,9 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef NDEBUG
+
+
 #import "OOJavaScriptEngine.h"
 
 
@@ -44,3 +47,5 @@ MA 02110-1301, USA.
 	argv is assumed to contain at least one value.
 */
 BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult);
+
+#endif

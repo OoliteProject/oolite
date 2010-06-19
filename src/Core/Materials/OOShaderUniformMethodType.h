@@ -30,33 +30,58 @@ SOFTWARE.
 
 #import "OOOpenGLExtensionManager.h"
 
-#if OO_SHADERS
+#if OO_SHADERS || !defined(NDEBUG)
+
+#import "OOMaths.h"
 
 
 typedef enum
 {
-	kOOShaderUniformTypeInvalid,		// Not valid for bindings or constants
+	kOOShaderUniformTypeInvalid,			// Not valid for bindings or constants
 	
-	kOOShaderUniformTypeChar,			// Binding only
-	kOOShaderUniformTypeUnsignedChar,	// Binding only
-	kOOShaderUniformTypeShort,			// Binding only
-	kOOShaderUniformTypeUnsignedShort,	// Binding only
-	kOOShaderUniformTypeInt,			// Binding or constant
-	kOOShaderUniformTypeUnsignedInt,	// Binding only
-	kOOShaderUniformTypeLong,			// Binding only
-	kOOShaderUniformTypeUnsignedLong,	// Binding only
-	kOOShaderUniformTypeFloat,			// Binding or constant
-	kOOShaderUniformTypeDouble,			// Binding only
-	kOOShaderUniformTypeVector,			// Binding or constant
-	kOOShaderUniformTypeQuaternion,		// Binding or constant
-	kOOShaderUniformTypeMatrix,			// Binding or constant
-	kOOShaderUniformTypePoint,			// Binding only
-	kOOShaderUniformTypeObject,			// Binding only
+	kOOShaderUniformTypeChar,				// Binding only
+	kOOShaderUniformTypeUnsignedChar,		// Binding only
+	kOOShaderUniformTypeShort,				// Binding only
+	kOOShaderUniformTypeUnsignedShort,		// Binding only
+	kOOShaderUniformTypeInt,				// Binding or constant
+	kOOShaderUniformTypeUnsignedInt,		// Binding only
+	kOOShaderUniformTypeLong,				// Binding only
+	kOOShaderUniformTypeUnsignedLong,		// Binding only
+	kOOShaderUniformTypeLongLong,			// Binding only
+	kOOShaderUniformTypeUnsignedLongLong,	// Binding only
+	kOOShaderUniformTypeFloat,				// Binding or constant
+	kOOShaderUniformTypeDouble,				// Binding only
+	kOOShaderUniformTypeVector,				// Binding or constant
+	kOOShaderUniformTypeQuaternion,			// Binding or constant
+	kOOShaderUniformTypeMatrix,				// Binding or constant
+	kOOShaderUniformTypePoint,				// Binding only
+	kOOShaderUniformTypeObject,				// Binding only
 	
-	kOOShaderUniformTypeCount			// Not valid for bindings or constants
+	kOOShaderUniformTypeCount				// Not valid for bindings or constants
 } OOShaderUniformType;
 
 
 OOShaderUniformType OOShaderUniformTypeFromMethodSignature(NSMethodSignature *signature);
+
+long long OOCallIntegerMethod(id object, SEL selector, IMP method, OOShaderUniformType type);
+double OOCallFloatMethod(id object, SEL selector, IMP method, OOShaderUniformType type);
+
+
+typedef char (*CharReturnMsgSend)(id, SEL);
+typedef unsigned char (*UnsignedCharReturnMsgSend)(id, SEL);
+typedef short (*ShortReturnMsgSend)(id, SEL);
+typedef unsigned short (*UnsignedShortReturnMsgSend)(id, SEL);
+typedef int (*IntReturnMsgSend)(id, SEL);
+typedef unsigned int (*UnsignedIntReturnMsgSend)(id, SEL);
+typedef long (*LongReturnMsgSend)(id, SEL);
+typedef unsigned long (*UnsignedLongReturnMsgSend)(id, SEL);
+typedef long long (*LongLongReturnMsgSend)(id, SEL);
+typedef unsigned long long (*UnsignedLongLongReturnMsgSend)(id, SEL);
+typedef float (*FloatReturnMsgSend)(id, SEL);
+typedef double (*DoubleReturnMsgSend)(id, SEL);
+typedef Vector (*VectorReturnMsgSend)(id, SEL);
+typedef Quaternion (*QuaternionReturnMsgSend)(id, SEL);
+typedef OOMatrix (*MatrixReturnMsgSend)(id, SEL);
+typedef NSPoint (*PointReturnMsgSend)(id, SEL);
 
 #endif	// OO_SHADERS

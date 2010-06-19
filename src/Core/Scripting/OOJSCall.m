@@ -24,26 +24,59 @@ MA 02110-1301, USA.
 
 */
 
+#ifndef NDEBUG
+
+
 #import "OOJSCall.h"
 
 #import "OOFunctionAttributes.h"
 #import "ShipEntity.h"
 #import "OOCollectionExtractors.h"
+#import "OOShaderUniformMethodType.h"
+#import "OOJSVector.h"
+#import "OOJSQuaternion.h"
 
 
 typedef enum
 {
-	kMethodTypeVoidVoid,
-	kMethodTypeObjectVoid,
-	kMethodTypeVoidObject,
+	kMethodTypeInvalid				= kOOShaderUniformTypeInvalid,
+	
+	kMethodTypeCharVoid				= kOOShaderUniformTypeChar,
+	kMethodTypeUnsignedCharVoid		= kOOShaderUniformTypeUnsignedChar,
+	kMethodTypeShortVoid			= kOOShaderUniformTypeShort,
+	kMethodTypeUnsignedShortVoid	= kOOShaderUniformTypeUnsignedShort,
+	kMethodTypeIntVoid				= kOOShaderUniformTypeInt,
+	kMethodTypeUnsignedIntVoid		= kOOShaderUniformTypeUnsignedInt,
+	kMethodTypeLongVoid				= kOOShaderUniformTypeLong,
+	kMethodTypeUnsignedLongVoid		= kOOShaderUniformTypeUnsignedLong,
+	kMethodTypeFloatVoid			= kOOShaderUniformTypeFloat,
+	kMethodTypeDoubleVoid			= kOOShaderUniformTypeDouble,
+	kMethodTypeVectorVoid			= kOOShaderUniformTypeVector,
+	kMethodTypeQuaternionVoid		= kOOShaderUniformTypeQuaternion,
+	kMethodTypeMatrixVoid			= kOOShaderUniformTypeMatrix,
+	kMethodTypePointVoid			= kOOShaderUniformTypePoint,
+	
+	kMethodTypeObjectVoid			= kOOShaderUniformTypeObject,
 	kMethodTypeObjectObject,
-	kMethodTypeInvalid
+	kMethodTypeVoidVoid,
+	kMethodTypeVoidObject
 } MethodType;
+
+
+OOINLINE BOOL IsIntegerMethodType(MethodType type)
+{
+	return (kMethodTypeCharVoid <= type && type <= kMethodTypeUnsignedLongVoid);
+}
+
+
+OOINLINE BOOL IsFloatMethodType(MethodType type)
+{
+	return (kMethodTypeFloatVoid <= type && type <= kMethodTypeDoubleVoid);
+}
 
 
 static MethodType GetMethodType(id object, SEL selector);
 OOINLINE BOOL MethodExpectsParameter(MethodType type)	{ return type == kMethodTypeVoidObject || type == kMethodTypeObjectObject; }
-OOINLINE BOOL MethodReturnsObject(MethodType type)		{ return type == kMethodTypeObjectVoid || type == kMethodTypeObjectObject; }
 
 
 BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassName, uintN argc, jsval *argv, jsval *outResult)
@@ -53,7 +86,7 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	NSString				*paramString = nil;
 	MethodType				type;
 	BOOL					haveParameter = NO,
-							success = NO;
+							error = NO;
 	id						result = nil;
 	
 	if ([object isKindOfClass:[ShipEntity class]])
@@ -71,45 +104,75 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	}
 	
 	selector = NSSelectorFromString(selectorString);
+	
 	if ([object respondsToSelector:selector])
 	{
 		// Validate signature.
 		type = GetMethodType(object, selector);
 		
-		if (type == kMethodTypeInvalid)
-		{
-			OOReportJSError(context, @"%@.call(): method %@ cannot be called from JavaScript.", jsClassName, selectorString);
-		}
-		else if (MethodExpectsParameter(type) && !haveParameter)
+		if (MethodExpectsParameter(type) && !haveParameter)
 		{
 			OOReportJSError(context, @"%@.call(): method %@ requires a parameter.", jsClassName, selectorString);
+			error = YES;
 		}
 		else
 		{
-			// Method is acceptable.
-			if (haveParameter)
+			IMP method = [object methodForSelector:selector];
+			switch (type)
 			{
-				OOLog(@"script.trace.javaScript.call", @"%@.call(%@, \"%@\")", jsClassName, selectorString, paramString);
-				OOLogIndentIf(@"script.trace.javaScript.call");
-				
-				result = [object performSelector:selector withObject:paramString];
-				
-				OOLogOutdentIf(@"script.trace.javaScript.call");
+				case kMethodTypeVoidObject:
+				case kMethodTypeObjectObject:
+					result = [object performSelector:selector withObject:paramString];
+					break;
+					
+				case kMethodTypeObjectVoid:
+				case kMethodTypeVoidVoid:
+					result = [object performSelector:selector];
+					if ([selectorString hasSuffix:@"_bool"])  result = [NSNumber numberWithBool:OOBooleanFromObject(result, NO)];
+					break;
+					
+				case kMethodTypeCharVoid:
+				case kMethodTypeUnsignedCharVoid:
+				case kMethodTypeShortVoid:
+				case kMethodTypeUnsignedShortVoid:
+				case kMethodTypeIntVoid:
+				case kMethodTypeUnsignedIntVoid:
+				case kMethodTypeLongVoid:
+					result = [NSNumber numberWithLongLong:OOCallIntegerMethod(object, selector, method, type)];
+					break;
+					
+				case kMethodTypeUnsignedLongVoid:
+					result = [NSNumber numberWithUnsignedLongLong:OOCallIntegerMethod(object, selector, method, type)];
+					break;
+					
+				case kMethodTypeFloatVoid:
+				case kMethodTypeDoubleVoid:
+					result = [NSNumber numberWithDouble:OOCallFloatMethod(object, selector, method, type)];
+					break;
+					
+				case kMethodTypeVectorVoid:
+				{
+					Vector v = ((VectorReturnMsgSend)method)(object, selector);
+					*outResult = OBJECT_TO_JSVAL(JSVectorWithVector(context, v));
+					break;
+				}
+					
+				case kMethodTypeQuaternionVoid:
+				{
+					Quaternion q = ((QuaternionReturnMsgSend)method)(object, selector);
+					*outResult = OBJECT_TO_JSVAL(JSQuaternionWithQuaternion(context, q));
+					break;
+				}
+					
+				case kMethodTypeMatrixVoid:
+				case kMethodTypePointVoid:
+				case kMethodTypeInvalid:
+					OOReportJSError(context, @"%@.call(): method %@ cannot be called from JavaScript.", jsClassName, selectorString);
+					error = YES;
+					break;
 			}
-			else
+			if (result != nil)
 			{
-				OOLog(@"script.trace.javaScript.call", @"%@.call(%@)", jsClassName, selectorString);
-				OOLogIndentIf(@"script.trace.javaScript.call");
-				
-				result = [object performSelector:selector];
-				
-				OOLogOutdentIf(@"script.trace.javaScript.call");
-			}
-			success = YES;
-			
-			if (MethodReturnsObject(type) && outResult != NULL)
-			{
-				if ([selectorString hasSuffix:@"_bool"])  result = [NSNumber numberWithBool:OOBooleanFromObject(result, NO)];
 				*outResult = [result javaScriptValueInContext:context];
 			}
 		}
@@ -117,9 +180,10 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 	else
 	{
 		OOReportJSError(context, @"%@.call(): %@ does not respond to method %@.", jsClassName, object, selectorString);
+		error = YES;
 	}
 	
-	return success;
+	return !error;
 }
 
 
@@ -127,7 +191,6 @@ BOOL OOJSCallObjCObjectMethod(JSContext *context, id object, NSString *jsClassNa
 @interface OOJSCallMethodSignatureTemplateClass: NSObject
 
 - (void)voidVoidMethod;
-- (id)objectVoidMethod;
 - (void)voidObjectMethod:(id)object;
 - (id)objectObjectMethod:(id)object;
 
@@ -146,9 +209,10 @@ static BOOL SignatureMatch(NSMethodSignature *sig, SEL selector)
 static MethodType GetMethodType(id object, SEL selector)
 {
 	NSMethodSignature *sig = [object methodSignatureForSelector:selector];
+	MethodType type = OOShaderUniformTypeFromMethodSignature(sig);
+	if (type != kMethodTypeInvalid)  return type;
 	
 	if (SignatureMatch(sig, @selector(voidVoidMethod)))  return kMethodTypeVoidVoid;
-	if (SignatureMatch(sig, @selector(objectVoidMethod)))  return kMethodTypeObjectVoid;
 	if (SignatureMatch(sig, @selector(voidObjectMethod:)))  return kMethodTypeVoidObject;
 	if (SignatureMatch(sig, @selector(objectObjectMethod:)))  return kMethodTypeObjectObject;
 	
@@ -158,25 +222,14 @@ static MethodType GetMethodType(id object, SEL selector)
 
 @implementation OOJSCallMethodSignatureTemplateClass: NSObject
 
-- (void)voidVoidMethod
-{
-}
+- (void)voidVoidMethod {}
 
 
-- (id)objectVoidMethod
-{
-	return nil;
-}
+- (void)voidObjectMethod:(id)object {}
 
 
-- (void)voidObjectMethod:(id)object
-{
-}
-
-
-- (id)objectObjectMethod:(id)object
-{
-	return nil;
-}
+- (id)objectObjectMethod:(id)object { return nil; }
 
 @end
+
+#endif
