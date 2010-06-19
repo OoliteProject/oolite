@@ -127,6 +127,7 @@ SOFTWARE.
 	
 	BOOL					usePointSmoothing;
 	BOOL					useLineSmoothing;
+	BOOL					useDustShader;
 	
 #if OO_SHADERS
 	BOOL					shadersAvailable;
@@ -172,6 +173,9 @@ SOFTWARE.
 //	GL_POINT_SMOOTH is slow or non-functional on some GPUs.
 - (BOOL) usePointSmoothing;
 - (BOOL) useLineSmoothing;
+
+// Using vertex shader for dust transformation is counterproductive on systems which run vertex shaders on the CPU.
+- (BOOL) useDustShader;
 
 @end
 

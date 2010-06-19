@@ -44,6 +44,7 @@ MA 02110-1301, USA.
 	GLfloat				warpinessAttr[DUST_N_PARTICLES * 2];
 	OOShaderProgram		*shader;
 	NSArray				*uniforms;
+	uint8_t				shaderMode;
 #endif
 }
 

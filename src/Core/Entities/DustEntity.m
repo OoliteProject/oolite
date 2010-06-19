@@ -45,8 +45,21 @@ MA 02110-1301, USA.
 
 
 // Declare protocol conformance
-@interface DustEntity (OOGraphicsResetClient) <OOGraphicsResetClient>
+@interface DustEntity (Private) <OOGraphicsResetClient>
+
+- (void) checkShaderMode;
+
 @end
+
+
+#if OO_SHADERS
+enum
+{
+	kShaderModeOff,
+	kShaderModeOn,
+	kShaderModeUnknown
+};
+#endif
 
 
 @implementation DustEntity
@@ -75,6 +88,10 @@ MA 02110-1301, USA.
 		warpinessAttr[vi + DUST_N_PARTICLES] = 1.0f;
 #endif
 	}
+	
+#if OO_SHADERS
+	shaderMode = kShaderModeUnknown;
+#endif
 	
 	dust_color = [[OOColor colorWithCalibratedRed:0.5 green:1.0 blue:1.0 alpha:1.0] retain];
 	[self setStatus:STATUS_ACTIVE];
@@ -122,8 +139,10 @@ MA 02110-1301, USA.
 - (void) update:(OOTimeDelta) delta_t
 {
 #if OO_SHADERS
+	if (EXPECT_NOT(shaderMode == kShaderModeUnknown))  [self checkShaderMode];
+	
 	// Shader takes care of repositioning.
-	if ([UNIVERSE shaderEffectsLevel] > SHADERS_OFF)  return;
+	if (shaderMode == kShaderModeOn)  return;
 #endif
 	
 	PlayerEntity* player = [PlayerEntity sharedPlayer];
@@ -201,6 +220,19 @@ MA 02110-1301, USA.
 {
 	return vector_subtract([[PlayerEntity sharedPlayer] position], make_vector(DUST_SCALE * 0.5f, DUST_SCALE * 0.5f, DUST_SCALE * 0.5f));
 }
+
+
+- (void) checkShaderMode
+{
+	shaderMode = kShaderModeOff;
+	if ([UNIVERSE shaderEffectsLevel] > SHADERS_OFF)
+	{
+		if ([[OOOpenGLExtensionManager sharedManager] useDustShader])
+		{
+			shaderMode = kShaderModeOn;
+		}
+	}
+}
 #endif
 
 
@@ -221,6 +253,11 @@ MA 02110-1301, USA.
 	if (gDebugFlags & DEBUG_NO_DUST)  return;
 #endif
 	
+#if OO_SHADERS
+	if (EXPECT_NOT(shaderMode == kShaderModeUnknown))  [self checkShaderMode];
+	BOOL useShader = (shaderMode == kShaderModeOn);
+#endif
+	
 	OO_ENTER_OPENGL();
 
 	GLfloat	*fogcolor = [UNIVERSE skyClearColor];
@@ -228,9 +265,6 @@ MA 02110-1301, USA.
 	
 	BOOL	warp_stars = [player atHyperspeed];
 	float	dustIntensity;
-#if OO_SHADERS
-	BOOL	useShader = [UNIVERSE shaderEffectsLevel] > SHADERS_OFF;
-#endif
 	
 	if (!warp_stars)
 	{
@@ -330,11 +364,13 @@ MA 02110-1301, USA.
 }
 
 
-- (void)resetGraphicsState
+- (void) resetGraphicsState
 {
 #if OO_SHADERS
 	DESTROY(shader);
 	DESTROY(uniforms);
+	
+	shaderMode = kShaderModeUnknown;
 	
 	/*	Duplicate vertex data. This is only required if we're switching from
 		non-shader mode to a shader mode, but let's KISS.

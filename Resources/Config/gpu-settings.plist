@@ -10,9 +10,13 @@
 								"SHADERS_OFF", shaders are treated as not
 								available.
 		smooth_points			Enable or disable use of point smoothing.
-								Default: on.
+								Default: true.
 		smooth_lines			Enable or disable use of line smoothing.
-								Default: on.
+								Default: true.
+		use_dust_shader			Enable or disable use of vertex shader for
+								dust effect. (This is inefficent on systems
+								where vertex shaders are run on the CPU.)
+								Default: true.
 		texture_units			Number of texture units available to fixed-
 								function multitexturing. Default (and maximum):
 								defined by OpenGL implementation. Can be
@@ -61,7 +65,8 @@
 		};
 	//	maximum_shader_level = "SHADERS_SIMPLE";
 		default_shader_level = "SHADERS_SIMPLE";
-		smooth_points = "off";	// Point smoothing is not supported in hardware.
+		smooth_points = false;		// Point smoothing is not supported in hardware.
+		use_dust_shader = false;	// Vertex shaders are emulated on CPU.
 	},
 	{
 		name = "ATI R300 family";
@@ -84,8 +89,8 @@
 		default_shader_level = "SHADERS_SIMPLE";
 		// Anti-aliased lines are done in software.
 		// Assuming same for anti-aliased points.
-		smooth_points = "off"; 
-		smooth_lines = "off";
+		smooth_points = false; 
+		smooth_lines = false;
 	},
 	{
 		name = "ATI R300 family (X/Gallium3D)";
@@ -98,7 +103,7 @@
 		default_shader_level = "SHADERS_SIMPLE";
 		// Anti-aliased lines & points are not implemented.
 		// (Correct as of commit df3590f.)
-		smooth_points = "off"; 
-		smooth_lines = "off";
+		smooth_points = false; 
+		smooth_lines = false;
 	}
 )

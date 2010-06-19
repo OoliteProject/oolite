@@ -266,6 +266,7 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 		
 		usePointSmoothing = [gpuConfig oo_boolForKey:@"smooth_points" defaultValue:YES];
 		useLineSmoothing = [gpuConfig oo_boolForKey:@"smooth_lines" defaultValue:YES];
+		useDustShader = [gpuConfig oo_boolForKey:@"use_dust_shader" defaultValue:YES];
 	}
 	
 	return self;
@@ -445,6 +446,12 @@ static NSArray *ArrayOfExtensions(NSString *extensionString)
 - (BOOL) useLineSmoothing
 {
 	return useLineSmoothing;
+}
+
+
+- (BOOL) useDustShader
+{
+	return useDustShader;
 }
 
 @end
