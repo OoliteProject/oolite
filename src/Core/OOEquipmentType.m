@@ -410,6 +410,38 @@ static NSDictionary		*sMissilesRegistry = nil;
 }
 
 
+- (BOOL) canAwardMultiple
+{
+	/*	Hard-coded for now. What would be the ramifications of making this
+		a plist attribute?
+	*/
+	if ([self isMissileOrMine])  return YES;
+	
+	if ([_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
+		[_identifier isEqualToString:@"EQ_TRUMBLE"])
+	{
+		return YES;
+	}
+	
+	return NO;
+}
+
+
+- (BOOL) canBeDamaged
+{
+	if ([self isMissileOrMine])  return NO;
+	
+	if ([_identifier isEqualToString:@"EQ_TRUMBLE"] ||
+		[_identifier isEqualToString:@"EQ_PASSENGER_BERTH"] ||
+		[_identifier isEqualToString:@"EQ_CARGO_BAY"])
+	{
+		return NO;
+	}
+	
+	return YES;
+}
+
+
 - (NSArray *) conditions
 {
 	return _conditions;

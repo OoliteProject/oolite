@@ -637,6 +637,7 @@ typedef enum
 - (OOAlertCondition) alertCondition;
 
 - (BOOL) mountMissile:(ShipEntity *)missile;
+- (BOOL) mountMissileWithRole:(NSString *)role;
 
 - (OOEnergyUnitType) installedEnergyUnitType;
 - (OOEnergyUnitType) energyUnitType;

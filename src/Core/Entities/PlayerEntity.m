@@ -763,17 +763,6 @@ static GLfloat sBaseMass = 0.0;
 		}
 	}
 	
-	/*	Energy bombs are no longer supported in non-strict mode. As compensation,
-		we'll award either a Q-mine or some cash. We can't determine what to
-		award until we've handled missiles later on, though.
-	*/
-	BOOL energyBombCompensation = NO;
-	if ([equipment oo_boolForKey:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:@"EQ_ENERGY_BOMB"] == nil)
-	{
-		energyBombCompensation = YES;
-		[equipment removeObjectForKey:@"EQ_ENERGY_BOMB"];
-	}
-	
 	[self addEquipmentFromCollection:equipment];
 	
 	if ([self hasEquipmentItem:@"EQ_ADVANCED_COMPASS"])  compassMode = COMPASS_MODE_PLANET;
@@ -919,31 +908,7 @@ static GLfloat sBaseMass = 0.0;
 		}
 	}
 	
-	if (energyBombCompensation)
-	{
-		if ([self awardEquipment:@"EQ_QC_MINE"])
-		{
-			OOLog(@"load.upgrade.replacedEnergyBomb", @"Replaced legacy energy bomb with Quirium cascade mine.");
-		}
-		else
-		{
-			credits += 9000;
-			OOLog(@"load.upgrade.replacedEnergyBomb", @"Compensated legacy energy bomb with 900 credits.");
-		}
-	}
-	
 	[self setActiveMissile:0];
-
-	/*
-	// The following isn't needed anymore - Kaks 20091204
-	// Sanity check: ensure the missiles variable holds the correct missile count.
-	missiles = [self countMissiles];
-	
-	while (missiles > 0 && missile_entity[activeMissile] == nil)
-	{
-		[self selectNextMissile];
-	}
-	*/
 	
 	forward_shield = [self maxForwardShieldLevel];
 	aft_shield = [self maxAftShieldLevel];
@@ -3384,7 +3349,7 @@ static GLfloat sBaseMass = 0.0;
 }
 
 
-- (BOOL) mountMissile: (ShipEntity *)missile
+- (BOOL) mountMissile:(ShipEntity *)missile
 {
 	if (missile == nil)  return NO;
 	
@@ -3402,6 +3367,13 @@ static GLfloat sBaseMass = 0.0;
 	}
 	
 	return NO;
+}
+
+
+- (BOOL) mountMissileWithRole:(NSString *)role
+{
+	if ([self missileCount] >= [self missileCapacity]) return NO;
+	return [self mountMissile:[[UNIVERSE newShipWithRole:role] autorelease]];
 }
 
 
@@ -3456,10 +3428,7 @@ static GLfloat sBaseMass = 0.0;
 	[mine setScanClass: CLASS_MINE];
 	
 	float  mine_speed = 500.0f;
-	Vector mvel = [mine velocity];
-	mvel.x -= mine_speed * v_forward.x;
-	mvel.y -= mine_speed * v_forward.y;
-	mvel.z -= mine_speed * v_forward.z;
+	Vector mvel = vector_subtract([mine velocity], vector_multiply_scalar(v_forward, mine_speed));
 	[mine setVelocity: mvel];
 	return mine;
 }
@@ -4159,16 +4128,12 @@ static GLfloat sBaseMass = 0.0;
 	// equipment damage
 	if (damage_to < [self equipmentCount])
 	{
-		NSArray		*systems = [[self equipmentEnumerator] allObjects];
-		NSString	*system_key = [systems objectAtIndex:damage_to];
-		NSString	*system_name = nil;
+		NSArray			*systems = [[self equipmentEnumerator] allObjects];
+		NSString		*system_key = [systems objectAtIndex:damage_to];
+		OOEquipmentType	*eqType = [OOEquipmentType equipmentTypeWithIdentifier:system_key];
+		NSString		*system_name = [eqType name];
 		
-		// passenger berths, like the cargo bay, should not be damaged by enemy fire. However,
-		// they are not inside the systems array in the first place, so no need exclude them explicitly.
-		if ([system_key hasSuffix:@"MISSILE"] || [system_key hasSuffix:@"MINE"] || [system_key isEqual:@"EQ_CARGO_BAY"])  return;
-		
-		system_name = [[OOEquipmentType equipmentTypeWithIdentifier:system_key] name];
-		if (system_name == nil)  return;
+		if (![eqType canBeDamaged] || system_name == nil)  return;
 		
 		// set the following so removeEquipment works on the right entity
 		[self setScriptTarget:self];
@@ -6939,6 +6904,11 @@ static NSString *last_outfitting_key=nil;
 		{
 			if ([[self missileForPylon:i] hasPrimaryRole:itemKey])  return YES;
 		}
+	}
+	
+	if ([itemKey isEqualToString:@"EQ_TRUMBLE"])
+	{
+		return [self trumbleCount] > 0;
 	}
 	
 	return NO;

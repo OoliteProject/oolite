@@ -1510,46 +1510,78 @@ static JSBool ShipCanAwardEquipment(JSContext *context, JSObject *this, uintN ar
 static JSBool ShipAwardEquipment(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
 {
 	ShipEntity					*thisEnt = nil;
-	NSString					*key = nil;
+	OOEquipmentType				*eqType = nil;
+	NSString					*identifier = nil;
 	BOOL						OK = YES;
 	BOOL						berth;
 	
 	if (!JSShipGetShipEntity(context, this, &thisEnt))	return YES;	// stale reference, no-op.
 	
-	key = JSValueToEquipmentKey(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
+	eqType = JSValueToEquipmentType(context, argv[0]);
+	if (EXPECT_NOT(eqType == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"awardEquipment", argc, argv, nil, @"equipment type");
 		return NO;
 	}
-	berth = [key isEqualToString:@"EQ_PASSENGER_BERTH"];
-	// don't add fuel, but add multiple berths if there's space - missiles are ignored in this check.
-	OK = ![key isEqualToString:@"EQ_FUEL"] && (![thisEnt hasEquipmentItem:key] ||
-			(berth && [thisEnt availableCargoSpace] >= 5));
-			
+	
+	// Check that equipment is permitted.
+	identifier = [eqType identifier];
+	berth = [identifier isEqualToString:@"EQ_PASSENGER_BERTH"];
+	if (berth)
+	{
+		OK = [thisEnt availableCargoSpace] >= [eqType requiredCargoSpace];
+	}
+	else if ([identifier isEqualToString:@"EQ_FUEL"])
+	{
+		OK = NO;
+	}
+	else
+	{
+		OK = [eqType canAwardMultiple] || ![thisEnt hasEquipmentItem:identifier];
+	}
 	
 	if (OK)
 	{
-		// Compatibility: magically transform energy bombs into q-mines.
-		if ([key isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:key] == nil)
-		{
-			key = @"EQ_QC_MINE";
-		}
-		
 		if ([thisEnt isPlayer])
 		{
-			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [(PlayerEntity*)thisEnt removeMissiles];
-			else if (berth || [key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"]) OK = [(PlayerEntity*)thisEnt changePassengerBerths:(berth ? +1 : -1)];
-			// unknown types and EQ_CARGO_BAY are dealt with inside awardEquipment
-			else OK = [(PlayerEntity*)thisEnt awardEquipment:key];
+			PlayerEntity *player = (PlayerEntity *)thisEnt;
+			
+			if ([identifier isEqualToString:@"EQ_MISSILE_REMOVAL"])
+			{
+				[player removeMissiles];
+			}
+			else if ([eqType isMissileOrMine])
+			{
+				OK = [player mountMissileWithRole:identifier];
+			}
+			else if (berth)
+			{
+				OK = [player changePassengerBerths: +1];
+			}
+			else if ([identifier isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
+			{
+				OK = [player changePassengerBerths: -1];
+			}
+			else
+			{
+				OK = [player addEquipmentItem:identifier];
+			}
 		}
-		else if([OOEquipmentType equipmentTypeWithIdentifier:key] != nil)
+		else
 		{
-			if ([key isEqualToString:@"EQ_MISSILE_REMOVAL"]) [thisEnt removeMissiles];
+			if ([identifier isEqualToString:@"EQ_MISSILE_REMOVAL"])
+			{
+				[thisEnt removeMissiles];
+			}
 			// no passenger handling for NPCs. EQ_CARGO_BAY is dealt with inside addEquipmentItem
-			else if (!berth && ![key isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
-							OK = [thisEnt addEquipmentItem:key];
-			else OK = NO;
+			else if (!berth && ![identifier isEqualToString:@"EQ_PASSENGER_BERTH_REMOVAL"])
+			{
+				OK = [thisEnt addEquipmentItem:identifier];	
+			}
+			else
+			{
+				OK = NO;
+			}
 		}
 	}
 	
@@ -1613,6 +1645,7 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 	// equipment status accepted: @"EQUIPMENT_OK", @"EQUIPMENT_DAMAGED"
 	
 	ShipEntity				*thisEnt = nil;
+	OOEquipmentType			*eqType = nil;
 	NSString				*key = nil;
 	NSString				*damagedKey = nil;
 	NSString				*status = nil;
@@ -1627,8 +1660,8 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 		return NO;
 	}
 	
-	key = JSValueToEquipmentKey(context, argv[0]);
-	if (EXPECT_NOT(key == nil))
+	eqType = JSValueToEquipmentType(context, argv[0]);
+	if (EXPECT_NOT(eqType == nil))
 	{
 		OOReportJSBadArguments(context, @"Ship", @"setEquipmentStatus", argc, argv, nil, @"equipment type");
 		return NO;
@@ -1647,26 +1680,38 @@ static JSBool ShipSetEquipmentStatus(JSContext *context, JSObject *this, uintN a
 		return NO;
 	}
 	
-	damagedKey = [key stringByAppendingString:@"_DAMAGED"];
+	key = [eqType identifier];
 	hasOK = [thisEnt hasEquipmentItem:key];
-	hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
-	
-	if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
+	if ([eqType canBeDamaged])
 	{
-		// the implementation is identical between player and ship.
-		[thisEnt removeEquipmentItem:key];
-		if ([thisEnt isPlayer])
+		damagedKey = [key stringByAppendingString:@"_DAMAGED"];
+		hasDamaged = [thisEnt hasEquipmentItem:damagedKey];
+		
+		if (([status isEqualToString:@"EQUIPMENT_OK"] && hasDamaged) || ([status isEqualToString:@"EQUIPMENT_DAMAGED"] && hasOK))
 		{
-			// these player methods are different to the ship ones.
-			[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
-			if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
-			// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
-			if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
+			// the implementation is identical between player and ship.
+			[thisEnt removeEquipmentItem:key];
+			if ([thisEnt isPlayer])
+			{
+				// these player methods are different to the ship ones.
+				[(PlayerEntity*)thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
+				if (hasOK) [(PlayerEntity*)thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+				// if player's Docking Computers are set to EQUIPMENT_DAMAGED while on, stop them
+				if (hasOK && [key isEqualToString:@"EQ_DOCK_COMP"])  [(PlayerEntity*)thisEnt disengageAutopilot];
+			}
+			else
+			{
+				[thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
+				if (hasOK) [thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+			}
 		}
-		else
+	}
+	else
+	{
+		if (hasOK && ![status isEqualToString:@"EQUIPMENT_OK"])
 		{
-			[thisEnt addEquipmentItem:(hasOK ? damagedKey : key)];
-			if (hasOK) [thisEnt doScriptEvent:@"equipmentDamaged" withArgument:key];
+			OOReportJSWarning(context, @"Equipment %@ cannot be damaged.", key);
+			hasOK = NO;
 		}
 	}
 	

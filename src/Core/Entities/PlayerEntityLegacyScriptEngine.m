@@ -1212,42 +1212,33 @@ static int scriptRandomSeed = -1;	// ensure proper random function
 }
 
 
-- (BOOL) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
+- (void) awardEquipment:(NSString *)equipString  //eg. EQ_NAVAL_ENERGY_UNIT
 {
-	if (scriptTarget != self)  return NO;
+	if (scriptTarget != self)  return;
 	
 	if ([equipString isEqualToString:@"EQ_FUEL"])
 	{
 		[self setFuel:[self fuelCapacity]];
-		return YES;
-	}
-	// Compatibility: magically transform energy bombs into q-mines.
-	if ([equipString isEqualToString:@"EQ_ENERGY_BOMB"] && [OOEquipmentType equipmentTypeWithIdentifier:equipString] == nil)
-	{
-		equipString = @"EQ_QC_MINE";
 	}
 	
-	if ([equipString hasSuffix:@"MISSILE"]||[equipString hasSuffix:@"MINE"])
+	OOEquipmentType *eqType = [OOEquipmentType equipmentTypeWithIdentifier:equipString];
+	
+	if ([eqType isMissileOrMine])
 	{
-		if ([self missileCount] >= [self missileCapacity]) return NO;
-		[self mountMissile:[[UNIVERSE newShipWithRole:equipString] autorelease]];
-		return YES;
+		[self mountMissileWithRole:equipString];
 	}
-	if([equipString hasPrefix:@"EQ_WEAPON"] && ![equipString hasSuffix:@"_DAMAGED"])
+	else if([equipString hasPrefix:@"EQ_WEAPON"] && ![equipString hasSuffix:@"_DAMAGED"])
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award undamaged weapon:'%@'. Damaged weapons can be awarded instead.", CurrentScriptDesc(), equipString);
-		return NO;
 	}
-	if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length] - [@"_DAMAGED" length]]])
+	else if ([equipString hasSuffix:@"_DAMAGED"] && [self hasEquipmentItem:[equipString substringToIndex:[equipString length] - [@"_DAMAGED" length]]])
 	{
 		OOLog(kOOLogSyntaxAwardEquipment, @"***** SCRIPT ERROR: in %@, CANNOT award damaged equipment:'%@'. Undamaged version already equipped.", CurrentScriptDesc(), equipString);
-		return NO;
 	}
-	else if (![self hasEquipmentItem:equipString])
+	else if ([eqType canAwardMultiple] || ![self hasEquipmentItem:equipString])
 	{
-		return [self addEquipmentItem:equipString];
+		[self addEquipmentItem:equipString];
 	}
-	return NO;
 }
 
 
