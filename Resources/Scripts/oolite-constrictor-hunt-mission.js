@@ -143,7 +143,8 @@ this.setUpShips = function ()
 		missionVariables.conhunt === "STAGE_1" &&
 		system.countShipsWithRole("constrictor") === 0)
 	{
-		system.legacy_addShips("constrictor", 1);
+		var constrictor = system.addShips("constrictor", 1);
+		constrictor[0].bounty = 250; // Ensure a bounty, in case it was missing in a custom shipdata.plist.
 	}
 };
 
