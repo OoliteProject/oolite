@@ -57,6 +57,7 @@ static JSBool ShipSetAI(JSContext *context, JSObject *this, uintN argc, jsval *a
 static JSBool ShipSwitchAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipExitAI(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
+static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDeployEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipDockEscorts(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
 static JSBool ShipHasRole(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult);
@@ -289,10 +290,12 @@ static JSFunctionSpec sShipMethods[] =
 	{ "fireMissile",			ShipFireMissile,			0 },
 	{ "hasRole",				ShipHasRole,				1 },
 	{ "reactToAIMessage",		ShipReactToAIMessage,		1 },
+	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "remove",					ShipRemove,					0 },
 	{ "removeEquipment",		ShipRemoveEquipment,		1 },
 	{ "runLegacyScriptActions",	ShipRunLegacyScriptActions,	2 },	// Deliberately not documented
 	{ "selectNewMissile",		ShipSelectNewMissile,		0 },
+	{ "sendAIMessage",			ShipSendAIMessage,			1 },
 	{ "setAI",					ShipSetAI,					1 },
 	{ "setCargo",				ShipSetCargo,				1 },
 	{ "setEquipmentStatus",		ShipSetEquipmentStatus,		2 },
@@ -1061,7 +1064,7 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 	message = JSValToNSString(context, argv[0]);
 	if (EXPECT_NOT(message == nil))
 	{
-		OOReportJSBadArguments(context, @"Ship", @"reactToAIMessage", argc, argv, nil, @"message");
+		OOReportJSBadArguments(context, @"Ship", @"reactToAIMessage", argc, argv, nil, @"string");
 		return NO;
 	}
 	if (EXPECT_NOT([thisEnt isPlayer]))
@@ -1071,6 +1074,30 @@ static JSBool ShipReactToAIMessage(JSContext *context, JSObject *this, uintN arg
 	}
 	
 	[thisEnt reactToAIMessage:message context:@"JavaScript reactToAIMessage()"];
+	return YES;
+}
+
+
+// sendIMessage(message : String)
+static JSBool ShipSendAIMessage(JSContext *context, JSObject *this, uintN argc, jsval *argv, jsval *outResult)
+{
+	ShipEntity				*thisEnt = nil;
+	NSString				*message = nil;
+	
+	if (!JSShipGetShipEntity(context, this, &thisEnt)) return YES;	// stale reference, no-op.
+	message = JSValToNSString(context, argv[0]);
+	if (EXPECT_NOT(message == nil))
+	{
+		OOReportJSBadArguments(context, @"Ship", @"sendAIMessage", argc, argv, nil, @"string");
+		return NO;
+	}
+	if (EXPECT_NOT([thisEnt isPlayer]))
+	{
+		OOReportJSErrorForCaller(context, @"Ship", @"sendAIMessage", @"Cannot modify AI for player.");
+		return NO;
+	}
+	
+	[thisEnt sendAIMessage:message];
 	return YES;
 }
 
